@@ -155,26 +155,14 @@ const (
 )
 
 const (
-	FormParameterState               = "state"
-	FormParameterAuthorizationCode   = "code"
-	FormParameterClientID            = valueClientID
-	FormParameterClientSecret        = "client_secret"
-	FormParameterRequestURI          = "request_uri"
-	FormParameterRedirectURI         = "redirect_uri"
-	FormParameterResponse            = "response"
-	FormParameterResponseMode        = "response_mode"
-	FormParameterResponseType        = "response_type"
-	FormParameterCodeChallenge       = "code_challenge"
-	FormParameterCodeVerifier        = "code_verifier"
-	FormParameterCodeChallengeMethod = "code_challenge_method"
-	FormParameterClientAssertionType = "client_assertion_type"
-	FormParameterClientAssertion     = "client_assertion"
-	FormParameterScope               = valueScope
-	FormParameterAudience            = "audience"
-	FormParameterRefreshToken        = valueRefreshToken
-	FormParameterIssuer              = valueIss
-	FormParameterToken               = "token"
-	FormParameterTokenTypeHint       = "token_type_hint"
+	FormParameterState        = "state"
+	FormParameterClientID     = valueClientID
+	FormParameterRequestURI   = "request_uri"
+	FormParameterRedirectURI  = "redirect_uri"
+	FormParameterResponseMode = "response_mode"
+	FormParameterResponseType = "response_type"
+	FormParameterScope        = valueScope
+	FormParameterIssuer       = valueIss
 )
 
 const (

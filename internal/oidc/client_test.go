@@ -2,8 +2,6 @@ package oidc_test
 
 import (
 	"context"
-	"fmt"
-	"net/url"
 	"testing"
 	"time"
 
@@ -225,73 +223,6 @@ func TestBaseClient_Misc(t *testing.T) {
 			tc.setup(client)
 
 			tc.expected(t, client)
-		})
-	}
-}
-
-func TestRegisteredClient_ValidatePARPolicy(t *testing.T) {
-	testCases := []struct {
-		name     string
-		client   *oidc.RegisteredClient
-		have     *oauthelia2.Request
-		expected string
-	}{
-		{
-			"ShouldNotEnforcePAR",
-			&oidc.RegisteredClient{
-				RequirePushedAuthorizationRequests: false,
-			},
-			&oauthelia2.Request{},
-			"",
-		},
-		{
-			"ShouldEnforcePARAndErrorWithoutCorrectRequestURI",
-			&oidc.RegisteredClient{
-				RequirePushedAuthorizationRequests: true,
-			},
-			&oauthelia2.Request{
-				Form: map[string][]string{
-					oidc.FormParameterRequestURI: {"https://google.com"},
-				},
-			},
-			"invalid_request",
-		},
-		{
-			"ShouldEnforcePARAndErrorWithEmptyRequestURI",
-			&oidc.RegisteredClient{
-				RequirePushedAuthorizationRequests: true,
-			},
-			&oauthelia2.Request{
-				Form: map[string][]string{
-					oidc.FormParameterRequestURI: {""},
-				},
-			},
-			"invalid_request",
-		},
-		{
-			"ShouldEnforcePARAndNotErrorWithCorrectRequestURI",
-			&oidc.RegisteredClient{
-				RequirePushedAuthorizationRequests: true,
-			},
-			&oauthelia2.Request{
-				Form: map[string][]string{
-					oidc.FormParameterRequestURI: {oidc.RedirectURIPrefixPushedAuthorizationRequestURN + abc},
-				},
-			},
-			"",
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			err := tc.client.ValidatePARPolicy(tc.have, oidc.RedirectURIPrefixPushedAuthorizationRequestURN)
-
-			switch tc.expected {
-			case "":
-				assert.NoError(t, err)
-			default:
-				assert.EqualError(t, err, tc.expected)
-			}
 		})
 	}
 }
@@ -519,40 +450,26 @@ func TestNewClientPAR(t *testing.T) {
 		name     string
 		have     schema.IdentityProvidersOpenIDConnectClient
 		expected bool
-		r        *oauthelia2.Request
-		err      string
-		desc     string
 	}{
 		{
 			"ShouldNotEnforcEPARAndNotErrorOnNonPARRequest",
 			schema.IdentityProvidersOpenIDConnectClient{},
 			false,
-			&oauthelia2.Request{},
-			"",
-			"",
 		},
 		{
 			"ShouldEnforcePARAndErrorOnNonPARRequest",
 			schema.IdentityProvidersOpenIDConnectClient{RequirePushedAuthorizationRequests: true},
 			true,
-			&oauthelia2.Request{},
-			"invalid_request",
-			"The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Pushed Authorization Requests are enforced for this client but no such request was sent. The request_uri parameter was empty.",
 		},
 		{
 			"ShouldEnforcePARAndErrorOnNonPARRequest",
 			schema.IdentityProvidersOpenIDConnectClient{RequirePushedAuthorizationRequests: true},
 			true,
-			&oauthelia2.Request{Form: map[string][]string{oidc.FormParameterRequestURI: {"https://example.com"}}},
-			"invalid_request",
-			"The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Pushed Authorization Requests are enforced for this client but no such request was sent. The request_uri parameter 'https://example.com' is malformed."},
+		},
 		{
 			"ShouldEnforcePARAndNotErrorOnPARRequest",
 			schema.IdentityProvidersOpenIDConnectClient{RequirePushedAuthorizationRequests: true},
 			true,
-			&oauthelia2.Request{Form: map[string][]string{oidc.FormParameterRequestURI: {fmt.Sprintf("%sabc", oidc.RedirectURIPrefixPushedAuthorizationRequestURN)}}},
-			"",
-			"",
 		},
 	}
 
@@ -561,18 +478,6 @@ func TestNewClientPAR(t *testing.T) {
 			client := oidc.NewClient(tc.have, &schema.IdentityProvidersOpenIDConnect{})
 
 			assert.Equal(t, tc.expected, client.GetRequirePushedAuthorizationRequests())
-
-			if tc.r != nil {
-				err := client.ValidatePARPolicy(tc.r, oidc.RedirectURIPrefixPushedAuthorizationRequestURN)
-
-				if tc.err != "" {
-					require.NotNil(t, err)
-					assert.EqualError(t, err, tc.err)
-					assert.Equal(t, tc.desc, oauthelia2.ErrorToRFC6749Error(err).WithExposeDebug(true).GetDescription())
-				} else {
-					assert.NoError(t, err)
-				}
-			}
 		})
 	}
 }
@@ -1231,56 +1136,4 @@ func TestNewClient_JSONWebKeySetURI(t *testing.T) {
 	require.True(t, ok)
 
 	assert.Equal(t, "", registered.GetJSONWebKeysURI())
-}
-
-func TestBaseClient_ApplyRequestedAudiencePolicy(t *testing.T) {
-	testCases := []struct {
-		name     string
-		have     oauthelia2.Arguments
-		audience []string
-		form     url.Values
-		policy   oidc.ClientRequestedAudienceMode
-		expected oauthelia2.Arguments
-	}{
-		{
-			"ShouldNotModifyExplicit",
-			oauthelia2.Arguments(nil),
-			[]string{"example", "end"},
-			nil,
-			oidc.ClientRequestedAudienceModeExplicit,
-			oauthelia2.Arguments(nil),
-		},
-		{
-			"ShouldModifyImplicit",
-			oauthelia2.Arguments(nil),
-			[]string{"example", "end"},
-			nil,
-			oidc.ClientRequestedAudienceModeImplicit,
-			[]string{"example", "end"},
-		},
-		{
-			"ShouldNotModifyImplicitFormParameter",
-			oauthelia2.Arguments(nil),
-			[]string{"example", "end"},
-			url.Values{"audience": []string{}},
-			oidc.ClientRequestedAudienceModeImplicit,
-			oauthelia2.Arguments(nil),
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			client := &oidc.RegisteredClient{
-				ID:                    "test",
-				Audience:              tc.audience,
-				RequestedAudienceMode: tc.policy,
-			}
-
-			actual := &oauthelia2.Request{RequestedAudience: tc.have, Form: tc.form}
-
-			client.ApplyRequestedAudiencePolicy(actual)
-
-			assert.Equal(t, tc.expected, actual.RequestedAudience)
-		})
-	}
 }

@@ -263,9 +263,15 @@ func (c *RegisteredClient) GetEnableJWTProfileOAuthAccessTokens() (enable bool) 
 	return c.GetAccessTokenSignedResponseAlg() != SigningAlgNone || len(c.GetAccessTokenSignedResponseKeyID()) > 0
 }
 
-// GetRequirePushedAuthorizationRequests returns RequirePushedAuthorizationRequests.
+// GetRequirePushedAuthorizationRequests should return true if this client MUST use a Pushed Authorization Request.
 func (c *RegisteredClient) GetRequirePushedAuthorizationRequests() (require bool) {
 	return c.RequirePushedAuthorizationRequests
+}
+
+// GetPushedAuthorizeContextLifespan should return a custom lifespan or a duration of 0 seconds to utilize the
+// global lifespan.
+func (c *RegisteredClient) GetPushedAuthorizeContextLifespan() (lifespan time.Duration) {
+	return lifespan
 }
 
 // GetEnforcePKCE returns RequirePKCE.
@@ -281,20 +287,6 @@ func (c *RegisteredClient) GetEnforcePKCEChallengeMethod() (enforce bool) {
 // GetPKCEChallengeMethod returns PKCEChallengeMethod.
 func (c *RegisteredClient) GetPKCEChallengeMethod() (method string) {
 	return c.PKCEChallengeMethod
-}
-
-// ApplyRequestedAudiencePolicy applies the requested audience policy to a oauthelia2.Requester.
-func (c *RegisteredClient) ApplyRequestedAudiencePolicy(requester oauthelia2.Requester) {
-	switch c.RequestedAudienceMode {
-	case ClientRequestedAudienceModeExplicit:
-		return
-	case ClientRequestedAudienceModeImplicit:
-		if requester.GetRequestForm().Has(FormParameterAudience) || len(requester.GetRequestedAudience()) != 0 {
-			return
-		}
-
-		requester.SetRequestedAudience(c.Audience)
-	}
 }
 
 // GetConsentResponseBody returns the proper consent response body for this session.OIDCWorkflowSession.
@@ -340,22 +332,6 @@ func (c *RegisteredClient) GetAuthorizationPolicy() (policy ClientAuthorizationP
 // IsPublic returns the value of the Public property.
 func (c *RegisteredClient) IsPublic() (public bool) {
 	return c.Public
-}
-
-// ValidatePARPolicy is a helper function to validate additional policy constraints on a per-client basis.
-func (c *RegisteredClient) ValidatePARPolicy(r oauthelia2.Requester, prefix string) (err error) {
-	if c.RequirePushedAuthorizationRequests {
-		if !IsPushedAuthorizedRequest(r, prefix) {
-			switch requestURI := r.GetRequestForm().Get(FormParameterRequestURI); requestURI {
-			case "":
-				return errorsx.WithStack(ErrPAREnforcedClientMissingPAR.WithDebug("The request_uri parameter was empty."))
-			default:
-				return errorsx.WithStack(ErrPAREnforcedClientMissingPAR.WithDebugf("The request_uri parameter '%s' is malformed.", requestURI))
-			}
-		}
-	}
-
-	return nil
 }
 
 // ValidateResponseModePolicy is an additional check to the response mode parameter to ensure if it's omitted that the

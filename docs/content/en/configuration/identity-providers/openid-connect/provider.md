@@ -77,9 +77,7 @@ identity_providers:
     enable_jwt_access_token_stateless_introspection: false
     discovery_signed_response_alg: 'none'
     discovery_signed_response_key_id: ''
-    pushed_authorizations:
-      enforce: false
-      context_lifespan: '5m'
+    require_pushed_authorization_requests: false
     authorization_policies:
       policy_name:
         default_policy: 'two_factor'
@@ -383,22 +381,11 @@ The algorithm used to sign the [OAuth 2.0 Authorization Server Metadata] and [Op
 The value of this must one of those provided or calculated in the [jwks](#jwks). Per the specifications this Signed JSON
 Web Token is stored in the `signed_metadata` value using the compact encoding.
 
-### pushed_authorizations
-
-Controls the behaviour of [Pushed Authorization Requests].
-
-#### enforce
+### require_pushed_authorization_requests
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
 When enabled all authorization requests must use the [Pushed Authorization Requests] flow.
-
-#### context_lifespan
-
-{{< confkey type="string,integer" syntax="duration" default="5 minutes" required="no" >}}
-
-The maximum amount of time between the [Pushed Authorization Requests] flow being initiated and the generated
-`request_uri` being utilized by a client.
 
 ### authorization_policies
 

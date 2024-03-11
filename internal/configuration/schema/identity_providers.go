@@ -19,7 +19,7 @@ type IdentityProvidersOpenIDConnect struct {
 	EnableClientDebugMessages bool `koanf:"enable_client_debug_messages" json:"enable_client_debug_messages" jsonschema:"default=false,title=Enable Client Debug Messages" jsonschema_description:"Enables additional debug messages for clients."`
 	MinimumParameterEntropy   int  `koanf:"minimum_parameter_entropy" json:"minimum_parameter_entropy" jsonschema:"default=8,minimum=-1,title=Minimum Parameter Entropy" jsonschema_description:"The minimum entropy of the nonce parameter."`
 
-	EnforcePKCE              string `koanf:"enforce_pkce" json:"enforce_pkce" jsonschema:"default=public_clients_only,enum=public_clients_only,enum=never,enum=always,title=Enforce PKCE" jsonschema_description:"Controls enforcement of the use of Proof Key for Code Exchange on all clients."`
+	EnforcePKCE              string `koanf:"enforce_pkce" json:"enforce_pkce" jsonschema:"default=public_clients_only,enum=public_clients_only,enum=never,enum=always,title=Require PKCE" jsonschema_description:"Controls enforcement of the use of Proof Key for Code Exchange on all clients."`
 	EnablePKCEPlainChallenge bool   `koanf:"enable_pkce_plain_challenge" json:"enable_pkce_plain_challenge" jsonschema:"default=false,title=Enable PKCE Plain Challenge" jsonschema_description:"Enables use of the discouraged plain Proof Key for Code Exchange challenges."`
 
 	EnableJWTAccessTokenStatelessIntrospection bool `koanf:"enable_jwt_access_token_stateless_introspection" json:"enable_jwt_access_token_stateless_introspection" jsonschema:"title=Enable JWT Access Token Stateless Introspection" jsonschema_description:"Allows the use of stateless introspection of JWT Access Tokens which is not recommended."`
@@ -27,7 +27,8 @@ type IdentityProvidersOpenIDConnect struct {
 	DiscoverySignedResponseAlg   string `koanf:"discovery_signed_response_alg" json:"discovery_signed_response_alg" jsonschema:"default=none,enum=none,enum=RS256,enum=RS384,enum=RS512,enum=ES256,enum=ES384,enum=ES512,enum=PS256,enum=PS384,enum=PS512,title=Discovery Response Signing Algorithm" jsonschema_description:"The Algorithm this provider uses to sign the Discovery and Metadata Document responses."`
 	DiscoverySignedResponseKeyID string `koanf:"discovery_signed_response_key_id" json:"discovery_signed_response_key_id" jsonschema:"title=Discovery Response Signing Key ID" jsonschema_description:"The Key ID this provider uses to sign the Discovery and Metadata Document responses (overrides the 'discovery_signed_response_alg')."`
 
-	PAR  IdentityProvidersOpenIDConnectPAR  `koanf:"pushed_authorizations" json:"pushed_authorizations" jsonschema:"title=Pushed Authorizations" jsonschema_description:"Configuration options for Pushed Authorization Requests."`
+	RequirePushedAuthorizationRequests bool `koanf:"require_pushed_authorization_requests" json:"require_pushed_authorization_requests" jsonschema:"title=Require Pushed Authorization Requests" jsonschema_description:"Requires Pushed Authorization Requests for all clients for this Issuer."`
+
 	CORS IdentityProvidersOpenIDConnectCORS `koanf:"cors" json:"cors" jsonschema:"title=CORS" jsonschema_description:"Configuration options for Cross-Origin Request Sharing."`
 
 	Clients []IdentityProvidersOpenIDConnectClient `koanf:"clients" json:"clients" jsonschema:"title=Clients" jsonschema_description:"OpenID Connect 1.0 clients registry."`
@@ -96,12 +97,6 @@ type IdentityProvidersOpenIDConnectLifespanToken struct {
 	AuthorizeCode time.Duration `koanf:"authorize_code" json:"authorize_code" jsonschema:"default=1 minute,title=Authorize Code Lifespan" jsonschema_description:"The duration an Authorization Code is valid for."`
 	IDToken       time.Duration `koanf:"id_token" json:"id_token" jsonschema:"default=60 minutes,title=ID Token Lifespan" jsonschema_description:"The duration an ID Token is valid for."`
 	RefreshToken  time.Duration `koanf:"refresh_token" json:"refresh_token" jsonschema:"default=90 minutes,title=Refresh Token Lifespan" jsonschema_description:"The duration a Refresh Token is valid for."`
-}
-
-// IdentityProvidersOpenIDConnectPAR represents an OpenID Connect 1.0 PAR config.
-type IdentityProvidersOpenIDConnectPAR struct {
-	Enforce         bool          `koanf:"enforce" json:"enforce" jsonschema:"default=false,title=Enforce" jsonschema_description:"Enforce the use of PAR for all requests on all clients."`
-	ContextLifespan time.Duration `koanf:"context_lifespan" json:"context_lifespan" jsonschema:"default=5 minutes,title=Context Lifespan" jsonschema_description:"How long a PAR context is valid for."`
 }
 
 // IdentityProvidersOpenIDConnectCORS represents an OpenID Connect 1.0 CORS config.

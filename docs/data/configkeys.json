@@ -75,14 +75,9 @@
         "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_DISCOVERY_SIGNED_RESPONSE_KEY_ID"
     },
     {
-        "path": "identity_providers.oidc.pushed_authorizations.enforce",
+        "path": "identity_providers.oidc.require_pushed_authorization_requests",
         "secret": false,
-        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_PUSHED_AUTHORIZATIONS_ENFORCE"
-    },
-    {
-        "path": "identity_providers.oidc.pushed_authorizations.context_lifespan",
-        "secret": false,
-        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_PUSHED_AUTHORIZATIONS_CONTEXT_LIFESPAN"
+        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_REQUIRE_PUSHED_AUTHORIZATION_REQUESTS"
     },
     {
         "path": "identity_providers.oidc.cors.endpoints",

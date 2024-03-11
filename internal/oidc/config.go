@@ -38,8 +38,8 @@ func NewConfig(config *schema.IdentityProvidersOpenIDConnect, signer jwt.Signer,
 			AllowPlainChallengeMethod: config.EnablePKCEPlainChallenge,
 		},
 		PAR: PARConfig{
-			Enforced:        config.PAR.Enforce,
-			ContextLifespan: config.PAR.ContextLifespan,
+			Require:         config.RequirePushedAuthorizationRequests,
+			ContextLifespan: 5 * time.Minute,
 			URIPrefix:       RedirectURIPrefixPushedAuthorizationRequestURN,
 		},
 		JWTAccessToken: JWTAccessTokenConfig{
@@ -160,7 +160,7 @@ type JWTAccessTokenConfig struct {
 
 // PARConfig holds specific oauthelia2.Configurator information for Pushed Authorization Requests.
 type PARConfig struct {
-	Enforced        bool
+	Require         bool
 	URIPrefix       string
 	ContextLifespan time.Duration
 }
@@ -686,11 +686,11 @@ func (c *Config) GetPushedAuthorizeRequestURIPrefix(ctx context.Context) string 
 	return c.PAR.URIPrefix
 }
 
-// EnforcePushedAuthorize indicates if PAR is enforced. In this mode, a client
-// cannot pass authorize parameters at the 'authorize' endpoint. The 'authorize' endpoint
+// GetRequirePushedAuthorizationRequests indicates if the use of Pushed Authorization Requests is gobally required.
+// In this mode, a client cannot pass authorize parameters at the 'authorize' endpoint. The 'authorize' endpoint
 // must contain the PAR request_uri.
-func (c *Config) EnforcePushedAuthorize(ctx context.Context) bool {
-	return c.PAR.Enforced
+func (c *Config) GetRequirePushedAuthorizationRequests(ctx context.Context) (enforce bool) {
+	return c.PAR.Require
 }
 
 // GetPushedAuthorizeContextLifespan is the lifespan of the short-lived PAR context.

@@ -133,10 +133,8 @@ type Client interface {
 	GetEnforcePKCEChallengeMethod() (enforce bool)
 	GetPKCEChallengeMethod() (method string)
 
-	ValidatePARPolicy(r oauthelia2.Requester, prefix string) (err error)
 	ValidateResponseModePolicy(r oauthelia2.AuthorizeRequester) (err error)
 
-	ApplyRequestedAudiencePolicy(requester oauthelia2.Requester)
 	GetConsentResponseBody(consent *model.OAuth2ConsentSession) (body ConsentGetResponseBody)
 	GetConsentPolicy() ClientConsentPolicy
 	IsAuthenticationLevelSufficient(level authentication.Level, subject authorization.Subject) (sufficient bool)
@@ -964,6 +962,7 @@ var (
 	_ oauthelia2.RefreshFlowScopeClient                            = (*RegisteredClient)(nil)
 	_ oauthelia2.RevokeFlowRevokeRefreshTokensExplicitClient       = (*RegisteredClient)(nil)
 	_ oauthelia2.JARMClient                                        = (*RegisteredClient)(nil)
+	_ oauthelia2.PushedAuthorizationRequestClient                  = (*RegisteredClient)(nil)
 	_ oauthelia2.ResponseModeClient                                = (*RegisteredClient)(nil)
 	_ oauthelia2.ClientCredentialsFlowRequestedScopeImplicitClient = (*RegisteredClient)(nil)
 	_ oauthelia2.RequestedAudienceImplicitClient                   = (*RegisteredClient)(nil)

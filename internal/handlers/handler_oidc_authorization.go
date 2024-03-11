@@ -52,14 +52,6 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		return
 	}
 
-	if err = client.ValidatePARPolicy(requester, ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)); err != nil {
-		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' failed to validate the PAR policy: %s", requester.GetID(), clientID, oidc.ErrorToDebugRFC6749Error(err))
-
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
-
-		return
-	}
-
 	if !oidc.IsPushedAuthorizedRequest(requester, ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)) {
 		if err = client.ValidateResponseModePolicy(requester); err != nil {
 			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' failed to validate the Response Mode: %s", requester.GetID(), client.GetID(), oidc.ErrorToDebugRFC6749Error(err))
@@ -69,8 +61,6 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 			return
 		}
 	}
-
-	client.ApplyRequestedAudiencePolicy(requester)
 
 	var (
 		userSession session.UserSession

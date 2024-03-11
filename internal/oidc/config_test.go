@@ -216,13 +216,13 @@ func TestConfig_PAR(t *testing.T) {
 	assert.Equal(t, "urn:ietf:params:oauth:request_uri:", config.GetPushedAuthorizeRequestURIPrefix(ctx))
 	assert.Equal(t, "urn:ietf:params:oauth:request_uri:", config.PAR.URIPrefix)
 
-	assert.False(t, config.PAR.Enforced)
-	assert.False(t, config.EnforcePushedAuthorize(ctx))
-	assert.False(t, config.PAR.Enforced)
+	assert.False(t, config.PAR.Require)
+	assert.False(t, config.GetRequirePushedAuthorizationRequests(ctx))
+	assert.False(t, config.PAR.Require)
 
-	config.PAR.Enforced = true
+	config.PAR.Require = true
 
-	assert.True(t, config.EnforcePushedAuthorize(ctx))
+	assert.True(t, config.GetRequirePushedAuthorizationRequests(ctx))
 
 	assert.Equal(t, time.Duration(0), config.PAR.ContextLifespan)
 	assert.Equal(t, time.Minute*5, config.GetPushedAuthorizeContextLifespan(ctx))
