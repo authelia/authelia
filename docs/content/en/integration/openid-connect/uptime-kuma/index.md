@@ -108,8 +108,8 @@ To configure [Uptime-Kuma] to utilize Authelia as an [OpenID Connect 1.0] Provid
    - Client Secret: `insecure_secret`
    - OAuth Scope: `authelia.bearer.authz`
 
-See the following screenshot for an authentication example of the above:
-![Uptime-Kuma Authentiaction example](image.png)
+See the following screenshot for an authentication example of the above:  
+{{< figure src="uptime-kuma-authentication.png" alt="Uptime-Kuma Authentiaction example" width="300" >}}
 
 
 ## See Also
