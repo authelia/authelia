@@ -30,9 +30,9 @@ This example makes the following assumptions:
 
 * __Application Root URL:__ `https://uptime-kuma.example.com/`
 * __Authelia Root URL:__ `https://auth.example.com/`
-* __Client ID:__ `uptime-kuma-monitor`
+* __Client ID:__ `uptime-kuma`
 * __Client Secret:__ `insecure_secret`
-* __Secured Resource URL:__ `https://secure.example.com/`
+* __Secured Resource URL:__ `https://application.example.com/`
 
 ## Configuration
 
@@ -46,8 +46,8 @@ which will operate with the above example:
 server:
   endpoints:
     authz:
-      forward-auth:
-        implementation: 'ForwardAuth'
+      name:  # The name of the Authorization endpoint.
+        implementation: ''  # Must be configured as 'ForwardAuth', 'AuthRequest', or 'ExtAuthz'.
         authn_strategies:
           - name: 'HeaderProxyAuthorization'
             schemes:
@@ -62,35 +62,35 @@ server:
 access_control:
   rules:
     - domain:
-      - "secure.example.com"
+      - 'application.example.com'
       subject:
         - ['oauth2:client:uptime-kuma-monitor']
-      policy: one_factor
+      policy: 'one_factor'
 
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
-      - client_id: 'uptime-kuma-monitor'
-        client_name: 'Uptime Kuma Monitor'
+      - client_id: 'uptime-kuma'
+        client_name: 'Uptime Kuma'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
         scopes:
-          - authelia.bearer.authz
+          - 'authelia.bearer.authz'
         audience:
-          - https://secure.example.com/
+          - 'https://application.example.com/'
         grant_types:
-          - client_credentials
+          - 'client_credentials'
         requested_audience_mode: implicit
         token_endpoint_auth_method: client_secret_basic
 ```
 Notes:
 
 - You will need to enable Header Authorization strategy for your [Server Authz Endpoints].
-- When you use `implicit` audience mode, you do not need to provide an `audience` in your token request. When using `explicit` audience mode, you will need to provide the specific audience in your request. See [`requested_audience_mode`] - right now Uptime Kuma does not support setting audience, so you need to keep this at `implicit` for now.
-- The `audience` (or multiple) is the endpoints of the secured ressources you want to monitor using Uptime Kuma
-- If you have multiple monitors you can either have multiple clients or add the allowed audiences to the existing client from this example, also make sure to add the additional audiences to access control rules.
+- The configuration has a [requested_audience_mode] value of `implicit` which is used to automatically grant all audiences the client is permitted to request, the default is `explicit` which does not do this and the client must also request the audience using the `audience` form parameter. As [Uptime Kuma] does not currently support this this configuration is required. 
+- The `audience` (or multiple) is the endpoints of the secured resource you want to monitor using [Uptime Kuma].
+- If you have multiple monitors you can either have multiple clients or add the allowed audiences to the existing client from this example, also make sure to add the additional entries to access control rules.
 
 
 ### Application
@@ -104,7 +104,7 @@ To configure [Uptime Kuma] to utilize Authelia as an [OpenID Connect 1.0] Provid
    - Method: OAuth2: Client Credentials
    - Authentication Method: Authorization Header
    - OAuth Token URL: `https://auth.example.com/api/oidc/token`
-   - Client ID: `uptime-kuma-monitor`
+   - Client ID: `uptime-kuma`
    - Client Secret: `insecure_secret`
    - OAuth Scope: `authelia.bearer.authz`
 
@@ -112,11 +112,8 @@ See the following screenshot for an authentication example of the above:
 {{< figure src="uptime-kuma-authentication.png" alt="Uptime Kuma Authentication example" width="300" >}}
 
 
-## See Also
-
-* [Uptime Kuma PR #3119](https://github.com/louislam/uptime-kuma/pull/3119)
 [Authelia]: https://www.authelia.com
 [Uptime Kuma]: https://github.com/louislam/uptime-kuma
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[`requested_audience_mode`]: ../../../configuration/openid-connect/clients/#requested_audience_mode
+[requested_audience_mode]: ../../../configuration/openid-connect/clients/#requested_audience_mode
 [Server Authz Endpoints]: ../../../configuration/miscellaneous/server-endpoints-authz/
