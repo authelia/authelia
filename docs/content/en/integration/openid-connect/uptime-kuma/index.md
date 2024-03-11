@@ -99,7 +99,7 @@ To configure [Uptime Kuma] to utilize Authelia as an [OpenID Connect 1.0] Provid
 
 1. Create a new status monitor or configure an existing one
 2. Choose monitor type e.g. HTTP(s) Keyword and set a keyword you want to find
-3. Set the URL to be monitored (this corresponds to the the `audience` parameter in Authelia)
+3. Set the URL to be monitored (this corresponds to the `audience` parameter in Authelia)
 4. Configure Authentication as follows:  
    - Method: OAuth2: Client Credentials
    - Authentication Method: Authorization Header
@@ -109,7 +109,7 @@ To configure [Uptime Kuma] to utilize Authelia as an [OpenID Connect 1.0] Provid
    - OAuth Scope: `authelia.bearer.authz`
 
 See the following screenshot for an authentication example of the above:  
-{{< figure src="uptime-kuma-authentication.png" alt="Uptime Kuma Authentiaction example" width="300" >}}
+{{< figure src="uptime-kuma-authentication.png" alt="Uptime Kuma Authentication example" width="300" >}}
 
 
 ## See Also
