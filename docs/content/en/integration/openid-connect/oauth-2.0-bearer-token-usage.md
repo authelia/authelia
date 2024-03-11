@@ -216,8 +216,8 @@ identity_providers:
         response_modes:
           - 'form_post'
         consent_mode: 'explicit'
-        enforce_par: true
-        enforce_pkce: true
+        require_pushed_authorization_requests: true
+        require_pkce: true
         pkce_challenge_method: 'S256'
         token_endpoint_auth_method: 'none'
 ```
@@ -249,8 +249,8 @@ identity_providers:
         response_modes:
           - 'form_post'
         consent_mode: 'explicit'
-        enforce_par: true
-        enforce_pkce: true
+        require_pushed_authorization_requests: true
+        require_pkce: true
         pkce_challenge_method: 'S256'
         token_endpoint_auth_method: 'client_secret_basic'
 ```
