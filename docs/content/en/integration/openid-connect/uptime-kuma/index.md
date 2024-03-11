@@ -17,7 +17,7 @@ community: true
 
 * [Authelia]
   * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-* [Komga]
+* [Uptime-Kuma]
   * [v1.23.11](https://github.com/louislam/uptime-kuma/releases/tag/1.23.11)
 
 ## Before You Begin
@@ -32,7 +32,7 @@ This example makes the following assumptions:
 * __Authelia Root URL:__ `https://auth.example.com/`
 * __Client ID:__ `uptime-kuma-monitor`
 * __Client Secret:__ `insecure_secret`
-* __Secured Ressource URL:__ `https://secure.example.com/`
+* __Secured Resource URL:__ `https://secure.example.com/`
 
 ## Configuration
 
