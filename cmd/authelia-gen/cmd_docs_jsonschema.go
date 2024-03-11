@@ -359,16 +359,23 @@ func jsonschemaKoanfMapper(t reflect.Type) *jsonschema.Schema {
 		}
 	case "schema.CryptographicKey":
 		return &jsonschema.Schema{
-			Type: jsonschema.TypeString,
+			Type:    jsonschema.TypeString,
+			Pattern: `^-{5}BEGIN (((RSA|EC) )?(PRIVATE|PUBLIC) KEY|CERTIFICATE)-{5}\n([a-zA-Z0-9\/+]{1,64}\n)+([a-zA-Z0-9\/+]{1,64}[=]{0,2})\n-{5}END (((RSA|EC) )?(PRIVATE|PUBLIC) KEY|CERTIFICATE)-{5}\n?$`,
 		}
 	case "schema.CryptographicPrivateKey":
 		return &jsonschema.Schema{
 			Type:    jsonschema.TypeString,
-			Pattern: `^-{5}(BEGIN ((RSA|EC) )?PRIVATE KEY-{5}\n([a-zA-Z0-9/+]{1,64}\n)+([a-zA-Z0-9/+]{1,64}[=]{0,2})\n-{5}END ((RSA|EC) )?PRIVATE KEY-{5}\n?)+$`,
+			Pattern: `^-{5}BEGIN ((RSA|EC) )?PRIVATE KEY-{5}\n([a-zA-Z0-9\/+]{1,64}\n)+([a-zA-Z0-9\/+]{1,64}[=]{0,2})\n-{5}END ((RSA|EC) )?PRIVATE KEY-{5}\n?$`,
 		}
-	case "rsa.PrivateKey", "*rsa.PrivateKey", "ecdsa.PrivateKey", "*.ecdsa.PrivateKey":
+	case "rsa.PrivateKey", "*rsa.PrivateKey":
 		return &jsonschema.Schema{
-			Type: jsonschema.TypeString,
+			Type:    jsonschema.TypeString,
+			Pattern: `^-{5}(BEGIN (RSA )?PRIVATE KEY-{5}\n([a-zA-Z0-9\/+]{1,64}\n)+([a-zA-Z0-9\/+]{1,64}[=]{0,2})\n-{5}END (RSA )?PRIVATE KEY-{5}\n?)+$`,
+		}
+	case "ecdsa.PrivateKey", "*.ecdsa.PrivateKey":
+		return &jsonschema.Schema{
+			Type:    jsonschema.TypeString,
+			Pattern: `^-{5}(BEGIN ((EC )?PRIVATE KEY-{5}\n([a-zA-Z0-9\/+]{1,64}\n)+([a-zA-Z0-9\/+]{1,64}[=]{0,2})\n-{5}END (EC )?PRIVATE KEY-{5}\n?)+$`,
 		}
 	case "mail.Address", "*mail.Address":
 		return &jsonschema.Schema{

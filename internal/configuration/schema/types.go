@@ -244,7 +244,7 @@ type X509CertificateChain struct {
 func (X509CertificateChain) JSONSchema() *jsonschema.Schema {
 	return &jsonschema.Schema{
 		Type:    jsonschema.TypeString,
-		Pattern: `^(-{5}BEGIN CERTIFICATE-{5}\n([a-zA-Z0-9/+]{1,64}\n)+([a-zA-Z0-9/+]{1,64}[=]{0,2})\n-{5}END CERTIFICATE-{5}\n?)+$`,
+		Pattern: `^(-{5}BEGIN CERTIFICATE-{5}\n([a-zA-Z0-9\/+]{1,64}\n)+([a-zA-Z0-9\/+]{1,64}[=]{0,2})\n-{5}END CERTIFICATE-{5}\n?)+$`,
 	}
 }
 
@@ -604,7 +604,7 @@ var jsonschemaACLNetwork = jsonschema.Schema{
 
 var jsonschemaACLSubject = jsonschema.Schema{
 	Type:    jsonschema.TypeString,
-	Pattern: "^(user|group|oauth2:client:):.+$",
+	Pattern: "^(user|group|oauth2:client):.+$",
 }
 
 var jsonschemaACLMethod = jsonschema.Schema{
