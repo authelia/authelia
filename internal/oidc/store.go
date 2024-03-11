@@ -154,7 +154,6 @@ func (s *Store) InvalidateAuthorizeCodeSession(ctx context.Context, code string)
 // Make sure to also return the oauthelia2.Requester value when returning the oauthelia2.ErrInvalidatedAuthorizeCode error!
 // This implements a portion of oauth2.AuthorizeCodeStorage.
 func (s *Store) GetAuthorizeCodeSession(ctx context.Context, code string, session oauthelia2.Session) (request oauthelia2.Requester, err error) {
-	// TODO: Implement the oauthelia2.ErrInvalidatedAuthorizeCode error above. This requires splitting the invalidated sessions and deleted sessions.
 	return s.loadRequesterBySignature(ctx, storage.OAuth2SessionTypeAuthorizeCode, code, session)
 }
 
