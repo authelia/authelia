@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
-	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
 // OAuthRevocationPOST handles POST requests to the OAuth 2.0 Revocation endpoint.
@@ -28,7 +27,7 @@ func OAuthRevocationPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r
 	ctx.Logger.Debugf("Revocation Request with id '%s' is being processed", requestID)
 
 	if err = ctx.Providers.OpenIDConnect.NewRevocationRequest(ctx, req); err != nil {
-		ctx.Logger.Errorf("Revocation Request with id '%s' failed with error: %s", requestID, oidc.ErrorToDebugRFC6749Error(err))
+		ctx.Logger.Errorf("Revocation Request with id '%s' failed with error: %s", requestID, oauthelia2.ErrorToDebugRFC6749Error(err))
 	}
 
 	ctx.Providers.OpenIDConnect.WriteRevocationResponse(ctx, rw, err)

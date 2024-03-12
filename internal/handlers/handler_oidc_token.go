@@ -22,7 +22,7 @@ func OpenIDConnectTokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 	session := oidc.NewSession()
 
 	if requester, err = ctx.Providers.OpenIDConnect.NewAccessRequest(ctx, req, session); err != nil {
-		ctx.Logger.Errorf("Access Request failed with error: %s", oidc.ErrorToDebugRFC6749Error(err))
+		ctx.Logger.Errorf("Access Request failed with error: %s", oauthelia2.ErrorToDebugRFC6749Error(err))
 
 		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
 
@@ -35,7 +35,7 @@ func OpenIDConnectTokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 
 	if requester.GetGrantTypes().ExactOne(oidc.GrantTypeClientCredentials) {
 		if err = oidc.PopulateClientCredentialsFlowSessionWithAccessRequest(ctx, client, session); err != nil {
-			ctx.Logger.Errorf("Access Response for Request with id '%s' failed to be created with error: %s", requester.GetID(), oidc.ErrorToDebugRFC6749Error(err))
+			ctx.Logger.Errorf("Access Response for Request with id '%s' failed to be created with error: %s", requester.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
 
 			ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
 
@@ -43,7 +43,7 @@ func OpenIDConnectTokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 		}
 
 		if err = oidc.PopulateClientCredentialsFlowRequester(ctx, ctx.Providers.OpenIDConnect, client, requester); err != nil {
-			ctx.Logger.Errorf("Access Response for Request with id '%s' failed to be created with error: %s", requester.GetID(), oidc.ErrorToDebugRFC6749Error(err))
+			ctx.Logger.Errorf("Access Response for Request with id '%s' failed to be created with error: %s", requester.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
 
 			ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
 
@@ -54,7 +54,7 @@ func OpenIDConnectTokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 	ctx.Logger.Tracef("Access Request with id '%s' on client with id '%s' response is being generated for session with type '%T'", requester.GetID(), client.GetID(), requester.GetSession())
 
 	if responder, err = ctx.Providers.OpenIDConnect.NewAccessResponse(ctx, requester); err != nil {
-		ctx.Logger.Errorf("Access Response for Request with id '%s' failed to be created with error: %s", requester.GetID(), oidc.ErrorToDebugRFC6749Error(err))
+		ctx.Logger.Errorf("Access Response for Request with id '%s' failed to be created with error: %s", requester.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
 
 		ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
 

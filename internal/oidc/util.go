@@ -1,7 +1,6 @@
 package oidc
 
 import (
-	"errors"
 	"fmt"
 	"net/url"
 	"sort"
@@ -11,29 +10,12 @@ import (
 	oauthelia2 "authelia.com/provider/oauth2"
 	fjwt "authelia.com/provider/oauth2/token/jwt"
 	"github.com/go-jose/go-jose/v4"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/ory/x/errorsx"
 	"golang.org/x/text/language"
 )
 
 // IsPushedAuthorizedRequest returns true if the requester has a PushedAuthorizationRequest redirect_uri value.
 func IsPushedAuthorizedRequest(r oauthelia2.Requester, prefix string) bool {
 	return strings.HasPrefix(r.GetRequestForm().Get(FormParameterRequestURI), prefix)
-}
-
-// MatchScopes uses a oauthelia2.ScopeStrategy to check if scopes match.
-func MatchScopes(strategy oauthelia2.ScopeStrategy, granted, scopes []string) error {
-	for _, scope := range scopes {
-		if scope == "" {
-			continue
-		}
-
-		if !strategy(granted, scope) {
-			return errorsx.WithStack(oauthelia2.ErrInvalidScope.WithHintf("The request scope '%s' has not been granted or is not allowed to be requested.", scope))
-		}
-	}
-
-	return nil
 }
 
 // SortedSigningAlgs is a sorting type which allows the use of sort.Sort to order a list of OAuth 2.0 Signing Algs.
@@ -118,51 +100,6 @@ func isSigningAlgLess(i, j string) bool {
 			return false
 		}
 	}
-}
-
-// JTIFromMapClaims returns a JTI from a jwt.MapClaims.
-func JTIFromMapClaims(m jwt.MapClaims) (jti string, err error) {
-	var (
-		ok  bool
-		raw any
-	)
-
-	if raw, ok = m[ClaimJWTID]; !ok {
-		return "", nil
-	}
-
-	if jti, ok = raw.(string); !ok {
-		return "", fmt.Errorf("invalid type for claim: jti is invalid")
-	}
-
-	return jti, nil
-}
-
-// ErrorToDebugRFC6749Error converts the provided error to a *DebugRFC6749Error provided it is not nil and can be
-// cast as a *oauthelia2.RFC6749Error.
-func ErrorToDebugRFC6749Error(err error) (rfc error) {
-	if err == nil {
-		return nil
-	}
-
-	var e *oauthelia2.RFC6749Error
-
-	if errors.As(err, &e) {
-		return &DebugRFC6749Error{e}
-	}
-
-	return err
-}
-
-// DebugRFC6749Error is a decorator type which makes the underlying *oauthelia2.RFC6749Error expose debug information and
-// show the full error description.
-type DebugRFC6749Error struct {
-	*oauthelia2.RFC6749Error
-}
-
-// Error implements the builtin error interface and shows the error with its debug info and description.
-func (err *DebugRFC6749Error) Error() string {
-	return err.WithExposeDebug(true).GetDescription()
 }
 
 // GetLangFromRequester gets the expected language for a requester.
