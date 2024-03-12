@@ -42,7 +42,7 @@ const (
 	errFmtDecodeHookCouldNotParseBasic      = "could not decode to a %s%s: %w"
 	errFmtDecodeHookCouldNotParseEmptyValue = "could not decode an empty value to a %s%s: %w"
 
-	errFmtSuffixAutoRemappedKey = "you are not required to make any changes as this has been automatically mapped for you, but you will need to adjust your configuration to remove this message, and this option and auto-mapping is likely to be removed in %s"
+	errFmtSuffixAutoRemappedKey = "you are not required to make any changes as this has been automatically mapped for you, but to stop this warning being logged you will need to adjust your configuration, and this configuration key and auto-mapping is likely to be removed in %s"
 
 	errFmtSpecialRemappedKey = "configuration key '%s' is deprecated in %s and has been replaced by '%s' when combined with the '%s' in the format of '%s': " + errFmtSuffixAutoRemappedKey
 	errFmtAutoMapKey         = "configuration key '%s' is deprecated in %s and has been replaced by '%s': " + errFmtSuffixAutoRemappedKey
