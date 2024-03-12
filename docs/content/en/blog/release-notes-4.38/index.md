@@ -67,16 +67,18 @@ This release includes the machine-based Client Credentials Flow which can be use
 well as ways to configure how this process affects the resulting token including the ability to automatically grant the
 audience the client is entitled to request.
 
+[OAuth 2.0 Client Credentials Flow]: #oauth-20-client-credentials-flow
+
 #### OAuth 2.0 Bearer Token Usage
 
-In conjunction with [OAuth 2.0 Client Credentials Flow](#oauth-20-client-credentials-flow) special OAuth 2.0 Bearer
-Access Tokens can be utilized with the new [OAuth 2.0 Client Credentials Flow](#oauth-20-client-credentials-flow) and
-an additional flow which allows for users to create their own tokens. We will be adding tooling to be able to do this
-in the very near future though it's technically already supported via secure standardized mechanisms. This is
-implemented as per [RFC6750].
+In conjunction with [OAuth 2.0 Client Credentials Flow] special OAuth 2.0 Bearer Access Tokens can be utilized with the
+new [OAuth 2.0 Client Credentials Flow] and an additional flow which allows for users to create their own tokens. We
+will be adding tooling to be able to do this in the very near future though it's technically already supported via
+secure standardized mechanisms. This is implemented as per [RFC6750].
 
-More information on this feature can be found in the [OAuth 2.0 Bearer Token Usage Integration Guide](../../integration/openid-connect/oauth-2.0-bearer-token-usage.md).
+More information on this feature can be found in the [OAuth 2.0 Bearer Token Usage Integration Guide].
 
+[OAuth 2.0 Bearer Token Usage Integration Guide]: ../../integration/openid-connect/oauth-2.0-bearer-token-usage.md
 [RFC6750]: https://datatracker.ietf.org/doc/html/rfc6750
 
 #### OAuth 2.0 Authorization Server Issuer Identification
@@ -118,12 +120,12 @@ This option can be enforced globally for users who only use relying parties whic
 #### OAuth 2.0 JWT Secured Authorization Response Mode
 
 Also known as JARM, the JWT Secured Authorization Response Mode allows for the entire response from a authorization
-server to be formally signed and/or encrypted by a known key. Support for this has been added. This can be configured
-by setting the client configuration option
-[response_modes] to allow one of the JARM response modes such as `query.jwt`, `fragment.jwt`, or `form_post.jwt` as well
+server to be formally signed and/or encrypted by a known key. Support for this has been added for clients which support
+this mechanism. This can be configured by setting the client configuration option [response_modes] to allow one of the
+JARM response modes such as `query.jwt`, `fragment.jwt`, or `form_post.jwt` as well
 as setting the client configuration option [authorization_signed_response_alg] or [authorization_signed_response_key_id].
 
-The latter is done via the same means as the [Client JSON Web Key Selection](#client-json-web-key-selection) process.
+The latter is done via the same means as the [Client JSON Web Key Selection] process.
 
 [response_modes]: ../../configuration/identity-providers/openid-connect/clients.md#response_modes
 [authorization_signed_response_alg]: ../../configuration/identity-providers/openid-connect/clients.md#authorization_signed_response_alg
@@ -135,7 +137,7 @@ Similar to the above [OAuth 2.0 JWT Secured Authorization Response Mode](#oauth-
 the introspection responses can now be a signed JSON Web Token. This is done similarly via the client configuration options
 [introspection_signed_response_alg] and [introspection_signed_response_key_id].
 
-This is done via the same means as the [Client JSON Web Key Selection](#client-json-web-key-selection) process.
+This is done via the same means as the [Client JSON Web Key Selection] process.
 
 [introspection_signed_response_alg]: ../../configuration/identity-providers/openid-connect/clients.md#introspection_signed_response_alg
 [introspection_signed_response_key_id]: ../../configuration/identity-providers/openid-connect/clients.md#introspection_signed_response_key_id
@@ -208,8 +210,7 @@ The following examples illustrate a before and after change for this element in 
 this change many of the new features in OpenID Connect 1.0 that revolve around selecting a key will not be supported
 (they may work, but it's not guaranteed, if they're not working you'll be asked to fix this).
 
-The available options and a full example is available from the [jwks](../../configuration/identity-providers/openid-connect/provider.md#jwks)
-section of the OpenID Connect 1.0 Provider guide.
+The available options and a full example is available from the [jwks] section of the OpenID Connect 1.0 Provider guide.
 
 It should be noted that the new configuration style does not natively support secrets. Instead this must be done via the
 template filter example. To use this example you'll need to enable the `template` filter using the
@@ -261,35 +262,40 @@ identity_providers:
 
 Several client options are now exposed to the administrator allowing configuration of the JSON Web Key used to sign
 particular operations, a majority of these can be selected either via the algorithm or the specific key ID providing the
-JSON Web Key is registered in the new [jwks](../../configuration/identity-providers/openid-connect/provider.md#jwks)
-option.
+JSON Web Key is registered in the new [jwks] option.
+
+[Client JSON Web Key Selection]: #client-json-web-key-selection
+[jwks]: ../../configuration/identity-providers/openid-connect/provider.md#jwks
 
 #### OAuth 2.0 JWT Profile for Access Tokens
 
 Now administrators can configure on a per-client basis the use of the JWT Profile for Access Tokens per [RFC9068]. This
-is configured on the registered client level with the [access_token_signed_response_alg](../../configuration/identity-providers/openid-connect/clients.md#access_token_signed_response_alg)
-and [access_token_signed_response_key_id](../../configuration/identity-providers/openid-connect/clients.md#access_token_signed_response_key_id)
-configuration options.
+is configured on the registered client level with the [access_token_signed_response_alg] and
+[access_token_signed_response_key_id] configuration options.
 
-This is done via the same means as the [Client JSON Web Key Selection](#client-json-web-key-selection) process.
+This is done via the same means as the [Client JSON Web Key Selection] process.
 
 [RFC9068]: https://datatracker.ietf.org/doc/html/rfc9068
+[access_token_signed_response_alg]: ../../configuration/identity-providers/openid-connect/clients.md#access_token_signed_response_alg
+[access_token_signed_response_key_id]: ../../configuration/identity-providers/openid-connect/clients.md#access_token_signed_response_key_id
 
 #### OAuth 2.0 Authorization Server Metadata and OpenID Connect Discovery 1.0 Signing
 
 The discovery endpoints can now optionally embed a signed JWT into their values for compatible clients to verify the
 discovery metadata.
 
-These can be configured via the [discovery_signed_response_alg](../../configuration/identity-providers/openid-connect/provider.md#discovery_signed_response_alg)
-and [discovery_signed_response_key_id](../../configuration/identity-providers/openid-connect/provider.md#discovery_signed_response_key_id)
-configuration options.
+These can be configured via the [discovery_signed_response_alg] and [discovery_signed_response_key_id] configuration
+options.
 
-This is done via similar means as the [Client JSON Web Key Selection](#client-json-web-key-selection) process.
+This is done via similar means as the [Client JSON Web Key Selection] process.
+
+[discovery_signed_response_alg]: ../../configuration/identity-providers/openid-connect/provider.md#discovery_signed_response_alg
+[discovery_signed_response_key_id]: ../../configuration/identity-providers/openid-connect/provider.md#discovery_signed_response_key_id
 
 ## Multi-Domain Protection
 
 In this release we are releasing the main implementation of the Multi-Domain Protection roadmap item.
-Please see the [roadmap](../../roadmap/active/openid-connect.md) for more information.
+Please see the [roadmap](../../roadmap/active/multi-domain-protection.md) for more information.
 
 #### Initial Implementation
 
@@ -395,6 +401,25 @@ See the [Server Authz Endpoints](../../configuration/miscellaneous/server-endpoi
 information.
 
 ### Changes {#changes-customizable-authorization-endpoints}
+
+It should be noted that making the following changes is strongly recommended to occur at the same time as the
+[Multi-Domain Protection](#changes-multiple-domain-protection) changes as several of the features are dependent on the
+other.
+
+The main changes which need to occur for everyone is that instead of using the deprecated legacy `/api/verify` endpoint
+for their proxy integration they need to upgrade to the `/api/authz/*` variant applicable to their proxy and remove the
+`rd` parameter from this integration as this is now handled via the new `authelia_url` value from the session changes.
+
+For example if your previous proxy configuration included `http://authelia:9091/api/verify?rd=https://auth.example.com`
+it now by default becomes `http://authelia:9091/api/authz/forward-auth` for Traefik / Caddy / HAProxy, by default
+becomes `http://authelia:9091/api/authz/auth-request` for NGINX based proxies, and by default becomes
+`http://authelia:9091/api/authz/ext-authz` for Envoy.
+
+It should be noted these new endpoints can be customized in the
+[server endpoints authz](../../configuration/miscellaneous/server-endpoints-authz.md) section, if custom configuration
+is supplied then only the configured endpoints will actually exist, and the proxies may require some additional
+configuration depending on your proxy and you should consult the
+[Integration Guide](../../integration/proxies/introduction.md) for your particular proxy.
 
 
 ## User Dashboard / Control Panel
