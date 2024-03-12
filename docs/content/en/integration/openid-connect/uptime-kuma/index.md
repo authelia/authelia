@@ -52,7 +52,7 @@ the time to understand it before you attempt to do it. Some notes about this are
    2. The name represents the endpoint path, for example setting `endpoint_name` will configure an endpoint at
       `/api/authz/endpoint_name`.
 3. The use of the `HeaderAuthorization` strategy and how it's configured here accepts bearer tokens in the Authorization
-   header as one of the possible ways to authenticate but still allows cookie based authorization.
+   header as one of the possible ways to authenticate, but still allows cookie-based authorization.
 
 See more information about the server authz endpoints section in the
 [Configuration Guide](../../../configuration/miscellaneous/server-endpoints-authz.md) and
