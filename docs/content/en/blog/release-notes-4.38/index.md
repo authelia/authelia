@@ -63,7 +63,7 @@ putting a lot of time into implementing security and privacy-fist features.
 
 #### OAuth 2.0 Client Credentials Flow
 
-This release includes the machine-based Client Credentials Flow which can be used to programatically obtain tokens, as
+This release includes the machine-based Client Credentials Flow which can be used to programmatically obtain tokens, as
 well as ways to configure how this process affects the resulting token including the ability to automatically grant the
 audience the client is entitled to request.
 
