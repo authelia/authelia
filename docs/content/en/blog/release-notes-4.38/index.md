@@ -119,11 +119,11 @@ This option can be enforced globally for users who only use relying parties whic
 
 Also known as JARM, the JWT Secured Authorization Response Mode allows for the entire response from a authorization
 server to be formally signed and/or encrypted by a known key. Support for this has been added. This can be configured
-by setting the client configuraiton option
+by setting the client configuration option
 [response_modes] to allow one of the JARM response modes such as `query.jwt`, `fragment.jwt`, or `form_post.jwt` as well
 as setting the client configuration option [authorization_signed_response_alg] or [authorization_signed_response_key_id].
 
-The later is done via the same means as the [Client JSON Web Key Selection](#client-json-web-key-selection) process.
+The latter is done via the same means as the [Client JSON Web Key Selection](#client-json-web-key-selection) process.
 
 [response_modes]: ../../configuration/identity-providers/openid-connect/clients.md#response_modes
 [authorization_signed_response_alg]: ../../configuration/identity-providers/openid-connect/clients.md#authorization_signed_response_alg
@@ -145,7 +145,7 @@ This is done via the same means as the [Client JSON Web Key Selection](#client-j
 While we already support [RFC7636] commonly known as [Proof Key for Code Exchange], and support enforcement at a global
 level for either public clients or all clients, we've added a feature where administrators will be able to enforce
 [Proof Key for Code Exchange] on individual clients via the
-[require_pkce](../../configuration/identity-providers/openid-connect/clients.md#require_pkce) client configuraiton option.
+[require_pkce](../../configuration/identity-providers/openid-connect/clients.md#require_pkce) client configuration option.
 
 It should also be noted that [Proof Key for Code Exchange] can be used at the same time as
 [OAuth 2.0 Pushed Authorization Requests](#oauth-20-pushed-authorization-requests).
@@ -165,7 +165,7 @@ These features combined with our requirement for the HTTPS scheme are very power
 #### Client Authentication Method (Token Endpoint)
 
 _**Important Note:** This change may not work for some clients by default as the default option requires
-`client_secret_basic` which is the standardized default value most modern clients should use. However it's really easy
+`client_secret_basic` which is the standardized default value most modern clients should use. However, it's really easy
 to update._
 
 This release will allow administrators to configure the Client Authentication Method for the Token Endpoint,
