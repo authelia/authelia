@@ -34,6 +34,26 @@ This example makes the following assumptions:
 * __Client Secret:__ `insecure_secret`
 * __Secured Resource URL:__ `https://application.example.com/`
 
+### Important Notes
+
+This guide has a requirement to adapt a fairly new and special section of Authelia. It's important to take the time to
+understand it before you attempt to do it. Some notes about this are below.
+
+1. The `implementation` value of the server authz endpoints section must be the appropriate implementation for your
+   proxy.
+2. The `endpoint_name` in the server authz endpoints section is the actual name of the endpoint which must be configured
+   in your proxy for the Forwarded / Redirected Authorization Flow:
+   1. You can customize this name but by configuring just one all other default endpoints for authorization are removed
+      such as `/api/verify`, `/api/authz/forward-auth`, etc.
+   2. The name represents the endpoint path, for example setting `endpoint_name` will configure an endpoint at
+      `/api/authz/endpoint_name`.
+3. The use of the `HeaderAuthorization` strategy and how it's configured here accepts bearer tokens in the Authorization
+   header as one of the possible ways to authenticate but still allows cookie based authorization.
+
+See more information about the server authz endpoints section in the
+[Configuration Guide](../../../configuration/miscellaneous/server-endpoints-authz.md) and
+[Reference Guide](../../../reference/guides/proxy-authorization.md).
+
 ## Configuration
 
 ### Authelia
@@ -46,25 +66,20 @@ which will operate with the above example:
 server:
   endpoints:
     authz:
-      name:  # The name of the Authorization endpoint.
-        implementation: ''  # Must be configured as 'ForwardAuth', 'AuthRequest', or 'ExtAuthz'.
+      endpoint_name:
+        implementation: ''
         authn_strategies:
-          - name: 'HeaderProxyAuthorization'
-            schemes:
-              - Basic
-              - Bearer
           - name: 'HeaderAuthorization'
             schemes:
-              - Basic
-              - Bearer
+              - 'Basic'
+              - 'Bearer'
           - name: 'CookieSession'
 
 access_control:
   rules:
     - domain:
       - 'application.example.com'
-      subject:
-        - ['oauth2:client:uptime-kuma-monitor']
+      subject: 'oauth2:client:uptime-kuma'
       policy: 'one_factor'
 
 identity_providers:
@@ -88,7 +103,7 @@ identity_providers:
 Notes:
 
 - You will need to enable Header Authorization strategy for your [Server Authz Endpoints].
-- The configuration has a [requested_audience_mode] value of `implicit` which is used to automatically grant all audiences the client is permitted to request, the default is `explicit` which does not do this and the client must also request the audience using the `audience` form parameter. As [Uptime Kuma] does not currently support this configuration is required. 
+- The configuration has a [requested_audience_mode] value of `implicit` which is used to automatically grant all audiences the client is permitted to request, the default is `explicit` which does not do this and the client must also request the audience using the `audience` form parameter. As [Uptime Kuma] does not currently support this configuration is required.
 - The `audience` (or multiple) is the endpoints of the secured resource you want to monitor using [Uptime Kuma].
 - If you have multiple monitors you can either have multiple clients or add the allowed audiences to the existing client from this example, also make sure to add the additional entries to access control rules.
 
@@ -100,7 +115,7 @@ To configure [Uptime Kuma] to utilize Authelia as an [OpenID Connect 1.0] Provid
 1. Create a new status monitor or configure an existing one
 2. Choose monitor type e.g. HTTP(s) Keyword and set a keyword you want to find
 3. Set the URL to be monitored (this corresponds to the `audience` parameter in Authelia)
-4. Configure Authentication as follows:  
+4. Configure Authentication as follows:
    - Method: OAuth2: Client Credentials
    - Authentication Method: Authorization Header
    - OAuth Token URL: `https://auth.example.com/api/oidc/token`
@@ -108,7 +123,7 @@ To configure [Uptime Kuma] to utilize Authelia as an [OpenID Connect 1.0] Provid
    - Client Secret: `insecure_secret`
    - OAuth Scope: `authelia.bearer.authz`
 
-See the following screenshot for an authentication example of the above:  
+See the following screenshot for an authentication example of the above:
 {{< figure src="uptime-kuma-authentication.png" alt="Uptime Kuma Authentication example" width="300" >}}
 
 
