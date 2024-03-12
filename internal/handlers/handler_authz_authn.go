@@ -483,7 +483,7 @@ func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provid
 	}
 
 	if use, requester, err = provider.IntrospectToken(ctx, authn.Header.Authorization.Value(), oauthelia2.AccessToken, oidc.NewSession(), oidc.ScopeAutheliaBearerAuthz); err != nil {
-		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("error performing token introspection: %w", err)
+		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("error performing token introspection: %w", oauthelia2.ErrorToDebugRFC6749Error(err))
 	}
 
 	if use != oauthelia2.AccessToken {

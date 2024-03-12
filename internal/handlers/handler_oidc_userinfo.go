@@ -41,7 +41,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	ctx.Logger.Debugf("UserInfo Request with id '%s' is being processed", requestID)
 
 	if tokenType, requester, err = ctx.Providers.OpenIDConnect.IntrospectToken(req.Context(), oauthelia2.AccessTokenFromRequest(req), oauthelia2.AccessToken, oidcSession); err != nil {
-		ctx.Logger.Errorf("UserInfo Request with id '%s' failed with error: %s", requestID, oidc.ErrorToDebugRFC6749Error(err))
+		ctx.Logger.Errorf("UserInfo Request with id '%s' failed with error: %s", requestID, oauthelia2.ErrorToDebugRFC6749Error(err))
 
 		if rfc := oauthelia2.ErrorToRFC6749Error(err); rfc.StatusCode() == http.StatusUnauthorized {
 			rw.Header().Set(fasthttp.HeaderWWWAuthenticate, fmt.Sprintf(`Bearer %s`, oidc.RFC6750Header("", "", rfc)))
@@ -65,7 +65,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	}
 
 	if client, err = ctx.Providers.OpenIDConnect.GetFullClient(ctx, clientID); err != nil {
-		ctx.Logger.Errorf("UserInfo Request with id '%s' on client with id '%s' failed to retrieve client configuration with error: %s", requestID, client.GetID(), oidc.ErrorToDebugRFC6749Error(err))
+		ctx.Logger.Errorf("UserInfo Request with id '%s' on client with id '%s' failed to retrieve client configuration with error: %s", requestID, client.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
 
 		ctx.Providers.OpenIDConnect.WriteError(rw, req, err)
 
