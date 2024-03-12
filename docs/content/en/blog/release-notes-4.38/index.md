@@ -176,10 +176,10 @@ This can be configured via the client
 configuration option. The logs should give an indication of the method used by clients so it should be very easy to
 update this option.
 
-In addition to this support for new Client Authentication Methods has been added. Specifically `client_secret_jwt` and
+In addition to this support for new Client Authentication Methods has been added. Specifically, `client_secret_jwt` and
 `private_key_jwt`.
 
-#### Subject Based Client Authorization Policies
+#### Subject-Based Client Authorization Policies
 
 Clients can now be configured to allow, disallow, or require a specific authentication level for individual users or
 groups of users. See [authorization_policies](../../configuration/identity-providers/openid-connect/provider.md#authorization_policies)
@@ -296,7 +296,7 @@ Please see the [roadmap](../../roadmap/active/openid-connect.md) for more inform
 _**Important Note:** This feature at the time of this writing, will not work well with WebAuthn. Steps are being taken
 to address this however it will not specifically delay the release of this feature._
 
-This release see's the initial implementation of multi-domain protection. Users will be able to configure more than a
+This release sees the initial implementation of multi-domain protection. Users will be able to configure more than a
 single root domain for cookies provided none of them are a subdomain of another domain configured. In addition each
 domain can have individual settings.
 
