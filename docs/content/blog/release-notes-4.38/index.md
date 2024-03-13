@@ -54,6 +54,8 @@ This blog article is rather large so this serves as an index for all of the area
     users.
   - [OpenID Connect 1.0: Multiple JSON Web Keys](#changes-multiple-json-web-keys) which is important for users of the
     OpenID Connect 1.0 Provider features.
+  - [Client Authentication Method (Token Endpoint)](#client-authentication-method-token-endpoint) may require
+    administrators provide configuration after the update.
 
 
 ## OpenID Connect 1.0
@@ -64,6 +66,9 @@ features. Please see the [roadmap](../../roadmap/active/openid-connect.md) for m
 Those of you familiar with the various specifications are going to notice a few features which are very large steps
 towards the Financial-grade API Security Profile and OAuth 2.0 Security Best Current Practice, this is because we are
 putting a lot of time into implementing security and privacy first features.
+
+We have also put a lot of effort into aligning configuration names with the relevant specifications to make it easier
+in the future to implement features such as Dynamic Client Registration.
 
 #### OAuth 2.0 Client Credentials Flow
 
