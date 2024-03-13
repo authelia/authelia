@@ -33,7 +33,8 @@ It's relatively easy to run the __Authelia__ website locally to test out the cha
 ### Requirements
 
 * [git] *(though this can be skipped if you just download the repository)*
-* [Node.js] and npm *(bundled with [Node.js])*
+* [Node.js]
+* [pnpm]
 
 ### Directions
 
@@ -43,8 +44,8 @@ The following steps will allow you to run the website on the localhost and view 
     ```bash
     git clone https://github.com/authelia/authelia.git
     cd authelia/docs
-    npm install
-    npm run start
+    pnpm install
+    pnpm dev
     ```
 2. Visit [http://localhost:1313/](http://localhost:1313/) in your browser.
 3. Modify pages to see the effects live in your browser.
@@ -125,3 +126,4 @@ stage.
 [git]: https://git-scm.com/
 [Node.js]: https://nodejs.org/en/
 [Open Graph Protocol]: https://ogp.me/
+[pnpm]: https://pnpm.io/installation

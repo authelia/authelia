@@ -1,0 +1,12 @@
+{{/* Adding a default image for og:image */}}
+{{- $cover := resources.Get "cover.png" }}
+{{/* Output nothing to publish the resource. */}}
+{{- if and (not (os.FileExists "static/cover.png")) $cover }}
+{{- if eq $cover.RelPermalink "" }}{{ end }}
+{{- else }}
+{{- warnf "[Hugo SEO] Missing default image for og:image - assets/cover.png does not exist. Use a high-quality image with dimensions of at least 1200 x 630 pixels, while keeping the file size under 8 MB." }}
+{{- end }}
+{{- if not (in .Site.Params.images "cover.png") }}
+{{- warnf "[Hugo SEO] Missing default image for og:image - Add 'images: ['cover.png']' to your hugo.yaml" }}
+{{- end}}
+{{- partial "seo/_internal.opengraph.html" . -}}

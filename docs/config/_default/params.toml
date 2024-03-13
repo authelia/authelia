@@ -12,7 +12,7 @@ licenseLead = 'Open-source Apache 2.0 Licensed. <a href="https://github.com/auth
 mainSections = ["overview", "configuration", "integration", "contributing", "roadmap", "reference"]
 
 [social]
-  twitter = "getdoks"
+  # twitter = "getdoks"
 
 # Doks (@hyas/doks-core)
 [doks]
