@@ -1,0 +1,27 @@
+// Put your custom SCSS variables here
+
+// Grid containers
+//
+// Define the breakpoints for different screen sizes.
+$grid-breakpoints: (
+  xs: 0,
+  sm: 576px,
+  md: 768px,
+  lg: 992px,
+  xl: 1200px,
+  xxl: 2380px
+);
+
+// Define the maximum width of `.container` for different screen sizes.
+
+$container-max-widths: (
+  sm: 540px,
+  md: 720px,
+  lg: 960px,
+  xl: 1240px,
+  xxl: 2240px
+);
+
+$dark-green: #198754FF;
+$dark-red: #DC3545FF;
+$orange: #fd7e14;
