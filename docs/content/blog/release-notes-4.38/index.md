@@ -1,16 +1,20 @@
 ---
 title: "4.38: Release Notes"
-description: "Authelia 4.38 is just around the corner. This version has several additional features and improvements to existing features. In this blog post we'll discuss the new features and roughly what it means for users."
-lead: "Release Notes for 4.38"
-excerpt: "Authelia 4.38 has been released This version has several additional features and improvements to existing features. In this blog post we'll discuss the new features and roughly what it means for users."
-date: 2024-03-01T00:18:00+11:00
+description: "Authelia 4.38 release notes."
+summary: "Authelia 4.38 has been released and the following is a guide on all the massive changes."
+date: 2024-03-13T00:18:00+11:00
 draft: false
-images: []
+weight: 50
 categories: ["News", "Release Notes"]
-tags: ["releases", "pre-release-notes"]
+tags: ["releases", "release-notes"]
 contributors: ["James Elliott"]
-pinned: false
+pinned: true
 homepage: false
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 Authelia [4.38](https://github.com/authelia/authelia/milestone/17) is released! This version has several
