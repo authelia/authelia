@@ -33,7 +33,7 @@ due to how important or difficult to implement they are.
 
 ### Initial Implementation
 
-{{< roadmap-status stage="in-progress" version="v4.38.0" >}}
+{{< roadmap-status stage="complete" version="v4.38.0" >}}
 
 Add control panel with the ability to control all of the current settings, with the added benefit of being able to
 register multiple WebAuthn keys.

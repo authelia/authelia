@@ -1,8 +1,16 @@
 ---
 title: "Clément Michaud"
-date: 2023-03-19T16:29:12+10:00
+description: "Maintainer of Authelia."
+summary: "Maintainer of Authelia."
+date: 2023-09-12T20:21:47+02:00
+lastmod: 2023-09-12T20:21:47+02:00
 draft: false
-images: []
+avatar: ""
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 {{< profile-details name="clement-michaud" >}}

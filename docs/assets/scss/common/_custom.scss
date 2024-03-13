@@ -126,3 +126,23 @@ a:hover.confkey-syntax {
 .card-list {
   margin-top: 2.25rem;
 }
+
+.rs-not-started {
+  background-color: $red;
+}
+
+.rs-complete {
+  background-color: $dark-green;
+}
+
+.rs-started {
+  background-color: $blue;
+}
+
+.rs-waiting {
+  background-color: $yellow;
+}
+
+.rs-version {
+  background-color: $purple;
+}

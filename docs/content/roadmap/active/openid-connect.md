@@ -114,7 +114,7 @@ Feature List:
 
 ### Beta 6
 
-{{< roadmap-status stage="in-progress" version="v4.38.0" >}}
+{{< roadmap-status stage="complete" version="v4.38.0" >}}
 
 * [RFC9068: JSON Web Token (JWT) Profile for OAuth 2.0 Access Tokens]
 * [RFC9126: OAuth 2.0 Pushed Authorization Requests]
@@ -145,6 +145,8 @@ Feature List:
 
 * Prompt Handling
 * Display Handling
+* [JSON Web Encryption](https://datatracker.ietf.org/doc/html/rfc7516)
+* Injecting Bearer JSON Web Tokens into Requests (backend authentication)
 
 See [OpenID Connect Core 1.0 (Mandatory to Implement Features for All OpenID Providers)].
 
@@ -227,7 +229,7 @@ Allow users to choose which scopes they grant.
 
 #### Client RBAC
 
-{{< roadmap-status stage="in-progress" version="v4.38.0" >}}
+{{< roadmap-status stage="complete" version="v4.38.0" >}}
 
 Allow clients to be configured with a list of users and groups who have access to them. See [Beta 6](#beta-6).
 

@@ -8,7 +8,7 @@ weight: 50
 categories: ["News", "Release Notes"]
 tags: ["releases", "release-notes"]
 contributors: ["James Elliott"]
-pinned: true
+pinned: false
 homepage: false
 seo:
   title: "" # custom title (optional)
