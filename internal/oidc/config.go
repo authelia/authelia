@@ -16,7 +16,7 @@ import (
 	"authelia.com/provider/oauth2/handler/pkce"
 	"authelia.com/provider/oauth2/i18n"
 	"authelia.com/provider/oauth2/token/jwt"
-	"github.com/hashicorp/go-retryablehttp"
+	retryablehttp "github.com/hashicorp/go-retryablehttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/templates"
@@ -624,6 +624,12 @@ func (c *Config) GetFormPostHTMLTemplate(ctx context.Context) (tmpl *template.Te
 	}
 
 	return c.Templates.GetOpenIDConnectAuthorizeResponseFormPostTemplate()
+}
+
+// GetFormPostResponseWriter returns a FormPostResponseWriter which should be utilized for writing the
+// form post response type.
+func (c *Config) GetFormPostResponseWriter(ctx context.Context) oauthelia2.FormPostResponseWriter {
+	return oauthelia2.DefaultFormPostResponseWriter
 }
 
 // GetTokenURLs returns the token URL.
