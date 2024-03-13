@@ -63,7 +63,7 @@ features. Please see the [roadmap](../../roadmap/active/openid-connect.md) for m
 
 Those of you familiar with the various specifications are going to notice a few features which are very large steps
 towards the Financial-grade API Security Profile and OAuth 2.0 Security Best Current Practice, this is because we are
-putting a lot of time into implementing security and privacy-fist features.
+putting a lot of time into implementing security and privacy first features.
 
 #### OAuth 2.0 Client Credentials Flow
 
@@ -222,7 +222,7 @@ template filter example. To use this example you'll need to enable the `template
 [Templating](#templating) for more information.
 
 {{< details "Before" >}}
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     issuer_private_key: |
@@ -237,7 +237,7 @@ identity_providers:
 {{< /details >}}
 
 {{< details "After" >}}
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     jwks:
@@ -253,7 +253,7 @@ identity_providers:
 {{< /details >}}
 
 {{< details "After (template filter)" >}}
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     jwks:
@@ -331,7 +331,7 @@ To use the template filter example you'll need to enable the `template` filter u
 environment variable i.e. `X_AUTHELIA_CONFIG_FILTERS=template`. See [Templating](#templating) for more information.
 
 {{< details "Before" >}}
-```yaml
+```yaml {title="configuration.yml"}
 default_redirection_url: 'https://www.example.com'
 session:
   name: 'authelia_session'
@@ -345,7 +345,7 @@ session:
 {{< /details >}}
 
 {{< details "After" >}}
-```yaml
+```yaml {title="configuration.yml"}
 session:
   secret: 'insecure_session_secret'
   name: 'authelia_session'
@@ -361,7 +361,7 @@ session:
 {{< /details >}}
 
 {{< details "After (template filter)" >}}
-```yaml
+```yaml {title="configuration.yml"}
 session:
   secret: 'insecure_session_secret'
   name: 'authelia_session'
