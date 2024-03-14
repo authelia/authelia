@@ -9,8 +9,8 @@ import (
 
 // ValidateIdentityValidation validates and updates the IdentityValidation configuration.
 func ValidateIdentityValidation(config *schema.Configuration, validator *schema.StructValidator) {
-	if config.IdentityValidation.ResetPassword.Expiration <= 0 {
-		config.IdentityValidation.ResetPassword.Expiration = schema.DefaultIdentityValidation.ResetPassword.Expiration
+	if config.IdentityValidation.ResetPassword.JWTExpiration <= 0 {
+		config.IdentityValidation.ResetPassword.JWTExpiration = schema.DefaultIdentityValidation.ResetPassword.JWTExpiration
 	}
 
 	switch {
@@ -24,12 +24,12 @@ func ValidateIdentityValidation(config *schema.Configuration, validator *schema.
 		validator.Push(fmt.Errorf(errFmtIdentityValidationResetPasswordJWTSecret))
 	}
 
-	if config.IdentityValidation.ElevatedSession.Expiration <= 0 {
-		config.IdentityValidation.ElevatedSession.Expiration = schema.DefaultIdentityValidation.ElevatedSession.Expiration
+	if config.IdentityValidation.ElevatedSession.CodeLifespan <= 0 {
+		config.IdentityValidation.ElevatedSession.CodeLifespan = schema.DefaultIdentityValidation.ElevatedSession.CodeLifespan
 	}
 
-	if config.IdentityValidation.ElevatedSession.ElevationExpiration <= 0 {
-		config.IdentityValidation.ElevatedSession.ElevationExpiration = schema.DefaultIdentityValidation.ElevatedSession.ElevationExpiration
+	if config.IdentityValidation.ElevatedSession.ElevationLifespan <= 0 {
+		config.IdentityValidation.ElevatedSession.ElevationLifespan = schema.DefaultIdentityValidation.ElevatedSession.ElevationLifespan
 	}
 
 	if config.IdentityValidation.ElevatedSession.Characters <= 0 {

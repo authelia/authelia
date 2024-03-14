@@ -39,17 +39,17 @@ identity_validation:
 
 This section describes the individual configuration options.
 
-### expiration
+### jwt_lifespan
 
 {{< confkey type="string,integer" syntax="duration" default="5 minutes" required="no" >}}
 
-The duration of time the emailed JWT is considered valid.
+The lifespan of the JSON Web Token after it's initially generated after which it's considered invalid.
 
 ### jwt_algorithm
 
 {{< confkey type="string" default="HS256" required="no" >}}
 
-The JWA used to sign the JWT. Must be HS256, HS384, or HS512.
+The JSON Web Token Algorithm used to sign the JWT. Must be HS256, HS384, or HS512.
 
 ### jwt_secret
 

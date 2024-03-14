@@ -33,8 +33,8 @@ the One-Time Code so that it cannot be used to create a new elevated session.
 ```yaml {title="configuration.yml"}
 identity_validation:
   elevated_session:
-    expiration: '5 minutes'
-    elevation_expiration: '10 minutes'
+    code_lifespan: '5 minutes'
+    elevation_lifespan: '10 minutes'
     characters: 8
     require_second_factor: false
     skip_second_factor: false
@@ -44,17 +44,17 @@ identity_validation:
 
 This section describes the individual configuration options.
 
-### expiration
+### code_lifespan
 
 {{< confkey type="string,integer" syntax="duration" default="5 minutes" required="no" >}}
 
-The duration of time the emailed One-Time Code is considered valid.
+The lifespan of the randomly generated One Time Code after which it's considered invalid
 
-### elevation_expiration
+### elevation_lifespan
 
 {{< confkey type="string,integer" syntax="duration" default="10 minutes" required="no" >}}
 
-The duration of time that the session elevation lasts after validating the One-Time Code.
+The lifespan of the elevation after initially validating the One-Time Code before it expires.
 
 ### characters
 

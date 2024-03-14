@@ -40,11 +40,11 @@ identity_validation:
   ## removing, etc.
   elevated_session:
     ## Maximum allowed time after the One-Time Code is generated that it is considered valid.
-    expiration: '5 minutes'
+    code_lifespan: '5 minutes'
 
     ## Maximum allowed time after the user uses the One-Time Code and the user must perform the validation again in the
     ## duration common syntax.
-    elevation_expiration: '10 minutes'
+    elevation_lifespan: '10 minutes'
 
     ## Number of characters the one-time password contains.
     characters: 8
