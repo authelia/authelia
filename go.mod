@@ -20,7 +20,7 @@ require (
 	github.com/go-rod/rod v0.114.8
 	github.com/go-sql-driver/mysql v1.8.0
 	github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1
-	github.com/go-webauthn/webauthn v0.10.1
+	github.com/go-webauthn/webauthn v0.10.2
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-retryablehttp v0.7.5
@@ -68,10 +68,10 @@ require (
 	github.com/dlclark/regexp2 v1.4.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
-	github.com/fxamacker/cbor/v2 v2.5.0 // indirect
+	github.com/fxamacker/cbor/v2 v2.6.0 // indirect
 	github.com/go-crypt/x v0.2.13 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
-	github.com/go-webauthn/x v0.1.8 // indirect
+	github.com/go-webauthn/x v0.1.9 // indirect
 	github.com/golang/glog v1.2.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-tpm v0.9.0 // indirect
