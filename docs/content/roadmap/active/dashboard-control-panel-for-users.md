@@ -1,7 +1,7 @@
 ---
 title: "Dashboard / Control Panel for Users"
 description: "Authelia User Dashboard."
-lead: "A dashboard or control panel for users to adjust their settings is easily one of the most impactful features we can implement."
+summary: "A dashboard or control panel for users to adjust their settings is easily one of the most impactful features we can implement."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 240
 toc: true
 aliases:
   - /r/dashboard
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 This feature will pave the way to adding lots of useful user facing features.

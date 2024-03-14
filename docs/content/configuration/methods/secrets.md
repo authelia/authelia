@@ -1,7 +1,7 @@
 ---
 title: "Secrets"
 description: "Using the Secrets Configuration Method."
-lead: "Authelia allows providing configuration via secrets method. This section describes how to implement this."
+summary: "Authelia allows providing configuration via secrets method. This section describes how to implement this."
 date: 2020-02-29T01:43:59+01:00
 draft: false
 images: []
@@ -13,6 +13,11 @@ toc: true
 aliases:
   - /c/secrets
   - /docs/configuration/secrets.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 Configuration of *Authelia* requires several secrets and passwords. Even if they can be set in the configuration file or

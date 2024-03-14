@@ -1,7 +1,7 @@
 ---
 title: "Measures"
 description: "An overview of the security measures Authelia implements."
-lead: "An overview of the security measures Authelia implements."
+summary: "An overview of the security measures Authelia implements."
 date: 2018-08-26T23:46:15+02:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 420
 toc: false
 aliases:
   - /docs/security/measures.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Protection against cookie theft

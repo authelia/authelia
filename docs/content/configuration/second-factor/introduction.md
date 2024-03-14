@@ -1,7 +1,7 @@
 ---
 title: "Second Factor"
 description: "Configuring Authelia Second Factor Authentication."
-lead: "Authelia provides a number of 2FA methods. This section describes these methods."
+summary: "Authelia provides a number of 2FA methods. This section describes these methods."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "second-factor"
 weight: 103100
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## One Time Password

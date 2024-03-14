@@ -1,7 +1,7 @@
 ---
 title: "Migrations"
 description: "Storage Migrations"
-lead: "A migration ."
+summary: "A migration ."
 date: 2021-11-23T20:45:38+11:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 107200
 toc: true
 aliases:
   - /docs/configuration/storage/migrations.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 Storage migrations are important for keeping your database compatible with Authelia. Authelia will automatically upgrade

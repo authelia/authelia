@@ -1,7 +1,7 @@
 ---
 title: "Notifications"
 description: "Configuring the Notifications Settings."
-lead: "Authelia sends messages to users in order to verify their identity. This section describes how to configure this."
+summary: "Authelia sends messages to users in order to verify their identity. This section describes how to configure this."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "notifications"
 weight: 108100
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 Authelia sends messages to users in order to verify their identity.

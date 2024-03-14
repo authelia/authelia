@@ -1,7 +1,7 @@
 ---
 title: "Envoy"
 description: "An integration guide for Authelia and the Envoy reverse proxy"
-lead: "A guide on integrating Authelia with the Envoy reverse proxy."
+summary: "A guide on integrating Authelia with the Envoy reverse proxy."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 330
 toc: true
 aliases:
   - /i/envoy
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 [Envoy] is supported by __Authelia__.

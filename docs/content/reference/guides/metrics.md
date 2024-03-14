@@ -1,7 +1,7 @@
 ---
 title: "Telemetry"
 description: "A reference guide on the telemetry collection"
-lead: "This section contains reference documentation for Authelia's telemetry systems."
+summary: "This section contains reference documentation for Authelia's telemetry systems."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "guides"
 weight: 220
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 No telemetry data is collected by any *Authelia* binaries, tooling, etc by default and all telemetry data is intended
@@ -23,7 +28,7 @@ to be used by administrators of their individual *Authelia* installs.
 when configured. If metrics are enabled the metrics listener listens on `:9959` as per the officially
 [registered port] unless configured otherwise.
 
-#### Example Prometheus Job  
+#### Example Prometheus Job
 ```yaml
 # Authelia
   - job_name: authelia
@@ -31,8 +36,8 @@ when configured. If metrics are enabled the metrics listener listens on `:9959` 
     scheme: http
     static_configs:
     - targets: [authelia_address:9959]
-```  
-*Notes: Replace 'authelia_address' with the URL or IP of your Authelia container.*  
+```
+*Notes: Replace 'authelia_address' with the URL or IP of your Authelia container.*
 
 
 #### Recorded Metrics

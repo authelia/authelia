@@ -1,7 +1,7 @@
 ---
 title: "Session"
 description: "Session Configuration"
-lead: "Configuring the Session / Cookie settings."
+summary: "Configuring the Session / Cookie settings."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -13,6 +13,11 @@ toc: true
 aliases:
   - /c/session
   - /docs/configuration/session/
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 __Authelia__ relies on session cookies to authorize user access to various protected websites. This section configures

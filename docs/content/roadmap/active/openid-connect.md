@@ -1,7 +1,7 @@
 ---
 title: "OpenID Connect 1.0"
 description: "Authelia OpenID Connect 1.0 Provider Implementation"
-lead: "The OpenID Connect 1.0 Provider role is a very useful but complex feature to enhance interoperability of Authelia with other products. "
+summary: "The OpenID Connect 1.0 Provider role is a very useful but complex feature to enhance interoperability of Authelia with other products. "
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -13,6 +13,11 @@ toc: true
 aliases:
   - /r/openid-connect
   - /docs/roadmap/oidc.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 We have decided to implement [OpenID Connect 1.0] as a beta feature, it's suggested you only utilize it for testing and

@@ -1,7 +1,7 @@
 ---
 title: "Time-based OTP Applications"
 description: "A Time-based OTP Application integration reference guide"
-lead: "This section contains a Time-based OTP Application integration reference guide for Authelia."
+summary: "This section contains a Time-based OTP Application integration reference guide for Authelia."
 date: 2023-05-07T17:52:47+10:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "integrations"
 weight: 320
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Settings

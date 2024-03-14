@@ -1,7 +1,7 @@
 ---
 title: "Seafile"
 description: "Trusted Header SSO Integration for Seafile"
-lead: ""
+summary: ""
 date: 2022-08-26T11:34:56+10:00
 draft: false
 images: []
@@ -11,6 +11,11 @@ parent: "trusted-header-sso"
 weight: 420
 toc: true
 community: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Introduction

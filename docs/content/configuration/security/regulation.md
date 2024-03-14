@@ -1,7 +1,7 @@
 ---
 title: "Regulation"
 description: "Regulation Configuration"
-lead: "Configuring the Regulation system."
+summary: "Configuring the Regulation system."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 104300
 toc: true
 aliases:
   - /docs/configuration/regulation.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 

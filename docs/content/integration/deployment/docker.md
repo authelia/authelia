@@ -1,7 +1,7 @@
 ---
 title: "Docker"
 description: "A guide on installing Authelia in Docker."
-lead: "This is one of the primary ways we deliver Authelia to users and the recommended path."
+summary: "This is one of the primary ways we deliver Authelia to users and the recommended path."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "deployment"
 weight: 230
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 The [Docker] container is deployed with the following image names:

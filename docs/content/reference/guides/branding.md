@@ -1,7 +1,7 @@
 ---
 title: "Branding"
 description: "This guide highlights information about Authelia's branding assets"
-lead: "This guide highlights information about Authelia's branding assets."
+summary: "This guide highlights information about Authelia's branding assets."
 date: 2022-06-20T10:05:55+10:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "guides"
 weight: 220
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Usage

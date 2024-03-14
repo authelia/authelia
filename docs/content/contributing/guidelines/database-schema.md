@@ -1,7 +1,7 @@
 ---
 title: "Database Schema"
 description: "Authelia Development Database Schema Guidelines"
-lead: "This section covers the database schema guidelines we use for development."
+summary: "This section covers the database schema guidelines we use for development."
 date: 2022-11-19T16:47:09+11:00
 draft: false
 images: []
@@ -11,6 +11,11 @@ menu:
 weight: 320
 toc: true
 aliases: []
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Table Names

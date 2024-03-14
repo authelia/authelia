@@ -1,7 +1,7 @@
 ---
 title: "Duo / Mobile Push"
 description: "Configuring the Duo Mobile Push Notification Second Factor Method."
-lead: ""
+summary: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 103200
 toc: true
 aliases:
   - /docs/configuration/duo-push-notifications.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 Authelia supports mobile push notifications relying on [Duo].

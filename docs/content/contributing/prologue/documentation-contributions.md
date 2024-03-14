@@ -1,7 +1,7 @@
 ---
 title: "Documentation Contributions"
 description: "Information on contributing documentation to the Authelia project."
-lead: "Authelia has great documentation however there are always things that can be added. This section describes the contribution process for the documentation even though it's incredibly easy."
+summary: "Authelia has great documentation however there are always things that can be added. This section describes the contribution process for the documentation even though it's incredibly easy."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 130
 toc: true
 alias:
   - /contributing/prologue/documentation
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Introduction
@@ -33,7 +38,8 @@ It's relatively easy to run the __Authelia__ website locally to test out the cha
 ### Requirements
 
 * [git] *(though this can be skipped if you just download the repository)*
-* [Node.js] and npm *(bundled with [Node.js])*
+* [Node.js]
+* [pnpm]
 
 ### Directions
 
@@ -43,8 +49,8 @@ The following steps will allow you to run the website on the localhost and view 
     ```bash
     git clone https://github.com/authelia/authelia.git
     cd authelia/docs
-    npm install
-    npm run start
+    pnpm install
+    pnpm dev
     ```
 2. Visit [http://localhost:1313/](http://localhost:1313/) in your browser.
 3. Modify pages to see the effects live in your browser.
@@ -57,7 +63,7 @@ Most documents come with a front matter that looks similar to this:
 ---
 title: "A Page Title"
 description: "This is a description of the page."
-lead: "This is a page lead."
+summary: "This is a page lead."
 date: 2022-03-19T04:53:05+00:00
 draft: false
 menu:
@@ -125,3 +131,4 @@ stage.
 [git]: https://git-scm.com/
 [Node.js]: https://nodejs.org/en/
 [Open Graph Protocol]: https://ogp.me/
+[pnpm]: https://pnpm.io/installation

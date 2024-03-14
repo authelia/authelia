@@ -10,6 +10,11 @@ menu:
     parent: "cli-authelia-gen"
 weight: 915
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## authelia-gen code
@@ -32,7 +37,7 @@ authelia-gen code [flags]
   -C, --cwd string                                                 Sets the CWD for git commands
       --dir.authentication string                                  The authentication directory in relation to the root (default "internal/authentication")
       --dir.docs string                                            The directory with the docs (default "docs")
-      --dir.docs.cli-reference string                              The directory to store the markdown in (default "en/reference/cli")
+      --dir.docs.cli-reference string                              The directory to store the markdown in (default "reference/cli")
       --dir.docs.content string                                    The directory with the docs content (default "content")
       --dir.docs.data string                                       The directory with the docs data (default "data")
       --dir.docs.static string                                     The directory with the docs static files (default "static")
@@ -45,7 +50,7 @@ authelia-gen code [flags]
       --file.bug-report string                                     Sets the path of the bug report issue template file (default ".github/ISSUE_TEMPLATE/bug-report.yml")
       --file.commit-lint-config string                             The commit lint javascript configuration file in relation to the root (default ".commitlintrc.cjs")
       --file.configuration-keys string                             Sets the path of the keys file (default "internal/configuration/schema/keys.go")
-      --file.docs-commit-msg-guidelines string                     The commit message guidelines documentation file in relation to the root (default "docs/content/en/contributing/guidelines/commit-message.md")
+      --file.docs-commit-msg-guidelines string                     The commit message guidelines documentation file in relation to the root (default "docs/content/contributing/guidelines/commit-message.md")
       --file.docs.data.keys string                                 Sets the path of the docs keys file (default "configkeys.json")
       --file.docs.data.languages string                            The languages docs data file in relation to the docs data folder (default "languages.json")
       --file.docs.data.misc string                                 The misc docs data file in relation to the docs data folder (default "misc.json")

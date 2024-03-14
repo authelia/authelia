@@ -1,7 +1,7 @@
 ---
 title: "Methods"
 description: "Methods of Configuration."
-lead: "Authelia has a layered configuration model. This section describes how to implement configuration."
+summary: "Authelia has a layered configuration model. This section describes how to implement configuration."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "methods"
 weight: 101100
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Layers

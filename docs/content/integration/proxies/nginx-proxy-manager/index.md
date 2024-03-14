@@ -1,7 +1,7 @@
 ---
 title: "NGINX Proxy Manager"
 description: "An integration guide for Authelia and the NGINX Proxy Manager reverse proxy"
-lead: "A guide on integrating Authelia with NGINX Proxy Manager."
+summary: "A guide on integrating Authelia with NGINX Proxy Manager."
 date: 2022-10-08T12:43:26+11:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 352
 toc: true
 aliases:
   - /i/npm
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 [NGINX Proxy Manager] is supported by __Authelia__. It's a [NGINX] proxy with a configuration UI.

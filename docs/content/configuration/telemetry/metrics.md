@@ -1,7 +1,7 @@
 ---
 title: "Metrics"
 description: "Configuring the Metrics Telemetry settings"
-lead: "Configuring the Metrics Telemetry settings."
+summary: "Configuring the Metrics Telemetry settings."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []

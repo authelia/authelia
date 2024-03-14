@@ -2,7 +2,7 @@
 title: "First Factor"
 name: "test"
 description: "Configuring Authelia First Factor Authentication."
-lead: "Authelia uses a username and password for a first factor method. This section describes configuring this."
+summary: "Authelia uses a username and password for a first factor method. This section describes configuring this."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -14,6 +14,11 @@ toc: true
 aliases:
   - /c/1fa
   - /docs/configuration/authentication/
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 There are two ways to integrate *Authelia* with an authentication backend:

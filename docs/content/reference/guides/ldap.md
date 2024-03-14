@@ -1,7 +1,7 @@
 ---
 title: "LDAP"
 description: "A reference guide on the LDAP implementation specifics"
-lead: "This section contains reference documentation for Authelia's LDAP implementation specifics."
+summary: "This section contains reference documentation for Authelia's LDAP implementation specifics."
 date: 2022-06-17T21:03:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 220
 toc: true
 aliases:
   - /r/ldap
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Binding

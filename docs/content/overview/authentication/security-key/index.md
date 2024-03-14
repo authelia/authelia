@@ -1,7 +1,7 @@
 ---
 title: "Security Key"
 description: "Authelia utilizes WebAuthn security keys as one of it's second factor authentication methods."
-lead: "Authelia utilizes WebAuthn security keys as one of it's second factor authentication methods."
+summary: "Authelia utilizes WebAuthn security keys as one of it's second factor authentication methods."
 date: 2020-02-29T01:43:59+01:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 240
 toc: true
 aliases:
   - /docs/features/2fa/security-key
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 __Authelia__ supports hardware-based second factors leveraging [FIDO2] [WebAuthn] compatible security keys like

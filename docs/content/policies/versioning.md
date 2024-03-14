@@ -1,12 +1,18 @@
 ---
 title: "Versioning Policy"
 description: "The Authelia Versioning Policy which is important reading for administrators"
+summary: ""
 date: 2022-12-21T20:48:14+11:00
 draft: false
 images: []
 aliases:
   - /versioning-policy
   - /versioning
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 The __Authelia__ team aims to abide by the [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html) policy. This

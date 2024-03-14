@@ -1,7 +1,7 @@
 ---
 title: "Jira"
 description: "Trusted Header SSO Integration for Jira"
-lead: ""
+summary: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -13,6 +13,11 @@ toc: true
 community: true
 aliases:
   - /docs/community/using-remote-user-header-for-sso-with-jira.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Introduction

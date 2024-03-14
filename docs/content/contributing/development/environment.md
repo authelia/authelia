@@ -1,7 +1,7 @@
 ---
 title: "Environment"
 description: "How to configure your development environment."
-lead: "This section covers the environment we recommend for development."
+summary: "This section covers the environment we recommend for development."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "development"
 weight: 220
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 __Authelia__ and its development workflow can be tested with [Docker] and [Docker Compose] on Linux.

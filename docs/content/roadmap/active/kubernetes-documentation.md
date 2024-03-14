@@ -1,7 +1,7 @@
 ---
 title: "Kubernetes Documentation"
 description: "Add better Kubernetes documentation."
-lead: "While there is some documentation for Kubernetes, and several people have it working, better documentation is needed."
+summary: "While there is some documentation for Kubernetes, and several people have it working, better documentation is needed."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 250
 toc: true
 aliases:
   - /r/k8s-docs
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Stages

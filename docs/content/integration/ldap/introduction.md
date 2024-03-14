@@ -1,7 +1,7 @@
 ---
 title: "LDAP"
 description: "An introduction into integrating Authelia with LDAP."
-lead: "An introduction into integrating Authelia with LDAP."
+summary: "An introduction into integrating Authelia with LDAP."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "ldap"
 weight: 710
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## UNDER CONSTRUCTION

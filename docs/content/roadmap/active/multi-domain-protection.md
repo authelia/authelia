@@ -1,7 +1,7 @@
 ---
 title: "Multi Domain Protection"
 description: "Authelia Multi Domain Protection Implementation"
-lead: "Multi Domain Protection is one of the most requested Authelia features."
+summary: "Multi Domain Protection is one of the most requested Authelia features."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 230
 toc: true
 aliases:
   - /r/multi-domain-protection
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 We have seen and heard the feedback from our users and we are acting on it. This feature is being prioritized. Allowing

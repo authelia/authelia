@@ -1,7 +1,7 @@
 ---
 title: "Traefik Ingress"
 description: "A guide to integrating Authelia with the Traefik Kubernetes Ingress."
-lead: "A guide to integrating Authelia with the Traefik Kubernetes Ingress."
+summary: "A guide to integrating Authelia with the Traefik Kubernetes Ingress."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "kubernetes"
 weight: 550
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 We officially support the Traefik 2.x Kubernetes ingress controllers. These come in two flavors:

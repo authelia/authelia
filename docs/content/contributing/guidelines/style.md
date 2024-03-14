@@ -1,7 +1,7 @@
 ---
 title: "Style"
 description: "Authelia Development Style Guidelines"
-lead: "This section covers the style guidelines we use for development."
+summary: "This section covers the style guidelines we use for development."
 date: 2021-04-11T21:25:03+10:00
 draft: false
 images: []
@@ -13,6 +13,11 @@ toc: true
 aliases:
   - /docs/contributing/style-guide.html
   - /contributing/development/guidelines-style/
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 This is a general guide to the code style we aim to abide by. This is by no means an exhaustive list and we're

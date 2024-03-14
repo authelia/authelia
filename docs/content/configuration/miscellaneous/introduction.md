@@ -1,7 +1,7 @@
 ---
 title: "Miscellaneous"
 description: "Miscellaneous Configuration."
-lead: "Authelia has a few config items that don't fit into their own area. This describes these options."
+summary: "Authelia has a few config items that don't fit into their own area. This describes these options."
 date: 2020-02-29T01:43:59+01:00
 draft: false
 images: []
@@ -13,6 +13,11 @@ toc: true
 aliases:
   - /docs/configuration/miscellaneous.html
   - /docs/configuration/theme.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Configuration

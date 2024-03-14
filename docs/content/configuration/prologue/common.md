@@ -1,7 +1,7 @@
 ---
 title: "Common"
 description: "Common configuration options and notations."
-lead: "This section details common configuration elements within the Authelia configuration. This section is mainly used as a reference for other sections as necessary."
+summary: "This section details common configuration elements within the Authelia configuration. This section is mainly used as a reference for other sections as necessary."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 100200
 toc: true
 aliases:
   - /c/common
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Syntax

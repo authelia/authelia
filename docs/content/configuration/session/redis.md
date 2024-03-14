@@ -1,7 +1,7 @@
 ---
 title: "Redis"
 description: "Redis Session Configuration"
-lead: "Configuring the Redis Session Storage."
+summary: "Configuring the Redis Session Storage."
 date: 2021-04-11T21:25:03+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 106200
 toc: true
 aliases:
   - /docs/configuration/session/redis.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 This is a session provider. By default Authelia uses an in-memory provider. Not configuring redis leaves Authelia

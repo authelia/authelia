@@ -1,7 +1,7 @@
 ---
 title: "PostgreSQL"
 description: "PostgreSQL Configuration"
-lead: "The PostgreSQL storage provider."
+summary: "The PostgreSQL storage provider."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 107400
 toc: true
 aliases:
   - /docs/configuration/storage/postgres.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Version support

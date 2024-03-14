@@ -1,7 +1,7 @@
 ---
 title: "Duo / Mobile Push"
 description: "Authelia utilizes Duo Push Notifications as one of it's second factor authentication methods."
-lead: "Authelia utilizes Duo Push Notifications as one of it's second factor authentication methods."
+summary: "Authelia utilizes Duo Push Notifications as one of it's second factor authentication methods."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 250
 toc: true
 aliases:
   - /docs/features/2fa/push-notifications.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 Mobile Push notifications are a really convenient and trendy method to perform 2FA. When 2FA is required Authelia sends
@@ -49,6 +54,6 @@ had a look at {{< github-link path="config.template.yml" >}} and
 
 ### I have access to the *Push Notification* option, but there is an error message: *"no compatible device found".*
 
-There is a problem with your **Users** configuration in Duo. There are no users configured in Duo that match your Authelia user. Note that the admin user you create when you sign up is not automatically added as a **User** in Duo. 
+There is a problem with your **Users** configuration in Duo. There are no users configured in Duo that match your Authelia user. Note that the admin user you create when you sign up is not automatically added as a **User** in Duo.
 
 [Duo]: https://duo.com/

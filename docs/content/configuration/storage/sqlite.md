@@ -1,7 +1,7 @@
 ---
 title: "SQLite3"
 description: "SQLite3 Configuration"
-lead: "The SQLite3 storage provider."
+summary: "The SQLite3 storage provider."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 107500
 toc: true
 aliases:
   - /docs/configuration/storage/sqlite.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 If you don't have a SQL server, you can use [SQLite](https://en.wikipedia.org/wiki/SQLite).

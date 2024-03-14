@@ -1,7 +1,7 @@
 ---
 title: "Passwords"
 description: "A reference guide on passwords and hashing etc"
-lead: "This section contains reference documentation for Authelia."
+summary: "This section contains reference documentation for Authelia."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 220
 toc: true
 aliases:
   - /r/passwords
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## User / Password File

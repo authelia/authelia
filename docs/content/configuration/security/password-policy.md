@@ -1,7 +1,7 @@
 ---
 title: "Password Policy"
 description: "Password Policy Configuration"
-lead: "Configuring the Password Policy."
+summary: "Configuring the Password Policy."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 104400
 toc: true
 aliases:
   - /docs/configuration/password_policy.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 *Authelia* allows administrators to configure an enforced password policy.

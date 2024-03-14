@@ -1,8 +1,8 @@
 ---
 title: "Uptime Kuma"
 description: "Integrating Uptime Kuma status monitors with the Authelia OpenID Connect 1.0 Provider."
-lead: ""
-date: 2024-03-11T16:05:00+01:00
+summary: ""
+date: 2024-03-12T10:09:59+11:00
 draft: false
 images: []
 menu:
@@ -11,6 +11,11 @@ menu:
 weight: 620
 toc: true
 community: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Tested Versions

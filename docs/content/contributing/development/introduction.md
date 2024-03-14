@@ -1,7 +1,7 @@
 ---
 title: "Development"
 description: "An introduction into contributing to the Authelia project via development."
-lead: "An introduction into contributing to the Authelia project via development."
+summary: "An introduction into contributing to the Authelia project via development."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "development"
 weight: 210
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 We encourage anyone who wishes to contribute via development to utilize GitHub [Issues] or [Discussions] or one of the

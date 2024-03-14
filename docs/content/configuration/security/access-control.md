@@ -1,7 +1,7 @@
 ---
 title: "Access Control"
 description: "Configuring the Access Control or RBAC settings."
-lead: "Authelia supports a comprehensive access control system. This section describes configuring this."
+summary: "Authelia supports a comprehensive access control system. This section describes configuring this."
 date: 2020-02-29T01:43:59+01:00
 draft: false
 images: []
@@ -13,6 +13,11 @@ toc: true
 aliases:
   - /c/acl
   - /docs/configuration/access-control.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 *__Important Note:__ This section does not apply to OpenID Connect 1.0. See the [Frequently Asked Questions] for more

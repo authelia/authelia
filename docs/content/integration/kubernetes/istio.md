@@ -1,7 +1,7 @@
 ---
 title: "Istio"
 description: "A guide to integrating Authelia with the Istio Kubernetes Ingress."
-lead: "A guide to integrating Authelia with the Istio Kubernetes Ingress."
+summary: "A guide to integrating Authelia with the Istio Kubernetes Ingress."
 date: 2022-10-02T13:59:09+11:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ integration:
 parent: "kubernetes"
 weight: 551
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 Istio uses [Envoy](../proxies/envoy.md) as an Ingress. This means it has a relatively comprehensive integration option.

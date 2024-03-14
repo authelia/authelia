@@ -1,7 +1,7 @@
 ---
 title: "Chart"
 description: "A guide to using the Authelia helm chart to integrate Authelia with Kubernetes"
-lead: "A guide to using the Authelia helm chart to integrate Authelia with Kubernetes."
+summary: "A guide to using the Authelia helm chart to integrate Authelia with Kubernetes."
 date: 2022-06-22T22:58:23+10:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "kubernetes"
 weight: 520
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 Authelia offers a [Helm Chart] which can make integration with [Kubernetes] much easier. It's currently considered beta

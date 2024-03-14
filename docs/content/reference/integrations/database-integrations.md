@@ -1,7 +1,7 @@
 ---
 title: "Database Integrations"
 description: "A database integration reference guide"
-lead: "This section contains a database integration reference guide for Authelia."
+summary: "This section contains a database integration reference guide for Authelia."
 date: 2022-11-19T16:47:09+11:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "integrations"
 weight: 320
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 We generally recommend using [PostgreSQL] for a database. If high availability is not a consideration we also support

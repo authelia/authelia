@@ -1,7 +1,7 @@
 ---
 title: "Notification Templates"
 description: "A reference guide on overriding notification templates"
-lead: "This section contains reference documentation for Authelia's notification templates."
+summary: "This section contains reference documentation for Authelia's notification templates."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "guides"
 weight: 220
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 Authelia uses templates to generate the HTML and plaintext emails sent via the notification service. Each template has

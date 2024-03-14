@@ -1,7 +1,7 @@
 ---
 title: "Deployment"
 description: "An introduction into integrating Authelia with a product."
-lead: "An introduction into integrating Authelia within your architecture."
+summary: "An introduction into integrating Authelia within your architecture."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "deployment"
 weight: 210
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 There are three main methods to deploy *Authelia*.

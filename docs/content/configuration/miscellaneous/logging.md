@@ -1,7 +1,7 @@
 ---
 title: "Log"
 description: "Configuring the Log Settings."
-lead: "Authelia performs logging to various locations. This section describes how to configure and tune this."
+summary: "Authelia performs logging to various locations. This section describes how to configure and tune this."
 date: 2021-06-01T14:09:50+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 199400
 toc: true
 aliases:
   - /docs/configuration/logging.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 The logging section tunes the logging settings.

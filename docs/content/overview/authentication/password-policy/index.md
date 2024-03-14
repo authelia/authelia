@@ -1,7 +1,7 @@
 ---
 title: "Password Policy"
 description: "Authelia implements a password policy feature."
-lead: "Authelia implements a password policy feature."
+summary: "Authelia implements a password policy feature."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 260
 toc: true
 aliases:
   - /docs/features/password-policy.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 Password policy enforces security by requiring the users to use strong passwords.

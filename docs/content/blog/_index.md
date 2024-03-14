@@ -2,7 +2,7 @@
 title: "Blog"
 description: "The Authelia Blog."
 summary: ""
-date: 2023-09-07T16:21:44+02:00
+date: 2024-03-14T06:00:14+11:00
 lastmod: 2023-09-07T16:21:44+02:00
 draft: false
 weight: 50

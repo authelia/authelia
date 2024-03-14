@@ -1,7 +1,7 @@
 ---
 title: "HAProxy"
 description: "An integration guide for Authelia and the HAProxy reverse proxy"
-lead: "A guide on integrating Authelia with the HAProxy reverse proxy."
+summary: "A guide on integrating Authelia with the HAProxy reverse proxy."
 date: 2020-02-29T01:43:59+01:00
 draft: false
 images: []
@@ -13,6 +13,11 @@ toc: true
 aliases:
   - /i/haproxy
   - /docs/deployment/supported-proxies/haproxy.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 [HAProxy] is a reverse proxy supported by __Authelia__.

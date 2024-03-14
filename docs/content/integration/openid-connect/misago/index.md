@@ -1,7 +1,7 @@
 ---
 title: "Misago"
 description: "Integrating Misago with the Authelia OpenID Connect 1.0 Provider."
-lead: ""
+summary: ""
 date: 2023-03-14T08:51:13+11:00
 draft: false
 images: []
@@ -11,6 +11,11 @@ menu:
 weight: 620
 toc: true
 community: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Tested Versions

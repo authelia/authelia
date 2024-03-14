@@ -1,7 +1,7 @@
 ---
 title: "Trusted Headers SSO"
 description: "Trusted Headers SSO is a simple header authorization framework supported by Authelia."
-lead: "Trusted Headers is a simple header authorization framework supported by Authelia."
+summary: "Trusted Headers is a simple header authorization framework supported by Authelia."
 date: 2022-11-27T16:07:08+11:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "authorization"
 weight: 340
 toc: false
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 This mechanism is supported by proxies which inject certain response headers from Authelia into the protected

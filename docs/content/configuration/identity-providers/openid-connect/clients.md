@@ -1,7 +1,7 @@
 ---
 title: "OpenID Connect 1.0 Clients"
 description: "OpenID Connect 1.0 Registered Clients Configuration"
-lead: "Authelia can operate as an OpenID Connect 1.0 Provider. This section describes how to configure the registered clients."
+summary: "Authelia can operate as an OpenID Connect 1.0 Provider. This section describes how to configure the registered clients."
 date: 2023-05-15T10:32:10+10:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "openid-connect"
 weight: 110220
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 This section covers specifics regarding configuring the providers registered clients for [OpenID Connect 1.0]. For the

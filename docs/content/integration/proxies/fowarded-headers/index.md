@@ -1,7 +1,7 @@
 ---
 title: "Forwarded Headers"
 description: "An introduction into the importance of forwarded headers coming from trusted sources"
-lead: "An introduction into the importance of forwarded headers coming from trusted sources."
+summary: "An introduction into the importance of forwarded headers coming from trusted sources."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "proxies"
 weight: 312
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 The`X-Forwarded-*` headers presented to __Authelia__ must be from trusted sources. As such you must ensure that the

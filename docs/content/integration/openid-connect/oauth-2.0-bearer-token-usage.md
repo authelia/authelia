@@ -1,7 +1,7 @@
 ---
 title: "OAuth 2.0 Bearer Token Usage"
 description: "An introduction into utilizing the Authelia OAuth 2.0 Provider as an authorization method"
-lead: "An introduction into utilizing the Authelia OAuth 2.0 Provider as an authorization method."
+summary: "An introduction into utilizing the Authelia OAuth 2.0 Provider as an authorization method."
 date: 2024-03-05T19:11:16+10:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "openid-connect"
 weight: 611
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 Access Tokens can be granted which can be leveraged as bearer tokens for the purpose of authorization in place of the

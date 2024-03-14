@@ -1,7 +1,7 @@
 ---
 title: "Access Control Rule Guide"
 description: "A reference guide on access control rule operators"
-lead: "This section contains a reference guide on access control rule operators."
+summary: "This section contains a reference guide on access control rule operators."
 date: 2022-10-19T14:09:22+11:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "guides"
 weight: 220
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Operators
