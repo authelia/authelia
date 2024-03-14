@@ -1,3 +1,6 @@
+CALL PROC_DROP_INDEX('webauthn_credentials', 'webauthn_credentials_kid_key');
+CALL PROC_DROP_INDEX('webauthn_credentials', 'webauthn_credentials_lookup_key');
+
 CREATE TABLE IF NOT EXISTS webauthn_credentials (
     id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -25,7 +28,7 @@ CREATE UNIQUE INDEX webauthn_credentials_kid_key ON webauthn_credentials (kid);
 CREATE UNIQUE INDEX webauthn_credentials_lookup_key ON webauthn_credentials (rpid, username, description);
 
 INSERT INTO webauthn_credentials (created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, legacy, discoverable, present, verified, backup_eligible, backup_state, public_key)
-SELECT id, created_at, last_used_at, CAST(rpid AS CHAR) AS rpid, username, description, kid, aaguid, attestation_type, 'cross-platform', transport, sign_count, clone_warning, TRUE, FALSE, FALSE, FALSE, FALSE, public_key
+SELECT created_at, last_used_at, CAST(rpid AS CHAR) AS rpid, username, description, kid, aaguid, attestation_type, 'cross-platform', transport, sign_count, clone_warning, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, public_key
 FROM webauthn_devices;
 
 DROP TABLE IF EXISTS webauthn_devices;
