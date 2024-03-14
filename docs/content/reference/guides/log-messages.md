@@ -1,7 +1,7 @@
 ---
 title: "Log Messages"
 description: "A collection of log message reference information"
-lead: "This section contains log message references for Authelia."
+summary: "This section contains log message references for Authelia."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "guides"
 weight: 220
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Request Header Too Large

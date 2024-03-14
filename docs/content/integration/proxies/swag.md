@@ -1,7 +1,7 @@
 ---
 title: "SWAG"
 description: "An integration guide for Authelia and the SWAG reverse proxy"
-lead: "A guide on integrating Authelia with SWAG."
+summary: "A guide on integrating Authelia with SWAG."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 351
 toc: true
 aliases:
   - /i/swag
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 [SWAG] is a reverse proxy supported by __Authelia__. It's an [NGINX] proxy container with bundled configurations to make

@@ -1,7 +1,7 @@
 ---
 title: "PowerDNS Admin"
 description: "Integrating PowerDNS with the Authelia OpenID Connect 1.0 Provider."
-lead: ""
+summary: ""
 date: 2024-01-16T08:47:18+11:00
 draft: false
 images: []
@@ -11,6 +11,11 @@ menu:
 weight: 620
 toc: true
 community: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Tested Versions

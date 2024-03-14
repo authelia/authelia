@@ -1,7 +1,7 @@
 ---
 title: "Documentation"
 description: "Authelia Development Documentation Guidelines"
-lead: "This section covers the guidelines we use when writing documentation."
+summary: "This section covers the guidelines we use when writing documentation."
 date: 2022-10-02T14:32:16+11:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "guidelines"
 weight: 320
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Domains

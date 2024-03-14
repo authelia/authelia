@@ -1,7 +1,7 @@
 ---
 title: "Privacy Policy"
 description: "Privacy Policy Configuration."
-lead: "This describes a section of the configuration for enabling a Privacy Policy link display."
+summary: "This describes a section of the configuration for enabling a Privacy Policy link display."
 date: 2023-01-22T19:58:07+11:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "miscellaneous"
 weight: 199100
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Configuration

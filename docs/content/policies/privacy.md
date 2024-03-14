@@ -1,6 +1,7 @@
 ---
 title: "Privacy Policy"
 description: "We do not use cookies and we do not collect any personal data."
+summary: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -14,6 +15,11 @@ aliases:
   - /privacy-policy.html
   - /privacy
   - /privacy.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Website

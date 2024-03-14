@@ -1,7 +1,7 @@
 ---
 title: "Organizr"
 description: "Trusted Header SSO Integration for Organizr"
-lead: ""
+summary: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -11,6 +11,11 @@ menu:
 weight: 420
 toc: true
 community: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Introduction

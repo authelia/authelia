@@ -1,7 +1,7 @@
 ---
 title: "SMTP"
 description: "Configuring the SMTP Notifications Settings."
-lead: "Authelia can send emails to users through an SMTP server. This section describes how to configure this."
+summary: "Authelia can send emails to users through an SMTP server. This section describes how to configure this."
 date: 2020-02-29T01:43:59+01:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 108200
 toc: true
 aliases:
   - /docs/configuration/notifier/smtp.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 

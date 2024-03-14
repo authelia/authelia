@@ -1,7 +1,7 @@
 ---
 title: "Proxies"
 description: "An integration guide for Authelia and several supported reverse proxies"
-lead: "An introduction into integrating Authelia with a reverse proxy."
+summary: "An introduction into integrating Authelia with a reverse proxy."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 310
 toc: true
 aliases:
   - /i/proxies
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 __Authelia__ works in collaboration with several reverse proxies. In this section you will find the documentation of the

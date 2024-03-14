@@ -1,7 +1,7 @@
 ---
 title: "Traefik v1"
 description: "An integration guide for Authelia and the Traefik v1 reverse proxy"
-lead: "A guide on integrating Authelia with the Traefik reverse proxy."
+summary: "A guide on integrating Authelia with the Traefik reverse proxy."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -13,6 +13,11 @@ toc: true
 aliases:
   - /i/traefik/v1
   - /docs/deployment/supported-proxies/traefik1.x.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 [Traefik] v1 is a reverse proxy supported by __Authelia__.

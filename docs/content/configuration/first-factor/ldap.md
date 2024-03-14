@@ -1,7 +1,7 @@
 ---
 title: "LDAP"
 description: "Configuring LDAP"
-lead: "Authelia supports an LDAP server based first factor user provider. This section describes configuring this."
+summary: "Authelia supports an LDAP server based first factor user provider. This section describes configuring this."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -13,6 +13,11 @@ toc: true
 aliases:
   - /c/ldap
   - /docs/configuration/authentication/ldap.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Configuration

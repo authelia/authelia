@@ -1,7 +1,7 @@
 ---
 title: "Prologue"
 description: "An introduction into the Authelia roadmap."
-lead: "An introduction into the Authelia roadmap."
+summary: "An introduction into the Authelia roadmap."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 110
 toc: true
 aliases:
   - /docs/roadmap/
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 The Authelia team consists of 3 globally distributed developers working actively on improving Authelia in our spare time

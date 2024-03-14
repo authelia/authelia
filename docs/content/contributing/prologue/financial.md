@@ -1,7 +1,7 @@
 ---
 title: "Financial"
 description: "Information on contributing financially to the Authelia project."
-lead: "The Authelia team is small and all of the maintainers spend their free time managing the project. Some may wish to contribute financially for various reasons, this page provides information about doing so."
+summary: "The Authelia team is small and all of the maintainers spend their free time managing the project. Some may wish to contribute financially for various reasons, this page provides information about doing so."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "prologue"
 weight: 120
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Where the Money Is Used

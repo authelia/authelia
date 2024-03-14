@@ -1,7 +1,7 @@
 ---
 title: "Architecture"
 description: "An overview of the Authelia architecture."
-lead: "An overview of the Authelia architecture."
+summary: "An overview of the Authelia architecture."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 120
 toc: false
 aliases:
   - /docs/home/architecture.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 __Authelia__ is a companion of reverse proxies like Traefik (see [supported proxies](../supported-proxies.md) for a full

@@ -1,7 +1,7 @@
 ---
 title: "Storage"
 description: "Storage Configuration"
-lead: "Configuring the SQL Storage."
+summary: "Configuring the SQL Storage."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 107100
 toc: true
 aliases:
   - /docs/configuration/storage/
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 __Authelia__ supports multiple storage backends. The backend is used to store user preferences, 2FA device handles and

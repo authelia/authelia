@@ -1,7 +1,7 @@
 ---
 title: "Testing"
 description: "Authelia Development Testing Guidelines"
-lead: "This section covers the testing guidelines."
+summary: "This section covers the testing guidelines."
 date: 2023-03-20T15:03:52+11:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "guidelines"
 weight: 320
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 The following outlines the specific requirements we have for testing the Authelia code contributions.

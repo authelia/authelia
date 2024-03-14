@@ -1,7 +1,7 @@
 ---
 title: "Documentation Contributions"
 description: "Information on contributing documentation to the Authelia project."
-lead: "Authelia has great documentation however there are always things that can be added. This section describes the contribution process for the documentation even though it's incredibly easy."
+summary: "Authelia has great documentation however there are always things that can be added. This section describes the contribution process for the documentation even though it's incredibly easy."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 130
 toc: true
 alias:
   - /contributing/prologue/documentation
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Introduction
@@ -58,7 +63,7 @@ Most documents come with a front matter that looks similar to this:
 ---
 title: "A Page Title"
 description: "This is a description of the page."
-lead: "This is a page lead."
+summary: "This is a page lead."
 date: 2022-03-19T04:53:05+00:00
 draft: false
 menu:

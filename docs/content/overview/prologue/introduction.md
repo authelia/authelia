@@ -1,7 +1,7 @@
 ---
 title: "Prologue"
 description: "An introduction into the Authelia overview."
-lead: "An introduction into the Authelia overview."
+summary: "An introduction into the Authelia overview."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "prologue"
 weight: 110
 toc: false
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 __Authelia__ is a 2FA & SSO authentication server which is dedicated to the security of applications and users. It can

@@ -1,7 +1,7 @@
 ---
 title: "Server"
 description: "Configuring the Server Settings."
-lead: "Authelia runs an internal web server. This section describes how to configure and tune this."
+summary: "Authelia runs an internal web server. This section describes how to configure and tune this."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -13,6 +13,11 @@ toc: true
 aliases:
   - /c/server
   - /docs/configuration/server.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Configuration

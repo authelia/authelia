@@ -1,7 +1,7 @@
 ---
 title: "Threat Model"
 description: "An overview of the Authelia threat model."
-lead: "An overview of the Authelia threat model."
+summary: "An overview of the Authelia threat model."
 date: 2020-04-16T18:12:41+10:00
 draft: false
 images: []
@@ -13,6 +13,11 @@ toc: false
 aliases:
   - /o/threatmodel
   - /docs/security/threat-model.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 The design goals for Authelia is to protect access to applications by collaborating with reverse proxies to prevent

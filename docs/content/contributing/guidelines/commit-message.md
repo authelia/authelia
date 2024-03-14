@@ -13,6 +13,11 @@ toc: true
 aliases:
   - /docs/contributing/commitmsg-guidelines.html
   - /contributing/development/guidelines-commit-message/
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 The reasons for these conventions are as follows:

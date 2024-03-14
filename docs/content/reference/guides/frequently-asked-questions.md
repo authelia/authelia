@@ -1,7 +1,7 @@
 ---
 title: "Frequently Asked Questions"
 description: "This guide shows a list of other frequently asked question documents as well as some general ones"
-lead: "This guide shows a list of other frequently asked question documents as well as some general ones."
+summary: "This guide shows a list of other frequently asked question documents as well as some general ones."
 date: 2023-03-06T11:32:06+11:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "guides"
 weight: 220
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Miscellaneous

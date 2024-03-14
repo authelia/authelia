@@ -1,7 +1,7 @@
 ---
 title: "Pull Request"
 description: "Authelia Development Pull Request Guidelines"
-lead: "This section covers the pull request guidelines."
+summary: "This section covers the pull request guidelines."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 320
 toc: true
 aliases:
   - /contributing/development/guidelines-pull-request/
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 [Pull Request] guidelines are in place in order to maintain consistency and clearly communicate our process for

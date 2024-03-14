@@ -1,7 +1,7 @@
 ---
 title: "NGINX Ingress"
 description: "A guide to integrating Authelia with the NGINX Kubernetes Ingress."
-lead: "A guide to integrating Authelia with the NGINX Kubernetes Ingress."
+summary: "A guide to integrating Authelia with the NGINX Kubernetes Ingress."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "kubernetes"
 weight: 552
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 There are two nginx ingress controllers for Kubernetes. The Kubernetes official one [ingress-nginx], and the F5 nginx

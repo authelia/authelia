@@ -1,7 +1,7 @@
 ---
 title: "Guidelines"
 description: "An introduction into guidelines for contributing to the Authelia project."
-lead: "An introduction into guidelines for contributing to the Authelia project."
+summary: "An introduction into guidelines for contributing to the Authelia project."
 date: 2022-10-02T14:32:16+11:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "guidelines"
 weight: 310
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 The guidelines section contains various guidelines for contributing to Authelia. We implement various guidelines via

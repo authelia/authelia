@@ -1,7 +1,7 @@
 ---
 title: "Proxmox"
 description: "Integrating Proxmox with the Authelia OpenID Connect 1.0 Provider."
-lead: ""
+summary: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -13,6 +13,11 @@ toc: true
 community: true
 aliases:
   - /docs/community/oidc-integrations/proxmox.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Tested Versions

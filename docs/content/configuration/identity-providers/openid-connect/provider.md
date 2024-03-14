@@ -1,7 +1,7 @@
 ---
 title: "OpenID Connect 1.0 Provider"
 description: "OpenID Connect 1.0 Provider Configuration"
-lead: "Authelia can operate as an OpenID Connect 1.0 Provider. This section describes how to configure this."
+summary: "Authelia can operate as an OpenID Connect 1.0 Provider. This section describes how to configure this."
 date: 2023-05-15T10:32:10+10:00
 draft: false
 images: []
@@ -13,6 +13,11 @@ toc: true
 aliases:
   - /c/oidc
   - /docs/configuration/identity-providers/oidc.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 __Authelia__ currently supports the [OpenID Connect 1.0] Provider role as an open

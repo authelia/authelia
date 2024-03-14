@@ -1,7 +1,7 @@
 ---
 title: "Support"
 description: "An support matrix for Authelia and several supported reverse proxies"
-lead: "This documentation details a support matrix for Authelia features and specific reverse proxies as well as several caveats etc."
+summary: "This documentation details a support matrix for Authelia features and specific reverse proxies as well as several caveats etc."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -13,6 +13,11 @@ toc: true
 aliases:
   - /i/proxy
   - /docs/home/supported-proxies.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 |                  Proxy                  | [Implementation] |                [Standard](#standard)                |                               [Kubernetes](#kubernetes)                               |   [XHR Redirect](#xhr-redirect)   | [Request Method](#request-method) |

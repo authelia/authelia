@@ -1,7 +1,7 @@
 ---
 title: "Templating"
 description: "A reference guide on the templates system"
-lead: "This section contains reference documentation for Authelia's templating capabilities."
+summary: "This section contains reference documentation for Authelia's templating capabilities."
 date: 2022-12-23T21:58:54+11:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "guides"
 weight: 220
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 Authelia has several methods where users can interact with templates.

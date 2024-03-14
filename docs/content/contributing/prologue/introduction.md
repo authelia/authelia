@@ -1,7 +1,7 @@
 ---
 title: "Prologue"
 description: "An introduction into contributing to the Authelia project."
-lead: "An introduction into contributing to the Authelia project."
+summary: "An introduction into contributing to the Authelia project."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 110
 toc: true
 aliases:
   - /docs/contributing/
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 Contributions to __Authelia__ have four main forms:

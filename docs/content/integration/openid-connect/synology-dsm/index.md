@@ -1,7 +1,7 @@
 ---
 title: "Synology DSM"
 description: "Integrating Synology DSM with the Authelia OpenID Connect 1.0 Provider."
-lead: ""
+summary: ""
 date: 2022-10-18T21:22:13+11:00
 draft: false
 images: []
@@ -11,6 +11,11 @@ parent: "openid-connect"
 weight: 620
 toc: true
 community: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Tested Versions

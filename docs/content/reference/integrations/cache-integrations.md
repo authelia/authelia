@@ -1,7 +1,7 @@
 ---
 title: "Cache Integrations"
 description: "A cache integration reference guide"
-lead: "This section contains a cache integration reference guide for Authelia."
+summary: "This section contains a cache integration reference guide for Authelia."
 date: 2022-12-09T18:24:02+11:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "integrations"
 weight: 320
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 We currently only support [Redis Standalone] and [Redis Sentinel] for cached information like sessions

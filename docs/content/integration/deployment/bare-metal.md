@@ -1,7 +1,7 @@
 ---
 title: "Bare-Metal"
 description: "Deploying Authelia on Bare-Metal."
-lead: "Authelia can be deployed on Bare-Metal as long as it sits behind a proxy."
+summary: "Authelia can be deployed on Bare-Metal as long as it sits behind a proxy."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "deployment"
 weight: 250
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 There are several ways to achieve this, as *Authelia* runs as a daemon. We do not provide specific examples for running

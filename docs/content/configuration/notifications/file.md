@@ -1,7 +1,7 @@
 ---
 title: "File System"
 description: "Configuring the File Notifications Settings."
-lead: "Authelia can save notifications to a file. This section describes how to configure this."
+summary: "Authelia can save notifications to a file. This section describes how to configure this."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 108300
 toc: true
 aliases:
   - /docs/configuration/notifier/filesystem.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 It is recommended in a production environment that you do not use the file notification system, and that it should only

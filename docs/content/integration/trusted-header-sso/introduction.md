@@ -1,7 +1,7 @@
 ---
 title: "Trusted Header SSO"
 description: "Trusted Header SSO Integration"
-lead: "An introduction into integrating Authelia with an application which implements authentication via trusted headers."
+summary: "An introduction into integrating Authelia with an application which implements authentication via trusted headers."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "trusted-header-sso"
 weight: 410
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 Authelia will respond to requests via the forward authentication flow with specific headers that can be utilized by some

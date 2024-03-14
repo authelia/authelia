@@ -1,12 +1,19 @@
 ---
 title: "About"
 description: "About Authelia and the Authelia Team"
+summary: ""
 date: 2023-03-19T16:29:12+10:00
 draft: false
 images: []
+toc: true
 aliases:
-- /about
-- /about.html
+  - /about
+  - /about.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## What is Authelia?

@@ -1,13 +1,20 @@
 ---
 title: "Contact"
 description: "Drop us an email."
+summary: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
+toc: true
 type: legal
 aliases:
   - /contact
   - /contact.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Security

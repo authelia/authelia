@@ -1,7 +1,7 @@
 ---
 title: "Code of Conduct"
 description: "An introduction into contributing to the Authelia project."
-lead: "An introduction into contributing to the Authelia project."
+summary: "An introduction into contributing to the Authelia project."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -18,6 +18,11 @@ aliases:
   - /conduct.html
   - /coc
   - /coc.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Our Pledge

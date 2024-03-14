@@ -1,7 +1,7 @@
 ---
 title: "MySQL"
 description: "MySQL Configuration"
-lead: "The MySQL storage provider which supports both MySQL and MariaDB."
+summary: "The MySQL storage provider which supports both MySQL and MariaDB."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -13,6 +13,11 @@ toc: true
 aliases:
   - /docs/configuration/storage/mariadb.html
   - /docs/configuration/storage/mysql.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Version support

@@ -1,7 +1,7 @@
 ---
 title: "Authentication"
 description: "An overview of a authentication."
-lead: "An overview of a authentication."
+summary: "An overview of a authentication."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 210
 toc: false
 aliases:
   - /docs/features/2fa/
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 Multi-Factor Authentication or MFA as a concept is separated into three major categories. These categories are:

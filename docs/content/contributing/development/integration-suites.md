@@ -1,7 +1,7 @@
 ---
 title: "Integration Suites"
 description: "Integration Suites."
-lead: "This section covers the build process and how to perform tests in development."
+summary: "This section covers the build process and how to perform tests in development."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 240
 toc: true
 aliases:
   - /docs/contributing/suites.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 __Authelia__ is a single component in interaction with many others in a complete ecosystem. Consequently, testing the

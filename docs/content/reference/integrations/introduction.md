@@ -1,7 +1,7 @@
 ---
 title: "Integrations"
 description: "A collection of integration reference guides"
-lead: "This section contains integration reference guides for Authelia."
+summary: "This section contains integration reference guides for Authelia."
 date: 2022-11-19T16:47:09+11:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "integrations"
 weight: 310
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 The integration guides in this section detail specific requirements when integrating Authelia with other products such

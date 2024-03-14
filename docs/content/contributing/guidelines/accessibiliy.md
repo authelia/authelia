@@ -1,7 +1,7 @@
 ---
 title: "Accessibility"
 description: "Authelia Development Accessibility Guidelines"
-lead: "This section covers the accessibility guidelines we aim to respect during development."
+summary: "This section covers the accessibility guidelines we aim to respect during development."
 date: 2023-03-06T20:17:57+11:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "guidelines"
 weight: 350
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Backend

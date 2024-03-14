@@ -1,6 +1,7 @@
 ---
 title: "Security Policy"
 description: "The Authelia Security Policy which is essential reading for reporting security issues"
+summary: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -8,6 +9,11 @@ aliases:
   - /security-policy
   - /security
   - /security.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 The __Authelia__ team takes security very seriously. Because __Authelia__ is intended as a security product a lot of

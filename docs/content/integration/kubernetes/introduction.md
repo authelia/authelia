@@ -1,7 +1,7 @@
 ---
 title: "Kubernetes"
 description: "An introduction into integrating Authelia with Kubernetes."
-lead: "An introduction into integrating Authelia with Kubernetes."
+summary: "An introduction into integrating Authelia with Kubernetes."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 510
 toc: true
 aliases:
   - /i/k8s
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 {{< figure src="images/logos/kubernetes.png" alt="Kubernetes" width="100" style="padding-right: 10px" ignoreStaticImages="false" >}}

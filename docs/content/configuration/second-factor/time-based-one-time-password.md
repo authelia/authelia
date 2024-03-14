@@ -1,7 +1,7 @@
 ---
 title: "Time-based One-Time Password"
 description: "Configuring the Time-based One-Time Password Second Factor Method."
-lead: "Authelia supports utilizing Time-based One-Time Passwords as a 2FA method."
+summary: "Authelia supports utilizing Time-based One-Time Passwords as a 2FA method."
 date: 2020-02-29T01:43:59+01:00
 draft: false
 images: []
@@ -13,6 +13,11 @@ toc: true
 aliases:
   - /c/totp
   - /docs/configuration/one-time-password.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 The OTP method *Authelia* uses is the Time-Based One-Time Password Algorithm (TOTP) [RFC6238] which is an extension of

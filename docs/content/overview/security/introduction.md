@@ -1,7 +1,7 @@
 ---
 title: "Security"
 description: "An overview introduction into Authelia's security features."
-lead: "An overview introduction into Authelia's security features."
+summary: "An overview introduction into Authelia's security features."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 410
 toc: false
 aliases:
   - /docs/security/
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 The __Authelia__ team takes security very seriously. Because __Authelia__ is intended as a security product a lot of

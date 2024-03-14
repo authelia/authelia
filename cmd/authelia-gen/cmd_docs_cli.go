@@ -155,6 +155,11 @@ menu:
     identifier: "%s"
 weight: %d
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 `
 
@@ -170,6 +175,11 @@ menu:
     parent: "%s"
 weight: %d
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 `

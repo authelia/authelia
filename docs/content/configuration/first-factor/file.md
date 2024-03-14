@@ -12,6 +12,11 @@ weight: 102300
 toc: true
 aliases:
   - /docs/configuration/authentication/file.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Configuration

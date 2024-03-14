@@ -1,7 +1,7 @@
 ---
 title: "Proxy Authorization"
 description: "A reference guide on Proxy Authorization implementations"
-lead: "This section contains reference guide on Proxy Authorization implementations Authelia supports."
+summary: "This section contains reference guide on Proxy Authorization implementations Authelia supports."
 date: 2023-01-25T20:36:40+11:00
 draft: false
 images: []
@@ -11,7 +11,12 @@ parent: "guides"
 weight: 220
 toc: true
 aliases:
-- /r/proxy-authz
+  - /r/proxy-authz
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 Proxies can integrate with Authelia via several authorization endpoints. These endpoints are by default configured

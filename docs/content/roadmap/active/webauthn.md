@@ -1,7 +1,7 @@
 ---
 title: "WebAuthn"
 description: "Authelia WebAuthn Implementation"
-lead: "An introduction into the Authelia roadmap."
+summary: "An introduction into the Authelia roadmap."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 220
 toc: true
 aliases:
   - /r/webauthn
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 [WebAuthn] requires urgent implementation as [Chrome removed support of their U2F API since August 2022][chrome-removed-u2f]. It is a modern evolution of the

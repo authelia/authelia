@@ -1,7 +1,7 @@
 ---
 title: "Translations"
 description: "Information on contributing translations to the Authelia project."
-lead: "Authelia has translations for many using facing areas of the web portal. Contributing to these translations is a very easy process."
+summary: "Authelia has translations for many using facing areas of the web portal. Contributing to these translations is a very easy process."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 130
 toc: true
 aliases:
   - /docs/contributing/translations.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 The way the translation process is facilitated is via [Crowdin]. We encourage members of the community to

@@ -1,7 +1,7 @@
 ---
 title: "Dashboard / Control Panel for Administrators"
 description: "Authelia Administrator Dashboard."
-lead: "A dashboard or control panel for administrators to adjust system settings is easily one of the most impactful features we can implement."
+summary: "A dashboard or control panel for administrators to adjust system settings is easily one of the most impactful features we can implement."
 date: 2024-02-01T07:02:53+11:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 245
 toc: true
 aliases:
   - /r/admin-dashboard
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 This feature will pave the way to adding lots of useful administrator facing features. It will require in database

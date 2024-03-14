@@ -1,7 +1,7 @@
 ---
 title: "Cloudflare Zero Trust"
 description: "Integrating Cloudflare Zero Trust with the Authelia OpenID Connect 1.0 Provider."
-lead: ""
+summary: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -11,6 +11,11 @@ menu:
 weight: 620
 toc: true
 community: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Tested Versions

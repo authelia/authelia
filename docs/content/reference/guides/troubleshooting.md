@@ -1,7 +1,7 @@
 ---
 title: "Troubleshooting"
 description: "This guide describes and helps users provide information during troubleshooting including sanitization etc"
-lead: "This guide describes and helps users provide troubleshooting information."
+summary: "This guide describes and helps users provide troubleshooting information."
 date: 2023-05-01T12:36:02+10:00
 draft: false
 images: []
@@ -14,6 +14,11 @@ aliases:
   - /r/sanitize
   - /r/troubleshoot
   - /r/troubleshooting
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Frequently Asked Questions

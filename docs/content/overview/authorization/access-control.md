@@ -1,7 +1,7 @@
 ---
 title: "Access Control"
 description: "Access Control is the main authorization system in Authelia."
-lead: "Access Control is the main authorization system in Authelia."
+summary: "Access Control is the main authorization system in Authelia."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 310
 toc: false
 aliases:
   - /docs/features/access-control.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 __Authelia__ allows defining fine-grained rules-based access control policies. This list of rules is tested against

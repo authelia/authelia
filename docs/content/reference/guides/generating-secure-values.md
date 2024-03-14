@@ -1,7 +1,7 @@
 ---
 title: "Generating Secure Values"
 description: "A reference guide on generating secure values such as password hashes, password strings, and cryptography keys"
-lead: "This section contains reference documentation for generating secure values such as password hashes, password strings, and cryptography keys."
+summary: "This section contains reference documentation for generating secure values such as password hashes, password strings, and cryptography keys."
 date: 2022-10-23T18:09:19+11:00
 draft: false
 images: []
@@ -10,6 +10,11 @@ menu:
     parent: "guides"
 weight: 220
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## Generating a Random Password Hash

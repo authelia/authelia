@@ -1,7 +1,7 @@
 ---
 title: "Internationalization"
 description: "Authelia Internationalization Implementation"
-lead: "Implementation of internationalization will make Authelia more accessible to more people."
+summary: "Implementation of internationalization will make Authelia more accessible to more people."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 230
 toc: true
 aliases:
   - /r/i18n
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 This can easily be done in the web interface and automatically adapt to the users browser.

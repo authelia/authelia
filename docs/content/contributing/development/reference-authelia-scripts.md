@@ -1,7 +1,7 @@
 ---
 title: "Reference: authelia-scripts"
 description: "This section covers the authelia-scripts tool."
-lead: "This section covers the authelia-scripts tool."
+summary: "This section covers the authelia-scripts tool."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 290
 toc: true
 aliases:
   - /docs/contributing/authelia-scripts.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 __Authelia__ comes with a set of dedicated scripts to perform a broad range of operations such as building the

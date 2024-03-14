@@ -1,7 +1,7 @@
 ---
 title: "NTP"
 description: "Configuring the NTP Settings."
-lead: "Authelia checks the system time is in sync with an NTP server. This section describes how to configure and tune this."
+summary: "Authelia checks the system time is in sync with an NTP server. This section describes how to configure and tune this."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 199300
 toc: true
 aliases:
   - /docs/configuration/ntp.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 Authelia has the ability to check the system time against an NTP server, which at the present time is checked only

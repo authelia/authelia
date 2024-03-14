@@ -1,7 +1,7 @@
 ---
 title: "Migration"
 description: "Information regarding configuration migration."
-lead: "An introduction into configuring Authelia."
+summary: "An introduction into configuring Authelia."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
@@ -12,6 +12,11 @@ weight: 100300
 toc: true
 aliases:
   - /docs/configuration/migration.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 This section discusses the change to the configuration over time. Since v4.36.0 the migration process is automatically

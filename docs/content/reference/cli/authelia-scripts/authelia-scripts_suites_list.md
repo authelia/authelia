@@ -10,6 +10,11 @@ menu:
     parent: "cli-authelia-scripts"
 weight: 925
 toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
 ---
 
 ## authelia-scripts suites list

@@ -12,7 +12,7 @@ const (
 	fileWebI18NIndex       = "src/i18n/index.ts"
 	fileWebPackage         = "package.json"
 
-	fileDocsCommitMessageGuidelines = "docs/content/en/contributing/guidelines/commit-message.md"
+	fileDocsCommitMessageGuidelines = "docs/content/contributing/guidelines/commit-message.md"
 
 	fileCodeConfigKeys  = "internal/configuration/schema/keys.go"
 	fileServerGenerated = "internal/server/gen.go"
@@ -23,7 +23,7 @@ const (
 	dirDocsStatic            = "static"
 	dirDocsStaticJSONSchemas = "schemas"
 	dirDocsData              = "data"
-	dirDocsCLIReference      = "en/reference/cli"
+	dirDocsCLIReference      = "reference/cli"
 
 	fileDocsDataLanguages  = "languages.json"
 	fileDocsDataMisc       = "misc.json"
