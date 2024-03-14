@@ -757,13 +757,26 @@ func TestShouldRaiseErrorWhenHaveNonAbsDefaultRedirectionURL(t *testing.T) {
 			AutheliaURL:           MustParseURL("https://login.example.com"),
 			DefaultRedirectionURL: MustParseURL("home.example.com"),
 		},
+		{
+			Domain:                "example2.com",
+			AutheliaURL:           MustParseURL("https://login.example2.com"),
+			DefaultRedirectionURL: MustParseURL("https://google.com"),
+		},
+		{
+			Legacy:                true,
+			Domain:                "example3.com",
+			AutheliaURL:           MustParseURL("https://login.example3.com"),
+			DefaultRedirectionURL: MustParseURL("https://google.com"),
+		},
 	}
 
 	ValidateSession(&config, validator)
-	assert.False(t, validator.HasWarnings())
-	require.Len(t, validator.Errors(), 2)
+	require.Len(t, validator.Warnings(), 1)
+	require.Len(t, validator.Errors(), 3)
 	assert.EqualError(t, validator.Errors()[0], "session: domain config #1 (domain 'example.com'): option 'default_redirection_url' is not absolute with a value of 'home.example.com'")
 	assert.EqualError(t, validator.Errors()[1], "session: domain config #1 (domain 'example.com'): option 'default_redirection_url' does not share a cookie scope with domain 'example.com' with a value of 'home.example.com'")
+	assert.EqualError(t, validator.Errors()[2], "session: domain config #2 (domain 'example2.com'): option 'default_redirection_url' does not share a cookie scope with domain 'example2.com' with a value of 'https://google.com'")
+	assert.EqualError(t, validator.Warnings()[0], "session: domain config #3 (domain 'example3.com'): option 'default_redirection_url' does not share a cookie scope with domain 'example3.com' with a value of 'https://google.com'")
 }
 
 func TestShouldRaiseErrorWhenHaveNonSecureDefaultRedirectionURL(t *testing.T) {
