@@ -177,7 +177,9 @@ These features combined with our requirement for the HTTPS scheme are very power
 
 _**Important Note:** This change may not work for some clients by default as the default option requires
 `client_secret_basic` which is the standardized default value most modern clients should use. However, it's really easy
-to update._
+to update. Traditionally this would be considered a breaking change however per our
+[Versioning Policy](https://www.authelia.com/policies/versioning/) while we aim to avoid it the OpenID Connect 1.0
+implementation is considered excluded at this time._
 
 This release will allow administrators to configure the Client Authentication Method for the Token Endpoint,
 restricting the client usage of the token endpoint and paving the way to more advanced Client Authentication Methods.

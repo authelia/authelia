@@ -5,6 +5,8 @@ summary: ""
 date: 2022-12-21T20:48:14+11:00
 draft: false
 images: []
+toc: false
+type: legal
 aliases:
   - /versioning-policy
   - /versioning
