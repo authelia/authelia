@@ -1866,7 +1866,7 @@
     },
     "IdentityValidationElevatedSession": {
       "properties": {
-        "expiration": {
+        "code_lifespan": {
           "oneOf": [
             {
               "type": "string",
@@ -1877,10 +1877,10 @@
               "description": "The duration in seconds"
             }
           ],
-          "title": "Expiration",
-          "description": "Duration of time the OTP code is considered valid."
+          "title": "Code Lifespan",
+          "description": "The lifespan of the randomly generated One Time Code after which it's considered invalid."
         },
-        "elevation_expiration": {
+        "elevation_lifespan": {
           "oneOf": [
             {
               "type": "string",
@@ -1891,8 +1891,8 @@
               "description": "The duration in seconds"
             }
           ],
-          "title": "Elevation Expiration",
-          "description": "Duration of time the elevation can exist for after the user performs the validation."
+          "title": "Elevation Lifespan",
+          "description": "The lifespan of the elevation after initially validating the One-Time Code before it expires."
         },
         "otp_characters": {
           "type": "integer",
@@ -1921,7 +1921,7 @@
     },
     "IdentityValidationResetPassword": {
       "properties": {
-        "expiration": {
+        "jwt_lifespan": {
           "oneOf": [
             {
               "type": "string",
@@ -1932,8 +1932,8 @@
               "description": "The duration in seconds"
             }
           ],
-          "title": "Expiration",
-          "description": "Duration of time the JWT is considered valid."
+          "title": "JWT Lifespan",
+          "description": "The lifespan of the JSON Web Token after it's initially generated after which it's considered invalid."
         },
         "jwt_algorithm": {
           "type": "string",
@@ -1943,13 +1943,13 @@
             "HS512"
           ],
           "title": "JWT Algorithm",
-          "description": "The JWT Algorithm (JWA) used to sign the Reset Password flow JWT's.",
+          "description": "The JSON Web Token Algorithm (JWA) used to sign the Reset Password flow JSON Web Token's.",
           "default": "HS256"
         },
         "jwt_secret": {
           "type": "string",
           "title": "JWT Secret",
-          "description": "The JWT secret used to sign the Reset Password flow JWT's."
+          "description": "The secret key used to sign the Reset Password flow JSON Web Token's."
         }
       },
       "additionalProperties": false,

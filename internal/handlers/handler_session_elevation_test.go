@@ -550,8 +550,8 @@ func TestUserSessionElevationPOST(t *testing.T) {
 			defer mock.Close()
 
 			mock.Ctx.Configuration.IdentityValidation.ElevatedSession.Characters = 10
-			mock.Ctx.Configuration.IdentityValidation.ElevatedSession.ElevationExpiration = time.Minute
-			mock.Ctx.Configuration.IdentityValidation.ElevatedSession.Expiration = time.Minute
+			mock.Ctx.Configuration.IdentityValidation.ElevatedSession.ElevationLifespan = time.Minute
+			mock.Ctx.Configuration.IdentityValidation.ElevatedSession.CodeLifespan = time.Minute
 
 			mock.Ctx.Clock = &mock.Clock
 			mock.Ctx.Providers.Random = mock.RandomMock
@@ -1044,8 +1044,8 @@ func TestUserSessionElevationPUT(t *testing.T) {
 			defer mock.Close()
 
 			mock.Ctx.Configuration.IdentityValidation.ElevatedSession.Characters = 10
-			mock.Ctx.Configuration.IdentityValidation.ElevatedSession.ElevationExpiration = time.Minute
-			mock.Ctx.Configuration.IdentityValidation.ElevatedSession.Expiration = time.Minute
+			mock.Ctx.Configuration.IdentityValidation.ElevatedSession.ElevationLifespan = time.Minute
+			mock.Ctx.Configuration.IdentityValidation.ElevatedSession.CodeLifespan = time.Minute
 
 			mock.Ctx.Clock = &mock.Clock
 			mock.Ctx.Providers.Random = mock.RandomMock
@@ -1373,8 +1373,8 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 			defer mock.Close()
 
 			mock.Ctx.Configuration.IdentityValidation.ElevatedSession.Characters = 10
-			mock.Ctx.Configuration.IdentityValidation.ElevatedSession.ElevationExpiration = time.Minute
-			mock.Ctx.Configuration.IdentityValidation.ElevatedSession.Expiration = time.Minute
+			mock.Ctx.Configuration.IdentityValidation.ElevatedSession.ElevationLifespan = time.Minute
+			mock.Ctx.Configuration.IdentityValidation.ElevatedSession.CodeLifespan = time.Minute
 
 			mock.Ctx.Clock = &mock.Clock
 			mock.Ctx.Providers.Random = mock.RandomMock

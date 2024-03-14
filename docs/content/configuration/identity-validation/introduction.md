@@ -24,8 +24,8 @@ seo:
 ```yaml {title="configuration.yml"}
 identity_validation:
   elevated_session:
-    expiration: '5 minutes'
-    elevation_expiration: '10 minutes'
+    code_lifespan: '5 minutes'
+    elevation_lifespan: '10 minutes'
     characters: 8
     require_second_factor: false
     skip_second_factor: false
