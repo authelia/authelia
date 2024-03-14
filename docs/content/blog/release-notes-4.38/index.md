@@ -17,7 +17,7 @@ seo:
   noindex: false # false (default) or true
 ---
 
-Authelia [4.38](https://github.com/authelia/authelia/milestone/17) is released! This version has several
+Authelia [4.38](https://github.com/authelia/authelia/releases/tag/v4.38.0) is released! This version has several
 additional features and improvements to existing features. In this blog post we'll discuss the new features and roughly
 what it means for users.
 
