@@ -193,8 +193,8 @@ func TestRequireElevated(t *testing.T) {
 			defer mock.Close()
 
 			mock.Ctx.Configuration.IdentityValidation.ElevatedSession = schema.IdentityValidationElevatedSession{
-				Expiration:          time.Minute,
-				ElevationExpiration: time.Minute,
+				CodeLifespan:        time.Minute,
+				ElevationLifespan:   time.Minute,
 				Characters:          8,
 				RequireSecondFactor: tc.require2FA,
 				SkipSecondFactor:    tc.skip2fA,

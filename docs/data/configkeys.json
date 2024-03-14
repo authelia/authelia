@@ -1055,9 +1055,9 @@
         "env": "AUTHELIA_PRIVACY_POLICY_POLICY_URL"
     },
     {
-        "path": "identity_validation.reset_password.expiration",
+        "path": "identity_validation.reset_password.jwt_lifespan",
         "secret": false,
-        "env": "AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_EXPIRATION"
+        "env": "AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_LIFESPAN"
     },
     {
         "path": "identity_validation.reset_password.jwt_algorithm",
@@ -1070,14 +1070,14 @@
         "env": "AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE"
     },
     {
-        "path": "identity_validation.elevated_session.expiration",
+        "path": "identity_validation.elevated_session.code_lifespan",
         "secret": false,
-        "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_EXPIRATION"
+        "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_CODE_LIFESPAN"
     },
     {
-        "path": "identity_validation.elevated_session.elevation_expiration",
+        "path": "identity_validation.elevated_session.elevation_lifespan",
         "secret": false,
-        "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_ELEVATION_EXPIRATION"
+        "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_ELEVATION_LIFESPAN"
     },
     {
         "path": "identity_validation.elevated_session.characters",

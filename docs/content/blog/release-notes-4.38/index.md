@@ -2,7 +2,7 @@
 title: "4.38: Release Notes"
 description: "Authelia 4.38 release notes."
 summary: "Authelia 4.38 has been released and the following is a guide on all the massive changes."
-date: 2024-03-14T18:00:00+11:00
+date: 2024-03-12T22:03:58+11:00
 draft: false
 weight: 50
 categories: ["News", "Release Notes"]
