@@ -163,6 +163,8 @@ func validateSessionUniqueCookieDomain(i int, config *schema.Session, domains []
 }
 
 // validateSessionCookiesURLs validates the AutheliaURL and DefaultRedirectionURL.
+//
+//nolint:gocyclo
 func validateSessionCookiesURLs(i int, config *schema.Session, validator *schema.StructValidator) {
 	var d = config.Cookies[i]
 
@@ -190,7 +192,12 @@ func validateSessionCookiesURLs(i int, config *schema.Session, validator *schema
 		}
 
 		if d.Domain != "" && !utils.HasURIDomainSuffix(d.DefaultRedirectionURL, d.Domain) {
-			validator.Push(fmt.Errorf(errFmtSessionDomainURLNotInCookieScope, sessionDomainDescriptor(i, d), attrDefaultRedirectionURL, d.Domain, d.DefaultRedirectionURL))
+			if d.Legacy {
+				validator.PushWarning(fmt.Errorf(errFmtSessionDomainURLNotInCookieScope, sessionDomainDescriptor(i, d), attrDefaultRedirectionURL, d.Domain, d.DefaultRedirectionURL))
+				d.DefaultRedirectionURL = nil
+			} else {
+				validator.Push(fmt.Errorf(errFmtSessionDomainURLNotInCookieScope, sessionDomainDescriptor(i, d), attrDefaultRedirectionURL, d.Domain, d.DefaultRedirectionURL))
+			}
 		}
 
 		if d.AutheliaURL != nil && utils.EqualURLs(d.AutheliaURL, d.DefaultRedirectionURL) {
