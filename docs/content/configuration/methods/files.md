@@ -156,13 +156,18 @@ information.
 
 Experimental file filters exist which allow modification of all configuration files after reading them from the
 filesystem but before parsing their content. These filters are _**NOT**_ covered by our
-[Standard Versioning Policy](../../policies/versioning.md). There __*WILL*__ be a point where the name of the CLI
-argument or environment variable will change and usage of these will either break or just not work.
+[Standard Versioning Policy](../../policies/versioning.md) at least at this time, however we will make every effort
+to avoid breaking them unnecessarily and we include several of these filters within our CI testing regiment.
+
+There __*WILL*__ be a point where:
+- the name of the CLI argument will change (we suggest using the environment variable which will not)
+- the `expand-env` filter might be removed
 
 The filters are configured as a list of filter names by the `--config.experimental.filters` CLI argument and
 `X_AUTHELIA_CONFIG_FILTERS` environment variable. We recommend using the environment variable as it ensures
-commands executed from the container use the same filters. If both the CLI argument and environment variable are used
-the environment variable is completely ignored.
+commands executed from the container use the same filters and it's likely to be a permanent value whereas the argument
+will likely change. If both the CLI argument and environment variable are used the environment variable is completely
+ignored.
 
 Filters can either be used on their own, in combination, or not at all. The filters are processed in order as they are
 defined. You can preview the output of the YAML files when processed via the filters using the
