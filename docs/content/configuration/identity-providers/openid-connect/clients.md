@@ -35,7 +35,7 @@ identity_providers:
       - client_id: 'unique-client-identifier'
         client_name: 'My Application'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
-        sector_identifier_uri: ''
+        sector_identifier_uri: 'https://example.com/sector.json'
         public: false
         redirect_uris:
           - 'https://oidc.example.com:8080/oauth2/callback'
@@ -151,12 +151,13 @@ configuration option.
 
 {{< confkey type="string" required="no" >}}
 
-*__Important Note:__ because adjusting this option will inevitably change the `sub` claim of all tokens generated for
+*__Important Note:__ Because adjusting this option will inevitably change the `sub` claim of all tokens generated for
 the specified client, changing this should cause the relying party to detect all future authorizations as completely new
 users.*
 
-Must be an empty string or the host component of a URL. This is commonly just the domain name, but may also include a
-port.
+*__Important Note:__ This **must** either not be configured at all i.e. commented or completely absent from the
+configuration, or it must be an absolute HTTPS URL which contains a valid sector identifier JSON document. An empty
+string is not a valid configuration.*
 
 Authelia utilizes UUID version 4 subject identifiers. By default the public [Subject Identifier Type] is utilized for
 all clients. This means the subject identifiers will be the same for all clients. This configuration option enables
