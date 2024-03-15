@@ -44,7 +44,7 @@ This stage will configure the Authelia repository to be easily translatable via 
 
 ### Picker
 
-{{< roadmap-status >}}
+{{< roadmap-status stage="in-progress" version="v4.39.0" >}}
 
 Add a language picker to the web interface. The picker will be a per-browser choice which overrides the browser
 language advertisement as the language of choice for that browser. The information will be stored in the browser
