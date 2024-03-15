@@ -106,7 +106,7 @@ listed subdomains from your browser, and they will be served by the reverse prox
 [pnpm]: https://pnpm.io/installation
 [Docker]: https://docs.docker.com/get-docker/
 [Docker Compose]: https://docs.docker.com/compose/install/
-[golangci-lint]: https://golangci-lint.run/usage/install/
+[golangci-lint]: https://golangci-lint.run/welcome/install/
 [goimports-reviser]: https://github.com/incu6us/goimports-reviser#install
 [yamllint]: https://yamllint.readthedocs.io/en/stable/quickstart.html
 [VSCodium]: https://vscodium.com/
