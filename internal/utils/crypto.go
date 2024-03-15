@@ -10,6 +10,8 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/binary"
+	"encoding/hex"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -675,4 +677,35 @@ loop:
 	}
 
 	return extKeyUsage
+}
+
+// TLSVersionFromBytesString converts a given 4 byte hexadecimal string into the appropriate TLS version.
+func TLSVersionFromBytesString(input string) (version int, err error) {
+	if n := len(input); n != 4 {
+		return -1, fmt.Errorf("the input size was incorrect: should be 4 but was %d", n)
+	}
+
+	decoded, err := hex.DecodeString(input)
+	if err != nil {
+		return -1, fmt.Errorf("failed to decode hex: %w", err)
+	}
+
+	value := binary.BigEndian.Uint16(decoded)
+
+	version = int(value)
+
+	switch version {
+	case tls.VersionSSL30: //nolint:staticcheck
+		return tls.VersionSSL30, nil //nolint:staticcheck
+	case tls.VersionTLS10:
+		return tls.VersionTLS10, nil
+	case tls.VersionTLS11:
+		return tls.VersionTLS11, nil
+	case tls.VersionTLS12:
+		return tls.VersionTLS12, nil
+	case tls.VersionTLS13:
+		return tls.VersionTLS13, nil
+	default:
+		return -1, fmt.Errorf("tls version 0x%x is unknown", version)
+	}
 }
