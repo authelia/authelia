@@ -1,6 +1,7 @@
 package server
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net"
 	"os"
@@ -63,6 +64,18 @@ func handleError(cpath string) func(ctx *fasthttp.RequestCtx, err error) {
 		default:
 			statusCode = fasthttp.StatusBadRequest
 			message = errMessageServerGeneric
+
+			if ctx.IsTLS() {
+				// We don't need to bother doing the TLS handshake check if we're sure it's already a TLS connection.
+				break
+			}
+
+			if matches := reTLSRequestOnPlainTextSocketErr.FindStringSubmatch(err.Error()); len(matches) == 3 {
+				if version, verr := utils.TLSVersionFromBytesString(matches[1] + matches[2]); verr == nil && version != -1 {
+					statusCode = fasthttp.StatusBadRequest
+					message = fmt.Sprintf(errFmtMessageServerTLSVersion, tls.VersionName(uint16(version)))
+				}
+			}
 		}
 
 		logging.Logger().WithFields(logrus.Fields{
