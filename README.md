@@ -134,8 +134,8 @@ This guide will show you how to deploy it on bare metal as well as on
 Authelia takes security very seriously. If you discover a vulnerability in Authelia, please see our
 [Security Policy](https://github.com/authelia/authelia/security/policy).
 
-For more information about [security](https://www.authelia.com/information/security/) related matters, please read
-[the documentation](https://www.authelia.com/information/security/).
+For more information about [security](https://www.authelia.com/policies/security/) related matters, please read
+[the documentation](https://www.authelia.com/policies/security/).
 
 ## Contact Options
 
