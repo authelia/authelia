@@ -34,6 +34,7 @@ body:
         What version(s) of Authelia can you reproduce this bug on?
       multiple: true
       options:
+        - 'v4.38.1'
         - 'v4.38.0'
         - 'v4.37.5'
         - 'v4.37.4'
