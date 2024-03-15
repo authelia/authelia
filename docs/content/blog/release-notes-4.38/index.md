@@ -37,6 +37,16 @@ backwards compatible, however mistakes happen. If you find a mistake please kind
 In addition we advise making the adjustments mentioned in this post to your configuration as several new features will
 not be available or even possible without making the necessary adjustments.
 
+## Helm Chart
+
+Those of you interested in the Helm Chart for this please be aware the 0.9.0 release of the chart will include this
+version however it will be a breaking change as previously warned. I will have to do a few more checks of the chart
+before I release to ensure nothing is missed.
+
+Please see the [Pull Request](https://github.com/authelia/chartrepo/pull/215) for more information and feel free to
+try it out and provide feedback in the official
+[feedback discussion](https://github.com/authelia/chartrepo/discussions/220).
+
 ## On This Page
 
 This blog article is rather large so this serves as an index for all of the areas so you can best find a particular item.
@@ -177,7 +187,9 @@ These features combined with our requirement for the HTTPS scheme are very power
 
 _**Important Note:** This change may not work for some clients by default as the default option requires
 `client_secret_basic` which is the standardized default value most modern clients should use. However, it's really easy
-to update._
+to update. Traditionally this would be considered a breaking change however per our
+[Versioning Policy](https://www.authelia.com/policies/versioning/) while we aim to avoid it the OpenID Connect 1.0
+implementation is considered excluded at this time._
 
 This release will allow administrators to configure the Client Authentication Method for the Token Endpoint,
 restricting the client usage of the token endpoint and paving the way to more advanced Client Authentication Methods.
