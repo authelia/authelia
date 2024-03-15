@@ -341,17 +341,17 @@ Authelia.
 
 #### Balto
 
-Thank you to [<img src="https://www.authelia.com/images/logos/balto.svg" alt="Balto" width="32"> Balto](https://www.getbalto.com/)
+Thank you to [<img src="https://www.authelia.com/svgs/logos/balto.svg" alt="Balto" width="32"> Balto](https://www.getbalto.com/)
 for hosting our apt repository.
 
 #### JetBrains
 
-Thank you to [<img src="https://www.authelia.com/images/logos/jetbrains.svg" alt="JetBrains" width="32"> JetBrains](https://www.jetbrains.com/?from=Authelia)
+Thank you to [<img src="https://www.authelia.com/svgs/logos/jetbrains.svg" alt="JetBrains" width="32"> JetBrains](https://www.jetbrains.com/?from=Authelia)
 for providing us with free licenses to their great tools.
 
-* [<img src="https://www.authelia.com/images/logos/intellij-idea.svg" alt="IDEA" width="32"> IDEA](http://www.jetbrains.com/idea/)
-* [<img src="https://www.authelia.com/images/logos/goland.svg" alt="GoLand" width="32"> GoLand](http://www.jetbrains.com/go/)
-* [<img src="https://www.authelia.com/images/logos/webstorm.svg" alt="WebStorm" width="32"> WebStorm](http://www.jetbrains.com/webstorm/)
+* [<img src="https://www.authelia.com/svgs/logos/intellij-idea.svg" alt="IDEA" width="32"> IDEA](http://www.jetbrains.com/idea/)
+* [<img src="https://www.authelia.com/svgs/logos/goland.svg" alt="GoLand" width="32"> GoLand](http://www.jetbrains.com/go/)
+* [<img src="https://www.authelia.com/svgs/logos/webstorm.svg" alt="WebStorm" width="32"> WebStorm](http://www.jetbrains.com/webstorm/)
 
 #### Microsoft
 
@@ -359,9 +359,9 @@ Our pipeline agents which we rely on for productivity are hosted on [Azure](http
 and our [git repositories](https://github.com/authelia) are hosted on [GitHub](https://github.com/?from=Authela)
 which are both [Microsoft](https://www.microsoft.com/?from=Authelia) products.
 
-[<img src="https://www.authelia.com/images/logos/microsoft.svg" alt="microsoft" height="32">](https://www.microsoft.com/?from=Authelia)
+[<img src="https://www.authelia.com/svgs/logos/microsoft.svg" alt="microsoft" height="32">](https://www.microsoft.com/?from=Authelia)
 
-[<img src="https://www.authelia.com/images/logos/azure.svg" alt="Azure" height="32">](https://azure.microsoft.com/?from=Authelia)
+[<img src="https://www.authelia.com/svgs/logos/azure.svg" alt="Azure" height="32">](https://azure.microsoft.com/?from=Authelia)
 
 ### Open Collective
 
