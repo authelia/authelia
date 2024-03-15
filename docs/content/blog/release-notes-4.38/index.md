@@ -66,7 +66,10 @@ This blog article is rather large so this serves as an index for all of the area
     OpenID Connect 1.0 Provider features.
   - [Client Authentication Method (Token Endpoint)](#client-authentication-method-token-endpoint) may require
     administrators provide configuration after the update.
-
+  - [OpenID Connect 1.0: Other Notable Changes](#other-notable-changes)
+- Important Modification Considerations (changes that you are not required to make but may run into issues if you're
+  not careful):
+  - [Server Listener](#server-listener) changes
 
 ## OpenID Connect 1.0
 
@@ -313,6 +316,13 @@ This is done via similar means as the [Client JSON Web Key Selection] process.
 [discovery_signed_response_alg]: ../../configuration/identity-providers/openid-connect/provider.md#discovery_signed_response_alg
 [discovery_signed_response_key_id]: ../../configuration/identity-providers/openid-connect/provider.md#discovery_signed_response_key_id
 
+#### Other Notable Changes
+
+- The Registered Client `sector_identifier_uri` was previously not validated properly which has been fixed but this may
+  require consideration when upgrading. See the
+  [sector_identifier_uri](../../configuration/identity-providers/openid-connect/clients.md#sector_identifier_uri)
+  configuration document for more information.
+
 ## Multi-Domain Protection
 
 In this release we are releasing the main implementation of the Multi-Domain Protection roadmap item.
@@ -523,3 +533,31 @@ Authelia.
 This release adds several LDAP implementations into our existing set. See the LDAP configuration option
 [implementation](../../configuration/first-factor/ldap.md#implementation) and the
 [LDAP Reference Guide](../../reference/guides/ldap.md) for more information.
+
+#### Server Listener
+
+The server listener configuration was factorized, when updating it to the new values users may be confused about how to
+properly do this and when utilizing the old `path` option in bad proxy configurations this may
+lead to authorization being skipped. In particular if you're using the path as part of the `/api/verify` endpoint
+equivalent.
+
+This doesn't occur if you update the configuration correctly however we have had one user run into this issue. The
+following shows how to properly map the old values to he new. For more information see the
+[Server Configuration](../../configuration/miscellaneous/server.md#address).
+
+{{< details "Before" >}}
+```yaml {title="configuration.yml"}
+server:
+  host: '0.0.0.0'
+  port: 9091
+  path: 'authelia'
+```
+{{< /details >}}
+
+{{< details "After" >}}
+```yaml
+server:
+  address: 'tcp://0.0.0.0:9091/authelia'
+```
+{{< /details >}}
+
