@@ -250,7 +250,7 @@ func docsJSONSchemaGenerateRunE(cmd *cobra.Command, _ []string, version *model.S
 	versions, _ = cmd.Flags().GetStringSlice(cmdFlagVersions)
 
 	if len(versions) == 0 {
-		versions = []string{metaVersionNext, metaVersionLatest}
+		versions = []string{metaVersionLatest}
 	}
 
 	next := utils.IsStringInSlice(metaVersionNext, versions)

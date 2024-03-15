@@ -149,6 +149,8 @@ lead: ""
 date: %s
 draft: false
 images: []
+sidebar:
+  collapsed: true
 menu:
   reference:
     parent: "cli"
