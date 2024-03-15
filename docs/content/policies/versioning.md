@@ -32,7 +32,8 @@ upgrade exists.
 
 ## Important Notes
 
-1. This versioning policy **_does not_** cover the following:
+1. While we make every effort to ensure zero breaking changes occur, this versioning policy **_does not_** cover the
+   following at this time:
    1. Changes between stable releases. i.e. changes to `master`, alpha, beta, pre-release, or any other testing build.
    2. The notable [exceptions](#exceptions).
 2. Examples (i.e. it's not limited to these examples) of the changes which may occur between stable releases are:
@@ -43,7 +44,7 @@ upgrade exists.
    complexity. This however does not mean existing functionality is intended to break, just new functionality may be
    unavailable without manual intervention.
 4. There may be deprecations in `minor` or `patch` releases. This however **_does not_** mean that you can't continue to
-   the deprecated item, it just means it's discouraged as it **_does_** mean that it's likely in the next `major`
+   use the deprecated item, it just means it's discouraged as it **_does_** mean that it's likely in the next `major`
    release it will be completely removed. This applies but is not limited to:
    - Features.
    - Configuration Keys.
