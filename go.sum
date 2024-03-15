@@ -1,5 +1,5 @@
-authelia.com/provider/oauth2 v0.0.0-20240313001612-43d016545b81 h1:BmwFLBmC6kbZC4++6Vzfq19r/xkI7hJ6jiKfmDbSPzc=
-authelia.com/provider/oauth2 v0.0.0-20240313001612-43d016545b81/go.mod h1:NDritA+Ls5jTa5+t3CSQy58f/QPDofR53IKP8rRHJ8M=
+authelia.com/provider/oauth2 v0.1.1 h1:JHMWB8aieYW++7a+t3RIB0fkxcLMHyT7NUKPEAl6cls=
+authelia.com/provider/oauth2 v0.1.1/go.mod h1:NDritA+Ls5jTa5+t3CSQy58f/QPDofR53IKP8rRHJ8M=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.38.0/go.mod h1:990N+gfupTy94rShfmMCWGDn0LpTmnzTp2qbd1dvSRU=
