@@ -27,12 +27,6 @@ type StorageSQL struct {
 	Username string        `koanf:"username" json:"username" jsonschema:"title=Username" jsonschema_description:"The username to use to authenticate."`
 	Password string        `koanf:"password" json:"password" jsonschema:"title=Password" jsonschema_description:"The password to use to authenticate."`
 	Timeout  time.Duration `koanf:"timeout" json:"timeout" jsonschema:"default=5 seconds,title=Timeout" jsonschema_description:"The timeout for the database connection."`
-
-	// Deprecated: use address instead.
-	Host string `koanf:"host" json:"host" jsonschema:"deprecated,title=Host"`
-
-	// Deprecated: use address instead.
-	Port int `koanf:"port" json:"port" jsonschema:"deprecated,title=Host"`
 }
 
 // StorageMySQL represents the configuration of a MySQL database.

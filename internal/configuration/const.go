@@ -44,7 +44,10 @@ const (
 
 	errFmtSuffixAutoRemappedKey = "you are not required to make any changes as this has been automatically mapped for you, but to stop this warning being logged you will need to adjust your configuration, and this configuration key and auto-mapping is likely to be removed in %s"
 
-	errFmtSpecialRemappedKey = "configuration key '%s' is deprecated in %s and has been replaced by '%s' when combined with the '%s' in the format of '%s': " + errFmtSuffixAutoRemappedKey
+	errFmtMultiRemappedKeys          = "configuration keys %s are deprecated in %s and has been replaced by '%s' in the format of '%s': you are not required to make any changes as this has been automatically mapped for you to the value '%s', but to stop this warning being logged you will need to adjust your configuration, and this configuration key and auto-mapping is likely to be removed in %s"
+	errFmtMultiKeyMappingExists      = "error occurred performing deprecation mapping for keys %s to new key %s: the new key already exists with value '%s' but the deprecated keys and the new key can't both be configured"
+	errFmtMultiKeyMappingPortConvert = "error occurred performing deprecation mapping for keys %s to new key %s: %w"
+
 	errFmtAutoMapKey         = "configuration key '%s' is deprecated in %s and has been replaced by '%s': " + errFmtSuffixAutoRemappedKey
 	errFmtAutoMapKeyExisting = "configuration key '%s' is deprecated in %s and has been replaced by '%s': this has not been automatically mapped for you because the replacement key also exists and you will need to adjust your configuration to remove this message"
 )

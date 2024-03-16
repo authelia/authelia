@@ -7,7 +7,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func getEnvConfigMap(keys []string, prefix, delimiter string, ds map[string]Deprecation) (keyMap map[string]string, ignoredKeys []string) {
+func getEnvConfigMap(keys []string, prefix, delimiter string, ds map[string]Deprecation, dms []MultiKeyMappedDeprecation) (keyMap map[string]string, ignoredKeys []string) {
 	keyMap = make(map[string]string)
 
 	for _, key := range keys {
@@ -19,13 +19,11 @@ func getEnvConfigMap(keys []string, prefix, delimiter string, ds map[string]Depr
 		}
 	}
 
-	for key := range ds {
+	for key, deprecation := range ds {
 		if IsSecretKey(key) {
 			ignoredKeys = append(ignoredKeys, ToEnvironmentSecretKey(key, prefix, delimiter))
 		}
-	}
 
-	for _, deprecation := range deprecations {
 		if !deprecation.AutoMap {
 			continue
 		}
@@ -37,6 +35,22 @@ func getEnvConfigMap(keys []string, prefix, delimiter string, ds map[string]Depr
 		}
 
 		keyMap[d] = deprecation.Key
+	}
+
+	for _, deprecation := range dms {
+		for _, key := range deprecation.Keys {
+			if IsSecretKey(key) {
+				ignoredKeys = append(ignoredKeys, ToEnvironmentSecretKey(key, prefix, delimiter))
+			}
+
+			d := ToEnvironmentKey(key, prefix, delimiter)
+
+			if _, ok := keyMap[d]; ok {
+				continue
+			}
+
+			keyMap[d] = key
+		}
 	}
 
 	return keyMap, ignoredKeys

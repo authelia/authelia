@@ -56,7 +56,7 @@ subitems:
 
 	require.NoError(t, ko.Load(rawbytes.Provider(configYAML), yaml.Parser()))
 
-	final, err := koanfRemapKeys(val, ko, ds)
+	final, err := koanfRemapKeys(val, ko, ds, nil)
 	require.NoError(t, err)
 
 	conf := &testDeprecationsConf{}

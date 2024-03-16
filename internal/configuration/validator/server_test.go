@@ -31,89 +31,6 @@ func TestShouldSetDefaultServerValues(t *testing.T) {
 	assert.Equal(t, schema.DefaultServerConfiguration.Endpoints.EnableExpvars, config.Server.Endpoints.EnableExpvars)
 	assert.Equal(t, schema.DefaultServerConfiguration.Endpoints.EnablePprof, config.Server.Endpoints.EnablePprof)
 	assert.Equal(t, schema.DefaultServerConfiguration.Endpoints.Authz, config.Server.Endpoints.Authz)
-
-	assert.Equal(t, "", config.Server.Host) //nolint:staticcheck
-	assert.Equal(t, 0, config.Server.Port)  //nolint:staticcheck
-	assert.Equal(t, "", config.Server.Path) //nolint:staticcheck
-}
-
-func TestShouldSetDefaultServerValuesWithLegacyAddress(t *testing.T) {
-	testCases := []struct {
-		name     string
-		have     schema.Server
-		expected schema.Address
-	}{
-		{
-			"ShouldParseAll",
-			schema.Server{
-				Host: "abc",
-				Port: 123,
-				Path: "subpath",
-			},
-			MustParseAddress("tcp://abc:123/subpath"),
-		},
-		{
-			"ShouldParseHostAndPort",
-			schema.Server{
-				Host: "abc",
-				Port: 123,
-			},
-			MustParseAddress("tcp://abc:123/"),
-		},
-		{
-			"ShouldParseHostAndPath",
-			schema.Server{
-				Host: "abc",
-				Path: "subpath",
-			},
-			MustParseAddress("tcp://abc:9091/subpath"),
-		},
-		{
-			"ShouldParsePortAndPath",
-			schema.Server{
-				Port: 123,
-				Path: "subpath",
-			},
-			MustParseAddress("tcp://:123/subpath"),
-		},
-		{
-			"ShouldParseHost",
-			schema.Server{
-				Host: "abc",
-			},
-			MustParseAddress("tcp://abc:9091/"),
-		},
-		{
-			"ShouldParsePort",
-			schema.Server{
-				Port: 123,
-			},
-			MustParseAddress("tcp://:123/"),
-		},
-		{
-			"ShouldParsePath",
-			schema.Server{
-				Path: "subpath",
-			},
-			MustParseAddress("tcp://:9091/subpath"),
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			validator := schema.NewStructValidator()
-			config := &schema.Configuration{
-				Server: tc.have,
-			}
-
-			ValidateServer(config, validator)
-
-			assert.Len(t, validator.Errors(), 0)
-			assert.Len(t, validator.Warnings(), 0)
-
-			assert.Equal(t, &schema.AddressTCP{Address: tc.expected}, config.Server.Address)
-		})
-	}
 }
 
 func TestShouldSetDefaultConfig(t *testing.T) {
@@ -142,7 +59,7 @@ func TestValidateSeverAddress(t *testing.T) {
 	require.Len(t, validator.Errors(), 1)
 	assert.Len(t, validator.Warnings(), 0)
 
-	assert.EqualError(t, validator.Errors()[0], "server: option 'address' must not and with a forward slash but it's configured as '/path/'")
+	assert.EqualError(t, validator.Errors()[0], "server: option 'address' must not have a path with a forward slash but it's configured as '/path/'")
 }
 
 func TestValidateServerShouldCorrectlyIdentifyValidAddressSchemes(t *testing.T) {
@@ -233,7 +150,9 @@ func TestShouldRaiseOnNonAlphanumericCharsInPath(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
 		Server: schema.Server{
-			Path: "app le",
+			Address: &schema.AddressTCP{
+				Address: MustParseAddress("tcp://:9091/app-le"),
+			},
 		},
 	}
 
@@ -241,20 +160,22 @@ func TestShouldRaiseOnNonAlphanumericCharsInPath(t *testing.T) {
 
 	require.Len(t, validator.Errors(), 1)
 
-	assert.Error(t, validator.Errors()[0], "server path must only be alpha numeric characters")
+	assert.EqualError(t, validator.Errors()[0], "server: option 'address' must have a path with only alphanumeric characters but it's configured as '/app-le'")
 }
 
 func TestShouldRaiseOnForwardSlashInPath(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
 		Server: schema.Server{
-			Path: "app/le",
+			Address: &schema.AddressTCP{
+				Address: MustParseAddress("tcp://:9091/app/le"),
+			},
 		},
 	}
 
 	ValidateServer(config, validator)
 
-	assert.Len(t, validator.Errors(), 1)
+	require.Len(t, validator.Errors(), 1)
 
 	assert.Error(t, validator.Errors()[0], "server path must not contain any forward slashes")
 }
@@ -268,18 +189,6 @@ func TestShouldValidateAndUpdateAddress(t *testing.T) {
 
 	require.Len(t, validator.Errors(), 0)
 	assert.Equal(t, "tcp://:9091/", config.Server.Address.String())
-}
-
-func TestShouldRaiseErrorOnLegacyAndModernValues(t *testing.T) {
-	validator := schema.NewStructValidator()
-	config := newDefaultConfig()
-	config.Server.Host = local25 //nolint:staticcheck
-	config.Server.Port = 9999    //nolint:staticcheck
-
-	ValidateServer(&config, validator)
-
-	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "server: option 'host' and 'port' can't be configured at the same time as 'address'")
 }
 
 func TestShouldRaiseErrorWhenTLSCertWithoutKeyIsProvided(t *testing.T) {

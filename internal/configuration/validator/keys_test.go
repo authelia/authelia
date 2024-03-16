@@ -14,7 +14,7 @@ import (
 func TestShouldValidateGoodKeys(t *testing.T) {
 	configKeys := schema.Keys
 	validator := schema.NewStructValidator()
-	ValidateKeys(configKeys, "AUTHELIA_", validator)
+	ValidateKeys(configKeys, nil, "AUTHELIA_", validator)
 
 	require.Len(t, validator.Errors(), 0)
 }
@@ -24,7 +24,7 @@ func TestShouldNotValidateBadKeys(t *testing.T) {
 	configKeys = append(configKeys, "bad_key")
 	configKeys = append(configKeys, "totp.skewy")
 	validator := schema.NewStructValidator()
-	ValidateKeys(configKeys, "AUTHELIA_", validator)
+	ValidateKeys(configKeys, nil, "AUTHELIA_", validator)
 
 	errs := validator.Errors()
 	require.Len(t, errs, 2)
@@ -39,7 +39,7 @@ func TestShouldNotValidateBadEnvKeys(t *testing.T) {
 	configKeys = append(configKeys, "AUTHELIA_BAD_ENV_KEY")
 
 	validator := schema.NewStructValidator()
-	ValidateKeys(configKeys, "AUTHELIA_", validator)
+	ValidateKeys(configKeys, nil, "AUTHELIA_", validator)
 
 	warns := validator.Warnings()
 	assert.Len(t, validator.Errors(), 0)
@@ -64,7 +64,7 @@ func TestAllSpecificErrorKeys(t *testing.T) {
 	}
 
 	validator := schema.NewStructValidator()
-	ValidateKeys(configKeys, "AUTHELIA_", validator)
+	ValidateKeys(configKeys, nil, "AUTHELIA_", validator)
 
 	errs := validator.Errors()
 
@@ -88,7 +88,7 @@ func TestSpecificErrorKeys(t *testing.T) {
 	}
 
 	validator := schema.NewStructValidator()
-	ValidateKeys(configKeys, "AUTHELIA_", validator)
+	ValidateKeys(configKeys, nil, "AUTHELIA_", validator)
 
 	errs := validator.Errors()
 
@@ -108,7 +108,7 @@ func TestPatternKeys(t *testing.T) {
 	}
 
 	validator := schema.NewStructValidator()
-	ValidateKeys(configKeys, "AUTHELIA_", validator)
+	ValidateKeys(configKeys, nil, "AUTHELIA_", validator)
 
 	errs := validator.Errors()
 
@@ -125,7 +125,7 @@ func TestReplacedErrors(t *testing.T) {
 	}
 
 	validator := schema.NewStructValidator()
-	ValidateKeys(configKeys, "AUTHELIA_", validator)
+	ValidateKeys(configKeys, nil, "AUTHELIA_", validator)
 
 	warns := validator.Warnings()
 	errs := validator.Errors()

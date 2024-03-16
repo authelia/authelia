@@ -3,7 +3,6 @@ package validator
 import (
 	"fmt"
 	"os"
-	"path"
 	"sort"
 	"strings"
 
@@ -84,44 +83,11 @@ func ValidateServer(config *schema.Configuration, validator *schema.StructValida
 
 // ValidateServerAddress checks the configured server address is correct.
 //
-//nolint:gocyclo
+
 func ValidateServerAddress(config *schema.Configuration, validator *schema.StructValidator) {
 	if config.Server.Address == nil {
-		if config.Server.Host == "" && config.Server.Port == 0 && config.Server.Path == "" { //nolint:staticcheck
-			config.Server.Address = schema.DefaultServerConfiguration.Address
-		} else {
-			host := config.Server.Host    //nolint:staticcheck
-			port := config.Server.Port    //nolint:staticcheck
-			subpath := config.Server.Path //nolint:staticcheck
-
-			if host == "" {
-				host = schema.DefaultServerConfiguration.Address.Hostname()
-			}
-
-			if port == 0 {
-				port = schema.DefaultServerConfiguration.Address.Port()
-			}
-
-			switch {
-			case strings.Contains(subpath, "/"):
-				validator.Push(fmt.Errorf(errFmtServerPathNoForwardSlashes))
-			case !utils.IsStringAlphaNumeric(subpath):
-				validator.Push(fmt.Errorf(errFmtServerPathAlphaNum))
-			case subpath == "":
-				subpath = schema.DefaultServerConfiguration.Address.Path()
-			default:
-				subpath = path.Clean("/" + subpath)
-			}
-
-			config.Server.Address = &schema.AddressTCP{Address: schema.NewAddressFromNetworkValues(schema.AddressSchemeTCP, host, port)}
-
-			config.Server.Address.SetPath(subpath)
-		}
+		config.Server.Address = schema.DefaultServerConfiguration.Address
 	} else {
-		if config.Server.Host != "" || config.Server.Port != 0 { //nolint:staticcheck
-			validator.Push(fmt.Errorf(errFmtServerAddressLegacyAndModern))
-		}
-
 		var err error
 
 		if err = config.Server.Address.ValidateHTTP(); err != nil {
@@ -132,8 +98,12 @@ func ValidateServerAddress(config *schema.Configuration, validator *schema.Struc
 	switch subpath := config.Server.Address.RouterPath(); {
 	case subpath == "":
 		config.Server.Address.SetPath("/")
-	case subpath != "/" && strings.HasSuffix(subpath, "/"):
-		validator.Push(fmt.Errorf(errFmtServerPathNotEndForwardSlash, subpath))
+	case subpath != "/":
+		if p := strings.TrimPrefix(subpath, "/"); strings.Contains(p, "/") {
+			validator.Push(fmt.Errorf(errFmtServerPathNotEndForwardSlash, subpath))
+		} else if !utils.IsStringAlphaNumeric(p) {
+			validator.Push(fmt.Errorf(errFmtServerPathAlphaNumeric, subpath))
+		}
 	}
 }
 

@@ -2448,24 +2448,6 @@
           "$ref": "#/$defs/ServerTimeouts",
           "title": "Timeouts",
           "description": "The server timeouts configuration."
-        },
-        "host": {
-          "type": "string",
-          "title": "Host",
-          "description": "Deprecated: use address instead.",
-          "deprecated": true
-        },
-        "port": {
-          "type": "integer",
-          "title": "Port",
-          "description": "Deprecated: use address instead.",
-          "deprecated": true
-        },
-        "path": {
-          "type": "string",
-          "title": "Path",
-          "description": "Deprecated: use address instead.",
-          "deprecated": true
         }
       },
       "additionalProperties": false,
@@ -3018,18 +3000,6 @@
           "title": "Timeout",
           "description": "The timeout for the database connection."
         },
-        "host": {
-          "type": "string",
-          "title": "Host",
-          "description": "Deprecated: use address instead.",
-          "deprecated": true
-        },
-        "port": {
-          "type": "integer",
-          "title": "Host",
-          "description": "Deprecated: use address instead.",
-          "deprecated": true
-        },
         "tls": {
           "$ref": "#/$defs/TLS"
         }
@@ -3073,18 +3043,6 @@
           ],
           "title": "Timeout",
           "description": "The timeout for the database connection."
-        },
-        "host": {
-          "type": "string",
-          "title": "Host",
-          "description": "Deprecated: use address instead.",
-          "deprecated": true
-        },
-        "port": {
-          "type": "integer",
-          "title": "Host",
-          "description": "Deprecated: use address instead.",
-          "deprecated": true
         },
         "schema": {
           "type": "string",

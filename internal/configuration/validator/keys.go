@@ -11,7 +11,7 @@ import (
 )
 
 // ValidateKeys determines if all provided keys are valid.
-func ValidateKeys(keys []string, prefix string, validator *schema.StructValidator) {
+func ValidateKeys(keys, remapped []string, prefix string, validator *schema.StructValidator) {
 	var errStrings []string
 
 	var patterns []*regexp.Regexp
@@ -44,6 +44,10 @@ KEYS:
 			if p.MatchString(expectedKey) {
 				continue KEYS
 			}
+		}
+
+		if utils.IsStringInSlice(expectedKey, remapped) {
+			continue
 		}
 
 		if err, ok := specificErrorKeys[expectedKey]; ok {
