@@ -2,6 +2,9 @@ package configuration
 
 import (
 	"fmt"
+	"path"
+	"strconv"
+	"strings"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -179,113 +182,6 @@ var deprecations = map[string]Deprecation{
 		MapFunc: nil,
 		ErrFunc: nil,
 	},
-	"server.host": {
-		Version: model.SemanticVersion{Major: 4, Minor: 38},
-		Key:     "server.host",
-		NewKey:  "server.address",
-		AutoMap: false,
-		Keep:    true,
-		MapFunc: nil,
-		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
-			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version, d.NewKey, "server.port' and 'server.path", "[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]", d.Version.NextMajor()))
-		},
-	},
-	"server.port": {
-		Version: model.SemanticVersion{Major: 4, Minor: 38},
-		Key:     "server.port",
-		NewKey:  "server.address",
-		AutoMap: false,
-		Keep:    true,
-		MapFunc: nil,
-		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
-			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version, d.NewKey, "server.host' and 'server.path", "[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]", d.Version.NextMajor()))
-		},
-	},
-	"server.path": {
-		Version: model.SemanticVersion{Major: 4, Minor: 38},
-		Key:     "server.path",
-		NewKey:  "server.address",
-		AutoMap: false,
-		Keep:    true,
-		MapFunc: nil,
-		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
-			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version, d.NewKey, "server.host' and 'server.port", "[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]", d.Version.NextMajor()))
-		},
-	},
-	"storage.mysql.host": {
-		Version: model.SemanticVersion{Major: 4, Minor: 38},
-		Key:     "storage.mysql.host",
-		NewKey:  "storage.mysql.address",
-		AutoMap: false,
-		Keep:    true,
-		MapFunc: nil,
-		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
-			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version, d.NewKey, "storage.mysql.port", "[tcp://]<hostname>[:<port>]", d.Version.NextMajor()))
-		},
-	},
-	"storage.mysql.port": {
-		Version: model.SemanticVersion{Major: 4, Minor: 38},
-		Key:     "storage.mysql.port",
-		NewKey:  "storage.mysql.address",
-		AutoMap: false,
-		Keep:    true,
-		MapFunc: nil,
-		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
-			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version, d.NewKey, "storage.mysql.host", "[tcp://]<hostname>[:<port>]", d.Version.NextMajor()))
-		},
-	},
-	"storage.postgres.host": {
-		Version: model.SemanticVersion{Major: 4, Minor: 38},
-		Key:     "storage.postgres.host",
-		NewKey:  "storage.postgres.address",
-		AutoMap: false,
-		Keep:    true,
-		MapFunc: nil,
-		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
-			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version, d.NewKey, "storage.postgres.port", "[tcp://]<hostname>[:<port>]", d.Version.NextMajor()))
-		},
-	},
-	"storage.postgres.port": {
-		Version: model.SemanticVersion{Major: 4, Minor: 38},
-		Key:     "storage.postgres.port",
-		NewKey:  "storage.postgres.address",
-		AutoMap: false,
-		Keep:    true,
-		MapFunc: nil,
-		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
-			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version, d.NewKey, "storage.postgres.host", "[tcp://]<hostname>[:<port>]", d.Version.NextMajor()))
-		},
-	},
-	"notifier.smtp.host": {
-		Version: model.SemanticVersion{Major: 4, Minor: 38},
-		Key:     "notifier.smtp.host",
-		NewKey:  "notifier.smtp.address",
-		AutoMap: false,
-		Keep:    true,
-		MapFunc: nil,
-		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
-			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version, d.NewKey, "notifier.smtp.port", "[tcp://]<hostname>[:<port>]", d.Version.NextMajor()))
-		},
-	},
-	"notifier.smtp.port": {
-		Version: model.SemanticVersion{Major: 4, Minor: 38},
-		Key:     "notifier.smtp.port",
-		NewKey:  "notifier.smtp.address",
-		AutoMap: false,
-		Keep:    true,
-		MapFunc: nil,
-		ErrFunc: func(d Deprecation, _ map[string]any, _ any, val *schema.StructValidator) {
-			val.PushWarning(fmt.Errorf(errFmtSpecialRemappedKey, d.Key, d.Version, d.NewKey, "notifier.smtp.host", "[tcp://]<hostname>[:<port>]", d.Version.NextMajor()))
-		},
-	},
-	"authentication_backend.ldap.url": {
-		Version: model.SemanticVersion{Major: 4, Minor: 38},
-		Key:     "authentication_backend.ldap.url",
-		NewKey:  "authentication_backend.ldap.address",
-		AutoMap: true,
-		MapFunc: nil,
-		ErrFunc: nil,
-	},
 	"identity_providers.oidc.clients[].userinfo_signing_algorithm": {
 		Version: model.SemanticVersion{Major: 4, Minor: 38},
 		Key:     "identity_providers.oidc.clients[].userinfo_signing_algorithm",
@@ -322,38 +218,6 @@ var deprecations = map[string]Deprecation{
 		Version: model.SemanticVersion{Major: 4, Minor: 38},
 		Key:     "identity_providers.oidc.clients[].sector_identifier",
 		NewKey:  "identity_providers.oidc.clients[].sector_identifier_uri",
-		AutoMap: true,
-		MapFunc: nil,
-		ErrFunc: nil,
-	},
-	"authentication_backend.ldap.username_attribute": {
-		Version: model.SemanticVersion{Major: 4, Minor: 38},
-		Key:     "authentication_backend.ldap.username_attribute",
-		NewKey:  "authentication_backend.ldap.attributes.username",
-		AutoMap: true,
-		MapFunc: nil,
-		ErrFunc: nil,
-	},
-	"authentication_backend.ldap.mail_attribute": {
-		Version: model.SemanticVersion{Major: 4, Minor: 38},
-		Key:     "authentication_backend.ldap.mail_attribute",
-		NewKey:  "authentication_backend.ldap.attributes.mail",
-		AutoMap: true,
-		MapFunc: nil,
-		ErrFunc: nil,
-	},
-	"authentication_backend.ldap.display_name_attribute": {
-		Version: model.SemanticVersion{Major: 4, Minor: 38},
-		Key:     "authentication_backend.ldap.display_name_attribute",
-		NewKey:  "authentication_backend.ldap.attributes.display_name",
-		AutoMap: true,
-		MapFunc: nil,
-		ErrFunc: nil,
-	},
-	"authentication_backend.ldap.group_name_attribute": {
-		Version: model.SemanticVersion{Major: 4, Minor: 38},
-		Key:     "authentication_backend.ldap.group_name_attribute",
-		NewKey:  "authentication_backend.ldap.attributes.group_name",
 		AutoMap: true,
 		MapFunc: nil,
 		ErrFunc: nil,
@@ -410,6 +274,46 @@ var deprecations = map[string]Deprecation{
 			val.PushWarning(fmt.Errorf("configuration key '%s' is deprecated in %s and should be configured using the new configuration key '%s': this has been automatically mapped for you but you will need to adjust your configuration (see https://www.authelia.com/c/oidc) to remove this message", d.Key, d.Version, d.NewKey))
 		},
 	},
+	"authentication_backend.ldap.url": {
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Key:     "authentication_backend.ldap.url",
+		NewKey:  "authentication_backend.ldap.address",
+		AutoMap: true,
+		MapFunc: nil,
+		ErrFunc: nil,
+	},
+	"authentication_backend.ldap.username_attribute": {
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Key:     "authentication_backend.ldap.username_attribute",
+		NewKey:  "authentication_backend.ldap.attributes.username",
+		AutoMap: true,
+		MapFunc: nil,
+		ErrFunc: nil,
+	},
+	"authentication_backend.ldap.mail_attribute": {
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Key:     "authentication_backend.ldap.mail_attribute",
+		NewKey:  "authentication_backend.ldap.attributes.mail",
+		AutoMap: true,
+		MapFunc: nil,
+		ErrFunc: nil,
+	},
+	"authentication_backend.ldap.display_name_attribute": {
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Key:     "authentication_backend.ldap.display_name_attribute",
+		NewKey:  "authentication_backend.ldap.attributes.display_name",
+		AutoMap: true,
+		MapFunc: nil,
+		ErrFunc: nil,
+	},
+	"authentication_backend.ldap.group_name_attribute": {
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Key:     "authentication_backend.ldap.group_name_attribute",
+		NewKey:  "authentication_backend.ldap.attributes.group_name",
+		AutoMap: true,
+		MapFunc: nil,
+		ErrFunc: nil,
+	},
 	"jwt_secret": {
 		Version: model.SemanticVersion{Major: 4, Minor: 38},
 		Key:     "jwt_secret",
@@ -418,4 +322,225 @@ var deprecations = map[string]Deprecation{
 		MapFunc: nil,
 		ErrFunc: nil,
 	},
+}
+
+// MultiKeyMappedDeprecation represents a deprecated configuration key.
+type MultiKeyMappedDeprecation struct {
+	Version model.SemanticVersion
+	Keys    []string
+	NewKey  string
+	MapFunc func(d MultiKeyMappedDeprecation, keys map[string]any, val *schema.StructValidator)
+}
+
+var deprecationsMKM = []MultiKeyMappedDeprecation{
+	{
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Keys:    []string{"notifier.smtp.host", "notifier.smtp.port"},
+		NewKey:  "notifier.smtp.address",
+		MapFunc: func(d MultiKeyMappedDeprecation, keys map[string]any, val *schema.StructValidator) {
+			host, port, err := getHostPort("notifier.smtp.host", "notifier.smtp.port", schema.DefaultSMTPNotifierConfiguration.Address.Host(), schema.DefaultSMTPNotifierConfiguration.Address.Port(), keys)
+			if err != nil {
+				val.Push(fmt.Errorf(errFmtMultiKeyMappingPortConvert, strJoinAnd(d.Keys), d.NewKey, err))
+
+				return
+			}
+
+			address := schema.NewSMTPAddress("", host, port)
+
+			val.PushWarning(fmt.Errorf(errFmtMultiRemappedKeys, strJoinAnd(d.Keys), d.Version, d.NewKey, "[tcp://]<hostname>[:<port>]", address.String(), d.Version.NextMajor()))
+
+			keys[d.NewKey] = address.String()
+
+			for _, key := range d.Keys {
+				delete(keys, key)
+			}
+		},
+	},
+	{
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Keys:    []string{"storage.postgres.host", "storage.postgres.port"},
+		NewKey:  "storage.postgres.address",
+		MapFunc: func(d MultiKeyMappedDeprecation, keys map[string]any, val *schema.StructValidator) {
+			host, port, err := getHostPort("storage.postgres.host", "storage.postgres.port", schema.DefaultPostgreSQLStorageConfiguration.Address.Host(), schema.DefaultPostgreSQLStorageConfiguration.Address.Port(), keys)
+			if err != nil {
+				val.Push(fmt.Errorf(errFmtMultiKeyMappingPortConvert, strJoinAnd(d.Keys), d.NewKey, err))
+
+				return
+			}
+
+			if address, err := schema.NewAddressFromNetworkValuesDefault(host, port, schema.AddressSchemeTCP, schema.AddressSchemeUnix); err != nil {
+				val.Push(fmt.Errorf("storage: %s: option 'address' failed to parse options 'host' and 'port' for mapping: %w", "postgres", err))
+			} else {
+				keys[d.NewKey] = address.String()
+
+				val.PushWarning(fmt.Errorf(errFmtMultiRemappedKeys, strJoinAnd(d.Keys), d.Version, d.NewKey, "[tcp://]<hostname>[:<port>]", address.String(), d.Version.NextMajor()))
+
+				for _, key := range d.Keys {
+					delete(keys, key)
+				}
+			}
+		},
+	},
+	{
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Keys:    []string{"storage.mysql.host", "storage.mysql.port"},
+		NewKey:  "storage.mysql.address",
+		MapFunc: func(d MultiKeyMappedDeprecation, keys map[string]any, val *schema.StructValidator) {
+			x := schema.DefaultMySQLStorageConfiguration.Address
+
+			host, port, err := getHostPort("storage.mysql.host", "storage.mysql.port", x.Host(), x.Port(), keys)
+			if err != nil {
+				val.Push(fmt.Errorf(errFmtMultiKeyMappingPortConvert, strJoinAnd(d.Keys), d.NewKey, err))
+
+				return
+			}
+
+			if address, err := schema.NewAddressFromNetworkValuesDefault(host, port, schema.AddressSchemeTCP, schema.AddressSchemeUnix); err != nil {
+				val.Push(fmt.Errorf("storage: %s: option 'address' failed to parse options 'host' and 'port' for mapping: %w", "mysql", err))
+			} else {
+				keys[d.NewKey] = address.String()
+
+				val.PushWarning(fmt.Errorf(errFmtMultiRemappedKeys, strJoinAnd(d.Keys), d.Version, d.NewKey, "[tcp://]<hostname>[:<port>]", address.String(), d.Version.NextMajor()))
+
+				for _, key := range d.Keys {
+					delete(keys, key)
+				}
+			}
+		},
+	},
+	{
+		Version: model.SemanticVersion{Major: 4, Minor: 38},
+		Keys:    []string{"server.host", "server.port", "server.path"},
+		NewKey:  "server.address",
+		MapFunc: func(d MultiKeyMappedDeprecation, keys map[string]any, val *schema.StructValidator) {
+			host, port, err := getHostPort("server.host", "server.port", schema.DefaultServerConfiguration.Address.Hostname(), schema.DefaultServerConfiguration.Address.Port(), keys)
+			if err != nil {
+				val.Push(fmt.Errorf(errFmtMultiKeyMappingPortConvert, strJoinAnd(d.Keys), d.NewKey, err))
+
+				return
+			}
+
+			var (
+				v       any
+				ok      bool
+				subpath string
+			)
+
+			if v, ok = keys["sever.path"]; ok {
+				subpath, _ = v.(string)
+			}
+
+			switch subpath {
+			case "":
+				subpath = schema.DefaultServerConfiguration.Address.Path()
+			default:
+				subpath = path.Clean("/" + subpath)
+			}
+
+			address := &schema.AddressTCP{Address: schema.NewAddressFromNetworkValues(schema.AddressSchemeTCP, host, port)}
+
+			address.SetPath(subpath)
+
+			val.PushWarning(fmt.Errorf(errFmtMultiRemappedKeys, strJoinAnd(d.Keys), d.Version, d.NewKey, "[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]", address.String(), d.Version.NextMajor()))
+
+			keys[d.NewKey] = address.String()
+
+			for _, key := range d.Keys {
+				delete(keys, key)
+			}
+		},
+	},
+}
+
+func getHostPort(hostKey, portKey, hostFallback string, portFallback int, keys map[string]any) (host string, port int, err error) {
+	var (
+		ok bool
+		v  any
+	)
+
+	if v, ok = keys[hostKey]; ok {
+		host, _ = v.(string)
+	}
+
+	if v, ok = keys[portKey]; ok {
+		switch value := v.(type) {
+		case int:
+			port = value
+		case string:
+			if port, err = strconv.Atoi(value); err != nil {
+				return "", 0, fmt.Errorf("error occurred converting the port from a string: %w", err)
+			}
+		}
+	}
+
+	if host == "" {
+		host = hostFallback
+	}
+
+	if port == 0 {
+		port = portFallback
+	}
+
+	return host, port, nil
+}
+
+func strJoinAnd(items []string) string {
+	return strJoinComma("and", items)
+}
+
+func strJoinComma(word string, items []string) string {
+	if word == "" {
+		return buildJoinedString(",", "", "'", items)
+	}
+
+	return buildJoinedString(",", word, "'", items)
+}
+
+func buildJoinedString(sep, sepFinal, quote string, items []string) string {
+	n := len(items)
+
+	if n == 0 {
+		return ""
+	}
+
+	b := &strings.Builder{}
+
+	for i := 0; i < n; i++ {
+		if quote != "" {
+			b.WriteString(quote)
+		}
+
+		b.WriteString(items[i])
+
+		if quote != "" {
+			b.WriteString(quote)
+		}
+
+		if i == (n - 1) {
+			continue
+		}
+
+		if sep != "" {
+			if sepFinal == "" || n != 2 {
+				b.WriteString(sep)
+			}
+
+			b.WriteString(" ")
+		}
+
+		if sepFinal != "" && i == (n-2) {
+			b.WriteString(strings.Trim(sepFinal, " "))
+			b.WriteString(" ")
+		}
+	}
+
+	return b.String()
+}
+
+func GetMultiKeyMappedDeprecationKeys() (keys []string) {
+	for _, mkm := range deprecationsMKM {
+		keys = append(keys, mkm.Keys...)
+	}
+
+	return keys
 }

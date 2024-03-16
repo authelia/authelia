@@ -219,7 +219,7 @@ func (ctx *CmdCtx) HelperConfigValidateKeysRunE(_ *cobra.Command, _ []string) (e
 		return fmt.Errorf("HelperConfigValidateKeysRunE must be used with HelperConfigLoadRunE")
 	}
 
-	validator.ValidateKeys(ctx.cconfig.keys, configuration.DefaultEnvPrefix, ctx.cconfig.validator)
+	validator.ValidateKeys(ctx.cconfig.keys, configuration.GetMultiKeyMappedDeprecationKeys(), configuration.DefaultEnvPrefix, ctx.cconfig.validator)
 
 	return nil
 }

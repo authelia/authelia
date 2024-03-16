@@ -28,10 +28,6 @@ const (
 	rs256         = "rs256"
 )
 
-const (
-	local25 = "127.0.0.25"
-)
-
 var (
 	testLDAPAddress = MustParseAddressPtr(testLDAPURL)
 )

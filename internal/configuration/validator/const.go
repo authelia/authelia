@@ -382,12 +382,10 @@ const (
 	errFmtServerTLSKey              = "server: tls: option 'certificate' must also be accompanied by option 'key'"
 	errFmtServerTLSClientAuthNoAuth = "server: tls: client authentication cannot be configured if no server certificate and key are provided"
 
-	errFmtServerAddressLegacyAndModern = "server: option 'host' and 'port' can't be configured at the same time as 'address'"
-	errFmtServerAddress                = "server: option 'address' with value '%s' is invalid: %w"
+	errFmtServerAddress = "server: option 'address' with value '%s' is invalid: %w"
 
-	errFmtServerPathNoForwardSlashes   = "server: option 'path' must not contain any forward slashes"
-	errFmtServerPathNotEndForwardSlash = "server: option 'address' must not and with a forward slash but it's configured as '%s'"
-	errFmtServerPathAlphaNum           = "server: option 'path' must only contain alpha numeric characters"
+	errFmtServerPathNotEndForwardSlash = "server: option 'address' must not have a path with a forward slash but it's configured as '%s'"
+	errFmtServerPathAlphaNumeric       = "server: option 'address' must have a path with only alphanumeric characters but it's configured as '%s'"
 
 	errFmtServerEndpointsAuthzImplementation            = "server: endpoints: authz: %s: option 'implementation' must be one of %s but it's configured as '%s'"
 	errFmtServerEndpointsAuthzStrategy                  = "server: endpoints: authz: %s: authn_strategies: option 'name' must be one of %s but it's configured as '%s'"

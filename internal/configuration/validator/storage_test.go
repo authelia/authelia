@@ -68,7 +68,9 @@ func (suite *StorageSuite) TestShouldValidateMySQLHostUsernamePasswordAndDatabas
 	suite.val.Clear()
 	suite.config.MySQL = &schema.StorageMySQL{
 		StorageSQL: schema.StorageSQL{
-			Host:     "localhost",
+			Address: &schema.AddressTCP{
+				Address: MustParseAddress("tcp://localhost:3306"),
+			},
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
@@ -105,7 +107,9 @@ func (suite *StorageSuite) TestShouldSetDefaultMySQLTLSServerName() {
 func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidMySQLTLSVersion() {
 	suite.config.MySQL = &schema.StorageMySQL{
 		StorageSQL: schema.StorageSQL{
-			Host:     "db1",
+			Address: &schema.AddressTCP{
+				Address: MustParseAddress("tcp://db1:3306"),
+			},
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
@@ -126,7 +130,9 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidMySQLTLSVersion() {
 func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidMySQLTLSMinVersionGreaterThanMaximum() {
 	suite.config.MySQL = &schema.StorageMySQL{
 		StorageSQL: schema.StorageSQL{
-			Host:     "db1",
+			Address: &schema.AddressTCP{
+				Address: MustParseAddress("tcp://db1:3306"),
+			},
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
@@ -158,7 +164,9 @@ func (suite *StorageSuite) TestShouldValidatePostgreSQLHostUsernamePasswordAndDa
 	suite.val.Clear()
 	suite.config.PostgreSQL = &schema.StoragePostgreSQL{
 		StorageSQL: schema.StorageSQL{
-			Host:     "postgre",
+			Address: &schema.AddressTCP{
+				Address: MustParseAddress("tcp://postgre:4321"),
+			},
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
@@ -173,7 +181,9 @@ func (suite *StorageSuite) TestShouldValidatePostgreSQLHostUsernamePasswordAndDa
 func (suite *StorageSuite) TestShouldValidatePostgresSchemaDefault() {
 	suite.config.PostgreSQL = &schema.StoragePostgreSQL{
 		StorageSQL: schema.StorageSQL{
-			Host:     "db1",
+			Address: &schema.AddressTCP{
+				Address: MustParseAddress("tcp://postgre:4321"),
+			},
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
@@ -194,7 +204,9 @@ func (suite *StorageSuite) TestShouldValidatePostgresSchemaDefault() {
 func (suite *StorageSuite) TestShouldValidatePostgresTLSDefaults() {
 	suite.config.PostgreSQL = &schema.StoragePostgreSQL{
 		StorageSQL: schema.StorageSQL{
-			Host:     "db1",
+			Address: &schema.AddressTCP{
+				Address: MustParseAddress("tcp://postgre:4321"),
+			},
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
@@ -216,7 +228,9 @@ func (suite *StorageSuite) TestShouldValidatePostgresTLSDefaults() {
 func (suite *StorageSuite) TestShouldSetDefaultPostgreSQLTLSServerName() {
 	suite.config.PostgreSQL = &schema.StoragePostgreSQL{
 		StorageSQL: schema.StorageSQL{
-			Host:     "mysql1",
+			Address: &schema.AddressTCP{
+				Address: MustParseAddress("tcp://postgre:4321"),
+			},
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
@@ -237,7 +251,9 @@ func (suite *StorageSuite) TestShouldSetDefaultPostgreSQLTLSServerName() {
 func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidPostgreSQLTLSVersion() {
 	suite.config.PostgreSQL = &schema.StoragePostgreSQL{
 		StorageSQL: schema.StorageSQL{
-			Host:     "db1",
+			Address: &schema.AddressTCP{
+				Address: MustParseAddress("tcp://postgre:4321"),
+			},
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
@@ -258,7 +274,9 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidPostgreSQLTLSVersion() {
 func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidPostgreSQLMinVersionGreaterThanMaximum() {
 	suite.config.PostgreSQL = &schema.StoragePostgreSQL{
 		StorageSQL: schema.StorageSQL{
-			Host:     "db1",
+			Address: &schema.AddressTCP{
+				Address: MustParseAddress("tcp://postgre:4321"),
+			},
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
@@ -280,7 +298,9 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidPostgreSQLMinVersionGrea
 func (suite *StorageSuite) TestShouldValidatePostgresSSLDefaults() {
 	suite.config.PostgreSQL = &schema.StoragePostgreSQL{
 		StorageSQL: schema.StorageSQL{
-			Host:     "db1",
+			Address: &schema.AddressTCP{
+				Address: MustParseAddress("tcp://postgre:4321"),
+			},
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
@@ -302,7 +322,9 @@ func (suite *StorageSuite) TestShouldValidatePostgresSSLDefaults() {
 func (suite *StorageSuite) TestShouldRaiseErrorOnTLSAndLegacySSL() {
 	suite.config.PostgreSQL = &schema.StoragePostgreSQL{
 		StorageSQL: schema.StorageSQL{
-			Host:     "db1",
+			Address: &schema.AddressTCP{
+				Address: MustParseAddress("tcp://postgre:4321"),
+			},
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
@@ -322,7 +344,9 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnTLSAndLegacySSL() {
 func (suite *StorageSuite) TestShouldValidatePostgresDefaultsDontOverrideConfiguration() {
 	suite.config.PostgreSQL = &schema.StoragePostgreSQL{
 		StorageSQL: schema.StorageSQL{
-			Host:     "db1",
+			Address: &schema.AddressTCP{
+				Address: MustParseAddress("tcp://postgre:4321"),
+			},
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
@@ -347,7 +371,9 @@ func (suite *StorageSuite) TestShouldValidatePostgresDefaultsDontOverrideConfigu
 func (suite *StorageSuite) TestShouldValidatePostgresSSLModeMustBeValid() {
 	suite.config.PostgreSQL = &schema.StoragePostgreSQL{
 		StorageSQL: schema.StorageSQL{
-			Host:     "db2",
+			Address: &schema.AddressTCP{
+				Address: MustParseAddress("tcp://postgre:4321"),
+			},
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",

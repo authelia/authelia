@@ -253,7 +253,7 @@ func (s *EnvironmentSource) Merge(ko *koanf.Koanf, _ *schema.StructValidator) (e
 
 // Load the Source into the EnvironmentSource koanf.Koanf.
 func (s *EnvironmentSource) Load(_ *schema.StructValidator) (err error) {
-	keyMap, ignoredKeys := getEnvConfigMap(schema.Keys, s.prefix, s.delimiter, deprecations)
+	keyMap, ignoredKeys := getEnvConfigMap(schema.Keys, s.prefix, s.delimiter, deprecations, deprecationsMKM)
 
 	return s.koanf.Load(env.ProviderWithValue(s.prefix, constDelimiter, koanfEnvironmentCallback(keyMap, ignoredKeys, s.prefix, s.delimiter)), nil)
 }

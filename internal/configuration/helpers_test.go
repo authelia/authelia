@@ -30,7 +30,7 @@ func TestGetEnvConfigMaps(t *testing.T) {
 		"mysecret.user_password",
 	}
 
-	keys, ignoredKeys := getEnvConfigMap(input, DefaultEnvPrefix, DefaultEnvDelimiter, deprecations)
+	keys, ignoredKeys := getEnvConfigMap(input, DefaultEnvPrefix, DefaultEnvDelimiter, deprecations, deprecationsMKM)
 
 	key, ok = keys[DefaultEnvPrefix+"MY_NON_SECRET_CONFIG_ITEM"]
 	assert.True(t, ok)
