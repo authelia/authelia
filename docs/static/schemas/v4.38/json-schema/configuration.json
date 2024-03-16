@@ -1512,6 +1512,11 @@
           "title": "Token Endpoint Auth Method",
           "description": "The Token Endpoint Auth Method enforced by the provider for this client."
         },
+        "allow_multiple_auth_methods": {
+          "type": "boolean",
+          "title": "Allow Multiple Authentication Methods",
+          "description": "Permits this registered client to accept misbehaving clients which use a broad authentication approach. This is not standards complaint, use at your own security risk."
+        },
         "jwks_uri": {
           "type": "string",
           "format": "uri",

@@ -35,6 +35,7 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 
 		RequirePushedAuthorizationRequests:      config.RequirePushedAuthorizationRequests,
 		ClientCredentialsFlowAllowImplicitScope: false,
+		AllowMultipleAuthenticationMethods:      config.AllowMultipleAuthenticationMethods,
 
 		AuthorizationPolicy:   NewClientAuthorizationPolicy(config.AuthorizationPolicy, c),
 		ConsentPolicy:         NewClientConsentPolicy(config.ConsentMode, config.ConsentPreConfiguredDuration),
