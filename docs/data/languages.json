@@ -345,7 +345,8 @@
             "display": "Chinese",
             "locale": "zh",
             "namespaces": [
-                "portal"
+                "portal",
+                "settings"
             ],
             "fallbacks": [
                 "en"
@@ -355,7 +356,8 @@
             "display": "Chinese (China)",
             "locale": "zh-CN",
             "namespaces": [
-                "portal"
+                "portal",
+                "settings"
             ],
             "fallbacks": [
                 "zh",

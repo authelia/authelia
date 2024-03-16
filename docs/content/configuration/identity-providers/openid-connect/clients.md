@@ -182,7 +182,7 @@ the server.
 
 ### public
 
-{{< confkey type="bool" default="false" required="no" >}}
+{{< confkey type="boolean" default="false" required="no" >}}
 
 This enables the public client type for this client. This is for clients that are not capable of maintaining
 confidentiality of credentials, you can read more about client types in [RFC6749 Section 2.1]. This is particularly
@@ -365,7 +365,7 @@ option.
 
 ### require_pkce
 
-{{< confkey type="bool" default="false" required="no" >}}
+{{< confkey type="boolean" default="false" required="no" >}}
 
 This configuration option enforces the use of [PKCE] for this registered client. To enforce it for all clients see the
 global [enforce_pkce](provider.md#enforce_pkce) provider configuration option.
@@ -566,6 +566,19 @@ otherwise we assume the default value:
 |:---------------------------------------------------------:|:-------------------:|:-------:|
 | [token_endpoint_auth_method](#token_endpoint_auth_method) |  `private_key_jwt`  | `RS256` |
 | [token_endpoint_auth_method](#token_endpoint_auth_method) | `client_secret_jwt` | `HS256` |
+
+### allow_multiple_auth_methods
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+[RFC6749: Section 2.3](https://datatracker.ietf.org/doc/html/rfc6749#section-2.3) clearly indicates that clients have no
+option but to use a single authentication method. Per the text:
+
+{{< callout context="danger" title="RFC6749: Section 2.3" icon="alert-octagon" >}}
+The client MUST NOT use more than one authentication method in each request.
+{{< /callout >}}
+
+Authelia by default enforces this behaviour, this is an escape hatch to turn this policy off for a particular client.
 
 ### jwks_uri
 

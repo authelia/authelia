@@ -66,6 +66,7 @@ var Keys = []string{
 	"identity_providers.oidc.clients[].request_object_signing_alg",
 	"identity_providers.oidc.clients[].token_endpoint_auth_signing_alg",
 	"identity_providers.oidc.clients[].token_endpoint_auth_method",
+	"identity_providers.oidc.clients[].allow_multiple_auth_methods",
 	"identity_providers.oidc.clients[].jwks_uri",
 	"identity_providers.oidc.clients[].jwks",
 	"identity_providers.oidc.clients[].jwks[].key_id",
