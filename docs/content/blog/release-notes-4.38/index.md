@@ -37,6 +37,10 @@ backwards compatible, however mistakes happen. If you find a mistake please kind
 In addition we advise making the adjustments mentioned in this post to your configuration as several new features will
 not be available or even possible without making the necessary adjustments.
 
+It's also important to note that a couple of the configuration changes that give you access to additional features
+need to be done together. For example if you use new proxy configurations you must also use the new session
+configuration.
+
 ## Helm Chart
 
 Those of you interested in the Helm Chart for this please be aware the 0.9.0 release of the chart will include this
@@ -348,6 +352,9 @@ need to configure a single middleware or helper to perform automatic redirection
 
 #### Changes {#changes-multiple-domain-protection}
 
+_**Important Note:** If you decide to make these changes you should make these at the same time with the
+[Updated Proxy Configuration (Customizable Authorization Endpoints)](#changes-customizable-authorization-endpoints)._
+
 The following examples illustrate a before and after change for this element in the session configuration. If you do not
 make this change many of the new features in the Forwarded / Redirected Authorization Flow that will never be available.
 
@@ -432,6 +439,9 @@ See the [Server Authz Endpoints](../../configuration/miscellaneous/server-endpoi
 information.
 
 ### Changes {#changes-customizable-authorization-endpoints}
+
+_**Important Note:** If you decide to make these changes you should make these at the same time with the
+[Session Changes (Multiple Domain Protection)](#changes-multiple-domain-protection)._
 
 It should be noted that making the following changes is strongly recommended to occur at the same time as the
 [Multi-Domain Protection](#changes-multiple-domain-protection) changes as several of the features are dependent on the
