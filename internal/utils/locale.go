@@ -14,15 +14,20 @@ import (
 	"golang.org/x/text/language/display"
 )
 
-// GetLanguagesFromPath return the available languages info form specified path.
-func GetLanguagesFromPath(dir string) (languages *Languages, err error) {
+// GetCustomLanguages return the available languages info form specified path.
+func GetCustomLanguages(dir string) (languages *Languages, err error) {
 	fileSystem := os.DirFS(dir)
 
-	return getLanguages(fileSystem)
+	lng, err := getLanguages(fileSystem)
+	if err != nil {
+		return nil, err
+	}
+
+	return lng, nil
 }
 
 // GetLanguagesFromPath return the available languages info form specified path.
-func GetLanguagesFromEmbedFS(fs embed.FS) (languages *Languages, err error) {
+func GetEmbeddedLanguages(fs embed.FS) (languages *Languages, err error) {
 	return getLanguages(fs)
 }
 

@@ -45,7 +45,7 @@ func localesRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	data, err := utils.GetLanguagesFromPath(filepath.Join(root, pathLocales))
+	data, err := utils.GetCustomLanguages(filepath.Join(root, pathLocales))
 	if err != nil {
 		return err
 	}

@@ -18,11 +18,10 @@ type DefaultsLanguages struct {
 
 // Language is the docs json model for a language.
 type Language struct {
-	Display    string   `json:"display"`
-	Locale     string   `json:"locale"`
-	Namespaces []string `json:"namespaces,omitempty"`
-	Fallbacks  []string `json:"fallbacks,omitempty"`
-	Parent     string   `json:"parent"`
-
-	Tag language.Tag `json:"-"`
+	Display    string       `json:"display"`
+	Locale     string       `json:"locale"`
+	Namespaces []string     `json:"namespaces,omitempty"`
+	Fallbacks  []string     `json:"fallbacks,omitempty"`
+	Parent     string       `json:"parent"`
+	Tag        language.Tag `json:"-"`
 }
