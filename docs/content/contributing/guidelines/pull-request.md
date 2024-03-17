@@ -58,7 +58,7 @@ rewrites history.
 The following requirements must be met for a pull request to be accepted. This list also acts as a checklist for
 maintainers in their review process.
 
-- The changes must be [documented](../prologue/documentation-contributions.md) if they add or change behaviour
+- The changes must be [documented](../prologue/documentation-contributions.md) if they add or change behavior
 - The changes must meet the following guidelines:
   - [General](introduction.md#general-guidelines)
   - [Commit Message]

@@ -21,9 +21,9 @@ seo:
 
 [NGINX Proxy Manager] is supported by __Authelia__. It's a [NGINX] proxy with a configuration UI.
 
-*__Important:__ When using these guides it's important to recognize that we cannot provide a guide for every possible
-method of deploying a proxy. These guides show a suggested setup only and you need to understand the proxy
-configuration and customize it to your needs. To-that-end we include links to the official proxy documentation
+*__Important:__ When using these guides, it's important to recognize that we cannot provide a guide for every possible
+method of deploying a proxy. These guides show a suggested setup only, and you need to understand the proxy
+configuration and customize it to your needs. To-that-end, we include links to the official proxy documentation
 throughout this documentation and in the [See Also](#see-also) section.*
 
 ## Get started
@@ -67,7 +67,7 @@ following are the assumptions we make:
     * Authelia is on a different host to the proxy
 * All services are part of the `example.com` domain:
   * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
-    just testing or you want ot use that specific domain
+    just testing or you want to use that specific domain
 
 ## Docker Compose
 
@@ -154,13 +154,13 @@ either most likely require an adjustment, or may require an adjustment if you're
 * The domain for Authelia is `auth.example.com` which should be adjusted in all examples and snippets to your actual
   domain.
 * The required configuration snippets are mounted in the container or otherwise available in the `/snippets/` directory.
-  If you choose a different directory you're required to adjust every instance of `/snippets/` appropriately to your
+  If you choose a different directory, you're required to adjust every instance of `/snippets/` appropriately to your
   needs.
 * You have not configured the Authelia configuration YAML with a server TLS certificate/key.
 * You are running Authelia on the default port.
 * You are running Authelia with the `container_name` of `authelia` or the Authelia process is otherwise resolvable by
   [NGINX Proxy Manager] as `authelia`.
-* If you want to use a [Custom Location](#protected-application-custom-locations) and wish for it to be protected you
+* If you want to use a [Custom Location](#protected-application-custom-locations) and wish for it to be protected, you should
   follow the [Protected Application Custom Location](#protected-application-custom-locations) guide.
 
 ### Snippets
@@ -270,4 +270,4 @@ The following screenshot shows an example of following the directions for the Au
 
 [NGINX Proxy Manager]: https://nginxproxymanager.com/
 [NGINX]: https://www.nginx.com/
-[Forwarded Headers]: ../fowarded-headers
+[Forwarded Headers]: ../forwarded-headers

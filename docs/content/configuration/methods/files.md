@@ -17,7 +17,7 @@ seo:
   noindex: false # false (default) or true
 ---
 
-## Loading Behaviour and Discovery
+## Loading behavior and Discovery
 
 There are several options which affect the loading of files:
 
@@ -43,7 +43,7 @@ misconfiguration scenarios it's not perfect. Each file type has recommended meth
 
 ### YAML
 
-*Authelia* loads `configuration.yml` as the configuration if you just run it. You can override this behaviour with the
+*Authelia* loads `configuration.yml` as the configuration if you just run it. You can override this behavior with the
 following syntax:
 
 ```bash

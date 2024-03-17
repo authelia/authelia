@@ -106,7 +106,7 @@ in [max_desync](#max_desync) that Authelia fails to start and logs a fatal error
 
 ## Frequently Asked Questions
 
-This section acts as a frequently asked questions for the NTP behaviour and configuration.
+This section acts as a frequently asked questions for the NTP behavior and configuration.
 
 ### Why is this check important and enabled by default?
 

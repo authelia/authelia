@@ -22,9 +22,9 @@ seo:
 
 [HAProxy] is a reverse proxy supported by __Authelia__.
 
-*__Important:__ When using these guides it's important to recognize that we cannot provide a guide for every possible
-method of deploying a proxy. These guides show a suggested setup only and you need to understand the proxy
-configuration and customize it to your needs. To-that-end we include links to the official proxy documentation
+*__Important:__ When using these guides, it's important to recognize that we cannot provide a guide for every possible
+method of deploying a proxy. These guides show a suggested setup only, and you need to understand the proxy
+configuration and customize it to your needs. To-that-end, we include links to the official proxy documentation
 throughout this documentation and in the [See Also](#see-also) section.*
 
 ## Get started
@@ -93,7 +93,7 @@ following are the assumptions we make:
     * Authelia is on a different host to the proxy
 * All services are part of the `example.com` domain:
   * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
-    just testing or you want ot use that specific domain
+    just testing or you want to use that specific domain
 
 ## Implementation
 
@@ -226,7 +226,7 @@ frontend fe_http
     http-request set-header X-Forwarded-URI    %[path]%[var(req.questionmark)]%[query]
 
     # Protect endpoints with haproxy-auth-request and Authelia
-    http-request lua.auth-intercept be_authelia /api/authz/forward-auth HEAD * authorization,proxy-authorization,remote-user,remote-groups,remote-name,remote-email - if protected-frontends
+    http-request lua.auth-intercept be_authelia /api/authz/forward-auth HEAD * remote-user,remote-groups,remote-name,remote-email - if protected-frontends
     http-request deny if protected-frontends !{ var(txn.auth_response_successful) -m bool } { var(txn.auth_response_code) -m int 403 }
     http-request redirect location %[var(txn.auth_response_location)] if protected-frontends !{ var(txn.auth_response_successful) -m bool }
 
@@ -303,7 +303,7 @@ frontend fe_http
     http-request set-header X-Forwarded-URI    %[path]%[var(req.questionmark)]%[query]
 
     # Protect endpoints with haproxy-auth-request and Authelia
-    http-request lua.auth-intercept be_authelia_proxy /api/authz/forward-auth HEAD * authorization,proxy-authorization,remote-user,remote-groups,remote-name,remote-email - if protected-frontends
+    http-request lua.auth-intercept be_authelia_proxy /api/authz/forward-auth HEAD * remote-user,remote-groups,remote-name,remote-email - if protected-frontends
     http-request deny if protected-frontends !{ var(txn.auth_response_successful) -m bool } { var(txn.auth_response_code) -m int 403 }
     http-request redirect location %[var(txn.auth_response_location)] if protected-frontends !{ var(txn.auth_response_successful) -m bool }
 
@@ -347,4 +347,4 @@ backend be_heimdall
 * [Forwarded Headers]
 
 [HAproxy]: https://www.haproxy.org/
-[Forwarded Headers]: fowarded-headers
+[Forwarded Headers]: forwarded-headers

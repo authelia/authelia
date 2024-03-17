@@ -113,7 +113,7 @@ The following format represents the unix domain socket format. It's valid for bo
 instances. Refer to the individual documentation for an option for clarity. In this format as per the notation there
 are no optional portions.
 
-The Unix Domain Socket format also accepts a query string. The following query parameters control certain behaviour of
+The Unix Domain Socket format also accepts a query string. The following query parameters control certain behavior of
 this address type.
 
 | Parameter | Listeners | Connectors |                                                                                                           Purpose                                                                                                            |

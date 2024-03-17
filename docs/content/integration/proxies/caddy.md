@@ -26,9 +26,9 @@ __Authelia__ offers integration support for the official forward auth integratio
 officially support any plugin that supports this though we don't specifically prevent such plugins working and there may
 be plugins that work fine provided they support the forward authentication specification correctly.
 
-*__Important:__ When using these guides it's important to recognize that we cannot provide a guide for every possible
-method of deploying a proxy. These guides show a suggested setup only and you need to understand the proxy
-configuration and customize it to your needs. To-that-end we include links to the official proxy documentation
+*__Important:__ When using these guides, it's important to recognize that we cannot provide a guide for every possible
+method of deploying a proxy. These guides show a suggested setup only, and you need to understand the proxy
+configuration and customize it to your needs. To-that-end, we include links to the official proxy documentation
 throughout this documentation and in the [See Also](#see-also) section.*
 
 ## Get started
@@ -90,7 +90,7 @@ following are the assumptions we make:
     * Authelia is on a different host to the proxy
 * All services are part of the `example.com` domain:
   * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
-    just testing or you want ot use that specific domain
+    just testing or you want to use that specific domain
 
 ## Implementation
 
@@ -148,7 +148,7 @@ nextcloud.example.com {
                 ## The following commented line is for configuring the Authelia URL in the proxy. We strongly suggest
                 ## this is configured in the Session Cookies section of the Authelia configuration.
                 # uri /api/authz/forward-auth?authelia_url=https://auth.example.com/
-                copy_headers Authorization Proxy-Authorization Remote-User Remote-Groups Remote-Email Remote-Name
+                copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
 
                 ## This import needs to be included if you're relying on a trusted proxies configuration.
                 import trusted_proxy_list
@@ -190,7 +190,7 @@ example.com {
         handle @nextcloud {
                 forward_auth authelia:9091 {
                         uri /api/authz/forward-auth?authelia_url=https://example.com/authelia/
-                        copy_headers Authorization Proxy-Authorization Remote-User Remote-Groups Remote-Email Remote-Name
+                        copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
 
                         ## This import needs to be included if you're relying on a trusted proxies configuration.
                         import trusted_proxy_list
@@ -247,8 +247,6 @@ nextcloud.example.com {
                 ##   2. Copy the relevant headers from the auth request and provide them to the backend.
                 @good status 2xx
                 handle_response @good {
-                        request_header Authorization {http.reverse_proxy.header.Authorization}
-                        request_header Proxy-Authorization {http.reverse_proxy.header.Proxy-Authorization}
                         request_header Remote-User {http.reverse_proxy.header.Remote-User}
                         request_header Remote-Groups {http.reverse_proxy.header.Remote-Groups}
                         request_header Remote-Email {http.reverse_proxy.header.Remote-Email}
@@ -276,4 +274,4 @@ nextcloud.example.com {
 [Caddy Snippet]: https://caddyserver.com/docs/caddyfile/concepts#snippets
 [Caddy Forward Auth Documentation]: https://caddyserver.com/docs/caddyfile/directives/forward_auth
 [Caddy Trusted Proxies Documentation]: https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#trusted_proxies
-[Forwarded Headers]: fowarded-headers
+[Forwarded Headers]: forwarded-headers

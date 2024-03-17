@@ -31,7 +31,7 @@ for more information.
 
 ### Helm-like Functions
 
-The following functions which mimic the behaviour of helm exist in most templating areas:
+The following functions which mimic the behavior of helm exist in most templating areas:
 
 - env
 - expandenv

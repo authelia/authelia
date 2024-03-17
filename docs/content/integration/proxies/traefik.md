@@ -22,9 +22,9 @@ seo:
 
 [Traefik] is a reverse proxy supported by __Authelia__.
 
-*__Important:__ When using these guides it's important to recognize that we cannot provide a guide for every possible
-method of deploying a proxy. These guides show a suggested setup only and you need to understand the proxy
-configuration and customize it to your needs. To-that-end we include links to the official proxy documentation
+*__Important:__ When using these guides, it's important to recognize that we cannot provide a guide for every possible
+method of deploying a proxy. These guides show a suggested setup only, and you need to understand the proxy
+configuration and customize it to your needs. To-that-end, we include links to the official proxy documentation
 throughout this documentation and in the [See Also](#see-also) section.*
 
 ## Requirements
@@ -120,7 +120,7 @@ following are the assumptions we make:
     * Authelia is on a different host to the proxy
 * All services are part of the `example.com` domain:
   * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
-    just testing or you want ot use that specific domain
+    just testing or you want to use that specific domain
 
 ### Docker Compose
 
@@ -203,7 +203,7 @@ services:
       ## configured in the Session Cookies section of the Authelia configuration.
       # - 'traefik.http.middlewares.authelia.forwardAuth.address=http://authelia:9091/api/authz/forward-auth?authelia_url=https%3A%2F%2Fauth.example.com%2F'
       - 'traefik.http.middlewares.authelia.forwardAuth.trustForwardHeader=true'
-      - 'traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders=Authorization,Proxy-Authorization,Remote-User,Remote-Groups,Remote-Email,Remote-Name'
+      - 'traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Email,Remote-Name'
   nextcloud:
     container_name: 'nextcloud'
     image: 'linuxserver/nextcloud'
@@ -416,8 +416,6 @@ http:
         # address: 'https://authelia:9091/api/authz/forward-auth?authelia_url=https%3A%2F%2Fauth.example.com%2F'
         trustForwardHeader: true
         authResponseHeaders:
-          - 'Authorization'
-          - 'Proxy-Authorization'
           - 'Remote-User'
           - 'Remote-Groups'
           - 'Remote-Email'
@@ -431,8 +429,6 @@ http:
         address: 'https://authelia:9091/api/verify?auth=basic'
         trustForwardHeader: true
         authResponseHeaders:
-          - 'Authorization'
-          - 'Proxy-Authorization'
           - 'Remote-User'
           - 'Remote-Groups'
           - 'Remote-Email'
@@ -549,7 +545,7 @@ This can be avoided a couple different ways:
 ## configured in the Session Cookies section of the Authelia configuration.
 # - 'traefik.http.middlewares.authelia.forwardAuth.address=http://authelia:9091/api/authz/forward-auth?authelia_url=https%3A%2F%2Fauth.example.com%2F'
 - 'traefik.http.middlewares.authelia.forwardAuth.trustForwardHeader=true'
-- 'traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders=Authorization,Proxy-Authorization,Remote-User,Remote-Groups,Remote-Email,Remote-Name'
+- 'traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Email,Remote-Name'
 ```
 
 ## See Also
@@ -561,6 +557,6 @@ This can be avoided a couple different ways:
 
 [docker compose]: https://docs.docker.com/compose/
 [Traefik]: https://docs.traefik.io/
-[Forwarded Headers]: fowarded-headers
+[Forwarded Headers]: forwarded-headers
 [Authorization]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization
 [Proxy-Authorization]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Proxy-Authorization

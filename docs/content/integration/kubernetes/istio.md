@@ -51,8 +51,6 @@ spec:
             - 'authorization'
             - 'proxy-authorization'
           headersToUpstreamOnAllow:
-            - 'authorization'
-            - 'proxy-authorization'
             - 'remote-*'
             - 'authelia-*'
           includeAdditionalHeadersInCheck:

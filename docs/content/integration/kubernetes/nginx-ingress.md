@@ -48,7 +48,7 @@ annotations:
   nginx.ingress.kubernetes.io/auth-method: 'GET'
   nginx.ingress.kubernetes.io/auth-url: 'http://authelia.default.svc.cluster.local/api/authz/auth-request'
   nginx.ingress.kubernetes.io/auth-signin: 'https://auth.example.com?rm=$request_method'
-  nginx.ingress.kubernetes.io/auth-response-headers: 'Authorization,Proxy-Authorization,Remote-User,Remote-Name,Remote-Groups,Remote-Email'
+  nginx.ingress.kubernetes.io/auth-response-headers: 'Remote-User,Remote-Name,Remote-Groups,Remote-Email'
 ```
 
 [ingress-nginx]: https://kubernetes.github.io/ingress-nginx/

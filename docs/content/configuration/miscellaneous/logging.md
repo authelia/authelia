@@ -116,7 +116,7 @@ log:
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
-Overrides the behaviour to redirect logging only to the `file_path`. If set to `true` logs will be written to both
+Overrides the behavior to redirect logging only to the `file_path`. If set to `true` logs will be written to both
 standard output, and the defined logging location.
 
 ```yaml
