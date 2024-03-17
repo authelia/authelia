@@ -23,6 +23,12 @@ const (
 	extYAML = ".yaml"
 )
 
+const (
+	filterField     = "filter"
+	filterTemplate  = "template"
+	filterExpandEnv = "expand-env"
+)
+
 var (
 	errNoValidator = errors.New("no validator provided")
 	errNoSources   = errors.New("no sources provided")
