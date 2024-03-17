@@ -404,7 +404,7 @@ func (c *RegisteredClient) GetRequestObjectSigningAlg() (alg string) {
 	return c.RequestObjectSigningAlg
 }
 
-func (c *RegisteredClient) GetAllowMultipleAuthenticationMethods(ctx context.Context) (allow bool) {
+func (c *RegisteredClient) GetAllowMultipleAuthenticationMethods() (allow bool) {
 	return c.AllowMultipleAuthenticationMethods
 }
 
