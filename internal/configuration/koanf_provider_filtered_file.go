@@ -41,7 +41,7 @@ func (f *FilteredFile) ReadBytes() (data []byte, err error) {
 	}
 
 	for _, filter := range f.filters {
-		if data, err = filter(data); err != nil {
+		if data, err = filter.Filter(data); err != nil {
 			return nil, err
 		}
 	}
@@ -54,8 +54,61 @@ func (f *FilteredFile) Read() (map[string]any, error) {
 	return nil, errors.New("filtered file provider does not support this method")
 }
 
-// BytesFilter describes a func used to filter files.
-type BytesFilter func(in []byte) (out []byte, err error)
+type BytesFilter interface {
+	Name() (name string)
+	Filter(in []byte) (out []byte, err error)
+}
+
+type ExpandEnvBytesFilter struct {
+	log *logrus.Entry
+}
+
+func (f *ExpandEnvBytesFilter) Name() (name string) {
+	return filterExpandEnv
+}
+
+func (f *ExpandEnvBytesFilter) Filter(in []byte) (out []byte, err error) {
+	out = []byte(os.Expand(string(in), templates.FuncGetEnv))
+
+	if f.log.Level >= logrus.TraceLevel {
+		f.log.
+			WithField("content", base64.RawStdEncoding.EncodeToString(out)).
+			Trace("Expanded Env File Filter completed successfully")
+	}
+
+	return out, nil
+}
+
+type TemplateBytesFilter struct {
+	t   *template.Template
+	log *logrus.Entry
+}
+
+func (f *TemplateBytesFilter) Name() (name string) {
+	return filterTemplate
+}
+
+func (f *TemplateBytesFilter) Filter(in []byte) (out []byte, err error) {
+	if f.t, err = f.t.Parse(string(in)); err != nil {
+		return nil, err
+	}
+
+	buf := &bytes.Buffer{}
+
+	if err = f.t.Execute(buf, nil); err != nil {
+		return nil, err
+	}
+
+	out = buf.Bytes()
+
+	if f.log.Level >= logrus.TraceLevel {
+		f.log.
+			WithField("content", base64.RawStdEncoding.EncodeToString(out)).
+			Trace("Templated File Filter completed successfully")
+	}
+
+	return out, nil
+}
 
 // NewFileFiltersDefault returns the default list of BytesFilter.
 func NewFileFiltersDefault() []BytesFilter {
@@ -75,9 +128,9 @@ func NewFileFilters(names []string) (filters []BytesFilter, err error) {
 		name = strings.ToLower(name)
 
 		switch name {
-		case "template":
+		case filterTemplate:
 			filters[i] = NewTemplateFileFilter()
-		case "expand-env":
+		case filterExpandEnv:
 			filters[i] = NewExpandEnvFileFilter()
 		default:
 			return nil, fmt.Errorf("invalid filter named '%s'", name)
@@ -93,48 +146,17 @@ func NewFileFilters(names []string) (filters []BytesFilter, err error) {
 	return filters, nil
 }
 
-// NewExpandEnvFileFilter is a BytesFilter which passes the bytes through os.ExpandEnv.
+// NewExpandEnvFileFilter returns a new BytesFilter which passes the bytes through os.Expand using special env vars.
 func NewExpandEnvFileFilter() BytesFilter {
-	log := logging.Logger()
-
-	return func(in []byte) (out []byte, err error) {
-		out = []byte(os.Expand(string(in), templates.FuncGetEnv))
-
-		if log.Level >= logrus.TraceLevel {
-			log.
-				WithField("content", base64.RawStdEncoding.EncodeToString(out)).
-				Trace("Expanded Env File Filter completed successfully")
-		}
-
-		return out, nil
+	return &ExpandEnvBytesFilter{
+		log: logging.Logger().WithFields(map[string]any{filterField: filterExpandEnv}),
 	}
 }
 
-// NewTemplateFileFilter is a BytesFilter which passes the bytes through text/template.
+// NewTemplateFileFilter returns a new BytesFilter which passes the bytes through text/template.
 func NewTemplateFileFilter() BytesFilter {
-	t := template.New("config.template").Funcs(templates.FuncMap())
-
-	log := logging.Logger()
-
-	return func(in []byte) (out []byte, err error) {
-		if t, err = t.Parse(string(in)); err != nil {
-			return nil, err
-		}
-
-		buf := &bytes.Buffer{}
-
-		if err = t.Execute(buf, nil); err != nil {
-			return nil, err
-		}
-
-		out = buf.Bytes()
-
-		if log.Level >= logrus.TraceLevel {
-			log.
-				WithField("content", base64.RawStdEncoding.EncodeToString(out)).
-				Trace("Templated File Filter completed successfully")
-		}
-
-		return out, nil
+	return &TemplateBytesFilter{
+		log: logging.Logger().WithFields(map[string]any{filterField: filterTemplate}),
+		t:   template.New("config.template").Funcs(templates.FuncMap()),
 	}
 }

@@ -807,8 +807,24 @@ Layouts:
 )
 
 const (
-	fmtLogServerListening       = "Listening for %s connections on '%s' path '%s'"
-	fmtYAMLConfigTemplateHeader = "---\n##\n## The following the output of files passed through the enabled Authelia configuration filters.\n## File Source Path: %s##\n\n"
+	fmtLogServerListening = "Listening for %s connections on '%s' path '%s'"
+
+	fmtYAMLConfigTemplateHeader = `
+---
+##
+## Authelia rendered configuration file (file filters).
+##
+## Filters: %s
+##
+`
+
+	fmtYAMLConfigTemplateFileHeader = `
+---
+##
+## File Source Path: %s
+##
+
+`
 )
 
 const (
