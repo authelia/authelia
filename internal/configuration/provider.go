@@ -35,7 +35,7 @@ func LoadAdvanced(val *schema.StructValidator, path string, result any, sources 
 
 	var final *koanf.Koanf
 
-	if final, err = koanfRemapKeys(val, ko, deprecations); err != nil {
+	if final, err = koanfRemapKeys(val, ko, deprecations, deprecationsMKM); err != nil {
 		return koanfGetKeys(ko), err
 	}
 

@@ -1,0 +1,148 @@
+@import "bootstrap-icons/font/bootstrap-icons.scss";
+
+figure.figure-blog {
+  display: flex;
+  justify-content: center;
+}
+
+.text-orange {
+  --bs-text-opacity: 1;
+
+  color: $orange;
+}
+
+.pagination > div {
+  color: $link-color;
+}
+
+[data-dark-mode] .pagination > div {
+  color: $link-color-dark;
+}
+
+[data-dark-mode] p {
+  color: $body-color-dark;
+}
+
+.icon-support-full {
+  @extend .bi;
+  @extend .bi-check-circle-fill;
+  @extend .text-success;
+}
+
+[data-dark-mode] .icon-support-full {
+  @extend .bi;
+  @extend .bi-check-circle;
+  @extend .text-success;
+}
+
+.icon-support-unknown {
+  @extend .bi;
+  @extend .bi-dash-circle-fill;
+  @extend .text-warning;
+}
+
+[data-dark-mode] .icon-support-unknown {
+  @extend .bi;
+  @extend .bi-dash-circle;
+  @extend .text-warning;
+}
+
+.icon-support-partial {
+  @extend .bi;
+  @extend .bi-exclamation-circle-fill;
+  @extend .text-orange;
+}
+
+[data-dark-mode] .icon-support-partial {
+  @extend .bi;
+  @extend .bi-exclamation-circle;
+  @extend .text-orange;
+}
+
+.icon-support-none {
+  @extend .bi;
+  @extend .bi-x-circle-fill;
+  @extend .text-danger;
+}
+
+[data-dark-mode] .icon-support-none {
+  @extend .bi;
+  @extend .bi-x-circle;
+  @extend .text-danger;
+}
+
+body code span.line.hl {
+  background: $orange;
+  display: block;
+  width: 100%;
+}
+
+[data-dark-mode] body code span.line.hl {
+  background: $orange;
+  display: block;
+  width: 100%;
+}
+
+.confkey-type {
+  background-color: $purple;
+}
+
+.confkey-syntax {
+  color: $white !important;
+  background-color: $pink;
+  text-decoration: none !important;
+}
+
+a:hover.confkey-syntax {
+  background-color: #ff00ff;
+  text-decoration: none !important;
+}
+
+.confkey-default {
+  background-color: $blue;
+}
+
+.confkey-required {
+  background-color: $dark-red;
+}
+
+.confkey-notrequired {
+  background-color: $dark-green;
+}
+
+.confkey-situational {
+  background-color: $orange;
+}
+
+.card-list > .card:hover {
+  transform: scale(1.025);
+}
+
+.card-list > .card {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.card-list {
+  margin-top: 2.25rem;
+}
+
+.rs-not-started {
+  background-color: $red;
+}
+
+.rs-complete {
+  background-color: $dark-green;
+}
+
+.rs-started {
+  background-color: $blue;
+}
+
+.rs-waiting {
+  background-color: $yellow;
+}
+
+.rs-version {
+  background-color: $purple;
+}

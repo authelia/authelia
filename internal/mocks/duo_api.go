@@ -5,6 +5,7 @@
 //
 //	mockgen -package mocks -destination duo_api.go -mock_names API=MockAPI github.com/authelia/authelia/v4/internal/duo API
 //
+
 // Package mocks is a generated GoMock package.
 package mocks
 

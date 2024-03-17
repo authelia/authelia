@@ -488,7 +488,8 @@
             "display": "中文",
             "locale": "zh",
             "namespaces": [
-                "portal"
+                "portal",
+                "settings"
             ],
             "fallbacks": [
                 "en"
@@ -499,7 +500,8 @@
             "display": "中文",
             "locale": "zh-CN",
             "namespaces": [
-                "portal"
+                "portal",
+                "settings"
             ],
             "fallbacks": [
                 "zh",

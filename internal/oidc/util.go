@@ -1,38 +1,21 @@
 package oidc
 
 import (
-	"errors"
 	"fmt"
+	"net/url"
 	"sort"
 	"strings"
 	"time"
 
-	"github.com/go-jose/go-jose/v3"
+	oauthelia2 "authelia.com/provider/oauth2"
+	"github.com/go-jose/go-jose/v4"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/ory/fosite"
-	fjwt "github.com/ory/fosite/token/jwt"
-	"github.com/ory/x/errorsx"
 	"golang.org/x/text/language"
 )
 
 // IsPushedAuthorizedRequest returns true if the requester has a PushedAuthorizationRequest redirect_uri value.
-func IsPushedAuthorizedRequest(r fosite.Requester, prefix string) bool {
+func IsPushedAuthorizedRequest(r oauthelia2.Requester, prefix string) bool {
 	return strings.HasPrefix(r.GetRequestForm().Get(FormParameterRequestURI), prefix)
-}
-
-// MatchScopes uses a fosite.ScopeStrategy to check if scopes match.
-func MatchScopes(strategy fosite.ScopeStrategy, granted, scopes []string) error {
-	for _, scope := range scopes {
-		if scope == "" {
-			continue
-		}
-
-		if !strategy(granted, scope) {
-			return errorsx.WithStack(fosite.ErrInvalidScope.WithHintf("The request scope '%s' has not been granted or is not allowed to be requested.", scope))
-		}
-	}
-
-	return nil
 }
 
 // SortedSigningAlgs is a sorting type which allows the use of sort.Sort to order a list of OAuth 2.0 Signing Algs.
@@ -119,194 +102,18 @@ func isSigningAlgLess(i, j string) bool {
 	}
 }
 
-// JTIFromMapClaims returns a JTI from a jwt.MapClaims.
-func JTIFromMapClaims(m jwt.MapClaims) (jti string, err error) {
-	var (
-		ok  bool
-		raw any
-	)
-
-	if raw, ok = m[ClaimJWTID]; !ok {
-		return "", nil
-	}
-
-	if jti, ok = raw.(string); !ok {
-		return "", fmt.Errorf("invalid type for claim: jti is invalid")
-	}
-
-	return jti, nil
-}
-
-func getExpiresIn(r fosite.Requester, key fosite.TokenType, defaultLifespan time.Duration, now time.Time) time.Duration {
-	if r.GetSession().GetExpiresAt(key).IsZero() {
-		return defaultLifespan
-	}
-
-	return time.Duration(r.GetSession().GetExpiresAt(key).UnixNano() - now.UnixNano())
-}
-
-// ErrorToDebugRFC6749Error converts the provided error to a *DebugRFC6749Error provided it is not nil and can be
-// cast as a *fosite.RFC6749Error.
-func ErrorToDebugRFC6749Error(err error) (rfc error) {
-	if err == nil {
-		return nil
-	}
-
-	var e *fosite.RFC6749Error
-
-	if errors.As(err, &e) {
-		return &DebugRFC6749Error{e}
-	}
-
-	return err
-}
-
-// DebugRFC6749Error is a decorator type which makes the underlying *fosite.RFC6749Error expose debug information and
-// show the full error description.
-type DebugRFC6749Error struct {
-	*fosite.RFC6749Error
-}
-
-// Error implements the builtin error interface and shows the error with its debug info and description.
-func (err *DebugRFC6749Error) Error() string {
-	return err.WithExposeDebug(true).GetDescription()
-}
-
 // GetLangFromRequester gets the expected language for a requester.
-func GetLangFromRequester(requester fosite.Requester) language.Tag {
+func GetLangFromRequester(requester oauthelia2.Requester) language.Tag {
 	var (
-		ctx fosite.G11NContext
+		ctx oauthelia2.G11NContext
 		ok  bool
 	)
 
-	if ctx, ok = requester.(fosite.G11NContext); ok {
+	if ctx, ok = requester.(oauthelia2.G11NContext); ok {
 		return ctx.GetLang()
 	}
 
 	return language.English
-}
-
-// IntrospectionResponseToMap converts a fosite.IntrospectionResponder into a map[string]any which is used to either
-// respond to the introspection request with JSON or a JWT.
-func IntrospectionResponseToMap(response fosite.IntrospectionResponder) (aud []string, introspection map[string]any) {
-	introspection = map[string]any{
-		ClaimActive: false,
-	}
-
-	if response == nil {
-		return nil, introspection
-	}
-
-	if response.IsActive() {
-		introspection[ClaimActive] = true
-
-		mapIntrospectionAccessRequesterToMap(response.GetAccessRequester(), introspection)
-	}
-
-	return sliceIntrospectionResponseToRequesterAudience(response), introspection
-}
-
-func mapIntrospectionAccessRequesterToMap(ar fosite.AccessRequester, introspection map[string]any) {
-	if ar == nil {
-		return
-	}
-
-	var (
-		ok  bool
-		aud fosite.Arguments
-	)
-
-	if client := ar.GetClient(); client != nil {
-		if id := client.GetID(); id != "" {
-			introspection[ClaimClientIdentifier] = id
-		}
-	}
-
-	if scope := ar.GetGrantedScopes(); len(scope) > 0 {
-		introspection[ClaimScope] = strings.Join(scope, " ")
-	}
-
-	if _, ok = introspection[ClaimIssuedAt]; !ok {
-		if rat := ar.GetRequestedAt(); !rat.IsZero() {
-			introspection[ClaimIssuedAt] = rat.Unix()
-		}
-	}
-
-	if aud = ar.GetGrantedAudience(); len(aud) > 0 {
-		introspection[ClaimAudience] = []string(aud)
-	}
-
-	mapIntrospectionAccessRequesterSessionToMap(ar, introspection)
-}
-
-func mapIntrospectionAccessRequesterSessionToMap(ar fosite.AccessRequester, introspection map[string]any) {
-	session := ar.GetSession()
-
-	if session == nil {
-		return
-	}
-
-	var (
-		ok    bool
-		extra fosite.ExtraClaimsSession
-	)
-
-	if extra, ok = session.(fosite.ExtraClaimsSession); ok {
-		claims := extra.GetExtraClaims()
-
-		for name, value := range claims {
-			switch name {
-			// We do not allow these to be set through extra claims.
-			case ClaimExpirationTime, ClaimClientIdentifier, ClaimScope, ClaimIssuedAt, ClaimSubject, ClaimAudience, ClaimUsername:
-				continue
-			default:
-				introspection[name] = value
-			}
-		}
-	}
-
-	if exp := session.GetExpiresAt(fosite.AccessToken); !exp.IsZero() {
-		introspection[ClaimExpirationTime] = exp.Unix()
-	}
-
-	var claimsSession IDTokenClaimsSession
-
-	if sub := session.GetSubject(); sub != "" {
-		introspection[ClaimSubject] = sub
-	} else if claimsSession, ok = session.(IDTokenClaimsSession); ok {
-		claims := claimsSession.GetIDTokenClaims()
-
-		if claims != nil && claims.Subject != "" {
-			introspection[ClaimSubject] = claims.Subject
-		}
-	}
-
-	if username := session.GetUsername(); username != "" {
-		introspection[ClaimUsername] = username
-	}
-}
-
-func sliceIntrospectionResponseToRequesterAudience(response fosite.IntrospectionResponder) (aud []string) {
-	if cr, ok := response.(ClientRequesterResponder); ok {
-		var client fosite.Client
-
-		if client = cr.GetClient(); client == nil {
-			return
-		}
-
-		return []string{client.GetID()}
-	}
-
-	return nil
-}
-
-func mapCopy(src map[string]any) (dst map[string]any) {
-	dst = make(map[string]any, len(src))
-	for k, v := range src {
-		dst[k] = v
-	}
-
-	return dst
 }
 
 func toStringSlice(v any) (result []string) {
@@ -347,8 +154,8 @@ func toTime(v any, def time.Time) (t time.Time) {
 // IsJWTProfileAccessToken validates a *jwt.Token is actually a RFC9068 JWT Profile Access Token by checking the
 // relevant header as per https://datatracker.ietf.org/doc/html/rfc9068#section-2.1 which explicitly states that
 // the header MUST include a typ of 'at+jwt' or 'application/at+jwt' with a preference of 'at+jwt'.
-func IsJWTProfileAccessToken(token *fjwt.Token) bool {
-	if token == nil || token.Header == nil {
+func IsJWTProfileAccessToken(header map[string]any) bool {
+	if header == nil {
 		return false
 	}
 
@@ -358,7 +165,7 @@ func IsJWTProfileAccessToken(token *fjwt.Token) bool {
 		ok  bool
 	)
 
-	if raw, ok = token.Header[JWTHeaderKeyType]; !ok {
+	if raw, ok = header[JWTHeaderKeyType]; !ok {
 		return false
 	}
 
@@ -367,9 +174,9 @@ func IsJWTProfileAccessToken(token *fjwt.Token) bool {
 	return ok && (typ == JWTHeaderTypeValueAccessTokenJWT)
 }
 
-// RFC6750Header turns a *fosite.RFC6749Error into the values for a RFC6750 format WWW-Authenticate Bearer response
+// RFC6750Header turns a *oauthelia2.RFC6749Error into the values for a RFC6750 format WWW-Authenticate Bearer response
 // header, excluding the Bearer prefix.
-func RFC6750Header(realm, scope string, err *fosite.RFC6749Error) string {
+func RFC6750Header(realm, scope string, err *oauthelia2.RFC6749Error) string {
 	values := err.ToValues()
 
 	if realm != "" {
@@ -432,7 +239,7 @@ func RFC6750Header(realm, scope string, err *fosite.RFC6749Error) string {
 }
 
 // AccessResponderToClearMap returns a clear friendly map copy of the responder map values.
-func AccessResponderToClearMap(responder fosite.AccessResponder) map[string]any {
+func AccessResponderToClearMap(responder oauthelia2.AccessResponder) map[string]any {
 	m := responder.ToMap()
 
 	data := make(map[string]any, len(m))
@@ -451,4 +258,108 @@ func AccessResponderToClearMap(responder fosite.AccessResponder) map[string]any 
 	}
 
 	return data
+}
+
+// PopulateClientCredentialsFlowSessionWithAccessRequest is used to configure a session when performing a client credentials grant.
+func PopulateClientCredentialsFlowSessionWithAccessRequest(ctx Context, client oauthelia2.Client, session *Session) (err error) {
+	var (
+		issuer *url.URL
+	)
+
+	if issuer, err = ctx.IssuerURL(); err != nil {
+		return oauthelia2.ErrServerError.WithWrap(err).WithDebugf("Failed to determine the issuer with error: %s.", err.Error())
+	}
+
+	if client == nil {
+		return oauthelia2.ErrServerError.WithDebug("Failed to get the client for the request.")
+	}
+
+	session.Subject = ""
+	session.Claims.Subject = client.GetID()
+	session.ClientID = client.GetID()
+	session.DefaultSession.Claims.Issuer = issuer.String()
+	session.DefaultSession.Claims.IssuedAt = ctx.GetClock().Now().UTC()
+	session.DefaultSession.Claims.RequestedAt = ctx.GetClock().Now().UTC()
+	session.ClientCredentials = true
+
+	return nil
+}
+
+// PopulateClientCredentialsFlowRequester is used to grant the authorized scopes and audiences when performing a client
+// credentials grant.
+func PopulateClientCredentialsFlowRequester(ctx Context, config oauthelia2.Configurator, client oauthelia2.Client, requester oauthelia2.Requester) (err error) {
+	if client == nil || config == nil || requester == nil {
+		return oauthelia2.ErrServerError.WithDebug("Failed to get the client, configuration, or requester for the request.")
+	}
+
+	scopes := requester.GetRequestedScopes()
+
+	var authz, nauthz bool
+
+	for _, scope := range scopes {
+		switch scope {
+		case ScopeOffline, ScopeOfflineAccess:
+			break
+		case ScopeAutheliaBearerAuthz:
+			authz = true
+		default:
+			nauthz = true
+		}
+	}
+
+	if authz && nauthz {
+		return oauthelia2.ErrInvalidScope.WithDebugf("The scope '%s' must only be requested by itself or with the '%s' scope, no other scopes are permitted.", ScopeAutheliaBearerAuthz, ScopeOfflineAccess)
+	}
+
+	return nil
+}
+
+func IsAccessToken(ctx Context, value string) (is bool, err error) {
+	config := ctx.GetConfiguration()
+
+	if config.IdentityProviders.OIDC == nil || !config.IdentityProviders.OIDC.Discovery.BearerAuthorization {
+		return false, nil
+	}
+
+	// Opaue Authelia Access Tokens have the 'authelia_at_' prefix and contain a HMAC signature.
+	if strings.HasPrefix(value, "authelia_at_") && strings.Count(value, ".") == 1 {
+		return true, nil
+	}
+
+	if !IsMaybeSignedJWT(value) {
+		return false, nil
+	}
+
+	var (
+		issuer *url.URL
+		token  *jwt.Token
+	)
+
+	if issuer, err = ctx.IssuerURL(); err != nil {
+		return false, fmt.Errorf("error occurred determining the issuer: %w", err)
+	}
+
+	if token, _, err = jwt.NewParser(jwt.WithoutClaimsValidation()).ParseUnverified(value, &jwt.RegisteredClaims{}); err != nil {
+		return false, fmt.Errorf("error occurred parsing bearer token: %w", err)
+	}
+
+	if !IsJWTProfileAccessToken(token.Header) {
+		return false, fmt.Errorf("error occurred checking the token: the token is not a JWT profile access token")
+	}
+
+	var iss string
+
+	if iss, err = token.Claims.GetIssuer(); err != nil {
+		return false, fmt.Errorf("error occurred chekcing the token: error getting the token issuer claim: %w", err)
+	}
+
+	if strings.EqualFold(iss, issuer.String()) {
+		return true, nil
+	}
+
+	return false, fmt.Errorf("error occurred checking the token: the token issuer '%s' does not match the expected '%s'", iss, issuer)
+}
+
+func IsMaybeSignedJWT(value string) (is bool) {
+	return strings.Count(value, ".") == 2
 }

@@ -1,14 +1,14 @@
 package handlers
 
 import (
-	"github.com/ory/fosite"
+	oauthelia2 "authelia.com/provider/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
-func oidcGrantRequests(ar fosite.AuthorizeRequester, consent *model.OAuth2ConsentSession, userSession *session.UserSession) (extraClaims map[string]any) {
+func oidcGrantRequests(ar oauthelia2.AuthorizeRequester, consent *model.OAuth2ConsentSession, userSession *session.UserSession) (extraClaims map[string]any) {
 	extraClaims = map[string]any{}
 
 	for _, scope := range consent.GrantedScopes {

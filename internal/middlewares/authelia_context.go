@@ -639,16 +639,21 @@ func (ctx *AutheliaCtx) RecordAuthn(success, regulated bool, method string) {
 }
 
 // GetClock returns the clock. For use with interface fulfillment.
-func (ctx *AutheliaCtx) GetClock() clock.Provider {
+func (ctx *AutheliaCtx) GetClock() (clock clock.Provider) {
 	return ctx.Clock
 }
 
 // GetRandom returns the random provider. For use with interface fulfillment.
-func (ctx *AutheliaCtx) GetRandom() random.Provider {
+func (ctx *AutheliaCtx) GetRandom() (random random.Provider) {
 	return ctx.Providers.Random
 }
 
 // GetJWTWithTimeFuncOption returns the WithTimeFunc jwt.ParserOption. For use with interface fulfillment.
-func (ctx *AutheliaCtx) GetJWTWithTimeFuncOption() jwt.ParserOption {
+func (ctx *AutheliaCtx) GetJWTWithTimeFuncOption() (option jwt.ParserOption) {
 	return jwt.WithTimeFunc(ctx.Clock.Now)
+}
+
+// GetConfiguration returns the current configuration.
+func (ctx *AutheliaCtx) GetConfiguration() (config schema.Configuration) {
+	return ctx.Configuration
 }

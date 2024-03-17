@@ -27,7 +27,8 @@ type IdentityProvidersOpenIDConnect struct {
 	DiscoverySignedResponseAlg   string `koanf:"discovery_signed_response_alg" json:"discovery_signed_response_alg" jsonschema:"default=none,enum=none,enum=RS256,enum=RS384,enum=RS512,enum=ES256,enum=ES384,enum=ES512,enum=PS256,enum=PS384,enum=PS512,title=Discovery Response Signing Algorithm" jsonschema_description:"The Algorithm this provider uses to sign the Discovery and Metadata Document responses."`
 	DiscoverySignedResponseKeyID string `koanf:"discovery_signed_response_key_id" json:"discovery_signed_response_key_id" jsonschema:"title=Discovery Response Signing Key ID" jsonschema_description:"The Key ID this provider uses to sign the Discovery and Metadata Document responses (overrides the 'discovery_signed_response_alg')."`
 
-	PAR  IdentityProvidersOpenIDConnectPAR  `koanf:"pushed_authorizations" json:"pushed_authorizations" jsonschema:"title=Pushed Authorizations" jsonschema_description:"Configuration options for Pushed Authorization Requests."`
+	RequirePushedAuthorizationRequests bool `koanf:"require_pushed_authorization_requests" json:"require_pushed_authorization_requests" jsonschema:"title=Require Pushed Authorization Requests" jsonschema_description:"Requires Pushed Authorization Requests for all clients for this Issuer."`
+
 	CORS IdentityProvidersOpenIDConnectCORS `koanf:"cors" json:"cors" jsonschema:"title=CORS" jsonschema_description:"Configuration options for Cross-Origin Request Sharing."`
 
 	Clients []IdentityProvidersOpenIDConnectClient `koanf:"clients" json:"clients" jsonschema:"title=Clients" jsonschema_description:"OpenID Connect 1.0 clients registry."`
@@ -98,12 +99,6 @@ type IdentityProvidersOpenIDConnectLifespanToken struct {
 	RefreshToken  time.Duration `koanf:"refresh_token" json:"refresh_token" jsonschema:"default=90 minutes,title=Refresh Token Lifespan" jsonschema_description:"The duration a Refresh Token is valid for."`
 }
 
-// IdentityProvidersOpenIDConnectPAR represents an OpenID Connect 1.0 PAR config.
-type IdentityProvidersOpenIDConnectPAR struct {
-	Enforce         bool          `koanf:"enforce" json:"enforce" jsonschema:"default=false,title=Enforce" jsonschema_description:"Enforce the use of PAR for all requests on all clients."`
-	ContextLifespan time.Duration `koanf:"context_lifespan" json:"context_lifespan" jsonschema:"default=5 minutes,title=Context Lifespan" jsonschema_description:"How long a PAR context is valid for."`
-}
-
 // IdentityProvidersOpenIDConnectCORS represents an OpenID Connect 1.0 CORS config.
 type IdentityProvidersOpenIDConnectCORS struct {
 	Endpoints      []string   `koanf:"endpoints" json:"endpoints" jsonschema:"uniqueItems,enum=authorization,enum=pushed-authorization-request,enum=token,enum=introspection,enum=revocation,enum=userinfo,title=Endpoints" jsonschema_description:"List of endpoints to enable CORS handling for."`
@@ -153,7 +148,8 @@ type IdentityProvidersOpenIDConnectClient struct {
 	RequestObjectSigningAlg          string `koanf:"request_object_signing_alg" json:"request_object_signing_alg" jsonschema:"enum=RS256,enum=RS384,enum=RS512,enum=ES256,enum=ES384,enum=ES512,enum=PS256,enum=PS384,enum=PS512,title=Request Object Signing Algorithm" jsonschema_description:"The Request Object Signing Algorithm the provider accepts for this client."`
 	TokenEndpointAuthSigningAlg      string `koanf:"token_endpoint_auth_signing_alg" json:"token_endpoint_auth_signing_alg" jsonschema:"enum=HS256,enum=HS384,enum=HS512,enum=RS256,enum=RS384,enum=RS512,enum=ES256,enum=ES384,enum=ES512,enum=PS256,enum=PS384,enum=PS512,title=Token Endpoint Auth Signing Algorithm" jsonschema_description:"The Token Endpoint Auth Signing Algorithm the provider accepts for this client."`
 
-	TokenEndpointAuthMethod string `koanf:"token_endpoint_auth_method" json:"token_endpoint_auth_method" jsonschema:"enum=none,enum=client_secret_post,enum=client_secret_basic,enum=private_key_jwt,enum=client_secret_jwt,title=Token Endpoint Auth Method" jsonschema_description:"The Token Endpoint Auth Method enforced by the provider for this client."`
+	TokenEndpointAuthMethod            string `koanf:"token_endpoint_auth_method" json:"token_endpoint_auth_method" jsonschema:"enum=none,enum=client_secret_post,enum=client_secret_basic,enum=private_key_jwt,enum=client_secret_jwt,title=Token Endpoint Auth Method" jsonschema_description:"The Token Endpoint Auth Method enforced by the provider for this client."`
+	AllowMultipleAuthenticationMethods bool   `koanf:"allow_multiple_auth_methods" json:"allow_multiple_auth_methods" jsonschema:"title=Allow Multiple Authentication Methods" jsonschema_description:"Permits this registered client to accept misbehaving clients which use a broad authentication approach. This is not standards complaint, use at your own security risk."`
 
 	JSONWebKeysURI *url.URL `koanf:"jwks_uri" json:"jwks_uri" jsonschema:"title=JSON Web Keys URI" jsonschema_description:"URI of the JWKS endpoint which contains the Public Keys used to validate request objects and the 'private_key_jwt' client authentication method for this client."`
 	JSONWebKeys    []JWK    `koanf:"jwks" json:"jwks" jsonschema:"title=JSON Web Keys" jsonschema_description:"List of arbitrary Public Keys used to validate request objects and the 'private_key_jwt' client authentication method for this client."`

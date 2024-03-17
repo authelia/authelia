@@ -1,110 +1,144 @@
-# Meta Data for SEO
-
-## Homepage
+# Hugo
 title = "Authelia"
-titleSeparator = "-"
-titleAddition = "The Single Sign-On Multi-Factor portal for web apps"
-description = "Authelia is an open-source authentication and authorization server and portal fulfilling the identity and access management (IAM) role of information security in providing multi-factor authentication and single sign-on (SSO) for your applications via a web portal. It acts as a companion for common reverse proxies."
+description = "The Single Sign-On Multi-Factor portal for web apps"
+images = ["cover.png"]
+footer = 'Powered by <a class="text-muted" href="https://www.netlify.com/">Netlify</a>, <a class="text-muted" href="https://gohugo.io/">Hugo</a>, and <a class="text-muted" href="https://gethyas.com/">Hyas</a>'
+copyRight = 'Copyright © 2016-%s <a class="text-muted" href="https://github.com/authelia">Authelia</a>'
+alertText = '<a class="alert-link stretched-link fw-normal" href="/blog/example-post/">Doks version 1.0 just shipped!</a>'
+lead = 'Authelia is an open-source <a href="./overview/authentication/introduction/">authentication</a> and <a href="./overview/authorization/access-control/">authorization</a> server and portal fulfilling the identity and access management (IAM) role of information security in providing <a href="./overview/authentication/introduction/">multi-factor authentication</a> and single sign-on (SSO) for your applications via a web portal. It acts as a companion for <a href="./overview/prologue/supported-proxies/">common reverse proxies</a>.'
+licenseLead = 'Open-source Apache 2.0 Licensed. <a href="https://github.com/authelia/authelia">GitHub v%s</a>'
 
-## Documentation
-# docsVersion = "0.3"
+# mainSections
+mainSections = ["overview", "configuration", "integration", "contributing", "roadmap", "reference"]
 
-## Open Graph
-images = ["authelia.png"]
-ogLocale = "en_US"
-domainTLD = "authelia.com"
-titleHome = "Authelia"
+[social]
+  # twitter = "getdoks"
 
-## Twitter Cards
-# twitterSite = ""
-# twitterCreator = ""
+# Doks (@hyas/doks-core)
+[doks]
+  # Color mode
+  colorMode = "auto" # auto (default), light or dark
+  colorModeToggler = true # true (default) or false (this setting is only relevant when colorMode = auto)
 
-## JSON-LD
-schemaType = "Organization"
-schemaName = "Authelia"
-schemaAuthor = "Authelia"
-# schemaAuthorTwitter = ""
-# schemaAuthorLinkedIn = ""
-schemaAuthorGitHub = "https://github.com/authelia"
-schemaLocale = "en-US"
-schemaLogo = "logo-doks.png"
-schemaLogoWidth = 512
-schemaLogoHeight = 512
-schemaImage = "doks.png"
-schemaImageWidth = 1280
-schemaImageHeight = 640
-# schemaTwitter = ""
-# schemaLinkedIn = ""
-schemaGitHub = "https://github.com/authelia/authelia"
-schemaSection = "blog"
+  # Navbar
+  navbarSticky = true # true (default) or false
+  containerBreakpoint = "xl" # "", "sm", "md", "lg" (default), "xl", "xxl", or "fluid"
 
-## Sitelinks Search Box
-siteLinksSearchBox = false
+  ## Button
+  navBarButton = true # false (default) or true
+  navBarButtonUrl = "/integration/prologue/get-started/"
+  navBarButtonText = "Get started"
 
-## Chrome Browser
-themeColor = "#fff"
+  # FlexSearch
+  flexSearch = true # true (default) or false
+  searchExclKinds = [] # list of page kinds to exclude from search indexing (e.g. ["home", "taxonomy", "term"] )
+  searchExclTypes = [] # list of content types to exclude from search indexing (e.g. ["blog", "docs", "legal", "contributors", "categories"])
+  showSearch = [] # [] (all pages, default) or homepage (optionally) and list of sections (e.g. ["homepage", "blog", "guides"])
+  indexSummary = false # true or false (default); whether to index only the `.Summary` instead of the full `.Content`; limits the respective JSON field size and thus increases loading time
 
-# Images
-quality = 85
-bgColor = "#fff"
-landscapePhotoWidths = [900, 800, 700, 600, 500]
-portraitPhotoWidths = [800, 700, 600, 500]
-lqipWidth = "20x"
-smallLimit = "300"
+  ## Search results
+  showDate = true # false (default) or true
+  showSummary = true # true (default) or false
+  searchLimit = 99 # 0 (no limit, default) or natural number
 
-# Images
-imageResponsive = true
-imageConvertTo = "webp"
-imageImageSizes = ["480","720","1080","1280","1600","2048"]
-singleSize = false
-imageAddClass = "img-fluid lazyload blur-up"
+  # Global alert
+  alert = false # false (default) or true
+  alertDismissable = true # true (default) or false
 
-### Image template
-defaultImage = "default-image.png" # put in `./assets/images/`
-fillImage = "1270x740 Center" # normalize image size
+  # Bootstrap
+  bootstrapJavascript = false # false (default) or true
 
-# Footer
-footer = "Powered by <a class=\"text-muted\" href=\"https://www.netlify.com/\">Netlify</a>, <a class=\"text-muted\" href=\"https://gohugo.io/\">Hugo</a>, and <a class=\"text-muted\" href=\"https://getdoks.org/\">Doks</a>"
+  # Nav
+  # sectionNav = ["docs"] # ["docs"] (default) or list of sections (e.g. ["docs", "guides"])
+  sectionNav = ["overview", "configuration", "integration", "contributing", "roadmap", "reference"]
+  toTopButton = true # false (default) or true
+  breadcrumbTrail = true # false (default) or true
+  headlineHash = true # true (default) or false
+  scrollSpy = true # true (default) or false
 
-# Feed
-copyRight = "Copyright © 2016-%s Authelia"
+  # Multilingual
+  multilingualMode = false # false (default) or true
+  showMissingLanguages = true # whether or not to show untranslated languages in the language menu; true (default) or false
 
-# Alert
-alert = true
-alertDismissable = true
-alertText = "Help us improve Authelia by taking this <a class=\"alert-link stretched-link\" href=\"https://forms.gle/aVw6J9jcez97EAhD6\">10 second survey.</a>"
+  # Versioning
+  docsVersioning = false # false (default) or true
+  docsVersion = "1.0"
 
-# Edit Page
-repoHost = "GitHub"
-docsRepo = "https://github.com/authelia/authelia"
-docsRepoBranch = "master"
-docsRepoSubPath = "docs"
-editPage = true
-lastMod = true
+  # UX
+  headerBar = true # true (default) or false
+  backgroundDots = true # true (default) or false
 
-[sections]
-  sectionNav = ["docs", "guides"]
+  # Homepage
+  sectionFooter = true # false (default) or true
 
-[options]
-  lazySizes = true
-  clipBoard = true
-  instantPage = true
-  flexSearch = true
-  searchSectionsShow = "ALL"
-  searchSectionsIndex = ["overview", "configuration", "integration", "contributing", "reference", "blog"]
-  darkMode = true
-  bootStrapJs = true
-  breadCrumb = true
-  highLight = true
-  kaTex = false
-  multilingualMode = false
-  docsVersioning = false
-  fullWidth = false
-  navbarSticky = true
-  toTopButton = false
-  scrollSpy = true
+  # Blog
+  relatedPosts = true # false (default) or true
+  imageList = true # true (default) or false
+  imageSingle = true # true (default) or false
 
-[menu]
-  [menu.section]
-    auto = true
-    collapsibleSidebar = true
+  # Repository
+  editPage = true # false (default) or true
+  lastMod = true # false (default) or true
+  repoHost = "GitHub" # GitHub (default), Gitea, GitLab, Bitbucket, or BitbucketServer
+  docsRepo = "https://github.com/authelia/authelia"
+  docsRepoBranch = "master" # main (default), master, or <branch name>
+  docsRepoSubPath = "docs" # "" (none, default) or <sub path>
+
+  # SCSS colors
+  # backGround = "yellowgreen"
+  ## Dark theme
+  # textDark = "#dee2e6" # "#dee2e6" (default), "#dee2e6" (orignal), or custom color
+  # accentDark = "#5d2f86" # "#5d2f86" (default), "#5d2f86" (original), or custom color
+  ## Light theme
+  # textLight = "#1d2d35" # "#1d2d35" (default), "#1d2d35" (orignal), or custom color
+  # accentLight = "#8ed6fb" # "#8ed6fb" (default), "#8ed6fb" (orignal), or custom color
+
+  # [doks.menu]
+  #   [doks.menu.section]
+  #     auto = true # true (default) or false
+  #     collapsibleSidebar = true # true (default) or false
+
+# Debug
+[render_hooks.image]
+  errorLevel = 'ignore' # ignore (default), warning, or error (fails the build)
+
+[render_hooks.link]
+  errorLevel = 'ignore' # ignore (default), warning, or error (fails the build)
+  highlightBroken = true # true or false (default)
+
+# Images (@hyas/images)
+[hyas_images]
+  [hyas_images.defaults]
+    decoding = "async" # sync, async, or auto (default)
+    fetchpriority = "auto" # high, low, or auto (default)
+    loading = "lazy" # eager or lazy (default)
+    widths = [480, 576, 768, 1025, 1200, 1440] # [640, 768, 1024, 1366, 1600, 1920] for example
+    sizes = "auto" # 100vw (default), 75vw, or auto for example
+    process = "" # "fill 1600x900" or "fill 2100x900" for example
+    lqip = "16x webp q20" # "16x webp q20" or "21x webp q20" for example
+
+# Inline SVG (@hyas/inline-svg)
+[inline_svg]
+  iconSetDir = "tabler-icons" # "tabler-icons" (default)
+
+# SEO (@hyas/seo)
+[seo]
+  [seo.title]
+    separator = " | "
+    suffix = ""
+  [seo.favicons]
+    sizes = []
+    icon = "favicon.png" # favicon.png (default)
+    svgIcon = "favicon.svg" # favicon.svg (default)
+    maskIcon = "mask-icon.svg" # mask-icon.svg (default)
+    maskIconColor = "white" # white (default)
+  [seo.schemas]
+    type = "Organization" # Organization (default) or Person
+    logo = "favicon-512x512.png" # Logo of Organization — favicon-512x512.png (default)
+    name = "Authelia" # Name of Organization or Person
+    sameAs = ["https://github.com/authelia/authelia", "https://github.com/authelia"]
+    images = ["cover.png"] # ["cover.png"] (default)
+    article = [] # Article sections
+    newsArticle = [] # NewsArticle sections
+    blogPosting = ["blog"] # BlogPosting sections
+    product = [] # Product sections

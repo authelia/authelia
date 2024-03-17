@@ -1,6 +1,7 @@
 package server
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net"
 	"os"
@@ -63,6 +64,18 @@ func handleError(cpath string) func(ctx *fasthttp.RequestCtx, err error) {
 		default:
 			statusCode = fasthttp.StatusBadRequest
 			message = errMessageServerGeneric
+
+			if ctx.IsTLS() {
+				// We don't need to bother doing the TLS handshake check if we're sure it's already a TLS connection.
+				break
+			}
+
+			if matches := reTLSRequestOnPlainTextSocketErr.FindStringSubmatch(err.Error()); len(matches) == 3 {
+				if version, verr := utils.TLSVersionFromBytesString(matches[1] + matches[2]); verr == nil && version != -1 {
+					statusCode = fasthttp.StatusBadRequest
+					message = fmt.Sprintf(errFmtMessageServerTLSVersion, tls.VersionName(uint16(version)))
+				}
+			}
 		}
 
 		logging.Logger().WithFields(logrus.Fields{
@@ -113,8 +126,7 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	handlerLocales := newLocalesEmbeddedHandler()
 	handlerLocalesList := newLocalesListHandler()
 
-	bridge := middlewares.NewBridgeBuilder(*config, providers).
-		WithPreMiddlewares(middlewares.SecurityHeaders).Build()
+	bridge := middlewares.NewBridgeBuilder(*config, providers).Build()
 
 	bridgeSwagger := middlewares.NewBridgeBuilder(*config, providers).
 		WithPreMiddlewares(middlewares.SecurityHeadersRelaxed).Build()
@@ -163,16 +175,16 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	}
 
 	middlewareAPI := middlewares.NewBridgeBuilder(*config, providers).
-		WithPreMiddlewares(middlewares.SecurityHeaders, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+		WithPreMiddlewares(middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
 		Build()
 
 	middleware1FA := middlewares.NewBridgeBuilder(*config, providers).
-		WithPreMiddlewares(middlewares.SecurityHeaders, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+		WithPreMiddlewares(middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
 		WithPostMiddlewares(middlewares.Require1FA).
 		Build()
 
 	middlewareElevated1FA := middlewares.NewBridgeBuilder(*config, providers).
-		WithPreMiddlewares(middlewares.SecurityHeaders, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+		WithPreMiddlewares(middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
 		WithPostMiddlewares(middlewares.RequireElevated).
 		Build()
 
@@ -328,7 +340,7 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 
 	if providers.OpenIDConnect != nil {
 		bridgeOIDC := middlewares.NewBridgeBuilder(*config, providers).WithPreMiddlewares(
-			middlewares.SecurityHeaders, middlewares.SecurityHeadersCSPNoneOpenIDConnect, middlewares.SecurityHeadersNoStore,
+			middlewares.SecurityHeadersCSPNoneOpenIDConnect, middlewares.SecurityHeadersNoStore,
 		).Build()
 
 		r.GET("/api/oidc/consent", bridgeOIDC(handlers.OpenIDConnectConsentGET))

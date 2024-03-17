@@ -181,6 +181,16 @@ func (s *FileSource) readFilesDirectory(path string) (files []*File, err error) 
 	return files, nil
 }
 
+func (s *FileSource) GetBytesFilterNames() (names []string) {
+	names = make([]string, len(s.filters))
+
+	for i, filter := range s.filters {
+		names[i] = filter.Name()
+	}
+
+	return names
+}
+
 // NewBytesSource returns a configuration.Source configured to load from a specified bytes.
 func NewBytesSource(data []byte) (source *BytesSource) {
 	return &BytesSource{
@@ -219,7 +229,7 @@ func (b *BytesSource) ReadBytes() (data []byte, err error) {
 	copy(data, b.data)
 
 	for _, filter := range b.filters {
-		if data, err = filter(data); err != nil {
+		if data, err = filter.Filter(data); err != nil {
 			return nil, err
 		}
 	}
@@ -253,7 +263,7 @@ func (s *EnvironmentSource) Merge(ko *koanf.Koanf, _ *schema.StructValidator) (e
 
 // Load the Source into the EnvironmentSource koanf.Koanf.
 func (s *EnvironmentSource) Load(_ *schema.StructValidator) (err error) {
-	keyMap, ignoredKeys := getEnvConfigMap(schema.Keys, s.prefix, s.delimiter, deprecations)
+	keyMap, ignoredKeys := getEnvConfigMap(schema.Keys, s.prefix, s.delimiter, deprecations, deprecationsMKM)
 
 	return s.koanf.Load(env.ProviderWithValue(s.prefix, constDelimiter, koanfEnvironmentCallback(keyMap, ignoredKeys, s.prefix, s.delimiter)), nil)
 }

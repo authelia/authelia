@@ -1,3 +1,2 @@
-assets/scss/components/_syntax.scss
-assets/scss/vendor
+assets/scss/common/_variables-custom.scss
 node_modules

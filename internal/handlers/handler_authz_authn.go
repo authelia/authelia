@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ory/fosite"
+	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
@@ -146,6 +146,11 @@ func (s *CookieSessionAuthnStrategy) CanHandleUnauthorized() (handle bool) {
 	return false
 }
 
+// HeaderStrategy returns true if this AuthnStrategy is header based.
+func (s *CookieSessionAuthnStrategy) HeaderStrategy() (header bool) {
+	return false
+}
+
 // HandleUnauthorized is the Unauthorized handler for the cookie AuthnStrategy.
 func (s *CookieSessionAuthnStrategy) HandleUnauthorized(_ *middlewares.AutheliaCtx, _ *Authn, _ *url.URL) {
 }
@@ -192,7 +197,11 @@ func (s *HeaderAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session.Sessi
 	scheme := authn.Header.Authorization.Scheme()
 
 	if !s.schemes.Has(scheme) {
-		return authn, fmt.Errorf("invalid scheme: scheme with name '%s' isn't available on this endpoint", scheme.String())
+		ctx.Logger.
+			WithFields(map[string]any{"scheme": authn.Header.Authorization.SchemeRaw(), "header": string(s.headerAuthorize)}).
+			Debug("Skipping header authorization as the scheme and header combination is unknown to this endpoint configuration")
+
+		return authn, nil
 	}
 
 	switch scheme {
@@ -201,10 +210,18 @@ func (s *HeaderAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session.Sessi
 	case model.AuthorizationSchemeBearer:
 		username, clientID, ccs, level, err = handleVerifyGETAuthorizationBearer(ctx, authn, object)
 	default:
-		err = fmt.Errorf("failed to parse content of %s header: the scheme '%s' is not known", s.headerAuthorize, authn.Header.Authorization.SchemeRaw())
+		ctx.Logger.
+			WithFields(map[string]any{"scheme": authn.Header.Authorization.SchemeRaw(), "header": string(s.headerAuthorize)}).
+			Debug("Skipping header authorization as the scheme is unknown to this endpoint configuration")
+
+		return authn, nil
 	}
 
 	if err != nil {
+		if errors.Is(err, errTokenIntent) {
+			return authn, nil
+		}
+
 		return authn, fmt.Errorf("failed to validate %s header with %s scheme: %w", s.headerAuthorize, scheme, err)
 	}
 
@@ -258,6 +275,11 @@ func (s *HeaderAuthnStrategy) handleGetBasic(ctx *middlewares.AutheliaCtx, authn
 // CanHandleUnauthorized returns true if this AuthnStrategy should handle Unauthorized requests.
 func (s *HeaderAuthnStrategy) CanHandleUnauthorized() (handle bool) {
 	return s.handleAuthenticate
+}
+
+// HeaderStrategy returns true if this AuthnStrategy is header based.
+func (s *HeaderAuthnStrategy) HeaderStrategy() (header bool) {
+	return true
 }
 
 // HandleUnauthorized is the Unauthorized handler for the header AuthnStrategy.
@@ -345,6 +367,11 @@ func (s *HeaderLegacyAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session
 
 // CanHandleUnauthorized returns true if this AuthnStrategy should handle Unauthorized requests.
 func (s *HeaderLegacyAuthnStrategy) CanHandleUnauthorized() (handle bool) {
+	return true
+}
+
+// HeaderStrategy returns true if this AuthnStrategy is header based.
+func (s *HeaderLegacyAuthnStrategy) HeaderStrategy() (header bool) {
 	return true
 }
 
@@ -454,40 +481,38 @@ func handleVerifyGETAuthnCookieValidateRefresh(ctx *middlewares.AutheliaCtx, use
 }
 
 func handleVerifyGETAuthorizationBearer(ctx *middlewares.AutheliaCtx, authn *Authn, object *authorization.Object) (username, clientID string, ccs bool, level authentication.Level, err error) {
-	if ctx.Providers.OpenIDConnect == nil || ctx.Configuration.IdentityProviders.OIDC == nil || !ctx.Configuration.IdentityProviders.OIDC.Discovery.BearerAuthorization {
-		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("authorization bearer scheme requires an OpenID Connect 1.0 configuration but it's absent")
-	}
+	var at bool
 
-	if !ctx.Configuration.IdentityProviders.OIDC.Discovery.BearerAuthorization {
-		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("authorization bearer scheme requires an OAuth 2.0 or OpenID Connect 1.0 client to be registered with the '%s' scope but there are none", oidc.ScopeAutheliaBearerAuthz)
+	if at, err = oidc.IsAccessToken(ctx, authn.Header.Authorization.Value()); !at {
+		if err != nil {
+			ctx.Logger.WithError(err).Debug("The bearer token does not appear to be a relevant access token")
+		} else {
+			ctx.Logger.Debug("The bearer token does not appear to be a relevant access token")
+		}
+
+		return "", "", false, authentication.NotAuthenticated, errTokenIntent
 	}
 
 	return handleVerifyGETAuthorizationBearerIntrospection(ctx, ctx.Providers.OpenIDConnect, authn, object)
 }
 
-type AuthzBearerIntrospectionProvider interface {
-	GetFullClient(ctx context.Context, id string) (client oidc.Client, err error)
-	GetAudienceStrategy(ctx context.Context) (strategy fosite.AudienceMatchingStrategy)
-	IntrospectToken(ctx context.Context, token string, tokenUse fosite.TokenUse, session fosite.Session, scope ...string) (fosite.TokenUse, fosite.AccessRequester, error)
-}
-
 func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provider AuthzBearerIntrospectionProvider, authn *Authn, object *authorization.Object) (username, clientID string, ccs bool, level authentication.Level, err error) {
 	var (
-		use       fosite.TokenUse
-		requester fosite.AccessRequester
+		use       oauthelia2.TokenUse
+		requester oauthelia2.AccessRequester
 	)
 
-	authn.Header.Error = &fosite.RFC6749Error{
+	authn.Header.Error = &oauthelia2.RFC6749Error{
 		ErrorField:       "invalid_token",
 		DescriptionField: "The access token is expired, revoked, malformed, or invalid for other reasons. The client can obtain a new access token and try again.",
 	}
 
-	if use, requester, err = provider.IntrospectToken(ctx, authn.Header.Authorization.Value(), fosite.AccessToken, oidc.NewSession(), oidc.ScopeAutheliaBearerAuthz); err != nil {
-		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("error performing token introspection: %w", err)
+	if use, requester, err = provider.IntrospectToken(ctx, authn.Header.Authorization.Value(), oauthelia2.AccessToken, oidc.NewSession(), oidc.ScopeAutheliaBearerAuthz); err != nil {
+		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("error performing token introspection: %w", oauthelia2.ErrorToDebugRFC6749Error(err))
 	}
 
-	if use != fosite.AccessToken {
-		authn.Header.Error = fosite.ErrInvalidRequest
+	if use != oauthelia2.AccessToken {
+		authn.Header.Error = oauthelia2.ErrInvalidRequest
 
 		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("token is not an access token")
 	}

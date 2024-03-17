@@ -65,6 +65,9 @@ identity_providers:
   oidc:
     enable_client_debug_messages: true
     hmac_secret: 'IVPWBkAdJHje3uz7LtFTDU2pFUfh39Xm'
+    jwks:
+      - key: {{ secret "/pki/private.oidc.pem" | mindent 10 "|" | msquote }}
+        certificate_chain: {{ secret "/pki/public.oidc.chain.pem" | mindent 10 "|" | msquote }}
     clients:
       - client_id: 'oidc-tester-app'
         ## 'foobar'

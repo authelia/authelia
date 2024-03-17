@@ -144,7 +144,7 @@ func UserSessionElevationPOST(ctx *middlewares.AutheliaCtx) {
 		otp *model.OneTimeCode
 	)
 
-	if otp, err = model.NewOneTimeCode(ctx, userSession.Username, ctx.Configuration.IdentityValidation.ElevatedSession.Characters, ctx.Configuration.IdentityValidation.ElevatedSession.Expiration); err != nil {
+	if otp, err = model.NewOneTimeCode(ctx, userSession.Username, ctx.Configuration.IdentityValidation.ElevatedSession.Characters, ctx.Configuration.IdentityValidation.ElevatedSession.CodeLifespan); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred creating user session elevation One-Time Code challenge for user '%s': error occurred generating the challenge", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -335,7 +335,7 @@ func UserSessionElevationPUT(ctx *middlewares.AutheliaCtx) {
 	userSession.Elevations.User = &session.Elevation{
 		ID:       code.ID,
 		RemoteIP: ctx.RemoteIP(),
-		Expires:  ctx.Clock.Now().Add(ctx.Configuration.IdentityValidation.ElevatedSession.ElevationExpiration),
+		Expires:  ctx.Clock.Now().Add(ctx.Configuration.IdentityValidation.ElevatedSession.ElevationLifespan),
 	}
 
 	if err = ctx.SaveSession(userSession); err != nil {

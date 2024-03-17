@@ -49,18 +49,14 @@ const (
 )
 
 const (
-	// ClientAssertionJWTBearerType is the JWT bearer assertion.
-	ClientAssertionJWTBearerType = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer" //nolint:gosec // False Positive.
-)
-
-const httpAuthSchemeBasic = "Basic"
-
-const (
-	lifespanTokenDefault                   = time.Hour
-	lifespanRefreshTokenDefault            = time.Hour * 24 * 30
-	lifespanAuthorizeCodeDefault           = time.Minute * 15
-	lifespanJWTSecuredAuthorizationDefault = time.Minute * 5
-	lifespanPARContextDefault              = time.Minute * 5
+	lifespanTokenDefault                      = time.Hour
+	lifespanRefreshTokenDefault               = time.Hour * 24 * 30
+	lifespanAuthorizeCodeDefault              = time.Minute * 15
+	lifespanJWTSecuredAuthorizationDefault    = time.Minute * 5
+	lifespanPARContextDefault                 = time.Minute * 5
+	lifespanRFC8628CodeDefault                = time.Minute * 10
+	lifespanRFC8628PollingIntervalDefault     = time.Second * 10
+	lifespanVerifiableCredentialsNonceDefault = time.Hour
 )
 
 const (
@@ -159,26 +155,14 @@ const (
 )
 
 const (
-	FormParameterState               = "state"
-	FormParameterAuthorizationCode   = "code"
-	FormParameterClientID            = valueClientID
-	FormParameterClientSecret        = "client_secret"
-	FormParameterRequestURI          = "request_uri"
-	FormParameterRedirectURI         = "redirect_uri"
-	FormParameterResponse            = "response"
-	FormParameterResponseMode        = "response_mode"
-	FormParameterResponseType        = "response_type"
-	FormParameterCodeChallenge       = "code_challenge"
-	FormParameterCodeVerifier        = "code_verifier"
-	FormParameterCodeChallengeMethod = "code_challenge_method"
-	FormParameterClientAssertionType = "client_assertion_type"
-	FormParameterClientAssertion     = "client_assertion"
-	FormParameterScope               = valueScope
-	FormParameterAudience            = "audience"
-	FormParameterRefreshToken        = valueRefreshToken
-	FormParameterIssuer              = valueIss
-	FormParameterToken               = "token"
-	FormParameterTokenTypeHint       = "token_type_hint"
+	FormParameterState        = "state"
+	FormParameterClientID     = valueClientID
+	FormParameterRequestURI   = "request_uri"
+	FormParameterRedirectURI  = "redirect_uri"
+	FormParameterResponseMode = "response_mode"
+	FormParameterResponseType = "response_type"
+	FormParameterScope        = valueScope
+	FormParameterIssuer       = valueIss
 )
 
 const (
@@ -215,20 +199,6 @@ const (
 	JWTHeaderTypeValueAccessTokenJWT        = "at+jwt"
 )
 
-const (
-	headerContentTypeTextHTML        = "text/html; charset=utf-8"
-	headerContentTypeApplicationJSON = "application/json; charset=utf-8"
-)
-
-const (
-	tokenPrefixOrgAutheliaFmt = "authelia_%s_" //nolint:gosec
-	tokenPrefixOrgOryFmt      = "ory_%s_"      //nolint:gosec
-
-	TokenPrefixPartAccessToken   = "at"
-	TokenPrefixPartRefreshToken  = "rt"
-	TokenPrefixPartAuthorizeCode = "ac"
-)
-
 // Paths.
 const (
 	EndpointPathConsent                           = "/consent"
@@ -245,6 +215,8 @@ const (
 	EndpointPathRevocation    = EndpointPathRoot + "/" + EndpointRevocation
 
 	EndpointPathPushedAuthorizationRequest = EndpointPathRoot + "/" + EndpointPushedAuthorizationRequest
+
+	EndpointPathRFC8628UserVerificationURL = EndpointPathRoot + "/device-code/user-verification"
 )
 
 // Authentication Method Reference Values https://datatracker.ietf.org/doc/html/rfc8176

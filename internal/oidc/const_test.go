@@ -27,11 +27,6 @@ const (
 )
 
 const (
-	rs256 = "rs256"
-	es512 = "es512"
-)
-
-const (
 	abc = "abc"
 )
 

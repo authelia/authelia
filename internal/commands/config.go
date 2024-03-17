@@ -3,6 +3,7 @@ package commands
 import (
 	"bytes"
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -117,23 +118,33 @@ func (ctx *CmdCtx) ConfigTemplateRunE(_ *cobra.Command, _ []string) (err error) 
 
 	var files []*configuration.File
 
+	var n int
+
 	for _, s := range ctx.cconfig.sources {
 		if source, ok = s.(*configuration.FileSource); !ok {
 			continue
 		}
 
+		n++
+
 		if files, err = source.ReadFiles(); err != nil {
 			return err
 		}
 
+		buf.WriteString(fmt.Sprintf(fmtYAMLConfigTemplateHeader, strings.Join(source.GetBytesFilterNames(), ", ")))
+
 		for _, file := range files {
 			if reYAMLComment.Match(file.Data) {
-				buf.Write(reYAMLComment.ReplaceAll(file.Data, []byte(fmt.Sprintf(fmtYAMLConfigTemplateHeader+"$1", file.Path))))
+				buf.Write(reYAMLComment.ReplaceAll(file.Data, []byte(fmt.Sprintf(fmtYAMLConfigTemplateFileHeader+"$1", file.Path))))
 			} else {
-				buf.WriteString(fmt.Sprintf(fmtYAMLConfigTemplateHeader, file.Path))
+				buf.WriteString(fmt.Sprintf(fmtYAMLConfigTemplateFileHeader, file.Path))
 				buf.Write(file.Data)
 			}
 		}
+	}
+
+	if n == 0 {
+		return fmt.Errorf("templating requires configuration files however no configuration file sources were specified")
 	}
 
 	fmt.Println(buf.String())

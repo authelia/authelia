@@ -6,15 +6,17 @@ import (
 	"testing"
 	"time"
 
+	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"github.com/ory/fosite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/v4/internal/clock"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/random"
 )
 
 func TestNewSession(t *testing.T) {
@@ -40,8 +42,8 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 
 	formValues.Set(oidc.ClaimNonce, "abc123xyzauthelia")
 
-	request := &fosite.AuthorizeRequest{
-		Request: fosite.Request{
+	request := &oauthelia2.AuthorizeRequest{
+		Request: oauthelia2.Request{
 			ID:     requestID.String(),
 			Form:   formValues,
 			Client: &oidc.RegisteredClient{ID: "example"},
@@ -112,6 +114,15 @@ type TestContext struct {
 	MockIssuerURL *url.URL
 	IssuerURLFunc func() (issuerURL *url.URL, err error)
 	Clock         clock.Provider
+	Config        schema.Configuration
+}
+
+func (m *TestContext) GetRandom() (r random.Provider) {
+	return random.NewMathematical()
+}
+
+func (m *TestContext) GetConfiguration() (config schema.Configuration) {
+	return m.Config
 }
 
 // IssuerURL returns the MockIssuerURL.
@@ -156,10 +167,10 @@ func (m *TestCodeStrategy) AuthorizeCodeSignature(ctx context.Context, token str
 	return m.signature
 }
 
-func (m *TestCodeStrategy) GenerateAuthorizeCode(ctx context.Context, requester fosite.Requester) (token string, signature string, err error) {
+func (m *TestCodeStrategy) GenerateAuthorizeCode(ctx context.Context, requester oauthelia2.Requester) (token string, signature string, err error) {
 	return "", "", nil
 }
 
-func (m *TestCodeStrategy) ValidateAuthorizeCode(ctx context.Context, requester fosite.Requester, token string) (err error) {
+func (m *TestCodeStrategy) ValidateAuthorizeCode(ctx context.Context, requester oauthelia2.Requester, token string) (err error) {
 	return nil
 }

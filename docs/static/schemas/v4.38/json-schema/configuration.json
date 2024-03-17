@@ -1084,10 +1084,10 @@
           "title": "Discovery Response Signing Key ID",
           "description": "The Key ID this provider uses to sign the Discovery and Metadata Document responses (overrides the 'discovery_signed_response_alg')."
         },
-        "pushed_authorizations": {
-          "$ref": "#/$defs/IdentityProvidersOpenIDConnectPAR",
-          "title": "Pushed Authorizations",
-          "description": "Configuration options for Pushed Authorization Requests."
+        "require_pushed_authorization_requests": {
+          "type": "boolean",
+          "title": "Require Pushed Authorization Requests",
+          "description": "Requires Pushed Authorization Requests for all clients for this Issuer."
         },
         "cors": {
           "$ref": "#/$defs/IdentityProvidersOpenIDConnectCORS",
@@ -1512,6 +1512,11 @@
           "title": "Token Endpoint Auth Method",
           "description": "The Token Endpoint Auth Method enforced by the provider for this client."
         },
+        "allow_multiple_auth_methods": {
+          "type": "boolean",
+          "title": "Allow Multiple Authentication Methods",
+          "description": "Permits this registered client to accept misbehaving clients which use a broad authentication approach. This is not standards complaint, use at your own security risk."
+        },
         "jwks_uri": {
           "type": "string",
           "format": "uri",
@@ -1800,33 +1805,6 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "IdentityProvidersOpenIDConnectPAR": {
-      "properties": {
-        "enforce": {
-          "type": "boolean",
-          "title": "Enforce",
-          "description": "Enforce the use of PAR for all requests on all clients.",
-          "default": false
-        },
-        "context_lifespan": {
-          "oneOf": [
-            {
-              "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
-            },
-            {
-              "type": "integer",
-              "description": "The duration in seconds"
-            }
-          ],
-          "title": "Context Lifespan",
-          "description": "How long a PAR context is valid for."
-        }
-      },
-      "additionalProperties": false,
-      "type": "object",
-      "description": "IdentityProvidersOpenIDConnectPAR represents an OpenID Connect 1.0 PAR config."
-    },
     "IdentityProvidersOpenIDConnectPolicy": {
       "properties": {
         "default_policy": {
@@ -1893,7 +1871,7 @@
     },
     "IdentityValidationElevatedSession": {
       "properties": {
-        "expiration": {
+        "code_lifespan": {
           "oneOf": [
             {
               "type": "string",
@@ -1904,10 +1882,10 @@
               "description": "The duration in seconds"
             }
           ],
-          "title": "Expiration",
-          "description": "Duration of time the OTP code is considered valid."
+          "title": "Code Lifespan",
+          "description": "The lifespan of the randomly generated One Time Code after which it's considered invalid."
         },
-        "elevation_expiration": {
+        "elevation_lifespan": {
           "oneOf": [
             {
               "type": "string",
@@ -1918,8 +1896,8 @@
               "description": "The duration in seconds"
             }
           ],
-          "title": "Elevation Expiration",
-          "description": "Duration of time the elevation can exist for after the user performs the validation."
+          "title": "Elevation Lifespan",
+          "description": "The lifespan of the elevation after initially validating the One-Time Code before it expires."
         },
         "otp_characters": {
           "type": "integer",
@@ -1948,7 +1926,7 @@
     },
     "IdentityValidationResetPassword": {
       "properties": {
-        "expiration": {
+        "jwt_lifespan": {
           "oneOf": [
             {
               "type": "string",
@@ -1959,8 +1937,8 @@
               "description": "The duration in seconds"
             }
           ],
-          "title": "Expiration",
-          "description": "Duration of time the JWT is considered valid."
+          "title": "JWT Lifespan",
+          "description": "The lifespan of the JSON Web Token after it's initially generated after which it's considered invalid."
         },
         "jwt_algorithm": {
           "type": "string",
@@ -1970,13 +1948,13 @@
             "HS512"
           ],
           "title": "JWT Algorithm",
-          "description": "The JWT Algorithm (JWA) used to sign the Reset Password flow JWT's.",
+          "description": "The JSON Web Token Algorithm (JWA) used to sign the Reset Password flow JSON Web Token's.",
           "default": "HS256"
         },
         "jwt_secret": {
           "type": "string",
           "title": "JWT Secret",
-          "description": "The JWT secret used to sign the Reset Password flow JWT's."
+          "description": "The secret key used to sign the Reset Password flow JSON Web Token's."
         }
       },
       "additionalProperties": false,
@@ -2470,24 +2448,6 @@
           "$ref": "#/$defs/ServerTimeouts",
           "title": "Timeouts",
           "description": "The server timeouts configuration."
-        },
-        "host": {
-          "type": "string",
-          "title": "Host",
-          "description": "Deprecated: use address instead.",
-          "deprecated": true
-        },
-        "port": {
-          "type": "integer",
-          "title": "Port",
-          "description": "Deprecated: use address instead.",
-          "deprecated": true
-        },
-        "path": {
-          "type": "string",
-          "title": "Path",
-          "description": "Deprecated: use address instead.",
-          "deprecated": true
         }
       },
       "additionalProperties": false,
@@ -3040,18 +3000,6 @@
           "title": "Timeout",
           "description": "The timeout for the database connection."
         },
-        "host": {
-          "type": "string",
-          "title": "Host",
-          "description": "Deprecated: use address instead.",
-          "deprecated": true
-        },
-        "port": {
-          "type": "integer",
-          "title": "Host",
-          "description": "Deprecated: use address instead.",
-          "deprecated": true
-        },
         "tls": {
           "$ref": "#/$defs/TLS"
         }
@@ -3095,18 +3043,6 @@
           ],
           "title": "Timeout",
           "description": "The timeout for the database connection."
-        },
-        "host": {
-          "type": "string",
-          "title": "Host",
-          "description": "Deprecated: use address instead.",
-          "deprecated": true
-        },
-        "port": {
-          "type": "integer",
-          "title": "Host",
-          "description": "Deprecated: use address instead.",
-          "deprecated": true
         },
         "schema": {
           "type": "string",

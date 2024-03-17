@@ -1,6 +1,8 @@
 package server
 
 import (
+	"regexp"
+
 	"github.com/valyala/fasthttp"
 )
 
@@ -84,6 +86,7 @@ const (
 	errFmtMessageServerReadBuffer  = "Request from client exceeded the server read buffer. The read buffer can be adjusted by modifying the '%s.buffers.read' configuration value."
 	errMessageServerRequestTimeout = "Request timeout occurred while handling request from client."
 	errMessageServerNetwork        = "An unknown network error occurred while handling a request from client."
+	errFmtMessageServerTLSVersion  = "A %s connection handshake occurred on a non-TLS listener."
 	errMessageServerGeneric        = "An unknown error occurred while handling a request from client."
 )
 
@@ -94,4 +97,8 @@ const (
 
 const (
 	errCantLoadLocaleInfo = "fatal: can't load Locale Information"
+)
+
+var (
+	reTLSRequestOnPlainTextSocketErr = regexp.MustCompile(`contents: \\x16\\x([a-fA-F0-9]{2})\\x([a-fA-F0-9]{2})`)
 )

@@ -2,13 +2,11 @@ package oidc_test
 
 import (
 	"context"
-	"fmt"
-	"net/url"
 	"testing"
 	"time"
 
-	"github.com/go-jose/go-jose/v3"
-	"github.com/ory/fosite"
+	oauthelia2 "authelia.com/provider/oauth2"
+	"github.com/go-jose/go-jose/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -26,7 +24,7 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, "", client.GetName())
 	assert.Len(t, client.GetResponseModes(), 0)
 	assert.Len(t, client.GetResponseTypes(), 1)
-	assert.Equal(t, "", client.GetSectorIdentifier())
+	assert.Equal(t, "", client.GetSectorIdentifierURI())
 
 	bclient, ok := client.(*oidc.RegisteredClient)
 	require.True(t, ok)
@@ -54,9 +52,9 @@ func TestNewClient(t *testing.T) {
 	client = oidc.NewClient(config, &schema.IdentityProvidersOpenIDConnect{})
 	assert.Equal(t, myclient, client.GetID())
 	require.Len(t, client.GetResponseModes(), 1)
-	assert.Equal(t, fosite.ResponseModeFormPost, client.GetResponseModes()[0])
+	assert.Equal(t, oauthelia2.ResponseModeFormPost, client.GetResponseModes()[0])
 	assert.Equal(t, authorization.TwoFactor, client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{}))
-	assert.Equal(t, fosite.Arguments(nil), client.GetAudience())
+	assert.Equal(t, oauthelia2.Arguments(nil), client.GetAudience())
 
 	config = schema.IdentityProvidersOpenIDConnectClient{
 		TokenEndpointAuthMethod: oidc.ClientAuthMethodClientSecretPost,
@@ -133,15 +131,15 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, oidc.ClientAuthMethodClientSecretPost, fclient.GetTokenEndpointAuthMethod())
 
 	assert.Equal(t, "", fclient.TokenEndpointAuthSigningAlg)
-	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.GetTokenEndpointAuthSigningAlgorithm())
+	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.GetTokenEndpointAuthSigningAlg())
 	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.TokenEndpointAuthSigningAlg)
 
 	assert.Equal(t, "", fclient.RequestObjectSigningAlg)
-	assert.Equal(t, "", fclient.GetRequestObjectSigningAlgorithm())
+	assert.Equal(t, "", fclient.GetRequestObjectSigningAlg())
 
 	fclient.RequestObjectSigningAlg = oidc.SigningAlgRSAUsingSHA256
 
-	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.GetRequestObjectSigningAlgorithm())
+	assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, fclient.GetRequestObjectSigningAlg())
 
 	assert.Nil(t, fclient.JSONWebKeysURI)
 	assert.Equal(t, "", fclient.GetJSONWebKeysURI())
@@ -225,73 +223,6 @@ func TestBaseClient_Misc(t *testing.T) {
 			tc.setup(client)
 
 			tc.expected(t, client)
-		})
-	}
-}
-
-func TestRegisteredClient_ValidatePARPolicy(t *testing.T) {
-	testCases := []struct {
-		name     string
-		client   *oidc.RegisteredClient
-		have     *fosite.Request
-		expected string
-	}{
-		{
-			"ShouldNotEnforcePAR",
-			&oidc.RegisteredClient{
-				RequirePushedAuthorizationRequests: false,
-			},
-			&fosite.Request{},
-			"",
-		},
-		{
-			"ShouldEnforcePARAndErrorWithoutCorrectRequestURI",
-			&oidc.RegisteredClient{
-				RequirePushedAuthorizationRequests: true,
-			},
-			&fosite.Request{
-				Form: map[string][]string{
-					oidc.FormParameterRequestURI: {"https://google.com"},
-				},
-			},
-			"invalid_request",
-		},
-		{
-			"ShouldEnforcePARAndErrorWithEmptyRequestURI",
-			&oidc.RegisteredClient{
-				RequirePushedAuthorizationRequests: true,
-			},
-			&fosite.Request{
-				Form: map[string][]string{
-					oidc.FormParameterRequestURI: {""},
-				},
-			},
-			"invalid_request",
-		},
-		{
-			"ShouldEnforcePARAndNotErrorWithCorrectRequestURI",
-			&oidc.RegisteredClient{
-				RequirePushedAuthorizationRequests: true,
-			},
-			&fosite.Request{
-				Form: map[string][]string{
-					oidc.FormParameterRequestURI: {oidc.RedirectURIPrefixPushedAuthorizationRequestURN + abc},
-				},
-			},
-			"",
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			err := tc.client.ValidatePARPolicy(tc.have, oidc.RedirectURIPrefixPushedAuthorizationRequestURN)
-
-			switch tc.expected {
-			case "":
-				assert.NoError(t, err)
-			default:
-				assert.EqualError(t, err, tc.expected)
-			}
 		})
 	}
 }
@@ -390,24 +321,9 @@ func TestClient_GetGrantTypes(t *testing.T) {
 func TestClient_Hashing(t *testing.T) {
 	c := &oidc.RegisteredClient{}
 
-	hashedSecret := c.GetHashedSecret()
-	assert.Equal(t, []byte(nil), hashedSecret)
+	c.ClientSecret = &oidc.ClientSecretDigest{PasswordDigest: tOpenIDConnectPlainTextClientSecret}
 
-	c.Secret = tOpenIDConnectPlainTextClientSecret
-
-	assert.True(t, c.Secret.MatchBytes([]byte("client-secret")))
-}
-
-func TestClient_GetHashedSecret(t *testing.T) {
-	c := &oidc.RegisteredClient{}
-
-	hashedSecret := c.GetHashedSecret()
-	assert.Equal(t, []byte(nil), hashedSecret)
-
-	c.Secret = tOpenIDConnectPlainTextClientSecret
-
-	hashedSecret = c.GetHashedSecret()
-	assert.Equal(t, []byte("$plaintext$client-secret"), hashedSecret)
+	assert.True(t, c.ClientSecret.MatchBytes([]byte("client-secret")))
 }
 
 func TestClient_GetID(t *testing.T) {
@@ -441,17 +357,17 @@ func TestClient_GetResponseModes(t *testing.T) {
 	responseModes := c.GetResponseModes()
 	require.Len(t, responseModes, 0)
 
-	c.ResponseModes = []fosite.ResponseModeType{
-		fosite.ResponseModeDefault, fosite.ResponseModeFormPost,
-		fosite.ResponseModeQuery, fosite.ResponseModeFragment,
+	c.ResponseModes = []oauthelia2.ResponseModeType{
+		oauthelia2.ResponseModeDefault, oauthelia2.ResponseModeFormPost,
+		oauthelia2.ResponseModeQuery, oauthelia2.ResponseModeFragment,
 	}
 
 	responseModes = c.GetResponseModes()
 	require.Len(t, responseModes, 4)
-	assert.Equal(t, fosite.ResponseModeDefault, responseModes[0])
-	assert.Equal(t, fosite.ResponseModeFormPost, responseModes[1])
-	assert.Equal(t, fosite.ResponseModeQuery, responseModes[2])
-	assert.Equal(t, fosite.ResponseModeFragment, responseModes[3])
+	assert.Equal(t, oauthelia2.ResponseModeDefault, responseModes[0])
+	assert.Equal(t, oauthelia2.ResponseModeFormPost, responseModes[1])
+	assert.Equal(t, oauthelia2.ResponseModeQuery, responseModes[2])
+	assert.Equal(t, oauthelia2.ResponseModeFragment, responseModes[3])
 }
 
 func TestClient_GetResponseTypes(t *testing.T) {
@@ -476,18 +392,12 @@ func TestNewClientPKCE(t *testing.T) {
 		expectedEnforcePKCE                bool
 		expectedEnforcePKCEChallengeMethod bool
 		expected                           string
-		r                                  *fosite.Request
-		err                                string
-		desc                               string
 	}{
 		{
 			"ShouldNotEnforcePKCEAndNotErrorOnNonPKCERequest",
 			schema.IdentityProvidersOpenIDConnectClient{},
 			false,
 			false,
-			"",
-			&fosite.Request{},
-			"",
 			"",
 		},
 		{
@@ -496,9 +406,6 @@ func TestNewClientPKCE(t *testing.T) {
 			true,
 			false,
 			"",
-			&fosite.Request{},
-			"invalid_request",
-			"The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Clients must include a code_challenge when performing the authorize code flow, but it is missing. The server is configured in a way that enforces PKCE for this client.",
 		},
 		{
 			"ShouldEnforcePKCEAndNotErrorOnPKCERequest",
@@ -506,36 +413,24 @@ func TestNewClientPKCE(t *testing.T) {
 			true,
 			false,
 			"",
-			&fosite.Request{Form: map[string][]string{"code_challenge": {abc}}},
-			"",
-			"",
 		},
 		{"ShouldEnforcePKCEFromChallengeMethodAndErrorOnNonPKCERequest",
 			schema.IdentityProvidersOpenIDConnectClient{PKCEChallengeMethod: "S256"},
 			true,
 			true,
 			"S256",
-			&fosite.Request{},
-			"invalid_request",
-			"The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Clients must include a code_challenge when performing the authorize code flow, but it is missing. The server is configured in a way that enforces PKCE for this client.",
 		},
 		{"ShouldEnforcePKCEFromChallengeMethodAndErrorOnInvalidChallengeMethod",
 			schema.IdentityProvidersOpenIDConnectClient{PKCEChallengeMethod: "S256"},
 			true,
 			true,
 			"S256",
-			&fosite.Request{Form: map[string][]string{"code_challenge": {abc}}},
-			"invalid_request",
-			"The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Client must use code_challenge_method=S256,  is not allowed. The server is configured in a way that enforces PKCE S256 as challenge method for this client.",
 		},
 		{"ShouldEnforcePKCEFromChallengeMethodAndNotErrorOnValidRequest",
 			schema.IdentityProvidersOpenIDConnectClient{PKCEChallengeMethod: "S256"},
 			true,
 			true,
 			"S256",
-			&fosite.Request{Form: map[string][]string{"code_challenge": {abc}, "code_challenge_method": {"S256"}}},
-			"",
-			"",
 		},
 	}
 
@@ -543,21 +438,9 @@ func TestNewClientPKCE(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			client := oidc.NewClient(tc.have, &schema.IdentityProvidersOpenIDConnect{})
 
-			assert.Equal(t, tc.expectedEnforcePKCE, client.GetPKCEEnforcement())
-			assert.Equal(t, tc.expectedEnforcePKCEChallengeMethod, client.GetPKCEChallengeMethodEnforcement())
+			assert.Equal(t, tc.expectedEnforcePKCE, client.GetEnforcePKCE())
+			assert.Equal(t, tc.expectedEnforcePKCEChallengeMethod, client.GetEnforcePKCEChallengeMethod())
 			assert.Equal(t, tc.expected, client.GetPKCEChallengeMethod())
-
-			if tc.r != nil {
-				err := client.ValidatePKCEPolicy(tc.r)
-
-				if tc.err != "" {
-					require.NotNil(t, err)
-					assert.EqualError(t, err, tc.err)
-					assert.Equal(t, tc.desc, fosite.ErrorToRFC6749Error(err).WithExposeDebug(true).GetDescription())
-				} else {
-					assert.NoError(t, err)
-				}
-			}
 		})
 	}
 }
@@ -567,40 +450,26 @@ func TestNewClientPAR(t *testing.T) {
 		name     string
 		have     schema.IdentityProvidersOpenIDConnectClient
 		expected bool
-		r        *fosite.Request
-		err      string
-		desc     string
 	}{
 		{
 			"ShouldNotEnforcEPARAndNotErrorOnNonPARRequest",
 			schema.IdentityProvidersOpenIDConnectClient{},
 			false,
-			&fosite.Request{},
-			"",
-			"",
 		},
 		{
 			"ShouldEnforcePARAndErrorOnNonPARRequest",
 			schema.IdentityProvidersOpenIDConnectClient{RequirePushedAuthorizationRequests: true},
 			true,
-			&fosite.Request{},
-			"invalid_request",
-			"The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Pushed Authorization Requests are enforced for this client but no such request was sent. The request_uri parameter was empty.",
 		},
 		{
 			"ShouldEnforcePARAndErrorOnNonPARRequest",
 			schema.IdentityProvidersOpenIDConnectClient{RequirePushedAuthorizationRequests: true},
 			true,
-			&fosite.Request{Form: map[string][]string{oidc.FormParameterRequestURI: {"https://example.com"}}},
-			"invalid_request",
-			"The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed. Pushed Authorization Requests are enforced for this client but no such request was sent. The request_uri parameter 'https://example.com' is malformed."},
+		},
 		{
 			"ShouldEnforcePARAndNotErrorOnPARRequest",
 			schema.IdentityProvidersOpenIDConnectClient{RequirePushedAuthorizationRequests: true},
 			true,
-			&fosite.Request{Form: map[string][]string{oidc.FormParameterRequestURI: {fmt.Sprintf("%sabc", oidc.RedirectURIPrefixPushedAuthorizationRequestURN)}}},
-			"",
-			"",
 		},
 	}
 
@@ -609,18 +478,6 @@ func TestNewClientPAR(t *testing.T) {
 			client := oidc.NewClient(tc.have, &schema.IdentityProvidersOpenIDConnect{})
 
 			assert.Equal(t, tc.expected, client.GetRequirePushedAuthorizationRequests())
-
-			if tc.r != nil {
-				err := client.ValidatePARPolicy(tc.r, oidc.RedirectURIPrefixPushedAuthorizationRequestURN)
-
-				if tc.err != "" {
-					require.NotNil(t, err)
-					assert.EqualError(t, err, tc.err)
-					assert.Equal(t, tc.desc, fosite.ErrorToRFC6749Error(err).WithExposeDebug(true).GetDescription())
-				} else {
-					assert.NoError(t, err)
-				}
-			}
 		})
 	}
 }
@@ -628,8 +485,8 @@ func TestNewClientPAR(t *testing.T) {
 func TestClient_GetEffectiveLifespan(t *testing.T) {
 	type subcase struct {
 		name     string
-		gt       fosite.GrantType
-		tt       fosite.TokenType
+		gt       oauthelia2.GrantType
+		tt       oauthelia2.TokenType
 		fallback time.Duration
 		expected time.Duration
 	}
@@ -652,15 +509,15 @@ func TestClient_GetEffectiveLifespan(t *testing.T) {
 			[]subcase{
 				{
 					"ShouldHandleInvalidTokenTypeFallbackToProvidedFallback",
-					fosite.GrantTypeAuthorizationCode,
-					fosite.TokenType(abc),
+					oauthelia2.GrantTypeAuthorizationCode,
+					oauthelia2.TokenType(abc),
 					time.Minute,
 					time.Minute,
 				},
 				{
 					"ShouldHandleInvalidGrantTypeFallbackToTokenType",
-					fosite.GrantType(abc),
-					fosite.AuthorizeCode,
+					oauthelia2.GrantType(abc),
+					oauthelia2.AuthorizeCode,
 					time.Minute,
 					time.Minute * 5,
 				},
@@ -672,141 +529,141 @@ func TestClient_GetEffectiveLifespan(t *testing.T) {
 			[]subcase{
 				{
 					"ShouldHandleAuthorizationCodeFlowAuthorizationCode",
-					fosite.GrantTypeAuthorizationCode,
-					fosite.AuthorizeCode,
+					oauthelia2.GrantTypeAuthorizationCode,
+					oauthelia2.AuthorizeCode,
 					time.Minute,
 					time.Minute,
 				},
 				{
 					"ShouldHandleAuthorizationCodeFlowAccessToken",
-					fosite.GrantTypeAuthorizationCode,
-					fosite.AccessToken,
+					oauthelia2.GrantTypeAuthorizationCode,
+					oauthelia2.AccessToken,
 					time.Minute,
 					time.Minute,
 				},
 				{
 					"ShouldHandleAuthorizationCodeFlowRefreshToken",
-					fosite.GrantTypeAuthorizationCode,
-					fosite.RefreshToken,
+					oauthelia2.GrantTypeAuthorizationCode,
+					oauthelia2.RefreshToken,
 					time.Minute,
 					time.Minute,
 				},
 				{
 					"ShouldHandleAuthorizationCodeFlowIDToken",
-					fosite.GrantTypeAuthorizationCode,
-					fosite.IDToken,
+					oauthelia2.GrantTypeAuthorizationCode,
+					oauthelia2.IDToken,
 					time.Minute,
 					time.Minute,
 				},
 				{
 					"ShouldHandleImplicitFlowAuthorizationCode",
-					fosite.GrantTypeImplicit,
-					fosite.AuthorizeCode,
+					oauthelia2.GrantTypeImplicit,
+					oauthelia2.AuthorizeCode,
 					time.Minute,
 					time.Minute,
 				},
 				{
 					"ShouldHandleImplicitFlowAccessToken",
-					fosite.GrantTypeImplicit,
-					fosite.AccessToken,
+					oauthelia2.GrantTypeImplicit,
+					oauthelia2.AccessToken,
 					time.Minute,
 					time.Minute,
 				},
 				{
 					"ShouldHandleImplicitFlowRefreshToken",
-					fosite.GrantTypeImplicit,
-					fosite.RefreshToken,
+					oauthelia2.GrantTypeImplicit,
+					oauthelia2.RefreshToken,
 					time.Minute,
 					time.Minute,
 				},
 				{
 					"ShouldHandleImplicitFlowIDToken",
-					fosite.GrantTypeImplicit,
-					fosite.IDToken,
+					oauthelia2.GrantTypeImplicit,
+					oauthelia2.IDToken,
 					time.Minute,
 					time.Minute,
 				},
 				{
 					"ShouldHandleClientCredentialsFlowAuthorizationCode",
-					fosite.GrantTypeClientCredentials,
-					fosite.AuthorizeCode,
+					oauthelia2.GrantTypeClientCredentials,
+					oauthelia2.AuthorizeCode,
 					time.Minute,
 					time.Minute,
 				},
 				{
 					"ShouldHandleClientCredentialsFlowAccessToken",
-					fosite.GrantTypeClientCredentials,
-					fosite.AccessToken,
+					oauthelia2.GrantTypeClientCredentials,
+					oauthelia2.AccessToken,
 					time.Minute,
 					time.Minute,
 				},
 				{
 					"ShouldHandleClientCredentialsFlowRefreshToken",
-					fosite.GrantTypeClientCredentials,
-					fosite.RefreshToken,
+					oauthelia2.GrantTypeClientCredentials,
+					oauthelia2.RefreshToken,
 					time.Minute,
 					time.Minute,
 				},
 				{
 					"ShouldHandleClientCredentialsFlowIDToken",
-					fosite.GrantTypeClientCredentials,
-					fosite.IDToken,
+					oauthelia2.GrantTypeClientCredentials,
+					oauthelia2.IDToken,
 					time.Minute,
 					time.Minute,
 				},
 				{
 					"ShouldHandleRefreshTokenFlowAuthorizationCode",
-					fosite.GrantTypeRefreshToken,
-					fosite.AuthorizeCode,
+					oauthelia2.GrantTypeRefreshToken,
+					oauthelia2.AuthorizeCode,
 					time.Minute,
 					time.Minute,
 				},
 				{
 					"ShouldHandleRefreshTokenFlowAccessToken",
-					fosite.GrantTypeRefreshToken,
-					fosite.AccessToken,
+					oauthelia2.GrantTypeRefreshToken,
+					oauthelia2.AccessToken,
 					time.Minute,
 					time.Minute,
 				},
 				{
 					"ShouldHandleRefreshTokenFlowRefreshToken",
-					fosite.GrantTypeRefreshToken,
-					fosite.RefreshToken,
+					oauthelia2.GrantTypeRefreshToken,
+					oauthelia2.RefreshToken,
 					time.Minute,
 					time.Minute,
 				},
 				{
 					"ShouldHandleRefreshTokenFlowIDToken",
-					fosite.GrantTypeRefreshToken,
-					fosite.IDToken,
+					oauthelia2.GrantTypeRefreshToken,
+					oauthelia2.IDToken,
 					time.Minute,
 					time.Minute,
 				},
 				{
 					"ShouldHandleJWTBearerFlowAuthorizationCode",
-					fosite.GrantTypeJWTBearer,
-					fosite.AuthorizeCode,
+					oauthelia2.GrantTypeJWTBearer,
+					oauthelia2.AuthorizeCode,
 					time.Minute,
 					time.Minute,
 				},
 				{
 					"ShouldHandleJWTBearerFlowAccessToken",
-					fosite.GrantTypeJWTBearer,
-					fosite.AccessToken,
+					oauthelia2.GrantTypeJWTBearer,
+					oauthelia2.AccessToken,
 					time.Minute,
 					time.Minute,
 				},
 				{
 					"ShouldHandleJWTBearerFlowRefreshToken",
-					fosite.GrantTypeJWTBearer,
-					fosite.RefreshToken,
+					oauthelia2.GrantTypeJWTBearer,
+					oauthelia2.RefreshToken,
 					time.Minute,
 					time.Minute,
 				},
 				{
 					"ShouldHandleJWTBearerFlowIDToken",
-					fosite.GrantTypeJWTBearer,
-					fosite.IDToken,
+					oauthelia2.GrantTypeJWTBearer,
+					oauthelia2.IDToken,
 					time.Minute,
 					time.Minute,
 				},
@@ -825,141 +682,141 @@ func TestClient_GetEffectiveLifespan(t *testing.T) {
 			[]subcase{
 				{
 					"ShouldHandleAuthorizationCodeFlowAuthorizationCode",
-					fosite.GrantTypeAuthorizationCode,
-					fosite.AuthorizeCode,
+					oauthelia2.GrantTypeAuthorizationCode,
+					oauthelia2.AuthorizeCode,
 					time.Minute,
 					time.Minute * 5,
 				},
 				{
 					"ShouldHandleAuthorizationCodeFlowAccessToken",
-					fosite.GrantTypeAuthorizationCode,
-					fosite.AccessToken,
+					oauthelia2.GrantTypeAuthorizationCode,
+					oauthelia2.AccessToken,
 					time.Minute,
 					time.Hour * 1,
 				},
 				{
 					"ShouldHandleAuthorizationCodeFlowRefreshToken",
-					fosite.GrantTypeAuthorizationCode,
-					fosite.RefreshToken,
+					oauthelia2.GrantTypeAuthorizationCode,
+					oauthelia2.RefreshToken,
 					time.Minute,
 					time.Hour * 2,
 				},
 				{
 					"ShouldHandleAuthorizationCodeFlowIDToken",
-					fosite.GrantTypeAuthorizationCode,
-					fosite.IDToken,
+					oauthelia2.GrantTypeAuthorizationCode,
+					oauthelia2.IDToken,
 					time.Minute,
 					time.Hour * 3,
 				},
 				{
 					"ShouldHandleImplicitFlowAuthorizationCode",
-					fosite.GrantTypeImplicit,
-					fosite.AuthorizeCode,
+					oauthelia2.GrantTypeImplicit,
+					oauthelia2.AuthorizeCode,
 					time.Minute,
 					time.Minute * 5,
 				},
 				{
 					"ShouldHandleImplicitFlowAccessToken",
-					fosite.GrantTypeImplicit,
-					fosite.AccessToken,
+					oauthelia2.GrantTypeImplicit,
+					oauthelia2.AccessToken,
 					time.Minute,
 					time.Hour * 1,
 				},
 				{
 					"ShouldHandleImplicitFlowRefreshToken",
-					fosite.GrantTypeImplicit,
-					fosite.RefreshToken,
+					oauthelia2.GrantTypeImplicit,
+					oauthelia2.RefreshToken,
 					time.Minute,
 					time.Hour * 2,
 				},
 				{
 					"ShouldHandleImplicitFlowIDToken",
-					fosite.GrantTypeImplicit,
-					fosite.IDToken,
+					oauthelia2.GrantTypeImplicit,
+					oauthelia2.IDToken,
 					time.Minute,
 					time.Hour * 3,
 				},
 				{
 					"ShouldHandleClientCredentialsFlowAuthorizationCode",
-					fosite.GrantTypeClientCredentials,
-					fosite.AuthorizeCode,
+					oauthelia2.GrantTypeClientCredentials,
+					oauthelia2.AuthorizeCode,
 					time.Minute,
 					time.Minute * 5,
 				},
 				{
 					"ShouldHandleClientCredentialsFlowAccessToken",
-					fosite.GrantTypeClientCredentials,
-					fosite.AccessToken,
+					oauthelia2.GrantTypeClientCredentials,
+					oauthelia2.AccessToken,
 					time.Minute,
 					time.Hour * 1,
 				},
 				{
 					"ShouldHandleClientCredentialsFlowRefreshToken",
-					fosite.GrantTypeClientCredentials,
-					fosite.RefreshToken,
+					oauthelia2.GrantTypeClientCredentials,
+					oauthelia2.RefreshToken,
 					time.Minute,
 					time.Hour * 2,
 				},
 				{
 					"ShouldHandleClientCredentialsFlowIDToken",
-					fosite.GrantTypeClientCredentials,
-					fosite.IDToken,
+					oauthelia2.GrantTypeClientCredentials,
+					oauthelia2.IDToken,
 					time.Minute,
 					time.Hour * 3,
 				},
 				{
 					"ShouldHandleRefreshTokenFlowAuthorizationCode",
-					fosite.GrantTypeRefreshToken,
-					fosite.AuthorizeCode,
+					oauthelia2.GrantTypeRefreshToken,
+					oauthelia2.AuthorizeCode,
 					time.Minute,
 					time.Minute * 5,
 				},
 				{
 					"ShouldHandleRefreshTokenFlowAccessToken",
-					fosite.GrantTypeRefreshToken,
-					fosite.AccessToken,
+					oauthelia2.GrantTypeRefreshToken,
+					oauthelia2.AccessToken,
 					time.Minute,
 					time.Hour * 1,
 				},
 				{
 					"ShouldHandleRefreshTokenFlowRefreshToken",
-					fosite.GrantTypeRefreshToken,
-					fosite.RefreshToken,
+					oauthelia2.GrantTypeRefreshToken,
+					oauthelia2.RefreshToken,
 					time.Minute,
 					time.Hour * 2,
 				},
 				{
 					"ShouldHandleRefreshTokenFlowIDToken",
-					fosite.GrantTypeRefreshToken,
-					fosite.IDToken,
+					oauthelia2.GrantTypeRefreshToken,
+					oauthelia2.IDToken,
 					time.Minute,
 					time.Hour * 3,
 				},
 				{
 					"ShouldHandleJWTBearerFlowAuthorizationCode",
-					fosite.GrantTypeJWTBearer,
-					fosite.AuthorizeCode,
+					oauthelia2.GrantTypeJWTBearer,
+					oauthelia2.AuthorizeCode,
 					time.Minute,
 					time.Minute * 5,
 				},
 				{
 					"ShouldHandleJWTBearerFlowAccessToken",
-					fosite.GrantTypeJWTBearer,
-					fosite.AccessToken,
+					oauthelia2.GrantTypeJWTBearer,
+					oauthelia2.AccessToken,
 					time.Minute,
 					time.Hour * 1,
 				},
 				{
 					"ShouldHandleJWTBearerFlowRefreshToken",
-					fosite.GrantTypeJWTBearer,
-					fosite.RefreshToken,
+					oauthelia2.GrantTypeJWTBearer,
+					oauthelia2.RefreshToken,
 					time.Minute,
 					time.Hour * 2,
 				},
 				{
 					"ShouldHandleJWTBearerFlowIDToken",
-					fosite.GrantTypeJWTBearer,
-					fosite.IDToken,
+					oauthelia2.GrantTypeJWTBearer,
+					oauthelia2.IDToken,
 					time.Minute,
 					time.Hour * 3,
 				},
@@ -1010,141 +867,141 @@ func TestClient_GetEffectiveLifespan(t *testing.T) {
 			[]subcase{
 				{
 					"ShouldHandleAuthorizationCodeFlowAuthorizationCode",
-					fosite.GrantTypeAuthorizationCode,
-					fosite.AuthorizeCode,
+					oauthelia2.GrantTypeAuthorizationCode,
+					oauthelia2.AuthorizeCode,
 					time.Minute,
 					time.Minute * 15,
 				},
 				{
 					"ShouldHandleAuthorizationCodeFlowAccessToken",
-					fosite.GrantTypeAuthorizationCode,
-					fosite.AccessToken,
+					oauthelia2.GrantTypeAuthorizationCode,
+					oauthelia2.AccessToken,
 					time.Minute,
 					time.Hour * 11,
 				},
 				{
 					"ShouldHandleAuthorizationCodeFlowRefreshToken",
-					fosite.GrantTypeAuthorizationCode,
-					fosite.RefreshToken,
+					oauthelia2.GrantTypeAuthorizationCode,
+					oauthelia2.RefreshToken,
 					time.Minute,
 					time.Hour * 12,
 				},
 				{
 					"ShouldHandleAuthorizationCodeFlowIDToken",
-					fosite.GrantTypeAuthorizationCode,
-					fosite.IDToken,
+					oauthelia2.GrantTypeAuthorizationCode,
+					oauthelia2.IDToken,
 					time.Minute,
 					time.Hour * 13,
 				},
 				{
 					"ShouldHandleImplicitFlowAuthorizationCode",
-					fosite.GrantTypeImplicit,
-					fosite.AuthorizeCode,
+					oauthelia2.GrantTypeImplicit,
+					oauthelia2.AuthorizeCode,
 					time.Minute,
 					time.Minute * 25,
 				},
 				{
 					"ShouldHandleImplicitFlowAccessToken",
-					fosite.GrantTypeImplicit,
-					fosite.AccessToken,
+					oauthelia2.GrantTypeImplicit,
+					oauthelia2.AccessToken,
 					time.Minute,
 					time.Hour * 21,
 				},
 				{
 					"ShouldHandleImplicitFlowRefreshToken",
-					fosite.GrantTypeImplicit,
-					fosite.RefreshToken,
+					oauthelia2.GrantTypeImplicit,
+					oauthelia2.RefreshToken,
 					time.Minute,
 					time.Hour * 22,
 				},
 				{
 					"ShouldHandleImplicitFlowIDToken",
-					fosite.GrantTypeImplicit,
-					fosite.IDToken,
+					oauthelia2.GrantTypeImplicit,
+					oauthelia2.IDToken,
 					time.Minute,
 					time.Hour * 23,
 				},
 				{
 					"ShouldHandleClientCredentialsFlowAuthorizationCode",
-					fosite.GrantTypeClientCredentials,
-					fosite.AuthorizeCode,
+					oauthelia2.GrantTypeClientCredentials,
+					oauthelia2.AuthorizeCode,
 					time.Minute,
 					time.Minute * 35,
 				},
 				{
 					"ShouldHandleClientCredentialsFlowAccessToken",
-					fosite.GrantTypeClientCredentials,
-					fosite.AccessToken,
+					oauthelia2.GrantTypeClientCredentials,
+					oauthelia2.AccessToken,
 					time.Minute,
 					time.Hour * 31,
 				},
 				{
 					"ShouldHandleClientCredentialsFlowRefreshToken",
-					fosite.GrantTypeClientCredentials,
-					fosite.RefreshToken,
+					oauthelia2.GrantTypeClientCredentials,
+					oauthelia2.RefreshToken,
 					time.Minute,
 					time.Hour * 32,
 				},
 				{
 					"ShouldHandleClientCredentialsFlowIDToken",
-					fosite.GrantTypeClientCredentials,
-					fosite.IDToken,
+					oauthelia2.GrantTypeClientCredentials,
+					oauthelia2.IDToken,
 					time.Minute,
 					time.Hour * 33,
 				},
 				{
 					"ShouldHandleRefreshTokenFlowAuthorizationCode",
-					fosite.GrantTypeRefreshToken,
-					fosite.AuthorizeCode,
+					oauthelia2.GrantTypeRefreshToken,
+					oauthelia2.AuthorizeCode,
 					time.Minute,
 					time.Minute * 45,
 				},
 				{
 					"ShouldHandleRefreshTokenFlowAccessToken",
-					fosite.GrantTypeRefreshToken,
-					fosite.AccessToken,
+					oauthelia2.GrantTypeRefreshToken,
+					oauthelia2.AccessToken,
 					time.Minute,
 					time.Hour * 41,
 				},
 				{
 					"ShouldHandleRefreshTokenFlowRefreshToken",
-					fosite.GrantTypeRefreshToken,
-					fosite.RefreshToken,
+					oauthelia2.GrantTypeRefreshToken,
+					oauthelia2.RefreshToken,
 					time.Minute,
 					time.Hour * 42,
 				},
 				{
 					"ShouldHandleRefreshTokenFlowIDToken",
-					fosite.GrantTypeRefreshToken,
-					fosite.IDToken,
+					oauthelia2.GrantTypeRefreshToken,
+					oauthelia2.IDToken,
 					time.Minute,
 					time.Hour * 43,
 				},
 				{
 					"ShouldHandleJWTBearerFlowAuthorizationCode",
-					fosite.GrantTypeJWTBearer,
-					fosite.AuthorizeCode,
+					oauthelia2.GrantTypeJWTBearer,
+					oauthelia2.AuthorizeCode,
 					time.Minute,
 					time.Minute * 55,
 				},
 				{
 					"ShouldHandleJWTBearerFlowAccessToken",
-					fosite.GrantTypeJWTBearer,
-					fosite.AccessToken,
+					oauthelia2.GrantTypeJWTBearer,
+					oauthelia2.AccessToken,
 					time.Minute,
 					time.Hour * 51,
 				},
 				{
 					"ShouldHandleJWTBearerFlowRefreshToken",
-					fosite.GrantTypeJWTBearer,
-					fosite.RefreshToken,
+					oauthelia2.GrantTypeJWTBearer,
+					oauthelia2.RefreshToken,
 					time.Minute,
 					time.Hour * 52,
 				},
 				{
 					"ShouldHandleJWTBearerFlowIDToken",
-					fosite.GrantTypeJWTBearer,
-					fosite.IDToken,
+					oauthelia2.GrantTypeJWTBearer,
+					oauthelia2.IDToken,
 					time.Minute,
 					time.Hour * 53,
 				},
@@ -1178,40 +1035,40 @@ func TestNewClientResponseModes(t *testing.T) {
 	testCases := []struct {
 		name     string
 		have     schema.IdentityProvidersOpenIDConnectClient
-		expected []fosite.ResponseModeType
-		r        *fosite.AuthorizeRequest
+		expected []oauthelia2.ResponseModeType
+		r        *oauthelia2.AuthorizeRequest
 		err      string
 		desc     string
 	}{
 		{
 			"ShouldEnforceResponseModePolicyAndAllowDefaultModeQuery",
 			schema.IdentityProvidersOpenIDConnectClient{ResponseModes: []string{oidc.ResponseModeQuery}},
-			[]fosite.ResponseModeType{fosite.ResponseModeQuery},
-			&fosite.AuthorizeRequest{DefaultResponseMode: fosite.ResponseModeQuery, ResponseMode: fosite.ResponseModeDefault, Request: fosite.Request{Form: map[string][]string{oidc.FormParameterResponseMode: nil}}},
+			[]oauthelia2.ResponseModeType{oauthelia2.ResponseModeQuery},
+			&oauthelia2.AuthorizeRequest{DefaultResponseMode: oauthelia2.ResponseModeQuery, ResponseMode: oauthelia2.ResponseModeDefault, Request: oauthelia2.Request{Form: map[string][]string{oidc.FormParameterResponseMode: nil}}},
 			"",
 			"",
 		},
 		{
 			"ShouldEnforceResponseModePolicyAndFailOnDefaultMode",
 			schema.IdentityProvidersOpenIDConnectClient{ResponseModes: []string{oidc.ResponseModeFormPost}},
-			[]fosite.ResponseModeType{fosite.ResponseModeFormPost},
-			&fosite.AuthorizeRequest{DefaultResponseMode: fosite.ResponseModeQuery, ResponseMode: fosite.ResponseModeDefault, Request: fosite.Request{Form: map[string][]string{oidc.FormParameterResponseMode: nil}}},
+			[]oauthelia2.ResponseModeType{oauthelia2.ResponseModeFormPost},
+			&oauthelia2.AuthorizeRequest{DefaultResponseMode: oauthelia2.ResponseModeQuery, ResponseMode: oauthelia2.ResponseModeDefault, Request: oauthelia2.Request{Form: map[string][]string{oidc.FormParameterResponseMode: nil}}},
 			"unsupported_response_mode",
 			"The authorization server does not support obtaining a response using this response mode. The request omitted the response_mode making the default response_mode 'query' based on the other authorization request parameters but registered OAuth 2.0 client doesn't support this response_mode",
 		},
 		{
 			"ShouldNotEnforceConfiguredResponseMode",
 			schema.IdentityProvidersOpenIDConnectClient{ResponseModes: []string{oidc.ResponseModeFormPost}},
-			[]fosite.ResponseModeType{fosite.ResponseModeFormPost},
-			&fosite.AuthorizeRequest{DefaultResponseMode: fosite.ResponseModeQuery, ResponseMode: fosite.ResponseModeQuery, Request: fosite.Request{Form: map[string][]string{oidc.FormParameterResponseMode: {oidc.ResponseModeQuery}}}},
+			[]oauthelia2.ResponseModeType{oauthelia2.ResponseModeFormPost},
+			&oauthelia2.AuthorizeRequest{DefaultResponseMode: oauthelia2.ResponseModeQuery, ResponseMode: oauthelia2.ResponseModeQuery, Request: oauthelia2.Request{Form: map[string][]string{oidc.FormParameterResponseMode: {oidc.ResponseModeQuery}}}},
 			"",
 			"",
 		},
 		{
 			"ShouldNotEnforceUnconfiguredResponseMode",
 			schema.IdentityProvidersOpenIDConnectClient{ResponseModes: []string{}},
-			[]fosite.ResponseModeType{},
-			&fosite.AuthorizeRequest{DefaultResponseMode: fosite.ResponseModeQuery, ResponseMode: fosite.ResponseModeDefault, Request: fosite.Request{Form: map[string][]string{oidc.FormParameterResponseMode: {oidc.ResponseModeQuery}}}},
+			[]oauthelia2.ResponseModeType{},
+			&oauthelia2.AuthorizeRequest{DefaultResponseMode: oauthelia2.ResponseModeQuery, ResponseMode: oauthelia2.ResponseModeDefault, Request: oauthelia2.Request{Form: map[string][]string{oidc.FormParameterResponseMode: {oidc.ResponseModeQuery}}}},
 			"",
 			"",
 		},
@@ -1229,7 +1086,7 @@ func TestNewClientResponseModes(t *testing.T) {
 				if tc.err != "" {
 					require.NotNil(t, err)
 					assert.EqualError(t, err, tc.err)
-					assert.Equal(t, tc.desc, fosite.ErrorToRFC6749Error(err).WithExposeDebug(true).GetDescription())
+					assert.Equal(t, tc.desc, oauthelia2.ErrorToRFC6749Error(err).WithExposeDebug(true).GetDescription())
 				} else {
 					assert.NoError(t, err)
 				}
@@ -1279,56 +1136,4 @@ func TestNewClient_JSONWebKeySetURI(t *testing.T) {
 	require.True(t, ok)
 
 	assert.Equal(t, "", registered.GetJSONWebKeysURI())
-}
-
-func TestBaseClient_ApplyRequestedAudiencePolicy(t *testing.T) {
-	testCases := []struct {
-		name     string
-		have     fosite.Arguments
-		audience []string
-		form     url.Values
-		policy   oidc.ClientRequestedAudienceMode
-		expected fosite.Arguments
-	}{
-		{
-			"ShouldNotModifyExplicit",
-			fosite.Arguments(nil),
-			[]string{"example", "end"},
-			nil,
-			oidc.ClientRequestedAudienceModeExplicit,
-			fosite.Arguments(nil),
-		},
-		{
-			"ShouldModifyImplicit",
-			fosite.Arguments(nil),
-			[]string{"example", "end"},
-			nil,
-			oidc.ClientRequestedAudienceModeImplicit,
-			[]string{"example", "end"},
-		},
-		{
-			"ShouldNotModifyImplicitFormParameter",
-			fosite.Arguments(nil),
-			[]string{"example", "end"},
-			url.Values{"audience": []string{}},
-			oidc.ClientRequestedAudienceModeImplicit,
-			fosite.Arguments(nil),
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			client := &oidc.RegisteredClient{
-				ID:                    "test",
-				Audience:              tc.audience,
-				RequestedAudienceMode: tc.policy,
-			}
-
-			actual := &fosite.Request{RequestedAudience: tc.have, Form: tc.form}
-
-			client.ApplyRequestedAudiencePolicy(actual)
-
-			assert.Equal(t, tc.expected, actual.RequestedAudience)
-		})
-	}
 }

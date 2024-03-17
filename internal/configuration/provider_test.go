@@ -188,10 +188,10 @@ func TestShouldHandleNoAddressMySQLWithHostEnv(t *testing.T) {
 
 	validator.ValidateConfiguration(config, val)
 
-	assert.Len(t, val.Warnings(), 1)
-	assert.Len(t, val.Errors(), 1)
+	require.Len(t, val.Warnings(), 1)
+	require.Len(t, val.Errors(), 1)
 
-	assert.Equal(t, "mysql", config.Storage.MySQL.Host) //nolint:staticcheck
+	assert.EqualError(t, val.Warnings()[0], "configuration keys 'storage.mysql.host' and 'storage.mysql.port' are deprecated in 4.38.0 and has been replaced by 'storage.mysql.address' in the format of '[tcp://]<hostname>[:<port>]': you are not required to make any changes as this has been automatically mapped for you to the value 'tcp://mysql:3306', but to stop this warning being logged you will need to adjust your configuration, and this configuration key and auto-mapping is likely to be removed in 5.0.0")
 	assert.Equal(t, "tcp://mysql:3306", config.Storage.MySQL.Address.String())
 }
 
@@ -208,7 +208,6 @@ func TestShouldHandleNoAddressPostgreSQLWithHostEnv(t *testing.T) {
 	assert.Len(t, val.Warnings(), 1)
 	assert.Len(t, val.Errors(), 1)
 
-	assert.Equal(t, "postgres", config.Storage.PostgreSQL.Host) //nolint:staticcheck
 	assert.Equal(t, "tcp://postgres:5432", config.Storage.PostgreSQL.Address.String())
 }
 
@@ -225,7 +224,6 @@ func TestShouldHandleNoAddressSMTPWithHostEnv(t *testing.T) {
 	assert.Len(t, val.Warnings(), 1)
 	assert.Len(t, val.Errors(), 1)
 
-	assert.Equal(t, "smtp", config.Notifier.SMTP.Host) //nolint:staticcheck
 	assert.Equal(t, "smtp://smtp:25", config.Notifier.SMTP.Address.String())
 }
 
@@ -242,7 +240,7 @@ func TestShouldNotIgnoreInvalidEnvs(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
 
 	require.Len(t, val.Warnings(), 1)
 	assert.Len(t, val.Errors(), 1)
@@ -263,6 +261,7 @@ func TestShouldValidateServerAddressValues(t *testing.T) {
 		expectedNetAddrHTTP    string
 		expectedMetrics        string
 		expectedNetAddrMetrics string
+		werrs                  []string
 		errs                   []string
 	}{
 		{
@@ -276,6 +275,7 @@ func TestShouldValidateServerAddressValues(t *testing.T) {
 			":9091",
 			"tcp://:9959/metrics",
 			":9959",
+			nil,
 			nil,
 		},
 		{
@@ -296,6 +296,9 @@ func TestShouldValidateServerAddressValues(t *testing.T) {
 			"127.0.0.1:8080",
 			"tcp://:9959/metrics",
 			":9959",
+			[]string{
+				"configuration keys 'server.host', 'server.port', and 'server.path' are deprecated in 4.38.0 and has been replaced by 'server.address' in the format of '[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]': you are not required to make any changes as this has been automatically mapped for you to the value 'tcp://127.0.0.1:8080/', but to stop this warning being logged you will need to adjust your configuration, and this configuration key and auto-mapping is likely to be removed in 5.0.0",
+			},
 			nil,
 		},
 		{
@@ -317,6 +320,7 @@ func TestShouldValidateServerAddressValues(t *testing.T) {
 			"tcp://127.0.0.3:8080/metrics",
 			"127.0.0.3:8080",
 			nil,
+			nil,
 		},
 		{
 			"ShouldErrorOnDeprecatedEnvAndModernConfigFileListenerOptions",
@@ -329,8 +333,9 @@ func TestShouldValidateServerAddressValues(t *testing.T) {
 			":1000",
 			"tcp://:9959/metrics",
 			":9959",
+			nil,
 			[]string{
-				"server: option 'host' and 'port' can't be configured at the same time as 'address'",
+				"error occurred performing deprecation mapping for keys 'server.host', 'server.port', and 'server.path' to new key server.address: the new key already exists with value 'tcp://:1000' but the deprecated keys and the new key can't both be configured",
 			},
 		},
 		{
@@ -344,8 +349,9 @@ func TestShouldValidateServerAddressValues(t *testing.T) {
 			":10000",
 			"tcp://:9959/metrics",
 			":9959",
+			nil,
 			[]string{
-				"server: option 'host' and 'port' can't be configured at the same time as 'address'",
+				"error occurred performing deprecation mapping for keys 'server.host', 'server.port', and 'server.path' to new key server.address: the new key already exists with value 'tcp://:10000' but the deprecated keys and the new key can't both be configured",
 			},
 		},
 	}
@@ -381,21 +387,25 @@ func TestShouldValidateServerAddressValues(t *testing.T) {
 
 			assert.NoError(t, err)
 
-			validator.ValidateKeys(keys, DefaultEnvPrefix, val)
-
-			assert.Len(t, val.Errors(), 0)
+			validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
 
 			assert.NotEmpty(t, config)
-
-			val.Clear()
 
 			validator.ValidateServer(config, val)
 			validator.ValidateTelemetry(config, val)
 
-			assert.Len(t, val.Warnings(), 0)
+			werrs := val.Warnings()
+			if n := len(tc.werrs); n == 0 {
+				assert.Len(t, werrs, 0)
+			} else {
+				require.Len(t, werrs, n)
+
+				for i := 0; i < n; i++ {
+					assert.EqualError(t, werrs[i], tc.werrs[i])
+				}
+			}
 
 			errs := val.Errors()
-
 			if n := len(tc.errs); n == 0 {
 				assert.Len(t, errs, 0)
 			} else {
@@ -501,7 +511,7 @@ func TestShouldLoadURLList(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
 
 	assert.Len(t, val.Errors(), 0)
 	assert.Len(t, val.Warnings(), 0)
@@ -517,7 +527,7 @@ func TestShouldDisableOIDCEntropy(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
 
 	assert.Len(t, val.Errors(), 0)
 	assert.Len(t, val.Warnings(), 0)
@@ -539,7 +549,7 @@ func TestShouldConfigureConsent(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
 
 	assert.Len(t, val.Errors(), 0)
 	assert.Len(t, val.Warnings(), 0)
@@ -560,13 +570,13 @@ func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
 
 	require.Len(t, val.Errors(), 1)
 	require.Len(t, val.Warnings(), 1)
 
 	assert.EqualError(t, val.Errors()[0], "configuration key not expected: loggy_file")
-	assert.EqualError(t, val.Warnings()[0], "configuration key 'logs_level' is deprecated in 4.7.0 and has been replaced by 'log.level': you are not required to make any changes as this has been automatically mapped for you, but you will need to adjust your configuration to remove this message, and this option and auto-mapping is likely to be removed in 5.0.0")
+	assert.EqualError(t, val.Warnings()[0], "configuration key 'logs_level' is deprecated in 4.7.0 and has been replaced by 'log.level': you are not required to make any changes as this has been automatically mapped for you, but to stop this warning being logged you will need to adjust your configuration, and this configuration key and auto-mapping is likely to be removed in 5.0.0")
 
 	assert.Equal(t, "debug", c.Log.Level)
 }
@@ -579,7 +589,7 @@ func TestShouldValidateDeprecatedEnvNames(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
 
 	assert.Len(t, val.Errors(), 0)
 	require.Len(t, val.Warnings(), 1)
@@ -598,26 +608,21 @@ func TestShouldValidateDeprecatedEnvNamesWithDeprecatedKeys(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
 
 	assert.Len(t, val.Errors(), 0)
 
 	warnings := val.Warnings()
-	require.Len(t, warnings, 11)
+	require.Len(t, warnings, 6)
 
 	sort.Sort(utils.ErrSliceSortAlphabetical(warnings))
 
-	assert.EqualError(t, warnings[0], "configuration key 'authentication_backend.ldap.url' is deprecated in 4.38.0 and has been replaced by 'authentication_backend.ldap.address': you are not required to make any changes as this has been automatically mapped for you, but you will need to adjust your configuration to remove this message, and this option and auto-mapping is likely to be removed in 5.0.0")
-	assert.EqualError(t, warnings[1], "configuration key 'jwt_secret' is deprecated in 4.38.0 and has been replaced by 'identity_validation.reset_password.jwt_secret': you are not required to make any changes as this has been automatically mapped for you, but you will need to adjust your configuration to remove this message, and this option and auto-mapping is likely to be removed in 5.0.0")
-	assert.EqualError(t, warnings[2], "configuration key 'notifier.smtp.host' is deprecated in 4.38.0 and has been replaced by 'notifier.smtp.address' when combined with the 'notifier.smtp.port' in the format of '[tcp://]<hostname>[:<port>]': you are not required to make any changes as this has been automatically mapped for you, but you will need to adjust your configuration to remove this message, and this option and auto-mapping is likely to be removed in 5.0.0")
-	assert.EqualError(t, warnings[3], "configuration key 'notifier.smtp.port' is deprecated in 4.38.0 and has been replaced by 'notifier.smtp.address' when combined with the 'notifier.smtp.host' in the format of '[tcp://]<hostname>[:<port>]': you are not required to make any changes as this has been automatically mapped for you, but you will need to adjust your configuration to remove this message, and this option and auto-mapping is likely to be removed in 5.0.0")
-	assert.EqualError(t, warnings[4], "configuration key 'server.host' is deprecated in 4.38.0 and has been replaced by 'server.address' when combined with the 'server.port' and 'server.path' in the format of '[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]': you are not required to make any changes as this has been automatically mapped for you, but you will need to adjust your configuration to remove this message, and this option and auto-mapping is likely to be removed in 5.0.0")
-	assert.EqualError(t, warnings[5], "configuration key 'server.path' is deprecated in 4.38.0 and has been replaced by 'server.address' when combined with the 'server.host' and 'server.port' in the format of '[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]': you are not required to make any changes as this has been automatically mapped for you, but you will need to adjust your configuration to remove this message, and this option and auto-mapping is likely to be removed in 5.0.0")
-	assert.EqualError(t, warnings[6], "configuration key 'server.port' is deprecated in 4.38.0 and has been replaced by 'server.address' when combined with the 'server.host' and 'server.path' in the format of '[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]': you are not required to make any changes as this has been automatically mapped for you, but you will need to adjust your configuration to remove this message, and this option and auto-mapping is likely to be removed in 5.0.0")
-	assert.EqualError(t, warnings[7], "configuration key 'storage.mysql.host' is deprecated in 4.38.0 and has been replaced by 'storage.mysql.address' when combined with the 'storage.mysql.port' in the format of '[tcp://]<hostname>[:<port>]': you are not required to make any changes as this has been automatically mapped for you, but you will need to adjust your configuration to remove this message, and this option and auto-mapping is likely to be removed in 5.0.0")
-	assert.EqualError(t, warnings[8], "configuration key 'storage.mysql.port' is deprecated in 4.38.0 and has been replaced by 'storage.mysql.address' when combined with the 'storage.mysql.host' in the format of '[tcp://]<hostname>[:<port>]': you are not required to make any changes as this has been automatically mapped for you, but you will need to adjust your configuration to remove this message, and this option and auto-mapping is likely to be removed in 5.0.0")
-	assert.EqualError(t, warnings[9], "configuration key 'storage.postgres.host' is deprecated in 4.38.0 and has been replaced by 'storage.postgres.address' when combined with the 'storage.postgres.port' in the format of '[tcp://]<hostname>[:<port>]': you are not required to make any changes as this has been automatically mapped for you, but you will need to adjust your configuration to remove this message, and this option and auto-mapping is likely to be removed in 5.0.0")
-	assert.EqualError(t, warnings[10], "configuration key 'storage.postgres.port' is deprecated in 4.38.0 and has been replaced by 'storage.postgres.address' when combined with the 'storage.postgres.host' in the format of '[tcp://]<hostname>[:<port>]': you are not required to make any changes as this has been automatically mapped for you, but you will need to adjust your configuration to remove this message, and this option and auto-mapping is likely to be removed in 5.0.0")
+	assert.EqualError(t, warnings[0], "configuration key 'authentication_backend.ldap.url' is deprecated in 4.38.0 and has been replaced by 'authentication_backend.ldap.address': you are not required to make any changes as this has been automatically mapped for you, but to stop this warning being logged you will need to adjust your configuration, and this configuration key and auto-mapping is likely to be removed in 5.0.0")
+	assert.EqualError(t, warnings[1], "configuration key 'jwt_secret' is deprecated in 4.38.0 and has been replaced by 'identity_validation.reset_password.jwt_secret': you are not required to make any changes as this has been automatically mapped for you, but to stop this warning being logged you will need to adjust your configuration, and this configuration key and auto-mapping is likely to be removed in 5.0.0")
+	assert.EqualError(t, warnings[2], "configuration keys 'notifier.smtp.host' and 'notifier.smtp.port' are deprecated in 4.38.0 and has been replaced by 'notifier.smtp.address' in the format of '[tcp://]<hostname>[:<port>]': you are not required to make any changes as this has been automatically mapped for you to the value 'smtp://127.0.0.1:1025', but to stop this warning being logged you will need to adjust your configuration, and this configuration key and auto-mapping is likely to be removed in 5.0.0")
+	assert.EqualError(t, warnings[3], "configuration keys 'server.host', 'server.port', and 'server.path' are deprecated in 4.38.0 and has been replaced by 'server.address' in the format of '[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]': you are not required to make any changes as this has been automatically mapped for you to the value 'tcp://0.0.0.0:9091/', but to stop this warning being logged you will need to adjust your configuration, and this configuration key and auto-mapping is likely to be removed in 5.0.0")
+	assert.EqualError(t, warnings[4], "configuration keys 'storage.mysql.host' and 'storage.mysql.port' are deprecated in 4.38.0 and has been replaced by 'storage.mysql.address' in the format of '[tcp://]<hostname>[:<port>]': you are not required to make any changes as this has been automatically mapped for you to the value 'tcp://127.0.0.1:3306', but to stop this warning being logged you will need to adjust your configuration, and this configuration key and auto-mapping is likely to be removed in 5.0.0")
+	assert.EqualError(t, warnings[5], "configuration keys 'storage.postgres.host' and 'storage.postgres.port' are deprecated in 4.38.0 and has been replaced by 'storage.postgres.address' in the format of '[tcp://]<hostname>[:<port>]': you are not required to make any changes as this has been automatically mapped for you to the value 'tcp://127.0.0.1:5432', but to stop this warning being logged you will need to adjust your configuration, and this configuration key and auto-mapping is likely to be removed in 5.0.0")
 
 	assert.Equal(t, "ldap://from-env:389", c.AuthenticationBackend.LDAP.Address.String())
 	assert.Equal(t, "example_secret value", c.IdentityValidation.ResetPassword.JWTSecret)
@@ -629,7 +634,7 @@ func TestShouldRaiseErrOnInvalidNotifierSMTPSender(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
 
 	require.Len(t, val.Errors(), 1)
 	assert.Len(t, val.Warnings(), 0)
@@ -643,7 +648,7 @@ func TestShouldHandleErrInvalidatorWhenSMTPSenderBlank(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
 
 	assert.Len(t, val.Errors(), 0)
 	assert.Len(t, val.Warnings(), 0)
@@ -665,7 +670,7 @@ func TestShouldDecodeSMTPSenderWithoutName(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
 
 	assert.Len(t, val.Errors(), 0)
 	assert.Len(t, val.Warnings(), 0)
@@ -684,7 +689,7 @@ func TestShouldDecodeServerTLS(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
 
 	assert.Len(t, val.Errors(), 0)
 	assert.Len(t, val.Warnings(), 0)
@@ -700,7 +705,7 @@ func TestShouldDecodeSMTPSenderWithName(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
 
 	assert.Len(t, val.Errors(), 0)
 	assert.Len(t, val.Warnings(), 0)
@@ -716,7 +721,7 @@ func TestShouldConfigureRefreshIntervalAlways(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
 
 	assert.Len(t, val.Errors(), 0)
 	assert.Len(t, val.Warnings(), 0)
@@ -732,7 +737,7 @@ func TestShouldConfigureRefreshIntervalDefault(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
 
 	assert.Len(t, val.Errors(), 0)
 	assert.Len(t, val.Warnings(), 0)
@@ -751,7 +756,7 @@ func TestShouldParseRegex(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
 
 	assert.Len(t, val.Errors(), 0)
 	assert.Len(t, val.Warnings(), 0)
@@ -781,7 +786,7 @@ func TestShouldErrOnParseInvalidRegex(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	validator.ValidateKeys(keys, DefaultEnvPrefix, val)
+	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
 
 	require.Len(t, val.Errors(), 1)
 	assert.Len(t, val.Warnings(), 0)
@@ -821,7 +826,7 @@ func TestShouldLoadDirectoryConfiguration(t *testing.T) {
 	assert.Len(t, val.Errors(), 0)
 	require.Len(t, val.Warnings(), 1)
 
-	assert.EqualError(t, val.Warnings()[0], "configuration key 'server.port' is deprecated in 4.38.0 and has been replaced by 'server.address' when combined with the 'server.host' and 'server.path' in the format of '[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]': you are not required to make any changes as this has been automatically mapped for you, but you will need to adjust your configuration to remove this message, and this option and auto-mapping is likely to be removed in 5.0.0")
+	assert.EqualError(t, val.Warnings()[0], "configuration keys 'server.host', 'server.port', and 'server.path' are deprecated in 4.38.0 and has been replaced by 'server.address' in the format of '[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]': you are not required to make any changes as this has been automatically mapped for you to the value 'tcp://:9091/', but to stop this warning being logged you will need to adjust your configuration, and this configuration key and auto-mapping is likely to be removed in 5.0.0")
 }
 
 func testSetEnv(t *testing.T, key, value string) {

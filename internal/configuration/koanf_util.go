@@ -38,11 +38,12 @@ func koanfGetKeys(ko *koanf.Koanf) (keys []string) {
 	return keys
 }
 
-func koanfRemapKeys(val *schema.StructValidator, ko *koanf.Koanf, ds map[string]Deprecation) (final *koanf.Koanf, err error) {
+func koanfRemapKeys(val *schema.StructValidator, ko *koanf.Koanf, ds map[string]Deprecation, dms []MultiKeyMappedDeprecation) (final *koanf.Koanf, err error) {
 	keys := ko.All()
 
 	keys = koanfRemapKeysStandard(keys, val, ds)
 	keys = koanfRemapKeysMapped(keys, val, ds)
+	koanfRemapKeysMultiMapped(keys, val, dms)
 
 	final = koanf.New(".")
 
@@ -165,4 +166,30 @@ func koanfRemapKeysMapped(keys map[string]any, val *schema.StructValidator, ds m
 	}
 
 	return keysFinal
+}
+
+func koanfRemapKeysMultiMapped(keys map[string]any, val *schema.StructValidator, dms []MultiKeyMappedDeprecation) {
+	for _, dm := range dms {
+		var found bool
+
+		for _, k := range dm.Keys {
+			if _, ok := keys[k]; ok {
+				found = true
+
+				break
+			}
+		}
+
+		if !found {
+			continue
+		}
+
+		if v, ok := keys[dm.NewKey]; ok {
+			val.Push(fmt.Errorf(errFmtMultiKeyMappingExists, strJoinAnd(dm.Keys), dm.NewKey, v))
+
+			continue
+		}
+
+		dm.MapFunc(dm, keys, val)
+	}
 }

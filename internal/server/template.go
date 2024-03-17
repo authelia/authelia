@@ -68,17 +68,11 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 			provider   *session.Session
 		)
 
-		if provider, err = ctx.GetSessionProvider(); err == nil {
-			if provider.Config.AutheliaURL != nil {
-				baseURL = provider.Config.AutheliaURL.String()
-			} else {
-				baseURL = ctx.RootURLSlash().String()
-			}
+		baseURL = ctx.RootURLSlash().String()
 
+		if provider, err = ctx.GetSessionProvider(); err == nil {
 			domain = provider.Config.Domain
 			rememberMe = strconv.FormatBool(!provider.Config.DisableRememberMe)
-		} else {
-			baseURL = ctx.RootURLSlash().String()
 		}
 
 		data := &bytes.Buffer{}
