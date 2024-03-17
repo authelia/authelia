@@ -150,7 +150,10 @@ Feature List:
 
 * Prompt Handling
 * Display Handling
+* [RFC8628: OAuth 2.0 Device Authorization Grant]
 * [JSON Web Encryption](https://datatracker.ietf.org/doc/html/rfc7516)
+
+Potential Features:
 * Injecting Bearer JSON Web Tokens into Requests (backend authentication)
 
 See [OpenID Connect Core 1.0 (Mandatory to Implement Features for All OpenID Providers)].
@@ -269,6 +272,6 @@ The `preferred_username` claim was missing and was fixed.
 [RFC9207: OAuth 2.0 Authorization Server Issuer Identification]: https://datatracker.ietf.org/doc/html/rfc9207
 [RFC6750: OAuth 2.0 Bearer Token Usage]: https://datatracker.ietf.org/doc/html/rfc6750
 [RFC9068: JSON Web Token (JWT) Profile for OAuth 2.0 Access Tokens]: https://datatracker.ietf.org/doc/html/rfc9068
-
+[RFC8628: OAuth 2.0 Device Authorization Grant]: https://datatracker.ietf.org/doc/html/rfc8628
 [JWT Secured Authorization Response Mode for OAuth 2.0 (JARM)]: https://openid.net/specs/oauth-v2-jarm.html
 [JWT Response for OAuth Token Inspection]: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-jwt-introspection-response
