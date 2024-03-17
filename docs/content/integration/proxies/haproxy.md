@@ -226,7 +226,7 @@ frontend fe_http
     http-request set-header X-Forwarded-URI    %[path]%[var(req.questionmark)]%[query]
 
     # Protect endpoints with haproxy-auth-request and Authelia
-    http-request lua.auth-intercept be_authelia /api/authz/forward-auth HEAD * authorization,proxy-authorization,remote-user,remote-groups,remote-name,remote-email - if protected-frontends
+    http-request lua.auth-intercept be_authelia /api/authz/forward-auth HEAD * remote-user,remote-groups,remote-name,remote-email - if protected-frontends
     http-request deny if protected-frontends !{ var(txn.auth_response_successful) -m bool } { var(txn.auth_response_code) -m int 403 }
     http-request redirect location %[var(txn.auth_response_location)] if protected-frontends !{ var(txn.auth_response_successful) -m bool }
 
@@ -303,7 +303,7 @@ frontend fe_http
     http-request set-header X-Forwarded-URI    %[path]%[var(req.questionmark)]%[query]
 
     # Protect endpoints with haproxy-auth-request and Authelia
-    http-request lua.auth-intercept be_authelia_proxy /api/authz/forward-auth HEAD * authorization,proxy-authorization,remote-user,remote-groups,remote-name,remote-email - if protected-frontends
+    http-request lua.auth-intercept be_authelia_proxy /api/authz/forward-auth HEAD * remote-user,remote-groups,remote-name,remote-email - if protected-frontends
     http-request deny if protected-frontends !{ var(txn.auth_response_successful) -m bool } { var(txn.auth_response_code) -m int 403 }
     http-request redirect location %[var(txn.auth_response_location)] if protected-frontends !{ var(txn.auth_response_successful) -m bool }
 

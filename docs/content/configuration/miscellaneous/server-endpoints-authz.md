@@ -30,21 +30,21 @@ server:
       forward-auth:
         implementation: 'ForwardAuth'
         authn_strategies:
-          - name: 'HeaderProxyAuthorization'
+          - name: 'HeaderAuthorization'
             schemes:
               - 'Basic'
           - name: 'CookieSession'
       ext-authz:
         implementation: 'ExtAuthz'
         authn_strategies:
-          - name: 'HeaderProxyAuthorization'
+          - name: 'HeaderAuthorization'
             schemes:
               - 'Basic'
           - name: 'CookieSession'
       auth-request:
         implementation: 'AuthRequest'
         authn_strategies:
-          - name: 'HeaderAuthRequestProxyAuthorization'
+          - name: 'HeaderAuthRequestAuthorization'
             schemes:
               - 'Basic'
           - name: 'CookieSession'

@@ -244,8 +244,6 @@ static_resources:
                         authorization_response:
                           allowed_upstream_headers:
                             patterns:
-                              - exact: 'authorization'
-                              - exact: 'proxy-authorization'
                               - prefix: 'remote-'
                               - prefix: 'authelia-'
                           allowed_client_headers:

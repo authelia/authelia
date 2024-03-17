@@ -68,8 +68,6 @@ spec:
   forwardAuth:
     address: 'http://authelia.default.svc.cluster.local/api/authz/forward-auth'
     authResponseHeaders:
-      - 'Authorization'
-      - 'Proxy-Authorization'
       - 'Remote-User'
       - 'Remote-Groups'
       - 'Remote-Email'
