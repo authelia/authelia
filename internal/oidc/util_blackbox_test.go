@@ -98,11 +98,6 @@ func TestIsJWTProfileAccessToken(t *testing.T) {
 		expected bool
 	}{
 		{
-			"ShouldReturnFalseOnNilToken",
-			nil,
-			false,
-		},
-		{
 			"ShouldReturnFalseOnNilTokenHeader",
 			&fjwt.Token{Header: nil},
 			false,
@@ -131,7 +126,7 @@ func TestIsJWTProfileAccessToken(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, oidc.IsJWTProfileAccessToken(tc.have))
+			assert.Equal(t, tc.expected, oidc.IsJWTProfileAccessToken(tc.have.Header))
 		})
 	}
 }

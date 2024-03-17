@@ -13,8 +13,10 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/v4/internal/clock"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/random"
 )
 
 func TestNewSession(t *testing.T) {
@@ -112,6 +114,15 @@ type TestContext struct {
 	MockIssuerURL *url.URL
 	IssuerURLFunc func() (issuerURL *url.URL, err error)
 	Clock         clock.Provider
+	Config        schema.Configuration
+}
+
+func (m *TestContext) GetRandom() (r random.Provider) {
+	return random.NewMathematical()
+}
+
+func (m *TestContext) GetConfiguration() (config schema.Configuration) {
+	return m.Config
 }
 
 // IssuerURL returns the MockIssuerURL.

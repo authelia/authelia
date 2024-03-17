@@ -75,9 +75,9 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 	if err != nil {
 		authn.Object = object
 
-		ctx.Logger.WithError(err).Error("Error occurred while attempting to authenticate a request")
-
 		if strategy.HeaderStrategy() && !ruleHasSubject && required != authorization.Bypass {
+			ctx.Logger.WithError(err).Error("Error occurred while attempting to authenticate a request")
+
 			switch strategy {
 			case nil:
 				ctx.ReplyUnauthorized()
@@ -87,6 +87,8 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 
 			return
 		}
+
+		ctx.Logger.WithError(err).Debug("Error occurred while attempting to authenticate a request but the matched rule was a bypass rule")
 	}
 
 	switch isAuthzResult(authn.Level, required, ruleHasSubject) {
