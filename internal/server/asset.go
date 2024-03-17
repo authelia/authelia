@@ -316,5 +316,18 @@ func generateEtag(payload []byte) []byte {
 }
 
 func mergeLocaleInfo(embedded *utils.Languages, custom *utils.Languages) {
+	for i, v := range embedded.Languages {
+		if l, found := findLanguage(v.Locale, custom.Languages); found {
+			embedded.Languages[i] = *l
+		}
+	}
+}
 
+func findLanguage(locale string, list []utils.Language) (*utils.Language, bool) {
+	for _, l := range list {
+		if l.Locale == locale {
+			return &l, true
+		}
+	}
+	return nil, false
 }
