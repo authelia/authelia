@@ -8,8 +8,8 @@ import (
 	"time"
 
 	oauthelia2 "authelia.com/provider/oauth2"
-	fjwt "authelia.com/provider/oauth2/token/jwt"
 	"github.com/go-jose/go-jose/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/text/language"
 )
 
@@ -154,8 +154,8 @@ func toTime(v any, def time.Time) (t time.Time) {
 // IsJWTProfileAccessToken validates a *jwt.Token is actually a RFC9068 JWT Profile Access Token by checking the
 // relevant header as per https://datatracker.ietf.org/doc/html/rfc9068#section-2.1 which explicitly states that
 // the header MUST include a typ of 'at+jwt' or 'application/at+jwt' with a preference of 'at+jwt'.
-func IsJWTProfileAccessToken(token *fjwt.Token) bool {
-	if token == nil || token.Header == nil {
+func IsJWTProfileAccessToken(header map[string]any) bool {
+	if header == nil {
 		return false
 	}
 
@@ -165,7 +165,7 @@ func IsJWTProfileAccessToken(token *fjwt.Token) bool {
 		ok  bool
 	)
 
-	if raw, ok = token.Header[JWTHeaderKeyType]; !ok {
+	if raw, ok = header[JWTHeaderKeyType]; !ok {
 		return false
 	}
 
@@ -312,4 +312,54 @@ func PopulateClientCredentialsFlowRequester(ctx Context, config oauthelia2.Confi
 	}
 
 	return nil
+}
+
+func IsAccessToken(ctx Context, value string) (is bool, err error) {
+	config := ctx.GetConfiguration()
+
+	if config.IdentityProviders.OIDC == nil || !config.IdentityProviders.OIDC.Discovery.BearerAuthorization {
+		return false, nil
+	}
+
+	// Opaue Authelia Access Tokens have the 'authelia_at_' prefix and contain a HMAC signature.
+	if strings.HasPrefix(value, "authelia_at_") && strings.Count(value, ".") == 1 {
+		return true, nil
+	}
+
+	if !IsMaybeSignedJWT(value) {
+		return false, nil
+	}
+
+	var (
+		issuer *url.URL
+		token  *jwt.Token
+	)
+
+	if issuer, err = ctx.IssuerURL(); err != nil {
+		return false, fmt.Errorf("error occurred determining the issuer: %w", err)
+	}
+
+	if token, _, err = jwt.NewParser(jwt.WithoutClaimsValidation()).ParseUnverified(value, &jwt.RegisteredClaims{}); err != nil {
+		return false, fmt.Errorf("error occurred parsing bearer token: %w", err)
+	}
+
+	if !IsJWTProfileAccessToken(token.Header) {
+		return false, fmt.Errorf("error occurred checking the token: the token is not a JWT profile access token")
+	}
+
+	var iss string
+
+	if iss, err = token.Claims.GetIssuer(); err != nil {
+		return false, fmt.Errorf("error occurred chekcing the token: error getting the token issuer claim: %w", err)
+	}
+
+	if strings.EqualFold(iss, issuer.String()) {
+		return true, nil
+	}
+
+	return false, fmt.Errorf("error occurred checking the token: the token issuer '%s' does not match the expected '%s'", iss, issuer)
+}
+
+func IsMaybeSignedJWT(value string) (is bool) {
+	return strings.Count(value, ".") == 2
 }

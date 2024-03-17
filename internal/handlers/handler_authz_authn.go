@@ -197,7 +197,11 @@ func (s *HeaderAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session.Sessi
 	scheme := authn.Header.Authorization.Scheme()
 
 	if !s.schemes.Has(scheme) {
-		return authn, fmt.Errorf("invalid scheme: scheme with name '%s' isn't available on this endpoint", scheme.String())
+		ctx.Logger.
+			WithFields(map[string]any{"scheme": authn.Header.Authorization.SchemeRaw(), "header": string(s.headerAuthorize)}).
+			Debug("Skipping header authorization as the scheme and header combination is unknown to this endpoint configuration")
+
+		return authn, nil
 	}
 
 	switch scheme {
@@ -206,10 +210,18 @@ func (s *HeaderAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session.Sessi
 	case model.AuthorizationSchemeBearer:
 		username, clientID, ccs, level, err = handleVerifyGETAuthorizationBearer(ctx, authn, object)
 	default:
-		err = fmt.Errorf("failed to parse content of %s header: the scheme '%s' is not known", s.headerAuthorize, authn.Header.Authorization.SchemeRaw())
+		ctx.Logger.
+			WithFields(map[string]any{"scheme": authn.Header.Authorization.SchemeRaw(), "header": string(s.headerAuthorize)}).
+			Debug("Skipping header authorization as the scheme is unknown to this endpoint configuration")
+
+		return authn, nil
 	}
 
 	if err != nil {
+		if errors.Is(err, errTokenIntent) {
+			return authn, nil
+		}
+
 		return authn, fmt.Errorf("failed to validate %s header with %s scheme: %w", s.headerAuthorize, scheme, err)
 	}
 
@@ -469,21 +481,19 @@ func handleVerifyGETAuthnCookieValidateRefresh(ctx *middlewares.AutheliaCtx, use
 }
 
 func handleVerifyGETAuthorizationBearer(ctx *middlewares.AutheliaCtx, authn *Authn, object *authorization.Object) (username, clientID string, ccs bool, level authentication.Level, err error) {
-	if ctx.Providers.OpenIDConnect == nil || ctx.Configuration.IdentityProviders.OIDC == nil || !ctx.Configuration.IdentityProviders.OIDC.Discovery.BearerAuthorization {
-		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("authorization bearer scheme requires an OpenID Connect 1.0 configuration but it's absent")
-	}
+	var at bool
 
-	if !ctx.Configuration.IdentityProviders.OIDC.Discovery.BearerAuthorization {
-		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("authorization bearer scheme requires an OAuth 2.0 or OpenID Connect 1.0 client to be registered with the '%s' scope but there are none", oidc.ScopeAutheliaBearerAuthz)
+	if at, err = oidc.IsAccessToken(ctx, authn.Header.Authorization.Value()); !at {
+		if err != nil {
+			ctx.Logger.WithError(err).Debug("The bearer token does not appear to be a relevant access token")
+		} else {
+			ctx.Logger.Debug("The bearer token does not appear to be a relevant access token")
+		}
+
+		return "", "", false, authentication.NotAuthenticated, errTokenIntent
 	}
 
 	return handleVerifyGETAuthorizationBearerIntrospection(ctx, ctx.Providers.OpenIDConnect, authn, object)
-}
-
-type AuthzBearerIntrospectionProvider interface {
-	GetFullClient(ctx context.Context, id string) (client oidc.Client, err error)
-	GetAudienceStrategy(ctx context.Context) (strategy oauthelia2.AudienceMatchingStrategy)
-	IntrospectToken(ctx context.Context, token string, tokenUse oauthelia2.TokenUse, session oauthelia2.Session, scope ...string) (oauthelia2.TokenUse, oauthelia2.AccessRequester, error)
 }
 
 func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provider AuthzBearerIntrospectionProvider, authn *Authn, object *authorization.Object) (username, clientID string, ccs bool, level authentication.Level, err error) {

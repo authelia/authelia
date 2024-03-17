@@ -15,6 +15,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -77,6 +78,23 @@ func (s *AuthzSuite) Builder() (builder *AuthzBuilder) {
 	s.T().FailNow()
 
 	return
+}
+
+func (s *AuthzSuite) BuilderWithBearerScheme() (buildier *AuthzBuilder) {
+	switch s.implementation {
+	case AuthzImplExtAuthz:
+		return NewAuthzBuilder().WithImplementationExtAuthz().WithStrategies(NewHeaderProxyAuthorizationAuthnStrategy(model.AuthorizationSchemeBasic.String(), model.AuthorizationSchemeBearer.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
+	case AuthzImplForwardAuth:
+		return NewAuthzBuilder().WithImplementationForwardAuth().WithStrategies(NewHeaderProxyAuthorizationAuthnStrategy(model.AuthorizationSchemeBasic.String(), model.AuthorizationSchemeBearer.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
+	case AuthzImplAuthRequest:
+		return NewAuthzBuilder().WithImplementationAuthRequest().WithStrategies(NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(model.AuthorizationSchemeBasic.String(), model.AuthorizationSchemeBearer.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
+	case AuthzImplLegacy:
+		return NewAuthzBuilder().WithImplementationLegacy().WithStrategies(NewHeaderLegacyAuthnStrategy(), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
+	default:
+		s.T().FailNow()
+	}
+
+	return nil
 }
 
 func (s *AuthzSuite) TestShouldNotBeAbleToParseBasicAuth() {
@@ -244,7 +262,7 @@ func (s *AuthzSuite) TestShouldVerifyFailureToGetDetailsUsingBasicScheme() {
 
 	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
-	targetURI := s.RequireParseRequestURI("https://onefactor.example.com")
+	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
 
 	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
 
@@ -306,6 +324,112 @@ func (s *AuthzSuite) TestShouldVerifyBypassWithErrorToGetDetailsUsingBasicScheme
 	authz.Handler(mock.Ctx)
 
 	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+}
+
+func (s *AuthzSuite) TestShouldVerifyBypassWithErrorToGetDetailsUsingBearerScheme() {
+	if s.setRequest == nil {
+		s.T().Skip()
+	}
+
+	authz := s.Builder().Build()
+
+	mock := mocks.NewMockAutheliaCtx(s.T())
+
+	defer mock.Close()
+
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
+
+	targetURI := s.RequireParseRequestURI("https://bypass.example.com")
+
+	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Bearer am9objpwYXNzd29yZA==")
+
+	authz.Handler(mock.Ctx)
+
+	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+}
+
+func (s *AuthzSuite) TestShouldVerifyBypassWithErrorToGetDetailsUsingBearerSchemePossibleToken() {
+	if s.setRequest == nil {
+		s.T().Skip()
+	}
+
+	authz := s.Builder().Build()
+
+	mock := mocks.NewMockAutheliaCtx(s.T())
+
+	defer mock.Close()
+
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
+
+	targetURI := s.RequireParseRequestURI("https://bypass.example.com")
+
+	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Bearer authelia_at_aaaa.aaaaaa")
+
+	authz.Handler(mock.Ctx)
+
+	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+}
+
+func (s *AuthzSuite) TestShouldVerifyOneFactorWithErrorToGetDetailsUsingBearerScheme() {
+	if s.setRequest == nil {
+		s.T().Skip()
+	}
+
+	authz := s.BuilderWithBearerScheme().Build()
+
+	mock := mocks.NewMockAutheliaCtx(s.T())
+
+	defer mock.Close()
+
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
+
+	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
+
+	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Bearer am9objpwYXNzd29yZA==")
+
+	authz.Handler(mock.Ctx)
+
+	switch s.implementation {
+	case AuthzImplExtAuthz, AuthzImplForwardAuth:
+		s.Equal(fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
+	default:
+		s.Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+	}
+}
+
+func (s *AuthzSuite) TestShouldVerifyOneFactorWithErrorToGetDetailsUsingBearerSchemePossibleToken() {
+	if s.setRequest == nil {
+		s.T().Skip()
+	}
+
+	authz := s.BuilderWithBearerScheme().Build()
+
+	mock := mocks.NewMockAutheliaCtx(s.T())
+
+	defer mock.Close()
+
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
+
+	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
+
+	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Bearer authelia_at_aaaa.aaaaaa")
+
+	authz.Handler(mock.Ctx)
+
+	switch s.implementation {
+	case AuthzImplExtAuthz, AuthzImplForwardAuth:
+		s.Equal(fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
+	default:
+		s.Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+	}
 }
 
 func (s *AuthzSuite) TestShouldNotFailOnMissingEmail() {

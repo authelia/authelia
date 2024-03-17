@@ -17,6 +17,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
@@ -157,8 +158,10 @@ type Context interface {
 
 	RootURL() (issuerURL *url.URL)
 	IssuerURL() (issuerURL *url.URL, err error)
-	GetClock() clock.Provider
-	GetJWTWithTimeFuncOption() jwt.ParserOption
+	GetClock() (clock clock.Provider)
+	GetRandom() (random random.Provider)
+	GetConfiguration() (config schema.Configuration)
+	GetJWTWithTimeFuncOption() (option jwt.ParserOption)
 }
 
 // ClientRequesterResponder is a oauthelia2.Requster or fosite.Responder with a GetClient method.
