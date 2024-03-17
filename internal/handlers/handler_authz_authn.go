@@ -146,6 +146,11 @@ func (s *CookieSessionAuthnStrategy) CanHandleUnauthorized() (handle bool) {
 	return false
 }
 
+// HeaderStrategy returns true if this AuthnStrategy is header based.
+func (s *CookieSessionAuthnStrategy) HeaderStrategy() (header bool) {
+	return false
+}
+
 // HandleUnauthorized is the Unauthorized handler for the cookie AuthnStrategy.
 func (s *CookieSessionAuthnStrategy) HandleUnauthorized(_ *middlewares.AutheliaCtx, _ *Authn, _ *url.URL) {
 }
@@ -260,6 +265,11 @@ func (s *HeaderAuthnStrategy) CanHandleUnauthorized() (handle bool) {
 	return s.handleAuthenticate
 }
 
+// HeaderStrategy returns true if this AuthnStrategy is header based.
+func (s *HeaderAuthnStrategy) HeaderStrategy() (header bool) {
+	return true
+}
+
 // HandleUnauthorized is the Unauthorized handler for the header AuthnStrategy.
 func (s *HeaderAuthnStrategy) HandleUnauthorized(ctx *middlewares.AutheliaCtx, authn *Authn, _ *url.URL) {
 	ctx.Logger.Debugf("Responding %d %s", s.statusAuthenticate, s.headerAuthenticate)
@@ -345,6 +355,11 @@ func (s *HeaderLegacyAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session
 
 // CanHandleUnauthorized returns true if this AuthnStrategy should handle Unauthorized requests.
 func (s *HeaderLegacyAuthnStrategy) CanHandleUnauthorized() (handle bool) {
+	return true
+}
+
+// HeaderStrategy returns true if this AuthnStrategy is header based.
+func (s *HeaderLegacyAuthnStrategy) HeaderStrategy() (header bool) {
 	return true
 }
 

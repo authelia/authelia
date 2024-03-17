@@ -244,7 +244,7 @@ func (s *AuthzSuite) TestShouldVerifyFailureToGetDetailsUsingBasicScheme() {
 
 	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
-	targetURI := s.RequireParseRequestURI("https://bypass.example.com")
+	targetURI := s.RequireParseRequestURI("https://onefactor.example.com")
 
 	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
 
@@ -272,6 +272,40 @@ func (s *AuthzSuite) TestShouldVerifyFailureToGetDetailsUsingBasicScheme() {
 		s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
 		s.Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate)))
 	}
+}
+
+func (s *AuthzSuite) TestShouldVerifyBypassWithErrorToGetDetailsUsingBasicScheme() {
+	if s.setRequest == nil {
+		s.T().Skip()
+	}
+
+	authz := s.Builder().Build()
+
+	mock := mocks.NewMockAutheliaCtx(s.T())
+
+	defer mock.Close()
+
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
+
+	targetURI := s.RequireParseRequestURI("https://bypass.example.com")
+
+	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
+
+	gomock.InOrder(
+		mock.UserProviderMock.EXPECT().
+			CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+			Return(true, nil),
+
+		mock.UserProviderMock.EXPECT().
+			GetDetails(gomock.Eq("john")).
+			Return(nil, fmt.Errorf("generic failure")),
+	)
+
+	authz.Handler(mock.Ctx)
+
+	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 }
 
 func (s *AuthzSuite) TestShouldNotFailOnMissingEmail() {

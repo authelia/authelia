@@ -106,6 +106,7 @@ type AuthzBuilder struct {
 type AuthnStrategy interface {
 	Get(ctx *middlewares.AutheliaCtx, provider *session.Session, object *authorization.Object) (authn *Authn, err error)
 	CanHandleUnauthorized() (handle bool)
+	HeaderStrategy() (is bool)
 	HandleUnauthorized(ctx *middlewares.AutheliaCtx, authn *Authn, redirectionURL *url.URL)
 }
 
