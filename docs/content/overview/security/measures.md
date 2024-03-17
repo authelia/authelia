@@ -25,9 +25,10 @@ Authelia sets several
 [cookie attributes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#attributes) to help prevent
 cookie theft:
 
-1. `HttpOnly` is set forbidding client-side code like javascript from access to the cookie.
-2. `Secure` is set forbidding the browser from sending the cookie to sites which do not use the [HTTPS] scheme.
-3. `SameSite` is by default set to `Lax` which prevents it being sent over cross-origin requests.
+1. `HttpOnly` is set, forbidding client-side code like javascript from access to the cookie.
+2. `Secure` is set, forbidding the browser from sending the cookie to sites which do not use the [HTTPS] scheme.
+3. `SameSite` is set to `Lax`, which prevents it being sent over cross-origin requests. An option to adjust this value
+    exists but is not recommended.
 
 Read about these attributes in detail on the
 [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie).
@@ -43,7 +44,7 @@ will prevent domains from serving over [HTTP] at all as long as the user has vis
 if the attacker poisons DNS they are unable to get modern browsers to connect to a compromised host unless they can also
 obtain the certificate.
 
-Note that using [HSTS] has consequences and you should do adequate research into understanding [HSTS] before you enable
+Note that using [HSTS] has consequences, and you should do adequate research into understanding [HSTS] before you enable
 it. For example the [nginx blog] has a good article helping users understand it.
 
 ## Protection against username enumeration
@@ -77,7 +78,7 @@ which is seeded every time it's used by a cryptographically secure 1024bit prime
 attacker obtains the file, each password has to be brute forced individually.
 
 Lastly Authelia's implementation of Argon2id is highly tunable. You can tune the key length, salt used, iterations
-(time), parallelism, and memory usage. To read more about this please read how to
+(time), parallelism, and memory usage. To read more about this, please read how to
 [configure](../../configuration/first-factor/file.md) file authentication.
 
 ## Protections against return oriented programming attacks and general hardening
@@ -85,8 +86,8 @@ Lastly Authelia's implementation of Argon2id is highly tunable. You can tune the
 Authelia is built as a position independent executable which makes Return Oriented Programming (ROP) attacks
 significantly more difficult to execute reliably.
 
-In addition it is built as a static binary with full relocation read-only support making this and several other
-traditional binary weaknesses significantly more difficult to exploit.
+In addition, it is built as a dynamically linked binary with full relocation read-only support, making this and several
+other traditional binary weaknesses significantly more difficult to exploit.
 
 ## User profile and group membership always kept up-to-date (LDAP authentication provider)
 
@@ -99,8 +100,9 @@ applications secured by Authelia.
 Additionally, it will invalidate any session where the user could not be retrieved from LDAP based on the user filter,
 for example if they were deleted or disabled provided the user filter is set correctly. These updates occur when a user
 accesses a resource protected by Authelia. This means you should ensure disabled users or users with expired passwords
-are not obtainable using the LDAP filter, the default filter for Active Directory implements this behaviour.
-LDAP implementations vary, so please ask if you need some assistance in configuring this.
+are not obtainable using the LDAP filter, the default filter for Active Directory and several other implementation
+defaults implement this behavior. LDAP implementations vary, so please ask if you need some assistance in configuring
+this.
 
 These protections can be [tuned](../../configuration/first-factor/ldap.md#refresh-interval) according to your security
 policy by changing refresh_interval, however we believe that 5 minutes is a fairly safe interval.
@@ -268,7 +270,7 @@ This is used to encrypt the session data when it is stored in the [Redis](../../
 database. The value of this option should be long and as random as possible. See more in the
 [documentation](../../configuration/session/introduction.md#secret) for this option.
 
-The validity period of session is highly configurable. For example in a highly security conscious domain you could
+The validity period of session is highly configurable. For example, in a highly security conscious domain you could
 set the session [remember_me](../../configuration/session/introduction.md#remember_me) to 0 to disable this
 feature, and set the [expiration](../../configuration/session/introduction.md#expiration) to 2 hours and the
 [inactivity](../../configuration/session/introduction.md#inactivity) of 10 minutes. Configuring the session security in this
@@ -281,7 +283,7 @@ This document previously detailed additional per-proxy configuration options tha
 improve security. These headers are now documented here and implemented by default in all responses due to the fact
 the experience should be the same regardless of which proxy you're utilizing and the area is rapidly evolving.
 
-Users who need custom behaviours in this area can submit a request or remove/replace the headers as necessary. These
+Users who need custom behaviors in this area can submit a request or remove/replace the headers as necessary. These
 headers will evolve over time just as the web standards and security recommendations evolve. These headers prevent
 loading Authelia in specific scenarios, primarily in an
 [Inline Frame](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe) which is generally considered a high
@@ -289,7 +291,7 @@ security risk.
 
 The [OWASP](https://owasp.org/) helpful
 [HTTP Security Response Headers Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html)
-was used as a basis for most of the decisions regarding these headers. Users who which to customize the behaviour should
+was used as a basis for most of the decisions regarding these headers. Users who which to customize the behavior should
 consider this cheat sheet mandatory reading before they do so.
 
 #### X-XSS-Protection
@@ -299,7 +301,7 @@ __Endpoints:__ All
 __Status:__ Unsupported Non-standard
 
 We do not include this header as this feature is not present in any modern browser and could introduce vulnerabilities
-if enabled at all. Going forward [CORS], [CORP], CORB, and [COEP] are the standards for browser centric site security.
+if enabled at all. Going forward [CORS], [CORP], CORB, and [COEP] are the standards for browser-centric site security.
 See the [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection) for more information.
 
 #### X-Content-Type-Options
@@ -351,36 +353,6 @@ __Status:__ Non-standard
 
 Prevents browsers from performing a DNS prefetch for links displayed on Authelia pages. Not all browsers support this.
 See the [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-DNS-Prefetch-Control) for more information.
-
-
-#### Cross-Origin-Opener-Policy
-
-__Value:__ `same-origin`
-__Endpoints:__ All
-__Status:__ Supported Standard
-
-Enables context isolation for the Authelia page so only pages with the same origin are using the same browsing context.
-See the [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy) for more
-information.
-
-#### Cross-Origin-Embedder-Policy
-
-__Value:__ `require-corp`
-__Endpoints:__ All
-__Status:__ Supported Standard
-
-Prevents embedding of resources that do not have the [Cross-Origin-Resource-Policy](#cross-origin-resource-policy)
-header. See the [MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Embedder-Policy) for more
-information.
-
-#### Cross-Origin-Resource-Policy
-
-__Value:__ `same-site`
-__Endpoints:__ All
-__Status:__ Supported Standard
-
-Prevents inclusion of resources that do not share the same origin. See the
-[MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Resource-Policy) for more information.
 
 #### Pragma
 

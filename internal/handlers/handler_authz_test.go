@@ -80,7 +80,7 @@ func (s *AuthzSuite) Builder() (builder *AuthzBuilder) {
 	return
 }
 
-func (s *AuthzSuite) BuilderWithBearerScheme() (buildier *AuthzBuilder) {
+func (s *AuthzSuite) BuilderWithBearerScheme() (builder *AuthzBuilder) {
 	switch s.implementation {
 	case AuthzImplExtAuthz:
 		return NewAuthzBuilder().WithImplementationExtAuthz().WithStrategies(NewHeaderProxyAuthorizationAuthnStrategy(model.AuthorizationSchemeBasic.String(), model.AuthorizationSchemeBearer.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
