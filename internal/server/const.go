@@ -95,6 +95,10 @@ const (
 	tmplCSPSwagger      = "default-src 'self'; img-src 'self' https://validator.swagger.io data:; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self'; base-uri 'self'"
 )
 
+const (
+	errCantLoadLocaleInfo = "fatal: can't load Locale Information"
+)
+
 var (
 	reTLSRequestOnPlainTextSocketErr = regexp.MustCompile(`contents: \\x16\\x([a-fA-F0-9]{2})\\x([a-fA-F0-9]{2})`)
 )

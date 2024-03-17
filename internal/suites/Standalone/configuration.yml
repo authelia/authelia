@@ -97,4 +97,8 @@ password_policy:
     ##    it only offers feedback about the strength of the password they are entering.
     ##    if you need to enforce password rules, you should use the standard password policy
     enabled: false
+custom_locales:
+  enabled: true
+  path: /config/locales
+
 ...

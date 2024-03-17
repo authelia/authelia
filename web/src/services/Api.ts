@@ -39,6 +39,7 @@ export const UserSessionElevationPath = basePath + "/api/user/session/elevation"
 export const ConfigurationPath = basePath + "/api/configuration";
 export const PasswordPolicyConfigurationPath = basePath + "/api/configuration/password-policy";
 
+export const LocaleInformationPath = basePath + "/locales";
 export interface AuthenticationErrorResponse extends ErrorResponse {
     authentication: boolean;
     elevation: boolean;
