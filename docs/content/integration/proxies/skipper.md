@@ -21,9 +21,9 @@ seo:
 
 [Skipper] is probably supported by __Authelia__.
 
-*__Important:__ When using these guides it's important to recognize that we cannot provide a guide for every possible
-method of deploying a proxy. These guides show a suggested setup only and you need to understand the proxy
-configuration and customize it to your needs. To-that-end we include links to the official proxy documentation
+*__Important:__ When using these guides, it's important to recognize that we cannot provide a guide for every possible
+method of deploying a proxy. These guides show a suggested setup only, and you need to understand the proxy
+configuration and customize it to your needs. To-that-end, we include links to the official proxy documentation
 throughout this documentation and in the [See Also](#see-also) section.*
 
 ## UNDER CONSTRUCTION
@@ -71,7 +71,7 @@ following are the assumptions we make:
     * Authelia is on a different host to the proxy
 * All services are part of the `example.com` domain:
   * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
-    just testing or you want ot use that specific domain
+    just testing or you want to use that specific domain
 
 ## Potential
 
@@ -84,4 +84,4 @@ Support for [Skipper] should be possible via [Skipper]'s
 * [Forwarded Headers]
 
 [Skipper]: https://opensource.zalando.com/skipper/
-[Forwarded Headers]: fowarded-headers
+[Forwarded Headers]: forwarded-headers

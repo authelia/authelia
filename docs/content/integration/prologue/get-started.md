@@ -114,6 +114,6 @@ We consider it important to do several things in moving to a production environm
    to your requirements.
 3. Review the [Security Measures](../../overview/security/measures.md) and
    [Threat Model](../../overview/security/threat-model.md) documentation.
-4. Ensure you have reviewed the [Forwarded Headers](../proxies/fowarded-headers/index.md) documentation to ensure your
+4. Ensure you have reviewed the [Forwarded Headers](../proxies/forwarded-headers/index.md) documentation to ensure your
    proxy is not allowing insecure headers to be passed to *Authelia*.
 5. Review the other [Configuration Options](../../configuration/prologue/introduction.md).

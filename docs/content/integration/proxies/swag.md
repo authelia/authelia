@@ -22,9 +22,9 @@ seo:
 [SWAG] is a reverse proxy supported by __Authelia__. It's an [NGINX] proxy container with bundled configurations to make
 your life easier.
 
-*__Important:__ When using these guides it's important to recognize that we cannot provide a guide for every possible
-method of deploying a proxy. These guides show a suggested setup only and you need to understand the proxy
-configuration and customize it to your needs. To-that-end we include links to the official proxy documentation
+*__Important:__ When using these guides, it's important to recognize that we cannot provide a guide for every possible
+method of deploying a proxy. These guides show a suggested setup only, and you need to understand the proxy
+configuration and customize it to your needs. To-that-end, we include links to the official proxy documentation
 throughout this documentation and in the [See Also](#see-also) section.*
 
 ## Introduction
@@ -91,7 +91,7 @@ serving Authelia at `auth.example.com`.
 
 #### Option 2: Using the Authelia Supplementary Configuration Snippets
 
-See standard [NGINX](nginx.md) guide (which *can be used* with [SWAG]) and run Authelia as it's own subdomain.
+See standard [NGINX](nginx.md) guide (which *can be used* with [SWAG]) and run Authelia as its own subdomain.
 
 ## Trusted Proxies
 
@@ -123,7 +123,7 @@ following are the assumptions we make:
     * Authelia is on a different host to the proxy
 * All services are part of the `example.com` domain:
   * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
-    just testing or you want ot use that specific domain
+    just testing or you want to use that specific domain
 
 ## Docker Compose
 
@@ -279,4 +279,4 @@ server {
 
 [SWAG]: https://docs.linuxserver.io/general/swag
 [NGINX]: https://www.nginx.com/
-[Forwarded Headers]: fowarded-headers
+[Forwarded Headers]: forwarded-headers

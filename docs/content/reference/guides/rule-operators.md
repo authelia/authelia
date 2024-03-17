@@ -19,7 +19,7 @@ seo:
 
 ## Operators
 
-Rule operators are effectively words which alter the behaviour of particular access control rules. The following table
+Rule operators are effectively words which alter the behavior of particular access control rules. The following table
 is a guide on their use.
 
 |   Operator    |                             Effect                             |

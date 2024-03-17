@@ -21,7 +21,7 @@ seo:
 ---
 
 __Authelia__ relies on session cookies to authorize user access to various protected websites. This section configures
-the session cookie behaviour and the domains which Authelia can service authorization requests for.
+the session cookie behavior and the domains which Authelia can service authorization requests for.
 
 ## Configuration
 
@@ -149,7 +149,7 @@ be used to generate the appropriate redirection URL when authentication is requi
    the [server address option](../miscellaneous/server.md#address) of `authelia` to specify a subpath and if the
    Authelia portal is inaccessible from `https://example.com`).
 
-The appropriate query parameter or header for your relevant proxy can override this behaviour.
+The appropriate query parameter or header for your relevant proxy can override this behavior.
 
 #### default_redirection_url
 

@@ -61,7 +61,7 @@ party.
     2. [MySQL] [5.7](https://dev.mysql.com/doc/refman/5.7/en/innodb-limits.html) or later provided:
        1. The [innodb_large_prefix](#innodb-large-prefixes) option is **_ON_**.
     3. [MariaDB] [10.3](https://mariadb.com/kb/en/innodb-system-variables/#innodb_large_prefix) or later.
-5. Must support ANSI standard time behaviours. See [ANSI standard time behaviours](#ansi-standard-time-behaviours).
+5. Must support ANSI standard time behaviors. See [ANSI standard time behaviors](#ansi-standard-time-behaviors).
 
 We generally perform integration testing against the latest supported version of [MySQL] and [MariaDB], and the latest
 supported version of [MariaDB] is generally the recommended version for new installations.
@@ -71,7 +71,7 @@ supported version of [MariaDB] is generally the recommended version for new inst
 #### InnoDB Large Prefixes
 
 This can be configured in the [MySQL] configuration file by setting the `innodb_large_prefix` option to on.
-According to the [Oracle] documentation this is the default behaviour in
+According to the [Oracle] documentation this is the default behavior in
 [MySQL] [5.7](https://dev.mysql.com/doc/refman/5.7/en/innodb-parameters.html#sysvar_innodb_large_prefix) and it can't be
 turned off in [MySQL] [8.0](https://dev.mysql.com/doc/refman/8.0/en/innodb-limits.html) or in [MariaDB] 10.3 and later.
 
@@ -80,13 +80,13 @@ turned off in [MySQL] [8.0](https://dev.mysql.com/doc/refman/8.0/en/innodb-limit
 innodb_large_prefix = ON
 ```
 
-#### ANSI standard time behaviours
+#### ANSI standard time behaviors
 
 This can be configured in the [MySQL] configuration file by setting the `explicit_defaults_for_timestamp` value to on.
-According to the [Oracle] documentation this is the default behaviour in
+According to the [Oracle] documentation this is the default behavior in
 [MySQL] [5.7](https://dev.mysql.com/doc/refman/5.7/en/server-system-variables.html#sysvar_explicit_defaults_for_timestamp)
 and [MySQL] [8.0](https://dev.mysql.com/doc/refman/8.0/en/server-system-variables.html#sysvar_explicit_defaults_for_timestamp).
-This is however not the default behaviour in
+This is however not the default behavior in
 [MariaDB](https://mariadb.com/kb/en/server-system-variables/#explicit_defaults_for_timestamp) before 10.10.
 
 ```cnf

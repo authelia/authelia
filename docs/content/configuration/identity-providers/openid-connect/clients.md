@@ -209,8 +209,8 @@ their redirect URIs are as follows:
 {{< confkey type="list(string)" required="no" >}}
 
 A whitelist of audiences this client is allowed to request. These audiences were previously automatically granted to all
-access requests unless specifically requested otherwise. The current behaviour is only those requested by the client in
-the `audience` parameter are granted. This behaviour can be tuned using the
+access requests unless specifically requested otherwise. The current behavior is only those requested by the client in
+the `audience` parameter are granted. This behavior can be tuned using the
 [requested_audience_mode](#requested_audience_mode).
 
 This value does not affect the issued ID Tokens as they are always issued with the client identifier being the audience.
@@ -311,7 +311,7 @@ The name of the custom lifespan that this client uses. A custom lifespan is name
 {{< confkey type="string" default="explicit" required="no" >}}
 
 Controls the effective audience the client has requested. The following table describes the possible values and their
-behaviour. This value does not affect the issued ID Tokens as they are always issued with the client identifier being
+behavior. This value does not affect the issued ID Tokens as they are always issued with the client identifier being
 the audience.
 
 |  Value   |                                                   Description                                                    |
@@ -572,13 +572,14 @@ otherwise we assume the default value:
 {{< confkey type="boolean" default="false" required="no" >}}
 
 [RFC6749: Section 2.3](https://datatracker.ietf.org/doc/html/rfc6749#section-2.3) clearly indicates that clients have no
-option but to use a single authentication method. Per the text:
+option but to use a single authentication method in any single request. Authelia by default enforces this behavior, this
+is an escape hatch to turn this policy off for a particular client.
+
+Per the text:
 
 {{< callout context="danger" title="RFC6749: Section 2.3" icon="alert-octagon" >}}
 The client MUST NOT use more than one authentication method in each request.
 {{< /callout >}}
-
-Authelia by default enforces this behaviour, this is an escape hatch to turn this policy off for a particular client.
 
 ### jwks_uri
 

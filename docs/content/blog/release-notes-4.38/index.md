@@ -502,7 +502,7 @@ our containers. The advantage is that since the variable will be available when 
 context, even if the configuration paths have changed or you've defined additional paths, the `authelia` command will
 know where the files are if you properly use this variables.
 
-See the [Loading Behaviour and Discovery](../../configuration/methods/files.md#loading-behaviour-and-discovery) section
+See the [Loading behavior and Discovery](../../configuration/methods/files.md#loading-behavior-and-discovery) section
 of the File Methods guide for more information.
 
 #### Templating

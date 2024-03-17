@@ -45,7 +45,7 @@ this section is not meant to document the daemon environment variables.
 
 ### Permission Context
 
-By default the container runs as the configured [Docker] daemon user. Users can control this behaviour in several ways.
+By default the container runs as the configured [Docker] daemon user. Users can control this behavior in several ways.
 
 The first and recommended way is instructing the [Docker] daemon to run the *Authelia* container as another user. See
 the [docker run] or [Docker Compose file reference documentation](https://docs.docker.com/compose/compose-file/05-services/#user)
