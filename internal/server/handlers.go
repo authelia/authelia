@@ -125,7 +125,8 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	handlerPublicHTML := newPublicHTMLEmbeddedHandler()
 	handlerLocales := newLocalesEmbeddedHandler()
 
-	bridge := middlewares.NewBridgeBuilder(*config, providers).Build()
+	bridge := middlewares.NewBridgeBuilder(*config, providers).
+		WithPreMiddlewares(middlewares.SecurityHeadersBase).Build()
 
 	bridgeSwagger := middlewares.NewBridgeBuilder(*config, providers).
 		WithPreMiddlewares(middlewares.SecurityHeadersRelaxed).Build()
@@ -181,16 +182,16 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	}
 
 	middlewareAPI := middlewares.NewBridgeBuilder(*config, providers).
-		WithPreMiddlewares(middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+		WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
 		Build()
 
 	middleware1FA := middlewares.NewBridgeBuilder(*config, providers).
-		WithPreMiddlewares(middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+		WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
 		WithPostMiddlewares(middlewares.Require1FA).
 		Build()
 
 	middlewareElevated1FA := middlewares.NewBridgeBuilder(*config, providers).
-		WithPreMiddlewares(middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+		WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
 		WithPostMiddlewares(middlewares.RequireElevated).
 		Build()
 
@@ -335,7 +336,7 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 
 	if providers.OpenIDConnect != nil {
 		bridgeOIDC := middlewares.NewBridgeBuilder(*config, providers).WithPreMiddlewares(
-			middlewares.SecurityHeadersCSPNoneOpenIDConnect, middlewares.SecurityHeadersNoStore,
+			middlewares.SecurityHeadersBase, middlewares.SecurityHeadersCSPNoneOpenIDConnect, middlewares.SecurityHeadersNoStore,
 		).Build()
 
 		r.GET("/api/oidc/consent", bridgeOIDC(handlers.OpenIDConnectConsentGET))
