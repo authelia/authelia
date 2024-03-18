@@ -71,6 +71,8 @@ func NewCmdCtxConfig() *CmdCtxConfig {
 
 // CmdCtxConfig is the configuration for the CmdCtx.
 type CmdCtxConfig struct {
+	files     []string
+	filters   []string
 	defaults  configuration.Source
 	sources   []configuration.Source
 	keys      []string
@@ -254,6 +256,8 @@ func (ctx *CmdCtx) LogConfigure(_ *cobra.Command, _ []string) (err error) {
 		return fmt.Errorf("Cannot initialize logger: %w", err)
 	}
 
+	ctx.log.WithFields(map[string]any{"filters": ctx.cconfig.filters, "files": ctx.cconfig.files}).Debug("Loaded Configuration Sources")
+
 	return nil
 }
 
@@ -385,21 +389,25 @@ func (ctx *CmdCtx) ConfigEnsureExistsRunE(cmd *cobra.Command, _ []string) (err e
 // HelperConfigLoadRunE loads the configuration into the CmdCtx.
 func (ctx *CmdCtx) HelperConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
-		configs []string
-
 		filters []configuration.BytesFilter
 	)
-
-	if configs, filters, err = loadXEnvCLIConfigValues(cmd); err != nil {
-		return err
-	}
 
 	if ctx.cconfig == nil {
 		ctx.cconfig = NewCmdCtxConfig()
 	}
 
+	if ctx.cconfig.files, filters, err = loadXEnvCLIConfigValues(cmd); err != nil {
+		return err
+	}
+
+	ctx.cconfig.filters = make([]string, len(filters))
+
+	for i, filter := range filters {
+		ctx.cconfig.filters[i] = filter.Name()
+	}
+
 	ctx.cconfig.sources = configuration.NewDefaultSourcesWithDefaults(
-		configs,
+		ctx.cconfig.files,
 		filters,
 		configuration.DefaultEnvPrefix,
 		configuration.DefaultEnvDelimiter,
