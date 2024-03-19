@@ -46,6 +46,15 @@ this method *__MUST__* use secure schemes (`https` and `wss`) for all of their c
 No additional requirements other than the use of the `https` scheme for Authelia itself exist excluding those mandated
 by the relevant specifications.
 
+## Important Notes
+
+{{< callout context="danger" title="Important Notes" icon="alert-octagon" >}}
+The following section has general important notes for users getting started.
+{{< /callout >}}
+
+- When integrating Authelia with a proxy users should read the specific
+  [Proxy Integration Important Notes](../proxies/introduction.md#important-notes).
+
 ## Configuration
 
 It's important to customize the configuration for *Authelia* in advance of deploying it. The configuration is static and

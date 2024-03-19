@@ -56,6 +56,18 @@ __Authelia__ itself requires the following headers are set when secured behind a
 [X-Forwarded-Proto]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto
 [X-Forwarded-Host]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Host
 
+## Important Notes
+
+{{< callout context="danger" title="Important Notes" icon="alert-octagon" >}}
+The following section has important notes for integrating Authelia with your proxy.
+{{< /callout >}}
+
+- When configuring Authelia on a subpath either by the
+  [server address](../../configuration/miscellaneous/server.md#address) or the deprecated server `path` option it's
+  strongly recommended that when users are integrating the `/api/authz/*` or `/api/verify` endpoints do not include the
+  configured path within those URLs. This is because the handler will listen on both the root path and the configured
+  path and several misconfiguration issues can be avoided by doing this.
+
 ## Integration Implementation
 
 Authelia is capable of being integrated into many proxies due to the decisions regarding the implementation. We handle

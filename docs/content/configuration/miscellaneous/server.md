@@ -53,11 +53,21 @@ server:
 
 {{< confkey type="string" syntax="address" default="tcp://:9091/" required="no" >}}
 
-Configures the listener address for the Main HTTP Server. The address itself is a listener and the scheme must either be
-the `unix` scheme or one of the `tcp` schemes. It can configure the host, port, and path the listener responds to. If
-the path is configured to anything other than `/` Authelia will handle requests for both `/` and the configured path.
+{{< callout context="danger" title="Important Notes" icon="alert-octagon" >}}
+The [Proxy Integration](../../integration/proxies/introduction.md#important-notes) documentation has important notes on
+this option for when integrating it with a proxy.
+{{< /callout >}}
 
-__Examples:__
+Configures the listener address for the Main HTTP Server. The address itself is a listener and the scheme must either be
+the `unix` scheme or one of the `tcp` schemes. It can configure the host, port, and path the listener responds to.
+
+To configure the path for a unix socket see the address syntax documentation linked above.
+
+If the path is configured to anything other than `/` requests will be handled for both `/` and the configured path.
+For example if configured to `tcp://:9091/authelia` then requests will be handled for both the `/` and `/authelia/`
+path.
+
+#### Examples
 
 ```yaml
 server:
