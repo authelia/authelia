@@ -62,6 +62,16 @@ const (
 	durationMax = time.Duration(math.MaxInt64)
 )
 
+const (
+	keyServerHost          = "server.host"
+	keyServerPort          = "server.port"
+	keyServerPath          = "server.path"
+	keyStorageMySQLHost    = "storage.mysql.host"
+	keyStorageMySQLPort    = "storage.mysql.port"
+	keyStoragePostgresHost = "storage.postgres.host"
+	keyStoragePostgresPort = "storage.postgres.port"
+)
+
 // IMPORTANT: There is an uppercase copy of this in github.com/authelia/authelia/internal/templates named
 // envSecretSuffixes.
 // Make sure you update these at the same time.
