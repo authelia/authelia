@@ -2,6 +2,7 @@ import React, { ReactNode, useCallback, useEffect, useRef, useState } from "reac
 
 import { Button, Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
+import { useTranslation } from "react-i18next";
 
 import FailureIcon from "@components/FailureIcon";
 import PushNotificationIcon from "@components/PushNotificationIcon";
@@ -50,6 +51,7 @@ const PushNotificationMethod = function (props: Props) {
     const mounted = useIsMountedRef();
     const [enroll_url, setEnrollUrl] = useState("");
     const [devices, setDevices] = useState([] as SelectableDevice[]);
+    const { t: translate } = useTranslation();
 
     const { onSignInSuccess, onSignInError } = props;
     const onSignInErrorCallback = useRef(onSignInError).current;
@@ -69,15 +71,15 @@ const PushNotificationMethod = function (props: Props) {
                     setState(State.Selection);
                     break;
                 case "allow":
-                    onSignInErrorCallback(new Error("Device selection was bypassed by Duo policy"));
+                    onSignInErrorCallback(new Error(translate("Device selection was bypassed by Duo policy")));
                     setState(State.Success);
                     break;
                 case "deny":
-                    onSignInErrorCallback(new Error("Device selection was denied by Duo policy"));
+                    onSignInErrorCallback(new Error(translate("Device selection was denied by Duo policy")));
                     setState(State.Failure);
                     break;
                 case "enroll":
-                    onSignInErrorCallback(new Error("No compatible device found"));
+                    onSignInErrorCallback(new Error(translate("No compatible device found")));
                     if (res.enroll_url && props.duoSelfEnrollment) setEnrollUrl(res.enroll_url);
                     setState(State.Enroll);
                     break;
@@ -85,9 +87,9 @@ const PushNotificationMethod = function (props: Props) {
         } catch (err) {
             if (!mounted.current) return;
             console.error(err);
-            onSignInErrorCallback(new Error("There was an issue fetching Duo device(s)"));
+            onSignInErrorCallback(new Error(translate("There was an issue fetching Duo device(s)")));
         }
-    }, [props.duoSelfEnrollment, mounted, onSignInErrorCallback]);
+    }, [props.duoSelfEnrollment, mounted, onSignInErrorCallback, translate]);
 
     const signInFunc = useCallback(async () => {
         if (props.authenticationLevel === AuthenticationLevel.TwoFactor) {
@@ -110,13 +112,13 @@ const PushNotificationMethod = function (props: Props) {
                 return;
             }
             if (res && res.result === "enroll") {
-                onSignInErrorCallback(new Error("No compatible device found"));
+                onSignInErrorCallback(new Error(translate("No compatible device found")));
                 if (res.enroll_url && props.duoSelfEnrollment) setEnrollUrl(res.enroll_url);
                 setState(State.Enroll);
                 return;
             }
             if (res && res.result === "deny") {
-                onSignInErrorCallback(new Error("Device selection was denied by Duo policy"));
+                onSignInErrorCallback(new Error(translate("Device selection was denied by Duo policy")));
                 setState(State.Failure);
                 return;
             }
@@ -132,7 +134,7 @@ const PushNotificationMethod = function (props: Props) {
             if (!mounted.current || state !== State.SignInInProgress) return;
 
             console.error(err);
-            onSignInErrorCallback(new Error("There was an issue completing sign in process"));
+            onSignInErrorCallback(new Error(translate("There was an issue completing sign in process")));
             setState(State.Failure);
         }
     }, [
@@ -145,6 +147,7 @@ const PushNotificationMethod = function (props: Props) {
         onSignInErrorCallback,
         onSignInSuccessCallback,
         state,
+        translate,
     ]);
 
     const updateDuoDevice = useCallback(
@@ -159,10 +162,10 @@ const PushNotificationMethod = function (props: Props) {
                 }
             } catch (err) {
                 console.error(err);
-                onSignInErrorCallback(new Error("There was an issue updating preferred Duo device"));
+                onSignInErrorCallback(new Error(translate("There was an issue updating preferred Duo device")));
             }
         },
-        [onSignInErrorCallback, props],
+        [onSignInErrorCallback, props, translate],
     );
 
     const handleDuoDeviceSelected = useCallback(

@@ -14,7 +14,7 @@ const SettingsView = function (props: Props) {
                 </Typography>
                 <Typography textAlign={"center"} my={1}>
                     {translate(
-                        "This is the user settings area. At the present time it's very minimal but will include new features in the near future",
+                        "This is the user settings area at the present time it's very minimal but will include new features in the near future",
                     )}
                 </Typography>
                 <Typography textAlign={"center"} my={1}>

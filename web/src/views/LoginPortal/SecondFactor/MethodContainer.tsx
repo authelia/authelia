@@ -124,7 +124,7 @@ function NotRegisteredContainer(props: NotRegisteredContainerProps) {
                 {props.title === "Push Notification"
                     ? props.duoSelfEnrollment
                         ? translate("Register your first device by clicking on the link below")
-                        : translate("Contact your administrator to register a device.")
+                        : translate("Contact your administrator to register a device")
                     : translate("Register your first device by clicking on the link below")}
             </Typography>
         </Fragment>

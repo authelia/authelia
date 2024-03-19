@@ -71,7 +71,7 @@ const SecondFactorForm = function (props: Props) {
             await setPreferred2FAMethod(method);
         } catch (err) {
             console.error(err);
-            createErrorNotification("There was an issue updating preferred second factor method");
+            createErrorNotification(translate("There was an issue updating preferred second factor method"));
         }
     };
 

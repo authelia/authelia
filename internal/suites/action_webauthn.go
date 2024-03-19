@@ -115,7 +115,7 @@ func (rs *RodSession) doWebAuthnCredentialMustDelete(t *testing.T, page *rod.Pag
 
 	require.NoError(t, rs.WaitElementLocatedByID(t, page, "dialog-delete").Click("left", 1))
 
-	rs.verifyNotificationDisplayed(t, page, "Successfully deleted the WebAuthn Credential.")
+	rs.verifyNotificationDisplayed(t, page, "Successfully deleted the WebAuthn Credential")
 
 	rs.DeleteWebAuthnAuthenticatorCredentials()
 }
@@ -129,7 +129,7 @@ func (rs *RodSession) doWebAuthnCredentialRename(t *testing.T, page *rod.Page, d
 
 	require.NoError(t, rs.WaitElementLocatedByID(t, page, "dialog-update").Click("left", 1))
 
-	rs.verifyNotificationDisplayed(t, page, "Successfully updated the WebAuthn Credential.")
+	rs.verifyNotificationDisplayed(t, page, "Successfully updated the WebAuthn Credential")
 }
 
 func (rs *RodSession) doWebAuthnCredentialRegister(t *testing.T, page *rod.Page, description string) {
@@ -145,7 +145,7 @@ func (rs *RodSession) doWebAuthnCredentialRegister(t *testing.T, page *rod.Page,
 
 	require.NoError(t, elementDescription.Type(rs.toInputs(description)...))
 	require.NoError(t, rs.WaitElementLocatedByID(t, page, "dialog-next").Click("left", 1))
-	rs.verifyNotificationDisplayed(t, page, "Successfully added the WebAuthn Credential.")
+	rs.verifyNotificationDisplayed(t, page, "Successfully added the WebAuthn Credential")
 
 	rs.doWebAuthnUpdateCredentials(t, page)
 

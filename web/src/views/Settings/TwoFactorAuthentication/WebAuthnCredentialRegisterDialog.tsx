@@ -101,13 +101,13 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
 
                 return;
             } else {
-                createErrorNotification(AttestationResultFailureString(result.result));
+                createErrorNotification(translate(AttestationResultFailureString(result.result)));
                 setState(WebAuthnTouchState.Failure);
             }
         } catch (err) {
             console.error(err);
             createErrorNotification(
-                "Failed to register your credential. The identity verification process might have timed out.",
+                translate("Failed to register your credential, the identity verification process might have timed out"),
             );
         } finally {
             handleClose();
