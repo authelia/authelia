@@ -44,7 +44,7 @@ func (rs *RodSession) doMustDeleteTOTP(t *testing.T, page *rod.Page, username st
 
 	require.NoError(t, rs.WaitElementLocatedByID(t, page, "dialog-delete").Click("left", 1))
 
-	rs.verifyNotificationDisplayed(t, page, "Successfully deleted the One-Time Password.")
+	rs.verifyNotificationDisplayed(t, page, "Successfully deleted the One-Time Password")
 
 	rs.DeleteOneTimePassword(username)
 
@@ -69,7 +69,7 @@ func (rs *RodSession) doRegisterTOTPFinish(t *testing.T, page *rod.Page, usernam
 	require.NoError(t, err)
 
 	rs.doEnterOTP(t, page, passcode)
-	rs.verifyNotificationDisplayed(t, page, "Successfully added the One-Time Password.")
+	rs.verifyNotificationDisplayed(t, page, "Successfully added the One-Time Password")
 
 	rs.SetOneTimePassword(username, credential)
 }

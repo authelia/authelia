@@ -260,7 +260,7 @@ const WebAuthnCredentialsPanel = function (props: Props) {
                         {props.credentials === undefined || props.credentials.length === 0 ? (
                             <Typography variant={"subtitle2"}>
                                 {translate(
-                                    "No WebAuthn Credentials have been registered. If you'd like to register one click add",
+                                    "No WebAuthn Credentials have been registered if you'd like to register one click add",
                                 )}
                             </Typography>
                         ) : (

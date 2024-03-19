@@ -52,24 +52,24 @@ const SecondFactorMethodMobilePush = function (props: Props) {
                     setState(State.Selection);
                     break;
                 case "allow":
-                    console.error(new Error("Device selection was bypassed by Duo policy"));
+                    console.error(new Error(translate("Device selection was bypassed by Duo policy")));
                     setState(State.Success);
                     break;
                 case "deny":
-                    console.error(new Error("Device selection was denied by Duo policy"));
+                    console.error(new Error(translate("Device selection was denied by Duo policy")));
                     setState(State.Failure);
                     break;
                 case "enroll":
-                    console.error(new Error("No compatible device found"));
+                    console.error(new Error(translate("No compatible device found")));
                     setState(State.Failure);
                     break;
             }
         } catch (err) {
             if (!mounted.current) return;
             console.error(err);
-            console.error(new Error("There was an issue fetching Duo device(s)"));
+            console.error(new Error(translate("There was an issue fetching Duo device(s)")));
         }
-    }, [mounted]);
+    }, [mounted, translate]);
 
     const handleDuoPush = useCallback(async () => {
         try {
@@ -89,11 +89,11 @@ const SecondFactorMethodMobilePush = function (props: Props) {
                         setState(State.Selection);
                         return;
                     case "enroll":
-                        console.error(new Error("No compatible device found"));
+                        console.error(new Error(translate("No compatible device found")));
                         setState(State.Failure);
                         return;
                     case "deny":
-                        console.error(new Error("Device selection was denied by Duo policy"));
+                        console.error(new Error(translate("Device selection was denied by Duo policy")));
                         setState(State.Failure);
                         return;
                 }
@@ -107,20 +107,23 @@ const SecondFactorMethodMobilePush = function (props: Props) {
             if (!mounted.current || state !== State.SignInInProgress) return;
 
             console.error(err);
-            console.error(new Error("There was an issue completing sign in process"));
+            console.error(new Error(translate("There was an issue completing sign in process")));
             setState(State.Failure);
         }
-    }, [mounted, props, state]);
+    }, [mounted, props, state, translate]);
 
-    const updateDuoDevice = useCallback(async function (device: DuoDevicePostRequest) {
-        try {
-            await completeDuoDeviceSelectionProcess(device);
-            setState(State.SignInInProgress);
-        } catch (err) {
-            console.error(err);
-            console.error(new Error("There was an issue updating preferred Duo device"));
-        }
-    }, []);
+    const updateDuoDevice = useCallback(
+        async function (device: DuoDevicePostRequest) {
+            try {
+                await completeDuoDeviceSelectionProcess(device);
+                setState(State.SignInInProgress);
+            } catch (err) {
+                console.error(err);
+                console.error(new Error(translate("There was an issue updating preferred Duo device")));
+            }
+        },
+        [translate],
+    );
 
     const handleDuoDeviceSelected = useCallback(
         (device: SelectedDevice) => {
