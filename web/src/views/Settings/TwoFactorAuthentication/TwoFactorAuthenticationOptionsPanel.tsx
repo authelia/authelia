@@ -72,7 +72,7 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
             setPreferred2FAMethod(value)
                 .catch((err) => {
                     console.error(err);
-                    createErrorNotification("There was an issue updating preferred second factor method");
+                    createErrorNotification(translate("There was an issue updating preferred second factor method"));
                 })
                 .then(() => {
                     setMethod(value);

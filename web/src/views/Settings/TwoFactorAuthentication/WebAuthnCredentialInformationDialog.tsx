@@ -48,7 +48,7 @@ const WebAuthnCredentialInformationDialog = function (props: Props) {
                             <DialogContentText sx={{ mb: 3 }}>
                                 <Alert severity={"warning"}>
                                     {translate(
-                                        "This is a legacy WebAuthn Credential. If it's not operating normally you may need to delete it and register it again.",
+                                        "This is a legacy WebAuthn Credential if it's not operating normally you may need to delete it and register it again",
                                     )}
                                 </Alert>
                             </DialogContentText>

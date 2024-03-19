@@ -56,7 +56,7 @@ func (rs *RodSession) doSuccessfullyCompletePasswordReset(t *testing.T, page *ro
 
 func (rs *RodSession) doUnsuccessfulPasswordReset(t *testing.T, page *rod.Page, newPassword1, newPassword2 string) {
 	rs.doCompletePasswordReset(t, page, newPassword1, newPassword2)
-	rs.verifyNotificationDisplayed(t, page, "Your supplied password does not meet the password policy requirements.")
+	rs.verifyNotificationDisplayed(t, page, "Your supplied password does not meet the password policy requirements")
 }
 
 func (rs *RodSession) doResetPassword(t *testing.T, page *rod.Page, username, newPassword1, newPassword2 string, unsuccessful bool) {

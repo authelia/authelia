@@ -59,7 +59,7 @@ func (s *ResetPasswordScenario) TestShouldResetPassword() {
 
 	// Try to login with the old password.
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, "")
-	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Incorrect username or password.")
+	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Incorrect username or password")
 
 	// Try to login with the new password.
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "abc", false, BaseDomain, "")
@@ -102,7 +102,7 @@ func (s *ResetPasswordScenario) TestShouldLetUserNoticeThereIsAPasswordMismatch(
 	s.verifyMailNotificationDisplayed(s.T(), s.Context(ctx))
 
 	s.doCompletePasswordReset(s.T(), s.Context(ctx), "password", "another_password")
-	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Passwords do not match.")
+	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Passwords do not match")
 }
 
 func TestRunResetPasswordScenario(t *testing.T) {

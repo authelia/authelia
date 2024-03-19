@@ -205,7 +205,7 @@ const OneTimePasswordPanel = function (props: Props) {
                         <Grid xs={12}>
                             <Typography variant={"subtitle2"}>
                                 {translate(
-                                    "The One-Time Password has not been registered. If you'd like to register it click add",
+                                    "The One-Time Password has not been registered if you'd like to register it click add",
                                 )}
                             </Typography>
                         </Grid>
