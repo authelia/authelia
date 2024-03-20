@@ -199,6 +199,13 @@ type IDTokenSessionContainer interface {
 	IDTokenClaims() *fjwt.IDTokenClaims
 }
 
+type UserDetailer interface {
+	GetUsername() (username string)
+	GetGroups() (groups []string)
+	GetDisplayName() (name string)
+	GetEmails() (emails []string)
+}
+
 // NilErrorReporter is a true nil herodot.ErrorReporter.
 type NilErrorReporter struct{}
 
