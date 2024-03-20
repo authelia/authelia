@@ -1,10 +1,13 @@
 package configuration
 
 import (
+	"bufio"
+	"bytes"
 	"crypto/rsa"
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"sort"
 	"testing"
@@ -906,4 +909,55 @@ func TestShouldFailIfYmlIsInvalid(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, val.Errors(), 1)
 	assert.ErrorContains(t, val.Errors()[0], "unmarshal errors")
+}
+
+func TestConfigurationTemplate(t *testing.T) {
+	buf := &bytes.Buffer{}
+
+	setup := func() {
+		f, err := os.Open("config.template.yml")
+		require.NoError(t, err)
+
+		defer f.Close()
+
+		lints := regexp.MustCompile(`^(\s+)?# yamllint`)
+		doc := regexp.MustCompile(`^\s+?## `)
+		commented := regexp.MustCompile(`^(\s+)?# (.*)$`)
+		uncommented := regexp.MustCompile(`^(\s+)?\w+`)
+		ignore := regexp.MustCompile(`^(\s+)?# host: '/var/run/redis/redis.sock'`)
+
+		scanner := bufio.NewScanner(f)
+
+		for scanner.Scan() {
+			line := scanner.Bytes()
+			if doc.Match(line) || lints.Match(line) || ignore.Match(line) {
+				continue
+			}
+
+			if commented.Match(line) {
+				buf.Write(commented.ReplaceAll(line, []byte("$1$2")))
+				buf.WriteString("\n")
+			} else if uncommented.Match(line) {
+				buf.Write(line)
+				buf.WriteString("\n")
+			}
+		}
+	}
+
+	setup()
+
+	val := schema.NewStructValidator()
+
+	keys, _, err := Load(val, NewBytesSource(buf.Bytes()))
+	require.NoError(t, err)
+
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+
+	val.Clear()
+
+	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
+
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
 }

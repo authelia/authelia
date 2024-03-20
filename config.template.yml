@@ -1,7 +1,7 @@
 # yamllint disable rule:comments-indentation
 ---
 ###############################################################################
-#                           Authelia Configuration                            #
+##                           Authelia Configuration                          ##
 ###############################################################################
 
 ##
@@ -1403,17 +1403,17 @@ notifier:
             # use: 'sig'
 
             ## Required Public Key in PEM DER form.
-            # key: |
-            # -----BEGIN RSA PUBLIC KEY-----
-            # ...
-            # -----END RSA PUBLIC KEY----
+              # key: |
+              # -----BEGIN RSA PUBLIC KEY-----
+              # ...
+              # -----END RSA PUBLIC KEY----
 
             ## The matching certificate chain in PEM DER form that matches the key if available.
             # certificate_chain: |
-            # -----BEGIN CERTIFICATE-----
-            # ...
-            # -----END CERTIFICATE-----
-            # -----BEGIN CERTIFICATE-----
-            # ...
-            # -----END CERTIFICATE-----
+              # -----BEGIN CERTIFICATE-----
+              # ...
+              # -----END CERTIFICATE-----
+              # -----BEGIN CERTIFICATE-----
+              # ...
+              # -----END CERTIFICATE-----
 ...
