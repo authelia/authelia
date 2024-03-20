@@ -131,9 +131,18 @@ func getLanguages(dir string) (languages *Languages, err error) {
 
 		locale := filepath.Base(fdir)
 
-		if utils.IsStringInSlice(locale, locales) {
+		var localeReal string
+
+		parts := strings.SplitN(locale, "-", 2)
+		if len(parts) == 2 && strings.EqualFold(parts[0], parts[1]) {
+			localeReal = parts[0]
+		} else {
+			localeReal = locale
+		}
+
+		if utils.IsStringInSlice(localeReal, locales) {
 			for i, l := range languages.Languages {
-				if l.Locale == locale {
+				if l.Locale == localeReal {
 					if utils.IsStringInSlice(ns, languages.Languages[i].Namespaces) {
 						break
 					}
@@ -144,15 +153,6 @@ func getLanguages(dir string) (languages *Languages, err error) {
 			}
 
 			return nil
-		}
-
-		var localeReal string
-
-		parts := strings.SplitN(locale, "-", 2)
-		if len(parts) == 2 && strings.EqualFold(parts[0], parts[1]) {
-			localeReal = parts[0]
-		} else {
-			localeReal = locale
 		}
 
 		var tag language.Tag
