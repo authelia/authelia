@@ -358,10 +358,10 @@ var deprecationsMKM = []MultiKeyMappedDeprecation{
 	},
 	{
 		Version: model.SemanticVersion{Major: 4, Minor: 38},
-		Keys:    []string{"storage.postgres.host", "storage.postgres.port"},
+		Keys:    []string{keyStoragePostgresHost, keyStoragePostgresPort},
 		NewKey:  "storage.postgres.address",
 		MapFunc: func(d MultiKeyMappedDeprecation, keys map[string]any, val *schema.StructValidator) {
-			host, port, err := getHostPort("storage.postgres.host", "storage.postgres.port", schema.DefaultPostgreSQLStorageConfiguration.Address.Host(), schema.DefaultPostgreSQLStorageConfiguration.Address.Port(), keys)
+			host, port, err := getHostPort(keyStoragePostgresHost, keyStoragePostgresPort, schema.DefaultPostgreSQLStorageConfiguration.Address.Host(), schema.DefaultPostgreSQLStorageConfiguration.Address.Port(), keys)
 			if err != nil {
 				val.Push(fmt.Errorf(errFmtMultiKeyMappingPortConvert, strJoinAnd(d.Keys), d.NewKey, err))
 
@@ -383,12 +383,10 @@ var deprecationsMKM = []MultiKeyMappedDeprecation{
 	},
 	{
 		Version: model.SemanticVersion{Major: 4, Minor: 38},
-		Keys:    []string{"storage.mysql.host", "storage.mysql.port"},
+		Keys:    []string{keyStorageMySQLHost, keyStorageMySQLPort},
 		NewKey:  "storage.mysql.address",
 		MapFunc: func(d MultiKeyMappedDeprecation, keys map[string]any, val *schema.StructValidator) {
-			x := schema.DefaultMySQLStorageConfiguration.Address
-
-			host, port, err := getHostPort("storage.mysql.host", "storage.mysql.port", x.Host(), x.Port(), keys)
+			host, port, err := getHostPort(keyStorageMySQLHost, keyStorageMySQLPort, schema.DefaultMySQLStorageConfiguration.Address.Host(), schema.DefaultMySQLStorageConfiguration.Address.Port(), keys)
 			if err != nil {
 				val.Push(fmt.Errorf(errFmtMultiKeyMappingPortConvert, strJoinAnd(d.Keys), d.NewKey, err))
 
@@ -410,10 +408,10 @@ var deprecationsMKM = []MultiKeyMappedDeprecation{
 	},
 	{
 		Version: model.SemanticVersion{Major: 4, Minor: 38},
-		Keys:    []string{"server.host", "server.port", "server.path"},
+		Keys:    []string{keyServerHost, keyServerPort, keyServerPath},
 		NewKey:  "server.address",
 		MapFunc: func(d MultiKeyMappedDeprecation, keys map[string]any, val *schema.StructValidator) {
-			host, port, err := getHostPort("server.host", "server.port", schema.DefaultServerConfiguration.Address.Hostname(), schema.DefaultServerConfiguration.Address.Port(), keys)
+			host, port, err := getHostPort(keyServerHost, keyServerPort, schema.DefaultServerConfiguration.Address.Hostname(), schema.DefaultServerConfiguration.Address.Port(), keys)
 			if err != nil {
 				val.Push(fmt.Errorf(errFmtMultiKeyMappingPortConvert, strJoinAnd(d.Keys), d.NewKey, err))
 
@@ -426,7 +424,7 @@ var deprecationsMKM = []MultiKeyMappedDeprecation{
 				subpath string
 			)
 
-			if v, ok = keys["sever.path"]; ok {
+			if v, ok = keys[keyServerPath]; ok {
 				subpath, _ = v.(string)
 			}
 

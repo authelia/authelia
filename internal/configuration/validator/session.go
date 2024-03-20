@@ -173,6 +173,17 @@ func validateSessionCookiesURLs(i int, config *schema.Session, validator *schema
 			validator.Push(fmt.Errorf(errFmtSessionDomainOptionRequired, sessionDomainDescriptor(i, d), attrSessionAutheliaURL))
 		}
 	} else {
+		switch d.AutheliaURL.Path {
+		case "", "/":
+			break
+		default:
+			if strings.HasSuffix(d.AutheliaURL.Path, "/") || !d.AutheliaURL.IsAbs() {
+				break
+			}
+
+			d.AutheliaURL.Path += "/"
+		}
+
 		if !d.AutheliaURL.IsAbs() {
 			validator.Push(fmt.Errorf(errFmtSessionDomainURLNotAbsolute, sessionDomainDescriptor(i, d), attrSessionAutheliaURL, d.AutheliaURL))
 		} else if !utils.IsURISecure(d.AutheliaURL) {
@@ -204,6 +215,8 @@ func validateSessionCookiesURLs(i int, config *schema.Session, validator *schema
 			validator.Push(fmt.Errorf(errFmtSessionDomainAutheliaURLAndRedirectionURLEqual, sessionDomainDescriptor(i, d), d.DefaultRedirectionURL, d.AutheliaURL))
 		}
 	}
+
+	config.Cookies[i] = d
 }
 
 func validateSessionRememberMe(i int, config *schema.Session) {

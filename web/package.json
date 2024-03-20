@@ -1,6 +1,6 @@
 {
   "name": "authelia",
-  "version": "4.38.4",
+  "version": "4.38.6",
   "private": true,
   "type": "module",
   "engines": {
@@ -86,7 +86,7 @@
     "@commitlint/config-conventional": "19.1.0",
     "@limegrass/eslint-plugin-import-alias": "1.3.1",
     "@testing-library/jest-dom": "6.4.2",
-    "@testing-library/react": "14.2.1",
+    "@testing-library/react": "14.2.2",
     "@types/node": "20.11.30",
     "@types/react": "18.2.67",
     "@types/react-dom": "18.2.22",
