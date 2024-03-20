@@ -95,17 +95,8 @@
             "display": "German",
             "locale": "de",
             "namespaces": [
+                "portal",
                 "settings"
-            ],
-            "fallbacks": [
-                "en"
-            ]
-        },
-        {
-            "display": "German",
-            "locale": "de",
-            "namespaces": [
-                "portal"
             ],
             "fallbacks": [
                 "en"
@@ -136,17 +127,8 @@
             "display": "Spanish",
             "locale": "es",
             "namespaces": [
+                "portal",
                 "settings"
-            ],
-            "fallbacks": [
-                "en"
-            ]
-        },
-        {
-            "display": "Spanish",
-            "locale": "es",
-            "namespaces": [
-                "portal"
             ],
             "fallbacks": [
                 "en"
@@ -166,16 +148,7 @@
             "display": "French",
             "locale": "fr",
             "namespaces": [
-                "portal"
-            ],
-            "fallbacks": [
-                "en"
-            ]
-        },
-        {
-            "display": "French",
-            "locale": "fr",
-            "namespaces": [
+                "portal",
                 "settings"
             ],
             "fallbacks": [
@@ -262,16 +235,7 @@
             "display": "Norwegian Bokmål",
             "locale": "no",
             "namespaces": [
-                "portal"
-            ],
-            "fallbacks": [
-                "en"
-            ]
-        },
-        {
-            "display": "Norwegian Bokmål",
-            "locale": "no",
-            "namespaces": [
+                "portal",
                 "settings"
             ],
             "fallbacks": [
@@ -282,17 +246,8 @@
             "display": "Polish",
             "locale": "pl",
             "namespaces": [
+                "portal",
                 "settings"
-            ],
-            "fallbacks": [
-                "en"
-            ]
-        },
-        {
-            "display": "Polish",
-            "locale": "pl",
-            "namespaces": [
-                "portal"
             ],
             "fallbacks": [
                 "en"
@@ -332,16 +287,7 @@
             "display": "Russian",
             "locale": "ru",
             "namespaces": [
-                "portal"
-            ],
-            "fallbacks": [
-                "en"
-            ]
-        },
-        {
-            "display": "Russian",
-            "locale": "ru",
-            "namespaces": [
+                "portal",
                 "settings"
             ],
             "fallbacks": [
