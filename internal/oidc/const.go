@@ -163,6 +163,7 @@ const (
 	FormParameterResponseType = "response_type"
 	FormParameterScope        = valueScope
 	FormParameterIssuer       = valueIss
+	FormParameterPrompt       = "prompt"
 )
 
 const (
