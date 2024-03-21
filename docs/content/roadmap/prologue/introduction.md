@@ -25,6 +25,12 @@ improvements as much as possible with the maintenance tasks we have to perform t
 reasonable state. If you're willing to contribute and help us move forward faster, get in touch with us on Matrix. We'll
 be glad to share ideas and plans with you.
 
+{{< callout context="danger" title="Important Notes" icon="alert-octagon" >}}
+It's important to note that the versions listed on a roadmap item unless noted as completed are an intended estimation.
+Plans may change and we may potentially forget to update the version. If you feel we've forgotten please feel free to
+let us know via a GitHub Discussion or one of the Chat options.
+{{< /callout >}}
+
 ## Summary
 
 This is a summary of the features which are currently on the roadmap with links to further details:
