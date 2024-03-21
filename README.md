@@ -72,7 +72,7 @@ This is a list of the key features of Authelia:
 * Compatible with [Traefik](https://doc.traefik.io/traefik) out of the box using the
   [ForwardAuth](https://doc.traefik.io/traefik/middlewares/http/forwardauth/) middleware.
 * Curated configuration from [LinuxServer](https://www.linuxserver.io/) via their
-  [Swag](https://docs.linuxserver.io/general/swag) container as well as a
+  [SWAG](https://docs.linuxserver.io/general/swag) container as well as a
   [guide](https://blog.linuxserver.io/2020/08/26/setting-up-authelia/).
 * Compatible with [Caddy] using the [forward_auth](https://caddyserver.com/docs/caddyfile/directives/forward_auth)
   directive.
@@ -83,7 +83,7 @@ This is a list of the key features of Authelia:
     * [Traefik Kubernetes Ingress](https://www.authelia.com/integration/kubernetes/traefik-ingress/#ingress)
     * [Istio](https://www.authelia.com/integration/kubernetes/istio/)
   * Beta support for installing via Helm using our [Charts](https://charts.authelia.com).
-* Beta support for [OpenID Connect](https://www.authelia.com/roadmap/active/openid-connect/).
+* Beta support for [OAuth 2.0 and OpenID Connect 1.0](https://www.authelia.com/roadmap/active/openid-connect/).
 
 For more details take a look at the [Overview](https://www.authelia.com/overview/prologue/introduction/).
 
