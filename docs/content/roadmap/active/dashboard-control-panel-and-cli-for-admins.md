@@ -99,22 +99,40 @@ due to how important or difficult to implement they are.
 
 ### Design Stage
 
-{{< roadmap-status >}}
+{{< roadmap-status stage="in-progress" >}}
 
 Decide on a design.
 
 ### Initial Implementation
 
-{{< roadmap-status >}}
+{{< roadmap-status version="v4.40.0" >}}
 
 Implement the pivotal elements of the design.
 
 ### Design Element: Segregation
 
-{{< roadmap-status >}}
+{{< roadmap-status version="v4.40.0" >}}
 
 Allow the admin UI to be run as a separate process, on a different port, and at a different URL to Authelia itself.
 Alternatively allow it to run as part of the main process and port for minimal configurations.
+
+### Session Management
+
+{{< roadmap-status version="v4.40.0" >}}
+
+Manage user sessions for all users.
+
+### OpenID Connect 1.0 Client Management
+
+{{< roadmap-status version="v4.40.0" >}}
+
+Manage client registrations via a web frontend.
+
+### Access Control Management
+
+{{< roadmap-status >}}
+
+Manage Access Control rules.
 
 ### User Management
 
@@ -123,14 +141,4 @@ Alternatively allow it to run as part of the main process and port for minimal c
 Manage user accounts with either the internal or LDAP authentication backends. Allow for creation, modification, and
 deletion.
 
-### Session Management
 
-{{< roadmap-status >}}
-
-Manage user sessions for all users.
-
-### OpenID Connect 1.0 Client Management
-
-{{< roadmap-status >}}
-
-Manage client registrations via a web frontend.
