@@ -16,6 +16,7 @@ examples
 # Other
 internal/server/public_html
 authelia.service
+authelia-fb-rc.d
 bootstrap.sh
 
 # Overrides
