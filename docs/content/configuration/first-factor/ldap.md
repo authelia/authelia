@@ -5,9 +5,6 @@ summary: "Authelia supports an LDAP server based first factor user provider. Thi
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  configuration:
-    parent: "first-factor"
 weight: 102200
 toc: true
 aliases:

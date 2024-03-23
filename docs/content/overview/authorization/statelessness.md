@@ -5,9 +5,6 @@ summary: "Statelessness is the ability for a system to operate without an in-mem
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  overview:
-    parent: "authorization"
 weight: 390
 toc: false
 aliases:

@@ -2,12 +2,9 @@
 title: "Dashboard / Control Panel and CLI for Administrators"
 description: "Authelia Administrator Dashboard."
 summary: "A dashboard or control panel for administrators to adjust system settings is easily one of the most impactful features we can implement."
-date: 2024-02-01T07:02:53+11:00
+date: 2024-03-21T18:25:55+11:00
 draft: false
 images: []
-menu:
-  roadmap:
-    parent: "active"
 weight: 245
 toc: true
 aliases:

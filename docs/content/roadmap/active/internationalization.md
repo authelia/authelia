@@ -5,9 +5,6 @@ summary: "Implementation of internationalization will make Authelia more accessi
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  roadmap:
-    parent: "active"
 weight: 230
 toc: true
 aliases:

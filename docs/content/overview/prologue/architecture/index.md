@@ -5,9 +5,6 @@ summary: "An overview of the Authelia architecture."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  overview:
-    parent: "prologue"
 weight: 120
 toc: false
 aliases:

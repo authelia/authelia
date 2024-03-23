@@ -5,9 +5,6 @@ summary: "Authelia can operate as an OpenID Connect 1.0 Provider. This section d
 date: 2023-05-15T10:32:10+10:00
 draft: false
 images: []
-menu:
-  configuration:
-    parent: "openid-connect"
 weight: 110200
 toc: true
 aliases:

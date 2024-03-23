@@ -135,6 +135,27 @@
             ]
         },
         {
+            "display": "Basque",
+            "locale": "eu",
+            "namespaces": [
+                "settings"
+            ],
+            "fallbacks": [
+                "en"
+            ]
+        },
+        {
+            "display": "Basque (Spain)",
+            "locale": "eu-ES",
+            "namespaces": [
+                "settings"
+            ],
+            "fallbacks": [
+                "eu",
+                "en"
+            ]
+        },
+        {
             "display": "Finnish",
             "locale": "fi",
             "namespaces": [

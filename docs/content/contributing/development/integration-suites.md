@@ -5,9 +5,6 @@ summary: "This section covers the build process and how to perform tests in deve
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  contributing:
-    parent: "development"
 weight: 240
 toc: true
 aliases:

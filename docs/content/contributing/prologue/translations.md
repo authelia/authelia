@@ -5,9 +5,6 @@ summary: "Authelia has translations for many using facing areas of the web porta
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  contributing:
-    parent: "prologue"
 weight: 130
 toc: true
 aliases:

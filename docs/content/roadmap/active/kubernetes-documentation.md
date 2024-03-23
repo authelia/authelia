@@ -5,9 +5,6 @@ summary: "While there is some documentation for Kubernetes, and several people h
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  roadmap:
-    parent: "active"
 weight: 250
 toc: true
 aliases:
