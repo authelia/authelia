@@ -21,7 +21,7 @@ seo:
 ## Tested Versions
 
 - [Authelia](https://www.authelia.com)
-  - [v4.37.5](https://github.com/authelia/authelia/releases/tag/v4.37.5)
+  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 - [Misago](https://github.com/rafalp/Misago)
   - [misago-image v0.29.1](https://github.com/tetricky/misago-image/releases/tag/v0.29.1)
 
