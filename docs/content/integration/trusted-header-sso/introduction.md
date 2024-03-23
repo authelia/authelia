@@ -5,9 +5,6 @@ summary: "An introduction into integrating Authelia with an application which im
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  integration:
-    parent: "trusted-header-sso"
 weight: 410
 toc: true
 seo:

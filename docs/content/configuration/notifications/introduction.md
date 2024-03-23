@@ -5,9 +5,6 @@ summary: "Authelia sends messages to users in order to verify their identity. Th
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  configuration:
-    parent: "notifications"
 weight: 108100
 toc: true
 seo:

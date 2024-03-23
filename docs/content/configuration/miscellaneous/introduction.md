@@ -5,9 +5,6 @@ summary: "Authelia has a few config items that don't fit into their own area. Th
 date: 2020-02-29T01:43:59+01:00
 draft: false
 images: []
-menu:
-  configuration:
-    parent: "miscellaneous"
 weight: 199100
 toc: true
 aliases:

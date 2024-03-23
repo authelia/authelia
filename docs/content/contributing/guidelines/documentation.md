@@ -5,9 +5,6 @@ summary: "This section covers the guidelines we use when writing documentation."
 date: 2022-10-02T14:32:16+11:00
 draft: false
 images: []
-menu:
-  contributing:
-    parent: "guidelines"
 weight: 320
 toc: true
 seo:

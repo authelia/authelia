@@ -5,9 +5,6 @@ summary: "An introduction into contributing to the Authelia project."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  contributing:
-    parent: "prologue"
 weight: 110
 toc: true
 aliases:

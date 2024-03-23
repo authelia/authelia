@@ -5,9 +5,6 @@ summary: "A guide to using the Authelia helm chart to integrate Authelia with Ku
 date: 2022-06-22T22:58:23+10:00
 draft: false
 images: []
-menu:
-  integration:
-    parent: "kubernetes"
 weight: 520
 toc: true
 seo:

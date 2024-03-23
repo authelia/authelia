@@ -5,9 +5,6 @@ summary: "This guide highlights information about Authelia's branding assets."
 date: 2022-06-20T10:05:55+10:00
 draft: false
 images: []
-menu:
-  reference:
-    parent: "guides"
 weight: 220
 toc: true
 seo:

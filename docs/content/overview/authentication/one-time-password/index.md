@@ -5,9 +5,6 @@ summary: "Authelia utilizes Time-based One-Time Passwords as one of it's second 
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  overview:
-    parent: "authentication"
 weight: 230
 toc: true
 aliases:

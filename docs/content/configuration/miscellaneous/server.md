@@ -5,9 +5,6 @@ summary: "Authelia runs an internal web server. This section describes how to co
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  configuration:
-    parent: "miscellaneous"
 weight: 199200
 toc: true
 aliases:

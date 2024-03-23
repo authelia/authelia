@@ -5,9 +5,6 @@ summary: "This section covers the database schema guidelines we use for developm
 date: 2022-11-19T16:47:09+11:00
 draft: false
 images: []
-menu:
-  contributing:
-    parent: "guidelines"
 weight: 320
 toc: true
 aliases: []
