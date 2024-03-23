@@ -5,9 +5,6 @@ summary: "An overview introduction into Authelia's security features."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  overview:
-    parent: "security"
 weight: 410
 toc: false
 aliases:

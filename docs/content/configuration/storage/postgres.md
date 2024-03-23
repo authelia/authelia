@@ -5,9 +5,6 @@ summary: "The PostgreSQL storage provider."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  configuration:
-    parent: "storage"
 weight: 107400
 toc: true
 aliases:

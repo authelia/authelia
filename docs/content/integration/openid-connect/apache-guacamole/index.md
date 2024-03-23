@@ -5,9 +5,6 @@ summary: ""
 date: 2022-07-31T13:09:05+10:00
 draft: false
 images: []
-menu:
-integration:
-parent: "openid-connect"
 weight: 620
 toc: true
 community: true

@@ -5,9 +5,6 @@ summary: "This section contains reference documentation for Authelia's templatin
 date: 2022-12-23T21:58:54+11:00
 draft: false
 images: []
-menu:
-  reference:
-    parent: "guides"
 weight: 220
 toc: true
 seo:

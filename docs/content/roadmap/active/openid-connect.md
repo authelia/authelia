@@ -5,9 +5,6 @@ summary: "The OpenID Connect 1.0 Provider role is a very useful but complex feat
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  roadmap:
-    parent: "active"
 weight: 221
 toc: true
 aliases:

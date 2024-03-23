@@ -5,9 +5,6 @@ summary: "Authelia checks the system time is in sync with an NTP server. This se
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  configuration:
-    parent: "miscellaneous"
 weight: 199300
 toc: true
 aliases:

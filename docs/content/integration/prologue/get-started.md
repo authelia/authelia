@@ -5,9 +5,6 @@ summary: "This document serves as a get started guide for Authelia. It contains 
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  integration:
-    parent: "prologue"
 weight: 120
 toc: true
 seo:

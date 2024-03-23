@@ -5,9 +5,6 @@ summary: "The MySQL storage provider which supports both MySQL and MariaDB."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  configuration:
-    parent: "storage"
 weight: 107600
 toc: true
 aliases:

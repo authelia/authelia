@@ -5,9 +5,6 @@ summary: "A guide to integrating Authelia with the Traefik Kubernetes Ingress."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  integration:
-    parent: "kubernetes"
 weight: 550
 toc: true
 seo:

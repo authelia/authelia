@@ -5,9 +5,6 @@ summary: "WebAuthn is the modern browser security key specification that Autheli
 date: 2022-03-03T22:20:43+11:00
 draft: false
 images: []
-menu:
-  configuration:
-    parent: "second-factor"
 weight: 103400
 toc: true
 aliases:

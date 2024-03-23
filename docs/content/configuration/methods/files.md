@@ -5,9 +5,6 @@ summary: "Authelia can be configured via files. This section describes utilizing
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  configuration:
-    parent: "methods"
 weight: 101200
 toc: true
 seo:

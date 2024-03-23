@@ -7,10 +7,6 @@ draft: false
 images: []
 sidebar:
   collapsed: true
-menu:
-  reference:
-    parent: "cli"
-    identifier: "cli-authelia"
 weight: 900
 toc: true
 seo:

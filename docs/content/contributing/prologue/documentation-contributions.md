@@ -5,9 +5,6 @@ summary: "Authelia has great documentation however there are always things that 
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  contributing:
-    parent: "prologue"
 weight: 130
 toc: true
 alias:
@@ -66,9 +63,6 @@ description: "This is a description of the page."
 summary: "This is a page lead."
 date: 2022-03-19T04:53:05+00:00
 draft: false
-menu:
-  development:
-    parent: "prologue"
 weight: 100
 toc: true
 ---

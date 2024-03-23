@@ -5,9 +5,6 @@ summary: "An introduction into integrating the Authelia OpenID Connect 1.0 Provi
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  integration:
-    parent: "openid-connect"
 weight: 610
 toc: true
 aliases:

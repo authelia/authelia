@@ -5,9 +5,6 @@ summary: "Authelia implements a password policy feature."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  overview:
-    parent: "authentication"
 weight: 260
 toc: true
 aliases:

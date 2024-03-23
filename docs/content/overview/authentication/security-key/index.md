@@ -5,9 +5,6 @@ summary: "Authelia utilizes WebAuthn security keys as one of it's second factor 
 date: 2020-02-29T01:43:59+01:00
 draft: false
 images: []
-menu:
-  overview:
-    parent: "authentication"
 weight: 240
 toc: true
 aliases:
