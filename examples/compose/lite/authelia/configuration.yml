@@ -3,9 +3,6 @@
 #                   Authelia configuration                    #
 ###############################################################
 
-
-default_redirection_url: 'https://public.example.com'
-
 server:
   address: 'tcp://:9091'
 
@@ -42,36 +39,36 @@ access_control:
 
 session:
   # This secret can also be set using the env variables AUTHELIA_SESSION_SECRET_FILE
-  secret: 'unsecure_session_secret'
+  secret: 'insecure_session_secret'
 
   cookies:
     - name: 'authelia_session'
       domain: 'example.com'  # Should match whatever your root protected domain is
-      expiration: 3600  # 1 hour
-      inactivity: 300  # 5 minutes
+      authelia_url: 'https://authelia.example.com'
+      expiration: '1 hour'
+      inactivity: '5 minutes'
 
   redis:
-    host: redis
+    host: 'redis'
     port: 6379
     # This secret can also be set using the env variables AUTHELIA_SESSION_REDIS_PASSWORD_FILE
     # password: authelia
 
 regulation:
   max_retries: 3
-  find_time: 120
-  ban_time: 300
+  find_time: '2 minutes'
+  ban_time: '5 minutes'
 
 storage:
-  encryption_key: you_must_generate_a_random_string_of_more_than_twenty_chars_and_configure_this
+  encryption_key: 'you_must_generate_a_random_string_of_more_than_twenty_chars_and_configure_this'
   local:
-    path: /config/db.sqlite3
+    path: '/config/db.sqlite3'
 
 notifier:
   smtp:
-    username: test
+    username: 'test'
     # This secret can also be set using the env variables AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE
-    password: password
-    host: mail.example.com
-    port: 25
-    sender: admin@example.com
+    password: 'password'
+    address: 'smtp://mail.exmaple.com:25'
+    sender: 'admin@example.com'
 ...
