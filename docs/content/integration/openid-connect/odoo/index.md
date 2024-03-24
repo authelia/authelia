@@ -76,7 +76,7 @@ To configure [Odoo] to utilize Authelia as an [OpenID Connect 1.0] Provider:
  * Authorization URL : https://auth.example.com/api/oidc/authorization
  * Scope : openid profile email
  * UserInfo URL : https://auth.example.com/api/oidc/userinfo
- * Data Endpoint : https://auth.example.com/api/oidc/jwks.json
+ * Data Endpoint : https://auth.example.com/jwks.json
 3. If you want your Authelia user to have a guest access on Odoo, you need to enable it in General Settings/Permissions/Customer Account/Free sign up
 4. If you want to allow an already existing user in Odoo to use its Authelia login:
  * Ask the user to reset its password
