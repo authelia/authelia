@@ -68,7 +68,7 @@ identity_providers:
 To configure [Odoo] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 1. Enable OAuth in General Settings/Integrations, save and reload.
-2. Create a new OAuth Provider in General Settings/Integrations/OAuth Providers, with the following setings:
+2. Create a new OAuth Provider in General Settings/Integrations/OAuth Providers, with the following settings:
  * Provider name : Authelia
  * Client ID : client_id_odoo
  * Allowed : checked
