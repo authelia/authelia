@@ -28,7 +28,13 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		err       error
 	)
 
-	if requester, err = ctx.Providers.OpenIDConnect.NewAuthorizeRequest(ctx, r); err != nil {
+	requester, err = ctx.Providers.OpenIDConnect.NewAuthorizeRequest(ctx, r)
+
+	if requester != nil && requester.GetResponseMode() == oidc.ResponseModeFormPost {
+		ctx.SetUserValue(middlewares.UserValueKeyOpenIDConnectResponseModeFormPost, true)
+	}
+
+	if err != nil {
 		ctx.Logger.Errorf("Authorization Request failed with error: %s", oauthelia2.ErrorToDebugRFC6749Error(err))
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
@@ -115,10 +121,6 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotSave)
 
 		return
-	}
-
-	if requester.GetResponseMode() == oidc.ResponseModeFormPost {
-		ctx.SetUserValue(middlewares.UserValueKeyOpenIDConnectResponseModeFormPost, true)
 	}
 
 	responder.GetParameters().Set(oidc.FormParameterIssuer, issuer.String())
