@@ -297,8 +297,8 @@ github.com/ory/go-acc v0.2.9-0.20230103102148-6b1c9a70dbbe h1:rvu4obdvqR0fkSIJ8I
 github.com/ory/go-acc v0.2.9-0.20230103102148-6b1c9a70dbbe/go.mod h1:z4n3u6as84LbV4YmgjHhnwtccQqzf4cZlSk9f1FhygI=
 github.com/ory/herodot v0.10.3-0.20230807143059-27cd6936499b h1:AEUyF55UrqTuhJh72I9azACdJrRrDBBjK/XWgVxuQvY=
 github.com/ory/herodot v0.10.3-0.20230807143059-27cd6936499b/go.mod h1:MMNmY6MG1uB6fnXYFaHoqdV23DTWctlPsmRCeq/2+wc=
-github.com/ory/x v0.0.622 h1:iDv2JdAV6LgevR8O3+6h5RcrEgPvficNZFsaWsRL5WA=
-github.com/ory/x v0.0.622/go.mod h1:CUw8/O3X8lUMheyV0iH+6LQ0tePrH+FBsW39MccCHgw=
+github.com/ory/x v0.0.623 h1:sFJiw2i/itTkBRJbhGXtrso9NcdscnjFlHBFitCzf8A=
+github.com/ory/x v0.0.623/go.mod h1:CUw8/O3X8lUMheyV0iH+6LQ0tePrH+FBsW39MccCHgw=
 github.com/otiai10/copy v1.14.0 h1:dCI/t1iTdYGtkvCuBG2BgR6KZa83PTclw4U5n2wAllU=
 github.com/otiai10/copy v1.14.0/go.mod h1:ECfuL02W+/FkTWZWgQqXPWZgW9oeKCSQ5qVfSc4qc4w=
 github.com/otiai10/mint v1.5.1 h1:XaPLeE+9vGbuyEHem1JNk3bYc7KKqyI/na0/mLd/Kks=
