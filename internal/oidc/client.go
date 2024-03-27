@@ -25,6 +25,7 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		Audience:      config.Audience,
 		Scopes:        config.Scopes,
 		RedirectURIs:  config.RedirectURIs,
+		RequestURIs:   config.RequestURIs,
 		GrantTypes:    config.GrantTypes,
 		ResponseTypes: config.ResponseTypes,
 		ResponseModes: []oauthelia2.ResponseModeType{},

@@ -5,9 +5,6 @@ summary: "This section contains a cache integration reference guide for Authelia
 date: 2022-12-09T18:24:02+11:00
 draft: false
 images: []
-menu:
-  reference:
-    parent: "integrations"
 weight: 320
 toc: true
 seo:

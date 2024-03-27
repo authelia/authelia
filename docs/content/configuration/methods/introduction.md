@@ -5,9 +5,6 @@ summary: "Authelia has a layered configuration model. This section describes how
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  configuration:
-    parent: "methods"
 weight: 101100
 toc: true
 seo:

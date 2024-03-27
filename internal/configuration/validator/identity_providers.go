@@ -464,6 +464,7 @@ func validateOIDCClient(c int, config *schema.IdentityProvidersOpenIDConnect, va
 	validateOIDCClientResponseModes(c, config, validator, setDefaults, errDeprecatedFunc)
 	validateOIDCClientGrantTypes(c, config, validator, setDefaults, errDeprecatedFunc)
 	validateOIDCClientRedirectURIs(c, config, validator, errDeprecatedFunc)
+	validateOIDCClientRequestURIs(c, config, validator)
 
 	validateOIDDClientSigningAlgs(c, config, validator)
 
@@ -926,6 +927,32 @@ func validateOIDCClientRedirectURIs(c int, config *schema.IdentityProvidersOpenI
 		errDeprecatedFunc()
 
 		validator.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, attrOIDCRedirectURIs, strJoinAnd(duplicates)))
+	}
+}
+
+func validateOIDCClientRequestURIs(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+	var (
+		parsedRequestURI *url.URL
+		err              error
+	)
+
+	for _, requestURI := range config.Clients[c].RequestURIs {
+		if parsedRequestURI, err = url.Parse(requestURI); err != nil {
+			validator.Push(fmt.Errorf(errFmtOIDCClientRequestURICantBeParsed, config.Clients[c].ID, requestURI, err))
+			continue
+		}
+
+		if !parsedRequestURI.IsAbs() {
+			validator.Push(fmt.Errorf(errFmtOIDCClientRequestURINotAbsolute, config.Clients[c].ID, requestURI))
+		} else if parsedRequestURI.Scheme != schemeHTTPS {
+			validator.Push(fmt.Errorf(errFmtOIDCClientRequestURIInvalidScheme, config.Clients[c].ID, requestURI, parsedRequestURI.Scheme))
+		}
+	}
+
+	_, duplicates := validateList(config.Clients[c].RequestURIs, nil, true)
+
+	if len(duplicates) != 0 {
+		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidEntryDuplicates, config.Clients[c].ID, attrOIDCRequestURIs, strJoinAnd(duplicates)))
 	}
 }
 

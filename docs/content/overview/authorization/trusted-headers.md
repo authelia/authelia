@@ -5,9 +5,6 @@ summary: "Trusted Headers is a simple header authorization framework supported b
 date: 2022-11-27T16:07:08+11:00
 draft: false
 images: []
-menu:
-  overview:
-    parent: "authorization"
 weight: 340
 toc: false
 seo:

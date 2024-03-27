@@ -154,6 +154,9 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 				SigningAlgRSAPSSUsingSHA512,
 				SigningAlgNone,
 			},
+			RequestParameterSupported:     true,
+			RequestURIParameterSupported:  true,
+			RequireRequestURIRegistration: true,
 		},
 		OpenIDConnectPromptCreateDiscoveryOptions: &OpenIDConnectPromptCreateDiscoveryOptions{
 			PromptValuesSupported: []string{

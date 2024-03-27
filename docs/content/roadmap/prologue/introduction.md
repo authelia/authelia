@@ -5,9 +5,6 @@ summary: "An introduction into the Authelia roadmap."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  roadmap:
-    parent: "prologue"
 weight: 110
 toc: true
 aliases:
@@ -24,6 +21,12 @@ and we define our priorities based on a roadmap that we share here for transpare
 improvements as much as possible with the maintenance tasks we have to perform to keep the backlog of open issues in a
 reasonable state. If you're willing to contribute and help us move forward faster, get in touch with us on Matrix. We'll
 be glad to share ideas and plans with you.
+
+{{< callout context="danger" title="Important Notes" icon="alert-octagon" >}}
+It's important to note that the versions listed on a roadmap item unless noted as completed are an intended estimation.
+Plans may change and we may potentially forget to update the version. If you feel we've forgotten please feel free to
+let us know via a GitHub Discussion or one of the Chat options.
+{{< /callout >}}
 
 ## Summary
 

@@ -5,9 +5,6 @@ summary: "The Authelia team is small and all of the maintainers spend their free
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  contributing:
-    parent: "prologue"
 weight: 120
 toc: true
 seo:

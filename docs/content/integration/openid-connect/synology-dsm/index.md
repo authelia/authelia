@@ -5,9 +5,6 @@ summary: ""
 date: 2022-10-18T21:22:13+11:00
 draft: false
 images: []
-menu:
-integration:
-parent: "openid-connect"
 weight: 620
 toc: true
 community: true
@@ -70,6 +67,7 @@ identity_providers:
           - 'groups'
           - 'email'
         userinfo_signed_response_alg: 'none'
+        token_endpoint_auth_method: client_secret_post
 ```
 
 ### Application

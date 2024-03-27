@@ -5,9 +5,6 @@ summary: "An introduction into guidelines for contributing to the Authelia proje
 date: 2022-10-02T14:32:16+11:00
 draft: false
 images: []
-menu:
-  contributing:
-    parent: "guidelines"
 weight: 310
 toc: true
 seo:
