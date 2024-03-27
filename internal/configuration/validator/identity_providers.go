@@ -581,36 +581,30 @@ func validateOIDCClientSectorIdentifier(c int, config *schema.IdentityProvidersO
 		return
 	}
 
-	if utils.IsURLHostComponent(config.Clients[c].SectorIdentifierURI) || utils.IsURLHostComponentWithPort(config.Clients[c].SectorIdentifierURI) {
+	if config.Clients[c].SectorIdentifierURI.String() == "" {
+		config.Clients[c].SectorIdentifierURI = nil
+
 		return
 	}
 
-	if config.Clients[c].SectorIdentifierURI.Scheme != "" {
-		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String(), config.Clients[c].SectorIdentifierURI.Host, "scheme", config.Clients[c].SectorIdentifierURI.Scheme))
+	if !config.Clients[c].SectorIdentifierURI.IsAbs() {
+		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifierAbsolute, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String()))
+	} else if config.Clients[c].SectorIdentifierURI.Scheme != schemeHTTPS {
+		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifierScheme, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String(), config.Clients[c].SectorIdentifierURI.Scheme))
+	}
 
-		if config.Clients[c].SectorIdentifierURI.Path != "" {
-			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String(), config.Clients[c].SectorIdentifierURI.Host, "path", config.Clients[c].SectorIdentifierURI.Path))
+	if config.Clients[c].SectorIdentifierURI.Fragment != "" {
+		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String(), "fragment", "fragment", config.Clients[c].SectorIdentifierURI.Fragment))
+	}
+
+	if config.Clients[c].SectorIdentifierURI.User != nil {
+		if config.Clients[c].SectorIdentifierURI.User.Username() != "" {
+			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String(), "username", "username", config.Clients[c].SectorIdentifierURI.User.Username()))
 		}
 
-		if config.Clients[c].SectorIdentifierURI.RawQuery != "" {
-			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String(), config.Clients[c].SectorIdentifierURI.Host, "query", config.Clients[c].SectorIdentifierURI.RawQuery))
+		if password, set := config.Clients[c].SectorIdentifierURI.User.Password(); set {
+			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String(), "password", "password", password))
 		}
-
-		if config.Clients[c].SectorIdentifierURI.Fragment != "" {
-			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String(), config.Clients[c].SectorIdentifierURI.Host, "fragment", config.Clients[c].SectorIdentifierURI.Fragment))
-		}
-
-		if config.Clients[c].SectorIdentifierURI.User != nil {
-			if config.Clients[c].SectorIdentifierURI.User.Username() != "" {
-				validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String(), config.Clients[c].SectorIdentifierURI.Host, "username", config.Clients[c].SectorIdentifierURI.User.Username()))
-			}
-
-			if _, set := config.Clients[c].SectorIdentifierURI.User.Password(); set {
-				validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifierWithoutValue, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String(), config.Clients[c].SectorIdentifierURI.Host, "password"))
-			}
-		}
-	} else if config.Clients[c].SectorIdentifierURI.Host == "" {
-		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifierHost, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String()))
 	}
 }
 

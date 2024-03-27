@@ -1371,6 +1371,7 @@ notifier:
         ## necessary. Read the documentation for more information.
         ## The subject identifier must be the host component of a URL, which is a domain name with an optional port. It
         ## must return a JSON document which contains an array of every 'redirect_uris' value of each client using it.
+        ## It's important to note that we do not validate the JSON document right not but will be in the future.
         # sector_identifier_uri: 'https://example.com/sector.json'
 
         ## Sets the client to public. This should typically not be set, please see the documentation for usage.

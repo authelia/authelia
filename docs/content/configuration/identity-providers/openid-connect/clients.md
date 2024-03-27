@@ -155,8 +155,8 @@ the specified client, changing this should cause the relying party to detect all
 users.*
 
 *__Important Note:__ This **must** either not be configured at all i.e. commented or completely absent from the
-configuration, or it must be an absolute HTTPS URL which contains a valid sector identifier JSON document. An empty
-string is not a valid configuration.*
+configuration, or it must be an absolute HTTPS URL which contains a valid sector identifier JSON document. The JSON
+document is NOT validated at this stage but will be in the future.*
 
 Authelia utilizes UUID version 4 subject identifiers. By default the public [Subject Identifier Type] is utilized for
 all clients. This means the subject identifiers will be the same for all clients. This configuration option enables
@@ -166,10 +166,10 @@ the lookup of the subject identifier.
 1. All clients who do not have this configured will generate the same subject identifier for a particular user
    regardless of which client obtains the ID token.
 2. All clients which have the same sector identifier will:
-   1. have the same subject identifier for a particular user when compared to clients with the same sector identifier.
-   2. have a completely different subject identifier for a particular user whe compared to:
-      1. any client with the public subject identifier type.
-      2. any client with a differing sector identifier.
+   1. Have the same subject identifier for a particular user when compared to clients with the same sector identifier.
+   2. Have a completely different subject identifier for a particular user whe compared to:
+      1. Any client with the public subject identifier type.
+      2. Any client with a differing `sector_identifier_uri`.
 
 In specific but limited scenarios this option is beneficial for privacy reasons. In particular this is useful when the
 party utilizing the *Authelia* [OpenID Connect 1.0] Authorization Server is foreign and not controlled by the user. It would
