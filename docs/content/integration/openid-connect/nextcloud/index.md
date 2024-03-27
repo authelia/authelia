@@ -67,6 +67,8 @@ identity_providers:
           - 'email'
           - 'groups'
         userinfo_signed_response_alg: 'none'
+        require_pkce: true
+        pkce_challenge_method: 'S256'
 ```
 
 ### Application
@@ -109,6 +111,7 @@ $CONFIG = array (
     'oidc_login_min_time_between_jwks_requests' => 10,
     'oidc_login_well_known_caching_time' => 86400,
     'oidc_login_update_avatar' => false,
+    'oidc_login_code_challenge_method' => 'S256'
 );
 ```
 
