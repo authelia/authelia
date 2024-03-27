@@ -267,12 +267,12 @@ const (
 		"'token_endpoint_auth_signing_alg' is required when option 'token_endpoint_auth_method' is configured to 'private_key_jwt'"
 	errFmtOIDCClientInvalidPublicKeysPrivateKeyJWT = errFmtOIDCClientOption +
 		"'jwks_uri' or 'jwks' is required with 'token_endpoint_auth_method' set to 'private_key_jwt'"
+	errFmtOIDCClientInvalidSectorIdentifierAbsolute = errFmtOIDCClientOption +
+		"'sector_identifier_uri' with value '%s': must be an absolute URI"
+	errFmtOIDCClientInvalidSectorIdentifierScheme = errFmtOIDCClientOption +
+		"'sector_identifier_uri' with value '%s': must have the 'https' scheme but has the '%s' scheme"
 	errFmtOIDCClientInvalidSectorIdentifier = errFmtOIDCClientOption +
-		"'sector_identifier_uri' with value '%s': must be a URL with only the host component for example '%s' but it has a %s with the value '%s'"
-	errFmtOIDCClientInvalidSectorIdentifierWithoutValue = errFmtOIDCClientOption +
-		"'sector_identifier_uri' with value '%s': must be a URL with only the host component for example '%s' but it has a %s"
-	errFmtOIDCClientInvalidSectorIdentifierHost = errFmtOIDCClientOption +
-		"'sector_identifier_uri' with value '%s': must be a URL with only the host component but appears to be invalid"
+		"'sector_identifier_uri' with value '%s': must not have a %s but it has a %s with the value '%s'"
 	errFmtOIDCClientInvalidGrantTypeMatch = errFmtOIDCClientOption +
 		"'grant_types' should only have grant type values which are valid with the configured 'response_types' for the client but '%s' expects a response type %s such as %s but the response types are %s"
 	errFmtOIDCClientInvalidGrantTypeRefresh = errFmtOIDCClientOption +
