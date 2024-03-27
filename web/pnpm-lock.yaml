@@ -167,8 +167,8 @@ devDependencies:
     specifier: 4.6.0
     version: 4.6.0(eslint@8.57.0)
   happy-dom:
-    specifier: 14.3.8
-    version: 14.3.8
+    specifier: 14.3.9
+    version: 14.3.9
   husky:
     specifier: 9.0.11
     version: 9.0.11
@@ -198,7 +198,7 @@ devDependencies:
     version: 4.3.2(typescript@5.4.3)(vite@5.2.6)
   vitest:
     specifier: 1.4.0
-    version: 1.4.0(@types/node@20.11.30)(happy-dom@14.3.8)
+    version: 1.4.0(@types/node@20.11.30)(happy-dom@14.3.9)
   vitest-preview:
     specifier: 0.0.1
     version: 0.0.1
@@ -3047,7 +3047,7 @@ packages:
       dom-accessibility-api: 0.6.3
       lodash: 4.17.21
       redent: 3.0.0
-      vitest: 1.4.0(@types/node@20.11.30)(happy-dom@14.3.8)
+      vitest: 1.4.0(@types/node@20.11.30)(happy-dom@14.3.9)
     dev: true
 
   /@testing-library/react@14.2.2(react-dom@18.2.0)(react@18.2.0):
@@ -3381,7 +3381,7 @@ packages:
       magicast: 0.3.3
       picocolors: 1.0.0
       test-exclude: 6.0.0
-      vitest: 1.4.0(@types/node@20.11.30)(happy-dom@14.3.8)
+      vitest: 1.4.0(@types/node@20.11.30)(happy-dom@14.3.9)
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -5604,8 +5604,8 @@ packages:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
     dev: true
 
-  /happy-dom@14.3.8:
-    resolution: {integrity: sha512-jP7p/VQJ08lbIoCsw1Adna3RA86eE+2CNkqvJRWIhrKP7XKZ0e0s2TJSt5lwGS4b7x0z0Ztw0A9P4uQGMHPiiA==}
+  /happy-dom@14.3.9:
+    resolution: {integrity: sha512-0kPQchwthekcYpYN8CvCiq+/z5bqFYDLbTxZ+yDLwT8AFRVJDFadShHRxp3VAZRy7a5isOZ1j/LzsU1dtAIZMQ==}
     engines: {node: '>=16.0.0'}
     dependencies:
       entities: 4.5.0
@@ -8049,7 +8049,7 @@ packages:
       - terser
     dev: true
 
-  /vitest@1.4.0(@types/node@20.11.30)(happy-dom@14.3.8):
+  /vitest@1.4.0(@types/node@20.11.30)(happy-dom@14.3.9):
     resolution: {integrity: sha512-gujzn0g7fmwf83/WzrDTnncZt2UiXP41mHuFYFrdwaLRVQ6JYQEiME2IfEjU3vcFL3VKa75XhI3lFgn+hfVsQw==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
@@ -8084,7 +8084,7 @@ packages:
       chai: 4.3.10
       debug: 4.3.4
       execa: 8.0.1
-      happy-dom: 14.3.8
+      happy-dom: 14.3.9
       local-pkg: 0.5.0
       magic-string: 0.30.5
       pathe: 1.1.1
