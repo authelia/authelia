@@ -226,6 +226,15 @@ const (
 		"for the openid connect confidential client type"
 	errFmtOIDCClientRedirectURIAbsolute = errFmtOIDCClientRedirectURIHas +
 		"an invalid value: redirect uri '%s' must have a scheme but it's absent"
+
+	errFmtOIDCClientRequestURIHas          = errFmtOIDCClientOption + "'request_uris' has "
+	errFmtOIDCClientRequestURICantBeParsed = errFmtOIDCClientRequestURIHas +
+		"an invalid value: request uri '%s' could not be parsed: %v"
+	errFmtOIDCClientRequestURINotAbsolute = errFmtOIDCClientRequestURIHas +
+		"an invalid value: request uri '%s' must have a scheme but it's absent"
+	errFmtOIDCClientRequestURIInvalidScheme = errFmtOIDCClientRequestURIHas +
+		"an invalid scheme: scheme must be 'https' but request uri '%s' has a '%s' scheme"
+
 	errFmtOIDCClientInvalidConsentMode = "identity_providers: oidc: clients: client '%s': consent: option 'mode' must be one of " +
 		"%s but it's configured as '%s'"
 	errFmtOIDCClientInvalidEntries = errFmtOIDCClientOption + errFmtMustOnlyHaveValues +
@@ -512,6 +521,7 @@ const (
 	attrOIDCResponseModes         = "response_modes"
 	attrOIDCGrantTypes            = "grant_types"
 	attrOIDCRedirectURIs          = "redirect_uris"
+	attrOIDCRequestURIs           = "request_uris"
 	attrOIDCTokenAuthMethod       = "token_endpoint_auth_method"
 	attrOIDCDiscoSigAlg           = "discovery_signed_response_alg"
 	attrOIDCDiscoSigKID           = "discovery_signed_response_key_id"

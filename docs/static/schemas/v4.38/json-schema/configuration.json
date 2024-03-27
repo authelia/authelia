@@ -1205,9 +1205,14 @@
           "default": false
         },
         "redirect_uris": {
-          "$ref": "#/$defs/IdentityProvidersOpenIDConnectClientRedirectURIs",
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectClientURIs",
           "title": "Redirect URIs",
-          "description": "List of authorized redirect URIs."
+          "description": "List of whitelisted redirect URIs."
+        },
+        "request_uris": {
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectClientURIs",
+          "title": "Request URIs",
+          "description": "List of whitelisted request URIs."
         },
         "audience": {
           "items": {
@@ -1540,7 +1545,7 @@
       ],
       "description": "IdentityProvidersOpenIDConnectClient represents a configuration for an OpenID Connect 1.0 client."
     },
-    "IdentityProvidersOpenIDConnectClientRedirectURIs": {
+    "IdentityProvidersOpenIDConnectClientURIs": {
       "oneOf": [
         {
           "type": "string",
