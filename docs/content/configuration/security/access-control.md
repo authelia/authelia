@@ -5,9 +5,6 @@ summary: "Authelia supports a comprehensive access control system. This section 
 date: 2020-02-29T01:43:59+01:00
 draft: false
 images: []
-menu:
-  configuration:
-    parent: "security"
 weight: 104200
 toc: true
 aliases:

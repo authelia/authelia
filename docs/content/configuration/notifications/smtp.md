@@ -5,9 +5,6 @@ summary: "Authelia can send emails to users through an SMTP server. This section
 date: 2020-02-29T01:43:59+01:00
 draft: false
 images: []
-menu:
-  configuration:
-    parent: "notifications"
 weight: 108200
 toc: true
 aliases:

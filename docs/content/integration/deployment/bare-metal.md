@@ -5,9 +5,6 @@ summary: "Authelia can be deployed on Bare-Metal as long as it sits behind a pro
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  integration:
-    parent: "deployment"
 weight: 250
 toc: true
 seo:

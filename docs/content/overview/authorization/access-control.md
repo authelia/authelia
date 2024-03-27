@@ -5,9 +5,6 @@ summary: "Access Control is the main authorization system in Authelia."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  overview:
-    parent: "authorization"
 weight: 310
 toc: false
 aliases:

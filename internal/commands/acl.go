@@ -58,8 +58,8 @@ func newAccessControlCheckCommand(ctx *CmdCtx) (cmd *cobra.Command) {
 func (ctx *CmdCtx) AccessControlCheckRunE(cmd *cobra.Command, _ []string) (err error) {
 	validator.ValidateAccessControl(ctx.config, ctx.cconfig.validator)
 
-	if ctx.cconfig.validator.HasErrors() || ctx.cconfig.validator.HasWarnings() {
-		return errors.New("your configuration has errors")
+	if ctx.cconfig.validator.HasErrors() {
+		return errors.New("failed to execute command due to errors in the configuration")
 	}
 
 	authorizer := authorization.NewAuthorizer(ctx.config)

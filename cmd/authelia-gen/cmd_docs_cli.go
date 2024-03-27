@@ -100,7 +100,7 @@ func genCLIDocWriteIndex(path, name string) (err error) {
 
 	weight := genCLIDocCmdToWeight(name)
 
-	_, err = fmt.Fprintf(f, indexDocs, name, now.Format(dateFmtYAML), prefixCLI+name, weight)
+	_, err = fmt.Fprintf(f, indexDocs, name, now.Format(dateFmtYAML), weight)
 
 	return err
 }
@@ -112,8 +112,6 @@ func prepend(input string) string {
 
 	parts := strings.Split(filename, "_")
 
-	cmd := parts[0]
-
 	args := strings.Join(parts, " ")
 
 	weight := genCLIDocCmdToWeight(parts[0])
@@ -122,7 +120,7 @@ func prepend(input string) string {
 		weight += 5
 	}
 
-	return fmt.Sprintf(prefixDocs, args, fmt.Sprintf("Reference for the %s command.", args), "", now.Format(dateFmtYAML), prefixCLI+cmd, weight)
+	return fmt.Sprintf(prefixDocs, args, fmt.Sprintf("Reference for the %s command.", args), "", now.Format(dateFmtYAML), weight)
 }
 
 func genCLIDocCmdToWeight(cmd string) int {
@@ -151,10 +149,6 @@ draft: false
 images: []
 sidebar:
   collapsed: true
-menu:
-  reference:
-    parent: "cli"
-    identifier: "%s"
 weight: %d
 toc: true
 seo:
@@ -172,9 +166,6 @@ lead: "%s"
 date: %s
 draft: false
 images: []
-menu:
-  reference:
-    parent: "%s"
 weight: %d
 toc: true
 seo:

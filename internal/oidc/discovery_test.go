@@ -451,9 +451,9 @@ func TestNewOpenIDConnectWellKnownConfiguration_Copy(t *testing.T) {
 			DisplayValuesSupported:                    nil,
 			ClaimTypesSupported:                       nil,
 			ClaimLocalesSupported:                     nil,
-			RequestParameterSupported:                 false,
-			RequestURIParameterSupported:              false,
-			RequireRequestURIRegistration:             false,
+			RequestParameterSupported:                 true,
+			RequestURIParameterSupported:              true,
+			RequireRequestURIRegistration:             true,
 			ClaimsParameterSupported:                  false,
 		},
 		OpenIDConnectFrontChannelLogoutDiscoveryOptions: &oidc.OpenIDConnectFrontChannelLogoutDiscoveryOptions{

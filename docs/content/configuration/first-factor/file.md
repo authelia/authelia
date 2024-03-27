@@ -5,9 +5,6 @@ summary: "Authelia supports a file based first factor user provider. This sectio
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  configuration:
-    parent: "first-factor"
 weight: 102300
 toc: true
 aliases:

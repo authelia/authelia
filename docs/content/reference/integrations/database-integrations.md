@@ -5,9 +5,6 @@ summary: "This section contains a database integration reference guide for Authe
 date: 2022-11-19T16:47:09+11:00
 draft: false
 images: []
-menu:
-  reference:
-    parent: "integrations"
 weight: 320
 toc: true
 seo:

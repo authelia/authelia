@@ -5,9 +5,6 @@ summary: "Configuring the SQL Storage."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  configuration:
-    parent: "storage"
 weight: 107100
 toc: true
 aliases:

@@ -5,9 +5,6 @@ summary: "An introduction into the Authelia roadmap."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  roadmap:
-    parent: "active"
 weight: 220
 toc: true
 aliases:
@@ -42,7 +39,6 @@ Implement [WebAuthn] as a replacement for [FIDO U2F] with backwards compatibilit
 |           [User Verification Requirement]            |   preferred    |                           Configurable: ask the browser to prompt for the users PIN or other verification                            |
 |              [Resident Key Requirement]              |  discouraged   |                                       See the [passwordless login stage](#passwordless-login)                                        |
 |              [Authenticator Attachment]              | cross-platform |                                   See the [platform authenticator stage](#platform-authenticator)                                    |
-|              Multi-Device Registration               |  unavailable   |                                see the [multi device registration stage](#multi-device-registration)                                 |
 
 ### Multi Device Registration
 

@@ -5,9 +5,6 @@ summary: "This section contains a Time-based OTP Application integration referen
 date: 2023-05-07T17:52:47+10:00
 draft: false
 images: []
-menu:
-  reference:
-    parent: "integrations"
 weight: 320
 toc: true
 seo:
