@@ -365,7 +365,7 @@ func TestJSONSchema(t *testing.T) {
 		&AccessControlRuleMethods{},
 		&AccessControlRuleRegex{},
 		&AccessControlRuleSubjects{},
-		&IdentityProvidersOpenIDConnectClientRedirectURIs{},
+		&IdentityProvidersOpenIDConnectClientURIs{},
 	}
 
 	for _, tc := range testCases {

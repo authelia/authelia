@@ -323,6 +323,54 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			},
 		},
 		{
+			name: "RequestURINotValidURI",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-check-uri-parse",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RequestURIs: []string{
+						"http://abc@%two",
+					},
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-check-uri-parse': option 'request_uris' has an invalid value: request uri 'http://abc@%two' could not be parsed: parse \"http://abc@%two\": invalid URL escape \"%tw\"",
+			},
+		},
+		{
+			name: "RequestURINotAbsolute",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-check-uri-parse",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RequestURIs: []string{
+						exampleDotCom,
+					},
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-check-uri-parse': option 'request_uris' has an invalid value: request uri 'example.com' must have a scheme but it's absent",
+			},
+		},
+		{
+			name: "RequestURINotSecure",
+			clients: []schema.IdentityProvidersOpenIDConnectClient{
+				{
+					ID:                  "client-check-uri-parse",
+					Secret:              tOpenIDConnectPlainTextClientSecret,
+					AuthorizationPolicy: policyTwoFactor,
+					RequestURIs: []string{
+						"http://" + exampleDotCom,
+					},
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-check-uri-parse': option 'request_uris' has an invalid scheme: scheme must be 'https' but request uri 'http://example.com' has a 'http' scheme",
+			},
+		},
+		{
 			name: "ValidSectorIdentifier",
 			clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
@@ -1405,7 +1453,7 @@ func TestValidateOIDCClients(t *testing.T) {
 				}
 			},
 			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
-				assert.Equal(t, schema.IdentityProvidersOpenIDConnectClientRedirectURIs([]string{"https://google.com"}), have.Clients[0].RedirectURIs)
+				assert.Equal(t, schema.IdentityProvidersOpenIDConnectClientURIs([]string{"https://google.com"}), have.Clients[0].RedirectURIs)
 			},
 			tcv{
 				nil,
@@ -1432,7 +1480,7 @@ func TestValidateOIDCClients(t *testing.T) {
 				}
 			},
 			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
-				assert.Equal(t, schema.IdentityProvidersOpenIDConnectClientRedirectURIs([]string{oauth2InstalledApp}), have.Clients[0].RedirectURIs)
+				assert.Equal(t, schema.IdentityProvidersOpenIDConnectClientURIs([]string{oauth2InstalledApp}), have.Clients[0].RedirectURIs)
 			},
 			tcv{
 				nil,
@@ -1457,7 +1505,7 @@ func TestValidateOIDCClients(t *testing.T) {
 				}
 			},
 			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
-				assert.Equal(t, schema.IdentityProvidersOpenIDConnectClientRedirectURIs([]string{oauth2InstalledApp}), have.Clients[0].RedirectURIs)
+				assert.Equal(t, schema.IdentityProvidersOpenIDConnectClientURIs([]string{oauth2InstalledApp}), have.Clients[0].RedirectURIs)
 			},
 			tcv{
 				nil,
@@ -1484,7 +1532,7 @@ func TestValidateOIDCClients(t *testing.T) {
 				}
 			},
 			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
-				assert.Equal(t, schema.IdentityProvidersOpenIDConnectClientRedirectURIs([]string{"http://abc@%two"}), have.Clients[0].RedirectURIs)
+				assert.Equal(t, schema.IdentityProvidersOpenIDConnectClientURIs([]string{"http://abc@%two"}), have.Clients[0].RedirectURIs)
 			},
 			tcv{
 				nil,
@@ -1511,7 +1559,7 @@ func TestValidateOIDCClients(t *testing.T) {
 				}
 			},
 			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
-				assert.Equal(t, schema.IdentityProvidersOpenIDConnectClientRedirectURIs([]string{"google.com"}), have.Clients[0].RedirectURIs)
+				assert.Equal(t, schema.IdentityProvidersOpenIDConnectClientURIs([]string{"google.com"}), have.Clients[0].RedirectURIs)
 			},
 			tcv{
 				nil,
@@ -1539,7 +1587,7 @@ func TestValidateOIDCClients(t *testing.T) {
 				}
 			},
 			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
-				assert.Equal(t, schema.IdentityProvidersOpenIDConnectClientRedirectURIs([]string{"https://google.com", "https://google.com"}), have.Clients[0].RedirectURIs)
+				assert.Equal(t, schema.IdentityProvidersOpenIDConnectClientURIs([]string{"https://google.com", "https://google.com"}), have.Clients[0].RedirectURIs)
 			},
 			tcv{
 				nil,
