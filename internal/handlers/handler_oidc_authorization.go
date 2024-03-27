@@ -112,6 +112,8 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		return
 	}
 
+	_ = handleSessionValidateRefresh(ctx, &userSession, ctx.Configuration.AuthenticationBackend.RefreshInterval)
+
 	extraClaims := oidcGrantRequests(requester, consent, &userSession)
 
 	if authTime, err = userSession.AuthenticatedTime(client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()})); err != nil {
