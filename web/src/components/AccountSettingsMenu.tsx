@@ -101,7 +101,7 @@ const AccountSettingsMenu = function (props: Props) {
                 }}
                 transformOrigin={{ horizontal: "right", vertical: "top" }}
                 anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-            >   
+            >
                 <MenuItem onClick={handleAdminClick} id={"admin-settings"}>
                     <ListItemIcon>
                         <Settings fontSize="small" />
