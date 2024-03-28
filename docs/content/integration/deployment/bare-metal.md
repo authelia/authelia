@@ -59,6 +59,10 @@ $ nix-env -iA nixpkgs.authelia
 In addition to the [binaries](#binaries) we publish, [FreshPorts](https://www.freshports.org/www/authelia/) offer a
 package.
 
+We publish an [rc.d](https://docs.freebsd.org/en/articles/rc-scripting/) service script file:
+
+* {{< github-link path="authelia-fb-rc.d" >}}
+
 ## Binaries
 
 We publish binaries with our [releases] which can be installed on many operating systems.
