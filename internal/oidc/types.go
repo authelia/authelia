@@ -39,8 +39,20 @@ type OpenIDConnectProvider struct {
 // oauth2.RefreshTokenStorage, oauth2.TokenRevocationStorage, pkce.PKCERequestStorage,
 // openid.OpenIDConnectRequestStorage, and partially implements rfc7523.RFC7523KeyStorage.
 type Store struct {
+	ClientStore
+
 	provider storage.Provider
-	clients  map[string]Client
+}
+
+// ClientStore is an abstraction used for the Store struct which stores clients.
+type ClientStore interface {
+	// GetRegisteredClient returns a Client matching the provided id.
+	GetRegisteredClient(ctx context.Context, id string) (client Client, err error)
+}
+
+// MemoryClientStore is an implementation of the ClientStore which just stores the clients in memory.
+type MemoryClientStore struct {
+	clients map[string]Client
 }
 
 // RegisteredClient represents a registered client.

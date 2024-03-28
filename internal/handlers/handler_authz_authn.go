@@ -536,7 +536,7 @@ func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provid
 		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("introspection returned an invalid session type")
 	}
 
-	if client, err = provider.GetFullClient(ctx, osession.ClientID); err != nil || client == nil {
+	if client, err = provider.GetRegisteredClient(ctx, osession.ClientID); err != nil || client == nil {
 		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("client id '%s' is not registered", osession.ClientID)
 	}
 
