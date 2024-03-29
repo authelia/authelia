@@ -109,7 +109,7 @@ func (s *CookieSessionAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, provider 
 		}
 	}
 
-	if invalid := handleVerifyGETAuthnCookieValidate(ctx, provider, &userSession, s.refresh); invalid {
+	if invalid := handleAuthnCookieValidate(ctx, provider, &userSession, s.refresh); invalid {
 		if err = ctx.DestroySession(); err != nil {
 			ctx.Logger.WithError(err).Errorf("Unable to destroy user session")
 		}
@@ -380,7 +380,7 @@ func (s *HeaderLegacyAuthnStrategy) HandleUnauthorized(ctx *middlewares.Authelia
 	handleAuthzUnauthorizedAuthorizationBasic(ctx, authn)
 }
 
-func handleVerifyGETAuthnCookieValidate(ctx *middlewares.AutheliaCtx, provider *session.Session, userSession *session.UserSession, refresh schema.RefreshIntervalDuration) (invalid bool) {
+func handleAuthnCookieValidate(ctx *middlewares.AutheliaCtx, provider *session.Session, userSession *session.UserSession, refresh schema.RefreshIntervalDuration) (invalid bool) {
 	isAnonymous := userSession.Username == ""
 
 	if isAnonymous && userSession.AuthenticationLevel != authentication.NotAuthenticated {
@@ -389,13 +389,13 @@ func handleVerifyGETAuthnCookieValidate(ctx *middlewares.AutheliaCtx, provider *
 		return true
 	}
 
-	if invalid = handleVerifyGETAuthnCookieValidateInactivity(ctx, provider, userSession, isAnonymous); invalid {
+	if invalid = handleAuthnCookieValidateInactivity(ctx, provider, userSession, isAnonymous); invalid {
 		ctx.Logger.WithField("username", userSession.Username).Info("Session for user not marked as remembered has exceeded configured session inactivity")
 
 		return true
 	}
 
-	if invalid = handleVerifyGETAuthnCookieValidateRefresh(ctx, userSession, isAnonymous, refresh); invalid {
+	if invalid = handleSessionValidateRefresh(ctx, userSession, refresh); invalid {
 		return true
 	}
 
@@ -412,7 +412,7 @@ func handleVerifyGETAuthnCookieValidate(ctx *middlewares.AutheliaCtx, provider *
 	return false
 }
 
-func handleVerifyGETAuthnCookieValidateInactivity(ctx *middlewares.AutheliaCtx, provider *session.Session, userSession *session.UserSession, isAnonymous bool) (invalid bool) {
+func handleAuthnCookieValidateInactivity(ctx *middlewares.AutheliaCtx, provider *session.Session, userSession *session.UserSession, isAnonymous bool) (invalid bool) {
 	if isAnonymous || userSession.KeepMeLoggedIn || int64(provider.Config.Inactivity.Seconds()) == 0 {
 		return false
 	}
@@ -422,8 +422,8 @@ func handleVerifyGETAuthnCookieValidateInactivity(ctx *middlewares.AutheliaCtx, 
 	return time.Unix(userSession.LastActivity, 0).Add(provider.Config.Inactivity).Before(ctx.Clock.Now())
 }
 
-func handleVerifyGETAuthnCookieValidateRefresh(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, isAnonymous bool, refresh schema.RefreshIntervalDuration) (invalid bool) {
-	if refresh.Never() || isAnonymous {
+func handleSessionValidateRefresh(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, refresh schema.RefreshIntervalDuration) (invalid bool) {
+	if refresh.Never() || userSession.IsAnonymous() {
 		return false
 	}
 

@@ -15,7 +15,6 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/oidc"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // OpenIDConnectUserinfo handles GET/POST requests to the OpenID Connect 1.0 UserInfo endpoint.
@@ -72,13 +71,15 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		return
 	}
 
-	var claims map[string]any
+	var (
+		original map[string]any
+	)
 
 	switch session := requester.GetSession().(type) {
 	case *oidc.Session:
-		claims = session.IDTokenClaims().ToMap()
+		original = session.IDTokenClaims().ToMap()
 	case *oauth2.JWTSession:
-		claims = session.JWTClaims.ToMap()
+		original = session.JWTClaims.ToMap()
 	default:
 		ctx.Logger.Errorf("UserInfo Request with id '%s' on client with id '%s' failed to handle session with type '%T'", requestID, client.GetID(), session)
 
@@ -87,22 +88,9 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		return
 	}
 
-	delete(claims, oidc.ClaimJWTID)
-	delete(claims, oidc.ClaimSessionID)
-	delete(claims, oidc.ClaimAccessTokenHash)
-	delete(claims, oidc.ClaimCodeHash)
-	delete(claims, oidc.ClaimExpirationTime)
-	delete(claims, oidc.ClaimNonce)
+	claims := map[string]any{}
 
-	audience, ok := claims[oidc.ClaimAudience].([]string)
-
-	if !ok || len(audience) == 0 {
-		audience = []string{client.GetID()}
-	} else if !utils.IsStringInSlice(clientID, audience) {
-		audience = append(audience, clientID)
-	}
-
-	claims[oidc.ClaimAudience] = audience
+	oidcApplyUserInfoClaims(clientID, requester.GetGrantedScopes(), original, claims, oidcCtxDetailResolver(ctx))
 
 	var token string
 
