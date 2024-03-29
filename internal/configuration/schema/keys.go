@@ -40,6 +40,7 @@ var Keys = []string{
 	"identity_providers.oidc.clients[].sector_identifier_uri",
 	"identity_providers.oidc.clients[].public",
 	"identity_providers.oidc.clients[].redirect_uris",
+	"identity_providers.oidc.clients[].request_uris",
 	"identity_providers.oidc.clients[].audience",
 	"identity_providers.oidc.clients[].scopes",
 	"identity_providers.oidc.clients[].grant_types",

@@ -420,10 +420,6 @@ option).
 
 In addition to standard regex patterns this criteria can match some [Named Regex Groups](#named-regex-groups).
 
-*__Note:__ Prior to 4.27.0 the regular expressions only matched the path excluding the query parameters. After 4.27.0
-they match the entire path including the query parameters. When upgrading you may be required to alter some of your
-resource rules to get them to operate as they previously did.*
-
 It's important when configuring resource rules that you enclose them in quotes otherwise you may run into some issues
 with escaping the expressions. Failure to do so may prevent Authelia from starting. It's technically optional but will
 likely save you a lot of time if you do it for all resource rules.

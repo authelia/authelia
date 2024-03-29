@@ -1380,6 +1380,11 @@ notifier:
         # redirect_uris:
           # - 'https://oidc.example.com:8080/oauth2/callback'
 
+        ## Request URI's specifies a list of valid case-sensitive TLS-secured URIs for this client for use as
+        ## URIs to fetch Request Objects.
+        # request_uris:
+          # - 'https://oidc.example.com:8080/oidc/request-object.jwk'
+
         ## Audience this client is allowed to request.
         # audience: []
 

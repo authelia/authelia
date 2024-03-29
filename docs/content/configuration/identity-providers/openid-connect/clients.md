@@ -36,6 +36,8 @@ identity_providers:
         public: false
         redirect_uris:
           - 'https://oidc.example.com:8080/oauth2/callback'
+        request_uris:
+          - 'https://oidc.example.com:8080/oidc/request-object.jwk'
         audience:
           - 'https://app.example.com'
         scopes:
@@ -200,6 +202,15 @@ their redirect URIs are as follows:
    attempt to authorize will fail and an error will be generated.
 2. The redirect URIs are case-sensitive.
 3. The URI must include a scheme and that scheme must be one of `http` or `https`.
+
+### request_uris
+
+{{< confkey type="list(string)" required="no" >}}
+
+A list of URIs which can be used for the OpenID Connect 1.0 Request Object to pass Authorize Request parameters via a
+JSON Web Token remote URI using the `request_uri` parameter.
+
+These URIs must have the `https` scheme.
 
 ### audience
 

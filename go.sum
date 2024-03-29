@@ -1,5 +1,5 @@
-authelia.com/provider/oauth2 v0.1.2 h1:nC8uV7vDh5qbyz56Jts7kxcHfx3jRdKKG+kyGugsLmU=
-authelia.com/provider/oauth2 v0.1.2/go.mod h1:NDritA+Ls5jTa5+t3CSQy58f/QPDofR53IKP8rRHJ8M=
+authelia.com/provider/oauth2 v0.1.3 h1:xf+UqyismJGmCXWEtWI8o/XO/yXYKzithLHGGm9EvcA=
+authelia.com/provider/oauth2 v0.1.3/go.mod h1:NDritA+Ls5jTa5+t3CSQy58f/QPDofR53IKP8rRHJ8M=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.38.0/go.mod h1:990N+gfupTy94rShfmMCWGDn0LpTmnzTp2qbd1dvSRU=
@@ -297,8 +297,8 @@ github.com/ory/go-acc v0.2.9-0.20230103102148-6b1c9a70dbbe h1:rvu4obdvqR0fkSIJ8I
 github.com/ory/go-acc v0.2.9-0.20230103102148-6b1c9a70dbbe/go.mod h1:z4n3u6as84LbV4YmgjHhnwtccQqzf4cZlSk9f1FhygI=
 github.com/ory/herodot v0.10.3-0.20230807143059-27cd6936499b h1:AEUyF55UrqTuhJh72I9azACdJrRrDBBjK/XWgVxuQvY=
 github.com/ory/herodot v0.10.3-0.20230807143059-27cd6936499b/go.mod h1:MMNmY6MG1uB6fnXYFaHoqdV23DTWctlPsmRCeq/2+wc=
-github.com/ory/x v0.0.623 h1:sFJiw2i/itTkBRJbhGXtrso9NcdscnjFlHBFitCzf8A=
-github.com/ory/x v0.0.623/go.mod h1:CUw8/O3X8lUMheyV0iH+6LQ0tePrH+FBsW39MccCHgw=
+github.com/ory/x v0.0.625 h1:h5deEshvMxCpKHwvdG8zQpUDfVOlhKaAGjERtDvMJXE=
+github.com/ory/x v0.0.625/go.mod h1:p0R85ebXzNsQO97cMFup2dXy5+L4e6xj2mr3aoj2r6E=
 github.com/otiai10/copy v1.14.0 h1:dCI/t1iTdYGtkvCuBG2BgR6KZa83PTclw4U5n2wAllU=
 github.com/otiai10/copy v1.14.0/go.mod h1:ECfuL02W+/FkTWZWgQqXPWZgW9oeKCSQ5qVfSc4qc4w=
 github.com/otiai10/mint v1.5.1 h1:XaPLeE+9vGbuyEHem1JNk3bYc7KKqyI/na0/mLd/Kks=
