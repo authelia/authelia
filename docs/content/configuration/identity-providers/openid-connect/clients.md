@@ -167,7 +167,7 @@ the lookup of the subject identifier.
    regardless of which client obtains the ID token.
 2. All clients which have the same sector identifier will:
    1. Have the same subject identifier for a particular user when compared to clients with the same sector identifier.
-   2. Have a completely different subject identifier for a particular user whe compared to:
+   2. Have a completely different subject identifier for a particular user when compared to:
       1. Any client with the public subject identifier type.
       2. Any client with a differing `sector_identifier_uri`.
 
