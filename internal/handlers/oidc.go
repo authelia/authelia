@@ -8,14 +8,13 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
-	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func oidcGrantRequests(ar oauthelia2.AuthorizeRequester, consent *model.OAuth2ConsentSession, userSession *session.UserSession) (extraClaims map[string]any) {
+func oidcGrantRequests(ar oauthelia2.AuthorizeRequester, consent *model.OAuth2ConsentSession, details oidc.UserDetailer) (extraClaims map[string]any) {
 	extraClaims = map[string]any{}
 
-	oidcApplyScopeClaims(extraClaims, consent.GrantedScopes, userSession)
+	oidcApplyScopeClaims(extraClaims, consent.GrantedScopes, details)
 
 	if ar != nil {
 		for _, scope := range consent.GrantedScopes {
