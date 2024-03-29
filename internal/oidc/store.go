@@ -20,11 +20,19 @@ import (
 
 // NewStore returns a Store when provided with a schema.OpenIDConnect and storage.Provider.
 func NewStore(config *schema.IdentityProvidersOpenIDConnect, provider storage.Provider) (store *Store) {
+	store = &Store{
+		ClientStore: NewMemoryClientStore(config),
+		provider:    provider,
+	}
+
+	return store
+}
+
+func NewMemoryClientStore(config *schema.IdentityProvidersOpenIDConnect) (store *MemoryClientStore) {
 	logger := logging.Logger()
 
-	store = &Store{
-		provider: provider,
-		clients:  map[string]Client{},
+	store = &MemoryClientStore{
+		clients: map[string]Client{},
 	}
 
 	for _, client := range config.Clients {
@@ -35,6 +43,16 @@ func NewStore(config *schema.IdentityProvidersOpenIDConnect, provider storage.Pr
 	}
 
 	return store
+}
+
+// GetRegisteredClient returns a Client matching the provided id.
+func (s *MemoryClientStore) GetRegisteredClient(_ context.Context, id string) (client Client, err error) {
+	client, ok := s.clients[id]
+	if !ok {
+		return nil, oauthelia2.ErrInvalidClient.WithDebugf("Client with id '%s' does not appear to be a registered client.", id)
+	}
+
+	return client, nil
 }
 
 // GenerateOpaqueUserID either retrieves or creates an opaque user id from a sectorID and username.
@@ -65,19 +83,9 @@ func (s *Store) GetSubject(ctx context.Context, sectorID, username string) (subj
 	return opaqueID.Identifier, nil
 }
 
-// GetFullClient returns a oauthelia2.Client asserted as an Client matching the provided id.
-func (s *Store) GetFullClient(_ context.Context, id string) (client Client, err error) {
-	client, ok := s.clients[id]
-	if !ok {
-		return nil, oauthelia2.ErrInvalidClient.WithDebugf("Client with id '%s' does not appear to be a registered client.", id)
-	}
-
-	return client, nil
-}
-
 // IsValidClientID returns true if the provided id exists in the OpenIDConnectProvider.Clients map.
 func (s *Store) IsValidClientID(ctx context.Context, id string) (valid bool) {
-	_, err := s.GetFullClient(ctx, id)
+	_, err := s.GetRegisteredClient(ctx, id)
 
 	return err == nil
 }
@@ -103,7 +111,7 @@ func (s *Store) Rollback(ctx context.Context) (err error) {
 // GetClient loads the client by its ID or returns an error if the client does not exist or another error occurred.
 // This implements a portion of oauthelia2.ClientManager.
 func (s *Store) GetClient(ctx context.Context, id string) (client oauthelia2.Client, err error) {
-	return s.GetFullClient(ctx, id)
+	return s.GetRegisteredClient(ctx, id)
 }
 
 // ClientAssertionJWTValid returns an error if the JTI is known or the DB check failed and nil if the JTI is not known.

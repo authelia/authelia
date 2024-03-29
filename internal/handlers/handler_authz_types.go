@@ -171,7 +171,7 @@ func (i AuthzImplementation) String() string {
 }
 
 type AuthzBearerIntrospectionProvider interface {
-	GetFullClient(ctx context.Context, id string) (client oidc.Client, err error)
+	GetRegisteredClient(ctx context.Context, id string) (client oidc.Client, err error)
 	GetAudienceStrategy(ctx context.Context) (strategy oauthelia2.AudienceMatchingStrategy)
 	IntrospectToken(ctx context.Context, token string, tokenUse oauthelia2.TokenUse, session oauthelia2.Session, scope ...string) (oauthelia2.TokenUse, oauthelia2.AccessRequester, error)
 }
