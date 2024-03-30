@@ -167,8 +167,9 @@ type PARConfig struct {
 
 // IssuersConfig holds specific oauthelia2.Configurator information for the issuer.
 type IssuersConfig struct {
-	IDToken     string
-	AccessToken string
+	IDToken       string
+	AccessToken   string
+	Introspection string
 
 	AuthorizationServerIssuerIdentification string
 	JWTSecuredResponseMode                  string
@@ -474,6 +475,16 @@ func (c *Config) GetAccessTokenIssuer(ctx context.Context) (issuer string) {
 // GetAuthorizationServerIdentificationIssuer returns the Authorization Server Identification issuer.
 func (c *Config) GetAuthorizationServerIdentificationIssuer(ctx context.Context) (issuer string) {
 	return c.GetIssuerFallback(ctx, c.Issuers.AuthorizationServerIssuerIdentification)
+}
+
+// GetIntrospectionIssuer returns the Introspection issuer.
+func (c *Config) GetIntrospectionIssuer(ctx context.Context) (issuer string) {
+	return c.GetIssuerFallback(ctx, c.Issuers.Introspection)
+}
+
+// GetIntrospectionJWTResponseSigner returns jwt.Signer for Introspection JWT Responses.
+func (c *Config) GetIntrospectionJWTResponseSigner(ctx context.Context) jwt.Signer {
+	return c.Signer
 }
 
 // GetDisableRefreshTokenValidation returns the disable refresh token validation flag.
