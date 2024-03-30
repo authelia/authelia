@@ -193,6 +193,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 	testCases := []struct {
 		name    string
 		clients []schema.IdentityProvidersOpenIDConnectClient
+		warns   []string
 		errors  []string
 		test    func(t *testing.T, actual []schema.IdentityProvidersOpenIDConnectClient)
 	}{
@@ -380,7 +381,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 					RedirectURIs: []string{
 						"https://google.com",
 					},
-					SectorIdentifierURI: mustParseURL(schemeHTTPS + "://" + exampleDotCom),
+					SectorIdentifierURI: mustParseURL(schemeHTTPS + schemeSep + exampleDotCom),
 				},
 			},
 		},
@@ -394,7 +395,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 					RedirectURIs: []string{
 						"https://google.com",
 					},
-					SectorIdentifierURI: mustParseURL(schemeHTTPS + "://" + exampleDotCom + ":2000"),
+					SectorIdentifierURI: mustParseURL(schemeHTTPS + schemeSep + exampleDotCom + ":2000"),
 				},
 			},
 		},
@@ -411,10 +412,12 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 					SectorIdentifierURI: mustParseURL("https://user:pass@example.com/path?query=abc#fragment"),
 				},
 			},
-			errors: []string{
-				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier_uri' with value 'https://user:pass@example.com/path?query=abc#fragment': must not have a fragment but it has a fragment with the value 'fragment'",
-				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier_uri' with value 'https://user:pass@example.com/path?query=abc#fragment': must not have a username but it has a username with the value 'user'",
-				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier_uri' with value 'https://user:pass@example.com/path?query=abc#fragment': must not have a password but it has a password with the value 'pass'",
+			warns: []string{
+				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier_uri' with value 'https://user:pass@example.com/path?query=abc#fragment': should not have a fragment but it has a fragment with the value 'fragment'",
+				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier_uri' with value 'https://user:pass@example.com/path?query=abc#fragment': should not have a username but it has a username with the value 'user'",
+				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier_uri' with value 'https://user:pass@example.com/path?query=abc#fragment': should not have a password but it has a password with the value 'pass'",
+				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'client_secret' is plaintext but for clients not using the 'token_endpoint_auth_method' of 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed in the near future",
+				"identity_providers: oidc: clients: warnings for clients above indicate deprecated functionality and it's strongly suggested these issues are checked and fixed if they're legitimate issues or reported if they are not as in a future version these warnings will become errors",
 			},
 		},
 		{
@@ -430,9 +433,11 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 					SectorIdentifierURI: mustParseURL("example.com/path?query=abc#fragment"),
 				},
 			},
-			errors: []string{
-				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier_uri' with value 'example.com/path?query=abc#fragment': must be an absolute URI",
-				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier_uri' with value 'example.com/path?query=abc#fragment': must not have a fragment but it has a fragment with the value 'fragment'",
+			warns: []string{
+				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier_uri' with value 'example.com/path?query=abc#fragment': should be an absolute URI",
+				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier_uri' with value 'example.com/path?query=abc#fragment': should not have a fragment but it has a fragment with the value 'fragment'",
+				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'client_secret' is plaintext but for clients not using the 'token_endpoint_auth_method' of 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed in the near future",
+				"identity_providers: oidc: clients: warnings for clients above indicate deprecated functionality and it's strongly suggested these issues are checked and fixed if they're legitimate issues or reported if they are not as in a future version these warnings will become errors",
 			},
 		},
 		{
@@ -448,8 +453,10 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 					SectorIdentifierURI: mustParseURL("http://example.com/path?query=abc"),
 				},
 			},
-			errors: []string{
-				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier_uri' with value 'http://example.com/path?query=abc': must have the 'https' scheme but has the 'http' scheme",
+			warns: []string{
+				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier_uri' with value 'http://example.com/path?query=abc': should have the 'https' scheme but has the 'http' scheme",
+				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'client_secret' is plaintext but for clients not using the 'token_endpoint_auth_method' of 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed in the near future",
+				"identity_providers: oidc: clients: warnings for clients above indicate deprecated functionality and it's strongly suggested these issues are checked and fixed if they're legitimate issues or reported if they are not as in a future version these warnings will become errors",
 			},
 		},
 		{
@@ -468,9 +475,6 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			test: func(t *testing.T, actual []schema.IdentityProvidersOpenIDConnectClient) {
 				assert.Nil(t, actual[0].SectorIdentifierURI)
 				assert.True(t, actual[0].SectorIdentifierURI == nil)
-				assert.Panics(t, func() {
-					fmt.Println(actual[0].SectorIdentifierURI.String())
-				})
 			},
 		},
 		{
@@ -599,6 +603,18 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 
 			if tc.test != nil {
 				tc.test(t, config.OIDC.Clients)
+			}
+
+			warns := validator.Warnings()
+
+			if len(tc.warns) != 0 {
+				require.Len(t, warns, len(tc.warns))
+
+				for i, errStr := range tc.warns {
+					t.Run(fmt.Sprintf("Warning%d", i+1), func(t *testing.T) {
+						assert.EqualError(t, warns[i], errStr)
+					})
+				}
 			}
 		})
 	}

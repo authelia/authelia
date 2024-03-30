@@ -468,7 +468,7 @@ func validateOIDCClient(c int, config *schema.IdentityProvidersOpenIDConnect, va
 
 	validateOIDDClientSigningAlgs(c, config, validator)
 
-	validateOIDCClientSectorIdentifier(c, config, validator)
+	validateOIDCClientSectorIdentifier(c, config, validator, errDeprecatedFunc)
 
 	validateOIDCClientPublicKeys(c, config, validator)
 	validateOIDCClientTokenEndpointAuth(c, config, validator)
@@ -576,7 +576,7 @@ func validateOIDCClientJSONWebKeysListKeyUseAlg(c, i int, props *JWKProperties, 
 	}
 }
 
-func validateOIDCClientSectorIdentifier(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+func validateOIDCClientSectorIdentifier(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator, errDeprecatedFunc func()) {
 	if config.Clients[c].SectorIdentifierURI == nil {
 		return
 	}
@@ -588,22 +588,27 @@ func validateOIDCClientSectorIdentifier(c int, config *schema.IdentityProvidersO
 	}
 
 	if !config.Clients[c].SectorIdentifierURI.IsAbs() {
-		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifierAbsolute, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String()))
+		errDeprecatedFunc()
+		validator.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifierAbsolute, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String()))
 	} else if config.Clients[c].SectorIdentifierURI.Scheme != schemeHTTPS {
-		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifierScheme, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String(), config.Clients[c].SectorIdentifierURI.Scheme))
+		errDeprecatedFunc()
+		validator.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifierScheme, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String(), config.Clients[c].SectorIdentifierURI.Scheme))
 	}
 
 	if config.Clients[c].SectorIdentifierURI.Fragment != "" {
-		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String(), "fragment", "fragment", config.Clients[c].SectorIdentifierURI.Fragment))
+		errDeprecatedFunc()
+		validator.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String(), "fragment", "fragment", config.Clients[c].SectorIdentifierURI.Fragment))
 	}
 
 	if config.Clients[c].SectorIdentifierURI.User != nil {
 		if config.Clients[c].SectorIdentifierURI.User.Username() != "" {
-			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String(), "username", "username", config.Clients[c].SectorIdentifierURI.User.Username()))
+			errDeprecatedFunc()
+			validator.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String(), "username", "username", config.Clients[c].SectorIdentifierURI.User.Username()))
 		}
 
 		if password, set := config.Clients[c].SectorIdentifierURI.User.Password(); set {
-			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String(), "password", "password", password))
+			errDeprecatedFunc()
+			validator.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidSectorIdentifier, config.Clients[c].ID, config.Clients[c].SectorIdentifierURI.String(), "password", "password", password))
 		}
 	}
 }
