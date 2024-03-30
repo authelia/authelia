@@ -177,7 +177,11 @@ type IssuersConfig struct {
 // HandlersConfig holds specific oauthelia2.Configurator handlers configuration information.
 type HandlersConfig struct {
 	// ResponseMode provides an extension handler for custom response modes.
-	ResponseMode []oauthelia2.ResponseModeHandler
+	ResponseMode oauthelia2.ResponseModeHandlers
+
+	// ResponseModeParameter provides an extension handler for custom response mode parameters added later after the
+	// response mode is assured.
+	ResponseModeParameter oauthelia2.ResponseModeParameterHandlers
 
 	// AuthorizeEndpoint is a list of handlers that are called before the authorization endpoint is served.
 	AuthorizeEndpoint oauthelia2.AuthorizeEndpointHandlers
@@ -321,6 +325,14 @@ func (c *Config) LoadHandlers(store *Store) {
 			Storage: store,
 			Config:  c,
 		},
+
+		// Response Mode Handling.
+		&oauthelia2.DefaultResponseModeHandler{
+			Config: c,
+		},
+		&oauthelia2.RFC9207ResponseModeParameterHandler{
+			Config: c,
+		},
 	}
 
 	x := HandlersConfig{
@@ -350,6 +362,14 @@ func (c *Config) LoadHandlers(store *Store) {
 
 		if h, ok := handler.(oauthelia2.PushedAuthorizeEndpointHandler); ok {
 			x.PushedAuthorizeEndpoint.Append(h)
+		}
+
+		if h, ok := handler.(oauthelia2.ResponseModeHandler); ok {
+			x.ResponseMode.Append(h)
+		}
+
+		if h, ok := handler.(oauthelia2.ResponseModeParameterHandler); ok {
+			x.ResponseModeParameter.Append(h)
 		}
 	}
 
@@ -717,8 +737,12 @@ func (c *Config) GetVerifiableCredentialsNonceLifespan(ctx context.Context) (lif
 	return c.Lifespans.VerifiableCredentialsNonce
 }
 
-func (c *Config) GetResponseModeHandlers(ctx context.Context) []oauthelia2.ResponseModeHandler {
+func (c *Config) GetResponseModeHandlers(ctx context.Context) oauthelia2.ResponseModeHandlers {
 	return c.Handlers.ResponseMode
+}
+
+func (c *Config) GetResponseModeParameterHandlers(ctx context.Context) oauthelia2.ResponseModeParameterHandlers {
+	return c.Handlers.ResponseModeParameter
 }
 
 func (c *Config) GetRevokeRefreshTokensExplicit(ctx context.Context) bool {

@@ -115,7 +115,8 @@ type IdentityProvidersOpenIDConnectClient struct {
 	SectorIdentifierURI *url.URL        `koanf:"sector_identifier_uri" json:"sector_identifier_uri" jsonschema:"title=Sector Identifier URI" jsonschema_description:"The Client Sector Identifier URI for Privacy Isolation via Pairwise subject types."`
 	Public              bool            `koanf:"public" json:"public" jsonschema:"default=false,title=Public" jsonschema_description:"Enables the Public Client Type."`
 
-	RedirectURIs IdentityProvidersOpenIDConnectClientRedirectURIs `koanf:"redirect_uris" json:"redirect_uris" jsonschema:"title=Redirect URIs" jsonschema_description:"List of authorized redirect URIs."`
+	RedirectURIs IdentityProvidersOpenIDConnectClientURIs `koanf:"redirect_uris" json:"redirect_uris" jsonschema:"title=Redirect URIs" jsonschema_description:"List of whitelisted redirect URIs."`
+	RequestURIs  IdentityProvidersOpenIDConnectClientURIs `koanf:"request_uris" json:"request_uris" jsonschema:"title=Request URIs" jsonschema_description:"List of whitelisted request URIs."`
 
 	Audience      []string `koanf:"audience" json:"audience" jsonschema:"uniqueItems,title=Audience" jsonschema_description:"List of authorized audiences."`
 	Scopes        []string `koanf:"scopes" json:"scopes" jsonschema:"required,enum=openid,enum=offline_access,enum=groups,enum=email,enum=profile,enum=authelia.bearer.authz,uniqueItems,title=Scopes" jsonschema_description:"The Scopes this client is allowed request and be granted."`

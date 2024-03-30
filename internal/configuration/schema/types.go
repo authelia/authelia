@@ -494,9 +494,9 @@ func (AccessControlRuleNetworks) JSONSchema() *jsonschema.Schema {
 	return &jsonschemaWeakStringUniqueSlice
 }
 
-type IdentityProvidersOpenIDConnectClientRedirectURIs []string
+type IdentityProvidersOpenIDConnectClientURIs []string
 
-func (IdentityProvidersOpenIDConnectClientRedirectURIs) JSONSchema() *jsonschema.Schema {
+func (IdentityProvidersOpenIDConnectClientURIs) JSONSchema() *jsonschema.Schema {
 	return &jsonschema.Schema{
 		OneOf: []*jsonschema.Schema{
 			&jsonschemaURI,
