@@ -26,7 +26,7 @@ There are three special ways to achieve this goal:
 1. Using the native [Secrets](../methods/secrets.md) system which:
    - Loads the value from a file provided an environment variable with the file's location.
    - Generally easy to set up.
-   - Can't be used keys located within lists.
+   - Can't be used for keys located within lists.
    - Does not include the value in the environment which is slightly more secure.
 2. Using the `template` [file filter](../methods/files.md#file-filters) system which:
    - Loads the value from a file provided a template within the configuration itself making it easy to share.
