@@ -756,15 +756,15 @@ func (c *Config) GetResponseModeParameterHandlers(ctx context.Context) oauthelia
 	return c.Handlers.ResponseModeParameter
 }
 
-func (c *Config) GetRevokeRefreshTokensExplicit(ctx context.Context) bool {
+func (c *Config) GetRevokeRefreshTokensExplicit(ctx context.Context) (explicit bool) {
 	return c.RevokeRefreshTokensExplicit
 }
 
-func (c *Config) GetEnforceRevokeFlowRevokeRefreshTokensExplicitClient(ctx context.Context) bool {
+func (c *Config) GetEnforceRevokeFlowRevokeRefreshTokensExplicitClient(ctx context.Context) (enforce bool) {
 	return c.EnforceRevokeFlowRevokeRefreshTokensExplicitClient
 }
 
-func (c *Config) GetTokenURL(ctx context.Context) string {
+func (c *Config) GetTokenURL(ctx context.Context) (url string) {
 	return c.getEndpointURL(ctx, EndpointPathToken, c.TokenURL)
 }
 
