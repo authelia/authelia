@@ -30,7 +30,7 @@ There are three special ways to achieve this goal:
    - Does not include the value in the environment which is slightly more secure.
 2. Using the `template` [file filter](../methods/files.md#file-filters) system which:
    - Loads the value from a file provided a template within the configuration itself making it easy to share.
-   - Generally easy to setup but has a small learning curve.
+   - Generally easy to set up but has a small learning curve.
    - Can be used anywhere in the configuration generally for any purpose.
    - Does not include the value in the environment which is slightly more secure.
 3. Using the native [Environment](../methods/environment.md) system which:
