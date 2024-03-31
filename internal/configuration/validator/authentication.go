@@ -69,7 +69,7 @@ func ValidatePasswordConfiguration(config *schema.AuthenticationBackendFilePassw
 	case utils.IsStringInSlice(config.Algorithm, validHashAlgorithms):
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordUnknownAlg, strJoinOr(validHashAlgorithms), config.Algorithm))
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordUnknownAlg, utils.StringJoinOr(validHashAlgorithms), config.Algorithm))
 	}
 
 	validateFileAuthenticationBackendPasswordConfigArgon2(config, validator)
@@ -87,7 +87,7 @@ func validateFileAuthenticationBackendPasswordConfigArgon2(config *schema.Authen
 	case utils.IsStringInSlice(config.Argon2.Variant, validArgon2Variants):
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashArgon2, strJoinOr(validArgon2Variants), config.Argon2.Variant))
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashArgon2, utils.StringJoinOr(validArgon2Variants), config.Argon2.Variant))
 	}
 
 	switch {
@@ -145,7 +145,7 @@ func validateFileAuthenticationBackendPasswordConfigSHA2Crypt(config *schema.Aut
 	case utils.IsStringInSlice(config.SHA2Crypt.Variant, validSHA2CryptVariants):
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashSHA2Crypt, strJoinOr(validSHA2CryptVariants), config.SHA2Crypt.Variant))
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashSHA2Crypt, utils.StringJoinOr(validSHA2CryptVariants), config.SHA2Crypt.Variant))
 	}
 
 	switch {
@@ -174,7 +174,7 @@ func validateFileAuthenticationBackendPasswordConfigPBKDF2(config *schema.Authen
 	case utils.IsStringInSlice(config.PBKDF2.Variant, validPBKDF2Variants):
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashPBKDF2, strJoinOr(validPBKDF2Variants), config.PBKDF2.Variant))
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashPBKDF2, utils.StringJoinOr(validPBKDF2Variants), config.PBKDF2.Variant))
 	}
 
 	switch {
@@ -203,7 +203,7 @@ func validateFileAuthenticationBackendPasswordConfigBCrypt(config *schema.Authen
 	case utils.IsStringInSlice(config.BCrypt.Variant, validBCryptVariants):
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashBCrypt, strJoinOr(validBCryptVariants), config.BCrypt.Variant))
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashBCrypt, utils.StringJoinOr(validBCryptVariants), config.BCrypt.Variant))
 	}
 
 	switch {
@@ -363,7 +363,7 @@ func validateLDAPAuthenticationBackendImplementation(config *schema.Authenticati
 	case schema.LDAPImplementationGLAuth:
 		implementation = &schema.DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth
 	default:
-		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendOptionMustBeOneOf, "implementation", strJoinOr(validLDAPImplementations), config.LDAP.Implementation))
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendOptionMustBeOneOf, "implementation", utils.StringJoinOr(validLDAPImplementations), config.LDAP.Implementation))
 	}
 
 	tlsconfig := &schema.TLS{}
@@ -507,22 +507,22 @@ func validateLDAPGroupFilter(config *schema.AuthenticationBackend, validator *sc
 	}
 
 	if !utils.IsStringInSlice(config.LDAP.GroupSearchMode, validLDAPGroupSearchModes) {
-		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendOptionMustBeOneOf, "group_search_mode", strJoinOr(validLDAPGroupSearchModes), config.LDAP.GroupSearchMode))
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendOptionMustBeOneOf, "group_search_mode", utils.StringJoinOr(validLDAPGroupSearchModes), config.LDAP.GroupSearchMode))
 	}
 
 	pMemberOfDN, pMemberOfRDN := strings.Contains(config.LDAP.GroupsFilter, "{memberof:dn}"), strings.Contains(config.LDAP.GroupsFilter, "{memberof:rdn}")
 
 	if config.LDAP.GroupSearchMode == schema.LDAPGroupSearchModeMemberOf {
 		if !pMemberOfDN && !pMemberOfRDN {
-			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingPlaceholderGroupSearchMode, "groups_filter", strJoinOr([]string{"{memberof:rdn}", "{memberof:dn}"}), config.LDAP.GroupSearchMode))
+			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingPlaceholderGroupSearchMode, "groups_filter", utils.StringJoinOr([]string{"{memberof:rdn}", "{memberof:dn}"}), config.LDAP.GroupSearchMode))
 		}
 	}
 
 	if pMemberOfDN && config.LDAP.Attributes.DistinguishedName == "" {
-		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingAttribute, "distinguished_name", strJoinOr([]string{"{memberof:dn}"})))
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingAttribute, "distinguished_name", utils.StringJoinOr([]string{"{memberof:dn}"})))
 	}
 
 	if (pMemberOfDN || pMemberOfRDN) && config.LDAP.Attributes.MemberOf == "" {
-		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingAttribute, "member_of", strJoinOr([]string{"{memberof:rdn}", "{memberof:dn}"})))
+		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingAttribute, "member_of", utils.StringJoinOr([]string{"{memberof:rdn}", "{memberof:dn}"})))
 	}
 }
