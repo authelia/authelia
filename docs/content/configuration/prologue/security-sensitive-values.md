@@ -24,7 +24,7 @@ leaking the values when getting support and is generally slightly less secure.
 There are three special ways to achieve this goal:
 
 1. Using the native [Secrets](../methods/secrets.md) system which:
-   - Loads the value from a file provided an environment variable with the files location.
+   - Loads the value from a file provided an environment variable with the file's location.
    - Generally very easy to setup.
    - Can't be used keys located within lists.
    - Does not include the value in the environment which is slightly more secure.
