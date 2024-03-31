@@ -9,3 +9,8 @@ const (
 	SOME_SECRET                 = "SOME_SECRET"
 	JWT_SECRET_FILE             = "JWT_SECRET_FILE" //nolint:gosec
 )
+
+const (
+	pemMaterialPlaceholder = "...\n"
+	pemEnd                 = "-----\n"
+)

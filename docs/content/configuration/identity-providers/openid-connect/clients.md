@@ -83,13 +83,13 @@ identity_providers:
             key: |
               -----BEGIN RSA PUBLIC KEY-----
               ...
-              -----END RSA PUBLIC KEY----
+              -----END RSA PUBLIC KEY-----
             certificate_chain: |
               -----BEGIN CERTIFICATE-----
               ...
               -----END CERTIFICATE-----
               -----BEGIN CERTIFICATE-----
-             ...
+              ...
               -----END CERTIFICATE-----
 ```
 
@@ -622,7 +622,7 @@ identity_providers:
             key: |
               -----BEGIN RSA PUBLIC KEY-----
               ...
-              -----END RSA PUBLIC KEY----
+              -----END RSA PUBLIC KEY-----
             certificate_chain: |
               -----BEGIN CERTIFICATE-----
               ...
