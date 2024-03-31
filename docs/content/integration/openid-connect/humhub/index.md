@@ -2,7 +2,7 @@
 title: "Humhub"
 description: "Integrating Humhub with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2024-03-29T11:23:00+01:00
+date: 2024-03-30T07:14:05+11:00
 draft: false
 images: []
 weight: 620

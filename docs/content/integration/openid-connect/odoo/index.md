@@ -2,7 +2,7 @@
 title: "Odoo"
 description: "Integrating Odoo with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2024-03-24T09:09:0+01:00
+date: 2024-03-31T14:46:10+11:00
 draft: false
 images: []
 weight: 620
