@@ -167,8 +167,9 @@ type PARConfig struct {
 
 // IssuersConfig holds specific oauthelia2.Configurator information for the issuer.
 type IssuersConfig struct {
-	IDToken     string
-	AccessToken string
+	IDToken       string
+	AccessToken   string
+	Introspection string
 
 	AuthorizationServerIssuerIdentification string
 	JWTSecuredResponseMode                  string
@@ -476,6 +477,16 @@ func (c *Config) GetAuthorizationServerIdentificationIssuer(ctx context.Context)
 	return c.GetIssuerFallback(ctx, c.Issuers.AuthorizationServerIssuerIdentification)
 }
 
+// GetIntrospectionIssuer returns the Introspection issuer.
+func (c *Config) GetIntrospectionIssuer(ctx context.Context) (issuer string) {
+	return c.GetIssuerFallback(ctx, c.Issuers.Introspection)
+}
+
+// GetIntrospectionJWTResponseSigner returns jwt.Signer for Introspection JWT Responses.
+func (c *Config) GetIntrospectionJWTResponseSigner(ctx context.Context) jwt.Signer {
+	return c.Signer
+}
+
 // GetDisableRefreshTokenValidation returns the disable refresh token validation flag.
 func (c *Config) GetDisableRefreshTokenValidation(ctx context.Context) (disable bool) {
 	return c.DisableRefreshTokenValidation
@@ -745,15 +756,15 @@ func (c *Config) GetResponseModeParameterHandlers(ctx context.Context) oauthelia
 	return c.Handlers.ResponseModeParameter
 }
 
-func (c *Config) GetRevokeRefreshTokensExplicit(ctx context.Context) bool {
+func (c *Config) GetRevokeRefreshTokensExplicit(ctx context.Context) (explicit bool) {
 	return c.RevokeRefreshTokensExplicit
 }
 
-func (c *Config) GetEnforceRevokeFlowRevokeRefreshTokensExplicitClient(ctx context.Context) bool {
+func (c *Config) GetEnforceRevokeFlowRevokeRefreshTokensExplicitClient(ctx context.Context) (enforce bool) {
 	return c.EnforceRevokeFlowRevokeRefreshTokensExplicitClient
 }
 
-func (c *Config) GetTokenURL(ctx context.Context) string {
+func (c *Config) GetTokenURL(ctx context.Context) (url string) {
 	return c.getEndpointURL(ctx, EndpointPathToken, c.TokenURL)
 }
 

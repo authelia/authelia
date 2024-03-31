@@ -995,4 +995,5 @@ var (
 	_ oauthelia2.ClientCredentialsFlowRequestedScopeImplicitClient = (*RegisteredClient)(nil)
 	_ oauthelia2.RequestedAudienceImplicitClient                   = (*RegisteredClient)(nil)
 	_ oauthelia2.JWTProfileClient                                  = (*RegisteredClient)(nil)
+	_ oauthelia2.IntrospectionJWTResponseClient                    = (*RegisteredClient)(nil)
 )
