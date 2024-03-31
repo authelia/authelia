@@ -156,6 +156,10 @@ const (
 )
 
 const (
+	RedirectURISpecialOAuth2InstalledApp = "urn:ietf:wg:oauth:2.0:oob"
+)
+
+const (
 	FormParameterState        = "state"
 	FormParameterClientID     = valueClientID
 	FormParameterRequestURI   = "request_uri"

@@ -149,17 +149,6 @@ func IsStringSlicesDifferentFold(a, b []string) (different bool) {
 	return isStringSlicesDifferent(a, b, IsStringInSliceFold)
 }
 
-// IsURLInSlice returns true if the needle url.URL is in the []url.URL haystack.
-func IsURLInSlice(needle *url.URL, haystack []*url.URL) (has bool) {
-	for i := 0; i < len(haystack); i++ {
-		if strings.EqualFold(needle.String(), haystack[i].String()) {
-			return true
-		}
-	}
-
-	return false
-}
-
 // StringSliceFromURLs returns a []string from a []url.URL.
 func StringSliceFromURLs(urls []*url.URL) []string {
 	result := make([]string, len(urls))
@@ -261,4 +250,61 @@ func JoinAndCanonicalizeHeaders(sep []byte, headers ...string) (joined []byte) {
 	}
 
 	return joined
+}
+
+func StringJoinOr(items []string) string {
+	return StringJoinComma("or", items)
+}
+
+func StringJoinAnd(items []string) string {
+	return StringJoinComma("and", items)
+}
+
+func StringJoinComma(word string, items []string) string {
+	if word == "" {
+		return StringJoinBuild(",", "", "'", items)
+	}
+
+	return StringJoinBuild(",", word, "'", items)
+}
+
+func StringJoinBuild(sep, sepFinal, quote string, items []string) string {
+	n := len(items)
+
+	if n == 0 {
+		return ""
+	}
+
+	b := &strings.Builder{}
+
+	for i := 0; i < n; i++ {
+		if quote != "" {
+			b.WriteString(quote)
+		}
+
+		b.WriteString(items[i])
+
+		if quote != "" {
+			b.WriteString(quote)
+		}
+
+		if i == (n - 1) {
+			continue
+		}
+
+		if sep != "" {
+			if sepFinal == "" || n != 2 {
+				b.WriteString(sep)
+			}
+
+			b.WriteString(" ")
+		}
+
+		if sepFinal != "" && i == (n-2) {
+			b.WriteString(strings.Trim(sepFinal, " "))
+			b.WriteString(" ")
+		}
+	}
+
+	return b.String()
 }

@@ -155,8 +155,18 @@ the specified client, changing this should cause the relying party to detect all
 users.*
 
 *__Important Note:__ This **must** either not be configured at all i.e. commented or completely absent from the
-configuration, or it must be an absolute HTTPS URL which contains a valid sector identifier JSON document. The JSON
-document is NOT validated at this stage but will be in the future.*
+configuration, or it must be an absolute HTTPS URL which contains a valid sector identifier JSON document. Configuration
+of this option with the `https://` scheme per the requirements will cause Authelia to validate this JSON document.*
+
+A valid `sector_identifier_uri` will:
+  1. Have the scheme `https://`.
+  2. Be the absolute URI of a JSON document which:
+     1. Is a JSON array of strings (URIs).
+     2. Has every URI registered with this clients [redirect_uris](#redirect_uris) when compared using an exact string
+        match as defined in [OAuth 2.0 Security Best Current Practice Section 2.1].
+     3. May or may not have additional [redirect_uris](#redirect_uris) from other clients.
+
+[OAuth 2.0 Security Best Current Practice Section 2.1]: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-security-topics#section-2.1
 
 Authelia utilizes UUID version 4 subject identifiers. By default the public [Subject Identifier Type] is utilized for
 all clients. This means the subject identifiers will be the same for all clients. This configuration option enables

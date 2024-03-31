@@ -4,9 +4,12 @@ import (
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/rsa"
+	"crypto/tls"
 	"crypto/x509"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"os"
 	"sort"
@@ -30,7 +33,7 @@ func TestShouldRaiseErrorWhenInvalidOIDCServerConfiguration(t *testing.T) {
 		},
 	}
 
-	ValidateIdentityProviders(config, validator)
+	ValidateIdentityProviders(NewValidateCtx(), config, validator)
 
 	require.Len(t, validator.Errors(), 2)
 
@@ -54,7 +57,7 @@ func TestShouldRaiseErrorWhenInvalidOIDCServerConfigurationBothKeyTypesSpecified
 		},
 	}
 
-	ValidateIdentityProviders(config, validator)
+	ValidateIdentityProviders(NewValidateCtx(), config, validator)
 
 	require.Len(t, validator.Errors(), 2)
 
@@ -80,7 +83,7 @@ func TestShouldNotRaiseErrorWhenCORSEndpointsValid(t *testing.T) {
 		},
 	}
 
-	ValidateIdentityProviders(config, validator)
+	ValidateIdentityProviders(NewValidateCtx(), config, validator)
 
 	assert.Len(t, validator.Errors(), 0)
 }
@@ -103,7 +106,7 @@ func TestShouldRaiseErrorWhenCORSEndpointsNotValid(t *testing.T) {
 		},
 	}
 
-	ValidateIdentityProviders(config, validator)
+	ValidateIdentityProviders(NewValidateCtx(), config, validator)
 
 	require.Len(t, validator.Errors(), 1)
 
@@ -120,7 +123,7 @@ func TestShouldRaiseErrorWhenOIDCPKCEEnforceValueInvalid(t *testing.T) {
 		},
 	}
 
-	ValidateIdentityProviders(config, validator)
+	ValidateIdentityProviders(NewValidateCtx(), config, validator)
 
 	require.Len(t, validator.Errors(), 2)
 
@@ -150,7 +153,7 @@ func TestShouldRaiseErrorWhenOIDCCORSOriginsHasInvalidValues(t *testing.T) {
 		},
 	}
 
-	ValidateIdentityProviders(config, validator)
+	ValidateIdentityProviders(NewValidateCtx(), config, validator)
 
 	require.Len(t, validator.Errors(), 5)
 	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: cors: option 'allowed_origins' contains an invalid value 'https://example.com/' as it has a path: origins must only be scheme, hostname, and an optional port")
@@ -173,7 +176,7 @@ func TestShouldRaiseErrorWhenOIDCServerNoClients(t *testing.T) {
 		},
 	}
 
-	ValidateIdentityProviders(config, validator)
+	ValidateIdentityProviders(NewValidateCtx(), config, validator)
 
 	require.Len(t, validator.Errors(), 1)
 
@@ -181,6 +184,24 @@ func TestShouldRaiseErrorWhenOIDCServerNoClients(t *testing.T) {
 }
 
 func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
+	mux := http.NewServeMux()
+
+	handleString := func(in string) http.HandlerFunc {
+		var h http.HandlerFunc = func(rw http.ResponseWriter, r *http.Request) {
+			_, _ = rw.Write([]byte(in))
+		}
+
+		return h
+	}
+
+	mux.Handle("/sector-1.json", handleString(`["https://google.com"]`))
+
+	server := httptest.NewTLSServer(mux)
+	defer server.Close()
+
+	root, err := url.ParseRequestURI(server.URL)
+	require.NoError(t, err)
+
 	mustParseURL := func(u string) *url.URL {
 		out, err := url.Parse(u)
 		if err != nil {
@@ -381,21 +402,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 					RedirectURIs: []string{
 						"https://google.com",
 					},
-					SectorIdentifierURI: mustParseURL(schemeHTTPS + schemeSep + exampleDotCom),
-				},
-			},
-		},
-		{
-			name: "ValidSectorIdentifierWithPort",
-			clients: []schema.IdentityProvidersOpenIDConnectClient{
-				{
-					ID:                  "client-valid-sector",
-					Secret:              tOpenIDConnectPlainTextClientSecret,
-					AuthorizationPolicy: policyTwoFactor,
-					RedirectURIs: []string{
-						"https://google.com",
-					},
-					SectorIdentifierURI: mustParseURL(schemeHTTPS + schemeSep + exampleDotCom + ":2000"),
+					SectorIdentifierURI: root.JoinPath("sector-1.json"),
 				},
 			},
 		},
@@ -412,12 +419,10 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 					SectorIdentifierURI: mustParseURL("https://user:pass@example.com/path?query=abc#fragment"),
 				},
 			},
-			warns: []string{
-				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier_uri' with value 'https://user:pass@example.com/path?query=abc#fragment': should not have a fragment but it has a fragment with the value 'fragment'",
-				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier_uri' with value 'https://user:pass@example.com/path?query=abc#fragment': should not have a username but it has a username with the value 'user'",
-				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier_uri' with value 'https://user:pass@example.com/path?query=abc#fragment': should not have a password but it has a password with the value 'pass'",
-				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'client_secret' is plaintext but for clients not using the 'token_endpoint_auth_method' of 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed in the near future",
-				"identity_providers: oidc: clients: warnings for clients above indicate deprecated functionality and it's strongly suggested these issues are checked and fixed if they're legitimate issues or reported if they are not as in a future version these warnings will become errors",
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier_uri' with value 'https://user:pass@example.com/path?query=abc#fragment': must not have a fragment but it has a fragment with the value 'fragment'",
+				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier_uri' with value 'https://user:pass@example.com/path?query=abc#fragment': must not have a username but it has a username with the value 'user'",
+				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier_uri' with value 'https://user:pass@example.com/path?query=abc#fragment': must not have a password but it has a password with the value 'pass'",
 			},
 		},
 		{
@@ -433,9 +438,11 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 					SectorIdentifierURI: mustParseURL("example.com/path?query=abc#fragment"),
 				},
 			},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier_uri' with value 'example.com/path?query=abc#fragment': must not have a fragment but it has a fragment with the value 'fragment'",
+			},
 			warns: []string{
 				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier_uri' with value 'example.com/path?query=abc#fragment': should be an absolute URI",
-				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier_uri' with value 'example.com/path?query=abc#fragment': should not have a fragment but it has a fragment with the value 'fragment'",
 				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'client_secret' is plaintext but for clients not using the 'token_endpoint_auth_method' of 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed in the near future",
 				"identity_providers: oidc: clients: warnings for clients above indicate deprecated functionality and it's strongly suggested these issues are checked and fixed if they're legitimate issues or reported if they are not as in a future version these warnings will become errors",
 			},
@@ -453,10 +460,11 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 					SectorIdentifierURI: mustParseURL("http://example.com/path?query=abc"),
 				},
 			},
+			errors: []string{
+				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier_uri' with value 'http://example.com/path?query=abc': must have the 'https' scheme but has the 'http' scheme",
+			},
 			warns: []string{
-				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier_uri' with value 'http://example.com/path?query=abc': should have the 'https' scheme but has the 'http' scheme",
 				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'client_secret' is plaintext but for clients not using the 'token_endpoint_auth_method' of 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed in the near future",
-				"identity_providers: oidc: clients: warnings for clients above indicate deprecated functionality and it's strongly suggested these issues are checked and fixed if they're legitimate issues or reported if they are not as in a future version these warnings will become errors",
 			},
 		},
 		{
@@ -589,7 +597,14 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 				},
 			}
 
-			ValidateIdentityProviders(config, validator)
+			ctx := NewValidateCtx()
+			ctx.tlsconfig = &tls.Config{
+				InsecureSkipVerify: true, //nolint:gosec
+				MinVersion:         tls.VersionTLS12,
+				MaxVersion:         tls.VersionTLS13,
+			}
+
+			ValidateIdentityProviders(ctx, config, validator)
 
 			errs := validator.Errors()
 
@@ -640,7 +655,7 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadGrantTypes(t *testing.T)
 		},
 	}
 
-	ValidateIdentityProviders(config, validator)
+	ValidateIdentityProviders(NewValidateCtx(), config, validator)
 
 	require.Len(t, validator.Errors(), 1)
 	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: clients: client 'good_id': option 'grant_types' must only have the values 'authorization_code', 'implicit', 'client_credentials', or 'refresh_token' but the values 'bad_grant_type' are present")
@@ -666,7 +681,7 @@ func TestShouldNotErrorOnCertificateValid(t *testing.T) {
 		},
 	}
 
-	ValidateIdentityProviders(config, validator)
+	ValidateIdentityProviders(NewValidateCtx(), config, validator)
 
 	assert.Len(t, validator.Warnings(), 0)
 	assert.Len(t, validator.Errors(), 0)
@@ -692,7 +707,7 @@ func TestShouldRaiseErrorOnCertificateNotValid(t *testing.T) {
 		},
 	}
 
-	ValidateIdentityProviders(config, validator)
+	ValidateIdentityProviders(NewValidateCtx(), config, validator)
 
 	assert.Len(t, validator.Warnings(), 0)
 	require.Len(t, validator.Errors(), 1)
@@ -766,7 +781,7 @@ func TestValidateIdentityProvidersOpenIDConnectMinimumParameterEntropy(t *testin
 				},
 			}
 
-			ValidateIdentityProviders(config, validator)
+			ValidateIdentityProviders(NewValidateCtx(), config, validator)
 
 			assert.Equal(t, tc.expected, config.OIDC.MinimumParameterEntropy)
 
@@ -815,14 +830,14 @@ func TestValidateIdentityProvidersShouldRaiseErrorsOnInvalidClientTypes(t *testi
 					Public:              false,
 					AuthorizationPolicy: "two_factor",
 					RedirectURIs: []string{
-						oauth2InstalledApp,
+						oidc.RedirectURISpecialOAuth2InstalledApp,
 					},
 				},
 			},
 		},
 	}
 
-	ValidateIdentityProviders(config, validator)
+	ValidateIdentityProviders(NewValidateCtx(), config, validator)
 
 	require.Len(t, validator.Errors(), 2)
 	assert.Len(t, validator.Warnings(), 0)
@@ -843,7 +858,7 @@ func TestValidateIdentityProvidersShouldNotRaiseErrorsOnValidClientOptions(t *te
 					Public:              true,
 					AuthorizationPolicy: "two_factor",
 					RedirectURIs: []string{
-						oauth2InstalledApp,
+						oidc.RedirectURISpecialOAuth2InstalledApp,
 					},
 				},
 				{
@@ -884,7 +899,7 @@ func TestValidateIdentityProvidersShouldNotRaiseErrorsOnValidClientOptions(t *te
 		},
 	}
 
-	ValidateIdentityProviders(config, validator)
+	ValidateIdentityProviders(NewValidateCtx(), config, validator)
 
 	assert.Len(t, validator.Errors(), 0)
 	assert.Len(t, validator.Warnings(), 0)
@@ -909,7 +924,7 @@ func TestValidateIdentityProvidersShouldRaiseWarningOnPlainTextClients(t *testin
 		},
 	}
 
-	ValidateIdentityProviders(config, validator)
+	ValidateIdentityProviders(NewValidateCtx(), config, validator)
 
 	assert.Len(t, validator.Errors(), 0)
 	require.Len(t, validator.Warnings(), 1)
@@ -929,7 +944,7 @@ func TestValidateOIDCClientRedirectURIsSupportingPrivateUseURISchemes(t *testing
 					"oc://ios.owncloud.com",
 					// example given in the RFC https://datatracker.ietf.org/doc/html/rfc8252#section-7.1
 					"com.example.app:/oauth2redirect/example-provider",
-					oauth2InstalledApp,
+					oidc.RedirectURISpecialOAuth2InstalledApp,
 				},
 			},
 		},
@@ -1528,11 +1543,11 @@ func TestValidateOIDCClients(t *testing.T) {
 				have.Clients[0].Public = true
 				have.Clients[0].Secret = nil
 				have.Clients[0].RedirectURIs = []string{
-					oauth2InstalledApp,
+					oidc.RedirectURISpecialOAuth2InstalledApp,
 				}
 			},
 			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
-				assert.Equal(t, schema.IdentityProvidersOpenIDConnectClientURIs([]string{oauth2InstalledApp}), have.Clients[0].RedirectURIs)
+				assert.Equal(t, schema.IdentityProvidersOpenIDConnectClientURIs([]string{oidc.RedirectURISpecialOAuth2InstalledApp}), have.Clients[0].RedirectURIs)
 			},
 			tcv{
 				nil,
@@ -1557,7 +1572,7 @@ func TestValidateOIDCClients(t *testing.T) {
 				}
 			},
 			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
-				assert.Equal(t, schema.IdentityProvidersOpenIDConnectClientURIs([]string{oauth2InstalledApp}), have.Clients[0].RedirectURIs)
+				assert.Equal(t, schema.IdentityProvidersOpenIDConnectClientURIs([]string{oidc.RedirectURISpecialOAuth2InstalledApp}), have.Clients[0].RedirectURIs)
 			},
 			tcv{
 				nil,
@@ -2958,7 +2973,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			validator := schema.NewStructValidator()
 
 			validateOIDDIssuerSigningAlgsDiscovery(have, validator)
-			validateOIDCClient(0, have, validator, errDeprecatedFunc)
+			validateOIDCClient(NewValidateCtx(), 0, have, validator, errDeprecatedFunc)
 
 			t.Run("General", func(t *testing.T) {
 				assert.Equal(t, tc.expected.Scopes, have.Clients[0].Scopes)

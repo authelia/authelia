@@ -13,8 +13,7 @@ import (
 )
 
 const (
-	loopback           = "127.0.0.1"
-	oauth2InstalledApp = "urn:ietf:wg:oauth:2.0:oob"
+	loopback = "127.0.0.1"
 )
 
 // Policy constants.
@@ -271,9 +270,11 @@ const (
 	errFmtOIDCClientInvalidSectorIdentifierAbsolute = errFmtOIDCClientOption +
 		"'sector_identifier_uri' with value '%s': should be an absolute URI"
 	errFmtOIDCClientInvalidSectorIdentifierScheme = errFmtOIDCClientOption +
-		"'sector_identifier_uri' with value '%s': should have the 'https' scheme but has the '%s' scheme"
+		"'sector_identifier_uri' with value '%s': must have the 'https' scheme but has the '%s' scheme"
 	errFmtOIDCClientInvalidSectorIdentifier = errFmtOIDCClientOption +
-		"'sector_identifier_uri' with value '%s': should not have a %s but it has a %s with the value '%s'"
+		"'sector_identifier_uri' with value '%s': must not have a %s but it has a %s with the value '%s'"
+	errFmtOIDCClientInvalidSectorIdentifierRedirect = errFmtOIDCClientOption +
+		"'sector_identifier_uri' with value '%s': must be a json document that contains all of the 'redirect_uris' for the client but had an error validating it: %w"
 	errFmtOIDCClientInvalidGrantTypeMatch = errFmtOIDCClientOption +
 		"'grant_types' should only have grant type values which are valid with the configured 'response_types' for the client but '%s' expects a response type %s such as %s but the response types are %s"
 	errFmtOIDCClientInvalidGrantTypeRefresh = errFmtOIDCClientOption +

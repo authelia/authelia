@@ -1368,10 +1368,7 @@ notifier:
         # client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
 
         ## Sector Identifiers are occasionally used to generate pairwise subject identifiers. In most cases this is not
-        ## necessary. Read the documentation for more information.
-        ## The subject identifier must be the host component of a URL, which is a domain name with an optional port. It
-        ## must return a JSON document which contains an array of every 'redirect_uris' value of each client using it.
-        ## It's important to note that we do not validate the JSON document right not but will be in the future.
+        ## necessary. It is critical to read the documentation for more information.
         # sector_identifier_uri: 'https://example.com/sector.json'
 
         ## Sets the client to public. This should typically not be set, please see the documentation for usage.

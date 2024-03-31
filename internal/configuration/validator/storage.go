@@ -104,7 +104,7 @@ func validatePostgreSQLConfiguration(config *schema.StoragePostgreSQL, validator
 		case config.SSL.Mode == "": //nolint:staticcheck
 			config.SSL.Mode = schema.DefaultPostgreSQLStorageConfiguration.SSL.Mode //nolint:staticcheck
 		case !utils.IsStringInSlice(config.SSL.Mode, validStoragePostgreSQLSSLModes): //nolint:staticcheck
-			validator.Push(fmt.Errorf(errFmtStoragePostgreSQLInvalidSSLMode, strJoinOr(validStoragePostgreSQLSSLModes), config.SSL.Mode)) //nolint:staticcheck
+			validator.Push(fmt.Errorf(errFmtStoragePostgreSQLInvalidSSLMode, utils.StringJoinOr(validStoragePostgreSQLSSLModes), config.SSL.Mode)) //nolint:staticcheck
 		}
 	}
 }
