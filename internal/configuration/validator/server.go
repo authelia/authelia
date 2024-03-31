@@ -168,13 +168,13 @@ func validateServerEndpointsAuthzEndpoint(config *schema.Configuration, name str
 			config.Server.Endpoints.Authz[name] = endpoint
 		default:
 			if !utils.IsStringInSlice(endpoint.Implementation, validAuthzImplementations) {
-				validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzImplementation, name, strJoinOr(validAuthzImplementations), endpoint.Implementation))
+				validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzImplementation, name, utils.StringJoinOr(validAuthzImplementations), endpoint.Implementation))
 			} else {
 				validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzLegacyInvalidImplementation, name))
 			}
 		}
 	} else if !utils.IsStringInSlice(endpoint.Implementation, validAuthzImplementations) {
-		validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzImplementation, name, strJoinOr(validAuthzImplementations), endpoint.Implementation))
+		validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzImplementation, name, utils.StringJoinOr(validAuthzImplementations), endpoint.Implementation))
 	}
 
 	if !reAuthzEndpointName.MatchString(name) {
@@ -216,7 +216,7 @@ func validateServerEndpointsAuthzStrategies(name, implementation string, strateg
 		case strategy.Name == "":
 			validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzStrategyNoName, name, i+1))
 		case !utils.IsStringInSlice(strategy.Name, validAuthzAuthnStrategies):
-			validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzStrategy, name, strJoinOr(validAuthzAuthnStrategies), strategy.Name))
+			validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzStrategy, name, utils.StringJoinOr(validAuthzAuthnStrategies), strategy.Name))
 		default:
 			if utils.IsStringInSlice(strategy.Name, validAuthzAuthnHeaderStrategies) {
 				if len(strategy.Schemes) == 0 {
@@ -224,7 +224,7 @@ func validateServerEndpointsAuthzStrategies(name, implementation string, strateg
 				} else {
 					for _, scheme := range strategy.Schemes {
 						if !utils.IsStringInSliceFold(scheme, validAuthzAuthnStrategySchemes) {
-							validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzSchemes, name, i+1, strategy.Name, strJoinOr(validAuthzAuthnStrategySchemes), scheme))
+							validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzSchemes, name, i+1, strategy.Name, utils.StringJoinOr(validAuthzAuthnStrategySchemes), scheme))
 						}
 					}
 				}

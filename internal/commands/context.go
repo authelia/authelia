@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"crypto/tls"
 	"crypto/x509"
 	"fmt"
 	"os"
@@ -228,7 +229,13 @@ func (ctx *CmdCtx) HelperConfigValidateKeysRunE(_ *cobra.Command, _ []string) (e
 
 // HelperConfigValidateRunE validates the configuration (structure).
 func (ctx *CmdCtx) HelperConfigValidateRunE(_ *cobra.Command, _ []string) (err error) {
-	validator.ValidateConfiguration(ctx.config, ctx.cconfig.validator)
+	tc := &tls.Config{
+		RootCAs:    ctx.trusted,
+		MinVersion: tls.VersionTLS12,
+		MaxVersion: tls.VersionTLS13,
+	}
+
+	validator.ValidateConfiguration(ctx.config, ctx.cconfig.validator, validator.WithTLSConfig(tc))
 
 	return nil
 }

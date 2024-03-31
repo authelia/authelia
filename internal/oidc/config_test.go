@@ -256,3 +256,123 @@ func TestNewConfig(t *testing.T) {
 
 	assert.Len(t, config.Handlers.TokenIntrospection, 2)
 }
+
+func TestConfig_GetIssuerFuncs(t *testing.T) {
+	testCases := []struct {
+		name                                                                        string
+		have                                                                        oidc.IssuersConfig
+		ctx                                                                         context.Context
+		expectIntrospection, expectIDToken, expectAccessToken, expectAS, expectJARM string
+	}{
+		{
+			"ShouldReturnCtxValues",
+			oidc.IssuersConfig{},
+			&TestContext{
+				Context: context.Background(),
+				IssuerURLFunc: func() (issuerURL *url.URL, err error) {
+					return &url.URL{Scheme: "https", Host: "example.com", Path: "/issuer"}, nil
+				},
+			},
+			"https://example.com/issuer",
+			"https://example.com/issuer",
+			"https://example.com/issuer",
+			"https://example.com/issuer",
+			"https://example.com/issuer",
+		},
+		{
+			"ShouldNotReturnDefaultValues",
+			oidc.IssuersConfig{
+				IDToken: "https://example.com/id-issuer",
+			},
+			&TestContext{
+				Context: context.Background(),
+				IssuerURLFunc: func() (issuerURL *url.URL, err error) {
+					return &url.URL{Scheme: "https", Host: "example.com", Path: "/issuer"}, nil
+				},
+			},
+			"https://example.com/issuer",
+			"https://example.com/issuer",
+			"https://example.com/issuer",
+			"https://example.com/issuer",
+			"https://example.com/issuer",
+		},
+		{
+			"ShouldReturnDefaultValues",
+			oidc.IssuersConfig{
+				IDToken:                                 "https://example.com/id-issuer",
+				AccessToken:                             "https://example.com/at-issuer",
+				Introspection:                           "https://example.com/i-issuer",
+				JWTSecuredResponseMode:                  "https://example.com/jarm-issuer",
+				AuthorizationServerIssuerIdentification: "https://example.com/as-issuer",
+			},
+			context.Background(),
+			"https://example.com/i-issuer",
+			"https://example.com/id-issuer",
+			"https://example.com/at-issuer",
+			"https://example.com/as-issuer",
+			"https://example.com/jarm-issuer",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &oidc.Config{
+				Issuers: tc.have,
+			}
+
+			assert.Equal(t, tc.expectIntrospection, config.GetIntrospectionIssuer(tc.ctx))
+			assert.Equal(t, tc.expectIDToken, config.GetIDTokenIssuer(tc.ctx))
+			assert.Equal(t, tc.expectAccessToken, config.GetAccessTokenIssuer(tc.ctx))
+			assert.Equal(t, tc.expectAS, config.GetAuthorizationServerIdentificationIssuer(tc.ctx))
+			assert.Equal(t, tc.expectJARM, config.GetJWTSecuredAuthorizeResponseModeIssuer(tc.ctx))
+		})
+	}
+}
+
+func TestMisc(t *testing.T) {
+	tctx := &TestContext{
+		Context: context.Background(),
+		IssuerURLFunc: func() (issuerURL *url.URL, err error) {
+			return &url.URL{Scheme: "https", Host: "example.com", Path: "/issuer"}, nil
+		},
+	}
+
+	config := &oidc.Config{}
+	assert.Nil(t, config.GetIntrospectionJWTResponseSigner(context.Background()))
+	assert.Nil(t, config.GetJWTSecuredAuthorizeResponseModeSigner(context.Background()))
+
+	secret, err := config.GetGlobalSecret(context.Background())
+	assert.NoError(t, err)
+	assert.Nil(t, secret)
+
+	secrets, err := config.GetRotatedGlobalSecrets(context.Background())
+	assert.NoError(t, err)
+	assert.Nil(t, secrets)
+
+	assert.Equal(t, time.Minute*5, config.GetJWTSecuredAuthorizeResponseModeLifespan(context.Background()))
+
+	assert.False(t, config.GetRevokeRefreshTokensExplicit(context.Background()))
+	assert.False(t, config.GetEnforceRevokeFlowRevokeRefreshTokensExplicitClient(context.Background()))
+	assert.False(t, config.GetClientCredentialsFlowImplicitGrantRequested(context.Background()))
+	assert.False(t, config.GetEnforceJWTProfileAccessTokens(context.Background()))
+	config.ClientCredentialsFlowImplicitGrantRequested = true
+
+	assert.True(t, config.GetClientCredentialsFlowImplicitGrantRequested(context.Background()))
+
+	assert.NotNil(t, config.GetHMACHasher(context.Background()))
+	assert.NotNil(t, config.GetFormPostResponseWriter(context.Background()))
+
+	assert.Equal(t, time.Hour, config.GetVerifiableCredentialsNonceLifespan(context.Background()))
+	assert.Nil(t, config.GetResponseModeHandlers(context.Background()))
+	assert.Nil(t, config.GetResponseModeParameterHandlers(context.Background()))
+	assert.Nil(t, config.GetRFC8628DeviceAuthorizeEndpointHandlers(context.Background()))
+	assert.Nil(t, config.GetRFC8628UserAuthorizeEndpointHandlers(context.Background()))
+	assert.Nil(t, config.GetRFC8693TokenTypes(context.Background()))
+
+	assert.Equal(t, "", config.GetDefaultRFC8693RequestedTokenType(context.Background()))
+	assert.Equal(t, time.Minute*10, config.GetRFC8628CodeLifespan(context.Background()))
+	assert.Equal(t, time.Second*10, config.GetRFC8628TokenPollingInterval(context.Background()))
+
+	assert.Equal(t, "https://example.com/issuer/api/oidc/token", config.GetTokenURL(tctx))
+	assert.Equal(t, "https://example.com/issuer/api/oidc/device-code/user-verification", config.GetRFC8628UserVerificationURL(tctx))
+}

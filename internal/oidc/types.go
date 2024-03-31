@@ -166,14 +166,20 @@ type RefreshFlowScopeClient interface {
 
 // Context represents the context implementation that is used by some OpenID Connect 1.0 implementations.
 type Context interface {
-	context.Context
-
 	RootURL() (issuerURL *url.URL)
 	IssuerURL() (issuerURL *url.URL, err error)
 	GetClock() (clock clock.Provider)
 	GetRandom() (random random.Provider)
 	GetConfiguration() (config schema.Configuration)
 	GetJWTWithTimeFuncOption() (option jwt.ParserOption)
+
+	context.Context
+}
+
+type ClientContext interface {
+	GetHTTPClient() *http.Client
+
+	context.Context
 }
 
 // ClientRequesterResponder is a oauthelia2.Requster or fosite.Responder with a GetClient method.
@@ -989,4 +995,5 @@ var (
 	_ oauthelia2.ClientCredentialsFlowRequestedScopeImplicitClient = (*RegisteredClient)(nil)
 	_ oauthelia2.RequestedAudienceImplicitClient                   = (*RegisteredClient)(nil)
 	_ oauthelia2.JWTProfileClient                                  = (*RegisteredClient)(nil)
+	_ oauthelia2.IntrospectionJWTResponseClient                    = (*RegisteredClient)(nil)
 )
