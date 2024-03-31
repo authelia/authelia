@@ -7,7 +7,7 @@ import { useRouterNavigate } from "@hooks/RouterNavigate";
 import { useAutheliaState } from "@hooks/State";
 import AdminLayout from "@layouts/AdminLayout";
 import { AuthenticationLevel } from "@services/State";
-import AdminView from "@views/AdminUI/AdminView";
+import ClientView from "@views/AdminUI/OpenIDConnect/ClientView";
 //import TwoFactorAuthenticationView from "@views/Settings/TwoFactorAuthentication/TwoFactorAuthenticationView";
 
 export interface Props {}
@@ -29,7 +29,7 @@ const AdminRouter = function (props: Props) {
     return (
         <AdminLayout>
             <Routes>
-                <Route path={IndexRoute} element={<AdminView />} />
+                <Route path={IndexRoute} element={<ClientView />} />
             </Routes>
         </AdminLayout>
     );
