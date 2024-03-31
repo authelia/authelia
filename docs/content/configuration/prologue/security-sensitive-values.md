@@ -15,7 +15,7 @@ seo:
 ---
 
 Authelia contains several security sensitive values which are documented as such and are also generally are named
-`secret`, `key`, `password`, `token`, or `certificate_chain`; alternatively they may be suffixed with a `_` followed one
+`secret`, `key`, `password`, `token`, or `certificate_chain`; alternatively they may be suffixed with a `_` followed by one
 of the previous values.
 
 We generally recommend not leaving these values directly in the configuration itself as this often leads to accidentally
