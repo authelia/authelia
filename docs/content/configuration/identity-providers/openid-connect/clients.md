@@ -82,29 +82,14 @@ identity_providers:
             use: 'sig'
             key: |
               -----BEGIN RSA PUBLIC KEY-----
-              MEgCQQDAwV26ZA1lodtOQxNrJ491gWT+VzFum9IeZ+WTmMypYWyW1CzXKwsvTHDz
-              9ec+jserR3EMQ0Rr24lj13FL1ib5AgMBAAE=
+              ...
               -----END RSA PUBLIC KEY----
             certificate_chain: |
               -----BEGIN CERTIFICATE-----
-              MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-              MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-              NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-              AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-              z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-              JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-              Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-              1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+              ...
               -----END CERTIFICATE-----
               -----BEGIN CERTIFICATE-----
-              MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-              MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-              NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-              AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-              z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-              JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-              Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-              1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+             ...
               -----END CERTIFICATE-----
 ```
 
@@ -636,29 +621,14 @@ identity_providers:
             use: 'sig'
             key: |
               -----BEGIN RSA PUBLIC KEY-----
-              MEgCQQDAwV26ZA1lodtOQxNrJ491gWT+VzFum9IeZ+WTmMypYWyW1CzXKwsvTHDz
-              9ec+jserR3EMQ0Rr24lj13FL1ib5AgMBAAE=
+              ...
               -----END RSA PUBLIC KEY----
             certificate_chain: |
               -----BEGIN CERTIFICATE-----
-              MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-              MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-              NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-              AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-              z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-              JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-              Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-              1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+              ...
               -----END CERTIFICATE-----
               -----BEGIN CERTIFICATE-----
-              MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-              MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-              NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-              AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-              z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-              JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-              Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-              1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+              ...
               -----END CERTIFICATE-----
 ```
 
