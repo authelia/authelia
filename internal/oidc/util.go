@@ -1,7 +1,9 @@
 package oidc
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/url"
 	"sort"
 	"strings"
@@ -11,6 +13,8 @@ import (
 	"github.com/go-jose/go-jose/v4"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/text/language"
+
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // IsPushedAuthorizedRequest returns true if the requester has a PushedAuthorizationRequest redirect_uri value.
@@ -362,4 +366,63 @@ func IsAccessToken(ctx Context, value string) (is bool, err error) {
 
 func IsMaybeSignedJWT(value string) (is bool) {
 	return strings.Count(value, ".") == 2
+}
+
+func ValidateSectorIdentifierURI(ctx ClientContext, cache map[string][]string, sectorURI *url.URL, redirectURIs []string) (err error) {
+	var (
+		sectorRedirectURIs []string
+	)
+
+	if sectorRedirectURIs, err = getSectorIdentifierURICache(ctx, cache, sectorURI); err != nil {
+		return err
+	}
+
+	var invalidRedirectURIs []string //nolint:prealloc
+
+	for _, rawRedirectURI := range redirectURIs {
+		if _, match := oauthelia2.IsMatchingRedirectURI(rawRedirectURI, sectorRedirectURIs); match {
+			continue
+		}
+
+		invalidRedirectURIs = append(invalidRedirectURIs, rawRedirectURI)
+	}
+
+	switch len(invalidRedirectURIs) {
+	case 0:
+		return nil
+	case 1:
+		return fmt.Errorf("error checking redirect_uri '%s' against '%s'", invalidRedirectURIs[0], utils.StringJoinAnd(sectorRedirectURIs))
+	default:
+		return fmt.Errorf("error checking redirect_uris '%s' against '%s'", utils.StringJoinAnd(invalidRedirectURIs), utils.StringJoinAnd(sectorRedirectURIs))
+	}
+}
+
+func getSectorIdentifierURICache(ctx ClientContext, cache map[string][]string, sectorURI *url.URL) (redirectURIs []string, err error) {
+	if cache != nil {
+		var ok bool
+
+		if redirectURIs, ok = cache[sectorURI.String()]; ok {
+			return redirectURIs, nil
+		}
+	}
+
+	redirectURIs = make([]string, 0)
+
+	client := ctx.GetHTTPClient()
+
+	var resp *http.Response
+
+	if resp, err = client.Get(sectorURI.String()); err != nil {
+		return nil, fmt.Errorf("error occurred making request to '%s' for the sector identifier document: %w", sectorURI, err)
+	}
+
+	if err = json.NewDecoder(resp.Body).Decode(&redirectURIs); err != nil {
+		return nil, fmt.Errorf("error occurred decoding request from '%s' with the sector identifier document: %w", sectorURI, err)
+	}
+
+	if cache != nil {
+		cache[sectorURI.String()] = redirectURIs
+	}
+
+	return redirectURIs, nil
 }

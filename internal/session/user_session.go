@@ -90,3 +90,19 @@ func (s *UserSession) Identity() Identity {
 
 	return identity
 }
+
+func (s *UserSession) GetUsername() (username string) {
+	return s.Username
+}
+
+func (s *UserSession) GetGroups() (groups []string) {
+	return s.Groups
+}
+
+func (s *UserSession) GetDisplayName() (name string) {
+	return s.DisplayName
+}
+
+func (s *UserSession) GetEmails() (emails []string) {
+	return s.Emails
+}

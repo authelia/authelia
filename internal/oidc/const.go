@@ -22,6 +22,7 @@ const (
 	ClaimSessionID                           = "sid"
 	ClaimAccessTokenHash                     = "at_hash"
 	ClaimCodeHash                            = "c_hash"
+	ClaimStateHash                           = "s_hash"
 	ClaimIssuedAt                            = "iat"
 	ClaimNotBefore                           = "nbf"
 	ClaimRequestedAt                         = "rat"
@@ -152,6 +153,10 @@ const (
 const (
 	PKCEChallengeMethodPlain  = "plain"
 	PKCEChallengeMethodSHA256 = "S256"
+)
+
+const (
+	RedirectURISpecialOAuth2InstalledApp = "urn:ietf:wg:oauth:2.0:oob"
 )
 
 const (

@@ -59,7 +59,7 @@ func ValidateAccessControl(config *schema.Configuration, validator *schema.Struc
 	}
 
 	if !IsPolicyValid(config.AccessControl.DefaultPolicy) {
-		validator.Push(fmt.Errorf(errFmtAccessControlDefaultPolicyValue, strJoinOr(validACLRulePolicies), config.AccessControl.DefaultPolicy))
+		validator.Push(fmt.Errorf(errFmtAccessControlDefaultPolicyValue, utils.StringJoinOr(validACLRulePolicies), config.AccessControl.DefaultPolicy))
 	}
 
 	for _, n := range config.AccessControl.Networks {
@@ -95,7 +95,7 @@ func ValidateRules(config *schema.Configuration, validator *schema.StructValidat
 			validator.Push(fmt.Errorf(errFmtAccessControlRuleNoPolicy, ruleDescriptor(rulePosition, rule)))
 		default:
 			if !IsPolicyValid(rule.Policy) {
-				validator.Push(fmt.Errorf(errFmtAccessControlRuleInvalidPolicy, ruleDescriptor(rulePosition, rule), strJoinOr(validACLRulePolicies), rule.Policy))
+				validator.Push(fmt.Errorf(errFmtAccessControlRuleInvalidPolicy, ruleDescriptor(rulePosition, rule), utils.StringJoinOr(validACLRulePolicies), rule.Policy))
 			}
 		}
 
@@ -162,11 +162,11 @@ func validateMethods(rulePosition int, rule schema.AccessControlRule, validator 
 	invalid, duplicates := validateList(rule.Methods, validACLHTTPMethodVerbs, true)
 
 	if len(invalid) != 0 {
-		validator.Push(fmt.Errorf(errFmtAccessControlRuleInvalidEntries, ruleDescriptor(rulePosition, rule), "methods", strJoinOr(validACLHTTPMethodVerbs), strJoinAnd(invalid)))
+		validator.Push(fmt.Errorf(errFmtAccessControlRuleInvalidEntries, ruleDescriptor(rulePosition, rule), "methods", utils.StringJoinOr(validACLHTTPMethodVerbs), utils.StringJoinAnd(invalid)))
 	}
 
 	if len(duplicates) != 0 {
-		validator.Push(fmt.Errorf(errFmtAccessControlRuleInvalidDuplicates, ruleDescriptor(rulePosition, rule), "methods", strJoinAnd(duplicates)))
+		validator.Push(fmt.Errorf(errFmtAccessControlRuleInvalidDuplicates, ruleDescriptor(rulePosition, rule), "methods", utils.StringJoinAnd(duplicates)))
 	}
 }
 
@@ -184,7 +184,7 @@ func validateQuery(i int, rule schema.AccessControlRule, config *schema.Configur
 					}
 				}
 			} else if !utils.IsStringInSliceFold(config.AccessControl.Rules[i].Query[j][k].Operator, validACLRuleOperators) {
-				validator.Push(fmt.Errorf(errFmtAccessControlRuleQueryInvalid, ruleDescriptor(i+1, rule), strJoinOr(validACLRuleOperators), config.AccessControl.Rules[i].Query[j][k].Operator))
+				validator.Push(fmt.Errorf(errFmtAccessControlRuleQueryInvalid, ruleDescriptor(i+1, rule), utils.StringJoinOr(validACLRuleOperators), config.AccessControl.Rules[i].Query[j][k].Operator))
 			}
 
 			if config.AccessControl.Rules[i].Query[j][k].Key == "" {

@@ -3,7 +3,7 @@ module github.com/authelia/authelia/v4
 go 1.21
 
 require (
-	authelia.com/provider/oauth2 v0.1.3
+	authelia.com/provider/oauth2 v0.1.4
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
 	github.com/authelia/jsonschema v0.1.7
@@ -35,7 +35,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/ory/herodot v0.10.3-0.20230807143059-27cd6936499b
-	github.com/ory/x v0.0.623
+	github.com/ory/x v0.0.625
 	github.com/otiai10/copy v1.14.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.19.0
