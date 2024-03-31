@@ -5,9 +5,6 @@ summary: "This section covers the style guidelines we use for development."
 date: 2021-04-11T21:25:03+10:00
 draft: false
 images: []
-menu:
-  contributing:
-    parent: "guidelines"
 weight: 350
 toc: true
 aliases:

@@ -40,7 +40,7 @@ func validateTOTPValueSetAlgorithm(config *schema.Configuration, validator *sche
 		config.TOTP.DefaultAlgorithm = strings.ToUpper(config.TOTP.DefaultAlgorithm)
 
 		if !utils.IsStringInSlice(config.TOTP.DefaultAlgorithm, schema.TOTPPossibleAlgorithms) {
-			validator.Push(fmt.Errorf(errFmtTOTPInvalidAlgorithm, strJoinOr(schema.TOTPPossibleAlgorithms), config.TOTP.DefaultAlgorithm))
+			validator.Push(fmt.Errorf(errFmtTOTPInvalidAlgorithm, utils.StringJoinOr(schema.TOTPPossibleAlgorithms), config.TOTP.DefaultAlgorithm))
 		}
 	}
 
@@ -48,7 +48,7 @@ func validateTOTPValueSetAlgorithm(config *schema.Configuration, validator *sche
 		config.TOTP.AllowedAlgorithms[i] = strings.ToUpper(algorithm)
 
 		if !utils.IsStringInSlice(config.TOTP.AllowedAlgorithms[i], schema.TOTPPossibleAlgorithms) {
-			validator.Push(fmt.Errorf(errFmtTOTPInvalidAllowedAlgorithm, strJoinOr(schema.TOTPPossibleAlgorithms), config.TOTP.AllowedAlgorithms[i]))
+			validator.Push(fmt.Errorf(errFmtTOTPInvalidAllowedAlgorithm, utils.StringJoinOr(schema.TOTPPossibleAlgorithms), config.TOTP.AllowedAlgorithms[i]))
 		}
 	}
 

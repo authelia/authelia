@@ -5,9 +5,6 @@ summary: "This section contains reference documentation for Authelia."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  reference:
-    parent: "prologue"
 weight: 110
 toc: true
 seo:

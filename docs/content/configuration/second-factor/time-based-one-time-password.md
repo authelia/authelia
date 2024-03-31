@@ -5,9 +5,6 @@ summary: "Authelia supports utilizing Time-based One-Time Passwords as a 2FA met
 date: 2020-02-29T01:43:59+01:00
 draft: false
 images: []
-menu:
-  configuration:
-    parent: "second-factor"
 weight: 103300
 toc: true
 aliases:

@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"crypto/tls"
 	"crypto/x509"
 	"fmt"
 	"os"
@@ -228,7 +229,13 @@ func (ctx *CmdCtx) HelperConfigValidateKeysRunE(_ *cobra.Command, _ []string) (e
 
 // HelperConfigValidateRunE validates the configuration (structure).
 func (ctx *CmdCtx) HelperConfigValidateRunE(_ *cobra.Command, _ []string) (err error) {
-	validator.ValidateConfiguration(ctx.config, ctx.cconfig.validator)
+	tc := &tls.Config{
+		RootCAs:    ctx.trusted,
+		MinVersion: tls.VersionTLS12,
+		MaxVersion: tls.VersionTLS13,
+	}
+
+	validator.ValidateConfiguration(ctx.config, ctx.cconfig.validator, validator.WithTLSConfig(tc))
 
 	return nil
 }
@@ -252,11 +259,12 @@ func (ctx *CmdCtx) LogConfigure(_ *cobra.Command, _ []string) (err error) {
 
 	config.KeepStdout = true
 
-	if err = logging.InitializeLogger(config, false); err != nil {
+	if err = logging.InitializeLogger(schema.Log{Level: ctx.config.Log.Level}, false); err != nil {
 		return fmt.Errorf("Cannot initialize logger: %w", err)
 	}
 
 	ctx.log.WithFields(map[string]any{"filters": ctx.cconfig.filters, "files": ctx.cconfig.files}).Debug("Loaded Configuration Sources")
+	ctx.log.WithFields(map[string]any{"level": ctx.config.Log.Level, "format": ctx.config.Log.Format, "file": ctx.config.Log.FilePath, "keep_stdout": ctx.config.Log.KeepStdout}).Debug("Logging Initialized")
 
 	return nil
 }

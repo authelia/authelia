@@ -5,9 +5,6 @@ summary: "Frequently Asked Questions regarding integrating the Authelia OpenID C
 date: 2022-10-20T15:27:09+11:00
 draft: false
 images: []
-menu:
-  integration:
-    parent: "openid-connect"
 weight: 615
 toc: true
 seo:

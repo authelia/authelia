@@ -167,8 +167,9 @@ type PARConfig struct {
 
 // IssuersConfig holds specific oauthelia2.Configurator information for the issuer.
 type IssuersConfig struct {
-	IDToken     string
-	AccessToken string
+	IDToken       string
+	AccessToken   string
+	Introspection string
 
 	AuthorizationServerIssuerIdentification string
 	JWTSecuredResponseMode                  string
@@ -177,7 +178,11 @@ type IssuersConfig struct {
 // HandlersConfig holds specific oauthelia2.Configurator handlers configuration information.
 type HandlersConfig struct {
 	// ResponseMode provides an extension handler for custom response modes.
-	ResponseMode []oauthelia2.ResponseModeHandler
+	ResponseMode oauthelia2.ResponseModeHandlers
+
+	// ResponseModeParameter provides an extension handler for custom response mode parameters added later after the
+	// response mode is assured.
+	ResponseModeParameter oauthelia2.ResponseModeParameterHandlers
 
 	// AuthorizeEndpoint is a list of handlers that are called before the authorization endpoint is served.
 	AuthorizeEndpoint oauthelia2.AuthorizeEndpointHandlers
@@ -321,6 +326,14 @@ func (c *Config) LoadHandlers(store *Store) {
 			Storage: store,
 			Config:  c,
 		},
+
+		// Response Mode Handling.
+		&oauthelia2.DefaultResponseModeHandler{
+			Config: c,
+		},
+		&oauthelia2.RFC9207ResponseModeParameterHandler{
+			Config: c,
+		},
 	}
 
 	x := HandlersConfig{
@@ -350,6 +363,14 @@ func (c *Config) LoadHandlers(store *Store) {
 
 		if h, ok := handler.(oauthelia2.PushedAuthorizeEndpointHandler); ok {
 			x.PushedAuthorizeEndpoint.Append(h)
+		}
+
+		if h, ok := handler.(oauthelia2.ResponseModeHandler); ok {
+			x.ResponseMode.Append(h)
+		}
+
+		if h, ok := handler.(oauthelia2.ResponseModeParameterHandler); ok {
+			x.ResponseModeParameter.Append(h)
 		}
 	}
 
@@ -454,6 +475,16 @@ func (c *Config) GetAccessTokenIssuer(ctx context.Context) (issuer string) {
 // GetAuthorizationServerIdentificationIssuer returns the Authorization Server Identification issuer.
 func (c *Config) GetAuthorizationServerIdentificationIssuer(ctx context.Context) (issuer string) {
 	return c.GetIssuerFallback(ctx, c.Issuers.AuthorizationServerIssuerIdentification)
+}
+
+// GetIntrospectionIssuer returns the Introspection issuer.
+func (c *Config) GetIntrospectionIssuer(ctx context.Context) (issuer string) {
+	return c.GetIssuerFallback(ctx, c.Issuers.Introspection)
+}
+
+// GetIntrospectionJWTResponseSigner returns jwt.Signer for Introspection JWT Responses.
+func (c *Config) GetIntrospectionJWTResponseSigner(ctx context.Context) jwt.Signer {
+	return c.Signer
 }
 
 // GetDisableRefreshTokenValidation returns the disable refresh token validation flag.
@@ -717,19 +748,23 @@ func (c *Config) GetVerifiableCredentialsNonceLifespan(ctx context.Context) (lif
 	return c.Lifespans.VerifiableCredentialsNonce
 }
 
-func (c *Config) GetResponseModeHandlers(ctx context.Context) []oauthelia2.ResponseModeHandler {
+func (c *Config) GetResponseModeHandlers(ctx context.Context) oauthelia2.ResponseModeHandlers {
 	return c.Handlers.ResponseMode
 }
 
-func (c *Config) GetRevokeRefreshTokensExplicit(ctx context.Context) bool {
+func (c *Config) GetResponseModeParameterHandlers(ctx context.Context) oauthelia2.ResponseModeParameterHandlers {
+	return c.Handlers.ResponseModeParameter
+}
+
+func (c *Config) GetRevokeRefreshTokensExplicit(ctx context.Context) (explicit bool) {
 	return c.RevokeRefreshTokensExplicit
 }
 
-func (c *Config) GetEnforceRevokeFlowRevokeRefreshTokensExplicitClient(ctx context.Context) bool {
+func (c *Config) GetEnforceRevokeFlowRevokeRefreshTokensExplicitClient(ctx context.Context) (enforce bool) {
 	return c.EnforceRevokeFlowRevokeRefreshTokensExplicitClient
 }
 
-func (c *Config) GetTokenURL(ctx context.Context) string {
+func (c *Config) GetTokenURL(ctx context.Context) (url string) {
 	return c.getEndpointURL(ctx, EndpointPathToken, c.TokenURL)
 }
 

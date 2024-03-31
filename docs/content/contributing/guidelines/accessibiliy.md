@@ -5,9 +5,6 @@ summary: "This section covers the accessibility guidelines we aim to respect dur
 date: 2023-03-06T20:17:57+11:00
 draft: false
 images: []
-menu:
-  contributing:
-    parent: "guidelines"
 weight: 350
 toc: true
 seo:

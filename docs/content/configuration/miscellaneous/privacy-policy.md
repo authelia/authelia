@@ -5,9 +5,6 @@ summary: "This describes a section of the configuration for enabling a Privacy P
 date: 2023-01-22T19:58:07+11:00
 draft: false
 images: []
-menu:
-  configuration:
-    parent: "miscellaneous"
 weight: 199100
 toc: true
 seo:

@@ -5,9 +5,6 @@ summary: "Regulation of failed attempts is an important function of an IAM syste
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  overview:
-    parent: "authorization"
 weight: 320
 toc: false
 aliases:

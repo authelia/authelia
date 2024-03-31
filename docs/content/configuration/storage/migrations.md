@@ -5,9 +5,6 @@ summary: "A migration ."
 date: 2021-11-23T20:45:38+11:00
 draft: false
 images: []
-menu:
-  configuration:
-    parent: "storage"
 weight: 107200
 toc: true
 aliases:

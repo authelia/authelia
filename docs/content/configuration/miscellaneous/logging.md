@@ -5,9 +5,6 @@ summary: "Authelia performs logging to various locations. This section describes
 date: 2021-06-01T14:09:50+10:00
 draft: false
 images: []
-menu:
-  configuration:
-    parent: "miscellaneous"
 weight: 199400
 toc: true
 aliases:

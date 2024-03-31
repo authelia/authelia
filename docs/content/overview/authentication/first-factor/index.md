@@ -5,9 +5,6 @@ summary: "Authelia utilizes the standard username and password combination for f
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  overview:
-    parent: "authentication"
 weight: 220
 toc: true
 aliases:

@@ -5,9 +5,6 @@ lead: ""
 date: 2022-06-27T18:27:57+10:00
 draft: false
 images: []
-menu:
-  reference:
-    parent: "cli-authelia"
 weight: 905
 toc: true
 seo:

@@ -5,9 +5,6 @@ summary: "Authelia can operate as an OpenID Connect 1.0 Provider. This section d
 date: 2023-05-15T10:32:10+10:00
 draft: false
 images: []
-menu:
-  configuration:
-    parent: "openid-connect"
 weight: 110220
 toc: true
 seo:
@@ -39,6 +36,8 @@ identity_providers:
         public: false
         redirect_uris:
           - 'https://oidc.example.com:8080/oauth2/callback'
+        request_uris:
+          - 'https://oidc.example.com:8080/oidc/request-object.jwk'
         audience:
           - 'https://app.example.com'
         scopes:
@@ -156,8 +155,18 @@ the specified client, changing this should cause the relying party to detect all
 users.*
 
 *__Important Note:__ This **must** either not be configured at all i.e. commented or completely absent from the
-configuration, or it must be an absolute HTTPS URL which contains a valid sector identifier JSON document. An empty
-string is not a valid configuration.*
+configuration, or it must be an absolute HTTPS URL which contains a valid sector identifier JSON document. Configuration
+of this option with the `https://` scheme per the requirements will cause Authelia to validate this JSON document.*
+
+A valid `sector_identifier_uri` will:
+  1. Have the scheme `https://`.
+  2. Be the absolute URI of a JSON document which:
+     1. Is a JSON array of strings (URIs).
+     2. Has every URI registered with this clients [redirect_uris](#redirect_uris) when compared using an exact string
+        match as defined in [OAuth 2.0 Security Best Current Practice Section 2.1].
+     3. May or may not have additional [redirect_uris](#redirect_uris) from other clients.
+
+[OAuth 2.0 Security Best Current Practice Section 2.1]: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-security-topics#section-2.1
 
 Authelia utilizes UUID version 4 subject identifiers. By default the public [Subject Identifier Type] is utilized for
 all clients. This means the subject identifiers will be the same for all clients. This configuration option enables
@@ -167,10 +176,10 @@ the lookup of the subject identifier.
 1. All clients who do not have this configured will generate the same subject identifier for a particular user
    regardless of which client obtains the ID token.
 2. All clients which have the same sector identifier will:
-   1. have the same subject identifier for a particular user when compared to clients with the same sector identifier.
-   2. have a completely different subject identifier for a particular user whe compared to:
-      1. any client with the public subject identifier type.
-      2. any client with a differing sector identifier.
+   1. Have the same subject identifier for a particular user when compared to clients with the same sector identifier.
+   2. Have a completely different subject identifier for a particular user when compared to:
+      1. Any client with the public subject identifier type.
+      2. Any client with a differing `sector_identifier_uri`.
 
 In specific but limited scenarios this option is beneficial for privacy reasons. In particular this is useful when the
 party utilizing the *Authelia* [OpenID Connect 1.0] Authorization Server is foreign and not controlled by the user. It would
@@ -203,6 +212,15 @@ their redirect URIs are as follows:
    attempt to authorize will fail and an error will be generated.
 2. The redirect URIs are case-sensitive.
 3. The URI must include a scheme and that scheme must be one of `http` or `https`.
+
+### request_uris
+
+{{< confkey type="list(string)" required="no" >}}
+
+A list of URIs which can be used for the OpenID Connect 1.0 Request Object to pass Authorize Request parameters via a
+JSON Web Token remote URI using the `request_uri` parameter.
+
+These URIs must have the `https` scheme.
 
 ### audience
 

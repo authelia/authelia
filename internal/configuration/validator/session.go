@@ -46,7 +46,7 @@ func validateSession(config *schema.Configuration, validator *schema.StructValid
 	if config.Session.SameSite == "" {
 		config.Session.SameSite = schema.DefaultSessionConfiguration.SameSite
 	} else if !utils.IsStringInSlice(config.Session.SameSite, validSessionSameSiteValues) {
-		validator.Push(fmt.Errorf(errFmtSessionSameSite, strJoinOr(validSessionSameSiteValues), config.Session.SameSite))
+		validator.Push(fmt.Errorf(errFmtSessionSameSite, utils.StringJoinOr(validSessionSameSiteValues), config.Session.SameSite))
 	}
 
 	cookies := len(config.Session.Cookies)
@@ -173,6 +173,17 @@ func validateSessionCookiesURLs(i int, config *schema.Session, validator *schema
 			validator.Push(fmt.Errorf(errFmtSessionDomainOptionRequired, sessionDomainDescriptor(i, d), attrSessionAutheliaURL))
 		}
 	} else {
+		switch d.AutheliaURL.Path {
+		case "", "/":
+			break
+		default:
+			if strings.HasSuffix(d.AutheliaURL.Path, "/") || !d.AutheliaURL.IsAbs() {
+				break
+			}
+
+			d.AutheliaURL.Path += "/"
+		}
+
 		if !d.AutheliaURL.IsAbs() {
 			validator.Push(fmt.Errorf(errFmtSessionDomainURLNotAbsolute, sessionDomainDescriptor(i, d), attrSessionAutheliaURL, d.AutheliaURL))
 		} else if !utils.IsURISecure(d.AutheliaURL) {
@@ -204,6 +215,8 @@ func validateSessionCookiesURLs(i int, config *schema.Session, validator *schema
 			validator.Push(fmt.Errorf(errFmtSessionDomainAutheliaURLAndRedirectionURLEqual, sessionDomainDescriptor(i, d), d.DefaultRedirectionURL, d.AutheliaURL))
 		}
 	}
+
+	config.Cookies[i] = d
 }
 
 func validateSessionRememberMe(i int, config *schema.Session) {
@@ -224,7 +237,7 @@ func validateSessionSameSite(i int, config *schema.Session, validator *schema.St
 			config.Cookies[i].SameSite = schema.DefaultSessionConfiguration.SameSite
 		}
 	} else if !utils.IsStringInSlice(config.Cookies[i].SameSite, validSessionSameSiteValues) {
-		validator.Push(fmt.Errorf(errFmtSessionDomainSameSite, sessionDomainDescriptor(i, config.Cookies[i]), strJoinOr(validSessionSameSiteValues), config.Cookies[i].SameSite))
+		validator.Push(fmt.Errorf(errFmtSessionDomainSameSite, sessionDomainDescriptor(i, config.Cookies[i]), utils.StringJoinOr(validSessionSameSiteValues), config.Cookies[i].SameSite))
 	}
 }
 

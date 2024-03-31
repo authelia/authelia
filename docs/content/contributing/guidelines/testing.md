@@ -5,9 +5,6 @@ summary: "This section covers the testing guidelines."
 date: 2023-03-20T15:03:52+11:00
 draft: false
 images: []
-menu:
-  contributing:
-    parent: "guidelines"
 weight: 320
 toc: true
 seo:

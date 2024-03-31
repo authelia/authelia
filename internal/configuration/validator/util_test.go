@@ -44,11 +44,6 @@ func TestIsCookieDomainValid(t *testing.T) {
 	}
 }
 
-func TestBuildStringFuncsMissingTests(t *testing.T) {
-	assert.Equal(t, "", buildJoinedString(".", ":", "'", nil))
-	assert.Equal(t, "'abc', '123'", strJoinComma("", []string{"abc", "123"}))
-}
-
 func TestSchemaJWKGetPropertiesMissingTests(t *testing.T) {
 	props, err := schemaJWKGetProperties(schema.JWK{Key: keyECDSAP224})
 

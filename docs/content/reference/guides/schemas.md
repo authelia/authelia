@@ -5,9 +5,6 @@ summary: "This section contains reference documentation for Authelia's schemas."
 date: 2023-09-03T16:01:46+10:00
 draft: false
 images: []
-menu:
-  reference:
-    parent: "guides"
 weight: 220
 toc: true
 seo:

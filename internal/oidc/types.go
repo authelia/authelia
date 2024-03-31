@@ -39,8 +39,20 @@ type OpenIDConnectProvider struct {
 // oauth2.RefreshTokenStorage, oauth2.TokenRevocationStorage, pkce.PKCERequestStorage,
 // openid.OpenIDConnectRequestStorage, and partially implements rfc7523.RFC7523KeyStorage.
 type Store struct {
+	ClientStore
+
 	provider storage.Provider
-	clients  map[string]Client
+}
+
+// ClientStore is an abstraction used for the Store struct which stores clients.
+type ClientStore interface {
+	// GetRegisteredClient returns a Client matching the provided id.
+	GetRegisteredClient(ctx context.Context, id string) (client Client, err error)
+}
+
+// MemoryClientStore is an implementation of the ClientStore which just stores the clients in memory.
+type MemoryClientStore struct {
+	clients map[string]Client
 }
 
 // RegisteredClient represents a registered client.
@@ -154,14 +166,20 @@ type RefreshFlowScopeClient interface {
 
 // Context represents the context implementation that is used by some OpenID Connect 1.0 implementations.
 type Context interface {
-	context.Context
-
 	RootURL() (issuerURL *url.URL)
 	IssuerURL() (issuerURL *url.URL, err error)
 	GetClock() (clock clock.Provider)
 	GetRandom() (random random.Provider)
 	GetConfiguration() (config schema.Configuration)
 	GetJWTWithTimeFuncOption() (option jwt.ParserOption)
+
+	context.Context
+}
+
+type ClientContext interface {
+	GetHTTPClient() *http.Client
+
+	context.Context
 }
 
 // ClientRequesterResponder is a oauthelia2.Requster or fosite.Responder with a GetClient method.
@@ -197,6 +215,13 @@ type JWTSecuredResponseModeProvider interface {
 type IDTokenSessionContainer interface {
 	IDTokenHeaders() *fjwt.Headers
 	IDTokenClaims() *fjwt.IDTokenClaims
+}
+
+type UserDetailer interface {
+	GetUsername() (username string)
+	GetGroups() (groups []string)
+	GetDisplayName() (name string)
+	GetEmails() (emails []string)
 }
 
 // NilErrorReporter is a true nil herodot.ErrorReporter.
@@ -970,4 +995,5 @@ var (
 	_ oauthelia2.ClientCredentialsFlowRequestedScopeImplicitClient = (*RegisteredClient)(nil)
 	_ oauthelia2.RequestedAudienceImplicitClient                   = (*RegisteredClient)(nil)
 	_ oauthelia2.JWTProfileClient                                  = (*RegisteredClient)(nil)
+	_ oauthelia2.IntrospectionJWTResponseClient                    = (*RegisteredClient)(nil)
 )

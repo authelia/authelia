@@ -66,7 +66,7 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 		Clients:                []schema.IdentityProvidersOpenIDConnectClient{c1},
 	}, nil)
 
-	client, err := s.GetFullClient(ctx, id)
+	client, err := s.GetRegisteredClient(ctx, id)
 	require.NoError(t, err)
 	require.NotNil(t, client)
 	assert.Equal(t, id, client.GetID())
@@ -96,7 +96,7 @@ func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
 		Clients:                []schema.IdentityProvidersOpenIDConnectClient{c1},
 	}, nil)
 
-	client, err := s.GetFullClient(ctx, "another-client")
+	client, err := s.GetRegisteredClient(ctx, "another-client")
 	assert.Nil(t, client)
 	assert.EqualError(t, err, "invalid_client")
 }

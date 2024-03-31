@@ -22,6 +22,7 @@ const (
 	ClaimSessionID                           = "sid"
 	ClaimAccessTokenHash                     = "at_hash"
 	ClaimCodeHash                            = "c_hash"
+	ClaimStateHash                           = "s_hash"
 	ClaimIssuedAt                            = "iat"
 	ClaimNotBefore                           = "nbf"
 	ClaimRequestedAt                         = "rat"
@@ -155,6 +156,10 @@ const (
 )
 
 const (
+	RedirectURISpecialOAuth2InstalledApp = "urn:ietf:wg:oauth:2.0:oob"
+)
+
+const (
 	FormParameterState        = "state"
 	FormParameterClientID     = valueClientID
 	FormParameterRequestURI   = "request_uri"
@@ -163,6 +168,7 @@ const (
 	FormParameterResponseType = "response_type"
 	FormParameterScope        = valueScope
 	FormParameterIssuer       = valueIss
+	FormParameterPrompt       = "prompt"
 )
 
 const (

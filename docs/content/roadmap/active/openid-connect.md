@@ -5,9 +5,6 @@ summary: "The OpenID Connect 1.0 Provider role is a very useful but complex feat
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  roadmap:
-    parent: "active"
 weight: 221
 toc: true
 aliases:
@@ -20,9 +17,11 @@ seo:
   noindex: false # false (default) or true
 ---
 
-We have decided to implement [OpenID Connect 1.0] as a beta feature, it's suggested you only utilize it for testing and
-providing feedback, and should take caution in relying on it in production as of now. [OpenID Connect 1.0] and it's
-related endpoints are not enabled by default unless you specifically configure the [OpenID Connect 1.0] section.
+We have decided to implement [OAuth 2.0] and [OpenID Connect 1.0] as a beta feature. While it's relatively stable there
+may inevitably be the occasional breaking change as we carefully implement each aspect of the relevant specifications.
+It's suggested to use a bit more caution with this feature than most features, we do however greatly appreciate your
+feedback. [OpenID Connect 1.0] and it's related endpoints are not enabled by default unless you explicitly configure the
+[OpenID Connect 1.0 Provider Configuration] and [OpenID Connect 1.0 Registered Clients] sections.
 
 As [OpenID Connect 1.0] is fairly complex (the [OpenID Connect 1.0] Provider role especially so) it's intentional that
 it is both a beta and that the implemented features are part of a thoughtful roadmap. Items that are not immediately
@@ -144,7 +143,7 @@ Feature List:
 
 ### Beta 7
 
-{{< roadmap-status >}}
+{{< roadmap-status version="v4.39.0" >}}
 
 Feature List:
 
@@ -253,6 +252,10 @@ The `preferred_username` claim was missing and was fixed.
 [RFC8693 Section 4.3]: https://datatracker.ietf.org/doc/html/rfc8693/#section-4.3
 [RFC4122]: https://datatracker.ietf.org/doc/html/rfc4122
 
+[OpenID Connect 1.0 Provider Configuration]: ../../configuration/identity-providers/openid-connect/provider.md
+[OpenID Connect 1.0 Registered Clients]: ../../configuration/identity-providers/openid-connect/clients.md
+
+[OAuth 2.0]: https://oauth.net/2/
 [OpenID Connect 1.0]: https://openid.net/connect/
 [OpenID Connect Dynamic Client Registration 1.0]: https://openid.net/specs/openid-connect-registration-1_0.html
 [OpenID Connect Session Management 1.0]: https://openid.net/specs/openid-connect-session-1_0.html
