@@ -18,8 +18,7 @@ Authelia has several methods where users can interact with templates.
 
 ## Enable Templating
 
-By default the [Notification Templates](./notification-templates.md) have templating enabled. To enable templating in
-the configuration set the environment variable `X_AUTHELIA_CONFIG_FILTERS` to `template`. For more information see
+By default the [Notification Templates](./notification-templates.md) have templating enabled. To enable templating in configuration files, set the environment variable `X_AUTHELIA_CONFIG_FILTERS` to `template`. For more information see
 [Configuration > Methods > Files: File Filters](../../configuration/methods/files.md#file-filters).
 
 ## Validation / Debugging
