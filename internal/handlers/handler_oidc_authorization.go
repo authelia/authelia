@@ -142,7 +142,7 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 
 	extra := map[string]any{}
 
-	oidc.GrantClaims(ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx), client, nil, requests.GetIDTokenRequests(), details, extra)
+	oidc.GrantClaimRequests(ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx), client, requests.GetIDTokenRequests(), details, extra)
 	oidc.GrantScopeAudienceConsent(requester, consent)
 
 	if authTime, err = userSession.AuthenticatedTime(client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{Username: details.Username, Groups: details.Groups, IP: ctx.RemoteIP()})); err != nil {

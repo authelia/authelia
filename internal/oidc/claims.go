@@ -211,11 +211,8 @@ func GrantScopeAudienceConsent(ar oauthelia2.AuthorizeRequester, consent *model.
 	}
 }
 
-// GrantClaims grants all claims the client is authorized to request.
-//
-// IMPORTANT: The scopes value should only be populated if the granted claims are meant to be solely scope based,
-// i.e. for UserInfo requests.
-func GrantClaims(strategy oauthelia2.ScopeStrategy, client Client, scopes oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, extra map[string]any) {
+// GrantClaimRequests grants all claims the client has requested provided it's authorized to request them.
+func GrantClaimRequests(strategy oauthelia2.ScopeStrategy, client Client, requests map[string]*ClaimRequest, detailer UserDetailer, extra map[string]any) {
 	if requests == nil {
 		return
 	}
@@ -223,11 +220,11 @@ func GrantClaims(strategy oauthelia2.ScopeStrategy, client Client, scopes oauthe
 	for claim, request := range requests {
 		switch claim {
 		case ClaimGroups:
-			grantScopeClaim(strategy, client, scopes, ScopeGroups, ClaimGroups, detailer.GetGroups(), request, extra)
+			grantRequestedClaim(strategy, client, ScopeGroups, ClaimGroups, detailer.GetGroups(), request, extra)
 		case ClaimPreferredUsername:
-			grantScopeClaim(strategy, client, scopes, ScopeProfile, ClaimPreferredUsername, detailer.GetUsername(), request, extra)
+			grantRequestedClaim(strategy, client, ScopeProfile, ClaimPreferredUsername, detailer.GetUsername(), request, extra)
 		case ClaimFullName:
-			grantScopeClaim(strategy, client, scopes, ScopeProfile, ClaimFullName, detailer.GetDisplayName(), request, extra)
+			grantRequestedClaim(strategy, client, ScopeProfile, ClaimFullName, detailer.GetDisplayName(), request, extra)
 		case ClaimPreferredEmail:
 			emails := detailer.GetEmails()
 
@@ -235,7 +232,7 @@ func GrantClaims(strategy oauthelia2.ScopeStrategy, client Client, scopes oauthe
 				continue
 			}
 
-			grantScopeClaim(strategy, client, scopes, ScopeEmail, ClaimPreferredEmail, emails[0], request, extra)
+			grantRequestedClaim(strategy, client, ScopeEmail, ClaimPreferredEmail, emails[0], request, extra)
 		case ClaimEmailAlts:
 			emails := detailer.GetEmails()
 
@@ -243,31 +240,24 @@ func GrantClaims(strategy oauthelia2.ScopeStrategy, client Client, scopes oauthe
 				continue
 			}
 
-			grantScopeClaim(strategy, client, scopes, ScopeEmail, ClaimEmailAlts, emails[1:], request, extra)
+			grantRequestedClaim(strategy, client, ScopeEmail, ClaimEmailAlts, emails[1:], request, extra)
 		case ClaimEmailVerified:
-			if !strategy(scopes, ScopeEmail) {
+			if !strategy(client.GetScopes(), ScopeEmail) {
 				continue
 			}
 
-			grantScopeClaim(strategy, client, scopes, ScopeEmail, ClaimEmailVerified, true, request, extra)
+			grantRequestedClaim(strategy, client, ScopeEmail, ClaimEmailVerified, true, request, extra)
 		}
 	}
 }
 
-func grantScopeClaim(strategy oauthelia2.ScopeStrategy, client Client, scopes oauthelia2.Arguments, scope string, claim string, value any, request *ClaimRequest, extra map[string]any) {
+func grantRequestedClaim(strategy oauthelia2.ScopeStrategy, client Client, scope string, claim string, value any, request *ClaimRequest, extra map[string]any) {
 	if _, ok := extra[claim]; ok {
 		return
 	}
 
 	// Prevent clients from accessing claims they are NOT entitled to even request.
 	if !strategy(client.GetScopes(), scope) {
-		return
-	}
-
-	// Grant any claims that were granted in the authorization request.
-	if strategy(scopes, scope) {
-		extra[claim] = value
-
 		return
 	}
 
@@ -283,8 +273,8 @@ func grantScopeClaim(strategy oauthelia2.ScopeStrategy, client Client, scopes oa
 }
 
 // GrantUserInfoClaims copies the extra claims from the ID Token that may be useful while excluding
-// OpenID Connect 1.0 Special Claims, OpenID Connect 1.0 Scope-based Claims which should be granted by GrantClaims.
-func GrantUserInfoClaims(clientID string, original, claims map[string]any) {
+// OpenID Connect 1.0 Special Claims, OpenID Connect 1.0 Scope-based Claims which should be granted by GrantClaimRequests.
+func GrantUserInfoClaims(strategy oauthelia2.ScopeStrategy, client Client, scopes oauthelia2.Arguments, detailer UserDetailer, original, claims map[string]any) {
 	for claim, value := range original {
 		switch claim {
 		case ClaimJWTID, ClaimSessionID, ClaimAccessTokenHash, ClaimCodeHash, ClaimExpirationTime, ClaimNonce, ClaimStateHash:
@@ -298,15 +288,44 @@ func GrantUserInfoClaims(clientID string, original, claims map[string]any) {
 		}
 	}
 
-	audience, ok := GetAudienceFromClaims(original)
+	if clientID := client.GetID(); clientID != "" {
+		audience, ok := GetAudienceFromClaims(original)
 
-	if !ok || len(audience) == 0 {
-		audience = []string{clientID}
-	} else if !utils.IsStringInSlice(clientID, audience) {
-		audience = append(audience, clientID)
+		if !ok || len(audience) == 0 {
+			audience = []string{clientID}
+		} else if !utils.IsStringInSlice(clientID, audience) {
+			audience = append(audience, clientID)
+		}
+
+		claims[ClaimAudience] = audience
 	}
 
-	claims[ClaimAudience] = audience
+	if detailer == nil {
+		return
+	}
+
+	if strategy(scopes, ScopeProfile) {
+		claims[ClaimPreferredUsername] = detailer.GetUsername()
+		claims[ClaimFullName] = detailer.GetDisplayName()
+	}
+
+	if strategy(scopes, ScopeEmail) {
+		switch emails := detailer.GetEmails(); len(emails) {
+		case 1:
+			claims[ClaimPreferredEmail] = emails[0]
+			claims[ClaimEmailVerified] = true
+		case 0:
+			break
+		default:
+			claims[ClaimPreferredEmail] = emails[0]
+			claims[ClaimEmailAlts] = emails[1:]
+			claims[ClaimEmailVerified] = true
+		}
+	}
+
+	if strategy(scopes, ScopeGroups) {
+		claims[ClaimGroups] = detailer.GetGroups()
+	}
 }
 
 // GetAudienceFromClaims retrieves the various formats of the 'aud' claim and returns them as a []string.
@@ -316,6 +335,10 @@ func GetAudienceFromClaims(claims map[string]any) (audience []string, ok bool) {
 	if aud, ok = claims[ClaimAudience]; ok {
 		switch v := aud.(type) {
 		case string:
+			if v == "" {
+				break
+			}
+
 			ok = true
 
 			audience = []string{v}
