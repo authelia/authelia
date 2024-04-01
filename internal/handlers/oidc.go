@@ -15,7 +15,7 @@ func oidcDetailerFromClaims(ctx *middlewares.AutheliaCtx, claims map[string]any)
 	var (
 		subject    uuid.UUID
 		identifier *model.UserOpaqueIdentifier
-		details    *authentication.UserDetails
+		details    *authentication.UserDetailsExtended
 	)
 
 	if subject, err = oidcSubjectUUIDFromClaims(claims); err != nil {
@@ -26,7 +26,7 @@ func oidcDetailerFromClaims(ctx *middlewares.AutheliaCtx, claims map[string]any)
 		return nil, err
 	}
 
-	if details, err = ctx.Providers.UserProvider.GetDetails(identifier.Username); err != nil {
+	if details, err = ctx.Providers.UserProvider.GetDetailsExtended(identifier.Username); err != nil {
 		return nil, err
 	}
 

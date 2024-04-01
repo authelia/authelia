@@ -38,14 +38,13 @@ func NewSessionWithAuthorizeRequest(ctx Context, issuer *url.URL, kid, username 
 	session = &Session{
 		DefaultSession: &openid.DefaultSession{
 			Claims: &jwt.IDTokenClaims{
-				Subject:     consent.Subject.UUID.String(),
-				Issuer:      issuer.String(),
-				AuthTime:    authTime,
-				RequestedAt: consent.RequestedAt,
-				IssuedAt:    ctx.GetClock().Now().UTC(),
-				Nonce:       requester.GetRequestForm().Get(ClaimNonce),
-				Extra:       extra,
-
+				Subject:                         consent.Subject.UUID.String(),
+				Issuer:                          issuer.String(),
+				AuthTime:                        authTime,
+				RequestedAt:                     consent.RequestedAt,
+				IssuedAt:                        ctx.GetClock().Now().UTC(),
+				Nonce:                           requester.GetRequestForm().Get(ClaimNonce),
+				Extra:                           extra,
 				AuthenticationMethodsReferences: amr,
 			},
 			Headers: &jwt.Headers{
@@ -66,7 +65,6 @@ func NewSessionWithAuthorizeRequest(ctx Context, issuer *url.URL, kid, username 
 	}
 
 	session.Claims.Add(ClaimAuthorizedParty, session.ClientID)
-	session.Claims.Add(ClaimClientIdentifier, session.ClientID)
 
 	return session
 }

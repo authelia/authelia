@@ -94,6 +94,20 @@ func (p *FileUserProvider) GetDetails(username string) (details *UserDetails, er
 	return d.ToUserDetails(), nil
 }
 
+func (p *FileUserProvider) GetDetailsExtended(username string) (details *UserDetailsExtended, err error) {
+	var d FileUserDatabaseUserDetails
+
+	if d, err = p.database.GetUserDetails(username); err != nil {
+		return nil, err
+	}
+
+	if d.Disabled {
+		return nil, ErrUserNotFound
+	}
+
+	return d.ToExtendedUserDetails(), nil
+}
+
 // UpdatePassword update the password of the given user.
 func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (err error) {
 	var details FileUserDatabaseUserDetails
