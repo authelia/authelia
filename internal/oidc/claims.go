@@ -59,7 +59,7 @@ func (r *ClaimsRequests) MatchesSubject(subject string) (requested string, ok bo
 
 	if r.UserInfo != nil {
 		if request, ok = r.UserInfo[ClaimSubject]; ok {
-			requested, ok = request.Value.(string)
+			requested, _ = request.Value.(string)
 
 			if request.Value != nil && request.Value != subject {
 				return requested, false
@@ -69,7 +69,7 @@ func (r *ClaimsRequests) MatchesSubject(subject string) (requested string, ok bo
 
 	if r.IDToken != nil {
 		if request, ok = r.IDToken[ClaimSubject]; ok {
-			requested, ok = request.Value.(string)
+			requested, _ = request.Value.(string)
 
 			if request.Value != nil && request.Value != subject {
 				return requested, false

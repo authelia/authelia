@@ -1,8 +1,9 @@
 package oidc
 
 import (
-	oauthelia2 "authelia.com/provider/oauth2"
 	"fmt"
+
+	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/ory/herodot"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"

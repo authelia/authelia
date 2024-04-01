@@ -10,7 +10,6 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/oidc"
-	"github.com/authelia/authelia/v4/internal/session"
 )
 
 func TestOIDCApplyUserInfoClaims(t *testing.T) {
@@ -162,19 +161,3 @@ func oidcTestDetailerFromSubject(details *authentication.UserDetails) oidcDetail
 		return details, nil
 	}
 }
-
-var (
-	oidcUserSessionJohn = session.UserSession{
-		Username:    "john",
-		Groups:      []string{"admin", "dev"},
-		DisplayName: "John Smith",
-		Emails:      []string{"j.smith@authelia.com", "admin@authelia.com"},
-	}
-
-	oidcUserSessionFred = session.UserSession{
-		Username:    "fred",
-		Groups:      []string{"dev"},
-		DisplayName: "Fred Smith",
-		Emails:      []string{"f.smith@authelia.com"},
-	}
-)
