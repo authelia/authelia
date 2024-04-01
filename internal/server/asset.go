@@ -240,7 +240,7 @@ func newLocalesEmbeddedHandler() (handler func(ctx *middlewares.AutheliaCtx)) {
 		}
 
 		// middlewares.SetStandardSecurityHeaders(ctx.RequestCtx)
-		// middlewares.SetContentTypeApplicationJSON(ctx.RequestCtx)
+		// middlewares.SetContentTypeApplicationJSON(ctx.RequestCtx).
 		middlewares.SetBaseSecurityHeaders(ctx.RequestCtx)
 		middlewares.SetContentTypeApplicationJSON(ctx.RequestCtx)
 
