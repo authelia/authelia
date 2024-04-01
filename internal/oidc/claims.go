@@ -309,6 +309,7 @@ func GrantUserInfoClaims(clientID string, original, claims map[string]any) {
 	claims[ClaimAudience] = audience
 }
 
+// GetAudienceFromClaims retrieves the various formats of the 'aud' claim and returns them as a []string.
 func GetAudienceFromClaims(claims map[string]any) (audience []string, ok bool) {
 	var aud any
 

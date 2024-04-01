@@ -94,17 +94,15 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 
 	oidc.GrantUserInfoClaims(clientID, original, claims)
 
+	ctx.Logger.WithFields(map[string]any{"claims": original, "requested_scopes": requester.GetRequestedScopes(), "granted_scopes": requester.GetGrantedScopes()}).Debug("Original Values")
+
 	var detailer oidc.UserDetailer
 
 	if detailer, err = oidcDetailerFromClaims(ctx, original); err != nil {
 		ctx.Logger.WithError(err).Errorf("UserInfo Request with id '%s' on client with id '%s' error occurred loading user information", requestID, client.GetID())
-
-		ctx.Providers.OpenIDConnect.WriteError(rw, req, oauthelia2.ErrServerError.WithDebugf("Failed to load user information."))
-
-		return
+	} else {
+		oidc.GrantClaims(ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx), client, requester.GetGrantedScopes(), requests.GetUserInfoRequests(), detailer, claims)
 	}
-
-	oidc.GrantClaims(ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx), client, requester.GetGrantedScopes(), requests.GetUserInfoRequests(), detailer, claims)
 
 	var token string
 
