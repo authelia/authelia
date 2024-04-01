@@ -5,9 +5,6 @@ summary: "Authelia allows providing configuration via secrets method. This secti
 date: 2020-02-29T01:43:59+01:00
 draft: false
 images: []
-menu:
-  configuration:
-    parent: "methods"
 weight: 101400
 toc: true
 aliases:

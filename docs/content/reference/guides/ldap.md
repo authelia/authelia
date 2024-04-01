@@ -5,9 +5,6 @@ summary: "This section contains reference documentation for Authelia's LDAP impl
 date: 2022-06-17T21:03:47+10:00
 draft: false
 images: []
-menu:
-  reference:
-    parent: "guides"
 weight: 220
 toc: true
 aliases:

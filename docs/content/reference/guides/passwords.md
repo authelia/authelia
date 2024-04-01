@@ -5,9 +5,6 @@ summary: "This section contains reference documentation for Authelia."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  reference:
-    parent: "guides"
 weight: 220
 toc: true
 aliases:
@@ -71,8 +68,21 @@ Passwords passed to [crypt hash generate] should be single quoted if using the `
 console prompt, especially if it has  special characters to prevent parameter substitution. For instance to generate an
 [Argon2] hash with the docker image just run:
 
+{{< envTabs "Generate Password" >}}
+{{< envTab "Docker" >}}
 ```bash
 $ docker run authelia/authelia:latest authelia crypto hash generate argon2 --password 'password'
+```
+{{< /envTab >}}
+{{< envTab "Bare-Metal" >}}
+```bash
+$ authelia crypto hash generate argon2 --password 'password'
+```
+{{< /envTab >}}
+{{< /envTabs >}}
+
+Output Example:
+```bash
 Digest: $argon2id$v=19$m=65536,t=3,p=4$Hjc8e7WYcBFcJmEDUOsS9A$ozM7RyZR1EyDR8cuyVpDDfmLrGPGFgo5E2NNqRumui4
 ```
 
@@ -80,8 +90,22 @@ You may also use the `--config` flag to point to your existing configuration. Wh
 config will be used instead. For example to generate the password with a configuration file named `configuration.yml`
 in the current directory:
 
+{{< envTabs "Generate Password (Interactive)" >}}
+{{< envTab "Docker" >}}
 ```bash
 $ docker run -v ./configuration.yml:/configuration.yml -it authelia/authelia:latest authelia crypto hash generate --config /configuration.yml
+```
+{{< /envTab >}}
+{{< envTab "Bare Metal" >}}
+```bash
+$ authelia crypto hash generate --config /configuration.yml
+```
+{{< /envTab >}}
+{{< /envTabs >}}
+
+Output Example:
+
+```bash
 Enter Password:
 Confirm Password:
 

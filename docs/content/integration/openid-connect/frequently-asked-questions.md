@@ -5,9 +5,6 @@ summary: "Frequently Asked Questions regarding integrating the Authelia OpenID C
 date: 2022-10-20T15:27:09+11:00
 draft: false
 images: []
-menu:
-  integration:
-    parent: "openid-connect"
 weight: 615
 toc: true
 seo:
@@ -44,27 +41,51 @@ Authelia provides an easy way to perform such actions.
 #### Client ID / Identifier
 
 Users can easily generate a client id / identifier by following the [Generating a Random Alphanumeric String] guide. For
-example users can perform the
-`authelia crypto rand --length 72 --charset rfc3986` command to generate a client id / identifier with 72 characters
+example users can perform the below command to generate a client id / identifier with 72 characters
 which is printed. This random command also avoids issues with
 a relying party / client application encoding the characters correctly as it uses the [RFC3986 Unreserved Characters].
 
 If a different charset is used if the value would be different when URL encoded then it will also print this value
 separately.
 
+{{< envTabs "Generate a Random Client ID" >}}
+{{< envTab "Docker" >}}
+```bash
+$ docker run authelia/authelia:latest authelia crypto rand --length 72 --charset rfc3986
+```
+{{< /envTab >}}
+{{< envTab "Bare-Metal" >}}
+```bash
+$ authelia crypto rand --length 72 --charset rfc3986
+```
+{{< /envTab >}}
+{{< /envTabs >}}
+
 [Generating a Random Alphanumeric String]: ../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string
 
 #### Client Secret
 
 Users can easily generate a client secret by following the [Generating a Random Password Hash] guide. For example users
-can perform the
-`authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986` command to
-both generate a client secret with 72 characters which is printed and is to be used with the relying party
-and hash it using PBKDF2 which can be stored in the Authelia configuration. This random command also avoids issues with
-a relying party / client application encoding the characters correctly as it uses the [RFC3986 Unreserved Characters].
+can perform the below command to both generate a client secret with 72 characters which is printed and is to be used
+with the relying party and hash it using PBKDF2 which can be stored in the Authelia configuration. This random command
+also avoids issues with a relying party / client application encoding the characters correctly as it uses the
+[RFC3986 Unreserved Characters].
 
 If a different charset is used if the value would be different when URL encoded then it will also print this value
 separately.
+
+{{< envTabs "Generate a Random Client Secret" >}}
+{{< envTab "Docker" >}}
+```bash
+$ docker run authelia/authelia:latest authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986
+```
+{{< /envTab >}}
+{{< envTab "Bare-Metal" >}}
+```bash
+$ authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986
+```
+{{< /envTab >}}
+{{< /envTabs >}}
 
 [Generating a Random Password Hash]: ../../reference/guides/generating-secure-values.md#generating-a-random-password-hash
 

@@ -22,6 +22,15 @@ func SecurityHeadersRelaxed(next fasthttp.RequestHandler) fasthttp.RequestHandle
 	}
 }
 
+// The SecurityHeadersBase middleware adds several modern recommended security headers with relaxed values.
+func SecurityHeadersBase(next fasthttp.RequestHandler) fasthttp.RequestHandler {
+	return func(ctx *fasthttp.RequestCtx) {
+		SetBaseSecurityHeaders(ctx)
+
+		next(ctx)
+	}
+}
+
 // The SetStandardSecurityHeaders function adds several modern recommended security headers with safe values.
 func SetStandardSecurityHeaders(ctx *fasthttp.RequestCtx) {
 	SetBaseSecurityHeaders(ctx)

@@ -5,9 +5,6 @@ summary: "Authelia uses multiple methods to verify the identity of users to prev
 date: 2024-03-04T20:29:11+11:00
 draft: false
 images: []
-menu:
-  configuration:
-    parent: "identity-validation"
 weight: 105200
 toc: true
 seo:

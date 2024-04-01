@@ -61,7 +61,7 @@ func newPublicHTMLEmbeddedHandler() fasthttp.RequestHandler {
 			return
 		}
 
-		middlewares.SetStandardSecurityHeaders(ctx)
+		middlewares.SetBaseSecurityHeaders(ctx)
 
 		contentType := mime.TypeByExtension(path.Ext(p))
 		if len(contentType) == 0 {
@@ -239,7 +239,9 @@ func newLocalesEmbeddedHandler() (handler func(ctx *middlewares.AutheliaCtx)) {
 			}
 		}
 
-		middlewares.SetStandardSecurityHeaders(ctx.RequestCtx)
+		// middlewares.SetStandardSecurityHeaders(ctx.RequestCtx)
+		// middlewares.SetContentTypeApplicationJSON(ctx.RequestCtx)
+		middlewares.SetBaseSecurityHeaders(ctx.RequestCtx)
 		middlewares.SetContentTypeApplicationJSON(ctx.RequestCtx)
 
 		switch {

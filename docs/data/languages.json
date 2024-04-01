@@ -28,7 +28,8 @@
             "display": "العربية",
             "locale": "ar",
             "namespaces": [
-                "portal"
+                "portal",
+                "settings"
             ],
             "fallbacks": [
                 "en"
@@ -39,7 +40,8 @@
             "display": "العربية",
             "locale": "ar-SA",
             "namespaces": [
-                "portal"
+                "portal",
+                "settings"
             ],
             "fallbacks": [
                 "ar",
@@ -51,7 +53,8 @@
             "display": "Čeština",
             "locale": "cs",
             "namespaces": [
-                "portal"
+                "portal",
+                "settings"
             ],
             "fallbacks": [
                 "en"
@@ -62,7 +65,8 @@
             "display": "Čeština",
             "locale": "cs-CZ",
             "namespaces": [
-                "portal"
+                "portal",
+                "settings"
             ],
             "fallbacks": [
                 "cs",
@@ -74,7 +78,8 @@
             "display": "Dansk",
             "locale": "da",
             "namespaces": [
-                "portal"
+                "portal",
+                "settings"
             ],
             "fallbacks": [
                 "en"
@@ -85,7 +90,8 @@
             "display": "Dansk",
             "locale": "da-DK",
             "namespaces": [
-                "portal"
+                "portal",
+                "settings"
             ],
             "fallbacks": [
                 "da",
@@ -97,7 +103,8 @@
             "display": "Deutsch",
             "locale": "de",
             "namespaces": [
-                "portal"
+                "portal",
+                "settings"
             ],
             "fallbacks": [
                 "en"
@@ -143,7 +150,8 @@
             "display": "Español",
             "locale": "es",
             "namespaces": [
-                "portal"
+                "portal",
+                "settings"
             ],
             "fallbacks": [
                 "en"
@@ -151,19 +159,40 @@
             "parent": ""
         },
         {
-            "display": "Español Latinoamericano",
-            "locale": "es-419",
-            "namespaces": [
-                "portal"
-            ],
-            "fallbacks": [
-                "es",
-                "en"
-            ],
-            "parent": "es"
+          "display": "Español Latinoamericano",
+          "locale": "es-419",
+          "namespaces": [
+              "portal"
+          ],
+          "fallbacks": [
+              "es",
+              "en"
+          ],
+          "parent": "es"
         },
         {
-            "display": "Suomi",
+            "display": "Basque",
+            "locale": "eu",
+            "namespaces": [
+                "settings"
+            ],
+            "fallbacks": [
+                "en"
+            ]
+        },
+        {
+            "display": "Basque (Spain)",
+            "locale": "eu-ES",
+            "namespaces": [
+                "settings"
+            ],
+            "fallbacks": [
+                "eu",
+                "en"
+            ]
+        },
+        {
+            "display": "Finnish",
             "locale": "fi",
             "namespaces": [
                 "portal"
@@ -189,7 +218,8 @@
             "display": "Français",
             "locale": "fr",
             "namespaces": [
-                "portal"
+                "portal",
+                "settings"
             ],
             "fallbacks": [
                 "en"
@@ -258,7 +288,8 @@
             "display": "日本語",
             "locale": "ja",
             "namespaces": [
-                "portal"
+                "portal",
+                "settings"
             ],
             "fallbacks": [
                 "en"
@@ -269,7 +300,8 @@
             "display": "日本語",
             "locale": "ja-JP",
             "namespaces": [
-                "portal"
+                "portal",
+                "settings"
             ],
             "fallbacks": [
                 "ja",
@@ -281,10 +313,19 @@
             "display": "Norsk Bokmål",
             "locale": "nb",
             "namespaces": [
-                "portal"
+                "portal",
+                "settings"
             ],
             "fallbacks": [
                 "en"
+            ]
+        },
+        {
+            "display": "Norwegian Bokmål (Norway)",
+            "locale": "nb-NO",
+            "namespaces": [
+                "portal",
+                "settings"
             ],
             "parent": ""
         },
@@ -303,7 +344,8 @@
             "display": "Nederlands",
             "locale": "nl-NL",
             "namespaces": [
-                "portal"
+                "portal",
+                "settings"
             ],
             "fallbacks": [
                 "nl",
@@ -315,7 +357,8 @@
             "display": "Polski",
             "locale": "pl",
             "namespaces": [
-                "portal"
+                "portal",
+                "settings"
             ],
             "fallbacks": [
                 "en"
@@ -396,7 +439,8 @@
             "display": "Русский",
             "locale": "ru",
             "namespaces": [
-                "portal"
+                "portal",
+                "settings"
             ],
             "fallbacks": [
                 "en"
@@ -442,7 +486,8 @@
             "display": "Svenska",
             "locale": "sv",
             "namespaces": [
-                "portal"
+                "portal",
+                "settings"
             ],
             "fallbacks": [
                 "en"
@@ -453,7 +498,8 @@
             "display": "Svenska",
             "locale": "sv-SE",
             "namespaces": [
-                "portal"
+                "portal",
+                "settings"
             ],
             "fallbacks": [
                 "sv",

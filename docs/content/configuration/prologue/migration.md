@@ -5,9 +5,6 @@ summary: "An introduction into configuring Authelia."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  configuration:
-    parent: "prologue"
 weight: 100300
 toc: true
 aliases:
@@ -39,6 +36,11 @@ server:
 ```
 
 ## Migrations
+
+### 4.38.0
+
+No information currently exists for this version at this time with the exclusion of the
+[blog article](../../blog/release-notes-4.38/index.md). We would welcome the contribution.
 
 ### 4.36.0
 

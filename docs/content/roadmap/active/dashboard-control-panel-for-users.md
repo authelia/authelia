@@ -5,9 +5,6 @@ summary: "A dashboard or control panel for users to adjust their settings is eas
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  roadmap:
-    parent: "active"
 weight: 240
 toc: true
 aliases:
@@ -26,7 +23,7 @@ It will be important when we implement:
 - Session management features.
 - Many other user self-service related features.
 
-This feature should not be confused with the [Dashboard / Control Panel for Administrators](dashboard-control-panel-for-admins.md)
+This feature should not be confused with the [Dashboard / Control Panel for Administrators](dashboard-control-panel-and-cli-for-admins.md)
 which is the dashboard for managing the system settings, as this feature is for the user self-managing their own
 settings instead of the system settings.
 

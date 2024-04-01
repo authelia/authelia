@@ -5,9 +5,6 @@ summary: "This document serves as a get started guide for Authelia. It contains 
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  integration:
-    parent: "prologue"
 weight: 120
 toc: true
 seo:
@@ -45,6 +42,15 @@ this method *__MUST__* use secure schemes (`https` and `wss`) for all of their c
 
 No additional requirements other than the use of the `https` scheme for Authelia itself exist excluding those mandated
 by the relevant specifications.
+
+## Important Notes
+
+{{< callout context="danger" title="Important Notes" icon="alert-octagon" >}}
+The following section has general important notes for users getting started.
+{{< /callout >}}
+
+- When integrating Authelia with a proxy users should read the specific
+  [Proxy Integration Important Notes](../proxies/introduction.md#important-notes).
 
 ## Configuration
 

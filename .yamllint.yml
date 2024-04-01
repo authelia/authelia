@@ -17,6 +17,7 @@ ignore: |
   web/node_modules/
   .github/ISSUE_TEMPLATE/feature-request.yml
   .github/ISSUE_TEMPLATE/bug-report.yml
+  internal/suites/
 rules:
   document-end:
     level: warning

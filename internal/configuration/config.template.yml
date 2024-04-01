@@ -1,7 +1,7 @@
 # yamllint disable rule:comments-indentation
 ---
 ###############################################################################
-#                           Authelia Configuration                            #
+##                           Authelia Configuration                          ##
 ###############################################################################
 
 ##
@@ -268,7 +268,7 @@ identity_validation:
   ## Reset Password flow. Adjusts how the reset password flow operates.
   reset_password:
     ## Maximum allowed time before the JWT is generated and when the user uses it in the duration common syntax.
-    # token_lifespan: '5 minutes'
+    # jwt_lifespan: '5 minutes'
 
     ## The algorithm used for the Reset Password JWT.
     # jwt_algorithm: 'HS256'
@@ -403,37 +403,17 @@ authentication_backend:
       ## i.e. Mutual TLS.
       # certificate_chain: |
         # -----BEGIN CERTIFICATE-----
-        # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-        # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-        # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-        # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-        # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-        # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-        # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-        # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+        # ...
         # -----END CERTIFICATE-----
         # -----BEGIN CERTIFICATE-----
-        # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-        # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-        # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-        # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-        # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-        # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-        # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-        # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+        # ...
         # -----END CERTIFICATE-----
 
       ## The private key used with the certificate_chain if the server requests TLS Client Authentication
       ## i.e. Mutual TLS.
       # private_key: |
         # -----BEGIN RSA PRIVATE KEY-----
-        # MIIBPAIBAAJBAK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZF
-        # p7aTcToHMf00z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAQJBAJdpB0+RQ9ZFwy9Uk38P
-        # 5zZpUB8cL8ZFeEFluQeVbt0vyNa+cPLvDLouY87onduXtMz5AKIatLaTOjuG2thh
-        # SKECIQDY6G8gvsYJdXCE9UJ7ukoLrRHxt/frhAtmSY5lVAPuMwIhAMzuDrJo73LH
-        # ZyEaqIXc5pIiX3Sag43csPDHfuXdtT2NAiEAhyRKGJzDxiDlefFU+sGWYK/z/iYg
-        # 0Rvz/kbV8UvnJwECIQDAYN6VJ6NZmc27qv33JIejOfdoTEEhZMMKVg1PlxE0ZQIg
-        # HFpJiFxZES3QvVPr8deBXORPurqD5uU85NKsf61AdRs_DO_NOT_USE=
+        # ...
         # -----END RSA PRIVATE KEY-----
 
     ## The distinguished name of the container searched for objects in the directory information tree.
@@ -856,37 +836,17 @@ session:
       ## i.e. Mutual TLS.
       # certificate_chain: |
         # -----BEGIN CERTIFICATE-----
-        # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-        # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-        # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-        # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-        # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-        # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-        # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-        # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+        # ...
         # -----END CERTIFICATE-----
         # -----BEGIN CERTIFICATE-----
-        # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-        # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-        # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-        # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-        # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-        # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-        # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-        # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+        # ...
         # -----END CERTIFICATE-----
 
       ## The private key used with the certificate_chain if the server requests TLS Client Authentication
       ## i.e. Mutual TLS.
       # private_key: |
         # -----BEGIN RSA PRIVATE KEY-----
-        # MIIBPAIBAAJBAK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZF
-        # p7aTcToHMf00z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAQJBAJdpB0+RQ9ZFwy9Uk38P
-        # 5zZpUB8cL8ZFeEFluQeVbt0vyNa+cPLvDLouY87onduXtMz5AKIatLaTOjuG2thh
-        # SKECIQDY6G8gvsYJdXCE9UJ7ukoLrRHxt/frhAtmSY5lVAPuMwIhAMzuDrJo73LH
-        # ZyEaqIXc5pIiX3Sag43csPDHfuXdtT2NAiEAhyRKGJzDxiDlefFU+sGWYK/z/iYg
-        # 0Rvz/kbV8UvnJwECIQDAYN6VJ6NZmc27qv33JIejOfdoTEEhZMMKVg1PlxE0ZQIg
-        # HFpJiFxZES3QvVPr8deBXORPurqD5uU85NKsf61AdRs_DO_NOT_USE=
+        # ...
         # -----END RSA PRIVATE KEY-----
 
     ## The Redis HA configuration options.
@@ -1001,37 +961,17 @@ session:
       ## i.e. Mutual TLS.
       # certificate_chain: |
         # -----BEGIN CERTIFICATE-----
-        # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-        # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-        # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-        # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-        # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-        # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-        # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-        # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+        # ...
         # -----END CERTIFICATE-----
         # -----BEGIN CERTIFICATE-----
-        # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-        # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-        # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-        # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-        # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-        # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-        # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-        # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+        # ...
         # -----END CERTIFICATE-----
 
       ## The private key used with the certificate_chain if the server requests TLS Client Authentication
       ## i.e. Mutual TLS.
       # private_key: |
         # -----BEGIN RSA PRIVATE KEY-----
-        # MIIBPAIBAAJBAK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZF
-        # p7aTcToHMf00z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAQJBAJdpB0+RQ9ZFwy9Uk38P
-        # 5zZpUB8cL8ZFeEFluQeVbt0vyNa+cPLvDLouY87onduXtMz5AKIatLaTOjuG2thh
-        # SKECIQDY6G8gvsYJdXCE9UJ7ukoLrRHxt/frhAtmSY5lVAPuMwIhAMzuDrJo73LH
-        # ZyEaqIXc5pIiX3Sag43csPDHfuXdtT2NAiEAhyRKGJzDxiDlefFU+sGWYK/z/iYg
-        # 0Rvz/kbV8UvnJwECIQDAYN6VJ6NZmc27qv33JIejOfdoTEEhZMMKVg1PlxE0ZQIg
-        # HFpJiFxZES3QvVPr8deBXORPurqD5uU85NKsf61AdRs_DO_NOT_USE=
+        # ...
         # -----END RSA PRIVATE KEY-----
 
   ##
@@ -1084,37 +1024,17 @@ session:
       ## i.e. Mutual TLS.
       # certificate_chain: |
         # -----BEGIN CERTIFICATE-----
-        # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-        # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-        # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-        # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-        # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-        # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-        # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-        # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+        # ...
         # -----END CERTIFICATE-----
         # -----BEGIN CERTIFICATE-----
-        # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-        # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-        # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-        # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-        # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-        # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-        # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-        # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+        # ...
         # -----END CERTIFICATE-----
 
       ## The private key used with the certificate_chain if the server requests TLS Client Authentication
       ## i.e. Mutual TLS.
       # private_key: |
         # -----BEGIN RSA PRIVATE KEY-----
-        # MIIBPAIBAAJBAK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZF
-        # p7aTcToHMf00z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAQJBAJdpB0+RQ9ZFwy9Uk38P
-        # 5zZpUB8cL8ZFeEFluQeVbt0vyNa+cPLvDLouY87onduXtMz5AKIatLaTOjuG2thh
-        # SKECIQDY6G8gvsYJdXCE9UJ7ukoLrRHxt/frhAtmSY5lVAPuMwIhAMzuDrJo73LH
-        # ZyEaqIXc5pIiX3Sag43csPDHfuXdtT2NAiEAhyRKGJzDxiDlefFU+sGWYK/z/iYg
-        # 0Rvz/kbV8UvnJwECIQDAYN6VJ6NZmc27qv33JIejOfdoTEEhZMMKVg1PlxE0ZQIg
-        # HFpJiFxZES3QvVPr8deBXORPurqD5uU85NKsf61AdRs_DO_NOT_USE=
+        # ...
         # -----END RSA PRIVATE KEY-----
 
 ##
@@ -1202,37 +1122,17 @@ notifier:
       ## i.e. Mutual TLS.
       # certificate_chain: |
         # -----BEGIN CERTIFICATE-----
-        # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-        # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-        # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-        # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-        # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-        # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-        # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-        # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+        # ...
         # -----END CERTIFICATE-----
         # -----BEGIN CERTIFICATE-----
-        # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-        # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-        # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-        # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-        # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-        # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-        # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-        # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+        # ...
         # -----END CERTIFICATE-----
 
       ## The private key used with the certificate_chain if the server requests TLS Client Authentication
       ## i.e. Mutual TLS.
       # private_key: |
         # -----BEGIN RSA PRIVATE KEY-----
-        # MIIBPAIBAAJBAK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZF
-        # p7aTcToHMf00z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAQJBAJdpB0+RQ9ZFwy9Uk38P
-        # 5zZpUB8cL8ZFeEFluQeVbt0vyNa+cPLvDLouY87onduXtMz5AKIatLaTOjuG2thh
-        # SKECIQDY6G8gvsYJdXCE9UJ7ukoLrRHxt/frhAtmSY5lVAPuMwIhAMzuDrJo73LH
-        # ZyEaqIXc5pIiX3Sag43csPDHfuXdtT2NAiEAhyRKGJzDxiDlefFU+sGWYK/z/iYg
-        # 0Rvz/kbV8UvnJwECIQDAYN6VJ6NZmc27qv33JIejOfdoTEEhZMMKVg1PlxE0ZQIg
-        # HFpJiFxZES3QvVPr8deBXORPurqD5uU85NKsf61AdRs_DO_NOT_USE=
+        # ...
         # -----END RSA PRIVATE KEY-----
 
 ##
@@ -1267,13 +1167,7 @@ notifier:
       ## Required Private Key in PEM DER form.
       # key: |
         # -----BEGIN RSA PRIVATE KEY-----
-        # MIIBPAIBAAJBAK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZF
-        # p7aTcToHMf00z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAQJBAJdpB0+RQ9ZFwy9Uk38P
-        # 5zZpUB8cL8ZFeEFluQeVbt0vyNa+cPLvDLouY87onduXtMz5AKIatLaTOjuG2thh
-        # SKECIQDY6G8gvsYJdXCE9UJ7ukoLrRHxt/frhAtmSY5lVAPuMwIhAMzuDrJo73LH
-        # ZyEaqIXc5pIiX3Sag43csPDHfuXdtT2NAiEAhyRKGJzDxiDlefFU+sGWYK/z/iYg
-        # 0Rvz/kbV8UvnJwECIQDAYN6VJ6NZmc27qv33JIejOfdoTEEhZMMKVg1PlxE0ZQIg
-        # HFpJiFxZES3QvVPr8deBXORPurqD5uU85NKsf61AdRs_DO_NOT_USE=
+        # ...
         # -----END RSA PRIVATE KEY-----
 
 
@@ -1281,14 +1175,10 @@ notifier:
       ## must be valid and current, and from top to bottom each certificate must be signed by the subsequent one.
       # certificate_chain: |
         # -----BEGIN CERTIFICATE-----
-        # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-        # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-        # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-        # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-        # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-        # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-        # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-        # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+        # ...
+        # -----END CERTIFICATE-----
+        # -----BEGIN CERTIFICATE-----
+        # ...
         # -----END CERTIFICATE-----
 
     ## Enables additional debug messages.
@@ -1368,9 +1258,7 @@ notifier:
         # client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
 
         ## Sector Identifiers are occasionally used to generate pairwise subject identifiers. In most cases this is not
-        ## necessary. Read the documentation for more information.
-        ## The subject identifier must be the host component of a URL, which is a domain name with an optional port. It
-        ## must return a JSON document which contains an array of every 'redirect_uris' value of each client using it.
+        ## necessary. It is critical to read the documentation for more information.
         # sector_identifier_uri: 'https://example.com/sector.json'
 
         ## Sets the client to public. This should typically not be set, please see the documentation for usage.
@@ -1379,6 +1267,11 @@ notifier:
         ## Redirect URI's specifies a list of valid case-sensitive callbacks for this client.
         # redirect_uris:
           # - 'https://oidc.example.com:8080/oauth2/callback'
+
+        ## Request URI's specifies a list of valid case-sensitive TLS-secured URIs for this client for use as
+        ## URIs to fetch Request Objects.
+        # request_uris:
+          # - 'https://oidc.example.com:8080/oidc/request-object.jwk'
 
         ## Audience this client is allowed to request.
         # audience: []
@@ -1425,10 +1318,6 @@ notifier:
 
         ## Enforces the use of PKCE for this client when set to true.
         # require_pkce: false
-
-        ## Enables stateless introspection for RFC9068 JWT Access Tokens. This should be false unless you have a
-        ## specific use case as it effectively prevents revocation of these access tokens.
-        # enable_jwt_access_token_stateless_introspection: false
 
         ## Enforces the use of PKCE for this client when configured, and enforces the specified challenge method.
         ## Options are 'plain' and 'S256'.
@@ -1514,31 +1403,16 @@ notifier:
 
             ## Required Public Key in PEM DER form.
             # key: |
-            # -----BEGIN RSA PUBLIC KEY-----
-            # MEgCQQDAwV26ZA1lodtOQxNrJ491gWT+VzFum9IeZ+WTmMypYWyW1CzXKwsvTHDz
-            # 9ec+jserR3EMQ0Rr24lj13FL1ib5AgMBAAE_DO_NOT_USE=
-            # -----END RSA PUBLIC KEY----
+              # -----BEGIN RSA PUBLIC KEY-----
+              # ...
+              # -----END RSA PUBLIC KEY-----
 
             ## The matching certificate chain in PEM DER form that matches the key if available.
             # certificate_chain: |
-            # -----BEGIN CERTIFICATE-----
-            # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-            # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-            # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-            # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-            # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-            # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-            # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-            # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
-            # -----END CERTIFICATE-----
-            # -----BEGIN CERTIFICATE-----
-            # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-            # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-            # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-            # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-            # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-            # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-            # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-            # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
-            # -----END CERTIFICATE-----
+              # -----BEGIN CERTIFICATE-----
+              # ...
+              # -----END CERTIFICATE-----
+              # -----BEGIN CERTIFICATE-----
+              # ...
+              # -----END CERTIFICATE-----
 ...

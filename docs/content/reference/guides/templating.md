@@ -5,9 +5,6 @@ summary: "This section contains reference documentation for Authelia's templatin
 date: 2022-12-23T21:58:54+11:00
 draft: false
 images: []
-menu:
-  reference:
-    parent: "guides"
 weight: 220
 toc: true
 seo:
@@ -18,6 +15,26 @@ seo:
 ---
 
 Authelia has several methods where users can interact with templates.
+
+## Enable Templating
+
+By default the [Notification Templates](./notification-templates.md) have templating enabled. To enable templating in configuration files, set the environment variable `X_AUTHELIA_CONFIG_FILTERS` to `template`. For more information see
+[Configuration > Methods > Files: File Filters](../../configuration/methods/files.md#file-filters).
+
+## Validation / Debugging
+
+### Notifications
+
+No specific method exists at this time to validate these templates, however a bad template may cause an error before
+startup.
+
+### Configuration
+
+Two methods exist to validate the config template output:
+
+1. The [authelia config template](../cli/authelia/authelia_config_template.md) command.
+2. The [log level](../../configuration/miscellaneous/logging.md#level) value of `trace` will output the fully rendered
+   configuration as a base64 string.
 
 ## Functions
 

@@ -56,7 +56,7 @@ func (s *RegulationScenario) TestShouldBanUserAfterTooManyAttempt() {
 
 	s.doVisitLoginPage(s.T(), s.Context(ctx), BaseDomain, "")
 	s.doFillLoginPageAndClick(s.T(), s.Context(ctx), "john", "bad-password", false)
-	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Incorrect username or password.")
+	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Incorrect username or password")
 
 	for i := 0; i < 3; i++ {
 		err := s.WaitElementLocatedByID(s.T(), s.Context(ctx), "password-textfield").Input("bad-password")
@@ -70,7 +70,7 @@ func (s *RegulationScenario) TestShouldBanUserAfterTooManyAttempt() {
 	require.NoError(s.T(), err)
 	err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "sign-in-button").Click("left", 1)
 	require.NoError(s.T(), err)
-	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Incorrect username or password.")
+	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Incorrect username or password")
 
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
 	time.Sleep(10 * time.Second)

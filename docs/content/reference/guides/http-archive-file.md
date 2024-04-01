@@ -5,9 +5,6 @@ summary: "This guide describes and helps users create HTTP Archive (HAR) files."
 date: 2022-08-26T13:50:51+10:00
 draft: false
 images: []
-menu:
-  reference:
-    parent: "guides"
 weight: 220
 toc: true
 aliases:

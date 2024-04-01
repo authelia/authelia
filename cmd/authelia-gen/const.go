@@ -50,10 +50,6 @@ const (
 )
 
 const (
-	prefixCLI = "cli-"
-)
-
-const (
 	delimiterLineFrontMatter = "---"
 )
 

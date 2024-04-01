@@ -14,6 +14,6 @@ func ValidateTheme(config *schema.Configuration, validator *schema.StructValidat
 	}
 
 	if !utils.IsStringInSlice(config.Theme, validThemeNames) {
-		validator.Push(fmt.Errorf(errFmtThemeName, strJoinOr(validThemeNames), config.Theme))
+		validator.Push(fmt.Errorf(errFmtThemeName, utils.StringJoinOr(validThemeNames), config.Theme))
 	}
 }

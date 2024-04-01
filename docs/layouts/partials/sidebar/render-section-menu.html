@@ -1,0 +1,103 @@
+{{- /*
+Based on: https://discourse.gohugo.io/t/automated-nested-menus/42835/2
+
+Renders a recursive section menu starting from a page collection or menu.
+
+As it walks the tree, this partial:
+
+    - Sets class="active" on the active list item
+    - Sets aria-current="page" on the active anchor
+    - Sets aria-current="true" on the ancestors of the active anchor
+
+If you feed it a single page, you must wrap the page in a slice. See examples
+below.
+
+If you feed it a menu, menu entries defined in site configuration must use the
+pageRef property, not the URL property. Everything must be a page.
+
+By default, a home page reference in the page collection or menu will be
+skipped. To override this behavior, set $skipHome to false below.
+
+@param {page} currentPage   The page currently being rendered.
+@paran {slice} nodes        A slice of top level pages or a menu.
+
+@returns {template.HTML}
+
+@examples
+
+    {{ with site.Menus.main }}
+      {{ partial "sidebar/render-section-menu.html" (dict "currentPage" $ "nodes" .) }}
+    {{ end }}
+
+    {{ with site.Sections }}
+      {{ partial "sidebar/render-section-menu.html" (dict "currentPage" $ "nodes" .) }}
+    {{ end }}
+
+    {{ with (.Site.GetPage "section" .Section).Sections }}
+	    {{ partial "sidebar/render-section-menu.html" (dict "currentPage" $ "nodes" .) }}
+    {{ end }}
+
+    {{ with slice (site.GetPage "/introduction") }}
+      {{ partial "sidebar/render-section-menu.html" (dict "currentPage" $ "nodes" .) }}
+    {{ end }}
+
+*/}}
+
+{{- /* Configure. */}}
+{{- $skipHome := true }}
+
+{{- /* Get parameters. */}}
+{{- $currentPage := .currentPage }}
+{{- $nodes := .nodes }}
+
+{{- /* Render. */}}
+<nav class="section-nav docs-links">
+  <ul class="list-unstyled">
+    {{- range $nodes }}
+      {{- if and .Page.IsHome $skipHome }}
+        {{- continue }}
+      {{- end }}
+      {{- template "walk" (dict "node" . "currentPage" $currentPage) }}
+    {{- end }}
+  </ul>
+</nav>
+
+{{- /* Recurively render list items. */}}
+{{- define "walk" }}
+  {{- $currentPage := .currentPage }}
+  {{- $node := .node }}
+
+  {{- $linkContent := $node.Page.LinkTitle }}
+  {{- with $node.Name }}
+    {{- $linkContent = . }}
+  {{- end }}
+
+  {{- $ariaCurrent := "" }}
+  {{- $liClass := "" }}
+
+  {{- if in $currentPage.Ancestors $node.Page }}
+    {{- $ariaCurrent = "true" }}
+  {{- end }}
+
+  {{- if $currentPage.Eq $node.Page }}
+    {{- $ariaCurrent = "page" }}
+    {{- $liClass = "active" }}
+  {{- end }}
+
+  <li {{- with $liClass }} class="{{ . }}" {{ end -}}>
+    {{- with $node.Page.Pages }}
+    <details{{- with $ariaCurrent }} open{{- end }}{{- if ne $node.Page.Params.sidebar.collapsed true }} open{{- end }}>
+      <summary>{{ $linkContent }}</summary>
+      <ul class="list-unstyled list-nested">
+        {{- range .GroupBy "Weight" "asc" }}
+        {{- range .ByTitle }}
+          {{- template "walk" (dict "node" . "currentPage" $currentPage) }}
+        {{- end }}
+        {{- end }}
+      </ul>
+    </details>
+    {{- else }}
+      <a {{- with $ariaCurrent }} aria-current="{{ . }}" {{- end }} href="{{- $node.Page.RelPermalink }}">{{ $linkContent }}</a>
+    {{- end }}
+  </li>
+{{- end }}

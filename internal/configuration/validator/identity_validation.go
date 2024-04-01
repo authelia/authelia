@@ -17,7 +17,7 @@ func ValidateIdentityValidation(config *schema.Configuration, validator *schema.
 	case len(config.IdentityValidation.ResetPassword.JWTAlgorithm) == 0:
 		config.IdentityValidation.ResetPassword.JWTAlgorithm = schema.DefaultIdentityValidation.ResetPassword.JWTAlgorithm
 	case !utils.IsStringInSlice(config.IdentityValidation.ResetPassword.JWTAlgorithm, validIdentityValidationJWTAlgorithms):
-		validator.Push(fmt.Errorf(errFmtIdentityValidationResetPasswordJWTAlgorithm, strJoinOr(validIdentityValidationJWTAlgorithms), config.IdentityValidation.ResetPassword.JWTAlgorithm))
+		validator.Push(fmt.Errorf(errFmtIdentityValidationResetPasswordJWTAlgorithm, utils.StringJoinOr(validIdentityValidationJWTAlgorithms), config.IdentityValidation.ResetPassword.JWTAlgorithm))
 	}
 
 	if !config.AuthenticationBackend.PasswordReset.Disable && len(config.IdentityValidation.ResetPassword.JWTSecret) == 0 {

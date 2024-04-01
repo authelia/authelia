@@ -75,7 +75,7 @@ const OneTimePasswordMethod = function (props: Props) {
             onSignInSuccessCallback(res ? res.redirect : undefined);
         } catch (err) {
             console.error(err);
-            onSignInErrorCallback(new Error("The One-Time Password might be wrong"));
+            onSignInErrorCallback(new Error(translate("The One-Time Password might be wrong")));
             setState(State.Failure);
         }
         setPasscode("");
@@ -89,6 +89,7 @@ const OneTimePasswordMethod = function (props: Props) {
         resp,
         props.authenticationLevel,
         props.registered,
+        translate,
     ]);
 
     // Set successful state if user is already authenticated.

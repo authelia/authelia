@@ -39,7 +39,7 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 			}
 		}
 
-		middlewares.SetStandardSecurityHeaders(ctx.RequestCtx)
+		middlewares.SetBaseSecurityHeaders(ctx.RequestCtx)
 
 		switch ext {
 		case extHTML:

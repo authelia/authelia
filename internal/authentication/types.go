@@ -77,6 +77,22 @@ func (d UserDetails) Addresses() (addresses []mail.Address) {
 	return addresses
 }
 
+func (d UserDetails) GetUsername() (username string) {
+	return d.Username
+}
+
+func (d UserDetails) GetGroups() (groups []string) {
+	return d.Groups
+}
+
+func (d UserDetails) GetDisplayName() (name string) {
+	return d.DisplayName
+}
+
+func (d UserDetails) GetEmails() (emails []string) {
+	return d.Emails
+}
+
 type ldapUserProfile struct {
 	DN          string
 	Emails      []string

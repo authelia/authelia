@@ -5,9 +5,6 @@ summary: "Authelia can be deployed on Bare-Metal as long as it sits behind a pro
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  integration:
-    parent: "deployment"
 weight: 250
 toc: true
 seo:
@@ -61,6 +58,10 @@ $ nix-env -iA nixpkgs.authelia
 
 In addition to the [binaries](#binaries) we publish, [FreshPorts](https://www.freshports.org/www/authelia/) offer a
 package.
+
+We publish an [rc.d](https://docs.freebsd.org/en/articles/rc-scripting/) service script file:
+
+* {{< github-link path="authelia-fb-rc.d" >}}
 
 ## Binaries
 

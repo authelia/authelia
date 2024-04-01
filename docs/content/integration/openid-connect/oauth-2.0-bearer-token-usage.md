@@ -5,9 +5,6 @@ summary: "An introduction into utilizing the Authelia OAuth 2.0 Provider as an a
 date: 2024-03-05T19:11:16+10:00
 draft: false
 images: []
-menu:
-  integration:
-    parent: "openid-connect"
 weight: 611
 toc: true
 seo:

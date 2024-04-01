@@ -13,8 +13,7 @@ import (
 )
 
 const (
-	loopback           = "127.0.0.1"
-	oauth2InstalledApp = "urn:ietf:wg:oauth:2.0:oob"
+	loopback = "127.0.0.1"
 )
 
 // Policy constants.
@@ -53,6 +52,7 @@ const (
 const (
 	schemeHTTP  = "http"
 	schemeHTTPS = "https"
+	schemeSep   = "://"
 )
 
 // General fmt consts.
@@ -226,6 +226,15 @@ const (
 		"for the openid connect confidential client type"
 	errFmtOIDCClientRedirectURIAbsolute = errFmtOIDCClientRedirectURIHas +
 		"an invalid value: redirect uri '%s' must have a scheme but it's absent"
+
+	errFmtOIDCClientRequestURIHas          = errFmtOIDCClientOption + "'request_uris' has "
+	errFmtOIDCClientRequestURICantBeParsed = errFmtOIDCClientRequestURIHas +
+		"an invalid value: request uri '%s' could not be parsed: %v"
+	errFmtOIDCClientRequestURINotAbsolute = errFmtOIDCClientRequestURIHas +
+		"an invalid value: request uri '%s' must have a scheme but it's absent"
+	errFmtOIDCClientRequestURIInvalidScheme = errFmtOIDCClientRequestURIHas +
+		"an invalid scheme: scheme must be 'https' but request uri '%s' has a '%s' scheme"
+
 	errFmtOIDCClientInvalidConsentMode = "identity_providers: oidc: clients: client '%s': consent: option 'mode' must be one of " +
 		"%s but it's configured as '%s'"
 	errFmtOIDCClientInvalidEntries = errFmtOIDCClientOption + errFmtMustOnlyHaveValues +
@@ -258,12 +267,14 @@ const (
 		"'token_endpoint_auth_signing_alg' is required when option 'token_endpoint_auth_method' is configured to 'private_key_jwt'"
 	errFmtOIDCClientInvalidPublicKeysPrivateKeyJWT = errFmtOIDCClientOption +
 		"'jwks_uri' or 'jwks' is required with 'token_endpoint_auth_method' set to 'private_key_jwt'"
+	errFmtOIDCClientInvalidSectorIdentifierAbsolute = errFmtOIDCClientOption +
+		"'sector_identifier_uri' with value '%s': should be an absolute URI"
+	errFmtOIDCClientInvalidSectorIdentifierScheme = errFmtOIDCClientOption +
+		"'sector_identifier_uri' with value '%s': must have the 'https' scheme but has the '%s' scheme"
 	errFmtOIDCClientInvalidSectorIdentifier = errFmtOIDCClientOption +
-		"'sector_identifier_uri' with value '%s': must be a URL with only the host component for example '%s' but it has a %s with the value '%s'"
-	errFmtOIDCClientInvalidSectorIdentifierWithoutValue = errFmtOIDCClientOption +
-		"'sector_identifier_uri' with value '%s': must be a URL with only the host component for example '%s' but it has a %s"
-	errFmtOIDCClientInvalidSectorIdentifierHost = errFmtOIDCClientOption +
-		"'sector_identifier_uri' with value '%s': must be a URL with only the host component but appears to be invalid"
+		"'sector_identifier_uri' with value '%s': must not have a %s but it has a %s with the value '%s'"
+	errFmtOIDCClientInvalidSectorIdentifierRedirect = errFmtOIDCClientOption +
+		"'sector_identifier_uri' with value '%s': must be a json document that contains all of the 'redirect_uris' for the client but had an error validating it: %w"
 	errFmtOIDCClientInvalidGrantTypeMatch = errFmtOIDCClientOption +
 		"'grant_types' should only have grant type values which are valid with the configured 'response_types' for the client but '%s' expects a response type %s such as %s but the response types are %s"
 	errFmtOIDCClientInvalidGrantTypeRefresh = errFmtOIDCClientOption +
@@ -512,6 +523,7 @@ const (
 	attrOIDCResponseModes         = "response_modes"
 	attrOIDCGrantTypes            = "grant_types"
 	attrOIDCRedirectURIs          = "redirect_uris"
+	attrOIDCRequestURIs           = "request_uris"
 	attrOIDCTokenAuthMethod       = "token_endpoint_auth_method"
 	attrOIDCDiscoSigAlg           = "discovery_signed_response_alg"
 	attrOIDCDiscoSigKID           = "discovery_signed_response_key_id"

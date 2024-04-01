@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import WebAuthnTryIcon from "@components/WebAuthnTryIcon";
 import { useIsMountedRef } from "@hooks/Mounted";
 import { AssertionResult, AssertionResultFailureString, WebAuthnTouchState } from "@models/WebAuthn";
@@ -14,6 +16,7 @@ const SecondFactorMethodWebAuthn = function (props: Props) {
     const [state, setState] = useState(WebAuthnTouchState.WaitTouch);
     const [started, setStarted] = useState(false);
     const mounted = useIsMountedRef();
+    const { t: translate } = useTranslation();
 
     const handleRetry = () => {
         setState(WebAuthnTouchState.WaitTouch);
@@ -27,7 +30,7 @@ const SecondFactorMethodWebAuthn = function (props: Props) {
 
             if (optionsStatus.status !== 200 || optionsStatus.options == null) {
                 setState(WebAuthnTouchState.Failure);
-                console.error(new Error("Failed to initiate security key sign in process"));
+                console.error(new Error(translate("Failed to initiate security key sign in process")));
 
                 return;
             }
@@ -39,13 +42,13 @@ const SecondFactorMethodWebAuthn = function (props: Props) {
 
                 setState(WebAuthnTouchState.Failure);
 
-                console.error(new Error(AssertionResultFailureString(result.result)));
+                console.error(new Error(translate(AssertionResultFailureString(result.result))));
 
                 return;
             }
 
             if (result.response == null) {
-                console.error(new Error("The browser did not respond with the expected attestation data."));
+                console.error(new Error(translate("The browser did not respond with the expected attestation data")));
                 setState(WebAuthnTouchState.Failure);
 
                 return;
@@ -64,7 +67,7 @@ const SecondFactorMethodWebAuthn = function (props: Props) {
 
             if (!mounted.current) return;
 
-            console.error(new Error("The server rejected the security key."));
+            console.error(new Error(translate("The server rejected the security key")));
             setState(WebAuthnTouchState.Failure);
         } catch (err) {
             // If the request was initiated and the user changed 2FA method in the meantime,
@@ -73,7 +76,7 @@ const SecondFactorMethodWebAuthn = function (props: Props) {
             console.error(err);
             setState(WebAuthnTouchState.Failure);
         }
-    }, [mounted, props]);
+    }, [mounted, props, translate]);
 
     useEffect(() => {
         if (started) return;

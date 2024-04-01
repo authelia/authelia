@@ -94,9 +94,9 @@ const ConsentView = function (props: Props) {
 
     useEffect(() => {
         if (fetchUserInfoError) {
-            createErrorNotification("There was an issue retrieving user preferences");
+            createErrorNotification(translate("There was an issue retrieving user preferences"));
         }
-    }, [fetchUserInfoError, resetNotification, createErrorNotification]);
+    }, [fetchUserInfoError, resetNotification, createErrorNotification, translate]);
 
     const translateScopeNameToDescription = (id: string): string => {
         switch (id) {

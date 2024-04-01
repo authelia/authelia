@@ -5,9 +5,6 @@ summary: "This section contains log message references for Authelia."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  reference:
-    parent: "guides"
 weight: 220
 toc: true
 seo:

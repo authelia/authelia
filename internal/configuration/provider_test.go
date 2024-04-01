@@ -1,12 +1,16 @@
 package configuration
 
 import (
+	"bufio"
+	"bytes"
 	"crypto/rsa"
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"sort"
+	"strings"
 	"testing"
 	"time"
 
@@ -534,7 +538,7 @@ func TestShouldDisableOIDCEntropy(t *testing.T) {
 
 	assert.Equal(t, -1, config.IdentityProviders.OIDC.MinimumParameterEntropy)
 
-	validator.ValidateIdentityProviders(&config.IdentityProviders, val)
+	validator.ValidateIdentityProviders(validator.NewValidateCtx(), &config.IdentityProviders, val)
 
 	assert.Len(t, val.Errors(), 1)
 	require.Len(t, val.Warnings(), 2)
@@ -619,11 +623,15 @@ func TestShouldValidateDeprecatedEnvNamesWithDeprecatedKeys(t *testing.T) {
 
 	assert.EqualError(t, warnings[0], "configuration key 'authentication_backend.ldap.url' is deprecated in 4.38.0 and has been replaced by 'authentication_backend.ldap.address': you are not required to make any changes as this has been automatically mapped for you, but to stop this warning being logged you will need to adjust your configuration, and this configuration key and auto-mapping is likely to be removed in 5.0.0")
 	assert.EqualError(t, warnings[1], "configuration key 'jwt_secret' is deprecated in 4.38.0 and has been replaced by 'identity_validation.reset_password.jwt_secret': you are not required to make any changes as this has been automatically mapped for you, but to stop this warning being logged you will need to adjust your configuration, and this configuration key and auto-mapping is likely to be removed in 5.0.0")
-	assert.EqualError(t, warnings[2], "configuration keys 'notifier.smtp.host' and 'notifier.smtp.port' are deprecated in 4.38.0 and has been replaced by 'notifier.smtp.address' in the format of '[tcp://]<hostname>[:<port>]': you are not required to make any changes as this has been automatically mapped for you to the value 'smtp://127.0.0.1:1025', but to stop this warning being logged you will need to adjust your configuration, and this configuration key and auto-mapping is likely to be removed in 5.0.0")
-	assert.EqualError(t, warnings[3], "configuration keys 'server.host', 'server.port', and 'server.path' are deprecated in 4.38.0 and has been replaced by 'server.address' in the format of '[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]': you are not required to make any changes as this has been automatically mapped for you to the value 'tcp://0.0.0.0:9091/', but to stop this warning being logged you will need to adjust your configuration, and this configuration key and auto-mapping is likely to be removed in 5.0.0")
-	assert.EqualError(t, warnings[4], "configuration keys 'storage.mysql.host' and 'storage.mysql.port' are deprecated in 4.38.0 and has been replaced by 'storage.mysql.address' in the format of '[tcp://]<hostname>[:<port>]': you are not required to make any changes as this has been automatically mapped for you to the value 'tcp://127.0.0.1:3306', but to stop this warning being logged you will need to adjust your configuration, and this configuration key and auto-mapping is likely to be removed in 5.0.0")
-	assert.EqualError(t, warnings[5], "configuration keys 'storage.postgres.host' and 'storage.postgres.port' are deprecated in 4.38.0 and has been replaced by 'storage.postgres.address' in the format of '[tcp://]<hostname>[:<port>]': you are not required to make any changes as this has been automatically mapped for you to the value 'tcp://127.0.0.1:5432', but to stop this warning being logged you will need to adjust your configuration, and this configuration key and auto-mapping is likely to be removed in 5.0.0")
+	assert.EqualError(t, warnings[2], "configuration keys 'notifier.smtp.host' and 'notifier.smtp.port' are deprecated in 4.38.0 and has been replaced by 'notifier.smtp.address' in the format of '[tcp://]<hostname>[:<port>]': you are not required to make any changes as this has been automatically mapped for you to the value 'smtp://127.0.0.47:2025', but to stop this warning being logged you will need to adjust your configuration, and this configuration key and auto-mapping is likely to be removed in 5.0.0")
+	assert.EqualError(t, warnings[3], "configuration keys 'server.host', 'server.port', and 'server.path' are deprecated in 4.38.0 and has been replaced by 'server.address' in the format of '[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]': you are not required to make any changes as this has been automatically mapped for you to the value 'tcp://127.0.0.44:90/abc', but to stop this warning being logged you will need to adjust your configuration, and this configuration key and auto-mapping is likely to be removed in 5.0.0")
+	assert.EqualError(t, warnings[4], "configuration keys 'storage.mysql.host' and 'storage.mysql.port' are deprecated in 4.38.0 and has been replaced by 'storage.mysql.address' in the format of '[tcp://]<hostname>[:<port>]': you are not required to make any changes as this has been automatically mapped for you to the value 'tcp://127.0.0.45:13306', but to stop this warning being logged you will need to adjust your configuration, and this configuration key and auto-mapping is likely to be removed in 5.0.0")
+	assert.EqualError(t, warnings[5], "configuration keys 'storage.postgres.host' and 'storage.postgres.port' are deprecated in 4.38.0 and has been replaced by 'storage.postgres.address' in the format of '[tcp://]<hostname>[:<port>]': you are not required to make any changes as this has been automatically mapped for you to the value 'tcp://127.0.0.46:15432', but to stop this warning being logged you will need to adjust your configuration, and this configuration key and auto-mapping is likely to be removed in 5.0.0")
 
+	assert.Equal(t, "tcp://127.0.0.44:90/abc", c.Server.Address.String())
+	assert.Equal(t, "tcp://127.0.0.45:13306", c.Storage.MySQL.Address.String())
+	assert.Equal(t, "tcp://127.0.0.46:15432", c.Storage.PostgreSQL.Address.String())
+	assert.Equal(t, "smtp://127.0.0.47:2025", c.Notifier.SMTP.Address.String())
 	assert.Equal(t, "ldap://from-env:389", c.AuthenticationBackend.LDAP.Address.String())
 	assert.Equal(t, "example_secret value", c.IdentityValidation.ResetPassword.JWTSecret)
 }
@@ -903,3 +911,135 @@ func TestShouldFailIfYmlIsInvalid(t *testing.T) {
 	assert.Len(t, val.Errors(), 1)
 	assert.ErrorContains(t, val.Errors()[0], "unmarshal errors")
 }
+
+func TestConfigurationTemplate(t *testing.T) {
+	buf := &bytes.Buffer{}
+
+	setup := func() {
+		f, err := os.Open("config.template.yml")
+		require.NoError(t, err)
+
+		defer f.Close()
+
+		lints := regexp.MustCompile(`^(\s+)?# yamllint`)
+		doc := regexp.MustCompile(`^\s+?## `)
+		commented := regexp.MustCompile(`^(\s+)?# (.*)$`)
+		uncommented := regexp.MustCompile(`^(\s+)?\w+`)
+		ignore := regexp.MustCompile(`^(\s+)?# host: '/var/run/redis/redis.sock'`)
+		scanner := bufio.NewScanner(f)
+
+		for scanner.Scan() {
+			line := scanner.Bytes()
+			if doc.Match(line) || lints.Match(line) || ignore.Match(line) {
+				continue
+			}
+
+			if commented.Match(line) {
+				buf.Write(commented.ReplaceAll(line, []byte("$1$2")))
+				buf.WriteString("\n")
+			} else if uncommented.Match(line) {
+				buf.Write(line)
+				buf.WriteString("\n")
+			}
+		}
+	}
+
+	setup()
+
+	config := buf.Bytes()
+
+	ca, _, cert, key := MustLoadCryptoSet("RSA", false, "2048")
+
+	publickey, err := os.ReadFile("./test_resources/crypto/rsa.pair.2048.public.pem")
+	require.NoError(t, err)
+
+	certchain := regexp.MustCompile(`[\t ]+-----BEGIN CERTIFICATE-----\n(?P<Padding>[\t ]+)\.\.\.\n[\t ]+-----END CERTIFICATE-----\n[\t ]+-----BEGIN CERTIFICATE-----\n[\t ]+\.\.\.\n[\t ]+-----END CERTIFICATE-----\n`)
+
+	for _, match := range certchain.FindAllSubmatch(config, -1) {
+		padding := match[certchain.SubexpIndex("Padding")]
+
+		before := string(padding) + "-----BEGIN CERTIFICATE-----\n" + string(padding) + pemMaterialPlaceholder + string(padding) + "-----END CERTIFICATE-----\n"
+		before += before
+
+		after := strings.ReplaceAll(strings.TrimSuffix(string(padding)+cert, "\n"), "\n", "\n"+string(padding)) + "\n" + string(padding)
+		after += strings.ReplaceAll(strings.TrimSuffix(ca, "\n"), "\n", "\n"+string(padding)) + "\n"
+
+		config = bytes.ReplaceAll(config, []byte(before), []byte(after))
+	}
+
+	pem := regexp.MustCompile(`[\t ]+-----BEGIN (?P<BlockType>(RSA )?(?P<KeyType>PRIVATE|PUBLIC) KEY)-----\n(?P<Padding>[\t ]+)\.\.\.\n[\t ]+-----(END (RSA )?(PUBLIC|PRIVATE) KEY)-----\n`)
+
+	for _, match := range pem.FindAllSubmatch(config, -1) {
+		padding := match[pem.SubexpIndex("Padding")]
+		blocktype := match[pem.SubexpIndex("BlockType")]
+		keytype := match[pem.SubexpIndex("KeyType")]
+
+		material := key
+
+		if string(keytype) == "PUBLIC" {
+			material = string(publickey)
+		}
+
+		before := string(padding) + "-----BEGIN " + string(blocktype) + pemEnd + string(padding) + pemMaterialPlaceholder + string(padding) + "-----END " + string(blocktype) + pemEnd
+
+		after := strings.ReplaceAll(strings.TrimSuffix(string(padding)+material, "\n"), "\n", "\n"+string(padding)) + "\n"
+
+		config = bytes.ReplaceAll(config, []byte(before), []byte(after))
+	}
+
+	val := schema.NewStructValidator()
+
+	keys, _, err := Load(val, NewBytesSource(config))
+	require.NoError(t, err)
+
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+
+	val.Clear()
+
+	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
+
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+}
+
+func MustLoadCryptoSet(alg string, legacy bool, extra ...string) (certCA, keyCA, cert, key string) {
+	extraAlt := make([]string, len(extra))
+
+	copy(extraAlt, extra)
+
+	if legacy {
+		extraAlt = append(extraAlt, "legacy")
+	}
+
+	return MustLoadCryptoRaw(true, alg, "crt", extra...), MustLoadCryptoRaw(true, alg, "pem", extra...), MustLoadCryptoRaw(false, alg, "crt", extraAlt...), MustLoadCryptoRaw(false, alg, "pem", extraAlt...)
+}
+
+func MustLoadCryptoRaw(ca bool, alg, ext string, extra ...string) string {
+	var fparts []string
+
+	if ca {
+		fparts = append(fparts, "ca")
+	}
+
+	fparts = append(fparts, strings.ToLower(alg))
+
+	if len(extra) != 0 {
+		fparts = append(fparts, extra...)
+	}
+
+	var (
+		data []byte
+		err  error
+	)
+
+	if data, err = os.ReadFile(fmt.Sprintf(pathCrypto, strings.Join(fparts, "."), ext)); err != nil {
+		panic(err)
+	}
+
+	return string(data)
+}
+
+const (
+	pathCrypto = "./test_resources/crypto/%s.%s"
+)

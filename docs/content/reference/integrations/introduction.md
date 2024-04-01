@@ -5,9 +5,6 @@ summary: "This section contains integration reference guides for Authelia."
 date: 2022-11-19T16:47:09+11:00
 draft: false
 images: []
-menu:
-  reference:
-    parent: "integrations"
 weight: 310
 toc: true
 seo:

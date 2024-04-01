@@ -179,7 +179,7 @@ func handleOpenIDConnectConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx
 		return userSession, nil, nil, true
 	}
 
-	if client, err = ctx.Providers.OpenIDConnect.GetFullClient(ctx, consent.ClientID); err != nil {
+	if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, consent.ClientID); err != nil {
 		ctx.Logger.Errorf("Unable to find related client configuration with name '%s': %v", consent.ClientID, err)
 		ctx.ReplyForbidden()
 

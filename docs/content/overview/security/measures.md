@@ -5,9 +5,6 @@ summary: "An overview of the security measures Authelia implements."
 date: 2018-08-26T23:46:15+02:00
 draft: false
 images: []
-menu:
-  overview:
-    parent: "security"
 weight: 420
 toc: false
 aliases:

@@ -5,9 +5,6 @@ summary: "Authelia runs an internal web server. This section describes how to co
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-menu:
-  configuration:
-    parent: "miscellaneous"
 weight: 199200
 toc: true
 aliases:
@@ -53,11 +50,21 @@ server:
 
 {{< confkey type="string" syntax="address" default="tcp://:9091/" required="no" >}}
 
-Configures the listener address for the Main HTTP Server. The address itself is a listener and the scheme must either be
-the `unix` scheme or one of the `tcp` schemes. It can configure the host, port, and path the listener responds to. If
-the path is configured to anything other than `/` Authelia will handle requests for both `/` and the configured path.
+{{< callout context="danger" title="Important Notes" icon="alert-octagon" >}}
+The [Proxy Integration](../../integration/proxies/introduction.md#important-notes) documentation has important notes on
+this option for when integrating it with a proxy.
+{{< /callout >}}
 
-__Examples:__
+Configures the listener address for the Main HTTP Server. The address itself is a listener and the scheme must either be
+the `unix` scheme or one of the `tcp` schemes. It can configure the host, port, and path the listener responds to.
+
+To configure the path for a unix socket see the address syntax documentation linked above.
+
+If the path is configured to anything other than `/` requests will be handled for both `/` and the configured path.
+For example if configured to `tcp://:9091/authelia` then requests will be handled for both the `/` and `/authelia/`
+path.
+
+#### Examples
 
 ```yaml
 server:
