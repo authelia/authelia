@@ -11,7 +11,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func oidcGrantRequests(strategy oauthelia2.ScopeStrategy, ar oauthelia2.AuthorizeRequester, consent *model.OAuth2ConsentSession, detailer oidc.UserDetailer, claims *oidc.ClaimRequests) (extraClaims map[string]any) {
+func oidcGrantRequests(strategy oauthelia2.ScopeStrategy, ar oauthelia2.AuthorizeRequester, consent *model.OAuth2ConsentSession, detailer oidc.UserDetailer, claims *oidc.ClaimsRequests) (extraClaims map[string]any) {
 	extraClaims = map[string]any{}
 
 	var scopes oauthelia2.Arguments
@@ -68,7 +68,7 @@ func oidcGrantRequests(strategy oauthelia2.ScopeStrategy, ar oauthelia2.Authoriz
 	return extraClaims
 }
 
-func oidcApplyRequestedClaim(strategy oauthelia2.ScopeStrategy, scopes oauthelia2.Arguments, scope string, claim string, value any, request *oidc.ClaimsRequest, extraClaims map[string]any) {
+func oidcApplyRequestedClaim(strategy oauthelia2.ScopeStrategy, scopes oauthelia2.Arguments, scope string, claim string, value any, request *oidc.ClaimRequest, extraClaims map[string]any) {
 	if !strategy(scopes, scope) {
 		return
 	}

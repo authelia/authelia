@@ -122,9 +122,9 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		return
 	}
 
-	var claims *oidc.ClaimRequests
+	var requests *oidc.ClaimsRequests
 
-	if claims, err = oidc.NewClaimRequests(requester.GetRequestForm()); err != nil {
+	if requests, err = oidc.NewClaimRequests(requester.GetRequestForm()); err != nil {
 		ctx.Logger.WithError(err).Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred parsing the claims parameter", requester.GetID(), client.GetID())
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
@@ -132,7 +132,18 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		return
 	}
 
-	extraClaims := oidcGrantRequests(ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx), requester, consent, details, claims)
+	if requested, ok := requests.MatchesSubject(consent.Subject.UUID.String()); !ok {
+		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: the client requested subject '%s' but the subject value for '%s' is '%s' for the '%s' sector identifier", requester.GetID(), client.GetID(), requested, userSession.Username, consent.Subject.UUID, client.GetSectorIdentifierURI())
+
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oauthelia2.ErrAccessDenied.WithHint("The requested subject was not the same subject that attempted to authorize the request."))
+
+		return
+	}
+
+	extra := map[string]any{}
+
+	oidc.GrantClaims(ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx), client, requests.GetIDTokenRequests(), details, extra)
+	oidc.GrantScopeAudienceConsent(requester, consent)
 
 	if authTime, err = userSession.AuthenticatedTime(client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{Username: details.Username, Groups: details.Groups, IP: ctx.RemoteIP()})); err != nil {
 		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred checking authentication time: %+v", requester.GetID(), client.GetID(), err)
@@ -144,7 +155,7 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 
 	ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' was successfully processed, proceeding to build Authorization Response", requester.GetID(), clientID)
 
-	session := oidc.NewSessionWithAuthorizeRequest(ctx, issuer, ctx.Providers.OpenIDConnect.KeyManager.GetKeyID(ctx, client.GetIDTokenSignedResponseKeyID(), client.GetIDTokenSignedResponseAlg()), details.Username, userSession.AuthenticationMethodRefs.MarshalRFC8176(), extraClaims, authTime, consent, requester, claims)
+	session := oidc.NewSessionWithAuthorizeRequest(ctx, issuer, ctx.Providers.OpenIDConnect.KeyManager.GetKeyID(ctx, client.GetIDTokenSignedResponseKeyID(), client.GetIDTokenSignedResponseAlg()), details.Username, userSession.AuthenticationMethodRefs.MarshalRFC8176(), extra, authTime, consent, requester, requests)
 
 	ctx.Logger.Tracef("Authorization Request with id '%s' on client with id '%s' creating session for Authorization Response for subject '%s' with username '%s' with claims: %+v",
 		requester.GetID(), session.ClientID, session.Subject, session.Username, session.Claims)

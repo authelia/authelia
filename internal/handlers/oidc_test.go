@@ -20,14 +20,14 @@ func TestShouldGrantAppropriateClaimsForScopeProfile(t *testing.T) {
 		GrantedScopes: []string{oidc.ScopeProfile},
 	}
 
-	request := map[string]*oidc.ClaimsRequest{
+	request := map[string]*oidc.ClaimRequest{
 		oidc.ClaimPreferredUsername: nil,
 		oidc.ClaimFullName:          nil,
 	}
 
 	ar := &oauthelia2.AuthorizeRequest{Request: oauthelia2.Request{}}
 
-	extraClaims := oidcGrantRequests(oauthelia2.ExactScopeStrategy, ar, consent, &oidcUserSessionJohn, &oidc.ClaimRequests{IDToken: request})
+	extraClaims := oidcGrantRequests(oauthelia2.ExactScopeStrategy, ar, consent, &oidcUserSessionJohn, &oidc.ClaimsRequests{IDToken: request})
 
 	assert.Len(t, extraClaims, 2)
 
@@ -43,13 +43,13 @@ func TestShouldGrantAppropriateClaimsForScopeProfileAndClaimsRequest(t *testing.
 		GrantedScopes: []string{oidc.ScopeProfile},
 	}
 
-	request := map[string]*oidc.ClaimsRequest{
+	request := map[string]*oidc.ClaimRequest{
 		oidc.ClaimPreferredUsername: nil,
 	}
 
 	ar := &oauthelia2.AuthorizeRequest{Request: oauthelia2.Request{}}
 
-	extraClaims := oidcGrantRequests(oauthelia2.ExactScopeStrategy, ar, consent, &oidcUserSessionJohn, &oidc.ClaimRequests{IDToken: request})
+	extraClaims := oidcGrantRequests(oauthelia2.ExactScopeStrategy, ar, consent, &oidcUserSessionJohn, &oidc.ClaimsRequests{IDToken: request})
 
 	assert.Len(t, extraClaims, 1)
 
@@ -62,8 +62,8 @@ func TestShouldGrantAppropriateClaimsForScopeGroups(t *testing.T) {
 		GrantedScopes: []string{oidc.ScopeGroups},
 	}
 
-	claims := &oidc.ClaimRequests{
-		IDToken: map[string]*oidc.ClaimsRequest{
+	claims := &oidc.ClaimsRequests{
+		IDToken: map[string]*oidc.ClaimRequest{
 			oidc.ClaimGroups: nil,
 		},
 	}
@@ -95,8 +95,8 @@ func TestShouldGrantAppropriateClaimsForScopeEmail(t *testing.T) {
 		GrantedScopes: []string{oidc.ScopeEmail},
 	}
 
-	claims := &oidc.ClaimRequests{
-		IDToken: map[string]*oidc.ClaimsRequest{
+	claims := &oidc.ClaimsRequests{
+		IDToken: map[string]*oidc.ClaimRequest{
 			oidc.ClaimPreferredEmail: nil,
 			oidc.ClaimEmailAlts:      nil,
 			oidc.ClaimEmailVerified:  nil,
@@ -137,8 +137,8 @@ func TestShouldGrantAppropriateClaimsForScopeOpenIDAndProfile(t *testing.T) {
 		GrantedScopes: []string{oidc.ScopeOpenID, oidc.ScopeProfile},
 	}
 
-	claims := &oidc.ClaimRequests{
-		IDToken: map[string]*oidc.ClaimsRequest{
+	claims := &oidc.ClaimsRequests{
+		IDToken: map[string]*oidc.ClaimRequest{
 			oidc.ClaimPreferredUsername: nil,
 			oidc.ClaimFullName:          nil,
 		},
