@@ -157,6 +157,7 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 			RequestParameterSupported:     true,
 			RequestURIParameterSupported:  true,
 			RequireRequestURIRegistration: true,
+			ClaimsParameterSupported:      true,
 		},
 		OpenIDConnectPromptCreateDiscoveryOptions: &OpenIDConnectPromptCreateDiscoveryOptions{
 			PromptValuesSupported: []string{

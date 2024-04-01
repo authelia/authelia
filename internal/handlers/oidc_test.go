@@ -20,7 +20,14 @@ func TestShouldGrantAppropriateClaimsForScopeProfile(t *testing.T) {
 		GrantedScopes: []string{oidc.ScopeProfile},
 	}
 
-	extraClaims := oidcGrantRequests(nil, consent, &oidcUserSessionJohn)
+	request := map[string]*oidc.ClaimsRequest{
+		oidc.ClaimPreferredUsername: nil,
+		oidc.ClaimFullName:          nil,
+	}
+
+	ar := &oauthelia2.AuthorizeRequest{Request: oauthelia2.Request{}}
+
+	extraClaims := oidcGrantRequests(oauthelia2.ExactScopeStrategy, ar, consent, &oidcUserSessionJohn, &oidc.ClaimRequests{IDToken: request})
 
 	assert.Len(t, extraClaims, 2)
 
@@ -31,12 +38,39 @@ func TestShouldGrantAppropriateClaimsForScopeProfile(t *testing.T) {
 	assert.Equal(t, "John Smith", extraClaims[oidc.ClaimFullName])
 }
 
+func TestShouldGrantAppropriateClaimsForScopeProfileAndClaimsRequest(t *testing.T) {
+	consent := &model.OAuth2ConsentSession{
+		GrantedScopes: []string{oidc.ScopeProfile},
+	}
+
+	request := map[string]*oidc.ClaimsRequest{
+		oidc.ClaimPreferredUsername: nil,
+	}
+
+	ar := &oauthelia2.AuthorizeRequest{Request: oauthelia2.Request{}}
+
+	extraClaims := oidcGrantRequests(oauthelia2.ExactScopeStrategy, ar, consent, &oidcUserSessionJohn, &oidc.ClaimRequests{IDToken: request})
+
+	assert.Len(t, extraClaims, 1)
+
+	require.Contains(t, extraClaims, oidc.ClaimPreferredUsername)
+	assert.Equal(t, "john", extraClaims[oidc.ClaimPreferredUsername])
+}
+
 func TestShouldGrantAppropriateClaimsForScopeGroups(t *testing.T) {
 	consent := &model.OAuth2ConsentSession{
 		GrantedScopes: []string{oidc.ScopeGroups},
 	}
 
-	extraClaims := oidcGrantRequests(nil, consent, &oidcUserSessionJohn)
+	claims := &oidc.ClaimRequests{
+		IDToken: map[string]*oidc.ClaimsRequest{
+			oidc.ClaimGroups: nil,
+		},
+	}
+
+	ar := &oauthelia2.AuthorizeRequest{Request: oauthelia2.Request{}}
+
+	extraClaims := oidcGrantRequests(oauthelia2.ExactScopeStrategy, ar, consent, &oidcUserSessionJohn, claims)
 
 	assert.Len(t, extraClaims, 1)
 
@@ -45,7 +79,9 @@ func TestShouldGrantAppropriateClaimsForScopeGroups(t *testing.T) {
 	assert.Contains(t, extraClaims[oidc.ClaimGroups], "admin")
 	assert.Contains(t, extraClaims[oidc.ClaimGroups], "dev")
 
-	extraClaims = oidcGrantRequests(nil, consent, &oidcUserSessionFred)
+	ar = &oauthelia2.AuthorizeRequest{Request: oauthelia2.Request{}}
+
+	extraClaims = oidcGrantRequests(oauthelia2.ExactScopeStrategy, ar, consent, &oidcUserSessionFred, claims)
 
 	assert.Len(t, extraClaims, 1)
 
@@ -59,7 +95,17 @@ func TestShouldGrantAppropriateClaimsForScopeEmail(t *testing.T) {
 		GrantedScopes: []string{oidc.ScopeEmail},
 	}
 
-	extraClaims := oidcGrantRequests(nil, consent, &oidcUserSessionJohn)
+	claims := &oidc.ClaimRequests{
+		IDToken: map[string]*oidc.ClaimsRequest{
+			oidc.ClaimPreferredEmail: nil,
+			oidc.ClaimEmailAlts:      nil,
+			oidc.ClaimEmailVerified:  nil,
+		},
+	}
+
+	ar := &oauthelia2.AuthorizeRequest{Request: oauthelia2.Request{}}
+
+	extraClaims := oidcGrantRequests(oauthelia2.ExactScopeStrategy, ar, consent, &oidcUserSessionJohn, claims)
 
 	assert.Len(t, extraClaims, 3)
 
@@ -73,7 +119,9 @@ func TestShouldGrantAppropriateClaimsForScopeEmail(t *testing.T) {
 	require.Contains(t, extraClaims, oidc.ClaimEmailVerified)
 	assert.Equal(t, true, extraClaims[oidc.ClaimEmailVerified])
 
-	extraClaims = oidcGrantRequests(nil, consent, &oidcUserSessionFred)
+	ar = &oauthelia2.AuthorizeRequest{Request: oauthelia2.Request{}}
+
+	extraClaims = oidcGrantRequests(oauthelia2.ExactScopeStrategy, ar, consent, &oidcUserSessionFred, claims)
 
 	assert.Len(t, extraClaims, 2)
 
@@ -89,7 +137,16 @@ func TestShouldGrantAppropriateClaimsForScopeOpenIDAndProfile(t *testing.T) {
 		GrantedScopes: []string{oidc.ScopeOpenID, oidc.ScopeProfile},
 	}
 
-	extraClaims := oidcGrantRequests(nil, consent, &oidcUserSessionJohn)
+	claims := &oidc.ClaimRequests{
+		IDToken: map[string]*oidc.ClaimsRequest{
+			oidc.ClaimPreferredUsername: nil,
+			oidc.ClaimFullName:          nil,
+		},
+	}
+
+	ar := &oauthelia2.AuthorizeRequest{Request: oauthelia2.Request{}}
+
+	extraClaims := oidcGrantRequests(oauthelia2.ExactScopeStrategy, ar, consent, &oidcUserSessionJohn, claims)
 
 	assert.Len(t, extraClaims, 2)
 
@@ -99,7 +156,9 @@ func TestShouldGrantAppropriateClaimsForScopeOpenIDAndProfile(t *testing.T) {
 	require.Contains(t, extraClaims, oidc.ClaimFullName)
 	assert.Equal(t, "John Smith", extraClaims[oidc.ClaimFullName])
 
-	extraClaims = oidcGrantRequests(nil, consent, &oidcUserSessionFred)
+	ar = &oauthelia2.AuthorizeRequest{Request: oauthelia2.Request{}}
+
+	extraClaims = oidcGrantRequests(oauthelia2.ExactScopeStrategy, ar, consent, &oidcUserSessionFred, claims)
 
 	assert.Len(t, extraClaims, 2)
 

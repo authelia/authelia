@@ -11,10 +11,10 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func oidcGrantRequests(ar oauthelia2.AuthorizeRequester, consent *model.OAuth2ConsentSession, details oidc.UserDetailer) (extraClaims map[string]any) {
+func oidcGrantRequests(strategy oauthelia2.ScopeStrategy, ar oauthelia2.AuthorizeRequester, consent *model.OAuth2ConsentSession, detailer oidc.UserDetailer, claims *oidc.ClaimRequests) (extraClaims map[string]any) {
 	extraClaims = map[string]any{}
 
-	oidcApplyScopeClaims(extraClaims, consent.GrantedScopes, details)
+	var scopes oauthelia2.Arguments
 
 	if ar != nil {
 		for _, scope := range consent.GrantedScopes {
@@ -24,9 +24,64 @@ func oidcGrantRequests(ar oauthelia2.AuthorizeRequester, consent *model.OAuth2Co
 		for _, audience := range consent.GrantedAudience {
 			ar.GrantAudience(audience)
 		}
+
+		scopes = ar.GetGrantedScopes()
+	}
+
+	if claims == nil || claims.IDToken == nil {
+		return extraClaims
+	}
+
+	for claim, request := range claims.IDToken {
+		switch claim {
+		case oidc.ClaimGroups:
+			oidcApplyRequestedClaim(strategy, scopes, oidc.ScopeGroups, oidc.ClaimGroups, detailer.GetGroups(), request, extraClaims)
+		case oidc.ClaimPreferredUsername:
+			oidcApplyRequestedClaim(strategy, scopes, oidc.ScopeProfile, oidc.ClaimPreferredUsername, detailer.GetUsername(), request, extraClaims)
+		case oidc.ClaimFullName:
+			oidcApplyRequestedClaim(strategy, scopes, oidc.ScopeProfile, oidc.ClaimFullName, detailer.GetDisplayName(), request, extraClaims)
+		case oidc.ClaimPreferredEmail:
+			emails := detailer.GetEmails()
+
+			if len(emails) == 0 {
+				continue
+			}
+
+			oidcApplyRequestedClaim(strategy, scopes, oidc.ScopeEmail, oidc.ClaimPreferredEmail, emails[0], request, extraClaims)
+		case oidc.ClaimEmailAlts:
+			emails := detailer.GetEmails()
+
+			if len(emails) <= 1 {
+				continue
+			}
+
+			oidcApplyRequestedClaim(strategy, scopes, oidc.ScopeEmail, oidc.ClaimEmailAlts, emails[1:], request, extraClaims)
+		case oidc.ClaimEmailVerified:
+			if !strategy(scopes, oidc.ScopeEmail) {
+				continue
+			}
+
+			oidcApplyRequestedClaim(strategy, scopes, oidc.ScopeEmail, oidc.ClaimEmailVerified, true, request, extraClaims)
+		}
 	}
 
 	return extraClaims
+}
+
+func oidcApplyRequestedClaim(strategy oauthelia2.ScopeStrategy, scopes oauthelia2.Arguments, scope string, claim string, value any, request *oidc.ClaimsRequest, extraClaims map[string]any) {
+	if !strategy(scopes, scope) {
+		return
+	}
+
+	if request == nil || request.Value == nil || request.Values == nil {
+		extraClaims[claim] = value
+
+		return
+	}
+
+	if request.Matches(value) {
+		extraClaims[claim] = value
+	}
 }
 
 func oidcApplyScopeClaims(claims map[string]any, scopes []string, detailer oidc.UserDetailer) {
