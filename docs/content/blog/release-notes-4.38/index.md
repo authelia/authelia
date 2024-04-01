@@ -252,7 +252,7 @@ identity_providers:
     issuer_private_key: |
       -----BEGIN RSA PRIVATE KEY-----
       ...
-      -----END RSA PRIVATE KEY----
+      -----END RSA PRIVATE KEY-----
     issuer_certificate_chain: |
       -----BEGIN CERTIFICATE-----
       ...
@@ -268,7 +268,7 @@ identity_providers:
       - key: |
           -----BEGIN RSA PRIVATE KEY-----
           ...
-          -----END RSA PRIVATE KEY----
+          -----END RSA PRIVATE KEY-----
         certificate_chain: |
           -----BEGIN CERTIFICATE-----
           ...

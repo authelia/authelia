@@ -47,7 +47,7 @@ identity_providers:
         key: |
           -----BEGIN RSA PRIVATE KEY-----
           ...
-          -----END RSA PRIVATE KEY----
+          -----END RSA PRIVATE KEY-----
         certificate_chain: |
           -----BEGIN CERTIFICATE-----
           ...
@@ -127,7 +127,7 @@ identity_providers:
         key: |
           -----BEGIN RSA PRIVATE KEY-----
           ...
-          -----END RSA PUBLIC KEY----
+          -----END RSA PRIVATE KEY-----
         certificate_chain: |
           -----BEGIN CERTIFICATE-----
           ...
