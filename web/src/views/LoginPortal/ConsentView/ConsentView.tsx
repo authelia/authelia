@@ -1,4 +1,4 @@
-import React, { Fragment, ReactNode, useEffect, useState } from "react";
+import React, { Fragment, ReactNode, useCallback, useEffect, useState } from "react";
 
 import { AccountBox, Autorenew, CheckBox, Contacts, Drafts, Group, LockOpen } from "@mui/icons-material";
 import {
@@ -24,6 +24,7 @@ import { useNotifications } from "@hooks/NotificationsContext";
 import { useRedirector } from "@hooks/Redirector";
 import { useUserInfoGET } from "@hooks/UserInfo";
 import LoginLayout from "@layouts/LoginLayout";
+import { setClaimCase } from "@services/Claims";
 import { ConsentGetResponseBody, acceptConsent, getConsentResponse, rejectConsent } from "@services/Consent";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 
@@ -61,6 +62,7 @@ const ConsentView = function (props: Props) {
 
     const [response, setResponse] = useState<ConsentGetResponseBody>();
     const [error, setError] = useState<any>(undefined);
+    const [claims, setClaims] = useState<string>("");
     const [preConfigure, setPreConfigure] = useState(false);
 
     const styles = useStyles();
@@ -78,6 +80,7 @@ const ConsentView = function (props: Props) {
             getConsentResponse(consentID)
                 .then((r) => {
                     setResponse(r);
+                    setClaims(JSON.stringify(r.claims));
                 })
                 .catch((error) => {
                     setError(error);
@@ -98,8 +101,8 @@ const ConsentView = function (props: Props) {
         }
     }, [fetchUserInfoError, resetNotification, createErrorNotification, translate]);
 
-    const translateScopeNameToDescription = (id: string): string => {
-        switch (id) {
+    const translateScopeNameToDescription = (scope: string): string => {
+        switch (scope) {
             case "openid":
                 return translate("Use OpenID to verify your identity");
             case "offline_access":
@@ -113,7 +116,28 @@ const ConsentView = function (props: Props) {
             case "authelia.bearer.authz":
                 return translate("Access protected resources logged in as you");
             default:
-                return id;
+                return scope;
+        }
+    };
+
+    const translateClaimNameToDescription = (claim: string): string => {
+        switch (claim) {
+            case "name":
+                return translate("Display Name");
+            case "sub":
+                return translate("Unique Identifier");
+            case "zoneinfo":
+                return translate("Timezone");
+            case "locale":
+                return translate("Locale / Language");
+            case "updated_at":
+                return translate("Information Updated Time");
+            case "profile":
+            case "website":
+            case "picture":
+                return translate(`${setClaimCase(claim)} URL`);
+            default:
+                return translate(setClaimCase(claim));
         }
     };
 
@@ -122,7 +146,7 @@ const ConsentView = function (props: Props) {
         if (!response) {
             return;
         }
-        const res = await acceptConsent(preConfigure, response.client_id, consentID);
+        const res = await acceptConsent(preConfigure, response.client_id, consentID, claims.split(" "));
         if (res.redirect_uri) {
             redirect(res.redirect_uri);
         } else {
@@ -141,6 +165,39 @@ const ConsentView = function (props: Props) {
             throw new Error("Unable to redirect the user");
         }
     };
+
+    const handleClaimCheckboxOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setClaims((prevState) => {
+            const value = event.target.value;
+            const arrClaims: string[] = JSON.parse(prevState);
+            const checking = !arrClaims.includes(event.target.value);
+
+            if (checking) {
+                if (!arrClaims.includes(value)) {
+                    arrClaims.push(value);
+                }
+            } else {
+                const i = arrClaims.indexOf(value);
+
+                if (i > -1) {
+                    arrClaims.splice(i, 1);
+                }
+            }
+
+            return JSON.stringify(arrClaims);
+        });
+    };
+
+    const claimChecked = useCallback(
+        (claim: string) => {
+            const arrClaims: string[] = JSON.parse(claims);
+
+            return arrClaims.includes(claim);
+        },
+        [claims],
+    );
+
+    const hasClaims = response?.essential_claims || response?.claims;
 
     return (
         <ComponentOrLoading ready={response !== undefined && userInfo !== undefined}>
@@ -183,6 +240,37 @@ const ConsentView = function (props: Props) {
                             </List>
                         </div>
                     </Grid>
+                    {hasClaims ? (
+                        <Grid item xs={12}>
+                            <div className={styles.claimsListContainer}>
+                                <List className={styles.claimsList}>
+                                    {response?.essential_claims.map((claim: string) => (
+                                        <Tooltip title={translate("Claim", { name: claim })}>
+                                            <FormControlLabel
+                                                control={<Checkbox id={"claim-" + claim} disabled checked />}
+                                                label={claim}
+                                            />
+                                        </Tooltip>
+                                    ))}
+                                    {response?.claims.map((claim: string) => (
+                                        <Tooltip title={translate("Claim", { name: claim })}>
+                                            <FormControlLabel
+                                                control={
+                                                    <Checkbox
+                                                        id={"claim-" + claim}
+                                                        value={claim}
+                                                        checked={claimChecked(claim)}
+                                                        onChange={handleClaimCheckboxOnChange}
+                                                    />
+                                                }
+                                                label={translateClaimNameToDescription(claim)}
+                                            />
+                                        </Tooltip>
+                                    ))}
+                                </List>
+                            </div>
+                        </Grid>
+                    ) : null}
                     {response?.pre_configuration ? (
                         <Grid size={{ xs: 12 }}>
                             <Tooltip
@@ -252,6 +340,15 @@ const useStyles = makeStyles((theme: Theme) => ({
         textAlign: "center",
     },
     scopesList: {
+        display: "inline-block",
+        backgroundColor: theme.palette.background.paper,
+        marginTop: theme.spacing(2),
+        marginBottom: theme.spacing(2),
+    },
+    claimsListContainer: {
+        textAlign: "center",
+    },
+    claimsList: {
         display: "inline-block",
         backgroundColor: theme.palette.background.paper,
         marginTop: theme.spacing(2),

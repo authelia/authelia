@@ -7,7 +7,6 @@ import (
 	"time"
 
 	oauthelia2 "authelia.com/provider/oauth2"
-	"authelia.com/provider/oauth2/handler/oauth2"
 	"authelia.com/provider/oauth2/token/jwt"
 	"authelia.com/provider/oauth2/x/errorsx"
 	"github.com/google/uuid"
@@ -52,8 +51,6 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		return
 	}
 
-	clientID := requester.GetClient().GetID()
-
 	if tokenType != oauthelia2.AccessToken {
 		ctx.Logger.Errorf("UserInfo Request with id '%s' on client with id '%s' failed with error: bearer authorization failed as the token is not an access token", requestID, client.GetID())
 
@@ -64,7 +61,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		return
 	}
 
-	if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, clientID); err != nil {
+	if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, requester.GetClient().GetID()); err != nil {
 		ctx.Logger.Errorf("UserInfo Request with id '%s' on client with id '%s' failed to retrieve client configuration with error: %s", requestID, client.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
 
 		errorsx.WriteJSONError(rw, req, err)
@@ -74,13 +71,15 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 
 	var (
 		original map[string]any
+		requests map[string]*oidc.ClaimRequest
+		userinfo bool
 	)
 
 	switch session := requester.GetSession().(type) {
 	case *oidc.Session:
 		original = session.IDTokenClaims().ToMap()
-	case *oauth2.JWTSession:
-		original = session.JWTClaims.ToMap()
+		requests = session.ClaimRequests.GetUserInfoRequests()
+		userinfo = !session.ClientCredentials
 	default:
 		ctx.Logger.Errorf("UserInfo Request with id '%s' on client with id '%s' failed to handle session with type '%T'", requestID, client.GetID(), session)
 
@@ -91,11 +90,26 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 
 	claims := map[string]any{}
 
-	oidcApplyUserInfoClaims(clientID, requester.GetGrantedScopes(), original, claims, oidcCtxDetailResolver(ctx))
+	ctx.Logger.WithFields(map[string]any{"claims": original, "requested_scopes": requester.GetRequestedScopes(), "granted_scopes": requester.GetGrantedScopes()}).Debug("Original Values")
+
+	strategy := ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx)
+
+	var detailer oidc.UserDetailer
+
+	if detailer, err = oidcDetailerFromClaims(ctx, original); err != nil {
+		oidc.GrantScopedClaims(strategy, client, requester.GetGrantedScopes(), nil, original, claims)
+
+		if userinfo {
+			ctx.Logger.WithError(err).Errorf("UserInfo Request with id '%s' on client with id '%s' error occurred loading user information", requestID, client.GetID())
+		}
+	} else {
+		oidc.GrantScopedClaims(strategy, client, requester.GetGrantedScopes(), detailer, original, claims)
+		oidc.GrantClaimRequests(strategy, client, requests, detailer, claims)
+	}
 
 	var token string
 
-	ctx.Logger.Tracef("UserInfo Response with id '%s' on client with id '%s' is being sent with the following claims: %+v", requestID, clientID, claims)
+	ctx.Logger.Tracef("UserInfo Response with id '%s' on client with id '%s' is being sent with the following claims: %+v", requestID, requester.GetClient().GetID(), claims)
 
 	switch alg := client.GetUserinfoSignedResponseAlg(); alg {
 	case oidc.SigningAlgNone:

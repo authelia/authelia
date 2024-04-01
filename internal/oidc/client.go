@@ -2,6 +2,7 @@ package oidc
 
 import (
 	"context"
+	"net/url"
 	"time"
 
 	oauthelia2 "authelia.com/provider/oauth2"
@@ -454,6 +455,18 @@ func (c *RegisteredClient) GetConsentResponseBody(consent *model.OAuth2ConsentSe
 	if consent != nil {
 		body.Scopes = consent.RequestedScopes
 		body.Audience = consent.RequestedAudience
+
+		var (
+			form   url.Values
+			claims *ClaimsRequests
+			err    error
+		)
+
+		if form, err = consent.GetForm(); err == nil {
+			if claims, err = NewClaimRequests(form); err == nil {
+				body.Claims, body.EssentialClaims = claims.ToSlices()
+			}
+		}
 	}
 
 	return body

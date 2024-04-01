@@ -197,6 +197,9 @@ type OAuth2ConsentSession struct {
 	GrantedScopes     StringSlicePipeDelimited `db:"granted_scopes"`
 	RequestedAudience StringSlicePipeDelimited `db:"requested_audience"`
 	GrantedAudience   StringSlicePipeDelimited `db:"granted_audience"`
+	// EssentialClaims   StringSlicePipeDelimited `db:"essential_claims"`
+	// RequestedClaims   StringSlicePipeDelimited `db:"requested_claims"`
+	// GrantedClaims     StringSlicePipeDelimited `db:"granted_claims"`
 
 	PreConfiguration sql.NullInt64
 }

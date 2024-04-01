@@ -173,6 +173,7 @@ const (
 	FormParameterScope        = valueScope
 	FormParameterIssuer       = valueIss
 	FormParameterPrompt       = "prompt"
+	FormParameterClaims       = "claims"
 )
 
 const (
