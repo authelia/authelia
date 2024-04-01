@@ -1,0 +1,25 @@
+<!--
+  Based on: https://github.com/alex-shpak/hugo-book/blob/master/layouts/shortcodes/tabs.html
+-->
+
+{{ if .Inner }}{{ end }}
+{{ $id := .Get 0 }}
+{{ $group := printf "env-tabs-%s" $id }}
+
+<nav>
+  <div class="nav nav-tabs" id="nav-tab" role="tablist">
+    {{ range $index, $tab := .Scratch.Get $group -}}
+    <button data-toggle-env-tab="{{ replace ($tab.Name | lower) " " "-" }}" class="nav-link{{ if not $index }} active{{ end }}" id="{{ printf "%s-%d" $group $index }}-tab" data-bs-toggle="tab" data-bs-target="#{{ printf "%s-%d" $group $index }}" type="button" role="tab" aria-controls="{{ printf "%s-%d" $group $index }}" aria-selected="true">
+    {{ $tab.Name -}}
+    </button>
+    {{ end -}}
+  </div>
+</nav>
+
+<div class="tab-content" id="nav-tabContent">
+  {{ range $index, $tab := .Scratch.Get $group -}}
+  <div data-env-pane="{{ replace ($tab.Name | lower) " " "-" }}" class="tab-pane fade{{ if not $index }} show active{{ end }}" id="{{ printf "%s-%d" $group $index }}" role="tabpanel" aria-labelledby="{{ printf "%s-%d" $group $index }}-tab" tabindex="0">
+  {{ .Content | $.Page.RenderString -}}
+</div>
+{{ end -}}
+</div>
