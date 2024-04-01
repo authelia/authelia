@@ -514,8 +514,10 @@ second will use the go template engine in a very similar way to how Helm operate
 As these features are experimental they may break, be removed, or otherwise not operate as expected. However most of our
 testing indicates they're incredibly solid.
 
-More information about this can be read in the [File Configuration](../../configuration/methods/files.md#file-filters)
-guide and the [Templating Reference Guide](../../reference/guides/templating.md).
+See Also:
+- [Configuration > Prologue > Security Sensitive Values](../../configuration/prologue/security-sensitive-values.md)
+- [Configuration > Methods > Files: File Filters](../../configuration/methods/files.md#file-filters)
+- [Reference > Guides > Templating](../../reference/guides/templating.md)
 
 ## Miscellaneous
 

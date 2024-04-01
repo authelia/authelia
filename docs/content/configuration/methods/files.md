@@ -43,9 +43,18 @@ misconfiguration scenarios it's not perfect. Each file type has recommended meth
 *Authelia* loads `configuration.yml` as the configuration if you just run it. You can override this behavior with the
 following syntax:
 
+{{< envTabs "Validate Configuration" >}}
+{{< envTab "Docker" >}}
 ```bash
-authelia --config config.custom.yml
+$ docker run authelia/authelia:latest authelia --config config.custom.yml
 ```
+{{< /envTab >}}
+{{< envTab "Bare-Metal" >}}
+```bash
+$ authelia --config config.custom.yml
+```
+{{< /envTab >}}
+{{< /envTabs >}}
 
 #### YAML Validation
 
@@ -62,10 +71,26 @@ on how to utilize the schemas.
 You can have multiple configuration files which will be merged in the order specified. If duplicate keys are specified
 the last one to be specified is the one that takes precedence. Example:
 
+{{< envTabs "Run With Multiple Configurations" >}}
+{{< envTab "Docker" >}}
 ```bash
-authelia --config configuration.yml --config config-acl.yml --config config-other.yml
-authelia --config configuration.yml,config-acl.yml,config-other.yml
+$ docker run -d authelia/authelia:latest authelia --config configuration.yml --config config-acl.yml --config config-other.yml
 ```
+
+```bash
+$ docker run -d authelia/authelia:latest authelia --config configuration.yml,config-acl.yml,config-other.yml
+```
+{{< /envTab >}}
+{{< envTab "Bare-Metal" >}}
+```bash
+$ authelia --config configuration.yml --config config-acl.yml --config config-other.yml
+```
+
+```bash
+$ authelia --config configuration.yml,config-acl.yml,config-other.yml
+```
+{{< /envTab >}}
+{{< /envTabs >}}
 
 Authelia's configuration files use the YAML format. A template with all possible options can be found at the root of the
 repository {{< github-link name="here" path="config.template.yml" >}}.
@@ -176,13 +201,31 @@ filter and if it isn't that it's last._
 
 Examples:
 
+{{< envTabs "Filters By Argument" >}}
+{{< envTab "Docker" >}}
 ```bash
-authelia --config config.yml --config.experimental.filters expand-env,template
+$ docker run -d authelia/authelia:latest authelia --config /config/configuration.yml --config.experimental.filters expand-env,template
 ```
+{{< /envTab >}}
+{{< envTab "Bare-Metal" >}}
+```bash
+$ authelia --config /config/configuration.yml --config.experimental.filters expand-env,template
+```
+{{< /envTab >}}
+{{< /envTabs >}}
 
-```text
-X_AUTHELIA_CONFIG_FILTERS=expand-env,template
+{{< envTabs "Filters By Environment" >}}
+{{< envTab "Docker" >}}
+```bash
+$ docker run -d -e X_AUTHELIA_CONFIG_FILTERS=expand-env,template -e X_AUTHELIA_CONFIG=/config/configuration.yml authelia/authelia:latest authelia
 ```
+{{< /envTab >}}
+{{< envTab "Bare-Metal" >}}
+```bash
+$ X_AUTHELIA_CONFIG_FILTERS=expand-env,template X_AUTHELIA_CONFIG=/config/configuration.yml authelia
+```
+{{< /envTab >}}
+{{< /envTabs >}}
 
 ### Expand Environment Variable Filter
 
