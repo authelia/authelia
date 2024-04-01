@@ -52,6 +52,32 @@ the Authorization Flow.
 For more information about the opaque [Access Token] default see
 [Why isn't the Access Token a JSON Web Token? (Frequently Asked Questions)](./frequently-asked-questions.md#why-isnt-the-access-token-a-json-web-token).
 
+## Claims
+
+The [OAuth 2.0] and [OpenID Connect 1.0] effectively names the individual content of a token as a [Claim]. Each [Claim]
+can either be granted individually via:
+
+1. The requested and granted [Scope] which generally makes the associated [Claim] values available at the [UserInfo]
+   endpoint, **_not_** within the [ID Token].
+2. The [Claims Parameter] which can request the authorization server explicitly
+   include a [Claim] in the [IDToken] and/or [UserInfo] endpoint.
+
+Authelia supports the [Claims Parameter] and as such the [ID Token] it returns is privacy and security focused,
+resulting in a minimal [ID Token] which solely prove authorization occurred. This allows various flows which require the
+relying party to share the [ID Token] with another party to prove they have been authorized, and relies on the
+[Access Token] which should be kept completely private to request the additional granted claims from the [UserInfo]
+endpoint.
+
+It should be noted that if a flow does not result in an [Access Token] capable of accessing the [UserInfo] endpoint but
+does result in an [ID Token] that the [ID Token] is intended to include the claims that would have otherwise ended up
+at the [UserInfo] endpoint as per the specification.
+
+The [Scope Definitions] indicate the default locations for a specific claim depending on the granted [Scope] when the
+[Claims Parameter] is not used and the default behaviour is not overridden by the registered client configuration.
+
+[Scope]: https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims
+[Claims Parameter]: https://openid.net/specs/openid-connect-core-1_0.html#ClaimsParameter
+
 ## Scope Definitions
 
 The following scope definitions describe each scope supported and the associated effects including the individual claims
@@ -67,21 +93,22 @@ that Authelia does.
 individual user as per the [Subject Identifier Types] section of the [OpenID Connect 1.0] specification. Please use the
 `preferred_username` [Claim] instead.*
 
-|  [Claim]  |   JWT Type    | Authelia Attribute |                         Description                         |
-|:---------:|:-------------:|:------------------:|:-----------------------------------------------------------:|
-|    iss    |    string     |      hostname      |             The issuer name, determined by URL              |
-|    jti    | string(uuid)  |       *N/A*        |     A [RFC4122] UUID V4 representing the JWT Identifier     |
-|    rat    |    number     |       *N/A*        |            The time when the token was requested            |
-|    exp    |    number     |       *N/A*        |                           Expires                           |
-|    iat    |    number     |       *N/A*        |             The time when the token was issued              |
-| auth_time |    number     |       *N/A*        |        The time the user authenticated with Authelia        |
-|    sub    | string(uuid)  |     opaque id      |    A [RFC4122] UUID V4 linked to the user who logged in     |
-|   scope   |    string     |       scopes       |              Granted scopes (space delimited)               |
-|    scp    | array[string] |       scopes       |                       Granted scopes                        |
-|    aud    | array[string] |       *N/A*        |                          Audience                           |
-|    amr    | array[string] |       *N/A*        | An [RFC8176] list of authentication method reference values |
-|    azp    |    string     |    id (client)     |                    The authorized party                     |
-| client_id |    string     |    id (client)     |                        The client id                        |
+|  [Claim]  |   JWT Type    | Authelia Attribute | Default Location |                         Description                         |
+|:---------:|:-------------:|:------------------:|:----------------:|:-----------------------------------------------------------:|
+|    iss    |    string     |      hostname      |    [ID Token]    |             The issuer name, determined by URL              |
+|    jti    | string(uuid)  |       *N/A*        |    [ID Token]    |     A [RFC4122] UUID V4 representing the JWT Identifier     |
+|    sub    | string(uuid)  |     opaque id      |    [ID Token]    |    A [RFC4122] UUID V4 linked to the user who logged in     |
+|    aud    | array[string] |       *N/A*        |    [ID Token]    |                          Audience                           |
+|    exp    |    number     |       *N/A*        |    [ID Token]    |                           Expires                           |
+|    iat    |    number     |       *N/A*        |    [ID Token]    |             The time when the token was issued              |
+| auth_time |    number     |       *N/A*        |    [ID Token]    |        The time the user authenticated with Authelia        |
+|    rat    |    number     |       *N/A*        |    [ID Token]    |            The time when the token was requested            |
+|   nonce   |    string     |       *N/A*        |    [ID Token]    |        The time the user authenticated with Authelia        |
+|    amr    | array[string] |       *N/A*        |    [ID Token]    | An [RFC8176] list of authentication method reference values |
+|    azp    |    string     |    id (client)     |    [ID Token]    |                    The authorized party                     |
+|   scope   |    string     |       scopes       |    [UserInfo]    |              Granted scopes (space delimited)               |
+|    scp    | array[string] |       scopes       |    [UserInfo]    |                       Granted scopes                        |
+| client_id |    string     |    id (client)     |    [UserInfo]    |                        The client id                        |
 
 ### offline_access
 
@@ -99,35 +126,33 @@ the client configuration.
 It is also important to note that we treat a [Refresh Token] as single use and reissue a new [Refresh Token] during the
 refresh flow.
 
+### profile
+
+This scope allows the client to access the profile information the authentication backend reports about the user.
+
+|      [Claim]       | JWT Type | Authelia Attribute | Default Location |               Description                |
+|:------------------:|:--------:|:------------------:|:----------------:|:----------------------------------------:|
+|        name        |  string  |    display_name    |    [UserInfo]    |          The users display name          |
+| preferred_username |  string  |      username      |    [UserInfo]    | The username the user used to login with |
+
+### email
+
+This scope allows the client to access the email information the authentication backend reports about the user.
+
+|    [Claim]     |   JWT Type    | Authelia Attribute | Default Location |                        Description                        |
+|:--------------:|:-------------:|:------------------:|:----------------:|:---------------------------------------------------------:|
+|     email      |    string     |      email[0]      |    [UserInfo]    |       The first email address in the list of emails       |
+| email_verified |     bool      |       *N/A*        |    [UserInfo]    | If the email is verified, assumed true for the time being |
+|   alt_emails   | array[string] |     email[1:]      |    [UserInfo]    |  All email addresses that are not in the email JWT field  |
+
 ### groups
 
 This scope includes the groups the authentication backend reports the user is a member of in the [Claims] of the
 [ID Token].
 
-| [Claim] |   JWT Type    | Authelia Attribute |                                               Description                                               |
-|:-------:|:-------------:|:------------------:|:-------------------------------------------------------------------------------------------------------:|
-| groups  | array[string] |       groups       | List of user's groups discovered via [authentication](../../configuration/first-factor/introduction.md) |
-
-### email
-
-This scope includes the email information the authentication backend reports about the user in the [Claims] of the
-[ID Token].
-
-|     Claim      |   JWT Type    | Authelia Attribute |                        Description                        |
-|:--------------:|:-------------:|:------------------:|:---------------------------------------------------------:|
-|     email      |    string     |      email[0]      |       The first email address in the list of emails       |
-| email_verified |     bool      |       *N/A*        | If the email is verified, assumed true for the time being |
-|   alt_emails   | array[string] |     email[1:]      |  All email addresses that are not in the email JWT field  |
-
-### profile
-
-This scope includes the profile information the authentication backend reports about the user in the [Claims] of the
-[ID Token].
-
-|       Claim        | JWT Type | Authelia Attribute |               Description                |
-|:------------------:|:--------:|:------------------:|:----------------------------------------:|
-| preferred_username |  string  |      username      | The username the user used to login with |
-|        name        |  string  |    display_name    |          The users display name          |
+| [Claim] |   JWT Type    | Authelia Attribute | Default Location |                                               Description                                               |
+|:-------:|:-------------:|:------------------:|:----------------:|:-------------------------------------------------------------------------------------------------------:|
+| groups  | array[string] |       groups       |    [UserInfo]    | List of user's groups discovered via [authentication](../../configuration/first-factor/introduction.md) |
 
 ### Special Scopes
 

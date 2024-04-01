@@ -18,6 +18,8 @@ export interface ConsentGetResponseBody {
     scopes: string[];
     audience: string[];
     pre_configuration: boolean;
+    claims: string[];
+    essential_claims: string[];
 }
 
 export function getConsentResponse(consentID: string) {

@@ -230,6 +230,8 @@ type ConsentGetResponseBody struct {
 	Scopes            []string `json:"scopes"`
 	Audience          []string `json:"audience"`
 	PreConfiguration  bool     `json:"pre_configuration"`
+	Claims            []string `json:"claims"`
+	EssentialClaims   []string `json:"essential_claims"`
 }
 
 // ConsentPostRequestBody schema of the request body of the consent POST endpoint.
