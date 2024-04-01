@@ -73,11 +73,13 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 
 	var (
 		original map[string]any
+		requests *oidc.ClaimsRequests
 	)
 
 	switch session := requester.GetSession().(type) {
 	case *oidc.Session:
 		original = session.IDTokenClaims().ToMap()
+		requests = session.ClaimRequests
 	case *oauth2.JWTSession:
 		original = session.JWTClaims.ToMap()
 	default:
@@ -90,7 +92,19 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 
 	claims := map[string]any{}
 
-	oidcApplyUserInfoClaims(clientID, requester.GetGrantedScopes(), original, claims, oidcCtxDetailResolver(ctx))
+	oidc.GrantUserInfoClaims(clientID, original, claims)
+
+	var detailer oidc.UserDetailer
+
+	if detailer, err = oidcDetailerFromClaims(ctx, original); err != nil {
+		ctx.Logger.WithError(err).Errorf("UserInfo Request with id '%s' on client with id '%s' error occurred loading user information", requestID, client.GetID())
+
+		ctx.Providers.OpenIDConnect.WriteError(rw, req, oauthelia2.ErrServerError.WithDebugf("Failed to load user information."))
+
+		return
+	}
+
+	oidc.GrantClaims(ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx), client, requester.GetGrantedScopes(), requests.GetUserInfoRequests(), detailer, claims)
 
 	var token string
 
