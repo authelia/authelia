@@ -30,19 +30,21 @@ interface Props {
     handleDelete: (index: number) => void;
 }
 
-const CardArea = styled(Paper)({
+const CardArea = styled(Paper)(({ theme }) => ({
     padding: "8px",
-    backgroundColor: "#f0f0f0",
     borderRadius: "4px",
     fontFamily: "monospace",
-});
+    overflowX: "auto",
+    [theme.breakpoints.down("sm")]: {
+        width: "50vw",
+    },
+}));
 
 const ClientItem = function (props: Props) {
     const { t: translate } = useTranslation("admin");
-
-    //const [showDialogDetails, setShowDialogDetails] = useState<boolean>(false);
     const [isExpanded, setExpanded] = useState(false);
     const [showClientID, setShowClientID] = useState(false);
+    //const theme = useTheme();
 
     const toggleExpanded = () => {
         setExpanded(!isExpanded);
@@ -52,32 +54,28 @@ const ClientItem = function (props: Props) {
         setShowClientID((prevShowClientID) => !prevShowClientID);
     };
 
-    // const renderClientId = () => {
-    //     if (showClientID) {
-    //         return  <MonospaceSpan>{props.client.ID}</MonospaceSpan>;
-    //     } else {
-    //         return <MonospaceSpan>{" "}{"●".repeat(props.client.ID.length)}</MonospaceSpan>;
-    //     }
-    // };
     const renderClientId = () => {
         if (showClientID) {
-            return <CardArea>{props.client.ID}</CardArea>;
+            return <CardArea elevation={0}>{props.client.ID}</CardArea>;
         } else {
-            return <CardArea> {"●".repeat(props.client.ID.length)}</CardArea>;
+            return <CardArea elevation={0}>{"●".repeat(props.client.ID.length)}</CardArea>;
         }
     };
 
-    // default behavior sets left/right margin to '0' instead of auto, uncentering the accordion
-    const CustomAccordion = styled(Accordion)(({ theme }) => ({
-        width: "75%",
-        margin: "16px auto",
-        "&.Mui-expanded": {
-            margin: "16px auto",
-        },
-    }));
-
     return (
-        <CustomAccordion expanded={isExpanded} onChange={toggleExpanded}>
+        <Accordion
+            expanded={isExpanded}
+            onChange={toggleExpanded}
+            sx={{
+                width: "75vw",
+                margin: "1vw auto", // default behavior sets left/right margin to '0' instead of auto, uncentering the accordion
+                display: "flex",
+                flexDirection: "column",
+                "&.Mui-expanded": {
+                    margin: "1vw auto",
+                },
+            }}
+        >
             <AccordionSummary
                 expandIcon={<ArrowDropDownIcon />}
                 aria-controls={`panel${props.client.ID}-content`}
@@ -99,7 +97,7 @@ const ClientItem = function (props: Props) {
                     <Divider variant="middle" component="li" />
                     <ListItem key={`request-uris-${props.index}`}>
                         <List>
-                            Request URIs:{" "}
+                            {translate("Request URIs:")}
                             {props.client.RedirectURIs.map((uri, index) => (
                                 <ListItem key={`request-uri-${props.index}-${index}`}>{uri}</ListItem>
                             ))}
@@ -108,7 +106,7 @@ const ClientItem = function (props: Props) {
                     <Divider variant="middle" component="li" />
                     <ListItem key={`audience-${props.index}`}>
                         <List>
-                            Audience:{" "}
+                            {translate("Audience:") || "Audience:"}
                             {props.client.Audience.map((audience, index) => (
                                 <ListItem key={`audience-item-${index}`}>{audience}</ListItem>
                             ))}
@@ -117,7 +115,7 @@ const ClientItem = function (props: Props) {
                     <Divider variant="middle" component="li" />
                     <ListItem key={`scopes-${props.index}`}>
                         <List>
-                            Scopes:{" "}
+                            {translate("Scopes:") || "Audience:"}
                             {props.client.Scopes.map((scopes, index) => (
                                 <ListItem key={`scopes-item-${index}`}>{scopes}</ListItem>
                             ))}
@@ -125,11 +123,11 @@ const ClientItem = function (props: Props) {
                     </ListItem>
                     <Divider variant="middle" component="li" />
                     <ListItem key={`auth-policy-${props.index}`}>
-                        Authorization Policy: {props.client.AuthorizationPolicy.Name}
+                        {translate("Authorization Policy:")} {props.client.AuthorizationPolicy.Name}
                     </ListItem>
                 </List>
             </AccordionDetails>
-        </CustomAccordion>
+        </Accordion>
     );
 };
 
