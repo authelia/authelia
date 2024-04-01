@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"time"
 
 	oauthelia2 "authelia.com/provider/oauth2"
 
@@ -257,6 +258,8 @@ func GrantScopeAudienceConsent(ar oauthelia2.AuthorizeRequester, consent *model.
 }
 
 // GrantClaimRequests grants all claims the client has requested provided it's authorized to request them.
+//
+//nolint:gocyclo
 func GrantClaimRequests(strategy oauthelia2.ScopeStrategy, client Client, requests map[string]*ClaimRequest, detailer UserDetailer, extra map[string]any) {
 	if requests == nil {
 		return
@@ -264,20 +267,66 @@ func GrantClaimRequests(strategy oauthelia2.ScopeStrategy, client Client, reques
 
 	for claim, request := range requests {
 		switch claim {
-		case ClaimGroups:
-			grantRequestedClaim(strategy, client, ScopeGroups, ClaimGroups, detailer.GetGroups(), request, extra)
-		case ClaimPreferredUsername:
-			grantRequestedClaim(strategy, client, ScopeProfile, ClaimPreferredUsername, detailer.GetUsername(), request, extra)
 		case ClaimFullName:
 			grantRequestedClaim(strategy, client, ScopeProfile, ClaimFullName, detailer.GetDisplayName(), request, extra)
-		case ClaimPreferredEmail:
+		case ClaimGivenName:
+			grantRequestedClaim(strategy, client, ScopeProfile, ClaimGivenName, detailer.GetGivenName(), request, extra)
+		case ClaimFamilyName:
+			grantRequestedClaim(strategy, client, ScopeProfile, ClaimFamilyName, detailer.GetFamilyName(), request, extra)
+		case ClaimMiddleName:
+			grantRequestedClaim(strategy, client, ScopeProfile, ClaimMiddleName, detailer.GetMiddleName(), request, extra)
+		case ClaimNickname:
+			grantRequestedClaim(strategy, client, ScopeProfile, ClaimNickname, detailer.GetNickname(), request, extra)
+		case ClaimPreferredUsername:
+			grantRequestedClaim(strategy, client, ScopeProfile, ClaimPreferredUsername, detailer.GetUsername(), request, extra)
+		case ClaimProfile:
+			grantRequestedClaim(strategy, client, ScopeProfile, ClaimProfile, detailer.GetProfile(), request, extra)
+		case ClaimPicture:
+			grantRequestedClaim(strategy, client, ScopeProfile, ClaimPicture, detailer.GetPicture(), request, extra)
+		case ClaimWebsite:
+			grantRequestedClaim(strategy, client, ScopeProfile, ClaimWebsite, detailer.GetWebsite(), request, extra)
+		case ClaimEmail:
 			emails := detailer.GetEmails()
 
 			if len(emails) == 0 {
 				continue
 			}
 
-			grantRequestedClaim(strategy, client, ScopeEmail, ClaimPreferredEmail, emails[0], request, extra)
+			grantRequestedClaim(strategy, client, ScopeEmail, ClaimEmail, emails[0], request, extra)
+		case ClaimEmailVerified:
+			if !strategy(client.GetScopes(), ScopeEmail) {
+				continue
+			}
+
+			grantRequestedClaim(strategy, client, ScopeEmail, ClaimEmailVerified, true, request, extra)
+		case ClaimGender:
+			grantRequestedClaim(strategy, client, ScopeProfile, ClaimGender, detailer.GetGender(), request, extra)
+		case ClaimBirthdate:
+			grantRequestedClaim(strategy, client, ScopeProfile, ClaimBirthdate, detailer.GetBirthdate(), request, extra)
+		case ClaimZoneinfo:
+			grantRequestedClaim(strategy, client, ScopeProfile, ClaimZoneinfo, detailer.GetZoneInfo(), request, extra)
+		case ClaimLocale:
+			grantRequestedClaim(strategy, client, ScopeProfile, ClaimLocale, detailer.GetLocale(), request, extra)
+		case ClaimPhoneNumber:
+			grantRequestedClaim(strategy, client, ScopePhone, ClaimPhoneNumber, detailer.GetOpenIDConnectPhoneNumber(), request, extra)
+		case ClaimPhoneNumberVerified:
+			grantRequestedClaim(strategy, client, ScopePhone, ClaimPhoneNumberVerified, false, request, extra)
+		case ClaimAddress:
+			if _, ok := extra[ClaimAddress]; ok {
+				continue
+			}
+
+			if !strategy(client.GetScopes(), ScopeAddress) {
+				continue
+			}
+
+			address := ClaimAddressFromDetailer(detailer)
+
+			if address != nil {
+				extra[ClaimAddress] = address
+			}
+		case ClaimUpdatedAt:
+			grantRequestedClaim(strategy, client, ScopeProfile, ClaimUpdatedAt, time.Now().Unix(), request, extra)
 		case ClaimEmailAlts:
 			emails := detailer.GetEmails()
 
@@ -286,12 +335,8 @@ func GrantClaimRequests(strategy oauthelia2.ScopeStrategy, client Client, reques
 			}
 
 			grantRequestedClaim(strategy, client, ScopeEmail, ClaimEmailAlts, emails[1:], request, extra)
-		case ClaimEmailVerified:
-			if !strategy(client.GetScopes(), ScopeEmail) {
-				continue
-			}
-
-			grantRequestedClaim(strategy, client, ScopeEmail, ClaimEmailVerified, true, request, extra)
+		case ClaimGroups:
+			grantRequestedClaim(strategy, client, ScopeGroups, ClaimGroups, detailer.GetGroups(), request, extra)
 		}
 	}
 }
@@ -319,13 +364,15 @@ func grantRequestedClaim(strategy oauthelia2.ScopeStrategy, client Client, scope
 
 // GrantScopedClaims copies the extra claims from the ID Token that may be useful while excluding
 // OpenID Connect 1.0 Special Claims, OpenID Connect 1.0 Scope-based Claims which should be granted by GrantClaimRequests.
+//
+//nolint:gocyclo
 func GrantScopedClaims(strategy oauthelia2.ScopeStrategy, client Client, scopes oauthelia2.Arguments, detailer UserDetailer, original, claims map[string]any) {
 	for claim, value := range original {
 		switch claim {
 		case ClaimJWTID, ClaimSessionID, ClaimAccessTokenHash, ClaimCodeHash, ClaimExpirationTime, ClaimNonce, ClaimStateHash:
 			// Skip special OpenID Connect 1.0 Claims.
 			continue
-		case ClaimPreferredUsername, ClaimPreferredEmail, ClaimEmailVerified, ClaimEmailAlts, ClaimGroups, ClaimFullName:
+		case ClaimFullName, ClaimGivenName, ClaimFamilyName, ClaimMiddleName, ClaimNickname, ClaimPreferredUsername, ClaimProfile, ClaimPicture, ClaimWebsite, ClaimEmail, ClaimEmailVerified, ClaimGender, ClaimBirthdate, ClaimZoneinfo, ClaimLocale, ClaimPhoneNumber, ClaimPhoneNumberVerified, ClaimAddress:
 			// Skip the standard claims.
 			continue
 		default:
@@ -350,22 +397,47 @@ func GrantScopedClaims(strategy oauthelia2.ScopeStrategy, client Client, scopes 
 	}
 
 	if strategy(scopes, ScopeProfile) {
-		claims[ClaimPreferredUsername] = detailer.GetUsername()
-		claims[ClaimFullName] = detailer.GetDisplayName()
+		doClaimsApplyPossibleStringValue(claims, ClaimFullName, detailer.GetDisplayName())
+		doClaimsApplyPossibleStringValue(claims, ClaimGivenName, detailer.GetGivenName())
+		doClaimsApplyPossibleStringValue(claims, ClaimFamilyName, detailer.GetFamilyName())
+		doClaimsApplyPossibleStringValue(claims, ClaimMiddleName, detailer.GetMiddleName())
+		doClaimsApplyPossibleStringValue(claims, ClaimNickname, detailer.GetNickname())
+		doClaimsApplyPossibleStringValue(claims, ClaimPreferredUsername, detailer.GetUsername())
+		doClaimsApplyPossibleStringValue(claims, ClaimProfile, detailer.GetProfile())
+		doClaimsApplyPossibleStringValue(claims, ClaimPicture, detailer.GetPicture())
+		doClaimsApplyPossibleStringValue(claims, ClaimWebsite, detailer.GetWebsite())
+		doClaimsApplyPossibleStringValue(claims, ClaimGender, detailer.GetGender())
+		doClaimsApplyPossibleStringValue(claims, ClaimBirthdate, detailer.GetBirthdate())
+		doClaimsApplyPossibleStringValue(claims, ClaimZoneinfo, detailer.GetZoneInfo())
+		doClaimsApplyPossibleStringValue(claims, ClaimLocale, detailer.GetLocale())
+		claims[ClaimUpdatedAt] = time.Now().Unix()
 	}
 
 	if strategy(scopes, ScopeEmail) {
 		switch emails := detailer.GetEmails(); len(emails) {
 		case 1:
-			claims[ClaimPreferredEmail] = emails[0]
+			claims[ClaimEmail] = emails[0]
 			claims[ClaimEmailVerified] = true
 		case 0:
 			break
 		default:
-			claims[ClaimPreferredEmail] = emails[0]
+			claims[ClaimEmail] = emails[0]
 			claims[ClaimEmailAlts] = emails[1:]
 			claims[ClaimEmailVerified] = true
 		}
+	}
+
+	if strategy(scopes, ScopeAddress) {
+		address := ClaimAddressFromDetailer(detailer)
+
+		if address != nil {
+			claims[ClaimAddress] = address
+		}
+	}
+
+	if strategy(scopes, ScopePhone) {
+		doClaimsApplyPossibleStringValue(claims, ClaimPhoneNumber, detailer.GetOpenIDConnectPhoneNumber())
+		claims[ClaimPhoneNumberVerified] = false
 	}
 
 	if strategy(scopes, ScopeGroups) {
@@ -407,4 +479,26 @@ func GetAudienceFromClaims(claims map[string]any) (audience []string, ok bool) {
 	}
 
 	return audience, ok
+}
+
+func ClaimAddressFromDetailer(detailer UserDetailer) (claim map[string]any) {
+	claim = map[string]any{}
+
+	doClaimsApplyPossibleStringValue(claim, "street_address", detailer.GetStreetAddress())
+	doClaimsApplyPossibleStringValue(claim, "locality", detailer.GetLocality())
+	doClaimsApplyPossibleStringValue(claim, "region", detailer.GetRegion())
+	doClaimsApplyPossibleStringValue(claim, "postal_code", detailer.GetPostalCode())
+	doClaimsApplyPossibleStringValue(claim, "country", detailer.GetCountry())
+
+	if len(claim) == 0 {
+		return nil
+	}
+
+	return
+}
+
+func doClaimsApplyPossibleStringValue(claims map[string]any, name, value string) {
+	if value != "" {
+		claims[name] = value
+	}
 }

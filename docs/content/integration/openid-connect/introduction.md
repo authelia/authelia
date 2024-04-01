@@ -133,7 +133,18 @@ This scope allows the client to access the profile information the authenticatio
 |      [Claim]       | JWT Type | Authelia Attribute | Default Location |               Description                |
 |:------------------:|:--------:|:------------------:|:----------------:|:----------------------------------------:|
 |        name        |  string  |    display_name    |    [UserInfo]    |          The users display name          |
+|    family_name     |  string  |    family_name     |    [UserInfo]    |          The users family name           |
+|     given_name     |  string  |     given_name     |    [UserInfo]    |           The users given name           |
+|    	middle_name    |  string  |    	middle_name    |    [UserInfo]    |          The users middle name           |
+|      nickname      |  string  |      nickname      |    [UserInfo]    |            The users nickname            |
 | preferred_username |  string  |      username      |    [UserInfo]    | The username the user used to login with |
+|      profile       |  string  |      profile       |    [UserInfo]    |          The users profile URL           |
+|      picture       |  string  |      picture       |    [UserInfo]    |          The users picture URL           |
+|      website       |  string  |      website       |    [UserInfo]    |          The users website URL           |
+|       gender       |  string  |       gender       |    [UserInfo]    |             The users gender             |
+|     birthdate      |  string  |     birthdate      |    [UserInfo]    |           The users birthdate            |
+|      zoneinfo      |  string  |      zoneinfo      |    [UserInfo]    |            The users zoneinfo            |
+|       locale       |  string  |       locale       |    [UserInfo]    |             The users locale             |
 
 ### email
 
@@ -144,6 +155,35 @@ This scope allows the client to access the email information the authentication 
 |     email      |    string     |      email[0]      |    [UserInfo]    |       The first email address in the list of emails       |
 | email_verified |     bool      |       *N/A*        |    [UserInfo]    | If the email is verified, assumed true for the time being |
 |   alt_emails   | array[string] |     email[1:]      |    [UserInfo]    |  All email addresses that are not in the email JWT field  |
+
+### address
+
+This scope allows the client to access the address information the authentication backend reports about the user. See
+the [Address Claim](https://openid.net/specs/openid-connect-core-1_0.html#AddressClaim) definition for information on
+the format of this claim.
+
+| [Claim] | JWT Type | Authelia Attribute | Default Location |          Description          |
+|:-------:|:--------:|:------------------:|:----------------:|:-----------------------------:|
+| address |  object  |      various       |    [UserInfo]    | The users address information |
+
+The following table indicates the various sub-claims within the address claim.
+
+|    [Claim]     | JWT Type | Authelia Attribute |                       Description                       |
+|:--------------:|:--------:|:------------------:|:-------------------------------------------------------:|
+| street_address |  string  |   street_address   |                The users street address                 |
+|    locality    |  string  |      locality      |             The users locality such as city             |
+|     region     |  string  |       region       | The users region such as state, province, or prefecture |
+|  postal_code   |  string  |    postal_code     |                   The users postcode                    |
+|    country     |  string  |      country       |                    The users country                    |
+
+### phone
+
+This scope allows the client to access the address information the authentication backend reports about the user.
+
+|        [Claim]        |   JWT Type    |       Authelia Attribute       | Default Location |                                              Description                                              |
+|:---------------------:|:-------------:|:------------------------------:|:----------------:|:-----------------------------------------------------------------------------------------------------:|
+|     phone_number      |    string     | phone_number + phone_extension |    [UserInfo]    | The combination of the users phone number and extension in the format specified in OpenID Connect 1.0 |
+| phone_number_verified |    string     | phone_number + phone_extension |    [UserInfo]    | The combination of the users phone number and extension in the format specified in OpenID Connect 1.0 |
 
 ### groups
 

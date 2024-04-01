@@ -76,7 +76,7 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 	}
 
 	var (
-		details     *authentication.UserDetails
+		details     *authentication.UserDetailsExtended
 		userSession session.UserSession
 		consent     *model.OAuth2ConsentSession
 		handled     bool
@@ -114,7 +114,7 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		return
 	}
 
-	if details, err = ctx.Providers.UserProvider.GetDetails(userSession.Username); err != nil {
+	if details, err = ctx.Providers.UserProvider.GetDetailsExtended(userSession.Username); err != nil {
 		ctx.Logger.WithError(err).Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: error occurred retrieving user details for '%s' from the backend", requester.GetID(), client.GetID(), userSession.Username)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not obtain the users details."))
