@@ -77,7 +77,7 @@ export interface ClientAuthorizationPolicy {
 
 // this is going to require quite a bit of additional infratructure to implement
 // this is going to require ACLs to be defined
-// or maybe not, im not entirely sure.
+// TODO (Crowley723): ACL/Auth Policies need to be defined
 export interface ClientAuthorizationPolicyRule {}
 
 type ResponseModeType =
@@ -90,6 +90,7 @@ type ResponseModeType =
     | "fragment.jwt"
     | "jwt";
 
+// TODO (Crowley723): define OIDC Provider
 //begin OpenIDConnectProvider
 export interface OpenIDConnectProvider {}
 
