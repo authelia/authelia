@@ -1,4 +1,4 @@
-import React, { Fragment } from "react";
+import React, { Fragment, useState } from "react";
 
 import { ClientType, OpenIDConnectClient } from "@models/OpenIDConnect";
 import ClientItem from "@views/AdminUI/OpenIDConnect/ClientItem";
@@ -9,7 +9,7 @@ export interface Props {}
 const ClientView = function (props: Props) {
     //const { t: translate } = useTranslation("admin");
 
-    const clients: OpenIDConnectClient[] = [
+    const [clients, setClients] = useState<OpenIDConnectClient[]>([
         {
             ID: "MMh9Xh7R2zUXKBtvCUFpKE9DBsKsO3zAP4HxdPkUybpRApoOzK6UyqHZfysa9eYW7d2x57nfRwDKfm39V5CXZcFSeYK1tpRQhUDt",
             Name: "A Friendly Name for a Client",
@@ -49,7 +49,20 @@ const ClientView = function (props: Props) {
                 Rules: [],
             },
         },
-    ];
+    ]);
+
+    const handleDelete = (index: number) => {
+        const updatedClients = [...clients];
+        console.log(`delete: ${clients[index].Name}`);
+        const filteredClients = updatedClients.filter((_: any, i: any) => i !== index);
+        setClients(filteredClients);
+    };
+    const handleChange = (index: number, updatedClient: OpenIDConnectClient) => {
+        const updatedClients = [...clients];
+        console.log(`change: client ${updatedClient} at ${index}`);
+        updatedClients[index] = updatedClient;
+        setClients(updatedClients);
+    };
 
     return (
         <Fragment>
@@ -58,15 +71,8 @@ const ClientView = function (props: Props) {
                     index={index}
                     client={client}
                     description="This is a temporary description!"
-                    handleInformation={function (index: number): void {
-                        throw new Error("Function not implemented.");
-                    }}
-                    handleEdit={function (index: number): void {
-                        throw new Error("Function not implemented.");
-                    }}
-                    handleDelete={function (index: number): void {
-                        throw new Error("Function not implemented.");
-                    }}
+                    handleChange={handleChange}
+                    handleDelete={handleDelete}
                 />
             ))}
         </Fragment>
