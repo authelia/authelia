@@ -3,10 +3,10 @@
 /**
  * Scripts which manages Code Toggle tabs.
  */
-var i;
 // store tabs variable
 var allEnvTabs = document.querySelectorAll('[data-toggle-env-tab]');
 var allEnvPanes = document.querySelectorAll('[data-env-pane]');
+const localStorageKeyEnvTabs = 'envPref';
 
 function toggleEnvTabs(event) {
 
@@ -19,7 +19,7 @@ function toggleEnvTabs(event) {
   }
   // We store the config language selected in users' localStorage
   if(window.localStorage){
-    window.localStorage.setItem('envPref', targetKey)
+    window.localStorage.setItem(localStorageKeyEnvTabs, targetKey)
   }
   var selectedTabs = document.querySelectorAll('[data-toggle-env-tab=' + targetKey + ']');
   var selectedPanes = document.querySelectorAll('[data-env-pane=' + targetKey + ']');
@@ -36,10 +36,23 @@ function toggleEnvTabs(event) {
 
 }
 
-for (i = 0; i < allEnvTabs.length; i++) {
+const envTabsStorageListener = (ev) => {
+  if (ev.key !== localStorageKeyEnvTabs) {
+    return;
+  }
+
+  if (ev.newValue && ev.newValue !== '') {
+    toggleEnvTabs(ev.newValue);
+  }
+};
+
+for (var i = 0; i < allEnvTabs.length; i++) {
   allEnvTabs[i].addEventListener('click', toggleEnvTabs)
 }
+
+window.addEventListener('storage', envTabsStorageListener);
+
 // Upon page load, if user has a preferred language in its localStorage, tabs are set to it.
-if(window.localStorage.getItem('envPref')) {
-  toggleEnvTabs(window.localStorage.getItem('envPref'))
+if(window.localStorage.getItem(localStorageKeyEnvTabs)) {
+  toggleEnvTabs(window.localStorage.getItem(localStorageKeyEnvTabs))
 }

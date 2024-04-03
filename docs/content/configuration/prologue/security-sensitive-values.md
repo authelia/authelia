@@ -2,7 +2,7 @@
 title: "Security Sensitive Values"
 description: "An introduction into configuring Authelia's security sensitive values."
 summary: "An introduction into configuring Authelia's security sensitive values."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-31T23:24:06+00:00
 draft: false
 images: []
 weight: 100150
