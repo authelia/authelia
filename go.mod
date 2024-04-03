@@ -45,7 +45,7 @@ require (
 	github.com/valyala/fasthttp v1.52.0
 	github.com/wneessen/go-mail v0.4.1
 	go.uber.org/mock v0.4.0
-	golang.org/x/net v0.22.0
+	golang.org/x/net v0.23.0
 	golang.org/x/sync v0.6.0
 	golang.org/x/term v0.18.0
 	golang.org/x/text v0.14.0
