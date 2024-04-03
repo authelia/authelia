@@ -167,10 +167,6 @@ func (s *Session) GetIDTokenClaims() *jwt.IDTokenClaims {
 
 // GetExtraClaims returns the Extra/Unregistered claims for this session.
 func (s *Session) GetExtraClaims() map[string]any {
-	if s.DefaultSession != nil && s.DefaultSession.Claims != nil {
-		return s.DefaultSession.Claims.Extra
-	}
-
 	return s.Extra
 }
 
