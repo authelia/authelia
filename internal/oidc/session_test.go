@@ -48,7 +48,7 @@ func TestOpenIDSession_GetExtraClaims(t *testing.T) {
 			},
 		},
 		{
-			"ShouldReturnIDTokenClaimsExtra",
+			"ShouldNotReturnIDTokenClaimsExtra",
 			&oidc.Session{
 				DefaultSession: &openid.DefaultSession{
 					Claims: &jwt.IDTokenClaims{
@@ -62,7 +62,7 @@ func TestOpenIDSession_GetExtraClaims(t *testing.T) {
 				},
 			},
 			map[string]any{
-				"b": 2,
+				"a": 1,
 			},
 		},
 	}
