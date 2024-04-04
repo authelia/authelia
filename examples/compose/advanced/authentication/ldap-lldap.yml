@@ -1,0 +1,7 @@
+services:
+  authelia:
+    environment:
+      X_USER_LDAP_IMPLEMENTATION: lldap
+      X_COMPOSE_LDAP_ADDRESS: ldap://lldap
+      X_COMPOSE_LDAP_BASE_DN: dc=example,dc=com
+      X_USER_LDAP_USER: lldap

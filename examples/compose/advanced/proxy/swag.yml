@@ -1,15 +1,15 @@
 services:
   swag:
-    image: 'lscr.io/linuxserver/swag'
+    image: lscr.io/linuxserver/swag
     cap_add:
-      - 'NET_ADMIN'
-    container_name: 'swag'
+      - NET_ADMIN
+    container_name: swag
     networks:
       proxy: {}
     environment:
       PUID: '1000'
       PGID: '1000'
-      TZ: 'Australia/Melbourne'
+      TZ: Australia/Melbourne
     volumes:
       - './data/proxy/swag:/config'
     ports:

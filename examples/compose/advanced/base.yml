@@ -1,0 +1,16 @@
+services:
+  authelia:
+    image: authelia/authelia:latest
+    container_name: authelia
+    networks:
+      proxy: {}
+    environment:
+      TZ: Australia/Melbourne
+      X_AUTHELIA_CONFIG_FILTERS: template
+      X_COMPOSE_DOMAIN: ${DOMAIN}
+    volumes:
+      - ./data/authelia:/config
+
+networks:
+  proxy:
+    name: proxy

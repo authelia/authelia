@@ -1,0 +1,8 @@
+services:
+  authelia:
+    environment:
+      X_COMPOSE_LDAP_IMPLEMENTATION: glauth
+      X_COMPOSE_LDAP_ADDRESS: ldap://glauth
+      X_COMPOSE_LDAP_BASE_DN: dc=example,dc=com
+      X_COMPOSE_LDAP_USER: glauth
+
