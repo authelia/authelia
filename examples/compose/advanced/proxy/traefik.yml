@@ -1,0 +1,3 @@
+services:
+  authelia:
+    labels:

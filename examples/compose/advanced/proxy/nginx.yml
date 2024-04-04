@@ -1,0 +1,17 @@
+services:
+  nginx:
+    image: 'lscr.io/linuxserver/nginx:latest'
+    container_name: 'nginx'
+    networks:
+      proxy: {}
+    environment:
+      PUID: '1000'
+      PGID: '1000'
+      TZ: 'Australia/Melbourne'
+      DOCKER_MODS: 'linuxserver/mods:nginx-proxy-confs'
+    volumes:
+      - './data/proxy/nginx:/config'
+    ports:
+      - '80:80/tcp'
+      - '443:443/tcp'
+    restart: 'unless-stopped'
