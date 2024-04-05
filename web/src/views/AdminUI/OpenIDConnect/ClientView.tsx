@@ -1,6 +1,6 @@
 import React, { Fragment, useState } from "react";
 
-import { ClientType, OpenIDConnectClient } from "@models/OpenIDConnect";
+import { ClientType, ExistingScopes, OpenIDConnectClient } from "@models/OpenIDConnect";
 import ClientItem from "@views/AdminUI/OpenIDConnect/ClientItem";
 
 //import { useTranslation } from "react-i18next";
@@ -12,11 +12,11 @@ const ClientView = function (props: Props) {
     const [clients, setClients] = useState<OpenIDConnectClient[]>([
         {
             ID: "MMh9Xh7R2zUXKBtvCUFpKE9DBsKsO3zAP4HxdPkUybpRApoOzK6UyqHZfysa9eYW7d2x57nfRwDKfm39V5CXZcFSeYK1tpRQhUDt",
-            Name: "A Friendly Name for a Client",
+            Name: "This is one client",
             ClientType: ClientType.Confidential,
             RedirectURIs: ["https://example.com/redirect", "https://example.com/redirect2"],
             Audience: ["https://aud1.example.com", "https://aud2.example.com"],
-            Scopes: ["scope1", "scope2"],
+            Scopes: [ExistingScopes.openid, ExistingScopes.email],
             AuthorizationPolicy: {
                 Name: "Policy1",
                 DefaultPolicy: 1,
@@ -25,26 +25,26 @@ const ClientView = function (props: Props) {
         },
         {
             ID: "MMh9Xh7R2zUXKBtvCUFpKE9DBsKsO3zAP4HxdPkUybpRApoOzK6UyqHZfysa9eYW7d2x57nfRwDKfm39V5CXZcFSeYK1tpRQhUDt",
-            Name: "A Friendly Name for a Client",
-            ClientType: ClientType.Confidential,
+            Name: "Another client",
+            ClientType: ClientType.Public,
             RedirectURIs: ["https://example.com/redirect", "https://example.com/redirect2"],
             Audience: ["https://aud1.example.com", "https://aud2.example.com"],
-            Scopes: ["scope1", "scope2"],
+            Scopes: [ExistingScopes.offline_access, ExistingScopes.email],
             AuthorizationPolicy: {
-                Name: "Policy1",
+                Name: "Policy2",
                 DefaultPolicy: 1,
                 Rules: [],
             },
         },
         {
             ID: "MMh9Xh7R2zUXKBtvCUFpKE9DBsKsO3zAP4HxdPkUybpRApoOzK6UyqHZfysa9eYW7d2x57nfRwDKfm39V5CXZcFSeYK1tpRQhUDt",
-            Name: "A Friendly Name for a Client",
+            Name: "A third client",
             ClientType: ClientType.Confidential,
             RedirectURIs: ["https://example.com/redirect", "https://example.com/redirect2"],
             Audience: ["https://aud1.example.com", "https://aud2.example.com"],
-            Scopes: ["scope1", "scope2"],
+            Scopes: [ExistingScopes.profile, ExistingScopes.email],
             AuthorizationPolicy: {
-                Name: "Policy1",
+                Name: "Policy3",
                 DefaultPolicy: 1,
                 Rules: [],
             },
