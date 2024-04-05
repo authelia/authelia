@@ -91,7 +91,6 @@ Use this [Standalone Example](#standalone-example) if you want to use
 {{< details "docker-compose.yml" >}}
 ```yaml
 ---
-version: '3.8'
 secrets:
   JWT_SECRET:
     file: '${PWD}/data/authelia/secrets/JWT_SECRET'
@@ -135,7 +134,6 @@ Use this [Standalone Example](#standalone-example) if you want to use a standard
 {{< details "docker-compose.yml" >}}
 ```yaml
 ---
-version: '3.8'
 services:
   authelia:
     container_name: 'authelia'

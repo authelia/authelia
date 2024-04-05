@@ -1,5 +1,4 @@
 ---
-version: '3'
 services:
   openldap-admin:
     image: osixia/phpldapadmin:0.9.0

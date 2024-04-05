@@ -468,7 +468,6 @@ docker run --user 8000:9000 -v /authelia:/config authelia/authelia:latest
 Example for docker-compose:
 
 ```yaml
-version: '3.8'
 services:
   authelia:
     image: authelia/authelia
@@ -501,7 +500,6 @@ docker run -e PUID=8000 -e PGID=9000 -v /authelia:/config authelia/authelia:late
 Example for docker-compose:
 
 ```yaml
-version: '3.8'
 services:
   authelia:
     image: authelia/authelia

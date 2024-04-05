@@ -1,5 +1,4 @@
 ---
-version: '3'
 services:
   # Simulates client 1.
   client-1:

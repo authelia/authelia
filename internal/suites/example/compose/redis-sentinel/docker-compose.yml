@@ -1,5 +1,4 @@
 ---
-version: '3'
 services:
   redis-node-0:
     image: redis:7.2-alpine
