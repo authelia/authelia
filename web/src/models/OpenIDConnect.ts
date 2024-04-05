@@ -60,6 +60,15 @@ export interface OpenIDConnectClient {
     JSONWebKeysURI?: URL;
 }
 
+export enum ExistingScopes {
+    openid = "openid",
+    offline_access = "offline_access",
+    groups = "groups",
+    email = "email",
+    profile = "profile",
+    authelia_bearer_authz = "authelia.bearer.authz",
+}
+
 export enum ClientType {
     Public = "Public", //true
     Confidential = "Confidential", //false

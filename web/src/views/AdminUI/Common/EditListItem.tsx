@@ -54,7 +54,7 @@ const EditListItem = (props: Props) => {
                         </IconButton>
                     </ListItem>
                 ))}
-                <ListItem key={`add-value`}>
+                <ListItem key={`add-value-${props.values[0]}`}>
                     <TextField
                         size="small"
                         onChange={(event) => setNewFieldValue(event.target.value)}

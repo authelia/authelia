@@ -23,8 +23,9 @@ import {
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import { OpenIDConnectClient } from "@models/OpenIDConnect";
+import { ExistingScopes, OpenIDConnectClient } from "@models/OpenIDConnect";
 import EditListItem from "@views/AdminUI/Common/EditListItem";
+import MultiSelectDropdown from "@views/AdminUI/Common/MultiSelectDropdown";
 
 interface Props {
     index: number;
@@ -39,6 +40,8 @@ const CardArea = styled(Paper)(({ theme }) => ({
     borderRadius: "4px",
     fontFamily: "monospace",
     overflowX: "auto",
+    display: "flex",
+    textAlign: "center",
     [theme.breakpoints.down("sm")]: {
         width: "50vw",
     },
@@ -52,6 +55,10 @@ const ClientAccordion = styled(Accordion)(({ theme }) => ({
     "&.Mui-expanded": {
         margin: "1vw auto",
     },
+}));
+
+const ClientAccordionSummary = styled(AccordionSummary)(({ theme }) => ({
+    border: `1px solid ${theme.palette.divider}`,
 }));
 
 const ClientItem = function (props: Props) {
@@ -68,14 +75,6 @@ const ClientItem = function (props: Props) {
 
     const toggleClientIDVisibility = () => {
         setShowClientID((prevShowClientID) => !prevShowClientID);
-    };
-
-    const renderClientId = () => {
-        if (showClientID) {
-            return <CardArea elevation={0}>{props.client.ID}</CardArea>;
-        } else {
-            return <CardArea elevation={0}>{"●".repeat(props.client.ID.length)}</CardArea>;
-        }
     };
 
     const handleEditClick = (event: { stopPropagation: () => void }) => {
@@ -116,12 +115,12 @@ const ClientItem = function (props: Props) {
 
     return (
         <ClientAccordion expanded={isExpanded} onChange={toggleExpanded}>
-            <AccordionSummary
+            <ClientAccordionSummary
                 expandIcon={<ArrowDropDownIcon />}
                 aria-controls={`panel${props.client.ID}-content`}
                 id={`panel${props.client.ID}-header`}
             >
-                <div style={{ flex: 1, display: "flex", alignItems: "center" }}>
+                <div style={{ flex: 1, display: "flex", alignItems: "center", marginLeft: "16px" }}>
                     {isEditing ? (
                         <TextField
                             name="name"
@@ -129,9 +128,12 @@ const ClientItem = function (props: Props) {
                             onChange={handleChange}
                             variant="outlined"
                             size="small"
+                            onClick={(e) => e.stopPropagation()}
                         />
                     ) : (
-                        <Typography>{props.client.Name}</Typography>
+                        <Typography fontWeight={"300"} fontSize={"20px"}>
+                            {props.client.Name}
+                        </Typography>
                     )}
                 </div>
                 <div style={{ display: "flex", alignItems: "center" }}>
@@ -150,12 +152,16 @@ const ClientItem = function (props: Props) {
                         </IconButton>
                     )}
                 </div>
-            </AccordionSummary>
-            <AccordionDetails key={`accordion-details-${props.index}`}>
+            </ClientAccordionSummary>
+            <AccordionDetails sx={{ padding: "auto 16px" }} key={`accordion-details-${props.index}`}>
                 <List>
                     <ListItem key={`client-id-${props.index}`}>
-                        {translate("Client ID:  ")}
-                        {renderClientId()}
+                        <Typography>{translate("Client ID: ") || "Client ID: "}</Typography>
+                        {showClientID ? (
+                            <CardArea elevation={0}>{props.client.ID}</CardArea>
+                        ) : (
+                            <CardArea elevation={0}>{"●".repeat(props.client.ID.length)}</CardArea>
+                        )}
                         <IconButton onClick={toggleClientIDVisibility}>
                             {showClientID ? <VisibilityOffIcon /> : <VisibilityIcon />}
                         </IconButton>
@@ -165,7 +171,7 @@ const ClientItem = function (props: Props) {
                     <Divider variant="middle" component="li" />
                     <ListItem key={`request-uris-${props.index}`}>
                         <List>
-                            {translate("Redirect URIs:  ")}
+                            <Typography marginBottom={"0.5vh"}>{translate("Redirect URIs:  ")}</Typography>
                             {isEditing ? (
                                 <EditListItem
                                     values={formData.RedirectURIs}
@@ -181,9 +187,28 @@ const ClientItem = function (props: Props) {
                         </List>
                     </ListItem>
                     <Divider variant="middle" component="li" />
+                    <ListItem key={`scopes-${props.index}`}>
+                        {isEditing ? (
+                            <MultiSelectDropdown
+                                index={props.index}
+                                label={translate("Scopes:") || "Scopes:"}
+                                values={formData.Scopes}
+                                options={Object.values(ExistingScopes)}
+                                handleChange={(updatedValues) => handleValuesUpdate(updatedValues, "Scopes")}
+                            ></MultiSelectDropdown>
+                        ) : (
+                            <>
+                                <Typography>
+                                    {translate("Scopes: ")}
+                                    {props.client.Scopes.join(", ")}
+                                </Typography>
+                            </>
+                        )}
+                    </ListItem>
+                    <Divider variant="middle" component="li" />
                     <ListItem key={`audience-${props.index}`}>
                         <List>
-                            {translate("Audience:") || "Audience:"}
+                            <Typography marginBottom={"0.5vh"}>{translate("Audience:") || "Audience:"}</Typography>
                             {isEditing ? (
                                 <EditListItem
                                     values={formData.Audience}
@@ -192,22 +217,6 @@ const ClientItem = function (props: Props) {
                             ) : (
                                 props.client.Audience.map((audience, index) => (
                                     <ListItem key={`audience-item-${index}`}>{audience}</ListItem>
-                                ))
-                            )}
-                        </List>
-                    </ListItem>
-                    <Divider variant="middle" component="li" />
-                    <ListItem key={`scopes-${props.index}`}>
-                        <List>
-                            {translate("Scopes:") || "Scopes:"}
-                            {isEditing ? (
-                                <EditListItem
-                                    values={formData.Scopes}
-                                    onValuesUpdate={(updatedValues) => handleValuesUpdate(updatedValues, "Scopes")}
-                                />
-                            ) : (
-                                props.client.Scopes.map((scopes, index) => (
-                                    <ListItem key={`scopes-item-${index}`}>{scopes}</ListItem>
                                 ))
                             )}
                         </List>
