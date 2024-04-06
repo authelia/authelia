@@ -14,9 +14,10 @@ import (
 	"authelia.com/provider/oauth2/handler/openid"
 	"authelia.com/provider/oauth2/handler/par"
 	"authelia.com/provider/oauth2/handler/pkce"
+	"authelia.com/provider/oauth2/handler/rfc8628"
 	"authelia.com/provider/oauth2/i18n"
 	"authelia.com/provider/oauth2/token/jwt"
-	retryablehttp "github.com/hashicorp/go-retryablehttp"
+	"github.com/hashicorp/go-retryablehttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/templates"
@@ -230,6 +231,12 @@ func (c *Config) LoadHandlers(store *Store) {
 		}
 	}
 
+	handlerCodeTokenEndpoint := &rfc8628.DeviceCodeTokenHandler{
+		Storage:  store,
+		Strategy: c.Strategy.Core,
+		Config:   c,
+	}
+
 	handlers := []any{
 		&oauth2.AuthorizeExplicitGrantHandler{
 			AccessTokenStrategy:    c.Strategy.Core,
@@ -258,6 +265,28 @@ func (c *Config) LoadHandlers(store *Store) {
 			TokenRevocationStorage: store,
 			Config:                 c,
 		},
+
+		&rfc8628.DeviceAuthorizeHandler{
+			Storage:  store,
+			Strategy: c.Strategy.Core,
+			Config:   c,
+		},
+		&rfc8628.UserAuthorizeHandler{
+			Storage:  store,
+			Strategy: c.Strategy.Core,
+			Config:   c,
+		},
+		&rfc8628.DeviceAuthorizeTokenEndpointHandler{
+			GenericCodeTokenEndpointHandler: oauth2.GenericCodeTokenEndpointHandler{
+				CodeTokenEndpointHandler: handlerCodeTokenEndpoint,
+				AccessTokenStrategy:      c.Strategy.Core,
+				RefreshTokenStrategy:     c.Strategy.Core,
+				CoreStorage:              store,
+				TokenRevocationStorage:   store,
+				Config:                   c,
+			},
+		},
+
 		&openid.OpenIDConnectExplicitHandler{
 			IDTokenHandleHelper: &openid.IDTokenHandleHelper{
 				IDTokenStrategy: c.Strategy.OpenID,
@@ -304,23 +333,36 @@ func (c *Config) LoadHandlers(store *Store) {
 			},
 			Config: c,
 		},
+		&openid.OpenIDConnectDeviceAuthorizeHandler{
+			OpenIDConnectRequestStorage:   store,
+			OpenIDConnectRequestValidator: validator,
+			CodeTokenEndpointHandler:      handlerCodeTokenEndpoint,
+			Config:                        c,
+			IDTokenHandleHelper: &openid.IDTokenHandleHelper{
+				IDTokenStrategy: c.Strategy.OpenID,
+			},
+		},
+
 		statelessJWT,
 		&oauth2.CoreValidator{
 			CoreStrategy: c.Strategy.Core,
 			CoreStorage:  store,
 			Config:       c,
 		},
+
 		&oauth2.TokenRevocationHandler{
 			AccessTokenStrategy:    c.Strategy.Core,
 			RefreshTokenStrategy:   c.Strategy.Core,
 			TokenRevocationStorage: store,
 			Config:                 c,
 		},
+
 		&pkce.Handler{
 			AuthorizeCodeStrategy: c.Strategy.Core,
 			Storage:               store,
 			Config:                c,
 		},
+
 		&par.PushedAuthorizeHandler{
 			Storage: store,
 			Config:  c,
@@ -346,6 +388,14 @@ func (c *Config) LoadHandlers(store *Store) {
 
 		if h, ok := handler.(oauthelia2.AuthorizeEndpointHandler); ok {
 			x.AuthorizeEndpoint.Append(h)
+		}
+
+		if h, ok := handler.(oauthelia2.RFC8628DeviceAuthorizeEndpointHandler); ok {
+			x.RFC8628DeviceAuthorizeEndpoint.Append(h)
+		}
+
+		if h, ok := handler.(oauthelia2.RFC8628UserAuthorizeEndpointHandler); ok {
+			x.RFC8628UserAuthorizeEndpoint.Append(h)
 		}
 
 		if h, ok := handler.(oauthelia2.TokenEndpointHandler); ok {

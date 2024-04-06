@@ -103,6 +103,62 @@ func NewOAuth2SessionFromRequest(signature string, r oauthelia2.Requester) (sess
 	}, nil
 }
 
+// NewOAuth2DeviceCodeSessionFromRequest creates a new OAuth2DeviceCodeSession from a signature and oauthelia2.Requester.
+func NewOAuth2DeviceCodeSessionFromRequest(r oauthelia2.DeviceAuthorizeRequester) (session *OAuth2DeviceCodeSession, err error) {
+	if r == nil {
+		return nil, fmt.Errorf("failed to create new *model.OAuth2Session: the oauthelia2.Requester was nil")
+	}
+
+	var (
+		subject     sql.NullString
+		s           OpenIDSession
+		ok          bool
+		sessionData []byte
+	)
+
+	s, ok = r.GetSession().(OpenIDSession)
+	if !ok {
+		return nil, fmt.Errorf("failed to create new *model.OAuth2DeviceCodeSession: the session type OpenIDSession was expected but the type '%T' was used", r.GetSession())
+	}
+
+	subject = sql.NullString{String: s.GetSubject()}
+
+	subject.Valid = len(subject.String) > 0
+
+	if sessionData, err = json.Marshal(s); err != nil {
+		return nil, fmt.Errorf("failed to create new *model.OAuth2DeviceCodeSession: an error was returned while attempting to marshal the session data to json: %w", err)
+	}
+
+	requested, granted := r.GetRequestedScopes(), r.GetGrantedScopes()
+
+	if requested == nil {
+		requested = oauthelia2.Arguments{}
+	}
+
+	if granted == nil {
+		granted = oauthelia2.Arguments{}
+	}
+
+	return &OAuth2DeviceCodeSession{
+		RequestID:         r.GetID(),
+		ClientID:          r.GetClient().GetID(),
+		Signature:         r.GetDeviceCodeSignature(),
+		UserCodeSignature: r.GetUserCodeSignature(),
+		Status:            int(r.GetStatus()),
+		Subject:           subject,
+		RequestedAt:       r.GetRequestedAt(),
+		CheckedAt:         r.GetLastChecked(),
+		RequestedScopes:   StringSlicePipeDelimited(requested),
+		GrantedScopes:     StringSlicePipeDelimited(granted),
+		RequestedAudience: StringSlicePipeDelimited(r.GetRequestedAudience()),
+		GrantedAudience:   StringSlicePipeDelimited(r.GetGrantedAudience()),
+		Active:            true,
+		Revoked:           false,
+		Form:              r.GetRequestForm().Encode(),
+		Session:           sessionData,
+	}, nil
+}
+
 // NewOAuth2PARContext creates a new Pushed Authorization Request Context as a OAuth2PARContext.
 func NewOAuth2PARContext(contextID string, r oauthelia2.AuthorizeRequester) (context *OAuth2PARContext, err error) {
 	var (
@@ -315,6 +371,69 @@ func (s *OAuth2Session) ToRequest(ctx context.Context, session oauthelia2.Sessio
 		Form:              values,
 		Session:           session,
 	}, nil
+}
+
+// OAuth2DeviceCodeSession stores the Device Code Grant information.
+type OAuth2DeviceCodeSession struct {
+	ID                int                      `db:"id"`
+	ChallengeID       uuid.NullUUID            `db:"challenge_id"`
+	RequestID         string                   `db:"request_id"`
+	ClientID          string                   `db:"client_id"`
+	Signature         string                   `db:"signature"`
+	UserCodeSignature string                   `db:"user_code_signature"`
+	Status            int                      `db:"status"`
+	Subject           sql.NullString           `db:"subject"`
+	RequestedAt       time.Time                `db:"requested_at"`
+	CheckedAt         time.Time                `db:"checked_at"`
+	RequestedScopes   StringSlicePipeDelimited `db:"requested_scopes"`
+	GrantedScopes     StringSlicePipeDelimited `db:"granted_scopes"`
+	RequestedAudience StringSlicePipeDelimited `db:"requested_audience"`
+	GrantedAudience   StringSlicePipeDelimited `db:"granted_audience"`
+	Active            bool                     `db:"active"`
+	Revoked           bool                     `db:"revoked"`
+	Form              string                   `db:"form_data"`
+	Session           []byte                   `db:"session_data"`
+}
+
+// ToRequest converts an OAuth2Session into a oauthelia2.Request given a oauthelia2.Session and oauthelia2.Storage.
+func (s *OAuth2DeviceCodeSession) ToRequest(ctx context.Context, session oauthelia2.Session, store oauthelia2.Storage) (request *oauthelia2.DeviceAuthorizeRequest, err error) {
+	sessionData := s.Session
+
+	if session != nil {
+		if err = json.Unmarshal(sessionData, session); err != nil {
+			return nil, fmt.Errorf("error occurred while mapping OAuth 2.0 Session back to a DeviceAuthorizeRequest while trying to unmarshal the JSON session data: %w", err)
+		}
+	}
+
+	client, err := store.GetClient(ctx, s.ClientID)
+	if err != nil {
+		return nil, fmt.Errorf("error occurred while mapping OAuth 2.0 Session back to a DeviceAuthorizeRequest while trying to lookup the registered client: %w", err)
+	}
+
+	values, err := url.ParseQuery(s.Form)
+	if err != nil {
+		return nil, fmt.Errorf("error occurred while mapping OAuth 2.0 Session back to a DeviceAuthorizeRequest while trying to parse the original form: %w", err)
+	}
+
+	request = &oauthelia2.DeviceAuthorizeRequest{
+		Request: oauthelia2.Request{
+			ID:                s.RequestID,
+			RequestedAt:       s.RequestedAt,
+			Client:            client,
+			RequestedScope:    oauthelia2.Arguments(s.RequestedScopes),
+			GrantedScope:      oauthelia2.Arguments(s.GrantedScopes),
+			RequestedAudience: oauthelia2.Arguments(s.RequestedAudience),
+			GrantedAudience:   oauthelia2.Arguments(s.GrantedAudience),
+			Form:              values,
+			Session:           session,
+		},
+		DeviceCodeSignature: s.Signature,
+		UserCodeSignature:   s.UserCodeSignature,
+		Status:              oauthelia2.DeviceAuthorizeStatus(s.Status),
+		LastChecked:         s.CheckedAt,
+	}
+
+	return request, nil
 }
 
 // OAuth2PARContext holds relevant information about a Pushed Authorization Request in order to process the authorization.

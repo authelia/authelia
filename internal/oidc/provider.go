@@ -41,6 +41,7 @@ func (p *OpenIDConnectProvider) GetOAuth2WellKnownConfiguration(issuer string) O
 
 	options.JWKSURI = fmt.Sprintf("%s%s", issuer, EndpointPathJWKs)
 	options.AuthorizationEndpoint = fmt.Sprintf("%s%s", issuer, EndpointPathAuthorization)
+	options.DeviceAuthorizationEndpoint = fmt.Sprintf("%s%s", issuer, EndpointPathDeviceAuthorization)
 	options.PushedAuthorizationRequestEndpoint = fmt.Sprintf("%s%s", issuer, EndpointPathPushedAuthorizationRequest)
 	options.TokenEndpoint = fmt.Sprintf("%s%s", issuer, EndpointPathToken)
 	options.IntrospectionEndpoint = fmt.Sprintf("%s%s", issuer, EndpointPathIntrospection)
@@ -57,6 +58,7 @@ func (p *OpenIDConnectProvider) GetOpenIDConnectWellKnownConfiguration(issuer st
 
 	options.JWKSURI = fmt.Sprintf("%s%s", issuer, EndpointPathJWKs)
 	options.AuthorizationEndpoint = fmt.Sprintf("%s%s", issuer, EndpointPathAuthorization)
+	options.DeviceAuthorizationEndpoint = fmt.Sprintf("%s%s", issuer, EndpointPathDeviceAuthorization)
 	options.PushedAuthorizationRequestEndpoint = fmt.Sprintf("%s%s", issuer, EndpointPathPushedAuthorizationRequest)
 	options.TokenEndpoint = fmt.Sprintf("%s%s", issuer, EndpointPathToken)
 	options.UserinfoEndpoint = fmt.Sprintf("%s%s", issuer, EndpointPathUserinfo)

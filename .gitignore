@@ -1,6 +1,8 @@
 # IDE user configuration
-.idea/
-.vscode/
+.idea
+.vscode
+
+!/.idea/sqldialects.xml
 
 # Nodejs modules
 .pnpm-store/
