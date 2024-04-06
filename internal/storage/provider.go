@@ -232,8 +232,29 @@ type Provider interface {
 	// DeactivateOAuth2SessionByRequestID marks an OAuth2.0 session as inactive in the storage provider.
 	DeactivateOAuth2SessionByRequestID(ctx context.Context, sessionType OAuth2SessionType, requestID string) (err error)
 
-	// LoadOAuth2Session saves an OAuth2.0 session from the storage provider.
+	// LoadOAuth2Session loads an OAuth2.0 session from the storage provider.
 	LoadOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, signature string) (session *model.OAuth2Session, err error)
+
+	/*
+		Implementation for OAuth2.0 Device Code Sessions.
+	*/
+
+	// SaveOAuth2DeviceCodeSession saves an OAuth2.0 device code session to the storage provider.
+	SaveOAuth2DeviceCodeSession(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error)
+
+	// UpdateOAuth2DeviceCodeSession updates an OAuth2.0 device code session in the storage provider.
+	UpdateOAuth2DeviceCodeSession(ctx context.Context, signature string, status int, checked time.Time) (err error)
+
+	// DeactivateOAuth2DeviceCodeSession marks an OAuth2.0 device code session as inactive in the storage provider.
+	DeactivateOAuth2DeviceCodeSession(ctx context.Context, signature string) (err error)
+
+	// LoadOAuth2DeviceCodeSession loads an OAuth2.0 device code session from the storage provider given the signature
+	// of the device code.
+	LoadOAuth2DeviceCodeSession(ctx context.Context, signature string) (session *model.OAuth2DeviceCodeSession, err error)
+
+	// LoadOAuth2DeviceCodeSessionByUserCode loads an OAuth2.0 device code session from the storage provider given the
+	// signature of a user code.
+	LoadOAuth2DeviceCodeSessionByUserCode(ctx context.Context, signature string) (session *model.OAuth2DeviceCodeSession, err error)
 
 	/*
 		Implementation for OAuth2.0 PAR Contexts.
