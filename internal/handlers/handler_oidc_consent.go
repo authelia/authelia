@@ -187,7 +187,7 @@ func handleOpenIDConnectConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx
 	}
 
 	if err = verifyOIDCUserAuthorizedForConsent(ctx, client, userSession, consent, uuid.UUID{}); err != nil {
-		ctx.Logger.Errorf("Could not authorize the user user '%s' for the consent session with challenge id '%s' on client with id '%s': %v", userSession.Username, consent.ChallengeID, client.GetID(), err)
+		ctx.Logger.Errorf("Could not authorize the user '%s' for the consent session with challenge id '%s' on client with id '%s': %v", userSession.Username, consent.ChallengeID, client.GetID(), err)
 
 		ctx.ReplyForbidden()
 
