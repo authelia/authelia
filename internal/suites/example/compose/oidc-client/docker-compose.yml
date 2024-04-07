@@ -1,5 +1,4 @@
 ---
-version: '3'
 services:
   oidc-client:
     image: ghcr.io/authelia/oidc-tester-app:master-c888009

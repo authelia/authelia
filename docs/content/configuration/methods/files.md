@@ -119,7 +119,6 @@ See the [Docker Documentation](https://docs.docker.com/engine/reference/commandl
 An excerpt from a docker compose that allows you to specify multiple configuration files is as follows:
 
 ```yaml {title="cocker-compose.yml"}
-version: '3.8'
 services:
   authelia:
     container_name: 'authelia'

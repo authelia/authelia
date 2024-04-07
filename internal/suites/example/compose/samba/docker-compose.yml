@@ -1,5 +1,4 @@
 ---
-version: '3'
 services:
   sambaldap:
     image: authelia/integration-samba
