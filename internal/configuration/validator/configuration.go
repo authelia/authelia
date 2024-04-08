@@ -1,16 +1,27 @@
 package validator
 
 import (
+	"context"
+	"crypto/tls"
 	"fmt"
+	"net"
+	"net/http"
 	"os"
+	"time"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // ValidateConfiguration and adapt the configuration read from file.
-func ValidateConfiguration(config *schema.Configuration, validator *schema.StructValidator) {
+func ValidateConfiguration(config *schema.Configuration, validator *schema.StructValidator, opts ...func(ctx *ValidateCtx)) {
 	var err error
+
+	ctx := NewValidateCtx()
+
+	for _, opt := range opts {
+		opt(ctx)
+	}
 
 	if config.CertificatesDirectory != "" {
 		var info os.FileInfo
@@ -52,7 +63,7 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 
 	ValidateNotifier(&config.Notifier, validator)
 
-	ValidateIdentityProviders(&config.IdentityProviders, validator)
+	ValidateIdentityProviders(ctx, &config.IdentityProviders, validator)
 
 	ValidateIdentityValidation(config, validator)
 
@@ -69,7 +80,7 @@ func validateDefault2FAMethod(config *schema.Configuration, validator *schema.St
 	}
 
 	if !utils.IsStringInSlice(config.Default2FAMethod, validDefault2FAMethods) {
-		validator.Push(fmt.Errorf(errFmtInvalidDefault2FAMethod, strJoinOr(validDefault2FAMethods), config.Default2FAMethod))
+		validator.Push(fmt.Errorf(errFmtInvalidDefault2FAMethod, utils.StringJoinOr(validDefault2FAMethods), config.Default2FAMethod))
 
 		return
 	}
@@ -89,6 +100,52 @@ func validateDefault2FAMethod(config *schema.Configuration, validator *schema.St
 	}
 
 	if !utils.IsStringInSlice(config.Default2FAMethod, enabledMethods) {
-		validator.Push(fmt.Errorf(errFmtInvalidDefault2FAMethodDisabled, strJoinOr(enabledMethods), config.Default2FAMethod))
+		validator.Push(fmt.Errorf(errFmtInvalidDefault2FAMethodDisabled, utils.StringJoinOr(enabledMethods), config.Default2FAMethod))
+	}
+}
+
+func NewValidateCtx() *ValidateCtx {
+	return &ValidateCtx{
+		Context: context.Background(),
+	}
+}
+
+type ValidateCtx struct {
+	client *http.Client
+
+	tlsconfig *tls.Config
+
+	cacheSectorIdentifierURIs map[string][]string
+
+	context.Context
+}
+
+func (ctx *ValidateCtx) GetHTTPClient() (client *http.Client) {
+	if ctx.client == nil {
+		dialer := &net.Dialer{
+			Timeout:   5 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}
+
+		transport := &http.Transport{
+			Proxy:                 http.ProxyFromEnvironment,
+			DialContext:           dialer.DialContext,
+			ForceAttemptHTTP2:     true,
+			MaxIdleConns:          100,
+			IdleConnTimeout:       90 * time.Second,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ExpectContinueTimeout: 1 * time.Second,
+			TLSClientConfig:       ctx.tlsconfig,
+		}
+
+		ctx.client = &http.Client{Transport: transport}
+	}
+
+	return ctx.client
+}
+
+func WithTLSConfig(config *tls.Config) func(ctx *ValidateCtx) {
+	return func(ctx *ValidateCtx) {
+		ctx.tlsconfig, ctx.client = config, nil
 	}
 }

@@ -1,7 +1,9 @@
 package validator
 
 import (
+	"crypto/tls"
 	"fmt"
+	"net/http"
 	"net/url"
 	"runtime"
 	"testing"
@@ -304,4 +306,51 @@ func TestValidateDefault2FAMethod(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestNewValidateCtx(t *testing.T) {
+	ctx := NewValidateCtx()
+	require.NotNil(t, ctx)
+	assert.NotNil(t, ctx.Context)
+}
+
+func TestValidateCtx_GetHTTPClient_DefaultTLSConfig(t *testing.T) {
+	ctx := NewValidateCtx()
+	client := ctx.GetHTTPClient()
+
+	require.NotNil(t, client)
+	assert.IsType(t, &http.Client{}, client)
+	assert.NotNil(t, client.Transport)
+	transport, ok := client.Transport.(*http.Transport)
+	require.True(t, ok)
+	assert.Nil(t, transport.TLSClientConfig)
+}
+
+func TestValidateCtx_GetHTTPClient_CustomTLSConfig(t *testing.T) {
+	customTLSConfig := &tls.Config{
+		InsecureSkipVerify: true, //nolint:gosec
+		MinVersion:         tls.VersionTLS12,
+		MaxVersion:         tls.VersionTLS13,
+	}
+
+	ctx := NewValidateCtx()
+	WithTLSConfig(customTLSConfig)(ctx)
+	client := ctx.GetHTTPClient()
+
+	require.NotNil(t, client)
+	transport, ok := client.Transport.(*http.Transport)
+	require.True(t, ok)
+	assert.Equal(t, true, transport.TLSClientConfig.InsecureSkipVerify)
+}
+
+func TestValidateCtx_CacheSectorIdentifierURIs(t *testing.T) {
+	ctx := NewValidateCtx()
+	ctx.cacheSectorIdentifierURIs = make(map[string][]string)
+
+	uri := "https://example.com"
+	ctx.cacheSectorIdentifierURIs[uri] = []string{"redirect_uri1", "redirect_uri2"}
+
+	cachedURIs, exists := ctx.cacheSectorIdentifierURIs[uri]
+	require.True(t, exists)
+	assert.Equal(t, []string{"redirect_uri1", "redirect_uri2"}, cachedURIs)
 }

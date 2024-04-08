@@ -1,12 +1,16 @@
 package configuration
 
 import (
+	"bufio"
+	"bytes"
 	"crypto/rsa"
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"sort"
+	"strings"
 	"testing"
 	"time"
 
@@ -534,7 +538,7 @@ func TestShouldDisableOIDCEntropy(t *testing.T) {
 
 	assert.Equal(t, -1, config.IdentityProviders.OIDC.MinimumParameterEntropy)
 
-	validator.ValidateIdentityProviders(&config.IdentityProviders, val)
+	validator.ValidateIdentityProviders(validator.NewValidateCtx(), &config.IdentityProviders, val)
 
 	assert.Len(t, val.Errors(), 1)
 	require.Len(t, val.Warnings(), 2)
@@ -907,3 +911,135 @@ func TestShouldFailIfYmlIsInvalid(t *testing.T) {
 	assert.Len(t, val.Errors(), 1)
 	assert.ErrorContains(t, val.Errors()[0], "unmarshal errors")
 }
+
+func TestConfigurationTemplate(t *testing.T) {
+	buf := &bytes.Buffer{}
+
+	setup := func() {
+		f, err := os.Open("config.template.yml")
+		require.NoError(t, err)
+
+		defer f.Close()
+
+		lints := regexp.MustCompile(`^(\s+)?# yamllint`)
+		doc := regexp.MustCompile(`^\s+?## `)
+		commented := regexp.MustCompile(`^(\s+)?# (.*)$`)
+		uncommented := regexp.MustCompile(`^(\s+)?\w+`)
+		ignore := regexp.MustCompile(`^(\s+)?# host: '/var/run/redis/redis.sock'`)
+		scanner := bufio.NewScanner(f)
+
+		for scanner.Scan() {
+			line := scanner.Bytes()
+			if doc.Match(line) || lints.Match(line) || ignore.Match(line) {
+				continue
+			}
+
+			if commented.Match(line) {
+				buf.Write(commented.ReplaceAll(line, []byte("$1$2")))
+				buf.WriteString("\n")
+			} else if uncommented.Match(line) {
+				buf.Write(line)
+				buf.WriteString("\n")
+			}
+		}
+	}
+
+	setup()
+
+	config := buf.Bytes()
+
+	ca, _, cert, key := MustLoadCryptoSet("RSA", false, "2048")
+
+	publickey, err := os.ReadFile("./test_resources/crypto/rsa.pair.2048.public.pem")
+	require.NoError(t, err)
+
+	certchain := regexp.MustCompile(`[\t ]+-----BEGIN CERTIFICATE-----\n(?P<Padding>[\t ]+)\.\.\.\n[\t ]+-----END CERTIFICATE-----\n[\t ]+-----BEGIN CERTIFICATE-----\n[\t ]+\.\.\.\n[\t ]+-----END CERTIFICATE-----\n`)
+
+	for _, match := range certchain.FindAllSubmatch(config, -1) {
+		padding := match[certchain.SubexpIndex("Padding")]
+
+		before := string(padding) + "-----BEGIN CERTIFICATE-----\n" + string(padding) + pemMaterialPlaceholder + string(padding) + "-----END CERTIFICATE-----\n"
+		before += before
+
+		after := strings.ReplaceAll(strings.TrimSuffix(string(padding)+cert, "\n"), "\n", "\n"+string(padding)) + "\n" + string(padding)
+		after += strings.ReplaceAll(strings.TrimSuffix(ca, "\n"), "\n", "\n"+string(padding)) + "\n"
+
+		config = bytes.ReplaceAll(config, []byte(before), []byte(after))
+	}
+
+	pem := regexp.MustCompile(`[\t ]+-----BEGIN (?P<BlockType>(RSA )?(?P<KeyType>PRIVATE|PUBLIC) KEY)-----\n(?P<Padding>[\t ]+)\.\.\.\n[\t ]+-----(END (RSA )?(PUBLIC|PRIVATE) KEY)-----\n`)
+
+	for _, match := range pem.FindAllSubmatch(config, -1) {
+		padding := match[pem.SubexpIndex("Padding")]
+		blocktype := match[pem.SubexpIndex("BlockType")]
+		keytype := match[pem.SubexpIndex("KeyType")]
+
+		material := key
+
+		if string(keytype) == "PUBLIC" {
+			material = string(publickey)
+		}
+
+		before := string(padding) + "-----BEGIN " + string(blocktype) + pemEnd + string(padding) + pemMaterialPlaceholder + string(padding) + "-----END " + string(blocktype) + pemEnd
+
+		after := strings.ReplaceAll(strings.TrimSuffix(string(padding)+material, "\n"), "\n", "\n"+string(padding)) + "\n"
+
+		config = bytes.ReplaceAll(config, []byte(before), []byte(after))
+	}
+
+	val := schema.NewStructValidator()
+
+	keys, _, err := Load(val, NewBytesSource(config))
+	require.NoError(t, err)
+
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+
+	val.Clear()
+
+	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
+
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+}
+
+func MustLoadCryptoSet(alg string, legacy bool, extra ...string) (certCA, keyCA, cert, key string) {
+	extraAlt := make([]string, len(extra))
+
+	copy(extraAlt, extra)
+
+	if legacy {
+		extraAlt = append(extraAlt, "legacy")
+	}
+
+	return MustLoadCryptoRaw(true, alg, "crt", extra...), MustLoadCryptoRaw(true, alg, "pem", extra...), MustLoadCryptoRaw(false, alg, "crt", extraAlt...), MustLoadCryptoRaw(false, alg, "pem", extraAlt...)
+}
+
+func MustLoadCryptoRaw(ca bool, alg, ext string, extra ...string) string {
+	var fparts []string
+
+	if ca {
+		fparts = append(fparts, "ca")
+	}
+
+	fparts = append(fparts, strings.ToLower(alg))
+
+	if len(extra) != 0 {
+		fparts = append(fparts, extra...)
+	}
+
+	var (
+		data []byte
+		err  error
+	)
+
+	if data, err = os.ReadFile(fmt.Sprintf(pathCrypto, strings.Join(fparts, "."), ext)); err != nil {
+		panic(err)
+	}
+
+	return string(data)
+}
+
+const (
+	pathCrypto = "./test_resources/crypto/%s.%s"
+)

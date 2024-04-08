@@ -70,6 +70,8 @@ identity_providers:
           - 'email'
           - 'groups'
         userinfo_signed_response_alg: 'none'
+        require_pkce: true
+        pkce_challenge_method: 'S256'
 ```
 
 #### Application
@@ -103,7 +105,6 @@ $CONFIG = array (
     'oidc_login_proxy_ldap' => false,
     'oidc_login_disable_registration' => true,
     'oidc_login_redir_fallback' => false,
-    'oidc_login_alt_login_page' => 'assets/login.php',
     'oidc_login_tls_verify' => true,
     'oidc_create_groups' => false,
     'oidc_login_webdav_enabled' => false,
@@ -112,6 +113,7 @@ $CONFIG = array (
     'oidc_login_min_time_between_jwks_requests' => 10,
     'oidc_login_well_known_caching_time' => 86400,
     'oidc_login_update_avatar' => false,
+    'oidc_login_code_challenge_method' => 'S256'
 );
 ```
 

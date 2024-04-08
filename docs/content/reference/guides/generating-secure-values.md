@@ -27,17 +27,18 @@ string and the hash at the same time.
 Use the `authelia crypto hash generate --help` command or see the [authelia crypto hash generate] reference guide for
 more information on all available options and algorithms.
 
-##### Using Docker
-
+{{< envTabs "Generate Random Password" >}}
+{{< envTab "Docker" >}}
 ```bash
-docker run authelia/authelia:latest authelia crypto hash generate argon2 --random --random.length 64 --random.charset alphanumeric
+$ docker run authelia/authelia:latest authelia crypto hash generate argon2 --random --random.length 64 --random.charset alphanumeric
 ```
-
-##### Using the Binary
-
+{{< /envTab >}}
+{{< envTab "Bare-Metal" >}}
 ```bash
-authelia crypto hash generate argon2 --random --random.length 64 --random.charset alphanumeric
+$ authelia crypto hash generate argon2 --random --random.length 64 --random.charset alphanumeric
 ```
+{{< /envTab >}}
+{{< /envTabs >}}
 
 ## Generating a Random Alphanumeric String
 
@@ -51,17 +52,18 @@ The __Authelia__ docker container or CLI binary can be used to generate a random
 Use the `authelia crypto rand --help` command or see the [authelia crypto rand] reference guide for more information on
 all available options.
 
-##### Using Docker
-
+{{< envTabs "Generate Random String" >}}
+{{< envTab "Docker" >}}
 ```bash
-docker run authelia/authelia:latest authelia crypto rand --length 64 --charset alphanumeric
+$ docker run authelia/authelia:latest authelia crypto rand --length 64 --charset alphanumeric
 ```
-
-##### Using the Binary
-
+{{< /envTab >}}
+{{< envTab "Bare-Metal" >}}
 ```bash
-authelia crypto rand --length 64 --charset alphanumeric
+$ authelia crypto rand --length 64 --charset alphanumeric
 ```
+{{< /envTab >}}
+{{< /envTabs >}}
 
 ### openssl
 
@@ -92,17 +94,18 @@ The __Authelia__ docker container or CLI binary can be used to generate a RSA 40
 Use the `authelia crypto pair --help` command or see the [authelia crypto pair] reference guide for more
 information on all available options.
 
-##### Using Docker
-
+{{< envTabs "Generate RSA Key Pair" >}}
+{{< envTab "Docker" >}}
 ```bash
-docker run -u "$(id -u):$(id -g)" -v "$(pwd)":/keys authelia/authelia:latest authelia crypto pair rsa generate --bits 4096 --directory /keys
+$ docker run -u "$(id -u):$(id -g)" -v "$(pwd)":/keys authelia/authelia:latest authelia crypto pair rsa generate --bits 4096 --directory /keys
 ```
-
-##### Using the Binary
-
+{{< /envTab >}}
+{{< envTab "Bare-Metal" >}}
 ```bash
-authelia crypto pair rsa generate --directory /path/to/keys
+$ authelia crypto pair rsa generate --directory /path/to/keys
 ```
+{{< /envTab >}}
+{{< /envTabs >}}
 
 ### openssl
 
@@ -126,17 +129,18 @@ domain `example.com`.
 Use the `authelia crypto certificate --help` command or see the [authelia crypto certificate] reference guide for more
 information on all available options.
 
-##### Using Docker
-
+{{< envTabs "Generate RSA Key Pair" >}}
+{{< envTab "Docker" >}}
 ```bash
-docker run -u "$(id -u):$(id -g)" -v "$(pwd)":/keys authelia/authelia authelia crypto certificate rsa generate --common-name example.com --directory /keys
+$ docker run -u "$(id -u):$(id -g)" -v "$(pwd)":/keys authelia/authelia:latest authelia crypto certificate rsa generate --common-name example.com --directory /keys
 ```
-
-##### Using the Binary
-
+{{< /envTab >}}
+{{< envTab "Bare-Metal" >}}
 ```bash
-authelia crypto certificate rsa generate --common-name example.com --directory /path/to/keys
+$ authelia crypto certificate rsa generate --common-name example.com --directory /path/to/keys
 ```
+{{< /envTab >}}
+{{< /envTabs >}}
 
 ### openssl
 

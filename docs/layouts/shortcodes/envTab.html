@@ -1,0 +1,16 @@
+<!--
+  Source: https://github.com/alex-shpak/hugo-book/blob/master/layouts/shortcodes/tab.html
+-->
+
+{{ if .Parent -}}
+{{ $name := .Get 0 }}
+{{ $group := printf "env-tabs-%s" (.Parent.Get 0) }}
+
+{{ if not (.Parent.Scratch.Get $group) }}
+{{ .Parent.Scratch.Set $group slice }}
+{{ end }}
+
+{{ .Parent.Scratch.Add $group (dict "Name" $name "Content" .Inner) }}
+{{ else -}}
+{{ errorf "%q: 'envTab' shortcode must be inside 'envTabs' shortcode" .Page.Path }}
+{{ end -}}

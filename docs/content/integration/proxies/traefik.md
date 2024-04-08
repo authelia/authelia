@@ -126,7 +126,6 @@ This is an example configuration using [docker compose] labels:
 {{< details "docker-compose.yml" >}}
 ```yaml {title="docker-compse.yml"}
 ---
-version: "3.8"
 networks:
   net:
     driver: bridge
@@ -263,7 +262,6 @@ This example uses a `docker-compose.yml` similar to the one above however it has
 {{< details "docker-compose.yml" >}}
 ```yaml {title="docker-compse.yml"}
 ---
-version: "3.8"
 networks:
   net:
     driver: 'bridge'

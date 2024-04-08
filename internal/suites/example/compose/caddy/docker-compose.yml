@@ -1,5 +1,4 @@
 ---
-version: '3'
 services:
   caddy:
     # build: ./example/compose/caddy/ # used for debugging

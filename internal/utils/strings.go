@@ -3,7 +3,6 @@ package utils
 import (
 	"fmt"
 	"net/url"
-	"strconv"
 	"strings"
 	"unicode"
 
@@ -150,17 +149,6 @@ func IsStringSlicesDifferentFold(a, b []string) (different bool) {
 	return isStringSlicesDifferent(a, b, IsStringInSliceFold)
 }
 
-// IsURLInSlice returns true if the needle url.URL is in the []url.URL haystack.
-func IsURLInSlice(needle *url.URL, haystack []*url.URL) (has bool) {
-	for i := 0; i < len(haystack); i++ {
-		if strings.EqualFold(needle.String(), haystack[i].String()) {
-			return true
-		}
-	}
-
-	return false
-}
-
 // StringSliceFromURLs returns a []string from a []url.URL.
 func StringSliceFromURLs(urls []*url.URL) []string {
 	result := make([]string, len(urls))
@@ -264,26 +252,59 @@ func JoinAndCanonicalizeHeaders(sep []byte, headers ...string) (joined []byte) {
 	return joined
 }
 
-// IsURLHostComponent returns true if the provided url.URL that was parsed from a string to a url.URL via url.Parse is
-// just a hostname. This is needed because of the way this function parses such strings.
-func IsURLHostComponent(u *url.URL) (isHostComponent bool) {
-	return u != nil && u.Path != "" && u.Scheme == "" && u.Host == "" && u.RawPath == "" && u.Opaque == "" &&
-		u.RawQuery == "" && u.Fragment == "" && u.RawFragment == ""
+func StringJoinOr(items []string) string {
+	return StringJoinComma("or", items)
 }
 
-// IsURLHostComponentWithPort returns true if the provided url.URL that was parsed from a string to a url.URL via
-// url.Parse is just a hostname with a port. This is needed because of the way this function parses such strings.
-func IsURLHostComponentWithPort(u *url.URL) (isHostComponentWithPort bool) {
-	if u == nil {
-		return false
+func StringJoinAnd(items []string) string {
+	return StringJoinComma("and", items)
+}
+
+func StringJoinComma(word string, items []string) string {
+	if word == "" {
+		return StringJoinBuild(",", "", "'", items)
 	}
 
-	if u.Opaque != "" && u.Scheme != "" && u.Host == "" && u.Path == "" && u.RawPath == "" &&
-		u.RawQuery == "" && u.Fragment == "" && u.RawFragment == "" {
-		_, err := strconv.Atoi(u.Opaque)
+	return StringJoinBuild(",", word, "'", items)
+}
 
-		return err == nil
+func StringJoinBuild(sep, sepFinal, quote string, items []string) string {
+	n := len(items)
+
+	if n == 0 {
+		return ""
 	}
 
-	return false
+	b := &strings.Builder{}
+
+	for i := 0; i < n; i++ {
+		if quote != "" {
+			b.WriteString(quote)
+		}
+
+		b.WriteString(items[i])
+
+		if quote != "" {
+			b.WriteString(quote)
+		}
+
+		if i == (n - 1) {
+			continue
+		}
+
+		if sep != "" {
+			if sepFinal == "" || n != 2 {
+				b.WriteString(sep)
+			}
+
+			b.WriteString(" ")
+		}
+
+		if sepFinal != "" && i == (n-2) {
+			b.WriteString(strings.Trim(sepFinal, " "))
+			b.WriteString(" ")
+		}
+	}
+
+	return b.String()
 }

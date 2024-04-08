@@ -91,7 +91,6 @@ Use this [Standalone Example](#standalone-example) if you want to use
 {{< details "docker-compose.yml" >}}
 ```yaml
 ---
-version: '3.8'
 secrets:
   JWT_SECRET:
     file: '${PWD}/data/authelia/secrets/JWT_SECRET'
@@ -135,7 +134,6 @@ Use this [Standalone Example](#standalone-example) if you want to use a standard
 {{< details "docker-compose.yml" >}}
 ```yaml
 ---
-version: '3.8'
 services:
   authelia:
     container_name: 'authelia'
@@ -183,7 +181,8 @@ process:
    [generate a new password](../../reference/guides/passwords.md#passwords), or both. The default password is
    `authelia`.
 4. Edit the `configuration.yml` and `docker-compose.yml` with your respective domains and secrets.
-5. Run `docker compose up -d` or `docker-compose up -d`.
+5. Edit the `configuration.yml` to configure the [SMTP Server](../../configuration/notifications/smtp.md).
+6. Run `docker compose up -d` or `docker-compose up -d`.
 
 #### local
 

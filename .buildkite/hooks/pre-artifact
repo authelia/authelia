@@ -10,7 +10,13 @@ if [[ "${BUILDKITE_LABEL}" == ":hammer_and_wrench: Unit Test" ]]; then
     echo "--- :docker: Saving artifacts for :buildkite: :docker: :github: releases"
     for OS in "${!BUILDS[@]}"; do
       for ARCH in ${BUILDS[$OS]}; do
-        tar -czf "authelia-${OS}-${ARCH}.tar.gz" "authelia-${OS}-${ARCH}" authelia.service config.template.yml
+        if [[ ${OS} == linux ]]; then
+          tar -czf "authelia-${OS}-${ARCH}.tar.gz" "authelia-${OS}-${ARCH}" authelia.service config.template.yml
+        elif [[ ${OS} == freebsd ]]; then
+          tar -czf "authelia-${OS}-${ARCH}.tar.gz" "authelia-${OS}-${ARCH}" authelia-fb-rc.d config.template.yml
+        else
+          echo "${OS} not packaged!"
+        fi
         sha256sum "authelia-${OS}-${ARCH}.tar.gz" > "authelia-${OS}-${ARCH}.tar.gz.sha256"
       done
     done

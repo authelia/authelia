@@ -301,23 +301,6 @@ func TestStringSliceURLConversionFuncs(t *testing.T) {
 	assert.Equal(t, "abc", strs[1])
 }
 
-func TestIsURLInSlice(t *testing.T) {
-	urls := URLsFromStringSlice([]string{"https://google.com", "https://example.com"})
-
-	google, err := url.ParseRequestURI("https://google.com")
-	assert.NoError(t, err)
-
-	microsoft, err := url.ParseRequestURI("https://microsoft.com")
-	assert.NoError(t, err)
-
-	example, err := url.ParseRequestURI("https://example.com")
-	assert.NoError(t, err)
-
-	assert.True(t, IsURLInSlice(google, urls))
-	assert.False(t, IsURLInSlice(microsoft, urls))
-	assert.True(t, IsURLInSlice(example, urls))
-}
-
 func TestOriginFromURL(t *testing.T) {
 	google, err := url.Parse("https://google.com/abc?a=123#five")
 	assert.NoError(t, err)
@@ -332,52 +315,89 @@ func TestJoinAndCanonicalizeHeaders(t *testing.T) {
 	assert.Equal(t, []byte("X-Example-One, X-Egg-Two"), result)
 }
 
-func TestIsURLHostComponent(t *testing.T) {
-	testCases := []struct {
-		desc, have           string
-		expectedA, expectedB bool
+func TestBuildStringFuncsMissingTests(t *testing.T) {
+	assert.Equal(t, "", StringJoinBuild(".", ":", "'", nil))
+	assert.Equal(t, "'abc', '123'", StringJoinComma("", []string{"abc", "123"}))
+}
+
+func TestStringJoinOr(t *testing.T) {
+	tests := []struct {
+		name     string
+		items    []string
+		expected string
 	}{
-		{
-			desc:      "ShouldBeFalseWithScheme",
-			have:      "https://google.com",
-			expectedA: false, expectedB: false,
-		},
-		{
-			desc:      "ShouldBeTrueForHostComponentButFalseForWithPort",
-			have:      "google.com",
-			expectedA: true, expectedB: false,
-		},
-		{
-			desc:      "ShouldBeFalseForHostComponentButTrueForWithPort",
-			have:      "google.com:8000",
-			expectedA: false, expectedB: true,
-		},
-		{
-			desc:      "ShouldBeFalseWithPath",
-			have:      "google.com:8000/path",
-			expectedA: false, expectedB: false,
-		},
-		{
-			desc:      "ShouldBeFalseWithFragment",
-			have:      "google.com:8000#test",
-			expectedA: false, expectedB: false,
-		},
-		{
-			desc:      "ShouldBeFalseWithQuery",
-			have:      "google.com:8000?test=1",
-			expectedA: false, expectedB: false,
-		},
+		{"Multiple items", []string{"apple", "banana", "cherry"}, "'apple', 'banana', or 'cherry'"},
+		{"Single item", []string{"apple"}, "'apple'"},
+		{"Empty slice", []string{}, ""},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.desc, func(t *testing.T) {
-			u, err := url.Parse(tc.have)
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result := StringJoinOr(test.items)
+			assert.Equal(t, test.expected, result)
+		})
+	}
+}
 
-			require.NoError(t, err)
-			require.NotNil(t, u)
+func TestStringJoinAnd(t *testing.T) {
+	tests := []struct {
+		name     string
+		items    []string
+		expected string
+	}{
+		{"Multiple items", []string{"apple", "banana", "cherry"}, "'apple', 'banana', and 'cherry'"},
+		{"Single item", []string{"apple"}, "'apple'"},
+		{"Empty slice", []string{}, ""},
+	}
 
-			assert.Equal(t, tc.expectedA, IsURLHostComponent(u))
-			assert.Equal(t, tc.expectedB, IsURLHostComponentWithPort(u))
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result := StringJoinAnd(test.items)
+			assert.Equal(t, test.expected, result)
+		})
+	}
+}
+
+func TestStringJoinComma(t *testing.T) {
+	tests := []struct {
+		name     string
+		word     string
+		items    []string
+		expected string
+	}{
+		{"Multiple items with 'or'", "or", []string{"apple", "banana", "cherry"}, "'apple', 'banana', or 'cherry'"},
+		{"Multiple items with 'and'", "and", []string{"apple", "banana", "cherry"}, "'apple', 'banana', and 'cherry'"},
+		{"Single item", "", []string{"apple"}, "'apple'"},
+		{"Empty slice", "", []string{}, ""},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result := StringJoinComma(test.word, test.items)
+			assert.Equal(t, test.expected, result)
+		})
+	}
+}
+
+func TestStringJoinBuild(t *testing.T) {
+	tests := []struct {
+		name     string
+		sep      string
+		sepFinal string
+		quote    string
+		items    []string
+		expected string
+	}{
+		{"Multiple items with comma", ",", "and", "'", []string{"apple", "banana", "cherry"}, "'apple', 'banana', and 'cherry'"},
+		{"Multiple items with semicolon", ";", "or", "\"", []string{"apple", "banana", "cherry"}, "\"apple\"; \"banana\"; or \"cherry\""},
+		{"Single item", ",", "", "'", []string{"apple"}, "'apple'"},
+		{"Empty slice", ",", "and", "'", []string{}, ""},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result := StringJoinBuild(test.sep, test.sepFinal, test.quote, test.items)
+			assert.Equal(t, test.expected, result)
 		})
 	}
 }

@@ -110,8 +110,6 @@ which includes ACME and various other useful utilities.
 
 ```yaml {title="docker-compose.yml"}
 ---
-version: "3.8"
-
 networks:
   net:
     driver: bridge

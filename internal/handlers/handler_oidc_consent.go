@@ -179,7 +179,7 @@ func handleOpenIDConnectConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx
 		return userSession, nil, nil, true
 	}
 
-	if client, err = ctx.Providers.OpenIDConnect.GetFullClient(ctx, consent.ClientID); err != nil {
+	if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, consent.ClientID); err != nil {
 		ctx.Logger.Errorf("Unable to find related client configuration with name '%s': %v", consent.ClientID, err)
 		ctx.ReplyForbidden()
 
@@ -187,7 +187,7 @@ func handleOpenIDConnectConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx
 	}
 
 	if err = verifyOIDCUserAuthorizedForConsent(ctx, client, userSession, consent, uuid.UUID{}); err != nil {
-		ctx.Logger.Errorf("Could not authorize the user user '%s' for the consent session with challenge id '%s' on client with id '%s': %v", userSession.Username, consent.ChallengeID, client.GetID(), err)
+		ctx.Logger.Errorf("Could not authorize the user '%s' for the consent session with challenge id '%s' on client with id '%s': %v", userSession.Username, consent.ChallengeID, client.GetID(), err)
 
 		ctx.ReplyForbidden()
 

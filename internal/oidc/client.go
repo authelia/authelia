@@ -5,8 +5,8 @@ import (
 	"time"
 
 	oauthelia2 "authelia.com/provider/oauth2"
+	"authelia.com/provider/oauth2/x/errorsx"
 	"github.com/go-jose/go-jose/v4"
-	"github.com/ory/x/errorsx"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -25,6 +25,7 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		Audience:      config.Audience,
 		Scopes:        config.Scopes,
 		RedirectURIs:  config.RedirectURIs,
+		RequestURIs:   config.RequestURIs,
 		GrantTypes:    config.GrantTypes,
 		ResponseTypes: config.ResponseTypes,
 		ResponseModes: []oauthelia2.ResponseModeType{},
