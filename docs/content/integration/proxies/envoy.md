@@ -96,7 +96,6 @@ Support for [Envoy] is possible with Authelia v4.37.0 and higher via the [Envoy]
 {{< details "docker-compose.yml" >}}
 ```yaml
 ---
-version: "3.8"
 networks:
   net:
     driver: 'bridge'

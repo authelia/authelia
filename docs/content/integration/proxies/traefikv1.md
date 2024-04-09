@@ -117,8 +117,6 @@ Given that this is not compatible with [Traefik] 1.x you can call the __Authelia
 ##### docker-compose.yml
 
 ```yaml {title="docker-compose.yml"}
-version: '3'
-
 networks:
   net:
     driver: 'bridge'

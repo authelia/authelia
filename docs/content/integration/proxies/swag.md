@@ -42,55 +42,7 @@ bootstrapping *Authelia*.
 
 [SWAG] supports the required [NGINX](nginx.md#requirements) requirements for __Authelia__ out-of-the-box.
 
-### SWAG Caveat
-
-One current caveat of the [SWAG] implementation is that it serves Authelia as a subpath for each domain by default. We
-*__strongly recommend__* instead of using the defaults that you configure Authelia as a subdomain if possible.
-
-There are two potential ways to achieve this:
-
-1. Adjust the default `authelia-server.conf` as per the included directions.
-2. Use the supplementary configuration snippets provided officially by Authelia.
-
-This is partly because WebAuthn requires that the domain is an exact match when registering and authenticating and it is
-possible that due to web standards this will never change.
-
-In addition this represents a bad user experience in some instances such as:
-
-* Users sometimes visit the `https://app.example.com/authelia` URL which doesn't automatically redirect the user to
-  `https://app.example.com` (if they visit `https://app.example.com` then they'll be redirected to authenticate then
-  redirected back to their original URL)
-* Administrators may wish to setup [OpenID Connect 1.0](../../configuration/identity-providers/openid-connect/provider.md) in
-  which case it also doesn't represent a good user experience as the `issuer` will be
-  `https://app.example.com/authelia` for example
-* Using the [SWAG] default configurations are more difficult to support as our specific familiarity is with our own
-  example snippets
-
-#### Option 1: Adjusting the Default Configuration
-
-Open the generated `authelia-server.conf`. Adjust the following section. There are two snippets, one before and one
-after. The only line that changes is the `set $signin_url` line, with `$http_host` replaced by `auth.example.com` and this configuration assumes you're
-serving Authelia at `auth.example.com`.
-
-```nginx
-    if ($signin_url = '') {
-        ## Set the $signin_url variable
-        set $signin_url https://$http_host/authelia/?rd=$target_url;
-    }
-```
-
-```nginx
-    if ($signin_url = '') {
-        ## Set the $signin_url variable
-        set $signin_url https://auth.example.com/authelia/?rd=$target_url;
-    }
-```
-
-#### Option 2: Using the Authelia Supplementary Configuration Snippets
-
-See standard [NGINX](nginx.md) guide (which *can be used* with [SWAG]) and run Authelia as its own subdomain.
-
-## Trusted Proxies
+### Trusted Proxies
 
 *__Important:__ You should read the [Forwarded Headers] section and this section as part of any proxy configuration.
 Especially if you have never read it before.*
@@ -98,12 +50,13 @@ Especially if you have never read it before.*
 To configure trusted proxies for [SWAG] see the [NGINX] section on [Trusted Proxies](nginx.md#trusted-proxies).
 Adapting this to [SWAG] is beyond the scope of this documentation.
 
-## Assumptions and Adaptation
+### Assumptions and Adaptation
 
 This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
 can not reasonably have examples for every advanced configuration option that exists. The
 following are the assumptions we make:
 
+* You have followed the [Get Started](../prologue/get-started.md) guide and configured
 * Deployment Scenario:
   * Single Host
   * Authelia is deployed as a Container with the container name `authelia` on port `9091`
@@ -112,17 +65,17 @@ following are the assumptions we make:
   * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
     certificate defined
   * You will have to adapt all instances of `authelia` in the URL if:
-    * you're using a different container name
-    * you deployed the proxy to a different location
+    * You're using a different container name
+    * You deployed the proxy to a different location
   * You will have to adapt all instances of `9091` in the URL if:
-    * you have adjusted the default port in the configuration
+    * You have adjusted the default port in the configuration
   * You will have to adapt the entire URL if:
     * Authelia is on a different host to the proxy
 * All services are part of the `example.com` domain:
   * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
     just testing or you want to use that specific domain
 
-## Docker Compose
+### Docker Compose
 
 The following docker compose example has various applications suitable for setting up an example environment.
 
@@ -138,8 +91,6 @@ which includes ACME and various other useful utilities.
 {{< details "docker-compose.yml" >}}
 ```yaml
 ---
-version: "3.8"
-
 networks:
   net:
     driver: 'bridge'
@@ -164,7 +115,7 @@ services:
       PGID: '1000'
       TZ: 'Australia/Melbourne'
       URL: 'example.com'
-      SUBDOMAINS: 'www,whoami,auth,nextcloud,'
+      SUBDOMAINS: 'www,whoami,auth,organizr'
       VALIDATION: 'http'
       CERTPROVIDER: 'cloudflare'
       ONLY_SUBDOMAINS: 'false'
@@ -184,18 +135,17 @@ services:
       - '${PWD}/data/authelia/config:/config'
     environment:
       TZ: 'Australia/Melbourne'
-  nextcloud:
-    container_name: 'nextcloud'
-    image: 'lscr.io/linuxserver/nextcloud'
+  organizr:
+    container_name: 'organizr'
+    image: 'organizr/organizr'
     restart: 'unless-stopped'
     networks:
       net:
         aliases: []
     expose:
-      - 443
+      - 80
     volumes:
-      - '${PWD}/data/nextcloud/config:/config'
-      - '${PWD}/data/nextcloud/data:/data'
+      - '${PWD}/data/organizr/config:/config'
     environment:
       PUID: '1000'
       PGID: '1000'
@@ -215,7 +165,81 @@ services:
 ```
 {{< /details >}}
 
-## Prerequisite Steps
+### Configuration Options
+
+There are two configuration options for [SWAG]. The recommended option is
+[Adjusting the Default Configuration](#option-1-adjusting-the-default-configuration)
+
+### Option 1: Adjusting the Default Configuration
+
+The first option requires some minor adjustments to be made and is the recommended option.
+
+#### Adjust authelia-server.conf
+
+The generated `authelia-server.conf` includes the `proxy_pass http://$upstream_authelia:9091;` directive in two location
+blocks, we recommend adjusting these locations so they include the part of the location match after the `/authelia` part
+for example in the `location = /authelia/api/verify` set the directive to
+`proxy_pass http://$upstream_authelia:9091/api/verify;` and the `location = /authelia/api/authz/auth-request` set the
+directive to `proxy_pass http://$upstream_authelia:9091/api/authz/auth-request;`. See the below example.
+
+```nginx
+# location for authelia 4.37 and below auth requests
+location = /authelia/api/verify {
+    internal;
+
+    include /config/nginx/proxy.conf;
+    include /config/nginx/resolver.conf;
+    set $upstream_authelia authelia;
+    proxy_pass http://$upstream_authelia:9091/api/verify;
+
+    ## Include the Set-Cookie header if present
+    auth_request_set $set_cookie $upstream_http_set_cookie;
+    add_header Set-Cookie $set_cookie;
+
+    proxy_pass_request_body off;
+    proxy_set_header Content-Length "";
+}
+
+# location for authelia 4.38 and above auth requests
+location = /authelia/api/authz/auth-request {
+    internal;
+
+    include /config/nginx/proxy.conf;
+    include /config/nginx/resolver.conf;
+    set $upstream_authelia authelia;
+    proxy_pass http://$upstream_authelia:9091/api/authz/auth-request;
+
+    ## Include the Set-Cookie header if present
+    auth_request_set $set_cookie $upstream_http_set_cookie;
+    add_header Set-Cookie $set_cookie;
+
+    proxy_pass_request_body off;
+    proxy_set_header Content-Length "";
+}
+```
+
+#### Configure Authelia Site Configuration
+
+1. In the `/config/nginx/site-confs/` directory copy `authelia.subdomain.conf.sample` to `authelia.subdomain.conf`.
+2. Edit `authelia.subdomain.conf` and adjust `server_name authelia.*;` to be `server_name auth.*;`.
+
+#### Configure Organizr Site Configuration
+
+We're using Organizr as an example application for this example.
+
+1. In the `/config/nginx/site-confs/` directory copy `organizr.subdomain.conf.sample` to `organizr.subdomain.conf`.
+2. Edit `organizr.subdomain.conf` and remove the leading `#` (i.e. uncomment) the
+3. `#include /config/nginx/authelia-server.conf;` line and the `#include /config/nginx/authelia-location.conf;` line.
+
+#### Restart the Container
+
+Once these changes have occurred you can restart [SWAG] and Organizr and Authelia should be configured correctly.
+
+## Option 2: Using the Authelia Supplementary Configuration Snippets
+
+See standard [NGINX](nginx.md) guide (which *can be used* with [SWAG]) and run Authelia as its own subdomain.
+
+### Prerequisite Steps
 
 In the [SWAG] `/config` mount which is mounted to `${PWD}/data/swag` in our example:
 
@@ -225,7 +249,7 @@ In the [SWAG] `/config` mount which is mounted to `${PWD}/data/swag` in our exam
 3. Create the `${PWD}/data/swag/nginx/snippets/authelia/authrequest.conf` file which can be found [here](nginx.md#authelia-authrequestconf).
    - Ensure you adjust the line `error_page 401 =302 https://auth.example.com/?rd=$target_url;` replacing `https://auth.example.com/` with your external Authelia URL.
 
-## Protected Application
+### Protected Application
 
 In the server configuration for the application you want to protect:
 

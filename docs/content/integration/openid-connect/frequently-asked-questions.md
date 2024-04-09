@@ -254,7 +254,6 @@ you're facing.
 Examples (assuming your Authelia Root URL is `https://auth.example.com`):
 
 ```yaml
-version: "3.8"
 services:
   application:
     ## Mandatory that the application is on the same network as the proxy.

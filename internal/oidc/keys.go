@@ -11,9 +11,9 @@ import (
 	"strings"
 
 	fjwt "authelia.com/provider/oauth2/token/jwt"
+	"authelia.com/provider/oauth2/x/errorsx"
 	"github.com/go-jose/go-jose/v4"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/ory/x/errorsx"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )

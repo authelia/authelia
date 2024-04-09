@@ -73,8 +73,6 @@ The following docker compose example has various applications suitable for setti
 {{< details "docker-compose.yml" >}}
 ```yaml
 ---
-version: "3.8"
-
 networks:
   net:
     driver: 'bridge'

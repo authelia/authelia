@@ -9,6 +9,7 @@ import (
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/handler/oauth2"
 	"authelia.com/provider/oauth2/token/jwt"
+	"authelia.com/provider/oauth2/x/errorsx"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/valyala/fasthttp"
@@ -30,7 +31,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	)
 
 	if requestID, err = uuid.NewRandom(); err != nil {
-		ctx.Providers.OpenIDConnect.WriteError(rw, req, oauthelia2.ErrServerError)
+		errorsx.WriteJSONError(rw, req, oauthelia2.ErrServerError)
 
 		return
 	}
@@ -46,7 +47,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 			rw.Header().Set(fasthttp.HeaderWWWAuthenticate, fmt.Sprintf(`Bearer %s`, oidc.RFC6750Header("", "", rfc)))
 		}
 
-		ctx.Providers.OpenIDConnect.WriteError(rw, req, err)
+		errorsx.WriteJSONError(rw, req, err)
 
 		return
 	}
@@ -58,7 +59,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 
 		errStr := "Only access tokens are allowed in the authorization header."
 		rw.Header().Set(fasthttp.HeaderWWWAuthenticate, fmt.Sprintf(`Bearer error="invalid_token",error_description="%s"`, errStr))
-		ctx.Providers.OpenIDConnect.WriteErrorCode(rw, req, http.StatusUnauthorized, errors.New(errStr))
+		errorsx.WriteJSONErrorCode(rw, req, http.StatusUnauthorized, errors.New(errStr))
 
 		return
 	}
@@ -66,7 +67,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, clientID); err != nil {
 		ctx.Logger.Errorf("UserInfo Request with id '%s' on client with id '%s' failed to retrieve client configuration with error: %s", requestID, client.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
 
-		ctx.Providers.OpenIDConnect.WriteError(rw, req, err)
+		errorsx.WriteJSONError(rw, req, err)
 
 		return
 	}
@@ -83,7 +84,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	default:
 		ctx.Logger.Errorf("UserInfo Request with id '%s' on client with id '%s' failed to handle session with type '%T'", requestID, client.GetID(), session)
 
-		ctx.Providers.OpenIDConnect.WriteError(rw, req, oauthelia2.ErrServerError.WithDebugf("Failed to handle session with type '%T'.", session))
+		errorsx.WriteJSONError(rw, req, oauthelia2.ErrServerError.WithDebugf("Failed to handle session with type '%T'.", session))
 
 		return
 	}
@@ -110,7 +111,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		var jwk *oidc.JWK
 
 		if jwk = ctx.Providers.OpenIDConnect.KeyManager.Get(ctx, client.GetUserinfoSignedResponseKeyID(), alg); jwk == nil {
-			ctx.Providers.OpenIDConnect.WriteError(rw, req, errors.WithStack(oauthelia2.ErrServerError.WithHintf("Unsupported UserInfo signing algorithm '%s'.", alg)))
+			errorsx.WriteJSONError(rw, req, errors.WithStack(oauthelia2.ErrServerError.WithHintf("Unsupported UserInfo signing algorithm '%s'.", alg)))
 
 			return
 		}
@@ -120,7 +121,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		var jti uuid.UUID
 
 		if jti, err = uuid.NewRandom(); err != nil {
-			ctx.Providers.OpenIDConnect.WriteError(rw, req, oauthelia2.ErrServerError.WithHint("Could not generate JTI."))
+			errorsx.WriteJSONError(rw, req, oauthelia2.ErrServerError.WithHint("Could not generate JTI."))
 
 			return
 		}
@@ -135,7 +136,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		}
 
 		if token, _, err = jwk.Strategy().Generate(req.Context(), claims, headers); err != nil {
-			ctx.Providers.OpenIDConnect.WriteError(rw, req, err)
+			errorsx.WriteJSONError(rw, req, err)
 
 			return
 		}

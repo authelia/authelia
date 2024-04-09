@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	oauthelia2 "authelia.com/provider/oauth2"
-	"github.com/ory/herodot"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -20,7 +19,6 @@ func NewOpenIDConnectProvider(config *schema.IdentityProvidersOpenIDConnect, sto
 	signer := NewKeyManager(config)
 
 	provider = &OpenIDConnectProvider{
-		JSONWriter: herodot.NewJSONWriter(&NilErrorReporter{}),
 		Store:      NewStore(config, store),
 		KeyManager: signer,
 		Config:     NewConfig(config, signer, templates),
