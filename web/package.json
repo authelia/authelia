@@ -40,7 +40,7 @@
     "axios": "1.6.8",
     "broadcast-channel": "7.0.0",
     "classnames": "2.5.1",
-    "i18next": "23.11.0",
+    "i18next": "23.11.1",
     "i18next-browser-languagedetector": "7.2.1",
     "i18next-http-backend": "2.5.0",
     "qrcode.react": "3.1.0",
