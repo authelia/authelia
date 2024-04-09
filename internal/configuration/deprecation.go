@@ -338,14 +338,14 @@ var deprecationsMKM = []MultiKeyMappedDeprecation{
 		Keys:    []string{"notifier.smtp.host", "notifier.smtp.port"},
 		NewKey:  "notifier.smtp.address",
 		MapFunc: func(d MultiKeyMappedDeprecation, keys map[string]any, val *schema.StructValidator) {
-			host, port, err := getHostPort("notifier.smtp.host", "notifier.smtp.port", schema.DefaultSMTPNotifierConfiguration.Address.Host(), schema.DefaultSMTPNotifierConfiguration.Address.Port(), keys)
+			hostname, port, err := getHostPort("notifier.smtp.host", "notifier.smtp.port", schema.DefaultSMTPNotifierConfiguration.Address.Host(), schema.DefaultSMTPNotifierConfiguration.Address.Port(), keys)
 			if err != nil {
 				val.Push(fmt.Errorf(errFmtMultiKeyMappingPortConvert, strJoinAnd(d.Keys), d.NewKey, err))
 
 				return
 			}
 
-			address := schema.NewSMTPAddress("", host, port)
+			address := schema.NewSMTPAddressFromNetworkValues("", hostname, port)
 
 			val.PushWarning(fmt.Errorf(errFmtMultiRemappedKeys, strJoinAnd(d.Keys), d.Version, d.NewKey, "[tcp://]<hostname>[:<port>]", address.String(), d.Version.NextMajor()))
 

@@ -1222,8 +1222,14 @@ func TestStringToAddressHookFunc(t *testing.T) {
 			name:     "ShouldFailDecodeSMTP",
 			have:     "@@@@@@@",
 			expected: schema.AddressSMTP{Address: MustParseAddress("smtp://127.0.0.1")},
-			err:      "could not decode '@@@@@@@' to a schema.AddressSMTP: error validating the address: the url 'smtp://%40%40%40%40%40%40@' appears to have user info but this is not valid for addresses",
+			err:      "could not decode '@@@@@@@' to a schema.AddressSMTP: could not parse string '@@@@@@@' as smtp address: expected format is [<scheme>://]<hostname>[:<port>]",
 			decode:   false,
+		},
+		{
+			name:     "ShouldParseHostName",
+			have:     "example.com",
+			expected: schema.AddressSMTP{Address: MustParseAddress("smtp://example.com")},
+			decode:   true,
 		},
 	}
 

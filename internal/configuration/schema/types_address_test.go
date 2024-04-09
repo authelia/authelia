@@ -540,7 +540,7 @@ func TestNewSMTPAddress(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			have := NewSMTPAddress(tc.haveScheme, tc.haveHost, tc.havePort)
+			have := NewSMTPAddressFromNetworkValues(tc.haveScheme, tc.haveHost, tc.havePort)
 
 			assert.Equal(t, tc.expected, have.String())
 			assert.Equal(t, tc.expectedScheme, have.Scheme())

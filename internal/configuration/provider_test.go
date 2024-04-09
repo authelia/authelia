@@ -650,6 +650,23 @@ func TestShouldRaiseErrOnInvalidNotifierSMTPSender(t *testing.T) {
 	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshalling configuration: 1 error(s) decoding:\n\n* error decoding 'notifier.smtp.sender': could not decode 'admin' to a mail.Address (RFC5322): mail: missing '@' or angle-addr")
 }
 
+func TestShouldHandleSMTPExamples(t *testing.T) {
+	val := schema.NewStructValidator()
+
+	_, config1, err := Load(val, NewDefaultSources([]string{"./test_resources/config.email1.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	assert.NoError(t, err)
+
+	_, config2, err := Load(val, NewDefaultSources([]string{"./test_resources/config.email2.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	assert.NoError(t, err)
+
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+
+	assert.Equal(t, config1.Notifier.SMTP.Address.Scheme(), config2.Notifier.SMTP.Address.Scheme())
+	assert.Equal(t, config1.Notifier.SMTP.Address.NetworkAddress(), config2.Notifier.SMTP.Address.NetworkAddress())
+	assert.Equal(t, config1.Notifier.SMTP.Address, config2.Notifier.SMTP.Address)
+}
+
 func TestShouldHandleErrInvalidatorWhenSMTPSenderBlank(t *testing.T) {
 	val := schema.NewStructValidator()
 	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_smtp_sender_blank.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)

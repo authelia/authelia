@@ -20,28 +20,20 @@ func NewAddress(value string) (address *Address, err error) {
 // NewAddressDefault returns an *Address and error depending on the ability to parse the string as an Address.
 // It also assumes any value without a scheme which looks like a path is the schemeDefaultPath scheme, and everything
 // else without a scheme is the schemeDefault scheme.
-func NewAddressDefault(value, schemeDefault, schemeDefaultPath string) (address *Address, err error) {
+func NewAddressDefault(value, schemeDefault, schemePathDefault string) (address *Address, err error) {
 	if len(value) == 0 {
 		return &Address{true, false, -1, 0, &url.URL{Scheme: AddressSchemeTCP, Host: ":0"}}, nil
 	}
 
-	var u *url.URL
+	var (
+		uri *url.URL
+	)
 
-	if regexpHasScheme.MatchString(value) {
-		u, err = url.Parse(value)
-	} else {
-		if strings.HasPrefix(value, "/") {
-			u, err = url.Parse(fmt.Sprintf("%s://%s", schemeDefaultPath, value))
-		} else {
-			u, err = url.Parse(fmt.Sprintf("%s://%s", schemeDefault, value))
-		}
-	}
-
-	if err != nil {
+	if uri, _, err = parseAddressURI(value, schemeDefault, schemePathDefault); err != nil {
 		return nil, fmt.Errorf("could not parse string '%s' as address: expected format is [<scheme>://]<hostname>[:<port>]: %w", value, err)
 	}
 
-	return NewAddressFromURL(u)
+	return NewAddressFromURL(uri)
 }
 
 // NewAddressFromNetworkValuesDefault returns an *Address and error depending on the ability to parse the string as an Address.
@@ -85,19 +77,36 @@ func NewAddressFromNetworkPathValues(network, host string, port int, path string
 	return Address{true, false, -1, port, &url.URL{Scheme: network, Host: fmt.Sprintf("%s:%d", host, port), Path: path}}
 }
 
-// NewSMTPAddress returns an *AddressSMTP from SMTP values.
-func NewSMTPAddress(scheme, host string, port int) *AddressSMTP {
-	if port == 0 {
-		switch scheme {
-		case AddressSchemeSUBMISSIONS:
-			port = 465
-		case AddressSchemeSUBMISSION:
-			port = 587
-		default:
-			port = 25
+// NewSMTPAddress returns an SMTP address from a raw value.
+func NewSMTPAddress(value string) (address *AddressSMTP, err error) {
+	var (
+		uri              *url.URL
+		scheme, hostname string
+		port             int
+		hasScheme        bool
+	)
+
+	if uri, hasScheme, err = parseAddressURI(value, AddressSchemeSMTP, AddressSchemeUnix); err != nil {
+		return nil, fmt.Errorf("could not parse string '%s' as address: expected format is [<scheme>://]<hostname>[:<port>]: %w", value, err)
+	}
+
+	if !hasScheme {
+		uri.Scheme = ""
+	}
+
+	hostname = uri.Hostname()
+
+	if rport := uri.Port(); rport != "" {
+		if port, err = strconv.Atoi(rport); err != nil {
+			return nil, fmt.Errorf("could not parse string '%s' as smtp address: expected format is [<scheme>://]<hostname>[:<port>]: %w", value, err)
 		}
 	}
 
+	return NewSMTPAddressFromNetworkValues(scheme, hostname, port), nil
+}
+
+// NewSMTPAddressFromNetworkValues returns an *AddressSMTP from SMTP values.
+func NewSMTPAddressFromNetworkValues(scheme, hostname string, port int) *AddressSMTP {
 	if scheme == "" {
 		switch port {
 		case 465:
@@ -109,7 +118,18 @@ func NewSMTPAddress(scheme, host string, port int) *AddressSMTP {
 		}
 	}
 
-	return &AddressSMTP{Address: Address{true, false, -1, port, &url.URL{Scheme: scheme, Host: fmt.Sprintf("%s:%d", host, port)}}}
+	if port == 0 {
+		switch scheme {
+		case AddressSchemeSUBMISSIONS:
+			port = 465
+		case AddressSchemeSUBMISSION:
+			port = 587
+		default:
+			port = 25
+		}
+	}
+
+	return &AddressSMTP{Address: Address{true, false, -1, port, &url.URL{Scheme: scheme, Host: fmt.Sprintf("%s:%d", hostname, port)}}}
 }
 
 // NewAddressFromURL returns an *Address and error depending on the ability to parse the *url.URL as an Address.
@@ -562,4 +582,20 @@ func (a *Address) validateUnixSocket() (err error) {
 	a.umask = umask
 
 	return nil
+}
+
+func parseAddressURI(value, schemeDefault, schemePathDefault string) (uri *url.URL, scheme bool, err error) {
+	if regexpHasScheme.MatchString(value) {
+		scheme = true
+
+		uri, err = url.Parse(value)
+	} else {
+		if strings.HasPrefix(value, "/") {
+			uri, err = url.Parse(fmt.Sprintf("%s://%s", schemePathDefault, value))
+		} else {
+			uri, err = url.Parse(fmt.Sprintf("%s://%s", schemeDefault, value))
+		}
+	}
+
+	return
 }

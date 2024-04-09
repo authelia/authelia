@@ -97,10 +97,10 @@ func validateSMTPNotifierAddress(config *schema.NotifierSMTP, validator *schema.
 		if config.Host == "" && config.Port == 0 { //nolint:staticcheck
 			validator.Push(fmt.Errorf(errFmtNotifierSMTPNotConfigured, "address"))
 		} else {
-			host := config.Host //nolint:staticcheck
-			port := config.Port //nolint:staticcheck
+			hostname := config.Host //nolint:staticcheck
+			port := config.Port     //nolint:staticcheck
 
-			config.Address = schema.NewSMTPAddress("", host, port)
+			config.Address = schema.NewSMTPAddressFromNetworkValues("", hostname, port)
 		}
 	} else {
 		if config.Host != "" || config.Port != 0 { //nolint:staticcheck

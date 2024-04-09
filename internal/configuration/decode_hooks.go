@@ -404,15 +404,17 @@ func StringToAddressHookFunc() mapstructure.DecodeHookFuncType {
 
 			return schema.AddressLDAP{Address: *result}, nil
 		case expectedTypeSMTP:
-			if result, err = schema.NewAddressDefault(dataStr, schema.AddressSchemeSMTP, schema.AddressSchemeUnix); err != nil {
+			var smtp *schema.AddressSMTP
+
+			if smtp, err = schema.NewSMTPAddress(dataStr); err != nil {
 				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType, err)
 			}
 
 			if ptr {
-				return &schema.AddressSMTP{Address: *result}, nil
+				return smtp, nil
 			}
 
-			return schema.AddressSMTP{Address: *result}, nil
+			return *smtp, nil
 		default:
 			if result, err = schema.NewAddress(dataStr); err != nil {
 				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType, err)
