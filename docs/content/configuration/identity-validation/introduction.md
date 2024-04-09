@@ -20,16 +20,8 @@ seo:
 
 ```yaml {title="configuration.yml"}
 identity_validation:
-  elevated_session:
-    code_lifespan: '5 minutes'
-    elevation_lifespan: '10 minutes'
-    characters: 8
-    require_second_factor: false
-    skip_second_factor: false
-  reset_password:
-    expiration: '5 minutes'
-    jwt_algorithm: 'HS256'
-    jwt_secret: ''
+  elevated_session: {}
+  reset_password: {}
 ```
 
 ## Options
