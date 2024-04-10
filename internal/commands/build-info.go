@@ -23,11 +23,13 @@ func newBuildInfoCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
+	cmd.Flags().BoolP("verbose", "v", false, "Enable verbose output")
+
 	return cmd
 }
 
 // BuildInfoRunE is the RunE for the authelia build-info command.
-func (ctx *CmdCtx) BuildInfoRunE(_ *cobra.Command, _ []string) (err error) {
+func (ctx *CmdCtx) BuildInfoRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
 		info *debug.BuildInfo
 		ok   bool
@@ -39,26 +41,32 @@ func (ctx *CmdCtx) BuildInfoRunE(_ *cobra.Command, _ []string) (err error) {
 
 	b := &strings.Builder{}
 
-	b.WriteString(fmt.Sprintf(fmtAutheliaBuildGo, info.GoVersion, info.Main.Path, info.Path))
+	b.WriteString(fmt.Sprintf(fmtAutheliaBuild, utils.BuildTag, utils.BuildState, utils.BuildBranch, utils.BuildCommit,
+		utils.BuildNumber, runtime.GOOS, runtime.GOARCH, runtime.Compiler, utils.BuildDate, utils.BuildExtra))
 
-	if len(info.Settings) != 0 {
-		b.WriteString("    Settings:\n")
+	var verbose bool
 
-		for _, setting := range info.Settings {
-			b.WriteString(fmt.Sprintf("        %s: %s\n", setting.Key, setting.Value))
+	b.WriteString(fmt.Sprintf("\n"+fmtAutheliaBuildGo, info.GoVersion, info.Main.Path, info.Path))
+
+	if verbose, err = cmd.Flags().GetBool("verbose"); err == nil && verbose {
+		if len(info.Settings) != 0 {
+			b.WriteString("    Settings:\n")
+
+			for _, setting := range info.Settings {
+				b.WriteString(fmt.Sprintf("        %s: %s\n", setting.Key, setting.Value))
+			}
+		}
+
+		if len(info.Deps) != 0 {
+			b.WriteString("    Dependencies:\n")
+
+			for _, dep := range info.Deps {
+				b.WriteString(fmt.Sprintf("        %s@%s (%s)\n", dep.Path, dep.Version, dep.Sum))
+			}
 		}
 	}
 
-	if len(info.Deps) != 0 {
-		b.WriteString("    Dependencies:\n")
-
-		for _, dep := range info.Deps {
-			b.WriteString(fmt.Sprintf("        %s@%s (%s)\n", dep.Path, dep.Version, dep.Sum))
-		}
-	}
-
-	_, err = fmt.Printf(fmtAutheliaBuild, utils.BuildTag, utils.BuildState, utils.BuildBranch, utils.BuildCommit,
-		utils.BuildNumber, runtime.GOOS, runtime.GOARCH, runtime.Compiler, utils.BuildDate, utils.BuildExtra, b.String())
+	fmt.Print(b.String())
 
 	return err
 }

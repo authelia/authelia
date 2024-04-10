@@ -2,7 +2,7 @@
 title: "Nextcloud"
 description: "Integrating Nextcloud with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2024-04-07T21:40:00+02:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 weight: 620
