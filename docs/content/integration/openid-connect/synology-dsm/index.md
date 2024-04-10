@@ -21,6 +21,7 @@ seo:
   * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [Synology DSM]
   * v7.1
+  * v7.2
 
 ## Before You Begin
 
@@ -29,7 +30,8 @@ seo:
 ### Specific Notes
 
 *__Important Note:__ [Synology DSM] does not support automatically creating users via [OpenID Connect 1.0]. It is therefore
-recommended that you ensure Authelia and [Synology DSM] share a LDAP server.*
+recommended that you ensure Authelia and [Synology DSM] share a LDAP server (for DSM v7.1).  
+With DSM v7.2+ you have the possibility to also use local DSM accounts (see `Account type` below) and do not need to set up a shared LDAP.*
 
 ### Assumptions
 
@@ -57,8 +59,6 @@ identity_providers:
       - client_id: 'synology-dsm'
         client_name: 'Synology DSM'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
-        public: false
-        authorization_policy: 'two_factor'
         redirect_uris:
           - 'https://dsm.example.com'
         scopes:
@@ -66,7 +66,6 @@ identity_providers:
           - 'profile'
           - 'groups'
           - 'email'
-        userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_post'
 ```
 
@@ -81,6 +80,7 @@ To configure [Synology DSM] to utilize Authelia as an [OpenID Connect 1.0] Provi
 5. Check the `Enable OpenID Connect SSO service` checkbox in the `OpenID Connect SSO Service` section.
 6. Configure the following values:
   * Profile: `OIDC`
+  * Account type: `Domain/LDAP/local` (Note: Account type is supported DSM v7.2+)
   * Name: `Authelia`
   * Well Known URL: `https://auth.example.com/.well-known/openid-configuration`
   * Application ID: `synology-dsm`
