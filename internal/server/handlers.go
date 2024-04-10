@@ -433,6 +433,7 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 		r.POST("/api/oidc/revoke", middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointRevocation), policyCORSRevocation.Middleware(bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthRevocationPOST)))))
 	}
 
+	r.RedirectFixedPath = false
 	r.HandleMethodNotAllowed = true
 	r.MethodNotAllowed = handleMethodNotAllowed
 	r.NotFound = handleNotFound(bridge(serveIndexHandler))
