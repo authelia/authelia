@@ -51,7 +51,7 @@ func (s *ResetPasswordScenario) TestShouldResetPassword() {
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
-	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURLWithFallbackPrefix(BaseDomain, "/"))
+	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
 
 	// Reset the password to abc.
@@ -78,7 +78,7 @@ func (s *ResetPasswordScenario) TestShouldMakeAttackerThinkPasswordResetIsInitia
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
-	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURLWithFallbackPrefix(BaseDomain, "/"))
+	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
 
 	// Try to initiate a password reset of an nonexistent user.
@@ -95,7 +95,7 @@ func (s *ResetPasswordScenario) TestShouldLetUserNoticeThereIsAPasswordMismatch(
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
-	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURLWithFallbackPrefix(BaseDomain, "/"))
+	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
 	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
 
 	s.doInitiatePasswordReset(s.T(), s.Context(ctx), "john")

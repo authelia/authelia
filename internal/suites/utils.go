@@ -76,8 +76,6 @@ func GetLoginBaseURLWithFallbackPrefix(baseDomain, fallback string) string {
 
 	if prefix == "" {
 		prefix = fallback
-	} else {
-		prefix += "/"
 	}
 
 	return LoginBaseURLFmt(baseDomain) + prefix
