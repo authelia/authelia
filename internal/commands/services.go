@@ -323,7 +323,7 @@ func (service *SignalService) Log() *logrus.Entry {
 }
 
 func svcSvrMainFunc(ctx ServiceCtx) (service Service) {
-	switch svr, listener, paths, isTLS, err := server.CreateDefaultServer(ctx.GetConfiguration(), ctx.GetProviders()); {
+	switch svr, listener, paths, isTLS, err := server.New(ctx.GetConfiguration(), ctx.GetProviders()); {
 	case err != nil:
 		ctx.GetLogger().WithError(err).Fatal("Create Server Service (main) returned error")
 	case svr != nil && listener != nil:
@@ -336,7 +336,7 @@ func svcSvrMainFunc(ctx ServiceCtx) (service Service) {
 }
 
 func svcSvrMetricsFunc(ctx ServiceCtx) (service Service) {
-	switch svr, listener, paths, isTLS, err := server.CreateMetricsServer(ctx.GetConfiguration(), ctx.GetProviders()); {
+	switch svr, listener, paths, isTLS, err := server.NewMetrics(ctx.GetConfiguration(), ctx.GetProviders()); {
 	case err != nil:
 		ctx.GetLogger().WithError(err).Fatal("Create Server Service (metrics) returned error")
 	case svr != nil && listener != nil:
@@ -447,7 +447,7 @@ func servicesRun(ctx ServiceCtx) {
 
 	var err error
 
-	if err = ctx.GetProviders().UserProvider.Shutdown(); err != nil {
+	if err = ctx.GetProviders().UserProvider.Close(); err != nil {
 		ctx.GetLogger().WithError(err).Error("Error occurred closing authentication connections")
 	}
 

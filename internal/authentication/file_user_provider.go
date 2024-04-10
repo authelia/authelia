@@ -77,7 +77,7 @@ func (p *FileUserProvider) Reload() (reloaded bool, err error) {
 	return true, nil
 }
 
-func (p *FileUserProvider) Shutdown() (err error) {
+func (p *FileUserProvider) Close() (err error) {
 	return nil
 }
 

@@ -15,8 +15,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
-// CreateDefaultServer Create Authelia's internal web server with the given configuration and providers.
-func CreateDefaultServer(config *schema.Configuration, providers middlewares.Providers) (server *fasthttp.Server, listener net.Listener, paths []string, isTLS bool, err error) {
+// New Create Authelia's internal web server with the given configuration and providers.
+func New(config *schema.Configuration, providers middlewares.Providers) (server *fasthttp.Server, listener net.Listener, paths []string, isTLS bool, err error) {
 	if err = providers.Templates.LoadTemplatedAssets(assets); err != nil {
 		return nil, nil, nil, false, fmt.Errorf("failed to load templated assets: %w", err)
 	}
@@ -87,8 +87,8 @@ func CreateDefaultServer(config *schema.Configuration, providers middlewares.Pro
 	return server, listener, paths, isTLS, nil
 }
 
-// CreateMetricsServer creates a metrics server.
-func CreateMetricsServer(config *schema.Configuration, providers middlewares.Providers) (server *fasthttp.Server, listener net.Listener, paths []string, tls bool, err error) {
+// NewMetrics creates a metrics server.
+func NewMetrics(config *schema.Configuration, providers middlewares.Providers) (server *fasthttp.Server, listener net.Listener, paths []string, tls bool, err error) {
 	if providers.Metrics == nil {
 		return
 	}
