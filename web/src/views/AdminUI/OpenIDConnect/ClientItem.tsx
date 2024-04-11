@@ -29,7 +29,6 @@ import MultiSelectDropdown from "@views/AdminUI/Common/MultiSelectDropdown";
 
 interface Props {
     index: number;
-    description: string;
     client: OpenIDConnectClient;
     handleChange: (index: number, updatedClient: OpenIDConnectClient) => void;
     handleDelete: (index: number) => void;
@@ -47,7 +46,7 @@ const CardArea = styled(Paper)(({ theme }) => ({
     },
 }));
 
-const ClientAccordion = styled(Accordion)(({ theme }) => ({
+const ClientAccordion = styled(Accordion)({
     width: "75vw",
     margin: "1vw auto", // default behavior sets left/right margin to '0' instead of auto, uncentering the accordion
     display: "flex",
@@ -55,7 +54,7 @@ const ClientAccordion = styled(Accordion)(({ theme }) => ({
     "&.Mui-expanded": {
         margin: "1vw auto",
     },
-}));
+});
 
 const ClientAccordionSummary = styled(AccordionSummary)(({ theme }) => ({
     border: `1px solid ${theme.palette.divider}`,
@@ -166,14 +165,23 @@ const ClientItem = function (props: Props) {
                             {showClientID ? <VisibilityOffIcon /> : <VisibilityIcon />}
                         </IconButton>
                     </ListItem>
-                    <Divider variant="middle" component="li" />
-                    <ListItem key={`client-type-${props.index}`}>Client Type: {props.client.ClientType}</ListItem>
+                    {props.client.Public !== undefined && props.client.Public !== null && (
+                        <Fragment>
+                            <Divider variant="middle" component="li" />
+                            <ListItem key={`client-type-${props.index}`}>
+                                Client Type: {props.client.Public ? `Public` : `Confidential`}
+                            </ListItem>
+                        </Fragment>
+                    )}
+
                     <Divider variant="middle" component="li" />
                     <ListItem key={`request-uris-${props.index}`}>
                         <List>
                             <Typography marginBottom={"0.5vh"}>{translate("Redirect URIs:  ")}</Typography>
                             {isEditing ? (
                                 <EditListItem
+                                    listLabel={`Scopes`}
+                                    index={props.index}
                                     values={formData.RedirectURIs}
                                     onValuesUpdate={(updatedValues) =>
                                         handleValuesUpdate(updatedValues, "RedirectURIs")
@@ -181,7 +189,7 @@ const ClientItem = function (props: Props) {
                                 />
                             ) : (
                                 props.client.RedirectURIs.map((uri, index) => (
-                                    <ListItem key={`request-uri-${props.index}-${index}`}>{uri}</ListItem>
+                                    <ListItem key={`redirect-uri-${props.index}-${index}`}>{uri}</ListItem>
                                 ))
                             )}
                         </List>
@@ -205,7 +213,7 @@ const ClientItem = function (props: Props) {
                             </>
                         )}
                     </ListItem>
-                    {props.client.Audience != undefined && (
+                    {props.client.Audience !== undefined && props.client.Audience !== null && (
                         <Fragment>
                             <Divider variant="middle" component="li" />
                             <ListItem key={`audience-${props.index}`}>
@@ -215,6 +223,8 @@ const ClientItem = function (props: Props) {
                                     </Typography>
                                     {isEditing ? (
                                         <EditListItem
+                                            index={props.index}
+                                            listLabel={`Audience`}
                                             values={formData.Audience ?? []}
                                             onValuesUpdate={(updatedValues) =>
                                                 handleValuesUpdate(updatedValues, "Audience")
@@ -229,7 +239,7 @@ const ClientItem = function (props: Props) {
                             </ListItem>
                         </Fragment>
                     )}
-                    {props.client.AuthorizationPolicy != undefined && (
+                    {props.client.AuthorizationPolicy !== undefined && props.client.AuthorizationPolicy !== null && (
                         <Fragment>
                             <Divider variant="middle" component="li" />
                             <ListItem key={`auth-policy-${props.index}`}>

@@ -1,7 +1,7 @@
 export interface OpenIDConnectClient {
     ID: string;
     Name?: string;
-    ClientType?: ClientType; //aka Public
+    Public?: boolean; //aka Public
 
     //this should be ClientSecretDigest but I don't think we need to ever display it beyond creation/regeneration of secrets which can be done separately in plaintext
     //ClientSecret: string ;
@@ -67,11 +67,6 @@ export enum ExistingScopes {
     email = "email",
     profile = "profile",
     authelia_bearer_authz = "authelia.bearer.authz",
-}
-
-export enum ClientType {
-    Public = "Public", //true
-    Confidential = "Confidential", //false
 }
 
 export interface ClientConsentPolicy {
