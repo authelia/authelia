@@ -1,7 +1,7 @@
 export interface OpenIDConnectClient {
     ID: string;
-    Name: string;
-    ClientType: ClientType; //aka Public
+    Name?: string;
+    ClientType?: ClientType; //aka Public
 
     //this should be ClientSecretDigest but I don't think we need to ever display it beyond creation/regeneration of secrets which can be done separately in plaintext
     //ClientSecret: string ;
@@ -15,7 +15,7 @@ export interface OpenIDConnectClient {
     RequirePKCEChallengeMethod?: boolean;
     PKCEChallengeMethod?: string;
 
-    Audience: string[];
+    Audience?: string[];
     Scopes: string[];
     RedirectURIs: string[];
     GrantTypes?: string[];

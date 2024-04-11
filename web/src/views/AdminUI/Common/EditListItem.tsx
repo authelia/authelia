@@ -47,17 +47,19 @@ const EditListItem = (props: Props) => {
                             fullWidth
                             size="small"
                             value={value}
-                            onChange={(e) => handleInputChange(index, e.target.value)}
+                            onChange={(event: { target: { value: string } }) =>
+                                handleInputChange(index, event.target.value)
+                            }
                         />
                         <IconButton onClick={() => handleDelete(index)}>
                             <CloseIcon color={"error"} />
                         </IconButton>
                     </ListItem>
                 ))}
-                <ListItem key={`add-value-${props.values[0]}`}>
+                <ListItem key={`add-value`}>
                     <TextField
                         size="small"
-                        onChange={(event) => setNewFieldValue(event.target.value)}
+                        onChange={(event: { target: { value: string } }) => setNewFieldValue(event.target.value)}
                         value={newFieldValue}
                         placeholder="New Value"
                     />

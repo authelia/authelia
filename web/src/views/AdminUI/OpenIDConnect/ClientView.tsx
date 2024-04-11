@@ -1,5 +1,9 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
+import { useNotifications } from "@hooks/NotificationsContext";
+import { useOpenIDConnectClients } from "@hooks/OIDCClientConfig";
 import { ClientType, ExistingScopes, OpenIDConnectClient } from "@models/OpenIDConnect";
 import ClientItem from "@views/AdminUI/OpenIDConnect/ClientItem";
 
@@ -7,7 +11,7 @@ import ClientItem from "@views/AdminUI/OpenIDConnect/ClientItem";
 export interface Props {}
 
 const ClientView = function (props: Props) {
-    //const { t: translate } = useTranslation("admin");
+    const { t: translate } = useTranslation("admin");
 
     const [clients, setClients] = useState<OpenIDConnectClient[]>([
         {
@@ -51,6 +55,31 @@ const ClientView = function (props: Props) {
         },
     ]);
 
+    const { createErrorNotification } = useNotifications();
+    const [openIDConnectClients, fetchOpenIDConnectClients, , fetchOpenIDConnectClientsError] =
+        useOpenIDConnectClients();
+    
+    useEffect(() => {
+        if (fetchOpenIDConnectClientsError) {
+            createErrorNotification(
+                translate("There was an issue retrieving the {{item}}", {
+                    item: translate("OpenIDConnect Clients"),
+                }),
+            );
+        }
+    }, [fetchOpenIDConnectClientsError, createErrorNotification, translate]);
+
+    useEffect(() => {
+        if (openIDConnectClients === undefined) {
+            return;
+        }
+        setClients(openIDConnectClients);
+    }, [openIDConnectClients]);
+
+    useEffect(() => {
+        fetchOpenIDConnectClients();
+    }, [fetchOpenIDConnectClients]);
+
     const handleDelete = (index: number) => {
         const updatedClients = [...clients];
         console.log(`delete: ${clients[index].Name}`);
@@ -63,18 +92,19 @@ const ClientView = function (props: Props) {
         updatedClients[index] = updatedClient;
         setClients(updatedClients);
     };
-
+    console.log(openIDConnectClients);
     return (
         <Fragment>
-            {clients.map((client, index) => (
-                <ClientItem
-                    index={index}
-                    client={client}
-                    description="This is a temporary description!"
-                    handleChange={handleChange}
-                    handleDelete={handleDelete}
-                />
-            ))}
+            {openIDConnectClients &&
+                openIDConnectClients.map((client, index) => (
+                    <ClientItem
+                        index={index}
+                        client={client}
+                        description="This is a temporary description!"
+                        handleChange={handleChange}
+                        handleDelete={handleDelete}
+                    />
+                ))}
         </Fragment>
     );
 };

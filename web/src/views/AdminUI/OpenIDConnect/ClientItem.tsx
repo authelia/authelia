@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { Fragment, useState } from "react";
 //import React, { Fragment, useState } from "react";
 
 //import { useTranslation } from "react-i18next";
@@ -128,7 +128,7 @@ const ClientItem = function (props: Props) {
                             onChange={handleChange}
                             variant="outlined"
                             size="small"
-                            onClick={(e) => e.stopPropagation()}
+                            onClick={(e: { stopPropagation: () => any }) => e.stopPropagation()}
                         />
                     ) : (
                         <Typography fontWeight={"300"} fontSize={"20px"}>
@@ -205,26 +205,38 @@ const ClientItem = function (props: Props) {
                             </>
                         )}
                     </ListItem>
-                    <Divider variant="middle" component="li" />
-                    <ListItem key={`audience-${props.index}`}>
-                        <List>
-                            <Typography marginBottom={"0.5vh"}>{translate("Audience:") || "Audience:"}</Typography>
-                            {isEditing ? (
-                                <EditListItem
-                                    values={formData.Audience}
-                                    onValuesUpdate={(updatedValues) => handleValuesUpdate(updatedValues, "Audience")}
-                                />
-                            ) : (
-                                props.client.Audience.map((audience, index) => (
-                                    <ListItem key={`audience-item-${index}`}>{audience}</ListItem>
-                                ))
-                            )}
-                        </List>
-                    </ListItem>
-                    <Divider variant="middle" component="li" />
-                    <ListItem key={`auth-policy-${props.index}`}>
-                        {translate("Authorization Policy:")} {props.client.AuthorizationPolicy.Name}
-                    </ListItem>
+                    {props.client.Audience != undefined && (
+                        <Fragment>
+                            <Divider variant="middle" component="li" />
+                            <ListItem key={`audience-${props.index}`}>
+                                <List>
+                                    <Typography marginBottom={"0.5vh"}>
+                                        {translate("Audience:") || "Audience:"}
+                                    </Typography>
+                                    {isEditing ? (
+                                        <EditListItem
+                                            values={formData.Audience ?? []}
+                                            onValuesUpdate={(updatedValues) =>
+                                                handleValuesUpdate(updatedValues, "Audience")
+                                            }
+                                        />
+                                    ) : (
+                                        props.client.Audience.map((audience, index) => (
+                                            <ListItem key={`audience-item-${index}`}>{audience}</ListItem>
+                                        ))
+                                    )}
+                                </List>
+                            </ListItem>
+                        </Fragment>
+                    )}
+                    {props.client.AuthorizationPolicy != undefined && (
+                        <Fragment>
+                            <Divider variant="middle" component="li" />
+                            <ListItem key={`auth-policy-${props.index}`}>
+                                {translate("Authorization Policy:")} {props.client.AuthorizationPolicy.Name}
+                            </ListItem>
+                        </Fragment>
+                    )}
                 </List>
             </AccordionDetails>
         </ClientAccordion>

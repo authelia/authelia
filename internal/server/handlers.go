@@ -431,6 +431,8 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 		// TODO (james-d-elliott): Remove in GA. This is a legacy implementation of the above endpoint.
 		r.OPTIONS("/api/oidc/revoke", policyCORSRevocation.HandleOPTIONS)
 		r.POST("/api/oidc/revoke", middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointRevocation), policyCORSRevocation.Middleware(bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthRevocationPOST)))))
+
+		r.GET("/api/oidc/config/client", middleware1FA(handlers.OpenIDConnectClientConfigGET))
 	}
 
 	r.RedirectFixedPath = false
