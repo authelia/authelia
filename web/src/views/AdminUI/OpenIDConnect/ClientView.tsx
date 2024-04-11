@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useOpenIDConnectClients } from "@hooks/OIDCClientConfig";
-import { ClientType, ExistingScopes, OpenIDConnectClient } from "@models/OpenIDConnect";
+import { ExistingScopes, OpenIDConnectClient } from "@models/OpenIDConnect";
 import ClientItem from "@views/AdminUI/OpenIDConnect/ClientItem";
 
 //import { useTranslation } from "react-i18next";
@@ -17,7 +17,7 @@ const ClientView = function (props: Props) {
         {
             ID: "MMh9Xh7R2zUXKBtvCUFpKE9DBsKsO3zAP4HxdPkUybpRApoOzK6UyqHZfysa9eYW7d2x57nfRwDKfm39V5CXZcFSeYK1tpRQhUDt",
             Name: "This is one client",
-            ClientType: ClientType.Confidential,
+            Public: false,
             RedirectURIs: ["https://example.com/redirect", "https://example.com/redirect2"],
             Audience: ["https://aud1.example.com", "https://aud2.example.com"],
             Scopes: [ExistingScopes.openid, ExistingScopes.email],
@@ -30,7 +30,7 @@ const ClientView = function (props: Props) {
         {
             ID: "MMh9Xh7R2zUXKBtvCUFpKE9DBsKsO3zAP4HxdPkUybpRApoOzK6UyqHZfysa9eYW7d2x57nfRwDKfm39V5CXZcFSeYK1tpRQhUDt",
             Name: "Another client",
-            ClientType: ClientType.Public,
+            Public: true,
             RedirectURIs: ["https://example.com/redirect", "https://example.com/redirect2"],
             Audience: ["https://aud1.example.com", "https://aud2.example.com"],
             Scopes: [ExistingScopes.offline_access, ExistingScopes.email],
@@ -43,7 +43,7 @@ const ClientView = function (props: Props) {
         {
             ID: "MMh9Xh7R2zUXKBtvCUFpKE9DBsKsO3zAP4HxdPkUybpRApoOzK6UyqHZfysa9eYW7d2x57nfRwDKfm39V5CXZcFSeYK1tpRQhUDt",
             Name: "A third client",
-            ClientType: ClientType.Confidential,
+            Public: false,
             RedirectURIs: ["https://example.com/redirect", "https://example.com/redirect2"],
             Audience: ["https://aud1.example.com", "https://aud2.example.com"],
             Scopes: [ExistingScopes.profile, ExistingScopes.email],
@@ -58,7 +58,7 @@ const ClientView = function (props: Props) {
     const { createErrorNotification } = useNotifications();
     const [openIDConnectClients, fetchOpenIDConnectClients, , fetchOpenIDConnectClientsError] =
         useOpenIDConnectClients();
-    
+
     useEffect(() => {
         if (fetchOpenIDConnectClientsError) {
             createErrorNotification(
@@ -92,15 +92,15 @@ const ClientView = function (props: Props) {
         updatedClients[index] = updatedClient;
         setClients(updatedClients);
     };
-    console.log(openIDConnectClients);
+    console.log(openIDConnectClients); // TODO (Crowley723): this should be removed.
     return (
         <Fragment>
             {openIDConnectClients &&
                 openIDConnectClients.map((client, index) => (
                     <ClientItem
+                        key={index}
                         index={index}
                         client={client}
-                        description="This is a temporary description!"
                         handleChange={handleChange}
                         handleDelete={handleDelete}
                     />

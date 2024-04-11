@@ -5,6 +5,8 @@ import CloseIcon from "@mui/icons-material/Close";
 import { IconButton, List, ListItem, TextField } from "@mui/material";
 
 interface Props {
+    index: number;
+    listLabel: string;
     values: string[];
     onValuesUpdate: (updatedValues: string[]) => void;
 }
@@ -42,7 +44,7 @@ const EditListItem = (props: Props) => {
         <div>
             <List>
                 {newFormValues.map((value, index) => (
-                    <ListItem key={`edit-${index}`}>
+                    <ListItem key={`edit-${props.listLabel}-${props.index}-${index}`}>
                         <TextField
                             fullWidth
                             size="small"
@@ -56,7 +58,7 @@ const EditListItem = (props: Props) => {
                         </IconButton>
                     </ListItem>
                 ))}
-                <ListItem key={`add-value`}>
+                <ListItem key={`add-value-${props.listLabel}-${props.index}`}>
                     <TextField
                         size="small"
                         onChange={(event: { target: { value: string } }) => setNewFieldValue(event.target.value)}
