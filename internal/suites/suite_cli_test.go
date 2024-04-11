@@ -58,7 +58,19 @@ func (s *CLISuite) TestShouldPrintBuildInformation() {
 	s.Assert().Contains(output, "Build Arch: ")
 	s.Assert().Contains(output, "Build Date: ")
 
-	r := regexp.MustCompile(`^Last Tag: v\d+\.\d+\.\d+\nState: (tagged|untagged) (clean|dirty)\nBranch: [^\s\n]+\nCommit: [0-9a-f]{40}\nBuild Number: \d+\nBuild OS: (linux|darwin|windows|freebsd)\nBuild Arch: (amd64|arm|arm64)\nBuild Compiler: gc\nBuild Date: (Sun|Mon|Tue|Wed|Thu|Fri|Sat), \d{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} [+-]\d{4}\nExtra: \n`)
+	r := regexp.MustCompile(`^Last Tag: v\d+\.\d+\.\d+\nState: (tagged|untagged) (clean|dirty)\nBranch: [^\s\n]+\nCommit: [0-9a-f]{40}\nBuild Number: \d+\nBuild OS: (linux|darwin|windows|freebsd)\nBuild Arch: (amd64|arm|arm64)\nBuild Compiler: gc\nBuild Date: (Sun|Mon|Tue|Wed|Thu|Fri|Sat), \d{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} [+-]\d{4}\nExtra: \n\nGo:\n\s+Version: go\d+\.\d+\.\d+\n\s+Module Path: github.com/authelia/authelia/v4\n\s+Executable Path: github.com/authelia/authelia/v4/cmd/authelia`)
+	s.Assert().Regexp(r, output)
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", "build-info", "-v"})
+	s.Assert().NoError(err)
+	s.Assert().Contains(output, "Last Tag: ")
+	s.Assert().Contains(output, "State: ")
+	s.Assert().Contains(output, "Branch: ")
+	s.Assert().Contains(output, "Build Number: ")
+	s.Assert().Contains(output, "Build OS: ")
+	s.Assert().Contains(output, "Build Arch: ")
+	s.Assert().Contains(output, "Build Date: ")
+
 	s.Assert().Regexp(r, output)
 }
 

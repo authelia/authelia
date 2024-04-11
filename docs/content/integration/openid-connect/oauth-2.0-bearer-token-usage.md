@@ -122,7 +122,7 @@ server:
       auth-request:
         implementation: 'AuthRequest'
         authn_strategies:
-          - name: 'HeaderAuthRequestAuthorization'
+          - name: 'HeaderAuthRequestProxyAuthorization'
             schemes:
               - 'Basic'
               - 'Bearer'

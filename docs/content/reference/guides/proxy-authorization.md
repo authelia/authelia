@@ -34,12 +34,12 @@ metadata about the request (such as the resource and IP address of the user) whi
 
 ## Default Endpoints
 
-|     Name     |          Path           | [Implementation] |                [Authn Strategies]                 |
-|:------------:|:-----------------------:|:----------------:|:-------------------------------------------------:|
-| forward-auth | /api/authz/forward-auth |  [ForwardAuth]   |      [HeaderAuthorization], [CookieSession]       |
-|  ext-authz   |  /api/authz/ext-authz   |    [ExtAuthz]    |      [HeaderAuthorization], [CookieSession]       |
-| auth-request | /api/authz/auth-request |  [AuthRequest]   | [HeaderAuthRequestAuthorization], [CookieSession] |
-|    legacy    |       /api/verify       |     [Legacy]     |          [HeaderLegacy], [CookieSession]          |
+|     Name     |          Path           | [Implementation] |                   [Authn Strategies]                   |
+|:------------:|:-----------------------:|:----------------:|:------------------------------------------------------:|
+| forward-auth | /api/authz/forward-auth |  [ForwardAuth]   |         [HeaderAuthorization], [CookieSession]         |
+|  ext-authz   |  /api/authz/ext-authz   |    [ExtAuthz]    |         [HeaderAuthorization], [CookieSession]         |
+| auth-request | /api/authz/auth-request |  [AuthRequest]   | [HeaderAuthRequestProxyAuthorization], [CookieSession] |
+|    legacy    |       /api/verify       |     [Legacy]     |            [HeaderLegacy], [CookieSession]             |
 
 ## Metadata
 

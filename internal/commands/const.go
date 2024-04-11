@@ -30,11 +30,10 @@ Build OS: %s
 Build Arch: %s
 Build Compiler: %s
 Build Date: %s
-Extra: %s
+Extra: %s`
 
-Go: %s
-`
 	fmtAutheliaBuildGo = `
+Go:
     Version: %s
     Module Path: %s
     Executable Path: %s
