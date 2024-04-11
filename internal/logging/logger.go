@@ -3,8 +3,6 @@ package logging
 import (
 	"io"
 	"os"
-	"regexp"
-	"strings"
 	"time"
 
 	logrus_stack "github.com/Gurpartap/logrus-stack"
@@ -18,22 +16,6 @@ func Logger() *logrus.Logger {
 	return logrus.StandardLogger()
 }
 
-// LoggerPrintf returns a new PrintfLogger given a level.
-func LoggerPrintf(level logrus.Level) (logger *PrintfLogger) {
-	return &PrintfLogger{
-		level:  level,
-		logrus: logrus.StandardLogger(),
-	}
-}
-
-// LoggerCtxPrintf returns a new CtxPrintfLogger given a level.
-func LoggerCtxPrintf(level logrus.Level) (logger *CtxPrintfLogger) {
-	return &CtxPrintfLogger{
-		level:  level,
-		logrus: logrus.StandardLogger(),
-	}
-}
-
 // InitializeLogger configures the default logger similar to ConfigureLogger but also configures the stack levels hook.
 func InitializeLogger(config schema.Log, log bool) (err error) {
 	initializeStackTracer(config)
@@ -43,48 +25,23 @@ func InitializeLogger(config schema.Log, log bool) (err error) {
 
 func initializeStackTracer(config schema.Log) {
 	// Ensure the stack trace hook is only initialized once.
-	if stacktrace {
-		return
-	}
+	stacktrace.Do(func() {
+		var (
+			callerLevels, stackLevels []logrus.Level
+		)
 
-	stacktrace = true
+		switch LogLevel(config.Level).Level() {
+		case logrus.DebugLevel:
+			stackLevels = []logrus.Level{logrus.PanicLevel, logrus.FatalLevel, logrus.ErrorLevel}
+		case logrus.TraceLevel:
+			stackLevels = []logrus.Level{logrus.PanicLevel, logrus.FatalLevel, logrus.ErrorLevel}
+			callerLevels = logrus.AllLevels
+		default:
+			stackLevels = []logrus.Level{logrus.PanicLevel, logrus.FatalLevel}
+		}
 
-	var (
-		callerLevels, stackLevels []logrus.Level
-	)
-
-	switch LogLevel(config.Level).Level() {
-	case logrus.DebugLevel:
-		stackLevels = []logrus.Level{logrus.PanicLevel, logrus.FatalLevel, logrus.ErrorLevel}
-	case logrus.TraceLevel:
-		stackLevels = []logrus.Level{logrus.PanicLevel, logrus.FatalLevel, logrus.ErrorLevel}
-		callerLevels = logrus.AllLevels
-	default:
-		stackLevels = []logrus.Level{logrus.PanicLevel, logrus.FatalLevel}
-	}
-
-	logrus.AddHook(logrus_stack.NewHook(callerLevels, stackLevels))
-}
-
-var (
-	stacktrace       bool
-	reFormatFilePath = regexp.MustCompile(`(%d|\{datetime(:([^}]+))?})`)
-)
-
-func FormatFilePath(in string, now time.Time) (out string) {
-	matches := reFormatFilePath.FindStringSubmatch(in)
-
-	if len(matches) == 0 {
-		return in
-	}
-
-	layout := time.RFC3339
-
-	if len(matches[3]) != 0 {
-		layout = matches[3]
-	}
-
-	return strings.Replace(in, matches[0], now.Format(layout), 1)
+		logrus.AddHook(logrus_stack.NewHook(callerLevels, stackLevels))
+	})
 }
 
 // ConfigureLogger configures the default loggers level, formatting, and the output destinations.
