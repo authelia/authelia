@@ -6,6 +6,7 @@ const basePath = getBasePath();
 
 // Note: If you change this const you must also do so in the backend at internal/handlers/cost.go.
 export const ConsentPath = basePath + "/api/oidc/consent";
+export const OpenIDConnectClientConfigPath = basePath + "/api/oidc/config/client";
 
 export const FirstFactorPath = basePath + "/api/firstfactor";
 
