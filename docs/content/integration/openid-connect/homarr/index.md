@@ -2,7 +2,7 @@
 title: "Homarr"
 description: "Integrating Homarr with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2024-04-09T00:00:00+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 weight: 620
