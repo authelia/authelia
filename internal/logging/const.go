@@ -1,10 +1,16 @@
 package logging
 
+import (
+	"github.com/sirupsen/logrus"
+)
+
 // Log Format values.
 const (
 	FormatText = "text"
 	FormatJSON = "json"
 )
+
+type LogLevel string
 
 // Log Level values.
 const (
@@ -14,6 +20,23 @@ const (
 	LevelWarn  = "warn"
 	LevelError = "error"
 )
+
+func (l LogLevel) Level() logrus.Level {
+	switch l {
+	case LevelError:
+		return logrus.ErrorLevel
+	case LevelWarn:
+		return logrus.WarnLevel
+	case LevelInfo:
+		return logrus.InfoLevel
+	case LevelDebug:
+		return logrus.DebugLevel
+	case LevelTrace:
+		return logrus.TraceLevel
+	default:
+		return logrus.InfoLevel
+	}
+}
 
 // Field names.
 const (
