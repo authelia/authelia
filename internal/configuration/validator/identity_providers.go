@@ -1018,7 +1018,7 @@ func validateOIDCClientTokenEndpointAuth(c int, config *schema.IdentityProviders
 			return
 		}
 
-		if config.Clients[c].Secret == nil {
+		if !config.Clients[c].Secret.Valid() {
 			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSecret, config.Clients[c].ID))
 		} else {
 			switch {
