@@ -39,22 +39,30 @@ This example makes the following assumptions:
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [HumHub]
-which will operate with the above example:
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [HumHub] which will
+operate with the application example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
+    ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
+    ## See: https://www.authelia.com/c/oidc
     clients:
       - client_id: 'humhub'
         client_name: 'HumHub'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+        public: false
+        authorization_policy: 'two_factor'
         redirect_uris:
           - 'https://humhub.example.com/user/auth/external?authclient=oidc'
-        authorization_policy: 'one_factor'
+        scopes:
+          - 'openid'
+          - 'profile'
+          - 'email'
+        grant_types:
+          - 'authorization_code'
+        userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_post'
-        consent_mode: 'pre-configured'
 ```
 
 ### Application
@@ -92,9 +100,10 @@ return [
 ```
 
 ## See Also
+
  * [HumHub OpenID Connect Repository](https://github.com/Worteks/humhub-auth-oidc?tab=readme-ov-file)
 
 [Authelia]: https://www.authelia.com
 [HumHub]: https://www.humhub.com
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
-
+[client configuration] ../../../configuration/identity-providers/openid-connect/clients.md

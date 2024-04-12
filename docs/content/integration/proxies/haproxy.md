@@ -157,28 +157,18 @@ backend upon successful authentication, for example:
         server heimdall heimdall:443 ssl verify none
     ```
 
-### Secure Authelia with TLS
+### Common
 
-There is a [known limitation](https://github.com/TimWolla/haproxy-auth-request/issues/12) with haproxy-auth-request with
-regard to TLS-enabled backends. If you want to run Authelia TLS enabled the recommended workaround utilises [HAProxy]
-itself to proxy the requests. This comes at a cost of two additional TCP connections, but allows the full [HAProxy]
-configuration flexibility with regard to TLS verification as well as header rewriting. An example of this configuration
-is also be provided below.
-
-#### Configuration
-
-##### trusted_proxies.src.acl
-
-```text
+```text {title="trusted_proxies.src.acl"}
 10.0.0.0/8
 172.16.0.0/12
 192.168.0.0/16
 fc00::/7
 ```
 
-##### haproxy.cfg
+### Standard Example
 
-```text
+```text {title="haproxy.cfg"}
 global
     # Path to haproxy-lua-http, below example assumes /usr/local/etc/haproxy/haproxy-lua-http/http.lua
     lua-prepend-path /usr/local/etc/haproxy/?/http.lua
@@ -252,9 +242,9 @@ backend be_heimdall
     server heimdall heimdall:443 ssl verify none
 ```
 
-##### haproxy.cfg (TLS enabled Authelia)
+### TLS Example
 
-```text
+```text {title="haproxy.cfg"}
 global
     # Path to haproxy-lua-http, below example assumes /usr/local/etc/haproxy/haproxy-lua-http/http.lua
     lua-prepend-path /usr/local/etc/haproxy/?/http.lua

@@ -47,11 +47,10 @@ This example makes the following assumptions:
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Proxmox]
-which will operate with the above example:
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Proxmox] which will
+operate with the application example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
@@ -97,3 +96,4 @@ To configure [Proxmox] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 [Authelia]: https://www.authelia.com
 [Proxmox]: https://www.proxmox.com/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
+[client configuration] ../../../configuration/identity-providers/openid-connect/clients.md
