@@ -37,9 +37,10 @@ This example makes the following assumptions:
 
 ### Authelia
 
-Authelia configuration.yml
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Budibase] which will
+operate with the application example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
@@ -56,6 +57,7 @@ identity_providers:
           - 'profile'
           - 'email'
           - 'offline_access'
+        userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_basic'
 ```
 
@@ -93,3 +95,4 @@ Go the builder main page: **Settings > Auth > OpenID Connect** or url : https://
 [Authelia]: https://www.authelia.com
 [Budibase]: https://budibase.com
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
+[client configuration] ../../../configuration/identity-providers/openid-connect/clients.md
