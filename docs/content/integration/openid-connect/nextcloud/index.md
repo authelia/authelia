@@ -46,7 +46,7 @@ generating client secrets guidance above.*
 The following two tested options exist for Nextcloud:
 
 1. [OpenID Connect Login App](#openid-connect-login-app)
-2. [OpenID Connect user backend App]
+2. [OpenID Connect user backend App](#openid-connect-user-backend-app)
 
 ## OpenID Connect Login App
 
