@@ -48,10 +48,10 @@ generating client secrets guidance above.*
 #### Authelia
 
 The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Nextcloud]
-which will operate with the above example:
+[client configuration] for use with [Nextcloud]
+which will operate with the application example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
@@ -137,9 +137,8 @@ This example makes the following assumptions:
 
 #### Authelia
 
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Nextcloud]
-which will operate with the above example:
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Nextcloud] which will
+operate with the application example:
 
 ```yaml
 identity_providers:
@@ -185,3 +184,4 @@ To configure [Nextcloud] to utilize Authelia as an [OpenID Connect 1.0] Provider
 [Nextcloud OpenID Connect Login app]: https://apps.nextcloud.com/apps/oidc_login
 [Nextcloud OpenID Connect user backend app]: https://apps.nextcloud.com/apps/user_oidc
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
+[client configuration] ../../../configuration/identity-providers/openid-connect/clients.md

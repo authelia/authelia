@@ -35,36 +35,14 @@ This example makes the following assumptions:
 * __Client ID:__ `memos`
 * __Client Secret:__ `insecure_secret`
 
-
 ## Configuration
-
-### Application
-
-To configure [Memos](https://github.com/usememos/memos) to utilize Authelia as an [OpenID Connect 1.0] Provider:
-
-1. Go to the settings menu, choose `SSO`, `create` and `OAuth2`
-2. Choose template `custom`
-3. Set the following values:
-   1. Name: `Authelia`
-   2. Identifier Filter:
-   3. Client ID: `memos`
-   4. Client secret: `insecure_secret`
-   5. Authorization endpoint: 	`https://auth.example.com/api/oidc/authorization`
-   6. Token endpoint: 	`https://auth.example.com/api/oidc/token`
-   7. User endpoint: 	`https://auth.example.com/api/oidc/userinfo`
-   8. Scopes: 	`openid profile email`
-   9. Identifier: 	`preferred_username`
-   10. Display Name: 	`given_name`
-   11. Email: 	`email`
-
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Memos]
-which will operate with the above example:
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Memos] which will
+operate with the application example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
@@ -87,6 +65,26 @@ identity_providers:
         userinfo_signed_response_alg: 'none'
 ```
 
+### Application
+
+To configure [Memos](https://github.com/usememos/memos) to utilize Authelia as an [OpenID Connect 1.0] Provider:
+
+1. Go to the settings menu, choose `SSO`, `create` and `OAuth2`
+2. Choose template `custom`
+3. Set the following values:
+   1. Name: `Authelia`
+   2. Identifier Filter:
+   3. Client ID: `memos`
+   4. Client secret: `insecure_secret`
+   5. Authorization endpoint: `https://auth.example.com/api/oidc/authorization`
+   6. Token endpoint: `https://auth.example.com/api/oidc/token`
+   7. User endpoint: `https://auth.example.com/api/oidc/userinfo`
+   8. Scopes: `openid profile email`
+   9. Identifier: `preferred_username`
+   10. Display Name: `given_name`
+   11. Email: `email`
+
 [Authelia]: https://www.authelia.com
 [Memos]: https://github.com/usememos/memos
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
+[client configuration] ../../../configuration/identity-providers/openid-connect/clients.md

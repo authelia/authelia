@@ -43,11 +43,10 @@ This example makes the following assumptions:
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client
-configuration](../../../configuration/identity-providers/openid-connect/clients.md)
-for use with [Roundcube]:
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Roundcube] which will
+operate with the application example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
@@ -174,3 +173,4 @@ smtpd_sasl_type = dovecot
 [Dovecot OAuth2]: https://doc.dovecot.org/configuration_manual/authentication/oauth2/
 [Postfix]: https://www.postfix.org/
 [Postfix SASL]: https://www.postfix.org/SASL_README.html
+[client configuration] ../../../configuration/identity-providers/openid-connect/clients.md
