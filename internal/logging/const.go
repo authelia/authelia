@@ -1,6 +1,9 @@
 package logging
 
 import (
+	"regexp"
+	"sync"
+
 	"github.com/sirupsen/logrus"
 )
 
@@ -44,4 +47,9 @@ const (
 	FieldMethod     = "method"
 	FieldPath       = "path"
 	FieldStatusCode = "status_code"
+)
+
+var (
+	stacktrace       sync.Once
+	reFormatFilePath = regexp.MustCompile(`(%d|\{datetime(:([^}]+))?})`)
 )
