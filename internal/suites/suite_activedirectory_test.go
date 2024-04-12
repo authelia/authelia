@@ -20,8 +20,8 @@ func (s *ActiveDirectorySuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *ActiveDirectorySuite) TestTwoFactorTOTPScenario() {
-	suite.Run(s.T(), NewTwoFactorTOTPScenario())
+func (s *ActiveDirectorySuite) Test2FATOTPScenario() {
+	suite.Run(s.T(), New2FATOTPScenario())
 }
 
 func (s *ActiveDirectorySuite) TestResetPassword() {

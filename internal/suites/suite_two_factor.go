@@ -34,6 +34,10 @@ func init() {
 		return updateDevEnvFileForDomain(BaseDomain, true)
 	}
 
+	displayAutheliaLogs := func() error {
+		return dockerEnvironment.PrintLogs("authelia-backend", "authelia-frontend")
+	}
+
 	teardown := func(suitePath string) error {
 		err := dockerEnvironment.Down()
 		_ = os.Remove("/tmp/db.sqlite3")
@@ -44,10 +48,10 @@ func init() {
 	GlobalRegistry.Register(twoFactorSuiteName, Suite{
 		SetUp:           setup,
 		SetUpTimeout:    5 * time.Minute,
-		OnError:         nil,
-		OnSetupTimeout:  nil,
+		OnError:         displayAutheliaLogs,
+		OnSetupTimeout:  displayAutheliaLogs,
 		TearDown:        teardown,
-		TestTimeout:     6 * time.Minute,
+		TestTimeout:     4 * time.Minute,
 		TearDownTimeout: 2 * time.Minute,
 		Description: `This suite is used to test Authelia in a two factor
 configuration with in-memory sessions and a local sqlite db stored on disk`,
