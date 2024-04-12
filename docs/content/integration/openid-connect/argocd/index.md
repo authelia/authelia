@@ -101,4 +101,4 @@ requestedScopes:
 [Authelia]: https://www.authelia.com
 [Argo CD]: https://argo-cd.readthedocs.io/en/stable/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration] ../../../configuration/identity-providers/openid-connect/clients.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

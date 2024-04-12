@@ -96,4 +96,4 @@ To configure [Proxmox] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 [Authelia]: https://www.authelia.com
 [Proxmox]: https://www.proxmox.com/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration] ../../../configuration/identity-providers/openid-connect/clients.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

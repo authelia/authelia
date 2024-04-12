@@ -88,4 +88,4 @@ To configure [Odoo] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 [Odoo]: https://www.odoo.com
 [Odoo Authentication OpenID Connect]: https://odoo-community.org/shop/authentication-openid-connect-6545#attr=25818
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration] ../../../configuration/identity-providers/openid-connect/clients.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

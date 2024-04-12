@@ -127,4 +127,4 @@ WEB_OIDC_CLIENT_ID=ownCloud
 [Nextcloud]: https://nextcloud.com/
 [Nextcloud OpenID Connect Login app]: https://apps.nextcloud.com/apps/oidc_login
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration] ../../../configuration/identity-providers/openid-connect/clients.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

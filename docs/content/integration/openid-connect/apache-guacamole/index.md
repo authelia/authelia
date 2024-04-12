@@ -89,4 +89,4 @@ openid-groups-claim-type: groups
 [Authelia]: https://www.authelia.com
 [Apache Guacamole]: https://guacamole.apache.org/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration] ../../../configuration/identity-providers/openid-connect/clients.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

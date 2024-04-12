@@ -88,4 +88,4 @@ To configure [PocketBase] to utilize Authelia as an [OpenID Connect 1.0], please
 [Authelia]: https://www.authelia.com
 [PocketBase]: https://pocketbase.io
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration] ../../../configuration/identity-providers/openid-connect/clients.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

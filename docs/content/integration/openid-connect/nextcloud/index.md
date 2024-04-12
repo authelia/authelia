@@ -123,7 +123,7 @@ $CONFIG = array (
 * [Nextcloud OpenID Connect Login app]
 * [Nextcloud OpenID Connect Login Documentation](https://github.com/pulsejet/nextcloud-oidc-login)
 
-## With the Nextcloud application user_oid
+## With the Nextcloud application user_oidc
 
 ### Assumptions
 
@@ -179,9 +179,10 @@ To configure [Nextcloud] to utilize Authelia as an [OpenID Connect 1.0] Provider
 ### See Also
 
 * [Nextcloud OpenID Connect user backend app]
+
 [Authelia]: https://www.authelia.com
 [Nextcloud]: https://nextcloud.com/
 [Nextcloud OpenID Connect Login app]: https://apps.nextcloud.com/apps/oidc_login
 [Nextcloud OpenID Connect user backend app]: https://apps.nextcloud.com/apps/user_oidc
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration] ../../../configuration/identity-providers/openid-connect/clients.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

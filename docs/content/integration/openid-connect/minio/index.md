@@ -97,4 +97,4 @@ To configure [MinIO] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 [MinIO]: https://minio.com/
 [Authelia]: https://www.authelia.com
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration] ../../../configuration/identity-providers/openid-connect/clients.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
