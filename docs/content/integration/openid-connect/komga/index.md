@@ -99,4 +99,4 @@ spring:
 [Authelia]: https://www.authelia.com
 [Komga]: https://www.komga.org
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration] ../../../configuration/identity-providers/openid-connect/clients.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

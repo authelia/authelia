@@ -91,4 +91,4 @@ identity_providers:
 [Authelia]: https://www.authelia.com
 [Windmill]: https://www.windmill.dev
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration] ../../../configuration/identity-providers/openid-connect/clients.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

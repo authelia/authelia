@@ -111,4 +111,4 @@ descriptions.
 [Authelia]: https://www.authelia.com
 [Gitea]: https://gitea.io/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration] ../../../configuration/identity-providers/openid-connect/clients.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

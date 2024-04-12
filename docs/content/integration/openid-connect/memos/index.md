@@ -87,4 +87,4 @@ To configure [Memos](https://github.com/usememos/memos) to utilize Authelia as a
 [Authelia]: https://www.authelia.com
 [Memos]: https://github.com/usememos/memos
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration] ../../../configuration/identity-providers/openid-connect/clients.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

@@ -95,4 +95,4 @@ Go the builder main page: **Settings > Auth > OpenID Connect** or url : https://
 [Authelia]: https://www.authelia.com
 [Budibase]: https://budibase.com
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration] ../../../configuration/identity-providers/openid-connect/clients.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

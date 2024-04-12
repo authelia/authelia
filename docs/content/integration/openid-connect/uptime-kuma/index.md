@@ -136,4 +136,4 @@ See the following screenshot for an authentication example of the above:
 [OpenID Connect 1.0]: ../openid-connect/introduction.md
 [requested_audience_mode]: ../../configuration/identity-providers/openid-connect/clients/#requested_audience_mode
 [Server Authz Endpoints]: ../../configuration/miscellaneous/server-endpoints-authz/
-[client configuration] ../../../configuration/identity-providers/openid-connect/clients.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

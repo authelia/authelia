@@ -114,4 +114,4 @@ basic auth.
 [Seafile]: https://www.seafile.com/
 [Seafile's WebDAV extension]: https://manual.seafile.com/extension/webdav/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration] ../../../configuration/identity-providers/openid-connect/clients.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

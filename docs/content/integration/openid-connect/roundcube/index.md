@@ -174,4 +174,4 @@ smtpd_sasl_type = dovecot
 [Dovecot OAuth2]: https://doc.dovecot.org/configuration_manual/authentication/oauth2/
 [Postfix]: https://www.postfix.org/
 [Postfix SASL]: https://www.postfix.org/SASL_README.html
-[client configuration] ../../../configuration/identity-providers/openid-connect/clients.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
