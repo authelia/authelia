@@ -18,11 +18,11 @@ func NewTwoFactorSuite() *TwoFactorSuite {
 	}
 }
 
-func (s *TwoFactorSuite) TestTwoFactorOneTimePasswordScenario() {
+func (s *TwoFactorSuite) TestTwoFactorOneTimePasswordRegistrationScenario() {
 	suite.Run(s.T(), NewTwoFactorOneTimePasswordScenario())
 }
 
-func (s *TwoFactorSuite) TestTwoFactorWebAuthnScenario() {
+func (s *TwoFactorSuite) TestTwoFactorWebAuthnRegistrationScenario() {
 	suite.Run(s.T(), NewTwoFactorWebAuthnScenario())
 }
 
