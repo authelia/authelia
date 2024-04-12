@@ -30,7 +30,7 @@ seo:
 ### Specific Notes
 
 *__Important Note:__ [Synology DSM] does not support automatically creating users via [OpenID Connect 1.0]. It is therefore
-recommended that you ensure Authelia and [Synology DSM] share a LDAP server (for DSM v7.1).  
+recommended that you ensure Authelia and [Synology DSM] share an LDAP server (for DSM v7.1).  
 With DSM v7.2+ you have the possibility to also use local DSM accounts (see `Account type` below) and do not need to set up a shared LDAP.*
 
 ### Assumptions
@@ -58,6 +58,8 @@ identity_providers:
       - client_id: 'synology-dsm'
         client_name: 'Synology DSM'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+        public: false
+        authorization_policy: 'two_factor'
         redirect_uris:
           - 'https://dsm.example.com'
         scopes:
@@ -65,6 +67,7 @@ identity_providers:
           - 'profile'
           - 'groups'
           - 'email'
+        userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_post'
 ```
 
