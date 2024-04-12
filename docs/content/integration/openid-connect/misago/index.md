@@ -40,9 +40,10 @@ This example makes the following assumptions:
 
 ### Authelia
 
-The following YAML configuration is an example **Authelia** [client configuration](https://www.authelia.com/configuration/identity-providers/openid-connect/#clients) for use with [Misago] which will operate with the above example:
+The following YAML configuration is an example **Authelia** [client configuration] for use with [Misago] which will
+operate with the application example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
@@ -115,3 +116,4 @@ To configure [Misago] to utilize Authelia as an [OpenID Connect 1.0](https://www
 - [Misago] [OAuth 2 Client Configuration guide](https://misago-project.org/t/oauth-2-client-configuration-guide/1147/)
 
 [Misago]: https://misago-project.org/
+[client configuration] ../../../configuration/identity-providers/openid-connect/clients.md

@@ -42,10 +42,10 @@ This example makes the following assumptions:
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Nextcloud]
-which will operate with the above example:
+[client configuration] for use with [Nextcloud]
+which will operate with the application example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     # Extend the access and refresh token lifespan from the default 30m to work around ownCloud client re-authentication prompts every few hours.
@@ -127,3 +127,4 @@ WEB_OIDC_CLIENT_ID=ownCloud
 [Nextcloud]: https://nextcloud.com/
 [Nextcloud OpenID Connect Login app]: https://apps.nextcloud.com/apps/oidc_login
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
+[client configuration] ../../../configuration/identity-providers/openid-connect/clients.md
