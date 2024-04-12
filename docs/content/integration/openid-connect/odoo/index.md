@@ -48,7 +48,8 @@ identity_providers:
     clients:
       - client_id: 'odoo'
         client_name: 'Odoo'
-        public: 'true'
+        public: true
+        authorization_policy: 'two_factor'
         redirect_uris:
           - 'https://odoo.example.com/auth_oauth/signin'
         scopes:
@@ -57,7 +58,8 @@ identity_providers:
           - 'profile'
         response_types:
           - 'token'
-        authorization_policy: 'one_factor'
+        userinfo_signed_response_alg: 'none'
+        token_endpoint_auth_method: 'client_secret_basic'
 ```
 
 ### Application

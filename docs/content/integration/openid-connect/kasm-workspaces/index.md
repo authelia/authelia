@@ -60,7 +60,6 @@ identity_providers:
           - 'profile'
           - 'groups'
           - 'email'
-        consent_mode: 'implicit'
         userinfo_signed_response_alg: 'none'
 ```
 

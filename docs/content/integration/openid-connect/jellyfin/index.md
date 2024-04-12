@@ -2,7 +2,7 @@
 title: "Jellyfin"
 description: "Integrating Jellyfin with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2024-04-12T21:01:39+10:00
+date: 2024-04-12T21:54:41+10:00
 draft: false
 images: []
 weight: 620
@@ -59,6 +59,7 @@ identity_providers:
           - 'openid'
           - 'profile'
           - 'groups'
+        userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_post'
 ```
 
@@ -70,9 +71,67 @@ users are part of the `users` group. Depending on your specific group configurat
 
 To configure [Jellyfin] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
-1. Install the [Jellyfin SSO Plugin].
+1. Visit the [Jellyfin] Administration Dashboard.
 
-2. Use the following configuration for the [Jellyfin SSO Plugin]:
+2. Visit the `Plugins` section.
+
+3. Visit the `Repositories` tab.
+
+4. Click the `+` to add a repository.
+
+5. Enter the following details:
+   1. Repository Name: `Jellyfin SSO`
+   2. Repository URL: `https://raw.githubusercontent.com/9p4/jellyfin-plugin-sso/manifest-release/manifest.json`
+
+6. Click `Save`.
+
+7. Click `Ok` to confirm the repository installation.
+
+8. Visit the `Catalog` tab.
+
+9. Select `SSO Authentication` from the `Authentication` section.
+
+10. Click `Install`.
+
+11. Click `Ok` to confirm the plugin installation.
+
+12. Once installed restart [Jellyfin].
+
+13. Complete steps 1 and 2 again.
+
+14. Click the `SSO-Auth` plugin.
+
+15. Add a provider with the following settings:
+
+    1. Name of the OID Provider: `Authelia`
+
+    2. OID Endpoint: `https://auth.example.com`
+
+    3. OpenID Client ID: `jellyfin`
+
+    4. OID Secret: `insecure_secret`
+
+    5. Enabled: Checked
+
+    6. Enable Authorization by Plugin: Checked
+
+    7. Enable All Folders: Checked
+
+    8. Roles: `users`
+
+    9. Admin Roles: `admins`
+
+    10. Role Claim: `groups`
+
+    11. Request Additional Scopes: `groups`
+
+    12. Set default username claim: `preferred_username`
+
+16. All other options may remain unchecked or unconfigured.
+
+17. Click `Save`.
+
+Alternatively you can utilize the following configuration XML:
 
 ```xml {title="SSO-Auth.xml"}
 <?xml version="1.0" encoding="utf-8"?>
