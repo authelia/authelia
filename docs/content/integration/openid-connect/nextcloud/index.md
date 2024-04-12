@@ -27,9 +27,7 @@ seo:
 
 {{% oidc-common %}}
 
-## With the Nextcloud application oidc_login
-
-#### Assumptions
+## Assumptions
 
 This example makes the following assumptions:
 
@@ -42,6 +40,17 @@ This example makes the following assumptions:
 as such it's important to only use alphanumeric characters as well as the other
 [RFC3986 Unreserved Characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3). We recommend using the
 generating client secrets guidance above.*
+
+## Available Options
+
+The following two tested options exist for Nextcloud:
+
+1. [OpenID Connect Login App](#openid-connect-login-app)
+2. [OpenID Connect user backend App]
+
+## OpenID Connect Login App
+
+The following example uses the [OpenID Connect Login App](https://apps.nextcloud.com/apps/oidc_login) app.
 
 ### Configuration
 
@@ -118,21 +127,9 @@ $CONFIG = array (
 );
 ```
 
-### See Also
+## OpenID Connect user backend App
 
-* [Nextcloud OpenID Connect Login app]
-* [Nextcloud OpenID Connect Login Documentation](https://github.com/pulsejet/nextcloud-oidc-login)
-
-## With the Nextcloud application user_oidc
-
-### Assumptions
-
-This example makes the following assumptions:
-
-* __Application Root URL:__ `https://nextcloud.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
-* __Client ID:__ `nextcloud`
-* __Client Secret:__ `insecure_secret`
+The following example uses the [OpenID Connect user backend](https://apps.nextcloud.com/apps/user_oidc) app.
 
 ### Configuration
 
@@ -176,9 +173,11 @@ To configure [Nextcloud] to utilize Authelia as an [OpenID Connect 1.0] Provider
 * Discovery endpoint : https://auth.example.com/.well-known/openid-configuration
 * Scope : openid email profile
 
-### See Also
+## See Also
 
 * [Nextcloud OpenID Connect user backend app]
+* [Nextcloud OpenID Connect Login app]
+* [Nextcloud OpenID Connect Login Documentation](https://github.com/pulsejet/nextcloud-oidc-login)
 
 [Authelia]: https://www.authelia.com
 [Nextcloud]: https://nextcloud.com/
