@@ -39,16 +39,17 @@ This example makes the following assumptions:
 ### Authelia
 
 The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Odoo]
-which will operate with the above example:
+[client configuration] for use with [Odoo]
+which will operate with the application example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     clients:
       - client_id: 'odoo'
         client_name: 'Odoo'
-        public: 'true'
+        public: true
+        authorization_policy: 'two_factor'
         redirect_uris:
           - 'https://odoo.example.com/auth_oauth/signin'
         scopes:
@@ -57,7 +58,8 @@ identity_providers:
           - 'profile'
         response_types:
           - 'token'
-        authorization_policy: 'one_factor'
+        userinfo_signed_response_alg: 'none'
+        token_endpoint_auth_method: 'client_secret_basic'
 ```
 
 ### Application
@@ -86,4 +88,4 @@ To configure [Odoo] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 [Odoo]: https://www.odoo.com
 [Odoo Authentication OpenID Connect]: https://odoo-community.org/shop/authentication-openid-connect-6545#attr=25818
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
-
+[client configuration] ../../../configuration/identity-providers/openid-connect/clients.md

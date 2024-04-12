@@ -40,11 +40,10 @@ This example makes the following assumptions:
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Tailscale] which
-will operate with the above example:
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Tailscale] which will
+operate with the above example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
@@ -103,3 +102,4 @@ implementations). The following steps are necessary to get Tailscale working wit
 [Custom OIDC providers KB article]: https://tailscale.com/kb/1240/sso-custom-oidc/
 [RFC7033 Section 3.1]: https://datatracker.ietf.org/doc/html/rfc7033#section-3.1
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

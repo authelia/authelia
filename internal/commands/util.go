@@ -328,16 +328,26 @@ func newHelpTopic(topic, short, body string) (cmd *cobra.Command) {
 		Short: short,
 	}
 
-	cmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
-		_ = cmd.Parent().Help()
+	cmd.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
+		cmdHelpTopic(cmd, body, topic)
 
-		fmt.Println()
-		fmt.Printf("Help Topic: %s\n\n", topic)
-		fmt.Print(body)
-		fmt.Print("\n\n")
+		return nil
+	})
+
+	cmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
+		cmdHelpTopic(cmd, body, topic)
 	})
 
 	return cmd
+}
+
+func cmdHelpTopic(cmd *cobra.Command, body, topic string) {
+	_ = cmd.Parent().Help()
+
+	fmt.Println()
+	fmt.Printf("Help Topic: %s\n\n", topic)
+	fmt.Print(body)
+	fmt.Print("\n\n")
 }
 
 func exportYAMLWithJSONSchema(name, filename string, v any) (err error) {

@@ -302,8 +302,8 @@ func (s *HighAvailabilitySuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *HighAvailabilitySuite) TestTwoFactorTOTPScenario() {
-	suite.Run(s.T(), NewTwoFactorTOTPScenario())
+func (s *HighAvailabilitySuite) Test2FATOTPScenario() {
+	suite.Run(s.T(), New2FATOTPScenario())
 }
 
 func (s *HighAvailabilitySuite) TestRegulationScenario() {

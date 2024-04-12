@@ -23,8 +23,8 @@ func (s *Traefik2Suite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *Traefik2Suite) TestTwoFactorTOTPScenario() {
-	suite.Run(s.T(), NewTwoFactorTOTPScenario())
+func (s *Traefik2Suite) Test2FATOTPScenario() {
+	suite.Run(s.T(), New2FATOTPScenario())
 }
 
 func (s *Traefik2Suite) TestCustomHeaders() {

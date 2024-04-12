@@ -723,14 +723,20 @@ func StringToPasswordDigestHookFunc() mapstructure.DecodeHookFuncType {
 
 		var result *schema.PasswordDigest
 
-		if dataStr != "" {
-			if !strings.HasPrefix(dataStr, "$") {
-				dataStr = fmt.Sprintf(plaintext.EncodingFmt, plaintext.AlgIdentifierPlainText, dataStr)
+		if dataStr == "" {
+			if ptr {
+				return (*schema.PasswordDigest)(nil), nil
+			} else {
+				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseEmptyValue, prefixType, expectedType.String(), errDecodeNonPtrMustHaveValue)
 			}
+		}
 
-			if result, err = schema.DecodePasswordDigest(dataStr); err != nil {
-				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType.String(), err)
-			}
+		if !strings.HasPrefix(dataStr, "$") {
+			dataStr = fmt.Sprintf(plaintext.EncodingFmt, plaintext.AlgIdentifierPlainText, dataStr)
+		}
+
+		if result, err = schema.DecodePasswordDigest(dataStr); err != nil {
+			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType.String(), err)
 		}
 
 		if ptr {
