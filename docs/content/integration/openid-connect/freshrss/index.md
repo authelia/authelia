@@ -68,8 +68,8 @@ identity_providers:
           - 'groups'
           - 'email'
           - 'profile'
-        token_endpoint_auth_method: 'client_secret_basic'
         userinfo_signed_response_alg: 'none'
+        token_endpoint_auth_method: 'client_secret_basic'
 ```
 
 ### Application
