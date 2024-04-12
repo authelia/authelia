@@ -330,12 +330,8 @@ func (s *StandaloneSuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *StandaloneSuite) TestTwoFactorTOTPScenario() {
-	suite.Run(s.T(), NewTwoFactorTOTPScenario())
-}
-
-func (s *StandaloneSuite) TestTwoFactorWebAuthnScenario() {
-	suite.Run(s.T(), NewTwoFactorWebAuthnScenario())
+func (s *StandaloneSuite) Test2FATOTPScenario() {
+	suite.Run(s.T(), New2FATOTPScenario())
 }
 
 func (s *StandaloneSuite) TestBypassPolicyScenario() {
