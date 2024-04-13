@@ -5,9 +5,11 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"net"
 	"net/mail"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	gomail "github.com/wneessen/go-mail"
@@ -18,6 +20,11 @@ import (
 	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
+
+type Dialer interface {
+	Dial(network, addr string) (net.Conn, error)
+	DialContext(ctx context.Context, network, addr string) (net.Conn, error)
+}
 
 // NewSMTPNotifier creates a SMTPNotifier using the notifier configuration.
 func NewSMTPNotifier(config *schema.NotifierSMTP, certPool *x509.CertPool) *SMTPNotifier {
@@ -106,13 +113,38 @@ type SMTPNotifier struct {
 	opts   []gomail.Option
 }
 
+func (n *SMTPNotifier) Options() (opts []gomail.Option) {
+	m := len(n.opts)
+
+	opts = make([]gomail.Option, m+1)
+
+	copy(opts, n.opts)
+
+	opts[m] = gomail.WithDialContextFunc(n.Dialer().DialContext)
+
+	return opts
+}
+
+func (n *SMTPNotifier) Dialer() Dialer {
+	dialer := &net.Dialer{
+		Timeout:  n.config.Timeout,
+		Deadline: time.Now().Add(n.config.Timeout),
+	}
+
+	if n.config.Address.IsExplicitlySecure() {
+		return &tls.Dialer{NetDialer: dialer, Config: n.tls}
+	}
+
+	return dialer
+}
+
 // StartupCheck implements model.StartupCheck to perform startup check operations.
 func (n *SMTPNotifier) StartupCheck() (err error) {
 	var client *gomail.Client
 
 	n.log.WithFields(map[string]any{"hostname": n.config.Address.Hostname()}).Trace("Creating Startup Check Client")
 
-	if client, err = gomail.NewClient(n.config.Address.Hostname(), n.opts...); err != nil {
+	if client, err = gomail.NewClient(n.config.Address.Hostname(), n.Options()...); err != nil {
 		return fmt.Errorf("failed to establish client: %w", err)
 	}
 
@@ -173,7 +205,7 @@ func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject
 
 	var client *gomail.Client
 
-	if client, err = gomail.NewClient(n.config.Address.Hostname(), n.opts...); err != nil {
+	if client, err = gomail.NewClient(n.config.Address.Hostname(), n.Options()...); err != nil {
 		return fmt.Errorf("notifier: smtp: failed to establish client: %w", err)
 	}
 
