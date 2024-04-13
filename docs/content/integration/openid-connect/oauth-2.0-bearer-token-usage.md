@@ -202,6 +202,8 @@ identity_providers:
     clients:
       - client_id: 'example-one'
         public: true
+        require_pkce: true
+        pkce_challenge_method: 'S256'
         redirect_uris:
           - 'http://localhost/callback'
         scopes:
@@ -219,8 +221,6 @@ identity_providers:
           - 'form_post'
         consent_mode: 'explicit'
         require_pushed_authorization_requests: true
-        require_pkce: true
-        pkce_challenge_method: 'S256'
         token_endpoint_auth_method: 'none'
 ```
 
@@ -235,6 +235,8 @@ identity_providers:
       - client_id: 'example-two'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        require_pkce: true
+        pkce_challenge_method: 'S256'
         redirect_uris:
           - 'http://localhost/callback'
         scopes:
@@ -252,8 +254,6 @@ identity_providers:
           - 'form_post'
         consent_mode: 'explicit'
         require_pushed_authorization_requests: true
-        require_pkce: true
-        pkce_challenge_method: 'S256'
         token_endpoint_auth_method: 'client_secret_basic'
 ```
 

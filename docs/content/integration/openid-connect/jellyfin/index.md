@@ -67,7 +67,11 @@ identity_providers:
 
 _**Important Note:** This configuration assumes [Jellyfin] administrators are part of the `admins` group, and [Jellyfin]
 users are part of the `users` group. Depending on your specific group configuration, you will have to adapt the
-`AdminRoles` and `Roles` nodes respectively._
+`AdminRoles` and `Roles` nodes respectively. Alternatively you may elect to create a new authorization policy in
+[provider authorization policies] then utilize that policy as the [client authorization policy]._
+
+[client authorization policy]: ../../../configuration/identity-providers/openid-connect/clients.md#authorization_policy
+[provider authorization policies]: ../../../configuration/identity-providers/openid-connect/provider.md#authorization_policies
 
 To configure [Jellyfin] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
