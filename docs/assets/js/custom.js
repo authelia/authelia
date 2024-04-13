@@ -3,56 +3,87 @@
 /**
  * Scripts which manages Code Toggle tabs.
  */
-// store tabs variable
-var allEnvTabs = document.querySelectorAll('[data-toggle-env-tab]');
-var allEnvPanes = document.querySelectorAll('[data-env-pane]');
-const localStorageKeyEnvTabs = 'envPref';
 
-function toggleEnvTabs(event) {
+const customTabsToggle = (name, event, allTabs, allPanes) => {
+  let targetKey;
 
-  if(event.target){
+  if (event.target) {
     event.preventDefault();
-    var clickedTab = event.currentTarget;
-    var targetKey = clickedTab.getAttribute('data-toggle-env-tab')
+    targetKey = event.currentTarget.getAttribute(`data-toggle-${name}-tab`)
   } else {
-    var targetKey = event
-  }
-  // We store the config language selected in users' localStorage
-  if(window.localStorage){
-    window.localStorage.setItem(localStorageKeyEnvTabs, targetKey)
-  }
-  var selectedTabs = document.querySelectorAll('[data-toggle-env-tab=' + targetKey + ']');
-  var selectedPanes = document.querySelectorAll('[data-env-pane=' + targetKey + ']');
-
-  for (var i = 0; i < allEnvTabs.length; i++) {
-    allEnvTabs[i].classList.remove('active');
-    allEnvPanes[i].classList.remove('active');
+    targetKey = event
   }
 
-  for (var i = 0; i < selectedTabs.length; i++) {
+  if (window.localStorage) {
+    window.localStorage.setItem(`${name}TabPref`, targetKey)
+  }
+
+  let i;
+
+  for (i = 0; i < allTabs.length; i++) {
+    allTabs[i].classList.remove('active');
+    allPanes[i].classList.remove('active');
+  }
+
+  const selectedTabs = document.querySelectorAll(`[data-toggle-${name}-tab=${targetKey}]`);
+  const selectedPanes = document.querySelectorAll(`[data-${name}-pane=${targetKey}]`);
+
+  for (i = 0; i < selectedTabs.length; i++) {
     selectedTabs[i].classList.add('active');
     selectedPanes[i].classList.add('show', 'active');
   }
-
 }
 
-const envTabsStorageListener = (ev) => {
-  if (ev.key !== localStorageKeyEnvTabs) {
-    return;
-  }
-
-  if (ev.newValue && ev.newValue !== '') {
-    toggleEnvTabs(ev.newValue);
+const customTabsToggleListener = (name, allTabs, allPanes) => {
+  return (ev) => {
+    customTabsToggle(name, ev, allTabs, allPanes);
   }
 };
 
-for (var i = 0; i < allEnvTabs.length; i++) {
-  allEnvTabs[i].addEventListener('click', toggleEnvTabs)
-}
+const customTabsStorageListener = (name) => {
+  return (ev) => {
+    if (ev.key !== `${name}TabPref`) {
+      return;
+    }
 
-window.addEventListener('storage', envTabsStorageListener);
+    if (ev.newValue && ev.newValue !== '') {
+      customTabsToggle(name, ev.newValue);
+    }
+  }
+};
 
-// Upon page load, if user has a preferred language in its localStorage, tabs are set to it.
-if(window.localStorage.getItem(localStorageKeyEnvTabs)) {
-  toggleEnvTabs(window.localStorage.getItem(localStorageKeyEnvTabs))
-}
+const customTabsConfigure = (name) => {
+  // Find all of the related tabs on the page.
+  const allTabs = document.querySelectorAll(`[data-toggle-${name}-tab]`);
+  const allPanes = document.querySelectorAll(`[data-${name}-pane]`);
+
+  // If no tabs or panes exist skip everything.
+  if (allTabs.length === 0 && allPanes.length === 0) {
+    return;
+  }
+
+  // If the browser supports localStorage, setup localStorage elements.
+  if (window.localStorage) {
+
+    // If the preference value exists, make sure those tabs are selected.
+    const value = window.localStorage.getItem(`${name}TabPref`);
+    if (value) {
+      customTabsToggle(name, value, allTabs, allPanes)
+    }
+
+    // Make sure we listen for storage events for changes to the specific storage key.
+    window.addEventListener('storage', customTabsStorageListener(name));
+  }
+
+  // Create the listener used for click events.
+  const clickListener = customTabsToggleListener(name, allTabs, allPanes);
+
+  // Make sure each tab has the click event listener.
+  for (let i = 0; i < allTabs.length; i++) {
+    allTabs[i].addEventListener('click', clickListener)
+  }
+};
+
+// Register the 'env' tab group listeners etc. on page load.
+customTabsConfigure('env');
+customTabsConfigure('session');
