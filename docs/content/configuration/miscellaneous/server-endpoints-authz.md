@@ -55,7 +55,7 @@ server:
           - name: 'CookieSession'
 ```
 
-## Name
+## name
 
 {{< confkey type="string" required="yes" >}}
 
