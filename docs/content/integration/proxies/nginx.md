@@ -232,7 +232,7 @@ server {
         proxy_pass $upstream;
     }
 
-    location /api/verify {
+    location = /api/verify {
         proxy_pass $upstream;
     }
 
