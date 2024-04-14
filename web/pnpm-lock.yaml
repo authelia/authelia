@@ -101,8 +101,8 @@ devDependencies:
     specifier: 19.1.0
     version: 19.1.0
   '@limegrass/eslint-plugin-import-alias':
-    specifier: 1.3.2
-    version: 1.3.2(eslint@8.57.0)
+    specifier: 1.4.0
+    version: 1.4.0(eslint@8.57.0)
   '@testing-library/jest-dom':
     specifier: 6.4.2
     version: 6.4.2(vitest@1.5.0)
@@ -2455,8 +2455,8 @@ packages:
       '@jridgewell/sourcemap-codec': 1.4.15
     dev: true
 
-  /@limegrass/eslint-plugin-import-alias@1.3.2(eslint@8.57.0):
-    resolution: {integrity: sha512-en7ng0cLKSzpQDxUNOt+00H2KdXUP9YCSABX2ubI54ryNMe5PkIudvudnLzDuHqYRWRdUR+Y9bYfQEwghiUesw==}
+  /@limegrass/eslint-plugin-import-alias@1.4.0(eslint@8.57.0):
+    resolution: {integrity: sha512-o4pxgUMtro3/DhJABbyyfsiua0hw+VgY1x/Rzu3zQVsboqILnFay0pOAbTZac49tvI7uw9AUorfBcEhqyPtbsA==}
     peerDependencies:
       eslint: ^2 || ^3 || ^4 || ^5 || ^6 || ^7.2.0 || ^8
     dependencies:
