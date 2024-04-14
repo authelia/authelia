@@ -98,8 +98,8 @@ devDependencies:
     specifier: 19.2.1
     version: 19.2.1(@types/node@20.12.7)(typescript@5.4.5)
   '@commitlint/config-conventional':
-    specifier: 19.1.0
-    version: 19.1.0
+    specifier: 19.2.2
+    version: 19.2.2
   '@limegrass/eslint-plugin-import-alias':
     specifier: 1.4.0
     version: 1.4.0(eslint@8.57.0)
@@ -1779,8 +1779,8 @@ packages:
       - typescript
     dev: true
 
-  /@commitlint/config-conventional@19.1.0:
-    resolution: {integrity: sha512-KIKD2xrp6Uuk+dcZVj3++MlzIr/Su6zLE8crEDQCZNvWHNQSeeGbzOlNtsR32TUy6H3JbP7nWgduAHCaiGQ6EA==}
+  /@commitlint/config-conventional@19.2.2:
+    resolution: {integrity: sha512-mLXjsxUVLYEGgzbxbxicGPggDuyWNkf25Ht23owXIH+zV2pv1eJuzLK3t1gDY5Gp6pxdE60jZnWUY5cvgL3ufw==}
     engines: {node: '>=v18'}
     dependencies:
       '@commitlint/types': 19.0.3
