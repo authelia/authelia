@@ -6,6 +6,7 @@ interface ConsentPostRequestBody {
     client_id: string;
     consent: boolean;
     pre_configure: boolean;
+    claims?: string[];
 }
 
 interface ConsentPostResponseBody {
@@ -26,12 +27,13 @@ export function getConsentResponse(consentID: string) {
     return Get<ConsentGetResponseBody>(ConsentPath + "?id=" + consentID);
 }
 
-export function acceptConsent(preConfigure: boolean, clientID: string, consentID: string | null) {
+export function acceptConsent(preConfigure: boolean, clientID: string, consentID: string | null, claims: string[]) {
     const body: ConsentPostRequestBody = {
         id: consentID === null ? undefined : consentID,
         client_id: clientID,
         consent: true,
         pre_configure: preConfigure,
+        claims: claims,
     };
     return Post<ConsentPostResponseBody>(ConsentPath, body);
 }

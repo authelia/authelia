@@ -255,10 +255,11 @@ type ConsentGetResponseBody struct {
 
 // ConsentPostRequestBody schema of the request body of the consent POST endpoint.
 type ConsentPostRequestBody struct {
-	ConsentID    string `json:"id"`
-	ClientID     string `json:"client_id"`
-	Consent      bool   `json:"consent"`
-	PreConfigure bool   `json:"pre_configure"`
+	ConsentID    string   `json:"id"`
+	ClientID     string   `json:"client_id"`
+	Consent      bool     `json:"consent"`
+	PreConfigure bool     `json:"pre_configure"`
+	Claims       []string `json:"claims"`
 }
 
 // ConsentPostResponseBody schema of the response body of the consent POST endpoint.
