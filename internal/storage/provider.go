@@ -197,13 +197,13 @@ type Provider interface {
 	*/
 
 	// SaveOAuth2ConsentSession inserts an OAuth2.0 consent session to the storage provider.
-	SaveOAuth2ConsentSession(ctx context.Context, consent model.OAuth2ConsentSession) (err error)
+	SaveOAuth2ConsentSession(ctx context.Context, consent *model.OAuth2ConsentSession) (err error)
 
 	// SaveOAuth2ConsentSessionSubject updates an OAuth2.0 consent session in the storage provider with the subject.
-	SaveOAuth2ConsentSessionSubject(ctx context.Context, consent model.OAuth2ConsentSession) (err error)
+	SaveOAuth2ConsentSessionSubject(ctx context.Context, consent *model.OAuth2ConsentSession) (err error)
 
 	// SaveOAuth2ConsentSessionResponse updates an OAuth2.0 consent session in the storage provider with the response.
-	SaveOAuth2ConsentSessionResponse(ctx context.Context, consent model.OAuth2ConsentSession, rejection bool) (err error)
+	SaveOAuth2ConsentSessionResponse(ctx context.Context, consent *model.OAuth2ConsentSession, rejection bool) (err error)
 
 	// SaveOAuth2ConsentSessionGranted updates an OAuth2.0 consent session in the storage provider recording that it
 	// has been granted by the authorization endpoint.

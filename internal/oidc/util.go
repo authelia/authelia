@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -366,6 +367,32 @@ func IsAccessToken(ctx Context, value string) (is bool, err error) {
 
 func IsMaybeSignedJWT(value string) (is bool) {
 	return strings.Count(value, ".") == 2
+}
+
+// AuthorizeRequestFormRequiresLogin returns true if the form requires the user to authenticate again.
+func AuthorizeRequestFormRequiresLogin(form url.Values, requested, authenticated time.Time) (required bool) {
+	if form.Has(FormParameterPrompt) {
+		if oauthelia2.Arguments(oauthelia2.RemoveEmpty(strings.Split(form.Get(FormParameterPrompt), " "))).Has(PromptLogin) && authenticated.Before(requested) {
+			return true
+		}
+	}
+
+	if form.Has(FormParameterMaximumAge) {
+		value := form.Get(FormParameterMaximumAge)
+
+		var (
+			age int64
+			err error
+		)
+
+		if age, err = strconv.ParseInt(value, 10, 64); err != nil {
+			age = 0
+		}
+
+		return age == 0 || authenticated.IsZero() || requested.IsZero() || authenticated.Add(time.Duration(age)*time.Second).Before(requested)
+	}
+
+	return false
 }
 
 func ValidateSectorIdentifierURI(ctx ClientContext, cache map[string][]string, sectorURI *url.URL, redirectURIs []string) (err error) {

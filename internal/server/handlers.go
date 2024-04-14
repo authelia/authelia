@@ -252,6 +252,7 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	delayFunc := middlewares.TimingAttackDelay(10, 250, 85, time.Second, true)
 
 	r.POST("/api/firstfactor", middlewareAPI(handlers.FirstFactorPOST(delayFunc)))
+	r.POST("/api/firstfactor/reauthenticate", middleware1FA(handlers.FirstFactorReauthenticatePOST(delayFunc)))
 	r.POST("/api/logout", middlewareAPI(handlers.LogoutPOST))
 
 	// Only register endpoints if forgot password is not disabled.
