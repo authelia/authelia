@@ -115,8 +115,8 @@ characters and the user password is changed to this value.
 The sender is used to construct both the SMTP command `MAIL FROM` and to add the `FROM` header. This address must be
 in [RFC5322](https://datatracker.ietf.org/doc/html/rfc5322#section-3.4) format. This means it must one of two formats:
 
-* jsmith@domain.com
-* John Smith <jsmith@domain.com>
+* `jsmith@domain.com`
+* `John Smith <jsmith@domain.com>`
 
 The `MAIL FROM` command sent to SMTP servers will not include the name portion, this is only set in the `FROM` as per
 specifications.
