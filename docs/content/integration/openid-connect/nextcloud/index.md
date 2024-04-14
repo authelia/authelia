@@ -149,6 +149,8 @@ identity_providers:
         client_secret: 'insecure_secret'
         public: false
         authorization_policy: 'two_factor'
+        require_pkce: true
+        pkce_challenge_method: 'S256'
         redirect_uris:
           - 'https://nextcloud.example.com/apps/user_oidc/code'
         scopes:
@@ -172,6 +174,13 @@ To configure [Nextcloud] to utilize Authelia as an [OpenID Connect 1.0] Provider
 * Client secret : insecure_secret
 * Discovery endpoint : https://auth.example.com/.well-known/openid-configuration
 * Scope : openid email profile
+
+3. Add the following to the [Nextcloud] `config.php` configuration:
+``` php
+'user_oidc' => [
+    'use_pkce' => true,
+],
+```
 
 ## See Also
 
