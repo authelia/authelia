@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -366,6 +367,29 @@ func IsAccessToken(ctx Context, value string) (is bool, err error) {
 
 func IsMaybeSignedJWT(value string) (is bool) {
 	return strings.Count(value, ".") == 2
+}
+
+func AuthorizeRequestFormRequiresLogin(form url.Values, requested, authenticated time.Time) (required bool) {
+	if form.Has(FormParameterPrompt) && form.Get(FormParameterPrompt) == PromptLogin {
+		return authenticated.Before(requested)
+	}
+
+	if form.Has(FormParameterMaximumAge) {
+		value := form.Get(FormParameterMaximumAge)
+
+		var (
+			age int64
+			err error
+		)
+
+		if age, err = strconv.ParseInt(value, 10, 64); err != nil {
+			age = 0
+		}
+
+		return age == 0 || authenticated.IsZero() || requested.IsZero() || authenticated.Add(time.Duration(age)*time.Second).Before(requested)
+	}
+
+	return false
 }
 
 func ValidateSectorIdentifierURI(ctx ClientContext, cache map[string][]string, sectorURI *url.URL, redirectURIs []string) (err error) {
