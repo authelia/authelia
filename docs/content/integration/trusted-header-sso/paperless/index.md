@@ -38,7 +38,7 @@ This example makes the following assumptions:
 
 ## Configuration
 
-To configure [Organizr] to trust the `Remote-User` header do the following:
+To configure [Paperless] to trust the `Remote-User` header do the following:
 
 1. Configure the environment variables:
 
@@ -50,6 +50,6 @@ PAPERLESS_LOGOUT_REDIRECT_URL=https://auth.example.com/logout
 
 ## See Also
 
-[Organizr] does not appear to have documentation around their `Auth Proxy` configuration.
+- [Paperless Advanced Usage Remote User Authentication Documentation](https://docs.paperless-ngx.com/advanced_usage/#remote-user-authentication)
 
-[Organizr]: https://organizr.app/
+[Paperless]: https://docs.paperless-ngx.com/

@@ -53,6 +53,8 @@ identity_providers:
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
         authorization_policy: 'two_factor'
+        require_pkce: true
+        pkce_challenge_method: 'S256'
         redirect_uris:
           - 'https://paperless.example.com/accounts/authelia/login/callback'
         scopes:
@@ -72,7 +74,7 @@ To configure [Paperless] to utilize Authelia as an [OpenID Connect 1.0] Provider
 
 ```env
 PAPERLESS_APPS=allauth.socialaccount.providers.openid_connect
-PAPERLESS_SOCIALACCOUNT_PROVIDERS={"openid_connect":{"SCOPE":["openid","profile","email"],"APPS":[{"provider_id":"authelia","name":"Authelia","client_id":"paperless","secret":"insecure_secret","settings":{"server_url":"https://auth.example.com","token_auth_method":"client_secret_basic"}}]}}
+PAPERLESS_SOCIALACCOUNT_PROVIDERS={"openid_connect":{"SCOPE":["openid","profile","email"],"OAUTH_PKCE_ENABLED":true,"APPS":[{"provider_id":"authelia","name":"Authelia","client_id":"paperless","secret":"insecure_secret","settings":{"server_url":"https://auth.example.com","token_auth_method":"client_secret_basic"}}]}}
 ```
 
 The `PAPERLESS_SOCIALACCOUNT_PROVIDERS` environment variable is the minified version of the following:
@@ -81,6 +83,7 @@ The `PAPERLESS_SOCIALACCOUNT_PROVIDERS` environment variable is the minified ver
 {
   "openid_connect": {
     "SCOPE": ["openid", "profile", "email"],
+    "OAUTH_PKCE_ENABLED": true,
     "APPS": [
       {
         "provider_id": "authelia",

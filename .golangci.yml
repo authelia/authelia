@@ -17,7 +17,7 @@ linters-settings:
   gocyclo:
     min-complexity: 15
   godot:
-    check-all: true
+    scope: all
   goimports:
     local-prefixes: github.com/authelia/authelia
   revive:
