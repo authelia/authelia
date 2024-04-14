@@ -416,8 +416,8 @@ This subcommand allows debugging the filtered YAML files with any of the availab
 command needs to be executed with the same environment variables and working path as when normally running Authelia to
 be useful.`
 
-	cmdAutheliaConfigTemplateExample = `authelia config template --fitlers.experimental.template
-authelia config template --fitlers.experimental.expand-env --config config.yml`
+	cmdAutheliaConfigTemplateExample = `authelia config template --filters.experimental.template
+authelia config template --filters.experimental.expand-env --config config.yml`
 
 	cmdAutheliaConfigValidateShort = "Check a configuration against the internal configuration validation mechanisms"
 
