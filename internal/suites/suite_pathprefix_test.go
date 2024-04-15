@@ -39,7 +39,7 @@ func (s *PathPrefixSuite) TestResetPasswordScenario() {
 }
 
 func (s *PathPrefixSuite) TestShouldRenderFrontendWithTrailingSlash() {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer func() {
 		cancel()
 		s.collectCoverage(s.Page)
@@ -61,7 +61,7 @@ func (s *PathPrefixSuite) TestShouldRenderFrontendWithTrailingSlash() {
 }
 
 func (s *PathPrefixSuite) TestShouldRenderFrontendWithoutTrailingSlash() {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer func() {
 		cancel()
 		s.collectCoverage(s.Page)
