@@ -1,24 +1,35 @@
 {{ $faq := "../frequently-asked-questions/" }}{{ $config := "../../../configuration/identity-providers/openid-connect/" }}
 {{- with .Get "faq" }}{{ $faq = . }}{{ end }}
 {{- with .Get "config" }}{{ $config = . }}{{ end }}
+## Before You Begin
+
+This section contains important elements that you should carefully consider before configuration of an OpenID Connect
+1.0 Registered Client.
+
 ### Common Notes
 
 1. The [OpenID Connect 1.0](https://openid.net/specs/openid-connect-core-1_0.html) `client_id` parameter:
     1. This *__must__* be a unique value for every client.
-    2. The value used in this guide is merely for readability and demonstration purposes and you should not use this
-       value. We recommend 64 random characters but you can use any arbitrary value that meets the other criteria.
+    2. The value used in this guide is merely for readability and demonstration purposes and you *__should not__* use
+       this value in production and should instead utilize the [How do I generate a client identifier or client secret?]({{ $faq }}#how-do-i-generate-a-client-identifier-or-client-secret)
+       FAQ. We recommend 64 random characters but you can use any arbitrary value that meets the other criteria.
     3. This *__must__* only contain [RFC3986 Unreserved Characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3).
     4. This *__must__* be no more than 100 characters in length.
 2. The [OpenID Connect 1.0](https://openid.net/specs/openid-connect-core-1_0.html) `client_secret` parameter:
-    1. The value used in this guide is merely for demonstration purposes and you *__should absolutely not__* use this in
-       production and should instead utilize the
-       [How Do I Generate Client Secrets]({{ $faq }}#how-do-i-generate-client-secrets) FAQ.
+    1. The value used in this guide is merely for demonstration purposes and you *__should absolutely not__* use this
+       value in production and should instead utilize the
+       [How do I generate a client identifier or client secret?]({{ $faq }}#how-do-i-generate-a-client-identifier-or-client-secret) FAQ.
     2. This string may be stored as plaintext in the Authelia configuration but this behaviour is deprecated and is not
        guaranteed to be supported in the future. See the [Plaintext]({{ $faq }}#plaintext) guide for more
        information.
-    3. When the secret is stored in hashed form in the authelia configuration (*__heavily recommended__*), the cost of hashing can, if too great,
-       cause timeouts for clients. See the [Tuning the work factors]({{ $faq }}#tuning-work-factors) guide for more information.
-3. The Configuration example for Authelia is only a portion of the required configuration and it should be used as a
-   guide in conjunction with the standard
-   [OpenID Connect 1.0 Provider Configuration]({{ printf "%s/provider.md" $config }}) and
-   [OpenID Connect 1.0 Clients Configuration]({{ printf "%s/clients.md" $config }}) guides.
+    3. When the secret is stored in hashed form in the Authelia configuration (*__heavily recommended__*), the cost of
+       hashing can, if too great, cause timeouts for clients. See the
+       [Tuning the work factors]({{ $faq }}#tuning-work-factors) guide for more information.
+3. The configuration example for Authelia:
+    1. Only contains an example configuration for the client registration and you *__MUST__* also configure the required
+       elements from the [OpenID Connect 1.0 Provider Configuration]({{ printf "%s/provider.md" $config }}) guide.
+    2. Only contains a small portion of all of the available options for a registered client and users may wish to
+       configure portions that are not part of this guide or configure them differently, as such it's important to
+       both familiarize yourself with the other options available and the effect of each of the options configured in
+       this section by looking at the [OpenID Connect 1.0 Clients Configuration]({{ printf "%s/clients.md" $config }})
+       guide.

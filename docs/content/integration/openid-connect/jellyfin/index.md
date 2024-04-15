@@ -193,4 +193,4 @@ Alternatively you can utilize the following configuration XML:
 [Jellyfin]: https://jellyfin.org/
 [Jellyfin SSO Plugin]: https://github.com/9p4/jellyfin-plugin-sso
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
-
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
