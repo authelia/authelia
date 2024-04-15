@@ -23,8 +23,6 @@ seo:
 * [Seafile] Server
   * [10.0.1](https://manual.seafile.com/changelog/server-changelog/#1001-2023-04-11)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

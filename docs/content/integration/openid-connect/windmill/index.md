@@ -22,8 +22,6 @@ seo:
 - [Windmill]
   - [1.224.0](https://github.com/windmill-labs/windmill/releases/tag/v1.224.0)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

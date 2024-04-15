@@ -23,8 +23,6 @@ seo:
   * v7.1
   * v7.2
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Specific Notes

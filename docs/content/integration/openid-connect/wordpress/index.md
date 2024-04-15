@@ -22,8 +22,6 @@ seo:
 * [Wordpress]
   * [v6.5.2](https://core.svn.wordpress.org/tags/6.5.2/)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

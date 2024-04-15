@@ -22,8 +22,6 @@ seo:
 * [Argo CD]
   * v2.4.5
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

@@ -22,8 +22,6 @@ seo:
 * [HedgeDoc]
   * [v1.9.9](https://github.com/hedgedoc/hedgedoc/releases/tag/1.9.9)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

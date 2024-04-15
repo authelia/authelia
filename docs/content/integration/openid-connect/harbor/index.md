@@ -22,8 +22,6 @@ seo:
 * [Harbor]
   * 2.5.0
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

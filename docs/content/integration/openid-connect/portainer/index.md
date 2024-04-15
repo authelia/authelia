@@ -24,8 +24,6 @@ seo:
 * [Portainer] CE and EE
   * 2.12.2
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

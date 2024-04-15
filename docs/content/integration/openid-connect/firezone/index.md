@@ -22,8 +22,6 @@ seo:
 * [Firezone]
   * [0.7.25](https://github.com/firezone/firezone/releases/tag/0.7.25)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

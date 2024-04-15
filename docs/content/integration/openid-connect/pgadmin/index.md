@@ -22,8 +22,6 @@ seo:
 * [pgAdmin]
   * [v8.5](https://www.pgadmin.org/docs/pgadmin4/8.5/index.html)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

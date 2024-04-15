@@ -22,8 +22,6 @@ seo:
 * [Gitea]
   * [1.17.0](https://github.com/go-gitea/gitea/releases/tag/v1.17.0)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

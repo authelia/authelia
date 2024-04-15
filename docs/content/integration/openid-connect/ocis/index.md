@@ -22,8 +22,6 @@ seo:
 * [ownCloud Infinite Scale]
   * 4.0.5
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

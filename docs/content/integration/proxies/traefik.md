@@ -148,7 +148,7 @@ following are the assumptions we make:
 This is an example configuration using [docker compose] labels:
 
 {{< details "docker-compose.yml" >}}
-```yaml {title="docker-compse.yml"}
+```yaml {title="docker-compose.yml"}
 ---
 networks:
   net:
@@ -284,7 +284,7 @@ This example uses a `docker-compose.yml` similar to the one above however it has
      `authelia-net@docker` service, and commenting the `authelia` service in the `http.service` section.
 
 {{< details "docker-compose.yml" >}}
-```yaml {title="docker-compse.yml"}
+```yaml {title="docker-compose.yml"}
 ---
 networks:
   net:

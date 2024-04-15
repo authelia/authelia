@@ -22,8 +22,6 @@ seo:
 * [Komga]
   * [v0.157.1](https://github.com/gotson/komga/releases/tag/v0.157.1)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

@@ -22,8 +22,6 @@ seo:
 * [GitLab] CE
   * 16.9.0
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

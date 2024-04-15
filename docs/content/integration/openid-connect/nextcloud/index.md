@@ -23,8 +23,6 @@ seo:
   * 22.1.0 with the application oidc_login
   * 28.0.4 with the application user_oidc
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ## Assumptions

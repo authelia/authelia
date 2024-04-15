@@ -22,8 +22,6 @@ seo:
 * [Odoo]
   * [17.0](https://github.com/odoo/odoo/tree/17.0)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

@@ -22,8 +22,6 @@ seo:
 * [PocketBase](https://pocketbase.io/docs/authentication/#oauth2-integration)
   * 4.2.3
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

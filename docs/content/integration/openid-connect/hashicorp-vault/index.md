@@ -22,8 +22,6 @@ seo:
 * [HashiCorp Vault]
   * 1.8.1
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

@@ -22,8 +22,6 @@ seo:
 * [Mastodon]
   * [v4.2.8](https://github.com/mastodon/mastodon/releases/tag/v4.2.8)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

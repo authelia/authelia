@@ -22,8 +22,6 @@ seo:
 * [Kasm Workspaces]
   * [1.13.0](https://kasmweb.com/docs/latest/release_notes/1.13.0.html)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

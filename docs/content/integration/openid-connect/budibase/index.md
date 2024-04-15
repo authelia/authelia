@@ -22,8 +22,6 @@ seo:
 - [Budibase]
   - 2.13.9
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

@@ -88,7 +88,7 @@ It expects the following:
 Use this [Standalone Example](#standalone-example) if you want to use
 [docker secrets](https://docs.docker.com/engine/swarm/secrets/).
 
-```yaml {title="docker-compse.yml"}
+```yaml {title="docker-compose.yml"}
 ---
 secrets:
   JWT_SECRET:
@@ -129,7 +129,7 @@ networks:
 Use this [Standalone Example](#standalone-example) if you want to use a standard
 [docker volume](https://docs.docker.com/storage/volumes/) or bind mount for your secrets.
 
-```yaml {title="docker-compse.yml"}
+```yaml {title="docker-compose.yml"}
 ---
 services:
   authelia:
@@ -221,7 +221,7 @@ The example below includes the additional `ports` option which must be added in 
 [Standalone Example](#standalone-example) above. The example allows *Authelia* to be communicated with over the
 localhost IP address `127.0.0.1` on port `9091`. You need to adjust this to your specific needs.
 
-```yaml {title="docker-compse.yml"}
+```yaml {title="docker-compose.yml"}
 ---
 services:
   authelia:

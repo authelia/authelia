@@ -22,8 +22,6 @@ seo:
 * [Homarr]
   * 0.15.2
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

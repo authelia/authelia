@@ -22,8 +22,6 @@ seo:
 * [BookStack]
   * 23.02.2
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

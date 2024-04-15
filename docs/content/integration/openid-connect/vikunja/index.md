@@ -22,8 +22,6 @@ seo:
 * [Vikunja]
   * [v0.23.0](https://kolaente.dev/vikunja/vikunja/releases/tag/v0.23.0)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

@@ -22,8 +22,6 @@ seo:
 * [Grafana]
   * 8.0.0
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

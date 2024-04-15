@@ -22,8 +22,6 @@ seo:
 * [HumHub]
   * [1.15.4](https://github.com/humhub/humhub/releases/tag/v1.15.4)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

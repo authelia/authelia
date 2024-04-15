@@ -26,8 +26,6 @@ seo:
 * [Postfix]
   * [3.7.6](https://www.postfix.org/announcements/postfix-3.8.1.html)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions
