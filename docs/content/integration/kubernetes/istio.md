@@ -34,7 +34,7 @@ DNS domain name of `cluster.local`.
 This is an example IstioOperator manifest adjusted to authenticate with Authelia. This example only shows the necessary
 portions of the resource that you add as well as context. You will need to adapt it to your needs.
 
-```yaml
+```yaml {title="istio-operator.yml"}
 apiVersion: 'install.istio.io/v1alpha1'
 kind: 'IstioOperator'
 spec:
@@ -65,7 +65,7 @@ spec:
 
 The following [Authorization Policy] applies the above filter extension provider to the `nextcloud.example.com` domain:
 
-```yaml
+```yaml {title="authoriztion-policy.yml"}
 apiVersion: 'security.istio.io/v1beta1'
 kind: 'AuthorizationPolicy'
 metadata:

@@ -50,8 +50,7 @@ that your cluster is configured with the default DNS domain name of `cluster.loc
 *__Important Note:__ The [Middleware] should be applied to an [Ingress] / [IngressRoute] you wish to protect. It
 __SHOULD NOT__ be applied to the Authelia [Ingress] / [IngressRoute] itself.*
 
-{{< details "middleware.yml" >}}
-```yaml
+```yaml {title="middleware.yaml"}
 ---
 apiVersion: 'traefik.containo.us/v1alpha1'
 kind: 'Middleware'
@@ -71,7 +70,6 @@ spec:
       - 'Remote-Name'
 ...
 ```
-{{< /details >}}
 
 ## Ingress
 
@@ -79,8 +77,7 @@ This is an example [Ingress] manifest which uses the above [Middleware](#middlew
 application you wish to serve on `https://app.example.com` and there is a Kubernetes [Service] with the name `app` in
 the `default` [Namespace] with TCP port `80` configured to route to the application [Pod]'s HTTP port.
 
-{{< details "ingress.yml" >}}
-```yaml
+```yaml {title="ingress.yaml"}
 ---
 apiVersion: 'networking.k8s.io/v1'
 kind: 'Ingress'
@@ -105,7 +102,6 @@ spec:
                   number: 80
 ...
 ```
-{{< /details >}}
 
 ## IngressRoute
 
@@ -113,8 +109,7 @@ This is an example [IngressRoute] manifest which uses the above [Middleware](#mi
 an application you wish to serve on `https://app.example.com` and there is a Kubernetes [Service] with the name `app` in
 the `default` [Namespace] with TCP port `80` configured to route to the application [Pod]'s HTTP port.
 
-{{< details "ingressRoute.yml" >}}
-```yaml
+```yaml {title="ingressRoute.yaml"}
 ---
 apiVersion: 'traefik.containo.us/v1alpha1'
 kind: 'IngressRoute'
@@ -140,7 +135,6 @@ spec:
           weight: 10
 ...
 ```
-{{< /details >}}
 
 [Namespace]: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/
 [Pod]: https://kubernetes.io/docs/concepts/workloads/pods/

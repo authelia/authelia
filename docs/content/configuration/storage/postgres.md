@@ -70,19 +70,19 @@ the `unix` scheme or one of the `tcp` schemes.
 
 __Examples:__
 
-```yaml
+```yaml {title="configuration.yml"}
 storage:
   postgres:
     address: 'tcp://127.0.0.1:5432'
 ```
 
-```yaml
+```yaml {title="configuration.yml"}
 storage:
   postgres:
     address: 'tcp://[fd00:1111:2222:3333::1]:5432'
 ```
 
-```yaml
+```yaml {title="configuration.yml"}
 storage:
   postgres:
     address: 'unix:///var/run/postgres.sock'

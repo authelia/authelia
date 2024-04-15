@@ -3,8 +3,6 @@
 #                   Authelia configuration                    #
 ###############################################################
 
-default_redirection_url: 'https://public.example.com'
-
 server:
   address: 'tcp://:9091'
 
@@ -41,6 +39,7 @@ session:
       authelia_url: 'https://authelia.example.com'
       expiration: '1 hour'  # 1 hour
       inactivity: '5 minutes'  # 5 minutes
+      default_redirection_url: 'https://public.example.com'
 
 regulation:
   max_retries: 3

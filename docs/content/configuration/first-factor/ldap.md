@@ -81,13 +81,13 @@ located at `/var/run/slapd.sock` the address should be `ldapi:///var/run/slapd.s
 
 __Examples:__
 
-```yaml
+```yaml {title="configuration.yml"}
 authentication_backend:
   ldap:
     address: 'ldaps://dc1.example.com'
 ```
 
-```yaml
+```yaml {title="configuration.yml"}
 authentication_backend:
   ldap:
     address: 'ldap://[fd00:1111:2222:3333::1]'

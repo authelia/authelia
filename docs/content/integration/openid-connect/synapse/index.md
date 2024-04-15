@@ -68,7 +68,7 @@ To configure [Synapse] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 1. Edit your [Synapse] `homeserver.yaml` configuration file and add configure the following:
 
-```yaml
+```yaml {title="configuration.yml"}
 oidc_providers:
   - idp_id: authelia
     idp_name: "Authelia"

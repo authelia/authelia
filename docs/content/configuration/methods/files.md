@@ -137,7 +137,7 @@ information.
 
 An excerpt from a Kubernetes container that allows you to specify multiple configuration files is as follows:
 
-```yaml
+```yaml {title="deployment.yml"}
 kind: Deployment
 apiVersion: apps/v1
 metadata:

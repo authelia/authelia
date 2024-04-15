@@ -40,7 +40,7 @@ be applied to the Authelia Ingress itself.*
 
 ### Ingress Annotations
 
-```yaml
+```yaml {title="ingress.yml"}
 annotations:
   nginx.ingress.kubernetes.io/auth-method: 'GET'
   nginx.ingress.kubernetes.io/auth-url: 'http://authelia.default.svc.cluster.local/api/authz/auth-request'

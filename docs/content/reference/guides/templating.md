@@ -131,7 +131,7 @@ This template function takes a single input and is a string which should be a pa
 
 Example:
 
-```yaml
+```yaml {title="configuration.yml"}
 example: |
   {{- fileContent "/absolute/path/to/file" | nindent 2 }}
 ```
@@ -142,7 +142,7 @@ Overload for [fileContent](#filecontent) except that tailing newlines will be re
 
 ##### secret example
 
-```yaml
+```yaml {title="configuration.yml"}
 example: '{{ secret "/absolute/path/to/file" }}'
 ```
 
@@ -155,20 +155,20 @@ formatting string provided. Input is in the format of `(int, string, string)`.
 
 Input:
 
-```yaml
+```yaml {title="configuration.yml"}
 example: {{ secret "/absolute/path/to/file" | mindent 2 "|" | msquote }}
 ```
 
 Output (with multiple lines):
 
-```yaml
+```yaml {title="configuration.yml"}
 example: |
   <content of "/absolute/path/to/file">
 ```
 
 Output (without multiple lines):
 
-```yaml
+```yaml {title="configuration.yml"}
 example: '<content of "/absolute/path/to/file">'
 ```
 

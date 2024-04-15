@@ -157,7 +157,7 @@ implementation, and it is not currently a priority.
 *Single domain of `*.example.com` matched. All rules in this list are effectively the same rule just expressed in
 different ways.*
 
-```yaml
+```yaml {title="configuration.yml"}
 access_control:
   rules:
   - domain: '*.example.com'
@@ -170,7 +170,7 @@ access_control:
 *Multiple domains matched. These rules will match either `apple.example.com` or `orange.example.com`. All rules in this
 list are effectively the same rule just expressed in different ways.*
 
-```yaml
+```yaml {title="configuration.yml"}
 access_control:
   rules:
   - domain: ['apple.example.com', 'banana.example.com']
@@ -184,7 +184,7 @@ access_control:
 *Multiple domains matched either via a static domain or via a [domain_regex]. This rule will match
 either `apple.example.com`, `pub-data.example.com`, or `img-data.example.com`.*
 
-```yaml
+```yaml {title="configuration.yml"}
 access_control:
   rules:
   - domain: 'apple.example.com'
@@ -218,7 +218,7 @@ In addition to standard regex patterns this criteria can match some [Named Regex
 `group-example1.example.com`, it would not match when the request is made to `user-fred.example.com` or
 `group-admin.example.com`.*
 
-```yaml
+```yaml {title="configuration.yml"}
 access_control:
   rules:
   - domain_regex:
@@ -230,7 +230,7 @@ access_control:
 *Multiple domains example, one with a static domain and one with a regex domain. This will match requests to
 `protected.example.com`, `img-private.example.com`, or `data-private.example.com`.*
 
-```yaml
+```yaml {title="configuration.yml"}
 access_control:
   rules:
   - domain: 'protected.example.com'
@@ -277,7 +277,7 @@ Additionally each level of these lists does not have to be explicitly defined.
 user is in the group `super-admin`. All rules in this list are effectively the same rule just expressed in different
 ways.*
 
-```yaml
+```yaml {title="configuration.yml"}
 access_control:
   rules:
   - domain: 'example.com'
@@ -297,7 +297,7 @@ access_control:
 *Matches when the user is in the `super-admin` group. All rules in this list are effectively the same rule just
 expressed in different ways.*
 
-```yaml
+```yaml {title="configuration.yml"}
 access_control:
   rules:
   - domain: 'example.com'
@@ -342,7 +342,7 @@ relevant methods are listed in this table:
 
 *Bypass `OPTIONS` requests to the `example.com` domain.*
 
-```yaml
+```yaml {title="configuration.yml"}
 access_control:
   rules:
   - domain: 'example.com'
@@ -380,7 +380,7 @@ for administrators to tune the security to their specific needs if desired.
 *Require [two_factor](#two_factor) for all clients other than internal clients and `112.134.145.167`. The first two
 rules in this list are effectively the same rule just expressed in different ways.*
 
-```yaml
+```yaml {title="configuration.yml"}
 access_control:
   default_policy: 'two_factor'
   networks:
@@ -431,7 +431,7 @@ likely save you a lot of time if you do it for all resource rules.
 *Applies the [bypass](#bypass) policy when the domain is `app.example.com` and the url is `/api`, or starts with either
 `/api/` or `/api?`.*
 
-```yaml
+```yaml {title="configuration.yml"}
 access_control:
   rules:
   - domain: 'app.example.com'
@@ -477,7 +477,7 @@ defaults to `present`.
 
 ##### Examples
 
-```yaml
+```yaml {title="configuration.yml"}
 access_control:
   rules:
     - domain: 'app.example.com'
@@ -554,7 +554,7 @@ if they have a path of exactly `/api` or if they start with `/api/`. This means 
 `app.example.com` will not be considered if the request is to `https://app.example.com/api` because the first rule is
 a match for that request.
 
-```yaml
+```yaml {title="configuration.yml"}
 - domain:
     - 'example.com'
     - '*.example.com'
@@ -614,7 +614,7 @@ alphanumeric (including spaces).
 
 Here is a detailed example of an example access control section:
 
-```yaml
+```yaml {title="configuration.yml"}
 access_control:
   default_policy: 'deny'
   networks:

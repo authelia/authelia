@@ -83,13 +83,13 @@ The important sections to consider in initial configuration are as follows:
 6. [access_control](../../configuration/security/access-control.md) is also important but should be configured with a
    very basic policy to begin with. Something like:
 
-  ```yaml
-  access_control:
-    default_policy: deny
-    rules:
-      - domain: '*.example.com'
-        policy: one_factor
-  ```
+```yaml {title="configuration.yml"}
+access_control:
+  default_policy: deny
+  rules:
+    - domain: '*.example.com'
+      policy: one_factor
+```
 
 ## Deployment
 

@@ -76,7 +76,7 @@ This section describes the individual configuration options.
 The [redis] host or unix socket path. If utilising an IPv6 literal address it must be enclosed by square brackets and
 quoted:
 
-```yaml
+```yaml {title="configuration.yml"}
 host: '[fd00:1111:2222:3333::1]'
 ```
 
@@ -176,7 +176,7 @@ host, not a regular one. The individual [redis] hosts are determined using [redi
 
 Each node has a host and port configuration. Example:
 
-```yaml
+```yaml {title="configuration.yml"}
 - host: redis-sentinel-0
   port: 26379
 ```

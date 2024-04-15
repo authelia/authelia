@@ -71,13 +71,13 @@ use a standard TCP transport and typically enforce StartTLS.
 
 __Examples:__
 
-```yaml
+```yaml {title="configuration.yml"}
 notifier:
   smtp:
     address: 'smtp://127.0.0.1:25'
 ```
 
-```yaml
+```yaml {title="configuration.yml"}
 notifier:
   smtp:
     address: 'submissions://[fd00:1111:2222:3333::1]:465'
@@ -181,7 +181,7 @@ Controls the TLS connection validation parameters for either StartTLS or the TLS
 You need to generate an app password in order to use Gmail SMTP servers. The process is described
 [here](https://support.google.com/accounts/answer/185833?hl=en).
 
-```yaml
+```yaml {title="configuration.yml"}
 notifier:
   smtp:
     username: 'myaccount@gmail.com'

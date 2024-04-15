@@ -27,7 +27,7 @@ https://www.authelia.com/schemas/<version>/json-schema/<name>.json
 
 These schemas can be added to the top of a YAML file using the following format:
 
-```yaml
+```yaml {title="configuration.yml"}
 # yaml-language-server: $schema=https://www.authelia.com/schemas/<version>/json-schema/<name>.json
 
 example: 'this is just an example'

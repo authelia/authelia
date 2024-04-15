@@ -69,7 +69,7 @@ Options are:
 * webauthn
 * mobile_push
 
-```yaml
+```yaml {title="configuration.yml"}
 default_2fa_method: totp
 ```
 
