@@ -62,22 +62,27 @@ Integration tests are located under the `internal/suites` directory and are base
 of environment and tests. Executing a suite therefore means starting the environment, running the tests and tearing down
 the environment. Each step can be run independently:
 
+```bash {title="List the Available Suites"}
+authelia-scripts suites list
+```
+
 ```bash
-# List the available suites
-$ authelia-scripts suites list
 Standalone
 DuoPush
 LDAP
 Traefik
+```
 
-# Start the environment of Standalone suite.
-$ authelia-scripts suites setup Standalone
+```bash {title="Start the environment of the Standalone suite"}
+authelia-scripts suites setup Standalone
+```
 
-# Run the tests related to the currently running suite.
-$ authelia-scripts suites test
+```bash {title="Run the tests related to the currently running suite"}
+authelia-scripts suites test
+```
 
-# Tear down the environment
-$ authelia-scripts suites teardown Standalone
+```bash {title="Tear down the environment of the currently running suite"}
+authelia-scripts suites teardown Standalone
 ```
 
 In order to test all suites (approx 30 minutes), you need to make sure there is no currently running sui te and then you

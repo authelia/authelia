@@ -45,12 +45,12 @@ syntax is valid.
 {{< envTabs "Validate Configuration" >}}
 {{< envTab "Docker" >}}
 ```bash
-$ docker run authelia/authelia:latest authelia config validate --config /config/configuration.yml
+docker run authelia/authelia:latest authelia config validate --config /config/configuration.yml
 ```
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
 ```bash
-$ authelia config validate --config configuration.yml
+authelia config validate --config configuration.yml
 ```
 {{< /envTab >}}
 {{< /envTabs >}}

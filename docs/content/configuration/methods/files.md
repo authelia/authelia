@@ -46,12 +46,12 @@ following syntax:
 {{< envTabs "Validate Configuration" >}}
 {{< envTab "Docker" >}}
 ```bash
-$ docker run authelia/authelia:latest authelia --config config.custom.yml
+docker run authelia/authelia:latest authelia --config config.custom.yml
 ```
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
 ```bash
-$ authelia --config config.custom.yml
+authelia --config config.custom.yml
 ```
 {{< /envTab >}}
 {{< /envTabs >}}
@@ -74,20 +74,20 @@ the last one to be specified is the one that takes precedence. Example:
 {{< envTabs "Run With Multiple Configurations" >}}
 {{< envTab "Docker" >}}
 ```bash
-$ docker run -d authelia/authelia:latest authelia --config configuration.yml --config config-acl.yml --config config-other.yml
+docker run -d authelia/authelia:latest authelia --config configuration.yml --config config-acl.yml --config config-other.yml
 ```
 
 ```bash
-$ docker run -d authelia/authelia:latest authelia --config configuration.yml,config-acl.yml,config-other.yml
+docker run -d authelia/authelia:latest authelia --config configuration.yml,config-acl.yml,config-other.yml
 ```
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
 ```bash
-$ authelia --config configuration.yml --config config-acl.yml --config config-other.yml
+authelia --config configuration.yml --config config-acl.yml --config config-other.yml
 ```
 
 ```bash
-$ authelia --config configuration.yml,config-acl.yml,config-other.yml
+authelia --config configuration.yml,config-acl.yml,config-other.yml
 ```
 {{< /envTab >}}
 {{< /envTabs >}}
@@ -203,12 +203,12 @@ Examples:
 {{< envTabs "Filters By Argument" >}}
 {{< envTab "Docker" >}}
 ```bash
-$ docker run -d authelia/authelia:latest authelia --config /config/configuration.yml --config.experimental.filters expand-env,template
+docker run -d authelia/authelia:latest authelia --config /config/configuration.yml --config.experimental.filters expand-env,template
 ```
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
 ```bash
-$ authelia --config /config/configuration.yml --config.experimental.filters expand-env,template
+authelia --config /config/configuration.yml --config.experimental.filters expand-env,template
 ```
 {{< /envTab >}}
 {{< /envTabs >}}
@@ -216,12 +216,12 @@ $ authelia --config /config/configuration.yml --config.experimental.filters expa
 {{< envTabs "Filters By Environment" >}}
 {{< envTab "Docker" >}}
 ```bash
-$ docker run -d -e X_AUTHELIA_CONFIG_FILTERS=expand-env,template -e X_AUTHELIA_CONFIG=/config/configuration.yml authelia/authelia:latest authelia
+docker run -d -e X_AUTHELIA_CONFIG_FILTERS=expand-env,template -e X_AUTHELIA_CONFIG=/config/configuration.yml authelia/authelia:latest authelia
 ```
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
 ```bash
-$ X_AUTHELIA_CONFIG_FILTERS=expand-env,template X_AUTHELIA_CONFIG=/config/configuration.yml authelia
+X_AUTHELIA_CONFIG_FILTERS=expand-env,template X_AUTHELIA_CONFIG=/config/configuration.yml authelia
 ```
 {{< /envTab >}}
 {{< /envTabs >}}
