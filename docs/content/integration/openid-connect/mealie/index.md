@@ -2,7 +2,7 @@
 title: "Mealie"
 description: "Integrating Mealie with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2023-03-21T11:21:23+11:00
+date: 2024-04-13T21:01:17+10:00
 draft: false
 images: []
 weight: 620
