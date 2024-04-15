@@ -15,7 +15,7 @@ services:
     cap_add:
       - SYS_PTRACE
     volumes:
-      - './example/compose/authelia/resources/:/resources'
+      - './example/compose/authelia/resources:/resources'
       - '../..:/app'
       - '${GOPATH}:/go'
     labels:
