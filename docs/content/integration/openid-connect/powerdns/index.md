@@ -22,8 +22,6 @@ seo:
 * [PowerDNS Admin]
   * [v0.4.1](https://github.com/PowerDNS-Admin/PowerDNS-Admin/releases/tag/v0.4.1)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

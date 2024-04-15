@@ -22,8 +22,6 @@ seo:
 - [Misago](https://github.com/rafalp/Misago)
   - [misago-image v0.29.1](https://github.com/tetricky/misago-image/releases/tag/v0.29.1)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

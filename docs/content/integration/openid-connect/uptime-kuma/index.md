@@ -22,8 +22,6 @@ seo:
 * [Uptime Kuma]
   * [v1.23.11](https://github.com/louislam/uptime-kuma/releases/tag/1.23.11)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

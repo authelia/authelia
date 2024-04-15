@@ -22,8 +22,6 @@ seo:
 * [Jellyfin]
     * [10.8.13](https://github.com/jellyfin/jellyfin/releases/tag/v10.8.13)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

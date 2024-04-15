@@ -22,8 +22,6 @@ seo:
 * [Jenkins]
   * [v2.453](https://www.jenkins.io/changelog/2.453/)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

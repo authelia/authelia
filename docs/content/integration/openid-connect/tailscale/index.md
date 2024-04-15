@@ -22,8 +22,6 @@ seo:
 * [Tailscale] - **Note:** Version not important, since configuration is via the WebUI
   * [1.38.4](https://github.com/tailscale/tailscale/releases/tag/v1.38.4)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

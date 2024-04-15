@@ -22,8 +22,6 @@ seo:
 * [Mealie]
   * [v1.4.0](https://github.com/mealie-recipes/mealie/releases/tag/v1.4.0)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

@@ -22,8 +22,6 @@ seo:
 * [Apache Guacamole]
   * __UNKNOWN__
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

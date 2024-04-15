@@ -22,8 +22,6 @@ seo:
 * [Memos](https://github.com/usememos/memos)
   * [0.16.1](https://github.com/usememos/memos/tree/v0.16.1)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

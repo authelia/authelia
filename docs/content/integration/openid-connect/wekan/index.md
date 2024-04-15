@@ -22,8 +22,6 @@ seo:
 * [WeKan]
   * [v7.42](https://github.com/wekan/wekan/releases/tag/v7.42)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

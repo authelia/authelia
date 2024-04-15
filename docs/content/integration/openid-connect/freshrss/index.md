@@ -22,8 +22,6 @@ seo:
 * [FreshRSS]
   * [1.23.1](https://github.com/FreshRSS/FreshRSS/releases/tag/1.23.1)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

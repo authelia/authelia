@@ -22,8 +22,6 @@ seo:
 * [MinIO]
   * [2024-01-05T22-17-24Z](https://github.com/minio/minio/releases/tag/RELEASE.2024-01-05T22-17-24Z)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

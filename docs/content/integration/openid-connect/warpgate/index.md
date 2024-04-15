@@ -22,8 +22,6 @@ seo:
 - [Warpgate]
   - [0.9.1](https://github.com/warp-tech/warpgate/releases/tag/v0.9.1)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

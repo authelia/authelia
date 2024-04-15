@@ -22,8 +22,6 @@ seo:
 * [Paperless]
   * [v2.7.2](https://github.com/paperless-ngx/paperless-ngx/releases/tag/v2.7.2)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

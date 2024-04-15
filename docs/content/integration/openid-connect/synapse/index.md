@@ -22,8 +22,6 @@ seo:
 * [Synapse]
   * [v1.60.0](https://github.com/matrix-org/synapse/releases/tag/v1.60.0)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions

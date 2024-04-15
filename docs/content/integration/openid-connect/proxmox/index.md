@@ -24,8 +24,6 @@ seo:
 * [Proxmox]
   * 7.1-10
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Specific Notes

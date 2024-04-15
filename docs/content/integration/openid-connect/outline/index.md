@@ -22,8 +22,6 @@ seo:
 * [Outline]
   * 0.65.2
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions
