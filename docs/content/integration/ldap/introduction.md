@@ -44,7 +44,8 @@ In your Authelia configuration you will need to enter and update the following v
 * user `authelia` - username for Authelia service account
 * password `SUPER_COMPLEX_PASSWORD` - password for Authelia service account
 
-```yaml
+```yaml {title="configuration.yml"}
+authentication_backend:
   ldap:
     address: 'ldap://OpenLDAP:1389'
     implementation: 'custom'
@@ -93,7 +94,8 @@ In your Authelia configuration you will need to enter and update the following v
 * user `authelia` - username for Authelia service account
 * password `SUPER_COMPLEX_PASSWORD` - password for Authelia service account
 
-```yaml
+```yaml {title="configuration.yml"}
+authentication_backend:
  ldap:
     address: 'ldaps://ldap.example.com'
     implementation: 'custom'
@@ -138,8 +140,9 @@ In your Authelia configuration you will need to enter and update the following v
 * user `authelia` - username for Authelia service account.
 * password `SUPER_COMPLEX_PASSWORD` - password for Authelia service account,
 
-```yaml
-ldap:
+```yaml {title="configuration.yml"}
+authentication_backend:
+  ldap:
     address: 'ldap://lldap:3890'
     implementation: 'custom'
     timeout: '5s'

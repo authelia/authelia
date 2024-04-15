@@ -210,13 +210,13 @@ no quotes or double quotes.
 
 Good Example:
 
-```yaml
+```yaml {title="configuration.yml"}
 domain_regex: '^(admin|secure)\.example\.com$'
 ```
 
 Bad Example:
 
-```yaml
+```yaml {title="configuration.yml"}
 domain_regex: "^(admin|secure)\.example\.com$"
 ```
 
@@ -236,8 +236,7 @@ TLS verification parameters. Notably the [LDAP](../first-factor/ldap.md#tls), [S
 [PostgreSQL](../storage/postgres.md#tls), [MySQL](../storage/mysql.md#tls), and [Redis](../session/redis.md#tls)
 sections. This section documents the common parts of this structure.
 
-{{< details "Example: TLS" >}}
-```yaml
+```yaml {title="configuration.yml"}
 tls:
   server_name: 'example.com'
   skip_verify: false
@@ -255,7 +254,6 @@ tls:
     ...
     -----END RSA PRIVATE KEY-----
 ```
-{{< /details >}}
 
 #### server_name
 
@@ -326,13 +324,11 @@ buffers. Notably the [server](../miscellaneous/server.md#buffers) and
 [metrics telemetry](../telemetry/metrics.md#buffers) sections. This section documents the common parts of this
 structure.
 
-{{< details "Example: Server Buffers" >}}
-```yaml
+```yaml {title="configuration.yml"}
 buffers:
   read: 4096
   write: 4096
 ```
-{{< /details >}}
 
 #### read
 
@@ -353,14 +349,12 @@ timeouts. Notably the [server](../miscellaneous/server.md#timeouts) and
 [metrics telemetry](../telemetry/metrics.md#timeouts) sections. This section documents the common parts of this
 structure.
 
-{{< details "Example: Server Timeouts" >}}
-```yaml
+```yaml {title="configuration.yml"}
 timeouts:
   read: '6s'
   write: '6s'
   idle: '30s'
 ```
-{{< /details >}}
 
 #### read
 

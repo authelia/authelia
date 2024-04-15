@@ -88,8 +88,7 @@ they have several configuration examples in the `/config/nginx/proxy-confs` dire
 If you're looking for a more complete solution [linuxserver.io] also have an nginx container called [SWAG](swag.md)
 which includes ACME and various other useful utilities.
 
-{{< details "docker-compose.yml" >}}
-```yaml
+```yaml {title="docker-compose.yml"}
 ---
 networks:
   net:
@@ -163,7 +162,6 @@ services:
       TZ: 'Australia/Melbourne'
 ...
 ```
-{{< /details >}}
 
 ### Configuration Options
 

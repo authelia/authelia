@@ -58,12 +58,12 @@ Configures the address for the NTP Server. The address itself is a connector and
 
 __Examples:__
 
-```yaml
+```yaml {title="configuration.yml"}
 ntp:
   address: 'udp://127.0.0.1:123'
 ```
 
-```yaml
+```yaml {title="configuration.yml"}
 ntp:
   address: 'udp6://[fd00:1111:2222:3333::1]:123'
 ```

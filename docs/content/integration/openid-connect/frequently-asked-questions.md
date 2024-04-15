@@ -253,7 +253,7 @@ you're facing.
 
 Examples (assuming your Authelia Root URL is `https://auth.example.com`):
 
-```yaml
+```yaml {title="docker-compose.yml"}
 services:
   application:
     ## Mandatory that the application is on the same network as the proxy.

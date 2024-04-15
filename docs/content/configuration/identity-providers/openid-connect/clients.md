@@ -288,7 +288,7 @@ a default policy of `two_factor` for everyone else. This policy is applied to th
 `client_with_policy_name`. You should refer to the [authorization_policies](./provider.md#authorization_policies)
 section for more in depth information.
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     authorization_policies:
@@ -609,7 +609,7 @@ Required when the following options are configured to specific values:
 
 The following is a contextual example (see below for information regarding each option):
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     clients:

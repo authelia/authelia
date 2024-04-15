@@ -54,7 +54,7 @@ for more details.
 
 #### Pod Example
 
-```yaml
+ {title="pod.yml"}
 ---
 apiVersion: v1
 kind: Pod

@@ -138,7 +138,7 @@ The following example uses the [OpenID Connect user backend](https://apps.nextcl
 The following YAML configuration is an example __Authelia__ [client configuration] for use with [Nextcloud] which will
 operate with the application example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.

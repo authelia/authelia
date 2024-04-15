@@ -567,7 +567,7 @@ server:
 {{< /details >}}
 
 {{< details "After" >}}
-```yaml
+```yaml {title="configuration.yml"}
 server:
   address: 'tcp://0.0.0.0:9091/authelia'
 ```

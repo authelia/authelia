@@ -42,9 +42,9 @@ Defines the level of logs used by Authelia. This level can be set to `trace`, `d
 setting level to `trace`, you will generate a large amount of log entries and expose the `/debug/vars` and
 `/debug/pprof/` endpoints which should not be enabled in production.
 
-```yaml
+```yaml {title="configuration.yml"}
 log:
-  level: debug
+  level: 'debug'
 ```
 
 ### format
@@ -53,9 +53,9 @@ log:
 
 Defines the format of the logs written by Authelia. This format can be set to `json` or `text`.
 
-```yaml
+```yaml {title="configuration.yml"}
 log:
-  format: json
+  format: 'json'
 ```
 
 #### JSON format
@@ -90,23 +90,23 @@ the layout supported by Go.
 
 __Standard Example:__
 
-```yaml
+```yaml {title="configuration.yml"}
 log:
-  file_path: /config/authelia.log
+  file_path: '/config/authelia.log'
 ```
 
 __Date Time Example:__
 
-```yaml
+```yaml {title="configuration.yml"}
 log:
-  file_path: /config/authelia.%d.log
+  file_path: '/config/authelia.%d.log'
 ```
 
 __Date Time Example (with custom layout):__
 
-```yaml
+```yaml {title="configuration.yml"}
 log:
-  file_path: /config/authelia.{datetime:Mon Jan 2 15:04:05 MST 2006}.log
+  file_path: '/config/authelia.{datetime:Mon Jan 2 15:04:05 MST 2006}.log'
 ```
 
 ### keep_stdout
@@ -116,7 +116,7 @@ log:
 Overrides the behavior to redirect logging only to the `file_path`. If set to `true` logs will be written to both
 standard output, and the defined logging location.
 
-```yaml
+```yaml {title="configuration.yml"}
 log:
   keep_stdout: true
 ```

@@ -50,7 +50,7 @@ see the [Reference Guide](../../reference/guides/templating.md).
 This example shows how to do a single-line value. The single quotes are only relevant if the value is a string and can
 be excluded for other value types.
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     hmac_secret: '{{ secret "/config/secrets/absolute/path/to/hmac_secret" }}'
@@ -60,7 +60,7 @@ Alternatively you can use the special `m` variants of the `indent` and `squote` 
 layout depending on if the file has multiple lines, [msquote] will automatically single quote the value if it's not
 multiple lines, see [Multi-Line Value](#multi-line-value) for more information on [mindent].
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     hmac_secret: {{ secret "/config/secrets/absolute/path/to/hmac_secret" | mindent 10 "|" | msquote }}
@@ -78,7 +78,7 @@ It's important to note the use of [mindent]:
      8 characters, so the value `10` is correct.
 2. The value of `|` indicates what multiline prefix to use.
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     jwks:

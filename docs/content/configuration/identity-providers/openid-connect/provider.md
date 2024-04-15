@@ -117,7 +117,7 @@ key in this list is used.
 
 The following is a contextual example (see below for information regarding each option):
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     jwks:
@@ -184,7 +184,7 @@ It is recommended that you use a file to specify this particular option. In part
 the file is `/config/secrets/oidc/jwks/rsa.2048.key`:
 
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     jwks:
@@ -355,7 +355,7 @@ The follow example shows a policy named `policy_name` which will `deny` access t
 a default policy of `two_factor` for everyone else. This policy is applied to the client with id
 `client_with_policy_name`. You should refer to the below headings which describe each configuration key in more detail.
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     authorization_policies:
@@ -451,7 +451,7 @@ The following is an exhaustive example of all of the options available. Each of 
 same rules as the [access_token](#access_token), [authorize_code](#authorize_code), [id_token](#id_token), and
 [refresh_token](#refresh_token) global default options. The global lifespan options are included for reference purposes.
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     lifespans:
@@ -529,14 +529,14 @@ In addition to an Origin URI, you may specify the wildcard origin in the allowed
 and the [allowed_origins_from_client_redirect_uris](#allowed_origins_from_client_redirect_uris) MUST NOT be enabled. The
 wildcard origin is denoted as `*`. Examples:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     cors:
       allowed_origins: "*"
 ```
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     cors:

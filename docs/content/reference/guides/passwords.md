@@ -24,7 +24,7 @@ This file should be set with read/write permissions as it could be updated by us
 
 The format of the [YAML] file is as follows:
 
-```yaml
+```yaml {title="users-database.yml"}
 users:
   john:
     disabled: false

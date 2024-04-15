@@ -66,17 +66,17 @@ path.
 
 #### Examples
 
-```yaml
+```yaml {title="configuration.yml"}
 server:
   address: 'tcp://127.0.0.1:9091/'
 ```
 
-```yaml
+```yaml {title="configuration.yml"}
 server:
   address: 'tcp://127.0.0.1:9091/subpath'
 ```
 
-```yaml
+```yaml {title="configuration.yml"}
 server:
   address: 'unix:///var/run/authelia.sock'
 ```
