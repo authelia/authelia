@@ -18,17 +18,27 @@ import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-import { IndexRoute } from "@constants/Routes";
-import { Identifier } from "@constants/SearchParams";
-import { useNotifications } from "@hooks/NotificationsContext";
-import { useRedirector } from "@hooks/Redirector";
-import { useUserInfoGET } from "@hooks/UserInfo";
-import LoginLayout from "@layouts/LoginLayout";
-import { setClaimCase } from "@services/Claims";
-import { ConsentGetResponseBody, acceptConsent, getConsentResponse, rejectConsent } from "@services/Consent";
-import LoadingPage from "@views/LoadingPage/LoadingPage";
+import { IndexRoute } from "@constants/Routes.ts";
+import { Identifier } from "@constants/SearchParams.ts";
+import { useNotifications } from "@hooks/NotificationsContext.ts";
+import { useRedirector } from "@hooks/Redirector.ts";
+import LoginLayout from "@layouts/LoginLayout.tsx";
+import { UserInfo } from "@models/UserInfo.ts";
+import {
+    ConsentGetResponseBody,
+    acceptConsent,
+    getClaimDescription,
+    getConsentResponse,
+    getScopeDescription,
+    rejectConsent,
+} from "@services/ConsentOpenIDConnect.ts";
+import { AutheliaState } from "@services/State.ts";
+import LoadingPage from "@views/LoadingPage/LoadingPage.tsx";
 
-export interface Props {}
+export interface Props {
+    userInfo: UserInfo;
+    state: AutheliaState;
+}
 
 function scopeNameToAvatar(id: string) {
     switch (id) {
@@ -49,10 +59,8 @@ function scopeNameToAvatar(id: string) {
     }
 }
 
-const ConsentView = function (props: Props) {
+const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => {
     const { t: translate } = useTranslation();
-
-    const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoGET();
 
     const { createErrorNotification, resetNotification } = useNotifications();
     const navigate = useNavigate();
@@ -70,10 +78,6 @@ const ConsentView = function (props: Props) {
     const handlePreConfigureChanged = () => {
         setPreConfigure((preConfigure) => !preConfigure);
     };
-
-    useEffect(() => {
-        fetchUserInfo();
-    }, [fetchUserInfo]);
 
     useEffect(() => {
         if (consentID !== null) {
@@ -94,52 +98,6 @@ const ConsentView = function (props: Props) {
             console.error(`Unable to display consent screen: ${error.message}`);
         }
     }, [navigate, resetNotification, createErrorNotification, error]);
-
-    useEffect(() => {
-        if (fetchUserInfoError) {
-            createErrorNotification(translate("There was an issue retrieving user preferences"));
-        }
-    }, [fetchUserInfoError, resetNotification, createErrorNotification, translate]);
-
-    const translateScopeNameToDescription = (scope: string): string => {
-        switch (scope) {
-            case "openid":
-                return translate("Use OpenID to verify your identity");
-            case "offline_access":
-                return translate("Automatically refresh these permissions without user interaction");
-            case "profile":
-                return translate("Access your profile information");
-            case "groups":
-                return translate("Access your group membership");
-            case "email":
-                return translate("Access your email addresses");
-            case "authelia.bearer.authz":
-                return translate("Access protected resources logged in as you");
-            default:
-                return scope;
-        }
-    };
-
-    const translateClaimNameToDescription = (claim: string): string => {
-        switch (claim) {
-            case "name":
-                return translate("Display Name");
-            case "sub":
-                return translate("Unique Identifier");
-            case "zoneinfo":
-                return translate("Timezone");
-            case "locale":
-                return translate("Locale / Language");
-            case "updated_at":
-                return translate("Information Updated Time");
-            case "profile":
-            case "website":
-            case "picture":
-                return translate(`${setClaimCase(claim)} URL`);
-            default:
-                return translate(setClaimCase(claim));
-        }
-    };
 
     const handleAcceptConsent = async () => {
         // This case should not happen in theory because the buttons are disabled when response is undefined.
@@ -200,10 +158,10 @@ const ConsentView = function (props: Props) {
     const hasClaims = response?.essential_claims || response?.claims;
 
     return (
-        <ComponentOrLoading ready={response !== undefined && userInfo !== undefined}>
+        <ComponentOrLoading ready={response !== undefined}>
             <LoginLayout
                 id="consent-stage"
-                title={`${translate("Hi")} ${userInfo?.display_name}`}
+                title={`${translate("Hi")} ${props.userInfo.display_name}`}
                 subtitle={translate("Consent Request")}
             >
                 <Grid container>
@@ -233,7 +191,7 @@ const ConsentView = function (props: Props) {
                                     <Tooltip title={translate("Scope", { name: scope })}>
                                         <ListItem id={"scope-" + scope} dense>
                                             <ListItemIcon>{scopeNameToAvatar(scope)}</ListItemIcon>
-                                            <ListItemText primary={translateScopeNameToDescription(scope)} />
+                                            <ListItemText primary={translate(getScopeDescription(scope))} />
                                         </ListItem>
                                     </Tooltip>
                                 ))}
@@ -248,7 +206,7 @@ const ConsentView = function (props: Props) {
                                         <Tooltip title={translate("Claim", { name: claim })}>
                                             <FormControlLabel
                                                 control={<Checkbox id={"claim-" + claim} disabled checked />}
-                                                label={claim}
+                                                label={translate(getClaimDescription(claim))}
                                             />
                                         </Tooltip>
                                     ))}
@@ -263,7 +221,7 @@ const ConsentView = function (props: Props) {
                                                         onChange={handleClaimCheckboxOnChange}
                                                     />
                                                 }
-                                                label={translateClaimNameToDescription(claim)}
+                                                label={translate(getClaimDescription(claim))}
                                             />
                                         </Tooltip>
                                     ))}
@@ -393,4 +351,4 @@ function ComponentOrLoading(props: ComponentOrLoadingProps) {
     );
 }
 
-export default ConsentView;
+export default OpenIDConnectConsentDecisionFormView;

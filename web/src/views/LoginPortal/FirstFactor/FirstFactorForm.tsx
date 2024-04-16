@@ -36,7 +36,7 @@ const FirstFactorForm = function (props: Props) {
     const navigate = useNavigate();
     const redirectionURL = useQueryParam(RedirectionURL);
     const requestMethod = useQueryParam(RequestMethod);
-    const [workflow] = useWorkflow();
+    const [workflow, workflowID] = useWorkflow();
     const { createErrorNotification } = useNotifications();
 
     const loginChannel = useMemo(() => new BroadcastChannel<boolean>("login"), []);
@@ -87,7 +87,15 @@ const FirstFactorForm = function (props: Props) {
 
         props.onAuthenticationStart();
         try {
-            const res = await postFirstFactor(username, password, rememberMe, redirectionURL, requestMethod, workflow);
+            const res = await postFirstFactor(
+                username,
+                password,
+                rememberMe,
+                redirectionURL,
+                requestMethod,
+                workflow,
+                workflowID,
+            );
             await loginChannel.postMessage(true);
             props.onAuthenticationSuccess(res ? res.redirect : undefined);
         } catch (err) {
@@ -108,6 +116,7 @@ const FirstFactorForm = function (props: Props) {
         translate,
         username,
         workflow,
+        workflowID,
     ]);
 
     const handleResetPasswordClick = () => {

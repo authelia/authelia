@@ -105,7 +105,6 @@ type bodyFirstFactorRequest struct {
 
 // bodyFirstFactorRequest represents the JSON body received by the endpoint.
 type bodyFirstFactorReauthenticateRequest struct {
-	Username      string `json:"username" valid:"required"`
 	Password      string `json:"password" valid:"required"`
 	Workflow      string `json:"workflow"`
 	WorkflowID    string `json:"workflowID"`

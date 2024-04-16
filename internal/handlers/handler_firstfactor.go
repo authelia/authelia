@@ -81,7 +81,7 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 
 		userSession, err := provider.GetSession(ctx.RequestCtx)
 		if err != nil {
-			ctx.Logger.Errorf("%s", err)
+			ctx.Logger.WithError(err).Errorf("Error occurred attempting to load session.")
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
 
@@ -151,13 +151,15 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 		successful = true
 
 		if bodyJSON.Workflow == workflowOpenIDConnect {
-			handleOIDCWorkflowResponse(ctx, &userSession, bodyJSON.TargetURL, bodyJSON.WorkflowID)
+			handleOIDCWorkflowResponse(ctx, &userSession, bodyJSON.WorkflowID)
 		} else {
 			Handle1FAResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, userSession.Groups)
 		}
 	}
 }
 
+// FirstFactorReauthenticatePOST is a specialized handler which checks the currently logged in users current password
+// and updates their last authenticated time.
 func FirstFactorReauthenticatePOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.RequestHandler {
 	return func(ctx *middlewares.AutheliaCtx) {
 		var successful bool
@@ -178,45 +180,6 @@ func FirstFactorReauthenticatePOST(delayFunc middlewares.TimingAttackDelayFunc) 
 			return
 		}
 
-		if bannedUntil, err := ctx.Providers.Regulator.Regulate(ctx, bodyJSON.Username); err != nil {
-			if errors.Is(err, regulation.ErrUserIsBanned) {
-				_ = markAuthenticationAttempt(ctx, false, &bannedUntil, bodyJSON.Username, regulation.AuthType1FA, nil)
-
-				respondUnauthorized(ctx, messageAuthenticationFailed)
-
-				return
-			}
-
-			ctx.Logger.WithError(err).Errorf(logFmtErrRegulationFail, regulation.AuthType1FA, bodyJSON.Username)
-
-			respondUnauthorized(ctx, messageAuthenticationFailed)
-
-			return
-		}
-
-		userPasswordOk, err := ctx.Providers.UserProvider.CheckUserPassword(bodyJSON.Username, bodyJSON.Password)
-		if err != nil {
-			_ = markAuthenticationAttempt(ctx, false, nil, bodyJSON.Username, regulation.AuthType1FA, err)
-
-			respondUnauthorized(ctx, messageAuthenticationFailed)
-
-			return
-		}
-
-		if !userPasswordOk {
-			_ = markAuthenticationAttempt(ctx, false, nil, bodyJSON.Username, regulation.AuthType1FA, nil)
-
-			respondUnauthorized(ctx, messageAuthenticationFailed)
-
-			return
-		}
-
-		if err = markAuthenticationAttempt(ctx, true, nil, bodyJSON.Username, regulation.AuthType1FA, nil); err != nil {
-			respondUnauthorized(ctx, messageAuthenticationFailed)
-
-			return
-		}
-
 		provider, err := ctx.GetSessionProvider()
 		if err != nil {
 			ctx.Logger.WithError(err).Error("Failed to get session provider during 1FA attempt")
@@ -228,15 +191,54 @@ func FirstFactorReauthenticatePOST(delayFunc middlewares.TimingAttackDelayFunc) 
 
 		userSession, err := provider.GetSession(ctx.RequestCtx)
 		if err != nil {
-			ctx.Logger.Errorf("%s", err)
+			ctx.Logger.WithError(err).Errorf("Error occurred attempting to load session.")
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
 
 			return
 		}
 
+		if bannedUntil, err := ctx.Providers.Regulator.Regulate(ctx, userSession.Username); err != nil {
+			if errors.Is(err, regulation.ErrUserIsBanned) {
+				_ = markAuthenticationAttempt(ctx, false, &bannedUntil, userSession.Username, regulation.AuthType1FA, nil)
+
+				respondUnauthorized(ctx, messageAuthenticationFailed)
+
+				return
+			}
+
+			ctx.Logger.WithError(err).Errorf(logFmtErrRegulationFail, regulation.AuthType1FA, userSession.Username)
+
+			respondUnauthorized(ctx, messageAuthenticationFailed)
+
+			return
+		}
+
+		userPasswordOk, err := ctx.Providers.UserProvider.CheckUserPassword(userSession.Username, bodyJSON.Password)
+		if err != nil {
+			_ = markAuthenticationAttempt(ctx, false, nil, userSession.Username, regulation.AuthType1FA, err)
+
+			respondUnauthorized(ctx, messageAuthenticationFailed)
+
+			return
+		}
+
+		if !userPasswordOk {
+			_ = markAuthenticationAttempt(ctx, false, nil, userSession.Username, regulation.AuthType1FA, nil)
+
+			respondUnauthorized(ctx, messageAuthenticationFailed)
+
+			return
+		}
+
+		if err = markAuthenticationAttempt(ctx, true, nil, userSession.Username, regulation.AuthType1FA, nil); err != nil {
+			respondUnauthorized(ctx, messageAuthenticationFailed)
+
+			return
+		}
+
 		if err = ctx.RegenerateSession(); err != nil {
-			ctx.Logger.WithError(err).Errorf(logFmtErrSessionRegenerate, regulation.AuthType1FA, bodyJSON.Username)
+			ctx.Logger.WithError(err).Errorf(logFmtErrSessionRegenerate, regulation.AuthType1FA, userSession.Username)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
 
@@ -244,16 +246,16 @@ func FirstFactorReauthenticatePOST(delayFunc middlewares.TimingAttackDelayFunc) 
 		}
 
 		// Get the details of the given user from the user provider.
-		userDetails, err := ctx.Providers.UserProvider.GetDetails(bodyJSON.Username)
+		userDetails, err := ctx.Providers.UserProvider.GetDetails(userSession.Username)
 		if err != nil {
-			ctx.Logger.WithError(err).Errorf(logFmtErrObtainProfileDetails, regulation.AuthType1FA, bodyJSON.Username)
+			ctx.Logger.WithError(err).Errorf(logFmtErrObtainProfileDetails, regulation.AuthType1FA, userSession.Username)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
 
 			return
 		}
 
-		ctx.Logger.Tracef(logFmtTraceProfileDetails, bodyJSON.Username, userDetails.Groups, userDetails.Emails)
+		ctx.Logger.Tracef(logFmtTraceProfileDetails, userSession.Username, userDetails.Groups, userDetails.Emails)
 
 		userSession.SetOneFactorReauthenticate(ctx.Clock.Now(), userDetails)
 
@@ -262,7 +264,7 @@ func FirstFactorReauthenticatePOST(delayFunc middlewares.TimingAttackDelayFunc) 
 		}
 
 		if err = ctx.SaveSession(userSession); err != nil {
-			ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "updated profile", regulation.AuthType1FA, logFmtActionAuthentication, bodyJSON.Username)
+			ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "updated profile", regulation.AuthType1FA, logFmtActionAuthentication, userSession.Username)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
 
@@ -272,7 +274,7 @@ func FirstFactorReauthenticatePOST(delayFunc middlewares.TimingAttackDelayFunc) 
 		successful = true
 
 		if bodyJSON.Workflow == workflowOpenIDConnect {
-			handleOIDCWorkflowResponse(ctx, &userSession, bodyJSON.TargetURL, bodyJSON.WorkflowID)
+			handleOIDCWorkflowResponse(ctx, &userSession, bodyJSON.WorkflowID)
 		} else {
 			Handle1FAResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, userSession.Groups)
 		}

@@ -374,5 +374,7 @@ func TestMisc(t *testing.T) {
 	assert.Equal(t, time.Second*10, config.GetRFC8628TokenPollingInterval(context.Background()))
 
 	assert.Equal(t, "https://example.com/issuer/api/oidc/token", config.GetTokenURL(tctx))
-	assert.Equal(t, "https://example.com/issuer/api/oidc/device-code/user-verification", config.GetRFC8628UserVerificationURL(tctx))
+
+	assert.Equal(t, "https://example.com/issuer/consent/openid/device-authorization", config.GetRFC8628UserVerificationURL(tctx))
+	assert.Equal(t, "https://example.com/issuer/consent/openid/device-authorization", config.GetRFC8628UserVerificationURL(tctx))
 }
