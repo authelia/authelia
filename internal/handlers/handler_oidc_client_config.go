@@ -69,4 +69,4 @@ func convertSingleOpenIDConnectClient(c schema.IdentityProvidersOpenIDConnectCli
 	return convertedClient
 }
 
-// TODO (Crowley723): handle loading of OIDC Client config from database.
+// TODO (Crowley723): handle loading of OIDC Client config from database - requires configuration in database.

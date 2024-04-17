@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
@@ -40,37 +40,44 @@ const EditListItem = (props: Props) => {
         }
     };
 
+    const handleAddFieldKeyDown = useCallback(
+        (event: React.KeyboardEvent<HTMLDivElement>) => {
+            if (event.key === "Enter") {
+                handleAddField();
+            }
+        },
+        [handleAddField],
+    );
+
     return (
-        <div>
-            <List>
-                {newFormValues.map((value, index) => (
-                    <ListItem key={`edit-${props.listLabel}-${props.index}-${index}`}>
-                        <TextField
-                            fullWidth
-                            size="small"
-                            value={value}
-                            onChange={(event: { target: { value: string } }) =>
-                                handleInputChange(index, event.target.value)
-                            }
-                        />
-                        <IconButton onClick={() => handleDelete(index)}>
-                            <CloseIcon color={"error"} />
-                        </IconButton>
-                    </ListItem>
-                ))}
-                <ListItem key={`add-value-${props.listLabel}-${props.index}`}>
+        <List>
+            {newFormValues.map((value, index) => (
+                <ListItem key={`edit-${props.listLabel}-${props.index}-${index}`}>
                     <TextField
+                        fullWidth
                         size="small"
-                        onChange={(event: { target: { value: string } }) => setNewFieldValue(event.target.value)}
-                        value={newFieldValue}
-                        placeholder="New Value"
+                        value={value}
+                        onChange={(event) => handleInputChange(index, event.target.value)}
                     />
-                    <IconButton onClick={handleAddField}>
-                        <CheckIcon color={"success"} />
+                    <IconButton onClick={() => handleDelete(index)}>
+                        <CloseIcon color={"error"} />
                     </IconButton>
                 </ListItem>
-            </List>
-        </div>
+            ))}
+            <ListItem key={`add-value-${props.listLabel}-${props.index}`}>
+                <TextField
+                    fullWidth
+                    size="small"
+                    value={newFieldValue}
+                    placeholder="New Value"
+                    onChange={(event) => setNewFieldValue(event.target.value)}
+                    onKeyDown={handleAddFieldKeyDown}
+                />
+                <IconButton onClick={handleAddField}>
+                    <CheckIcon color={"success"} />
+                </IconButton>
+            </ListItem>
+        </List>
     );
 };
 
