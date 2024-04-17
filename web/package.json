@@ -5,7 +5,7 @@
   "type": "module",
   "engines": {
     "node": ">=18.4.0",
-    "pnpm": "8"
+    "pnpm": "9"
   },
   "pnpm": {
     "overrides": {
