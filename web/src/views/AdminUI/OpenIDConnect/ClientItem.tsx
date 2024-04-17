@@ -176,11 +176,11 @@ const ClientItem = function (props: Props) {
 
                     <Divider variant="middle" component="li" />
                     <ListItem key={`request-uris-${props.index}`}>
-                        <List>
+                        <List sx={{ width: "50%" }}>
                             <Typography marginBottom={"0.5vh"}>{translate("Redirect URIs:  ")}</Typography>
                             {isEditing ? (
                                 <EditListItem
-                                    listLabel={`Scopes`}
+                                    listLabel={`RedirectURIs`}
                                     index={props.index}
                                     values={formData.RedirectURIs}
                                     onValuesUpdate={(updatedValues) =>
