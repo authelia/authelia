@@ -24,8 +24,6 @@ seo:
 * [Proxmox]
   * 7.1-10
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Specific Notes
@@ -47,11 +45,10 @@ This example makes the following assumptions:
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Proxmox]
-which will operate with the above example:
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Proxmox] which will
+operate with the application example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
@@ -62,6 +59,8 @@ identity_providers:
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
         authorization_policy: 'two_factor'
+        require_pkce: true
+        pkce_challenge_method: 'S256'
         redirect_uris:
           - 'https://proxmox.example.com'
         scopes:
@@ -97,3 +96,4 @@ To configure [Proxmox] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 [Authelia]: https://www.authelia.com
 [Proxmox]: https://www.proxmox.com/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

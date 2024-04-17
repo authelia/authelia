@@ -138,8 +138,7 @@ type LifespansConfig struct {
 
 // HashConfig holds specific oauthelia2.Configurator information for hashing.
 type HashConfig struct {
-	ClientSecrets oauthelia2.Hasher
-	HMAC          func() (h hash.Hash)
+	HMAC func() (h hash.Hash)
 }
 
 // StrategyConfig holds specific oauthelia2.Configurator information for various strategies.

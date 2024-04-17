@@ -24,7 +24,7 @@ This file should be set with read/write permissions as it could be updated by us
 
 The format of the [YAML] file is as follows:
 
-```yaml
+```yaml {title="users-database.yml"}
 users:
   john:
     disabled: false
@@ -65,18 +65,34 @@ options for an algorithm subcommand include that command before `--help`. For ex
 `authelia crypto hash generate argon2 --help` command to see the available options.
 
 Passwords passed to [crypt hash generate] should be single quoted if using the `--password` parameter instead of the
-console prompt, especially if it has  special characters to prevent parameter substitution. For instance to generate an
-[Argon2] hash with the docker image just run:
+console prompt, especially if it has  special characters to prevent parameter substitution.
 
-{{< envTabs "Generate Password" >}}
+To generate an [Argon2] hash with the docker image interactively just run:
+
+{{< envTabs "Generate Password (Interactive)" >}}
 {{< envTab "Docker" >}}
 ```bash
-$ docker run authelia/authelia:latest authelia crypto hash generate argon2 --password 'password'
+docker run -it authelia/authelia:latest authelia crypto hash generate argon2
 ```
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
 ```bash
-$ authelia crypto hash generate argon2 --password 'password'
+authelia crypto hash generate argon2
+```
+{{< /envTab >}}
+{{< /envTabs >}}
+
+To generate an [Argon2] hash with the docker image without a prompt you can run:
+
+{{< envTabs "Generate Password" >}}
+{{< envTab "Docker" >}}
+```bash
+docker run authelia/authelia:latest authelia crypto hash generate argon2 --password 'password'
+```
+{{< /envTab >}}
+{{< envTab "Bare-Metal" >}}
+```bash
+authelia crypto hash generate argon2 --password 'password'
 ```
 {{< /envTab >}}
 {{< /envTabs >}}
@@ -93,12 +109,12 @@ in the current directory:
 {{< envTabs "Generate Password (Interactive)" >}}
 {{< envTab "Docker" >}}
 ```bash
-$ docker run -v ./configuration.yml:/configuration.yml -it authelia/authelia:latest authelia crypto hash generate --config /configuration.yml
+docker run -v ./configuration.yml:/configuration.yml -it authelia/authelia:latest authelia crypto hash generate --config /configuration.yml
 ```
 {{< /envTab >}}
 {{< envTab "Bare Metal" >}}
 ```bash
-$ authelia crypto hash generate --config /configuration.yml
+authelia crypto hash generate --config /configuration.yml
 ```
 {{< /envTab >}}
 {{< /envTabs >}}

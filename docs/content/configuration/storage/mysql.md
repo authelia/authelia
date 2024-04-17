@@ -70,19 +70,19 @@ the `unix` scheme or one of the `tcp` schemes.
 
 __Examples:__
 
-```yaml
+```yaml {title="configuration.yml"}
 storage:
   mysql:
     address: 'tcp://127.0.0.1:3306'
 ```
 
-```yaml
+```yaml {title="configuration.yml"}
 storage:
   mysql:
     address: 'tcp://[fd00:1111:2222:3333::1]:3306'
 ```
 
-```yaml
+```yaml {title="configuration.yml"}
 storage:
   mysql:
     address: 'unix:///var/run/mysqld.sock'

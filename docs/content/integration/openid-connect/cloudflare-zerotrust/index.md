@@ -20,8 +20,6 @@ seo:
 * [Authelia]
   * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions
@@ -43,11 +41,10 @@ characters for the secret or URL encode the secret yourself.*
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Cloudflare]
-which will operate with the above example:
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Cloudflare] which will
+operate with the application example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
@@ -99,3 +96,4 @@ To configure [Cloudflare Zero Trust] to utilize Authelia as an [OpenID Connect 1
 [Cloudflare]: https://www.cloudflare.com/
 [Cloudflare Zero Trust]: https://www.cloudflare.com/products/zero-trust/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

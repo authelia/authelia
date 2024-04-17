@@ -12,7 +12,6 @@ type Authorizer struct {
 	defaultPolicy Level
 	rules         []*AccessControlRule
 	mfa           bool
-	config        *schema.Configuration
 	log           *logrus.Logger
 }
 
@@ -21,7 +20,6 @@ func NewAuthorizer(config *schema.Configuration) (authorizer *Authorizer) {
 	authorizer = &Authorizer{
 		defaultPolicy: NewLevel(config.AccessControl.DefaultPolicy),
 		rules:         NewAccessControlRules(config.AccessControl),
-		config:        config,
 		log:           logging.Logger(),
 	}
 
@@ -39,15 +37,7 @@ func NewAuthorizer(config *schema.Configuration) (authorizer *Authorizer) {
 		}
 	}
 
-	if authorizer.config.IdentityProviders.OIDC != nil {
-		for _, client := range authorizer.config.IdentityProviders.OIDC.Clients {
-			if client.AuthorizationPolicy == twoFactor {
-				authorizer.mfa = true
-
-				return authorizer
-			}
-		}
-	}
+	authorizer.mfa = isOpenIDConnectMFA(config)
 
 	return authorizer
 }

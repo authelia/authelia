@@ -71,13 +71,13 @@ use a standard TCP transport and typically enforce StartTLS.
 
 __Examples:__
 
-```yaml
+```yaml {title="configuration.yml"}
 notifier:
   smtp:
     address: 'smtp://127.0.0.1:25'
 ```
 
-```yaml
+```yaml {title="configuration.yml"}
 notifier:
   smtp:
     address: 'submissions://[fd00:1111:2222:3333::1]:465'
@@ -115,8 +115,8 @@ characters and the user password is changed to this value.
 The sender is used to construct both the SMTP command `MAIL FROM` and to add the `FROM` header. This address must be
 in [RFC5322](https://datatracker.ietf.org/doc/html/rfc5322#section-3.4) format. This means it must one of two formats:
 
-* jsmith@domain.com
-* John Smith <jsmith@domain.com>
+* `jsmith@domain.com`
+* `John Smith <jsmith@domain.com>`
 
 The `MAIL FROM` command sent to SMTP servers will not include the name portion, this is only set in the `FROM` as per
 specifications.
@@ -181,7 +181,7 @@ Controls the TLS connection validation parameters for either StartTLS or the TLS
 You need to generate an app password in order to use Gmail SMTP servers. The process is described
 [here](https://support.google.com/accounts/answer/185833?hl=en).
 
-```yaml
+```yaml {title="configuration.yml"}
 notifier:
   smtp:
     username: 'myaccount@gmail.com'

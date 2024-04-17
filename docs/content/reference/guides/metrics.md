@@ -26,6 +26,7 @@ when configured. If metrics are enabled the metrics listener listens on `:9959` 
 [registered port] unless configured otherwise.
 
 #### Example Prometheus Job
+
 ```yaml
 # Authelia
   - job_name: authelia

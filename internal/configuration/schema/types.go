@@ -94,6 +94,11 @@ func (d *PasswordDigest) IsPlainText() (is bool) {
 	}
 }
 
+// Valid returns true if this digest has a value.
+func (d *PasswordDigest) Valid() (valid bool) {
+	return d != nil && d.Digest != nil
+}
+
 // GetPlainTextValue returns a *plaintext.Digest's byte value from Key() and an error. If the PasswordDigest is not a
 // plaintext.Digest then it returns nil and an error, otherwise it returns the value and nil.
 func (d *PasswordDigest) GetPlainTextValue() (value []byte, err error) {

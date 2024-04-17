@@ -51,7 +51,7 @@ instead.
 
 ##### Fully Expressed
 
-```yaml
+```yaml {title="configuration.yml"}
 rule:
   - - 'a'
     - 'b'
@@ -60,7 +60,7 @@ rule:
 
 ##### Omitted Level
 
-```yaml
+```yaml {title="configuration.yml"}
 rule:
   - - 'a'
     - 'b'
@@ -69,7 +69,7 @@ rule:
 
 ##### Compact
 
-```yaml
+```yaml {title="configuration.yml"}
 rule:
   - ['a', 'b']
   - ['c']
@@ -77,7 +77,7 @@ rule:
 
 ##### Compact with Omitted Level
 
-```yaml
+```yaml {title="configuration.yml"}
 rule:
   - ['a', 'b']
   - 'c'
@@ -85,7 +85,7 @@ rule:
 
 ##### Super Compact
 
-```yaml
+```yaml {title="configuration.yml"}
 rule: [['a', 'b'], ['c']]
 ```
 
@@ -97,7 +97,7 @@ objects where the key is named `value`. This format should only be used for the 
 
 ##### Fully Expressed
 
-```yaml
+```yaml {title="configuration.yml"}
 rule:
   - - value: 'a'
     - value: 'b'
@@ -106,7 +106,7 @@ rule:
 
 ##### Omitted Level
 
-```yaml
+```yaml {title="configuration.yml"}
 rule:
   - - 'a'
     - 'b'
@@ -115,7 +115,7 @@ rule:
 
 ##### Compact
 
-```yaml
+```yaml {title="configuration.yml"}
 rule:
   - ['a', 'b']
   - ['c']
@@ -123,7 +123,7 @@ rule:
 
 ##### Compact with Omitted Level
 
-```yaml
+```yaml {title="configuration.yml"}
 rule:
   - ['a', 'b']
   - 'c'
@@ -131,6 +131,6 @@ rule:
 
 ##### Super Compact
 
-```yaml
+```yaml {title="configuration.yml"}
 rule: [['a', 'b'], ['c']]
 ```

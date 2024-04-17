@@ -22,8 +22,6 @@ seo:
 * [Synapse]
   * [v1.60.0](https://github.com/matrix-org/synapse/releases/tag/v1.60.0)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions
@@ -39,11 +37,10 @@ This example makes the following assumptions:
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Synapse]
-which will operate with the above example:
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Synapse] which will
+operate with the application example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
@@ -69,7 +66,7 @@ To configure [Synapse] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 1. Edit your [Synapse] `homeserver.yaml` configuration file and add configure the following:
 
-```yaml
+```yaml {title="configuration.yml"}
 oidc_providers:
   - idp_id: authelia
     idp_name: "Authelia"
@@ -95,3 +92,4 @@ oidc_providers:
 [Authelia]: https://www.authelia.com
 [Synapse]: https://github.com/matrix-org/synapse
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

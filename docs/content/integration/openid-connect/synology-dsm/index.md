@@ -21,15 +21,15 @@ seo:
   * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [Synology DSM]
   * v7.1
-
-## Before You Begin
+  * v7.2
 
 {{% oidc-common %}}
 
 ### Specific Notes
 
 *__Important Note:__ [Synology DSM] does not support automatically creating users via [OpenID Connect 1.0]. It is therefore
-recommended that you ensure Authelia and [Synology DSM] share a LDAP server.*
+recommended that you ensure Authelia and [Synology DSM] share an LDAP server (for DSM v7.1).
+With DSM v7.2+ you have the possibility to also use local DSM accounts (see `Account type` below) and do not need to set up a shared LDAP.*
 
 ### Assumptions
 
@@ -44,11 +44,10 @@ This example makes the following assumptions:
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Synology DSM]
-which will operate with the above example:
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Synology DSM] which
+will operate with the application example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
@@ -81,6 +80,7 @@ To configure [Synology DSM] to utilize Authelia as an [OpenID Connect 1.0] Provi
 5. Check the `Enable OpenID Connect SSO service` checkbox in the `OpenID Connect SSO Service` section.
 6. Configure the following values:
   * Profile: `OIDC`
+  * Account type: `Domain/LDAP/local` (Note: Account type is supported DSM v7.2+)
   * Name: `Authelia`
   * Well Known URL: `https://auth.example.com/.well-known/openid-configuration`
   * Application ID: `synology-dsm`
@@ -99,3 +99,4 @@ To configure [Synology DSM] to utilize Authelia as an [OpenID Connect 1.0] Provi
 [Authelia]: https://www.authelia.com
 [Synology DSM]: https://www.synology.com/en-global/dsm
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

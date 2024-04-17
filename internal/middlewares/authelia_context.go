@@ -23,12 +23,18 @@ import (
 )
 
 // NewRequestLogger create a new request logger for the given request.
-func NewRequestLogger(ctx *fasthttp.RequestCtx) *logrus.Entry {
-	return logging.Logger().WithFields(logrus.Fields{
+func NewRequestLogger(ctx *fasthttp.RequestCtx) (entry *logrus.Entry) {
+	fields := logrus.Fields{
 		logging.FieldMethod:   string(ctx.Method()),
-		logging.FieldPath:     string(ctx.Path()),
 		logging.FieldRemoteIP: RequestCtxRemoteIP(ctx).String(),
-	})
+		logging.FieldPath:     string(ctx.Path()),
+	}
+
+	if uri, ok := ctx.UserValue(UserValueKeyRawURI).(string); ok {
+		fields[logging.FieldPathRaw] = uri
+	}
+
+	return logging.Logger().WithFields(fields)
 }
 
 // NewAutheliaCtx instantiate an AutheliaCtx out of a RequestCtx.

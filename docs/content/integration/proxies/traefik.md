@@ -80,6 +80,30 @@ server:
         implementation: 'ForwardAuth'
 ```
 
+The examples below also assume you are using the modern
+[Session Configuration](../../configuration/session/introduction.md) which includes the `domain`, `authelia_url`, and
+`default_redirection_url` as a subkey of the `session.cookies` key as a list item. Below is an example of the modern
+configuration as well as the legacy configuration for context.
+
+{{< sessionTabs "Generate Random Password" >}}
+{{< sessionTab "Modern" >}}
+```yaml {title="configuration.yml"}
+session:
+  cookies:
+    - domain: 'example.com'
+      authelia_url: 'https://auth.example.com'
+      default_redirection_url: 'https://www.example.com'
+```
+{{< /sessionTab >}}
+{{< sessionTab "Legacy" >}}
+```yaml {title="configuration.yml"}
+default_redirection_url: 'https://www.example.com'
+session:
+  domain: 'example.com'
+```
+{{< /sessionTab >}}
+{{< /sessionTabs >}}
+
 ## Configuration
 
 Below you will find commented examples of the following docker deployment:
@@ -124,7 +148,7 @@ following are the assumptions we make:
 This is an example configuration using [docker compose] labels:
 
 {{< details "docker-compose.yml" >}}
-```yaml {title="docker-compse.yml"}
+```yaml {title="docker-compose.yml"}
 ---
 networks:
   net:
@@ -260,7 +284,7 @@ This example uses a `docker-compose.yml` similar to the one above however it has
      `authelia-net@docker` service, and commenting the `authelia` service in the `http.service` section.
 
 {{< details "docker-compose.yml" >}}
-```yaml {title="docker-compse.yml"}
+```yaml {title="docker-compose.yml"}
 ---
 networks:
   net:

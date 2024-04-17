@@ -22,8 +22,6 @@ seo:
 * [GitLab] CE
   * 16.9.0
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions
@@ -43,11 +41,10 @@ _**Important Note:** This configuration assumes you've configured the `client_au
 have not done this the default in [GitLab] will require the `token_endpoint_auth_method` changes to
 `client_secret_post`._
 
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [GitLab]
-which will operate with the above example:
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [GitLab] which will
+operate with the application example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
@@ -120,3 +117,4 @@ value.
 [Authelia]: https://www.authelia.com
 [GitLab]: https://about.gitlab.com/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

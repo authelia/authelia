@@ -22,8 +22,6 @@ seo:
 * [Komga]
   * [v0.157.1](https://github.com/gotson/komga/releases/tag/v0.157.1)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions
@@ -39,11 +37,10 @@ This example makes the following assumptions:
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Komga]
-which will operate with the above example:
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Komga] which will
+operate with the application example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
@@ -100,3 +97,4 @@ spring:
 [Authelia]: https://www.authelia.com
 [Komga]: https://www.komga.org
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

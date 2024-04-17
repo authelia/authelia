@@ -22,8 +22,6 @@ seo:
 - [Windmill]
   - [1.224.0](https://github.com/windmill-labs/windmill/releases/tag/v1.224.0)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions
@@ -37,9 +35,10 @@ This example makes the following assumptions:
 
 ### Authelia
 
-Authelia configuration.yml
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Windmill]
+which will operate with the application example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
@@ -90,3 +89,4 @@ identity_providers:
 [Authelia]: https://www.authelia.com
 [Windmill]: https://www.windmill.dev
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

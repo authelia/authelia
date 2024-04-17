@@ -3,7 +3,7 @@ module github.com/authelia/authelia/v4
 go 1.21
 
 require (
-	authelia.com/provider/oauth2 v0.1.9
+	authelia.com/provider/oauth2 v0.1.10
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
 	github.com/authelia/jsonschema v0.1.7
@@ -16,8 +16,8 @@ require (
 	github.com/go-asn1-ber/asn1-ber v1.5.5
 	github.com/go-crypt/crypt v0.2.21
 	github.com/go-jose/go-jose/v4 v4.0.1
-	github.com/go-ldap/ldap/v3 v3.4.7
-	github.com/go-rod/rod v0.114.8
+	github.com/go-ldap/ldap/v3 v3.4.8
+	github.com/go-rod/rod v0.115.0
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1
 	github.com/go-webauthn/webauthn v0.10.2

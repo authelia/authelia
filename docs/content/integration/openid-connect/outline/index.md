@@ -22,8 +22,6 @@ seo:
 * [Outline]
   * 0.65.2
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions
@@ -35,18 +33,17 @@ This example makes the following assumptions:
 * __Client ID:__ `outline`
 * __Client Secret:__ `insecure_secret`
 
-*__Important Note:__ At the time of this writing [Outline] requires the `offline_access` scope by default. Failure to include this scope will result
-in an error as [Outline] will attempt to use a refresh token that is never issued.*
+*__Important Note:__ At the time of this writing [Outline] requires the `offline_access` scope by default. Failure to
+include this scope will result in an error as [Outline] will attempt to use a refresh token that is never issued.*
 
 ## Configuration
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Outline]
-which will operate with the above example:
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Outline] which will
+operate with the application example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
@@ -94,3 +91,4 @@ OIDC_SCOPES="openid offline_access profile email"
 [Authelia]: https://www.authelia.com
 [Outline]: https://www.getoutline.com/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

@@ -22,8 +22,6 @@ seo:
 * [Grafana]
   * 8.0.0
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions
@@ -39,11 +37,10 @@ This example makes the following assumptions:
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Grafana]
-which will operate with the above example:
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Grafana] which will
+operate with the application example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
@@ -54,6 +51,8 @@ identity_providers:
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
         authorization_policy: 'two_factor'
+        require_pkce: true
+        pkce_challenge_method: 'S256'
         redirect_uris:
           - 'https://grafana.example.com/login/generic_oauth'
         scopes:
@@ -62,6 +61,7 @@ identity_providers:
           - 'groups'
           - 'email'
         userinfo_signed_response_alg: 'none'
+        token_endpoint_auth_method: 'client_secret_basic'
 ```
 
 ### Application
@@ -137,3 +137,4 @@ See [Grafana Generic OAuth2 Documentation: Configure role mapping] for more info
 [Grafana]: https://grafana.com/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [Grafana Generic OAuth2 Documentation: Configure role mapping]: https://grafana.com/docs/grafana/latest/setup-grafana/configure-security/configure-authentication/generic-oauth/#configure-role-mapping
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

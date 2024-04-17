@@ -22,8 +22,6 @@ seo:
 * [MinIO]
   * [2024-01-05T22-17-24Z](https://github.com/minio/minio/releases/tag/RELEASE.2024-01-05T22-17-24Z)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions
@@ -39,11 +37,10 @@ This example makes the following assumptions:
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [MinIO]
-which will operate with the above example:
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [MinIO] which will
+operate with the application example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
@@ -98,3 +95,4 @@ To configure [MinIO] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 [MinIO]: https://minio.com/
 [Authelia]: https://www.authelia.com
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

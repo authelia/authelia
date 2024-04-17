@@ -22,8 +22,6 @@ seo:
 * [BookStack]
   * 23.02.2
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions
@@ -45,11 +43,10 @@ the secret or URL encode the secret yourself.*
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [BookStack]
-which will operate with the above example:
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [BookStack] which will
+operate with the application example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
@@ -90,3 +87,4 @@ To configure [BookStack] to utilize Authelia as an [OpenID Connect 1.0] Provider
 [Authelia]: https://www.authelia.com
 [BookStack]: https://www.bookstackapp.com/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

@@ -22,8 +22,6 @@ seo:
 * [Kasm Workspaces]
   * [1.13.0](https://kasmweb.com/docs/latest/release_notes/1.13.0.html)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions
@@ -39,11 +37,10 @@ This example makes the following assumptions:
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with
-[Kasm Workspaces] which will operate with the above example:
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Kasm Workspaces] which
+will operate with the application example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
@@ -61,7 +58,6 @@ identity_providers:
           - 'profile'
           - 'groups'
           - 'email'
-        consent_mode: 'implicit'
         userinfo_signed_response_alg: 'none'
 ```
 

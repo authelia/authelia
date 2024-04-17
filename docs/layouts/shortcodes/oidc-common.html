@@ -1,24 +1,44 @@
 {{ $faq := "../frequently-asked-questions/" }}{{ $config := "../../../configuration/identity-providers/openid-connect/" }}
 {{- with .Get "faq" }}{{ $faq = . }}{{ end }}
 {{- with .Get "config" }}{{ $config = . }}{{ end }}
+## Before You Begin
+
+<div class="callout callout-danger d-flex flex-row mt-4 mb-4 pt-4 pe-4 pb-2 ps-3">
+  <svg class="alert-octagon svg-inline callout-icon me-2 mb-3" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12.802 2.165l5.575 2.389c.48.206.863.589 1.07 1.07l2.388 5.574c.22.512.22 1.092.0 1.604l-2.389 5.575c-.206.48-.589.863-1.07 1.07l-5.574 2.388c-.512.22-1.092.22-1.604.0l-5.575-2.389a2.036 2.036.0 01-1.07-1.07l-2.388-5.574a2.036 2.036.0 010-1.604l2.389-5.575c.206-.48.589-.863 1.07-1.07l5.574-2.388a2.036 2.036.0 011.604.0z"></path><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>
+  <div class="callout-content">
+    <div class="callout-title">
+      <p>Important Reading</p>
+    </div>
+    <div class="callout-body">
+      <p>This section contains important elements that you should carefully consider before configuration of an OpenID Connect 1.0 Registered Client.</p>
+    </div>
+  </div>
+</div>
+
 ### Common Notes
 
 1. The [OpenID Connect 1.0](https://openid.net/specs/openid-connect-core-1_0.html) `client_id` parameter:
     1. This *__must__* be a unique value for every client.
-    2. The value used in this guide is merely for readability and demonstration purposes and you should not use this
-       value. We recommend 64 random characters but you can use any arbitrary value that meets the other criteria.
+    2. The value used in this guide is merely for readability and demonstration purposes and you *__should not__* use
+       this value in production and should instead utilize the [How do I generate a client identifier or client secret?]({{ $faq }}#how-do-i-generate-a-client-identifier-or-client-secret)
+       FAQ. We recommend 64 random characters but you can use any arbitrary value that meets the other criteria.
     3. This *__must__* only contain [RFC3986 Unreserved Characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3).
     4. This *__must__* be no more than 100 characters in length.
 2. The [OpenID Connect 1.0](https://openid.net/specs/openid-connect-core-1_0.html) `client_secret` parameter:
-    1. The value used in this guide is merely for demonstration purposes and you *__should absolutely not__* use this in
-       production and should instead utilize the
-       [How Do I Generate Client Secrets]({{ $faq }}#how-do-i-generate-client-secrets) FAQ.
+    1. The value used in this guide is merely for demonstration purposes and you *__should absolutely not__* use this
+       value in production and should instead utilize the
+       [How do I generate a client identifier or client secret?]({{ $faq }}#how-do-i-generate-a-client-identifier-or-client-secret) FAQ.
     2. This string may be stored as plaintext in the Authelia configuration but this behaviour is deprecated and is not
        guaranteed to be supported in the future. See the [Plaintext]({{ $faq }}#plaintext) guide for more
        information.
-    3. When the secret is stored in hashed form in the authelia configuration (*__heavily recommended__*), the cost of hashing can, if too great,
-       cause timeouts for clients. See the [Tuning the work factors]({{ $faq }}#tuning-work-factors) guide for more information.
-3. The Configuration example for Authelia is only a portion of the required configuration and it should be used as a
-   guide in conjunction with the standard
-   [OpenID Connect 1.0 Provider Configuration]({{ printf "%s/provider.md" $config }}) and
-   [OpenID Connect 1.0 Clients Configuration]({{ printf "%s/clients.md" $config }}) guides.
+    3. When the secret is stored in hashed form in the Authelia configuration (*__heavily recommended__*), the cost of
+       hashing can, if too great, cause timeouts for clients. See the
+       [Tuning the work factors]({{ $faq }}#tuning-work-factors) guide for more information.
+3. The configuration example for Authelia:
+    1. Only contains an example configuration for the client registration and you *__MUST__* also configure the required
+       elements from the [OpenID Connect 1.0 Provider Configuration]({{ printf "%s/provider.md" $config }}) guide.
+    2. Only contains a small portion of all of the available options for a registered client and users may wish to
+       configure portions that are not part of this guide or configure them differently, as such it's important to
+       both familiarize yourself with the other options available and the effect of each of the options configured in
+       this section by looking at the [OpenID Connect 1.0 Clients Configuration]({{ printf "%s/clients.md" $config }})
+       guide.

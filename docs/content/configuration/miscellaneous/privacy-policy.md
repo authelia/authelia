@@ -71,7 +71,7 @@ This option is required if the [enabled](#enabled) option is true.
 
 _**Example:**_
 
-```yaml
+```yaml {title="configuration.yml"}
 privacy_policy:
   enabled: true
   policy_url: 'https://www.example.com/privacy-policy'

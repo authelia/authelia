@@ -22,8 +22,6 @@ seo:
 * [FreshRSS]
   * [1.23.1](https://github.com/FreshRSS/FreshRSS/releases/tag/1.23.1)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions
@@ -47,11 +45,10 @@ This example makes the following assumptions:
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [FreshRSS] which
-will operate with the above example:
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [FreshRSS] which will
+operate with the application example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
@@ -69,8 +66,8 @@ identity_providers:
           - 'groups'
           - 'email'
           - 'profile'
-        token_endpoint_auth_method: 'client_secret_basic'
         userinfo_signed_response_alg: 'none'
+        token_endpoint_auth_method: 'client_secret_basic'
 ```
 
 ### Application
@@ -99,3 +96,4 @@ environment:
 [Authelia]: https://www.authelia.com
 [FreshRSS]: https://freshrss.github.io/FreshRSS/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

@@ -22,8 +22,6 @@ seo:
 - [Warpgate]
   - [0.9.1](https://github.com/warp-tech/warpgate/releases/tag/v0.9.1)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions
@@ -37,9 +35,10 @@ This example makes the following assumptions:
 
 ### Authelia
 
-Authelia configuration.yml
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Warpgate]
+which will operate with the application example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.

@@ -58,7 +58,7 @@ const App: React.FC<Props> = (props: Props) => {
                     <CssBaseline />
                     <NotificationsContext.Provider value={{ notification, setNotification }}>
                         <LocalStorageMethodContextProvider>
-                            <Router basename={getBasePath() + "/"}>
+                            <Router basename={getBasePath()}>
                                 <NotificationBar onClose={() => setNotification(null)} />
                                 <Routes>
                                     <Route path={ResetPasswordStep1Route} element={<ResetPasswordStep1 />} />

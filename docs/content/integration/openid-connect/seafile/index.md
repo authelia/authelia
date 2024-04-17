@@ -23,8 +23,6 @@ seo:
 * [Seafile] Server
   * [10.0.1](https://manual.seafile.com/changelog/server-changelog/#1001-2023-04-11)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions
@@ -40,11 +38,10 @@ This example makes the following assumptions:
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Seafile]
-which will operate with the above example:
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Seafile] which will
+operate with the application example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
@@ -65,10 +62,10 @@ identity_providers:
         token_endpoint_auth_method: 'client_secret_basic'
 ```
 
-_**Important Note:** The [Seafile's WebDAV extension] [does not support OAuth bearer](https://github.com/haiwen/seafdav/issues/76)
-at the time of this writing._
-
 ### Application
+
+_**Important Note:** The [Seafile's WebDAV extension]
+[does not support OAuth bearer](https://github.com/haiwen/seafdav/issues/76) at the time of this writing._
 
 Configure [Seafile] to use Authelia as an [OpenID Connect 1.0] Provider.
 
@@ -115,3 +112,4 @@ basic auth.
 [Seafile]: https://www.seafile.com/
 [Seafile's WebDAV extension]: https://manual.seafile.com/extension/webdav/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

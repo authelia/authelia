@@ -232,3 +232,35 @@ func IsAuthLevelSufficient(authenticationLevel authentication.Level, authorizati
 
 	return true
 }
+
+func isOpenIDConnectMFA(config *schema.Configuration) (mfa bool) {
+	if config == nil || config.IdentityProviders.OIDC == nil {
+		return false
+	}
+
+	for _, client := range config.IdentityProviders.OIDC.Clients {
+		switch client.AuthorizationPolicy {
+		case oneFactor:
+			continue
+		case twoFactor:
+			return true
+		default:
+			policy, ok := config.IdentityProviders.OIDC.AuthorizationPolicies[client.AuthorizationPolicy]
+			if !ok {
+				continue
+			}
+
+			if policy.DefaultPolicy == twoFactor {
+				return true
+			}
+
+			for _, rule := range policy.Rules {
+				if rule.Policy == twoFactor {
+					return true
+				}
+			}
+		}
+	}
+
+	return false
+}

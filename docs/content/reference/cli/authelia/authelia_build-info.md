@@ -44,7 +44,8 @@ authelia build-info
 ### Options
 
 ```
-  -h, --help   help for build-info
+  -h, --help      help for build-info
+  -v, --verbose   Enable verbose output
 ```
 
 ### Options inherited from parent commands

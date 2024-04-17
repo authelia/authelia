@@ -2,7 +2,7 @@
 title: "Nextcloud"
 description: "Integrating Nextcloud with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2024-04-07T21:40:00+02:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 weight: 620
@@ -23,13 +23,9 @@ seo:
   * 22.1.0 with the application oidc_login
   * 28.0.4 with the application user_oidc
 
-## Before You Begin
-
 {{% oidc-common %}}
 
-## With the Nextcloud application oidc_login
-
-#### Assumptions
+## Assumptions
 
 This example makes the following assumptions:
 
@@ -43,15 +39,26 @@ as such it's important to only use alphanumeric characters as well as the other
 [RFC3986 Unreserved Characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3). We recommend using the
 generating client secrets guidance above.*
 
+## Available Options
+
+The following two tested options exist for Nextcloud:
+
+1. [OpenID Connect Login App](#openid-connect-login-app)
+2. [OpenID Connect user backend App](#openid-connect-user-backend-app)
+
+## OpenID Connect Login App
+
+The following example uses the [OpenID Connect Login App](https://apps.nextcloud.com/apps/oidc_login) app.
+
 ### Configuration
 
 #### Authelia
 
 The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Nextcloud]
-which will operate with the above example:
+[client configuration] for use with [Nextcloud]
+which will operate with the application example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
@@ -62,6 +69,8 @@ identity_providers:
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
         authorization_policy: 'two_factor'
+        require_pkce: true
+        pkce_challenge_method: 'S256'
         redirect_uris:
           - 'https://nextcloud.example.com/apps/oidc_login/oidc'
         scopes:
@@ -70,8 +79,7 @@ identity_providers:
           - 'email'
           - 'groups'
         userinfo_signed_response_alg: 'none'
-        require_pkce: true
-        pkce_challenge_method: 'S256'
+        token_endpoint_auth_method: 'client_secret_basic'
 ```
 
 #### Application
@@ -117,31 +125,18 @@ $CONFIG = array (
 );
 ```
 
-### See Also
+## OpenID Connect user backend App
 
-* [Nextcloud OpenID Connect Login app]
-* [Nextcloud OpenID Connect Login Documentation](https://github.com/pulsejet/nextcloud-oidc-login)
-
-## With the Nextcloud application user_oid
-
-### Assumptions
-
-This example makes the following assumptions:
-
-* __Application Root URL:__ `https://nextcloud.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
-* __Client ID:__ `nextcloud`
-* __Client Secret:__ `insecure_secret`
+The following example uses the [OpenID Connect user backend](https://apps.nextcloud.com/apps/user_oidc) app.
 
 ### Configuration
 
 #### Authelia
 
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Nextcloud]
-which will operate with the above example:
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Nextcloud] which will
+operate with the application example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
@@ -152,6 +147,8 @@ identity_providers:
         client_secret: 'insecure_secret'
         public: false
         authorization_policy: 'two_factor'
+        require_pkce: true
+        pkce_challenge_method: 'S256'
         redirect_uris:
           - 'https://nextcloud.example.com/apps/user_oidc/code'
         scopes:
@@ -160,8 +157,7 @@ identity_providers:
           - 'email'
           - 'groups'
         userinfo_signed_response_alg: 'none'
-        consent_mode: 'implicit'
-        token_endpoint_auth_method: client_secret_post
+        token_endpoint_auth_method: 'client_secret_post'
 ```
 
 #### Application
@@ -177,11 +173,22 @@ To configure [Nextcloud] to utilize Authelia as an [OpenID Connect 1.0] Provider
 * Discovery endpoint : https://auth.example.com/.well-known/openid-configuration
 * Scope : openid email profile
 
-### See Also
+3. Add the following to the [Nextcloud] `config.php` configuration:
+``` php
+'user_oidc' => [
+    'use_pkce' => true,
+],
+```
+
+## See Also
 
 * [Nextcloud OpenID Connect user backend app]
+* [Nextcloud OpenID Connect Login app]
+* [Nextcloud OpenID Connect Login Documentation](https://github.com/pulsejet/nextcloud-oidc-login)
+
 [Authelia]: https://www.authelia.com
 [Nextcloud]: https://nextcloud.com/
 [Nextcloud OpenID Connect Login app]: https://apps.nextcloud.com/apps/oidc_login
 [Nextcloud OpenID Connect user backend app]: https://apps.nextcloud.com/apps/user_oidc
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

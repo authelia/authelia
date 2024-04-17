@@ -26,8 +26,6 @@ seo:
 * [Postfix]
   * [3.7.6](https://www.postfix.org/announcements/postfix-3.8.1.html)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions
@@ -43,11 +41,10 @@ This example makes the following assumptions:
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client
-configuration](../../../configuration/identity-providers/openid-connect/clients.md)
-for use with [Roundcube]:
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Roundcube] which will
+operate with the application example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
@@ -64,6 +61,7 @@ identity_providers:
           - 'openid'
           - 'profile'
           - 'email'
+        userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_post'
 ```
 
@@ -174,3 +172,4 @@ smtpd_sasl_type = dovecot
 [Dovecot OAuth2]: https://doc.dovecot.org/configuration_manual/authentication/oauth2/
 [Postfix]: https://www.postfix.org/
 [Postfix SASL]: https://www.postfix.org/SASL_README.html
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

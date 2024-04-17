@@ -30,11 +30,10 @@ Build OS: %s
 Build Arch: %s
 Build Compiler: %s
 Build Date: %s
-Extra: %s
+Extra: %s`
 
-Go: %s
-`
 	fmtAutheliaBuildGo = `
+Go:
     Version: %s
     Module Path: %s
     Executable Path: %s
@@ -417,8 +416,8 @@ This subcommand allows debugging the filtered YAML files with any of the availab
 command needs to be executed with the same environment variables and working path as when normally running Authelia to
 be useful.`
 
-	cmdAutheliaConfigTemplateExample = `authelia config template --fitlers.experimental.template
-authelia config template --fitlers.experimental.expand-env --config config.yml`
+	cmdAutheliaConfigTemplateExample = `authelia config template --filters.experimental.template
+authelia config template --filters.experimental.expand-env --config config.yml`
 
 	cmdAutheliaConfigValidateShort = "Check a configuration against the internal configuration validation mechanisms"
 
@@ -804,6 +803,17 @@ Layouts:
 	Ruby Date: Mon Jan 02 15:04:05 -0700 2006
 	ANSIC: Mon Jan _2 15:04:05 2006
 	Date: 2006-01-02`
+
+	//nolint:gosec // Not a credential, it's the text of a help topic.
+	helpTopicHashPassword = `The 'authelia hash-password' command has been replaced with the
+'authelia crypto hash generate' command. Run 'authelia crypto hash generate --help'
+for more information.
+
+It was replaced for a few reasons. Specifically it was confusing to users
+due to arguments which only had an effect on one algorithm and not the other,
+and the new command makes the available options a lot clearer. In addition
+the old command was not compatible with all of the available algorithms the
+new one is compatible for and retrofitting it would be incredibly difficult.`
 )
 
 const (

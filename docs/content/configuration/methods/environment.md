@@ -39,7 +39,7 @@ Configuration options are mapped by their name. Levels of indentation / subkeys 
 
 For example this YAML configuration:
 
-```yaml
+```yaml {title="configuration.yml"}
 log:
   level: 'info'
 server:

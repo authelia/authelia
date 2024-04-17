@@ -16,7 +16,7 @@ type TwoFactorTOTPSuite struct {
 	*RodSuite
 }
 
-func NewTwoFactorTOTPScenario() *TwoFactorTOTPSuite {
+func New2FATOTPScenario() *TwoFactorTOTPSuite {
 	return &TwoFactorTOTPSuite{
 		RodSuite: NewRodSuite(""),
 	}
@@ -137,5 +137,5 @@ func TestRunTwoFactorTOTP(t *testing.T) {
 		t.Skip("skipping suite test in short mode")
 	}
 
-	suite.Run(t, NewTwoFactorTOTPScenario())
+	suite.Run(t, New2FATOTPScenario())
 }

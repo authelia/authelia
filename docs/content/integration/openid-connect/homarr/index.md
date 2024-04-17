@@ -2,7 +2,7 @@
 title: "Homarr"
 description: "Integrating Homarr with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2024-04-09T00:00:00+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 weight: 620
@@ -22,8 +22,6 @@ seo:
 * [Homarr]
   * 0.15.2
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions
@@ -39,11 +37,10 @@ This example makes the following assumptions:
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__
-[client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Homarr]
-which will operate with the above example:
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Homarr] which will
+operate with the application example:
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
@@ -91,3 +88,4 @@ AUTH_OIDC_OWNER_GROUP=homarr-owners
 [Authelia]: https://www.authelia.com
 [Homarr]: https://homarr.dev
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

@@ -22,8 +22,6 @@ seo:
 * [Uptime Kuma]
   * [v1.23.11](https://github.com/louislam/uptime-kuma/releases/tag/1.23.11)
 
-## Before You Begin
-
 {{% oidc-common %}}
 
 ### Assumptions
@@ -64,10 +62,10 @@ See more information about the server authz endpoints section in the
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration](../../../configuration/identity-providers/openid-connect/clients.md) for use with [Uptime Kuma]
-which will operate with the above example:
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Uptime Kuma] which will
+operate with the above example:
 
-```yaml
+```yaml {title="configuration.yml"}
 server:
   endpoints:
     authz:
@@ -136,3 +134,4 @@ See the following screenshot for an authentication example of the above:
 [OpenID Connect 1.0]: ../openid-connect/introduction.md
 [requested_audience_mode]: ../../configuration/identity-providers/openid-connect/clients/#requested_audience_mode
 [Server Authz Endpoints]: ../../configuration/miscellaneous/server-endpoints-authz/
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

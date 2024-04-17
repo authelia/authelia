@@ -99,7 +99,7 @@ how to enable this scheme (along with the basic scheme). See the
 [Server Authz Endpoints](../../configuration/miscellaneous/server-endpoints-authz.md) configuration guide for more
 information.
 
-```yaml
+```yaml {title="configuration.yml"}
 server:
   endpoints:
     authz:
@@ -122,7 +122,7 @@ server:
       auth-request:
         implementation: 'AuthRequest'
         authn_strategies:
-          - name: 'HeaderAuthRequestAuthorization'
+          - name: 'HeaderAuthRequestProxyAuthorization'
             schemes:
               - 'Basic'
               - 'Bearer'
@@ -138,7 +138,7 @@ server:
 
 This feature is only intended to be supported while using the new session configuration syntax. See the example below.
 
-```yaml
+```yaml {title="configuration.yml"}
 session:
   secret: 'insecure_session_secret'
   cookies:
@@ -156,7 +156,7 @@ grant the client itself.
 It is important to note that the `client_credentials` grant is **always** treated as 1FA, thus only the `one_factor`
 policy is useful for this grant type.
 
-```yaml
+```yaml {title="configuration.yml"}
 access_control:
   rules:
     ## The 'app1.example.com' domain for the user 'john' regardless if they're using OAuth 2.0 or session based flows.
@@ -196,12 +196,14 @@ The following examples illustrate how the [Client Restrictions](#client-restrict
 
 ##### Public Client Example
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     clients:
       - client_id: 'example-one'
         public: true
+        require_pkce: true
+        pkce_challenge_method: 'S256'
         redirect_uris:
           - 'http://localhost/callback'
         scopes:
@@ -219,8 +221,6 @@ identity_providers:
           - 'form_post'
         consent_mode: 'explicit'
         require_pushed_authorization_requests: true
-        require_pkce: true
-        pkce_challenge_method: 'S256'
         token_endpoint_auth_method: 'none'
 ```
 
@@ -228,13 +228,15 @@ identity_providers:
 
 This is likely the most common configuration for most users.
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     clients:
       - client_id: 'example-two'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        require_pkce: true
+        pkce_challenge_method: 'S256'
         redirect_uris:
           - 'http://localhost/callback'
         scopes:
@@ -252,8 +254,6 @@ identity_providers:
           - 'form_post'
         consent_mode: 'explicit'
         require_pushed_authorization_requests: true
-        require_pkce: true
-        pkce_challenge_method: 'S256'
         token_endpoint_auth_method: 'client_secret_basic'
 ```
 
@@ -263,7 +263,7 @@ This example illustrates a method to configure a Client Credential flow for this
 automations. It's important to note that for access control evaluation purposes this token will match a subject of
 `oauth2:client:example-three` i.e. the `oauth2:client:` prefix followed by the client id.
 
-```yaml
+```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     clients:

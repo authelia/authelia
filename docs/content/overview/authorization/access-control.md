@@ -24,7 +24,7 @@ the resource.
 
 For instance a rule can look like this:
 
-```yaml
+```yaml {title="configuration.yml"}
 access_control:
   rules:
     - domain: dev.example.com

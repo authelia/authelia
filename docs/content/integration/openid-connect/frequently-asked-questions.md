@@ -25,7 +25,7 @@ We strongly recommend the following guidelines for generating a client identifie
 1. Each client should have a unique identifier and secret pair.
 2. Each identifier and secret should be randomly generated.
 3. Each identifier and secret should have a length above 40 characters.
-4. The identifier and secret should be stored in the configuration in a supported hash format. *__Note:__ This does not
+4. The secret should be stored in the configuration in a supported hash format. *__Note:__ This does not
    mean you configure the relying party / client application with a hashed secret, the hashed secret should just be used
    for the `client_secret` value in the Authelia client configuration and the relying party / client application should
    have the plain text secret.*
@@ -51,12 +51,12 @@ separately.
 {{< envTabs "Generate a Random Client ID" >}}
 {{< envTab "Docker" >}}
 ```bash
-$ docker run authelia/authelia:latest authelia crypto rand --length 72 --charset rfc3986
+docker run authelia/authelia:latest authelia crypto rand --length 72 --charset rfc3986
 ```
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
 ```bash
-$ authelia crypto rand --length 72 --charset rfc3986
+authelia crypto rand --length 72 --charset rfc3986
 ```
 {{< /envTab >}}
 {{< /envTabs >}}
@@ -77,12 +77,12 @@ separately.
 {{< envTabs "Generate a Random Client Secret" >}}
 {{< envTab "Docker" >}}
 ```bash
-$ docker run authelia/authelia:latest authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986
+docker run authelia/authelia:latest authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986
 ```
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
 ```bash
-$ authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986
+authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986
 ```
 {{< /envTab >}}
 {{< /envTabs >}}
@@ -253,7 +253,7 @@ you're facing.
 
 Examples (assuming your Authelia Root URL is `https://auth.example.com`):
 
-```yaml
+```yaml {title="docker-compose.yml"}
 services:
   application:
     ## Mandatory that the application is on the same network as the proxy.

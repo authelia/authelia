@@ -283,6 +283,155 @@ func TestSchemaNetworksToACL(t *testing.T) {
 	}
 }
 
+func TestIsOpenIDConnectMFA(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     *schema.Configuration
+		expected bool
+	}{
+		{
+			"ShouldReturnFalseNilConfig",
+			nil,
+			false,
+		},
+		{
+			"ShouldReturnFalseNilOIDC",
+			&schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: nil,
+				},
+			},
+			false,
+		},
+		{
+			"ShouldReturnFalseNoClients",
+			&schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						Clients: nil,
+					},
+				},
+			},
+			false,
+		},
+		{
+			"ShouldReturnFalseNoClients2FA",
+			&schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						Clients: []schema.IdentityProvidersOpenIDConnectClient{
+							{
+								ID:                  "one",
+								AuthorizationPolicy: "one_factor",
+							},
+						},
+					},
+				},
+			},
+			false,
+		},
+		{
+			"ShouldReturnTrueClientsDirect2FA",
+			&schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						Clients: []schema.IdentityProvidersOpenIDConnectClient{
+							{
+								ID:                  "one",
+								AuthorizationPolicy: "two_factor",
+							},
+						},
+					},
+				},
+			},
+			true,
+		},
+		{
+			"ShouldReturnTrueClientsIndirect2FADefault",
+			&schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						AuthorizationPolicies: map[string]schema.IdentityProvidersOpenIDConnectPolicy{
+							"example": {
+								DefaultPolicy: "two_factor",
+							},
+						},
+						Clients: []schema.IdentityProvidersOpenIDConnectClient{
+							{
+								ID:                  "one",
+								AuthorizationPolicy: "example",
+							},
+						},
+					},
+				},
+			},
+			true,
+		},
+		{
+			"ShouldReturnTrueClientsIndirect2FADefault",
+			&schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						AuthorizationPolicies: map[string]schema.IdentityProvidersOpenIDConnectPolicy{
+							"example": {
+								DefaultPolicy: "deny",
+								Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
+									{
+										Policy: "two_factor",
+									},
+								},
+							},
+						},
+						Clients: []schema.IdentityProvidersOpenIDConnectClient{
+							{
+								ID:                  "one",
+								AuthorizationPolicy: "example",
+							},
+						},
+					},
+				},
+			},
+			true,
+		},
+		{
+			"ShouldReturnTrueClientsIndirect2FADefault",
+			&schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						AuthorizationPolicies: map[string]schema.IdentityProvidersOpenIDConnectPolicy{
+							"example": {
+								DefaultPolicy: "deny",
+								Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
+									{
+										Policy: "two_factor",
+									},
+								},
+							},
+						},
+						Clients: []schema.IdentityProvidersOpenIDConnectClient{
+							{
+								ID:                  "skip",
+								AuthorizationPolicy: "skip",
+							},
+							{
+								ID:                  "one",
+								AuthorizationPolicy: "example",
+							},
+						},
+					},
+				},
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, isOpenIDConnectMFA(tc.have))
+		})
+	}
+}
+
 func MustParseCIDR(input string) *net.IPNet {
 	_, out, err := net.ParseCIDR(input)
 	if err != nil {
