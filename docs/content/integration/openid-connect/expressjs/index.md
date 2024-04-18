@@ -78,7 +78,9 @@ mkdir authelia-example && cd authelia-example && npm init -y && npm install expr
 This application example assumes you're proxying the Node service with a proxy handling TLS termination for
 `https://express.example.com`.
 
-```js
+```js {title="server.js"}
+"use strict";
+
 const express = require('express');
 const { auth, requiresAuth } = require('express-openid-connect');
 const { randomBytes } = require('crypto');
@@ -117,12 +119,17 @@ app.get('/', requiresAuth(), (req, res) => {
     res.send(`<html lang='en'><body><pre><code>${data}</code></pre></body></html>`);
   });
 });
+
+app.listen(3000, function () {
+  console.log("Listening on port 3000")
+});
 ```
 
 Environment Example:
 
 ```env
 APP_BASE_URL=https://express.example.com
+SESSION_ENCRYPTION_SECRET=
 OIDC_ISSUER=https://auth.example.com
 OIDC_CLIENT_ID=Express.js
 OIDC_CLIENT_SECRET=insecure_secret
