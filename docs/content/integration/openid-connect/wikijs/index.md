@@ -87,6 +87,8 @@ To configure [Wiki.js] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 7. Copy the `Callback URL / Redirect URI` for the Authelia configuration.
 8. Click Apply.
 
+{{< figure src="wikijs.png" alt="Wiki.js" width="736" style="padding-right: 10px" >}}
+
 ## See Also
 
 - [Wiki.js Authentication Guide](https://docs.requarks.io/auth)
