@@ -2,7 +2,7 @@
 title: "immich"
 description: "Integrating immich with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2023-03-21T11:21:23+11:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 weight: 620
@@ -73,7 +73,7 @@ To configure [immich] to utilize Authelia as an [OpenID Connect 1.0] Provider:
     - Client Secret: `insecure_secret`.
     - Scope: `openid profile email`.
     - Button Text: `Login with Authelia`.
-    - Auto Register: Eneble if desired.
+    - Auto Register: Enable if desired.
 3. Press `Save` at the bottom
 
 ## See Also
