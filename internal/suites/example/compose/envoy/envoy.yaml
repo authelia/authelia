@@ -246,7 +246,11 @@ layered_runtime:
           resource_limits:
             listener:
               example_listener_name:
-                connection_limit: 10000
-        overload:
-          global_downstream_max_connections: 50000
+                connection_limit: 1000
+overload_manager:
+  resource_monitors:
+    - name: "envoy.resource_monitors.global_downstream_max_connections"
+      typed_config:
+        "@type": type.googleapis.com/envoy.extensions.resource_monitors.downstream_connections.v3.DownstreamConnectionsConfig
+        max_active_downstream_connections: 1000
 ...
