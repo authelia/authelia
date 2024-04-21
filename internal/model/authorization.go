@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -77,14 +78,14 @@ func (a *Authorization) BasicUsername() (username string) {
 
 func (a *Authorization) ParseBasic(username, password string) (err error) {
 	if a.parsed {
-		return fmt.Errorf("invalid state: this scheme has already performed a parse action")
+		return errors.New("invalid state: this scheme has already performed a parse action")
 	}
 
 	switch {
 	case len(username) == 0:
-		return fmt.Errorf("invalid value: username must not be empty")
+		return errors.New("invalid value: username must not be empty")
 	case strings.Contains(username, ":"):
-		return fmt.Errorf("invalid value: username must not contain the ':' character")
+		return errors.New("invalid value: username must not contain the ':' character")
 	case len(password) == 0:
 		return fmt.Errorf("invalid value: password must not be empty")
 	}

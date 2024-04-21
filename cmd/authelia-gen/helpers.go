@@ -4,6 +4,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/rsa"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/mail"
 	"net/url"
@@ -24,7 +25,7 @@ import (
 
 func getPFlagPath(flags *pflag.FlagSet, flagNames ...string) (fullPath string, err error) {
 	if len(flagNames) == 0 {
-		return "", fmt.Errorf("no flag names")
+		return "", errors.New("no flag names")
 	}
 
 	var p string

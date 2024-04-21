@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -256,7 +257,7 @@ func docsJSONSchemaGenerateRunE(cmd *cobra.Command, _ []string, version *model.S
 	next := utils.IsStringInSlice(metaVersionNext, versions)
 
 	if next && utils.IsStringInSlice(metaVersionCurrent, versions) {
-		return fmt.Errorf("failed to generate: meta version next and current are mutually exclusive")
+		return errors.New("failed to generate: meta version next and current are mutually exclusive")
 	}
 
 	schema := r.Reflect(v)

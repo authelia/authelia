@@ -69,7 +69,7 @@ func (m *KeyManager) GetKeyIDFromAlgStrict(ctx context.Context, alg string) (kid
 		return jwks.kid, nil
 	}
 
-	return "", fmt.Errorf("alg not found")
+	return "", errors.New("alg not found")
 }
 
 // GetKeyIDFromAlg returns the key id given an alg or the default if it doesn't exist.
@@ -124,7 +124,7 @@ func (m *KeyManager) GetByHeader(ctx context.Context, header fjwt.Mapper) (jwk *
 	)
 
 	if header == nil {
-		return nil, fmt.Errorf("jwt header was nil")
+		return nil, errors.New("jwt header was nil")
 	}
 
 	kid, _ = header.Get(JWTHeaderKeyIdentifier).(string)
@@ -146,7 +146,7 @@ func (m *KeyManager) GetByHeader(ctx context.Context, header fjwt.Mapper) (jwk *
 		return nil, fmt.Errorf("jwt header '%s' with value '%s' does not match a managed jwk", JWTHeaderKeyAlgorithm, alg)
 	}
 
-	return nil, fmt.Errorf("jwt header did not match a known jwk")
+	return nil, errors.New("jwt header did not match a known jwk")
 }
 
 // GetByTokenString does an invalidated decode of a token to get the  header, then calls GetByHeader.
