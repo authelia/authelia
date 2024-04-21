@@ -87,7 +87,7 @@ func (a *Authorization) ParseBasic(username, password string) (err error) {
 	case strings.Contains(username, ":"):
 		return errors.New("invalid value: username must not contain the ':' character")
 	case len(password) == 0:
-		return fmt.Errorf("invalid value: password must not be empty")
+		return errors.New("invalid value: password must not be empty")
 	}
 
 	a.parsed = true
@@ -101,7 +101,7 @@ func (a *Authorization) ParseBasic(username, password string) (err error) {
 
 func (a *Authorization) ParseBearer(bearer string) (err error) {
 	if a.parsed {
-		return fmt.Errorf("invalid state: this scheme has already performed a parse action")
+		return errors.New("invalid state: this scheme has already performed a parse action")
 	}
 
 	if err = a.validateSchemeBearerValue(bearer); err != nil {
@@ -117,17 +117,17 @@ func (a *Authorization) ParseBearer(bearer string) (err error) {
 
 func (a *Authorization) Parse(raw string) (err error) {
 	if a.parsed {
-		return fmt.Errorf("invalid state: this scheme has already performed a parse action")
+		return errors.New("invalid state: this scheme has already performed a parse action")
 	}
 
 	if len(raw) == 0 {
-		return fmt.Errorf("invalid value: the value provided to be parsed was empty")
+		return errors.New("invalid value: the value provided to be parsed was empty")
 	}
 
 	scheme, value, found := strings.Cut(raw, " ")
 
 	if !found {
-		return fmt.Errorf("invalid scheme: the scheme is missing")
+		return errors.New("invalid scheme: the scheme is missing")
 	}
 
 	switch s := strings.ToLower(scheme); s {
@@ -165,15 +165,15 @@ func (a *Authorization) parseSchemeBasic(value string) (err error) {
 	username, password, found := strings.Cut(string(decoded), ":")
 
 	if !found {
-		return fmt.Errorf("invalid value: failed to find the username password separator in the decoded basic scheme value")
+		return errors.New("invalid value: failed to find the username password separator in the decoded basic scheme value")
 	}
 
 	if len(username) == 0 {
-		return fmt.Errorf("invalid value: failed to find the username in the decoded basic value as it was empty")
+		return errors.New("invalid value: failed to find the username in the decoded basic value as it was empty")
 	}
 
 	if len(password) == 0 {
-		return fmt.Errorf("invalid value: failed to find the password in the decoded basic value as it was empty")
+		return errors.New("invalid value: failed to find the password in the decoded basic value as it was empty")
 	}
 
 	a.username, a.password = username, password
@@ -188,9 +188,9 @@ func (a *Authorization) parseSchemeBearer(value string) (err error) {
 func (a *Authorization) validateSchemeBearerValue(bearer string) (err error) {
 	switch {
 	case len(bearer) == 0:
-		return fmt.Errorf("invalid value: bearer scheme value must not be empty")
+		return errors.New("invalid value: bearer scheme value must not be empty")
 	case !reToken64.MatchString(bearer):
-		return fmt.Errorf("invalid value: bearer scheme value must only contain characters noted in RFC6750 2.1")
+		return errors.New("invalid value: bearer scheme value must only contain characters noted in RFC6750 2.1")
 	default:
 		return nil
 	}

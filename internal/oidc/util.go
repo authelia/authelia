@@ -2,7 +2,6 @@ package oidc
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -349,7 +348,7 @@ func IsAccessToken(ctx Context, value string) (is bool, err error) {
 	}
 
 	if !IsJWTProfileAccessToken(token.Header) {
-		return false, errors.New("error occurred checking the token: the token is not a JWT profile access token")
+		return false, fmt.Errorf("error occurred checking the token: the token is not a JWT profile access token")
 	}
 
 	var iss string

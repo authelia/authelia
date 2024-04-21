@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -53,7 +52,7 @@ func NewOAuth2BlacklistedJTI(jti string, exp time.Time) (jtiBlacklist OAuth2Blac
 // NewOAuth2SessionFromRequest creates a new OAuth2Session from a signature and oauthelia2.Requester.
 func NewOAuth2SessionFromRequest(signature string, r oauthelia2.Requester) (session *OAuth2Session, err error) {
 	if r == nil {
-		return nil, errors.New("failed to create new *model.OAuth2Session: the oauthelia2.Requester was nil")
+		return nil, fmt.Errorf("failed to create new *model.OAuth2Session: the oauthelia2.Requester was nil")
 	}
 
 	var (
