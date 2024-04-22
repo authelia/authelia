@@ -2,6 +2,8 @@ authelia.com/provider/oauth2 v0.1.10 h1:RJtQaxqKUhedo2uTSBX4J6g/+FD+oI4kXWWNFprS
 authelia.com/provider/oauth2 v0.1.10/go.mod h1:NDritA+Ls5jTa5+t3CSQy58f/QPDofR53IKP8rRHJ8M=
 authelia.com/provider/oauth2 v0.1.11 h1:ZwcXBujIN95Of9seSn/ii0UFF+8w7/k81nBAJjkJxOk=
 authelia.com/provider/oauth2 v0.1.11/go.mod h1:NDritA+Ls5jTa5+t3CSQy58f/QPDofR53IKP8rRHJ8M=
+authelia.com/provider/oauth2 v0.1.12 h1:INq8NqViHPINbRBkrg6omRKSxBUqOhkf/5H3/lA6ZFg=
+authelia.com/provider/oauth2 v0.1.12/go.mod h1:NDritA+Ls5jTa5+t3CSQy58f/QPDofR53IKP8rRHJ8M=
 filippo.io/edwards25519 v1.1.0 h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=
 filippo.io/edwards25519 v1.1.0/go.mod h1:BxyFTGdWcka3PhytdK4V28tE5sGfRvvvRV7EaN4VDT4=
 github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 h1:mFRzDkZVAjdal+s7s0MwaRv9igoPqLRdzOLzw/8Xvq8=

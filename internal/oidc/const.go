@@ -50,6 +50,10 @@ const (
 )
 
 const (
+	ClaimTypeNormal = "normal"
+)
+
+const (
 	lifespanTokenDefault                      = time.Hour
 	lifespanRefreshTokenDefault               = time.Hour * 24 * 30
 	lifespanAuthorizeCodeDefault              = time.Minute * 15
