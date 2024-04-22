@@ -16,14 +16,14 @@ static_resources:
         - filters:
             - name: 'envoy.filters.network.http_connection_manager'
               typed_config:
-                "@type": 'type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager'  # yamllint disable-line rule:line-length
+                '@type': 'type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager'  # yamllint disable-line rule:line-length
                 stat_prefix: 'ingress_http'
                 use_remote_address: true
                 skip_xff_append: false
                 access_log:
                   - name: 'envoy.access_loggers.stdout'
                     typed_config:
-                      "@type": 'type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog'
+                      '@type': 'type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog'
                 route_config:
                   name: 'local_route'
                   virtual_hosts:
@@ -31,7 +31,7 @@ static_resources:
                       domains: ['login.example.com:8080']
                       typed_per_filter_config:
                         envoy.filters.http.ext_authz:
-                          "@type": 'type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute'
+                          '@type': 'type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute'
                           disabled: true
                       routes:
                         - match:
@@ -62,7 +62,7 @@ static_resources:
                       domains: ['mail.example.com:8080']
                       typed_per_filter_config:
                         envoy.filters.http.ext_authz:
-                          "@type": 'type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute'
+                          '@type': 'type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute'
                           disabled: true
                       routes:
                         - match:
@@ -83,7 +83,7 @@ static_resources:
                 http_filters:
                   - name: 'envoy.filters.http.ext_authz'
                     typed_config:
-                      "@type": 'type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz'
+                      '@type': 'type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz'
                       transport_api_version: 'v3'
                       allowed_headers:
                         patterns:
@@ -117,11 +117,11 @@ static_resources:
                       failure_mode_allow: false
                   - name: 'envoy.filters.http.router'
                     typed_config:
-                      "@type": 'type.googleapis.com/envoy.extensions.filters.http.router.v3.Router'
+                      '@type': 'type.googleapis.com/envoy.extensions.filters.http.router.v3.Router'
           transport_socket:
             name: 'envoy.transport_sockets.tls'
             typed_config:
-              "@type": 'type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext'
+              '@type': 'type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext'
               common_tls_context:
                 tls_certificates:
                   - certificate_chain:
@@ -137,14 +137,14 @@ static_resources:
           transport_socket:
             name: 'envoy.transport_sockets.tls'
             typed_config:
-              "@type": 'type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext'
+              '@type': 'type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext'
               common_tls_context: {}
         - name: 'defaultTLSDisabled'
           match: {}
           transport_socket:
             name: 'envoy.transport_sockets.raw_buffer'
             typed_config:
-              "@type": 'type.googleapis.com/envoy.extensions.transport_sockets.raw_buffer.v3.RawBuffer'
+              '@type': 'type.googleapis.com/envoy.extensions.transport_sockets.raw_buffer.v3.RawBuffer'
       connect_timeout: '0.25s'
       type: 'strict_dns'
       dns_lookup_family: 'V4_ONLY'
@@ -194,7 +194,7 @@ static_resources:
       transport_socket:
         name: 'envoy.transport_sockets.tls'
         typed_config:
-          "@type": 'type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext'
+          '@type': 'type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext'
           common_tls_context: {}
     - name: 'smtp'
       connect_timeout: '0.25s'
@@ -246,7 +246,11 @@ layered_runtime:
           resource_limits:
             listener:
               example_listener_name:
-                connection_limit: 10000
-        overload:
-          global_downstream_max_connections: 50000
+                connection_limit: 1000
+overload_manager:
+  resource_monitors:
+    - name: 'envoy.resource_monitors.global_downstream_max_connections'
+      typed_config:
+        '@type': type.googleapis.com/envoy.extensions.resource_monitors.downstream_connections.v3.DownstreamConnectionsConfig
+        max_active_downstream_connections: 1000
 ...
