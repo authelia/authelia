@@ -266,9 +266,22 @@ func (c *RegisteredClient) GetIntrospectionEndpointAuthSigningAlg() (alg string)
 	return ""
 }
 
-// GetIntrospectionEndpointAuthMethod returns the requested Client Authentication Method for the Introspection Endpoint.
+// GetIntrospectionEndpointAuthMethod returns the requested Client Authentication Method for the Revocation Endpoint.
 // The options are client_secret_post, client_secret_basic, client_secret_jwt, private_key_jwt, and none.
 func (c *RegisteredClient) GetIntrospectionEndpointAuthMethod() (method string) {
+	return ""
+}
+
+// GetRevocationEndpointAuthSigningAlg returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing the
+// JWT [JWT] used to authenticate the Client at the Introspection Endpoint for the private_key_jwt and client_secret_jwt
+// authentication methods.
+func (c *RegisteredClient) GetRevocationEndpointAuthSigningAlg() (alg string) {
+	return ""
+}
+
+// GetRevocationEndpointAuthMethod returns the requested Client Authentication Method for the Revocation Endpoint.
+// The options are client_secret_post, client_secret_basic, client_secret_jwt, private_key_jwt, and none.
+func (c *RegisteredClient) GetRevocationEndpointAuthMethod() (method string) {
 	return ""
 }
 
