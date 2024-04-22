@@ -116,7 +116,9 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 				},
 				IntrospectionEndpointAuthMethodsSupported: []string{
 					ClientAuthMethodClientSecretBasic,
-					ClientAuthMethodNone,
+					ClientAuthMethodClientSecretPost,
+					ClientAuthMethodClientSecretJWT,
+					ClientAuthMethodPrivateKeyJWT,
 				},
 			},
 			OAuth2JWTIntrospectionResponseDiscoveryOptions: &OAuth2JWTIntrospectionResponseDiscoveryOptions{
