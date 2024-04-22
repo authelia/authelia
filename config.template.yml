@@ -380,6 +380,7 @@ identity_validation:
     ## Use StartTLS with the LDAP connection.
     # start_tls: false
 
+    ## TLS configuration.
     # tls:
       ## The server subject name to check the servers certificate against during the validation process.
       ## This option is not required if the certificate has a SAN which matches the address options hostname.
@@ -415,6 +416,20 @@ identity_validation:
         # -----BEGIN RSA PRIVATE KEY-----
         # ...
         # -----END RSA PRIVATE KEY-----
+
+    ## Connection Pooling configuration.
+    # pooling:
+      ## Enable Pooling.
+      # enable: false
+
+      ## Pool count.
+      # count: 5
+
+      ## Retries to obtain a connection during the timeout.
+      # retries: 2
+
+      ## Timeout before the attempt to obtain a connection fails.
+      # timeout: '10 seconds'
 
     ## The distinguished name of the container searched for objects in the directory information tree.
     ## See also: additional_users_dn, additional_groups_dn.

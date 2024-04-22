@@ -705,7 +705,7 @@ func TestDatabaseError(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mock := NewMockFileUserDatabase(ctrl)
+		mock := NewMockFileUserProviderDatabase(ctrl)
 
 		provider.database = mock
 
