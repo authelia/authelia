@@ -58,12 +58,11 @@ func (s *TwoFactorOneTimePasswordSuite) TestShouldRegisterAllAdvancedOptions() {
 	lengths := []int{6, 8}
 	periods := []int{30, 60, 90, 120}
 
-	for _, algorithm := range algorithms {
-		for _, length := range lengths {
-			for _, period := range periods {
+	for a, algorithm := range algorithms {
+		for l, length := range lengths {
+			for p, period := range periods {
 				s.T().Run(fmt.Sprintf("%s-%d-%d", algorithm, length, period), func(t *testing.T) {
-					s.doMaybeDeleteTOTP(t, s.Context(ctx), "john")
-					s.doRegisterTOTPAdvanced(t, s.Context(ctx), "john", algorithm, length, period)
+					s.doRegisterTOTPAdvanced(t, s.Context(ctx), a+l+p == 0, "john", algorithm, length, period)
 				})
 			}
 		}
