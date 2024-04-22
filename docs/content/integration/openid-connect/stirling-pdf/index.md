@@ -2,7 +2,7 @@
 title: "Stirling-PDF"
 description: "Integrating Stirling-PDF with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2025-02-23T17:51:47+10:00
+date: 2025-02-23T04:38:52+00:00
 draft: false
 images: []
 weight: 620
