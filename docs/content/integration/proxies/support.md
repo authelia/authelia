@@ -85,7 +85,7 @@ Authelia detects the upstream request method using the X-Forwarded-Method header
 some require you to configure this manually. At the present time all proxies that have
 [Standard Support](#standard) do support this.
 
-## Specific proxy notes
+## Specific Proxy Notes
 
 ### HAProxy
 
