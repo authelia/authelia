@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@hyas/doks-core':
-        specifier: ^1.6.0
-        version: 1.6.0(@types/node@20.11.24)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
+        specifier: ^1.6.1
+        version: 1.6.1
       '@hyas/images':
         specifier: ^3.2.0
         version: 3.2.0
@@ -30,8 +30,8 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       gethyas:
-        specifier: ^2.4.0
-        version: 2.4.0(@types/node@20.11.24)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
+        specifier: ^2.4.1
+        version: 2.4.1(@types/node@20.11.24)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       hugo-installer:
         specifier: ^4.0.1
         version: 4.0.1
@@ -774,12 +774,12 @@ packages:
     resolution: {integrity: sha512-OvI9qe57aNkbHpTQE4Aoia/XqbDqEmCbCNSjKQGdq3yhtgp0JKt7ku3A9v6BbhD/lBS8uvEh86yhJFeWuxV1lA==}
     engines: {node: '>=20.11.0'}
 
-  '@hyas/core@1.3.0':
-    resolution: {integrity: sha512-B8vWGeSJDTdohafttH19zguLvaOfRKDJBDl803khySo4AYCobAM4HjOKIrIwYZj6kNY1jFRd6FnXwQcocmi0rQ==}
+  '@hyas/core@1.3.1':
+    resolution: {integrity: sha512-njdEsCUBiDlGzvJnVs2BavZ3Gp69kphs7EateZmYhWi3e8ZzMZuMmTNyGpGpB5gowTn4lElosXxLImXvD4iaNQ==}
     engines: {node: '>=20.11.0'}
 
-  '@hyas/doks-core@1.6.0':
-    resolution: {integrity: sha512-6CHdBg/j12paFqsX55hncNyemR+khN1pmaelGhK2nA16rwHwVaYtQTFhRIXOmILqqDX+D55C93AkTaI6sSke0A==}
+  '@hyas/doks-core@1.6.1':
+    resolution: {integrity: sha512-PvsVggNjOIAdMDmd9TozMHDJoSjgemzb9qJE/MlHhipaNhVzC5sAaKSPtBh3N2hjrrF94S/z4WCHPyhZ3hXXjg==}
     engines: {node: '>=20.11.0'}
 
   '@hyas/images@3.2.0':
@@ -1320,8 +1320,8 @@ packages:
     resolution: {integrity: sha512-ts6Wi+2j3jQjqi70w5AlN8DFnkSwC+MqmxEzdEALB2qXZYV3X/b1CTfgPLGJNMeAWxdPfU8FO1ms3NUfaHCPYg==}
     engines: {node: '>=10'}
 
-  gethyas@2.4.0:
-    resolution: {integrity: sha512-XNx9BCfUXazBybH3bVjFJPcDbt1OsePQPHBY1RapIUShWUW1xVaaoyw7WIg0O+f3fSwABbm9VQ61yDIWLlysNw==}
+  gethyas@2.4.1:
+    resolution: {integrity: sha512-k3QFin12sYKEW+CZ5eOjx4DNX56EoPup8itrWKq2U+frIwLJA3niOSAsqtGPvLQlLn/CHDRFokr9PPeg3ca/fQ==}
     engines: {node: '>=20.11.0'}
 
   glob-all@3.3.1:
@@ -1705,6 +1705,10 @@ packages:
   postcss@8.4.38:
     resolution: {integrity: sha512-Wglpdk03BSfXkHoQa3b/oulrotAkwrlLDRSOb9D0bN86FdRyE9lppSp33aHNPgBa0JKCoB+drFLZkQoRRYae5A==}
     engines: {node: ^10 || ^12 || >=14}
+
+  prettier@3.2.5:
+    resolution: {integrity: sha512-3/GWa9aOC0YeD7LUfvOG2NiDyhOWRvt1k+rcKhOuYnMY24iiCphgneUfJDyFXd6rZCAnuLBv6UeAULtrhT/F4A==}
+    engines: {node: '>=14'}
 
   pretty-hrtime@1.0.3:
     resolution: {integrity: sha512-66hKPCr+72mlfiSjlEB1+45IjXSqvVAIy6mocupoww4tBFE9R9IhwwUGoI4G++Tc9Aq+2rxOt0RFU6gPcrte0A==}
@@ -2892,7 +2896,7 @@ snapshots:
       '@popperjs/core': 2.11.8
       bootstrap: 5.3.3(@popperjs/core@2.11.8)
 
-  '@hyas/core@1.3.0(@types/node@20.11.24)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)':
+  '@hyas/core@1.3.1(react-dom@16.14.0(react@16.14.0))(react@16.14.0)':
     dependencies:
       '@babel/cli': 7.24.1(@babel/core@7.24.4)
       '@babel/core': 7.24.4
@@ -2905,38 +2909,17 @@ snapshots:
       postcss-cli: 11.0.0(postcss@8.4.38)
       purgecss-whitelister: 2.4.0
       quicklink: 2.3.0(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
-      vite: 5.2.10(@types/node@20.11.24)
     transitivePeerDependencies:
-      - '@types/node'
       - jiti
-      - less
-      - lightningcss
       - react
       - react-dom
-      - sass
-      - stylus
-      - sugarss
       - supports-color
-      - terser
 
-  '@hyas/doks-core@1.6.0(@types/node@20.11.24)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)':
+  '@hyas/doks-core@1.6.1':
     dependencies:
       '@hyas/bootstrap': 1.1.1
       clipboard: 2.0.11
       flexsearch: 0.7.43
-      gethyas: 2.4.0(@types/node@20.11.24)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
-    transitivePeerDependencies:
-      - '@types/node'
-      - jiti
-      - less
-      - lightningcss
-      - react
-      - react-dom
-      - sass
-      - stylus
-      - sugarss
-      - supports-color
-      - terser
 
   '@hyas/images@3.2.0': {}
 
@@ -3477,9 +3460,11 @@ snapshots:
 
   get-stream@6.0.1: {}
 
-  gethyas@2.4.0(@types/node@20.11.24)(react-dom@16.14.0(react@16.14.0))(react@16.14.0):
+  gethyas@2.4.1(@types/node@20.11.24)(react-dom@16.14.0(react@16.14.0))(react@16.14.0):
     dependencies:
-      '@hyas/core': 1.3.0(@types/node@20.11.24)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
+      '@hyas/core': 1.3.1(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
+      prettier: 3.2.5
+      vite: 5.2.10(@types/node@20.11.24)
     transitivePeerDependencies:
       - '@types/node'
       - jiti
@@ -3841,6 +3826,8 @@ snapshots:
       nanoid: 3.3.7
       picocolors: 1.0.0
       source-map-js: 1.2.0
+
+  prettier@3.2.5: {}
 
   pretty-hrtime@1.0.3: {}
 
