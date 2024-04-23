@@ -1,23 +1,23 @@
 {{ if (strings.HasPrefix .Destination "mailto") -}}
-  {{ with .Text -}}
-    {{ partial "main/email" (dict "emailAddress" $.Destination "emailTitle" .) }}
-  {{ else -}}
-    {{ partial "main/email" (dict "emailAddress" $.Destination) }}
-  {{ end -}}
-{{ else -}}
-  {{- $link := .Destination }}
-  {{- $absolute := (or (strings.HasPrefix $link "http://") (strings.HasPrefix $link "https://")) }}
-  {{- if not $absolute }}
-    {{- $url := urls.Parse .Destination }}
-    {{- if $url.Path }}
-      {{- $fragment := "" }}
-      {{- with $url.Fragment }}
-        {{ $fragment = printf "#%s" . }}
-      {{- end }}
-      {{- with .Page.GetPage $url.Path }}
-        {{- $link = printf "%s%s" .RelPermalink $fragment }}
-      {{- end }}
-    {{- end }}
-  {{- end }}
-  <a href="{{ $link | safeURL }}"{{ with .Title}} title="{{ . }}"{{ end }}>{{ .Text | safeHTML }}</a>
+  {{- with .Text -}}
+    {{- partial "main/email" (dict "emailAddress" $.Destination "emailTitle" .) -}}
+  {{- else -}}
+    {{- partial "main/email" (dict "emailAddress" $.Destination) -}}
+  {{- end -}}
+{{- else -}}
+  {{- $link := .Destination -}}
+  {{- $absolute := (or (strings.HasPrefix $link "http://") (strings.HasPrefix $link "https://")) -}}
+  {{- if not $absolute -}}
+    {{- $url := urls.Parse .Destination -}}
+    {{- if $url.Path -}}
+      {{- $fragment := "" -}}
+      {{- with $url.Fragment -}}
+        {{ $fragment = printf "#%s" . -}}
+      {{- end -}}
+      {{- with .Page.GetPage $url.Path -}}
+        {{- $link = printf "%s%s" .RelPermalink $fragment -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+<a href="{{ $link | safeURL }}"{{ with .Title}} title="{{ . }}"{{ end }}>{{ .Text | safeHTML }}</a>
 {{- end -}}
