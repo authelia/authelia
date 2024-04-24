@@ -369,8 +369,17 @@ func IsMaybeSignedJWT(value string) (is bool) {
 	return strings.Count(value, ".") == 2
 }
 
-// AuthorizeRequestFormRequiresLogin returns true if the form requires the user to authenticate again.
-func AuthorizeRequestFormRequiresLogin(form url.Values, requested, authenticated time.Time) (required bool) {
+// RequesterRequiresLogin returns true if the oauthelia2.Requester requires the user to authenticate again.
+func RequesterRequiresLogin(requester oauthelia2.Requester, requested, authenticated time.Time) (required bool) {
+	if _, ok := requester.(oauthelia2.DeviceAuthorizeRequester); ok {
+		return false
+	}
+
+	return RequestFormRequiresLogin(requester.GetRequestForm(), requested, authenticated)
+}
+
+// RequestFormRequiresLogin returns true if the form requires the user to authenticate again.
+func RequestFormRequiresLogin(form url.Values, requested, authenticated time.Time) (required bool) {
 	if form.Has(FormParameterPrompt) {
 		if oauthelia2.Arguments(oauthelia2.RemoveEmpty(strings.Split(form.Get(FormParameterPrompt), " "))).Has(PromptLogin) && authenticated.Before(requested) {
 			return true
