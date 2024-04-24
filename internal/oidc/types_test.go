@@ -69,7 +69,7 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 
 	ctx.Clock = clock.NewFixed(time.Unix(10000000000, 0))
 
-	session := oidc.NewSessionWithAuthorizeRequest(ctx, MustParseRequestURI(issuer), "primary", "john", amr, extra, authAt, consent, request, nil)
+	session := oidc.NewSessionWithRequester(ctx, MustParseRequestURI(issuer), "primary", "john", amr, extra, authAt, consent, request, nil)
 
 	require.NotNil(t, session)
 	require.NotNil(t, session.Extra)
@@ -99,7 +99,7 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 		RequestedAt: requested,
 	}
 
-	session = oidc.NewSessionWithAuthorizeRequest(ctx, MustParseRequestURI(issuer), "primary", "john", nil, nil, authAt, consent, request, nil)
+	session = oidc.NewSessionWithRequester(ctx, MustParseRequestURI(issuer), "primary", "john", nil, nil, authAt, consent, request, nil)
 
 	require.NotNil(t, session)
 	require.NotNil(t, session.Claims)

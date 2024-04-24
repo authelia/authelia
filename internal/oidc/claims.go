@@ -245,7 +245,7 @@ func (r *ClaimRequest) Matches(value any) (match bool) {
 }
 
 // GrantScopeAudienceConsent grants all scopes and audience values that have received consent.
-func GrantScopeAudienceConsent(ar oauthelia2.AuthorizeRequester, consent *model.OAuth2ConsentSession) {
+func GrantScopeAudienceConsent(ar oauthelia2.Requester, consent *model.OAuth2ConsentSession) {
 	if ar != nil {
 		for _, scope := range consent.GrantedScopes {
 			ar.GrantScope(scope)
