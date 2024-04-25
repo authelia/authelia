@@ -2,7 +2,7 @@
 title: "Wiki.js"
 description: "Integrating Wiki.js with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2024-04-18T10:36:12+10:00
+date: 2024-04-18T15:25:09+10:00
 draft: false
 images: []
 weight: 620

@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.authelia.com/schemas/v4.39/json-schema/user-database.json",
+  "$ref": "#/$defs/FileUserDatabase",
+  "$defs": {
+    "FileUserDatabase": {
+      "properties": {
+        "users": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/$defs/FileUserDatabaseUserDetails"
+            }
+          },
+          "type": "object",
+          "title": "Users",
+          "description": "The dictionary of users."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "users"
+      ],
+      "description": "FileUserDatabase is a user details database that is concurrency safe database and can be reloaded."
+    },
+    "FileUserDatabaseUserDetails": {
+      "properties": {
+        "password": {
+          "$ref": "#/$defs/PasswordDigest",
+          "title": "Password",
+          "description": "The hashed password for the user."
+        },
+        "displayname": {
+          "type": "string",
+          "title": "Display Name",
+          "description": "The display name for the user."
+        },
+        "email": {
+          "type": "string",
+          "title": "Email",
+          "description": "The email for the user."
+        },
+        "groups": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "title": "Groups",
+          "description": "The groups list for the user."
+        },
+        "disabled": {
+          "type": "boolean",
+          "title": "Disabled",
+          "description": "The disabled status for the user.",
+          "default": false
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "password",
+        "displayname"
+      ],
+      "description": "FileUserDatabaseUserDetails is the model of user details in the file database."
+    },
+    "PasswordDigest": {
+      "type": "string",
+      "pattern": "^\\$((argon2(id|i|d)\\$v=19\\$m=\\d+,t=\\d+,p=\\d+|scrypt\\$ln=\\d+,r=\\d+,p=\\d+)\\$[a-zA-Z0-9\\/+]+\\$[a-zA-Z0-9\\/+]+|pbkdf2(-sha(224|256|384|512))?\\$\\d+\\$[a-zA-Z0-9\\/.]+\\$[a-zA-Z0-9\\/.]+|bcrypt-sha256\\$v=2,t=2b,r=\\d+\\$[a-zA-Z0-9\\/.]+\\$[a-zA-Z0-9\\/.]+|2(a|b|y)?\\$\\d+\\$[a-zA-Z0-9.\\/]+|(5|6)\\$rounds=\\d+\\$[a-zA-Z0-9.\\/]+\\$[a-zA-Z0-9.\\/]+|plaintext\\$.+|base64\\$[a-zA-Z0-9.=\\/]+)$"
+    }
+  }
+}
