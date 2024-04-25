@@ -733,3 +733,8 @@ func (ctx *AutheliaCtx) Value(key any) any {
 
 	return ctx.RequestCtx.Value(key)
 }
+
+// GetLogger returns the logger for this request.
+func (ctx *AutheliaCtx) GetLogger() *logrus.Entry {
+	return ctx.Logger
+}

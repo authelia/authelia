@@ -765,6 +765,11 @@
         "env": "AUTHELIA_REGULATION_MAX_RETRIES"
     },
     {
+        "path": "regulation.modes",
+        "secret": false,
+        "env": "AUTHELIA_REGULATION_MODES"
+    },
+    {
         "path": "server.address",
         "secret": false,
         "env": "AUTHELIA_SERVER_ADDRESS"

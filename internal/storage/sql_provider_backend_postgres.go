@@ -93,7 +93,22 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlDeleteDuoDevice = provider.db.Rebind(provider.sqlDeleteDuoDevice)
 
 	provider.sqlInsertAuthenticationAttempt = provider.db.Rebind(provider.sqlInsertAuthenticationAttempt)
-	provider.sqlSelectAuthenticationAttemptsByUsername = provider.db.Rebind(provider.sqlSelectAuthenticationAttemptsByUsername)
+	provider.sqlSelectAuthenticationLogsRegulationRecordsByUsername = provider.db.Rebind(provider.sqlSelectAuthenticationLogsRegulationRecordsByUsername)
+	provider.sqlSelectAuthenticationLogsRegulationRecordsByRemoteIP = provider.db.Rebind(provider.sqlSelectAuthenticationLogsRegulationRecordsByRemoteIP)
+
+	provider.sqlInsertBannedUser = provider.db.Rebind(provider.sqlInsertBannedUser)
+	provider.sqlSelectBannedUser = provider.db.Rebind(provider.sqlSelectBannedUser)
+	provider.sqlSelectBannedUserByID = provider.db.Rebind(provider.sqlSelectBannedUserByID)
+	provider.sqlSelectBannedUsers = provider.db.Rebind(provider.sqlSelectBannedUsers)
+	provider.sqlSelectBannedUserLastTime = provider.db.Rebind(provider.sqlSelectBannedUserLastTime)
+	provider.sqlRevokeBannedUser = provider.db.Rebind(provider.sqlRevokeBannedUser)
+
+	provider.sqlInsertBannedIP = provider.db.Rebind(provider.sqlInsertBannedIP)
+	provider.sqlSelectBannedIP = provider.db.Rebind(provider.sqlSelectBannedIP)
+	provider.sqlSelectBannedIPByID = provider.db.Rebind(provider.sqlSelectBannedIPByID)
+	provider.sqlSelectBannedIPs = provider.db.Rebind(provider.sqlSelectBannedIPs)
+	provider.sqlSelectBannedIPLastTime = provider.db.Rebind(provider.sqlSelectBannedIPLastTime)
+	provider.sqlRevokeBannedIP = provider.db.Rebind(provider.sqlRevokeBannedIP)
 
 	provider.sqlSelectCachedData = provider.db.Rebind(provider.sqlSelectCachedData)
 	provider.sqlDeleteCachedData = provider.db.Rebind(provider.sqlDeleteCachedData)

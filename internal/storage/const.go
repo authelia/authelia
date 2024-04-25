@@ -6,6 +6,8 @@ import (
 
 const (
 	tableAuthenticationLogs   = "authentication_logs"
+	tableBannedUser           = "banned_user"
+	tableBannedIP             = "banned_ip"
 	tableCachedData           = "cached_data"
 	tableDuoDevices           = "duo_devices"
 	tableIdentityVerification = "identity_verification"

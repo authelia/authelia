@@ -317,6 +317,7 @@ var Keys = []string{
 	"regulation.ban_time",
 	"regulation.find_time",
 	"regulation.max_retries",
+	"regulation.modes",
 	"server.address",
 	"server.asset_path",
 	"server.buffers.read",
