@@ -663,3 +663,8 @@ func (ctx *AutheliaCtx) GetJWTWithTimeFuncOption() (option jwt.ParserOption) {
 func (ctx *AutheliaCtx) GetConfiguration() (config schema.Configuration) {
 	return ctx.Configuration
 }
+
+// GetLogger returns the logger for this request.
+func (ctx *AutheliaCtx) GetLogger() *logrus.Entry {
+	return ctx.Logger
+}

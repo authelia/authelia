@@ -1,6 +1,6 @@
 ---
-title: "authelia storage"
-description: "Reference for the authelia storage command."
+title: "authelia storage bans ip revoke"
+description: "Reference for the authelia storage bans ip revoke command."
 lead: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false
@@ -14,29 +14,39 @@ seo:
   noindex: false # false (default) or true
 ---
 
-## authelia storage
+## authelia storage bans ip revoke
 
-Manage the Authelia storage
+Revokes ip bans
 
 ### Synopsis
 
-Manage the Authelia storage.
+Revokes ip bans.
 
-This subcommand has several methods to interact with the Authelia SQL Database. This allows doing several advanced
-operations which would be much harder to do manually.
+This subcommand allows revoking ip bans in the regulation system.
 
+```
+authelia storage bans ip revoke [ip] [flags]
+```
 
 ### Examples
 
 ```
-authelia storage --help
+authelia storage bans ip revoke --help
 ```
 
 ### Options
 
 ```
+  -h, --help     help for revoke
+  -i, --id int   revokes the ban with the given id instead of the ip value
+```
+
+### Options inherited from parent commands
+
+```
+  -c, --config strings                         configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
+      --config.experimental.filters strings    list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
       --encryption-key string                  the storage encryption key to use
-  -h, --help                                   help for storage
       --mysql.database string                  the MySQL database name (default "authelia")
       --mysql.host string                      the MySQL hostname
       --mysql.password string                  the MySQL password
@@ -55,19 +65,7 @@ authelia storage --help
       --sqlite.path string                     the SQLite database path
 ```
 
-### Options inherited from parent commands
-
-```
-  -c, --config strings                        configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
-      --config.experimental.filters strings   list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
-```
-
 ### SEE ALSO
 
-* [authelia](authelia.md)	 - authelia untagged-unknown-dirty (master, unknown)
-* [authelia storage bans](authelia_storage_bans.md)	 - Manages user and ip bans
-* [authelia storage encryption](authelia_storage_encryption.md)	 - Manage storage encryption
-* [authelia storage migrate](authelia_storage_migrate.md)	 - Perform or list migrations
-* [authelia storage schema-info](authelia_storage_schema-info.md)	 - Show the storage information
-* [authelia storage user](authelia_storage_user.md)	 - Manages user settings
+* [authelia storage bans ip](authelia_storage_bans_ip.md)	 - Manages ip bans
 

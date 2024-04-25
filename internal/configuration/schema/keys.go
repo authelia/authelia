@@ -250,6 +250,7 @@ var Keys = []string{
 	"ntp.max_desync",
 	"ntp.disable_startup_check",
 	"ntp.disable_failure",
+	"regulation.mode",
 	"regulation.max_retries",
 	"regulation.find_time",
 	"regulation.ban_time",
