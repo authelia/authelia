@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/url"
 	"path"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/valyala/fasthttp"
@@ -13,6 +12,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
@@ -244,12 +244,10 @@ func handleOIDCWorkflowResponseWithID(ctx *middlewares.AutheliaCtx, userSession 
 	}
 }
 
-func markAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, bannedUntil *time.Time, username string, authType string, errAuth error) (err error) {
-	// We only Mark if there was no underlying error.
-	ctx.Logger.Debugf("Mark %s authentication attempt made by user '%s'", authType, username)
-
+func doMarkAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, ban *regulation.Ban, authType string, errAuth error) {
 	var (
 		requestURI, requestMethod string
+		err                       error
 	)
 
 	if referer := ctx.Request.Header.Referer(); referer != nil {
@@ -261,26 +259,27 @@ func markAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, ba
 		}
 	}
 
-	if err = ctx.Providers.Regulator.Mark(ctx, successful, bannedUntil != nil, username, requestURI, requestMethod, authType); err != nil {
-		ctx.Logger.WithError(err).Errorf("Unable to mark %s authentication attempt by user '%s'", authType, username)
+	doMarkAuthenticationAttemptWithRequest(ctx, successful, ban, authType, requestURI, requestMethod, errAuth)
+}
 
-		return err
-	}
+func doMarkAuthenticationAttemptWithRequest(ctx *middlewares.AutheliaCtx, successful bool, ban *regulation.Ban, authType, requestURI, requestMethod string, errAuth error) {
+	// We only Mark if there was no underlying error.
+	ctx.Logger.Debugf("Mark %s authentication attempt made by user '%s'", authType, ban.Value())
+
+	ctx.Providers.Regulator.HandleAttempt(ctx, successful, ban.IsBanned(), ban.Value(), requestURI, requestMethod, authType)
 
 	if successful {
-		ctx.Logger.Debugf("Successful %s authentication attempt made by user '%s'", authType, username)
+		ctx.Logger.Debugf("Successful %s authentication attempt made by user '%s'", authType, ban.Value())
 	} else {
 		switch {
 		case errAuth != nil:
-			ctx.Logger.WithError(errAuth).Errorf("Unsuccessful %s authentication attempt by user '%s'", authType, username)
-		case bannedUntil != nil:
-			ctx.Logger.Errorf("Unsuccessful %s authentication attempt by user '%s' and they are banned until %s", authType, username, bannedUntil)
+			ctx.Logger.WithError(errAuth).Errorf("Unsuccessful %s authentication attempt by user '%s'", authType, ban.Value())
+		case ban.IsBanned():
+			ctx.Logger.Errorf("Unsuccessful %s authentication attempt by user '%s' and they are banned until %s", authType, ban.Value(), ban.FormatExpires())
 		default:
-			ctx.Logger.Errorf("Unsuccessful %s authentication attempt by user '%s'", authType, username)
+			ctx.Logger.Errorf("Unsuccessful %s authentication attempt by user '%s'", authType, ban.Value())
 		}
 	}
-
-	return nil
 }
 
 func respondUnauthorized(ctx *middlewares.AutheliaCtx, message string) {

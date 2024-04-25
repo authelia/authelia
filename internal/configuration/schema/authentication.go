@@ -119,7 +119,7 @@ type AuthenticationBackendLDAP struct {
 
 	AdditionalGroupsDN string `koanf:"additional_groups_dn" json:"additional_groups_dn" jsonschema:"title=Additional Group Base" jsonschema_description:"The base in addition to the Base DN for all directory server operations for groups."`
 	GroupsFilter       string `koanf:"groups_filter" json:"groups_filter" jsonschema:"title=Groups Filter" jsonschema_description:"The LDAP filter used to search for group objects."`
-	GroupSearchMode    string `koanf:"group_search_mode" json:"group_search_mode" jsonschema:"default=filter,enum=filter,enum=memberof,title=Groups Search Mode" jsonschema_description:"The LDAP group search mode used to search for group objects."`
+	GroupSearchMode    string `koanf:"group_search_mode" json:"group_search_mode" jsonschema:"default=filter,enum=filter,enum=memberof,title=Groups Search Modes" jsonschema_description:"The LDAP group search mode used to search for group objects."`
 
 	Attributes AuthenticationBackendLDAPAttributes `koanf:"attributes" json:"attributes"`
 

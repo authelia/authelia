@@ -888,6 +888,10 @@ session:
 ## This mechanism prevents attackers from brute forcing the first factor. It bans the user if too many attempts are made
 ## in a short period of time.
 # regulation:
+  ## Regulation Mode.
+  # modes:
+    # - 'user'
+
   ## The number of failed login attempts before user is banned. Set it to 0 to disable regulation.
   # max_retries: 3
 

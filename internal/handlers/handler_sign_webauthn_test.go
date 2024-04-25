@@ -525,9 +525,9 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 			},
 			dataReqGood,
 			"",
-			fasthttp.StatusForbidden,
+			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Unable to mark WebAuthn authentication attempt by user 'john'", "bad record")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Failed to record WebAuthn authentication attempt", "bad record")
 			},
 		},
 		{

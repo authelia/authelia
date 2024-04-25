@@ -20,6 +20,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -256,14 +257,45 @@ func (s *HeaderAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session.Sessi
 	return authn, nil
 }
 
-func (s *HeaderAuthnStrategy) handleGetBasic(ctx *middlewares.AutheliaCtx, authn *Authn, _ *authorization.Object) (username string, level authentication.Level, err error) {
+func (s *HeaderAuthnStrategy) handleGetBasic(ctx *middlewares.AutheliaCtx, authn *Authn, object *authorization.Object) (username string, level authentication.Level, err error) {
 	var (
-		valid bool
+		valid    bool
+		password string
 	)
 
-	if valid, err = ctx.Providers.UserProvider.CheckUserPassword(authn.Header.Authorization.Basic()); err != nil {
-		return "", authentication.NotAuthenticated, fmt.Errorf("failed to validate parsed credentials of %s header for user '%s': %w", s.headerAuthorize, authn.Header.Authorization.BasicUsername(), err)
+	username, password = authn.Header.Authorization.Basic()
+
+	if valid, err = ctx.Providers.UserProvider.CheckUserPassword(username, password); err != nil {
+		doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, object.String(), object.Method, err)
+
+		return "", authentication.NotAuthenticated, fmt.Errorf("failed to validate parsed credentials of %s header for user '%s': %w", s.headerAuthorize, username, err)
 	}
+
+	var (
+		ban     regulation.BanType
+		value   string
+		expires *time.Time
+	)
+
+	if ban, value, expires, err = ctx.Providers.Regulator.BanCheck(ctx, username); err != nil {
+		if errors.Is(err, regulation.ErrUserIsBanned) {
+			doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(ban, value, expires), regulation.AuthType1FA, object.String(), object.Method, nil)
+
+			return "", authentication.NotAuthenticated, fmt.Errorf("validated parsed credentials of %s header for user '%s' but they are currently banned: %w", s.headerAuthorize, username, err)
+		}
+
+		ctx.Logger.WithError(err).Errorf(logFmtErrRegulationFail, regulation.AuthType1FA, username)
+
+		return "", authentication.NotAuthenticated, fmt.Errorf("validated parsed credentials of %s header for user '%s' but an error occurred checking the regulation status of the user: %w", s.headerAuthorize, username, err)
+	}
+
+	if !valid {
+		doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, object.String(), object.Method, nil)
+
+		return "", authentication.NotAuthenticated, fmt.Errorf("failed to validate parsed credentials of %s header valid for user '%s': the username and password do not match", s.headerAuthorize, username)
+	}
+
+	doMarkAuthenticationAttemptWithRequest(ctx, true, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, object.String(), object.Method, nil)
 
 	if !valid {
 		return "", authentication.NotAuthenticated, fmt.Errorf("validated parsed credentials of %s header but they are not valid for user '%s': %w", s.headerAuthorize, authn.Header.Authorization.BasicUsername(), err)
