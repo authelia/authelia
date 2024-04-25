@@ -846,7 +846,7 @@ type OpenIDConnectClientInitiatedBackChannelAuthFlowDiscoveryOptions struct {
 }
 
 // OpenIDConnectJWTSecuredAuthorizationResponseModeDiscoveryOptions represents the discovery options specific to
-// JWT Secured Authorization Response Mode for OAuth 2.0 (JARM).
+// JWT Secured Authorization Response Modes for OAuth 2.0 (JARM).
 //
 // Authorization servers SHOULD publish the supported algorithms for signing and encrypting the JWT of an authorization
 // response by utilizing OAuth 2.0 Authorization Server Metadata [RFC8414] parameters. The following parameters are
@@ -854,7 +854,7 @@ type OpenIDConnectClientInitiatedBackChannelAuthFlowDiscoveryOptions struct {
 //
 // See Also:
 //
-// JWT Secured Authorization Response Mode for OAuth 2.0 (JARM):
+// JWT Secured Authorization Response Modes for OAuth 2.0 (JARM):
 // https://openid.net/specs/oauth-v2-jarm.html#name-authorization-server-metada
 type OpenIDConnectJWTSecuredAuthorizationResponseModeDiscoveryOptions struct {
 	/*

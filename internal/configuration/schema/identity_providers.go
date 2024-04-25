@@ -70,7 +70,7 @@ type IdentityProvidersOpenIDConnectDiscovery struct {
 
 type IdentityProvidersOpenIDConnectLifespans struct {
 	IdentityProvidersOpenIDConnectLifespanToken `koanf:",squash"`
-	JWTSecuredAuthorization                     time.Duration `koanf:"jwt_secured_authorization" json:"jwt_secured_authorization" jsonschema:"default=5 minutes,title=JARM" jsonschema_description:"Allows tuning the token lifespan for the JWT Secured Authorization Response Mode (JARM)."`
+	JWTSecuredAuthorization                     time.Duration `koanf:"jwt_secured_authorization" json:"jwt_secured_authorization" jsonschema:"default=5 minutes,title=JARM" jsonschema_description:"Allows tuning the token lifespan for the JWT Secured Authorization Response Modes (JARM)."`
 
 	Custom map[string]IdentityProvidersOpenIDConnectLifespan `koanf:"custom" json:"custom" jsonschema:"title=Custom Lifespans" jsonschema_description:"Allows creating custom lifespans to be used by individual clients."`
 }
@@ -127,9 +127,9 @@ type IdentityProvidersOpenIDConnectClient struct {
 	AuthorizationPolicy string `koanf:"authorization_policy" json:"authorization_policy" jsonschema:"title=Authorization Policy" jsonschema_description:"The Authorization Policy to apply to this client."`
 	Lifespan            string `koanf:"lifespan" json:"lifespan" jsonschema:"title=Lifespan Name" jsonschema_description:"The name of the custom lifespan to utilize for this client."`
 
-	RequestedAudienceMode        string         `koanf:"requested_audience_mode" json:"requested_audience_mode" jsonschema:"enum=explicit,enum=implicit,title=Requested Audience Mode" jsonschema_description:"The Requested Audience Mode used for this client."`
-	ConsentMode                  string         `koanf:"consent_mode" json:"consent_mode" jsonschema:"enum=auto,enum=explicit,enum=implicit,enum=pre-configured,title=Consent Mode" jsonschema_description:"The Consent Mode used for this client."`
-	ConsentPreConfiguredDuration *time.Duration `koanf:"pre_configured_consent_duration" json:"pre_configured_consent_duration" jsonschema:"default=7 days,title=Pre-Configured Consent Duration" jsonschema_description:"The Pre-Configured Consent Duration when using Consent Mode pre-configured for this client."`
+	RequestedAudienceMode        string         `koanf:"requested_audience_mode" json:"requested_audience_mode" jsonschema:"enum=explicit,enum=implicit,title=Requested Audience Modes" jsonschema_description:"The Requested Audience Modes used for this client."`
+	ConsentMode                  string         `koanf:"consent_mode" json:"consent_mode" jsonschema:"enum=auto,enum=explicit,enum=implicit,enum=pre-configured,title=Consent Modes" jsonschema_description:"The Consent Modes used for this client."`
+	ConsentPreConfiguredDuration *time.Duration `koanf:"pre_configured_consent_duration" json:"pre_configured_consent_duration" jsonschema:"default=7 days,title=Pre-Configured Consent Duration" jsonschema_description:"The Pre-Configured Consent Duration when using Consent Modes pre-configured for this client."`
 
 	RequirePushedAuthorizationRequests bool `koanf:"require_pushed_authorization_requests" json:"require_pushed_authorization_requests" jsonschema:"default=false,title=Require Pushed Authorization Requests" jsonschema_description:"Requires Pushed Authorization Requests for this client to perform an authorization."`
 	RequirePKCE                        bool `koanf:"require_pkce" json:"require_pkce" jsonschema:"default=false,title=Require PKCE" jsonschema_description:"Requires a Proof Key for this client to perform Code Exchange."`
