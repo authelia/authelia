@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.authelia.com/schemas/v4.39/json-schema/exports.totp.json",
+  "$ref": "#/$defs/TOTPConfigurationDataExport",
+  "$defs": {
+    "TOTPConfigurationData": {
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "title": "Created At",
+          "description": "The time the configuration was created."
+        },
+        "last_used_at": {
+          "type": "string",
+          "format": "date-time",
+          "title": "Last Used At",
+          "description": "The time the configuration was last used at."
+        },
+        "username": {
+          "type": "string",
+          "title": "Username",
+          "description": "The username of the user this configuration belongs to."
+        },
+        "issuer": {
+          "type": "string",
+          "title": "Issuer",
+          "description": "The issuer name this was generated with."
+        },
+        "algorithm": {
+          "type": "string",
+          "title": "Algorithm",
+          "description": "The algorithm this configuration uses."
+        },
+        "digits": {
+          "type": "integer",
+          "title": "Digits",
+          "description": "The number of digits this configuration uses."
+        },
+        "period": {
+          "type": "integer",
+          "title": "Period",
+          "description": "The period of time this configuration uses."
+        },
+        "secret": {
+          "type": "string",
+          "title": "Secret",
+          "description": "The secret shared key for this configuration."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "TOTPConfigurationDataExport": {
+      "properties": {
+        "totp_configurations": {
+          "items": {
+            "$ref": "#/$defs/TOTPConfigurationData"
+          },
+          "type": "array",
+          "title": "TOTP Configurations",
+          "description": "The list of TOTP configurations."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    }
+  }
+}

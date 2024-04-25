@@ -1,0 +1,3365 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.authelia.com/schemas/v4.39/json-schema/configuration.json",
+  "$ref": "#/$defs/Configuration",
+  "$defs": {
+    "AccessControl": {
+      "properties": {
+        "default_policy": {
+          "type": "string",
+          "enum": [
+            "deny",
+            "one_factor",
+            "two_factor"
+          ],
+          "title": "Default Authorization Policy",
+          "description": "The default policy applied to all authorization requests unrelated to OpenID Connect 1.0.",
+          "default": "deny"
+        },
+        "networks": {
+          "items": {
+            "$ref": "#/$defs/AccessControlNetwork"
+          },
+          "type": "array",
+          "title": "Named Networks",
+          "description": "The list of named networks which can be reused in any ACL rule."
+        },
+        "rules": {
+          "items": {
+            "$ref": "#/$defs/AccessControlRule"
+          },
+          "type": "array",
+          "title": "Rules List",
+          "description": "The list of ACL rules to enumerate for requests."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AccessControl represents the configuration related to ACLs."
+    },
+    "AccessControlNetwork": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Network Name",
+          "description": "The name of this network to be used in the networks section of the rules section."
+        },
+        "networks": {
+          "$ref": "#/$defs/AccessControlNetworkNetworks",
+          "title": "Networks",
+          "description": "The remote IP's or network ranges in CIDR notation that this rule applies to."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "name",
+        "networks"
+      ],
+      "description": "AccessControlNetwork represents one ACL network group entry."
+    },
+    "AccessControlNetworkNetworks": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "((^((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))(\\/([0-2]?[0-9]|3[0-2]))?$)|(^((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:)))?(\\/(12[0-8]|1[0-1][0-9]|[0-9]{1,2}))?$))"
+        },
+        {
+          "items": {
+            "type": "string",
+            "pattern": "((^((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))(\\/([0-2]?[0-9]|3[0-2]))?$)|(^((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:)))?(\\/(12[0-8]|1[0-1][0-9]|[0-9]{1,2}))?$))"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      ]
+    },
+    "AccessControlRule": {
+      "oneOf": [
+        {
+          "required": [
+            "domain"
+          ],
+          "title": "Domain"
+        },
+        {
+          "required": [
+            "domain_regex"
+          ],
+          "title": "Domain Regex"
+        }
+      ],
+      "properties": {
+        "domain": {
+          "$ref": "#/$defs/AccessControlRuleDomains",
+          "title": "Domain Literals",
+          "description": "The literal domains to match the domain against that this rule applies to."
+        },
+        "domain_regex": {
+          "$ref": "#/$defs/AccessControlRuleRegex",
+          "title": "Domain Regex Patterns",
+          "description": "The regex patterns to match the domain against that this rule applies to."
+        },
+        "policy": {
+          "type": "string",
+          "enum": [
+            "bypass",
+            "deny",
+            "one_factor",
+            "two_factor"
+          ],
+          "title": "Rule Policy",
+          "description": "The policy this rule applies when all criteria match."
+        },
+        "subject": {
+          "$ref": "#/$defs/AccessControlRuleSubjects",
+          "title": "AccessControlRuleSubjects",
+          "description": "The users or groups that this rule applies to."
+        },
+        "networks": {
+          "$ref": "#/$defs/AccessControlRuleNetworks",
+          "title": "Networks",
+          "description": "The remote IP's, network ranges in CIDR notation, or network names that this rule applies to."
+        },
+        "resources": {
+          "$ref": "#/$defs/AccessControlRuleRegex",
+          "title": "Resources or Paths",
+          "description": "The regex patterns to match the resource paths that this rule applies to."
+        },
+        "methods": {
+          "$ref": "#/$defs/AccessControlRuleMethods",
+          "description": "The list of request methods this rule applies to."
+        },
+        "query": {
+          "items": {
+            "items": {
+              "$ref": "#/$defs/AccessControlRuleQuery"
+            },
+            "type": "array"
+          },
+          "type": "array",
+          "title": "Query Rules",
+          "description": "The list of query parameter rules this rule applies to."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "policy"
+      ],
+      "description": "AccessControlRule represents one ACL rule entry."
+    },
+    "AccessControlRuleDomains": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      ]
+    },
+    "AccessControlRuleMethods": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "GET",
+            "HEAD",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE",
+            "TRACE",
+            "CONNECT",
+            "OPTIONS",
+            "COPY",
+            "LOCK",
+            "MKCOL",
+            "MOVE",
+            "PROPFIND",
+            "PROPPATCH",
+            "UNLOCK"
+          ]
+        },
+        {
+          "items": {
+            "type": "string",
+            "enum": [
+              "GET",
+              "HEAD",
+              "POST",
+              "PUT",
+              "PATCH",
+              "DELETE",
+              "TRACE",
+              "CONNECT",
+              "OPTIONS",
+              "COPY",
+              "LOCK",
+              "MKCOL",
+              "MOVE",
+              "PROPFIND",
+              "PROPPATCH",
+              "UNLOCK"
+            ]
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      ]
+    },
+    "AccessControlRuleNetworks": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      ]
+    },
+    "AccessControlRuleQuery": {
+      "properties": {
+        "operator": {
+          "type": "string",
+          "enum": [
+            "equal",
+            "not equal",
+            "present",
+            "absent",
+            "pattern",
+            "not pattern"
+          ],
+          "title": "Operator",
+          "description": "The list of query parameter rules this rule applies to."
+        },
+        "key": {
+          "type": "string",
+          "title": "Key",
+          "description": "The Query Parameter key this rule applies to."
+        },
+        "value": {
+          "title": "Value",
+          "description": "The Query Parameter value for this rule."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key"
+      ],
+      "description": "AccessControlRuleQuery represents the ACL query criteria."
+    },
+    "AccessControlRuleRegex": {
+      "oneOf": [
+        {
+          "type": "string",
+          "format": "regex"
+        },
+        {
+          "items": {
+            "type": "string",
+            "format": "regex"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      ]
+    },
+    "AccessControlRuleSubjects": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^(user|group|oauth2:client):.+$"
+        },
+        {
+          "items": {
+            "type": "string",
+            "pattern": "^(user|group|oauth2:client):.+$"
+          },
+          "type": "array"
+        },
+        {
+          "items": {
+            "items": {
+              "type": "string",
+              "pattern": "^(user|group|oauth2:client):.+$"
+            },
+            "type": "array"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      ]
+    },
+    "AddressLDAP": {
+      "type": "string",
+      "pattern": "^((ldaps?:\\/\\/)?([^:\\/]*(:\\d+)|[^:\\/]+(:\\d+)?)?|ldapi:\\/\\/(\\/[^?\\n]+)?)$",
+      "format": "uri"
+    },
+    "AddressSMTP": {
+      "type": "string",
+      "pattern": "^((smtp|submissions?):\\/\\/)?([^:\\/]*(:\\d+)|[^:\\/]+(:\\d+)?)?$",
+      "format": "uri"
+    },
+    "AddressTCP": {
+      "type": "string",
+      "pattern": "^((tcp[46]?:\\/\\/)?([^:\\/]*(:\\d+)|[^:\\/]+(:\\d+)?)(\\/.*)?|unix:\\/\\/\\/[^?\\n]+(\\?(umask=[0-7]{3,4}|path=[a-z]+)(\u0026(umask=[0-7]{3,4}|path=[a-zA-Z0-9.~_-]+))?)?)$",
+      "format": "uri"
+    },
+    "AddressUDP": {
+      "type": "string",
+      "pattern": "^(udp[46]?:\\/\\/)?([^:\\/]*(:\\d+)|[^:\\/]+(:\\d+)?)(\\/.*)?$",
+      "format": "uri"
+    },
+    "AuthenticationBackend": {
+      "properties": {
+        "password_reset": {
+          "$ref": "#/$defs/AuthenticationBackendPasswordReset",
+          "title": "Password Reset",
+          "description": "Allows configuration of the password reset behaviour."
+        },
+        "refresh_interval": {
+          "$ref": "#/$defs/RefreshIntervalDuration",
+          "title": "Refresh Interval",
+          "description": "How frequently the user details are refreshed from the backend."
+        },
+        "file": {
+          "$ref": "#/$defs/AuthenticationBackendFile",
+          "title": "File Backend",
+          "description": "The file authentication backend configuration."
+        },
+        "ldap": {
+          "$ref": "#/$defs/AuthenticationBackendLDAP",
+          "title": "LDAP Backend",
+          "description": "The LDAP authentication backend configuration."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AuthenticationBackend represents the configuration related to the authentication backend."
+    },
+    "AuthenticationBackendFile": {
+      "properties": {
+        "path": {
+          "type": "string",
+          "title": "Path",
+          "description": "The file path to the user database."
+        },
+        "watch": {
+          "type": "boolean",
+          "title": "Watch",
+          "description": "Enables watching the file for external changes and dynamically reloading the database.",
+          "default": false
+        },
+        "password": {
+          "$ref": "#/$defs/AuthenticationBackendFilePassword",
+          "title": "Password Options",
+          "description": "Allows configuration of the password hashing options when the user passwords are changed directly by Authelia."
+        },
+        "search": {
+          "$ref": "#/$defs/AuthenticationBackendFileSearch",
+          "title": "Search",
+          "description": "Configures the user searching behaviour."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AuthenticationBackendFile represents the configuration related to file-based backend."
+    },
+    "AuthenticationBackendFilePassword": {
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "enum": [
+            "argon2",
+            "sha2crypt",
+            "pbkdf2",
+            "bcrypt",
+            "scrypt"
+          ],
+          "title": "Algorithm",
+          "description": "The password hashing algorithm to use.",
+          "default": "argon2"
+        },
+        "argon2": {
+          "$ref": "#/$defs/AuthenticationBackendFilePasswordArgon2",
+          "title": "Argon2",
+          "description": "Configure the Argon2 password hashing parameters."
+        },
+        "sha2crypt": {
+          "$ref": "#/$defs/AuthenticationBackendFilePasswordSHA2Crypt",
+          "title": "SHA2Crypt",
+          "description": "Configure the SHA2Crypt password hashing parameters."
+        },
+        "pbkdf2": {
+          "$ref": "#/$defs/AuthenticationBackendFilePasswordPBKDF2",
+          "title": "PBKDF2",
+          "description": "Configure the PBKDF2 password hashing parameters."
+        },
+        "bcrypt": {
+          "$ref": "#/$defs/AuthenticationBackendFilePasswordBCrypt",
+          "title": "BCrypt",
+          "description": "Configure the BCrypt password hashing parameters."
+        },
+        "scrypt": {
+          "$ref": "#/$defs/AuthenticationBackendFilePasswordSCrypt",
+          "title": "SCrypt",
+          "description": "Configure the SCrypt password hashing parameters."
+        },
+        "iterations": {
+          "type": "integer",
+          "title": "Iterations",
+          "description": "Deprecated: Use individual password options instead.",
+          "deprecated": true
+        },
+        "memory": {
+          "type": "integer",
+          "title": "Memory",
+          "description": "Deprecated: Use individual password options instead.",
+          "deprecated": true
+        },
+        "parallelism": {
+          "type": "integer",
+          "title": "Parallelism",
+          "description": "Deprecated: Use individual password options instead.",
+          "deprecated": true
+        },
+        "key_length": {
+          "type": "integer",
+          "title": "Key Length",
+          "description": "Deprecated: Use individual password options instead.",
+          "deprecated": true
+        },
+        "salt_length": {
+          "type": "integer",
+          "title": "Salt Length",
+          "description": "Deprecated: Use individual password options instead.",
+          "deprecated": true
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AuthenticationBackendFilePassword represents the configuration related to password hashing."
+    },
+    "AuthenticationBackendFilePasswordArgon2": {
+      "properties": {
+        "variant": {
+          "type": "string",
+          "enum": [
+            "argon2id",
+            "argon2i",
+            "argon2d"
+          ],
+          "title": "Variant",
+          "description": "The Argon2 variant to be used.",
+          "default": "argon2id"
+        },
+        "iterations": {
+          "type": "integer",
+          "title": "Iterations",
+          "description": "The number of Argon2 iterations (parameter t) to be used.",
+          "default": 3
+        },
+        "memory": {
+          "type": "integer",
+          "maximum": 4294967295,
+          "minimum": 8,
+          "title": "Memory",
+          "description": "The Argon2 amount of memory in kibibytes (parameter m) to be used.",
+          "default": 65536
+        },
+        "parallelism": {
+          "type": "integer",
+          "maximum": 16777215,
+          "minimum": 1,
+          "title": "Parallelism",
+          "description": "The Argon2 degree of parallelism (parameter p) to be used.",
+          "default": 4
+        },
+        "key_length": {
+          "type": "integer",
+          "maximum": 2147483647,
+          "minimum": 4,
+          "title": "Key Length",
+          "description": "The Argon2 key output length.",
+          "default": 32
+        },
+        "salt_length": {
+          "type": "integer",
+          "maximum": 2147483647,
+          "minimum": 1,
+          "title": "Salt Length",
+          "description": "The Argon2 salt length.",
+          "default": 16
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AuthenticationBackendFilePasswordArgon2 represents the argon2 hashing settings."
+    },
+    "AuthenticationBackendFilePasswordBCrypt": {
+      "properties": {
+        "variant": {
+          "type": "string",
+          "enum": [
+            "standard",
+            "sha256"
+          ],
+          "title": "Variant",
+          "description": "The BCrypt variant to be used.",
+          "default": "standard"
+        },
+        "cost": {
+          "type": "integer",
+          "maximum": 31,
+          "minimum": 10,
+          "title": "Cost",
+          "description": "The BCrypt cost to be used.",
+          "default": 12
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AuthenticationBackendFilePasswordBCrypt represents the bcrypt hashing settings."
+    },
+    "AuthenticationBackendFilePasswordPBKDF2": {
+      "properties": {
+        "variant": {
+          "type": "string",
+          "enum": [
+            "sha1",
+            "sha224",
+            "sha256",
+            "sha384",
+            "sha512"
+          ],
+          "title": "Variant",
+          "description": "The PBKDF2 variant to be used.",
+          "default": "sha512"
+        },
+        "iterations": {
+          "type": "integer",
+          "maximum": 2147483647,
+          "minimum": 100000,
+          "title": "Iterations",
+          "description": "The PBKDF2 iterations to be used.",
+          "default": 310000
+        },
+        "salt_length": {
+          "type": "integer",
+          "maximum": 2147483647,
+          "minimum": 8,
+          "title": "Salt Length",
+          "description": "The PBKDF2 salt length to be used.",
+          "default": 16
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AuthenticationBackendFilePasswordPBKDF2 represents the PBKDF2 hashing settings."
+    },
+    "AuthenticationBackendFilePasswordSCrypt": {
+      "properties": {
+        "iterations": {
+          "type": "integer",
+          "maximum": 58,
+          "minimum": 1,
+          "title": "Iterations",
+          "description": "The SCrypt iterations to be used.",
+          "default": 16
+        },
+        "block_size": {
+          "type": "integer",
+          "maximum": 36028797018963967,
+          "minimum": 1,
+          "title": "Key Length",
+          "description": "The SCrypt block size to be used.",
+          "default": 8
+        },
+        "parallelism": {
+          "type": "integer",
+          "maximum": 1073741823,
+          "minimum": 1,
+          "title": "Key Length",
+          "description": "The SCrypt parallelism factor to be used.",
+          "default": 1
+        },
+        "key_length": {
+          "type": "integer",
+          "maximum": 137438953440,
+          "minimum": 1,
+          "title": "Key Length",
+          "description": "The SCrypt key length to be used.",
+          "default": 32
+        },
+        "salt_length": {
+          "type": "integer",
+          "maximum": 1024,
+          "minimum": 8,
+          "title": "Salt Length",
+          "description": "The SCrypt salt length to be used.",
+          "default": 16
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AuthenticationBackendFilePasswordSCrypt represents the scrypt hashing settings."
+    },
+    "AuthenticationBackendFilePasswordSHA2Crypt": {
+      "properties": {
+        "variant": {
+          "type": "string",
+          "enum": [
+            "sha256",
+            "sha512"
+          ],
+          "title": "Variant",
+          "description": "The SHA2Crypt variant to be used.",
+          "default": "sha512"
+        },
+        "iterations": {
+          "type": "integer",
+          "maximum": 999999999,
+          "minimum": 1000,
+          "title": "Iterations",
+          "description": "The SHA2Crypt iterations (parameter rounds) to be used.",
+          "default": 50000
+        },
+        "salt_length": {
+          "type": "integer",
+          "maximum": 16,
+          "minimum": 1,
+          "title": "Salt Length",
+          "description": "The SHA2Crypt salt length to be used.",
+          "default": 16
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AuthenticationBackendFilePasswordSHA2Crypt represents the sha2crypt hashing settings."
+    },
+    "AuthenticationBackendFileSearch": {
+      "properties": {
+        "email": {
+          "type": "boolean",
+          "title": "Email Searching",
+          "description": "Allows users to either use their username or their configured email as a username.",
+          "default": false
+        },
+        "case_insensitive": {
+          "type": "boolean",
+          "title": "Case Insensitive Searching",
+          "description": "Allows usernames to be any case during the search.",
+          "default": false
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AuthenticationBackendFileSearch represents the configuration related to file-based backend searching."
+    },
+    "AuthenticationBackendLDAP": {
+      "properties": {
+        "address": {
+          "$ref": "#/$defs/AddressLDAP",
+          "title": "Address",
+          "description": "The address of the LDAP directory server."
+        },
+        "implementation": {
+          "type": "string",
+          "enum": [
+            "custom",
+            "activedirectory",
+            "rfc2307bis",
+            "freeipa",
+            "lldap",
+            "glauth"
+          ],
+          "title": "Implementation",
+          "description": "The implementation which mostly decides the default values.",
+          "default": "custom"
+        },
+        "timeout": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Timeout",
+          "description": "The LDAP directory server connection timeout."
+        },
+        "start_tls": {
+          "type": "boolean",
+          "title": "StartTLS",
+          "description": "Enables the use of StartTLS.",
+          "default": false
+        },
+        "tls": {
+          "$ref": "#/$defs/TLS",
+          "title": "TLS",
+          "description": "The LDAP directory server TLS connection properties."
+        },
+        "base_dn": {
+          "type": "string",
+          "title": "Base DN",
+          "description": "The base for all directory server operations."
+        },
+        "additional_users_dn": {
+          "type": "string",
+          "title": "Additional User Base",
+          "description": "The base in addition to the Base DN for all directory server operations for users."
+        },
+        "users_filter": {
+          "type": "string",
+          "title": "Users Filter",
+          "description": "The LDAP filter used to search for user objects."
+        },
+        "additional_groups_dn": {
+          "type": "string",
+          "title": "Additional Group Base",
+          "description": "The base in addition to the Base DN for all directory server operations for groups."
+        },
+        "groups_filter": {
+          "type": "string",
+          "title": "Groups Filter",
+          "description": "The LDAP filter used to search for group objects."
+        },
+        "group_search_mode": {
+          "type": "string",
+          "enum": [
+            "filter",
+            "memberof"
+          ],
+          "title": "Groups Search Mode",
+          "description": "The LDAP group search mode used to search for group objects.",
+          "default": "filter"
+        },
+        "attributes": {
+          "$ref": "#/$defs/AuthenticationBackendLDAPAttributes"
+        },
+        "permit_referrals": {
+          "type": "boolean",
+          "title": "Permit Referrals",
+          "description": "Enables chasing LDAP referrals.",
+          "default": false
+        },
+        "permit_unauthenticated_bind": {
+          "type": "boolean",
+          "title": "Permit Unauthenticated Bind",
+          "description": "Enables omission of the password to perform an unauthenticated bind.",
+          "default": false
+        },
+        "permit_feature_detection_failure": {
+          "type": "boolean",
+          "title": "Permit Feature Detection Failure",
+          "description": "Enables failures when detecting directory server features using the Root DSE lookup.",
+          "default": false
+        },
+        "user": {
+          "type": "string",
+          "title": "User",
+          "description": "The user distinguished name for LDAP binding."
+        },
+        "password": {
+          "type": "string",
+          "title": "Password",
+          "description": "The password for LDAP authenticated binding."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AuthenticationBackendLDAP represents the configuration related to LDAP server."
+    },
+    "AuthenticationBackendLDAPAttributes": {
+      "properties": {
+        "distinguished_name": {
+          "type": "string",
+          "title": "Attribute: Distinguished Name",
+          "description": "The directory server attribute which contains the distinguished name for all objects."
+        },
+        "username": {
+          "type": "string",
+          "title": "Attribute: User Username",
+          "description": "The directory server attribute which contains the username for all users."
+        },
+        "display_name": {
+          "type": "string",
+          "title": "Attribute: User Display Name",
+          "description": "The directory server attribute which contains the display name for all users."
+        },
+        "mail": {
+          "type": "string",
+          "title": "Attribute: User Mail",
+          "description": "The directory server attribute which contains the mail address for all users and groups."
+        },
+        "MemberOf": {
+          "type": "string",
+          "title": "Attribute: Member Of",
+          "description": "The directory server attribute which contains the objects that an object is a member of."
+        },
+        "group_name": {
+          "type": "string",
+          "title": "Attribute: Group Name",
+          "description": "The directory server attribute which contains the group name for all groups."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AuthenticationBackendLDAPAttributes represents the configuration related to LDAP server attributes."
+    },
+    "AuthenticationBackendPasswordReset": {
+      "properties": {
+        "disable": {
+          "type": "boolean",
+          "title": "Disable",
+          "description": "Disables the Password Reset option.",
+          "default": false
+        },
+        "custom_url": {
+          "type": "string",
+          "format": "uri",
+          "title": "Custom URL",
+          "description": "Disables the internal Password Reset option and instead redirects users to this specified URL."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AuthenticationBackendPasswordReset represents the configuration related to password reset functionality."
+    },
+    "Configuration": {
+      "properties": {
+        "theme": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "light",
+            "dark",
+            "grey"
+          ],
+          "title": "Theme Name",
+          "description": "The name of the theme to apply to the web UI.",
+          "default": "light"
+        },
+        "certificates_directory": {
+          "type": "string",
+          "title": "Certificates Directory Path",
+          "description": "The path to a directory which is used to determine the certificates that are trusted."
+        },
+        "default_2fa_method": {
+          "type": "string",
+          "enum": [
+            "totp",
+            "webauthn",
+            "mobile_push"
+          ],
+          "title": "Default 2FA method",
+          "description": "When a user logs in for the first time this is the 2FA method configured for them."
+        },
+        "log": {
+          "$ref": "#/$defs/Log",
+          "title": "Log",
+          "description": "Logging Configuration."
+        },
+        "identity_providers": {
+          "$ref": "#/$defs/IdentityProviders",
+          "title": "Identity Providers",
+          "description": "Identity Providers Configuration."
+        },
+        "authentication_backend": {
+          "$ref": "#/$defs/AuthenticationBackend",
+          "title": "Authentication Backend",
+          "description": "Authentication Backend Configuration."
+        },
+        "session": {
+          "$ref": "#/$defs/Session",
+          "title": "Session",
+          "description": "Session Configuration."
+        },
+        "totp": {
+          "$ref": "#/$defs/TOTP",
+          "title": "TOTP",
+          "description": "Time-based One-Time Password Configuration."
+        },
+        "duo_api": {
+          "$ref": "#/$defs/DuoAPI",
+          "title": "Duo API",
+          "description": "Duo API Configuration."
+        },
+        "access_control": {
+          "$ref": "#/$defs/AccessControl",
+          "title": "Access Control",
+          "description": "Access Control Configuration."
+        },
+        "ntp": {
+          "$ref": "#/$defs/NTP",
+          "title": "NTP",
+          "description": "Network Time Protocol Configuration."
+        },
+        "regulation": {
+          "$ref": "#/$defs/Regulation",
+          "title": "Regulation",
+          "description": "Regulation Configuration."
+        },
+        "storage": {
+          "$ref": "#/$defs/Storage",
+          "title": "Storage",
+          "description": "Storage Configuration."
+        },
+        "notifier": {
+          "$ref": "#/$defs/Notifier",
+          "title": "Notifier",
+          "description": "Notifier Configuration."
+        },
+        "server": {
+          "$ref": "#/$defs/Server",
+          "title": "Server",
+          "description": "Server Configuration."
+        },
+        "telemetry": {
+          "$ref": "#/$defs/Telemetry",
+          "title": "Telemetry",
+          "description": "Telemetry Configuration."
+        },
+        "webauthn": {
+          "$ref": "#/$defs/WebAuthn",
+          "title": "WebAuthn",
+          "description": "WebAuthn Configuration."
+        },
+        "password_policy": {
+          "$ref": "#/$defs/PasswordPolicy",
+          "title": "Password Policy",
+          "description": "Password Policy Configuration."
+        },
+        "privacy_policy": {
+          "$ref": "#/$defs/PrivacyPolicy",
+          "title": "Privacy Policy",
+          "description": "Privacy Policy Configuration."
+        },
+        "identity_validation": {
+          "$ref": "#/$defs/IdentityValidation",
+          "title": "Identity Validation",
+          "description": "Identity Validation Configuration."
+        },
+        "default_redirection_url": {
+          "type": "string",
+          "format": "uri",
+          "title": "The default redirection URL",
+          "description": "Deprecated: Use the session cookies option with the same name instead.",
+          "deprecated": true
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Configuration object extracted from YAML configuration file."
+    },
+    "DuoAPI": {
+      "properties": {
+        "disable": {
+          "type": "boolean",
+          "title": "Disable",
+          "description": "Disable the Duo API integration.",
+          "default": false
+        },
+        "hostname": {
+          "type": "string",
+          "format": "hostname",
+          "title": "Hostname",
+          "description": "The Hostname provided by your Duo API dashboard."
+        },
+        "integration_key": {
+          "type": "string",
+          "title": "Integration Key",
+          "description": "The Integration Key provided by your Duo API dashboard."
+        },
+        "secret_key": {
+          "type": "string",
+          "title": "Secret Key",
+          "description": "The Secret Key provided by your Duo API dashboard."
+        },
+        "enable_self_enrollment": {
+          "type": "boolean",
+          "title": "Enable Self Enrollment",
+          "description": "Enable the Self Enrollment flow.",
+          "default": false
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "DuoAPI represents the configuration related to Duo API."
+    },
+    "IdentityProviders": {
+      "properties": {
+        "oidc": {
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnect"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "IdentityProviders represents the Identity Providers configuration for Authelia."
+    },
+    "IdentityProvidersOpenIDConnect": {
+      "properties": {
+        "hmac_secret": {
+          "type": "string",
+          "title": "HMAC Secret",
+          "description": "The HMAC Secret used to sign Access Tokens."
+        },
+        "jwks": {
+          "items": {
+            "$ref": "#/$defs/JWK"
+          },
+          "type": "array",
+          "title": "Issuer JSON Web Keys",
+          "description": "The JWK's which are to be used to sign various objects like ID Tokens."
+        },
+        "enable_client_debug_messages": {
+          "type": "boolean",
+          "title": "Enable Client Debug Messages",
+          "description": "Enables additional debug messages for clients.",
+          "default": false
+        },
+        "minimum_parameter_entropy": {
+          "type": "integer",
+          "minimum": -1,
+          "title": "Minimum Parameter Entropy",
+          "description": "The minimum entropy of the nonce parameter.",
+          "default": 8
+        },
+        "enforce_pkce": {
+          "type": "string",
+          "enum": [
+            "public_clients_only",
+            "never",
+            "always"
+          ],
+          "title": "Enforce PKCE",
+          "description": "Controls enforcement of the use of Proof Key for Code Exchange on all clients.",
+          "default": "public_clients_only"
+        },
+        "enable_pkce_plain_challenge": {
+          "type": "boolean",
+          "title": "Enable PKCE Plain Challenge",
+          "description": "Enables use of the discouraged plain Proof Key for Code Exchange challenges.",
+          "default": false
+        },
+        "enable_jwt_access_token_stateless_introspection": {
+          "type": "boolean",
+          "title": "Enable JWT Access Token Stateless Introspection",
+          "description": "Allows the use of stateless introspection of JWT Access Tokens which is not recommended."
+        },
+        "discovery_signed_response_alg": {
+          "type": "string",
+          "enum": [
+            "none",
+            "RS256",
+            "RS384",
+            "RS512",
+            "ES256",
+            "ES384",
+            "ES512",
+            "PS256",
+            "PS384",
+            "PS512"
+          ],
+          "title": "Discovery Response Signing Algorithm",
+          "description": "The Algorithm this provider uses to sign the Discovery and Metadata Document responses.",
+          "default": "none"
+        },
+        "discovery_signed_response_key_id": {
+          "type": "string",
+          "title": "Discovery Response Signing Key ID",
+          "description": "The Key ID this provider uses to sign the Discovery and Metadata Document responses (overrides the 'discovery_signed_response_alg')."
+        },
+        "require_pushed_authorization_requests": {
+          "type": "boolean",
+          "title": "Require Pushed Authorization Requests",
+          "description": "Requires Pushed Authorization Requests for all clients for this Issuer."
+        },
+        "cors": {
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectCORS",
+          "title": "CORS",
+          "description": "Configuration options for Cross-Origin Request Sharing."
+        },
+        "clients": {
+          "items": {
+            "$ref": "#/$defs/IdentityProvidersOpenIDConnectClient"
+          },
+          "type": "array",
+          "title": "Clients",
+          "description": "OpenID Connect 1.0 clients registry."
+        },
+        "authorization_policies": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/$defs/IdentityProvidersOpenIDConnectPolicy"
+            }
+          },
+          "type": "object",
+          "title": "Authorization Policies",
+          "description": "Custom client authorization policies."
+        },
+        "lifespans": {
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespans",
+          "title": "Lifespans",
+          "description": "Token lifespans configuration."
+        },
+        "issuer_certificate_chain": {
+          "$ref": "#/$defs/X509CertificateChain",
+          "title": "Issuer Certificate Chain",
+          "description": "The Issuer Certificate Chain with an RSA Public Key used to sign ID Tokens.",
+          "deprecated": true
+        },
+        "issuer_private_key": {
+          "type": "string",
+          "pattern": "^-{5}(BEGIN (RSA )?PRIVATE KEY-{5}\\n([a-zA-Z0-9\\/+]{1,64}\\n)+([a-zA-Z0-9\\/+]{1,64}[=]{0,2})\\n-{5}END (RSA )?PRIVATE KEY-{5}\\n?)+$",
+          "title": "Issuer Private Key",
+          "description": "The Issuer Private Key with an RSA Private Key used to sign ID Tokens.",
+          "deprecated": true
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "IdentityProvidersOpenIDConnect represents the configuration for OpenID Connect 1.0."
+    },
+    "IdentityProvidersOpenIDConnectCORS": {
+      "properties": {
+        "endpoints": {
+          "items": {
+            "type": "string",
+            "enum": [
+              "authorization",
+              "pushed-authorization-request",
+              "token",
+              "introspection",
+              "revocation",
+              "userinfo"
+            ]
+          },
+          "type": "array",
+          "uniqueItems": true,
+          "title": "Endpoints",
+          "description": "List of endpoints to enable CORS handling for."
+        },
+        "allowed_origins": {
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "type": "array",
+          "title": "Allowed Origins",
+          "description": "List of arbitrary allowed origins for CORS requests."
+        },
+        "allowed_origins_from_client_redirect_uris": {
+          "type": "boolean",
+          "title": "Allowed Origins From Client Redirect URIs",
+          "description": "Automatically include the redirect URIs from the registered clients.",
+          "default": false
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "IdentityProvidersOpenIDConnectCORS represents an OpenID Connect 1.0 CORS config."
+    },
+    "IdentityProvidersOpenIDConnectClient": {
+      "properties": {
+        "client_id": {
+          "type": "string",
+          "minLength": 1,
+          "title": "Client ID",
+          "description": "The Client ID."
+        },
+        "client_name": {
+          "type": "string",
+          "title": "Client Name",
+          "description": "The Client Name displayed to End-Users."
+        },
+        "client_secret": {
+          "$ref": "#/$defs/PasswordDigest",
+          "title": "Client Secret",
+          "description": "The Client Secret for Client Authentication."
+        },
+        "sector_identifier_uri": {
+          "type": "string",
+          "format": "uri",
+          "title": "Sector Identifier URI",
+          "description": "The Client Sector Identifier URI for Privacy Isolation via Pairwise subject types."
+        },
+        "public": {
+          "type": "boolean",
+          "title": "Public",
+          "description": "Enables the Public Client Type.",
+          "default": false
+        },
+        "redirect_uris": {
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectClientURIs",
+          "title": "Redirect URIs",
+          "description": "List of whitelisted redirect URIs."
+        },
+        "request_uris": {
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectClientURIs",
+          "title": "Request URIs",
+          "description": "List of whitelisted request URIs."
+        },
+        "audience": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true,
+          "title": "Audience",
+          "description": "List of authorized audiences."
+        },
+        "scopes": {
+          "items": {
+            "type": "string",
+            "enum": [
+              "openid",
+              "offline_access",
+              "groups",
+              "email",
+              "profile",
+              "authelia.bearer.authz"
+            ]
+          },
+          "type": "array",
+          "uniqueItems": true,
+          "title": "Scopes",
+          "description": "The Scopes this client is allowed request and be granted."
+        },
+        "grant_types": {
+          "items": {
+            "type": "string",
+            "enum": [
+              "authorization_code",
+              "implicit",
+              "refresh_token",
+              "client_credentials"
+            ]
+          },
+          "type": "array",
+          "uniqueItems": true,
+          "title": "Grant Types",
+          "description": "The Grant Types this client is allowed to use for the protected endpoints."
+        },
+        "response_types": {
+          "items": {
+            "type": "string",
+            "enum": [
+              "code",
+              "id_token token",
+              "id_token",
+              "token",
+              "code token",
+              "code id_token",
+              "code id_token token"
+            ]
+          },
+          "type": "array",
+          "uniqueItems": true,
+          "title": "Response Types",
+          "description": "The Response Types the client is authorized to request."
+        },
+        "response_modes": {
+          "items": {
+            "type": "string",
+            "enum": [
+              "form_post",
+              "form_post.jwt",
+              "query",
+              "query.jwt",
+              "fragment",
+              "fragment.jwt",
+              "jwt"
+            ]
+          },
+          "type": "array",
+          "uniqueItems": true,
+          "title": "Response Modes",
+          "description": "The Response Modes this client is authorized request."
+        },
+        "authorization_policy": {
+          "type": "string",
+          "title": "Authorization Policy",
+          "description": "The Authorization Policy to apply to this client."
+        },
+        "lifespan": {
+          "type": "string",
+          "title": "Lifespan Name",
+          "description": "The name of the custom lifespan to utilize for this client."
+        },
+        "requested_audience_mode": {
+          "type": "string",
+          "enum": [
+            "explicit",
+            "implicit"
+          ],
+          "title": "Requested Audience Mode",
+          "description": "The Requested Audience Mode used for this client."
+        },
+        "consent_mode": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "explicit",
+            "implicit",
+            "pre-configured"
+          ],
+          "title": "Consent Mode",
+          "description": "The Consent Mode used for this client."
+        },
+        "pre_configured_consent_duration": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Pre-Configured Consent Duration",
+          "description": "The Pre-Configured Consent Duration when using Consent Mode pre-configured for this client."
+        },
+        "require_pushed_authorization_requests": {
+          "type": "boolean",
+          "title": "Require Pushed Authorization Requests",
+          "description": "Requires Pushed Authorization Requests for this client to perform an authorization.",
+          "default": false
+        },
+        "require_pkce": {
+          "type": "boolean",
+          "title": "Require PKCE",
+          "description": "Requires a Proof Key for this client to perform Code Exchange.",
+          "default": false
+        },
+        "pkce_challenge_method": {
+          "type": "string",
+          "enum": [
+            "plain",
+            "S256"
+          ],
+          "title": "PKCE Challenge Method",
+          "description": "The PKCE Challenge Method enforced on this client."
+        },
+        "authorization_signed_response_alg": {
+          "type": "string",
+          "enum": [
+            "none",
+            "RS256",
+            "RS384",
+            "RS512",
+            "ES256",
+            "ES384",
+            "ES512",
+            "PS256",
+            "PS384",
+            "PS512"
+          ],
+          "title": "Authorization Response Signing Algorithm",
+          "description": "The Authorization Endpoint Signing Algorithm this client uses.",
+          "default": "none"
+        },
+        "authorization_signed_response_key_id": {
+          "type": "string",
+          "title": "Authorization Response Signing Key ID",
+          "description": "The Key ID this client uses to sign the Authorization responses (overrides the 'authorization_signed_response_alg')."
+        },
+        "id_token_signed_response_alg": {
+          "type": "string",
+          "enum": [
+            "RS256",
+            "RS384",
+            "RS512",
+            "ES256",
+            "ES384",
+            "ES512",
+            "PS256",
+            "PS384",
+            "PS512"
+          ],
+          "title": "ID Token Signing Algorithm",
+          "description": "The algorithm (JWA) this client uses to sign ID Tokens.",
+          "default": "RS256"
+        },
+        "id_token_signed_response_key_id": {
+          "type": "string",
+          "title": "ID Token Signing Key ID",
+          "description": "The Key ID this client uses to sign ID Tokens (overrides the 'id_token_signing_alg')."
+        },
+        "access_token_signed_response_alg": {
+          "type": "string",
+          "enum": [
+            "none",
+            "RS256",
+            "RS384",
+            "RS512",
+            "ES256",
+            "ES384",
+            "ES512",
+            "PS256",
+            "PS384",
+            "PS512"
+          ],
+          "title": "Access Token Signing Algorithm",
+          "description": "The algorithm (JWA) this client uses to sign Access Tokens.",
+          "default": "none"
+        },
+        "access_token_signed_response_key_id": {
+          "type": "string",
+          "title": "Access Token Signing Key ID",
+          "description": "The Key ID this client uses to sign Access Tokens (overrides the 'access_token_signed_response_alg')."
+        },
+        "userinfo_signed_response_alg": {
+          "type": "string",
+          "enum": [
+            "none",
+            "RS256",
+            "RS384",
+            "RS512",
+            "ES256",
+            "ES384",
+            "ES512",
+            "PS256",
+            "PS384",
+            "PS512"
+          ],
+          "title": "UserInfo Response Signing Algorithm",
+          "description": "The UserInfo Endpoint Signing Algorithm this client uses.",
+          "default": "none"
+        },
+        "userinfo_signed_response_key_id": {
+          "type": "string",
+          "title": "UserInfo Response Signing Key ID",
+          "description": "The Key ID this client uses to sign the UserInfo responses (overrides the 'userinfo_signed_response_alg')."
+        },
+        "introspection_signed_response_alg": {
+          "type": "string",
+          "enum": [
+            "none",
+            "RS256",
+            "RS384",
+            "RS512",
+            "ES256",
+            "ES384",
+            "ES512",
+            "PS256",
+            "PS384",
+            "PS512"
+          ],
+          "title": "Introspection Response Signing Algorithm",
+          "description": "The Introspection Endpoint Signing Algorithm this client uses.",
+          "default": "none"
+        },
+        "introspection_signed_response_key_id": {
+          "type": "string",
+          "title": "Introspection Response Signing Key ID",
+          "description": "The Key ID this client uses to sign the Introspection responses (overrides the 'introspection_signed_response_alg')."
+        },
+        "request_object_signing_alg": {
+          "type": "string",
+          "enum": [
+            "RS256",
+            "RS384",
+            "RS512",
+            "ES256",
+            "ES384",
+            "ES512",
+            "PS256",
+            "PS384",
+            "PS512"
+          ],
+          "title": "Request Object Signing Algorithm",
+          "description": "The Request Object Signing Algorithm the provider accepts for this client."
+        },
+        "token_endpoint_auth_signing_alg": {
+          "type": "string",
+          "enum": [
+            "HS256",
+            "HS384",
+            "HS512",
+            "RS256",
+            "RS384",
+            "RS512",
+            "ES256",
+            "ES384",
+            "ES512",
+            "PS256",
+            "PS384",
+            "PS512"
+          ],
+          "title": "Token Endpoint Auth Signing Algorithm",
+          "description": "The Token Endpoint Auth Signing Algorithm the provider accepts for this client."
+        },
+        "token_endpoint_auth_method": {
+          "type": "string",
+          "enum": [
+            "none",
+            "client_secret_post",
+            "client_secret_basic",
+            "private_key_jwt",
+            "client_secret_jwt"
+          ],
+          "title": "Token Endpoint Auth Method",
+          "description": "The Token Endpoint Auth Method enforced by the provider for this client."
+        },
+        "allow_multiple_auth_methods": {
+          "type": "boolean",
+          "title": "Allow Multiple Authentication Methods",
+          "description": "Permits this registered client to accept misbehaving clients which use a broad authentication approach. This is not standards complaint, use at your own security risk."
+        },
+        "jwks_uri": {
+          "type": "string",
+          "format": "uri",
+          "title": "JSON Web Keys URI",
+          "description": "URI of the JWKS endpoint which contains the Public Keys used to validate request objects and the 'private_key_jwt' client authentication method for this client."
+        },
+        "jwks": {
+          "items": {
+            "$ref": "#/$defs/JWK"
+          },
+          "type": "array",
+          "title": "JSON Web Keys",
+          "description": "List of arbitrary Public Keys used to validate request objects and the 'private_key_jwt' client authentication method for this client."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "client_id",
+        "scopes"
+      ],
+      "description": "IdentityProvidersOpenIDConnectClient represents a configuration for an OpenID Connect 1.0 client."
+    },
+    "IdentityProvidersOpenIDConnectClientURIs": {
+      "oneOf": [
+        {
+          "type": "string",
+          "format": "uri"
+        },
+        {
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      ]
+    },
+    "IdentityProvidersOpenIDConnectLifespan": {
+      "properties": {
+        "access_token": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Access Token Lifespan",
+          "description": "The duration an Access Token is valid for."
+        },
+        "authorize_code": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Authorize Code Lifespan",
+          "description": "The duration an Authorization Code is valid for."
+        },
+        "id_token": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "ID Token Lifespan",
+          "description": "The duration an ID Token is valid for."
+        },
+        "refresh_token": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Refresh Token Lifespan",
+          "description": "The duration a Refresh Token is valid for."
+        },
+        "grants": {
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespanGrants",
+          "title": "Grant Types",
+          "description": "Allows tuning the token lifespans for individual grant types."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "IdentityProvidersOpenIDConnectLifespan allows tuning the lifespans for OpenID Connect 1.0 issued tokens."
+    },
+    "IdentityProvidersOpenIDConnectLifespanGrants": {
+      "properties": {
+        "authorize_code": {
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespanToken",
+          "title": "Authorize Code Grant",
+          "description": "Allows tuning the token lifespans for the authorize code grant."
+        },
+        "implicit": {
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespanToken",
+          "title": "Implicit Grant",
+          "description": "Allows tuning the token lifespans for the implicit flow and grant."
+        },
+        "client_credentials": {
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespanToken",
+          "title": "Client Credentials Grant",
+          "description": "Allows tuning the token lifespans for the client credentials grant."
+        },
+        "refresh_token": {
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespanToken",
+          "title": "Refresh Token Grant",
+          "description": "Allows tuning the token lifespans for the refresh token grant."
+        },
+        "jwt_bearer": {
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespanToken",
+          "title": "JWT Bearer Grant",
+          "description": "Allows tuning the token lifespans for the JWT bearer grant."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "IdentityProvidersOpenIDConnectLifespanGrants allows tuning the lifespans for each grant type."
+    },
+    "IdentityProvidersOpenIDConnectLifespanToken": {
+      "properties": {
+        "access_token": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Access Token Lifespan",
+          "description": "The duration an Access Token is valid for."
+        },
+        "authorize_code": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Authorize Code Lifespan",
+          "description": "The duration an Authorization Code is valid for."
+        },
+        "id_token": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "ID Token Lifespan",
+          "description": "The duration an ID Token is valid for."
+        },
+        "refresh_token": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Refresh Token Lifespan",
+          "description": "The duration a Refresh Token is valid for."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "IdentityProvidersOpenIDConnectLifespanToken allows tuning the lifespans for each token type."
+    },
+    "IdentityProvidersOpenIDConnectLifespans": {
+      "properties": {
+        "access_token": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Access Token Lifespan",
+          "description": "The duration an Access Token is valid for."
+        },
+        "authorize_code": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Authorize Code Lifespan",
+          "description": "The duration an Authorization Code is valid for."
+        },
+        "id_token": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "ID Token Lifespan",
+          "description": "The duration an ID Token is valid for."
+        },
+        "refresh_token": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Refresh Token Lifespan",
+          "description": "The duration a Refresh Token is valid for."
+        },
+        "jwt_secured_authorization": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "JARM",
+          "description": "Allows tuning the token lifespan for the JWT Secured Authorization Response Mode (JARM)."
+        },
+        "custom": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespan"
+            }
+          },
+          "type": "object",
+          "title": "Custom Lifespans",
+          "description": "Allows creating custom lifespans to be used by individual clients."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "IdentityProvidersOpenIDConnectPolicy": {
+      "properties": {
+        "default_policy": {
+          "type": "string",
+          "enum": [
+            "one_factor",
+            "two_factor",
+            "deny"
+          ],
+          "title": "Default Policy",
+          "description": "The default policy action for this policy."
+        },
+        "rules": {
+          "items": {
+            "$ref": "#/$defs/IdentityProvidersOpenIDConnectPolicyRule"
+          },
+          "type": "array",
+          "title": "Rules",
+          "description": "The list of rules for this policy."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "IdentityProvidersOpenIDConnectPolicy configuration for OpenID Connect 1.0 authorization policies."
+    },
+    "IdentityProvidersOpenIDConnectPolicyRule": {
+      "properties": {
+        "policy": {
+          "type": "string",
+          "enum": [
+            "one_factor",
+            "two_factor",
+            "deny"
+          ],
+          "title": "Policy",
+          "description": "The policy to apply to this rule."
+        },
+        "subject": {
+          "$ref": "#/$defs/AccessControlRuleSubjects",
+          "title": "Subject",
+          "description": "Allows tuning the token lifespans for the authorize code grant."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "IdentityProvidersOpenIDConnectPolicyRule configuration for OpenID Connect 1.0 authorization policies rules."
+    },
+    "IdentityValidation": {
+      "properties": {
+        "reset_password": {
+          "$ref": "#/$defs/IdentityValidationResetPassword",
+          "title": "Reset Password",
+          "description": "Identity Validation options for the Reset Password flow."
+        },
+        "elevated_session": {
+          "$ref": "#/$defs/IdentityValidationElevatedSession",
+          "title": "Elevated Session",
+          "description": "Identity Validation options for obtaining an Elevated Session for flows such as the Credential Management flows."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "IdentityValidation represents the configuration for identity verification actions/flows."
+    },
+    "IdentityValidationElevatedSession": {
+      "properties": {
+        "code_lifespan": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Code Lifespan",
+          "description": "The lifespan of the randomly generated One Time Code after which it's considered invalid."
+        },
+        "elevation_lifespan": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Elevation Lifespan",
+          "description": "The lifespan of the elevation after initially validating the One-Time Code before it expires."
+        },
+        "otp_characters": {
+          "type": "integer",
+          "maximum": 12,
+          "minimum": 6,
+          "title": "OTP Characters",
+          "description": "Number of characters in the generated OTP codes.",
+          "default": 8
+        },
+        "require_second_factor": {
+          "type": "boolean",
+          "title": "Require Second Factor",
+          "description": "Requires the user use a second factor if they have any known second factor methods.",
+          "default": false
+        },
+        "skip_second_factor": {
+          "type": "boolean",
+          "title": "Skip Second Factor",
+          "description": "Skips the primary identity verification process if the user has authenticated with a second factor.",
+          "default": false
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "IdentityValidationElevatedSession represents the tunable aspects of the credential control identity verification action/flow."
+    },
+    "IdentityValidationResetPassword": {
+      "properties": {
+        "jwt_lifespan": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "JWT Lifespan",
+          "description": "The lifespan of the JSON Web Token after it's initially generated after which it's considered invalid."
+        },
+        "jwt_algorithm": {
+          "type": "string",
+          "enum": [
+            "HS256",
+            "HS384",
+            "HS512"
+          ],
+          "title": "JWT Algorithm",
+          "description": "The JSON Web Token Algorithm (JWA) used to sign the Reset Password flow JSON Web Token's.",
+          "default": "HS256"
+        },
+        "jwt_secret": {
+          "type": "string",
+          "title": "JWT Secret",
+          "description": "The secret key used to sign the Reset Password flow JSON Web Token's."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "IdentityValidationResetPassword represents the tunable aspects of the reset password identity verification action/flow."
+    },
+    "JWK": {
+      "properties": {
+        "key_id": {
+          "type": "string",
+          "maxLength": 100,
+          "title": "Key ID",
+          "description": "The ID of this JWK."
+        },
+        "use": {
+          "type": "string",
+          "enum": [
+            "sig"
+          ],
+          "title": "Use",
+          "description": "The Use of this JWK.",
+          "default": "sig"
+        },
+        "algorithm": {
+          "type": "string",
+          "enum": [
+            "HS256",
+            "HS384",
+            "HS512",
+            "RS256",
+            "RS384",
+            "RS512",
+            "ES256",
+            "ES384",
+            "ES512",
+            "PS256",
+            "PS384",
+            "PS512"
+          ],
+          "title": "Algorithm",
+          "description": "The Algorithm of this JWK."
+        },
+        "key": {
+          "type": "string",
+          "pattern": "^-{5}BEGIN (((RSA|EC) )?(PRIVATE|PUBLIC) KEY|CERTIFICATE)-{5}\\n([a-zA-Z0-9\\/+]{1,64}\\n)+([a-zA-Z0-9\\/+]{1,64}[=]{0,2})\\n-{5}END (((RSA|EC) )?(PRIVATE|PUBLIC) KEY|CERTIFICATE)-{5}\\n?$",
+          "description": "The Private/Public key material of this JWK in Base64 PEM format."
+        },
+        "certificate_chain": {
+          "$ref": "#/$defs/X509CertificateChain",
+          "title": "Certificate Chain",
+          "description": "The optional associated certificate which matches the Key public key portion for this JWK."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "JWK represents a JWK."
+    },
+    "Log": {
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": [
+            "error",
+            "warn",
+            "info",
+            "debug",
+            "trace"
+          ],
+          "title": "Level",
+          "description": "The minimum Level a Log message must be before it's added to the log."
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "json",
+            "text"
+          ],
+          "title": "Format",
+          "description": "The Format of Log messages."
+        },
+        "file_path": {
+          "type": "string",
+          "title": "File Path",
+          "description": "The File Path to save the logs to instead of sending them to stdout, it's strongly recommended this option is only enabled with 'keep_stdout' also enabled."
+        },
+        "keep_stdout": {
+          "type": "boolean",
+          "title": "Keep Stdout",
+          "description": "Enables keeping stdout when using the File Path option.",
+          "default": false
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Log represents the logging configuration."
+    },
+    "NTP": {
+      "properties": {
+        "address": {
+          "$ref": "#/$defs/AddressUDP",
+          "title": "NTP Address",
+          "description": "The remote address of the NTP server."
+        },
+        "version": {
+          "type": "integer",
+          "enum": [
+            3,
+            4
+          ],
+          "title": "NTP Version",
+          "description": "The NTP Version to use."
+        },
+        "max_desync": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Maximum Desync",
+          "description": "The maximum amount of time that the server can be out of sync."
+        },
+        "disable_startup_check": {
+          "type": "boolean",
+          "title": "Disable Startup Check",
+          "description": "Disables the NTP Startup Check entirely.",
+          "default": false
+        },
+        "disable_failure": {
+          "type": "boolean",
+          "title": "Disable Failure",
+          "description": "Disables complete failure whe the Startup Check fails and instead just logs the error.",
+          "default": false
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "NTP represents the configuration related to ntp server."
+    },
+    "Notifier": {
+      "properties": {
+        "disable_startup_check": {
+          "type": "boolean",
+          "title": "Disable Startup Check",
+          "description": "Disables the notifier startup checks.",
+          "default": false
+        },
+        "filesystem": {
+          "$ref": "#/$defs/NotifierFileSystem",
+          "title": "File System",
+          "description": "The File System notifier."
+        },
+        "smtp": {
+          "$ref": "#/$defs/NotifierSMTP",
+          "title": "SMTP",
+          "description": "The SMTP notifier."
+        },
+        "template_path": {
+          "type": "string",
+          "title": "Template Path",
+          "description": "The path for notifier template overrides."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Notifier represents the configuration of the notifier to use when sending notifications to users."
+    },
+    "NotifierFileSystem": {
+      "properties": {
+        "filename": {
+          "type": "string",
+          "title": "Filename",
+          "description": "The file path of the notifications."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "NotifierFileSystem represents the configuration of the notifier writing emails in a file."
+    },
+    "NotifierSMTP": {
+      "properties": {
+        "address": {
+          "$ref": "#/$defs/AddressSMTP",
+          "title": "Address",
+          "description": "The SMTP server address."
+        },
+        "timeout": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Timeout",
+          "description": "The SMTP server connection timeout."
+        },
+        "username": {
+          "type": "string",
+          "title": "Username",
+          "description": "The username for SMTP authentication."
+        },
+        "password": {
+          "type": "string",
+          "title": "Password",
+          "description": "The password for SMTP authentication."
+        },
+        "identifier": {
+          "type": "string",
+          "title": "Identifier",
+          "description": "The identifier used during the HELO/EHLO command.",
+          "default": "localhost"
+        },
+        "sender": {
+          "type": "string",
+          "format": "email",
+          "title": "Sender",
+          "description": "The sender used for SMTP."
+        },
+        "subject": {
+          "type": "string",
+          "title": "Subject",
+          "description": "The subject format used.",
+          "default": "[Authelia] {title}"
+        },
+        "startup_check_address": {
+          "type": "string",
+          "format": "email",
+          "title": "Startup Check Address",
+          "description": "The address used for the recipient in the startup check.",
+          "default": "Authelia Test \u003ctest@authelia.com\u003e"
+        },
+        "disable_require_tls": {
+          "type": "boolean",
+          "title": "Disable Require TLS",
+          "description": "Disables the requirement to use TLS.",
+          "default": false
+        },
+        "disable_html_emails": {
+          "type": "boolean",
+          "title": "Disable HTML Emails",
+          "description": "Disables the mixed content type of emails and only sends the plaintext version.",
+          "default": false
+        },
+        "disable_starttls": {
+          "type": "boolean",
+          "title": "Disable StartTLS",
+          "description": "Disables the opportunistic StartTLS functionality which is useful for bad SMTP servers which advertise support for it but don't actually support it.",
+          "default": false
+        },
+        "tls": {
+          "$ref": "#/$defs/TLS",
+          "title": "TLS",
+          "description": "The SMTP server TLS connection properties."
+        },
+        "host": {
+          "type": "string",
+          "description": "Deprecated: use address instead.",
+          "deprecated": true
+        },
+        "port": {
+          "type": "integer",
+          "description": "Deprecated: use address instead.",
+          "deprecated": true
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "NotifierSMTP represents the configuration of the SMTP server to send emails with."
+    },
+    "PasswordDigest": {
+      "type": "string",
+      "pattern": "^\\$((argon2(id|i|d)\\$v=19\\$m=\\d+,t=\\d+,p=\\d+|scrypt\\$ln=\\d+,r=\\d+,p=\\d+)\\$[a-zA-Z0-9\\/+]+\\$[a-zA-Z0-9\\/+]+|pbkdf2(-sha(224|256|384|512))?\\$\\d+\\$[a-zA-Z0-9\\/.]+\\$[a-zA-Z0-9\\/.]+|bcrypt-sha256\\$v=2,t=2b,r=\\d+\\$[a-zA-Z0-9\\/.]+\\$[a-zA-Z0-9\\/.]+|2(a|b|y)?\\$\\d+\\$[a-zA-Z0-9.\\/]+|(5|6)\\$rounds=\\d+\\$[a-zA-Z0-9.\\/]+\\$[a-zA-Z0-9.\\/]+|plaintext\\$.+|base64\\$[a-zA-Z0-9.=\\/]+)$"
+    },
+    "PasswordPolicy": {
+      "properties": {
+        "standard": {
+          "$ref": "#/$defs/PasswordPolicyStandard",
+          "title": "Standard",
+          "description": "The standard password policy engine."
+        },
+        "zxcvbn": {
+          "$ref": "#/$defs/PasswordPolicyZXCVBN",
+          "title": "ZXCVBN",
+          "description": "The ZXCVBN password policy engine."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "PasswordPolicy represents the configuration related to password policy."
+    },
+    "PasswordPolicyStandard": {
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Enabled",
+          "description": "Enables the standard password policy engine.",
+          "default": false
+        },
+        "min_length": {
+          "type": "integer",
+          "title": "Minimum Length",
+          "description": "Minimum password length."
+        },
+        "max_length": {
+          "type": "integer",
+          "title": "Maximum Length",
+          "description": "Maximum password length.",
+          "default": 8
+        },
+        "require_uppercase": {
+          "type": "boolean",
+          "title": "Require Uppercase",
+          "description": "Require uppercase characters.",
+          "default": false
+        },
+        "require_lowercase": {
+          "type": "boolean",
+          "title": "Require Lowercase",
+          "description": "Require lowercase characters.",
+          "default": false
+        },
+        "require_number": {
+          "type": "boolean",
+          "title": "Require Number",
+          "description": "Require numeric characters.",
+          "default": false
+        },
+        "require_special": {
+          "type": "boolean",
+          "title": "Require Special",
+          "description": "Require symbolic characters.",
+          "default": false
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "PasswordPolicyStandard represents the configuration related to standard parameters of password policy."
+    },
+    "PasswordPolicyZXCVBN": {
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Enabled",
+          "description": "Enables the ZXCVBN password policy engine.",
+          "default": false
+        },
+        "min_score": {
+          "type": "integer",
+          "title": "Minimum Score",
+          "description": "The minimum ZXCVBN score allowed.",
+          "default": 3
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "PasswordPolicyZXCVBN represents the configuration related to ZXCVBN parameters of password policy."
+    },
+    "PrivacyPolicy": {
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Enabled",
+          "description": "Enables the Privacy Policy functionality.",
+          "default": false
+        },
+        "require_user_acceptance": {
+          "type": "boolean",
+          "title": "Require User Acceptance",
+          "description": "Enables the requirement for users to accept the policy.",
+          "default": false
+        },
+        "policy_url": {
+          "type": "string",
+          "format": "uri",
+          "title": "Policy URL",
+          "description": "The URL of the privacy policy."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "PrivacyPolicy is the privacy policy configuration."
+    },
+    "RefreshIntervalDuration": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "always",
+            "never"
+          ]
+        },
+        {
+          "type": "string",
+          "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+        },
+        {
+          "type": "integer",
+          "description": "The duration in seconds"
+        }
+      ],
+      "default": "5 minutes"
+    },
+    "Regulation": {
+      "properties": {
+        "max_retries": {
+          "type": "integer",
+          "title": "Maximum Retries",
+          "description": "The maximum number of failed attempts permitted before banning a user.",
+          "default": 3
+        },
+        "find_time": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Find Time",
+          "description": "The amount of time to consider when determining the number of failed attempts."
+        },
+        "ban_time": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Ban Time",
+          "description": "The amount of time to ban the user for when it's determined the maximum retries has been exceeded."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Regulation represents the configuration related to regulation."
+    },
+    "Server": {
+      "properties": {
+        "address": {
+          "$ref": "#/$defs/AddressTCP",
+          "title": "Address",
+          "description": "The address to listen on."
+        },
+        "asset_path": {
+          "type": "string",
+          "title": "Asset Path",
+          "description": "The directory where the server asset overrides reside."
+        },
+        "disable_healthcheck": {
+          "type": "boolean",
+          "title": "Disable Healthcheck",
+          "description": "Disables the healthcheck functionality.",
+          "default": false
+        },
+        "tls": {
+          "$ref": "#/$defs/ServerTLS",
+          "title": "TLS",
+          "description": "The server TLS configuration."
+        },
+        "headers": {
+          "$ref": "#/$defs/ServerHeaders",
+          "title": "Headers",
+          "description": "The server headers configuration."
+        },
+        "endpoints": {
+          "$ref": "#/$defs/ServerEndpoints",
+          "title": "Endpoints",
+          "description": "The server endpoints configuration."
+        },
+        "buffers": {
+          "$ref": "#/$defs/ServerBuffers",
+          "title": "Buffers",
+          "description": "The server buffers configuration."
+        },
+        "timeouts": {
+          "$ref": "#/$defs/ServerTimeouts",
+          "title": "Timeouts",
+          "description": "The server timeouts configuration."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Server represents the configuration of the http server."
+    },
+    "ServerBuffers": {
+      "properties": {
+        "read": {
+          "type": "integer",
+          "title": "Read",
+          "description": "The read buffer size.",
+          "default": 4096
+        },
+        "write": {
+          "type": "integer",
+          "title": "Write",
+          "description": "The write buffer size.",
+          "default": 4096
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "ServerBuffers represents server buffer configurations."
+    },
+    "ServerEndpoints": {
+      "properties": {
+        "enable_pprof": {
+          "type": "boolean",
+          "title": "Enable PProf",
+          "description": "Enables the developer specific pprof endpoints which should not be used in production and only used for debugging purposes.",
+          "default": false
+        },
+        "enable_expvars": {
+          "type": "boolean",
+          "title": "Enable ExpVars",
+          "description": "Enables the developer specific ExpVars endpoints which should not be used in production and only used for debugging purposes.",
+          "default": false
+        },
+        "authz": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/$defs/ServerEndpointsAuthz"
+            }
+          },
+          "type": "object",
+          "title": "Authz",
+          "description": "Configures the Authorization endpoints."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "ServerEndpoints is the endpoints configuration for the HTTP server."
+    },
+    "ServerEndpointsAuthz": {
+      "properties": {
+        "implementation": {
+          "type": "string",
+          "enum": [
+            "ForwardAuth",
+            "AuthRequest",
+            "ExtAuthz",
+            "Legacy"
+          ],
+          "title": "Implementation",
+          "description": "The specific Authorization implementation to use for this endpoint."
+        },
+        "authn_strategies": {
+          "items": {
+            "$ref": "#/$defs/ServerEndpointsAuthzAuthnStrategy"
+          },
+          "type": "array",
+          "title": "Authn Strategies",
+          "description": "The specific Authorization strategies to use for this endpoint."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "ServerEndpointsAuthz is the Authz endpoints configuration for the HTTP server."
+    },
+    "ServerEndpointsAuthzAuthnStrategy": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "enum": [
+            "HeaderAuthorization",
+            "HeaderProxyAuthorization",
+            "HeaderAuthRequestProxyAuthorization",
+            "HeaderLegacy",
+            "CookieSession"
+          ],
+          "title": "Name",
+          "description": "The name of the Authorization strategy to use."
+        },
+        "schemes": {
+          "items": {
+            "type": "string",
+            "enum": [
+              "basic",
+              "bearer"
+            ]
+          },
+          "type": "array",
+          "title": "Authorization Schemes",
+          "description": "The name of the authorization schemes to allow with the header strategies.",
+          "default": [
+            "basic"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "ServerEndpointsAuthzAuthnStrategy is the Authz endpoints configuration for the HTTP server."
+    },
+    "ServerHeaders": {
+      "properties": {
+        "csp_template": {
+          "type": "string",
+          "title": "CSP Template",
+          "description": "The Content Security Policy template.",
+          "default": "default-src 'self'; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-%s'; frame-ancestors 'none'; base-uri 'self'"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "ServerHeaders represents the customization of the http server headers."
+    },
+    "ServerTLS": {
+      "properties": {
+        "certificate": {
+          "type": "string",
+          "title": "Certificate",
+          "description": "Path to the Certificate."
+        },
+        "key": {
+          "type": "string",
+          "title": "Key",
+          "description": "Path to the Private Key."
+        },
+        "client_certificates": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true,
+          "title": "Client Certificates",
+          "description": "Path to the Client Certificates to trust for mTLS."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "ServerTLS represents the configuration of the http servers TLS options."
+    },
+    "ServerTimeouts": {
+      "properties": {
+        "read": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Read",
+          "description": "The read timeout."
+        },
+        "write": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Write",
+          "description": "The write timeout."
+        },
+        "idle": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Idle",
+          "description": "The idle timeout."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "ServerTimeouts represents server timeout configurations."
+    },
+    "Session": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The session cookie name.",
+          "default": "authelia_session"
+        },
+        "same_site": {
+          "type": "string",
+          "enum": [
+            "lax",
+            "strict",
+            "none"
+          ],
+          "description": "The session cookie same site value.",
+          "default": "lax"
+        },
+        "expiration": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "description": "The session cookie expiration when remember me is not checked."
+        },
+        "inactivity": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "description": "The session inactivity timeout."
+        },
+        "remember_me": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "description": "The session cookie expiration when remember me is checked."
+        },
+        "secret": {
+          "type": "string",
+          "title": "Secret",
+          "description": "Secret used to encrypt the session data."
+        },
+        "cookies": {
+          "items": {
+            "$ref": "#/$defs/SessionCookie"
+          },
+          "type": "array",
+          "title": "Cookies",
+          "description": "List of cookie domain configurations."
+        },
+        "redis": {
+          "$ref": "#/$defs/SessionRedis",
+          "title": "Redis",
+          "description": "Redis Session Provider configuration."
+        },
+        "domain": {
+          "type": "string",
+          "title": "Domain",
+          "description": "Deprecated: Use the session cookies option with the same name instead.",
+          "deprecated": true
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Session represents the configuration related to user sessions."
+    },
+    "SessionCookie": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The session cookie name.",
+          "default": "authelia_session"
+        },
+        "same_site": {
+          "type": "string",
+          "enum": [
+            "lax",
+            "strict",
+            "none"
+          ],
+          "description": "The session cookie same site value.",
+          "default": "lax"
+        },
+        "expiration": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "description": "The session cookie expiration when remember me is not checked."
+        },
+        "inactivity": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "description": "The session inactivity timeout."
+        },
+        "remember_me": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "description": "The session cookie expiration when remember me is checked."
+        },
+        "domain": {
+          "type": "string",
+          "format": "hostname",
+          "title": "Domain",
+          "description": "The domain for this session cookie configuration."
+        },
+        "authelia_url": {
+          "type": "string",
+          "format": "uri",
+          "title": "Authelia URL",
+          "description": "The Root Authelia URL to redirect users to for this session cookie configuration."
+        },
+        "default_redirection_url": {
+          "type": "string",
+          "format": "uri",
+          "title": "Default Redirection URL",
+          "description": "The default redirection URL for this session cookie configuration."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "SessionCookie represents the configuration for a cookie domain."
+    },
+    "SessionRedis": {
+      "properties": {
+        "host": {
+          "type": "string",
+          "title": "Host",
+          "description": "The redis server host."
+        },
+        "port": {
+          "type": "integer",
+          "title": "Host",
+          "description": "The redis server port.",
+          "default": 6379
+        },
+        "username": {
+          "type": "string",
+          "title": "Username",
+          "description": "The redis username."
+        },
+        "password": {
+          "type": "string",
+          "title": "Password",
+          "description": "The redis password."
+        },
+        "database_index": {
+          "type": "integer",
+          "title": "Database Index",
+          "description": "The redis database index.",
+          "default": 0
+        },
+        "maximum_active_connections": {
+          "type": "integer",
+          "title": "Maximum Active Connections",
+          "description": "The maximum connections that can be made to redis at one time.",
+          "default": 8
+        },
+        "minimum_idle_connections": {
+          "type": "integer",
+          "title": "Minimum Idle Connections",
+          "description": "The minimum idle connections that should be open to redis."
+        },
+        "tls": {
+          "$ref": "#/$defs/TLS"
+        },
+        "high_availability": {
+          "$ref": "#/$defs/SessionRedisHighAvailability"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "SessionRedis represents the configuration related to redis session store."
+    },
+    "SessionRedisHighAvailability": {
+      "properties": {
+        "sentinel_name": {
+          "type": "string",
+          "title": "Sentinel Name",
+          "description": "The name of the sentinel instance."
+        },
+        "sentinel_username": {
+          "type": "string",
+          "title": "Sentinel Username",
+          "description": "The username for the sentinel instance."
+        },
+        "sentinel_password": {
+          "type": "string",
+          "title": "Sentinel Username",
+          "description": "The username for the sentinel instance."
+        },
+        "route_by_latency": {
+          "type": "boolean",
+          "title": "Route by Latency",
+          "description": "Uses the Route by Latency mode.",
+          "default": false
+        },
+        "route_randomly": {
+          "type": "boolean",
+          "title": "Route Randomly",
+          "description": "Uses the Route Randomly mode.",
+          "default": false
+        },
+        "nodes": {
+          "items": {
+            "$ref": "#/$defs/SessionRedisHighAvailabilityNode"
+          },
+          "type": "array",
+          "title": "Nodes",
+          "description": "The pre-populated list of nodes for the sentinel instance."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "SessionRedisHighAvailability holds configuration variables for Redis Cluster/Sentinel."
+    },
+    "SessionRedisHighAvailabilityNode": {
+      "properties": {
+        "host": {
+          "type": "string",
+          "title": "Host",
+          "description": "The redis sentinel node host."
+        },
+        "port": {
+          "type": "integer",
+          "title": "Port",
+          "description": "The redis sentinel node port.",
+          "default": 26379
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "SessionRedisHighAvailabilityNode Represents a Node."
+    },
+    "Storage": {
+      "properties": {
+        "local": {
+          "$ref": "#/$defs/StorageLocal",
+          "title": "Local",
+          "description": "The Local SQLite3 Storage configuration settings."
+        },
+        "mysql": {
+          "$ref": "#/$defs/StorageMySQL",
+          "title": "MySQL",
+          "description": "The MySQL/MariaDB Storage configuration settings."
+        },
+        "postgres": {
+          "$ref": "#/$defs/StoragePostgreSQL",
+          "title": "PostgreSQL",
+          "description": "The PostgreSQL Storage configuration settings."
+        },
+        "encryption_key": {
+          "type": "string",
+          "title": "Encryption Key",
+          "description": "The Storage Encryption Key used to secure security sensitive values in the storage engine."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Storage represents the configuration of the storage backend."
+    },
+    "StorageLocal": {
+      "properties": {
+        "path": {
+          "type": "string",
+          "title": "Path",
+          "description": "The Path for the SQLite3 database file."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "StorageLocal represents the configuration when using local storage."
+    },
+    "StorageMySQL": {
+      "properties": {
+        "address": {
+          "$ref": "#/$defs/AddressTCP",
+          "title": "Address",
+          "description": "The address of the database."
+        },
+        "database": {
+          "type": "string",
+          "title": "Database",
+          "description": "The database name to use upon a successful connection."
+        },
+        "username": {
+          "type": "string",
+          "title": "Username",
+          "description": "The username to use to authenticate."
+        },
+        "password": {
+          "type": "string",
+          "title": "Password",
+          "description": "The password to use to authenticate."
+        },
+        "timeout": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Timeout",
+          "description": "The timeout for the database connection."
+        },
+        "tls": {
+          "$ref": "#/$defs/TLS"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "StorageMySQL represents the configuration of a MySQL database."
+    },
+    "StoragePostgreSQL": {
+      "properties": {
+        "address": {
+          "$ref": "#/$defs/AddressTCP",
+          "title": "Address",
+          "description": "The address of the database."
+        },
+        "database": {
+          "type": "string",
+          "title": "Database",
+          "description": "The database name to use upon a successful connection."
+        },
+        "username": {
+          "type": "string",
+          "title": "Username",
+          "description": "The username to use to authenticate."
+        },
+        "password": {
+          "type": "string",
+          "title": "Password",
+          "description": "The password to use to authenticate."
+        },
+        "timeout": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Timeout",
+          "description": "The timeout for the database connection."
+        },
+        "schema": {
+          "type": "string",
+          "title": "Schema",
+          "description": "The default schema name to use.",
+          "default": "public"
+        },
+        "tls": {
+          "$ref": "#/$defs/TLS"
+        },
+        "ssl": {
+          "$ref": "#/$defs/StoragePostgreSQLSSL",
+          "title": "SSL",
+          "description": "Deprecated: Use the TLS configuration instead.",
+          "deprecated": true
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "StoragePostgreSQL represents the configuration of a PostgreSQL database."
+    },
+    "StoragePostgreSQLSSL": {
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "disable",
+            "verify-ca",
+            "require",
+            "verify-full"
+          ],
+          "title": "Mode",
+          "description": "The SSL mode to use, deprecated and replaced with the TLS options.",
+          "deprecated": true
+        },
+        "root_certificate": {
+          "type": "string",
+          "title": "Root Certificate",
+          "description": "Path to the Root Certificate to use, deprecated and replaced with the TLS options.",
+          "deprecated": true
+        },
+        "certificate": {
+          "type": "string",
+          "title": "Certificate",
+          "description": "Path to the Certificate to use, deprecated and replaced with the TLS options.",
+          "deprecated": true
+        },
+        "key": {
+          "type": "string",
+          "title": "Key",
+          "description": "Path to the Private Key to use, deprecated and replaced with the TLS options.",
+          "deprecated": true
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "StoragePostgreSQLSSL represents the SSL configuration of a PostgreSQL database."
+    },
+    "TLS": {
+      "properties": {
+        "minimum_version": {
+          "$ref": "#/$defs/TLSVersion",
+          "title": "Minimum Version",
+          "description": "The minimum TLS version accepted."
+        },
+        "maximum_version": {
+          "$ref": "#/$defs/TLSVersion",
+          "title": "Maximum Version",
+          "description": "The maximum TLS version accepted."
+        },
+        "skip_verify": {
+          "type": "boolean",
+          "title": "Skip Verify",
+          "description": "Disable all verification of the TLS properties.",
+          "default": false
+        },
+        "server_name": {
+          "type": "string",
+          "format": "hostname",
+          "title": "Server Name",
+          "description": "The expected server name to match the certificate against."
+        },
+        "private_key": {
+          "type": "string",
+          "pattern": "^-{5}BEGIN ((RSA|EC) )?PRIVATE KEY-{5}\\n([a-zA-Z0-9\\/+]{1,64}\\n)+([a-zA-Z0-9\\/+]{1,64}[=]{0,2})\\n-{5}END ((RSA|EC) )?PRIVATE KEY-{5}\\n?$",
+          "title": "Private Key",
+          "description": "The private key."
+        },
+        "certificate_chain": {
+          "$ref": "#/$defs/X509CertificateChain",
+          "title": "Certificate Chain",
+          "description": "The certificate chain."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "TLS is a representation of the TLS configuration."
+    },
+    "TLSVersion": {
+      "type": "string",
+      "enum": [
+        "TLS1.0",
+        "TLS1.1",
+        "TLS1.2",
+        "TLS1.3"
+      ]
+    },
+    "TOTP": {
+      "properties": {
+        "disable": {
+          "type": "boolean",
+          "title": "Disable",
+          "description": "Disables the TOTP 2FA functionality.",
+          "default": false
+        },
+        "issuer": {
+          "type": "string",
+          "title": "Issuer",
+          "description": "The issuer value for generated TOTP keys.",
+          "default": "Authelia"
+        },
+        "algorithm": {
+          "type": "string",
+          "enum": [
+            "SHA1",
+            "SHA256",
+            "SHA512"
+          ],
+          "title": "Algorithm",
+          "description": "The algorithm value for generated TOTP keys.",
+          "default": "SHA1"
+        },
+        "digits": {
+          "type": "integer",
+          "enum": [
+            6,
+            8
+          ],
+          "title": "Digits",
+          "description": "The digits value for generated TOTP keys.",
+          "default": 6
+        },
+        "period": {
+          "type": "integer",
+          "title": "Period",
+          "description": "The period value for generated TOTP keys.",
+          "default": 30
+        },
+        "skew": {
+          "type": "integer",
+          "title": "Skew",
+          "description": "The permitted skew for generated TOTP keys.",
+          "default": 1
+        },
+        "secret_size": {
+          "type": "integer",
+          "minimum": 20,
+          "title": "Secret Size",
+          "description": "The secret size for generated TOTP keys.",
+          "default": 32
+        },
+        "allowed_algorithms": {
+          "items": {
+            "type": "string",
+            "enum": [
+              "SHA1",
+              "SHA256",
+              "SHA512"
+            ]
+          },
+          "type": "array",
+          "title": "Allowed Algorithms",
+          "description": "List of algorithms the user is allowed to select in addition to the default.",
+          "default": [
+            "SHA1"
+          ]
+        },
+        "allowed_digits": {
+          "items": {
+            "type": "integer",
+            "enum": [
+              6,
+              8
+            ]
+          },
+          "type": "array",
+          "title": "Allowed Digits",
+          "description": "List of digits the user is allowed to select in addition to the default.",
+          "default": [
+            6
+          ]
+        },
+        "allowed_periods": {
+          "items": {
+            "type": "integer"
+          },
+          "type": "array",
+          "title": "Allowed Periods",
+          "description": "List of periods the user is allowed to select in addition to the default.",
+          "default": [
+            30
+          ]
+        },
+        "disable_reuse_security_policy": {
+          "type": "boolean",
+          "title": "Disable Reuse Security Policy",
+          "description": "Disables the security policy that prevents reuse of a TOTP code.",
+          "default": false
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "TOTP represents the configuration related to TOTP options."
+    },
+    "Telemetry": {
+      "properties": {
+        "metrics": {
+          "$ref": "#/$defs/TelemetryMetrics",
+          "title": "Metrics",
+          "description": "The telemetry metrics server configuration."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "Telemetry represents the telemetry config."
+    },
+    "TelemetryMetrics": {
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Enabled",
+          "description": "Enables the metrics server.",
+          "default": false
+        },
+        "address": {
+          "$ref": "#/$defs/AddressTCP",
+          "title": "Address",
+          "description": "The address for the metrics server to listen on."
+        },
+        "buffers": {
+          "$ref": "#/$defs/ServerBuffers",
+          "title": "Buffers",
+          "description": "The server buffers configuration for the metrics server."
+        },
+        "timeouts": {
+          "$ref": "#/$defs/ServerTimeouts",
+          "title": "Timeouts",
+          "description": "The server timeouts configuration for the metrics server."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "TelemetryMetrics represents the telemetry metrics config."
+    },
+    "WebAuthn": {
+      "properties": {
+        "disable": {
+          "type": "boolean",
+          "title": "Disable",
+          "description": "Disables the WebAuthn 2FA functionality.",
+          "default": false
+        },
+        "display_name": {
+          "type": "string",
+          "title": "Display Name",
+          "description": "The display name attribute for the WebAuthn relying party.",
+          "default": "Authelia"
+        },
+        "attestation_conveyance_preference": {
+          "type": "string",
+          "enum": [
+            "none",
+            "indirect",
+            "direct"
+          ],
+          "title": "Conveyance Preference",
+          "description": "The default conveyance preference for all WebAuthn credentials.",
+          "default": "indirect"
+        },
+        "user_verification": {
+          "type": "string",
+          "enum": [
+            "discouraged",
+            "preferred",
+            "required"
+          ],
+          "title": "User Verification",
+          "description": "The default user verification preference for all WebAuthn credentials.",
+          "default": "preferred"
+        },
+        "timeout": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Timeout",
+          "description": "The default timeout for all WebAuthn ceremonies."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "WebAuthn represents the webauthn config."
+    },
+    "X509CertificateChain": {
+      "type": "string",
+      "pattern": "^(-{5}BEGIN CERTIFICATE-{5}\\n([a-zA-Z0-9\\/+]{1,64}\\n)+([a-zA-Z0-9\\/+]{1,64}[=]{0,2})\\n-{5}END CERTIFICATE-{5}\\n?)+$"
+    }
+  }
+}
