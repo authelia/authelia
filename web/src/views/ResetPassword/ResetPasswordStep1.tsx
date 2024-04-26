@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 
-import { Button, FormControl, Grid, Theme } from "@mui/material";
+import { Button, FormControl, Theme } from "@mui/material";
 import TextField from "@mui/material/TextField";
+import Grid from "@mui/material/Unstable_Grid2/Grid2";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -45,7 +46,7 @@ const ResetPasswordStep1 = function () {
         <MinimalLayout title={translate("Reset password")} id="reset-password-step1-stage">
             <FormControl id={"form-reset-password-username"}>
                 <Grid container className={styles.root} spacing={2}>
-                    <Grid item xs={12}>
+                    <Grid xs={12}>
                         <TextField
                             id="username-textfield"
                             label={translate("Username")}
@@ -62,7 +63,7 @@ const ResetPasswordStep1 = function () {
                             }}
                         />
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid xs={6}>
                         <Button
                             id="reset-button"
                             variant="contained"
@@ -73,7 +74,7 @@ const ResetPasswordStep1 = function () {
                             {translate("Reset")}
                         </Button>
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid xs={6}>
                         <Button
                             id="cancel-button"
                             variant="contained"
