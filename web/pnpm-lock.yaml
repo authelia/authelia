@@ -5,7 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  '@babel/traverse': 7.23.9
+  '@babel/traverse': 7.24.1
   '@typescript-eslint/eslint-plugin': 6.9.0
   '@typescript-eslint/parser': 6.9.0
   '@typescript-eslint/typescript-estree': 6.9.0
@@ -222,6 +222,10 @@ packages:
     resolution: {integrity: sha512-CgH3s1a96LipHCmSUmYFPwY7MNx8C3avkq7i4Wl3cfa662ldtUe4VM1TPXX70pfmrlWTb6jLqTYrZyT2ZTJBgA==}
     engines: {node: '>=6.9.0'}
 
+  '@babel/code-frame@7.24.2':
+    resolution: {integrity: sha512-y5+tLQyV8pg3fsiln67BVLD1P13Eg4lh5RW9mF0zUuvLrv9uIQ4MCL+CRT+FTsBlBjcIan6PGsLcBN0m3ClUyQ==}
+    engines: {node: '>=6.9.0'}
+
   '@babel/compat-data@7.23.5':
     resolution: {integrity: sha512-uU27kfDRlhfKl+w1U6vp16IuvSLtjAxdArVXPa9BvLkrr7CYIsxH5adpHObeAGY/41+syctUWOZ140a2Rvkgjw==}
     engines: {node: '>=6.9.0'}
@@ -251,6 +255,10 @@ packages:
 
   '@babel/generator@7.23.6':
     resolution: {integrity: sha512-qrSfCYxYQB5owCmGLbl8XRpX1ytXlpueOb0N0UmQwA073KZxejgQTzAmJezxvpwQD9uGtK2shHdi55QT+MbjIw==}
+    engines: {node: '>=6.9.0'}
+
+  '@babel/generator@7.24.4':
+    resolution: {integrity: sha512-Xd6+v6SnjWVx/nus+y0l1sxMOTOMBkyL4+BIdbALyatQnAe/SRVjANeDPSCYaX+i1iJmuGSKf3Z+E+V/va1Hvw==}
     engines: {node: '>=6.9.0'}
 
   '@babel/helper-annotate-as-pure@7.18.6':
@@ -374,6 +382,10 @@ packages:
     resolution: {integrity: sha512-acGdbYSfp2WheJoJm/EBBBLh/ID8KDc64ISZ9DYtBmC8/Q204PZJLHyzeB5qMzJ5trcOkybd78M4x2KWsUq++A==}
     engines: {node: '>=6.9.0'}
 
+  '@babel/highlight@7.24.2':
+    resolution: {integrity: sha512-Yac1ao4flkTxTteCDZLEvdxg2fZfz1v8M4QpaGypq/WPDqg3ijHYbDfs+LG5hvzSoqaSZ9/Z9lKSP3CjZjv+pA==}
+    engines: {node: '>=6.9.0'}
+
   '@babel/parser@7.23.3':
     resolution: {integrity: sha512-uVsWNvlVsIninV2prNz/3lHCb+5CJ+e+IUBfbjToAHODtfGYLfCFuY4AU7TskI+dAKk+njsPiBjq1gKTvZOBaw==}
     engines: {node: '>=6.0.0'}
@@ -384,6 +396,11 @@ packages:
 
   '@babel/parser@7.24.0':
     resolution: {integrity: sha512-QuP/FxEAzMSjXygs8v4N9dvdXzEHN4W1oF3PxuWAtPo08UdM17u89RDMgjLn/mlc56iM0HlLmVkO/wgR+rDgHg==}
+    engines: {node: '>=6.0.0'}
+    hasBin: true
+
+  '@babel/parser@7.24.4':
+    resolution: {integrity: sha512-zTvEBcghmeBma9QIGunWevvBAp4/Qu9Bdq+2k0Ot4fVMD6v3dsC9WOcRSKk7tRRyBM/53yKMJko9xOatGQAwSg==}
     engines: {node: '>=6.0.0'}
     hasBin: true
 
@@ -905,8 +922,8 @@ packages:
     resolution: {integrity: sha512-Bkf2q8lMB0AFpX0NFEqSbx1OkTHf0f+0j82mkw+ZpzBnkk7e9Ql0891vlfgi+kHwOk8tQjiQHpqh4LaSa0fKEA==}
     engines: {node: '>=6.9.0'}
 
-  '@babel/traverse@7.23.9':
-    resolution: {integrity: sha512-I/4UJ9vs90OkBtY6iiiTORVMyIhJ4kAVmsKo9KFc8UOxMeUfi2hvtIBsET5u9GizXE6/GFSuKCTNfgCswuEjRg==}
+  '@babel/traverse@7.24.1':
+    resolution: {integrity: sha512-xuU6o9m68KeqZbQuDt2TcKSxUw/mrsvavlEqQ1leZ/B+C9tk6E4sRWy97WaXgvq5E+nU3cXMxv3WKOCanVMCmQ==}
     engines: {node: '>=6.9.0'}
 
   '@babel/types@7.23.3':
@@ -1279,12 +1296,20 @@ packages:
     resolution: {integrity: sha512-HLhSWOLRi875zjjMG/r+Nv0oCW8umGb0BgEhyX3dDX3egwZtB8PqLnjz3yedt8R5StBrzcg4aBpnh8UA9D1BoQ==}
     engines: {node: '>=6.0.0'}
 
+  '@jridgewell/gen-mapping@0.3.5':
+    resolution: {integrity: sha512-IzL8ZoEDIBRWEzlCcRhOaCupYyN5gdIK+Q6fbFdPDg6HqX6jpkItn7DFIpW9LQzXG6Df9sA7+OKnq0qlz/GaQg==}
+    engines: {node: '>=6.0.0'}
+
   '@jridgewell/resolve-uri@3.1.0':
     resolution: {integrity: sha512-F2msla3tad+Mfht5cJq7LSXcdudKTWCVYUgw6pLFOOHSTtZlj6SWNYAp+AhuqLmWdBO2X5hPrLcu8cVP8fy28w==}
     engines: {node: '>=6.0.0'}
 
   '@jridgewell/set-array@1.1.2':
     resolution: {integrity: sha512-xnkseuNADM0gt2bs+BvhO0p78Mk762YnZdsuzFV018NoG1Sj1SCQvpSqa7XUaTam5vAGasABV9qXASMKnFMwMw==}
+    engines: {node: '>=6.0.0'}
+
+  '@jridgewell/set-array@1.2.1':
+    resolution: {integrity: sha512-R8gLRTZeyp03ymzP/6Lil/28tGeGEzhx1q2k703KGWRAI1VdvPIXdG70VJc2pAMw3NA6JKL5hhFu1sJX0Mnn/A==}
     engines: {node: '>=6.0.0'}
 
   '@jridgewell/sourcemap-codec@1.4.15':
@@ -3180,6 +3205,7 @@ packages:
 
   jsesc@0.5.0:
     resolution: {integrity: sha512-uZz5UnB7u4T9LvwmFqXii7pZSouaRPorGs5who1Ip7VO0wxanFvBL7GkM6dTHlgX+jhBApRetaWpnDabOeTcnA==}
+    hasBin: true
 
   jsesc@2.5.2:
     resolution: {integrity: sha512-OYu7XEzjkCQ3C5Ps3QIZsQfNpqoJyZZA99wd9aWd05NCtC5pWOkShK2mkL6HXQR6/Cy2lbNdPlZBpuQHXE63gA==}
@@ -4443,6 +4469,11 @@ snapshots:
       '@babel/highlight': 7.23.4
       chalk: 2.4.2
 
+  '@babel/code-frame@7.24.2':
+    dependencies:
+      '@babel/highlight': 7.24.2
+      picocolors: 1.0.0
+
   '@babel/compat-data@7.23.5': {}
 
   '@babel/core@7.21.4':
@@ -4455,7 +4486,7 @@ snapshots:
       '@babel/helpers': 7.24.0
       '@babel/parser': 7.24.0
       '@babel/template': 7.24.0
-      '@babel/traverse': 7.23.9
+      '@babel/traverse': 7.24.1
       '@babel/types': 7.24.0
       convert-source-map: 1.9.0
       debug: 4.3.4
@@ -4475,7 +4506,7 @@ snapshots:
       '@babel/helpers': 7.23.5
       '@babel/parser': 7.23.5
       '@babel/template': 7.22.15
-      '@babel/traverse': 7.23.9
+      '@babel/traverse': 7.24.1
       '@babel/types': 7.23.5
       convert-source-map: 2.0.0
       debug: 4.3.4
@@ -4495,7 +4526,7 @@ snapshots:
       '@babel/helpers': 7.24.0
       '@babel/parser': 7.24.0
       '@babel/template': 7.24.0
-      '@babel/traverse': 7.23.9
+      '@babel/traverse': 7.24.1
       '@babel/types': 7.24.0
       convert-source-map: 2.0.0
       debug: 4.3.4
@@ -4524,6 +4555,13 @@ snapshots:
     dependencies:
       '@babel/types': 7.24.0
       '@jridgewell/gen-mapping': 0.3.3
+      '@jridgewell/trace-mapping': 0.3.25
+      jsesc: 2.5.2
+
+  '@babel/generator@7.24.4':
+    dependencies:
+      '@babel/types': 7.24.0
+      '@jridgewell/gen-mapping': 0.3.5
       '@jridgewell/trace-mapping': 0.3.25
       jsesc: 2.5.2
 
@@ -4656,7 +4694,7 @@ snapshots:
       '@babel/helper-member-expression-to-functions': 7.21.0
       '@babel/helper-optimise-call-expression': 7.18.6
       '@babel/template': 7.24.0
-      '@babel/traverse': 7.23.9
+      '@babel/traverse': 7.24.1
       '@babel/types': 7.24.0
     transitivePeerDependencies:
       - supports-color
@@ -4683,7 +4721,7 @@ snapshots:
     dependencies:
       '@babel/helper-function-name': 7.23.0
       '@babel/template': 7.24.0
-      '@babel/traverse': 7.23.9
+      '@babel/traverse': 7.24.1
       '@babel/types': 7.24.0
     transitivePeerDependencies:
       - supports-color
@@ -4691,7 +4729,7 @@ snapshots:
   '@babel/helpers@7.23.5':
     dependencies:
       '@babel/template': 7.24.0
-      '@babel/traverse': 7.23.9
+      '@babel/traverse': 7.24.1
       '@babel/types': 7.24.0
     transitivePeerDependencies:
       - supports-color
@@ -4699,7 +4737,7 @@ snapshots:
   '@babel/helpers@7.24.0':
     dependencies:
       '@babel/template': 7.24.0
-      '@babel/traverse': 7.23.9
+      '@babel/traverse': 7.24.1
       '@babel/types': 7.24.0
     transitivePeerDependencies:
       - supports-color
@@ -4710,6 +4748,13 @@ snapshots:
       chalk: 2.4.2
       js-tokens: 4.0.0
 
+  '@babel/highlight@7.24.2':
+    dependencies:
+      '@babel/helper-validator-identifier': 7.22.20
+      chalk: 2.4.2
+      js-tokens: 4.0.0
+      picocolors: 1.0.0
+
   '@babel/parser@7.23.3':
     dependencies:
       '@babel/types': 7.24.0
@@ -4719,6 +4764,10 @@ snapshots:
       '@babel/types': 7.24.0
 
   '@babel/parser@7.24.0':
+    dependencies:
+      '@babel/types': 7.24.0
+
+  '@babel/parser@7.24.4':
     dependencies:
       '@babel/types': 7.24.0
 
@@ -5361,15 +5410,15 @@ snapshots:
       '@babel/parser': 7.24.0
       '@babel/types': 7.24.0
 
-  '@babel/traverse@7.23.9':
+  '@babel/traverse@7.24.1':
     dependencies:
-      '@babel/code-frame': 7.23.5
-      '@babel/generator': 7.23.6
+      '@babel/code-frame': 7.24.2
+      '@babel/generator': 7.24.4
       '@babel/helper-environment-visitor': 7.22.20
       '@babel/helper-function-name': 7.23.0
       '@babel/helper-hoist-variables': 7.22.5
       '@babel/helper-split-export-declaration': 7.22.6
-      '@babel/parser': 7.24.0
+      '@babel/parser': 7.24.4
       '@babel/types': 7.24.0
       debug: 4.3.4
       globals: 11.12.0
@@ -5757,9 +5806,17 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.4.15
       '@jridgewell/trace-mapping': 0.3.25
 
+  '@jridgewell/gen-mapping@0.3.5':
+    dependencies:
+      '@jridgewell/set-array': 1.2.1
+      '@jridgewell/sourcemap-codec': 1.4.15
+      '@jridgewell/trace-mapping': 0.3.25
+
   '@jridgewell/resolve-uri@3.1.0': {}
 
   '@jridgewell/set-array@1.1.2': {}
+
+  '@jridgewell/set-array@1.2.1': {}
 
   '@jridgewell/sourcemap-codec@1.4.15': {}
 
