@@ -11,34 +11,37 @@ interface Props {
     onValuesUpdate: (updatedValues: string[]) => void;
 }
 
-const EditListItem = (props: Props) => {
+const EditListItem = ({ index, listLabel, values, onValuesUpdate }: Props) => {
     //const [editedValues, setEditedValues] = useState<string[]>(props.values);
-    const [newFormValues, setNewFormValues] = useState<string[]>(props.values);
+    const [newFormValues, setNewFormValues] = useState<string[]>(values);
     const [newFieldValue, setNewFieldValue] = useState<string>("");
     console.log(newFormValues);
 
-    const handleInputChange = (index: number, newValue: string) => {
-        const updatedValues = [...newFormValues];
-        updatedValues[index] = newValue;
-        setNewFormValues(updatedValues);
-        props.onValuesUpdate(updatedValues);
-    };
+    const handleInputChange = useCallback(
+        (idx: number, newValue: string) => {
+            const updatedValues = [...newFormValues];
+            updatedValues[idx] = newValue;
+            setNewFormValues(updatedValues);
+            onValuesUpdate(updatedValues);
+        },
+        [newFormValues, onValuesUpdate],
+    );
 
     const handleDelete = (index: number) => {
         const updatedValues = [...newFormValues];
         const filteredValues = updatedValues.filter((_: any, i: any) => i !== index);
         setNewFormValues(filteredValues);
-        props.onValuesUpdate(filteredValues);
+        onValuesUpdate(filteredValues);
     };
 
-    const handleAddField = () => {
+    const handleAddField = useCallback(() => {
         if (newFieldValue.trim() !== "") {
             const updatedValues = [...newFormValues, newFieldValue];
             setNewFormValues(updatedValues);
-            props.onValuesUpdate(updatedValues);
+            onValuesUpdate(updatedValues);
             setNewFieldValue("");
         }
-    };
+    }, [newFormValues, newFieldValue, onValuesUpdate]);
 
     const handleAddFieldKeyDown = useCallback(
         (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -52,7 +55,7 @@ const EditListItem = (props: Props) => {
     return (
         <List>
             {newFormValues.map((value, index) => (
-                <ListItem key={`edit-${props.listLabel}-${props.index}-${index}`}>
+                <ListItem key={`edit-${listLabel}-${index}`}>
                     <TextField
                         fullWidth
                         size="small"
@@ -64,7 +67,7 @@ const EditListItem = (props: Props) => {
                     </IconButton>
                 </ListItem>
             ))}
-            <ListItem key={`add-value-${props.listLabel}-${props.index}`}>
+            <ListItem key={`add-value-${listLabel}`}>
                 <TextField
                     fullWidth
                     size="small"

@@ -35,26 +35,28 @@ interface Props {
 }
 
 const CardArea = styled(Paper)(({ theme }) => ({
-    padding: "8px",
-    borderRadius: "4px",
+    padding: "6px",
     fontFamily: "monospace",
-    overflowX: "auto",
-    display: "flex",
+    display: "inline-block",
     textAlign: "center",
     [theme.breakpoints.down("sm")]: {
         width: "50vw",
     },
 }));
 
-const ClientAccordion = styled(Accordion)({
+const ClientAccordion = styled(Accordion)(({ theme }) => ({
     width: "75vw",
-    margin: "1vw auto", // default behavior sets left/right margin to '0' instead of auto, uncentering the accordion
+    margin: "8px auto", // default behavior sets left/right margin to '0' instead of auto, uncentering the accordion
     display: "flex",
     flexDirection: "column",
     "&.Mui-expanded": {
-        margin: "1vw auto",
+        margin: "8px auto",
     },
-});
+    [theme.breakpoints.down("sm")]: {
+        width: "100%",
+        margin: 0,
+    },
+}));
 
 const ClientAccordionSummary = styled(AccordionSummary)(({ theme }) => ({
     border: `1px solid ${theme.palette.divider}`,
@@ -98,7 +100,6 @@ const ClientItem = function (props: Props) {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        console.log(`handleChange e: ${e}`);
         setFormData((prevData) => ({
             ...prevData,
             [name]: value,
@@ -127,6 +128,7 @@ const ClientItem = function (props: Props) {
                             onChange={handleChange}
                             variant="outlined"
                             size="small"
+                            sx={{ fontWeight: "300", fontSize: "20px" }}
                             onClick={(e: { stopPropagation: () => any }) => e.stopPropagation()}
                         />
                     ) : (
@@ -155,15 +157,17 @@ const ClientItem = function (props: Props) {
             <AccordionDetails sx={{ padding: "auto 16px" }} key={`accordion-details-${props.index}`}>
                 <List>
                     <ListItem key={`client-id-${props.index}`}>
-                        <Typography>{translate("Client ID: ") || "Client ID: "}</Typography>
-                        {showClientID ? (
-                            <CardArea elevation={0}>{props.client.ID}</CardArea>
-                        ) : (
-                            <CardArea elevation={0}>{"●".repeat(props.client.ID.length)}</CardArea>
-                        )}
-                        <IconButton onClick={toggleClientIDVisibility}>
-                            {showClientID ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                        </IconButton>
+                        <Typography>
+                            {translate("Client ID: ") || "Client ID: "}
+                            {showClientID ? (
+                                <CardArea>{props.client.ID}</CardArea>
+                            ) : (
+                                <CardArea>{"●".repeat(props.client.ID.length)}</CardArea>
+                            )}
+                            <IconButton onClick={toggleClientIDVisibility}>
+                                {showClientID ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                            </IconButton>
+                        </Typography>
                     </ListItem>
                     {props.client.Public !== undefined && props.client.Public !== null && (
                         <Fragment>
@@ -176,7 +180,7 @@ const ClientItem = function (props: Props) {
 
                     <Divider variant="middle" component="li" />
                     <ListItem key={`request-uris-${props.index}`}>
-                        <List sx={{ width: "50%" }}>
+                        <List sx={{ width: "50%", padding: 0 }}>
                             <Typography marginBottom={"0.5vh"}>{translate("Redirect URIs:  ")}</Typography>
                             {isEditing ? (
                                 <EditListItem
@@ -189,7 +193,12 @@ const ClientItem = function (props: Props) {
                                 />
                             ) : (
                                 props.client.RedirectURIs.map((uri, index) => (
-                                    <ListItem key={`redirect-uri-${props.index}-${index}`}>{uri}</ListItem>
+                                    <ListItem
+                                        sx={{ paddingTop: 0, paddingBottom: 0 }}
+                                        key={`redirect-uri-${props.index}-${index}`}
+                                    >
+                                        {uri}
+                                    </ListItem>
                                 ))
                             )}
                         </List>

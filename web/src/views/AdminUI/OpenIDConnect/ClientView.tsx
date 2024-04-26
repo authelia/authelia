@@ -95,16 +95,15 @@ const ClientView = function (props: Props) {
     console.log(openIDConnectClients); // TODO (Crowley723): this should be removed.
     return (
         <Fragment>
-            {openIDConnectClients &&
-                openIDConnectClients.map((client, index) => (
-                    <ClientItem
-                        key={index}
-                        index={index}
-                        client={client}
-                        handleChange={handleChange}
-                        handleDelete={handleDelete}
-                    />
-                ))}
+            {clients.map((client, index) => (
+                <ClientItem
+                    key={index}
+                    index={index}
+                    client={client}
+                    handleChange={handleChange}
+                    handleDelete={handleDelete}
+                />
+            ))}
         </Fragment>
     );
 };
