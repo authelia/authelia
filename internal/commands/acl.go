@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"os"
 	"strings"
+	"text/tabwriter"
 
 	"github.com/spf13/cobra"
 	"github.com/valyala/fasthttp"
@@ -116,7 +118,9 @@ func accessControlCheckWriteObjectSubject(object authorization.Object, subject a
 func accessControlCheckWriteOutput(object authorization.Object, subject authorization.Subject, results []authorization.RuleMatchResult, defaultPolicy string, verbose bool) {
 	accessControlCheckWriteObjectSubject(object, subject)
 
-	fmt.Printf("  #\tDomain\tResource\tMethod\tNetwork\tSubject\n")
+	w := tabwriter.NewWriter(os.Stdout, 1, 1, 4, ' ', 0)
+
+	_, _ = fmt.Fprintln(w, "  #\tDomain\tResource\tMethod\tNetwork\tSubject")
 
 	var (
 		appliedPos int
@@ -135,17 +139,19 @@ func accessControlCheckWriteOutput(object authorization.Object, subject authoriz
 		case result.IsMatch() && !result.Skipped:
 			appliedPos, applied = i+1, result
 
-			fmt.Printf("* %d\t%s\t%s\t\t%s\t%s\t%s\n", i+1, hitMissMay(result.MatchDomain), hitMissMay(result.MatchResources), hitMissMay(result.MatchMethods), hitMissMay(result.MatchNetworks), hitMissMay(result.MatchSubjects, result.MatchSubjectsExact))
+			_, _ = fmt.Fprintf(w, "* %d\t%s\t%s\t%s\t%s\t%s\n", i+1, hitMissMay(result.MatchDomain), hitMissMay(result.MatchResources), hitMissMay(result.MatchMethods), hitMissMay(result.MatchNetworks), hitMissMay(result.MatchSubjects, result.MatchSubjectsExact))
 		case result.IsPotentialMatch() && !result.Skipped:
 			if potentialPos == 0 {
 				potentialPos, potential = i+1, result
 			}
 
-			fmt.Printf("~ %d\t%s\t%s\t\t%s\t%s\t%s\n", i+1, hitMissMay(result.MatchDomain), hitMissMay(result.MatchResources), hitMissMay(result.MatchMethods), hitMissMay(result.MatchNetworks), hitMissMay(result.MatchSubjects, result.MatchSubjectsExact))
+			_, _ = fmt.Fprintf(w, "~ %d\t%s\t%s\t%s\t%s\t%s\n", i+1, hitMissMay(result.MatchDomain), hitMissMay(result.MatchResources), hitMissMay(result.MatchMethods), hitMissMay(result.MatchNetworks), hitMissMay(result.MatchSubjects, result.MatchSubjectsExact))
 		default:
-			fmt.Printf("  %d\t%s\t%s\t\t%s\t%s\t%s\n", i+1, hitMissMay(result.MatchDomain), hitMissMay(result.MatchResources), hitMissMay(result.MatchMethods), hitMissMay(result.MatchNetworks), hitMissMay(result.MatchSubjects, result.MatchSubjectsExact))
+			_, _ = fmt.Fprintf(w, "  %d\t%s\t%s\t%s\t%s\t%s\n", i+1, hitMissMay(result.MatchDomain), hitMissMay(result.MatchResources), hitMissMay(result.MatchMethods), hitMissMay(result.MatchNetworks), hitMissMay(result.MatchSubjects, result.MatchSubjectsExact))
 		}
 	}
+
+	_ = w.Flush()
 
 	switch {
 	case appliedPos != 0 && (potentialPos == 0 || (potentialPos > appliedPos)):

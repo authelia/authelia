@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"text/tabwriter"
 
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
@@ -266,13 +267,17 @@ func (ctx *CmdCtx) StorageMigrateHistoryRunE(_ *cobra.Command, _ []string) (err 
 		return errors.New("no migration history found which may indicate a broken schema")
 	}
 
-	fmt.Printf("Migration History:\n\nID\tDate\t\t\t\tBefore\tAfter\tAuthelia Version\n")
+	fmt.Printf("Migration History:\n\n")
+
+	w := tabwriter.NewWriter(os.Stdout, 1, 1, 4, ' ', 0)
+
+	_, _ = fmt.Fprintln(w, "ID\tDate\tBefore\tAfter\tAuthelia Version")
 
 	for _, m := range migrations {
-		fmt.Printf("%d\t%s\t%d\t%d\t%s\n", m.ID, m.Applied.Format("2006-01-02 15:04:05 -0700"), m.Before, m.After, m.Version)
+		_, _ = fmt.Fprintf(w, "%d\t%s\t%d\t%d\t%s\n", m.ID, m.Applied.Format("2006-01-02 15:04:05 -0700"), m.Before, m.After, m.Version)
 	}
 
-	return nil
+	return w.Flush()
 }
 
 // NewStorageMigrateListRunE creates the RunE for the authelia storage migrate list command.
@@ -302,11 +307,17 @@ func (ctx *CmdCtx) NewStorageMigrateListRunE(up bool) func(cmd *cobra.Command, a
 		if len(migrations) == 0 {
 			fmt.Printf("Storage Schema Migration List (%s)\n\nNo Migrations Available\n", directionStr)
 		} else {
-			fmt.Printf("Storage Schema Migration List (%s)\n\nVersion\t\tDescription\n", directionStr)
+			fmt.Printf("Storage Schema Migration List (%s)\n\n", directionStr)
+
+			w := tabwriter.NewWriter(os.Stdout, 1, 1, 4, ' ', 0)
+
+			_, _ = fmt.Fprintln(w, "Version\tDescription")
 
 			for _, migration := range migrations {
-				fmt.Printf("%d\t\t%s\n", migration.Version, migration.Name)
+				_, _ = fmt.Fprintf(w, "%d\t%s\n", migration.Version, migration.Name)
 			}
+
+			return w.Flush()
 		}
 
 		return nil
@@ -558,14 +569,17 @@ func (ctx *CmdCtx) StorageUserWebAuthnListRunE(cmd *cobra.Command, args []string
 		return fmt.Errorf("can't list devices for user '%s': %w", user, err)
 	default:
 		fmt.Printf("WebAuthn Credentials for user '%s':\n\n", user)
-		fmt.Printf("ID\tKID\tDescription\n")
+
+		w := tabwriter.NewWriter(os.Stdout, 1, 1, 4, ' ', 0)
+
+		_, _ = fmt.Fprintln(w, "ID\tKID\tDescription")
 
 		for _, device := range devices {
-			fmt.Printf("%d\t%s\t%s", device.ID, device.KID, device.Description)
+			_, _ = fmt.Fprintf(w, "%d\t%s\t%s\n", device.ID, device.KID, device.Description)
 		}
-	}
 
-	return nil
+		return w.Flush()
+	}
 }
 
 // StorageUserWebAuthnListAllRunE is the RunE for the authelia storage user webauthn list command when no args are specified.
@@ -582,7 +596,9 @@ func (ctx *CmdCtx) StorageUserWebAuthnListAllRunE(_ *cobra.Command, _ []string) 
 
 	limit := 10
 
-	output := strings.Builder{}
+	w := tabwriter.NewWriter(os.Stdout, 1, 1, 4, ' ', 0)
+
+	_, _ = fmt.Fprintln(w, "ID\tKID\tDescription\tUsername")
 
 	for page := 0; true; page++ {
 		if devices, err = ctx.providers.StorageProvider.LoadWebAuthnCredentials(ctx, limit, page); err != nil {
@@ -594,7 +610,7 @@ func (ctx *CmdCtx) StorageUserWebAuthnListAllRunE(_ *cobra.Command, _ []string) 
 		}
 
 		for _, device := range devices {
-			output.WriteString(fmt.Sprintf("%d\t%s\t%s\t%s\n", device.ID, device.KID, device.Description, device.Username))
+			_, _ = fmt.Fprintf(w, "%d\t%s\t%s\t%s\n", device.ID, device.KID, device.Description, device.Username)
 		}
 
 		if len(devices) < limit {
@@ -602,10 +618,9 @@ func (ctx *CmdCtx) StorageUserWebAuthnListAllRunE(_ *cobra.Command, _ []string) 
 		}
 	}
 
-	fmt.Printf("WebAuthn Credentials:\n\nID\tKID\tDescription\tUsername\n")
-	fmt.Println(output.String())
+	fmt.Printf("WebAuthn Credentials:\n\n")
 
-	return nil
+	return w.Flush()
 }
 
 // StorageUserWebAuthnDeleteRunE is the RunE for the authelia storage user webauthn delete command.
