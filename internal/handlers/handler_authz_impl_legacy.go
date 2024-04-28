@@ -68,6 +68,7 @@ func handleAuthzForbiddenLegacy(ctx *middlewares.AutheliaCtx, authn *Authn, redi
 	if authn.Type == AuthnTypeAuthorization {
 		ctx.Logger.Infof("Access to %s (method %s) is forbidden for user %s, responding with status code %d", authn.Object.URL.String(), authn.Method, authn.Username, fasthttp.StatusForbidden)
 		ctx.ReplyForbidden()
+
 		return
 	}
 
