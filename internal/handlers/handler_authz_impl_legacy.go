@@ -38,33 +38,54 @@ func handleAuthzUnauthorizedLegacy(ctx *middlewares.AutheliaCtx, authn *Authn, r
 
 	if authn.Type == AuthnTypeAuthorization {
 		handleAuthzUnauthorizedAuthorizationBasic(ctx, authn)
-
 		return
 	}
 
 	switch {
-	case ctx.IsXHR() || !ctx.AcceptsMIME("text/html") || redirectionURL == nil:
+	case isNotRequestingWebpage(ctx) || redirectionURL == nil:
 		statusCode = fasthttp.StatusUnauthorized
 	default:
-		switch authn.Object.Method {
-		case fasthttp.MethodGet, fasthttp.MethodOptions, fasthttp.MethodHead, "":
+		if authn.Object.Method == "" {
 			statusCode = fasthttp.StatusFound
-		default:
-			statusCode = fasthttp.StatusSeeOther
+		} else {
+			statusCode = deriveStatusCodeFromAuthnMethod(authn)
 		}
 	}
 
 	if redirectionURL != nil {
-		ctx.Logger.Infof(logFmtAuthzRedirect, authn.Object.URL.String(), authn.Method, authn.Username, statusCode, redirectionURL)
-
-		switch authn.Object.Method {
-		case fasthttp.MethodHead:
-			ctx.SpecialRedirectNoBody(redirectionURL.String(), statusCode)
-		default:
-			ctx.SpecialRedirect(redirectionURL.String(), statusCode)
-		}
+		handleAuthzSpecialRedirect(ctx, authn, redirectionURL, statusCode)
 	} else {
 		ctx.Logger.Infof("Access to %s (method %s) is not authorized to user %s, responding with status code %d", authn.Object.URL.String(), authn.Method, authn.Username, statusCode)
 		ctx.ReplyUnauthorized()
+	}
+}
+
+func handleAuthzForbiddenLegacy(ctx *middlewares.AutheliaCtx, authn *Authn, redirectionURL *url.URL) {
+	var (
+		statusCode int
+	)
+
+	if authn.Type == AuthnTypeAuthorization {
+		ctx.Logger.Infof("Access to %s (method %s) is forbidden for user %s, responding with status code %d", authn.Object.URL.String(), authn.Method, authn.Username, fasthttp.StatusForbidden)
+		ctx.ReplyForbidden()
+		return
+	}
+
+	switch {
+	case isNotRequestingWebpage(ctx) || redirectionURL == nil:
+		statusCode = fasthttp.StatusForbidden
+	default:
+		if authn.Object.Method == "" {
+			statusCode = fasthttp.StatusFound
+		} else {
+			statusCode = deriveStatusCodeFromAuthnMethod(authn)
+		}
+	}
+
+	if redirectionURL != nil {
+		handleAuthzSpecialRedirect(ctx, authn, redirectionURL, statusCode)
+	} else {
+		ctx.Logger.Infof("Access to %s (method %s) is forbidden for user %s, responding with status code %d", authn.Object.URL.String(), authn.Method, authn.Username, statusCode)
+		ctx.ReplyForbidden()
 	}
 }

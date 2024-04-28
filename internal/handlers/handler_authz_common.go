@@ -112,3 +112,27 @@ func hasInvalidMethodCharacters(v []byte) bool {
 
 	return false
 }
+
+func isNotRequestingWebpage(ctx *middlewares.AutheliaCtx) bool {
+	return ctx.IsXHR() || !ctx.AcceptsMIME("text/html")
+}
+
+func deriveStatusCodeFromAuthnMethod(authn *Authn) (statusCode int) {
+	switch authn.Object.Method {
+	case fasthttp.MethodGet, fasthttp.MethodOptions, fasthttp.MethodHead:
+		return fasthttp.StatusFound
+	default:
+		return fasthttp.StatusSeeOther
+	}
+}
+
+func handleAuthzSpecialRedirect(ctx *middlewares.AutheliaCtx, authn *Authn, redirectionURL *url.URL, statusCode int) {
+	ctx.Logger.Infof(logFmtAuthzRedirect, authn.Object.String(), authn.Method, authn.Username, statusCode, redirectionURL)
+
+	switch authn.Object.Method {
+	case fasthttp.MethodHead:
+		ctx.SpecialRedirectNoBody(redirectionURL.String(), statusCode)
+	default:
+		ctx.SpecialRedirect(redirectionURL.String(), statusCode)
+	}
+}

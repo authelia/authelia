@@ -1,4 +1,4 @@
-import React, { Fragment, ReactNode, lazy, useEffect, useState } from "react";
+import React, { lazy, useEffect, useState } from "react";
 
 import { useTranslation } from "react-i18next";
 import { Route, Routes, useLocation } from "react-router-dom";
@@ -23,7 +23,7 @@ import { useUserInfoPOST } from "@hooks/UserInfo";
 import { SecondFactorMethod } from "@models/Methods";
 import { checkSafeRedirection } from "@services/SafeRedirection";
 import { AuthenticationLevel } from "@services/State";
-import LoadingPage from "@views/LoadingPage/LoadingPage";
+import { ComponentOrLoading } from "@views/Generic/ComponentOrLoading";
 
 const AuthenticatedView = lazy(() => import("@views/LoginPortal/AuthenticatedView/AuthenticatedView"));
 const FirstFactorForm = lazy(() => import("@views/LoginPortal/FirstFactor/FirstFactorForm"));
@@ -217,22 +217,5 @@ const LoginPortal = function (props: Props) {
         </Routes>
     );
 };
-
-interface ComponentOrLoadingProps {
-    ready: boolean;
-
-    children: ReactNode;
-}
-
-function ComponentOrLoading(props: ComponentOrLoadingProps) {
-    return (
-        <Fragment>
-            <div className={props.ready ? "hidden" : ""}>
-                <LoadingPage />
-            </div>
-            {props.ready ? props.children : null}
-        </Fragment>
-    );
-}
 
 export default LoginPortal;

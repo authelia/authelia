@@ -93,8 +93,7 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 
 	switch isAuthzResult(authn.Level, required, ruleHasSubject) {
 	case AuthzResultForbidden:
-		ctx.Logger.Infof("Access to '%s' is forbidden to user '%s'", object.URL.String(), authn.Username)
-		ctx.ReplyForbidden()
+		authz.handleForbidden(ctx, authn, authz.getErrorRedirectionURL(&object, autheliaURL, errorForbidden))
 	case AuthzResultUnauthorized:
 		var handler HandlerAuthzUnauthorized
 
@@ -134,12 +133,12 @@ func (authz *Authz) getAutheliaURL(ctx *middlewares.AutheliaCtx, provider *sessi
 	return nil, fmt.Errorf("authelia url lookup failed")
 }
 
-func (authz *Authz) getRedirectionURL(object *authorization.Object, autheliaURL *url.URL) (redirectionURL *url.URL) {
-	if autheliaURL == nil {
+func (authz *Authz) getRedirectionURL(object *authorization.Object, baseURL *url.URL) (redirectionURL *url.URL) {
+	if baseURL == nil {
 		return nil
 	}
 
-	redirectionURL, _ = url.ParseRequestURI(autheliaURL.String())
+	redirectionURL, _ = url.ParseRequestURI(baseURL.String())
 
 	if redirectionURL.Path == "" {
 		redirectionURL.Path = "/"
@@ -156,6 +155,34 @@ func (authz *Authz) getRedirectionURL(object *authorization.Object, autheliaURL 
 	redirectionURL.RawQuery = qry.Encode()
 
 	return redirectionURL
+}
+
+func (authz *Authz) getErrorRedirectionURL(object *authorization.Object, baseURL *url.URL, errorString string) (errorRedirectionURL *url.URL) {
+	if baseURL == nil {
+		return nil
+	}
+
+	baseErrorURL, _ := url.ParseRequestURI(baseURL.String())
+
+	if baseErrorURL.Path == "" {
+		baseErrorURL.Path = "/"
+	}
+
+	baseErrorURL.Path += baseErrorPath
+
+	qry := baseErrorURL.Query()
+
+	if object.Method != "" {
+		qry.Set(queryArgRM, object.Method)
+	}
+
+	qry.Set(queryArgEC, errorString)
+
+	baseErrorURL.RawQuery = qry.Encode()
+
+	errorRedirectionURL = authz.getRedirectionURL(object, baseErrorURL)
+
+	return errorRedirectionURL
 }
 
 func (authz *Authz) authn(ctx *middlewares.AutheliaCtx, provider *session.Session, object *authorization.Object) (authn *Authn, strategy AuthnStrategy, err error) {
