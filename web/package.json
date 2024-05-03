@@ -94,7 +94,7 @@
     "@typescript-eslint/eslint-plugin": "7.1.0",
     "@typescript-eslint/parser": "7.1.0",
     "@vitejs/plugin-react": "4.2.1",
-    "@vitest/coverage-istanbul": "1.5.3",
+    "@vitest/coverage-istanbul": "1.6.0",
     "esbuild": "0.20.2",
     "eslint": "8.57.0",
     "eslint-config-prettier": "9.1.0",
@@ -116,7 +116,7 @@
     "vite-plugin-istanbul": "6.0.0",
     "vite-plugin-svgr": "4.2.0",
     "vite-tsconfig-paths": "4.3.2",
-    "vitest": "1.5.3",
+    "vitest": "1.6.0",
     "vitest-preview": "0.0.1"
   }
 }
