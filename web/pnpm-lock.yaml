@@ -106,8 +106,8 @@ importers:
         specifier: 1.4.1
         version: 1.4.1(eslint@8.57.0)
       '@testing-library/jest-dom':
-        specifier: 6.4.2
-        version: 6.4.2(vitest@1.6.0(@types/node@20.12.8)(happy-dom@14.7.1))
+        specifier: 6.4.5
+        version: 6.4.5(vitest@1.6.0(@types/node@20.12.8)(happy-dom@14.7.1))
       '@testing-library/react':
         specifier: 15.0.6
         version: 15.0.6(@types/react@18.3.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1632,8 +1632,8 @@ packages:
     resolution: {integrity: sha512-PmJPnogldqoVFf+EwbHvbBJ98MmqASV8kLrBYgsDNxQcFMeIS7JFL48sfyXvuMtgmWO/wMhh25odr+8VhDmn4g==}
     engines: {node: '>=18'}
 
-  '@testing-library/jest-dom@6.4.2':
-    resolution: {integrity: sha512-CzqH0AFymEMG48CpzXFriYYkOjk6ZGPCLMhW9e9jg3KMCn5OfJecF8GtGW7yGfR/IgCe3SX8BSwjdzI6BBbZLw==}
+  '@testing-library/jest-dom@6.4.5':
+    resolution: {integrity: sha512-AguB9yvTXmCnySBP1lWjfNNUwpbElsaQ567lt2VdGqAdHtpieLgjmcVyv1q7PMIvLbgpDdkWV5Ydv3FEejyp2A==}
     engines: {node: '>=14', npm: '>=6', yarn: '>=1'}
     peerDependencies:
       '@jest/globals': '>= 28'
@@ -6153,7 +6153,7 @@ snapshots:
       lz-string: 1.5.0
       pretty-format: 27.5.1
 
-  '@testing-library/jest-dom@6.4.2(vitest@1.6.0(@types/node@20.12.8)(happy-dom@14.7.1))':
+  '@testing-library/jest-dom@6.4.5(vitest@1.6.0(@types/node@20.12.8)(happy-dom@14.7.1))':
     dependencies:
       '@adobe/css-tools': 4.3.2
       '@babel/runtime': 7.23.9
