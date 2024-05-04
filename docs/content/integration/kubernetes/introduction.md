@@ -53,6 +53,7 @@ is the default. This should be changed to `false`. See the
 for more details.
 
 #### Pod Example
+
 ```yaml {title="pod.yml"}
 ---
 apiVersion: v1
