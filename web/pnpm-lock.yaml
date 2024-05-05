@@ -190,8 +190,8 @@ importers:
         specifier: 0.6.4
         version: 0.6.4(eslint@8.57.0)(meow@12.1.1)(optionator@0.9.3)(typescript@5.4.5)(vite@5.2.11(@types/node@20.12.8))
       vite-plugin-istanbul:
-        specifier: 6.0.0
-        version: 6.0.0(vite@5.2.11(@types/node@20.12.8))
+        specifier: 6.0.1
+        version: 6.0.1(vite@5.2.11(@types/node@20.12.8))
       vite-plugin-svgr:
         specifier: 4.2.0
         version: 4.2.0(rollup@4.13.0)(typescript@5.4.5)(vite@5.2.11(@types/node@20.12.8))
@@ -1859,6 +1859,7 @@ packages:
   acorn@8.11.3:
     resolution: {integrity: sha512-Y9rRfJG5jcKOE0CLisYbojUjIrIEE7AGMzA/Sm4BslANhbS+cDMpgBdcPT91oJ7OuJ9hYJBx59RjbhxVnrF8Xg==}
     engines: {node: '>=0.4.0'}
+    hasBin: true
 
   ajv@6.12.6:
     resolution: {integrity: sha512-j3fVLgvTo527anyYyJOGTYJbG+vnnQYvE0m5mmkc1TK+nxAppkCLMIL0aZ4dblVCNoGShhm+kzE4ZUykBoMg4g==}
@@ -2678,6 +2679,7 @@ packages:
   esprima@4.0.1:
     resolution: {integrity: sha512-eGuFFw7Upda+g4p+QHvnW0RyTX/SVeJBDM/gCtMARO0cLuT2HcEKnTPvhjV6aGeqrCB/sbNop0Kszm0jsaWU4A==}
     engines: {node: '>=4'}
+    hasBin: true
 
   esquery@1.5.0:
     resolution: {integrity: sha512-YQLXUplAwJgCydQ78IMJywZCceoqk1oH01OERdSAJc/7U2AylwjhSCLDEtqwg811idIS/9fIU5GjG73IgjKMVg==}
@@ -3219,6 +3221,7 @@ packages:
 
   js-yaml@3.14.1:
     resolution: {integrity: sha512-okMH7OXXJ7YrN9Ok3/SXrnu4iX9yOk+25nqX4imS2npuvTYDmo/QEZoqwZkYaIDk3jVvBOTOIEgEhaLOynBS9g==}
+    hasBin: true
 
   js-yaml@4.1.0:
     resolution: {integrity: sha512-wpxZs9NoxZaJESJGIZTyDEaYpl0FKSA+FB9aJiyemKhMwkxQg63h4T1KJgUGHpTqPDNRcmmYLugrRjJlBtWvRA==}
@@ -4271,8 +4274,9 @@ packages:
       vue-tsc:
         optional: true
 
-  vite-plugin-istanbul@6.0.0:
-    resolution: {integrity: sha512-Vwh2XdesjcLwaPbHSOiWHh+0s7CNovQTPEjUCTkqmJUe0FN2TKsOp0qpoaklOuwrKlL9elhD5fPFxi5lmG62zA==}
+  vite-plugin-istanbul@6.0.1:
+    resolution: {integrity: sha512-mPzelkPfcp0WPDDm9aniPDbNfgF18l5Qs40q6igsg6DsdXK5i2VoaSBIck8wZCHSn6V3YlbsecULIMAXosS9ng==}
+    engines: {node: ^20.12.2}
     peerDependencies:
       vite: '>=4 <=6'
 
@@ -9098,7 +9102,7 @@ snapshots:
       optionator: 0.9.3
       typescript: 5.4.5
 
-  vite-plugin-istanbul@6.0.0(vite@5.2.11(@types/node@20.12.8)):
+  vite-plugin-istanbul@6.0.1(vite@5.2.11(@types/node@20.12.8)):
     dependencies:
       '@istanbuljs/load-nyc-config': 1.1.0
       espree: 10.0.1
