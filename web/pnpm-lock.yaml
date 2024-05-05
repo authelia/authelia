@@ -190,8 +190,8 @@ importers:
         specifier: 0.6.4
         version: 0.6.4(eslint@8.57.0)(meow@12.1.1)(optionator@0.9.3)(typescript@5.4.5)(vite@5.2.11(@types/node@20.12.8))
       vite-plugin-istanbul:
-        specifier: 6.0.1
-        version: 6.0.1(vite@5.2.11(@types/node@20.12.8))
+        specifier: 6.0.2
+        version: 6.0.2(vite@5.2.11(@types/node@20.12.8))
       vite-plugin-svgr:
         specifier: 4.2.0
         version: 4.2.0(rollup@4.13.0)(typescript@5.4.5)(vite@5.2.11(@types/node@20.12.8))
@@ -4274,9 +4274,8 @@ packages:
       vue-tsc:
         optional: true
 
-  vite-plugin-istanbul@6.0.1:
-    resolution: {integrity: sha512-mPzelkPfcp0WPDDm9aniPDbNfgF18l5Qs40q6igsg6DsdXK5i2VoaSBIck8wZCHSn6V3YlbsecULIMAXosS9ng==}
-    engines: {node: ^20.12.2}
+  vite-plugin-istanbul@6.0.2:
+    resolution: {integrity: sha512-0/sKwjEEIwbEyl43xX7onX3dIbMJAsigNsKyyVPalG1oRFo5jn3qkJbS2PUfp9wrr3piy1eT6qRoeeum2p4B2A==}
     peerDependencies:
       vite: '>=4 <=6'
 
@@ -9102,7 +9101,7 @@ snapshots:
       optionator: 0.9.3
       typescript: 5.4.5
 
-  vite-plugin-istanbul@6.0.1(vite@5.2.11(@types/node@20.12.8)):
+  vite-plugin-istanbul@6.0.2(vite@5.2.11(@types/node@20.12.8)):
     dependencies:
       '@istanbuljs/load-nyc-config': 1.1.0
       espree: 10.0.1
