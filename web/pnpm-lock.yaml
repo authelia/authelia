@@ -107,7 +107,7 @@ importers:
         version: 1.4.1(eslint@8.57.0)
       '@testing-library/jest-dom':
         specifier: 6.4.5
-        version: 6.4.5(vitest@1.6.0(@types/node@20.12.10)(happy-dom@14.7.1))
+        version: 6.4.5(vitest@1.6.0(@types/node@20.12.10)(happy-dom@14.8.2))
       '@testing-library/react':
         specifier: 15.0.6
         version: 15.0.6(@types/react@18.3.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -134,7 +134,7 @@ importers:
         version: 4.2.1(vite@5.2.11(@types/node@20.12.10))
       '@vitest/coverage-istanbul':
         specifier: 1.6.0
-        version: 1.6.0(vitest@1.6.0(@types/node@20.12.10)(happy-dom@14.7.1))
+        version: 1.6.0(vitest@1.6.0(@types/node@20.12.10)(happy-dom@14.8.2))
       esbuild:
         specifier: 0.20.2
         version: 0.20.2
@@ -169,8 +169,8 @@ importers:
         specifier: 4.6.2
         version: 4.6.2(eslint@8.57.0)
       happy-dom:
-        specifier: 14.7.1
-        version: 14.7.1
+        specifier: 14.8.2
+        version: 14.8.2
       husky:
         specifier: 9.0.11
         version: 9.0.11
@@ -200,7 +200,7 @@ importers:
         version: 4.3.2(typescript@5.4.5)(vite@5.2.11(@types/node@20.12.10))
       vitest:
         specifier: 1.6.0
-        version: 1.6.0(@types/node@20.12.10)(happy-dom@14.7.1)
+        version: 1.6.0(@types/node@20.12.10)(happy-dom@14.8.2)
       vitest-preview:
         specifier: 0.0.1
         version: 0.0.1
@@ -2915,8 +2915,8 @@ packages:
   graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
 
-  happy-dom@14.7.1:
-    resolution: {integrity: sha512-v60Q0evZ4clvMcrAh5/F8EdxDdfHdFrtffz/CNe10jKD+nFweZVxM91tW+UyY2L4AtpgIaXdZ7TQmiO1pfcwbg==}
+  happy-dom@14.8.2:
+    resolution: {integrity: sha512-8ahpxtpEEXfftLPBZSbI3Xc2naXpdcUoOd2KsqWFD2efU6aptyWnZIh0dHVkwhDS77ek6eQunxrsKxccEsHPwA==}
     engines: {node: '>=16.0.0'}
 
   has-bigints@1.0.2:
@@ -6156,7 +6156,7 @@ snapshots:
       lz-string: 1.5.0
       pretty-format: 27.5.1
 
-  '@testing-library/jest-dom@6.4.5(vitest@1.6.0(@types/node@20.12.10)(happy-dom@14.7.1))':
+  '@testing-library/jest-dom@6.4.5(vitest@1.6.0(@types/node@20.12.10)(happy-dom@14.8.2))':
     dependencies:
       '@adobe/css-tools': 4.3.2
       '@babel/runtime': 7.23.9
@@ -6167,7 +6167,7 @@ snapshots:
       lodash: 4.17.21
       redent: 3.0.0
     optionalDependencies:
-      vitest: 1.6.0(@types/node@20.12.10)(happy-dom@14.7.1)
+      vitest: 1.6.0(@types/node@20.12.10)(happy-dom@14.8.2)
 
   '@testing-library/react@15.0.6(@types/react@18.3.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
@@ -6376,7 +6376,7 @@ snapshots:
     dependencies:
       open: 8.4.2
 
-  '@vitest/coverage-istanbul@1.6.0(vitest@1.6.0(@types/node@20.12.10)(happy-dom@14.7.1))':
+  '@vitest/coverage-istanbul@1.6.0(vitest@1.6.0(@types/node@20.12.10)(happy-dom@14.8.2))':
     dependencies:
       debug: 4.3.4
       istanbul-lib-coverage: 3.2.2
@@ -6387,7 +6387,7 @@ snapshots:
       magicast: 0.3.3
       picocolors: 1.0.0
       test-exclude: 6.0.0
-      vitest: 1.6.0(@types/node@20.12.10)(happy-dom@14.7.1)
+      vitest: 1.6.0(@types/node@20.12.10)(happy-dom@14.8.2)
     transitivePeerDependencies:
       - supports-color
 
@@ -7760,7 +7760,7 @@ snapshots:
 
   graphemer@1.4.0: {}
 
-  happy-dom@14.7.1:
+  happy-dom@14.8.2:
     dependencies:
       entities: 4.5.0
       webidl-conversions: 7.0.0
@@ -9168,7 +9168,7 @@ snapshots:
       - supports-color
       - terser
 
-  vitest@1.6.0(@types/node@20.12.10)(happy-dom@14.7.1):
+  vitest@1.6.0(@types/node@20.12.10)(happy-dom@14.8.2):
     dependencies:
       '@vitest/expect': 1.6.0
       '@vitest/runner': 1.6.0
@@ -9192,7 +9192,7 @@ snapshots:
       why-is-node-running: 2.2.2
     optionalDependencies:
       '@types/node': 20.12.10
-      happy-dom: 14.7.1
+      happy-dom: 14.8.2
     transitivePeerDependencies:
       - less
       - lightningcss
