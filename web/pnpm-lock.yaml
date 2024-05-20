@@ -54,8 +54,8 @@ importers:
         specifier: 9.0.1
         version: 9.0.1
       axios:
-        specifier: 1.6.8
-        version: 1.6.8
+        specifier: 1.7.0
+        version: 1.7.0
       broadcast-channel:
         specifier: 7.0.0
         version: 7.0.0
@@ -2102,8 +2102,8 @@ packages:
     resolution: {integrity: sha512-M0JtH+hlOL5pLQwHOLNYZaXuhqmvS8oExsqB1SBYgA4Dk7u/xx+YdGHXaK5pyUfed5mYXdlYiphWq3G8cRi5JQ==}
     engines: {node: '>=4'}
 
-  axios@1.6.8:
-    resolution: {integrity: sha512-v/ZHtJDU39mDpyBoFVkETcd/uNdxrWRrg3bKpOKzXFA6Bvqopts6ALSMU3y6ijYxbw2B+wPrIv46egTzJXCLGQ==}
+  axios@1.7.0:
+    resolution: {integrity: sha512-IiB0wQeKyPRdsFVhBgIo31FbzOyf2M6wYl7/NVutFwFBRMiAbjNiydJIHKeLmPugF4kJLfA1uWZ82Is2QzqqFA==}
 
   axobject-query@3.2.1:
     resolution: {integrity: sha512-jsyHu61e6N4Vbz/v18DHwWYKK0bSWLqn47eeDSKPB7m8tqMHF9YJ+mhIk2lVteyZrY8tnSj/jHOv4YiTCuCJgg==}
@@ -6794,7 +6794,7 @@ snapshots:
 
   axe-core@4.7.0: {}
 
-  axios@1.6.8:
+  axios@1.7.0:
     dependencies:
       follow-redirects: 1.15.6
       form-data: 4.0.0
