@@ -11,7 +11,7 @@ require (
 	github.com/deckarep/golang-set/v2 v2.6.0
 	github.com/duosecurity/duo_api_golang v0.0.0-20240408132100-cb1770897e66
 	github.com/fasthttp/router v1.5.1
-	github.com/fasthttp/session/v2 v2.5.4
+	github.com/fasthttp/session/v2 v2.5.5
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/go-asn1-ber/asn1-ber v1.5.7
 	github.com/go-crypt/crypt v0.2.22

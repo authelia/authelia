@@ -52,8 +52,8 @@ github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 h1:JWuenKqqX8nojt
 github.com/facebookgo/stack v0.0.0-20160209184415-751773369052/go.mod h1:UbMTZqLaRiH3MsBH8va0n7s1pQYcu3uTb8G4tygF4Zg=
 github.com/fasthttp/router v1.5.1 h1:uViy8UYYhm5npJSKEZ4b/ozM//NGzVCfJbh6VJ0VKr8=
 github.com/fasthttp/router v1.5.1/go.mod h1:WrmsLo3mrerZP2VEXRV1E8nL8ymJFYCDTr4HmnB8+Zs=
-github.com/fasthttp/session/v2 v2.5.4 h1:SeblRaKHYQoVBjJIF1KlZD0F8QX1poA80h/KaLhNo8I=
-github.com/fasthttp/session/v2 v2.5.4/go.mod h1:LCKe//Mwwfv6Ir4p10rBGnxi5yfPaXwuBlq1seR4vhI=
+github.com/fasthttp/session/v2 v2.5.5 h1:n1ESksvc5wdiC43tiVOeFCkLM1GW8wkR1Je0G/dLXzc=
+github.com/fasthttp/session/v2 v2.5.5/go.mod h1:ZjnHjLbMMIcUiCi84VXsAJ1c3NaPMV7rOPTSORKeuPc=
 github.com/fatih/color v1.16.0 h1:zmkK9Ngbjj+K0yRhTVONQh1p/HknKYSlNT+vZCzyokM=
 github.com/fatih/color v1.16.0/go.mod h1:fL2Sau1YI5c0pdGEVCbKQbLXB6edEj1ZgiY4NijnWvE=
 github.com/fsnotify/fsnotify v1.7.0 h1:8JEhPFa5W2WU7YfeZzPNqzMP6Lwt7L2715Ggo0nosvA=
