@@ -379,8 +379,7 @@ The default effective policy of none of the rules are able to determine the effe
 
 {{< confkey type="list(object)" required="yes" >}}
 
-*__Note:__ The only fields currently supported for rules are [policy](#policy) and [subject](#subject). See the [frequently asked questions](../../../integration/openid-connect/frequently-asked-questions.md/#why-doesnt-the-access-control-configuration-work-with-openid-connect-10) to learn more.*
-
+*__Note:__ The only fields currently supported for rules are [policy](#policy) and [subject](#subject). See the [frequently asked questions](../../../integration/openid-connect/frequently-asked-questions.md/#why-doesnt-the-access-control-configuration-work-with-openid-connect-10) for more information.*
 The list of rules which this policy should consider when choosing the effective policy. This must be included for the
 policy to be considered valid.
 
