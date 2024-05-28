@@ -20,6 +20,7 @@ var (
 	tmplDocsCommitMessageGuidelines = template.Must(newTMPL("docs-contributing-development-commitmsg.md"))
 	tmplScriptsGen                  = template.Must(newTMPL("cmd-authelia-scripts-gen.go"))
 	tmplServer                      = template.Must(newTMPL("server_gen.go"))
+	tmplADR                         = template.Must(newTMPL("docs-architectural_design_record.md"))
 )
 
 func newTMPL(name string) (tmpl *template.Template, err error) {

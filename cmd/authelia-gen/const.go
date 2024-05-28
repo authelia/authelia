@@ -23,6 +23,7 @@ const (
 	dirDocsStatic            = "static"
 	dirDocsStaticJSONSchemas = "schemas"
 	dirDocsData              = "data"
+	dirDocsADR               = "reference/architecture-decision-log"
 	dirDocsCLIReference      = "reference/cli"
 
 	fileDocsDataLanguages  = "languages.json"
@@ -95,6 +96,7 @@ const (
 	cmdFlagDocsStatic                             = "dir.docs.static"
 	cmdFlagDocsStaticJSONSchemas                  = "dir.docs.static.json-schemas"
 	cmdFlagDocsData                               = "dir.docs.data"
+	cmdFlagDocsADR                                = "dir.docs.adr"
 	cmdFlagDocsDataMisc                           = "file.docs.data.misc"
 	cmdFlagDocsDataKeys                           = "file.docs.data.keys"
 	cmdFlagDocsDataLanguages                      = "file.docs.data.languages"
