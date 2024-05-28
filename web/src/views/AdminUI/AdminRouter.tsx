@@ -2,13 +2,13 @@ import React, { useEffect } from "react";
 
 import { Route, Routes } from "react-router-dom";
 
-import { IndexRoute } from "@constants/Routes";
+import { AdminOIDCSubRoute, IndexRoute } from "@constants/Routes";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 import { useAutheliaState } from "@hooks/State";
 import AdminLayout from "@layouts/AdminLayout";
 import { AuthenticationLevel } from "@services/State";
-import ClientView from "@views/AdminUI/OpenIDConnect/ClientView";
-//import TwoFactorAuthenticationView from "@views/Settings/TwoFactorAuthentication/TwoFactorAuthenticationView";
+import AdminView from "@views/AdminUI/AdminView";
+import OIDCRouter from "@views/AdminUI/OpenIDConnect/OIDCRouter";
 
 export interface Props {}
 
@@ -29,7 +29,8 @@ const AdminRouter = function (props: Props) {
     return (
         <AdminLayout>
             <Routes>
-                <Route path={IndexRoute} element={<ClientView />} />
+                <Route path={`${AdminOIDCSubRoute}/*`} element={<OIDCRouter />} />
+                <Route path={IndexRoute} element={<AdminView />} />
             </Routes>
         </AdminLayout>
     );
