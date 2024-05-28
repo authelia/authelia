@@ -554,6 +554,8 @@ localhost.
 
 ### clients
 
+{{< confkey type="list(object)" required="yes" >}}
+
 See the [OpenID Connect 1.0 Registered Clients](clients.md) documentation for configuring clients.
 
 ## Integration
