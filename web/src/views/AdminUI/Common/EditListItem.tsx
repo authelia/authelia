@@ -15,7 +15,6 @@ const EditListItem = ({ index, listLabel, values, onValuesUpdate }: Props) => {
     //const [editedValues, setEditedValues] = useState<string[]>(props.values);
     const [newFormValues, setNewFormValues] = useState<string[]>(values);
     const [newFieldValue, setNewFieldValue] = useState<string>("");
-    console.log(newFormValues);
 
     const handleInputChange = useCallback(
         (idx: number, newValue: string) => {

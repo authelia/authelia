@@ -47,7 +47,8 @@ export interface OpenIDConnectClient {
     AllowMultipleAuthenticationMethods?: boolean;
     ClientCredentialsFlowAllowImplicitScope?: boolean;
 
-    AuthorizationPolicy: ClientAuthorizationPolicy;
+    AuthorizationPolicy?: ClientAuthorizationPolicy;
+    DefaultAuthorizationPolicy?: Policy;
 
     ConsentPolicy?: ClientConsentPolicy;
     RequestedAudienceMode?: string;
@@ -75,16 +76,75 @@ export interface ClientConsentPolicy {
 }
 export interface ClientAuthorizationPolicy {
     Name: string;
-    DefaultPolicy: number;
     Rules: ClientAuthorizationPolicyRule[];
 }
 
-// this is going to require quite a bit of additional infratructure to implement
-// this is going to require ACLs to be defined
-// TODO (Crowley723): ACL/Auth Policies need to be defined
-export interface ClientAuthorizationPolicyRule {}
+// OIDC client auth policies are currently limited to policy and subject
+export interface ClientAuthorizationPolicyRule {
+    Subject: Subject;
+    SetSubject(subjectString: string): void;
+}
 
-type ResponseModeType =
+export enum SubjectPrefix {
+    User = "user",
+    Group = "group",
+    OAuth2Client = "oauth2:client",
+}
+
+// OIDC Client Authorization Policy Subject
+export interface Subject {
+    prefix: SubjectPrefix;
+    value: String[];
+}
+
+export type Policy = "one_factor" | "two_factor" | "deny";
+
+export class ClientAuthorizationPolicyRuleImpl implements ClientAuthorizationPolicyRule {
+    Subject: Subject;
+
+    constructor(subjectString: string) {
+        this.Subject = {
+            prefix: SubjectPrefix.User,
+            value: [],
+        };
+        this.SetSubject(subjectString);
+    }
+
+    SetSubject(subjectString: string): void {
+        const parts = subjectString.split(":");
+
+        if (parts.length === 3) {
+            const prefix = parts[0].concat(":".concat(parts[1]));
+            const values = parts.slice(2);
+            if (prefix === "oauth2:client") {
+                this.Subject = {
+                    prefix: SubjectPrefix.OAuth2Client,
+                    value: values,
+                };
+            }
+        } else if (parts.length === 2) {
+            const prefix = parts[0];
+            const values = parts.slice(1);
+            if (prefix === "user") {
+                this.Subject = {
+                    prefix: SubjectPrefix.User,
+                    value: values,
+                };
+            } else if (prefix === "group") {
+                this.Subject = {
+                    prefix: SubjectPrefix.Group,
+                    value: values,
+                };
+            } else {
+                throw new Error("Invalid subject prefix. prefix: " + prefix + " value: " + values);
+            }
+        } else {
+            throw new Error("Invalid subject format");
+        }
+    }
+}
+
+export type ResponseModeType =
     | ""
     | "form_post"
     | "query"

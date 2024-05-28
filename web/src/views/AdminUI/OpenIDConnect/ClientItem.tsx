@@ -1,7 +1,5 @@
 import React, { Fragment, useState } from "react";
-//import React, { Fragment, useState } from "react";
 
-//import { useTranslation } from "react-i18next";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import CloseIcon from "@mui/icons-material/Close";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
@@ -68,7 +66,6 @@ const ClientItem = function (props: Props) {
     const [isEditing, setEditing] = useState(false);
     const [showClientID, setShowClientID] = useState(false);
     const [formData, setFormData] = useState<OpenIDConnectClient>(props.client);
-    //const theme = useTheme();
 
     const toggleExpanded = () => {
         setExpanded(!isExpanded);
@@ -80,6 +77,7 @@ const ClientItem = function (props: Props) {
 
     const handleEditClick = (event: { stopPropagation: () => void }) => {
         event.stopPropagation();
+        setFormData(props.client);
         if (!isExpanded) {
             toggleExpanded();
         }
@@ -132,7 +130,7 @@ const ClientItem = function (props: Props) {
                             onClick={(e: { stopPropagation: () => any }) => e.stopPropagation()}
                         />
                     ) : (
-                        <Typography fontWeight={"300"} fontSize={"20px"}>
+                        <Typography fontWeight={"300"} fontSize={"20px"} component="div">
                             {props.client.Name}
                         </Typography>
                     )}
@@ -157,7 +155,7 @@ const ClientItem = function (props: Props) {
             <AccordionDetails sx={{ padding: "auto 16px" }} key={`accordion-details-${props.index}`}>
                 <List>
                     <ListItem key={`client-id-${props.index}`}>
-                        <Typography>
+                        <div>
                             {translate("Client ID: ") || "Client ID: "}
                             {showClientID ? (
                                 <CardArea>{props.client.ID}</CardArea>
@@ -167,17 +165,14 @@ const ClientItem = function (props: Props) {
                             <IconButton onClick={toggleClientIDVisibility}>
                                 {showClientID ? <VisibilityOffIcon /> : <VisibilityIcon />}
                             </IconButton>
-                        </Typography>
+                        </div>
                     </ListItem>
-                    {props.client.Public !== undefined && props.client.Public !== null && (
-                        <Fragment>
-                            <Divider variant="middle" component="li" />
-                            <ListItem key={`client-type-${props.index}`}>
-                                Client Type: {props.client.Public ? `Public` : `Confidential`}
-                            </ListItem>
-                        </Fragment>
-                    )}
-
+                    <Fragment>
+                        <Divider variant="middle" component="li" />
+                        <ListItem key={`client-type-${props.index}`}>
+                            Client Type: {props.client.Public ? `Public` : `Confidential`}
+                        </ListItem>
+                    </Fragment>
                     <Divider variant="middle" component="li" />
                     <ListItem key={`request-uris-${props.index}`}>
                         <List sx={{ width: "50%", padding: 0 }}>
@@ -222,7 +217,7 @@ const ClientItem = function (props: Props) {
                             </>
                         )}
                     </ListItem>
-                    {props.client.Audience !== undefined && props.client.Audience !== null && (
+                    {props.client.Audience && (
                         <Fragment>
                             <Divider variant="middle" component="li" />
                             <ListItem key={`audience-${props.index}`}>
@@ -248,7 +243,7 @@ const ClientItem = function (props: Props) {
                             </ListItem>
                         </Fragment>
                     )}
-                    {props.client.AuthorizationPolicy !== undefined && props.client.AuthorizationPolicy !== null && (
+                    {props.client.AuthorizationPolicy && (
                         <Fragment>
                             <Divider variant="middle" component="li" />
                             <ListItem key={`auth-policy-${props.index}`}>

@@ -4,10 +4,9 @@ import { useTranslation } from "react-i18next";
 
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useOpenIDConnectClients } from "@hooks/OIDCClientConfig";
-import { ExistingScopes, OpenIDConnectClient } from "@models/OpenIDConnect";
+import { ClientAuthorizationPolicyRuleImpl, ExistingScopes, OpenIDConnectClient } from "@models/OpenIDConnect";
 import ClientItem from "@views/AdminUI/OpenIDConnect/ClientItem";
 
-//import { useTranslation } from "react-i18next";
 export interface Props {}
 
 const ClientView = function (props: Props) {
@@ -21,10 +20,15 @@ const ClientView = function (props: Props) {
             RedirectURIs: ["https://example.com/redirect", "https://example.com/redirect2"],
             Audience: ["https://aud1.example.com", "https://aud2.example.com"],
             Scopes: [ExistingScopes.openid, ExistingScopes.email],
+            DefaultAuthorizationPolicy: "one_factor",
             AuthorizationPolicy: {
                 Name: "Policy1",
-                DefaultPolicy: 1,
-                Rules: [],
+
+                Rules: [
+                    (() => {
+                        return new ClientAuthorizationPolicyRuleImpl("user:john");
+                    })(),
+                ],
             },
         },
         {
@@ -34,10 +38,14 @@ const ClientView = function (props: Props) {
             RedirectURIs: ["https://example.com/redirect", "https://example.com/redirect2"],
             Audience: ["https://aud1.example.com", "https://aud2.example.com"],
             Scopes: [ExistingScopes.offline_access, ExistingScopes.email],
+            DefaultAuthorizationPolicy: "one_factor",
             AuthorizationPolicy: {
                 Name: "Policy2",
-                DefaultPolicy: 1,
-                Rules: [],
+                Rules: [
+                    (() => {
+                        return new ClientAuthorizationPolicyRuleImpl("group:services");
+                    })(),
+                ],
             },
         },
         {
@@ -47,10 +55,14 @@ const ClientView = function (props: Props) {
             RedirectURIs: ["https://example.com/redirect", "https://example.com/redirect2"],
             Audience: ["https://aud1.example.com", "https://aud2.example.com"],
             Scopes: [ExistingScopes.profile, ExistingScopes.email],
+            DefaultAuthorizationPolicy: "one_factor",
             AuthorizationPolicy: {
                 Name: "Policy3",
-                DefaultPolicy: 1,
-                Rules: [],
+                Rules: [
+                    (() => {
+                        return new ClientAuthorizationPolicyRuleImpl("user:steve");
+                    })(),
+                ],
             },
         },
     ]);
@@ -74,6 +86,7 @@ const ClientView = function (props: Props) {
             return;
         }
         setClients(openIDConnectClients);
+        console.log(openIDConnectClients);
     }, [openIDConnectClients]);
 
     useEffect(() => {
@@ -92,7 +105,7 @@ const ClientView = function (props: Props) {
         updatedClients[index] = updatedClient;
         setClients(updatedClients);
     };
-    console.log(openIDConnectClients); // TODO (Crowley723): this should be removed.
+
     return (
         <Fragment>
             {clients.map((client, index) => (
