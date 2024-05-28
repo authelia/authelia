@@ -10,8 +10,8 @@ require (
 	github.com/authelia/otp v1.0.0
 	github.com/deckarep/golang-set/v2 v2.6.0
 	github.com/duosecurity/duo_api_golang v0.0.0-20240408132100-cb1770897e66
-	github.com/fasthttp/router v1.5.0
-	github.com/fasthttp/session/v2 v2.5.4
+	github.com/fasthttp/router v1.5.1
+	github.com/fasthttp/session/v2 v2.5.5
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/go-asn1-ber/asn1-ber v1.5.7
 	github.com/go-crypt/crypt v0.2.22
@@ -42,7 +42,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.9.0
 	github.com/trustelem/zxcvbn v1.0.1
-	github.com/valyala/fasthttp v1.53.0
+	github.com/valyala/fasthttp v1.54.0
 	github.com/wneessen/go-mail v0.4.1
 	go.uber.org/mock v0.4.0
 	golang.org/x/net v0.25.0
