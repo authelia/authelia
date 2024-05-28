@@ -1,48 +1,29 @@
-import React, { Fragment } from "react";
+import React from "react";
 
-import AccordionItem from "@views/AdminUI/AccordionItem";
+import { Box, Paper, Typography } from "@mui/material";
+import { useTranslation } from "react-i18next";
 
-//import { useTranslation } from "react-i18next";
 export interface Props {}
 
 const AdminView = function (props: Props) {
-    //const { t: translate } = useTranslation("admin");
+    const { t: translate } = useTranslation("admin");
 
     return (
-        <Fragment>
-            {/* <AccordionItem
-                id={`oidc-client${props.index}`}
-                name={props.name}
-                handleInformation={handleInformation}
-                handleEdit={handleEdit}
-                handleDelete={handleDelete}
-            ></AccordionItem> */}
-            <AccordionItem
-                id={`oidc-client1`}
-                name="Client1"
-                description="This is a temporary description!"
-            ></AccordionItem>
-            <AccordionItem
-                id={`oidc-client2`}
-                name="Client2"
-                description="This is a temporary description!"
-            ></AccordionItem>
-            <AccordionItem
-                id={`oidc-client3`}
-                name="Client3"
-                description="This is a temporary description!"
-            ></AccordionItem>
-            <AccordionItem
-                id={`oidc-client4`}
-                name="Client4"
-                description="This is a temporary description!"
-            ></AccordionItem>
-            <AccordionItem
-                id={`oidc-client4`}
-                name="Client5"
-                description="This is a temporary description!"
-            ></AccordionItem>
-        </Fragment>
+        <Paper variant={"outlined"}>
+            <Box sx={{ p: 3 }}>
+                <Typography variant={"h4"} textAlign={"center"} mb={1}>
+                    {translate("Admin Settings")}
+                </Typography>
+                <Typography textAlign={"center"} my={1}>
+                    {translate(
+                        "This is the admin settings area at the present time it's very minimal but will include new features in the near future",
+                    )}
+                </Typography>
+                <Typography textAlign={"center"} my={1}>
+                    {translate("To view the currently available options select the menu icon at the top left")}
+                </Typography>
+            </Box>
+        </Paper>
     );
 };
 
