@@ -12,7 +12,12 @@ export const ResetPasswordStep2Route: string = "/reset-password/step2";
 export const LogoutRoute: string = "/logout";
 
 export const SettingsRoute: string = "/settings";
-export const AdminRoute: string = "/admin";
 export const SettingsTwoFactorAuthenticationSubRoute: string = "/two-factor-authentication";
 export const RevokeOneTimeCodeRoute: string = "/revoke/one-time-code";
 export const RevokeResetPasswordRoute: string = "/revoke/reset-password";
+
+export const AdminRoute: string = "/admin";
+export const AdminOIDCSubRoute: string = "/oidc";
+export const AdminOIDCClientSubRoute: string = "/clients";
+export const AdminOIDCProviderSubRoute: string = "/providers";
+export const AdminOIDCAuthPoliciesSubRoute: string = "/policies";

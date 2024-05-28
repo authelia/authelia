@@ -1,10 +1,11 @@
 import React, { ReactNode, SyntheticEvent, useCallback, useEffect, useState } from "react";
 
-import { Close, Dashboard, Menu } from "@mui/icons-material";
+import { Close, Dashboard, ExpandLess, ExpandMore, Menu, VerifiedUser } from "@mui/icons-material";
 //import { Close, Dashboard, Menu, SystemSecurityUpdateGood } from "@mui/icons-material";
 import {
     AppBar,
     Box,
+    Collapse,
     Divider,
     List,
     ListItem,
@@ -18,7 +19,14 @@ import {
 import IconButton from "@mui/material/IconButton";
 import { useTranslation } from "react-i18next";
 
-import { AdminRoute, IndexRoute } from "@constants/Routes";
+import {
+    AdminOIDCAuthPoliciesSubRoute,
+    AdminOIDCClientSubRoute,
+    AdminOIDCProviderSubRoute,
+    AdminOIDCSubRoute,
+    AdminRoute,
+    IndexRoute,
+} from "@constants/Routes";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 
 export interface Props {
@@ -74,13 +82,26 @@ const AdminLayout = function (props: Props) {
             <Divider />
             <List>
                 {navItems.map((item) => (
-                    <DrawerNavItem
-                        key={item.keyname}
-                        keyname={item.keyname}
-                        text={translate(item.text)}
-                        pathname={item.pathname}
-                        icon={item.icon}
-                    />
+                    <React.Fragment key={item.keyname}>
+                        {item.children && item.children !== undefined ? (
+                            <DrawerNavItemDropdown
+                                key={item.keyname}
+                                keyname={item.keyname}
+                                text={translate(item.text)}
+                                pathname={item.pathname}
+                                icon={item.icon}
+                                children={item.children}
+                            />
+                        ) : (
+                            <DrawerNavItem
+                                key={item.keyname}
+                                keyname={item.keyname}
+                                text={translate(item.text)}
+                                pathname={item.pathname}
+                                icon={item.icon}
+                            />
+                        )}
+                    </React.Fragment>
                 ))}
             </List>
         </Box>
@@ -140,16 +161,34 @@ interface NavItem {
     text: string;
     pathname: string;
     icon?: ReactNode;
+    children?: NavItem[];
 }
 
 const navItems: NavItem[] = [
-    { keyname: "overview", text: "OIDC Clients", pathname: AdminRoute, icon: <Dashboard color={"primary"} /> },
-    // {
-    //     keyname: "twofactor",
-    //     text: "Two-Factor Authentication",
-    //     pathname: `${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`,
-    //     icon: <SystemSecurityUpdateGood color={"primary"} />,
-    // },
+    { keyname: "overview", text: "Overview", pathname: AdminRoute, icon: <Dashboard color={"primary"} /> },
+    {
+        keyname: "oidc",
+        text: "Open ID Connect",
+        pathname: AdminRoute,
+        icon: <VerifiedUser color={"primary"} />,
+        children: [
+            {
+                keyname: "oidc-provider",
+                text: "Provider",
+                pathname: `${AdminRoute}${AdminOIDCSubRoute}${AdminOIDCProviderSubRoute}`,
+            },
+            {
+                keyname: "oidc-clients",
+                text: "Clients",
+                pathname: `${AdminRoute}${AdminOIDCSubRoute}${AdminOIDCClientSubRoute}`,
+            },
+            {
+                keyname: "oidc-auth-policies",
+                text: "Auth. Policies",
+                pathname: `${AdminRoute}${AdminOIDCSubRoute}${AdminOIDCAuthPoliciesSubRoute}`,
+            },
+        ],
+    },
     { keyname: "close", text: "Close", pathname: IndexRoute, icon: <Close color={"error"} /> },
 ];
 
@@ -161,17 +200,65 @@ const DrawerNavItem = function (props: NavItem) {
         if (selected) {
             return;
         }
-
         navigate(props.pathname);
     }, [navigate, props, selected]);
 
     return (
-        <ListItem disablePadding onClick={handleOnClick}>
-            <ListItemButton selected={selected} id={`settings-menu-${props.keyname}`}>
+        <ListItem key={`admin-menu-${props.keyname}`} disablePadding onClick={handleOnClick}>
+            <ListItemButton selected={selected} key={`admin-menu-${props.keyname}-button`}>
                 {props.icon ? <ListItemIcon>{props.icon}</ListItemIcon> : null}
                 <ListItemText primary={props.text} />
             </ListItemButton>
         </ListItem>
+    );
+};
+
+const DrawerNavItemDropdown = function (props: NavItem) {
+    //const selected = window.location.pathname === props.pathname || window.location.pathname === props.pathname + "/";
+    const navigate = useRouterNavigate();
+    const [open, setOpen] = useState(false);
+
+    const handleOnClick = useCallback(
+        (pathname: string) => {
+            //console.log("Navigating to:", pathname);
+            navigate(pathname);
+        },
+        [navigate],
+    );
+
+    const handleClick = (event: { stopPropagation: () => void }) => {
+        event.stopPropagation();
+        setOpen(!open);
+    };
+
+    const isSelected = (pathname: string) => {
+        return window.location.pathname === pathname || window.location.pathname === pathname + "/";
+    };
+
+    return (
+        <>
+            <ListItemButton key={props.keyname} onClick={handleClick}>
+                {props.icon && <ListItemIcon>{props.icon}</ListItemIcon>}
+                <ListItemText primary={props.text} />
+                {open ? <ExpandLess /> : <ExpandMore />}
+            </ListItemButton>
+            <Collapse in={open} timeout="auto" unmountOnExit>
+                <List component="div" disablePadding>
+                    {props.children &&
+                        props.children.map((child, index) => (
+                            <ListItemButton
+                                key={`${props.keyname}-${index}`}
+                                sx={{ pl: 4, py: 0.3 }}
+                                selected={isSelected(child.pathname)}
+                                onClick={() => handleOnClick(child.pathname)}
+                            >
+                                {child.icon && <ListItemIcon>{child.icon}</ListItemIcon>}
+                                <ListItemText primary={child.text} sx={{ paddingLeft: 7 }} />
+                            </ListItemButton>
+                        ))}
+                </List>
+            </Collapse>
+        </>
     );
 };
 
