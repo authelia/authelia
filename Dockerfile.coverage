@@ -15,7 +15,7 @@ RUN yarn global add pnpm && \
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.22.2-alpine3.18 AS builder-backend
+FROM golang:1.22.3-alpine3.18 AS builder-backend
 
 WORKDIR /go/src/app
 
@@ -46,7 +46,7 @@ RUN \
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM alpine:3.19.1
+FROM alpine:3.20.0
 
 RUN apk --no-cache add ca-certificates tzdata
 
