@@ -3,6 +3,7 @@ package commands
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -74,16 +75,21 @@ func newConfigValidateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 
 // ConfigValidateRunE is the RunE for the authelia validate-config command.
 func (ctx *CmdCtx) ConfigValidateRunE(_ *cobra.Command, _ []string) (err error) {
+	var isError bool
+
+	buf := &bytes.Buffer{}
+
 	switch {
 	case ctx.cconfig.validator.HasErrors():
-		fmt.Println("Configuration parsed and loaded with errors:")
-		fmt.Println("")
+		isError = true
+
+		_, _ = fmt.Fprintf(buf, "Configuration parsed and loaded with errors:\n\n")
 
 		for _, err = range ctx.cconfig.validator.Errors() {
-			fmt.Printf("\t - %v\n", err)
+			_, _ = fmt.Fprintf(buf, "\t - %v\n", err)
 		}
 
-		fmt.Println("")
+		_, _ = fmt.Fprint(buf, "\n")
 
 		if !ctx.cconfig.validator.HasWarnings() {
 			break
@@ -91,17 +97,21 @@ func (ctx *CmdCtx) ConfigValidateRunE(_ *cobra.Command, _ []string) (err error) 
 
 		fallthrough
 	case ctx.cconfig.validator.HasWarnings():
-		fmt.Println("Configuration parsed and loaded with warnings:")
-		fmt.Println("")
+		_, _ = fmt.Fprintf(buf, "Configuration parsed and loaded with warnings:\n\n")
 
 		for _, err = range ctx.cconfig.validator.Warnings() {
-			fmt.Printf("\t - %v\n", err)
+			_, _ = fmt.Fprintf(buf, "\t - %v\n", err)
 		}
 
-		fmt.Println("")
+		_, _ = fmt.Fprint(buf, "\n")
 	default:
-		fmt.Println("Configuration parsed and loaded successfully without errors.")
-		fmt.Println("")
+		_, _ = fmt.Fprintf(buf, "Configuration parsed and loaded successfully without errors.\n\n")
+	}
+
+	fmt.Print(buf.String())
+
+	if isError {
+		os.Exit(1)
 	}
 
 	return nil
