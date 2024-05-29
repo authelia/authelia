@@ -2,7 +2,7 @@
 	"{{algorithm}}, {{digits}} digits, {{seconds}} seconds": "{{algorithm}}, {{digits}} chiffres, {{seconds}} secondes",
 	"A WebAuthn Credential with that Description already exists": "Un identifiant WebAuthn avec cette description existe déjà",
 	"Add": "Ajouter",
-	"Added when": "Ajouté {{when, datetime}}",
+	"Added when": "Ajouté le {{when, datetime}}",
 	"Added": "Ajouté",
 	"added": "ajouté",
 	"Advanced": "Avancé",
