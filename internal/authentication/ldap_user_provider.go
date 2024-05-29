@@ -89,7 +89,6 @@ func NewLDAPUserProviderWithFactory(config schema.AuthenticationBackendLDAP, dis
 
 	provider.parseDynamicUsersConfiguration()
 	provider.parseDynamicGroupsConfiguration()
-	provider.parseDynamicConfiguration()
 
 	return provider
 }
