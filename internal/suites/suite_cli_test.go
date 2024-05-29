@@ -88,7 +88,7 @@ func (s *CLISuite) TestShouldValidateConfig() {
 
 func (s *CLISuite) TestShouldFailValidateConfig() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", "validate-config", "--config=/config/invalid.yml"})
-	s.NoError(err)
+	s.EqualError(err, "exit status 1")
 	s.Contains(output, "failed to load configuration from file path(/config/invalid.yml) source: stat /config/invalid.yml: no such file or directory\n")
 }
 
