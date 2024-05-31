@@ -1,7 +1,7 @@
-FROM caddy:2.8.0-builder AS builder
+FROM caddy:2.8.1-builder AS builder
 
 RUN xcaddy build fix-empty-copy-headers
 
-FROM caddy:2.8.0
+FROM caddy:2.8.1
 
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy
