@@ -304,16 +304,18 @@ it then you're encouraged to create a [feature request](https://www.authelia.com
 
 Below is a list of the potential values we place in the [Claim] and their meaning:
 
-| Value |                           Description                            | Factor | Channel  |
-|:-----:|:----------------------------------------------------------------:|:------:|:--------:|
-|  mfa  |     User used multiple factors to login (see factor column)      |  N/A   |   N/A    |
-|  mca  |    User used multiple channels to login (see channel column)     |  N/A   |   N/A    |
-| user  |  User confirmed they were present when using their hardware key  |  N/A   |   N/A    |
-|  pin  | User confirmed they are the owner of the hardware key with a pin |  N/A   |   N/A    |
-|  pwd  |            User used a username and password to login            |  Know  | Browser  |
-|  otp  |                     User used TOTP to login                      |  Have  | Browser  |
-|  hwk  |                User used a hardware key to login                 |  Have  | Browser  |
-|  sms  |                      User used Duo to login                      |  Have  | External |
+| Value |                            Description                            | Factor | Channel  |
+|:-----:|:-----------------------------------------------------------------:|:------:|:--------:|
+|  mfa  |      User used multiple factors to login (see factor column)      |  N/A   |   N/A    |
+|  mca  |     User used multiple channels to login (see channel column)     |  N/A   |   N/A    |
+| user  |  User confirmed they were present when using their hardware key   |  N/A   |   N/A    |
+|  pin  | User confirmed they are the owner of the hardware key with a pin  |  N/A   |   N/A    |
+|  pwd  |            User used a username and password to login             |  Know  | Browser  |
+|  otp  |                      User used TOTP to login                      |  Have  | Browser  |
+|  pop  | User used a software or hardware proof-of-possession key to login |  Have  | Browser  |
+|  hwk  |       User used a hardware proof-of-possession key to login       |  Have  | Browser  |
+|  swk  |       User used a software proof-of-possession key to login       |  Have  | Browser  |
+|  sms  |                      User used Duo to login                       |  Have  | External |
 
 ## Introspection Signing Algorithm
 
