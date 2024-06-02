@@ -48,11 +48,11 @@ importers:
         specifier: 5.15.19
         version: 5.15.19(@types/react@18.3.3)(react@18.3.1)
       '@simplewebauthn/browser':
-        specifier: 9.0.1
-        version: 9.0.1
+        specifier: 10.0.0
+        version: 10.0.0
       '@simplewebauthn/types':
-        specifier: 9.0.1
-        version: 9.0.1
+        specifier: 10.0.0
+        version: 10.0.0
       axios:
         specifier: 1.7.2
         version: 1.7.2
@@ -188,7 +188,7 @@ importers:
         version: 5.2.12(@types/node@20.13.0)
       vite-plugin-checker:
         specifier: 0.6.4
-        version: 0.6.4(eslint@8.57.0)(optionator@0.9.3)(typescript@5.4.5)(vite@5.2.12(@types/node@20.13.0))
+        version: 0.6.4(eslint@8.57.0)(meow@12.1.1)(optionator@0.9.3)(typescript@5.4.5)(vite@5.2.12(@types/node@20.13.0))
       vite-plugin-istanbul:
         specifier: 6.0.2
         version: 6.0.2(vite@5.2.12(@types/node@20.13.0))
@@ -1728,11 +1728,11 @@ packages:
   '@rushstack/eslint-patch@1.2.0':
     resolution: {integrity: sha512-sXo/qW2/pAcmT43VoRKOJbDOfV3cYpq3szSVfIThQXNt+E4DfKj361vaAt3c88U5tPUxzEswam7GW48PJqtKAg==}
 
-  '@simplewebauthn/browser@9.0.1':
-    resolution: {integrity: sha512-wD2WpbkaEP4170s13/HUxPcAV5y4ZXaKo1TfNklS5zDefPinIgXOpgz1kpEvobAsaLPa2KeH7AKKX/od1mrBJw==}
+  '@simplewebauthn/browser@10.0.0':
+    resolution: {integrity: sha512-hG0JMZD+LiLUbpQcAjS4d+t4gbprE/dLYop/CkE01ugU/9sKXflxV5s0DRjdz3uNMFecatRfb4ZLG3XvF8m5zg==}
 
-  '@simplewebauthn/types@9.0.1':
-    resolution: {integrity: sha512-tGSRP1QvsAvsJmnOlRQyw/mvK9gnPtjEc5fg2+m8n+QUa+D7rvrKkOYyfpy42GTs90X3RDOnqJgfHt+qO67/+w==}
+  '@simplewebauthn/types@10.0.0':
+    resolution: {integrity: sha512-SFXke7xkgPRowY2E+8djKbdEznTVnD5R6GO7GPTthpHrokLvNKw8C3lFZypTxLI7KkCfGPfhtqB3d7OVGGa9jQ==}
 
   '@sinclair/typebox@0.27.8':
     resolution: {integrity: sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==}
@@ -6427,11 +6427,11 @@ snapshots:
 
   '@rushstack/eslint-patch@1.2.0': {}
 
-  '@simplewebauthn/browser@9.0.1':
+  '@simplewebauthn/browser@10.0.0':
     dependencies:
-      '@simplewebauthn/types': 9.0.1
+      '@simplewebauthn/types': 10.0.0
 
-  '@simplewebauthn/types@9.0.1': {}
+  '@simplewebauthn/types@10.0.0': {}
 
   '@sinclair/typebox@0.27.8': {}
 
@@ -9623,7 +9623,7 @@ snapshots:
       - supports-color
       - terser
 
-  vite-plugin-checker@0.6.4(eslint@8.57.0)(optionator@0.9.3)(typescript@5.4.5)(vite@5.2.12(@types/node@20.13.0)):
+  vite-plugin-checker@0.6.4(eslint@8.57.0)(meow@12.1.1)(optionator@0.9.3)(typescript@5.4.5)(vite@5.2.12(@types/node@20.13.0)):
     dependencies:
       '@babel/code-frame': 7.23.5
       ansi-escapes: 4.3.2
@@ -9643,6 +9643,7 @@ snapshots:
       vscode-uri: 3.0.7
     optionalDependencies:
       eslint: 8.57.0
+      meow: 12.1.1
       optionator: 0.9.3
       typescript: 5.4.5
 
