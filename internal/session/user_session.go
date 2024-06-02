@@ -57,10 +57,17 @@ func (s *UserSession) SetTwoFactorDuo(now time.Time) {
 }
 
 // SetTwoFactorWebAuthn sets the relevant WebAuthn AMR's and sets the factor to 2FA.
-func (s *UserSession) SetTwoFactorWebAuthn(now time.Time, userPresence, userVerified bool) {
+func (s *UserSession) SetTwoFactorWebAuthn(now time.Time, hardware, userPresence, userVerified bool) {
 	s.setTwoFactor(now)
+
 	s.AuthenticationMethodRefs.WebAuthn = true
 	s.AuthenticationMethodRefs.WebAuthnUserPresence, s.AuthenticationMethodRefs.WebAuthnUserVerified = userPresence, userVerified
+
+	if hardware {
+		s.AuthenticationMethodRefs.WebAuthnHardware = true
+	} else {
+		s.AuthenticationMethodRefs.WebAuthnSoftware = true
+	}
 
 	s.WebAuthn = nil
 }

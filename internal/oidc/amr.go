@@ -9,8 +9,14 @@ func NewAuthenticationMethodsReferencesFromClaim(claim []string) (amr Authentica
 			amr.TOTP = true
 		case AMRShortMessageService:
 			amr.Duo = true
+		case AMRProofOfPossession:
+			amr.WebAuthn = true
 		case AMRHardwareSecuredKey:
 			amr.WebAuthn = true
+			amr.WebAuthnHardware = true
+		case AMRSoftwareSecuredKey:
+			amr.WebAuthn = true
+			amr.WebAuthnSoftware = true
 		case AMRUserPresence:
 			amr.WebAuthnUserVerified = true
 		}
@@ -25,6 +31,8 @@ type AuthenticationMethodsReferences struct {
 	TOTP                 bool
 	Duo                  bool
 	WebAuthn             bool
+	WebAuthnHardware     bool
+	WebAuthnSoftware     bool
 	WebAuthnUserPresence bool
 	WebAuthnUserVerified bool
 }
@@ -36,7 +44,7 @@ func (r AuthenticationMethodsReferences) FactorKnowledge() bool {
 
 // FactorPossession returns true if a "something you have" factor of authentication was used.
 func (r AuthenticationMethodsReferences) FactorPossession() bool {
-	return r.TOTP || r.WebAuthn || r.Duo
+	return r.TOTP || r.Duo || r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware
 }
 
 // MultiFactorAuthentication returns true if multiple factors were used.
@@ -46,7 +54,7 @@ func (r AuthenticationMethodsReferences) MultiFactorAuthentication() bool {
 
 // ChannelBrowser returns true if a browser was used to authenticate.
 func (r AuthenticationMethodsReferences) ChannelBrowser() bool {
-	return r.UsernameAndPassword || r.TOTP || r.WebAuthn
+	return r.UsernameAndPassword || r.TOTP || r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware
 }
 
 // ChannelService returns true if a non-browser service was used to authenticate.
@@ -76,8 +84,16 @@ func (r AuthenticationMethodsReferences) MarshalRFC8176() []string {
 		amr = append(amr, AMRShortMessageService)
 	}
 
-	if r.WebAuthn {
+	if r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware {
+		amr = append(amr, AMRProofOfPossession)
+	}
+
+	if r.WebAuthnHardware {
 		amr = append(amr, AMRHardwareSecuredKey)
+	}
+
+	if r.WebAuthnSoftware {
+		amr = append(amr, AMRSoftwareSecuredKey)
 	}
 
 	if r.WebAuthnUserPresence {

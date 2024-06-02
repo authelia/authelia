@@ -262,6 +262,7 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	userSession.SetTwoFactorWebAuthn(ctx.Clock.Now(),
+		assertionResponse.ParsedPublicKeyCredential.AuthenticatorAttachment == protocol.CrossPlatform,
 		assertionResponse.Response.AuthenticatorData.Flags.HasUserPresent(),
 		assertionResponse.Response.AuthenticatorData.Flags.HasUserVerified())
 
