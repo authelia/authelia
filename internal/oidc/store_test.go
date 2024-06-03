@@ -9,6 +9,7 @@ import (
 	"time"
 
 	oauthelia2 "authelia.com/provider/oauth2"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -184,7 +185,7 @@ func (s *StoreSuite) TestGetSubject() {
 		opaqueID, err := s.store.GetSubject(s.ctx, "", "john")
 
 		assert.EqualError(t, err, "failed to load")
-		assert.Equal(t, uint32(0), opaqueID.ID())
+		assert.Equal(t, uuid.Nil, opaqueID)
 	})
 
 	s.T().Run("ReturnDatabaseErrorOnSave", func(t *testing.T) {
@@ -201,7 +202,7 @@ func (s *StoreSuite) TestGetSubject() {
 		opaqueID, err := s.store.GetSubject(s.ctx, "", "john")
 
 		assert.EqualError(t, err, "failed to save")
-		assert.Equal(t, uint32(0), opaqueID.ID())
+		assert.Equal(t, uuid.Nil, opaqueID)
 	})
 }
 

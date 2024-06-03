@@ -44,7 +44,7 @@ func handleOIDCAuthorizationConsentModeImplicitWithID(ctx *middlewares.AutheliaC
 		err error
 	)
 
-	if consentID.ID() == 0 {
+	if consentID == uuid.Nil {
 		ctx.Logger.Errorf(logFmtErrConsentZeroID, requester.GetID(), client.GetID(), client.GetConsentPolicy())
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotLookup)
@@ -60,7 +60,7 @@ func handleOIDCAuthorizationConsentModeImplicitWithID(ctx *middlewares.AutheliaC
 		return nil, true
 	}
 
-	if subject.ID() != consent.Subject.UUID.ID() {
+	if subject != consent.Subject.UUID {
 		ctx.Logger.Errorf(logFmtErrConsentSessionSubjectNotAuthorized, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, userSession.Username, subject, consent.Subject.UUID)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotLookup)

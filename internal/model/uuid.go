@@ -14,7 +14,7 @@ func NewRandomNullUUID() (uuid.NullUUID, error) {
 
 // NullUUID converts a uuid.UUID to a uuid.NullUUID.
 func NullUUID(in uuid.UUID) uuid.NullUUID {
-	return uuid.NullUUID{UUID: in, Valid: in.ID() != 0}
+	return uuid.NullUUID{UUID: in, Valid: in != uuid.Nil}
 }
 
 // MustNullUUID is a uuid.Must variant for the uuid.NullUUID methods.
