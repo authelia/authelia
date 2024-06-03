@@ -229,24 +229,20 @@ func handleOpenIDConnectNewConsentSession(subject uuid.UUID, requester oauthelia
 }
 
 func verifyOIDCUserAuthorizedForConsent(ctx *middlewares.AutheliaCtx, client oidc.Client, userSession session.UserSession, consent *model.OAuth2ConsentSession, subject uuid.UUID) (err error) {
-	var sid uint32
-
 	if client == nil {
 		if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, consent.ClientID); err != nil {
 			return fmt.Errorf("failed to retrieve client: %w", err)
 		}
 	}
 
-	if sid = subject.ID(); sid == 0 {
+	if subject == uuid.Nil {
 		if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifierURI(), userSession.Username); err != nil {
 			return fmt.Errorf("failed to lookup subject: %w", err)
 		}
-
-		sid = subject.ID()
 	}
 
 	if !consent.Subject.Valid {
-		if sid == 0 {
+		if subject == uuid.Nil {
 			return fmt.Errorf("the consent subject is null for consent session with id '%d' for anonymous user", consent.ID)
 		}
 
@@ -257,7 +253,7 @@ func verifyOIDCUserAuthorizedForConsent(ctx *middlewares.AutheliaCtx, client oid
 		}
 	}
 
-	if consent.Subject.UUID.ID() != sid {
+	if consent.Subject.UUID != subject {
 		return fmt.Errorf("the consent subject identifier '%s' isn't owned by user '%s' who has a subject identifier of '%s' with sector identifier '%s'", consent.Subject.UUID, userSession.Username, subject, client.GetSectorIdentifierURI())
 	}
 
