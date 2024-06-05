@@ -3,7 +3,7 @@ module github.com/authelia/authelia/v4
 go 1.21
 
 require (
-	authelia.com/provider/oauth2 v0.1.12
+	authelia.com/provider/oauth2 v0.1.13
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
 	github.com/authelia/jsonschema v0.1.7
@@ -58,7 +58,7 @@ require (
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/boombuler/barcode v1.0.1 // indirect
-	github.com/cespare/xxhash/v2 v2.2.0 // indirect
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
@@ -70,8 +70,7 @@ require (
 	github.com/go-crypt/x v0.2.15 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-webauthn/x v0.1.9 // indirect
-	github.com/golang/glog v1.2.0 // indirect
-	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/golang/glog v1.2.1 // indirect
 	github.com/google/go-tpm v0.9.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/iancoleman/orderedmap v0.3.0 // indirect
@@ -104,10 +103,9 @@ require (
 	github.com/ysmood/gson v0.7.3 // indirect
 	github.com/ysmood/leakless v0.8.0 // indirect
 	golang.org/x/crypto v0.24.0 // indirect
-	golang.org/x/oauth2 v0.18.0 // indirect
+	golang.org/x/oauth2 v0.21.0 // indirect
 	golang.org/x/sys v0.21.0 // indirect
-	google.golang.org/appengine v1.6.8 // indirect
-	google.golang.org/protobuf v1.33.0 // indirect
+	google.golang.org/protobuf v1.34.1 // indirect
 )
 
 exclude github.com/mattn/go-sqlite3 v2.0.3+incompatible
