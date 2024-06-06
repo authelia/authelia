@@ -88,7 +88,7 @@ func (s *CLISuite) TestShouldValidateConfig() {
 
 func (s *CLISuite) TestShouldFailValidateConfig() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", "validate-config", "--config=/config/invalid.yml"})
-	s.NoError(err)
+	s.EqualError(err, "exit status 1")
 	s.Contains(output, "failed to load configuration from file path(/config/invalid.yml) source: stat /config/invalid.yml: no such file or directory\n")
 }
 
@@ -798,11 +798,11 @@ func (s *CLISuite) TestShouldNotGenerateRSAWithBadCAFileContent() {
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", "crypto", "certificate", "rsa", "generate", "--path.ca=/tmp/", "--file.ca-private-key=ca.private.bad.pem", "--directory=/tmp/"})
 	s.NotNil(err)
-	s.Contains(output, "Error: could not parse private key from file '/tmp/ca.private.bad.pem': failed to parse PEM block containing the key\n")
+	s.Contains(output, "Error: could not parse private key from file '/tmp/ca.private.bad.pem': error occurred attempting to parse PEM block: either no PEM block was supplied or it was malformed\n")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", "crypto", "certificate", "rsa", "generate", "--path.ca=/tmp/", "--file.ca-certificate=ca.public.bad.crt", "--directory=/tmp/"})
 	s.NotNil(err)
-	s.Contains(output, "Error: could not parse certificate from file '/tmp/ca.public.bad.crt': failed to parse PEM block containing the key\n")
+	s.Contains(output, "Error: could not parse certificate from file '/tmp/ca.public.bad.crt': error occurred attempting to parse PEM block: either no PEM block was supplied or it was malformed\n")
 }
 
 func (s *CLISuite) TestStorage00ShouldShowCorrectPreInitInformation() {

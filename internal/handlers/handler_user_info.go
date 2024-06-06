@@ -57,6 +57,18 @@ func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 		}
 	}
 
+	if ctx.Configuration.TOTP.Disable {
+		userInfo.HasTOTP = false
+	}
+
+	if ctx.Configuration.WebAuthn.Disable {
+		userInfo.HasWebAuthn = false
+	}
+
+	if ctx.Configuration.DuoAPI.Disable {
+		userInfo.HasDuo = false
+	}
+
 	userInfo.DisplayName = userSession.DisplayName
 
 	err = ctx.SetJSONBody(userInfo)

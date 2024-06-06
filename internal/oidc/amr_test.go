@@ -9,11 +9,30 @@ import (
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
-type testAMRWant struct {
-	FactorKnowledge, FactorPossession, MultiFactorAuthentication bool
-	ChannelBrowser, ChannelService, MultiChannelAuthentication   bool
+func TestNewAuthenticationMethodsReferencesFromClaim(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     []string
+		expected oidc.AuthenticationMethodsReferences
+	}{
+		{
+			"ShouldHandleWebAuthnSoftware",
+			[]string{"pop", "swk", "mca", "mfa", "pwd", "otp"},
+			oidc.AuthenticationMethodsReferences{WebAuthn: true, WebAuthnSoftware: true, UsernameAndPassword: true, TOTP: true},
+		},
+		{
+			"ShouldHandleWebAuthnHardware",
+			[]string{"pop", "hwk", "mca", "mfa", "pwd", "sms", "user"},
+			oidc.AuthenticationMethodsReferences{WebAuthn: true, WebAuthnHardware: true, UsernameAndPassword: true, Duo: true, WebAuthnUserVerified: true},
+		},
+	}
 
-	RFC8176 []string
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := oidc.NewAuthenticationMethodsReferencesFromClaim(tc.have)
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
 }
 
 func TestAuthenticationMethodsReferences(t *testing.T) {
@@ -54,7 +73,7 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 		{
 			desc: "WebAuthn",
 
-			is: oidc.AuthenticationMethodsReferences{WebAuthn: true},
+			is: oidc.AuthenticationMethodsReferences{WebAuthn: true, WebAuthnHardware: true},
 			want: testAMRWant{
 				FactorKnowledge:            false,
 				FactorPossession:           true,
@@ -62,7 +81,21 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 				ChannelBrowser:             true,
 				ChannelService:             false,
 				MultiChannelAuthentication: false,
-				RFC8176:                    []string{"hwk"},
+				RFC8176:                    []string{"hwk", "pop"},
+			},
+		},
+		{
+			desc: "WebAuthnSoftware",
+
+			is: oidc.AuthenticationMethodsReferences{WebAuthn: true, WebAuthnSoftware: true},
+			want: testAMRWant{
+				FactorKnowledge:            false,
+				FactorPossession:           true,
+				MultiFactorAuthentication:  false,
+				ChannelBrowser:             true,
+				ChannelService:             false,
+				MultiChannelAuthentication: false,
+				RFC8176:                    []string{"swk", "pop"},
 			},
 		},
 		{
@@ -96,7 +129,7 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 		{
 			desc: "WebAuthn with User Presence and Verified",
 
-			is: oidc.AuthenticationMethodsReferences{WebAuthn: true, WebAuthnUserVerified: true, WebAuthnUserPresence: true},
+			is: oidc.AuthenticationMethodsReferences{WebAuthn: true, WebAuthnHardware: true, WebAuthnUserVerified: true, WebAuthnUserPresence: true},
 			want: testAMRWant{
 				FactorKnowledge:            false,
 				FactorPossession:           true,
@@ -104,7 +137,7 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 				ChannelBrowser:             true,
 				ChannelService:             false,
 				MultiChannelAuthentication: false,
-				RFC8176:                    []string{"hwk", "user", "pin"},
+				RFC8176:                    []string{"hwk", "pop", "user", "pin"},
 			},
 		},
 		{
@@ -124,7 +157,7 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 		{
 			desc: "Duo WebAuthn TOTP",
 
-			is: oidc.AuthenticationMethodsReferences{Duo: true, WebAuthn: true, TOTP: true},
+			is: oidc.AuthenticationMethodsReferences{Duo: true, WebAuthn: true, WebAuthnHardware: true, TOTP: true},
 			want: testAMRWant{
 				FactorKnowledge:            false,
 				FactorPossession:           true,
@@ -132,7 +165,7 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 				ChannelBrowser:             true,
 				ChannelService:             true,
 				MultiChannelAuthentication: true,
-				RFC8176:                    []string{"sms", "hwk", "otp", "mca"},
+				RFC8176:                    []string{"sms", "hwk", "pop", "otp", "mca"},
 			},
 		},
 		{
@@ -189,4 +222,11 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 			}
 		})
 	}
+}
+
+type testAMRWant struct {
+	FactorKnowledge, FactorPossession, MultiFactorAuthentication bool
+	ChannelBrowser, ChannelService, MultiChannelAuthentication   bool
+
+	RFC8176 []string
 }

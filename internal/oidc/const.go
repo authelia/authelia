@@ -306,6 +306,11 @@ const (
 	// RFC6238: https://datatracker.ietf.org/doc/html/rfc6238
 	AMROneTimePassword = "otp"
 
+	// AMRProofOfPossession is an Authentication Method Reference Value that
+	// represents authentication via a proof-of-Possession (PoP) of a software-secured (swk) or hardware-secured (hwk)
+	// key.
+	AMRProofOfPossession = "pop"
+
 	// AMRHardwareSecuredKey is an RFC8176 Authentication Method Reference Value that
 	// represents authentication via a proof-of-Possession (PoP) of a hardware-secured key.
 	//
@@ -313,6 +318,14 @@ const (
 	//
 	// RFC8176: https://datatracker.ietf.org/doc/html/rfc8176
 	AMRHardwareSecuredKey = "hwk"
+
+	// AMRSoftwareSecuredKey is an RFC8176 Authentication Method Reference Value that
+	// represents authentication via a proof-of-Possession (PoP) of a software-secured key.
+	//
+	// Authelia utilizes this when a user has used WebAuthn to authenticate. Factor: Have, Channel: Browser.
+	//
+	// RFC8176: https://datatracker.ietf.org/doc/html/rfc8176
+	AMRSoftwareSecuredKey = "swk"
 
 	// AMRShortMessageService is an RFC8176 Authentication Method Reference Value that
 	// represents authentication via confirmation using SMS text message to the user at a registered number.
