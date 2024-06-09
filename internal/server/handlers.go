@@ -295,11 +295,18 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 		r.GET("/api/secondfactor/webauthn", middleware1FA(handlers.WebAuthnAssertionGET))
 		r.POST("/api/secondfactor/webauthn", middleware1FA(handlers.WebAuthnAssertionPOST))
 
+		if config.WebAuthn.EnablePasskeyLogin {
+			r.GET("/api/firstfactor/webauthn", middlewareAPI(handlers.WebAuthnPasskeyAssertionGET))
+			r.POST("/api/firstfactor/webauthn", middlewareAPI(handlers.WebAuthnPasskeyAssertionPOST))
+		}
+
 		// Management of the WebAuthn credentials.
 		r.GET("/api/secondfactor/webauthn/credentials", middleware1FA(handlers.WebAuthnCredentialsGET))
 
-		r.PUT("/api/secondfactor/webauthn/credential/register", middlewareElevated1FA(handlers.WebAuthnRegistrationPUT))
-		r.POST("/api/secondfactor/webauthn/credential/register", middlewareElevated1FA(handlers.WebAuthnRegistrationPOST))
+		r.PUT("/api/secondfactor/webauthn/credential/register", middlewareElevated1FA(handlers.WebAuthnSecurityKeyRegistrationPUT))
+		r.POST("/api/secondfactor/webauthn/credential/register", middlewareElevated1FA(handlers.WebAuthnSecurityKeyRegistrationPOST))
+		r.PUT("/api/secondfactor/webauthn/passkey/register", middlewareElevated1FA(handlers.WebAuthnPasskeyRegistrationPUT))
+		r.POST("/api/secondfactor/webauthn/passkey/register", middlewareElevated1FA(handlers.WebAuthnPasskeyRegistrationPOST))
 		r.DELETE("/api/secondfactor/webauthn/credential/register", middlewareElevated1FA(handlers.WebAuthnRegistrationDELETE))
 
 		r.PUT("/api/secondfactor/webauthn/credential/{credentialID}", middlewareElevated1FA(handlers.WebAuthnCredentialPUT))

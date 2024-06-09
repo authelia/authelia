@@ -859,6 +859,9 @@
           "title": "Certificates Directory Path",
           "description": "The path to a directory which is used to determine the certificates that are trusted."
         },
+        "cache_directory": {
+          "type": "string"
+        },
         "default_2fa_method": {
           "type": "string",
           "enum": [
@@ -3316,6 +3319,12 @@
           "description": "The display name attribute for the WebAuthn relying party.",
           "default": "Authelia"
         },
+        "enable_passkey_login": {
+          "type": "boolean",
+          "title": "Enable Passkey Logins",
+          "description": "Allows users to sign in via Passkeys.",
+          "default": false
+        },
         "attestation_conveyance_preference": {
           "type": "string",
           "enum": [
@@ -3326,17 +3335,6 @@
           "title": "Conveyance Preference",
           "description": "The default conveyance preference for all WebAuthn credentials.",
           "default": "indirect"
-        },
-        "user_verification": {
-          "type": "string",
-          "enum": [
-            "discouraged",
-            "preferred",
-            "required"
-          ],
-          "title": "User Verification",
-          "description": "The default user verification preference for all WebAuthn credentials.",
-          "default": "preferred"
         },
         "timeout": {
           "oneOf": [
@@ -3351,11 +3349,146 @@
           ],
           "title": "Timeout",
           "description": "The default timeout for all WebAuthn ceremonies."
+        },
+        "filtering": {
+          "$ref": "#/$defs/WebAuthnFiltering",
+          "title": "Filtering",
+          "description": "WebAuthn Authenticator filtering settings."
+        },
+        "selection_criteria": {
+          "$ref": "#/$defs/WebAuthnSelectionCriteria"
+        },
+        "metadata": {
+          "$ref": "#/$defs/WebAuthnMetadata"
         }
       },
       "additionalProperties": false,
       "type": "object",
       "description": "WebAuthn represents the webauthn config."
+    },
+    "WebAuthnFiltering": {
+      "properties": {
+        "permitted_aaguids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "prohibited_aaguids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "WebAuthnMetadata": {
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "path": {
+          "type": "string"
+        },
+        "validate_trust_anchor": {
+          "type": "boolean"
+        },
+        "validate_entry": {
+          "type": "boolean"
+        },
+        "validate_entry_permit_zero_aaguid": {
+          "type": "boolean"
+        },
+        "validate_status": {
+          "type": "boolean"
+        },
+        "validate_status_desired": {
+          "items": {
+            "type": "string",
+            "enum": [
+              "FIDO_NOT_CERTIFIED",
+              "FIDO_CERTIFIED",
+              "USER_VERIFICATION_BYPASS",
+              "ATTESTATION_KEY_COMPROMISE",
+              "USER_KEY_REMOTE_COMPROMISE",
+              "USER_KEY_PHYSICAL_COMPROMISE",
+              "UPDATE_AVAILABLE",
+              "REVOKED",
+              "SELF_ASSERTION_SUBMITTED",
+              "FIDO_CERTIFIED_L1",
+              "FIDO_CERTIFIED_L1plus",
+              "FIDO_CERTIFIED_L2",
+              "FIDO_CERTIFIED_L2plus",
+              "FIDO_CERTIFIED_L3",
+              "FIDO_CERTIFIED_L3plus"
+            ]
+          },
+          "type": "array"
+        },
+        "validate_status_undesired": {
+          "items": {
+            "type": "string",
+            "enum": [
+              "FIDO_NOT_CERTIFIED",
+              "FIDO_CERTIFIED",
+              "USER_VERIFICATION_BYPASS",
+              "ATTESTATION_KEY_COMPROMISE",
+              "USER_KEY_REMOTE_COMPROMISE",
+              "USER_KEY_PHYSICAL_COMPROMISE",
+              "UPDATE_AVAILABLE",
+              "REVOKED",
+              "SELF_ASSERTION_SUBMITTED",
+              "FIDO_CERTIFIED_L1",
+              "FIDO_CERTIFIED_L1plus",
+              "FIDO_CERTIFIED_L2",
+              "FIDO_CERTIFIED_L2plus",
+              "FIDO_CERTIFIED_L3",
+              "FIDO_CERTIFIED_L3plus"
+            ]
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "WebAuthnSelectionCriteria": {
+      "properties": {
+        "attachment": {
+          "type": "string",
+          "enum": [
+            "platform",
+            "cross-platform"
+          ],
+          "default": "cross-platform"
+        },
+        "discoverability": {
+          "type": "string",
+          "enum": [
+            "discouraged",
+            "preferred",
+            "required"
+          ],
+          "title": "Discoverability Selection",
+          "description": "The default discoverable requirement when registering WebAuthn credentials.",
+          "default": "discouraged"
+        },
+        "user_verification": {
+          "type": "string",
+          "enum": [
+            "discouraged",
+            "preferred",
+            "required"
+          ],
+          "title": "User Verification",
+          "description": "The default user verification preference for all WebAuthn credentials.",
+          "default": "preferred"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "X509CertificateChain": {
       "type": "string",

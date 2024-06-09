@@ -10,6 +10,11 @@
         "env": "AUTHELIA_CERTIFICATES_DIRECTORY"
     },
     {
+        "path": "cache_directory",
+        "secret": false,
+        "env": "AUTHELIA_CACHE_DIRECTORY"
+    },
+    {
         "path": "default_2fa_method",
         "secret": false,
         "env": "AUTHELIA_DEFAULT_2FA_METHOD"
@@ -980,19 +985,84 @@
         "env": "AUTHELIA_WEBAUTHN_DISPLAY_NAME"
     },
     {
+        "path": "webauthn.enable_passkey_login",
+        "secret": false,
+        "env": "AUTHELIA_WEBAUTHN_ENABLE_PASSKEY_LOGIN"
+    },
+    {
         "path": "webauthn.attestation_conveyance_preference",
         "secret": false,
         "env": "AUTHELIA_WEBAUTHN_ATTESTATION_CONVEYANCE_PREFERENCE"
     },
     {
-        "path": "webauthn.user_verification",
-        "secret": false,
-        "env": "AUTHELIA_WEBAUTHN_USER_VERIFICATION"
-    },
-    {
         "path": "webauthn.timeout",
         "secret": false,
         "env": "AUTHELIA_WEBAUTHN_TIMEOUT"
+    },
+    {
+        "path": "webauthn.filtering.permitted_aaguids",
+        "secret": false,
+        "env": "AUTHELIA_WEBAUTHN_FILTERING_PERMITTED_AAGUIDS"
+    },
+    {
+        "path": "webauthn.filtering.prohibited_aaguids",
+        "secret": false,
+        "env": "AUTHELIA_WEBAUTHN_FILTERING_PROHIBITED_AAGUIDS"
+    },
+    {
+        "path": "webauthn.selection_criteria.attachment",
+        "secret": false,
+        "env": "AUTHELIA_WEBAUTHN_SELECTION_CRITERIA_ATTACHMENT"
+    },
+    {
+        "path": "webauthn.selection_criteria.discoverability",
+        "secret": false,
+        "env": "AUTHELIA_WEBAUTHN_SELECTION_CRITERIA_DISCOVERABILITY"
+    },
+    {
+        "path": "webauthn.selection_criteria.user_verification",
+        "secret": false,
+        "env": "AUTHELIA_WEBAUTHN_SELECTION_CRITERIA_USER_VERIFICATION"
+    },
+    {
+        "path": "webauthn.metadata.enabled",
+        "secret": false,
+        "env": "AUTHELIA_WEBAUTHN_METADATA_ENABLED"
+    },
+    {
+        "path": "webauthn.metadata.path",
+        "secret": false,
+        "env": "AUTHELIA_WEBAUTHN_METADATA_PATH"
+    },
+    {
+        "path": "webauthn.metadata.validate_trust_anchor",
+        "secret": false,
+        "env": "AUTHELIA_WEBAUTHN_METADATA_VALIDATE_TRUST_ANCHOR"
+    },
+    {
+        "path": "webauthn.metadata.validate_entry",
+        "secret": false,
+        "env": "AUTHELIA_WEBAUTHN_METADATA_VALIDATE_ENTRY"
+    },
+    {
+        "path": "webauthn.metadata.validate_entry_permit_zero_aaguid",
+        "secret": false,
+        "env": "AUTHELIA_WEBAUTHN_METADATA_VALIDATE_ENTRY_PERMIT_ZERO_AAGUID"
+    },
+    {
+        "path": "webauthn.metadata.validate_status",
+        "secret": false,
+        "env": "AUTHELIA_WEBAUTHN_METADATA_VALIDATE_STATUS"
+    },
+    {
+        "path": "webauthn.metadata.validate_status_desired",
+        "secret": false,
+        "env": "AUTHELIA_WEBAUTHN_METADATA_VALIDATE_STATUS_DESIRED"
+    },
+    {
+        "path": "webauthn.metadata.validate_status_undesired",
+        "secret": false,
+        "env": "AUTHELIA_WEBAUTHN_METADATA_VALIDATE_STATUS_UNDESIRED"
     },
     {
         "path": "password_policy.standard.enabled",

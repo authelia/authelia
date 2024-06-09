@@ -242,9 +242,52 @@ webauthn:
   ## Options are none, indirect, direct.
   # attestation_conveyance_preference: 'indirect'
 
-  ## User verification controls if the user must make a gesture or action to confirm they are present.
-  ## Options are required, preferred, discouraged.
-  # user_verification: 'preferred'
+  ## Selection Criteria controls the preferences for registration.
+  # selection_criteria:
+    ## The attachment preference. Either 'cross-platform' for dedicated authenticators, or 'platform' for embedded
+    ## authenticators.
+    # attachment: 'cross-platform'
+
+    ## The discoverability preference. Options are 'discouraged', 'preferred', and 'required'.
+    # discoverability: 'discouraged'
+
+    ## User verification controls if the user must make a gesture or action to confirm they are present.
+    ## Options are required, preferred, discouraged.
+    # user_verification: 'preferred'
+
+  ## Metadata Service validation via MDS3.
+  # metadata:
+
+    ## Enable the metadata fetch behaviour.
+    # enabled: false
+
+    ## Path to save the MDS3 blob to.
+    # path: 'data.mds3'
+
+    ## Enable Validation of the Trust Anchor. This generally should be enabled if you're using the metadata. It
+    ## ensures the attestation certificate presented by the authenticator is valid against the MDS3 certificate that
+    ## issued the attestation certificate.
+    # validate_trust_anchor: false
+
+    ## Enable Validation of the Entry. This ensures that the MDS3 actually contains the metadata entry. If not enabled
+    ## attestation certificates which are not formally registered will be skipped. This may potentially exclude some
+    ## virtual authenticators.
+    # validate_entry: false
+
+    ## Enabling this allows attestation certificates with a zero AAGUID to pass validation. This is important if you do
+    ## use non-conformant authenticators like Apple ID.
+    # validate_entry_permit_zero_aaguid: false
+
+    ## Enable Validation of the Authenticator Status.
+    # validate_status: false
+
+    ## List of statuses that should be required when validating the status. Generally it is recommended that this is not
+    ## configured.
+    # validate_status_desired: ~
+
+    ## List of statuses that should be prohibited when validating the status. Generally it is recommended that this is
+    ## not configured as there are safe defaults.
+    # validate_status_undesired: ~
 
 ##
 ## Duo Push API Configuration

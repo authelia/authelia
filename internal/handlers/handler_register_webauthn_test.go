@@ -256,7 +256,7 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 				tc.setup(t, mock)
 			}
 
-			WebAuthnRegistrationPUT(mock.Ctx)
+			WebAuthnSecurityKeyRegistrationPUT(mock.Ctx)
 
 			assert.Equal(t, tc.expectedStatus, mock.Ctx.Response.StatusCode())
 			assert.Regexp(t, tc.expected, string(mock.Ctx.Response.Body()))
@@ -884,7 +884,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				mock.Ctx.Request.SetBodyString(tc.have)
 			}
 
-			WebAuthnRegistrationPOST(mock.Ctx)
+			WebAuthnSecurityKeyRegistrationPOST(mock.Ctx)
 
 			assert.Equal(t, tc.expectedStatus, mock.Ctx.Response.StatusCode())
 			assert.Equal(t, tc.expected, string(mock.Ctx.Response.Body()))

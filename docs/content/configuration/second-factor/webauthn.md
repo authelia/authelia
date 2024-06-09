@@ -49,6 +49,13 @@ individual operating systems if and how they display this information.
 See the [W3C WebAuthn Documentation](https://www.w3.org/TR/webauthn-2/#dom-publickeycredentialentity-name) for more
 information.
 
+### enable_passkey_login
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Enables login via a Passkey instead of a username and password. This login only counts as a single factor. The user will
+be prompted for their password by default if the request requires multi-factor authentication.
+
 ### attestation_conveyance_preference
 
 {{< confkey type="string" default="indirect" required="no" >}}
@@ -66,7 +73,40 @@ Available Options:
 | indirect | The client will be instructed to perform conveyancing but the client can choose how to do this including using a third party anonymization CA |
 |  direct  |               The client will be instructed to perform conveyancing with an attestation statement directly signed by the device               |
 
-### user_verification
+### timeout
+
+{{< confkey type="string,integer" syntax="duration" default="60 seconds" required="no" >}}
+
+This adjusts the requested timeout for a WebAuthn interaction.
+
+### selection_criteria
+
+The selection criteria options set preferences for selecting a suitable authenticator.
+
+#### attachment
+
+{{< confkey type="string" default="cross-platform" required="no" >}}
+
+Sets the attachment preference for newly created credentials.
+
+Available Options:
+
+|     Value      |                                      Description                                       |
+|:--------------:|:--------------------------------------------------------------------------------------:|
+| cross-platform | Authenticators that can move from one system to another such as physical security keys |
+|    platform    |    Authenticators that are part of the platform such as Windows Hello, AppleID, etc    |
+
+#### discoverability
+
+Sets the discoverability preference. May affect the creation of Passkeys.
+
+|    Value    |                             Description                             |
+|:-----------:|:-------------------------------------------------------------------:|
+| discouraged |                     Prefers no discoverability                      |
+|  preferred  | Prefers discoverability and will not error if it's not discoverable |
+|  required   |   Requires discoverability and may error if it's not discoverable   |
+
+#### user_verification
 
 {{< confkey type="string" default="preferred" required="no" >}}
 
@@ -82,11 +122,6 @@ Available Options:
 |  preferred  |          The client if compliant will ask the user for verification if the device supports it          |
 |  required   | The client will ask the user for verification or will fail if the device does not support verification |
 
-### timeout
-
-{{< confkey type="string,integer" syntax="duration" default="60 seconds" required="no" >}}
-
-This adjusts the requested timeout for a WebAuthn interaction.
 
 ## Frequently Asked Questions
 

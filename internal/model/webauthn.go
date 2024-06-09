@@ -178,6 +178,7 @@ type WebAuthnCredential struct {
 	BackupEligible  bool          `db:"backup_eligible"`
 	BackupState     bool          `db:"backup_state"`
 	PublicKey       []byte        `db:"public_key"`
+	Attestation     []byte        `db:"attestation"`
 }
 
 // UpdateSignInInfo adjusts the values of the WebAuthnCredential after a sign in.

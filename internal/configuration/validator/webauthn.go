@@ -25,9 +25,23 @@ func ValidateWebAuthn(config *schema.Configuration, validator *schema.StructVali
 	}
 
 	switch {
-	case config.WebAuthn.UserVerification == "":
-		config.WebAuthn.UserVerification = schema.DefaultWebAuthnConfiguration.UserVerification
-	case !utils.IsStringInSlice(string(config.WebAuthn.UserVerification), validWebAuthnUserVerificationRequirement):
-		validator.Push(fmt.Errorf(errFmtWebAuthnUserVerification, utils.StringJoinOr(validWebAuthnConveyancePreferences), config.WebAuthn.UserVerification))
+	case config.WebAuthn.SelectionCriteria.Attachment == "":
+		config.WebAuthn.SelectionCriteria.Attachment = schema.DefaultWebAuthnConfiguration.SelectionCriteria.Attachment
+	case !utils.IsStringInSlice(string(config.WebAuthn.SelectionCriteria.Attachment), validWebAuthnAttachment):
+		validator.Push(fmt.Errorf(errFmtWebAuthnSelectionCriteria, "attachment", utils.StringJoinOr(validWebAuthnAttachment), config.WebAuthn.SelectionCriteria.Attachment))
+	}
+
+	switch {
+	case config.WebAuthn.SelectionCriteria.Discoverability == "":
+		config.WebAuthn.SelectionCriteria.Discoverability = schema.DefaultWebAuthnConfiguration.SelectionCriteria.Discoverability
+	case !utils.IsStringInSlice(string(config.WebAuthn.SelectionCriteria.Discoverability), validWebAuthnDiscoverability):
+		validator.Push(fmt.Errorf(errFmtWebAuthnSelectionCriteria, "discoverability", utils.StringJoinOr(validWebAuthnDiscoverability), config.WebAuthn.SelectionCriteria.Discoverability))
+	}
+
+	switch {
+	case config.WebAuthn.SelectionCriteria.UserVerification == "":
+		config.WebAuthn.SelectionCriteria.UserVerification = schema.DefaultWebAuthnConfiguration.SelectionCriteria.UserVerification
+	case !utils.IsStringInSlice(string(config.WebAuthn.SelectionCriteria.UserVerification), validWebAuthnUserVerificationRequirement):
+		validator.Push(fmt.Errorf(errFmtWebAuthnSelectionCriteria, "user_verification", utils.StringJoinOr(validWebAuthnUserVerificationRequirement), config.WebAuthn.SelectionCriteria.UserVerification))
 	}
 }

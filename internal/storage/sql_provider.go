@@ -635,11 +635,17 @@ func (p *SQLProvider) SaveWebAuthnCredential(ctx context.Context, credential mod
 		return fmt.Errorf("error encrypting WebAuthn credential public key for user '%s' kid '%x': %w", credential.Username, credential.KID, err)
 	}
 
+	if credential.Attestation != nil {
+		if credential.Attestation, err = p.encrypt(credential.Attestation); err != nil {
+			return fmt.Errorf("error encrypting WebAuthn credential attestation for user '%s' kid '%x': %w", credential.Username, credential.KID, err)
+		}
+	}
+
 	if _, err = p.db.ExecContext(ctx, p.sqlInsertWebAuthnCredential,
 		credential.CreatedAt, credential.LastUsedAt, credential.RPID, credential.Username, credential.Description,
 		credential.KID, credential.AAGUID, credential.AttestationType, credential.Attachment, credential.Transport,
 		credential.SignCount, credential.CloneWarning, credential.Discoverable, credential.Present, credential.Verified,
-		credential.BackupEligible, credential.BackupState, credential.PublicKey,
+		credential.BackupEligible, credential.BackupState, credential.PublicKey, credential.Attestation,
 	); err != nil {
 		return fmt.Errorf("error inserting WebAuthn credential for user '%s' kid '%x': %w", credential.Username, credential.KID, err)
 	}
@@ -714,6 +720,12 @@ func (p *SQLProvider) LoadWebAuthnCredentials(ctx context.Context, limit, page i
 	for i, credential := range credentials {
 		if credentials[i].PublicKey, err = p.decrypt(credential.PublicKey); err != nil {
 			return nil, fmt.Errorf("error decrypting WebAuthn credential public key of credential with id '%d' for user '%s': %w", credential.ID, credential.Username, err)
+		}
+
+		if credential.Attestation != nil {
+			if credentials[i].Attestation, err = p.decrypt(credential.Attestation); err != nil {
+				return nil, fmt.Errorf("error decrypting WebAuthn credential attestation of credential with id '%d' for user '%s': %w", credential.ID, credential.Username, err)
+			}
 		}
 	}
 

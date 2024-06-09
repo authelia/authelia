@@ -301,7 +301,7 @@ const (
 // WebAuthn Error constants.
 const (
 	errFmtWebAuthnConveyancePreference = "webauthn: option 'attestation_conveyance_preference' must be one of %s but it's configured as '%s'"
-	errFmtWebAuthnUserVerification     = "webauthn: option 'user_verification' must be one of %s but it's configured as '%s'"
+	errFmtWebAuthnSelectionCriteria    = "webauthn: selection_criteria: option '%s' must be one of %s but it's configured as '%s'"
 )
 
 // Access Control error constants.
@@ -501,6 +501,8 @@ var (
 	validLogFormats                          = []string{logging.FormatText, logging.FormatJSON}
 	validWebAuthnConveyancePreferences       = []string{string(protocol.PreferNoAttestation), string(protocol.PreferIndirectAttestation), string(protocol.PreferDirectAttestation)}
 	validWebAuthnUserVerificationRequirement = []string{string(protocol.VerificationDiscouraged), string(protocol.VerificationPreferred), string(protocol.VerificationRequired)}
+	validWebAuthnAttachment                  = []string{string(protocol.Platform), string(protocol.CrossPlatform)}
+	validWebAuthnDiscoverability             = []string{string(protocol.ResidentKeyRequirementDiscouraged), string(protocol.ResidentKeyRequirementPreferred), string(protocol.ResidentKeyRequirementRequired)}
 	validRFC7231HTTPMethodVerbs              = []string{fasthttp.MethodGet, fasthttp.MethodHead, fasthttp.MethodPost, fasthttp.MethodPut, fasthttp.MethodPatch, fasthttp.MethodDelete, fasthttp.MethodTrace, fasthttp.MethodConnect, fasthttp.MethodOptions}
 	validRFC4918HTTPMethodVerbs              = []string{"COPY", "LOCK", "MKCOL", "MOVE", "PROPFIND", "PROPPATCH", "UNLOCK"}
 )

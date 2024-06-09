@@ -434,19 +434,6 @@ func TestWebAuthnNewWebAuthnShouldReturnErrWhenHeadersNotAvailable(t *testing.T)
 	assert.EqualError(t, err, "missing required X-Forwarded-Host header")
 }
 
-func TestWebAuthnNewWebAuthnShouldReturnErrWhenWebAuthnNotConfigured(t *testing.T) {
-	ctx := mocks.NewMockAutheliaCtx(t)
-
-	ctx.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, exampleDotCom)
-	ctx.Ctx.Request.Header.Set("X-Forwarded-URI", "/")
-	ctx.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
-
-	w, err := handleNewWebAuthn(ctx.Ctx)
-
-	assert.Nil(t, w)
-	assert.EqualError(t, err, "error occurred validating the configuration: the field 'RPDisplayName' must be configured but it is empty")
-}
-
 func TestWebauthnCredentialCreationIsDiscoverable(t *testing.T) {
 	testCases := []struct {
 		name      string

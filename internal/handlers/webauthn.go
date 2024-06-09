@@ -88,10 +88,8 @@ func handleNewWebAuthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err 
 		RPOrigins:             []string{origin.String()},
 		AttestationPreference: ctx.Configuration.WebAuthn.ConveyancePreference,
 		AuthenticatorSelection: protocol.AuthenticatorSelection{
-			AuthenticatorAttachment: protocol.CrossPlatform,
-			RequireResidentKey:      protocol.ResidentKeyNotRequired(),
-			ResidentKey:             protocol.ResidentKeyRequirementDiscouraged,
-			UserVerification:        ctx.Configuration.WebAuthn.UserVerification,
+			ResidentKey:      ctx.Configuration.WebAuthn.SelectionCriteria.Discoverability,
+			UserVerification: ctx.Configuration.WebAuthn.SelectionCriteria.UserVerification,
 		},
 		Debug:                false,
 		EncodeUserIDAsString: true,
@@ -107,6 +105,19 @@ func handleNewWebAuthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err 
 				TimeoutUVD: ctx.Configuration.WebAuthn.Timeout,
 			},
 		},
+		MetaData: ctx.Providers.MetaDataService,
+	}
+
+	switch ctx.Configuration.WebAuthn.SelectionCriteria.Attachment {
+	case protocol.Platform, protocol.CrossPlatform:
+		config.AuthenticatorSelection.AuthenticatorAttachment = ctx.Configuration.WebAuthn.SelectionCriteria.Attachment
+	}
+
+	switch ctx.Configuration.WebAuthn.SelectionCriteria.Discoverability {
+	case protocol.ResidentKeyRequirementRequired:
+		config.AuthenticatorSelection.RequireResidentKey = protocol.ResidentKeyRequired()
+	default:
+		config.AuthenticatorSelection.RequireResidentKey = protocol.ResidentKeyNotRequired()
 	}
 
 	ctx.Logger.Tracef("Creating new WebAuthn RP instance with ID %s and Origins %s", config.RPID, strings.Join(config.RPOrigins, ", "))
