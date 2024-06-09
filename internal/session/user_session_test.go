@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/authorization"
 )
 
 func TestUserSession_SetTwoFactorWebAuthn(t *testing.T) {
@@ -14,7 +14,7 @@ func TestUserSession_SetTwoFactorWebAuthn(t *testing.T) {
 		name                         string
 		at                           time.Time
 		hardware, presence, verified bool
-		expected                     oidc.AuthenticationMethodsReferences
+		expected                     authorization.AuthenticationMethodsReferences
 	}{
 		{
 			"ShouldHandleHardware",
@@ -22,7 +22,7 @@ func TestUserSession_SetTwoFactorWebAuthn(t *testing.T) {
 			true,
 			true,
 			true,
-			oidc.AuthenticationMethodsReferences{
+			authorization.AuthenticationMethodsReferences{
 				WebAuthn:             true,
 				WebAuthnHardware:     true,
 				WebAuthnUserPresence: true,
@@ -35,7 +35,7 @@ func TestUserSession_SetTwoFactorWebAuthn(t *testing.T) {
 			false,
 			true,
 			true,
-			oidc.AuthenticationMethodsReferences{
+			authorization.AuthenticationMethodsReferences{
 				WebAuthn:             true,
 				WebAuthnSoftware:     true,
 				WebAuthnUserPresence: true,

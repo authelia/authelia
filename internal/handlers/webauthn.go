@@ -1,12 +1,6 @@
 package handlers
 
 import (
-	"errors"
-	"fmt"
-	"net/url"
-	"strings"
-
-	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -15,32 +9,8 @@ import (
 )
 
 const (
-	WebAuthnExtensionCredProps            = "credProps"
-	WebAuthnExtensionCredPropsResidentKey = "rk"
-	WebAuthnDiscoverable                  = "discoverable"
-)
-
-const (
 	webauthnCredentialDescriptionMaxLen = 64
 )
-
-func formatWebAuthnError(err error) error {
-	out := &protocol.Error{}
-
-	if errors.As(err, &out) {
-		if len(out.DevInfo) == 0 {
-			return err
-		}
-
-		if len(out.Type) == 0 {
-			return fmt.Errorf("%w: %s", err, out.DevInfo)
-		}
-
-		return fmt.Errorf("%w (%s): %s", err, out.Type, out.DevInfo)
-	}
-
-	return err
-}
 
 func handleGetWebAuthnUserByRPID(ctx *middlewares.AutheliaCtx, username, displayname string, rpid string) (user *model.WebAuthnUser, err error) {
 	if user, err = ctx.Providers.StorageProvider.LoadWebAuthnUser(ctx, rpid, username); err != nil {
@@ -73,74 +43,18 @@ func handleGetWebAuthnUserByRPID(ctx *middlewares.AutheliaCtx, username, display
 	return user, nil
 }
 
-func handleNewWebAuthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err error) {
-	var (
-		origin *url.URL
-	)
+func handlerWebAuthnDiscoverableLogin(ctx *middlewares.AutheliaCtx, rpid string) webauthn.DiscoverableUserHandler {
+	return func(rawID, userHandle []byte) (user webauthn.User, err error) {
+		var u *model.WebAuthnUser
 
-	if origin, err = ctx.GetOrigin(); err != nil {
-		return nil, err
-	}
-
-	config := &webauthn.Config{
-		RPID:                  origin.Hostname(),
-		RPDisplayName:         ctx.Configuration.WebAuthn.DisplayName,
-		RPOrigins:             []string{origin.String()},
-		AttestationPreference: ctx.Configuration.WebAuthn.ConveyancePreference,
-		AuthenticatorSelection: protocol.AuthenticatorSelection{
-			AuthenticatorAttachment: protocol.CrossPlatform,
-			RequireResidentKey:      protocol.ResidentKeyNotRequired(),
-			ResidentKey:             protocol.ResidentKeyRequirementDiscouraged,
-			UserVerification:        ctx.Configuration.WebAuthn.UserVerification,
-		},
-		Debug:                false,
-		EncodeUserIDAsString: false,
-		Timeouts: webauthn.TimeoutsConfig{
-			Login: webauthn.TimeoutConfig{
-				Enforce:    true,
-				Timeout:    ctx.Configuration.WebAuthn.Timeout,
-				TimeoutUVD: ctx.Configuration.WebAuthn.Timeout,
-			},
-			Registration: webauthn.TimeoutConfig{
-				Enforce:    true,
-				Timeout:    ctx.Configuration.WebAuthn.Timeout,
-				TimeoutUVD: ctx.Configuration.WebAuthn.Timeout,
-			},
-		},
-	}
-
-	ctx.Logger.Tracef("Creating new WebAuthn RP instance with ID %s and Origins %s", config.RPID, strings.Join(config.RPOrigins, ", "))
-
-	return webauthn.New(config)
-}
-
-func handleWebAuthnCredentialCreationIsDiscoverable(ctx *middlewares.AutheliaCtx, response *protocol.ParsedCredentialCreationData) (discoverable bool) {
-	if value, ok := response.ClientExtensionResults[WebAuthnExtensionCredProps]; ok {
-		switch credentialProperties := value.(type) {
-		case map[string]any:
-			var v any
-
-			if v, ok = credentialProperties[WebAuthnExtensionCredPropsResidentKey]; ok {
-				if discoverable, ok = v.(bool); ok {
-					ctx.Logger.WithFields(map[string]any{WebAuthnDiscoverable: discoverable}).Trace("Determined Credential Discoverability via Client Extension Results")
-
-					return discoverable
-				} else {
-					ctx.Logger.WithFields(map[string]any{WebAuthnDiscoverable: false}).Trace("Assuming Credential Discoverability is false as the 'rk' field for the 'credProps' extension in the Client Extension Results was not a boolean")
-				}
-			} else {
-				ctx.Logger.WithFields(map[string]any{WebAuthnDiscoverable: false}).Trace("Assuming Credential Discoverability is false as the 'rk' field for the 'credProps' extension was missing from the Client Extension Results")
-			}
-
-			return false
-		default:
-			ctx.Logger.WithFields(map[string]any{WebAuthnDiscoverable: false}).Trace("Assuming Credential Discoverability is false as the 'credProps' extension in the Client Extension Results does not appear to be a dictionary")
-
-			return false
+		if u, err = ctx.Providers.StorageProvider.LoadWebAuthnUserByUserID(ctx, rpid, string(userHandle)); err != nil {
+			return nil, err
 		}
+
+		if u.Credentials, err = ctx.Providers.StorageProvider.LoadWebAuthnPasskeyCredentialsByUsername(ctx, rpid, u.Username); err != nil {
+			return nil, err
+		}
+
+		return u, nil
 	}
-
-	ctx.Logger.WithFields(map[string]any{WebAuthnDiscoverable: false}).Trace("Assuming Credential Discoverability is false as the 'credProps' extension is missing from the Client Extension Results")
-
-	return false
 }

@@ -90,6 +90,9 @@ type Provider interface {
 	// LoadWebAuthnUser loads a registered WebAuthn user from the storage provider.
 	LoadWebAuthnUser(ctx context.Context, rpid, username string) (user *model.WebAuthnUser, err error)
 
+	// LoadWebAuthnUserByUserID loads a registered WebAuthn user from the storage provider.
+	LoadWebAuthnUserByUserID(ctx context.Context, rpid, userID string) (user *model.WebAuthnUser, err error)
+
 	/*
 		Implementation for User WebAuthn Device Registrations.
 	*/
@@ -118,6 +121,10 @@ type Provider interface {
 	// LoadWebAuthnCredentialsByUsername loads all WebAuthn credential registrations from the storage provider for a
 	// given username.
 	LoadWebAuthnCredentialsByUsername(ctx context.Context, rpid, username string) (credential []model.WebAuthnCredential, err error)
+
+	// LoadWebAuthnPasskeyCredentialsByUsername loads passkey WebAuthn credential registrations from the storage provider
+	// for a given username.
+	LoadWebAuthnPasskeyCredentialsByUsername(ctx context.Context, rpid, username string) (credentials []model.WebAuthnCredential, err error)
 
 	// LoadWebAuthnCredentialByID loads a WebAuthn credential registration from the storage provider for a given id.
 	LoadWebAuthnCredentialByID(ctx context.Context, id int) (credential *model.WebAuthnCredential, err error)
@@ -296,6 +303,15 @@ type Provider interface {
 	SchemaEncryptionCheckKey(ctx context.Context, verbose bool) (result EncryptionValidationResult, err error)
 
 	RegulatorProvider
+	CachedDataProvider
+}
+
+type CachedDataProvider interface {
+	// LoadCachedData loads cached data from the database.
+	LoadCachedData(ctx context.Context, name string) (data *model.CachedData, err error)
+
+	// SaveCachedData saves cached data to the database.
+	SaveCachedData(ctx context.Context, data model.CachedData) (err error)
 }
 
 // RegulatorProvider is an interface providing storage capabilities for persisting any kind of data related to the regulator.

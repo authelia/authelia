@@ -146,6 +146,14 @@ func doStartupChecks(ctx *CmdCtx) {
 		ctx.log.WithFields(map[string]any{logFieldProvider: providerNameNTP}).Trace("Startup Check Completed Successfully")
 	}
 
+	if err = doStartupCheck(ctx, providerNameWebAuthnMetaData, ctx.providers.MetaDataService, !ctx.config.WebAuthn.Metadata.Enabled); err != nil {
+		ctx.log.WithError(err).WithField(logFieldProvider, providerNameWebAuthnMetaData).Error(logMessageStartupCheckError)
+
+		failures = append(failures, providerNameWebAuthnMetaData)
+	} else {
+		ctx.log.WithFields(map[string]any{logFieldProvider: providerNameWebAuthnMetaData}).Trace("Startup Check Completed Successfully")
+	}
+
 	if len(failures) != 0 {
 		ctx.log.WithField("providers", failures).Fatalf("One or more providers had fatal failures performing startup checks, for more detail check the error level logs")
 	}

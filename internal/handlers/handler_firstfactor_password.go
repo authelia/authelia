@@ -8,10 +8,10 @@ import (
 	"github.com/authelia/authelia/v4/internal/regulation"
 )
 
-// FirstFactorPOST is the handler performing the first factory.
+// FirstFactorPasswordPOST is the handler performing the first factory.
 //
 //nolint:gocyclo // TODO: Consider refactoring time permitting.
-func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.RequestHandler {
+func FirstFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.RequestHandler {
 	return func(ctx *middlewares.AutheliaCtx) {
 		var successful bool
 
@@ -134,7 +134,7 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 
 		ctx.Logger.Tracef(logFmtTraceProfileDetails, bodyJSON.Username, userDetails.Groups, userDetails.Emails)
 
-		userSession.SetOneFactor(ctx.Clock.Now(), userDetails, keepMeLoggedIn)
+		userSession.SetOneFactorPassword(ctx.Clock.Now(), userDetails, keepMeLoggedIn)
 
 		if ctx.Configuration.AuthenticationBackend.RefreshInterval.Update() {
 			userSession.RefreshTTL = ctx.Clock.Now().Add(ctx.Configuration.AuthenticationBackend.RefreshInterval.Value())

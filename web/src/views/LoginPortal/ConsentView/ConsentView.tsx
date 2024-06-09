@@ -2,6 +2,7 @@ import React, { Fragment, ReactNode, useEffect, useState } from "react";
 
 import { AccountBox, Autorenew, CheckBox, Contacts, Drafts, Group, LockOpen } from "@mui/icons-material";
 import {
+    Box,
     Button,
     Checkbox,
     FormControlLabel,
@@ -151,7 +152,7 @@ const ConsentView = function (props: Props) {
             >
                 <Grid container alignItems={"center"} justifyContent="center">
                     <Grid size={{ xs: 12 }}>
-                        <div>
+                        <Box>
                             <Tooltip
                                 title={
                                     translate("Client ID", { client_id: response?.client_id }) ||
@@ -164,13 +165,13 @@ const ConsentView = function (props: Props) {
                                         : response?.client_id}
                                 </Typography>
                             </Tooltip>
-                        </div>
+                        </Box>
                     </Grid>
                     <Grid size={{ xs: 12 }}>
-                        <div>{translate("The above application is requesting the following permissions")}:</div>
+                        <Box>{translate("The above application is requesting the following permissions")}:</Box>
                     </Grid>
                     <Grid size={{ xs: 12 }}>
-                        <div className={styles.scopesListContainer}>
+                        <Box className={styles.scopesListContainer}>
                             <List className={styles.scopesList}>
                                 {response?.scopes.map((scope: string) => (
                                     <Tooltip title={translate("Scope", { name: scope })}>
@@ -181,7 +182,7 @@ const ConsentView = function (props: Props) {
                                     </Tooltip>
                                 ))}
                             </List>
-                        </div>
+                        </Box>
                     </Grid>
                     {response?.pre_configuration ? (
                         <Grid size={{ xs: 12 }}>

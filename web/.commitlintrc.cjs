@@ -53,6 +53,7 @@ module.exports = {
                 "totp",
                 "utils",
                 "web",
+                "webauthn",
             ],
         ],
     },

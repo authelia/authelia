@@ -114,7 +114,7 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 		{oidc.ClaimNotBefore, "", rInteger},
 		{oidc.ClaimRequestedAt, "", rInteger},
 		{oidc.ClaimExpirationTime, "", rInteger},
-		{oidc.ClaimAuthenticationMethodsReference, "", "pwd, otp, mfa"},
+		{oidc.ClaimAuthenticationMethodsReference, "", "pwd, kba, otp, mfa"},
 		{oidc.ClaimAuthenticationContextClassReference, "", ""},
 		{oidc.ClaimIssuer, "", "https://login.example.com:8080"},
 		{oidc.ClaimFullName, "", "John Doe"},
