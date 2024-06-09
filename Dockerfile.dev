@@ -54,7 +54,9 @@ ENV PATH="/app:${PATH}" \
     X_AUTHELIA_CONFIG="/config/configuration.yml"
 
 RUN \
-	apk --no-cache add ca-certificates su-exec tzdata wget
+	apk --no-cache add ca-certificates su-exec tzdata wget && \
+	mkdir /var/cache/authelia && \
+	chmod 0777 /var/cache/authelia
 
 COPY --from=builder-backend /go/src/app/authelia /go/src/app/LICENSE /go/src/app/entrypoint.sh /go/src/app/healthcheck.sh /go/src/app/.healthcheck.env ./
 

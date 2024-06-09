@@ -46,16 +46,18 @@ func UserSessionElevationGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	switch {
-	case userSession.AuthenticationLevel >= authentication.TwoFactor:
+	switch level := userSession.AuthenticationLevel(); {
+	case level >= authentication.TwoFactor:
 		if ctx.Configuration.IdentityValidation.ElevatedSession.SkipSecondFactor {
 			response.SkipSecondFactor = true
 		}
-	case userSession.AuthenticationLevel == authentication.OneFactor:
+	case level == authentication.OneFactor:
 		var (
 			has  bool
 			info model.UserInfo
 		)
+
+		response.FactorKnowledge = userSession.AuthenticationMethodRefs.FactorKnowledge()
 
 		info, err = ctx.Providers.StorageProvider.LoadUserInfo(ctx, userSession.Username)
 

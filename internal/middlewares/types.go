@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"github.com/go-webauthn/webauthn/metadata"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
@@ -48,6 +49,7 @@ type Providers struct {
 	TOTP            totp.Provider
 	PasswordPolicy  PasswordPolicyProvider
 	Random          random.Provider
+	MetaDataService metadata.Provider
 }
 
 // RequestHandler represents an Authelia request handler.

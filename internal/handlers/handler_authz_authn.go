@@ -136,7 +136,7 @@ func (s *CookieSessionAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, provider 
 			Emails:      userSession.Emails,
 			Groups:      userSession.Groups,
 		},
-		Level: userSession.AuthenticationLevel,
+		Level: userSession.AuthenticationLevel(),
 		Type:  AuthnTypeCookie,
 	}, nil
 }
@@ -381,10 +381,11 @@ func (s *HeaderLegacyAuthnStrategy) HandleUnauthorized(ctx *middlewares.Authelia
 }
 
 func handleAuthnCookieValidate(ctx *middlewares.AutheliaCtx, provider *session.Session, userSession *session.UserSession, refresh schema.RefreshIntervalDuration) (invalid bool) {
+	// TODO: Remove this check as it's no longer possible i.e. ineffectual.
 	isAnonymous := userSession.Username == ""
 
-	if isAnonymous && userSession.AuthenticationLevel != authentication.NotAuthenticated {
-		ctx.Logger.WithFields(map[string]any{"username": anonymous, "level": userSession.AuthenticationLevel.String()}).Errorf("Session for user has an invalid authentication level: this may be a sign of a compromise")
+	if isAnonymous && userSession.AuthenticationLevel() != authentication.NotAuthenticated {
+		ctx.Logger.WithFields(map[string]any{"username": anonymous, "level": userSession.AuthenticationLevel().String()}).Errorf("Session for user has an invalid authentication level: this may be a sign of a compromise")
 
 		return true
 	}
@@ -558,7 +559,7 @@ func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provid
 		return "", osession.ClientID, true, authentication.OneFactor, nil
 	}
 
-	if oidc.NewAuthenticationMethodsReferencesFromClaim(osession.DefaultSession.Claims.AuthenticationMethodsReferences).MultiFactorAuthentication() {
+	if authorization.NewAuthenticationMethodsReferencesFromClaim(osession.DefaultSession.Claims.AuthenticationMethodsReferences).MultiFactorAuthentication() {
 		level = authentication.TwoFactor
 	} else {
 		level = authentication.OneFactor

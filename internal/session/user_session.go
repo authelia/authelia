@@ -11,22 +11,47 @@ import (
 // NewDefaultUserSession create a default user session.
 func NewDefaultUserSession() UserSession {
 	return UserSession{
-		KeepMeLoggedIn:      false,
-		AuthenticationLevel: authentication.NotAuthenticated,
-		LastActivity:        0,
+		KeepMeLoggedIn: false,
+		LastActivity:   0,
 	}
 }
 
 // IsAnonymous returns true if the username is empty or the AuthenticationLevel is authentication.NotAuthenticated.
 func (s *UserSession) IsAnonymous() bool {
-	return s.Username == "" || s.AuthenticationLevel == authentication.NotAuthenticated
+	return s.AuthenticationLevel() == authentication.NotAuthenticated
 }
 
-// SetOneFactor sets the 1FA AMR's and expected property values for one factor authentication.
-func (s *UserSession) SetOneFactor(now time.Time, details *authentication.UserDetails, keepMeLoggedIn bool) {
+func (s *UserSession) AuthenticationLevel() authentication.Level {
+	switch {
+	case s.Username == "":
+		return authentication.NotAuthenticated
+	case s.AuthenticationMethodRefs.FactorPossession() && s.AuthenticationMethodRefs.FactorKnowledge():
+		return authentication.TwoFactor
+	case s.AuthenticationMethodRefs.FactorPossession() || s.AuthenticationMethodRefs.FactorKnowledge():
+		return authentication.OneFactor
+	default:
+		return authentication.NotAuthenticated
+	}
+}
+
+// SetOneFactorPassword sets the 1FA AMR's and expected property values for one factor password authentication.
+func (s *UserSession) SetOneFactorPassword(now time.Time, details *authentication.UserDetails, keepMeLoggedIn bool) {
+	s.setOneFactor(now, details, keepMeLoggedIn)
+
+	s.AuthenticationMethodRefs.KnowledgeBasedAuthentication = true
+	s.AuthenticationMethodRefs.UsernameAndPassword = true
+}
+
+// SetOneFactorPasskey sets the 1FA AMR's and expected property values for one factor passkey authentication.
+func (s *UserSession) SetOneFactorPasskey(now time.Time, details *authentication.UserDetails, keepMeLoggedIn, hardware, userPresence, userVerified bool) {
+	s.setOneFactor(now, details, keepMeLoggedIn)
+
+	s.setWebAuthn(hardware, userPresence, userVerified)
+}
+
+func (s *UserSession) setOneFactor(now time.Time, details *authentication.UserDetails, keepMeLoggedIn bool) {
 	s.FirstFactorAuthnTimestamp = now.Unix()
 	s.LastActivity = now.Unix()
-	s.AuthenticationLevel = authentication.OneFactor
 
 	s.KeepMeLoggedIn = keepMeLoggedIn
 
@@ -34,14 +59,6 @@ func (s *UserSession) SetOneFactor(now time.Time, details *authentication.UserDe
 	s.DisplayName = details.DisplayName
 	s.Groups = details.Groups
 	s.Emails = details.Emails
-
-	s.AuthenticationMethodRefs.UsernameAndPassword = true
-}
-
-func (s *UserSession) setTwoFactor(now time.Time) {
-	s.SecondFactorAuthnTimestamp = now.Unix()
-	s.LastActivity = now.Unix()
-	s.AuthenticationLevel = authentication.TwoFactor
 }
 
 // SetTwoFactorTOTP sets the relevant TOTP AMR's and sets the factor to 2FA.
@@ -60,6 +77,22 @@ func (s *UserSession) SetTwoFactorDuo(now time.Time) {
 func (s *UserSession) SetTwoFactorWebAuthn(now time.Time, hardware, userPresence, userVerified bool) {
 	s.setTwoFactor(now)
 
+	s.setWebAuthn(hardware, userPresence, userVerified)
+}
+
+func (s *UserSession) SetTwoFactorPassword(now time.Time) {
+	s.setTwoFactor(now)
+
+	s.AuthenticationMethodRefs.KnowledgeBasedAuthentication = true
+	s.AuthenticationMethodRefs.UsernameAndPassword = true
+}
+
+func (s *UserSession) setTwoFactor(now time.Time) {
+	s.SecondFactorAuthnTimestamp = now.Unix()
+	s.LastActivity = now.Unix()
+}
+
+func (s *UserSession) setWebAuthn(hardware, userPresence, userVerified bool) {
 	s.AuthenticationMethodRefs.WebAuthn = true
 	s.AuthenticationMethodRefs.WebAuthnUserPresence, s.AuthenticationMethodRefs.WebAuthnUserVerified = userPresence, userVerified
 

@@ -15,6 +15,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/webauthn"
 )
 
 func TestWebAuthnFormatError(t *testing.T) {
@@ -56,7 +57,7 @@ func TestWebAuthnFormatError(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			actual := formatWebAuthnError(tc.have)
+			actual := webauthn.FormatError(tc.have)
 
 			assert.EqualError(t, actual, tc.expected)
 		})
@@ -428,129 +429,8 @@ func TestWebAuthnNewWebAuthnShouldReturnErrWhenHeadersNotAvailable(t *testing.T)
 	ctx := mocks.NewMockAutheliaCtx(t)
 	ctx.Ctx.Request.Header.Del(fasthttp.HeaderXForwardedHost)
 
-	w, err := handleNewWebAuthn(ctx.Ctx)
+	w, err := ctx.Ctx.GetWebAuthnProvider()
 
 	assert.Nil(t, w)
 	assert.EqualError(t, err, "missing required X-Forwarded-Host header")
-}
-
-func TestWebAuthnNewWebAuthnShouldReturnErrWhenWebAuthnNotConfigured(t *testing.T) {
-	ctx := mocks.NewMockAutheliaCtx(t)
-
-	ctx.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, exampleDotCom)
-	ctx.Ctx.Request.Header.Set("X-Forwarded-URI", "/")
-	ctx.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
-
-	w, err := handleNewWebAuthn(ctx.Ctx)
-
-	assert.Nil(t, w)
-	assert.EqualError(t, err, "error occurred validating the configuration: the field 'RPDisplayName' must be configured but it is empty")
-}
-
-func TestWebauthnCredentialCreationIsDiscoverable(t *testing.T) {
-	testCases := []struct {
-		name      string
-		have      *protocol.ParsedCredentialCreationData
-		expected  bool
-		expectedf func(t *testing.T, mock *mocks.MockAutheliaCtx)
-	}{
-		{
-			"ShouldBeDiscoverable",
-			&protocol.ParsedCredentialCreationData{
-				ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{
-					ClientExtensionResults: map[string]any{
-						WebAuthnExtensionCredProps: map[string]any{
-							WebAuthnExtensionCredPropsResidentKey: true,
-						},
-					},
-				},
-			},
-			true,
-			nil,
-		},
-		{
-			"ShouldNotBeDiscoverableExplicit",
-			&protocol.ParsedCredentialCreationData{
-				ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{
-					ClientExtensionResults: map[string]any{
-						WebAuthnExtensionCredProps: map[string]any{
-							WebAuthnExtensionCredPropsResidentKey: false,
-						},
-					},
-				},
-			},
-			false,
-			nil,
-		},
-		{
-			"ShouldNotBeDiscoverableImplicitType",
-			&protocol.ParsedCredentialCreationData{
-				ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{
-					ClientExtensionResults: map[string]any{
-						WebAuthnExtensionCredProps: map[string]any{
-							WebAuthnExtensionCredPropsResidentKey: 1,
-						},
-					},
-				},
-			},
-			false,
-			nil,
-		},
-		{
-			"ShouldNotBeDiscoverableImplicitNoRK",
-			&protocol.ParsedCredentialCreationData{
-				ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{
-					ClientExtensionResults: map[string]any{
-						WebAuthnExtensionCredProps: map[string]any{},
-					},
-				},
-			},
-			false,
-			nil,
-		},
-		{
-			"ShouldNotBeDiscoverableImplicitNoCredPropsType",
-			&protocol.ParsedCredentialCreationData{
-				ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{
-					ClientExtensionResults: map[string]any{
-						WebAuthnExtensionCredProps: 1,
-					},
-				},
-			},
-			false,
-			nil,
-		},
-		{
-			"ShouldNotBeDiscoverableImplicitNoCredProps",
-			&protocol.ParsedCredentialCreationData{
-				ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{
-					ClientExtensionResults: map[string]any{},
-				},
-			},
-			false,
-			nil,
-		},
-		{
-			"ShouldNotBeDiscoverableImplicitNoCredPropsNil",
-			&protocol.ParsedCredentialCreationData{
-				ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{},
-			},
-			false,
-			nil,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			mock := mocks.NewMockAutheliaCtx(t)
-
-			defer mock.Close()
-
-			assert.Equal(t, tc.expected, handleWebAuthnCredentialCreationIsDiscoverable(mock.Ctx, tc.have))
-
-			if tc.expectedf != nil {
-				tc.expectedf(t, mock)
-			}
-		})
-	}
 }

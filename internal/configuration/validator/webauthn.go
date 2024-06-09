@@ -3,6 +3,8 @@ package validator
 import (
 	"fmt"
 
+	"github.com/go-webauthn/webauthn/protocol"
+
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -25,9 +27,31 @@ func ValidateWebAuthn(config *schema.Configuration, validator *schema.StructVali
 	}
 
 	switch {
-	case config.WebAuthn.UserVerification == "":
-		config.WebAuthn.UserVerification = schema.DefaultWebAuthnConfiguration.UserVerification
-	case !utils.IsStringInSlice(string(config.WebAuthn.UserVerification), validWebAuthnUserVerificationRequirement):
-		validator.Push(fmt.Errorf(errFmtWebAuthnUserVerification, utils.StringJoinOr(validWebAuthnConveyancePreferences), config.WebAuthn.UserVerification))
+	case config.WebAuthn.SelectionCriteria.Attachment == "":
+		break
+	case !utils.IsStringInSlice(string(config.WebAuthn.SelectionCriteria.Attachment), validWebAuthnAttachment):
+		validator.Push(fmt.Errorf(errFmtWebAuthnSelectionCriteria, "attachment", utils.StringJoinOr(validWebAuthnAttachment), config.WebAuthn.SelectionCriteria.Attachment))
+	}
+
+	switch {
+	case config.WebAuthn.SelectionCriteria.Discoverability == "":
+		break
+	case !utils.IsStringInSlice(string(config.WebAuthn.SelectionCriteria.Discoverability), validWebAuthnDiscoverability):
+		validator.Push(fmt.Errorf(errFmtWebAuthnSelectionCriteria, "discoverability", utils.StringJoinOr(validWebAuthnDiscoverability), config.WebAuthn.SelectionCriteria.Discoverability))
+	}
+
+	switch {
+	case config.WebAuthn.SelectionCriteria.UserVerification == "":
+		break
+	case !utils.IsStringInSlice(string(config.WebAuthn.SelectionCriteria.UserVerification), validWebAuthnUserVerificationRequirement):
+		validator.Push(fmt.Errorf(errFmtWebAuthnSelectionCriteria, "user_verification", utils.StringJoinOr(validWebAuthnUserVerificationRequirement), config.WebAuthn.SelectionCriteria.UserVerification))
+	}
+
+	if config.WebAuthn.EnablePasskeyLogin && config.WebAuthn.SelectionCriteria.Discoverability == protocol.ResidentKeyRequirementDiscouraged {
+		validator.PushWarning(fmt.Errorf(errFmtWebAuthnPasskeyDiscoverability, protocol.ResidentKeyRequirementPreferred, protocol.ResidentKeyRequirementRequired))
+	}
+
+	if len(config.WebAuthn.Filtering.PermittedAAGUIDs) != 0 && len(config.WebAuthn.Filtering.ProhibitedAAGUIDs) != 0 {
+		validator.Push(fmt.Errorf(errFmtWebAuthnFiltering))
 	}
 }

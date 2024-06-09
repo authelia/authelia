@@ -460,7 +460,7 @@ func (s *AuthzSuite) TestShouldNotFailOnMissingEmail() {
 	userSession.DisplayName = "John Smith"
 	userSession.Groups = []string{"abc,123"}
 	userSession.Emails = nil
-	userSession.AuthenticationLevel = authentication.OneFactor
+	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
 	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
 
 	s.Require().NoError(mock.Ctx.SaveSession(userSession))
@@ -862,7 +862,8 @@ func (s *AuthzSuite) TestShouldDestroySessionWhenInactiveForTooLong() {
 	s.Require().NoError(err)
 
 	userSession.Username = testUsername
-	userSession.AuthenticationLevel = authentication.TwoFactor
+	userSession.AuthenticationMethodRefs.WebAuthn = true
+	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
 	userSession.LastActivity = past.Unix()
 
 	s.Require().NoError(mock.Ctx.SaveSession(userSession))
@@ -873,7 +874,7 @@ func (s *AuthzSuite) TestShouldDestroySessionWhenInactiveForTooLong() {
 	s.Require().NoError(err)
 
 	s.Equal("", userSession.Username)
-	s.Equal(authentication.NotAuthenticated, userSession.AuthenticationLevel)
+	s.Equal(authentication.NotAuthenticated, userSession.AuthenticationLevel())
 	s.Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
 }
 
@@ -910,7 +911,8 @@ func (s *AuthzSuite) TestShouldNotDestroySessionWhenInactiveForTooLongRememberMe
 	s.Require().NoError(err)
 
 	userSession.Username = testUsername
-	userSession.AuthenticationLevel = authentication.TwoFactor
+	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
+	userSession.AuthenticationMethodRefs.WebAuthn = true
 	userSession.LastActivity = 0
 	userSession.KeepMeLoggedIn = true
 	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
@@ -923,7 +925,7 @@ func (s *AuthzSuite) TestShouldNotDestroySessionWhenInactiveForTooLongRememberMe
 	s.Require().NoError(err)
 
 	s.Equal(testUsername, userSession.Username)
-	s.Equal(authentication.TwoFactor, userSession.AuthenticationLevel)
+	s.Equal(authentication.TwoFactor, userSession.AuthenticationLevel())
 	s.Equal(int64(0), userSession.LastActivity)
 }
 
@@ -962,7 +964,8 @@ func (s *AuthzSuite) TestShouldNotDestroySessionWhenNotInactiveForTooLong() {
 	s.Require().NoError(err)
 
 	userSession.Username = testUsername
-	userSession.AuthenticationLevel = authentication.TwoFactor
+	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
+	userSession.AuthenticationMethodRefs.WebAuthn = true
 	userSession.LastActivity = last.Unix()
 	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
 
@@ -974,7 +977,7 @@ func (s *AuthzSuite) TestShouldNotDestroySessionWhenNotInactiveForTooLong() {
 	s.Require().NoError(err)
 
 	s.Equal(testUsername, userSession.Username)
-	s.Equal(authentication.TwoFactor, userSession.AuthenticationLevel)
+	s.Equal(authentication.TwoFactor, userSession.AuthenticationLevel())
 	s.Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
 }
 
@@ -1013,7 +1016,8 @@ func (s *AuthzSuite) TestShouldUpdateInactivityTimestampEvenWhenHittingForbidden
 	s.Require().NoError(err)
 
 	userSession.Username = testUsername
-	userSession.AuthenticationLevel = authentication.TwoFactor
+	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
+	userSession.AuthenticationMethodRefs.WebAuthn = true
 	userSession.LastActivity = last.Unix()
 	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
 
@@ -1025,7 +1029,7 @@ func (s *AuthzSuite) TestShouldUpdateInactivityTimestampEvenWhenHittingForbidden
 	s.Require().NoError(err)
 
 	s.Equal(testUsername, userSession.Username)
-	s.Equal(authentication.TwoFactor, userSession.AuthenticationLevel)
+	s.Equal(authentication.TwoFactor, userSession.AuthenticationLevel())
 	s.Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
 }
 
@@ -1076,7 +1080,8 @@ func (s *AuthzSuite) TestShouldNotRefreshUserDetailsFromBackendWhenRefreshDisabl
 	userSession.Groups = user.Groups
 	userSession.Emails = user.Emails
 	userSession.KeepMeLoggedIn = true
-	userSession.AuthenticationLevel = authentication.TwoFactor
+	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
+	userSession.AuthenticationMethodRefs.WebAuthn = true
 	userSession.LastActivity = mock.Clock.Now().Unix()
 
 	s.Require().NoError(mock.Ctx.SaveSession(userSession))
@@ -1099,7 +1104,7 @@ func (s *AuthzSuite) TestShouldNotRefreshUserDetailsFromBackendWhenRefreshDisabl
 	s.Require().NoError(err)
 
 	s.Equal(user.Username, userSession.Username)
-	s.Equal(authentication.TwoFactor, userSession.AuthenticationLevel)
+	s.Equal(authentication.TwoFactor, userSession.AuthenticationLevel())
 	s.Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
 	s.Require().Len(userSession.Groups, 2)
 	s.Equal("admin", userSession.Groups[0])
@@ -1114,7 +1119,7 @@ func (s *AuthzSuite) TestShouldNotRefreshUserDetailsFromBackendWhenRefreshDisabl
 	s.Require().NoError(err)
 
 	s.Equal(user.Username, userSession.Username)
-	s.Equal(authentication.TwoFactor, userSession.AuthenticationLevel)
+	s.Equal(authentication.TwoFactor, userSession.AuthenticationLevel())
 	s.Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
 	s.Require().Len(userSession.Groups, 2)
 	s.Equal("admin", userSession.Groups[0])
@@ -1166,7 +1171,8 @@ func (s *AuthzSuite) TestShouldDestroySessionWhenUserDoesNotExist() {
 	s.Require().NoError(err)
 
 	userSession.Username = user.Username
-	userSession.AuthenticationLevel = authentication.TwoFactor
+	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
+	userSession.AuthenticationMethodRefs.WebAuthn = true
 	userSession.LastActivity = mock.Clock.Now().Unix()
 	userSession.RefreshTTL = mock.Clock.Now().Add(-1 * time.Minute)
 	userSession.Groups = user.Groups
@@ -1206,7 +1212,7 @@ func (s *AuthzSuite) TestShouldDestroySessionWhenUserDoesNotExist() {
 	s.Require().NoError(err)
 
 	s.Equal("", userSession.Username)
-	s.Equal(authentication.NotAuthenticated, userSession.AuthenticationLevel)
+	s.Equal(authentication.NotAuthenticated, userSession.AuthenticationLevel())
 	s.True(userSession.IsAnonymous())
 }
 
@@ -1254,7 +1260,8 @@ func (s *AuthzSuite) TestShouldUpdateRemovedUserGroupsFromBackendAndDeny() {
 	s.Require().NoError(err)
 
 	userSession.Username = user.Username
-	userSession.AuthenticationLevel = authentication.TwoFactor
+	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
+	userSession.AuthenticationMethodRefs.WebAuthn = true
 	userSession.LastActivity = mock.Clock.Now().Unix()
 	userSession.RefreshTTL = mock.Clock.Now().Add(-1 * time.Minute)
 	userSession.Groups = user.Groups
@@ -1339,7 +1346,8 @@ func (s *AuthzSuite) TestShouldUpdateAddedUserGroupsFromBackendAndDeny() {
 	s.Require().NoError(err)
 
 	userSession.Username = user.Username
-	userSession.AuthenticationLevel = authentication.TwoFactor
+	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
+	userSession.AuthenticationMethodRefs.WebAuthn = true
 	userSession.LastActivity = mock.Clock.Now().Unix()
 	userSession.RefreshTTL = mock.Clock.Now().Add(-1 * time.Minute)
 	userSession.Groups = user.Groups
@@ -1416,7 +1424,7 @@ func (s *AuthzSuite) TestShouldCheckValidSessionUsernameHeaderAndReturn200() {
 	s.Require().NoError(err)
 
 	userSession.Username = testUsername
-	userSession.AuthenticationLevel = authentication.OneFactor
+	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
 	userSession.LastActivity = mock.Clock.Now().Unix()
 	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
 
@@ -1430,7 +1438,7 @@ func (s *AuthzSuite) TestShouldCheckValidSessionUsernameHeaderAndReturn200() {
 	s.Require().NoError(err)
 
 	s.Equal(testUsername, userSession.Username)
-	s.Equal(authentication.OneFactor, userSession.AuthenticationLevel)
+	s.Equal(authentication.OneFactor, userSession.AuthenticationLevel())
 	s.Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
 }
 
@@ -1469,7 +1477,7 @@ func (s *AuthzSuite) TestShouldCheckInvalidSessionUsernameHeaderAndReturn401AndD
 	s.Require().NoError(err)
 
 	userSession.Username = testUsername
-	userSession.AuthenticationLevel = authentication.OneFactor
+	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
 	userSession.LastActivity = mock.Clock.Now().Unix()
 	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
 
@@ -1501,7 +1509,7 @@ func (s *AuthzSuite) TestShouldCheckInvalidSessionUsernameHeaderAndReturn401AndD
 	s.Require().NoError(err)
 
 	s.Equal("", userSession.Username)
-	s.Equal(authentication.NotAuthenticated, userSession.AuthenticationLevel)
+	s.Equal(authentication.NotAuthenticated, userSession.AuthenticationLevel())
 	s.Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
 }
 
@@ -1540,7 +1548,8 @@ func (s *AuthzSuite) TestShouldNotRedirectRequestsForBypassACLWhenInactiveForToo
 	s.Require().NoError(err)
 
 	userSession.Username = testUsername
-	userSession.AuthenticationLevel = authentication.TwoFactor
+	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
+	userSession.AuthenticationMethodRefs.WebAuthn = true
 	userSession.LastActivity = past.Unix()
 
 	s.Require().NoError(mock.Ctx.SaveSession(userSession))
@@ -1553,7 +1562,7 @@ func (s *AuthzSuite) TestShouldNotRedirectRequestsForBypassACLWhenInactiveForToo
 	s.Require().NoError(err)
 
 	s.Equal("", userSession.Username)
-	s.Equal(authentication.NotAuthenticated, userSession.AuthenticationLevel)
+	s.Equal(authentication.NotAuthenticated, userSession.AuthenticationLevel())
 	s.Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
 
 	targetURI = s.RequireParseRequestURI("https://two-factor.example.com")

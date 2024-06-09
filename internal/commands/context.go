@@ -34,6 +34,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/totp"
 	"github.com/authelia/authelia/v4/internal/utils"
+	"github.com/authelia/authelia/v4/internal/webauthn"
 )
 
 // NewCmdCtx returns a new CmdCtx.
@@ -67,6 +68,7 @@ type CmdCtx struct {
 func NewCmdCtxConfig() *CmdCtxConfig {
 	return &CmdCtxConfig{
 		validator: schema.NewStructValidator(),
+		defaults:  []configuration.Source{configuration.NewDefaultsSource()},
 	}
 }
 
@@ -74,7 +76,7 @@ func NewCmdCtxConfig() *CmdCtxConfig {
 type CmdCtxConfig struct {
 	files     []string
 	filters   []string
-	defaults  configuration.Source
+	defaults  []configuration.Source
 	sources   []configuration.Source
 	keys      []string
 	validator *schema.StructValidator
@@ -163,6 +165,10 @@ func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
 		errs = append(errs, err)
 	}
 
+	if ctx.providers.MetaDataService, err = webauthn.NewMetaDataProvider(ctx.config); err != nil {
+		errs = append(errs, err)
+	}
+
 	switch {
 	case ctx.config.Notifier.SMTP != nil:
 		ctx.providers.Notifier = notification.NewSMTPNotifier(ctx.config.Notifier.SMTP, ctx.trusted)
@@ -210,7 +216,7 @@ func (ctx *CmdCtx) HelperConfigSetDefaultsRunE(defaults map[string]any) CobraRun
 			ctx.cconfig = NewCmdCtxConfig()
 		}
 
-		ctx.cconfig.defaults = configuration.NewMapSource(defaults)
+		ctx.cconfig.defaults = append(ctx.cconfig.defaults, configuration.NewMapSource(defaults))
 
 		return nil
 	}

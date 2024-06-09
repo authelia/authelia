@@ -2,6 +2,7 @@ import React, { Fragment, ReactNode, useEffect, useState } from "react";
 
 import { AccountBox, Autorenew, CheckBox, Contacts, Drafts, Group, LockOpen } from "@mui/icons-material";
 import {
+    Box,
     Button,
     Checkbox,
     FormControlLabel,
@@ -151,7 +152,7 @@ const ConsentView = function (props: Props) {
             >
                 <Grid container>
                     <Grid item xs={12}>
-                        <div>
+                        <Box>
                             <Tooltip
                                 title={
                                     translate("Client ID", { client_id: response?.client_id }) ||
@@ -164,13 +165,17 @@ const ConsentView = function (props: Props) {
                                         : response?.client_id}
                                 </Typography>
                             </Tooltip>
-                        </div>
+                        </Box>
                     </Grid>
                     <Grid item xs={12}>
-                        <div>{translate("The above application is requesting the following permissions")}:</div>
+                        <Box>
+                            <Typography>
+                                {translate("The above application is requesting the following permissions")}:
+                            </Typography>
+                        </Box>
                     </Grid>
                     <Grid item xs={12}>
-                        <div className={styles.scopesListContainer}>
+                        <Box className={styles.scopesListContainer}>
                             <List className={styles.scopesList}>
                                 {response?.scopes.map((scope: string) => (
                                     <Tooltip title={translate("Scope", { name: scope })}>
@@ -181,7 +186,7 @@ const ConsentView = function (props: Props) {
                                     </Tooltip>
                                 ))}
                             </List>
-                        </div>
+                        </Box>
                     </Grid>
                     {response?.pre_configuration ? (
                         <Grid item xs={12}>

@@ -232,8 +232,8 @@
   ## Disable WebAuthn.
   # disable: false
 
-  ## The interaction timeout for WebAuthn dialogues in the duration common syntax.
-  # timeout: '60 seconds'
+  ## Enables logins via a Passkey.
+  # enable_passkey_login: false
 
   ## The display name the browser should show the user for when using WebAuthn to login/register.
   # display_name: 'Authelia'
@@ -242,9 +242,65 @@
   ## Options are none, indirect, direct.
   # attestation_conveyance_preference: 'indirect'
 
-  ## User verification controls if the user must make a gesture or action to confirm they are present.
-  ## Options are required, preferred, discouraged.
-  # user_verification: 'preferred'
+  ## The interaction timeout for WebAuthn dialogues in the duration common syntax.
+  # timeout: '60 seconds'
+
+  ## Authenticator Filtering.
+  # filtering:
+    ## Permitted AAGUID's. If configured specifically only allows the listed AAGUID's.
+    # permitted_aaguids: []
+
+    ## Prohibited AAGUID's. If configured prohibits the use of specific AAGUID's.
+    # prohibited_aaguids: []
+
+  ## Selection Criteria controls the preferences for registration.
+  # selection_criteria:
+    ## The attachment preference. Either 'cross-platform' for dedicated authenticators, or 'platform' for embedded
+    ## authenticators.
+    # attachment: 'cross-platform'
+
+    ## The discoverability preference. Options are 'discouraged', 'preferred', and 'required'.
+    # discoverability: 'discouraged'
+
+    ## User verification controls if the user must make a gesture or action to confirm they are present.
+    ## Options are required, preferred, discouraged.
+    # user_verification: 'preferred'
+
+  ## Metadata Service validation via MDS3.
+  # metadata:
+
+    ## Enable the metadata fetch behaviour. If enabled you have to ensure the configured path is writable.
+    # enable: false
+
+    ## Path to save the MDS3 blob to.
+    # path: 'data.mds3'
+
+    ## Enable Validation of the Trust Anchor. This generally should be enabled if you're using the metadata. It
+    ## ensures the attestation certificate presented by the authenticator is valid against the MDS3 certificate that
+    ## issued the attestation certificate.
+    # validate_trust_anchor: true
+
+    ## Enable Validation of the Entry. This ensures that the MDS3 actually contains the metadata entry. If not enabled
+    ## attestation certificates which are not formally registered will be skipped. This may potentially exclude some
+    ## virtual authenticators.
+    # validate_entry: true
+
+    ## Enabling this allows attestation certificates with a zero AAGUID to pass validation. This is important if you do
+    ## use non-conformant authenticators like Apple ID.
+    # validate_entry_permit_zero_aaguid: false
+
+    ## Enable Validation of the Authenticator Status.
+    # validate_status: true
+
+    ## List of statuses which are considered permitted when validating an authenticator's metadata. Generally it is
+    ## recommended that this is not configured as any other status the authenticator's metadata has will result in an
+    ## error. This option is ineffectual if validate_status is false.
+    # validate_status_permitted: ~
+
+    ## List of statuses that should be prohibited when validating an authenticator's metadata. Generally it is
+    ## recommended that this is not configured as there are safe defaults. This option is ineffectual if validate_status
+    ## is false, or validate_status_permitted has values.
+    # validate_status_prohibited: ~
 
 ##
 ## Duo Push API Configuration

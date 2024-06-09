@@ -5,6 +5,8 @@
 
 theme: auto
 
+cache_directory: '/var/cache/authelia'
+
 server:
   address: 'tcp://:9091'
   tls:
@@ -97,6 +99,15 @@ totp:
     - 60
     - 90
     - 120
+
+webauthn:
+  enable_passkey_login: true
+  selection_criteria:
+    attachment: 'platform'
+    discoverability: 'preferred'
+  metadata:
+    enabled: true
+    validate_entry: false
 
 access_control:
   default_policy: deny

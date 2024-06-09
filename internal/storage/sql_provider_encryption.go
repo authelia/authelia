@@ -226,7 +226,17 @@ func schemaEncryptionChangeKeyWebAuthn(ctx context.Context, provider *SQLProvide
 			return fmt.Errorf("error encrypting WebAuthn credential public key with id '%d': %w", d.ID, err)
 		}
 
-		if _, err = tx.ExecContext(ctx, query, d.PublicKey, d.ID); err != nil {
+		if d.Attestation != nil {
+			if d.Attestation, err = provider.decrypt(d.Attestation); err != nil {
+				return fmt.Errorf("error decrypting WebAuthn credential attestation with id '%d': %w", d.ID, err)
+			}
+
+			if d.Attestation, err = utils.Encrypt(d.Attestation, &key); err != nil {
+				return fmt.Errorf("error encrypting WebAuthn credential attestation with id '%d': %w", d.ID, err)
+			}
+		}
+
+		if _, err = tx.ExecContext(ctx, query, d.PublicKey, d.Attestation, d.ID); err != nil {
 			return fmt.Errorf("error updating WebAuthn credential public key with id '%d': %w", d.ID, err)
 		}
 	}
@@ -397,6 +407,10 @@ func schemaEncryptionCheckKeyWebAuthn(ctx context.Context, provider *SQLProvider
 
 		if _, err = provider.decrypt(credential.PublicKey); err != nil {
 			result.Invalid++
+		} else if credential.Attestation != nil {
+			if _, err = provider.decrypt(credential.Attestation); err != nil {
+				result.Invalid++
+			}
 		}
 	}
 

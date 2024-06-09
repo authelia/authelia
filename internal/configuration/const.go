@@ -80,3 +80,13 @@ var (
 	secretExclusionPrefix = []string{"identity_providers.oidc.lifespans."}
 	secretExclusionExact  = []string{"server.tls.key", "authentication_backend.disable_reset_password", "tls_key"}
 )
+
+var (
+	mapDefaults = map[string]any{
+		"webauthn.metadata.path":                              "data.mds3",
+		"webauthn.metadata.validate_trust_anchor":             true,
+		"webauthn.metadata.validate_entry":                    true,
+		"webauthn.metadata.validate_entry_permit_zero_aaguid": false,
+		"webauthn.metadata.validate_status":                   true,
+	}
+)

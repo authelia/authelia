@@ -19,7 +19,7 @@ import {
 } from "@models/WebAuthn";
 import {
     AuthenticationOKResponse,
-    OKResponse,
+    FirstFactorPasskeyPath,
     OptionalDataServiceResponse,
     ServiceResponse,
     WebAuthnAssertionPath,
@@ -85,20 +85,10 @@ function getAssertionResultFromDOMException(
     }
 }
 
-export async function getAttestationCreationOptions(
-    description: string,
-): Promise<PublicKeyCredentialCreationOptionsStatus> {
-    const response = await axios.put<ServiceResponse<CredentialCreation>>(
-        WebAuthnRegistrationPath,
-        {
-            description: description,
-        },
-        {
-            validateStatus: function (status) {
-                return status < 300 || status === 409;
-            },
-        },
-    );
+export async function getWebAuthnOptions(): Promise<PublicKeyCredentialRequestOptionsStatus> {
+    let response: AxiosResponse<ServiceResponse<CredentialRequest>>;
+
+    response = await axios.get<ServiceResponse<CredentialRequest>>(WebAuthnAssertionPath);
 
     if (response.data.status !== "OK" || response.data.data == null) {
         return {
@@ -112,10 +102,131 @@ export async function getAttestationCreationOptions(
     };
 }
 
-export async function getAuthenticationOptions(): Promise<PublicKeyCredentialRequestOptionsStatus> {
+export async function getWebAuthnResult(options: PublicKeyCredentialRequestOptionsJSON) {
+    const result: AuthenticationResult = {
+        result: AssertionResult.Success,
+    };
+
+    try {
+        result.response = await startAuthentication(options);
+    } catch (e) {
+        const exception = e as DOMException;
+        if (exception !== undefined) {
+            result.result = getAssertionResultFromDOMException(exception, options);
+
+            console.error(exception);
+
+            return result;
+        } else {
+            console.error(`Unhandled exception occurred during WebAuthn authentication: ${e}`);
+        }
+    }
+
+    if (result.response == null) {
+        result.result = AssertionResult.Failure;
+    } else {
+        result.result = AssertionResult.Success;
+    }
+
+    return result;
+}
+
+export async function postWebAuthnResponse(
+    response: AuthenticationResponseJSON,
+    targetURL?: string | undefined,
+    workflow?: string,
+    workflowID?: string,
+) {
+    if (response.response.userHandle) {
+        // Encode the userHandle to match the typing on the backend.
+        response.response.userHandle = btoa(response.response.userHandle)
+            .replace(/\+/g, "-")
+            .replace(/\//g, "_")
+            .replace(/=/g, "");
+    }
+
+    return axios.post<ServiceResponse<SignInResponse>>(WebAuthnAssertionPath, {
+        response: response,
+        targetURL: targetURL,
+        workflow: workflow,
+        workflowID: workflowID,
+    });
+}
+
+export async function getWebAuthnPasskeyOptions(): Promise<PublicKeyCredentialRequestOptionsStatus> {
     let response: AxiosResponse<ServiceResponse<CredentialRequest>>;
 
-    response = await axios.get<ServiceResponse<CredentialRequest>>(WebAuthnAssertionPath);
+    response = await axios.get<ServiceResponse<CredentialRequest>>(FirstFactorPasskeyPath);
+
+    if (response.data.status !== "OK" || response.data.data == null) {
+        return {
+            status: response.status,
+        };
+    }
+
+    return {
+        options: response.data.data.publicKey,
+        status: response.status,
+    };
+}
+
+interface PostFirstFactorPasskeyBody {
+    response: AuthenticationResponseJSON;
+    keepMeLoggedIn: boolean;
+    targetURL?: string;
+    requestMethod?: string;
+    workflow?: string;
+}
+
+export async function postWebAuthnPasskeyResponse(
+    response: AuthenticationResponseJSON,
+    keepMeLoggedIn: boolean,
+    targetURL?: string | undefined,
+    requestMethod?: string,
+    workflow?: string,
+) {
+    const data: PostFirstFactorPasskeyBody = {
+        response,
+        keepMeLoggedIn,
+    };
+
+    if (data.response.response.userHandle) {
+        // Encode the userHandle to match the typing on the backend.
+        data.response.response.userHandle = btoa(data.response.response.userHandle)
+            .replace(/\+/g, "-")
+            .replace(/\//g, "_")
+            .replace(/=/g, "");
+    }
+
+    if (targetURL) {
+        data.targetURL = targetURL;
+    }
+
+    if (requestMethod) {
+        data.requestMethod = requestMethod;
+    }
+
+    if (workflow) {
+        data.workflow = workflow;
+    }
+
+    return axios.post<ServiceResponse<SignInResponse>>(FirstFactorPasskeyPath, data);
+}
+
+export async function getWebAuthnRegistrationOptions(
+    description: string,
+): Promise<PublicKeyCredentialCreationOptionsStatus> {
+    const response = await axios.put<ServiceResponse<CredentialCreation>>(
+        WebAuthnRegistrationPath,
+        {
+            description: description,
+        },
+        {
+            validateStatus: function (status) {
+                return status < 300 || status === 409;
+            },
+        },
+    );
 
     if (response.data.status !== "OK" || response.data.data == null) {
         return {
@@ -154,71 +265,20 @@ export async function startWebAuthnRegistration(options: PublicKeyCredentialCrea
     return result;
 }
 
-export async function getAuthenticationResult(options: PublicKeyCredentialRequestOptionsJSON) {
-    const result: AuthenticationResult = {
-        result: AssertionResult.Success,
-    };
-
-    try {
-        result.response = await startAuthentication(options);
-    } catch (e) {
-        const exception = e as DOMException;
-        if (exception !== undefined) {
-            result.result = getAssertionResultFromDOMException(exception, options);
-
-            console.error(exception);
-
-            return result;
-        } else {
-            console.error(`Unhandled exception occurred during WebAuthn authentication: ${e}`);
-        }
-    }
-
-    if (result.response == null) {
-        result.result = AssertionResult.Failure;
-    } else {
-        result.result = AssertionResult.Success;
-    }
-
-    return result;
-}
-
-async function postRegistrationResponse(
+async function postWebAuthnRegistrationResponse(
     response: RegistrationResponseJSON,
 ): Promise<AxiosResponse<OptionalDataServiceResponse<any>>> {
     return axios.post<OptionalDataServiceResponse<any>>(WebAuthnRegistrationPath, response);
 }
 
-export async function postAuthenticationResponse(
-    response: AuthenticationResponseJSON,
-    targetURL?: string | undefined,
-    workflow?: string,
-    workflowID?: string,
-) {
-    if (response.response.userHandle) {
-        // Encode the userHandle to match the typing on the backend.
-        response.response.userHandle = btoa(response.response.userHandle)
-            .replace(/\+/g, "-")
-            .replace(/\//g, "_")
-            .replace(/=/g, "");
-    }
-
-    return axios.post<ServiceResponse<SignInResponse>>(WebAuthnAssertionPath, {
-        response: response,
-        targetURL: targetURL,
-        workflow: workflow,
-        workflowID: workflowID,
-    });
-}
-
-export async function finishRegistration(response: RegistrationResponseJSON) {
+export async function finishWebAuthnRegistration(response: RegistrationResponseJSON) {
     let result = {
         status: AttestationResult.Failure,
         message: "Device registration failed.",
     };
 
     try {
-        const resp = await postRegistrationResponse(response);
+        const resp = await postWebAuthnRegistrationResponse(response);
         if (resp.data.status === "OK" && (resp.status === 200 || resp.status === 201)) {
             return {
                 status: AttestationResult.Success,
@@ -232,18 +292,6 @@ export async function finishRegistration(response: RegistrationResponseJSON) {
     }
 
     return result;
-}
-
-export async function deleteRegistration() {
-    try {
-        await axios.delete<OKResponse>(WebAuthnRegistrationPath);
-    } catch (e) {
-        console.error(e);
-
-        return false;
-    }
-
-    return true;
 }
 
 export async function deleteUserWebAuthnCredential(credentialID: string) {

@@ -37,7 +37,7 @@ func TestShouldReturnTOTPRegisterOptions(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -56,7 +56,7 @@ func TestShouldReturnTOTPRegisterOptions(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -134,7 +134,7 @@ func TestTOTPRegisterPUT(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -163,7 +163,7 @@ func TestTOTPRegisterPUT(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -211,7 +211,7 @@ func TestTOTPRegisterPUT(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
@@ -240,7 +240,7 @@ func TestTOTPRegisterPUT(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -311,7 +311,7 @@ func TestTOTPRegisterDELETE(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
@@ -327,7 +327,7 @@ func TestTOTPRegisterDELETE(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.TOTP = &session.TOTP{
 					Issuer: "abc",
 				}
@@ -391,7 +391,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
@@ -411,7 +411,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.TOTP = &session.TOTP{
 					Issuer:    "abc",
 					Algorithm: "SHA1",
@@ -439,7 +439,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.TOTP = &session.TOTP{
 					Issuer:    "abc",
 					Algorithm: "SHA1",
@@ -491,7 +491,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.TOTP = &session.TOTP{
 					Issuer:    "abc",
 					Algorithm: "SHA1",
@@ -526,7 +526,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.TOTP = &session.TOTP{
 					Issuer:    "abc",
 					Algorithm: "SHA1",
@@ -561,7 +561,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.TOTP = &session.TOTP{
 					Issuer:    "abc",
 					Algorithm: "SHA1",
@@ -621,7 +621,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.TOTP = &session.TOTP{
 					Issuer:    "abc",
 					Algorithm: "SHA1",
@@ -666,7 +666,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.TOTP = &session.TOTP{
 					Issuer:    "abc",
 					Algorithm: "SHA1",
@@ -717,7 +717,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.TOTP = &session.TOTP{
 					Issuer:    "abc",
 					Algorithm: "SHA1",
@@ -764,7 +764,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.TOTP = &session.TOTP{
 					Issuer:    "abc",
 					Algorithm: "SHA1",
@@ -811,7 +811,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.TOTP = &session.TOTP{
 					Issuer:    "abc",
 					Algorithm: "SHA1",
@@ -896,7 +896,7 @@ func TestTOTPConfigurationDELETE(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.TOTP = &session.TOTP{
 					Issuer: "abc",
 				}
@@ -922,7 +922,7 @@ func TestTOTPConfigurationDELETE(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.TOTP = &session.TOTP{
 					Issuer: "abc",
 				}
@@ -950,7 +950,7 @@ func TestTOTPConfigurationDELETE(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.TOTP = &session.TOTP{
 					Issuer: "abc",
 				}
@@ -977,7 +977,7 @@ func TestTOTPConfigurationDELETE(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.TOTP = &session.TOTP{
 					Issuer: "abc",
 				}
@@ -1003,7 +1003,7 @@ func TestTOTPConfigurationDELETE(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.TOTP = &session.TOTP{
 					Issuer: "abc",
 				}
