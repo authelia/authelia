@@ -635,7 +635,7 @@ func (p *SQLProvider) SaveWebAuthnCredential(ctx context.Context, credential mod
 		return fmt.Errorf("error encrypting WebAuthn credential public key for user '%s' kid '%x': %w", credential.Username, credential.KID, err)
 	}
 
-	if credential.Attestation != nil {
+	if len(credential.Attestation) != 0 {
 		if credential.Attestation, err = p.encrypt(credential.Attestation); err != nil {
 			return fmt.Errorf("error encrypting WebAuthn credential attestation for user '%s' kid '%x': %w", credential.Username, credential.KID, err)
 		}
@@ -722,7 +722,7 @@ func (p *SQLProvider) LoadWebAuthnCredentials(ctx context.Context, limit, page i
 			return nil, fmt.Errorf("error decrypting WebAuthn credential public key of credential with id '%d' for user '%s': %w", credential.ID, credential.Username, err)
 		}
 
-		if credential.Attestation != nil {
+		if len(credential.Attestation) != 0 {
 			if credentials[i].Attestation, err = p.decrypt(credential.Attestation); err != nil {
 				return nil, fmt.Errorf("error decrypting WebAuthn credential attestation of credential with id '%d' for user '%s': %w", credential.ID, credential.Username, err)
 			}
@@ -744,6 +744,16 @@ func (p *SQLProvider) LoadWebAuthnCredentialByID(ctx context.Context, id int) (c
 		return nil, fmt.Errorf("error selecting WebAuthn credential with id '%d': %w", id, err)
 	}
 
+	if credential.PublicKey, err = p.decrypt(credential.PublicKey); err != nil {
+		return nil, fmt.Errorf("error decrypting WebAuthn credential public key of credential with id '%d' for user '%s': %w", credential.ID, credential.Username, err)
+	}
+
+	if len(credential.Attestation) != 0 {
+		if credential.Attestation, err = p.decrypt(credential.Attestation); err != nil {
+			return nil, fmt.Errorf("error decrypting WebAuthn credential attestation of credential with id '%d' for user '%s': %w", credential.ID, credential.Username, err)
+		}
+	}
+
 	return credential, nil
 }
 
@@ -752,9 +762,9 @@ func (p *SQLProvider) LoadWebAuthnCredentialByID(ctx context.Context, id int) (c
 func (p *SQLProvider) LoadWebAuthnCredentialsByUsername(ctx context.Context, rpid, username string) (credentials []model.WebAuthnCredential, err error) {
 	switch len(rpid) {
 	case 0:
-		err = p.db.SelectContext(ctx, &credentials, p.sqlSelectWebAuthnCredentialsByUsername, username)
+		err = p.db.SelectContext(ctx, &credentials, p.sqlSelectWebAuthnCredentialsByUsername, username, false)
 	default:
-		err = p.db.SelectContext(ctx, &credentials, p.sqlSelectWebAuthnCredentialsByRPIDByUsername, rpid, username)
+		err = p.db.SelectContext(ctx, &credentials, p.sqlSelectWebAuthnCredentialsByRPIDByUsername, rpid, username, false)
 	}
 
 	if err != nil {
@@ -768,6 +778,43 @@ func (p *SQLProvider) LoadWebAuthnCredentialsByUsername(ctx context.Context, rpi
 	for i, credential := range credentials {
 		if credentials[i].PublicKey, err = p.decrypt(credential.PublicKey); err != nil {
 			return nil, fmt.Errorf("error decrypting WebAuthn credential public key of credential with id '%d' for user '%s': %w", credential.ID, credential.Username, err)
+		}
+
+		if len(credential.Attestation) != 0 {
+			if credentials[i].Attestation, err = p.decrypt(credential.Attestation); err != nil {
+				return nil, fmt.Errorf("error decrypting WebAuthn credential attestation of credential with id '%d' for user '%s': %w", credential.ID, credential.Username, err)
+			}
+		}
+	}
+
+	return credentials, nil
+}
+
+func (p *SQLProvider) LoadWebAuthnPasskeyCredentialsByUsername(ctx context.Context, rpid, username string) (credentials []model.WebAuthnCredential, err error) {
+	switch len(rpid) {
+	case 0:
+		err = p.db.SelectContext(ctx, &credentials, p.sqlSelectWebAuthnCredentialsByUsername, username, true)
+	default:
+		err = p.db.SelectContext(ctx, &credentials, p.sqlSelectWebAuthnCredentialsByRPIDByUsername, rpid, username, true)
+	}
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return credentials, ErrNoWebAuthnCredential
+		}
+
+		return nil, fmt.Errorf("error selecting passkey WebAuthn credentials for user '%s': %w", username, err)
+	}
+
+	for i, credential := range credentials {
+		if credentials[i].PublicKey, err = p.decrypt(credential.PublicKey); err != nil {
+			return nil, fmt.Errorf("error decrypting passkey WebAuthn credential public key of credential with id '%d' for user '%s': %w", credential.ID, credential.Username, err)
+		}
+
+		if len(credential.Attestation) != 0 {
+			if credentials[i].Attestation, err = p.decrypt(credential.Attestation); err != nil {
+				return nil, fmt.Errorf("error decrypting passkey WebAuthn credential attestation of credential with id '%d' for user '%s': %w", credential.ID, credential.Username, err)
+			}
 		}
 	}
 

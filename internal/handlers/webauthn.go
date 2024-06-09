@@ -88,8 +88,9 @@ func handleNewWebAuthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err 
 		RPOrigins:             []string{origin.String()},
 		AttestationPreference: ctx.Configuration.WebAuthn.ConveyancePreference,
 		AuthenticatorSelection: protocol.AuthenticatorSelection{
-			ResidentKey:      ctx.Configuration.WebAuthn.SelectionCriteria.Discoverability,
-			UserVerification: ctx.Configuration.WebAuthn.SelectionCriteria.UserVerification,
+			AuthenticatorAttachment: ctx.Configuration.WebAuthn.SelectionCriteria.Attachment,
+			ResidentKey:             ctx.Configuration.WebAuthn.SelectionCriteria.Discoverability,
+			UserVerification:        ctx.Configuration.WebAuthn.SelectionCriteria.UserVerification,
 		},
 		Debug:                false,
 		EncodeUserIDAsString: true,

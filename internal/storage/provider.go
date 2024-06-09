@@ -119,6 +119,10 @@ type Provider interface {
 	// given username.
 	LoadWebAuthnCredentialsByUsername(ctx context.Context, rpid, username string) (credential []model.WebAuthnCredential, err error)
 
+	// LoadWebAuthnPasskeyCredentialsByUsername loads passkey WebAuthn credential registrations from the storage provider
+	// for a given username.
+	LoadWebAuthnPasskeyCredentialsByUsername(ctx context.Context, rpid, username string) (credentials []model.WebAuthnCredential, err error)
+
 	// LoadWebAuthnCredentialByID loads a WebAuthn credential registration from the storage provider for a given id.
 	LoadWebAuthnCredentialByID(ctx context.Context, id int) (credential *model.WebAuthnCredential, err error)
 

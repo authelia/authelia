@@ -91,6 +91,10 @@ func (u WebAuthnUser) WebAuthnCredentials() (credentials []webauthn.Credential) 
 			},
 		}
 
+		if len(credential.Attestation) != 0 {
+			_ = json.Unmarshal(credential.Attestation, &c.Attestation)
+		}
+
 		transports := strings.Split(credential.Transport, ",")
 		c.Transport = []protocol.AuthenticatorTransport{}
 
@@ -147,6 +151,8 @@ func NewWebAuthnCredential(ctx Context, rpid, username, description string, cred
 		BackupState:     credential.Flags.BackupState,
 		PublicKey:       credential.PublicKey,
 	}
+
+	c.Attestation, _ = json.Marshal(credential.Attestation)
 
 	aaguid, err := uuid.Parse(hex.EncodeToString(credential.Authenticator.AAGUID))
 	if err == nil {
@@ -240,6 +246,7 @@ func (c *WebAuthnCredential) ToData() WebAuthnCredentialData {
 		BackupEligible:  c.BackupEligible,
 		BackupState:     c.BackupState,
 		PublicKey:       base64.StdEncoding.EncodeToString(c.PublicKey),
+		Attestation:     base64.StdEncoding.EncodeToString(c.Attestation),
 	}
 
 	if c.Transport != "" {
@@ -269,6 +276,12 @@ func (c *WebAuthnCredential) UnmarshalYAML(value *yaml.Node) (err error) {
 
 	if c.PublicKey, err = base64.StdEncoding.DecodeString(o.PublicKey); err != nil {
 		return err
+	}
+
+	if len(o.Attestation) != 0 {
+		if c.Attestation, err = base64.StdEncoding.DecodeString(o.Attestation); err != nil {
+			return err
+		}
 	}
 
 	var aaguid uuid.UUID
@@ -333,6 +346,7 @@ type WebAuthnCredentialData struct {
 	BackupEligible  bool       `yaml:"backup_eligible" json:"backup_eligible" jsonschema:"title=Backup Eligible" jsonschema_description:"The backup eligible status of this credential."`
 	BackupState     bool       `yaml:"backup_state" json:"backup_state" jsonschema:"title=Backup Eligible" jsonschema_description:"The backup eligible status of this credential."`
 	PublicKey       string     `yaml:"public_key" json:"public_key" jsonschema:"title=Public Key" jsonschema_description:"The credential public key."`
+	Attestation     string     `yaml:"attestation" json:"attestation" jsonschema:"title=Attestation" jsonschema_description:"The credential attestation information for auditing and validation."`
 }
 
 func (c *WebAuthnCredentialData) ToCredential() (credential *WebAuthnCredential, err error) {
@@ -356,6 +370,12 @@ func (c *WebAuthnCredentialData) ToCredential() (credential *WebAuthnCredential,
 
 	if len(c.PublicKey) != 0 {
 		if credential.PublicKey, err = base64.StdEncoding.DecodeString(c.PublicKey); err != nil {
+			return nil, err
+		}
+	}
+
+	if len(c.Attestation) != 0 {
+		if credential.Attestation, err = base64.StdEncoding.DecodeString(c.Attestation); err != nil {
 			return nil, err
 		}
 	}

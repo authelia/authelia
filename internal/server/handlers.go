@@ -303,10 +303,8 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 		// Management of the WebAuthn credentials.
 		r.GET("/api/secondfactor/webauthn/credentials", middleware1FA(handlers.WebAuthnCredentialsGET))
 
-		r.PUT("/api/secondfactor/webauthn/credential/register", middlewareElevated1FA(handlers.WebAuthnSecurityKeyRegistrationPUT))
-		r.POST("/api/secondfactor/webauthn/credential/register", middlewareElevated1FA(handlers.WebAuthnSecurityKeyRegistrationPOST))
-		r.PUT("/api/secondfactor/webauthn/passkey/register", middlewareElevated1FA(handlers.WebAuthnPasskeyRegistrationPUT))
-		r.POST("/api/secondfactor/webauthn/passkey/register", middlewareElevated1FA(handlers.WebAuthnPasskeyRegistrationPOST))
+		r.PUT("/api/secondfactor/webauthn/credential/register", middlewareElevated1FA(handlers.WebAuthnRegistrationPUT))
+		r.POST("/api/secondfactor/webauthn/credential/register", middlewareElevated1FA(handlers.WebAuthnRegistrationPOST))
 		r.DELETE("/api/secondfactor/webauthn/credential/register", middlewareElevated1FA(handlers.WebAuthnRegistrationDELETE))
 
 		r.PUT("/api/secondfactor/webauthn/credential/{credentialID}", middlewareElevated1FA(handlers.WebAuthnCredentialPUT))

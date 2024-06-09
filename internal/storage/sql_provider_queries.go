@@ -189,12 +189,12 @@ const (
 	queryFmtSelectWebAuthnCredentialsByUsername = `
 		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, legacy, discoverable, present, verified, backup_eligible, backup_state, public_key, attestation
 		FROM %s
-		WHERE username = ?;`
+		WHERE username = ? AND (? = FALSE OR discoverable = TRUE);`
 
 	queryFmtSelectWebAuthnCredentialsByRPIDByUsername = `
 		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, legacy, discoverable, present, verified, backup_eligible, backup_state, public_key, attestation
 		FROM %s
-		WHERE rpid = ? AND username = ?;`
+		WHERE rpid = ? AND username = ? AND (? = FALSE OR discoverable = TRUE);`
 
 	queryFmtSelectWebAuthnCredentialByID = `
 		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, legacy, discoverable, present, verified, backup_eligible, backup_state, public_key, attestation
