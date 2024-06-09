@@ -65,8 +65,12 @@ github.com/go-asn1-ber/asn1-ber v1.5.7 h1:DTX+lbVTWaTw1hQ+PbZPlnDZPEIs0SS/GCZAl5
 github.com/go-asn1-ber/asn1-ber v1.5.7/go.mod h1:hEBeB/ic+5LoWskz+yKT7vGhhPYkProFKoKdwZRWMe0=
 github.com/go-crypt/crypt v0.2.23 h1:5fe0REi1ORP05LbFLmekU/EwFAIGd6NP5pQn17uE9qw=
 github.com/go-crypt/crypt v0.2.23/go.mod h1:5/GQVILzanHcetsDM7HGBuigGX4asrEO46K7a3jxtJQ=
+github.com/go-crypt/crypt v0.2.24 h1:i1myoujXB5D0JorhEfmx7T/AIWMB0NDFkkEtXpqlCA8=
+github.com/go-crypt/crypt v0.2.24/go.mod h1:mQ6QI5zs5E6fcBmR3CH+7eRQbH90zN4LdpdLpRckRRM=
 github.com/go-crypt/x v0.2.16 h1:B5mLG1BwGa1hdi/RWGdEJ50UVD4isLKEvHWAyRLjTAs=
 github.com/go-crypt/x v0.2.16/go.mod h1:NGn9fkVxJUFdgL1hf/dSawwFKU0F+CSFFh/GRio1irE=
+github.com/go-crypt/x v0.2.17 h1:DVhqSy929ycjO8C/dB1UmrE6RmRQb6SgaL+Ek9o4rMg=
+github.com/go-crypt/x v0.2.17/go.mod h1:a3NMx9AzScF70ujH4kbjF4LsCtTunesJik04TNlbrbI=
 github.com/go-jose/go-jose/v4 v4.0.2 h1:R3l3kkBds16bO7ZFAEEcofK0MkrAJt3jlJznWZG0nvk=
 github.com/go-jose/go-jose/v4 v4.0.2/go.mod h1:WVf9LFMHh/QVrmqrOfqun0C45tMe3RoiKJMPvgWwLfY=
 github.com/go-ldap/ldap/v3 v3.4.8 h1:loKJyspcRezt2Q3ZRMq2p/0v8iOurlmeXDPw6fikSvQ=
