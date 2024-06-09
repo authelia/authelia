@@ -1,6 +1,5 @@
 ---
 certificates_directory: '/certs/'
-
 theme: 'auto'
 
 server:
@@ -84,6 +83,9 @@ totp:
 
 webauthn:
   disable: false
+  metadata:
+    enabled: true
+    validate_entry: false
 
 access_control:
   default_policy: 'deny'

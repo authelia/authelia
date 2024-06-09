@@ -23,7 +23,9 @@ func TestWebAuthnShouldSetDefaultValues(t *testing.T) {
 	assert.Equal(t, schema.DefaultWebAuthnConfiguration.DisplayName, config.WebAuthn.DisplayName)
 	assert.Equal(t, schema.DefaultWebAuthnConfiguration.Timeout, config.WebAuthn.Timeout)
 	assert.Equal(t, schema.DefaultWebAuthnConfiguration.ConveyancePreference, config.WebAuthn.ConveyancePreference)
-	assert.Equal(t, schema.DefaultWebAuthnConfiguration.UserVerification, config.WebAuthn.UserVerification)
+	assert.Equal(t, schema.DefaultWebAuthnConfiguration.SelectionCriteria.UserVerification, config.WebAuthn.SelectionCriteria.UserVerification)
+	assert.Equal(t, schema.DefaultWebAuthnConfiguration.SelectionCriteria.Discoverability, config.WebAuthn.SelectionCriteria.Discoverability)
+	assert.Equal(t, schema.DefaultWebAuthnConfiguration.SelectionCriteria.Attachment, config.WebAuthn.SelectionCriteria.Attachment)
 }
 
 func TestWebAuthnShouldSetDefaultTimeoutWhenNegative(t *testing.T) {
@@ -47,7 +49,9 @@ func TestWebAuthnShouldNotSetDefaultValuesWhenConfigured(t *testing.T) {
 			DisplayName:          "Test",
 			Timeout:              time.Second * 50,
 			ConveyancePreference: protocol.PreferNoAttestation,
-			UserVerification:     protocol.VerificationDiscouraged,
+			SelectionCriteria: schema.WebAuthnSelectionCriteria{
+				UserVerification: protocol.VerificationDiscouraged,
+			},
 		},
 	}
 
@@ -57,25 +61,25 @@ func TestWebAuthnShouldNotSetDefaultValuesWhenConfigured(t *testing.T) {
 	assert.Equal(t, "Test", config.WebAuthn.DisplayName)
 	assert.Equal(t, time.Second*50, config.WebAuthn.Timeout)
 	assert.Equal(t, protocol.PreferNoAttestation, config.WebAuthn.ConveyancePreference)
-	assert.Equal(t, protocol.VerificationDiscouraged, config.WebAuthn.UserVerification)
+	assert.Equal(t, protocol.VerificationDiscouraged, config.WebAuthn.SelectionCriteria.UserVerification)
 
 	config.WebAuthn.ConveyancePreference = protocol.PreferIndirectAttestation
-	config.WebAuthn.UserVerification = protocol.VerificationPreferred
+	config.WebAuthn.SelectionCriteria.UserVerification = protocol.VerificationPreferred
 
 	ValidateWebAuthn(config, validator)
 
 	require.Len(t, validator.Errors(), 0)
 	assert.Equal(t, protocol.PreferIndirectAttestation, config.WebAuthn.ConveyancePreference)
-	assert.Equal(t, protocol.VerificationPreferred, config.WebAuthn.UserVerification)
+	assert.Equal(t, protocol.VerificationPreferred, config.WebAuthn.SelectionCriteria.UserVerification)
 
 	config.WebAuthn.ConveyancePreference = protocol.PreferDirectAttestation
-	config.WebAuthn.UserVerification = protocol.VerificationRequired
+	config.WebAuthn.SelectionCriteria.UserVerification = protocol.VerificationRequired
 
 	ValidateWebAuthn(config, validator)
 
 	require.Len(t, validator.Errors(), 0)
 	assert.Equal(t, protocol.PreferDirectAttestation, config.WebAuthn.ConveyancePreference)
-	assert.Equal(t, protocol.VerificationRequired, config.WebAuthn.UserVerification)
+	assert.Equal(t, protocol.VerificationRequired, config.WebAuthn.SelectionCriteria.UserVerification)
 }
 
 func TestWebAuthnShouldRaiseErrorsOnInvalidOptions(t *testing.T) {
@@ -85,7 +89,9 @@ func TestWebAuthnShouldRaiseErrorsOnInvalidOptions(t *testing.T) {
 			DisplayName:          "Test",
 			Timeout:              time.Second * 50,
 			ConveyancePreference: "no",
-			UserVerification:     "yes",
+			SelectionCriteria: schema.WebAuthnSelectionCriteria{
+				UserVerification: "yes",
+			},
 		},
 	}
 
@@ -94,5 +100,5 @@ func TestWebAuthnShouldRaiseErrorsOnInvalidOptions(t *testing.T) {
 	require.Len(t, validator.Errors(), 2)
 
 	assert.EqualError(t, validator.Errors()[0], "webauthn: option 'attestation_conveyance_preference' must be one of 'none', 'indirect', or 'direct' but it's configured as 'no'")
-	assert.EqualError(t, validator.Errors()[1], "webauthn: option 'user_verification' must be one of 'none', 'indirect', or 'direct' but it's configured as 'yes'")
+	assert.EqualError(t, validator.Errors()[1], "webauthn: selection_criteria: option 'user_verification' must be one of 'discouraged', 'preferred', or 'required' but it's configured as 'yes'")
 }

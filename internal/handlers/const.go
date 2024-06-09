@@ -151,5 +151,6 @@ const (
 )
 
 var (
-	errUserAnonymous = errors.New("user is anonymous")
+	errUserAnonymous              = errors.New("user is anonymous")
+	errUserIsAlreadyAuthenticated = errors.New("user is already authenticated")
 )

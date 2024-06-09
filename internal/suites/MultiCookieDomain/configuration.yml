@@ -97,6 +97,13 @@ totp:
 
 webauthn:
   disable: false
+  enable_passkey_login: true
+  selection_criteria:
+    attachment: 'platform'
+    discoverability: 'preferred'
+  metadata:
+    enabled: true
+    validate_entry: false
 
 access_control:
   default_policy: 'deny'

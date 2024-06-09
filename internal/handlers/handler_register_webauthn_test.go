@@ -42,7 +42,7 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -57,7 +57,7 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 						Return(nil, nil),
 				)
 			},
-			regexp.MustCompile(`^\{"status":"OK","data":\{"publicKey":\{"rp":\{"name":"Authelia","id":"example.com"},"user":\{"name":"john","displayName":"john","id":"Wnl0bEpsVnVXemRnTjJCeFR5SThVeTl1UzJ4cEpTZHNUMlpzSlVBNVVFQnZlMWMyTkVOQ0tETlNXV3BoYUdWQ0pFaGxRM3dwWVQ5SFFHQndJaTh6UUE9PQ"},"challenge":"[a-zA-Z0-9/_-]+={0,2}","pubKeyCredParams":\[\{"type":"public-key","alg":-7},\{"type":"public-key","alg":-35},\{"type":"public-key","alg":-36},\{"type":"public-key","alg":-257},\{"type":"public-key","alg":-258},\{"type":"public-key","alg":-259},\{"type":"public-key","alg":-37},\{"type":"public-key","alg":-38},\{"type":"public-key","alg":-39},\{"type":"public-key","alg":-8}],"timeout":60000,"authenticatorSelection":\{"authenticatorAttachment":"cross-platform","requireResidentKey":false,"residentKey":"discouraged","userVerification":"preferred"},"attestation":"indirect","extensions":\{"credProps":true}}}}$`),
+			regexp.MustCompile(`^\{"status":"OK","data":\{"publicKey":\{"rp":\{"name":"Authelia","id":"example.com"},"user":\{"name":"john","displayName":"john","id":"Wnl0bEpsVnVXemRnTjJCeFR5SThVeTl1UzJ4cEpTZHNUMlpzSlVBNVVFQnZlMWMyTkVOQ0tETlNXV3BoYUdWQ0pFaGxRM3dwWVQ5SFFHQndJaTh6UUE9PQ"},"challenge":"[a-zA-Z0-9/_-]+","pubKeyCredParams":\[\{"type":"public-key","alg":-?\d+}(,{"type":"public-key","alg":-?\d+})*],"timeout":\d+,"authenticatorSelection":\{"authenticatorAttachment":"(cross-)?platform","requireResidentKey":(false|true),"residentKey":"(preferred)","userVerification":"preferred"},"attestation":"indirect","extensions":{"credProps":true}}}}$`),
 			fasthttp.StatusOK,
 			nil,
 		},
@@ -71,7 +71,7 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -117,7 +117,7 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
@@ -137,7 +137,7 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
@@ -157,7 +157,7 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -188,7 +188,7 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -215,7 +215,7 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -286,7 +286,7 @@ func TestWebAuthnRegistrationDELETE(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.WebAuthn = &session.WebAuthn{}
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
@@ -389,7 +389,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.WebAuthn = &session.WebAuthn{
 					Description: "test",
 					SessionData: &webauthn.SessionData{
@@ -445,7 +445,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.WebAuthn = &session.WebAuthn{
 					Description: "test",
 					SessionData: &webauthn.SessionData{
@@ -503,7 +503,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.WebAuthn = &session.WebAuthn{
 					Description: "test",
 					SessionData: &webauthn.SessionData{
@@ -557,7 +557,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.WebAuthn = &session.WebAuthn{
 					Description: "test",
 					SessionData: &webauthn.SessionData{
@@ -607,7 +607,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.WebAuthn = &session.WebAuthn{
 					Description: "test",
 					SessionData: &webauthn.SessionData{
@@ -653,7 +653,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.WebAuthn = &session.WebAuthn{
 					Description: "test",
 					SessionData: &webauthn.SessionData{
@@ -695,7 +695,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
@@ -721,7 +721,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.WebAuthn = &session.WebAuthn{
 					Description: "test",
 					SessionData: &webauthn.SessionData{
@@ -756,7 +756,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.WebAuthn = &session.WebAuthn{
 					Description: "test",
 					SessionData: &webauthn.SessionData{
@@ -823,7 +823,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.WebAuthn = &session.WebAuthn{
 					Description: "test",
 					SessionData: &webauthn.SessionData{

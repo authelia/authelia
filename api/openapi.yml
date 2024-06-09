@@ -464,6 +464,59 @@ paths:
           description: Unauthorized
       security:
         - authelia_auth: []
+  {{- if .Passkeys }}
+  /api/firstfactor/passkey:
+    get:
+      tags:
+        - First Factor
+      summary: First Factor Authentication - Passkey
+      description: >
+        The WebAuthn endpoint starts the first factor authentication process with the
+        FIDO2 WebAuthn credential.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/webauthn.PublicKeyCredentialRequestOptions'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+      security:
+        - authelia_auth: []
+    post:
+      tags:
+        - First Factor
+      summary: First Factor Authentication - Passkey
+      description: >
+        The WebAuthn endpoint completes the first factor authentication process with the
+        FIDO2 WebAuthn credential.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/webauthn.PasskeyCredentialAssertionResponse"
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.redirectResponse'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+      security:
+        - authelia_auth: []
+  {{- end }}
   /api/checks/safe-redirection:
     post:
       tags:
@@ -1243,6 +1296,31 @@ paths:
           description: Unauthorized
       security:
         - authelia_auth: []
+  {{- end }}
+  {{- if .Passkeys }}
+  /api/secondfactor/password:
+    post:
+      tags:
+        - Second Factor
+      summary: Second Factor Authentication - Password
+      description: This endpoint performs 2FA via the users password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.bodyPasswordRequest'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.OK'
+        "401":
+          description: Unauthorized
+      security:
+        - authelia_auth: [ ]
   {{- end }}
   {{- if .OpenIDConnect }}
   /.well-known/openid-configuration:
@@ -2051,6 +2129,9 @@ components:
                   - 'webauthn'
                   - 'mobile_push'
               example: [totp, webauthn, mobile_push]
+            passkey_login:
+              type: boolean
+              description: Value which indicates if Passkey logins are enabled.
     handlers.configuration.PasswordPolicyConfigurationBody:
       type: object
       properties:
@@ -2128,6 +2209,25 @@ components:
                     items:
                       type: string
                       example: push
+    handlers.bodyPasswordRequest:
+      required:
+        - 'password'
+      type: object
+      properties:
+        password:
+          type: string
+          example: password
+        targetURL:
+          type: string
+          example: 'https://home.{{ .Domain | default "example.com" }}'
+        workflow:
+          type: string
+          example: openid_connect
+        workflowID:
+          type: string
+          format: uuid
+          pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
+          example: '3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c'
     handlers.bodyFirstFactorRequest:
       required:
         - 'username'
@@ -2245,6 +2345,10 @@ components:
             authentication_level:
               type: integer
               example: 1
+            factor_knowledge:
+              type: boolean
+              description: Indicates the knowledge factor has been satisfied.
+              example: true
             default_redirection_url:
               type: string
               example: 'https://home.{{ .Domain | default "example.com" }}'
@@ -2340,6 +2444,15 @@ components:
         data:
           type: object
           properties:
+            require_second_factor:
+              description: The indicator of if the elevation requires a second factor.
+              type: boolean
+            skip_second_factor:
+              description: The indicator of if the requirement for a One-Time Code can be skipped if satisfying the 2FA rule.
+              type: boolean
+            factor_knowledge:
+              description: The indicator of if the knowledge factor of 2FA has been satisfied.
+              type: boolean
             elevated:
               description: The indicator of if the session is elevated.
               type: boolean
@@ -2347,9 +2460,6 @@ components:
               description: The number of seconds the elevation is still valid for.
               type: integer
               example: 300
-            delete_id:
-              description: The value required to delete the current elevation.
-              type: string
     handlers.ElevationStart.Response:
       type: object
       properties:
@@ -2552,6 +2662,17 @@ components:
                           format: byte
         description:
           type: string
+    webauthn.PasskeyCredentialAssertionResponse:
+      allOf:
+        - $ref: '#/components/schemas/webauthn.CredentialAssertionResponse'
+        - type: object
+          properties:
+            requestMethod:
+              type: string
+              example: GET
+            keepMeLoggedIn:
+              type: boolean
+              example: true
     webauthn.CredentialAssertionResponse:
       allOf:
         - $ref: '#/components/schemas/webauthn.PublicKeyCredential'

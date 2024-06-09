@@ -1,6 +1,10 @@
 package configuration
 
-var defaults = map[string]any{}
+var defaults = map[string]any{
+	"webauthn.selection_criteria.attachment":        "cross-platform",
+	"webauthn.selection_criteria.discoverability":   "discouraged",
+	"webauthn.selection_criteria.user_verification": "preferred",
+}
 
 // Defaults returns a copy of the defaults.
 func Defaults() map[string]any {

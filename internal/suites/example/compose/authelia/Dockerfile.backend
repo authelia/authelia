@@ -7,7 +7,8 @@ RUN addgroup --gid ${GROUP_ID} dev && \
     adduser --uid ${USER_ID} -G dev -D dev && \
     apk --no-cache add gcc git musl-dev
 
-RUN mkdir -p /config && chown dev:dev /config
+RUN \
+	mkdir -p /config && chown dev:dev /config
 
 USER dev
 

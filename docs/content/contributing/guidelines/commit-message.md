@@ -54,7 +54,7 @@ for, and the structure it must have.
   │                          cmd|codecov|commands|configuration|deps|docker|duo|go|golangci-lint|
   │                          handlers|husky|logging|metrics|middlewares|mocks|model|notification|
   │                          npm|ntp|oidc|random|regulation|renovate|reviewdog|server|session|
-  │                          storage|suites|templates|totp|utils|web
+  │                          storage|suites|templates|totp|utils|web|webauthn
   │
   └─⫸ Commit Type: build|ci|docs|feat|fix|i18n|perf|refactor|release|revert|test
 ```
@@ -105,6 +105,7 @@ commit messages).
 * templates
 * totp
 * utils
+* webauthn
 
 There are currently a few exceptions to the "use package name" rule:
 
