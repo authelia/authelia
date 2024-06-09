@@ -8,6 +8,7 @@ import (
 func ConfigurationGET(ctx *middlewares.AutheliaCtx) {
 	body := configurationBody{
 		AvailableMethods: make(MethodList, 0, 3),
+		PasskeyLogin:     !ctx.Configuration.WebAuthn.Disable && ctx.Configuration.WebAuthn.EnablePasskeyLogin,
 	}
 
 	if ctx.Providers.Authorizer.IsSecondFactorEnabled() {

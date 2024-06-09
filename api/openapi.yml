@@ -2051,6 +2051,9 @@ components:
                   - 'webauthn'
                   - 'mobile_push'
               example: [totp, webauthn, mobile_push]
+            passkey_login:
+              type: boolean
+              description: Value which indicates if Passkey logins are enabled.
     handlers.configuration.PasswordPolicyConfigurationBody:
       type: object
       properties:

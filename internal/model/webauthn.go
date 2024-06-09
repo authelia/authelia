@@ -346,7 +346,7 @@ type WebAuthnCredentialData struct {
 	BackupEligible  bool       `yaml:"backup_eligible" json:"backup_eligible" jsonschema:"title=Backup Eligible" jsonschema_description:"The backup eligible status of this credential."`
 	BackupState     bool       `yaml:"backup_state" json:"backup_state" jsonschema:"title=Backup Eligible" jsonschema_description:"The backup eligible status of this credential."`
 	PublicKey       string     `yaml:"public_key" json:"public_key" jsonschema:"title=Public Key" jsonschema_description:"The credential public key."`
-	Attestation     string     `yaml:"attestation" json:"attestation" jsonschema:"title=Attestation" jsonschema_description:"The credential attestation information for auditing and validation."`
+	Attestation     string     `yaml:"attestation" json:"attestation,omitempty" jsonschema:"title=Attestation" jsonschema_description:"The credential attestation information for auditing and validation."`
 }
 
 func (c *WebAuthnCredentialData) ToCredential() (credential *WebAuthnCredential, err error) {

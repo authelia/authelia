@@ -5,6 +5,7 @@ import { Method2FA, toSecondFactorMethod } from "@services/UserInfo";
 
 interface ConfigurationPayload {
     available_methods: Method2FA[];
+    passkey_login: boolean;
 }
 
 export async function getConfiguration(): Promise<Configuration> {
