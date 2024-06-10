@@ -93,7 +93,7 @@
     "@types/zxcvbn": "4.4.4",
     "@typescript-eslint/eslint-plugin": "7.1.0",
     "@typescript-eslint/parser": "7.1.0",
-    "@vitejs/plugin-react": "4.3.0",
+    "@vitejs/plugin-react": "4.3.1",
     "@vitest/coverage-istanbul": "1.6.0",
     "esbuild": "0.21.5",
     "eslint": "8.57.0",
