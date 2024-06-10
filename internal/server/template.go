@@ -266,6 +266,7 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 	opts = &TemplatedFileOptions{
 		AssetPath:              config.Server.AssetPath,
 		DuoSelfEnrollment:      strFalse,
+		PasskeyLogin:           strconv.FormatBool(config.WebAuthn.EnablePasskeyLogin),
 		RememberMe:             strconv.FormatBool(!config.Session.DisableRememberMe),
 		ResetPassword:          strconv.FormatBool(!config.AuthenticationBackend.PasswordReset.Disable),
 		ResetPasswordCustomURL: config.AuthenticationBackend.PasswordReset.CustomURL.String(),
@@ -280,6 +281,8 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 		EndpointsOpenIDConnect: !(config.IdentityProviders.OIDC == nil),
 		EndpointsAuthz:         config.Server.Endpoints.Authz,
 	}
+
+	fmt.Println("passkey", opts.PasskeyLogin)
 
 	if config.PrivacyPolicy.Enabled {
 		opts.PrivacyPolicyURL = config.PrivacyPolicy.PolicyURL.String()
@@ -297,6 +300,7 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 type TemplatedFileOptions struct {
 	AssetPath              string
 	DuoSelfEnrollment      string
+	PasskeyLogin           string
 	RememberMe             string
 	ResetPassword          string
 	ResetPasswordCustomURL string
@@ -320,6 +324,8 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, lo
 		return options.commonDataWithRememberMe(base, baseURL, domain, nonce, logoOverride, rememberMe)
 	}
 
+	fmt.Println("passkey common", options.PasskeyLogin)
+
 	return TemplatedFileCommonData{
 		Base:                   base,
 		BaseURL:                baseURL,
@@ -327,6 +333,7 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, lo
 		CSPNonce:               nonce,
 		LogoOverride:           logoOverride,
 		DuoSelfEnrollment:      options.DuoSelfEnrollment,
+		PasskeyLogin:           options.PasskeyLogin,
 		RememberMe:             options.RememberMe,
 		ResetPassword:          options.ResetPassword,
 		ResetPasswordCustomURL: options.ResetPasswordCustomURL,
@@ -346,6 +353,7 @@ func (options *TemplatedFileOptions) commonDataWithRememberMe(base, baseURL, dom
 		CSPNonce:               nonce,
 		LogoOverride:           logoOverride,
 		DuoSelfEnrollment:      options.DuoSelfEnrollment,
+		PasskeyLogin:           options.PasskeyLogin,
 		RememberMe:             rememberMe,
 		ResetPassword:          options.ResetPassword,
 		ResetPasswordCustomURL: options.ResetPasswordCustomURL,
@@ -380,6 +388,7 @@ type TemplatedFileCommonData struct {
 	CSPNonce               string
 	LogoOverride           string
 	DuoSelfEnrollment      string
+	PasskeyLogin           string
 	RememberMe             string
 	ResetPassword          string
 	ResetPasswordCustomURL string

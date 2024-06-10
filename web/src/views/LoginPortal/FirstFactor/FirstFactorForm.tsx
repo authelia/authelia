@@ -1,6 +1,18 @@
-import React, { MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { Fragment, MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { Alert, AlertTitle, Button, Checkbox, FormControl, FormControlLabel, Grid, Link, Theme } from "@mui/material";
+import {
+    Alert,
+    AlertTitle,
+    Button,
+    Checkbox,
+    Divider,
+    FormControl,
+    FormControlLabel,
+    Grid,
+    Link,
+    Theme,
+    Typography,
+} from "@mui/material";
 import TextField from "@mui/material/TextField";
 import makeStyles from "@mui/styles/makeStyles";
 import { BroadcastChannel } from "broadcast-channel";
@@ -8,6 +20,7 @@ import classnames from "classnames";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
+import PasskeyIcon from "@components/PasskeyIcon";
 import { ResetPasswordStep1Route } from "@constants/Routes";
 import { RedirectionURL, RequestMethod } from "@constants/SearchParams";
 import { useNotifications } from "@hooks/NotificationsContext";
@@ -19,8 +32,8 @@ import { postFirstFactor } from "@services/FirstFactor";
 
 export interface Props {
     disabled: boolean;
+    passkeyLogin: boolean;
     rememberMe: boolean;
-
     resetPassword: boolean;
     resetPasswordCustomURL: string;
 
@@ -271,6 +284,27 @@ const FirstFactorForm = function (props: Props) {
                             {translate("Sign in")}
                         </Button>
                     </Grid>
+                    {props.passkeyLogin ? (
+                        <Fragment>
+                            <Grid item xs={12}>
+                                <Divider component="div" role="presentation">
+                                    <Typography>OR</Typography>
+                                </Divider>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Button
+                                    id="passkey-sign-in-button"
+                                    variant="contained"
+                                    color="primary"
+                                    fullWidth
+                                    onClick={handleSignIn}
+                                    startIcon={<PasskeyIcon />}
+                                >
+                                    {translate("Sign in with a passkey")}
+                                </Button>
+                            </Grid>
+                        </Fragment>
+                    ) : null}
                     {props.resetPassword ? (
                         <Grid item xs={12} className={classnames(styles.actionRow, styles.flexEnd)}>
                             <Link

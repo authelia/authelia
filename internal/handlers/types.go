@@ -21,7 +21,6 @@ type MethodList = []string
 // configurationBody the content returned by the configuration endpoint.
 type configurationBody struct {
 	AvailableMethods MethodList `json:"available_methods"`
-	PasskeyLogin     bool       `json:"passkey_login"`
 }
 
 // bodySignTOTPRequest is the  model of the request body of TOTP 2FA authentication endpoint.

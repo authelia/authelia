@@ -31,8 +31,8 @@ const SecondFactorForm = lazy(() => import("@views/LoginPortal/SecondFactor/Seco
 
 export interface Props {
     duoSelfEnrollment: boolean;
+    passkeyLogin: boolean;
     rememberMe: boolean;
-
     resetPassword: boolean;
     resetPasswordCustomURL: string;
 }
@@ -187,6 +187,7 @@ const LoginPortal = function (props: Props) {
                     <ComponentOrLoading ready={firstFactorReady}>
                         <FirstFactorForm
                             disabled={firstFactorDisabled}
+                            passkeyLogin={props.passkeyLogin}
                             rememberMe={props.rememberMe}
                             resetPassword={props.resetPassword}
                             resetPasswordCustomURL={props.resetPasswordCustomURL}

@@ -98,6 +98,9 @@ totp:
     - 90
     - 120
 
+webauthn:
+  enable_passkey_login: true
+
 access_control:
   default_policy: deny
 
