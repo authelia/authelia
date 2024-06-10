@@ -603,6 +603,21 @@ func (mr *MockStorageMockRecorder) LoadWebAuthnUser(arg0, arg1, arg2 any) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadWebAuthnUser", reflect.TypeOf((*MockStorage)(nil).LoadWebAuthnUser), arg0, arg1, arg2)
 }
 
+// LoadWebAuthnUserByUserID mocks base method.
+func (m *MockStorage) LoadWebAuthnUserByUserID(arg0 context.Context, arg1, arg2 string) (*model.WebAuthnUser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadWebAuthnUserByUserID", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*model.WebAuthnUser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadWebAuthnUserByUserID indicates an expected call of LoadWebAuthnUserByUserID.
+func (mr *MockStorageMockRecorder) LoadWebAuthnUserByUserID(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadWebAuthnUserByUserID", reflect.TypeOf((*MockStorage)(nil).LoadWebAuthnUserByUserID), arg0, arg1, arg2)
+}
+
 // RevokeIdentityVerification mocks base method.
 func (m *MockStorage) RevokeIdentityVerification(arg0 context.Context, arg1 string, arg2 model.NullIP) error {
 	m.ctrl.T.Helper()

@@ -90,6 +90,9 @@ type Provider interface {
 	// LoadWebAuthnUser loads a registered WebAuthn user from the storage provider.
 	LoadWebAuthnUser(ctx context.Context, rpid, username string) (user *model.WebAuthnUser, err error)
 
+	// LoadWebAuthnUserByUserID loads a registered WebAuthn user from the storage provider.
+	LoadWebAuthnUserByUserID(ctx context.Context, rpid, userID string) (user *model.WebAuthnUser, err error)
+
 	/*
 		Implementation for User WebAuthn Device Registrations.
 	*/

@@ -157,6 +157,22 @@ func handleWebAuthnCredentialCreationIsDiscoverable(ctx *middlewares.AutheliaCtx
 	return false
 }
 
+func handlerWebAuthnDiscoverableLogin(ctx *middlewares.AutheliaCtx, rpid string) webauthn.DiscoverableUserHandler {
+	return func(rawID, userHandle []byte) (user webauthn.User, err error) {
+		var u *model.WebAuthnUser
+
+		if u, err = ctx.Providers.StorageProvider.LoadWebAuthnUserByUserID(ctx, rpid, string(userHandle)); err != nil {
+			return nil, err
+		}
+
+		if u.Credentials, err = ctx.Providers.StorageProvider.LoadWebAuthnPasskeyCredentialsByUsername(ctx, rpid, u.Username); err != nil {
+			return nil, err
+		}
+
+		return u, nil
+	}
+}
+
 func checkWebAuthnCredentialAllowed(ctx *middlewares.AutheliaCtx, credential *model.WebAuthnCredential) (err error) {
 	if len(ctx.Configuration.WebAuthn.Filtering.PermittedAAGUIDs) != 0 {
 		for _, aaguid := range ctx.Configuration.WebAuthn.Filtering.PermittedAAGUIDs {

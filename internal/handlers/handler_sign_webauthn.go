@@ -358,9 +358,8 @@ func WebAuthnPasskeyAssertionPOST(ctx *middlewares.AutheliaCtx) {
 
 		err error
 
-		w    *webauthn.WebAuthn
-		c    *webauthn.Credential
-		user *model.WebAuthnUser
+		w          *webauthn.WebAuthn
+		credential *webauthn.Credential
 
 		bodyJSON bodySignWebAuthnRequest
 
@@ -421,16 +420,7 @@ func WebAuthnPasskeyAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if user, err = handleGetWebAuthnUserByRPID(ctx, userSession.Username, userSession.DisplayName, w.Config.RPID); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn authentication challenge for user '%s': error occurred retrieving the WebAuthn user configuration from the storage backend", userSession.Username)
-
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.SetJSONError(messageMFAValidationFailed)
-
-		return
-	}
-
-	if c, err = w.ValidateLogin(user, *userSession.WebAuthn.SessionData, assertionResponse); err != nil {
+	if credential, err = w.ValidateDiscoverableLogin(handlerWebAuthnDiscoverableLogin(ctx, w.Config.RPID), *userSession.WebAuthn.SessionData, assertionResponse); err != nil {
 		_ = markAuthenticationAttempt(ctx, false, nil, userSession.Username, regulation.AuthTypeWebAuthn, formatWebAuthnError(err))
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -447,37 +437,44 @@ func WebAuthnPasskeyAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		}
 	}()
 
-	var found bool
+	// TODO: Handle the credential updates.
 
-	for _, credential := range user.Credentials {
-		if bytes.Equal(credential.KID.Bytes(), c.ID) {
-			credential.UpdateSignInInfo(w.Config, ctx.Clock.Now().UTC(), c.Authenticator)
+	/*
 
-			found = true
+		var found bool
 
-			if err = ctx.Providers.StorageProvider.UpdateWebAuthnCredentialSignIn(ctx, credential); err != nil {
-				ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn authentication challenge for user '%s': error occurred saving the credential sign-in information to the storage backend", userSession.Username)
+		credential.
+		for _, credential := range user.Credentials {
+			if bytes.Equal(credential.KID.Bytes(), c.ID) {
+				credential.UpdateSignInInfo(w.Config, ctx.Clock.Now().UTC(), c.Authenticator)
 
-				ctx.SetStatusCode(fasthttp.StatusForbidden)
-				ctx.SetJSONError(messageMFAValidationFailed)
+				found = true
 
-				return
+				if err = ctx.Providers.StorageProvider.UpdateWebAuthnCredentialSignIn(ctx, credential); err != nil {
+					ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn authentication challenge for user '%s': error occurred saving the credential sign-in information to the storage backend", userSession.Username)
+
+					ctx.SetStatusCode(fasthttp.StatusForbidden)
+					ctx.SetJSONError(messageMFAValidationFailed)
+
+					return
+				}
+
+				break
 			}
-
-			break
 		}
-	}
 
-	if !found {
-		ctx.Logger.WithError(fmt.Errorf("credential was not found")).Errorf("Error occurred validating a WebAuthn authentication challenge for user '%s': error occurred saving the credential sign-in information to storage", userSession.Username)
+		if !found {
+			ctx.Logger.WithError(fmt.Errorf("credential was not found")).Errorf("Error occurred validating a WebAuthn authentication challenge for user '%s': error occurred saving the credential sign-in information to storage", userSession.Username)
 
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.SetJSONError(messageMFAValidationFailed)
+			ctx.SetStatusCode(fasthttp.StatusForbidden)
+			ctx.SetJSONError(messageMFAValidationFailed)
 
-		return
-	}
+			return
+		}
 
-	if c.Authenticator.CloneWarning {
+	*/
+
+	if credential.Authenticator.CloneWarning {
 		ctx.Logger.WithError(fmt.Errorf("authenticator sign count indicates that it is cloned")).Errorf("Error occurred validating a WebAuthn authentication challenge for user '%s': error occurred validating the authenticator response", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)

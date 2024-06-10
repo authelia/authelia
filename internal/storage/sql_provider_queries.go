@@ -248,6 +248,11 @@ const (
 		SELECT id, rpid, username, userid
 		FROM %s
 		WHERE rpid = ? AND username = ?;`
+
+	queryFmtSelectWebAuthnUserByUserID = `
+		SELECT id, rpid, username, userid
+		FROM %s
+		WHERE rpid = ? AND userid = ?;`
 )
 
 const (

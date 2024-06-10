@@ -63,8 +63,9 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlInsertTOTPHistory: fmt.Sprintf(queryFmtInsertTOTPHistory, tableTOTPHistory),
 		sqlSelectTOTPHistory: fmt.Sprintf(queryFmtSelectTOTPHistory, tableTOTPHistory),
 
-		sqlInsertWebAuthnUser: fmt.Sprintf(queryFmtInsertWebAuthnUser, tableWebAuthnUsers),
-		sqlSelectWebAuthnUser: fmt.Sprintf(queryFmtSelectWebAuthnUser, tableWebAuthnUsers),
+		sqlInsertWebAuthnUser:         fmt.Sprintf(queryFmtInsertWebAuthnUser, tableWebAuthnUsers),
+		sqlSelectWebAuthnUser:         fmt.Sprintf(queryFmtSelectWebAuthnUser, tableWebAuthnUsers),
+		sqlSelectWebAuthnUserByUserID: fmt.Sprintf(queryFmtSelectWebAuthnUserByUserID, tableWebAuthnUsers),
 
 		sqlInsertWebAuthnCredential:                           fmt.Sprintf(queryFmtInsertWebAuthnCredential, tableWebAuthnCredentials),
 		sqlSelectWebAuthnCredentials:                          fmt.Sprintf(queryFmtSelectWebAuthnCredentials, tableWebAuthnCredentials),
@@ -202,8 +203,9 @@ type SQLProvider struct {
 	sqlSelectTOTPHistory string
 
 	// Table: webauthn_users.
-	sqlInsertWebAuthnUser string
-	sqlSelectWebAuthnUser string
+	sqlInsertWebAuthnUser         string
+	sqlSelectWebAuthnUser         string
+	sqlSelectWebAuthnUserByUserID string
 
 	// Table: webauthn_credentials.
 	sqlInsertWebAuthnCredential                  string
@@ -622,7 +624,23 @@ func (p *SQLProvider) LoadWebAuthnUser(ctx context.Context, rpid, username strin
 		case errors.Is(err, sql.ErrNoRows):
 			return nil, nil
 		default:
-			return nil, fmt.Errorf("error selecting WebAuthn user '%s' with relying party id '%s': %w", user.Username, user.RPID, err)
+			return nil, fmt.Errorf("error selecting WebAuthn user '%s' with relying party id '%s': %w", username, rpid, err)
+		}
+	}
+
+	return user, nil
+}
+
+// LoadWebAuthnUserByUserID loads a registered WebAuthn user from the storage provider.
+func (p *SQLProvider) LoadWebAuthnUserByUserID(ctx context.Context, rpid, userID string) (user *model.WebAuthnUser, err error) {
+	user = &model.WebAuthnUser{}
+
+	if err = p.db.GetContext(ctx, user, p.sqlSelectWebAuthnUserByUserID, rpid, userID); err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, nil
+		default:
+			return nil, fmt.Errorf("error selecting WebAuthn user with user id '%s' and relying party id '%s': %w", userID, rpid, err)
 		}
 	}
 
