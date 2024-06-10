@@ -258,7 +258,7 @@ webauthn:
   ## Metadata Service validation via MDS3.
   # metadata:
 
-    ## Enable the metadata fetch behaviour.
+    ## Enable the metadata fetch behaviour. If enabled you have to ensure the configured path is writable.
     # enabled: false
 
     ## Path to save the MDS3 blob to.
@@ -267,27 +267,29 @@ webauthn:
     ## Enable Validation of the Trust Anchor. This generally should be enabled if you're using the metadata. It
     ## ensures the attestation certificate presented by the authenticator is valid against the MDS3 certificate that
     ## issued the attestation certificate.
-    # validate_trust_anchor: false
+    # validate_trust_anchor: true
 
     ## Enable Validation of the Entry. This ensures that the MDS3 actually contains the metadata entry. If not enabled
     ## attestation certificates which are not formally registered will be skipped. This may potentially exclude some
     ## virtual authenticators.
-    # validate_entry: false
+    # validate_entry: true
 
     ## Enabling this allows attestation certificates with a zero AAGUID to pass validation. This is important if you do
     ## use non-conformant authenticators like Apple ID.
     # validate_entry_permit_zero_aaguid: false
 
     ## Enable Validation of the Authenticator Status.
-    # validate_status: false
+    # validate_status: true
 
-    ## List of statuses that should be required when validating the status. Generally it is recommended that this is not
-    ## configured.
-    # validate_status_desired: ~
+    ## List of statuses which are considered permitted when validating an authenticator's metadata. Generally it is
+    ## recommended that this is not configured as any other status the authenticator's metadata has will result in an
+    ## error. This option is ineffectual if validate_status is false.
+    # validate_status_permitted: ~
 
-    ## List of statuses that should be prohibited when validating the status. Generally it is recommended that this is
-    ## not configured as there are safe defaults.
-    # validate_status_undesired: ~
+    ## List of statuses that should be prohibited when validating an authenticator's metadata. Generally it is
+    ## recommended that this is not configured as there are safe defaults. This option is ineffectual if validate_status
+    ## is false, or validate_status_permitted has values.
+    # validate_status_prohibited: ~
 
 ##
 ## Duo Push API Configuration

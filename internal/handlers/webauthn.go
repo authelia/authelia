@@ -106,7 +106,7 @@ func handleNewWebAuthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err 
 				TimeoutUVD: ctx.Configuration.WebAuthn.Timeout,
 			},
 		},
-		MetaData: ctx.Providers.MetaDataService,
+		MDS: ctx.Providers.MetaDataService,
 	}
 
 	switch ctx.Configuration.WebAuthn.SelectionCriteria.Attachment {

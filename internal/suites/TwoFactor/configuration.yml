@@ -61,13 +61,7 @@ totp:
 webauthn:
   metadata:
     enabled: true
-    path: 'data.mds3'
-    validate_trust_anchor: true
     validate_entry: false
-    validate_entry_permit_zero_aaguid: false
-    validate_status: true
-    validate_status_desired: ~
-    validate_status_undesired: ~
 
 access_control:
   default_policy: 'deny'

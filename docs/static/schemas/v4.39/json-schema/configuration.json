@@ -3305,6 +3305,14 @@
       "type": "object",
       "description": "TelemetryMetrics represents the telemetry metrics config."
     },
+    "UUID": {
+      "items": {
+        "type": "integer"
+      },
+      "type": "array",
+      "maxItems": 16,
+      "minItems": 16
+    },
     "WebAuthn": {
       "properties": {
         "disable": {
@@ -3313,17 +3321,17 @@
           "description": "Disables the WebAuthn 2FA functionality.",
           "default": false
         },
-        "display_name": {
-          "type": "string",
-          "title": "Display Name",
-          "description": "The display name attribute for the WebAuthn relying party.",
-          "default": "Authelia"
-        },
         "enable_passkey_login": {
           "type": "boolean",
           "title": "Enable Passkey Logins",
           "description": "Allows users to sign in via Passkeys.",
           "default": false
+        },
+        "display_name": {
+          "type": "string",
+          "title": "Display Name",
+          "description": "The display name attribute for the WebAuthn relying party.",
+          "default": "Authelia"
         },
         "attestation_conveyance_preference": {
           "type": "string",
@@ -3356,10 +3364,12 @@
           "description": "WebAuthn Authenticator filtering settings."
         },
         "selection_criteria": {
-          "$ref": "#/$defs/WebAuthnSelectionCriteria"
+          "$ref": "#/$defs/WebAuthnSelectionCriteria",
+          "description": "WebAuthn Authenticator selection criteria settings."
         },
         "metadata": {
-          "$ref": "#/$defs/WebAuthnMetadata"
+          "$ref": "#/$defs/WebAuthnMetadata",
+          "description": "WebAuthn Metadata Service settings."
         }
       },
       "additionalProperties": false,
@@ -3370,15 +3380,19 @@
       "properties": {
         "permitted_aaguids": {
           "items": {
-            "type": "string"
+            "$ref": "#/$defs/UUID"
           },
-          "type": "array"
+          "type": "array",
+          "title": "Permitted AAGUIDs",
+          "description": "List of allowed WebAuthn AAGUIDs. No other authenticator can be registered."
         },
         "prohibited_aaguids": {
           "items": {
-            "type": "string"
+            "$ref": "#/$defs/UUID"
           },
-          "type": "array"
+          "type": "array",
+          "title": "Prohibited AAGUIDs",
+          "description": "List of prohibited WebAuthn AAGUIDs. Authenticators with these AAGUIDs cannot be registered."
         }
       },
       "additionalProperties": false,
@@ -3387,24 +3401,42 @@
     "WebAuthnMetadata": {
       "properties": {
         "enabled": {
-          "type": "boolean"
+          "type": "boolean",
+          "title": "Enabled",
+          "description": "WebAuthn Metadata Service enabled.",
+          "default": false
         },
         "path": {
-          "type": "string"
+          "type": "string",
+          "title": "Path",
+          "description": "WebAuthn Metadata Service data blob path.",
+          "default": "data.mds3"
         },
         "validate_trust_anchor": {
-          "type": "boolean"
+          "type": "boolean",
+          "title": "Validate Trust Anchor",
+          "description": "WebAuthn Authenticator metadata entry trust anchor validation.",
+          "default": true
         },
         "validate_entry": {
-          "type": "boolean"
+          "type": "boolean",
+          "title": "Filtering",
+          "description": "WebAuthn Authenticator metadata entry validation requires the AAGUID exists as a MDS3 registered entry.",
+          "default": true
         },
         "validate_entry_permit_zero_aaguid": {
-          "type": "boolean"
+          "type": "boolean",
+          "title": "Filtering",
+          "description": "WebAuthn Authenticator metadata entry validation zero AAGUID's can be skipped'.",
+          "default": true
         },
         "validate_status": {
-          "type": "boolean"
+          "type": "boolean",
+          "title": "Validate Status",
+          "description": "WebAuthn Authenticator status validation.",
+          "default": true
         },
-        "validate_status_desired": {
+        "validate_status_permitted": {
           "items": {
             "type": "string",
             "enum": [
@@ -3425,9 +3457,11 @@
               "FIDO_CERTIFIED_L3plus"
             ]
           },
-          "type": "array"
+          "type": "array",
+          "title": "Validate Status (Permitted Statuses)",
+          "description": "WebAuthn Authenticator status validation can be configured to permit certain statuses. Generally this is discouraged."
         },
-        "validate_status_undesired": {
+        "validate_status_prohibited": {
           "items": {
             "type": "string",
             "enum": [
@@ -3448,7 +3482,9 @@
               "FIDO_CERTIFIED_L3plus"
             ]
           },
-          "type": "array"
+          "type": "array",
+          "title": "Validate Status (Prohibited Statuses)",
+          "description": "WebAuthn Authenticator status validation can prohibit certain statuses. Generally this is discouraged as the defaults are safe."
         }
       },
       "additionalProperties": false,
@@ -3462,6 +3498,8 @@
             "platform",
             "cross-platform"
           ],
+          "title": "Attachment",
+          "description": "WebAuthn Authenticator attachment preference.",
           "default": "cross-platform"
         },
         "discoverability": {
@@ -3472,7 +3510,7 @@
             "required"
           ],
           "title": "Discoverability Selection",
-          "description": "The default discoverable requirement when registering WebAuthn credentials.",
+          "description": "The default discoverable preference when registering WebAuthn credentials.",
           "default": "discouraged"
         },
         "user_verification": {

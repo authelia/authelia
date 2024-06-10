@@ -71,6 +71,7 @@ type CmdCtx struct {
 func NewCmdCtxConfig() *CmdCtxConfig {
 	return &CmdCtxConfig{
 		validator: schema.NewStructValidator(),
+		defaults:  []configuration.Source{configuration.NewDefaultsSource()},
 	}
 }
 
@@ -78,7 +79,7 @@ func NewCmdCtxConfig() *CmdCtxConfig {
 type CmdCtxConfig struct {
 	files     []string
 	filters   []string
-	defaults  configuration.Source
+	defaults  []configuration.Source
 	sources   []configuration.Source
 	keys      []string
 	validator *schema.StructValidator
@@ -157,8 +158,8 @@ func newMetadataProviderMemory(config *schema.Configuration) cached.NewFunc {
 			memory.WithValidateEntryPermitZeroAAGUID(config.WebAuthn.Metadata.ValidateEntryPermitZeroAAGUID),
 			memory.WithValidateTrustAnchor(config.WebAuthn.Metadata.ValidateTrustAnchor),
 			memory.WithValidateStatus(config.WebAuthn.Metadata.ValidateStatus),
-			memory.WithStatusUndesired(config.WebAuthn.Metadata.ValidateStatusUndesired),
-			memory.WithStatusDesired(config.WebAuthn.Metadata.ValidateStatusDesired),
+			memory.WithStatusUndesired(config.WebAuthn.Metadata.ValidateStatusProhibited),
+			memory.WithStatusDesired(config.WebAuthn.Metadata.ValidateStatusPermitted),
 		)
 	}
 }
@@ -243,7 +244,7 @@ func (ctx *CmdCtx) HelperConfigSetDefaultsRunE(defaults map[string]any) CobraRun
 			ctx.cconfig = NewCmdCtxConfig()
 		}
 
-		ctx.cconfig.defaults = configuration.NewMapSource(defaults)
+		ctx.cconfig.defaults = append(ctx.cconfig.defaults, configuration.NewMapSource(defaults))
 
 		return nil
 	}

@@ -22,7 +22,7 @@ require (
 	github.com/go-rod/rod v0.116.1
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1
-	github.com/go-webauthn/webauthn v0.10.3-0.20240609072830-9de11712acbc
+	github.com/go-webauthn/webauthn v0.10.3-0.20240609231508-6ec129b1661e
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-retryablehttp v0.7.7

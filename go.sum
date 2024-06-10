@@ -81,6 +81,8 @@ github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1 h1:TQcrn6Wq+sKGkpyPvppOz99zsM
 github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1/go.mod h1:oJDH3BJKyqBA2TXFhDsKDGDTlndYOZ6rGS0BRZIxGhM=
 github.com/go-webauthn/webauthn v0.10.3-0.20240609072830-9de11712acbc h1:SUHJO5fikg4wSOwZIOpfUKJRxKrZ0kWQOp+pPGYQGps=
 github.com/go-webauthn/webauthn v0.10.3-0.20240609072830-9de11712acbc/go.mod h1:HHrDi8U5lea5v4sRCy36P3cmjOZQLJ0/MAlx8Pn1Auk=
+github.com/go-webauthn/webauthn v0.10.3-0.20240609231508-6ec129b1661e h1:8bFHKFi0yD2O3NNlDUOO0i1G1N/TJHdBDK4xD/DC0E4=
+github.com/go-webauthn/webauthn v0.10.3-0.20240609231508-6ec129b1661e/go.mod h1:HHrDi8U5lea5v4sRCy36P3cmjOZQLJ0/MAlx8Pn1Auk=
 github.com/go-webauthn/x v0.1.10 h1:1JOJPQYJUssqOG3XcU0/Ifyl8TGk3iefZTrjv4oxTS8=
 github.com/go-webauthn/x v0.1.10/go.mod h1:ZuuOJLvqa4+nYGY480aPXC4oY5jQUqzp8iKrRGYm64k=
 github.com/golang-jwt/jwt/v5 v5.2.1 h1:OuVbFODueb089Lh128TAcimifWaLhJwVflnrgM17wHk=
