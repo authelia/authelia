@@ -156,3 +156,22 @@ func handleWebAuthnCredentialCreationIsDiscoverable(ctx *middlewares.AutheliaCtx
 
 	return false
 }
+
+func checkWebAuthnCredentialAllowed(ctx *middlewares.AutheliaCtx, credential *model.WebAuthnCredential) (err error) {
+	if len(ctx.Configuration.WebAuthn.Filtering.PermittedAAGUIDs) != 0 {
+		for _, aaguid := range ctx.Configuration.WebAuthn.Filtering.PermittedAAGUIDs {
+			if credential.AAGUID.UUID == aaguid {
+				return nil
+			}
+		}
+		return fmt.Errorf("error checking webauthn AAGUID: filters have been configured which explicitly require only permitted AAGUID's be used and '%s' is not permitted", credential.AAGUID.UUID)
+	}
+
+	for _, aaguid := range ctx.Configuration.WebAuthn.Filtering.ProhibitedAAGUIDs {
+		if credential.AAGUID.UUID == aaguid {
+			return fmt.Errorf("error checking webauthn AAGUID: filters have been configured which prohibit the AAGUID '%s' from registration", aaguid)
+		}
+	}
+
+	return nil
+}

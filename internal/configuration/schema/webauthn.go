@@ -60,11 +60,11 @@ var DefaultWebAuthnConfiguration = WebAuthn{
 	},
 	Metadata: WebAuthnMetadata{
 		Enabled:                       false,
-		Path:                          "",
-		ValidateTrustAnchor:           false,
-		ValidateEntry:                 false,
+		Path:                          "data.mds3",
+		ValidateTrustAnchor:           true,
+		ValidateEntry:                 true,
 		ValidateEntryPermitZeroAAGUID: false,
-		ValidateStatus:                false,
+		ValidateStatus:                true,
 		ValidateStatusPermitted:       []metadata.AuthenticatorStatus{},
 		ValidateStatusProhibited: []metadata.AuthenticatorStatus{
 			metadata.AttestationKeyCompromise,

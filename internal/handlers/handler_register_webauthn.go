@@ -222,6 +222,15 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 
 	credential.Discoverable = handleWebAuthnCredentialCreationIsDiscoverable(ctx, response)
 
+	if err = checkWebAuthnCredentialAllowed(ctx, &credential); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn registration challenge for user '%s': error occurred processing the credential filtering", userSession.Username)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageUnableToRegisterSecurityKey)
+
+		return
+	}
+
 	if err = ctx.Providers.StorageProvider.SaveWebAuthnCredential(ctx, credential); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn registration challenge for user '%s': error occurred saving the credential to the storage backend", userSession.Username)
 
