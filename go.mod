@@ -5,7 +5,7 @@ go 1.22
 toolchain go1.22.4
 
 require (
-	authelia.com/provider/oauth2 v0.1.13
+	authelia.com/provider/oauth2 v0.1.14
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
 	github.com/authelia/jsonschema v0.1.7
