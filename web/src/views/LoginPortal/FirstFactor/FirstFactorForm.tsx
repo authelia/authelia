@@ -1,18 +1,6 @@
-import React, { Fragment, MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import {
-    Alert,
-    AlertTitle,
-    Button,
-    Checkbox,
-    Divider,
-    FormControl,
-    FormControlLabel,
-    Grid,
-    Link,
-    Theme,
-    Typography,
-} from "@mui/material";
+import { Alert, AlertTitle, Button, Checkbox, FormControl, FormControlLabel, Grid, Link, Theme } from "@mui/material";
 import TextField from "@mui/material/TextField";
 import makeStyles from "@mui/styles/makeStyles";
 import { BroadcastChannel } from "broadcast-channel";
@@ -20,7 +8,6 @@ import classnames from "classnames";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
-import PasskeyIcon from "@components/PasskeyIcon";
 import { ResetPasswordStep1Route } from "@constants/Routes";
 import { RedirectionURL, RequestMethod } from "@constants/SearchParams";
 import { useNotifications } from "@hooks/NotificationsContext";
@@ -29,6 +16,7 @@ import { useWorkflow } from "@hooks/Workflow";
 import LoginLayout from "@layouts/LoginLayout";
 import { IsCapsLockModified } from "@services/CapsLock";
 import { postFirstFactor } from "@services/FirstFactor";
+import PasskeyForm from "@views/LoginPortal/FirstFactor/PasskeyForm.tsx";
 
 export interface Props {
     disabled: boolean;
@@ -54,6 +42,7 @@ const FirstFactorForm = function (props: Props) {
 
     const loginChannel = useMemo(() => new BroadcastChannel<boolean>("login"), []);
 
+    const [authenticating, setAuthenticating] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
     const [username, setUsername] = useState("");
     const [usernameError, setUsernameError] = useState(false);
@@ -285,25 +274,12 @@ const FirstFactorForm = function (props: Props) {
                         </Button>
                     </Grid>
                     {props.passkeyLogin ? (
-                        <Fragment>
-                            <Grid item xs={12}>
-                                <Divider component="div" role="presentation">
-                                    <Typography>OR</Typography>
-                                </Divider>
-                            </Grid>
-                            <Grid item xs={12}>
-                                <Button
-                                    id="passkey-sign-in-button"
-                                    variant="contained"
-                                    color="primary"
-                                    fullWidth
-                                    onClick={handleSignIn}
-                                    startIcon={<PasskeyIcon />}
-                                >
-                                    {translate("Sign in with a passkey")}
-                                </Button>
-                            </Grid>
-                        </Fragment>
+                        <PasskeyForm
+                            rememberMe={props.rememberMe}
+                            onAuthenticationFailure={(err) => createErrorNotification(err.message)}
+                            onAuthenticationStart={props.onAuthenticationStart}
+                            onAuthenticationSuccess={props.onAuthenticationSuccess}
+                        />
                     ) : null}
                     {props.resetPassword ? (
                         <Grid item xs={12} className={classnames(styles.actionRow, styles.flexEnd)}>
