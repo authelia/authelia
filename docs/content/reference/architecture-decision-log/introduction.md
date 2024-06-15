@@ -22,5 +22,5 @@ as supported versions, configurations, etc.
 1. If the version or platform of the third party integration or combination thereof is not unsupported by the
    developer/vendor/etc of the third party integration we likely will not support it.
 2. When we claim to support a product it is expressly the official releases of the product. It does not include
-   versions that are heavily modified or drop in replacements (such as KeyDB which is a drop in replacement for redis
+   versions that are heavily modified or drop-in replacements (such as KeyDB which is a drop in replacement for redis
    that IS NOT supported).
