@@ -24,7 +24,6 @@ var (
 	headerXForwardedMethod = []byte("X-Forwarded-Method")
 
 	headerVary   = []byte(fasthttp.HeaderVary)
-	headerAllow  = []byte(fasthttp.HeaderAllow)
 	headerOrigin = []byte(fasthttp.HeaderOrigin)
 
 	headerAccessControlAllowCredentials = []byte(fasthttp.HeaderAccessControlAllowCredentials)
