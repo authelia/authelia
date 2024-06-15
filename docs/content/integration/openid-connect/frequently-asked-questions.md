@@ -189,6 +189,8 @@ reasonably be matched to an individual authorization policy. Because the other c
 per-request authorization these criteria types are fairly unlikely to become part of OpenID Connect 1.0 as there are no
 ways to apply these criteria except during the initial authorization request.
 
+See [ADR1](../../reference/architecture-decision-log/1.md) for more information.
+
 ### Why isn't the Access Token a JSON Web Token?
 
 The Access Token and it's format is entirely up to Authorization Servers / OpenID Connect 1.0 Providers. The

@@ -1,8 +1,8 @@
 ---
-title: "authelia-gen docs json-schema configuration"
-description: "Reference for the authelia-gen docs json-schema configuration command."
+title: "authelia-gen docs manage"
+description: "Reference for the authelia-gen docs manage command."
 lead: ""
-date: 2022-06-15T17:51:47+10:00
+date: 2024-06-15T12:29:24+10:00
 draft: false
 images: []
 weight: 915
@@ -14,18 +14,14 @@ seo:
   noindex: false # false (default) or true
 ---
 
-## authelia-gen docs json-schema configuration
+## authelia-gen docs manage
 
-Generate docs JSON schema for the configuration
-
-```
-authelia-gen docs json-schema configuration [flags]
-```
+Generate Managed docs
 
 ### Options
 
 ```
-  -h, --help   help for configuration
+  -h, --help   help for manage
 ```
 
 ### Options inherited from parent commands
@@ -72,5 +68,6 @@ authelia-gen docs json-schema configuration [flags]
 
 ### SEE ALSO
 
-* [authelia-gen docs json-schema](authelia-gen_docs_json-schema.md)	 - Generate docs JSON schema
+* [authelia-gen docs](authelia-gen_docs.md)	 - Generate docs
+* [authelia-gen docs manage adr](authelia-gen_docs_manage_adr.md)	 - Generate an Architecture Decision Record
 

@@ -1,8 +1,8 @@
 ---
-title: "authelia-gen docs json-schema configuration"
-description: "Reference for the authelia-gen docs json-schema configuration command."
+title: "authelia-gen docs manage adr add"
+description: "Reference for the authelia-gen docs manage adr add command."
 lead: ""
-date: 2022-06-15T17:51:47+10:00
+date: 2024-06-15T12:29:24+10:00
 draft: false
 images: []
 weight: 915
@@ -14,18 +14,23 @@ seo:
   noindex: false # false (default) or true
 ---
 
-## authelia-gen docs json-schema configuration
+## authelia-gen docs manage adr add
 
-Generate docs JSON schema for the configuration
+Add an Architecture Decision Record
 
 ```
-authelia-gen docs json-schema configuration [flags]
+authelia-gen docs manage adr add [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for configuration
+      --consequences string   sets the consequences of the record
+      --context string        sets the context of the record
+      --decision string       sets the decision of the record
+  -h, --help                  help for add
+      --status string         sets the status of the record
+      --title string          sets the title of the record
 ```
 
 ### Options inherited from parent commands
@@ -72,5 +77,5 @@ authelia-gen docs json-schema configuration [flags]
 
 ### SEE ALSO
 
-* [authelia-gen docs json-schema](authelia-gen_docs_json-schema.md)	 - Generate docs JSON schema
+* [authelia-gen docs manage adr](authelia-gen_docs_manage_adr.md)   - Generate an Architecture Decision Record
 
