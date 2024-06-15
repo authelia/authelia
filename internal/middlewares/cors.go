@@ -246,7 +246,7 @@ func (p *CORSPolicy) handleOPTIONS(ctx *fasthttp.RequestCtx) {
 	ctx.Response.Header.SetBytesKV(headerContentLength, headerValueZero)
 
 	if len(p.methods) != 0 {
-		ctx.Response.Header.SetBytesKV(headerAllow, p.methods)
+		ctx.Response.Header.SetBytesKV(headerAccessControlAllowMethods, p.methods)
 	}
 }
 
@@ -278,8 +278,12 @@ func (p *CORSPolicy) handleCORS(ctx *fasthttp.RequestCtx) {
 		for i := 0; i < len(p.origins); i++ {
 			if bytes.Equal(p.origins[i], headerValueOriginWildcard) {
 				allowedOrigin = headerValueOriginWildcard
+
+				break
 			} else if bytes.Equal(p.origins[i], origin) {
 				allowedOrigin = origin
+
+				break
 			}
 		}
 
