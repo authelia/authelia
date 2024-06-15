@@ -34,6 +34,7 @@ authelia-gen docs [flags]
   -C, --cwd string                                                 Sets the CWD for git commands
       --dir.authentication string                                  The authentication directory in relation to the root (default "internal/authentication")
       --dir.docs string                                            The directory with the docs (default "docs")
+      --dir.docs.adr string                                        The directory with the ADR data (default "reference/architecture-decision-log")
       --dir.docs.cli-reference string                              The directory to store the markdown in (default "reference/cli")
       --dir.docs.content string                                    The directory with the docs content (default "content")
       --dir.docs.data string                                       The directory with the docs data (default "data")
@@ -76,4 +77,5 @@ authelia-gen docs [flags]
 * [authelia-gen docs data](authelia-gen_docs_data.md)	 - Generate docs data files
 * [authelia-gen docs date](authelia-gen_docs_date.md)	 - Generate doc dates
 * [authelia-gen docs json-schema](authelia-gen_docs_json-schema.md)	 - Generate docs JSON schema
+* [authelia-gen docs manage](authelia-gen_docs_manage.md)	 - Generate Managed docs
 

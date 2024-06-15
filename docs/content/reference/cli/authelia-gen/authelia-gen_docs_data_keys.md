@@ -34,6 +34,7 @@ authelia-gen docs data keys [flags]
   -C, --cwd string                                                 Sets the CWD for git commands
       --dir.authentication string                                  The authentication directory in relation to the root (default "internal/authentication")
       --dir.docs string                                            The directory with the docs (default "docs")
+      --dir.docs.adr string                                        The directory with the ADR data (default "reference/architecture-decision-log")
       --dir.docs.cli-reference string                              The directory to store the markdown in (default "reference/cli")
       --dir.docs.content string                                    The directory with the docs content (default "content")
       --dir.docs.data string                                       The directory with the docs data (default "data")
