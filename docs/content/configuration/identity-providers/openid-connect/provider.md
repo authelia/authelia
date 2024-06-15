@@ -340,7 +340,7 @@ _**Note:** This section is aimed at providing authorization customization for va
 [OpenID Connect 1.0 Registered Clients](clients.md#authorization_policy). This section should not be confused with the
 [Access Control Rules] section, the way these policies are used and the options
 available are distinctly and intentionally different to those of the [Access Control Rules] unless explicitly specified
-in this section. The reasons for the differences are clearly explained in the [OpenID Connect 1.0 FAQ] and [ARD1]._
+in this section. The reasons for the differences are clearly explained in the [OpenID Connect 1.0 FAQ] and [ADR1]._
 
 [Access Control Rules]: ../../security/access-control.md#rules
 [OpenID Connect 1.0 FAQ]: ../../../integration/openid-connect/frequently-asked-questions.md#why-doesnt-the-access-control-configuration-work-with-openid-connect-10
