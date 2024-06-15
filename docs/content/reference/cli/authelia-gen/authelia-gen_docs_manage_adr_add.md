@@ -77,5 +77,5 @@ authelia-gen docs manage adr add [flags]
 
 ### SEE ALSO
 
-* [authelia-gen docs manage adr](authelia-gen_docs_manage_adr.md)	 - Generate an Architecture Decision Record
+* [authelia-gen docs manage adr](authelia-gen_docs_manage_adr.md)   - Generate an Architecture Decision Record
 
