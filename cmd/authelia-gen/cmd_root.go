@@ -80,6 +80,10 @@ func rootSubCommandsRunE(cmd *cobra.Command, args []string) (err error) {
 			continue
 		}
 
+		if cmd.Use == cmdUseDocs && subCmd.Use == cmdUseManage {
+			continue
+		}
+
 		rootCmd.SetArgs(rootCmdGetArgs(subCmd, args))
 
 		if err = rootCmd.Execute(); err != nil {

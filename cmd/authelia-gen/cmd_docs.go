@@ -13,7 +13,20 @@ func newDocsCmd() *cobra.Command {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.AddCommand(newDocsCLICmd(), newDocsDataCmd(), newDocsDateCmd(), newDocsJSONSchemaCmd(), newADRCmd())
+	cmd.AddCommand(newDocsCLICmd(), newDocsDataCmd(), newDocsDateCmd(), newDocsJSONSchemaCmd(), newDocsManageCmd())
+
+	return cmd
+}
+
+func newDocsManageCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   cmdUseManage,
+		Short: "Generate Managed docs",
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.AddCommand(newADRCmd())
 
 	return cmd
 }

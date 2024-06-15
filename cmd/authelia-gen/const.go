@@ -66,6 +66,7 @@ const (
 	cmdUseRoot                   = "authelia-gen"
 	cmdUseCompletion             = "completion"
 	cmdUseDocs                   = "docs"
+	cmdUseManage                 = "manage"
 	cmdUseDocsDate               = "date"
 	cmdUseDocsCLI                = "cli"
 	cmdUseDocsData               = "data"
