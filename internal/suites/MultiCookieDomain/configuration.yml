@@ -100,6 +100,8 @@ totp:
 
 webauthn:
   enable_passkey_login: true
+  selection_criteria:
+    discoverability: 'preferred'
 
 access_control:
   default_policy: deny

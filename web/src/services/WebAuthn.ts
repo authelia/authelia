@@ -20,7 +20,6 @@ import {
 import {
     AuthenticationOKResponse,
     FirstFactorWebAuthnPath,
-    OKResponse,
     OptionalDataServiceResponse,
     ServiceResponse,
     WebAuthnAssertionPath,

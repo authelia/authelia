@@ -89,7 +89,7 @@ const PasskeyForm = function (props: Props) {
             onSignInErrorCallback(new Error(translate("Failed to initiate security key sign in process")));
             setLoading(false);
         }
-    }, [mounted, loading, redirectionURL, workflow, workflowID, onSignInErrorCallback, translate]);
+    }, [props, mounted, loading, redirectionURL, workflow, workflowID, onSignInErrorCallback, translate]);
 
     return (
         <Fragment>

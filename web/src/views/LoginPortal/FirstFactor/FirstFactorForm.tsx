@@ -42,7 +42,6 @@ const FirstFactorForm = function (props: Props) {
 
     const loginChannel = useMemo(() => new BroadcastChannel<boolean>("login"), []);
 
-    const [authenticating, setAuthenticating] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
     const [username, setUsername] = useState("");
     const [usernameError, setUsernameError] = useState(false);
