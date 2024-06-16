@@ -195,14 +195,14 @@ type CORSPolicy struct {
 	maxAge      []byte
 }
 
-// HandleOPTIONS is an OPTIONS handler that just adds CORS headers, the Allow header, and sets the status code to 204
+// HandleOPTIONS is an OPTIONS handler that just adds CORS headers, the Allow header, and sets the status code to 200
 // without a body. This handler should generally not be used without using WithAllowedMethods.
 func (p *CORSPolicy) HandleOPTIONS(ctx *fasthttp.RequestCtx) {
 	p.handleOPTIONS(ctx)
 	p.handle(ctx)
 }
 
-// HandleOnlyOPTIONS is an OPTIONS handler that just handles the Allow header, and sets the status code to 204
+// HandleOnlyOPTIONS is an OPTIONS handler that just handles the Allow header, and sets the status code to 200
 // without a body. This handler should generally not be used without using WithAllowedMethods.
 func (p *CORSPolicy) HandleOnlyOPTIONS(ctx *fasthttp.RequestCtx) {
 	p.handleOPTIONS(ctx)
@@ -245,9 +245,11 @@ func (p *CORSPolicy) handleOPTIONS(ctx *fasthttp.RequestCtx) {
 	ctx.SetStatusCode(fasthttp.StatusOK)
 	ctx.Response.Header.SetBytesKV(headerContentLength, headerValueZero)
 
-	if len(p.methods) != 0 {
-		ctx.Response.Header.SetBytesKV(headerAccessControlAllowMethods, p.methods)
+	if len(p.methods) == 0 || len(ctx.Request.Header.PeekBytes(headerOrigin)) == 0 || (len(ctx.Request.Header.PeekBytes(headerAccessControlRequestMethod)) == 0 && ctx.Request.Header.IsOptions()) {
+		return
 	}
+
+	ctx.Response.Header.SetBytesKV(headerAccessControlAllowMethods, p.methods)
 }
 
 func (p *CORSPolicy) handleVary(ctx *fasthttp.RequestCtx) {
@@ -256,6 +258,7 @@ func (p *CORSPolicy) handleVary(ctx *fasthttp.RequestCtx) {
 	}
 }
 
+//nolint:gocyclo
 func (p *CORSPolicy) handleCORS(ctx *fasthttp.RequestCtx) {
 	var (
 		originURL *url.URL
@@ -263,10 +266,18 @@ func (p *CORSPolicy) handleCORS(ctx *fasthttp.RequestCtx) {
 	)
 
 	origin := ctx.Request.Header.PeekBytes(headerOrigin)
+	acrm := ctx.Request.Header.PeekBytes(headerAccessControlRequestMethod)
 
-	// Skip processing of any `https` scheme URL that has not expressly been configured.
-	if originURL, err = url.ParseRequestURI(string(origin)); err != nil || (originURL.Scheme != strProtoHTTPS && p.origins == nil) {
+	// This request is NOT a CORS Preflight request.
+	if len(origin) == 0 || (len(acrm) == 0 && ctx.Request.Header.IsOptions()) {
 		return
+	}
+
+	if len(origin) != 0 {
+		// Skip processing of any `https` scheme URL that has not expressly been configured.
+		if originURL, err = url.ParseRequestURI(string(origin)); err != nil || (originURL.Scheme != strProtoHTTPS && p.origins == nil) {
+			return
+		}
 	}
 
 	var allowedOrigin []byte
@@ -274,6 +285,12 @@ func (p *CORSPolicy) handleCORS(ctx *fasthttp.RequestCtx) {
 	switch len(p.origins) {
 	case 0:
 		allowedOrigin = origin
+	case 1:
+		if bytes.Equal(p.origins[0], headerValueOriginWildcard) {
+			allowedOrigin = headerValueOriginWildcard
+		} else if bytes.Equal(p.origins[0], origin) {
+			allowedOrigin = origin
+		}
 	default:
 		for i := 0; i < len(p.origins); i++ {
 			if bytes.Equal(p.origins[i], headerValueOriginWildcard) {
@@ -292,7 +309,9 @@ func (p *CORSPolicy) handleCORS(ctx *fasthttp.RequestCtx) {
 		}
 	}
 
-	ctx.Response.Header.SetBytesKV(headerAccessControlAllowOrigin, allowedOrigin)
+	if len(allowedOrigin) != 0 {
+		ctx.Response.Header.SetBytesKV(headerAccessControlAllowOrigin, allowedOrigin)
+	}
 
 	if len(p.credentials) != 0 {
 		ctx.Response.Header.SetBytesKV(headerAccessControlAllowCredentials, p.credentials)
