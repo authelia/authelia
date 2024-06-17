@@ -19,7 +19,7 @@ require (
 	github.com/go-crypt/crypt v0.2.24
 	github.com/go-jose/go-jose/v4 v4.0.2
 	github.com/go-ldap/ldap/v3 v3.4.8
-	github.com/go-rod/rod v0.116.0
+	github.com/go-rod/rod v0.116.1
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1
 	github.com/go-webauthn/webauthn v0.10.2
@@ -101,7 +101,7 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/ysmood/fetchup v0.2.3 // indirect
 	github.com/ysmood/goob v0.4.0 // indirect
-	github.com/ysmood/got v0.34.1 // indirect
+	github.com/ysmood/got v0.40.0 // indirect
 	github.com/ysmood/gson v0.7.3 // indirect
 	github.com/ysmood/leakless v0.8.0 // indirect
 	golang.org/x/crypto v0.24.0 // indirect
