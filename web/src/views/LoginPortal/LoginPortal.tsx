@@ -192,7 +192,7 @@ const LoginPortal = function (props: Props) {
                             resetPassword={props.resetPassword}
                             resetPasswordCustomURL={props.resetPasswordCustomURL}
                             onAuthenticationStart={() => setFirstFactorDisabled(true)}
-                            onAuthenticationFailure={() => setFirstFactorDisabled(false)}
+                            onAuthenticationStop={() => setFirstFactorDisabled(false)}
                             onAuthenticationSuccess={handleAuthSuccess}
                             onChannelStateChange={handleChannelStateChange}
                         />

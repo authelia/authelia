@@ -12,10 +12,12 @@ import { AssertionResult, AssertionResultFailureString } from "@models/WebAuthn"
 import { getWebAuthnPasskeyOptions, getWebAuthnResult, postWebAuthnPasskeyResponse } from "@services/WebAuthn";
 
 export interface Props {
+    disabled: boolean;
     rememberMe: boolean;
 
     onAuthenticationStart: () => void;
-    onAuthenticationFailure: (err: Error) => void;
+    onAuthenticationStop: () => void;
+    onAuthenticationError: (err: Error) => void;
     onAuthenticationSuccess: (redirectURL: string | undefined) => void;
 }
 
@@ -28,20 +30,30 @@ const PasskeyForm = function (props: Props) {
 
     const [loading, setLoading] = useState(false);
 
-    const onSignInErrorCallback = useRef(props.onAuthenticationFailure).current;
+    const onSignInErrorCallback = useRef(props.onAuthenticationError).current;
+
+    const handleAuthenticationStart = useCallback(() => {
+        props.onAuthenticationStart();
+        setLoading(true);
+    }, [props]);
+
+    const handleAuthenticationStop = useCallback(() => {
+        props.onAuthenticationStop();
+        setLoading(false);
+    }, [props]);
 
     const handleSignIn = useCallback(async () => {
         if (!mounted || loading) {
             return;
         }
 
-        setLoading(true);
+        handleAuthenticationStart();
 
         try {
             const optionsStatus = await getWebAuthnPasskeyOptions();
 
             if (optionsStatus.status !== 200 || optionsStatus.options == null) {
-                setLoading(false);
+                handleAuthenticationStop();
                 onSignInErrorCallback(new Error(translate("Failed to initiate security key sign in process")));
 
                 return;
@@ -52,7 +64,7 @@ const PasskeyForm = function (props: Props) {
             if (result.result !== AssertionResult.Success) {
                 if (!mounted.current) return;
 
-                setLoading(false);
+                handleAuthenticationStop();
 
                 onSignInErrorCallback(new Error(translate(AssertionResultFailureString(result.result))));
 
@@ -63,7 +75,7 @@ const PasskeyForm = function (props: Props) {
                 onSignInErrorCallback(
                     new Error(translate("The browser did not respond with the expected attestation data")),
                 );
-                setLoading(false);
+                handleAuthenticationStop();
 
                 return;
             }
@@ -71,6 +83,8 @@ const PasskeyForm = function (props: Props) {
             if (!mounted.current) return;
 
             const response = await postWebAuthnPasskeyResponse(result.response, redirectionURL, workflow, workflowID);
+
+            handleAuthenticationStop();
 
             if (response.data.status === "OK" && response.status === 200) {
                 props.onAuthenticationSuccess(response.data.data ? response.data.data.redirect : undefined);
@@ -80,16 +94,25 @@ const PasskeyForm = function (props: Props) {
             if (!mounted.current) return;
 
             onSignInErrorCallback(new Error(translate("The server rejected the security key")));
-            setLoading(false);
         } catch (err) {
             // If the request was initiated and the user changed 2FA method in the meantime,
             // the process is interrupted to avoid updating state of unmounted component.
             if (!mounted.current) return;
             console.error(err);
             onSignInErrorCallback(new Error(translate("Failed to initiate security key sign in process")));
-            setLoading(false);
         }
-    }, [props, mounted, loading, redirectionURL, workflow, workflowID, onSignInErrorCallback, translate]);
+    }, [
+        mounted,
+        loading,
+        handleAuthenticationStart,
+        redirectionURL,
+        workflow,
+        workflowID,
+        onSignInErrorCallback,
+        translate,
+        handleAuthenticationStop,
+        props,
+    ]);
 
     return (
         <Fragment>
@@ -106,8 +129,8 @@ const PasskeyForm = function (props: Props) {
                     fullWidth
                     onClick={handleSignIn}
                     startIcon={<PasskeyIcon />}
-                    disabled={loading}
-                    endIcon={loading ? <CircularProgress /> : null}
+                    disabled={props.disabled}
+                    endIcon={loading ? <CircularProgress size={20} /> : null}
                 >
                     {translate("Sign in with a passkey")}
                 </Button>

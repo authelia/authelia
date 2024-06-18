@@ -26,7 +26,7 @@ export interface Props {
     resetPasswordCustomURL: string;
 
     onAuthenticationStart: () => void;
-    onAuthenticationFailure: () => void;
+    onAuthenticationStop: () => void;
     onAuthenticationSuccess: (redirectURL: string | undefined) => void;
     onChannelStateChange: () => void;
 }
@@ -94,7 +94,7 @@ const FirstFactorForm = function (props: Props) {
         } catch (err) {
             console.error(err);
             createErrorNotification(translate("Incorrect username or password"));
-            props.onAuthenticationFailure();
+            props.onAuthenticationStop();
             setPassword("");
             passwordRef.current.focus();
         }
@@ -274,9 +274,15 @@ const FirstFactorForm = function (props: Props) {
                     </Grid>
                     {props.passkeyLogin ? (
                         <PasskeyForm
+                            disabled={props.disabled}
                             rememberMe={props.rememberMe}
-                            onAuthenticationFailure={(err) => createErrorNotification(err.message)}
-                            onAuthenticationStart={props.onAuthenticationStart}
+                            onAuthenticationError={(err) => createErrorNotification(err.message)}
+                            onAuthenticationStart={() => {
+                                setUsername("");
+                                setPassword("");
+                                props.onAuthenticationStart();
+                            }}
+                            onAuthenticationStop={props.onAuthenticationStop}
                             onAuthenticationSuccess={props.onAuthenticationSuccess}
                         />
                     ) : null}
