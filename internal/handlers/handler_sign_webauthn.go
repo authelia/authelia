@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"fmt"
+	"net/url"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -42,6 +43,17 @@ func WebAuthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	var origin *url.URL
+
+	if origin, err = ctx.GetOrigin(); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn authentication challenge for user '%s': error occurred provisioning the configuration", userSession.Username)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
+		return
+	}
+
 	if w, err = handleNewWebAuthn(ctx); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn authentication challenge for user '%s': error occurred provisioning the configuration", userSession.Username)
 
@@ -51,7 +63,9 @@ func WebAuthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if user, err = handleGetWebAuthnUserByRPID(ctx, userSession.Username, userSession.DisplayName, w.Config.RPID); err != nil {
+	rpid := origin.Hostname()
+
+	if user, err = handleGetWebAuthnUserByRPID(ctx, userSession.Username, userSession.DisplayName, rpid); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn authentication challenge for user '%s': error occurred retrieving the WebAuthn user configuration from the storage backend", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -68,6 +82,7 @@ func WebAuthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 
 	var opts = []webauthn.LoginOption{
 		webauthn.WithAllowedCredentials(user.WebAuthnCredentialDescriptors()),
+		webauthn.WithLoginRelyingPartyID(rpid),
 	}
 
 	if len(extensions) != 0 {

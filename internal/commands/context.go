@@ -7,14 +7,10 @@ import (
 	"fmt"
 	"os"
 	"os/user"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"syscall"
 
-	"github.com/go-webauthn/webauthn/metadata"
-	"github.com/go-webauthn/webauthn/metadata/providers/cached"
-	"github.com/go-webauthn/webauthn/metadata/providers/memory"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -38,6 +34,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/totp"
 	"github.com/authelia/authelia/v4/internal/utils"
+	"github.com/authelia/authelia/v4/internal/webauthn"
 )
 
 // NewCmdCtx returns a new CmdCtx.
@@ -139,31 +136,6 @@ func (ctx *CmdCtx) LoadTrustedCertificates() (warns, errs []error) {
 	return warns, errs
 }
 
-func newMetadata(config *schema.Configuration) (provider metadata.Provider, err error) {
-	if !config.WebAuthn.Metadata.Enabled {
-		return nil, nil
-	}
-
-	return cached.New(
-		cached.WithPath(filepath.Join(config.CacheDirectory, config.WebAuthn.Metadata.Path)),
-		cached.WithNew(newMetadataProviderMemory(config)),
-	)
-}
-
-func newMetadataProviderMemory(config *schema.Configuration) cached.NewFunc {
-	return func(mds *metadata.Metadata) (provider metadata.Provider, err error) {
-		return memory.New(
-			memory.WithMetadata(mds.ToMap()),
-			memory.WithValidateEntry(config.WebAuthn.Metadata.ValidateEntry),
-			memory.WithValidateEntryPermitZeroAAGUID(config.WebAuthn.Metadata.ValidateEntryPermitZeroAAGUID),
-			memory.WithValidateTrustAnchor(config.WebAuthn.Metadata.ValidateTrustAnchor),
-			memory.WithValidateStatus(config.WebAuthn.Metadata.ValidateStatus),
-			memory.WithStatusUndesired(config.WebAuthn.Metadata.ValidateStatusProhibited),
-			memory.WithStatusDesired(config.WebAuthn.Metadata.ValidateStatusPermitted),
-		)
-	}
-}
-
 // LoadProviders loads all providers into the CmdCtx.
 func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
 	// TODO: Adjust this so the CertPool can be used like a provider.
@@ -193,7 +165,7 @@ func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
 		errs = append(errs, err)
 	}
 
-	if ctx.providers.MetaDataService, err = newMetadata(ctx.config); err != nil {
+	if ctx.providers.WebAuthn, err = webauthn.New(ctx.config); err != nil {
 		errs = append(errs, err)
 	}
 
