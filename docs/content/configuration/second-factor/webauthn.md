@@ -104,14 +104,14 @@ This section configures various filtering options during registration.
 {{< confkey type="list(string)" syntax="uuid" required="no" >}}
 
 A list of Authenticator Attestation GUID's that are the only ones allowed to be registered. Useful if you have a company
-policy that requires certain authenticators.
+policy that requires certain authenticators. Mutually exclusive with [prohibited_aaguids](#prohibited_aaguids).
 
 #### prohibited_aaguids
 
 {{< confkey type="list(string)" syntax="uuid" required="no" >}}
 
 A list of Authenticator Attestation GUID's that users will not be able to register. Useful if company policy prevents
-certain authenticators.
+certain authenticators. Mutually exclusive with [permitted_aaguids](#permitted_aaguids).
 
 ### selection_criteria
 
