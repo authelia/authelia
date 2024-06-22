@@ -15,16 +15,30 @@ Date: {{ .DateHuman }}
 
 ## Status
 
-{{ .Status }}
+{{ .Status | default "Proposed" }}
+
+## Submitters
+
+- [Submitters Name](Submitters URL), [Submitters Organization Name](Submitters Organization URL)
+
+## Change Log
+
+|    Date    | PR |  Status  |                           Notes                           |
+|:----------:|:--:|:--------:|:---------------------------------------------------------:|
+| {{ .DateISO }} |    | {{ .Status | default "Proposed" }} |                    Initial Publication                    |
 
 ## Context
 
-{{ .Context }}
+{{ .Context | default "_N/A_" }}
+
+## Proposed Design
+
+{{ .ProposedDesign | default "_N/A_" }}
 
 ## Decision
 
-{{ .Decision }}
+{{ .Decision | default "_N/A_" }}
 
 ## Consequences
 
-{{ .Consequences }}
+{{ .Consequences | default "_N/A_" }}

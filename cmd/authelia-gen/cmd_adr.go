@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -36,6 +35,7 @@ func newADRAddCmd() *cobra.Command {
 	cmd.Flags().String("title", "", "sets the title of the record")
 	cmd.Flags().String("status", "", "sets the status of the record")
 	cmd.Flags().String("context", "", "sets the context of the record")
+	cmd.Flags().String("proposed-design", "", "sets the proposed design of the record")
 	cmd.Flags().String("decision", "", "sets the decision of the record")
 	cmd.Flags().String("consequences", "", "sets the consequences of the record")
 
@@ -67,6 +67,7 @@ func adrAddRunE(cmd *cobra.Command, args []string) (err error) {
 		ADR:       config.NextID,
 		Weight:    1000 + config.NextID,
 		Date:      time.Now().Format(dateFmtYAML),
+		DateISO:   time.Now().Format(time.DateOnly),
 		DateHuman: time.Now().Format("January 2, 2006"),
 	}
 
@@ -82,6 +83,10 @@ func adrAddRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
+	if data.ProposedDesign, err = cmd.Flags().GetString("proposed-design"); err != nil {
+		return err
+	}
+
 	if data.Decision, err = cmd.Flags().GetString("decision"); err != nil {
 		return err
 	}
@@ -92,7 +97,7 @@ func adrAddRunE(cmd *cobra.Command, args []string) (err error) {
 
 	var f *os.File
 
-	if f, err = os.Create(filepath.Join(adrs, fmt.Sprintf("%d-%s.md", data.ADR, strings.ReplaceAll(strings.ToLower(data.Title), " ", "-")))); err != nil {
+	if f, err = os.Create(filepath.Join(adrs, fmt.Sprintf("%d.md", data.ADR))); err != nil {
 		return fmt.Errorf("error opening file for adr: %w", err)
 	}
 
@@ -120,13 +125,15 @@ type ArchitectureDesignRecordConfig struct {
 }
 
 type ArchitectureDesignRecordTmpl struct {
-	ADR          int
-	Weight       int
-	Date         string
-	DateHuman    string
-	Title        string
-	Status       string
-	Context      string
-	Decision     string
-	Consequences string
+	ADR            int
+	Weight         int
+	Date           string
+	DateISO        string
+	DateHuman      string
+	Title          string
+	Status         string
+	Context        string
+	ProposedDesign string
+	Decision       string
+	Consequences   string
 }

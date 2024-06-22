@@ -2,7 +2,7 @@
 title: "authelia-gen docs manage adr add"
 description: "Reference for the authelia-gen docs manage adr add command."
 lead: ""
-date: 2024-06-15T12:29:24+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 weight: 915
@@ -25,12 +25,13 @@ authelia-gen docs manage adr add [flags]
 ### Options
 
 ```
-      --consequences string   sets the consequences of the record
-      --context string        sets the context of the record
-      --decision string       sets the decision of the record
-  -h, --help                  help for add
-      --status string         sets the status of the record
-      --title string          sets the title of the record
+      --consequences string      sets the consequences of the record
+      --context string           sets the context of the record
+      --decision string          sets the decision of the record
+  -h, --help                     help for add
+      --proposed-design string   sets the proposed design of the record
+      --status string            sets the status of the record
+      --title string             sets the title of the record
 ```
 
 ### Options inherited from parent commands
@@ -77,5 +78,5 @@ authelia-gen docs manage adr add [flags]
 
 ### SEE ALSO
 
-* [authelia-gen docs manage adr](authelia-gen_docs_manage_adr.md)   - Generate an Architecture Decision Record
+* [authelia-gen docs manage adr](authelia-gen_docs_manage_adr.md)	 - Generate an Architecture Decision Record
 
