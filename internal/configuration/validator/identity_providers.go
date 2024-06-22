@@ -17,52 +17,52 @@ import (
 )
 
 // ValidateIdentityProviders validates and updates the IdentityProviders configuration.
-func ValidateIdentityProviders(ctx *ValidateCtx, config *schema.IdentityProviders, validator *schema.StructValidator) {
-	validateOIDC(ctx, config.OIDC, validator)
+func ValidateIdentityProviders(ctx *ValidateCtx, config *schema.Configuration, validator *schema.StructValidator) {
+	validateOIDC(ctx, config, validator)
 }
 
-func validateOIDC(ctx *ValidateCtx, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
-	if config == nil {
+func validateOIDC(ctx *ValidateCtx, config *schema.Configuration, validator *schema.StructValidator) {
+	if config == nil || config.IdentityProviders.OIDC == nil {
 		return
 	}
 
-	setOIDCDefaults(config)
+	setOIDCDefaults(config.IdentityProviders.OIDC)
 
-	validateOIDCIssuer(config, validator)
+	validateOIDCIssuer(config.IdentityProviders.OIDC, validator)
 	validateOIDCAuthorizationPolicies(config, validator)
-	validateOIDCLifespans(config, validator)
+	validateOIDCLifespans(config.IdentityProviders.OIDC, validator)
 
-	sort.Sort(oidc.SortedSigningAlgs(config.Discovery.ResponseObjectSigningAlgs))
+	sort.Sort(oidc.SortedSigningAlgs(config.IdentityProviders.OIDC.Discovery.ResponseObjectSigningAlgs))
 
 	switch {
-	case config.MinimumParameterEntropy == -1:
+	case config.IdentityProviders.OIDC.MinimumParameterEntropy == -1:
 		validator.PushWarning(errors.New(errFmtOIDCProviderInsecureDisabledParameterEntropy))
-	case config.MinimumParameterEntropy <= 0:
-		config.MinimumParameterEntropy = oauthelia2.MinParameterEntropy
-	case config.MinimumParameterEntropy < oauthelia2.MinParameterEntropy:
-		validator.PushWarning(fmt.Errorf(errFmtOIDCProviderInsecureParameterEntropyUnsafe, oauthelia2.MinParameterEntropy, config.MinimumParameterEntropy))
+	case config.IdentityProviders.OIDC.MinimumParameterEntropy <= 0:
+		config.IdentityProviders.OIDC.MinimumParameterEntropy = oauthelia2.MinParameterEntropy
+	case config.IdentityProviders.OIDC.MinimumParameterEntropy < oauthelia2.MinParameterEntropy:
+		validator.PushWarning(fmt.Errorf(errFmtOIDCProviderInsecureParameterEntropyUnsafe, oauthelia2.MinParameterEntropy, config.IdentityProviders.OIDC.MinimumParameterEntropy))
 	}
 
-	switch config.EnforcePKCE {
+	switch config.IdentityProviders.OIDC.EnforcePKCE {
 	case "always", "never", "public_clients_only":
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtOIDCProviderEnforcePKCEInvalidValue, config.EnforcePKCE))
+		validator.Push(fmt.Errorf(errFmtOIDCProviderEnforcePKCEInvalidValue, config.IdentityProviders.OIDC.EnforcePKCE))
 	}
 
-	validateOIDCOptionsCORS(config, validator)
+	validateOIDCOptionsCORS(config.IdentityProviders.OIDC, validator)
 
-	if len(config.Clients) == 0 {
+	if len(config.IdentityProviders.OIDC.Clients) == 0 {
 		validator.Push(errors.New(errFmtOIDCProviderNoClientsConfigured))
 	} else {
-		validateOIDCClients(ctx, config, validator)
+		validateOIDCClients(ctx, config.IdentityProviders.OIDC, validator)
 	}
 }
 
-func validateOIDCAuthorizationPolicies(config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
-	config.Discovery.AuthorizationPolicies = []string{policyOneFactor, policyTwoFactor}
+func validateOIDCAuthorizationPolicies(config *schema.Configuration, validator *schema.StructValidator) {
+	config.IdentityProviders.OIDC.Discovery.AuthorizationPolicies = []string{policyOneFactor, policyTwoFactor}
 
-	for name, policy := range config.AuthorizationPolicies {
+	for name, policy := range config.IdentityProviders.OIDC.AuthorizationPolicies {
 		add := true
 
 		switch name {
@@ -99,15 +99,33 @@ func validateOIDCAuthorizationPolicies(config *schema.IdentityProvidersOpenIDCon
 				validator.Push(fmt.Errorf(errFmtOIDCPolicyRuleInvalidPolicy, name, i+1, utils.StringJoinAnd([]string{policyOneFactor, policyTwoFactor, policyDeny}), rule.Policy))
 			}
 
-			if len(rule.Subjects) == 0 {
-				validator.Push(fmt.Errorf(errFmtOIDCPolicyRuleMissingOption, name, i+1, "subject"))
+			if len(rule.Subjects) == 0 && len(rule.Networks) == 0 {
+				validator.Push(fmt.Errorf(errFmtOIDCPolicyRuleMissingOption, name, i+1))
+
+				continue
+			}
+
+			for _, subjectRule := range rule.Subjects {
+				for _, subject := range subjectRule {
+					if !IsSubjectValidBasic(subject) {
+						validator.Push(fmt.Errorf(errFmtOIDCPolicyRuleInvalidSubject, name, i+1, subject))
+					}
+				}
+			}
+
+			for _, network := range rule.Networks {
+				if !IsNetworkValid(network) {
+					if !IsNetworkGroupValid(config.AccessControl, network) {
+						validator.Push(fmt.Errorf(errFmtOIDCPolicyRuleInvalidNetwork, name, i+1, network))
+					}
+				}
 			}
 		}
 
-		config.AuthorizationPolicies[name] = policy
+		config.IdentityProviders.OIDC.AuthorizationPolicies[name] = policy
 
 		if add {
-			config.Discovery.AuthorizationPolicies = append(config.Discovery.AuthorizationPolicies, name)
+			config.IdentityProviders.OIDC.Discovery.AuthorizationPolicies = append(config.IdentityProviders.OIDC.Discovery.AuthorizationPolicies, name)
 		}
 	}
 }

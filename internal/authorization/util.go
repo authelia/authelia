@@ -121,10 +121,15 @@ func schemaMethodsToACL(methodRules []string) (methods []string) {
 	return methods
 }
 
-func schemaNetworksToACL(networkRules []string, networksMap map[string][]*net.IPNet, networksCacheMap map[string]*net.IPNet) (networks []*net.IPNet) {
-	for _, network := range networkRules {
-		if _, ok := networksMap[network]; !ok {
-			if _, ok := networksCacheMap[network]; ok {
+func schemaNetworksToACL(rules []string, networksMap map[string][]*net.IPNet, networksCacheMap map[string]*net.IPNet) (networks AccessControlNetworks) {
+	var (
+		network string
+		ok      bool
+	)
+
+	for _, network = range rules {
+		if _, ok = networksMap[network]; !ok {
+			if _, ok = networksCacheMap[network]; ok {
 				networks = append(networks, networksCacheMap[network])
 			} else {
 				cidr, err := parseNetwork(network)
@@ -145,7 +150,8 @@ func schemaNetworksToACL(networkRules []string, networksMap map[string][]*net.IP
 	return networks
 }
 
-func parseSchemaNetworks(schemaNetworks []schema.AccessControlNetwork) (networksMap map[string][]*net.IPNet, networksCacheMap map[string]*net.IPNet) {
+// ParseSchemaNetworks parses the networks from the configuration schema into usable values.
+func ParseSchemaNetworks(schemaNetworks []schema.AccessControlNetwork) (networksMap map[string][]*net.IPNet, networksCacheMap map[string]*net.IPNet) {
 	// These maps store pointers to the net.IPNet values so we can reuse them efficiently.
 	// The networksMap contains the named networks as keys, the networksCacheMap contains the CIDR notations as keys.
 	networksMap = map[string][]*net.IPNet{}
@@ -217,6 +223,10 @@ func domainToPrefixSuffix(domain string) (prefix, suffix string) {
 
 func NewSubjects(subjectRules [][]string) (subjects []AccessControlSubjects) {
 	return schemaSubjectsToACL(subjectRules)
+}
+
+func NewNetworks(rules []string, networks map[string][]*net.IPNet, cache map[string]*net.IPNet) AccessControlNetworks {
+	return schemaNetworksToACL(rules, networks, cache)
 }
 
 // IsAuthLevelSufficient returns true if the current authenticationLevel is above the authorizationLevel.

@@ -24,10 +24,7 @@ func LoadAdvanced(val *schema.StructValidator, path string, result any, sources 
 		return keys, errNoValidator
 	}
 
-	ko := koanf.NewWithConf(koanf.Conf{
-		Delim:       constDelimiter,
-		StrictMerge: false,
-	})
+	ko := koanf.NewWithConf(koanf.Conf{Delim: constDelimiter, StrictMerge: false})
 
 	if err = loadSources(ko, val, sources...); err != nil {
 		return ko.Keys(), err

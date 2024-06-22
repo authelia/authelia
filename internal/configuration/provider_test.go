@@ -540,7 +540,7 @@ func TestShouldDisableOIDCEntropy(t *testing.T) {
 
 	assert.Equal(t, -1, config.IdentityProviders.OIDC.MinimumParameterEntropy)
 
-	validator.ValidateIdentityProviders(validator.NewValidateCtx(), &config.IdentityProviders, val)
+	validator.ValidateIdentityProviders(validator.NewValidateCtx(), config, val)
 
 	assert.Len(t, val.Errors(), 1)
 	require.Len(t, val.Warnings(), 2)

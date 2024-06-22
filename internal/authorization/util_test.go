@@ -80,7 +80,7 @@ func TestShouldParseRuleNetworks(t *testing.T) {
 	_, firstNetwork, err := net.ParseCIDR("192.168.1.20/32")
 	require.NoError(t, err)
 
-	networksMap, networksCacheMap := parseSchemaNetworks(schemaNetworks)
+	networksMap, networksCacheMap := ParseSchemaNetworks(schemaNetworks)
 
 	assert.Len(t, networksCacheMap, 5)
 
@@ -168,7 +168,7 @@ func TestShouldParseACLNetworks(t *testing.T) {
 	_, fourthNetwork, err := net.ParseCIDR("fec0::1/128")
 	require.NoError(t, err)
 
-	networksMap, networksCacheMap := parseSchemaNetworks(schemaNetworks)
+	networksMap, networksCacheMap := ParseSchemaNetworks(schemaNetworks)
 
 	require.Len(t, networksMap, 6)
 	require.Contains(t, networksMap, "test")
@@ -255,7 +255,7 @@ func TestSchemaNetworksToACL(t *testing.T) {
 		have     []string
 		globals  map[string][]*net.IPNet
 		cache    map[string]*net.IPNet
-		expected []*net.IPNet
+		expected AccessControlNetworks
 	}{
 		{
 			"ShouldLoadFromCache",

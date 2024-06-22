@@ -16,7 +16,7 @@ import (
 )
 
 // NewClient creates a new Client.
-func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.IdentityProvidersOpenIDConnect) (client Client) {
+func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.IdentityProvidersOpenIDConnect, policies map[string]ClientAuthorizationPolicy) (client Client) {
 	registered := &RegisteredClient{
 		ID:                  config.ID,
 		Name:                config.Name,
@@ -40,7 +40,6 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		ClientCredentialsFlowAllowImplicitScope: false,
 		AllowMultipleAuthenticationMethods:      config.AllowMultipleAuthenticationMethods,
 
-		AuthorizationPolicy:   NewClientAuthorizationPolicy(config.AuthorizationPolicy, c),
 		ConsentPolicy:         NewClientConsentPolicy(config.ConsentMode, config.ConsentPreConfiguredDuration),
 		RequestedAudienceMode: NewClientRequestedAudienceMode(config.RequestedAudienceMode),
 
@@ -60,6 +59,14 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 
 		JSONWebKeysURI: config.JSONWebKeysURI,
 		JSONWebKeys:    NewPublicJSONWebKeySetFromSchemaJWK(config.JSONWebKeys),
+	}
+
+	if policies == nil {
+		registered.AuthorizationPolicy = ClientAuthorizationPolicy{DefaultPolicy: authorization.TwoFactor}
+	} else if policy, ok := policies[config.AuthorizationPolicy]; ok {
+		registered.AuthorizationPolicy = policy
+	} else {
+		registered.AuthorizationPolicy = ClientAuthorizationPolicy{DefaultPolicy: authorization.TwoFactor}
 	}
 
 	if len(config.Lifespan) != 0 {
