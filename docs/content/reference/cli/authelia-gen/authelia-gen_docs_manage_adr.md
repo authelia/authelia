@@ -2,7 +2,7 @@
 title: "authelia-gen docs manage adr"
 description: "Reference for the authelia-gen docs manage adr command."
 lead: ""
-date: 2024-06-15T12:29:24+10:00
+date: 2022-09-16T14:21:05+10:00
 draft: false
 images: []
 weight: 915
