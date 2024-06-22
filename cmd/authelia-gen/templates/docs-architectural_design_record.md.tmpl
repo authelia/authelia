@@ -42,3 +42,14 @@ Date: {{ .DateHuman }}
 ## Consequences
 
 {{ .Consequences | default "_N/A_" }}
+
+## Related ADRs
+
+{{- if .RelatedADRs }}
+{{ range .RelatedADRs }}
+- [ADR{{ . }}]({{ . }}.md)
+{{- end }}
+{{- else }}
+
+_N/A_
+{{- end }}

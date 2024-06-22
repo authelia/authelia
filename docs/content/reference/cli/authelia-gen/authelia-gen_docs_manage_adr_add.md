@@ -30,6 +30,7 @@ authelia-gen docs manage adr add [flags]
       --decision string          sets the decision of the record
   -h, --help                     help for add
       --proposed-design string   sets the proposed design of the record
+      --related-adrs ints        sets the related adrs of the record
       --status string            sets the status of the record
       --title string             sets the title of the record
 ```
