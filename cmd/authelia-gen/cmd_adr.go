@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"time"
 
@@ -38,10 +39,12 @@ func newADRAddCmd() *cobra.Command {
 	cmd.Flags().String("proposed-design", "", "sets the proposed design of the record")
 	cmd.Flags().String("decision", "", "sets the decision of the record")
 	cmd.Flags().String("consequences", "", "sets the consequences of the record")
+	cmd.Flags().IntSlice("related-adrs", nil, "sets the related adrs of the record")
 
 	return cmd
 }
 
+//nolint:gocyclo
 func adrAddRunE(cmd *cobra.Command, args []string) (err error) {
 	var adrs string
 
@@ -95,9 +98,21 @@ func adrAddRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
+	if data.RelatedADRs, err = cmd.Flags().GetIntSlice("related-adrs"); err != nil {
+		return err
+	}
+
+	for _, related := range data.RelatedADRs {
+		if related >= config.NextID {
+			return fmt.Errorf("related adr %d does not exist yet", related)
+		}
+	}
+
+	fp := filepath.Join(adrs, fmt.Sprintf("%d.md", data.ADR))
+
 	var f *os.File
 
-	if f, err = os.Create(filepath.Join(adrs, fmt.Sprintf("%d.md", data.ADR))); err != nil {
+	if f, err = os.Create(fp); err != nil {
 		return fmt.Errorf("error opening file for adr: %w", err)
 	}
 
@@ -117,7 +132,9 @@ func adrAddRunE(cmd *cobra.Command, args []string) (err error) {
 		return fmt.Errorf("error writing config: %w", err)
 	}
 
-	return nil
+	gitadd := exec.Command("git", "add", fp)
+
+	return gitadd.Run()
 }
 
 type ArchitectureDesignRecordConfig struct {
@@ -136,4 +153,5 @@ type ArchitectureDesignRecordTmpl struct {
 	ProposedDesign string
 	Decision       string
 	Consequences   string
+	RelatedADRs    []int
 }
