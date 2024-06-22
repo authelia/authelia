@@ -231,7 +231,7 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidSubject() {
 	suite.Require().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 2)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "access_control: rule #1 (domain 'public.example.com'): 'subject' option 'invalid' is invalid: must start with 'user:' or 'group:'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "access_control: rule #1 (domain 'public.example.com'): 'subject' option 'invalid' is invalid: must start with 'user:', 'group:', or 'oauth2:client:'")
 	suite.Assert().EqualError(suite.validator.Errors()[1], fmt.Sprintf(errAccessControlRuleBypassPolicyInvalidWithSubjects, ruleDescriptor(1, suite.config.AccessControl.Rules[0])))
 }
 

@@ -9,7 +9,7 @@ import (
 
 // NewAccessControlRules converts a schema.AccessControl into an AccessControlRule slice.
 func NewAccessControlRules(config schema.AccessControl) (rules []*AccessControlRule) {
-	networksMap, networksCacheMap := parseSchemaNetworks(config.Networks)
+	networksMap, networksCacheMap := ParseSchemaNetworks(config.Networks)
 
 	for i, schemaRule := range config.Rules {
 		rules = append(rules, NewAccessControlRule(i+1, schemaRule, networksMap, networksCacheMap))
@@ -49,7 +49,7 @@ type AccessControlRule struct {
 	Resources []AccessControlResource
 	Query     []AccessControlQuery
 	Methods   []string
-	Networks  []*net.IPNet
+	Networks  AccessControlNetworks
 	Subjects  []AccessControlSubjects
 	Policy    Level
 }
@@ -146,19 +146,7 @@ func (acr *AccessControlRule) MatchesMethods(object Object) (match bool) {
 
 // MatchesNetworks returns true if the rule matches the networks.
 func (acr *AccessControlRule) MatchesNetworks(subject Subject) (match bool) {
-	// If there are no networks in this rule then the network condition is a match.
-	if len(acr.Networks) == 0 {
-		return true
-	}
-
-	// Iterate over the networks until we find a match (return true) or until we exit the loop (return false).
-	for _, network := range acr.Networks {
-		if network.Contains(subject.IP) {
-			return true
-		}
-	}
-
-	return false
+	return acr.Networks.IsMatch(subject)
 }
 
 // MatchesSubjects returns true if the rule matches the subjects.

@@ -350,6 +350,11 @@
         "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_DISPLAY_NAME"
     },
     {
+        "path": "authentication_backend.ldap.attributes.family_name",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_FAMILY_NAME"
+    },
+    {
         "path": "authentication_backend.ldap.attributes.given_name",
         "secret": false,
         "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_GIVEN_NAME"
@@ -358,11 +363,6 @@
         "path": "authentication_backend.ldap.attributes.middle_name",
         "secret": false,
         "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_MIDDLE_NAME"
-    },
-    {
-        "path": "authentication_backend.ldap.attributes.family_name",
-        "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_FAMILY_NAME"
     },
     {
         "path": "authentication_backend.ldap.attributes.nickname",

@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/authelia/authelia/v4/internal/authorization"
 	"time"
 
 	oauthelia2 "authelia.com/provider/oauth2"
@@ -15,7 +16,6 @@ import (
 	ostorage "authelia.com/provider/oauth2/storage"
 	"github.com/google/uuid"
 
-	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -23,7 +23,7 @@ import (
 )
 
 // NewStore returns a Store when provided with a schema.OpenIDConnect and storage.Provider.
-func NewStore(config *schema.IdentityProvidersOpenIDConnect, provider storage.Provider) (store *Store) {
+func NewStore(config *schema.Configuration, provider storage.Provider) (store *Store) {
 	store = &Store{
 		ClientStore: NewMemoryClientStore(config),
 		provider:    provider,
@@ -32,18 +32,41 @@ func NewStore(config *schema.IdentityProvidersOpenIDConnect, provider storage.Pr
 	return store
 }
 
-func NewMemoryClientStore(config *schema.IdentityProvidersOpenIDConnect) (store *MemoryClientStore) {
+func NewMemoryClientStore(config *schema.Configuration) (store *MemoryClientStore) {
 	logger := logging.Logger()
 
 	store = &MemoryClientStore{
 		clients: map[string]Client{},
 	}
 
-	for _, client := range config.Clients {
-		policy := authorization.NewLevel(client.AuthorizationPolicy)
-		logger.Debugf("Registering client %s with policy %s (%v)", client.ID, client.AuthorizationPolicy, policy)
+	policies := map[string]ClientAuthorizationPolicy{
+		"one_factor": {Name: "one_factor", DefaultPolicy: authorization.NewLevel("one_factor")},
+		"two_factor": {Name: "two_factor", DefaultPolicy: authorization.NewLevel("two_factor")},
+	}
 
-		store.clients[client.ID] = NewClient(client, config)
+	networks, cache := authorization.ParseSchemaNetworks(config.AccessControl.Networks)
+
+	for name, p := range config.IdentityProviders.OIDC.AuthorizationPolicies {
+		policy := ClientAuthorizationPolicy{
+			Name:          name,
+			DefaultPolicy: authorization.NewLevel(p.DefaultPolicy),
+		}
+
+		for _, r := range p.Rules {
+			policy.Rules = append(policy.Rules, ClientAuthorizationPolicyRule{
+				Policy:   authorization.NewLevel(r.Policy),
+				Subjects: authorization.NewSubjects(r.Subjects),
+				Networks: authorization.NewNetworks(r.Networks, networks, cache),
+			})
+		}
+
+		policies[name] = policy
+	}
+
+	for _, client := range config.IdentityProviders.OIDC.Clients {
+		logger.Debugf("Registering OpenID Connect 1.0 client with client id '%s' and policy '%s'", client.ID, client.AuthorizationPolicy)
+
+		store.clients[client.ID] = NewClient(client, config.IdentityProviders.OIDC, policies)
 	}
 
 	return store
