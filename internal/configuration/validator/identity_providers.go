@@ -112,14 +112,6 @@ func validateOIDCAuthorizationPolicies(config *schema.Configuration, validator *
 					}
 				}
 			}
-
-			for _, network := range rule.Networks {
-				if !IsNetworkValid(network) {
-					if !IsNetworkGroupValid(config.AccessControl, network) {
-						validator.Push(fmt.Errorf(errFmtOIDCPolicyRuleInvalidNetwork, name, i+1, network))
-					}
-				}
-			}
 		}
 
 		config.IdentityProviders.OIDC.AuthorizationPolicies[name] = policy

@@ -1,30 +1,26 @@
 package authorization
 
 import (
-	"net"
-
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewAccessControlRules converts a schema.AccessControl into an AccessControlRule slice.
 func NewAccessControlRules(config schema.AccessControl) (rules []*AccessControlRule) {
-	networksMap, networksCacheMap := ParseSchemaNetworks(config.Networks)
-
 	for i, schemaRule := range config.Rules {
-		rules = append(rules, NewAccessControlRule(i+1, schemaRule, networksMap, networksCacheMap))
+		rules = append(rules, NewAccessControlRule(i+1, schemaRule))
 	}
 
 	return rules
 }
 
 // NewAccessControlRule parses a schema ACL and generates an internal ACL.
-func NewAccessControlRule(pos int, rule schema.AccessControlRule, networksMap map[string][]*net.IPNet, networksCacheMap map[string]*net.IPNet) *AccessControlRule {
+func NewAccessControlRule(pos int, rule schema.AccessControlRule) *AccessControlRule {
 	r := &AccessControlRule{
 		Position: pos,
 		Query:    NewAccessControlQuery(rule.Query),
 		Methods:  schemaMethodsToACL(rule.Methods),
-		Networks: schemaNetworksToACL(rule.Networks, networksMap, networksCacheMap),
+		Networks: AccessControlNetworks(rule.Networks),
 		Subjects: schemaSubjectsToACL(rule.Subjects),
 		Policy:   NewLevel(rule.Policy),
 	}

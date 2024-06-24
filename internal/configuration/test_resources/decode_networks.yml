@@ -1,0 +1,6 @@
+definitions:
+  network:
+    single: '192.168.0.1'
+    example:
+      - '192.168.1.20'
+      - '192.168.2.0/24'

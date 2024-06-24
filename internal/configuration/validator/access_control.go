@@ -20,14 +20,6 @@ func ValidateAccessControl(config *schema.Configuration, validator *schema.Struc
 	if !IsPolicyValid(config.AccessControl.DefaultPolicy) {
 		validator.Push(fmt.Errorf(errFmtAccessControlDefaultPolicyValue, utils.StringJoinOr(validACLRulePolicies), config.AccessControl.DefaultPolicy))
 	}
-
-	for _, n := range config.AccessControl.Networks {
-		for _, networks := range n.Networks {
-			if !IsNetworkValid(networks) {
-				validator.Push(fmt.Errorf(errFmtAccessControlNetworkGroupIPCIDRInvalid, n.Name, networks))
-			}
-		}
-	}
 }
 
 // ValidateRules validates an ACL Rule configuration.
@@ -57,8 +49,6 @@ func ValidateRules(config *schema.Configuration, validator *schema.StructValidat
 				validator.Push(fmt.Errorf(errFmtAccessControlRuleInvalidPolicy, ruleDescriptor(rulePosition, rule), utils.StringJoinOr(validACLRulePolicies), rule.Policy))
 			}
 		}
-
-		validateNetworks(rulePosition, rule, config.AccessControl, validator)
 
 		validateSubjects(rulePosition, rule, config, validator)
 
@@ -93,16 +83,6 @@ func validateDomains(rulePosition int, rule schema.AccessControlRule, validator 
 	for i, domain := range rule.Domains {
 		if len(domain) > 1 && domain[0] == '*' && domain[1] != '.' {
 			validator.PushWarning(fmt.Errorf("access_control: rule #%d: domain #%d: domain '%s' is ineffective and should probably be '%s' instead", rulePosition, i+1, domain, fmt.Sprintf("*.%s", domain[1:])))
-		}
-	}
-}
-
-func validateNetworks(rulePosition int, rule schema.AccessControlRule, config schema.AccessControl, validator *schema.StructValidator) {
-	for _, network := range rule.Networks {
-		if !IsNetworkValid(network) {
-			if !IsNetworkGroupValid(config, network) {
-				validator.Push(fmt.Errorf(errFmtAccessControlRuleNetworksInvalid, ruleDescriptor(rulePosition, rule), network))
-			}
 		}
 	}
 }
@@ -226,19 +206,6 @@ func IsSubjectValidOAuth20(config *schema.Configuration, id string) (isValid boo
 
 	for _, client := range config.IdentityProviders.OIDC.Clients {
 		if client.ID == id {
-			return true
-		}
-	}
-
-	return false
-}
-
-// IsNetworkGroupValid check if a network group is valid.
-func IsNetworkGroupValid(config schema.AccessControl, network string) bool {
-	for _, networks := range config.Networks {
-		if network != networks.Name {
-			continue
-		} else {
 			return true
 		}
 	}

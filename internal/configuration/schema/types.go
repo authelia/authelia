@@ -493,12 +493,6 @@ func (RefreshIntervalDuration) JSONSchema() *jsonschema.Schema {
 	}
 }
 
-type AccessControlRuleNetworks []string
-
-func (AccessControlRuleNetworks) JSONSchema() *jsonschema.Schema {
-	return &jsonschemaWeakStringUniqueSlice
-}
-
 type IdentityProvidersOpenIDConnectClientURIs []string
 
 func (IdentityProvidersOpenIDConnectClientURIs) JSONSchema() *jsonschema.Schema {
@@ -508,22 +502,6 @@ func (IdentityProvidersOpenIDConnectClientURIs) JSONSchema() *jsonschema.Schema 
 			{
 				Type:        jsonschema.TypeArray,
 				Items:       &jsonschemaURI,
-				UniqueItems: true,
-			},
-		},
-	}
-}
-
-// AccessControlNetworkNetworks represents the ACL AccessControlNetworkNetworks type.
-type AccessControlNetworkNetworks []string
-
-func (AccessControlNetworkNetworks) JSONSchema() *jsonschema.Schema {
-	return &jsonschema.Schema{
-		OneOf: []*jsonschema.Schema{
-			&jsonschemaACLNetwork,
-			{
-				Type:        jsonschema.TypeArray,
-				Items:       &jsonschemaACLNetwork,
 				UniqueItems: true,
 			},
 		},
