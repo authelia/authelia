@@ -5,7 +5,6 @@
 //
 //	mockgen -package mocks -destination user_provider.go -mock_names UserProvider=MockUserProvider github.com/authelia/authelia/v4/internal/authentication UserProvider
 //
-
 // Package mocks is a generated GoMock package.
 package mocks
 
@@ -67,6 +66,20 @@ func (m *MockUserProvider) GetDetails(arg0 string) (*authentication.UserDetails,
 func (mr *MockUserProviderMockRecorder) GetDetails(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDetails", reflect.TypeOf((*MockUserProvider)(nil).GetDetails), arg0)
+}
+
+// Shutdown mocks base method.
+func (m *MockUserProvider) Shutdown() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Shutdown")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Shutdown indicates an expected call of Shutdown.
+func (mr *MockUserProviderMockRecorder) Shutdown() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockUserProvider)(nil).Shutdown))
 }
 
 // StartupCheck mocks base method.

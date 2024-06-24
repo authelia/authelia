@@ -64,6 +64,10 @@ func (p *FileUserProvider) Reload() (reloaded bool, err error) {
 	return true, nil
 }
 
+func (p *FileUserProvider) Shutdown() (err error) {
+	return nil
+}
+
 // CheckUserPassword checks if provided password matches for the given user.
 func (p *FileUserProvider) CheckUserPassword(username string, password string) (match bool, err error) {
 	var details FileUserDatabaseUserDetails
