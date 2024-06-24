@@ -397,7 +397,8 @@ func (ctx *CmdCtx) ConfigEnsureExistsRunE(cmd *cobra.Command, _ []string) (err e
 // HelperConfigLoadRunE loads the configuration into the CmdCtx.
 func (ctx *CmdCtx) HelperConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
-		filters []configuration.BytesFilter
+		definitions *schema.Definitions
+		filters     []configuration.BytesFilter
 	)
 
 	if ctx.cconfig == nil {
@@ -422,10 +423,15 @@ func (ctx *CmdCtx) HelperConfigLoadRunE(cmd *cobra.Command, _ []string) (err err
 		ctx.cconfig.defaults,
 		ctx.cconfig.sources...)
 
+	if definitions, err = configuration.LoadDefinitions(ctx.cconfig.validator, ctx.cconfig.sources...); err != nil {
+		return err
+	}
+
 	if ctx.cconfig.keys, err = configuration.LoadAdvanced(
 		ctx.cconfig.validator,
 		"",
 		ctx.config,
+		definitions,
 		ctx.cconfig.sources...); err != nil {
 		return err
 	}
