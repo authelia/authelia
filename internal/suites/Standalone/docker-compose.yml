@@ -9,5 +9,6 @@ services:
       - './Standalone/users.yml:/config/users.yml'
       - './common/pki:/pki'
       - '/tmp:/tmp'
+      - './Standalone/locales:/config/locales'
     user: ${USER_ID}:${GROUP_ID}
 ...

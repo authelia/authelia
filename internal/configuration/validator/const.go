@@ -618,3 +618,9 @@ var specificErrorKeys = map[string]string{
 	"authentication_backend.file.hashing.memory":               errFileHashing,
 	"authentication_backend.file.hashing.parallelism":          errFileHashing,
 }
+
+const (
+	errFmtCustomLocalesPathUndefined    = "custom locales: configuration is enabled, but not path was defined"
+	errFmtCustomLocalesPathNotExist     = "custom locales: option 'path' refers to location '%s' which does not exist"
+	errFmtCustomLocalesPathUnknownError = "custom locales: option 'path' refers to location '%s' which couldn't be opened: %w"
+)
