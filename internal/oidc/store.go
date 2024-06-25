@@ -44,8 +44,6 @@ func NewMemoryClientStore(config *schema.Configuration) (store *MemoryClientStor
 		"two_factor": {Name: "two_factor", DefaultPolicy: authorization.NewLevel("two_factor")},
 	}
 
-	networks, cache := authorization.ParseSchemaNetworks(config.AccessControl.Networks)
-
 	for name, p := range config.IdentityProviders.OIDC.AuthorizationPolicies {
 		policy := ClientAuthorizationPolicy{
 			Name:          name,
@@ -56,7 +54,7 @@ func NewMemoryClientStore(config *schema.Configuration) (store *MemoryClientStor
 			policy.Rules = append(policy.Rules, ClientAuthorizationPolicyRule{
 				Policy:   authorization.NewLevel(r.Policy),
 				Subjects: authorization.NewSubjects(r.Subjects),
-				Networks: authorization.NewNetworks(r.Networks, networks, cache),
+				Networks: r.Networks,
 			})
 		}
 

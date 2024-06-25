@@ -2022,17 +2022,20 @@ func TestStringToIPNetworksHookFunc(t *testing.T) {
 	testCases := []struct {
 		name     string
 		path     string
-		have     schema.Definitions
+		have     *schema.Definitions
 		expected TestConfigDefinitions
 		err      string
 	}{
 		{
 			"ShouldDecode",
 			"decode_networks.yml",
-			schema.Definitions{},
+			&schema.Definitions{},
 			TestConfigDefinitions{
 				Definitions: schema.Definitions{
 					Network: map[string][]*net.IPNet{
+						"single": {
+							mustParseNet("192.168.0.1/32"),
+						},
 						"example": {
 							mustParseNet("192.168.1.20/32"),
 							mustParseNet("192.168.2.0/24"),
@@ -2045,7 +2048,7 @@ func TestStringToIPNetworksHookFunc(t *testing.T) {
 		{
 			"ShouldDecodeDefinitions",
 			"decode_networks_abc.yml",
-			schema.Definitions{
+			&schema.Definitions{
 				Network: map[string][]*net.IPNet{
 					"abc": {
 						mustParseNet("1.1.1.1/32"),

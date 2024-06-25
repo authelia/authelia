@@ -18,6 +18,7 @@ import (
 
 // FilteredFile implements a koanf.Provider.
 type FilteredFile struct {
+	data    []byte
 	path    string
 	filters []BytesFilter
 }
@@ -32,21 +33,25 @@ func FilteredFileProvider(path string, filters ...BytesFilter) *FilteredFile {
 
 // ReadBytes reads the contents of a file on disk, passes it through any configured filters, and returns the bytes.
 func (f *FilteredFile) ReadBytes() (data []byte, err error) {
-	if data, err = os.ReadFile(f.path); err != nil {
+	if f.data != nil {
+		return f.data, nil
+	}
+
+	if f.data, err = os.ReadFile(f.path); err != nil {
 		return nil, err
 	}
 
-	if len(data) == 0 || len(f.filters) == 0 {
-		return data, nil
+	if len(f.data) == 0 || len(f.filters) == 0 {
+		return f.data, nil
 	}
 
 	for _, filter := range f.filters {
-		if data, err = filter.Filter(data); err != nil {
+		if f.data, err = filter.Filter(f.data); err != nil {
 			return nil, err
 		}
 	}
 
-	return data, nil
+	return f.data, nil
 }
 
 // Read is not supported by the filtered file koanf.Provider.
@@ -54,6 +59,7 @@ func (f *FilteredFile) Read() (map[string]any, error) {
 	return nil, errors.New("filtered file provider does not support this method")
 }
 
+// BytesFilter is an interface describing utility structures that filter bytes into desired bytes.
 type BytesFilter interface {
 	Name() (name string)
 	Filter(in []byte) (out []byte, err error)
