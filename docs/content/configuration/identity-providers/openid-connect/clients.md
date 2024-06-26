@@ -580,7 +580,7 @@ is an escape hatch to turn this policy off for a particular client.
 
 Per the text:
 
-{{< callout context="danger" title="RFC6749: Section 2.3" icon="alert-octagon" >}}
+{{< callout context="danger" title="RFC6749: Section 2.3" icon="outline/alert-octagon" >}}
 The client MUST NOT use more than one authentication method in each request.
 {{< /callout >}}
 

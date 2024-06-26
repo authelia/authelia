@@ -55,7 +55,7 @@ __Authelia__ itself requires the following headers are set when secured behind a
 
 ## Important Notes
 
-{{< callout context="danger" title="Important Notes" icon="alert-octagon" >}}
+{{< callout context="danger" title="Important Notes" icon="outline/alert-octagon" >}}
 The following section has important notes for integrating Authelia with your proxy.
 {{< /callout >}}
 

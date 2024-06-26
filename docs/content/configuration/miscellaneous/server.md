@@ -50,7 +50,7 @@ server:
 
 {{< confkey type="string" syntax="address" default="tcp://:9091/" required="no" >}}
 
-{{< callout context="danger" title="Important Notes" icon="alert-octagon" >}}
+{{< callout context="danger" title="Important Notes" icon="outline/alert-octagon" >}}
 The [Proxy Integration](../../integration/proxies/introduction.md#important-notes) documentation has important notes on
 this option for when integrating it with a proxy.
 {{< /callout >}}
