@@ -45,7 +45,7 @@ by the relevant specifications.
 
 ## Important Notes
 
-{{< callout context="danger" title="Important Notes" icon="alert-octagon" >}}
+{{< callout context="danger" title="Important Notes" icon="outline/alert-octagon" >}}
 The following section has general important notes for users getting started.
 {{< /callout >}}
 
