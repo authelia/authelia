@@ -122,6 +122,54 @@ This subcommand allows you to change the encryption key of an Authelia SQL datab
 	cmdAutheliaStorageEncryptionChangeKeyExample = `authelia storage encryption change-key --config config.yml --new-encryption-key 0e95cb49-5804-4ad9-be82-bb04a9ddecd8
 authelia storage encryption change-key --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --new-encryption-key 0e95cb49-5804-4ad9-be82-bb04a9ddecd8 --postgres.host postgres --postgres.password autheliapw`
 
+	cmdAutheliaStorageBansShort = "Manages user and ip bans"
+
+	cmdAutheliaStorageBansLong = `Manages user and ip bans.
+
+This subcommand allows listing, creating, and revoking user and ip bans from the regulation system.`
+
+	cmdAutheliaStorageBansExample = `authelia storage bans --help`
+
+	cmdAutheliaStorageBansUserShort = "Manages user bans"
+
+	cmdAutheliaStorageBansUserLong = `Manages user bans.
+
+This subcommand allows listing, creating, and revoking user bans from the regulation system.`
+
+	cmdAutheliaStorageBansUserExample = `authelia storage bans user --help`
+
+	cmdAutheliaStorageBansIPShort = "Manages ip bans"
+
+	cmdAutheliaStorageBansIPLong = `Manages ip bans.
+
+This subcommand allows listing, creating, and revoking ip bans from the regulation system.`
+
+	cmdAutheliaStorageBansIPExample = `authelia storage bans ip --help`
+
+	cmdAutheliaStorageBansListShort = "Lists %s bans"
+
+	cmdAutheliaStorageBansListLong = `Lists %s bans.
+
+This subcommand allows listing %s bans from the regulation system.`
+
+	cmdAutheliaStorageBansListExample = `authelia storage bans %s --help`
+
+	cmdAutheliaStorageBansAddShort = "Adds %s bans"
+
+	cmdAutheliaStorageBansAddLong = `Adds %s bans.
+
+This subcommand allows adding %s bans to the regulation system.`
+
+	cmdAutheliaStorageBansAddExample = `authelia storage bans %s add --help`
+
+	cmdAutheliaStorageBansRevokeShort = "Revokes %s bans"
+
+	cmdAutheliaStorageBansRevokeLong = `Revokes %s bans.
+
+This subcommand allows revoking %s bans in the regulation system.`
+
+	cmdAutheliaStorageBansRevokeExample = `authelia storage bans %s revoke --help`
+
 	cmdAutheliaStorageUserShort = "Manages user settings"
 
 	cmdAutheliaStorageUserLong = `Manages user settings.
@@ -695,6 +743,8 @@ const (
 	cmdUseRSA         = "rsa"
 	cmdUseECDSA       = "ecdsa"
 	cmdUseEd25519     = "ed25519"
+	cmdUseUser        = "user"
+	cmdUseIP          = "ip"
 )
 
 const (

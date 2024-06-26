@@ -159,16 +159,25 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFail() {
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
-func (s *FirstFactorSuite) TestShouldFailIfAuthenticationMarkFail() {
-	s.mock.UserProviderMock.
-		EXPECT().
-		CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
-		Return(true, nil)
-
-	s.mock.StorageMock.
-		EXPECT().
-		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
-		Return(fmt.Errorf("failed"))
+func (s *FirstFactorSuite) TestShouldNotFailIfAuthenticationMarkFail() {
+	gomock.InOrder(
+		s.mock.UserProviderMock.
+			EXPECT().
+			CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
+			Return(true, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
+			Return(fmt.Errorf("failed")),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq("test")).
+			Return(&authentication.UserDetails{
+				Username: "test",
+				Emails:   []string{"test@example.com"},
+				Groups:   []string{"dev", "admins"},
+			}, nil),
+	)
 
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
@@ -177,8 +186,8 @@ func (s *FirstFactorSuite) TestShouldFailIfAuthenticationMarkFail() {
 	}`)
 	FirstFactorPOST(nil)(s.mock.Ctx)
 
-	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Unable to mark 1FA authentication attempt by user 'test'", "failed")
-	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
+	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Failed to record 1FA authentication attempt", "failed")
+	s.mock.Assert200OK(s.T(), nil)
 }
 
 func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {

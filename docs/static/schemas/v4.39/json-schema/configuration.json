@@ -2372,6 +2372,17 @@
     },
     "Regulation": {
       "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "user",
+            "ip",
+            "both"
+          ],
+          "title": "Regulation Mode",
+          "description": "The mode to use for regulation.",
+          "default": "user"
+        },
         "max_retries": {
           "type": "integer",
           "title": "Maximum Retries",
