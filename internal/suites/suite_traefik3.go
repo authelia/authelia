@@ -5,11 +5,11 @@ import (
 	"time"
 )
 
-var traefik2SuiteName = "Traefik2"
+var traefik3SuiteName = "Traefik3"
 
 var traefik2DockerEnvironment = NewDockerEnvironment([]string{
 	"internal/suites/docker-compose.yml",
-	"internal/suites/Traefik2/docker-compose.yml",
+	"internal/suites/Traefik3/docker-compose.yml",
 	"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
 	"internal/suites/example/compose/authelia/docker-compose.frontend.{}.yml",
 	"internal/suites/example/compose/redis/docker-compose.yml",
@@ -23,7 +23,7 @@ func init() {
 	if os.Getenv("CI") == t {
 		traefik2DockerEnvironment = NewDockerEnvironment([]string{
 			"internal/suites/docker-compose.yml",
-			"internal/suites/Traefik2/docker-compose.yml",
+			"internal/suites/Traefik3/docker-compose.yml",
 			"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
 			"internal/suites/example/compose/redis/docker-compose.yml",
 			"internal/suites/example/compose/nginx/backend/docker-compose.yml",
@@ -38,7 +38,7 @@ func init() {
 			return err
 		}
 
-		if err = waitUntilAutheliaIsReady(traefik2DockerEnvironment, traefik2SuiteName); err != nil {
+		if err = waitUntilAutheliaIsReady(traefik2DockerEnvironment, traefik3SuiteName); err != nil {
 			return err
 		}
 
@@ -54,7 +54,7 @@ func init() {
 		return err
 	}
 
-	GlobalRegistry.Register(traefik2SuiteName, Suite{
+	GlobalRegistry.Register(traefik3SuiteName, Suite{
 		SetUp:           setup,
 		SetUpTimeout:    5 * time.Minute,
 		OnSetupTimeout:  displayAutheliaLogs,
