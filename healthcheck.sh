@@ -1,6 +1,5 @@
 #!/bin/sh
 
-# eval env file
 . /app/.healthcheck.env
 
 if [ -z "${X_AUTHELIA_HEALTHCHECK}" ]; then
