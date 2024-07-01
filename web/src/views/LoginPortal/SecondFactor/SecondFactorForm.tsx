@@ -1,6 +1,7 @@
 import React, { lazy, useEffect, useState } from "react";
 
-import { Button, Grid, Theme } from "@mui/material";
+import { Button, Theme } from "@mui/material";
+import Grid from "@mui/material/Unstable_Grid2/Grid2";
 import makeStyles from "@mui/styles/makeStyles";
 import { browserSupportsWebAuthn } from "@simplewebauthn/browser";
 import { useTranslation } from "react-i18next";
@@ -95,7 +96,7 @@ const SecondFactorForm = function (props: Props) {
                 />
             ) : null}
             <Grid container>
-                <Grid item xs={12}>
+                <Grid xs={12}>
                     <Button color="secondary" onClick={handleLogoutClick} id="logout-button">
                         {translate("Logout")}
                     </Button>
@@ -106,7 +107,7 @@ const SecondFactorForm = function (props: Props) {
                         </Button>
                     ) : null}
                 </Grid>
-                <Grid item xs={12} className={styles.methodContainer}>
+                <Grid xs={12} className={styles.methodContainer}>
                     <Routes>
                         <Route
                             path={SecondFactorTOTPSubRoute}
