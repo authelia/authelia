@@ -206,9 +206,18 @@ func TestRequireElevated(t *testing.T) {
 			userSession, err := mock.Ctx.GetSession()
 			require.NoError(t, err)
 
-			userSession.AuthenticationLevel = tc.level
-			if userSession.AuthenticationLevel >= authentication.OneFactor {
+			switch tc.level {
+			case authentication.OneFactor:
 				userSession.Username = "john"
+				userSession.AuthenticationMethodRefs.UsernameAndPassword = true
+				userSession.AuthenticationMethodRefs.WebAuthn = false
+			case authentication.TwoFactor:
+				userSession.Username = "john"
+				userSession.AuthenticationMethodRefs.UsernameAndPassword = true
+				userSession.AuthenticationMethodRefs.WebAuthn = true
+			case authentication.NotAuthenticated:
+				userSession.AuthenticationMethodRefs.UsernameAndPassword = false
+				userSession.AuthenticationMethodRefs.WebAuthn = false
 			}
 
 			if tc.elevation != nil {

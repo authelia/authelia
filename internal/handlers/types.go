@@ -158,6 +158,8 @@ type StateResponse struct {
 	Username              string               `json:"username"`
 	AuthenticationLevel   authentication.Level `json:"authentication_level"`
 	DefaultRedirectionURL string               `json:"default_redirection_url"`
+
+	// TODO: Add Knowledge/Possession keys.
 }
 
 // resetPasswordStep1RequestBody model of the reset password (step1) request body.

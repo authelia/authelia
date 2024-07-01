@@ -87,7 +87,7 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel, authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
+	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel(), authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
 		ctx.Logger.Errorf("User '%s' can't consent to authorization request for client with id '%s' as they are not sufficiently authenticated",
 			userSession.Username, consent.ClientID)
 		ctx.SetJSONError(messageOperationFailed)
@@ -215,7 +215,7 @@ func handleOpenIDConnectConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx
 		}
 	}
 
-	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel, authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
+	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel(), authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
 		ctx.Logger.Errorf("Unable to perform OpenID Connect Consent for user '%s' and client id '%s': the user is not sufficiently authenticated", userSession.Username, consent.ClientID)
 		ctx.ReplyForbidden()
 

@@ -15,7 +15,6 @@ import (
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
-	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/random"
@@ -39,7 +38,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -65,7 +64,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -91,7 +90,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -117,7 +116,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -141,7 +140,8 @@ func TestUserSessionElevationGET(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.TwoFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+				us.AuthenticationMethodRefs.WebAuthn = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
@@ -159,7 +159,8 @@ func TestUserSessionElevationGET(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.TwoFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+				us.AuthenticationMethodRefs.WebAuthn = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
@@ -197,7 +198,8 @@ func TestUserSessionElevationGET(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.TwoFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+				us.AuthenticationMethodRefs.WebAuthn = true
 				us.Elevations.User = &session.Elevation{
 					ID:       1,
 					RemoteIP: mock.Ctx.RemoteIP(),
@@ -218,7 +220,8 @@ func TestUserSessionElevationGET(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.TwoFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+				us.AuthenticationMethodRefs.WebAuthn = true
 				us.Elevations.User = &session.Elevation{
 					ID:       1,
 					RemoteIP: mock.Ctx.RemoteIP(),
@@ -239,7 +242,8 @@ func TestUserSessionElevationGET(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.TwoFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+				us.AuthenticationMethodRefs.WebAuthn = true
 				us.Elevations.User = &session.Elevation{
 					ID:       1,
 					RemoteIP: net.ParseIP("1.1.1.1"),
@@ -268,7 +272,8 @@ func TestUserSessionElevationGET(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.TwoFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+				us.AuthenticationMethodRefs.WebAuthn = true
 				us.Elevations.User = &session.Elevation{
 					ID:       1,
 					RemoteIP: mock.Ctx.RemoteIP(),
@@ -332,7 +337,7 @@ func TestUserSessionElevationPOST(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -381,7 +386,7 @@ func TestUserSessionElevationPOST(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -432,7 +437,7 @@ func TestUserSessionElevationPOST(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -474,7 +479,7 @@ func TestUserSessionElevationPOST(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -505,7 +510,7 @@ func TestUserSessionElevationPOST(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -592,7 +597,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -634,7 +639,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -698,7 +703,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -738,7 +743,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
@@ -760,7 +765,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
@@ -782,7 +787,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -826,7 +831,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -867,7 +872,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -908,7 +913,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -948,7 +953,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -988,7 +993,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -1017,7 +1022,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -1094,7 +1099,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -1136,7 +1141,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -1180,7 +1185,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -1220,7 +1225,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -1261,7 +1266,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -1302,7 +1307,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -1331,7 +1336,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
@@ -1353,7 +1358,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},

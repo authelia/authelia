@@ -214,7 +214,7 @@ func handleOIDCWorkflowResponseWithID(ctx *middlewares.AutheliaCtx, userSession 
 	level := client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()})
 
 	switch {
-	case authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel, level), level == authorization.Denied:
+	case authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel(), level), level == authorization.Denied:
 		var (
 			targetURL *url.URL
 			form      url.Values

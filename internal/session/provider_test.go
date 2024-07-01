@@ -51,7 +51,8 @@ func TestShouldUpdateSession(t *testing.T) {
 	session, _ := provider.GetSession(ctx)
 
 	session.Username = testUsername
-	session.AuthenticationLevel = authentication.TwoFactor
+	session.AuthenticationMethodRefs.UsernameAndPassword = true
+	session.AuthenticationMethodRefs.WebAuthn = true
 
 	err = provider.SaveSession(ctx, session)
 	assert.NoError(t, err)
@@ -60,10 +61,15 @@ func TestShouldUpdateSession(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, UserSession{
-		CookieDomain:        testDomain,
-		Username:            testUsername,
-		AuthenticationLevel: authentication.TwoFactor,
+		CookieDomain: testDomain,
+		Username:     testUsername,
+		AuthenticationMethodRefs: oidc.AuthenticationMethodsReferences{
+			UsernameAndPassword: true,
+			WebAuthn:            true,
+		},
 	}, session)
+
+	assert.Equal(t, authentication.TwoFactor, session.AuthenticationLevel())
 }
 
 func TestShouldSetSessionAuthenticationLevels(t *testing.T) {
@@ -101,11 +107,12 @@ func TestShouldSetSessionAuthenticationLevels(t *testing.T) {
 	assert.Equal(t, UserSession{
 		CookieDomain:              testDomain,
 		Username:                  testUsername,
-		AuthenticationLevel:       authentication.OneFactor,
 		LastActivity:              timeOneFactor.Unix(),
 		FirstFactorAuthnTimestamp: timeOneFactor.Unix(),
 		AuthenticationMethodRefs:  oidc.AuthenticationMethodsReferences{UsernameAndPassword: true},
 	}, session)
+
+	assert.Equal(t, authentication.OneFactor, session.AuthenticationLevel())
 
 	session.SetTwoFactorDuo(timeTwoFactor)
 
@@ -118,12 +125,13 @@ func TestShouldSetSessionAuthenticationLevels(t *testing.T) {
 	assert.Equal(t, UserSession{
 		CookieDomain:               testDomain,
 		Username:                   testUsername,
-		AuthenticationLevel:        authentication.TwoFactor,
 		LastActivity:               timeTwoFactor.Unix(),
 		FirstFactorAuthnTimestamp:  timeOneFactor.Unix(),
 		SecondFactorAuthnTimestamp: timeTwoFactor.Unix(),
 		AuthenticationMethodRefs:   oidc.AuthenticationMethodsReferences{UsernameAndPassword: true, Duo: true},
 	}, session)
+
+	assert.Equal(t, authentication.TwoFactor, session.AuthenticationLevel())
 
 	authAt, err = session.AuthenticatedTime(authorization.OneFactor)
 	assert.NoError(t, err)
@@ -173,11 +181,12 @@ func TestShouldSetSessionAuthenticationLevelsAMR(t *testing.T) {
 	assert.Equal(t, UserSession{
 		CookieDomain:              testDomain,
 		Username:                  testUsername,
-		AuthenticationLevel:       authentication.OneFactor,
 		LastActivity:              timeOneFactor.Unix(),
 		FirstFactorAuthnTimestamp: timeOneFactor.Unix(),
 		AuthenticationMethodRefs:  oidc.AuthenticationMethodsReferences{UsernameAndPassword: true},
 	}, session)
+
+	assert.Equal(t, authentication.OneFactor, session.AuthenticationLevel())
 
 	session.SetTwoFactorWebAuthn(timeTwoFactor, true, false, false)
 
@@ -308,7 +317,8 @@ func TestShouldDestroySessionAndWipeSessionData(t *testing.T) {
 	assert.NoError(t, err)
 
 	session.Username = testUsername
-	session.AuthenticationLevel = authentication.TwoFactor
+	session.AuthenticationMethodRefs.UsernameAndPassword = true
+	session.AuthenticationMethodRefs.WebAuthn = true
 
 	err = domainSession.SaveSession(ctx, session)
 	assert.NoError(t, err)
@@ -316,7 +326,7 @@ func TestShouldDestroySessionAndWipeSessionData(t *testing.T) {
 	newUserSession, err := domainSession.GetSession(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, testUsername, newUserSession.Username)
-	assert.Equal(t, authentication.TwoFactor, newUserSession.AuthenticationLevel)
+	assert.Equal(t, authentication.TwoFactor, newUserSession.AuthenticationLevel())
 
 	err = domainSession.DestroySession(ctx)
 	assert.NoError(t, err)
@@ -324,5 +334,5 @@ func TestShouldDestroySessionAndWipeSessionData(t *testing.T) {
 	newUserSession, err = domainSession.GetSession(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, "", newUserSession.Username)
-	assert.Equal(t, authentication.NotAuthenticated, newUserSession.AuthenticationLevel)
+	assert.Equal(t, authentication.NotAuthenticated, newUserSession.AuthenticationLevel())
 }

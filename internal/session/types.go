@@ -7,7 +7,6 @@ import (
 	session "github.com/fasthttp/session/v2"
 	"github.com/go-webauthn/webauthn/webauthn"
 
-	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
@@ -27,9 +26,8 @@ type UserSession struct {
 	Groups []string
 	Emails []string
 
-	KeepMeLoggedIn      bool
-	AuthenticationLevel authentication.Level
-	LastActivity        int64
+	KeepMeLoggedIn bool
+	LastActivity   int64
 
 	FirstFactorAuthnTimestamp  int64
 	SecondFactorAuthnTimestamp int64

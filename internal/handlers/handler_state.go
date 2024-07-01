@@ -22,7 +22,7 @@ func StateGET(ctx *middlewares.AutheliaCtx) {
 
 	stateResponse := StateResponse{
 		Username:            userSession.Username,
-		AuthenticationLevel: userSession.AuthenticationLevel,
+		AuthenticationLevel: userSession.AuthenticationLevel(),
 	}
 
 	if uri := ctx.GetDefaultRedirectionURL(); uri != nil {

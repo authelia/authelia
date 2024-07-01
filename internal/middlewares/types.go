@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"github.com/authelia/authelia/v4/internal/webauthn"
 	"github.com/go-webauthn/webauthn/metadata"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
@@ -20,6 +19,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/totp"
+	"github.com/authelia/authelia/v4/internal/webauthn"
 )
 
 // AutheliaCtx contains all server variables related to Authelia.

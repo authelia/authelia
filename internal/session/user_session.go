@@ -11,22 +11,33 @@ import (
 // NewDefaultUserSession create a default user session.
 func NewDefaultUserSession() UserSession {
 	return UserSession{
-		KeepMeLoggedIn:      false,
-		AuthenticationLevel: authentication.NotAuthenticated,
-		LastActivity:        0,
+		KeepMeLoggedIn: false,
+		LastActivity:   0,
 	}
 }
 
 // IsAnonymous returns true if the username is empty or the AuthenticationLevel is authentication.NotAuthenticated.
 func (s *UserSession) IsAnonymous() bool {
-	return s.Username == "" || s.AuthenticationLevel == authentication.NotAuthenticated
+	return s.AuthenticationLevel() == authentication.NotAuthenticated
+}
+
+func (s *UserSession) AuthenticationLevel() authentication.Level {
+	switch {
+	case s.Username == "":
+		return authentication.NotAuthenticated
+	case s.AuthenticationMethodRefs.FactorPossession() && s.AuthenticationMethodRefs.FactorKnowledge():
+		return authentication.TwoFactor
+	case s.AuthenticationMethodRefs.FactorPossession() || s.AuthenticationMethodRefs.FactorKnowledge():
+		return authentication.OneFactor
+	default:
+		return authentication.NotAuthenticated
+	}
 }
 
 // SetOneFactor sets the 1FA AMR's and expected property values for one factor authentication.
 func (s *UserSession) SetOneFactor(now time.Time, details *authentication.UserDetails, keepMeLoggedIn bool) {
 	s.FirstFactorAuthnTimestamp = now.Unix()
 	s.LastActivity = now.Unix()
-	s.AuthenticationLevel = authentication.OneFactor
 
 	s.KeepMeLoggedIn = keepMeLoggedIn
 
@@ -41,7 +52,6 @@ func (s *UserSession) SetOneFactor(now time.Time, details *authentication.UserDe
 func (s *UserSession) setTwoFactor(now time.Time) {
 	s.SecondFactorAuthnTimestamp = now.Unix()
 	s.LastActivity = now.Unix()
-	s.AuthenticationLevel = authentication.TwoFactor
 }
 
 // SetTwoFactorTOTP sets the relevant TOTP AMR's and sets the factor to 2FA.
