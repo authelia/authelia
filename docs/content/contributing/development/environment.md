@@ -23,15 +23,18 @@ In order to build and contribute to __Authelia__, you need to make sure the foll
 * General:
   * [git]
 * Backend Development:
-  * [go] *(v1.21 or greater)*
+  * [go]:
+    * Minimum is *v1.21 or greater*.
+    * The toolchain version noted in [go.mod](https://github.com/authelia/authelia/blob/master/go.mod#L5) is the
+      officially supported version.
   * [gcc]
   * [gomock]
 * Frontend Development
-  * [Node.js] *(v18 or greater)*
-  * [pnpm]
+  * [Node.js] *(v20 or greater)*.
+  * [pnpm] *(v9.4.0 or greater)*.
 * Integration Suites:
-  * [Docker]
-  * [Docker Compose]
+  * [Docker] *(v27.0.0 or greater)*.
+  * [Docker Compose] *(v2.22.0 or greater)*
   * [chromium]
 
 The additional tools are recommended:
@@ -98,7 +101,7 @@ listed subdomains from your browser, and they will be served by the reverse prox
 [Buildkite]: https://buildkite.com/
 [React]: https://reactjs.org/
 [go]: https://go.dev/dl/
-[gomock]: https://github.com/golang/mock
+[gomock]: https://github.com/uber-go/mock
 [Node.js]: https://nodejs.org/en/download/
 [pnpm]: https://pnpm.io/installation
 [Docker]: https://docs.docker.com/get-docker/

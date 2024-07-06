@@ -10,7 +10,10 @@ integration:
 parent: "trusted-header-sso"
 weight: 420
 toc: true
-community: true
+support:
+  level: community
+  versions: true
+  integration: true
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)

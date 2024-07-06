@@ -7,7 +7,10 @@ draft: false
 images: []
 weight: 620
 toc: true
-community: true
+support:
+  level: community
+  versions: true
+  integration: true
 aliases:
   - /docs/community/oidc-integrations/proxmox.html
 seo:
