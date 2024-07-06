@@ -1,0 +1,8 @@
+{{ $term := .Params.support.term | default "guide" }}
+{{ if eq .Params.support.level "community" }}
+<p>This {{ $term }} is community supported. It's not guaranteed to be complete, accurate, or up-to-date.</p>
+{{ else if eq .Params.support.level "maintainer" }}
+<p>This {{ $term }} is community supported. It's not guaranteed to be complete, accurate, or up-to-date. However one of the maintainers uses this {{ $term }} and will likely update it in the event of necessary changes.</p>
+{{ else if eq .Params.support.level "official" }}
+<p>This {{ $term }} is officially supported and tested in some way. It's likely if this {{ $term }} does not work for you that some part of this guide has been missed.</p>
+{{ end -}}
