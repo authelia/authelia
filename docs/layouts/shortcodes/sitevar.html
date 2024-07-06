@@ -1,0 +1,1 @@
+{{ $name := .Get "name" }}{{ $format := .Get "format" }}<span class="site-variable-{{ $name }}{{ if $format }}-{{ $format }}{{ end }}"></span>{{ "" -}}

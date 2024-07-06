@@ -81,7 +81,7 @@ identity_providers:
         - 'revocation'
         - 'introspection'
       allowed_origins:
-        - 'https://example.com'
+        - 'https://{{< sitevar name="domain" >}}'
       allowed_origins_from_client_redirect_uris: false
 ```
 

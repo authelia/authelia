@@ -57,8 +57,12 @@ replaced with the source IP of the client.
 ## Assumptions and Adaptation
 
 This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
-can not reasonably have examples for every advanced configuration option that exists. The
-following are the assumptions we make:
+can not reasonably have examples for every advanced configuration option that exists. Some of these values can
+automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
+
+The following are the assumptions we make:
 
 * Deployment Scenario:
   * Single Host
@@ -74,7 +78,7 @@ following are the assumptions we make:
     * you have adjusted the default port in the configuration
   * You will have to adapt the entire URL if:
     * Authelia is on a different host to the proxy
-* All services are part of the `example.com` domain:
+* All services are part of the `{{< sitevar name="domain" >}}` domain:
   * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
     just testing or you want to use that specific domain
 
@@ -105,16 +109,16 @@ configuration as well as the legacy configuration for context.
 ```yaml {title="configuration.yml"}
 session:
   cookies:
-    - domain: 'example.com'
-      authelia_url: 'https://auth.example.com'
-      default_redirection_url: 'https://www.example.com'
+    - domain: '{{</* sitevar name="domain" */>}}'
+      authelia_url: 'https://{{</* sitevar name="subdomain-authelia" */>}}.{{</* sitevar name="domain" */>}}'
+      default_redirection_url: 'https://www.{{</* sitevar name="domain" */>}}'
 ```
 {{< /sessionTab >}}
 {{< sessionTab "Legacy" >}}
 ```yaml {title="configuration.yml"}
-default_redirection_url: 'https://www.example.com'
+default_redirection_url: 'https://www.{{</* sitevar name="domain" */>}}'
 session:
-  domain: 'example.com'
+  domain: '{{</* sitevar name="domain" */>}}'
 ```
 {{< /sessionTab >}}
 {{< /sessionTabs >}}
@@ -220,7 +224,7 @@ Below you will find commented examples of the following configuration:
   `http://authelia:9091`. If this is not the case adjust all instances of this as appropriate.
 * The [NGINX] configuration is in the folder `/config/nginx`. If this is not the case adjust all instances of this as
   appropriate.
-* The URL you wish Authelia to be accessible on is `https://auth.example.com`. If this is not the case adjust all
+* The URL you wish Authelia to be accessible on is `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}`. If this is not the case adjust all
   instances of this as appropriate.
 
 ### Standard Example
@@ -499,8 +503,8 @@ error_page 401 =302 $redirection_url;
 # set_escape_uri $target_url $scheme://$http_host$request_uri;
 
 ## Legacy Method: When there is a 401 response code from the authz endpoint redirect to the portal with the 'rd'
-## URL parameter set to $target_url. This requires users update 'auth.example.com/' with their external authelia URL.
-# error_page 401 =302 https://auth.example.com/?rd=$target_url;
+## URL parameter set to $target_url. This requires users update '{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/' with their external authelia URL.
+# error_page 401 =302 https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/?rd=$target_url;
 ```
 
 #### authelia-location-basic.conf
@@ -610,12 +614,12 @@ location  /internal/authelia/authz/detect {
         return 401;
     }
 
-    ## IMPORTANT: The below URL `https://auth.example.com/` MUST be replaced with the externally accessible URL of the
+    ## IMPORTANT: The below URL `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/` MUST be replaced with the externally accessible URL of the
     ## Authelia Portal/Site.
     ##
     ## The original request didn't target /force-basic, redirect to the pretty login page
-    ## This is what `error_page 401 =302 https://auth.example.com/?rd=$target_url;` did.
-    return 302 https://auth.example.com/$is_args$args;
+    ## This is what `error_page 401 =302 https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/?rd=$target_url;` did.
+    return 302 https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/$is_args$args;
 }
 ```
 

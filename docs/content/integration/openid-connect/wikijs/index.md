@@ -31,10 +31,14 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://wiki.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://wiki.{{< sitevar name="domain" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/`
 * __Client ID:__ `Wiki.js`
 * __Client Secret:__ `insecure_secret`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -55,7 +59,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://wikijs.example.com/login/<UUID>/callback'  # Note this must be copied during step 7 of the Application configuration.
+          - 'https://wikijs.{{< sitevar name="domain" >}}/login/<UUID>/callback'  # Note this must be copied during step 7 of the Application configuration.
         scopes:
           - 'openid'
           - 'profile'
@@ -77,10 +81,10 @@ To configure [Wiki.js] to utilize Authelia as an [OpenID Connect 1.0] Provider:
    1. Display Name: `Authelia`
    2. Client ID: `wikijs`
    3. Client Secret: `insecure_secret`
-   4. Authorization Endpoint URL: `https://auth.example.com/api/oidc/authorization`
-   5. Token Endpoint URL: `https://auth.example.com/api/oidc/token`
-   6. User Info Endpoint URL: `https://auth.example.com/api/oidc/userinfo`
-   7. Issuer URL: `https://auth.example.com`
+   4. Authorization Endpoint URL: `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/api/oidc/authorization`
+   5. Token Endpoint URL: `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/api/oidc/token`
+   6. User Info Endpoint URL: `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/api/oidc/userinfo`
+   7. Issuer URL: `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}`
    8. Email Claim: `email`
    9. Display Name Claim: `name`
    10. Map Groups: Disabled

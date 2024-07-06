@@ -30,10 +30,14 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://express.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://express.{{< sitevar name="domain" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/`
 * __Client ID:__ `Express.js`
 * __Client Secret:__ `insecure_secret`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -56,7 +60,7 @@ identity_providers:
         require_pkce: true
         require_pushed_authorization_requests: true
         redirect_uris:
-          - 'https://express.example.com/callback'
+          - 'https://express.{{< sitevar name="domain" >}}/callback'
         scopes:
           - 'openid'
           - 'profile'
@@ -79,7 +83,7 @@ mkdir authelia-example && cd authelia-example && npm init -y && npm install expr
 #### Create The Application
 
 This application example assumes you're proxying the Node service with a proxy handling TLS termination for
-`https://express.example.com`.
+`https://express.{{< sitevar name="domain" >}}`.
 
 ```js {title="server.js"}
 "use strict";
@@ -93,12 +97,12 @@ const app = express();
 app.use(
   auth({
     authRequired: false,
-    baseURL: `${process.env.APP_BASE_URL || 'https://express.example.com'}/callback`,
+    baseURL: `${process.env.APP_BASE_URL || 'https://express.{{< sitevar name="domain" >}}'}/callback`,
     secret: process.env.SESSION_ENCRYPTION_SECRET || randomBytes(64).toString('hex'),
     clientID: process.env.OIDC_CLIENT_ID || 'Express.js',
     clientSecret: process.env.OIDC_CLIENT_SECRET || 'insecure_secret',
     clientAuthMethod: 'client_secret_basic',
-    issuerBaseURL: process.env.OIDC_ISSUER || 'https://auth.example.com',
+    issuerBaseURL: process.env.OIDC_ISSUER || 'https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}',
     pushedAuthorizationRequests: true,
     authorizationParams: {
       response_type: 'code',
@@ -131,9 +135,9 @@ app.listen(3000, function () {
 Environment Example:
 
 ```env
-APP_BASE_URL=https://express.example.com
+APP_BASE_URL=https://express.{{< sitevar name="domain" >}}
 SESSION_ENCRYPTION_SECRET=
-OIDC_ISSUER=https://auth.example.com
+OIDC_ISSUER=https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}
 OIDC_CLIENT_ID=Express.js
 OIDC_CLIENT_SECRET=insecure_secret
 ```

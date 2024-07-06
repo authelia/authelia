@@ -31,10 +31,14 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://homarr.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://homarr.{{< sitevar name="domain" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/`
 * __Client ID:__ `homarr`
 * __Client Secret:__ `insecure_secret`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -55,7 +59,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://homarr.example.com/api/auth/callback/oidc'
+          - 'https://homarr.{{< sitevar name="domain" >}}/api/auth/callback/oidc'
         scopes:
           - 'openid'
           - 'profile'
@@ -76,7 +80,7 @@ To configure [Homarr] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 ```env
 AUTH_PROVIDER=oidc
-AUTH_OIDC_URI=https://auth.example.com
+AUTH_OIDC_URI=https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}
 AUTH_OIDC_CLIENT_SECRET=insecure_secret
 AUTH_OIDC_CLIENT_ID=homarr
 AUTH_OIDC_CLIENT_NAME=Authelia

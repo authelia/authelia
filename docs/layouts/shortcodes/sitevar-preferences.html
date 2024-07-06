@@ -1,0 +1,54 @@
+<p>
+  <button type="button" class="btn btn-primary" id="site-variables-toggle" data-bs-toggle="modal" data-bs-target="#site-variables-modal">
+    Set Documentation Variables
+  </button>
+</p>
+<div class="modal modal-lg fade" id="site-variables-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="site-variables-modal-label" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="site-variables-modal-label">Documentation Variable Configuration</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3 row">
+          <p class="text-center text-break fs-6 fst-italic">The following settings are stored locally in browser storage and accessed locally via javascript. These values are not sent in any requests.</p>
+        </div>
+        <hr>
+        <form>
+          <div class="mb-3 row">
+            <label for="site-variable-domain" class="col-sm-4 col-form-label">Domain</label>
+            <div class="col-sm-8">
+              <input type="text" id="site-variable-domain" class="form-control">
+            </div>
+          </div>
+          <hr>
+          <div class="mb-3 row text-center">
+            <p>Subdomains</p>
+          </div>
+          <div class="mb-3 row">
+            <label for="site-variable-subdomain-authelia" class="col-sm-4 col-form-label">Authelia</label>
+            <div class="col-sm-8">
+              <input type="text" id="site-variable-subdomain-authelia" class="form-control">
+            </div>
+          </div>
+          <hr>
+          <div class="mb-3 row text-center">
+            <p>Example Values</p>
+            <p class="fs-6 fst-italic">The following fields show example values given the above inputs.</p>
+          </div>
+          <div class="mb-3 row">
+            <label for="site-const-authelia-url" class="col-sm-4 col-form-label">Authelia URL</label>
+            <div class="col-sm-8">
+              <input type="text" id="site-const-authelia-url" class="form-control" readonly>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="site-variables-close" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="site-variables-save" data-bs-dismiss="modal">Save</button>
+      </div>
+    </div>
+  </div>
+</div>

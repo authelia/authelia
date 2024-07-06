@@ -253,7 +253,7 @@ you're facing.
    - If using `docker run` see the `--network-alias` option of the [docker run](https://docs.docker.com/engine/reference/commandline/run/)
      reference for more information.
 
-Examples (assuming your Authelia Root URL is `https://auth.example.com`):
+Examples (assuming your Authelia Root URL is `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}`):
 
 ```yaml {title="docker-compose.yml"}
 services:
@@ -266,7 +266,7 @@ services:
       ## Mandatory that the proxy is on the same network as the application, and that it has this alias.
       proxy:
         aliases:
-          - 'auth.example.com'
+          - '{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}'
   authelia:
     networks:
       proxy: {}
@@ -278,7 +278,7 @@ networks:
 ```
 
 ```console
-docker run -d --name proxy --network proxy --network-alias auth.example.com <other proxy arguments>
+docker run -d --name proxy --network proxy --network-alias {{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}} <other proxy arguments>
 docker run -d --name application --network proxy <other application arguments>
 ```
 

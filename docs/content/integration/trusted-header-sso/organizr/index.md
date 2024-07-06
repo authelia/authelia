@@ -35,9 +35,13 @@ As with all guides in this section it's important you read the [introduction](..
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://organizr.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://organizr.{{< sitevar name="domain" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/`
 * __Reverse Proxy IP:__ `172.16.0.1`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -52,7 +56,7 @@ To configure [Organizr] to trust the `Remote-User` and `Remote-Email` header do 
    3. Auth Proxy Header Name: `Remote-User`
    4. Auth Proxy Header Name for Email: `Remote-Email`
    5. Override Logout: `Enabled`
-   6. Logout URL: `https://auth.example.com/logout`
+   6. Logout URL: `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/logout`
 
 {{< picture src="organizr.png" alt="Organizr" width="736" style="padding-right: 10px" >}}
 

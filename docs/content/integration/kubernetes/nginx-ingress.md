@@ -30,7 +30,7 @@ bootstrapping *Authelia*.
 ## NGINX Ingress Controller (ingress-nginx)
 
 If you use NGINX Ingress Controller ([ingress-nginx]) you can protect an ingress with the following annotations. The
-example assumes that the public domain Authelia is served on is `https://auth.example.com` and there is a
+example assumes that the public domain Authelia is served on is `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}` and there is a
 Kubernetes service with the name `authelia` in the `default` namespace with TCP port `80` configured to route to the
 Authelia HTTP port and that your cluster is configured with the default
 DNS domain name of `cluster.local`.
@@ -44,7 +44,7 @@ be applied to the Authelia Ingress itself.*
 annotations:
   nginx.ingress.kubernetes.io/auth-method: 'GET'
   nginx.ingress.kubernetes.io/auth-url: 'http://authelia.default.svc.cluster.local/api/authz/auth-request'
-  nginx.ingress.kubernetes.io/auth-signin: 'https://auth.example.com?rm=$request_method'
+  nginx.ingress.kubernetes.io/auth-signin: 'https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}?rm=$request_method'
   nginx.ingress.kubernetes.io/auth-response-headers: 'Remote-User,Remote-Name,Remote-Groups,Remote-Email'
 ```
 

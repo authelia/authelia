@@ -36,7 +36,7 @@ storage:
     password: 'mypassword'
     timeout: '5s'
     tls:
-      server_name: 'mysql.example.com'
+      server_name: 'mysql.{{< sitevar name="domain" >}}'
       skip_verify: false
       minimum_version: 'TLS1.2'
       maximum_version: 'TLS1.3'

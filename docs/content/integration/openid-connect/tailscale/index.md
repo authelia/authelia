@@ -31,11 +31,15 @@ seo:
 
 This example makes the following assumptions:
 
-* __Domain Root URL:__ `https://example.com`
-* __Authelia Root URL:__ `https://auth.example.com/`
-* __Authelia Account:__ `user@example.com`
+* __Domain Root URL:__ `https://{{< sitevar name="domain" >}}`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/`
+* __Authelia Account:__ `user@{{< sitevar name="domain" >}}`
 * __Client ID:__ `tailscale`
 * __Client Secret:__ `insecure_secret`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -70,23 +74,23 @@ web server hosted at the root of your domain will need to generate the response 
 implementations). The following steps are necessary to get Tailscale working with Authelia:
 
 1. Your domain will need to reply to a WebFinger request for your Authelia account
-2. Your domain root is `example.com` and the Authelia account in question is `user@example.com` the WebFinger request
-   will be: `https://example.com/.well-known/webfinger/?resource=acct:user@example.com` the complete request is `https://example.com/.well-known/webfinger?rel=http%3A%2F%2Fopenid.net%2Fspecs%2Fconnect%2F1.0%2Fissuer&resource=acct%3Auser%40example.com`
+2. Your domain root is `{{< sitevar name="domain" >}}` and the Authelia account in question is `user@{{< sitevar name="domain" >}}` the WebFinger request
+   will be: `https://{{< sitevar name="domain" >}}/.well-known/webfinger/?resource=acct:user@{{< sitevar name="domain" >}}` the complete request is `https://{{< sitevar name="domain" >}}/.well-known/webfinger?rel=http%3A%2F%2Fopenid.net%2Fspecs%2Fconnect%2F1.0%2Fissuer&resource=acct%3Auser%40{{< sitevar name="domain" >}}`
 3. The WebFinger request needs to be answered with the following example reply:
    ```json
    {
-     "subject": "acct:user@example.com",
+     "subject": "acct:user@{{< sitevar name="domain" >}}",
      "links": [{
        "rel": "http://openid.net/specs/connect/1.0/issuer",
-       "href": "https://auth.example.com"
+       "href": "https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}"
      }]
    }
    ```
-4. For any other users that you want to add to Tailscale, you will need to provide similar WebFinger replies (e.g. for `user2@example.com` or `user3@example.com`)
-5. Once you have the WebFinger reply set up and your [Authelia OpenID Connect Discovery endpoint](https://www.authelia.com/integration/openid-connect/introduction/#well-known-discovery-endpoints) is working (e.g. `https://auth.example.com/.well-known/openid-configuration`), you can sign up for a **new Tailnet** (migration can only be done if the Tailnet is associated with a custom domain) via the link: [Sign up with OIDC](https://login.tailscale.com/start/oidc) where you will see the following screen: \
+4. For any other users that you want to add to Tailscale, you will need to provide similar WebFinger replies (e.g. for `user2@{{< sitevar name="domain" >}}` or `user3@{{< sitevar name="domain" >}}`)
+5. Once you have the WebFinger reply set up and your [Authelia OpenID Connect Discovery endpoint](https://www.authelia.com/integration/openid-connect/introduction/#well-known-discovery-endpoints) is working (e.g. `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/.well-known/openid-configuration`), you can sign up for a **new Tailnet** (migration can only be done if the Tailnet is associated with a custom domain) via the link: [Sign up with OIDC](https://login.tailscale.com/start/oidc) where you will see the following screen: \
    {{< figure src="tailscale_signup_1.png" alt="Tailscale Signup Screen 1" width="300" >}} \
-   **Note:** Even though the WebFinger URL displayed is `https://example.com/.well-known/webfinger`, the actual GET request will be including request parameters, most importantly `resource`.
-6. After clicking on **Get OIDC Issuer**, Tailscale will fetch the WebFinger reply via `https://example.com/.well-known/webfinger/?resource=acct:user@example.com` and follow the set `href` to `https://auth.example.com/.well-known/openid-configuration`. \
+   **Note:** Even though the WebFinger URL displayed is `https://{{< sitevar name="domain" >}}/.well-known/webfinger`, the actual GET request will be including request parameters, most importantly `resource`.
+6. After clicking on **Get OIDC Issuer**, Tailscale will fetch the WebFinger reply via `https://{{< sitevar name="domain" >}}/.well-known/webfinger/?resource=acct:user@{{< sitevar name="domain" >}}` and follow the set `href` to `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/.well-known/openid-configuration`. \
    **Note:** Make sure that the `href` URL matches the `issuer` URL returned from the Authelia OIDC discovery endpoint
 7. On the next screen you will need to add your client ID & secret configured in Authelia to finish the OIDC provider registration in [Tailscale]. See the following example screenshot: \
    {{< figure src="tailscale_signup_2.png" alt="Tailscale Signup Screen 2" width="300" >}}

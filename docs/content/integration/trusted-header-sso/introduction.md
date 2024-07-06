@@ -41,12 +41,12 @@ however it can vary depending on how the application decides to do this.
 The following table represents the response headers that Authelia's `/api/verify` endpoint returns which can be
 forwarded over a trusted network via the reverse proxy when using the forward authentication flow.
 
-|    Header     |      Description / Notes       |      Example       |
-|:-------------:|:------------------------------:|:------------------:|
-|  Remote-User  |       The users username       |        john        |
-| Remote-Groups | The groups the user belongs to |     admin,dev      |
-|  Remote-Name  |     The users display name     |     John Smith     |
-| Remote-Email  |    The users email address     | jsmith@example.com |
+|    Header     |      Description / Notes       |                  Example                   |
+|:-------------:|:------------------------------:|:------------------------------------------:|
+|  Remote-User  |       The users username       |                    john                    |
+| Remote-Groups | The groups the user belongs to |                 admin,dev                  |
+|  Remote-Name  |     The users display name     |                 John Smith                 |
+| Remote-Email  |    The users email address     |      jsmith@{{< sitevar name="domain" >}}       |
 
 ## Forwarding the Response Headers
 

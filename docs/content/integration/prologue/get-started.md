@@ -52,6 +52,12 @@ The following section has general important notes for users getting started.
 - When integrating Authelia with a proxy users should read the specific
   [Proxy Integration Important Notes](../proxies/introduction.md#important-notes).
 
+## Documentation Variables
+
+Some of the values presented in the documentation can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
+
 ## Configuration
 
 It's important to customize the configuration for *Authelia* in advance of deploying it. The configuration is static and
@@ -87,7 +93,7 @@ The important sections to consider in initial configuration are as follows:
 access_control:
   default_policy: deny
   rules:
-    - domain: '*.example.com'
+    - domain: '*.{{< sitevar name="domain" >}}'
       policy: one_factor
 ```
 

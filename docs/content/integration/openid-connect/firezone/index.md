@@ -31,14 +31,18 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://firezone.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://firezone.{{< sitevar name="domain" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/`
 * __Client ID:__ `firezone`
 * __Client Secret:__ `insecure_secret`
 * __Config ID (Firezone):__ `authelia`:
     * This option determines the redirect URI in the format of
-      `https://firezone.example.com/auth/oidc/<Config ID>/callback`.
+      `https://firezone.{{< sitevar name="domain" >}}/auth/oidc/<Config ID>/callback`.
       This means if you change this value you need to update the redirect URI.
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -61,7 +65,7 @@ identity_providers:
         require_pkce: true
         pkce_challenge_method: 'S256'
         redirect_uris:
-          - 'https://firezone.example.com/auth/oidc/authelia/callback'
+          - 'https://firezone.{{< sitevar name="domain" >}}/auth/oidc/authelia/callback'
         scopes:
           - 'openid'
           - 'email'
@@ -85,8 +89,8 @@ To configure [Firezone] to utilize Authelia as an [OpenID Connect 1.0] Provider:
    3. Scope: `openid email profile`
    4. Client ID: `firezone`
    5. Client secret: `insecure_secret`
-   6. Discovery Document URI: `https://auth.example.com/.well-known/openid-configuration`
-   7. Redirect URI (optional): `https://firezone.example.com/auth/oidc/authelia/callback`
+   6. Discovery Document URI: `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/.well-known/openid-configuration`
+   7. Redirect URI (optional): `https://firezone.{{< sitevar name="domain" >}}/auth/oidc/authelia/callback`
    8. Auto-create users (checkbox): `true`
 
 {{< figure src="firezone.png" alt="Firezone" width="500" >}}

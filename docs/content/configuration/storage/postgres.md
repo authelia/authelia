@@ -36,7 +36,7 @@ storage:
     password: 'mypassword'
     timeout: '5s'
     tls:
-      server_name: 'postgres.example.com'
+      server_name: 'postgres.{{< sitevar name="domain" >}}'
       skip_verify: false
       minimum_version: 'TLS1.2'
       maximum_version: 'TLS1.3'

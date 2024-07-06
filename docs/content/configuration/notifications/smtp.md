@@ -29,15 +29,15 @@ notifier:
     timeout: '5s'
     username: 'test'
     password: 'password'
-    sender: "Authelia <admin@example.com>"
+    sender: "Authelia <admin@{{< sitevar name="domain" >}}>"
     identifier: 'localhost'
     subject: "[Authelia] {title}"
-    startup_check_address: 'test@authelia.com'
+    startup_check_address: 'test@{{< sitevar name="domain" >}}'
     disable_require_tls: false
     disable_starttls: false
     disable_html_emails: false
     tls:
-      server_name: 'smtp.example.com'
+      server_name: 'smtp.{{< sitevar name="domain" >}}'
       skip_verify: false
       minimum_version: 'TLS1.2'
       maximum_version: 'TLS1.3'
@@ -187,7 +187,7 @@ notifier:
     username: 'myaccount@gmail.com'
     # Password can also be set using a secret: https://www.authelia.com/configuration/methods/secrets/
     password: 'yourapppassword'
-    sender: 'admin@example.com'
+    sender: 'admin@{{< sitevar name="domain" >}}'
     host: 'smtp.gmail.com'
     port: 587
 ```

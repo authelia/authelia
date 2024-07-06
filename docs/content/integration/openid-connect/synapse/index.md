@@ -31,10 +31,14 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://matrix.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://matrix.{{< sitevar name="domain" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/`
 * __Client ID:__ `synapse`
 * __Client Secret:__ `insecure_secret`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -55,7 +59,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://synapse.example.com/_synapse/client/oidc/callback'
+          - 'https://synapse.{{< sitevar name="domain" >}}/_synapse/client/oidc/callback'
         scopes:
           - 'openid'
           - 'profile'
@@ -75,7 +79,7 @@ oidc_providers:
     idp_name: "Authelia"
     idp_icon: "mxc://authelia.com/cKlrTPsGvlpKxAYeHWJsdVHI"
     discover: true
-    issuer: "https://auth.example.com"
+    issuer: "https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}"
     client_id: "synapse"
     client_secret: "insecure_secret"
     scopes: ["openid", "profile", "email"]

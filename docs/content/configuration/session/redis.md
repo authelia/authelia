@@ -35,7 +35,7 @@ session:
     maximum_active_connections: 8
     minimum_idle_connections: 0
     tls:
-      server_name: 'myredis.example.com'
+      server_name: 'myredis.{{< sitevar name="domain" >}}'
       skip_verify: false
       minimum_version: 'TLS1.2'
       maximum_version: 'TLS1.3'
