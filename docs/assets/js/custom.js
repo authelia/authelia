@@ -278,7 +278,7 @@ const siteVariablesConfigure = () => {
 };
 
 // Register the 'env' tab group listeners etc. on page load.
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("load", () => {
   console.log("Loading v1");
 
   customTabsConfigure('env');
