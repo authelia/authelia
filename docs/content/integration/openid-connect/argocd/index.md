@@ -31,11 +31,15 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://argocd.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://argocd.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `argocd`
 * __Client Secret:__ `insecure_secret`
 * __CLI Client ID:__ `argocd-cli`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -56,7 +60,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://argocd.example.com/auth/callback'
+          - 'https://argocd.{{< sitevar name="domain" nojs="example.com" >}}/auth/callback'
         scopes:
           - 'openid'
           - 'groups'
@@ -84,7 +88,7 @@ To configure [Argo CD] to utilize Authelia as an [OpenID Connect 1.0] Provider u
 
 ```yaml
 name: 'Authelia'
-issuer: 'https://auth.example.com'
+issuer: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
 clientID: 'argocd'
 clientSecret: 'insecure_secret'
 cliClientID: 'argocd-cli'

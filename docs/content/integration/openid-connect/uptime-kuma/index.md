@@ -31,11 +31,15 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://uptime-kuma.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://uptime-kuma.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `uptime-kuma`
 * __Client Secret:__ `insecure_secret`
-* __Secured Resource URL:__ `https://application.example.com/`
+* __Secured Resource URL:__ `https://application.{{< sitevar name="domain" nojs="example.com" >}}/`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ### Important Notes
 
@@ -83,7 +87,7 @@ server:
 access_control:
   rules:
     - domain:
-      - 'application.example.com'
+      - 'application.{{< sitevar name="domain" nojs="example.com" >}}'
       subject: 'oauth2:client:uptime-kuma'
       policy: 'one_factor'
 identity_providers:
@@ -98,7 +102,7 @@ identity_providers:
         scopes:
           - 'authelia.bearer.authz'
         audience:
-          - 'https://application.example.com/'
+          - 'https://application.{{< sitevar name="domain" nojs="example.com" >}}/'
         grant_types:
           - 'client_credentials'
         requested_audience_mode: 'implicit'
@@ -122,7 +126,7 @@ To configure [Uptime Kuma] to utilize Authelia as an [OpenID Connect 1.0] Provid
 4. Configure Authentication as follows:
    - Method: OAuth2: Client Credentials
    - Authentication Method: Authorization Header
-   - OAuth Token URL: `https://auth.example.com/api/oidc/token`
+   - OAuth Token URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
    - Client ID: `uptime-kuma`
    - Client Secret: `insecure_secret`
    - OAuth Scope: `authelia.bearer.authz`

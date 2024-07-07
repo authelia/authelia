@@ -31,10 +31,14 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://paperless.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://paperless.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `paperless`
 * __Client Secret:__ `insecure_secret`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -57,7 +61,7 @@ identity_providers:
         require_pkce: true
         pkce_challenge_method: 'S256'
         redirect_uris:
-          - 'https://paperless.example.com/accounts/authelia/login/callback'
+          - 'https://paperless.{{< sitevar name="domain" nojs="example.com" >}}/accounts/authelia/login/callback'
         scopes:
           - 'openid'
           - 'profile'
@@ -75,7 +79,7 @@ To configure [Paperless] to utilize Authelia as an [OpenID Connect 1.0] Provider
 
 ```env
 PAPERLESS_APPS=allauth.socialaccount.providers.openid_connect
-PAPERLESS_SOCIALACCOUNT_PROVIDERS={"openid_connect":{"SCOPE":["openid","profile","email"],"OAUTH_PKCE_ENABLED":true,"APPS":[{"provider_id":"authelia","name":"Authelia","client_id":"paperless","secret":"insecure_secret","settings":{"server_url":"https://auth.example.com","token_auth_method":"client_secret_basic"}}]}}
+PAPERLESS_SOCIALACCOUNT_PROVIDERS={"openid_connect":{"SCOPE":["openid","profile","email"],"OAUTH_PKCE_ENABLED":true,"APPS":[{"provider_id":"authelia","name":"Authelia","client_id":"paperless","secret":"insecure_secret","settings":{"server_url":"https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}","token_auth_method":"client_secret_basic"}}]}}
 ```
 
 The `PAPERLESS_SOCIALACCOUNT_PROVIDERS` environment variable is the minified version of the following:
@@ -92,7 +96,7 @@ The `PAPERLESS_SOCIALACCOUNT_PROVIDERS` environment variable is the minified ver
         "client_id": "paperless",
         "secret": "insecure_secret",
         "settings": {
-          "server_url": "https://auth.example.com",
+          "server_url": "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}",
           "token_auth_method": "client_secret_basic"
         }
       }

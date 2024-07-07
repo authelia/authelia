@@ -31,10 +31,14 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://gitlab.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://gitlab.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `gitlab`
 * __Client Secret:__ `insecure_secret`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -59,7 +63,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://gitlab.example.com/users/auth/openid_connect/callback'
+          - 'https://gitlab.{{< sitevar name="domain" nojs="example.com" >}}/users/auth/openid_connect/callback'
         scopes:
           - 'openid'
           - 'profile'
@@ -84,7 +88,7 @@ gitlab_rails['omniauth_providers'] = [
     args: {
       name: "openid_connect",
       strategy_class: "OmniAuth::Strategies::OpenIDConnect",
-      issuer: "https://auth.example.com",
+      issuer: "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}",
       discovery: true,
       scope: ["openid","profile","email","groups"],
       client_auth_method: "basic",
@@ -96,7 +100,7 @@ gitlab_rails['omniauth_providers'] = [
       client_options: {
         identifier: "gitlab",
         secret: "insecure_secret",
-        redirect_uri: "https://gitlab.example.com/users/auth/openid_connect/callback"
+        redirect_uri: "https://gitlab.{{< sitevar name="domain" nojs="example.com" >}}/users/auth/openid_connect/callback"
       }
     }
   }

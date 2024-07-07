@@ -42,8 +42,12 @@ trust entire subnets unless that subnet only has trusted proxies and no other se
 ## Assumptions and Adaptation
 
 This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
-can not reasonably have examples for every advanced configuration option that exists. The
-following are the assumptions we make:
+can not reasonably have examples for every advanced configuration option that exists. Some of these values can
+automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
+
+The following are the assumptions we make:
 
 * Deployment Scenario:
   * Single Host
@@ -59,7 +63,7 @@ following are the assumptions we make:
     * you have adjusted the default port in the configuration
   * You will have to adapt the entire URL if:
     * Authelia is on a different host to the proxy
-* All services are part of the `example.com` domain:
+* All services are part of the `{{< sitevar name="domain" nojs="example.com" >}}` domain:
   * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
     just testing or you want to use that specific domain
 
@@ -90,16 +94,16 @@ configuration as well as the legacy configuration for context.
 ```yaml {title="configuration.yml"}
 session:
   cookies:
-    - domain: 'example.com'
-      authelia_url: 'https://auth.example.com'
-      default_redirection_url: 'https://www.example.com'
+    - domain: '{{</* sitevar name="domain" default="example.com" */>}}'
+      authelia_url: 'https://{{</* sitevar name="subdomain-authelia" default="auth" */>}}.{{</* sitevar name="domain" default="example.com" */>}}'
+      default_redirection_url: 'https://www.{{</* sitevar name="domain" default="example.com" */>}}'
 ```
 {{< /sessionTab >}}
 {{< sessionTab "Legacy" >}}
 ```yaml {title="configuration.yml"}
-default_redirection_url: 'https://www.example.com'
+default_redirection_url: 'https://www.{{</* sitevar name="domain" default="example.com" */>}}'
 session:
-  domain: 'example.com'
+  domain: '{{</* sitevar name="domain" default="example.com" */>}}'
 ```
 {{< /sessionTab >}}
 {{< /sessionTabs >}}
@@ -210,14 +214,14 @@ static_resources:
                   name: 'local_route'
                   virtual_hosts:
                     - name: 'whoami_service'
-                      domains: ["nextcloud.example.com"]
+                      domains: ["nextcloud.{{< sitevar name="domain" nojs="example.com" >}}"]
                       routes:
                         - match:
                             prefix: "/"
                           route:
                             cluster: 'nextcloud'
                     - name: 'authelia_service'
-                      domains: ['auth.example.com']
+                      domains: ['{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}']
                       typed_per_filter_config:
                         envoy.filters.http.ext_authz:
                           "@type": 'type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute'
@@ -257,7 +261,7 @@ static_resources:
                             ## The following commented lines are for configuring the Authelia URL in the proxy. We
                             ## strongly suggest this is configured in the Session Cookies section of the Authelia configuration.
                             # - key: X-Authelia-URL
-                            #   value: https://auth.example.com
+                            #   value: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
                         authorization_response:
                           allowed_upstream_headers:
                             patterns:

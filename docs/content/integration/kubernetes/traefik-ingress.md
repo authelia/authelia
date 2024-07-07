@@ -43,7 +43,7 @@ Regardless if you're using the [Traefik Kubernetes Ingress] or purely the [Traef
 the [Traefik Kubernetes CRD] as far as we're aware at this time in order to configure a [ForwardAuth] [Middleware].
 
 This is an example [Middleware] manifest. This example assumes that you have deployed an Authelia [Pod] and you have
-configured it to be served on the URL `https://auth.example.com` and there is a Kubernetes [Service] with the name
+configured it to be served on the URL `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}` and there is a Kubernetes [Service] with the name
 `authelia` in the `default` [Namespace] with TCP port `80` configured to route to the Authelia [Pod]'s HTTP port and
 that your cluster is configured with the default DNS domain name of `cluster.local`.
 
@@ -74,7 +74,7 @@ spec:
 ## Ingress
 
 This is an example [Ingress] manifest which uses the above [Middleware](#middleware). This example assumes you have an
-application you wish to serve on `https://app.example.com` and there is a Kubernetes [Service] with the name `app` in
+application you wish to serve on `https://app.{{< sitevar name="domain" nojs="example.com" >}}` and there is a Kubernetes [Service] with the name `app` in
 the `default` [Namespace] with TCP port `80` configured to route to the application [Pod]'s HTTP port.
 
 ```yaml {title="ingress.yaml"}
@@ -90,7 +90,7 @@ metadata:
     traefik.ingress.kubernetes.io/router.tls: 'true'
 spec:
   rules:
-    - host: 'app.example.com'
+    - host: 'app.{{< sitevar name="domain" nojs="example.com" >}}'
       http:
         paths:
           - path: '/bar'
@@ -106,7 +106,7 @@ spec:
 ## IngressRoute
 
 This is an example [IngressRoute] manifest which uses the above [Middleware](#middleware). This example assumes you have
-an application you wish to serve on `https://app.example.com` and there is a Kubernetes [Service] with the name `app` in
+an application you wish to serve on `https://app.{{< sitevar name="domain" nojs="example.com" >}}` and there is a Kubernetes [Service] with the name `app` in
 the `default` [Namespace] with TCP port `80` configured to route to the application [Pod]'s HTTP port.
 
 ```yaml {title="ingressRoute.yaml"}
@@ -121,7 +121,7 @@ spec:
     - 'websecure'  # name of your https entry point (default is 'websecure')
   routes:
     - kind: 'Rule'
-      match: 'Host(`app.example.com`)'
+      match: 'Host(`app.{{< sitevar name="domain" nojs="example.com" >}}`)'
       middlewares:
         - name: 'forwardauth-authelia' # name of your middleware, as defined in your middleware.yaml
           namespace: 'default'

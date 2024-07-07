@@ -31,10 +31,14 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://humhub.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://humhub.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `humhub`
 * __Client Secret:__ `insecure_secret`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -55,7 +59,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://humhub.example.com/user/auth/external?authclient=oidc'
+          - 'https://humhub.{{< sitevar name="domain" nojs="example.com" >}}/user/auth/external?authclient=oidc'
         scopes:
           - 'openid'
           - 'profile'
@@ -82,7 +86,7 @@ return [
           'clients' => [
             'oidc' => [
               'class' => 'worteks\humhub\authclient\OIDC',
-              'domain' => 'https://auth.example.com',
+              'domain' => 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}',
               'clientId' => 'humhub',
               'clientSecret' => 'insecure_secret',
               'defaultTitle' => 'login with SSO',

@@ -71,8 +71,12 @@ the following networks to the trusted proxy list in [HAProxy]:
 ## Assumptions and Adaptation
 
 This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
-can not reasonably have examples for every advanced configuration option that exists. The
-following are the assumptions we make:
+can not reasonably have examples for every advanced configuration option that exists. Some of these values can
+automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
+
+The following are the assumptions we make:
 
 * Deployment Scenario:
   * Single Host
@@ -88,7 +92,7 @@ following are the assumptions we make:
     * you have adjusted the default port in the configuration
   * You will have to adapt the entire URL if:
     * Authelia is on a different host to the proxy
-* All services are part of the `example.com` domain:
+* All services are part of the `{{< sitevar name="domain" nojs="example.com" >}}` domain:
   * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
     just testing or you want to use that specific domain
 
@@ -119,16 +123,16 @@ configuration as well as the legacy configuration for context.
 ```yaml {title="configuration.yml"}
 session:
   cookies:
-    - domain: 'example.com'
-      authelia_url: 'https://auth.example.com'
-      default_redirection_url: 'https://www.example.com'
+    - domain: '{{</* sitevar name="domain" default="example.com" */>}}'
+      authelia_url: 'https://{{</* sitevar name="subdomain-authelia" default="auth" */>}}.{{</* sitevar name="domain" default="example.com" */>}}'
+      default_redirection_url: 'https://www.{{</* sitevar name="domain" default="example.com" */>}}'
 ```
 {{< /sessionTab >}}
 {{< sessionTab "Legacy" >}}
 ```yaml {title="configuration.yml"}
-default_redirection_url: 'https://www.example.com'
+default_redirection_url: 'https://www.{{</* sitevar name="domain" default="example.com" */>}}'
 session:
-  domain: 'example.com'
+  domain: '{{</* sitevar name="domain" default="example.com" */>}}'
 ```
 {{< /sessionTab >}}
 {{< /sessionTabs >}}
@@ -153,10 +157,10 @@ With this configuration you can protect your virtual hosts with Authelia, by fol
 backend upon successful authentication, for example:
 
     ```text
-    acl host-jenkins hdr(host) -i jenkins.example.com
-    acl host-nextcloud hdr(host) -i nextcloud.example.com
-    acl host-phpmyadmin hdr(host) -i phpmyadmin.example.com
-    acl host-heimdall hdr(host) -i heimdall.example.com
+    acl host-jenkins hdr(host) -i jenkins.{{< sitevar name="domain" nojs="example.com" >}}
+    acl host-nextcloud hdr(host) -i nextcloud.{{< sitevar name="domain" nojs="example.com" >}}
+    acl host-phpmyadmin hdr(host) -i phpmyadmin.{{< sitevar name="domain" nojs="example.com" >}}
+    acl host-heimdall hdr(host) -i heimdall.{{< sitevar name="domain" nojs="example.com" >}}
     ```
 
 3. Add backend route for your service(s), for example:
@@ -206,7 +210,7 @@ defaults
     option httplog
 
 frontend fe_http
-    bind *:443 ssl crt example.com.pem
+    bind *:443 ssl crt {{< sitevar name="domain" nojs="example.com" >}}.pem
 
     ## Trusted Proxies.
     http-request del-header X-Forwarded-For
@@ -222,9 +226,9 @@ frontend fe_http
 
     # Host ACLs
     acl protected-frontends hdr(Host) -m reg -i ^(?i)(nextcloud|heimdall)\.example\.com
-    acl host-authelia hdr(Host) -i auth.example.com
-    acl host-nextcloud hdr(Host) -i nextcloud.example.com
-    acl host-heimdall hdr(Host) -i heimdall.example.com
+    acl host-authelia hdr(Host) -i {{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
+    acl host-nextcloud hdr(Host) -i nextcloud.{{< sitevar name="domain" nojs="example.com" >}}
+    acl host-heimdall hdr(Host) -i heimdall.{{< sitevar name="domain" nojs="example.com" >}}
 
     http-request set-var(req.scheme) str(https) if { ssl_fc }
     http-request set-var(req.scheme) str(http) if !{ ssl_fc }
@@ -299,9 +303,9 @@ frontend fe_http
 
     # Host ACLs
     acl protected-frontends hdr(Host) -m reg -i ^(?i)(nextcloud|heimdall)\.example\.com
-    acl host-authelia hdr(Host) -i auth.example.com
-    acl host-nextcloud hdr(Host) -i nextcloud.example.com
-    acl host-heimdall hdr(Host) -i heimdall.example.com
+    acl host-authelia hdr(Host) -i auth.{{< sitevar name="domain" nojs="example.com" >}}
+    acl host-nextcloud hdr(Host) -i nextcloud.{{< sitevar name="domain" nojs="example.com" >}}
+    acl host-heimdall hdr(Host) -i heimdall.{{< sitevar name="domain" nojs="example.com" >}}
 
     http-request set-var(req.scheme) str(https) if { ssl_fc }
     http-request set-var(req.scheme) str(http) if !{ ssl_fc }

@@ -31,12 +31,16 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://freshrss.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://freshrss.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `freshrss`
 * __Client Secret:__ `insecure_secret`
 * __Port:__ '443'
   * This is the port [FreshRSS] is served over (usually 80 for http and 443 for https) NOT the port of the container.
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ### Special Notes
 
@@ -63,7 +67,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://freshrss.example.com:443/i/oidc/'
+          - 'https://freshrss.{{< sitevar name="domain" nojs="example.com" >}}:443/i/oidc/'
         scopes:
           - 'openid'
           - 'groups'
@@ -83,7 +87,7 @@ identity_providers:
 ```yaml
 environment:
   OIDC_ENABLED: 1
-  OIDC_PROVIDER_METADATA_URL: https://auth.example.com/.well-known/openid-configuration
+  OIDC_PROVIDER_METADATA_URL: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration
   OIDC_CLIENT_ID: freshrss
   OIDC_CLIENT_SECRET: insecure_secret
   OIDC_CLIENT_CRYPTO_KEY: XXXXXXXXXX

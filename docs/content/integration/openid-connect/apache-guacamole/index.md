@@ -31,10 +31,14 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://guacamole.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://guacamole.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `guacamole`
 * __Client Secret:__ `insecure_secret`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -55,7 +59,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://guacamole.example.com'
+          - 'https://guacamole.{{< sitevar name="domain" nojs="example.com" >}}'
         scopes:
           - 'openid'
           - 'profile'
@@ -75,10 +79,10 @@ To configure [Apache Guacamole] to utilize Authelia as an [OpenID Connect 1.0] P
 ```yaml
 openid-client-id: guacamole
 openid-scope: openid profile groups email
-openid-issuer: https://auth.example.com
-openid-jwks-endpoint: https://auth.example.com/jwks.json
-openid-authorization-endpoint: https://auth.example.com/api/oidc/authorization?state=1234abcedfdhf
-openid-redirect-uri: https://guacamole.example.com
+openid-issuer: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
+openid-jwks-endpoint: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/jwks.json
+openid-authorization-endpoint: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization?state=1234abcedfdhf
+openid-redirect-uri: https://guacamole.{{< sitevar name="domain" nojs="example.com" >}}
 openid-username-claim-type: preferred_username
 openid-groups-claim-type: groups
 ```

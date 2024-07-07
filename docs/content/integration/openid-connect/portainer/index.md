@@ -33,10 +33,14 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://portainer.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://portainer.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `portainer`
 * __Client Secret:__ `insecure_secret`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -57,7 +61,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://portainer.example.com'
+          - 'https://portainer.{{< sitevar name="domain" nojs="example.com" >}}'
         scopes:
           - 'openid'
           - 'profile'
@@ -78,10 +82,10 @@ To configure [Portainer] to utilize Authelia as an [OpenID Connect 1.0] Provider
    3. Enable *Automatic User Provision* if you want users to automatically be created in [Portainer].
    4. Client ID: `portainer`
    5. Client Secret: `insecure_secret`
-   6. Authorization URL: `https://auth.example.com/api/oidc/authorization`
-   7. Access Token URL: `https://auth.example.com/api/oidc/token`
-   8. Resource URL: `https://auth.example.com/api/oidc/userinfo`
-   9. Redirect URL: `https://portainer.example.com`
+   6. Authorization URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
+   7. Access Token URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
+   8. Resource URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
+   9. Redirect URL: `https://portainer.{{< sitevar name="domain" nojs="example.com" >}}`
    10. User Identifier: `preferred_username`
    11. Scopes: `openid profile groups email`
 

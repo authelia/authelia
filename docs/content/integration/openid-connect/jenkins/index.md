@@ -31,10 +31,14 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://jenkins.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://jenkins.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `jenkins`
 * __Client Secret:__ `insecure_secret`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -57,7 +61,7 @@ identity_providers:
         require_pkce: true
         pkce_challenge_method: 'S256'
         redirect_uris:
-          - 'https://jenkins.example.com/accounts/authelia/login/callback'
+          - 'https://jenkins.{{< sitevar name="domain" nojs="example.com" >}}/accounts/authelia/login/callback'
         scopes:
           - 'openid'
           - 'profile'
@@ -108,7 +112,7 @@ jenkins:
   securityRealm:
     oic:
       automanualconfigure: auto
-      wellKnownOpenIDConfigurationUrl: https://auth.example.com/.well-known/openid-configuration
+      wellKnownOpenIDConfigurationUrl: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration
       clientId: jenkins
       clientSecret: insecure_secret
       tokenAuthMethod: client_secret_basic
@@ -134,7 +138,7 @@ To configure [Jenkins] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 4. Enter `jenkins` in the `Client id` field.
 5. Enter `insecure_secret` in the `Client secret` field.
 6. Select `Automatic configuration` from the configuration mode.
-7. Enter `https://auth.example.com/.well-known/openid-configuration` in the `Well-known configuration endpoint` field.
+7. Enter `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration` in the `Well-known configuration endpoint` field.
 8. Select `Override scopes`.
 9. Enter `openid profile email groups` in the `Scopes` field.
 10. Expand `Advanced`.

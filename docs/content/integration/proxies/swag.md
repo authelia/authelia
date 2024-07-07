@@ -53,8 +53,12 @@ Adapting this to [SWAG] is beyond the scope of this documentation.
 ### Assumptions and Adaptation
 
 This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
-can not reasonably have examples for every advanced configuration option that exists. The
-following are the assumptions we make:
+can not reasonably have examples for every advanced configuration option that exists. Some of these values can
+automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
+
+The following are the assumptions we make:
 
 * You have followed the [Get Started](../prologue/get-started.md) guide and configured
 * Deployment Scenario:
@@ -71,7 +75,7 @@ following are the assumptions we make:
     * You have adjusted the default port in the configuration
   * You will have to adapt the entire URL if:
     * Authelia is on a different host to the proxy
-* All services are part of the `example.com` domain:
+* All services are part of the `{{< sitevar name="domain" nojs="example.com" >}}` domain:
   * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
     just testing or you want to use that specific domain
 
@@ -113,7 +117,7 @@ services:
       PUID: '1000'
       PGID: '1000'
       TZ: 'Australia/Melbourne'
-      URL: 'example.com'
+      URL: '{{< sitevar name="domain" nojs="example.com" >}}'
       SUBDOMAINS: 'www,whoami,auth,organizr'
       VALIDATION: 'http'
       CERTPROVIDER: 'cloudflare'
@@ -245,7 +249,7 @@ In the [SWAG] `/config` mount which is mounted to `${PWD}/data/swag` in our exam
    - The `mkdir -p ${PWD}/data/swag/nginx/snippets/authelia` command should achieve this on Linux.
 2. Create the `${PWD}/data/swag/nginx/snippets/authelia/location.conf` file which can be found [here](nginx.md#authelia-locationconf).
 3. Create the `${PWD}/data/swag/nginx/snippets/authelia/authrequest.conf` file which can be found [here](nginx.md#authelia-authrequestconf).
-   - Ensure you adjust the line `error_page 401 =302 https://auth.example.com/?rd=$target_url;` replacing `https://auth.example.com/` with your external Authelia URL.
+   - Ensure you adjust the line `error_page 401 =302 https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/?rd=$target_url;` replacing `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/` with your external Authelia URL.
 
 ### Protected Application
 

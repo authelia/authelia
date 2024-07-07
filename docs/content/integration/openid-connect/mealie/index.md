@@ -31,9 +31,13 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://mealie.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://mealie.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `mealie`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -55,7 +59,7 @@ identity_providers:
         require_pkce: true
         pkce_challenge_method: 'S256'
         redirect_uris:
-          - 'https://mealie.example.com/login'
+          - 'https://mealie.{{< sitevar name="domain" nojs="example.com" >}}/login'
         scopes:
           - 'openid'
           - 'email'
@@ -78,7 +82,7 @@ To configure [Mealie] to utilize Authelia as an [OpenID Connect 1.0] Provider us
 ```env
 OIDC_AUTH_ENABLED=true
 OIDC_SIGNUP_ENABLED=true
-OIDC_CONFIGURATION_URL=https://auth.example.com/.well-known/openid-configuration
+OIDC_CONFIGURATION_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration
 OIDC_CLIENT_ID=mealie
 OIDC_AUTO_REDIRECT=false
 OIDC_ADMIN_GROUP=mealie-admins

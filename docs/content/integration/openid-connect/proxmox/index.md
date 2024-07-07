@@ -38,11 +38,15 @@ guide.*
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://proxmox.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://proxmox.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `proxmox`
 * __Client Secret:__ `insecure_secret`
 * __Realm__ `authelia`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -65,7 +69,7 @@ identity_providers:
         require_pkce: true
         pkce_challenge_method: 'S256'
         redirect_uris:
-          - 'https://proxmox.example.com'
+          - 'https://proxmox.{{< sitevar name="domain" nojs="example.com" >}}'
         scopes:
           - 'openid'
           - 'profile'
@@ -82,7 +86,7 @@ To configure [Proxmox] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 3. Visit Realms
 4. Add an OpenID Connect Server
 5. Set the following values:
-   1. Issuer URL: `https://auth.example.com`
+   1. Issuer URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
    2. Realm: `authelia`
    3. Client ID: `proxmox`
    4. Client Key: `insecure_secret`

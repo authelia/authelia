@@ -45,8 +45,12 @@ this documentation.
 ## Assumptions and Adaptation
 
 This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
-can not reasonably have examples for every advanced configuration option that exists. The
-following are the assumptions we make:
+can not reasonably have examples for every advanced configuration option that exists. Some of these values can
+automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
+
+The following are the assumptions we make:
 
 * Deployment Scenario:
   * Single Host
@@ -62,7 +66,7 @@ following are the assumptions we make:
     * you have adjusted the default port in the configuration
   * You will have to adapt the entire URL if:
     * Authelia is on a different host to the proxy
-* All services are part of the `example.com` domain:
+* All services are part of the `{{< sitevar name="domain" nojs="example.com" >}}` domain:
   * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
     just testing or you want to use that specific domain
 
@@ -144,7 +148,7 @@ services:
 *__Important:__ Our examples make assumptions about your configuration. These assumptions represent sections that
 either most likely require an adjustment, or may require an adjustment if you're not configuring it in the same way.*
 
-* The domain for Authelia is `auth.example.com` which should be adjusted in all examples and snippets to your actual
+* The domain for Authelia is `{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}` which should be adjusted in all examples and snippets to your actual
   domain.
 * The required configuration snippets are mounted in the container or otherwise available in the `/snippets/` directory.
   If you choose a different directory, you're required to adjust every instance of `/snippets/` appropriately to your
@@ -171,7 +175,7 @@ The Authelia portal requires minimal configuration.
 
 1. Create a new `Proxy Host`.
 2. Set the following items in the `Details` tab:
-   * Domain Names: `auth.example.com`
+   * Domain Names: `{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
    * Scheme: `http`
    * Forward Hostname / IP: `authelia`
    * Forward Port: `9091`
@@ -202,7 +206,7 @@ The following example shows how to configure a protected application. We often u
 
 1. Create a new `Proxy Host`.
 2. Set the following items in the `Details` tab:
-   * Domain Names: `nextcloud.example.com`
+   * Domain Names: `nextcloud.{{< sitevar name="domain" nojs="example.com" >}}`
    * Scheme: `http`
    * Forward Hostname / IP: `nextcloud`
    * Forward Port: `80`
