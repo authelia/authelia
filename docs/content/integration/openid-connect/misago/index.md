@@ -31,8 +31,8 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://misago.{{< sitevar name="domain" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/`
+* __Application Root URL:__ `https://misago.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `misago`
 * __Client Secret:__ `insecure_secret`
 
@@ -63,7 +63,7 @@ identity_providers:
           - 'profile'
           - 'email'
         redirect_uris:
-          - 'https://misago.{{< sitevar name="domain" >}}/oauth2/complete/'
+          - 'https://misago.{{< sitevar name="domain" nojs="example.com" >}}/oauth2/complete/'
         grant_types:
           - 'authorization_code'
         response_types:
@@ -85,14 +85,14 @@ To configure [Misago] to utilize Authelia as an [OpenID Connect 1.0](https://www
         2. Client ID: `misago`
         3. Client Secret: `insecure_secret`
     2. Initializing Login:
-        1. Login form URL: `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/api/oidc/authorization`
+        1. Login form URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
         2. Scopes: `openid profile email`
     3. Retrieving access token:
-        1. Access token retrieval URL: `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/api/oidc/token`
+        1. Access token retrieval URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
         2. Request method: `POST`
         3. JSON path to access token: `access_token`
     4. Retrieving user data:
-        1. User data URL: `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/api/oidc/userinfo`
+        1. User data URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
         2. Request method: `GET`
         3. Access token location: `Query string`
         4. Access token name: `access_token`

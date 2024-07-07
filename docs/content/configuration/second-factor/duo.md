@@ -32,7 +32,7 @@ section of the configuration.
 ```yaml {title="configuration.yml"}
 duo_api:
   disable: false
-  hostname: 'api-123456789.{{< sitevar name="domain" >}}'
+  hostname: 'api-123456789.{{< sitevar name="domain" nojs="example.com" >}}'
   integration_key: 'ABCDEF'
   secret_key: '1234567890abcdefghifjkl'
   enable_self_enrollment: false

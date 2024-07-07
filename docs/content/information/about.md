@@ -18,7 +18,7 @@ seo:
 
 ## What is Authelia?
 
-{{< sitevar name="domain" >}}
+{{< sitevar name="domain" nojs="example.com" >}}
 
 Authelia is a project with several open source developers who contribute to the project in their free time. We are not
 a company or another type of incorporated entity, and do not have any monetization model. Individuals and Organizations

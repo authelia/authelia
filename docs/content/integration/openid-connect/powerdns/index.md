@@ -31,8 +31,8 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://powerdns.{{< sitevar name="domain" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/`
+* __Application Root URL:__ `https://powerdns.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `powerdns`
 * __Client Secret:__ `insecure_secret`
 
@@ -60,7 +60,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://powerdns.{{< sitevar name="domain" >}}/oidc/authorized'
+          - 'https://powerdns.{{< sitevar name="domain" nojs="example.com" >}}/oidc/authorized'
         scopes:
           - 'openid'
           - 'profile'
@@ -85,9 +85,9 @@ To configure [PowerDNS Admin] to utilize Authelia as an [OpenID Connect 1.0] Pro
    2. Client ID: `powerdns`
    3. Client Secret: `insecure_secret`
    4. Scopes: `openid profile groups email`
-   5. API URL: `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/api/oidc/userinfo`
+   5. API URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
    6. Enable *Enable OIDC OAuth Auto-Configurationh*
-   7. Metadata URL: `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/.well-known/openid-configuration`
+   7. Metadata URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
    8. Username: `preferred_username`
    9. Email: `email`
    10. Firstname: `preferred_username`

@@ -31,8 +31,8 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://owncloud.{{< sitevar name="domain" >}}`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}`
+* __Application Root URL:__ `https://owncloud.{{< sitevar name="domain" nojs="example.com" >}}`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
 * __Client ID:__
   * Web Application: `ownCloud`
   * Other Clients: the values

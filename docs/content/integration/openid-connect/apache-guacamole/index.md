@@ -31,8 +31,8 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://guacamole.{{< sitevar name="domain" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/`
+* __Application Root URL:__ `https://guacamole.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `guacamole`
 * __Client Secret:__ `insecure_secret`
 
@@ -59,7 +59,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://guacamole.{{< sitevar name="domain" >}}'
+          - 'https://guacamole.{{< sitevar name="domain" nojs="example.com" >}}'
         scopes:
           - 'openid'
           - 'profile'
@@ -79,10 +79,10 @@ To configure [Apache Guacamole] to utilize Authelia as an [OpenID Connect 1.0] P
 ```yaml
 openid-client-id: guacamole
 openid-scope: openid profile groups email
-openid-issuer: https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}
-openid-jwks-endpoint: https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/jwks.json
-openid-authorization-endpoint: https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/api/oidc/authorization?state=1234abcedfdhf
-openid-redirect-uri: https://guacamole.{{< sitevar name="domain" >}}
+openid-issuer: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
+openid-jwks-endpoint: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/jwks.json
+openid-authorization-endpoint: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization?state=1234abcedfdhf
+openid-redirect-uri: https://guacamole.{{< sitevar name="domain" nojs="example.com" >}}
 openid-username-claim-type: preferred_username
 openid-groups-claim-type: groups
 ```

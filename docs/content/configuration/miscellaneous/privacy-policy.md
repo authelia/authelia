@@ -74,5 +74,5 @@ _**Example:**_
 ```yaml {title="configuration.yml"}
 privacy_policy:
   enabled: true
-  policy_url: 'https://www.{{< sitevar name="domain" >}}/privacy-policy'
+  policy_url: 'https://www.{{< sitevar name="domain" nojs="example.com" >}}/privacy-policy'
 ```

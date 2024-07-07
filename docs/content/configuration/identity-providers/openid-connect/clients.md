@@ -32,14 +32,14 @@ identity_providers:
       - client_id: 'unique-client-identifier'
         client_name: 'My Application'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
-        sector_identifier_uri: 'https://{{< sitevar name="domain" >}}/sector.json'
+        sector_identifier_uri: 'https://{{< sitevar name="domain" nojs="example.com" >}}/sector.json'
         public: false
         redirect_uris:
-          - 'https://oidc.{{< sitevar name="domain" >}}:8080/oauth2/callback'
+          - 'https://oidc.{{< sitevar name="domain" nojs="example.com" >}}:8080/oauth2/callback'
         request_uris:
-          - 'https://oidc.{{< sitevar name="domain" >}}:8080/oidc/request-object.jwk'
+          - 'https://oidc.{{< sitevar name="domain" nojs="example.com" >}}:8080/oidc/request-object.jwk'
         audience:
-          - 'https://app.{{< sitevar name="domain" >}}'
+          - 'https://app.{{< sitevar name="domain" nojs="example.com" >}}'
         scopes:
           - 'openid'
           - 'groups'
@@ -614,7 +614,7 @@ identity_providers:
   oidc:
     clients:
       - client_id: 'example'
-        jwks_uri: 'https://oidc.{{< sitevar name="domain" >}}:8080/oauth2/jwks.json'
+        jwks_uri: 'https://oidc.{{< sitevar name="domain" nojs="example.com" >}}:8080/oauth2/jwks.json'
         jwks:
           - key_id: 'example'
             algorithm: 'RS256'

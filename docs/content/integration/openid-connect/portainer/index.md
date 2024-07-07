@@ -33,8 +33,8 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://portainer.{{< sitevar name="domain" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/`
+* __Application Root URL:__ `https://portainer.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `portainer`
 * __Client Secret:__ `insecure_secret`
 
@@ -61,7 +61,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://portainer.{{< sitevar name="domain" >}}'
+          - 'https://portainer.{{< sitevar name="domain" nojs="example.com" >}}'
         scopes:
           - 'openid'
           - 'profile'
@@ -82,10 +82,10 @@ To configure [Portainer] to utilize Authelia as an [OpenID Connect 1.0] Provider
    3. Enable *Automatic User Provision* if you want users to automatically be created in [Portainer].
    4. Client ID: `portainer`
    5. Client Secret: `insecure_secret`
-   6. Authorization URL: `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/api/oidc/authorization`
-   7. Access Token URL: `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/api/oidc/token`
-   8. Resource URL: `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/api/oidc/userinfo`
-   9. Redirect URL: `https://portainer.{{< sitevar name="domain" >}}`
+   6. Authorization URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
+   7. Access Token URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
+   8. Resource URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
+   9. Redirect URL: `https://portainer.{{< sitevar name="domain" nojs="example.com" >}}`
    10. User Identifier: `preferred_username`
    11. Scopes: `openid profile groups email`
 

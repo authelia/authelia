@@ -93,7 +93,7 @@ The important sections to consider in initial configuration are as follows:
 access_control:
   default_policy: deny
   rules:
-    - domain: '*.{{< sitevar name="domain" >}}'
+    - domain: '*.{{< sitevar name="domain" nojs="example.com" >}}'
       policy: one_factor
 ```
 

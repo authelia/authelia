@@ -31,8 +31,8 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://bookstack.{{< sitevar name="domain" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/`
+* __Application Root URL:__ `https://bookstack.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `bookstack`
 * __Client Secret:__ `insecure_secret`
 
@@ -65,7 +65,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://bookstack.{{< sitevar name="domain" >}}/oidc/callback'
+          - 'https://bookstack.{{< sitevar name="domain" nojs="example.com" >}}/oidc/callback'
         scopes:
           - 'openid'
           - 'profile'
@@ -84,7 +84,7 @@ To configure [BookStack] to utilize Authelia as an [OpenID Connect 1.0] Provider
    3. OIDC_DISPLAY_NAME_CLAIMS: `name`
    4. OIDC_CLIENT_ID: `bookstack`
    5. OIDC_CLIENT_SECRET: `insecure_secret`
-   6. OIDC_ISSUER: `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}`
+   6. OIDC_ISSUER: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
    7. OIDC_ISSUER_DISCOVER: `true`
 
 ## See Also

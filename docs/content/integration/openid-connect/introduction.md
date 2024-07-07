@@ -369,7 +369,7 @@ below.
 
 These tables document the endpoints we currently support and their paths in the most recent version of Authelia. The
 paths are appended to the end of the primary URL used to access Authelia. The tables use the url
-https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}} as an example of the Authelia root URL which is also the OpenID Connect 1.0 Issuer.
+https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}} as an example of the Authelia root URL which is also the OpenID Connect 1.0 Issuer.
 
 ### Well Known Discovery Endpoints
 
@@ -377,8 +377,8 @@ These endpoints can be utilized to discover other endpoints and metadata about t
 
 |                 Endpoint                  |                                                     Path                                                      |
 |:-----------------------------------------:|:-------------------------------------------------------------------------------------------------------------:|
-|      [OpenID Connect Discovery 1.0]       |    https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/.well-known/openid-configuration     |
-| [OAuth 2.0 Authorization Server Metadata] | https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}//.well-known/oauth-authorization-server |
+|      [OpenID Connect Discovery 1.0]       |    https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration     |
+| [OAuth 2.0 Authorization Server Metadata] | https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}//.well-known/oauth-authorization-server |
 
 ### Discoverable Endpoints
 
@@ -386,13 +386,13 @@ These endpoints implement OpenID Connect 1.0 Provider specifications.
 
 |            Endpoint             |                                                     Path                                                     |          Discovery Attribute          |
 |:-------------------------------:|:------------------------------------------------------------------------------------------------------------:|:-------------------------------------:|
-|       [JSON Web Key Set]        |               https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}//jwks.json               |               jwks_uri                |
-|         [Authorization]         |        https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}//api/oidc/authorization         |        authorization_endpoint         |
-| [Pushed Authorization Requests] | https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}//api/oidc/pushed-authorization-request | pushed_authorization_request_endpoint |
-|             [Token]             |            https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}//api/oidc/token             |            token_endpoint             |
-|           [UserInfo]            |           https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}//api/oidc/userinfo           |           userinfo_endpoint           |
-|         [Introspection]         |        https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}//api/oidc/introspection         |        introspection_endpoint         |
-|          [Revocation]           |          https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}//api/oidc/revocation          |          revocation_endpoint          |
+|       [JSON Web Key Set]        |               https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}//jwks.json               |               jwks_uri                |
+|         [Authorization]         |        https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}//api/oidc/authorization         |        authorization_endpoint         |
+| [Pushed Authorization Requests] | https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}//api/oidc/pushed-authorization-request | pushed_authorization_request_endpoint |
+|             [Token]             |            https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}//api/oidc/token             |            token_endpoint             |
+|           [UserInfo]            |           https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}//api/oidc/userinfo           |           userinfo_endpoint           |
+|         [Introspection]         |        https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}//api/oidc/introspection         |        introspection_endpoint         |
+|          [Revocation]           |          https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}//api/oidc/revocation          |          revocation_endpoint          |
 
 ## Security
 

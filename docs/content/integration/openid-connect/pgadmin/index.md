@@ -31,8 +31,8 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://pgadmin.{{< sitevar name="domain" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/`
+* __Application Root URL:__ `https://pgadmin.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `pgadmin`
 * __Client Secret:__ `insecure_secret`
 
@@ -59,7 +59,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://pgadmin.{{< sitevar name="domain" >}}/oauth2/authorize'
+          - 'https://pgadmin.{{< sitevar name="domain" nojs="example.com" >}}/oauth2/authorize'
         scopes:
           - 'openid'
           - 'profile'
@@ -82,11 +82,11 @@ OAUTH2_CONFIG = [{
 	'OAUTH2_DISPLAY_NAME': 'Authelia',
 	'OAUTH2_CLIENT_ID': 'pgadmin',
 	'OAUTH2_CLIENT_SECRET': 'insecure_secret',
-	'OAUTH2_API_BASE_URL': 'https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}',
-	'OAUTH2_AUTHORIZATION_URL': 'https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/api/oidc/authorization',
-	'OAUTH2_TOKEN_URL': 'https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/api/oidc/token',
-	'OAUTH2_USERINFO_ENDPOINT': 'https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/api/oidc/userinfo',
-	'OAUTH2_SERVER_METADATA_URL': 'https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/.well-known/openid-configuration',
+	'OAUTH2_API_BASE_URL': 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}',
+	'OAUTH2_AUTHORIZATION_URL': 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization',
+	'OAUTH2_TOKEN_URL': 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token',
+	'OAUTH2_USERINFO_ENDPOINT': 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo',
+	'OAUTH2_SERVER_METADATA_URL': 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration',
 	'OAUTH2_SCOPE': 'openid email profile',
 	'OAUTH2_USERNAME_CLAIM': 'email',
 	'OAUTH2_ICON': 'fa-key',

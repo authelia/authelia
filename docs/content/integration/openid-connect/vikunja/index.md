@@ -31,8 +31,8 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://vikunja.{{< sitevar name="domain" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/`
+* __Application Root URL:__ `https://vikunja.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `vikunja`
 * __Client Secret:__ `insecure_secret`
 
@@ -59,7 +59,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://vikunja.{{< sitevar name="domain" >}}/auth/openid/authelia'
+          - 'https://vikunja.{{< sitevar name="domain" nojs="example.com" >}}/auth/openid/authelia'
         scopes:
           - 'openid'
           - 'profile'
@@ -78,10 +78,10 @@ To configure [Vikunja] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 auth:
   openid:
     enabled: true
-    redirecturl: 'https://vikunja.{{< sitevar name="domain" >}}/auth/openid/'
+    redirecturl: 'https://vikunja.{{< sitevar name="domain" nojs="example.com" >}}/auth/openid/'
     providers:
       - name: 'Authelia'
-        authurl: 'https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}'
+        authurl: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
         clientid: 'vikunja'
         clientsecret: 'insecure_secret'
         scope: 'openid profile email'

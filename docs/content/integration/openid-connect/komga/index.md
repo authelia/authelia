@@ -31,8 +31,8 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://komga.{{< sitevar name="domain" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/`
+* __Application Root URL:__ `https://komga.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `komga`
 * __Client Secret:__ `insecure_secret`
 
@@ -59,7 +59,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://komga.{{< sitevar name="domain" >}}/login/oauth2/code/authelia'
+          - 'https://komga.{{< sitevar name="domain" nojs="example.com" >}}/login/oauth2/code/authelia'
         scopes:
           - 'openid'
           - 'profile'
@@ -92,7 +92,7 @@ spring:
             redirect-uri: "{baseScheme}://{baseHost}{basePort}{basePath}/login/oauth2/code/authelia"
         provider:
           authelia:
-            issuer-uri: 'https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}'
+            issuer-uri: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
             user-name-attribute: 'preferred_username'
 ````
 

@@ -31,8 +31,8 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://wordpress.{{< sitevar name="domain" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/`
+* __Application Root URL:__ `https://wordpress.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `wordpress`
 * __Client Secret:__ `insecure_secret`
 
@@ -61,7 +61,7 @@ identity_providers:
         require_pkce: true
         pkce_challenge_method: 'S256'
         redirect_uris:
-          - 'https://wordpress.{{< sitevar name="domain" >}}/wp-admin/admin-ajax.php?action=openid-connect-authorize'
+          - 'https://wordpress.{{< sitevar name="domain" nojs="example.com" >}}/wp-admin/admin-ajax.php?action=openid-connect-authorize'
         scopes:
           - 'openid'
           - 'profile'
@@ -84,9 +84,9 @@ identity_providers:
    4. Enter `wordpress` in the `Client ID` field.
    5. Enter `insecure_secret` in the `Client Secret` field.
    6. Enter `openid profile email` in the `OpenID Scope` field.
-   7. Enter `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/api/oidc/authorization` in the `Login Endpoint URL` field.
-   8. Enter `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/api/oidc/token` in the `Token Validation Endpoint URL` field.
-   9. Enter `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/api/oidc/userinfo` in the `Userinfo Endpoint URL` field.
+   7. Enter `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization` in the `Login Endpoint URL` field.
+   8. Enter `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token` in the `Token Validation Endpoint URL` field.
+   9. Enter `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo` in the `Userinfo Endpoint URL` field.
 
 ## See Also
 

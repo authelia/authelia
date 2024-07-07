@@ -31,8 +31,8 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://warpgate.{{< sitevar name="domain" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/`
+* __Application Root URL:__ `https://warpgate.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `warpgate`
 * __Client Secret:__ `insecure_secret`
 
@@ -56,7 +56,7 @@ identity_providers:
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://warpgate.{{< sitevar name="domain" >}}/@warpgate/api/sso/return'
+          - 'https://warpgate.{{< sitevar name="domain" nojs="example.com" >}}/@warpgate/api/sso/return'
         scopes:
           - 'openid'
           - 'email'
@@ -66,7 +66,7 @@ identity_providers:
 ## Application
 
 ```toml
-external_host: warpgate.{{< sitevar name="domain" >}}
+external_host: warpgate.{{< sitevar name="domain" nojs="example.com" >}}
 sso_providers:
 - name: authelia
   label: Authelia
@@ -74,7 +74,7 @@ sso_providers:
     type: custom
     client_id: warpgate
     client_secret: insecure_secret
-    issuer_url: https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}
+    issuer_url: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
     scopes: ["openid", "email"]
 ```
 

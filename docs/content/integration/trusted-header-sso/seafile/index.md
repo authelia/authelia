@@ -38,9 +38,9 @@ As with all guides in this section it's important you read the [introduction](..
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://seafile.{{< sitevar name="domain" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/`
-* __User Email Domain:__ `@{{< sitevar name="domain" >}}`
+* __Application Root URL:__ `https://seafile.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __User Email Domain:__ `@{{< sitevar name="domain" nojs="example.com" >}}`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -60,8 +60,8 @@ REMOTE_USER_HEADER = 'HTTP_REMOTE_USER'
 
 # Optional, when the value of HTTP_REMOTE_USER is not a valid email address，
 # Seafile will build a email-like unique id from the value of 'REMOTE_USER_HEADER'
-# and this domain, e.g. user1@{{< sitevar name="domain" >}}.
-REMOTE_USER_DOMAIN = '{{< sitevar name="domain" >}}'
+# and this domain, e.g. user1@{{< sitevar name="domain" nojs="example.com" >}}.
+REMOTE_USER_DOMAIN = '{{< sitevar name="domain" nojs="example.com" >}}'
 
 # Optional, whether to create new user in Seafile system, default value is True.
 # If this setting is disabled, users doesn't preexist in the Seafile DB cannot login.

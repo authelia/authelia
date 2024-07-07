@@ -46,7 +46,7 @@ forwarded over a trusted network via the reverse proxy when using the forward au
 |  Remote-User  |       The users username       |                    john                    |
 | Remote-Groups | The groups the user belongs to |                 admin,dev                  |
 |  Remote-Name  |     The users display name     |                 John Smith                 |
-| Remote-Email  |    The users email address     |      jsmith@{{< sitevar name="domain" >}}       |
+| Remote-Email  |    The users email address     |      jsmith@{{< sitevar name="domain" nojs="example.com" >}}       |
 
 ## Forwarding the Response Headers
 

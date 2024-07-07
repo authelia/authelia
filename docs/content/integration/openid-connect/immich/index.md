@@ -31,8 +31,8 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://immich.{{< sitevar name="domain" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/`
+* __Application Root URL:__ `https://immich.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `immich`
 * __Client Secret:__ `insecure_secret`
 
@@ -59,8 +59,8 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://immich.{{< sitevar name="domain" >}}/auth/login'
-          - 'https://immich.{{< sitevar name="domain" >}}/user-settings'
+          - 'https://immich.{{< sitevar name="domain" nojs="example.com" >}}/auth/login'
+          - 'https://immich.{{< sitevar name="domain" nojs="example.com" >}}/user-settings'
           - 'app.immich:/'
         scopes:
           - 'openid'
@@ -75,7 +75,7 @@ To configure [immich] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 1. Login to [immich] and visit the OAuth Settings.
 2. On the screen that appears, enter the following information:
-    - Issuer URL: `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/.well-known/openid-configuration`.
+    - Issuer URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`.
     - Client ID: `immich`.
     - Client Secret: `insecure_secret`.
     - Scope: `openid profile email`.

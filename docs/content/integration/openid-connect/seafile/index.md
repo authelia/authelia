@@ -32,8 +32,8 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://seafile.{{< sitevar name="domain" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/`
+* __Application Root URL:__ `https://seafile.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `seafile`
 * __Client Secret:__ `insecure_secret`
 
@@ -60,7 +60,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://seafile.{{< sitevar name="domain" >}}/oauth/callback/'
+          - 'https://seafile.{{< sitevar name="domain" nojs="example.com" >}}/oauth/callback/'
         scopes:
           - 'openid'
           - 'profile'
@@ -86,11 +86,11 @@ ENABLE_OAUTH = True
 OAUTH_ENABLE_INSECURE_TRANSPORT = False
 OAUTH_CLIENT_ID = "seafile"
 OAUTH_CLIENT_SECRET = "insecure_secret"
-OAUTH_REDIRECT_URL = 'https://seafile.{{< sitevar name="domain" >}}/oauth/callback/'
-OAUTH_PROVIDER_DOMAIN = '{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}'
-OAUTH_AUTHORIZATION_URL = 'https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/api/oidc/authorization'
-OAUTH_TOKEN_URL = 'https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/api/oidc/token'
-OAUTH_USER_INFO_URL = 'https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/api/oidc/userinfo'
+OAUTH_REDIRECT_URL = 'https://seafile.{{< sitevar name="domain" nojs="example.com" >}}/oauth/callback/'
+OAUTH_PROVIDER_DOMAIN = '{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
+OAUTH_AUTHORIZATION_URL = 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization'
+OAUTH_TOKEN_URL = 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token'
+OAUTH_USER_INFO_URL = 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo'
 OAUTH_SCOPE = [
     "openid",
     "profile",

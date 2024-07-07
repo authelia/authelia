@@ -31,8 +31,8 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://pocketbase.{{< sitevar name="domain" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/`
+* __Application Root URL:__ `https://pocketbase.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `pocketbase`
 * __Client Secret:__ `insecure_secret`
 
@@ -59,7 +59,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://pocketbase.{{< sitevar name="domain" >}}/api/oauth2-redirect'
+          - 'https://pocketbase.{{< sitevar name="domain" nojs="example.com" >}}/api/oauth2-redirect'
         scopes:
           - 'email'
           - 'groups'
@@ -80,9 +80,9 @@ To configure [PocketBase] to utilize Authelia as an [OpenID Connect 1.0], please
    1. ClientID: `pocketbase`
    2. Client secret: `insecure_secret`
    3. Display name: `Authelia` (or whatever you want)
-   4. Auth URL: https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/api/oidc/authorization
-   5. Token URL: https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/api/oidc/token
-   6. User API URL: https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/api/oidc/userinfo
+   4. Auth URL: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization
+   5. Token URL: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token
+   6. User API URL: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo
    7. You can leave `Support PKCE` checked.
 6. Save changes.
 

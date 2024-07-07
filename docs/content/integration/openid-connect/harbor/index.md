@@ -31,8 +31,8 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://harbor.{{< sitevar name="domain" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/`
+* __Application Root URL:__ `https://harbor.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `harbor`
 * __Client Secret:__ `insecure_secret`
 
@@ -59,7 +59,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://harbor.{{< sitevar name="domain" >}}/c/oidc/callback'
+          - 'https://harbor.{{< sitevar name="domain" nojs="example.com" >}}/c/oidc/callback'
         scopes:
           - 'openid'
           - 'profile'
@@ -78,7 +78,7 @@ To configure [Harbor] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 4. Select `OIDC` from the `Auth Mode` drop down
 5. Set the following values:
    1. OIDC Provider Name: `Authelia`
-   2. OIDC Provider Endpoint: `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}`
+   2. OIDC Provider Endpoint: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
    3. OIDC Client ID: `harbor`
    4. OIDC Client Secret: `insecure_secret`
    5. Group Claim Name: `groups`

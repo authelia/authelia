@@ -31,8 +31,8 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://outline.{{< sitevar name="domain" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/`
+* __Application Root URL:__ `https://outline.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `outline`
 * __Client Secret:__ `insecure_secret`
 
@@ -62,7 +62,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://outline.{{< sitevar name="domain" >}}/auth/oidc.callback'
+          - 'https://outline.{{< sitevar name="domain" nojs="example.com" >}}/auth/oidc.callback'
         scopes:
           - 'openid'
           - 'offline_access'
@@ -78,14 +78,14 @@ To configure [Outline] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 1. Configure the following environment options:
 ```text
-URL=https://outline.{{< sitevar name="domain" >}}
+URL=https://outline.{{< sitevar name="domain" nojs="example.com" >}}
 FORCE_HTTPS=true
 
 OIDC_CLIENT_ID=outline
 OIDC_CLIENT_SECRET=insecure_secret
-OIDC_AUTH_URI=https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/api/oidc/authorization
-OIDC_TOKEN_URI=https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/api/oidc/token
-OIDC_USERINFO_URI=https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/api/oidc/userinfo
+OIDC_AUTH_URI=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization
+OIDC_TOKEN_URI=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token
+OIDC_USERINFO_URI=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo
 OIDC_USERNAME_CLAIM=preferred_username
 OIDC_DISPLAY_NAME=Authelia
 OIDC_SCOPES="openid offline_access profile email"

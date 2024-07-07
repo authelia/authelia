@@ -31,8 +31,8 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://wekan.{{< sitevar name="domain" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/`
+* __Application Root URL:__ `https://wekan.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `wekan`
 * __Client Secret:__ `insecure_secret`
 
@@ -59,7 +59,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://wekan.{{< sitevar name="domain" >}}/_oauth/oidc'
+          - 'https://wekan.{{< sitevar name="domain" nojs="example.com" >}}/_oauth/oidc'
         scopes:
           - 'openid'
           - 'profile'
@@ -79,7 +79,7 @@ OAUTH2_ENABLED=true
 OAUTH2_LOGIN_STYLE=redirect
 OAUTH2_CLIENT_ID=wekan
 OAUTH2_SECRET=insecure_secret
-OAUTH2_SERVER_URL=https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}
+OAUTH2_SERVER_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 OAUTH2_AUTH_ENDPOINT=/api/oidc/authorization
 OAUTH2_TOKEN_ENDPOINT=/api/oidc/token
 OAUTH2_USERINFO_ENDPOINT=/api/oidc/userinfo

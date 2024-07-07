@@ -69,8 +69,8 @@ The following protections have been considered:
 - The audience of the token must explicitly be requested. Omission of the `audience` parameter may be denied and will
   not grant any audience (thus making it useless) even if the client has been whitelisted for the particular audience.
 
-For example, if `john` consents to grant the token, and it includes the audience `https://app1.{{< sitevar name="domain" >}}`, but the
- user `john` is not normally authorized to visit `https://app1.{{< sitevar name="domain" >}} the token will not grant access to this resource.
+For example, if `john` consents to grant the token, and it includes the audience `https://app1.{{< sitevar name="domain" nojs="example.com" >}}`, but the
+ user `john` is not normally authorized to visit `https://app1.{{< sitevar name="domain" nojs="example.com" >}} the token will not grant access to this resource.
 In addition, if `john` has his access updated via the access control rules, their groups, etc., then this access is
 automatically applied to these tokens.
 
@@ -142,9 +142,9 @@ This feature is only intended to be supported while using the new session config
 session:
   secret: 'insecure_session_secret'
   cookies:
-    - domain: '{{< sitevar name="domain" >}}'
-      authelia_url: 'https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}'
-      default_redirection_url: 'https://www.{{< sitevar name="domain" >}}'
+    - domain: '{{< sitevar name="domain" nojs="example.com" >}}'
+      authelia_url: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
+      default_redirection_url: 'https://www.{{< sitevar name="domain" nojs="example.com" >}}'
 ```
 
 ### Access Control Configuration
@@ -159,13 +159,13 @@ policy is useful for this grant type.
 ```yaml {title="configuration.yml"}
 access_control:
   rules:
-    ## The 'app1.{{< sitevar name="domain" >}}' domain for the user 'john' regardless if they're using OAuth 2.0 or session based flows.
-    - domain: 'app1.{{< sitevar name="domain" >}}'
+    ## The 'app1.{{< sitevar name="domain" nojs="example.com" >}}' domain for the user 'john' regardless if they're using OAuth 2.0 or session based flows.
+    - domain: 'app1.{{< sitevar name="domain" nojs="example.com" >}}'
       policy: 'one_factor'
       subject: 'user:john'
 
-    ## The 'app2.{{< sitevar name="domain" >}}' domain for the 'example-three' client when using the 'client_credentials' grant.
-    - domain: 'app2.{{< sitevar name="domain" >}}'
+    ## The 'app2.{{< sitevar name="domain" nojs="example.com" >}}' domain for the 'example-three' client when using the 'client_credentials' grant.
+    - domain: 'app2.{{< sitevar name="domain" nojs="example.com" >}}'
       policy: 'one_factor'
       subject: 'oauth2:client:example-three'
 ```
@@ -210,8 +210,8 @@ identity_providers:
           - 'offline_access'
           - 'authelia.bearer.authz'
         audience:
-          - 'https://app1.{{< sitevar name="domain" >}}'
-          - 'https://app2.{{< sitevar name="domain" >}}'
+          - 'https://app1.{{< sitevar name="domain" nojs="example.com" >}}'
+          - 'https://app2.{{< sitevar name="domain" nojs="example.com" >}}'
         grant_types:
           - 'authorization_code'
           - 'refresh_token'
@@ -243,8 +243,8 @@ identity_providers:
           - 'offline_access'
           - 'authelia.bearer.authz'
         audience:
-          - 'https://app1.{{< sitevar name="domain" >}}'
-          - 'https://app2.{{< sitevar name="domain" >}}'
+          - 'https://app1.{{< sitevar name="domain" nojs="example.com" >}}'
+          - 'https://app2.{{< sitevar name="domain" nojs="example.com" >}}'
         grant_types:
           - 'authorization_code'
           - 'refresh_token'
@@ -273,8 +273,8 @@ identity_providers:
         scopes:
           - 'authelia.bearer.authz'
         audience:
-          - 'https://app1.{{< sitevar name="domain" >}}'
-          - 'https://app2.{{< sitevar name="domain" >}}'
+          - 'https://app1.{{< sitevar name="domain" nojs="example.com" >}}'
+          - 'https://app2.{{< sitevar name="domain" nojs="example.com" >}}'
         grant_types:
           - 'client_credentials'
         token_endpoint_auth_method: 'client_secret_basic'

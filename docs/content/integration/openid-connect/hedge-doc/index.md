@@ -31,8 +31,8 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://hedgedoc.{{< sitevar name="domain" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/`
+* __Application Root URL:__ `https://hedgedoc.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `hedgedoc`
 * __Client Secret:__ `insecure_secret`
 
@@ -59,7 +59,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://hedgedoc.{{< sitevar name="domain" >}}/auth/oauth2/callback'
+          - 'https://hedgedoc.{{< sitevar name="domain" nojs="example.com" >}}/auth/oauth2/callback'
         scopes:
           - 'openid'
           - 'profile'
@@ -84,9 +84,9 @@ To configure [HedgeDoc] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 ```env
 CMD_OAUTH2_PROVIDERNAME=Authelia
-CMD_OAUTH2_AUTHORIZATION_URL=https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/api/oidc/authorization
-CMD_OAUTH2_TOKEN_URL=https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/api/oidc/token
-CMD_OAUTH2_USER_PROFILE_URL=https://{{< sitevar name="subdomain-authelia" >}}.{{< sitevar name="domain" >}}/api/oidc/userinfo
+CMD_OAUTH2_AUTHORIZATION_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization
+CMD_OAUTH2_TOKEN_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token
+CMD_OAUTH2_USER_PROFILE_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo
 CMD_OAUTH2_CLIENT_ID=hedgedoc
 CMD_OAUTH2_CLIENT_SECRET=insecure_secret
 CMD_OAUTH2_SCOPE=openid email profile groups
