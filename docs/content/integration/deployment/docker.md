@@ -101,14 +101,14 @@ secrets:
     file: '${PWD}/data/authelia/secrets/STORAGE_ENCRYPTION_KEY'
 services:
   authelia:
-    container_name: 'authelia'
+    container_name: '{{< sitevar name="host" nojs="authelia" >}}'
     image: 'docker.io/authelia/authelia:latest'
     restart: 'unless-stopped'
     networks:
       net:
         aliases: []
     expose:
-      - 9091
+      - {{< sitevar name="port" nojs="9091" >}}
     secrets: ['JWT_SECRET', 'SESSION_SECRET', 'STORAGE_PASSWORD', 'STORAGE_ENCRYPTION_KEY']
     environment:
       AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE: '/run/secrets/JWT_SECRET'
@@ -133,14 +133,14 @@ Use this [Standalone Example](#standalone-example) if you want to use a standard
 ---
 services:
   authelia:
-    container_name: 'authelia'
+    container_name: '{{< sitevar name="host" nojs="authelia" >}}'
     image: 'docker.io/authelia/authelia:latest'
     restart: 'unless-stopped'
     networks:
       net:
         aliases: []
     expose:
-      - 9091
+      - {{< sitevar name="port" nojs="9091" >}}
     environment:
       AUTHELIA_JWT_SECRET_FILE: '/secrets/JWT_SECRET'
       AUTHELIA_SESSION_SECRET_FILE: '/secrets/SESSION_SECRET'
@@ -225,16 +225,16 @@ localhost IP address `127.0.0.1` on port `9091`. You need to adjust this to your
 ---
 services:
   authelia:
-    container_name: 'authelia'
+    container_name: '{{< sitevar name="host" nojs="authelia" >}}'
     image: 'docker.io/authelia/authelia:latest'
     restart: 'unless-stopped'
     networks:
       net:
         aliases: []
     expose:
-      - 9091
+      - {{< sitevar name="port" nojs="9091" >}}
     ports:
-      - '127.0.0.1:9091:9091'
+      - '127.0.0.1:{{< sitevar name="port" nojs="9091" >}}:{{< sitevar name="port" nojs="9091" >}}'
 ...
 ```
 

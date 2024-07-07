@@ -23,7 +23,7 @@ seo:
 
 ```yaml {title="configuration.yml"}
 server:
-  address: 'tcp://:9091/'
+  address: 'tcp://:{{< sitevar name="port" nojs="9091" >}}/'
   disable_healthcheck: false
   tls:
     key: ''
@@ -61,19 +61,19 @@ the `unix` scheme or one of the `tcp` schemes. It can configure the host, port, 
 To configure the path for a unix socket see the address syntax documentation linked above.
 
 If the path is configured to anything other than `/` requests will be handled for both `/` and the configured path.
-For example if configured to `tcp://:9091/authelia` then requests will be handled for both the `/` and `/authelia/`
+For example if configured to `tcp://:{{< sitevar name="port" nojs="9091" >}}/authelia` then requests will be handled for both the `/` and `/authelia/`
 path.
 
 #### Examples
 
 ```yaml {title="configuration.yml"}
 server:
-  address: 'tcp://127.0.0.1:9091/'
+  address: 'tcp://127.0.0.1:{{< sitevar name="port" nojs="9091" >}}/'
 ```
 
 ```yaml {title="configuration.yml"}
 server:
-  address: 'tcp://127.0.0.1:9091/subpath'
+  address: 'tcp://127.0.0.1:{{< sitevar name="port" nojs="9091" >}}/subpath'
 ```
 
 ```yaml {title="configuration.yml"}

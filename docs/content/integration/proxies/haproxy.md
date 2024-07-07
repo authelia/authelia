@@ -80,21 +80,21 @@ The following are the assumptions we make:
 
 * Deployment Scenario:
   * Single Host
-  * Authelia is deployed as a Container with the container name `authelia` on port `9091`
+  * Authelia is deployed as a Container with the container name `{{< sitevar name="host" nojs="authelia" >}}` on port `{{< sitevar name="port" nojs="9091" >}}`
   * Proxy is deployed as a Container on a network shared with Authelia
-* The above assumption means that Authelia should be accessible to the proxy on `http://authelia:9091` and as such:
+* The above assumption means that Authelia should be accessible to the proxy on `{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}` and as such:
   * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
     certificate defined
-  * You will have to adapt all instances of `authelia` in the URL if:
+  * You will have to adapt all instances of `{{< sitevar name="host" nojs="authelia" >}}` in the URL if:
     * you're using a different container name
     * you deployed the proxy to a different location
-  * You will have to adapt all instances of `9091` in the URL if:
+  * You will have to adapt all instances of `{{< sitevar name="port" nojs="9091" >}}` in the URL if:
     * you have adjusted the default port in the configuration
   * You will have to adapt the entire URL if:
     * Authelia is on a different host to the proxy
-* All services are part of the `{{< sitevar name="domain" nojs="example.com" >}}` domain:
-  * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
-    just testing or you want to use that specific domain
+  * All services are part of the `{{< sitevar name="domain" nojs="example.com" >}}` domain:
+    * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
+      just testing or you want to use that specific domain
 
 ## Implementation
 
@@ -123,16 +123,16 @@ configuration as well as the legacy configuration for context.
 ```yaml {title="configuration.yml"}
 session:
   cookies:
-    - domain: '{{</* sitevar name="domain" default="example.com" */>}}'
-      authelia_url: 'https://{{</* sitevar name="subdomain-authelia" default="auth" */>}}.{{</* sitevar name="domain" default="example.com" */>}}'
-      default_redirection_url: 'https://www.{{</* sitevar name="domain" default="example.com" */>}}'
+    - domain: '{{</* sitevar name="domain" nojs="example.com" */>}}'
+      authelia_url: 'https://{{</* sitevar name="subdomain-authelia" nojs="auth" */>}}.{{</* sitevar name="domain" nojs="example.com" */>}}'
+      default_redirection_url: 'https://www.{{</* sitevar name="domain" nojs="example.com" */>}}'
 ```
 {{< /sessionTab >}}
 {{< sessionTab "Legacy" >}}
 ```yaml {title="configuration.yml"}
-default_redirection_url: 'https://www.{{</* sitevar name="domain" default="example.com" */>}}'
+default_redirection_url: 'https://www.{{</* sitevar name="domain" nojs="example.com" */>}}'
 session:
-  domain: '{{</* sitevar name="domain" default="example.com" */>}}'
+  domain: '{{</* sitevar name="domain" nojs="example.com" */>}}'
 ```
 {{< /sessionTab >}}
 {{< /sessionTabs >}}
@@ -253,7 +253,7 @@ frontend fe_http
     use_backend be_heimdall if host-heimdall
 
 backend be_authelia
-    server authelia authelia:9091
+    server authelia {{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}
 
 backend be_nextcloud
     ## Pass the Set-Cookie response headers to the user.
@@ -330,7 +330,7 @@ frontend fe_http
     use_backend be_heimdall if host-heimdall
 
 backend be_authelia
-    server authelia authelia:9091
+    server authelia {{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}
 
 backend be_authelia_proxy
     mode http
@@ -339,7 +339,7 @@ backend be_authelia_proxy
 listen authelia_proxy
     mode http
     bind 127.0.0.1:9092
-    server authelia authelia:9091 ssl verify none
+    server authelia {{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}} ssl verify none
 
 backend be_nextcloud
     ## Pass the Set-Cookie response headers to the user.

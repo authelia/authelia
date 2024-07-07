@@ -451,10 +451,10 @@ The main changes which need to occur for everyone is that instead of using the d
 for their proxy integration they need to upgrade to the `/api/authz/*` variant applicable to their proxy and remove the
 `rd` parameter from this integration as this is now handled via the new `authelia_url` value from the session changes.
 
-For example if your previous proxy configuration included `http://authelia:9091/api/verify?rd=https://auth.example.com`
-it now by default becomes `http://authelia:9091/api/authz/forward-auth` for Traefik / Caddy / HAProxy, by default
-becomes `http://authelia:9091/api/authz/auth-request` for NGINX based proxies, and by default becomes
-`http://authelia:9091/api/authz/ext-authz` for Envoy.
+For example if your previous proxy configuration included `{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/verify?rd=https://auth.example.com`
+it now by default becomes `{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth` for Traefik / Caddy / HAProxy, by default
+becomes `{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/auth-request` for NGINX based proxies, and by default becomes
+`{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/ext-authz` for Envoy.
 
 It should be noted these new endpoints can be customized in the
 [server endpoints authz](../../configuration/miscellaneous/server-endpoints-authz.md) section, if custom configuration
@@ -561,7 +561,7 @@ following shows how to properly map the old values to he new. For more informati
 ```yaml {title="configuration.yml"}
 server:
   host: '0.0.0.0'
-  port: 9091
+  port: {{</* sitevar name="port" nojs="9091" */>}}
   path: 'authelia'
 ```
 {{< /details >}}
@@ -569,7 +569,7 @@ server:
 {{< details "After" >}}
 ```yaml {title="configuration.yml"}
 server:
-  address: 'tcp://0.0.0.0:9091/authelia'
+  address: 'tcp://0.0.0.0:{{</* sitevar name="port" nojs="9091" */>}}/authelia'
 ```
 {{< /details >}}
 

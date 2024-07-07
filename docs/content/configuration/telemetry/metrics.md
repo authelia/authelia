@@ -19,7 +19,7 @@ toc: true
 telemetry:
   metrics:
     enabled: false
-    address: 'tcp://:9959/'
+    address: 'tcp://:9959/metrics'
     buffers:
       read: 4096
       write: 4096
@@ -41,7 +41,7 @@ Determines if the [Prometheus] HTTP Metrics Exporter is enabled.
 
 ### address
 
-{{< confkey type="string" syntax="address" default="tcp://:9959/" required="no" >}}
+{{< confkey type="string" syntax="address" default="tcp://:9959/metrics" required="no" >}}
 
 Configures the listener address for the [Prometheus] Metrics Exporter HTTP Server. The address itself is a listener and
 the scheme must either be the `unix` scheme or one of the `tcp` schemes.
