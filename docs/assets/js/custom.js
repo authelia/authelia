@@ -133,7 +133,7 @@ const siteVariableReplace = (name, value) => {
   const type = variables[name].type;
 
   [].slice.call(standard).forEach((item) => {
-    item.innerHTML = type === "boolean" ? (value ? variables[name].true : variables[name].false) : value.toString();
+      item.innerHTML = type === "boolean" ? (value ? variables[name].true : variables[name].false) : value.toString();
   });
 
   if (name === "domain") {
@@ -278,7 +278,9 @@ const siteVariablesConfigure = () => {
 };
 
 // Register the 'env' tab group listeners etc. on page load.
-customTabsConfigure('env');
-customTabsConfigure('session');
+document.addEventListener("DOMContentLoaded", () => {
+  customTabsConfigure('env');
+  customTabsConfigure('session');
 
-siteVariablesConfigure();
+  siteVariablesConfigure();
+})
