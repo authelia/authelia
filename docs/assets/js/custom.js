@@ -5,7 +5,7 @@
 // const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
 // const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new Popover(popoverTriggerEl))
 
-let variables = {
+const variables = {
   "host": {
     "type": "string",
     "value": "",
@@ -279,6 +279,8 @@ const siteVariablesConfigure = () => {
 
 // Register the 'env' tab group listeners etc. on page load.
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("Loading v1");
+
   customTabsConfigure('env');
   customTabsConfigure('session');
 
