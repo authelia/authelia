@@ -60,15 +60,15 @@ following are the assumptions we make:
 
 * Deployment Scenario:
   * Single Host
-  * Authelia is deployed as a Container with the container name `authelia` on port `9091`
+  * Authelia is deployed as a Container with the container name `{{< sitevar name="host" nojs="authelia" >}}` on port `{{< sitevar name="port" nojs="9091" >}}`
   * Proxy is deployed as a Container on a network shared with Authelia
-* The above assumption means that Authelia should be accessible to the proxy on `http://authelia:9091` and as such:
+* The above assumption means that Authelia should be accessible to the proxy on `{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}` and as such:
   * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
     certificate defined
-  * You will have to adapt all instances of `authelia` in the URL if:
+  * You will have to adapt all instances of `{{< sitevar name="host" nojs="authelia" >}}` in the URL if:
     * you're using a different container name
     * you deployed the proxy to a different location
-  * You will have to adapt all instances of `9091` in the URL if:
+  * You will have to adapt all instances of `{{< sitevar name="port" nojs="9091" >}}` in the URL if:
     * you have adjusted the default port in the configuration
   * You will have to adapt the entire URL if:
     * Authelia is on a different host to the proxy
@@ -103,16 +103,16 @@ configuration as well as the legacy configuration for context.
 ```yaml {title="configuration.yml"}
 session:
   cookies:
-    - domain: '{{</* sitevar name="domain" default="example.com" */>}}'
-      authelia_url: 'https://{{</* sitevar name="subdomain-authelia" default="auth" */>}}.{{</* sitevar name="domain" default="example.com" */>}}'
-      default_redirection_url: 'https://www.{{</* sitevar name="domain" default="example.com" */>}}'
+    - domain: '{{</* sitevar name="domain" nojs="example.com" */>}}'
+      authelia_url: 'https://{{</* sitevar name="subdomain-authelia" nojs="auth" */>}}.{{</* sitevar name="domain" nojs="example.com" */>}}'
+      default_redirection_url: 'https://www.{{</* sitevar name="domain" nojs="example.com" */>}}'
 ```
 {{< /sessionTab >}}
 {{< sessionTab "Legacy" >}}
 ```yaml {title="configuration.yml"}
-default_redirection_url: 'https://www.{{</* sitevar name="domain" default="example.com" */>}}'
+default_redirection_url: 'https://www.{{</* sitevar name="domain" nojs="example.com" */>}}'
 session:
-  domain: '{{</* sitevar name="domain" default="example.com" */>}}'
+  domain: '{{</* sitevar name="domain" nojs="example.com" */>}}'
 ```
 {{< /sessionTab >}}
 {{< /sessionTabs >}}
@@ -176,7 +176,7 @@ services:
       - '--entryPoints=Name:api Address::8081'
   authelia:
     image: 'authelia/authelia'
-    container_name: 'authelia'
+    container_name: '{{< sitevar name="host" nojs="authelia" >}}'
     volumes:
       - '/path/to/authelia:/config'
     networks:
@@ -184,7 +184,7 @@ services:
     labels:
       - 'traefik.frontend.rule=Host:{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
     expose:
-      - 9091
+      - {{< sitevar name="port" nojs="9091" >}}
     restart: 'unless-stopped'
     environment:
       TZ: 'Australia/Melbourne'
@@ -198,10 +198,10 @@ services:
       - 'net'
     labels:
       - 'traefik.frontend.rule=Host:nextcloud.{{< sitevar name="domain" nojs="example.com" >}}'
-      - 'traefik.frontend.auth.forward.address=http://authelia:9091/api/authz/forward-auth'
+      - 'traefik.frontend.auth.forward.address={{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth'
       ## The following commented line is for configuring the Authelia URL in the proxy. We strongly suggest this is
       ## configured in the Session Cookies section of the Authelia configuration.
-      # - 'traefik.frontend.auth.forward.address=http://authelia:9091/api/authz/forward-auth?authelia_url=https%3A%2F%2F{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}%2F'
+      # - 'traefik.frontend.auth.forward.address={{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth?authelia_url=https%3A%2F%2F{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}%2F'
       - 'traefik.frontend.auth.forward.trustForwardHeader=true'
       - 'traefik.frontend.auth.forward.authResponseHeaders=Remote-User,Remote-Groups,Remote-Email,Remote-Name'
     expose:
@@ -220,7 +220,7 @@ services:
       - 'net'
     labels:
       - 'traefik.frontend.rule=Host:heimdall.{{< sitevar name="domain" nojs="example.com" >}}'
-      - 'traefik.frontend.auth.forward.address=http://authelia:9091/api/authz/forward-auth/basic'
+      - 'traefik.frontend.auth.forward.address={{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth/basic'
       - 'traefik.frontend.auth.forward.trustForwardHeader=true'
       - 'traefik.frontend.auth.forward.authResponseHeaders=Remote-User,Remote-Groups,Remote-Email,Remote-Name'
     expose:

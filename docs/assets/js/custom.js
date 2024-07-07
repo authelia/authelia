@@ -1,4 +1,39 @@
 // Based on: https://github.com/gohugoio/hugoDocs/blob/master/_vendor/github.com/gohugoio/gohugoioTheme/assets/js/tabs.js
+// Put your custom JS code here
+import { Popover } from 'bootstrap';
+
+const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
+const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new Popover(popoverTriggerEl))
+
+let variables = {
+  "host": {
+    "type": "string",
+    "value": "",
+    "fallback": "authelia",
+  },
+  "port": {
+    "type": "number",
+    "value": 0,
+    "fallback": 9091,
+  },
+  "tls": {
+    "type": "boolean",
+    "value": false,
+    "false": "http",
+    "true": "https",
+    "fallback": false,
+  },
+  "domain": {
+    "type": "string",
+    "value": "",
+    "fallback": "example.com",
+  },
+  "subdomain-authelia": {
+    "type": "string",
+    "value": "",
+    "fallback": "auth",
+  },
+};
 
 /**
  * Scripts which manages Code Toggle tabs.
@@ -95,8 +130,10 @@ const siteVariableName = (name) => {
 const siteVariableReplace = (name, value) => {
   const standard= document.getElementsByClassName(siteVariableName(name));
 
+  const type = variables[name].type;
+
   [].slice.call(standard).forEach((item) => {
-    item.innerHTML = value;
+    item.innerHTML = type === "boolean" ? (value ? variables[name].true : variables[name].false) : value.toString();
   });
 
   if (name === "domain") {
@@ -131,14 +168,14 @@ const siteVariableStorageListener = (name) => {
 };
 
 const siteVariableConfigure = (name, fallback) => {
-  var finalValue = fallback;
+  let finalValue = fallback;
 
   // If the browser supports localStorage, setup localStorage elements.
   if (window.localStorage) {
-
+    const type = variables[name].type;
     // If the preference value exists, make sure those tabs are selected.
-    const value = window.localStorage.getItem(siteVariableName(name));
-    if (value && value !== "") {
+    const value = type === "boolean" ? window.localStorage.getItem(siteVariableName(name)) === "true" : type === "number" ? parseInt(window.localStorage.getItem(siteVariableName(name))) : window.localStorage.getItem(siteVariableName(name));
+    if (value !== undefined && value !== "") {
       finalValue = value;
       siteVariableReplace(name, value)
     } else {
@@ -169,8 +206,9 @@ const siteVariableSet = (name, value, prev) => {
 };
 
 const siteVariablesConfigure = () => {
-  var domain = siteVariableConfigure("domain", "example.com");
-  var subdomainAuthelia = siteVariableConfigure("subdomain-authelia", "auth");
+  for (const [name, values] of Object.entries(variables)) {
+    variables[name].value = siteVariableConfigure(name, values.fallback);
+  }
 
   const save = document.getElementById("site-variables-save");
   if (!save) return;
@@ -182,21 +220,61 @@ const siteVariablesConfigure = () => {
     document.getElementById("site-const-authelia-url").value = `https://${valueSubdomain}.${valueDomain}/`;
   };
 
-  document.getElementById("site-variables-toggle").addEventListener("click", () => {
-    document.getElementById(siteVariableName("domain")).value = domain;
-    document.getElementById(siteVariableName("subdomain-authelia")).value = subdomainAuthelia;
+  const onChangeAutheliaListener = () => {
+    const checked = document.getElementById(siteVariableName("tls")).checked;
+    const valueHost = document.getElementById(siteVariableName("host")).value.trim();
+    const valuePort = document.getElementById(siteVariableName("port")).value.trim();
+
+    document.getElementById("site-const-listen").value = `${checked ? "https" : "http"}://${valueHost}:${valuePort}/`;
+  };
+
+  const onSetModalValues = () => {
+    for (const [name, values] of Object.entries(variables)) {
+      const element = document.getElementById(siteVariableName(name));
+
+      if (element.type === "checkbox") {
+        element.checked = values.value;
+      } else {
+        element.value = values.value;
+      }
+    }
+
     onChangeAutheliaDomain();
+    onChangeAutheliaListener();
+  };
+
+  document.getElementById("site-variables-toggle").addEventListener("click", () => {
+    onSetModalValues();
+  })
+
+  document.getElementById("site-variables-reset").addEventListener("click", () => {
+    for (const [name, values] of Object.entries(variables)) {
+      variables[name].value = siteVariableSet(name, values.fallback, variables[name].value);
+    }
+
+    onSetModalValues();
   })
 
   save.addEventListener("click", () => {
-    domain = siteVariableSet("domain", document.getElementById(siteVariableName("domain")).value.trim(), domain);
-    subdomainAuthelia = siteVariableSet("subdomain-authelia", document.getElementById(siteVariableName("subdomain-authelia")).value.trim(), subdomainAuthelia);
+    for (const [name, values] of Object.entries(variables)) {
+      const element = document.getElementById(siteVariableName(name));
+      if (values.type === "boolean") {
+        variables[name].value = siteVariableSet(name, element.checked, variables[name].value);
+      } else {
+        variables[name].value = siteVariableSet(name, element.value.trim(), variables[name].value);
+      }
+    }
   })
 
-  document.getElementById("site-variable-domain").addEventListener("change", onChangeAutheliaDomain);
-  document.getElementById("site-variable-domain").addEventListener("keyup", onChangeAutheliaDomain);
-  document.getElementById("site-variable-subdomain-authelia").addEventListener("change", onChangeAutheliaDomain);
-  document.getElementById("site-variable-subdomain-authelia").addEventListener("keyup", onChangeAutheliaDomain);
+  document.getElementById(siteVariableName("domain")).addEventListener("change", onChangeAutheliaDomain);
+  document.getElementById(siteVariableName("domain")).addEventListener("keyup", onChangeAutheliaDomain);
+  document.getElementById(siteVariableName("subdomain-authelia")).addEventListener("change", onChangeAutheliaDomain);
+  document.getElementById(siteVariableName("subdomain-authelia")).addEventListener("keyup", onChangeAutheliaDomain);
+  document.getElementById(siteVariableName("host")).addEventListener("change", onChangeAutheliaListener);
+  document.getElementById(siteVariableName("host")).addEventListener("keyup", onChangeAutheliaListener);
+  document.getElementById(siteVariableName("port")).addEventListener("change", onChangeAutheliaListener);
+  document.getElementById(siteVariableName("port")).addEventListener("keyup", onChangeAutheliaListener);
+  document.getElementById(siteVariableName("tls")).addEventListener("change", onChangeAutheliaListener);
 };
 
 // Register the 'env' tab group listeners etc. on page load.

@@ -29,13 +29,14 @@ when configured. If metrics are enabled the metrics listener listens on `:9959` 
 
 ```yaml
 # Authelia
-  - job_name: authelia
-    scrape_interval: 60s
-    scheme: http
+  - job_name: 'authelia'
+    scrape_interval: '60s'
+    scheme: 'http'
     static_configs:
-    - targets: [authelia_address:9959]
+    - targets: ['{{< sitevar name="host" nojs="authelia" >}}:9959']
 ```
-*Notes: Replace 'authelia_address' with the URL or IP of your Authelia container.*
+
+*Notes: Replace '{{< sitevar name="host" nojs="authelia" >}}' with the URL or IP of your Authelia container.*
 
 
 #### Recorded Metrics

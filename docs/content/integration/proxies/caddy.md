@@ -77,15 +77,15 @@ The following are the assumptions we make:
 
 * Deployment Scenario:
   * Single Host
-  * Authelia is deployed as a Container with the container name `authelia` on port `9091`
+  * Authelia is deployed as a Container with the container name `{{< sitevar name="host" nojs="authelia" >}}` on port `{{< sitevar name="port" nojs="9091" >}}`
   * Proxy is deployed as a Container on a network shared with Authelia
-* The above assumption means that Authelia should be accessible to the proxy on `http://authelia:9091` and as such:
+* The above assumption means that Authelia should be accessible to the proxy on `{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}` and as such:
   * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
     certificate defined
-  * You will have to adapt all instances of `authelia` in the URL if:
+  * You will have to adapt all instances of `{{< sitevar name="host" nojs="authelia" >}}` in the URL if:
     * you're using a different container name
     * you deployed the proxy to a different location
-  * You will have to adapt all instances of `9091` in the URL if:
+  * You will have to adapt all instances of `{{< sitevar name="port" nojs="9091" >}}` in the URL if:
     * you have adjusted the default port in the configuration
   * You will have to adapt the entire URL if:
     * Authelia is on a different host to the proxy
@@ -120,16 +120,16 @@ configuration as well as the legacy configuration for context.
 ```yaml {title="configuration.yml"}
 session:
   cookies:
-    - domain: '{{</* sitevar name="domain" default="example.com" */>}}'
-      authelia_url: 'https://{{</* sitevar name="subdomain-authelia" default="auth" */>}}.{{</* sitevar name="domain" default="example.com" */>}}'
-      default_redirection_url: 'https://www.{{</* sitevar name="domain" default="example.com" */>}}'
+    - domain: '{{</* sitevar name="domain" nojs="example.com" */>}}'
+      authelia_url: 'https://{{</* sitevar name="subdomain-authelia" nojs="auth" */>}}.{{</* sitevar name="domain" nojs="example.com" */>}}'
+      default_redirection_url: 'https://www.{{</* sitevar name="domain" nojs="example.com" */>}}'
 ```
 {{< /sessionTab >}}
 {{< sessionTab "Legacy" >}}
 ```yaml {title="configuration.yml"}
-default_redirection_url: 'https://www.{{</* sitevar name="domain" default="example.com" */>}}'
+default_redirection_url: 'https://www.{{</* sitevar name="domain" nojs="example.com" */>}}'
 session:
-  domain: '{{</* sitevar name="domain" default="example.com" */>}}'
+  domain: '{{</* sitevar name="domain" nojs="example.com" */>}}'
 ```
 {{< /sessionTab >}}
 {{< /sessionTabs >}}
@@ -159,20 +159,20 @@ support to ensure the basic example covers your use case in a secure way.
 }
 
 # Authelia Portal.
-{{</* sitevar name="subdomain-authelia" default="auth" */>}}.{{</* sitevar name="domain" default="example.com" */>}} {
-        reverse_proxy authelia:9091 {
+{{</* sitevar name="subdomain-authelia" nojs="auth" */>}}.{{</* sitevar name="domain" nojs="example.com" */>}} {
+        reverse_proxy {{</* sitevar name="host" nojs="authelia" */>}}:{{</* sitevar name="port" nojs="9091" */>}} {
                 ## This import needs to be included if you're relying on a trusted proxies configuration.
                 import trusted_proxy_list
         }
 }
 
 # Protected Endpoint.
-nextcloud.{{</* sitevar name="domain" default="example.com" */>}} {
-        forward_auth authelia:9091 {
+nextcloud.{{</* sitevar name="domain" nojs="example.com" */>}} {
+        forward_auth {{</* sitevar name="host" nojs="authelia" */>}}:{{</* sitevar name="port" nojs="9091" */>}} {
                 uri /api/authz/forward-auth
                 ## The following commented line is for configuring the Authelia URL in the proxy. We strongly suggest
                 ## this is configured in the Session Cookies section of the Authelia configuration.
-                # uri /api/authz/forward-auth?authelia_url=https://{{</* sitevar name="subdomain-authelia" default="auth" */>}}.{{</* sitevar name="domain" default="example.com" */>}}/
+                # uri /api/authz/forward-auth?authelia_url=https://{{</* sitevar name="subdomain-authelia" nojs="auth" */>}}.{{</* sitevar name="domain" nojs="example.com" */>}}/
                 copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
 
                 ## This import needs to be included if you're relying on a trusted proxies configuration.
@@ -200,11 +200,11 @@ nextcloud.{{</* sitevar name="domain" default="example.com" */>}} {
        # trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
 }
 
-{{</* sitevar name="domain" default="example.com" */>}} {
+{{</* sitevar name="domain" nojs="example.com" */>}} {
         # Authelia Portal.
         @authelia path /authelia /authelia/*
         handle @authelia {
-                reverse_proxy authelia:9091 {
+                reverse_proxy {{</* sitevar name="host" nojs="authelia" */>}}:{{</* sitevar name="port" nojs="9091" */>}} {
                         ## This import needs to be included if you're relying on a trusted proxies configuration.
                         import trusted_proxy_list
                 }
@@ -213,8 +213,8 @@ nextcloud.{{</* sitevar name="domain" default="example.com" */>}} {
         # Protected Endpoint.
         @nextcloud path /nextcloud /nextcloud/*
         handle @nextcloud {
-                forward_auth authelia:9091 {
-                        uri /api/authz/forward-auth?authelia_url=https://{{</* sitevar name="domain" default="example.com" */>}}/authelia/
+                forward_auth {{</* sitevar name="host" nojs="authelia" */>}}:{{</* sitevar name="port" nojs="9091" */>}} {
+                        uri /api/authz/forward-auth?authelia_url=https://{{</* sitevar name="domain" nojs="example.com" */>}}/authelia/
                         copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
 
                         ## This import needs to be included if you're relying on a trusted proxies configuration.
@@ -246,21 +246,21 @@ preferred in *most* situations. If you are unsure of what you're doing please do
 }
 
 # Authelia Portal.
-{{</* sitevar name="subdomain-authelia" default="auth" */>}}.{{</* sitevar name="domain" default="example.com" */>}} {
-        reverse_proxy authelia:9091 {
+{{</* sitevar name="subdomain-authelia" nojs="auth" */>}}.{{</* sitevar name="domain" nojs="example.com" */>}} {
+        reverse_proxy {{</* sitevar name="host" nojs="authelia" */>}}:{{</* sitevar name="port" nojs="9091" */>}} {
                 ## This import needs to be included if you're relying on a trusted proxies configuration.
                 import trusted_proxy_list
         }
 }
 
 # Protected Endpoint.
-nextcloud.{{</* sitevar name="domain" default="example.com" */>}} {
-        reverse_proxy authelia:9091 {
+nextcloud.{{</* sitevar name="domain" nojs="example.com" */>}} {
+        reverse_proxy {{</* sitevar name="host" nojs="authelia" */>}}:{{</* sitevar name="port" nojs="9091" */>}} {
                 ## This import needs to be included if you're relying on a trusted proxies configuration.
                 import trusted_proxy_list
 
                 method GET
-                rewrite "/api/authz/forward-auth?authelia_url=https://{{</* sitevar name="subdomain-authelia" default="auth" */>}}.{{</* sitevar name="domain" default="example.com" */>}}/"
+                rewrite "/api/authz/forward-auth?authelia_url=https://{{</* sitevar name="subdomain-authelia" nojs="auth" */>}}.{{</* sitevar name="domain" nojs="example.com" */>}}/"
 
                 header_up X-Forwarded-Method {method}
                 header_up X-Forwarded-URI {uri}
