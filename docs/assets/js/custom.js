@@ -188,12 +188,13 @@ const siteVariableConfigure = (name, fallback) => {
   if (window.localStorage) {
     const type = variables[name].type;
     // If the preference value exists, make sure those tabs are selected.
-    const value = type === "boolean" ? window.localStorage.getItem(siteVariableName(name)) === "true" : type === "number" ? parseInt(window.localStorage.getItem(siteVariableName(name))) : window.localStorage.getItem(siteVariableName(name));
-    if (value !== undefined && value !== "") {
-      finalValue = value;
-      siteVariableReplace(name, value)
+    const storage = window.localStorage.getItem(siteVariableName(name));
+
+    if (storage) {
+      finalValue = type === "boolean" ? storage === "true" : type === "number" ? parseInt(storage) : storage;
+      siteVariableReplace(name, finalValue);
     } else {
-      siteVariableReplace(name, fallback)
+      siteVariableReplace(name, fallback);
     }
 
     // Make sure we listen for storage events for changes to the specific storage key.
