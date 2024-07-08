@@ -130,11 +130,15 @@ const siteVariableName = (name) => {
 const siteVariableReplace = (name, value) => {
   const elements= document.getElementsByClassName(siteVariableName(name));
 
+  if (value === null) {
+    console.log(name, "is null");
+  }
+
   const type = variables[name].type;
 
   if (elements && type) {
     [].slice.call(elements).forEach((element) => {
-      element.innerHTML = type === "boolean" ? (value ? variables[name].true : variables[name].false) : value.toString();
+      element.innerHTML = type === "boolean" ? (value ? variables[name].true : variables[name].false) : value ? value.toString() : "";
     });
   }
 
