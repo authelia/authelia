@@ -225,39 +225,25 @@ const siteVariablesConfigure = () => {
     variables[name].value = siteVariableConfigure(name, values.fallback);
   }
 
-  console.log("setup");
-
   const save = document.getElementById("site-variables-save");
   if (!save) return;
 
-  console.log("save");
-
   const onChangeAutheliaDomain = () => {
-    console.log("onChangeAuthelia start");
-
     const valueDomain = document.getElementById(siteVariableName("domain")).value.trim();
     const valueSubdomain = document.getElementById(siteVariableName("subdomain-authelia")).value.trim();
 
     document.getElementById("site-const-authelia-url").value = `https://${valueSubdomain}.${valueDomain}/`;
-
-    console.log("onChangeAuthelia finish");
   };
 
   const onChangeAutheliaListener = () => {
-    console.log("onChangeAutheliaListener start");
-
     const checked = document.getElementById(siteVariableName("tls")).checked;
     const valueHost = document.getElementById(siteVariableName("host")).value.trim();
     const valuePort = document.getElementById(siteVariableName("port")).value.trim();
 
     document.getElementById("site-const-listen").value = `${checked ? "https" : "http"}://${valueHost}:${valuePort}/`;
-
-    console.log("onChangeAutheliaListener finish");
   };
 
   const onSetModalValues = () => {
-    console.log("modal start");
-
     for (const [name, values] of Object.entries(variables)) {
       const element = document.getElementById(siteVariableName(name));
 
@@ -267,8 +253,6 @@ const siteVariablesConfigure = () => {
         element.value = values.value;
       }
     }
-
-    console.log("modal finish");
 
     onChangeAutheliaDomain();
     onChangeAutheliaListener();
@@ -297,8 +281,6 @@ const siteVariablesConfigure = () => {
     }
   })
 
-  console.log("save click");
-
   document.getElementById(siteVariableName("domain")).addEventListener("change", onChangeAutheliaDomain);
   document.getElementById(siteVariableName("domain")).addEventListener("keyup", onChangeAutheliaDomain);
   document.getElementById(siteVariableName("subdomain-authelia")).addEventListener("change", onChangeAutheliaDomain);
@@ -315,5 +297,3 @@ customTabsConfigure('env');
 customTabsConfigure('session');
 
 siteVariablesConfigure();
-
-console.log("v1");
