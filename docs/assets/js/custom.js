@@ -144,6 +144,8 @@ const siteVariableReplace = (name, value) => {
 };
 
 const siteVariableReplaceDomain = (value) => {
+  if (!value) value = "";
+
   const relements= document.getElementsByClassName(siteVariableName("domain")+"-regex");
 
   if (relements) {
@@ -290,3 +292,5 @@ customTabsConfigure('env');
 customTabsConfigure('session');
 
 siteVariablesConfigure();
+
+console.log("v1");
