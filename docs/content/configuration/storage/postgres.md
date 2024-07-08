@@ -21,6 +21,12 @@ seo:
 See the [PostgreSQL Database Integration](../../reference/integrations/database-integrations.md#postgresql) reference
 guide for supported version information.
 
+## Variables
+
+Some of the values within this page can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
+
 ## Configuration
 
 {{< config-alert-example >}}

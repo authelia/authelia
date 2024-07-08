@@ -55,8 +55,12 @@ networks to the trusted proxy list in [Traefik]:
 ## Assumptions and Adaptation
 
 This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
-can not reasonably have examples for every advanced configuration option that exists. The
-following are the assumptions we make:
+can not reasonably have examples for every advanced configuration option that exists. Some of these values can
+automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
+
+The following are the assumptions we make:
 
 * Deployment Scenario:
   * Single Host
