@@ -286,3 +286,6 @@ document.addEventListener("load", () => {
 
   siteVariablesConfigure();
 })
+
+console.log("script");
+console.log(variables);
