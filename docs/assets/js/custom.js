@@ -128,15 +128,15 @@ const siteVariableName = (name) => {
 };
 
 const siteVariableReplace = (name, value) => {
-  const standard= document.getElementsByClassName(siteVariableName(name));
+  const elements= document.getElementsByClassName(siteVariableName(name));
 
   const type = variables[name].type;
 
-  [].slice.call(standard).forEach((item) => {
-    if (item) {
-      item.innerHTML = type === "boolean" ? (value ? variables[name].true : variables[name].false) : value.toString();
-    }
-  });
+  if (elements && type) {
+    [].slice.call(elements).forEach((element) => {
+      element.innerHTML = type === "boolean" ? (value ? variables[name].true : variables[name].false) : value.toString();
+    });
+  }
 
   if (name === "domain") {
     siteVariableReplaceDomain(value);
@@ -144,21 +144,23 @@ const siteVariableReplace = (name, value) => {
 };
 
 const siteVariableReplaceDomain = (value) => {
-  const itemsRegex= document.getElementsByClassName(siteVariableName("domain")+"-regex");
+  const relements= document.getElementsByClassName(siteVariableName("domain")+"-regex");
 
-  [].slice.call(itemsRegex).forEach((item) => {
-    if (item) {
-      item.innerHTML = value.replace(".", "\\.");
-    }
-  });
+  if (relements) {
+    [].slice.call(relements).forEach((element) => {
+      element.innerHTML = value.replace(".", "\\.");
+    });
+  }
 
-  const itemsDN= document.getElementsByClassName(siteVariableName("domain")+"-dn");
+  const delements= document.getElementsByClassName(siteVariableName("domain")+"-dn");
 
-  [].slice.call(itemsDN).forEach((item) => {
-    if (item) {
-      item.innerHTML = `DC=${value.replace(".", ",DC=")}`;
-    }
-  });
+  if (delements) {
+    [].slice.call(delements).forEach((item) => {
+      if (item) {
+        item.innerHTML = `DC=${value.replace(".", ",DC=")}`;
+      }
+    });
+  }
 };
 
 const siteVariableStorageListener = (name) => {
