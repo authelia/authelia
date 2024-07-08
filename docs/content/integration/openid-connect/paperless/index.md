@@ -61,7 +61,7 @@ identity_providers:
         require_pkce: true
         pkce_challenge_method: 'S256'
         redirect_uris:
-          - 'https://paperless.{{< sitevar name="domain" nojs="example.com" >}}/accounts/authelia/login/callback'
+          - 'https://paperless.{{< sitevar name="domain" nojs="example.com" >}}/accounts/authelia/login/callback/'
         scopes:
           - 'openid'
           - 'profile'
