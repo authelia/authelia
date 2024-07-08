@@ -1,11 +1,11 @@
 // Based on: https://github.com/gohugoio/hugoDocs/blob/master/_vendor/github.com/gohugoio/gohugoioTheme/assets/js/tabs.js
 // Put your custom JS code here
-import { Popover } from 'bootstrap';
+// import { Popover } from 'bootstrap';
 
-const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
-const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new Popover(popoverTriggerEl))
+// const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
+// const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new Popover(popoverTriggerEl))
 
-let variables = {
+const variables = {
   "host": {
     "type": "string",
     "value": "",
@@ -128,13 +128,19 @@ const siteVariableName = (name) => {
 };
 
 const siteVariableReplace = (name, value) => {
-  const standard= document.getElementsByClassName(siteVariableName(name));
+  const elements= document.getElementsByClassName(siteVariableName(name));
+
+  if (value === null) {
+    console.log(name, "is null");
+  }
 
   const type = variables[name].type;
 
-  [].slice.call(standard).forEach((item) => {
-    item.innerHTML = type === "boolean" ? (value ? variables[name].true : variables[name].false) : value.toString();
-  });
+  if (elements && type) {
+    [].slice.call(elements).forEach((element) => {
+      element.innerHTML = type === "boolean" ? (value ? variables[name].true : variables[name].false) : value ? value.toString() : "";
+    });
+  }
 
   if (name === "domain") {
     siteVariableReplaceDomain(value);
@@ -142,17 +148,25 @@ const siteVariableReplace = (name, value) => {
 };
 
 const siteVariableReplaceDomain = (value) => {
-  const itemsRegex= document.getElementsByClassName(siteVariableName("domain")+"-regex");
+  if (!value) value = "";
 
-  [].slice.call(itemsRegex).forEach((item) => {
-    item.innerHTML = value.replace(".", "\\.");
-  });
+  const relements= document.getElementsByClassName(siteVariableName("domain")+"-regex");
 
-  const itemsDN= document.getElementsByClassName(siteVariableName("domain")+"-dn");
+  if (relements) {
+    [].slice.call(relements).forEach((element) => {
+      element.innerHTML = value.replace(".", "\\.");
+    });
+  }
 
-  [].slice.call(itemsDN).forEach((item) => {
-    item.innerHTML = `DC=${value.replace(".", ",DC=")}`;
-  });
+  const delements= document.getElementsByClassName(siteVariableName("domain")+"-dn");
+
+  if (delements) {
+    [].slice.call(delements).forEach((item) => {
+      if (item) {
+        item.innerHTML = `DC=${value.replace(".", ",DC=")}`;
+      }
+    });
+  }
 };
 
 const siteVariableStorageListener = (name) => {
@@ -174,12 +188,13 @@ const siteVariableConfigure = (name, fallback) => {
   if (window.localStorage) {
     const type = variables[name].type;
     // If the preference value exists, make sure those tabs are selected.
-    const value = type === "boolean" ? window.localStorage.getItem(siteVariableName(name)) === "true" : type === "number" ? parseInt(window.localStorage.getItem(siteVariableName(name))) : window.localStorage.getItem(siteVariableName(name));
-    if (value !== undefined && value !== "") {
-      finalValue = value;
-      siteVariableReplace(name, value)
+    const storage = window.localStorage.getItem(siteVariableName(name));
+
+    if (storage) {
+      finalValue = type === "boolean" ? storage === "true" : type === "number" ? parseInt(storage) : storage;
+      siteVariableReplace(name, finalValue);
     } else {
-      siteVariableReplace(name, fallback)
+      siteVariableReplace(name, fallback);
     }
 
     // Make sure we listen for storage events for changes to the specific storage key.
