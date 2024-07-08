@@ -22,6 +22,12 @@ seo:
 See the [MySQL Database Integration](../../reference/integrations/database-integrations.md#mysql) reference
 guide for supported version information.
 
+## Variables
+
+Some of the values within this page can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
+
 ## Configuration
 
 {{< config-alert-example >}}

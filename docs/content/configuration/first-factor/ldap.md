@@ -17,6 +17,12 @@ seo:
   noindex: false # false (default) or true
 ---
 
+## Variables
+
+Some of the values within this page can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
+
 ## Configuration
 
 {{< config-alert-example >}}

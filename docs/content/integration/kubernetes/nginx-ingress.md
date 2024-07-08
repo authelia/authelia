@@ -27,6 +27,12 @@ It's __*strongly recommended*__ that users setting up *Authelia* for the first t
 [Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
 bootstrapping *Authelia*.
 
+## Variables
+
+Some of the values within this page can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
+
 ## NGINX Ingress Controller (ingress-nginx)
 
 If you use NGINX Ingress Controller ([ingress-nginx]) you can protect an ingress with the following annotations. The

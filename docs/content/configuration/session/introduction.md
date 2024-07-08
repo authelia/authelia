@@ -20,6 +20,12 @@ seo:
 __Authelia__ relies on session cookies to authorize user access to various protected websites. This section configures
 the session cookie behavior and the domains which Authelia can service authorization requests for.
 
+## Variables
+
+Some of the values within this page can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
+
 ## Configuration
 
 {{< config-alert-example >}}

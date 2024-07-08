@@ -32,6 +32,12 @@ registered clients see the [OpenID Connect 1.0 Clients](clients.md) documentatio
 More information about the beta can be found in the [roadmap](../../../roadmap/active/openid-connect.md) and in the
 [integration](../../../integration/openid-connect/introduction.md) documentation.
 
+## Variables
+
+Some of the values within this page can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
+
 ## Configuration
 
 {{< config-alert-example >}}
