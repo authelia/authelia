@@ -133,7 +133,9 @@ const siteVariableReplace = (name, value) => {
   const type = variables[name].type;
 
   [].slice.call(standard).forEach((item) => {
+    if (item) {
       item.innerHTML = type === "boolean" ? (value ? variables[name].true : variables[name].false) : value.toString();
+    }
   });
 
   if (name === "domain") {
@@ -145,13 +147,17 @@ const siteVariableReplaceDomain = (value) => {
   const itemsRegex= document.getElementsByClassName(siteVariableName("domain")+"-regex");
 
   [].slice.call(itemsRegex).forEach((item) => {
-    item.innerHTML = value.replace(".", "\\.");
+    if (item) {
+      item.innerHTML = value.replace(".", "\\.");
+    }
   });
 
   const itemsDN= document.getElementsByClassName(siteVariableName("domain")+"-dn");
 
   [].slice.call(itemsDN).forEach((item) => {
-    item.innerHTML = `DC=${value.replace(".", ",DC=")}`;
+    if (item) {
+      item.innerHTML = `DC=${value.replace(".", ",DC=")}`;
+    }
   });
 };
 
@@ -278,14 +284,7 @@ const siteVariablesConfigure = () => {
 };
 
 // Register the 'env' tab group listeners etc. on page load.
-document.addEventListener("load", () => {
-  console.log("Loading v1");
+customTabsConfigure('env');
+customTabsConfigure('session');
 
-  customTabsConfigure('env');
-  customTabsConfigure('session');
-
-  siteVariablesConfigure();
-})
-
-console.log("script");
-console.log(variables);
+siteVariablesConfigure();
