@@ -37,13 +37,13 @@ figure.figure-blog {
 
 .icon-support-unknown {
   @extend .bi;
-  @extend .bi-dash-circle-fill;
+  @extend .bi-question-circle-fill;
   @extend .text-warning;
 }
 
 [data-dark-mode] .icon-support-unknown {
   @extend .bi;
-  @extend .bi-dash-circle;
+  @extend .bi-question-circle;
   @extend .text-warning;
 }
 
