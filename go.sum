@@ -67,8 +67,8 @@ github.com/go-crypt/crypt v0.2.25 h1:uW/3n4/9zYSOOgY0Md9dMxGSqrjaMyLo1/IFrm2L5yw
 github.com/go-crypt/crypt v0.2.25/go.mod h1:ny8BOunn+/kr99iq2LYSKA0MAsxNaxZUmKKL42vV1io=
 github.com/go-crypt/x v0.2.18 h1:KdUGj4D/PdzcIkOQhK36QHzH2YD5GWrsVQ7JgO73Q8Y=
 github.com/go-crypt/x v0.2.18/go.mod h1:z48dMLdgMGPPjrzni9ETtg2foPez3EytjCL43Ak4QZ8=
-github.com/go-jose/go-jose/v4 v4.0.2 h1:R3l3kkBds16bO7ZFAEEcofK0MkrAJt3jlJznWZG0nvk=
-github.com/go-jose/go-jose/v4 v4.0.2/go.mod h1:WVf9LFMHh/QVrmqrOfqun0C45tMe3RoiKJMPvgWwLfY=
+github.com/go-jose/go-jose/v4 v4.0.3 h1:o8aphO8Hv6RPmH+GfzVuyf7YXSBibp+8YyHdOoDESGo=
+github.com/go-jose/go-jose/v4 v4.0.3/go.mod h1:NKb5HO1EZccyMpiZNbdUw/14tiXNyUJh188dfnMCAfc=
 github.com/go-ldap/ldap/v3 v3.4.8 h1:loKJyspcRezt2Q3ZRMq2p/0v8iOurlmeXDPw6fikSvQ=
 github.com/go-ldap/ldap/v3 v3.4.8/go.mod h1:qS3Sjlu76eHfHGpUdWkAXQTw4beih+cHsco2jXlIXrk=
 github.com/go-redis/redis/v8 v8.11.5 h1:AcZZR7igkdvfVmQTPnu9WE37LRrO/YrBH5zWyjDC0oI=
