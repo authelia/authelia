@@ -95,7 +95,7 @@ Alternatively, you can add the authentication source via command line (from the 
 ./gitea admin auth add-oauth --provider=openidConnect name=authelia key=gitea --secret=insecure_secret --auto-discover-url=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration --scopes='openid email profile'
 ```
 
-You might have to run `./gitea migrate` first in order to setup the database with the required structure.
+You might have to run `./gitea migrate` first in order to set up the database with the required structure.
 
 To configure [Gitea] to perform automatic user creation for the `{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}` domain via [OpenID Connect 1.0]:
 
