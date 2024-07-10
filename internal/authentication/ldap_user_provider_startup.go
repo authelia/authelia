@@ -187,6 +187,10 @@ func (p *LDAPUserProvider) parseDynamicUsersConfiguration() {
 		}
 	}
 
+	for attribute := range p.config.Attributes.Extra {
+		p.usersAttributesExtended = append(p.usersAttributesExtended, attribute)
+	}
+
 	if p.config.AdditionalUsersDN != "" {
 		p.usersBaseDN = p.config.AdditionalUsersDN + "," + p.config.BaseDN
 	} else {

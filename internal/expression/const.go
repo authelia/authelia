@@ -1,0 +1,27 @@
+package expression
+
+const (
+	attributeKeyUserUsername       = "username"
+	attributeKeyUserGroups         = "groups"
+	attributeKeyUserDisplayName    = "display_name"
+	attributeKeyUserEmail          = "email"
+	attributeKeyUserEmails         = "emails"
+	attributeKeyUserGivenName      = "given_name"
+	attributeKeyUserMiddleName     = "middle_name"
+	attributeKeyUserFamilyName     = "family_name"
+	attributeKeyUserNickname       = "nickname"
+	attributeKeyUserProfile        = "profile"
+	attributeKeyUserPicture        = "picture"
+	attributeKeyUserWebsite        = "website"
+	attributeKeyUserGender         = "gender"
+	attributeKeyUserBirthdate      = "birthdate"
+	attributeKeyUserZoneInfo       = "zoneinfo"
+	attributeKeyUserLocale         = "locale"
+	attributeKeyUserPhoneNumber    = "phone_number"
+	attributeKeyUserPhoneExtension = "phone_extension"
+	attributeKeyUserStreetAddress  = "street_address"
+	attributeKeyUserLocality       = "locality"
+	attributeKeyUserRegion         = "region"
+	attributeKeyUserPostalCode     = "postal_code"
+	attributeKeyUserCountry        = "country"
+)

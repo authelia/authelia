@@ -157,6 +157,14 @@ type AuthenticationBackendLDAPAttributes struct {
 	Mail              string `koanf:"mail" json:"mail" jsonschema:"title=Attribute: User Mail" jsonschema_description:"The directory server attribute which contains the mail address for all users and groups."`
 	MemberOf          string `koanf:"member_of" jsonschema:"title=Attribute: Member Of" jsonschema_description:"The directory server attribute which contains the objects that an object is a member of."`
 	GroupName         string `koanf:"group_name" json:"group_name" jsonschema:"title=Attribute: Group Name" jsonschema_description:"The directory server attribute which contains the group name for all groups."`
+
+	Extra map[string]AuthenticationBackendLDAPAttributesAttribute `koanf:"extra" json:"extra"`
+}
+
+type AuthenticationBackendLDAPAttributesAttribute struct {
+	Name        string `koanf:"name" json:"name"`
+	MultiValued bool   `koanf:"multi_valued" json:"multi_valued"`
+	ValueType   string `koanf:"value_type" json:"value_type"`
 }
 
 var DefaultAuthenticationBackendConfig = AuthenticationBackend{
