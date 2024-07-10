@@ -113,6 +113,8 @@ type UserDetailsExtended struct {
 	PhoneExtension string
 	Address        *UserDetailsAddress
 
+	Extra map[string]any
+
 	*UserDetails
 }
 
@@ -184,7 +186,7 @@ func (d UserDetailsExtended) GetPhoneExtension() (extension string) {
 	return d.PhoneExtension
 }
 
-func (d UserDetailsExtended) GetOpenIDConnectPhoneNumber() (number string) {
+func (d UserDetailsExtended) GetPhoneNumberRFC3966() (number string) {
 	if d.PhoneNumber == "" {
 		return ""
 	}
@@ -236,6 +238,10 @@ func (d UserDetailsExtended) GetCountry() (country string) {
 	return d.Address.Country
 }
 
+func (d UserDetailsExtended) GetExtra() (extra map[string]any) {
+	return d.Extra
+}
+
 type UserDetailsAddress struct {
 	StreetAddress string
 	Locality      string
@@ -267,6 +273,7 @@ type ldapUserProfileExtended struct {
 	PhoneNumber    string
 	PhoneExtension string
 	Address        *UserDetailsAddress
+	Extra          map[string]any
 
 	*ldapUserProfile
 }

@@ -39,21 +39,6 @@ type AccessControlRuleQuery struct {
 	Value    any    `koanf:"value" json:"value" jsonschema:"title=Value" jsonschema_description:"The Query Parameter value for this rule."`
 }
 
-/*
-// DefaultACLNetwork represents the default configuration related to access control network group configuration.
-var DefaultACLNetwork = []AccessControlNetwork{
-	{
-		Name:     "localhost",
-		Networks: []string{"127.0.0.1"},
-	},
-	{
-		Name:     "internal",
-		Networks: []string{"10.0.0.0/8"},
-	},
-}
-
-*/
-
 // DefaultACLRule represents the default configuration related to access control rule configuration.
 var DefaultACLRule = []AccessControlRule{
 	{

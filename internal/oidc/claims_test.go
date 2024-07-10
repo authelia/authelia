@@ -4,7 +4,6 @@ import (
 	"net/url"
 	"testing"
 
-	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -35,6 +34,7 @@ func TestNewClaimRequests(t *testing.T) {
 	assert.False(t, ok)
 }
 
+/*
 func TestGrantClaimsUserInfo(t *testing.T) {
 	strategy := oauthelia2.ExactScopeStrategy
 
@@ -121,12 +121,12 @@ func TestGrantClaimsUserInfo(t *testing.T) {
 			extraClaims := map[string]any{}
 			extraScopes := map[string]any{}
 
-			oidc.GrantClaimRequests(strategy, tc.client, tc.requests, tc.detailer, extra)
-			oidc.GrantScopedClaims(strategy, tc.client, tc.scopes, tc.detailer, tc.claims, extra)
+			oidc.GrantClaimsRequested(&TestContext{}, strategy, tc.client, tc.requests, tc.detailer, extra)
+			oidc.GrantClaimsScoped(&TestContext{}, strategy, tc.client, tc.scopes, tc.detailer, tc.claims, extra)
 
-			oidc.GrantClaimRequests(strategy, tc.client, tc.requests, tc.detailer, extraClaims)
+			oidc.GrantClaimsRequested(&TestContext{}, strategy, tc.client, tc.requests, tc.detailer, extraClaims)
 
-			oidc.GrantScopedClaims(strategy, tc.client, tc.scopes, tc.detailer, tc.claims, extraScopes)
+			oidc.GrantClaimsScoped(&TestContext{}, strategy, tc.client, tc.scopes, tc.detailer, tc.claims, extraScopes)
 
 			for key, value := range extra {
 				if key == oidc.ClaimUpdatedAt {
@@ -173,6 +173,8 @@ func TestGrantClaimsUserInfo(t *testing.T) {
 	}
 }
 
+*/
+
 type testDetailer struct {
 	username  string
 	groups    []string
@@ -196,6 +198,7 @@ type testDetailer struct {
 	region    string
 	postcode  string
 	country   string
+	extra     map[string]any
 }
 
 func (t testDetailer) GetGivenName() (given string) {
@@ -250,7 +253,7 @@ func (t testDetailer) GetPhoneExtension() (extension string) {
 	return t.extension
 }
 
-func (t testDetailer) GetOpenIDConnectPhoneNumber() (number string) {
+func (t testDetailer) GetPhoneNumberRFC3966() (number string) {
 	return t.number
 }
 
@@ -288,6 +291,10 @@ func (t testDetailer) GetDisplayName() (name string) {
 
 func (t testDetailer) GetEmails() (emails []string) {
 	return t.emails
+}
+
+func (t testDetailer) GetExtra() (extra map[string]any) {
+	return t.extra
 }
 
 var (

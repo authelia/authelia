@@ -14,6 +14,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/random"
@@ -131,6 +132,10 @@ func (m *TestContext) GetRandom() (r random.Provider) {
 
 func (m *TestContext) GetConfiguration() (config schema.Configuration) {
 	return m.Config
+}
+
+func (m *TestContext) GetProviderUserAttributeResolver() expression.UserAttributeResolver {
+	return &expression.UserAttributes{}
 }
 
 // IssuerURL returns the MockIssuerURL.

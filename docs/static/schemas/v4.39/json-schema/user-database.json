@@ -126,6 +126,11 @@
           "$ref": "#/$defs/FileUserDatabaseUserDetailsAddressModel",
           "title": "Address",
           "description": "The address for the user."
+        },
+        "extra": {
+          "type": "object",
+          "title": "Extra",
+          "description": "The extra attributes for the user."
         }
       },
       "additionalProperties": false,

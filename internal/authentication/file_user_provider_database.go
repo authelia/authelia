@@ -14,6 +14,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/expression"
 )
 
 type FileUserProviderDatabase interface {
@@ -24,7 +25,7 @@ type FileUserProviderDatabase interface {
 }
 
 // NewFileUserDatabase creates a new FileUserDatabase.
-func NewFileUserDatabase(filePath string, searchEmail, searchCI bool) (database *FileUserDatabase) {
+func NewFileUserDatabase(filePath string, searchEmail, searchCI bool, extra map[string]expression.ExtraAttribute) (database *FileUserDatabase) {
 	return &FileUserDatabase{
 		RWMutex:     &sync.RWMutex{},
 		Path:        filePath,
@@ -33,6 +34,7 @@ func NewFileUserDatabase(filePath string, searchEmail, searchCI bool) (database 
 		Aliases:     map[string]string{},
 		SearchEmail: searchEmail,
 		SearchCI:    searchCI,
+		Extra:       extra,
 	}
 }
 
@@ -48,6 +50,8 @@ type FileUserDatabase struct {
 
 	SearchEmail bool `json:"-"`
 	SearchCI    bool `json:"-"`
+
+	Extra map[string]expression.ExtraAttribute
 }
 
 // Save the database to disk.
@@ -236,6 +240,8 @@ type FileUserDatabaseUserDetails struct {
 	Disabled       bool                   `json:"disabled" jsonschema:"default=false,title=Disabled" jsonschema_description:"The disabled status for the user."`
 
 	Address *FileUserDatabaseUserDetailsAddressModel `json:"address,omitempty" jsonschema:"title=Address" jsonschema_description:"The address for the user."`
+
+	Extra map[string]any `json:"extra" jsonschema:"title=Extra" jsonschema_description:"The extra attributes for the user."`
 }
 
 type FileUserDatabaseUserDetailsAddressModel struct {
@@ -273,6 +279,7 @@ func (m FileUserDatabaseUserDetails) ToExtendedUserDetails() (details *UserDetai
 		PhoneNumber:    m.PhoneNumber,
 		PhoneExtension: m.PhoneExtension,
 		UserDetails:    m.ToUserDetails(),
+		Extra:          m.Extra,
 	}
 
 	if m.Address != nil {
@@ -305,6 +312,7 @@ func (m FileUserDatabaseUserDetails) ToUserDetailsModel() (model FileDatabaseUse
 		Email:          m.Email,
 		Groups:         m.Groups,
 		Address:        m.Address,
+		Extra:          m.Extra,
 	}
 
 	if m.Website != nil {
@@ -415,6 +423,67 @@ type FileDatabaseUserDetailsModel struct {
 	Disabled       bool     `yaml:"disabled"`
 
 	Address *FileUserDatabaseUserDetailsAddressModel `yaml:"address"`
+
+	Extra map[string]any `yaml:"extra"`
+}
+
+func (m FileDatabaseUserDetailsModel) ValidateExtra(extra map[string]expression.ExtraAttribute) (err error) {
+	for name, value := range m.Extra {
+		attribute, ok := extra[name]
+		if !ok {
+			return fmt.Errorf("extra attribute '%s' does not exist", name)
+		}
+
+		mv := attribute.IsMultiValued()
+		vt := attribute.GetValueType()
+
+		if !mv {
+			switch value.(type) {
+			case string:
+				if vt == "string" {
+					continue
+				}
+			case float64:
+				if vt == "integer" {
+					continue
+				}
+			case bool:
+				if vt == "boolean" {
+					continue
+				}
+			default:
+				return fmt.Errorf("extra attribute '%s' has unknown type %T", name, value)
+			}
+
+			return fmt.Errorf("extra attribute '%s' has type %T but expected type is '%s'", name, value, vt)
+		}
+
+		values, ok := value.([]any)
+		if !ok {
+			return fmt.Errorf("extra attribute '%s' has type %T but expected type is '[]%s'", name, value, vt)
+		}
+
+		for _, v := range values {
+			switch v.(type) {
+			case string:
+				if vt == "string" {
+					continue
+				}
+			case float64:
+				if vt == "integer" {
+					continue
+				}
+			case bool:
+				if vt == "boolean" {
+					continue
+				}
+			default:
+				return fmt.Errorf("extra attribute '%s' has item with unknown type %T", name, v)
+			}
+		}
+	}
+
+	return nil
 }
 
 // ToDatabaseUserDetailsModel converts a FileDatabaseUserDetailsModel into a *FileUserDatabaseUserDetails.
@@ -442,6 +511,7 @@ func (m FileDatabaseUserDetailsModel) ToDatabaseUserDetailsModel(username string
 		PhoneExtension: m.PhoneExtension,
 		Groups:         m.Groups,
 		Address:        m.Address,
+		Extra:          m.Extra,
 	}
 
 	if m.Website != "" {

@@ -135,6 +135,14 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		return
 	}
 
+	if requested, ok := requests.MatchesIssuer(issuer); !ok {
+		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: the client requested issuer '%s' but the issuer for the token will be '%s' instead", requester.GetID(), client.GetID(), requested, issuer.String())
+
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oauthelia2.ErrAccessDenied.WithHint("The requested subject was not the same subject that attempted to authorize the request."))
+
+		return
+	}
+
 	if requested, ok := requests.MatchesSubject(consent.Subject.UUID.String()); !ok {
 		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: the client requested subject '%s' but the subject value for '%s' is '%s' for the '%s' sector identifier", requester.GetID(), client.GetID(), requested, userSession.Username, consent.Subject.UUID, client.GetSectorIdentifierURI())
 
@@ -149,11 +157,15 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 
 	strategy := ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx)
 
-	oidc.GrantClaimRequests(strategy, client, requests.GetIDTokenRequests(), details, extra)
+	client.GetClaimsStrategy().PopulateIDTokenClaims(ctx, strategy, client, requester.GetGrantedScopes(), requests.GetIDTokenRequests(), details, ctx.Clock.Now(), nil, extra)
 
-	if requester.GetResponseTypes().Has("id_token") && !requester.GetResponseTypes().Has("token") && !requester.GetResponseTypes().Has("code") {
-		oidc.GrantScopedClaims(strategy, client, requester.GetGrantedScopes(), details, nil, extra)
-	}
+	/*
+		oidc.GrantClaimsRequested(ctx, strategy, client, requests.GetIDTokenRequests(), details, extra)
+
+		if requester.GetResponseTypes().Has("id_token") && !requester.GetResponseTypes().Has("token") && !requester.GetResponseTypes().Has("code") {
+			oidc.GrantClaimsScoped(ctx, strategy, client, requester.GetGrantedScopes(), nil, nil, extra)
+		}
+	*/
 
 	ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' was successfully processed, proceeding to build Authorization Response", requester.GetID(), clientID)
 

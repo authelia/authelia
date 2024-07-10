@@ -556,6 +556,8 @@ var (
 var (
 	validOIDCCORSEndpoints = []string{oidc.EndpointAuthorization, oidc.EndpointDeviceAuthorization, oidc.EndpointPushedAuthorizationRequest, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo}
 
+	validOIDCReservedClaims                  = []string{oidc.ClaimJWTID, oidc.ClaimSessionID, oidc.ClaimAuthorizedParty, oidc.ClaimClientIdentifier, oidc.ClaimScope, oidc.ClaimScopeNonStandard, oidc.ClaimIssuer, oidc.ClaimSubject, oidc.ClaimAudience, oidc.ClaimSessionID, oidc.ClaimStateHash, oidc.ClaimCodeHash, oidc.ClaimIssuedAt, oidc.ClaimUpdatedAt, oidc.ClaimRequestedAt, oidc.ClaimNotBefore, oidc.ClaimExpirationTime, oidc.ClaimAuthenticationTime, oidc.ClaimAuthenticationMethodsReference, oidc.ClaimAuthenticationContextClassReference, oidc.ClaimNonce}
+	validOIDCClientClaims                    = []string{oidc.ClaimFullName, oidc.ClaimGivenName, oidc.ClaimFamilyName, oidc.ClaimMiddleName, oidc.ClaimNickname, oidc.ClaimPreferredUsername, oidc.ClaimProfile, oidc.ClaimPicture, oidc.ClaimWebsite, oidc.ClaimEmail, oidc.ClaimEmailVerified, oidc.ClaimGender, oidc.ClaimBirthdate, oidc.ClaimZoneinfo, oidc.ClaimLocale, oidc.ClaimPhoneNumber, oidc.ClaimPhoneNumberVerified, oidc.ClaimAddress}
 	validOIDCClientScopes                    = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeAddress, oidc.ScopePhone, oidc.ScopeGroups, oidc.ScopeOfflineAccess, oidc.ScopeOffline, oidc.ScopeAutheliaBearerAuthz}
 	validOIDCClientConsentModes              = []string{auto, oidc.ClientConsentModeImplicit.String(), oidc.ClientConsentModeExplicit.String(), oidc.ClientConsentModePreConfigured.String()}
 	validOIDCClientResponseModes             = []string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery, oidc.ResponseModeFragment, oidc.ResponseModeJWT, oidc.ResponseModeFormPostJWT, oidc.ResponseModeQueryJWT, oidc.ResponseModeFragmentJWT}
@@ -583,6 +585,58 @@ var (
 	reOpenIDConnectKID  = regexp.MustCompile(`^([a-zA-Z0-9](([a-zA-Z0-9._~-]*)([a-zA-Z0-9]))?)?$`)
 	reRFC3986Unreserved = regexp.MustCompile(`^[a-zA-Z0-9._~-]+$`)
 )
+
+const (
+	attributeUserUsername       = "username"
+	attributeUserGroups         = "groups"
+	attributeUserDisplayName    = "display_name"
+	attributeUserEmail          = "email"
+	attributeUserEmails         = "emails"
+	attributeUserGivenName      = "given_name"
+	attributeUserMiddleName     = "middle_name"
+	attributeUserFamilyName     = "family_name"
+	attributeUserNickname       = "nickname"
+	attributeUserProfile        = "profile"
+	attributeUserPicture        = "picture"
+	attributeUserWebsite        = "website"
+	attributeUserGender         = "gender"
+	attributeUserBirthdate      = "birthdate"
+	attributeUserZoneInfo       = "zoneinfo"
+	attributeUserLocale         = "locale"
+	attributeUserPhoneNumber    = "phone_number"
+	attributeUserPhoneExtension = "phone_extension"
+	attributeUserStreetAddress  = "street_address"
+	attributeUserLocality       = "locality"
+	attributeUserRegion         = "region"
+	attributeUserPostalCode     = "postal_code"
+	attributeUserCountry        = "country"
+)
+
+var validUserAttributes = []string{
+	attributeUserUsername,
+	attributeUserGroups,
+	attributeUserDisplayName,
+	attributeUserEmail,
+	attributeUserEmails,
+	attributeUserGivenName,
+	attributeUserMiddleName,
+	attributeUserFamilyName,
+	attributeUserNickname,
+	attributeUserProfile,
+	attributeUserPicture,
+	attributeUserWebsite,
+	attributeUserGender,
+	attributeUserBirthdate,
+	attributeUserZoneInfo,
+	attributeUserLocale,
+	attributeUserPhoneNumber,
+	attributeUserPhoneExtension,
+	attributeUserStreetAddress,
+	attributeUserLocality,
+	attributeUserRegion,
+	attributeUserPostalCode,
+	attributeUserCountry,
+}
 
 var replacedKeys = map[string]string{
 	"authentication_backend.ldap.skip_verify":         "authentication_backend.ldap.tls.skip_verify",

@@ -163,6 +163,7 @@ func readTags(prefix string, t reflect.Type, envSkip, deprecatedSkip bool) (tags
 			case reflect.Struct:
 				if !containsType(field.Type.Elem(), decodedTypes) {
 					tags = append(tags, getKeyNameFromTagAndPrefix(prefix, tag, false, false))
+					tags = append(tags, getKeyNameFromTagAndPrefix(prefix, tag, false, true))
 					tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, kind == reflect.Slice, kind == reflect.Map), field.Type.Elem(), envSkip, deprecatedSkip)...)
 
 					continue

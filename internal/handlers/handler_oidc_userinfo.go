@@ -97,15 +97,29 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	var detailer oidc.UserDetailer
 
 	if detailer, err = oidcDetailerFromClaims(ctx, original); err != nil {
-		oidc.GrantScopedClaims(strategy, client, requester.GetGrantedScopes(), nil, original, claims)
+		client.GetClaimsStrategy().PopulateClientCredentialsUserInfoClaims(ctx, client, original, claims)
 
 		if userinfo {
 			ctx.Logger.WithError(err).Errorf("UserInfo Request with id '%s' on client with id '%s' error occurred loading user information", requestID, client.GetID())
 		}
 	} else {
-		oidc.GrantScopedClaims(strategy, client, requester.GetGrantedScopes(), detailer, original, claims)
-		oidc.GrantClaimRequests(strategy, client, requests, detailer, claims)
+		client.GetClaimsStrategy().PopulateUserInfoClaims(ctx, strategy, client, requester.GetGrantedScopes(), requests, detailer, ctx.Clock.Now(), original, claims)
 	}
+
+	/*
+		client.GetClaimsStrategy().PopulateIDTokenClaims(ctx, strategy, client, requester.GetGrantedScopes(), requests.GetIDTokenRequests(), detailer, ctx.Clock.Now(), nil, extra)
+
+		if detailer, err = oidcDetailerFromClaims(ctx, original); err != nil {
+			oidc.GrantClaimsScoped(ctx, strategy, client, requester.GetGrantedScopes(), claims)
+
+			if userinfo {
+				ctx.Logger.WithError(err).Errorf("UserInfo Request with id '%s' on client with id '%s' error occurred loading user information", requestID, client.GetID())
+			}
+		} else {
+			oidc.GrantClaimsScoped(ctx, strategy, client, requester.GetGrantedScopes(), detailer, original, claims)
+			oidc.GrantClaimsRequested(ctx, strategy, client, requests, detailer, claims)
+		}
+	*/
 
 	var token string
 

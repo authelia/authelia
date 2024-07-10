@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"sort"
 	"strconv"
+	"strings"
 
 	oauthelia2 "authelia.com/provider/oauth2"
 
@@ -26,11 +27,15 @@ func validateOIDC(ctx *ValidateCtx, config *schema.Configuration, validator *sch
 		return
 	}
 
+	config.IdentityProviders.OIDC.Discovery.Scopes = append(config.IdentityProviders.OIDC.Discovery.Scopes, validOIDCClientScopes...)
+
 	setOIDCDefaults(config.IdentityProviders.OIDC)
 
 	validateOIDCIssuer(config.IdentityProviders.OIDC, validator)
 	validateOIDCAuthorizationPolicies(config, validator)
 	validateOIDCLifespans(config.IdentityProviders.OIDC, validator)
+	validateOIDCClaims(config, validator)
+	validateOIDCScopes(config, validator)
 
 	sort.Sort(oidc.SortedSigningAlgs(config.IdentityProviders.OIDC.Discovery.ResponseObjectSigningAlgs))
 
@@ -126,6 +131,147 @@ func validateOIDCLifespans(config *schema.IdentityProvidersOpenIDConnect, _ *sch
 	for name := range config.Lifespans.Custom {
 		config.Discovery.Lifespans = append(config.Discovery.Lifespans, name)
 	}
+}
+
+func validateOIDCClaims(config *schema.Configuration, validator *schema.StructValidator) {
+	for name, policy := range config.IdentityProviders.OIDC.ClaimsPolicies {
+		for claim, properties := range policy.CustomClaims {
+			if utils.IsStringInSlice(claim, validOIDCReservedClaims) {
+				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: claim with name '%s' is specifically reserved and cannot be customized", name, claim))
+			}
+
+			if !utils.IsStringInSlice(claim, config.IdentityProviders.OIDC.Discovery.Claims) {
+				config.IdentityProviders.OIDC.Discovery.Claims = append(config.IdentityProviders.OIDC.Discovery.Claims, claim)
+			}
+
+			if properties.Attribute == "" {
+				properties.Attribute = claim
+				policy.CustomClaims[claim] = properties
+				config.IdentityProviders.OIDC.ClaimsPolicies[name] = policy
+			}
+
+			if !isUserAttributeValid(properties.Attribute, config) {
+				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: claim with name '%s' has an attribute name '%s' which is unknown", name, claim, properties.Attribute))
+			}
+		}
+
+		for _, claim := range policy.IDToken {
+			if utils.IsStringInSlice(claim, validOIDCReservedClaims) {
+				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: id_token: claim with name '%s' is specifically reserved and cannot be customized", name, claim))
+			}
+
+			if !utils.IsStringInSlice(claim, config.IdentityProviders.OIDC.Discovery.Claims) && !utils.IsStringInSlice(claim, validOIDCClientClaims) {
+				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: id_token: claim with name '%s' is not known", name, claim))
+			}
+		}
+
+		for _, claim := range policy.AccessToken {
+			if utils.IsStringInSlice(claim, validOIDCReservedClaims) {
+				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: access_token: claim with name '%s' is specifically reserved and cannot be customized", name, claim))
+			}
+
+			if !utils.IsStringInSlice(claim, config.IdentityProviders.OIDC.Discovery.Claims) && !utils.IsStringInSlice(claim, validOIDCClientClaims) {
+				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: access_token: claim with name '%s' is not known", name, claim))
+			}
+		}
+	}
+}
+
+func validateOIDCScopes(config *schema.Configuration, validator *schema.StructValidator) {
+	for scope, properties := range config.IdentityProviders.OIDC.Scopes {
+		if utils.IsStringInSlice(scope, validOIDCClientScopes) {
+			validator.Push(fmt.Errorf("identity_providers: oidc: scopes: scope with name '%s' can't be used as it's a reserved scope", scope))
+		} else if strings.HasPrefix(scope, "authelia.") {
+			validator.Push(fmt.Errorf("identity_providers: oidc: scopes: scope with name '%s' can't be used as all scopes prefixed with 'authelia.' are reserved", scope))
+		}
+
+		if !utils.IsStringInSlice(scope, config.IdentityProviders.OIDC.Discovery.Scopes) {
+			config.IdentityProviders.OIDC.Discovery.Scopes = append(config.IdentityProviders.OIDC.Discovery.Scopes, scope)
+		}
+
+		for _, claim := range properties.Claims {
+			if utils.IsStringInSlice(claim, validOIDCReservedClaims) {
+				validator.Push(fmt.Errorf("identity_providers: oidc: scopes: %s: claim with name '%s' is specifically reserved and cannot be customized", scope, claim))
+			}
+
+			if !utils.IsStringInSlice(claim, config.IdentityProviders.OIDC.Discovery.Claims) && !utils.IsStringInSlice(claim, validOIDCClientClaims) {
+				validator.Push(fmt.Errorf("identity_providers: oidc: scopes: %s: claim with name '%s' is unknown", scope, claim))
+			}
+		}
+	}
+}
+
+func isUserAttributeValid(name string, config *schema.Configuration) (valid bool) {
+	if _, ok := config.Definitions.UserAttributes[name]; ok {
+		return true
+	}
+
+	if config.AuthenticationBackend.LDAP != nil {
+		switch name {
+		case attributeUserUsername, attributeUserDisplayName, attributeUserGroups, attributeUserEmail, attributeUserEmails:
+			return true
+		case attributeUserGivenName:
+			return config.AuthenticationBackend.LDAP.Attributes.GivenName != ""
+		case attributeUserMiddleName:
+			return config.AuthenticationBackend.LDAP.Attributes.MiddleName != ""
+		case attributeUserFamilyName:
+			return config.AuthenticationBackend.LDAP.Attributes.FamilyName != ""
+		case attributeUserNickname:
+			return config.AuthenticationBackend.LDAP.Attributes.Nickname != ""
+		case attributeUserProfile:
+			return config.AuthenticationBackend.LDAP.Attributes.Profile != ""
+		case attributeUserPicture:
+			return config.AuthenticationBackend.LDAP.Attributes.Picture != ""
+		case attributeUserWebsite:
+			return config.AuthenticationBackend.LDAP.Attributes.Website != ""
+		case attributeUserGender:
+			return config.AuthenticationBackend.LDAP.Attributes.Gender != ""
+		case attributeUserBirthdate:
+			return config.AuthenticationBackend.LDAP.Attributes.Birthdate != ""
+		case attributeUserZoneInfo:
+			return config.AuthenticationBackend.LDAP.Attributes.ZoneInfo != ""
+		case attributeUserLocale:
+			return config.AuthenticationBackend.LDAP.Attributes.Locale != ""
+		case attributeUserPhoneNumber:
+			return config.AuthenticationBackend.LDAP.Attributes.PhoneNumber != ""
+		case attributeUserPhoneExtension:
+			return config.AuthenticationBackend.LDAP.Attributes.PhoneExtension != ""
+		case attributeUserStreetAddress:
+			return config.AuthenticationBackend.LDAP.Attributes.StreetAddress != ""
+		case attributeUserLocality:
+			return config.AuthenticationBackend.LDAP.Attributes.Locality != ""
+		case attributeUserRegion:
+			return config.AuthenticationBackend.LDAP.Attributes.Region != ""
+		case attributeUserPostalCode:
+			return config.AuthenticationBackend.LDAP.Attributes.PostalCode != ""
+		case attributeUserCountry:
+			return config.AuthenticationBackend.LDAP.Attributes.Country != ""
+		default:
+			if config.AuthenticationBackend.LDAP.Attributes.Extra == nil {
+				return false
+			}
+
+			if _, ok := config.AuthenticationBackend.LDAP.Attributes.Extra[name]; ok {
+				return true
+			}
+
+			return false
+		}
+	}
+
+	if utils.IsStringInSlice(name, validUserAttributes) {
+		return true
+	}
+
+	if config.AuthenticationBackend.File == nil {
+		return false
+	}
+
+	if _, ok := config.AuthenticationBackend.File.ExtraAttributes[name]; ok {
+		return true
+	}
+
+	return false
 }
 
 func validateOIDCIssuer(config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
@@ -669,7 +815,7 @@ func validateOIDCClientScopes(c int, config *schema.IdentityProvidersOpenIDConne
 		config.Clients[c].Scopes = schema.DefaultOpenIDConnectClientConfiguration.Scopes
 	}
 
-	invalid, duplicates := validateList(config.Clients[c].Scopes, validOIDCClientScopes, true)
+	invalid, duplicates := validateList(config.Clients[c].Scopes, config.Discovery.Scopes, true)
 
 	if len(duplicates) != 0 {
 		errDeprecatedFunc()
@@ -680,7 +826,42 @@ func validateOIDCClientScopes(c int, config *schema.IdentityProvidersOpenIDConne
 	if ccg {
 		validateOIDCClientScopesClientCredentialsGrant(c, config, validator)
 	} else if len(invalid) != 0 {
-		validator.PushWarning(fmt.Errorf(errFmtOIDCClientUnknownScopeEntries, config.Clients[c].ID, attrOIDCScopes, utils.StringJoinOr(validOIDCClientScopes), utils.StringJoinAnd(invalid)))
+		validator.PushWarning(fmt.Errorf(errFmtOIDCClientUnknownScopeEntries, config.Clients[c].ID, attrOIDCScopes, utils.StringJoinOr(config.Discovery.Scopes), utils.StringJoinAnd(invalid)))
+	}
+
+	var claims *schema.IdentityProvidersOpenIDConnectClaimsPolicy
+
+	if config.Clients[c].ClaimsPolicy != "" {
+		if v, ok := config.ClaimsPolicies[config.Clients[c].ClaimsPolicy]; ok {
+			claims = &v
+		} else {
+			validator.Push(fmt.Errorf("identity_providers: oidc: clients: client '%s': option '%s' is not the name of a configured claims policy", config.Clients[c].ID, "claims_policy"))
+		}
+	}
+
+	for _, scope := range config.Clients[c].Scopes {
+		if utils.IsStringInSlice(scope, validOIDCClientScopes) {
+			continue
+		}
+
+		properties, ok := config.Scopes[scope]
+		if !ok {
+			continue
+		}
+
+		if claims == nil {
+			continue
+		}
+
+		for _, claim := range properties.Claims {
+			if utils.IsStringInSlice(claim, validOIDCClientClaims) {
+				continue
+			}
+
+			if _, ok = claims.CustomClaims[claim]; !ok {
+				validator.Push(fmt.Errorf("identity_providers: oidc: clients: client '%s': option 'scopes' contains value '%s' which requires claim '%s' but the claim is not a claim provided by 'claims_policy' with the name '%s' or a standard claim", config.Clients[c].ID, scope, claim, config.Clients[c].ClaimsPolicy))
+			}
+		}
 	}
 
 	if utils.IsStringSliceContainsAny([]string{oidc.ScopeOfflineAccess, oidc.ScopeOffline}, config.Clients[c].Scopes) &&

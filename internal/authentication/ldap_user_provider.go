@@ -201,6 +201,7 @@ func (p *LDAPUserProvider) GetDetailsExtended(username string) (details *UserDet
 			Emails:      profile.Emails,
 			Groups:      groups,
 		},
+		Extra: profile.Extra,
 	}
 
 	var (
@@ -533,6 +534,16 @@ func (p *LDAPUserProvider) getUserProfileResultToProfileExtended(username string
 		}
 	}
 
+	var attr any
+
+	for attribute, properties := range p.config.Attributes.Extra {
+		if attr, err = getExtraValueFromEntry(entry, attribute, properties); err != nil {
+			return nil, err
+		}
+
+		userProfile.Extra[properties.Name] = attr
+	}
+
 	return &userProfile, nil
 }
 
@@ -550,6 +561,68 @@ func getValuesFromEntry(entry *ldap.Entry, attribute string) []string {
 	}
 
 	return entry.GetAttributeValues(attribute)
+}
+
+func getExtraValueFromEntry(entry *ldap.Entry, attribute string, properties schema.AuthenticationBackendLDAPAttributesAttribute) (value any, err error) {
+	if properties.MultiValued {
+		return getExtraValueMultiFromEntry(entry, attribute, properties)
+	}
+
+	str := getValueFromEntry(entry, attribute)
+
+	switch properties.ValueType {
+	case "string":
+		value = str
+	case "integer":
+		if value, err = strconv.ParseInt(str, 10, 64); err != nil {
+			return nil, fmt.Errorf("cannot parse '%s' with value '%s' as integer: %w", attribute, str, err)
+		}
+	case "boolean":
+		if value, err = strconv.ParseBool(str); err != nil {
+			return nil, fmt.Errorf("cannot parse '%s' with value '%s' as boolean: %w", attribute, str, err)
+		}
+	}
+
+	return value, nil
+}
+
+func getExtraValueMultiFromEntry(entry *ldap.Entry, attribute string, properties schema.AuthenticationBackendLDAPAttributesAttribute) (value any, err error) {
+	strs := getValuesFromEntry(entry, attribute)
+
+	switch properties.ValueType {
+	case "string":
+		value = strs
+	case "integer":
+		var v int64
+
+		values := make([]int64, len(strs))
+
+		for _, str := range strs {
+			if v, err = strconv.ParseInt(str, 10, 64); err != nil {
+				return nil, fmt.Errorf("cannot parse '%s' with value '%s' as integer: %w", attribute, str, err)
+			}
+
+			values = append(values, v)
+		}
+
+		value = values
+	case "boolean":
+		var v bool
+
+		values := make([]bool, len(strs))
+
+		for _, str := range strs {
+			if v, err = strconv.ParseBool(str); err != nil {
+				return nil, fmt.Errorf("cannot parse '%s' with value '%s' as boolean: %w", attribute, str, err)
+			}
+
+			values = append(values, v)
+		}
+
+		value = values
+	}
+
+	return value, nil
 }
 
 func (p *LDAPUserProvider) getUserGroups(client LDAPClient, username string, profile *ldapUserProfile) (groups []string, err error) {

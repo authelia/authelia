@@ -62,6 +62,7 @@ identity_providers:
           - 'fragment'
         authorization_policy: 'two_factor'
         lifespan: ''
+        claims_policy: ''
         requested_audience_mode: 'explicit'
         consent_mode: 'explicit'
         pre_configured_consent_duration: '1 week'
@@ -326,6 +327,13 @@ identity_providers:
 
 The name of the custom lifespan that this client uses. A custom lifespan is named and configured globally via the
 [custom](provider.md#custom) section within [lifespans](provider.md#lifespans).
+
+### claims_policy
+
+{{< confkey type="string" default="" required="no" >}}
+
+The name of the claims policy that this client uses. A claims policy is named and configured globally via the
+[claims_policies](provider.md#claims_policies) for the OpenID Connect 1.0 Provider.
 
 ### requested_audience_mode
 
