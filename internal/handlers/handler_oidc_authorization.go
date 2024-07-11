@@ -149,7 +149,7 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 
 	strategy := ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx)
 
-	oidc.GrantClaimRequests(strategy, client, requests.GetIDTokenRequests(), details, extra)
+	oidc.GrantClaimRequests(ctx, strategy, client, requests.GetIDTokenRequests(), details, extra)
 
 	if requester.GetResponseTypes().Has("id_token") && !requester.GetResponseTypes().Has("token") && !requester.GetResponseTypes().Has("code") {
 		oidc.GrantScopedClaims(strategy, client, requester.GetGrantedScopes(), details, nil, extra)

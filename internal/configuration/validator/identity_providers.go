@@ -1,14 +1,13 @@
 package validator
 
 import (
+	oauthelia2 "authelia.com/provider/oauth2"
 	"crypto/ecdsa"
 	"crypto/rsa"
 	"fmt"
 	"net/url"
 	"sort"
 	"strconv"
-
-	oauthelia2 "authelia.com/provider/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -30,6 +29,7 @@ func validateOIDC(ctx *ValidateCtx, config *schema.Configuration, validator *sch
 	validateOIDCIssuer(config.IdentityProviders.OIDC, validator)
 	validateOIDCAuthorizationPolicies(config, validator)
 	validateOIDCLifespans(config.IdentityProviders.OIDC, validator)
+	validateOIDCScopes(config, validator)
 
 	sort.Sort(oidc.SortedSigningAlgs(config.IdentityProviders.OIDC.Discovery.ResponseObjectSigningAlgs))
 
@@ -125,6 +125,93 @@ func validateOIDCLifespans(config *schema.IdentityProvidersOpenIDConnect, _ *sch
 	for name := range config.Lifespans.Custom {
 		config.Discovery.Lifespans = append(config.Discovery.Lifespans, name)
 	}
+}
+
+func validateOIDCScopes(config *schema.Configuration, validator *schema.StructValidator) {
+	for scopeName, scope := range config.IdentityProviders.OIDC.Scopes {
+		for claimName, claim := range scope.Claims {
+			if isUserAttributeValid(claim.Attribute, claimName, config) {
+				validator.Push(fmt.Errorf("identity_providers: oidc: scopes: scope with name '%s' has an attribute name '%s' which is unknown", scopeName, claimName))
+			}
+		}
+	}
+}
+
+func isUserAttributeValid(name, fallback string, config *schema.Configuration) (valid bool) {
+	if name == "" {
+		name = fallback
+	}
+
+	if _, ok := config.Definitions.UserAttributes[name]; ok {
+		return true
+	}
+
+	if config.AuthenticationBackend.LDAP != nil {
+		switch name {
+		case attributeUserUsername, attributeUserDisplayName, attributeUserGroups, attributeUserEmail, attributeUserEmails:
+			return true
+		case attributeUserGivenName:
+			return config.AuthenticationBackend.LDAP.Attributes.GivenName != ""
+		case attributeUserMiddleName:
+			return config.AuthenticationBackend.LDAP.Attributes.MiddleName != ""
+		case attributeUserFamilyName:
+			return config.AuthenticationBackend.LDAP.Attributes.FamilyName != ""
+		case attributeUserNickname:
+			return config.AuthenticationBackend.LDAP.Attributes.Nickname != ""
+		case attributeUserProfile:
+			return config.AuthenticationBackend.LDAP.Attributes.Profile != ""
+		case attributeUserPicture:
+			return config.AuthenticationBackend.LDAP.Attributes.Picture != ""
+		case attributeUserWebsite:
+			return config.AuthenticationBackend.LDAP.Attributes.Website != ""
+		case attributeUserGender:
+			return config.AuthenticationBackend.LDAP.Attributes.Gender != ""
+		case attributeUserBirthdate:
+			return config.AuthenticationBackend.LDAP.Attributes.Birthdate != ""
+		case attributeUserZoneInfo:
+			return config.AuthenticationBackend.LDAP.Attributes.ZoneInfo != ""
+		case attributeUserLocale:
+			return config.AuthenticationBackend.LDAP.Attributes.Locale != ""
+		case attributeUserPhoneNumber:
+			return config.AuthenticationBackend.LDAP.Attributes.PhoneNumber != ""
+		case attributeUserPhoneExtension:
+			return config.AuthenticationBackend.LDAP.Attributes.PhoneExtension != ""
+		case attributeUserStreetAddress:
+			return config.AuthenticationBackend.LDAP.Attributes.StreetAddress != ""
+		case attributeUserLocality:
+			return config.AuthenticationBackend.LDAP.Attributes.Locality != ""
+		case attributeUserRegion:
+			return config.AuthenticationBackend.LDAP.Attributes.Region != ""
+		case attributeUserPostalCode:
+			return config.AuthenticationBackend.LDAP.Attributes.PostalCode != ""
+		case attributeUserCountry:
+			return config.AuthenticationBackend.LDAP.Attributes.Country != ""
+		default:
+			if config.AuthenticationBackend.LDAP.Attributes.Extra == nil {
+				return false
+			}
+
+			if _, ok := config.AuthenticationBackend.LDAP.Attributes.Extra[name]; ok {
+				return true
+			}
+
+			return false
+		}
+	}
+
+	if utils.IsStringInSlice(name, validUserAttributes) {
+		return true
+	}
+
+	if config.AuthenticationBackend.File == nil {
+		return false
+	}
+
+	if _, ok := config.AuthenticationBackend.File.ExtraAttributes[name]; ok {
+		return true
+	}
+
+	return false
 }
 
 func validateOIDCIssuer(config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
@@ -668,7 +755,13 @@ func validateOIDCClientScopes(c int, config *schema.IdentityProvidersOpenIDConne
 		config.Clients[c].Scopes = schema.DefaultOpenIDConnectClientConfiguration.Scopes
 	}
 
-	invalid, duplicates := validateList(config.Clients[c].Scopes, validOIDCClientScopes, true)
+	scopes := validOIDCClientScopes
+
+	for scope := range config.Scopes {
+		scopes = append(scopes, scope)
+	}
+
+	invalid, duplicates := validateList(config.Clients[c].Scopes, scopes, true)
 
 	if len(duplicates) != 0 {
 		errDeprecatedFunc()

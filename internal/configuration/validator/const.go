@@ -584,6 +584,58 @@ var (
 	reRFC3986Unreserved = regexp.MustCompile(`^[a-zA-Z0-9._~-]+$`)
 )
 
+const (
+	attributeUserUsername       = "username"
+	attributeUserGroups         = "groups"
+	attributeUserDisplayName    = "display_name"
+	attributeUserEmail          = "email"
+	attributeUserEmails         = "emails"
+	attributeUserGivenName      = "given_name"
+	attributeUserMiddleName     = "middle_name"
+	attributeUserFamilyName     = "family_name"
+	attributeUserNickname       = "nickname"
+	attributeUserProfile        = "profile"
+	attributeUserPicture        = "picture"
+	attributeUserWebsite        = "website"
+	attributeUserGender         = "gender"
+	attributeUserBirthdate      = "birthdate"
+	attributeUserZoneInfo       = "zoneinfo"
+	attributeUserLocale         = "locale"
+	attributeUserPhoneNumber    = "phone_number"
+	attributeUserPhoneExtension = "phone_extension"
+	attributeUserStreetAddress  = "street_address"
+	attributeUserLocality       = "locality"
+	attributeUserRegion         = "region"
+	attributeUserPostalCode     = "postal_code"
+	attributeUserCountry        = "country"
+)
+
+var validUserAttributes = []string{
+	attributeUserUsername,
+	attributeUserGroups,
+	attributeUserDisplayName,
+	attributeUserEmail,
+	attributeUserEmails,
+	attributeUserGivenName,
+	attributeUserMiddleName,
+	attributeUserFamilyName,
+	attributeUserNickname,
+	attributeUserProfile,
+	attributeUserPicture,
+	attributeUserWebsite,
+	attributeUserGender,
+	attributeUserBirthdate,
+	attributeUserZoneInfo,
+	attributeUserLocale,
+	attributeUserPhoneNumber,
+	attributeUserPhoneExtension,
+	attributeUserStreetAddress,
+	attributeUserLocality,
+	attributeUserRegion,
+	attributeUserPostalCode,
+	attributeUserCountry,
+}
+
 var replacedKeys = map[string]string{
 	"authentication_backend.ldap.skip_verify":         "authentication_backend.ldap.tls.skip_verify",
 	"authentication_backend.ldap.minimum_tls_version": "authentication_backend.ldap.tls.minimum_version",

@@ -121,12 +121,12 @@ func TestGrantClaimsUserInfo(t *testing.T) {
 			extraClaims := map[string]any{}
 			extraScopes := map[string]any{}
 
-			oidc.GrantClaimRequests(strategy, tc.client, tc.requests, tc.detailer, extra)
-			oidc.GrantScopedClaims(strategy, tc.client, tc.scopes, tc.detailer, tc.claims, extra)
+			oidc.GrantClaimRequests(&TestContext{}, strategy, tc.client, tc.requests, tc.detailer, extra)
+			oidc.GrantScopedClaims(&TestContext{}, strategy, tc.client, tc.scopes, tc.detailer, tc.claims, extra)
 
-			oidc.GrantClaimRequests(strategy, tc.client, tc.requests, tc.detailer, extraClaims)
+			oidc.GrantClaimRequests(&TestContext{}, strategy, tc.client, tc.requests, tc.detailer, extraClaims)
 
-			oidc.GrantScopedClaims(strategy, tc.client, tc.scopes, tc.detailer, tc.claims, extraScopes)
+			oidc.GrantScopedClaims(&TestContext{}, strategy, tc.client, tc.scopes, tc.detailer, tc.claims, extraScopes)
 
 			for key, value := range extra {
 				if key == oidc.ClaimUpdatedAt {
@@ -196,6 +196,7 @@ type testDetailer struct {
 	region    string
 	postcode  string
 	country   string
+	extra     map[string]any
 }
 
 func (t testDetailer) GetGivenName() (given string) {
@@ -288,6 +289,10 @@ func (t testDetailer) GetDisplayName() (name string) {
 
 func (t testDetailer) GetEmails() (emails []string) {
 	return t.emails
+}
+
+func (t testDetailer) GetExtra() (extra map[string]any) {
+	return t.extra
 }
 
 var (

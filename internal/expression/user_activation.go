@@ -8,61 +8,63 @@ type UserDetailerActivation struct {
 
 func (a *UserDetailerActivation) ResolveName(name string) (object any, found bool) {
 	switch name {
-	case attributeKeyUserUsername:
+	case AttributeUserUsername:
 		return a.detailer.GetUsername(), true
-	case attributeKeyUserGroups:
+	case AttributeUserGroups:
 		return a.detailer.GetGroups(), true
-	case attributeKeyUserDisplayName:
+	case AttributeUserDisplayName:
 		return a.detailer.GetDisplayName(), true
-	case attributeKeyUserEmail:
+	case AttributeUserEmail:
 		if emails := a.detailer.GetEmails(); len(emails) != 0 {
 			return emails[0], true
 		}
 
 		return "", true
-	case attributeKeyUserEmails:
+	case AttributeUserEmails:
 		return a.detailer.GetEmails(), true
-	case attributeKeyUserGivenName:
+	case AttributeUserGivenName:
 		return a.detailer.GetGivenName(), true
-	case attributeKeyUserMiddleName:
+	case AttributeUserMiddleName:
 		return a.detailer.GetMiddleName(), true
-	case attributeKeyUserFamilyName:
+	case AttributeUserFamilyName:
 		return a.detailer.GetFamilyName(), true
-	case attributeKeyUserNickname:
+	case AttributeUserNickname:
 		return a.detailer.GetNickname(), true
-	case attributeKeyUserProfile:
+	case AttributeUserProfile:
 		return a.detailer.GetProfile(), true
-	case attributeKeyUserPicture:
+	case AttributeUserPicture:
 		return a.detailer.GetPicture(), true
-	case attributeKeyUserWebsite:
+	case AttributeUserWebsite:
 		return a.detailer.GetWebsite(), true
-	case attributeKeyUserGender:
+	case AttributeUserGender:
 		return a.detailer.GetGender(), true
-	case attributeKeyUserBirthdate:
+	case AttributeUserBirthdate:
 		return a.detailer.GetBirthdate(), true
-	case attributeKeyUserZoneInfo:
+	case AttributeUserZoneInfo:
 		return a.detailer.GetZoneInfo(), true
-	case attributeKeyUserLocale:
+	case AttributeUserLocale:
 		return a.detailer.GetLocale(), true
-	case attributeKeyUserPhoneNumber:
+	case AttributeUserPhoneNumber:
 		return a.detailer.GetPhoneNumber(), true
-	case attributeKeyUserPhoneExtension:
+	case AttributeUserPhoneNumberRFC3966:
+		return a.detailer.GetOpenIDConnectPhoneNumber(), true
+	case AttributeUserPhoneExtension:
 		return a.detailer.GetPhoneExtension(), true
-	case attributeKeyUserStreetAddress:
+	case AttributeUserStreetAddress:
 		return a.detailer.GetStreetAddress(), true
-	case attributeKeyUserLocality:
+	case AttributeUserLocality:
 		return a.detailer.GetLocality(), true
-	case attributeKeyUserRegion:
+	case AttributeUserRegion:
 		return a.detailer.GetRegion(), true
-	case attributeKeyUserPostalCode:
+	case AttributeUserPostalCode:
 		return a.detailer.GetPostalCode(), true
-	case attributeKeyUserCountry:
+	case AttributeUserCountry:
 		return a.detailer.GetCountry(), true
 	default:
 		extra := a.detailer.GetExtra()
 
 		if extra != nil {
-			if object, found = extra[attributeKeyUserProfile]; found {
+			if object, found = extra[AttributeUserProfile]; found {
 				return object, true
 			}
 		}
@@ -73,31 +75,4 @@ func (a *UserDetailerActivation) ResolveName(name string) (object any, found boo
 
 func (a *UserDetailerActivation) Parent() interpreter.Activation {
 	return nil
-}
-
-type UserDetailer interface {
-	GetUsername() (username string)
-	GetGroups() (groups []string)
-	GetDisplayName() (name string)
-	GetEmails() (emails []string)
-	GetGivenName() (given string)
-	GetFamilyName() (family string)
-	GetMiddleName() (middle string)
-	GetNickname() (nickname string)
-	GetProfile() (profile string)
-	GetPicture() (picture string)
-	GetWebsite() (website string)
-	GetGender() (gender string)
-	GetBirthdate() (birthdate string)
-	GetZoneInfo() (info string)
-	GetLocale() (locale string)
-	GetPhoneNumber() (number string)
-	GetPhoneExtension() (extension string)
-	GetOpenIDConnectPhoneNumber() (number string)
-	GetStreetAddress() (address string)
-	GetLocality() (locality string)
-	GetRegion() (region string)
-	GetPostalCode() (postcode string)
-	GetCountry() (country string)
-	GetExtra() (extra map[string]any)
 }

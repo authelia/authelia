@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
@@ -35,19 +36,20 @@ type AutheliaCtx struct {
 
 // Providers contain all provider provided to Authelia.
 type Providers struct {
-	Authorizer      *authorization.Authorizer
-	SessionProvider *session.Provider
-	Regulator       *regulation.Regulator
-	OpenIDConnect   *oidc.OpenIDConnectProvider
-	Metrics         metrics.Provider
-	NTP             *ntp.Provider
-	UserProvider    authentication.UserProvider
-	StorageProvider storage.Provider
-	Notifier        notification.Notifier
-	Templates       *templates.Provider
-	TOTP            totp.Provider
-	PasswordPolicy  PasswordPolicyProvider
-	Random          random.Provider
+	Authorizer            *authorization.Authorizer
+	SessionProvider       *session.Provider
+	Regulator             *regulation.Regulator
+	OpenIDConnect         *oidc.OpenIDConnectProvider
+	Metrics               metrics.Provider
+	NTP                   *ntp.Provider
+	UserProvider          authentication.UserProvider
+	StorageProvider       storage.Provider
+	Notifier              notification.Notifier
+	Templates             *templates.Provider
+	TOTP                  totp.Provider
+	PasswordPolicy        PasswordPolicyProvider
+	Random                random.Provider
+	UserAttributeResolver expression.UserAttributeResolver
 }
 
 // RequestHandler represents an Authelia request handler.

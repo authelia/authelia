@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/authelia/authelia/v4/internal/expression"
 	"net"
 	"net/url"
 	"strings"
@@ -662,4 +663,8 @@ func (ctx *AutheliaCtx) GetJWTWithTimeFuncOption() (option jwt.ParserOption) {
 // GetConfiguration returns the current configuration.
 func (ctx *AutheliaCtx) GetConfiguration() (config schema.Configuration) {
 	return ctx.Configuration
+}
+
+func (ctx *AutheliaCtx) GetProviderUserAttributeResolver() expression.UserAttributeResolver {
+	return ctx.Providers.UserAttributeResolver
 }

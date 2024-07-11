@@ -36,11 +36,20 @@ type IdentityProvidersOpenIDConnect struct {
 
 	AuthorizationPolicies map[string]IdentityProvidersOpenIDConnectPolicy `koanf:"authorization_policies" json:"authorization_policies" jsonschema:"title=Authorization Policies" jsonschema_description:"Custom client authorization policies."`
 	Lifespans             IdentityProvidersOpenIDConnectLifespans         `koanf:"lifespans" json:"lifespans" jsonschema:"title=Lifespans" jsonschema_description:"Token lifespans configuration."`
+	Scopes                map[string]IdentityProvidersOpenIDConnectScope  `koanf:"scopes" json:"scopes"`
 
 	Discovery IdentityProvidersOpenIDConnectDiscovery `json:"-"` // MetaData value. Not configurable by users.
 
 	IssuerCertificateChain X509CertificateChain `koanf:"issuer_certificate_chain" json:"issuer_certificate_chain" jsonschema:"title=Issuer Certificate Chain,deprecated" jsonschema_description:"The Issuer Certificate Chain with an RSA Public Key used to sign ID Tokens."`
 	IssuerPrivateKey       *rsa.PrivateKey      `koanf:"issuer_private_key" json:"issuer_private_key" jsonschema:"title=Issuer Private Key,deprecated" jsonschema_description:"The Issuer Private Key with an RSA Private Key used to sign ID Tokens."`
+}
+
+type IdentityProvidersOpenIDConnectScope struct {
+	Claims map[string]IdentityProvidersOpenIDConnectScopeClaim `koanf:"claims" json:"claims"`
+}
+
+type IdentityProvidersOpenIDConnectScopeClaim struct {
+	Attribute string `koanf:"attribute" json:"attribute"`
 }
 
 // IdentityProvidersOpenIDConnectPolicy configuration for OpenID Connect 1.0 authorization policies.

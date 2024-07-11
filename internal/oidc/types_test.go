@@ -2,6 +2,7 @@ package oidc_test
 
 import (
 	"context"
+	"github.com/authelia/authelia/v4/internal/expression"
 	"net/url"
 	"testing"
 	"time"
@@ -123,6 +124,10 @@ func (m *TestContext) GetRandom() (r random.Provider) {
 
 func (m *TestContext) GetConfiguration() (config schema.Configuration) {
 	return m.Config
+}
+
+func (m *TestContext) GetProviderUserAttributeResolver() expression.UserAttributeResolver {
+	return &expression.UserAttributes{}
 }
 
 // IssuerURL returns the MockIssuerURL.

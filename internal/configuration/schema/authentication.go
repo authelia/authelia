@@ -31,6 +31,21 @@ type AuthenticationBackendFile struct {
 	Password AuthenticationBackendFilePassword `koanf:"password" json:"password" jsonschema:"title=Password Options" jsonschema_description:"Allows configuration of the password hashing options when the user passwords are changed directly by Authelia."`
 
 	Search AuthenticationBackendFileSearch `koanf:"search" json:"search" jsonschema:"title=Search" jsonschema_description:"Configures the user searching behaviour."`
+
+	ExtraAttributes map[string]AuthenticationBackendFileExtraAttribute `koanf:"extra_attributes" json:"extra_attributes"`
+}
+
+type AuthenticationBackendFileExtraAttribute struct {
+	MultiValued bool   `koanf:"multi_valued" json:"multi_valued"`
+	ValueType   string `koanf:"value_type" json:"value_type"`
+}
+
+func (a AuthenticationBackendFileExtraAttribute) IsMultiValued() (multi bool) {
+	return a.MultiValued
+}
+
+func (a AuthenticationBackendFileExtraAttribute) GetValueType() (vtype string) {
+	return a.ValueType
 }
 
 // AuthenticationBackendFileSearch represents the configuration related to file-based backend searching.
@@ -165,6 +180,14 @@ type AuthenticationBackendLDAPAttributesAttribute struct {
 	Name        string `koanf:"name" json:"name"`
 	MultiValued bool   `koanf:"multi_valued" json:"multi_valued"`
 	ValueType   string `koanf:"value_type" json:"value_type"`
+}
+
+func (a AuthenticationBackendLDAPAttributesAttribute) IsMultiValued() (multi bool) {
+	return a.MultiValued
+}
+
+func (a AuthenticationBackendLDAPAttributesAttribute) GetValueType() (vtype string) {
+	return a.ValueType
 }
 
 var DefaultAuthenticationBackendConfig = AuthenticationBackend{

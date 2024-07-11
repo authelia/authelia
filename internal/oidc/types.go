@@ -2,6 +2,7 @@ package oidc
 
 import (
 	"context"
+	"github.com/authelia/authelia/v4/internal/expression"
 	"net/http"
 	"net/url"
 	"time"
@@ -171,6 +172,7 @@ type Context interface {
 	GetRandom() (random random.Provider)
 	GetConfiguration() (config schema.Configuration)
 	GetJWTWithTimeFuncOption() (option jwt.ParserOption)
+	GetProviderUserAttributeResolver() expression.UserAttributeResolver
 
 	context.Context
 }
@@ -240,6 +242,7 @@ type UserDetailer interface {
 	GetRegion() (region string)
 	GetPostalCode() (postcode string)
 	GetCountry() (country string)
+	GetExtra() (extra map[string]any)
 }
 
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.
