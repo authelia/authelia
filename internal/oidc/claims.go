@@ -277,6 +277,8 @@ type ClaimsStrategy interface {
 
 func NewCustomClaimsStrategy(client schema.IdentityProvidersOpenIDConnectClient, scopes map[string]schema.IdentityProvidersOpenIDConnectScope, policies map[string]schema.IdentityProvidersOpenIDConnectClaimsPolicy) (strategy *CustomClaimsStrategy) {
 	strategy = &CustomClaimsStrategy{
+		claimsIDToken:     []string{},
+		claimsAccessToken: []string{},
 		scopes: map[string]map[string]string{
 			ScopeProfile: {
 				ClaimFullName:          expression.AttributeUserDisplayName,
@@ -329,8 +331,13 @@ func NewCustomClaimsStrategy(client schema.IdentityProvidersOpenIDConnectClient,
 		return strategy
 	}
 
-	strategy.claimsIDToken = policy.IDToken
-	strategy.claimsAccessToken = policy.AccessToken
+	if policy.IDToken != nil {
+		strategy.claimsIDToken = policy.IDToken
+	}
+
+	if policy.AccessToken != nil {
+		strategy.claimsAccessToken = policy.AccessToken
+	}
 
 	for _, scope := range client.Scopes {
 		if mapping, ok = scopes[scope]; !ok {
