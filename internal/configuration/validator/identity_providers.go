@@ -143,13 +143,14 @@ func validateOIDCClaims(config *schema.Configuration, validator *schema.StructVa
 				config.IdentityProviders.OIDC.Discovery.Claims = append(config.IdentityProviders.OIDC.Discovery.Claims, claim)
 			}
 
-			if !isUserAttributeValid(properties.Attribute, claim, config) {
-				attribute := properties.Attribute
-				if attribute == "" {
-					attribute = claim
-				}
+			if properties.Attribute == "" {
+				properties.Attribute = claim
+				policy.CustomClaims[claim] = properties
+				config.IdentityProviders.OIDC.ClaimsPolicies[name] = policy
+			}
 
-				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: claim with name '%s' has an attribute name '%s' which is unknown", name, claim, attribute))
+			if !isUserAttributeValid(properties.Attribute, config) {
+				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: claim with name '%s' has an attribute name '%s' which is unknown", name, claim, properties.Attribute))
 			}
 		}
 
@@ -199,11 +200,7 @@ func validateOIDCScopes(config *schema.Configuration, validator *schema.StructVa
 	}
 }
 
-func isUserAttributeValid(name, fallback string, config *schema.Configuration) (valid bool) {
-	if name == "" {
-		name = fallback
-	}
-
+func isUserAttributeValid(name string, config *schema.Configuration) (valid bool) {
 	if _, ok := config.Definitions.UserAttributes[name]; ok {
 		return true
 	}

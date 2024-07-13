@@ -105,6 +105,7 @@ func TestPatternKeys(t *testing.T) {
 	configKeys := []string{
 		"server.endpoints.authz.xx.implementation",
 		"server.endpoints.authz.x.implementation",
+		"server.endpoints.authz.x",
 	}
 
 	validator := schema.NewStructValidator()
