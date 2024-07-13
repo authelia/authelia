@@ -78,7 +78,7 @@ func (a *UserDetailerActivation) ResolveName(name string) (object any, found boo
 	case AttributeUserCountry:
 		return a.detailer.GetCountry(), true
 	case AttributeUserUpdatedAt:
-		return a.detailer.GetUpdatedAt(), true
+		return a.detailer.GetUpdatedAt().Unix(), true
 	default:
 		extra := a.detailer.GetExtra()
 
