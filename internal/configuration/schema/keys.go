@@ -391,5 +391,6 @@ var Keys = []string{
 	"identity_validation.elevated_session.skip_second_factor",
 	"definitions.network",
 	"definitions.user_attributes",
+	"definitions.user_attributes.*.expression",
 	"default_redirection_url",
 }

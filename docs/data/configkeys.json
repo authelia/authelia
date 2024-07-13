@@ -1183,10 +1183,5 @@
         "path": "identity_validation.elevated_session.skip_second_factor",
         "secret": false,
         "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_SKIP_SECOND_FACTOR"
-    },
-    {
-        "path": "definitions.user_attributes",
-        "secret": false,
-        "env": "AUTHELIA_DEFINITIONS_USER_ATTRIBUTES"
     }
 ]

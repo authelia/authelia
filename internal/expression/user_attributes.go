@@ -240,10 +240,10 @@ func (e *UserAttributesExpressions) setup(opts ...cel.EnvOption) (err error) {
 
 	e.programs = map[string]cel.Program{}
 
-	for name, expression := range e.config.Definitions.UserAttributes {
-		ast, issues := e.env.Compile(expression)
+	for name, properties := range e.config.Definitions.UserAttributes {
+		ast, issues := e.env.Compile(properties.Expression)
 		if issues != nil && issues.Err() != nil {
-			return fmt.Errorf("failed to create common expression language environment: failed to parse expression '%s' with value '%s': %w", name, expression, err)
+			return fmt.Errorf("failed to create common expression language environment: failed to parse expression '%s' with value '%s': %w", name, properties.Expression, err)
 		}
 
 		if program, err := e.env.Program(ast); err != nil {

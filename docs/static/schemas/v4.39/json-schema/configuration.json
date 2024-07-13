@@ -1119,7 +1119,7 @@
         "user_attributes": {
           "patternProperties": {
             ".*": {
-              "type": "string"
+              "$ref": "#/$defs/UserAttribute"
             }
           },
           "type": "object",
@@ -3546,6 +3546,15 @@
       "additionalProperties": false,
       "type": "object",
       "description": "TelemetryMetrics represents the telemetry metrics config."
+    },
+    "UserAttribute": {
+      "properties": {
+        "expression": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "WebAuthn": {
       "properties": {
