@@ -60,6 +60,7 @@ func (e *UserAttributesExpressions) ldapStartupCheck() (err error) {
 		newAttributeUserEmail(),
 		newAttributeUserEmailVerified(),
 		newAttributeUserEmails(),
+		newAttributeUserEmailsExtra(),
 		newAttributeUpdatedAt(),
 	}
 
@@ -202,6 +203,7 @@ func (e *UserAttributesExpressions) fileStartupCheck() (err error) {
 		newAttributeUserEmail(),
 		newAttributeUserEmailVerified(),
 		newAttributeUserEmails(),
+		newAttributeUserEmailsExtra(),
 		newAttributeUserGivenName(),
 		newAttributeUserMiddleName(),
 		newAttributeUserFamilyName(),
@@ -226,6 +228,37 @@ func (e *UserAttributesExpressions) fileStartupCheck() (err error) {
 		newAttributeUpdatedAt(),
 	}
 
+	e.attributes = []string{
+		AttributeUserUsername,
+		AttributeUserGroups,
+		AttributeUserDisplayName,
+		AttributeUserEmail,
+		AttributeUserEmailVerified,
+		AttributeUserEmails,
+		AttributeUserEmailsExtra,
+		AttributeUserGivenName,
+		AttributeUserMiddleName,
+		AttributeUserFamilyName,
+		AttributeUserNickname,
+		AttributeUserProfile,
+		AttributeUserPicture,
+		AttributeUserWebsite,
+		AttributeUserGender,
+		AttributeUserBirthdate,
+		AttributeUserZoneInfo,
+		AttributeUserLocale,
+		AttributeUserPhoneNumber,
+		AttributeUserPhoneNumberVerified,
+		AttributeUserPhoneExtension,
+		AttributeUserPhoneNumberRFC3966,
+		AttributeUserAddress,
+		AttributeUserStreetAddress,
+		AttributeUserLocality,
+		AttributeUserRegion,
+		AttributeUserPostalCode,
+		AttributeUserCountry,
+		AttributeUserUpdatedAt,
+	}
 	for attribute, properties := range e.config.AuthenticationBackend.File.ExtraAttributes {
 		optsAddExtra(opts, attribute, properties)
 	}

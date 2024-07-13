@@ -8,11 +8,9 @@ import (
 	"time"
 
 	oauthelia2 "authelia.com/provider/oauth2"
-	"github.com/google/uuid"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
-	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -269,7 +267,7 @@ func (r *ClaimRequest) Matches(value any) (match bool) {
 	return true
 }
 
-type ClaimResolver func(claim string) (value any, ok bool)
+type ClaimResolver func(attribute string) (value any, ok bool)
 
 type ClaimsStrategy interface {
 	PopulateIDTokenClaims(ctx Context, strategy oauthelia2.ScopeStrategy, client Client, scopes oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, updated time.Time, original, extra map[string]any)
@@ -361,7 +359,6 @@ func NewCustomClaimsStrategy(client schema.IdentityProvidersOpenIDConnectClient,
 		}
 	}
 
-	logging.Logger().WithField("scopes", strategy.scopes).WithField("client", client.ID).Debug("Initialized")
 	return strategy
 }
 
@@ -387,11 +384,9 @@ func (s *CustomClaimsStrategy) PopulateIDTokenClaims(ctx Context, strategy oauth
 func (s *CustomClaimsStrategy) PopulateUserInfoClaims(ctx Context, strategy oauthelia2.ScopeStrategy, client Client, scopes oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, updated time.Time, original, extra map[string]any) {
 	resolver := ctx.GetProviderUserAttributeResolver()
 
-	resolve := func(claim string) (value any, ok bool) {
-		return resolver.Resolve(claim, detailer, updated)
+	resolve := func(attribute string) (value any, ok bool) {
+		return resolver.Resolve(attribute, detailer, updated)
 	}
-
-	logging.Logger().WithFields(map[string]any{"client_id": client.GetID(), "scopes": scopes, "requests": requests}).Debug("Populating UserInfo Claims")
 
 	s.populateClaimsOriginalUserInfo(original, extra)
 	s.populateClaimsScoped(ctx, strategy, scopes, resolve, nil, extra)
@@ -454,27 +449,15 @@ func (s *CustomClaimsStrategy) populateClaimsScoped(ctx Context, strategy oauthe
 		return
 	}
 
-	logger := logging.Logger().WithFields(map[string]any{"scopes": scopes, "allowed": allowed, "id": uuid.New().String()})
-
-	logger.Debug("Populating Claims Scoped")
-
 	for scope, claims := range s.scopes {
 		if !strategy(scopes, scope) {
-			logger.WithField("scope", scope).Debug("Skipping scope")
-
 			continue
 		}
 
-		logger.WithField("scope", scope).Debug("Processing scope")
-
 		for claim, attribute := range claims {
-			logger.WithField("scope", scope).WithField("claim", claim).WithField("attribute", attribute).Debug("Processing claim")
-
 			s.populateClaim(claim, attribute, allowed, resolve, extra, nil)
 		}
 	}
-
-	logger.Debug("Populated Claims Scoped")
 }
 
 func (s *CustomClaimsStrategy) populateClaimsRequested(ctx Context, strategy oauthelia2.ScopeStrategy, scopes oauthelia2.Arguments, requests map[string]*ClaimRequest, resolve ClaimResolver, extra map[string]any) {
@@ -505,21 +488,13 @@ claim:
 }
 
 func (s *CustomClaimsStrategy) populateClaim(claim, attribute string, allowed []string, resolve ClaimResolver, extra map[string]any, request *ClaimRequest) {
-	logger := logging.Logger().WithFields(map[string]any{"claim": claim, "attribute": attribute, "allowed": allowed, "id": uuid.New().String()})
-
-	logger.WithField("claims", extra).Debug("Resolving Claim")
-
 	if !s.isClaimAllowed(claim, allowed) {
-		logger.Debug("Claim Not Allowed")
-
 		return
 	}
 
 	value, ok := resolve(attribute)
 
 	if !ok || value == nil {
-		logger.Debug("Claim Has No Value")
-
 		return
 	}
 
@@ -527,16 +502,12 @@ func (s *CustomClaimsStrategy) populateClaim(claim, attribute string, allowed []
 
 	if str, ok = value.(string); ok {
 		if str == "" {
-			logger.Debug("Claim Is Empty String")
-
 			return
 		}
 	}
 
 	if request != nil {
 		if !request.Matches(value) {
-			logger.Debug("Claim Doesn't Match Request")
-
 			return
 		}
 	}
@@ -544,14 +515,10 @@ func (s *CustomClaimsStrategy) populateClaim(claim, attribute string, allowed []
 	if strings.Contains(claim, ".") {
 		doClaimResolveApplyMultiLevel(claim, value, extra)
 
-		logger.WithField("claims", extra).Debug("Resolved Claim ML")
-
 		return
 	}
 
 	extra[claim] = value
-
-	logger.WithField("claims", extra).Debug("Resolved Claim")
 }
 
 // GrantScopeAudienceConsent grants all scopes and audience values that have received consent.

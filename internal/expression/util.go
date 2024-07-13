@@ -48,6 +48,10 @@ func newAttributeUserEmails() cel.EnvOption {
 	return cel.Variable(AttributeUserEmails, cel.ListType(cel.StringType))
 }
 
+func newAttributeUserEmailsExtra() cel.EnvOption {
+	return cel.Variable(AttributeUserEmailsExtra, cel.ListType(cel.StringType))
+}
+
 func newAttributeUserGivenName() cel.EnvOption {
 	return cel.Variable(AttributeUserGivenName, cel.StringType)
 }
