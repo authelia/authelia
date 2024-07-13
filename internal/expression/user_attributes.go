@@ -58,7 +58,9 @@ func (e *UserAttributesExpressions) ldapStartupCheck() (err error) {
 		newAttributeUserGroups(),
 		newAttributeUserDisplayName(),
 		newAttributeUserEmail(),
+		newAttributeUserEmailVerified(),
 		newAttributeUserEmails(),
+		newAttributeUpdatedAt(),
 	}
 
 	if e.config.AuthenticationBackend.LDAP.Attributes.GivenName != "" {
@@ -128,15 +130,31 @@ func (e *UserAttributesExpressions) ldapStartupCheck() (err error) {
 	}
 
 	if e.config.AuthenticationBackend.LDAP.Attributes.PhoneNumber != "" {
-		e.attributes = append(e.attributes, AttributeUserPhoneNumber)
+		e.attributes = append(e.attributes, AttributeUserPhoneNumber, AttributeUserPhoneNumberVerified)
 
-		opts = append(opts, newAttributeUserPhoneNumber())
+		opts = append(opts, newAttributeUserPhoneNumber(), newAttributeUserPhoneNumberVerified())
 	}
 
 	if e.config.AuthenticationBackend.LDAP.Attributes.PhoneExtension != "" {
 		e.attributes = append(e.attributes, AttributeUserPhoneExtension)
 
 		opts = append(opts, newAttributeUserPhoneExtension())
+	}
+
+	if e.config.AuthenticationBackend.LDAP.Attributes.PhoneNumber != "" || e.config.AuthenticationBackend.LDAP.Attributes.PhoneExtension != "" {
+		e.attributes = append(e.attributes, AttributeUserPhoneNumberRFC3966)
+
+		opts = append(opts, newAttributeUserPhoneNumberRFC3966())
+	}
+
+	if e.config.AuthenticationBackend.LDAP.Attributes.StreetAddress != "" ||
+		e.config.AuthenticationBackend.LDAP.Attributes.Locality != "" ||
+		e.config.AuthenticationBackend.LDAP.Attributes.Region != "" ||
+		e.config.AuthenticationBackend.LDAP.Attributes.PostalCode != "" ||
+		e.config.AuthenticationBackend.LDAP.Attributes.Country != "" {
+		e.attributes = append(e.attributes, AttributeUserAddress)
+
+		opts = append(opts, newAttributeUserAddress())
 	}
 
 	if e.config.AuthenticationBackend.LDAP.Attributes.StreetAddress != "" {
@@ -182,6 +200,7 @@ func (e *UserAttributesExpressions) fileStartupCheck() (err error) {
 		newAttributeUserGroups(),
 		newAttributeUserDisplayName(),
 		newAttributeUserEmail(),
+		newAttributeUserEmailVerified(),
 		newAttributeUserEmails(),
 		newAttributeUserGivenName(),
 		newAttributeUserMiddleName(),
@@ -195,12 +214,16 @@ func (e *UserAttributesExpressions) fileStartupCheck() (err error) {
 		newAttributeUserZoneInfo(),
 		newAttributeUserLocale(),
 		newAttributeUserPhoneNumber(),
+		newAttributeUserPhoneNumberVerified(),
 		newAttributeUserPhoneExtension(),
+		newAttributeUserPhoneNumberRFC3966(),
+		newAttributeUserAddress(),
 		newAttributeUserStreetAddress(),
 		newAttributeUserLocality(),
 		newAttributeUserRegion(),
 		newAttributeUserPostalCode(),
 		newAttributeUserCountry(),
+		newAttributeUpdatedAt(),
 	}
 
 	for attribute, properties := range e.config.AuthenticationBackend.File.ExtraAttributes {

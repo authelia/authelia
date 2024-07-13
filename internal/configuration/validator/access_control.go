@@ -189,7 +189,7 @@ func IsSubjectValid(subject string) (id string, isValid bool) {
 	}
 
 	if strings.HasPrefix(subject, "oauth2:client:") {
-		return strings.TrimPrefix("oauth2:client:", subject), true
+		return strings.TrimPrefix(subject, "oauth2:client:"), true
 	}
 
 	return "", false

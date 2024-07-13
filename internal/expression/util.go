@@ -40,6 +40,10 @@ func newAttributeUserEmail() cel.EnvOption {
 	return cel.Variable(AttributeUserEmail, cel.StringType)
 }
 
+func newAttributeUserEmailVerified() cel.EnvOption {
+	return cel.Variable(AttributeUserEmailVerified, cel.BoolType)
+}
+
 func newAttributeUserEmails() cel.EnvOption {
 	return cel.Variable(AttributeUserEmails, cel.ListType(cel.StringType))
 }
@@ -92,8 +96,20 @@ func newAttributeUserPhoneNumber() cel.EnvOption {
 	return cel.Variable(AttributeUserPhoneNumber, cel.StringType)
 }
 
+func newAttributeUserPhoneNumberVerified() cel.EnvOption {
+	return cel.Variable(AttributeUserPhoneNumberVerified, cel.BoolType)
+}
+
 func newAttributeUserPhoneExtension() cel.EnvOption {
 	return cel.Variable(AttributeUserPhoneExtension, cel.StringType)
+}
+
+func newAttributeUserPhoneNumberRFC3966() cel.EnvOption {
+	return cel.Variable(AttributeUserPhoneNumberRFC3966, cel.StringType)
+}
+
+func newAttributeUserAddress() cel.EnvOption {
+	return cel.Variable(AttributeUserAddress, cel.MapType(cel.StringType, cel.StringType))
 }
 
 func newAttributeUserStreetAddress() cel.EnvOption {
@@ -114,4 +130,8 @@ func newAttributeUserPostalCode() cel.EnvOption {
 
 func newAttributeUserCountry() cel.EnvOption {
 	return cel.Variable(AttributeUserCountry, cel.StringType)
+}
+
+func newAttributeUpdatedAt() cel.EnvOption {
+	return cel.Variable(AttributeUserUpdatedAt, cel.IntType)
 }
