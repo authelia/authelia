@@ -8,9 +8,11 @@ import (
 	"time"
 
 	oauthelia2 "authelia.com/provider/oauth2"
+	"github.com/google/uuid"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
+	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -359,6 +361,7 @@ func NewCustomClaimsStrategy(client schema.IdentityProvidersOpenIDConnectClient,
 		}
 	}
 
+	logging.Logger().WithField("scopes", strategy.scopes).WithField("client", client.ID).Debug("Initialized")
 	return strategy
 }
 
@@ -387,6 +390,8 @@ func (s *CustomClaimsStrategy) PopulateUserInfoClaims(ctx Context, strategy oaut
 	resolve := func(claim string) (value any, ok bool) {
 		return resolver.Resolve(claim, detailer, updated)
 	}
+
+	logging.Logger().WithFields(map[string]any{"client_id": client.GetID(), "scopes": scopes, "requests": requests}).Debug("Populating UserInfo Claims")
 
 	s.populateClaimsOriginalUserInfo(original, extra)
 	s.populateClaimsScoped(ctx, strategy, scopes, resolve, nil, extra)
@@ -449,15 +454,27 @@ func (s *CustomClaimsStrategy) populateClaimsScoped(ctx Context, strategy oauthe
 		return
 	}
 
+	logger := logging.Logger().WithFields(map[string]any{"scopes": scopes, "allowed": allowed, "id": uuid.New().String()})
+
+	logger.Debug("Populating Claims Scoped")
+
 	for scope, claims := range s.scopes {
 		if !strategy(scopes, scope) {
+			logger.WithField("scope", scope).Debug("Skipping scope")
+
 			continue
 		}
 
+		logger.WithField("scope", scope).Debug("Processing scope")
+
 		for claim, attribute := range claims {
+			logger.WithField("scope", scope).WithField("claim", claim).WithField("attribute", attribute).Debug("Processing claim")
+
 			s.populateClaim(claim, attribute, allowed, resolve, extra, nil)
 		}
 	}
+
+	logger.Debug("Populated Claims Scoped")
 }
 
 func (s *CustomClaimsStrategy) populateClaimsRequested(ctx Context, strategy oauthelia2.ScopeStrategy, scopes oauthelia2.Arguments, requests map[string]*ClaimRequest, resolve ClaimResolver, extra map[string]any) {
@@ -487,14 +504,22 @@ claim:
 	}
 }
 
-func (s *CustomClaimsStrategy) populateClaim(claim, attribute string, allowed []string, resolve ClaimResolver, claims map[string]any, request *ClaimRequest) {
+func (s *CustomClaimsStrategy) populateClaim(claim, attribute string, allowed []string, resolve ClaimResolver, extra map[string]any, request *ClaimRequest) {
+	logger := logging.Logger().WithFields(map[string]any{"claim": claim, "attribute": attribute, "allowed": allowed, "id": uuid.New().String()})
+
+	logger.WithField("claims", extra).Debug("Resolving Claim")
+
 	if !s.isClaimAllowed(claim, allowed) {
+		logger.Debug("Claim Not Allowed")
+
 		return
 	}
 
 	value, ok := resolve(attribute)
 
 	if !ok || value == nil {
+		logger.Debug("Claim Has No Value")
+
 		return
 	}
 
@@ -502,23 +527,31 @@ func (s *CustomClaimsStrategy) populateClaim(claim, attribute string, allowed []
 
 	if str, ok = value.(string); ok {
 		if str == "" {
+			logger.Debug("Claim Is Empty String")
+
 			return
 		}
 	}
 
 	if request != nil {
 		if !request.Matches(value) {
+			logger.Debug("Claim Doesn't Match Request")
+
 			return
 		}
 	}
 
 	if strings.Contains(claim, ".") {
-		doClaimResolveApplyMultiLevel(claims, claim, value)
+		doClaimResolveApplyMultiLevel(claim, value, extra)
+
+		logger.WithField("claims", extra).Debug("Resolved Claim ML")
 
 		return
 	}
 
-	claims[claim] = value
+	extra[claim] = value
+
+	logger.WithField("claims", extra).Debug("Resolved Claim")
 }
 
 // GrantScopeAudienceConsent grants all scopes and audience values that have received consent.
@@ -841,10 +874,10 @@ func doClaimResolveApply(claims map[string]any, claim, attribute string, resolve
 }
 */
 
-func doClaimResolveApplyMultiLevel(claims map[string]any, path string, value any) {
+func doClaimResolveApplyMultiLevel(path string, value any, extra map[string]any) {
 	keys := strings.Split(path, ".")
 	final := keys[len(keys)-1]
-	current := claims
+	current := extra
 
 	for _, key := range keys[:len(keys)-1] {
 		if _, ok := current[key]; !ok {
