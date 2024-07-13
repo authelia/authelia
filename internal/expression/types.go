@@ -1,6 +1,10 @@
 package expression
 
-import "github.com/authelia/authelia/v4/internal/model"
+import (
+	"time"
+
+	"github.com/authelia/authelia/v4/internal/model"
+)
 
 type ExtraAttribute interface {
 	IsMultiValued() (multi bool)
@@ -8,9 +12,25 @@ type ExtraAttribute interface {
 }
 
 type UserAttributeResolver interface {
-	Resolve(name string, detailer UserDetailer) (object any, found bool)
+	Resolve(name string, detailer UserDetailer, updated time.Time) (object any, found bool)
 
 	model.StartupCheck
+}
+
+type UserAttributeResolverDetailer struct {
+	UserDetailer
+
+	updated time.Time
+}
+
+func (d *UserAttributeResolverDetailer) GetUpdatedAt() time.Time {
+	return d.updated
+}
+
+type ExtendedUserDetailer interface {
+	UserDetailer
+
+	GetUpdatedAt() time.Time
 }
 
 type UserDetailer interface {
@@ -31,7 +51,7 @@ type UserDetailer interface {
 	GetLocale() (locale string)
 	GetPhoneNumber() (number string)
 	GetPhoneExtension() (extension string)
-	GetOpenIDConnectPhoneNumber() (number string)
+	GetPhoneNumberRFC3966() (number string)
 	GetStreetAddress() (address string)
 	GetLocality() (locality string)
 	GetRegion() (region string)

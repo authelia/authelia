@@ -31,6 +31,8 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		ResponseTypes: config.ResponseTypes,
 		ResponseModes: []oauthelia2.ResponseModeType{},
 
+		ClaimsStrategy: NewCustomClaimsStrategy(config, c.Scopes, c.ClaimsPolicies),
+
 		RequirePKCE:                config.RequirePKCE || config.PKCEChallengeMethod != "",
 		RequirePKCEChallengeMethod: config.PKCEChallengeMethod != "",
 		PKCEChallengeMethod:        config.PKCEChallengeMethod,
@@ -145,6 +147,10 @@ func (c *RegisteredClient) GetResponseTypes() (types oauthelia2.Arguments) {
 	}
 
 	return c.ResponseTypes
+}
+
+func (c *RegisteredClient) GetClaimsStrategy() (strategy ClaimsStrategy) {
+	return c.ClaimsStrategy
 }
 
 // GetScopes returns the Scopes.

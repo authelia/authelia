@@ -34,9 +34,10 @@ type IdentityProvidersOpenIDConnect struct {
 
 	Clients []IdentityProvidersOpenIDConnectClient `koanf:"clients" json:"clients" jsonschema:"title=Clients" jsonschema_description:"OpenID Connect 1.0 clients registry."`
 
-	AuthorizationPolicies map[string]IdentityProvidersOpenIDConnectPolicy `koanf:"authorization_policies" json:"authorization_policies" jsonschema:"title=Authorization Policies" jsonschema_description:"Custom client authorization policies."`
-	Lifespans             IdentityProvidersOpenIDConnectLifespans         `koanf:"lifespans" json:"lifespans" jsonschema:"title=Lifespans" jsonschema_description:"Token lifespans configuration."`
-	Scopes                map[string]IdentityProvidersOpenIDConnectScope  `koanf:"scopes" json:"scopes"`
+	AuthorizationPolicies map[string]IdentityProvidersOpenIDConnectPolicy       `koanf:"authorization_policies" json:"authorization_policies" jsonschema:"title=Authorization Policies" jsonschema_description:"Custom client authorization policies."`
+	Lifespans             IdentityProvidersOpenIDConnectLifespans               `koanf:"lifespans" json:"lifespans" jsonschema:"title=Lifespans" jsonschema_description:"Token lifespans configuration."`
+	ClaimsPolicies        map[string]IdentityProvidersOpenIDConnectClaimsPolicy `koanf:"claims_policies" json:"claims_policies"`
+	Scopes                map[string]IdentityProvidersOpenIDConnectScope        `koanf:"scopes" json:"scopes"`
 
 	Discovery IdentityProvidersOpenIDConnectDiscovery `json:"-"` // MetaData value. Not configurable by users.
 
@@ -44,12 +45,19 @@ type IdentityProvidersOpenIDConnect struct {
 	IssuerPrivateKey       *rsa.PrivateKey      `koanf:"issuer_private_key" json:"issuer_private_key" jsonschema:"title=Issuer Private Key,deprecated" jsonschema_description:"The Issuer Private Key with an RSA Private Key used to sign ID Tokens."`
 }
 
-type IdentityProvidersOpenIDConnectScope struct {
-	Claims map[string]IdentityProvidersOpenIDConnectScopeClaim `koanf:"claims" json:"claims"`
+type IdentityProvidersOpenIDConnectClaimsPolicy struct {
+	IDToken     []string `koanf:"id_token" json:"id_token"`
+	AccessToken []string `koanf:"access_token" json:"access_token"`
+
+	CustomClaims map[string]IdentityProvidersOpenIDConnectCustomClaim `koanf:"custom_claims" json:"custom_claims"`
 }
 
-type IdentityProvidersOpenIDConnectScopeClaim struct {
+type IdentityProvidersOpenIDConnectCustomClaim struct {
 	Attribute string `koanf:"attribute" json:"attribute"`
+}
+
+type IdentityProvidersOpenIDConnectScope struct {
+	Claims []string `koanf:"claims" json:"claims"`
 }
 
 // IdentityProvidersOpenIDConnectPolicy configuration for OpenID Connect 1.0 authorization policies.
@@ -68,6 +76,8 @@ type IdentityProvidersOpenIDConnectPolicyRule struct {
 
 // IdentityProvidersOpenIDConnectDiscovery is information discovered during validation reused for the discovery handlers.
 type IdentityProvidersOpenIDConnectDiscovery struct {
+	Claims                      []string
+	Scopes                      []string
 	AuthorizationPolicies       []string
 	Lifespans                   []string
 	DefaultKeyIDs               map[string]string
@@ -137,6 +147,7 @@ type IdentityProvidersOpenIDConnectClient struct {
 
 	AuthorizationPolicy string `koanf:"authorization_policy" json:"authorization_policy" jsonschema:"title=Authorization Policy" jsonschema_description:"The Authorization Policy to apply to this client."`
 	Lifespan            string `koanf:"lifespan" json:"lifespan" jsonschema:"title=Lifespan Name" jsonschema_description:"The name of the custom lifespan to utilize for this client."`
+	ClaimsPolicy        string `koanf:"claims_policy" json:"claims_policy"`
 
 	RequestedAudienceMode        string         `koanf:"requested_audience_mode" json:"requested_audience_mode" jsonschema:"enum=explicit,enum=implicit,title=Requested Audience Mode" jsonschema_description:"The Requested Audience Mode used for this client."`
 	ConsentMode                  string         `koanf:"consent_mode" json:"consent_mode" jsonschema:"enum=auto,enum=explicit,enum=implicit,enum=pre-configured,title=Consent Mode" jsonschema_description:"The Consent Mode used for this client."`

@@ -9,6 +9,7 @@ import (
 
 	oauthelia2 "authelia.com/provider/oauth2"
 
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -59,6 +60,14 @@ func (r *ClaimsRequests) GetUserInfoRequests() (requests map[string]*ClaimReques
 // specific subject and that value does not match the current value it returns false, otherwise it returns true as well
 // as the subject value.
 func (r *ClaimsRequests) MatchesSubject(subject string) (requested string, ok bool) {
+	return r.stringMatch(subject, ClaimSubject)
+}
+
+func (r *ClaimsRequests) MatchesIssuer(issuer *url.URL) (requested string, ok bool) {
+	return r.stringMatch(issuer.String(), ClaimIssuer)
+}
+
+func (r *ClaimsRequests) stringMatch(expected, claim string) (requested string, ok bool) {
 	if r == nil {
 		return "", true
 	}
@@ -66,21 +75,29 @@ func (r *ClaimsRequests) MatchesSubject(subject string) (requested string, ok bo
 	var request *ClaimRequest
 
 	if r.UserInfo != nil {
-		if request, ok = r.UserInfo[ClaimSubject]; ok {
-			requested, _ = request.Value.(string)
+		if request, ok = r.UserInfo[claim]; ok {
+			if request.Value != nil {
+				if requested, ok = request.Value.(string); !ok {
+					return "", false
+				}
 
-			if request.Value != nil && request.Value != subject {
-				return requested, false
+				if request.Value != expected {
+					return requested, false
+				}
 			}
 		}
 	}
 
 	if r.IDToken != nil {
-		if request, ok = r.IDToken[ClaimSubject]; ok {
-			requested, _ = request.Value.(string)
+		if request, ok = r.IDToken[claim]; ok {
+			if request.Value != nil {
+				if requested, ok = request.Value.(string); !ok {
+					return "", false
+				}
 
-			if request.Value != nil && request.Value != subject {
-				return requested, false
+				if request.Value != nil && request.Value != expected {
+					return requested, false
+				}
 			}
 		}
 	}
@@ -140,7 +157,11 @@ type ClaimRequest struct {
 //nolint:gocyclo
 func (r *ClaimRequest) Matches(value any) (match bool) {
 	if r == nil {
-		return false
+		return true
+	}
+
+	if r.Value == nil && r.Values == nil {
+		return true
 	}
 
 	switch t := value.(type) {
@@ -246,6 +267,253 @@ func (r *ClaimRequest) Matches(value any) (match bool) {
 	return true
 }
 
+type ClaimResolver func(claim string) (value any, ok bool)
+
+type ClaimsStrategy interface {
+	PopulateIDTokenClaims(ctx Context, strategy oauthelia2.ScopeStrategy, client Client, scopes oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, updated time.Time, original, extra map[string]any)
+	PopulateUserInfoClaims(ctx Context, strategy oauthelia2.ScopeStrategy, client Client, scopes oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, updated time.Time, original, extra map[string]any)
+	PopulateClientCredentialsUserInfoClaims(ctx Context, client Client, original, extra map[string]any)
+}
+
+func NewCustomClaimsStrategy(client schema.IdentityProvidersOpenIDConnectClient, scopes map[string]schema.IdentityProvidersOpenIDConnectScope, policies map[string]schema.IdentityProvidersOpenIDConnectClaimsPolicy) (strategy *CustomClaimsStrategy) {
+	strategy = &CustomClaimsStrategy{
+		scopes: map[string]map[string]string{
+			ScopeProfile: {
+				ClaimFullName:          expression.AttributeUserDisplayName,
+				ClaimGivenName:         expression.AttributeUserGivenName,
+				ClaimFamilyName:        expression.AttributeUserFamilyName,
+				ClaimMiddleName:        expression.AttributeUserMiddleName,
+				ClaimNickname:          expression.AttributeUserNickname,
+				ClaimPreferredUsername: expression.AttributeUserUsername,
+				ClaimProfile:           expression.AttributeUserProfile,
+				ClaimPicture:           expression.AttributeUserPicture,
+				ClaimWebsite:           expression.AttributeUserWebsite,
+				ClaimGender:            expression.AttributeUserGender,
+				ClaimBirthdate:         expression.AttributeUserBirthdate,
+				ClaimZoneinfo:          expression.AttributeUserZoneInfo,
+				ClaimLocale:            expression.AttributeUserLocale,
+				ClaimUpdatedAt:         expression.AttributeUserUpdatedAt,
+			},
+			ScopeEmail: {
+				ClaimEmail:         expression.AttributeUserEmail,
+				ClaimEmailAlts:     expression.AttributeUserEmailsExtra,
+				ClaimEmailVerified: expression.AttributeUserEmailVerified,
+			},
+			ScopePhone: {
+				ClaimPhoneNumber:         expression.AttributeUserPhoneNumberRFC3966,
+				ClaimPhoneNumberVerified: expression.AttributeUserPhoneNumberVerified,
+			},
+			ScopeAddress: {
+				ClaimAddress: expression.AttributeUserAddress,
+			},
+			ScopeGroups: {
+				ClaimGroups: expression.AttributeUserGroups,
+			},
+		},
+	}
+
+	if client.ClaimsPolicy == "" {
+		return strategy
+	}
+
+	var (
+		policy  schema.IdentityProvidersOpenIDConnectClaimsPolicy
+		mapping schema.IdentityProvidersOpenIDConnectScope
+		claim   schema.IdentityProvidersOpenIDConnectCustomClaim
+
+		ok   bool
+		name string
+	)
+
+	if policy, ok = policies[client.ClaimsPolicy]; !ok {
+		return strategy
+	}
+
+	strategy.claimsIDToken = policy.IDToken
+	strategy.claimsAccessToken = policy.AccessToken
+
+	for _, scope := range client.Scopes {
+		if mapping, ok = scopes[scope]; !ok {
+			continue
+		}
+
+		strategy.scopes[scope] = make(map[string]string)
+
+		for _, name = range mapping.Claims {
+			if claim, ok = policy.CustomClaims[name]; !ok {
+				continue
+			}
+
+			if claim.Attribute == "" {
+				strategy.scopes[scope][name] = name
+			} else {
+				strategy.scopes[scope][name] = claim.Attribute
+			}
+		}
+	}
+
+	return strategy
+}
+
+type CustomClaimsStrategy struct {
+	claimsIDToken     []string
+	claimsAccessToken []string
+	scopes            map[string]map[string]string
+}
+
+func (s *CustomClaimsStrategy) PopulateIDTokenClaims(ctx Context, strategy oauthelia2.ScopeStrategy, client Client, scopes oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, updated time.Time, original, extra map[string]any) {
+	resolver := ctx.GetProviderUserAttributeResolver()
+
+	resolve := func(claim string) (value any, ok bool) {
+		return resolver.Resolve(claim, detailer, updated)
+	}
+
+	s.populateClaimsOriginal(original, extra)
+	s.populateClaimsAudience(client, original, extra)
+	s.populateClaimsScoped(ctx, strategy, scopes, resolve, s.claimsIDToken, extra)
+	s.populateClaimsRequested(ctx, strategy, scopes, requests, resolve, extra)
+}
+
+func (s *CustomClaimsStrategy) PopulateUserInfoClaims(ctx Context, strategy oauthelia2.ScopeStrategy, client Client, scopes oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, updated time.Time, original, extra map[string]any) {
+	resolver := ctx.GetProviderUserAttributeResolver()
+
+	resolve := func(claim string) (value any, ok bool) {
+		return resolver.Resolve(claim, detailer, updated)
+	}
+
+	s.populateClaimsOriginalUserInfo(original, extra)
+	s.populateClaimsScoped(ctx, strategy, scopes, resolve, nil, extra)
+	s.populateClaimsRequested(ctx, strategy, scopes, requests, resolve, extra)
+}
+
+func (s *CustomClaimsStrategy) PopulateClientCredentialsUserInfoClaims(ctx Context, client Client, original, extra map[string]any) {
+	s.populateClaimsOriginal(original, extra)
+	s.populateClaimsAudience(client, original, extra)
+}
+
+func (s *CustomClaimsStrategy) isClaimAllowed(claim string, allowed []string) (isAllowed bool) {
+	if allowed == nil {
+		return true
+	}
+
+	return utils.IsStringInSlice(claim, allowed)
+}
+
+func (s *CustomClaimsStrategy) populateClaimsOriginalUserInfo(original, extra map[string]any) {
+	for claim, value := range original {
+		switch claim {
+		case ClaimSubject:
+			extra[claim] = value
+		}
+	}
+}
+
+func (s *CustomClaimsStrategy) populateClaimsOriginal(original, extra map[string]any) {
+	for claim, value := range original {
+		switch claim {
+		case ClaimJWTID, ClaimSessionID, ClaimAccessTokenHash, ClaimCodeHash, ClaimExpirationTime, ClaimNonce, ClaimStateHash:
+			// Skip special OpenID Connect 1.0 Claims.
+			continue
+		case ClaimFullName, ClaimGivenName, ClaimFamilyName, ClaimMiddleName, ClaimNickname, ClaimPreferredUsername, ClaimProfile, ClaimPicture, ClaimWebsite, ClaimEmail, ClaimEmailVerified, ClaimGender, ClaimBirthdate, ClaimZoneinfo, ClaimLocale, ClaimPhoneNumber, ClaimPhoneNumberVerified, ClaimAddress:
+			// Skip the standard claims.
+			continue
+		default:
+			extra[claim] = value
+		}
+	}
+}
+
+func (s *CustomClaimsStrategy) populateClaimsAudience(client Client, original, extra map[string]any) {
+	if clientID := client.GetID(); clientID != "" {
+		audience, ok := GetAudienceFromClaims(original)
+
+		if !ok || len(audience) == 0 {
+			audience = []string{clientID}
+		} else if !utils.IsStringInSlice(clientID, audience) {
+			audience = append(audience, clientID)
+		}
+
+		extra[ClaimAudience] = audience
+	}
+}
+
+func (s *CustomClaimsStrategy) populateClaimsScoped(ctx Context, strategy oauthelia2.ScopeStrategy, scopes oauthelia2.Arguments, resolve ClaimResolver, allowed []string, extra map[string]any) {
+	if resolve == nil {
+		return
+	}
+
+	for scope, claims := range s.scopes {
+		if !strategy(scopes, scope) {
+			continue
+		}
+
+		for claim, attribute := range claims {
+			s.populateClaim(claim, attribute, allowed, resolve, extra, nil)
+		}
+	}
+}
+
+func (s *CustomClaimsStrategy) populateClaimsRequested(ctx Context, strategy oauthelia2.ScopeStrategy, scopes oauthelia2.Arguments, requests map[string]*ClaimRequest, resolve ClaimResolver, extra map[string]any) {
+	if requests == nil || resolve == nil {
+		return
+	}
+
+claim:
+	for claim, request := range requests {
+		for scope, claims := range s.scopes {
+			if !strategy(scopes, scope) {
+				continue
+			}
+
+			attribute, ok := claims[claim]
+
+			if !ok {
+				continue
+			}
+
+			s.populateClaim(claim, attribute, nil, resolve, extra, request)
+
+			continue claim
+		}
+
+		// TODO: Maybe return error if the claim is not permitted.
+	}
+}
+
+func (s *CustomClaimsStrategy) populateClaim(claim, attribute string, allowed []string, resolve ClaimResolver, claims map[string]any, request *ClaimRequest) {
+	if !s.isClaimAllowed(claim, allowed) {
+		return
+	}
+
+	value, ok := resolve(attribute)
+
+	if !ok || value == nil {
+		return
+	}
+
+	var str string
+
+	if str, ok = value.(string); ok {
+		if str == "" {
+			return
+		}
+	}
+
+	if request != nil {
+		if !request.Matches(value) {
+			return
+		}
+	}
+
+	if strings.Contains(claim, ".") {
+		doClaimResolveApplyMultiLevel(claims, claim, value)
+
+		return
+	}
+
+	claims[claim] = value
+}
+
 // GrantScopeAudienceConsent grants all scopes and audience values that have received consent.
 func GrantScopeAudienceConsent(ar oauthelia2.Requester, consent *model.OAuth2ConsentSession) {
 	if ar != nil {
@@ -259,10 +527,12 @@ func GrantScopeAudienceConsent(ar oauthelia2.Requester, consent *model.OAuth2Con
 	}
 }
 
-// GrantClaimRequests grants all claims the client has requested provided it's authorized to request them.
+/*
+
+// GrantClaimsRequested grants all claims the client has requested provided it's authorized to request them.
 //
 //nolint:gocyclo
-func GrantClaimRequests(ctx Context, strategy oauthelia2.ScopeStrategy, client Client, requests map[string]*ClaimRequest, detailer UserDetailer, extra map[string]any) {
+func GrantClaimsRequested(ctx Context, strategy oauthelia2.ScopeStrategy, client Client, requests map[string]*ClaimRequest, detailer UserDetailer, extra map[string]any) {
 	if requests == nil {
 		return
 	}
@@ -278,7 +548,7 @@ func GrantClaimRequests(ctx Context, strategy oauthelia2.ScopeStrategy, client C
 		case ClaimFamilyName:
 			grantRequestedClaimEx(strategy, client, ScopeProfile, ClaimFamilyName, expression.AttributeUserFamilyName, resolver, detailer, request, extra)
 		case ClaimMiddleName:
-			grantRequestedClaim(strategy, client, ScopeProfile, ClaimMiddleName, expression.AttributeUserDisplayName, resolver, detailer, request, extra)
+			//grantRequestedClaim(strategy, client, ScopeProfile, ClaimMiddleName, expression.AttributeUserDisplayName, resolver, detailer, request, extra)
 		case ClaimNickname:
 			grantRequestedClaim(strategy, client, ScopeProfile, ClaimNickname, detailer.GetNickname(), request, extra)
 		case ClaimPreferredUsername:
@@ -312,7 +582,7 @@ func GrantClaimRequests(ctx Context, strategy oauthelia2.ScopeStrategy, client C
 		case ClaimLocale:
 			grantRequestedClaim(strategy, client, ScopeProfile, ClaimLocale, detailer.GetLocale(), request, extra)
 		case ClaimPhoneNumber:
-			grantRequestedClaim(strategy, client, ScopePhone, ClaimPhoneNumber, detailer.GetOpenIDConnectPhoneNumber(), request, extra)
+			grantRequestedClaim(strategy, client, ScopePhone, ClaimPhoneNumber, detailer.GetPhoneNumberRFC3966(), request, extra)
 		case ClaimPhoneNumberVerified:
 			grantRequestedClaim(strategy, client, ScopePhone, ClaimPhoneNumberVerified, false, request, extra)
 		case ClaimAddress:
@@ -392,13 +662,11 @@ func grantRequestedClaimEx(strategy oauthelia2.ScopeStrategy, client Client, sco
 	}
 }
 
-// GrantScopedClaims copies the extra claims from the ID Token that may be useful while excluding
-// OpenID Connect 1.0 Special Claims, OpenID Connect 1.0 Scope-based Claims which should be granted by GrantClaimRequests.
+// GrantClaimsScoped copies the extra claims from the ID Token that may be useful while excluding
+// OpenID Connect 1.0 Special Claims, OpenID Connect 1.0 Scope-based Claims which should be granted by GrantClaimsRequested.
 //
 //nolint:gocyclo
-func GrantScopedClaims(ctx Context, strategy oauthelia2.ScopeStrategy, client Client, scopes oauthelia2.Arguments, detailer UserDetailer, original, claims map[string]any) {
-	resolver := ctx.GetProviderUserAttributeResolver()
-
+func GrantClaimsScoped(ctx Context, strategy oauthelia2.ScopeStrategy, client Client, scopes oauthelia2.Arguments, detailer UserDetailer, original, claims map[string]any) {
 	for claim, value := range original {
 		switch claim {
 		case ClaimJWTID, ClaimSessionID, ClaimAccessTokenHash, ClaimCodeHash, ClaimExpirationTime, ClaimNonce, ClaimStateHash:
@@ -427,6 +695,8 @@ func GrantScopedClaims(ctx Context, strategy oauthelia2.ScopeStrategy, client Cl
 	if detailer == nil {
 		return
 	}
+
+	resolver := ctx.GetProviderUserAttributeResolver()
 
 	if strategy(scopes, ScopeProfile) {
 		doClaimResolveApply(claims, ClaimFullName, expression.AttributeUserDisplayName, resolver, detailer)
@@ -478,6 +748,8 @@ func GrantScopedClaims(ctx Context, strategy oauthelia2.ScopeStrategy, client Cl
 	}
 }
 
+*/
+
 // GetAudienceFromClaims retrieves the various formats of the 'aud' claim and returns them as a []string.
 func GetAudienceFromClaims(claims map[string]any) (audience []string, ok bool) {
 	var aud any
@@ -514,6 +786,8 @@ func GetAudienceFromClaims(claims map[string]any) (audience []string, ok bool) {
 	return audience, ok
 }
 
+/*
+
 func ClaimAddressFromDetailer(detailer UserDetailer) (claim map[string]any) {
 	claim = map[string]any{}
 
@@ -536,6 +810,7 @@ func doClaimsApplyPossibleStringValue(claims map[string]any, name, value string)
 	}
 }
 
+
 func doClaimResolveApply(claims map[string]any, claim, attribute string, resolver expression.UserAttributeResolver, detailer UserDetailer) {
 	value, ok := resolver.Resolve(attribute, detailer)
 
@@ -557,6 +832,7 @@ func doClaimResolveApply(claims map[string]any, claim, attribute string, resolve
 
 	claims[claim] = value
 }
+*/
 
 func doClaimResolveApplyMultiLevel(claims map[string]any, path string, value any) {
 	keys := strings.Split(path, ".")

@@ -114,7 +114,7 @@ type UserDetailsExtended struct {
 	Address        *UserDetailsAddress
 
 	Extra map[string]any
-	
+
 	*UserDetails
 }
 
@@ -186,7 +186,7 @@ func (d UserDetailsExtended) GetPhoneExtension() (extension string) {
 	return d.PhoneExtension
 }
 
-func (d UserDetailsExtended) GetOpenIDConnectPhoneNumber() (number string) {
+func (d UserDetailsExtended) GetPhoneNumberRFC3966() (number string) {
 	if d.PhoneNumber == "" {
 		return ""
 	}

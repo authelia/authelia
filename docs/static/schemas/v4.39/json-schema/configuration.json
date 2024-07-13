@@ -360,11 +360,31 @@
           "$ref": "#/$defs/AuthenticationBackendFileSearch",
           "title": "Search",
           "description": "Configures the user searching behaviour."
+        },
+        "extra_attributes": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/$defs/AuthenticationBackendFileExtraAttribute"
+            }
+          },
+          "type": "object"
         }
       },
       "additionalProperties": false,
       "type": "object",
       "description": "AuthenticationBackendFile represents the configuration related to file-based backend."
+    },
+    "AuthenticationBackendFileExtraAttribute": {
+      "properties": {
+        "multi_valued": {
+          "type": "boolean"
+        },
+        "value_type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "AuthenticationBackendFilePassword": {
       "properties": {
@@ -895,11 +915,34 @@
           "type": "string",
           "title": "Attribute: Group Name",
           "description": "The directory server attribute which contains the group name for all groups."
+        },
+        "extra": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/$defs/AuthenticationBackendLDAPAttributesAttribute"
+            }
+          },
+          "type": "object"
         }
       },
       "additionalProperties": false,
       "type": "object",
       "description": "AuthenticationBackendLDAPAttributes represents the configuration related to LDAP server attributes."
+    },
+    "AuthenticationBackendLDAPAttributesAttribute": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "multi_valued": {
+          "type": "boolean"
+        },
+        "value_type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "AuthenticationBackendPasswordReset": {
       "properties": {
@@ -1072,6 +1115,16 @@
           "type": "object",
           "title": "Network Definitions",
           "description": "Networks CIDR ranges that can be utilized elsewhere in the configuration."
+        },
+        "user_attributes": {
+          "patternProperties": {
+            ".*": {
+              "type": "string"
+            }
+          },
+          "type": "object",
+          "title": "User Attributes",
+          "description": "User attributes derived from others using Common Expression Language."
         }
       },
       "additionalProperties": false,
@@ -1228,6 +1281,22 @@
           "title": "Lifespans",
           "description": "Token lifespans configuration."
         },
+        "claims_policies": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/$defs/IdentityProvidersOpenIDConnectClaimsPolicy"
+            }
+          },
+          "type": "object"
+        },
+        "scopes": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/$defs/IdentityProvidersOpenIDConnectScope"
+            }
+          },
+          "type": "object"
+        },
         "issuer_certificate_chain": {
           "$ref": "#/$defs/X509CertificateChain",
           "title": "Issuer Certificate Chain",
@@ -1284,6 +1353,32 @@
       "additionalProperties": false,
       "type": "object",
       "description": "IdentityProvidersOpenIDConnectCORS represents an OpenID Connect 1.0 CORS config."
+    },
+    "IdentityProvidersOpenIDConnectClaimsPolicy": {
+      "properties": {
+        "id_token": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "access_token": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "custom_claims": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/$defs/IdentityProvidersOpenIDConnectCustomClaim"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "IdentityProvidersOpenIDConnectClient": {
       "properties": {
@@ -1411,6 +1506,9 @@
           "type": "string",
           "title": "Lifespan Name",
           "description": "The name of the custom lifespan to utilize for this client."
+        },
+        "claims_policy": {
+          "type": "string"
         },
         "requested_audience_mode": {
           "type": "string",
@@ -1671,6 +1769,15 @@
           "uniqueItems": true
         }
       ]
+    },
+    "IdentityProvidersOpenIDConnectCustomClaim": {
+      "properties": {
+        "attribute": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "IdentityProvidersOpenIDConnectLifespan": {
       "properties": {
@@ -1982,6 +2089,18 @@
       "additionalProperties": false,
       "type": "object",
       "description": "IdentityProvidersOpenIDConnectPolicyRule configuration for OpenID Connect 1.0 authorization policies rules."
+    },
+    "IdentityProvidersOpenIDConnectScope": {
+      "properties": {
+        "claims": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "IdentityValidation": {
       "properties": {

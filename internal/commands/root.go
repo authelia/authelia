@@ -146,6 +146,16 @@ func doStartupChecks(ctx *CmdCtx) {
 		ctx.log.WithFields(map[string]any{logFieldProvider: providerNameNTP}).Trace("Startup Check Completed Successfully")
 	}
 
+	ctx.log.WithFields(map[string]any{logFieldProvider: "expressions"}).Trace("Performing Startup Check")
+
+	if err = doStartupCheck(ctx, "expressions", ctx.providers.UserAttributeResolver, false); err != nil {
+		ctx.log.WithError(err).WithField(logFieldProvider, "expressions").Error(logMessageStartupCheckError)
+
+		failures = append(failures, "expressions")
+	} else {
+		ctx.log.WithFields(map[string]any{logFieldProvider: "expressions"}).Trace("Startup Check Completed Successfully")
+	}
+
 	if len(failures) != 0 {
 		ctx.log.WithField("providers", failures).Fatalf("One or more providers had fatal failures performing startup checks, for more detail check the error level logs")
 	}

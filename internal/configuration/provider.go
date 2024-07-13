@@ -2,9 +2,10 @@ package configuration
 
 import (
 	"fmt"
+	"net"
+
 	"github.com/go-viper/mapstructure/v2"
 	"github.com/knadh/koanf/v2"
-	"net"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )

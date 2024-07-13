@@ -2982,6 +2982,7 @@ func TestValidateOIDCClients(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			have := &schema.IdentityProvidersOpenIDConnect{
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
+					Scopes:                    validOIDCClientScopes,
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
 				Clients: []schema.IdentityProvidersOpenIDConnectClient{

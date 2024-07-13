@@ -2,6 +2,8 @@ package expression
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/google/cel-go/cel"
 	"github.com/google/cel-go/common/types/ref"
 
@@ -231,8 +233,8 @@ func (e *UserAttributesExpressions) setup(opts ...cel.EnvOption) (err error) {
 	return nil
 }
 
-func (e *UserAttributesExpressions) Resolve(name string, detailer UserDetailer) (object any, found bool) {
-	activation := &UserDetailerActivation{detailer: detailer}
+func (e *UserAttributesExpressions) Resolve(name string, detailer UserDetailer, updated time.Time) (object any, found bool) {
+	activation := &UserDetailerActivation{detailer: &UserAttributeResolverDetailer{UserDetailer: detailer, updated: updated}}
 
 	if utils.IsStringInSlice(name, e.attributes) {
 		return activation.ResolveName(name)
@@ -264,8 +266,8 @@ func (e *UserAttributes) StartupCheck() (err error) {
 	return nil
 }
 
-func (e *UserAttributes) Resolve(name string, detailer UserDetailer) (object any, found bool) {
-	activation := &UserDetailerActivation{detailer: detailer}
+func (e *UserAttributes) Resolve(name string, detailer UserDetailer, updated time.Time) (object any, found bool) {
+	activation := &UserDetailerActivation{detailer: &UserAttributeResolverDetailer{UserDetailer: detailer, updated: updated}}
 
 	return activation.ResolveName(name)
 }

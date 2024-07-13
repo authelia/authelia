@@ -6,7 +6,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/authelia/authelia/v4/internal/authorization"
 	"time"
 
 	oauthelia2 "authelia.com/provider/oauth2"
@@ -16,6 +15,7 @@ import (
 	ostorage "authelia.com/provider/oauth2/storage"
 	"github.com/google/uuid"
 
+	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/model"

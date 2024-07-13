@@ -3,7 +3,7 @@ package expression
 import "github.com/google/cel-go/interpreter"
 
 type UserDetailerActivation struct {
-	detailer UserDetailer
+	detailer ExtendedUserDetailer
 }
 
 func (a *UserDetailerActivation) ResolveName(name string) (object any, found bool) {
@@ -22,6 +22,15 @@ func (a *UserDetailerActivation) ResolveName(name string) (object any, found boo
 		return "", true
 	case AttributeUserEmails:
 		return a.detailer.GetEmails(), true
+	case AttributeUserEmailsExtra:
+		emails := a.detailer.GetEmails()
+		if len(emails) < 2 {
+			return nil, true
+		}
+
+		return emails[1:], true
+	case AttributeUserEmailVerified:
+		return true, true
 	case AttributeUserGivenName:
 		return a.detailer.GetGivenName(), true
 	case AttributeUserMiddleName:
@@ -47,9 +56,17 @@ func (a *UserDetailerActivation) ResolveName(name string) (object any, found boo
 	case AttributeUserPhoneNumber:
 		return a.detailer.GetPhoneNumber(), true
 	case AttributeUserPhoneNumberRFC3966:
-		return a.detailer.GetOpenIDConnectPhoneNumber(), true
+		return a.detailer.GetPhoneNumberRFC3966(), true
 	case AttributeUserPhoneExtension:
 		return a.detailer.GetPhoneExtension(), true
+	case AttributeUserPhoneNumberVerified:
+		if a.detailer.GetPhoneNumberRFC3966() == "" {
+			return nil, true
+		}
+
+		return false, true
+	case AttributeUserAddress:
+		return a.address(), true
 	case AttributeUserStreetAddress:
 		return a.detailer.GetStreetAddress(), true
 	case AttributeUserLocality:
@@ -60,17 +77,51 @@ func (a *UserDetailerActivation) ResolveName(name string) (object any, found boo
 		return a.detailer.GetPostalCode(), true
 	case AttributeUserCountry:
 		return a.detailer.GetCountry(), true
+	case AttributeUserUpdatedAt:
+		return a.detailer.GetUpdatedAt(), true
 	default:
 		extra := a.detailer.GetExtra()
 
 		if extra != nil {
-			if object, found = extra[AttributeUserProfile]; found {
+			if object, found = extra[name]; found {
 				return object, true
 			}
 		}
 	}
 
 	return nil, false
+}
+
+func (a *UserDetailerActivation) address() (address map[string]any) {
+	address = map[string]any{}
+
+	var value string
+
+	if value = a.detailer.GetStreetAddress(); value != "" {
+		address[AttributeUserStreetAddress] = value
+	}
+
+	if value = a.detailer.GetLocality(); value != "" {
+		address[AttributeUserLocality] = value
+	}
+
+	if value = a.detailer.GetRegion(); value != "" {
+		address[AttributeUserRegion] = value
+	}
+
+	if value = a.detailer.GetPostalCode(); value != "" {
+		address[AttributeUserPostalCode] = value
+	}
+
+	if value = a.detailer.GetCountry(); value != "" {
+		address[AttributeUserCountry] = value
+	}
+
+	if len(address) == 0 {
+		return nil
+	}
+
+	return address
 }
 
 func (a *UserDetailerActivation) Parent() interpreter.Activation {
