@@ -378,7 +378,7 @@ func (s *CustomClaimsStrategy) PopulateIDTokenClaims(ctx Context, strategy oauth
 	s.populateClaimsOriginal(original, extra)
 	s.populateClaimsAudience(client, original, extra)
 	s.populateClaimsScoped(ctx, strategy, scopes, resolve, s.claimsIDToken, extra)
-	s.populateClaimsRequested(ctx, strategy, scopes, requests, resolve, extra)
+	s.populateClaimsRequested(ctx, strategy, client.GetScopes(), requests, resolve, extra)
 }
 
 func (s *CustomClaimsStrategy) PopulateUserInfoClaims(ctx Context, strategy oauthelia2.ScopeStrategy, client Client, scopes oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, updated time.Time, original, extra map[string]any) {
@@ -390,7 +390,7 @@ func (s *CustomClaimsStrategy) PopulateUserInfoClaims(ctx Context, strategy oaut
 
 	s.populateClaimsOriginalUserInfo(original, extra)
 	s.populateClaimsScoped(ctx, strategy, scopes, resolve, nil, extra)
-	s.populateClaimsRequested(ctx, strategy, scopes, requests, resolve, extra)
+	s.populateClaimsRequested(ctx, strategy, client.GetScopes(), requests, resolve, extra)
 }
 
 func (s *CustomClaimsStrategy) PopulateClientCredentialsUserInfoClaims(ctx Context, client Client, original, extra map[string]any) {

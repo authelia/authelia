@@ -236,6 +236,8 @@ type FileUserDatabaseUserDetails struct {
 	Disabled       bool                   `json:"disabled" jsonschema:"default=false,title=Disabled" jsonschema_description:"The disabled status for the user."`
 
 	Address *FileUserDatabaseUserDetailsAddressModel `json:"address,omitempty" jsonschema:"title=Address" jsonschema_description:"The address for the user."`
+
+	Extra map[string]any `json:"extra" jsonschema:"title=Extra" jsonschema_description:"The extra attributes for the user."`
 }
 
 type FileUserDatabaseUserDetailsAddressModel struct {
@@ -273,6 +275,7 @@ func (m FileUserDatabaseUserDetails) ToExtendedUserDetails() (details *UserDetai
 		PhoneNumber:    m.PhoneNumber,
 		PhoneExtension: m.PhoneExtension,
 		UserDetails:    m.ToUserDetails(),
+		Extra:          m.Extra,
 	}
 
 	if m.Address != nil {
@@ -305,6 +308,7 @@ func (m FileUserDatabaseUserDetails) ToUserDetailsModel() (model FileDatabaseUse
 		Email:          m.Email,
 		Groups:         m.Groups,
 		Address:        m.Address,
+		Extra:          m.Extra,
 	}
 
 	if m.Website != nil {
@@ -415,6 +419,8 @@ type FileDatabaseUserDetailsModel struct {
 	Disabled       bool     `yaml:"disabled"`
 
 	Address *FileUserDatabaseUserDetailsAddressModel `yaml:"address"`
+
+	Extra map[string]any `yaml:"extra"`
 }
 
 // ToDatabaseUserDetailsModel converts a FileDatabaseUserDetailsModel into a *FileUserDatabaseUserDetails.
@@ -442,6 +448,7 @@ func (m FileDatabaseUserDetailsModel) ToDatabaseUserDetailsModel(username string
 		PhoneExtension: m.PhoneExtension,
 		Groups:         m.Groups,
 		Address:        m.Address,
+		Extra:          m.Extra,
 	}
 
 	if m.Website != "" {

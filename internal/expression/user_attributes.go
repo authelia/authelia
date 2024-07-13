@@ -8,7 +8,6 @@ import (
 	"github.com/google/cel-go/common/types/ref"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func NewUserAttributes(config *schema.Configuration) (ua UserAttributeResolver) {
@@ -16,21 +15,19 @@ func NewUserAttributes(config *schema.Configuration) (ua UserAttributeResolver) 
 		return &UserAttributes{}
 	} else {
 		return &UserAttributesExpressions{
-			startup:    false,
-			config:     config,
-			env:        nil,
-			programs:   map[string]cel.Program{},
-			attributes: nil,
+			startup:  false,
+			config:   config,
+			env:      nil,
+			programs: map[string]cel.Program{},
 		}
 	}
 }
 
 type UserAttributesExpressions struct {
-	startup    bool
-	config     *schema.Configuration
-	env        *cel.Env
-	programs   map[string]cel.Program
-	attributes []string
+	startup  bool
+	config   *schema.Configuration
+	env      *cel.Env
+	programs map[string]cel.Program
 }
 
 func (e *UserAttributesExpressions) StartupCheck() (err error) {
@@ -51,8 +48,6 @@ func (e *UserAttributesExpressions) StartupCheck() (err error) {
 }
 
 func (e *UserAttributesExpressions) ldapStartupCheck() (err error) {
-	e.attributes = []string{AttributeUserUsername, AttributeUserGroups, AttributeUserDisplayName, AttributeUserEmail, AttributeUserEmails}
-
 	opts := []cel.EnvOption{
 		newAttributeUserUsername(),
 		newAttributeUserGroups(),
@@ -65,86 +60,58 @@ func (e *UserAttributesExpressions) ldapStartupCheck() (err error) {
 	}
 
 	if e.config.AuthenticationBackend.LDAP.Attributes.GivenName != "" {
-		e.attributes = append(e.attributes, AttributeUserGivenName)
-
 		opts = append(opts, newAttributeUserGivenName())
 	}
 
 	if e.config.AuthenticationBackend.LDAP.Attributes.MiddleName != "" {
-		e.attributes = append(e.attributes, AttributeUserMiddleName)
-
 		opts = append(opts, newAttributeUserMiddleName())
 	}
 
 	if e.config.AuthenticationBackend.LDAP.Attributes.FamilyName != "" {
-		e.attributes = append(e.attributes, AttributeUserFamilyName)
-
 		opts = append(opts, newAttributeUserFamilyName())
 	}
 
 	if e.config.AuthenticationBackend.LDAP.Attributes.Nickname != "" {
-		e.attributes = append(e.attributes, AttributeUserNickname)
-
 		opts = append(opts, newAttributeUserNickname())
 	}
 
 	if e.config.AuthenticationBackend.LDAP.Attributes.Profile != "" {
-		e.attributes = append(e.attributes, AttributeUserProfile)
-
 		opts = append(opts, newAttributeUserProfile())
 	}
 
 	if e.config.AuthenticationBackend.LDAP.Attributes.Picture != "" {
-		e.attributes = append(e.attributes, AttributeUserPicture)
-
 		opts = append(opts, newAttributeUserPicture())
 	}
 
 	if e.config.AuthenticationBackend.LDAP.Attributes.Website != "" {
-		e.attributes = append(e.attributes, AttributeUserWebsite)
-
 		opts = append(opts, newAttributeUserWebsite())
 	}
 
 	if e.config.AuthenticationBackend.LDAP.Attributes.Gender != "" {
-		e.attributes = append(e.attributes, AttributeUserGender)
-
 		opts = append(opts, newAttributeUserGender())
 	}
 
 	if e.config.AuthenticationBackend.LDAP.Attributes.Birthdate != "" {
-		e.attributes = append(e.attributes, AttributeUserBirthdate)
-
 		opts = append(opts, newAttributeUserBirthdate())
 	}
 
 	if e.config.AuthenticationBackend.LDAP.Attributes.ZoneInfo != "" {
-		e.attributes = append(e.attributes, AttributeUserZoneInfo)
-
 		opts = append(opts, newAttributeUserZoneInfo())
 	}
 
 	if e.config.AuthenticationBackend.LDAP.Attributes.Locale != "" {
-		e.attributes = append(e.attributes, AttributeUserLocale)
-
 		opts = append(opts, newAttributeUserLocale())
 	}
 
 	if e.config.AuthenticationBackend.LDAP.Attributes.PhoneNumber != "" {
-		e.attributes = append(e.attributes, AttributeUserPhoneNumber, AttributeUserPhoneNumberVerified)
-
 		opts = append(opts, newAttributeUserPhoneNumber(), newAttributeUserPhoneNumberVerified())
 	}
 
 	if e.config.AuthenticationBackend.LDAP.Attributes.PhoneExtension != "" {
-		e.attributes = append(e.attributes, AttributeUserPhoneExtension)
-
 		opts = append(opts, newAttributeUserPhoneExtension())
 	}
 
 	if e.config.AuthenticationBackend.LDAP.Attributes.PhoneNumber != "" || e.config.AuthenticationBackend.LDAP.Attributes.PhoneExtension != "" {
-		e.attributes = append(e.attributes, AttributeUserPhoneNumberRFC3966)
-
 		opts = append(opts, newAttributeUserPhoneNumberRFC3966())
 	}
 
@@ -153,38 +120,27 @@ func (e *UserAttributesExpressions) ldapStartupCheck() (err error) {
 		e.config.AuthenticationBackend.LDAP.Attributes.Region != "" ||
 		e.config.AuthenticationBackend.LDAP.Attributes.PostalCode != "" ||
 		e.config.AuthenticationBackend.LDAP.Attributes.Country != "" {
-		e.attributes = append(e.attributes, AttributeUserAddress)
 
 		opts = append(opts, newAttributeUserAddress())
 	}
 
 	if e.config.AuthenticationBackend.LDAP.Attributes.StreetAddress != "" {
-		e.attributes = append(e.attributes, AttributeUserStreetAddress)
-
 		opts = append(opts, newAttributeUserStreetAddress())
 	}
 
 	if e.config.AuthenticationBackend.LDAP.Attributes.Locality != "" {
-		e.attributes = append(e.attributes, AttributeUserLocality)
-
 		opts = append(opts, newAttributeUserLocality())
 	}
 
 	if e.config.AuthenticationBackend.LDAP.Attributes.Region != "" {
-		e.attributes = append(e.attributes, AttributeUserRegion)
-
 		opts = append(opts, newAttributeUserRegion())
 	}
 
 	if e.config.AuthenticationBackend.LDAP.Attributes.PostalCode != "" {
-		e.attributes = append(e.attributes, AttributeUserPostalCode)
-
 		opts = append(opts, newAttributeUserPostalCode())
 	}
 
 	if e.config.AuthenticationBackend.LDAP.Attributes.Country != "" {
-		e.attributes = append(e.attributes, AttributeUserCountry)
-
 		opts = append(opts, newAttributeUserCountry())
 	}
 
@@ -228,37 +184,6 @@ func (e *UserAttributesExpressions) fileStartupCheck() (err error) {
 		newAttributeUpdatedAt(),
 	}
 
-	e.attributes = []string{
-		AttributeUserUsername,
-		AttributeUserGroups,
-		AttributeUserDisplayName,
-		AttributeUserEmail,
-		AttributeUserEmailVerified,
-		AttributeUserEmails,
-		AttributeUserEmailsExtra,
-		AttributeUserGivenName,
-		AttributeUserMiddleName,
-		AttributeUserFamilyName,
-		AttributeUserNickname,
-		AttributeUserProfile,
-		AttributeUserPicture,
-		AttributeUserWebsite,
-		AttributeUserGender,
-		AttributeUserBirthdate,
-		AttributeUserZoneInfo,
-		AttributeUserLocale,
-		AttributeUserPhoneNumber,
-		AttributeUserPhoneNumberVerified,
-		AttributeUserPhoneExtension,
-		AttributeUserPhoneNumberRFC3966,
-		AttributeUserAddress,
-		AttributeUserStreetAddress,
-		AttributeUserLocality,
-		AttributeUserRegion,
-		AttributeUserPostalCode,
-		AttributeUserCountry,
-		AttributeUserUpdatedAt,
-	}
 	for attribute, properties := range e.config.AuthenticationBackend.File.ExtraAttributes {
 		optsAddExtra(opts, attribute, properties)
 	}
@@ -292,28 +217,20 @@ func (e *UserAttributesExpressions) setup(opts ...cel.EnvOption) (err error) {
 func (e *UserAttributesExpressions) Resolve(name string, detailer UserDetailer, updated time.Time) (object any, found bool) {
 	activation := &UserDetailerActivation{detailer: &UserAttributeResolverDetailer{UserDetailer: detailer, updated: updated}}
 
-	if utils.IsStringInSlice(name, e.attributes) {
-		return activation.ResolveName(name)
+	if program, ok := e.programs[name]; ok {
+		var (
+			val ref.Val
+			err error
+		)
+
+		if val, _, err = program.Eval(activation); err != nil {
+			return nil, false
+		}
+
+		return val.Value(), true
 	}
 
-	program, ok := e.programs[name]
-
-	if !ok {
-		return nil, false
-	}
-
-	var (
-		val ref.Val
-		err error
-	)
-
-	val, _, err = program.Eval(activation)
-
-	if err != nil {
-		return nil, false
-	}
-
-	return val.Value(), true
+	return activation.ResolveName(name)
 }
 
 type UserAttributes struct{}
