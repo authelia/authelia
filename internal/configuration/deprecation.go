@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"path"
 	"strconv"
-	"strings"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // Deprecation represents a deprecated configuration key.
@@ -340,14 +340,14 @@ var deprecationsMKM = []MultiKeyMappedDeprecation{
 		MapFunc: func(d MultiKeyMappedDeprecation, keys map[string]any, val *schema.StructValidator) {
 			host, port, err := getHostPort("notifier.smtp.host", "notifier.smtp.port", schema.DefaultSMTPNotifierConfiguration.Address.Host(), schema.DefaultSMTPNotifierConfiguration.Address.Port(), keys)
 			if err != nil {
-				val.Push(fmt.Errorf(errFmtMultiKeyMappingPortConvert, strJoinAnd(d.Keys), d.NewKey, err))
+				val.Push(fmt.Errorf(errFmtMultiKeyMappingPortConvert, utils.StringJoinAnd(d.Keys), d.NewKey, err))
 
 				return
 			}
 
 			address := schema.NewSMTPAddress("", host, port)
 
-			val.PushWarning(fmt.Errorf(errFmtMultiRemappedKeys, strJoinAnd(d.Keys), d.Version, d.NewKey, "[tcp://]<hostname>[:<port>]", address.String(), d.Version.NextMajor()))
+			val.PushWarning(fmt.Errorf(errFmtMultiRemappedKeys, utils.StringJoinAnd(d.Keys), d.Version, d.NewKey, "[tcp://]<hostname>[:<port>]", address.String(), d.Version.NextMajor()))
 
 			keys[d.NewKey] = address.String()
 
@@ -363,7 +363,7 @@ var deprecationsMKM = []MultiKeyMappedDeprecation{
 		MapFunc: func(d MultiKeyMappedDeprecation, keys map[string]any, val *schema.StructValidator) {
 			host, port, err := getHostPort(keyStoragePostgresHost, keyStoragePostgresPort, schema.DefaultPostgreSQLStorageConfiguration.Address.Host(), schema.DefaultPostgreSQLStorageConfiguration.Address.Port(), keys)
 			if err != nil {
-				val.Push(fmt.Errorf(errFmtMultiKeyMappingPortConvert, strJoinAnd(d.Keys), d.NewKey, err))
+				val.Push(fmt.Errorf(errFmtMultiKeyMappingPortConvert, utils.StringJoinAnd(d.Keys), d.NewKey, err))
 
 				return
 			}
@@ -373,7 +373,7 @@ var deprecationsMKM = []MultiKeyMappedDeprecation{
 			} else {
 				keys[d.NewKey] = address.String()
 
-				val.PushWarning(fmt.Errorf(errFmtMultiRemappedKeys, strJoinAnd(d.Keys), d.Version, d.NewKey, "[tcp://]<hostname>[:<port>]", address.String(), d.Version.NextMajor()))
+				val.PushWarning(fmt.Errorf(errFmtMultiRemappedKeys, utils.StringJoinAnd(d.Keys), d.Version, d.NewKey, "[tcp://]<hostname>[:<port>]", address.String(), d.Version.NextMajor()))
 
 				for _, key := range d.Keys {
 					delete(keys, key)
@@ -388,7 +388,7 @@ var deprecationsMKM = []MultiKeyMappedDeprecation{
 		MapFunc: func(d MultiKeyMappedDeprecation, keys map[string]any, val *schema.StructValidator) {
 			host, port, err := getHostPort(keyStorageMySQLHost, keyStorageMySQLPort, schema.DefaultMySQLStorageConfiguration.Address.Host(), schema.DefaultMySQLStorageConfiguration.Address.Port(), keys)
 			if err != nil {
-				val.Push(fmt.Errorf(errFmtMultiKeyMappingPortConvert, strJoinAnd(d.Keys), d.NewKey, err))
+				val.Push(fmt.Errorf(errFmtMultiKeyMappingPortConvert, utils.StringJoinAnd(d.Keys), d.NewKey, err))
 
 				return
 			}
@@ -398,7 +398,7 @@ var deprecationsMKM = []MultiKeyMappedDeprecation{
 			} else {
 				keys[d.NewKey] = address.String()
 
-				val.PushWarning(fmt.Errorf(errFmtMultiRemappedKeys, strJoinAnd(d.Keys), d.Version, d.NewKey, "[tcp://]<hostname>[:<port>]", address.String(), d.Version.NextMajor()))
+				val.PushWarning(fmt.Errorf(errFmtMultiRemappedKeys, utils.StringJoinAnd(d.Keys), d.Version, d.NewKey, "[tcp://]<hostname>[:<port>]", address.String(), d.Version.NextMajor()))
 
 				for _, key := range d.Keys {
 					delete(keys, key)
@@ -413,7 +413,7 @@ var deprecationsMKM = []MultiKeyMappedDeprecation{
 		MapFunc: func(d MultiKeyMappedDeprecation, keys map[string]any, val *schema.StructValidator) {
 			host, port, err := getHostPort(keyServerHost, keyServerPort, schema.DefaultServerConfiguration.Address.Hostname(), schema.DefaultServerConfiguration.Address.Port(), keys)
 			if err != nil {
-				val.Push(fmt.Errorf(errFmtMultiKeyMappingPortConvert, strJoinAnd(d.Keys), d.NewKey, err))
+				val.Push(fmt.Errorf(errFmtMultiKeyMappingPortConvert, utils.StringJoinAnd(d.Keys), d.NewKey, err))
 
 				return
 			}
@@ -439,7 +439,7 @@ var deprecationsMKM = []MultiKeyMappedDeprecation{
 
 			address.SetPath(subpath)
 
-			val.PushWarning(fmt.Errorf(errFmtMultiRemappedKeys, strJoinAnd(d.Keys), d.Version, d.NewKey, "[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]", address.String(), d.Version.NextMajor()))
+			val.PushWarning(fmt.Errorf(errFmtMultiRemappedKeys, utils.StringJoinAnd(d.Keys), d.Version, d.NewKey, "[tcp[(4|6)]://]<hostname>[:<port>][/<path>]' or 'tcp[(4|6)://][hostname]:<port>[/<path>]", address.String(), d.Version.NextMajor()))
 
 			keys[d.NewKey] = address.String()
 
@@ -480,59 +480,6 @@ func getHostPort(hostKey, portKey, hostFallback string, portFallback int, keys m
 	}
 
 	return host, port, nil
-}
-
-func strJoinAnd(items []string) string {
-	return strJoinComma("and", items)
-}
-
-func strJoinComma(word string, items []string) string {
-	if word == "" {
-		return buildJoinedString(",", "", "'", items)
-	}
-
-	return buildJoinedString(",", word, "'", items)
-}
-
-func buildJoinedString(sep, sepFinal, quote string, items []string) string {
-	n := len(items)
-
-	if n == 0 {
-		return ""
-	}
-
-	b := &strings.Builder{}
-
-	for i := 0; i < n; i++ {
-		if quote != "" {
-			b.WriteString(quote)
-		}
-
-		b.WriteString(items[i])
-
-		if quote != "" {
-			b.WriteString(quote)
-		}
-
-		if i == (n - 1) {
-			continue
-		}
-
-		if sep != "" {
-			if sepFinal == "" || n != 2 {
-				b.WriteString(sep)
-			}
-
-			b.WriteString(" ")
-		}
-
-		if sepFinal != "" && i == (n-2) {
-			b.WriteString(strings.Trim(sepFinal, " "))
-			b.WriteString(" ")
-		}
-	}
-
-	return b.String()
 }
 
 func GetMultiKeyMappedDeprecationKeys() (keys []string) {

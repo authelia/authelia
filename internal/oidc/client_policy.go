@@ -70,11 +70,7 @@ func (p *ClientAuthorizationPolicyRule) MatchesSubjects(subject authorization.Su
 		}
 	}
 
-	if !p.Networks.IsMatch(subject) {
-		return false
-	}
-
-	return true
+	return p.Networks.IsMatch(subject)
 }
 
 // IsMatch returns true if all elements of an AccessControlRule match the object and subject.

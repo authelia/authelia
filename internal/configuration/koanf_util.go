@@ -185,7 +185,7 @@ func koanfRemapKeysMultiMapped(keys map[string]any, val *schema.StructValidator,
 		}
 
 		if v, ok := keys[dm.NewKey]; ok {
-			val.Push(fmt.Errorf(errFmtMultiKeyMappingExists, strJoinAnd(dm.Keys), dm.NewKey, v))
+			val.Push(fmt.Errorf(errFmtMultiKeyMappingExists, utils.StringJoinAnd(dm.Keys), dm.NewKey, v))
 
 			continue
 		}
