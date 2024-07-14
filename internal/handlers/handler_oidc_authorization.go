@@ -135,6 +135,17 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		return
 	}
 
+	scopeStrategy := ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx)
+	claimsStrategy := client.GetClaimsStrategy()
+
+	if err = claimsStrategy.ValidateClaimsRequests(ctx, scopeStrategy, client, requests); err != nil {
+		ctx.Logger.WithError(err).Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: the client reqwuested claims were not permitted.", requester.GetID(), client.GetID())
+
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oauthelia2.ErrAccessDenied.WithHint("The requested subject was not the same subject that attempted to authorize the request."))
+
+		return
+	}
+
 	if requested, ok := requests.MatchesIssuer(issuer); !ok {
 		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' could not be processed: the client requested issuer '%s' but the issuer for the token will be '%s' instead", requester.GetID(), client.GetID(), requested, issuer.String())
 
@@ -155,17 +166,13 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 
 	extra := map[string]any{}
 
-	strategy := ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx)
+	if err = claimsStrategy.PopulateIDTokenClaims(ctx, scopeStrategy, client, requester.GetGrantedScopes(), requests.GetIDTokenRequests(), details, ctx.Clock.Now(), nil, extra); err != nil {
+		ctx.Logger.Errorf("Authorization Response for Request with id '%s' on client with id '%s' could not be created: %s", requester.GetID(), clientID, oauthelia2.ErrorToDebugRFC6749Error(err))
 
-	client.GetClaimsStrategy().PopulateIDTokenClaims(ctx, strategy, client, requester.GetGrantedScopes(), requests.GetIDTokenRequests(), details, ctx.Clock.Now(), nil, extra)
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
 
-	/*
-		oidc.GrantClaimsRequested(ctx, strategy, client, requests.GetIDTokenRequests(), details, extra)
-
-		if requester.GetResponseTypes().Has("id_token") && !requester.GetResponseTypes().Has("token") && !requester.GetResponseTypes().Has("code") {
-			oidc.GrantClaimsScoped(ctx, strategy, client, requester.GetGrantedScopes(), nil, nil, extra)
-		}
-	*/
+		return
+	}
 
 	ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' was successfully processed, proceeding to build Authorization Response", requester.GetID(), clientID)
 

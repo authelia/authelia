@@ -106,21 +106,6 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		client.GetClaimsStrategy().PopulateUserInfoClaims(ctx, strategy, client, requester.GetGrantedScopes(), requests, detailer, ctx.Clock.Now(), original, claims)
 	}
 
-	/*
-		client.GetClaimsStrategy().PopulateIDTokenClaims(ctx, strategy, client, requester.GetGrantedScopes(), requests.GetIDTokenRequests(), detailer, ctx.Clock.Now(), nil, extra)
-
-		if detailer, err = oidcDetailerFromClaims(ctx, original); err != nil {
-			oidc.GrantClaimsScoped(ctx, strategy, client, requester.GetGrantedScopes(), claims)
-
-			if userinfo {
-				ctx.Logger.WithError(err).Errorf("UserInfo Request with id '%s' on client with id '%s' error occurred loading user information", requestID, client.GetID())
-			}
-		} else {
-			oidc.GrantClaimsScoped(ctx, strategy, client, requester.GetGrantedScopes(), detailer, original, claims)
-			oidc.GrantClaimsRequested(ctx, strategy, client, requests, detailer, claims)
-		}
-	*/
-
 	var token string
 
 	ctx.Logger.Tracef("UserInfo Response with id '%s' on client with id '%s' is being sent with the following claims: %+v", requestID, requester.GetClient().GetID(), claims)

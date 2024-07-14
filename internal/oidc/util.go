@@ -462,3 +462,52 @@ func getSectorIdentifierURICache(ctx ClientContext, cache map[string][]string, s
 
 	return redirectURIs, nil
 }
+
+func float64Match(expected float64, value any, values []any) (ok bool) {
+	var f float64
+
+	if value != nil {
+		if f, ok = float64As(value); ok {
+			return expected == f
+		}
+	}
+
+	for _, v := range values {
+		if f, ok = float64As(v); ok && expected == f {
+			return true
+		}
+	}
+
+	return false
+}
+
+func float64As(value any) (float64, bool) {
+	switch v := value.(type) {
+	case float64:
+		return v, true
+	case float32:
+		return float64(v), true
+	case int64:
+		return float64(v), true
+	case int32:
+		return float64(v), true
+	case int16:
+		return float64(v), true
+	case int8:
+		return float64(v), true
+	case int:
+		return float64(v), true
+	case uint64:
+		return float64(v), true
+	case uint32:
+		return float64(v), true
+	case uint16:
+		return float64(v), true
+	case uint8:
+		return float64(v), true
+	case uint:
+		return float64(v), true
+	default:
+		return 0, false
+	}
+}
