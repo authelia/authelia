@@ -32,12 +32,12 @@ type AuthenticationBackendFile struct {
 
 	Search AuthenticationBackendFileSearch `koanf:"search" json:"search" jsonschema:"title=Search" jsonschema_description:"Configures the user searching behaviour."`
 
-	ExtraAttributes map[string]AuthenticationBackendFileExtraAttribute `koanf:"extra_attributes" json:"extra_attributes"`
+	ExtraAttributes map[string]AuthenticationBackendFileExtraAttribute `koanf:"extra_attributes" json:"extra_attributes" jsonschema:"title=Extra Attributes" jsonschema_description:"Configures the extra attributes available in expressions and other areas of Authelia."`
 }
 
 type AuthenticationBackendFileExtraAttribute struct {
-	MultiValued bool   `koanf:"multi_valued" json:"multi_valued"`
-	ValueType   string `koanf:"value_type" json:"value_type"`
+	MultiValued bool   `koanf:"multi_valued" json:"multi_valued" jsonschema:"title=Multi-Valued" jsonschema_description:"Defines the attribute as multi-valued."`
+	ValueType   string `koanf:"value_type" json:"value_type" jsonschema:"enum=boolean,enum=integer,enum=string,title=Value Type" jsonschema_description:"Defines the value type for the attribute."`
 }
 
 func (a AuthenticationBackendFileExtraAttribute) IsMultiValued() (multi bool) {
@@ -173,13 +173,13 @@ type AuthenticationBackendLDAPAttributes struct {
 	MemberOf          string `koanf:"member_of" jsonschema:"title=Attribute: Member Of" jsonschema_description:"The directory server attribute which contains the objects that an object is a member of."`
 	GroupName         string `koanf:"group_name" json:"group_name" jsonschema:"title=Attribute: Group Name" jsonschema_description:"The directory server attribute which contains the group name for all groups."`
 
-	Extra map[string]AuthenticationBackendLDAPAttributesAttribute `koanf:"extra" json:"extra"`
+	Extra map[string]AuthenticationBackendLDAPAttributesAttribute `koanf:"extra" json:"extra" jsonschema:"title=Extra Attributes" jsonschema_description:"Configures the extra attributes available in expressions and other areas of Authelia."`
 }
 
 type AuthenticationBackendLDAPAttributesAttribute struct {
-	Name        string `koanf:"name" json:"name"`
-	MultiValued bool   `koanf:"multi_valued" json:"multi_valued"`
-	ValueType   string `koanf:"value_type" json:"value_type"`
+	Name        string `koanf:"name" json:"name" jsonschema:"title=Name" jsonschema_description:"The name of the attribute within Authelia. This does not adjust the attribute queried from the LDAP server."`
+	MultiValued bool   `koanf:"multi_valued" json:"multi_valued" jsonschema:"title=Multi-Valued" jsonschema_description:"Defines the attribute as multi-valued."`
+	ValueType   string `koanf:"value_type" json:"value_type" jsonschema:"enum=boolean,enum=integer,enum=string,title=Value Type" jsonschema_description:"Defines the value type for the attribute."`
 }
 
 func (a AuthenticationBackendLDAPAttributesAttribute) IsMultiValued() (multi bool) {

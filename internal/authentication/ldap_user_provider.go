@@ -598,7 +598,7 @@ func getExtraValueMultiFromEntry(entry *ldap.Entry, attribute string, properties
 		values := make([]int64, len(strs))
 
 		for _, str := range strs {
-			if value, err = strconv.ParseInt(str, 10, 64); err != nil {
+			if v, err = strconv.ParseInt(str, 10, 64); err != nil {
 				return nil, fmt.Errorf("cannot parse '%s' with value '%s' as integer: %w", attribute, str, err)
 			}
 
@@ -612,7 +612,7 @@ func getExtraValueMultiFromEntry(entry *ldap.Entry, attribute string, properties
 		values := make([]bool, len(strs))
 
 		for _, str := range strs {
-			if value, err = strconv.ParseBool(str); err != nil {
+			if v, err = strconv.ParseBool(str); err != nil {
 				return nil, fmt.Errorf("cannot parse '%s' with value '%s' as boolean: %w", attribute, str, err)
 			}
 

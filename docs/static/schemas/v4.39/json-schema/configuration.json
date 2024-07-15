@@ -367,7 +367,9 @@
               "$ref": "#/$defs/AuthenticationBackendFileExtraAttribute"
             }
           },
-          "type": "object"
+          "type": "object",
+          "title": "Extra Attributes",
+          "description": "Configures the extra attributes available in expressions and other areas of Authelia."
         }
       },
       "additionalProperties": false,
@@ -377,10 +379,19 @@
     "AuthenticationBackendFileExtraAttribute": {
       "properties": {
         "multi_valued": {
-          "type": "boolean"
+          "type": "boolean",
+          "title": "Multi-Valued",
+          "description": "Defines the attribute as multi-valued."
         },
         "value_type": {
-          "type": "string"
+          "type": "string",
+          "enum": [
+            "boolean",
+            "integer",
+            "string"
+          ],
+          "title": "Value Type",
+          "description": "Defines the value type for the attribute."
         }
       },
       "additionalProperties": false,
@@ -922,7 +933,9 @@
               "$ref": "#/$defs/AuthenticationBackendLDAPAttributesAttribute"
             }
           },
-          "type": "object"
+          "type": "object",
+          "title": "Extra Attributes",
+          "description": "Configures the extra attributes available in expressions and other areas of Authelia."
         }
       },
       "additionalProperties": false,
@@ -932,13 +945,24 @@
     "AuthenticationBackendLDAPAttributesAttribute": {
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "title": "Name",
+          "description": "The name of the attribute within Authelia. This does not adjust the attribute queried from the LDAP server."
         },
         "multi_valued": {
-          "type": "boolean"
+          "type": "boolean",
+          "title": "Multi-Valued",
+          "description": "Defines the attribute as multi-valued."
         },
         "value_type": {
-          "type": "string"
+          "type": "string",
+          "enum": [
+            "boolean",
+            "integer",
+            "string"
+          ],
+          "title": "Value Type",
+          "description": "Defines the value type for the attribute."
         }
       },
       "additionalProperties": false,
@@ -1124,7 +1148,7 @@
           },
           "type": "object",
           "title": "User Attributes",
-          "description": "User attributes derived from others using Common Expression Language."
+          "description": "User attributes derived from other attributes."
         }
       },
       "additionalProperties": false,
@@ -1287,7 +1311,9 @@
               "$ref": "#/$defs/IdentityProvidersOpenIDConnectClaimsPolicy"
             }
           },
-          "type": "object"
+          "type": "object",
+          "title": "Claims Policies",
+          "description": "The dictionary of claims policies which can be applied to clients."
         },
         "scopes": {
           "patternProperties": {
@@ -1295,7 +1321,9 @@
               "$ref": "#/$defs/IdentityProvidersOpenIDConnectScope"
             }
           },
-          "type": "object"
+          "type": "object",
+          "title": "Scopes",
+          "description": "List of custom scopes."
         },
         "issuer_certificate_chain": {
           "$ref": "#/$defs/X509CertificateChain",
@@ -1360,13 +1388,17 @@
           "items": {
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "title": "ID Token",
+          "description": "The list of claims to automatically apply to an ID Token in addition to the specified ID Token Claims."
         },
         "access_token": {
           "items": {
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "title": "Access Token",
+          "description": "The list of claims to automatically apply to an Access Token in addition to the specified Access Token Claims."
         },
         "custom_claims": {
           "patternProperties": {
@@ -1374,7 +1406,9 @@
               "$ref": "#/$defs/IdentityProvidersOpenIDConnectCustomClaim"
             }
           },
-          "type": "object"
+          "type": "object",
+          "title": "Custom Claims",
+          "description": "The custom claims available in this policy in addition to the Standard Claims."
         }
       },
       "additionalProperties": false,
@@ -1453,7 +1487,8 @@
               "authorization_code",
               "implicit",
               "refresh_token",
-              "client_credentials"
+              "client_credentials",
+              "urn:ietf:params:oauth:grant-type:device_code"
             ]
           },
           "type": "array",
@@ -1508,7 +1543,9 @@
           "description": "The name of the custom lifespan to utilize for this client."
         },
         "claims_policy": {
-          "type": "string"
+          "type": "string",
+          "title": "Claims Policy",
+          "description": "The claims policy to apply to this client."
         },
         "requested_audience_mode": {
           "type": "string",
@@ -1773,7 +1810,9 @@
     "IdentityProvidersOpenIDConnectCustomClaim": {
       "properties": {
         "attribute": {
-          "type": "string"
+          "type": "string",
+          "title": "Attribute",
+          "description": "The attribute that populates this claim."
         }
       },
       "additionalProperties": false,
@@ -2096,7 +2135,9 @@
           "items": {
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "title": "Claims",
+          "description": "The list of claims that this scope includes. When this scope is used by a client the clients claim policy must satisfy every claim."
         }
       },
       "additionalProperties": false,
@@ -3550,11 +3591,16 @@
     "UserAttribute": {
       "properties": {
         "expression": {
-          "type": "string"
+          "type": "string",
+          "title": "Expression",
+          "description": "Expression to derive the user attribute using the common expression language."
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "required": [
+        "expression"
+      ]
     },
     "WebAuthn": {
       "properties": {
