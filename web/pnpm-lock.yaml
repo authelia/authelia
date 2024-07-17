@@ -187,8 +187,8 @@ importers:
         specifier: 5.3.4
         version: 5.3.4(@types/node@20.14.11)
       vite-plugin-checker:
-        specifier: 0.7.1
-        version: 0.7.1(eslint@8.57.0)(optionator@0.9.3)(typescript@5.5.3)(vite@5.3.4(@types/node@20.14.11))
+        specifier: 0.7.2
+        version: 0.7.2(eslint@8.57.0)(optionator@0.9.3)(typescript@5.5.3)(vite@5.3.4(@types/node@20.14.11))
       vite-plugin-istanbul:
         specifier: 6.0.2
         version: 6.0.2(vite@5.3.4(@types/node@20.14.11))
@@ -4521,10 +4521,11 @@ packages:
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
 
-  vite-plugin-checker@0.7.1:
-    resolution: {integrity: sha512-Yby+Dr6+cJlkoPagqdQQn21+ZPaYwonNSlW3VpZzoyDAxoYt7YUDhzSYrCa15iTe+X4IpiNC882a3oomxCXyTA==}
+  vite-plugin-checker@0.7.2:
+    resolution: {integrity: sha512-xeYeJbG0gaCaT0QcUC4B2Zo4y5NR8ZhYenc5gPbttrZvraRFwkEADCYwq+BfEHl9zYz7yf85TxsiGoYwyyIjhw==}
     engines: {node: '>=14.16'}
     peerDependencies:
+      '@biomejs/biome': '>=1.7'
       eslint: '>=7'
       meow: ^9.0.0
       optionator: ^0.9.1
@@ -4535,6 +4536,8 @@ packages:
       vti: '*'
       vue-tsc: '>=2.0.0'
     peerDependenciesMeta:
+      '@biomejs/biome':
+        optional: true
       eslint:
         optional: true
       meow:
@@ -9617,7 +9620,7 @@ snapshots:
       - supports-color
       - terser
 
-  vite-plugin-checker@0.7.1(eslint@8.57.0)(optionator@0.9.3)(typescript@5.5.3)(vite@5.3.4(@types/node@20.14.11)):
+  vite-plugin-checker@0.7.2(eslint@8.57.0)(optionator@0.9.3)(typescript@5.5.3)(vite@5.3.4(@types/node@20.14.11)):
     dependencies:
       '@babel/code-frame': 7.24.7
       ansi-escapes: 4.3.2
