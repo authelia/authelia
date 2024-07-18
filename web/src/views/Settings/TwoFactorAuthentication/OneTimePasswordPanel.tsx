@@ -1,6 +1,6 @@
 import React, { Fragment, useCallback, useState } from "react";
 
-import { Button, Paper, Tooltip, Typography } from "@mui/material";
+import { Button, CircularProgress, Paper, Tooltip, Typography } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2/Grid2";
 import { useTranslation } from "react-i18next";
 
@@ -190,11 +190,14 @@ const OneTimePasswordPanel = function (props: Props) {
                         >
                             <span>
                                 <Button
+                                    id={"one-time-password-add"}
                                     variant="outlined"
                                     color="primary"
                                     onClick={handleRegister}
-                                    disabled={registered}
-                                    id={"one-time-password-add"}
+                                    disabled={registered || dialogRegisterOpening || dialogRegisterOpen}
+                                    endIcon={
+                                        dialogRegisterOpening ? <CircularProgress color="inherit" size={20} /> : null
+                                    }
                                 >
                                     {translate("Add")}
                                 </Button>
