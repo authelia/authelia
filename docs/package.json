@@ -32,7 +32,7 @@
     "@tabler/icons": "^3.2.0",
     "bootstrap-icons": "1.11.3",
     "exec-bin": "^1.0.0",
-    "gethyas": "^2.4.1",
+    "gethyas": "^2.4.2",
     "hugo-installer": "^4.0.1"
   },
   "devDependencies": {
