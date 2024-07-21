@@ -29,7 +29,7 @@
     "@hyas/images": "^3.2.0",
     "@hyas/inline-svg": "^1.1.0",
     "@hyas/seo": "^2.3.0",
-    "@tabler/icons": "^3.2.0",
+    "@tabler/icons": "^3.11.0",
     "bootstrap-icons": "1.11.3",
     "exec-bin": "^1.0.0",
     "gethyas": "^2.4.1",
