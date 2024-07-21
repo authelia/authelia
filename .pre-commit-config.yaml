@@ -1,6 +1,5 @@
 ---
 repos:
-repos:
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.16.3
     hooks:
@@ -22,3 +21,4 @@ repos:
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace
+...
