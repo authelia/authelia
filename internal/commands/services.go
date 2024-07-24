@@ -247,7 +247,7 @@ func (service *FileWatcherService) Log() *logrus.Entry {
 }
 
 func svcSvrMainFunc(ctx *CmdCtx) (service Service) {
-	switch svr, listener, paths, isTLS, err := server.CreateDefaultServer(ctx.config, ctx.providers); {
+	switch svr, listener, paths, isTLS, err := server.New(ctx.config, ctx.providers); {
 	case err != nil:
 		ctx.log.WithError(err).Fatal("Create Server Service (main) returned error")
 	case svr != nil && listener != nil:
@@ -260,7 +260,7 @@ func svcSvrMainFunc(ctx *CmdCtx) (service Service) {
 }
 
 func svcSvrMetricsFunc(ctx *CmdCtx) (service Service) {
-	switch svr, listener, paths, isTLS, err := server.CreateMetricsServer(ctx.config, ctx.providers); {
+	switch svr, listener, paths, isTLS, err := server.NewMetrics(ctx.config, ctx.providers); {
 	case err != nil:
 		ctx.log.WithError(err).Fatal("Create Server Service (metrics) returned error")
 	case svr != nil && listener != nil:
