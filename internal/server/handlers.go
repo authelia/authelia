@@ -114,8 +114,6 @@ func handleMethodNotAllowed(ctx *fasthttp.RequestCtx) {
 
 //nolint:gocyclo
 func handleRouter(config *schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
-	log := logging.Logger()
-
 	optsTemplatedFile := NewTemplatedFileOptions(config)
 
 	serveIndexHandler := ServeTemplatedFile(providers.Templates.GetAssetIndexTemplate(), optsTemplatedFile)
@@ -215,32 +213,14 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 
 		switch name {
 		case "legacy":
-			log.
-				WithField("path_prefix", pathAuthzLegacy).
-				WithField("implementation", endpoint.Implementation).
-				WithField("methods", "*").
-				Trace("Registering Authz Endpoint")
-
 			r.ANY(pathAuthzLegacy, handler)
 			r.ANY(path.Join(pathAuthzLegacy, pathParamAuthzEnvoy), handler)
 		default:
 			switch endpoint.Implementation {
 			case handlers.AuthzImplLegacy.String(), handlers.AuthzImplExtAuthz.String():
-				log.
-					WithField("path_prefix", uri).
-					WithField("implementation", endpoint.Implementation).
-					WithField("methods", "*").
-					Trace("Registering Authz Endpoint")
-
 				r.ANY(uri, handler)
 				r.ANY(path.Join(uri, pathParamAuthzEnvoy), handler)
 			default:
-				log.
-					WithField("path", uri).
-					WithField("implementation", endpoint.Implementation).
-					WithField("methods", []string{fasthttp.MethodGet, fasthttp.MethodHead}).
-					Trace("Registering Authz Endpoint")
-
 				r.GET(uri, handler)
 				r.HEAD(uri, handler)
 			}
@@ -353,6 +333,7 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	return handler
 }
 
+// RegisterOpenIDConnectRoutes handles registration of OpenID Connect 1.0 routes.
 func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration, providers middlewares.Providers) {
 	middlewareAPI := middlewares.NewBridgeBuilder(*config, providers).
 		WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).

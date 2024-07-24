@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"crypto/sha256"
+	"crypto/x509"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -18,6 +19,20 @@ import (
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/model"
 )
+
+// NewProvider dynamically initializes a storage.Provider given a *schema.Configuration and *x509.CertPool.
+func NewProvider(config *schema.Configuration, caCertPool *x509.CertPool) (provider Provider) {
+	switch {
+	case config.Storage.PostgreSQL != nil:
+		return NewPostgreSQLProvider(config, caCertPool)
+	case config.Storage.MySQL != nil:
+		return NewMySQLProvider(config, caCertPool)
+	case config.Storage.Local != nil:
+		return NewSQLiteProvider(config)
+	default:
+		return nil
+	}
+}
 
 // NewSQLProvider generates a generic SQLProvider to be used with other SQL provider NewUp's.
 func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceName string) (provider SQLProvider) {
