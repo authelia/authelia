@@ -10,7 +10,7 @@
   "pnpm": {
     "overrides": {
       "@babel/traverse": "7.24.8",
-      "@typescript-eslint/eslint-plugin": "6.9.0",
+      "@typescript-eslint/eslint-plugin": "7.17.0",
       "@typescript-eslint/parser": "6.9.0",
       "@typescript-eslint/typescript-estree": "6.9.0",
       "@typescript-eslint/utils": "6.9.0",
@@ -91,7 +91,7 @@
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",
     "@types/zxcvbn": "4.4.4",
-    "@typescript-eslint/eslint-plugin": "7.1.0",
+    "@typescript-eslint/eslint-plugin": "7.17.0",
     "@typescript-eslint/parser": "7.1.0",
     "@vitejs/plugin-react": "4.3.1",
     "@vitest/coverage-istanbul": "2.0.4",
