@@ -85,7 +85,7 @@
     "@commitlint/cli": "19.3.0",
     "@commitlint/config-conventional": "19.2.2",
     "@limegrass/eslint-plugin-import-alias": "1.4.1",
-    "@testing-library/jest-dom": "6.4.6",
+    "@testing-library/jest-dom": "6.4.8",
     "@testing-library/react": "16.0.0",
     "@types/node": "20.14.12",
     "@types/react": "18.3.3",
