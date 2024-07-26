@@ -5,49 +5,4 @@ updates:
     directory: /
     schedule:
       interval: daily
-
-  - package-ecosystem: docker
-    directory: /
-    schedule:
-      interval: daily
-
-  - package-ecosystem: npm
-    directory: /docs
-    schedule:
-      interval: daily
-
-  - package-ecosystem: gomod
-    directory: /
-    schedule:
-      interval: daily
-
-  - package-ecosystem: docker
-    directory: /internal/suites/example/compose/caddy
-    schedule:
-      interval: daily
-
-  - package-ecosystem: docker
-    directory: /internal/suites/example/compose/duo-api
-    schedule:
-      interval: daily
-
-  - package-ecosystem: npm
-    directory: /internal/suites/example/compose/duo-api
-    schedule:
-      interval: daily
-
-  - package-ecosystem: docker
-    directory: /internal/suites/example/compose/haproxy
-    schedule:
-      interval: daily
-
-  - package-ecosystem: docker
-    directory: /internal/suites/example/compose/samba
-    schedule:
-      interval: daily
-
-  - package-ecosystem: npm
-    directory: /web
-    schedule:
-      interval: daily
 ...
