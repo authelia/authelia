@@ -3,10 +3,10 @@ services:
   mariadb:
     image: mariadb:11.4.2
     environment:
-      - MYSQL_ROOT_PASSWORD=rootpassword
-      - MYSQL_USER=admin
-      - MYSQL_PASSWORD=password
-      - MYSQL_DATABASE=authelia
+      - MARIADB_ROOT_PASSWORD=rootpassword
+      - MARIADB_USER=admin
+      - MARIADB_PASSWORD=password
+      - MARIADB_DATABASE=authelia
     networks:
       - authelianet
 ...
