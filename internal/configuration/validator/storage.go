@@ -10,23 +10,48 @@ import (
 
 // ValidateStorage validates storage configuration.
 func ValidateStorage(config schema.Storage, validator *schema.StructValidator) {
-	if config.Local == nil && config.MySQL == nil && config.PostgreSQL == nil {
-		validator.Push(errors.New(errStrStorage))
-	}
-
-	switch {
-	case config.MySQL != nil:
-		validateMySQLConfiguration(config.MySQL, validator)
-	case config.PostgreSQL != nil:
-		validatePostgreSQLConfiguration(config.PostgreSQL, validator)
-	case config.Local != nil:
-		validateLocalStorageConfiguration(config.Local, validator)
-	}
-
 	if config.EncryptionKey == "" {
 		validator.Push(errors.New(errStrStorageEncryptionKeyMustBeProvided))
 	} else if len(config.EncryptionKey) < 20 {
 		validator.Push(errors.New(errStrStorageEncryptionKeyTooShort))
+	}
+
+	if config.Local == nil && config.MySQL == nil && config.PostgreSQL == nil {
+		validator.Push(errors.New(errStrStorage))
+
+		return
+	}
+
+	var configured []string
+
+	if config.Local != nil {
+		configured = append(configured, "local")
+	}
+
+	if config.MySQL != nil {
+		configured = append(configured, "mysql")
+	}
+
+	if config.PostgreSQL != nil {
+		configured = append(configured, "postgres")
+	}
+
+	if len(configured) > 1 {
+		validator.Push(fmt.Errorf(errStrStorageMultiple, utils.StringJoinAnd(configured)))
+
+		return
+	}
+
+	if config.Local != nil {
+		validateLocalStorageConfiguration(config.Local, validator)
+	}
+
+	if config.MySQL != nil {
+		validateMySQLConfiguration(config.MySQL, validator)
+	}
+
+	if config.PostgreSQL != nil {
+		validatePostgreSQLConfiguration(config.PostgreSQL, validator)
 	}
 }
 
