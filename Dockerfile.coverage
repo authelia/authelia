@@ -1,7 +1,7 @@
 # ========================================
 # ===== Build image for the frontend =====
 # ========================================
-FROM node:22-alpine AS builder-frontend
+FROM node:22-alpine@sha256:9fcc1a6da2b9eee38638df75c5f826e06e9c79f6a0f97f16ed98fe0ebb0725c0 AS builder-frontend
 
 WORKDIR /node/src/app
 
@@ -15,7 +15,7 @@ RUN yarn global add pnpm && \
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.22.3-alpine3.18 AS builder-backend
+FROM golang:1.22.3-alpine3.18@sha256:d1a601b64de09e2fa38c95e55838961811d5ca11062a8f4230a5c434b3ae2a34 AS builder-backend
 
 WORKDIR /go/src/app
 
@@ -46,7 +46,7 @@ RUN \
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM alpine:3.20.1
+FROM alpine:3.20.2@sha256:0a4eaa0eecf5f8c050e5bba433f58c052be7587ee8af3e8b3910ef9ab5fbe9f5
 
 RUN apk --no-cache add ca-certificates tzdata wget
 
