@@ -151,6 +151,8 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserDataInDB() {
 	err := haDockerEnvironment.Restart("mariadb")
 	s.Require().NoError(err)
 
+	s.Require().NoError(waitUntilRestartedServiceIsReady(haDockerEnvironment, "mariadb", "mariadbd: ready for connections"))
+
 	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
 }

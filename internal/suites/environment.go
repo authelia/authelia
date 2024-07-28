@@ -10,7 +10,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-//nolint:unparam
 func waitUntilServiceLogDetected(
 	interval time.Duration,
 	timeout time.Duration,
@@ -72,6 +71,15 @@ func waitUntilSambaIsReady(dockerEnvironment *DockerEnvironment) error {
 		dockerEnvironment,
 		"sambaldap",
 		[]string{"samba entered RUNNING state"})
+}
+
+func waitUntilRestartedServiceIsReady(dockerEnvironment *DockerEnvironment, service, log string) error {
+	return waitUntilServiceLogDetected(
+		time.Second,
+		10*time.Second,
+		dockerEnvironment,
+		service,
+		[]string{log})
 }
 
 func waitUntilAutheliaIsReady(dockerEnvironment *DockerEnvironment, suite string) error {
