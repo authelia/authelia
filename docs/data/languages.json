@@ -381,6 +381,29 @@
             ]
         },
         {
+            "display": "Vietnamese",
+            "locale": "vi",
+            "namespaces": [
+                "portal",
+                "settings"
+            ],
+            "fallbacks": [
+                "en"
+            ]
+        },
+        {
+            "display": "Vietnamese (Vietnam)",
+            "locale": "vi-VN",
+            "namespaces": [
+                "portal",
+                "settings"
+            ],
+            "fallbacks": [
+                "vi",
+                "en"
+            ]
+        },
+        {
             "display": "Chinese",
             "locale": "zh",
             "namespaces": [
