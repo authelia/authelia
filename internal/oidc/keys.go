@@ -21,7 +21,7 @@ import (
 // NewKeyManager news up a KeyManager.
 func NewKeyManager(config *schema.IdentityProvidersOpenIDConnect) (manager *KeyManager) {
 	manager = &KeyManager{
-		alg2kid: config.Discovery.DefaultKeyIDs,
+		alg2kid: config.Discovery.DefaultSigKeyIDs,
 		kids:    map[string]*JWK{},
 		algs:    map[string]*JWK{},
 	}

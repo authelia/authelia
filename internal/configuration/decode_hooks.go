@@ -5,6 +5,7 @@ import (
 	"crypto/ed25519"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/base64"
 	"fmt"
 	"net"
 	"net/mail"
@@ -603,6 +604,14 @@ func StringToCryptographicKeyHookFunc() mapstructure.DecodeHookFuncType {
 		dataStr := data.(string)
 
 		if value, err = utils.ParseX509FromPEM([]byte(dataStr)); err != nil {
+			if !strings.Contains(dataStr, "\n") && !strings.HasPrefix(dataStr, "-----") {
+				var key []byte
+
+				if key, err = base64.URLEncoding.DecodeString(dataStr); err == nil {
+					return key, nil
+				}
+			}
+
 			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, "", expectedType, err)
 		}
 

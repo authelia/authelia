@@ -76,15 +76,15 @@ func TestKeyManager(t *testing.T) {
 		},
 	}
 
-	config.Discovery.DefaultKeyIDs = map[string]string{}
+	config.Discovery.DefaultSigKeyIDs = map[string]string{}
 
 	for i, key := range config.JSONWebKeys {
 		kid := fmt.Sprintf("kid-%s-%s", key.Algorithm, key.Use)
 
 		config.JSONWebKeys[i].KeyID = kid
 
-		if _, ok := config.Discovery.DefaultKeyIDs[key.Algorithm]; !ok {
-			config.Discovery.DefaultKeyIDs[key.Algorithm] = kid
+		if _, ok := config.Discovery.DefaultSigKeyIDs[key.Algorithm]; !ok {
+			config.Discovery.DefaultSigKeyIDs[key.Algorithm] = kid
 		}
 	}
 
@@ -123,7 +123,7 @@ func TestKeyManager(t *testing.T) {
 
 	jwk = manager.GetByKID(ctx, "")
 	assert.NotNil(t, jwk)
-	assert.Equal(t, config.Discovery.DefaultKeyIDs[oidc.SigningAlgRSAUsingSHA256], jwk.KeyID())
+	assert.Equal(t, config.Discovery.DefaultSigKeyIDs[oidc.SigningAlgRSAUsingSHA256], jwk.KeyID())
 
 	jwk, err = manager.GetByHeader(ctx, &fjwt.Headers{Extra: map[string]any{oidc.JWTHeaderKeyIdentifier: "notalg"}})
 	assert.EqualError(t, err, "jwt header 'kid' with value 'notalg' does not match a managed jwk")
@@ -150,7 +150,7 @@ func TestKeyManager(t *testing.T) {
 	assert.Equal(t, "", kid)
 
 	kid = manager.GetKeyIDFromAlg(ctx, "notalg")
-	assert.Equal(t, config.Discovery.DefaultKeyIDs[oidc.SigningAlgRSAUsingSHA256], kid)
+	assert.Equal(t, config.Discovery.DefaultSigKeyIDs[oidc.SigningAlgRSAUsingSHA256], kid)
 
 	set := manager.Set(ctx)
 

@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"net"
 	"testing"
 
@@ -57,8 +56,6 @@ func TestParseHostCIDR(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				assert.Equal(t, tc.expected, actual)
-
-				fmt.Println(actual.String())
 			}
 		})
 	}

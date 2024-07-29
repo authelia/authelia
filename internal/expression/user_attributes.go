@@ -120,7 +120,6 @@ func (e *UserAttributesExpressions) ldapStartupCheck() (err error) {
 		e.config.AuthenticationBackend.LDAP.Attributes.Region != "" ||
 		e.config.AuthenticationBackend.LDAP.Attributes.PostalCode != "" ||
 		e.config.AuthenticationBackend.LDAP.Attributes.Country != "" {
-
 		opts = append(opts, newAttributeUserAddress())
 	}
 

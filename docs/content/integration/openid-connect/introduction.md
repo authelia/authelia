@@ -214,7 +214,7 @@ a subset of these.
 
 ### Response Object
 
-Authelia's response objects can have the following signature algorithms:
+Authelia's response objects can have the following signature and encryption algorithms:
 
 | Algorithm |  Key Type   | Hashing Algorithm |    Use    |            JWK Default Conditions            |                        Notes                         |
 |:---------:|:-----------:|:-----------------:|:---------:|:--------------------------------------------:|:----------------------------------------------------:|
@@ -227,6 +227,7 @@ Authelia's response objects can have the following signature algorithms:
 |   PS256   | RSA (MGF1)  |      SHA-256      | Signature |                     N/A                      |  Requires an RSA Private Key with 2048 bits or more  |
 |   PS384   | RSA (MGF1)  |      SHA-384      | Signature |                     N/A                      |  Requires an RSA Private Key with 2048 bits or more  |
 |   PS512   | RSA (MGF1)  |      SHA-512      | Signature |                     N/A                      |  Requires an RSA Private Key with 2048 bits or more  |
+
 
 ### Request Object
 

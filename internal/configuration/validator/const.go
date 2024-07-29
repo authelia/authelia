@@ -571,6 +571,7 @@ var (
 	validOIDCClientTokenEndpointAuthMethodsConfidential    = []string{oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodPrivateKeyJWT}
 	validOIDCClientTokenEndpointAuthSigAlgsClientSecretJWT = []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512}
 	validOIDCIssuerJWKSigningAlgs                          = []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgRSAPSSUsingSHA512, oidc.SigningAlgECDSAUsingP521AndSHA512}
+	validOIDCJWKEncryptionAlgs                             = []string{oidc.EncryptionAlgRSA15, oidc.EncryptionAlgRSAOAEP, oidc.EncryptionAlgRSAOAEP256, oidc.EncryptionAlgA128KW, oidc.EncryptionAlgA192KW, oidc.EncryptionAlgA256KW, oidc.EncryptionAlgDirect, oidc.EncryptionAlgECDHES, oidc.EncryptionAlgECDHESA128KW, oidc.EncryptionAlgECDHESA192KW, oidc.EncryptionAlgECDHESA256KW, oidc.EncryptionAlgA128GCMKW, oidc.EncryptionAlgA192GCMKW, oidc.EncryptionAlgA256GCMKW, oidc.EncryptionAlgPBES2HS256A128KW, oidc.EncryptionAlgPBES2HS284A192KW, oidc.EncryptionAlgPBES2HS512A256KW}
 
 	validOIDCClientScopesBearerAuthz        = []string{oidc.ScopeOfflineAccess, oidc.ScopeOffline, oidc.ScopeAutheliaBearerAuthz}
 	validOIDCClientResponseModesBearerAuthz = []string{oidc.ResponseModeFormPost, oidc.ResponseModeFormPostJWT}

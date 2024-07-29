@@ -153,6 +153,35 @@ const (
 	SigningAlgHMACUsingSHA512 = "HS512"
 )
 
+const (
+	EncryptionAlgRSA15            = "RSA1_5"
+	EncryptionAlgRSAOAEP          = "RSA-OAEP"
+	EncryptionAlgRSAOAEP256       = "RSA-OAEP-256"
+	EncryptionAlgA128KW           = "A128KW"
+	EncryptionAlgA192KW           = "A192KW"
+	EncryptionAlgA256KW           = "A256KW"
+	EncryptionAlgDirect           = "dir"
+	EncryptionAlgECDHES           = "ECDH-ES"
+	EncryptionAlgECDHESA128KW     = "ECDH-ES+A128KW"
+	EncryptionAlgECDHESA192KW     = "ECDH-ES+A192KW"
+	EncryptionAlgECDHESA256KW     = "ECDH-ES+A256KW"
+	EncryptionAlgA128GCMKW        = "A128GCMKW"
+	EncryptionAlgA192GCMKW        = "A192GCMKW"
+	EncryptionAlgA256GCMKW        = "A256GCMKW"
+	EncryptionAlgPBES2HS256A128KW = "PBES2-HS256+A128KW"
+	EncryptionAlgPBES2HS284A192KW = "PBES2-HS384+A192KW"
+	EncryptionAlgPBES2HS512A256KW = "PBES2-HS512+A256KW"
+)
+
+const (
+	EncryptionEncA128CBCHS256 = "A128CBC-HS256"
+	EncryptionEncA192CBCHS384 = "A192CBC-HS384"
+	EncryptionEncA256CBCHS512 = "A256CBC-HS512"
+	EncryptionEncA128GCM      = "A128GCM"
+	EncryptionEncA192GCM      = "A192GCM"
+	EncryptionEncA256GCM      = "A256GCM"
+)
+
 // JWS Algorithm Prefixes.
 const (
 	SigningAlgPrefixRSA    = "RS"
@@ -162,7 +191,8 @@ const (
 )
 
 const (
-	KeyUseSignature = "sig"
+	KeyUseSignature  = "sig"
+	KeyUseEncryption = "enc"
 )
 
 // Subject Type strings.

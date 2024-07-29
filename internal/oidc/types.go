@@ -80,24 +80,39 @@ type RegisteredClient struct {
 	Lifespans      schema.IdentityProvidersOpenIDConnectLifespan
 	ClaimsStrategy ClaimsStrategy
 
-	AuthorizationSignedResponseAlg              string
-	AuthorizationSignedResponseKeyID            string
-	AuthorizationEncryptedResponseAlg           string
-	AuthorizationEncryptedResponseEncryptionAlg string
+	AuthorizationSignedResponseAlg      string
+	AuthorizationSignedResponseKeyID    string
+	AuthorizationEncryptedResponseAlg   string
+	AuthorizationEncryptedResponseEnc   string
+	AuthorizationEncryptedResponseKeyID string
 
-	IDTokenSignedResponseAlg   string
-	IDTokenSignedResponseKeyID string
+	IDTokenSignedResponseAlg      string
+	IDTokenSignedResponseKeyID    string
+	IDTokenEncryptedResponseAlg   string
+	IDTokenEncryptedResponseEnc   string
+	IDTokenEncryptedResponseKeyID string
 
-	AccessTokenSignedResponseAlg   string
-	AccessTokenSignedResponseKeyID string
+	AccessTokenSignedResponseAlg      string
+	AccessTokenSignedResponseKeyID    string
+	AccessTokenEncryptedResponseAlg   string
+	AccessTokenEncryptedResponseEnc   string
+	AccessTokenEncryptedResponseKeyID string
 
-	UserinfoSignedResponseAlg   string
-	UserinfoSignedResponseKeyID string
+	UserinfoSignedResponseAlg      string
+	UserinfoSignedResponseKeyID    string
+	UserinfoEncryptedResponseAlg   string
+	UserinfoEncryptedResponseEnc   string
+	UserinfoEncryptedResponseKeyID string
 
-	IntrospectionSignedResponseAlg   string
-	IntrospectionSignedResponseKeyID string
+	IntrospectionSignedResponseAlg      string
+	IntrospectionSignedResponseKeyID    string
+	IntrospectionEncryptedResponseAlg   string
+	IntrospectionEncryptedResponseEnc   string
+	IntrospectionEncryptedResponseKeyID string
 
-	RequestObjectSigningAlg string
+	RequestObjectSigningAlg    string
+	RequestObjectEncryptionAlg string
+	RequestObjectEncryptionEnc string
 
 	TokenEndpointAuthMethod     string
 	TokenEndpointAuthSigningAlg string

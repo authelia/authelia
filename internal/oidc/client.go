@@ -44,19 +44,36 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		ConsentPolicy:         NewClientConsentPolicy(config.ConsentMode, config.ConsentPreConfiguredDuration),
 		RequestedAudienceMode: NewClientRequestedAudienceMode(config.RequestedAudienceMode),
 
-		AuthorizationSignedResponseAlg:   config.AuthorizationSignedResponseAlg,
-		AuthorizationSignedResponseKeyID: config.AuthorizationSignedResponseKeyID,
-		IDTokenSignedResponseAlg:         config.IDTokenSignedResponseAlg,
-		IDTokenSignedResponseKeyID:       config.IDTokenSignedResponseKeyID,
-		AccessTokenSignedResponseAlg:     config.AccessTokenSignedResponseAlg,
-		AccessTokenSignedResponseKeyID:   config.AccessTokenSignedResponseKeyID,
-		UserinfoSignedResponseAlg:        config.UserinfoSignedResponseAlg,
-		UserinfoSignedResponseKeyID:      config.UserinfoSignedResponseKeyID,
-		IntrospectionSignedResponseAlg:   config.IntrospectionSignedResponseAlg,
-		IntrospectionSignedResponseKeyID: config.IntrospectionSignedResponseKeyID,
-		RequestObjectSigningAlg:          config.RequestObjectSigningAlg,
-		TokenEndpointAuthSigningAlg:      config.TokenEndpointAuthSigningAlg,
-		TokenEndpointAuthMethod:          config.TokenEndpointAuthMethod,
+		AuthorizationSignedResponseAlg:      config.AuthorizationSignedResponseAlg,
+		AuthorizationSignedResponseKeyID:    config.AuthorizationSignedResponseKeyID,
+		AuthorizationEncryptedResponseAlg:   config.AuthorizationEncryptedResponseAlg,
+		AuthorizationEncryptedResponseEnc:   config.AuthorizationEncryptedResponseEnc,
+		AuthorizationEncryptedResponseKeyID: config.AuthorizationEncryptedResponseKeyID,
+		IDTokenSignedResponseAlg:            config.IDTokenSignedResponseAlg,
+		IDTokenSignedResponseKeyID:          config.IDTokenSignedResponseKeyID,
+		IDTokenEncryptedResponseAlg:         config.IDTokenEncryptedResponseAlg,
+		IDTokenEncryptedResponseEnc:         config.IDTokenEncryptedResponseEnc,
+		IDTokenEncryptedResponseKeyID:       config.IDTokenEncryptedResponseKeyID,
+		AccessTokenSignedResponseAlg:        config.AccessTokenSignedResponseAlg,
+		AccessTokenSignedResponseKeyID:      config.AccessTokenSignedResponseKeyID,
+		AccessTokenEncryptedResponseAlg:     config.AccessTokenEncryptedResponseAlg,
+		AccessTokenEncryptedResponseEnc:     config.AccessTokenEncryptedResponseEnc,
+		AccessTokenEncryptedResponseKeyID:   config.AccessTokenEncryptedResponseKeyID,
+		UserinfoSignedResponseAlg:           config.UserinfoSignedResponseAlg,
+		UserinfoSignedResponseKeyID:         config.UserinfoSignedResponseKeyID,
+		UserinfoEncryptedResponseAlg:        config.UserinfoEncryptedResponseAlg,
+		UserinfoEncryptedResponseEnc:        config.UserinfoEncryptedResponseEnc,
+		UserinfoEncryptedResponseKeyID:      config.UserinfoEncryptedResponseKeyID,
+		IntrospectionSignedResponseAlg:      config.IntrospectionSignedResponseAlg,
+		IntrospectionSignedResponseKeyID:    config.IntrospectionSignedResponseKeyID,
+		IntrospectionEncryptedResponseAlg:   config.IntrospectionEncryptedResponseAlg,
+		IntrospectionEncryptedResponseEnc:   config.IntrospectionEncryptedResponseEnc,
+		IntrospectionEncryptedResponseKeyID: config.IntrospectionEncryptedResponseKeyID,
+		RequestObjectSigningAlg:             config.RequestObjectSigningAlg,
+		RequestObjectEncryptionAlg:          config.RequestObjectEncryptionAlg,
+		RequestObjectEncryptionEnc:          config.RequestObjectEncryptionEnc,
+		TokenEndpointAuthSigningAlg:         config.TokenEndpointAuthSigningAlg,
+		TokenEndpointAuthMethod:             config.TokenEndpointAuthMethod,
 
 		JSONWebKeysURI: config.JSONWebKeysURI,
 		JSONWebKeys:    NewPublicJSONWebKeySetFromSchemaJWK(config.JSONWebKeys),
@@ -172,24 +189,35 @@ func (c *RegisteredClient) GetResponseModes() (modes []oauthelia2.ResponseModeTy
 
 // GetAuthorizationSignedResponseAlg returns the AuthorizationSignedResponseAlg.
 func (c *RegisteredClient) GetAuthorizationSignedResponseAlg() (alg string) {
+	if c.AuthorizationSignedResponseAlg == "" {
+		c.AuthorizationSignedResponseAlg = SigningAlgNone
+	}
+
 	return c.AuthorizationSignedResponseAlg
 }
 
 // GetAuthorizationSignedResponseKeyID returns the AuthorizationSignedResponseKeyID.
 func (c *RegisteredClient) GetAuthorizationSignedResponseKeyID() (kid string) {
-	if c.AuthorizationSignedResponseKeyID == "" {
-		c.AuthorizationSignedResponseKeyID = SigningAlgNone
-	}
-
 	return c.AuthorizationSignedResponseKeyID
 }
 
+// GetAuthorizationEncryptedResponseAlg returns the AuthorizationEncryptedResponseAlg.
 func (c *RegisteredClient) GetAuthorizationEncryptedResponseAlg() (alg string) {
 	return c.AuthorizationEncryptedResponseAlg
 }
 
+// GetAuthorizationEncryptedResponseEnc returns the AuthorizationEncryptedResponseEnc.
+func (c *RegisteredClient) GetAuthorizationEncryptedResponseEnc() (alg string) {
+	return c.AuthorizationEncryptedResponseEnc
+}
+
+// GetAuthorizationEncryptedResponseKeyID returns the AuthorizationEncryptedResponseKeyID.
+func (c *RegisteredClient) GetAuthorizationEncryptedResponseKeyID() (kid string) {
+	return c.AuthorizationEncryptedResponseKeyID
+}
+
 func (c *RegisteredClient) GetAuthorizationEncryptedResponseEncryptionAlg() (alg string) {
-	return ""
+	return c.AuthorizationEncryptedResponseEnc
 }
 
 // GetIDTokenSignedResponseAlg returns the IDTokenSignedResponseAlg.
@@ -206,6 +234,21 @@ func (c *RegisteredClient) GetIDTokenSignedResponseKeyID() (kid string) {
 	return c.IDTokenSignedResponseKeyID
 }
 
+// GetIDTokenEncryptedResponseAlg returns the IDTokenEncryptedResponseAlg.
+func (c *RegisteredClient) GetIDTokenEncryptedResponseAlg() (alg string) {
+	return c.IDTokenEncryptedResponseAlg
+}
+
+// GetIDTokenEncryptedResponseEnc returns the IDTokenEncryptedResponseEnc.
+func (c *RegisteredClient) GetIDTokenEncryptedResponseEnc() (alg string) {
+	return c.IDTokenEncryptedResponseEnc
+}
+
+// GetIDTokenEncryptedResponseKeyID returns the IDTokenEncryptedResponseKeyID.
+func (c *RegisteredClient) GetIDTokenEncryptedResponseKeyID() (kid string) {
+	return c.IDTokenEncryptedResponseKeyID
+}
+
 // GetAccessTokenSignedResponseAlg returns the AccessTokenSignedResponseAlg.
 func (c *RegisteredClient) GetAccessTokenSignedResponseAlg() (alg string) {
 	if c.AccessTokenSignedResponseAlg == "" {
@@ -218,6 +261,21 @@ func (c *RegisteredClient) GetAccessTokenSignedResponseAlg() (alg string) {
 // GetAccessTokenSignedResponseKeyID returns the AccessTokenSignedResponseKeyID.
 func (c *RegisteredClient) GetAccessTokenSignedResponseKeyID() (kid string) {
 	return c.AccessTokenSignedResponseKeyID
+}
+
+// GetAccessTokenEncryptedResponseAlg returns the IDTokenEncryptedResponseAlg.
+func (c *RegisteredClient) GetAccessTokenEncryptedResponseAlg() (alg string) {
+	return c.IDTokenEncryptedResponseAlg
+}
+
+// GetAccessTokenEncryptedResponseEnc returns the AccessTokenEncryptedResponseEnc.
+func (c *RegisteredClient) GetAccessTokenEncryptedResponseEnc() (alg string) {
+	return c.AccessTokenEncryptedResponseEnc
+}
+
+// GetAccessTokenEncryptedResponseKeyID returns the AccessTokenEncryptedResponseKeyID.
+func (c *RegisteredClient) GetAccessTokenEncryptedResponseKeyID() (kid string) {
+	return c.AccessTokenEncryptedResponseKeyID
 }
 
 // GetUserinfoSignedResponseAlg returns the UserinfoSignedResponseAlg.
@@ -234,6 +292,21 @@ func (c *RegisteredClient) GetUserinfoSignedResponseKeyID() (kid string) {
 	return c.UserinfoSignedResponseKeyID
 }
 
+// GetUserinfoEncryptedResponseAlg returns the UserinfoEncryptedResponseAlg.
+func (c *RegisteredClient) GetUserinfoEncryptedResponseAlg() (alg string) {
+	return c.UserinfoEncryptedResponseAlg
+}
+
+// GetUserinfoEncryptedResponseEnc returns the UserinfoEncryptedResponseEnc.
+func (c *RegisteredClient) GetUserinfoEncryptedResponseEnc() (alg string) {
+	return c.UserinfoEncryptedResponseEnc
+}
+
+// GetUserinfoEncryptedResponseKeyID returns the UserinfoEncryptedResponseKeyID.
+func (c *RegisteredClient) GetUserinfoEncryptedResponseKeyID() (kid string) {
+	return c.UserinfoEncryptedResponseKeyID
+}
+
 // GetIntrospectionSignedResponseAlg returns the IntrospectionSignedResponseAlg.
 func (c *RegisteredClient) GetIntrospectionSignedResponseAlg() (alg string) {
 	if c.IntrospectionSignedResponseAlg == "" {
@@ -246,6 +319,21 @@ func (c *RegisteredClient) GetIntrospectionSignedResponseAlg() (alg string) {
 // GetIntrospectionSignedResponseKeyID returns the IntrospectionSignedResponseKeyID.
 func (c *RegisteredClient) GetIntrospectionSignedResponseKeyID() (alg string) {
 	return c.IntrospectionSignedResponseKeyID
+}
+
+// GetIntrospectionEncryptedResponseAlg returns the IntrospectionEncryptedResponseAlg.
+func (c *RegisteredClient) GetIntrospectionEncryptedResponseAlg() (alg string) {
+	return c.IntrospectionEncryptedResponseAlg
+}
+
+// GetIntrospectionEncryptedResponseEnc returns the IntrospectionEncryptedResponseEnc.
+func (c *RegisteredClient) GetIntrospectionEncryptedResponseEnc() (alg string) {
+	return c.IntrospectionEncryptedResponseEnc
+}
+
+// GetIntrospectionEncryptedResponseKeyID returns the IntrospectionEncryptedResponseKeyID.
+func (c *RegisteredClient) GetIntrospectionEncryptedResponseKeyID() (kid string) {
+	return c.IntrospectionEncryptedResponseKeyID
 }
 
 // GetTokenEndpointAuthSigningAlg returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing the JWT
@@ -455,6 +543,16 @@ func (c *RegisteredClient) GetJSONWebKeysURI() (uri string) {
 // Objects sent to the OP. All Request Objects from this Client MUST be rejected, if not signed with this algorithm.
 func (c *RegisteredClient) GetRequestObjectSigningAlg() (alg string) {
 	return c.RequestObjectSigningAlg
+}
+
+// GetRequestObjectEncryptionAlg returns the RequestObjectEncryptionAlg.
+func (c *RegisteredClient) GetRequestObjectEncryptionAlg() (alg string) {
+	return c.RequestObjectEncryptionAlg
+}
+
+// GetRequestObjectEncryptionEnc returns the RequestObjectEncryptionEnc.
+func (c *RegisteredClient) GetRequestObjectEncryptionEnc() (alg string) {
+	return c.RequestObjectEncryptionEnc
 }
 
 func (c *RegisteredClient) GetAllowMultipleAuthenticationMethods() (allow bool) {
