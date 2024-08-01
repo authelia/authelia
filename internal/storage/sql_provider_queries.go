@@ -309,7 +309,8 @@ const (
 
 	queryFmtUpdateEncryptionEncryptedData = `
 		UPDATE %s
-		SET value = ?`
+		SET value = ?
+		WHERE id = ?;`
 )
 
 const (
