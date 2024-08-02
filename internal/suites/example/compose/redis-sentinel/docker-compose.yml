@@ -1,7 +1,7 @@
 ---
 services:
   redis-node-0:
-    image: redis:7.2-alpine
+    image: redis:7.4-alpine
     command: /entrypoint.sh master
     expose:
       - "6379"
@@ -15,7 +15,7 @@ services:
           - redis-node-0.example.com
         ipv4_address: 192.168.240.110
   redis-node-1:
-    image: redis:7.2-alpine
+    image: redis:7.4-alpine
     command: /entrypoint.sh slave
     depends_on:
       - redis-node-0
@@ -31,7 +31,7 @@ services:
           - redis-node-1.example.com
         ipv4_address: 192.168.240.111
   redis-node-2:
-    image: redis:7.2-alpine
+    image: redis:7.4-alpine
     command: /entrypoint.sh slave
     depends_on:
       - redis-node-0
@@ -47,7 +47,7 @@ services:
           - redis-node-2.example.com
         ipv4_address: 192.168.240.112
   redis-sentinel-0:
-    image: redis:7.2-alpine
+    image: redis:7.4-alpine
     command: /entrypoint.sh sentinel
     depends_on:
       - redis-node-1
@@ -63,7 +63,7 @@ services:
           - redis-sentinel-0.example.com
         ipv4_address: 192.168.240.120
   redis-sentinel-1:
-    image: redis:7.2-alpine
+    image: redis:7.4-alpine
     command: /entrypoint.sh sentinel
     depends_on:
       - redis-node-1
@@ -79,7 +79,7 @@ services:
           - redis-sentinel-1.example.com
         ipv4_address: 192.168.240.121
   redis-sentinel-2:
-    image: redis:7.2-alpine
+    image: redis:7.4-alpine
     command: /entrypoint.sh sentinel
     depends_on:
       - redis-node-1
