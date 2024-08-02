@@ -1,7 +1,7 @@
 ---
 services:
   traefik:
-    image: traefik:v2.11.6
+    image: traefik:v2.11.7
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
       - './example/compose/traefik2/config:/config'
