@@ -24,7 +24,7 @@ seo:
   * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [Nextcloud]
   * 22.1.0 with the application oidc_login
-  * 28.0.4 with the application user_oidc
+  * 29.0.4 with the application user_oidc v6.0.1
 
 {{% oidc-common %}}
 
@@ -164,7 +164,7 @@ identity_providers:
           - 'email'
           - 'groups'
         userinfo_signed_response_alg: 'none'
-        token_endpoint_auth_method: 'client_secret_post'
+        token_endpoint_auth_method: 'client_secret_basic'
 ```
 
 #### Application
