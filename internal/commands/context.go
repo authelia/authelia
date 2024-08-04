@@ -83,6 +83,18 @@ type CmdCtxConfig struct {
 // CobraRunECmd describes a function that can be used as a *cobra.Command RunE, PreRunE, or PostRunE.
 type CobraRunECmd func(cmd *cobra.Command, args []string) (err error)
 
+func (ctx *CmdCtx) GetLogger() *logrus.Logger {
+	return ctx.log
+}
+
+func (ctx *CmdCtx) GetProviders() middlewares.Providers {
+	return ctx.providers
+}
+
+func (ctx *CmdCtx) GetConfiguration() *schema.Configuration {
+	return ctx.config
+}
+
 func (ctx *CmdCtx) CheckSchemaVersion() (err error) {
 	if ctx.providers.StorageProvider == nil {
 		return fmt.Errorf("storage not loaded")
