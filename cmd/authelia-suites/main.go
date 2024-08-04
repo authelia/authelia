@@ -107,6 +107,8 @@ func setupSuite(cmd *cobra.Command, args []string) {
 			log.Fatal(err)
 		}
 
+		defer file.Close()
+
 		env := bufio.NewScanner(file)
 
 		for env.Scan() {
