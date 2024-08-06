@@ -246,7 +246,8 @@
             "display": "Dutch",
             "locale": "nl",
             "namespaces": [
-                "portal"
+                "portal",
+                "settings"
             ],
             "fallbacks": [
                 "en"
@@ -363,7 +364,8 @@
             "display": "Ukrainian",
             "locale": "uk",
             "namespaces": [
-                "portal"
+                "portal",
+                "settings"
             ],
             "fallbacks": [
                 "en"
@@ -373,7 +375,8 @@
             "display": "Ukrainian (Ukraine)",
             "locale": "uk-UA",
             "namespaces": [
-                "portal"
+                "portal",
+                "settings"
             ],
             "fallbacks": [
                 "uk",
