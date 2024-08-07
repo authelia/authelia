@@ -135,7 +135,7 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	if !valid {
 		ctx.Logger.WithError(fmt.Errorf("the user input wasn't valid")).Errorf("Error occurred validating a TOTP authentication for user '%s': error occurred validating the user input", userSession.Username)
 
-		_ = markAuthenticationAttempt(ctx, false, nil, userSession.Username, regulation.AuthTypeTOTP, nil)
+		_ = markAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, userSession.Username, nil), regulation.AuthTypeTOTP, nil)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
@@ -172,7 +172,7 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if err = markAuthenticationAttempt(ctx, true, nil, userSession.Username, regulation.AuthTypeTOTP, nil); err != nil {
+	if err = markAuthenticationAttempt(ctx, true, regulation.NewBan(regulation.BanTypeNone, userSession.Username, nil), regulation.AuthTypeTOTP, nil); err != nil {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
