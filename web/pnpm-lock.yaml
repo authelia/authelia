@@ -131,7 +131,7 @@ importers:
         version: 6.9.0(eslint@8.57.0)(typescript@5.5.4)
       '@vitejs/plugin-react':
         specifier: 4.3.1
-        version: 4.3.1(vite@5.3.5(@types/node@22.1.0))
+        version: 4.3.1(vite@5.4.0(@types/node@22.1.0))
       '@vitest/coverage-istanbul':
         specifier: 2.0.5
         version: 2.0.5(vitest@2.0.5(@types/node@22.1.0)(happy-dom@14.12.3))
@@ -184,20 +184,20 @@ importers:
         specifier: 5.5.4
         version: 5.5.4
       vite:
-        specifier: 5.3.5
-        version: 5.3.5(@types/node@22.1.0)
+        specifier: 5.4.0
+        version: 5.4.0(@types/node@22.1.0)
       vite-plugin-checker:
         specifier: 0.7.2
-        version: 0.7.2(eslint@8.57.0)(optionator@0.9.3)(typescript@5.5.4)(vite@5.3.5(@types/node@22.1.0))
+        version: 0.7.2(eslint@8.57.0)(optionator@0.9.3)(typescript@5.5.4)(vite@5.4.0(@types/node@22.1.0))
       vite-plugin-istanbul:
         specifier: 6.0.2
-        version: 6.0.2(vite@5.3.5(@types/node@22.1.0))
+        version: 6.0.2(vite@5.4.0(@types/node@22.1.0))
       vite-plugin-svgr:
         specifier: 4.2.0
-        version: 4.2.0(rollup@4.13.0)(typescript@5.5.4)(vite@5.3.5(@types/node@22.1.0))
+        version: 4.2.0(rollup@4.13.0)(typescript@5.5.4)(vite@5.4.0(@types/node@22.1.0))
       vite-tsconfig-paths:
         specifier: 4.3.2
-        version: 4.3.2(typescript@5.5.4)(vite@5.3.5(@types/node@22.1.0))
+        version: 4.3.2(typescript@5.5.4)(vite@5.4.0(@types/node@22.1.0))
       vitest:
         specifier: 2.0.5
         version: 2.0.5(@types/node@22.1.0)(happy-dom@14.12.3)
@@ -3837,6 +3837,10 @@ packages:
     resolution: {integrity: sha512-0vzE+lAiG7hZl1/9I8yzKLx3aR9Xbof3fBHKunvMfOCYAtMhrsnccJY2iTURb9EZd5+pLuiNV9/c/GZJOHsgIw==}
     engines: {node: ^10 || ^12 || >=14}
 
+  postcss@8.4.41:
+    resolution: {integrity: sha512-TesUflQ0WKZqAvg52PWL6kHgLKP6xB6heTOdoYM0Wt2UHyxNa4K25EZZMgKns3BH1RLVbZCREPpLY0rhnNoHVQ==}
+    engines: {node: ^10 || ^12 || >=14}
+
   prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
@@ -4509,8 +4513,8 @@ packages:
       terser:
         optional: true
 
-  vite@5.3.5:
-    resolution: {integrity: sha512-MdjglKR6AQXQb9JGiS7Rc2wC6uMjcm7Go/NHNO63EwiJXfuk9PgqiP/n5IDJCziMkfw9n4Ubp7lttNwz+8ZVKA==}
+  vite@5.4.0:
+    resolution: {integrity: sha512-5xokfMX0PIiwCMCMb9ZJcMyh5wbBun0zUzKib+L65vAZ8GY9ePZMXxFrHbr/Kyll2+LSCY7xtERPpxkBDKngwg==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
     peerDependencies:
@@ -4518,6 +4522,7 @@ packages:
       less: '*'
       lightningcss: ^1.21.0
       sass: '*'
+      sass-embedded: '*'
       stylus: '*'
       sugarss: '*'
       terser: ^5.4.0
@@ -4529,6 +4534,8 @@ packages:
       lightningcss:
         optional: true
       sass:
+        optional: true
+      sass-embedded:
         optional: true
       stylus:
         optional: true
@@ -6594,14 +6601,14 @@ snapshots:
 
   '@ungap/structured-clone@1.2.0': {}
 
-  '@vitejs/plugin-react@4.3.1(vite@5.3.5(@types/node@22.1.0))':
+  '@vitejs/plugin-react@4.3.1(vite@5.4.0(@types/node@22.1.0))':
     dependencies:
       '@babel/core': 7.24.5
       '@babel/plugin-transform-react-jsx-self': 7.24.5(@babel/core@7.24.5)
       '@babel/plugin-transform-react-jsx-source': 7.24.1(@babel/core@7.24.5)
       '@types/babel__core': 7.20.5
       react-refresh: 0.14.2
-      vite: 5.3.5(@types/node@22.1.0)
+      vite: 5.4.0(@types/node@22.1.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -8805,6 +8812,12 @@ snapshots:
       picocolors: 1.0.1
       source-map-js: 1.2.0
 
+  postcss@8.4.41:
+    dependencies:
+      nanoid: 3.3.7
+      picocolors: 1.0.1
+      source-map-js: 1.2.0
+
   prelude-ls@1.2.1: {}
 
   prettier-linter-helpers@1.0.0:
@@ -9436,18 +9449,19 @@ snapshots:
       debug: 4.3.5
       pathe: 1.1.2
       tinyrainbow: 1.2.0
-      vite: 5.3.5(@types/node@22.1.0)
+      vite: 5.4.0(@types/node@22.1.0)
     transitivePeerDependencies:
       - '@types/node'
       - less
       - lightningcss
       - sass
+      - sass-embedded
       - stylus
       - sugarss
       - supports-color
       - terser
 
-  vite-plugin-checker@0.7.2(eslint@8.57.0)(optionator@0.9.3)(typescript@5.5.4)(vite@5.3.5(@types/node@22.1.0)):
+  vite-plugin-checker@0.7.2(eslint@8.57.0)(optionator@0.9.3)(typescript@5.5.4)(vite@5.4.0(@types/node@22.1.0)):
     dependencies:
       '@babel/code-frame': 7.24.7
       ansi-escapes: 4.3.2
@@ -9459,7 +9473,7 @@ snapshots:
       npm-run-path: 4.0.1
       strip-ansi: 6.0.1
       tiny-invariant: 1.3.1
-      vite: 5.3.5(@types/node@22.1.0)
+      vite: 5.4.0(@types/node@22.1.0)
       vscode-languageclient: 7.0.0
       vscode-languageserver: 7.0.0
       vscode-languageserver-textdocument: 1.0.8
@@ -9469,7 +9483,7 @@ snapshots:
       optionator: 0.9.3
       typescript: 5.5.4
 
-  vite-plugin-istanbul@6.0.2(vite@5.3.5(@types/node@22.1.0)):
+  vite-plugin-istanbul@6.0.2(vite@5.4.0(@types/node@22.1.0)):
     dependencies:
       '@istanbuljs/load-nyc-config': 1.1.0
       espree: 10.0.1
@@ -9477,28 +9491,28 @@ snapshots:
       picocolors: 1.0.0
       source-map: 0.7.4
       test-exclude: 6.0.0
-      vite: 5.3.5(@types/node@22.1.0)
+      vite: 5.4.0(@types/node@22.1.0)
     transitivePeerDependencies:
       - supports-color
 
-  vite-plugin-svgr@4.2.0(rollup@4.13.0)(typescript@5.5.4)(vite@5.3.5(@types/node@22.1.0)):
+  vite-plugin-svgr@4.2.0(rollup@4.13.0)(typescript@5.5.4)(vite@5.4.0(@types/node@22.1.0)):
     dependencies:
       '@rollup/pluginutils': 5.0.5(rollup@4.13.0)
       '@svgr/core': 8.1.0(typescript@5.5.4)
       '@svgr/plugin-jsx': 8.1.0(@svgr/core@8.1.0(typescript@5.5.4))
-      vite: 5.3.5(@types/node@22.1.0)
+      vite: 5.4.0(@types/node@22.1.0)
     transitivePeerDependencies:
       - rollup
       - supports-color
       - typescript
 
-  vite-tsconfig-paths@4.3.2(typescript@5.5.4)(vite@5.3.5(@types/node@22.1.0)):
+  vite-tsconfig-paths@4.3.2(typescript@5.5.4)(vite@5.4.0(@types/node@22.1.0)):
     dependencies:
       debug: 4.3.4
       globrex: 0.1.2
       tsconfck: 3.0.3(typescript@5.5.4)
     optionalDependencies:
-      vite: 5.3.5(@types/node@22.1.0)
+      vite: 5.4.0(@types/node@22.1.0)
     transitivePeerDependencies:
       - supports-color
       - typescript
@@ -9513,10 +9527,10 @@ snapshots:
       '@types/node': 18.16.5
       fsevents: 2.3.3
 
-  vite@5.3.5(@types/node@22.1.0):
+  vite@5.4.0(@types/node@22.1.0):
     dependencies:
       esbuild: 0.21.5
-      postcss: 8.4.39
+      postcss: 8.4.41
       rollup: 4.13.0
     optionalDependencies:
       '@types/node': 22.1.0
@@ -9555,7 +9569,7 @@ snapshots:
       tinybench: 2.8.0
       tinypool: 1.0.0
       tinyrainbow: 1.2.0
-      vite: 5.3.5(@types/node@22.1.0)
+      vite: 5.4.0(@types/node@22.1.0)
       vite-node: 2.0.5(@types/node@22.1.0)
       why-is-node-running: 2.3.0
     optionalDependencies:
@@ -9565,6 +9579,7 @@ snapshots:
       - less
       - lightningcss
       - sass
+      - sass-embedded
       - stylus
       - sugarss
       - supports-color
