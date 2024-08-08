@@ -22,7 +22,7 @@ Perform RSA key pair cryptographic operations
 
 Perform RSA key pair cryptographic operations.
 
-This subcommand allows preforming RSA key pair cryptographic tasks.
+This subcommand allows performing RSA key pair cryptographic tasks.
 
 ```
 authelia crypto pair rsa [flags]

@@ -22,7 +22,7 @@ Perform Ed25519 key pair cryptographic operations
 
 Perform Ed25519 key pair cryptographic operations.
 
-This subcommand allows preforming Ed25519 key pair cryptographic tasks.
+This subcommand allows performing Ed25519 key pair cryptographic tasks.
 
 ```
 authelia crypto pair ed25519 [flags]

@@ -22,7 +22,7 @@ Perform cryptographic hash validations
 
 Perform cryptographic hash validations.
 
-This subcommand allows preforming cryptographic hash validations. i.e. checking hash digests against a password.
+This subcommand allows performing cryptographic hash validations. i.e. checking hash digests against a password.
 
 ```
 authelia crypto hash validate [flags] -- <digest>

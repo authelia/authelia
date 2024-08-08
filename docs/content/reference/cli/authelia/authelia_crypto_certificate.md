@@ -22,7 +22,7 @@ Perform certificate cryptographic operations
 
 Perform certificate cryptographic operations.
 
-This subcommand allows preforming certificate cryptographic tasks.
+This subcommand allows performing certificate cryptographic tasks.
 
 ### Examples
 
