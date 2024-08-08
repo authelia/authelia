@@ -6,8 +6,8 @@ function getRelativeTimeString(date: Date): string {
     const ONEMINUTE = 60;
     const ONEHOUR = 3600;
     const ONEDAY = 86400;
-    const ONEMONTH = 82592000;
-    const ONEYEAR = 3153600;
+    const ONEMONTH = 2592000;
+    const ONEYEAR = 31536000;
 
     if (secondsSinceUse < ONEMINUTE) {
         return "just now";
