@@ -22,7 +22,7 @@ Perform key pair cryptographic operations
 
 Perform key pair cryptographic operations.
 
-This subcommand allows preforming key pair cryptographic tasks.
+This subcommand allows performing key pair cryptographic tasks.
 
 ### Examples
 
