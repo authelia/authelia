@@ -121,7 +121,7 @@ func (p *Provider) load() (err error) {
 
 	var data []byte
 
-	if data, err = embedFS.ReadFile(path.Join("src", TemplateCategoryOpenIDConnect, TemplateNameOIDCAuthorizeFormPost)); err != nil {
+	if data, err = embedFS.ReadFile(path.Join("embed", TemplateCategoryOpenIDConnect, TemplateNameOIDCAuthorizeFormPost)); err != nil {
 		errs = append(errs, err)
 	} else if p.templates.oidc.formpost, err = th.
 		New("oidc/AuthorizeResponseFormPost.html").

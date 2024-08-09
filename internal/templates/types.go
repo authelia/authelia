@@ -63,13 +63,6 @@ type EmailEventValues struct {
 	RemoteIP    string
 }
 
-// EmailPasswordResetValues are the values used for password reset templates.
-type EmailPasswordResetValues struct {
-	Title       string
-	DisplayName string
-	RemoteIP    string
-}
-
 // EmailIdentityVerificationJWTValues are the values used for the identity verification JWT templates.
 type EmailIdentityVerificationJWTValues struct {
 	Title              string

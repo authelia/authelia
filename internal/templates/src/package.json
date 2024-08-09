@@ -1,0 +1,33 @@
+{
+	"name": "authelia-email-templates",
+	"version": "1.0.0",
+	"description": "",
+	"scripts": {
+		"dev": "email dev",
+		"build": "email build",
+		"render": "tsc && node dist/index.js"
+	},
+	"keywords": [],
+	"author": "Authelia",
+	"license": "Apache-2.0",
+	"dependencies": {
+		"@react-email/components": "0.0.22",
+		"@react-email/render": "0.0.17",
+		"esbuild": "0.23.0",
+		"react": "18.3.1",
+		"react-dom": "18.3.1",
+		"react-email": "2.1.6",
+		"tailwind-merge": "2.4.0",
+		"tailwindcss": "3.4.8",
+		"typescript": "5.5.4"
+	},
+	"devDependencies": {
+		"@radix-ui/colors": "3.0.0",
+		"@types/node": "22.1.0",
+		"@types/react": "18.3.3",
+		"@types/react-dom": "18.3.0",
+		"eslint": "9.8.0",
+		"tsx": "4.17.0",
+		"vitest": "2.0.5"
+	}
+}
