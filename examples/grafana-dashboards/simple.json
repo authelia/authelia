@@ -15,7 +15,13 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "10.4.3"
+      "version": "11.1.3"
+    },
+    {
+      "type": "datasource",
+      "id": "graphite",
+      "name": "Graphite",
+      "version": "1.0.0"
     },
     {
       "type": "panel",
@@ -116,6 +122,7 @@
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -127,7 +134,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "10.4.3",
+      "pluginVersion": "11.1.3",
       "targets": [
         {
           "datasource": {
@@ -239,7 +246,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "builder",
-          "expr": "sum by(method, code) (rate(authelia_request{instance=~\"$instance\"}[1m]))",
+          "expr": "sum by(method, code) (rate(authelia_request{instance=~\"$instance\"}[$__rate_interval]))",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "instant": false,
@@ -381,7 +388,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "disableTextWrap": false,
-          "editorMode": "builder",
+          "editorMode": "code",
           "expr": "topk(15, authelia_request_duration_sum{instance=~\"$instance\"}) / authelia_request_duration_count{instance=~\"$instance\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
@@ -453,8 +460,8 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "disableTextWrap": false,
-          "editorMode": "code",
-          "expr": "sum(rate(authelia_request{instance=~\"$instance\"}[1h])) by (method, code)",
+          "editorMode": "builder",
+          "expr": "sum by(method, code) (rate(authelia_request{instance=~\"$instance\"}[$__rate_interval]))",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": false,
@@ -504,7 +511,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "false"
+              "options": "{banned=\"false\", success=\"false\"}"
             },
             "properties": [
               {
@@ -523,7 +530,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "true"
+              "options": "{banned=\"false\", success=\"true\"}"
             },
             "properties": [
               {
@@ -542,7 +549,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "banned"
+              "options": "{banned=\"true\", success=\"false\"}"
             },
             "properties": [
               {
@@ -551,6 +558,10 @@
                   "fixedColor": "red",
                   "mode": "shades"
                 }
+              },
+              {
+                "id": "displayName",
+                "value": "banned"
               }
             ]
           }
@@ -593,31 +604,13 @@
           },
           "disableTextWrap": false,
           "editorMode": "builder",
-          "expr": "authelia_authn{instance=~\"$instance\", banned=\"false\"}",
+          "expr": "sum by(success, banned) (authelia_authn{instance=~\"$instance\"})",
           "format": "time_series",
           "fullMetaSearch": true,
           "includeNullMetadata": true,
-          "legendFormat": "{{success}}",
+          "legendFormat": "__auto",
           "range": true,
           "refId": "A",
-          "useBackend": false
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "disableTextWrap": false,
-          "editorMode": "builder",
-          "expr": "authelia_authn{instance=\"$instance\", banned=\"true\"}",
-          "fullMetaSearch": false,
-          "hide": false,
-          "includeNullMetadata": true,
-          "instant": false,
-          "interval": "",
-          "legendFormat": "banned",
-          "range": true,
-          "refId": "B",
           "useBackend": false
         }
       ],
@@ -629,6 +622,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
+      "description": "",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -643,44 +637,7 @@
           },
           "mappings": []
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "{success=\"false\", type=\"totp\"}"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "totp fail"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "{success=\"true\", type=\"totp\"}"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "totp"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "{success=\"true\", type=\"webauthn\"}"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "webauthn"
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "gridPos": {
         "h": 6,
@@ -823,12 +780,12 @@
           },
           "disableTextWrap": false,
           "editorMode": "builder",
-          "expr": "sum by(code) (rate(authelia_authz{instance=~\"$instance\"}[1m]))",
+          "expr": "sum by(code) (rate(authelia_authz{instance=~\"$instance\"}[$__rate_interval]))",
           "fullMetaSearch": false,
           "includeNullMetadata": false,
           "instant": false,
           "interval": "",
-          "legendFormat": "{{code}}",
+          "legendFormat": "{{method}}[{{code}}]",
           "range": true,
           "refId": "A",
           "useBackend": false
@@ -902,7 +859,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "{success=\"false\"}"
+              "options": "{banned=\"false\", success=\"false\"}"
             },
             "properties": [
               {
@@ -921,7 +878,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "true"
+              "options": "{banned=\"false\", success=\"true\"}"
             },
             "properties": [
               {
@@ -940,19 +897,19 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "false"
+              "options": "{banned=\"true\", success=\"false\"}"
             },
             "properties": [
+              {
+                "id": "displayName",
+                "value": "banned"
+              },
               {
                 "id": "color",
                 "value": {
                   "fixedColor": "red",
                   "mode": "shades"
                 }
-              },
-              {
-                "id": "displayName",
-                "value": "failure"
               }
             ]
           }
@@ -988,7 +945,8 @@
           },
           "disableTextWrap": false,
           "editorMode": "builder",
-          "expr": "sum by(success) (rate(authelia_authn{instance=~\"$instance\", banned=\"false\"}[1h]))",
+          "exemplar": false,
+          "expr": "sum by(success, banned) (rate(authelia_authn{instance=~\"$instance\"}[$__rate_interval]))",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "instant": false,
@@ -996,24 +954,6 @@
           "legendFormat": "__auto",
           "range": true,
           "refId": "A",
-          "useBackend": false
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "disableTextWrap": false,
-          "editorMode": "builder",
-          "expr": "rate(authelia_authn{instance=~\"$instance\", banned=\"true\"}[1m])",
-          "fullMetaSearch": false,
-          "hide": false,
-          "includeNullMetadata": true,
-          "instant": false,
-          "interval": "",
-          "legendFormat": "banned",
-          "range": true,
-          "refId": "B",
           "useBackend": false
         }
       ],
@@ -1081,65 +1021,7 @@
           },
           "unit": "reqps"
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "{banned=\"false\", success=\"true\", type=\"totp\"}"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "[TOTP] success"
-              },
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "green",
-                  "mode": "shades"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "{banned=\"false\", success=\"false\", type=\"totp\"}"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "[TOTP] failure"
-              },
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "orange",
-                  "mode": "shades"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "{banned=\"false\", success=\"true\", type=\"webauthn\"}"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "green",
-                  "mode": "shades"
-                }
-              },
-              {
-                "id": "displayName",
-                "value": "[WebAuthn] success"
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "gridPos": {
         "h": 8,
@@ -1171,14 +1053,31 @@
           },
           "disableTextWrap": false,
           "editorMode": "builder",
-          "expr": "sum by(success, banned, type) (rate(authelia_authn_second_factor{instance=~\"$instance\"}[1h]))",
+          "expr": "sum by(success, type) (rate(authelia_authn_second_factor{instance=~\"$instance\", banned=\"false\"}[$__rate_interval]))",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "instant": false,
           "interval": "",
-          "legendFormat": "__auto",
+          "legendFormat": "[{{type}}] success: {{success}}",
           "range": true,
           "refId": "A",
+          "useBackend": false
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "disableTextWrap": false,
+          "editorMode": "builder",
+          "expr": "sum by(banned, type) (rate(authelia_authn_second_factor{instance=~\"$instance\", banned=\"true\"}[$__rate_interval]))",
+          "fullMetaSearch": false,
+          "hide": false,
+          "includeNullMetadata": true,
+          "instant": false,
+          "legendFormat": "[{{type}}] banned",
+          "range": true,
+          "refId": "B",
           "useBackend": false
         }
       ],
@@ -1245,8 +1144,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1289,12 +1187,12 @@
           },
           "disableTextWrap": false,
           "editorMode": "builder",
-          "expr": "sum by(endpoint, code) (rate(authelia_request_duration_openid_connect_count{instance=~\"$instance\"}[1h]))",
+          "expr": "sum by(endpoint, code) (rate(authelia_request_duration_openid_connect_count{instance=~\"$instance\"}[$__rate_interval]))",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "instant": false,
           "interval": "",
-          "legendFormat": "[{{code}}] on {{endpoint}}",
+          "legendFormat": "{{method}}[{{code}}] on {{endpoint}}",
           "range": true,
           "refId": "A",
           "useBackend": false
@@ -1310,11 +1208,7 @@
   "templating": {
     "list": [
       {
-        "current": {
-          "selected": false,
-          "text": "prometheus",
-          "value": "cdii5j4hd14w0e"
-        },
+        "current": {},
         "hide": 0,
         "includeAll": false,
         "label": "datasource",
@@ -1362,6 +1256,6 @@
   "timezone": "browser",
   "title": "Authelia",
   "uid": "ddixu7wrrpuyod",
-  "version": 20,
+  "version": 22,
   "weekStart": ""
 }
