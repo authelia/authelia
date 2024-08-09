@@ -115,7 +115,7 @@
     "vite-plugin-checker": "0.7.2",
     "vite-plugin-istanbul": "6.0.2",
     "vite-plugin-svgr": "4.2.0",
-    "vite-tsconfig-paths": "4.3.2",
+    "vite-tsconfig-paths": "5.0.1",
     "vitest": "2.0.5",
     "vitest-preview": "0.0.1"
   }
