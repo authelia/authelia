@@ -10,7 +10,7 @@ overrides:
   '@typescript-eslint/parser': 6.9.0
   '@typescript-eslint/typescript-estree': 6.9.0
   '@typescript-eslint/utils': 6.9.0
-  eslint-plugin-jest: 28.7.0
+  eslint-plugin-jest: 28.8.0
   eslint-plugin-testing-library: 6.2.2
 
 importers:
@@ -2760,8 +2760,8 @@ packages:
       '@typescript-eslint/parser':
         optional: true
 
-  eslint-plugin-jest@28.7.0:
-    resolution: {integrity: sha512-fzPGN7awL2ftVRQh/bsCi+16ArUZWujZnD1b8EGJqy8nr4//7tZ3BIdc/9edcJBtB3hpci3GtdMNFVDwHU0Eag==}
+  eslint-plugin-jest@28.8.0:
+    resolution: {integrity: sha512-Tubj1hooFxCl52G4qQu0edzV/+EZzPUeN8p2NnW5uu4fbDs+Yo7+qDVDc4/oG3FbCqEBmu/OC3LSsyiU22oghw==}
     engines: {node: ^16.10.0 || ^18.12.0 || >=20.0.0}
     peerDependencies:
       '@typescript-eslint/eslint-plugin': 6.9.0
@@ -7578,7 +7578,7 @@ snapshots:
       eslint: 8.57.0
       eslint-plugin-flowtype: 8.0.3(@babel/plugin-syntax-flow@7.21.4(@babel/core@7.24.5))(@babel/plugin-transform-react-jsx@7.21.0(@babel/core@7.24.5))(eslint@8.57.0)
       eslint-plugin-import: 2.29.1(@typescript-eslint/parser@6.9.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@6.9.0(eslint@8.57.0)(typescript@5.5.4))(eslint-plugin-import@2.29.1)(eslint@8.57.0))(eslint@8.57.0)
-      eslint-plugin-jest: 28.7.0(@typescript-eslint/eslint-plugin@6.9.0(@typescript-eslint/parser@6.9.0(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)(typescript@5.5.4)
+      eslint-plugin-jest: 28.8.0(@typescript-eslint/eslint-plugin@6.9.0(@typescript-eslint/parser@6.9.0(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)(typescript@5.5.4)
       eslint-plugin-jsx-a11y: 6.9.0(eslint@8.57.0)
       eslint-plugin-react: 7.35.0(eslint@8.57.0)
       eslint-plugin-react-hooks: 4.6.2(eslint@8.57.0)
@@ -7666,7 +7666,7 @@ snapshots:
       - eslint-import-resolver-webpack
       - supports-color
 
-  eslint-plugin-jest@28.7.0(@typescript-eslint/eslint-plugin@6.9.0(@typescript-eslint/parser@6.9.0(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)(typescript@5.5.4):
+  eslint-plugin-jest@28.8.0(@typescript-eslint/eslint-plugin@6.9.0(@typescript-eslint/parser@6.9.0(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)(typescript@5.5.4):
     dependencies:
       '@typescript-eslint/utils': 6.9.0(eslint@8.57.0)(typescript@5.5.4)
       eslint: 8.57.0
