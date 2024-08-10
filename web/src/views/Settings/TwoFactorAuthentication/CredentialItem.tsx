@@ -7,7 +7,6 @@ import Grid from "@mui/material/Unstable_Grid2/Grid2";
 import { useTranslation } from "react-i18next";
 
 import { useRelativeTime } from "@hooks/RelativeTimeString";
-// import { FormatDateHumanReadable } from "@i18n/formats";
 
 interface Props {
     id: string;
@@ -53,16 +52,12 @@ const CredentialItem = function (props: Props) {
                                 </Typography>
                             </Stack>
                             <Typography variant={"caption"} display={{ xs: "none", sm: "block" }}>
-                                {translate("Added when", {
-                                    when: timeSinceAdded,
-                                })}
+                                {`${translate("Added")} ${timeSinceAdded}`}
                             </Typography>
                             <Typography variant={"caption"} display={{ xs: "none", sm: "block" }}>
                                 {props.last_used_at === undefined
-                                    ? translate("Never used")
-                                    : translate("Last used {{when}}", {
-                                          when: timeSinceLastUsed,
-                                      })}
+                                    ? translate("Never Used")
+                                    : `${translate("Last Used")} ${timeSinceLastUsed}`}
                             </Typography>
                         </Stack>
                     </Grid>

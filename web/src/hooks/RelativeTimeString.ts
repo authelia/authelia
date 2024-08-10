@@ -1,37 +1,84 @@
+/**
+ * @module RelativeTimeString
+ * @description This module provides utilities for generating and updating relative time strings.
+ */
+
 import { useEffect, useState } from "react";
 
-function getRelativeTimeString(date: Date): string {
+import i18next from "i18next";
+
+/**
+ * Time constants in seconds
+ * @constant
+ */
+const ONEMINUTE = 60;
+const ONEHOUR = 3600;
+const ONEDAY = 86400;
+const ONEMONTH = 2592000;
+const ONEYEAR = 31536000;
+
+/**
+ *
+ * @function
+ * @param {Date} date - The date used to compare against the current time.
+ * @returns {string} A human-readable string representing the time since the date specified. Returned in the current browser locale.
+ *
+ * @example
+ * // Returns "2 hours ago" if the date was 2 hours before the current time
+ * const relativeTime = getRelativeTimeString(new Date(Date.now() - 2 * 60 * 60 * 1000));
+ */
+export function getRelativeTimeString(date: Date): string {
     const now = new Date();
     const secondsSinceUse = (now.getTime() - date.getTime()) / 1000;
-    const ONEMINUTE = 60;
-    const ONEHOUR = 3600;
-    const ONEDAY = 86400;
-    const ONEMONTH = 2592000;
-    const ONEYEAR = 31536000;
 
     if (secondsSinceUse < ONEMINUTE) {
-        return "just now";
+        return new Intl.RelativeTimeFormat(i18next.languages, { numeric: "auto" }).format(
+            0 - Math.floor(secondsSinceUse / ONEMINUTE),
+            "seconds",
+        );
     } else if (secondsSinceUse < ONEHOUR) {
-        const minutes = Math.floor(secondsSinceUse / ONEMINUTE);
-        return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+        return new Intl.RelativeTimeFormat(i18next.languages, { numeric: "auto" }).format(
+            0 - Math.floor(secondsSinceUse / ONEMINUTE),
+            "minutes",
+        );
     } else if (secondsSinceUse < ONEDAY) {
-        const hours = Math.floor(secondsSinceUse / ONEHOUR);
-        return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+        return new Intl.RelativeTimeFormat(i18next.languages, { numeric: "auto" }).format(
+            0 - Math.floor(secondsSinceUse / ONEHOUR),
+            "hours",
+        );
     } else if (secondsSinceUse < ONEMONTH) {
-        const days = Math.floor(secondsSinceUse / ONEDAY);
-        return `${days} day${days > 1 ? "s" : ""} ago`;
+        return new Intl.RelativeTimeFormat(i18next.languages, { numeric: "auto" }).format(
+            0 - Math.floor(secondsSinceUse / ONEDAY),
+            "days",
+        );
     } else if (secondsSinceUse < ONEYEAR) {
-        const months = Math.floor(secondsSinceUse / ONEMONTH);
-        return `${months} month${months > 1 ? "s" : ""} ago`;
+        return new Intl.RelativeTimeFormat(i18next.languages, { numeric: "auto" }).format(
+            0 - Math.floor(secondsSinceUse / ONEMONTH),
+            "months",
+        );
     } else if (secondsSinceUse > ONEYEAR) {
-        const years = Math.floor(secondsSinceUse / ONEYEAR);
-        return years === 1 ? "Over a year ago" : `${years} years ago`;
+        return new Intl.RelativeTimeFormat(i18next.languages, { numeric: "auto" }).format(
+            0 - Math.floor(secondsSinceUse / ONEYEAR),
+            "years",
+        );
     } else {
         return "never";
     }
 }
 
-function useRelativeTime(date: Date): string {
+/**
+ *
+ * @function
+ * @param {Date} date - The date to compare against the current time
+ * @returns {string} A human readable string representing the time since the date specified, updated every minute. Returned in the current browser locale.
+ *
+ * @example
+ * function LastLoginTime({ loginDate }){
+ *  const relativeTime = useRelativeTime(loginDate);
+ *  return <span>Last Login: {relativeTime}</span>;
+ * }
+ */
+export function useRelativeTime(date: Date): string {
     const [relativeTime, setRelativeTime] = useState<string>(getRelativeTimeString(date));
 
     useEffect(() => {
@@ -42,5 +89,3 @@ function useRelativeTime(date: Date): string {
     }, [date]);
     return relativeTime;
 }
-
-export { useRelativeTime, getRelativeTimeString };
