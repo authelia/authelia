@@ -441,9 +441,10 @@ func (a *Address) NetworkAddress() string {
 	if a.socket {
 		prefix := ""
 		if a.url.User != nil {
-			// recover prefix @ for abstract socket
+			// recover prefix @ for abstract socket.
 			prefix = "@"
 		}
+
 		return prefix + a.url.Host + a.url.Path
 	}
 
