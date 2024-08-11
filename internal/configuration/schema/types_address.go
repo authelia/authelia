@@ -548,7 +548,7 @@ func (a *Address) validateUnixSocket() (err error) {
 	umask := -1
 
 	switch {
-	case a.url.Path == "" && a.url.Scheme != AddressSchemeLDAPI:
+	case a.url.Path == "" && a.url.Scheme != AddressSchemeLDAPI && a.url.User == nil:
 		return fmt.Errorf("error validating the unix socket address: could not determine path from '%s'", a.url.String())
 	case a.url.Host != "" && (a.url.User == nil || a.url.User.Username() != ""):
 		return fmt.Errorf("error validating the unix socket address: the url '%s' appears to have a host but this is not valid for unix sockets: this may occur if you omit the leading forward slash from the socket path", a.url.String())
