@@ -416,7 +416,12 @@ func (a *Address) SocketHostname() string {
 	}
 
 	if a.socket {
-		return a.url.Path
+		prefix := ""
+		if a.url.User != nil {
+			// recover prefix @ for abstract socket
+			prefix = "@"
+		}
+		return prefix + a.url.Host + a.url.Path
 	}
 
 	return a.url.Hostname()
@@ -439,7 +444,12 @@ func (a *Address) NetworkAddress() string {
 	}
 
 	if a.socket {
-		return a.url.Path
+		prefix := ""
+		if a.url.User != nil {
+			// recover prefix @ for abstract socket
+			prefix = "@"
+		}
+		return prefix + a.url.Host + a.url.Path
 	}
 
 	return a.url.Host
@@ -469,7 +479,7 @@ func (a *Address) validate() (err error) {
 		return fmt.Errorf("error validating the address: the url '%s' appears to have a query but this is not valid for addresses with the '%s' scheme", a.url.String(), a.url.Scheme)
 	case a.url.RawFragment != "", a.url.Fragment != "":
 		return fmt.Errorf("error validating the address: the url '%s' appears to have a fragment but this is not valid for addresses", a.url.String())
-	case a.url.User != nil:
+	case a.url.User != nil && (a.url.Scheme != AddressSchemeUnix || a.url.User.Username() != ""):
 		return fmt.Errorf("error validating the address: the url '%s' appears to have user info but this is not valid for addresses", a.url.String())
 	}
 
@@ -540,7 +550,7 @@ func (a *Address) validateUnixSocket() (err error) {
 	switch {
 	case a.url.Path == "" && a.url.Scheme != AddressSchemeLDAPI:
 		return fmt.Errorf("error validating the unix socket address: could not determine path from '%s'", a.url.String())
-	case a.url.Host != "":
+	case a.url.Host != "" && (a.url.User == nil || a.url.User.Username() != ""):
 		return fmt.Errorf("error validating the unix socket address: the url '%s' appears to have a host but this is not valid for unix sockets: this may occur if you omit the leading forward slash from the socket path", a.url.String())
 	}
 
