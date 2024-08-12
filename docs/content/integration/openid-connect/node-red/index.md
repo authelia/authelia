@@ -43,7 +43,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Mealie] which will
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Node-RED] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -55,7 +55,6 @@ identity_providers:
       - client_id: 'node-red'
         client_name: 'Node-RED'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
-        public: true
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -67,7 +66,7 @@ identity_providers:
           - 'profile'
           - 'groups'
         userinfo_signed_response_alg: 'none'
-        token_endpoint_auth_method: 'none'
+        token_endpoint_auth_method: 'client_secret_basic'
 ```
 
 ### Application
