@@ -925,7 +925,18 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "Crowley723",
+      "name": "Brynn Crowley",
+      "avatar_url": "https://avatars.githubusercontent.com/u/26265198?v=4",
+      "profile": "https://github.com/Crowley723",
+      "contributions": [
+        "doc",
+        "design"
+      ]
     }
   ],
-  "contributorsPerLine": 7
+  "contributorsPerLine": 7,
+  "commitType": "docs"
 }
