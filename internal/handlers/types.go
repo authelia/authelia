@@ -174,6 +174,13 @@ type bodyRequestPasswordResetDELETE struct {
 	Token string `json:"token"`
 }
 
+// changePasswordRequestBody model of the change password request body.
+type changePasswordRequestBody struct {
+	Username    string `json:"username"`
+	OldPassword string `json:"oldPassword"`
+	NewPassword string `json:"newPassword"`
+}
+
 // PasswordPolicyBody represents the response sent by the password reset step 2.
 type PasswordPolicyBody struct {
 	Mode             string `json:"mode"`
