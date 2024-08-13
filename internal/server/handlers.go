@@ -268,6 +268,14 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 		r.DELETE("/api/reset-password", middlewareAPI(resetPasswordTokenRL(handlers.ResetPasswordDELETE)))
 	}
 
+	// TODO(Brynn Crowley): implement configuration for password change -- allow admins to disable password change
+	// Priority: Low
+	// Issue: https://github.com/authelia/authelia/issues/3548
+	r.POST("/api/change-password/identity/start", middlewareElevated1FA(handlers.ChangePasswordPOST))
+	r.POST("/api/change-password/identity/finish", middlewareElevated1FA(handlers.ChangePasswordPOST))
+
+	r.POST("/api/change-password", middlewareElevated1FA(handlers.ChangePasswordPOST))
+
 	// Information about the user.
 	r.GET("/api/user/info", middleware1FA(handlers.UserInfoGET))
 	r.POST("/api/user/info", middleware1FA(handlers.UserInfoPOST))
