@@ -320,6 +320,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/n4m3l3ss-b0t"><img src="https://avatars.githubusercontent.com/u/1162710?v=4?s=100" width="100px;" alt="Ricardo Pesqueira"/><br /><sub><b>Ricardo Pesqueira</b></sub></a><br /><a href="#security-n4m3l3ss-b0t" title="Security">🛡️</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/HaroldVB"><img src="https://avatars.githubusercontent.com/u/73724671?v=4?s=100" width="100px;" alt="Harold"/><br /><sub><b>Harold</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=HaroldVB" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Crowley723"><img src="https://avatars.githubusercontent.com/u/26265198?v=4?s=100" width="100px;" alt="Brynn Crowley"/><br /><sub><b>Brynn Crowley</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=Crowley723" title="Documentation">📖</a> <a href="#design-Crowley723" title="Design">🎨</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://budimanjojo.com"><img src="https://avatars.githubusercontent.com/u/13085918?v=4?s=100" width="100px;" alt="Budiman Jojo"/><br /><sub><b>Budiman Jojo</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=budimanjojo" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>
