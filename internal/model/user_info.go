@@ -9,6 +9,9 @@ type UserInfo struct {
 	// The users display name.
 	DisplayName string `db:"-" json:"display_name"`
 
+	// The users email address.
+	Emails []string `db:"-" json:"emails"`
+
 	// The preferred 2FA method.
 	Method string `db:"second_factor_method" json:"method" valid:"required"`
 

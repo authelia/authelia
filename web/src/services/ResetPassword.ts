@@ -1,8 +1,8 @@
 import axios from "axios";
 
 import {
-    CompleteResetPasswordPath,
     ErrorResponse,
+    IdentityVerification,
     InitiateResetPasswordPath,
     OKResponse,
     ResetPasswordPath,
