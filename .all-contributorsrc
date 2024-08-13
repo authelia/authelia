@@ -935,6 +935,15 @@
         "doc",
         "design"
       ]
+    },
+    {
+      "login": "budimanjojo",
+      "name": "Budiman Jojo",
+      "avatar_url": "https://avatars.githubusercontent.com/u/13085918?v=4",
+      "profile": "https://budimanjojo.com",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
