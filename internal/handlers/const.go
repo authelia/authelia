@@ -69,6 +69,8 @@ const (
 	messageUnableToRegisterSecurityKey           = "Unable to register your security key."
 	messageSecurityKeyDuplicateName              = "Another one of your security keys is already registered with that display name."
 	messageUnableToResetPassword                 = "Unable to reset your password."
+	messageUnableToChangePassword                = "Unable to change your password."
+	messageIncorrectPassword                     = "Incorrect Password"
 	messageMFAValidationFailed                   = "Authentication failed, please retry later."
 	messagePasswordWeak                          = "Your supplied password does not meet the password policy requirements."
 )

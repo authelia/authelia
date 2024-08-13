@@ -258,12 +258,20 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	if !config.AuthenticationBackend.PasswordReset.Disable &&
 		config.AuthenticationBackend.PasswordReset.CustomURL.String() == "" {
 		// Password reset related endpoints.
-		r.POST("/api/reset-password/identity/start", middlewareAPI(handlers.ResetPasswordIdentityStart))
-		r.POST("/api/reset-password/identity/finish", middlewareAPI(handlers.ResetPasswordIdentityFinish))
+		r.POST("/api/reset-password/identity/start", middlewareAPI(handlers.ResetPasswordIdentityVerificationStart))
+		r.POST("/api/reset-password/identity/finish", middlewareAPI(handlers.ResetPasswordIdentityVerificationFinish))
 
 		r.POST("/api/reset-password", middlewareAPI(handlers.ResetPasswordPOST))
 		r.DELETE("/api/reset-password", middlewareAPI(handlers.ResetPasswordDELETE))
 	}
+
+	// TODO(Brynn Crowley): implement configuration for password change -- allow admins to disable password change
+	// Priority: Low
+	// Issue: https://github.com/authelia/authelia/issues/3548
+	r.POST("/api/change-password/identity/start", middlewareElevated1FA(handlers.ChangePasswordPOST))
+	r.POST("/api/change-password/identity/finish", middlewareElevated1FA(handlers.ChangePasswordPOST))
+
+	r.POST("/api/change-password", middlewareElevated1FA(handlers.ChangePasswordPOST))
 
 	// Information about the user.
 	r.GET("/api/user/info", middleware1FA(handlers.UserInfoGET))
