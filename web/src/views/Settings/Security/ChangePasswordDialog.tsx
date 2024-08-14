@@ -251,7 +251,7 @@ const ChangePasswordDialog = (props: Props) => {
                                 onBlur={() => setIsCapsLockOnOldPW(false)}
                             />
                         </Grid>
-                        <Grid xs={12} sx={{ py: 2, mt: 2 }}>
+                        <Grid xs={12} sx={{ mt: 3 }}>
                             <TextField
                                 inputRef={newPasswordRef}
                                 id="new-password"
@@ -295,7 +295,7 @@ const ChangePasswordDialog = (props: Props) => {
                                 autoComplete="none"
                                 onKeyDown={handleRepeatNewPWKeyDown}
                                 onKeyUp={checkCapsLockRepeatNewPW}
-                                helperText={isCapsLockOnRepeatNewPW ? translate("Caps Lock is on") : " "}
+                                helperText={isCapsLockOnRepeatNewPW ? translate("Caps Lock is ON") : " "}
                                 color={isCapsLockOnRepeatNewPW ? "error" : "primary"}
                                 onBlur={() => setIsCapsLockOnRepeatNewPW(false)}
                             />
