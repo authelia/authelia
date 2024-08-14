@@ -238,11 +238,31 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 	userPasswordOk, err := p.CheckUserPassword(username, oldPassword)
 
 	if err != nil {
-		return fmt.Errorf("error checking user passwordL %w", err)
+		if strings.Contains(err.Error(), "authentication failed") {
+			userPasswordOk = false
+		} else {
+			return err
+		}
 	}
 
 	if !userPasswordOk {
-		return fmt.Errorf("incorrect password")
+		return ErrIncorrectPassword
+	}
+
+	newPasswordIsSame, err := p.CheckUserPassword(username, newPassword) //nolint:ineffassign,staticcheck
+
+	if err != nil {
+		if strings.Contains(err.Error(), "authentication failed") {
+			newPasswordIsSame = false
+		} else {
+			return err
+		}
+	} else {
+		newPasswordIsSame = true
+	}
+
+	if newPasswordIsSame {
+		return ErrReusePassword
 	}
 
 	switch {
