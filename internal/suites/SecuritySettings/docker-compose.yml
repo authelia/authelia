@@ -1,0 +1,8 @@
+---
+services:
+  authelia-backend:
+    volumes:
+      - './SecuritySettings/configuration.yml:/config/configuration.yml'
+      - './SecuritySettings/users.yml:/config/users.yml'
+      - './common/pki:/pki'
+...

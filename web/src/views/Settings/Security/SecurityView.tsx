@@ -207,8 +207,13 @@ const SettingsView = function (props: Props) {
                             >
                                 <Typography>{translate("Password")}: ●●●●●●●●</Typography>
                             </Box>
-                            <Button variant="contained" sx={{ p: 1, width: "100%" }} onClick={handleChangePassword}>
-                                {translate("Reset Password")}
+                            <Button
+                                id="change-password-button"
+                                variant="contained"
+                                sx={{ p: 1, width: "100%" }}
+                                onClick={handleChangePassword}
+                            >
+                                {translate("Change Password")}
                             </Button>
                         </Box>
                     </Stack>
