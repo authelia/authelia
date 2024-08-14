@@ -238,7 +238,7 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 	userPasswordOk, err := p.CheckUserPassword(username, oldPassword)
 
 	if err != nil {
-		if strings.Contains(err.Error(), "authentication failed") {
+		if strings.Contains(err.Error(), ErrIncorrectPassword.Error()) {
 			userPasswordOk = false
 		} else {
 			return err
@@ -249,20 +249,8 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 		return ErrIncorrectPassword
 	}
 
-	newPasswordIsSame, err := p.CheckUserPassword(username, newPassword) //nolint:ineffassign,staticcheck
-
-	if err != nil {
-		if strings.Contains(err.Error(), "authentication failed") {
-			newPasswordIsSame = false
-		} else {
-			return err
-		}
-	} else {
-		newPasswordIsSame = true
-	}
-
-	if newPasswordIsSame {
-		return ErrReusePassword
+	if oldPassword == newPassword {
+		return ErrPasswordReuse
 	}
 
 	switch {
@@ -290,7 +278,7 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 	}
 
 	if err != nil {
-		return fmt.Errorf("unable to update password. Cause: %w", err)
+		return fmt.Errorf("unable to update password for user '%s'. Cause: %w", username, err)
 	}
 
 	return nil
