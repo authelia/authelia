@@ -19,7 +19,7 @@ users:
         groups: []
         disabled: false
     john:
-        password: $argon2id$v=19$m=65536,t=3,p=4$o33e+4mBAkPRtXmSSCglgA$8xDoawYIzgqeiF6PzEv/HjEEar2TW1IeikfhYI3ObjQ
+        password: $6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
         displayname: John Doe
         email: john.doe@authelia.com
         groups:
