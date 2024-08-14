@@ -134,12 +134,12 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 	// Those checks unsure that the identity verification process has been initiated and completed successfully
 	// otherwise PasswordReset would not be set to true. We can improve the security of this check by making the
 	// request expire at some point because here it only expires when the cookie expires.
-	if userSession.IdentityVerificationUsername == nil {
+	if userSession.PasswordResetUsername == nil {
 		ctx.Error(fmt.Errorf("no identity verification process has been initiated"), messageUnableToResetPassword)
 		return
 	}
 
-	username := *userSession.IdentityVerificationUsername
+	username := *userSession.PasswordResetUsername
 
 	var requestBody resetPasswordStep2RequestBody
 
@@ -168,7 +168,7 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 	ctx.Logger.Debugf("Password of user %s has been reset", username)
 
 	// Reset the request.
-	userSession.IdentityVerificationUsername = nil
+	userSession.PasswordResetUsername = nil
 
 	if err = ctx.SaveSession(userSession); err != nil {
 		ctx.Error(fmt.Errorf("unable to update password reset state: %w", err), messageOperationFailed)
@@ -267,7 +267,7 @@ func resetPasswordIdentityVerificationFinish(ctx *middlewares.AutheliaCtx, usern
 		return
 	}
 
-	userSession.IdentityVerificationUsername = &username
+	userSession.PasswordResetUsername = &username
 
 	if err = ctx.SaveSession(userSession); err != nil {
 		ctx.Logger.WithError(err).Errorf("Unable to clear password reset flag in session for user '%s'", userSession.Username)

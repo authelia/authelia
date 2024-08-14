@@ -114,17 +114,26 @@ const ChangePasswordDialog = (props: Props) => {
             createSuccessNotification(translate("Password has been reset"));
             handleClose();
         } catch (err) {
-            console.error(err);
+            setOldPasswordError(false);
+            setNewPasswordError(false);
+            setRepeatNewPasswordError(false);
             if ((err as Error).message.includes("0000052D.")) {
+                setNewPasswordError(true);
+                setRepeatNewPasswordError(true);
                 createErrorNotification(
                     translate("Your supplied password does not meet the password policy requirements"),
                 );
             } else if ((err as Error).message.includes("policy")) {
+                setNewPasswordError(true);
+                setRepeatNewPasswordError(true);
                 createErrorNotification(
                     translate("Your supplied password does not meet the password policy requirements"),
                 );
             } else if ((err as Error).message.includes("Incorrect")) {
+                setOldPasswordError(true);
                 createErrorNotification(translate("Incorrect password"));
+            } else if ((err as Error).message.includes("reuse")) {
+                createErrorNotification(translate("You cannot reuse your old password"));
             } else {
                 createErrorNotification(translate("There was an issue changing the password"));
             }
@@ -242,7 +251,7 @@ const ChangePasswordDialog = (props: Props) => {
                                 onBlur={() => setIsCapsLockOnOldPW(false)}
                             />
                         </Grid>
-                        <Grid xs={12} sx={{ py: 2, mt: 4 }}>
+                        <Grid xs={12} sx={{ py: 2, mt: 2 }}>
                             <TextField
                                 inputRef={newPasswordRef}
                                 id="new-password-textfield"
