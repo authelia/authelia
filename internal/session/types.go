@@ -42,7 +42,7 @@ type UserSession struct {
 
 	// This boolean is set to true after identity verification and checked
 	// while doing the query actually updating the password.
-	IdentityVerificationUsername *string
+	PasswordResetUsername *string
 
 	RefreshTTL time.Time
 
