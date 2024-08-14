@@ -111,7 +111,7 @@ const ChangePasswordDialog = (props: Props) => {
 
         try {
             await postPasswordChange(props.username, oldPassword, newPassword);
-            createSuccessNotification(translate("Password has been reset"));
+            createSuccessNotification(translate("Password changed successfully"));
             handleClose();
         } catch (err) {
             setOldPasswordError(false);
@@ -254,7 +254,7 @@ const ChangePasswordDialog = (props: Props) => {
                         <Grid xs={12} sx={{ py: 2, mt: 2 }}>
                             <TextField
                                 inputRef={newPasswordRef}
-                                id="new-password-textfield"
+                                id="new-password"
                                 label={translate("New Password")}
                                 variant="outlined"
                                 required
@@ -280,7 +280,7 @@ const ChangePasswordDialog = (props: Props) => {
                         <Grid xs={12}>
                             <TextField
                                 inputRef={repeatNewPasswordRef}
-                                id="repeat-new-password-textfield"
+                                id="repeat-new-password"
                                 label={translate("Repeat New Password")}
                                 variant="outlined"
                                 required
@@ -304,11 +304,11 @@ const ChangePasswordDialog = (props: Props) => {
                 </FormControl>
             </DialogContent>
             <DialogActions>
-                <Button id={"dialog-cancel"} color={"error"} onClick={handleClose}>
+                <Button id={"password-change-dialog-cancel"} color={"error"} onClick={handleClose}>
                     {translate("Cancel")}
                 </Button>
                 <Button
-                    id={"dialog-submit"}
+                    id={"password-change-dialog-submit"}
                     color={"primary"}
                     onClick={handlePasswordChange}
                     disabled={!(oldPassword.length && newPassword.length && repeatNewPassword.length)}
