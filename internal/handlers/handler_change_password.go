@@ -31,13 +31,13 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 
 	tempUsername := userSession.Username
 
-	userSession.IdentityVerificationUsername = &tempUsername
+	userSession.PasswordResetUsername = &tempUsername
 
-	if userSession.IdentityVerificationUsername == nil {
+	if userSession.PasswordResetUsername == nil {
 		ctx.Error(fmt.Errorf("elevated session required for password change"), messageUnableToChangePassword)
 	}
 
-	username := *userSession.IdentityVerificationUsername
+	username := *userSession.PasswordResetUsername
 
 	var requestBody changePasswordRequestBody
 
@@ -54,13 +54,14 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	if err = ctx.Providers.UserProvider.ChangePassword(username, requestBody.OldPassword, requestBody.NewPassword); err != nil {
 		switch {
 		case strings.Contains(err.Error(), "incorrect password"):
-			ctx.Logger.WithError(err).Error(ErrIncorrectPassword)
 			ctx.Error(err, messageIncorrectPassword)
+		case strings.Contains(err.Error(), "cannot reuse"):
+			ctx.Error(err, messageCannotReusePassword)
 		case utils.IsStringInSliceContains(err.Error(), ldapPasswordComplexityCodes),
 			utils.IsStringInSliceContains(err.Error(), ldapPasswordComplexityErrors):
 			ctx.Error(err, ldapPasswordComplexityCode)
 		default:
-			ctx.Logger.WithError(err).Error(messageUnableToChangePassword)
+			ctx.Error(err, messageUnableToChangePassword)
 		}
 
 		return
@@ -69,7 +70,7 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	ctx.Logger.Debugf("Password of user %s has been changed", username)
 
 	// Reset the request.
-	userSession.IdentityVerificationUsername = nil
+	userSession.PasswordResetUsername = nil
 
 	if err = ctx.SaveSession(userSession); err != nil {
 		ctx.Error(fmt.Errorf("unable to update password reset state: %w", err), messageOperationFailed)

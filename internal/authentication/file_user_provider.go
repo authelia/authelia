@@ -159,7 +159,7 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (
 	return nil
 }
 
-func (p *FileUserProvider) ChangePassword(username string, password string, newPassword string) (err error) {
+func (p *FileUserProvider) ChangePassword(username string, oldPassword string, newPassword string) (err error) {
 	var details FileUserDatabaseUserDetails
 
 	logging.Logger().Infof("Attempting to change password for user: %s", username)
@@ -172,7 +172,7 @@ func (p *FileUserProvider) ChangePassword(username string, password string, newP
 		return ErrUserNotFound
 	}
 
-	oldPasswordCorrect, err := p.CheckUserPassword(username, password)
+	oldPasswordCorrect, err := p.CheckUserPassword(username, oldPassword)
 
 	if err != nil {
 		return err
@@ -180,6 +180,16 @@ func (p *FileUserProvider) ChangePassword(username string, password string, newP
 
 	if !oldPasswordCorrect {
 		return ErrIncorrectPassword
+	}
+
+	newPasswordIsSame, err := p.CheckUserPassword(username, newPassword)
+
+	if err != nil {
+		return err
+	}
+
+	if newPasswordIsSame {
+		return ErrReusePassword
 	}
 
 	var digest algorithm.Digest
