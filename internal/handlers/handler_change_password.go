@@ -11,7 +11,9 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+// these are redefined in /internal/authentication/const.go.
 var ErrIncorrectPassword = errors.New("incorrect password")
+var ErrReusePassword = errors.New("you cannot reuse your old password")
 
 type ErrorResponse struct {
 	Message string `json:"message"`
@@ -53,9 +55,9 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 
 	if err = ctx.Providers.UserProvider.ChangePassword(username, requestBody.OldPassword, requestBody.NewPassword); err != nil {
 		switch {
-		case strings.Contains(err.Error(), "incorrect password"):
+		case strings.Contains(err.Error(), ErrIncorrectPassword.Error()):
 			ctx.Error(err, messageIncorrectPassword)
-		case strings.Contains(err.Error(), "cannot reuse"):
+		case strings.Contains(err.Error(), ErrReusePassword.Error()):
 			ctx.Error(err, messageCannotReusePassword)
 		case utils.IsStringInSliceContains(err.Error(), ldapPasswordComplexityCodes),
 			utils.IsStringInSliceContains(err.Error(), ldapPasswordComplexityErrors):
@@ -67,7 +69,7 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	ctx.Logger.Debugf("Password of user %s has been changed", username)
+	ctx.Logger.Debugf("User %s has changed their password", username)
 
 	// Reset the request.
 	userSession.PasswordResetUsername = nil

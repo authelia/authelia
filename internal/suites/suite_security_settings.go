@@ -53,7 +53,6 @@ func init() {
 		TearDown:        teardown,
 		TestTimeout:     4 * time.Minute,
 		TearDownTimeout: 2 * time.Minute,
-		Description: `This suite is used to test Authelia in a password change
-		configuration with in-memory sessions and a local sqlite db stored on disk`,
+		Description:     `Tests Authelia's password change feature with in-memory sessions and a local SQLite DB.`,
 	})
 }

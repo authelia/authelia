@@ -10,7 +10,7 @@ import IdentityVerificationDialog from "@views/Settings/Common/IdentityVerificat
 import SecondFactorDialog from "@views/Settings/Common/SecondFactorDialog";
 import ChangePasswordDialog from "@views/Settings/Security/ChangePasswordDialog";
 
-export interface Props {}
+export type Props = {};
 
 const SettingsView = function (props: Props) {
     const { t: translate } = useTranslation("settings");
@@ -117,8 +117,6 @@ const SettingsView = function (props: Props) {
     useEffect(() => {
         fetchUserInfo();
     }, [fetchUserInfo]);
-
-    //console.log(userInfo);
 
     return (
         <Fragment>
