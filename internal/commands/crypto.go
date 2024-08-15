@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	"net/url"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -53,6 +54,9 @@ func newCryptoRandCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd.Flags().StringP(cmdFlagNameCharSet, "x", cmdFlagValueCharSet, cmdFlagUsageCharset)
 	cmd.Flags().String(cmdFlagNameCharacters, "", cmdFlagUsageCharacters)
 	cmd.Flags().IntP(cmdFlagNameLength, "n", 72, cmdFlagUsageLength)
+	cmd.Flags().BoolP(cmdFlagNameQuiet, "q", false, cmdFlagUsageQuiet)
+	cmd.Flags().StringP(cmdFlagNameOutputFile, "o", "", cmdFlagUsageOutputFile)
+	cmd.Flags().StringP(cmdFlagNameDirectory, "d", "", cmdFlagUsageDirectory)
 
 	return cmd
 }
@@ -246,17 +250,45 @@ func newCryptoGenerateCmd(ctx *CmdCtx, category, algorithm string) (cmd *cobra.C
 // CryptoRandRunE is the RunE for the authelia crypto rand command.
 func (ctx *CmdCtx) CryptoRandRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
-		random string
+		random     string
+		quiet      bool
+		outputPath string
 	)
 
 	if random, err = flagsGetRandomCharacters(cmd.Flags(), cmdFlagNameLength, cmdFlagNameCharSet, cmdFlagNameCharacters); err != nil {
 		return err
 	}
 
-	fmt.Printf("Random Value: %s\n", random)
+	quiet, _ = cmd.Flags().GetBool(cmdFlagNameQuiet)
 
-	if value := url.QueryEscape(random); random != value {
-		fmt.Printf("Random Value (URL Encoded): %s\n", value)
+	if outputPath, err = flagsGetFilePath(cmd.Flags(), cmdFlagNameOutputFile, cmdFlagNameDirectory); err != nil {
+		return fmt.Errorf("error getting output file path: %v", err)
+	}
+
+	if outputPath != "" {
+		dir := filepath.Dir(outputPath)
+
+		if err = os.MkdirAll(dir, 0755); err != nil {
+			return fmt.Errorf("failed to create output directory: %v", err)
+		}
+
+		if err = os.WriteFile(outputPath, []byte(random), 0600); err != nil {
+			return fmt.Errorf("failed to write random value to file: %v", err)
+		}
+
+		if !quiet {
+			fmt.Printf("Random value written to file: %s\n", outputPath)
+		}
+	} else {
+		if !quiet {
+			fmt.Printf("Random Value: %s\n", random)
+
+			if value := url.QueryEscape(random); random != value {
+				fmt.Printf("Random Value (URL Encoded): %s\n", value)
+			}
+		} else {
+			fmt.Println(random)
+		}
 	}
 
 	return nil
