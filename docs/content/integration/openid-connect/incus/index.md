@@ -85,3 +85,4 @@ To configure [Incus] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 [Authelia]: https://www.authelia.com
 [Incus]: https://github.com/lxc/incus
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
