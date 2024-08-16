@@ -132,7 +132,7 @@ const SettingsLayout = function (props: Props) {
                     {drawer}
                 </SwipeableDrawer>
             </Box>
-            <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+            <Box component="main" sx={{ flexGrow: 1, p: { xs: 0, sm: 3 } }}>
                 <Toolbar />
                 {props.children}
             </Box>

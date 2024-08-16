@@ -142,7 +142,6 @@ const SettingsView = function (props: Props) {
             />
 
             <Container
-                maxWidth="md"
                 sx={{
                     display: "flex",
                     justifyContent: "center",
@@ -157,12 +156,11 @@ const SettingsView = function (props: Props) {
                         display: "flex",
                         justifyContent: "center",
                         alignItems: "center",
-
                         height: "auto",
                     }}
                 >
                     <Stack spacing={2} sx={{ m: 2, width: "100%" }}>
-                        <Box sx={{ p: 5 }}>
+                        <Box sx={{ p: { xs: 1, md: 3 } }}>
                             <Box
                                 sx={{
                                     width: "100%",
