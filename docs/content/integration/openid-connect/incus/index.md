@@ -64,7 +64,7 @@ identity_providers:
         grant_types:
           - 'refresh_token'
           - 'authorization_code'
-        access_token_signed_response_alg: RS256
+        access_token_signed_response_alg: 'RS256'
         userinfo_signed_response_alg: 'none'
 ```
 
@@ -73,10 +73,20 @@ identity_providers:
 To configure [Incus] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 1. Make sure Web Interface is configured and accessible from `https://incus.{{< sitevar name="domain" nojs="example.com" >}}/`.
-2. Set `oidc.client.id` to match the `client_id` in Authelia: `incus config set oidc.client.id incus`.
-3. Set `oidc.audience` to match the `audience` in Authelia: `incus config set oidc.audience https://incus.{{< sitevar name="domain" nojs="example.com" >}}`.
-4. Set `oidc.issuer` to match Authelia root URL: `incus config set oidc.issuer https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`.
-5. You should now see a "Login with SSO" button when you access Incus Web Interface.
+2. Set the following configuration options, either via individual commands as shown below or via the `incus config edit` command:
+   1. Set `oidc.issuer` to match the Authelia Root URL: `incus config set oidc.issuer https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`.
+   2. Set `oidc.client.id` to match the `client_id` in the Authelia configuration: `incus config set oidc.client.id incus`.
+   3. Set `oidc.audience` to match the Application Root URL: `incus config set oidc.audience https://incus.{{< sitevar name="domain" nojs="example.com" >}}`.
+3. You should now see a `Login with SSO` button when you access [Incus] Web Interface.
+
+Example finalized config which can be viewed using `incus config show`:
+
+```yaml
+config:
+  oidc.issuer: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
+  oidc.client.id: incus
+  oidc.audience: https://incus.{{< sitevar name="domain" nojs="example.com" >}}
+```
 
 ## See Also
 
