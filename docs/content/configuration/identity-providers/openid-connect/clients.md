@@ -459,7 +459,7 @@ calculated in the issuer [jwks] section.
 _**Note:** This value is completely ignored if the [access_token_signed_response_key_id](#access_token_signed_response_key_id)
 is defined._
 
-The algorithm used to sign the ID Tokens in the token responses.
+The algorithm used to sign the JWT Access Tokens in the token responses.
 
 See the response object section of the
 [integration guide](../../../integration/openid-connect/introduction.md#response-object) for more information including
