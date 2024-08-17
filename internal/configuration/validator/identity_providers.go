@@ -3,6 +3,7 @@ package validator
 import (
 	"crypto/ecdsa"
 	"crypto/rsa"
+	"errors"
 	"fmt"
 	"net/url"
 	"sort"
@@ -35,7 +36,7 @@ func validateOIDC(ctx *ValidateCtx, config *schema.IdentityProvidersOpenIDConnec
 
 	switch {
 	case config.MinimumParameterEntropy == -1:
-		validator.PushWarning(fmt.Errorf(errFmtOIDCProviderInsecureDisabledParameterEntropy))
+		validator.PushWarning(errors.New(errFmtOIDCProviderInsecureDisabledParameterEntropy))
 	case config.MinimumParameterEntropy <= 0:
 		config.MinimumParameterEntropy = oauthelia2.MinParameterEntropy
 	case config.MinimumParameterEntropy < oauthelia2.MinParameterEntropy:
@@ -52,7 +53,7 @@ func validateOIDC(ctx *ValidateCtx, config *schema.IdentityProvidersOpenIDConnec
 	validateOIDCOptionsCORS(config, validator)
 
 	if len(config.Clients) == 0 {
-		validator.Push(fmt.Errorf(errFmtOIDCProviderNoClientsConfigured))
+		validator.Push(errors.New(errFmtOIDCProviderNoClientsConfigured))
 	} else {
 		validateOIDCClients(ctx, config, validator)
 	}
@@ -66,7 +67,7 @@ func validateOIDCAuthorizationPolicies(config *schema.IdentityProvidersOpenIDCon
 
 		switch name {
 		case "":
-			validator.Push(fmt.Errorf(errFmtOIDCPolicyInvalidName))
+			validator.Push(errors.New(errFmtOIDCPolicyInvalidName))
 
 			add = false
 		case policyOneFactor, policyTwoFactor, policyDeny:
@@ -129,7 +130,7 @@ func validateOIDCIssuer(config *schema.IdentityProvidersOpenIDConnect, validator
 		validateOIDCIssuerJSONWebKeys(config, validator)
 		validateOIDDIssuerSigningAlgsDiscovery(config, validator)
 	default:
-		validator.Push(fmt.Errorf(errFmtOIDCProviderNoPrivateKey))
+		validator.Push(errors.New(errFmtOIDCProviderNoPrivateKey))
 	}
 }
 
@@ -316,11 +317,11 @@ func validateOIDCOptionsCORSAllowedOrigins(config *schema.IdentityProvidersOpenI
 	for _, origin := range config.CORS.AllowedOrigins {
 		if origin.String() == "*" {
 			if len(config.CORS.AllowedOrigins) != 1 {
-				validator.Push(fmt.Errorf(errFmtOIDCCORSInvalidOriginWildcard))
+				validator.Push(errors.New(errFmtOIDCCORSInvalidOriginWildcard))
 			}
 
 			if config.CORS.AllowedOriginsFromClientRedirectURIs {
-				validator.Push(fmt.Errorf(errFmtOIDCCORSInvalidOriginWildcardWithClients))
+				validator.Push(errors.New(errFmtOIDCCORSInvalidOriginWildcardWithClients))
 			}
 
 			continue
@@ -400,7 +401,7 @@ func validateOIDCClients(ctx *ValidateCtx, config *schema.IdentityProvidersOpenI
 	}
 
 	if errDeprecated {
-		validator.PushWarning(fmt.Errorf(errFmtOIDCClientsDeprecated))
+		validator.PushWarning(errors.New(errFmtOIDCClientsDeprecated))
 	}
 
 	if len(blankClientIDs) != 0 {

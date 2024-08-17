@@ -884,7 +884,7 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldSetDefaultTLSMinimumVersi
 
 func (suite *LDAPAuthenticationBackendSuite) TestShouldNotAllowSSL30() {
 	suite.config.LDAP.TLS = &schema.TLS{
-		MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
+		MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30},
 	}
 
 	ValidateAuthenticationBackend(&suite.config, suite.validator)

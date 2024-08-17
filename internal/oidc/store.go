@@ -122,7 +122,7 @@ func (s *Store) ClientAssertionJWTValid(ctx context.Context, jti string) (err er
 	blacklistedJTI, err := s.provider.LoadOAuth2BlacklistedJTI(ctx, signature)
 
 	switch {
-	case errors.Is(sql.ErrNoRows, err):
+	case errors.Is(err, sql.ErrNoRows):
 		return nil
 	case err != nil:
 		return err
