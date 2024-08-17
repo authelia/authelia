@@ -1,13 +1,14 @@
-A ONE-TIME CODE HAS BEEN GENERATED FOR SESSION ELEVATION
-
-{{ .Title }}
+A ONE-TIME CODE HAS BEEN GENERATED TO COMPLETE A REQUESTED ACTION
 
 Hi {{ .DisplayName }},
 
-This notification has been sent to you in order to elevate your session
-sufficiently to change security details for your account. Do not share this
-notification or the content of this notification with anyone. The following
-one-time code should be used in the prompt displayed in your browser.
+This notification has been sent to you in order to verify your identity to
+change security details for your account.
+
+Do not share this notification or the content of this notification with anyone.
+
+The following one-time code should only be used in the prompt displayed in your
+browser.
 
 --------------------------------------------------------------------------------
 

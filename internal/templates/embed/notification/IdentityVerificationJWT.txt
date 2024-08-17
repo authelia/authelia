@@ -1,30 +1,34 @@
-A SINGLE-USE CODE HAS BEEN GENERATED FOR SESSION ELEVATION
-
-{{ .Title }}
+A ONE-TIME LINK HAS BEEN GENERATED TO COMPLETE A REQUESTED ACTION
 
 Hi {{ .DisplayName }},
 
-This notification has been sent to you in order to confirm you want to complete
-an action. This action is security of your account and should not be clicked
-unless you intended to perform this action. Do not share this notification or
-the content of this notification with anyone. The following one-time link should
-be used to complete the action.
+We would like to confirm a requested action related to the security of your
+account at EXAMPLE.COM.
+
+Do not share this notification or the content of this notification with anyone.
+
+
 
 --------------------------------------------------------------------------------
+
+If you made this request, click the validation link below.
 
 {{ .LinkText }} {{ .LinkURL }}
 
-To proceed with the action confirmation click the above button or alternatively
-copy and paste this URL into your browser:
+Alternatively, copy and paste this URL into your browser:
 
 {{ .LinkURL }} {{ .LinkURL }}
 
+
+
 --------------------------------------------------------------------------------
 
-If you did not initiate the process your credentials may have been compromised
+If you did NOT initiate this request, your credentials may have been compromised
 and you should:
 
- 1. Revoke this validation link using the provided links below
+
+
+ 1. Revoke the validation link using the provided links below
  2. Reset your password or other login credentials
  3. Contact an Administrator
 
