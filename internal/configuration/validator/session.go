@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"path"
@@ -53,12 +54,12 @@ func validateSession(config *schema.Configuration, validator *schema.StructValid
 	n := len(config.Session.Domain) //nolint:staticcheck
 
 	if cookies != 0 && config.DefaultRedirectionURL != nil { //nolint:staticcheck
-		validator.Push(fmt.Errorf(errFmtSessionLegacyRedirectionURL))
+		validator.Push(errors.New(errFmtSessionLegacyRedirectionURL))
 	}
 
 	switch {
 	case cookies == 0 && n != 0:
-		validator.PushWarning(fmt.Errorf(errFmtSessionDomainLegacy))
+		validator.PushWarning(errors.New(errFmtSessionDomainLegacy))
 		// Add legacy configuration to the domains list.
 		config.Session.Cookies = append(config.Session.Cookies, schema.SessionCookie{
 			SessionCookieCommon: schema.SessionCookieCommon{
@@ -74,7 +75,7 @@ func validateSession(config *schema.Configuration, validator *schema.StructValid
 			Legacy:                true,
 		})
 	case cookies != 0 && n != 0:
-		validator.Push(fmt.Errorf(errFmtSessionLegacyAndWarning))
+		validator.Push(errors.New(errFmtSessionLegacyAndWarning))
 	}
 
 	validateSessionCookieDomains(&config.Session, validator)
@@ -265,7 +266,7 @@ func validateRedisCommon(config *schema.Session, validator *schema.StructValidat
 
 func validateRedis(config *schema.Session, validator *schema.StructValidator) {
 	if config.Redis.Host == "" {
-		validator.Push(fmt.Errorf(errFmtSessionRedisHostRequired))
+		validator.Push(errors.New(errFmtSessionRedisHostRequired))
 	}
 
 	validateRedisCommon(config, validator)
@@ -285,7 +286,7 @@ func validateRedis(config *schema.Session, validator *schema.StructValidator) {
 
 func validateRedisSentinel(config *schema.Session, validator *schema.StructValidator) {
 	if config.Redis.HighAvailability.SentinelName == "" {
-		validator.Push(fmt.Errorf(errFmtSessionRedisSentinelMissingName))
+		validator.Push(errors.New(errFmtSessionRedisSentinelMissingName))
 	}
 
 	if config.Redis.Port == 0 {
@@ -295,7 +296,7 @@ func validateRedisSentinel(config *schema.Session, validator *schema.StructValid
 	}
 
 	if config.Redis.Host == "" && len(config.Redis.HighAvailability.Nodes) == 0 {
-		validator.Push(fmt.Errorf(errFmtSessionRedisHostOrNodesRequired))
+		validator.Push(errors.New(errFmtSessionRedisHostOrNodesRequired))
 	}
 
 	validateRedisCommon(config, validator)
@@ -313,6 +314,6 @@ func validateRedisSentinel(config *schema.Session, validator *schema.StructValid
 	}
 
 	if hostMissing {
-		validator.Push(fmt.Errorf(errFmtSessionRedisSentinelNodeHostMissing))
+		validator.Push(errors.New(errFmtSessionRedisSentinelNodeHostMissing))
 	}
 }

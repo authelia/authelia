@@ -73,7 +73,7 @@ func ValidateAccessControl(config *schema.Configuration, validator *schema.Struc
 
 // ValidateRules validates an ACL Rule configuration.
 func ValidateRules(config *schema.Configuration, validator *schema.StructValidator) {
-	if config.AccessControl.Rules == nil || len(config.AccessControl.Rules) == 0 {
+	if len(config.AccessControl.Rules) == 0 {
 		if config.AccessControl.DefaultPolicy != policyOneFactor && config.AccessControl.DefaultPolicy != policyTwoFactor {
 			validator.Push(fmt.Errorf(errFmtAccessControlDefaultPolicyWithoutRules, config.AccessControl.DefaultPolicy))
 
