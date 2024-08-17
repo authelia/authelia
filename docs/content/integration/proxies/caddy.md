@@ -57,7 +57,7 @@ common with proxies with good security practices.
 You should read the [Caddy Trusted Proxies Documentation] as part of configuring this. It's important to ensure you take
 the time to configure this carefully and correctly.
 
-In the example we have a commented [trusted_proxies] directive which shows an example on adding the following networks
+In the example, we have a commented [trusted_proxies] directive, which shows an example of adding the following networks
 to the trusted proxy list in [Caddy]:
 
 * 10.0.0.0/8
