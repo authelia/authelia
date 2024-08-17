@@ -212,7 +212,7 @@ nextcloud.{{</* sitevar name="domain" nojs="example.com" */>}} {
 #### Removing the Authelia Session Header
 
 Some users may wish to prevent the Authelia session cookie from reaching the backend. It's theoretically possible to
-remove that value from the Cookie header. While this is untested it's likely the following example which includes a
+remove that value from the Cookie header. While this is untested, it's likely the following example, which includes a
 [header_up] directive will remove that value from the Cookie header provided the configured name for the cookie is
 `authelia_session`:
 
