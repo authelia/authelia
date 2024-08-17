@@ -75,6 +75,7 @@ func newDockerPushManifestCmd() (cmd *cobra.Command) {
 }
 
 func cmdDockerBuildRun(_ *cobra.Command, _ []string) {
+	os.Setenv("GOTOOLCHAIN", "local+auto")
 	log.Infof("Building Docker image %s...", DockerImageName)
 	checkContainerIsSupported(container)
 	err := dockerBuildOfficialImage(container)

@@ -15,6 +15,8 @@ RUN yarn install --frozen-lockfile && yarn build
 # =======================================
 FROM golang:1.23.0-alpine@sha256:d0b31558e6b3e4cc59f6011d79905835108c919143ebecc58f35965bf79948f4 AS builder-backend
 
+ENV GOTOOLCHAIN="local+auto"
+
 WORKDIR /go/src/app
 
 RUN \
@@ -62,8 +64,6 @@ RUN \
 	chmod 0666 /app/.healthcheck.env
 
 EXPOSE 9091
-
-VOLUME /config
 
 ENTRYPOINT ["/app/entrypoint.sh"]
 HEALTHCHECK --interval=30s --timeout=3s --start-period=1m CMD /app/healthcheck.sh

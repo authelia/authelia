@@ -17,6 +17,8 @@ RUN yarn global add pnpm && \
 # =======================================
 FROM golang:1.23.0-alpine@sha256:d0b31558e6b3e4cc59f6011d79905835108c919143ebecc58f35965bf79948f4 AS builder-backend
 
+ENV GOTOOLCHAIN="local+auto"
+
 WORKDIR /go/src/app
 
 RUN \
@@ -55,8 +57,6 @@ WORKDIR /app
 COPY --from=builder-backend /go/src/app/cmd/authelia/authelia /go/src/app/LICENSE /go/src/app/healthcheck.sh /go/src/app/.healthcheck.env ./
 
 EXPOSE 9091
-
-VOLUME /config
 
 ENV PATH="/app:${PATH}" \
 	GOCOVERDIR="/authelia/coverage/" \
