@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"os"
+	"os/exec"
 	"strings"
 	"sync"
 	"time"
@@ -88,6 +89,8 @@ func buildAutheliaBinaryGOX(xflags []string) {
 			"CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong", "CGO_LDFLAGS=-Wl,-z,relro,-z,now",
 			"GOX_LINUX_ARM_CC=arm-linux-musleabihf-gcc", "GOX_LINUX_ARM64_CC=aarch64-linux-musl-gcc")
 
+		buildAutheliaToolchainAuto(cmd)
+
 		err := cmd.Run()
 		if err != nil {
 			log.Fatal(err)
@@ -99,6 +102,8 @@ func buildAutheliaBinaryGOX(xflags []string) {
 
 		cmd := utils.CommandWithStdout("bash", "-c", "docker run --rm -e GOX_LINUX_ARM_CC=arm-linux-gnueabihf-gcc -e GOX_LINUX_ARM64_CC=aarch64-linux-gnu-gcc -e GOX_FREEBSD_AMD64_CC=x86_64-pc-freebsd13-gcc -v ${PWD}:/workdir -v /buildkite/.go:/root/go authelia/crossbuild "+
 			"gox -output={{.Dir}}-{{.OS}}-{{.Arch}} -buildmode=pie -trimpath -cgo -ldflags=\"-linkmode=external -s -w "+strings.Join(xflags, " ")+"\" -osarch=\"linux/amd64 linux/arm linux/arm64 freebsd/amd64\" ./cmd/authelia/")
+
+		buildAutheliaToolchainAuto(cmd)
 
 		err := cmd.Run()
 		if err != nil {
@@ -119,10 +124,16 @@ func buildAutheliaBinaryGO(xflags []string) {
 	cmd.Env = append(os.Environ(),
 		"CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong", "CGO_LDFLAGS=-Wl,-z,relro,-z,now")
 
+	buildAutheliaToolchainAuto(cmd)
+
 	err := cmd.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func buildAutheliaToolchainAuto(cmd *exec.Cmd) {
+	cmd.Env = append(cmd.Env, "GOTOOLCHAIN=local+auto")
 }
 
 func buildFrontend(branch string) {
