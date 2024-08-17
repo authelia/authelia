@@ -48,7 +48,7 @@
     "react-dom": "18.3.1",
     "react-i18next": "15.0.1",
     "react-loading": "2.0.3",
-    "react-router-dom": "6.26.0",
+    "react-router-dom": "6.26.1",
     "react18-input-otp": "1.1.4",
     "zxcvbn": "4.4.2"
   },
