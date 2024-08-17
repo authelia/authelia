@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -17,7 +18,7 @@ import (
 // ValidateAuthenticationBackend validates and updates the authentication backend configuration.
 func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
 	if config.LDAP == nil && config.File == nil {
-		validator.Push(fmt.Errorf(errFmtAuthBackendNotConfigured))
+		validator.Push(errors.New(errFmtAuthBackendNotConfigured))
 	}
 
 	if !config.RefreshInterval.Valid() {
@@ -38,7 +39,7 @@ func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validat
 	}
 
 	if config.LDAP != nil && config.File != nil {
-		validator.Push(fmt.Errorf(errFmtAuthBackendMultipleConfigured))
+		validator.Push(errors.New(errFmtAuthBackendMultipleConfigured))
 	}
 
 	if config.File != nil {
@@ -53,7 +54,7 @@ func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validat
 // validateFileAuthenticationBackend validates and updates the file authentication backend configuration.
 func validateFileAuthenticationBackend(config *schema.AuthenticationBackendFile, validator *schema.StructValidator) {
 	if config.Path == "" {
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPathNotConfigured))
+		validator.Push(errors.New(errFmtFileAuthBackendPathNotConfigured))
 	}
 
 	ValidatePasswordConfiguration(&config.Password, validator)
@@ -455,11 +456,11 @@ func validateLDAPAuthenticationAddress(config *schema.AuthenticationBackendLDAP,
 func validateLDAPRequiredParameters(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
 	if config.LDAP.PermitUnauthenticatedBind {
 		if config.LDAP.Password != "" {
-			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendUnauthenticatedBindWithPassword))
+			validator.Push(errors.New(errFmtLDAPAuthBackendUnauthenticatedBindWithPassword))
 		}
 
 		if !config.PasswordReset.Disable {
-			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendUnauthenticatedBindWithResetEnabled))
+			validator.Push(errors.New(errFmtLDAPAuthBackendUnauthenticatedBindWithResetEnabled))
 		}
 	} else {
 		if config.LDAP.User == "" {

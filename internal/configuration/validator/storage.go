@@ -111,7 +111,7 @@ func validatePostgreSQLConfiguration(config *schema.StoragePostgreSQL, validator
 
 	switch {
 	case config.TLS != nil && config.SSL != nil: //nolint:staticcheck
-		validator.Push(fmt.Errorf(errFmtStoragePostgreSQLInvalidSSLAndTLSConfig))
+		validator.Push(errors.New(errFmtStoragePostgreSQLInvalidSSLAndTLSConfig))
 	case config.TLS != nil:
 		configDefaultTLS := &schema.TLS{
 			ServerName:     config.Address.Hostname(),
@@ -123,7 +123,7 @@ func validatePostgreSQLConfiguration(config *schema.StoragePostgreSQL, validator
 			validator.Push(fmt.Errorf(errFmtStorageTLSConfigInvalid, "postgres", err))
 		}
 	case config.SSL != nil: //nolint:staticcheck
-		validator.PushWarning(fmt.Errorf(warnFmtStoragePostgreSQLInvalidSSLDeprecated))
+		validator.PushWarning(errors.New(warnFmtStoragePostgreSQLInvalidSSLDeprecated))
 
 		switch {
 		case config.SSL.Mode == "": //nolint:staticcheck
