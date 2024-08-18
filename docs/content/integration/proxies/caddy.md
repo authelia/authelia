@@ -219,7 +219,7 @@ remove that value from the Cookie header. While this is untested, it's likely th
 
 ```Caddyfile
 nextcloud.{{< sitevar name="domain" nojs="example.com" >}} {
-        forward_auth {{< sitevar name="host" nojs="authelia" */>}}:{{</* sitevar name="port" nojs="9091" >}} {
+        forward_auth {{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}} {
                 uri /api/authz/forward-auth
                 copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
         }
