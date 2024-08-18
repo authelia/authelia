@@ -156,17 +156,17 @@ support to ensure the basic example covers your use case in a secure way.
 # trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
 
 # Authelia Portal.
-{{</* sitevar name="subdomain-authelia" nojs="auth" */>}}.{{</* sitevar name="domain" nojs="example.com" */>}} {
-        reverse_proxy {{</* sitevar name="host" nojs="authelia" */>}}:{{</* sitevar name="port" nojs="9091" */>}}
+{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}} {
+        reverse_proxy {{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}
 }
 
 # Protected Endpoint.
-nextcloud.{{</* sitevar name="domain" nojs="example.com" */>}} {
-        forward_auth {{</* sitevar name="host" nojs="authelia" */>}}:{{</* sitevar name="port" nojs="9091" */>}} {
+nextcloud.{{< sitevar name="domain" nojs="example.com" >}} {
+        forward_auth {{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}} {
                 uri /api/authz/forward-auth
                 ## The following commented line is for configuring the Authelia URL in the proxy. We strongly suggest
                 ## this is configured in the Session Cookies section of the Authelia configuration.
-                # uri /api/authz/forward-auth?authelia_url=https://{{</* sitevar name="subdomain-authelia" nojs="auth" */>}}.{{</* sitevar name="domain" nojs="example.com" */>}}/
+                # uri /api/authz/forward-auth?authelia_url=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/
                 copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
         }
 
@@ -218,8 +218,8 @@ remove that value from the Cookie header. While this is untested, it's likely th
 
 
 ```Caddyfile
-nextcloud.{{</* sitevar name="domain" nojs="example.com" */>}} {
-        forward_auth {{</* sitevar name="host" nojs="authelia" */>}}:{{</* sitevar name="port" nojs="9091" */>}} {
+nextcloud.{{< sitevar name="domain" nojs="example.com" >}} {
+        forward_auth {{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}} {
                 uri /api/authz/forward-auth
                 copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
         }
