@@ -32,13 +32,12 @@ seo:
 This example makes the following assumptions:
 
 * __Application Root URL:__ `https://flower.{{< sitevar name="domain" nojs="example.com" >}}/`
+  * This option determines the redirect URI in the format of
+        `https://flower.{{< sitevar name="domain" nojs="example.com" >}}/login`.
+        This means if you change this value you need to update the redirect URI.
 * __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `flower`
 * __Client Secret:__ `insecure_secret`
-* __Authentication Name (Flower):__ `authelia`:
-    * This option determines the redirect URI in the format of
-      `https://flower.{{< sitevar name="domain" nojs="example.com" >}}/login`.
-      This means if you change this value you need to update the redirect URI.
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -73,14 +72,23 @@ identity_providers:
 
 ### Application
 
-To configure [Flower] to utilize Authelia as an [OpenID Connect 1.0] Provider add the following values to [Flower] `flowerconfig.py`:
+
+To configure [Flower] to utilize Authelia as an [OpenID Connect 1.0] Provider you have to update the `flowerconfig.py` configuration file and configure the `FLOWER_OAUTH2_AUTHELIA_BASE_URL` environment variable.
+
+#### Configuration File
+Add the following values to [Flower] `flowerconfig.py`:
 ```python
 auth = '.*@{{< sitevar name="domain" nojs="example.com" >}}'
 auth_provider = 'flower.views.auth.AutheliaLoginHandler'
 oauth2_key = 'flower'
 oauth2_secret = 'insecure_secret'
 oauth2_redirect_uri = 'https://flower.{{< sitevar name="domain" nojs="example.com" >}}/login'
+```
 
+#### Environment Variables
+Add the `FLOWER_OAUTH2_AUTHELIA_BASE_URL` environment variable and set it to Authelia Root URL:
+``` bash
+export FLOWER_OAUTH2_AUTHELIA_BASE_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 ```
 
 Take a look at the [See Also](#see-also) section for the cheatsheets corresponding to the sections above for their descriptions.
