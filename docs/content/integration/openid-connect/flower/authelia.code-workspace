@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "../../../../../../../../VSCode_projects/authelia"
+		},
+		{
+			"name": "authelia",
+			"path": "../../../../.."
+		}
+	],
+	"settings": {}
+}
