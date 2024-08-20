@@ -2677,6 +2677,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			[]string{
 				"identity_providers: oidc: clients: client 'test': option 'token_endpoint_auth_signing_alg' must be one of 'RS256', 'PS256', 'ES256', 'RS384', 'PS384', 'ES384', 'RS512', 'PS512', or 'ES512' when option 'token_endpoint_auth_method' is configured to 'private_key_jwt'",
 				"identity_providers: oidc: clients: client 'test': option 'jwks_uri' or 'jwks' is required with 'token_endpoint_auth_method' set to 'private_key_jwt'",
+				"identity_providers: oidc: clients: client 'test': option 'client_secret' is required",
 			},
 		},
 		{
@@ -2709,6 +2710,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			nil,
 			[]string{
 				"identity_providers: oidc: clients: client 'test': option 'token_endpoint_auth_signing_alg' must be one of the registered public key algorithm values 'RS256' when option 'token_endpoint_auth_method' is configured to 'private_key_jwt'",
+				"identity_providers: oidc: clients: client 'test': option 'client_secret' is required",
 			},
 		},
 		{
@@ -2734,6 +2736,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			nil,
 			[]string{
 				"identity_providers: oidc: clients: client 'test': option 'jwks_uri' or 'jwks' is required with 'token_endpoint_auth_method' set to 'private_key_jwt'",
+				"identity_providers: oidc: clients: client 'test': option 'client_secret' is required",
 			},
 		},
 		{
@@ -2764,6 +2767,9 @@ func TestValidateOIDCClients(t *testing.T) {
 			"ShouldNotRaiseWarningOrErrorOnCorrectlyConfiguredTokenEndpointClientAuthMethodClientSecretJWT",
 			func(have *schema.IdentityProvidersOpenIDConnect) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
+				have.Clients[0].RevocationEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
+				have.Clients[0].IntrospectionEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
+				have.Clients[0].PushedAuthorizationRequestEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
 				have.Clients[0].Secret = tOpenIDConnectPlainTextClientSecret
 			},
 			nil,
@@ -3094,7 +3100,7 @@ func TestValidateOIDCClientTokenEndpointAuthMethod(t *testing.T) {
 
 			validator := schema.NewStructValidator()
 
-			validateOIDCClientTokenEndpointAuth(0, have, validator)
+			have.Clients[0].TokenEndpointAuthMethod, have.Clients[0].TokenEndpointAuthSigningAlg, _, _ = validateOIDCClientEndpointAuth(0, have, attrOIDCTokenAuthMethod, have.Clients[0].TokenEndpointAuthMethod, attrOIDCTokenAuthSigningAlg, have.Clients[0].TokenEndpointAuthSigningAlg, validator)
 
 			assert.Equal(t, tc.expected, have.Clients[0].TokenEndpointAuthMethod)
 			assert.Len(t, validator.Warnings(), 0)

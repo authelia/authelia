@@ -2,7 +2,7 @@
 title: "Definitions"
 description: "Definitions Configuration"
 summary: "Authelia allows configuring reusable definitions."
-date: 2024-07-10T21:47:46+10:00
+date: 2024-08-10T22:48:27+10:00
 draft: false
 images: []
 weight: 199100

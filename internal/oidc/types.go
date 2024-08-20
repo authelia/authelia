@@ -102,6 +102,15 @@ type RegisteredClient struct {
 	TokenEndpointAuthMethod     string
 	TokenEndpointAuthSigningAlg string
 
+	RevocationEndpointAuthMethod     string
+	RevocationEndpointAuthSigningAlg string
+
+	IntrospectionEndpointAuthMethod     string
+	IntrospectionEndpointAuthSigningAlg string
+
+	PushedAuthorizationRequestEndpointAuthMethod     string
+	PushedAuthorizationRequestEndpointAuthSigningAlg string
+
 	RefreshFlowIgnoreOriginalGrantedScopes  bool
 	AllowMultipleAuthenticationMethods      bool
 	ClientCredentialsFlowAllowImplicitScope bool

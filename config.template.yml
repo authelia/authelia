@@ -1382,6 +1382,48 @@ session:
         ## when configured.
         # introspection_signed_response_key_id: ''
 
+        ## The signature algorithm which must be used for request objects.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#request_object_signing_alg
+        # request_object_signing_alg: 'RS256'
+
+        ## The permitted client authentication method for the Token Endpoint for this client.
+        ## For confidential client types this value defaults to 'client_secret_basic' and for the public client types it
+        ## defaults to 'none' per the specifications.
+        # token_endpoint_auth_method: 'client_secret_basic'
+
+        ## The permitted client authentication signing algorithm for the Token Endpoint for this client when using
+        ## the 'client_secret_jwt' or 'private_key_jwt' token_endpoint_auth_method.
+        # token_endpoint_auth_signing_alg: 'RS256'
+
+        ## The permitted client authentication method for the Revocation Endpoint for this client.
+        ## For confidential client types this value defaults to 'client_secret_basic' and for the public client types it
+        ## defaults to 'none' per the specifications.
+        # revocation_endpoint_auth_method: 'client_secret_basic'
+
+        ## The permitted client authentication signing algorithm for the Revocation Endpoint for this client when using
+        ## the 'client_secret_jwt' or 'private_key_jwt' revocation_endpoint_auth_method.
+        # revocation_endpoint_auth_signing_alg: 'RS256'
+
+        ## The permitted client authentication method for the Introspection Endpoint for this client.
+        ## For confidential client types this value defaults to 'client_secret_basic' and for the public client types it
+        ## defaults to 'none' per the specifications.
+        # introspection_endpoint_auth_method: 'client_secret_basic'
+
+        ## The permitted client authentication signing algorithm for the Introspection Endpoint for this client when
+        ## using the 'client_secret_jwt' or 'private_key_jwt' introspection_endpoint_auth_method.
+        # introspection_endpoint_auth_signing_alg: 'RS256'
+
+        ## The permitted client authentication method for the Pushed Authorization Request Endpoint for this client.
+        ## For confidential client types this value defaults to 'client_secret_basic' and for the public client types it
+        ## defaults to 'none' per the specifications.
+        # pushed_authorization_request_endpoint_auth_method: 'client_secret_basic'
+
+        ## The permitted client authentication signing algorithm for the Pushed Authorization Request Endpoint for this
+        ## client when using the 'client_secret_jwt' or 'private_key_jwt'
+        ## pushed_authorization_request_endpoint_auth_method.
+        # pushed_authorization_request_endpoint_auth_signing_alg: 'RS256'
+
         ## Trusted public keys configuration for request object signing for things such as 'private_key_jwt'.
         ## URL of the HTTPS endpoint which serves the keys. Please note the 'jwks_uri' and the 'jwks' option below
         ## are mutually exclusive.

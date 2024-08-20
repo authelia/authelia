@@ -1732,6 +1732,18 @@
           "title": "Request Object Signing Algorithm",
           "description": "The Request Object Signing Algorithm the provider accepts for this client."
         },
+        "token_endpoint_auth_method": {
+          "type": "string",
+          "enum": [
+            "none",
+            "client_secret_post",
+            "client_secret_basic",
+            "private_key_jwt",
+            "client_secret_jwt"
+          ],
+          "title": "Token Endpoint Auth Method",
+          "description": "The Token Endpoint Auth Method enforced by the provider for this client."
+        },
         "token_endpoint_auth_signing_alg": {
           "type": "string",
           "enum": [
@@ -1751,7 +1763,7 @@
           "title": "Token Endpoint Auth Signing Algorithm",
           "description": "The Token Endpoint Auth Signing Algorithm the provider accepts for this client."
         },
-        "token_endpoint_auth_method": {
+        "revocation_endpoint_auth_method": {
           "type": "string",
           "enum": [
             "none",
@@ -1760,8 +1772,89 @@
             "private_key_jwt",
             "client_secret_jwt"
           ],
-          "title": "Token Endpoint Auth Method",
-          "description": "The Token Endpoint Auth Method enforced by the provider for this client."
+          "title": "Revocation Endpoint Auth Method",
+          "description": "The Revocation Endpoint Auth Method enforced by the provider for this client."
+        },
+        "revocation_endpoint_auth_signing_alg": {
+          "type": "string",
+          "enum": [
+            "HS256",
+            "HS384",
+            "HS512",
+            "RS256",
+            "RS384",
+            "RS512",
+            "ES256",
+            "ES384",
+            "ES512",
+            "PS256",
+            "PS384",
+            "PS512"
+          ],
+          "title": "Revocation Endpoint Auth Signing Algorithm",
+          "description": "The Revocation Endpoint Auth Signing Algorithm the provider accepts for this client."
+        },
+        "introspection_endpoint_auth_method": {
+          "type": "string",
+          "enum": [
+            "none",
+            "client_secret_post",
+            "client_secret_basic",
+            "private_key_jwt",
+            "client_secret_jwt"
+          ],
+          "title": "Introspection Endpoint Auth Method",
+          "description": "The Introspection Endpoint Auth Method enforced by the provider for this client."
+        },
+        "introspection_endpoint_auth_signing_alg": {
+          "type": "string",
+          "enum": [
+            "HS256",
+            "HS384",
+            "HS512",
+            "RS256",
+            "RS384",
+            "RS512",
+            "ES256",
+            "ES384",
+            "ES512",
+            "PS256",
+            "PS384",
+            "PS512"
+          ],
+          "title": "Introspection Endpoint Auth Signing Algorithm",
+          "description": "The Introspection Endpoint Auth Signing Algorithm the provider accepts for this client."
+        },
+        "pushed_authorization_request_endpoint_auth_method": {
+          "type": "string",
+          "enum": [
+            "none",
+            "client_secret_post",
+            "client_secret_basic",
+            "private_key_jwt",
+            "client_secret_jwt"
+          ],
+          "title": "Pushed Authorization Request Endpoint Auth Method",
+          "description": "The Pushed Authorization Request Endpoint Auth Method enforced by the provider for this client."
+        },
+        "pushed_authorization_request_endpoint_auth_signing_alg": {
+          "type": "string",
+          "enum": [
+            "HS256",
+            "HS384",
+            "HS512",
+            "RS256",
+            "RS384",
+            "RS512",
+            "ES256",
+            "ES384",
+            "ES512",
+            "PS256",
+            "PS384",
+            "PS512"
+          ],
+          "title": "Pushed Authorization Request Endpoint Auth Signing Algorithm",
+          "description": "The Pushed Authorization Request Endpoint Auth Signing Algorithm the provider accepts for this client."
         },
         "allow_multiple_auth_methods": {
           "type": "boolean",

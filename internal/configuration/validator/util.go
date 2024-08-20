@@ -17,6 +17,14 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+func boolApply(current, new bool) bool {
+	if current || new {
+		return true
+	}
+
+	return false
+}
+
 func isCookieDomainAPublicSuffix(domain string) (valid bool) {
 	var suffix string
 

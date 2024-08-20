@@ -56,8 +56,14 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		IntrospectionSignedResponseAlg:   config.IntrospectionSignedResponseAlg,
 		IntrospectionSignedResponseKeyID: config.IntrospectionSignedResponseKeyID,
 		RequestObjectSigningAlg:          config.RequestObjectSigningAlg,
-		TokenEndpointAuthSigningAlg:      config.TokenEndpointAuthSigningAlg,
-		TokenEndpointAuthMethod:          config.TokenEndpointAuthMethod,
+		TokenEndpointAuthMethod:                          config.TokenEndpointAuthMethod,
+		TokenEndpointAuthSigningAlg:                      config.TokenEndpointAuthSigningAlg,
+		RevocationEndpointAuthMethod:                     config.RevocationEndpointAuthMethod,
+		RevocationEndpointAuthSigningAlg:                 config.RevocationEndpointAuthSigningAlg,
+		IntrospectionEndpointAuthMethod:                  config.IntrospectionEndpointAuthMethod,
+		IntrospectionEndpointAuthSigningAlg:              config.IntrospectionEndpointAuthSigningAlg,
+		PushedAuthorizationRequestEndpointAuthMethod:     config.PushedAuthorizationRequestEndpointAuthMethod,
+		PushedAuthorizationRequestEndpointAuthSigningAlg: config.PushedAuthorizationRequestAuthSigningAlg,
 
 		JSONWebKeysURI: config.JSONWebKeysURI,
 		JSONWebKeys:    NewPublicJSONWebKeySetFromSchemaJWK(config.JSONWebKeys),
@@ -374,17 +380,6 @@ func (c *RegisteredClient) GetIntrospectionEncryptedResponseEnc() (enc string) {
 	return ""
 }
 
-// GetTokenEndpointAuthSigningAlg returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing the JWT
-// [JWT] used to authenticate the Client at the Token Endpoint for the private_key_jwt and client_secret_jwt
-// authentication methods.
-func (c *RegisteredClient) GetTokenEndpointAuthSigningAlg() (alg string) {
-	if c.TokenEndpointAuthSigningAlg == "" {
-		c.TokenEndpointAuthSigningAlg = SigningAlgRSAUsingSHA256
-	}
-
-	return c.TokenEndpointAuthSigningAlg
-}
-
 // GetTokenEndpointAuthMethod returns the requested Client Authentication Method for the Token Endpoint. The options are
 // client_secret_post, client_secret_basic, client_secret_jwt, private_key_jwt, and none.
 func (c *RegisteredClient) GetTokenEndpointAuthMethod() (method string) {
@@ -399,30 +394,67 @@ func (c *RegisteredClient) GetTokenEndpointAuthMethod() (method string) {
 	return c.TokenEndpointAuthMethod
 }
 
-// GetIntrospectionEndpointAuthSigningAlg returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing the
-// JWT [JWT] used to authenticate the Client at the Introspection Endpoint for the private_key_jwt and client_secret_jwt
+// GetTokenEndpointAuthSigningAlg returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing the JWT
+// [JWT] used to authenticate the Client at the Token Endpoint for the private_key_jwt and client_secret_jwt
 // authentication methods.
-func (c *RegisteredClient) GetIntrospectionEndpointAuthSigningAlg() (alg string) {
-	return ""
-}
+func (c *RegisteredClient) GetTokenEndpointAuthSigningAlg() (alg string) {
+	if c.TokenEndpointAuthSigningAlg == "" {
+		c.TokenEndpointAuthSigningAlg = SigningAlgRSAUsingSHA256
+	}
 
-// GetIntrospectionEndpointAuthMethod returns the requested Client Authentication Method for the Revocation Endpoint.
-// The options are client_secret_post, client_secret_basic, client_secret_jwt, private_key_jwt, and none.
-func (c *RegisteredClient) GetIntrospectionEndpointAuthMethod() (method string) {
-	return ""
-}
-
-// GetRevocationEndpointAuthSigningAlg returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing the
-// JWT [JWT] used to authenticate the Client at the Introspection Endpoint for the private_key_jwt and client_secret_jwt
-// authentication methods.
-func (c *RegisteredClient) GetRevocationEndpointAuthSigningAlg() (alg string) {
-	return ""
+	return c.TokenEndpointAuthSigningAlg
 }
 
 // GetRevocationEndpointAuthMethod returns the requested Client Authentication Method for the Revocation Endpoint.
 // The options are client_secret_post, client_secret_basic, client_secret_jwt, private_key_jwt, and none.
 func (c *RegisteredClient) GetRevocationEndpointAuthMethod() (method string) {
-	return ""
+	if c.Public && c.RevocationEndpointAuthMethod == "" {
+		c.RevocationEndpointAuthMethod = ClientAuthMethodNone
+	}
+
+	return c.RevocationEndpointAuthMethod
+}
+
+// GetRevocationEndpointAuthSigningAlg returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing the
+// JWT [JWT] used to authenticate the Client at the Revocation Endpoint for the private_key_jwt and client_secret_jwt
+// authentication methods.
+func (c *RegisteredClient) GetRevocationEndpointAuthSigningAlg() (alg string) {
+	return c.RevocationEndpointAuthSigningAlg
+}
+
+// GetIntrospectionEndpointAuthMethod returns the requested Client Authentication Method for the Introspection Endpoint.
+// The options are client_secret_post, client_secret_basic, client_secret_jwt, private_key_jwt, and none.
+func (c *RegisteredClient) GetIntrospectionEndpointAuthMethod() (method string) {
+	if c.Public && c.IntrospectionEndpointAuthMethod == "" {
+		c.IntrospectionEndpointAuthMethod = ClientAuthMethodNone
+	}
+
+	return c.IntrospectionEndpointAuthMethod
+}
+
+// GetIntrospectionEndpointAuthSigningAlg returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing the
+// JWT [JWT] used to authenticate the Client at the Introspection Endpoint for the private_key_jwt and client_secret_jwt
+// authentication methods.
+func (c *RegisteredClient) GetIntrospectionEndpointAuthSigningAlg() (alg string) {
+	return c.IntrospectionEndpointAuthSigningAlg
+}
+
+// GetPushedAuthorizationRequestEndpointAuthMethod returns the requested Client Authentication Method for the
+// Pushed Authorization Request Endpoint. The options are client_secret_post, client_secret_basic, client_secret_jwt,
+// private_key_jwt, and none.
+func (c *RegisteredClient) GetPushedAuthorizationRequestEndpointAuthMethod() (method string) {
+	if c.Public && c.PushedAuthorizationRequestEndpointAuthMethod == "" {
+		c.PushedAuthorizationRequestEndpointAuthMethod = ClientAuthMethodNone
+	}
+
+	return c.PushedAuthorizationRequestEndpointAuthMethod
+}
+
+// GetPushedAuthorizationRequestEndpointAuthSigningAlg returns the JWS [JWS] alg algorithm [JWA] that MUST be used for
+// signing the JWT [JWT] used to authenticate the Client at the Pushed Authorization Request Endpoint for the
+// private_key_jwt and client_secret_jwt authentication methods.
+func (c *RegisteredClient) GetPushedAuthorizationRequestEndpointAuthSigningAlg() (alg string) {
+	return c.PushedAuthorizationRequestEndpointAuthSigningAlg
 }
 
 // GetEnableJWTProfileOAuthAccessTokens returns true if this client is configured to return the

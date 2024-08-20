@@ -362,7 +362,7 @@ func (s *CustomClaimsStrategy) ValidateClaimsRequests(ctx Context, strategy oaut
 	claimMatches := map[string][]string{}
 
 	if requests.IDToken != nil {
-		for claim, _ := range requests.IDToken {
+		for claim := range requests.IDToken {
 			for scope, claims := range s.scopes {
 				if _, ok := claims[claim]; !ok {
 					continue
@@ -378,7 +378,7 @@ func (s *CustomClaimsStrategy) ValidateClaimsRequests(ctx Context, strategy oaut
 	}
 
 	if requests.UserInfo != nil {
-		for claim, _ := range requests.UserInfo {
+		for claim := range requests.UserInfo {
 			for scope, claims := range s.scopes {
 				if _, ok := claims[claim]; !ok {
 					continue

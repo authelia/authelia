@@ -632,7 +632,47 @@ func validateOIDCClient(ctx *ValidateCtx, c int, config *schema.IdentityProvider
 	validateOIDCClientSectorIdentifier(ctx, c, config, validator, errDeprecatedFunc)
 
 	validateOIDCClientPublicKeys(c, config, validator)
-	validateOIDCClientTokenEndpointAuth(c, config, validator)
+
+	var (
+		method, alg                                  string
+		confidential, public, econfidential, epublic bool
+	)
+
+	method, alg, econfidential, epublic = validateOIDCClientEndpointAuth(c, config, attrOIDCTokenAuthMethod, config.Clients[c].TokenEndpointAuthMethod, attrOIDCTokenAuthSigningAlg, config.Clients[c].TokenEndpointAuthSigningAlg, validator)
+	confidential = boolApply(confidential, econfidential)
+	public = boolApply(public, epublic)
+
+	config.Clients[c].TokenEndpointAuthMethod = method
+	config.Clients[c].TokenEndpointAuthSigningAlg = alg
+
+	method, alg, econfidential, epublic = validateOIDCClientEndpointAuth(c, config, attrOIDCRevocationAuthMethod, config.Clients[c].RevocationEndpointAuthMethod, attrOIDCRevocationAuthSigningAlg, config.Clients[c].RevocationEndpointAuthSigningAlg, validator)
+	confidential = boolApply(confidential, econfidential)
+	public = boolApply(public, epublic)
+
+	config.Clients[c].RevocationEndpointAuthMethod = method
+	config.Clients[c].RevocationEndpointAuthSigningAlg = alg
+
+	method, alg, econfidential, epublic = validateOIDCClientEndpointAuth(c, config, attrOIDCIntrospectionAuthMethod, config.Clients[c].IntrospectionEndpointAuthMethod, attrOIDCIntrospectionAuthSigningAlg, config.Clients[c].IntrospectionEndpointAuthSigningAlg, validator)
+	confidential = boolApply(confidential, econfidential)
+	public = boolApply(public, epublic)
+
+	config.Clients[c].IntrospectionEndpointAuthMethod = method
+	config.Clients[c].IntrospectionEndpointAuthSigningAlg = alg
+
+	method, alg, econfidential, epublic = validateOIDCClientEndpointAuth(c, config, attrOIDCPARAuthMethod, config.Clients[c].PushedAuthorizationRequestEndpointAuthMethod, attrOIDCPARAuthSigningAlg, config.Clients[c].PushedAuthorizationRequestAuthSigningAlg, validator)
+	confidential = boolApply(confidential, econfidential)
+	public = boolApply(public, epublic)
+
+	config.Clients[c].PushedAuthorizationRequestEndpointAuthMethod = method
+	config.Clients[c].PushedAuthorizationRequestAuthSigningAlg = alg
+
+	if confidential {
+		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSecret, config.Clients[c].ID))
+	}
+
+	if public {
+		validator.Push(fmt.Errorf(errFmtOIDCClientPublicInvalidSecret, config.Clients[c].ID))
+	}
 }
 
 func validateOIDCClientPublicKeys(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
@@ -1164,93 +1204,90 @@ func validateOIDCClientRequestURIs(c int, config *schema.IdentityProvidersOpenID
 	}
 }
 
-//nolint:gocyclo
-func validateOIDCClientTokenEndpointAuth(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+func validateOIDCClientEndpointAuth(c int, config *schema.IdentityProvidersOpenIDConnect, keyMethod, valueMethod, keyAlg, valueAlg string, validator *schema.StructValidator) (method, alg string, secretConfidential, secretPublic bool) {
 	implicit := len(config.Clients[c].ResponseTypes) != 0 && utils.IsStringSliceContainsAll(config.Clients[c].ResponseTypes, validOIDCClientResponseTypesImplicitFlow)
 
 	switch {
-	case config.Clients[c].TokenEndpointAuthMethod == "":
+	case valueMethod == "":
 		if config.Clients[c].Public {
-			config.Clients[c].TokenEndpointAuthMethod = oidc.ClientAuthMethodNone
+			valueMethod = oidc.ClientAuthMethodNone
 		} else {
-			config.Clients[c].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretBasic
+			valueMethod = oidc.ClientAuthMethodClientSecretBasic
 		}
-	case !utils.IsStringInSlice(config.Clients[c].TokenEndpointAuthMethod, validOIDCClientTokenEndpointAuthMethods):
+	case !utils.IsStringInSlice(valueMethod, validOIDCClientTokenEndpointAuthMethods):
 		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
-			config.Clients[c].ID, attrOIDCTokenAuthMethod, utils.StringJoinOr(validOIDCClientTokenEndpointAuthMethods), config.Clients[c].TokenEndpointAuthMethod))
+			config.Clients[c].ID, keyMethod, utils.StringJoinOr(validOIDCClientTokenEndpointAuthMethods), valueMethod))
 
-		return
-	case config.Clients[c].TokenEndpointAuthMethod == oidc.ClientAuthMethodNone && !config.Clients[c].Public && !implicit:
-		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthMethod,
-			config.Clients[c].ID, utils.StringJoinOr(validOIDCClientTokenEndpointAuthMethodsConfidential), utils.StringJoinAnd(validOIDCClientResponseTypesImplicitFlow), config.Clients[c].TokenEndpointAuthMethod))
-	case config.Clients[c].TokenEndpointAuthMethod != oidc.ClientAuthMethodNone && config.Clients[c].Public:
-		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthMethodPublic,
-			config.Clients[c].ID, config.Clients[c].TokenEndpointAuthMethod))
+		return valueMethod, valueAlg, secretConfidential, secretPublic
+	case valueMethod == oidc.ClientAuthMethodNone && !config.Clients[c].Public && !implicit:
+		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidEndpointAuthMethod,
+			config.Clients[c].ID, keyMethod, utils.StringJoinOr(validOIDCClientTokenEndpointAuthMethodsConfidential), utils.StringJoinAnd(validOIDCClientResponseTypesImplicitFlow), valueMethod))
+	case valueMethod != oidc.ClientAuthMethodNone && config.Clients[c].Public:
+		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidEndpointAuthMethodPublic,
+			config.Clients[c].ID, keyMethod, valueMethod))
 	}
 
 	secret := false
 
-	switch config.Clients[c].TokenEndpointAuthMethod {
+	switch valueMethod {
 	case oidc.ClientAuthMethodClientSecretJWT:
-		validateOIDCClientTokenEndpointAuthClientSecretJWT(c, config, validator)
+		valueAlg = validateOIDCClientEndpointAuthClientSecretJWT(c, config, keyMethod, valueMethod, keyAlg, valueAlg, validator)
 
 		secret = true
-	case "":
-		if !config.Clients[c].Public {
-			secret = true
-		}
 	case oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic:
 		secret = true
 	case oidc.ClientAuthMethodPrivateKeyJWT:
-		validateOIDCClientTokenEndpointAuthPublicKeyJWT(config.Clients[c], validator)
+		validateOIDCClientEndpointAuthPublicKeyJWT(c, config, keyMethod, valueMethod, keyAlg, valueAlg, validator)
 	}
 
 	if secret {
 		if config.Clients[c].Public {
-			return
+			return valueMethod, valueAlg, secretConfidential, secretPublic
 		}
 
 		if !config.Clients[c].Secret.Valid() {
-			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSecret, config.Clients[c].ID))
+			secretConfidential = true
 		} else {
 			switch {
-			case config.Clients[c].Secret.IsPlainText() && config.Clients[c].TokenEndpointAuthMethod != oidc.ClientAuthMethodClientSecretJWT:
-				validator.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidSecretPlainText, config.Clients[c].ID))
-			case !config.Clients[c].Secret.IsPlainText() && config.Clients[c].TokenEndpointAuthMethod == oidc.ClientAuthMethodClientSecretJWT:
-				validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSecretNotPlainText, config.Clients[c].ID))
+			case config.Clients[c].Secret.IsPlainText() && valueMethod != oidc.ClientAuthMethodClientSecretJWT:
+				validator.PushWarning(fmt.Errorf(errFmtOIDCClientInvalidSecretPlainText, config.Clients[c].ID, keyMethod))
+			case !config.Clients[c].Secret.IsPlainText() && valueMethod == oidc.ClientAuthMethodClientSecretJWT:
+				validator.Push(fmt.Errorf(errFmtOIDCClientInvalidSecretNotPlainText, config.Clients[c].ID, keyMethod))
 			}
 		}
 	} else if config.Clients[c].Secret != nil {
 		if config.Clients[c].Public {
-			validator.Push(fmt.Errorf(errFmtOIDCClientPublicInvalidSecret, config.Clients[c].ID))
+			secretPublic = true
 		} else {
-			validator.Push(fmt.Errorf(errFmtOIDCClientPublicInvalidSecretClientAuthMethod, config.Clients[c].ID, config.Clients[c].TokenEndpointAuthMethod))
+			validator.Push(fmt.Errorf(errFmtOIDCClientPublicInvalidSecretClientAuthMethod, config.Clients[c].ID, keyMethod, valueMethod))
 		}
 	}
+
+	return valueMethod, valueAlg, secretConfidential, secretPublic
 }
 
-func validateOIDCClientTokenEndpointAuthClientSecretJWT(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+func validateOIDCClientEndpointAuthClientSecretJWT(c int, config *schema.IdentityProvidersOpenIDConnect, keyMethod, valueMethod, keyAlg, valueAlg string, validator *schema.StructValidator) (alg string) {
 	switch {
-	case config.Clients[c].TokenEndpointAuthSigningAlg == "":
-		config.Clients[c].TokenEndpointAuthSigningAlg = oidc.SigningAlgHMACUsingSHA256
-	case !utils.IsStringInSlice(config.Clients[c].TokenEndpointAuthSigningAlg, validOIDCClientTokenEndpointAuthSigAlgsClientSecretJWT):
-		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthSigAlg, config.Clients[c].ID, utils.StringJoinOr(validOIDCClientTokenEndpointAuthSigAlgsClientSecretJWT), config.Clients[c].TokenEndpointAuthMethod))
+	case valueAlg == "":
+		valueAlg = oidc.SigningAlgHMACUsingSHA256
+	case !utils.IsStringInSlice(valueAlg, validOIDCClientTokenEndpointAuthSigAlgsClientSecretJWT):
+		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidEndpointAuthSigAlg, config.Clients[c].ID, keyAlg, utils.StringJoinOr(validOIDCClientTokenEndpointAuthSigAlgsClientSecretJWT), keyMethod, valueMethod))
 	}
 }
 
-func validateOIDCClientTokenEndpointAuthPublicKeyJWT(config schema.IdentityProvidersOpenIDConnectClient, validator *schema.StructValidator) {
+func validateOIDCClientEndpointAuthPublicKeyJWT(c int, config *schema.IdentityProvidersOpenIDConnect, keyMethod, valueMethod, keyAlg, valueAlg string, validator *schema.StructValidator) {
 	switch {
-	case config.TokenEndpointAuthSigningAlg == "":
-		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthSigAlgMissingPrivateKeyJWT, config.ID))
-	case !utils.IsStringInSlice(config.TokenEndpointAuthSigningAlg, validOIDCIssuerJWKSigningAlgs):
-		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthSigAlg, config.ID, utils.StringJoinOr(validOIDCIssuerJWKSigningAlgs), config.TokenEndpointAuthMethod))
+	case valueAlg == "":
+		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthSigAlgMissingPrivateKeyJWT, config.Clients[c].ID))
+	case !utils.IsStringInSlice(valueAlg, validOIDCIssuerJWKSigningAlgs):
+		validator.Push(fmt.Errorf(errFmtOIDCClientInvalidEndpointAuthSigAlg, config.Clients[c].ID, keyAlg, utils.StringJoinOr(validOIDCIssuerJWKSigningAlgs), keyMethod, valueMethod))
 	}
 
-	if config.JSONWebKeysURI == nil {
-		if len(config.JSONWebKeys) == 0 {
-			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidPublicKeysPrivateKeyJWT, config.ID))
-		} else if len(config.Discovery.RequestObjectSigningAlgs) != 0 && !utils.IsStringInSlice(config.TokenEndpointAuthSigningAlg, config.Discovery.RequestObjectSigningAlgs) {
-			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthSigAlgReg, config.ID, utils.StringJoinOr(config.Discovery.RequestObjectSigningAlgs), config.TokenEndpointAuthMethod))
+	if config.Clients[c].JSONWebKeysURI == nil {
+		if len(config.Clients[c].JSONWebKeys) == 0 {
+			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidPublicKeysPrivateKeyJWT, config.Clients[c].ID))
+		} else if len(config.Clients[c].Discovery.RequestObjectSigningAlgs) != 0 && !utils.IsStringInSlice(valueAlg, config.Clients[c].Discovery.RequestObjectSigningAlgs) {
+			validator.Push(fmt.Errorf(errFmtOIDCClientInvalidTokenEndpointAuthSigAlgReg, config.Clients[c].ID, utils.StringJoinOr(config.Clients[c].Discovery.RequestObjectSigningAlgs), valueMethod))
 		}
 	}
 }
@@ -1285,6 +1322,8 @@ func validateOIDDClientSigningAlgsIDToken(c int, config *schema.IdentityProvider
 			config.Clients[c].IDTokenSignedResponseAlg = getResponseObjectAlgFromKID(config, config.Clients[c].IDTokenSignedResponseKeyID, config.Clients[c].IDTokenSignedResponseAlg)
 		}
 	}
+
+	return valueAlg
 }
 
 func validateOIDDClientSigningAlgsAccessToken(c int, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {

@@ -80,8 +80,14 @@ identity_providers:
         introspection_signed_response_alg: 'none'
         introspection_signed_response_key_id: ''
         request_object_signing_alg: 'RS256'
-        token_endpoint_auth_signing_alg: 'RS256'
         token_endpoint_auth_method: 'client_secret_basic'
+        token_endpoint_auth_signing_alg: 'RS256'
+        revocation_endpoint_auth_method: 'client_secret_basic'
+        revocation_endpoint_auth_signing_alg: 'RS256'
+        introspection_endpoint_auth_method: 'client_secret_basic'
+        introspection_endpoint_auth_signing_alg: 'RS256'
+        pushed_authorization_request_endpoint_auth_method: 'client_secret_basic'
+        pushed_authorization_request_endpoint_auth_signing_alg: 'RS256'
         jwks_uri: ''
         jwks:
           - key_id: 'example'
@@ -623,6 +629,97 @@ otherwise we assume the default value:
 |:---------------------------------------------------------:|:-------------------:|:-------:|
 | [token_endpoint_auth_method](#token_endpoint_auth_method) |  `private_key_jwt`  | `RS256` |
 | [token_endpoint_auth_method](#token_endpoint_auth_method) | `client_secret_jwt` | `HS256` |
+
+### revocation_endpoint_auth_method
+
+{{< confkey type="string" default="client_secret_basic" required="no" >}}
+
+The registered client authentication mechanism used by this client for the [Revocation Endpoint]. If no method is defined
+the confidential client type will default to `client_secret_basic` as this is required by the specification. The public
+client type defaults to `none` as this is required by the specification. Supported values are `client_secret_basic`,
+`client_secret_post`, `client_secret_jwt`, `private_key_jwt`, and `none`.
+
+See the [integration guide](../../../integration/openid-connect/introduction.md#client-authentication-method) for
+more information.
+
+### revocation_endpoint_auth_signing_alg
+
+{{< confkey type="string" default="RS256" required="no" >}}
+
+The JWT signing algorithm accepted when the [revocation_endpoint_auth_method](#revocation_endpoint_auth_method) is
+configured as `client_secret_jwt` or `private_key_jwt`.
+
+See the request object section of the [integration guide](../../../integration/openid-connect/introduction.md#request-object)
+for more information including the algorithm column for supported values.
+
+It's recommended that you specifically configure this when the following options are configured to specific values
+otherwise we assume the default value:
+
+|                        Configuration Option                         |        Value        | Default |
+|:-------------------------------------------------------------------:|:-------------------:|:-------:|
+| [revocation_endpoint_auth_method](#revocation_endpoint_auth_method) |  `private_key_jwt`  | `RS256` |
+| [revocation_endpoint_auth_method](#revocation_endpoint_auth_method) | `client_secret_jwt` | `HS256` |
+
+### introspection_endpoint_auth_method
+
+{{< confkey type="string" default="client_secret_basic" required="no" >}}
+
+The registered client authentication mechanism used by this client for the [Introspection Endpoint]. If no method is
+defined the confidential client type will default to `client_secret_basic` as this is required by the specification. The
+public client type defaults to `none` as this is required by the specification. Supported values are
+`client_secret_basic`, `client_secret_post`, `client_secret_jwt`, `private_key_jwt`, and `none`.
+
+See the [integration guide](../../../integration/openid-connect/introduction.md#client-authentication-method) for
+more information.
+
+### introspection_endpoint_auth_signing_alg
+
+{{< confkey type="string" default="RS256" required="no" >}}
+
+The JWT signing algorithm accepted when the [introspection_endpoint_auth_method](#introspection_endpoint_auth_method) is
+configured as `client_secret_jwt` or `private_key_jwt`.
+
+See the request object section of the [integration guide](../../../integration/openid-connect/introduction.md#request-object)
+for more information including the algorithm column for supported values.
+
+It's recommended that you specifically configure this when the following options are configured to specific values
+otherwise we assume the default value:
+
+|                           Configuration Option                            |        Value        | Default |
+|:-------------------------------------------------------------------------:|:-------------------:|:-------:|
+| [introspection_endpoint_auth_method](#introspection_endpoint_auth_method) |  `private_key_jwt`  | `RS256` |
+| [introspection_endpoint_auth_method](#introspection_endpoint_auth_method) | `client_secret_jwt` | `HS256` |
+
+### pushed_authorization_request_endpoint_auth_method
+
+{{< confkey type="string" default="client_secret_basic" required="no" >}}
+
+The registered client authentication mechanism used by this client for the [Pushed Authorization Request Endpoint]. If
+no method is defined the confidential client type will default to `client_secret_basic` as this is required by the
+specification. The public client type defaults to `none` as this is required by the specification. Supported values are
+`client_secret_basic`, `client_secret_post`, `client_secret_jwt`, `private_key_jwt`, and `none`.
+
+See the [integration guide](../../../integration/openid-connect/introduction.md#client-authentication-method) for
+more information.
+
+### pushed_authorization_request_endpoint_auth_signing_alg
+
+{{< confkey type="string" default="RS256" required="no" >}}
+
+The JWT signing algorithm accepted when the
+[pushed_authorization_request_endpoint_auth_method](#pushed_authorization_request_endpoint_auth_method) is configured as
+`client_secret_jwt` or `private_key_jwt`.
+
+See the request object section of the [integration guide](../../../integration/openid-connect/introduction.md#request-object)
+for more information including the algorithm column for supported values.
+
+It's recommended that you specifically configure this when the following options are configured to specific values
+otherwise we assume the default value:
+
+|                                          Configuration Option                                           |        Value        | Default |
+|:-------------------------------------------------------------------------------------------------------:|:-------------------:|:-------:|
+| [pushed_authorization_request_endpoint_auth_method](#pushed_authorization_request_endpoint_auth_method) |  `private_key_jwt`  | `RS256` |
+| [pushed_authorization_request_endpoint_auth_method](#pushed_authorization_request_endpoint_auth_method) | `client_secret_jwt` | `HS256` |
 
 ### allow_multiple_auth_methods
 
