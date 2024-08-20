@@ -76,6 +76,7 @@ identity_providers:
 To configure [Flower] to utilize Authelia as an [OpenID Connect 1.0] Provider you have to update the `flowerconfig.py` configuration file and configure the `FLOWER_OAUTH2_AUTHELIA_BASE_URL` environment variable.
 
 #### Configuration File
+
 Add the following values to [Flower] `flowerconfig.py`:
 ```python
 auth = '.*@{{< sitevar name="domain" nojs="example.com" >}}'
@@ -86,6 +87,7 @@ oauth2_redirect_uri = 'https://flower.{{< sitevar name="domain" nojs="example.co
 ```
 
 #### Environment Variables
+
 Add the `FLOWER_OAUTH2_AUTHELIA_BASE_URL` environment variable and set it to Authelia Root URL:
 ``` bash
 export FLOWER_OAUTH2_AUTHELIA_BASE_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
