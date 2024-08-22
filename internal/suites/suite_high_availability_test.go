@@ -88,6 +88,8 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 		s.Require().NoError(err)
 	}()
 
+	s.Require().NoError(waitUntilServiceLog(haDockerEnvironment, "redis-sentinel-0", "+switch-master authelia"))
+
 	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
@@ -131,6 +133,9 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 		s.Require().NoError(err)
 	}()
 
+	s.Require().NoError(waitUntilServiceLog(haDockerEnvironment, "redis-sentinel-1", "+sdown sentinel"))
+	s.Require().NoError(waitUntilServiceLog(haDockerEnvironment, "redis-sentinel-1", "+switch-master authelia"))
+
 	s.doVisit(s.T(), s.Context(ctx), HomeBaseURL)
 	s.verifyIsHome(s.T(), s.Context(ctx))
 
@@ -151,7 +156,7 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserDataInDB() {
 	err := haDockerEnvironment.Restart("mariadb")
 	s.Require().NoError(err)
 
-	s.Require().NoError(waitUntilRestartedServiceIsReady(haDockerEnvironment, "mariadb", "mariadbd: ready for connections"))
+	s.Require().NoError(waitUntilServiceLog(haDockerEnvironment, "mariadb", "mariadbd: ready for connections"))
 
 	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))
