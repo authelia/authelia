@@ -66,7 +66,7 @@ identity_providers:
           - 'profile'
           - 'groups'
         userinfo_signed_response_alg: 'none'
-        token_endpoint_auth_method: 'client_secret_basic'
+        token_endpoint_auth_method: 'client_secret_post'
 ```
 
 ### Application
