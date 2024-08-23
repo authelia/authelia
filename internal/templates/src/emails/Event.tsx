@@ -3,7 +3,6 @@ import {
 	Container,
 	Column,
 	Head,
-	Heading,
 	Hr,
 	Html,
 	Preview,
@@ -45,7 +44,7 @@ export const Event = ({
 							Hi {displayName},
 						</Text>
 						<Text className="text-black text-[14px] leading-[24px]">
-							This notification has been sent to you in order to notify you that a new <strong><i>{title}</i></strong> 
+							This notification has been sent to you in order to notify you that a new <strong><i>{title}</i></strong>
 						</Text>
 						<Hr className="border border-solid border-[#eaeaea] my-[26px] mx-0 w-full" />
 						<Text>Event Details:</Text>
