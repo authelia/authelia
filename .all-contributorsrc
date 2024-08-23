@@ -925,7 +925,27 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "Crowley723",
+      "name": "Brynn Crowley",
+      "avatar_url": "https://avatars.githubusercontent.com/u/26265198?v=4",
+      "profile": "https://github.com/Crowley723",
+      "contributions": [
+        "doc",
+        "design"
+      ]
+    },
+    {
+      "login": "budimanjojo",
+      "name": "Budiman Jojo",
+      "avatar_url": "https://avatars.githubusercontent.com/u/13085918?v=4",
+      "profile": "https://budimanjojo.com",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
-  "contributorsPerLine": 7
+  "contributorsPerLine": 7,
+  "commitType": "docs"
 }

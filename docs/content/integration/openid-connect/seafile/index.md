@@ -7,7 +7,10 @@ draft: false
 images: []
 weight: 620
 toc: true
-community: true
+support:
+  level: community
+  versions: true
+  integration: true
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -29,10 +32,14 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://seafile.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://seafile.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `seafile`
 * __Client Secret:__ `insecure_secret`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -53,7 +60,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://seafile.example.com/oauth/callback/'
+          - 'https://seafile.{{< sitevar name="domain" nojs="example.com" >}}/oauth/callback/'
         scopes:
           - 'openid'
           - 'profile'
@@ -79,11 +86,11 @@ ENABLE_OAUTH = True
 OAUTH_ENABLE_INSECURE_TRANSPORT = False
 OAUTH_CLIENT_ID = "seafile"
 OAUTH_CLIENT_SECRET = "insecure_secret"
-OAUTH_REDIRECT_URL = 'https://seafile.example.com/oauth/callback/'
-OAUTH_PROVIDER_DOMAIN = 'auth.example.com'
-OAUTH_AUTHORIZATION_URL = 'https://auth.example.com/api/oidc/authorization'
-OAUTH_TOKEN_URL = 'https://auth.example.com/api/oidc/token'
-OAUTH_USER_INFO_URL = 'https://auth.example.com/api/oidc/userinfo'
+OAUTH_REDIRECT_URL = 'https://seafile.{{< sitevar name="domain" nojs="example.com" >}}/oauth/callback/'
+OAUTH_PROVIDER_DOMAIN = '{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
+OAUTH_AUTHORIZATION_URL = 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization'
+OAUTH_TOKEN_URL = 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token'
+OAUTH_USER_INFO_URL = 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo'
 OAUTH_SCOPE = [
     "openid",
     "profile",

@@ -7,7 +7,10 @@ draft: false
 images: []
 weight: 420
 toc: true
-community: true
+support:
+  level: community
+  versions: true
+  integration: true
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -33,8 +36,12 @@ As with all guides in this section it's important you read the [introduction](..
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://paperless.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://paperless.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -45,7 +52,7 @@ To configure [Paperless] to trust the `Remote-User` header do the following:
 ```env
 PAPERLESS_ENABLE_HTTP_REMOTE_USER=true
 PAPERLESS_HTTP_REMOTE_USER_HEADER_NAME=HTTP_REMOTE_USER
-PAPERLESS_LOGOUT_REDIRECT_URL=https://auth.example.com/logout
+PAPERLESS_LOGOUT_REDIRECT_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/logout
 ```
 
 ## See Also

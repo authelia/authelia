@@ -17,6 +17,12 @@ seo:
   noindex: false # false (default) or true
 ---
 
+## Variables
+
+Some of the values within this page can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
+
 ## Configuration
 
 {{< config-alert-example >}}
@@ -29,7 +35,7 @@ authentication_backend:
     timeout: '5s'
     start_tls: false
     tls:
-      server_name: 'ldap.example.com'
+      server_name: 'ldap.{{< sitevar name="domain" nojs="example.com" >}}'
       skip_verify: false
       minimum_version: 'TLS1.2'
       maximum_version: 'TLS1.3'
@@ -44,7 +50,7 @@ authentication_backend:
         -----BEGIN RSA PRIVATE KEY-----
         ...
         -----END RSA PRIVATE KEY-----
-    base_dn: 'DC=example,DC=com'
+    base_dn: '{{< sitevar name="domain" format="dn" nojs="DC=example,DC=com" >}}'
     additional_users_dn: 'OU=users'
     users_filter: '(&({username_attribute}={input})(objectClass=person))'
     additional_groups_dn: 'OU=groups'
@@ -52,7 +58,7 @@ authentication_backend:
     group_search_mode: 'filter'
     permit_referrals: false
     permit_unauthenticated_bind: false
-    user: 'CN=admin,DC=example,DC=com'
+    user: 'CN=admin,{{< sitevar name="domain" format="dn" nojs="DC=example,DC=com" >}}'
     password: 'password'
     attributes:
       distinguished_name: 'distinguishedName'
@@ -84,7 +90,7 @@ __Examples:__
 ```yaml {title="configuration.yml"}
 authentication_backend:
   ldap:
-    address: 'ldaps://dc1.example.com'
+    address: 'ldaps://dc1.{{< sitevar name="domain" nojs="example.com" >}}'
 ```
 
 ```yaml {title="configuration.yml"}
@@ -125,10 +131,10 @@ Controls the TLS connection validation parameters for either StartTLS or the TLS
 
 {{< confkey type="string" required="yes" >}}
 
-Sets the base distinguished name container for all LDAP queries. If your LDAP domain is example.com this is usually
-`DC=example,DC=com`, however you can fine tune this to be more specific for example to only include objects inside the
-authelia OU: `OU=authelia,DC=example,DC=com`. This is prefixed with the [additional_users_dn](#additional_users_dn) for
-user searches and [additional_groups_dn](#additional_groups_dn) for groups searches.
+Sets the base distinguished name container for all LDAP queries. If your LDAP domain is `{{< sitevar name="domain" nojs="example.com" >}}`
+this is usually `{{< sitevar name="domain" format="dn" nojs="DC=example,DC=com" >}}`, however you can fine tune this to be more specific for
+example to only include objects inside the authelia OU: `OU=authelia,{{< sitevar name="domain" format="dn" nojs="DC=example,DC=com" >}}`. This
+is prefixed with the [additional_users_dn](#additional_users_dn) for user searches and [additional_groups_dn](#additional_groups_dn) for groups searches.
 
 ### additional_users_dn
 
@@ -136,8 +142,8 @@ user searches and [additional_groups_dn](#additional_groups_dn) for groups searc
 
 Additional LDAP path to append to the [base_dn](#base_dn) when searching for users. Useful if you want to restrict
 exactly which OU to get users from for either security or performance reasons. For example setting it to
-`OU=users,OU=people` with a base_dn set to `DC=example,DC=com` will mean user searches will occur in
-`OU=users,OU=people,DC=example,DC=com`.
+`OU=users,OU=people` with a base_dn set to `{{< sitevar name="domain" format="dn" nojs="DC=example,DC=com" >}}` will mean user searches will
+occur in `OU=users,OU=people,{{< sitevar name="domain" format="dn" nojs="DC=example,DC=com" >}}`.
 
 ### users_filter
 

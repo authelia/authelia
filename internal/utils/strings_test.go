@@ -2,6 +2,7 @@ package utils
 
 import (
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -39,6 +40,15 @@ func TestIsStringAbsURL(t *testing.T) {
 	}
 }
 
+func FuzzIsStringAbsURL(f *testing.F) {
+	f.Add("https://google.com")
+	f.Add("https://example.com")
+	f.Add("https://abc.com")
+	f.Fuzz(func(t *testing.T, s string) {
+		assert.NoError(t, IsStringAbsURL(s))
+	})
+}
+
 func TestIsStringInSliceF(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -72,6 +82,21 @@ func TestIsStringInSliceF(t *testing.T) {
 			assert.Equal(t, tc.expected, IsStringInSliceF(tc.needle, tc.haystack, tc.isEqual))
 		})
 	}
+}
+
+func FuzzIsStringInSliceF(f *testing.F) {
+	a := func(needle, item string) bool {
+		return needle == item
+	}
+
+	f.Add("abc", "abc,123,456")
+	f.Add("abc", "123,abc,456")
+	f.Add("456", "123,abc,456")
+	f.Fuzz(func(t *testing.T, n, h string) {
+		haystack := strings.Split(h, ",")
+		assert.True(t, IsStringInSliceF(n, haystack, a))
+		assert.True(t, IsStringInSliceF(n, haystack, strings.EqualFold))
+	})
 }
 
 func TestStringHTMLEscape(t *testing.T) {

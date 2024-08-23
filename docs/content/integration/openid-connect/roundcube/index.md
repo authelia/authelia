@@ -7,7 +7,10 @@ draft: true
 images: []
 weight: 620
 toc: true
-community: true
+support:
+  level: community
+  versions: true
+  integration: true
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -32,10 +35,14 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://roundcube.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://roundcube.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `roundcube`
 * __Client Secret:__ `insecure_secret`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -56,7 +63,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://roundcube.example.com/oauth/callback/'
+          - 'https://roundcube.{{< sitevar name="domain" nojs="example.com" >}}/oauth/callback/'
         scopes:
           - 'openid'
           - 'profile'
@@ -78,9 +85,9 @@ $config['oauth_provider'] = 'generic';
 $config['oauth_provider_name'] = 'Authelia OIDC';
 $config['oauth_client_id'] = 'roundcube';
 $config['oauth_client_secret'] = 'insecure_secret';
-$config['oauth_auth_uri'] = 'https://auth.example.com/api/oidc/authorization';
-$config['oauth_token_uri'] = 'https://auth.example.com/api/oidc/token';
-$config['oauth_identity_uri'] = 'https://auth.example.com/api/oidc/userinfo';
+$config['oauth_auth_uri'] = 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization';
+$config['oauth_token_uri'] = 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token';
+$config['oauth_identity_uri'] = 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo';
 $config['oauth_identity_fields'] = ['email'];
 $config['oauth_scope'] = 'email openid profile';
 // Optionally, skip Roundcube's login page
@@ -136,7 +143,7 @@ As defined above, in file,  `/etc/dovecot/dovecot-oauth2.conf.ext`:
 
 ```bash
 introspection_mode = post
-introspection_url = https://roundcube:insecure_secret@auth.example.com/api/oidc/introspection
+introspection_url = https://roundcube:insecure_secret@{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/introspection
 username_attribute = username
 ```
 

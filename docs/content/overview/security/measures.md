@@ -471,7 +471,7 @@ Example for docker-compose:
 services:
   authelia:
     image: authelia/authelia
-    container_name: authelia
+    container_name: '{{< sitevar name="host" nojs="authelia" >}}'
     user: 8000:9000
     volumes:
       - ./authelia:/config
@@ -503,7 +503,7 @@ Example for docker-compose:
 services:
   authelia:
     image: authelia/authelia
-    container_name: authelia
+    container_name: '{{< sitevar name="host" nojs="authelia" >}}'
     environment:
       PUID: 8000
       PGID: 9000

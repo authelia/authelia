@@ -140,7 +140,7 @@ func (n *SMTPNotifier) StartupCheck() (err error) {
 // Send a notification via the SMTPNotifier.
 func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject string, et *templates.EmailTemplate, data any) (err error) {
 	msg := gomail.NewMsg(
-		gomail.WithMIMEVersion(gomail.Mime10),
+		gomail.WithMIMEVersion(gomail.MIME10),
 		gomail.WithBoundary(n.random.StringCustom(30, random.CharSetAlphaNumeric)),
 	)
 

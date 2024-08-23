@@ -7,7 +7,10 @@ draft: false
 images: []
 weight: 620
 toc: true
-community: true
+support:
+  level: community
+  versions: true
+  integration: true
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -28,10 +31,14 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://kasm.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://kasm.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `kasm`
 * __Client Secret:__ `insecure_secret`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -52,7 +59,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://kasm.example.com/api/oidc_callback'
+          - 'https://kasm.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc_callback'
         scopes:
           - 'openid'
           - 'profile'
@@ -73,9 +80,9 @@ To configure [Kasm Workspaces] to utilize Authelia as an [OpenID Connect 1.0] Pr
    3. Enable *Default* if you want Authelia to be the default sign-in method.
    4. Client ID: `kasm`
    5. Client Secret: `insecure_secret`
-   6. Authorization URL: `https://auth.example.com/api/oidc/authorization`
-   7. Token URL: `https://auth.example.com/api/oidc/token`
-   8. User Info URL: `https://auth.example.com/api/oidc/userinfo`
+   6. Authorization URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
+   7. Token URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
+   8. User Info URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
    9. Scope (One Per Line): `openid profile groups email`
    10. User Identifier: `preferred_username`
 

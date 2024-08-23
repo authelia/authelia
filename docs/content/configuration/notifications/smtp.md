@@ -16,6 +16,11 @@ seo:
   noindex: false # false (default) or true
 ---
 
+## Variables
+
+Some of the values within this page can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -29,15 +34,15 @@ notifier:
     timeout: '5s'
     username: 'test'
     password: 'password'
-    sender: "Authelia <admin@example.com>"
+    sender: "Authelia <admin@{{< sitevar name="domain" nojs="example.com" >}}>"
     identifier: 'localhost'
     subject: "[Authelia] {title}"
-    startup_check_address: 'test@authelia.com'
+    startup_check_address: 'test@{{< sitevar name="domain" nojs="example.com" >}}'
     disable_require_tls: false
     disable_starttls: false
     disable_html_emails: false
     tls:
-      server_name: 'smtp.example.com'
+      server_name: 'smtp.{{< sitevar name="domain" nojs="example.com" >}}'
       skip_verify: false
       minimum_version: 'TLS1.2'
       maximum_version: 'TLS1.3'
@@ -187,7 +192,7 @@ notifier:
     username: 'myaccount@gmail.com'
     # Password can also be set using a secret: https://www.authelia.com/configuration/methods/secrets/
     password: 'yourapppassword'
-    sender: 'admin@example.com'
+    sender: 'admin@{{< sitevar name="domain" nojs="example.com" >}}'
     host: 'smtp.gmail.com'
     port: 587
 ```

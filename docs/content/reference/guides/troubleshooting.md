@@ -82,10 +82,10 @@ The starting line will have a message which is similar to the following examples
 
 The listening line will have a message which is similar to the following examples:
 
-- `Listening for non-TLS connections on '0.0.0.0:9091' path '/'`
-- `Listening for TLS connections on '0.0.0.0:9091' path '/'`
-- `Listening for non-TLS connections on ':9091' path '/'`
-- `Listening for non-TLS connections on ':9091' path '/' and '/authelia'`
+- `Listening for non-TLS connections on '0.0.0.0:{{< sitevar name="port" nojs="9091" >}}' path '/'`
+- `Listening for TLS connections on '0.0.0.0:{{< sitevar name="port" nojs="9091" >}}' path '/'`
+- `Listening for non-TLS connections on ':{{< sitevar name="port" nojs="9091" >}}' path '/'`
+- `Listening for non-TLS connections on ':{{< sitevar name="port" nojs="9091" >}}' path '/' and '/authelia'`
 
 ## Sanitization
 

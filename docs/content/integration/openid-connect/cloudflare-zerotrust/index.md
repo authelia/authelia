@@ -7,7 +7,10 @@ draft: false
 images: []
 weight: 620
 toc: true
-community: true
+support:
+  level: community
+  versions: true
+  integration: true
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -27,9 +30,13 @@ seo:
 This example makes the following assumptions:
 
 * __Cloudflare Team Name:__ `example-team`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `cloudflare`
 * __Client Secret:__ `insecure_secret`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 *__Important Note:__ [Cloudflare Zero Trust] does not properly URL encode the secret per [RFC6749 Appendix B] at the
 time this article was last modified (noted at the bottom). This means you'll either have to use only alphanumeric
@@ -81,9 +88,9 @@ To configure [Cloudflare Zero Trust] to utilize Authelia as an [OpenID Connect 1
    1. Name: `Authelia`
    2. App ID: `cloudflare`
    3. Client Secret: `insecure_secret`
-   4. Auth URL: `https://auth.example.com/api/oidc/authorization`
-   5. Token URL: `https://auth.example.com/api/oidc/token`
-   6. Certificate URL: `https://auth.example.com/jwks.json`
+   4. Auth URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
+   5. Token URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
+   6. Certificate URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/jwks.json`
    7. Enable `Proof Key for Code Exchange (PKCE)`
    8. Add the following OIDC Claims: `preferred_username`, `mail`
 7. Click Save

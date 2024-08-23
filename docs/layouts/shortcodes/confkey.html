@@ -22,7 +22,7 @@
   {{- if $ref }}
   <a href="/configuration/prologue/common/#{{ $ref }}" class="badge confkey-syntax" data-bs-toggle="tooltip" data-bs-placement="top" title="The common syntax name">{{ $syntax }}</a>
   {{- else }}
-  <span class="badge confkey-syntax" data-bs-toggle="tooltip" data-bs-placement="top" title="The common syntax nam">{{ $syntax }}</span>
+  <span class="badge confkey-syntax" data-bs-toggle="tooltip" data-bs-placement="top" title="The common syntax name">{{ $syntax }}</span>
   {{- end }}
   {{- end }}
   {{- with $structure }}
@@ -58,11 +58,15 @@
 {{- end }}
 {{- with .Get "common-description" }}{{ $description := . }}{{ end }}
 {{- with .Get "common-text" }}{{ $text := . }}{{ end }}
-<div class="alert alert-success d-flex" role="alert">
-  <div class="flex-shrink-1 alert-icon">⚠️</div>
-  <div class="w-100">
-    <b>Reference Note:</b> {{ $text }}For more information please see both the <a href="#configuration" class="alert-link">configuration example</a> and the <a href="/configuration/prologue/common/#{{ $ref }}" class="alert-link">{{ $description }}</a> reference guide.
+<div class="callout callout-tip d-flex flex-row mt-4 mb-4 pt-4 pe-4 pb-2 ps-3">
+  <svg class="outline/rocket svg-inline callout-icon me-2 mb-3" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 13a8 8 0 017 7 6 6 0 003-5 9 9 0 006-8 3 3 0 00-3-3 9 9 0 00-8 6 6 6 0 00-5 3"></path><path d="M7 14a6 6 0 00-3 6 6 6 0 006-3"></path><path d="M15 9m-1 0a1 1 0 102 0 1 1 0 10-2 0"></path></svg>
+  <div class="callout-content">
+    <div class="callout-title">
+      <p>Reference Note</p>
+    </div>
+    <div class="callout-body">
+      <p>{{ $text }}For more information please see both the <a href="#configuration">configuration example</a> and the <a href="/configuration/prologue/common/#{{ $ref }}">{{ $description }}</a> reference guide.</p>
+    </div>
   </div>
 </div>
-<br />
 {{- end }}

@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"sort"
@@ -13,9 +14,9 @@ import (
 // ValidateServerTLS checks a server TLS configuration is correct.
 func ValidateServerTLS(config *schema.Configuration, validator *schema.StructValidator) {
 	if config.Server.TLS.Key != "" && config.Server.TLS.Certificate == "" {
-		validator.Push(fmt.Errorf(errFmtServerTLSCert))
+		validator.Push(errors.New(errFmtServerTLSCert))
 	} else if config.Server.TLS.Key == "" && config.Server.TLS.Certificate != "" {
-		validator.Push(fmt.Errorf(errFmtServerTLSKey))
+		validator.Push(errors.New(errFmtServerTLSKey))
 	}
 
 	if config.Server.TLS.Key != "" {
@@ -28,7 +29,7 @@ func ValidateServerTLS(config *schema.Configuration, validator *schema.StructVal
 
 	if config.Server.TLS.Key == "" && config.Server.TLS.Certificate == "" &&
 		len(config.Server.TLS.ClientCertificates) > 0 {
-		validator.Push(fmt.Errorf(errFmtServerTLSClientAuthNoAuth))
+		validator.Push(errors.New(errFmtServerTLSClientAuthNoAuth))
 	}
 
 	for _, clientCertPath := range config.Server.TLS.ClientCertificates {

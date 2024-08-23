@@ -22,10 +22,22 @@ Istio is supported with Authelia v4.37.0 and higher via the [Envoy] proxy [exter
 
 [external authorization]: https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto.html#extensions-filters-http-ext-authz-v3-extauthz
 
+## Get started
+
+It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
+[Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+bootstrapping *Authelia*.
+
+## Variables
+
+Some of the values within this page can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
+
 ## Example
 
 This example assumes that you have deployed an Authelia pod and you have configured it to be served on the URL
-`https://auth.example.com` and there is a Kubernetes Service with the name `authelia` in the `default` namespace with
+`https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}` and there is a Kubernetes Service with the name `authelia` in the `default` namespace with
 TCP port `80` configured to route to the Authelia pod's HTTP port and that your cluster is configured with the default
 DNS domain name of `cluster.local`.
 
@@ -63,7 +75,7 @@ spec:
 
 ### Authorization Policy
 
-The following [Authorization Policy] applies the above filter extension provider to the `nextcloud.example.com` domain:
+The following [Authorization Policy] applies the above filter extension provider to the `nextcloud.{{< sitevar name="domain" nojs="example.com" >}}` domain:
 
 ```yaml {title="authoriztion-policy.yml"}
 apiVersion: 'security.istio.io/v1beta1'
@@ -79,7 +91,7 @@ spec:
     - to:
         - operation:
             hosts:
-              - 'nextcloud.example.com'
+              - 'nextcloud.{{< sitevar name="domain" nojs="example.com" >}}'
 ```
 
 ## See Also

@@ -6,7 +6,7 @@ import IconButton from "@mui/material/IconButton";
 import Grid from "@mui/material/Unstable_Grid2/Grid2";
 import { useTranslation } from "react-i18next";
 
-import { FormatDateHumanReadable } from "@i18n/formats";
+import { useRelativeTime } from "@hooks/RelativeTimeString";
 
 interface Props {
     id: string;
@@ -27,6 +27,8 @@ interface Props {
 
 const CredentialItem = function (props: Props) {
     const { t: translate } = useTranslation("settings");
+    const timeSinceAdded = useRelativeTime(props.created_at);
+    const timeSinceLastUsed = useRelativeTime(props.last_used_at || new Date(0));
 
     return (
         <Paper variant="outlined" id={props.id}>
@@ -50,18 +52,12 @@ const CredentialItem = function (props: Props) {
                                 </Typography>
                             </Stack>
                             <Typography variant={"caption"} display={{ xs: "none", sm: "block" }}>
-                                {translate("Added when", {
-                                    when: props.created_at,
-                                    formatParams: { when: FormatDateHumanReadable },
-                                })}
+                                {`${translate("Added")} ${timeSinceAdded}`}
                             </Typography>
                             <Typography variant={"caption"} display={{ xs: "none", sm: "block" }}>
                                 {props.last_used_at === undefined
-                                    ? translate("Never used")
-                                    : translate("Last Used when", {
-                                          when: props.last_used_at,
-                                          formatParams: { when: FormatDateHumanReadable },
-                                      })}
+                                    ? translate("Never Used")
+                                    : `${translate("Last Used")} ${timeSinceLastUsed}`}
                             </Typography>
                         </Stack>
                     </Grid>

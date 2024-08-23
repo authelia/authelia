@@ -53,25 +53,29 @@ Adapting this to [SWAG] is beyond the scope of this documentation.
 ### Assumptions and Adaptation
 
 This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
-can not reasonably have examples for every advanced configuration option that exists. The
-following are the assumptions we make:
+can not reasonably have examples for every advanced configuration option that exists. Some of these values can
+automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
+
+The following are the assumptions we make:
 
 * You have followed the [Get Started](../prologue/get-started.md) guide and configured
 * Deployment Scenario:
   * Single Host
-  * Authelia is deployed as a Container with the container name `authelia` on port `9091`
+  * Authelia is deployed as a Container with the container name `{{< sitevar name="host" nojs="authelia" >}}` on port `{{< sitevar name="port" nojs="9091" >}}`
   * Proxy is deployed as a Container on a network shared with Authelia
-* The above assumption means that Authelia should be accessible to the proxy on `http://authelia:9091` and as such:
+* The above assumption means that Authelia should be accessible to the proxy on `{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}` and as such:
   * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
     certificate defined
-  * You will have to adapt all instances of `authelia` in the URL if:
+  * You will have to adapt all instances of `{{< sitevar name="host" nojs="authelia" >}}` in the URL if:
     * You're using a different container name
     * You deployed the proxy to a different location
-  * You will have to adapt all instances of `9091` in the URL if:
+  * You will have to adapt all instances of `{{< sitevar name="port" nojs="9091" >}}` in the URL if:
     * You have adjusted the default port in the configuration
   * You will have to adapt the entire URL if:
     * Authelia is on a different host to the proxy
-* All services are part of the `example.com` domain:
+* All services are part of the `{{< sitevar name="domain" nojs="example.com" >}}` domain:
   * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
     just testing or you want to use that specific domain
 
@@ -113,7 +117,7 @@ services:
       PUID: '1000'
       PGID: '1000'
       TZ: 'Australia/Melbourne'
-      URL: 'example.com'
+      URL: '{{< sitevar name="domain" nojs="example.com" >}}'
       SUBDOMAINS: 'www,whoami,auth,organizr'
       VALIDATION: 'http'
       CERTPROVIDER: 'cloudflare'
@@ -122,14 +126,14 @@ services:
     cap_add:
       - 'NET_ADMIN'
   authelia:
-    container_name: 'authelia'
+    container_name: '{{< sitevar name="host" nojs="authelia" >}}'
     image: 'authelia/authelia'
     restart: 'unless-stopped'
     networks:
       net:
         aliases: []
     expose:
-      - 9091
+      - {{< sitevar name="port" nojs="9091" >}}
     volumes:
       - '${PWD}/data/authelia/config:/config'
     environment:
@@ -174,11 +178,11 @@ The first option requires some minor adjustments to be made and is the recommend
 
 #### Adjust authelia-server.conf
 
-The generated `authelia-server.conf` includes the `proxy_pass http://$upstream_authelia:9091;` directive in two location
+The generated `authelia-server.conf` includes the `proxy_pass http://$upstream_authelia:{{< sitevar name="port" nojs="9091" >}};` directive in two location
 blocks, we recommend adjusting these locations so they include the part of the location match after the `/authelia` part
 for example in the `location = /authelia/api/verify` set the directive to
-`proxy_pass http://$upstream_authelia:9091/api/verify;` and the `location = /authelia/api/authz/auth-request` set the
-directive to `proxy_pass http://$upstream_authelia:9091/api/authz/auth-request;`. See the below example.
+`proxy_pass http://$upstream_authelia:{{< sitevar name="port" nojs="9091" >}}/api/verify;` and the `location = /authelia/api/authz/auth-request` set the
+directive to `proxy_pass http://$upstream_authelia:{{< sitevar name="port" nojs="9091" >}}/api/authz/auth-request;`. See the below example.
 
 ```nginx
 # location for authelia 4.37 and below auth requests
@@ -188,7 +192,7 @@ location = /authelia/api/verify {
     include /config/nginx/proxy.conf;
     include /config/nginx/resolver.conf;
     set $upstream_authelia authelia;
-    proxy_pass http://$upstream_authelia:9091/api/verify;
+    proxy_pass http://$upstream_authelia:{{< sitevar name="port" nojs="9091" >}}/api/verify;
 
     ## Include the Set-Cookie header if present
     auth_request_set $set_cookie $upstream_http_set_cookie;
@@ -205,7 +209,7 @@ location = /authelia/api/authz/auth-request {
     include /config/nginx/proxy.conf;
     include /config/nginx/resolver.conf;
     set $upstream_authelia authelia;
-    proxy_pass http://$upstream_authelia:9091/api/authz/auth-request;
+    proxy_pass http://$upstream_authelia:{{< sitevar name="port" nojs="9091" >}}/api/authz/auth-request;
 
     ## Include the Set-Cookie header if present
     auth_request_set $set_cookie $upstream_http_set_cookie;
@@ -245,7 +249,7 @@ In the [SWAG] `/config` mount which is mounted to `${PWD}/data/swag` in our exam
    - The `mkdir -p ${PWD}/data/swag/nginx/snippets/authelia` command should achieve this on Linux.
 2. Create the `${PWD}/data/swag/nginx/snippets/authelia/location.conf` file which can be found [here](nginx.md#authelia-locationconf).
 3. Create the `${PWD}/data/swag/nginx/snippets/authelia/authrequest.conf` file which can be found [here](nginx.md#authelia-authrequestconf).
-   - Ensure you adjust the line `error_page 401 =302 https://auth.example.com/?rd=$target_url;` replacing `https://auth.example.com/` with your external Authelia URL.
+   - Ensure you adjust the line `error_page 401 =302 https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/?rd=$target_url;` replacing `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/` with your external Authelia URL.
 
 ### Protected Application
 

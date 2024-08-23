@@ -21,6 +21,12 @@ documentation.
 More information about OpenID Connect 1.0 can be found in the [roadmap](../../../roadmap/active/openid-connect.md) and
 in the [integration](../../../integration/openid-connect/introduction.md) documentation.
 
+## Variables
+
+Some of the values within this page can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
+
 ## Configuration
 
 {{< config-alert-example >}}
@@ -32,14 +38,14 @@ identity_providers:
       - client_id: 'unique-client-identifier'
         client_name: 'My Application'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
-        sector_identifier_uri: 'https://example.com/sector.json'
+        sector_identifier_uri: 'https://{{< sitevar name="domain" nojs="example.com" >}}/sector.json'
         public: false
         redirect_uris:
-          - 'https://oidc.example.com:8080/oauth2/callback'
+          - 'https://oidc.{{< sitevar name="domain" nojs="example.com" >}}:8080/oauth2/callback'
         request_uris:
-          - 'https://oidc.example.com:8080/oidc/request-object.jwk'
+          - 'https://oidc.{{< sitevar name="domain" nojs="example.com" >}}:8080/oidc/request-object.jwk'
         audience:
-          - 'https://app.example.com'
+          - 'https://app.{{< sitevar name="domain" nojs="example.com" >}}'
         scopes:
           - 'openid'
           - 'groups'
@@ -453,7 +459,7 @@ calculated in the issuer [jwks] section.
 _**Note:** This value is completely ignored if the [access_token_signed_response_key_id](#access_token_signed_response_key_id)
 is defined._
 
-The algorithm used to sign the ID Tokens in the token responses.
+The algorithm used to sign the JWT Access Tokens in the token responses.
 
 See the response object section of the
 [integration guide](../../../integration/openid-connect/introduction.md#response-object) for more information including
@@ -580,7 +586,7 @@ is an escape hatch to turn this policy off for a particular client.
 
 Per the text:
 
-{{< callout context="danger" title="RFC6749: Section 2.3" icon="alert-octagon" >}}
+{{< callout context="danger" title="RFC6749: Section 2.3" icon="outline/alert-octagon" >}}
 The client MUST NOT use more than one authentication method in each request.
 {{< /callout >}}
 
@@ -614,7 +620,7 @@ identity_providers:
   oidc:
     clients:
       - client_id: 'example'
-        jwks_uri: 'https://oidc.example.com:8080/oauth2/jwks.json'
+        jwks_uri: 'https://oidc.{{< sitevar name="domain" nojs="example.com" >}}:8080/oauth2/jwks.json'
         jwks:
           - key_id: 'example'
             algorithm: 'RS256'

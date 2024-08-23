@@ -7,7 +7,10 @@ draft: false
 images: []
 weight: 620
 toc: true
-community: true
+support:
+  level: community
+  versions: true
+  integration: true
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -21,7 +24,7 @@ seo:
   * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [Nextcloud]
   * 22.1.0 with the application oidc_login
-  * 28.0.4 with the application user_oidc
+  * 29.0.4 with the application user_oidc v6.0.1
 
 {{% oidc-common %}}
 
@@ -29,10 +32,14 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://nextcloud.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://nextcloud.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `nextcloud`
 * __Client Secret:__ `insecure_secret`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 *__Important Note:__ it has been reported that some of the [Nextcloud] plugins do not properly encode the client secret.
 as such it's important to only use alphanumeric characters as well as the other
@@ -72,7 +79,7 @@ identity_providers:
         require_pkce: true
         pkce_challenge_method: 'S256'
         redirect_uris:
-          - 'https://nextcloud.example.com/apps/oidc_login/oidc'
+          - 'https://nextcloud.{{< sitevar name="domain" nojs="example.com" >}}/apps/oidc_login/oidc'
         scopes:
           - 'openid'
           - 'profile'
@@ -93,7 +100,7 @@ To configure [Nextcloud] to utilize Authelia as an [OpenID Connect 1.0] Provider
 $CONFIG = array (
     'allow_user_to_change_display_name' => false,
     'lost_password_link' => 'disabled',
-    'oidc_login_provider_url' => 'https://auth.example.com',
+    'oidc_login_provider_url' => 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}',
     'oidc_login_client_id' => 'nextcloud',
     'oidc_login_client_secret' => 'insecure_secret',
     'oidc_login_auto_redirect' => false,
@@ -150,14 +157,14 @@ identity_providers:
         require_pkce: true
         pkce_challenge_method: 'S256'
         redirect_uris:
-          - 'https://nextcloud.example.com/apps/user_oidc/code'
+          - 'https://nextcloud.{{< sitevar name="domain" nojs="example.com" >}}/apps/user_oidc/code'
         scopes:
           - 'openid'
           - 'profile'
           - 'email'
           - 'groups'
         userinfo_signed_response_alg: 'none'
-        token_endpoint_auth_method: 'client_secret_post'
+        token_endpoint_auth_method: 'client_secret_basic'
 ```
 
 #### Application
@@ -167,11 +174,11 @@ To configure [Nextcloud] to utilize Authelia as an [OpenID Connect 1.0] Provider
 1. Install the [Nextcloud OpenID Connect user backend app]
 2. Edit the 'OpenID Connect' configuration:
 
-* Identifier : Authelia
-* Client ID : nextcloud
-* Client secret : insecure_secret
-* Discovery endpoint : https://auth.example.com/.well-known/openid-configuration
-* Scope : openid email profile
+* Identifier: `Authelia`
+* Client ID: `nextcloud`
+* Client secret: `insecure_secret`
+* Discovery endpoint: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
+* Scope: openid email profile
 
 3. Add the following to the [Nextcloud] `config.php` configuration:
 ``` php

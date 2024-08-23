@@ -1,0 +1,104 @@
+<p>
+  <button type="button" class="btn btn-primary" id="site-variables-toggle" data-bs-toggle="modal" data-bs-target="#site-variables-modal">
+    Set Documentation Variables
+  </button>
+</p>
+<div class="modal modal-lg fade" id="site-variables-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="site-variables-modal-label" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="site-variables-modal-label">Documentation Variable Configuration</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="site-variables-form">
+        <div class="modal-body">
+          <div class="mb-3 row">
+            <p class="text-center text-break fs-6 fst-italic">The following settings are stored locally in browser storage and accessed locally via javascript. These values are not sent in any requests.</p>
+          </div>
+          <hr>
+            <div class="mb-3 row text-center">
+              <p>General</p>
+            </div>
+            <div class="mb-3 row">
+              <label for="site-variable-host" class="col-sm-4 col-form-label">Host</label>
+              <div class="col-sm-8">
+                <span class="d-inline-block" tabindex="0" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-trigger="hover focus" data-bs-content="The host Authelia is listening on">
+                  <input type="text" id="site-variable-host" class="form-control">
+                </span>
+              </div>
+            </div>
+            <div class="mb-3 row">
+              <label for="site-variable-port" class="col-sm-4 col-form-label">Port</label>
+              <div class="col-sm-4">
+                <span class="d-inline-block" tabindex="0" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-trigger="hover focus" data-bs-content="The port Authelia is listening on">
+                  <input type="number" id="site-variable-port" class="form-control">
+                </span>
+              </div>
+              <div class="col-sm-4">
+                <div class="form-check form-switch">
+                  <span class="d-inline-block" tabindex="0" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-trigger="hover focus" data-bs-content="Check this if you've enabled the Authelia server TLS options">
+                    <label class="form-check-label" for="site-variable-tls">TLS</label>
+                    <input id="site-variable-tls" class="form-check-input" type="checkbox" role="switch">
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="mb-3 row">
+            </div>
+            <div class="mb-3 row">
+              <label for="site-variable-domain" class="col-sm-4 col-form-label">Domain</label>
+              <div class="col-sm-8">
+                <span class="d-inline-block" tabindex="0" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-trigger="hover focus" data-bs-content="The public domain for all of your services">
+                  <input type="text" id="site-variable-domain" class="form-control">
+                </span>
+              </div>
+            </div>
+            <hr>
+            <div class="mb-3 row text-center">
+              <p>Subdomains</p>
+            </div>
+            <div class="mb-3 row">
+              <label for="site-variable-subdomain-authelia" class="col-sm-4 col-form-label">Authelia</label>
+              <div class="col-sm-8">
+                <span class="d-inline-block" tabindex="0" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-trigger="hover focus" data-bs-content="The public subdomain for the Authelia portal">
+                  <input type="text" id="site-variable-subdomain-authelia" class="form-control">
+                </span>
+              </div>
+            </div>
+            <hr>
+            <div class="mb-3 row text-center">
+              <p>Example Values</p>
+              <p class="fs-6 fst-italic">The following fields show example values given the above inputs.</p>
+            </div>
+            <div class="mb-3 row">
+              <label for="site-const-authelia-url" class="col-sm-4 col-form-label">Public URL</label>
+              <div class="col-sm-8">
+                <span class="d-inline-block" tabindex="0" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-trigger="hover focus" data-bs-content="The effective Public Authelia URL given the above configuration">
+                  <input type="text" id="site-const-authelia-url" class="form-control" readonly>
+                </span>
+              </div>
+            </div>
+            <div class="mb-3 row">
+              <label for="site-const-listen" class="col-sm-4 col-form-label">Listening Address</label>
+              <div class="col-sm-8">
+                <span class="d-inline-block" tabindex="0" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-trigger="hover focus" data-bs-content="The effective Listening Authelia URL given the above configuration">
+                  <input type="text" id="site-const-listen" class="form-control" readonly>
+                </span>
+              </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <span class="d-inline-block" tabindex="0" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-trigger="hover focus" data-bs-content="Reset the variables to their default values">
+            <button type="button" class="btn btn-danger" id="site-variables-reset">Reset</button>
+          </span>
+          <span class="d-inline-block" tabindex="0" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-trigger="hover focus" data-bs-content="Close without saving">
+            <button type="button" class="btn btn-secondary" id="site-variables-close" data-bs-dismiss="modal">Close</button>
+          </span>
+          <span class="d-inline-block" tabindex="0" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-trigger="hover focus" data-bs-content="Close and save">
+          <button type="button" class="btn btn-primary" id="site-variables-save" data-bs-dismiss="modal">Save</button>
+          </span>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

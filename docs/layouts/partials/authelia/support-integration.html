@@ -1,0 +1,8 @@
+{{ $term := .Params.support.term | default "integration guide" }}
+{{ if eq .Params.support.level "community" }}
+<p>This {{ $term }} is community supported. It's not guaranteed to be complete, accurate, or up-to-date. It's likely that if this {{ $term }} does not work for you that changes occurred with a third-party application.</p>
+{{ else if eq .Params.support.level "maintainer" }}
+<p>This {{ $term }} is community supported. It's not guaranteed to be complete, accurate, or up-to-date. However one of the maintainers uses this configuration and will likely update it in the event of necessary changes. It's likely that if this {{ $term }} does not work for you that changes occurred with the third-party application and the maintainer using this third-party application has not had a chance to update it.</p>
+{{ else if eq .Params.support.level "official" }}
+<p>This {{ $term }} is officially supported and tested in integration testing, with an up-to-date version of the third-party application. It's likely if this {{ $term }} does not work for you that some part of this guide has been missed.</p>
+{{ end -}}

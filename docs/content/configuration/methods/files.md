@@ -121,7 +121,7 @@ An excerpt from a docker compose that allows you to specify multiple configurati
 ```yaml {title="cocker-compose.yml"}
 services:
   authelia:
-    container_name: 'authelia'
+    container_name: '{{< sitevar name="host" nojs="authelia" >}}'
     image: 'authelia/authelia:latest'
     command:
       - 'authelia'

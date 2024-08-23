@@ -7,7 +7,10 @@ draft: false
 images: []
 weight: 620
 toc: true
-community: true
+support:
+  level: community
+  versions: true
+  integration: true
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -28,10 +31,14 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://budibase.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://budibase.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `budibase`
 * __Client Secret:__ `insecure_secret`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ### Authelia
 
@@ -49,7 +56,7 @@ identity_providers:
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://budibase.example.com/api/global/auth/oidc/callback'
+          - 'https://budibase.{{< sitevar name="domain" nojs="example.com" >}}/api/global/auth/oidc/callback'
         scopes:
           - 'openid'
           - 'profile'
@@ -63,26 +70,26 @@ identity_providers:
 
 #### Organization configuration
 
-Go on the builder main page: **Settings > Organization** or url : https://budibase.example.com/builder/portal/settings/organisation
+Go on the builder main page: **Settings > Organization** or url : https://budibase.{{< sitevar name="domain" nojs="example.com" >}}/builder/portal/settings/organisation
 
 {{< figure src="budibase_org.png" alt="Budibase" width="300" >}}
 
-- Org. name: example.com
-- Platform URL: https://budibase.example.com
+- Org. name: `{{< sitevar name="domain" nojs="example.com" >}}`
+- Platform URL: `https://budibase.{{< sitevar name="domain" nojs="example.com" >}}`
 
 > ⚠️ **Don't forget to press save.**
 
 #### Auth configuration
 
-Go the builder main page: **Settings > Auth > OpenID Connect** or url : https://budibase.example.com/builder/portal/settings/auth
+Go the builder main page: **Settings > Auth > OpenID Connect** or url : https://budibase.{{< sitevar name="domain" nojs="example.com" >}}/builder/portal/settings/auth
 
 {{< figure src="budibase_auth.png" alt="Budibase" width="300" >}}
 
-- Config URL: https://auth.example.com/.well-known/openid-configuration
-- Client ID: budibase
-- Client Secret: myclientsecret
-- Name: Authelia
-- Icon: authelia.svg (Upload your own here [authelia branding](https://www.authelia.com/reference/guides/branding/))
+- Config URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
+- Client ID: `budibase`
+- Client Secret: `myclientsecret`
+- Name: `Authelia`
+- Icon: `authelia.svg` (Upload your own here [authelia branding](https://www.authelia.com/reference/guides/branding/))
 
 > ⚠️ **Don't forget to press save.**
 

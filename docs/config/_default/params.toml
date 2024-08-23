@@ -46,7 +46,7 @@ mainSections = ["overview", "configuration", "integration", "contributing", "roa
   alertDismissable = true # true (default) or false
 
   # Bootstrap
-  bootstrapJavascript = false # false (default) or true
+  bootstrapJavascript = true # false (default) or true
 
   # Nav
   # sectionNav = ["docs"] # ["docs"] (default) or list of sections (e.g. ["docs", "guides"])

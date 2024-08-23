@@ -1,6 +1,6 @@
 import React, { Fragment, useCallback, useState } from "react";
 
-import { Button, Paper, Tooltip, Typography } from "@mui/material";
+import { Button, CircularProgress, Paper, Tooltip, Typography } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2/Grid2";
 import { useTranslation } from "react-i18next";
 
@@ -247,10 +247,12 @@ const WebAuthnCredentialsPanel = function (props: Props) {
                             })}
                         >
                             <Button
+                                id={"webauthn-credential-add"}
                                 variant="outlined"
                                 color="primary"
                                 onClick={handleRegister}
-                                id={"webauthn-credential-add"}
+                                disabled={dialogRegisterOpening || dialogRegisterOpen}
+                                endIcon={dialogRegisterOpening ? <CircularProgress color="inherit" size={20} /> : null}
                             >
                                 {translate("Add")}
                             </Button>

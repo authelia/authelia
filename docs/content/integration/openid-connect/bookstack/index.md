@@ -7,7 +7,10 @@ draft: false
 images: []
 weight: 620
 toc: true
-community: true
+support:
+  level: community
+  versions: true
+  integration: true
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -28,10 +31,14 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://bookstack.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://bookstack.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `bookstack`
 * __Client Secret:__ `insecure_secret`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 *__Important Note:__ [BookStack] does not properly URL encode the secret per [RFC6749 Appendix B] at the time this
 article was last modified (noted at the bottom). This means you'll either have to use only alphanumeric characters for
@@ -58,7 +65,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://bookstack.example.com/oidc/callback'
+          - 'https://bookstack.{{< sitevar name="domain" nojs="example.com" >}}/oidc/callback'
         scopes:
           - 'openid'
           - 'profile'
@@ -77,7 +84,7 @@ To configure [BookStack] to utilize Authelia as an [OpenID Connect 1.0] Provider
    3. OIDC_DISPLAY_NAME_CLAIMS: `name`
    4. OIDC_CLIENT_ID: `bookstack`
    5. OIDC_CLIENT_SECRET: `insecure_secret`
-   6. OIDC_ISSUER: `https://auth.example.com`
+   6. OIDC_ISSUER: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
    7. OIDC_ISSUER_DISCOVER: `true`
 
 ## See Also

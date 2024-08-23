@@ -44,6 +44,7 @@ func newRootCmd() *cobra.Command {
 	cmd.PersistentFlags().String(cmdFlagDocsStatic, dirDocsStatic, "The directory with the docs static files")
 	cmd.PersistentFlags().String(cmdFlagDocsStaticJSONSchemas, dirDocsStaticJSONSchemas, "The directory with the docs static JSONSchema files")
 	cmd.PersistentFlags().String(cmdFlagDocsData, dirDocsData, "The directory with the docs data")
+	cmd.PersistentFlags().String(cmdFlagDocsADR, dirDocsADR, "The directory with the ADR data")
 	cmd.PersistentFlags().String(cmdFlagFileConfigKeys, fileCodeConfigKeys, "Sets the path of the keys file")
 	cmd.PersistentFlags().String(cmdFlagDocsDataKeys, fileDocsDataConfigKeys, "Sets the path of the docs keys file")
 	cmd.PersistentFlags().String(cmdFlagPackageConfigKeys, pkgConfigSchema, "Sets the package name of the keys file")
@@ -76,6 +77,10 @@ func rootSubCommandsRunE(cmd *cobra.Command, args []string) (err error) {
 
 	for _, subCmd := range subCmds {
 		if subCmd.Use == cmdUseCompletion || strings.HasPrefix(subCmd.Use, "help ") || utils.IsStringSliceContainsAny([]string{resolveCmdName(subCmd), subCmd.Use}, exclude) {
+			continue
+		}
+
+		if cmd.Use == cmdUseDocs && subCmd.Use == cmdUseManage {
 			continue
 		}
 

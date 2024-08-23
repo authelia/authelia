@@ -7,7 +7,10 @@ draft: false
 images: []
 weight: 620
 toc: true
-community: true
+support:
+  level: community
+  versions: true
+  integration: true
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -28,10 +31,14 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://wekan.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://wekan.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `wekan`
 * __Client Secret:__ `insecure_secret`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -52,7 +59,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://wekan.example.com/_oauth/oidc'
+          - 'https://wekan.{{< sitevar name="domain" nojs="example.com" >}}/_oauth/oidc'
         scopes:
           - 'openid'
           - 'profile'
@@ -72,7 +79,7 @@ OAUTH2_ENABLED=true
 OAUTH2_LOGIN_STYLE=redirect
 OAUTH2_CLIENT_ID=wekan
 OAUTH2_SECRET=insecure_secret
-OAUTH2_SERVER_URL=https://auth.example.com
+OAUTH2_SERVER_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 OAUTH2_AUTH_ENDPOINT=/api/oidc/authorization
 OAUTH2_TOKEN_ENDPOINT=/api/oidc/token
 OAUTH2_USERINFO_ENDPOINT=/api/oidc/userinfo

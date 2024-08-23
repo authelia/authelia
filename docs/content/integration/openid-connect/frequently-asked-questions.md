@@ -189,6 +189,8 @@ reasonably be matched to an individual authorization policy. Because the other c
 per-request authorization these criteria types are fairly unlikely to become part of OpenID Connect 1.0 as there are no
 ways to apply these criteria except during the initial authorization request.
 
+See [ADR1](../../reference/architecture-decision-log/1.md) for more information.
+
 ### Why isn't the Access Token a JSON Web Token?
 
 The Access Token and it's format is entirely up to Authorization Servers / OpenID Connect 1.0 Providers. The
@@ -251,7 +253,7 @@ you're facing.
    - If using `docker run` see the `--network-alias` option of the [docker run](https://docs.docker.com/engine/reference/commandline/run/)
      reference for more information.
 
-Examples (assuming your Authelia Root URL is `https://auth.example.com`):
+Examples (assuming your Authelia Root URL is `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`):
 
 ```yaml {title="docker-compose.yml"}
 services:
@@ -264,7 +266,7 @@ services:
       ## Mandatory that the proxy is on the same network as the application, and that it has this alias.
       proxy:
         aliases:
-          - 'auth.example.com'
+          - '{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
   authelia:
     networks:
       proxy: {}
@@ -276,7 +278,7 @@ networks:
 ```
 
 ```console
-docker run -d --name proxy --network proxy --network-alias auth.example.com <other proxy arguments>
+docker run -d --name proxy --network proxy --network-alias {{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}} <other proxy arguments>
 docker run -d --name application --network proxy <other application arguments>
 ```
 

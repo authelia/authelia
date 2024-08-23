@@ -21,6 +21,12 @@ seo:
 See the [PostgreSQL Database Integration](../../reference/integrations/database-integrations.md#postgresql) reference
 guide for supported version information.
 
+## Variables
+
+Some of the values within this page can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
+
 ## Configuration
 
 {{< config-alert-example >}}
@@ -36,7 +42,7 @@ storage:
     password: 'mypassword'
     timeout: '5s'
     tls:
-      server_name: 'postgres.example.com'
+      server_name: 'postgres.{{< sitevar name="domain" nojs="example.com" >}}'
       skip_verify: false
       minimum_version: 'TLS1.2'
       maximum_version: 'TLS1.3'

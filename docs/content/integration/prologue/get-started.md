@@ -45,12 +45,18 @@ by the relevant specifications.
 
 ## Important Notes
 
-{{< callout context="danger" title="Important Notes" icon="alert-octagon" >}}
+{{< callout context="danger" title="Important Notes" icon="outline/alert-octagon" >}}
 The following section has general important notes for users getting started.
 {{< /callout >}}
 
 - When integrating Authelia with a proxy users should read the specific
   [Proxy Integration Important Notes](../proxies/introduction.md#important-notes).
+
+## Documentation Variables
+
+Some of the values presented in the documentation can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -87,7 +93,7 @@ The important sections to consider in initial configuration are as follows:
 access_control:
   default_policy: deny
   rules:
-    - domain: '*.example.com'
+    - domain: '*.{{< sitevar name="domain" nojs="example.com" >}}'
       policy: one_factor
 ```
 

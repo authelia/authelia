@@ -47,7 +47,7 @@ In your Authelia configuration you will need to enter and update the following v
 ```yaml {title="configuration.yml"}
 authentication_backend:
   ldap:
-    address: 'ldap://OpenLDAP:1389'
+    address: 'ldap://openldap:1389'
     implementation: 'custom'
     timeout: '5s'
     start_tls: false

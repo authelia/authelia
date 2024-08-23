@@ -121,7 +121,7 @@ func NewSessionProvider(config schema.Session, certPool *x509.CertPool) (name st
 
 			name = "redis-sentinel"
 
-			provider, err = redis.NewFailoverCluster(redis.FailoverConfig{
+			provider, err = redis.NewFailover(redis.FailoverConfig{
 				Logger:           logging.LoggerCtxPrintf(logrus.TraceLevel),
 				MasterName:       config.Redis.HighAvailability.SentinelName,
 				SentinelAddrs:    addrs,
