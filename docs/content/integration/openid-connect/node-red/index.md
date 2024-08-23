@@ -2,7 +2,7 @@
 title: "Node-RED"
 description: "Integrating Node-RED with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2024-04-13T21:01:17+10:00
+date: 2024-08-12T14:36:35+10:00
 draft: false
 images: []
 weight: 620
