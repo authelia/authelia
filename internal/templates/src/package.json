@@ -11,8 +11,8 @@
 	"author": "Authelia",
 	"license": "Apache-2.0",
 	"dependencies": {
-		"@react-email/components": "0.0.22",
-		"@react-email/render": "0.0.17",
+		"@react-email/components": "0.0.23",
+		"@react-email/render": "1.0.0",
 		"esbuild": "0.23.1",
 		"react": "18.3.1",
 		"react-dom": "18.3.1",
@@ -23,7 +23,7 @@
 	},
 	"devDependencies": {
 		"@radix-ui/colors": "3.0.0",
-		"@types/node": "22.4.2",
+		"@types/node": "22.5.0",
 		"@types/react": "18.3.4",
 		"@types/react-dom": "18.3.0",
 		"eslint": "9.9.0",
