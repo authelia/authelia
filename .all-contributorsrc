@@ -944,6 +944,17 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "hendrik1120",
+      "name": "Hendrik Sievers",
+      "avatar_url": "https://avatars.githubusercontent.com/u/89412959?v=4",
+      "profile": "https://github.com/hendrik1120",
+      "contributions": [
+        "doc",
+        "design",
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 7,
