@@ -36,7 +36,7 @@
     "@mui/material": "5.16.7",
     "@mui/styles": "5.16.7",
     "@simplewebauthn/browser": "9.0.1",
-    "@simplewebauthn/types": "9.0.1",
+    "@simplewebauthn/types": "10.0.0",
     "axios": "1.7.5",
     "broadcast-channel": "7.0.0",
     "classnames": "2.5.1",
