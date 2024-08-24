@@ -95,3 +95,7 @@ export function validateStatusAuthentication(status: number) {
 export function validateStatusOneTimeCode(status: number) {
     return status === 401 || status === 403 || (status >= 200 && status < 400);
 }
+
+export function validateStatusWebAuthnCreation(status: number) {
+    return status < 300 || status === 409;
+}
