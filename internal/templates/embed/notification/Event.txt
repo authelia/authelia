@@ -11,9 +11,7 @@ Event Details:
 
 {{- $keys := sortAlpha (keys .Details) }}{{- range $key := $keys }}
 
-{{ $key }}
-
-{{ index $.Details $key }}
+{{ $key }}: {{ index $.Details $key }}
 
 {{ end }}
 
