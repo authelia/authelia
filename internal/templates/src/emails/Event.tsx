@@ -48,16 +48,11 @@ export const Event = ({
 						</Text>
 						<Hr className="border border-solid border-[#eaeaea] my-[26px] mx-0 w-full" />
 						<Text>Event Details:</Text>
-						{detailsPrefix}
-						<Section className="text-center">
-							<Row>
-								<Column>
-									<Text><strong>{detailsKey}</strong></Text>
-								</Column>
-								<Column>{detailsValue}</Column>
-							</Row>
+						<Section className="m-2">
+							{detailsPrefix}
+							<Text><strong>{detailsKey}:</strong> {detailsValue}</Text>
+							{detailsSuffix}
 						</Section>
-						{detailsSuffix}
 						<Hr className="border border-solid border-[#eaeaea] my-[26px] mx-0 w-full" />
 						<Text className="text-[#666666] text-[12px] leading-[24px] text-center">
 							This notification was intended for <span className="text-black">{displayName}</span>. This
