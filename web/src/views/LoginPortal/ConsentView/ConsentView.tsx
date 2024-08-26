@@ -5,7 +5,6 @@ import {
     Button,
     Checkbox,
     FormControlLabel,
-    Grid,
     List,
     ListItem,
     ListItemIcon,
@@ -14,6 +13,7 @@ import {
     Tooltip,
     Typography,
 } from "@mui/material";
+import Grid from "@mui/material/Unstable_Grid2/Grid2";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -150,7 +150,7 @@ const ConsentView = function (props: Props) {
                 subtitle={translate("Consent Request")}
             >
                 <Grid container>
-                    <Grid item xs={12}>
+                    <Grid xs={12}>
                         <div>
                             <Tooltip
                                 title={
@@ -166,10 +166,10 @@ const ConsentView = function (props: Props) {
                             </Tooltip>
                         </div>
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid xs={12}>
                         <div>{translate("The above application is requesting the following permissions")}:</div>
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid xs={12}>
                         <div className={styles.scopesListContainer}>
                             <List className={styles.scopesList}>
                                 {response?.scopes.map((scope: string) => (
@@ -184,7 +184,7 @@ const ConsentView = function (props: Props) {
                         </div>
                     </Grid>
                     {response?.pre_configuration ? (
-                        <Grid item xs={12}>
+                        <Grid xs={12}>
                             <Tooltip
                                 title={translate("This saves this consent as a pre-configured consent for future use")}
                             >
@@ -204,9 +204,9 @@ const ConsentView = function (props: Props) {
                             </Tooltip>
                         </Grid>
                     ) : null}
-                    <Grid item xs={12}>
+                    <Grid xs={12}>
                         <Grid container spacing={1}>
-                            <Grid item xs={6}>
+                            <Grid xs={6}>
                                 <Button
                                     id="accept-button"
                                     className={styles.button}
@@ -218,7 +218,7 @@ const ConsentView = function (props: Props) {
                                     {translate("Accept")}
                                 </Button>
                             </Grid>
-                            <Grid item xs={6}>
+                            <Grid xs={6}>
                                 <Button
                                     id="deny-button"
                                     className={styles.button}

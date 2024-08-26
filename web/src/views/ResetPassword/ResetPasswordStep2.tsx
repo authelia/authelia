@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { Button, FormControl, Grid, IconButton, InputAdornment, Theme } from "@mui/material";
+import { Button, FormControl, IconButton, InputAdornment, Theme } from "@mui/material";
 import TextField from "@mui/material/TextField";
+import Grid from "@mui/material/Unstable_Grid2/Grid2";
 import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
 import { useTranslation } from "react-i18next";
@@ -117,7 +118,7 @@ const ResetPasswordStep2 = function () {
         <MinimalLayout title={translate("Enter new password")} id="reset-password-step2-stage">
             <FormControl id={"form-reset-password"}>
                 <Grid container className={styles.root} spacing={2}>
-                    <Grid item xs={12}>
+                    <Grid xs={12}>
                         <TextField
                             id="password1-textfield"
                             label={translate("New password")}
@@ -148,7 +149,7 @@ const ResetPasswordStep2 = function () {
                             <PasswordMeter value={password1} policy={pPolicy} />
                         )}
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid xs={12}>
                         <TextField
                             id="password2-textfield"
                             label={translate("Repeat new password")}
@@ -168,7 +169,7 @@ const ResetPasswordStep2 = function () {
                             autoComplete="new-password"
                         />
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid xs={6}>
                         <Button
                             id="reset-button"
                             variant="contained"
@@ -181,7 +182,7 @@ const ResetPasswordStep2 = function () {
                             {translate("Reset")}
                         </Button>
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid xs={6}>
                         <Button
                             id="cancel-button"
                             variant="contained"

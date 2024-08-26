@@ -2,7 +2,7 @@
 title: "Incus"
 description: "Integrating Incus with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2024-08-13T11:04:22+07:00
+date: 2024-08-13T18:39:00+10:00
 draft: false
 images: []
 weight: 620
