@@ -955,6 +955,15 @@
         "design",
         "ideas"
       ]
+    },
+    {
+      "login": "m-georgi",
+      "name": "Marcus Georgi",
+      "avatar_url": "https://avatars.githubusercontent.com/u/20987691?v=4",
+      "profile": "https://github.com/m-georgi",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
