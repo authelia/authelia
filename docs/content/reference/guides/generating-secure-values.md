@@ -102,7 +102,7 @@ information on all available options.
 {{< envTabs "Generate RSA Key Pair" >}}
 {{< envTab "Docker" >}}
 ```bash
-docker run -u "$(id -u):$(id -g)" -v "$(pwd)}":/keys authelia/authelia:latest authelia crypto pair rsa generate --directory /keys
+docker run -u "$(id -u):$(id -g)" -v "$(pwd)":/keys authelia/authelia:latest authelia crypto pair rsa generate --directory /keys
 ```
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
