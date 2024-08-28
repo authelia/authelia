@@ -1,7 +1,7 @@
 import React from "react";
 
 import { Theme, Typography, useTheme } from "@mui/material";
-import Grid from "@mui/material/Unstable_Grid2/Grid2";
+import Grid from "@mui/material/Grid2";
 import makeStyles from "@mui/styles/makeStyles";
 import ReactLoading from "react-loading";
 
