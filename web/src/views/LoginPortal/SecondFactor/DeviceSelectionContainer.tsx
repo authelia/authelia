@@ -1,7 +1,7 @@
 import React, { ReactNode, useState } from "react";
 
 import { Box, Button, Container, Theme, Typography } from "@mui/material";
-import Grid from "@mui/material/Unstable_Grid2/Grid2";
+import Grid from "@mui/material/Grid2";
 import makeStyles from "@mui/styles/makeStyles";
 
 import PushNotificationIcon from "@components/PushNotificationIcon";
@@ -118,7 +118,7 @@ const DeviceItem = function (props: DeviceItemProps) {
     }))();
 
     return (
-        <Grid xs={12} className={className} id={idName}>
+        <Grid size={{ xs: 12 }} className={className} id={idName}>
             <Button
                 className={style.item}
                 color="primary"
@@ -163,7 +163,7 @@ const MethodItem = function (props: MethodItemProps) {
     }))();
 
     return (
-        <Grid xs={12} className={className} id={idName}>
+        <Grid size={{ xs: 12 }} className={className} id={idName}>
             <Button
                 className={style.item}
                 color="primary"

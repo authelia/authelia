@@ -1,7 +1,7 @@
 import React, { Fragment, useCallback, useState } from "react";
 
 import { Button, CircularProgress, Paper, Tooltip, Typography } from "@mui/material";
-import Grid from "@mui/material/Unstable_Grid2/Grid2";
+import Grid from "@mui/material/Grid2";
 import { useTranslation } from "react-i18next";
 
 import { UserInfoTOTPConfiguration } from "@models/TOTPConfiguration";
@@ -175,10 +175,10 @@ const OneTimePasswordPanel = function (props: Props) {
             />
             <Paper variant={"outlined"}>
                 <Grid container spacing={2} padding={2}>
-                    <Grid xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <Typography variant={"h5"}>{translate("One-Time Password")}</Typography>
                     </Grid>
-                    <Grid xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <Tooltip
                             title={
                                 !registered
@@ -205,7 +205,7 @@ const OneTimePasswordPanel = function (props: Props) {
                         </Tooltip>
                     </Grid>
                     {props.config === null || props.config === undefined ? (
-                        <Grid xs={12}>
+                        <Grid size={{ xs: 12 }}>
                             <Typography variant={"subtitle2"}>
                                 {translate(
                                     "The One-Time Password has not been registered if you'd like to register it click add",
@@ -213,7 +213,7 @@ const OneTimePasswordPanel = function (props: Props) {
                             </Typography>
                         </Grid>
                     ) : (
-                        <Grid xs={12} md={6} xl={3}>
+                        <Grid size={{ xs: 12, md: 6, xl: 3 }}>
                             <OneTimePasswordConfiguration
                                 config={props.config}
                                 handleRefresh={props.handleRefreshState}

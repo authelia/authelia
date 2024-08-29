@@ -1,7 +1,7 @@
 import React from "react";
 
 import { Button, Theme } from "@mui/material";
-import Grid from "@mui/material/Unstable_Grid2/Grid2";
+import Grid from "@mui/material/Grid2";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -33,12 +33,12 @@ const AuthenticatedView = function (props: Props) {
             userInfo={props.userInfo}
         >
             <Grid container>
-                <Grid xs={12}>
+                <Grid size={{ xs: 12 }}>
                     <Button color="secondary" onClick={handleLogoutClick} id="logout-button">
                         {translate("Logout")}
                     </Button>
                 </Grid>
-                <Grid xs={12} className={styles.mainContainer}>
+                <Grid size={{ xs: 12 }} className={styles.mainContainer}>
                     <Authenticated />
                 </Grid>
             </Grid>

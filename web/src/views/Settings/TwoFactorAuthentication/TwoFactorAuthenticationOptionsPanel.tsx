@@ -1,7 +1,7 @@
 import React, { ChangeEvent, Fragment, useEffect, useState } from "react";
 
 import { Paper, Typography } from "@mui/material";
-import Grid from "@mui/material/Unstable_Grid2/Grid2";
+import Grid from "@mui/material/Grid2";
 import { useTranslation } from "react-i18next";
 
 import { useLocalStorageMethodContext } from "@contexts/LocalStorageMethodContext";
@@ -94,13 +94,13 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
             {!props.config || !hasMethods ? undefined : (
                 <Paper variant={"outlined"}>
                     <Grid container spacing={2} padding={2}>
-                        <Grid xs={12}>
+                        <Grid size={{ xs: 12 }}>
                             <Typography variant={"h5"}>{translate("Options")}</Typography>
                         </Grid>
-                        <Grid xs={12}>
+                        <Grid size={{ xs: 12 }}>
                             <Grid container spacing={2} padding={2}>
                                 {method === undefined ? null : (
-                                    <Grid xs={4}>
+                                    <Grid size={{ xs: 4 }}>
                                         <TwoFactorAuthenticationOptionsMethodsRadioGroup
                                             id={"account"}
                                             name={"Default Method"}
@@ -111,7 +111,7 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
                                     </Grid>
                                 )}
                                 {!localStorageMethodAvailable || localStorageMethod === undefined ? null : (
-                                    <Grid xs={4}>
+                                    <Grid size={{ xs: 4 }}>
                                         <TwoFactorAuthenticationOptionsMethodsRadioGroup
                                             id={"local"}
                                             name={"Default Method (Browser)"}
