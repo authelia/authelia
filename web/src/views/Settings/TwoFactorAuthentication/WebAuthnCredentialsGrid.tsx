@@ -1,6 +1,6 @@
 import React from "react";
 
-import Grid from "@mui/material/Unstable_Grid2/Grid2";
+import Grid from "@mui/material/Grid2";
 
 import { WebAuthnCredential } from "@models/WebAuthn";
 import WebAuthnCredentialItem from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialItem";
@@ -17,7 +17,7 @@ const WebAuthnCredentialsGrid = function (props: Props) {
     return (
         <Grid container spacing={3}>
             {props.credentials.map((credential, index) => (
-                <Grid xs={12} md={6} xl={3} key={index}>
+                <Grid size={{ xs: 12, md: 6, xl: 3 }} key={index}>
                     <WebAuthnCredentialItem
                         index={index}
                         credential={credential}

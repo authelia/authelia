@@ -2,7 +2,7 @@ import React, { Fragment } from "react";
 
 import { Divider, Link, Theme } from "@mui/material";
 import { grey } from "@mui/material/colors";
-import Grid from "@mui/material/Unstable_Grid2/Grid2";
+import Grid from "@mui/material/Grid2";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 
@@ -20,8 +20,8 @@ const Brand = function (props: Props) {
     const privacyEnabled = getPrivacyPolicyEnabled();
 
     return (
-        <Grid container xs={12} alignItems="center" justifyContent="center">
-            <Grid xs={4}>
+        <Grid container size={{ xs: 12 }} alignItems="center" justifyContent="center">
+            <Grid size={{ xs: 4 }}>
                 <Link href={url} target="_blank" underline="hover" className={styles.links}>
                     {translate("Powered by")} Authelia
                 </Link>
@@ -29,7 +29,7 @@ const Brand = function (props: Props) {
             {privacyEnabled ? (
                 <Fragment>
                     <Divider orientation="vertical" flexItem variant="middle" />
-                    <Grid xs={4}>
+                    <Grid size={{ xs: 4 }}>
                         <PrivacyPolicyLink className={styles.links} />
                     </Grid>
                 </Fragment>

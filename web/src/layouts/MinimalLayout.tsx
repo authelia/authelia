@@ -1,7 +1,7 @@
 import React, { ReactNode, useEffect } from "react";
 
 import { AppBar, Box, Container, Theme, Toolbar, Typography } from "@mui/material";
-import Grid from "@mui/material/Unstable_Grid2/Grid2";
+import Grid from "@mui/material/Grid2";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 
@@ -52,13 +52,13 @@ const MinimalLayout = function (props: Props) {
             >
                 <Container maxWidth="xs" className={styles.rootContainer}>
                     <Grid container>
-                        <Grid xs={12}>{logo}</Grid>
+                        <Grid size={{ xs: 12 }}>{logo}</Grid>
                         {props.title ? (
-                            <Grid xs={12}>
+                            <Grid size={{ xs: 12 }}>
                                 <TypographyWithTooltip variant={"h5"} value={props.title} />
                             </Grid>
                         ) : null}
-                        <Grid xs={12} className={styles.body}>
+                        <Grid size={{ xs: 12 }} className={styles.body}>
                             {props.children}
                         </Grid>
                     </Grid>
