@@ -71,11 +71,13 @@ identity_providers:
 
 ### Application
 
-_**Important Note:** This configuration assumes [Mealie] administrators are part of the `mealie-admins` group, and
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+This configuration assumes [Mealie] administrators are part of the `mealie-admins` group, and
 [Mealie] users are part of the `mealie-users` group. Depending on your specific group configuration, you will have to
 adapt the `OIDC_ADMIN_GROUP` and `OIDC_USER_GROUP` nodes respectively. Alternatively you may elect to create a new
 authorization policy in [provider authorization policies] then utilize that policy as the
-[client authorization policy]._
+[client authorization policy].
+{{< /callout >}}
 
 To configure [Mealie] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following environment variables:
 

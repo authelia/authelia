@@ -129,10 +129,12 @@ This is the implementation which supports [NGINX] via the [auth_request HTTP mod
 |      IP      |           [Header]           |  [X-Forwarded-For]  |
 | Authelia URL | Session Cookie Configuration |   `authelia_url`    |
 
-_**Note:** This endpoint does not support automatic redirection. This is because there is no support on [NGINX]'s side
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This endpoint does not support automatic redirection. This is because there is no support on [NGINX]'s side
 to achieve this with `ngx_http_auth_request_module` and the redirection must be performed within the [NGINX]
 configuration. However we return the appropriate URL to redirect users to with the `Location` header which
-simplifies this process especially for multi-cookie domain deployments._
+simplifies this process especially for multi-cookie domain deployments.
+{{< /callout >}}
 
 #### AuthRequest Metadata Alternatives
 
@@ -146,9 +148,11 @@ simplifies this process especially for multi-cookie domain deployments._
 This is the legacy implementation which used to operate similar to both the [ForwardAuth](#forwardauth) and
 [AuthRequest](#authrequest) implementations.
 
-*__Note:__ This implementation has duplicate entries for metadata. This is due to the fact this implementation used to
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This implementation has duplicate entries for metadata. This is due to the fact this implementation used to
 cater for the AuthRequest and ForwardAuth implementations. The table is in order of precedence where if a header higher
-in the list exists it is used over those lower in the list.*
+in the list exists it is used over those lower in the list.
+{{< /callout >}}
 
 |   Metadata   |     Source     |         Key          |
 |:------------:|:--------------:|:--------------------:|
