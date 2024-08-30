@@ -1,11 +1,11 @@
 module github.com/authelia/authelia/v4
 
-go 1.22
+go 1.23
 
 toolchain go1.23.0
 
 require (
-	authelia.com/provider/oauth2 v0.1.14
+	authelia.com/provider/oauth2 v0.1.15
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
 	github.com/authelia/jsonschema v0.1.7
@@ -72,7 +72,7 @@ require (
 	github.com/go-crypt/x v0.2.18 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-webauthn/x v0.1.9 // indirect
-	github.com/golang/glog v1.2.1 // indirect
+	github.com/golang/glog v1.2.2 // indirect
 	github.com/google/go-tpm v0.9.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/iancoleman/orderedmap v0.3.0 // indirect
@@ -106,7 +106,7 @@ require (
 	github.com/ysmood/gson v0.7.3 // indirect
 	github.com/ysmood/leakless v0.9.0 // indirect
 	golang.org/x/crypto v0.26.0 // indirect
-	golang.org/x/oauth2 v0.21.0 // indirect
+	golang.org/x/oauth2 v0.22.0 // indirect
 	golang.org/x/sys v0.23.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 )
