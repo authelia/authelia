@@ -9,12 +9,12 @@
   },
   "pnpm": {
     "overrides": {
-      "@babel/traverse": "7.25.4",
+      "@babel/traverse": "7.25.6",
       "@typescript-eslint/eslint-plugin": "6.9.0",
       "@typescript-eslint/parser": "6.9.0",
       "@typescript-eslint/typescript-estree": "6.9.0",
       "@typescript-eslint/utils": "6.9.0",
-      "eslint-plugin-jest": "28.8.0",
+      "eslint-plugin-jest": "28.8.1",
       "eslint-plugin-testing-library": "6.3.0"
     },
     "peerDependencyRules": {
@@ -32,9 +32,9 @@
     "@fortawesome/free-regular-svg-icons": "6.6.0",
     "@fortawesome/free-solid-svg-icons": "6.6.0",
     "@fortawesome/react-fontawesome": "0.2.2",
-    "@mui/icons-material": "6.0.0",
-    "@mui/material": "6.0.0",
-    "@mui/styles": "6.0.0",
+    "@mui/icons-material": "6.0.1",
+    "@mui/material": "6.0.1",
+    "@mui/styles": "6.0.1",
     "@simplewebauthn/browser": "10.0.0",
     "@simplewebauthn/types": "10.0.0",
     "axios": "1.7.5",
@@ -82,11 +82,11 @@
     ]
   },
   "devDependencies": {
-    "@commitlint/cli": "19.4.0",
-    "@commitlint/config-conventional": "19.2.2",
+    "@commitlint/cli": "19.4.1",
+    "@commitlint/config-conventional": "19.4.1",
     "@limegrass/eslint-plugin-import-alias": "1.4.1",
     "@testing-library/jest-dom": "6.5.0",
-    "@testing-library/react": "16.0.0",
+    "@testing-library/react": "16.0.1",
     "@types/node": "22.5.1",
     "@types/react": "18.3.4",
     "@types/react-dom": "18.3.0",
@@ -106,7 +106,7 @@
     "eslint-plugin-prettier": "5.2.1",
     "eslint-plugin-react": "7.35.0",
     "eslint-plugin-react-hooks": "4.6.2",
-    "happy-dom": "15.0.0",
+    "happy-dom": "15.6.0",
     "husky": "9.1.5",
     "prettier": "3.3.3",
     "react-test-renderer": "18.3.1",
