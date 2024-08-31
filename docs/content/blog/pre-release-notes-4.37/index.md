@@ -22,7 +22,7 @@ additional features and improvements to existing features. In this blog post we'
 what it means for users.
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
-These features are still subject to change however it represents the most likely features.
+These features are still subject to change; however, it represents the most likely features.
 {{< /callout >}}
 
 This blog entry (and technically the blog itself) is part of a new effort I'm making for which I'm not entirely sure how
