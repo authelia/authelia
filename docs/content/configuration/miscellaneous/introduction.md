@@ -43,7 +43,7 @@ key or the CA public key which signed them (don't add the private key).
 {{< confkey type="string" required="no" >}}
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-You should configure the domain specific redirection URL's in the
+You should configure the domain-specific redirection URL's in the
 [session](../session/introduction.md#default_redirection_url) configuration instead of using this option.
 {{< /callout >}}
 
