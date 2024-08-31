@@ -46,7 +46,7 @@ This section describes the individual configuration options.
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
 When using the [File Provider](#file) this value has a default value of `always` as the cost in this
-scenario is basically not measurable, users can however override this setting by setting an explicit value.
+scenario is basically not measurable, users can, however, override this setting by setting an explicit value.
 {{< /callout >}}
 
 This setting controls the interval at which details are refreshed from the backend. The details refreshed in order of
