@@ -32,7 +32,7 @@ seo:
 ### Specific Notes
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-[Proxmox] requires you create the Realm prior to adding the provider. This is not covered in this
+[Proxmox] requires you create the Realm before adding the provider. This is not covered in this
 guide.
 {{< /callout >}}
 
