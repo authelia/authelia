@@ -65,11 +65,12 @@ that Authelia does.
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 The combination of the issuer (i.e. `iss`) [Claim] and subject (i.e. `sub`) [Claim] are utilized to uniquely identify a
-user and per the specification the only reliable way to do so as they are guaranteed to be a unique combination.
+user and per the specification the only reliable way to do so as they are guaranteed to be a unique combination. As such
+this is the supported method for linking an account to Authelia. THe `preferred_username` and `email` claims from the
+`profile` and `email` scopes respectively should only be utilized for provisioning a new account.
 
-has been changed to a [RFC4122] UUID V4 to identify the
-individual user as per the [Subject Identifier Types] section of the [OpenID Connect 1.0] specification. Please use the
-`preferred_username` [Claim] instead.
+In addition the `sub` [Claim] utilizes a [RFC4122] UUID V4 to identify the individual user as per the
+[Subject Identifier Types] section of the [OpenID Connect 1.0] specification.
 {{< /callout >}}
 
 |  [Claim]  |   JWT Type    | Authelia Attribute |                         Description                         |
