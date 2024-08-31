@@ -77,7 +77,7 @@ identity_providers:
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 It is a requirement that the Authelia URL's can be requested by Cloudflare's servers. This usually
-means that the URL's are accessible to foreign clients on the internet. There may be a way to configure this without
+means that the URLs are accessible to foreign clients on the internet. There may be a way to configure this without
 accessibility to foreign clients on the internet on Cloudflare's end, but this is beyond the scope of this document.
 {{< /callout >}}
 
