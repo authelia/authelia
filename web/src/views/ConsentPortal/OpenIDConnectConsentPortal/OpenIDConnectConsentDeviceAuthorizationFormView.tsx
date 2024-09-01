@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 
 import { Button, FormControl } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import TextField from "@mui/material/TextField";
-import Grid from "@mui/material/Unstable_Grid2/Grid2";
 import { useTranslation } from "react-i18next";
 
 import { useUserCode } from "@hooks/OpenIDConnect";
@@ -34,7 +34,7 @@ const OpenIDConnectConsentDeviceAuthorizationFormView: React.FC<Props> = (props:
         <LoginLayout id="consent-stage" title={translate("Confirm the Code")}>
             <FormControl id={"form-consent-openid-device-code-authorization"}>
                 <Grid container spacing={2}>
-                    <Grid xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <TextField
                             id="user-code"
                             label={translate("Code")}
@@ -46,7 +46,7 @@ const OpenIDConnectConsentDeviceAuthorizationFormView: React.FC<Props> = (props:
                             autoCapitalize="none"
                         />
                     </Grid>
-                    <Grid xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <Button id="confirm-button" variant="contained" color="primary" fullWidth>
                             {translate("Confirm")}
                         </Button>

@@ -440,15 +440,15 @@ func (m FileDatabaseUserDetailsModel) ValidateExtra(extra map[string]expression.
 		if !mv {
 			switch value.(type) {
 			case string:
-				if vt == "string" {
+				if vt == valueTypeString {
 					continue
 				}
 			case float64:
-				if vt == "integer" {
+				if vt == valueTypeInteger {
 					continue
 				}
 			case bool:
-				if vt == "boolean" {
+				if vt == valueTypeBoolean {
 					continue
 				}
 			default:
@@ -466,15 +466,15 @@ func (m FileDatabaseUserDetailsModel) ValidateExtra(extra map[string]expression.
 		for _, v := range values {
 			switch v.(type) {
 			case string:
-				if vt == "string" {
+				if vt == valueTypeString {
 					continue
 				}
 			case float64:
-				if vt == "integer" {
+				if vt == valueTypeInteger {
 					continue
 				}
 			case bool:
-				if vt == "boolean" {
+				if vt == valueTypeBoolean {
 					continue
 				}
 			default:

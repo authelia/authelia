@@ -8,7 +8,7 @@ import { useNotifications } from "@hooks/NotificationsContext";
 import { useAutheliaState } from "@hooks/State";
 import { useUserInfoGET } from "@hooks/UserInfo";
 import { UserInfo } from "@models/UserInfo";
-import { AutheliaState, AuthenticationLevel } from "@services/State";
+import { AutheliaState } from "@services/State";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 
 const OpenIDConnectConsentPortal = lazy(

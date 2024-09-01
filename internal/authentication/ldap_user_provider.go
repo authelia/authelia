@@ -571,13 +571,13 @@ func getExtraValueFromEntry(entry *ldap.Entry, attribute string, properties sche
 	str := getValueFromEntry(entry, attribute)
 
 	switch properties.ValueType {
-	case "string":
+	case valueTypeString:
 		value = str
-	case "integer":
+	case valueTypeInteger:
 		if value, err = strconv.ParseInt(str, 10, 64); err != nil {
 			return nil, fmt.Errorf("cannot parse '%s' with value '%s' as integer: %w", attribute, str, err)
 		}
-	case "boolean":
+	case valueTypeBoolean:
 		if value, err = strconv.ParseBool(str); err != nil {
 			return nil, fmt.Errorf("cannot parse '%s' with value '%s' as boolean: %w", attribute, str, err)
 		}
@@ -590,9 +590,9 @@ func getExtraValueMultiFromEntry(entry *ldap.Entry, attribute string, properties
 	strs := getValuesFromEntry(entry, attribute)
 
 	switch properties.ValueType {
-	case "string":
+	case valueTypeString:
 		value = strs
-	case "integer":
+	case valueTypeInteger:
 		var v int64
 
 		values := make([]int64, len(strs))
@@ -606,7 +606,7 @@ func getExtraValueMultiFromEntry(entry *ldap.Entry, attribute string, properties
 		}
 
 		value = values
-	case "boolean":
+	case valueTypeBoolean:
 		var v bool
 
 		values := make([]bool, len(strs))

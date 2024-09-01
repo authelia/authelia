@@ -1,8 +1,8 @@
 import React, { MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Alert, AlertTitle, Button, FormControl } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import TextField from "@mui/material/TextField";
-import Grid from "@mui/material/Unstable_Grid2/Grid2";
 import { BroadcastChannel } from "broadcast-channel";
 import { useTranslation } from "react-i18next";
 
@@ -115,7 +115,7 @@ const OpenIDConnectConsentLoginFormView: React.FC<Props> = (props: Props) => {
         <LoginLayout id="consent-stage" title={translate("Confirm Access")}>
             <FormControl id={"form-consent-openid-device-code-authorization"}>
                 <Grid container spacing={2}>
-                    <Grid xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <TextField
                             id="password-textfield"
                             label={translate("Password")}
@@ -135,7 +135,7 @@ const OpenIDConnectConsentLoginFormView: React.FC<Props> = (props: Props) => {
                         />
                     </Grid>
                     {hasCapsLock ? (
-                        <Grid xs={12} marginX={2}>
+                        <Grid size={{ xs: 12 }} marginX={2}>
                             <Alert severity={"warning"}>
                                 <AlertTitle>{translate("Warning")}</AlertTitle>
                                 {isCapsLockPartial
@@ -144,7 +144,7 @@ const OpenIDConnectConsentLoginFormView: React.FC<Props> = (props: Props) => {
                             </Alert>
                         </Grid>
                     ) : null}
-                    <Grid xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <Button
                             id="confirm-button"
                             variant="contained"

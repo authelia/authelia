@@ -199,7 +199,7 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
                         </div>
                     </Grid>
                     {hasClaims ? (
-                        <Grid item xs={12}>
+                        <Grid size={{ xs: 12 }}>
                             <div className={styles.claimsListContainer}>
                                 <List className={styles.claimsList}>
                                     {response?.essential_claims.map((claim: string) => (
