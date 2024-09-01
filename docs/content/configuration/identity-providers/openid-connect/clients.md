@@ -105,8 +105,10 @@ identity_providers:
 
 {{< confkey type="string" required="yes" >}}
 
-_**Important Note:** We generally recommend using a semi-long random alphanumeric string for this value. See below for
-specific limitations._
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+We generally recommend using a semi-long random alphanumeric string for this value. See below for
+specific limitations.
+{{< /callout >}}
 
 The Client ID for this client. It must exactly match the Client ID configured in the application consuming this client.
 
@@ -141,13 +143,17 @@ configuration option.
 
 {{< confkey type="string" required="no" >}}
 
-*__Important Note:__ Because adjusting this option will inevitably change the `sub` claim of all tokens generated for
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Because adjusting this option will inevitably change the `sub` claim of all tokens generated for
 the specified client, changing this should cause the relying party to detect all future authorizations as completely new
-users.*
+users.
+{{< /callout >}}
 
-*__Important Note:__ This **must** either not be configured at all i.e. commented or completely absent from the
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+This **must** either not be configured at all i.e. commented or completely absent from the
 configuration, or it must be an absolute HTTPS URL which contains a valid sector identifier JSON document. Configuration
-of this option with the `https://` scheme per the requirements will cause Authelia to validate this JSON document.*
+of this option with the `https://` scheme per the requirements will cause Authelia to validate this JSON document.
+{{< /callout >}}
 
 A valid `sector_identifier_uri` will:
   1. Have the scheme `https://`.
@@ -243,7 +249,9 @@ expected,
 
 {{< confkey type="list(string)" default="authorization_code" required="no" >}}
 
-*__Important Note:__ It is recommended that this isn't configured at this time unless you know what you're doing.*
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+It is recommended that this isn't configured at this time unless you know what you're doing.
+{{< /callout >}}
 
 The list of grant types this client is permitted to use in order to obtain access to the token endpoint to obtain the
 granted tokens.
@@ -255,8 +263,10 @@ See the [Grant Types](../../../integration/openid-connect/introduction.md#grant-
 
 {{< confkey type="list(string)" default="code" required="no" >}}
 
-*__Security Note:__ It is recommended that only the `code` response type (i.e. the default) is used. The other response
-types are not as secure as this response type.*
+{{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
+It is recommended that only the `code` response type (i.e. the default) is used. The other response
+types are not as secure as this response type.
+{{< /callout >}}
 
 A list of response types this client supports. If a response type not in this list is requested by a client then an
 error will be returned to the client. The response type indicates the types of values that are returned to the client.
@@ -268,7 +278,9 @@ See the [Response Types](../../../integration/openid-connect/introduction.md#res
 
 {{< confkey type="list(string)" default="form_post,query" required="no" >}}
 
-*__Important Note:__ It is recommended that this isn't configured at this time unless you know what you're doing.*
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+It is recommended that this isn't configured at this time unless you know what you're doing.
+{{< /callout >}}
 
 A list of response modes this client supports. If a response mode not in this list is requested by a client then an
 error will be returned to the client. The response mode controls how the response type is returned to the client.
@@ -332,9 +344,11 @@ the audience.
 
 {{< confkey type="string" default="auto" required="no" >}}
 
-*__Important Note:__ the `implicit` consent mode is not technically part of the specification. It theoretically could be
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+The `implicit` consent mode is not technically part of the specification. It theoretically could be
 misused in certain conditions specifically with the public client type or when the client credentials (i.e. client
-secret) has been exposed to an attacker. For these reasons this mode is discouraged.*
+secret) has been exposed to an attacker. For these reasons this mode is discouraged.
+{{< /callout >}}
 
 Configures the consent mode. The following table describes the different modes:
 
@@ -365,8 +379,10 @@ match exactly with the granted scopes/audience.
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
-_**Important Note:** A majority of clients will not support this option as it requires a special but highly secure
-authorization flow._
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+A majority of clients will not support this option as it requires a special but highly secure
+authorization flow.
+{{< /callout >}}
 
 This configuration option enforces the use of a [Pushed Authorization Requests] flow for this registered client.
 To enforce it for all clients see the global [pushed_authorizations enforce](provider.md#enforce) provider configuration
@@ -393,11 +409,15 @@ relying party supports it.
 
 {{< confkey type="string" default="none" required="no" >}}
 
-_**Important Note:** A majority of clients will not support this option as the whole authorization response will be a
-signed and/or encrypted JWT with additional tokens embedded into it._
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+A majority of clients will not support this option as the whole authorization response will be a
+signed and/or encrypted JWT with additional tokens embedded into it.
+{{< /callout >}}
 
-_**Note:** This value is completely ignored if the
-[authorization_signed_response_key_id](#authorization_signed_response_key_id) is defined._
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This value is completely ignored if the
+[authorization_signed_response_key_id](#authorization_signed_response_key_id) is defined.
+{{< /callout >}}
 
 The algorithm used to sign the authorization responses.
 
@@ -415,11 +435,15 @@ for more information including the algorithm column for supported values.
 
 {{< confkey type="string" required="no" >}}
 
-_**Important Note:** A majority of clients will not support this option as the whole authorization response will be a
-signed and/or encrypted JWT with additional tokens embedded into it._
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+A majority of clients will not support this option as the whole authorization response will be a
+signed and/or encrypted JWT with additional tokens embedded into it.
+{{< /callout >}}
 
-_**Note:** This value automatically configures the [authorization_signed_response_alg](#authorization_signed_response_alg)
-value with the algorithm of the specified key._
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This value automatically configures the [authorization_signed_response_alg](#authorization_signed_response_alg)
+value with the algorithm of the specified key.
+{{< /callout >}}
 
 The key id of the JWK used to sign the ID Tokens in the token responses. The value of this must one of those provided or
 calculated in the [jwks].
@@ -428,8 +452,10 @@ calculated in the [jwks].
 
 {{< confkey type="string" default="RS256" required="no" >}}
 
-_**Note:** This value is completely ignored if the [id_token_signed_response_key_id](#id_token_signed_response_key_id)
-is defined._
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This value is completely ignored if the [id_token_signed_response_key_id](#id_token_signed_response_key_id)
+is defined.
+{{< /callout >}}
 
 The algorithm used to sign the ID Tokens in the token responses.
 
@@ -446,8 +472,10 @@ for more information including the algorithm column for supported values.
 
 {{< confkey type="string" required="no" >}}
 
-_**Note:** This value automatically configures the [id_token_signed_response_alg](#id_token_signed_response_alg) value
-with the algorithm of the specified key._
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This value automatically configures the [id_token_signed_response_alg](#id_token_signed_response_alg) value
+with the algorithm of the specified key.
+{{< /callout >}}
 
 The key id of the JWK used to sign the ID Tokens in the token responses. The value of this must one of those provided or
 calculated in the issuer [jwks] section.
@@ -456,8 +484,10 @@ calculated in the issuer [jwks] section.
 
 {{< confkey type="string" default="none" required="no" >}}
 
-_**Note:** This value is completely ignored if the [access_token_signed_response_key_id](#access_token_signed_response_key_id)
-is defined._
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This value is completely ignored if the [access_token_signed_response_key_id](#access_token_signed_response_key_id)
+is defined.
+{{< /callout >}}
 
 The algorithm used to sign the JWT Access Tokens in the token responses.
 
@@ -476,8 +506,10 @@ for more information including the algorithm column for supported values.
 
 {{< confkey type="string" required="no" >}}
 
-_**Note:** This value automatically configures the [access_token_signed_response_alg](#access_token_signed_response_alg) value with the
-algorithm of the specified key._
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This value automatically configures the [access_token_signed_response_alg](#access_token_signed_response_alg) value with the
+algorithm of the specified key.
+{{< /callout >}}
 
 The key id of the JWK used to sign the [JWT Access Tokens](https://oauth.net/2/jwt-access-tokens/) in the token
 responses. The value of this must one of those provided or calculated in the
@@ -487,7 +519,9 @@ issuer [jwks] section.
 
 {{< confkey type="string" default="none" required="no" >}}
 
-_**Note:** This value is completely ignored if the [userinfo_signed_response_key_id](#userinfo_signed_response_key_id) is defined._
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This value is completely ignored if the [userinfo_signed_response_key_id](#userinfo_signed_response_key_id) is defined.
+{{< /callout >}}
 
 The algorithm used to sign the userinfo endpoint responses.
 
@@ -502,8 +536,10 @@ be considered valid.
 
 {{< confkey type="string" required="no" >}}
 
-_**Note:** This value automatically configures the [userinfo_signed_response_alg](#userinfo_signed_response_alg) value
-with the algorithm of the specified key._
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This value automatically configures the [userinfo_signed_response_alg](#userinfo_signed_response_alg) value
+with the algorithm of the specified key.
+{{< /callout >}}
 
 The key id of the JWK used to sign the userinfo endpoint responses in the token responses. The value of this must one of
 those provided or calculated in the
@@ -513,8 +549,10 @@ issuer [jwks] section.
 
 {{< confkey type="string" default="none" required="no" >}}
 
-_**Note:** This value is completely ignored if the
-[introspection_signed_response_key_id](#introspection_signed_response_key_id) is defined._
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This value is completely ignored if the
+[introspection_signed_response_key_id](#introspection_signed_response_key_id) is defined.
+{{< /callout >}}
 
 The algorithm used to sign the Introspection response. By default it is set to `none` which results in the response
 not being signed and the encoding being JSON.
@@ -530,8 +568,10 @@ The algorithm chosen must have a key configured in the issuer [jwks] section to 
 
 {{< confkey type="string" required="no" >}}
 
-_**Note:** This value automatically configures the [introspection_signed_response_alg](#introspection_signed_response_alg)
-value with the algorithm of the specified key._
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This value automatically configures the [introspection_signed_response_alg](#introspection_signed_response_alg)
+value with the algorithm of the specified key.
+{{< /callout >}}
 
 The key id of the JWK used to sign the Introspection responses. The value of this must one of those provided or
 calculated in the issuer [jwks] section.
@@ -594,8 +634,10 @@ The client MUST NOT use more than one authentication method in each request.
 
 {{< confkey type="string" required="situational" >}}
 
-*__Important Note:__ the URL given in this value MUST be resolvable by Authelia and MUST present a certificate signed by
-a certificate trusted by your environment. It is beyond our intentions to support anything other than this.*
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+The URL given in this value MUST be resolvable by Authelia and MUST present a certificate signed by
+a certificate trusted by your environment. It is beyond our intentions to support anything other than this.
+{{< /callout >}}
 
 The fully qualified, `https` scheme, and appropriately signed URI for the JWKs endpoint that implements
 [RFC7517 Section 5](https://datatracker.ietf.org/doc/html/rfc7517#section-5).This is mutually exclusive with [jwks](#jwks), meaning they must not be configured at the same

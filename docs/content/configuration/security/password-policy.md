@@ -98,7 +98,9 @@ password is.
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
-*__Important Note:__ only one password policy can be applied at a time.*
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Only one password policy can be applied at a time.
+{{< /callout >}}
 
 Enables zxcvbn password policy.
 

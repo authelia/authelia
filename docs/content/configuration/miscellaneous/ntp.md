@@ -84,8 +84,10 @@ This is used to tune the acceptable desync from the time reported from the NTP s
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
-_**Important Note:** Administrators are strongly urged to fix the underlying time issue instead of utilizing this
-option. See the [FAQ](#why-should-this-check-not-be-disabled) for more information._
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Administrators are strongly urged to fix the underlying time issue instead of utilizing this
+option. See the [FAQ](#why-should-this-check-not-be-disabled) for more information.
+{{< /callout >}}
 
 Setting this to true will disable the startup check entirely.
 
@@ -93,8 +95,10 @@ Setting this to true will disable the startup check entirely.
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
-_**Important Note:** Administrators are strongly urged to fix the underlying time issue instead of utilizing this
-option. See the [FAQ](#why-should-this-check-not-be-disabled) for more information._
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Administrators are strongly urged to fix the underlying time issue instead of utilizing this
+option. See the [FAQ](#why-should-this-check-not-be-disabled) for more information.
+{{< /callout >}}
 
 Setting this to true will allow Authelia to start and just log an error instead of exiting. The default is that if
 Authelia can contact the NTP server successfully, and the time reported by the server is greater than what is configured

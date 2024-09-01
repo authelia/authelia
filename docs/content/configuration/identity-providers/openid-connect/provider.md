@@ -95,10 +95,7 @@ identity_providers:
 
 ### hmac_secret
 
-{{< confkey type="string" required="yes" >}}
-
-*__Important Note:__ This can also be defined using a [secret](../../methods/secrets.md) which is __strongly recommended__
-especially for containerized deployments.*
+{{< confkey type="string" required="yes" secret="yes" >}}
 
 The HMAC secret used to sign the [JWT]'s. The provided string is hashed to a SHA256 ([RFC6234]) byte string for the
 purpose of meeting the required format.
@@ -254,18 +251,25 @@ Allows additional debug messages to be sent to the clients.
 
 {{< confkey type="integer" default="8" required="no" >}}
 
-This controls the minimum length of the `nonce` and `state` parameters.
-
-*__Security Notice:__* Changing this value is generally discouraged, reducing it from the default can theoretically
+{{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
+Changing this value is generally discouraged, reducing it from the default can theoretically
 make certain scenarios less secure. It is highly encouraged that if your OpenID Connect 1.0 Relying Party does not send
 these parameters or sends parameters with a lower length than the default that they implement a change rather than
 changing this value.
+{{< /callout >}}
 
-This restriction can also be disabled entirely when set to `-1`.
+This controls the minimum length of the `nonce` and `state` parameters. Setting this value to `-1` completely disables
+this validation.
 
 ### enforce_pkce
 
 {{< confkey type="string" default="public_clients_only" required="no" >}}
+
+{{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
+Changing this value to `never` is generally discouraged, reducing it from the default can
+theoretically make certain client-side applications (mobile applications, SPA) vulnerable to CSRF and authorization code
+interception attacks.
+{{< /callout >}}
 
 [Proof Key for Code Exchange](https://datatracker.ietf.org/doc/html/rfc7636) enforcement policy: if specified, must be
 either `never`, `public_clients_only` or `always`.
@@ -275,18 +279,16 @@ If set to `public_clients_only` (default), [PKCE] will be required for public cl
 
 When set to `always`, [PKCE] will be required for all clients using the Authorization Code flow.
 
-*__Security Notice:__* Changing this value to `never` is generally discouraged, reducing it from the default can
-theoretically make certain client-side applications (mobile applications, SPA) vulnerable to CSRF and authorization code
-interception attacks.
-
 ### enable_pkce_plain_challenge
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
-Allows [PKCE] `plain` challenges when set to `true`.
-
-*__Security Notice:__* Changing this value is generally discouraged. Applications should use the `S256` [PKCE] challenge
+{{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
+Changing this value is generally discouraged. Applications should use the `S256` [PKCE] challenge
 method instead.
+{{< /callout >}}
+
+Allows [PKCE] `plain` challenges when set to `true`.
 
 ### enable_jwt_access_token_stateless_introspection
 
@@ -304,11 +306,15 @@ be enabled.
 
 {{< confkey type="string" default="none" required="no" >}}
 
-_**Important Note:** Many clients do not support this option and it has a performance cost. It's therefore recommended
-unless you have a specific need that you do not enable this option._
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Many clients do not support this option and it has a performance cost. It's therefore recommended
+unless you have a specific need that you do not enable this option.
+{{< /callout >}}
 
-_**Note:** This value is completely ignored if the
-[discovery_signed_response_key_id](#discovery_signed_response_key_id) is defined._
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This value is completely ignored if the
+[discovery_signed_response_key_id](#discovery_signed_response_key_id) is defined.
+{{< /callout >}}
 
 The algorithm used to sign the [OAuth 2.0 Authorization Server Metadata] and [OpenID Connect Discovery 1.0] responses.
 Per the specifications this Signed JSON Web Token is stored in the `signed_metadata` value using the compact encoding.
@@ -327,11 +333,15 @@ for more information including the algorithm column for supported values.
 
 {{< confkey type="string" required="no" >}}
 
-_**Important Note:** Many clients do not support this option and it has a performance cost. It's therefore recommended
-unless you have a specific need that you do not enable this option._
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Many clients do not support this option and it has a performance cost. It's therefore recommended
+unless you have a specific need that you do not enable this option.
+{{< /callout >}}
 
-_**Note:** This value automatically configures the [discovery_signed_response_alg](#discovery_signed_response_alg)
-value with the algorithm of the specified key._
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This value automatically configures the [discovery_signed_response_alg](#discovery_signed_response_alg)
+value with the algorithm of the specified key.
+{{< /callout >}}
 
 The algorithm used to sign the [OAuth 2.0 Authorization Server Metadata] and [OpenID Connect Discovery 1.0] responses.
 The value of this must one of those provided or calculated in the [jwks](#jwks). Per the specifications this Signed JSON
@@ -347,11 +357,13 @@ When enabled all authorization requests must use the [Pushed Authorization Reque
 
 {{< confkey type="dictionary(object)" required="no" >}}
 
-_**Note:** This section is aimed at providing authorization customization for various
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This section is aimed at providing authorization customization for various
 [OpenID Connect 1.0 Registered Clients](clients.md#authorization_policy). This section should not be confused with the
 [Access Control Rules] section, the way these policies are used and the options
 available are distinctly and intentionally different to those of the [Access Control Rules] unless explicitly specified
-in this section. The reasons for the differences are clearly explained in the [OpenID Connect 1.0 FAQ] and [ADR1]._
+in this section. The reasons for the differences are clearly explained in the [OpenID Connect 1.0 FAQ] and [ADR1].
+{{< /callout >}}
 
 [Access Control Rules]: ../../security/access-control.md#rules
 [OpenID Connect 1.0 FAQ]: ../../../integration/openid-connect/frequently-asked-questions.md#why-doesnt-the-access-control-configuration-work-with-openid-connect-10
