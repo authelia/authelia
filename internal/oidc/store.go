@@ -146,6 +146,11 @@ func (s *Store) ClientAssertionJWTValid(ctx context.Context, jti string) (err er
 
 	blacklistedJTI, err := s.provider.LoadOAuth2BlacklistedJTI(ctx, signature)
 
+	// TODO: Temp Remove.
+	if errors.Is(err, sql.ErrNoRows) {
+		logging.Logger().Debug("SQL No Rows Error returned (oidc)")
+	}
+
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
 		return nil
