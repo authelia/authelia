@@ -149,7 +149,7 @@ const ConsentView = function (props: Props) {
                 title={`${translate("Hi")} ${userInfo?.display_name}`}
                 subtitle={translate("Consent Request")}
             >
-                <Grid container>
+                <Grid container alignItems={"center"} justifyContent="center">
                     <Grid size={{ xs: 12 }}>
                         <div>
                             <Tooltip
