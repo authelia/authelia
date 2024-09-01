@@ -6,7 +6,7 @@ import (
 
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/x/errorsx"
-	jose "github.com/go-jose/go-jose/v4"
+	"github.com/go-jose/go-jose/v4"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -19,6 +19,7 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 	registered := &RegisteredClient{
 		ID:                  config.ID,
 		Name:                config.Name,
+		ClientSecret:        &ClientSecretDigest{PasswordDigest: config.Secret},
 		SectorIdentifierURI: config.SectorIdentifierURI,
 		Public:              config.Public,
 
@@ -58,10 +59,6 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 
 		JSONWebKeysURI: config.JSONWebKeysURI,
 		JSONWebKeys:    NewPublicJSONWebKeySetFromSchemaJWK(config.JSONWebKeys),
-	}
-
-	if config.Secret != nil && config.Secret.Digest != nil {
-		registered.ClientSecret = &ClientSecretDigest{PasswordDigest: config.Secret}
 	}
 
 	if len(config.Lifespan) != 0 {
