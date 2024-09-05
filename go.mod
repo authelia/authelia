@@ -47,7 +47,7 @@ require (
 	github.com/valyala/fasthttp v1.55.0
 	github.com/wneessen/go-mail v0.4.4
 	go.uber.org/mock v0.4.0
-	golang.org/x/net v0.28.0
+	golang.org/x/net v0.29.0
 	golang.org/x/sync v0.8.0
 	golang.org/x/term v0.24.0
 	golang.org/x/text v0.18.0
@@ -105,7 +105,7 @@ require (
 	github.com/ysmood/got v0.40.0 // indirect
 	github.com/ysmood/gson v0.7.3 // indirect
 	github.com/ysmood/leakless v0.9.0 // indirect
-	golang.org/x/crypto v0.26.0 // indirect
+	golang.org/x/crypto v0.27.0 // indirect
 	golang.org/x/oauth2 v0.22.0 // indirect
 	golang.org/x/sys v0.25.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
