@@ -94,7 +94,7 @@ func handleNewWebAuthn(ctx *middlewares.AutheliaCtx) (w *webauthn.WebAuthn, err 
 			UserVerification:        ctx.Configuration.WebAuthn.UserVerification,
 		},
 		Debug:                false,
-		EncodeUserIDAsString: true,
+		EncodeUserIDAsString: false,
 		Timeouts: webauthn.TimeoutsConfig{
 			Login: webauthn.TimeoutConfig{
 				Enforce:    true,

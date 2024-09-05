@@ -273,7 +273,7 @@ func (ctx *CmdCtx) LogProcessCurrentUserRunE(_ *cobra.Command, _ []string) (err 
 	var current *user.User
 
 	if current, err = user.Current(); err != nil {
-		current = &user.User{Uid: strconv.Itoa(syscall.Getuid()), Gid: strconv.Itoa(syscall.Getuid())}
+		current = &user.User{Uid: strconv.Itoa(syscall.Getuid()), Gid: strconv.Itoa(syscall.Getgid())}
 	}
 
 	fields := map[string]any{"uid": current.Uid, "gid": current.Gid}

@@ -102,10 +102,7 @@ The username sent for authentication with the SMTP server. Paired with the passw
 
 ### password
 
-{{< confkey type="string" required="no" >}}
-
-*__Important Note:__ This can also be defined using a [secret](../methods/secrets.md) which is __strongly recommended__
-especially for containerized deployments.*
+{{< confkey type="string" required="no" secret="yes" >}}
 
 The password paired with the [username](#username) sent for authentication with the SMTP server.
 

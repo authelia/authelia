@@ -57,7 +57,7 @@ common with proxies with good security practices.
 You should read the [Caddy Trusted Proxies Documentation] as part of configuring this. It's important to ensure you take
 the time to configure this carefully and correctly.
 
-In the example we have a commented `trusted_proxies` directive which shows an example on adding the following networks
+In the example, we have a commented [trusted_proxies] directive, which shows an example of adding the following networks
 to the trusted proxy list in [Caddy]:
 
 * 10.0.0.0/8
@@ -149,42 +149,30 @@ support to ensure the basic example covers your use case in a secure way.
 
 #### Subdomain
 
-{{< details "Caddyfile" >}}
 ```caddyfile
+## Uncomment & adjust the following line to configure specific ranges which should be considered as trustworthy.
 ## It is important to read the following document before enabling this section:
 ##     https://www.authelia.com/integration/proxies/caddy/#trusted-proxies
-(trusted_proxy_list) {
-       ## Uncomment & adjust the following line to configure specific ranges which should be considered as trustworthy.
-       # trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
-}
+# trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
 
 # Authelia Portal.
-{{</* sitevar name="subdomain-authelia" nojs="auth" */>}}.{{</* sitevar name="domain" nojs="example.com" */>}} {
-        reverse_proxy {{</* sitevar name="host" nojs="authelia" */>}}:{{</* sitevar name="port" nojs="9091" */>}} {
-                ## This import needs to be included if you're relying on a trusted proxies configuration.
-                import trusted_proxy_list
-        }
+{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}} {
+        reverse_proxy {{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}
 }
 
 # Protected Endpoint.
-nextcloud.{{</* sitevar name="domain" nojs="example.com" */>}} {
-        forward_auth {{</* sitevar name="host" nojs="authelia" */>}}:{{</* sitevar name="port" nojs="9091" */>}} {
+nextcloud.{{< sitevar name="domain" nojs="example.com" >}} {
+        forward_auth {{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}} {
                 uri /api/authz/forward-auth
                 ## The following commented line is for configuring the Authelia URL in the proxy. We strongly suggest
                 ## this is configured in the Session Cookies section of the Authelia configuration.
-                # uri /api/authz/forward-auth?authelia_url=https://{{</* sitevar name="subdomain-authelia" nojs="auth" */>}}.{{</* sitevar name="domain" nojs="example.com" */>}}/
+                # uri /api/authz/forward-auth?authelia_url=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/
                 copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
+        }
 
-                ## This import needs to be included if you're relying on a trusted proxies configuration.
-                import trusted_proxy_list
-        }
-        reverse_proxy nextcloud:80 {
-                ## This import needs to be included if you're relying on a trusted proxies configuration.
-                import trusted_proxy_list
-        }
+        reverse_proxy nextcloud:80
 }
 ```
-{{< /details >}}
 
 #### Subpath
 
@@ -193,21 +181,16 @@ nextcloud.{{</* sitevar name="domain" nojs="example.com" */>}} {
 
 {{< details "Caddyfile" >}}
 ```caddyfile
+## Uncomment & adjust the following line to configure specific ranges which should be considered as trustworthy.
 ## It is important to read the following document before enabling this section:
 ##     https://www.authelia.com/integration/proxies/caddy/#trusted-proxies
-(trusted_proxy_list) {
-       ## Uncomment & adjust the following line to configure specific ranges which should be considered as trustworthy.
-       # trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
-}
+# trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
 
 {{</* sitevar name="domain" nojs="example.com" */>}} {
         # Authelia Portal.
         @authelia path /authelia /authelia/*
         handle @authelia {
-                reverse_proxy {{</* sitevar name="host" nojs="authelia" */>}}:{{</* sitevar name="port" nojs="9091" */>}} {
-                        ## This import needs to be included if you're relying on a trusted proxies configuration.
-                        import trusted_proxy_list
-                }
+                reverse_proxy {{</* sitevar name="host" nojs="authelia" */>}}:{{</* sitevar name="port" nojs="9091" */>}}
         }
 
         # Protected Endpoint.
@@ -216,20 +199,38 @@ nextcloud.{{</* sitevar name="domain" nojs="example.com" */>}} {
                 forward_auth {{</* sitevar name="host" nojs="authelia" */>}}:{{</* sitevar name="port" nojs="9091" */>}} {
                         uri /api/authz/forward-auth?authelia_url=https://{{</* sitevar name="domain" nojs="example.com" */>}}/authelia/
                         copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
+                }
 
-                        ## This import needs to be included if you're relying on a trusted proxies configuration.
-                        import trusted_proxy_list
-                }
-                reverse_proxy nextcloud:80 {
-                        ## This import needs to be included if you're relying on a trusted proxies configuration.
-                        import trusted_proxy_list
-                }
+                reverse_proxy nextcloud:80
         }
 }
 ```
 {{< /details >}}
 
-### Advanced example
+### Advanced examples
+
+#### Removing the Authelia Session Header
+
+Some users may wish to prevent the Authelia session cookie from reaching the backend. It's theoretically possible to
+remove that value from the Cookie header. While this is untested, it's likely the following example, which includes a
+[header_up] directive will remove that value from the Cookie header provided the configured name for the cookie is
+`authelia_session`:
+
+
+```Caddyfile
+nextcloud.{{< sitevar name="domain" nojs="example.com" >}} {
+        forward_auth {{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}} {
+                uri /api/authz/forward-auth
+                copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
+        }
+
+        reverse_proxy nextcloud:80 {
+                header_up Cookie "authelia_session=[^;]+;" "authelia_session=_;"
+        }
+}
+```
+
+#### Explicit Forward Auth
 
 The advanced example allows for more flexible customization, however the [basic example](#basic-examples) should be
 preferred in *most* situations. If you are unsure of what you're doing please don't use this method.
@@ -238,27 +239,19 @@ preferred in *most* situations. If you are unsure of what you're doing please do
 
 {{< details "Caddyfile" >}}
 ```caddyfile
+## Uncomment & adjust the following line to configure specific ranges which should be considered as trustworthy.
 ## It is important to read the following document before enabling this section:
 ##     https://www.authelia.com/integration/proxies/caddy/#trusted-proxies
-(trusted_proxy_list) {
-       ## Uncomment & adjust the following line to configure specific ranges which should be considered as trustworthy.
-       # trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
-}
+# trusted_proxies 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7
 
 # Authelia Portal.
 {{</* sitevar name="subdomain-authelia" nojs="auth" */>}}.{{</* sitevar name="domain" nojs="example.com" */>}} {
-        reverse_proxy {{</* sitevar name="host" nojs="authelia" */>}}:{{</* sitevar name="port" nojs="9091" */>}} {
-                ## This import needs to be included if you're relying on a trusted proxies configuration.
-                import trusted_proxy_list
-        }
+        reverse_proxy {{</* sitevar name="host" nojs="authelia" */>}}:{{</* sitevar name="port" nojs="9091" */>}}
 }
 
 # Protected Endpoint.
 nextcloud.{{</* sitevar name="domain" nojs="example.com" */>}} {
         reverse_proxy {{</* sitevar name="host" nojs="authelia" */>}}:{{</* sitevar name="port" nojs="9091" */>}} {
-                ## This import needs to be included if you're relying on a trusted proxies configuration.
-                import trusted_proxy_list
-
                 method GET
                 rewrite "/api/authz/forward-auth?authelia_url=https://{{</* sitevar name="subdomain-authelia" nojs="auth" */>}}.{{</* sitevar name="domain" nojs="example.com" */>}}/"
 
@@ -279,10 +272,7 @@ nextcloud.{{</* sitevar name="domain" nojs="example.com" */>}} {
                 }
         }
 
-        reverse_proxy nextcloud:80 {
-                ## This import needs to be included if you're relying on a trusted proxies configuration.
-                import trusted_proxy_list
-        }
+        reverse_proxy nextcloud:80
 }
 ```
 {{< /details >}}
@@ -292,6 +282,7 @@ nextcloud.{{</* sitevar name="domain" nojs="example.com" */>}} {
 * [Caddy General Documentation](https://caddyserver.com/docs/)
 * [Caddy Forward Auth Documentation]
 * [Caddy Trusted Proxies Documentation]
+* [Caddy Trusted Proxies Documentation (Global)]
 * [Caddy Snippet] Documentation
 * [Forwarded Headers]
 
@@ -299,4 +290,8 @@ nextcloud.{{</* sitevar name="domain" nojs="example.com" */>}} {
 [Caddy Snippet]: https://caddyserver.com/docs/caddyfile/concepts#snippets
 [Caddy Forward Auth Documentation]: https://caddyserver.com/docs/caddyfile/directives/forward_auth
 [Caddy Trusted Proxies Documentation]: https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#trusted_proxies
+[Caddy Trusted Proxies Documentation (Global)]: https://caddyserver.com/docs/caddyfile/options#trusted-proxies
 [Forwarded Headers]: forwarded-headers
+[trusted_proxies]: https://caddyserver.com/docs/caddyfile/options#trusted-proxies
+[header_up]: https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#header_up
+[forward_auth]: https://caddyserver.com/docs/caddyfile/directives/forward_auth

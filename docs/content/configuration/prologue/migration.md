@@ -71,16 +71,20 @@ The following changes occurred in 4.30.0:
 | log_file_path |     log.file_path      |
 |  log_format   |       log.format       |
 
-*__Please Note:__ you can no longer define secrets for providers that you are not using. For example if you're using the
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+You can't define secrets for providers that you are not using. For example if you're using the
 [filesystem notifier](../notifications/introduction.md) you must ensure that the `AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE`
 environment variable or other environment variables set. This also applies to other providers like
-[storage](../storage/introduction.md) and [authentication backend](../first-factor/introduction.md).*
+[storage](../storage/introduction.md) and [authentication backend](../first-factor/introduction.md).
+{{< /callout >}}
 
 #### Kubernetes 4.30.0
 
-*__Please Note:__ if you're using Authelia with Kubernetes and are not using the provided
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+If you're using Authelia with Kubernetes and are not using the provided
 [helm chart](https://charts.authelia.com) you will be required to
-[configure the enableServiceLinks](../../integration/kubernetes/introduction.md#enable-service-links) option.*
+[configure the enableServiceLinks](../../integration/kubernetes/introduction.md#enable-service-links) option.
+{{< /callout >}}
 
 ### 4.25.0
 
@@ -93,9 +97,11 @@ The following changes occurred in 4.25.0:
 |        notifier.smtp.disable_verify_cert        |          notifier.smtp.tls.skip_verify          |
 |           notifier.smtp.trusted_cert            |             certificates_directory              |
 
-*__Please Note:__ `certificates_directory` is not a direct replacement for the `notifier.smtp.trusted_cert`, instead
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+The `certificates_directory` is not a direct replacement for the `notifier.smtp.trusted_cert`, instead
 of being the path to a specific file it is a path to a directory containing certificates trusted by Authelia. This
-affects other services like LDAP as well.*
+affects other services like LDAP as well.
+{{< /callout >}}
 
 ### 4.7.0
 
@@ -106,7 +112,9 @@ The following changes occurred in 4.7.0:
 |  logs_level  | log_level |
 |  logs_file   | log_file  |
 
-*__Please Note:__ The new keys also changed in [4.30.0](#4300) so you will need to update them to the new values if you
-are using [4.30.0](#4300) or newer instead of the new keys listed here.*
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+The new keys also changed in [4.30.0](#4300) so you will need to update them to the new values if you
+are using [4.30.0](#4300) or newer instead of the new keys listed here.
+{{< /callout >}}
 
 [YAML]: https://yaml.org/

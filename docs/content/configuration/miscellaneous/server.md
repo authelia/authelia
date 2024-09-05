@@ -170,8 +170,10 @@ Configures the server timeouts.
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
-*__Security Note:__ This is a developer endpoint. __DO NOT__ enable it unless you know why you're enabling it.
-__DO NOT__ enable this in production.*
+{{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
+This is a developer endpoint. __DO NOT__ enable it unless you know why you're enabling it.
+__DO NOT__ enable this in production.
+{{< /callout >}}
 
 Enables the go [pprof](https://pkg.go.dev/net/http/pprof) endpoints.
 
@@ -179,8 +181,10 @@ Enables the go [pprof](https://pkg.go.dev/net/http/pprof) endpoints.
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
-*__Security Note:__ This is a developer endpoint. __DO NOT__ enable it unless you know why you're enabling it.
-__DO NOT__ enable this in production.*
+{{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
+This is a developer endpoint. __DO NOT__ enable it unless you know why you're enabling it.
+__DO NOT__ enable this in production.
+{{< /callout >}}
 
 Enables the go [expvar](https://pkg.go.dev/expvar) endpoints.
 

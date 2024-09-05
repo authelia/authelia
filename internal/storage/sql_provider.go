@@ -1304,7 +1304,7 @@ func (p *SQLProvider) LoadOAuth2BlacklistedJTI(ctx context.Context, signature st
 	blacklistedJTI = &model.OAuth2BlacklistedJTI{}
 
 	if err = p.db.GetContext(ctx, blacklistedJTI, p.sqlSelectOAuth2BlacklistedJTI, signature); err != nil {
-		return nil, fmt.Errorf("error selecting oauth2 blacklisted JTI with signature '%s': %w", blacklistedJTI.Signature, err)
+		return nil, fmt.Errorf("error selecting oauth2 blacklisted JTI with signature '%s': %w", signature, err)
 	}
 
 	return blacklistedJTI, nil

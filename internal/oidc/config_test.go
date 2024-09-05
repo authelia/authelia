@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/templates"
 )
@@ -195,16 +196,20 @@ func TestConfig_Misc(t *testing.T) {
 	assert.Nil(t, config.GetRevocationHandlers(ctx))
 	assert.Nil(t, config.GetPushedAuthorizeEndpointHandlers(ctx))
 
-	assert.Equal(t, []string{""}, config.GetTokenURLs(ctx))
+	assert.Equal(t, []string(nil), config.GetAllowedJWTAssertionAudiences(ctx))
 
-	octx := &TestContext{
+	var octx context.Context
+
+	octx = &TestContext{
 		Context: ctx,
 		IssuerURLFunc: func() (issuerURL *url.URL, err error) {
 			return nil, fmt.Errorf("test error")
 		},
 	}
 
-	assert.Equal(t, []string{""}, config.GetTokenURLs(octx))
+	octx = context.WithValue(octx, model.CtxKeyAutheliaCtx, octx)
+
+	assert.Equal(t, []string(nil), config.GetAllowedJWTAssertionAudiences(octx))
 }
 
 func TestConfig_PAR(t *testing.T) {
@@ -320,11 +325,13 @@ func TestConfig_GetIssuerFuncs(t *testing.T) {
 				Issuers: tc.have,
 			}
 
-			assert.Equal(t, tc.expectIntrospection, config.GetIntrospectionIssuer(tc.ctx))
-			assert.Equal(t, tc.expectIDToken, config.GetIDTokenIssuer(tc.ctx))
-			assert.Equal(t, tc.expectAccessToken, config.GetAccessTokenIssuer(tc.ctx))
-			assert.Equal(t, tc.expectAS, config.GetAuthorizationServerIdentificationIssuer(tc.ctx))
-			assert.Equal(t, tc.expectJARM, config.GetJWTSecuredAuthorizeResponseModeIssuer(tc.ctx))
+			ctx := context.WithValue(tc.ctx, 0, 1) //nolint:staticcheck // This value is used to demonstrate a functionality not used for an actual value.
+
+			assert.Equal(t, tc.expectIntrospection, config.GetIntrospectionIssuer(ctx))
+			assert.Equal(t, tc.expectIDToken, config.GetIDTokenIssuer(ctx))
+			assert.Equal(t, tc.expectAccessToken, config.GetAccessTokenIssuer(ctx))
+			assert.Equal(t, tc.expectAS, config.GetAuthorizationServerIdentificationIssuer(ctx))
+			assert.Equal(t, tc.expectJARM, config.GetJWTSecuredAuthorizeResponseModeIssuer(ctx))
 		})
 	}
 }
@@ -373,6 +380,8 @@ func TestMisc(t *testing.T) {
 	assert.Equal(t, time.Minute*10, config.GetRFC8628CodeLifespan(context.Background()))
 	assert.Equal(t, time.Second*10, config.GetRFC8628TokenPollingInterval(context.Background()))
 
-	assert.Equal(t, "https://example.com/issuer/api/oidc/token", config.GetTokenURL(tctx))
+	assert.Equal(t, []string{"https://example.com/issuer", "https://example.com/issuer/api/oidc/token", "https://example.com/issuer/api/oidc/pushed-authorization-request"}, config.GetAllowedJWTAssertionAudiences(tctx))
+
+	assert.Equal(t, "https://example.com/issuer/api/oidc/device-code/user-verification", config.GetRFC8628UserVerificationURL(tctx))
 	assert.Equal(t, "https://example.com/issuer/api/oidc/device-code/user-verification", config.GetRFC8628UserVerificationURL(tctx))
 }

@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -10,18 +11,18 @@ import (
 // ValidateNotifier validates and update notifier configuration.
 func ValidateNotifier(config *schema.Notifier, validator *schema.StructValidator) {
 	if config.SMTP == nil && config.FileSystem == nil {
-		validator.Push(fmt.Errorf(errFmtNotifierNotConfigured))
+		validator.Push(errors.New(errFmtNotifierNotConfigured))
 
 		return
 	} else if config.SMTP != nil && config.FileSystem != nil {
-		validator.Push(fmt.Errorf(errFmtNotifierMultipleConfigured))
+		validator.Push(errors.New(errFmtNotifierMultipleConfigured))
 
 		return
 	}
 
 	if config.FileSystem != nil {
 		if config.FileSystem.Filename == "" {
-			validator.Push(fmt.Errorf(errFmtNotifierFileSystemFileNameNotConfigured))
+			validator.Push(errors.New(errFmtNotifierFileSystemFileNameNotConfigured))
 		}
 
 		return
@@ -88,7 +89,7 @@ func validateSMTPNotifier(config *schema.NotifierSMTP, validator *schema.StructV
 	}
 
 	if config.DisableStartTLS {
-		validator.PushWarning(fmt.Errorf(errFmtNotifierStartTlsDisabled))
+		validator.PushWarning(errors.New(errFmtNotifierStartTlsDisabled))
 	}
 }
 
@@ -104,7 +105,7 @@ func validateSMTPNotifierAddress(config *schema.NotifierSMTP, validator *schema.
 		}
 	} else {
 		if config.Host != "" || config.Port != 0 { //nolint:staticcheck
-			validator.Push(fmt.Errorf(errFmtNotifierSMTPAddressLegacyAndModern))
+			validator.Push(errors.New(errFmtNotifierSMTPAddressLegacyAndModern))
 		}
 
 		var err error

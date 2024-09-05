@@ -1,7 +1,7 @@
 # ========================================
 # ===== Build image for the frontend =====
 # ========================================
-FROM node:22-alpine@sha256:4162c8a0f1fef9d3b003eb1fd3d8a26db46815288832aa453d829f4129d4dfd3 AS builder-frontend
+FROM node:22-alpine@sha256:008735b83ef98c7635b5b73cb9b597172fe1895619a8d65378fa7110e427abb5 AS builder-frontend
 
 WORKDIR /node/src/app
 
@@ -13,7 +13,7 @@ RUN yarn install --frozen-lockfile && yarn build
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.22.6-alpine@sha256:1a478681b671001b7f029f94b5016aed984a23ad99c707f6a0ab6563860ae2f3 AS builder-backend
+FROM golang:1.23.0-alpine@sha256:d0b31558e6b3e4cc59f6011d79905835108c919143ebecc58f35965bf79948f4 AS builder-backend
 
 WORKDIR /go/src/app
 

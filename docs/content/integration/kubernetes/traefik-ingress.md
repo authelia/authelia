@@ -53,8 +53,10 @@ configured it to be served on the URL `https://{{< sitevar name="subdomain-authe
 `authelia` in the `default` [Namespace] with TCP port `80` configured to route to the Authelia [Pod]'s HTTP port and
 that your cluster is configured with the default DNS domain name of `cluster.local`.
 
-*__Important Note:__ The [Middleware] should be applied to an [Ingress] / [IngressRoute] you wish to protect. It
-__SHOULD NOT__ be applied to the Authelia [Ingress] / [IngressRoute] itself.*
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+The [Middleware] should be applied to an [Ingress] / [IngressRoute] you wish to protect. It
+__SHOULD NOT__ be applied to the Authelia [Ingress] / [IngressRoute] itself.
+{{< /callout >}}
 
 ```yaml {title="middleware.yaml"}
 ---

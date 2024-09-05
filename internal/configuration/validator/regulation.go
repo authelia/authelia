@@ -1,7 +1,7 @@
 package validator
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
@@ -17,6 +17,6 @@ func ValidateRegulation(config *schema.Configuration, validator *schema.StructVa
 	}
 
 	if config.Regulation.FindTime > config.Regulation.BanTime {
-		validator.Push(fmt.Errorf(errFmtRegulationFindTimeGreaterThanBanTime))
+		validator.Push(errors.New(errFmtRegulationFindTimeGreaterThanBanTime))
 	}
 }
