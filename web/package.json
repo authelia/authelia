@@ -112,7 +112,7 @@
     "react-test-renderer": "18.3.1",
     "typescript": "5.5.4",
     "vite": "5.4.3",
-    "vite-plugin-checker": "0.7.2",
+    "vite-plugin-checker": "0.8.0",
     "vite-plugin-istanbul": "6.0.2",
     "vite-plugin-svgr": "4.2.0",
     "vite-tsconfig-paths": "5.0.1",
