@@ -56,8 +56,6 @@ COPY --from=builder-backend /go/src/app/cmd/authelia/authelia /go/src/app/LICENS
 
 EXPOSE 9091
 
-VOLUME /config
-
 ENV PATH="/app:${PATH}" \
 	GOCOVERDIR="/authelia/coverage/" \
     X_AUTHELIA_CONFIG="/config/configuration.yml"

@@ -26,7 +26,5 @@ COPY authelia-${TARGETOS}-${TARGETARCH}-musl ./authelia
 
 EXPOSE 9091
 
-VOLUME /config
-
 ENTRYPOINT ["/app/entrypoint.sh"]
 HEALTHCHECK --interval=30s --timeout=3s --start-period=1m CMD /app/healthcheck.sh
