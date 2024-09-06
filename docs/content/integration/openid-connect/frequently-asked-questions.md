@@ -100,7 +100,11 @@ your hardware's capabilities.
 
 To test the duration of different work factors, you can measure it like this:
 `time authelia crypto hash generate pbkdf2 --variant sha512 --iterations 310000 --password insecure_password`.
-Note: You should not use your actual passwords for this test, the time taken should be the same for any reasonable password length.
+
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+You should not use your actual passwords for this test, the time taken should be the same for any reasonable password
+length.
+{{< /callout >}}
 
 You can read more about password hashing tuning in the
 [Passwords reference guide](../../reference/guides/passwords.md#tuning).

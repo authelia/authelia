@@ -15,7 +15,7 @@ import {
     Theme,
     Typography,
 } from "@mui/material";
-import Grid from "@mui/material/Unstable_Grid2/Grid2";
+import Grid from "@mui/material/Grid2";
 import makeStyles from "@mui/styles/makeStyles";
 import { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/types";
 import { useTranslation } from "react-i18next";
@@ -200,7 +200,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                             {translate("Enter a description for this WebAuthn Credential")}
                         </Typography>
                         <Grid container spacing={1}>
-                            <Grid xs={12}>
+                            <Grid size={{ xs: 12 }}>
                                 <TextField
                                     inputRef={nameRef}
                                     id="webauthn-credential-description"
@@ -258,7 +258,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                     })}
                 </DialogContentText>
                 <Grid container spacing={0} alignItems={"center"} justifyContent={"center"} textAlign={"center"}>
-                    <Grid xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <Stepper activeStep={activeStep}>
                             {steps.map((label, index) => {
                                 const stepProps: { completed?: boolean } = {};
@@ -273,7 +273,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                             })}
                         </Stepper>
                     </Grid>
-                    <Grid xs={12}>{renderStep(activeStep)}</Grid>
+                    <Grid size={{ xs: 12 }}>{renderStep(activeStep)}</Grid>
                 </Grid>
             </DialogContent>
             <DialogActions>

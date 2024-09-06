@@ -107,9 +107,11 @@ There are several methods of deploying *Authelia* and we recommend reading the
 The default method of utilizing *Authelia* is via the [Proxy Integrations](../proxies/introduction.md). It's
 recommended that you read the relevant [Proxy Integration Documentation](../proxies/introduction.md).
 
-*__Important Note:__ When your [Deployment](#deployment) is on [Kubernetes](../kubernetes/introduction.md) we
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+When your [Deployment](#deployment) is on [Kubernetes](../kubernetes/introduction.md) we
 recommend viewing the dedicated [Kubernetes Documentation](../kubernetes/introduction.md) prior to viewing the
-[Proxy Integration Documentation](../proxies/introduction.md).*
+[Proxy Integration Documentation](../proxies/introduction.md).
+{{< /callout >}}
 
 ## Additional Useful Links
 
