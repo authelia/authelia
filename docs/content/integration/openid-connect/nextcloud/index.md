@@ -189,6 +189,14 @@ To configure [Nextcloud] to utilize Authelia as an [OpenID Connect 1.0] Provider
 ],
 ```
 
+Optional [Nextcloud] config for using existing local users
+
+1. Edit the 'OpenID Connect' configuration:
+   * User ID mapping: preferred_username
+   * Use unique user id: unchecked
+  
+
+
 ## See Also
 
 * [Nextcloud OpenID Connect user backend app]
