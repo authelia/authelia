@@ -194,8 +194,6 @@ Optional [Nextcloud] config for using existing local users
 1. Edit the 'OpenID Connect' configuration:
    * User ID mapping: preferred_username
    * Use unique user id: unchecked
-  
-
 
 ## See Also
 
