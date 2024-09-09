@@ -94,6 +94,8 @@ adminAuth: {
             callbackURL: 'https://node-red.{{< sitevar name="domain" nojs="example.com" >}}/auth/strategy/callback/',
             scope: ['openid', 'email', 'profile', 'groups'],
             proxy: true,
+            state: true,
+            pkce: true,
             verify: function(issuer, profile, done) {
                 done(null, profile)
             }
