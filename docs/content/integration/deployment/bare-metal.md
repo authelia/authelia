@@ -44,6 +44,14 @@ on most Debian based operating systems.
 
 In addition to the `.deb` packages we also have an [APT Repository](https://apt.authelia.com).
 
+```shell
+sudo apt install ca-certificates curl
+sudo curl -fsSL https://apt.authelia.com/organization/signing.asc -o /usr/share/keyrings/authelia.asc
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/authelia.asc] https://apt.authelia.com/stable/debian/debian all main" | \
+  sudo tee /etc/apt/sources.list.d/authelia.list > /dev/null
+```
+
 ## Nix
 
 Using the Nix package manager Authelia is available via the `https://nixos.org/channels/nixpkgs-unstable` channel.
