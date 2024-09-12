@@ -1,7 +1,15 @@
 import React, { MutableRefObject, useCallback, useEffect, useRef, useState } from "react";
 
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, TextField } from "@mui/material";
-import Grid from "@mui/material/Unstable_Grid2/Grid2";
+import {
+    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    FormControl,
+    Grid2,
+    TextField,
+} from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import PasswordMeter from "@components/PasswordMeter";
@@ -227,8 +235,8 @@ const ChangePasswordDialog = (props: Props) => {
             <DialogTitle>{translate("Change {{item}}", { item: translate("Password") })}</DialogTitle>
             <DialogContent>
                 <FormControl id={"change-password-form"} disabled={formDisabled}>
-                    <Grid container spacing={1} alignItems={"center"} justifyContent={"center"} textAlign={"center"}>
-                        <Grid xs={12} sx={{ pt: 3 }}>
+                    <Grid2 container spacing={1} alignItems={"center"} justifyContent={"center"} textAlign={"center"}>
+                        <Grid2 size={{ xs: 12 }} sx={{ pt: 3 }}>
                             <TextField
                                 inputRef={oldPasswordRef}
                                 id="old-password"
@@ -250,8 +258,8 @@ const ChangePasswordDialog = (props: Props) => {
                                 color={isCapsLockOnOldPW ? "error" : "primary"}
                                 onBlur={() => setIsCapsLockOnOldPW(false)}
                             />
-                        </Grid>
-                        <Grid xs={12} sx={{ mt: 3 }}>
+                        </Grid2>
+                        <Grid2 size={{ xs: 12 }} sx={{ mt: 3 }}>
                             <TextField
                                 inputRef={newPasswordRef}
                                 id="new-password"
@@ -276,8 +284,8 @@ const ChangePasswordDialog = (props: Props) => {
                             {pPolicy.mode === PasswordPolicyMode.Disabled ? null : (
                                 <PasswordMeter value={newPassword} policy={pPolicy} />
                             )}
-                        </Grid>
-                        <Grid xs={12}>
+                        </Grid2>
+                        <Grid2 size={{ xs: 12 }}>
                             <TextField
                                 inputRef={repeatNewPasswordRef}
                                 id="repeat-new-password"
@@ -299,8 +307,8 @@ const ChangePasswordDialog = (props: Props) => {
                                 color={isCapsLockOnRepeatNewPW ? "error" : "primary"}
                                 onBlur={() => setIsCapsLockOnRepeatNewPW(false)}
                             />
-                        </Grid>
-                    </Grid>
+                        </Grid2>
+                    </Grid2>
                 </FormControl>
             </DialogContent>
             <DialogActions>
