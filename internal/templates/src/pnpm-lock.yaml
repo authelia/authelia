@@ -52,8 +52,8 @@ importers:
         specifier: 9.10.0
         version: 9.10.0(jiti@1.21.6)
       tsx:
-        specifier: 4.19.0
-        version: 4.19.0
+        specifier: 4.19.1
+        version: 4.19.1
       vitest:
         specifier: 2.0.5
         version: 2.0.5(@types/node@22.5.5)(terser@5.31.5)
@@ -2078,8 +2078,8 @@ packages:
   tslib@2.6.3:
     resolution: {integrity: sha512-xNvxJEOUiWPGhUuUdQgAJPKOOJfGnIyKySOc09XkKsgdUV/3E2zvwZYdejjmRgPCgcym1juLH3226yA7sEFJKQ==}
 
-  tsx@4.19.0:
-    resolution: {integrity: sha512-bV30kM7bsLZKZIOCHeMNVMJ32/LuJzLVajkQI/qf92J2Qr08ueLQvW00PUZGiuLPP760UINwupgUj8qrSCPUKg==}
+  tsx@4.19.1:
+    resolution: {integrity: sha512-0flMz1lh74BR4wOvBjuh9olbnwqCPc35OOlfyzHba0Dc+QNUeWX/Gq2YTbnwcWPO3BMd8fkzRVrHcsR+a7z7rA==}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
@@ -4100,7 +4100,7 @@ snapshots:
 
   tslib@2.6.3: {}
 
-  tsx@4.19.0:
+  tsx@4.19.1:
     dependencies:
       esbuild: 0.23.1
       get-tsconfig: 4.7.6
