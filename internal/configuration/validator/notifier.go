@@ -101,7 +101,11 @@ func validateSMTPNotifierAddress(config *schema.NotifierSMTP, validator *schema.
 			host := config.Host //nolint:staticcheck
 			port := config.Port //nolint:staticcheck
 
-			config.Address = schema.NewSMTPAddress("", host, port)
+			if port < 0 || port > 65535 {
+				validator.Push(fmt.Errorf("notifier: smtp: option 'port' must be between 0 and 65535 but is configured as %d", port))
+			} else {
+				config.Address = schema.NewSMTPAddress("", host, uint16(port))
+			}
 		}
 	} else {
 		if config.Host != "" || config.Port != 0 { //nolint:staticcheck

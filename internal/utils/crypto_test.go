@@ -486,7 +486,7 @@ func TestTLSVersionFromBytesString(t *testing.T) {
 		{
 			"ShouldDecodeSSL3.0",
 			"0300",
-			tls.VersionSSL30,
+			tls.VersionSSL30, //nolint:staticcheck
 			"",
 		},
 		{

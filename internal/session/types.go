@@ -53,7 +53,7 @@ type UserSession struct {
 type TOTP struct {
 	Issuer    string
 	Algorithm string
-	Digits    uint
+	Digits    uint32
 	Period    uint
 	Secret    string
 	Expires   time.Time

@@ -127,7 +127,7 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidMySQLTLSVersion() {
 			Database: "database",
 		},
 		TLS: &schema.TLS{
-			MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30},
+			MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
 		},
 	}
 
@@ -271,7 +271,7 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidPostgreSQLTLSVersion() {
 			Database: "database",
 		},
 		TLS: &schema.TLS{
-			MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30},
+			MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
 		},
 	}
 

@@ -525,7 +525,7 @@ func (p *LDAPUserProvider) resolveUsersFilter(input string) (filter string) {
 	}
 
 	if p.usersFilterReplacementDateTimeMicrosoftNTTimeEpoch {
-		filter = strings.ReplaceAll(filter, ldapPlaceholderDateTimeMicrosoftNTTimeEpoch, strconv.Itoa(int(utils.UnixNanoTimeToMicrosoftNTEpoch(p.clock.Now().UnixNano()))))
+		filter = strings.ReplaceAll(filter, ldapPlaceholderDateTimeMicrosoftNTTimeEpoch, strconv.FormatUint(utils.UnixNanoTimeToMicrosoftNTEpoch(p.clock.Now().UnixNano()), 10))
 	}
 
 	p.log.Tracef("Detected user filter is %s", filter)
