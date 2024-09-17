@@ -24,10 +24,10 @@
 	"devDependencies": {
 		"@radix-ui/colors": "3.0.0",
 		"@types/node": "22.5.5",
-		"@types/react": "18.3.6",
+		"@types/react": "18.3.7",
 		"@types/react-dom": "18.3.0",
 		"eslint": "9.10.0",
 		"tsx": "4.19.1",
-		"vitest": "2.0.5"
+		"vitest": "2.1.1"
 	}
 }

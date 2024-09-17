@@ -88,13 +88,13 @@
     "@testing-library/jest-dom": "6.5.0",
     "@testing-library/react": "16.0.1",
     "@types/node": "22.5.5",
-    "@types/react": "18.3.6",
+    "@types/react": "18.3.7",
     "@types/react-dom": "18.3.0",
     "@types/zxcvbn": "4.4.5",
     "@typescript-eslint/eslint-plugin": "7.1.0",
     "@typescript-eslint/parser": "7.1.0",
     "@vitejs/plugin-react": "4.3.1",
-    "@vitest/coverage-istanbul": "2.0.5",
+    "@vitest/coverage-istanbul": "2.1.1",
     "esbuild": "0.23.1",
     "eslint": "8.57.1",
     "eslint-config-prettier": "9.1.0",
@@ -116,7 +116,7 @@
     "vite-plugin-istanbul": "6.0.2",
     "vite-plugin-svgr": "4.2.0",
     "vite-tsconfig-paths": "5.0.1",
-    "vitest": "2.0.5",
+    "vitest": "2.1.1",
     "vitest-preview": "0.0.1"
   }
 }
