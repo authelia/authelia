@@ -2,7 +2,7 @@
 title: "LibreChat"
 description: "Integrating LibreChat with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2024-09-17T09:54:41+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 weight: 620
