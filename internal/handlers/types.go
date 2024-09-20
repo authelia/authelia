@@ -33,7 +33,7 @@ type bodySignTOTPRequest struct {
 
 type bodyRegisterTOTP struct {
 	Algorithm string `json:"algorithm"`
-	Length    int    `json:"length"`
+	Length    int64  `json:"length"`
 	Period    int    `json:"period"`
 }
 

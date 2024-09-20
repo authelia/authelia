@@ -86,7 +86,7 @@ func TOTPRegisterPUT(ctx *middlewares.AutheliaCtx) {
 
 	if !utils.IsStringInSlice(bodyJSON.Algorithm, opts.Algorithms) ||
 		!utils.IsIntegerInSlice(bodyJSON.Period, opts.Periods) ||
-		!utils.IsIntegerInSlice(bodyJSON.Length, opts.Lengths) {
+		!utils.IsIntegerInSlice(int(bodyJSON.Length), opts.Lengths) {
 		ctx.Logger.WithError(fmt.Errorf("the algorithm '%s', period '%d', or length '%d' was not permitted by configured policy", bodyJSON.Algorithm, bodyJSON.Period, bodyJSON.Length)).Errorf("Error occurred generating a TOTP registration session for user '%s': error occurred validating registration options selection", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
@@ -97,7 +97,7 @@ func TOTPRegisterPUT(ctx *middlewares.AutheliaCtx) {
 
 	var config *model.TOTPConfiguration
 
-	if config, err = ctx.Providers.TOTP.GenerateCustom(ctx, userSession.Username, bodyJSON.Algorithm, "", uint(bodyJSON.Length), uint(bodyJSON.Period), 0); err != nil {
+	if config, err = ctx.Providers.TOTP.GenerateCustom(ctx, userSession.Username, bodyJSON.Algorithm, "", uint32(bodyJSON.Length), uint(bodyJSON.Period), 0); err != nil { //nolint:gosec // Validated at runtime.
 		ctx.Logger.WithError(err).Errorf("Error occurred generating a TOTP registration session for user '%s': error generating TOTP configuration", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)

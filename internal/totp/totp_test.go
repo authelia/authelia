@@ -18,7 +18,8 @@ func TestTOTPGenerateCustom(t *testing.T) {
 	testCases := []struct {
 		desc                        string
 		username, algorithm, secret string
-		digits, period, secretSize  uint
+		digits                      uint32
+		period, secretSize          uint
 		err                         string
 	}{
 		{
@@ -103,7 +104,7 @@ func TestTOTPGenerateCustom(t *testing.T) {
 				assert.Equal(t, tc.digits, c.Digits)
 				assert.Equal(t, tc.algorithm, c.Algorithm)
 
-				expectedSecretLen := int(tc.secretSize)
+				expectedSecretLen := int(tc.secretSize) //nolint:gosec
 				if tc.secret != "" {
 					expectedSecretLen = base32.StdEncoding.WithPadding(base32.NoPadding).DecodedLen(len(tc.secret))
 				}
@@ -146,7 +147,7 @@ func TestTOTPGenerate(t *testing.T) {
 	assert.Less(t, time.Since(config.CreatedAt), time.Second)
 	assert.Greater(t, time.Since(config.CreatedAt), time.Second*-1)
 
-	assert.Equal(t, uint(8), config.Digits)
+	assert.Equal(t, uint32(8), config.Digits)
 	assert.Equal(t, uint(60), config.Period)
 	assert.Equal(t, "SHA256", config.Algorithm)
 
