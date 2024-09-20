@@ -2,7 +2,7 @@
 title: "Frequently Asked Questions"
 description: "Frequently Asked Questions regarding integrating the Authelia Trusted Header SSO implementation with applications"
 summary: "Frequently Asked Questions regarding integrating the Authelia Trusted Header SSO implementation with applications."
-date: 2024-09-19T05:50:35+10:00
+date: 2024-09-19T05:54:35+10:00
 draft: false
 images: []
 weight: 615
