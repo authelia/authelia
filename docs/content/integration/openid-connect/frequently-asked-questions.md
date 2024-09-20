@@ -227,6 +227,31 @@ Users who still desire or have an application that requires the Access Token is 
 [access_token_signed_response_alg](../../configuration/identity-providers/openid-connect/clients.md#access_token_signed_response_alg)
 client configuration option.
 
+### How should I link user accounts to Authelia OpenID Connect 1.0 responses in the application I'm designing?
+
+There are several in-use methodologies for linking user accounts ot OpenID Connect 1.0 Providers. The specification has
+a fairly strong opinion about how this is done for various reasons and the supported method by Authelia is the same as
+what the specification supports.
+
+Specifically we support using the combination of the `iss` and `sub` claim as an anchor to local user accounts. This
+combination is a combination that must be unique for any given user identity. Claims such as `email` and
+`preferred_username` have no formal guarantees of stability by the OpenID Connect 1.0 specification.
+
+Several in-use applications including ones that Authelia users frequently use utilize claims such as `email` and
+`preferred_username`. However these implementations are in contradiction with the specification. These attributes
+realistically should only be used as hints when a user who has not linked their account tries to login with OpenID
+Connect 1.0 and has not logged in yet. For example an application may prefill the username or email field of a login or
+registration form using these claims.
+
+Utilization of these claims could potentially become problematic if we ever implement a feature to change usernames or
+email addresses. Therefore we only guarantee the stability of those specific claims and at such a time as we allow
+changing of usernames or email addresses the link between those values will remain stable, any other claim is to be
+considered fragile.
+
+If interested in the specification you can read the
+[Claim Stability and Uniqueness](https://openid.net/specs/openid-connect-core-1_0.html#ClaimStability) section of the
+specification.
+
 ## Solutions
 
 The following section details solutions for multiple of the questions above.
