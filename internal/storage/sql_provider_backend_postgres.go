@@ -154,7 +154,7 @@ func dsnPostgreSQL(config *schema.StoragePostgreSQL, globalCACertPool *x509.Cert
 	dsnConfig, _ := pgx.ParseConfig("")
 
 	dsnConfig.Host = config.Address.SocketHostname()
-	dsnConfig.Port = uint16(config.Address.Port())
+	dsnConfig.Port = config.Address.Port()
 	dsnConfig.Database = config.Database
 	dsnConfig.User = config.Username
 	dsnConfig.Password = config.Password

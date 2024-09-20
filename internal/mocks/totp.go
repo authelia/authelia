@@ -56,7 +56,7 @@ func (mr *MockTOTPMockRecorder) Generate(arg0, arg1 any) *gomock.Call {
 }
 
 // GenerateCustom mocks base method.
-func (m *MockTOTP) GenerateCustom(arg0 totp.Context, arg1, arg2, arg3 string, arg4, arg5, arg6 uint) (*model.TOTPConfiguration, error) {
+func (m *MockTOTP) GenerateCustom(arg0 totp.Context, arg1, arg2, arg3 string, arg4 uint32, arg5, arg6 uint) (*model.TOTPConfiguration, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GenerateCustom", arg0, arg1, arg2, arg3, arg4, arg5, arg6)
 	ret0, _ := ret[0].(*model.TOTPConfiguration)

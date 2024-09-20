@@ -222,7 +222,7 @@ func ETagRootURL(next middlewares.RequestHandler) middlewares.RequestHandler {
 	}
 }
 
-func writeHealthCheckEnv(disabled bool, scheme, host, path string, port int) (err error) {
+func writeHealthCheckEnv(disabled bool, scheme, host, path string, port uint16) (err error) {
 	if disabled {
 		return nil
 	}

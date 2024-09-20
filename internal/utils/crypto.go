@@ -703,8 +703,8 @@ func TLSVersionFromBytesString(input string) (version int, err error) {
 	version = int(value)
 
 	switch version {
-	case tls.VersionSSL30:
-		return tls.VersionSSL30, nil
+	case tls.VersionSSL30: //nolint:staticcheck
+		return tls.VersionSSL30, nil //nolint:staticcheck
 	case tls.VersionTLS10:
 		return tls.VersionTLS10, nil
 	case tls.VersionTLS11:
