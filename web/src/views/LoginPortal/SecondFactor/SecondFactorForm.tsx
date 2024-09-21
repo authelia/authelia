@@ -1,6 +1,6 @@
 import React, { lazy, useEffect, useState } from "react";
 
-import { Button, Theme } from "@mui/material";
+import { Box, Button, Theme } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import makeStyles from "@mui/styles/makeStyles";
 import { browserSupportsWebAuthn } from "@simplewebauthn/browser";
@@ -82,7 +82,7 @@ const SecondFactorForm = function (props: Props) {
 
     return (
         <LoginLayout
-            id="second-factor-stage"
+            id={"second-factor-stage"}
             title={`${translate("Hi")} ${props.userInfo.display_name}`}
             userInfo={props.userInfo}
         >
@@ -95,25 +95,25 @@ const SecondFactorForm = function (props: Props) {
                     onClick={handleMethodSelected}
                 />
             ) : null}
-            <Grid container justifyContent={"center"}>
+            <Grid container alignItems={"center"} justifyContent={"center"}>
                 <Grid size={{ xs: 12 }}>
-                    <Button color="secondary" onClick={handleLogoutClick} id="logout-button">
+                    <Button id={"logout-button"} color={"secondary"} onClick={handleLogoutClick}>
                         {translate("Logout")}
                     </Button>
                     {props.configuration.available_methods.size > 1 ? " | " : null}
                     {props.configuration.available_methods.size > 1 ? (
-                        <Button color="secondary" onClick={handleMethodSelectionClick} id="methods-button">
+                        <Button id={"methods-button"} color={"secondary"} onClick={handleMethodSelectionClick}>
                             {translate("Methods")}
                         </Button>
                     ) : null}
                 </Grid>
-                <Grid size={{ xs: 12 }} className={styles.methodContainer}>
+                <Box className={styles.methodContainer}>
                     <Routes>
                         <Route
                             path={SecondFactorTOTPSubRoute}
                             element={
                                 <OneTimePasswordMethod
-                                    id="one-time-password-method"
+                                    id={"one-time-password-method"}
                                     authenticationLevel={props.authenticationLevel}
                                     // Whether the user has a TOTP secret registered already
                                     registered={props.userInfo.has_totp}
@@ -129,7 +129,7 @@ const SecondFactorForm = function (props: Props) {
                             path={SecondFactorWebAuthnSubRoute}
                             element={
                                 <WebAuthnMethod
-                                    id="webauthn-method"
+                                    id={"webauthn-method"}
                                     authenticationLevel={props.authenticationLevel}
                                     // Whether the user has a WebAuthn device registered already
                                     registered={props.userInfo.has_webauthn}
@@ -145,7 +145,7 @@ const SecondFactorForm = function (props: Props) {
                             path={SecondFactorPushSubRoute}
                             element={
                                 <PushNotificationMethod
-                                    id="push-notification-method"
+                                    id={"push-notification-method"}
                                     authenticationLevel={props.authenticationLevel}
                                     duoSelfEnrollment={props.duoSelfEnrollment}
                                     registered={props.userInfo.has_duo}
@@ -156,7 +156,7 @@ const SecondFactorForm = function (props: Props) {
                             }
                         />
                     </Routes>
-                </Grid>
+                </Box>
             </Grid>
         </LoginLayout>
     );
@@ -171,5 +171,6 @@ const useStyles = makeStyles((theme: Theme) => ({
         padding: theme.spacing(4),
         marginTop: theme.spacing(2),
         marginBottom: theme.spacing(2),
+        minWidth: "300px",
     },
 }));
