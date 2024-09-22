@@ -360,6 +360,7 @@ func TestUserSessionElevationPOST(t *testing.T) {
 						RevocationLinkURL:  "http://example.com/revoke/one-time-code?id=AQIDBAUGRyKJEBESExQVAA",
 						RevocationLinkText: "Revoke",
 						DisplayName:        testDisplayName,
+						Domain:             "example.com",
 						RemoteIP:           "0.0.0.0",
 						OneTimeCode:        "ABC123ABC1",
 					}).
@@ -409,6 +410,7 @@ func TestUserSessionElevationPOST(t *testing.T) {
 						RevocationLinkURL:  "http://example.com/revoke/one-time-code?id=AQIDBAUGRyKJEBESExQVAA",
 						RevocationLinkText: "Revoke",
 						DisplayName:        testDisplayName,
+						Domain:             "example.com",
 						RemoteIP:           "0.0.0.0",
 						OneTimeCode:        "ABC123ABC1",
 					}).
