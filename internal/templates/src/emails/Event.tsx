@@ -13,6 +13,9 @@ import * as React from "react";
 
 interface EventProps {
 	title?: string;
+    bodyEvent?: string;
+    bodyPrefix?: string;
+    bodySuffix?: string;
 	displayName?: string;
 	remoteIP?: string;
 	detailsKey?: string;
@@ -23,6 +26,9 @@ interface EventProps {
 
 export const Event = ({
 						  title,
+                          bodyEvent,
+                          bodyPrefix,
+                          bodySuffix,
 						  displayName,
 						  remoteIP,
 						  detailsKey,
@@ -42,7 +48,7 @@ export const Event = ({
 							Hi {displayName},
 						</Text>
 						<Text className="text-black text-[14px] leading-[24px]">
-							This notification has been sent to you in order to notify you that a new <strong><i>{title}</i></strong>
+							This notification has been sent to you in order to notify you that {bodyPrefix} <strong><i>{bodyEvent}</i></strong> {bodySuffix}
 						</Text>
 						<Hr className="border border-solid border-[#eaeaea] my-[26px] mx-0 w-full" />
 						<Text>Event Details:</Text>
@@ -74,6 +80,9 @@ Event.PreviewProps = {
 	detailsKey: "Example Detail",
 	detailsValue: "Example Value",
 	title: "Second Factor Method Added",
+    bodyEvent: "Second Factor Method",
+    bodyPrefix: "a",
+    bodySuffix: "was added to your account.",
 	remoteIP: "127.0.0.1",
 } as EventProps;
 

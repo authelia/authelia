@@ -13,14 +13,29 @@ const (
 	eventLogKeyCategory    = "Category"
 	eventLogKeyDescription = "Description"
 
+	eventEmailAction2FABody  = "Second Factor Method"
 	eventLogAction2FAAdded   = "Second Factor Method Added"
 	eventLogAction2FARemoved = "Second Factor Method Removed"
+
+	eventEmailAction2FAPrefix        = "a"
+	eventEmailAction2FAAddedSuffix   = "was added to your account."
+	eventEmailAction2FARemovedSuffix = "was removed from your account."
+
+	eventEmailActionPasswordResetPrefix = "your"
+	eventEmailActionPasswordReset       = "Password Reset"
+	eventEmailActionPasswordResetSuffix = "was successful."
 
 	eventLogCategoryOneTimePassword    = "One-Time Password"
 	eventLogCategoryWebAuthnCredential = "WebAuthn Credential" //nolint:gosec
 )
 
-func ctxLogEvent(ctx *middlewares.AutheliaCtx, username, description string, eventDetails map[string]any) {
+type emailEventBody struct {
+	Prefix string
+	Body   string
+	Suffix string
+}
+
+func ctxLogEvent(ctx *middlewares.AutheliaCtx, username, description string, body emailEventBody, eventDetails map[string]any) {
 	var (
 		details *authentication.UserDetails
 		err     error
@@ -44,6 +59,9 @@ func ctxLogEvent(ctx *middlewares.AutheliaCtx, username, description string, eve
 		DisplayName: details.DisplayName,
 		RemoteIP:    ctx.RemoteIP().String(),
 		Details:     eventDetails,
+		BodyPrefix:  body.Prefix,
+		BodyEvent:   body.Body,
+		BodySuffix:  body.Suffix,
 	}
 
 	ctx.Logger.Debugf("Getting user addresses for notification")

@@ -17,6 +17,7 @@ import * as React from 'react';
 interface IdentityVerificationJWTProps {
     title?: string;
     displayName?: string;
+    domain?: string;
     remoteIP?: string;
     link?: string;
     linkText?: string;
@@ -27,6 +28,7 @@ interface IdentityVerificationJWTProps {
 export const IdentityVerificationJWT = ({
     title,
     displayName,
+    domain,
     remoteIP,
     link,
     linkText,
@@ -51,7 +53,7 @@ export const IdentityVerificationJWT = ({
                             We would like to confirm a{' '}
                             <strong>requested action </strong>related to the{' '}
                             <strong>security of your account</strong> at{' '}
-                            <i>EXAMPLE.COM.</i>
+                            <i>{domain}</i>
                             <Text className="text-black text-[14px] leading-[24px] text-center">
                                 <strong>
                                     Do not share this notification or the
@@ -83,7 +85,7 @@ export const IdentityVerificationJWT = ({
                         <Section className="text-center">
                             <Link
                                 href={link}
-                                className="text-blue-600 no-underline"
+                                className="text-blue-600 text-[12px] no-underline"
                             >
                                 {link}
                             </Link>
@@ -123,7 +125,7 @@ export const IdentityVerificationJWT = ({
                             alternatively copy and paste this URL into your
                             browser:
                         </Text>
-                        <Text className="text-black text-[14px] leading-[24px] text-center">
+                        <Text className="text-black text-[12px] leading-[24px] text-center">
                             <Link
                                 href={revocationLinkURL}
                                 className="text-blue-600 no-underline"
@@ -162,6 +164,7 @@ export const IdentityVerificationJWT = ({
 IdentityVerificationJWT.PreviewProps = {
     title: 'Reset your password',
     displayName: 'John Doe',
+    domain: 'example.com',
     link: 'https://auth.example.com',
     linkText: 'Validate',
     revocationLinkURL: 'https://auth.example.com',

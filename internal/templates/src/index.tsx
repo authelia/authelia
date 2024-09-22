@@ -20,6 +20,9 @@ async function doRender() {
 	const propsEvent = {
 		title: "{{ .Title }}",
 		displayName: "{{ .DisplayName }}",
+        bodyPrefix: "{{ .BodyPrefix }}",
+        bodyEvent: "{{ .BodyEvent }}",
+        bodySuffix: "{{ .BodySuffix }}",
 		remoteIP: "{{ .RemoteIP }}",
 		detailsKey: "{{ $key }}",
 		detailsValue: "{{ index $.Details $key }}",
@@ -33,6 +36,7 @@ async function doRender() {
 	const propsJWT = {
 		title: "{{ .Title }}",
 		displayName: "{{ .DisplayName }}",
+        domain: "{{ .Domain }}",
 		remoteIP: "{{ .RemoteIP }}",
 		link: "{{ .LinkURL }}",
 		linkText: "{{ .LinkText }}",
@@ -46,6 +50,7 @@ async function doRender() {
 	const propsOTC = {
 		title: "{{ .Title }}",
 		displayName: "{{ .DisplayName }}",
+        domain: "{{ .Domain }}",
 		remoteIP: "{{ .RemoteIP }}",
 		oneTimeCode: "{{ .OneTimeCode }}",
 		revocationLinkURL: "{{ .RevocationLinkURL }}",
