@@ -93,6 +93,8 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 		revocationLinkURL.Path = path.Join(revocationLinkURL.Path, args.RevokeEndpoint)
 		revocationLinkURL.RawQuery = query.Encode()
 
+		domain, _ := ctx.GetCookieDomain()
+
 		data := templates.EmailIdentityVerificationJWTValues{
 			Title:              args.MailTitle,
 			LinkURL:            linkURL.String(),
@@ -100,6 +102,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 			RevocationLinkURL:  revocationLinkURL.String(),
 			RevocationLinkText: args.MailButtonRevokeContent,
 			DisplayName:        identity.DisplayName,
+			Domain:             domain,
 			RemoteIP:           ctx.RemoteIP().String(),
 		}
 
