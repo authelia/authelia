@@ -21,9 +21,10 @@ const (
 	eventEmailAction2FAAddedSuffix   = "was added to your account."
 	eventEmailAction2FARemovedSuffix = "was removed from your account."
 
-	eventEmailActionPasswordResetPrefix = "your"
-	eventEmailActionPasswordReset       = "Password Reset"
-	eventEmailActionPasswordResetSuffix = "was successful."
+	eventEmailActionPasswordModifyPrefix = "your"
+	eventEmailActionPasswordReset        = "Password Reset"
+	eventEmailActionPasswordChange       = "Password Change"
+	eventEmailActionPasswordModifySuffix = "was successful."
 
 	eventLogCategoryOneTimePassword    = "One-Time Password"
 	eventLogCategoryWebAuthnCredential = "WebAuthn Credential" //nolint:gosec
