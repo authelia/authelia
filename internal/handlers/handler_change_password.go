@@ -102,6 +102,9 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		Details: map[string]any{
 			"Action": "Password Change",
 		},
+		BodyPrefix: eventEmailActionPasswordModifyPrefix,
+		BodyEvent:  eventEmailActionPasswordChange,
+		BodySuffix: eventEmailActionPasswordModifySuffix,
 	}
 
 	addresses := userInfo.Addresses()
