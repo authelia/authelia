@@ -229,8 +229,8 @@ github.com/trustelem/zxcvbn v1.0.1 h1:mp4JFtzdDYGj9WYSD3KQSkwwUumWNFzXaAjckaTYps
 github.com/trustelem/zxcvbn v1.0.1/go.mod h1:zonUyKeh7sw6psPf/e3DtRqkRyZvAbOfjNz/aO7YQ5s=
 github.com/valyala/bytebufferpool v1.0.0 h1:GqA5TC/0021Y/b9FG4Oi9Mr3q7XYx6KllzawFIhcdPw=
 github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyCJ6HpOuEn7z0Csc=
-github.com/valyala/fasthttp v1.55.0 h1:Zkefzgt6a7+bVKHnu/YaYSOPfNYNisSVBo/unVCf8k8=
-github.com/valyala/fasthttp v1.55.0/go.mod h1:NkY9JtkrpPKmgwV3HTaS2HWaJss9RSIsRVfcxxoHiOM=
+github.com/valyala/fasthttp v1.56.0 h1:bEZdJev/6LCBlpdORfrLu/WOZXXxvrUQSiyniuaoW8U=
+github.com/valyala/fasthttp v1.56.0/go.mod h1:sReBt3XZVnudxuLOx4J/fMrJVorWRiWY2koQKgABiVI=
 github.com/wneessen/go-mail v0.4.4 h1:rI8wJzPYymUpUth87vFV3k313bmnid4v+FwhBAYYLFM=
 github.com/wneessen/go-mail v0.4.4/go.mod h1:zxOlafWCP/r6FEhAaRgH4IC1vg2YXxO0Nar9u0IScZ8=
 github.com/x448/float16 v0.8.4 h1:qLwI1I70+NjRFUR3zs1JPUCgaCXSh3SW62uAKT1mSBM=
