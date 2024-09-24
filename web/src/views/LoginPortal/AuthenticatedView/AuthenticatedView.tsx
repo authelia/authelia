@@ -32,7 +32,7 @@ const AuthenticatedView = function (props: Props) {
             title={`${translate("Hi")} ${props.userInfo.display_name}`}
             userInfo={props.userInfo}
         >
-            <Grid container>
+            <Grid container direction="column" justifyContent="center" alignItems="center">
                 <Grid size={{ xs: 12 }}>
                     <Button color="secondary" onClick={handleLogoutClick} id="logout-button">
                         {translate("Logout")}
