@@ -1,6 +1,6 @@
 module github.com/authelia/authelia/v4
 
-go 1.22
+go 1.23
 
 toolchain go1.23.1
 
@@ -82,7 +82,6 @@ require (
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/knadh/koanf/maps v0.1.1 // indirect
-	github.com/kr/text v0.2.0 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
