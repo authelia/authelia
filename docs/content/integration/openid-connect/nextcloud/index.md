@@ -41,10 +41,12 @@ Some of the values presented in this guide can automatically be replaced with do
 
 {{< sitevar-preferences >}}
 
-*__Important Note:__ it has been reported that some of the [Nextcloud] plugins do not properly encode the client secret.
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+It has been reported that some of the [Nextcloud] plugins do not properly encode the client secret.
 as such it's important to only use alphanumeric characters as well as the other
 [RFC3986 Unreserved Characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3). We recommend using the
-generating client secrets guidance above.*
+generating client secrets guidance above.
+{{< /callout >}}
 
 ## Available Options
 

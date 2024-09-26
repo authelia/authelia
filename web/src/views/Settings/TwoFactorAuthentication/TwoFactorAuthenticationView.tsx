@@ -1,6 +1,6 @@
 import React, { Fragment, useEffect, useState } from "react";
 
-import Grid from "@mui/material/Unstable_Grid2/Grid2";
+import Grid from "@mui/material/Grid2";
 import { useTranslation } from "react-i18next";
 
 import { useConfiguration } from "@hooks/Configuration";
@@ -114,7 +114,7 @@ const TwoFactorAuthenticationView = function (props: Props) {
         <Fragment>
             <Grid container spacing={2}>
                 {configuration?.available_methods.has(SecondFactorMethod.TOTP) ? (
-                    <Grid xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <OneTimePasswordPanel
                             info={userInfo}
                             config={userTOTPConfig}
@@ -123,7 +123,7 @@ const TwoFactorAuthenticationView = function (props: Props) {
                     </Grid>
                 ) : null}
                 {configuration?.available_methods.has(SecondFactorMethod.WebAuthn) ? (
-                    <Grid xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <WebAuthnCredentialsPanel
                             info={userInfo}
                             credentials={userWebAuthnCredentials}
@@ -132,7 +132,7 @@ const TwoFactorAuthenticationView = function (props: Props) {
                     </Grid>
                 ) : null}
                 {configuration && userInfo ? (
-                    <Grid xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <TwoFactorAuthenticationOptionsPanel
                             config={configuration}
                             info={userInfo}

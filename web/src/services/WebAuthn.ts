@@ -26,6 +26,7 @@ import {
     WebAuthnCredentialPath,
     WebAuthnRegistrationPath,
     validateStatusAuthentication,
+    validateStatusWebAuthnCreation,
 } from "@services/Api";
 import { SignInResponse } from "@services/SignIn";
 
@@ -94,9 +95,7 @@ export async function getAttestationCreationOptions(
             description: description,
         },
         {
-            validateStatus: function (status) {
-                return status < 300 || status === 409;
-            },
+            validateStatus: validateStatusWebAuthnCreation,
         },
     );
 
@@ -195,14 +194,6 @@ export async function postAuthenticationResponse(
     workflow?: string,
     workflowID?: string,
 ) {
-    if (response.response.userHandle) {
-        // Encode the userHandle to match the typing on the backend.
-        response.response.userHandle = btoa(response.response.userHandle)
-            .replace(/\+/g, "-")
-            .replace(/\//g, "_")
-            .replace(/=/g, "");
-    }
-
     return axios.post<ServiceResponse<SignInResponse>>(WebAuthnAssertionPath, {
         response: response,
         targetURL: targetURL,

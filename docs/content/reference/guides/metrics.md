@@ -30,7 +30,7 @@ when configured. If metrics are enabled the metrics listener listens on `:9959` 
 ```yaml
 # Authelia
   - job_name: 'authelia'
-    scrape_interval: '60s'
+    scrape_interval: '15s'
     scheme: 'http'
     static_configs:
     - targets: ['{{< sitevar name="host" nojs="authelia" >}}:9959']
@@ -96,6 +96,22 @@ OpenID Connect 1.0 Endpoint Names:
 - oauth_configuration
 - jwks
 
+### Grafana
+
+Metrics collected by [Prometheus] can be displayed and analyzed in [Grafana] by creating a new dashboard or by
+importing an existing one.
+
+#### Community Dashboard
+
+*Authelia* provides a community-maintained [Grafana] dashboard, which is intended to serve as an example to explore
+the available metrics.
+
+##### Installation
+
+To import the dashboard into [Grafana], either download the JSON file
+[here](https://github.com/authelia/authelia/blob/master/examples/grafana-dashboards/simple.json) or copy its contents.
+
 [Prometheus]: https://prometheus.io/
+[Grafana]: https://grafana.com/
 [registered port]: https://github.com/prometheus/prometheus/wiki/Default-port-allocations
 

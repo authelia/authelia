@@ -42,7 +42,7 @@ func NewSMTPNotifier(config *schema.NotifierSMTP, certPool *x509.CertPool) *SMTP
 	case config.DisableStartTLS:
 		opts = []gomail.Option{
 			gomail.WithTLSPortPolicy(gomail.NoTLS),
-			gomail.WithPort(config.Address.Port()),
+			gomail.WithPort(int(config.Address.Port())),
 		}
 
 		log.Trace("Configuring without TLS")
@@ -65,7 +65,7 @@ func NewSMTPNotifier(config *schema.NotifierSMTP, certPool *x509.CertPool) *SMTP
 		gomail.WithTimeout(config.Timeout),
 		gomail.WithHELO(config.Identifier),
 		gomail.WithoutNoop(),
-		gomail.WithPort(config.Address.Port()),
+		gomail.WithPort(int(config.Address.Port())),
 	)
 
 	var domain string

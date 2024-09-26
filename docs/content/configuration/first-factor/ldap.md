@@ -149,9 +149,11 @@ occur in `OU=users,OU=people,{{< sitevar name="domain" format="dn" nojs="DC=exam
 
 {{< confkey type="string" required="situational" >}}
 
-*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This option is technically required however the [implementation](#implementation) option can implicitly set a
 default negating this requirement. Refer to the [filter defaults](../../reference/guides/ldap.md#filter-defaults) for
-more information.*
+more information.
+{{< /callout >}}
 
 The LDAP filter to narrow down which users are valid. This is important to set correctly as to exclude disabled users.
 The default value is dependent on the [implementation](#implementation), refer to the
@@ -167,9 +169,11 @@ Similar to [additional_users_dn](#additional_users_dn) but it applies to group s
 
 {{< confkey type="string" required="situational" >}}
 
-*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This option is technically required however the [implementation](#implementation) option can implicitly set a
 default negating this requirement. Refer to the [filter defaults](../../reference/guides/ldap.md#filter-defaults) for
-more information.*
+more information.
+{{< /callout >}}
 
 Similar to [users_filter](#users_filter) but it applies to group searches. In order to include groups the member is not
 a direct member of, but is a member of another group that is a member of those (i.e. recursive groups), you may try
@@ -217,10 +221,7 @@ The distinguished name of the user paired with the password to bind with for loo
 
 ### password
 
-{{< confkey type="string" required="yes" >}}
-
-*__Important Note:__ This can also be defined using a [secret](../methods/secrets.md) which is __strongly recommended__
-especially for containerized deployments.*
+{{< confkey type="string" required="yes" secret="yes" secret="yes" >}}
 
 The password paired with the [user](#user) used to bind to the LDAP server for lookup and password change operations.
 
@@ -236,8 +237,10 @@ The following options configure The directory server attribute mappings.
 
 {{< confkey type="string" required="situational" >}}
 
-*__Note:__ This option is technically not required however it is required when using the group search mode
-`memberof` replacement `{memberof:dn}`.*
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This option is technically not required however it is required when using the group search mode
+`memberof` replacement `{memberof:dn}`.
+{{< /callout >}}
 
 The directory server attribute which contains the distinguished name, primarily used to perform filtered searches. There
 is a clear distinction between the actual distinguished name and a distinguished name attribute, all directories have
@@ -249,8 +252,10 @@ The only known support at this time is with Active Directory.
 
 {{< confkey type="string" required="situational" >}}
 
-*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults] for more information.*
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This option is technically required however the [implementation](#implementation) option can implicitly set a
+default negating this requirement. Refer to the [attribute defaults] for more information.
+{{< /callout >}}
 
 The directory server attribute that maps to the username in *Authelia*. This must contain the `{username_attribute}` [placeholder].
 
@@ -258,8 +263,10 @@ The directory server attribute that maps to the username in *Authelia*. This mus
 
 {{< confkey type="string" required="situational" >}}
 
-*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults] for more information.*
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This option is technically required however the [implementation](#implementation) option can implicitly set a
+default negating this requirement. Refer to the [attribute defaults] for more information.
+{{< /callout >}}
 
 The directory server attribute to retrieve which is shown on the Web UI to the user when they log in.
 
@@ -267,8 +274,10 @@ The directory server attribute to retrieve which is shown on the Web UI to the u
 
 {{< confkey type="string" required="situational" >}}
 
-*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults] for more information.*
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This option is technically required however the [implementation](#implementation) option can implicitly set a
+default negating this requirement. Refer to the [attribute defaults] for more information.
+{{< /callout >}}
 
 The directory server attribute to retrieve which contains the users email addresses. This is important for the device
 registration and password reset processes. The user must have an email address in order for Authelia to perform
@@ -278,8 +287,10 @@ identity verification when a user attempts to reset their password or register a
 
 {{< confkey type="string" required="situational" >}}
 
-*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults] for more information.*
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This option is technically required however the [implementation](#implementation) option can implicitly set a
+default negating this requirement. Refer to the [attribute defaults] for more information.
+{{< /callout >}}
 
 The directory server attribute which contains the groups a user is a member of. This is currently only used for the
 `memberof` group search mode.
@@ -288,8 +299,10 @@ The directory server attribute which contains the groups a user is a member of. 
 
 {{< confkey type="string" required="situational" >}}
 
-*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults] for more information.*
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This option is technically required however the [implementation](#implementation) option can implicitly set a
+default negating this requirement. Refer to the [attribute defaults] for more information.
+{{< /callout >}}
 
 The directory server attribute that is used by Authelia to determine the group name.
 

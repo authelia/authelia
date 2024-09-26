@@ -187,7 +187,7 @@ func NewTLSVersion(input string) (version *TLSVersion, err error) {
 	case TLSVersion10, Version10:
 		return &TLSVersion{tls.VersionTLS10}, nil
 	case SSLVersion30:
-		return &TLSVersion{tls.VersionSSL30}, nil
+		return &TLSVersion{tls.VersionSSL30}, nil //nolint:staticcheck
 	}
 
 	return nil, ErrTLSVersionNotSupported
@@ -240,7 +240,7 @@ func (v *TLSVersion) String() string {
 		return TLSVersion12
 	case tls.VersionTLS13:
 		return TLSVersion13
-	case tls.VersionSSL30:
+	case tls.VersionSSL30: //nolint:staticcheck
 		return SSLVersion30
 	default:
 		return ""

@@ -198,6 +198,9 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 		Details: map[string]any{
 			"Action": "Password Reset",
 		},
+		BodyPrefix: eventEmailActionPasswordResetPrefix,
+		BodyEvent:  eventEmailActionPasswordReset,
+		BodySuffix: eventEmailActionPasswordResetSuffix,
 	}
 
 	addresses := userInfo.Addresses()

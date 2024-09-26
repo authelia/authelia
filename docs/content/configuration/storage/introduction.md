@@ -39,10 +39,7 @@ This section describes the individual configuration options.
 
 ### encryption_key
 
-{{< confkey type="string" required="yes" >}}
-
-*__Important Note:__ This can also be defined using a [secret](../methods/secrets.md) which is __strongly recommended__
-especially for containerized deployments.*
+{{< confkey type="string" required="yes" secret="yes" >}}
 
 The encryption key used to encrypt data in the database. We encrypt data by creating a sha256 checksum of the provided
 value, and use that to encrypt the data with the AES-GCM 256bit algorithm.

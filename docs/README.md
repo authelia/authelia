@@ -1,5 +1,13 @@
 The **Authelia** website / documentation source.
 
+# Viewing the Documentation
+
+This documentation is only intended to be viewed via the website [www.authelia.com](https://www.authelia.com). Some
+elements will not render on GitHub, and as such, the markdown is not the official documentation, just a partial representation of it.
+representation of it.
+
+# Contributing
+
 Please:
 
 - Only edit the `/content` folder via the main Authelia [monorepo](https://github.com/authelia/authelia/tree/master/docs)

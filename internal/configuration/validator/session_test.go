@@ -677,7 +677,7 @@ func TestShouldRaiseErrorOnBadRedisTLSOptionsSSL30(t *testing.T) {
 		Host: "redis.local",
 		Port: 6379,
 		TLS: &schema.TLS{
-			MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30},
+			MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
 		},
 	}
 

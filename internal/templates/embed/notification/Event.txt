@@ -2,8 +2,8 @@
 
 Hi {{ .DisplayName }},
 
-This notification has been sent to you in order to notify you that a new {{
-.Title }}
+This notification has been sent to you in order to notify you that {{
+.BodyPrefix }} {{ .BodyEvent }} {{ .BodySuffix }}
 
 --------------------------------------------------------------------------------
 
@@ -11,9 +11,7 @@ Event Details:
 
 {{- $keys := sortAlpha (keys .Details) }}{{- range $key := $keys }}
 
-{{ $key }}
-
-{{ index $.Details $key }}
+{{ $key }}: {{ index $.Details $key }}
 
 {{ end }}
 

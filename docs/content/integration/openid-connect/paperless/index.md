@@ -21,9 +21,9 @@ seo:
 ## Tested Versions
 
 * [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+  * [v4.38.10](https://github.com/authelia/authelia/releases/tag/v4.38.10)
 * [Paperless]
-  * [v2.7.2](https://github.com/paperless-ngx/paperless-ngx/releases/tag/v2.7.2)
+  * [v2.11.6](https://github.com/paperless-ngx/paperless-ngx/releases/tag/v2.11.6)
 
 {{% oidc-common %}}
 
@@ -61,7 +61,7 @@ identity_providers:
         require_pkce: true
         pkce_challenge_method: 'S256'
         redirect_uris:
-          - 'https://paperless.{{< sitevar name="domain" nojs="example.com" >}}/accounts/authelia/login/callback/'
+          - 'https://paperless.{{< sitevar name="domain" nojs="example.com" >}}/accounts/oidc/authelia/login/callback/'
         scopes:
           - 'openid'
           - 'profile'

@@ -17,8 +17,10 @@ seo:
   noindex: false # false (default) or true
 ---
 
-*__Important Note:__ This section does not apply to OpenID Connect 1.0. See the [Frequently Asked Questions] for more
-information.*
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+This section does not apply to OpenID Connect 1.0. See the [Frequently Asked Questions] for more
+information.
+{{< /callout >}}
 
 [Frequently Asked Questions]: ../../integration/openid-connect/frequently-asked-questions.md#why-doesnt-the-access-control-configuration-work-with-openid-connect-10
 
@@ -203,12 +205,16 @@ access_control:
 
 {{< confkey type="list(string)" required="yes" >}}
 
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+If you intend to use this criteria with a bypass rule please read [Rule Matching Concept 2].
+{{< /callout >}}
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+To utilize regex you must escape it properly. See
+[regular expressions](../prologue/common.md#regular-expressions) for more information.
+{{< /callout >}}
+
 *__Required:__ This criteria and/or the [domain] criteria are required.*
-
-*__Important Note:__ If you intend to use this criteria with a bypass rule please read [Rule Matching Concept 2].*
-
-*__Important Note:__ to utilize regex you must escape it properly. See
-[regular expressions](../prologue/common.md#regular-expressions) for more information.*
 
 This criteria matches the domain name and has two methods of configuration, either as a single string or as a list of
 strings. When it's a list of strings the rule matches when __any__ of the domains in the list match the request domain.
@@ -258,8 +264,10 @@ take when a match is made.
 
 {{< confkey type="list(list(string))" required="no" >}}
 
-*__Note:__ this rule criteria __may not__ be used for the [bypass] policy the minimum required authentication level to
-identify the subject is [one_factor]. See [Rule Matching Concept 2] for more information.*
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This rule criteria __may not__ be used for the [bypass] policy the minimum required authentication level to
+identify the subject is [one_factor]. See [Rule Matching Concept 2] for more information.
+{{< /callout >}}
 
 This criteria matches identifying characteristics about the subject. Currently this is either user or groups the user
 belongs to. This allows you to effectively control exactly what each user is authorized to access or to specifically
@@ -417,8 +425,10 @@ access_control:
 
 {{< confkey type="list(string)" required="no" >}}
 
-*__Important Note:__ to utilize regex you must escape it properly. See
-[regular expressions](../prologue/common.md#regular-expressions) for more information.*
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+To utilize regex you must escape it properly. See
+[regular expressions](../prologue/common.md#regular-expressions) for more information.
+{{< /callout >}}
 
 This criteria matches the path and query of the request using regular expressions. The rule is expressed as a list of
 strings. If any one of the regular expressions in the list matches the request it's considered a match. A useful tool

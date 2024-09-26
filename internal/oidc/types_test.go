@@ -117,6 +117,14 @@ type TestContext struct {
 	Config        schema.Configuration
 }
 
+func (m *TestContext) Value(key any) any {
+	if key == model.CtxKeyAutheliaCtx {
+		return m
+	}
+
+	return m.Context.Value(key)
+}
+
 func (m *TestContext) GetRandom() (r random.Provider) {
 	return random.NewMathematical()
 }

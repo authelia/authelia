@@ -980,7 +980,7 @@ var (
 	_ oauthelia2.RotatedClientSecretsClient                        = (*RegisteredClient)(nil)
 	_ oauthelia2.ProofKeyCodeExchangeClient                        = (*RegisteredClient)(nil)
 	_ oauthelia2.ClientAuthenticationPolicyClient                  = (*RegisteredClient)(nil)
-	_ oauthelia2.JWTSecuredAuthorizationRequestClient              = (*RegisteredClient)(nil)
+	_ oauthelia2.JARClient                                         = (*RegisteredClient)(nil)
 	_ oauthelia2.AuthenticationMethodClient                        = (*RegisteredClient)(nil)
 	_ oauthelia2.RefreshFlowScopeClient                            = (*RegisteredClient)(nil)
 	_ oauthelia2.RevokeFlowRevokeRefreshTokensExplicitClient       = (*RegisteredClient)(nil)

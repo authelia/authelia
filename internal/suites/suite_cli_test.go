@@ -999,7 +999,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 
 	for _, testCase := range testCases {
 		if testCase.png {
-			output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "totp", "generate", testCase.config.Username, "--period", strconv.Itoa(int(testCase.config.Period)), "--algorithm", testCase.config.Algorithm, "--digits", strconv.Itoa(int(testCase.config.Digits)), "--path", qr, "--config=/config/configuration.storage.yml"})
+			output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "totp", "generate", testCase.config.Username, "--period", strconv.FormatUint(uint64(testCase.config.Period), 10), "--algorithm", testCase.config.Algorithm, "--digits", strconv.Itoa(int(testCase.config.Digits)), "--path", qr, "--config=/config/configuration.storage.yml"})
 			s.NoError(err)
 			s.Contains(output, fmt.Sprintf(" and saved it as a PNG image at the path '%s'", qr))
 
@@ -1009,7 +1009,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 			s.False(fileInfo.IsDir())
 			s.Greater(fileInfo.Size(), int64(1000))
 		} else {
-			output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "totp", "generate", testCase.config.Username, "--period", strconv.Itoa(int(testCase.config.Period)), "--algorithm", testCase.config.Algorithm, "--digits", strconv.Itoa(int(testCase.config.Digits)), "--config=/config/configuration.storage.yml"})
+			output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "totp", "generate", testCase.config.Username, "--period", strconv.FormatUint(uint64(testCase.config.Period), 10), "--algorithm", testCase.config.Algorithm, "--digits", strconv.Itoa(int(testCase.config.Digits)), "--config=/config/configuration.storage.yml"})
 			s.NoError(err)
 		}
 

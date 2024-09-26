@@ -22,7 +22,7 @@ seo:
 
 * [Authelia]
   * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-* [Tailscale] - **Note:** Version not important, since configuration is via the WebUI
+* [Tailscale]
   * [1.38.4](https://github.com/tailscale/tailscale/releases/tag/v1.38.4)
 
 {{% oidc-common %}}
