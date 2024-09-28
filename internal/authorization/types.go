@@ -93,10 +93,10 @@ type RuleMatchResult struct {
 
 // IsMatch returns true if all the criteria matched.
 func (r RuleMatchResult) IsMatch() (match bool) {
-	return r.MatchDomain && r.MatchResources && r.MatchMethods && r.MatchNetworks && r.MatchSubjectsExact
+	return r.MatchDomain && r.MatchResources && r.MatchQuery && r.MatchMethods && r.MatchNetworks && r.MatchSubjectsExact
 }
 
 // IsPotentialMatch returns true if the rule is potentially a match.
 func (r RuleMatchResult) IsPotentialMatch() (match bool) {
-	return r.MatchDomain && r.MatchResources && r.MatchMethods && r.MatchNetworks && r.MatchSubjects && !r.MatchSubjectsExact
+	return r.MatchDomain && r.MatchResources && r.MatchQuery && r.MatchMethods && r.MatchNetworks && r.MatchSubjects && !r.MatchSubjectsExact
 }
