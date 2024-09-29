@@ -145,6 +145,7 @@ const (
 	errStrStorageMultiple                          = "storage: option 'local', 'mysql' and 'postgres' are mutually exclusive but %s have been configured"
 	errStrStorageEncryptionKeyMustBeProvided       = "storage: option 'encryption_key' is required"
 	errStrStorageEncryptionKeyTooShort             = "storage: option 'encryption_key' must be 20 characters or longer"
+	errFmtStorageAddressValidate                   = "storage: %s: option 'address' with value '%s' is invalid: %w"
 	errFmtStorageUserPassMustBeProvided            = "storage: %s: option 'username' and 'password' are required" //nolint:gosec
 	errFmtStorageOptionMustBeProvided              = "storage: %s: option '%s' is required"
 	errFmtStorageOptionAddressConflictWithHostPort = "storage: %s: option 'host' and 'port' can't be configured at the same time as 'address'"
