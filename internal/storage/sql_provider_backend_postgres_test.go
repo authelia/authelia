@@ -38,10 +38,10 @@ func TestNewPostgreSQLProvider(t *testing.T) {
 					PostgreSQL: &schema.StoragePostgreSQL{
 						StorageSQL: schema.StorageSQL{
 							Address: &schema.AddressTCP{Address: *address},
-						},
-						TLS: &schema.TLS{
-							MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS12},
-							MaximumVersion: schema.TLSVersion{Value: tls.VersionTLS13},
+							TLS: &schema.TLS{
+								MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS12},
+								MaximumVersion: schema.TLSVersion{Value: tls.VersionTLS13},
+							},
 						},
 					},
 				},
