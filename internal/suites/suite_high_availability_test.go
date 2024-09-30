@@ -125,11 +125,11 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 		s.Require().NoError(err)
 	}()
 
-	err = haDockerEnvironment.Stop("redis-node-2")
+	err = haDockerEnvironment.Stop("redis-node-0")
 	s.Require().NoError(err)
 
 	defer func() {
-		err = haDockerEnvironment.Start("redis-node-2")
+		err = haDockerEnvironment.Start("redis-node-0")
 		s.Require().NoError(err)
 	}()
 
