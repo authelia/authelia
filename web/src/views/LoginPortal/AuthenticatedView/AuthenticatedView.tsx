@@ -28,13 +28,13 @@ const AuthenticatedView = function (props: Props) {
 
     return (
         <MinimalLayout
-            id="authenticated-stage"
+            id={"authenticated-stage"}
             title={`${translate("Hi")} ${props.userInfo.display_name}`}
             userInfo={props.userInfo}
         >
-            <Grid container direction="column" justifyContent="center" alignItems="center">
+            <Grid container direction={"column"} justifyContent={"center"} alignItems={"center"}>
                 <Grid size={{ xs: 12 }}>
-                    <Button color="secondary" onClick={handleLogoutClick} id="logout-button">
+                    <Button id={"logout-button"} color={"secondary"} onClick={handleLogoutClick}>
                         {translate("Logout")}
                     </Button>
                 </Grid>
