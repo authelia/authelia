@@ -250,8 +250,8 @@ const ChangePasswordDialog = (props: Props) => {
                                 onChange={(v) => setOldPassword(v.target.value)}
                                 onFocus={() => setOldPasswordError(false)}
                                 type="password"
-                                autoCapitalize="none"
-                                autoComplete="none"
+                                autoCapitalize="off"
+                                autoComplete="off"
                                 onKeyDown={handleOldPWKeyDown}
                                 onKeyUp={checkCapsLockOldPW}
                                 helperText={isCapsLockOnOldPW ? translate("Caps Lock is on") : " "}
@@ -273,8 +273,8 @@ const ChangePasswordDialog = (props: Props) => {
                                 onChange={(v) => setNewPassword(v.target.value)}
                                 onFocus={() => setNewPasswordError(false)}
                                 type="password"
-                                autoCapitalize="none"
-                                autoComplete="none"
+                                autoCapitalize="off"
+                                autoComplete="off"
                                 onKeyDown={handleNewPWKeyDown}
                                 onKeyUp={checkCapsLockNewPW}
                                 helperText={isCapsLockOnNewPW ? translate("Caps Lock is on") : " "}
@@ -299,8 +299,8 @@ const ChangePasswordDialog = (props: Props) => {
                                 onChange={(v) => setRepeatNewPassword(v.target.value)}
                                 onFocus={() => setRepeatNewPasswordError(false)}
                                 type="password"
-                                autoCapitalize="none"
-                                autoComplete="none"
+                                autoCapitalize="off"
+                                autoComplete="off"
                                 onKeyDown={handleRepeatNewPWKeyDown}
                                 onKeyUp={checkCapsLockRepeatNewPW}
                                 helperText={isCapsLockOnRepeatNewPW ? translate("Caps Lock is ON") : " "}

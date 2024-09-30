@@ -307,7 +307,7 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 	)
 
 	if client, err = p.factory.GetClient(); err != nil {
-		return fmt.Errorf("unable to update password. Cause: %w", err)
+		return fmt.Errorf("unable to update password for user '%s'. Cause: %w", username, err)
 	}
 
 	defer func() {
@@ -317,7 +317,7 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 	}()
 
 	if profile, err = p.getUserProfile(client, username); err != nil {
-		return fmt.Errorf("unable to update password. Cause: %w", err)
+		return fmt.Errorf("unable to update password for user '%s'. Cause: %w", username, err)
 	}
 
 	var controls []ldap.Control
