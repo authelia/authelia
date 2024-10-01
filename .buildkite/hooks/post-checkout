@@ -7,9 +7,6 @@ git fetch -q
 if [[ ! "${BUILDKITE_COMMAND}" =~ "buildkite-agent pipeline upload" ]] || \
 [[ "${BUILDKITE_COMMAND}" == ".buildkite/steps/e2etests.sh | buildkite-agent pipeline upload" ]]; then
   echo "--- :buildkite: Setting up Build environment"
-  if [[ "${BUILDKITE_LABEL}" == ":hammer_and_wrench: Unit Test" ]]; then
-    nohup docker pull authelia/crossbuild -q &
-  fi
   source bootstrap.sh
   if [[ "${BUILDKITE_LABEL}" == ":hammer_and_wrench: Unit Test" ]] || [[ "${BUILDKITE_LABEL}" =~ ":selenium:" ]]; then
     go mod download
