@@ -104,7 +104,7 @@
     "eslint-plugin-import": "2.30.0",
     "eslint-plugin-jsx-a11y": "6.10.0",
     "eslint-plugin-prettier": "5.2.1",
-    "eslint-plugin-react": "7.37.0",
+    "eslint-plugin-react": "7.37.1",
     "eslint-plugin-react-hooks": "4.6.2",
     "happy-dom": "15.7.4",
     "husky": "9.1.6",
