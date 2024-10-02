@@ -165,8 +165,10 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 		},
 		OpenIDConnectPromptCreateDiscoveryOptions: &OpenIDConnectPromptCreateDiscoveryOptions{
 			PromptValuesSupported: []string{
-				PromptNone,
 				PromptConsent,
+				PromptLogin,
+				PromptNone,
+				PromptSelectAccount,
 			},
 		},
 		OpenIDConnectJWTSecuredAuthorizationResponseModeDiscoveryOptions: &OpenIDConnectJWTSecuredAuthorizationResponseModeDiscoveryOptions{

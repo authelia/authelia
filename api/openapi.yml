@@ -1394,7 +1394,7 @@ paths:
             Authorization Server prompts the End-User for reauthentication and consent.
           required: false
           schema:
-            type: string
+            $ref: '#/components/schemas/openid.spec.Prompt'
         - in: query
           name: max_age
           description: >
@@ -4084,19 +4084,7 @@ components:
         display:
           $ref: '#/components/schemas/openid.spec.DisplayType'
         prompt:
-          description: >
-            Not Supported: Space delimited, case sensitive list of ASCII string values that specifies whether
-            the Authorization Server prompts the End-User for reauthentication and consent.
-          enum:
-            - 'none'
-            - 'login'
-            - 'consent'
-            - 'select_account'
-            - 'login consent'
-            - 'login select_account'
-            - 'consent select_account'
-          example: 'consent'
-          type: string
+          $ref: '#/components/schemas/openid.spec.Prompt'
         max_age:
           description: >
             Maximum Authentication Age. Specifies the allowable elapsed time in seconds since the last time the
@@ -4196,6 +4184,20 @@ components:
         - 'touch'
         - 'wap'
       example: 'page'
+      type: string
+    openid.spec.Prompt:
+      description: >
+        Not Supported: Space delimited, case sensitive list of ASCII string values that specifies whether the
+        Authorization Server prompts the End-User for reauthentication and consent.
+      enum:
+        - 'none'
+        - 'login'
+        - 'consent'
+        - 'select_account'
+        - 'login consent'
+        - 'login select_account'
+        - 'consent select_account'
+      example: 'none'
       type: string
     openid.spec.ResponseType:
       description: The OAuth 2.0 / OpenID Connect 1.0 Response Type.
