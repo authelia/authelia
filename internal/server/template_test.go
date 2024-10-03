@@ -2,7 +2,6 @@ package server
 
 import (
 	"io/fs"
-	"net/url"
 	"os"
 	"testing"
 
@@ -56,8 +55,6 @@ func TestShouldTemplateOpenAPI(t *testing.T) {
 		Cookies: []schema.SessionCookie{
 			{
 				Domain: "example.com",
-
-				AutheliaURL: &url.URL{Scheme: "https", Host: "auth.example.com", Path: "/"},
 			},
 		},
 	}
@@ -69,7 +66,7 @@ func TestShouldTemplateOpenAPI(t *testing.T) {
 	handler := ServeTemplatedOpenAPI(provider.GetAssetOpenAPISpecTemplate(), opts)
 
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
-	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "example.com")
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, "auth.example.com")
 	mock.Ctx.Request.Header.Set("X-Forwarded-URI", "/api/openapi.yml")
 
 	handler(mock.Ctx)
