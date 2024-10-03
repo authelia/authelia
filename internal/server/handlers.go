@@ -129,7 +129,7 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 		WithPreMiddlewares(middlewares.SecurityHeadersBase).Build()
 
 	bridgeSwagger := middlewares.NewBridgeBuilder(*config, providers).
-		WithPreMiddlewares(middlewares.SecurityHeadersRelaxed).Build()
+		WithPreMiddlewares(middlewares.SecurityHeadersRelaxed, middlewares.SecurityHeadersCSPSelf).Build()
 
 	policyCORSPublicGET := middlewares.NewCORSPolicyBuilder().
 		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodGet).

@@ -160,7 +160,7 @@ func buildSwagger() {
 		log.Fatal(err)
 	}
 
-	cmd = utils.CommandWithStdout("tar", "-C", "internal/server/public_html/api", "--exclude=index.html", "--strip-components=2", "-xf", "v"+versionSwaggerUI+extTarballGzip, "swagger-ui-"+versionSwaggerUI+"/dist")
+	cmd = utils.CommandWithStdout("tar", "-C", "internal/server/public_html/api", "--exclude=index.html", "--exclude=*.map", "--exclude=*-es-*", "--exclude=swagger-{ui,initializer}.js", "--strip-components=2", "-xf", "v"+versionSwaggerUI+extTarballGzip, "swagger-ui-"+versionSwaggerUI+"/dist")
 
 	err = cmd.Run()
 	if err != nil {

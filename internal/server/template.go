@@ -104,20 +104,14 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 func ServeTemplatedOpenAPI(t templates.Template, opts *TemplatedFileOptions) middlewares.RequestHandler {
 	ext := path.Ext(t.Name())
 
-	spec := ext == extYML
-
 	return func(ctx *middlewares.AutheliaCtx) {
 		var nonce string
 
-		if spec {
-			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, tmplCSPSwagger)
-		} else {
-			nonce = ctx.Providers.Random.StringCustom(32, random.CharSetAlphaNumeric)
-			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(tmplCSPSwaggerNonce, nonce, nonce))
-		}
-
 		switch ext {
 		case extHTML:
+			nonce = ctx.Providers.Random.StringCustom(32, random.CharSetAlphaNumeric)
+			ctx.Response.Header.Del(fasthttp.HeaderContentSecurityPolicy)
+			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(tmplCSPSwagger, nonce))
 			ctx.SetContentTypeTextHTML()
 		case extYML:
 			ctx.SetContentTypeApplicationYAML()
@@ -132,20 +126,13 @@ func ServeTemplatedOpenAPI(t templates.Template, opts *TemplatedFileOptions) mid
 			err      error
 		)
 
-		if provider, err = ctx.GetSessionProvider(); err == nil {
-			if provider.Config.AutheliaURL != nil {
-				baseURL = provider.Config.AutheliaURL.String()
-			} else {
-				baseURL = ctx.RootURLSlash().String()
-			}
+		baseURL = ctx.RootURLSlash().String()
 
+		if provider, err = ctx.GetSessionProvider(); err == nil {
 			domain = provider.Config.Domain
-		} else {
-			baseURL = ctx.RootURLSlash().String()
 		}
 
 		data := &bytes.Buffer{}
-
 		if err = t.Execute(data, opts.OpenAPIData(ctx.BasePath(), baseURL, domain, nonce)); err != nil {
 			ctx.RequestCtx.Error("an error occurred", fasthttp.StatusServiceUnavailable)
 			ctx.Logger.WithError(err).Errorf("Error occcurred rendering template")
