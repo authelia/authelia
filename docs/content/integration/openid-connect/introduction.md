@@ -33,13 +33,13 @@ This page is intended as an integration reference point for any implementers who
 When it comes to [OpenID Connect 1.0] there are effectively two types of audiences. There is the audience embedded in
 the [ID Token] which should always include the requesting clients identifier and audience of the [Access Token] and
 [Refresh Token]. The intention of the audience in the [ID Token] is used to convey which Relying Party or client was the
-intended audience of the token. In contrast the audience of the [Access Token] is used by the Authorization Server or
+intended audience of the token. In contrast, the audience of the [Access Token] is used by the Authorization Server or
 Resource Server to satisfy an internal policy. You could consider the [ID Token] and it's audience to be a public facing
 audience, and the audience of other tokens to be private or have private meaning even when the [Access Token] is using
 the [JWT Profile for OAuth 2.0 Access Tokens].
 
-It's also important to note that with the exception of [RFC9068] there is basically no standardized token format for
-a [Access Token] or a [Refresh Token]. Therefore there is no way without the use of the [Introspection] endpoint to
+It's also important to note that except [RFC9068] there is basically no standardized token format for
+an [Access Token] or a [Refresh Token]. Therefore, there is no way without the use of the [Introspection] endpoint to
 determine what audiences these tokens are meant for. It should also be noted that like the scope of a [Refresh Token]
 should effectively never change this also applies to the audience of this token.
 
@@ -55,7 +55,7 @@ For more information about the opaque [Access Token] default see
 ## Scope Definitions
 
 The following scope definitions describe each scope supported and the associated effects including the individual claims
-returned by granting this scope. By default we do not issue any claims which reveal the users identity which allows
+returned by granting this scope. By default, we do not issue any claims which reveal the users identity which allows
 administrators semi-granular control over which claims the client is entitled to.
 
 ### openid
@@ -66,10 +66,10 @@ that Authelia does.
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 The combination of the issuer (i.e. `iss`) [Claim] and subject (i.e. `sub`) [Claim] are utilized to uniquely identify a
 user and per the specification the only reliable way to do so as they are guaranteed to be a unique combination. As such
-this is the supported method for linking an account to Authelia. THe `preferred_username` and `email` claims from the
+this is the supported method for linking an account to Authelia. The `preferred_username` and `email` claims from the
 `profile` and `email` scopes respectively should only be utilized for provisioning a new account.
 
-In addition the `sub` [Claim] utilizes a [RFC4122] UUID V4 to identify the individual user as per the
+In addition, the `sub` [Claim] utilizes a [RFC4122] UUID V4 to identify the individual user as per the
 [Subject Identifier Types] section of the [OpenID Connect 1.0] specification.
 {{< /callout >}}
 
@@ -293,7 +293,7 @@ client configuration option.
 
 The client authentication methods which use the JWT Bearer Client Assertions such as `client_secret_jwt` and
 `private_key_jwt` **require** that the JWT contains an audience (i.e. the `aud` claim) which exactly matches the
-full URL for the [token endpoint](#endpoint-implementations) and it **must** be lowercase.
+full URL for the [token endpoint](#endpoint-implementations), and it **must** be lowercase.
 
 Per the [RFC7523 Section 3: JWT Format and Processing Requirements](https://datatracker.ietf.org/doc/html/rfc7523#section-3)
 this claim must be compared using [RFC3987 Section 6.2.1: Simple String Comparison] and to assist with making this
@@ -304,7 +304,7 @@ predictable for implementers we ensure the comparison is done against the lowerc
 Authelia currently supports adding the `amr` [Claim] to the [ID Token] utilizing the [RFC8176] Authentication Method
 Reference values.
 
-The values this [Claim] has are not strictly defined by the [OpenID Connect 1.0] specification. As such, some backends may
+The values this [Claim] has, are not strictly defined by the [OpenID Connect 1.0] specification. As such, some backends may
 expect a specification other than [RFC8176] for this purpose. If you have such an application and wish for us to support
 it then you're encouraged to create a [feature request](https://www.authelia.com/l/fr).
 
@@ -446,7 +446,7 @@ The [RFC9207: OAuth 2.0 Authorization Server Issuer Identification] implementati
 the Authorization Response was returned by the expected issuer by ensuring the response includes the exact issuer in
 the response. This is an additional check in addition to the `state` parameter.
 
-This validation is not supported by many clients but it should be utilized if it is supported.
+This validation is not supported by many clients, but it should be utilized if it is supported.
 
 #### JWT Secured Authorization Response Mode (JARM)
 
@@ -455,7 +455,7 @@ The [JWT Secured Authorization Response Mode for OAuth 2.0 (JARM)] implementatio
 relying party to ensure the Authorization Response was returned by the expected issuer and also ensures the response
 was not tampered with or forged as it is cryptographically signed.
 
-This response mode is not supported by many clients but we recommend it is used if it's supported.
+This response mode is not supported by many clients, but we recommend it is used if it's supported.
 
 #### Proof Key Code Exchange
 
