@@ -93,7 +93,7 @@ In addition, the `sub` [Claim] utilizes a [RFC4122] UUID V4 to identify the indi
 
 This scope is a special scope designed to allow applications to obtain a [Refresh Token] which allows extended access to
 an application on behalf of a user. A [Refresh Token] is a special [Access Token] that allows refreshing previously
-issued token credentials, effectively it allows the relying party to obtain new tokens periodically.
+issued token credentials, effectively it allows the Relying Party to obtain new tokens periodically.
 
 As per [OpenID Connect 1.0] Section 11 [Offline Access] can only be granted during the [Authorization Code Flow] or a
 [Hybrid Flow]. The [Refresh Token] will only ever be returned at the [Token Endpoint] when the client is exchanging
@@ -365,7 +365,7 @@ The following table describes the response from the [UserInfo] endpoint dependin
 ## Endpoint Implementations
 
 The following section documents the endpoints we implement and their respective paths. This information can
-traditionally be discovered by relying parties that utilize [OpenID Connect Discovery 1.0], however this information may be
+traditionally be discovered by Relying Parties that utilize [OpenID Connect Discovery 1.0], however this information may be
 useful for clients which do not implement this.
 
 The endpoints can be discovered easily by visiting the Discovery and Metadata endpoints. It is recommended regardless
@@ -404,7 +404,7 @@ These endpoints implement OpenID Connect 1.0 Provider specifications.
 
 The following information covers some security topics some users may wish to be familiar with. All of these elements
 offer hardening to the flows in differing ways (i.e. some validate the authorization server and some validate the
-client / relying party) which are not essential but recommended.
+client / Relying Party) which are not essential but recommended.
 
 #### Pushed Authorization Requests Endpoint
 
@@ -442,7 +442,7 @@ The advantages of this approach are as follows:
 
 #### OAuth 2.0 Authorization Server Issuer Identification
 
-The [RFC9207: OAuth 2.0 Authorization Server Issuer Identification] implementation allows relying parties to validate
+The [RFC9207: OAuth 2.0 Authorization Server Issuer Identification] implementation allows Relying Parties to validate
 the Authorization Response was returned by the expected issuer by ensuring the response includes the exact issuer in
 the response. This is an additional check in addition to the `state` parameter.
 
@@ -452,7 +452,7 @@ This validation is not supported by many clients, but it should be utilized if i
 
 The [JWT Secured Authorization Response Mode for OAuth 2.0 (JARM)] implementation similar to
 [OAuth 2.0 Authorization Server Issuer Identification](#oauth-20-authorization-server-issuer-identification) allows a
-relying party to ensure the Authorization Response was returned by the expected issuer and also ensures the response
+Relying Party to ensure the Authorization Response was returned by the expected issuer and also ensures the response
 was not tampered with or forged as it is cryptographically signed.
 
 This response mode is not supported by many clients, but we recommend it is used if it's supported.
