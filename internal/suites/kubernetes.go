@@ -25,7 +25,7 @@ func k3dCommand(cmdline string) *exec.Cmd {
 
 // CreateCluster create a new Kubernetes cluster.
 func (k K3D) CreateCluster() error {
-	cmd := k3dCommand("k3d cluster create --registry-config /authelia/registry.yml -v /authelia:/var/lib/rancher/k3s/server/manifests/custom -v /configmaps:/configmaps -p 8080:443")
+	cmd := k3dCommand("k3d cluster create --registry-config /authelia/registry.yml -v /authelia:/var/lib/rancher/k3s/server/manifests/custom -v /configmaps:/configmaps -v /coverage:/coverage -p 8080:443")
 	err := cmd.Run()
 
 	return err
