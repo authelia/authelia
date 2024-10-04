@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -18,6 +19,9 @@ import (
 // Command create a command at the project root.
 func Command(name string, args ...string) *exec.Cmd {
 	cmd := exec.Command(name, args...)
+	if errors.Is(cmd.Err, exec.ErrDot) {
+		cmd.Err = nil
+	}
 
 	// By default set the working directory to the project root directory.
 	wd, _ := os.Getwd()
