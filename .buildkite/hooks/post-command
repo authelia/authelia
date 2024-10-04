@@ -21,7 +21,9 @@ if [[ ! ${BUILDKITE_BRANCH} =~ ^(v.*) ]] && [[ ${BUILDKITE_COMMAND_EXIT_STATUS} 
     if [[ ${BUILDKITE_AGENT_META_DATA_CODECOV} == "verbose" ]]; then
       BUILDKITE_AGENT_META_DATA_CODECOV="-v"
     fi
-    codecov -Z -c -f 'coverage*.txt' -n ${NAME} -F backend "${BUILDKITE_AGENT_META_DATA_CODECOV}"
+    if [[ ${NAME} != "BypassAll" ]]; then
+      codecov -Z -c -f 'coverage*.txt' -n ${NAME} -F backend "${BUILDKITE_AGENT_META_DATA_CODECOV}"
+    fi
     if [[ ${BUILDKITE_LABEL} =~ ":selenium:" ]]; then
       pnpm -C web report
     fi
