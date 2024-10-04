@@ -23,7 +23,7 @@ seo:
 * [Authelia]
   * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [HedgeDoc]
-  * [v1.9.9](https://github.com/hedgedoc/hedgedoc/releases/tag/1.9.9)
+  * [v1.10.0](https://github.com/hedgedoc/hedgedoc/releases/tag/1.10.0)
 
 {{% oidc-common %}}
 
@@ -66,6 +66,7 @@ identity_providers:
           - 'email'
           - 'groups'
         userinfo_signed_response_alg: 'none'
+        token_endpoint_auth_method: 'client_secret_post'
 ```
 
 ### Application
