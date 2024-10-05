@@ -8,6 +8,7 @@ services:
       - './common/pki:/configmaps/authelia/ssl'
       - './example/compose/ldap/ldif:/configmaps/ldap'
       - './example/compose/nginx/backend:/configmaps/nginx-backend'
+      - '../../coverage:/coverage'
     privileged: true
     networks:
       authelianet:

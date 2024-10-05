@@ -2,7 +2,7 @@
 title: "Rocket.Chat"
 description: "Integrating Rocket.Chat with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2022-08-26T11:39:00+10:00
+date: 2024-09-28T23:18:03+10:00
 draft: false
 images: []
 weight: 620

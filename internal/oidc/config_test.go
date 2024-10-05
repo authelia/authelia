@@ -24,8 +24,8 @@ func TestConfig_GetAllowedPrompts(t *testing.T) {
 	config := &oidc.Config{}
 
 	assert.Equal(t, []string(nil), config.AllowedPrompts)
-	assert.Equal(t, []string{oidc.PromptNone, oidc.PromptLogin, oidc.PromptConsent}, config.GetAllowedPrompts(ctx))
-	assert.Equal(t, []string{oidc.PromptNone, oidc.PromptLogin, oidc.PromptConsent}, config.AllowedPrompts)
+	assert.Equal(t, []string{oidc.PromptNone, oidc.PromptLogin, oidc.PromptConsent, oidc.PromptSelectAccount}, config.GetAllowedPrompts(ctx))
+	assert.Equal(t, []string{oidc.PromptNone, oidc.PromptLogin, oidc.PromptConsent, oidc.PromptSelectAccount}, config.AllowedPrompts)
 
 	config.AllowedPrompts = []string{oidc.PromptNone}
 	assert.Equal(t, []string{oidc.PromptNone}, config.AllowedPrompts)

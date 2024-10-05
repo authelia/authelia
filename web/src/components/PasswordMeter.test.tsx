@@ -41,12 +41,12 @@ it("renders adjusted height without crashing", () => {
 });
 
 it("displays warning message on password too large", async () => {
-    const maxLenght = 5;
+    const maxLength = 5;
     render(
         <PasswordMeter
             value={"password"}
             policy={{
-                max_length: maxLenght,
+                max_length: maxLength,
                 min_length: 4,
                 min_score: 0,
                 require_lowercase: true,
@@ -58,18 +58,18 @@ it("displays warning message on password too large", async () => {
         />,
     );
 
-    const text = `Must not be more than ${maxLenght} characters in length`;
+    const text = `Must not be more than ${maxLength} characters in length`;
     expect(screen.queryByText(text)).toBeInTheDocument();
 });
 
 it("displays warning message on password too short", async () => {
-    const minLenght = 5;
+    const minLength = 5;
     render(
         <PasswordMeter
             value={"abc"}
             policy={{
                 max_length: 0,
-                min_length: minLenght,
+                min_length: minLength,
                 min_score: 0,
                 require_lowercase: true,
                 require_number: true,
@@ -80,7 +80,7 @@ it("displays warning message on password too short", async () => {
         />,
     );
 
-    const text = `Must be at least ${minLenght} characters in length`;
+    const text = `Must be at least ${minLength} characters in length`;
     expect(screen.queryByText(text)).toBeInTheDocument();
 });
 

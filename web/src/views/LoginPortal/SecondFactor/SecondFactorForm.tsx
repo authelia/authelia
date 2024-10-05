@@ -95,7 +95,7 @@ const SecondFactorForm = function (props: Props) {
                     onClick={handleMethodSelected}
                 />
             ) : null}
-            <Grid container alignItems={"center"} justifyContent={"center"}>
+            <Grid container direction={"column"} justifyContent={"center"} alignItems={"center"}>
                 <Grid size={{ xs: 12 }}>
                     <Button id={"logout-button"} color={"secondary"} onClick={handleLogoutClick}>
                         {translate("Logout")}

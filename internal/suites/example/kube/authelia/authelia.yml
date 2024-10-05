@@ -35,6 +35,8 @@ spec:
             - name: authelia-ssl
               mountPath: /pki
               readOnly: true
+            - name: authelia-coverage
+              mountPath: /authelia/coverage
             - name: secrets
               mountPath: /config/secrets
               readOnly: true
@@ -61,6 +63,10 @@ spec:
         - name: authelia-ssl
           hostPath:
             path: /configmaps/authelia/ssl
+            type: Directory
+        - name: authelia-coverage
+          hostPath:
+            path: /coverage
             type: Directory
         - name: secrets
           secret:

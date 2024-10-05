@@ -85,7 +85,8 @@ export const IdentityVerificationJWT = ({
                         <Section className="text-center">
                             <Link
                                 href={link}
-                                className="text-blue-600 text-[12px] no-underline"
+								className="text-blue-600 hover:text-blue-800 visited:text-purple-600 text-[12px] no-underline"
+								style={{ wordBreak: 'break-all' }}
                             >
                                 {link}
                             </Link>
@@ -128,7 +129,8 @@ export const IdentityVerificationJWT = ({
                         <Text className="text-black text-[12px] leading-[24px] text-center">
                             <Link
                                 href={revocationLinkURL}
-                                className="text-blue-600 no-underline"
+								className="text-blue-600 hover:text-blue-800 visited:text-purple-600 text-[12px] no-underline"
+								style={{ wordBreak: 'break-all' }}
                             >
                                 {revocationLinkURL}
                             </Link>
@@ -165,9 +167,9 @@ IdentityVerificationJWT.PreviewProps = {
     title: 'Reset your password',
     displayName: 'John Doe',
     domain: 'example.com',
-    link: 'https://auth.example.com',
+    link: 'https://auth.example.com/reset-password/step2?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJBdXRoZWxpYSIsImV4cCI6MTcyNzY0MTYwNywiaWF0IjoxNzI3NjM4MDA3LCJqdGkiOiI2NTAwY2NhMy03ZDAzLTQ3NjEtOGFiOC0wN2IwNDcxMTgwMzkiLCJhY3Rpb24iOiJSZXNldFBhc3N3b3JkIiwidXNlcm5hbWUiOiJqb2huIn0.TZjqSAun9uNTIu8680cdGAxuiMC18xiAa80LslTMhqU',
     linkText: 'Validate',
-    revocationLinkURL: 'https://auth.example.com',
+    revocationLinkURL: 'https://auth.example.com/revoke/reset-password?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJBdXRoZWxpYSIsImV4cCI6MTcyNzY0MTYwNywiaWF0IjoxNzI3NjM4MDA3LCJqdGkiOiI2NTAwY2NhMy03ZDAzLTQ3NjEtOGFiOC0wN2IwNDcxMTgwMzkiLCJhY3Rpb24iOiJSZXNldFBhc3N3b3JkIiwidXNlcm5hbWUiOiJqb2huIn0.TZjqSAun9uNTIu8680cdGAxuiMC18xiAa80LslTMhqU',
     revocationLinkText: 'Revoke',
     remoteIP: '127.0.0.1',
 } as IdentityVerificationJWTProps;

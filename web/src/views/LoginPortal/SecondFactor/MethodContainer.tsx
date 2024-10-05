@@ -59,7 +59,7 @@ const DefaultMethodContainer = function (props: Props) {
         <Box id={props.id}>
             <Typography variant={"h6"}>{props.title}</Typography>
             <Box id={"2fa-container"} className={classnames(styles.container, stateClass)}>
-                <div className={styles.containerFlex}>{container}</div>
+                <Box className={styles.containerFlex}>{container}</Box>
             </Box>
             {props.onSelectClick && props.registered ? (
                 <Link id={"selection-link"} component={"button"} onClick={props.onSelectClick} underline={"hover"}>
