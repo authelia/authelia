@@ -224,10 +224,14 @@ identity_providers:
 
 {{< confkey type="string" required="no" >}}
 
+{{< callout context="tip" title="Not Required" icon="outline/alert-triangle" >}}
+This option is rarely required as most clients do not support validating these values in the JSON Web Key Set document.
+{{< /callout >}}
+
 The certificate chain/bundle to be used with the [key](#key) DER base64 ([RFC4648])
 encoded PEM format used to sign/encrypt the [OpenID Connect 1.0] [JWT]'s. When configured it enables the [x5c] and [x5t]
-JSON key's in the JWKs [Discoverable Endpoint](../../../integration/openid-connect/introduction.md#discoverable-endpoints)
-as per [RFC7517].
+JSON Web Key's in the JSON Web Key Set
+[Discoverable Endpoint](../../../integration/openid-connect/introduction.md#discoverable-endpoints) as per [RFC7517].
 
 [RFC7517]: https://datatracker.ietf.org/doc/html/rfc7517
 [x5c]: https://datatracker.ietf.org/doc/html/rfc7517#section-4.7
