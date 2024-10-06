@@ -4,5 +4,5 @@
         "development": "default-src 'self' 'unsafe-eval'; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-${NONCE}'; frame-ancestors 'none'; base-uri 'self'",
         "nonce": "${NONCE}"
     },
-    "latest": "4.38.15"
+    "latest": "4.38.16"
 }
