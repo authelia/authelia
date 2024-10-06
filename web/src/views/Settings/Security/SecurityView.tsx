@@ -10,9 +10,7 @@ import IdentityVerificationDialog from "@views/Settings/Common/IdentityVerificat
 import SecondFactorDialog from "@views/Settings/Common/SecondFactorDialog";
 import ChangePasswordDialog from "@views/Settings/Security/ChangePasswordDialog";
 
-export type Props = {};
-
-const SettingsView = function (props: Props) {
+const SettingsView = function () {
     const { t: translate } = useTranslation("settings");
     const theme = useTheme();
 
@@ -91,9 +89,12 @@ const SettingsView = function (props: Props) {
     };
 
     const handleElevationRefresh = async () => {
-        const result = await getUserSessionElevation();
-
-        setElevation(result);
+        try {
+            const result = await getUserSessionElevation();
+            setElevation(result);
+        } catch {
+            createErrorNotification(translate("Failed to get session elevation status"));
+        }
     };
 
     const handleElevation = () => {

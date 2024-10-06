@@ -13,6 +13,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 import PasswordMeter from "@components/PasswordMeter";
+import useCheckCapsLock from "@hooks/CapsLock";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
 import { postPasswordChange } from "@services/ChangePassword";
@@ -56,26 +57,32 @@ const ChangePasswordDialog = (props: Props) => {
         mode: PasswordPolicyMode.Disabled,
     });
 
+    const resetPasswordErrors = useCallback(() => {
+        setOldPasswordError(false);
+        setNewPasswordError(false);
+        setRepeatNewPasswordError(false);
+    }, []);
+
+    const resetCapsLockErrors = useCallback(() => {
+        setIsCapsLockOnOldPW(false);
+        setIsCapsLockOnNewPW(false);
+        setIsCapsLockOnRepeatNewPW(false);
+    }, []);
+
     const resetStates = useCallback(() => {
         setOldPassword("");
         setNewPassword("");
         setRepeatNewPassword("");
 
-        setOldPasswordError(false);
-        setNewPasswordError(false);
-        setRepeatNewPasswordError(false);
+        resetPasswordErrors();
+        resetCapsLockErrors();
 
-        setIsCapsLockOnOldPW(false);
-        setIsCapsLockOnNewPW(false);
-        setIsCapsLockOnRepeatNewPW(false);
         setFormDisabled(false);
-    }, []);
+    }, [resetPasswordErrors, resetCapsLockErrors]);
 
     const handleClose = useCallback(() => {
-        (async () => {
-            props.setClosed();
-            resetStates();
-        })();
+        props.setClosed();
+        resetStates();
     }, [props, resetStates]);
 
     const asyncProcess = useCallback(async () => {
@@ -84,8 +91,7 @@ const ChangePasswordDialog = (props: Props) => {
             const policy = await getPasswordPolicyConfiguration();
             setPPolicy(policy);
             setFormDisabled(false);
-        } catch (err) {
-            console.error(err);
+        } catch {
             createErrorNotification(
                 translate("There was an issue completing the process the verification token might have expired"),
             );
@@ -122,25 +128,18 @@ const ChangePasswordDialog = (props: Props) => {
             createSuccessNotification(translate("Password changed successfully"));
             handleClose();
         } catch (err) {
-            setOldPasswordError(false);
-            setNewPasswordError(false);
-            setRepeatNewPasswordError(false);
-            if ((err as Error).message.includes("0000052D.")) {
+            resetPasswordErrors();
+            const errorMessage = (err as Error).message;
+            if (errorMessage.includes("0000052D.") || errorMessage.includes("policy")) {
                 setNewPasswordError(true);
                 setRepeatNewPasswordError(true);
                 createErrorNotification(
                     translate("Your supplied password does not meet the password policy requirements"),
                 );
-            } else if ((err as Error).message.includes("policy")) {
-                setNewPasswordError(true);
-                setRepeatNewPasswordError(true);
-                createErrorNotification(
-                    translate("Your supplied password does not meet the password policy requirements"),
-                );
-            } else if ((err as Error).message.includes("Incorrect")) {
+            } else if (errorMessage.includes("Incorrect")) {
                 setOldPasswordError(true);
                 createErrorNotification(translate("Incorrect password"));
-            } else if ((err as Error).message.includes("reuse")) {
+            } else if (errorMessage.includes("reuse")) {
                 createErrorNotification(translate("You cannot reuse your old password"));
             } else {
                 createErrorNotification(translate("There was an issue changing the password"));
@@ -149,6 +148,7 @@ const ChangePasswordDialog = (props: Props) => {
     }, [
         createErrorNotification,
         createSuccessNotification,
+        resetPasswordErrors,
         handleClose,
         newPassword,
         oldPassword,
@@ -157,77 +157,31 @@ const ChangePasswordDialog = (props: Props) => {
         translate,
     ]);
 
-    const handleOldPWKeyDown = useCallback(
-        (event: React.KeyboardEvent<HTMLDivElement>) => {
-            if (event.key === "Enter") {
-                if (!oldPassword.length) {
-                    setOldPasswordError(true);
-                } else if (oldPassword.length && newPassword.length && repeatNewPassword.length) {
-                    handlePasswordChange().catch(console.error);
-                } else {
-                    setOldPasswordError(false);
-                    newPasswordRef.current.focus();
+    const useHandleKeyDown = (
+        passwordState: string,
+        setError: React.Dispatch<React.SetStateAction<boolean>>,
+        nextRef?: React.MutableRefObject<HTMLInputElement>,
+    ) => {
+        return useCallback(
+            (event: React.KeyboardEvent<HTMLDivElement>) => {
+                if (event.key === "Enter") {
+                    if (!passwordState.length) {
+                        setError(true);
+                    } else if (!nextRef) {
+                        handlePasswordChange().catch(console.error);
+                    } else {
+                        nextRef?.current.focus();
+                    }
                 }
-            }
-        },
-        [handlePasswordChange, oldPassword.length, newPassword.length, repeatNewPassword.length],
-    );
+            },
+            [nextRef, passwordState.length, setError],
+        );
+    };
 
-    const handleNewPWKeyDown = useCallback(
-        (event: React.KeyboardEvent<HTMLDivElement>) => {
-            if (event.key === "Enter") {
-                if (!newPassword.length) {
-                    setNewPasswordError(true);
-                } else if (oldPassword.length && newPassword.length && repeatNewPassword.length) {
-                    handlePasswordChange().catch(console.error);
-                } else {
-                    setNewPasswordError(false);
-                    repeatNewPasswordRef.current.focus();
-                }
-            }
-        },
-        [handlePasswordChange, oldPassword.length, newPassword.length, repeatNewPassword.length],
-    );
+    const handleOldPWKeyDown = useHandleKeyDown(oldPassword, setOldPasswordError, newPasswordRef);
+    const handleNewPWKeyDown = useHandleKeyDown(newPassword, setNewPasswordError, repeatNewPasswordRef);
+    const handleRepeatNewPWKeyDown = useHandleKeyDown(repeatNewPassword, setRepeatNewPasswordError);
 
-    const handleRepeatNewPWKeyDown = useCallback(
-        (event: React.KeyboardEvent<HTMLDivElement>) => {
-            if (event.key === "Enter") {
-                if (!repeatNewPassword.length) {
-                    setNewPasswordError(true);
-                } else if (oldPassword.length && newPassword.length && repeatNewPassword.length) {
-                    handlePasswordChange().catch(console.error);
-                } else {
-                    setNewPasswordError(false);
-                    repeatNewPasswordRef.current.focus();
-                }
-            }
-        },
-        [handlePasswordChange, oldPassword.length, newPassword.length, repeatNewPassword.length],
-    );
-
-    const checkCapsLockOldPW = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
-        if (event.getModifierState("CapsLock")) {
-            setIsCapsLockOnOldPW(true);
-        } else {
-            setIsCapsLockOnOldPW(false);
-        }
-    }, []);
-
-    const checkCapsLockNewPW = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
-        if (event.getModifierState("CapsLock")) {
-            setIsCapsLockOnNewPW(true);
-        } else {
-            setIsCapsLockOnNewPW(false);
-        }
-    }, []);
-
-    const checkCapsLockRepeatNewPW = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
-        if (event.getModifierState("CapsLock")) {
-            setIsCapsLockOnRepeatNewPW(true);
-        } else {
-            setIsCapsLockOnRepeatNewPW(false);
-        }
-    }, []);
     const disabled = props.disabled || false;
 
     return (
@@ -253,7 +207,7 @@ const ChangePasswordDialog = (props: Props) => {
                                 autoCapitalize="off"
                                 autoComplete="off"
                                 onKeyDown={handleOldPWKeyDown}
-                                onKeyUp={checkCapsLockOldPW}
+                                onKeyUp={useCheckCapsLock(setIsCapsLockOnOldPW)}
                                 helperText={isCapsLockOnOldPW ? translate("Caps Lock is on") : " "}
                                 color={isCapsLockOnOldPW ? "error" : "primary"}
                                 onBlur={() => setIsCapsLockOnOldPW(false)}
@@ -276,7 +230,7 @@ const ChangePasswordDialog = (props: Props) => {
                                 autoCapitalize="off"
                                 autoComplete="off"
                                 onKeyDown={handleNewPWKeyDown}
-                                onKeyUp={checkCapsLockNewPW}
+                                onKeyUp={useCheckCapsLock(setIsCapsLockOnNewPW)}
                                 helperText={isCapsLockOnNewPW ? translate("Caps Lock is on") : " "}
                                 color={isCapsLockOnNewPW ? "error" : "primary"}
                                 onBlur={() => setIsCapsLockOnNewPW(false)}
@@ -302,7 +256,7 @@ const ChangePasswordDialog = (props: Props) => {
                                 autoCapitalize="off"
                                 autoComplete="off"
                                 onKeyDown={handleRepeatNewPWKeyDown}
-                                onKeyUp={checkCapsLockRepeatNewPW}
+                                onKeyUp={useCheckCapsLock(setIsCapsLockOnRepeatNewPW)}
                                 helperText={isCapsLockOnRepeatNewPW ? translate("Caps Lock is ON") : " "}
                                 color={isCapsLockOnRepeatNewPW ? "error" : "primary"}
                                 onBlur={() => setIsCapsLockOnRepeatNewPW(false)}

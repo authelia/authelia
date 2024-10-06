@@ -173,11 +173,11 @@ func (p *FileUserProvider) ChangePassword(username string, oldPassword string, n
 	oldPasswordCorrect, err := p.CheckUserPassword(username, oldPassword)
 
 	if err != nil {
-		return err
+		return ErrAuthenticationFailed
 	}
 
 	if !oldPasswordCorrect {
-		return ErrIncorrectPassword
+		return ErrAuthenticationFailed
 	}
 
 	if oldPassword == newPassword {

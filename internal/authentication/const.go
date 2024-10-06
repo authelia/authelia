@@ -103,6 +103,8 @@ var (
 
 	// ErrIncorrectPassword is returned when the new password is the same as the existing password.
 	ErrPasswordReuse = errors.New("you cannot reuse your old password")
+
+	ErrAuthenticationFailed = errors.New("authentication failed")
 )
 
 const fileAuthenticationMode = 0600
