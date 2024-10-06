@@ -31,15 +31,7 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	tempUsername := userSession.Username
-
-	userSession.PasswordResetUsername = &tempUsername
-
-	if userSession.PasswordResetUsername == nil {
-		ctx.Error(fmt.Errorf("elevated session required for password change"), messageUnableToChangePassword)
-	}
-
-	username := *userSession.PasswordResetUsername
+	username := userSession.Username
 
 	var requestBody changePasswordRequestBody
 
