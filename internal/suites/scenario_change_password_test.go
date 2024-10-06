@@ -50,7 +50,7 @@ func (s *ChangePasswordScenario) TestShouldChangePassword() {
 		newPassword string
 	}{
 		{"case1", "john", "password", "password1"},
-		{"case1", "john", "password1", "password"},
+		{"case2", "john", "password1", "password"},
 	}
 
 	for _, tc := range testCases {
