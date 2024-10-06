@@ -351,7 +351,7 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 	case p.features.Extensions.PwdModifyExOp:
 		pwdModifyRequest := ldap.NewPasswordModifyRequest(
 			profile.DN,
-			"",
+			oldPassword,
 			newPassword,
 		)
 
