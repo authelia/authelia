@@ -224,10 +224,14 @@ identity_providers:
 
 {{< confkey type="string" required="no" >}}
 
+{{< callout context="tip" title="Not Required" icon="outline/alert-triangle" >}}
+This option is rarely required as most clients do not support validating these values in the JSON Web Key Set document.
+{{< /callout >}}
+
 The certificate chain/bundle to be used with the [key](#key) DER base64 ([RFC4648])
 encoded PEM format used to sign/encrypt the [OpenID Connect 1.0] [JWT]'s. When configured it enables the [x5c] and [x5t]
-JSON key's in the JWKs [Discoverable Endpoint](../../../integration/openid-connect/introduction.md#discoverable-endpoints)
-as per [RFC7517].
+JSON Web Key's in the JSON Web Key Set
+[Discoverable Endpoint](../../../integration/openid-connect/introduction.md#discoverable-endpoints) as per [RFC7517].
 
 [RFC7517]: https://datatracker.ietf.org/doc/html/rfc7517
 [x5c]: https://datatracker.ietf.org/doc/html/rfc7517#section-4.7
@@ -284,8 +288,8 @@ When set to `always`, [PKCE] will be required for all clients using the Authoriz
 {{< confkey type="boolean" default="false" required="no" >}}
 
 {{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
-Changing this value is generally discouraged. Applications should use the `S256` [PKCE] challenge
-method instead.
+Changing this value is generally discouraged. Applications should use the `S256`
+[PKCE](https://datatracker.ietf.org/doc/html/rfc7636) challenge method instead.
 {{< /callout >}}
 
 Allows [PKCE] `plain` challenges when set to `true`.
@@ -360,14 +364,13 @@ When enabled all authorization requests must use the [Pushed Authorization Reque
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
 This section is aimed at providing authorization customization for various
 [OpenID Connect 1.0 Registered Clients](clients.md#authorization_policy). This section should not be confused with the
-[Access Control Rules] section, the way these policies are used and the options
-available are distinctly and intentionally different to those of the [Access Control Rules] unless explicitly specified
-in this section. The reasons for the differences are clearly explained in the [OpenID Connect 1.0 FAQ] and [ADR1].
+[Access Control Rules](../../security/access-control.md#rules) section, the way these policies are used and the options
+available are distinctly and intentionally different to those of the
+[Access Control Rules](../../security/access-control.md#rules) unless explicitly specified in this section. The reasons
+for the differences are clearly explained in the
+[OpenID Connect 1.0 FAQ](../../../integration/openid-connect/frequently-asked-questions.md#why-doesnt-the-access-control-configuration-work-with-openid-connect-10)
+and [ADR1](../../../reference/architecture-decision-log/1.md).
 {{< /callout >}}
-
-[Access Control Rules]: ../../security/access-control.md#rules
-[OpenID Connect 1.0 FAQ]: ../../../integration/openid-connect/frequently-asked-questions.md#why-doesnt-the-access-control-configuration-work-with-openid-connect-10
-[ADR1]: ../../../reference/architecture-decision-log/1.md
 
 The authorization policies section allows creating custom authorization policies which can be applied to clients. This
 is useful if you wish to only allow specific users to access specific clients i.e. RBAC. It's generally recommended
