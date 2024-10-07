@@ -120,9 +120,7 @@ func (n *SMTPNotifier) StartupCheck() (err error) {
 
 	n.log.Trace("Dialing Startup Check Connection")
 
-	if auth := NewOpportunisticSMTPAuth(n.config); auth != nil {
-		client.SetSMTPAuthCustom(auth)
-	}
+	client.SetSMTPAuthCustom(NewOpportunisticSMTPAuth(n.config))
 
 	if err = client.DialWithContext(ctx); err != nil {
 		return fmt.Errorf("failed to dial connection: %w", err)
@@ -177,9 +175,7 @@ func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject
 		return fmt.Errorf("notifier: smtp: failed to establish client: %w", err)
 	}
 
-	if auth := NewOpportunisticSMTPAuth(n.config); auth != nil {
-		client.SetSMTPAuthCustom(auth)
-	}
+	client.SetSMTPAuthCustom(NewOpportunisticSMTPAuth(n.config))
 
 	if err = client.DialWithContext(ctx); err != nil {
 		return fmt.Errorf("notifier: smtp: failed to dial connection: %w", err)
