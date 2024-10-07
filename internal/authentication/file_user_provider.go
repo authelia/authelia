@@ -177,7 +177,7 @@ func (p *FileUserProvider) ChangePassword(username string, oldPassword string, n
 	}
 
 	if !oldPasswordCorrect {
-		return ErrAuthenticationFailed
+		return ErrIncorrectPassword
 	}
 
 	if oldPassword == newPassword {

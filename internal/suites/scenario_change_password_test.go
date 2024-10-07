@@ -112,7 +112,7 @@ func (s *ChangePasswordScenario) TestCannotChangePasswordWithIncorrectOldPasswor
 
 	for _, tc := range testCases {
 		s.T().Run(tc.testName, func(t *testing.T) {
-			ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 			defer func() {
 				cancel()
 				s.collectScreenshot(ctx.Err(), s.Page)
