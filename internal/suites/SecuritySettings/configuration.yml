@@ -26,7 +26,8 @@ identity_validation:
 authentication_backend:
   file:
     path: /config/users.yml
-
+  password_change:
+    disable: false
 session:
   expiration: 3600
   inactivity: 300
