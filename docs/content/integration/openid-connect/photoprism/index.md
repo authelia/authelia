@@ -1,5 +1,5 @@
 * [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+  * [v4.38.16](https://github.com/authelia/authelia/releases/tag/v4.38.16)
 * [PhotoPrism]
   * [v240915](https://github.com/photoprism/photoprism/releases/tag/240915-e1280b2fb)
 
