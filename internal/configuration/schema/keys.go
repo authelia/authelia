@@ -113,6 +113,7 @@ var Keys = []string{
 	"authentication_backend.ldap.users_filter",
 	"authentication_backend.password_reset.custom_url",
 	"authentication_backend.password_reset.disable",
+	"authentication_backend.password_change.disable",
 	"authentication_backend.refresh_interval",
 	"certificates_directory",
 	"default_2fa_method",

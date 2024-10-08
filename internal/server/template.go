@@ -257,6 +257,7 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 		RememberMe:             strconv.FormatBool(!config.Session.DisableRememberMe),
 		ResetPassword:          strconv.FormatBool(!config.AuthenticationBackend.PasswordReset.Disable),
 		ResetPasswordCustomURL: config.AuthenticationBackend.PasswordReset.CustomURL.String(),
+		PasswordChange:         strconv.FormatBool(!config.AuthenticationBackend.PasswordChange.Disable),
 		PrivacyPolicyURL:       "",
 		PrivacyPolicyAccept:    strFalse,
 		Theme:                  config.Theme,
@@ -290,6 +291,7 @@ type TemplatedFileOptions struct {
 	RememberMe             string
 	ResetPassword          string
 	ResetPasswordCustomURL string
+	PasswordChange         string
 	PrivacyPolicyURL       string
 	PrivacyPolicyAccept    string
 	Session                string
