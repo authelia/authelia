@@ -1,8 +1,9 @@
 import { Fragment, useCallback, useEffect, useState } from "react";
 
-import { Box, Button, Container, List, ListItem, Paper, Stack, Typography, useTheme } from "@mui/material";
+import { Box, Button, Container, List, ListItem, Paper, Stack, Tooltip, Typography, useTheme } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
+import { useConfiguration } from "@hooks/Configuration";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useUserInfoPOST } from "@hooks/UserInfo";
 import { UserSessionElevation, getUserSessionElevation } from "@services/UserSessionElevation";
@@ -13,6 +14,7 @@ import ChangePasswordDialog from "@views/Settings/Security/ChangePasswordDialog"
 const SettingsView = function () {
     const { t: translate } = useTranslation("settings");
     const theme = useTheme();
+    const { createErrorNotification } = useNotifications();
 
     const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoPOST();
     const [elevation, setElevation] = useState<UserSessionElevation>();
@@ -20,7 +22,7 @@ const SettingsView = function () {
     const [dialogIVOpening, setDialogIVOpening] = useState(false);
     const [dialogPWChangeOpen, setDialogPWChangeOpen] = useState(false);
     const [dialogPWChangeOpening, setDialogPWChangeOpening] = useState(false);
-    const { createErrorNotification } = useNotifications();
+    const [configuration, fetchConfiguration, , fetchConfigurationError] = useConfiguration();
 
     const handleResetStateOpening = () => {
         setDialogSFOpening(false);
@@ -113,11 +115,37 @@ const SettingsView = function () {
         if (fetchUserInfoError) {
             createErrorNotification(translate("There was an issue retrieving user preferences"));
         }
-    }, [fetchUserInfoError, createErrorNotification, translate]);
+        if (fetchConfigurationError) {
+            createErrorNotification(translate("There was an issue retrieving configuration"));
+        }
+    }, [fetchUserInfoError, fetchConfigurationError, createErrorNotification, translate]);
 
     useEffect(() => {
         fetchUserInfo();
-    }, [fetchUserInfo]);
+        fetchConfiguration();
+    }, [fetchUserInfo, fetchConfiguration]);
+
+    const PasswordChangeButton = () => {
+        const buttonContent = (
+            <Button
+                id="change-password-button"
+                variant="contained"
+                sx={{ p: 1, width: "100%" }}
+                onClick={handleChangePassword}
+                disabled={configuration?.password_change_disabled || false}
+            >
+                {translate("Change Password")}
+            </Button>
+        );
+
+        return configuration?.password_change_disabled ? (
+            <Tooltip title={translate("This is disabled by your administrator.")}>
+                <span>{buttonContent}</span>
+            </Tooltip>
+        ) : (
+            buttonContent
+        );
+    };
 
     return (
         <Fragment>
@@ -199,20 +227,12 @@ const SettingsView = function () {
                                     {translate("Username: ")} {userInfo?.display_name || ""}
                                 </Typography>
                             </Box>
-
                             <Box
                                 sx={{ p: 1.25, mb: 1, border: `1px solid ${theme.palette.grey[600]}`, borderRadius: 1 }}
                             >
                                 <Typography>{translate("Password")}: ●●●●●●●●</Typography>
                             </Box>
-                            <Button
-                                id="change-password-button"
-                                variant="contained"
-                                sx={{ p: 1, width: "100%" }}
-                                onClick={handleChangePassword}
-                            >
-                                {translate("Change Password")}
-                            </Button>
+                            <PasswordChangeButton />
                         </Box>
                     </Stack>
                 </Paper>
