@@ -1,7 +1,7 @@
 * [Authelia]
   * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-* [immich]
-  * [v1.101.0](https://github.com/immich-app/immich/releases/tag/v1.101.0)
+* [PhotoPrism]
+  * [v240915](https://github.com/photoprism/photoprism/releases/tag/240915-e1280b2fb)
 
 {{% oidc-common %}}
 
@@ -9,9 +9,9 @@
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://immich.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Application Root URL:__ `https://photoprism.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `immich`
+* __Client ID:__ `photoprism`
 * __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
@@ -22,7 +22,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [immich] which will
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [photoprism] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -31,30 +31,29 @@ identity_providers:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
-      - client_id: 'immich'
-        client_name: 'immich'
+      - client_id: 'photoprism'
+        client_name: 'photoprism'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://immich.{{< sitevar name="domain" nojs="example.com" >}}/auth/login'
-          - 'https://immich.{{< sitevar name="domain" nojs="example.com" >}}/user-settings'
-          - 'app.immich:/'
+          - 'https://photoprism.{{< sitevar name="domain" nojs="example.com" >}}/api/v1/oidc/redirect
         scopes:
           - 'openid'
           - 'profile'
           - 'email'
+          - 'address'
         userinfo_signed_response_alg: 'none'
 ```
 
 ### Application
 
-To configure [immich] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [photoprism] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
-1. Login to [immich] and visit the OAuth Settings.
+1. Login to [photoprism] and visit the OAuth Settings.
 2. On the screen that appears, enter the following information:
     - Issuer URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`.
-    - Client ID: `immich`.
+    - Client ID: `photoprism`.
     - Client Secret: `insecure_secret`.
     - Scope: `openid profile email`.
     - Button Text: `Login with Authelia`.
@@ -63,9 +62,9 @@ To configure [immich] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 ## See Also
 
-- [immich OAuth Authentication Guide](https://immich.app/docs/administration/oauth)
+- [photoprism OAuth Authentication Guide](https://photoprism.app/docs/administration/oauth)
 
-[immich]: https://immich.app/
+[photoprism]: https://photoprism.app/
 [Authelia]: https://www.authelia.com
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
