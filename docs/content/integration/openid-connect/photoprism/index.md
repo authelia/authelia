@@ -22,7 +22,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [photoprism] which will
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [PhotoPrism] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -48,23 +48,22 @@ identity_providers:
 
 ### Application
 
-To configure [photoprism] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [PhotoPrism] to utilize Authelia as an [OpenID Connect 1.0] Provider, specify the below environment variables:
 
-1. Login to [photoprism] and visit the OAuth Settings.
-2. On the screen that appears, enter the following information:
-    - Issuer URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`.
-    - Client ID: `photoprism`.
-    - Client Secret: `insecure_secret`.
-    - Scope: `openid profile email`.
-    - Button Text: `Login with Authelia`.
-    - Auto Register: Enable if desired.
-3. Press `Save` at the bottom
+```yaml
+environment:
+  PHOTOPRISM_OIDC_URI: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
+  PHOTOPRISM_OIDC_CLIENT: photoprism
+  PHOTOPRISM_OIDC_SECRET: insecure_secret
+  PHOTOPRISM_OIDC_PROVIDER: authelia
+  PHOTOPRISM_OIDC_REGISTER: true
+```
 
 ## See Also
 
-- [photoprism OAuth Authentication Guide](https://photoprism.app/docs/administration/oauth)
+- [PhotoPrism Single Sign-On via OpenID Connect](https://docs.photoprism.app/getting-started/advanced/openid-connect/)
 
-[photoprism]: https://photoprism.app/
+[PhotoPrism]: https://photoprism.app/
 [Authelia]: https://www.authelia.com
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
