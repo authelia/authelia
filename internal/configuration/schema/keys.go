@@ -116,6 +116,7 @@ var Keys = []string{
 	"identity_providers.oidc.issuer_private_key",
 	"authentication_backend.password_reset.disable",
 	"authentication_backend.password_reset.custom_url",
+	"authentication_backend.password_change.disable",
 	"authentication_backend.refresh_interval",
 	"authentication_backend.file.path",
 	"authentication_backend.file.watch",
