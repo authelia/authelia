@@ -1,3 +1,25 @@
+---
+title: "PhotoPrism"
+description: "Integrating PhotoPrism with the Authelia OpenID Connect 1.0 Provider."
+summary: ""
+date: 2024-10-08T18:01:47-05:00
+draft: false
+images: []
+weight: 620
+toc: true
+support:
+  level: community
+  versions: true
+  integration: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
+---
+
+## Tested Versions
+
 * [Authelia]
   * [v4.38.16](https://github.com/authelia/authelia/releases/tag/v4.38.16)
 * [PhotoPrism]
