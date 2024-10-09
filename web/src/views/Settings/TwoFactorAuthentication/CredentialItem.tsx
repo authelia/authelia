@@ -31,7 +31,7 @@ const CredentialItem = function (props: Props) {
     const timeSinceLastUsed = useRelativeTime(props.last_used_at || new Date(0));
 
     return (
-        <Paper variant="outlined" id={props.id}>
+        <Paper variant={"outlined"} id={props.id}>
             <Box sx={{ p: 3 }}>
                 <Grid container size={{ xs: 12 }} alignItems={"center"} height={"100%"}>
                     <Grid size={{ xs: 2, sm: 1 }} marginRight={{ xs: 1, md: 2, xl: 3 }}>
@@ -70,14 +70,14 @@ const CredentialItem = function (props: Props) {
                             height={"100%"}
                         >
                             {props.handleInformation ? (
-                                <Grid size={{ xs: 2, sm: 1 }}>
+                                <Grid size={{ xs: 3, lg: 4 }}>
                                     <TooltipElement
                                         tooltip={
                                             props.problem ? props.tooltipInformationProblem : props.tooltipInformation
                                         }
                                     >
                                         <IconButton
-                                            color="primary"
+                                            color={"primary"}
                                             onClick={props.handleInformation}
                                             id={`${props.id}-information`}
                                         >
@@ -87,17 +87,25 @@ const CredentialItem = function (props: Props) {
                                 </Grid>
                             ) : null}
                             {props.handleEdit ? (
-                                <Grid size={{ xs: 2, sm: 1 }}>
+                                <Grid size={{ xs: 3, lg: 4 }}>
                                     <TooltipElement tooltip={props.tooltipEdit}>
-                                        <IconButton color="primary" onClick={props.handleEdit} id={`${props.id}-edit`}>
+                                        <IconButton
+                                            color={"primary"}
+                                            onClick={props.handleEdit}
+                                            id={`${props.id}-edit`}
+                                        >
                                             <Edit />
                                         </IconButton>
                                     </TooltipElement>
                                 </Grid>
                             ) : null}
-                            <Grid size={{ xs: 2, sm: 1 }}>
+                            <Grid size={{ xs: 3, lg: 4 }}>
                                 <Tooltip title={props.tooltipDelete}>
-                                    <IconButton color="primary" onClick={props.handleDelete} id={`${props.id}-delete`}>
+                                    <IconButton
+                                        color={"primary"}
+                                        onClick={props.handleDelete}
+                                        id={`${props.id}-delete`}
+                                    >
                                         <Delete />
                                     </IconButton>
                                 </Tooltip>
