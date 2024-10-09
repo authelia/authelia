@@ -7,5 +7,5 @@ services:
       - './OIDCTraefik/configuration.yml:/config/configuration.yml'
       - './OIDCTraefik/users.yml:/config/users.yml'
       - './common/pki:/pki'
-      - './common/pki/public.crt:/pki/public/public.crt'
+      - './common/pki/public.crt:/certs/public.crt'
 ...

@@ -3,7 +3,7 @@
 #                Authelia minimal configuration               #
 ###############################################################
 
-certificates_directory: /pki/public/
+certificates_directory: /certs/
 theme: auto
 
 server:

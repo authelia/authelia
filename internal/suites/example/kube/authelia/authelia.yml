@@ -36,7 +36,7 @@ spec:
               mountPath: /pki
               readOnly: true
             - name: authelia-ssl-public
-              mountPath: /pki/public/public.crt
+              mountPath: /certs/public.crt
               readOnly: true
             - name: authelia-coverage
               mountPath: /authelia/coverage

@@ -180,11 +180,7 @@ func doGetLastEmailMessageWithSubject(t *testing.T, subject string) (message Ema
 	messages := doGetEmailMessages(t)
 
 	for i := len(messages) - 1; i >= 0; i-- {
-		if subject == messages[i].Subject {
-			if messages[i].Read {
-				continue
-			}
-
+		if subject == messages[i].Subject && !messages[i].Read {
 			return messages[i]
 		}
 	}
