@@ -21,6 +21,11 @@ identity_validation:
 authentication_backend:
   ldap:
     address: 'ldap://sambaldap'
+    pooling:
+      enable: true
+      count: 4
+      retries: 3
+      timeout: 10s
     implementation: 'activedirectory'
     tls:
       skip_verify: true

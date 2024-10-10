@@ -17,6 +17,11 @@ log:
 authentication_backend:
   ldap:
     address: 'ldaps://openldap'
+    pooling:
+      enable: true
+      count: 4
+      retries: 3
+      timeout: 10s
     tls:
       skip_verify: true
     base_dn: dc=example,dc=com
