@@ -2,7 +2,7 @@
 title: "Matomo"
 description: "Integrating Matomo with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2024-10-05T13:42:47+02:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 weight: 620
@@ -93,7 +93,7 @@ To configure [Matomo] to utilize [Authelia] as an [OpenID Connect 1.0] Provider:
 
 ## See Also
 
-- [Matomo LoginOIDC FAQ](https://plugins.matomo.org/LoginOIDC/#faq)
+- [Matomo Login OIDC FAQ](https://plugins.matomo.org/LoginOIDC/#faq)
 
 [Matomo]: https://matomo.org/
 [Authelia]: https://www.authelia.com
