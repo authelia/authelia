@@ -1,9 +1,9 @@
 package logging
 
 import (
+	"fmt"
 	"io"
 	"os"
-	"time"
 
 	logrus_stack "github.com/Gurpartap/logrus-stack"
 	"github.com/sirupsen/logrus"
@@ -59,9 +59,9 @@ func ConfigureLogger(config schema.Log, log bool) (err error) {
 
 	switch {
 	case config.FilePath != "":
-		var file *os.File
+		lf = NewFile(config.FilePath)
 
-		if file, err = os.OpenFile(FormatFilePath(config.FilePath, time.Now()), os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600); err != nil {
+		if err = lf.Open(); err != nil {
 			return err
 		}
 
@@ -72,7 +72,7 @@ func ConfigureLogger(config schema.Log, log bool) (err error) {
 			})
 		}
 
-		writers = []io.Writer{file}
+		writers = []io.Writer{lf}
 
 		if config.KeepStdout {
 			writers = append(writers, os.Stdout)
@@ -84,6 +84,15 @@ func ConfigureLogger(config schema.Log, log bool) (err error) {
 	logrus.SetOutput(io.MultiWriter(writers...))
 
 	return nil
+}
+
+// Reopen handles safely reopening the log file.
+func Reopen() (err error) {
+	if lf == nil {
+		return fmt.Errorf("error reopening log file: file is not configured or open")
+	}
+
+	return lf.Reopen()
 }
 
 func setLevelStr(level string, log bool) {
