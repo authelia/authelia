@@ -18,6 +18,9 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/server"
 )
 
@@ -81,6 +84,24 @@ func NewFileWatcherService(name, path string, reload ProviderReload, log *logrus
 	}
 
 	return service, nil
+}
+
+// NewSignalService creates a new SignalService with the appropriate logger etc.
+func NewSignalService(name string, action func() (err error), log *logrus.Logger, signals ...os.Signal) (service *SignalService) {
+	return &SignalService{
+		name:    name,
+		signals: signals,
+		action:  action,
+		log:     log.WithFields(map[string]any{logFieldService: serviceTypeSignal, serviceTypeSignal: name}),
+	}
+}
+
+type ServiceCtx interface {
+	GetLogger() *logrus.Logger
+	GetProviders() middlewares.Providers
+	GetConfiguration() *schema.Configuration
+
+	context.Context
 }
 
 // ProviderReload represents the required methods to support reloading a provider.
@@ -246,44 +267,111 @@ func (service *FileWatcherService) Log() *logrus.Entry {
 	return service.log
 }
 
-func svcSvrMainFunc(ctx *CmdCtx) (service Service) {
-	switch svr, listener, paths, isTLS, err := server.CreateDefaultServer(ctx.config, ctx.providers); {
+// SignalService is a Service which performs actions on signals.
+type SignalService struct {
+	name    string
+	signals []os.Signal
+	action  func() (err error)
+	log     *logrus.Entry
+
+	notify chan os.Signal
+	quit   chan struct{}
+}
+
+// ServiceType returns the service type for this service, which is always 'server'.
+func (service *SignalService) ServiceType() string {
+	return serviceTypeSignal
+}
+
+// ServiceName returns the individual name for this service.
+func (service *SignalService) ServiceName() string {
+	return service.name
+}
+
+// Run the ServerService.
+func (service *SignalService) Run() (err error) {
+	service.quit = make(chan struct{})
+
+	service.notify = make(chan os.Signal, 1)
+
+	signal.Notify(service.notify, service.signals...)
+
+	for {
+		select {
+		case s := <-service.notify:
+			if err = service.action(); err != nil {
+				service.log.WithError(err).Error("Error occurred executing service action.")
+			} else {
+				service.log.WithFields(map[string]any{"signal-received": s.String()}).Debug("Successfully executed service action.")
+			}
+		case <-service.quit:
+			return
+		}
+	}
+}
+
+// Shutdown the ServerService.
+func (service *SignalService) Shutdown() {
+	signal.Stop(service.notify)
+
+	service.quit <- struct{}{}
+}
+
+// Log returns the *logrus.Entry of the ServerService.
+func (service *SignalService) Log() *logrus.Entry {
+	return service.log
+}
+
+func svcSvrMainFunc(ctx ServiceCtx) (service Service) {
+	switch svr, listener, paths, isTLS, err := server.CreateDefaultServer(ctx.GetConfiguration(), ctx.GetProviders()); {
 	case err != nil:
-		ctx.log.WithError(err).Fatal("Create Server Service (main) returned error")
+		ctx.GetLogger().WithError(err).Fatal("Create Server Service (main) returned error")
 	case svr != nil && listener != nil:
-		service = NewServerService("main", svr, listener, paths, isTLS, ctx.log)
+		service = NewServerService("main", svr, listener, paths, isTLS, ctx.GetLogger())
 	default:
-		ctx.log.Fatal("Create Server Service (main) failed")
+		ctx.GetLogger().Fatal("Create Server Service (main) failed")
 	}
 
 	return service
 }
 
-func svcSvrMetricsFunc(ctx *CmdCtx) (service Service) {
-	switch svr, listener, paths, isTLS, err := server.CreateMetricsServer(ctx.config, ctx.providers); {
+func svcSvrMetricsFunc(ctx ServiceCtx) (service Service) {
+	switch svr, listener, paths, isTLS, err := server.CreateMetricsServer(ctx.GetConfiguration(), ctx.GetProviders()); {
 	case err != nil:
-		ctx.log.WithError(err).Fatal("Create Server Service (metrics) returned error")
+		ctx.GetLogger().WithError(err).Fatal("Create Server Service (metrics) returned error")
 	case svr != nil && listener != nil:
-		service = NewServerService("metrics", svr, listener, paths, isTLS, ctx.log)
+		service = NewServerService("metrics", svr, listener, paths, isTLS, ctx.GetLogger())
 	default:
-		ctx.log.Debug("Create Server Service (metrics) skipped")
+		ctx.GetLogger().Debug("Create Server Service (metrics) skipped")
 	}
 
 	return service
 }
 
-func svcWatcherUsersFunc(ctx *CmdCtx) (service Service) {
+func svcWatcherUsersFunc(ctx ServiceCtx) (service Service) {
 	var err error
 
-	if ctx.config.AuthenticationBackend.File != nil && ctx.config.AuthenticationBackend.File.Watch {
-		provider := ctx.providers.UserProvider.(*authentication.FileUserProvider)
+	config := ctx.GetConfiguration()
 
-		if service, err = NewFileWatcherService("users", ctx.config.AuthenticationBackend.File.Path, provider, ctx.log); err != nil {
-			ctx.log.WithError(err).Fatal("Create Watcher Service (users) returned error")
+	if config.AuthenticationBackend.File != nil && config.AuthenticationBackend.File.Watch {
+		provider := ctx.GetProviders().UserProvider.(*authentication.FileUserProvider)
+
+		if service, err = NewFileWatcherService("users", config.AuthenticationBackend.File.Path, provider, ctx.GetLogger()); err != nil {
+			ctx.GetLogger().WithError(err).Fatal("Create Watcher Service (users) returned error")
 		}
 	}
 
 	return service
+}
+
+func svcSignalLogReOpenFunc(ctx ServiceCtx) (service Service) {
+	config := ctx.GetConfiguration()
+
+	if config.Log.FilePath == "" {
+		return nil
+	}
+
+	return NewSignalService("log-reload", logging.Reopen, ctx.GetLogger(), syscall.SIGHUP)
 }
 
 func connectionType(isTLS bool) string {
@@ -294,7 +382,7 @@ func connectionType(isTLS bool) string {
 	return "non-TLS"
 }
 
-func servicesRun(ctx *CmdCtx) {
+func servicesRun(ctx ServiceCtx) {
 	cctx, cancel := context.WithCancel(ctx)
 
 	group, cctx := errgroup.WithContext(cctx)
@@ -311,9 +399,9 @@ func servicesRun(ctx *CmdCtx) {
 		services []Service
 	)
 
-	for _, serviceFunc := range []func(ctx *CmdCtx) Service{
+	for _, serviceFunc := range []func(ctx ServiceCtx) Service{
 		svcSvrMainFunc, svcSvrMetricsFunc,
-		svcWatcherUsersFunc,
+		svcWatcherUsersFunc, svcSignalLogReOpenFunc,
 	} {
 		if service := serviceFunc(ctx); service != nil {
 			service.Log().Trace("Service Loaded")
@@ -324,22 +412,22 @@ func servicesRun(ctx *CmdCtx) {
 		}
 	}
 
-	ctx.log.Info("Startup complete")
+	ctx.GetLogger().Info("Startup complete")
 
 	select {
 	case s := <-quit:
-		ctx.log.WithField("signal", s.String()).Debug("Shutdown initiated due to process signal")
+		ctx.GetLogger().WithField("signal", s.String()).Debug("Shutdown initiated due to process signal")
 	case <-cctx.Done():
-		ctx.log.Debug("Shutdown initiated due to context completion")
+		ctx.GetLogger().Debug("Shutdown initiated due to context completion")
 	}
 
 	cancel()
 
-	ctx.log.Info("Shutdown initiated")
+	ctx.GetLogger().Info("Shutdown initiated")
 
 	wgShutdown := &sync.WaitGroup{}
 
-	ctx.log.Tracef("Shutdown of %d services is required", len(services))
+	ctx.GetLogger().Tracef("Shutdown of %d services is required", len(services))
 
 	for _, service := range services {
 		wgShutdown.Add(1)
@@ -359,13 +447,13 @@ func servicesRun(ctx *CmdCtx) {
 
 	var err error
 
-	if err = ctx.providers.StorageProvider.Close(); err != nil {
-		ctx.log.WithError(err).Error("Error occurred closing database connections")
+	if err = ctx.GetProviders().StorageProvider.Close(); err != nil {
+		ctx.GetLogger().WithError(err).Error("Error occurred closing database connections")
 	}
 
 	if err = group.Wait(); err != nil {
-		ctx.log.WithError(err).Error("Error occurred waiting for shutdown")
+		ctx.GetLogger().WithError(err).Error("Error occurred waiting for shutdown")
 	}
 
-	ctx.log.Info("Shutdown complete")
+	ctx.GetLogger().Info("Shutdown complete")
 }
