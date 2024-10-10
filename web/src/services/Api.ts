@@ -23,8 +23,12 @@ export const CompleteDuoDeviceSelectionPath = basePath + "/api/secondfactor/duo_
 export const CompletePushNotificationSignInPath = basePath + "/api/secondfactor/duo";
 export const CompleteTOTPSignInPath = basePath + "/api/secondfactor/totp";
 
-export const InitiateResetPasswordPath = basePath + "/api/reset-password/identity/start";
-export const CompleteResetPasswordPath = basePath + "/api/reset-password/identity/finish";
+export const InitiateResetPasswordIdentityVerificationPath = basePath + "/api/reset-password/identity/start";
+export const IdentityVerification = basePath + "/api/reset-password/identity/finish";
+
+export const ChangePasswordPath = basePath + "/api/change-password";
+export const InitiateChangePasswordIdentityVerificationPath = basePath + "/api/change-password";
+export const CompleteChangePasswordIdentityVerificationPath = basePath + "/api/change-password";
 
 // Do the password reset during completion.
 export const ResetPasswordPath = basePath + "/api/reset-password";
