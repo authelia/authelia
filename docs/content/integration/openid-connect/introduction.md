@@ -220,9 +220,7 @@ option.
 |       [Hybrid Flow]       | `code id_token token` |             `form_post`, `fragment`              |
 
 [Authorization Code Flow]: https://openid.net/specs/openid-connect-core-1_0.html#CodeFlowAuth
-
 [Implicit Flow]: https://openid.net/specs/openid-connect-core-1_0.html#ImplicitFlowAuth
-
 [Hybrid Flow]: https://openid.net/specs/openid-connect-core-1_0.html#HybridFlowAuth
 
 [OAuth 2.0 Multiple Response Type Encoding Practices]: https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html
@@ -246,13 +244,9 @@ configuration option.
 |   [Fragment (JARM)]   |    Yes    | `fragment.jwt`  |
 
 [OAuth 2.0 Form Post]: https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html
-
 [Form Post (JARM)]: https://openid.net/specs/openid-financial-api-jarm.html#response-mode-form_post.jwt
-
 [Query String (JARM)]: https://openid.net/specs/openid-financial-api-jarm.html#response-mode-query.jwt
-
 [Fragment (JARM)]: https://openid.net/specs/openid-financial-api-jarm.html#response-mode-fragment.jwt
-
 [JARM]: https://openid.net/specs/openid-financial-api-jarm.html#response-mode-jwt
 
 ### Grant Types
@@ -271,15 +265,10 @@ field is both the required value for the `grant_type` parameter in the access / 
 |             [OAuth 2.0 Device Code]             |    No     | `urn:ietf:params:oauth:grant-type:device_code` |                                                                                                                       |
 
 [OAuth 2.0 Authorization Code]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.1
-
 [OAuth 2.0 Implicit]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.2
-
 [OAuth 2.0 Resource Owner Password Credentials]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.3
-
 [OAuth 2.0 Client Credentials]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.4
-
 [OAuth 2.0 Refresh Token]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.5
-
 [OAuth 2.0 Device Code]: https://datatracker.ietf.org/doc/html/rfc8628#section-3.4
 
 ### Client Authentication Method
@@ -439,8 +428,8 @@ Essentially it's a special endpoint that takes the same parameters as the [Autho
 
 The response of this endpoint is [JSON] encoded with two key-value pairs:
 
-- `request_uri`
-- `expires_in`
+  - `request_uri`
+  - `expires_in`
 
 The `expires_in` indicates how long the `request_uri` is valid for. The `request_uri` is used as a parameter to the
 [Authorization Endpoint] instead of the standard parameters (as the `request_uri` parameter).
