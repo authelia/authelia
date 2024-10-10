@@ -4,7 +4,7 @@ description: "An introduction into integrating the Authelia OpenID Connect 1.0 P
 summary: "An introduction into integrating the Authelia OpenID Connect 1.0 Provider with an OpenID Connect 1.0 Relying Party."
 date: 2022-06-15T17:51:47+10:00
 draft: false
-images: []
+images: [ ]
 weight: 610
 toc: true
 aliases:
@@ -64,13 +64,17 @@ This is the default scope for [OpenID Connect 1.0]. This field is forced on ever
 that Authelia does.
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-The combination of the issuer (i.e. `iss`) [Claim] and subject (i.e. `sub`) [Claim] are utilized to uniquely identify a
+The combination of the issuer (i.e. `iss`) [Claim]( https://openid.net/specs/openid-connect-core-1_0.html#Claims) and
+subject (i.e. `sub`) [Claim]( https://openid.net/specs/openid-connect-core-1_0.html#Claims) are utilized to uniquely
+identify a
 user and per the specification the only reliable way to do so as they are guaranteed to be a unique combination. As such
 this is the supported method for linking an account to Authelia. The `preferred_username` and `email` claims from the
 `profile` and `email` scopes respectively should only be utilized for provisioning a new account.
 
-In addition, the `sub` [Claim] utilizes a [RFC4122] UUID V4 to identify the individual user as per the
-[Subject Identifier Types] section of the [OpenID Connect 1.0] specification.
+In addition, the `sub` [Claim]( https://openid.net/specs/openid-connect-core-1_0.html#Claims) utilizes
+a [RFC4122](https://datatracker.ietf.org/doc/html/rfc4122) UUID V4 to identify the individual user as per the
+[Subject Identifier Types](https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes) section of
+the [OpenID Connect 1.0](https://openid.net/connect/) specification.
 {{< /callout >}}
 
 |  [Claim]  |   JWT Type    | Authelia Attribute |                         Description                         |
@@ -216,7 +220,9 @@ option.
 |       [Hybrid Flow]       | `code id_token token` |             `form_post`, `fragment`              |
 
 [Authorization Code Flow]: https://openid.net/specs/openid-connect-core-1_0.html#CodeFlowAuth
+
 [Implicit Flow]: https://openid.net/specs/openid-connect-core-1_0.html#ImplicitFlowAuth
+
 [Hybrid Flow]: https://openid.net/specs/openid-connect-core-1_0.html#HybridFlowAuth
 
 [OAuth 2.0 Multiple Response Type Encoding Practices]: https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html
@@ -240,9 +246,13 @@ configuration option.
 |   [Fragment (JARM)]   |    Yes    | `fragment.jwt`  |
 
 [OAuth 2.0 Form Post]: https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html
+
 [Form Post (JARM)]: https://openid.net/specs/openid-financial-api-jarm.html#response-mode-form_post.jwt
+
 [Query String (JARM)]: https://openid.net/specs/openid-financial-api-jarm.html#response-mode-query.jwt
+
 [Fragment (JARM)]: https://openid.net/specs/openid-financial-api-jarm.html#response-mode-fragment.jwt
+
 [JARM]: https://openid.net/specs/openid-financial-api-jarm.html#response-mode-jwt
 
 ### Grant Types
@@ -261,10 +271,15 @@ field is both the required value for the `grant_type` parameter in the access / 
 |             [OAuth 2.0 Device Code]             |    No     | `urn:ietf:params:oauth:grant-type:device_code` |                                                                                                                       |
 
 [OAuth 2.0 Authorization Code]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.1
+
 [OAuth 2.0 Implicit]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.2
+
 [OAuth 2.0 Resource Owner Password Credentials]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.3
+
 [OAuth 2.0 Client Credentials]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.4
+
 [OAuth 2.0 Refresh Token]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.5
+
 [OAuth 2.0 Device Code]: https://datatracker.ietf.org/doc/html/rfc8628#section-3.4
 
 ### Client Authentication Method
@@ -286,7 +301,9 @@ client configuration option.
 |            No Authentication             |            `none`             |       N/A       |        `public`        |        `public`         |                           N/A                            |
 
 [OpenID Connect 1.0 Client Authentication]: https://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication
+
 [OAuth 2.0 Mutual-TLS]: https://datatracker.ietf.org/doc/html/rfc8705
+
 [OAuth 2.0 - Client Types]: https://datatracker.ietf.org/doc/html/rfc8705#section-2.1
 
 #### Client Assertion Audience
@@ -295,7 +312,8 @@ The client authentication methods which use the JWT Bearer Client Assertions suc
 `private_key_jwt` **require** that the JWT contains an audience (i.e. the `aud` claim) which exactly matches the
 full URL for the [token endpoint](#endpoint-implementations) and it **must** be lowercase.
 
-Per the [RFC7523 Section 3: JWT Format and Processing Requirements](https://datatracker.ietf.org/doc/html/rfc7523#section-3)
+Per
+the [RFC7523 Section 3: JWT Format and Processing Requirements](https://datatracker.ietf.org/doc/html/rfc7523#section-3)
 this claim must be compared using [RFC3987 Section 6.2.1: Simple String Comparison] and to assist with making this
 predictable for implementers we ensure the comparison is done against the lowercase form of this URL.
 
@@ -304,7 +322,8 @@ predictable for implementers we ensure the comparison is done against the lowerc
 Authelia currently supports adding the `amr` [Claim] to the [ID Token] utilizing the [RFC8176] Authentication Method
 Reference values.
 
-The values this [Claim] has, are not strictly defined by the [OpenID Connect 1.0] specification. As such, some backends may
+The values this [Claim] has, are not strictly defined by the [OpenID Connect 1.0] specification. As such, some backends
+may
 expect a specification other than [RFC8176] for this purpose. If you have such an application and wish for us to support
 it then you're encouraged to create a [feature request](https://www.authelia.com/l/fr).
 
@@ -365,7 +384,8 @@ The following table describes the response from the [UserInfo Endpoint] dependin
 ## Endpoint Implementations
 
 The following section documents the endpoints we implement and their respective paths. This information can
-traditionally be discovered by Relying Parties that utilize [OpenID Connect Discovery 1.0], however this information may be
+traditionally be discovered by Relying Parties that utilize [OpenID Connect Discovery 1.0], however this information may
+be
 useful for clients which do not implement this.
 
 The endpoints can be discovered easily by visiting the Discovery and Metadata endpoints. It is recommended regardless
@@ -375,7 +395,8 @@ below.
 
 These tables document the endpoints we currently support and their paths in the most recent version of Authelia. The
 paths are appended to the end of the primary URL used to access Authelia. The tables use the url
-https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}} as an example of the Authelia root URL which is also the OpenID Connect 1.0 Issuer.
+https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}} as an
+example of the Authelia root URL which is also the OpenID Connect 1.0 Issuer.
 
 ### Well Known Discovery Endpoints
 
@@ -422,8 +443,8 @@ Essentially it's a special endpoint that takes the same parameters as the [Autho
 
 The response of this endpoint is [JSON] encoded with two key-value pairs:
 
-  - `request_uri`
-  - `expires_in`
+- `request_uri`
+- `expires_in`
 
 The `expires_in` indicates how long the `request_uri` is valid for. The `request_uri` is used as a parameter to the
 [Authorization Endpoint] instead of the standard parameters (as the `request_uri` parameter).
@@ -435,10 +456,11 @@ The advantages of this approach are as follows:
    improve the authorization flows resistance to phishing attacks (this can be done globally or on a per-client basis).
 3. Since the [Pushed Authorization Requests] endpoint requires all of the same [Client Authentication] mechanisms as the
    [Token Endpoint]:
-   1. Clients using the confidential [Client Type] can't have [Pushed Authorization Requests] generated by parties who do not
-      have the credentials.
-   2. Clients using the public [Client Type] and utilizing [Proof Key Code Exchange](#proof-key-code-exchange) never
-      transmit the verifier over any front-channel making even the `plain` challenge method relatively secure.
+  1. Clients using the confidential [Client Type] can't have [Pushed Authorization Requests] generated by parties who do
+     not
+     have the credentials.
+  2. Clients using the public [Client Type] and utilizing [Proof Key Code Exchange](#proof-key-code-exchange) never
+     transmit the verifier over any front-channel making even the `plain` challenge method relatively secure.
 
 #### OAuth 2.0 Authorization Server Issuer Identification
 
@@ -477,50 +499,77 @@ The advantages of this approach are as follows:
 2. Even when using the public [Client Type] there is a form of authentication on the  [Token Endpoint].
 
 [ID Token]: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
+
 [Access Token]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.4
+
 [Refresh Token]: https://openid.net/specs/openid-connect-core-1_0.html#RefreshTokens
 
 [Claims]: https://openid.net/specs/openid-connect-core-1_0.html#Claims
+
 [Claim]: https://openid.net/specs/openid-connect-core-1_0.html#Claims
 
 [OAuth 2.0]: https://oauth.net/2/
+
 [OpenID Connect 1.0]: https://openid.net/connect/
 
 [OpenID Connect Discovery 1.0]: https://openid.net/specs/openid-connect-discovery-1_0.html
+
 [OAuth 2.0 Authorization Server Metadata]: https://datatracker.ietf.org/doc/html/rfc8414
 
 [JSON]: https://datatracker.ietf.org/doc/html/rfc8259
+
 [JSON Web Token]: https://datatracker.ietf.org/doc/html/rfc7519
+
 [JSON Web Key Set]: https://datatracker.ietf.org/doc/html/rfc7517#section-5
 
 [Offline Access]: https://openid.net/specs/openid-connect-core-1_0.html#OfflineAccess
 
 [Authorization]: https://openid.net/specs/openid-connect-core-1_0.html#AuthorizationEndpoint
+
 [Authorization Endpoint]: https://openid.net/specs/openid-connect-core-1_0.html#AuthorizationEndpoint
+
 [Token]: https://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
+
 [Token Endpoint]: https://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
+
 [UserInfo]: https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
+
 [UserInfo Endpoint]: https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
 
 [Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
+
 [Introspection]: https://datatracker.ietf.org/doc/html/rfc7662
+
 [Revocation]: https://datatracker.ietf.org/doc/html/rfc7009
+
 [Proof Key Code Exchange]: https://www.rfc-editor.org/rfc/rfc7636.html
 
 [Subject Identifier Types]: https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes
+
 [Client Authentication]: https://datatracker.ietf.org/doc/html/rfc6749#section-2.3
+
 [Client Type]: https://oauth.net/2/client-types/
+
 [HTTP POST method]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST
+
 [Proof Key Code Exchange]: #proof-key-code-exchange
 
 [RFC4122]: https://datatracker.ietf.org/doc/html/rfc4122
+
 [RFC7636]: https://datatracker.ietf.org/doc/html/rfc7636
+
 [RFC8176]: https://datatracker.ietf.org/doc/html/rfc8176
+
 [RFC9126]: https://datatracker.ietf.org/doc/html/rfc9126
+
 [RFC7519]: https://datatracker.ietf.org/doc/html/rfc7519
+
 [RFC9068]: https://datatracker.ietf.org/doc/html/rfc9068
 
 [JWT Profile for OAuth 2.0 Access Tokens]: https://oauth.net/2/jwt-access-tokens/
+
 [RFC3987 Section 6.2.1: Simple String Comparison]: https://datatracker.ietf.org/doc/html/rfc3986#section-6.2.1
+
 [JWT Secured Authorization Response Mode for OAuth 2.0 (JARM)]: https://openid.net/specs/oauth-v2-jarm.html
+
 [RFC9207: OAuth 2.0 Authorization Server Issuer Identification]: https://datatracker.ietf.org/doc/html/rfc9207
