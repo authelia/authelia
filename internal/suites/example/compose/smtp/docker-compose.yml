@@ -16,6 +16,8 @@ services:
       - 'traefik.http.routers.mail.entrypoints=https'
       - 'traefik.http.routers.mail.tls=true'
       - 'traefik.http.services.mail.loadbalancer.server.port=8025'
+    healthcheck:
+      disable: true
     networks:
       authelianet:
         aliases:
