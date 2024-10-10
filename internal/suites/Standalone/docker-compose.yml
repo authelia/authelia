@@ -8,6 +8,7 @@ services:
       - './Standalone/configuration.yml:/config/configuration.yml'
       - './Standalone/users.yml:/config/users.yml'
       - './common/pki:/pki'
+      - './common/pki/public.crt:/certs/public.crt'
       - '/tmp:/tmp'
     user: ${USER_ID}:${GROUP_ID}
 ...

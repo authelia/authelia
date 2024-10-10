@@ -1,5 +1,9 @@
 #!/bin/sh
 
-set -x
+PNPM_MODULE="./node_modules/.modules.yaml"
 
-pnpm install --force --frozen-lockfile && pnpm start
+if [[ -f "${PNPM_MODULE}" ]]; then
+  rm "${PNPM_MODULE}"
+fi
+
+pnpm install --frozen-lockfile && pnpm start

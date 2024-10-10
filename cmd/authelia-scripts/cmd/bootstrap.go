@@ -175,13 +175,17 @@ func createTemporaryDirectory() {
 }
 
 func createPNPMDirectory() {
-	home := os.Getenv("HOME")
-	if home != "" {
-		bootstrapPrintln("Creating ", home+pathPNPMStore)
-		err := os.MkdirAll(home+pathPNPMStore, 0755)
+	if _, ok := os.LookupEnv("PNPM_HOME"); !ok {
+		home := os.Getenv("HOME")
+		if home != "" {
+			if _, err := os.Stat(home + pathPNPMStore); os.IsNotExist(err) {
+				bootstrapPrintln("Creating ", home+pathPNPMStore)
 
-		if err != nil {
-			panic(err)
+				err = os.MkdirAll(home+pathPNPMStore, 0755)
+				if err != nil {
+					panic(err)
+				}
+			}
 		}
 	}
 }
@@ -194,7 +198,13 @@ func pnpmInstall() {
 		panic(err)
 	}
 
-	shell(fmt.Sprintf("cd %s/web && pnpm install --force", cwd))
+	if _, err = os.Stat(cwd + pathPNPMModule); err == nil {
+		if err = os.Remove(cwd + pathPNPMModule); err != nil {
+			panic(err)
+		}
+	}
+
+	shell(fmt.Sprintf("cd %s/web && pnpm install", cwd))
 }
 
 func bootstrapPrintln(args ...any) {

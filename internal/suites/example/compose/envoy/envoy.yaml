@@ -209,7 +209,7 @@ static_resources:
                   address:
                     socket_address:
                       address: 'smtp'
-                      port_value: 1080
+                      port_value: 8025
     - name: 'httpbin'
       connect_timeout: '0.25s'
       type: 'logical_dns'

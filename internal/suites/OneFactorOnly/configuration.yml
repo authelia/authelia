@@ -3,6 +3,8 @@
 #                Authelia minimal configuration               #
 ###############################################################
 
+certificates_directory: /certs/
+
 identity_validation:
   reset_password:
     jwt_secret: 'a_very_important_secret'

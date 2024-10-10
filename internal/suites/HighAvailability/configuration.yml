@@ -3,6 +3,8 @@
 #                   Authelia configuration                    #
 ###############################################################
 
+certificates_directory: /certs/
+
 identity_validation:
   reset_password:
     jwt_secret: 'a_very_important_secret'
@@ -128,7 +130,6 @@ storage:
 
 notifier:
   smtp:
-    address: 'smtp://smtp:1025'
-    sender: admin@example.com
-    disable_require_tls: true
+    address: 'smtp://mail.example.com:1025'
+    sender: 'admin@example.com'
 ...

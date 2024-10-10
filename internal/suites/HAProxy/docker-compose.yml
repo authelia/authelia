@@ -5,4 +5,5 @@ services:
       - './HAProxy/configuration.yml:/config/configuration.yml'
       - './HAProxy/users.yml:/config/users.yml'
       - './common/pki:/pki'
+      - './common/pki/public.crt:/certs/public.crt'
 ...

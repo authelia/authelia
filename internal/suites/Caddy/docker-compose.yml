@@ -5,4 +5,5 @@ services:
       - './Caddy/configuration.yml:/config/configuration.yml'
       - './Caddy/users.yml:/config/users.yml'
       - './common/pki:/pki'
+      - './common/pki/public.crt:/certs/public.crt'
 ...

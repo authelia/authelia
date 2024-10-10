@@ -2,6 +2,9 @@
 ###############################################################
 #                Authelia minimal configuration               #
 ###############################################################
+
+certificates_directory: /certs/
+
 server:
   address: 'tcp://:9091'
   tls:

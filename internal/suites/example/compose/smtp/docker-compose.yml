@@ -1,17 +1,25 @@
 ---
 services:
   smtp:
-    image: schickling/mailcatcher
-    ports:
-      - '1025:1025'
+    image: axllent/mailpit
+    volumes:
+      - ./common/pki:/pki
+    environment:
+      - 'MP_SMTP_TLS_CERT=/pki/public.crt'
+      - 'MP_SMTP_TLS_KEY=/pki/private.pem'
+      - 'MP_SMTP_AUTH_ACCEPT_ANY=1'
     labels:
       - 'traefik.frontend.rule=Host:mail.example.com'
-      - 'traefik.port=1080'
+      - 'traefik.port=8025'
       - 'traefik.enable=true'
       - 'traefik.http.routers.mail.rule=Host(`mail.example.com`)'
       - 'traefik.http.routers.mail.entrypoints=https'
       - 'traefik.http.routers.mail.tls=true'
-      - 'traefik.http.services.mail.loadbalancer.server.port=1080'
+      - 'traefik.http.services.mail.loadbalancer.server.port=8025'
+    healthcheck:
+      disable: true
     networks:
-      - authelianet
+      authelianet:
+        aliases:
+          - 'mail.example.com'
 ...

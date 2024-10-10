@@ -3,6 +3,8 @@
 #                   Authelia configuration                    #
 ###############################################################
 
+certificates_directory: /certs/
+
 server:
   address: 'tcp://:443'
   tls:
@@ -75,7 +77,11 @@ storage:
 
 notifier:
   smtp:
-    address: 'smtp://mailcatcher-service:1025'
+    address: 'smtp://mailpit-service:1025'
+    username: 'authelia'
+    password: 'mailer'
     sender: 'admin@example.com'
-    disable_require_tls: true
+
+    tls:
+      server_name: 'mail.example.com'
 ...
