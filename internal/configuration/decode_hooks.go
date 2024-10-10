@@ -16,6 +16,7 @@ import (
 
 	"github.com/go-crypt/crypt/algorithm/plaintext"
 	"github.com/go-viper/mapstructure/v2"
+	"github.com/google/uuid"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -748,5 +749,53 @@ func StringToPasswordDigestHookFunc() mapstructure.DecodeHookFuncType {
 		}
 
 		return *result, nil
+	}
+}
+
+// StringToUUIDHookFunc decodes a string into a uuid.UUID.
+func StringToUUIDHookFunc() mapstructure.DecodeHookFuncType {
+	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
+		var ptr bool
+
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+
+		prefixType := ""
+
+		if t.Kind() == reflect.Ptr {
+			ptr = true
+			prefixType = "*"
+		}
+
+		expectedType := reflect.TypeOf(uuid.UUID{})
+
+		if ptr && t.Elem() != expectedType {
+			return data, nil
+		} else if !ptr && t != expectedType {
+			return data, nil
+		}
+
+		dataStr := data.(string)
+
+		var result uuid.UUID
+
+		if dataStr == "" {
+			if ptr {
+				return (*uuid.UUID)(nil), nil
+			} else {
+				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseEmptyValue, prefixType, expectedType.String(), errDecodeNonPtrMustHaveValue)
+			}
+		}
+
+		if result, err = uuid.Parse(dataStr); err != nil {
+			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType.String(), err)
+		}
+
+		if ptr {
+			return &result, nil
+		}
+
+		return result, nil
 	}
 }

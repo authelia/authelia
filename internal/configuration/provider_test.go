@@ -16,6 +16,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -139,6 +140,17 @@ func TestShouldValidateConfigurationWithEnv(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, val.Errors(), 0)
 	assert.Len(t, val.Warnings(), 0)
+}
+
+func TestShouldValidateConfigurationWithOverridenDefaults(t *testing.T) {
+	val := schema.NewStructValidator()
+	_, config, err := Load(val, NewDefaultSourcesWithDefaults([]string{"./test_resources/config.webauthn.yml"}, NewFileFiltersDefault(), DefaultEnvPrefix, DefaultEnvDelimiter, nil)...)
+
+	require.NoError(t, err)
+
+	assert.Equal(t, protocol.ResidentKeyRequirement(""), config.WebAuthn.SelectionCriteria.Discoverability)
+	assert.Equal(t, protocol.AuthenticatorAttachment(""), config.WebAuthn.SelectionCriteria.Attachment)
+	assert.Equal(t, protocol.UserVerificationRequirement(""), config.WebAuthn.SelectionCriteria.UserVerification)
 }
 
 func TestShouldValidateConfigurationWithFilters(t *testing.T) {
