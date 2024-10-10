@@ -88,6 +88,7 @@ AUTH_OIDC_CLIENT_ID=homarr
 AUTH_OIDC_CLIENT_NAME=Authelia
 AUTH_OIDC_ADMIN_GROUP=homarr-admins
 AUTH_OIDC_OWNER_GROUP=homarr-owners
+NEXTAUTH_URL=https://homarr.{{< sitevar name="domain" nojs="example.com" >}}
 ```
 
 ## See Also

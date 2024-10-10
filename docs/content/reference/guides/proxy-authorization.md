@@ -175,48 +175,63 @@ authorized to visit a particular resource. Authentication strategies are execute
 results.
 
 1. Successful Authentication
-2. No Authentication
-3. Unsuccessful Authentication
-
-Result 2 is the only result in which the next strategy is attempted, this occurs when there is not enough
-information in the request to perform authentication. Both result 1 and 2 result in a short-circuit, i.e. no other
-strategy will be attempted.
-
-Result 1 occurs when the strategy requirements (i.e. a particular header) are present and the details are sufficient to
-authenticate them and the details are correct. Result 2 occurs when the strategy requirements are present and either the
-details are incomplete (i.e. malformed header) or the details are incorrect (i.e. bad password).
+   - This result occurs when the required metadata i.e. headers are in the request for the strategy and they can be
+     validated.
+   - This result causes a short-circuit which generally results in a [200 OK].
+2. Unsuccessful Authentication
+   - This result occurs when the required metadata i.e. headers are in the request for the strategy and they can not be
+     validated as they are either explicitly invalid or the means of validation could not be attempted due to an error.
+   - This result causes a short-circuit applying the failure action and no other strategies will be attempted.
+3. No Authentication
+   - This result occurs when the required metadata i.e. headers are absent from the request for the strategy.
+   - This result does not cause a short-circuit and:
+      1. The next strategy will be attempted.
+      2. If there is no next strategy the failure action will be applied.
 
 ### CookieSession
+
+**Failure Action:** Redirect the user for authentication.
+
+**Metadata:** [Cookie] header value, considered absent when the configured cookie key is absent from this header or the
+header is absent.
 
 This strategy uses a cookie which links the user to a session to determine the users identity. This is the default
 strategy for end-users.
 
-If this strategy if included in an endpoint will redirect the user the Authelia Authorization Portal on supported
-proxies when they are not authorized and can potentially be authorized provided no other strategies have critical
-errors.
-
 ### HeaderAuthorization
 
-This strategy uses the [Authorization] header to determine the users' identity. If the user credentials are wrong, or
-the header is malformed it will respond with the [WWW-Authenticate] header and a [401 Unauthorized] status code.
+**Failure Action:** Responds with the [WWW-Authenticate] header and a [401 Unauthorized] status code.
+
+**Metadata:** [Authorization] header, considered absent when the header is absent.
+
+This strategy uses the [Authorization] header to determine the users' identity.
 
 ### HeaderProxyAuthorization
 
-This strategy uses the [Proxy-Authorization] header to determine the users' identity. If the user credentials are wrong,
-or the header is malformed it will respond with the [Proxy-Authenticate] header and a
-[407 Proxy Authentication Required] status code.
+**Failure Action:** Responds with the [Proxy-Authenticate] header and a [407 Proxy Authentication Required] status code.
+
+**Metadata:** [Proxy-Authorization] header, considered absent when the header is absent.
+
+This strategy uses the [Proxy-Authorization] header to determine the users' identity.
 
 ### HeaderAuthRequestProxyAuthorization
 
-This strategy uses the [Proxy-Authorization] header to determine the users' identity. If the user credentials are wrong,
-or the header is malformed it will respond with the [WWW-Authenticate] header and a [401 Unauthorized] status code. It
-is specifically intended for use with the [AuthRequest] implementation.
+**Failure Action:** Responds with the [WWW-Authenticate] header and a [401 Unauthorized] status code.
+
+**Metadata:** [Proxy-Authorization] header, considered absent when the header is absent.
+
+This strategy uses the [Proxy-Authorization] header to determine the users' identity. It is specifically intended for
+use with the [AuthRequest] implementation.
 
 ### HeaderLegacy
 
-This strategy uses the [Proxy-Authorization] header to determine the users' identity. If the user credentials are wrong,
-or the header is malformed it will respond with the [WWW-Authenticate] header.
+**Failure Action:** Responds with the [WWW-Authenticate] header and a [401 Unauthorized] status code.
 
+**Metadata:** [Proxy-Authorization] header, considered absent when the header is absent.
+
+This strategy uses the [Proxy-Authorization] header to determine the users' identity.
+
+[200 OK]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/200
 [401 Unauthorized]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
 [407 Proxy Authentication Required]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/407
 
@@ -245,6 +260,7 @@ or the header is malformed it will respond with the [WWW-Authenticate] header.
 [HeaderLegacy]: #headerlegacy
 [CookieSession]: #cookiesession
 
+[Cookie]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cookie
 [Authorization]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization
 [WWW-Authenticate]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/WWW-Authenticate
 [Proxy-Authorization]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Proxy-Authorization

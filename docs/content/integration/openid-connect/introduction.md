@@ -381,8 +381,8 @@ https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="
 
 These endpoints can be utilized to discover other endpoints and metadata about the Authelia OP.
 
-|                 Endpoint                  |                                                     Path                                                      |
-|:-----------------------------------------:|:-------------------------------------------------------------------------------------------------------------:|
+|                 Endpoint                  |                                                                          Path                                                                          |
+|:-----------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------:|
 |      [OpenID Connect Discovery 1.0]       |    https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration     |
 | [OAuth 2.0 Authorization Server Metadata] | https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}//.well-known/oauth-authorization-server |
 
@@ -390,8 +390,8 @@ These endpoints can be utilized to discover other endpoints and metadata about t
 
 These endpoints implement OpenID Connect 1.0 Provider specifications.
 
-|            Endpoint             |                                                     Path                                                     |          Discovery Attribute          |
-|:-------------------------------:|:------------------------------------------------------------------------------------------------------------:|:-------------------------------------:|
+|            Endpoint             |                                                                         Path                                                                          |          Discovery Attribute          |
+|:-------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------:|
 |       [JSON Web Key Set]        |               https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}//jwks.json               |               jwks_uri                |
 |         [Authorization]         |        https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}//api/oidc/authorization         |        authorization_endpoint         |
 | [Pushed Authorization Requests] | https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}//api/oidc/pushed-authorization-request | pushed_authorization_request_endpoint |
