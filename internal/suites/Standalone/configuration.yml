@@ -23,6 +23,11 @@ authentication_backend:
   file:
     path: /config/users.yml
 
+administration:
+  enabled: true
+  admin_group: "authelia-admin"
+  enable_user_management: true
+
 session:
   expiration: 3600
   inactivity: 300

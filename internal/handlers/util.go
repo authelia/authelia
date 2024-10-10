@@ -5,6 +5,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/templates"
 )
 
@@ -74,4 +75,36 @@ func ctxLogEvent(ctx *middlewares.AutheliaCtx, username, description string, bod
 		ctx.Logger.WithError(err).Errorf("Error occurred sending notification to user '%s' while attempting to alert them of an important event", username)
 		return
 	}
+}
+
+// MergeUserInfoAndDetails combines the list of attributes in userInfo with the list of users in users.
+func MergeUserInfoAndDetails(userInfo []model.UserInfo, users []authentication.UserDetails) []model.UserInfo {
+	userDetailsMap := make(map[string]authentication.UserDetails)
+	userInfoMap := make(map[string]bool)
+
+	for _, user := range users {
+		userDetailsMap[user.Username] = user
+	}
+
+	for i, info := range userInfo {
+		if details, ok := userDetailsMap[info.Username]; ok {
+			userInfo[i].DisplayName = details.DisplayName
+			userInfo[i].Emails = details.Emails
+			userInfo[i].Groups = details.Groups
+			userInfoMap[info.Username] = true
+		}
+	}
+
+	for _, user := range users {
+		if _, exists := userInfoMap[user.Username]; !exists {
+			userInfo = append(userInfo, model.UserInfo{
+				Username:    user.Username,
+				DisplayName: user.DisplayName,
+				Emails:      user.Emails,
+				Groups:      user.Groups,
+			})
+		}
+	}
+
+	return userInfo
 }
