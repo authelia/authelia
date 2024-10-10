@@ -36,6 +36,7 @@ storage:
   encryption_key: 'a_very_important_secret'
   postgres:
     address: 'tcp://127.0.0.1:5432'
+    servers: []
     database: 'authelia'
     schema: 'public'
     username: 'authelia'
@@ -92,6 +93,35 @@ storage:
 storage:
   postgres:
     address: 'unix:///var/run/postgres.sock'
+```
+
+### servers
+
+{{< confkey type="list(object)" required="no" >}}
+
+This specifies a list of additional fallback [PostgreSQL] instances to use should issues occur with the primary instance
+which is configured with the [address](#address) and [tls](#tls) options.
+
+Each server instance has the [address](#address) and [tls](#tls) option which both have the same requirements and
+effect, and have the same configuration syntax. This means all of the other settings including but not limited to
+[database](#database), [schema](#schema), [username](#username), and [password](#password); must be the same as the
+primary instance, and they must be fully replicated.
+
+Example configuration:
+
+```yaml
+storage:
+  postgres:
+    address: 'tcp://postgres1:5432'
+    tls:
+      server_name: 'postgres1.local'
+    servers:
+      - address: 'tcp://postgres2:5432'
+        tls:
+          server_name: 'postgres2.local'
+      - address: 'tcp://postgres3:5432'
+        tls:
+          server_name: 'postgres3.local'
 ```
 
 ### database
