@@ -13,19 +13,42 @@ import (
 	"golang.org/x/net/html"
 )
 
+type EmailMessagesResponse struct {
+	Total         int            `json:"total"`
+	Unread        int            `json:"unread"`
+	Count         int            `json:"count"`
+	MessagesCount int            `json:"messages_count"`
+	Start         int            `json:"start"`
+	Tags          []string       `json:"tags"`
+	Messages      []EmailMessage `json:"messages"`
+}
+
 type EmailMessage struct {
-	ID         int       `json:"id"`
-	Sender     string    `json:"sender"`
-	Recipients []string  `json:"recipients"`
-	Subject    string    `json:"subject"`
-	Size       string    `json:"size"`
-	CreatedAt  time.Time `json:"created_at"`
+	ID          string    `json:"ID"`
+	MessageID   string    `json:"MessageID"`
+	Read        bool      `json:"Read"`
+	From        Address   `json:"From"`
+	To          []Address `json:"To"`
+	Cc          []Address `json:"Cc"`
+	Bcc         []Address `json:"Bcc"`
+	ReplyTo     []Address `json:"ReplyTo"`
+	Subject     string    `json:"Subject"`
+	Created     time.Time `json:"Created"`
+	Tags        []string  `json:"Tags"`
+	Size        int       `json:"Size"`
+	Attachments int       `json:"Attachments"`
+	Snippet     string    `json:"Snippet"`
+}
+
+type Address struct {
+	Name    string `json:"Name"`
+	Address string `json:"Address"`
 }
 
 func (m *EmailMessage) GetContentReader() (reader io.ReadCloser, err error) {
 	client := NewHTTPClient()
 
-	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("%s/messages/%d.html", MailBaseURL, m.ID), nil)
+	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("%s/view/%s.html", MailBaseURL, m.ID), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +180,7 @@ func doGetLastEmailMessageWithSubject(t *testing.T, subject string) (message Ema
 	messages := doGetEmailMessages(t)
 
 	for i := len(messages) - 1; i >= 0; i-- {
-		if subject == messages[i].Subject {
+		if subject == messages[i].Subject && !messages[i].Read {
 			return messages[i]
 		}
 	}
@@ -167,14 +190,14 @@ func doGetLastEmailMessageWithSubject(t *testing.T, subject string) (message Ema
 	return message
 }
 
-func doGetEmailMessages(t *testing.T) (messages []EmailMessage) {
-	messages = make([]EmailMessage, 0)
+func doGetEmailMessages(t *testing.T) []EmailMessage {
+	var emr EmailMessagesResponse
 
-	res := doHTTPGetQuery(t, fmt.Sprintf("%s/messages", MailBaseURL))
+	res := doHTTPGetQuery(t, fmt.Sprintf("%s/api/v1/messages", MailBaseURL))
 
-	err := json.Unmarshal(res, &messages)
+	err := json.Unmarshal(res, &emr)
 
 	require.NoError(t, err)
 
-	return messages
+	return emr.Messages
 }

@@ -5,4 +5,5 @@ services:
       - './TwoFactor/configuration.yml:/config/configuration.yml'
       - './TwoFactor/users.yml:/config/users.yml'
       - './common/pki:/pki'
+      - './common/pki/public.crt:/certs/public.crt'
 ...
