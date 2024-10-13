@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { Button, FormControl, LinearProgress, Theme } from "@mui/material";
+import { Button, CircularProgress, FormControl, Theme } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import TextField from "@mui/material/TextField";
 import makeStyles from "@mui/styles/makeStyles";
@@ -69,7 +69,6 @@ const ResetPasswordStep1 = function () {
                                 }
                             }}
                         />
-                        {loading ? <LinearProgress variant="indeterminate" sx={{ my: 1 }} /> : <></>}
                     </Grid>
                     <Grid size={{ xs: 6 }}>
                         <Button
@@ -79,6 +78,7 @@ const ResetPasswordStep1 = function () {
                             color="primary"
                             fullWidth
                             onClick={handleResetClick}
+                            startIcon={loading ? <CircularProgress color="inherit" size={20} /> : <></>}
                         >
                             {translate("Reset")}
                         </Button>
@@ -91,6 +91,7 @@ const ResetPasswordStep1 = function () {
                             color="primary"
                             fullWidth
                             onClick={handleCancelClick}
+                            startIcon={loading ? <CircularProgress color="inherit" size={20} /> : <></>}
                         >
                             {translate("Cancel")}
                         </Button>
