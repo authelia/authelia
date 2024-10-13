@@ -9,6 +9,7 @@ import UserSvg from "@assets/images/user.svg?react";
 import AccountSettingsMenu from "@components/AccountSettingsMenu";
 import Brand from "@components/Brand";
 import PrivacyPolicyDrawer from "@components/PrivacyPolicyDrawer";
+import ThemeChanger from "@components/ThemeChanger";
 import TypographyWithTooltip from "@components/TypographyWithTooltip";
 import { UserInfo } from "@models/UserInfo";
 import { getLogoOverride } from "@utils/Configuration";
@@ -43,6 +44,7 @@ const LoginLayout = function (props: Props) {
             <AppBar position="static" color="transparent" elevation={0}>
                 <Toolbar variant="regular">
                     <Typography style={{ flexGrow: 1 }} />
+                    <ThemeChanger />
                     {props.userInfo ? <AccountSettingsMenu userInfo={props.userInfo} /> : null}
                 </Toolbar>
             </AppBar>
