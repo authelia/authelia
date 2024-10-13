@@ -527,6 +527,26 @@ func TestShouldLoadURLList(t *testing.T) {
 	assert.Equal(t, "https://example.com", config.IdentityProviders.OIDC.CORS.AllowedOrigins[1].String())
 }
 
+func TestShouldNotPanicJWKNilKey(t *testing.T) {
+	val := schema.NewStructValidator()
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc_empty_jwk_key.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+
+	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
+
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+
+	validator.ValidateIdentityProviders(validator.NewValidateCtx(), &config.IdentityProviders, val)
+
+	assert.Len(t, val.Errors(), 2)
+	require.Len(t, val.Warnings(), 1)
+
+	assert.EqualError(t, val.Errors()[0], "identity_providers: oidc: jwks: key #1 with key id 'abc': option 'key' must be provided")
+	assert.EqualError(t, val.Errors()[1], "identity_providers: oidc: clients: client 'abc': jwks: key #1 with key id 'client_abc': option 'key' must be provided")
+}
+
 func TestShouldDisableOIDCEntropy(t *testing.T) {
 	val := schema.NewStructValidator()
 	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc_disable_entropy.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)

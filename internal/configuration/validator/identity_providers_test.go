@@ -3202,7 +3202,7 @@ func TestValidateOIDCClientJWKS(t *testing.T) {
 			nil,
 			nil,
 			[]string{
-				"identity_providers: oidc: clients: client 'test': jwks: key #1: option 'key' must be provided",
+				"identity_providers: oidc: clients: client 'test': jwks: key #1 with key id 'test': option 'key' must be provided",
 			},
 		},
 		{
