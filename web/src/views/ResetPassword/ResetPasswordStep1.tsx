@@ -90,7 +90,6 @@ const ResetPasswordStep1 = function () {
                             color="primary"
                             fullWidth
                             onClick={handleCancelClick}
-                            startIcon={loading ? <CircularProgress color="inherit" size={20} /> : <></>}
                         >
                             {translate("Cancel")}
                         </Button>
