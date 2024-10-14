@@ -175,7 +175,6 @@ func validateOIDCIssuerJSONWebKeys(config *schema.IdentityProvidersOpenIDConnect
 	config.Discovery.DefaultKeyIDs = map[string]string{}
 
 	for i := 0; i < len(config.JSONWebKeys); i++ {
-
 		if config.JSONWebKeys[i].Key == nil {
 			if len(config.JSONWebKeys[i].KeyID) != 0 {
 				validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysWithKeyID, i+1, config.JSONWebKeys[i].KeyID))
