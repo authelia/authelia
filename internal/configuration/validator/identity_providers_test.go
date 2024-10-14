@@ -3202,6 +3202,19 @@ func TestValidateOIDCClientJWKS(t *testing.T) {
 			nil,
 			nil,
 			[]string{
+				"identity_providers: oidc: clients: client 'test': jwks: key #1 with key id 'test': option 'key' must be provided",
+			},
+		},
+		{
+			"ShouldFailOnEmptyKeyNoKeyID",
+			nil,
+			[]schema.JWK{
+				{KeyID: "", Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgRSAUsingSHA256, Key: nil},
+			},
+			nil,
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': jwks: key #1: option 'key_id' must be provided",
 				"identity_providers: oidc: clients: client 'test': jwks: key #1: option 'key' must be provided",
 			},
 		},
@@ -3550,6 +3563,44 @@ func TestValidateOIDCIssuer(t *testing.T) {
 			[]string{
 				"identity_providers: oidc: jwks: key #1 with key id 'c4c7ca-invalid': option 'algorithm' must be one of 'RS256', 'PS256', 'ES256', 'RS384', 'PS384', 'ES384', 'RS512', 'PS512', or 'ES512' but it's configured as 'invalid'",
 				"identity_providers: oidc: jwks: keys: must at least have one key supporting the 'RS256' algorithm but only has 'invalid'",
+			},
+		},
+		{
+			"ShouldErrorNilKeyWithoutKID",
+			&schema.IdentityProvidersOpenIDConnect{
+				JSONWebKeys: []schema.JWK{
+					{Key: nil, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature},
+				},
+			},
+			schema.IdentityProvidersOpenIDConnect{
+				JSONWebKeys: []schema.JWK{
+					{Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature},
+				},
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
+					DefaultKeyIDs: map[string]string{},
+				},
+			},
+			[]string{
+				"identity_providers: oidc: jwks: key #1: option 'key' must be provided",
+			},
+		},
+		{
+			"ShouldErrorNilKey",
+			&schema.IdentityProvidersOpenIDConnect{
+				JSONWebKeys: []schema.JWK{
+					{Key: nil, KeyID: "example", Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature},
+				},
+			},
+			schema.IdentityProvidersOpenIDConnect{
+				JSONWebKeys: []schema.JWK{
+					{KeyID: "example", Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature},
+				},
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
+					DefaultKeyIDs: map[string]string{},
+				},
+			},
+			[]string{
+				"identity_providers: oidc: jwks: key #1 with key id 'example': option 'key' must be provided",
 			},
 		},
 		{
