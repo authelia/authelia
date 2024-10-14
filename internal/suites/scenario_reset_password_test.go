@@ -88,6 +88,27 @@ func (s *ResetPasswordScenario) TestShouldMakeAttackerThinkPasswordResetIsInitia
 	s.verifyMailNotificationDisplayed(s.T(), s.Context(ctx))
 }
 
+func (s *ResetPasswordScenario) TestShouldFailWithBlankUsername() {
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
+
+	s.doVisit(s.T(), s.Context(ctx), GetLoginBaseURL(BaseDomain))
+	s.verifyIsFirstFactorPage(s.T(), s.Context(ctx))
+
+	s.clickForgotPasswordLink(s.T(), s.Page)
+
+	s.verifyIsResetPasswordPage(s.T(), s.Context(ctx))
+
+	s.doInitiatePasswordResetBlankUsername(s.T(), s.Context(ctx))
+
+	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Username is required")
+
+	s.verifyIsResetPasswordPage(s.T(), s.Context(ctx))
+}
+
 func (s *ResetPasswordScenario) TestShouldLetUserNoticeThereIsAPasswordMismatch() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer func() {

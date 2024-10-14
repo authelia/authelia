@@ -70,3 +70,23 @@ func (rs *RodSession) doResetPassword(t *testing.T, page *rod.Page, username, ne
 		rs.doSuccessfullyCompletePasswordReset(t, page, newPassword1, newPassword2)
 	}
 }
+
+func (rs *RodSession) clickForgotPasswordLink(t *testing.T, page *rod.Page) {
+	err := rs.WaitElementLocatedByID(t, page, "reset-password-button").Click("left", 1)
+	require.NoError(t, err)
+
+	require.NoError(t, page.WaitStable(time.Millisecond*100))
+}
+
+func (rs *RodSession) doInitiatePasswordResetBlankUsername(t *testing.T, page *rod.Page) {
+	err := rs.WaitElementLocatedByID(t, page, "reset-button").Click("left", 1)
+	require.NoError(t, err)
+
+	require.NoError(t, page.WaitStable(time.Millisecond*100))
+
+	err = rs.WaitElementLocatedByID(t, page, "username-textfield").Input("")
+	require.NoError(t, err)
+
+	err = rs.WaitElementLocatedByID(t, page, "reset-button").Click("left", 1)
+	require.NoError(t, err)
+}

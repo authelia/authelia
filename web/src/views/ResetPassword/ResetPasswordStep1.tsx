@@ -27,6 +27,7 @@ const ResetPasswordStep1 = function () {
         if (username === "") {
             setError(true);
             setLoading(false);
+            createErrorNotification(translate("Username is required"));
             return;
         }
 
@@ -60,7 +61,10 @@ const ResetPasswordStep1 = function () {
                             fullWidth
                             error={error}
                             value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            onChange={(e) => {
+                                setError(false);
+                                setUsername(e.target.value);
+                            }}
                             onKeyDown={(ev) => {
                                 if (ev.key === "Enter") {
                                     doInitiateResetPasswordProcess();
