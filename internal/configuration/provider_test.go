@@ -541,11 +541,15 @@ func TestShouldNotPanicJWKNilKey(t *testing.T) {
 	require.NotPanics(t, func() {
 		validator.ValidateIdentityProviders(validator.NewValidateCtx(), &config.IdentityProviders, val)
 	})
-	assert.Len(t, val.Errors(), 2)
+
+	assert.Len(t, val.Errors(), 5)
 	require.Len(t, val.Warnings(), 1)
 
 	assert.EqualError(t, val.Errors()[0], "identity_providers: oidc: jwks: key #1 with key id 'abc': option 'key' must be provided")
-	assert.EqualError(t, val.Errors()[1], "identity_providers: oidc: clients: client 'abc': jwks: key #1 with key id 'client_abc': option 'key' must be provided")
+	assert.EqualError(t, val.Errors()[1], "identity_providers: oidc: jwks: key #2: option 'key' must be provided")
+	assert.EqualError(t, val.Errors()[2], "identity_providers: oidc: clients: client 'abc': jwks: key #1 with key id 'client_abc': option 'key' must be provided")
+	assert.EqualError(t, val.Errors()[3], "identity_providers: oidc: clients: client 'abc': jwks: key #2: option 'key_id' must be provided")
+	assert.EqualError(t, val.Errors()[4], "identity_providers: oidc: clients: client 'abc': jwks: key #2: option 'key' must be provided")
 }
 
 func TestShouldDisableOIDCEntropy(t *testing.T) {

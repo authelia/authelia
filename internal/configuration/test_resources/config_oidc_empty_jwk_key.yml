@@ -131,6 +131,7 @@ identity_providers:
     jwks:
       - key_id: 'abc'
         use: 'sig'
+      - use: 'sig'
     clients:
       - client_id: 'abc'
         client_secret: '123'
@@ -139,4 +140,5 @@ identity_providers:
         jwks:
           - key_id: 'client_abc'
             use: 'sig'
+          - use: 'sig'
 ...
