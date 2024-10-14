@@ -22,6 +22,8 @@ const ResetPasswordStep1 = function () {
     const { t: translate } = useTranslation();
 
     const doInitiateResetPasswordProcess = async () => {
+        setError(false);
+        setLoading(true);
         if (username === "") {
             setError(true);
             setLoading(false);
@@ -38,12 +40,10 @@ const ResetPasswordStep1 = function () {
     };
 
     const handleResetClick = () => {
-        setLoading(true);
         doInitiateResetPasswordProcess();
     };
 
     const handleCancelClick = () => {
-        setLoading(false);
         navigate(IndexRoute);
     };
 
@@ -63,7 +63,6 @@ const ResetPasswordStep1 = function () {
                             onChange={(e) => setUsername(e.target.value)}
                             onKeyDown={(ev) => {
                                 if (ev.key === "Enter") {
-                                    setLoading(true);
                                     doInitiateResetPasswordProcess();
                                     ev.preventDefault();
                                 }
