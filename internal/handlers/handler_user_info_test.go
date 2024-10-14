@@ -28,7 +28,7 @@ func (s *FetchSuite) SetupTest() {
 	s.Assert().NoError(err)
 
 	userSession.Username = testUsername
-	userSession.AuthenticationLevel = 1
+	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
 	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
 }
 
@@ -105,7 +105,7 @@ func TestUserInfoEndpoint_SetCorrectMethod(t *testing.T) {
 		assert.NoError(t, err)
 
 		userSession.Username = testUsername
-		userSession.AuthenticationLevel = 1
+		userSession.AuthenticationMethodRefs.UsernameAndPassword = true
 		assert.NoError(t, mock.Ctx.SaveSession(userSession))
 
 		mock.StorageMock.
@@ -255,7 +255,7 @@ func TestUserInfoEndpoint_SetDefaultMethod(t *testing.T) {
 			assert.NoError(t, err)
 
 			userSession.Username = testUsername
-			userSession.AuthenticationLevel = 1
+			userSession.AuthenticationMethodRefs.UsernameAndPassword = true
 			assert.NoError(t, mock.Ctx.SaveSession(userSession))
 
 			if resp.db.Method == "" {
@@ -361,7 +361,7 @@ func (s *SaveSuite) SetupTest() {
 	s.Assert().NoError(err)
 
 	userSession.Username = testUsername
-	userSession.AuthenticationLevel = 1
+	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
 	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
 }
 

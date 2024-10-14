@@ -10,6 +10,8 @@ export enum AuthenticationLevel {
 export interface AutheliaState {
     username: string;
     authentication_level: AuthenticationLevel;
+    factor_knowledge: boolean;
+    default_redirection_url?: string;
 }
 
 export async function getState(): Promise<AutheliaState> {
