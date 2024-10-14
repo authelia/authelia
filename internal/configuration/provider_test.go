@@ -538,8 +538,9 @@ func TestShouldNotPanicJWKNilKey(t *testing.T) {
 	assert.Len(t, val.Errors(), 0)
 	assert.Len(t, val.Warnings(), 0)
 
-	validator.ValidateIdentityProviders(validator.NewValidateCtx(), &config.IdentityProviders, val)
-
+	require.NotPanics(t, func() {
+		validator.ValidateIdentityProviders(validator.NewValidateCtx(), &config.IdentityProviders, val)
+	})
 	assert.Len(t, val.Errors(), 2)
 	require.Len(t, val.Warnings(), 1)
 
