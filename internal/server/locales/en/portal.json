@@ -91,6 +91,7 @@
 	"Time-based One-Time Password": "Time-based One-Time Password",
 	"Use OpenID to verify your identity": "Use OpenID to verify your identity",
 	"Username": "Username",
+	"Username is required": "Username is required",
 	"You cancelled the assertion request": "You cancelled the assertion request",
 	"You must view and accept the Privacy Policy before using": "You must view and accept the <0>Privacy Policy</0> before using",
 	"You're being signed out and redirected": "You're being signed out and redirected",
