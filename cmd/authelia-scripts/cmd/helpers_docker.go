@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -16,7 +15,7 @@ type Docker struct{}
 
 // Build build a docker image.
 func (d *Docker) Build(tag, dockerfile, target string, buildMetaData *Build) error {
-	args := []string{"build", "-t", tag, "-f", dockerfile, "--progress=plain"}
+	args := []string{"build", "-t", tag, "-f", dockerfile, "--progress=plain", "--pull"}
 
 	for label, value := range buildMetaData.ContainerLabels() {
 		if value == "" {
@@ -65,53 +64,30 @@ func (d *Docker) Manifest(tags []string) error {
 		args = append(args, "--label", fmt.Sprintf("%s=%s", label, value))
 	}
 
-	var baseImageTag string
-
-	from, err := getDockerfileDirective("Dockerfile", "FROM")
-	if err == nil {
-		baseImageTag = from[strings.IndexRune(from, ':')+1:]
-		args = append(args, "--label", "org.opencontainers.image.base.name=docker.io/library/alpine:"+baseImageTag)
+	baseImageTag := "latest"
+	if ciTag != "" {
+		baseImageTag = strings.TrimPrefix(ciTag, "v")
 	}
 
-	resp, err := http.Get("https://hub.docker.com/v2/repositories/library/alpine/tags/" + baseImageTag + "/images")
+	args = append(args, "--build-arg", "BASE="+BaseImageName+":"+baseImageTag)
+
+	indexDigest, err := getManifestIndexDigest(baseImageTag)
 	if err != nil {
 		return err
 	}
 
-	defer resp.Body.Close()
+	args = append(args, "--label", "org.opencontainers.image.base.name=docker.io/"+BaseImageName+":"+indexDigest)
 
-	images := DockerImages{}
-
-	if err = json.NewDecoder(resp.Body).Decode(&images); err != nil {
+	digestAMD64, digestARM, digestARM64, err := getBaseImageDigests(baseImageTag)
+	if err != nil {
 		return err
-	}
-
-	var (
-		digestAMD64, digestARM, digestARM64 string
-	)
-
-	for _, platform := range []string{"linux/amd64", "linux/arm/v7", "linux/arm64"} {
-		for _, image := range images {
-			if !image.Match(platform) {
-				continue
-			}
-
-			switch platform {
-			case "linux/amd64":
-				digestAMD64 = image.Digest
-			case "linux/arm/v7":
-				digestARM = image.Digest
-			case "linux/arm64":
-				digestARM64 = image.Digest
-			}
-		}
 	}
 
 	finalArgs := make([]string, len(args))
 
 	copy(finalArgs, args)
 
-	finalArgs = append(finalArgs, "--output", "type=image,\"name="+dockerhub+"/"+DockerImageName+","+ghcr+"/"+DockerImageName+"\","+annotations+"annotation.org.opencontainers.image.base.name=docker.io/library/alpine:"+baseImageTag+",annotation[linux/amd64].org.opencontainers.image.base.digest="+digestAMD64+",annotation[linux/arm/v7].org.opencontainers.image.base.digest="+digestARM+",annotation[linux/arm64].org.opencontainers.image.base.digest="+digestARM64, "--platform", "linux/amd64,linux/arm/v7,linux/arm64", "--builder", "buildx", "--push", ".")
+	finalArgs = append(finalArgs, "--output", "type=image,\"name="+dockerhub+"/"+DockerImageName+","+ghcr+"/"+DockerImageName+"\","+annotations+"annotation.org.opencontainers.image.base.name=docker.io/"+BaseImageName+":"+indexDigest+",annotation[linux/amd64].org.opencontainers.image.base.digest="+digestAMD64+",annotation[linux/arm/v7].org.opencontainers.image.base.digest="+digestARM+",annotation[linux/arm64].org.opencontainers.image.base.digest="+digestARM64, "--platform", "linux/amd64,linux/arm/v7,linux/arm64", "--builder", "buildx", "--push", ".")
 
 	if err = utils.CommandWithStdout("docker", finalArgs...).Run(); err != nil {
 		return err
@@ -125,24 +101,45 @@ func (d *Docker) PublishReadme() error {
 	return utils.CommandWithStdout("bash", "-c", `token=$(curl -fs --retry 3 -H "Content-Type: application/json" -X "POST" -d '{"username": "'$DOCKER_USERNAME'", "password": "'$DOCKER_PASSWORD'"}' https://hub.docker.com/v2/users/login/ | jq -r .token) && jq -n --arg msg "$(cat README.md | sed -r 's/(\<img\ src\=\")(\.\/)/\1https:\/\/github.com\/authelia\/authelia\/raw\/master\//' | sed 's/\.\//https:\/\/github.com\/authelia\/authelia\/blob\/master\//g' | sed '/start \[contributing\]/ a <a href="https://github.com/authelia/authelia/graphs/contributors"><img src="https://opencollective.com/authelia-sponsors/contributors.svg?width=890" /></a>' | sed '/Thanks goes to/,/### Backers/{/### Backers/!d}')" '{"registry":"registry-1.docker.io","full_description": $msg }' | curl -fs --retry 3 -o /dev/null -L -X "PATCH" -H "Content-Type: application/json" -H "Authorization: JWT $token" -d @- https://hub.docker.com/v2/repositories/authelia/authelia/`).Run()
 }
 
-func getDockerfileDirective(filePath, directive string) (from string, err error) {
-	var f *os.File
-
-	if f, err = os.Open(filePath); err != nil {
-		return "", err
+func getBaseImageDigests(tag string) (amd64, arm, arm64 string, err error) {
+	resp, err := http.Get("https://hub.docker.com/v2/repositories/" + BaseImageName + "/tags/" + tag + "/images")
+	if err != nil {
+		return "", "", "", err
 	}
 
-	defer f.Close()
+	defer resp.Body.Close()
 
-	s := bufio.NewScanner(f)
+	images := DockerImages{}
 
-	for s.Scan() {
-		data := s.Text()
+	if err = json.NewDecoder(resp.Body).Decode(&images); err != nil {
+		return "", "", "", err
+	}
 
-		if strings.HasPrefix(data, directive+" ") {
-			return data[5:], nil
+	for _, platform := range []string{"linux/amd64", "linux/arm/v7", "linux/arm64"} {
+		for _, image := range images {
+			if !image.Match(platform) {
+				continue
+			}
+
+			switch platform {
+			case "linux/amd64":
+				amd64 = image.Digest
+			case "linux/arm/v7":
+				arm = image.Digest
+			case "linux/arm64":
+				arm64 = image.Digest
+			}
 		}
 	}
 
-	return "", nil
+	return amd64, arm, arm64, nil
+}
+
+func getManifestIndexDigest(tag string) (digest string, err error) {
+	digest, _, err = utils.RunCommandAndReturnOutput(`docker buildx imagetools inspect ` + BaseImageName + `:` + tag + ` --format "{{ json . }}" | jq -r '(.name/":"|last) + "@" + .manifest.digest'`)
+	if err != nil {
+		return "", err
+	}
+
+	return digest, nil
 }
