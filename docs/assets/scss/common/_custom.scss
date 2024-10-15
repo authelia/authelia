@@ -11,76 +11,67 @@ figure.figure-blog {
   color: $orange;
 }
 
-.pagination > div {
-  color: $link-color;
-}
-
-[data-dark-mode] .pagination > div {
-  color: $link-color-dark;
-}
-
-[data-dark-mode] p {
-  color: $body-color-dark;
-}
-
-.icon-support-full {
-  @extend .bi;
-  @extend .bi-check-circle-fill;
-  @extend .text-success;
-}
-
-[data-dark-mode] .icon-support-full {
-  @extend .bi;
-  @extend .bi-check-circle;
-  @extend .text-success;
-}
-
-.icon-support-unknown {
-  @extend .bi;
-  @extend .bi-question-circle-fill;
-  @extend .text-warning;
-}
-
-[data-dark-mode] .icon-support-unknown {
-  @extend .bi;
-  @extend .bi-question-circle;
-  @extend .text-warning;
-}
-
-.icon-support-partial {
-  @extend .bi;
-  @extend .bi-exclamation-circle-fill;
-  @extend .text-orange;
-}
-
-[data-dark-mode] .icon-support-partial {
-  @extend .bi;
-  @extend .bi-exclamation-circle;
-  @extend .text-orange;
-}
-
-.icon-support-none {
-  @extend .bi;
-  @extend .bi-x-circle-fill;
-  @extend .text-danger;
-}
-
-[data-dark-mode] .icon-support-none {
-  @extend .bi;
-  @extend .bi-x-circle;
-  @extend .text-danger;
-}
-
 body code span.line.hl {
   background: $orange;
   display: block;
   width: 100%;
 }
 
-[data-dark-mode] body code span.line.hl {
-  background: $orange;
-  display: block;
-  width: 100%;
+@include color-mode(light) {
+  .pagination > div {
+    color: $link-color;
+  }
+  .icon-support-full {
+    @extend .bi;
+    @extend .bi-check-circle-fill;
+    @extend .text-success;
+  }
+  .icon-support-unknown {
+    @extend .bi;
+    @extend .bi-question-circle-fill;
+    @extend .text-warning;
+  }
+  .icon-support-partial {
+    @extend .bi;
+    @extend .bi-exclamation-circle-fill;
+    @extend .text-orange;
+  }
+  .icon-support-none {
+    @extend .bi;
+    @extend .bi-x-circle-fill;
+    @extend .text-danger;
+  }
+}
+
+@include color-mode(dark) {
+  .pagination > div {
+    color: $body-color-dark;
+  }
+  .icon-support-full {
+    @extend .bi;
+    @extend .bi-check-circle;
+    @extend .text-success;
+  }
+  .icon-support-unknown {
+    @extend .bi;
+    @extend .bi-question-circle;
+    @extend .text-warning;
+  }
+  .icon-support-partial {
+    @extend .bi;
+    @extend .bi-exclamation-circle;
+    @extend .text-orange;
+  }
+  .icon-support-none {
+    @extend .bi;
+    @extend .bi-x-circle;
+    @extend .text-danger;
+  }
+  body code span.line.hl {
+    background: $orange;
+    display: block;
+    width: 100%;
+  }
 }
 
 .confkey-type {
