@@ -17,29 +17,27 @@ body code span.line.hl {
   width: 100%;
 }
 
+@mixin icon-support($icon-class, $color-class) {
+  @extend .bi;
+  @extend #{$icon-class};
+  @extend #{$color-class};
+}
+
 @include color-mode(light) {
   .pagination > div {
     color: $link-color;
   }
   .icon-support-full {
-    @extend .bi;
-    @extend .bi-check-circle-fill;
-    @extend .text-success;
+    @include icon-support('.bi-check-circle-fill', '.text-success');
   }
   .icon-support-unknown {
-    @extend .bi;
-    @extend .bi-question-circle-fill;
-    @extend .text-warning;
+    @include icon-support('.bi-question-circle-fill', '.text-warning');
   }
   .icon-support-partial {
-    @extend .bi;
-    @extend .bi-exclamation-circle-fill;
-    @extend .text-orange;
+    @include icon-support('.bi-exclamation-circle-fill', '.text-orange');
   }
   .icon-support-none {
-    @extend .bi;
-    @extend .bi-x-circle-fill;
-    @extend .text-danger;
+    @include icon-support('.bi-x-circle-fill', '.text-danger');
   }
 }
 
@@ -48,29 +46,16 @@ body code span.line.hl {
     color: $body-color-dark;
   }
   .icon-support-full {
-    @extend .bi;
-    @extend .bi-check-circle;
-    @extend .text-success;
+    @include icon-support('.bi-check-circle', '.text-success');
   }
   .icon-support-unknown {
-    @extend .bi;
-    @extend .bi-question-circle;
-    @extend .text-warning;
+    @include icon-support('.bi-question-circle', '.text-warning');
   }
   .icon-support-partial {
-    @extend .bi;
-    @extend .bi-exclamation-circle;
-    @extend .text-orange;
+    @include icon-support('.bi-exclamation-circle', '.text-orange');
   }
   .icon-support-none {
-    @extend .bi;
-    @extend .bi-x-circle;
-    @extend .text-danger;
-  }
-  body code span.line.hl {
-    background: $orange;
-    display: block;
-    width: 100%;
+    @include icon-support('.bi-x-circle', '.text-danger');
   }
 }
 
