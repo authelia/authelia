@@ -22,7 +22,7 @@ Perform ECDSA key pair cryptographic operations
 
 Perform ECDSA key pair cryptographic operations.
 
-This subcommand allows preforming ECDSA key pair cryptographic tasks.
+This subcommand allows performing ECDSA key pair cryptographic tasks.
 
 ```
 authelia crypto pair ecdsa [flags]

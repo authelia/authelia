@@ -1,10 +1,15 @@
 ---
 services:
   redis-node-0:
-    image: redis:7.2-alpine
+    image: redis:7.4-alpine
     command: /entrypoint.sh master
     expose:
       - "6379"
+    healthcheck: &node-health
+      test: ["CMD-SHELL", "redis-cli ping || exit 1"]
+      interval: 3s
+      timeout: 5s
+      retries: 5
     volumes:
       - ./example/compose/redis/templates:/templates
       - ./example/compose/redis/users.acl:/data/users.acl
@@ -15,12 +20,14 @@ services:
           - redis-node-0.example.com
         ipv4_address: 192.168.240.110
   redis-node-1:
-    image: redis:7.2-alpine
+    image: redis:7.4-alpine
     command: /entrypoint.sh slave
-    depends_on:
-      - redis-node-0
+    depends_on: &deps
+      redis-node-0:
+        condition: service_healthy
     expose:
       - "6379"
+    healthcheck: *node-health
     volumes:
       - ./example/compose/redis/templates:/templates
       - ./example/compose/redis/users.acl:/data/users.acl
@@ -31,12 +38,12 @@ services:
           - redis-node-1.example.com
         ipv4_address: 192.168.240.111
   redis-node-2:
-    image: redis:7.2-alpine
+    image: redis:7.4-alpine
     command: /entrypoint.sh slave
-    depends_on:
-      - redis-node-0
+    depends_on: *deps
     expose:
       - "6379"
+    healthcheck: *node-health
     volumes:
       - ./example/compose/redis/templates:/templates
       - ./example/compose/redis/users.acl:/data/users.acl
@@ -47,13 +54,21 @@ services:
           - redis-node-2.example.com
         ipv4_address: 192.168.240.112
   redis-sentinel-0:
-    image: redis:7.2-alpine
+    image: redis:7.4-alpine
     command: /entrypoint.sh sentinel
-    depends_on:
-      - redis-node-1
-      - redis-node-2
+    depends_on: &deps-sentinel
+      <<: *deps
+      redis-node-1:
+        condition: service_healthy
+      redis-node-2:
+        condition: service_healthy
     expose:
       - "26379"
+    healthcheck: &sentinel-health
+      test: [ "CMD-SHELL", "redis-cli -p 26379 -a sentinel-server-password ping || exit 1" ]
+      interval: 3s
+      timeout: 5s
+      retries: 5
     volumes:
       - ./example/compose/redis/templates:/templates
       - ./example/compose/redis/entrypoint.sh:/entrypoint.sh
@@ -63,13 +78,12 @@ services:
           - redis-sentinel-0.example.com
         ipv4_address: 192.168.240.120
   redis-sentinel-1:
-    image: redis:7.2-alpine
+    image: redis:7.4-alpine
     command: /entrypoint.sh sentinel
-    depends_on:
-      - redis-node-1
-      - redis-node-2
+    depends_on: *deps-sentinel
     expose:
       - "26379"
+    healthcheck: *sentinel-health
     volumes:
       - ./example/compose/redis/templates:/templates
       - ./example/compose/redis/entrypoint.sh:/entrypoint.sh
@@ -79,13 +93,12 @@ services:
           - redis-sentinel-1.example.com
         ipv4_address: 192.168.240.121
   redis-sentinel-2:
-    image: redis:7.2-alpine
+    image: redis:7.4-alpine
     command: /entrypoint.sh sentinel
-    depends_on:
-      - redis-node-1
-      - redis-node-2
+    depends_on: *deps-sentinel
     expose:
       - "26379"
+    healthcheck: *sentinel-health
     volumes:
       - ./example/compose/redis/templates:/templates
       - ./example/compose/redis/entrypoint.sh:/entrypoint.sh

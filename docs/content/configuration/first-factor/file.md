@@ -78,25 +78,31 @@ Enables reloading the database by watching it for changes.
 
 Username searching functionality options.
 
-*__Important Note:__ This functionality is experimental.*
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+This functionality is experimental.
+{{< /callout >}}
 
 #### email
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+Emails are always checked using case-insensitive lookup.
+{{< /callout >}}
+
 Allows users to login using their email address. If enabled two users must not have the same emails and their usernames
 must not be an email.
-
-*__Note:__ Emails are always checked using case-insensitive lookup.*
 
 #### case_insensitive
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+Emails are always checked using case-insensitive lookup.
+{{< /callout >}}
+
 Enabling this search option allows users to login with their username regardless of case. If enabled users must only
 have lowercase usernames.
-
-*__Note:__ Emails are always checked using case-insensitive lookup.*
 
 ## Password Options
 
@@ -251,10 +257,12 @@ The [Bcrypt] algorithm implementation.
 Controls the variant when hashing passwords using [Bcrypt]. Recommended `standard`.
 Permitted values `standard`, `sha256`.
 
-*__Important Note:__ The `sha256` variant is a special variant designed by
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+The `sha256` variant is a special variant designed by
 [Passlib](https://passlib.readthedocs.io/en/stable/lib/passlib.hash.bcrypt_sha256.html). This variant passes the
 password through a SHA256 HMAC before passing it to the [Bcrypt] algorithm, effectively bypassing the 72 byte password
-truncation that [Bcrypt] does. It is not supported by many other systems.*
+truncation that [Bcrypt] does. It is not supported by many other systems.
+{{< /callout >}}
 
 #### cost
 

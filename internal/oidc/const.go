@@ -176,9 +176,10 @@ const (
 )
 
 const (
-	PromptNone    = valueNone
-	PromptLogin   = "login"
-	PromptConsent = "consent"
+	PromptConsent       = "consent"
+	PromptLogin         = "login"
+	PromptNone          = valueNone
+	PromptSelectAccount = "select_account"
 	// PromptCreate  = "create" // This prompt value is currently unused.
 )
 

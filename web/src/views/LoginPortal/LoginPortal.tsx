@@ -119,7 +119,7 @@ const LoginPortal = function (props: Props) {
                     } else {
                         createErrorNotification(translate(RedirectionErrorMessage));
                     }
-                } catch (err) {
+                } catch {
                     createErrorNotification(translate(RedirectionErrorMessage));
                 }
 

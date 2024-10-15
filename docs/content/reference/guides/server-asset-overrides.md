@@ -36,15 +36,19 @@ This guide effectively documents the usage of the
 
 ## locales
 
-*__Important Note__ Currently users can only override languages that already exist in this list either by overriding
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Currently users can only override languages that already exist in this list either by overriding
 the language itself, or adding a variant form of that language. If you'd like support for another language feel free
-to make a PR. We also encourage people to make PR's for variants where the difference in the variants is significant.*
+to make a PR. We also encourage people to make PR's for variants where the difference in the variants is significant.
+{{< /callout >}}
 
-*__Important Note__ Users wishing to override the locales files should be aware that we do not provide any guarantee
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Users wishing to override the locales files should be aware that we do not provide any guarantee
 that the file will not change in a breaking way between releases as per our [Versioning Policy]. Users who planning to
 utilize these overrides should either check for changes to the files in the
 [en](https://github.com/authelia/authelia/tree/master/internal/server/locales/en) translation prior to upgrading or
-[Contribute](../../contributing/prologue/translations.md) their translation to ensure it is maintained.*
+[Contribute](../../contributing/prologue/translations.md) their translation to ensure it is maintained.
+{{< /callout >}}
 
 The locales directory holds folders of internationalization locales. This directory can be utilized to override these
 locales. They are the names of locales that are returned by the `navigator.language` ECMAScript command. These are

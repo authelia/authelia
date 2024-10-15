@@ -1,6 +1,7 @@
 import React from "react";
 
-import { Button, Grid, Theme } from "@mui/material";
+import { Button, Theme } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -27,17 +28,17 @@ const AuthenticatedView = function (props: Props) {
 
     return (
         <MinimalLayout
-            id="authenticated-stage"
+            id={"authenticated-stage"}
             title={`${translate("Hi")} ${props.userInfo.display_name}`}
             userInfo={props.userInfo}
         >
-            <Grid container>
-                <Grid item xs={12}>
-                    <Button color="secondary" onClick={handleLogoutClick} id="logout-button">
+            <Grid container direction={"column"} justifyContent={"center"} alignItems={"center"}>
+                <Grid size={{ xs: 12 }}>
+                    <Button id={"logout-button"} color={"secondary"} onClick={handleLogoutClick}>
                         {translate("Logout")}
                     </Button>
                 </Grid>
-                <Grid item xs={12} className={styles.mainContainer}>
+                <Grid size={{ xs: 12 }} className={styles.mainContainer}>
                     <Authenticated />
                 </Grid>
             </Grid>

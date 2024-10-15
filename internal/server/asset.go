@@ -60,6 +60,7 @@ func newPublicHTMLEmbeddedHandler() fasthttp.RequestHandler {
 		}
 
 		middlewares.SetBaseSecurityHeaders(ctx)
+		middlewares.SetSecurityHeadersCSPNone(ctx)
 
 		contentType := mime.TypeByExtension(path.Ext(p))
 		if len(contentType) == 0 {
@@ -192,6 +193,7 @@ func newLocalesEmbeddedHandler() (handler fasthttp.RequestHandler) {
 		}
 
 		middlewares.SetBaseSecurityHeaders(ctx)
+		middlewares.SetSecurityHeadersCSPNone(ctx)
 		middlewares.SetContentTypeApplicationJSON(ctx)
 
 		switch {

@@ -436,7 +436,7 @@ authelia validate-config --config config.yml`
 
 	cmdAutheliaCryptoLong = `Perform cryptographic operations.
 
-This subcommand allows preforming cryptographic certificate, key pair, etc tasks.`
+This subcommand allows performing cryptographic certificate, key pair, etc tasks.`
 
 	cmdAutheliaCryptoExample = `authelia crypto --help`
 
@@ -460,7 +460,7 @@ authelia crypto rand --characters 0123456789ABCDEF`
 
 	cmdAutheliaCryptoHashLong = `Perform cryptographic hash operations.
 
-This subcommand allows preforming hashing cryptographic tasks.`
+This subcommand allows performing hashing cryptographic tasks.`
 
 	cmdAutheliaCryptoHashExample = `authelia crypto hash --help`
 
@@ -468,7 +468,7 @@ This subcommand allows preforming hashing cryptographic tasks.`
 
 	cmdAutheliaCryptoHashValidateLong = `Perform cryptographic hash validations.
 
-This subcommand allows preforming cryptographic hash validations. i.e. checking hash digests against a password.`
+This subcommand allows performing cryptographic hash validations. i.e. checking hash digests against a password.`
 
 	cmdAutheliaCryptoHashValidateExample = `authelia crypto hash validate --help
 authelia crypto hash validate --password 'p@ssw0rd' -- '$5$rounds=500000$WFjMpdCQxIkbNl0k$M0qZaZoK8Gwdh8Cw5diHgGfe5pE0iJvxcVG3.CVnQe.'`
@@ -495,7 +495,7 @@ This subcommand allows generating cryptographic %s hash digests.`
 
 	cmdAutheliaCryptoCertificateLong = `Perform certificate cryptographic operations.
 
-This subcommand allows preforming certificate cryptographic tasks.`
+This subcommand allows performing certificate cryptographic tasks.`
 
 	cmdAutheliaCryptoCertificateExample = `authelia crypto certificate --help`
 
@@ -503,7 +503,7 @@ This subcommand allows preforming certificate cryptographic tasks.`
 
 	fmtCmdAutheliaCryptoCertificateSubLong = `Perform %s certificate cryptographic operations.
 
-This subcommand allows preforming %s certificate cryptographic tasks.`
+This subcommand allows performing %s certificate cryptographic tasks.`
 
 	fmtCmdAutheliaCryptoCertificateSubExample = `authelia crypto certificate %s --help`
 
@@ -529,7 +529,7 @@ This subcommand allows generating an %s private key and %s.`
 
 	cmdAutheliaCryptoPairLong = `Perform key pair cryptographic operations.
 
-This subcommand allows preforming key pair cryptographic tasks.`
+This subcommand allows performing key pair cryptographic tasks.`
 
 	cmdAutheliaCryptoPairExample = `authelia crypto pair --help`
 
@@ -537,7 +537,7 @@ This subcommand allows preforming key pair cryptographic tasks.`
 
 	cmdAutheliaCryptoPairSubLong = `Perform %s key pair cryptographic operations.
 
-This subcommand allows preforming %s key pair cryptographic tasks.`
+This subcommand allows performing %s key pair cryptographic tasks.`
 
 	cmdAutheliaCryptoPairRSAExample = `authelia crypto pair rsa --help`
 

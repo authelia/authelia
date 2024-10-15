@@ -1,4 +1,10 @@
 ---
+###############################################################
+#                Authelia minimal configuration               #
+###############################################################
+
+certificates_directory: /certs/
+
 server:
   address: 'tcp://:9091'
   tls:
@@ -58,9 +64,8 @@ access_control:
 
 notifier:
   smtp:
-    address: 'smtp://smtp:1025'
-    sender: admin@example.com
-    disable_require_tls: true
+    address: 'smtp://mail.example.com:1025'
+    sender: 'admin@example.com'
 
 identity_providers:
   oidc:

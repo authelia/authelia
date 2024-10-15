@@ -22,7 +22,7 @@ Perform cryptographic hash operations
 
 Perform cryptographic hash operations.
 
-This subcommand allows preforming hashing cryptographic tasks.
+This subcommand allows performing hashing cryptographic tasks.
 
 ### Examples
 

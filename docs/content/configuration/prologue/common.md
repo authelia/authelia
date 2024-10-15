@@ -300,10 +300,7 @@ certificate is provided, in top down order, each certificate must be signed by t
 
 #### private_key
 
-{{< confkey type="string" required="no" >}}
-
-*__Important Note:__ This can also be defined using a [secret](../methods/secrets.md) which is __strongly recommended__
-especially for containerized deployments.*
+{{< confkey type="string" required="no" secret="yes" >}}
 
 The private key to be used with the [certificate_chain](#certificate_chain) for mutual TLS authentication. The public key
 material of the private key must match the private key of the first certificate in the

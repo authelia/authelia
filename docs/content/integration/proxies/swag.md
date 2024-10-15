@@ -29,8 +29,10 @@ throughout this documentation and in the [See Also](#see-also) section.*
 As [SWAG] is a [NGINX] proxy with curated configurations, integration of __Authelia__ with [SWAG] is very easy and you
 only need to enabled two includes.
 
-*__Note:__ All paths in this guide are the locations inside the container. You will have to either edit the files within
-the container or adapt the path to the path you have mounted the relevant container path to.*
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+All paths in this guide are the locations inside the container. You will have to either edit the files within
+the container or adapt the path to the path you have mounted the relevant container path to.
+{{< /callout >}}
 
 ## Get started
 

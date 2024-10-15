@@ -25,6 +25,7 @@ func TestNewClient(t *testing.T) {
 	assert.Len(t, client.GetResponseModes(), 0)
 	assert.Len(t, client.GetResponseTypes(), 1)
 	assert.Equal(t, "", client.GetSectorIdentifierURI())
+	assert.False(t, client.GetClientSecret().Valid())
 
 	bclient, ok := client.(*oidc.RegisteredClient)
 	require.True(t, ok)

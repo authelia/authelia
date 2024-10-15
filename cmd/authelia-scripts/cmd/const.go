@@ -21,6 +21,7 @@ const (
 )
 
 const (
+	pathPNPMModule = "/web/node_modules/.modules.yaml"
 	pathPNPMStore  = "/.local/share/pnpm/store"
 	pathAuthelia   = "/authelia"
 	extTarballGzip = ".tar.gz"

@@ -119,9 +119,9 @@
 ##
 ## Log Configuration
 ##
-log:
+# log:
   ## Level of verbosity for logs: info, debug, trace.
-  level: 'debug'
+  # level: 'debug'
 
   ## Format the logs are written as: json, text.
   # format: 'json'
@@ -135,14 +135,14 @@ log:
 ##
 ## Telemetry Configuration
 ##
-telemetry:
+# telemetry:
 
   ##
   ## Metrics Configuration
   ##
-  metrics:
+  # metrics:
     ## Enable Metrics.
-    enabled: false
+    # enabled: false
 
     ## The address for the Metrics server to listen on in the address common syntax.
     ## Formats:
@@ -178,9 +178,9 @@ telemetry:
 ## TOTP Configuration
 ##
 ## Parameters used for TOTP generation.
-totp:
+# totp:
   ## Disable TOTP.
-  disable: false
+  # disable: false
 
   ## The issuer name displayed in the Authenticator application of your choice.
   # issuer: 'authelia.com'
@@ -228,9 +228,9 @@ totp:
 ## WebAuthn Configuration
 ##
 ## Parameters used for WebAuthn.
-webauthn:
+# webauthn:
   ## Disable WebAuthn.
-  disable: false
+  # disable: false
 
   ## The interaction timeout for WebAuthn dialogues in the duration common syntax.
   # timeout: '60 seconds'
@@ -328,12 +328,12 @@ identity_validation:
 ## Used for verifying user passwords and retrieve information such as email address and groups users belong to.
 ##
 ## The available providers are: `file`, `ldap`. You must use only one of these providers.
-authentication_backend:
+# authentication_backend:
 
   ## Password Reset Options.
-  password_reset:
+  # password_reset:
     ## Disable both the HTML element and the API for reset password functionality.
-    disable: false
+    # disable: false
 
     ## External reset password url that redirects the user to an external reset portal. This disables the internal reset
     ## functionality.
@@ -542,61 +542,61 @@ authentication_backend:
 ##
 ## Password Policy Configuration.
 ##
-password_policy:
+# password_policy:
 
   ## The standard policy allows you to tune individual settings manually.
-  standard:
-    enabled: false
+  # standard:
+    # enabled: false
 
     ## Require a minimum length for passwords.
-    min_length: 8
+    # min_length: 8
 
     ## Require a maximum length for passwords.
-    max_length: 0
+    # max_length: 0
 
     ## Require uppercase characters.
-    require_uppercase: true
+    # require_uppercase: true
 
     ## Require lowercase characters.
-    require_lowercase: true
+    # require_lowercase: true
 
     ## Require numeric characters.
-    require_number: true
+    # require_number: true
 
     ## Require special characters.
-    require_special: true
+    # require_special: true
 
   ## zxcvbn is a well known and used password strength algorithm. It does not have tunable settings.
-  zxcvbn:
-    enabled: false
+  # zxcvbn:
+    # enabled: false
 
     ## Configures the minimum score allowed.
-    min_score: 3
+    # min_score: 3
 
 ##
 ## Privacy Policy Configuration
 ##
 ## Parameters used for displaying the privacy policy link and drawer.
-privacy_policy:
+# privacy_policy:
 
   ## Enables the display of the privacy policy using the policy_url.
-  enabled: false
+  # enabled: false
 
   ## Enables the display of the privacy policy drawer which requires users accept the privacy policy
   ## on a per-browser basis.
-  require_user_acceptance: false
+  # require_user_acceptance: false
 
   ## The URL of the privacy policy document. Must be an absolute URL and must have the 'https://' scheme.
   ## If the privacy policy enabled option is true, this MUST be provided.
-  policy_url: ''
+  # policy_url: ''
 
 ##
 ## Access Control Configuration
 ##
 ## Access control is a list of rules defining the authorizations applied for one resource to users or group of users.
 ##
-## If 'access_control' is not defined, ACL rules are disabled and the 'bypass' rule is applied, i.e., access is allowed
-## to anyone. Otherwise restrictions follow the rules defined.
+## If 'access_control' is not defined, ACL rules are disabled and the 'deny' rule is applied, i.e., access is denied
+## to everyone. Otherwise restrictions follow the rules defined.
 ##
 ## Note: One can use the wildcard * to match any subdomain.
 ## It must stand at the beginning of the pattern. (example: *.example.com)
@@ -617,10 +617,10 @@ privacy_policy:
 ##   is optional and matches any resource if not provided.
 ##
 ## Note: the order of the rules is important. The first policy matching (domain, resource, subject) applies.
-access_control:
+# access_control:
   ## Default policy can either be 'bypass', 'one_factor', 'two_factor' or 'deny'. It is the policy applied to any
   ## resource if there is no policy to be applied to the user.
-  default_policy: 'deny'
+  # default_policy: 'deny'
 
   # networks:
     # - name: 'internal'
@@ -772,19 +772,19 @@ session:
       # remember_me: '1 month'
 
   ## Cookie Session Domain default 'name' value.
-  name: 'authelia_session'
+  # name: 'authelia_session'
 
   ## Cookie Session Domain default 'same_site' value.
-  same_site: 'lax'
+  # same_site: 'lax'
 
   ## Cookie Session Domain default 'inactivity' value.
-  inactivity: '5m'
+  # inactivity: '5m'
 
   ## Cookie Session Domain default 'expiration' value.
-  expiration: '1h'
+  # expiration: '1h'
 
   ## Cookie Session Domain default 'remember_me' value.
-  remember_me: '1M'
+  # remember_me: '1M'
 
   ##
   ## Redis Provider
@@ -1042,9 +1042,9 @@ session:
 ##
 ## Notifications are sent to users when they require a password reset, a WebAuthn registration or a TOTP registration.
 ## The available providers are: filesystem, smtp. You must use only one of these providers.
-notifier:
+# notifier:
   ## You can disable the notifier startup check by setting this to true.
-  disable_startup_check: false
+  # disable_startup_check: false
 
   ##
   ## File System (Notification Provider)

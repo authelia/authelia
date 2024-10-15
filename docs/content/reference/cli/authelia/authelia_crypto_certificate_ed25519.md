@@ -22,7 +22,7 @@ Perform Ed25519 certificate cryptographic operations
 
 Perform Ed25519 certificate cryptographic operations.
 
-This subcommand allows preforming Ed25519 certificate cryptographic tasks.
+This subcommand allows performing Ed25519 certificate cryptographic tasks.
 
 ### Examples
 

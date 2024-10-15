@@ -1,6 +1,7 @@
 import React, { ReactNode, useEffect } from "react";
 
-import { AppBar, Box, Container, Grid, Theme, Toolbar, Typography } from "@mui/material";
+import { AppBar, Box, Container, Theme, Toolbar, Typography } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 
@@ -35,8 +36,8 @@ const MinimalLayout = function (props: Props) {
 
     return (
         <Box>
-            <AppBar position="static" color="transparent" elevation={0}>
-                <Toolbar variant="regular">
+            <AppBar position={"static"} color={"transparent"} elevation={0}>
+                <Toolbar variant={"regular"}>
                     <Typography style={{ flexGrow: 1 }} />
                     {props.userInfo ? <AccountSettingsMenu userInfo={props.userInfo} /> : null}
                 </Toolbar>
@@ -46,20 +47,18 @@ const MinimalLayout = function (props: Props) {
                 className={styles.root}
                 container
                 spacing={0}
-                alignItems="center"
-                justifyContent="center"
+                alignItems={"center"}
+                justifyContent={"center"}
             >
-                <Container maxWidth="xs" className={styles.rootContainer}>
+                <Container maxWidth={"xs"} className={styles.rootContainer}>
                     <Grid container>
-                        <Grid item xs={12}>
-                            {logo}
-                        </Grid>
+                        <Grid size={{ xs: 12 }}>{logo}</Grid>
                         {props.title ? (
-                            <Grid item xs={12}>
+                            <Grid size={{ xs: 12 }}>
                                 <TypographyWithTooltip variant={"h5"} value={props.title} />
                             </Grid>
                         ) : null}
-                        <Grid item xs={12} className={styles.body}>
+                        <Grid size={{ xs: 12 }} className={styles.body}>
                             {props.children}
                         </Grid>
                     </Grid>

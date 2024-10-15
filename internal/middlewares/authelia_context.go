@@ -663,3 +663,13 @@ func (ctx *AutheliaCtx) GetJWTWithTimeFuncOption() (option jwt.ParserOption) {
 func (ctx *AutheliaCtx) GetConfiguration() (config schema.Configuration) {
 	return ctx.Configuration
 }
+
+// Value is a shaded method of context.Context which returns the AutheliaCtx struct if the key is the internal key
+// otherwise it returns the shaded value.
+func (ctx *AutheliaCtx) Value(key any) any {
+	if key == model.CtxKeyAutheliaCtx {
+		return ctx
+	}
+
+	return ctx.RequestCtx.Value(key)
+}

@@ -35,6 +35,18 @@ func (suite *StorageSuite) TestShouldValidateOneStorageIsConfigured() {
 	suite.Assert().EqualError(suite.val.Errors()[0], "storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided")
 }
 
+func (suite *StorageSuite) TestShouldValidateMultipleStorageIsConfigured() {
+	suite.config.Local = &schema.StorageLocal{}
+	suite.config.PostgreSQL = &schema.StoragePostgreSQL{}
+	suite.config.MySQL = &schema.StorageMySQL{}
+
+	ValidateStorage(suite.config, suite.val)
+
+	suite.Require().Len(suite.val.Warnings(), 0)
+	suite.Require().Len(suite.val.Errors(), 1)
+	suite.Assert().EqualError(suite.val.Errors()[0], "storage: option 'local', 'mysql' and 'postgres' are mutually exclusive but 'local', 'mysql', and 'postgres' have been configured")
+}
+
 func (suite *StorageSuite) TestShouldValidateLocalPathIsProvided() {
 	suite.config.Local = &schema.StorageLocal{
 		Path: "",

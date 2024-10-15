@@ -32,7 +32,7 @@ type TOTPConfiguration struct {
 	Username   string       `db:"username"`
 	Issuer     string       `db:"issuer"`
 	Algorithm  string       `db:"algorithm"`
-	Digits     uint         `db:"digits"`
+	Digits     uint32       `db:"digits"`
 	Period     uint         `db:"period"`
 	Secret     []byte       `db:"secret"`
 }
@@ -43,8 +43,8 @@ type TOTPConfigurationJSON struct {
 	LastUsedAt *time.Time `json:"last_used_at,omitempty"`
 	Issuer     string     `json:"issuer"`
 	Algorithm  string     `json:"algorithm"`
-	Digits     int        `json:"digits"`
-	Period     int        `json:"period"`
+	Digits     uint32     `json:"digits"`
+	Period     uint       `json:"period"`
 }
 
 // MarshalJSON returns the TOTPConfiguration in a JSON friendly manner.
@@ -53,8 +53,8 @@ func (c TOTPConfiguration) MarshalJSON() (data []byte, err error) {
 		CreatedAt: c.CreatedAt,
 		Issuer:    c.Issuer,
 		Algorithm: c.Algorithm,
-		Digits:    int(c.Digits),
-		Period:    int(c.Period),
+		Digits:    c.Digits,
+		Period:    c.Period,
 	}
 
 	if c.LastUsedAt.Valid {
@@ -74,6 +74,8 @@ func (c *TOTPConfiguration) HistorySince(now time.Time, skew *int) time.Time {
 		s = *skew + 2
 	}
 
+	// TODO: Adjust the logic here to not require the lint comment.
+	//nolint:gosec // Safe as the values set are always convertable to int64.
 	return now.Add(-time.Second * time.Duration(c.Period) * time.Duration(s))
 }
 
@@ -180,7 +182,7 @@ type TOTPConfigurationData struct {
 	Username   string     `yaml:"username" json:"username" jsonschema:"title=Username" jsonschema_description:"The username of the user this configuration belongs to."`
 	Issuer     string     `yaml:"issuer" json:"issuer" jsonschema:"title=Issuer" jsonschema_description:"The issuer name this was generated with."`
 	Algorithm  string     `yaml:"algorithm" json:"algorithm" jsonschema:"title=Algorithm" jsonschema_description:"The algorithm this configuration uses."`
-	Digits     uint       `yaml:"digits" json:"digits" jsonschema:"title=Digits" jsonschema_description:"The number of digits this configuration uses."`
+	Digits     uint32     `yaml:"digits" json:"digits" jsonschema:"title=Digits" jsonschema_description:"The number of digits this configuration uses."`
 	Period     uint       `yaml:"period" json:"period" jsonschema:"title=Period" jsonschema_description:"The period of time this configuration uses."`
 	Secret     string     `yaml:"secret" json:"secret" jsonschema:"title=Secret" jsonschema_description:"The secret shared key for this configuration."`
 }

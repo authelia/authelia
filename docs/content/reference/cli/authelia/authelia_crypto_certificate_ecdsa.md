@@ -22,7 +22,7 @@ Perform ECDSA certificate cryptographic operations
 
 Perform ECDSA certificate cryptographic operations.
 
-This subcommand allows preforming ECDSA certificate cryptographic tasks.
+This subcommand allows performing ECDSA certificate cryptographic tasks.
 
 ### Examples
 

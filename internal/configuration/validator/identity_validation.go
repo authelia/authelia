@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -21,7 +22,7 @@ func ValidateIdentityValidation(config *schema.Configuration, validator *schema.
 	}
 
 	if !config.AuthenticationBackend.PasswordReset.Disable && len(config.IdentityValidation.ResetPassword.JWTSecret) == 0 {
-		validator.Push(fmt.Errorf(errFmtIdentityValidationResetPasswordJWTSecret))
+		validator.Push(errors.New(errFmtIdentityValidationResetPasswordJWTSecret))
 	}
 
 	if config.IdentityValidation.ElevatedSession.CodeLifespan <= 0 {
