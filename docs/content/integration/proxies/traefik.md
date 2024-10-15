@@ -28,10 +28,9 @@ throughout this documentation and in the [See Also](#see-also) section.*
 
 You need the following to run __Authelia__ with [Traefik]:
 
-* [Traefik] [v2.0.0](https://github.com/traefik/traefik/releases/tag/v2.0.0) or greater
-  (a guide exists for 1.x [here](traefikv1.md))
-* [Traefik] [v2.4.1](https://github.com/traefik/traefik/releases/tag/v2.4.1) or greater if you wish to use
-  [basic authentication](#basic-authentication)
+* [Traefik] [v3.0.0](https://github.com/traefik/traefik/releases/tag/v3.0.0) or greater recommended
+* [Traefik] [v2.11.0](https://github.com/traefik/traefik/releases/tag/v2.11.0) or greater is supported until such a time
+  as [Traefik] removes support for it
 
 ## Get started
 
@@ -113,7 +112,7 @@ Below you will find commented examples of the following docker deployment:
 * Protected endpoint (Nextcloud)
 * Protected endpoint with [Authorization] header for basic authentication (Heimdall)
 
-The below configuration looks to provide examples of running [Traefik] 2.x with labels to protect your endpoint
+The below configuration looks to provide examples of running [Traefik] 3.x with labels to protect your endpoint
 (Nextcloud in this case).
 
 Please ensure that you also setup the respective [ACME configuration](https://docs.traefik.io/https/acme/) for your
@@ -160,7 +159,7 @@ networks:
 services:
   traefik:
     container_name: 'traefik'
-    image: 'traefik:v2.9'
+    image: 'traefik:v3.1'
     restart: 'unless-stopped'
     command:
       - '--api=true'
@@ -296,7 +295,7 @@ networks:
 services:
   traefik:
     container_name: 'traefik'
-    image: 'traefik:v2.10'
+    image: 'traefik:v3.1'
     restart: 'unless-stopped'
     command:
       - '--api=true'

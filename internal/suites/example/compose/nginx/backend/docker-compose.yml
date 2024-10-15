@@ -9,9 +9,9 @@ services:
       - 'traefik.frontend.auth.forward.tls.insecureSkipVerify=true'
       - 'traefik.frontend.auth.forward.trustForwardHeader=true'
       - 'traefik.frontend.auth.forward.authResponseHeaders=Authorization,Proxy-Authorization,Remote-User,Remote-Groups,Remote-Email,Remote-Name'
-      # Traefik 2.x
+      # Traefik 2.x / 3.x
       - 'traefik.enable=true'
-      - 'traefik.http.routers.protectedapps.rule=Host(`admin.example.com`,`deny.example.com`,`home.example.com`,`public.example.com`,`secure.example.com`,`singlefactor.example.com`)'  # yamllint disable-line rule:line-length
+      - 'traefik.http.routers.protectedapps.rule=Host(`admin.example.com`) || Host(`deny.example.com`) || Host(`home.example.com`) || Host(`public.example.com`) || Host(`secure.example.com`) || Host(`singlefactor.example.com`)'  # yamllint disable-line rule:line-length
       - 'traefik.http.routers.protectedapps.entrypoints=https'
       - 'traefik.http.routers.protectedapps.tls=true'
       - 'traefik.http.routers.protectedapps.middlewares=authelia@docker'

@@ -9,33 +9,33 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type Traefik2Suite struct {
+type Traefik3Suite struct {
 	*RodSuite
 }
 
-func NewTraefik2Suite() *Traefik2Suite {
-	return &Traefik2Suite{
-		RodSuite: NewRodSuite(traefik2SuiteName),
+func NewTraefik3Suite() *Traefik3Suite {
+	return &Traefik3Suite{
+		RodSuite: NewRodSuite(traefik3SuiteName),
 	}
 }
 
-func (s *Traefik2Suite) Test1FAScenario() {
+func (s *Traefik3Suite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *Traefik2Suite) Test2FATOTPScenario() {
+func (s *Traefik3Suite) Test2FATOTPScenario() {
 	suite.Run(s.T(), New2FATOTPScenario())
 }
 
-func (s *Traefik2Suite) TestCustomHeaders() {
+func (s *Traefik3Suite) TestCustomHeaders() {
 	suite.Run(s.T(), NewCustomHeadersScenario())
 }
 
-func (s *Traefik2Suite) TestResetPasswordScenario() {
+func (s *Traefik3Suite) TestResetPasswordScenario() {
 	suite.Run(s.T(), NewResetPasswordScenario())
 }
 
-func (s *Traefik2Suite) TestShouldKeepSessionAfterRedisRestart() {
+func (s *Traefik3Suite) TestShouldKeepSessionAfterRedisRestart() {
 	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
 	defer func() {
 		cancel()
@@ -59,17 +59,17 @@ func (s *Traefik2Suite) TestShouldKeepSessionAfterRedisRestart() {
 	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s/secret.html", SecureBaseURL))
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 
-	err = traefik2DockerEnvironment.Restart("redis")
+	err = traefik3DockerEnvironment.Restart("redis")
 	s.Require().NoError(err)
 
 	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s/secret.html", SecureBaseURL))
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 }
 
-func TestTraefik2Suite(t *testing.T) {
+func TestTraefik3Suite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
 	}
 
-	suite.Run(t, NewTraefik2Suite())
+	suite.Run(t, NewTraefik3Suite())
 }
