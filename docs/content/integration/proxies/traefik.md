@@ -28,9 +28,13 @@ throughout this documentation and in the [See Also](#see-also) section.*
 
 You need the following to run __Authelia__ with [Traefik]:
 
-* [Traefik] [v3.0.0](https://github.com/traefik/traefik/releases/tag/v3.0.0) or greater recommended
-* [Traefik] [v2.11.0](https://github.com/traefik/traefik/releases/tag/v2.11.0) or greater is supported until such a time
-  as [Traefik] removes support for it
+* [Traefik] [v3.1.0](https://github.com/traefik/traefik/releases/tag/v3.1.0) or greater recommended, however it must be
+  a release that has [Traefik] support
+* [Traefik] [v2.11.0](https://github.com/traefik/traefik/releases/tag/v2.11.0) or greater is supported, however it must
+  also be a release that has [Traefik] support
+
+See the official [Traefik Deprecation Notices](https://doc.traefik.io/traefik/deprecation/releases/) documentation for
+more information on the versions of [Traefik] that are officially supported by [Traefik].
 
 ## Get started
 
