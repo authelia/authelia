@@ -101,6 +101,8 @@ func (s *ResetPasswordScenario) TestShouldNotifyUserOnBlankUsername() {
 	s.doInitiatePasswordReset(s.T(), s.Context(ctx), "")
 
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Username is required")
+
+	s.VerifyPageElementAttributeValueBoolean(s.T(), s.Context(ctx), "username-textfield", "aria-invalid", true, true)
 }
 
 func (s *ResetPasswordScenario) TestShouldLetUserNoticeThereIsAPasswordMismatch() {
