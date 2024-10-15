@@ -42,8 +42,10 @@ key or the CA public key which signed them (don't add the private key).
 
 {{< confkey type="string" required="no" >}}
 
-*__Important Note:__ You should configure the domain specific redirection URL's in the
-[session](../session/introduction.md#default_redirection_url) configuration instead of using this option.*
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+You should configure the domain-specific redirection URL's in the
+[session](../session/introduction.md#default_redirection_url) configuration instead of using this option.
+{{< /callout >}}
 
 The default redirection URL is the URL where users are redirected when Authelia cannot detect the target URL where the
 user was heading.

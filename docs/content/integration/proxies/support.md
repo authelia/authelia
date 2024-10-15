@@ -69,11 +69,13 @@ More information about [Kubernetes] deployments of Authelia can be read in the
 
 ### XHR Redirect
 
-*__Note:__ The XHR is a deprecated web feature and applications should be using the new [Fetch API] which does not have
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+The XHR is a deprecated web feature and applications should be using the new [Fetch API] which does not have
 the same issues regarding redirects (the [Fetch API] allows developers to
 [control how to handle them](https://developer.mozilla.org/en-US/docs/Web/API/Request/redirect)). As such the fact
 a proxy does not support it should only be seen as a means to communicate a feature not that the proxy should not be
-used.*
+used.
+{{< /callout >}}
 
 XML HTTP Requests do not typically redirect browsers when returned 30x status codes. Instead, the standard method is to
 return a 401 status code with a Location header. While this may seem trivial; currently there isn't wide support for it.

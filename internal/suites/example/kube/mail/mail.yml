@@ -2,39 +2,55 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mailcatcher
+  name: mailpit
   namespace: authelia
   labels:
-    app: mailcatcher
+    app: mailpit
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: mailcatcher
+      app: mailpit
   template:
     metadata:
       labels:
-        app: mailcatcher
+        app: mailpit
     spec:
       containers:
-        - name: mailcatcher
-          image: schickling/mailcatcher
+        - name: mailpit
+          image: axllent/mailpit
           ports:
             - containerPort: 1025
-            - containerPort: 1080
+            - containerPort: 8025
+          volumeMounts:
+            - name: authelia-ssl
+              mountPath: /pki
+              readOnly: true
+          env:
+            - name: MP_SMTP_TLS_CERT
+              value: /pki/public.crt
+            - name: MP_SMTP_TLS_KEY
+              value: /pki/private.pem
+            - name: MP_SMTP_AUTH
+              value: authelia:mailer
+      volumes:
+        - name: authelia-ssl
+          hostPath:
+            path: /configmaps/authelia/ssl
+            type: Directory
 ...
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: mailcatcher-service
+  name: mailpit-service
   namespace: authelia
 spec:
   selector:
-    app: mailcatcher
+    app: mailpit
   ports:
     - protocol: TCP
-      port: 1080
+      port: 8025
       name: ui
     - protocol: TCP
       port: 1025
@@ -44,7 +60,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: mailcatcher-ingress
+  name: mailpit-ingress
   namespace: authelia
   annotations:
     kubernetes.io/ingress.class: traefik
@@ -58,7 +74,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: mailcatcher-service
+                name: mailpit-service
                 port:
-                  number: 1080
+                  number: 8025
 ...

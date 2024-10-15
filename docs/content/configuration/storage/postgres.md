@@ -116,10 +116,7 @@ The username paired with the password used to connect to the database.
 
 ### password
 
-{{< confkey type="string" required="yes" >}}
-
-*__Important Note:__ This can also be defined using a [secret](../methods/secrets.md) which is __strongly recommended__
-especially for containerized deployments.*
+{{< confkey type="string" required="yes" secret="yes" >}}
 
 The password paired with the [username](#username) used to connect to the database.
 

@@ -26,8 +26,10 @@ for the forwarded authentication flow integrated into a proxy (i.e. `access_cont
 session cookie-based authorization flow (which redirects unauthorized users) by utilizing
 [RFC6750: OAuth 2.0 Bearer Token Usage] authorization scheme norms (i.e. using the bearer scheme).
 
-_**Note:** these tokens are not intended for usage with the Authelia API, a separate exclusive scope (or scopes) and
-specific audiences will likely be implemented at a later date for this._
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+These tokens are not intended for usage with the Authelia API, a separate exclusive scope (or scopes) and
+specific audiences will likely be implemented at a later date for this.
+{{< /callout >}}
 
 ### General Protections
 

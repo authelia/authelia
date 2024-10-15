@@ -53,9 +53,11 @@ For more information on [File Filters](files.md#file-filters) including how to e
 
 ## Layers
 
-*__Important Note:__* While this method is the third layer of the layered configuration model as described by the
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+While this method is the third layer of the layered configuration model as described by the
 [introduction](introduction.md#layers), this layer is special in as much as *Authelia* will not start if you define
 a secret as well as any other configuration method.
+{{< /callout >}}
 
 For example if you define `jwt_secret` in the [files method](files.md) and/or `AUTHELIA_JWT_SECRET` in the
 [environment method](environment.md), as well as the `AUTHELIA_JWT_SECRET_FILE`, this will cause the aforementioned error.

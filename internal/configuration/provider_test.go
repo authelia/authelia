@@ -252,7 +252,7 @@ func TestShouldNotIgnoreInvalidEnvs(t *testing.T) {
 	assert.Len(t, val.Errors(), 1)
 
 	assert.EqualError(t, val.Warnings()[0], fmt.Sprintf("configuration environment variable not expected: %sSTORAGE_MYSQL", DefaultEnvPrefix))
-	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshalling configuration: 1 error(s) decoding:\n\n* error decoding 'authentication_backend.ldap.address': could not decode 'an env authentication backend ldap password' to a *schema.AddressLDAP: could not parse string 'an env authentication backend ldap password' as address: expected format is [<scheme>://]<hostname>[:<port>]: parse \"ldaps://an env authentication backend ldap password\": invalid character \" \" in host name")
+	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshalling configuration: decoding failed due to the following error(s):\n\nerror decoding 'authentication_backend.ldap.address': could not decode 'an env authentication backend ldap password' to a *schema.AddressLDAP: could not parse string 'an env authentication backend ldap password' as address: expected format is [<scheme>://]<hostname>[:<port>]: parse \"ldaps://an env authentication backend ldap password\": invalid character \" \" in host name")
 }
 
 func TestShouldValidateServerAddressValues(t *testing.T) {
@@ -527,6 +527,31 @@ func TestShouldLoadURLList(t *testing.T) {
 	assert.Equal(t, "https://example.com", config.IdentityProviders.OIDC.CORS.AllowedOrigins[1].String())
 }
 
+func TestShouldNotPanicJWKNilKey(t *testing.T) {
+	val := schema.NewStructValidator()
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc_empty_jwk_key.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+
+	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
+
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+
+	require.NotPanics(t, func() {
+		validator.ValidateIdentityProviders(validator.NewValidateCtx(), &config.IdentityProviders, val)
+	})
+
+	assert.Len(t, val.Errors(), 5)
+	require.Len(t, val.Warnings(), 1)
+
+	assert.EqualError(t, val.Errors()[0], "identity_providers: oidc: jwks: key #1 with key id 'abc': option 'key' must be provided")
+	assert.EqualError(t, val.Errors()[1], "identity_providers: oidc: jwks: key #2: option 'key' must be provided")
+	assert.EqualError(t, val.Errors()[2], "identity_providers: oidc: clients: client 'abc': jwks: key #1 with key id 'client_abc': option 'key' must be provided")
+	assert.EqualError(t, val.Errors()[3], "identity_providers: oidc: clients: client 'abc': jwks: key #2: option 'key_id' must be provided")
+	assert.EqualError(t, val.Errors()[4], "identity_providers: oidc: clients: client 'abc': jwks: key #2: option 'key' must be provided")
+}
+
 func TestShouldDisableOIDCEntropy(t *testing.T) {
 	val := schema.NewStructValidator()
 	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc_disable_entropy.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
@@ -703,7 +728,7 @@ func TestShouldRaiseErrOnInvalidNotifierSMTPSender(t *testing.T) {
 	require.Len(t, val.Errors(), 1)
 	assert.Len(t, val.Warnings(), 0)
 
-	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshalling configuration: 1 error(s) decoding:\n\n* error decoding 'notifier.smtp.sender': could not decode 'admin' to a mail.Address (RFC5322): mail: missing '@' or angle-addr")
+	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshalling configuration: decoding failed due to the following error(s):\n\nerror decoding 'notifier.smtp.sender': could not decode 'admin' to a mail.Address (RFC5322): mail: missing '@' or angle-addr")
 }
 
 func TestShouldHandleErrInvalidatorWhenSMTPSenderBlank(t *testing.T) {
@@ -855,7 +880,7 @@ func TestShouldErrOnParseInvalidRegex(t *testing.T) {
 	require.Len(t, val.Errors(), 1)
 	assert.Len(t, val.Warnings(), 0)
 
-	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshalling configuration: 1 error(s) decoding:\n\n* error decoding 'access_control.rules[0].domain_regex[0]': could not decode '^\\K(public|public2).example.com$' to a regexp.Regexp: error parsing regexp: invalid escape sequence: `\\K`")
+	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshalling configuration: decoding failed due to the following error(s):\n\nerror decoding 'access_control.rules[0].domain_regex[0]': could not decode '^\\K(public|public2).example.com$' to a regexp.Regexp: error parsing regexp: invalid escape sequence: `\\K`")
 }
 
 func TestShouldNotReadConfigurationOnFSAccessDenied(t *testing.T) {

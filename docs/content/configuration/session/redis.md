@@ -96,10 +96,7 @@ through the process of setting up [redis ACLs](https://redis.io/topics/acl).
 
 ### password
 
-{{< confkey type="string" required="no" >}}
-
-*__Important Note:__ This can also be defined using a [secret](../methods/secrets.md) which is __strongly recommended__
-especially for containerized deployments.*
+{{< confkey type="string" required="no" secret="yes" >}}
 
 The password for [redis authentication](https://redis.io/commands/auth).
 
@@ -155,10 +152,7 @@ be authenticated with traditional [requirepass] authentication.
 
 #### sentinel_password
 
-{{< confkey type="string" required="no (yes if sentinel_username is supplied)" >}}
-
-*__Important Note:__ This can also be defined using a [secret](../methods/secrets.md) which is __strongly recommended__
-especially for containerized deployments.*
+{{< confkey type="string" required="no (yes if sentinel_username is supplied)" secret="yes" >}}
 
 The password for the [redis sentinel] connection. If specified with sentinel_username, configures Authelia to
 authenticate to the Redis Sentinel with ACL-based authentication. Otherwise, this is used for [requirepass]

@@ -21,7 +21,9 @@ Authelia [4.37](https://github.com/authelia/authelia/milestone/16) is just aroun
 additional features and improvements to existing features. In this blog post we'll discuss the new features and roughly
 what it means for users.
 
-_**Note:** These features are still subject to change however it represents the most likely features._
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+These features are still subject to change; however, it represents the most likely features.
+{{< /callout >}}
 
 This blog entry (and technically the blog itself) is part of a new effort I'm making for which I'm not entirely sure how
 useful it'll be but I'd love to hear your feedback regardless. We don't use any analytics or interactive components to

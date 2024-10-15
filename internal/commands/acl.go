@@ -120,7 +120,7 @@ func accessControlCheckWriteOutput(object authorization.Object, subject authoriz
 
 	w := tabwriter.NewWriter(os.Stdout, 1, 1, 4, ' ', 0)
 
-	_, _ = fmt.Fprintln(w, "  #\tDomain\tResource\tMethod\tNetwork\tSubject")
+	_, _ = fmt.Fprintln(w, "  #\tDomain\tResource\tQuery\tMethod\tNetwork\tSubject")
 
 	var (
 		appliedPos int
@@ -138,16 +138,15 @@ func accessControlCheckWriteOutput(object authorization.Object, subject authoriz
 		switch {
 		case result.IsMatch() && !result.Skipped:
 			appliedPos, applied = i+1, result
-
-			_, _ = fmt.Fprintf(w, "* %d\t%s\t%s\t%s\t%s\t%s\n", i+1, hitMissMay(result.MatchDomain), hitMissMay(result.MatchResources), hitMissMay(result.MatchMethods), hitMissMay(result.MatchNetworks), hitMissMay(result.MatchSubjects, result.MatchSubjectsExact))
+			_, _ = fmt.Fprintf(w, "* %d\t%s\t%s\t%s\t%s\t%s\t%s\n", i+1, hitMissMay(result.MatchDomain), hitMissMay(result.MatchResources), hitMissMay(result.MatchQuery), hitMissMay(result.MatchMethods), hitMissMay(result.MatchNetworks), hitMissMay(result.MatchSubjects, result.MatchSubjectsExact))
 		case result.IsPotentialMatch() && !result.Skipped:
 			if potentialPos == 0 {
 				potentialPos, potential = i+1, result
 			}
 
-			_, _ = fmt.Fprintf(w, "~ %d\t%s\t%s\t%s\t%s\t%s\n", i+1, hitMissMay(result.MatchDomain), hitMissMay(result.MatchResources), hitMissMay(result.MatchMethods), hitMissMay(result.MatchNetworks), hitMissMay(result.MatchSubjects, result.MatchSubjectsExact))
+			_, _ = fmt.Fprintf(w, "~ %d\t%s\t%s\t%s\t%s\t%s\t%s\n", i+1, hitMissMay(result.MatchDomain), hitMissMay(result.MatchResources), hitMissMay(result.MatchQuery), hitMissMay(result.MatchMethods), hitMissMay(result.MatchNetworks), hitMissMay(result.MatchSubjects, result.MatchSubjectsExact))
 		default:
-			_, _ = fmt.Fprintf(w, "  %d\t%s\t%s\t%s\t%s\t%s\n", i+1, hitMissMay(result.MatchDomain), hitMissMay(result.MatchResources), hitMissMay(result.MatchMethods), hitMissMay(result.MatchNetworks), hitMissMay(result.MatchSubjects, result.MatchSubjectsExact))
+			_, _ = fmt.Fprintf(w, "  %d\t%s\t%s\t%s\t%s\t%s\t%s\n", i+1, hitMissMay(result.MatchDomain), hitMissMay(result.MatchResources), hitMissMay(result.MatchQuery), hitMissMay(result.MatchMethods), hitMissMay(result.MatchNetworks), hitMissMay(result.MatchSubjects, result.MatchSubjectsExact))
 		}
 	}
 

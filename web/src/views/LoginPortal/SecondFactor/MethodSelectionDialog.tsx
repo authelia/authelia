@@ -1,6 +1,7 @@
 import React, { ReactNode } from "react";
 
-import { Button, Dialog, DialogActions, DialogContent, Grid, Theme, Typography, useTheme } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, Theme, Typography, useTheme } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 
@@ -99,7 +100,7 @@ function MethodItem(props: MethodItemProps) {
     }))();
 
     return (
-        <Grid item xs={12} className="method-option" id={props.id}>
+        <Grid size={{ xs: 12 }} className="method-option" id={props.id}>
             <Button
                 className={style.item}
                 color="primary"

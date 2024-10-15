@@ -1,0 +1,25 @@
+{{ .Title }}
+
+Hi {{ .DisplayName }},
+
+This notification has been sent to you in order to notify you that {{
+.BodyPrefix }} {{ .BodyEvent }} {{ .BodySuffix }}
+
+--------------------------------------------------------------------------------
+
+Event Details:
+
+{{- $keys := sortAlpha (keys .Details) }}{{- range $key := $keys }}
+
+{{ $key }}: {{ index $.Details $key }}
+
+{{ end }}
+
+--------------------------------------------------------------------------------
+
+This notification was intended for {{ .DisplayName }}. This event notification
+was generated due to an action from {{ .RemoteIP }}. If you do not believe that
+your actions could have triggered this event or if you are concerned about your
+account's safety, please change your password and reach out to an administrator.
+
+Powered by Authelia https://www.authelia.com

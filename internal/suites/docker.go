@@ -52,6 +52,10 @@ func (de *DockerEnvironment) Pull(images ...string) error {
 
 // Up spawn a docker environment.
 func (de *DockerEnvironment) Up() error {
+	if os.Getenv("CI") == t {
+		return de.createCommandWithStdout("up --build --quiet-pull -d").Run()
+	}
+
 	return de.createCommandWithStdout("up --build -d").Run()
 }
 

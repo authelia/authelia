@@ -23,8 +23,10 @@ There are several options which affect the loading of files:
 | Files/Directories |        `--config`, `-c`         |     `X_AUTHELIA_CONFIG`     | A list of file or directory (non-recursive) paths to load configuration files from |
 |      Filters      | `--config.experimental.filters` | `X_AUTHELIA_CONFIG_FILTERS` |   A list of filters applied to every file from the Files or Directories options    |
 
-__*Note:* when specifying directories and files, the individual files specified must not be within any of the
-directories specified.__
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+When specifying directories and files, the individual files specified must not be within any of the
+directories specified.
+{{< /callout >}}
 
 Configuration options can be discovered via either the Argument or Environment Variable, but not both at the same time.
 If both are specified the Argument takes precedence and the Environment Variable is ignored. It is generally recommended
@@ -95,9 +97,11 @@ authelia --config configuration.yml,config-acl.yml,config-other.yml
 Authelia's configuration files use the YAML format. A template with all possible options can be found at the root of the
 repository {{< github-link name="here" path="config.template.yml" >}}.
 
-*__Important Note:__ You should not have configuration sections such as Access Control Rules or OpenID Connect 1.0
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+You should not have configuration sections such as Access Control Rules or OpenID Connect 1.0
 clients configured in multiple files. If you wish to split these into their own files that is fine, but if you have two
-files that specify these sections and expect them to merge properly you are asking for trouble.*
+files that specify these sections and expect them to merge properly you are asking for trouble.
+{{< /callout >}}
 
 ### Container
 
@@ -194,9 +198,11 @@ Filters can either be used on their own, in combination, or not at all. The filt
 defined. You can preview the output of the YAML files when processed via the filters using the
 [authelia config template](../../reference/cli/authelia/authelia_config_template.md) command.
 
-_**Important Note:** the filters are applied in order and thus if the output of one filter outputs a string that
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+The filters are applied in order and thus if the output of one filter outputs a string that
 contains syntax for a subsequent filter it will be filtered. It is therefore suggested the template filter is the only
-filter and if it isn't that it's last._
+filter and if it isn't that it's last.
+{{< /callout >}}
 
 Examples:
 
