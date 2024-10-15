@@ -5,9 +5,6 @@ services:
     volumes:
       - './example/compose/authelia/resources/nginx.conf:/etc/nginx/nginx.conf'
     labels:
-      # Traefik 1.x
-      - 'traefik.frontend.rule=Host:login.example.com'
-      # Traefik 2.x / 3.x
       - 'traefik.enable=true'
       - 'traefik.http.routers.authelia_frontend.rule=Host(`login.example.com`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix}/`)'  # yamllint disable-line rule:line-length
       - 'traefik.http.routers.authelia_frontend.entrypoints=https'
