@@ -11,7 +11,6 @@ services:
       - 'traefik.http.routers.api.entrypoints=https'
       - 'traefik.http.routers.api.service=api@internal'
       - 'traefik.http.routers.api.tls=true'
-      # Traefik 2.x / 3.x
       - 'traefik.http.middlewares.authelia.forwardauth.address=https://authelia-backend:9091${PathPrefix}/api/authz/forward-auth'  # yamllint disable-line rule:line-length
       - 'traefik.http.middlewares.authelia.forwardauth.tls.insecureSkipVerify=true'
       - 'traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true'
