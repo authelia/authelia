@@ -69,14 +69,12 @@ func (d *Docker) Manifest(tags []string) error {
 		baseImageTag = strings.TrimPrefix(ciTag, "v")
 	}
 
-	args = append(args, "--build-arg", "BASE="+BaseImageName+":"+baseImageTag)
-
 	indexDigest, err := getManifestIndexDigest(baseImageTag)
 	if err != nil {
 		return err
 	}
 
-	args = append(args, "--label", "org.opencontainers.image.base.name=docker.io/"+BaseImageName+":"+indexDigest)
+	args = append(args, "--build-arg", "BASE="+BaseImageName+":"+indexDigest, "--label", "org.opencontainers.image.base.name=docker.io/"+BaseImageName+":"+indexDigest)
 
 	digestAMD64, digestARM, digestARM64, err := getBaseImageDigests(baseImageTag)
 	if err != nil {
