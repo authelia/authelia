@@ -24,6 +24,7 @@ const ResetPasswordStep1 = function () {
     const doInitiateResetPasswordProcess = async () => {
         setError(false);
         setLoading(true);
+
         if (username === "") {
             setError(true);
             setLoading(false);
@@ -61,10 +62,7 @@ const ResetPasswordStep1 = function () {
                             fullWidth
                             error={error}
                             value={username}
-                            onChange={(e) => {
-                                setError(false);
-                                setUsername(e.target.value);
-                            }}
+                            onChange={(e) => setUsername(e.target.value)}
                             onKeyDown={(ev) => {
                                 if (ev.key === "Enter") {
                                     doInitiateResetPasswordProcess();

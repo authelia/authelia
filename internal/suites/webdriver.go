@@ -88,8 +88,9 @@ func NewRodSession(options ...RodSessionOpt) (session *RodSession, err error) {
 		ControlURL(url).
 		Trace(trace).
 		SlowMotion(motion).
-		MustIgnoreCertErrors(true).
 		MustConnect()
+
+	browser.MustIgnoreCertErrors(true)
 
 	return &RodSession{
 		Launcher:                    l,
