@@ -21,6 +21,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
+	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/metrics"
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -149,6 +150,7 @@ func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
 	ctx.providers.Regulator = regulation.NewRegulator(ctx.config.Regulation, ctx.providers.StorageProvider, clock.New())
 	ctx.providers.SessionProvider = session.NewProvider(ctx.config.Session, ctx.trusted)
 	ctx.providers.TOTP = totp.NewTimeBasedProvider(ctx.config.TOTP)
+	ctx.providers.UserAttributeResolver = expression.NewUserAttributes(ctx.config)
 
 	var err error
 

@@ -360,11 +360,42 @@
           "$ref": "#/$defs/AuthenticationBackendFileSearch",
           "title": "Search",
           "description": "Configures the user searching behaviour."
+        },
+        "extra_attributes": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/$defs/AuthenticationBackendFileExtraAttribute"
+            }
+          },
+          "type": "object",
+          "title": "Extra Attributes",
+          "description": "Configures the extra attributes available in expressions and other areas of Authelia."
         }
       },
       "additionalProperties": false,
       "type": "object",
       "description": "AuthenticationBackendFile represents the configuration related to file-based backend."
+    },
+    "AuthenticationBackendFileExtraAttribute": {
+      "properties": {
+        "multi_valued": {
+          "type": "boolean",
+          "title": "Multi-Valued",
+          "description": "Defines the attribute as multi-valued."
+        },
+        "value_type": {
+          "type": "string",
+          "enum": [
+            "boolean",
+            "integer",
+            "string"
+          ],
+          "title": "Value Type",
+          "description": "Defines the value type for the attribute."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "AuthenticationBackendFilePassword": {
       "properties": {
@@ -791,6 +822,96 @@
           "title": "Attribute: User Display Name",
           "description": "The directory server attribute which contains the display name for all users."
         },
+        "family_name": {
+          "type": "string",
+          "title": "Attribute: Family Name",
+          "description": "The directory server attribute which contains the family name for all users."
+        },
+        "given_name": {
+          "type": "string",
+          "title": "Attribute: Given Name",
+          "description": "The directory server attribute which contains the given name for all users."
+        },
+        "middle_name": {
+          "type": "string",
+          "title": "Attribute: Middle Name",
+          "description": "The directory server attribute which contains the middle name for all users."
+        },
+        "nickname": {
+          "type": "string",
+          "title": "Attribute: Nickname",
+          "description": "The directory server attribute which contains the nickname for all users."
+        },
+        "gender": {
+          "type": "string",
+          "title": "Attribute: Gender",
+          "description": "The directory server attribute which contains the gender for all users."
+        },
+        "birthdate": {
+          "type": "string",
+          "title": "Attribute: Birthdate",
+          "description": "The directory server attribute which contains the birthdate for all users."
+        },
+        "website": {
+          "type": "string",
+          "title": "Attribute: Website",
+          "description": "The directory server attribute which contains the website URL for all users."
+        },
+        "profile": {
+          "type": "string",
+          "title": "Attribute: Profile",
+          "description": "The directory server attribute which contains the profile URL for all users."
+        },
+        "picture": {
+          "type": "string",
+          "title": "Attribute: Picture",
+          "description": "The directory server attribute which contains the picture URL for all users."
+        },
+        "zoneinfo": {
+          "type": "string",
+          "title": "Attribute: Zone Information",
+          "description": "The directory server attribute which contains the time zone information for all users."
+        },
+        "locale": {
+          "type": "string",
+          "title": "Attribute: Locale",
+          "description": "The directory server attribute which contains the locale information for all users."
+        },
+        "phone_number": {
+          "type": "string",
+          "title": "Attribute: Phone Number",
+          "description": "The directory server attribute which contains the phone number for all users."
+        },
+        "phone_extension": {
+          "type": "string",
+          "title": "Attribute: Phone Extension",
+          "description": "The directory server attribute which contains the phone extension for all users."
+        },
+        "street_address": {
+          "type": "string",
+          "title": "Attribute: Street Address",
+          "description": "The directory server attribute which contains the street address for all users."
+        },
+        "locality": {
+          "type": "string",
+          "title": "Attribute: Locality",
+          "description": "The directory server attribute which contains the locality for all users."
+        },
+        "region": {
+          "type": "string",
+          "title": "Attribute: Region",
+          "description": "The directory server attribute which contains the region for all users."
+        },
+        "postal_code": {
+          "type": "string",
+          "title": "Attribute: Postal Code",
+          "description": "The directory server attribute which contains the postal code for all users."
+        },
+        "country": {
+          "type": "string",
+          "title": "Attribute: Country",
+          "description": "The directory server attribute which contains the country for all users."
+        },
         "mail": {
           "type": "string",
           "title": "Attribute: User Mail",
@@ -805,11 +926,47 @@
           "type": "string",
           "title": "Attribute: Group Name",
           "description": "The directory server attribute which contains the group name for all groups."
+        },
+        "extra": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/$defs/AuthenticationBackendLDAPAttributesAttribute"
+            }
+          },
+          "type": "object",
+          "title": "Extra Attributes",
+          "description": "Configures the extra attributes available in expressions and other areas of Authelia."
         }
       },
       "additionalProperties": false,
       "type": "object",
       "description": "AuthenticationBackendLDAPAttributes represents the configuration related to LDAP server attributes."
+    },
+    "AuthenticationBackendLDAPAttributesAttribute": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name",
+          "description": "The name of the attribute within Authelia. This does not adjust the attribute queried from the LDAP server."
+        },
+        "multi_valued": {
+          "type": "boolean",
+          "title": "Multi-Valued",
+          "description": "Defines the attribute as multi-valued."
+        },
+        "value_type": {
+          "type": "string",
+          "enum": [
+            "boolean",
+            "integer",
+            "string"
+          ],
+          "title": "Value Type",
+          "description": "Defines the value type for the attribute."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "AuthenticationBackendPasswordReset": {
       "properties": {
@@ -982,6 +1139,16 @@
           "type": "object",
           "title": "Network Definitions",
           "description": "Networks CIDR ranges that can be utilized elsewhere in the configuration."
+        },
+        "user_attributes": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/$defs/UserAttribute"
+            }
+          },
+          "type": "object",
+          "title": "User Attributes",
+          "description": "User attributes derived from other attributes."
         }
       },
       "additionalProperties": false,
@@ -3322,6 +3489,20 @@
       "additionalProperties": false,
       "type": "object",
       "description": "TelemetryMetrics represents the telemetry metrics config."
+    },
+    "UserAttribute": {
+      "properties": {
+        "expression": {
+          "type": "string",
+          "title": "Expression",
+          "description": "Expression to derive the user attribute using the common expression language."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "expression"
+      ]
     },
     "WebAuthn": {
       "properties": {
