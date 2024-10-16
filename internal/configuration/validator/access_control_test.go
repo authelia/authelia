@@ -23,9 +23,7 @@ func (suite *AccessControl) SetupTest() {
 	suite.config = &schema.Configuration{
 		AccessControl: schema.AccessControl{
 			DefaultPolicy: policyDeny,
-
-			Networks: schema.DefaultACLNetwork,
-			Rules:    schema.DefaultACLRule,
+			Rules:         schema.DefaultACLRule,
 		},
 	}
 }
@@ -71,22 +69,6 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidDefaultPolicy() {
 	suite.Require().Len(suite.validator.Errors(), 1)
 
 	suite.Assert().EqualError(suite.validator.Errors()[0], "access_control: option 'default_policy' must be one of 'bypass', 'one_factor', 'two_factor', or 'deny' but it's configured as 'invalid'")
-}
-
-func (suite *AccessControl) TestShouldRaiseErrorInvalidNetworkGroupNetwork() {
-	suite.config.AccessControl.Networks = []schema.AccessControlNetwork{
-		{
-			Name:     "internal",
-			Networks: []string{"abc.def.ghi.jkl"},
-		},
-	}
-
-	ValidateAccessControl(suite.config, suite.validator)
-
-	suite.Assert().Len(suite.validator.Warnings(), 0)
-	suite.Require().Len(suite.validator.Errors(), 1)
-
-	suite.Assert().EqualError(suite.validator.Errors()[0], "access_control: networks: network group 'internal' is invalid: the network 'abc.def.ghi.jkl' is not a valid IP or CIDR notation")
 }
 
 func (suite *AccessControl) TestShouldRaiseWarningOnBadDomain() {
@@ -164,23 +146,6 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidPolicy() {
 	suite.Assert().EqualError(suite.validator.Errors()[0], "access_control: rule #1 (domain 'public.example.com'): option 'policy' must be one of 'bypass', 'one_factor', 'two_factor', or 'deny' but it's configured as 'invalid'")
 }
 
-func (suite *AccessControl) TestShouldRaiseErrorInvalidNetwork() {
-	suite.config.AccessControl.Rules = []schema.AccessControlRule{
-		{
-			Domains:  []string{"public.example.com"},
-			Policy:   "bypass",
-			Networks: []string{"abc.def.ghi.jkl/32"},
-		},
-	}
-
-	ValidateRules(suite.config, suite.validator)
-
-	suite.Assert().Len(suite.validator.Warnings(), 0)
-	suite.Require().Len(suite.validator.Errors(), 1)
-
-	suite.Assert().EqualError(suite.validator.Errors()[0], "access_control: rule #1 (domain 'public.example.com'): the network 'abc.def.ghi.jkl/32' is not a valid Group Name, IP, or CIDR notation")
-}
-
 func (suite *AccessControl) TestShouldRaiseErrorInvalidMethod() {
 	suite.config.AccessControl.Rules = []schema.AccessControlRule{
 		{
@@ -231,7 +196,7 @@ func (suite *AccessControl) TestShouldRaiseErrorInvalidSubject() {
 	suite.Require().Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 2)
 
-	suite.Assert().EqualError(suite.validator.Errors()[0], "access_control: rule #1 (domain 'public.example.com'): 'subject' option 'invalid' is invalid: must start with 'user:' or 'group:'")
+	suite.Assert().EqualError(suite.validator.Errors()[0], "access_control: rule #1 (domain 'public.example.com'): 'subject' option 'invalid' is invalid: must start with 'user:', 'group:', or 'oauth2:client:'")
 	suite.Assert().EqualError(suite.validator.Errors()[1], fmt.Sprintf(errAccessControlRuleBypassPolicyInvalidWithSubjects, ruleDescriptor(1, suite.config.AccessControl.Rules[0])))
 }
 
@@ -396,18 +361,6 @@ func (suite *AccessControl) TestShouldErrorOnInvalidRulesQuery() {
 
 func TestAccessControl(t *testing.T) {
 	suite.Run(t, new(AccessControl))
-}
-
-func TestShouldReturnCorrectResultsForValidNetworkGroups(t *testing.T) {
-	config := schema.AccessControl{
-		Networks: schema.DefaultACLNetwork,
-	}
-
-	validNetwork := IsNetworkGroupValid(config, "internal")
-	invalidNetwork := IsNetworkGroupValid(config, loopback)
-
-	assert.True(t, validNetwork)
-	assert.False(t, invalidNetwork)
 }
 
 func MustCompileRegexps(exps []string) (regexps []regexp.Regexp) {

@@ -220,6 +220,20 @@ Bad Example:
 domain_regex: "^(admin|secure)\.example\.com$"
 ```
 
+### Network
+
+We support a network syntax which unmarshalls strings into a network range. The string format uses the standard CIDR
+notation and assumes a single host (adapted as /32 for IPv4 and /128 for IPv6) if the CIDR suffix is absent.
+
+|                  Example                  |                    CIDR                    |                                       Range                                       |
+|:-----------------------------------------:|:------------------------------------------:|:---------------------------------------------------------------------------------:|
+|                192.168.0.1                |               192.168.0.1/32               |                                    192.168.0.1                                    |
+|              192.168.1.0/24               |               192.168.1.0/24               |                            192.168.1.0 - 192.168.1.255                            |
+|              192.168.2.1/24               |               192.168.2.0/24               |                            192.168.2.0 - 192.168.2.255                            |
+|  2001:db8:3333:4444:5555:6666:7777:8888   | 2001:db8:3333:4444:5555:6666:7777:8888/128 |                      2001:db8:3333:4444:5555:6666:7777:8888                       |
+|          2001:db8:3333:4400::/56          |          2001:db8:3333:4400::/56           | 2001:0db8:3333:4400:0000:0000:0000:0000 - 2001:0db8:3333:44ff:ffff:ffff:ffff:ffff |
+| 2001:db8:3333:4444:5555:6666:7777:8888/56 |          2001:db8:3333:4400::/56           | 2001:0db8:3333:4400:0000:0000:0000:0000 - 2001:0db8:3333:44ff:ffff:ffff:ffff:ffff |
+
 ## Structures
 
 The following represent common data structures used within the configuration which have specific requirements that are

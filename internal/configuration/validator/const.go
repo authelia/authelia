@@ -331,7 +331,9 @@ const (
 	errFmtAccessControlRuleNetworksInvalid = "access_control: rule %s: the network '%s' is not a " +
 		"valid Group Name, IP, or CIDR notation"
 	errFmtAccessControlRuleSubjectInvalid = "access_control: rule %s: 'subject' option '%s' is " +
-		"invalid: must start with 'user:' or 'group:'"
+		"invalid: must start with 'user:', 'group:', or 'oauth2:client:'"
+	errFmtAccessControlRuleOAuth2ClientSubjectInvalid = "access_control: rule %s: option 'subject' with value '%s' is " +
+		"invalid: the client id '%s' does not belong to a registered client"
 	errFmtAccessControlRuleInvalidEntries              = "access_control: rule %s: option '%s' must only have the values %s but the values %s are present"
 	errFmtAccessControlRuleInvalidDuplicates           = "access_control: rule %s: option '%s' must have unique values but the values %s are duplicated"
 	errFmtAccessControlRuleQueryInvalid                = "access_control: rule %s: query: option 'operator' must be one of %s but it's configured as '%s'"

@@ -5,7 +5,9 @@ import (
 	"crypto/ed25519"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/base64"
 	"fmt"
+	"net"
 	"net/mail"
 	"net/url"
 	"reflect"
@@ -602,6 +604,14 @@ func StringToCryptographicKeyHookFunc() mapstructure.DecodeHookFuncType {
 		dataStr := data.(string)
 
 		if value, err = utils.ParseX509FromPEM([]byte(dataStr)); err != nil {
+			if !strings.Contains(dataStr, "\n") && !strings.HasPrefix(dataStr, "-----") {
+				var key []byte
+
+				if key, err = base64.URLEncoding.DecodeString(dataStr); err == nil {
+					return key, nil
+				}
+			}
+
 			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, "", expectedType, err)
 		}
 
@@ -748,5 +758,70 @@ func StringToPasswordDigestHookFunc() mapstructure.DecodeHookFuncType {
 		}
 
 		return *result, nil
+	}
+}
+
+//nolint:gocyclo
+func StringToIPNetworksHookFunc(definitions map[string][]*net.IPNet) mapstructure.DecodeHookFuncType {
+	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
+		if f.Kind() != reflect.String && (f.Kind() != reflect.Slice || (f.Elem().Kind() != reflect.Interface && f.Elem().Kind() != reflect.String)) {
+			return data, nil
+		}
+
+		expectedType := reflect.TypeOf(net.IPNet{})
+
+		isSlice := t.Kind() == reflect.Slice && t.Elem().Kind() == reflect.Ptr && t.Elem().Elem() == expectedType
+		isKind := t.Kind() == reflect.Ptr && t.Elem() == expectedType
+
+		if !isSlice && !isKind {
+			return data, nil
+		}
+
+		var (
+			str    string
+			values []string
+		)
+
+		switch d := data.(type) {
+		case string:
+			values = []string{d}
+		case []string:
+			values = d
+		case []any:
+			values = make([]string, len(d))
+
+			for i := range d {
+				switch v := d[i].(type) {
+				case string:
+					values[i] = v
+				default:
+					values[i] = fmt.Sprint(v)
+				}
+			}
+		}
+
+		var (
+			ok                   bool
+			definition, networks []*net.IPNet
+			network              *net.IPNet
+		)
+
+		for _, str = range values {
+			if definitions != nil {
+				if definition, ok = definitions[str]; ok {
+					networks = append(networks, definition...)
+
+					continue
+				}
+			}
+
+			if network, err = utils.ParseHostCIDR(str); err != nil {
+				return nil, err
+			}
+
+			networks = append(networks, network)
+		}
+
+		return networks, nil
 	}
 }

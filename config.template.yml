@@ -323,6 +323,22 @@ identity_validation:
   # disable_failure: false
 
 ##
+## Definitions
+##
+## The definitions are used in other areas as reference points to reduce duplication.
+##
+# definitions:
+  ## The network definitions.
+  # network:
+    ## The name of the definition followed by the list of CIDR network addresses in this definition.
+    # internal:
+      # - '10.10.0.0/16'
+      # - '172.16.0.0/12'
+      # - '192.168.2.0/24'
+    # VPN:
+      # - '10.9.0.0/16'
+
+##
 ## Authentication Backend Provider Configuration
 ##
 ## Used for verifying user passwords and retrieve information such as email address and groups users belong to.
@@ -621,14 +637,6 @@ identity_validation:
   ## Default policy can either be 'bypass', 'one_factor', 'two_factor' or 'deny'. It is the policy applied to any
   ## resource if there is no policy to be applied to the user.
   # default_policy: 'deny'
-
-  # networks:
-    # - name: 'internal'
-    #   networks:
-        # - '10.10.0.0/16'
-        # - '192.168.2.0/24'
-    # - name: 'VPN'
-    #   networks: '10.9.0.0/16'
 
   # rules:
     ## Rules applied to everyone
