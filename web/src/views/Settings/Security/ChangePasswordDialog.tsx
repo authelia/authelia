@@ -2,6 +2,7 @@ import React, { MutableRefObject, useCallback, useEffect, useRef, useState } fro
 
 import {
     Button,
+    CircularProgress,
     Dialog,
     DialogActions,
     DialogContent,
@@ -31,7 +32,7 @@ const ChangePasswordDialog = (props: Props) => {
 
     const { createSuccessNotification, createErrorNotification } = useNotifications();
 
-    const [formDisabled, setFormDisabled] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [oldPassword, setOldPassword] = useState("");
     const [oldPasswordError, setOldPasswordError] = useState(false);
     const [newPassword, setNewPassword] = useState("");
@@ -77,7 +78,7 @@ const ChangePasswordDialog = (props: Props) => {
         resetPasswordErrors();
         resetCapsLockErrors();
 
-        setFormDisabled(false);
+        setLoading(false);
     }, [resetPasswordErrors, resetCapsLockErrors]);
 
     const handleClose = useCallback(() => {
@@ -87,15 +88,15 @@ const ChangePasswordDialog = (props: Props) => {
 
     const asyncProcess = useCallback(async () => {
         try {
-            setFormDisabled(true);
+            setLoading(true);
             const policy = await getPasswordPolicyConfiguration();
             setPPolicy(policy);
-            setFormDisabled(false);
+            setLoading(false);
         } catch {
             createErrorNotification(
                 translate("There was an issue completing the process the verification token might have expired"),
             );
-            setFormDisabled(true);
+            setLoading(true);
         }
     }, [createErrorNotification, translate]);
 
@@ -104,6 +105,7 @@ const ChangePasswordDialog = (props: Props) => {
     }, [asyncProcess]);
 
     const handlePasswordChange = useCallback(async () => {
+        setLoading(true);
         if (oldPassword.trim() === "" || newPassword.trim() === "" || repeatNewPassword.trim() === "") {
             if (oldPassword.trim() === "") {
                 setOldPasswordError(true);
@@ -114,12 +116,14 @@ const ChangePasswordDialog = (props: Props) => {
             if (repeatNewPassword.trim() === "") {
                 setRepeatNewPasswordError(true);
             }
+            setLoading(false);
             return;
         }
         if (newPassword !== repeatNewPassword) {
             setNewPasswordError(true);
             setRepeatNewPasswordError(true);
             createErrorNotification(translate("Passwords do not match"));
+            setLoading(false);
             return;
         }
 
@@ -144,6 +148,8 @@ const ChangePasswordDialog = (props: Props) => {
             } else {
                 createErrorNotification(translate("There was an issue changing the password"));
             }
+            setLoading(false);
+            return;
         }
     }, [
         createErrorNotification,
@@ -188,7 +194,7 @@ const ChangePasswordDialog = (props: Props) => {
         <Dialog open={props.open} maxWidth="xs">
             <DialogTitle>{translate("Change {{item}}", { item: translate("Password") })}</DialogTitle>
             <DialogContent>
-                <FormControl id={"change-password-form"} disabled={formDisabled}>
+                <FormControl id={"change-password-form"} disabled={loading}>
                     <Grid2 container spacing={1} alignItems={"center"} justifyContent={"center"} textAlign={"center"}>
                         <Grid2 size={{ xs: 12 }} sx={{ pt: 3 }}>
                             <TextField
@@ -273,7 +279,8 @@ const ChangePasswordDialog = (props: Props) => {
                     id={"password-change-dialog-submit"}
                     color={"primary"}
                     onClick={handlePasswordChange}
-                    disabled={!(oldPassword.length && newPassword.length && repeatNewPassword.length)}
+                    disabled={!(oldPassword.length && newPassword.length && repeatNewPassword.length) || loading}
+                    startIcon={loading ? <CircularProgress color="inherit" size={20} /> : <></>}
                 >
                     {translate("Submit")}
                 </Button>
