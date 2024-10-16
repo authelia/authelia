@@ -37,12 +37,6 @@ Some of the values within this page can automatically be replaced with documenta
 ```yaml {title="configuration.yml"}
 access_control:
   default_policy: 'deny'
-  networks:
-  - name: 'internal'
-    networks:
-    - '10.0.0.0/8'
-    - '172.16.0.0/12'
-    - '192.168.0.0/18'
   rules:
   - domain: 'private.{{< sitevar name="domain" nojs="example.com" >}}'
     domain_regex: '^(\d+\-)?priv-img\.{{< sitevar name="domain" format="regex" nojs="example\.com" >}}$'
@@ -86,21 +80,6 @@ not wish to secure at all with Authelia should not be configured in your reverse
 Authelia at all for performance reasons.
 
 See the [policies] section for more information.
-
-### networks (global)
-
-{{< confkey type="list" required="no" >}}
-
-The main/global networks section contains a list of networks with a name label that can be reused in the
-[rules](#networks) section instead of redefining the same networks over and over again. This additionally makes
-complicated network related configuration a lot cleaner and easier to read.
-
-This section has two options, `name` and `networks`. Where the `networks` section is a list of IP addresses in CIDR
-notation and where `name` is a friendly name to label the collection of networks for reuse in the [networks] section of
-the [rules] section below.
-
-This configuration option *does nothing* by itself, it's only useful if you use these aliases in the [rules](#networks)
-section below.
 
 ### rules
 
@@ -368,13 +347,13 @@ access_control:
 
 #### networks
 
-{{< confkey type="list(string)" required="no" >}}
+{{< confkey type="list(string)" syntax="network" required="no" >}}
 
-This criteria is a list of values which can be an IP Address, network address range in CIDR notation, or an alias from
-the [global](#networks-global) section. It matches against the first address in the `X-Forwarded-For` header, or if there
-are none it will fall back to the IP address of the packet TCP source IP address. For this reason it's important for you
-to configure the proxy server correctly in order to accurately match requests with this criteria. *__Note:__ you may
-combine CIDR networks with the alias rules as you please.*
+This criteria is a list of values which can be an IP Address, network address range in CIDR notation, or a named
+[Network Definition](../definitions/network.md). It matches against the first address in the `X-Forwarded-For` header,
+or if there are none it will fall back to the IP address of the packet TCP source IP address. For this reason it's
+important for you to configure the proxy server correctly in order to accurately match requests with this criteria.
+*__Note:__ you may combine CIDR networks with the alias rules as you please.*
 
 The main use case for this criteria is adjust the security requirements of a resource based on the location of a user.
 You can theoretically consider a specific network to be one of the factors involved in authentication, you can deny
@@ -396,14 +375,14 @@ for administrators to tune the security to their specific needs if desired.
 rules in this list are effectively the same rule just expressed in different ways.*
 
 ```yaml {title="configuration.yml"}
-access_control:
-  default_policy: 'two_factor'
-  networks:
-  - name: 'internal'
-    networks:
+definitions:
+  network:
+    internal:
       - '10.0.0.0/8'
       - '172.16.0.0/12'
       - '192.168.0.0/18'
+access_control:
+  default_policy: 'two_factor'
   rules:
   - domain: 'secure.{{< sitevar name="domain" nojs="example.com" >}}'
     policy: 'one_factor'
@@ -632,15 +611,15 @@ alphanumeric (including spaces).
 Here is a detailed example of an example access control section:
 
 ```yaml {title="configuration.yml"}
+definitions:
+  network:
+    internal:
+      - '10.10.0.0/16'
+      - '192.168.2.0/24'
+    vpn: '10.9.0.0/16'
+
 access_control:
   default_policy: 'deny'
-  networks:
-    - name: 'internal'
-      networks:
-        - '10.10.0.0/16'
-        - '192.168.2.0/24'
-    - name: 'VPN'
-      networks: '10.9.0.0/16'
   rules:
     - domain: 'public.{{< sitevar name="domain" nojs="example.com" >}}'
       policy: 'bypass'
@@ -654,7 +633,7 @@ access_control:
       policy: 'one_factor'
       networks:
         - 'internal'
-        - 'VPN'
+        - 'vpn'
         - '192.168.1.0/24'
         - '10.0.0.1'
 
