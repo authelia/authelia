@@ -93,6 +93,22 @@ func TestShouldNotPanicOnNilDB(t *testing.T) {
 	assert.NoError(t, provider.StartupCheck())
 }
 
+func TestShouldHandleBadConfig(t *testing.T) {
+	dir := t.TempDir()
+
+	f := filepath.Join(dir, "users.yml")
+
+	assert.NoError(t, os.WriteFile(f, UserDatabaseContentExtra, 0600))
+
+	provider := &FileUserProvider{
+		config:        &schema.AuthenticationBackendFile{Path: f, Password: schema.DefaultPasswordConfig, ExtraAttributes: map[string]schema.AuthenticationBackendExtraAttribute{"example": {ValueType: "integer"}}},
+		mutex:         &sync.Mutex{},
+		timeoutReload: time.Now().Add(-1 * time.Second),
+	}
+
+	assert.EqualError(t, provider.StartupCheck(), "error decoding the authentication database: error occurred validating extra attributes for user 'john': attribute 'example' has the known type 'string' but 'integer' is the expected type")
+}
+
 func TestShouldReloadDatabase(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "users.yml")
@@ -130,7 +146,7 @@ func TestShouldReloadDatabase(t *testing.T) {
 
 				provider.config.Path = p
 
-				provider.database = NewFileUserDatabase(p, provider.config.Search.Email, provider.config.Search.CaseInsensitive)
+				provider.database = NewFileUserDatabase(p, provider.config.Search.Email, provider.config.Search.CaseInsensitive, nil)
 			},
 			false,
 			"",
@@ -144,6 +160,11 @@ func TestShouldReloadDatabase(t *testing.T) {
 			provider := NewFileUserProvider(&schema.AuthenticationBackendFile{
 				Path:     path,
 				Password: schema.DefaultPasswordConfig,
+				ExtraAttributes: map[string]schema.AuthenticationBackendExtraAttribute{
+					"example": {
+						ValueType: "string",
+					},
+				},
 			})
 
 			tc.setup(t, provider)
@@ -253,6 +274,12 @@ func TestShouldRetrieveUserDetails(t *testing.T) {
 		assert.Equal(t, "john", details.Username)
 		assert.Equal(t, []string{"john.doe@authelia.com"}, details.Emails)
 		assert.Equal(t, []string{"admins", "dev"}, details.Groups)
+
+		extended, err := provider.GetDetailsExtended("john")
+		assert.NoError(t, err)
+		assert.Equal(t, "john", extended.Username)
+		assert.Equal(t, []string{"john.doe@authelia.com"}, extended.Emails)
+		assert.Equal(t, []string{"admins", "dev"}, extended.Groups)
 	})
 }
 
@@ -271,6 +298,10 @@ func TestShouldErrOnUserDetailsNoUser(t *testing.T) {
 
 		details, err = provider.GetDetails("dis")
 		assert.Nil(t, details)
+		assert.Equal(t, err, ErrUserNotFound)
+
+		extended, err := provider.GetDetailsExtended("dis")
+		assert.Nil(t, extended)
 		assert.Equal(t, err, ErrUserNotFound)
 	})
 }
@@ -402,7 +433,7 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadSHA512HashesForTheFirstTime(t *tes
 
 		provider := NewFileUserProvider(&config)
 
-		assert.EqualError(t, provider.StartupCheck(), "error decoding the authentication database: failed to parse hash for user 'john': shacrypt decode error: parameter pair 'rounds00000' is not properly encoded: does not contain kv separator '='")
+		assert.EqualError(t, provider.StartupCheck(), "error decoding the authentication database: error occurred decoding the password hash for 'john': shacrypt decode error: parameter pair 'rounds00000' is not properly encoded: does not contain kv separator '='")
 	})
 }
 
@@ -413,7 +444,7 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadArgon2idHashSettingsForTheFirstTim
 
 		provider := NewFileUserProvider(&config)
 
-		assert.EqualError(t, provider.StartupCheck(), "error decoding the authentication database: failed to parse hash for user 'john': argon2 decode error: parameter pair 'm65536' is not properly encoded: does not contain kv separator '='")
+		assert.EqualError(t, provider.StartupCheck(), "error decoding the authentication database: error occurred decoding the password hash for 'john': argon2 decode error: parameter pair 'm65536' is not properly encoded: does not contain kv separator '='")
 	})
 }
 
@@ -424,7 +455,7 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadArgon2idHashKeyForTheFirstTime(t *
 
 		provider := NewFileUserProvider(&config)
 
-		assert.EqualError(t, provider.StartupCheck(), "error decoding the authentication database: failed to parse hash for user 'john': argon2 decode error: provided encoded hash has a key value that can't be decoded: illegal base64 data at input byte 0")
+		assert.EqualError(t, provider.StartupCheck(), "error decoding the authentication database: error occurred decoding the password hash for 'john': argon2 decode error: provided encoded hash has a key value that can't be decoded: illegal base64 data at input byte 0")
 	})
 }
 
@@ -435,7 +466,7 @@ func TestShouldRaiseWhenLoadingDatabaseWithBadArgon2idHashSaltForTheFirstTime(t 
 
 		provider := NewFileUserProvider(&config)
 
-		assert.EqualError(t, provider.StartupCheck(), "error decoding the authentication database: failed to parse hash for user 'john': argon2 decode error: provided encoded hash has a salt value that can't be decoded: illegal base64 data at input byte 0")
+		assert.EqualError(t, provider.StartupCheck(), "error decoding the authentication database: error occurred decoding the password hash for 'john': argon2 decode error: provided encoded hash has a salt value that can't be decoded: illegal base64 data at input byte 0")
 	})
 }
 
@@ -691,7 +722,7 @@ func TestHashError(t *testing.T) {
 
 func TestDatabaseError(t *testing.T) {
 	WithDatabase(t, UserDatabaseContent, func(path string) {
-		db := NewFileUserDatabase(path, false, false)
+		db := NewFileUserDatabase(path, false, false, nil)
 		assert.NoError(t, db.Load())
 
 		config := DefaultFileAuthenticationBackendConfiguration
@@ -716,6 +747,36 @@ func TestDatabaseError(t *testing.T) {
 		)
 
 		assert.EqualError(t, provider.UpdatePassword("john", "apple123"), "failed to mock save")
+	})
+}
+
+func TestDatabaseErrorExtended(t *testing.T) {
+	WithDatabase(t, UserDatabaseContent, func(path string) {
+		db := NewFileUserDatabase(path, false, false, nil)
+		assert.NoError(t, db.Load())
+
+		config := DefaultFileAuthenticationBackendConfiguration
+		config.Search.CaseInsensitive = true
+		config.Path = path
+
+		provider := NewFileUserProvider(&config)
+
+		assert.NoError(t, provider.StartupCheck())
+
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mock := NewMockFileUserDatabase(ctrl)
+
+		provider.database = mock
+
+		gomock.InOrder(
+			mock.EXPECT().GetUserDetails("john").Return(FileUserDatabaseUserDetails{}, fmt.Errorf("bad")),
+		)
+
+		details, err := provider.GetDetailsExtended("john")
+		assert.Nil(t, details)
+		assert.EqualError(t, err, "bad")
 	})
 }
 
@@ -766,6 +827,19 @@ users:
     password: "$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
     disabled: true
     email: disabled@authelia.com
+`)
+
+var UserDatabaseContentExtra = []byte(`
+users:
+  john:
+    displayname: "John Doe"
+    password: "{CRYPT}$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM"
+    email: john.doe@authelia.com
+    groups:
+      - admins
+      - dev
+    extra:
+      example: '123'
 `)
 
 var UserDatabaseContentInvalidSearchCaseInsenstive = []byte(`
