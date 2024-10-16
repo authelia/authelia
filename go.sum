@@ -230,8 +230,8 @@ github.com/valyala/bytebufferpool v1.0.0 h1:GqA5TC/0021Y/b9FG4Oi9Mr3q7XYx6Kllzaw
 github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyCJ6HpOuEn7z0Csc=
 github.com/valyala/fasthttp v1.56.0 h1:bEZdJev/6LCBlpdORfrLu/WOZXXxvrUQSiyniuaoW8U=
 github.com/valyala/fasthttp v1.56.0/go.mod h1:sReBt3XZVnudxuLOx4J/fMrJVorWRiWY2koQKgABiVI=
-github.com/wneessen/go-mail v0.5.0 h1:TyI8XSKJrdl8BkIA030APu6my1/1hm8XRuUSosd+zuo=
-github.com/wneessen/go-mail v0.5.0/go.mod h1:kRroJvEq2hOSEPFRiKjN7Csrz0G1w+RpiGR3b6yo+Ck=
+github.com/wneessen/go-mail v0.5.1 h1:3XIiVt4N3oZzHmACyLsp1OTq5/yQuSZWtHliPMD3KsI=
+github.com/wneessen/go-mail v0.5.1/go.mod h1:kRroJvEq2hOSEPFRiKjN7Csrz0G1w+RpiGR3b6yo+Ck=
 github.com/x448/float16 v0.8.4 h1:qLwI1I70+NjRFUR3zs1JPUCgaCXSh3SW62uAKT1mSBM=
 github.com/x448/float16 v0.8.4/go.mod h1:14CWIYCyZA/cWjXOioeEpHeN/83MdbZDRQHoFcYsOfg=
 github.com/ysmood/fetchup v0.2.3 h1:ulX+SonA0Vma5zUFXtv52Kzip/xe7aj4vqT5AJwQ+ZQ=
