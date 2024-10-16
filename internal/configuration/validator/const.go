@@ -83,6 +83,10 @@ const (
 	errSuffixMustBeOneOf = "must be one of %s but it's configured as '%s'"
 )
 
+const (
+	errFmtDefinitionsUserAttributesReservedOrDefined = "definitions: user_attributes: %s: attribute name '%s' is either reserved or already defined in the authentication backend"
+)
+
 // Authentication Backend Error constants.
 const (
 	errFmtAuthBackendNotConfigured = "authentication_backend: you must ensure either the 'file' or 'ldap' " +
@@ -94,8 +98,11 @@ const (
 	errFmtAuthBackendPasswordResetCustomURLScheme = "authentication_backend: password_reset: option 'custom_url' is" +
 		" configured to '%s' which has the scheme '%s' but the scheme must be either 'http' or 'https'"
 
-	errFmtFileAuthBackendPathNotConfigured  = "authentication_backend: file: option 'path' is required"
-	errFmtFileAuthBackendPasswordUnknownAlg = "authentication_backend: file: password: option 'algorithm' " +
+	errFmtFileAuthBackendPathNotConfigured              = "authentication_backend: file: option 'path' is required"
+	errFmtFileAuthBackendExtraAttributeValueTypeMissing = "authentication_backend: file: extra_attributes: %s: option 'value_type' is required"
+	errFmtFileAuthBackendExtraAttributeValueType        = "authentication_backend: file: extra_attributes: %s: option 'value_type' must be one of 'string', 'integer', or 'boolean' but it's configured as '%s'"
+	errFmtFileAuthBackendExtraAttributeReserved         = "authentication_backend: file: extra_attributes: %s: attribute name '%s' is reserved"
+	errFmtFileAuthBackendPasswordUnknownAlg             = "authentication_backend: file: password: option 'algorithm' " +
 		errSuffixMustBeOneOf
 	errFmtFileAuthBackendPassword               = "authentication_backend: file: password: %s: "
 	errFmtFileAuthBackendPasswordInvalidVariant = errFmtFileAuthBackendPassword +
@@ -110,10 +117,13 @@ const (
 	errFmtLDAPAuthBackendUnauthenticatedBindWithPassword     = "authentication_backend: ldap: option 'permit_unauthenticated_bind' can't be enabled when a password is specified"
 	errFmtLDAPAuthBackendUnauthenticatedBindWithResetEnabled = "authentication_backend: ldap: option 'permit_unauthenticated_bind' can't be enabled when password reset is enabled"
 
-	errFmtLDAPAuthBackendMissingOption     = "authentication_backend: ldap: option '%s' is required"
-	errFmtLDAPAuthBackendTLSConfigInvalid  = "authentication_backend: ldap: tls: %w"
-	errFmtLDAPAuthBackendOption            = "authentication_backend: ldap: option '%s' "
-	errFmtLDAPAuthBackendOptionMustBeOneOf = errFmtLDAPAuthBackendOption +
+	errFmtLDAPAuthBackendMissingOption                  = "authentication_backend: ldap: option '%s' is required"
+	errFmtLDAPAuthBackendExtraAttributeValueTypeMissing = "authentication_backend: ldap: attributes: extra: %s: option 'value_type' is required"
+	errFmtLDAPAuthBackendExtraAttributeValueType        = "authentication_backend: ldap: attributes: extra: %s: option 'value_type' must be one of 'string', 'integer', or 'boolean' but it's configured as '%s'"
+	errFmtLDAPAuthBackendExtraAttributeReserved         = "authentication_backend: ldap: attributes: extra: %s: attribute name '%s' is reserved"
+	errFmtLDAPAuthBackendTLSConfigInvalid               = "authentication_backend: ldap: tls: %w"
+	errFmtLDAPAuthBackendOption                         = "authentication_backend: ldap: option '%s' "
+	errFmtLDAPAuthBackendOptionMustBeOneOf              = errFmtLDAPAuthBackendOption +
 		errSuffixMustBeOneOf
 	errFmtLDAPAuthBackendFilterReplacedPlaceholders = errFmtLDAPAuthBackendOption +
 		"has an invalid placeholder: '%s' has been removed, please use '%s' instead"

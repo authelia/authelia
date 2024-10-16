@@ -183,15 +183,14 @@ func IsPolicyValid(policy string) (isValid bool) {
 
 // IsSubjectValid validates if a subject has a valid prefix and returns the client id if applicable.
 func IsSubjectValid(subject string) (id string, isValid bool) {
-	if IsSubjectValidBasic(subject) {
+	switch {
+	case IsSubjectValidBasic(subject):
 		return "", true
-	}
-
-	if strings.HasPrefix(subject, "oauth2:client:") {
+	case strings.HasPrefix(subject, "oauth2:client:"):
 		return strings.TrimPrefix(subject, "oauth2:client:"), true
+	default:
+		return "", false
 	}
-
-	return "", false
 }
 
 func IsSubjectValidBasic(subject string) (isValid bool) {
