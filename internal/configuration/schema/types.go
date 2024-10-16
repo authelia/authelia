@@ -493,12 +493,6 @@ func (RefreshIntervalDuration) JSONSchema() *jsonschema.Schema {
 	}
 }
 
-type AccessControlRuleNetworks []string
-
-func (AccessControlRuleNetworks) JSONSchema() *jsonschema.Schema {
-	return &jsonschemaWeakStringUniqueSlice
-}
-
 type IdentityProvidersOpenIDConnectClientURIs []string
 
 func (IdentityProvidersOpenIDConnectClientURIs) JSONSchema() *jsonschema.Schema {
@@ -508,22 +502,6 @@ func (IdentityProvidersOpenIDConnectClientURIs) JSONSchema() *jsonschema.Schema 
 			{
 				Type:        jsonschema.TypeArray,
 				Items:       &jsonschemaURI,
-				UniqueItems: true,
-			},
-		},
-	}
-}
-
-// AccessControlNetworkNetworks represents the ACL AccessControlNetworkNetworks type.
-type AccessControlNetworkNetworks []string
-
-func (AccessControlNetworkNetworks) JSONSchema() *jsonschema.Schema {
-	return &jsonschema.Schema{
-		OneOf: []*jsonschema.Schema{
-			&jsonschemaACLNetwork,
-			{
-				Type:        jsonschema.TypeArray,
-				Items:       &jsonschemaACLNetwork,
 				UniqueItems: true,
 			},
 		},
@@ -616,11 +594,6 @@ var jsonschemaWeakStringUniqueSlice = jsonschema.Schema{
 			UniqueItems: true,
 		},
 	},
-}
-
-var jsonschemaACLNetwork = jsonschema.Schema{
-	Type:    jsonschema.TypeString,
-	Pattern: `((^((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))(\/([0-2]?[0-9]|3[0-2]))?$)|(^((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))?(\/(12[0-8]|1[0-1][0-9]|[0-9]{1,2}))?$))`,
 }
 
 var jsonschemaACLSubject = jsonschema.Schema{

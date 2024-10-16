@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.authelia.com/schemas/v4.39/json-schema/exports.identifiers.json",
+  "$ref": "#/$defs/UserOpaqueIdentifiersExport",
+  "$defs": {
+    "UUID": {
+      "items": {
+        "type": "integer"
+      },
+      "type": "array",
+      "maxItems": 16,
+      "minItems": 16
+    },
+    "UserOpaqueIdentifier": {
+      "properties": {
+        "ID": {
+          "type": "integer"
+        },
+        "service": {
+          "type": "string",
+          "title": "Service",
+          "description": "The service name this UUID is used with."
+        },
+        "sector_id": {
+          "type": "string",
+          "title": "Sector Identifier",
+          "description": "Sector Identifier this UUID is used with."
+        },
+        "username": {
+          "type": "string",
+          "title": "Username",
+          "description": "The username of the user this UUID is for."
+        },
+        "identifier": {
+          "$ref": "#/$defs/UUID",
+          "title": "Identifier",
+          "description": "The random UUID for this opaque identifier."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "UserOpaqueIdentifiersExport": {
+      "properties": {
+        "identifiers": {
+          "items": {
+            "$ref": "#/$defs/UserOpaqueIdentifier"
+          },
+          "type": "array",
+          "title": "Identifiers",
+          "description": "The list of opaque identifiers."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    }
+  }
+}
