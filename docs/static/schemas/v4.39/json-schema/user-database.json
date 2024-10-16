@@ -14,6 +14,9 @@
           "type": "object",
           "title": "Users",
           "description": "The dictionary of users."
+        },
+        "Extra": {
+          "type": "object"
         }
       },
       "additionalProperties": false,
@@ -35,6 +38,74 @@
           "title": "Display Name",
           "description": "The display name for the user."
         },
+        "given_name": {
+          "type": "string",
+          "title": "Given Name",
+          "description": "The given name for the user."
+        },
+        "middle_name": {
+          "type": "string",
+          "title": "Middle Name",
+          "description": "The middle name for the user."
+        },
+        "family_name": {
+          "type": "string",
+          "title": "Family Name",
+          "description": "The family name for the user."
+        },
+        "nickname": {
+          "type": "string",
+          "title": "Nickname",
+          "description": "The nickname for the user."
+        },
+        "gender": {
+          "type": "string",
+          "title": "Gender",
+          "description": "The gender for the user."
+        },
+        "birthdate": {
+          "type": "string",
+          "title": "Birthdate",
+          "description": "The birthdate for the user."
+        },
+        "website": {
+          "type": "string",
+          "format": "uri",
+          "title": "Website",
+          "description": "The website URL for the user."
+        },
+        "profile": {
+          "type": "string",
+          "format": "uri",
+          "title": "Profile",
+          "description": "The profile URL for the user."
+        },
+        "picture": {
+          "type": "string",
+          "format": "uri",
+          "title": "Picture",
+          "description": "The picture URL for the user."
+        },
+        "zoneinfo": {
+          "type": "string",
+          "title": "Zone Information",
+          "description": "The time zone for the user."
+        },
+        "locale": {
+          "$ref": "#/$defs/Tag",
+          "title": "Locale",
+          "description": "The BCP47 locale for the user."
+        },
+        "phone_number": {
+          "type": "string",
+          "title": "Phone Number",
+          "description": "The phone number for the user."
+        },
+        "phone_extension": {
+          "type": "string",
+          "title": "Phone Extension",
+          "description": "The phone extension for the user."
+        },
         "email": {
           "type": "string",
           "title": "Email",
@@ -53,6 +124,16 @@
           "title": "Disabled",
           "description": "The disabled status for the user.",
           "default": false
+        },
+        "address": {
+          "$ref": "#/$defs/FileUserDatabaseUserDetailsAddressModel",
+          "title": "Address",
+          "description": "The address for the user."
+        },
+        "extra": {
+          "type": "object",
+          "title": "Extra",
+          "description": "The extra attributes for the user."
         }
       },
       "additionalProperties": false,
@@ -63,9 +144,45 @@
       ],
       "description": "FileUserDatabaseUserDetails is the model of user details in the file database."
     },
+    "FileUserDatabaseUserDetailsAddressModel": {
+      "properties": {
+        "street_address": {
+          "type": "string",
+          "title": "Street Address",
+          "description": "The street address for the user."
+        },
+        "locality": {
+          "type": "string",
+          "title": "Locality",
+          "description": "The locality for the user."
+        },
+        "region": {
+          "type": "string",
+          "title": "Region",
+          "description": "The region for the user."
+        },
+        "postal_code": {
+          "type": "string",
+          "title": "Postal Code",
+          "description": "The postal code or postcode for the user."
+        },
+        "country": {
+          "type": "string",
+          "title": "Postal Code",
+          "description": "The country for the user."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "PasswordDigest": {
       "type": "string",
       "pattern": "^\\$((argon2(id|i|d)\\$v=19\\$m=\\d+,t=\\d+,p=\\d+|scrypt\\$ln=\\d+,r=\\d+,p=\\d+)\\$[a-zA-Z0-9\\/+]+\\$[a-zA-Z0-9\\/+]+|pbkdf2(-sha(224|256|384|512))?\\$\\d+\\$[a-zA-Z0-9\\/.]+\\$[a-zA-Z0-9\\/.]+|bcrypt-sha256\\$v=2,t=2b,r=\\d+\\$[a-zA-Z0-9\\/.]+\\$[a-zA-Z0-9\\/.]+|2(a|b|y)?\\$\\d+\\$[a-zA-Z0-9.\\/]+|(5|6)\\$rounds=\\d+\\$[a-zA-Z0-9.\\/]+\\$[a-zA-Z0-9.\\/]+|plaintext\\$.+|base64\\$[a-zA-Z0-9.=\\/]+)$"
+    },
+    "Tag": {
+      "properties": {},
+      "additionalProperties": false,
+      "type": "object"
     }
   }
 }

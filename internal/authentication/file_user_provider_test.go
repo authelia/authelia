@@ -130,7 +130,7 @@ func TestShouldReloadDatabase(t *testing.T) {
 
 				provider.config.Path = p
 
-				provider.database = NewFileUserDatabase(p, provider.config.Search.Email, provider.config.Search.CaseInsensitive)
+				provider.database = NewFileUserDatabase(p, provider.config.Search.Email, provider.config.Search.CaseInsensitive, nil)
 			},
 			false,
 			"",
@@ -691,7 +691,7 @@ func TestHashError(t *testing.T) {
 
 func TestDatabaseError(t *testing.T) {
 	WithDatabase(t, UserDatabaseContent, func(path string) {
-		db := NewFileUserDatabase(path, false, false)
+		db := NewFileUserDatabase(path, false, false, nil)
 		assert.NoError(t, db.Load())
 
 		config := DefaultFileAuthenticationBackendConfiguration

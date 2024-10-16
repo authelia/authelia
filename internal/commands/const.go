@@ -845,13 +845,16 @@ const (
 	serviceTypeServer  = "server"
 	serviceTypeWatcher = "watcher"
 
-	logFieldProvider            = "provider"
-	logMessageStartupCheckError = "Error occurred running a startup check"
+	logFieldProvider                 = "provider"
+	logMessageStartupCheckError      = "Error occurred running a startup check"
+	logMessageStartupCheckPerforming = "Performing Startup Check"
+	logMessageStartupCheckSuccess    = "Startup Check Completed Successfully"
 
 	providerNameNTP          = "ntp"
 	providerNameStorage      = "storage"
 	providerNameUser         = "user"
 	providerNameNotification = "notification"
+	providerNameExpressions  = "expressions"
 )
 
 const (
