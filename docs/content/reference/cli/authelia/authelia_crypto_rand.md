@@ -32,6 +32,7 @@ authelia crypto rand [flags]
 
 ```
 authelia crypto rand --help
+authelia crypto rand --quiet
 authelia crypto rand --length 80
 authelia crypto rand -n 80
 authelia crypto rand --charset alphanumeric
@@ -40,6 +41,7 @@ authelia crypto rand --charset ascii
 authelia crypto rand --charset numeric
 authelia crypto rand --charset numeric-hex
 authelia crypto rand --characters 0123456789ABCDEF
+authelia crypto rand --output-file random.txt
 ```
 
 ### Options
@@ -49,6 +51,8 @@ authelia crypto rand --characters 0123456789ABCDEF
   -x, --charset string      sets the charset for the random password, options are 'ascii', 'alphanumeric', 'alphabetic', 'numeric', 'numeric-hex', and 'rfc3986' (default "alphanumeric")
   -h, --help                help for rand
   -n, --length int          sets the character length for the random string (default 72)
+  -q, --quiet               suppress additional output
+  -o, --output-file string  file where the random string will be stored
 ```
 
 ### Options inherited from parent commands
