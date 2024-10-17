@@ -1,20 +1,20 @@
 import axios from "axios";
 
 import {
-    CompleteResetPasswordPath,
     ErrorResponse,
-    InitiateResetPasswordPath,
+    IdentityVerification,
+    InitiateResetPasswordIdentityVerificationPath,
     OKResponse,
     ResetPasswordPath,
 } from "@services/Api";
 import { PostWithOptionalResponse } from "@services/Client";
 
-export async function initiateResetPasswordProcess(username: string) {
-    return PostWithOptionalResponse(InitiateResetPasswordPath, { username });
+export async function initiateResetPasswordIVProcess(username: string) {
+    return PostWithOptionalResponse(InitiateResetPasswordIdentityVerificationPath, { username });
 }
 
-export async function completeResetPasswordProcess(token: string) {
-    return PostWithOptionalResponse(CompleteResetPasswordPath, { token });
+export async function completeResetPasswordIVProcess(token: string) {
+    return PostWithOptionalResponse(IdentityVerification, { token });
 }
 
 export async function resetPassword(newPassword: string) {

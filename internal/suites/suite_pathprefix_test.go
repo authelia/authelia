@@ -37,6 +37,9 @@ func (s *PathPrefixSuite) TestCustomHeaders() {
 func (s *PathPrefixSuite) TestResetPasswordScenario() {
 	suite.Run(s.T(), NewResetPasswordScenario())
 }
+func (s *PathPrefixSuite) TestChangePasswordScenario() {
+	suite.Run(s.T(), NewChangePasswordScenario())
+}
 
 func (s *PathPrefixSuite) TestShouldRenderFrontendWithTrailingSlash() {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
