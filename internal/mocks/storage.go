@@ -243,19 +243,94 @@ func (mr *MockStorageMockRecorder) FindIdentityVerification(arg0, arg1 any) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindIdentityVerification", reflect.TypeOf((*MockStorage)(nil).FindIdentityVerification), arg0, arg1)
 }
 
-// LoadAuthenticationLogs mocks base method.
-func (m *MockStorage) LoadAuthenticationLogs(arg0 context.Context, arg1 string, arg2 time.Time, arg3, arg4 int) ([]model.AuthenticationAttempt, error) {
+// LoadBannedIP mocks base method.
+func (m *MockStorage) LoadBannedIP(arg0 context.Context, arg1 model.IP) ([]model.BannedIP, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadAuthenticationLogs", arg0, arg1, arg2, arg3, arg4)
-	ret0, _ := ret[0].([]model.AuthenticationAttempt)
+	ret := m.ctrl.Call(m, "LoadBannedIP", arg0, arg1)
+	ret0, _ := ret[0].([]model.BannedIP)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// LoadAuthenticationLogs indicates an expected call of LoadAuthenticationLogs.
-func (mr *MockStorageMockRecorder) LoadAuthenticationLogs(arg0, arg1, arg2, arg3, arg4 any) *gomock.Call {
+// LoadBannedIP indicates an expected call of LoadBannedIP.
+func (mr *MockStorageMockRecorder) LoadBannedIP(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadAuthenticationLogs", reflect.TypeOf((*MockStorage)(nil).LoadAuthenticationLogs), arg0, arg1, arg2, arg3, arg4)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadBannedIP", reflect.TypeOf((*MockStorage)(nil).LoadBannedIP), arg0, arg1)
+}
+
+// LoadBannedIPByID mocks base method.
+func (m *MockStorage) LoadBannedIPByID(arg0 context.Context, arg1 int) (model.BannedIP, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadBannedIPByID", arg0, arg1)
+	ret0, _ := ret[0].(model.BannedIP)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadBannedIPByID indicates an expected call of LoadBannedIPByID.
+func (mr *MockStorageMockRecorder) LoadBannedIPByID(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadBannedIPByID", reflect.TypeOf((*MockStorage)(nil).LoadBannedIPByID), arg0, arg1)
+}
+
+// LoadBannedIPs mocks base method.
+func (m *MockStorage) LoadBannedIPs(arg0 context.Context, arg1, arg2 int) ([]model.BannedIP, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadBannedIPs", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]model.BannedIP)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadBannedIPs indicates an expected call of LoadBannedIPs.
+func (mr *MockStorageMockRecorder) LoadBannedIPs(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadBannedIPs", reflect.TypeOf((*MockStorage)(nil).LoadBannedIPs), arg0, arg1, arg2)
+}
+
+// LoadBannedUser mocks base method.
+func (m *MockStorage) LoadBannedUser(arg0 context.Context, arg1 string) ([]model.BannedUser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadBannedUser", arg0, arg1)
+	ret0, _ := ret[0].([]model.BannedUser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadBannedUser indicates an expected call of LoadBannedUser.
+func (mr *MockStorageMockRecorder) LoadBannedUser(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadBannedUser", reflect.TypeOf((*MockStorage)(nil).LoadBannedUser), arg0, arg1)
+}
+
+// LoadBannedUserByID mocks base method.
+func (m *MockStorage) LoadBannedUserByID(arg0 context.Context, arg1 int) (model.BannedUser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadBannedUserByID", arg0, arg1)
+	ret0, _ := ret[0].(model.BannedUser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadBannedUserByID indicates an expected call of LoadBannedUserByID.
+func (mr *MockStorageMockRecorder) LoadBannedUserByID(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadBannedUserByID", reflect.TypeOf((*MockStorage)(nil).LoadBannedUserByID), arg0, arg1)
+}
+
+// LoadBannedUsers mocks base method.
+func (m *MockStorage) LoadBannedUsers(arg0 context.Context, arg1, arg2 int) ([]model.BannedUser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadBannedUsers", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]model.BannedUser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadBannedUsers indicates an expected call of LoadBannedUsers.
+func (mr *MockStorageMockRecorder) LoadBannedUsers(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadBannedUsers", reflect.TypeOf((*MockStorage)(nil).LoadBannedUsers), arg0, arg1, arg2)
 }
 
 // LoadIdentityVerification mocks base method.
@@ -438,6 +513,36 @@ func (mr *MockStorageMockRecorder) LoadPreferredDuoDevice(arg0, arg1 any) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadPreferredDuoDevice", reflect.TypeOf((*MockStorage)(nil).LoadPreferredDuoDevice), arg0, arg1)
 }
 
+// LoadRegulationRecordsByIP mocks base method.
+func (m *MockStorage) LoadRegulationRecordsByIP(arg0 context.Context, arg1 model.IP, arg2 time.Time, arg3 int) ([]model.RegulationRecord, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadRegulationRecordsByIP", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].([]model.RegulationRecord)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadRegulationRecordsByIP indicates an expected call of LoadRegulationRecordsByIP.
+func (mr *MockStorageMockRecorder) LoadRegulationRecordsByIP(arg0, arg1, arg2, arg3 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadRegulationRecordsByIP", reflect.TypeOf((*MockStorage)(nil).LoadRegulationRecordsByIP), arg0, arg1, arg2, arg3)
+}
+
+// LoadRegulationRecordsByUser mocks base method.
+func (m *MockStorage) LoadRegulationRecordsByUser(arg0 context.Context, arg1 string, arg2 time.Time, arg3 int) ([]model.RegulationRecord, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadRegulationRecordsByUser", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].([]model.RegulationRecord)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadRegulationRecordsByUser indicates an expected call of LoadRegulationRecordsByUser.
+func (mr *MockStorageMockRecorder) LoadRegulationRecordsByUser(arg0, arg1, arg2, arg3 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadRegulationRecordsByUser", reflect.TypeOf((*MockStorage)(nil).LoadRegulationRecordsByUser), arg0, arg1, arg2, arg3)
+}
+
 // LoadTOTPConfiguration mocks base method.
 func (m *MockStorage) LoadTOTPConfiguration(arg0 context.Context, arg1 string) (*model.TOTPConfiguration, error) {
 	m.ctrl.T.Helper()
@@ -588,6 +693,34 @@ func (mr *MockStorageMockRecorder) LoadWebAuthnUser(arg0, arg1, arg2 any) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadWebAuthnUser", reflect.TypeOf((*MockStorage)(nil).LoadWebAuthnUser), arg0, arg1, arg2)
 }
 
+// RevokeBannedIP mocks base method.
+func (m *MockStorage) RevokeBannedIP(arg0 context.Context, arg1 int, arg2 time.Time) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RevokeBannedIP", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RevokeBannedIP indicates an expected call of RevokeBannedIP.
+func (mr *MockStorageMockRecorder) RevokeBannedIP(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeBannedIP", reflect.TypeOf((*MockStorage)(nil).RevokeBannedIP), arg0, arg1, arg2)
+}
+
+// RevokeBannedUser mocks base method.
+func (m *MockStorage) RevokeBannedUser(arg0 context.Context, arg1 int, arg2 time.Time) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RevokeBannedUser", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RevokeBannedUser indicates an expected call of RevokeBannedUser.
+func (mr *MockStorageMockRecorder) RevokeBannedUser(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeBannedUser", reflect.TypeOf((*MockStorage)(nil).RevokeBannedUser), arg0, arg1, arg2)
+}
+
 // RevokeIdentityVerification mocks base method.
 func (m *MockStorage) RevokeIdentityVerification(arg0 context.Context, arg1 string, arg2 model.NullIP) error {
 	m.ctrl.T.Helper()
@@ -670,6 +803,34 @@ func (m *MockStorage) Rollback(arg0 context.Context) error {
 func (mr *MockStorageMockRecorder) Rollback(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Rollback", reflect.TypeOf((*MockStorage)(nil).Rollback), arg0)
+}
+
+// SaveBannedIP mocks base method.
+func (m *MockStorage) SaveBannedIP(arg0 context.Context, arg1 *model.BannedIP) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveBannedIP", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveBannedIP indicates an expected call of SaveBannedIP.
+func (mr *MockStorageMockRecorder) SaveBannedIP(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveBannedIP", reflect.TypeOf((*MockStorage)(nil).SaveBannedIP), arg0, arg1)
+}
+
+// SaveBannedUser mocks base method.
+func (m *MockStorage) SaveBannedUser(arg0 context.Context, arg1 *model.BannedUser) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveBannedUser", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveBannedUser indicates an expected call of SaveBannedUser.
+func (mr *MockStorageMockRecorder) SaveBannedUser(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveBannedUser", reflect.TypeOf((*MockStorage)(nil).SaveBannedUser), arg0, arg1)
 }
 
 // SaveIdentityVerification mocks base method.

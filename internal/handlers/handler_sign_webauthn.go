@@ -190,7 +190,7 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if c, err = w.ValidateLogin(user, *userSession.WebAuthn.SessionData, assertionResponse); err != nil {
-		_ = markAuthenticationAttempt(ctx, false, nil, userSession.Username, regulation.AuthTypeWebAuthn, formatWebAuthnError(err))
+		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, userSession.Username, nil), regulation.AuthTypeWebAuthn, formatWebAuthnError(err))
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
@@ -254,12 +254,7 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if err = markAuthenticationAttempt(ctx, true, nil, userSession.Username, regulation.AuthTypeWebAuthn, nil); err != nil {
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.SetJSONError(messageMFAValidationFailed)
-
-		return
-	}
+	doMarkAuthenticationAttempt(ctx, true, regulation.NewBan(regulation.BanTypeNone, userSession.Username, nil), regulation.AuthTypeWebAuthn, nil)
 
 	userSession.SetTwoFactorWebAuthn(ctx.Clock.Now(),
 		assertionResponse.ParsedPublicKeyCredential.AuthenticatorAttachment == protocol.CrossPlatform,

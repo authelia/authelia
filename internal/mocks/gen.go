@@ -15,7 +15,7 @@ package mocks
 //go:generate mockgen -package mocks -destination oauth2_token_revocation_storage.go -mock_names Provider=MockTokenRevocationStorage authelia.com/provider/oauth2/handler/oauth2 TokenRevocationStorage
 //go:generate mockgen -package mocks -destination oauth2_access_token_strategy.go -mock_names Provider=MockAccessTokenStrategy authelia.com/provider/oauth2/handler/oauth2 AccessTokenStrategy
 
-//go:generate mockgen -package mocks -destination oauth2_pkce_request_storage.go -mock_names Provider=MockPKCERequestStorage authelia.com/provider/oauth2/handler/pkce PKCERequestStorage
+//go:generate mockgen -package mocks -destination oauth2_pkce_request_storage.go -mock_names Storage=MockPKCERequestStorage authelia.com/provider/oauth2/handler/pkce Storage
 
 //go:generate mockgen -package mocks -destination oauth2_access_requester.go -mock_names Provider=MockAccessRequester authelia.com/provider/oauth2 AccessRequester
 
