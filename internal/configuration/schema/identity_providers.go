@@ -2,6 +2,7 @@ package schema
 
 import (
 	"crypto/rsa"
+	"net"
 	"net/url"
 	"time"
 )
@@ -52,7 +53,8 @@ type IdentityProvidersOpenIDConnectPolicy struct {
 // IdentityProvidersOpenIDConnectPolicyRule configuration for OpenID Connect 1.0 authorization policies rules.
 type IdentityProvidersOpenIDConnectPolicyRule struct {
 	Policy   string                    `koanf:"policy" json:"policy" jsonschema:"enum=one_factor,enum=two_factor,enum=deny,title=Policy" jsonschema_description:"The policy to apply to this rule."`
-	Subjects AccessControlRuleSubjects `koanf:"subject" json:"subject" jsonschema:"title=Subject" jsonschema_description:"Allows tuning the token lifespans for the authorize code grant."`
+	Subjects AccessControlRuleSubjects `koanf:"subject" json:"subject" jsonschema:"title=Subject" jsonschema_description:"Subject criteria of the Authorization for this rule to be a match."`
+	Networks []*net.IPNet              `koanf:"networks" json:"networks" jsonschema:"title=Networks" jsonschema_description:"Networks criteria of the Authorization for this rule to be a match."`
 }
 
 // IdentityProvidersOpenIDConnectDiscovery is information discovered during validation reused for the discovery handlers.

@@ -100,18 +100,22 @@ func TestNewOpenIDConnectWellKnownConfiguration(t *testing.T) {
 }
 
 func TestNewOpenIDConnectProviderDiscovery(t *testing.T) {
-	provider := oidc.NewOpenIDConnectProvider(&schema.IdentityProvidersOpenIDConnect{
-		IssuerCertificateChain:   schema.X509CertificateChain{},
-		IssuerPrivateKey:         x509PrivateKeyRSA2048,
-		HMACSecret:               "asbdhaaskmdlkamdklasmdlkams",
-		EnablePKCEPlainChallenge: true,
-		Clients: []schema.IdentityProvidersOpenIDConnectClient{
-			{
-				ID:                  "a-client",
-				Secret:              tOpenIDConnectPlainTextClientSecret,
-				AuthorizationPolicy: onefactor,
-				RedirectURIs: []string{
-					"https://google.com",
+	provider := oidc.NewOpenIDConnectProvider(&schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				IssuerCertificateChain:   schema.X509CertificateChain{},
+				IssuerPrivateKey:         x509PrivateKeyRSA2048,
+				HMACSecret:               "asbdhaaskmdlkamdklasmdlkams",
+				EnablePKCEPlainChallenge: true,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  "a-client",
+						Secret:              tOpenIDConnectPlainTextClientSecret,
+						AuthorizationPolicy: onefactor,
+						RedirectURIs: []string{
+							"https://google.com",
+						},
+					},
 				},
 			},
 		},
@@ -141,17 +145,21 @@ func TestNewOpenIDConnectProviderDiscovery(t *testing.T) {
 }
 
 func TestNewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfiguration(t *testing.T) {
-	provider := oidc.NewOpenIDConnectProvider(&schema.IdentityProvidersOpenIDConnect{
-		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       x509PrivateKeyRSA2048,
-		HMACSecret:             "asbdhaaskmdlkamdklasmdlkams",
-		Clients: []schema.IdentityProvidersOpenIDConnectClient{
-			{
-				ID:                  "a-client",
-				Secret:              tOpenIDConnectPlainTextClientSecret,
-				AuthorizationPolicy: onefactor,
-				RedirectURIs: []string{
-					"https://google.com",
+	provider := oidc.NewOpenIDConnectProvider(&schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				IssuerCertificateChain: schema.X509CertificateChain{},
+				IssuerPrivateKey:       x509PrivateKeyRSA2048,
+				HMACSecret:             "asbdhaaskmdlkamdklasmdlkams",
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  "a-client",
+						Secret:              tOpenIDConnectPlainTextClientSecret,
+						AuthorizationPolicy: onefactor,
+						RedirectURIs: []string{
+							"https://google.com",
+						},
+					},
 				},
 			},
 		},
@@ -252,17 +260,21 @@ func TestNewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfiguration(t *test
 }
 
 func TestNewOpenIDConnectProvider_GetOAuth2WellKnownConfiguration(t *testing.T) {
-	provider := oidc.NewOpenIDConnectProvider(&schema.IdentityProvidersOpenIDConnect{
-		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       x509PrivateKeyRSA2048,
-		HMACSecret:             "asbdhaaskmdlkamdklasmdlkams",
-		Clients: []schema.IdentityProvidersOpenIDConnectClient{
-			{
-				ID:                  "a-client",
-				Secret:              tOpenIDConnectPlainTextClientSecret,
-				AuthorizationPolicy: onefactor,
-				RedirectURIs: []string{
-					"https://google.com",
+	provider := oidc.NewOpenIDConnectProvider(&schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				IssuerCertificateChain: schema.X509CertificateChain{},
+				IssuerPrivateKey:       x509PrivateKeyRSA2048,
+				HMACSecret:             "asbdhaaskmdlkamdklasmdlkams",
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  "a-client",
+						Secret:              tOpenIDConnectPlainTextClientSecret,
+						AuthorizationPolicy: onefactor,
+						RedirectURIs: []string{
+							"https://google.com",
+						},
+					},
 				},
 			},
 		},
@@ -347,18 +359,22 @@ func TestNewOpenIDConnectProvider_GetOAuth2WellKnownConfiguration(t *testing.T) 
 }
 
 func TestNewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfigurationWithPlainPKCE(t *testing.T) {
-	provider := oidc.NewOpenIDConnectProvider(&schema.IdentityProvidersOpenIDConnect{
-		IssuerCertificateChain:   schema.X509CertificateChain{},
-		IssuerPrivateKey:         x509PrivateKeyRSA2048,
-		HMACSecret:               "asbdhaaskmdlkamdklasmdlkams",
-		EnablePKCEPlainChallenge: true,
-		Clients: []schema.IdentityProvidersOpenIDConnectClient{
-			{
-				ID:                  "a-client",
-				Secret:              tOpenIDConnectPlainTextClientSecret,
-				AuthorizationPolicy: onefactor,
-				RedirectURIs: []string{
-					"https://google.com",
+	provider := oidc.NewOpenIDConnectProvider(&schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				IssuerCertificateChain:   schema.X509CertificateChain{},
+				IssuerPrivateKey:         x509PrivateKeyRSA2048,
+				HMACSecret:               "asbdhaaskmdlkamdklasmdlkams",
+				EnablePKCEPlainChallenge: true,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  "a-client",
+						Secret:              tOpenIDConnectPlainTextClientSecret,
+						AuthorizationPolicy: onefactor,
+						RedirectURIs: []string{
+							"https://google.com",
+						},
+					},
 				},
 			},
 		},

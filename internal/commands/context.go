@@ -172,7 +172,7 @@ func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
 		ctx.providers.Notifier = notification.NewFileNotifier(*ctx.config.Notifier.FileSystem)
 	}
 
-	ctx.providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(ctx.config.IdentityProviders.OIDC, ctx.providers.StorageProvider, ctx.providers.Templates)
+	ctx.providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(ctx.config, ctx.providers.StorageProvider, ctx.providers.Templates)
 
 	if ctx.config.Telemetry.Metrics.Enabled {
 		ctx.providers.Metrics = metrics.NewPrometheus()
