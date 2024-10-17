@@ -1,6 +1,6 @@
 {
 	"Accept": "Прийняти",
-	"Access protected resources logged in as you": "Доступ до захищених ресурсів, зареєстрованих як ви",
+	"Access protected resources logged in as you": "Отримайте доступ до захищених ресурсів, зареєструвавшись під своїм ім'ям",
 	"Access your email addresses": "Доступ до ваших адрес електронної пошти",
 	"Access your group membership": "Доступ до членства в групі",
 	"Access your profile information": "Доступ до інформації вашого профілю",
@@ -91,6 +91,7 @@
 	"Time-based One-Time Password": "Одноразовий пароль",
 	"Use OpenID to verify your identity": "Використовуйте OpenID для підтвердження вашої особи",
 	"Username": "Ім'я користувача",
+	"Username is required": "Ім'я користувача є обов'язковим",
 	"You cancelled the assertion request": "Ви скасували запит на підтвердження",
 	"You must view and accept the Privacy Policy before using": "Ви повинні прочитати та прийняти <0>Privacy Policy</0> перед використанням",
 	"You're being signed out and redirected": "Ви виходите і перенаправлені",

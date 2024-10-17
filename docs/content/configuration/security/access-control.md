@@ -176,7 +176,7 @@ access_control:
     policy: 'bypass'
 ```
 
-*Multiple domains matched. These rules will match either `apple.{{< sitevar name="domain" nojs="example.com" >}}` or `orange.{{< sitevar name="domain" nojs="example.com" >}}`. All rules in this
+*Multiple domains matched. These rules will match either `apple.{{< sitevar name="domain" nojs="example.com" >}}` or `banana.{{< sitevar name="domain" nojs="example.com" >}}`. All rules in this
 list are effectively the same rule just expressed in different ways.*
 
 ```yaml {title="configuration.yml"}

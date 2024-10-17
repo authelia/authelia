@@ -52,7 +52,7 @@ login.example.com:8080 {
 mail.example.com:8080 {
 	tls /pki/public.crt /pki/private.pem
 	log
-	reverse_proxy smtp:1080
+	reverse_proxy smtp:8025
 }
 
 *.example.com:8080 {

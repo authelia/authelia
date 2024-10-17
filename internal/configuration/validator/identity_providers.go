@@ -175,6 +175,16 @@ func validateOIDCIssuerJSONWebKeys(config *schema.IdentityProvidersOpenIDConnect
 	config.Discovery.DefaultKeyIDs = map[string]string{}
 
 	for i := 0; i < len(config.JSONWebKeys); i++ {
+		if config.JSONWebKeys[i].Key == nil {
+			if len(config.JSONWebKeys[i].KeyID) != 0 {
+				validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysWithKeyID, i+1, config.JSONWebKeys[i].KeyID))
+			} else {
+				validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysMissing, i+1))
+			}
+
+			continue
+		}
+
 		if key, ok := config.JSONWebKeys[i].Key.(*rsa.PrivateKey); ok && key.PublicKey.N == nil {
 			validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysInvalid, i+1))
 
@@ -510,13 +520,21 @@ func validateOIDCClientJSONWebKeysList(c int, config *schema.IdentityProvidersOp
 			continue
 		}
 
+		if config.Clients[c].JSONWebKeys[i].Key == nil {
+			if len(config.Clients[c].JSONWebKeys[i].KeyID) != 0 {
+				validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysWithIDInvalidOptionMissingOneOf, config.Clients[c].ID, i+1, config.Clients[c].JSONWebKeys[i].KeyID, attrOIDCKey))
+			} else {
+				validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysInvalidOptionMissingOneOf, config.Clients[c].ID, i+1, attrOIDCKey))
+			}
+
+			continue
+		}
+
 		validateOIDCClientJSONWebKeysListKeyUseAlg(c, i, props, config, validator)
 
 		var checkEqualKey bool
 
 		switch key := config.Clients[c].JSONWebKeys[i].Key.(type) {
-		case nil:
-			validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysInvalidOptionMissingOneOf, config.Clients[c].ID, i+1, attrOIDCKey))
 		case *rsa.PublicKey:
 			checkEqualKey = true
 

@@ -91,6 +91,7 @@
 	"Time-based One-Time Password": "Одноразовый пароль, основанный на времени",
 	"Use OpenID to verify your identity": "Используйте OpenID для подтверждения вашей личности",
 	"Username": "Имя пользователя",
+	"Username is required": "Необходимо ввести имя пользователя",
 	"You cancelled the assertion request": "Вы отменили запрос на утверждение",
 	"You must view and accept the Privacy Policy before using": "Перед использованием вы должны просмотреть и принять <0>Политику конфиденциальности</0>",
 	"You're being signed out and redirected": "Вы выходите из системы и будете перенаправлянны",
