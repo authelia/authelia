@@ -329,7 +329,10 @@ identity_validation:
 ##
 ## The available providers are: `file`, `ldap`. You must use only one of these providers.
 # authentication_backend:
-
+  ## Password Change Options.
+  #password_change:
+    ##Disable both the HTML element and the API for password change functionality.
+    #disable: false
   ## Password Reset Options.
   # password_reset:
     ## Disable both the HTML element and the API for reset password functionality.
