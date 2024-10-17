@@ -34,6 +34,8 @@ authentication_backend:
   password_reset:
     disable: false
     custom_url: ''
+  password_change:
+    disable: false
 ```
 
 ## Options
@@ -70,6 +72,15 @@ This setting controls if users can reset their password from the web frontend or
 
 The custom password reset URL. This replaces the inbuilt password reset functionality and disables the endpoints if
 this is configured to anything other than nothing or an empty string.
+
+### password_change
+
+#### disable
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+This setting controls if users can change their password from the web frontend or not.
+
 
 ### file
 
