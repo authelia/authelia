@@ -1226,6 +1226,8 @@ session:
         # rules:
           # - policy: 'one_factor'
           #   subject: 'group:services'
+          #   networks:
+              #  - '192.168.1.0/24'
 
     ## The lifespans configure the expiration for these token types in the duration common syntax. In addition to this
     ## syntax the lifespans can be customized per-client.

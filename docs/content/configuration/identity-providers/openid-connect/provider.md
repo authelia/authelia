@@ -75,6 +75,9 @@ identity_providers:
         rules:
           - policy: 'deny'
             subject: 'group:services'
+            networks:
+              - '192.168.1.0/24'
+              - '192.168.2.51'
     lifespans:
       access_token: '1h'
       authorize_code: '1m'
@@ -400,6 +403,9 @@ identity_providers:
         rules:
           - policy: 'deny'
             subject: 'group:services'
+            networks:
+              - '192.168.1.0/24'
+              - '192.168.2.51'
     clients:
       - client_id: 'client_with_policy_name'
         authorization_policy: 'policy_name'
@@ -426,10 +432,28 @@ The policy which is applied if this rule matches. Valid values are `one_factor`,
 
 ##### subject
 
-{{< confkey type="list(string(string))" required="yes" >}}
+{{< confkey type="list(string(string))" required="situational" >}}
 
-The subjects criteria as per the [Access Control Configuration](../../security/access-control.md#subject). This must be
-included for the rule to be considered valid.
+_**Situational Note:** Either this option or the [networks](#networks) must be configured or this rule is considered
+invalid._
+
+The subjects criteria as per the [Access Control Configuration](../../security/access-control.md#subject).
+
+##### networks
+
+{{< confkey type="list(string)" syntax="network" required="situational" >}}
+{{< callout context="danger" title="Security Note" icon="outline/rocket" >}}
+The rules can only apply to the Authorization Code Flow when the resource owner is optionally providing
+consent to the Authorization Request. While this is not a major issue for the [subject](#subject) criteria, the users
+IP address may change and there is no technical way to enforce this check after consent has been granted and the tokens
+have been issued. See [ADR1](../../../reference/architecture-decision-log/1.md) for more information.
+{{< /callout >}}
+
+_**Situational Note:** Either this option or the [subject](#subject) must be configured or this rule is considered
+invalid._
+
+The list of networks this rule applies to. Items in this list can also be named
+[Network Definitions](../../definitions/network.md).
 
 ### lifespans
 
