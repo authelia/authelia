@@ -55,34 +55,34 @@ fi
 if [[ ${BUILDKITE_LABEL} == ":docker: Deploy Manifest" ]] && [[ ${BUILDKITE_BRANCH} == "master" ]] && [[ ${BUILDKITE_PULL_REQUEST} == "false" ]]; then
   echo "--- :docker: Removing tags for deleted branches"
   anontoken=$(curl -fsL --retry 3 'https://auth.docker.io/token?service=registry.docker.io&scope=repository:authelia/authelia:pull' | jq -r .token)
-  authtoken=$(curl -fs --retry 3 -H "Content-Type: application/json" -X "POST" -d '{"username": "'${DOCKER_USERNAME}'", "password": "'${DOCKER_PASSWORD}'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
-  for BRANCH_TAG in $(dockerbranchtags=$(curl -fsL --retry 3 -H "Authorization: Bearer ${anontoken}" https://registry-1.docker.io/v2/authelia/authelia/tags/list | jq -r '.tags[] | select(startswith("PR") | not)' | \
-  sed -r '/^(latest|master|develop|v.*|([[:digit:]]+)\.?([[:digit:]]+)?\.?([[:digit:]]+)?)$/d' | sort) && \
-  githubbranches=$(curl -fs --retry 3 https://api.github.com/repos/authelia/authelia/branches | jq -r '.[].name' | sort) && \
-  comm -23 <(echo "${dockerbranchtags}") <(echo "${githubbranches}")); do
+  authtoken=$(curl -fs --retry 3 -H "Content-Type: application/json" -X POST -d '{"username": "'${DOCKER_USERNAME}'", "password": "'${DOCKER_PASSWORD}'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
+  dockerbranchtags=$(curl -fsL --retry 3 -H "Authorization: Bearer ${anontoken}" https://registry-1.docker.io/v2/authelia/authelia/tags/list | jq -r '.tags[] | select(startswith("PR") | not)' | sed -r '/^(latest|master|develop|v.*|([[:digit:]]+)\.?([[:digit:]]+)?\.?([[:digit:]]+)?)$/d' | sort)
+  githubbranches=$(curl -fs --retry 3 https://api.github.com/repos/authelia/authelia/branches | jq -r '.[].name' | sort)
+
+  for BRANCH_TAG in $(comm -23 <(echo "${dockerbranchtags}") <(echo "${githubbranches}")); do
     echo "Removing tag ${BRANCH_TAG} from docker.io"
-    curl -fsL --retry 3 -o /dev/null -X "DELETE" -H "Authorization: JWT ${authtoken}" https://hub.docker.com/v2/repositories/authelia/authelia/tags/${BRANCH_TAG}/
+    curl -fsL --retry 3 -o /dev/null -X DELETE -H "Authorization: JWT ${authtoken}" https://hub.docker.com/v2/repositories/authelia/authelia/tags/${BRANCH_TAG}/
     for i in {1..5}; do
       for GHCR_VERSION in $(curl -fsL --retry 3 -H "Authorization: Bearer ${GHCR_PASSWORD}" -H "Accept: application/vnd.github.v3+json" "https://api.github.com/orgs/authelia/packages/container/authelia/versions?page=${i}&per_page=100" | jq -j --arg tag ${BRANCH_TAG} '.[] | select(.metadata.container.tags[] | contains($tag)) | .metadata.container.tags[], ",", .id, "\n"'); do
-        IFS=','
-        read -a TAGID <<< ${GHCR_VERSION}
+        IFS=',' read -a TAGID <<< ${GHCR_VERSION}
         echo "Removing tag ${TAGID[0]} with id ${TAGID[1]} from ghcr.io"
-        curl -fsL --retry 3 -o /dev/null -X "DELETE" -H "Authorization: Bearer ${GHCR_PASSWORD}" -H "Accept: application/vnd.github.v3+json" https://api.github.com/orgs/authelia/packages/container/authelia/versions/${TAGID[1]}
+        curl -fsL --retry 3 -o /dev/null -X DELETE -H "Authorization: Bearer ${GHCR_PASSWORD}" -H "Accept: application/vnd.github.v3+json" https://api.github.com/orgs/authelia/packages/container/authelia/versions/${TAGID[1]}
       done
     done
   done
+
   echo "--- :docker: Removing tags for merged or closed pull requests"
-  for PR_TAG in $(dockerprtags=$(curl -fsL --retry 3 -H "Authorization: Bearer ${anontoken}" https://registry-1.docker.io/v2/authelia/authelia/tags/list | jq -r '.tags[] | select(startswith("PR"))' | sort) && \
-  githubprs=$(curl -fs --retry 3 https://api.github.com/repos/authelia/authelia/pulls | jq -r '.[].number' | sed -e 's/^/PR/' | sort) && \
-  comm -23 <(echo "${dockerprtags}") <(echo "${githubprs}")); do
+  dockerprtags=$(curl -fsL --retry 3 -H "Authorization: Bearer ${anontoken}" https://registry-1.docker.io/v2/authelia/authelia/tags/list | jq -r '.tags[] | select(startswith("PR"))' | sort)
+  githubprs=$(curl -fs --retry 3 https://api.github.com/repos/authelia/authelia/pulls | jq -r '.[].number' | sed -e 's/^/PR/' | sort)
+
+  for PR_TAG in $(comm -23 <(echo "${dockerprtags}") <(echo "${githubprs}")); do
     echo "Removing tag ${PR_TAG} from docker.io"
-    curl -fsL --retry 3 -o /dev/null -X "DELETE" -H "Authorization: JWT ${authtoken}" https://hub.docker.com/v2/repositories/authelia/authelia/tags/${PR_TAG}/
+    curl -fsL --retry 3 -o /dev/null -X DELETE -H "Authorization: JWT ${authtoken}" https://hub.docker.com/v2/repositories/authelia/authelia/tags/${PR_TAG}/
     for i in {1..5}; do
       for GHCR_VERSION in $(curl -fsL --retry 3 -H "Authorization: Bearer ${GHCR_PASSWORD}" -H "Accept: application/vnd.github.v3+json" "https://api.github.com/orgs/authelia/packages/container/authelia/versions?page=${i}&per_page=100" | jq -j --arg tag ${PR_TAG} '.[] | select(.metadata.container.tags[] | contains($tag)) | .metadata.container.tags[], ",", .id, "\n"'); do
-        IFS=','
-        read -a TAGID <<< ${GHCR_VERSION}
+        IFS=',' read -a TAGID <<< ${GHCR_VERSION}
         echo "Removing tag ${TAGID[0]} with id ${TAGID[1]} from ghcr.io"
-        curl -fsL --retry 3 -o /dev/null -X "DELETE" -H "Authorization: Bearer ${GHCR_PASSWORD}" -H "Accept: application/vnd.github.v3+json" https://api.github.com/orgs/authelia/packages/container/authelia/versions/${TAGID[1]}
+        curl -fsL --retry 3 -o /dev/null -X DELETE -H "Authorization: Bearer ${GHCR_PASSWORD}" -H "Accept: application/vnd.github.v3+json" https://api.github.com/orgs/authelia/packages/container/authelia/versions/${TAGID[1]}
       done
     done
   done
