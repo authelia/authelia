@@ -81,6 +81,7 @@ var Keys = []string{
 	"identity_providers.oidc.authorization_policies.*.rules",
 	"identity_providers.oidc.authorization_policies.*.rules[].policy",
 	"identity_providers.oidc.authorization_policies.*.rules[].subject",
+	"identity_providers.oidc.authorization_policies.*.rules[].networks",
 	"identity_providers.oidc.lifespans.access_token",
 	"identity_providers.oidc.lifespans.authorize_code",
 	"identity_providers.oidc.lifespans.id_token",

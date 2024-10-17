@@ -11,24 +11,24 @@ import (
 )
 
 // NewOpenIDConnectProvider new-ups a OpenIDConnectProvider.
-func NewOpenIDConnectProvider(config *schema.IdentityProvidersOpenIDConnect, store storage.Provider, templates *templates.Provider) (provider *OpenIDConnectProvider) {
-	if config == nil {
+func NewOpenIDConnectProvider(config *schema.Configuration, store storage.Provider, templates *templates.Provider) (provider *OpenIDConnectProvider) {
+	if config == nil || config.IdentityProviders.OIDC == nil {
 		return nil
 	}
 
-	signer := NewKeyManager(config)
+	signer := NewKeyManager(config.IdentityProviders.OIDC)
 
 	provider = &OpenIDConnectProvider{
 		Store:      NewStore(config, store),
 		KeyManager: signer,
-		Config:     NewConfig(config, signer, templates),
+		Config:     NewConfig(config.IdentityProviders.OIDC, signer, templates),
 	}
 
 	provider.Provider = oauthelia2.New(provider.Store, provider.Config)
 
 	provider.Config.LoadHandlers(provider.Store)
 
-	provider.discovery = NewOpenIDConnectWellKnownConfiguration(config)
+	provider.discovery = NewOpenIDConnectWellKnownConfiguration(config.IdentityProviders.OIDC)
 
 	return provider
 }

@@ -2038,7 +2038,22 @@
         "subject": {
           "$ref": "#/$defs/AccessControlRuleSubjects",
           "title": "Subject",
-          "description": "Allows tuning the token lifespans for the authorize code grant."
+          "description": "Subject criteria of the Authorization for this rule to be a match."
+        },
+        "networks": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "title": "Networks",
+          "description": "Networks criteria of the Authorization for this rule to be a match."
         }
       },
       "additionalProperties": false,
