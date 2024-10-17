@@ -11,7 +11,7 @@ overrides:
   '@typescript-eslint/typescript-estree': 8.9.0
   '@typescript-eslint/utils': 8.9.0
   eslint-plugin-jest: 28.8.3
-  eslint-plugin-testing-library: 6.3.0
+  eslint-plugin-testing-library: 6.3.2
 
 importers:
 
@@ -2959,8 +2959,8 @@ packages:
     peerDependencies:
       eslint: ^3 || ^4 || ^5 || ^6 || ^7 || ^8 || ^9.7
 
-  eslint-plugin-testing-library@6.3.0:
-    resolution: {integrity: sha512-GYcEErTt6EGwE0bPDY+4aehfEBpB2gDBFKohir8jlATSUvzStEyzCx8QWB/14xeKc/AwyXkzScSzMHnFojkWrA==}
+  eslint-plugin-testing-library@6.3.2:
+    resolution: {integrity: sha512-Z+6gPhoxXoypKSX+GC3UNfxQtqE5VhBTymU8WmLqpfWCPZIEu+2UZcNYJbwuuGclWQtt6LzN95yEq79o5u4URA==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0, npm: '>=6'}
     peerDependencies:
       eslint: ^7.5.0 || ^8.0.0
@@ -7739,7 +7739,7 @@ snapshots:
       eslint-plugin-jsx-a11y: 6.10.0(eslint@8.57.1)
       eslint-plugin-react: 7.37.1(eslint@8.57.1)
       eslint-plugin-react-hooks: 4.6.2(eslint@8.57.1)
-      eslint-plugin-testing-library: 6.3.0(eslint@8.57.1)(typescript@5.6.3)
+      eslint-plugin-testing-library: 6.3.2(eslint@8.57.1)(typescript@5.6.3)
     optionalDependencies:
       typescript: 5.6.3
     transitivePeerDependencies:
@@ -7906,7 +7906,7 @@ snapshots:
       string.prototype.matchall: 4.0.11
       string.prototype.repeat: 1.0.0
 
-  eslint-plugin-testing-library@6.3.0(eslint@8.57.1)(typescript@5.6.3):
+  eslint-plugin-testing-library@6.3.2(eslint@8.57.1)(typescript@5.6.3):
     dependencies:
       '@typescript-eslint/utils': 8.9.0(eslint@8.57.1)(typescript@5.6.3)
       eslint: 8.57.1
