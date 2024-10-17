@@ -198,9 +198,9 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 		Details: map[string]any{
 			"Action": "Password Reset",
 		},
-		BodyPrefix: eventEmailActionPasswordResetPrefix,
+		BodyPrefix: eventEmailActionPasswordModifyPrefix,
 		BodyEvent:  eventEmailActionPasswordReset,
-		BodySuffix: eventEmailActionPasswordResetSuffix,
+		BodySuffix: eventEmailActionPasswordModifySuffix,
 	}
 
 	addresses := userInfo.Addresses()
@@ -241,9 +241,9 @@ func identityRetrieverFromStorage(ctx *middlewares.AutheliaCtx) (*session.Identi
 	}, nil
 }
 
-// ResetPasswordIdentityStart is the handler for initiating the identity validation for resetting a password.
+// ResetPasswordIdentityVerificationStart is the handler for initiating the identity validation for resetting a password.
 // We need to ensure the attacker cannot perform user enumeration by always replying with 200 whatever what happens in backend.
-var ResetPasswordIdentityStart = middlewares.IdentityVerificationStart(middlewares.IdentityVerificationStartArgs{
+var ResetPasswordIdentityVerificationStart = middlewares.IdentityVerificationStart(middlewares.IdentityVerificationStartArgs{
 	MailTitle:               "Reset your password",
 	MailButtonContent:       "Reset",
 	MailButtonRevokeContent: "Revoke",
@@ -253,7 +253,7 @@ var ResetPasswordIdentityStart = middlewares.IdentityVerificationStart(middlewar
 	IdentityRetrieverFunc:   identityRetrieverFromStorage,
 }, middlewares.TimingAttackDelay(10, 250, 85, time.Millisecond*500, false))
 
-func resetPasswordIdentityFinish(ctx *middlewares.AutheliaCtx, username string) {
+func resetPasswordIdentityVerificationFinish(ctx *middlewares.AutheliaCtx, username string) {
 	var (
 		userSession session.UserSession
 		err         error
@@ -274,6 +274,6 @@ func resetPasswordIdentityFinish(ctx *middlewares.AutheliaCtx, username string) 
 	}
 }
 
-// ResetPasswordIdentityFinish the handler for finishing the identity validation.
-var ResetPasswordIdentityFinish = middlewares.IdentityVerificationFinish(
-	middlewares.IdentityVerificationFinishArgs{ActionClaim: ActionResetPassword}, resetPasswordIdentityFinish)
+// ResetPasswordIdentityVerificationFinish the handler for finishing the identity validation.
+var ResetPasswordIdentityVerificationFinish = middlewares.IdentityVerificationFinish(
+	middlewares.IdentityVerificationFinishArgs{ActionClaim: ActionResetPassword}, resetPasswordIdentityVerificationFinish)

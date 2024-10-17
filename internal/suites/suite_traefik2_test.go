@@ -35,6 +35,10 @@ func (s *Traefik2Suite) TestResetPasswordScenario() {
 	suite.Run(s.T(), NewResetPasswordScenario())
 }
 
+func (s *Traefik2Suite) TestChangePasswordScenario() {
+	suite.Run(s.T(), NewChangePasswordScenario())
+}
+
 func (s *Traefik2Suite) TestShouldKeepSessionAfterRedisRestart() {
 	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
 	defer func() {
