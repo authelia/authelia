@@ -120,3 +120,5 @@ standard output, and the defined logging location.
 log:
   keep_stdout: true
 ```
+
+[RFC3339]: https://datatracker.ietf.org/doc/html/rfc3339
