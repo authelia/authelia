@@ -71,18 +71,18 @@ func (mr *MockUserProviderMockRecorder) GetDetails(username any) *gomock.Call {
 }
 
 // GetDetailsExtended mocks base method.
-func (m *MockUserProvider) GetDetailsExtended(arg0 string) (*authentication.UserDetailsExtended, error) {
+func (m *MockUserProvider) GetDetailsExtended(username string) (*authentication.UserDetailsExtended, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetDetailsExtended", arg0)
+	ret := m.ctrl.Call(m, "GetDetailsExtended", username)
 	ret0, _ := ret[0].(*authentication.UserDetailsExtended)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetDetailsExtended indicates an expected call of GetDetailsExtended.
-func (mr *MockUserProviderMockRecorder) GetDetailsExtended(arg0 any) *gomock.Call {
+func (mr *MockUserProviderMockRecorder) GetDetailsExtended(username any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDetailsExtended", reflect.TypeOf((*MockUserProvider)(nil).GetDetailsExtended), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDetailsExtended", reflect.TypeOf((*MockUserProvider)(nil).GetDetailsExtended), username)
 }
 
 // StartupCheck mocks base method.

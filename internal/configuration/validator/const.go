@@ -205,12 +205,11 @@ const (
 	errFmtOIDCCORSInvalidOriginWildcardWithClients = "identity_providers: oidc: cors: option 'allowed_origins' contains the wildcard origin '*' cannot be specified with option 'allowed_origins_from_client_redirect_uris' enabled"
 	errFmtOIDCCORSInvalidEndpoint                  = "identity_providers: oidc: cors: option 'endpoints' contains an invalid value '%s': must be one of %s"
 
-	errFmtOIDCPolicyInvalidName         = "identity_providers: oidc: authorization_policies: authorization policies must have a name but one with a blank name exists"
-	errFmtOIDCPolicyInvalidNameStandard = "identity_providers: oidc: authorization_policies: policy '%s': option '%s' must not be one of %s but it's configured as '%s'"
-	errFmtOIDCPolicyMissingOption       = "identity_providers: oidc: authorization_policies: policy '%s': option '%s' is required"
-	errFmtOIDCPolicyRuleMissingOption   = "identity_providers: oidc: authorization_policies: policy '%s': rules: rule #%d: option '%s' is required"
-	errFmtOIDCPolicyRuleSubjectInvalid  = "identity_providers: oidc: authorization_policies: policy '%s': rules: rule #%d: 'subject' option '%s' is " +
-		"invalid: must start with 'user:' or 'group:'"
+	errFmtOIDCPolicyInvalidName          = "identity_providers: oidc: authorization_policies: authorization policies must have a name but one with a blank name exists"
+	errFmtOIDCPolicyInvalidNameStandard  = "identity_providers: oidc: authorization_policies: policy '%s': option '%s' must not be one of %s but it's configured as '%s'"
+	errFmtOIDCPolicyMissingOption        = "identity_providers: oidc: authorization_policies: policy '%s': option '%s' is required"
+	errFmtOIDCPolicyRuleMissingOption    = "identity_providers: oidc: authorization_policies: policy '%s': rules: rule #%d: option 'subject' or 'networks' is required"
+	errFmtOIDCPolicyRuleInvalidSubject   = "identity_providers: oidc: authorization_policies: policy '%s': rules: rule #%d: option 'subject' with value '%s' is invalid: must start with 'user:' or 'group:'"
 	errFmtOIDCPolicyInvalidDefaultPolicy = "identity_providers: oidc: authorization_policies: policy '%s': option 'default_policy' must be one of %s but it's configured as '%s'"
 	errFmtOIDCPolicyRuleInvalidPolicy    = "identity_providers: oidc: authorization_policies: policy '%s': rules: rule #%d: option 'policy' must be one of %s but it's configured as '%s'"
 
