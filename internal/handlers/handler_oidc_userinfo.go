@@ -74,11 +74,15 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 
 	var (
 		original map[string]any
+		requests *oidc.ClaimsRequests
+		userinfo bool
 	)
 
 	switch session := requester.GetSession().(type) {
 	case *oidc.Session:
 		original = session.IDTokenClaims().ToMap()
+		requests = session.ClaimRequests
+		userinfo = !session.ClientCredentials
 	case *oauth2.JWTSession:
 		original = session.JWTClaims.ToMap()
 	default:
@@ -91,7 +95,22 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 
 	claims := map[string]any{}
 
-	oidcApplyUserInfoClaims(clientID, requester.GetGrantedScopes(), original, claims, oidcCtxDetailResolver(ctx))
+	ctx.Logger.WithFields(map[string]any{"claims": original, "requested_scopes": requester.GetRequestedScopes(), "granted_scopes": requester.GetGrantedScopes()}).Debug("Original Values")
+
+	strategy := ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx)
+
+	var detailer oidc.UserDetailer
+
+	if detailer, err = oidcDetailerFromClaims(ctx, original); err != nil {
+		oidc.GrantUserInfoClaims(strategy, client, requester.GetGrantedScopes(), nil, original, claims)
+
+		if userinfo {
+			ctx.Logger.WithError(err).Errorf("UserInfo Request with id '%s' on client with id '%s' error occurred loading user information", requestID, client.GetID())
+		}
+	} else {
+		oidc.GrantUserInfoClaims(strategy, client, requester.GetGrantedScopes(), detailer, original, claims)
+		oidc.GrantClaimRequests(strategy, client, requests.GetUserInfoRequests(), detailer, claims)
+	}
 
 	var token string
 
