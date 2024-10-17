@@ -64,14 +64,14 @@ This is the default scope for [OpenID Connect 1.0]. This field is forced on ever
 that Authelia does.
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-The combination of the issuer (i.e. `iss`) [Claim]( https://openid.net/specs/openid-connect-core-1_0.html#Claims) and
-subject (i.e. `sub`) [Claim]( https://openid.net/specs/openid-connect-core-1_0.html#Claims) are utilized to uniquely
+The combination of the issuer (i.e. `iss`) [Claim](https://openid.net/specs/openid-connect-core-1_0.html#Claims) and
+subject (i.e. `sub`) [Claim](https://openid.net/specs/openid-connect-core-1_0.html#Claims) are utilized to uniquely
 identify a
 user and per the specification the only reliable way to do so as they are guaranteed to be a unique combination. As such
 this is the supported method for linking an account to Authelia. The `preferred_username` and `email` claims from the
 `profile` and `email` scopes respectively should only be utilized for provisioning a new account.
 
-In addition, the `sub` [Claim]( https://openid.net/specs/openid-connect-core-1_0.html#Claims) utilizes
+In addition, the `sub` [Claim](https://openid.net/specs/openid-connect-core-1_0.html#Claims) utilizes
 a [RFC4122](https://datatracker.ietf.org/doc/html/rfc4122) UUID V4 to identify the individual user as per the
 [Subject Identifier Types](https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes) section of
 the [OpenID Connect 1.0](https://openid.net/connect/) specification.
