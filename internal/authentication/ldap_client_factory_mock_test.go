@@ -39,22 +39,49 @@ func (m *MockLDAPClientFactory) EXPECT() *MockLDAPClientFactoryMockRecorder {
 	return m.recorder
 }
 
-// DialURL mocks base method.
-func (m *MockLDAPClientFactory) DialURL(arg0 string, arg1 ...ldap.DialOpt) (LDAPClient, error) {
+// GetClient mocks base method.
+func (m *MockLDAPClientFactory) GetClient(arg0 ...LDAPClientFactoryOption) (ldap.Client, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0}
-	for _, a := range arg1 {
+	varargs := []any{}
+	for _, a := range arg0 {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "DialURL", varargs...)
-	ret0, _ := ret[0].(LDAPClient)
+	ret := m.ctrl.Call(m, "GetClient", varargs...)
+	ret0, _ := ret[0].(ldap.Client)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// DialURL indicates an expected call of DialURL.
-func (mr *MockLDAPClientFactoryMockRecorder) DialURL(arg0 any, arg1 ...any) *gomock.Call {
+// GetClient indicates an expected call of GetClient.
+func (mr *MockLDAPClientFactoryMockRecorder) GetClient(arg0 ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0}, arg1...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DialURL", reflect.TypeOf((*MockLDAPClientFactory)(nil).DialURL), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClient", reflect.TypeOf((*MockLDAPClientFactory)(nil).GetClient), arg0...)
+}
+
+// Initialize mocks base method.
+func (m *MockLDAPClientFactory) Initialize() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Initialize")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Initialize indicates an expected call of Initialize.
+func (mr *MockLDAPClientFactoryMockRecorder) Initialize() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Initialize", reflect.TypeOf((*MockLDAPClientFactory)(nil).Initialize))
+}
+
+// Shutdown mocks base method.
+func (m *MockLDAPClientFactory) Shutdown() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Shutdown")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Shutdown indicates an expected call of Shutdown.
+func (mr *MockLDAPClientFactoryMockRecorder) Shutdown() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockLDAPClientFactory)(nil).Shutdown))
 }
