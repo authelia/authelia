@@ -2974,7 +2974,7 @@
         "address": {
           "$ref": "#/$defs/AddressTCP",
           "title": "Address",
-          "description": "The address of the database."
+          "description": "The address of the SQL Server."
         },
         "database": {
           "type": "string",
@@ -3018,7 +3018,7 @@
         "address": {
           "$ref": "#/$defs/AddressTCP",
           "title": "Address",
-          "description": "The address of the database."
+          "description": "The address of the SQL Server."
         },
         "database": {
           "type": "string",
@@ -3049,14 +3049,20 @@
           "title": "Timeout",
           "description": "The timeout for the database connection."
         },
+        "tls": {
+          "$ref": "#/$defs/TLS"
+        },
         "schema": {
           "type": "string",
           "title": "Schema",
           "description": "The default schema name to use.",
           "default": "public"
         },
-        "tls": {
-          "$ref": "#/$defs/TLS"
+        "servers": {
+          "items": {
+            "$ref": "#/$defs/StoragePostgreSQLServer"
+          },
+          "type": "array"
         },
         "ssl": {
           "$ref": "#/$defs/StoragePostgreSQLSSL",
@@ -3105,6 +3111,20 @@
       "additionalProperties": false,
       "type": "object",
       "description": "StoragePostgreSQLSSL represents the SSL configuration of a PostgreSQL database."
+    },
+    "StoragePostgreSQLServer": {
+      "properties": {
+        "address": {
+          "$ref": "#/$defs/AddressTCP",
+          "title": "Address",
+          "description": "The address of the PostgreSQL Server."
+        },
+        "tls": {
+          "$ref": "#/$defs/TLS"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "TLS": {
       "properties": {

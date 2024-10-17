@@ -132,6 +132,44 @@ func validatePostgreSQLConfiguration(config *schema.StoragePostgreSQL, validator
 			validator.Push(fmt.Errorf(errFmtStoragePostgreSQLInvalidSSLMode, utils.StringJoinOr(validStoragePostgreSQLSSLModes), config.SSL.Mode)) //nolint:staticcheck
 		}
 	}
+
+	validatePostgreSQLConfigurationServers(config, validator)
+}
+
+func validatePostgreSQLConfigurationServers(config *schema.StoragePostgreSQL, validator *schema.StructValidator) {
+	for _, server := range config.Servers {
+		if server.Address == nil {
+			validator.Push(fmt.Errorf(errFmtStorageOptionMustBeProvided, "postgres", "address"))
+		} else {
+			var err error
+
+			if err = config.Address.ValidateSQL(); err != nil {
+				validator.Push(fmt.Errorf(errFmtServerAddress, config.Address.String(), err))
+			}
+		}
+
+		if server.Address != nil && server.Address.IsTCP() && server.Address.Port() == 0 {
+			server.Address.SetPort(schema.DefaultPostgreSQLStorageConfiguration.Address.Port())
+		}
+
+		if server.TLS != nil {
+			configDefaultTLS := &schema.TLS{
+				ServerName: server.Address.Hostname(),
+			}
+
+			if config.TLS != nil {
+				configDefaultTLS.MinimumVersion = config.TLS.MinimumVersion
+				configDefaultTLS.MaximumVersion = config.TLS.MaximumVersion
+			} else {
+				configDefaultTLS.MinimumVersion = schema.DefaultPostgreSQLStorageConfiguration.TLS.MinimumVersion
+				configDefaultTLS.MaximumVersion = schema.DefaultPostgreSQLStorageConfiguration.TLS.MaximumVersion
+			}
+
+			if err := ValidateTLSConfig(config.TLS, configDefaultTLS); err != nil {
+				validator.Push(fmt.Errorf(errFmtStorageTLSConfigInvalid, "postgres", err))
+			}
+		}
+	}
 }
 
 func validateLocalStorageConfiguration(config *schema.StorageLocal, validator *schema.StructValidator) {

@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -114,8 +115,20 @@ func readVersion(cmd *cobra.Command) (version *model.SemanticVersion, err error)
 	return model.NewSemanticVersion(packageJSON.Version)
 }
 
+func readTags(prefix string, t reflect.Type, envSkip, deprecatedSkip, doSort bool) (tags []string) {
+	tags = iReadTags(prefix, t, envSkip, deprecatedSkip, false)
+
+	tags = removeDuplicate(tags)
+
+	if doSort {
+		sort.Strings(tags)
+	}
+
+	return tags
+}
+
 //nolint:gocyclo
-func readTags(prefix string, t reflect.Type, envSkip, deprecatedSkip bool) (tags []string) {
+func iReadTags(prefix string, t reflect.Type, envSkip, deprecatedSkip, parentSlice bool) (tags []string) {
 	tags = make([]string, 0)
 
 	if envSkip && (t.Kind() == reflect.Slice || t.Kind() == reflect.Map) {
@@ -124,7 +137,7 @@ func readTags(prefix string, t reflect.Type, envSkip, deprecatedSkip bool) (tags
 
 	if t.Kind() != reflect.Struct {
 		if t.Kind() == reflect.Slice {
-			tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, "", true, false), t.Elem(), envSkip, deprecatedSkip)...)
+			tags = append(tags, iReadTags(getKeyNameFromTagAndPrefix(prefix, "", true, false), t.Elem(), envSkip, deprecatedSkip, true)...)
 		}
 
 		return
@@ -148,7 +161,11 @@ func readTags(prefix string, t reflect.Type, envSkip, deprecatedSkip bool) (tags
 		switch kind := field.Type.Kind(); kind {
 		case reflect.Struct:
 			if !containsType(field.Type, decodedTypes) {
-				tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, false, false), field.Type, envSkip, deprecatedSkip)...)
+				if parentSlice {
+					tags = append(tags, getKeyNameFromTagAndPrefix(prefix, tag, false, false))
+				}
+
+				tags = append(tags, iReadTags(getKeyNameFromTagAndPrefix(prefix, tag, false, false), field.Type, envSkip, deprecatedSkip, false)...)
 
 				continue
 			}
@@ -163,18 +180,22 @@ func readTags(prefix string, t reflect.Type, envSkip, deprecatedSkip bool) (tags
 			case reflect.Struct:
 				if !containsType(field.Type.Elem(), decodedTypes) {
 					tags = append(tags, getKeyNameFromTagAndPrefix(prefix, tag, false, false))
-					tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, kind == reflect.Slice, kind == reflect.Map), field.Type.Elem(), envSkip, deprecatedSkip)...)
+					tags = append(tags, iReadTags(getKeyNameFromTagAndPrefix(prefix, tag, kind == reflect.Slice, kind == reflect.Map), field.Type.Elem(), envSkip, deprecatedSkip, kind == reflect.Slice)...)
 
 					continue
 				}
 			case reflect.Slice:
-				tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, kind == reflect.Slice, kind == reflect.Map), field.Type.Elem(), envSkip, deprecatedSkip)...)
+				tags = append(tags, iReadTags(getKeyNameFromTagAndPrefix(prefix, tag, kind == reflect.Slice, kind == reflect.Map), field.Type.Elem(), envSkip, deprecatedSkip, true)...)
 			}
 		case reflect.Ptr:
 			switch field.Type.Elem().Kind() {
 			case reflect.Struct:
 				if !containsType(field.Type.Elem(), decodedTypes) {
-					tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, false, false), field.Type.Elem(), envSkip, deprecatedSkip)...)
+					if parentSlice {
+						tags = append(tags, getKeyNameFromTagAndPrefix(prefix, tag, false, false))
+					}
+
+					tags = append(tags, iReadTags(getKeyNameFromTagAndPrefix(prefix, tag, false, false), field.Type.Elem(), envSkip, deprecatedSkip, false)...)
 
 					continue
 				}
@@ -187,7 +208,7 @@ func readTags(prefix string, t reflect.Type, envSkip, deprecatedSkip bool) (tags
 
 				if k == reflect.Struct {
 					if !containsType(field.Type.Elem(), decodedTypes) {
-						tags = append(tags, readTags(getKeyNameFromTagAndPrefix(prefix, tag, true, false), field.Type.Elem(), envSkip, deprecatedSkip)...)
+						tags = append(tags, iReadTags(getKeyNameFromTagAndPrefix(prefix, tag, true, false), field.Type.Elem(), envSkip, deprecatedSkip, field.Type.Elem().Kind() == reflect.Slice)...)
 
 						continue
 					}
@@ -250,4 +271,20 @@ func getKeyNameFromTagAndPrefix(prefix, name string, isSlice, isMap bool) string
 	default:
 		return fmt.Sprintf("%s.%s", prefix, nameParts[0])
 	}
+}
+
+func removeDuplicate[T comparable](sliceList []T) []T {
+	var list []T
+
+	allKeys := make(map[T]bool)
+
+	for _, item := range sliceList {
+		if _, value := allKeys[item]; !value {
+			allKeys[item] = true
+
+			list = append(list, item)
+		}
+	}
+
+	return list
 }

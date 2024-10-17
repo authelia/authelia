@@ -984,6 +984,30 @@ session:
     ## The default scheme is 'unix' if the address is an absolute path otherwise it's 'tcp'. The default port is '5432'.
     # address: 'tcp://127.0.0.1:5432'
 
+    ## List of additional server instance configurations to fallback to when the primary instance is not available.
+    # servers:
+      # -
+        ## The Address of this individual instance.
+        # address: 'tcp://127.0.0.1:5432'
+
+        ## The TLS configuration for this individual instance.
+        # tls:
+          # server_name: 'postgres.example.com'
+          # skip_verify: false
+          # minimum_version: 'TLS1.2'
+          # maximum_version: 'TLS1.3'
+          # certificate_chain: |
+            # -----BEGIN CERTIFICATE-----
+            # ...
+            # -----END CERTIFICATE-----
+            # -----BEGIN CERTIFICATE-----
+            # ...
+            # -----END CERTIFICATE-----
+          # private_key: |
+            # -----BEGIN RSA PRIVATE KEY-----
+            # ...
+            # -----END RSA PRIVATE KEY-----
+
     ## The database name to use.
     # database: 'authelia'
 

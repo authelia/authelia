@@ -22,29 +22,34 @@ type StorageLocal struct {
 
 // StorageSQL represents the configuration of the SQL database.
 type StorageSQL struct {
-	Address  *AddressTCP   `koanf:"address" json:"address" jsonschema:"title=Address" jsonschema_description:"The address of the database."`
+	Address  *AddressTCP   `koanf:"address" json:"address" jsonschema:"title=Address" jsonschema_description:"The address of the SQL Server."`
 	Database string        `koanf:"database" json:"database" jsonschema:"title=Database" jsonschema_description:"The database name to use upon a successful connection."`
 	Username string        `koanf:"username" json:"username" jsonschema:"title=Username" jsonschema_description:"The username to use to authenticate."`
 	Password string        `koanf:"password" json:"password" jsonschema:"title=Password" jsonschema_description:"The password to use to authenticate."`
 	Timeout  time.Duration `koanf:"timeout" json:"timeout" jsonschema:"default=5 seconds,title=Timeout" jsonschema_description:"The timeout for the database connection."`
+	TLS      *TLS          `koanf:"tls" json:"tls"`
 }
 
 // StorageMySQL represents the configuration of a MySQL database.
 type StorageMySQL struct {
 	StorageSQL `koanf:",squash"`
-
-	TLS *TLS `koanf:"tls" json:"tls"`
 }
 
 // StoragePostgreSQL represents the configuration of a PostgreSQL database.
 type StoragePostgreSQL struct {
 	StorageSQL `koanf:",squash"`
-	Schema     string `koanf:"schema" json:"schema" jsonschema:"default=public,title=Schema" jsonschema_description:"The default schema name to use."`
 
-	TLS *TLS `koanf:"tls" json:"tls"`
+	Schema string `koanf:"schema" json:"schema" jsonschema:"default=public,title=Schema" jsonschema_description:"The default schema name to use."`
+
+	Servers []StoragePostgreSQLServer `koanf:"servers" json:"servers"`
 
 	// Deprecated: Use the TLS configuration instead.
 	SSL *StoragePostgreSQLSSL `koanf:"ssl" json:"ssl" jsonschema:"deprecated,title=SSL"`
+}
+
+type StoragePostgreSQLServer struct {
+	Address *AddressTCP `koanf:"address" json:"address" jsonschema:"title=Address" jsonschema_description:"The address of the PostgreSQL Server."`
+	TLS     *TLS        `koanf:"tls" json:"tls"`
 }
 
 // StoragePostgreSQLSSL represents the SSL configuration of a PostgreSQL database.
@@ -64,9 +69,9 @@ var DefaultSQLStorageConfiguration = StorageSQL{
 var DefaultMySQLStorageConfiguration = StorageMySQL{
 	StorageSQL: StorageSQL{
 		Address: &AddressTCP{Address{true, false, -1, 3306, &url.URL{Scheme: AddressSchemeTCP, Host: "localhost:3306"}}},
-	},
-	TLS: &TLS{
-		MinimumVersion: TLSVersion{tls.VersionTLS12},
+		TLS: &TLS{
+			MinimumVersion: TLSVersion{tls.VersionTLS12},
+		},
 	},
 }
 
@@ -74,11 +79,19 @@ var DefaultMySQLStorageConfiguration = StorageMySQL{
 var DefaultPostgreSQLStorageConfiguration = StoragePostgreSQL{
 	StorageSQL: StorageSQL{
 		Address: &AddressTCP{Address{true, false, -1, 5432, &url.URL{Scheme: AddressSchemeTCP, Host: "localhost:5432"}}},
+		TLS: &TLS{
+			MinimumVersion: TLSVersion{tls.VersionTLS12},
+		},
+	},
+	Servers: []StoragePostgreSQLServer{
+		{
+			Address: &AddressTCP{Address{true, false, -1, 5432, &url.URL{Scheme: AddressSchemeTCP, Host: "localhost:5432"}}},
+			TLS: &TLS{
+				MinimumVersion: TLSVersion{tls.VersionTLS12},
+			},
+		},
 	},
 	Schema: "public",
-	TLS: &TLS{
-		MinimumVersion: TLSVersion{tls.VersionTLS12},
-	},
 	SSL: &StoragePostgreSQLSSL{
 		Mode: "disable",
 	},

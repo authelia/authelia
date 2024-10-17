@@ -101,9 +101,9 @@ func (suite *StorageSuite) TestShouldSetDefaultMySQLTLSServerName() {
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
-		},
-		TLS: &schema.TLS{
-			MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS12},
+			TLS: &schema.TLS{
+				MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS12},
+			},
 		},
 	}
 
@@ -125,9 +125,9 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidMySQLTLSVersion() {
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
-		},
-		TLS: &schema.TLS{
-			MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
+			TLS: &schema.TLS{
+				MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
+			},
 		},
 	}
 
@@ -148,10 +148,10 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidMySQLTLSMinVersionGreate
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
-		},
-		TLS: &schema.TLS{
-			MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS13},
-			MaximumVersion: schema.TLSVersion{Value: tls.VersionTLS11},
+			TLS: &schema.TLS{
+				MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS13},
+				MaximumVersion: schema.TLSVersion{Value: tls.VersionTLS11},
+			},
 		},
 	}
 
@@ -222,8 +222,8 @@ func (suite *StorageSuite) TestShouldValidatePostgresTLSDefaults() {
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
+			TLS:      &schema.TLS{},
 		},
-		TLS: &schema.TLS{},
 	}
 
 	ValidateStorage(suite.config, suite.val)
@@ -246,9 +246,9 @@ func (suite *StorageSuite) TestShouldSetDefaultPostgreSQLTLSServerName() {
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
-		},
-		TLS: &schema.TLS{
-			MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS12},
+			TLS: &schema.TLS{
+				MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS12},
+			},
 		},
 	}
 
@@ -269,9 +269,9 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidPostgreSQLTLSVersion() {
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
-		},
-		TLS: &schema.TLS{
-			MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
+			TLS: &schema.TLS{
+				MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
+			},
 		},
 	}
 
@@ -292,10 +292,10 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidPostgreSQLMinVersionGrea
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
-		},
-		TLS: &schema.TLS{
-			MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS13},
-			MaximumVersion: schema.TLSVersion{Value: tls.VersionTLS11},
+			TLS: &schema.TLS{
+				MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS13},
+				MaximumVersion: schema.TLSVersion{Value: tls.VersionTLS11},
+			},
 		},
 	}
 
@@ -340,9 +340,9 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnTLSAndLegacySSL() {
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
+			TLS:      &schema.TLS{},
 		},
 		SSL: &schema.StoragePostgreSQLSSL{},
-		TLS: &schema.TLS{},
 	}
 
 	ValidateStorage(suite.config, suite.val)
