@@ -21,6 +21,7 @@ import (
 type MockTokenRevocationStorage struct {
 	ctrl     *gomock.Controller
 	recorder *MockTokenRevocationStorageMockRecorder
+	isgomock struct{}
 }
 
 // MockTokenRevocationStorageMockRecorder is the mock recorder for MockTokenRevocationStorage.
@@ -41,129 +42,129 @@ func (m *MockTokenRevocationStorage) EXPECT() *MockTokenRevocationStorageMockRec
 }
 
 // CreateAccessTokenSession mocks base method.
-func (m *MockTokenRevocationStorage) CreateAccessTokenSession(arg0 context.Context, arg1 string, arg2 oauth2.Requester) error {
+func (m *MockTokenRevocationStorage) CreateAccessTokenSession(ctx context.Context, signature string, request oauth2.Requester) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateAccessTokenSession", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "CreateAccessTokenSession", ctx, signature, request)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateAccessTokenSession indicates an expected call of CreateAccessTokenSession.
-func (mr *MockTokenRevocationStorageMockRecorder) CreateAccessTokenSession(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockTokenRevocationStorageMockRecorder) CreateAccessTokenSession(ctx, signature, request any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAccessTokenSession", reflect.TypeOf((*MockTokenRevocationStorage)(nil).CreateAccessTokenSession), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAccessTokenSession", reflect.TypeOf((*MockTokenRevocationStorage)(nil).CreateAccessTokenSession), ctx, signature, request)
 }
 
 // CreateRefreshTokenSession mocks base method.
-func (m *MockTokenRevocationStorage) CreateRefreshTokenSession(arg0 context.Context, arg1 string, arg2 oauth2.Requester) error {
+func (m *MockTokenRevocationStorage) CreateRefreshTokenSession(ctx context.Context, signature string, request oauth2.Requester) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateRefreshTokenSession", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "CreateRefreshTokenSession", ctx, signature, request)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateRefreshTokenSession indicates an expected call of CreateRefreshTokenSession.
-func (mr *MockTokenRevocationStorageMockRecorder) CreateRefreshTokenSession(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockTokenRevocationStorageMockRecorder) CreateRefreshTokenSession(ctx, signature, request any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRefreshTokenSession", reflect.TypeOf((*MockTokenRevocationStorage)(nil).CreateRefreshTokenSession), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRefreshTokenSession", reflect.TypeOf((*MockTokenRevocationStorage)(nil).CreateRefreshTokenSession), ctx, signature, request)
 }
 
 // DeleteAccessTokenSession mocks base method.
-func (m *MockTokenRevocationStorage) DeleteAccessTokenSession(arg0 context.Context, arg1 string) error {
+func (m *MockTokenRevocationStorage) DeleteAccessTokenSession(ctx context.Context, signature string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteAccessTokenSession", arg0, arg1)
+	ret := m.ctrl.Call(m, "DeleteAccessTokenSession", ctx, signature)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteAccessTokenSession indicates an expected call of DeleteAccessTokenSession.
-func (mr *MockTokenRevocationStorageMockRecorder) DeleteAccessTokenSession(arg0, arg1 any) *gomock.Call {
+func (mr *MockTokenRevocationStorageMockRecorder) DeleteAccessTokenSession(ctx, signature any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAccessTokenSession", reflect.TypeOf((*MockTokenRevocationStorage)(nil).DeleteAccessTokenSession), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAccessTokenSession", reflect.TypeOf((*MockTokenRevocationStorage)(nil).DeleteAccessTokenSession), ctx, signature)
 }
 
 // DeleteRefreshTokenSession mocks base method.
-func (m *MockTokenRevocationStorage) DeleteRefreshTokenSession(arg0 context.Context, arg1 string) error {
+func (m *MockTokenRevocationStorage) DeleteRefreshTokenSession(ctx context.Context, signature string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteRefreshTokenSession", arg0, arg1)
+	ret := m.ctrl.Call(m, "DeleteRefreshTokenSession", ctx, signature)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteRefreshTokenSession indicates an expected call of DeleteRefreshTokenSession.
-func (mr *MockTokenRevocationStorageMockRecorder) DeleteRefreshTokenSession(arg0, arg1 any) *gomock.Call {
+func (mr *MockTokenRevocationStorageMockRecorder) DeleteRefreshTokenSession(ctx, signature any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRefreshTokenSession", reflect.TypeOf((*MockTokenRevocationStorage)(nil).DeleteRefreshTokenSession), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRefreshTokenSession", reflect.TypeOf((*MockTokenRevocationStorage)(nil).DeleteRefreshTokenSession), ctx, signature)
 }
 
 // GetAccessTokenSession mocks base method.
-func (m *MockTokenRevocationStorage) GetAccessTokenSession(arg0 context.Context, arg1 string, arg2 oauth2.Session) (oauth2.Requester, error) {
+func (m *MockTokenRevocationStorage) GetAccessTokenSession(ctx context.Context, signature string, session oauth2.Session) (oauth2.Requester, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAccessTokenSession", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "GetAccessTokenSession", ctx, signature, session)
 	ret0, _ := ret[0].(oauth2.Requester)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetAccessTokenSession indicates an expected call of GetAccessTokenSession.
-func (mr *MockTokenRevocationStorageMockRecorder) GetAccessTokenSession(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockTokenRevocationStorageMockRecorder) GetAccessTokenSession(ctx, signature, session any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccessTokenSession", reflect.TypeOf((*MockTokenRevocationStorage)(nil).GetAccessTokenSession), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccessTokenSession", reflect.TypeOf((*MockTokenRevocationStorage)(nil).GetAccessTokenSession), ctx, signature, session)
 }
 
 // GetRefreshTokenSession mocks base method.
-func (m *MockTokenRevocationStorage) GetRefreshTokenSession(arg0 context.Context, arg1 string, arg2 oauth2.Session) (oauth2.Requester, error) {
+func (m *MockTokenRevocationStorage) GetRefreshTokenSession(ctx context.Context, signature string, session oauth2.Session) (oauth2.Requester, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetRefreshTokenSession", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "GetRefreshTokenSession", ctx, signature, session)
 	ret0, _ := ret[0].(oauth2.Requester)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetRefreshTokenSession indicates an expected call of GetRefreshTokenSession.
-func (mr *MockTokenRevocationStorageMockRecorder) GetRefreshTokenSession(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockTokenRevocationStorageMockRecorder) GetRefreshTokenSession(ctx, signature, session any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRefreshTokenSession", reflect.TypeOf((*MockTokenRevocationStorage)(nil).GetRefreshTokenSession), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRefreshTokenSession", reflect.TypeOf((*MockTokenRevocationStorage)(nil).GetRefreshTokenSession), ctx, signature, session)
 }
 
 // RevokeAccessToken mocks base method.
-func (m *MockTokenRevocationStorage) RevokeAccessToken(arg0 context.Context, arg1 string) error {
+func (m *MockTokenRevocationStorage) RevokeAccessToken(ctx context.Context, requestID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RevokeAccessToken", arg0, arg1)
+	ret := m.ctrl.Call(m, "RevokeAccessToken", ctx, requestID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // RevokeAccessToken indicates an expected call of RevokeAccessToken.
-func (mr *MockTokenRevocationStorageMockRecorder) RevokeAccessToken(arg0, arg1 any) *gomock.Call {
+func (mr *MockTokenRevocationStorageMockRecorder) RevokeAccessToken(ctx, requestID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeAccessToken", reflect.TypeOf((*MockTokenRevocationStorage)(nil).RevokeAccessToken), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeAccessToken", reflect.TypeOf((*MockTokenRevocationStorage)(nil).RevokeAccessToken), ctx, requestID)
 }
 
 // RevokeRefreshToken mocks base method.
-func (m *MockTokenRevocationStorage) RevokeRefreshToken(arg0 context.Context, arg1 string) error {
+func (m *MockTokenRevocationStorage) RevokeRefreshToken(ctx context.Context, requestID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RevokeRefreshToken", arg0, arg1)
+	ret := m.ctrl.Call(m, "RevokeRefreshToken", ctx, requestID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // RevokeRefreshToken indicates an expected call of RevokeRefreshToken.
-func (mr *MockTokenRevocationStorageMockRecorder) RevokeRefreshToken(arg0, arg1 any) *gomock.Call {
+func (mr *MockTokenRevocationStorageMockRecorder) RevokeRefreshToken(ctx, requestID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeRefreshToken", reflect.TypeOf((*MockTokenRevocationStorage)(nil).RevokeRefreshToken), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeRefreshToken", reflect.TypeOf((*MockTokenRevocationStorage)(nil).RevokeRefreshToken), ctx, requestID)
 }
 
 // RevokeRefreshTokenMaybeGracePeriod mocks base method.
-func (m *MockTokenRevocationStorage) RevokeRefreshTokenMaybeGracePeriod(arg0 context.Context, arg1, arg2 string) error {
+func (m *MockTokenRevocationStorage) RevokeRefreshTokenMaybeGracePeriod(ctx context.Context, requestID, signature string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RevokeRefreshTokenMaybeGracePeriod", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "RevokeRefreshTokenMaybeGracePeriod", ctx, requestID, signature)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // RevokeRefreshTokenMaybeGracePeriod indicates an expected call of RevokeRefreshTokenMaybeGracePeriod.
-func (mr *MockTokenRevocationStorageMockRecorder) RevokeRefreshTokenMaybeGracePeriod(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockTokenRevocationStorageMockRecorder) RevokeRefreshTokenMaybeGracePeriod(ctx, requestID, signature any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeRefreshTokenMaybeGracePeriod", reflect.TypeOf((*MockTokenRevocationStorage)(nil).RevokeRefreshTokenMaybeGracePeriod), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeRefreshTokenMaybeGracePeriod", reflect.TypeOf((*MockTokenRevocationStorage)(nil).RevokeRefreshTokenMaybeGracePeriod), ctx, requestID, signature)
 }

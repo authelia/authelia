@@ -22,6 +22,7 @@ import (
 type MockLDAPClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockLDAPClientMockRecorder
+	isgomock struct{}
 }
 
 // MockLDAPClientMockRecorder is the mock recorder for MockLDAPClient.
@@ -42,31 +43,31 @@ func (m *MockLDAPClient) EXPECT() *MockLDAPClientMockRecorder {
 }
 
 // Add mocks base method.
-func (m *MockLDAPClient) Add(arg0 *ldap.AddRequest) error {
+func (m *MockLDAPClient) Add(request *ldap.AddRequest) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Add", arg0)
+	ret := m.ctrl.Call(m, "Add", request)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Add indicates an expected call of Add.
-func (mr *MockLDAPClientMockRecorder) Add(arg0 any) *gomock.Call {
+func (mr *MockLDAPClientMockRecorder) Add(request any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockLDAPClient)(nil).Add), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockLDAPClient)(nil).Add), request)
 }
 
 // Bind mocks base method.
-func (m *MockLDAPClient) Bind(arg0, arg1 string) error {
+func (m *MockLDAPClient) Bind(username, password string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Bind", arg0, arg1)
+	ret := m.ctrl.Call(m, "Bind", username, password)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Bind indicates an expected call of Bind.
-func (mr *MockLDAPClientMockRecorder) Bind(arg0, arg1 any) *gomock.Call {
+func (mr *MockLDAPClientMockRecorder) Bind(username, password any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Bind", reflect.TypeOf((*MockLDAPClient)(nil).Bind), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Bind", reflect.TypeOf((*MockLDAPClient)(nil).Bind), username, password)
 }
 
 // Close mocks base method.
@@ -84,47 +85,47 @@ func (mr *MockLDAPClientMockRecorder) Close() *gomock.Call {
 }
 
 // Compare mocks base method.
-func (m *MockLDAPClient) Compare(arg0, arg1, arg2 string) (bool, error) {
+func (m *MockLDAPClient) Compare(dn, attribute, value string) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Compare", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "Compare", dn, attribute, value)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Compare indicates an expected call of Compare.
-func (mr *MockLDAPClientMockRecorder) Compare(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockLDAPClientMockRecorder) Compare(dn, attribute, value any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Compare", reflect.TypeOf((*MockLDAPClient)(nil).Compare), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Compare", reflect.TypeOf((*MockLDAPClient)(nil).Compare), dn, attribute, value)
 }
 
 // Del mocks base method.
-func (m *MockLDAPClient) Del(arg0 *ldap.DelRequest) error {
+func (m *MockLDAPClient) Del(request *ldap.DelRequest) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Del", arg0)
+	ret := m.ctrl.Call(m, "Del", request)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Del indicates an expected call of Del.
-func (mr *MockLDAPClientMockRecorder) Del(arg0 any) *gomock.Call {
+func (mr *MockLDAPClientMockRecorder) Del(request any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Del", reflect.TypeOf((*MockLDAPClient)(nil).Del), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Del", reflect.TypeOf((*MockLDAPClient)(nil).Del), request)
 }
 
 // DigestMD5Bind mocks base method.
-func (m *MockLDAPClient) DigestMD5Bind(arg0 *ldap.DigestMD5BindRequest) (*ldap.DigestMD5BindResult, error) {
+func (m *MockLDAPClient) DigestMD5Bind(request *ldap.DigestMD5BindRequest) (*ldap.DigestMD5BindResult, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DigestMD5Bind", arg0)
+	ret := m.ctrl.Call(m, "DigestMD5Bind", request)
 	ret0, _ := ret[0].(*ldap.DigestMD5BindResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // DigestMD5Bind indicates an expected call of DigestMD5Bind.
-func (mr *MockLDAPClientMockRecorder) DigestMD5Bind(arg0 any) *gomock.Call {
+func (mr *MockLDAPClientMockRecorder) DigestMD5Bind(request any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DigestMD5Bind", reflect.TypeOf((*MockLDAPClient)(nil).DigestMD5Bind), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DigestMD5Bind", reflect.TypeOf((*MockLDAPClient)(nil).DigestMD5Bind), request)
 }
 
 // ExternalBind mocks base method.
@@ -156,203 +157,203 @@ func (mr *MockLDAPClientMockRecorder) IsClosing() *gomock.Call {
 }
 
 // MD5Bind mocks base method.
-func (m *MockLDAPClient) MD5Bind(arg0, arg1, arg2 string) error {
+func (m *MockLDAPClient) MD5Bind(host, username, password string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "MD5Bind", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "MD5Bind", host, username, password)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // MD5Bind indicates an expected call of MD5Bind.
-func (mr *MockLDAPClientMockRecorder) MD5Bind(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockLDAPClientMockRecorder) MD5Bind(host, username, password any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MD5Bind", reflect.TypeOf((*MockLDAPClient)(nil).MD5Bind), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MD5Bind", reflect.TypeOf((*MockLDAPClient)(nil).MD5Bind), host, username, password)
 }
 
 // Modify mocks base method.
-func (m *MockLDAPClient) Modify(arg0 *ldap.ModifyRequest) error {
+func (m *MockLDAPClient) Modify(request *ldap.ModifyRequest) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Modify", arg0)
+	ret := m.ctrl.Call(m, "Modify", request)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Modify indicates an expected call of Modify.
-func (mr *MockLDAPClientMockRecorder) Modify(arg0 any) *gomock.Call {
+func (mr *MockLDAPClientMockRecorder) Modify(request any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Modify", reflect.TypeOf((*MockLDAPClient)(nil).Modify), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Modify", reflect.TypeOf((*MockLDAPClient)(nil).Modify), request)
 }
 
 // ModifyDN mocks base method.
-func (m *MockLDAPClient) ModifyDN(arg0 *ldap.ModifyDNRequest) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ModifyDN", arg0)
+func (m_2 *MockLDAPClient) ModifyDN(m *ldap.ModifyDNRequest) error {
+	m_2.ctrl.T.Helper()
+	ret := m_2.ctrl.Call(m_2, "ModifyDN", m)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // ModifyDN indicates an expected call of ModifyDN.
-func (mr *MockLDAPClientMockRecorder) ModifyDN(arg0 any) *gomock.Call {
+func (mr *MockLDAPClientMockRecorder) ModifyDN(m any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ModifyDN", reflect.TypeOf((*MockLDAPClient)(nil).ModifyDN), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ModifyDN", reflect.TypeOf((*MockLDAPClient)(nil).ModifyDN), m)
 }
 
 // ModifyWithResult mocks base method.
-func (m *MockLDAPClient) ModifyWithResult(arg0 *ldap.ModifyRequest) (*ldap.ModifyResult, error) {
+func (m *MockLDAPClient) ModifyWithResult(request *ldap.ModifyRequest) (*ldap.ModifyResult, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ModifyWithResult", arg0)
+	ret := m.ctrl.Call(m, "ModifyWithResult", request)
 	ret0, _ := ret[0].(*ldap.ModifyResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ModifyWithResult indicates an expected call of ModifyWithResult.
-func (mr *MockLDAPClientMockRecorder) ModifyWithResult(arg0 any) *gomock.Call {
+func (mr *MockLDAPClientMockRecorder) ModifyWithResult(request any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ModifyWithResult", reflect.TypeOf((*MockLDAPClient)(nil).ModifyWithResult), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ModifyWithResult", reflect.TypeOf((*MockLDAPClient)(nil).ModifyWithResult), request)
 }
 
 // NTLMBind mocks base method.
-func (m *MockLDAPClient) NTLMBind(arg0, arg1, arg2 string) error {
+func (m *MockLDAPClient) NTLMBind(domain, username, password string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NTLMBind", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "NTLMBind", domain, username, password)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // NTLMBind indicates an expected call of NTLMBind.
-func (mr *MockLDAPClientMockRecorder) NTLMBind(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockLDAPClientMockRecorder) NTLMBind(domain, username, password any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NTLMBind", reflect.TypeOf((*MockLDAPClient)(nil).NTLMBind), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NTLMBind", reflect.TypeOf((*MockLDAPClient)(nil).NTLMBind), domain, username, password)
 }
 
 // NTLMBindWithHash mocks base method.
-func (m *MockLDAPClient) NTLMBindWithHash(arg0, arg1, arg2 string) error {
+func (m *MockLDAPClient) NTLMBindWithHash(domain, username, hash string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NTLMBindWithHash", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "NTLMBindWithHash", domain, username, hash)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // NTLMBindWithHash indicates an expected call of NTLMBindWithHash.
-func (mr *MockLDAPClientMockRecorder) NTLMBindWithHash(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockLDAPClientMockRecorder) NTLMBindWithHash(domain, username, hash any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NTLMBindWithHash", reflect.TypeOf((*MockLDAPClient)(nil).NTLMBindWithHash), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NTLMBindWithHash", reflect.TypeOf((*MockLDAPClient)(nil).NTLMBindWithHash), domain, username, hash)
 }
 
 // NTLMChallengeBind mocks base method.
-func (m *MockLDAPClient) NTLMChallengeBind(arg0 *ldap.NTLMBindRequest) (*ldap.NTLMBindResult, error) {
+func (m *MockLDAPClient) NTLMChallengeBind(request *ldap.NTLMBindRequest) (*ldap.NTLMBindResult, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NTLMChallengeBind", arg0)
+	ret := m.ctrl.Call(m, "NTLMChallengeBind", request)
 	ret0, _ := ret[0].(*ldap.NTLMBindResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // NTLMChallengeBind indicates an expected call of NTLMChallengeBind.
-func (mr *MockLDAPClientMockRecorder) NTLMChallengeBind(arg0 any) *gomock.Call {
+func (mr *MockLDAPClientMockRecorder) NTLMChallengeBind(request any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NTLMChallengeBind", reflect.TypeOf((*MockLDAPClient)(nil).NTLMChallengeBind), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NTLMChallengeBind", reflect.TypeOf((*MockLDAPClient)(nil).NTLMChallengeBind), request)
 }
 
 // NTLMUnauthenticatedBind mocks base method.
-func (m *MockLDAPClient) NTLMUnauthenticatedBind(arg0, arg1 string) error {
+func (m *MockLDAPClient) NTLMUnauthenticatedBind(domain, username string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NTLMUnauthenticatedBind", arg0, arg1)
+	ret := m.ctrl.Call(m, "NTLMUnauthenticatedBind", domain, username)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // NTLMUnauthenticatedBind indicates an expected call of NTLMUnauthenticatedBind.
-func (mr *MockLDAPClientMockRecorder) NTLMUnauthenticatedBind(arg0, arg1 any) *gomock.Call {
+func (mr *MockLDAPClientMockRecorder) NTLMUnauthenticatedBind(domain, username any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NTLMUnauthenticatedBind", reflect.TypeOf((*MockLDAPClient)(nil).NTLMUnauthenticatedBind), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NTLMUnauthenticatedBind", reflect.TypeOf((*MockLDAPClient)(nil).NTLMUnauthenticatedBind), domain, username)
 }
 
 // PasswordModify mocks base method.
-func (m *MockLDAPClient) PasswordModify(arg0 *ldap.PasswordModifyRequest) (*ldap.PasswordModifyResult, error) {
+func (m *MockLDAPClient) PasswordModify(request *ldap.PasswordModifyRequest) (*ldap.PasswordModifyResult, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PasswordModify", arg0)
+	ret := m.ctrl.Call(m, "PasswordModify", request)
 	ret0, _ := ret[0].(*ldap.PasswordModifyResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // PasswordModify indicates an expected call of PasswordModify.
-func (mr *MockLDAPClientMockRecorder) PasswordModify(arg0 any) *gomock.Call {
+func (mr *MockLDAPClientMockRecorder) PasswordModify(request any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PasswordModify", reflect.TypeOf((*MockLDAPClient)(nil).PasswordModify), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PasswordModify", reflect.TypeOf((*MockLDAPClient)(nil).PasswordModify), request)
 }
 
 // Search mocks base method.
-func (m *MockLDAPClient) Search(arg0 *ldap.SearchRequest) (*ldap.SearchResult, error) {
+func (m *MockLDAPClient) Search(request *ldap.SearchRequest) (*ldap.SearchResult, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Search", arg0)
+	ret := m.ctrl.Call(m, "Search", request)
 	ret0, _ := ret[0].(*ldap.SearchResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Search indicates an expected call of Search.
-func (mr *MockLDAPClientMockRecorder) Search(arg0 any) *gomock.Call {
+func (mr *MockLDAPClientMockRecorder) Search(request any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockLDAPClient)(nil).Search), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockLDAPClient)(nil).Search), request)
 }
 
 // SearchWithPaging mocks base method.
-func (m *MockLDAPClient) SearchWithPaging(arg0 *ldap.SearchRequest, arg1 uint32) (*ldap.SearchResult, error) {
+func (m *MockLDAPClient) SearchWithPaging(request *ldap.SearchRequest, pagingSize uint32) (*ldap.SearchResult, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SearchWithPaging", arg0, arg1)
+	ret := m.ctrl.Call(m, "SearchWithPaging", request, pagingSize)
 	ret0, _ := ret[0].(*ldap.SearchResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SearchWithPaging indicates an expected call of SearchWithPaging.
-func (mr *MockLDAPClientMockRecorder) SearchWithPaging(arg0, arg1 any) *gomock.Call {
+func (mr *MockLDAPClientMockRecorder) SearchWithPaging(request, pagingSize any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchWithPaging", reflect.TypeOf((*MockLDAPClient)(nil).SearchWithPaging), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchWithPaging", reflect.TypeOf((*MockLDAPClient)(nil).SearchWithPaging), request, pagingSize)
 }
 
 // SetTimeout mocks base method.
-func (m *MockLDAPClient) SetTimeout(arg0 time.Duration) {
+func (m *MockLDAPClient) SetTimeout(timeout time.Duration) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SetTimeout", arg0)
+	m.ctrl.Call(m, "SetTimeout", timeout)
 }
 
 // SetTimeout indicates an expected call of SetTimeout.
-func (mr *MockLDAPClientMockRecorder) SetTimeout(arg0 any) *gomock.Call {
+func (mr *MockLDAPClientMockRecorder) SetTimeout(timeout any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTimeout", reflect.TypeOf((*MockLDAPClient)(nil).SetTimeout), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTimeout", reflect.TypeOf((*MockLDAPClient)(nil).SetTimeout), timeout)
 }
 
 // SimpleBind mocks base method.
-func (m *MockLDAPClient) SimpleBind(arg0 *ldap.SimpleBindRequest) (*ldap.SimpleBindResult, error) {
+func (m *MockLDAPClient) SimpleBind(request *ldap.SimpleBindRequest) (*ldap.SimpleBindResult, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SimpleBind", arg0)
+	ret := m.ctrl.Call(m, "SimpleBind", request)
 	ret0, _ := ret[0].(*ldap.SimpleBindResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SimpleBind indicates an expected call of SimpleBind.
-func (mr *MockLDAPClientMockRecorder) SimpleBind(arg0 any) *gomock.Call {
+func (mr *MockLDAPClientMockRecorder) SimpleBind(request any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SimpleBind", reflect.TypeOf((*MockLDAPClient)(nil).SimpleBind), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SimpleBind", reflect.TypeOf((*MockLDAPClient)(nil).SimpleBind), request)
 }
 
 // StartTLS mocks base method.
-func (m *MockLDAPClient) StartTLS(arg0 *tls.Config) error {
+func (m *MockLDAPClient) StartTLS(config *tls.Config) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "StartTLS", arg0)
+	ret := m.ctrl.Call(m, "StartTLS", config)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // StartTLS indicates an expected call of StartTLS.
-func (mr *MockLDAPClientMockRecorder) StartTLS(arg0 any) *gomock.Call {
+func (mr *MockLDAPClientMockRecorder) StartTLS(config any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartTLS", reflect.TypeOf((*MockLDAPClient)(nil).StartTLS), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartTLS", reflect.TypeOf((*MockLDAPClient)(nil).StartTLS), config)
 }
 
 // TLSConnectionState mocks base method.
@@ -371,17 +372,17 @@ func (mr *MockLDAPClientMockRecorder) TLSConnectionState() *gomock.Call {
 }
 
 // UnauthenticatedBind mocks base method.
-func (m *MockLDAPClient) UnauthenticatedBind(arg0 string) error {
+func (m *MockLDAPClient) UnauthenticatedBind(username string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UnauthenticatedBind", arg0)
+	ret := m.ctrl.Call(m, "UnauthenticatedBind", username)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UnauthenticatedBind indicates an expected call of UnauthenticatedBind.
-func (mr *MockLDAPClientMockRecorder) UnauthenticatedBind(arg0 any) *gomock.Call {
+func (mr *MockLDAPClientMockRecorder) UnauthenticatedBind(username any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnauthenticatedBind", reflect.TypeOf((*MockLDAPClient)(nil).UnauthenticatedBind), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnauthenticatedBind", reflect.TypeOf((*MockLDAPClient)(nil).UnauthenticatedBind), username)
 }
 
 // Unbind mocks base method.
@@ -399,16 +400,16 @@ func (mr *MockLDAPClientMockRecorder) Unbind() *gomock.Call {
 }
 
 // WhoAmI mocks base method.
-func (m *MockLDAPClient) WhoAmI(arg0 []ldap.Control) (*ldap.WhoAmIResult, error) {
+func (m *MockLDAPClient) WhoAmI(controls []ldap.Control) (*ldap.WhoAmIResult, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WhoAmI", arg0)
+	ret := m.ctrl.Call(m, "WhoAmI", controls)
 	ret0, _ := ret[0].(*ldap.WhoAmIResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // WhoAmI indicates an expected call of WhoAmI.
-func (mr *MockLDAPClientMockRecorder) WhoAmI(arg0 any) *gomock.Call {
+func (mr *MockLDAPClientMockRecorder) WhoAmI(controls any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WhoAmI", reflect.TypeOf((*MockLDAPClient)(nil).WhoAmI), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WhoAmI", reflect.TypeOf((*MockLDAPClient)(nil).WhoAmI), controls)
 }

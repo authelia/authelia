@@ -20,6 +20,7 @@ import (
 type MockRandom struct {
 	ctrl     *gomock.Controller
 	recorder *MockRandomMockRecorder
+	isgomock struct{}
 }
 
 // MockRandomMockRecorder is the mock recorder for MockRandom.
@@ -54,32 +55,32 @@ func (mr *MockRandomMockRecorder) Bytes() *gomock.Call {
 }
 
 // BytesCustom mocks base method.
-func (m *MockRandom) BytesCustom(arg0 int, arg1 []byte) []byte {
+func (m *MockRandom) BytesCustom(n int, charset []byte) []byte {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BytesCustom", arg0, arg1)
+	ret := m.ctrl.Call(m, "BytesCustom", n, charset)
 	ret0, _ := ret[0].([]byte)
 	return ret0
 }
 
 // BytesCustom indicates an expected call of BytesCustom.
-func (mr *MockRandomMockRecorder) BytesCustom(arg0, arg1 any) *gomock.Call {
+func (mr *MockRandomMockRecorder) BytesCustom(n, charset any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BytesCustom", reflect.TypeOf((*MockRandom)(nil).BytesCustom), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BytesCustom", reflect.TypeOf((*MockRandom)(nil).BytesCustom), n, charset)
 }
 
 // BytesCustomErr mocks base method.
-func (m *MockRandom) BytesCustomErr(arg0 int, arg1 []byte) ([]byte, error) {
+func (m *MockRandom) BytesCustomErr(n int, charset []byte) ([]byte, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BytesCustomErr", arg0, arg1)
+	ret := m.ctrl.Call(m, "BytesCustomErr", n, charset)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // BytesCustomErr indicates an expected call of BytesCustomErr.
-func (mr *MockRandomMockRecorder) BytesCustomErr(arg0, arg1 any) *gomock.Call {
+func (mr *MockRandomMockRecorder) BytesCustomErr(n, charset any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BytesCustomErr", reflect.TypeOf((*MockRandom)(nil).BytesCustomErr), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BytesCustomErr", reflect.TypeOf((*MockRandom)(nil).BytesCustomErr), n, charset)
 }
 
 // BytesErr mocks base method.
@@ -98,118 +99,118 @@ func (mr *MockRandomMockRecorder) BytesErr() *gomock.Call {
 }
 
 // Int mocks base method.
-func (m *MockRandom) Int(arg0 *big.Int) *big.Int {
+func (m *MockRandom) Int(max *big.Int) *big.Int {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Int", arg0)
+	ret := m.ctrl.Call(m, "Int", max)
 	ret0, _ := ret[0].(*big.Int)
 	return ret0
 }
 
 // Int indicates an expected call of Int.
-func (mr *MockRandomMockRecorder) Int(arg0 any) *gomock.Call {
+func (mr *MockRandomMockRecorder) Int(max any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Int", reflect.TypeOf((*MockRandom)(nil).Int), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Int", reflect.TypeOf((*MockRandom)(nil).Int), max)
 }
 
 // IntErr mocks base method.
-func (m *MockRandom) IntErr(arg0 *big.Int) (*big.Int, error) {
+func (m *MockRandom) IntErr(max *big.Int) (*big.Int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IntErr", arg0)
+	ret := m.ctrl.Call(m, "IntErr", max)
 	ret0, _ := ret[0].(*big.Int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // IntErr indicates an expected call of IntErr.
-func (mr *MockRandomMockRecorder) IntErr(arg0 any) *gomock.Call {
+func (mr *MockRandomMockRecorder) IntErr(max any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IntErr", reflect.TypeOf((*MockRandom)(nil).IntErr), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IntErr", reflect.TypeOf((*MockRandom)(nil).IntErr), max)
 }
 
 // Intn mocks base method.
-func (m *MockRandom) Intn(arg0 int) int {
+func (m *MockRandom) Intn(n int) int {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Intn", arg0)
+	ret := m.ctrl.Call(m, "Intn", n)
 	ret0, _ := ret[0].(int)
 	return ret0
 }
 
 // Intn indicates an expected call of Intn.
-func (mr *MockRandomMockRecorder) Intn(arg0 any) *gomock.Call {
+func (mr *MockRandomMockRecorder) Intn(n any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Intn", reflect.TypeOf((*MockRandom)(nil).Intn), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Intn", reflect.TypeOf((*MockRandom)(nil).Intn), n)
 }
 
 // IntnErr mocks base method.
-func (m *MockRandom) IntnErr(arg0 int) (int, error) {
+func (m *MockRandom) IntnErr(n int) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IntnErr", arg0)
+	ret := m.ctrl.Call(m, "IntnErr", n)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // IntnErr indicates an expected call of IntnErr.
-func (mr *MockRandomMockRecorder) IntnErr(arg0 any) *gomock.Call {
+func (mr *MockRandomMockRecorder) IntnErr(n any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IntnErr", reflect.TypeOf((*MockRandom)(nil).IntnErr), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IntnErr", reflect.TypeOf((*MockRandom)(nil).IntnErr), n)
 }
 
 // Prime mocks base method.
-func (m *MockRandom) Prime(arg0 int) (*big.Int, error) {
+func (m *MockRandom) Prime(bits int) (*big.Int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Prime", arg0)
+	ret := m.ctrl.Call(m, "Prime", bits)
 	ret0, _ := ret[0].(*big.Int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Prime indicates an expected call of Prime.
-func (mr *MockRandomMockRecorder) Prime(arg0 any) *gomock.Call {
+func (mr *MockRandomMockRecorder) Prime(bits any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Prime", reflect.TypeOf((*MockRandom)(nil).Prime), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Prime", reflect.TypeOf((*MockRandom)(nil).Prime), bits)
 }
 
 // Read mocks base method.
-func (m *MockRandom) Read(arg0 []byte) (int, error) {
+func (m *MockRandom) Read(p []byte) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Read", arg0)
+	ret := m.ctrl.Call(m, "Read", p)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Read indicates an expected call of Read.
-func (mr *MockRandomMockRecorder) Read(arg0 any) *gomock.Call {
+func (mr *MockRandomMockRecorder) Read(p any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Read", reflect.TypeOf((*MockRandom)(nil).Read), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Read", reflect.TypeOf((*MockRandom)(nil).Read), p)
 }
 
 // StringCustom mocks base method.
-func (m *MockRandom) StringCustom(arg0 int, arg1 string) string {
+func (m *MockRandom) StringCustom(n int, characters string) string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "StringCustom", arg0, arg1)
+	ret := m.ctrl.Call(m, "StringCustom", n, characters)
 	ret0, _ := ret[0].(string)
 	return ret0
 }
 
 // StringCustom indicates an expected call of StringCustom.
-func (mr *MockRandomMockRecorder) StringCustom(arg0, arg1 any) *gomock.Call {
+func (mr *MockRandomMockRecorder) StringCustom(n, characters any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StringCustom", reflect.TypeOf((*MockRandom)(nil).StringCustom), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StringCustom", reflect.TypeOf((*MockRandom)(nil).StringCustom), n, characters)
 }
 
 // StringCustomErr mocks base method.
-func (m *MockRandom) StringCustomErr(arg0 int, arg1 string) (string, error) {
+func (m *MockRandom) StringCustomErr(n int, characters string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "StringCustomErr", arg0, arg1)
+	ret := m.ctrl.Call(m, "StringCustomErr", n, characters)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // StringCustomErr indicates an expected call of StringCustomErr.
-func (mr *MockRandomMockRecorder) StringCustomErr(arg0, arg1 any) *gomock.Call {
+func (mr *MockRandomMockRecorder) StringCustomErr(n, characters any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StringCustomErr", reflect.TypeOf((*MockRandom)(nil).StringCustomErr), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StringCustomErr", reflect.TypeOf((*MockRandom)(nil).StringCustomErr), n, characters)
 }
