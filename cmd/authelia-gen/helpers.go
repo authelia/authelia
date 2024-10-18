@@ -6,8 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-
-	"gopkg.in/yaml.v3"
 	"net/mail"
 	"net/url"
 	"os"
@@ -19,6 +17,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"gopkg.in/yaml.v3"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -253,6 +252,30 @@ func getKeyNameFromTagAndPrefix(prefix, name string, isSlice, isMap bool) string
 	default:
 		return fmt.Sprintf("%s.%s", prefix, nameParts[0])
 	}
+}
+
+func readComposeTag(service string, p ...string) (tag string, err error) {
+	var (
+		compose     *Compose
+		svc         ComposeService
+		composePath string
+		ok          bool
+	)
+
+	composePath = filepath.Join(p...)
+
+	if compose, err = readCompose(composePath); err != nil {
+		return "", err
+	}
+
+	if svc, ok = compose.Services[service]; !ok {
+		return "", fmt.Errorf("service with name '%s' not found in '%s'", service, composePath)
+	}
+
+	_, tag, _ = strings.Cut(svc.Image, ":")
+	tag, _, _ = strings.Cut(tag, "@")
+
+	return tag, nil
 }
 
 func readCompose(path string) (compose *Compose, err error) {
