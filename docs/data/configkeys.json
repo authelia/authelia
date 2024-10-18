@@ -1,148 +1,8 @@
 [
     {
-        "path": "theme",
+        "path": "access_control.default_policy",
         "secret": false,
-        "env": "AUTHELIA_THEME"
-    },
-    {
-        "path": "certificates_directory",
-        "secret": false,
-        "env": "AUTHELIA_CERTIFICATES_DIRECTORY"
-    },
-    {
-        "path": "default_2fa_method",
-        "secret": false,
-        "env": "AUTHELIA_DEFAULT_2FA_METHOD"
-    },
-    {
-        "path": "log.level",
-        "secret": false,
-        "env": "AUTHELIA_LOG_LEVEL"
-    },
-    {
-        "path": "log.format",
-        "secret": false,
-        "env": "AUTHELIA_LOG_FORMAT"
-    },
-    {
-        "path": "log.file_path",
-        "secret": false,
-        "env": "AUTHELIA_LOG_FILE_PATH"
-    },
-    {
-        "path": "log.keep_stdout",
-        "secret": false,
-        "env": "AUTHELIA_LOG_KEEP_STDOUT"
-    },
-    {
-        "path": "identity_providers.oidc.hmac_secret",
-        "secret": true,
-        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE"
-    },
-    {
-        "path": "identity_providers.oidc.enable_client_debug_messages",
-        "secret": false,
-        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_ENABLE_CLIENT_DEBUG_MESSAGES"
-    },
-    {
-        "path": "identity_providers.oidc.minimum_parameter_entropy",
-        "secret": false,
-        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_MINIMUM_PARAMETER_ENTROPY"
-    },
-    {
-        "path": "identity_providers.oidc.enforce_pkce",
-        "secret": false,
-        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_ENFORCE_PKCE"
-    },
-    {
-        "path": "identity_providers.oidc.enable_pkce_plain_challenge",
-        "secret": false,
-        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_ENABLE_PKCE_PLAIN_CHALLENGE"
-    },
-    {
-        "path": "identity_providers.oidc.enable_jwt_access_token_stateless_introspection",
-        "secret": false,
-        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_ENABLE_JWT_ACCESS_TOKEN_STATELESS_INTROSPECTION"
-    },
-    {
-        "path": "identity_providers.oidc.discovery_signed_response_alg",
-        "secret": false,
-        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_DISCOVERY_SIGNED_RESPONSE_ALG"
-    },
-    {
-        "path": "identity_providers.oidc.discovery_signed_response_key_id",
-        "secret": false,
-        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_DISCOVERY_SIGNED_RESPONSE_KEY_ID"
-    },
-    {
-        "path": "identity_providers.oidc.require_pushed_authorization_requests",
-        "secret": false,
-        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_REQUIRE_PUSHED_AUTHORIZATION_REQUESTS"
-    },
-    {
-        "path": "identity_providers.oidc.cors.endpoints",
-        "secret": false,
-        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_CORS_ENDPOINTS"
-    },
-    {
-        "path": "identity_providers.oidc.cors.allowed_origins_from_client_redirect_uris",
-        "secret": false,
-        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_CORS_ALLOWED_ORIGINS_FROM_CLIENT_REDIRECT_URIS"
-    },
-    {
-        "path": "identity_providers.oidc.lifespans.access_token",
-        "secret": false,
-        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_LIFESPANS_ACCESS_TOKEN"
-    },
-    {
-        "path": "identity_providers.oidc.lifespans.authorize_code",
-        "secret": false,
-        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_LIFESPANS_AUTHORIZE_CODE"
-    },
-    {
-        "path": "identity_providers.oidc.lifespans.id_token",
-        "secret": false,
-        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_LIFESPANS_ID_TOKEN"
-    },
-    {
-        "path": "identity_providers.oidc.lifespans.refresh_token",
-        "secret": false,
-        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_LIFESPANS_REFRESH_TOKEN"
-    },
-    {
-        "path": "identity_providers.oidc.lifespans.jwt_secured_authorization",
-        "secret": false,
-        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_LIFESPANS_JWT_SECURED_AUTHORIZATION"
-    },
-    {
-        "path": "identity_providers.oidc",
-        "secret": false,
-        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC"
-    },
-    {
-        "path": "authentication_backend.password_reset.disable",
-        "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_PASSWORD_RESET_DISABLE"
-    },
-    {
-        "path": "authentication_backend.password_reset.custom_url",
-        "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_PASSWORD_RESET_CUSTOM_URL"
-    },
-    {
-        "path": "authentication_backend.refresh_interval",
-        "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_REFRESH_INTERVAL"
-    },
-    {
-        "path": "authentication_backend.file.path",
-        "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PATH"
-    },
-    {
-        "path": "authentication_backend.file.watch",
-        "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_WATCH"
+        "env": "AUTHELIA_ACCESS_CONTROL_DEFAULT_POLICY"
     },
     {
         "path": "authentication_backend.file.password.algorithm",
@@ -150,14 +10,14 @@
         "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_ALGORITHM"
     },
     {
-        "path": "authentication_backend.file.password.argon2.variant",
-        "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_ARGON2_VARIANT"
-    },
-    {
         "path": "authentication_backend.file.password.argon2.iterations",
         "secret": false,
         "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_ARGON2_ITERATIONS"
+    },
+    {
+        "path": "authentication_backend.file.password.argon2.key_length",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_ARGON2_KEY_LENGTH"
     },
     {
         "path": "authentication_backend.file.password.argon2.memory",
@@ -170,34 +30,24 @@
         "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_ARGON2_PARALLELISM"
     },
     {
-        "path": "authentication_backend.file.password.argon2.key_length",
-        "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_ARGON2_KEY_LENGTH"
-    },
-    {
         "path": "authentication_backend.file.password.argon2.salt_length",
         "secret": false,
         "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_ARGON2_SALT_LENGTH"
     },
     {
-        "path": "authentication_backend.file.password.sha2crypt.variant",
+        "path": "authentication_backend.file.password.argon2.variant",
         "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_SHA2CRYPT_VARIANT"
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_ARGON2_VARIANT"
     },
     {
-        "path": "authentication_backend.file.password.sha2crypt.iterations",
+        "path": "authentication_backend.file.password.bcrypt.cost",
         "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_SHA2CRYPT_ITERATIONS"
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_BCRYPT_COST"
     },
     {
-        "path": "authentication_backend.file.password.sha2crypt.salt_length",
+        "path": "authentication_backend.file.password.bcrypt.variant",
         "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_SHA2CRYPT_SALT_LENGTH"
-    },
-    {
-        "path": "authentication_backend.file.password.pbkdf2.variant",
-        "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_PBKDF2_VARIANT"
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_BCRYPT_VARIANT"
     },
     {
         "path": "authentication_backend.file.password.pbkdf2.iterations",
@@ -210,19 +60,9 @@
         "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_PBKDF2_SALT_LENGTH"
     },
     {
-        "path": "authentication_backend.file.password.bcrypt.variant",
+        "path": "authentication_backend.file.password.pbkdf2.variant",
         "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_BCRYPT_VARIANT"
-    },
-    {
-        "path": "authentication_backend.file.password.bcrypt.cost",
-        "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_BCRYPT_COST"
-    },
-    {
-        "path": "authentication_backend.file.password.scrypt.iterations",
-        "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_SCRYPT_ITERATIONS"
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_PBKDF2_VARIANT"
     },
     {
         "path": "authentication_backend.file.password.scrypt.block_size",
@@ -230,9 +70,9 @@
         "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_SCRYPT_BLOCK_SIZE"
     },
     {
-        "path": "authentication_backend.file.password.scrypt.parallelism",
+        "path": "authentication_backend.file.password.scrypt.iterations",
         "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_SCRYPT_PARALLELISM"
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_SCRYPT_ITERATIONS"
     },
     {
         "path": "authentication_backend.file.password.scrypt.key_length",
@@ -240,14 +80,34 @@
         "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_SCRYPT_KEY_LENGTH"
     },
     {
+        "path": "authentication_backend.file.password.scrypt.parallelism",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_SCRYPT_PARALLELISM"
+    },
+    {
         "path": "authentication_backend.file.password.scrypt.salt_length",
         "secret": false,
         "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_SCRYPT_SALT_LENGTH"
     },
     {
-        "path": "authentication_backend.file.search.email",
+        "path": "authentication_backend.file.password.sha2crypt.iterations",
         "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_SEARCH_EMAIL"
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_SHA2CRYPT_ITERATIONS"
+    },
+    {
+        "path": "authentication_backend.file.password.sha2crypt.salt_length",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_SHA2CRYPT_SALT_LENGTH"
+    },
+    {
+        "path": "authentication_backend.file.password.sha2crypt.variant",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_SHA2CRYPT_VARIANT"
+    },
+    {
+        "path": "authentication_backend.file.path",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PATH"
     },
     {
         "path": "authentication_backend.file.search.case_insensitive",
@@ -255,69 +115,14 @@
         "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_SEARCH_CASE_INSENSITIVE"
     },
     {
-        "path": "authentication_backend.ldap.address",
+        "path": "authentication_backend.file.search.email",
         "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ADDRESS"
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_SEARCH_EMAIL"
     },
     {
-        "path": "authentication_backend.ldap.implementation",
+        "path": "authentication_backend.file.watch",
         "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_IMPLEMENTATION"
-    },
-    {
-        "path": "authentication_backend.ldap.timeout",
-        "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_TIMEOUT"
-    },
-    {
-        "path": "authentication_backend.ldap.start_tls",
-        "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_START_TLS"
-    },
-    {
-        "path": "authentication_backend.ldap.tls.minimum_version",
-        "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_TLS_MINIMUM_VERSION"
-    },
-    {
-        "path": "authentication_backend.ldap.tls.maximum_version",
-        "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_TLS_MAXIMUM_VERSION"
-    },
-    {
-        "path": "authentication_backend.ldap.tls.skip_verify",
-        "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_TLS_SKIP_VERIFY"
-    },
-    {
-        "path": "authentication_backend.ldap.tls.server_name",
-        "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_TLS_SERVER_NAME"
-    },
-    {
-        "path": "authentication_backend.ldap.tls.private_key",
-        "secret": true,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_TLS_PRIVATE_KEY_FILE"
-    },
-    {
-        "path": "authentication_backend.ldap.tls.certificate_chain",
-        "secret": true,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_TLS_CERTIFICATE_CHAIN_FILE"
-    },
-    {
-        "path": "authentication_backend.ldap.base_dn",
-        "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_BASE_DN"
-    },
-    {
-        "path": "authentication_backend.ldap.additional_users_dn",
-        "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ADDITIONAL_USERS_DN"
-    },
-    {
-        "path": "authentication_backend.ldap.users_filter",
-        "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USERS_FILTER"
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_WATCH"
     },
     {
         "path": "authentication_backend.ldap.additional_groups_dn",
@@ -325,14 +130,19 @@
         "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ADDITIONAL_GROUPS_DN"
     },
     {
-        "path": "authentication_backend.ldap.groups_filter",
+        "path": "authentication_backend.ldap.additional_users_dn",
         "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_GROUPS_FILTER"
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ADDITIONAL_USERS_DN"
     },
     {
-        "path": "authentication_backend.ldap.group_search_mode",
+        "path": "authentication_backend.ldap.address",
         "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_GROUP_SEARCH_MODE"
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ADDRESS"
+    },
+    {
+        "path": "authentication_backend.ldap.attributes.display_name",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_DISPLAY_NAME"
     },
     {
         "path": "authentication_backend.ldap.attributes.distinguished_name",
@@ -340,14 +150,9 @@
         "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_DISTINGUISHED_NAME"
     },
     {
-        "path": "authentication_backend.ldap.attributes.username",
+        "path": "authentication_backend.ldap.attributes.group_name",
         "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_USERNAME"
-    },
-    {
-        "path": "authentication_backend.ldap.attributes.display_name",
-        "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_DISPLAY_NAME"
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_GROUP_NAME"
     },
     {
         "path": "authentication_backend.ldap.attributes.mail",
@@ -360,9 +165,39 @@
         "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_MEMBER_OF"
     },
     {
-        "path": "authentication_backend.ldap.attributes.group_name",
+        "path": "authentication_backend.ldap.attributes.username",
         "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_GROUP_NAME"
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_USERNAME"
+    },
+    {
+        "path": "authentication_backend.ldap.base_dn",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_BASE_DN"
+    },
+    {
+        "path": "authentication_backend.ldap.group_search_mode",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_GROUP_SEARCH_MODE"
+    },
+    {
+        "path": "authentication_backend.ldap.groups_filter",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_GROUPS_FILTER"
+    },
+    {
+        "path": "authentication_backend.ldap.implementation",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_IMPLEMENTATION"
+    },
+    {
+        "path": "authentication_backend.ldap.password",
+        "secret": true,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE"
+    },
+    {
+        "path": "authentication_backend.ldap.permit_feature_detection_failure",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PERMIT_FEATURE_DETECTION_FAILURE"
     },
     {
         "path": "authentication_backend.ldap.permit_referrals",
@@ -375,9 +210,44 @@
         "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PERMIT_UNAUTHENTICATED_BIND"
     },
     {
-        "path": "authentication_backend.ldap.permit_feature_detection_failure",
+        "path": "authentication_backend.ldap.start_tls",
         "secret": false,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PERMIT_FEATURE_DETECTION_FAILURE"
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_START_TLS"
+    },
+    {
+        "path": "authentication_backend.ldap.timeout",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_TIMEOUT"
+    },
+    {
+        "path": "authentication_backend.ldap.tls.certificate_chain",
+        "secret": true,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_TLS_CERTIFICATE_CHAIN_FILE"
+    },
+    {
+        "path": "authentication_backend.ldap.tls.maximum_version",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_TLS_MAXIMUM_VERSION"
+    },
+    {
+        "path": "authentication_backend.ldap.tls.minimum_version",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_TLS_MINIMUM_VERSION"
+    },
+    {
+        "path": "authentication_backend.ldap.tls.private_key",
+        "secret": true,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_TLS_PRIVATE_KEY_FILE"
+    },
+    {
+        "path": "authentication_backend.ldap.tls.server_name",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_TLS_SERVER_NAME"
+    },
+    {
+        "path": "authentication_backend.ldap.tls.skip_verify",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_TLS_SKIP_VERIFY"
     },
     {
         "path": "authentication_backend.ldap.user",
@@ -385,194 +255,44 @@
         "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USER"
     },
     {
-        "path": "authentication_backend.ldap.password",
-        "secret": true,
-        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE"
-    },
-    {
-        "path": "session.name",
+        "path": "authentication_backend.ldap.users_filter",
         "secret": false,
-        "env": "AUTHELIA_SESSION_NAME"
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USERS_FILTER"
     },
     {
-        "path": "session.same_site",
+        "path": "authentication_backend.password_reset.custom_url",
         "secret": false,
-        "env": "AUTHELIA_SESSION_SAME_SITE"
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_PASSWORD_RESET_CUSTOM_URL"
     },
     {
-        "path": "session.expiration",
+        "path": "authentication_backend.password_reset.disable",
         "secret": false,
-        "env": "AUTHELIA_SESSION_EXPIRATION"
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_PASSWORD_RESET_DISABLE"
     },
     {
-        "path": "session.inactivity",
+        "path": "authentication_backend.refresh_interval",
         "secret": false,
-        "env": "AUTHELIA_SESSION_INACTIVITY"
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_REFRESH_INTERVAL"
     },
     {
-        "path": "session.remember_me",
+        "path": "certificates_directory",
         "secret": false,
-        "env": "AUTHELIA_SESSION_REMEMBER_ME"
+        "env": "AUTHELIA_CERTIFICATES_DIRECTORY"
     },
     {
-        "path": "session",
+        "path": "default_2fa_method",
         "secret": false,
-        "env": "AUTHELIA_SESSION"
-    },
-    {
-        "path": "session.secret",
-        "secret": true,
-        "env": "AUTHELIA_SESSION_SECRET_FILE"
-    },
-    {
-        "path": "session.redis.host",
-        "secret": false,
-        "env": "AUTHELIA_SESSION_REDIS_HOST"
-    },
-    {
-        "path": "session.redis.port",
-        "secret": false,
-        "env": "AUTHELIA_SESSION_REDIS_PORT"
-    },
-    {
-        "path": "session.redis.username",
-        "secret": false,
-        "env": "AUTHELIA_SESSION_REDIS_USERNAME"
-    },
-    {
-        "path": "session.redis.password",
-        "secret": true,
-        "env": "AUTHELIA_SESSION_REDIS_PASSWORD_FILE"
-    },
-    {
-        "path": "session.redis.database_index",
-        "secret": false,
-        "env": "AUTHELIA_SESSION_REDIS_DATABASE_INDEX"
-    },
-    {
-        "path": "session.redis.maximum_active_connections",
-        "secret": false,
-        "env": "AUTHELIA_SESSION_REDIS_MAXIMUM_ACTIVE_CONNECTIONS"
-    },
-    {
-        "path": "session.redis.minimum_idle_connections",
-        "secret": false,
-        "env": "AUTHELIA_SESSION_REDIS_MINIMUM_IDLE_CONNECTIONS"
-    },
-    {
-        "path": "session.redis.tls.minimum_version",
-        "secret": false,
-        "env": "AUTHELIA_SESSION_REDIS_TLS_MINIMUM_VERSION"
-    },
-    {
-        "path": "session.redis.tls.maximum_version",
-        "secret": false,
-        "env": "AUTHELIA_SESSION_REDIS_TLS_MAXIMUM_VERSION"
-    },
-    {
-        "path": "session.redis.tls.skip_verify",
-        "secret": false,
-        "env": "AUTHELIA_SESSION_REDIS_TLS_SKIP_VERIFY"
-    },
-    {
-        "path": "session.redis.tls.server_name",
-        "secret": false,
-        "env": "AUTHELIA_SESSION_REDIS_TLS_SERVER_NAME"
-    },
-    {
-        "path": "session.redis.tls.private_key",
-        "secret": true,
-        "env": "AUTHELIA_SESSION_REDIS_TLS_PRIVATE_KEY_FILE"
-    },
-    {
-        "path": "session.redis.tls.certificate_chain",
-        "secret": true,
-        "env": "AUTHELIA_SESSION_REDIS_TLS_CERTIFICATE_CHAIN_FILE"
-    },
-    {
-        "path": "session.redis.high_availability.sentinel_name",
-        "secret": false,
-        "env": "AUTHELIA_SESSION_REDIS_HIGH_AVAILABILITY_SENTINEL_NAME"
-    },
-    {
-        "path": "session.redis.high_availability.sentinel_username",
-        "secret": false,
-        "env": "AUTHELIA_SESSION_REDIS_HIGH_AVAILABILITY_SENTINEL_USERNAME"
-    },
-    {
-        "path": "session.redis.high_availability.sentinel_password",
-        "secret": true,
-        "env": "AUTHELIA_SESSION_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD_FILE"
-    },
-    {
-        "path": "session.redis.high_availability.route_by_latency",
-        "secret": false,
-        "env": "AUTHELIA_SESSION_REDIS_HIGH_AVAILABILITY_ROUTE_BY_LATENCY"
-    },
-    {
-        "path": "session.redis.high_availability.route_randomly",
-        "secret": false,
-        "env": "AUTHELIA_SESSION_REDIS_HIGH_AVAILABILITY_ROUTE_RANDOMLY"
-    },
-    {
-        "path": "totp.disable",
-        "secret": false,
-        "env": "AUTHELIA_TOTP_DISABLE"
-    },
-    {
-        "path": "totp.issuer",
-        "secret": false,
-        "env": "AUTHELIA_TOTP_ISSUER"
-    },
-    {
-        "path": "totp.algorithm",
-        "secret": false,
-        "env": "AUTHELIA_TOTP_ALGORITHM"
-    },
-    {
-        "path": "totp.digits",
-        "secret": false,
-        "env": "AUTHELIA_TOTP_DIGITS"
-    },
-    {
-        "path": "totp.period",
-        "secret": false,
-        "env": "AUTHELIA_TOTP_PERIOD"
-    },
-    {
-        "path": "totp.skew",
-        "secret": false,
-        "env": "AUTHELIA_TOTP_SKEW"
-    },
-    {
-        "path": "totp.secret_size",
-        "secret": false,
-        "env": "AUTHELIA_TOTP_SECRET_SIZE"
-    },
-    {
-        "path": "totp.allowed_algorithms",
-        "secret": false,
-        "env": "AUTHELIA_TOTP_ALLOWED_ALGORITHMS"
-    },
-    {
-        "path": "totp.allowed_digits",
-        "secret": false,
-        "env": "AUTHELIA_TOTP_ALLOWED_DIGITS"
-    },
-    {
-        "path": "totp.allowed_periods",
-        "secret": false,
-        "env": "AUTHELIA_TOTP_ALLOWED_PERIODS"
-    },
-    {
-        "path": "totp.disable_reuse_security_policy",
-        "secret": false,
-        "env": "AUTHELIA_TOTP_DISABLE_REUSE_SECURITY_POLICY"
+        "env": "AUTHELIA_DEFAULT_2FA_METHOD"
     },
     {
         "path": "duo_api.disable",
         "secret": false,
         "env": "AUTHELIA_DUO_API_DISABLE"
+    },
+    {
+        "path": "duo_api.enable_self_enrollment",
+        "secret": false,
+        "env": "AUTHELIA_DUO_API_ENABLE_SELF_ENROLLMENT"
     },
     {
         "path": "duo_api.hostname",
@@ -590,179 +310,149 @@
         "env": "AUTHELIA_DUO_API_SECRET_KEY_FILE"
     },
     {
-        "path": "duo_api.enable_self_enrollment",
+        "path": "identity_providers.oidc",
         "secret": false,
-        "env": "AUTHELIA_DUO_API_ENABLE_SELF_ENROLLMENT"
+        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC"
     },
     {
-        "path": "access_control.default_policy",
+        "path": "identity_providers.oidc.cors.allowed_origins_from_client_redirect_uris",
         "secret": false,
-        "env": "AUTHELIA_ACCESS_CONTROL_DEFAULT_POLICY"
+        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_CORS_ALLOWED_ORIGINS_FROM_CLIENT_REDIRECT_URIS"
     },
     {
-        "path": "ntp.address",
+        "path": "identity_providers.oidc.cors.endpoints",
         "secret": false,
-        "env": "AUTHELIA_NTP_ADDRESS"
+        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_CORS_ENDPOINTS"
     },
     {
-        "path": "ntp.version",
+        "path": "identity_providers.oidc.discovery_signed_response_alg",
         "secret": false,
-        "env": "AUTHELIA_NTP_VERSION"
+        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_DISCOVERY_SIGNED_RESPONSE_ALG"
     },
     {
-        "path": "ntp.max_desync",
+        "path": "identity_providers.oidc.discovery_signed_response_key_id",
         "secret": false,
-        "env": "AUTHELIA_NTP_MAX_DESYNC"
+        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_DISCOVERY_SIGNED_RESPONSE_KEY_ID"
     },
     {
-        "path": "ntp.disable_startup_check",
+        "path": "identity_providers.oidc.enable_client_debug_messages",
         "secret": false,
-        "env": "AUTHELIA_NTP_DISABLE_STARTUP_CHECK"
+        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_ENABLE_CLIENT_DEBUG_MESSAGES"
     },
     {
-        "path": "ntp.disable_failure",
+        "path": "identity_providers.oidc.enable_jwt_access_token_stateless_introspection",
         "secret": false,
-        "env": "AUTHELIA_NTP_DISABLE_FAILURE"
+        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_ENABLE_JWT_ACCESS_TOKEN_STATELESS_INTROSPECTION"
     },
     {
-        "path": "regulation.max_retries",
+        "path": "identity_providers.oidc.enable_pkce_plain_challenge",
         "secret": false,
-        "env": "AUTHELIA_REGULATION_MAX_RETRIES"
+        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_ENABLE_PKCE_PLAIN_CHALLENGE"
     },
     {
-        "path": "regulation.find_time",
+        "path": "identity_providers.oidc.enforce_pkce",
         "secret": false,
-        "env": "AUTHELIA_REGULATION_FIND_TIME"
+        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_ENFORCE_PKCE"
     },
     {
-        "path": "regulation.ban_time",
-        "secret": false,
-        "env": "AUTHELIA_REGULATION_BAN_TIME"
-    },
-    {
-        "path": "storage.local.path",
-        "secret": false,
-        "env": "AUTHELIA_STORAGE_LOCAL_PATH"
-    },
-    {
-        "path": "storage.mysql.address",
-        "secret": false,
-        "env": "AUTHELIA_STORAGE_MYSQL_ADDRESS"
-    },
-    {
-        "path": "storage.mysql.database",
-        "secret": false,
-        "env": "AUTHELIA_STORAGE_MYSQL_DATABASE"
-    },
-    {
-        "path": "storage.mysql.username",
-        "secret": false,
-        "env": "AUTHELIA_STORAGE_MYSQL_USERNAME"
-    },
-    {
-        "path": "storage.mysql.password",
+        "path": "identity_providers.oidc.hmac_secret",
         "secret": true,
-        "env": "AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE"
+        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE"
     },
     {
-        "path": "storage.mysql.timeout",
+        "path": "identity_providers.oidc.lifespans.access_token",
         "secret": false,
-        "env": "AUTHELIA_STORAGE_MYSQL_TIMEOUT"
+        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_LIFESPANS_ACCESS_TOKEN"
     },
     {
-        "path": "storage.mysql.tls.minimum_version",
+        "path": "identity_providers.oidc.lifespans.authorize_code",
         "secret": false,
-        "env": "AUTHELIA_STORAGE_MYSQL_TLS_MINIMUM_VERSION"
+        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_LIFESPANS_AUTHORIZE_CODE"
     },
     {
-        "path": "storage.mysql.tls.maximum_version",
+        "path": "identity_providers.oidc.lifespans.id_token",
         "secret": false,
-        "env": "AUTHELIA_STORAGE_MYSQL_TLS_MAXIMUM_VERSION"
+        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_LIFESPANS_ID_TOKEN"
     },
     {
-        "path": "storage.mysql.tls.skip_verify",
+        "path": "identity_providers.oidc.lifespans.jwt_secured_authorization",
         "secret": false,
-        "env": "AUTHELIA_STORAGE_MYSQL_TLS_SKIP_VERIFY"
+        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_LIFESPANS_JWT_SECURED_AUTHORIZATION"
     },
     {
-        "path": "storage.mysql.tls.server_name",
+        "path": "identity_providers.oidc.lifespans.refresh_token",
         "secret": false,
-        "env": "AUTHELIA_STORAGE_MYSQL_TLS_SERVER_NAME"
+        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_LIFESPANS_REFRESH_TOKEN"
     },
     {
-        "path": "storage.mysql.tls.private_key",
+        "path": "identity_providers.oidc.minimum_parameter_entropy",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_MINIMUM_PARAMETER_ENTROPY"
+    },
+    {
+        "path": "identity_providers.oidc.require_pushed_authorization_requests",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_REQUIRE_PUSHED_AUTHORIZATION_REQUESTS"
+    },
+    {
+        "path": "identity_validation.elevated_session.characters",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_CHARACTERS"
+    },
+    {
+        "path": "identity_validation.elevated_session.code_lifespan",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_CODE_LIFESPAN"
+    },
+    {
+        "path": "identity_validation.elevated_session.elevation_lifespan",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_ELEVATION_LIFESPAN"
+    },
+    {
+        "path": "identity_validation.elevated_session.require_second_factor",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_REQUIRE_SECOND_FACTOR"
+    },
+    {
+        "path": "identity_validation.elevated_session.skip_second_factor",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_SKIP_SECOND_FACTOR"
+    },
+    {
+        "path": "identity_validation.reset_password.jwt_algorithm",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_ALGORITHM"
+    },
+    {
+        "path": "identity_validation.reset_password.jwt_lifespan",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_LIFESPAN"
+    },
+    {
+        "path": "identity_validation.reset_password.jwt_secret",
         "secret": true,
-        "env": "AUTHELIA_STORAGE_MYSQL_TLS_PRIVATE_KEY_FILE"
+        "env": "AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE"
     },
     {
-        "path": "storage.mysql.tls.certificate_chain",
-        "secret": true,
-        "env": "AUTHELIA_STORAGE_MYSQL_TLS_CERTIFICATE_CHAIN_FILE"
-    },
-    {
-        "path": "storage.postgres.address",
+        "path": "log.file_path",
         "secret": false,
-        "env": "AUTHELIA_STORAGE_POSTGRES_ADDRESS"
+        "env": "AUTHELIA_LOG_FILE_PATH"
     },
     {
-        "path": "storage.postgres.database",
+        "path": "log.format",
         "secret": false,
-        "env": "AUTHELIA_STORAGE_POSTGRES_DATABASE"
+        "env": "AUTHELIA_LOG_FORMAT"
     },
     {
-        "path": "storage.postgres.username",
+        "path": "log.keep_stdout",
         "secret": false,
-        "env": "AUTHELIA_STORAGE_POSTGRES_USERNAME"
+        "env": "AUTHELIA_LOG_KEEP_STDOUT"
     },
     {
-        "path": "storage.postgres.password",
-        "secret": true,
-        "env": "AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE"
-    },
-    {
-        "path": "storage.postgres.timeout",
+        "path": "log.level",
         "secret": false,
-        "env": "AUTHELIA_STORAGE_POSTGRES_TIMEOUT"
-    },
-    {
-        "path": "storage.postgres.schema",
-        "secret": false,
-        "env": "AUTHELIA_STORAGE_POSTGRES_SCHEMA"
-    },
-    {
-        "path": "storage.postgres.tls.minimum_version",
-        "secret": false,
-        "env": "AUTHELIA_STORAGE_POSTGRES_TLS_MINIMUM_VERSION"
-    },
-    {
-        "path": "storage.postgres.tls.maximum_version",
-        "secret": false,
-        "env": "AUTHELIA_STORAGE_POSTGRES_TLS_MAXIMUM_VERSION"
-    },
-    {
-        "path": "storage.postgres.tls.skip_verify",
-        "secret": false,
-        "env": "AUTHELIA_STORAGE_POSTGRES_TLS_SKIP_VERIFY"
-    },
-    {
-        "path": "storage.postgres.tls.server_name",
-        "secret": false,
-        "env": "AUTHELIA_STORAGE_POSTGRES_TLS_SERVER_NAME"
-    },
-    {
-        "path": "storage.postgres.tls.private_key",
-        "secret": true,
-        "env": "AUTHELIA_STORAGE_POSTGRES_TLS_PRIVATE_KEY_FILE"
-    },
-    {
-        "path": "storage.postgres.tls.certificate_chain",
-        "secret": true,
-        "env": "AUTHELIA_STORAGE_POSTGRES_TLS_CERTIFICATE_CHAIN_FILE"
-    },
-    {
-        "path": "storage.encryption_key",
-        "secret": true,
-        "env": "AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE"
+        "env": "AUTHELIA_LOG_LEVEL"
     },
     {
         "path": "notifier.disable_startup_check",
@@ -780,39 +470,9 @@
         "env": "AUTHELIA_NOTIFIER_SMTP_ADDRESS"
     },
     {
-        "path": "notifier.smtp.timeout",
+        "path": "notifier.smtp.disable_html_emails",
         "secret": false,
-        "env": "AUTHELIA_NOTIFIER_SMTP_TIMEOUT"
-    },
-    {
-        "path": "notifier.smtp.username",
-        "secret": false,
-        "env": "AUTHELIA_NOTIFIER_SMTP_USERNAME"
-    },
-    {
-        "path": "notifier.smtp.password",
-        "secret": true,
-        "env": "AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE"
-    },
-    {
-        "path": "notifier.smtp.identifier",
-        "secret": false,
-        "env": "AUTHELIA_NOTIFIER_SMTP_IDENTIFIER"
-    },
-    {
-        "path": "notifier.smtp.sender",
-        "secret": false,
-        "env": "AUTHELIA_NOTIFIER_SMTP_SENDER"
-    },
-    {
-        "path": "notifier.smtp.subject",
-        "secret": false,
-        "env": "AUTHELIA_NOTIFIER_SMTP_SUBJECT"
-    },
-    {
-        "path": "notifier.smtp.startup_check_address",
-        "secret": false,
-        "env": "AUTHELIA_NOTIFIER_SMTP_STARTUP_CHECK_ADDRESS"
+        "env": "AUTHELIA_NOTIFIER_SMTP_DISABLE_HTML_EMAILS"
     },
     {
         "path": "notifier.smtp.disable_require_tls",
@@ -820,39 +480,39 @@
         "env": "AUTHELIA_NOTIFIER_SMTP_DISABLE_REQUIRE_TLS"
     },
     {
-        "path": "notifier.smtp.disable_html_emails",
-        "secret": false,
-        "env": "AUTHELIA_NOTIFIER_SMTP_DISABLE_HTML_EMAILS"
-    },
-    {
         "path": "notifier.smtp.disable_starttls",
         "secret": false,
         "env": "AUTHELIA_NOTIFIER_SMTP_DISABLE_STARTTLS"
     },
     {
-        "path": "notifier.smtp.tls.minimum_version",
+        "path": "notifier.smtp.identifier",
         "secret": false,
-        "env": "AUTHELIA_NOTIFIER_SMTP_TLS_MINIMUM_VERSION"
+        "env": "AUTHELIA_NOTIFIER_SMTP_IDENTIFIER"
     },
     {
-        "path": "notifier.smtp.tls.maximum_version",
-        "secret": false,
-        "env": "AUTHELIA_NOTIFIER_SMTP_TLS_MAXIMUM_VERSION"
-    },
-    {
-        "path": "notifier.smtp.tls.skip_verify",
-        "secret": false,
-        "env": "AUTHELIA_NOTIFIER_SMTP_TLS_SKIP_VERIFY"
-    },
-    {
-        "path": "notifier.smtp.tls.server_name",
-        "secret": false,
-        "env": "AUTHELIA_NOTIFIER_SMTP_TLS_SERVER_NAME"
-    },
-    {
-        "path": "notifier.smtp.tls.private_key",
+        "path": "notifier.smtp.password",
         "secret": true,
-        "env": "AUTHELIA_NOTIFIER_SMTP_TLS_PRIVATE_KEY_FILE"
+        "env": "AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE"
+    },
+    {
+        "path": "notifier.smtp.sender",
+        "secret": false,
+        "env": "AUTHELIA_NOTIFIER_SMTP_SENDER"
+    },
+    {
+        "path": "notifier.smtp.startup_check_address",
+        "secret": false,
+        "env": "AUTHELIA_NOTIFIER_SMTP_STARTUP_CHECK_ADDRESS"
+    },
+    {
+        "path": "notifier.smtp.subject",
+        "secret": false,
+        "env": "AUTHELIA_NOTIFIER_SMTP_SUBJECT"
+    },
+    {
+        "path": "notifier.smtp.timeout",
+        "secret": false,
+        "env": "AUTHELIA_NOTIFIER_SMTP_TIMEOUT"
     },
     {
         "path": "notifier.smtp.tls.certificate_chain",
@@ -860,139 +520,64 @@
         "env": "AUTHELIA_NOTIFIER_SMTP_TLS_CERTIFICATE_CHAIN_FILE"
     },
     {
+        "path": "notifier.smtp.tls.maximum_version",
+        "secret": false,
+        "env": "AUTHELIA_NOTIFIER_SMTP_TLS_MAXIMUM_VERSION"
+    },
+    {
+        "path": "notifier.smtp.tls.minimum_version",
+        "secret": false,
+        "env": "AUTHELIA_NOTIFIER_SMTP_TLS_MINIMUM_VERSION"
+    },
+    {
+        "path": "notifier.smtp.tls.private_key",
+        "secret": true,
+        "env": "AUTHELIA_NOTIFIER_SMTP_TLS_PRIVATE_KEY_FILE"
+    },
+    {
+        "path": "notifier.smtp.tls.server_name",
+        "secret": false,
+        "env": "AUTHELIA_NOTIFIER_SMTP_TLS_SERVER_NAME"
+    },
+    {
+        "path": "notifier.smtp.tls.skip_verify",
+        "secret": false,
+        "env": "AUTHELIA_NOTIFIER_SMTP_TLS_SKIP_VERIFY"
+    },
+    {
+        "path": "notifier.smtp.username",
+        "secret": false,
+        "env": "AUTHELIA_NOTIFIER_SMTP_USERNAME"
+    },
+    {
         "path": "notifier.template_path",
         "secret": false,
         "env": "AUTHELIA_NOTIFIER_TEMPLATE_PATH"
     },
     {
-        "path": "server.address",
+        "path": "ntp.address",
         "secret": false,
-        "env": "AUTHELIA_SERVER_ADDRESS"
+        "env": "AUTHELIA_NTP_ADDRESS"
     },
     {
-        "path": "server.asset_path",
+        "path": "ntp.disable_failure",
         "secret": false,
-        "env": "AUTHELIA_SERVER_ASSET_PATH"
+        "env": "AUTHELIA_NTP_DISABLE_FAILURE"
     },
     {
-        "path": "server.disable_healthcheck",
+        "path": "ntp.disable_startup_check",
         "secret": false,
-        "env": "AUTHELIA_SERVER_DISABLE_HEALTHCHECK"
+        "env": "AUTHELIA_NTP_DISABLE_STARTUP_CHECK"
     },
     {
-        "path": "server.tls.certificate",
+        "path": "ntp.max_desync",
         "secret": false,
-        "env": "AUTHELIA_SERVER_TLS_CERTIFICATE"
+        "env": "AUTHELIA_NTP_MAX_DESYNC"
     },
     {
-        "path": "server.tls.key",
+        "path": "ntp.version",
         "secret": false,
-        "env": "AUTHELIA_SERVER_TLS_KEY"
-    },
-    {
-        "path": "server.tls.client_certificates",
-        "secret": false,
-        "env": "AUTHELIA_SERVER_TLS_CLIENT_CERTIFICATES"
-    },
-    {
-        "path": "server.headers.csp_template",
-        "secret": false,
-        "env": "AUTHELIA_SERVER_HEADERS_CSP_TEMPLATE"
-    },
-    {
-        "path": "server.endpoints.enable_pprof",
-        "secret": false,
-        "env": "AUTHELIA_SERVER_ENDPOINTS_ENABLE_PPROF"
-    },
-    {
-        "path": "server.endpoints.enable_expvars",
-        "secret": false,
-        "env": "AUTHELIA_SERVER_ENDPOINTS_ENABLE_EXPVARS"
-    },
-    {
-        "path": "server.buffers.read",
-        "secret": false,
-        "env": "AUTHELIA_SERVER_BUFFERS_READ"
-    },
-    {
-        "path": "server.buffers.write",
-        "secret": false,
-        "env": "AUTHELIA_SERVER_BUFFERS_WRITE"
-    },
-    {
-        "path": "server.timeouts.read",
-        "secret": false,
-        "env": "AUTHELIA_SERVER_TIMEOUTS_READ"
-    },
-    {
-        "path": "server.timeouts.write",
-        "secret": false,
-        "env": "AUTHELIA_SERVER_TIMEOUTS_WRITE"
-    },
-    {
-        "path": "server.timeouts.idle",
-        "secret": false,
-        "env": "AUTHELIA_SERVER_TIMEOUTS_IDLE"
-    },
-    {
-        "path": "telemetry.metrics.enabled",
-        "secret": false,
-        "env": "AUTHELIA_TELEMETRY_METRICS_ENABLED"
-    },
-    {
-        "path": "telemetry.metrics.address",
-        "secret": false,
-        "env": "AUTHELIA_TELEMETRY_METRICS_ADDRESS"
-    },
-    {
-        "path": "telemetry.metrics.buffers.read",
-        "secret": false,
-        "env": "AUTHELIA_TELEMETRY_METRICS_BUFFERS_READ"
-    },
-    {
-        "path": "telemetry.metrics.buffers.write",
-        "secret": false,
-        "env": "AUTHELIA_TELEMETRY_METRICS_BUFFERS_WRITE"
-    },
-    {
-        "path": "telemetry.metrics.timeouts.read",
-        "secret": false,
-        "env": "AUTHELIA_TELEMETRY_METRICS_TIMEOUTS_READ"
-    },
-    {
-        "path": "telemetry.metrics.timeouts.write",
-        "secret": false,
-        "env": "AUTHELIA_TELEMETRY_METRICS_TIMEOUTS_WRITE"
-    },
-    {
-        "path": "telemetry.metrics.timeouts.idle",
-        "secret": false,
-        "env": "AUTHELIA_TELEMETRY_METRICS_TIMEOUTS_IDLE"
-    },
-    {
-        "path": "webauthn.disable",
-        "secret": false,
-        "env": "AUTHELIA_WEBAUTHN_DISABLE"
-    },
-    {
-        "path": "webauthn.display_name",
-        "secret": false,
-        "env": "AUTHELIA_WEBAUTHN_DISPLAY_NAME"
-    },
-    {
-        "path": "webauthn.attestation_conveyance_preference",
-        "secret": false,
-        "env": "AUTHELIA_WEBAUTHN_ATTESTATION_CONVEYANCE_PREFERENCE"
-    },
-    {
-        "path": "webauthn.user_verification",
-        "secret": false,
-        "env": "AUTHELIA_WEBAUTHN_USER_VERIFICATION"
-    },
-    {
-        "path": "webauthn.timeout",
-        "secret": false,
-        "env": "AUTHELIA_WEBAUTHN_TIMEOUT"
+        "env": "AUTHELIA_NTP_VERSION"
     },
     {
         "path": "password_policy.standard.enabled",
@@ -1000,19 +585,14 @@
         "env": "AUTHELIA_PASSWORD_POLICY_STANDARD_ENABLED"
     },
     {
-        "path": "password_policy.standard.min_length",
-        "secret": false,
-        "env": "AUTHELIA_PASSWORD_POLICY_STANDARD_MIN_LENGTH"
-    },
-    {
         "path": "password_policy.standard.max_length",
         "secret": false,
         "env": "AUTHELIA_PASSWORD_POLICY_STANDARD_MAX_LENGTH"
     },
     {
-        "path": "password_policy.standard.require_uppercase",
+        "path": "password_policy.standard.min_length",
         "secret": false,
-        "env": "AUTHELIA_PASSWORD_POLICY_STANDARD_REQUIRE_UPPERCASE"
+        "env": "AUTHELIA_PASSWORD_POLICY_STANDARD_MIN_LENGTH"
     },
     {
         "path": "password_policy.standard.require_lowercase",
@@ -1030,6 +610,11 @@
         "env": "AUTHELIA_PASSWORD_POLICY_STANDARD_REQUIRE_SPECIAL"
     },
     {
+        "path": "password_policy.standard.require_uppercase",
+        "secret": false,
+        "env": "AUTHELIA_PASSWORD_POLICY_STANDARD_REQUIRE_UPPERCASE"
+    },
+    {
         "path": "password_policy.zxcvbn.enabled",
         "secret": false,
         "env": "AUTHELIA_PASSWORD_POLICY_ZXCVBN_ENABLED"
@@ -1045,53 +630,468 @@
         "env": "AUTHELIA_PRIVACY_POLICY_ENABLED"
     },
     {
-        "path": "privacy_policy.require_user_acceptance",
-        "secret": false,
-        "env": "AUTHELIA_PRIVACY_POLICY_REQUIRE_USER_ACCEPTANCE"
-    },
-    {
         "path": "privacy_policy.policy_url",
         "secret": false,
         "env": "AUTHELIA_PRIVACY_POLICY_POLICY_URL"
     },
     {
-        "path": "identity_validation.reset_password.jwt_lifespan",
+        "path": "privacy_policy.require_user_acceptance",
         "secret": false,
-        "env": "AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_LIFESPAN"
+        "env": "AUTHELIA_PRIVACY_POLICY_REQUIRE_USER_ACCEPTANCE"
     },
     {
-        "path": "identity_validation.reset_password.jwt_algorithm",
+        "path": "regulation.ban_time",
         "secret": false,
-        "env": "AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_ALGORITHM"
+        "env": "AUTHELIA_REGULATION_BAN_TIME"
     },
     {
-        "path": "identity_validation.reset_password.jwt_secret",
+        "path": "regulation.find_time",
+        "secret": false,
+        "env": "AUTHELIA_REGULATION_FIND_TIME"
+    },
+    {
+        "path": "regulation.max_retries",
+        "secret": false,
+        "env": "AUTHELIA_REGULATION_MAX_RETRIES"
+    },
+    {
+        "path": "server.address",
+        "secret": false,
+        "env": "AUTHELIA_SERVER_ADDRESS"
+    },
+    {
+        "path": "server.asset_path",
+        "secret": false,
+        "env": "AUTHELIA_SERVER_ASSET_PATH"
+    },
+    {
+        "path": "server.buffers.read",
+        "secret": false,
+        "env": "AUTHELIA_SERVER_BUFFERS_READ"
+    },
+    {
+        "path": "server.buffers.write",
+        "secret": false,
+        "env": "AUTHELIA_SERVER_BUFFERS_WRITE"
+    },
+    {
+        "path": "server.disable_healthcheck",
+        "secret": false,
+        "env": "AUTHELIA_SERVER_DISABLE_HEALTHCHECK"
+    },
+    {
+        "path": "server.endpoints.enable_expvars",
+        "secret": false,
+        "env": "AUTHELIA_SERVER_ENDPOINTS_ENABLE_EXPVARS"
+    },
+    {
+        "path": "server.endpoints.enable_pprof",
+        "secret": false,
+        "env": "AUTHELIA_SERVER_ENDPOINTS_ENABLE_PPROF"
+    },
+    {
+        "path": "server.headers.csp_template",
+        "secret": false,
+        "env": "AUTHELIA_SERVER_HEADERS_CSP_TEMPLATE"
+    },
+    {
+        "path": "server.timeouts.idle",
+        "secret": false,
+        "env": "AUTHELIA_SERVER_TIMEOUTS_IDLE"
+    },
+    {
+        "path": "server.timeouts.read",
+        "secret": false,
+        "env": "AUTHELIA_SERVER_TIMEOUTS_READ"
+    },
+    {
+        "path": "server.timeouts.write",
+        "secret": false,
+        "env": "AUTHELIA_SERVER_TIMEOUTS_WRITE"
+    },
+    {
+        "path": "server.tls.certificate",
+        "secret": false,
+        "env": "AUTHELIA_SERVER_TLS_CERTIFICATE"
+    },
+    {
+        "path": "server.tls.client_certificates",
+        "secret": false,
+        "env": "AUTHELIA_SERVER_TLS_CLIENT_CERTIFICATES"
+    },
+    {
+        "path": "server.tls.key",
+        "secret": false,
+        "env": "AUTHELIA_SERVER_TLS_KEY"
+    },
+    {
+        "path": "session",
+        "secret": false,
+        "env": "AUTHELIA_SESSION"
+    },
+    {
+        "path": "session.expiration",
+        "secret": false,
+        "env": "AUTHELIA_SESSION_EXPIRATION"
+    },
+    {
+        "path": "session.inactivity",
+        "secret": false,
+        "env": "AUTHELIA_SESSION_INACTIVITY"
+    },
+    {
+        "path": "session.name",
+        "secret": false,
+        "env": "AUTHELIA_SESSION_NAME"
+    },
+    {
+        "path": "session.redis.database_index",
+        "secret": false,
+        "env": "AUTHELIA_SESSION_REDIS_DATABASE_INDEX"
+    },
+    {
+        "path": "session.redis.high_availability.route_by_latency",
+        "secret": false,
+        "env": "AUTHELIA_SESSION_REDIS_HIGH_AVAILABILITY_ROUTE_BY_LATENCY"
+    },
+    {
+        "path": "session.redis.high_availability.route_randomly",
+        "secret": false,
+        "env": "AUTHELIA_SESSION_REDIS_HIGH_AVAILABILITY_ROUTE_RANDOMLY"
+    },
+    {
+        "path": "session.redis.high_availability.sentinel_name",
+        "secret": false,
+        "env": "AUTHELIA_SESSION_REDIS_HIGH_AVAILABILITY_SENTINEL_NAME"
+    },
+    {
+        "path": "session.redis.high_availability.sentinel_password",
         "secret": true,
-        "env": "AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE"
+        "env": "AUTHELIA_SESSION_REDIS_HIGH_AVAILABILITY_SENTINEL_PASSWORD_FILE"
     },
     {
-        "path": "identity_validation.elevated_session.code_lifespan",
+        "path": "session.redis.high_availability.sentinel_username",
         "secret": false,
-        "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_CODE_LIFESPAN"
+        "env": "AUTHELIA_SESSION_REDIS_HIGH_AVAILABILITY_SENTINEL_USERNAME"
     },
     {
-        "path": "identity_validation.elevated_session.elevation_lifespan",
+        "path": "session.redis.host",
         "secret": false,
-        "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_ELEVATION_LIFESPAN"
+        "env": "AUTHELIA_SESSION_REDIS_HOST"
     },
     {
-        "path": "identity_validation.elevated_session.characters",
+        "path": "session.redis.maximum_active_connections",
         "secret": false,
-        "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_CHARACTERS"
+        "env": "AUTHELIA_SESSION_REDIS_MAXIMUM_ACTIVE_CONNECTIONS"
     },
     {
-        "path": "identity_validation.elevated_session.require_second_factor",
+        "path": "session.redis.minimum_idle_connections",
         "secret": false,
-        "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_REQUIRE_SECOND_FACTOR"
+        "env": "AUTHELIA_SESSION_REDIS_MINIMUM_IDLE_CONNECTIONS"
     },
     {
-        "path": "identity_validation.elevated_session.skip_second_factor",
+        "path": "session.redis.password",
+        "secret": true,
+        "env": "AUTHELIA_SESSION_REDIS_PASSWORD_FILE"
+    },
+    {
+        "path": "session.redis.port",
         "secret": false,
-        "env": "AUTHELIA_IDENTITY_VALIDATION_ELEVATED_SESSION_SKIP_SECOND_FACTOR"
+        "env": "AUTHELIA_SESSION_REDIS_PORT"
+    },
+    {
+        "path": "session.redis.tls.certificate_chain",
+        "secret": true,
+        "env": "AUTHELIA_SESSION_REDIS_TLS_CERTIFICATE_CHAIN_FILE"
+    },
+    {
+        "path": "session.redis.tls.maximum_version",
+        "secret": false,
+        "env": "AUTHELIA_SESSION_REDIS_TLS_MAXIMUM_VERSION"
+    },
+    {
+        "path": "session.redis.tls.minimum_version",
+        "secret": false,
+        "env": "AUTHELIA_SESSION_REDIS_TLS_MINIMUM_VERSION"
+    },
+    {
+        "path": "session.redis.tls.private_key",
+        "secret": true,
+        "env": "AUTHELIA_SESSION_REDIS_TLS_PRIVATE_KEY_FILE"
+    },
+    {
+        "path": "session.redis.tls.server_name",
+        "secret": false,
+        "env": "AUTHELIA_SESSION_REDIS_TLS_SERVER_NAME"
+    },
+    {
+        "path": "session.redis.tls.skip_verify",
+        "secret": false,
+        "env": "AUTHELIA_SESSION_REDIS_TLS_SKIP_VERIFY"
+    },
+    {
+        "path": "session.redis.username",
+        "secret": false,
+        "env": "AUTHELIA_SESSION_REDIS_USERNAME"
+    },
+    {
+        "path": "session.remember_me",
+        "secret": false,
+        "env": "AUTHELIA_SESSION_REMEMBER_ME"
+    },
+    {
+        "path": "session.same_site",
+        "secret": false,
+        "env": "AUTHELIA_SESSION_SAME_SITE"
+    },
+    {
+        "path": "session.secret",
+        "secret": true,
+        "env": "AUTHELIA_SESSION_SECRET_FILE"
+    },
+    {
+        "path": "storage.encryption_key",
+        "secret": true,
+        "env": "AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE"
+    },
+    {
+        "path": "storage.local.path",
+        "secret": false,
+        "env": "AUTHELIA_STORAGE_LOCAL_PATH"
+    },
+    {
+        "path": "storage.mysql.address",
+        "secret": false,
+        "env": "AUTHELIA_STORAGE_MYSQL_ADDRESS"
+    },
+    {
+        "path": "storage.mysql.database",
+        "secret": false,
+        "env": "AUTHELIA_STORAGE_MYSQL_DATABASE"
+    },
+    {
+        "path": "storage.mysql.password",
+        "secret": true,
+        "env": "AUTHELIA_STORAGE_MYSQL_PASSWORD_FILE"
+    },
+    {
+        "path": "storage.mysql.timeout",
+        "secret": false,
+        "env": "AUTHELIA_STORAGE_MYSQL_TIMEOUT"
+    },
+    {
+        "path": "storage.mysql.tls.certificate_chain",
+        "secret": true,
+        "env": "AUTHELIA_STORAGE_MYSQL_TLS_CERTIFICATE_CHAIN_FILE"
+    },
+    {
+        "path": "storage.mysql.tls.maximum_version",
+        "secret": false,
+        "env": "AUTHELIA_STORAGE_MYSQL_TLS_MAXIMUM_VERSION"
+    },
+    {
+        "path": "storage.mysql.tls.minimum_version",
+        "secret": false,
+        "env": "AUTHELIA_STORAGE_MYSQL_TLS_MINIMUM_VERSION"
+    },
+    {
+        "path": "storage.mysql.tls.private_key",
+        "secret": true,
+        "env": "AUTHELIA_STORAGE_MYSQL_TLS_PRIVATE_KEY_FILE"
+    },
+    {
+        "path": "storage.mysql.tls.server_name",
+        "secret": false,
+        "env": "AUTHELIA_STORAGE_MYSQL_TLS_SERVER_NAME"
+    },
+    {
+        "path": "storage.mysql.tls.skip_verify",
+        "secret": false,
+        "env": "AUTHELIA_STORAGE_MYSQL_TLS_SKIP_VERIFY"
+    },
+    {
+        "path": "storage.mysql.username",
+        "secret": false,
+        "env": "AUTHELIA_STORAGE_MYSQL_USERNAME"
+    },
+    {
+        "path": "storage.postgres.address",
+        "secret": false,
+        "env": "AUTHELIA_STORAGE_POSTGRES_ADDRESS"
+    },
+    {
+        "path": "storage.postgres.database",
+        "secret": false,
+        "env": "AUTHELIA_STORAGE_POSTGRES_DATABASE"
+    },
+    {
+        "path": "storage.postgres.password",
+        "secret": true,
+        "env": "AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE"
+    },
+    {
+        "path": "storage.postgres.schema",
+        "secret": false,
+        "env": "AUTHELIA_STORAGE_POSTGRES_SCHEMA"
+    },
+    {
+        "path": "storage.postgres.timeout",
+        "secret": false,
+        "env": "AUTHELIA_STORAGE_POSTGRES_TIMEOUT"
+    },
+    {
+        "path": "storage.postgres.tls.certificate_chain",
+        "secret": true,
+        "env": "AUTHELIA_STORAGE_POSTGRES_TLS_CERTIFICATE_CHAIN_FILE"
+    },
+    {
+        "path": "storage.postgres.tls.maximum_version",
+        "secret": false,
+        "env": "AUTHELIA_STORAGE_POSTGRES_TLS_MAXIMUM_VERSION"
+    },
+    {
+        "path": "storage.postgres.tls.minimum_version",
+        "secret": false,
+        "env": "AUTHELIA_STORAGE_POSTGRES_TLS_MINIMUM_VERSION"
+    },
+    {
+        "path": "storage.postgres.tls.private_key",
+        "secret": true,
+        "env": "AUTHELIA_STORAGE_POSTGRES_TLS_PRIVATE_KEY_FILE"
+    },
+    {
+        "path": "storage.postgres.tls.server_name",
+        "secret": false,
+        "env": "AUTHELIA_STORAGE_POSTGRES_TLS_SERVER_NAME"
+    },
+    {
+        "path": "storage.postgres.tls.skip_verify",
+        "secret": false,
+        "env": "AUTHELIA_STORAGE_POSTGRES_TLS_SKIP_VERIFY"
+    },
+    {
+        "path": "storage.postgres.username",
+        "secret": false,
+        "env": "AUTHELIA_STORAGE_POSTGRES_USERNAME"
+    },
+    {
+        "path": "telemetry.metrics.address",
+        "secret": false,
+        "env": "AUTHELIA_TELEMETRY_METRICS_ADDRESS"
+    },
+    {
+        "path": "telemetry.metrics.buffers.read",
+        "secret": false,
+        "env": "AUTHELIA_TELEMETRY_METRICS_BUFFERS_READ"
+    },
+    {
+        "path": "telemetry.metrics.buffers.write",
+        "secret": false,
+        "env": "AUTHELIA_TELEMETRY_METRICS_BUFFERS_WRITE"
+    },
+    {
+        "path": "telemetry.metrics.enabled",
+        "secret": false,
+        "env": "AUTHELIA_TELEMETRY_METRICS_ENABLED"
+    },
+    {
+        "path": "telemetry.metrics.timeouts.idle",
+        "secret": false,
+        "env": "AUTHELIA_TELEMETRY_METRICS_TIMEOUTS_IDLE"
+    },
+    {
+        "path": "telemetry.metrics.timeouts.read",
+        "secret": false,
+        "env": "AUTHELIA_TELEMETRY_METRICS_TIMEOUTS_READ"
+    },
+    {
+        "path": "telemetry.metrics.timeouts.write",
+        "secret": false,
+        "env": "AUTHELIA_TELEMETRY_METRICS_TIMEOUTS_WRITE"
+    },
+    {
+        "path": "theme",
+        "secret": false,
+        "env": "AUTHELIA_THEME"
+    },
+    {
+        "path": "totp.algorithm",
+        "secret": false,
+        "env": "AUTHELIA_TOTP_ALGORITHM"
+    },
+    {
+        "path": "totp.allowed_algorithms",
+        "secret": false,
+        "env": "AUTHELIA_TOTP_ALLOWED_ALGORITHMS"
+    },
+    {
+        "path": "totp.allowed_digits",
+        "secret": false,
+        "env": "AUTHELIA_TOTP_ALLOWED_DIGITS"
+    },
+    {
+        "path": "totp.allowed_periods",
+        "secret": false,
+        "env": "AUTHELIA_TOTP_ALLOWED_PERIODS"
+    },
+    {
+        "path": "totp.digits",
+        "secret": false,
+        "env": "AUTHELIA_TOTP_DIGITS"
+    },
+    {
+        "path": "totp.disable",
+        "secret": false,
+        "env": "AUTHELIA_TOTP_DISABLE"
+    },
+    {
+        "path": "totp.disable_reuse_security_policy",
+        "secret": false,
+        "env": "AUTHELIA_TOTP_DISABLE_REUSE_SECURITY_POLICY"
+    },
+    {
+        "path": "totp.issuer",
+        "secret": false,
+        "env": "AUTHELIA_TOTP_ISSUER"
+    },
+    {
+        "path": "totp.period",
+        "secret": false,
+        "env": "AUTHELIA_TOTP_PERIOD"
+    },
+    {
+        "path": "totp.secret_size",
+        "secret": false,
+        "env": "AUTHELIA_TOTP_SECRET_SIZE"
+    },
+    {
+        "path": "totp.skew",
+        "secret": false,
+        "env": "AUTHELIA_TOTP_SKEW"
+    },
+    {
+        "path": "webauthn.attestation_conveyance_preference",
+        "secret": false,
+        "env": "AUTHELIA_WEBAUTHN_ATTESTATION_CONVEYANCE_PREFERENCE"
+    },
+    {
+        "path": "webauthn.disable",
+        "secret": false,
+        "env": "AUTHELIA_WEBAUTHN_DISABLE"
+    },
+    {
+        "path": "webauthn.display_name",
+        "secret": false,
+        "env": "AUTHELIA_WEBAUTHN_DISPLAY_NAME"
+    },
+    {
+        "path": "webauthn.timeout",
+        "secret": false,
+        "env": "AUTHELIA_WEBAUTHN_TIMEOUT"
+    },
+    {
+        "path": "webauthn.user_verification",
+        "secret": false,
+        "env": "AUTHELIA_WEBAUTHN_USER_VERIFICATION"
     }
 ]
