@@ -22,12 +22,22 @@ import { IndexRoute } from "@constants/Routes";
 import { Identifier } from "@constants/SearchParams";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useRedirector } from "@hooks/Redirector";
-import { useUserInfoGET } from "@hooks/UserInfo";
 import LoginLayout from "@layouts/LoginLayout";
-import { ConsentGetResponseBody, acceptConsent, getConsentResponse, rejectConsent } from "@services/Consent";
+import { UserInfo } from "@models/UserInfo";
+import {
+    ConsentGetResponseBody,
+    acceptConsent,
+    getConsentResponse,
+    getScopeDescription,
+    rejectConsent,
+} from "@services/ConsentOpenIDConnect";
+import { AutheliaState } from "@services/State";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 
-export interface Props {}
+export interface Props {
+    userInfo: UserInfo;
+    state: AutheliaState;
+}
 
 function scopeNameToAvatar(id: string) {
     switch (id) {
@@ -48,10 +58,8 @@ function scopeNameToAvatar(id: string) {
     }
 }
 
-const ConsentView = function (props: Props) {
+const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => {
     const { t: translate } = useTranslation();
-
-    const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoGET();
 
     const { createErrorNotification, resetNotification } = useNotifications();
     const navigate = useNavigate();
@@ -68,10 +76,6 @@ const ConsentView = function (props: Props) {
     const handlePreConfigureChanged = () => {
         setPreConfigure((preConfigure) => !preConfigure);
     };
-
-    useEffect(() => {
-        fetchUserInfo();
-    }, [fetchUserInfo]);
 
     useEffect(() => {
         if (consentID !== null) {
@@ -91,31 +95,6 @@ const ConsentView = function (props: Props) {
             console.error(`Unable to display consent screen: ${error.message}`);
         }
     }, [navigate, resetNotification, createErrorNotification, error]);
-
-    useEffect(() => {
-        if (fetchUserInfoError) {
-            createErrorNotification(translate("There was an issue retrieving user preferences"));
-        }
-    }, [fetchUserInfoError, resetNotification, createErrorNotification, translate]);
-
-    const translateScopeNameToDescription = (id: string): string => {
-        switch (id) {
-            case "openid":
-                return translate("Use OpenID to verify your identity");
-            case "offline_access":
-                return translate("Automatically refresh these permissions without user interaction");
-            case "profile":
-                return translate("Access your profile information");
-            case "groups":
-                return translate("Access your group membership");
-            case "email":
-                return translate("Access your email addresses");
-            case "authelia.bearer.authz":
-                return translate("Access protected resources logged in as you");
-            default:
-                return id;
-        }
-    };
 
     const handleAcceptConsent = async () => {
         // This case should not happen in theory because the buttons are disabled when response is undefined.
@@ -143,10 +122,10 @@ const ConsentView = function (props: Props) {
     };
 
     return (
-        <ComponentOrLoading ready={response !== undefined && userInfo !== undefined}>
+        <ComponentOrLoading ready={response !== undefined}>
             <LoginLayout
                 id="consent-stage"
-                title={`${translate("Hi")} ${userInfo?.display_name}`}
+                title={`${translate("Hi")} ${props.userInfo.display_name}`}
                 subtitle={translate("Consent Request")}
             >
                 <Grid container alignItems={"center"} justifyContent="center">
@@ -176,7 +155,7 @@ const ConsentView = function (props: Props) {
                                     <Tooltip title={translate("Scope", { name: scope })}>
                                         <ListItem id={"scope-" + scope} dense>
                                             <ListItemIcon>{scopeNameToAvatar(scope)}</ListItemIcon>
-                                            <ListItemText primary={translateScopeNameToDescription(scope)} />
+                                            <ListItemText primary={translate(getScopeDescription(scope))} />
                                         </ListItem>
                                     </Tooltip>
                                 ))}
@@ -296,4 +275,4 @@ function ComponentOrLoading(props: ComponentOrLoadingProps) {
     );
 }
 
-export default ConsentView;
+export default OpenIDConnectConsentDecisionFormView;

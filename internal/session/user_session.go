@@ -24,11 +24,16 @@ func (s *UserSession) IsAnonymous() bool {
 
 // SetOneFactor sets the 1FA AMR's and expected property values for one factor authentication.
 func (s *UserSession) SetOneFactor(now time.Time, details *authentication.UserDetails, keepMeLoggedIn bool) {
-	s.FirstFactorAuthnTimestamp = now.Unix()
-	s.LastActivity = now.Unix()
 	s.AuthenticationLevel = authentication.OneFactor
 
 	s.KeepMeLoggedIn = keepMeLoggedIn
+
+	s.SetOneFactorReauthenticate(now, details)
+}
+
+func (s *UserSession) SetOneFactorReauthenticate(now time.Time, details *authentication.UserDetails) {
+	s.FirstFactorAuthnTimestamp = now.Unix()
+	s.LastActivity = now.Unix()
 
 	s.Username = details.Username
 	s.DisplayName = details.DisplayName
@@ -72,16 +77,32 @@ func (s *UserSession) SetTwoFactorWebAuthn(now time.Time, hardware, userPresence
 	s.WebAuthn = nil
 }
 
+func (s *UserSession) GetFirstFactorAuthn() time.Time {
+	return time.Unix(s.FirstFactorAuthnTimestamp, 0).UTC()
+}
+
+func (s *UserSession) GetSecondFactorAuthn() time.Time {
+	return time.Unix(s.SecondFactorAuthnTimestamp, 0).UTC()
+}
+
 // AuthenticatedTime returns the unix timestamp this session authenticated successfully at the given level.
 func (s *UserSession) AuthenticatedTime(level authorization.Level) (authenticatedTime time.Time, err error) {
 	switch level {
 	case authorization.OneFactor:
-		return time.Unix(s.FirstFactorAuthnTimestamp, 0).UTC(), nil
+		return s.GetFirstFactorAuthn(), nil
 	case authorization.TwoFactor:
-		return time.Unix(s.SecondFactorAuthnTimestamp, 0).UTC(), nil
+		return s.GetSecondFactorAuthn(), nil
 	default:
 		return time.Unix(0, 0).UTC(), errors.New("invalid authorization level")
 	}
+}
+
+func (s *UserSession) LastAuthenticatedTime() (authenticated time.Time) {
+	if s.FirstFactorAuthnTimestamp > s.SecondFactorAuthnTimestamp {
+		return s.GetFirstFactorAuthn()
+	}
+
+	return s.GetSecondFactorAuthn()
 }
 
 // Identity value of the user session.
