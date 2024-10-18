@@ -5,8 +5,9 @@ import (
 	"crypto/rsa"
 	"encoding/json"
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"io"
+
+	"gopkg.in/yaml.v3"
 	"net/mail"
 	"net/url"
 	"os"
