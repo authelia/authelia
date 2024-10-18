@@ -20,6 +20,7 @@ import (
 type MockLDAPClientFactory struct {
 	ctrl     *gomock.Controller
 	recorder *MockLDAPClientFactoryMockRecorder
+	isgomock struct{}
 }
 
 // MockLDAPClientFactoryMockRecorder is the mock recorder for MockLDAPClientFactory.
@@ -40,10 +41,10 @@ func (m *MockLDAPClientFactory) EXPECT() *MockLDAPClientFactoryMockRecorder {
 }
 
 // DialURL mocks base method.
-func (m *MockLDAPClientFactory) DialURL(arg0 string, arg1 ...ldap.DialOpt) (LDAPClient, error) {
+func (m *MockLDAPClientFactory) DialURL(addr string, opts ...ldap.DialOpt) (LDAPClient, error) {
 	m.ctrl.T.Helper()
-	varargs := []any{arg0}
-	for _, a := range arg1 {
+	varargs := []any{addr}
+	for _, a := range opts {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "DialURL", varargs...)
@@ -53,8 +54,8 @@ func (m *MockLDAPClientFactory) DialURL(arg0 string, arg1 ...ldap.DialOpt) (LDAP
 }
 
 // DialURL indicates an expected call of DialURL.
-func (mr *MockLDAPClientFactoryMockRecorder) DialURL(arg0 any, arg1 ...any) *gomock.Call {
+func (mr *MockLDAPClientFactoryMockRecorder) DialURL(addr any, opts ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{arg0}, arg1...)
+	varargs := append([]any{addr}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DialURL", reflect.TypeOf((*MockLDAPClientFactory)(nil).DialURL), varargs...)
 }

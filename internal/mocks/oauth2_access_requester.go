@@ -22,6 +22,7 @@ import (
 type MockAccessRequester struct {
 	ctrl     *gomock.Controller
 	recorder *MockAccessRequesterMockRecorder
+	isgomock struct{}
 }
 
 // MockAccessRequesterMockRecorder is the mock recorder for MockAccessRequester.
@@ -42,15 +43,15 @@ func (m *MockAccessRequester) EXPECT() *MockAccessRequesterMockRecorder {
 }
 
 // AppendRequestedScope mocks base method.
-func (m *MockAccessRequester) AppendRequestedScope(arg0 string) {
+func (m *MockAccessRequester) AppendRequestedScope(scope string) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "AppendRequestedScope", arg0)
+	m.ctrl.Call(m, "AppendRequestedScope", scope)
 }
 
 // AppendRequestedScope indicates an expected call of AppendRequestedScope.
-func (mr *MockAccessRequesterMockRecorder) AppendRequestedScope(arg0 any) *gomock.Call {
+func (mr *MockAccessRequesterMockRecorder) AppendRequestedScope(scope any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AppendRequestedScope", reflect.TypeOf((*MockAccessRequester)(nil).AppendRequestedScope), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AppendRequestedScope", reflect.TypeOf((*MockAccessRequester)(nil).AppendRequestedScope), scope)
 }
 
 // GetClient mocks base method.
@@ -194,99 +195,99 @@ func (mr *MockAccessRequesterMockRecorder) GetSession() *gomock.Call {
 }
 
 // GrantAudience mocks base method.
-func (m *MockAccessRequester) GrantAudience(arg0 string) {
+func (m *MockAccessRequester) GrantAudience(audience string) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "GrantAudience", arg0)
+	m.ctrl.Call(m, "GrantAudience", audience)
 }
 
 // GrantAudience indicates an expected call of GrantAudience.
-func (mr *MockAccessRequesterMockRecorder) GrantAudience(arg0 any) *gomock.Call {
+func (mr *MockAccessRequesterMockRecorder) GrantAudience(audience any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GrantAudience", reflect.TypeOf((*MockAccessRequester)(nil).GrantAudience), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GrantAudience", reflect.TypeOf((*MockAccessRequester)(nil).GrantAudience), audience)
 }
 
 // GrantScope mocks base method.
-func (m *MockAccessRequester) GrantScope(arg0 string) {
+func (m *MockAccessRequester) GrantScope(scope string) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "GrantScope", arg0)
+	m.ctrl.Call(m, "GrantScope", scope)
 }
 
 // GrantScope indicates an expected call of GrantScope.
-func (mr *MockAccessRequesterMockRecorder) GrantScope(arg0 any) *gomock.Call {
+func (mr *MockAccessRequesterMockRecorder) GrantScope(scope any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GrantScope", reflect.TypeOf((*MockAccessRequester)(nil).GrantScope), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GrantScope", reflect.TypeOf((*MockAccessRequester)(nil).GrantScope), scope)
 }
 
 // Merge mocks base method.
-func (m *MockAccessRequester) Merge(arg0 oauth2.Requester) {
+func (m *MockAccessRequester) Merge(requester oauth2.Requester) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Merge", arg0)
+	m.ctrl.Call(m, "Merge", requester)
 }
 
 // Merge indicates an expected call of Merge.
-func (mr *MockAccessRequesterMockRecorder) Merge(arg0 any) *gomock.Call {
+func (mr *MockAccessRequesterMockRecorder) Merge(requester any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Merge", reflect.TypeOf((*MockAccessRequester)(nil).Merge), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Merge", reflect.TypeOf((*MockAccessRequester)(nil).Merge), requester)
 }
 
 // Sanitize mocks base method.
-func (m *MockAccessRequester) Sanitize(arg0 []string) oauth2.Requester {
+func (m *MockAccessRequester) Sanitize(allowedParameters []string) oauth2.Requester {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Sanitize", arg0)
+	ret := m.ctrl.Call(m, "Sanitize", allowedParameters)
 	ret0, _ := ret[0].(oauth2.Requester)
 	return ret0
 }
 
 // Sanitize indicates an expected call of Sanitize.
-func (mr *MockAccessRequesterMockRecorder) Sanitize(arg0 any) *gomock.Call {
+func (mr *MockAccessRequesterMockRecorder) Sanitize(allowedParameters any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sanitize", reflect.TypeOf((*MockAccessRequester)(nil).Sanitize), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sanitize", reflect.TypeOf((*MockAccessRequester)(nil).Sanitize), allowedParameters)
 }
 
 // SetID mocks base method.
-func (m *MockAccessRequester) SetID(arg0 string) {
+func (m *MockAccessRequester) SetID(id string) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SetID", arg0)
+	m.ctrl.Call(m, "SetID", id)
 }
 
 // SetID indicates an expected call of SetID.
-func (mr *MockAccessRequesterMockRecorder) SetID(arg0 any) *gomock.Call {
+func (mr *MockAccessRequesterMockRecorder) SetID(id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetID", reflect.TypeOf((*MockAccessRequester)(nil).SetID), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetID", reflect.TypeOf((*MockAccessRequester)(nil).SetID), id)
 }
 
 // SetRequestedAudience mocks base method.
-func (m *MockAccessRequester) SetRequestedAudience(arg0 oauth2.Arguments) {
+func (m *MockAccessRequester) SetRequestedAudience(audience oauth2.Arguments) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SetRequestedAudience", arg0)
+	m.ctrl.Call(m, "SetRequestedAudience", audience)
 }
 
 // SetRequestedAudience indicates an expected call of SetRequestedAudience.
-func (mr *MockAccessRequesterMockRecorder) SetRequestedAudience(arg0 any) *gomock.Call {
+func (mr *MockAccessRequesterMockRecorder) SetRequestedAudience(audience any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetRequestedAudience", reflect.TypeOf((*MockAccessRequester)(nil).SetRequestedAudience), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetRequestedAudience", reflect.TypeOf((*MockAccessRequester)(nil).SetRequestedAudience), audience)
 }
 
 // SetRequestedScopes mocks base method.
-func (m *MockAccessRequester) SetRequestedScopes(arg0 oauth2.Arguments) {
+func (m *MockAccessRequester) SetRequestedScopes(scopes oauth2.Arguments) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SetRequestedScopes", arg0)
+	m.ctrl.Call(m, "SetRequestedScopes", scopes)
 }
 
 // SetRequestedScopes indicates an expected call of SetRequestedScopes.
-func (mr *MockAccessRequesterMockRecorder) SetRequestedScopes(arg0 any) *gomock.Call {
+func (mr *MockAccessRequesterMockRecorder) SetRequestedScopes(scopes any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetRequestedScopes", reflect.TypeOf((*MockAccessRequester)(nil).SetRequestedScopes), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetRequestedScopes", reflect.TypeOf((*MockAccessRequester)(nil).SetRequestedScopes), scopes)
 }
 
 // SetSession mocks base method.
-func (m *MockAccessRequester) SetSession(arg0 oauth2.Session) {
+func (m *MockAccessRequester) SetSession(session oauth2.Session) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SetSession", arg0)
+	m.ctrl.Call(m, "SetSession", session)
 }
 
 // SetSession indicates an expected call of SetSession.
-func (mr *MockAccessRequesterMockRecorder) SetSession(arg0 any) *gomock.Call {
+func (mr *MockAccessRequesterMockRecorder) SetSession(session any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetSession", reflect.TypeOf((*MockAccessRequester)(nil).SetSession), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetSession", reflect.TypeOf((*MockAccessRequester)(nil).SetSession), session)
 }
