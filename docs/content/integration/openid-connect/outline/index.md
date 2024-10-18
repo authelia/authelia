@@ -90,7 +90,7 @@ OIDC_TOKEN_URI=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{<
 OIDC_USERINFO_URI=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo
 OIDC_USERNAME_CLAIM=preferred_username
 OIDC_DISPLAY_NAME=Authelia
-OIDC_SCOPES="openid offline_access profile email"
+OIDC_SCOPES=openid offline_access profile email
 ```
 
 ## See Also
