@@ -66,6 +66,11 @@ func handleOIDCAuthorizationConsentModeExplicitWithID(ctx *middlewares.AutheliaC
 		ctx.Logger.Errorf(logFmtErrConsentSessionSubjectNotAuthorized, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, userSession.Username, subject, consent.Subject.UUID)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotLookup)
+		return nil, true
+	}
+
+	if oidc.RequesterRequiresLogin(requester, consent.RequestedAt, userSession.LastAuthenticatedTime()) {
+		handleOIDCAuthorizationConsentPromptLoginRedirect(ctx, issuer, client, userSession, rw, r, requester, consent)
 
 		return nil, true
 	}

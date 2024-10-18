@@ -71,6 +71,11 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Auth
 		ctx.Logger.Errorf(logFmtErrConsentSessionSubjectNotAuthorized, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, userSession.Username, subject, consent.Subject.UUID)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotLookup)
+		return nil, true
+	}
+
+	if oidc.RequesterRequiresLogin(requester, consent.RequestedAt, userSession.LastAuthenticatedTime()) {
+		handleOIDCAuthorizationConsentPromptLoginRedirect(ctx, issuer, client, userSession, rw, r, requester, consent)
 
 		return nil, true
 	}
@@ -96,7 +101,7 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Auth
 
 		consent.PreConfiguration = sql.NullInt64{Int64: config.ID, Valid: true}
 
-		if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, *consent, false); err != nil {
+		if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, false); err != nil {
 			ctx.Logger.Errorf(logFmtErrConsentSaveSessionResponse, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, err)
 
 			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotSave)
@@ -168,7 +173,7 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares.A
 		return nil, true
 	}
 
-	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSession(ctx, *consent); err != nil {
+	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSession(ctx, consent); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentSaveSession, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, err)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotSave)
@@ -184,11 +189,19 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares.A
 		return nil, true
 	}
 
+	if oidc.RequesterRequiresLogin(requester, consent.RequestedAt, userSession.LastAuthenticatedTime()) {
+		handleOIDCAuthorizationConsentPromptLoginRedirect(ctx, issuer, client, userSession, rw, r, requester, consent)
+
+		return nil, true
+	} else {
+		ctx.Logger.WithFields(map[string]any{"requested_at": consent.RequestedAt, "authenticated_at": userSession.LastAuthenticatedTime(), "prompt": requester.GetRequestForm().Get("prompt")}).Debugf("Authorization Request with id '%s' on client with id '%s' is not being redirected for reauthentication", requester.GetID(), client.GetID())
+	}
+
 	consent.Grant()
 
 	consent.PreConfiguration = sql.NullInt64{Int64: config.ID, Valid: true}
 
-	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, *consent, false); err != nil {
+	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, false); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentSaveSessionResponse, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, err)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotSave)
