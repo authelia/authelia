@@ -33,6 +33,7 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlUpsertDuoDevice = fmt.Sprintf(queryFmtUpsertDuoDevicePostgreSQL, tableDuoDevices)
 	provider.sqlUpsertTOTPConfig = fmt.Sprintf(queryFmtUpsertTOTPConfigurationPostgreSQL, tableTOTPConfigurations)
 	provider.sqlUpsertPreferred2FAMethod = fmt.Sprintf(queryFmtUpsertPreferred2FAMethodPostgreSQL, tableUserPreferences)
+	provider.sqlSelectUserInfo = provider.db.Rebind(provider.sqlSelectUserInfo)
 	provider.sqlUpsertEncryptionValue = fmt.Sprintf(queryFmtUpsertEncryptionValuePostgreSQL, tableEncryption)
 	provider.sqlUpsertOAuth2BlacklistedJTI = fmt.Sprintf(queryFmtUpsertOAuth2BlacklistedJTIPostgreSQL, tableOAuth2BlacklistedJTI)
 	provider.sqlInsertOAuth2ConsentPreConfiguration = fmt.Sprintf(queryFmtInsertOAuth2ConsentPreConfigurationPostgreSQL, tableOAuth2ConsentPreConfiguration)
@@ -144,6 +145,20 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlSelectOAuth2RefreshTokenSession = provider.db.Rebind(provider.sqlSelectOAuth2RefreshTokenSession)
 
 	provider.sqlSelectOAuth2BlacklistedJTI = provider.db.Rebind(provider.sqlSelectOAuth2BlacklistedJTI)
+
+	provider.sqlInsertUserAttributes = provider.db.Rebind(provider.sqlInsertUserAttributes)
+	provider.sqlInsertNewUserAttributes = provider.db.Rebind(provider.sqlInsertNewUserAttributes)
+	provider.sqlInsertExistingUserAtLoginAttributes = provider.db.Rebind(provider.sqlInsertExistingUserAtLoginAttributes)
+	provider.sqlSelectUserAttributesByUsername = provider.db.Rebind(provider.sqlSelectUserAttributesByUsername)
+	provider.sqlUpdateUserAttributesByUsername = provider.db.Rebind(provider.sqlUpdateUserAttributesByUsername)
+	provider.sqlUpdateUserRecordSignInByUsername = provider.db.Rebind(provider.sqlInsertExistingUserAtLoginAttributes)
+	provider.sqlUpdateUserRecordDisabledByUsername = provider.db.Rebind(provider.sqlUpdateUserRecordDisabledByUsername)
+	provider.sqlSelectDisabledUserByUsername = provider.db.Rebind(provider.sqlSelectDisabledUserByUsername)
+	provider.sqlSelectDisabledUsers = provider.db.Rebind(provider.sqlSelectDisabledUsers)
+	provider.sqlDeleteUserAttributesByUsername = provider.db.Rebind(provider.sqlDeleteUserAttributesByUsername)
+	provider.sqlUpdateUserRecordPasswordChangedAtByUsername = provider.db.Rebind(provider.sqlUpdateUserRecordPasswordChangedAtByUsername)
+	provider.sqlUpdateUserRecordRequirePasswordChangedByUsername = provider.db.Rebind(provider.sqlUpdateUserRecordRequirePasswordChangedByUsername)
+	provider.sqlUpdateUserRecordLogoutRequiredByUsername = provider.db.Rebind(provider.sqlUpdateUserRecordLogoutRequiredByUsername)
 
 	provider.schema = config.Storage.PostgreSQL.Schema
 

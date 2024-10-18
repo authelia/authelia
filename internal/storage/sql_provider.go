@@ -39,6 +39,22 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlInsertAuthenticationAttempt:            fmt.Sprintf(queryFmtInsertAuthenticationLogEntry, tableAuthenticationLogs),
 		sqlSelectAuthenticationAttemptsByUsername: fmt.Sprintf(queryFmtSelect1FAAuthenticationLogEntryByUsername, tableAuthenticationLogs),
 
+		sqlInsertUserAttributes:                             fmt.Sprintf(queryFmtInsertUserAttributes, tableUserAttributes),
+		sqlInsertNewUserAttributes:                          fmt.Sprintf(queryFmtInsertNewUserAttributes, tableUserAttributes),
+		sqlInsertExistingUserAtLoginAttributes:              fmt.Sprintf(queryFmtInsertNewUserAtLoginAttributes, tableUserAttributes),
+		sqlSelectUserAttributes:                             fmt.Sprintf(queryFmtSelectUserAttributes, tableUserAttributes),
+		sqlSelectUserAttributesByUsername:                   fmt.Sprintf(queryFmtSelectUserByUsername, tableUserAttributes),
+		sqlSelectAllUserInfoAndAttributes:                   fmt.Sprintf(queryFmtSelectAllUserInfoAndAttributes, tableUserPreferences, tableUserAttributes, tableTOTPConfigurations, tableWebAuthnCredentials, tableDuoDevices),
+		sqlUpdateUserAttributesByUsername:                   fmt.Sprintf(queryFmtUpdateUserAttributesByUsername, tableUserAttributes),
+		sqlUpdateUserRecordSignInByUsername:                 fmt.Sprintf(queryFmtUpdateUserRecordSignInByUsername, tableUserAttributes),
+		sqlUpdateUserRecordDisabledByUsername:               fmt.Sprintf(queryFmtUpdateUserRecordDisabledByUsername, tableUserAttributes),
+		sqlSelectDisabledUserByUsername:                     fmt.Sprintf(queryFmtSelectDisabledUserByUsername, tableUserAttributes),
+		sqlSelectDisabledUsers:                              fmt.Sprintf(queryFmtSelectDisabledUsers, tableUserAttributes),
+		sqlDeleteUserAttributesByUsername:                   fmt.Sprintf(queryFmtDeleteUserAttributesByUsername, tableUserAttributes),
+		sqlUpdateUserRecordPasswordChangedAtByUsername:      fmt.Sprintf(queryFmtUpdateUserRecordPasswordChangedAtByUsername, tableUserAttributes),
+		sqlUpdateUserRecordRequirePasswordChangedByUsername: fmt.Sprintf(queryFmtUpdateUserRecordRequirePasswordChangeByUsername, tableUserAttributes),
+		sqlUpdateUserRecordLogoutRequiredByUsername:         fmt.Sprintf(queryFmtUpdateUserRecordLogoutRequiredByUsername, tableUserAttributes),
+
 		sqlInsertIdentityVerification:  fmt.Sprintf(queryFmtInsertIdentityVerification, tableIdentityVerification),
 		sqlConsumeIdentityVerification: fmt.Sprintf(queryFmtConsumeIdentityVerification, tableIdentityVerification),
 		sqlRevokeIdentityVerification:  fmt.Sprintf(queryFmtRevokeIdentityVerification, tableIdentityVerification),
@@ -83,7 +99,8 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 
 		sqlUpsertPreferred2FAMethod: fmt.Sprintf(queryFmtUpsertPreferred2FAMethod, tableUserPreferences),
 		sqlSelectPreferred2FAMethod: fmt.Sprintf(queryFmtSelectPreferred2FAMethod, tableUserPreferences),
-		sqlSelectUserInfo:           fmt.Sprintf(queryFmtSelectUserInfo, tableTOTPConfigurations, tableWebAuthnCredentials, tableDuoDevices, tableUserPreferences),
+		sqlSelectUserInfo:           fmt.Sprintf(queryFmtSelectUserInfoByUsername, tableTOTPConfigurations, tableWebAuthnCredentials, tableDuoDevices, tableUserPreferences),
+		sqlSelectAllUserInfo:        fmt.Sprintf(queryFmtSelectAllUserInfo, tableUserPreferences, tableTOTPConfigurations, tableWebAuthnCredentials, tableDuoDevices),
 
 		sqlInsertUserOpaqueIdentifier:            fmt.Sprintf(queryFmtInsertUserOpaqueIdentifier, tableUserOpaqueIdentifier),
 		sqlSelectUserOpaqueIdentifier:            fmt.Sprintf(queryFmtSelectUserOpaqueIdentifier, tableUserOpaqueIdentifier),
@@ -173,6 +190,23 @@ type SQLProvider struct {
 	sqlInsertAuthenticationAttempt            string
 	sqlSelectAuthenticationAttemptsByUsername string
 
+	// Table: user_attributes.
+	sqlInsertUserAttributes                             string
+	sqlInsertNewUserAttributes                          string
+	sqlInsertExistingUserAtLoginAttributes              string
+	sqlSelectUserAttributes                             string
+	sqlSelectUserAttributesByUsername                   string
+	sqlSelectAllUserInfoAndAttributes                   string
+	sqlUpdateUserAttributesByUsername                   string
+	sqlUpdateUserRecordSignInByUsername                 string
+	sqlUpdateUserRecordDisabledByUsername               string
+	sqlSelectDisabledUserByUsername                     string
+	sqlSelectDisabledUsers                              string
+	sqlDeleteUserAttributesByUsername                   string
+	sqlUpdateUserRecordPasswordChangedAtByUsername      string
+	sqlUpdateUserRecordRequirePasswordChangedByUsername string
+	sqlUpdateUserRecordLogoutRequiredByUsername         string
+
 	// Table: identity_verification.
 	sqlInsertIdentityVerification  string
 	sqlConsumeIdentityVerification string
@@ -228,6 +262,7 @@ type SQLProvider struct {
 	sqlUpsertPreferred2FAMethod string
 	sqlSelectPreferred2FAMethod string
 	sqlSelectUserInfo           string
+	sqlSelectAllUserInfo        string
 
 	// Table: user_opaque_identifier.
 	sqlInsertUserOpaqueIdentifier            string
@@ -407,10 +442,238 @@ func (p *SQLProvider) Close() (err error) {
 	return p.db.Close()
 }
 
+// CreateExistingUserAttributes add an existing user's attribute record to the storage provider without setting creation date.
+func (p *SQLProvider) CreateExistingUserAttributes(ctx context.Context, username string) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlInsertUserAttributes, username); err != nil {
+		return fmt.Errorf("error creating exiting user attributes for user '%s': %w", username, err)
+	}
+
+	return nil
+}
+
+// CreateNewUserAttributes adds a new user's attribute record to the storage provider along with the user's creation date.
+func (p *SQLProvider) CreateNewUserAttributes(ctx context.Context, username string) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlInsertNewUserAttributes, username, time.Now()); err != nil {
+		return fmt.Errorf("error creating new user attributes for user '%s': %w", username, err)
+	}
+
+	return nil
+}
+
+// CreateExistingUserAttributesAtLogin adds a new user's attribute record to the storage provider, and sets their last login time.
+func (p *SQLProvider) CreateExistingUserAttributesAtLogin(ctx context.Context, username string) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlInsertExistingUserAtLoginAttributes, username, time.Now()); err != nil {
+		return fmt.Errorf("error creating new user attributes for user '%s': %w", username, err)
+	}
+
+	return nil
+}
+
+// LoadAllUsersAttributes load all user attributes from the database.
+func (p *SQLProvider) LoadAllUsersAttributes(ctx context.Context) (allUserAttributes []model.UserInfo, err error) {
+	rows, err := p.db.QueryContext(ctx, p.sqlSelectUserAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("error querying user attributes: %w", err)
+	}
+	defer rows.Close()
+
+	var users []model.UserInfo
+
+	for rows.Next() {
+		var user model.UserInfo
+
+		var lastLoggedIn, lastPasswordChange, userCreatedAt sql.NullTime
+
+		err := rows.Scan(
+			&user.Username,
+			&user.Disabled,
+			&lastLoggedIn,
+			&user.PasswordChangeRequired,
+			&lastPasswordChange,
+			&user.LogoutRequired,
+			&userCreatedAt,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("error scanning user attributes: %w", err)
+		}
+
+		if lastLoggedIn.Valid {
+			user.LastLoggedIn = &lastLoggedIn.Time
+		}
+
+		if lastPasswordChange.Valid {
+			user.LastPasswordChange = &lastPasswordChange.Time
+		}
+
+		if userCreatedAt.Valid {
+			user.UserCreatedAt = &userCreatedAt.Time
+		}
+
+		users = append(users, user)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating user attributes: %w", err)
+	}
+
+	return users, nil
+}
+
+// LoadUserAttributes load the user attributes for a specific user.
+func (p *SQLProvider) LoadUserAttributesByUsername(ctx context.Context, username string) (userAttributes model.UserInfo, err error) {
+	var lastLoggedIn, lastPasswordChange, userCreatedAt sql.NullTime
+
+	err = p.db.QueryRowContext(ctx, p.sqlSelectUserAttributesByUsername, username).Scan(
+		&userAttributes.Username,
+		&userAttributes.Disabled,
+		&lastLoggedIn,
+		&userAttributes.PasswordChangeRequired,
+		&lastPasswordChange,
+		&userAttributes.LogoutRequired,
+		&userCreatedAt,
+	)
+
+	switch {
+	case err == nil:
+		if lastLoggedIn.Valid {
+			userAttributes.LastLoggedIn = &lastLoggedIn.Time
+		}
+
+		if lastPasswordChange.Valid {
+			userAttributes.LastPasswordChange = &lastPasswordChange.Time
+		}
+
+		if userCreatedAt.Valid {
+			userAttributes.UserCreatedAt = &userCreatedAt.Time
+		}
+
+		return userAttributes, nil
+	case errors.Is(err, sql.ErrNoRows):
+		return model.UserInfo{}, sql.ErrNoRows
+	default:
+		return model.UserInfo{}, fmt.Errorf("error retrieving user attributes for user '%s': %w", username, err)
+	}
+}
+
+func (p *SQLProvider) UpdateUserAttributesByUsername(ctx context.Context, disabled bool, password_change_required bool, logout_required bool, username string) (rowsAffected int64, err error) {
+	result, err := p.db.ExecContext(ctx, p.sqlUpdateUserAttributesByUsername, disabled, password_change_required, logout_required, username)
+
+	if err != nil {
+		return 0, fmt.Errorf("error updating user attributes by username for user '%s': %w", username, err)
+	}
+
+	rowsAffected, err = result.RowsAffected()
+	if err != nil {
+		return 0, fmt.Errorf("error getting rows affected while changing user attributes for user '%s': %w", username, err)
+	}
+
+	if rowsAffected == 0 {
+		return 0, fmt.Errorf("rows not changed")
+	}
+
+	return rowsAffected, nil
+}
+
+// UpdateUserSignInDateByUsername save the current time as the last time a user logged in successfully.
+func (p *SQLProvider) UpdateUserSignInDateByUsername(ctx context.Context, username string) (err error) {
+	result, err := p.db.ExecContext(ctx, p.sqlUpdateUserRecordSignInByUsername, time.Now(), username)
+
+	if err != nil {
+		return fmt.Errorf("error updating latest sign in time for user '%s: %w", username, err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("error getting rows affected for user '%s': %w", username, err)
+	}
+
+	if rowsAffected == 0 {
+		if err := p.CreateExistingUserAttributesAtLogin(ctx, username); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// UpdateUserDisabledByUsername save the current disabled status for a username to the storage provider.
+func (p *SQLProvider) UpdateUserDisabledByUsername(ctx context.Context, username string, disabled bool) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlUpdateUserRecordDisabledByUsername, disabled, username); err != nil {
+		return fmt.Errorf("error updating disabled user state for user '%s: %w", username, err)
+	}
+
+	return nil
+}
+
+// LoadDisabledUserByUsername loads a specific disabled user from the storage provider.
+func (p *SQLProvider) LoadDisabledUserByUsername(ctx context.Context, username string) (userAttributes model.UserInfo, err error) {
+	err = p.db.GetContext(ctx, &userAttributes, p.sqlSelectDisabledUserByUsername, username)
+
+	switch {
+	case err == nil:
+		return userAttributes, nil
+	case errors.Is(err, sql.ErrNoRows):
+		return model.UserInfo{}, sql.ErrNoRows
+	default:
+		return model.UserInfo{}, fmt.Errorf("error retrieving disabled user attributes for user '%s': %w", username, err)
+	}
+}
+
+// LoadDisabledUsers load all disabled users from the storage provider.
+func (p *SQLProvider) LoadDisabledUsers(ctx context.Context) (userAttributes []model.UserInfo, err error) {
+	err = p.db.GetContext(ctx, &userAttributes, p.sqlSelectDisabledUsers)
+
+	switch {
+	case err == nil:
+		return userAttributes, nil
+	case errors.Is(err, sql.ErrNoRows):
+		return nil, sql.ErrNoRows
+	default:
+		return nil, fmt.Errorf("error retrieving disabled users: %w", err)
+	}
+}
+
+// DeleteUserByUsername deletes a specific user from the storage provider.
+func (p *SQLProvider) DeleteUserByUsername(ctx context.Context, username string, disabled bool) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlDeleteUserAttributesByUsername, username); err != nil {
+		return fmt.Errorf("error deleting user attributes for user '%s: %w", username, err)
+	}
+
+	return nil
+}
+
+// UpdatePasswordChangedDateByUsername save the current time as the last time a user changed their password.
+func (p *SQLProvider) UpdatePasswordChangedDateByUsername(ctx context.Context, username string) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlUpdateUserRecordPasswordChangedAtByUsername, time.Now(), username); err != nil {
+		return fmt.Errorf("error updating 'latest password change date' for user '%s: %w", username, err)
+	}
+
+	return nil
+}
+
+// UpdateRequirePasswordChangeByUsername save the desired state for the require password change flag.
+func (p *SQLProvider) UpdateRequirePasswordChangeByUsername(ctx context.Context, username string, needPasswordChange bool) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlUpdateUserRecordRequirePasswordChangedByUsername, needPasswordChange, username); err != nil {
+		return fmt.Errorf("error updating 'require password change' state for user '%s: %w", username, err)
+	}
+
+	return nil
+}
+
+// UpdateLogoutRequiredByUsername save the desired state for the require logout flag.
+func (p *SQLProvider) UpdateLogoutRequiredByUsername(ctx context.Context, username string, logoutRequired bool) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlUpdateUserRecordLogoutRequiredByUsername, logoutRequired, username); err != nil {
+		return fmt.Errorf("error updating 'require user logout' state for user '%s: %w", username, err)
+	}
+
+	return nil
+}
+
 // SavePreferred2FAMethod save the preferred method for 2FA for a username to the storage provider.
 func (p *SQLProvider) SavePreferred2FAMethod(ctx context.Context, username string, method string) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlUpsertPreferred2FAMethod, username, method); err != nil {
-		return fmt.Errorf("error upserting preferred two factor method for user '%s': %w", username, err)
+		return fmt.Errorf("error inserting preferred two factor method for user '%s': %w", username, err)
 	}
 
 	return nil
@@ -440,6 +703,86 @@ func (p *SQLProvider) LoadUserInfo(ctx context.Context, username string) (info m
 	default:
 		return model.UserInfo{}, fmt.Errorf("error selecting user info for user '%s': %w", username, err)
 	}
+}
+
+// LoadAllUserInfo loads the model.UserInfo from the storage provider for all users.
+func (p *SQLProvider) LoadAllUserInfo(ctx context.Context) (info []model.UserInfo, err error) {
+	rows, err := p.db.QueryContext(ctx, p.sqlSelectAllUserInfo)
+
+	if err != nil {
+		return nil, fmt.Errorf("error selecting user info for all users: %w", err)
+	}
+
+	defer rows.Close()
+
+	var users []model.UserInfo
+
+	for rows.Next() {
+		var user model.UserInfo
+
+		err := rows.Scan(
+			&user.Username,
+			&user.Method,
+			&user.HasTOTP,
+			&user.HasWebAuthn,
+			&user.HasDuo,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("error scanning all user info: %w", err)
+		}
+
+		users = append(users, user)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating user info: %w", err)
+	}
+
+	return users, nil
+}
+
+// LoadAllUserInfo loads the model.UserInfo from the storage provider for all users.
+func (p *SQLProvider) LoadAllUserInfoAndAttributes(ctx context.Context) (info []model.UserInfo, err error) {
+	rows, err := p.db.QueryContext(ctx, p.sqlSelectAllUserInfoAndAttributes)
+
+	if err != nil {
+		return nil, fmt.Errorf("error selecting user info and attributes for all users: %w", err)
+	}
+
+	defer rows.Close()
+
+	var users []model.UserInfo
+
+	for rows.Next() {
+		var user model.UserInfo
+
+		err := rows.Scan(
+			&user.Username,
+			&user.Method,
+			&user.Disabled,
+			&user.LastLoggedIn,
+			&user.PasswordChangeRequired,
+			&user.LastPasswordChange,
+			&user.LogoutRequired,
+			&user.UserCreatedAt,
+			&user.HasTOTP,
+			&user.HasWebAuthn,
+			&user.HasDuo,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("error scanning all user info and attributes : %w", err)
+		}
+
+		users = append(users, user)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating user info and attributes: %w", err)
+	}
+
+	return users, nil
 }
 
 // SaveUserOpaqueIdentifier saves a new opaque user identifier to the storage provider.

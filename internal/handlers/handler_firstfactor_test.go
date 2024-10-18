@@ -201,6 +201,11 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
 		Return(nil)
 
+	s.mock.StorageMock.
+		EXPECT().
+		UpdateUserSignInDateByUsername(s.mock.Ctx, gomock.Eq("test")).
+		Return(nil)
+
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
 		"password": "hello",
@@ -240,6 +245,11 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
 	s.mock.StorageMock.
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
+		Return(nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		UpdateUserSignInDateByUsername(s.mock.Ctx, gomock.Eq("test")).
 		Return(nil)
 
 	s.mock.Ctx.Request.SetBodyString(`{
@@ -285,6 +295,11 @@ func (s *FirstFactorSuite) TestShouldSaveUsernameFromAuthenticationBackendInSess
 	s.mock.StorageMock.
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
+		Return(nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		UpdateUserSignInDateByUsername(s.mock.Ctx, gomock.Eq("Test")).
 		Return(nil)
 
 	s.mock.Ctx.Request.SetBodyString(`{
@@ -367,6 +382,12 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenNoTarget
 		"requestMethod": "GET",
 		"keepMeLoggedIn": false
 	}`)
+
+	s.mock.StorageMock.EXPECT().
+		UpdateUserSignInDateByUsername(s.mock.Ctx, "test").
+		Return(nil).
+		Times(1)
+
 	FirstFactorPOST(nil)(s.mock.Ctx)
 
 	// Respond with 200.
@@ -390,6 +411,11 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenURLIsUns
 		"keepMeLoggedIn": false,
 		"targetURL": "http://notsafe.local"
 	}`)
+
+	s.mock.StorageMock.EXPECT().
+		UpdateUserSignInDateByUsername(s.mock.Ctx, "test").
+		Return(nil).
+		Times(1)
 
 	FirstFactorPOST(nil)(s.mock.Ctx)
 
@@ -416,6 +442,11 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenNoTargetURLProvidedA
 		"requestMethod": "GET",
 		"keepMeLoggedIn": false
 	}`)
+
+	s.mock.StorageMock.EXPECT().
+		UpdateUserSignInDateByUsername(s.mock.Ctx, "test").
+		Return(nil).
+		Times(1)
 
 	FirstFactorPOST(nil)(s.mock.Ctx)
 
@@ -451,6 +482,11 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenUnsafeTargetURLProvi
 		"requestMethod": "GET",
 		"keepMeLoggedIn": false
 	}`)
+
+	s.mock.StorageMock.EXPECT().
+		UpdateUserSignInDateByUsername(s.mock.Ctx, "test").
+		Return(nil).
+		Times(1)
 
 	FirstFactorPOST(nil)(s.mock.Ctx)
 
