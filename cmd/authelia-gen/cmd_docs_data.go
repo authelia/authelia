@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 
-	"github.com/spf13/cobra"
-
 	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/spf13/cobra"
 )
 
 func newDocsDataCmd() *cobra.Command {
@@ -57,6 +57,45 @@ func docsDataMiscRunE(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	data.Latest = version.String()
+
+	var (
+		compose           *Compose
+		service           ComposeService
+		root, composePath string
+		ok                bool
+	)
+
+	if root, err = getPFlagPath(cmd.Flags(), cmdFlagRoot); err != nil {
+		return err
+	}
+
+	composePath = filepath.Join(root, "internal", "suites", "example", "compose", "traefik", "docker-compose.v3.yml")
+
+	if compose, err = readCompose(composePath); err != nil {
+		return err
+	}
+
+	if service, ok = compose.Services["traefik"]; !ok {
+		return fmt.Errorf("traefik service not found")
+	}
+
+	if tag, success := strings.CutPrefix(service.Image, "traefik:"); success {
+		data.Support.Traefik = append(data.Support.Traefik, tag)
+	}
+
+	composePath = filepath.Join(root, "internal", "suites", "example", "compose", "traefik", "docker-compose.v2.yml")
+
+	if compose, err = readCompose(composePath); err != nil {
+		return err
+	}
+
+	if service, ok = compose.Services["traefik"]; !ok {
+		return fmt.Errorf("traefik service not found")
+	}
+
+	if tag, success := strings.CutPrefix(service.Image, "traefik:"); success {
+		data.Support.Traefik = append(data.Support.Traefik, tag)
+	}
 
 	var (
 		outputPath string

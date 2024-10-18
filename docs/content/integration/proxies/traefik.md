@@ -26,15 +26,17 @@ throughout this documentation and in the [See Also](#see-also) section.*
 
 ## Requirements
 
-You need the following to run __Authelia__ with [Traefik]:
+Authelia by default only generally provides support for versions of products that are also supported by their respective
+developer. As such we only support the versions [Traefik] officially provides support for. The versions and lifetime
+of support for [Traefik] can be read about in the official
+[Traefik Deprecation Notices](https://doc.traefik.io/traefik/deprecation/releases/) documentation.
 
-* [Traefik] [v3.1.0](https://github.com/traefik/traefik/releases/tag/v3.1.0) or greater recommended, however it must be
-  a release that has [Traefik] support
-* [Traefik] [v2.11.0](https://github.com/traefik/traefik/releases/tag/v2.11.0) or greater is supported, however it must
-  also be a release that has [Traefik] support
+It should be noted that while these are the listed versions that are supported you may have luck with older versions.
 
-See the official [Traefik Deprecation Notices](https://doc.traefik.io/traefik/deprecation/releases/) documentation for
-more information on the versions of [Traefik] that are officially supported by [Traefik].
+We can officially guarantee the following verions of [Traefik] as these are the versions we perform integration testing
+with at the current time:
+
+{{% supported-product product="traefik" format="* [Traefik $version](https://github.com/traefik/traefik/releases/tag/$version)" %}}
 
 ## Get started
 

@@ -1,0 +1,6 @@
+{{- $key := .Get "product" }}
+{{- $format := .Get "format" }}
+{{- $product := index $.Site.Data.misc.support $key }}
+{{- range $product }}
+{{ replace $format "$version" . }}
+{{- end }}

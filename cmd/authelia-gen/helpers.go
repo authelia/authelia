@@ -5,6 +5,8 @@ import (
 	"crypto/rsa"
 	"encoding/json"
 	"fmt"
+	"gopkg.in/yaml.v3"
+	"io"
 	"net/mail"
 	"net/url"
 	"os"
@@ -250,4 +252,28 @@ func getKeyNameFromTagAndPrefix(prefix, name string, isSlice, isMap bool) string
 	default:
 		return fmt.Sprintf("%s.%s", prefix, nameParts[0])
 	}
+}
+
+func readCompose(path string) (compose *Compose, err error) {
+	var f *os.File
+
+	if f, err = os.Open(path); err != nil {
+		return nil, err
+	}
+
+	defer f.Close()
+
+	var data []byte
+
+	if data, err = io.ReadAll(f); err != nil {
+		return nil, err
+	}
+
+	compose = &Compose{}
+
+	if err = yaml.Unmarshal(data, compose); err != nil {
+		return nil, err
+	}
+
+	return compose, nil
 }
