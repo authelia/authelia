@@ -8,6 +8,7 @@ const basePath = getBasePath();
 export const ConsentPath = basePath + "/api/oidc/consent";
 
 export const FirstFactorPath = basePath + "/api/firstfactor";
+export const FirstFactorReauthenticatePath = basePath + "/api/firstfactor/reauthenticate";
 
 export const TOTPRegistrationPath = basePath + "/api/secondfactor/totp/register";
 export const TOTPConfigurationPath = basePath + "/api/secondfactor/totp";
