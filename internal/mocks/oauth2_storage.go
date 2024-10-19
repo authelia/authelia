@@ -22,6 +22,7 @@ import (
 type MockOAuth2Storage struct {
 	ctrl     *gomock.Controller
 	recorder *MockOAuth2StorageMockRecorder
+	isgomock struct{}
 }
 
 // MockOAuth2StorageMockRecorder is the mock recorder for MockOAuth2Storage.
@@ -42,44 +43,44 @@ func (m *MockOAuth2Storage) EXPECT() *MockOAuth2StorageMockRecorder {
 }
 
 // ClientAssertionJWTValid mocks base method.
-func (m *MockOAuth2Storage) ClientAssertionJWTValid(arg0 context.Context, arg1 string) error {
+func (m *MockOAuth2Storage) ClientAssertionJWTValid(ctx context.Context, jti string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ClientAssertionJWTValid", arg0, arg1)
+	ret := m.ctrl.Call(m, "ClientAssertionJWTValid", ctx, jti)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // ClientAssertionJWTValid indicates an expected call of ClientAssertionJWTValid.
-func (mr *MockOAuth2StorageMockRecorder) ClientAssertionJWTValid(arg0, arg1 any) *gomock.Call {
+func (mr *MockOAuth2StorageMockRecorder) ClientAssertionJWTValid(ctx, jti any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClientAssertionJWTValid", reflect.TypeOf((*MockOAuth2Storage)(nil).ClientAssertionJWTValid), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClientAssertionJWTValid", reflect.TypeOf((*MockOAuth2Storage)(nil).ClientAssertionJWTValid), ctx, jti)
 }
 
 // GetClient mocks base method.
-func (m *MockOAuth2Storage) GetClient(arg0 context.Context, arg1 string) (oauth2.Client, error) {
+func (m *MockOAuth2Storage) GetClient(ctx context.Context, id string) (oauth2.Client, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetClient", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetClient", ctx, id)
 	ret0, _ := ret[0].(oauth2.Client)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetClient indicates an expected call of GetClient.
-func (mr *MockOAuth2StorageMockRecorder) GetClient(arg0, arg1 any) *gomock.Call {
+func (mr *MockOAuth2StorageMockRecorder) GetClient(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClient", reflect.TypeOf((*MockOAuth2Storage)(nil).GetClient), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClient", reflect.TypeOf((*MockOAuth2Storage)(nil).GetClient), ctx, id)
 }
 
 // SetClientAssertionJWT mocks base method.
-func (m *MockOAuth2Storage) SetClientAssertionJWT(arg0 context.Context, arg1 string, arg2 time.Time) error {
+func (m *MockOAuth2Storage) SetClientAssertionJWT(ctx context.Context, jti string, exp time.Time) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetClientAssertionJWT", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "SetClientAssertionJWT", ctx, jti, exp)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SetClientAssertionJWT indicates an expected call of SetClientAssertionJWT.
-func (mr *MockOAuth2StorageMockRecorder) SetClientAssertionJWT(arg0, arg1, arg2 any) *gomock.Call {
+func (mr *MockOAuth2StorageMockRecorder) SetClientAssertionJWT(ctx, jti, exp any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetClientAssertionJWT", reflect.TypeOf((*MockOAuth2Storage)(nil).SetClientAssertionJWT), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetClientAssertionJWT", reflect.TypeOf((*MockOAuth2Storage)(nil).SetClientAssertionJWT), ctx, jti, exp)
 }
