@@ -568,7 +568,7 @@ var (
 )
 
 var (
-	validOIDCCORSEndpoints = []string{oidc.EndpointAuthorization, oidc.EndpointPushedAuthorizationRequest, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo}
+	validOIDCCORSEndpoints = []string{oidc.EndpointAuthorization, oidc.EndpointDeviceAuthorization, oidc.EndpointPushedAuthorizationRequest, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo}
 
 	validOIDCReservedClaims                  = []string{oidc.ClaimJWTID, oidc.ClaimSessionID, oidc.ClaimAuthorizedParty, oidc.ClaimClientIdentifier, oidc.ClaimScope, oidc.ClaimScopeNonStandard, oidc.ClaimIssuer, oidc.ClaimSubject, oidc.ClaimAudience, oidc.ClaimSessionID, oidc.ClaimStateHash, oidc.ClaimCodeHash, oidc.ClaimIssuedAt, oidc.ClaimUpdatedAt, oidc.ClaimRequestedAt, oidc.ClaimNotBefore, oidc.ClaimExpirationTime, oidc.ClaimAuthenticationTime, oidc.ClaimAuthenticationMethodsReference, oidc.ClaimAuthenticationContextClassReference, oidc.ClaimNonce}
 	validOIDCClientClaims                    = []string{oidc.ClaimFullName, oidc.ClaimGivenName, oidc.ClaimFamilyName, oidc.ClaimMiddleName, oidc.ClaimNickname, oidc.ClaimPreferredUsername, oidc.ClaimProfile, oidc.ClaimPicture, oidc.ClaimWebsite, oidc.ClaimEmail, oidc.ClaimEmailVerified, oidc.ClaimGender, oidc.ClaimBirthdate, oidc.ClaimZoneinfo, oidc.ClaimLocale, oidc.ClaimPhoneNumber, oidc.ClaimPhoneNumberVerified, oidc.ClaimAddress, oidc.ClaimGroups, oidc.ClaimEmailAlts}
@@ -579,7 +579,7 @@ var (
 	validOIDCClientResponseTypesImplicitFlow = []string{oidc.ResponseTypeImplicitFlowIDToken, oidc.ResponseTypeImplicitFlowToken, oidc.ResponseTypeImplicitFlowBoth}
 	validOIDCClientResponseTypesHybridFlow   = []string{oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth}
 	validOIDCClientResponseTypesRefreshToken = []string{oidc.ResponseTypeAuthorizationCodeFlow, oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth}
-	validOIDCClientGrantTypes                = []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeImplicit, oidc.GrantTypeClientCredentials, oidc.GrantTypeRefreshToken}
+	validOIDCClientGrantTypes                = []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeImplicit, oidc.GrantTypeClientCredentials, oidc.GrantTypeRefreshToken, oidc.GrantTypeDeviceCode}
 
 	validOIDCClientTokenEndpointAuthMethods                = []string{oidc.ClientAuthMethodNone, oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodPrivateKeyJWT, oidc.ClientAuthMethodClientSecretJWT}
 	validOIDCClientTokenEndpointAuthMethodsConfidential    = []string{oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodPrivateKeyJWT}

@@ -130,6 +130,20 @@ func (mr *MockStorageMockRecorder) ConsumeOneTimeCode(ctx, code any) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumeOneTimeCode", reflect.TypeOf((*MockStorage)(nil).ConsumeOneTimeCode), ctx, code)
 }
 
+// DeactivateOAuth2DeviceCodeSession mocks base method.
+func (m *MockStorage) DeactivateOAuth2DeviceCodeSession(ctx context.Context, signature string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeactivateOAuth2DeviceCodeSession", ctx, signature)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeactivateOAuth2DeviceCodeSession indicates an expected call of DeactivateOAuth2DeviceCodeSession.
+func (mr *MockStorageMockRecorder) DeactivateOAuth2DeviceCodeSession(ctx, signature any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeactivateOAuth2DeviceCodeSession", reflect.TypeOf((*MockStorage)(nil).DeactivateOAuth2DeviceCodeSession), ctx, signature)
+}
+
 // DeactivateOAuth2Session mocks base method.
 func (m *MockStorage) DeactivateOAuth2Session(ctx context.Context, sessionType storage.OAuth2SessionType, signature string) error {
 	m.ctrl.T.Helper()
@@ -317,6 +331,36 @@ func (m *MockStorage) LoadOAuth2ConsentSessionByChallengeID(ctx context.Context,
 func (mr *MockStorageMockRecorder) LoadOAuth2ConsentSessionByChallengeID(ctx, challengeID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2ConsentSessionByChallengeID", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2ConsentSessionByChallengeID), ctx, challengeID)
+}
+
+// LoadOAuth2DeviceCodeSession mocks base method.
+func (m *MockStorage) LoadOAuth2DeviceCodeSession(ctx context.Context, signature string) (*model.OAuth2DeviceCodeSession, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadOAuth2DeviceCodeSession", ctx, signature)
+	ret0, _ := ret[0].(*model.OAuth2DeviceCodeSession)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadOAuth2DeviceCodeSession indicates an expected call of LoadOAuth2DeviceCodeSession.
+func (mr *MockStorageMockRecorder) LoadOAuth2DeviceCodeSession(ctx, signature any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2DeviceCodeSession", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2DeviceCodeSession), ctx, signature)
+}
+
+// LoadOAuth2DeviceCodeSessionByUserCode mocks base method.
+func (m *MockStorage) LoadOAuth2DeviceCodeSessionByUserCode(ctx context.Context, signature string) (*model.OAuth2DeviceCodeSession, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadOAuth2DeviceCodeSessionByUserCode", ctx, signature)
+	ret0, _ := ret[0].(*model.OAuth2DeviceCodeSession)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadOAuth2DeviceCodeSessionByUserCode indicates an expected call of LoadOAuth2DeviceCodeSessionByUserCode.
+func (mr *MockStorageMockRecorder) LoadOAuth2DeviceCodeSessionByUserCode(ctx, signature any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2DeviceCodeSessionByUserCode", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2DeviceCodeSessionByUserCode), ctx, signature)
 }
 
 // LoadOAuth2PARContext mocks base method.
@@ -772,6 +816,20 @@ func (mr *MockStorageMockRecorder) SaveOAuth2ConsentSessionSubject(ctx, consent 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOAuth2ConsentSessionSubject", reflect.TypeOf((*MockStorage)(nil).SaveOAuth2ConsentSessionSubject), ctx, consent)
 }
 
+// SaveOAuth2DeviceCodeSession mocks base method.
+func (m *MockStorage) SaveOAuth2DeviceCodeSession(ctx context.Context, session *model.OAuth2DeviceCodeSession) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveOAuth2DeviceCodeSession", ctx, session)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveOAuth2DeviceCodeSession indicates an expected call of SaveOAuth2DeviceCodeSession.
+func (mr *MockStorageMockRecorder) SaveOAuth2DeviceCodeSession(ctx, session any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOAuth2DeviceCodeSession", reflect.TypeOf((*MockStorage)(nil).SaveOAuth2DeviceCodeSession), ctx, session)
+}
+
 // SaveOAuth2PARContext mocks base method.
 func (m *MockStorage) SaveOAuth2PARContext(ctx context.Context, par model.OAuth2PARContext) error {
 	m.ctrl.T.Helper()
@@ -1058,6 +1116,20 @@ func (m *MockStorage) StartupCheck() error {
 func (mr *MockStorageMockRecorder) StartupCheck() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartupCheck", reflect.TypeOf((*MockStorage)(nil).StartupCheck))
+}
+
+// UpdateOAuth2DeviceCodeSession mocks base method.
+func (m *MockStorage) UpdateOAuth2DeviceCodeSession(ctx context.Context, signature string, status int, checked time.Time) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateOAuth2DeviceCodeSession", ctx, signature, status, checked)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateOAuth2DeviceCodeSession indicates an expected call of UpdateOAuth2DeviceCodeSession.
+func (mr *MockStorageMockRecorder) UpdateOAuth2DeviceCodeSession(ctx, signature, status, checked any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOAuth2DeviceCodeSession", reflect.TypeOf((*MockStorage)(nil).UpdateOAuth2DeviceCodeSession), ctx, signature, status, checked)
 }
 
 // UpdateOAuth2PARContext mocks base method.

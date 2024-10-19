@@ -227,7 +227,7 @@ func TestNewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfiguration(t *test
 	assert.Contains(t, disco.RevocationEndpointAuthMethodsSupported, oidc.ClientAuthMethodNone)
 
 	assert.Equal(t, []string{oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretJWT, oidc.ClientAuthMethodPrivateKeyJWT}, disco.IntrospectionEndpointAuthMethodsSupported)
-	assert.Equal(t, []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeImplicit, oidc.GrantTypeClientCredentials, oidc.GrantTypeRefreshToken}, disco.GrantTypesSupported)
+	assert.Equal(t, []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeImplicit, oidc.GrantTypeClientCredentials, oidc.GrantTypeRefreshToken, oidc.GrantTypeDeviceCode}, disco.GrantTypesSupported)
 	assert.Equal(t, []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512, oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgECDSAUsingP521AndSHA512, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA512}, disco.RevocationEndpointAuthSigningAlgValuesSupported)
 	assert.Equal(t, []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512, oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgECDSAUsingP521AndSHA512, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA512}, disco.TokenEndpointAuthSigningAlgValuesSupported)
 	assert.Equal(t, []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgNone}, disco.IDTokenSigningAlgValuesSupported)
@@ -350,11 +350,12 @@ func TestNewOpenIDConnectProvider_GetOAuth2WellKnownConfiguration(t *testing.T) 
 	assert.Contains(t, disco.TokenEndpointAuthMethodsSupported, oidc.ClientAuthMethodPrivateKeyJWT)
 	assert.Contains(t, disco.TokenEndpointAuthMethodsSupported, oidc.ClientAuthMethodNone)
 
-	assert.Len(t, disco.GrantTypesSupported, 4)
+	assert.Len(t, disco.GrantTypesSupported, 5)
 	assert.Contains(t, disco.GrantTypesSupported, oidc.GrantTypeAuthorizationCode)
 	assert.Contains(t, disco.GrantTypesSupported, oidc.GrantTypeImplicit)
 	assert.Contains(t, disco.GrantTypesSupported, oidc.GrantTypeClientCredentials)
 	assert.Contains(t, disco.GrantTypesSupported, oidc.GrantTypeRefreshToken)
+	assert.Contains(t, disco.GrantTypesSupported, oidc.GrantTypeDeviceCode)
 
 	assert.Len(t, disco.ClaimsSupported, 33)
 	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimAuthenticationMethodsReference)
