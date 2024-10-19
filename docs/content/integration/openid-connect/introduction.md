@@ -52,106 +52,6 @@ the Authorization Flow.
 For more information about the opaque [Access Token] default see
 [Why isn't the Access Token a JSON Web Token? (Frequently Asked Questions)](./frequently-asked-questions.md#why-isnt-the-access-token-a-json-web-token).
 
-## Scope Definitions
-
-The following scope definitions describe each scope supported and the associated effects including the individual claims
-returned by granting this scope. By default, we do not issue any claims which reveal the users identity which allows
-administrators semi-granular control over which claims the client is entitled to.
-
-### openid
-
-This is the default scope for [OpenID Connect 1.0]. This field is forced on every client by the configuration validation
-that Authelia does.
-
-{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-The combination of the issuer (i.e. `iss`) [Claim](https://openid.net/specs/openid-connect-core-1_0.html#Claims) and
-subject (i.e. `sub`) [Claim](https://openid.net/specs/openid-connect-core-1_0.html#Claims) are utilized to uniquely
-identify a
-user and per the specification the only reliable way to do so as they are guaranteed to be a unique combination. As such
-this is the supported method for linking an account to Authelia. The `preferred_username` and `email` claims from the
-`profile` and `email` scopes respectively should only be utilized for provisioning a new account.
-
-In addition, the `sub` [Claim](https://openid.net/specs/openid-connect-core-1_0.html#Claims) utilizes
-a [RFC4122](https://datatracker.ietf.org/doc/html/rfc4122) UUID V4 to identify the individual user as per the
-[Subject Identifier Types](https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes) section of
-the [OpenID Connect 1.0](https://openid.net/connect/) specification.
-{{< /callout >}}
-
-|  [Claim]  |   JWT Type    | Authelia Attribute |                         Description                         |
-|:---------:|:-------------:|:------------------:|:-----------------------------------------------------------:|
-|    iss    |    string     |      hostname      |             The issuer name, determined by URL              |
-|    jti    | string(uuid)  |       *N/A*        |     A [RFC4122] UUID V4 representing the JWT Identifier     |
-|    rat    |    number     |       *N/A*        |            The time when the token was requested            |
-|    exp    |    number     |       *N/A*        |                           Expires                           |
-|    iat    |    number     |       *N/A*        |             The time when the token was issued              |
-| auth_time |    number     |       *N/A*        |        The time the user authenticated with Authelia        |
-|    sub    | string(uuid)  |     opaque id      |    A [RFC4122] UUID V4 linked to the user who logged in     |
-|   scope   |    string     |       scopes       |              Granted scopes (space delimited)               |
-|    scp    | array[string] |       scopes       |                       Granted scopes                        |
-|    aud    | array[string] |       *N/A*        |                          Audience                           |
-|    amr    | array[string] |       *N/A*        | An [RFC8176] list of authentication method reference values |
-|    azp    |    string     |    id (client)     |                    The authorized party                     |
-| client_id |    string     |    id (client)     |                        The client id                        |
-
-### offline_access
-
-This scope is a special scope designed to allow applications to obtain a [Refresh Token] which allows extended access to
-an application on behalf of a user. A [Refresh Token] is a special [Access Token] that allows refreshing previously
-issued token credentials, effectively it allows the Relying Party to obtain new tokens periodically.
-
-As per [OpenID Connect 1.0] Section 11 [Offline Access] can only be granted during the [Authorization Code Flow] or a
-[Hybrid Flow]. The [Refresh Token] will only ever be returned at the [Token Endpoint] when the client is exchanging
-their [OAuth 2.0 Authorization Code].
-
-Generally unless an application supports this and actively requests this scope they should not be granted this scope via
-the client configuration.
-
-It is also important to note that we treat a [Refresh Token] as single use and reissue a new [Refresh Token] during the
-refresh flow.
-
-### groups
-
-This scope includes the groups the authentication backend reports the user is a member of in the [Claims] of the
-[ID Token].
-
-| [Claim] |   JWT Type    | Authelia Attribute |                                               Description                                               |
-|:-------:|:-------------:|:------------------:|:-------------------------------------------------------------------------------------------------------:|
-| groups  | array[string] |       groups       | List of user's groups discovered via [authentication](../../configuration/first-factor/introduction.md) |
-
-### email
-
-This scope includes the email information the authentication backend reports about the user in the [Claims] of the
-[ID Token].
-
-|     Claim      |   JWT Type    | Authelia Attribute |                        Description                        |
-|:--------------:|:-------------:|:------------------:|:---------------------------------------------------------:|
-|     email      |    string     |      email[0]      |       The first email address in the list of emails       |
-| email_verified |     bool      |       *N/A*        | If the email is verified, assumed true for the time being |
-|   alt_emails   | array[string] |     email[1:]      |  All email addresses that are not in the email JWT field  |
-
-### profile
-
-This scope includes the profile information the authentication backend reports about the user in the [Claims] of the
-[ID Token].
-
-|       Claim        | JWT Type | Authelia Attribute |               Description                |
-|:------------------:|:--------:|:------------------:|:----------------------------------------:|
-| preferred_username |  string  |      username      | The username the user used to login with |
-|        name        |  string  |    display_name    |          The users display name          |
-
-### Special Scopes
-
-The following scopes represent special permissions granted to a specific token.
-
-#### authelia.bearer.authz
-
-This scope allows the granted access token to be utilized with the bearer authorization scheme on endpoints protected
-via Authelia.
-
-The specifics about this scope are discussed in the
-[OAuth 2.0 Bearer Token Usage for Authorization Endpoints](oauth-2.0-bearer-token-usage.md#authorization-endpoints)
-guide.
-
 ## Signing and Encryption Algorithms
 
 [OpenID Connect 1.0] and OAuth 2.0 support a wide variety of signature and encryption algorithms. Authelia supports
@@ -177,21 +77,21 @@ Authelia's response objects can have the following signature algorithms:
 
 Authelia accepts a wide variety of request object types. The below table describes these request objects.
 
-| Algorithm |      Key Type      | Hashing Algorithm |    Use    |                       Notes                        |
-|:---------:|:------------------:|:-----------------:|:---------:|:--------------------------------------------------:|
-|   none    |        None        |       None        |    N/A    |                        N/A                         |
-|   HS256   | HMAC Shared Secret |      SHA-256      | Signature | [Client Authentication Method] `client_secret_jwt` |
-|   HS384   | HMAC Shared Secret |      SHA-384      | Signature | [Client Authentication Method] `client_secret_jwt` |
-|   HS512   | HMAC Shared Secret |      SHA-512      | Signature | [Client Authentication Method] `client_secret_jwt` |
-|   RS256   |        RSA         |      SHA-256      | Signature |  [Client Authentication Method] `private_key_jwt`  |
-|   RS384   |        RSA         |      SHA-384      | Signature |  [Client Authentication Method] `private_key_jwt`  |
-|   RS512   |        RSA         |      SHA-512      | Signature |  [Client Authentication Method] `private_key_jwt`  |
-|   ES256   |    ECDSA P-256     |      SHA-256      | Signature |  [Client Authentication Method] `private_key_jwt`  |
-|   ES384   |    ECDSA P-384     |      SHA-384      | Signature |  [Client Authentication Method] `private_key_jwt`  |
-|   ES512   |    ECDSA P-521     |      SHA-512      | Signature |  [Client Authentication Method] `private_key_jwt`  |
-|   PS256   |     RSA (MFG1)     |      SHA-256      | Signature |  [Client Authentication Method] `private_key_jwt`  |
-|   PS384   |     RSA (MFG1)     |      SHA-384      | Signature |  [Client Authentication Method] `private_key_jwt`  |
-|   PS512   |     RSA (MFG1)     |      SHA-512      | Signature |  [Client Authentication Method] `private_key_jwt`  |
+| Algorithm |      Key Type      | Hashing Algorithm |    Use    | [Client Authentication Method] |
+|:---------:|:------------------:|:-----------------:|:---------:|:------------------------------:|
+|   none    |        None        |       None        |    N/A    |              N/A               |
+|   HS256   | HMAC Shared Secret |      SHA-256      | Signature |      `client_secret_jwt`       |
+|   HS384   | HMAC Shared Secret |      SHA-384      | Signature |      `client_secret_jwt`       |
+|   HS512   | HMAC Shared Secret |      SHA-512      | Signature |      `client_secret_jwt`       |
+|   RS256   |        RSA         |      SHA-256      | Signature |       `private_key_jwt`        |
+|   RS384   |        RSA         |      SHA-384      | Signature |       `private_key_jwt`        |
+|   RS512   |        RSA         |      SHA-512      | Signature |       `private_key_jwt`        |
+|   ES256   |    ECDSA P-256     |      SHA-256      | Signature |       `private_key_jwt`        |
+|   ES384   |    ECDSA P-384     |      SHA-384      | Signature |       `private_key_jwt`        |
+|   ES512   |    ECDSA P-521     |      SHA-512      | Signature |       `private_key_jwt`        |
+|   PS256   |     RSA (MFG1)     |      SHA-256      | Signature |       `private_key_jwt`        |
+|   PS384   |     RSA (MFG1)     |      SHA-384      | Signature |       `private_key_jwt`        |
+|   PS512   |     RSA (MFG1)     |      SHA-512      | Signature |       `private_key_jwt`        |
 
 [Client Authentication Method]: #client-authentication-method
 
@@ -302,31 +202,6 @@ full URL for the [token endpoint](#endpoint-implementations) and it **must** be 
 Per the [RFC7523 Section 3: JWT Format and Processing Requirements](https://datatracker.ietf.org/doc/html/rfc7523#section-3)
 this claim must be compared using [RFC3987 Section 6.2.1: Simple String Comparison] and to assist with making this
 predictable for implementers we ensure the comparison is done against the lowercase form of this URL.
-
-## Authentication Method References
-
-Authelia currently supports adding the `amr` [Claim] to the [ID Token] utilizing the [RFC8176] Authentication Method
-Reference values.
-
-The values this [Claim] has, are not strictly defined by the [OpenID Connect 1.0] specification. As such, some backends
-may
-expect a specification other than [RFC8176] for this purpose. If you have such an application and wish for us to support
-it then you're encouraged to create a [feature request](https://www.authelia.com/l/fr).
-
-Below is a list of the potential values we place in the [Claim] and their meaning:
-
-| Value |                            Description                            | Factor | Channel  |
-|:-----:|:-----------------------------------------------------------------:|:------:|:--------:|
-|  mfa  |      User used multiple factors to login (see factor column)      |  N/A   |   N/A    |
-|  mca  |     User used multiple channels to login (see channel column)     |  N/A   |   N/A    |
-| user  |  User confirmed they were present when using their hardware key   |  N/A   |   N/A    |
-|  pin  | User confirmed they are the owner of the hardware key with a pin  |  N/A   |   N/A    |
-|  pwd  |            User used a username and password to login             |  Know  | Browser  |
-|  otp  |                      User used TOTP to login                      |  Have  | Browser  |
-|  pop  | User used a software or hardware proof-of-possession key to login |  Have  | Browser  |
-|  hwk  |       User used a hardware proof-of-possession key to login       |  Have  | Browser  |
-|  swk  |       User used a software proof-of-possession key to login       |  Have  | Browser  |
-|  sms  |                      User used Duo to login                       |  Have  | External |
 
 ## Introspection Signing Algorithm
 
@@ -521,7 +396,6 @@ The advantages of this approach are as follows:
 
 [RFC4122]: https://datatracker.ietf.org/doc/html/rfc4122
 [RFC7636]: https://datatracker.ietf.org/doc/html/rfc7636
-[RFC8176]: https://datatracker.ietf.org/doc/html/rfc8176
 [RFC9126]: https://datatracker.ietf.org/doc/html/rfc9126
 [RFC7519]: https://datatracker.ietf.org/doc/html/rfc7519
 [RFC9068]: https://datatracker.ietf.org/doc/html/rfc9068

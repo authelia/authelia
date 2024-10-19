@@ -84,7 +84,13 @@ func handleOIDCAuthorizationConsentModeImplicitWithID(ctx *middlewares.AutheliaC
 		return nil, true
 	}
 
-	consent.Grant()
+	var requests *oidc.ClaimsRequests
+
+	if requests, err = oidc.NewClaimRequests(requester.GetRequestForm()); err == nil && requests != nil {
+		consent.GrantWithClaims(requests.ToSlice())
+	} else {
+		consent.Grant()
+	}
 
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, false); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentSaveSessionResponse, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, err)
@@ -138,7 +144,13 @@ func handleOIDCAuthorizationConsentModeImplicitWithoutID(ctx *middlewares.Authel
 		ctx.Logger.WithFields(map[string]any{"requested_at": consent.RequestedAt, "authenticated_at": userSession.LastAuthenticatedTime(), "prompt": requester.GetRequestForm().Get("prompt")}).Debugf("Authorization Request with id '%s' on client with id '%s' is not being redirected for reauthentication", requester.GetID(), client.GetID())
 	}
 
-	consent.Grant()
+	var requests *oidc.ClaimsRequests
+
+	if requests, err = oidc.NewClaimRequests(requester.GetRequestForm()); err == nil && requests != nil {
+		consent.GrantWithClaims(requests.ToSlice())
+	} else {
+		consent.Grant()
+	}
 
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, false); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentSaveSessionResponse, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, err)

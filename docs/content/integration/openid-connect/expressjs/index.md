@@ -118,9 +118,11 @@ app.get('/', requiresAuth(), (req, res) => {
         accessToken: req.oidc.accessToken,
         refreshToken: req.oidc.refreshToken,
         idToken: req.oidc.idToken,
-        claims: req.oidc.idTokenClaims,
+        claims: {
+          id_token: req.oidc.idToken,
+          userinfo: userInfo,
+        },
         scopes: req.oidc.scope,
-        userInfo,
       }, null, 2);
 
     res.send(`<html lang='en'><body><pre><code>${data}</code></pre></body></html>`);

@@ -2,7 +2,7 @@
 title: "User Attributes"
 description: "User Attributes Definitions Configuration"
 summary: "Authelia allows configuring reusable user attribute definitions."
-date: 2024-11-03T20:05:21+11:00
+date: 2024-11-12T22:11:32+11:00
 draft: false
 images: []
 weight: 199100
@@ -17,7 +17,7 @@ seo:
 The user attributes section allows you to define custom attributes for your users using Common Expression Language (CEL).
 These attributes can be used at the current time to:
 
-- Enhance OpenID Connect claims with dynamic values
+- Enhance [OpenID Connect 1.0 claims](../../integration/openid-connect/openid-connect-1.0-claims.md) with dynamic values
 
 ## Configuration
 

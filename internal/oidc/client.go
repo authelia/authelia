@@ -2,6 +2,7 @@ package oidc
 
 import (
 	"context"
+	"net/url"
 	"time"
 
 	oauthelia2 "authelia.com/provider/oauth2"
@@ -30,6 +31,8 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		GrantTypes:    config.GrantTypes,
 		ResponseTypes: config.ResponseTypes,
 		ResponseModes: []oauthelia2.ResponseModeType{},
+
+		ClaimsStrategy: NewCustomClaimsStrategy(config, c.Scopes, c.ClaimsPolicies),
 
 		RequirePKCE:                config.RequirePKCE || config.PKCEChallengeMethod != "",
 		RequirePKCEChallengeMethod: config.PKCEChallengeMethod != "",
@@ -141,6 +144,10 @@ func (c *RegisteredClient) GetResponseTypes() (types oauthelia2.Arguments) {
 	}
 
 	return c.ResponseTypes
+}
+
+func (c *RegisteredClient) GetClaimsStrategy() (strategy ClaimsStrategy) {
+	return c.ClaimsStrategy
 }
 
 // GetScopes returns the Scopes.
@@ -451,16 +458,33 @@ func (c *RegisteredClient) GetPKCEChallengeMethod() (method string) {
 }
 
 // GetConsentResponseBody returns the proper consent response body for this session.OIDCWorkflowSession.
-func (c *RegisteredClient) GetConsentResponseBody(consent *model.OAuth2ConsentSession) ConsentGetResponseBody {
+func (c *RegisteredClient) GetConsentResponseBody(consent *model.OAuth2ConsentSession, form url.Values) ConsentGetResponseBody {
 	body := ConsentGetResponseBody{
 		ClientID:          c.ID,
 		ClientDescription: c.Name,
 		PreConfiguration:  c.ConsentPolicy.Mode == ClientConsentModePreConfigured,
+		Claims:            []string{},
+		EssentialClaims:   []string{},
 	}
 
 	if consent != nil {
 		body.Scopes = consent.RequestedScopes
 		body.Audience = consent.RequestedAudience
+
+		var (
+			claims *ClaimsRequests
+			err    error
+		)
+
+		if form == nil {
+			form, _ = consent.GetForm()
+		}
+
+		if form != nil {
+			if claims, err = NewClaimRequests(form); err == nil {
+				body.Claims, body.EssentialClaims = claims.ToSlices()
+			}
+		}
 	}
 
 	return body
