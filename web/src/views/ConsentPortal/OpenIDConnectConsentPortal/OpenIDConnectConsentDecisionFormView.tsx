@@ -1,4 +1,4 @@
-import React, { Fragment, ReactNode, useEffect, useState } from "react";
+import React, { Fragment, ReactNode, useCallback, useEffect, useState } from "react";
 
 import { AccountBox, Autorenew, CheckBox, Contacts, Drafts, Group, LockOpen } from "@mui/icons-material";
 import {
@@ -27,6 +27,7 @@ import { UserInfo } from "@models/UserInfo";
 import {
     ConsentGetResponseBody,
     acceptConsent,
+    getClaimDescription,
     getConsentResponse,
     getScopeDescription,
     rejectConsent,
@@ -69,6 +70,7 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
 
     const [response, setResponse] = useState<ConsentGetResponseBody>();
     const [error, setError] = useState<any>(undefined);
+    const [claims, setClaims] = useState<string>("");
     const [preConfigure, setPreConfigure] = useState(false);
 
     const styles = useStyles();
@@ -82,6 +84,7 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
             getConsentResponse(consentID)
                 .then((r) => {
                     setResponse(r);
+                    setClaims(JSON.stringify(r.claims));
                 })
                 .catch((error) => {
                     setError(error);
@@ -101,7 +104,7 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
         if (!response) {
             return;
         }
-        const res = await acceptConsent(preConfigure, response.client_id, consentID);
+        const res = await acceptConsent(preConfigure, response.client_id, consentID, claims.split(" "));
         if (res.redirect_uri) {
             redirect(res.redirect_uri);
         } else {
@@ -120,6 +123,39 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
             throw new Error("Unable to redirect the user");
         }
     };
+
+    const handleClaimCheckboxOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setClaims((prevState) => {
+            const value = event.target.value;
+            const arrClaims: string[] = JSON.parse(prevState);
+            const checking = !arrClaims.includes(event.target.value);
+
+            if (checking) {
+                if (!arrClaims.includes(value)) {
+                    arrClaims.push(value);
+                }
+            } else {
+                const i = arrClaims.indexOf(value);
+
+                if (i > -1) {
+                    arrClaims.splice(i, 1);
+                }
+            }
+
+            return JSON.stringify(arrClaims);
+        });
+    };
+
+    const claimChecked = useCallback(
+        (claim: string) => {
+            const arrClaims: string[] = JSON.parse(claims);
+
+            return arrClaims.includes(claim);
+        },
+        [claims],
+    );
+
+    const hasClaims = response?.essential_claims || response?.claims;
 
     return (
         <ComponentOrLoading ready={response !== undefined}>
@@ -162,6 +198,37 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
                             </List>
                         </div>
                     </Grid>
+                    {hasClaims ? (
+                        <Grid size={{ xs: 12 }}>
+                            <div className={styles.claimsListContainer}>
+                                <List className={styles.claimsList}>
+                                    {response?.essential_claims.map((claim: string) => (
+                                        <Tooltip title={translate("Claim", { name: claim })}>
+                                            <FormControlLabel
+                                                control={<Checkbox id={"claim-" + claim} disabled checked />}
+                                                label={translate(getClaimDescription(claim))}
+                                            />
+                                        </Tooltip>
+                                    ))}
+                                    {response?.claims.map((claim: string) => (
+                                        <Tooltip title={translate("Claim", { name: claim })}>
+                                            <FormControlLabel
+                                                control={
+                                                    <Checkbox
+                                                        id={"claim-" + claim}
+                                                        value={claim}
+                                                        checked={claimChecked(claim)}
+                                                        onChange={handleClaimCheckboxOnChange}
+                                                    />
+                                                }
+                                                label={translate(getClaimDescription(claim))}
+                                            />
+                                        </Tooltip>
+                                    ))}
+                                </List>
+                            </div>
+                        </Grid>
+                    ) : null}
                     {response?.pre_configuration ? (
                         <Grid size={{ xs: 12 }}>
                             <Tooltip
@@ -231,6 +298,15 @@ const useStyles = makeStyles((theme: Theme) => ({
         textAlign: "center",
     },
     scopesList: {
+        display: "inline-block",
+        backgroundColor: theme.palette.background.paper,
+        marginTop: theme.spacing(2),
+        marginBottom: theme.spacing(2),
+    },
+    claimsListContainer: {
+        textAlign: "center",
+    },
+    claimsList: {
         display: "inline-block",
         backgroundColor: theme.palette.background.paper,
         marginTop: theme.spacing(2),

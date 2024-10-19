@@ -84,6 +84,16 @@ identity_providers:
       authorize_code: '1m'
       id_token: '1h'
       refresh_token: '90m'
+    claims_policies:
+      policy_name:
+        id_token: []
+        access_token: []
+        custom_claims:
+          claim_name:
+            attribute: 'attribute_name'
+    scopes:
+      scope_name:
+        claims: []
     cors:
       endpoints:
         - 'authorization'
@@ -553,6 +563,64 @@ identity_providers:
               id_token: '1h'
               refresh_token: '90m'
 ```
+
+### claims_policies
+
+{{< confkey type="string" syntax="dictionary" common="dictionary-reference" required="no" >}}
+
+The claims policies are policies which allow customizing the behaviour of claims and the available claims for a
+particular client.
+
+The keys under `claims_policies` is an arbitrary value that can be used in the
+[OpenID Connect 1.0 Client](clients.md#claims_policy) as the [claims_policy](clients.md#claims_policy) value.
+
+#### id_token
+
+{{< confkey type="list(string)" required="no" >}}
+
+The list of claims automatically copied to the ID Token in addition to the standard ID Token claims provided the
+relevant scope was granted.
+
+#### access_token
+
+{{< confkey type="list(string)" required="no" >}}
+
+The list of claims automatically copied to the Access Token in addition to the standard JWT Profile claims provided the
+relevant scope was granted.
+
+#### custom_claims
+
+{{< confkey type="string" syntax="dictionary" common="dictionary-reference" required="no" >}}
+
+The list of claims available in this policy in addition to the standard claims. These claims are anchored to attributes
+which can either be concrete attributes from the [first factor](../../first-factor/introduction.md) backend or can be
+those defined via [definitions](../../definitions/user-attributes.md).
+
+The keys under `custom_claims` are arbitrary values which are the names of the claims.
+
+##### attribute
+
+{{< confkey type="string" required="no" >}}
+
+The attribute name that this claim returns. By default it's the same as the claim name.
+
+### scopes
+
+{{< confkey type="string" syntax="dictionary" common="dictionary-reference" required="no" >}}
+
+A list of scope definitions available in addition to the standard ones.
+
+The keys under `scopes` are arbitrary values which are the names of the scopes.
+
+#### claims
+
+{{< confkey type="list(string)" required="no" >}}
+
+The claims to be available to this scope.
+
+If the scope is configured in a [OpenID Connect 1.0 Client](clients.md#scopes) in the [scopes](clients.md#scopes) then
+every claim available in this list must either be a Standard Claim or must be fulfilled by the
+[claims_policy](clients.md#claims_policy).
 
 ### cors
 

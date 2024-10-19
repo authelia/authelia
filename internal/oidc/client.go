@@ -2,6 +2,7 @@ package oidc
 
 import (
 	"context"
+	"net/url"
 	"time"
 
 	oauthelia2 "authelia.com/provider/oauth2"
@@ -30,6 +31,8 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		GrantTypes:    config.GrantTypes,
 		ResponseTypes: config.ResponseTypes,
 		ResponseModes: []oauthelia2.ResponseModeType{},
+
+		ClaimsStrategy: NewCustomClaimsStrategy(config, c.Scopes, c.ClaimsPolicies),
 
 		RequirePKCE:                config.RequirePKCE || config.PKCEChallengeMethod != "",
 		RequirePKCEChallengeMethod: config.PKCEChallengeMethod != "",
@@ -141,6 +144,10 @@ func (c *RegisteredClient) GetResponseTypes() (types oauthelia2.Arguments) {
 	}
 
 	return c.ResponseTypes
+}
+
+func (c *RegisteredClient) GetClaimsStrategy() (strategy ClaimsStrategy) {
+	return c.ClaimsStrategy
 }
 
 // GetScopes returns the Scopes.
@@ -461,6 +468,18 @@ func (c *RegisteredClient) GetConsentResponseBody(consent *model.OAuth2ConsentSe
 	if consent != nil {
 		body.Scopes = consent.RequestedScopes
 		body.Audience = consent.RequestedAudience
+
+		var (
+			form   url.Values
+			claims *ClaimsRequests
+			err    error
+		)
+
+		if form, err = consent.GetForm(); err == nil {
+			if claims, err = NewClaimRequests(form); err == nil {
+				body.Claims, body.EssentialClaims = claims.ToSlices()
+			}
+		}
 	}
 
 	return body
