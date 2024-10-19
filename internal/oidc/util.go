@@ -20,7 +20,11 @@ import (
 
 // IsPushedAuthorizedRequest returns true if the requester has a PushedAuthorizationRequest redirect_uri value.
 func IsPushedAuthorizedRequest(r oauthelia2.Requester, prefix string) bool {
-	return strings.HasPrefix(r.GetRequestForm().Get(FormParameterRequestURI), prefix)
+	return IsPushedAuthorizedRequestForm(r.GetRequestForm(), prefix)
+}
+
+func IsPushedAuthorizedRequestForm(form url.Values, prefix string) bool {
+	return strings.HasPrefix(form.Get(FormParameterRequestURI), prefix)
 }
 
 // SortedSigningAlgs is a sorting type which allows the use of sort.Sort to order a list of OAuth 2.0 Signing Algs.
@@ -465,4 +469,53 @@ func getSectorIdentifierURICache(ctx ClientContext, cache map[string][]string, s
 	}
 
 	return redirectURIs, nil
+}
+
+func float64Match(expected float64, value any, values []any) (ok bool) {
+	var f float64
+
+	if value != nil {
+		if f, ok = float64As(value); ok {
+			return expected == f
+		}
+	}
+
+	for _, v := range values {
+		if f, ok = float64As(v); ok && expected == f {
+			return true
+		}
+	}
+
+	return false
+}
+
+func float64As(value any) (float64, bool) {
+	switch v := value.(type) {
+	case float64:
+		return v, true
+	case float32:
+		return float64(v), true
+	case int64:
+		return float64(v), true
+	case int32:
+		return float64(v), true
+	case int16:
+		return float64(v), true
+	case int8:
+		return float64(v), true
+	case int:
+		return float64(v), true
+	case uint64:
+		return float64(v), true
+	case uint32:
+		return float64(v), true
+	case uint16:
+		return float64(v), true
+	case uint8:
+		return float64(v), true
+	case uint:
+		return float64(v), true
+	default:
+		return 0, false
+	}
 }

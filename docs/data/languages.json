@@ -8,13 +8,15 @@
     },
     "namespaces": [
         "portal",
-        "settings"
+        "settings",
+        "consent"
     ],
     "languages": [
         {
             "display": "English",
             "locale": "en",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],

@@ -707,6 +707,60 @@ func TestShouldDisableOIDCEntropy(t *testing.T) {
 	assert.Equal(t, -1, config.IdentityProviders.OIDC.MinimumParameterEntropy)
 }
 
+func TestShouldHandleOIDCClaims(t *testing.T) {
+	val := schema.NewStructValidator()
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc_claims.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+
+	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
+
+	require.Len(t, val.Errors(), 0)
+
+	val.Clear()
+
+	validator.ValidateIdentityProviders(validator.NewValidateCtx(), config, val)
+
+	require.Len(t, val.Errors(), 2)
+	require.Len(t, val.Warnings(), 1)
+
+	assert.Regexp(t, regexp.MustCompile(`^identity_providers: oidc: jwks: key #1 with key id 'keya': option 'certificate_chain' produced an error during validation of the chain: certificate #1 in chain is invalid after 1713180174 but the time is \d+$`), val.Errors()[0].Error())
+	assert.Regexp(t, regexp.MustCompile(`^identity_providers: oidc: jwks: key #2 with key id 'ec521': option 'certificate_chain' produced an error during validation of the chain: certificate #1 in chain is invalid after 1713180101 but the time is \d+$`), val.Errors()[1].Error())
+	assert.EqualError(t, val.Warnings()[0], "identity_providers: oidc: clients: client 'abc': option 'client_secret' is plaintext but for clients not using the 'token_endpoint_auth_method' of 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed in the near future")
+
+	require.Len(t, config.IdentityProviders.OIDC.JSONWebKeys, 3)
+	require.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[0].Key)
+	require.IsType(t, &rsa.PrivateKey{}, config.IdentityProviders.OIDC.JSONWebKeys[0].Key)
+	assert.Equal(t, "sig", config.IdentityProviders.OIDC.JSONWebKeys[0].Use)
+	assert.Equal(t, "RS256", config.IdentityProviders.OIDC.JSONWebKeys[0].Algorithm)
+	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[0].Key.(*rsa.PrivateKey).D)
+	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[0].Key.(*rsa.PrivateKey).N)
+	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[0].Key.(*rsa.PrivateKey).E)
+	assert.Equal(t, 256, config.IdentityProviders.OIDC.JSONWebKeys[0].Key.(*rsa.PrivateKey).PublicKey.Size())
+	require.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[0].CertificateChain)
+	assert.True(t, config.IdentityProviders.OIDC.JSONWebKeys[0].CertificateChain.HasCertificates())
+
+	require.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[1].Key)
+	require.IsType(t, &ecdsa.PrivateKey{}, config.IdentityProviders.OIDC.JSONWebKeys[1].Key)
+	assert.Equal(t, "sig", config.IdentityProviders.OIDC.JSONWebKeys[1].Use)
+	assert.Equal(t, "ES512", config.IdentityProviders.OIDC.JSONWebKeys[1].Algorithm)
+	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[1].Key.(*ecdsa.PrivateKey).D)
+	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[1].Key.(*ecdsa.PrivateKey).Y)
+	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[1].Key.(*ecdsa.PrivateKey).X)
+	assert.Equal(t, elliptic.P521(), config.IdentityProviders.OIDC.JSONWebKeys[1].Key.(*ecdsa.PrivateKey).Curve)
+	require.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[1].CertificateChain)
+	assert.True(t, config.IdentityProviders.OIDC.JSONWebKeys[1].CertificateChain.HasCertificates())
+
+	require.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[2].Key)
+	assert.Equal(t, "sig", config.IdentityProviders.OIDC.JSONWebKeys[2].Use)
+	assert.Equal(t, "RS256", config.IdentityProviders.OIDC.JSONWebKeys[2].Algorithm)
+	require.IsType(t, &rsa.PrivateKey{}, config.IdentityProviders.OIDC.JSONWebKeys[2].Key)
+	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[2].Key.(*rsa.PrivateKey).D)
+	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[2].Key.(*rsa.PrivateKey).N)
+	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[2].Key.(*rsa.PrivateKey).E)
+	assert.Equal(t, 512, config.IdentityProviders.OIDC.JSONWebKeys[2].Key.(*rsa.PrivateKey).PublicKey.Size())
+}
+
 func TestShouldDisableOIDCModern(t *testing.T) {
 	val := schema.NewStructValidator()
 	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc_modern.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
