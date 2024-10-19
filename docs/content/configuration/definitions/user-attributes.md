@@ -2,7 +2,7 @@
 title: "User Attributes"
 description: "User Attributes Definitions Configuration"
 summary: "Authelia allows configuring reusable user attribute definitions."
-date: 2024-10-18T16:01:52+11:00
+date: 2024-10-19T23:20:17+11:00
 draft: false
 images: []
 weight: 199100

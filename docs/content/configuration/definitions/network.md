@@ -2,7 +2,7 @@
 title: "Network"
 description: "Network Definitions Configuration"
 summary: "Authelia allows configuring reusable network definitions."
-date: 2024-10-18T16:01:18+11:00
+date: 2024-10-19T23:19:46+11:00
 draft: false
 images: []
 weight: 199100

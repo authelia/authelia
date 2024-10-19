@@ -22,6 +22,7 @@ const (
 
 	tableOAuth2AccessTokenSession   = "oauth2_access_token_session" //nolint:gosec // This is not a hardcoded credential.
 	tableOAuth2AuthorizeCodeSession = "oauth2_authorization_code_session"
+	tableOAuth2DeviceCodeSession    = "oauth2_device_code_session"
 	tableOAuth2OpenIDConnectSession = "oauth2_openid_connect_session"
 	tableOAuth2PARContext           = "oauth2_par_context"
 	tableOAuth2PKCERequestSession   = "oauth2_pkce_request_session"

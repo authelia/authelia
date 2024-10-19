@@ -1350,6 +1350,7 @@
             "type": "string",
             "enum": [
               "authorization",
+              "device-authorization",
               "pushed-authorization-request",
               "token",
               "introspection",
@@ -1487,7 +1488,8 @@
               "authorization_code",
               "implicit",
               "refresh_token",
-              "client_credentials"
+              "client_credentials",
+              "urn:ietf:params:oauth:grant-type:device_code"
             ]
           },
           "type": "array",
