@@ -36,9 +36,7 @@ const OneTimePasswordCredentialItem = function (props: Props) {
                 last_used_at={props.config.last_used_at}
                 handleDelete={props.handleDelete}
                 handleInformation={props.handleInformation}
-                tooltipInformation={translate("Display extended information for this {{item}}", {
-                    item: translate("One-Time Password"),
-                })}
+                tooltipInformation={translate("Display extended information for this One-Time Password")}
                 tooltipDelete={translate("Remove this {{item}}", { item: translate("One-Time Password") })}
             />
         </Fragment>
