@@ -9,6 +9,7 @@ weight: 110200
 toc: true
 aliases:
   - /c/oidc
+  - /c/oidc/provider
   - /docs/configuration/identity-providers/oidc.html
 seo:
   title: "" # custom title (optional)
