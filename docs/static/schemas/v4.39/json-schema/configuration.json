@@ -1305,6 +1305,26 @@
           "title": "Lifespans",
           "description": "Token lifespans configuration."
         },
+        "claims_policies": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/$defs/IdentityProvidersOpenIDConnectClaimsPolicy"
+            }
+          },
+          "type": "object",
+          "title": "Claims Policies",
+          "description": "The dictionary of claims policies which can be applied to clients."
+        },
+        "scopes": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/$defs/IdentityProvidersOpenIDConnectScope"
+            }
+          },
+          "type": "object",
+          "title": "Scopes",
+          "description": "List of custom scopes."
+        },
         "issuer_certificate_chain": {
           "$ref": "#/$defs/X509CertificateChain",
           "title": "Issuer Certificate Chain",
@@ -1361,6 +1381,38 @@
       "additionalProperties": false,
       "type": "object",
       "description": "IdentityProvidersOpenIDConnectCORS represents an OpenID Connect 1.0 CORS config."
+    },
+    "IdentityProvidersOpenIDConnectClaimsPolicy": {
+      "properties": {
+        "id_token": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "title": "ID Token",
+          "description": "The list of claims to automatically apply to an ID Token in addition to the specified ID Token Claims."
+        },
+        "access_token": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "title": "Access Token",
+          "description": "The list of claims to automatically apply to an Access Token in addition to the specified Access Token Claims."
+        },
+        "custom_claims": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/$defs/IdentityProvidersOpenIDConnectCustomClaim"
+            }
+          },
+          "type": "object",
+          "title": "Custom Claims",
+          "description": "The custom claims available in this policy in addition to the Standard Claims."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "IdentityProvidersOpenIDConnectClient": {
       "properties": {
@@ -1488,6 +1540,11 @@
           "type": "string",
           "title": "Lifespan Name",
           "description": "The name of the custom lifespan to utilize for this client."
+        },
+        "claims_policy": {
+          "type": "string",
+          "title": "Claims Policy",
+          "description": "The claims policy to apply to this client."
         },
         "requested_audience_mode": {
           "type": "string",
@@ -1748,6 +1805,17 @@
           "uniqueItems": true
         }
       ]
+    },
+    "IdentityProvidersOpenIDConnectCustomClaim": {
+      "properties": {
+        "attribute": {
+          "type": "string",
+          "title": "Attribute",
+          "description": "The attribute that populates this claim."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "IdentityProvidersOpenIDConnectLifespan": {
       "properties": {
@@ -2059,6 +2127,20 @@
       "additionalProperties": false,
       "type": "object",
       "description": "IdentityProvidersOpenIDConnectPolicyRule configuration for OpenID Connect 1.0 authorization policies rules."
+    },
+    "IdentityProvidersOpenIDConnectScope": {
+      "properties": {
+        "claims": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "title": "Claims",
+          "description": "The list of claims that this scope includes. When this scope is used by a client the clients claim policy must satisfy every claim."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "IdentityValidation": {
       "properties": {

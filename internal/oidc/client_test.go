@@ -255,7 +255,7 @@ func TestIsAuthenticationLevelSufficient(t *testing.T) {
 func TestClient_GetConsentResponseBody(t *testing.T) {
 	c := &oidc.RegisteredClient{}
 
-	consentRequestBody := c.GetConsentResponseBody(nil)
+	consentRequestBody := c.GetConsentResponseBody(nil, nil)
 	assert.Equal(t, "", consentRequestBody.ClientID)
 	assert.Equal(t, "", consentRequestBody.ClientDescription)
 	assert.Equal(t, []string(nil), consentRequestBody.Scopes)
@@ -272,7 +272,7 @@ func TestClient_GetConsentResponseBody(t *testing.T) {
 	expectedScopes := []string{oidc.ScopeOpenID, oidc.ScopeGroups}
 	expectedAudiences := []string{examplecom}
 
-	consentRequestBody = c.GetConsentResponseBody(consent)
+	consentRequestBody = c.GetConsentResponseBody(consent, nil)
 	assert.Equal(t, myclient, consentRequestBody.ClientID)
 	assert.Equal(t, myclientdesc, consentRequestBody.ClientDescription)
 	assert.Equal(t, expectedScopes, consentRequestBody.Scopes)

@@ -154,7 +154,11 @@ func readTags(prefix string, t reflect.Type, envSkip, deprecatedSkip bool) (tags
 
 				continue
 			}
-		case reflect.Slice, reflect.Map:
+		case reflect.Map:
+			tags = append(tags, getKeyNameFromTagAndPrefix(prefix, tag, false, true))
+
+			fallthrough
+		case reflect.Slice:
 			k := field.Type.Elem().Kind()
 
 			if envSkip && !isValueKind(k) {
