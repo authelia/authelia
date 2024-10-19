@@ -1,9 +1,15 @@
 package oidc
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
+	"net/http"
+	"net/url"
 
 	oauthelia2 "authelia.com/provider/oauth2"
+	"authelia.com/provider/oauth2/i18n"
+	"authelia.com/provider/oauth2/x/errorsx"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -41,6 +47,7 @@ func (p *OpenIDConnectProvider) GetOAuth2WellKnownConfiguration(issuer string) O
 
 	options.JWKSURI = fmt.Sprintf("%s%s", issuer, EndpointPathJWKs)
 	options.AuthorizationEndpoint = fmt.Sprintf("%s%s", issuer, EndpointPathAuthorization)
+	options.DeviceAuthorizationEndpoint = fmt.Sprintf("%s%s", issuer, EndpointPathDeviceAuthorization)
 	options.PushedAuthorizationRequestEndpoint = fmt.Sprintf("%s%s", issuer, EndpointPathPushedAuthorizationRequest)
 	options.TokenEndpoint = fmt.Sprintf("%s%s", issuer, EndpointPathToken)
 	options.IntrospectionEndpoint = fmt.Sprintf("%s%s", issuer, EndpointPathIntrospection)
@@ -57,6 +64,7 @@ func (p *OpenIDConnectProvider) GetOpenIDConnectWellKnownConfiguration(issuer st
 
 	options.JWKSURI = fmt.Sprintf("%s%s", issuer, EndpointPathJWKs)
 	options.AuthorizationEndpoint = fmt.Sprintf("%s%s", issuer, EndpointPathAuthorization)
+	options.DeviceAuthorizationEndpoint = fmt.Sprintf("%s%s", issuer, EndpointPathDeviceAuthorization)
 	options.PushedAuthorizationRequestEndpoint = fmt.Sprintf("%s%s", issuer, EndpointPathPushedAuthorizationRequest)
 	options.TokenEndpoint = fmt.Sprintf("%s%s", issuer, EndpointPathToken)
 	options.UserinfoEndpoint = fmt.Sprintf("%s%s", issuer, EndpointPathUserinfo)
@@ -64,4 +72,42 @@ func (p *OpenIDConnectProvider) GetOpenIDConnectWellKnownConfiguration(issuer st
 	options.RevocationEndpoint = fmt.Sprintf("%s%s", issuer, EndpointPathRevocation)
 
 	return options
+}
+
+type bodyDeviceCodeUserAuthorizeRequest struct {
+	ID       string `json:"id"`
+	UserCode string `json:"user_code"`
+}
+
+func (p *OpenIDConnectProvider) NewRFC8628UserAuthorizeRequest(ctx Context, req *http.Request) (requester oauthelia2.DeviceAuthorizeRequester, err error) {
+	body := &bodyDeviceCodeUserAuthorizeRequest{}
+
+	if err = json.NewDecoder(req.Body).Decode(body); err != nil {
+		return nil, errorsx.WithStack(oauthelia2.ErrInvalidRequest.WithHint("Unable to parse HTTP body, make sure to send a properly formatted json body body.").WithWrap(err).WithDebugError(err))
+	}
+
+	request := oauthelia2.NewDeviceAuthorizeRequest()
+	request.Lang = i18n.GetLangFromRequest(p.Config.GetMessageCatalog(ctx), req)
+
+	request.Form = url.Values{
+		"user_code": []string{body.UserCode},
+		"id":        []string{body.ID},
+	}
+
+	for _, h := range p.Config.GetRFC8628UserAuthorizeEndpointHandlers(ctx) {
+		if err = h.HandleRFC8628UserAuthorizeEndpointRequest(ctx, request); err != nil && !errors.Is(err, oauthelia2.ErrUnknownRequest) {
+			return nil, err
+		}
+	}
+
+	return request, nil
+}
+
+func (p *OpenIDConnectProvider) WriteDynamicAuthorizeError(ctx Context, rw http.ResponseWriter, requester oauthelia2.Requester, err error) {
+	switch r := requester.(type) {
+	case oauthelia2.DeviceAuthorizeRequester:
+		p.WriteRFC8628UserAuthorizeError(ctx, rw, r, err)
+	case oauthelia2.AuthorizeRequester:
+		p.WriteAuthorizeError(ctx, rw, r, err)
+	}
 }
