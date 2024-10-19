@@ -28,9 +28,9 @@ func NewSession() (session *Session) {
 	}
 }
 
-// NewSessionWithAuthorizeRequest uses details from an AuthorizeRequester to generate an OpenIDSession.
-func NewSessionWithAuthorizeRequest(ctx Context, issuer *url.URL, kid, username string, amr []string, extra map[string]any,
-	authTime time.Time, consent *model.OAuth2ConsentSession, requester oauthelia2.AuthorizeRequester) (session *Session) {
+// NewSessionWithRequester uses details from a Requester to generate an OpenIDSession.
+func NewSessionWithRequester(ctx Context, issuer *url.URL, kid, username string, amr []string, extra map[string]any,
+	authTime time.Time, consent *model.OAuth2ConsentSession, requester oauthelia2.Requester, claims *ClaimsRequests) (session *Session) {
 	if extra == nil {
 		extra = map[string]any{}
 	}
@@ -61,6 +61,7 @@ func NewSessionWithAuthorizeRequest(ctx Context, issuer *url.URL, kid, username 
 		ClientID:              requester.GetClient().GetID(),
 		ExcludeNotBeforeClaim: false,
 		AllowedTopLevelClaims: nil,
+		ClaimRequests:         claims,
 		Extra:                 map[string]any{},
 	}
 
@@ -74,13 +75,14 @@ func NewSessionWithAuthorizeRequest(ctx Context, issuer *url.URL, kid, username 
 type Session struct {
 	*openid.DefaultSession `json:"id_token"`
 
-	ChallengeID           uuid.NullUUID  `json:"challenge_id"`
-	KID                   string         `json:"kid"`
-	ClientID              string         `json:"client_id"`
-	ClientCredentials     bool           `json:"client_credentials"`
-	ExcludeNotBeforeClaim bool           `json:"exclude_nbf_claim"`
-	AllowedTopLevelClaims []string       `json:"allowed_top_level_claims"`
-	Extra                 map[string]any `json:"extra"`
+	ChallengeID           uuid.NullUUID   `json:"challenge_id"`
+	KID                   string          `json:"kid"`
+	ClientID              string          `json:"client_id"`
+	ClientCredentials     bool            `json:"client_credentials"`
+	ExcludeNotBeforeClaim bool            `json:"exclude_nbf_claim"`
+	AllowedTopLevelClaims []string        `json:"allowed_top_level_claims"`
+	ClaimRequests         *ClaimsRequests `json:"claim_requests,omitempty"`
+	Extra                 map[string]any  `json:"extra"`
 }
 
 // GetChallengeID returns the challenge id.

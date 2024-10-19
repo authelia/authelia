@@ -446,7 +446,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
 					ID:                  "client-invalid-sector",
-					Secret:              tOpenIDConnectPlainTextClientSecret,
+					Secret:              tOpenIDConnectPBKDF2ClientSecret,
 					AuthorizationPolicy: policyTwoFactor,
 					RedirectURIs: []string{
 						"https://google.com",
@@ -459,7 +459,6 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			},
 			warns: []string{
 				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier_uri' with value 'example.com/path?query=abc#fragment': should be an absolute URI",
-				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'client_secret' is plaintext but for clients not using the 'token_endpoint_auth_method' of 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed in the near future",
 				"identity_providers: oidc: clients: warnings for clients above indicate deprecated functionality and it's strongly suggested these issues are checked and fixed if they're legitimate issues or reported if they are not as in a future version these warnings will become errors",
 			},
 		},
@@ -468,7 +467,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
 					ID:                  "client-invalid-sector",
-					Secret:              tOpenIDConnectPlainTextClientSecret,
+					Secret:              tOpenIDConnectPBKDF2ClientSecret,
 					AuthorizationPolicy: policyTwoFactor,
 					RedirectURIs: []string{
 						"https://google.com",
@@ -478,9 +477,6 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			},
 			errors: []string{
 				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier_uri' with value 'http://example.com/path?query=abc': must have the 'https' scheme but has the 'http' scheme",
-			},
-			warns: []string{
-				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'client_secret' is plaintext but for clients not using the 'token_endpoint_auth_method' of 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed in the near future",
 			},
 		},
 		{
@@ -1235,7 +1231,7 @@ func TestValidateOIDCClients(t *testing.T) {
 				[]string{oidc.GrantTypeAuthorizationCode},
 			},
 			[]string{
-				"identity_providers: oidc: clients: client 'test': option 'scopes' only expects the values 'openid', 'email', 'profile', 'groups', 'offline_access', 'offline', or 'authelia.bearer.authz' but the unknown values 'group' are present and should generally only be used if a particular client requires a scope outside of our standard scopes",
+				"identity_providers: oidc: clients: client 'test': option 'scopes' only expects the values 'openid', 'email', 'profile', 'address', 'phone', 'groups', 'offline_access', 'offline', or 'authelia.bearer.authz' but the unknown values 'group' are present and should generally only be used if a particular client requires a scope outside of our standard scopes",
 			},
 			nil,
 		},

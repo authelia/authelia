@@ -15,6 +15,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -76,7 +77,8 @@ type RegisteredClient struct {
 	ResponseTypes []string
 	ResponseModes []oauthelia2.ResponseModeType
 
-	Lifespans schema.IdentityProvidersOpenIDConnectLifespan
+	Lifespans      schema.IdentityProvidersOpenIDConnectLifespan
+	ClaimsStrategy ClaimsStrategy
 
 	AuthorizationSignedResponseAlg              string
 	AuthorizationSignedResponseKeyID            string
@@ -123,7 +125,8 @@ type Client interface {
 	GetName() (name string)
 	GetSectorIdentifierURI() (sector string)
 
-	GetAuthorizationSignedResponseAlg() (alg string)
+	GetClaimsStrategy() (strategy ClaimsStrategy)
+
 	GetAuthorizationSignedResponseKeyID() (kid string)
 
 	GetIDTokenSignedResponseAlg() (alg string)
@@ -174,6 +177,7 @@ type Context interface {
 	GetRandom() (random random.Provider)
 	GetConfiguration() (config schema.Configuration)
 	GetJWTWithTimeFuncOption() (option jwt.ParserOption)
+	GetProviderUserAttributeResolver() expression.UserAttributeResolver
 
 	context.Context
 }
@@ -224,6 +228,26 @@ type UserDetailer interface {
 	GetGroups() (groups []string)
 	GetDisplayName() (name string)
 	GetEmails() (emails []string)
+	GetGivenName() (given string)
+	GetFamilyName() (family string)
+	GetMiddleName() (middle string)
+	GetNickname() (nickname string)
+	GetProfile() (profile string)
+	GetPicture() (picture string)
+	GetWebsite() (website string)
+	GetGender() (gender string)
+	GetBirthdate() (birthdate string)
+	GetZoneInfo() (info string)
+	GetLocale() (locale string)
+	GetPhoneNumber() (number string)
+	GetPhoneExtension() (extension string)
+	GetPhoneNumberRFC3966() (number string)
+	GetStreetAddress() (address string)
+	GetLocality() (locality string)
+	GetRegion() (region string)
+	GetPostalCode() (postcode string)
+	GetCountry() (country string)
+	GetExtra() (extra map[string]any)
 }
 
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.
@@ -233,14 +257,17 @@ type ConsentGetResponseBody struct {
 	Scopes            []string `json:"scopes"`
 	Audience          []string `json:"audience"`
 	PreConfiguration  bool     `json:"pre_configuration"`
+	Claims            []string `json:"claims"`
+	EssentialClaims   []string `json:"essential_claims"`
 }
 
 // ConsentPostRequestBody schema of the request body of the consent POST endpoint.
 type ConsentPostRequestBody struct {
-	ConsentID    string `json:"id"`
-	ClientID     string `json:"client_id"`
-	Consent      bool   `json:"consent"`
-	PreConfigure bool   `json:"pre_configure"`
+	ConsentID    string   `json:"id"`
+	ClientID     string   `json:"client_id"`
+	Consent      bool     `json:"consent"`
+	PreConfigure bool     `json:"pre_configure"`
+	Claims       []string `json:"claims"`
 }
 
 // ConsentPostResponseBody schema of the response body of the consent POST endpoint.
