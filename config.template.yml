@@ -1348,6 +1348,145 @@ session:
         ## Options are 'plain' and 'S256'.
         # pkce_challenge_method: 'S256'
 
+        ## The signing algorithm used for signing the authorization responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#authorization_signed_response_alg
+        # authorization_signed_response_alg: 'none'
+
+        ## The signing key id used for signing the authorization responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#authorization_signed_response_key_id
+        # authorization_signed_response_key_id: ''
+
+        ## The content encryption algorithm used for encrypting the authorization responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#authorization_encrypted_response_alg
+        # authorization_encrypted_response_alg: 'none'
+
+        ## The encryption algorithm used for encrypting the authorization responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#authorization_encrypted_response_enc
+        # authorization_encrypted_response_enc: 'A128CBC-HS256'
+
+        ## The content encryption key id used for encrypting the authorization responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#authorization_encrypted_response_key_id
+        # authorization_encrypted_response_key_id: ''
+
+        ## The signing algorithm used for signing the ID Tokens in Access Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#id_token_signed_response_alg
+        # id_token_signed_response_alg: 'RS256'
+
+        ## The signing key id used for signing the ID Tokens in Access Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#id_token_signed_response_key_id
+        # id_token_signed_response_key_id: ''
+
+        ## The content encryption algorithm used for encrypting the ID Tokens in Access Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#id_token_encrypted_response_alg
+        # id_token_encrypted_response_alg: 'none'
+
+        ## The encryption algorithm used for encrypting the ID Tokens in Access Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#id_token_encrypted_response_enc
+        # id_token_encrypted_response_enc: 'A128CBC-HS256'
+
+        ## The content encryption key id used for encrypting the ID Tokens in Access Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#authorization_encrypted_response_key_id
+        # id_token_encrypted_response_key_id: ''
+
+        ## The signing algorithm used for signing the Access Tokens in Access Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#access_token_signed_response_alg
+        # access_token_signed_response_alg: 'none'
+
+        ## The signing key id used for signing the Access Tokens in Access Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#access_token_signed_response_key_id
+        # access_token_signed_response_key_id: ''
+
+        ## The content encryption algorithm used for encrypting the Access Tokens in Access Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#access_token_encrypted_response_alg
+        # access_token_encrypted_response_alg: 'none'
+
+        ## The encryption algorithm used for encrypting the Access Tokens in Access Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#access_token_encrypted_response_enc
+        # access_token_encrypted_response_enc: 'A128CBC-HS256'
+
+        ## The content encryption key id used for encrypting the Access Tokens in Access Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#access_token_encrypted_response_key_id
+        # access_token_encrypted_response_key_id: ''
+
+        ## The signing algorithm used for signing the User Info Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#userinfo_signed_response_alg
+        # userinfo_signed_response_alg: 'none'
+
+        ## The signing key id used for signing the User Info Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#userinfo_signed_response_key_id
+        # userinfo_signed_response_key_id: ''
+
+        ## The content encryption algorithm used for encrypting the User Info Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#userinfo_encrypted_response_alg
+        # userinfo_encrypted_response_alg: 'none'
+
+        ## The encryption algorithm used for encrypting the User Info Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#userinfo_encrypted_response_enc
+        # userinfo_encrypted_response_enc: 'A128CBC-HS256'
+
+        ## The content encryption key id used for encrypting the User Info Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#userinfo_encrypted_response_key_id
+        # userinfo_encrypted_response_key_id: ''
+
+        ## The signing algorithm used for signing the Introspection Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#introspection_signed_response_alg
+        # introspection_signed_response_alg: 'none'
+
+        ## The signing key id used for Introspection responses. An issuer JWK with a matching key id must be available
+        ## when configured.
+        # introspection_signed_response_key_id: ''
+
+        ## The content encryption algorithm used for encrypting the Introspection Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#introspection_encrypted_response_alg
+        # introspection_encrypted_response_alg: 'none'
+
+        ## The encryption algorithm used for encrypting the Introspection Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#introspection_encrypted_response_enc
+        # introspection_encrypted_response_enc: 'A128CBC-HS256'
+
+        ## The content encryption key id used for encrypting the Introspection Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#introspection_encrypted_response_key_id
+        # introspection_encrypted_response_key_id: ''
+
+        ## The signature algorithm which must be used for request objects.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#request_object_signing_alg
+        # request_object_signing_alg: 'RS256'
+
+        ## The content encryption algorithm which must be used for request objects.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#request_object_encryption_alg
+        # request_object_encryption_alg: ''
+
+        ## The encryption algorithm which must be used for request objects.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#request_object_encryption_enc
+        # request_object_encryption_enc: ''
+
         ## The permitted client authentication method for the Token Endpoint for this client.
         ## For confidential client types this value defaults to 'client_secret_basic' and for the public client types it
         ## defaults to 'none' per the specifications.
@@ -1357,55 +1496,33 @@ session:
         ## the 'client_secret_jwt' or 'private_key_jwt' token_endpoint_auth_method.
         # token_endpoint_auth_signing_alg: 'RS256'
 
-        ## The signing algorithm which must be used for request objects. A client JWK with a matching algorithm must be
-        ## available if configured.
-        # request_object_signing_alg: 'RS256'
+        ## The permitted client authentication method for the Revocation Endpoint for this client.
+        ## For confidential client types this value defaults to 'client_secret_basic' and for the public client types it
+        ## defaults to 'none' per the specifications.
+        # revocation_endpoint_auth_method: 'client_secret_basic'
 
-        ## The signing algorithm used for signing the authorization response. An issuer JWK with a matching algorithm
-        ## must be available when configured. Configuring this value enables the  JWT Secured Authorization Response
-        ## Mode (JARM) for this client. JARM is not understood by a majority of clients so you should only configure
-        ## this when you know it's supported.
-        ## Has no effect if authorization_signed_response_key_id is configured.
-        # authorization_signed_response_alg: 'none'
+        ## The permitted client authentication signing algorithm for the Revocation Endpoint for this client when using
+        ## the 'client_secret_jwt' or 'private_key_jwt' revocation_endpoint_auth_method.
+        # revocation_endpoint_auth_signing_alg: 'RS256'
 
-        ## The signing key id used for signing the authorization response. An issuer JWK with a matching key id must be
-        ## available when configured. Configuring this value enables the JWT Secured Authorization Response Mode (JARM)
-        ## for this client. JARM is not understood by a majority of clients so you should only configure this when you
-        ## know it's supported.
-        # authorization_signed_response_key_id: ''
+        ## The permitted client authentication method for the Introspection Endpoint for this client.
+        ## For confidential client types this value defaults to 'client_secret_basic' and for the public client types it
+        ## defaults to 'none' per the specifications.
+        # introspection_endpoint_auth_method: 'client_secret_basic'
 
-        ## The signing algorithm used for ID Tokens. An issuer JWK with a matching algorithm must be available when
-        ## configured. Has no effect if id_token_signed_response_key_id is configured.
-        # id_token_signed_response_alg: 'RS256'
+        ## The permitted client authentication signing algorithm for the Introspection Endpoint for this client when
+        ## using the 'client_secret_jwt' or 'private_key_jwt' introspection_endpoint_auth_method.
+        # introspection_endpoint_auth_signing_alg: 'RS256'
 
-        ## The signing key id used for ID Tokens. An issuer JWK with a matching key id must be available when
-        ## configured.
-        # id_token_signed_response_key_id: ''
+        ## The permitted client authentication method for the Pushed Authorization Request Endpoint for this client.
+        ## For confidential client types this value defaults to 'client_secret_basic' and for the public client types it
+        ## defaults to 'none' per the specifications.
+        # pushed_authorization_request_endpoint_auth_method: 'client_secret_basic'
 
-        ## The signing algorithm used for Access Tokens. An issuer JWK with a matching algorithm must be available.
-        ## Has no effect if access_token_signed_response_key_id is configured. Values other than 'none' enable RFC9068
-        ## for this client.
-        # access_token_signed_response_alg: 'none'
-
-        ## The signing key id used for Access Tokens. An issuer JWK with a matching key id must be available when
-        ## configured. Values other than a blank value enable RFC9068 for this client.
-        # access_token_signed_response_key_id: ''
-
-        ## The signing algorithm used for User Info responses. An issuer JWK with a matching algorithm must be
-        ## available. Has no effect if userinfo_signing_key_id is configured.
-        # userinfo_signed_response_alg: 'none'
-
-        ## The signing key id used for User Info responses. An issuer JWK with a matching key id must be available when
-        ## configured.
-        # userinfo_signed_response_key_id: ''
-
-        ## The signing algorithm used for Introspection responses. An issuer JWK with a matching algorithm must be
-        ## available when configured. Has no effect if introspection_signed_response_key_id is configured.
-        # introspection_signed_response_alg: 'none'
-
-        ## The signing key id used for Introspection responses. An issuer JWK with a matching key id must be available
-        ## when configured.
-        # introspection_signed_response_key_id: ''
+        ## The permitted client authentication signing algorithm for the Pushed Authorization Request Endpoint for this
+        ## client when using the 'client_secret_jwt' or 'private_key_jwt'
+        ## pushed_authorization_request_endpoint_auth_method.
+        # pushed_authorization_request_endpoint_auth_signing_alg: 'RS256'
 
         ## Trusted public keys configuration for request object signing for things such as 'private_key_jwt'.
         ## URL of the HTTPS endpoint which serves the keys. Please note the 'jwks_uri' and the 'jwks' option below

@@ -22,6 +22,25 @@ The following represent common syntax used within the configuration which have s
 used in multiple areas. This is intended on assisting in understanding these specific values, and not as a specific
 guide on configuring any particular instance.
 
+### Dictionary Reference
+
+The dictionary reference syntax is a syntax where often the key can arbitrarily be set by an administrator and the key
+can be used elsewhere to reference this configuration.
+
+For instance, when considering the below example if the key named `policies` was noted as a dictionary within the
+documentation then the `aribtrary_name` could be used elsewhere to communicate the policy to be applied, like in the
+`usage_example` section where it's used as the `policy`.
+
+```yaml
+policies:
+  arbitrary_name:
+    enable: true
+
+usage_example:
+  - name: 'example'
+    policy: 'arbitrary_name'
+```
+
 ### Duration
 
 The base type for this syntax is a string, and it also handles integers however this is discouraged.

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	oauthelia2 "authelia.com/provider/oauth2"
+	"authelia.com/provider/oauth2/token/jwt"
 	"authelia.com/provider/oauth2/x/errorsx"
 	"github.com/go-jose/go-jose/v4"
 
@@ -45,22 +46,45 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		ConsentPolicy:         NewClientConsentPolicy(config.ConsentMode, config.ConsentPreConfiguredDuration),
 		RequestedAudienceMode: NewClientRequestedAudienceMode(config.RequestedAudienceMode),
 
-		AuthorizationSignedResponseAlg:   config.AuthorizationSignedResponseAlg,
-		AuthorizationSignedResponseKeyID: config.AuthorizationSignedResponseKeyID,
-		IDTokenSignedResponseAlg:         config.IDTokenSignedResponseAlg,
-		IDTokenSignedResponseKeyID:       config.IDTokenSignedResponseKeyID,
-		AccessTokenSignedResponseAlg:     config.AccessTokenSignedResponseAlg,
-		AccessTokenSignedResponseKeyID:   config.AccessTokenSignedResponseKeyID,
-		UserinfoSignedResponseAlg:        config.UserinfoSignedResponseAlg,
-		UserinfoSignedResponseKeyID:      config.UserinfoSignedResponseKeyID,
-		IntrospectionSignedResponseAlg:   config.IntrospectionSignedResponseAlg,
-		IntrospectionSignedResponseKeyID: config.IntrospectionSignedResponseKeyID,
-		RequestObjectSigningAlg:          config.RequestObjectSigningAlg,
-		TokenEndpointAuthSigningAlg:      config.TokenEndpointAuthSigningAlg,
-		TokenEndpointAuthMethod:          config.TokenEndpointAuthMethod,
+		AuthorizationSignedResponseAlg:                   config.AuthorizationSignedResponseAlg,
+		AuthorizationSignedResponseKeyID:                 config.AuthorizationSignedResponseKeyID,
+		AuthorizationEncryptedResponseAlg:                config.AuthorizationEncryptedResponseAlg,
+		AuthorizationEncryptedResponseEnc:                config.AuthorizationEncryptedResponseEnc,
+		AuthorizationEncryptedResponseKeyID:              config.AuthorizationEncryptedResponseKeyID,
+		IDTokenSignedResponseAlg:                         config.IDTokenSignedResponseAlg,
+		IDTokenSignedResponseKeyID:                       config.IDTokenSignedResponseKeyID,
+		IDTokenEncryptedResponseAlg:                      config.IDTokenEncryptedResponseAlg,
+		IDTokenEncryptedResponseEnc:                      config.IDTokenEncryptedResponseEnc,
+		IDTokenEncryptedResponseKeyID:                    config.IDTokenEncryptedResponseKeyID,
+		AccessTokenSignedResponseAlg:                     config.AccessTokenSignedResponseAlg,
+		AccessTokenSignedResponseKeyID:                   config.AccessTokenSignedResponseKeyID,
+		AccessTokenEncryptedResponseAlg:                  config.AccessTokenEncryptedResponseAlg,
+		AccessTokenEncryptedResponseEnc:                  config.AccessTokenEncryptedResponseEnc,
+		AccessTokenEncryptedResponseKeyID:                config.AccessTokenEncryptedResponseKeyID,
+		UserinfoSignedResponseAlg:                        config.UserinfoSignedResponseAlg,
+		UserinfoSignedResponseKeyID:                      config.UserinfoSignedResponseKeyID,
+		UserinfoEncryptedResponseAlg:                     config.UserinfoEncryptedResponseAlg,
+		UserinfoEncryptedResponseEnc:                     config.UserinfoEncryptedResponseEnc,
+		UserinfoEncryptedResponseKeyID:                   config.UserinfoEncryptedResponseKeyID,
+		IntrospectionSignedResponseAlg:                   config.IntrospectionSignedResponseAlg,
+		IntrospectionSignedResponseKeyID:                 config.IntrospectionSignedResponseKeyID,
+		IntrospectionEncryptedResponseAlg:                config.IntrospectionEncryptedResponseAlg,
+		IntrospectionEncryptedResponseEnc:                config.IntrospectionEncryptedResponseEnc,
+		IntrospectionEncryptedResponseKeyID:              config.IntrospectionEncryptedResponseKeyID,
+		RequestObjectSigningAlg:                          config.RequestObjectSigningAlg,
+		RequestObjectEncryptionAlg:                       config.RequestObjectEncryptionAlg,
+		RequestObjectEncryptionEnc:                       config.RequestObjectEncryptionEnc,
+		TokenEndpointAuthMethod:                          config.TokenEndpointAuthMethod,
+		TokenEndpointAuthSigningAlg:                      config.TokenEndpointAuthSigningAlg,
+		RevocationEndpointAuthMethod:                     config.RevocationEndpointAuthMethod,
+		RevocationEndpointAuthSigningAlg:                 config.RevocationEndpointAuthSigningAlg,
+		IntrospectionEndpointAuthMethod:                  config.IntrospectionEndpointAuthMethod,
+		IntrospectionEndpointAuthSigningAlg:              config.IntrospectionEndpointAuthSigningAlg,
+		PushedAuthorizationRequestEndpointAuthMethod:     config.PushedAuthorizationRequestEndpointAuthMethod,
+		PushedAuthorizationRequestEndpointAuthSigningAlg: config.PushedAuthorizationRequestAuthSigningAlg,
 
 		JSONWebKeysURI: config.JSONWebKeysURI,
-		JSONWebKeys:    NewPublicJSONWebKeySetFromSchemaJWK(config.JSONWebKeys),
+		JSONWebKeys:    NewJSONWebKeySet(config.JSONWebKeys),
 	}
 
 	if policies == nil {
@@ -101,6 +125,35 @@ func (c *RegisteredClient) GetName() (name string) {
 // GetClientSecret returns the oauth2.ClientSecret.
 func (c *RegisteredClient) GetClientSecret() (secret oauthelia2.ClientSecret) {
 	return c.ClientSecret
+}
+
+// GetClientSecretPlainText returns the ClientSecret as plaintext if available. The semantics of this function
+// return values are important.
+// If the client is not configured with a secret the return should be:
+//   - secret with value nil, ok with value false, and err with value of nil
+//
+// If the client is configured with a secret but is hashed or otherwise not a plaintext value:
+//   - secret with value nil, ok with value true, and err with value of nil
+//
+// If an error occurs retrieving the secret other than this:
+//   - secret with value nil, ok with value true, and err with value of the error
+//
+// If the plaintext secret is successful:
+//   - secret with value of the bytes of the plaintext secret, ok with value true, and err with value of nil
+func (c *RegisteredClient) GetClientSecretPlainText() (secret []byte, ok bool, err error) {
+	if c.ClientSecret == nil || !c.ClientSecret.Valid() {
+		return nil, false, nil
+	}
+
+	if !c.ClientSecret.IsPlainText() {
+		return nil, true, nil
+	}
+
+	if secret, err = c.ClientSecret.GetPlainTextValue(); err != nil {
+		return nil, true, err
+	}
+
+	return secret, true, nil
 }
 
 // GetRotatedClientSecrets returns the rotated oauth2.ClientSecret values.
@@ -169,15 +222,15 @@ func (c *RegisteredClient) GetResponseModes() (modes []oauthelia2.ResponseModeTy
 
 // GetAuthorizationSignedResponseKeyID returns the AuthorizationSignedResponseKeyID.
 func (c *RegisteredClient) GetAuthorizationSignedResponseKeyID() (kid string) {
-	if c.AuthorizationSignedResponseKeyID == "" {
-		c.AuthorizationSignedResponseKeyID = SigningAlgNone
-	}
-
 	return c.AuthorizationSignedResponseKeyID
 }
 
 // GetAuthorizationSignedResponseAlg returns the AuthorizationSignedResponseAlg.
 func (c *RegisteredClient) GetAuthorizationSignedResponseAlg() (alg string) {
+	if c.AuthorizationSignedResponseAlg == "" {
+		c.AuthorizationSignedResponseAlg = SigningAlgNone
+	}
+
 	return c.AuthorizationSignedResponseAlg
 }
 
@@ -185,7 +238,7 @@ func (c *RegisteredClient) GetAuthorizationSignedResponseAlg() (alg string) {
 // the JWT-secured Authorization Response Method (JARM) specifications. If unspecified the other available parameters will be
 // utilized to select an appropriate key.
 func (c *RegisteredClient) GetAuthorizationEncryptedResponseKeyID() (kid string) {
-	return ""
+	return c.AuthorizationEncryptedResponseKeyID
 }
 
 // GetAuthorizationEncryptedResponseAlg is equivalent to the 'authorization_encrypted_response_alg' client metadata
@@ -203,7 +256,7 @@ func (c *RegisteredClient) GetAuthorizationEncryptedResponseAlg() (alg string) {
 // A128CBC-HS256. When authorization_encrypted_response_enc is included, authorization_encrypted_response_alg MUST
 // also be provided.
 func (c *RegisteredClient) GetAuthorizationEncryptedResponseEnc() (enc string) {
-	return ""
+	return c.AuthorizationEncryptedResponseEnc
 }
 
 // GetIDTokenSignedResponseKeyID returns the specific key identifier used to satisfy JWS requirements of the ID
@@ -231,7 +284,7 @@ func (c *RegisteredClient) GetIDTokenSignedResponseAlg() (alg string) {
 // Token specifications. If unspecified the other available parameters will be utilized to select an appropriate
 // key.
 func (c *RegisteredClient) GetIDTokenEncryptedResponseKeyID() (kid string) {
-	return ""
+	return c.IDTokenEncryptedResponseKeyID
 }
 
 // GetIDTokenEncryptedResponseAlg is equivalent to the 'id_token_encrypted_response_alg' client metadata value which
@@ -239,7 +292,7 @@ func (c *RegisteredClient) GetIDTokenEncryptedResponseKeyID() (kid string) {
 // requested, the response will be signed then encrypted, with the result being a Nested JWT, as defined in [JWT].
 // The default, if omitted, is that no encryption is performed.
 func (c *RegisteredClient) GetIDTokenEncryptedResponseAlg() (alg string) {
-	return ""
+	return c.IDTokenEncryptedResponseAlg
 }
 
 // GetIDTokenEncryptedResponseEnc is equivalent to the 'id_token_encrypted_response_enc' client metadata value which
@@ -247,7 +300,7 @@ func (c *RegisteredClient) GetIDTokenEncryptedResponseAlg() (alg string) {
 // id_token_encrypted_response_alg is specified, the default id_token_encrypted_response_enc value is A128CBC-HS256.
 // When id_token_encrypted_response_enc is included, id_token_encrypted_response_alg MUST also be provided.
 func (c *RegisteredClient) GetIDTokenEncryptedResponseEnc() (enc string) {
-	return ""
+	return c.IDTokenEncryptedResponseEnc
 }
 
 // GetAccessTokenSignedResponseKeyID returns the specific key identifier used to satisfy JWS requirements for
@@ -273,7 +326,7 @@ func (c *RegisteredClient) GetAccessTokenSignedResponseAlg() (alg string) {
 // JWT Profile for OAuth 2.0 Access Tokens specifications. If unspecified the other available parameters will be
 // utilized to select an appropriate key.
 func (c *RegisteredClient) GetAccessTokenEncryptedResponseKeyID() (kid string) {
-	return ""
+	return c.AccessTokenEncryptedResponseKeyID
 }
 
 // GetAccessTokenEncryptedResponseAlg determines the JWE [RFC7516] algorithm (alg value) as defined in JWA [RFC7518]
@@ -282,14 +335,14 @@ func (c *RegisteredClient) GetAccessTokenEncryptedResponseKeyID() (kid string) {
 // encryption is performed. If both signing and encryption are requested, the response will be signed then
 // encrypted, with the result being a Nested JWT, as defined in JWT [RFC7519].
 func (c *RegisteredClient) GetAccessTokenEncryptedResponseAlg() (alg string) {
-	return ""
+	return c.IDTokenEncryptedResponseAlg
 }
 
 // GetAccessTokenEncryptedResponseEnc determines the JWE [RFC7516] algorithm (enc value) as defined in JWA [RFC7518]
 // for content encryption of access token responses. The default, if omitted, is A128CBC-HS256. Note: This parameter
 // MUST NOT be specified without setting access_token_encrypted_response_alg.
 func (c *RegisteredClient) GetAccessTokenEncryptedResponseEnc() (enc string) {
-	return ""
+	return c.AccessTokenEncryptedResponseEnc
 }
 
 // GetUserinfoSignedResponseKeyID returns the specific key identifier used to satisfy JWS requirements of the User
@@ -315,7 +368,7 @@ func (c *RegisteredClient) GetUserinfoSignedResponseAlg() (alg string) {
 // User Info specifications. If unspecified the other available parameters will be utilized to select an appropriate
 // key.
 func (c *RegisteredClient) GetUserinfoEncryptedResponseKeyID() (kid string) {
-	return ""
+	return c.UserinfoEncryptedResponseKeyID
 }
 
 // GetUserinfoEncryptedResponseAlg is equivalent to the 'userinfo_encrypted_response_alg' client metadata value
@@ -323,7 +376,7 @@ func (c *RegisteredClient) GetUserinfoEncryptedResponseKeyID() (kid string) {
 // this is requested, the response will be signed then encrypted, with the result being a Nested JWT, as defined in
 // [JWT]. The default, if omitted, is that no encryption is performed.
 func (c *RegisteredClient) GetUserinfoEncryptedResponseAlg() (alg string) {
-	return ""
+	return c.UserinfoEncryptedResponseAlg
 }
 
 // GetUserinfoEncryptedResponseEnc is equivalent to the 'userinfo_encrypted_response_enc' client metadata value
@@ -331,7 +384,7 @@ func (c *RegisteredClient) GetUserinfoEncryptedResponseAlg() (alg string) {
 // userinfo_encrypted_response_alg is specified, the default userinfo_encrypted_response_enc value is A128CBC-HS256.
 // When userinfo_encrypted_response_enc is included, userinfo_encrypted_response_alg MUST also be provided.
 func (c *RegisteredClient) GetUserinfoEncryptedResponseEnc() (enc string) {
-	return ""
+	return c.UserinfoEncryptedResponseEnc
 }
 
 // GetIntrospectionSignedResponseKeyID returns the IntrospectionSignedResponseKeyID.
@@ -353,7 +406,7 @@ func (c *RegisteredClient) GetIntrospectionSignedResponseAlg() (alg string) {
 //
 //	// utilized to select an appropriate key.
 func (c *RegisteredClient) GetIntrospectionEncryptedResponseKeyID() (kid string) {
-	return ""
+	return c.IntrospectionEncryptedResponseKeyID
 }
 
 // GetIntrospectionEncryptedResponseAlg is equivalent to the 'introspection_encrypted_response_alg' client metadata
@@ -363,7 +416,7 @@ func (c *RegisteredClient) GetIntrospectionEncryptedResponseKeyID() (kid string)
 // If both signing and encryption are requested, the response will be signed then encrypted, with the result being
 // a Nested JWT, as defined in JWT [RFC7519].
 func (c *RegisteredClient) GetIntrospectionEncryptedResponseAlg() (alg string) {
-	return ""
+	return c.IntrospectionEncryptedResponseAlg
 }
 
 // GetIntrospectionEncryptedResponseEnc is equivalent to the 'introspection_encrypted_response_enc' client metadata
@@ -371,18 +424,7 @@ func (c *RegisteredClient) GetIntrospectionEncryptedResponseAlg() (alg string) {
 // encryption of introspection responses. The default, if omitted, is A128CBC-HS256. Note: This parameter MUST NOT
 // be specified without setting introspection_encrypted_response_alg.
 func (c *RegisteredClient) GetIntrospectionEncryptedResponseEnc() (enc string) {
-	return ""
-}
-
-// GetTokenEndpointAuthSigningAlg returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing the JWT
-// [JWT] used to authenticate the Client at the Token Endpoint for the private_key_jwt and client_secret_jwt
-// authentication methods.
-func (c *RegisteredClient) GetTokenEndpointAuthSigningAlg() (alg string) {
-	if c.TokenEndpointAuthSigningAlg == "" {
-		c.TokenEndpointAuthSigningAlg = SigningAlgRSAUsingSHA256
-	}
-
-	return c.TokenEndpointAuthSigningAlg
+	return c.IntrospectionEncryptedResponseEnc
 }
 
 // GetTokenEndpointAuthMethod returns the requested Client Authentication Method for the Token Endpoint. The options are
@@ -399,30 +441,67 @@ func (c *RegisteredClient) GetTokenEndpointAuthMethod() (method string) {
 	return c.TokenEndpointAuthMethod
 }
 
-// GetIntrospectionEndpointAuthSigningAlg returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing the
-// JWT [JWT] used to authenticate the Client at the Introspection Endpoint for the private_key_jwt and client_secret_jwt
+// GetTokenEndpointAuthSigningAlg returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing the JWT
+// [JWT] used to authenticate the Client at the Token Endpoint for the private_key_jwt and client_secret_jwt
 // authentication methods.
-func (c *RegisteredClient) GetIntrospectionEndpointAuthSigningAlg() (alg string) {
-	return ""
-}
+func (c *RegisteredClient) GetTokenEndpointAuthSigningAlg() (alg string) {
+	if c.TokenEndpointAuthSigningAlg == "" {
+		c.TokenEndpointAuthSigningAlg = SigningAlgRSAUsingSHA256
+	}
 
-// GetIntrospectionEndpointAuthMethod returns the requested Client Authentication Method for the Revocation Endpoint.
-// The options are client_secret_post, client_secret_basic, client_secret_jwt, private_key_jwt, and none.
-func (c *RegisteredClient) GetIntrospectionEndpointAuthMethod() (method string) {
-	return ""
-}
-
-// GetRevocationEndpointAuthSigningAlg returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing the
-// JWT [JWT] used to authenticate the Client at the Introspection Endpoint for the private_key_jwt and client_secret_jwt
-// authentication methods.
-func (c *RegisteredClient) GetRevocationEndpointAuthSigningAlg() (alg string) {
-	return ""
+	return c.TokenEndpointAuthSigningAlg
 }
 
 // GetRevocationEndpointAuthMethod returns the requested Client Authentication Method for the Revocation Endpoint.
 // The options are client_secret_post, client_secret_basic, client_secret_jwt, private_key_jwt, and none.
 func (c *RegisteredClient) GetRevocationEndpointAuthMethod() (method string) {
-	return ""
+	if c.Public && c.RevocationEndpointAuthMethod == "" {
+		c.RevocationEndpointAuthMethod = ClientAuthMethodNone
+	}
+
+	return c.RevocationEndpointAuthMethod
+}
+
+// GetRevocationEndpointAuthSigningAlg returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing the
+// JWT [JWT] used to authenticate the Client at the Revocation Endpoint for the private_key_jwt and client_secret_jwt
+// authentication methods.
+func (c *RegisteredClient) GetRevocationEndpointAuthSigningAlg() (alg string) {
+	return c.RevocationEndpointAuthSigningAlg
+}
+
+// GetIntrospectionEndpointAuthMethod returns the requested Client Authentication Method for the Introspection Endpoint.
+// The options are client_secret_post, client_secret_basic, client_secret_jwt, private_key_jwt, and none.
+func (c *RegisteredClient) GetIntrospectionEndpointAuthMethod() (method string) {
+	if c.Public && c.IntrospectionEndpointAuthMethod == "" {
+		c.IntrospectionEndpointAuthMethod = ClientAuthMethodNone
+	}
+
+	return c.IntrospectionEndpointAuthMethod
+}
+
+// GetIntrospectionEndpointAuthSigningAlg returns the JWS [JWS] alg algorithm [JWA] that MUST be used for signing the
+// JWT [JWT] used to authenticate the Client at the Introspection Endpoint for the private_key_jwt and client_secret_jwt
+// authentication methods.
+func (c *RegisteredClient) GetIntrospectionEndpointAuthSigningAlg() (alg string) {
+	return c.IntrospectionEndpointAuthSigningAlg
+}
+
+// GetPushedAuthorizationRequestEndpointAuthMethod returns the requested Client Authentication Method for the
+// Pushed Authorization Request Endpoint. The options are client_secret_post, client_secret_basic, client_secret_jwt,
+// private_key_jwt, and none.
+func (c *RegisteredClient) GetPushedAuthorizationRequestEndpointAuthMethod() (method string) {
+	if c.Public && c.PushedAuthorizationRequestEndpointAuthMethod == "" {
+		c.PushedAuthorizationRequestEndpointAuthMethod = ClientAuthMethodNone
+	}
+
+	return c.PushedAuthorizationRequestEndpointAuthMethod
+}
+
+// GetPushedAuthorizationRequestEndpointAuthSigningAlg returns the JWS [JWS] alg algorithm [JWA] that MUST be used for
+// signing the JWT [JWT] used to authenticate the Client at the Pushed Authorization Request Endpoint for the
+// private_key_jwt and client_secret_jwt authentication methods.
+func (c *RegisteredClient) GetPushedAuthorizationRequestEndpointAuthSigningAlg() (alg string) {
+	return c.PushedAuthorizationRequestEndpointAuthSigningAlg
 }
 
 // GetEnableJWTProfileOAuthAccessTokens returns true if this client is configured to return the
@@ -606,7 +685,7 @@ func (c *RegisteredClient) GetRequestObjectEncryptionKeyID() (kid string) {
 // will be signed then encrypted, with the result being a Nested JWT, as defined in [JWT]. The default, if omitted,
 // is that the RP is not declaring whether it might encrypt any Request Objects.
 func (c *RegisteredClient) GetRequestObjectEncryptionAlg() (alg string) {
-	return ""
+	return c.RequestObjectEncryptionAlg
 }
 
 // GetRequestObjectEncryptionEnc is equivalent to the 'request_object_encryption_enc' client metadata value which
@@ -615,7 +694,7 @@ func (c *RegisteredClient) GetRequestObjectEncryptionAlg() (alg string) {
 // A128CBC-HS256. When request_object_encryption_enc is included, request_object_encryption_alg MUST also be
 // provided.
 func (c *RegisteredClient) GetRequestObjectEncryptionEnc() (enc string) {
-	return ""
+	return c.RequestObjectEncryptionEnc
 }
 
 // GetAllowMultipleAuthenticationMethods should return true if the client policy allows multiple authentication
@@ -700,4 +779,52 @@ func (c *RegisteredClient) getGrantTypeLifespan(gt oauthelia2.GrantType) (gtl sc
 	default:
 		return gtl
 	}
+}
+
+func NewUserinfoClient(client Client) jwt.Client {
+	return &decoratedUserinfoClient{client: client}
+}
+
+type decoratedUserinfoClient struct {
+	client Client
+}
+
+func (d decoratedUserinfoClient) GetSigningKeyID() (kid string) {
+	return d.client.GetUserinfoSignedResponseKeyID()
+}
+
+func (d decoratedUserinfoClient) GetSigningAlg() (alg string) {
+	return d.client.GetUserinfoSignedResponseAlg()
+}
+
+func (d decoratedUserinfoClient) GetEncryptionKeyID() (kid string) {
+	return d.client.GetUserinfoEncryptedResponseKeyID()
+}
+
+func (d decoratedUserinfoClient) GetEncryptionAlg() (alg string) {
+	return d.client.GetUserinfoEncryptedResponseAlg()
+}
+
+func (d decoratedUserinfoClient) GetEncryptionEnc() (enc string) {
+	return d.client.GetUserinfoEncryptedResponseEnc()
+}
+
+func (d decoratedUserinfoClient) IsClientSigned() (is bool) {
+	return false
+}
+
+func (d decoratedUserinfoClient) GetID() string {
+	return d.client.GetID()
+}
+
+func (d decoratedUserinfoClient) GetClientSecretPlainText() (secret []byte, ok bool, err error) {
+	return d.client.GetClientSecretPlainText()
+}
+
+func (d decoratedUserinfoClient) GetJSONWebKeys() (jwks *jose.JSONWebKeySet) {
+	return d.client.GetJSONWebKeys()
+}
+
+func (d decoratedUserinfoClient) GetJSONWebKeysURI() (uri string) {
+	return d.client.GetJSONWebKeysURI()
 }
