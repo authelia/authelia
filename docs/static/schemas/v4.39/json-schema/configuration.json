@@ -1617,14 +1617,56 @@
             "PS384",
             "PS512"
           ],
-          "title": "Authorization Response Signing Algorithm",
-          "description": "The Authorization Endpoint Signing Algorithm this client uses.",
+          "title": "Authorization Signing Algorithm",
+          "description": "The JOSE signing algorithm (JWS) this client uses to sign the Authorization objects that it generates and responds with. i.e. the JWS 'alg' value.",
           "default": "none"
         },
         "authorization_signed_response_key_id": {
           "type": "string",
-          "title": "Authorization Response Signing Key ID",
-          "description": "The Key ID this client uses to sign the Authorization responses (overrides the 'authorization_signed_response_alg')."
+          "title": "Authorization Signing Key ID",
+          "description": "The Key ID of a JOSE signing key (JWS) this client uses to sign the Authorization objects that it generates and responds with. This value overrides the 'authorization_signed_response_alg'. i.e. the JWS 'kid' value."
+        },
+        "authorization_encrypted_response_alg": {
+          "type": "string",
+          "enum": [
+            "RSA1_5",
+            "RSA-OAEP",
+            "RSA-OAEP-256",
+            "A128KW",
+            "A192KW",
+            "A256KW",
+            "dir",
+            "ECDH-ES",
+            "ECDH-ES+A128KW",
+            "ECDH-ES+A192KW",
+            "ECDH-ES+A256KW",
+            "A128GCMKW",
+            "A192GCMKW",
+            "A256GCMKW",
+            "PBES2-HS256+A128KW",
+            "PBES2-HS384+A192KW",
+            "PBES2-HS512+A256KW"
+          ],
+          "title": "Authorization Encryption Algorithm (CEK)",
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Authorization objects CEK that it generates and responds with. i.e. the JWE 'alg' value."
+        },
+        "authorization_encrypted_response_enc": {
+          "type": "string",
+          "enum": [
+            "A128CBC-HS256",
+            "A192CBC-HS384",
+            "A256CBC-HS512",
+            "A128GCM",
+            "A192GCM",
+            "A256GCM"
+          ],
+          "title": "Authorization Encryption Algorithm (Content)",
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Authorization objects content that it generates and responds with. i.e. the JWE 'enc' value."
+        },
+        "authorization_encrypted_response_key_id": {
+          "type": "string",
+          "title": "Authorization Signing Key ID",
+          "description": "The Key ID of a JOSE encryption key (JWE) this client uses to encrypt the Authorization objects that it generates and responds with. This value overrides the 'authorization_encrypted_response_alg' and '%!s(MISSING)_encrypted_response_enc'. i.e. the JWE 'kid' value."
         },
         "id_token_signed_response_alg": {
           "type": "string",
@@ -1640,13 +1682,55 @@
             "PS512"
           ],
           "title": "ID Token Signing Algorithm",
-          "description": "The algorithm (JWA) this client uses to sign ID Tokens.",
+          "description": "The JOSE signing algorithm (JWS) this client uses to sign the ID Token objects that it generates and responds with. i.e. the JWS 'alg' value.",
           "default": "RS256"
         },
         "id_token_signed_response_key_id": {
           "type": "string",
           "title": "ID Token Signing Key ID",
-          "description": "The Key ID this client uses to sign ID Tokens (overrides the 'id_token_signing_alg')."
+          "description": "The Key ID of a JOSE signing key (JWS) this client uses to sign the ID Token objects that it generates and responds with. This value overrides the 'id_token_signed_response_alg'. i.e. the JWS 'kid' value."
+        },
+        "id_token_encrypted_response_alg": {
+          "type": "string",
+          "enum": [
+            "RSA1_5",
+            "RSA-OAEP",
+            "RSA-OAEP-256",
+            "A128KW",
+            "A192KW",
+            "A256KW",
+            "dir",
+            "ECDH-ES",
+            "ECDH-ES+A128KW",
+            "ECDH-ES+A192KW",
+            "ECDH-ES+A256KW",
+            "A128GCMKW",
+            "A192GCMKW",
+            "A256GCMKW",
+            "PBES2-HS256+A128KW",
+            "PBES2-HS384+A192KW",
+            "PBES2-HS512+A256KW"
+          ],
+          "title": "ID Token Encryption Algorithm (CEK)",
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the ID Token objects CEK that it generates and responds with. i.e. the JWE 'alg' value."
+        },
+        "id_token_encrypted_response_enc": {
+          "type": "string",
+          "enum": [
+            "A128CBC-HS256",
+            "A192CBC-HS384",
+            "A256CBC-HS512",
+            "A128GCM",
+            "A192GCM",
+            "A256GCM"
+          ],
+          "title": "ID Token Encryption Algorithm (Content)",
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the ID Token objects content that it generates and responds with. i.e. the JWE 'enc' value."
+        },
+        "id_token_encrypted_response_key_id": {
+          "type": "string",
+          "title": "ID Token Signing Key ID",
+          "description": "The Key ID of a JOSE encryption key (JWE) this client uses to encrypt the ID Token objects that it generates and responds with. This value overrides the 'id_token_encrypted_response_alg' and '%!s(MISSING)_encrypted_response_enc'. i.e. the JWE 'kid' value."
         },
         "access_token_signed_response_alg": {
           "type": "string",
@@ -1663,13 +1747,55 @@
             "PS512"
           ],
           "title": "Access Token Signing Algorithm",
-          "description": "The algorithm (JWA) this client uses to sign Access Tokens.",
+          "description": "The JOSE signing algorithm (JWS) this client uses to sign the Access Token objects that it generates and responds with. i.e. the JWS 'alg' value.",
           "default": "none"
         },
         "access_token_signed_response_key_id": {
           "type": "string",
           "title": "Access Token Signing Key ID",
-          "description": "The Key ID this client uses to sign Access Tokens (overrides the 'access_token_signed_response_alg')."
+          "description": "The Key ID of a JOSE signing key (JWS) this client uses to sign the Access Token objects that it generates and responds with. This value overrides the 'access_token_signed_response_alg'. i.e. the JWS 'kid' value."
+        },
+        "access_token_encrypted_response_alg": {
+          "type": "string",
+          "enum": [
+            "RSA1_5",
+            "RSA-OAEP",
+            "RSA-OAEP-256",
+            "A128KW",
+            "A192KW",
+            "A256KW",
+            "dir",
+            "ECDH-ES",
+            "ECDH-ES+A128KW",
+            "ECDH-ES+A192KW",
+            "ECDH-ES+A256KW",
+            "A128GCMKW",
+            "A192GCMKW",
+            "A256GCMKW",
+            "PBES2-HS256+A128KW",
+            "PBES2-HS384+A192KW",
+            "PBES2-HS512+A256KW"
+          ],
+          "title": "Access Token Encryption Algorithm (CEK)",
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Access Token objects CEK that it generates and responds with. i.e. the JWE 'alg' value."
+        },
+        "access_token_encrypted_response_enc": {
+          "type": "string",
+          "enum": [
+            "A128CBC-HS256",
+            "A192CBC-HS384",
+            "A256CBC-HS512",
+            "A128GCM",
+            "A192GCM",
+            "A256GCM"
+          ],
+          "title": "Access Token Encryption Algorithm (Content)",
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Access Token objects content that it generates and responds with. i.e. the JWE 'enc' value."
+        },
+        "access_token_encrypted_response_key_id": {
+          "type": "string",
+          "title": "Access Token Signing Key ID",
+          "description": "The Key ID of a JOSE encryption key (JWE) this client uses to encrypt the Access Token objects that it generates and responds with. This value overrides the 'access_token_encrypted_response_alg' and '%!s(MISSING)_encrypted_response_enc'. i.e. the JWE 'kid' value."
         },
         "userinfo_signed_response_alg": {
           "type": "string",
@@ -1685,14 +1811,56 @@
             "PS384",
             "PS512"
           ],
-          "title": "UserInfo Response Signing Algorithm",
-          "description": "The UserInfo Endpoint Signing Algorithm this client uses.",
+          "title": "Userinfo Signing Algorithm",
+          "description": "The JOSE signing algorithm (JWS) this client uses to sign the Userinfo objects that it generates and responds with. i.e. the JWS 'alg' value.",
           "default": "none"
         },
         "userinfo_signed_response_key_id": {
           "type": "string",
-          "title": "UserInfo Response Signing Key ID",
-          "description": "The Key ID this client uses to sign the UserInfo responses (overrides the 'userinfo_signed_response_alg')."
+          "title": "Userinfo Signing Key ID",
+          "description": "The Key ID of a JOSE signing key (JWS) this client uses to sign the Userinfo objects that it generates and responds with. This value overrides the 'userinfo_signed_response_alg'. i.e. the JWS 'kid' value."
+        },
+        "userinfo_encrypted_response_alg": {
+          "type": "string",
+          "enum": [
+            "RSA1_5",
+            "RSA-OAEP",
+            "RSA-OAEP-256",
+            "A128KW",
+            "A192KW",
+            "A256KW",
+            "dir",
+            "ECDH-ES",
+            "ECDH-ES+A128KW",
+            "ECDH-ES+A192KW",
+            "ECDH-ES+A256KW",
+            "A128GCMKW",
+            "A192GCMKW",
+            "A256GCMKW",
+            "PBES2-HS256+A128KW",
+            "PBES2-HS384+A192KW",
+            "PBES2-HS512+A256KW"
+          ],
+          "title": "Userinfo Encryption Algorithm (CEK)",
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Userinfo objects CEK that it generates and responds with. i.e. the JWE 'alg' value."
+        },
+        "userinfo_encrypted_response_enc": {
+          "type": "string",
+          "enum": [
+            "A128CBC-HS256",
+            "A192CBC-HS384",
+            "A256CBC-HS512",
+            "A128GCM",
+            "A192GCM",
+            "A256GCM"
+          ],
+          "title": "Userinfo Encryption Algorithm (Content)",
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Userinfo objects content that it generates and responds with. i.e. the JWE 'enc' value."
+        },
+        "userinfo_encrypted_response_key_id": {
+          "type": "string",
+          "title": "Userinfo Signing Key ID",
+          "description": "The Key ID of a JOSE encryption key (JWE) this client uses to encrypt the Userinfo objects that it generates and responds with. This value overrides the 'userinfo_encrypted_response_alg' and '%!s(MISSING)_encrypted_response_enc'. i.e. the JWE 'kid' value."
         },
         "introspection_signed_response_alg": {
           "type": "string",
@@ -1708,14 +1876,56 @@
             "PS384",
             "PS512"
           ],
-          "title": "Introspection Response Signing Algorithm",
-          "description": "The Introspection Endpoint Signing Algorithm this client uses.",
+          "title": "Introspection Signing Algorithm",
+          "description": "The JOSE signing algorithm (JWS) this client uses to sign the Introspection objects that it generates and responds with. i.e. the JWS 'alg' value.",
           "default": "none"
         },
         "introspection_signed_response_key_id": {
           "type": "string",
-          "title": "Introspection Response Signing Key ID",
-          "description": "The Key ID this client uses to sign the Introspection responses (overrides the 'introspection_signed_response_alg')."
+          "title": "Introspection Signing Key ID",
+          "description": "The Key ID of a JOSE signing key (JWS) this client uses to sign the Introspection objects that it generates and responds with. This value overrides the 'introspection_signed_response_alg'. i.e. the JWS 'kid' value."
+        },
+        "introspection_encrypted_response_alg": {
+          "type": "string",
+          "enum": [
+            "RSA1_5",
+            "RSA-OAEP",
+            "RSA-OAEP-256",
+            "A128KW",
+            "A192KW",
+            "A256KW",
+            "dir",
+            "ECDH-ES",
+            "ECDH-ES+A128KW",
+            "ECDH-ES+A192KW",
+            "ECDH-ES+A256KW",
+            "A128GCMKW",
+            "A192GCMKW",
+            "A256GCMKW",
+            "PBES2-HS256+A128KW",
+            "PBES2-HS384+A192KW",
+            "PBES2-HS512+A256KW"
+          ],
+          "title": "Introspection Encryption Algorithm (CEK)",
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Introspection objects CEK that it generates and responds with. i.e. the JWE 'alg' value."
+        },
+        "introspection_encrypted_response_enc": {
+          "type": "string",
+          "enum": [
+            "A128CBC-HS256",
+            "A192CBC-HS384",
+            "A256CBC-HS512",
+            "A128GCM",
+            "A192GCM",
+            "A256GCM"
+          ],
+          "title": "Introspection Encryption Algorithm (Content)",
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Introspection objects content that it generates and responds with. i.e. the JWE 'enc' value."
+        },
+        "introspection_encrypted_response_key_id": {
+          "type": "string",
+          "title": "Introspection Signing Key ID",
+          "description": "The Key ID of a JOSE encryption key (JWE) this client uses to encrypt the Introspection objects that it generates and responds with. This value overrides the 'introspection_encrypted_response_alg' and '%!s(MISSING)_encrypted_response_enc'. i.e. the JWE 'kid' value."
         },
         "request_object_signing_alg": {
           "type": "string",
@@ -1731,7 +1941,56 @@
             "PS512"
           ],
           "title": "Request Object Signing Algorithm",
-          "description": "The Request Object Signing Algorithm the provider accepts for this client."
+          "description": "The JOSE signing algorithm (JWS) this client must use to sign Request Objects that it uses. i.e. the JWS 'alg' value."
+        },
+        "request_object_encryption_alg": {
+          "type": "string",
+          "enum": [
+            "RSA1_5",
+            "RSA-OAEP",
+            "RSA-OAEP-256",
+            "A128KW",
+            "A192KW",
+            "A256KW",
+            "dir",
+            "ECDH-ES",
+            "ECDH-ES+A128KW",
+            "ECDH-ES+A192KW",
+            "ECDH-ES+A256KW",
+            "A128GCMKW",
+            "A192GCMKW",
+            "A256GCMKW",
+            "PBES2-HS256+A128KW",
+            "PBES2-HS384+A192KW",
+            "PBES2-HS512+A256KW"
+          ],
+          "title": "Request Object Encryption Algorithm (CEK)",
+          "description": "The JOSE encryption algorithm (JWE) this client must use to encrypt the Request Object CEK. i.e. the JWE 'alg' value."
+        },
+        "request_object_encryption_enc": {
+          "type": "string",
+          "enum": [
+            "A128CBC-HS256",
+            "A192CBC-HS384",
+            "A256CBC-HS512",
+            "A128GCM",
+            "A192GCM",
+            "A256GCM"
+          ],
+          "title": "Request Object Encryption Algorithm (Content)",
+          "description": "The JOSE encryption algorithm (JWE) this client must use to encrypt the Request Object content. i.e. the JWE 'enc' value."
+        },
+        "token_endpoint_auth_method": {
+          "type": "string",
+          "enum": [
+            "none",
+            "client_secret_post",
+            "client_secret_basic",
+            "private_key_jwt",
+            "client_secret_jwt"
+          ],
+          "title": "Token Endpoint Auth Method",
+          "description": "The Token Endpoint Auth Method enforced by the provider for this client."
         },
         "token_endpoint_auth_signing_alg": {
           "type": "string",
@@ -1752,7 +2011,7 @@
           "title": "Token Endpoint Auth Signing Algorithm",
           "description": "The Token Endpoint Auth Signing Algorithm the provider accepts for this client."
         },
-        "token_endpoint_auth_method": {
+        "revocation_endpoint_auth_method": {
           "type": "string",
           "enum": [
             "none",
@@ -1761,8 +2020,89 @@
             "private_key_jwt",
             "client_secret_jwt"
           ],
-          "title": "Token Endpoint Auth Method",
-          "description": "The Token Endpoint Auth Method enforced by the provider for this client."
+          "title": "Revocation Endpoint Auth Method",
+          "description": "The Revocation Endpoint Auth Method enforced by the provider for this client."
+        },
+        "revocation_endpoint_auth_signing_alg": {
+          "type": "string",
+          "enum": [
+            "HS256",
+            "HS384",
+            "HS512",
+            "RS256",
+            "RS384",
+            "RS512",
+            "ES256",
+            "ES384",
+            "ES512",
+            "PS256",
+            "PS384",
+            "PS512"
+          ],
+          "title": "Revocation Endpoint Auth Signing Algorithm",
+          "description": "The Revocation Endpoint Auth Signing Algorithm the provider accepts for this client."
+        },
+        "introspection_endpoint_auth_method": {
+          "type": "string",
+          "enum": [
+            "none",
+            "client_secret_post",
+            "client_secret_basic",
+            "private_key_jwt",
+            "client_secret_jwt"
+          ],
+          "title": "Introspection Endpoint Auth Method",
+          "description": "The Introspection Endpoint Auth Method enforced by the provider for this client."
+        },
+        "introspection_endpoint_auth_signing_alg": {
+          "type": "string",
+          "enum": [
+            "HS256",
+            "HS384",
+            "HS512",
+            "RS256",
+            "RS384",
+            "RS512",
+            "ES256",
+            "ES384",
+            "ES512",
+            "PS256",
+            "PS384",
+            "PS512"
+          ],
+          "title": "Introspection Endpoint Auth Signing Algorithm",
+          "description": "The Introspection Endpoint Auth Signing Algorithm the provider accepts for this client."
+        },
+        "pushed_authorization_request_endpoint_auth_method": {
+          "type": "string",
+          "enum": [
+            "none",
+            "client_secret_post",
+            "client_secret_basic",
+            "private_key_jwt",
+            "client_secret_jwt"
+          ],
+          "title": "Pushed Authorization Request Endpoint Auth Method",
+          "description": "The Pushed Authorization Request Endpoint Auth Method enforced by the provider for this client."
+        },
+        "pushed_authorization_request_endpoint_auth_signing_alg": {
+          "type": "string",
+          "enum": [
+            "HS256",
+            "HS384",
+            "HS512",
+            "RS256",
+            "RS384",
+            "RS512",
+            "ES256",
+            "ES384",
+            "ES512",
+            "PS256",
+            "PS384",
+            "PS512"
+          ],
+          "title": "Pushed Authorization Request Endpoint Auth Signing Algorithm",
+          "description": "The Pushed Authorization Request Endpoint Auth Signing Algorithm the provider accepts for this client."
         },
         "allow_multiple_auth_methods": {
           "type": "boolean",

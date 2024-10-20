@@ -675,8 +675,8 @@ func TestShouldNotPanicJWKNilKey(t *testing.T) {
 		validator.ValidateIdentityProviders(validator.NewValidateCtx(), config, val)
 	})
 
-	assert.Len(t, val.Errors(), 5)
-	require.Len(t, val.Warnings(), 1)
+	assert.Len(t, val.Warnings(), 1)
+	require.Len(t, val.Errors(), 5)
 
 	assert.EqualError(t, val.Errors()[0], "identity_providers: oidc: jwks: key #1 with key id 'abc': option 'key' must be provided")
 	assert.EqualError(t, val.Errors()[1], "identity_providers: oidc: jwks: key #2: option 'key' must be provided")
@@ -704,6 +704,7 @@ func TestShouldDisableOIDCEntropy(t *testing.T) {
 	require.Len(t, val.Warnings(), 2)
 
 	assert.EqualError(t, val.Warnings()[0], "identity_providers: oidc: option 'minimum_parameter_entropy' is disabled which is considered unsafe and insecure")
+	assert.EqualError(t, val.Warnings()[1], "identity_providers: oidc: clients: client 'abc': option 'client_secret' is plaintext but for clients not using any endpoint authentication method 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed in the near future")
 	assert.Equal(t, -1, config.IdentityProviders.OIDC.MinimumParameterEntropy)
 }
 
@@ -715,18 +716,18 @@ func TestShouldHandleOIDCClaims(t *testing.T) {
 
 	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
 
-	require.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Errors(), 0)
 
 	val.Clear()
 
 	validator.ValidateIdentityProviders(validator.NewValidateCtx(), config, val)
 
-	require.Len(t, val.Errors(), 2)
 	require.Len(t, val.Warnings(), 1)
+	assert.EqualError(t, val.Warnings()[0], "identity_providers: oidc: clients: client 'abc': option 'client_secret' is plaintext but for clients not using any endpoint authentication method 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed in the near future")
 
+	require.Len(t, val.Errors(), 2)
 	assert.Regexp(t, regexp.MustCompile(`^identity_providers: oidc: jwks: key #1 with key id 'keya': option 'certificate_chain' produced an error during validation of the chain: certificate #1 in chain is invalid after 1713180174 but the time is \d+$`), val.Errors()[0].Error())
 	assert.Regexp(t, regexp.MustCompile(`^identity_providers: oidc: jwks: key #2 with key id 'ec521': option 'certificate_chain' produced an error during validation of the chain: certificate #1 in chain is invalid after 1713180101 but the time is \d+$`), val.Errors()[1].Error())
-	assert.EqualError(t, val.Warnings()[0], "identity_providers: oidc: clients: client 'abc': option 'client_secret' is plaintext but for clients not using the 'token_endpoint_auth_method' of 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed in the near future")
 
 	require.Len(t, config.IdentityProviders.OIDC.JSONWebKeys, 3)
 	require.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[0].Key)
@@ -769,18 +770,18 @@ func TestShouldDisableOIDCModern(t *testing.T) {
 
 	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
 
-	require.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Errors(), 0)
 
 	val.Clear()
 
 	validator.ValidateIdentityProviders(validator.NewValidateCtx(), config, val)
 
-	require.Len(t, val.Errors(), 2)
 	require.Len(t, val.Warnings(), 1)
+	assert.EqualError(t, val.Warnings()[0], "identity_providers: oidc: clients: client 'abc': option 'client_secret' is plaintext but for clients not using any endpoint authentication method 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed in the near future")
 
+	require.Len(t, val.Errors(), 2)
 	assert.Regexp(t, regexp.MustCompile(`^identity_providers: oidc: jwks: key #1 with key id 'keya': option 'certificate_chain' produced an error during validation of the chain: certificate #1 in chain is invalid after 1713180174 but the time is \d+$`), val.Errors()[0].Error())
 	assert.Regexp(t, regexp.MustCompile(`^identity_providers: oidc: jwks: key #2 with key id 'ec521': option 'certificate_chain' produced an error during validation of the chain: certificate #1 in chain is invalid after 1713180101 but the time is \d+$`), val.Errors()[1].Error())
-	assert.EqualError(t, val.Warnings()[0], "identity_providers: oidc: clients: client 'abc': option 'client_secret' is plaintext but for clients not using the 'token_endpoint_auth_method' of 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed in the near future")
 
 	require.Len(t, config.IdentityProviders.OIDC.JSONWebKeys, 3)
 	require.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[0].Key)
@@ -844,11 +845,11 @@ func TestShouldValidateAndRaiseErrorsOnBadConfiguration(t *testing.T) {
 
 	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
 
-	require.Len(t, val.Errors(), 1)
 	require.Len(t, val.Warnings(), 1)
-
-	assert.EqualError(t, val.Errors()[0], "configuration key not expected: loggy_file")
 	assert.EqualError(t, val.Warnings()[0], "configuration key 'logs_level' is deprecated in 4.7.0 and has been replaced by 'log.level': you are not required to make any changes as this has been automatically mapped for you, but to stop this warning being logged you will need to adjust your configuration, and this configuration key and auto-mapping is likely to be removed in 5.0.0")
+
+	require.Len(t, val.Errors(), 1)
+	assert.EqualError(t, val.Errors()[0], "configuration key not expected: loggy_file")
 
 	assert.Equal(t, "debug", c.Log.Level)
 }
