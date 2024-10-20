@@ -22,12 +22,12 @@ func NewOpenIDConnectProvider(config *schema.Configuration, store storage.Provid
 		return nil
 	}
 
-	signer := NewKeyManager(config.IdentityProviders.OIDC)
+	issuer := NewIssuer(config.IdentityProviders.OIDC.JSONWebKeys)
 
 	provider = &OpenIDConnectProvider{
-		Store:      NewStore(config, store),
-		KeyManager: signer,
-		Config:     NewConfig(config.IdentityProviders.OIDC, signer, templates),
+		Store:  NewStore(config, store),
+		Issuer: issuer,
+		Config: NewConfig(config.IdentityProviders.OIDC, issuer, templates),
 	}
 
 	provider.Provider = oauthelia2.New(provider.Store, provider.Config)
