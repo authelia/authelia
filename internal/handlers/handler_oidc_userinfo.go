@@ -88,7 +88,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		return
 	}
 
-	claims := map[string]any{}
+	claims := jwt.MapClaims{}
 
 	var detailer oidc.UserDetailer
 
@@ -129,19 +129,15 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 
 		_ = json.NewEncoder(rw).Encode(claims)
 	default:
-		var jwk *oidc.JWK
+		jwtClient := oidc.NewUserinfoClient(client)
 
-		if jwk = ctx.Providers.OpenIDConnect.KeyManager.Get(ctx, client.GetUserinfoSignedResponseKeyID(), alg); jwk == nil {
-			errorsx.WriteJSONError(rw, r, errors.WithStack(oauthelia2.ErrServerError.WithHintf("Unsupported UserInfo signing algorithm '%s'.", alg)))
-
-			return
-		}
-
-		ctx.Logger.Debugf("UserInfo Request with id '%s' on client with id '%s' is being returned signed as per the registered client configuration with key id '%s' using the '%s' algorithm", requestID, client.GetID(), jwk.KeyID(), jwk.JWK().Algorithm)
+		ctx.Logger.Debugf("User Info Request with id '%s' on client with id '%s' is being returned signed as per the registered client configuration with key id '%s' using the '%s' algorithm", requestID, client.GetID(), jwtClient.GetSigningKeyID(), jwtClient.GetSigningAlg())
 
 		var jti uuid.UUID
 
 		if jti, err = uuid.NewRandom(); err != nil {
+			ctx.Logger.WithError(err).Errorf("User Info Request with id '%s' on client with id '%s' failed due to an error generating a JTI for the JWT response", requestID, client.GetID())
+
 			errorsx.WriteJSONError(rw, r, oauthelia2.ErrServerError.WithHint("Could not generate JTI."))
 
 			return
@@ -150,13 +146,9 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		claims[oidc.ClaimJWTID] = jti.String()
 		claims[oidc.ClaimIssuedAt] = time.Now().UTC().Unix()
 
-		headers := &jwt.Headers{
-			Extra: map[string]any{
-				oidc.JWTHeaderKeyIdentifier: jwk.KeyID(),
-			},
-		}
+		strategy := ctx.Providers.OpenIDConnect.GetJWTStrategy(ctx)
 
-		if token, _, err = jwk.Strategy().Generate(r.Context(), claims, headers); err != nil {
+		if token, _, err = strategy.Encode(ctx, claims, jwt.WithClient(jwtClient)); err != nil {
 			errorsx.WriteJSONError(rw, r, err)
 
 			return

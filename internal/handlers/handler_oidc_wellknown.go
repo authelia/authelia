@@ -4,7 +4,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
+	"authelia.com/provider/oauth2/token/jwt"
 	"github.com/google/uuid"
 	"github.com/valyala/fasthttp"
 
@@ -36,22 +36,27 @@ func OpenIDConnectConfigurationWellKnownGET(ctx *middlewares.AutheliaCtx) {
 		OpenIDConnectWellKnownConfiguration: ctx.Providers.OpenIDConnect.GetOpenIDConnectWellKnownConfiguration(issuer.String()),
 	}
 
+	headers := &jwt.Headers{}
+
 	if ctx.Configuration.IdentityProviders.OIDC.DiscoverySignedResponseKeyID != "" {
-		token := jwt.NewWithClaims(jwt.SigningMethodRS256, &oidc.OpenIDConnectWellKnownClaims{
-			OpenIDConnectWellKnownSignedConfiguration: metadata,
-			RegisteredClaims: jwt.RegisteredClaims{
-				ID:        uuid.New().String(),
-				Issuer:    issuer.String(),
-				IssuedAt:  jwt.NewNumericDate(time.Now()),
-				ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
-			},
-		})
+		headers.Add(oidc.JWTHeaderKeyIdentifier, ctx.Configuration.IdentityProviders.OIDC.DiscoverySignedResponseKeyID)
+	}
 
-		kid := ctx.Providers.OpenIDConnect.KeyManager.GetKeyID(ctx, ctx.Configuration.IdentityProviders.OIDC.DiscoverySignedResponseKeyID, ctx.Configuration.IdentityProviders.OIDC.DiscoverySignedResponseAlg)
+	if ctx.Configuration.IdentityProviders.OIDC.DiscoverySignedResponseAlg != "" {
+		headers.Add(oidc.JWTHeaderKeyAlgorithm, ctx.Configuration.IdentityProviders.OIDC.DiscoverySignedResponseAlg)
+	}
 
-		token.Header[oidc.JWTHeaderKeyIdentifier] = kid
+	if len(headers.Extra) != 0 {
+		claims := metadata.ToMap()
 
-		if metadata.SignedMetadata, err = token.SignedString(ctx.Providers.OpenIDConnect.KeyManager.Get(ctx, kid, ctx.Configuration.IdentityProviders.OIDC.DiscoverySignedResponseAlg).PrivateJWK().Key); err != nil {
+		claims[oidc.ClaimJWTID] = uuid.New().String()
+		claims[oidc.ClaimIssuer] = issuer.String()
+		claims[oidc.ClaimIssuedAt] = ctx.Clock.Now().UTC().Unix()
+		claims[oidc.ClaimExpirationTime] = ctx.Clock.Now().Add(time.Hour).UTC().Unix()
+
+		strategy := ctx.Providers.OpenIDConnect.GetJWTStrategy(ctx)
+
+		if metadata.SignedMetadata, _, err = strategy.Encode(ctx, claims, jwt.WithHeaders(headers)); err != nil {
 			ctx.Logger.WithError(err).Errorf("Error occurred signing metadata")
 
 			ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)
@@ -93,22 +98,27 @@ func OAuthAuthorizationServerWellKnownGET(ctx *middlewares.AutheliaCtx) {
 		OAuth2WellKnownConfiguration: ctx.Providers.OpenIDConnect.GetOAuth2WellKnownConfiguration(issuer.String()),
 	}
 
+	headers := &jwt.Headers{}
+
 	if ctx.Configuration.IdentityProviders.OIDC.DiscoverySignedResponseKeyID != "" {
-		token := jwt.NewWithClaims(jwt.SigningMethodRS256, &oidc.OAuth2WellKnownClaims{
-			OAuth2WellKnownSignedConfiguration: metadata,
-			RegisteredClaims: jwt.RegisteredClaims{
-				ID:        uuid.New().String(),
-				Issuer:    issuer.String(),
-				IssuedAt:  jwt.NewNumericDate(time.Now()),
-				ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
-			},
-		})
+		headers.Add(oidc.JWTHeaderKeyIdentifier, ctx.Configuration.IdentityProviders.OIDC.DiscoverySignedResponseKeyID)
+	}
 
-		kid := ctx.Providers.OpenIDConnect.KeyManager.GetKeyID(ctx, ctx.Configuration.IdentityProviders.OIDC.DiscoverySignedResponseKeyID, ctx.Configuration.IdentityProviders.OIDC.DiscoverySignedResponseAlg)
+	if ctx.Configuration.IdentityProviders.OIDC.DiscoverySignedResponseAlg != "" {
+		headers.Add(oidc.JWTHeaderKeyAlgorithm, ctx.Configuration.IdentityProviders.OIDC.DiscoverySignedResponseAlg)
+	}
 
-		token.Header[oidc.JWTHeaderKeyIdentifier] = kid
+	if len(headers.Extra) != 0 {
+		claims := metadata.ToMap()
 
-		if metadata.SignedMetadata, err = token.SignedString(ctx.Providers.OpenIDConnect.KeyManager.Get(ctx, kid, ctx.Configuration.IdentityProviders.OIDC.DiscoverySignedResponseAlg).PrivateJWK().Key); err != nil {
+		claims[oidc.ClaimJWTID] = uuid.New().String()
+		claims[oidc.ClaimIssuer] = issuer.String()
+		claims[oidc.ClaimIssuedAt] = ctx.Clock.Now().UTC().Unix()
+		claims[oidc.ClaimExpirationTime] = ctx.Clock.Now().Add(time.Hour).UTC().Unix()
+
+		strategy := ctx.Providers.OpenIDConnect.GetJWTStrategy(ctx)
+
+		if metadata.SignedMetadata, _, err = strategy.Encode(ctx, claims, jwt.WithHeaders(headers)); err != nil {
 			ctx.Logger.WithError(err).Errorf("Error occurred signing metadata")
 
 			ctx.ReplyStatusCode(fasthttp.StatusInternalServerError)

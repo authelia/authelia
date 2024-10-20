@@ -217,48 +217,101 @@ The specifics about this scope are discussed in the
 [OAuth 2.0 Bearer Token Usage for Authorization Endpoints](oauth-2.0-bearer-token-usage.md#authorization-endpoints)
 guide.
 
-## Signing and Encryption Algorithms
+## Signing and Content Encryption Algorithms
 
 [OpenID Connect 1.0] and OAuth 2.0 support a wide variety of signature and encryption algorithms. Authelia supports
 a subset of these.
 
 ### Response Object
 
-Authelia's response objects can have the following signature algorithms:
+Authelia's response objects can have the following signature and content encryption  algorithms (i.e. the `alg`
+parameter):
 
-| Algorithm |  Key Type   | Hashing Algorithm |    Use    |            JWK Default Conditions            |                        Notes                         |
-|:---------:|:-----------:|:-----------------:|:---------:|:--------------------------------------------:|:----------------------------------------------------:|
-|   RS256   |     RSA     |      SHA-256      | Signature | RSA Private Key without a specific algorithm |  Requires an RSA Private Key with 2048 bits or more  |
-|   RS384   |     RSA     |      SHA-384      | Signature |                     N/A                      |  Requires an RSA Private Key with 2048 bits or more  |
-|   RS512   |     RSA     |      SHA-512      | Signature |                     N/A                      |  Requires an RSA Private Key with 2048 bits or more  |
-|   ES256   | ECDSA P-256 |      SHA-256      | Signature |    ECDSA Private Key with the P-256 curve    |                                                      |
-|   ES384   | ECDSA P-384 |      SHA-384      | Signature |    ECDSA Private Key with the P-384 curve    |                                                      |
-|   ES512   | ECDSA P-521 |      SHA-512      | Signature |    ECDSA Private Key with the P-521 curve    | Requires an ECDSA Private Key with 2048 bits or more |
-|   PS256   | RSA (MGF1)  |      SHA-256      | Signature |                     N/A                      |  Requires an RSA Private Key with 2048 bits or more  |
-|   PS384   | RSA (MGF1)  |      SHA-384      | Signature |                     N/A                      |  Requires an RSA Private Key with 2048 bits or more  |
-|   PS512   | RSA (MGF1)  |      SHA-512      | Signature |                     N/A                      |  Requires an RSA Private Key with 2048 bits or more  |
+|     Algorithm      |  Key Type   | Hashing Algorithm |  Use  |            JWK Default Conditions            |                                  Notes                                   |
+|:------------------:|:-----------:|:-----------------:|:-----:|:--------------------------------------------:|:------------------------------------------------------------------------:|
+|       RS256        |     RSA     |      SHA-256      | `sig` | RSA Private Key without a specific algorithm |            Requires an RSA Private Key with 2048 bits or more            |
+|       RS384        |     RSA     |      SHA-384      | `sig` |                     N/A                      |            Requires an RSA Private Key with 2048 bits or more            |
+|       RS512        |     RSA     |      SHA-512      | `sig` |                     N/A                      |            Requires an RSA Private Key with 2048 bits or more            |
+|       ES256        | ECDSA P-256 |      SHA-256      | `sig` |    ECDSA Private Key with the P-256 curve    |            Requires an ECDSA Private Key with a 256 bit curve            |
+|       ES384        | ECDSA P-384 |      SHA-384      | `sig` |    ECDSA Private Key with the P-384 curve    |            Requires an ECDSA Private Key with a 384 bit curve            |
+|       ES512        | ECDSA P-521 |      SHA-512      | `sig` |    ECDSA Private Key with the P-521 curve    |            Requires an ECDSA Private Key with a 512 bit curve            |
+|       PS256        | RSA (MGF1)  |      SHA-256      | `sig` |                     N/A                      |            Requires an RSA Private Key with 2048 bits or more            |
+|       PS384        | RSA (MGF1)  |      SHA-384      | `sig` |                     N/A                      |            Requires an RSA Private Key with 2048 bits or more            |
+|       PS512        | RSA (MGF1)  |      SHA-512      | `sig` |                     N/A                      |            Requires an RSA Private Key with 2048 bits or more            |
+|       RSA1_5       |     RSA     |        N/A        | `enc` |                     N/A                      | Strongly Discouraged, Requires an RSA Private Key with 2048 bits or more |
+|      RSA-OAEP      | RSA (MFG1)  |        N/A        | `enc` |                     N/A                      |            Requires an RSA Private Key with 2048 bits or more            |
+|    RSA-OAEP-256    | RSA (MFG1)  |      SHA-256      | `enc` |                     N/A                      |            Requires an RSA Private Key with 2048 bits or more            |
+|       A128KW       |  Symmetric  |        N/A        | `enc` |                     N/A                      |                         Uses the `client_secret`                         |
+|       A192KW       |  Symmetric  |        N/A        | `enc` |                     N/A                      |                         Uses the `client_secret`                         |
+|       A256KW       |  Symmetric  |        N/A        | `enc` |                     N/A                      |                         Uses the `client_secret`                         |
+|        dir         |  Symmetric  |        N/A        | `enc` |                     N/A                      |                         Uses the `client_secret`                         |
+|      ECDH-ES       |    ECDSA    |        N/A        | `enc` |                     N/A                      |                      Requires an ECDSA Private Key                       |
+|   ECDH-ES+A128KW   |    ECDSA    |        N/A        | `enc` |                     N/A                      |                      Requires an ECDSA Private Key                       |
+|   ECDH-ES+A192KW   |    ECDSA    |        N/A        | `enc` |                     N/A                      |                      Requires an ECDSA Private Key                       |
+|   ECDH-ES+A256KW   |    ECDSA    |        N/A        | `enc` |                     N/A                      |                      Requires an ECDSA Private Key                       |
+|     A128GCMKW      |  Symmetric  |        N/A        | `enc` |                     N/A                      |                         Uses the `client_secret`                         |
+|     A192GCMKW      |  Symmetric  |        N/A        | `enc` |                     N/A                      |                         Uses the `client_secret`                         |
+|     A256GCMKW      |  Symmetric  |        N/A        | `enc` |                     N/A                      |                         Uses the `client_secret`                         |
+| PBES2-HS256+A128KW |  Symmetric  |        N/A        | `enc` |                     N/A                      |                         Uses the `client_secret`                         |
+| PBES2-HS384+A192KW |  Symmetric  |        N/A        | `enc` |                     N/A                      |                         Uses the `client_secret`                         |
+| PBES2-HS512+A256KW |  Symmetric  |        N/A        | `enc` |                     N/A                      |                         Uses the `client_secret`                         |
+
+_In addition to the algorithms listed above, the value `none` is often accepted to indicate no signing and/or encryption
+should take place._
 
 ### Request Object
 
-Authelia accepts a wide variety of request object types. The below table describes these request objects.
+Authelia accepts request objects with the following signature and content encryption algorithms (i.e. the `alg`
+parameter):
 
-| Algorithm |      Key Type      | Hashing Algorithm |    Use    |                       Notes                        |
-|:---------:|:------------------:|:-----------------:|:---------:|:--------------------------------------------------:|
-|   none    |        None        |       None        |    N/A    |                        N/A                         |
-|   HS256   | HMAC Shared Secret |      SHA-256      | Signature | [Client Authentication Method] `client_secret_jwt` |
-|   HS384   | HMAC Shared Secret |      SHA-384      | Signature | [Client Authentication Method] `client_secret_jwt` |
-|   HS512   | HMAC Shared Secret |      SHA-512      | Signature | [Client Authentication Method] `client_secret_jwt` |
-|   RS256   |        RSA         |      SHA-256      | Signature |  [Client Authentication Method] `private_key_jwt`  |
-|   RS384   |        RSA         |      SHA-384      | Signature |  [Client Authentication Method] `private_key_jwt`  |
-|   RS512   |        RSA         |      SHA-512      | Signature |  [Client Authentication Method] `private_key_jwt`  |
-|   ES256   |    ECDSA P-256     |      SHA-256      | Signature |  [Client Authentication Method] `private_key_jwt`  |
-|   ES384   |    ECDSA P-384     |      SHA-384      | Signature |  [Client Authentication Method] `private_key_jwt`  |
-|   ES512   |    ECDSA P-521     |      SHA-512      | Signature |  [Client Authentication Method] `private_key_jwt`  |
-|   PS256   |     RSA (MFG1)     |      SHA-256      | Signature |  [Client Authentication Method] `private_key_jwt`  |
-|   PS384   |     RSA (MFG1)     |      SHA-384      | Signature |  [Client Authentication Method] `private_key_jwt`  |
-|   PS512   |     RSA (MFG1)     |      SHA-512      | Signature |  [Client Authentication Method] `private_key_jwt`  |
+|     Algorithm      |      Key Type      | Hashing Algorithm |  Use  |                       Notes                        |
+|:------------------:|:------------------:|:-----------------:|:-----:|:--------------------------------------------------:|
+|        none        |        None        |       None        |  N/A  |                        N/A                         |
+|       HS256        | HMAC Shared Secret |      SHA-256      | `sig` | [Client Authentication Method] `client_secret_jwt` |
+|       HS384        | HMAC Shared Secret |      SHA-384      | `sig` | [Client Authentication Method] `client_secret_jwt` |
+|       HS512        | HMAC Shared Secret |      SHA-512      | `sig` | [Client Authentication Method] `client_secret_jwt` |
+|       RS256        |        RSA         |      SHA-256      | `sig` |  [Client Authentication Method] `private_key_jwt`  |
+|       RS384        |        RSA         |      SHA-384      | `sig` |  [Client Authentication Method] `private_key_jwt`  |
+|       RS512        |        RSA         |      SHA-512      | `sig` |  [Client Authentication Method] `private_key_jwt`  |
+|       ES256        |    ECDSA P-256     |      SHA-256      | `sig` |  [Client Authentication Method] `private_key_jwt`  |
+|       ES384        |    ECDSA P-384     |      SHA-384      | `sig` |  [Client Authentication Method] `private_key_jwt`  |
+|       ES512        |    ECDSA P-521     |      SHA-512      | `sig` |  [Client Authentication Method] `private_key_jwt`  |
+|       PS256        |     RSA (MFG1)     |      SHA-256      | `sig` |  [Client Authentication Method] `private_key_jwt`  |
+|       PS384        |     RSA (MFG1)     |      SHA-384      | `sig` |  [Client Authentication Method] `private_key_jwt`  |
+|       PS512        |     RSA (MFG1)     |      SHA-512      | `sig` |  [Client Authentication Method] `private_key_jwt`  |
+|       RSA1_5       |        RSA         |        N/A        | `enc` |                Strongly Discouraged                |
+|      RSA-OAEP      |     RSA (MFG1)     |        N/A        | `enc` |                                                    |
+|    RSA-OAEP-256    |     RSA (MFG1)     |      SHA-256      | `enc` |                                                    |
+|       A128KW       |     Symmetric      |        N/A        | `enc` |                                                    |
+|       A192KW       |     Symmetric      |        N/A        | `enc` |                                                    |
+|       A256KW       |     Symmetric      |        N/A        | `enc` |                                                    |
+|        dir         |     Symmetric      |        N/A        | `enc` |                                                    |
+|      ECDH-ES       |       ECDSA        |        N/A        | `enc` |                                                    |
+|   ECDH-ES+A128KW   |       ECDSA        |        N/A        | `enc` |                                                    |
+|   ECDH-ES+A192KW   |       ECDSA        |        N/A        | `enc` |                                                    |
+|   ECDH-ES+A256KW   |       ECDSA        |        N/A        | `enc` |                                                    |
+|     A128GCMKW      |     Symmetric      |        N/A        | `enc` |                                                    |
+|     A192GCMKW      |     Symmetric      |        N/A        | `enc` |                                                    |
+|     A256GCMKW      |     Symmetric      |        N/A        | `enc` |                                                    |
+| PBES2-HS256+A128KW |     Symmetric      |        N/A        | `enc` |                                                    |
+| PBES2-HS384+A192KW |     Symmetric      |        N/A        | `enc` |                                                    |
+| PBES2-HS512+A256KW |     Symmetric      |        N/A        | `enc` |                                                    |
 
 [Client Authentication Method]: #client-authentication-method
+
+## Encryption Algorithms
+
+Authelia accepts request objects and generates response objects with the following encryption algorithms (i.e. the `enc` parameter):
+
+|   Algorithm   |           Notes           |
+|:-------------:|:-------------------------:|
+| A128CBC-HS256 | Default for all JWE types |
+| A192CBC-HS384 |                           |
+| A256CBC-HS512 |                           |
+| A256CBC-HS512 |                           |
+|    A128GCM    |                           |
+|    A192GCM    |                           |
+|    A256GCM    |                           |
 
 ## Parameters
 

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	oauthelia2 "authelia.com/provider/oauth2"
+	fjwt "authelia.com/provider/oauth2/token/jwt"
 	"github.com/go-jose/go-jose/v4"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/text/language"
@@ -283,8 +284,8 @@ func PopulateClientCredentialsFlowSessionWithAccessRequest(ctx Context, client o
 	session.Claims.Subject = client.GetID()
 	session.ClientID = client.GetID()
 	session.DefaultSession.Claims.Issuer = issuer.String()
-	session.DefaultSession.Claims.IssuedAt = ctx.GetClock().Now().UTC()
-	session.DefaultSession.Claims.RequestedAt = ctx.GetClock().Now().UTC()
+	session.DefaultSession.Claims.IssuedAt = fjwt.NewNumericDate(ctx.GetClock().Now().UTC())
+	session.DefaultSession.Claims.RequestedAt = fjwt.NewNumericDate(ctx.GetClock().Now().UTC())
 	session.ClientCredentials = true
 
 	return nil
