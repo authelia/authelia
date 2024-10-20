@@ -7,6 +7,7 @@ import (
 	"time"
 
 	oauthelia2 "authelia.com/provider/oauth2"
+	xjwt "authelia.com/provider/oauth2/token/jwt"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -88,8 +89,8 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	assert.Equal(t, "abc123xyzauthelia", session.Claims.Nonce)
 	assert.Equal(t, subject.String(), session.Claims.Subject)
 	assert.Equal(t, amr, session.Claims.AuthenticationMethodsReferences)
-	assert.Equal(t, authAt, session.Claims.AuthTime)
-	assert.Equal(t, requested, session.Claims.RequestedAt)
+	assert.Equal(t, xjwt.NewNumericDate(authAt.UTC()), session.Claims.AuthTime)
+	assert.Equal(t, xjwt.NewNumericDate(requested.UTC()), session.Claims.RequestedAt)
 	assert.Equal(t, issuer, session.Claims.Issuer)
 	assert.Equal(t, "john", session.Claims.Extra[oidc.ClaimPreferredUsername])
 

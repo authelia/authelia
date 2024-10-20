@@ -174,7 +174,7 @@ hexadecimal, followed by a hyphen, then followed by the lowercase algorithm valu
 
 {{< confkey type="string" default="sig" required="no" >}}
 
-The key usage. Defaults to `sig` which is the only available option at this time.
+The key usage. Defaults to `sig`. Available options are `sig` and `enc`.
 
 #### algorithm
 
