@@ -146,7 +146,9 @@ const ChangePasswordDialog = (props: Props) => {
             } else if (errorMessage.includes("reuse")) {
                 createErrorNotification(translate("You cannot reuse your old password"));
             } else {
-                createErrorNotification(translate("There was an issue changing the password"));
+                createErrorNotification(
+                    translate("There was an issue changing the {{item}}", { item: translate("password") }),
+                );
             }
             setLoading(false);
             return;
@@ -263,7 +265,7 @@ const ChangePasswordDialog = (props: Props) => {
                                 autoComplete="off"
                                 onKeyDown={handleRepeatNewPWKeyDown}
                                 onKeyUp={useCheckCapsLock(setIsCapsLockOnRepeatNewPW)}
-                                helperText={isCapsLockOnRepeatNewPW ? translate("Caps Lock is ON") : " "}
+                                helperText={isCapsLockOnRepeatNewPW ? translate("Caps Lock is on") : " "}
                                 color={isCapsLockOnRepeatNewPW ? "error" : "primary"}
                                 onBlur={() => setIsCapsLockOnRepeatNewPW(false)}
                             />

@@ -200,7 +200,7 @@ const SettingsView = function () {
                                 }}
                             >
                                 <Box display="flex" alignItems="center">
-                                    <Typography sx={{ mr: 1 }}>Email:</Typography>
+                                    <Typography sx={{ mr: 1 }}>{translate("Email")}:</Typography>
                                     <Typography>{userInfo?.emails?.[0] || ""}</Typography>
                                 </Box>
                                 {userInfo?.emails && userInfo.emails.length > 1 && (
@@ -224,7 +224,7 @@ const SettingsView = function () {
                                 }}
                             >
                                 <Typography>
-                                    {translate("Username: ")} {userInfo?.display_name || ""}
+                                    {translate("Username")}: {userInfo?.display_name || ""}
                                 </Typography>
                             </Box>
                             <Box
