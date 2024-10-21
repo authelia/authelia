@@ -8,6 +8,10 @@ import (
 
 // ValidateRegulation validates and update regulator configuration.
 func ValidateRegulation(config *schema.Configuration, validator *schema.StructValidator) {
+	if config.Regulation.Mode == "" {
+		config.Regulation.Mode = schema.DefaultRegulationConfiguration.Mode
+	}
+
 	if config.Regulation.FindTime <= 0 {
 		config.Regulation.FindTime = schema.DefaultRegulationConfiguration.FindTime // 2 min.
 	}

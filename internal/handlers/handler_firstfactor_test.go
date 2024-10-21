@@ -68,6 +68,14 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderCheckPasswordFail() {
 			RemoteIP:   model.NewNullIPFromString("0.0.0.0"),
 		}))
 
+	s.mock.StorageMock.
+		EXPECT().
+		LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq("test")).Return(nil, nil)
+
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
 		"password": "hello",
@@ -85,6 +93,14 @@ func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsNotMarkedWhenProviderC
 		EXPECT().
 		CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
 		Return(false, fmt.Errorf("invalid credentials"))
+
+	s.mock.StorageMock.
+		EXPECT().
+		LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq("test")).Return(nil, nil)
 
 	s.mock.StorageMock.
 		EXPECT().
@@ -123,6 +139,14 @@ func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsMarkedWhenInvalidCrede
 			RemoteIP:   model.NewNullIPFromString("0.0.0.0"),
 		}))
 
+	s.mock.StorageMock.
+		EXPECT().
+		LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq("test")).Return(nil, nil)
+
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
 		"password": "hello",
@@ -137,6 +161,14 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFail() {
 		EXPECT().
 		CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
 		Return(true, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq("test")).Return(nil, nil)
 
 	s.mock.StorageMock.
 		EXPECT().
@@ -159,16 +191,31 @@ func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFail() {
 	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
 }
 
-func (s *FirstFactorSuite) TestShouldFailIfAuthenticationMarkFail() {
-	s.mock.UserProviderMock.
-		EXPECT().
-		CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
-		Return(true, nil)
-
-	s.mock.StorageMock.
-		EXPECT().
-		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
-		Return(fmt.Errorf("failed"))
+func (s *FirstFactorSuite) TestShouldNotFailIfAuthenticationMarkFail() {
+	gomock.InOrder(
+		s.mock.StorageMock.
+			EXPECT().
+			LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq("test")).Return(nil, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
+			Return(true, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
+			Return(fmt.Errorf("failed")),
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq("test")).
+			Return(&authentication.UserDetails{
+				Username: "test",
+				Emails:   []string{"test@example.com"},
+				Groups:   []string{"dev", "admins"},
+			}, nil),
+	)
 
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
@@ -177,8 +224,8 @@ func (s *FirstFactorSuite) TestShouldFailIfAuthenticationMarkFail() {
 	}`)
 	FirstFactorPOST(nil)(s.mock.Ctx)
 
-	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Unable to mark 1FA authentication attempt by user 'test'", "failed")
-	s.mock.Assert401KO(s.T(), "Authentication failed. Check your credentials.")
+	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Failed to record 1FA authentication attempt", "failed")
+	s.mock.Assert200OK(s.T(), nil)
 }
 
 func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {
@@ -195,6 +242,14 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {
 			Emails:   []string{"test@example.com"},
 			Groups:   []string{"dev", "admins"},
 		}, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq("test")).Return(nil, nil)
 
 	s.mock.StorageMock.
 		EXPECT().
@@ -239,6 +294,14 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
 
 	s.mock.StorageMock.
 		EXPECT().
+		LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq("test")).Return(nil, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
 		Return(nil)
 
@@ -265,6 +328,14 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
 }
 
 func (s *FirstFactorSuite) TestShouldSaveUsernameFromAuthenticationBackendInSession() {
+	s.mock.StorageMock.
+		EXPECT().
+		LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq("test")).Return(nil, nil)
+
 	s.mock.UserProviderMock.
 		EXPECT().
 		CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
@@ -361,6 +432,14 @@ func (s *FirstFactorRedirectionSuite) TearDownTest() {
 //
 //	the user should be redirected to the default url.
 func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenNoTargetURLProvidedAndTwoFactorDisabled() {
+	s.mock.StorageMock.
+		EXPECT().
+		LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq("test")).Return(nil, nil)
+
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
 		"password": "hello",
@@ -383,6 +462,14 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenNoTarget
 //
 //	the user should be redirected to the default url.
 func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenURLIsUnsafeAndTwoFactorDisabled() {
+	s.mock.StorageMock.
+		EXPECT().
+		LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq("test")).Return(nil, nil)
+
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
 		"password": "hello",
@@ -405,6 +492,14 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenURLIsUns
 //
 //	the user should receive 200 without redirection URL.
 func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenNoTargetURLProvidedAndTwoFactorEnabled() {
+	s.mock.StorageMock.
+		EXPECT().
+		LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq("test")).Return(nil, nil)
+
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&schema.Configuration{
 		AccessControl: schema.AccessControl{
 			DefaultPolicy: "two_factor",
@@ -431,6 +526,14 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenNoTargetURLProvidedA
 //
 //	the user should receive 200 without redirection URL.
 func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenUnsafeTargetURLProvidedAndTwoFactorEnabled() {
+	s.mock.StorageMock.
+		EXPECT().
+		LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq("test")).Return(nil, nil)
+
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&schema.Configuration{
 		AccessControl: schema.AccessControl{
 			DefaultPolicy: "one_factor",

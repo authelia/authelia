@@ -689,7 +689,7 @@ func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidBooleanMarkErr() {
 		res[0][1],
 		string(s.mock.Ctx.Request.Header.Cookie("authelia_session")))
 
-	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Unable to mark TOTP authentication attempt by user 'john'", "failed to insert")
+	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Unsuccessful TOTP authentication attempt by user 'john'", "")
 }
 
 func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidJSON() {
@@ -708,7 +708,7 @@ func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidJSON() {
 	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Error occurred validating a TOTP authentication for user 'john': error parsing the request body", "unable to parse body: invalid character '1' after object key")
 }
 
-func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidBooleanMarkErrSuccess() {
+func (s *HandlerSignTOTPSuite) TestShouldNotReturnErrorOnInvalidBooleanMarkErrSuccess() {
 	config := model.TOTPConfiguration{ID: 1, Username: testUsername, Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
 
 	gomock.InOrder(
@@ -737,6 +737,10 @@ func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidBooleanMarkErrSucce
 				RemoteIP:   model.NewNullIPFromString("0.0.0.0"),
 			}).
 			Return(fmt.Errorf("failed to insert")),
+		s.mock.StorageMock.
+			EXPECT().
+			UpdateTOTPConfigurationSignIn(s.mock.Ctx, gomock.Any(), gomock.Any()).
+			Return(nil),
 	)
 
 	bodyBytes, err := json.Marshal(bodySignTOTPRequest{
@@ -749,13 +753,15 @@ func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidBooleanMarkErrSucce
 	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
-	s.mock.Assert403KO(s.T(), "Authentication failed, please retry later.")
+	s.mock.Assert200OK(s.T(), redirectResponse{
+		Redirect: testRedirectionURLString,
+	})
 
 	s.NotEqual(
 		res[0][1],
 		string(s.mock.Ctx.Request.Header.Cookie("authelia_session")))
 
-	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Unable to mark TOTP authentication attempt by user 'john'", "failed to insert")
+	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Failed to record TOTP authentication attempt", "failed to insert")
 }
 
 func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidConfig() {

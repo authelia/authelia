@@ -2,16 +2,19 @@ package commands
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	"image"
 	"image/png"
+	"net"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 	"text/tabwriter"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
@@ -21,6 +24,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/random"
+	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/totp"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -425,6 +429,279 @@ func (ctx *CmdCtx) StorageSchemaInfoRunE(_ *cobra.Command, _ []string) (err erro
 	fmt.Printf("Schema Version: %s\nSchema Upgrade Available: %s\nSchema Tables: %s\nSchema Encryption Key: %s\n", storage.SchemaVersionToString(version), upgradeStr, tablesStr, encryption)
 
 	return nil
+}
+
+func (ctx *CmdCtx) StorageBansListRunE(use string) func(cmd *cobra.Command, args []string) (err error) {
+	return func(cmd *cobra.Command, args []string) (err error) {
+		defer func() {
+			_ = ctx.providers.StorageProvider.Close()
+		}()
+
+		if err = ctx.CheckSchema(); err != nil {
+			return storageWrapCheckSchemaErr(err)
+		}
+
+		switch use {
+		case cmdUseIP:
+			var results []model.BannedIP
+
+			limit := 10
+			count := 0
+
+			for page := 0; true; page++ {
+				var bans []model.BannedIP
+
+				if bans, err = ctx.providers.StorageProvider.LoadBannedIPs(context.Background(), limit, page); err != nil {
+					return err
+				}
+
+				l := len(bans)
+
+				count += l
+
+				results = append(results, bans...)
+
+				if l < limit {
+					break
+				}
+			}
+
+			if count == 0 {
+				fmt.Printf("No results.\n")
+
+				return nil
+			}
+
+			w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
+
+			_, _ = fmt.Fprintln(w, "ID\tIP\tExpires\tSource\tReason")
+
+			for _, ban := range results {
+				_, _ = fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\n", ban.ID, ban.IP, regulation.FormatExpiresShort(ban.Expires), ban.Source, ban.Reason.String)
+			}
+
+			return w.Flush()
+		case cmdUseUser:
+			var results []model.BannedUser
+
+			limit := 10
+			count := 0
+
+			for page := 0; true; page++ {
+				var bans []model.BannedUser
+
+				if bans, err = ctx.providers.StorageProvider.LoadBannedUsers(context.Background(), limit, page); err != nil {
+					return err
+				}
+
+				l := len(bans)
+
+				count += l
+
+				results = append(results, bans...)
+
+				if l < limit {
+					break
+				}
+			}
+
+			if count == 0 {
+				fmt.Printf("No results.\n")
+
+				return nil
+			}
+
+			w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
+
+			_, _ = fmt.Fprintln(w, "ID\tUsername\tExpires\tSource\tReason")
+
+			for _, ban := range results {
+				_, _ = fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\n", ban.ID, ban.Username, regulation.FormatExpiresShort(ban.Expires), ban.Source, ban.Reason.String)
+			}
+
+			return w.Flush()
+		default:
+			return fmt.Errorf("unknown command %q", use)
+		}
+	}
+}
+
+//nolint:gocyclo
+func (ctx *CmdCtx) StorageBansRevokeRunE(use string) func(cmd *cobra.Command, args []string) (err error) {
+	return func(cmd *cobra.Command, args []string) (err error) {
+		defer func() {
+			_ = ctx.providers.StorageProvider.Close()
+		}()
+
+		if err = ctx.CheckSchema(); err != nil {
+			return storageWrapCheckSchemaErr(err)
+		}
+
+		var (
+			id     int
+			target string
+		)
+
+		if id, err = cmd.Flags().GetInt("id"); err != nil {
+			return err
+		}
+
+		if len(args) != 0 {
+			target = args[0]
+		}
+
+		switch use {
+		case cmdUseIP:
+			ip := net.ParseIP(target)
+
+			var bans []model.BannedIP
+
+			if id == 0 {
+				if bans, err = ctx.providers.StorageProvider.LoadBannedIP(ctx, model.NewIP(ip)); err != nil {
+					return err
+				}
+			} else {
+				var ban model.BannedIP
+
+				if ban, err = ctx.providers.StorageProvider.LoadBannedIPByID(ctx, id); err != nil {
+					return err
+				}
+
+				bans = []model.BannedIP{ban}
+			}
+
+			for _, ban := range bans {
+				if ban.Revoked {
+					fmt.Printf("SKIPPED\tIP ban with id '%d' for '%s is already revoked.\n", ban.ID, ban.IP)
+				} else {
+					if err = ctx.providers.StorageProvider.RevokeBannedUser(ctx, ban.ID, time.Now()); err != nil {
+						fmt.Printf("ERROR\tIP ban with id '%d' for '%s' had error when being revoked: %+v\n", ban.ID, ban.IP, err)
+					} else {
+						fmt.Printf("REVOKED\tIP ban with id '%d' for '%s' has been revoked\n", ban.ID, ban.IP)
+					}
+				}
+			}
+		case cmdUseUser:
+			var bans []model.BannedUser
+
+			if id == 0 {
+				if bans, err = ctx.providers.StorageProvider.LoadBannedUser(ctx, target); err != nil {
+					return err
+				}
+			} else {
+				var ban model.BannedUser
+
+				if ban, err = ctx.providers.StorageProvider.LoadBannedUserByID(ctx, id); err != nil {
+					return err
+				}
+
+				bans = []model.BannedUser{ban}
+			}
+
+			for _, ban := range bans {
+				if ban.Revoked {
+					fmt.Printf("SKIPPED\tUser ban with id '%d' for '%s is already revoked.\n", ban.ID, ban.Username)
+				} else {
+					if err = ctx.providers.StorageProvider.RevokeBannedUser(ctx, ban.ID, time.Now()); err != nil {
+						fmt.Printf("ERROR\tUser ban with id '%d' for '%s' had error when being revoked: %+v\n", ban.ID, ban.Username, err)
+					} else {
+						fmt.Printf("REVOKED\tUser ban with id '%d' for '%s' has been revoked\n", ban.ID, ban.Username)
+					}
+				}
+			}
+		default:
+			return fmt.Errorf("unknown command %q", use)
+		}
+
+		return nil
+	}
+}
+
+func (ctx *CmdCtx) StorageBansAddRunE(use string) func(cmd *cobra.Command, args []string) (err error) {
+	return func(cmd *cobra.Command, args []string) (err error) {
+		defer func() {
+			_ = ctx.providers.StorageProvider.Close()
+		}()
+
+		if err = ctx.CheckSchema(); err != nil {
+			return storageWrapCheckSchemaErr(err)
+		}
+
+		var (
+			permanent           bool
+			reason, durationStr string
+		)
+
+		if permanent, err = cmd.Flags().GetBool("permanent"); err != nil {
+			return err
+		}
+
+		if reason, err = cmd.Flags().GetString("reason"); err != nil {
+			return err
+		}
+
+		if durationStr, err = cmd.Flags().GetString("duration"); err != nil {
+			return err
+		}
+
+		duration, err := utils.ParseDurationString(durationStr)
+		if err != nil {
+			return fmt.Errorf("failed to parse duration string: %w", err)
+		}
+
+		target := args[0]
+
+		switch use {
+		case cmdUseIP:
+			// TODO: Check for existing ban and revoke it?
+			ip := net.ParseIP(target)
+
+			if ip == nil {
+				return fmt.Errorf("invalid IP address: %s", target)
+			}
+
+			ban := &model.BannedIP{
+				IP:     model.NewIP(ip),
+				Source: "cli",
+			}
+
+			if reason != "" {
+				ban.Reason = sql.NullString{Valid: true, String: reason}
+			}
+
+			if !permanent {
+				ban.Expires = sql.NullTime{Valid: true, Time: time.Now().Add(duration)}
+			}
+
+			if err = ctx.providers.StorageProvider.SaveBannedIP(ctx, ban); err != nil {
+				return err
+			}
+
+			return nil
+		case cmdUseUser:
+			// TODO: Check for existing ban and revoke it?
+			ban := &model.BannedUser{
+				Username: target,
+				Source:   "cli",
+			}
+
+			if reason != "" {
+				ban.Reason = sql.NullString{Valid: true, String: reason}
+			}
+
+			if !permanent {
+				ban.Expires = sql.NullTime{Valid: true, Time: time.Now().Add(duration)}
+			}
+
+			if err = ctx.providers.StorageProvider.SaveBannedUser(ctx, ban); err != nil {
+				return err
+			}
+
+			return nil
+		default:
+			return fmt.Errorf("unknown command %q", use)
+		}
+	}
 }
 
 func (ctx *CmdCtx) StorageUserWebAuthnExportRunE(cmd *cobra.Command, args []string) (err error) {

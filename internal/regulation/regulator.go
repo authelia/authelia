@@ -1,7 +1,7 @@
 package regulation
 
 import (
-	"context"
+	"database/sql"
 	"strings"
 	"time"
 
@@ -14,19 +14,18 @@ import (
 // NewRegulator create a regulator instance.
 func NewRegulator(config schema.Regulation, store storage.RegulatorProvider, clock clock.Provider) *Regulator {
 	return &Regulator{
-		enabled: config.MaxRetries > 0,
-		store:   store,
-		clock:   clock,
-		config:  config,
+		users:  config.MaxRetries > 0 && (config.Mode == typeUser || config.Mode == modeBoth),
+		ips:    config.MaxRetries > 0 && (config.Mode == typeIP || config.Mode == modeBoth),
+		store:  store,
+		clock:  clock,
+		config: config,
 	}
 }
 
-// Mark an authentication attempt.
-// We split Mark and Regulate in order to avoid timing attacks.
-func (r *Regulator) Mark(ctx Context, successful, banned bool, username, requestURI, requestMethod, authType string) error {
+func (r *Regulator) HandleAttempt(ctx Context, successful, banned bool, username, requestURI, requestMethod, authType string) {
 	ctx.RecordAuthn(successful, banned, strings.ToLower(authType))
 
-	return r.store.AppendAuthenticationLog(ctx, model.AuthenticationAttempt{
+	attempt := model.AuthenticationAttempt{
 		Time:          r.clock.Now(),
 		Successful:    successful,
 		Banned:        banned,
@@ -35,49 +34,156 @@ func (r *Regulator) Mark(ctx Context, successful, banned bool, username, request
 		RemoteIP:      model.NewNullIP(ctx.RemoteIP()),
 		RequestURI:    requestURI,
 		RequestMethod: requestMethod,
-	})
+	}
+
+	var err error
+
+	if err = r.store.AppendAuthenticationLog(ctx, attempt); err != nil {
+		ctx.GetLogger().WithFields(map[string]any{fieldUsername: username, "successful": successful}).WithError(err).Errorf("Failed to record %s authentication attempt", authType)
+	}
+
+	// We only need to perform the ban checks when; the attempt is unsuccessful, there is not an effective ban in place,
+	// regulation is enabled, and the authentication type is 1FA.
+	if successful || banned || (!r.ips && !r.users) || authType != AuthType1FA {
+		return
+	}
+
+	since := r.clock.Now().Add(-r.config.FindTime)
+
+	r.handleAttemptPossibleBannedIP(ctx, since)
+	r.handleAttemptPossibleBannedUser(ctx, since, username)
 }
 
-// Regulate the authentication attempts for a given user.
-// This method returns ErrUserIsBanned if the user is banned along with the time until when the user is banned.
-func (r *Regulator) Regulate(ctx context.Context, username string) (time.Time, error) {
-	// If there is regulation configuration, no regulation applies.
-	if !r.enabled {
-		return time.Time{}, nil
+func (r *Regulator) handleAttemptPossibleBannedIP(ctx Context, since time.Time) {
+	if !r.ips {
+		return
 	}
 
-	attempts, err := r.store.LoadAuthenticationLogs(ctx, username, r.clock.Now().Add(-r.config.BanTime), 10, 0)
-	if err != nil {
-		return time.Time{}, nil
+	var (
+		records []model.RegulationRecord
+		err     error
+	)
+
+	ip := model.NewIP(ctx.RemoteIP())
+
+	log := ctx.GetLogger()
+
+	if records, err = r.store.LoadRegulationRecordsByIP(ctx, ip, since, r.config.MaxRetries); err != nil {
+		log.WithFields(map[string]any{fieldRecordType: typeIP}).WithError(err).Error("Failed to load regulation records")
+
+		return
 	}
 
-	latestFailedAttempts := make([]model.AuthenticationAttempt, 0, r.config.MaxRetries)
+	banexp := r.expires(since, records)
 
-	for _, attempt := range attempts {
-		if attempt.Successful || len(latestFailedAttempts) >= r.config.MaxRetries {
+	if banexp == nil {
+		return
+	}
+
+	sqlban := &model.BannedIP{
+		Expires: sql.NullTime{Valid: true, Time: *banexp},
+		IP:      ip,
+		Source:  "regulation",
+		Reason:  sql.NullString{Valid: true, String: "Exceeding Maximum Retries"},
+	}
+
+	if err = r.store.SaveBannedIP(ctx, sqlban); err != nil {
+		log.WithFields(map[string]any{fieldBanType: typeIP}).WithError(err).Error("Failed to save ban")
+	}
+}
+
+func (r *Regulator) handleAttemptPossibleBannedUser(ctx Context, since time.Time, username string) {
+	if !r.users {
+		return
+	}
+
+	var (
+		records []model.RegulationRecord
+		err     error
+	)
+
+	log := ctx.GetLogger()
+
+	if records, err = r.store.LoadRegulationRecordsByUser(ctx, username, since, r.config.MaxRetries); err != nil {
+		log.WithFields(map[string]any{fieldRecordType: typeUser, fieldUsername: username}).WithError(err).Error("Failed to load regulation records")
+
+		return
+	}
+
+	banexp := r.expires(since, records)
+
+	if banexp == nil {
+		return
+	}
+
+	sqlban := &model.BannedUser{
+		Expires:  sql.NullTime{Valid: true, Time: *banexp},
+		Username: username,
+		Source:   "regulation",
+		Reason:   sql.NullString{Valid: true, String: "Exceeding Maximum Retries"},
+	}
+
+	if err = r.store.SaveBannedUser(ctx, sqlban); err != nil {
+		log.WithFields(map[string]any{fieldBanType: typeUser, fieldUsername: username}).WithError(err).Error("Failed to save ban")
+	}
+}
+
+func (r *Regulator) BanCheck(ctx Context, username string) (ban BanType, value string, expires *time.Time, err error) {
+	ip := model.NewIP(ctx.RemoteIP())
+
+	var bansIP []model.BannedIP
+
+	if bansIP, err = r.store.LoadBannedIP(ctx, ip); err != nil {
+		return BanTypeNone, "", nil, err
+	}
+
+	if len(bansIP) != 0 {
+		b := bansIP[0]
+
+		return returnBanResult(BanTypeIP, ip.String(), b.Expires)
+	}
+
+	var bansUser []model.BannedUser
+
+	if bansUser, err = r.store.LoadBannedUser(ctx, username); err != nil {
+		return BanTypeNone, "", nil, err
+	}
+
+	if len(bansUser) != 0 {
+		b := bansUser[0]
+
+		return returnBanResult(BanTypeUser, username, b.Expires)
+	}
+
+	return BanTypeNone, "", nil, nil
+}
+
+func (r *Regulator) expires(since time.Time, records []model.RegulationRecord) *time.Time {
+	failures := make([]model.RegulationRecord, 0, len(records))
+
+loop:
+	for _, record := range records {
+		switch {
+		case record.Successful:
+			break loop
+		case len(failures) >= r.config.MaxRetries:
+			continue
+		case record.Time.Before(since):
+			continue
+		default:
 			// We stop appending failed attempts once we find the first successful attempts or we reach
 			// the configured number of retries, meaning the user is already banned.
-			break
-		} else {
-			latestFailedAttempts = append(latestFailedAttempts, attempt)
+			failures = append(failures, record)
 		}
 	}
 
 	// If the number of failed attempts within the ban time is less than the max number of retries
 	// then the user is not banned.
-	if len(latestFailedAttempts) < r.config.MaxRetries {
-		return time.Time{}, nil
+	if len(failures) < r.config.MaxRetries {
+		return nil
 	}
 
-	// Now we compute the time between the latest attempt and the MaxRetry-th one. If it's
-	// within the FindTime then it means that the user has been banned.
-	durationBetweenLatestAttempts := latestFailedAttempts[0].Time.Sub(
-		latestFailedAttempts[r.config.MaxRetries-1].Time)
+	expires := failures[0].Time.Add(r.config.BanTime)
 
-	if durationBetweenLatestAttempts < r.config.FindTime {
-		bannedUntil := latestFailedAttempts[0].Time.Add(r.config.BanTime)
-		return bannedUntil, ErrUserIsBanned
-	}
-
-	return time.Time{}, nil
+	return &expires
 }
