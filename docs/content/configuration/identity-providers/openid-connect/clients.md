@@ -7,6 +7,8 @@ draft: false
 images: []
 weight: 110220
 toc: true
+aliases:
+  - /c/oidc/registered-clients
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)

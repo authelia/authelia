@@ -17,12 +17,17 @@ seo:
   noindex: false # false (default) or true
 ---
 
-[Traefik] v1 is a reverse proxy supported by __Authelia__.
+[Traefik] v1 is a reverse proxy formally supported by __Authelia__.
 
 *__Important:__ When using these guides, it's important to recognize that we cannot provide a guide for every possible
 method of deploying a proxy. These guides show a suggested setup only, and you need to understand the proxy
 configuration and customize it to your needs. To-that-end, we include links to the official proxy documentation
 throughout this documentation and in the [See Also](#see-also) section.*
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Traefik formally has removed support for this version of Traefik. As such we no longer formally support it either. This
+guide will remain at least for a time as a form of legacy support.
+{{< /callout >}}
 
 ## Get started
 

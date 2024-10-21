@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/mail"
 	"net/url"
 	"os"
@@ -16,6 +17,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"gopkg.in/yaml.v3"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -250,4 +252,52 @@ func getKeyNameFromTagAndPrefix(prefix, name string, isSlice, isMap bool) string
 	default:
 		return fmt.Sprintf("%s.%s", prefix, nameParts[0])
 	}
+}
+
+func readComposeTag(service string, p ...string) (tag string, err error) {
+	var (
+		compose     *Compose
+		svc         ComposeService
+		composePath string
+		ok          bool
+	)
+
+	composePath = filepath.Join(p...)
+
+	if compose, err = readCompose(composePath); err != nil {
+		return "", err
+	}
+
+	if svc, ok = compose.Services[service]; !ok {
+		return "", fmt.Errorf("service with name '%s' not found in '%s'", service, composePath)
+	}
+
+	_, tag, _ = strings.Cut(svc.Image, ":")
+	tag, _, _ = strings.Cut(tag, "@")
+
+	return tag, nil
+}
+
+func readCompose(path string) (compose *Compose, err error) {
+	var f *os.File
+
+	if f, err = os.Open(path); err != nil {
+		return nil, err
+	}
+
+	defer f.Close()
+
+	var data []byte
+
+	if data, err = io.ReadAll(f); err != nil {
+		return nil, err
+	}
+
+	compose = &Compose{}
+
+	if err = yaml.Unmarshal(data, compose); err != nil {
+		return nil, err
+	}
+
+	return compose, nil
 }

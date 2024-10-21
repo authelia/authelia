@@ -32,7 +32,7 @@ steps:
   - label: ":docker: Build and Deploy"
     commands:
       - "cd ${DIRECTORY}"
-      - "docker build --tag ${PREFIX}${BUILDKITE_PIPELINE_NAME}:${TAG} --platform linux/amd64 --builder buildx --pull --push ."
+      - "docker build --tag ${PREFIX}${BUILDKITE_PIPELINE_NAME}:${TAG} --platform linux/amd64 --provenance mode=max,reproducible=true --sbom true --builder buildx --pull --push ."
     concurrency: 1
     concurrency_group: "${GROUP}"
     agents:

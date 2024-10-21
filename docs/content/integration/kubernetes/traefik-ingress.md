@@ -54,8 +54,8 @@ configured it to be served on the URL `https://{{< sitevar name="subdomain-authe
 that your cluster is configured with the default DNS domain name of `cluster.local`.
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-The [Middleware] should be applied to an [Ingress] / [IngressRoute] you wish to protect. It
-__SHOULD NOT__ be applied to the Authelia [Ingress] / [IngressRoute] itself.
+The [Middleware](#middleware) should be applied to an [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) / [IngressRoute](https://doc.traefik.io/traefik/providers/kubernetes-crd/) you wish to protect. It
+__SHOULD NOT__ be applied to the Authelia [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) / [IngressRoute](https://doc.traefik.io/traefik/providers/kubernetes-crd/) itself.
 {{< /callout >}}
 
 ```yaml {title="middleware.yaml"}

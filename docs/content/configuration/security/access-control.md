@@ -18,11 +18,9 @@ seo:
 ---
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-This section does not apply to OpenID Connect 1.0. See the [Frequently Asked Questions] for more
+This section does not apply to OpenID Connect 1.0. See the [Frequently Asked Questions](../../integration/openid-connect/frequently-asked-questions.md#why-doesnt-the-access-control-configuration-work-with-openid-connect-10) for more
 information.
 {{< /callout >}}
-
-[Frequently Asked Questions]: ../../integration/openid-connect/frequently-asked-questions.md#why-doesnt-the-access-control-configuration-work-with-openid-connect-10
 
 ## Variables
 
@@ -206,7 +204,7 @@ access_control:
 {{< confkey type="list(string)" required="yes" >}}
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-If you intend to use this criteria with a bypass rule please read [Rule Matching Concept 2].
+If you intend to use this criteria with a bypass rule please read [Rule Matching Concept 2](#rule-matching-concept-2-subject-criteria-requires-authentication).
 {{< /callout >}}
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
@@ -265,8 +263,8 @@ take when a match is made.
 {{< confkey type="list(list(string))" required="no" >}}
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
-This rule criteria __may not__ be used for the [bypass] policy the minimum required authentication level to
-identify the subject is [one_factor]. See [Rule Matching Concept 2] for more information.
+This rule criteria __may not__ be used for the [bypass](#bypass) policy the minimum required authentication level to
+identify the subject is [one_factor](#one_factor). See [Rule Matching Concept 2](#rule-matching-concept-2-subject-criteria-requires-authentication) for more information.
 {{< /callout >}}
 
 This criteria matches identifying characteristics about the subject. Currently this is either user or groups the user

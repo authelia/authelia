@@ -36,6 +36,9 @@ body code span.line.hl {
   .icon-support-partial {
     @include icon-support('.bi-exclamation-circle-fill', '.text-orange');
   }
+  .icon-support-legacy {
+    @include icon-support('.bi-archive-fill', '.text-orange');
+  }
   .icon-support-none {
     @include icon-support('.bi-x-circle-fill', '.text-danger');
   }
@@ -53,6 +56,9 @@ body code span.line.hl {
   }
   .icon-support-partial {
     @include icon-support('.bi-exclamation-circle', '.text-orange');
+  }
+  .icon-support-legacy {
+    @include icon-support('.bi-archive', '.text-orange');
   }
   .icon-support-none {
     @include icon-support('.bi-x-circle', '.text-danger');

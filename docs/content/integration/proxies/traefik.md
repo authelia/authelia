@@ -26,12 +26,17 @@ throughout this documentation and in the [See Also](#see-also) section.*
 
 ## Requirements
 
-You need the following to run __Authelia__ with [Traefik]:
+Authelia by default only generally provides support for versions of products that are also supported by their respective
+developer. As such we only support the versions [Traefik] officially provides support for. The versions and lifetime
+of support for [Traefik] can be read about in the official
+[Traefik Deprecation Notices](https://doc.traefik.io/traefik/deprecation/releases/) documentation.
 
-* [Traefik] [v2.0.0](https://github.com/traefik/traefik/releases/tag/v2.0.0) or greater
-  (a guide exists for 1.x [here](traefikv1.md))
-* [Traefik] [v2.4.1](https://github.com/traefik/traefik/releases/tag/v2.4.1) or greater if you wish to use
-  [basic authentication](#basic-authentication)
+It should be noted that while these are the listed versions that are supported you may have luck with older versions.
+
+We can officially guarantee the following verions of [Traefik] as these are the versions we perform integration testing
+with at the current time:
+
+{{% supported-product product="traefik" format="* [Traefik $version](https://github.com/traefik/traefik/releases/tag/$version)" %}}
 
 ## Get started
 
@@ -113,7 +118,7 @@ Below you will find commented examples of the following docker deployment:
 * Protected endpoint (Nextcloud)
 * Protected endpoint with [Authorization] header for basic authentication (Heimdall)
 
-The below configuration looks to provide examples of running [Traefik] 2.x with labels to protect your endpoint
+The below configuration looks to provide examples of running [Traefik] 3.x with labels to protect your endpoint
 (Nextcloud in this case).
 
 Please ensure that you also setup the respective [ACME configuration](https://docs.traefik.io/https/acme/) for your
@@ -160,7 +165,7 @@ networks:
 services:
   traefik:
     container_name: 'traefik'
-    image: 'traefik:v2.9'
+    image: 'traefik:v3.1'
     restart: 'unless-stopped'
     command:
       - '--api=true'
@@ -296,7 +301,7 @@ networks:
 services:
   traefik:
     container_name: 'traefik'
-    image: 'traefik:v2.10'
+    image: 'traefik:v3.1'
     restart: 'unless-stopped'
     command:
       - '--api=true'
