@@ -10,6 +10,7 @@ type Configuration struct {
 	CertificatesDirectory string `koanf:"certificates_directory" json:"certificates_directory" jsonschema:"title=Certificates Directory Path" jsonschema_description:"The path to a directory which is used to determine the certificates that are trusted."`
 	Default2FAMethod      string `koanf:"default_2fa_method" json:"default_2fa_method" jsonschema:"enum=totp,enum=webauthn,enum=mobile_push,title=Default 2FA method" jsonschema_description:"When a user logs in for the first time this is the 2FA method configured for them."`
 
+	Administration        Administration        `koanf:"administration" json:"administration" jsonschema:"title=Administration" jsonschema_description:"Administration Configuration"`
 	Log                   Log                   `koanf:"log" json:"log" jsonschema:"title=Log" jsonschema_description:"Logging Configuration."`
 	IdentityProviders     IdentityProviders     `koanf:"identity_providers" json:"identity_providers" jsonschema:"title=Identity Providers" jsonschema_description:"Identity Providers Configuration."`
 	AuthenticationBackend AuthenticationBackend `koanf:"authentication_backend" json:"authentication_backend" jsonschema:"title=Authentication Backend" jsonschema_description:"Authentication Backend Configuration."`

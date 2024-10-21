@@ -1,6 +1,6 @@
 import React, { ReactNode, SyntheticEvent, useCallback, useEffect, useState } from "react";
 
-import { Close, Dashboard, Menu, SystemSecurityUpdateGood } from "@mui/icons-material";
+import { Close, Dashboard, Menu, People, Security, SystemSecurityUpdateGood } from "@mui/icons-material";
 import {
     AppBar,
     Box,
@@ -17,7 +17,13 @@ import {
 import IconButton from "@mui/material/IconButton";
 import { useTranslation } from "react-i18next";
 
-import { IndexRoute, SettingsRoute, SettingsTwoFactorAuthenticationSubRoute } from "@constants/Routes";
+import {
+    IndexRoute,
+    SecuritySubRoute,
+    SettingsRoute,
+    SettingsTwoFactorAuthenticationSubRoute,
+    SettingsUserManagementSubRoute,
+} from "@constants/Routes";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 
 export interface Props {
@@ -127,7 +133,7 @@ const SettingsLayout = function (props: Props) {
                     {drawer}
                 </SwipeableDrawer>
             </Box>
-            <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+            <Box component="main" sx={{ flexGrow: 1, p: { xs: 0, sm: 3 } }}>
                 <Toolbar />
                 {props.children}
             </Box>
@@ -145,10 +151,22 @@ interface NavItem {
 const navItems: NavItem[] = [
     { keyname: "overview", text: "Overview", pathname: SettingsRoute, icon: <Dashboard color={"primary"} /> },
     {
+        keyname: "security",
+        text: "Security",
+        pathname: `${SettingsRoute}${SecuritySubRoute}`,
+        icon: <Security color={"primary"} />,
+    },
+    {
         keyname: "twofactor",
         text: "Two-Factor Authentication",
         pathname: `${SettingsRoute}${SettingsTwoFactorAuthenticationSubRoute}`,
         icon: <SystemSecurityUpdateGood color={"primary"} />,
+    },
+    {
+        keyname: "users",
+        text: "User Management",
+        pathname: `${SettingsRoute}${SettingsUserManagementSubRoute}`,
+        icon: <People color={"primary"} />,
     },
     { keyname: "close", text: "Close", pathname: IndexRoute, icon: <Close color={"error"} /> },
 ];

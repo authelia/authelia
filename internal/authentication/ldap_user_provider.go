@@ -152,6 +152,63 @@ func (p *LDAPUserProvider) GetDetails(username string) (details *UserDetails, er
 	}, nil
 }
 
+func (p *LDAPUserProvider) ListUsers() (users []UserDetails, err error) {
+	var client LDAPClient
+
+	if client, err = p.connect(); err != nil {
+		return nil, fmt.Errorf("failed to connect to LDAP server: %w", err)
+	}
+
+	defer client.Close()
+
+	request := ldap.NewSearchRequest(
+		p.usersBaseDN,
+		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
+		0, 0, false,
+		"(objectClass=inetOrgPerson)",
+		p.usersAttributes,
+		nil,
+	)
+
+	p.log.
+		WithField("base_dn", request.BaseDN).
+		WithField("filter", request.Filter).
+		WithField("attr", request.Attributes).
+		WithField("scope", request.Scope).
+		WithField("deref", request.DerefAliases).
+		Trace("Performing search for all users")
+
+	var result *ldap.SearchResult
+
+	if result, err = p.search(client, request); err != nil {
+		return nil, fmt.Errorf("failed to search for users: %w", err)
+	}
+
+	users = make([]UserDetails, 0, len(result.Entries))
+
+	for _, entry := range result.Entries {
+		profile, err := p.getUserProfileResultToProfile(entry.GetAttributeValue(p.config.Attributes.Username), &ldap.SearchResult{Entries: []*ldap.Entry{entry}})
+		if err != nil {
+			p.log.WithError(err).Warnf("Failed to process user entry: %s", entry.DN)
+			continue
+		}
+
+		groups, err := p.getUserGroups(client, profile.Username, profile)
+		if err != nil {
+			p.log.WithError(err).Warnf("Failed to get groups for user: %s", profile.Username)
+		}
+
+		users = append(users, UserDetails{
+			Username:    profile.Username,
+			DisplayName: profile.DisplayName,
+			Emails:      profile.Emails,
+			Groups:      groups,
+		})
+	}
+
+	return users, nil
+}
+
 // UpdatePassword update the password of the given user.
 func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error) {
 	var (
@@ -204,6 +261,81 @@ func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error)
 
 	if err != nil {
 		return fmt.Errorf("unable to update password. Cause: %w", err)
+	}
+
+	return nil
+}
+
+// UpdatePassword update the password of the given user.
+func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassword string) (err error) {
+	var (
+		client  LDAPClient
+		profile *ldapUserProfile
+	)
+
+	if client, err = p.connect(); err != nil {
+		return fmt.Errorf("unable to update password. Cause: %w", err)
+	}
+
+	defer client.Close()
+
+	if profile, err = p.getUserProfile(client, username); err != nil {
+		return fmt.Errorf("unable to update password. Cause: %w", err)
+	}
+
+	var controls []ldap.Control
+
+	switch {
+	case p.features.ControlTypes.MsftPwdPolHints:
+		controls = append(controls, &controlMsftServerPolicyHints{ldapOIDControlMsftServerPolicyHints})
+	case p.features.ControlTypes.MsftPwdPolHintsDeprecated:
+		controls = append(controls, &controlMsftServerPolicyHints{ldapOIDControlMsftServerPolicyHintsDeprecated})
+	}
+
+	userPasswordOk, err := p.CheckUserPassword(username, oldPassword)
+
+	if err != nil {
+		if strings.Contains(err.Error(), ErrIncorrectPassword.Error()) {
+			userPasswordOk = false
+		} else {
+			return err
+		}
+	}
+
+	if !userPasswordOk {
+		return ErrIncorrectPassword
+	}
+
+	if oldPassword == newPassword {
+		return ErrPasswordReuse
+	}
+
+	switch {
+	case p.features.Extensions.PwdModifyExOp:
+		pwdModifyRequest := ldap.NewPasswordModifyRequest(
+			profile.DN,
+			"",
+			newPassword,
+		)
+
+		err = p.pwdModify(client, pwdModifyRequest)
+	case p.config.Implementation == schema.LDAPImplementationActiveDirectory:
+		modifyRequest := ldap.NewModifyRequest(profile.DN, controls)
+		// The password needs to be enclosed in quotes
+		// https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/6e803168-f140-4d23-b2d3-c3a8ab5917d2
+		pwdEncoded, _ := encodingUTF16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", newPassword))
+		modifyRequest.Replace(ldapAttributeUnicodePwd, []string{pwdEncoded})
+
+		err = p.modify(client, modifyRequest)
+	default:
+		modifyRequest := ldap.NewModifyRequest(profile.DN, controls)
+		modifyRequest.Replace(ldapAttributeUserPassword, []string{newPassword})
+
+		err = p.modify(client, modifyRequest)
+	}
+
+	if err != nil {
+		return fmt.Errorf("unable to update password for user '%s'. Cause: %w", username, err)
 	}
 
 	return nil
