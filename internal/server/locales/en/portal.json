@@ -26,6 +26,7 @@
 	"Failed to revoke the Token": "Failed to revoke the Token",
 	"Hi": "Hi",
 	"Incorrect username or password": "Incorrect username or password",
+	"Incorrect password": "Incorrect password",
 	"Login": "Login",
 	"Logout": "Logout",
 	"Methods": "Methods",

@@ -33,8 +33,14 @@ type encOAuth2Session struct {
 }
 
 type encWebAuthnCredential struct {
-	ID        int    `db:"id"`
-	PublicKey []byte `db:"public_key"`
+	ID          int    `db:"id"`
+	PublicKey   []byte `db:"public_key"`
+	Attestation []byte `db:"attestation"`
+}
+
+type encCachedData struct {
+	ID    int    `db:"id"`
+	Value []byte `db:"value"`
 }
 
 type encTOTPConfiguration struct {

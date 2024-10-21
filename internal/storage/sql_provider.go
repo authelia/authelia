@@ -39,6 +39,9 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlInsertAuthenticationAttempt:            fmt.Sprintf(queryFmtInsertAuthenticationLogEntry, tableAuthenticationLogs),
 		sqlSelectAuthenticationAttemptsByUsername: fmt.Sprintf(queryFmtSelect1FAAuthenticationLogEntryByUsername, tableAuthenticationLogs),
 
+		sqlUpsertCachedData: fmt.Sprintf(queryFmtUpsertCachedData, tableCachedData),
+		sqlSelectCachedData: fmt.Sprintf(queryFmtSelectCachedData, tableCachedData),
+
 		sqlInsertIdentityVerification:  fmt.Sprintf(queryFmtInsertIdentityVerification, tableIdentityVerification),
 		sqlConsumeIdentityVerification: fmt.Sprintf(queryFmtConsumeIdentityVerification, tableIdentityVerification),
 		sqlRevokeIdentityVerification:  fmt.Sprintf(queryFmtRevokeIdentityVerification, tableIdentityVerification),
@@ -63,8 +66,9 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlInsertTOTPHistory: fmt.Sprintf(queryFmtInsertTOTPHistory, tableTOTPHistory),
 		sqlSelectTOTPHistory: fmt.Sprintf(queryFmtSelectTOTPHistory, tableTOTPHistory),
 
-		sqlInsertWebAuthnUser: fmt.Sprintf(queryFmtInsertWebAuthnUser, tableWebAuthnUsers),
-		sqlSelectWebAuthnUser: fmt.Sprintf(queryFmtSelectWebAuthnUser, tableWebAuthnUsers),
+		sqlInsertWebAuthnUser:         fmt.Sprintf(queryFmtInsertWebAuthnUser, tableWebAuthnUsers),
+		sqlSelectWebAuthnUser:         fmt.Sprintf(queryFmtSelectWebAuthnUser, tableWebAuthnUsers),
+		sqlSelectWebAuthnUserByUserID: fmt.Sprintf(queryFmtSelectWebAuthnUserByUserID, tableWebAuthnUsers),
 
 		sqlInsertWebAuthnCredential:                           fmt.Sprintf(queryFmtInsertWebAuthnCredential, tableWebAuthnCredentials),
 		sqlSelectWebAuthnCredentials:                          fmt.Sprintf(queryFmtSelectWebAuthnCredentials, tableWebAuthnCredentials),
@@ -173,6 +177,10 @@ type SQLProvider struct {
 	sqlInsertAuthenticationAttempt            string
 	sqlSelectAuthenticationAttemptsByUsername string
 
+	// Table: cached_data.
+	sqlUpsertCachedData string
+	sqlSelectCachedData string
+
 	// Table: identity_verification.
 	sqlInsertIdentityVerification  string
 	sqlConsumeIdentityVerification string
@@ -202,8 +210,9 @@ type SQLProvider struct {
 	sqlSelectTOTPHistory string
 
 	// Table: webauthn_users.
-	sqlInsertWebAuthnUser string
-	sqlSelectWebAuthnUser string
+	sqlInsertWebAuthnUser         string
+	sqlSelectWebAuthnUser         string
+	sqlSelectWebAuthnUserByUserID string
 
 	// Table: webauthn_credentials.
 	sqlInsertWebAuthnCredential                  string
@@ -622,7 +631,23 @@ func (p *SQLProvider) LoadWebAuthnUser(ctx context.Context, rpid, username strin
 		case errors.Is(err, sql.ErrNoRows):
 			return nil, nil
 		default:
-			return nil, fmt.Errorf("error selecting WebAuthn user '%s' with relying party id '%s': %w", user.Username, user.RPID, err)
+			return nil, fmt.Errorf("error selecting WebAuthn user '%s' with relying party id '%s': %w", username, rpid, err)
+		}
+	}
+
+	return user, nil
+}
+
+// LoadWebAuthnUserByUserID loads a registered WebAuthn user from the storage provider.
+func (p *SQLProvider) LoadWebAuthnUserByUserID(ctx context.Context, rpid, userID string) (user *model.WebAuthnUser, err error) {
+	user = &model.WebAuthnUser{}
+
+	if err = p.db.GetContext(ctx, user, p.sqlSelectWebAuthnUserByUserID, rpid, userID); err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, nil
+		default:
+			return nil, fmt.Errorf("error selecting WebAuthn user with user id '%s' and relying party id '%s': %w", userID, rpid, err)
 		}
 	}
 
@@ -635,11 +660,17 @@ func (p *SQLProvider) SaveWebAuthnCredential(ctx context.Context, credential mod
 		return fmt.Errorf("error encrypting WebAuthn credential public key for user '%s' kid '%x': %w", credential.Username, credential.KID, err)
 	}
 
+	if len(credential.Attestation) != 0 {
+		if credential.Attestation, err = p.encrypt(credential.Attestation); err != nil {
+			return fmt.Errorf("error encrypting WebAuthn credential attestation for user '%s' kid '%x': %w", credential.Username, credential.KID, err)
+		}
+	}
+
 	if _, err = p.db.ExecContext(ctx, p.sqlInsertWebAuthnCredential,
 		credential.CreatedAt, credential.LastUsedAt, credential.RPID, credential.Username, credential.Description,
 		credential.KID, credential.AAGUID, credential.AttestationType, credential.Attachment, credential.Transport,
 		credential.SignCount, credential.CloneWarning, credential.Discoverable, credential.Present, credential.Verified,
-		credential.BackupEligible, credential.BackupState, credential.PublicKey,
+		credential.BackupEligible, credential.BackupState, credential.PublicKey, credential.Attestation,
 	); err != nil {
 		return fmt.Errorf("error inserting WebAuthn credential for user '%s' kid '%x': %w", credential.Username, credential.KID, err)
 	}
@@ -715,6 +746,12 @@ func (p *SQLProvider) LoadWebAuthnCredentials(ctx context.Context, limit, page i
 		if credentials[i].PublicKey, err = p.decrypt(credential.PublicKey); err != nil {
 			return nil, fmt.Errorf("error decrypting WebAuthn credential public key of credential with id '%d' for user '%s': %w", credential.ID, credential.Username, err)
 		}
+
+		if len(credential.Attestation) != 0 {
+			if credentials[i].Attestation, err = p.decrypt(credential.Attestation); err != nil {
+				return nil, fmt.Errorf("error decrypting WebAuthn credential attestation of credential with id '%d' for user '%s': %w", credential.ID, credential.Username, err)
+			}
+		}
 	}
 
 	return credentials, nil
@@ -732,6 +769,16 @@ func (p *SQLProvider) LoadWebAuthnCredentialByID(ctx context.Context, id int) (c
 		return nil, fmt.Errorf("error selecting WebAuthn credential with id '%d': %w", id, err)
 	}
 
+	if credential.PublicKey, err = p.decrypt(credential.PublicKey); err != nil {
+		return nil, fmt.Errorf("error decrypting WebAuthn credential public key of credential with id '%d' for user '%s': %w", credential.ID, credential.Username, err)
+	}
+
+	if len(credential.Attestation) != 0 {
+		if credential.Attestation, err = p.decrypt(credential.Attestation); err != nil {
+			return nil, fmt.Errorf("error decrypting WebAuthn credential attestation of credential with id '%d' for user '%s': %w", credential.ID, credential.Username, err)
+		}
+	}
+
 	return credential, nil
 }
 
@@ -740,9 +787,9 @@ func (p *SQLProvider) LoadWebAuthnCredentialByID(ctx context.Context, id int) (c
 func (p *SQLProvider) LoadWebAuthnCredentialsByUsername(ctx context.Context, rpid, username string) (credentials []model.WebAuthnCredential, err error) {
 	switch len(rpid) {
 	case 0:
-		err = p.db.SelectContext(ctx, &credentials, p.sqlSelectWebAuthnCredentialsByUsername, username)
+		err = p.db.SelectContext(ctx, &credentials, p.sqlSelectWebAuthnCredentialsByUsername, username, false)
 	default:
-		err = p.db.SelectContext(ctx, &credentials, p.sqlSelectWebAuthnCredentialsByRPIDByUsername, rpid, username)
+		err = p.db.SelectContext(ctx, &credentials, p.sqlSelectWebAuthnCredentialsByRPIDByUsername, rpid, username, false)
 	}
 
 	if err != nil {
@@ -756,6 +803,43 @@ func (p *SQLProvider) LoadWebAuthnCredentialsByUsername(ctx context.Context, rpi
 	for i, credential := range credentials {
 		if credentials[i].PublicKey, err = p.decrypt(credential.PublicKey); err != nil {
 			return nil, fmt.Errorf("error decrypting WebAuthn credential public key of credential with id '%d' for user '%s': %w", credential.ID, credential.Username, err)
+		}
+
+		if len(credential.Attestation) != 0 {
+			if credentials[i].Attestation, err = p.decrypt(credential.Attestation); err != nil {
+				return nil, fmt.Errorf("error decrypting WebAuthn credential attestation of credential with id '%d' for user '%s': %w", credential.ID, credential.Username, err)
+			}
+		}
+	}
+
+	return credentials, nil
+}
+
+func (p *SQLProvider) LoadWebAuthnPasskeyCredentialsByUsername(ctx context.Context, rpid, username string) (credentials []model.WebAuthnCredential, err error) {
+	switch len(rpid) {
+	case 0:
+		err = p.db.SelectContext(ctx, &credentials, p.sqlSelectWebAuthnCredentialsByUsername, username, true)
+	default:
+		err = p.db.SelectContext(ctx, &credentials, p.sqlSelectWebAuthnCredentialsByRPIDByUsername, rpid, username, true)
+	}
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return credentials, ErrNoWebAuthnCredential
+		}
+
+		return nil, fmt.Errorf("error selecting passkey WebAuthn credentials for user '%s': %w", username, err)
+	}
+
+	for i, credential := range credentials {
+		if credentials[i].PublicKey, err = p.decrypt(credential.PublicKey); err != nil {
+			return nil, fmt.Errorf("error decrypting passkey WebAuthn credential public key of credential with id '%d' for user '%s': %w", credential.ID, credential.Username, err)
+		}
+
+		if len(credential.Attestation) != 0 {
+			if credentials[i].Attestation, err = p.decrypt(credential.Attestation); err != nil {
+				return nil, fmt.Errorf("error decrypting passkey WebAuthn credential attestation of credential with id '%d' for user '%s': %w", credential.ID, credential.Username, err)
+			}
 		}
 	}
 
@@ -1334,4 +1418,38 @@ func (p *SQLProvider) LoadAuthenticationLogs(ctx context.Context, username strin
 	}
 
 	return attempts, nil
+}
+
+func (p *SQLProvider) SaveCachedData(ctx context.Context, data model.CachedData) (err error) {
+	if data.Encrypted {
+		if data.Value, err = p.encrypt(data.Value); err != nil {
+			return fmt.Errorf("error encrypting cached data name '%s': %w", data.Name, err)
+		}
+	}
+
+	if _, err = p.db.ExecContext(ctx, p.sqlUpsertOAuth2BlacklistedJTI, data.Name, data.Encrypted, data.Value); err != nil {
+		return fmt.Errorf("error inserting cached data with name '%s': %w", data.Name, err)
+	}
+
+	return nil
+}
+
+func (p *SQLProvider) LoadCachedData(ctx context.Context, name string) (data *model.CachedData, err error) {
+	data = &model.CachedData{}
+
+	if err = p.db.GetContext(ctx, data, p.sqlSelectCachedData, name); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+
+		return nil, fmt.Errorf("error selecting cached data with name '%s': %w", name, err)
+	}
+
+	if data.Encrypted {
+		if data.Value, err = p.decrypt(data.Value); err != nil {
+			return nil, fmt.Errorf("error decrypting cached data with name '%s': %w", name, err)
+		}
+	}
+
+	return data, nil
 }
