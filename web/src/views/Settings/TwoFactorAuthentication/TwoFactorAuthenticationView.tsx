@@ -1,5 +1,6 @@
 import React, { Fragment, useEffect, useState } from "react";
 
+import { Paper, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { useTranslation } from "react-i18next";
 
@@ -110,9 +111,30 @@ const TwoFactorAuthenticationView = function (props: Props) {
         fetchUserInfo();
     };
 
+    const renderSecondFactorDisabled = () => {
+        if (!configuration || !userInfo) {
+            return false;
+        }
+
+        const hasAvailableMethods =
+            configuration.available_methods.has(SecondFactorMethod.TOTP) ||
+            configuration.available_methods.has(SecondFactorMethod.WebAuthn);
+
+        return !hasAvailableMethods;
+    };
+
     return (
         <Fragment>
             <Grid container spacing={2}>
+                {renderSecondFactorDisabled() ? (
+                    <Grid size={{ xs: 12 }} display="flex" justifyContent="center" alignItems="center">
+                        <Paper>
+                            <Typography variant={"h6"} sx={{ p: 6 }} text-align="center">
+                                {translate("There are no protected applications that require a second factor method")}
+                            </Typography>
+                        </Paper>
+                    </Grid>
+                ) : null}
                 {configuration?.available_methods.has(SecondFactorMethod.TOTP) ? (
                     <Grid size={{ xs: 12 }}>
                         <OneTimePasswordPanel
