@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/stdlib"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -161,22 +162,49 @@ func dsnPostgreSQL(config *schema.StoragePostgreSQL, globalCACertPool *x509.Cert
 	dsnConfig.TLSConfig = loadPostgreSQLTLSConfig(config, globalCACertPool)
 	dsnConfig.ConnectTimeout = config.Timeout
 	dsnConfig.RuntimeParams = map[string]string{
-		"search_path": config.Schema,
+		"application_name": fmt.Sprintf("Authelia %s", utils.Version()),
+		"search_path":      config.Schema,
 	}
 
-	if dsnConfig.Port == 0 && config.Address.IsUnixDomainSocket() {
+	if dsnConfig.Port == 0 && !config.Address.IsUnixDomainSocket() {
 		dsnConfig.Port = 5432
+	}
+
+	if len(config.Servers) != 0 {
+		dsnPostgreSQLFallbacks(config, globalCACertPool, dsnConfig)
 	}
 
 	return stdlib.RegisterConnConfig(dsnConfig)
 }
 
+func dsnPostgreSQLFallbacks(config *schema.StoragePostgreSQL, globalCACertPool *x509.CertPool, dsnConfig *pgx.ConnConfig) {
+	dsnConfig.Fallbacks = make([]*pgconn.FallbackConfig, len(config.Servers))
+
+	for i, server := range config.Servers {
+		fallback := &pgconn.FallbackConfig{
+			Host:      server.Address.SocketHostname(),
+			Port:      server.Address.Port(),
+			TLSConfig: loadPostgreSQLModernTLSConfig(server.TLS, globalCACertPool),
+		}
+
+		if fallback.Port == 0 && !server.Address.IsUnixDomainSocket() {
+			fallback.Port = 5432
+		}
+
+		dsnConfig.Fallbacks[i] = fallback
+	}
+}
+
 func loadPostgreSQLTLSConfig(config *schema.StoragePostgreSQL, globalCACertPool *x509.CertPool) (tlsConfig *tls.Config) {
 	if config.TLS != nil {
-		return utils.NewTLSConfig(config.TLS, globalCACertPool)
+		return loadPostgreSQLModernTLSConfig(config.TLS, globalCACertPool)
 	}
 
 	return loadPostgreSQLLegacyTLSConfig(config, globalCACertPool)
+}
+
+func loadPostgreSQLModernTLSConfig(config *schema.TLS, globalCACertPool *x509.CertPool) (tlsConfig *tls.Config) {
+	return utils.NewTLSConfig(config, globalCACertPool)
 }
 
 //nolint:staticcheck // Used for legacy purposes.
