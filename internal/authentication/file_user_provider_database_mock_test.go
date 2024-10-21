@@ -19,6 +19,7 @@ import (
 type MockFileUserDatabase struct {
 	ctrl     *gomock.Controller
 	recorder *MockFileUserDatabaseMockRecorder
+	isgomock struct{}
 }
 
 // MockFileUserDatabaseMockRecorder is the mock recorder for MockFileUserDatabase.
@@ -39,18 +40,18 @@ func (m *MockFileUserDatabase) EXPECT() *MockFileUserDatabaseMockRecorder {
 }
 
 // GetUserDetails mocks base method.
-func (m *MockFileUserDatabase) GetUserDetails(arg0 string) (FileUserDatabaseUserDetails, error) {
+func (m *MockFileUserDatabase) GetUserDetails(username string) (FileUserDatabaseUserDetails, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserDetails", arg0)
+	ret := m.ctrl.Call(m, "GetUserDetails", username)
 	ret0, _ := ret[0].(FileUserDatabaseUserDetails)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetUserDetails indicates an expected call of GetUserDetails.
-func (mr *MockFileUserDatabaseMockRecorder) GetUserDetails(arg0 any) *gomock.Call {
+func (mr *MockFileUserDatabaseMockRecorder) GetUserDetails(username any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserDetails", reflect.TypeOf((*MockFileUserDatabase)(nil).GetUserDetails), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserDetails", reflect.TypeOf((*MockFileUserDatabase)(nil).GetUserDetails), username)
 }
 
 // Load mocks base method.
@@ -82,13 +83,13 @@ func (mr *MockFileUserDatabaseMockRecorder) Save() *gomock.Call {
 }
 
 // SetUserDetails mocks base method.
-func (m *MockFileUserDatabase) SetUserDetails(arg0 string, arg1 *FileUserDatabaseUserDetails) {
+func (m *MockFileUserDatabase) SetUserDetails(username string, details *FileUserDatabaseUserDetails) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SetUserDetails", arg0, arg1)
+	m.ctrl.Call(m, "SetUserDetails", username, details)
 }
 
 // SetUserDetails indicates an expected call of SetUserDetails.
-func (mr *MockFileUserDatabaseMockRecorder) SetUserDetails(arg0, arg1 any) *gomock.Call {
+func (mr *MockFileUserDatabaseMockRecorder) SetUserDetails(username, details any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetUserDetails", reflect.TypeOf((*MockFileUserDatabase)(nil).SetUserDetails), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetUserDetails", reflect.TypeOf((*MockFileUserDatabase)(nil).SetUserDetails), username, details)
 }

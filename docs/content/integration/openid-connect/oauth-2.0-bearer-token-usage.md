@@ -72,7 +72,7 @@ The following protections have been considered:
   not grant any audience (thus making it useless) even if the client has been whitelisted for the particular audience.
 
 For example, if `john` consents to grant the token, and it includes the audience `https://app1.{{< sitevar name="domain" nojs="example.com" >}}`, but the
- user `john` is not normally authorized to visit `https://app1.{{< sitevar name="domain" nojs="example.com" >}} the token will not grant access to this resource.
+ user `john` is not normally authorized to visit `https://app1.{{< sitevar name="domain" nojs="example.com" >}}` the token will not grant access to this resource.
 In addition, if `john` has his access updated via the access control rules, their groups, etc., then this access is
 automatically applied to these tokens.
 
