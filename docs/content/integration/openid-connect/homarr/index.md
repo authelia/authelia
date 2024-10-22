@@ -73,7 +73,7 @@ identity_providers:
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 The following example assumes you want users with the `homarr-admins` group to be administrators in
-[Homarr], and users with the `homarr-owners` group to be owners in [Homarr]. You may be required to adjust this.
+[Homarr](https://homarr.dev), and users with the `homarr-owners` group to be owners in [Homarr](https://homarr.dev). You may be required to adjust this.
 {{< /callout >}}
 
 To configure [Homarr] to utilize Authelia as an [OpenID Connect 1.0] Provider:
