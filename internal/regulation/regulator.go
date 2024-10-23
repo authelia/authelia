@@ -90,6 +90,8 @@ func (r *Regulator) handleAttemptPossibleBannedIP(ctx Context, since time.Time) 
 
 	if err = r.store.SaveBannedIP(ctx, sqlban); err != nil {
 		log.WithFields(map[string]any{fieldBanType: typeIP}).WithError(err).Error("Failed to save ban")
+
+		return
 	}
 }
 
@@ -126,6 +128,8 @@ func (r *Regulator) handleAttemptPossibleBannedUser(ctx Context, since time.Time
 
 	if err = r.store.SaveBannedUser(ctx, sqlban); err != nil {
 		log.WithFields(map[string]any{fieldBanType: typeUser, fieldUsername: username}).WithError(err).Error("Failed to save ban")
+
+		return
 	}
 }
 
