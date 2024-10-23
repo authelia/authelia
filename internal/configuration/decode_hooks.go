@@ -558,12 +558,13 @@ func StringToTLSVersionHookFunc() mapstructure.DecodeHookFuncType {
 
 // StringToCryptoPrivateKeyHookFunc decodes strings to schema.CryptographicPrivateKey's.
 func StringToCryptoPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
+	field, _ := reflect.TypeOf(schema.TLS{}).FieldByName("PrivateKey")
+
 	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
 		if f.Kind() != reflect.String {
 			return data, nil
 		}
 
-		field, _ := reflect.TypeOf(schema.TLS{}).FieldByName("PrivateKey")
 		expectedType := field.Type
 
 		if t != expectedType {

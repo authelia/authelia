@@ -73,7 +73,11 @@ func FormatError(err error) error {
 
 	if errors.As(err, &out) {
 		if len(out.DevInfo) == 0 {
-			return err
+			if len(out.Type) == 0 {
+				return err
+			}
+
+			return fmt.Errorf("%w (%s)", err, out.Type)
 		}
 
 		if len(out.Type) == 0 {

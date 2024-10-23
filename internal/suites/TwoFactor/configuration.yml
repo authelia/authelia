@@ -83,6 +83,7 @@ totp:
 
 webauthn:
   disable: false
+  enable_passkey_login: true
   metadata:
     enabled: true
     validate_entry: false

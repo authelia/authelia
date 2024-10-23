@@ -17,7 +17,7 @@ import (
 )
 
 // Handle1FAResponse handle the redirection upon 1FA authentication.
-func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod string, username string, groups []string) {
+func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, username string, groups []string) {
 	var err error
 
 	if len(targetURI) == 0 {
@@ -127,6 +127,15 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 	}
 
 	ctx.ReplyOK()
+}
+
+// HandlePasskeyResponse is a specialized handler for the Passkey login flow which switches adaptively between the 1FA and 2FA response handlers respectively.
+func HandlePasskeyResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, username string, groups []string, isTwoFactor bool) {
+	if isTwoFactor {
+		Handle2FAResponse(ctx, targetURI)
+	}
+
+	Handle1FAResponse(ctx, targetURI, requestMethod, username, groups)
 }
 
 // handleOIDCWorkflowResponse handle the redirection upon authentication in the OIDC workflow.

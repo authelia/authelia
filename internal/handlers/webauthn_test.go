@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/go-webauthn/webauthn/protocol"
+	gowebauthn "github.com/go-webauthn/webauthn/webauthn"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
@@ -433,4 +434,81 @@ func TestWebAuthnNewWebAuthnShouldReturnErrWhenHeadersNotAvailable(t *testing.T)
 
 	assert.Nil(t, w)
 	assert.EqualError(t, err, "missing required X-Forwarded-Host header")
+}
+
+func TestWebAuthnHandlerDiscoverableLogin(t *testing.T) {
+	testCases := []struct {
+		name     string
+		setup    func(t *testing.T, mock *mocks.MockAutheliaCtx)
+		expected gowebauthn.User
+		err      string
+	}{
+		{
+			"ShouldHandleSuccessCondition",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				gomock.InOrder(
+					mock.StorageMock.EXPECT().
+						LoadWebAuthnUserByUserID(mock.Ctx, "https://example.com", "example").
+						Return(&model.WebAuthnUser{ID: 1, Username: "john"}, nil),
+					mock.StorageMock.EXPECT().
+						LoadWebAuthnPasskeyCredentialsByUsername(mock.Ctx, "https://example.com", "john").
+						Return([]model.WebAuthnCredential{{ID: 1, RPID: exampleDotCom, Username: testUsername}}, nil),
+				)
+			},
+			&model.WebAuthnUser{
+				ID:       1,
+				Username: "john",
+				Credentials: []model.WebAuthnCredential{
+					{ID: 1, RPID: exampleDotCom, Username: testUsername},
+				},
+			},
+			"",
+		},
+		{
+			"ShouldHandleCredentialsError",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				gomock.InOrder(
+					mock.StorageMock.EXPECT().
+						LoadWebAuthnUserByUserID(mock.Ctx, "https://example.com", "example").
+						Return(&model.WebAuthnUser{ID: 1, Username: "john"}, nil),
+					mock.StorageMock.EXPECT().
+						LoadWebAuthnPasskeyCredentialsByUsername(mock.Ctx, "https://example.com", "john").
+						Return(nil, fmt.Errorf("bad credentials")),
+				)
+			},
+			nil,
+			"bad credentials",
+		},
+		{
+			"ShouldHandleUserError",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				gomock.InOrder(
+					mock.StorageMock.EXPECT().
+						LoadWebAuthnUserByUserID(mock.Ctx, "https://example.com", "example").
+						Return(nil, fmt.Errorf("user does not exist")),
+				)
+			},
+			nil,
+			"user does not exist",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			tc.setup(t, mock)
+
+			handler := handlerWebAuthnDiscoverableLogin(mock.Ctx, "https://example.com")
+
+			actual, err := handler([]byte("example"), []byte("example"))
+			if len(tc.err) > 0 {
+				assert.EqualError(t, err, tc.err)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tc.expected, actual)
+			}
+		})
+	}
 }
