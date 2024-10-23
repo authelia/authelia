@@ -38,10 +38,12 @@ func FirstFactorPasskeyGET(ctx *middlewares.AutheliaCtx) {
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
+
+		return
 	}
 
 	if w, err = ctx.GetWebAuthnProvider(); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn authentication challenge: error occurred provisioning the configuration")
+		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn passkey authentication challenge: error occurred provisioning the configuration")
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
@@ -49,13 +51,7 @@ func FirstFactorPasskeyGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	extensions := map[string]any{}
-
 	var opts []webauthn.LoginOption
-
-	if len(extensions) != 0 {
-		opts = append(opts, webauthn.WithAssertionExtensions(extensions))
-	}
 
 	var (
 		assertion *protocol.CredentialAssertion
@@ -138,6 +134,14 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	defer func() {
+		userSession.WebAuthn = nil
+
+		if err = ctx.SaveSession(userSession); err != nil {
+			ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn passkey authentication challenge for user '%s': %s", userSession.Username, errStrUserSessionDataSave)
+		}
+	}()
+
 	if err = ctx.ParseBody(&bodyJSON); err != nil {
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetJSONError(messageMFAValidationFailed)
@@ -178,7 +182,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
-		_ = markAuthenticationAttempt(ctx, false, nil, userSession.Username, regulation.AuthTypePasskey, iwebauthn.FormatError(err))
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn passkey authentication challenge: error performing the login validation")
 
 		return
 	}
@@ -255,7 +259,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if err = markAuthenticationAttempt(ctx, true, nil, userSession.Username, regulation.AuthTypePasskey, nil); err != nil {
+	if err = markAuthenticationAttempt(ctx, true, nil, details.Username, regulation.AuthTypePasskey, nil); err != nil {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
@@ -286,7 +290,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 	userSession.SetOneFactorPasskey(
 		ctx.Clock.Now(), details,
-		false,
+		keepMeLoggedIn,
 		response.ParsedPublicKeyCredential.AuthenticatorAttachment == protocol.CrossPlatform,
 		response.Response.AuthenticatorData.Flags.HasUserPresent(),
 		response.Response.AuthenticatorData.Flags.HasUserVerified(),
@@ -296,18 +300,9 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		userSession.RefreshTTL = ctx.Clock.Now().Add(ctx.Configuration.AuthenticationBackend.RefreshInterval.Value())
 	}
 
-	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.SetJSONError(messageMFAValidationFailed)
-
-		ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "updated profile", regulation.AuthTypePasskey, logFmtActionAuthentication, details.Username)
-
-		return
-	}
-
 	if bodyJSON.Workflow == workflowOpenIDConnect {
 		handleOIDCWorkflowResponse(ctx, &userSession, bodyJSON.TargetURL, bodyJSON.WorkflowID)
 	} else {
-		Handle2FAResponse(ctx, bodyJSON.TargetURL)
+		HandlePasskeyResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, userSession.Groups, userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA) == authentication.TwoFactor)
 	}
 }

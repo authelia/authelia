@@ -3,6 +3,7 @@ package mocks
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/url"
 	"testing"
 	"time"
@@ -248,6 +249,15 @@ func NewMockAutheliaCtxWithUserSession(t *testing.T, userSession session.UserSes
 func (m *MockAutheliaCtx) Close() {
 	m.Hook.Reset()
 	m.Ctrl.Finish()
+}
+
+func (m *MockAutheliaCtx) SetLogLevel(level logrus.Level) {
+	logger := logrus.New()
+	logger.Out = io.Discard
+	logger.SetLevel(level)
+
+	m.Hook = test.NewLocal(logger)
+	m.Ctx.Logger = logrus.NewEntry(logger)
 }
 
 // SetRequestBody set the request body from a struct with json tags.
