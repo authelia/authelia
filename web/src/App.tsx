@@ -28,7 +28,7 @@ import LoginPortal from "@views/LoginPortal/LoginPortal";
 
 import "@fortawesome/fontawesome-svg-core/styles.css";
 
-const ConsentView = lazy(() => import("@views/LoginPortal/ConsentView/ConsentView"));
+const ConsentPortal = lazy(() => import("@views/ConsentPortal/ConsentPortal"));
 const SignOut = lazy(() => import("@views/LoginPortal/SignOut/SignOut"));
 const ResetPasswordStep1 = lazy(() => import("@views/ResetPassword/ResetPasswordStep1"));
 const ResetPasswordStep2 = lazy(() => import("@views/ResetPassword/ResetPasswordStep2"));
@@ -64,10 +64,10 @@ const App: React.FC<Props> = (props: Props) => {
                                     <Route path={ResetPasswordStep1Route} element={<ResetPasswordStep1 />} />
                                     <Route path={ResetPasswordStep2Route} element={<ResetPasswordStep2 />} />
                                     <Route path={LogoutRoute} element={<SignOut />} />
-                                    <Route path={ConsentRoute} element={<ConsentView />} />
                                     <Route path={RevokeOneTimeCodeRoute} element={<RevokeOneTimeCodeView />} />
                                     <Route path={RevokeResetPasswordRoute} element={<RevokeResetPasswordTokenView />} />
                                     <Route path={`${SettingsRoute}/*`} element={<SettingsRouter />} />
+                                    <Route path={`${ConsentRoute}/*`} element={<ConsentPortal />} />
                                     <Route
                                         path={`${IndexRoute}*`}
                                         element={
