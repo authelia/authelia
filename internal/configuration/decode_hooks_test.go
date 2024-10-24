@@ -10,9 +10,11 @@ import (
 	"encoding/pem"
 	"fmt"
 	"math"
+	"net"
 	"net/mail"
 	"net/url"
 	"os"
+	"path"
 	"reflect"
 	"regexp"
 	"strings"
@@ -2005,6 +2007,89 @@ func TestStringToX509CertificateChainHookFunc(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestStringToIPNetworksHookFunc(t *testing.T) {
+	mustParseNet := func(in string) *net.IPNet {
+		_, n, err := net.ParseCIDR(in)
+		if err != nil {
+			panic(err)
+		}
+
+		return n
+	}
+
+	testCases := []struct {
+		name     string
+		path     string
+		have     *schema.Definitions
+		expected TestConfigDefinitions
+		err      string
+	}{
+		{
+			"ShouldDecode",
+			"decode_networks.yml",
+			&schema.Definitions{},
+			TestConfigDefinitions{
+				Definitions: schema.Definitions{
+					Network: map[string][]*net.IPNet{
+						"single": {
+							mustParseNet("192.168.0.1/32"),
+						},
+						"example": {
+							mustParseNet("192.168.1.20/32"),
+							mustParseNet("192.168.2.0/24"),
+						},
+					},
+				},
+			},
+			"",
+		},
+		{
+			"ShouldDecodeDefinitions",
+			"decode_networks_abc.yml",
+			&schema.Definitions{
+				Network: map[string][]*net.IPNet{
+					"abc": {
+						mustParseNet("1.1.1.1/32"),
+						mustParseNet("1.1.1.2/32"),
+					},
+				},
+			},
+			TestConfigDefinitions{
+				Definitions: schema.Definitions{
+					Network: map[string][]*net.IPNet{
+						"example": {
+							mustParseNet("192.168.1.20/32"),
+							mustParseNet("192.168.2.0/24"),
+							mustParseNet("1.1.1.1/32"),
+							mustParseNet("1.1.1.2/32"),
+						},
+					},
+				},
+			},
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := TestConfigDefinitions{}
+
+			val := schema.NewStructValidator()
+			_, err := configuration.LoadAdvanced(val, "", &result, tc.have, configuration.NewDefaultSourcesFiltered([]string{path.Join("./test_resources", tc.path)}, nil, configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter)...)
+
+			assert.NoError(t, err)
+
+			assert.Equal(t, tc.expected, result)
+
+			assert.Len(t, val.Errors(), 0)
+		})
+	}
+}
+
+type TestConfigDefinitions struct {
+	Definitions schema.Definitions `koanf:"definitions"`
 }
 
 var (
