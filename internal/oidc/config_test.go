@@ -382,6 +382,5 @@ func TestMisc(t *testing.T) {
 
 	assert.Equal(t, []string{"https://example.com/issuer", "https://example.com/issuer/api/oidc/token", "https://example.com/issuer/api/oidc/pushed-authorization-request"}, config.GetAllowedJWTAssertionAudiences(tctx))
 
-	assert.Equal(t, "https://example.com/issuer/api/oidc/device-code/user-verification", config.GetRFC8628UserVerificationURL(tctx))
-	assert.Equal(t, "https://example.com/issuer/api/oidc/device-code/user-verification", config.GetRFC8628UserVerificationURL(tctx))
+	assert.Equal(t, "https://example.com/issuer/consent/openid/device-authorization", config.GetRFC8628UserVerificationURL(tctx))
 }

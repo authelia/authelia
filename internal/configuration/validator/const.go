@@ -198,7 +198,8 @@ const (
 	errFmtOIDCPolicyInvalidName          = "identity_providers: oidc: authorization_policies: authorization policies must have a name but one with a blank name exists"
 	errFmtOIDCPolicyInvalidNameStandard  = "identity_providers: oidc: authorization_policies: policy '%s': option '%s' must not be one of %s but it's configured as '%s'"
 	errFmtOIDCPolicyMissingOption        = "identity_providers: oidc: authorization_policies: policy '%s': option '%s' is required"
-	errFmtOIDCPolicyRuleMissingOption    = "identity_providers: oidc: authorization_policies: policy '%s': rules: rule #%d: option '%s' is required"
+	errFmtOIDCPolicyRuleMissingOption    = "identity_providers: oidc: authorization_policies: policy '%s': rules: rule #%d: option 'subject' or 'networks' is required"
+	errFmtOIDCPolicyRuleInvalidSubject   = "identity_providers: oidc: authorization_policies: policy '%s': rules: rule #%d: option 'subject' with value %s is invalid: must start with 'user:' or 'group:'"
 	errFmtOIDCPolicyInvalidDefaultPolicy = "identity_providers: oidc: authorization_policies: policy '%s': option 'default_policy' must be one of %s but it's configured as '%s'"
 	errFmtOIDCPolicyRuleInvalidPolicy    = "identity_providers: oidc: authorization_policies: policy '%s': rules: rule #%d: option 'policy' must be one of %s but it's configured as '%s'"
 
@@ -331,7 +332,9 @@ const (
 	errFmtAccessControlRuleNetworksInvalid = "access_control: rule %s: the network '%s' is not a " +
 		"valid Group Name, IP, or CIDR notation"
 	errFmtAccessControlRuleSubjectInvalid = "access_control: rule %s: 'subject' option '%s' is " +
-		"invalid: must start with 'user:' or 'group:'"
+		"invalid: must start with 'user:', 'group:', or 'oauth2:client:'"
+	errFmtAccessControlRuleOAuth2ClientSubjectInvalid = "access_control: rule %s: option 'subject' with value '%s' is " +
+		"invalid: the client id '%s' does not belong to a registered client"
 	errFmtAccessControlRuleInvalidEntries              = "access_control: rule %s: option '%s' must only have the values %s but the values %s are present"
 	errFmtAccessControlRuleInvalidDuplicates           = "access_control: rule %s: option '%s' must have unique values but the values %s are duplicated"
 	errFmtAccessControlRuleQueryInvalid                = "access_control: rule %s: query: option 'operator' must be one of %s but it's configured as '%s'"
@@ -553,16 +556,18 @@ var (
 )
 
 var (
-	validOIDCCORSEndpoints = []string{oidc.EndpointAuthorization, oidc.EndpointPushedAuthorizationRequest, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo}
+	validOIDCCORSEndpoints = []string{oidc.EndpointAuthorization, oidc.EndpointDeviceAuthorization, oidc.EndpointPushedAuthorizationRequest, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo}
 
-	validOIDCClientScopes                    = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeGroups, oidc.ScopeOfflineAccess, oidc.ScopeOffline, oidc.ScopeAutheliaBearerAuthz}
+	validOIDCReservedClaims                  = []string{oidc.ClaimJWTID, oidc.ClaimSessionID, oidc.ClaimAuthorizedParty, oidc.ClaimClientIdentifier, oidc.ClaimScope, oidc.ClaimScopeNonStandard, oidc.ClaimIssuer, oidc.ClaimSubject, oidc.ClaimAudience, oidc.ClaimSessionID, oidc.ClaimStateHash, oidc.ClaimCodeHash, oidc.ClaimIssuedAt, oidc.ClaimUpdatedAt, oidc.ClaimRequestedAt, oidc.ClaimNotBefore, oidc.ClaimExpirationTime, oidc.ClaimAuthenticationTime, oidc.ClaimAuthenticationMethodsReference, oidc.ClaimAuthenticationContextClassReference, oidc.ClaimNonce}
+	validOIDCClientClaims                    = []string{oidc.ClaimFullName, oidc.ClaimGivenName, oidc.ClaimFamilyName, oidc.ClaimMiddleName, oidc.ClaimNickname, oidc.ClaimPreferredUsername, oidc.ClaimProfile, oidc.ClaimPicture, oidc.ClaimWebsite, oidc.ClaimEmail, oidc.ClaimEmailVerified, oidc.ClaimGender, oidc.ClaimBirthdate, oidc.ClaimZoneinfo, oidc.ClaimLocale, oidc.ClaimPhoneNumber, oidc.ClaimPhoneNumberVerified, oidc.ClaimAddress}
+	validOIDCClientScopes                    = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeAddress, oidc.ScopePhone, oidc.ScopeGroups, oidc.ScopeOfflineAccess, oidc.ScopeOffline, oidc.ScopeAutheliaBearerAuthz}
 	validOIDCClientConsentModes              = []string{auto, oidc.ClientConsentModeImplicit.String(), oidc.ClientConsentModeExplicit.String(), oidc.ClientConsentModePreConfigured.String()}
 	validOIDCClientResponseModes             = []string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery, oidc.ResponseModeFragment, oidc.ResponseModeJWT, oidc.ResponseModeFormPostJWT, oidc.ResponseModeQueryJWT, oidc.ResponseModeFragmentJWT}
 	validOIDCClientResponseTypes             = []string{oidc.ResponseTypeAuthorizationCodeFlow, oidc.ResponseTypeImplicitFlowIDToken, oidc.ResponseTypeImplicitFlowToken, oidc.ResponseTypeImplicitFlowBoth, oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth}
 	validOIDCClientResponseTypesImplicitFlow = []string{oidc.ResponseTypeImplicitFlowIDToken, oidc.ResponseTypeImplicitFlowToken, oidc.ResponseTypeImplicitFlowBoth}
 	validOIDCClientResponseTypesHybridFlow   = []string{oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth}
 	validOIDCClientResponseTypesRefreshToken = []string{oidc.ResponseTypeAuthorizationCodeFlow, oidc.ResponseTypeHybridFlowIDToken, oidc.ResponseTypeHybridFlowToken, oidc.ResponseTypeHybridFlowBoth}
-	validOIDCClientGrantTypes                = []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeImplicit, oidc.GrantTypeClientCredentials, oidc.GrantTypeRefreshToken}
+	validOIDCClientGrantTypes                = []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeImplicit, oidc.GrantTypeClientCredentials, oidc.GrantTypeRefreshToken, oidc.GrantTypeDeviceCode}
 
 	validOIDCClientTokenEndpointAuthMethods                = []string{oidc.ClientAuthMethodNone, oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodPrivateKeyJWT, oidc.ClientAuthMethodClientSecretJWT}
 	validOIDCClientTokenEndpointAuthMethodsConfidential    = []string{oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodPrivateKeyJWT}
@@ -582,6 +587,58 @@ var (
 	reOpenIDConnectKID  = regexp.MustCompile(`^([a-zA-Z0-9](([a-zA-Z0-9._~-]*)([a-zA-Z0-9]))?)?$`)
 	reRFC3986Unreserved = regexp.MustCompile(`^[a-zA-Z0-9._~-]+$`)
 )
+
+const (
+	attributeUserUsername       = "username"
+	attributeUserGroups         = "groups"
+	attributeUserDisplayName    = "display_name"
+	attributeUserEmail          = "email"
+	attributeUserEmails         = "emails"
+	attributeUserGivenName      = "given_name"
+	attributeUserMiddleName     = "middle_name"
+	attributeUserFamilyName     = "family_name"
+	attributeUserNickname       = "nickname"
+	attributeUserProfile        = "profile"
+	attributeUserPicture        = "picture"
+	attributeUserWebsite        = "website"
+	attributeUserGender         = "gender"
+	attributeUserBirthdate      = "birthdate"
+	attributeUserZoneInfo       = "zoneinfo"
+	attributeUserLocale         = "locale"
+	attributeUserPhoneNumber    = "phone_number"
+	attributeUserPhoneExtension = "phone_extension"
+	attributeUserStreetAddress  = "street_address"
+	attributeUserLocality       = "locality"
+	attributeUserRegion         = "region"
+	attributeUserPostalCode     = "postal_code"
+	attributeUserCountry        = "country"
+)
+
+var validUserAttributes = []string{
+	attributeUserUsername,
+	attributeUserGroups,
+	attributeUserDisplayName,
+	attributeUserEmail,
+	attributeUserEmails,
+	attributeUserGivenName,
+	attributeUserMiddleName,
+	attributeUserFamilyName,
+	attributeUserNickname,
+	attributeUserProfile,
+	attributeUserPicture,
+	attributeUserWebsite,
+	attributeUserGender,
+	attributeUserBirthdate,
+	attributeUserZoneInfo,
+	attributeUserLocale,
+	attributeUserPhoneNumber,
+	attributeUserPhoneExtension,
+	attributeUserStreetAddress,
+	attributeUserLocality,
+	attributeUserRegion,
+	attributeUserPostalCode,
+	attributeUserCountry,
+}
 
 var replacedKeys = map[string]string{
 	"authentication_backend.ldap.skip_verify":         "authentication_backend.ldap.tls.skip_verify",

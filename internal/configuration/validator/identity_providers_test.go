@@ -27,9 +27,11 @@ import (
 
 func TestShouldRaiseErrorWhenInvalidOIDCServerConfiguration(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProviders{
-		OIDC: &schema.IdentityProvidersOpenIDConnect{
-			HMACSecret: "abc",
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret: "abc",
+			},
 		},
 	}
 
@@ -43,15 +45,17 @@ func TestShouldRaiseErrorWhenInvalidOIDCServerConfiguration(t *testing.T) {
 
 func TestShouldRaiseErrorWhenInvalidOIDCServerConfigurationBothKeyTypesSpecified(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProviders{
-		OIDC: &schema.IdentityProvidersOpenIDConnect{
-			HMACSecret:       "abc",
-			IssuerPrivateKey: keyRSA2048,
-			JSONWebKeys: []schema.JWK{
-				{
-					Use:       "sig",
-					Algorithm: "RS256",
-					Key:       keyRSA4096,
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret:       "abc",
+				IssuerPrivateKey: keyRSA2048,
+				JSONWebKeys: []schema.JWK{
+					{
+						Use:       "sig",
+						Algorithm: "RS256",
+						Key:       keyRSA4096,
+					},
 				},
 			},
 		},
@@ -67,17 +71,19 @@ func TestShouldRaiseErrorWhenInvalidOIDCServerConfigurationBothKeyTypesSpecified
 
 func TestShouldNotRaiseErrorWhenCORSEndpointsValid(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProviders{
-		OIDC: &schema.IdentityProvidersOpenIDConnect{
-			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: keyRSA2048,
-			CORS: schema.IdentityProvidersOpenIDConnectCORS{
-				Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo},
-			},
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
-				{
-					ID:     "example",
-					Secret: tOpenIDConnectPlainTextClientSecret,
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+				IssuerPrivateKey: keyRSA2048,
+				CORS: schema.IdentityProvidersOpenIDConnectCORS{
+					Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo},
+				},
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:     "example",
+						Secret: tOpenIDConnectPlainTextClientSecret,
+					},
 				},
 			},
 		},
@@ -90,17 +96,19 @@ func TestShouldNotRaiseErrorWhenCORSEndpointsValid(t *testing.T) {
 
 func TestShouldRaiseErrorWhenCORSEndpointsNotValid(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProviders{
-		OIDC: &schema.IdentityProvidersOpenIDConnect{
-			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: keyRSA2048,
-			CORS: schema.IdentityProvidersOpenIDConnectCORS{
-				Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo, "invalid_endpoint"},
-			},
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
-				{
-					ID:     "example",
-					Secret: tOpenIDConnectPlainTextClientSecret,
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+				IssuerPrivateKey: keyRSA2048,
+				CORS: schema.IdentityProvidersOpenIDConnectCORS{
+					Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo, "invalid_endpoint"},
+				},
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:     "example",
+						Secret: tOpenIDConnectPlainTextClientSecret,
+					},
 				},
 			},
 		},
@@ -110,16 +118,19 @@ func TestShouldRaiseErrorWhenCORSEndpointsNotValid(t *testing.T) {
 
 	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: cors: option 'endpoints' contains an invalid value 'invalid_endpoint': must be one of 'authorization', 'pushed-authorization-request', 'token', 'introspection', 'revocation', or 'userinfo'")
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: cors: option 'endpoints' contains an invalid value 'invalid_endpoint': must be one of 'authorization', 'device-authorization', 'pushed-authorization-request', 'token', 'introspection', 'revocation', or 'userinfo'")
 }
 
 func TestShouldRaiseErrorWhenOIDCPKCEEnforceValueInvalid(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProviders{
-		OIDC: &schema.IdentityProvidersOpenIDConnect{
-			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: keyRSA2048,
-			EnforcePKCE:      testInvalid,
+
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+				IssuerPrivateKey: keyRSA2048,
+				EnforcePKCE:      testInvalid,
+			},
 		},
 	}
 
@@ -134,20 +145,22 @@ func TestShouldRaiseErrorWhenOIDCPKCEEnforceValueInvalid(t *testing.T) {
 func TestShouldRaiseErrorWhenOIDCCORSOriginsHasInvalidValues(t *testing.T) {
 	validator := schema.NewStructValidator()
 
-	config := &schema.IdentityProviders{
-		OIDC: &schema.IdentityProvidersOpenIDConnect{
-			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: keyRSA2048,
-			CORS: schema.IdentityProvidersOpenIDConnectCORS{
-				AllowedOrigins:                       utils.URLsFromStringSlice([]string{"https://example.com/", "https://site.example.com/subpath", "https://site.example.com?example=true", "*"}),
-				AllowedOriginsFromClientRedirectURIs: true,
-			},
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
-				{
-					ID:                  "myclient",
-					Secret:              tOpenIDConnectPlainTextClientSecret,
-					AuthorizationPolicy: "two_factor",
-					RedirectURIs:        []string{"https://example.com/oauth2_callback", "https://localhost:566/callback", "http://an.example.com/callback", "file://a/file"},
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+				IssuerPrivateKey: keyRSA2048,
+				CORS: schema.IdentityProvidersOpenIDConnectCORS{
+					AllowedOrigins:                       utils.URLsFromStringSlice([]string{"https://example.com/", "https://site.example.com/subpath", "https://site.example.com?example=true", "*"}),
+					AllowedOriginsFromClientRedirectURIs: true,
+				},
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  "myclient",
+						Secret:              tOpenIDConnectPlainTextClientSecret,
+						AuthorizationPolicy: "two_factor",
+						RedirectURIs:        []string{"https://example.com/oauth2_callback", "https://localhost:566/callback", "http://an.example.com/callback", "file://a/file"},
+					},
 				},
 			},
 		},
@@ -162,17 +175,20 @@ func TestShouldRaiseErrorWhenOIDCCORSOriginsHasInvalidValues(t *testing.T) {
 	assert.EqualError(t, validator.Errors()[3], "identity_providers: oidc: cors: option 'allowed_origins' contains the wildcard origin '*' with more than one origin but the wildcard origin must be defined by itself")
 	assert.EqualError(t, validator.Errors()[4], "identity_providers: oidc: cors: option 'allowed_origins' contains the wildcard origin '*' cannot be specified with option 'allowed_origins_from_client_redirect_uris' enabled")
 
-	require.Len(t, config.OIDC.CORS.AllowedOrigins, 6)
-	assert.Equal(t, "*", config.OIDC.CORS.AllowedOrigins[3].String())
-	assert.Equal(t, "https://example.com", config.OIDC.CORS.AllowedOrigins[4].String())
+	require.Len(t, config.IdentityProviders.OIDC.CORS.AllowedOrigins, 6)
+	assert.Equal(t, "*", config.IdentityProviders.OIDC.CORS.AllowedOrigins[3].String())
+	assert.Equal(t, "https://example.com", config.IdentityProviders.OIDC.CORS.AllowedOrigins[4].String())
 }
 
 func TestShouldRaiseErrorWhenOIDCServerNoClients(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProviders{
-		OIDC: &schema.IdentityProvidersOpenIDConnect{
-			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: keyRSA2048,
+
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+				IssuerPrivateKey: keyRSA2048,
+			},
 		},
 	}
 
@@ -430,7 +446,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
 					ID:                  "client-invalid-sector",
-					Secret:              tOpenIDConnectPlainTextClientSecret,
+					Secret:              tOpenIDConnectPBKDF2ClientSecret,
 					AuthorizationPolicy: policyTwoFactor,
 					RedirectURIs: []string{
 						"https://google.com",
@@ -443,7 +459,6 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			},
 			warns: []string{
 				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier_uri' with value 'example.com/path?query=abc#fragment': should be an absolute URI",
-				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'client_secret' is plaintext but for clients not using the 'token_endpoint_auth_method' of 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed in the near future",
 				"identity_providers: oidc: clients: warnings for clients above indicate deprecated functionality and it's strongly suggested these issues are checked and fixed if they're legitimate issues or reported if they are not as in a future version these warnings will become errors",
 			},
 		},
@@ -452,7 +467,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
 					ID:                  "client-invalid-sector",
-					Secret:              tOpenIDConnectPlainTextClientSecret,
+					Secret:              tOpenIDConnectPBKDF2ClientSecret,
 					AuthorizationPolicy: policyTwoFactor,
 					RedirectURIs: []string{
 						"https://google.com",
@@ -462,9 +477,6 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			},
 			errors: []string{
 				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier_uri' with value 'http://example.com/path?query=abc': must have the 'https' scheme but has the 'http' scheme",
-			},
-			warns: []string{
-				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'client_secret' is plaintext but for clients not using the 'token_endpoint_auth_method' of 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed in the near future",
 			},
 		},
 		{
@@ -589,11 +601,13 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			validator := schema.NewStructValidator()
-			config := &schema.IdentityProviders{
-				OIDC: &schema.IdentityProvidersOpenIDConnect{
-					HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-					IssuerPrivateKey: keyRSA2048,
-					Clients:          tc.clients,
+			config := &schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+						IssuerPrivateKey: keyRSA2048,
+						Clients:          tc.clients,
+					},
 				},
 			}
 
@@ -617,7 +631,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			}
 
 			if tc.test != nil {
-				tc.test(t, config.OIDC.Clients)
+				tc.test(t, config.IdentityProviders.OIDC.Clients)
 			}
 
 			warns := validator.Warnings()
@@ -637,18 +651,20 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 
 func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadGrantTypes(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProviders{
-		OIDC: &schema.IdentityProvidersOpenIDConnect{
-			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: keyRSA2048,
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
-				{
-					ID:                  "good_id",
-					Secret:              tOpenIDConnectPBKDF2ClientSecret,
-					AuthorizationPolicy: "two_factor",
-					GrantTypes:          []string{"bad_grant_type"},
-					RedirectURIs: []string{
-						"https://google.com/callback",
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+				IssuerPrivateKey: keyRSA2048,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  "good_id",
+						Secret:              tOpenIDConnectPBKDF2ClientSecret,
+						AuthorizationPolicy: "two_factor",
+						GrantTypes:          []string{"bad_grant_type"},
+						RedirectURIs: []string{
+							"https://google.com/callback",
+						},
 					},
 				},
 			},
@@ -658,23 +674,25 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadGrantTypes(t *testing.T)
 	ValidateIdentityProviders(NewValidateCtx(), config, validator)
 
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: clients: client 'good_id': option 'grant_types' must only have the values 'authorization_code', 'implicit', 'client_credentials', or 'refresh_token' but the values 'bad_grant_type' are present")
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: clients: client 'good_id': option 'grant_types' must only have the values 'authorization_code', 'implicit', 'client_credentials', 'refresh_token', or 'urn:ietf:params:oauth:grant-type:device_code' but the values 'bad_grant_type' are present")
 }
 
 func TestShouldNotErrorOnCertificateValid(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProviders{
-		OIDC: &schema.IdentityProvidersOpenIDConnect{
-			HMACSecret:             "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerCertificateChain: certRSA2048,
-			IssuerPrivateKey:       keyRSA2048,
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
-				{
-					ID:                  "good_id",
-					Secret:              tOpenIDConnectPBKDF2ClientSecret,
-					AuthorizationPolicy: "two_factor",
-					RedirectURIs: []string{
-						"https://google.com/callback",
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret:             "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+				IssuerCertificateChain: certRSA2048,
+				IssuerPrivateKey:       keyRSA2048,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  "good_id",
+						Secret:              tOpenIDConnectPBKDF2ClientSecret,
+						AuthorizationPolicy: "two_factor",
+						RedirectURIs: []string{
+							"https://google.com/callback",
+						},
 					},
 				},
 			},
@@ -689,18 +707,20 @@ func TestShouldNotErrorOnCertificateValid(t *testing.T) {
 
 func TestShouldRaiseErrorOnCertificateNotValid(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProviders{
-		OIDC: &schema.IdentityProvidersOpenIDConnect{
-			HMACSecret:             "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerCertificateChain: certRSA2048,
-			IssuerPrivateKey:       keyRSA4096,
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
-				{
-					ID:                  "good_id",
-					Secret:              tOpenIDConnectPBKDF2ClientSecret,
-					AuthorizationPolicy: "two_factor",
-					RedirectURIs: []string{
-						"https://google.com/callback",
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret:             "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+				IssuerCertificateChain: certRSA2048,
+				IssuerPrivateKey:       keyRSA4096,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  "good_id",
+						Secret:              tOpenIDConnectPBKDF2ClientSecret,
+						AuthorizationPolicy: "two_factor",
+						RedirectURIs: []string{
+							"https://google.com/callback",
+						},
 					},
 				},
 			},
@@ -763,18 +783,20 @@ func TestValidateIdentityProvidersOpenIDConnectMinimumParameterEntropy(t *testin
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			validator := schema.NewStructValidator()
-			config := &schema.IdentityProviders{
-				OIDC: &schema.IdentityProvidersOpenIDConnect{
-					HMACSecret:              "abc",
-					IssuerPrivateKey:        keyRSA2048,
-					MinimumParameterEntropy: tc.have,
-					Clients: []schema.IdentityProvidersOpenIDConnectClient{
-						{
-							ID:                  "good_id",
-							Secret:              tOpenIDConnectPBKDF2ClientSecret,
-							AuthorizationPolicy: "two_factor",
-							RedirectURIs: []string{
-								"https://google.com/callback",
+			config := &schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						HMACSecret:              "abc",
+						IssuerPrivateKey:        keyRSA2048,
+						MinimumParameterEntropy: tc.have,
+						Clients: []schema.IdentityProvidersOpenIDConnectClient{
+							{
+								ID:                  "good_id",
+								Secret:              tOpenIDConnectPBKDF2ClientSecret,
+								AuthorizationPolicy: "two_factor",
+								RedirectURIs: []string{
+									"https://google.com/callback",
+								},
 							},
 						},
 					},
@@ -783,7 +805,7 @@ func TestValidateIdentityProvidersOpenIDConnectMinimumParameterEntropy(t *testin
 
 			ValidateIdentityProviders(NewValidateCtx(), config, validator)
 
-			assert.Equal(t, tc.expected, config.OIDC.MinimumParameterEntropy)
+			assert.Equal(t, tc.expected, config.IdentityProviders.OIDC.MinimumParameterEntropy)
 
 			if n := len(tc.warnings); n == 0 {
 				assert.Len(t, validator.Warnings(), 0)
@@ -810,27 +832,29 @@ func TestValidateIdentityProvidersOpenIDConnectMinimumParameterEntropy(t *testin
 
 func TestValidateIdentityProvidersShouldRaiseErrorsOnInvalidClientTypes(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProviders{
-		OIDC: &schema.IdentityProvidersOpenIDConnect{
-			HMACSecret:       "hmac1",
-			IssuerPrivateKey: keyRSA2048,
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
-				{
-					ID:                  "client-with-invalid-secret",
-					Secret:              tOpenIDConnectPlainTextClientSecret,
-					Public:              true,
-					AuthorizationPolicy: "two_factor",
-					RedirectURIs: []string{
-						"https://localhost",
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret:       "hmac1",
+				IssuerPrivateKey: keyRSA2048,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  "client-with-invalid-secret",
+						Secret:              tOpenIDConnectPlainTextClientSecret,
+						Public:              true,
+						AuthorizationPolicy: "two_factor",
+						RedirectURIs: []string{
+							"https://localhost",
+						},
 					},
-				},
-				{
-					ID:                  "client-with-bad-redirect-uri",
-					Secret:              tOpenIDConnectPBKDF2ClientSecret,
-					Public:              false,
-					AuthorizationPolicy: "two_factor",
-					RedirectURIs: []string{
-						oidc.RedirectURISpecialOAuth2InstalledApp,
+					{
+						ID:                  "client-with-bad-redirect-uri",
+						Secret:              tOpenIDConnectPBKDF2ClientSecret,
+						Public:              false,
+						AuthorizationPolicy: "two_factor",
+						RedirectURIs: []string{
+							oidc.RedirectURISpecialOAuth2InstalledApp,
+						},
 					},
 				},
 			},
@@ -848,52 +872,54 @@ func TestValidateIdentityProvidersShouldRaiseErrorsOnInvalidClientTypes(t *testi
 
 func TestValidateIdentityProvidersShouldNotRaiseErrorsOnValidClientOptions(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProviders{
-		OIDC: &schema.IdentityProvidersOpenIDConnect{
-			HMACSecret:       "hmac1",
-			IssuerPrivateKey: keyRSA2048,
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
-				{
-					ID:                  "installed-app-client",
-					Public:              true,
-					AuthorizationPolicy: "two_factor",
-					RedirectURIs: []string{
-						oidc.RedirectURISpecialOAuth2InstalledApp,
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret:       "hmac1",
+				IssuerPrivateKey: keyRSA2048,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  "installed-app-client",
+						Public:              true,
+						AuthorizationPolicy: "two_factor",
+						RedirectURIs: []string{
+							oidc.RedirectURISpecialOAuth2InstalledApp,
+						},
 					},
-				},
-				{
-					ID:                  "client-with-https-scheme",
-					Public:              true,
-					AuthorizationPolicy: "two_factor",
-					RedirectURIs: []string{
-						"https://localhost:9000",
+					{
+						ID:                  "client-with-https-scheme",
+						Public:              true,
+						AuthorizationPolicy: "two_factor",
+						RedirectURIs: []string{
+							"https://localhost:9000",
+						},
 					},
-				},
-				{
-					ID:                  "client-with-loopback",
-					Public:              true,
-					AuthorizationPolicy: "two_factor",
-					RedirectURIs: []string{
-						"http://127.0.0.1",
+					{
+						ID:                  "client-with-loopback",
+						Public:              true,
+						AuthorizationPolicy: "two_factor",
+						RedirectURIs: []string{
+							"http://127.0.0.1",
+						},
 					},
-				},
-				{
-					ID:                  "client-with-pkce-mode-plain",
-					Public:              true,
-					AuthorizationPolicy: "two_factor",
-					RedirectURIs: []string{
-						"https://pkce.com",
+					{
+						ID:                  "client-with-pkce-mode-plain",
+						Public:              true,
+						AuthorizationPolicy: "two_factor",
+						RedirectURIs: []string{
+							"https://pkce.com",
+						},
+						PKCEChallengeMethod: "plain",
 					},
-					PKCEChallengeMethod: "plain",
-				},
-				{
-					ID:                  "client-with-pkce-mode-S256",
-					Public:              true,
-					AuthorizationPolicy: "two_factor",
-					RedirectURIs: []string{
-						"https://pkce.com",
+					{
+						ID:                  "client-with-pkce-mode-S256",
+						Public:              true,
+						AuthorizationPolicy: "two_factor",
+						RedirectURIs: []string{
+							"https://pkce.com",
+						},
+						PKCEChallengeMethod: "S256",
 					},
-					PKCEChallengeMethod: "S256",
 				},
 			},
 		},
@@ -907,17 +933,19 @@ func TestValidateIdentityProvidersShouldNotRaiseErrorsOnValidClientOptions(t *te
 
 func TestValidateIdentityProvidersShouldRaiseWarningOnPlainTextClients(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProviders{
-		OIDC: &schema.IdentityProvidersOpenIDConnect{
-			HMACSecret:       "hmac1",
-			IssuerPrivateKey: keyRSA2048,
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
-				{
-					ID:                  "client-with-invalid-secret_standard",
-					Secret:              tOpenIDConnectPlainTextClientSecret,
-					AuthorizationPolicy: "two_factor",
-					RedirectURIs: []string{
-						"https://localhost",
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret:       "hmac1",
+				IssuerPrivateKey: keyRSA2048,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  "client-with-invalid-secret_standard",
+						Secret:              tOpenIDConnectPlainTextClientSecret,
+						AuthorizationPolicy: "two_factor",
+						RedirectURIs: []string{
+							"https://localhost",
+						},
 					},
 				},
 			},
@@ -1203,7 +1231,7 @@ func TestValidateOIDCClients(t *testing.T) {
 				[]string{oidc.GrantTypeAuthorizationCode},
 			},
 			[]string{
-				"identity_providers: oidc: clients: client 'test': option 'scopes' only expects the values 'openid', 'email', 'profile', 'groups', 'offline_access', 'offline', or 'authelia.bearer.authz' but the unknown values 'group' are present and should generally only be used if a particular client requires a scope outside of our standard scopes",
+				"identity_providers: oidc: clients: client 'test': option 'scopes' only expects the values 'openid', 'email', 'profile', 'address', 'phone', 'groups', 'offline_access', 'offline', or 'authelia.bearer.authz' but the unknown values 'group' are present and should generally only be used if a particular client requires a scope outside of our standard scopes",
 			},
 			nil,
 		},
@@ -1352,7 +1380,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			},
 			nil,
 			[]string{
-				"identity_providers: oidc: clients: client 'test': option 'grant_types' must only have the values 'authorization_code', 'implicit', 'client_credentials', or 'refresh_token' but the values 'invalid' are present",
+				"identity_providers: oidc: clients: client 'test': option 'grant_types' must only have the values 'authorization_code', 'implicit', 'client_credentials', 'refresh_token', or 'urn:ietf:params:oauth:grant-type:device_code' but the values 'invalid' are present",
 			},
 		},
 		{
@@ -3856,22 +3884,26 @@ func TestValidateOIDCIssuer(t *testing.T) {
 func TestValidateLifespans(t *testing.T) {
 	testCases := []struct {
 		name     string
-		have     *schema.IdentityProvidersOpenIDConnect
+		have     *schema.Configuration
 		expected []string
 		errors   []string
 	}{
 		{
 			"ShouldHandleNone",
-			&schema.IdentityProvidersOpenIDConnect{},
+			&schema.Configuration{IdentityProviders: schema.IdentityProviders{OIDC: &schema.IdentityProvidersOpenIDConnect{}}},
 			nil,
 			nil,
 		},
 		{
 			"ShouldHandleCustom",
-			&schema.IdentityProvidersOpenIDConnect{
-				Lifespans: schema.IdentityProvidersOpenIDConnectLifespans{
-					Custom: map[string]schema.IdentityProvidersOpenIDConnectLifespan{
-						"custom": {},
+			&schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						Lifespans: schema.IdentityProvidersOpenIDConnectLifespans{
+							Custom: map[string]schema.IdentityProvidersOpenIDConnectLifespan{
+								"custom": {},
+							},
+						},
 					},
 				},
 			},
@@ -3886,7 +3918,7 @@ func TestValidateLifespans(t *testing.T) {
 
 			validateOIDCLifespans(tc.have, validator)
 
-			assert.Equal(t, tc.expected, tc.have.Discovery.Lifespans)
+			assert.Equal(t, tc.expected, tc.have.IdentityProviders.OIDC.Discovery.Lifespans)
 			require.Len(t, validator.Errors(), len(tc.errors))
 
 			for i, err := range tc.errors {
@@ -3901,24 +3933,28 @@ func TestValidateLifespans(t *testing.T) {
 func TestValidateOIDCAuthorizationPolicies(t *testing.T) {
 	testCases := []struct {
 		name     string
-		have     *schema.IdentityProvidersOpenIDConnect
+		have     *schema.Configuration
 		expected []string
 		expectf  func(t *testing.T, actual *schema.IdentityProvidersOpenIDConnect)
 		errors   []string
 	}{
 		{
 			"ShouldIncludeDefaults",
-			&schema.IdentityProvidersOpenIDConnect{},
+			&schema.Configuration{IdentityProviders: schema.IdentityProviders{OIDC: &schema.IdentityProvidersOpenIDConnect{}}},
 			[]string{"one_factor", "two_factor"},
 			nil,
 			nil,
 		},
 		{
 			"ShouldErrorOnInvalidPoliciesNoRules",
-			&schema.IdentityProvidersOpenIDConnect{
-				AuthorizationPolicies: map[string]schema.IdentityProvidersOpenIDConnectPolicy{
-					"example": {
-						DefaultPolicy: "two_factor",
+			&schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						AuthorizationPolicies: map[string]schema.IdentityProvidersOpenIDConnectPolicy{
+							"example": {
+								DefaultPolicy: "two_factor",
+							},
+						},
 					},
 				},
 			},
@@ -3930,15 +3966,19 @@ func TestValidateOIDCAuthorizationPolicies(t *testing.T) {
 		},
 		{
 			"ShouldIncludeValidPolicies",
-			&schema.IdentityProvidersOpenIDConnect{
-				AuthorizationPolicies: map[string]schema.IdentityProvidersOpenIDConnectPolicy{
-					"example": {
-						DefaultPolicy: "two_factor",
-						Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
-							{
-								Policy: "deny",
-								Subjects: [][]string{
-									{"user:john"},
+			&schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						AuthorizationPolicies: map[string]schema.IdentityProvidersOpenIDConnectPolicy{
+							"example": {
+								DefaultPolicy: "two_factor",
+								Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
+									{
+										Policy: "deny",
+										Subjects: [][]string{
+											{"user:john"},
+										},
+									},
 								},
 							},
 						},
@@ -3951,34 +3991,38 @@ func TestValidateOIDCAuthorizationPolicies(t *testing.T) {
 		},
 		{
 			"ShouldSetDefaultPoliciesAndErrorOnSubject",
-			&schema.IdentityProvidersOpenIDConnect{
-				AuthorizationPolicies: map[string]schema.IdentityProvidersOpenIDConnectPolicy{
-					"example": {
-						DefaultPolicy: "",
-						Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
-							{
-								Policy: "",
-							},
-						},
-					},
-					"": {
-						DefaultPolicy: "two_factor",
-						Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
-							{
-								Policy: "two_factor",
-								Subjects: [][]string{
-									{"user:john"},
+			&schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						AuthorizationPolicies: map[string]schema.IdentityProvidersOpenIDConnectPolicy{
+							"example": {
+								DefaultPolicy: "",
+								Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
+									{
+										Policy: "",
+									},
 								},
 							},
-						},
-					},
-					"two_factor": {
-						DefaultPolicy: "two_factor",
-						Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
-							{
-								Policy: "two_factor",
-								Subjects: [][]string{
-									{"user:john"},
+							"": {
+								DefaultPolicy: "two_factor",
+								Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
+									{
+										Policy: "two_factor",
+										Subjects: [][]string{
+											{"user:john"},
+										},
+									},
+								},
+							},
+							"two_factor": {
+								DefaultPolicy: "two_factor",
+								Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
+									{
+										Policy: "two_factor",
+										Subjects: [][]string{
+											{"user:john"},
+										},
+									},
 								},
 							},
 						},
@@ -3992,21 +4036,25 @@ func TestValidateOIDCAuthorizationPolicies(t *testing.T) {
 			},
 			[]string{
 				"identity_providers: oidc: authorization_policies: authorization policies must have a name but one with a blank name exists",
-				"identity_providers: oidc: authorization_policies: policy 'example': rules: rule #1: option 'subject' is required",
+				"identity_providers: oidc: authorization_policies: policy 'example': rules: rule #1: option 'subject' or 'networks' is required",
 				"identity_providers: oidc: authorization_policies: policy 'two_factor': option 'name' must not be one of 'one_factor', 'two_factor', and 'deny' but it's configured as 'two_factor'",
 			},
 		},
 		{
 			"ShouldErrorBadPolicyValues",
-			&schema.IdentityProvidersOpenIDConnect{
-				AuthorizationPolicies: map[string]schema.IdentityProvidersOpenIDConnectPolicy{
-					"example": {
-						DefaultPolicy: "abc",
-						Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
-							{
-								Policy: "xyz",
-								Subjects: [][]string{
-									{"user:john"},
+			&schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						AuthorizationPolicies: map[string]schema.IdentityProvidersOpenIDConnectPolicy{
+							"example": {
+								DefaultPolicy: "abc",
+								Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
+									{
+										Policy: "xyz",
+										Subjects: [][]string{
+											{"user:john"},
+										},
+									},
 								},
 							},
 						},
@@ -4028,7 +4076,7 @@ func TestValidateOIDCAuthorizationPolicies(t *testing.T) {
 
 			validateOIDCAuthorizationPolicies(tc.have, validator)
 
-			assert.Equal(t, tc.expected, tc.have.Discovery.AuthorizationPolicies)
+			assert.Equal(t, tc.expected, tc.have.IdentityProviders.OIDC.Discovery.AuthorizationPolicies)
 
 			errs := validator.Errors()
 			sort.Sort(utils.ErrSliceSortAlphabetical(errs))
@@ -4042,7 +4090,7 @@ func TestValidateOIDCAuthorizationPolicies(t *testing.T) {
 			}
 
 			if tc.expectf != nil {
-				tc.expectf(t, tc.have)
+				tc.expectf(t, tc.have.IdentityProviders.OIDC)
 			}
 		})
 	}
