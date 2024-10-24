@@ -12,6 +12,7 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 type AuthorizerSuite struct {
@@ -680,32 +681,46 @@ func (s *AuthorizerSuite) TestShouldCheckMultipleSubjectsMatching() {
 }
 
 func (s *AuthorizerSuite) TestShouldCheckIPMatching() {
+	must := func(in []string) []*net.IPNet {
+		out := make([]*net.IPNet, len(in))
+
+		var err error
+
+		for i := range in {
+			if out[i], err = utils.ParseHostCIDR(in[i]); err != nil {
+				panic(err)
+			}
+		}
+
+		return out
+	}
+
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy(deny).
 		WithRule(schema.AccessControlRule{
 			Domains:  []string{"protected.example.com"},
 			Policy:   bypass,
-			Networks: []string{"192.168.1.8", "10.0.0.8"},
+			Networks: must([]string{"192.168.1.8", "10.0.0.8"}),
 		}).
 		WithRule(schema.AccessControlRule{
 			Domains:  []string{"protected.example.com"},
 			Policy:   oneFactor,
-			Networks: []string{"10.0.0.7"},
+			Networks: must([]string{"10.0.0.7"}),
 		}).
 		WithRule(schema.AccessControlRule{
 			Domains:  []string{"net.example.com"},
 			Policy:   twoFactor,
-			Networks: []string{"10.0.0.0/8"},
+			Networks: must([]string{"10.0.0.0/8"}),
 		}).
 		WithRule(schema.AccessControlRule{
 			Domains:  []string{"ipv6.example.com"},
 			Policy:   twoFactor,
-			Networks: []string{"fec0::1/64"},
+			Networks: must([]string{"fec0::1/64"}),
 		}).
 		WithRule(schema.AccessControlRule{
 			Domains:  []string{"ipv6-alt.example.com"},
 			Policy:   twoFactor,
-			Networks: []string{"fec0::1"},
+			Networks: must([]string{"fec0::1"}),
 		}).
 		Build()
 
