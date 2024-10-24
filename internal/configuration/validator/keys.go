@@ -78,7 +78,7 @@ func NewKeyPattern(key string) (pattern *regexp.Regexp, err error) {
 	}
 }
 
-var reIsMapKey = regexp.MustCompile(`\.\*(\[]|\.)`)
+var reIsMapKey = regexp.MustCompile(`\.\*(\[]|\.|$)`)
 
 // NewKeyMapPattern returns a pattern required to match map keys.
 func NewKeyMapPattern(key string) (pattern *regexp.Regexp, err error) {
@@ -92,6 +92,10 @@ func NewKeyMapPattern(key string) (pattern *regexp.Regexp, err error) {
 
 	for i, part := range parts {
 		if i != 0 && !strings.HasPrefix(part, "[]") {
+			if len(parts) == i+1 && strings.HasSuffix(key, ".*") {
+				continue
+			}
+
 			buf.WriteString("\\.")
 		}
 
@@ -111,7 +115,7 @@ func NewKeyMapPattern(key string) (pattern *regexp.Regexp, err error) {
 		}
 
 		if i < n {
-			buf.WriteString("\\.[a-z0-9](([a-z0-9-_]+)?[a-z0-9])?")
+			buf.WriteString("\\.[a-zA-Z0-9](([a-zA-Z0-9-_]+)?[a-zA-Z0-9])?")
 		}
 	}
 
