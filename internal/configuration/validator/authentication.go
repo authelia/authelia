@@ -332,6 +332,20 @@ func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackend, val
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendTLSConfigInvalid, err))
 	}
 
+	if config.LDAP.Pooling.Enable {
+		if config.LDAP.Pooling.Count < 1 {
+			config.LDAP.Pooling.Count = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.Pooling.Count
+		}
+
+		if config.LDAP.Pooling.Retries < 1 {
+			config.LDAP.Pooling.Retries = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.Pooling.Retries
+		}
+
+		if config.LDAP.Pooling.Timeout < 1 {
+			config.LDAP.Pooling.Timeout = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.Pooling.Timeout
+		}
+	}
+
 	if strings.Contains(config.LDAP.UsersFilter, "{0}") {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterReplacedPlaceholders, "users_filter", "{0}", "{input}"))
 	}
