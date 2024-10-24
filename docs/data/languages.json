@@ -433,7 +433,8 @@
             "display": "Chinese (Taiwan)",
             "locale": "zh-TW",
             "namespaces": [
-                "portal"
+                "portal",
+                "settings"
             ],
             "fallbacks": [
                 "en"
