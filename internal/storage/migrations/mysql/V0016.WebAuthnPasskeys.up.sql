@@ -1,0 +1,13 @@
+ALTER TABLE webauthn_credentials
+    ADD COLUMN attestation BLOB NULL DEFAULT NULL;
+
+CREATE TABLE IF NOT EXISTS cached_data (
+    id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL,
+    name VARCHAR(20) NOT NULL,
+    encrypted BOOLEAN NOT NULL DEFAULT FALSE,
+    value BLOB NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
+
+CREATE UNIQUE INDEX cached_data_name_key ON cached_data (name);

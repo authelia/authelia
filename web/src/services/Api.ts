@@ -8,6 +8,7 @@ const basePath = getBasePath();
 export const ConsentPath = basePath + "/api/oidc/consent";
 
 export const FirstFactorPath = basePath + "/api/firstfactor";
+export const FirstFactorPasskeyPath = basePath + "/api/firstfactor/passkey";
 
 export const TOTPRegistrationPath = basePath + "/api/secondfactor/totp/register";
 export const TOTPConfigurationPath = basePath + "/api/secondfactor/totp";
@@ -22,6 +23,7 @@ export const CompleteDuoDeviceSelectionPath = basePath + "/api/secondfactor/duo_
 
 export const CompletePushNotificationSignInPath = basePath + "/api/secondfactor/duo";
 export const CompleteTOTPSignInPath = basePath + "/api/secondfactor/totp";
+export const CompletePasswordSignInPath = basePath + "/api/secondfactor/password";
 
 export const InitiateResetPasswordPath = basePath + "/api/reset-password/identity/start";
 export const CompleteResetPasswordPath = basePath + "/api/reset-password/identity/finish";

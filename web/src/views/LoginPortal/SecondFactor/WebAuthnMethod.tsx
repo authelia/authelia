@@ -9,7 +9,7 @@ import { useQueryParam } from "@hooks/QueryParam";
 import { useWorkflow } from "@hooks/Workflow";
 import { AssertionResult, AssertionResultFailureString, WebAuthnTouchState } from "@models/WebAuthn";
 import { AuthenticationLevel } from "@services/State";
-import { getAuthenticationOptions, getAuthenticationResult, postAuthenticationResponse } from "@services/WebAuthn";
+import { getWebAuthnOptions, getWebAuthnResult, postWebAuthnResponse } from "@services/WebAuthn";
 import MethodContainer, { State as MethodContainerState } from "@views/LoginPortal/SecondFactor/MethodContainer";
 
 export interface Props {
@@ -41,7 +41,7 @@ const WebAuthnMethod = function (props: Props) {
 
         try {
             setState(WebAuthnTouchState.WaitTouch);
-            const optionsStatus = await getAuthenticationOptions();
+            const optionsStatus = await getWebAuthnOptions();
 
             if (optionsStatus.status !== 200 || optionsStatus.options == null) {
                 setState(WebAuthnTouchState.Failure);
@@ -50,7 +50,7 @@ const WebAuthnMethod = function (props: Props) {
                 return;
             }
 
-            const result = await getAuthenticationResult(optionsStatus.options);
+            const result = await getWebAuthnResult(optionsStatus.options);
 
             if (result.result !== AssertionResult.Success) {
                 if (!mounted.current) return;
@@ -75,7 +75,7 @@ const WebAuthnMethod = function (props: Props) {
 
             setState(WebAuthnTouchState.InProgress);
 
-            const response = await postAuthenticationResponse(result.response, redirectionURL, workflow, workflowID);
+            const response = await postWebAuthnResponse(result.response, redirectionURL, workflow, workflowID);
 
             if (response.data.status === "OK" && response.status === 200) {
                 onSignInSuccessCallback(response.data.data ? response.data.data.redirect : undefined);
