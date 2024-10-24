@@ -84,6 +84,7 @@ func (p *LDAPUserProvider) getServerSupportedFeatures(client LDAPClient) (featur
 	return features, nil
 }
 
+//nolint:gocyclo
 func (p *LDAPUserProvider) parseDynamicUsersConfiguration() {
 	p.config.UsersFilter = strings.ReplaceAll(p.config.UsersFilter, ldapPlaceholderDistinguishedNameAttribute, p.config.Attributes.DistinguishedName)
 	p.config.UsersFilter = strings.ReplaceAll(p.config.UsersFilter, ldapPlaceholderUsernameAttribute, p.config.Attributes.Username)
@@ -95,20 +96,99 @@ func (p *LDAPUserProvider) parseDynamicUsersConfiguration() {
 
 	if len(p.config.Attributes.Username) != 0 && !utils.IsStringInSlice(p.config.Attributes.Username, p.usersAttributes) {
 		p.usersAttributes = append(p.usersAttributes, p.config.Attributes.Username)
+		p.usersAttributesExtended = append(p.usersAttributesExtended, p.config.Attributes.Username)
 	}
 
 	if len(p.config.Attributes.Mail) != 0 && !utils.IsStringInSlice(p.config.Attributes.Mail, p.usersAttributes) {
 		p.usersAttributes = append(p.usersAttributes, p.config.Attributes.Mail)
+		p.usersAttributesExtended = append(p.usersAttributesExtended, p.config.Attributes.Mail)
 	}
 
 	if len(p.config.Attributes.DisplayName) != 0 && !utils.IsStringInSlice(p.config.Attributes.DisplayName, p.usersAttributes) {
 		p.usersAttributes = append(p.usersAttributes, p.config.Attributes.DisplayName)
+		p.usersAttributesExtended = append(p.usersAttributesExtended, p.config.Attributes.DisplayName)
+	}
+
+	if len(p.config.Attributes.GivenName) != 0 {
+		p.usersAttributesExtended = append(p.usersAttributesExtended, p.config.Attributes.GivenName)
+	}
+
+	if len(p.config.Attributes.MiddleName) != 0 {
+		p.usersAttributesExtended = append(p.usersAttributesExtended, p.config.Attributes.MiddleName)
+	}
+
+	if len(p.config.Attributes.FamilyName) != 0 {
+		p.usersAttributesExtended = append(p.usersAttributesExtended, p.config.Attributes.FamilyName)
+	}
+
+	if len(p.config.Attributes.Nickname) != 0 {
+		p.usersAttributesExtended = append(p.usersAttributesExtended, p.config.Attributes.Nickname)
+	}
+
+	if len(p.config.Attributes.Gender) != 0 {
+		p.usersAttributesExtended = append(p.usersAttributesExtended, p.config.Attributes.Gender)
+	}
+
+	if len(p.config.Attributes.Birthdate) != 0 {
+		p.usersAttributesExtended = append(p.usersAttributesExtended, p.config.Attributes.Birthdate)
+	}
+
+	if len(p.config.Attributes.Website) != 0 {
+		p.usersAttributesExtended = append(p.usersAttributesExtended, p.config.Attributes.Website)
+	}
+
+	if len(p.config.Attributes.Profile) != 0 {
+		p.usersAttributesExtended = append(p.usersAttributesExtended, p.config.Attributes.Profile)
+	}
+
+	if len(p.config.Attributes.Picture) != 0 {
+		p.usersAttributesExtended = append(p.usersAttributesExtended, p.config.Attributes.Picture)
+	}
+
+	if len(p.config.Attributes.ZoneInfo) != 0 {
+		p.usersAttributesExtended = append(p.usersAttributesExtended, p.config.Attributes.ZoneInfo)
+	}
+
+	if len(p.config.Attributes.Locale) != 0 {
+		p.usersAttributesExtended = append(p.usersAttributesExtended, p.config.Attributes.Locale)
+	}
+
+	if len(p.config.Attributes.PhoneNumber) != 0 {
+		p.usersAttributesExtended = append(p.usersAttributesExtended, p.config.Attributes.PhoneNumber)
+	}
+
+	if len(p.config.Attributes.PhoneExtension) != 0 {
+		p.usersAttributesExtended = append(p.usersAttributesExtended, p.config.Attributes.PhoneExtension)
+	}
+
+	if len(p.config.Attributes.StreetAddress) != 0 {
+		p.usersAttributesExtended = append(p.usersAttributesExtended, p.config.Attributes.StreetAddress)
+	}
+
+	if len(p.config.Attributes.Locality) != 0 {
+		p.usersAttributesExtended = append(p.usersAttributesExtended, p.config.Attributes.Locality)
+	}
+
+	if len(p.config.Attributes.Region) != 0 {
+		p.usersAttributesExtended = append(p.usersAttributesExtended, p.config.Attributes.Region)
+	}
+
+	if len(p.config.Attributes.PostalCode) != 0 {
+		p.usersAttributesExtended = append(p.usersAttributesExtended, p.config.Attributes.PostalCode)
+	}
+
+	if len(p.config.Attributes.Country) != 0 {
+		p.usersAttributesExtended = append(p.usersAttributesExtended, p.config.Attributes.Country)
 	}
 
 	if len(p.config.Attributes.MemberOf) != 0 {
 		if !utils.IsStringInSlice(p.config.Attributes.MemberOf, p.usersAttributes) {
 			p.usersAttributes = append(p.usersAttributes, p.config.Attributes.MemberOf)
 		}
+	}
+
+	for attribute := range p.config.Attributes.Extra {
+		p.usersAttributesExtended = append(p.usersAttributesExtended, attribute)
 	}
 
 	if p.config.AdditionalUsersDN != "" {
