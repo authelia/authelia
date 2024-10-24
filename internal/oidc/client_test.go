@@ -19,7 +19,7 @@ import (
 
 func TestNewClient(t *testing.T) {
 	config := schema.IdentityProvidersOpenIDConnectClient{}
-	client := oidc.NewClient(config, &schema.IdentityProvidersOpenIDConnect{})
+	client := oidc.NewClient(config, &schema.IdentityProvidersOpenIDConnect{}, nil)
 	assert.Equal(t, "", client.GetID())
 	assert.Equal(t, "", client.GetName())
 	assert.Len(t, client.GetResponseModes(), 0)
@@ -50,7 +50,7 @@ func TestNewClient(t *testing.T) {
 		ResponseModes:       schema.DefaultOpenIDConnectClientConfiguration.ResponseModes,
 	}
 
-	client = oidc.NewClient(config, &schema.IdentityProvidersOpenIDConnect{})
+	client = oidc.NewClient(config, &schema.IdentityProvidersOpenIDConnect{}, nil)
 	assert.Equal(t, myclient, client.GetID())
 	require.Len(t, client.GetResponseModes(), 1)
 	assert.Equal(t, oauthelia2.ResponseModeFormPost, client.GetResponseModes()[0])
@@ -61,7 +61,7 @@ func TestNewClient(t *testing.T) {
 		TokenEndpointAuthMethod: oidc.ClientAuthMethodClientSecretPost,
 	}
 
-	client = oidc.NewClient(config, &schema.IdentityProvidersOpenIDConnect{})
+	client = oidc.NewClient(config, &schema.IdentityProvidersOpenIDConnect{}, nil)
 
 	fclient, ok := client.(*oidc.RegisteredClient)
 
@@ -437,7 +437,7 @@ func TestNewClientPKCE(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			client := oidc.NewClient(tc.have, &schema.IdentityProvidersOpenIDConnect{})
+			client := oidc.NewClient(tc.have, &schema.IdentityProvidersOpenIDConnect{}, nil)
 
 			assert.Equal(t, tc.expectedEnforcePKCE, client.GetEnforcePKCE())
 			assert.Equal(t, tc.expectedEnforcePKCEChallengeMethod, client.GetEnforcePKCEChallengeMethod())
@@ -476,7 +476,7 @@ func TestNewClientPAR(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			client := oidc.NewClient(tc.have, &schema.IdentityProvidersOpenIDConnect{})
+			client := oidc.NewClient(tc.have, &schema.IdentityProvidersOpenIDConnect{}, nil)
 
 			assert.Equal(t, tc.expected, client.GetRequirePushedAuthorizationRequests())
 		})
@@ -1021,7 +1021,7 @@ func TestClient_GetEffectiveLifespan(t *testing.T) {
 						"test": tc.have,
 					},
 				},
-			})
+			}, nil)
 
 			for _, stc := range tc.subcases {
 				t.Run(stc.name, func(t *testing.T) {
@@ -1077,7 +1077,7 @@ func TestNewClientResponseModes(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			client := oidc.NewClient(tc.have, &schema.IdentityProvidersOpenIDConnect{})
+			client := oidc.NewClient(tc.have, &schema.IdentityProvidersOpenIDConnect{}, nil)
 
 			assert.Equal(t, tc.expected, client.GetResponseModes())
 
@@ -1115,7 +1115,7 @@ func TestNewClient_JSONWebKeySetURI(t *testing.T) {
 	client = oidc.NewClient(schema.IdentityProvidersOpenIDConnectClient{
 		TokenEndpointAuthMethod: oidc.ClientAuthMethodClientSecretPost,
 		JSONWebKeysURI:          MustParseRequestURI("https://google.com"),
-	}, &schema.IdentityProvidersOpenIDConnect{})
+	}, &schema.IdentityProvidersOpenIDConnect{}, nil)
 
 	require.NotNil(t, client)
 
@@ -1128,7 +1128,7 @@ func TestNewClient_JSONWebKeySetURI(t *testing.T) {
 	client = oidc.NewClient(schema.IdentityProvidersOpenIDConnectClient{
 		TokenEndpointAuthMethod: oidc.ClientAuthMethodClientSecretPost,
 		JSONWebKeysURI:          nil,
-	}, &schema.IdentityProvidersOpenIDConnect{})
+	}, &schema.IdentityProvidersOpenIDConnect{}, nil)
 
 	require.NotNil(t, client)
 

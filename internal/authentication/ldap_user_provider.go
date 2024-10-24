@@ -5,11 +5,13 @@ import (
 	"crypto/x509"
 	"fmt"
 	"net"
+	"net/url"
 	"strconv"
 	"strings"
 
 	"github.com/go-ldap/ldap/v3"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/text/language"
 
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -35,6 +37,7 @@ type LDAPUserProvider struct {
 	// Dynamically generated users values.
 	usersBaseDN                                        string
 	usersAttributes                                    []string
+	usersAttributesExtended                            []string
 	usersFilterReplacementInput                        bool
 	usersFilterReplacementDateTimeGeneralized          bool
 	usersFilterReplacementDateTimeUnixEpoch            bool
@@ -150,6 +153,95 @@ func (p *LDAPUserProvider) GetDetails(username string) (details *UserDetails, er
 		Emails:      profile.Emails,
 		Groups:      groups,
 	}, nil
+}
+
+// GetExtendedDetails retrieves the UserDetailsExtended values.
+func (p *LDAPUserProvider) GetDetailsExtended(username string) (details *UserDetailsExtended, err error) {
+	var (
+		client  LDAPClient
+		profile *ldapUserProfileExtended
+	)
+
+	if client, err = p.connect(); err != nil {
+		return nil, err
+	}
+
+	defer client.Close()
+
+	if profile, err = p.getUserProfileExtended(client, username); err != nil {
+		return nil, err
+	}
+
+	var (
+		groups []string
+	)
+
+	if groups, err = p.getUserGroups(client, username, profile.ldapUserProfile); err != nil {
+		return nil, err
+	}
+
+	details = &UserDetailsExtended{
+		GivenName:      profile.GivenName,
+		FamilyName:     profile.FamilyName,
+		MiddleName:     profile.MiddleName,
+		Nickname:       profile.Nickname,
+		Profile:        nil,
+		Picture:        nil,
+		Website:        nil,
+		Gender:         profile.Gender,
+		Birthdate:      profile.Birthdate,
+		ZoneInfo:       profile.ZoneInfo,
+		Locale:         nil,
+		PhoneNumber:    profile.PhoneNumber,
+		PhoneExtension: profile.PhoneExtension,
+		Address:        profile.Address,
+		UserDetails: &UserDetails{
+			Username:    profile.Username,
+			DisplayName: profile.DisplayName,
+			Emails:      profile.Emails,
+			Groups:      groups,
+		},
+		Extra: profile.Extra,
+	}
+
+	var (
+		uri    *url.URL
+		locale language.Tag
+	)
+
+	if profile.Profile != "" {
+		if uri, err = url.ParseRequestURI(profile.Profile); err != nil {
+			return nil, fmt.Errorf("error occurred parsing user details for '%s': failed to parse the profile attribute '%s': %w", username, p.config.Attributes.Profile, err)
+		} else {
+			details.Profile = uri
+		}
+	}
+
+	if profile.Picture != "" {
+		if uri, err = url.ParseRequestURI(profile.Picture); err != nil {
+			return nil, fmt.Errorf("error occurred parsing user details for '%s': failed to parse the picture attribute '%s': %w", username, p.config.Attributes.Picture, err)
+		} else {
+			details.Picture = uri
+		}
+	}
+
+	if profile.Website != "" {
+		if uri, err = url.ParseRequestURI(profile.Website); err != nil {
+			return nil, fmt.Errorf("error occurred parsing user details for '%s': failed to parse the website attribute '%s': %w", username, p.config.Attributes.Website, err)
+		} else {
+			details.Website = uri
+		}
+	}
+
+	if profile.Locale != "" {
+		if locale, err = language.Parse(profile.Locale); err != nil {
+			return nil, fmt.Errorf("error occurred parsing user details for '%s': failed to parse the locale attribute '%s': %w", username, p.config.Attributes.Locale, err)
+		} else {
+			details.Locale = &locale
+		}
+	}
+
+	return details, nil
 }
 
 // UpdatePassword update the password of the given user.
@@ -331,57 +423,36 @@ func (p *LDAPUserProvider) getUserProfile(client LDAPClient, username string) (p
 		return nil, fmt.Errorf("there were %d users found when searching for '%s' but there should only be 1", len(result.Entries), username)
 	}
 
-	return p.getUserProfileResultToProfile(username, result)
+	return p.getUserProfileResultToProfile(username, result.Entries[0])
 }
 
-//nolint:gocyclo // Not overly complex.
-func (p *LDAPUserProvider) getUserProfileResultToProfile(username string, result *ldap.SearchResult) (profile *ldapUserProfile, err error) {
+func (p *LDAPUserProvider) getUserProfileResultToProfile(username string, entry *ldap.Entry) (profile *ldapUserProfile, err error) {
 	userProfile := ldapUserProfile{
-		DN: result.Entries[0].DN,
+		DN:          entry.DN,
+		Emails:      getValuesFromEntry(entry, p.config.Attributes.Mail),
+		DisplayName: getValueFromEntry(entry, p.config.Attributes.DisplayName),
+		MemberOf:    getValuesFromEntry(entry, p.config.Attributes.MemberOf),
 	}
 
-	for _, attr := range result.Entries[0].Attributes {
-		attrs := len(attr.Values)
+	attrUsername := getValuesFromEntry(entry, p.config.Attributes.Username)
 
-		switch strings.ToLower(attr.Name) {
-		case strings.ToLower(p.config.Attributes.Username):
-			switch attrs {
-			case 1:
-				userProfile.Username = attr.Values[0]
+	switch n := len(attrUsername); n {
+	case 1:
+		userProfile.Username = attrUsername[0]
 
-				if attr.Name == p.config.Attributes.DisplayName && userProfile.DisplayName == "" {
-					userProfile.DisplayName = attr.Values[0]
-				}
-
-				if attr.Name == p.config.Attributes.Mail && len(userProfile.Emails) == 0 {
-					userProfile.Emails = []string{attr.Values[0]}
-				}
-			case 0:
-				return nil, fmt.Errorf("user '%s' must have value for attribute '%s'",
-					username, p.config.Attributes.Username)
-			default:
-				return nil, fmt.Errorf("user '%s' has %d values for for attribute '%s' but the attribute must be a single value attribute",
-					username, attrs, p.config.Attributes.Username)
-			}
-		case strings.ToLower(p.config.Attributes.Mail):
-			if attrs == 0 {
-				continue
-			}
-
-			userProfile.Emails = attr.Values
-		case strings.ToLower(p.config.Attributes.DisplayName):
-			if attrs == 0 {
-				continue
-			}
-
-			userProfile.DisplayName = attr.Values[0]
-		case strings.ToLower(p.config.Attributes.MemberOf):
-			if attrs == 0 {
-				continue
-			}
-
-			userProfile.MemberOf = attr.Values
+		if p.config.Attributes.Username == p.config.Attributes.DisplayName && userProfile.DisplayName == "" {
+			userProfile.DisplayName = attrUsername[0]
 		}
+
+		if p.config.Attributes.Username == p.config.Attributes.Mail && len(userProfile.Emails) == 0 {
+			userProfile.Emails = []string{attrUsername[0]}
+		}
+	case 0:
+		return nil, fmt.Errorf("user '%s' must have value for attribute '%s'",
+			username, p.config.Attributes.Username)
+	default:
+		return nil, fmt.Errorf("user '%s' has %d values for for attribute '%s' but the attribute must be a single value attribute",
+			username, n, p.config.Attributes.Username)
 	}
 
 	if userProfile.Username == "" {
@@ -394,6 +465,164 @@ func (p *LDAPUserProvider) getUserProfileResultToProfile(username string, result
 	}
 
 	return &userProfile, nil
+}
+
+func (p *LDAPUserProvider) getUserProfileExtended(client LDAPClient, username string) (profile *ldapUserProfileExtended, err error) {
+	// Search for the given username.
+	request := ldap.NewSearchRequest(
+		p.usersBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
+		1, 0, false, p.resolveUsersFilter(username), p.usersAttributesExtended, nil,
+	)
+
+	p.log.
+		WithField("base_dn", request.BaseDN).
+		WithField("filter", request.Filter).
+		WithField("attr", request.Attributes).
+		WithField("scope", request.Scope).
+		WithField("deref", request.DerefAliases).
+		Trace("Performing extended user search")
+
+	var result *ldap.SearchResult
+
+	if result, err = p.search(client, request); err != nil {
+		return nil, fmt.Errorf("cannot find user DN of user '%s'. Cause: %w", username, err)
+	}
+
+	if len(result.Entries) == 0 {
+		return nil, ErrUserNotFound
+	}
+
+	if len(result.Entries) > 1 {
+		return nil, fmt.Errorf("there were %d users found when searching for '%s' but there should only be 1", len(result.Entries), username)
+	}
+
+	return p.getUserProfileResultToProfileExtended(username, result.Entries[0])
+}
+
+func (p *LDAPUserProvider) getUserProfileResultToProfileExtended(username string, entry *ldap.Entry) (profile *ldapUserProfileExtended, err error) {
+	base, err := p.getUserProfileResultToProfile(username, entry)
+	if err != nil {
+		return nil, err
+	}
+
+	userProfile := ldapUserProfileExtended{
+		GivenName:       getValueFromEntry(entry, p.config.Attributes.GivenName),
+		FamilyName:      getValueFromEntry(entry, p.config.Attributes.FamilyName),
+		MiddleName:      getValueFromEntry(entry, p.config.Attributes.MiddleName),
+		Nickname:        getValueFromEntry(entry, p.config.Attributes.Nickname),
+		Profile:         getValueFromEntry(entry, p.config.Attributes.Profile),
+		Picture:         getValueFromEntry(entry, p.config.Attributes.Picture),
+		Website:         getValueFromEntry(entry, p.config.Attributes.Website),
+		Gender:          getValueFromEntry(entry, p.config.Attributes.Gender),
+		Birthdate:       getValueFromEntry(entry, p.config.Attributes.Birthdate),
+		ZoneInfo:        getValueFromEntry(entry, p.config.Attributes.Locale),
+		Locale:          getValueFromEntry(entry, p.config.Attributes.PhoneNumber),
+		PhoneNumber:     getValueFromEntry(entry, p.config.Attributes.PhoneNumber),
+		PhoneExtension:  getValueFromEntry(entry, p.config.Attributes.PhoneExtension),
+		ldapUserProfile: base,
+	}
+
+	street, locality, region, postcode, country := getValueFromEntry(entry, p.config.Attributes.StreetAddress), getValueFromEntry(entry, p.config.Attributes.Locality), getValueFromEntry(entry, p.config.Attributes.Region), getValueFromEntry(entry, p.config.Attributes.PostalCode), getValueFromEntry(entry, p.config.Attributes.Country)
+
+	if street != "" || locality != "" || region != "" || postcode != "" || country != "" {
+		userProfile.Address = &UserDetailsAddress{
+			StreetAddress: street,
+			Locality:      locality,
+			Region:        region,
+			PostalCode:    postcode,
+			Country:       country,
+		}
+	}
+
+	var attr any
+
+	for attribute, properties := range p.config.Attributes.Extra {
+		if attr, err = getExtraValueFromEntry(entry, attribute, properties); err != nil {
+			return nil, err
+		}
+
+		userProfile.Extra[properties.Name] = attr
+	}
+
+	return &userProfile, nil
+}
+
+func getValueFromEntry(entry *ldap.Entry, attribute string) string {
+	if attribute == "" {
+		return ""
+	}
+
+	return entry.GetAttributeValue(attribute)
+}
+
+func getValuesFromEntry(entry *ldap.Entry, attribute string) []string {
+	if attribute == "" {
+		return nil
+	}
+
+	return entry.GetAttributeValues(attribute)
+}
+
+func getExtraValueFromEntry(entry *ldap.Entry, attribute string, properties schema.AuthenticationBackendLDAPAttributesAttribute) (value any, err error) {
+	if properties.MultiValued {
+		return getExtraValueMultiFromEntry(entry, attribute, properties)
+	}
+
+	str := getValueFromEntry(entry, attribute)
+
+	switch properties.ValueType {
+	case valueTypeString:
+		value = str
+	case valueTypeInteger:
+		if value, err = strconv.ParseInt(str, 10, 64); err != nil {
+			return nil, fmt.Errorf("cannot parse '%s' with value '%s' as integer: %w", attribute, str, err)
+		}
+	case valueTypeBoolean:
+		if value, err = strconv.ParseBool(str); err != nil {
+			return nil, fmt.Errorf("cannot parse '%s' with value '%s' as boolean: %w", attribute, str, err)
+		}
+	}
+
+	return value, nil
+}
+
+func getExtraValueMultiFromEntry(entry *ldap.Entry, attribute string, properties schema.AuthenticationBackendLDAPAttributesAttribute) (value any, err error) {
+	strs := getValuesFromEntry(entry, attribute)
+
+	switch properties.ValueType {
+	case valueTypeString:
+		value = strs
+	case valueTypeInteger:
+		var v int64
+
+		values := make([]int64, len(strs))
+
+		for _, str := range strs {
+			if v, err = strconv.ParseInt(str, 10, 64); err != nil {
+				return nil, fmt.Errorf("cannot parse '%s' with value '%s' as integer: %w", attribute, str, err)
+			}
+
+			values = append(values, v)
+		}
+
+		value = values
+	case valueTypeBoolean:
+		var v bool
+
+		values := make([]bool, len(strs))
+
+		for _, str := range strs {
+			if v, err = strconv.ParseBool(str); err != nil {
+				return nil, fmt.Errorf("cannot parse '%s' with value '%s' as boolean: %w", attribute, str, err)
+			}
+
+			values = append(values, v)
+		}
+
+		value = values
+	}
+
+	return value, nil
 }
 
 func (p *LDAPUserProvider) getUserGroups(client LDAPClient, username string, profile *ldapUserProfile) (groups []string, err error) {

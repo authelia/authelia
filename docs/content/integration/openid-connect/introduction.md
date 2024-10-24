@@ -52,6 +52,32 @@ the Authorization Flow.
 For more information about the opaque [Access Token] default see
 [Why isn't the Access Token a JSON Web Token? (Frequently Asked Questions)](./frequently-asked-questions.md#why-isnt-the-access-token-a-json-web-token).
 
+## Claims
+
+The [OAuth 2.0] and [OpenID Connect 1.0] effectively names the individual content of a token as a [Claim]. Each [Claim]
+can either be granted individually via:
+
+1. The requested and granted [Scope] which generally makes the associated [Claim] values available at the [UserInfo]
+   endpoint, **_not_** within the [ID Token].
+2. The [Claims Parameter] which can request the authorization server explicitly
+   include a [Claim] in the [IDToken] and/or [UserInfo] endpoint.
+
+Authelia supports the [Claims Parameter] and as such the [ID Token] it returns is privacy and security focused,
+resulting in a minimal [ID Token] which solely prove authorization occurred. This allows various flows which require the
+relying party to share the [ID Token] with another party to prove they have been authorized, and relies on the
+[Access Token] which should be kept completely private to request the additional granted claims from the [UserInfo]
+endpoint.
+
+It should be noted that if a flow does not result in an [Access Token] capable of accessing the [UserInfo] endpoint but
+does result in an [ID Token] that the [ID Token] is intended to include the claims that would have otherwise ended up
+at the [UserInfo] endpoint as per the specification.
+
+The [Scope Definitions] indicate the default locations for a specific claim depending on the granted [Scope] when the
+[Claims Parameter] is not used and the default behaviour is not overridden by the registered client configuration.
+
+[Scope]: https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims
+[Claims Parameter]: https://openid.net/specs/openid-connect-core-1_0.html#ClaimsParameter
+
 ## Scope Definitions
 
 The following scope definitions describe each scope supported and the associated effects including the individual claims
@@ -77,21 +103,22 @@ a [RFC4122](https://datatracker.ietf.org/doc/html/rfc4122) UUID V4 to identify t
 the [OpenID Connect 1.0](https://openid.net/connect/) specification.
 {{< /callout >}}
 
-|  [Claim]  |   JWT Type    | Authelia Attribute |                         Description                         |
-|:---------:|:-------------:|:------------------:|:-----------------------------------------------------------:|
-|    iss    |    string     |      hostname      |             The issuer name, determined by URL              |
-|    jti    | string(uuid)  |       *N/A*        |     A [RFC4122] UUID V4 representing the JWT Identifier     |
-|    rat    |    number     |       *N/A*        |            The time when the token was requested            |
-|    exp    |    number     |       *N/A*        |                           Expires                           |
-|    iat    |    number     |       *N/A*        |             The time when the token was issued              |
-| auth_time |    number     |       *N/A*        |        The time the user authenticated with Authelia        |
-|    sub    | string(uuid)  |     opaque id      |    A [RFC4122] UUID V4 linked to the user who logged in     |
-|   scope   |    string     |       scopes       |              Granted scopes (space delimited)               |
-|    scp    | array[string] |       scopes       |                       Granted scopes                        |
-|    aud    | array[string] |       *N/A*        |                          Audience                           |
-|    amr    | array[string] |       *N/A*        | An [RFC8176] list of authentication method reference values |
-|    azp    |    string     |    id (client)     |                    The authorized party                     |
-| client_id |    string     |    id (client)     |                        The client id                        |
+|  [Claim]  |   JWT Type    | Authelia Attribute | Default Location |                         Description                         |
+|:---------:|:-------------:|:------------------:|:----------------:|:-----------------------------------------------------------:|
+|    iss    |    string     |      hostname      |    [ID Token]    |             The issuer name, determined by URL              |
+|    jti    | string(uuid)  |       *N/A*        |    [ID Token]    |     A [RFC4122] UUID V4 representing the JWT Identifier     |
+|    sub    | string(uuid)  |     opaque id      |    [ID Token]    |    A [RFC4122] UUID V4 linked to the user who logged in     |
+|    aud    | array[string] |       *N/A*        |    [ID Token]    |                          Audience                           |
+|    exp    |    number     |       *N/A*        |    [ID Token]    |                           Expires                           |
+|    iat    |    number     |       *N/A*        |    [ID Token]    |             The time when the token was issued              |
+| auth_time |    number     |       *N/A*        |    [ID Token]    |        The time the user authenticated with Authelia        |
+|    rat    |    number     |       *N/A*        |    [ID Token]    |            The time when the token was requested            |
+|   nonce   |    string     |       *N/A*        |    [ID Token]    |        The time the user authenticated with Authelia        |
+|    amr    | array[string] |       *N/A*        |    [ID Token]    | An [RFC8176] list of authentication method reference values |
+|    azp    |    string     |    id (client)     |    [ID Token]    |                    The authorized party                     |
+|   scope   |    string     |       scopes       |    [UserInfo]    |              Granted scopes (space delimited)               |
+|    scp    | array[string] |       scopes       |    [UserInfo]    |                       Granted scopes                        |
+| client_id |    string     |    id (client)     |    [UserInfo]    |                        The client id                        |
 
 ### offline_access
 
@@ -109,35 +136,73 @@ the client configuration.
 It is also important to note that we treat a [Refresh Token] as single use and reissue a new [Refresh Token] during the
 refresh flow.
 
+### profile
+
+This scope allows the client to access the profile information the authentication backend reports about the user.
+
+|      [Claim]       | JWT Type | Authelia Attribute | Default Location |               Description                |
+|:------------------:|:--------:|:------------------:|:----------------:|:----------------------------------------:|
+|        name        |  string  |    display_name    |    [UserInfo]    |          The users display name          |
+|    family_name     |  string  |    family_name     |    [UserInfo]    |          The users family name           |
+|     given_name     |  string  |     given_name     |    [UserInfo]    |           The users given name           |
+|    	middle_name    |  string  |    	middle_name    |    [UserInfo]    |          The users middle name           |
+|      nickname      |  string  |      nickname      |    [UserInfo]    |            The users nickname            |
+| preferred_username |  string  |      username      |    [UserInfo]    | The username the user used to login with |
+|      profile       |  string  |      profile       |    [UserInfo]    |          The users profile URL           |
+|      picture       |  string  |      picture       |    [UserInfo]    |          The users picture URL           |
+|      website       |  string  |      website       |    [UserInfo]    |          The users website URL           |
+|       gender       |  string  |       gender       |    [UserInfo]    |             The users gender             |
+|     birthdate      |  string  |     birthdate      |    [UserInfo]    |           The users birthdate            |
+|      zoneinfo      |  string  |      zoneinfo      |    [UserInfo]    |            The users zoneinfo            |
+|       locale       |  string  |       locale       |    [UserInfo]    |             The users locale             |
+
+### email
+
+This scope allows the client to access the email information the authentication backend reports about the user.
+
+|    [Claim]     |   JWT Type    | Authelia Attribute | Default Location |                        Description                        |
+|:--------------:|:-------------:|:------------------:|:----------------:|:---------------------------------------------------------:|
+|     email      |    string     |      email[0]      |    [UserInfo]    |       The first email address in the list of emails       |
+| email_verified |     bool      |       *N/A*        |    [UserInfo]    | If the email is verified, assumed true for the time being |
+|   alt_emails   | array[string] |     email[1:]      |    [UserInfo]    |  All email addresses that are not in the email JWT field  |
+
+### address
+
+This scope allows the client to access the address information the authentication backend reports about the user. See
+the [Address Claim](https://openid.net/specs/openid-connect-core-1_0.html#AddressClaim) definition for information on
+the format of this claim.
+
+| [Claim] | JWT Type | Authelia Attribute | Default Location |          Description          |
+|:-------:|:--------:|:------------------:|:----------------:|:-----------------------------:|
+| address |  object  |      various       |    [UserInfo]    | The users address information |
+
+The following table indicates the various sub-claims within the address claim.
+
+|    [Claim]     | JWT Type | Authelia Attribute |                       Description                       |
+|:--------------:|:--------:|:------------------:|:-------------------------------------------------------:|
+| street_address |  string  |   street_address   |                The users street address                 |
+|    locality    |  string  |      locality      |             The users locality such as city             |
+|     region     |  string  |       region       | The users region such as state, province, or prefecture |
+|  postal_code   |  string  |    postal_code     |                   The users postcode                    |
+|    country     |  string  |      country       |                    The users country                    |
+
+### phone
+
+This scope allows the client to access the address information the authentication backend reports about the user.
+
+|        [Claim]        |   JWT Type    |       Authelia Attribute       | Default Location |                                              Description                                              |
+|:---------------------:|:-------------:|:------------------------------:|:----------------:|:-----------------------------------------------------------------------------------------------------:|
+|     phone_number      |    string     | phone_number + phone_extension |    [UserInfo]    | The combination of the users phone number and extension in the format specified in OpenID Connect 1.0 |
+| phone_number_verified |    string     | phone_number + phone_extension |    [UserInfo]    | The combination of the users phone number and extension in the format specified in OpenID Connect 1.0 |
+
 ### groups
 
 This scope includes the groups the authentication backend reports the user is a member of in the [Claims] of the
 [ID Token].
 
-| [Claim] |   JWT Type    | Authelia Attribute |                                               Description                                               |
-|:-------:|:-------------:|:------------------:|:-------------------------------------------------------------------------------------------------------:|
-| groups  | array[string] |       groups       | List of user's groups discovered via [authentication](../../configuration/first-factor/introduction.md) |
-
-### email
-
-This scope includes the email information the authentication backend reports about the user in the [Claims] of the
-[ID Token].
-
-|     Claim      |   JWT Type    | Authelia Attribute |                        Description                        |
-|:--------------:|:-------------:|:------------------:|:---------------------------------------------------------:|
-|     email      |    string     |      email[0]      |       The first email address in the list of emails       |
-| email_verified |     bool      |       *N/A*        | If the email is verified, assumed true for the time being |
-|   alt_emails   | array[string] |     email[1:]      |  All email addresses that are not in the email JWT field  |
-
-### profile
-
-This scope includes the profile information the authentication backend reports about the user in the [Claims] of the
-[ID Token].
-
-|       Claim        | JWT Type | Authelia Attribute |               Description                |
-|:------------------:|:--------:|:------------------:|:----------------------------------------:|
-| preferred_username |  string  |      username      | The username the user used to login with |
-|        name        |  string  |    display_name    |          The users display name          |
+| [Claim] |   JWT Type    | Authelia Attribute | Default Location |                                               Description                                               |
+|:-------:|:-------------:|:------------------:|:----------------:|:-------------------------------------------------------------------------------------------------------:|
+| groups  | array[string] |       groups       |    [UserInfo]    | List of user's groups discovered via [authentication](../../configuration/first-factor/introduction.md) |
 
 ### Special Scopes
 
@@ -152,48 +217,101 @@ The specifics about this scope are discussed in the
 [OAuth 2.0 Bearer Token Usage for Authorization Endpoints](oauth-2.0-bearer-token-usage.md#authorization-endpoints)
 guide.
 
-## Signing and Encryption Algorithms
+## Signing and Content Encryption Algorithms
 
 [OpenID Connect 1.0] and OAuth 2.0 support a wide variety of signature and encryption algorithms. Authelia supports
 a subset of these.
 
 ### Response Object
 
-Authelia's response objects can have the following signature algorithms:
+Authelia's response objects can have the following signature and content encryption  algorithms (i.e. the `alg`
+parameter):
 
-| Algorithm |  Key Type   | Hashing Algorithm |    Use    |            JWK Default Conditions            |                        Notes                         |
-|:---------:|:-----------:|:-----------------:|:---------:|:--------------------------------------------:|:----------------------------------------------------:|
-|   RS256   |     RSA     |      SHA-256      | Signature | RSA Private Key without a specific algorithm |  Requires an RSA Private Key with 2048 bits or more  |
-|   RS384   |     RSA     |      SHA-384      | Signature |                     N/A                      |  Requires an RSA Private Key with 2048 bits or more  |
-|   RS512   |     RSA     |      SHA-512      | Signature |                     N/A                      |  Requires an RSA Private Key with 2048 bits or more  |
-|   ES256   | ECDSA P-256 |      SHA-256      | Signature |    ECDSA Private Key with the P-256 curve    |                                                      |
-|   ES384   | ECDSA P-384 |      SHA-384      | Signature |    ECDSA Private Key with the P-384 curve    |                                                      |
-|   ES512   | ECDSA P-521 |      SHA-512      | Signature |    ECDSA Private Key with the P-521 curve    | Requires an ECDSA Private Key with 2048 bits or more |
-|   PS256   | RSA (MGF1)  |      SHA-256      | Signature |                     N/A                      |  Requires an RSA Private Key with 2048 bits or more  |
-|   PS384   | RSA (MGF1)  |      SHA-384      | Signature |                     N/A                      |  Requires an RSA Private Key with 2048 bits or more  |
-|   PS512   | RSA (MGF1)  |      SHA-512      | Signature |                     N/A                      |  Requires an RSA Private Key with 2048 bits or more  |
+|     Algorithm      |  Key Type   | Hashing Algorithm |  Use  |            JWK Default Conditions            |                                  Notes                                   |
+|:------------------:|:-----------:|:-----------------:|:-----:|:--------------------------------------------:|:------------------------------------------------------------------------:|
+|       RS256        |     RSA     |      SHA-256      | `sig` | RSA Private Key without a specific algorithm |            Requires an RSA Private Key with 2048 bits or more            |
+|       RS384        |     RSA     |      SHA-384      | `sig` |                     N/A                      |            Requires an RSA Private Key with 2048 bits or more            |
+|       RS512        |     RSA     |      SHA-512      | `sig` |                     N/A                      |            Requires an RSA Private Key with 2048 bits or more            |
+|       ES256        | ECDSA P-256 |      SHA-256      | `sig` |    ECDSA Private Key with the P-256 curve    |            Requires an ECDSA Private Key with a 256 bit curve            |
+|       ES384        | ECDSA P-384 |      SHA-384      | `sig` |    ECDSA Private Key with the P-384 curve    |            Requires an ECDSA Private Key with a 384 bit curve            |
+|       ES512        | ECDSA P-521 |      SHA-512      | `sig` |    ECDSA Private Key with the P-521 curve    |            Requires an ECDSA Private Key with a 512 bit curve            |
+|       PS256        | RSA (MGF1)  |      SHA-256      | `sig` |                     N/A                      |            Requires an RSA Private Key with 2048 bits or more            |
+|       PS384        | RSA (MGF1)  |      SHA-384      | `sig` |                     N/A                      |            Requires an RSA Private Key with 2048 bits or more            |
+|       PS512        | RSA (MGF1)  |      SHA-512      | `sig` |                     N/A                      |            Requires an RSA Private Key with 2048 bits or more            |
+|       RSA1_5       |     RSA     |        N/A        | `enc` |                     N/A                      | Strongly Discouraged, Requires an RSA Private Key with 2048 bits or more |
+|      RSA-OAEP      | RSA (MFG1)  |        N/A        | `enc` |                     N/A                      |            Requires an RSA Private Key with 2048 bits or more            |
+|    RSA-OAEP-256    | RSA (MFG1)  |      SHA-256      | `enc` |                     N/A                      |            Requires an RSA Private Key with 2048 bits or more            |
+|       A128KW       |  Symmetric  |        N/A        | `enc` |                     N/A                      |                         Uses the `client_secret`                         |
+|       A192KW       |  Symmetric  |        N/A        | `enc` |                     N/A                      |                         Uses the `client_secret`                         |
+|       A256KW       |  Symmetric  |        N/A        | `enc` |                     N/A                      |                         Uses the `client_secret`                         |
+|        dir         |  Symmetric  |        N/A        | `enc` |                     N/A                      |                         Uses the `client_secret`                         |
+|      ECDH-ES       |    ECDSA    |        N/A        | `enc` |                     N/A                      |                      Requires an ECDSA Private Key                       |
+|   ECDH-ES+A128KW   |    ECDSA    |        N/A        | `enc` |                     N/A                      |                      Requires an ECDSA Private Key                       |
+|   ECDH-ES+A192KW   |    ECDSA    |        N/A        | `enc` |                     N/A                      |                      Requires an ECDSA Private Key                       |
+|   ECDH-ES+A256KW   |    ECDSA    |        N/A        | `enc` |                     N/A                      |                      Requires an ECDSA Private Key                       |
+|     A128GCMKW      |  Symmetric  |        N/A        | `enc` |                     N/A                      |                         Uses the `client_secret`                         |
+|     A192GCMKW      |  Symmetric  |        N/A        | `enc` |                     N/A                      |                         Uses the `client_secret`                         |
+|     A256GCMKW      |  Symmetric  |        N/A        | `enc` |                     N/A                      |                         Uses the `client_secret`                         |
+| PBES2-HS256+A128KW |  Symmetric  |        N/A        | `enc` |                     N/A                      |                         Uses the `client_secret`                         |
+| PBES2-HS384+A192KW |  Symmetric  |        N/A        | `enc` |                     N/A                      |                         Uses the `client_secret`                         |
+| PBES2-HS512+A256KW |  Symmetric  |        N/A        | `enc` |                     N/A                      |                         Uses the `client_secret`                         |
+
+_In addition to the algorithms listed above, the value `none` is often accepted to indicate no signing and/or encryption
+should take place._
 
 ### Request Object
 
-Authelia accepts a wide variety of request object types. The below table describes these request objects.
+Authelia accepts request objects with the following signature and content encryption algorithms (i.e. the `alg`
+parameter):
 
-| Algorithm |      Key Type      | Hashing Algorithm |    Use    |                       Notes                        |
-|:---------:|:------------------:|:-----------------:|:---------:|:--------------------------------------------------:|
-|   none    |        None        |       None        |    N/A    |                        N/A                         |
-|   HS256   | HMAC Shared Secret |      SHA-256      | Signature | [Client Authentication Method] `client_secret_jwt` |
-|   HS384   | HMAC Shared Secret |      SHA-384      | Signature | [Client Authentication Method] `client_secret_jwt` |
-|   HS512   | HMAC Shared Secret |      SHA-512      | Signature | [Client Authentication Method] `client_secret_jwt` |
-|   RS256   |        RSA         |      SHA-256      | Signature |  [Client Authentication Method] `private_key_jwt`  |
-|   RS384   |        RSA         |      SHA-384      | Signature |  [Client Authentication Method] `private_key_jwt`  |
-|   RS512   |        RSA         |      SHA-512      | Signature |  [Client Authentication Method] `private_key_jwt`  |
-|   ES256   |    ECDSA P-256     |      SHA-256      | Signature |  [Client Authentication Method] `private_key_jwt`  |
-|   ES384   |    ECDSA P-384     |      SHA-384      | Signature |  [Client Authentication Method] `private_key_jwt`  |
-|   ES512   |    ECDSA P-521     |      SHA-512      | Signature |  [Client Authentication Method] `private_key_jwt`  |
-|   PS256   |     RSA (MFG1)     |      SHA-256      | Signature |  [Client Authentication Method] `private_key_jwt`  |
-|   PS384   |     RSA (MFG1)     |      SHA-384      | Signature |  [Client Authentication Method] `private_key_jwt`  |
-|   PS512   |     RSA (MFG1)     |      SHA-512      | Signature |  [Client Authentication Method] `private_key_jwt`  |
+|     Algorithm      |      Key Type      | Hashing Algorithm |  Use  |                       Notes                        |
+|:------------------:|:------------------:|:-----------------:|:-----:|:--------------------------------------------------:|
+|        none        |        None        |       None        |  N/A  |                        N/A                         |
+|       HS256        | HMAC Shared Secret |      SHA-256      | `sig` | [Client Authentication Method] `client_secret_jwt` |
+|       HS384        | HMAC Shared Secret |      SHA-384      | `sig` | [Client Authentication Method] `client_secret_jwt` |
+|       HS512        | HMAC Shared Secret |      SHA-512      | `sig` | [Client Authentication Method] `client_secret_jwt` |
+|       RS256        |        RSA         |      SHA-256      | `sig` |  [Client Authentication Method] `private_key_jwt`  |
+|       RS384        |        RSA         |      SHA-384      | `sig` |  [Client Authentication Method] `private_key_jwt`  |
+|       RS512        |        RSA         |      SHA-512      | `sig` |  [Client Authentication Method] `private_key_jwt`  |
+|       ES256        |    ECDSA P-256     |      SHA-256      | `sig` |  [Client Authentication Method] `private_key_jwt`  |
+|       ES384        |    ECDSA P-384     |      SHA-384      | `sig` |  [Client Authentication Method] `private_key_jwt`  |
+|       ES512        |    ECDSA P-521     |      SHA-512      | `sig` |  [Client Authentication Method] `private_key_jwt`  |
+|       PS256        |     RSA (MFG1)     |      SHA-256      | `sig` |  [Client Authentication Method] `private_key_jwt`  |
+|       PS384        |     RSA (MFG1)     |      SHA-384      | `sig` |  [Client Authentication Method] `private_key_jwt`  |
+|       PS512        |     RSA (MFG1)     |      SHA-512      | `sig` |  [Client Authentication Method] `private_key_jwt`  |
+|       RSA1_5       |        RSA         |        N/A        | `enc` |                Strongly Discouraged                |
+|      RSA-OAEP      |     RSA (MFG1)     |        N/A        | `enc` |                                                    |
+|    RSA-OAEP-256    |     RSA (MFG1)     |      SHA-256      | `enc` |                                                    |
+|       A128KW       |     Symmetric      |        N/A        | `enc` |                                                    |
+|       A192KW       |     Symmetric      |        N/A        | `enc` |                                                    |
+|       A256KW       |     Symmetric      |        N/A        | `enc` |                                                    |
+|        dir         |     Symmetric      |        N/A        | `enc` |                                                    |
+|      ECDH-ES       |       ECDSA        |        N/A        | `enc` |                                                    |
+|   ECDH-ES+A128KW   |       ECDSA        |        N/A        | `enc` |                                                    |
+|   ECDH-ES+A192KW   |       ECDSA        |        N/A        | `enc` |                                                    |
+|   ECDH-ES+A256KW   |       ECDSA        |        N/A        | `enc` |                                                    |
+|     A128GCMKW      |     Symmetric      |        N/A        | `enc` |                                                    |
+|     A192GCMKW      |     Symmetric      |        N/A        | `enc` |                                                    |
+|     A256GCMKW      |     Symmetric      |        N/A        | `enc` |                                                    |
+| PBES2-HS256+A128KW |     Symmetric      |        N/A        | `enc` |                                                    |
+| PBES2-HS384+A192KW |     Symmetric      |        N/A        | `enc` |                                                    |
+| PBES2-HS512+A256KW |     Symmetric      |        N/A        | `enc` |                                                    |
 
 [Client Authentication Method]: #client-authentication-method
+
+## Encryption Algorithms
+
+Authelia accepts request objects and generates response objects with the following encryption algorithms (i.e. the `enc` parameter):
+
+|   Algorithm   |           Notes           |
+|:-------------:|:-------------------------:|
+| A128CBC-HS256 | Default for all JWE types |
+| A192CBC-HS384 |                           |
+| A256CBC-HS512 |                           |
+| A256CBC-HS512 |                           |
+|    A128GCM    |                           |
+|    A192GCM    |                           |
+|    A256GCM    |                           |
 
 ## Parameters
 
@@ -262,7 +380,7 @@ field is both the required value for the `grant_type` parameter in the access / 
 |         [OAuth 2.0 Client Credentials]          |    Yes    |              `client_credentials`              | If this is the only grant type for a client then the `openid`, `offline`, and `offline_access` scopes are not allowed |
 |              [OAuth 2.0 Implicit]               |    Yes    |                   `implicit`                   |                          This Grant Type has been deprecated and should not normally be used                          |
 |            [OAuth 2.0 Refresh Token]            |    Yes    |                `refresh_token`                 |                 This Grant Type should only be used for clients which have the `offline_access` scope                 |
-|             [OAuth 2.0 Device Code]             |    No     | `urn:ietf:params:oauth:grant-type:device_code` |                                                                                                                       |
+|             [OAuth 2.0 Device Code]             |    Yes    | `urn:ietf:params:oauth:grant-type:device_code` |                                                                                                                       |
 
 [OAuth 2.0 Authorization Code]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.1
 [OAuth 2.0 Implicit]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.2
@@ -400,6 +518,7 @@ These endpoints implement OpenID Connect 1.0 Provider specifications.
 |:-------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------:|
 |       [JSON Web Key Set]        |               https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}//jwks.json               |               jwks_uri                |
 |         [Authorization]         |        https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}//api/oidc/authorization         |        authorization_endpoint         |
+|     [Device Authorization]      |    https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/device-authorization       |     device_authorization_endpoint     |
 | [Pushed Authorization Requests] | https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}//api/oidc/pushed-authorization-request | pushed_authorization_request_endpoint |
 |             [Token]             |            https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}//api/oidc/token             |            token_endpoint             |
 |           [UserInfo]            |           https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}//api/oidc/userinfo           |           userinfo_endpoint           |
