@@ -52,6 +52,7 @@ func newStorageCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		newStorageSchemaInfoCmd(ctx),
 		newStorageEncryptionCmd(ctx),
 		newStorageUserCmd(ctx),
+		newStorageBansCmd(ctx),
 	)
 
 	return cmd
@@ -110,9 +111,119 @@ func newStorageEncryptionChangeKeyCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	return cmd
 }
 
+func newStorageBansCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "bans",
+		Short:   cmdAutheliaStorageBansShort,
+		Long:    cmdAutheliaStorageBansLong,
+		Example: cmdAutheliaStorageBansExample,
+		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.AddCommand(
+		newStorageBansUserCmd(ctx),
+		newStorageBansIPCmd(ctx),
+	)
+
+	return cmd
+}
+
+func newStorageBansUserCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     cmdUseUser,
+		Short:   cmdAutheliaStorageBansUserShort,
+		Long:    cmdAutheliaStorageBansUserLong,
+		Example: cmdAutheliaStorageBansUserExample,
+		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.AddCommand(
+		newStorageBansListCmd(ctx, cmdUseUser),
+		newStorageBansRevokeCmd(ctx, cmdUseUser),
+		newStorageBansAddCmd(ctx, cmdUseUser),
+	)
+
+	return cmd
+}
+
+func newStorageBansIPCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     cmdUseIP,
+		Short:   cmdAutheliaStorageBansIPShort,
+		Long:    cmdAutheliaStorageBansIPLong,
+		Example: cmdAutheliaStorageBansIPExample,
+		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.AddCommand(
+		newStorageBansListCmd(ctx, cmdUseIP),
+		newStorageBansRevokeCmd(ctx, cmdUseIP),
+		newStorageBansAddCmd(ctx, cmdUseIP),
+	)
+
+	return cmd
+}
+
+func newStorageBansListCmd(ctx *CmdCtx, use string) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "list",
+		Short:   fmt.Sprintf(cmdAutheliaStorageBansListShort, use),
+		Long:    fmt.Sprintf(cmdAutheliaStorageBansListLong, use, use),
+		Example: fmt.Sprintf(cmdAutheliaStorageBansListExample, use),
+		Args:    cobra.NoArgs,
+		RunE:    ctx.StorageBansListRunE(use),
+
+		DisableAutoGenTag: true,
+	}
+
+	return cmd
+}
+
+func newStorageBansRevokeCmd(ctx *CmdCtx, use string) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     fmt.Sprintf("revoke [%s]", use),
+		Short:   fmt.Sprintf(cmdAutheliaStorageBansRevokeShort, use),
+		Long:    fmt.Sprintf(cmdAutheliaStorageBansRevokeLong, use, use),
+		Example: fmt.Sprintf(cmdAutheliaStorageBansRevokeExample, use),
+		Args:    cobra.RangeArgs(0, 1),
+		RunE:    ctx.StorageBansRevokeRunE(use),
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().IntP("id", "i", 0, fmt.Sprintf("revokes the ban with the given id instead of the %s value", use))
+
+	return cmd
+}
+
+func newStorageBansAddCmd(ctx *CmdCtx, use string) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     fmt.Sprintf("add <%s>", use),
+		Short:   fmt.Sprintf(cmdAutheliaStorageBansAddShort, use),
+		Long:    fmt.Sprintf(cmdAutheliaStorageBansAddLong, use, use),
+		Example: fmt.Sprintf(cmdAutheliaStorageBansAddExample, use),
+		Args:    cobra.ExactArgs(1),
+		RunE:    ctx.StorageBansAddRunE(use),
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().BoolP("permanent", "p", false, "makes the ban effectively permanent")
+	cmd.Flags().StringP("reason", "r", "", "includes a reason for the ban")
+	cmd.Flags().StringP("duration", "d", "1 day", "the duration for the ban")
+
+	return cmd
+}
+
 func newStorageUserCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "user",
+		Use:     cmdUseUser,
 		Short:   cmdAutheliaStorageUserShort,
 		Long:    cmdAutheliaStorageUserLong,
 		Example: cmdAutheliaStorageUserExample,
