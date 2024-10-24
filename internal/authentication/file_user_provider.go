@@ -94,6 +94,28 @@ func (p *FileUserProvider) GetDetails(username string) (details *UserDetails, er
 	return d.ToUserDetails(), nil
 }
 
+// ListUsers returns a list of all users and their attributes.
+func (p *FileUserProvider) ListUsers() (userList []UserDetails, err error) {
+	if _, err := p.Reload(); err != nil {
+		return nil, fmt.Errorf("failed to reload user database: %w", err)
+	}
+
+	allUsers := p.database.GetAllUsers()
+	userList = make([]UserDetails, 0, len(allUsers))
+
+	for username, details := range allUsers {
+		user := UserDetails{
+			Username:    username,
+			DisplayName: details.DisplayName,
+			Emails:      []string{details.Email},
+			Groups:      details.Groups,
+		}
+		userList = append(userList, user)
+	}
+
+	return userList, nil
+}
+
 // UpdatePassword update the password of the given user.
 func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (err error) {
 	var details FileUserDatabaseUserDetails
@@ -104,6 +126,54 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (
 
 	if details.Disabled {
 		return ErrUserNotFound
+	}
+
+	var digest algorithm.Digest
+
+	if digest, err = p.hash.Hash(newPassword); err != nil {
+		return err
+	}
+
+	details.Password = schema.NewPasswordDigest(digest)
+
+	p.database.SetUserDetails(details.Username, &details)
+
+	p.mutex.Lock()
+
+	p.setTimeoutReload(time.Now())
+
+	p.mutex.Unlock()
+
+	if err = p.database.Save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *FileUserProvider) ChangePassword(username string, oldPassword string, newPassword string) (err error) {
+	var details FileUserDatabaseUserDetails
+
+	if details, err = p.database.GetUserDetails(username); err != nil {
+		return err
+	}
+
+	if details.Disabled {
+		return ErrUserNotFound
+	}
+
+	oldPasswordCorrect, err := p.CheckUserPassword(username, oldPassword)
+
+	if err != nil {
+		return err
+	}
+
+	if !oldPasswordCorrect {
+		return ErrIncorrectPassword
+	}
+
+	if oldPassword == newPassword {
+		return ErrPasswordReuse
 	}
 
 	var digest algorithm.Digest

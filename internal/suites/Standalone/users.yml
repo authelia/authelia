@@ -7,6 +7,7 @@ users:
     groups:
       - admins
       - dev
+      - authelia-admin
 
   harry:
     displayname: "Harry Potter"

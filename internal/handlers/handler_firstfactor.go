@@ -150,6 +150,10 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 
 		successful = true
 
+		if err = ctx.Providers.StorageProvider.UpdateUserSignInDateByUsername(ctx, userSession.Username); err != nil {
+			ctx.Logger.WithError(err).Errorf("Could not update %s during %s %s, for user '%s'", "last login time", regulation.AuthType1FA, logFmtActionAuthentication, bodyJSON.Username)
+		}
+
 		if bodyJSON.Workflow == workflowOpenIDConnect {
 			handleOIDCWorkflowResponse(ctx, &userSession, bodyJSON.TargetURL, bodyJSON.WorkflowID)
 		} else {
