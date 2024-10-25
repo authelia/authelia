@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/go-ldap/ldap/v3"
@@ -125,8 +126,7 @@ func NewLDAPConnectionFactoryPooled(factory LDAPClientFactory, count, retries in
 type LDAPClientPooledFactory struct {
 	factory LDAPClientFactory
 
-	count  int
-	active int
+	count int
 
 	timeout time.Duration
 	sleep   time.Duration
@@ -134,9 +134,16 @@ type LDAPClientPooledFactory struct {
 	clients chan *LDAPClientPooled
 
 	closing bool
+
+	mu sync.Mutex
+	wg sync.WaitGroup
 }
 
 func (f *LDAPClientPooledFactory) Initialize() (err error) {
+	f.mu.Lock()
+
+	defer f.mu.Unlock()
+
 	f.clients = make(chan *LDAPClientPooled, f.count)
 
 	var (
@@ -171,9 +178,13 @@ func (f *LDAPClientPooledFactory) GetClient(opts ...LDAPClientFactoryOption) (co
 }
 
 func (f *LDAPClientPooledFactory) new() (pooled *LDAPClientPooled, err error) {
-	c, l := cap(f.clients), len(f.clients)
+	f.mu.Lock()
 
-	if f.active >= f.count || (c != 0 && c == l) {
+	defer f.mu.Unlock()
+
+	capacity, active := cap(f.clients), len(f.clients)
+
+	if active >= capacity {
 		return nil, fmt.Errorf("error occurred establishing new client for the pool: pool is already the maximum size")
 	}
 
@@ -183,12 +194,16 @@ func (f *LDAPClientPooledFactory) new() (pooled *LDAPClientPooled, err error) {
 		return nil, err
 	}
 
-	f.active += 1
+	f.wg.Add(1)
 
 	return &LDAPClientPooled{pool: f, Client: client}, nil
 }
 
 func (f *LDAPClientPooledFactory) relinquish(client *LDAPClientPooled) (err error) {
+	f.mu.Lock()
+
+	defer f.mu.Unlock()
+
 	if f.closing {
 		return client.Client.Close()
 	}
@@ -204,6 +219,10 @@ func (f *LDAPClientPooledFactory) relinquish(client *LDAPClientPooled) (err erro
 }
 
 func (f *LDAPClientPooledFactory) acquire(ctx context.Context) (client *LDAPClientPooled, err error) {
+	f.mu.Lock()
+
+	defer f.mu.Unlock()
+
 	if f.closing {
 		return nil, fmt.Errorf("error acquiring client: the pool is closed")
 	}
@@ -222,16 +241,21 @@ func (f *LDAPClientPooledFactory) acquire(ctx context.Context) (client *LDAPClie
 		return nil, ctx.Err()
 	case client = <-f.clients:
 		if client.IsClosing() || client.Client == nil {
-			f.active -= 1
+			f.wg.Done()
 
 			for {
-				if client, err = f.new(); err != nil {
-					time.Sleep(f.sleep)
+				select {
+				case <-ctx.Done():
+					return nil, ctx.Err()
+				default:
+					if client, err = f.new(); err != nil {
+						time.Sleep(f.sleep)
 
-					continue
+						continue
+					}
+
+					return client, nil
 				}
-
-				return client, nil
 			}
 		}
 
@@ -240,13 +264,40 @@ func (f *LDAPClientPooledFactory) acquire(ctx context.Context) (client *LDAPClie
 }
 
 func (f *LDAPClientPooledFactory) Shutdown() (err error) {
+	f.mu.Lock()
+
 	f.closing = true
+
+	f.mu.Unlock()
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+
+	defer cancel()
+
+	go func() {
+		for {
+			select {
+			case client, ok := <-f.clients:
+				if !ok {
+					continue
+				}
+
+				_ = client.Client.Close()
+
+				f.wg.Done()
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+
+	f.wg.Wait()
+
+	f.mu.Lock()
 
 	close(f.clients)
 
-	for client := range f.clients {
-		_ = client.Client.Close()
-	}
+	f.mu.Unlock()
 
 	return nil
 }
@@ -261,12 +312,5 @@ type LDAPClientPooled struct {
 
 // Close the LDAPClientPooled by relinquishing access to it and making it available in the pool again.
 func (c *LDAPClientPooled) Close() (err error) {
-	client, pool := c.Client, c.pool
-
-	// We dereference here to prevent this struct from being reused in an improper way.
-	// Messing up the connection state or using it in two routines would be much worse than a panic which we can
-	// recover() from.
-	c.pool, c.Client = nil, nil
-
-	return pool.relinquish(&LDAPClientPooled{pool: pool, Client: client})
+	return c.pool.relinquish(c)
 }
