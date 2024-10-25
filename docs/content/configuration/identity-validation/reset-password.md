@@ -53,3 +53,7 @@ The JSON Web Token Algorithm used to sign the JWT. Must be HS256, HS384, or HS51
 {{< confkey type="string" required="yes" >}}
 
 The secret used with the HMAC algorithm to sign the JWT.
+
+It's __strongly recommended__ this is a
+[Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
+characters.
