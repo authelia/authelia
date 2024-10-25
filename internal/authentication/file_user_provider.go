@@ -24,7 +24,7 @@ type FileUserProvider struct {
 	config        *schema.AuthenticationBackendFile
 	hash          algorithm.Hash
 	database      FileUserProviderDatabase
-	mutex         *sync.Mutex
+	mutex         sync.Mutex
 	timeoutReload time.Time
 }
 
@@ -32,7 +32,6 @@ type FileUserProvider struct {
 func NewFileUserProvider(config *schema.AuthenticationBackendFile) (provider *FileUserProvider) {
 	return &FileUserProvider{
 		config:        config,
-		mutex:         &sync.Mutex{},
 		timeoutReload: time.Now().Add(-1 * time.Second),
 		database:      NewFileUserDatabase(config.Path, config.Search.Email, config.Search.CaseInsensitive),
 	}

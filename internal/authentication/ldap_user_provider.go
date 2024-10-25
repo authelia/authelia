@@ -46,7 +46,7 @@ type LDAPUserProvider struct {
 	groupsFilterReplacementsMemberOfRDN bool
 }
 
-// NewLDAPUserProvider creates a new instance of LDAPUserProvider with the LDAPClientFactoryStandard.
+// NewLDAPUserProvider creates a new instance of LDAPUserProvider with the LDAPClientStandardFactory.
 func NewLDAPUserProvider(config schema.AuthenticationBackend, certs *x509.CertPool) (provider *LDAPUserProvider) {
 	if config.LDAP.TLS == nil {
 		config.LDAP.TLS = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.TLS
