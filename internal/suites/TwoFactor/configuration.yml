@@ -84,6 +84,9 @@ totp:
 webauthn:
   disable: false
   enable_passkey_login: true
+  experimental_enable_passkey_uv_two_factors: true
+  selection_criteria:
+    discoverability: 'required'
   metadata:
     enabled: true
     validate_entry: false
