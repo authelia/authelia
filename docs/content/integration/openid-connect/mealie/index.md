@@ -23,7 +23,7 @@ seo:
 * [Authelia]
   * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [Mealie]
-  * [v1.4.0](https://github.com/mealie-recipes/mealie/releases/tag/v1.4.0)
+  * [v2.0.0](https://github.com/mealie-recipes/mealie/releases/tag/v2.0.0)
 
 {{% oidc-common %}}
 
@@ -54,7 +54,8 @@ identity_providers:
     clients:
       - client_id: 'mealie'
         client_name: 'Mealie'
-        public: true
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng' # The digest of 'insecure_secret'.
+        public: false
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
@@ -66,7 +67,6 @@ identity_providers:
           - 'profile'
           - 'groups'
         userinfo_signed_response_alg: 'none'
-        token_endpoint_auth_method: 'none'
 ```
 
 ### Application
@@ -86,6 +86,7 @@ OIDC_AUTH_ENABLED=true
 OIDC_SIGNUP_ENABLED=true
 OIDC_CONFIGURATION_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration
 OIDC_CLIENT_ID=mealie
+OIDC_CLIENT_SECRET=insecure_secret
 OIDC_AUTO_REDIRECT=false
 OIDC_ADMIN_GROUP=mealie-admins
 OIDC_USER_GROUP=mealie-users
@@ -93,7 +94,8 @@ OIDC_USER_GROUP=mealie-users
 
 ## See Also
 
-- [Mealie OpenID Connect Documentation](https://docs.mealie.io/documentation/getting-started/authentication/oidc/)
+- [Mealie OpenID Connect Documentation](https://docs.mealie.io/documentation/getting-started/authentication/oidc-v2/)
+- [Mealie OpenID Connect Environment Variables Documentation](https://docs.mealie.io/documentation/getting-started/installation/backend-config/#openid-connect-oidc)
 
 [Mealie]: https://mealie.io/
 [Authelia]: https://www.authelia.com
