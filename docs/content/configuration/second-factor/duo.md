@@ -21,9 +21,11 @@ Authelia supports mobile push notifications relying on [Duo].
 Follow the instructions in the dedicated [documentation](../../overview/authentication/push-notification/index.md) for
 instructions on how to set up push notifications in Authelia.
 
-__Note:__ The configuration options in the following sections are noted as required. They are however only required when
-you have this section defined. i.e. if you don't wish to use the [Duo] push notifications you can just not define this
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+The configuration options in the following sections are noted as required. They are however only required when
+you have this section defined. i.e. if you don't wish to use the [Duo] push notifications, you can just not define this
 section of the configuration.
+{{< /callout >}}
 
 ## Configuration
 
@@ -63,10 +65,7 @@ The non-secret [Duo] integration key. Similar to a client identifier. This is pr
 
 ### secret_key
 
-{{< confkey type="string" required="yes" >}}
-
-*__Important Note:__ This can also be defined using a [secret](../methods/secrets.md) which is __strongly recommended__
-especially for containerized deployments.*
+{{< confkey type="string" required="yes" secret="yes" >}}
 
 The secret [Duo] key used to verify your application is valid. This is provided in the [Duo] dashboard.
 

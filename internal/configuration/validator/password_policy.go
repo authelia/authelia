@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -10,7 +11,7 @@ import (
 // ValidatePasswordPolicy validates and updates the Password Policy configuration.
 func ValidatePasswordPolicy(config *schema.PasswordPolicy, validator *schema.StructValidator) {
 	if !utils.IsBoolCountLessThanN(1, true, config.Standard.Enabled, config.ZXCVBN.Enabled) {
-		validator.Push(fmt.Errorf(errPasswordPolicyMultipleDefined))
+		validator.Push(errors.New(errPasswordPolicyMultipleDefined))
 	}
 
 	if config.Standard.Enabled {

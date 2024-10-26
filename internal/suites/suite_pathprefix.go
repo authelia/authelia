@@ -14,7 +14,8 @@ func init() {
 		"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
 		"internal/suites/example/compose/authelia/docker-compose.frontend.{}.yml",
 		"internal/suites/example/compose/nginx/backend/docker-compose.yml",
-		"internal/suites/example/compose/traefik2/docker-compose.yml",
+		"internal/suites/example/compose/traefik/docker-compose.yml",
+		"internal/suites/example/compose/traefik/docker-compose.v3.yml",
 		"internal/suites/example/compose/smtp/docker-compose.yml",
 		"internal/suites/example/compose/httpbin/docker-compose.yml",
 	})
@@ -25,7 +26,8 @@ func init() {
 			"internal/suites/PathPrefix/docker-compose.yml",
 			"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
 			"internal/suites/example/compose/nginx/backend/docker-compose.yml",
-			"internal/suites/example/compose/traefik2/docker-compose.yml",
+			"internal/suites/example/compose/traefik/docker-compose.yml",
+			"internal/suites/example/compose/traefik/docker-compose.v3.yml",
 			"internal/suites/example/compose/smtp/docker-compose.yml",
 			"internal/suites/example/compose/httpbin/docker-compose.yml",
 		})

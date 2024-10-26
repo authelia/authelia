@@ -74,8 +74,13 @@ type GitHubAuthorJSON struct {
 
 // DocsDataMisc represents the docs misc data schema.
 type DocsDataMisc struct {
-	CSP    TemplateCSP `json:"csp"`
-	Latest string      `json:"latest"`
+	CSP     TemplateCSP         `json:"csp"`
+	Latest  string              `json:"latest"`
+	Support DocsDataMiscSupport `json:"support"`
+}
+
+type DocsDataMiscSupport struct {
+	Traefik []string `json:"traefik"`
 }
 
 // TemplateCSP represents the CSP template vars.
@@ -112,6 +117,14 @@ type Language struct {
 	Fallbacks  []string `json:"fallbacks,omitempty"`
 
 	Tag language.Tag `json:"-"`
+}
+
+type Compose struct {
+	Services map[string]ComposeService `json:"services"`
+}
+
+type ComposeService struct {
+	Image string `json:"image"`
 }
 
 const (

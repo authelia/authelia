@@ -41,8 +41,10 @@ Kubernetes service with the name `authelia` in the `default` namespace with TCP 
 Authelia HTTP port and that your cluster is configured with the default
 DNS domain name of `cluster.local`.
 
-*__Important Note:__ The following annotations should be applied to an Ingress you wish to protect. They __SHOULD NOT__
-be applied to the Authelia Ingress itself.*
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+The following annotations should be applied to an Ingress you wish to protect. They __SHOULD NOT__
+be applied to the Authelia Ingress itself.
+{{< /callout >}}
 
 ### Ingress Annotations
 

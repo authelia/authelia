@@ -244,8 +244,10 @@ func TestNewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfiguration(t *test
 	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimPreferredUsername)
 	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimFullName)
 
-	assert.Len(t, disco.PromptValuesSupported, 2)
+	assert.Len(t, disco.PromptValuesSupported, 4)
 	assert.Contains(t, disco.PromptValuesSupported, oidc.PromptConsent)
+	assert.Contains(t, disco.PromptValuesSupported, oidc.PromptSelectAccount)
+	assert.Contains(t, disco.PromptValuesSupported, oidc.PromptLogin)
 	assert.Contains(t, disco.PromptValuesSupported, oidc.PromptNone)
 }
 

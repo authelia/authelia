@@ -24,9 +24,10 @@ In order to build and contribute to __Authelia__, you need to make sure the foll
   * [git]
 * Backend Development:
   * [go]:
-    * Minimum is *v1.21 or greater*.
+    * Minimum is *v1.23 or greater*.
     * The toolchain version noted in [go.mod](https://github.com/authelia/authelia/blob/master/go.mod#L5) is the
       officially supported version.
+    * We will not officially support old versions of go generally without a very good reason.
   * [gcc]
   * [gomock]
 * Frontend Development

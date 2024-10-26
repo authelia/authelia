@@ -515,8 +515,10 @@ snippet is rarely required. It's only used if you want to only allow
 [HTTP Basic Authentication](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication) for a particular
 endpoint. It's recommended to use [authelia-location.conf](#authelia-locationconf) instead.*
 
-_**Note:** This example assumes you configured an authz endpoint with the name `auth-request/basic` and the
-implementation `AuthRequest` which contains the `HeaderAuthorization` and `HeaderProxyAuthorization` strategies._
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This example assumes you configured an authz endpoint with the name `auth-request/basic` and the
+implementation `AuthRequest` which contains the `HeaderAuthorization` and `HeaderProxyAuthorization` strategies.
+{{< /callout >}}
 
 ```nginx {title="authelia-location-basic.conf"}
 set $upstream_authelia {{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/auth-request/basic;

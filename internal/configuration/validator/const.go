@@ -174,6 +174,8 @@ const (
 	errFmtOIDCProviderInsecureDisabledParameterEntropy = errFmtOIDCProviderInsecureParameterEntropy +
 		"disabled which is considered unsafe and insecure"
 	errFmtOIDCProviderPrivateKeysInvalid                 = "identity_providers: oidc: jwks: key #%d: option 'key' must be a valid private key but the provided data is malformed as it's missing the public key bits"
+	errFmtOIDCProviderPrivateKeysMissing                 = "identity_providers: oidc: jwks: key #%d: option 'key' must be provided"
+	errFmtOIDCProviderPrivateKeysWithKeyID               = "identity_providers: oidc: jwks: key #%d with key id '%s': option 'key' must be provided"
 	errFmtOIDCProviderPrivateKeysCalcThumbprint          = "identity_providers: oidc: jwks: key #%d: option 'key' failed to calculate thumbprint to configure key id value: %w"
 	errFmtOIDCProviderPrivateKeysKeyIDLength             = "identity_providers: oidc: jwks: key #%d with key id '%s': option `key_id` must be 100 characters or less"
 	errFmtOIDCProviderPrivateKeysAttributeNotUnique      = "identity_providers: oidc: jwks: key #%d with key id '%s': option '%s' must be unique"
@@ -286,17 +288,18 @@ const (
 	errFmtOIDCClientInvalidRefreshTokenOptionWithoutCodeResponseType = errFmtOIDCClientOption +
 		"'%s' should only have the values %s if the client is also configured with a 'response_type' such as %s which respond with authorization codes"
 
-	errFmtOIDCClientPublicKeysBothURIAndValuesConfigured  = "identity_providers: oidc: clients: client '%s': option 'jwks_uri' must not be defined at the same time as option 'jwks'"
-	errFmtOIDCClientPublicKeysURIInvalidScheme            = "identity_providers: oidc: clients: client '%s': option 'jwks_uri' must have the 'https' scheme but the scheme is '%s'"
-	errFmtOIDCClientPublicKeysProperties                  = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'key' failed to get key properties: %w"
-	errFmtOIDCClientPublicKeysInvalidOptionOneOf          = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option '%s' must be one of %s but it's configured as '%s'"
-	errFmtOIDCClientPublicKeysInvalidOptionMissingOneOf   = "identity_providers: oidc: clients: client '%s': jwks: key #%d: option '%s' must be provided"
-	errFmtOIDCClientPublicKeysKeyMalformed                = "identity_providers: oidc: clients: client '%s': jwks: key #%d: option 'key' option 'key' must be a valid private key but the provided data is malformed as it's missing the public key bits"
-	errFmtOIDCClientPublicKeysRSAKeyLessThan2048Bits      = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'key' is an RSA %d bit private key but it must at minimum be a RSA 2048 bit private key"
-	errFmtOIDCClientPublicKeysKeyNotRSAOrECDSA            = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'key' must be a RSA public key or ECDSA public key but it's type is %T"
-	errFmtOIDCClientPublicKeysCertificateChainKeyMismatch = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'certificate_chain' does not appear to contain the public key for the public key provided by option 'key'"
-	errFmtOIDCClientPublicKeysCertificateChainInvalid     = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'certificate_chain' produced an error during validation of the chain: %w"
-	errFmtOIDCClientPublicKeysROSAMissingAlgorithm        = errFmtOIDCClientOption + "'request_object_signing_alg' must be one of %s configured in the client option 'jwks'"
+	errFmtOIDCClientPublicKeysBothURIAndValuesConfigured      = "identity_providers: oidc: clients: client '%s': option 'jwks_uri' must not be defined at the same time as option 'jwks'"
+	errFmtOIDCClientPublicKeysURIInvalidScheme                = "identity_providers: oidc: clients: client '%s': option 'jwks_uri' must have the 'https' scheme but the scheme is '%s'"
+	errFmtOIDCClientPublicKeysProperties                      = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'key' failed to get key properties: %w"
+	errFmtOIDCClientPublicKeysInvalidOptionOneOf              = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option '%s' must be one of %s but it's configured as '%s'"
+	errFmtOIDCClientPublicKeysInvalidOptionMissingOneOf       = "identity_providers: oidc: clients: client '%s': jwks: key #%d: option '%s' must be provided"
+	errFmtOIDCClientPublicKeysWithIDInvalidOptionMissingOneOf = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option '%s' must be provided"
+	errFmtOIDCClientPublicKeysKeyMalformed                    = "identity_providers: oidc: clients: client '%s': jwks: key #%d: option 'key' option 'key' must be a valid private key but the provided data is malformed as it's missing the public key bits"
+	errFmtOIDCClientPublicKeysRSAKeyLessThan2048Bits          = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'key' is an RSA %d bit private key but it must at minimum be a RSA 2048 bit private key"
+	errFmtOIDCClientPublicKeysKeyNotRSAOrECDSA                = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'key' must be a RSA public key or ECDSA public key but it's type is %T"
+	errFmtOIDCClientPublicKeysCertificateChainKeyMismatch     = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'certificate_chain' does not appear to contain the public key for the public key provided by option 'key'"
+	errFmtOIDCClientPublicKeysCertificateChainInvalid         = "identity_providers: oidc: clients: client '%s': jwks: key #%d with key id '%s': option 'certificate_chain' produced an error during validation of the chain: %w"
+	errFmtOIDCClientPublicKeysROSAMissingAlgorithm            = errFmtOIDCClientOption + "'request_object_signing_alg' must be one of %s configured in the client option 'jwks'"
 )
 
 // WebAuthn Error constants.

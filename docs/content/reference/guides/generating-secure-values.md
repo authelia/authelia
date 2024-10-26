@@ -30,7 +30,7 @@ more information on all available options and algorithms.
 {{< envTabs "Generate Random Password" >}}
 {{< envTab "Docker" >}}
 ```bash
-docker run authelia/authelia:latest authelia crypto hash generate argon2 --random --random.length 64 --random.charset alphanumeric
+docker run --rm authelia/authelia:latest authelia crypto hash generate argon2 --random --random.length 64 --random.charset alphanumeric
 ```
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
@@ -55,7 +55,7 @@ all available options.
 {{< envTabs "Generate Random String" >}}
 {{< envTab "Docker" >}}
 ```bash
-docker run authelia/authelia:latest authelia crypto rand --length 64 --charset alphanumeric
+docker run --rm authelia/authelia:latest authelia crypto rand --length 64 --charset alphanumeric
 ```
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
@@ -84,12 +84,17 @@ tr -cd '[:alnum:]' < /dev/urandom | fold -w "${LENGTH}" | head -n 1 | tr -d '\n'
 
 ## Generating an RSA Keypair
 
-Some sections of the configuration need an RSA keypair. There are many ways to achieve this, this section explains two
-such ways.
+Some sections of the configuration need an RSA keypair or an RSA private key. There are many ways to achieve this, this
+section explains two such ways. In all instances the output files are as follows:
+
+|  File Name  |   Description   |
+|:-----------:|:---------------:|
+| private.pem | RSA Private Key |
+| public.pem  | RSA Public Key  |
 
 ### authelia
 
-The __Authelia__ docker container or CLI binary can be used to generate a RSA 4096 bit keypair.
+The __Authelia__ docker container or CLI binary can be used to generate an RSA keypair.
 
 Use the `authelia crypto pair --help` command or see the [authelia crypto pair] reference guide for more
 information on all available options.
@@ -97,22 +102,22 @@ information on all available options.
 {{< envTabs "Generate RSA Key Pair" >}}
 {{< envTab "Docker" >}}
 ```bash
-docker run -u "$(id -u):$(id -g)" -v "$(pwd)":/keys authelia/authelia:latest authelia crypto pair rsa generate --bits 4096 --directory /keys
+docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd)":/keys authelia/authelia:latest authelia crypto pair rsa generate --directory /keys
 ```
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
 ```bash
-authelia crypto pair rsa generate --directory /path/to/keys
+authelia crypto pair rsa generate
 ```
 {{< /envTab >}}
 {{< /envTabs >}}
 
 ### openssl
 
-The `openssl` command on Linux can be used to generate a RSA 4096 bit keypair:
+The `openssl` command on Linux can be used to generate an RSA keypair:
 
 ```bash
-openssl genrsa -out private.pem 4096
+openssl genrsa -out private.pem 2048
 openssl rsa -in private.pem -outform PEM -pubout -out public.pem
 ```
 
@@ -121,9 +126,16 @@ openssl rsa -in private.pem -outform PEM -pubout -out public.pem
 Some sections of the configuration need a certificate and it may be possible to use a self-signed certificate. There are
 many ways to achieve this, this section explains two such ways.
 
+In all instances the output files are as follows:
+
+|  File Name  |          Description           |
+|:-----------:|:------------------------------:|
+| private.pem |        RSA Private Key         |
+| public.crt  | RSA Public Key and Certificate |
+
 ### authelia
 
-The __Authelia__ docker container or binary can be used to generate a RSA 4096 bit self-signed certificate for the
+The __Authelia__ docker container or binary can be used to generate an RSA self-signed certificate for the
 domain `example.com`.
 
 Use the `authelia crypto certificate --help` command or see the [authelia crypto certificate] reference guide for more
@@ -132,23 +144,23 @@ information on all available options.
 {{< envTabs "Generate RSA Key Pair" >}}
 {{< envTab "Docker" >}}
 ```bash
-docker run -u "$(id -u):$(id -g)" -v "$(pwd)":/keys authelia/authelia:latest authelia crypto certificate rsa generate --common-name example.com --directory /keys
+docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd)":/keys authelia/authelia:latest authelia crypto certificate rsa generate --common-name example.com --directory /keys
 ```
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
 ```bash
-authelia crypto certificate rsa generate --common-name example.com --directory /path/to/keys
+authelia crypto certificate rsa generate --common-name example.com
 ```
 {{< /envTab >}}
 {{< /envTabs >}}
 
 ### openssl
 
-The `openssl` command on Linux can be used to generate a RSA 4096 bit self-signed certificate for the domain
+The `openssl` command on Linux can be used to generate an RSA self-signed certificate for the domain
 `example.com`:
 
 ```bash
-openssl req -x509 -nodes -newkey rsa:4096 -keyout key.pem -out cert.pem -sha256 -days 365 -subj '/CN=example.com'
+openssl req -x509 -nodes -newkey rsa:2048 -keyout private.pem -out public.crt -sha256 -days 365 -subj '/CN=example.com'
 ```
 
 [authelia crypto hash generate]: ../cli/authelia/authelia_crypto_hash_generate.md

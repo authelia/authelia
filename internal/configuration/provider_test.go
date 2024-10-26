@@ -3,6 +3,8 @@ package configuration
 import (
 	"bufio"
 	"bytes"
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/rsa"
 	"fmt"
 	"os"
@@ -250,7 +252,7 @@ func TestShouldNotIgnoreInvalidEnvs(t *testing.T) {
 	assert.Len(t, val.Errors(), 1)
 
 	assert.EqualError(t, val.Warnings()[0], fmt.Sprintf("configuration environment variable not expected: %sSTORAGE_MYSQL", DefaultEnvPrefix))
-	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshalling configuration: 1 error(s) decoding:\n\n* error decoding 'authentication_backend.ldap.address': could not decode 'an env authentication backend ldap password' to a *schema.AddressLDAP: could not parse string 'an env authentication backend ldap password' as address: expected format is [<scheme>://]<hostname>[:<port>]: parse \"ldaps://an env authentication backend ldap password\": invalid character \" \" in host name")
+	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshalling configuration: decoding failed due to the following error(s):\n\nerror decoding 'authentication_backend.ldap.address': could not decode 'an env authentication backend ldap password' to a *schema.AddressLDAP: could not parse string 'an env authentication backend ldap password' as address: expected format is [<scheme>://]<hostname>[:<port>]: parse \"ldaps://an env authentication backend ldap password\": invalid character \" \" in host name")
 }
 
 func TestShouldValidateServerAddressValues(t *testing.T) {
@@ -525,6 +527,31 @@ func TestShouldLoadURLList(t *testing.T) {
 	assert.Equal(t, "https://example.com", config.IdentityProviders.OIDC.CORS.AllowedOrigins[1].String())
 }
 
+func TestShouldNotPanicJWKNilKey(t *testing.T) {
+	val := schema.NewStructValidator()
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc_empty_jwk_key.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+
+	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
+
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+
+	require.NotPanics(t, func() {
+		validator.ValidateIdentityProviders(validator.NewValidateCtx(), &config.IdentityProviders, val)
+	})
+
+	assert.Len(t, val.Errors(), 5)
+	require.Len(t, val.Warnings(), 1)
+
+	assert.EqualError(t, val.Errors()[0], "identity_providers: oidc: jwks: key #1 with key id 'abc': option 'key' must be provided")
+	assert.EqualError(t, val.Errors()[1], "identity_providers: oidc: jwks: key #2: option 'key' must be provided")
+	assert.EqualError(t, val.Errors()[2], "identity_providers: oidc: clients: client 'abc': jwks: key #1 with key id 'client_abc': option 'key' must be provided")
+	assert.EqualError(t, val.Errors()[3], "identity_providers: oidc: clients: client 'abc': jwks: key #2: option 'key_id' must be provided")
+	assert.EqualError(t, val.Errors()[4], "identity_providers: oidc: clients: client 'abc': jwks: key #2: option 'key' must be provided")
+}
+
 func TestShouldDisableOIDCEntropy(t *testing.T) {
 	val := schema.NewStructValidator()
 	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc_disable_entropy.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
@@ -547,6 +574,60 @@ func TestShouldDisableOIDCEntropy(t *testing.T) {
 	assert.Equal(t, -1, config.IdentityProviders.OIDC.MinimumParameterEntropy)
 }
 
+func TestShouldDisableOIDCModern(t *testing.T) {
+	val := schema.NewStructValidator()
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc_modern.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+
+	assert.NoError(t, err)
+
+	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
+
+	require.Len(t, val.Errors(), 0)
+
+	val.Clear()
+
+	validator.ValidateIdentityProviders(validator.NewValidateCtx(), &config.IdentityProviders, val)
+
+	require.Len(t, val.Errors(), 2)
+	require.Len(t, val.Warnings(), 1)
+
+	assert.Regexp(t, regexp.MustCompile(`^identity_providers: oidc: jwks: key #1 with key id 'keya': option 'certificate_chain' produced an error during validation of the chain: certificate #1 in chain is invalid after 1713180174 but the time is \d+$`), val.Errors()[0].Error())
+	assert.Regexp(t, regexp.MustCompile(`^identity_providers: oidc: jwks: key #2 with key id 'ec521': option 'certificate_chain' produced an error during validation of the chain: certificate #1 in chain is invalid after 1713180101 but the time is \d+$`), val.Errors()[1].Error())
+	assert.EqualError(t, val.Warnings()[0], "identity_providers: oidc: clients: client 'abc': option 'client_secret' is plaintext but for clients not using the 'token_endpoint_auth_method' of 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed in the near future")
+
+	require.Len(t, config.IdentityProviders.OIDC.JSONWebKeys, 3)
+	require.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[0].Key)
+	require.IsType(t, &rsa.PrivateKey{}, config.IdentityProviders.OIDC.JSONWebKeys[0].Key)
+	assert.Equal(t, "sig", config.IdentityProviders.OIDC.JSONWebKeys[0].Use)
+	assert.Equal(t, "RS256", config.IdentityProviders.OIDC.JSONWebKeys[0].Algorithm)
+	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[0].Key.(*rsa.PrivateKey).D)
+	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[0].Key.(*rsa.PrivateKey).N)
+	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[0].Key.(*rsa.PrivateKey).E)
+	assert.Equal(t, 256, config.IdentityProviders.OIDC.JSONWebKeys[0].Key.(*rsa.PrivateKey).PublicKey.Size())
+	require.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[0].CertificateChain)
+	assert.True(t, config.IdentityProviders.OIDC.JSONWebKeys[0].CertificateChain.HasCertificates())
+
+	require.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[1].Key)
+	require.IsType(t, &ecdsa.PrivateKey{}, config.IdentityProviders.OIDC.JSONWebKeys[1].Key)
+	assert.Equal(t, "sig", config.IdentityProviders.OIDC.JSONWebKeys[1].Use)
+	assert.Equal(t, "ES512", config.IdentityProviders.OIDC.JSONWebKeys[1].Algorithm)
+	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[1].Key.(*ecdsa.PrivateKey).D)
+	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[1].Key.(*ecdsa.PrivateKey).Y)
+	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[1].Key.(*ecdsa.PrivateKey).X)
+	assert.Equal(t, elliptic.P521(), config.IdentityProviders.OIDC.JSONWebKeys[1].Key.(*ecdsa.PrivateKey).Curve)
+	require.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[1].CertificateChain)
+	assert.True(t, config.IdentityProviders.OIDC.JSONWebKeys[1].CertificateChain.HasCertificates())
+
+	require.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[2].Key)
+	assert.Equal(t, "sig", config.IdentityProviders.OIDC.JSONWebKeys[2].Use)
+	assert.Equal(t, "RS256", config.IdentityProviders.OIDC.JSONWebKeys[2].Algorithm)
+	require.IsType(t, &rsa.PrivateKey{}, config.IdentityProviders.OIDC.JSONWebKeys[2].Key)
+	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[2].Key.(*rsa.PrivateKey).D)
+	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[2].Key.(*rsa.PrivateKey).N)
+	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[2].Key.(*rsa.PrivateKey).E)
+	assert.Equal(t, 512, config.IdentityProviders.OIDC.JSONWebKeys[2].Key.(*rsa.PrivateKey).PublicKey.Size())
+}
+
 func TestShouldConfigureConsent(t *testing.T) {
 	val := schema.NewStructValidator()
 	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_oidc.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
@@ -555,7 +636,7 @@ func TestShouldConfigureConsent(t *testing.T) {
 
 	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
 
-	assert.Len(t, val.Errors(), 0)
+	require.Len(t, val.Errors(), 0)
 	assert.Len(t, val.Warnings(), 0)
 
 	require.Len(t, config.IdentityProviders.OIDC.Clients, 1)
@@ -647,7 +728,7 @@ func TestShouldRaiseErrOnInvalidNotifierSMTPSender(t *testing.T) {
 	require.Len(t, val.Errors(), 1)
 	assert.Len(t, val.Warnings(), 0)
 
-	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshalling configuration: 1 error(s) decoding:\n\n* error decoding 'notifier.smtp.sender': could not decode 'admin' to a mail.Address (RFC5322): mail: missing '@' or angle-addr")
+	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshalling configuration: decoding failed due to the following error(s):\n\nerror decoding 'notifier.smtp.sender': could not decode 'admin' to a mail.Address (RFC5322): mail: missing '@' or angle-addr")
 }
 
 func TestShouldHandleErrInvalidatorWhenSMTPSenderBlank(t *testing.T) {
@@ -799,7 +880,7 @@ func TestShouldErrOnParseInvalidRegex(t *testing.T) {
 	require.Len(t, val.Errors(), 1)
 	assert.Len(t, val.Warnings(), 0)
 
-	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshalling configuration: 1 error(s) decoding:\n\n* error decoding 'access_control.rules[0].domain_regex[0]': could not decode '^\\K(public|public2).example.com$' to a regexp.Regexp: error parsing regexp: invalid escape sequence: `\\K`")
+	assert.EqualError(t, val.Errors()[0], "error occurred during unmarshalling configuration: decoding failed due to the following error(s):\n\nerror decoding 'access_control.rules[0].domain_regex[0]': could not decode '^\\K(public|public2).example.com$' to a regexp.Regexp: error parsing regexp: invalid escape sequence: `\\K`")
 }
 
 func TestShouldNotReadConfigurationOnFSAccessDenied(t *testing.T) {

@@ -9,12 +9,13 @@ var traefik2SuiteName = "Traefik2"
 
 var traefik2DockerEnvironment = NewDockerEnvironment([]string{
 	"internal/suites/docker-compose.yml",
-	"internal/suites/Traefik2/docker-compose.yml",
+	"internal/suites/Traefik/docker-compose.yml",
 	"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
 	"internal/suites/example/compose/authelia/docker-compose.frontend.{}.yml",
 	"internal/suites/example/compose/redis/docker-compose.yml",
 	"internal/suites/example/compose/nginx/backend/docker-compose.yml",
-	"internal/suites/example/compose/traefik2/docker-compose.yml",
+	"internal/suites/example/compose/traefik/docker-compose.yml",
+	"internal/suites/example/compose/traefik/docker-compose.v2.yml",
 	"internal/suites/example/compose/smtp/docker-compose.yml",
 	"internal/suites/example/compose/httpbin/docker-compose.yml",
 })
@@ -23,11 +24,12 @@ func init() {
 	if os.Getenv("CI") == t {
 		traefik2DockerEnvironment = NewDockerEnvironment([]string{
 			"internal/suites/docker-compose.yml",
-			"internal/suites/Traefik2/docker-compose.yml",
+			"internal/suites/Traefik/docker-compose.yml",
 			"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
 			"internal/suites/example/compose/redis/docker-compose.yml",
 			"internal/suites/example/compose/nginx/backend/docker-compose.yml",
-			"internal/suites/example/compose/traefik2/docker-compose.yml",
+			"internal/suites/example/compose/traefik/docker-compose.yml",
+			"internal/suites/example/compose/traefik/docker-compose.v2.yml",
 			"internal/suites/example/compose/smtp/docker-compose.yml",
 			"internal/suites/example/compose/httpbin/docker-compose.yml",
 		})

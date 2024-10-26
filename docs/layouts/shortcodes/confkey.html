@@ -70,3 +70,18 @@
   </div>
 </div>
 {{- end }}
+{{- with .Get "secret" }}
+{{- if eq . "yes" }}
+<div class="callout callout-caution d-flex flex-row mt-4 mb-4 pt-4 pe-4 pb-2 ps-3">
+  <svg class="outline/alert-triangle svg-inline callout-icon me-2 mb-3" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 9v4"></path><path d="M10.363 3.591 2.257 17.125a1.914 1.914.0 001.636 2.871h16.214a1.914 1.914.0 001.636-2.87L13.637 3.59a1.914 1.914.0 00-3.274.0z"></path><path d="M12 16h.01"></path></svg>
+  <div class="callout-content">
+    <div class="callout-title">
+      <p>Important Note</p>
+    </div>
+    <div class="callout-body">
+      <p>This can also be defined using a <a href="/configuration/methods/secrets/">secret</a> which is <strong>strongly recommended</strong> especially for containerized deployments.</p>
+    </div>
+  </div>
+</div>
+{{- end }}
+{{- end }}

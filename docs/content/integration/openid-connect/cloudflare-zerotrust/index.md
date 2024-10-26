@@ -38,11 +38,11 @@ Some of the values presented in this guide can automatically be replaced with do
 
 {{< sitevar-preferences >}}
 
-*__Important Note:__ [Cloudflare Zero Trust] does not properly URL encode the secret per [RFC6749 Appendix B] at the
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+[Cloudflare Zero Trust](https://www.cloudflare.com/products/zero-trust/) does not properly URL encode the secret per [RFC6749 Appendix B](https://datatracker.ietf.org/doc/html/rfc6749#appendix-B) at the
 time this article was last modified (noted at the bottom). This means you'll either have to use only alphanumeric
-characters for the secret or URL encode the secret yourself.*
-
-[RFC6749 Appendix B]: https://datatracker.ietf.org/doc/html/rfc6749#appendix-B
+characters for the secret or URL encode the secret yourself.
+{{< /callout >}}
 
 ## Configuration
 
@@ -73,9 +73,11 @@ identity_providers:
 
 ### Application
 
-*__Important Note:__ It is a requirement that the Authelia URL's can be requested by Cloudflare's servers. This usually
-means that the URL's are accessible to foreign clients on the internet. There may be a way to configure this without
-accessibility to foreign clients on the internet on Cloudflare's end but this is beyond the scope of this document.*
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+It is a requirement that the Authelia URL's can be requested by Cloudflare's servers. This usually
+means that the URLs are accessible to foreign clients on the internet. There may be a way to configure this without
+accessibility to foreign clients on the internet on Cloudflare's end, but this is beyond the scope of this document.
+{{< /callout >}}
 
 To configure [Cloudflare Zero Trust] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 

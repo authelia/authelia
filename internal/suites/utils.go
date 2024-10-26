@@ -11,13 +11,17 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
+	"testing"
 	"text/template"
 
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/input"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 )
 
@@ -217,6 +221,25 @@ func (s *RodSuite) GetCookieNames() (names []string) {
 	}
 
 	return names
+}
+
+func (s *RodSuite) VerifyPageElementAttributeValueBoolean(t *testing.T, page *rod.Page, cssSelector, name string, required, value bool) {
+	s.VerifyPageElementAttributeValue(t, page, cssSelector, name, required, strconv.FormatBool(value))
+}
+
+func (s *RodSuite) VerifyPageElementAttributeValue(t *testing.T, page *rod.Page, cssSelector, name string, required bool, value string) {
+	element := s.WaitElementLocatedByID(t, page, cssSelector)
+
+	attr, err := element.Attribute(name)
+	require.NoError(t, err)
+
+	require.True(t, !required || attr != nil)
+
+	if attr == nil {
+		return
+	}
+
+	assert.Equal(t, value, *attr)
 }
 
 func fixCoveragePath(path string, file os.FileInfo, err error) error {

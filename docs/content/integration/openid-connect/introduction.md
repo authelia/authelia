@@ -33,13 +33,13 @@ This page is intended as an integration reference point for any implementers who
 When it comes to [OpenID Connect 1.0] there are effectively two types of audiences. There is the audience embedded in
 the [ID Token] which should always include the requesting clients identifier and audience of the [Access Token] and
 [Refresh Token]. The intention of the audience in the [ID Token] is used to convey which Relying Party or client was the
-intended audience of the token. In contrast the audience of the [Access Token] is used by the Authorization Server or
+intended audience of the token. In contrast, the audience of the [Access Token] is used by the Authorization Server or
 Resource Server to satisfy an internal policy. You could consider the [ID Token] and it's audience to be a public facing
 audience, and the audience of other tokens to be private or have private meaning even when the [Access Token] is using
 the [JWT Profile for OAuth 2.0 Access Tokens].
 
-It's also important to note that with the exception of [RFC9068] there is basically no standardized token format for
-a [Access Token] or a [Refresh Token]. Therefore there is no way without the use of the [Introspection] endpoint to
+It's also important to note that except [RFC9068] there is basically no standardized token format for
+an [Access Token] or a [Refresh Token]. Therefore, there is no way without the use of the [Introspection] endpoint to
 determine what audiences these tokens are meant for. It should also be noted that like the scope of a [Refresh Token]
 should effectively never change this also applies to the audience of this token.
 
@@ -55,7 +55,7 @@ For more information about the opaque [Access Token] default see
 ## Scope Definitions
 
 The following scope definitions describe each scope supported and the associated effects including the individual claims
-returned by granting this scope. By default we do not issue any claims which reveal the users identity which allows
+returned by granting this scope. By default, we do not issue any claims which reveal the users identity which allows
 administrators semi-granular control over which claims the client is entitled to.
 
 ### openid
@@ -63,9 +63,19 @@ administrators semi-granular control over which claims the client is entitled to
 This is the default scope for [OpenID Connect 1.0]. This field is forced on every client by the configuration validation
 that Authelia does.
 
-*__Important Note:__ The subject identifiers or `sub` [Claim] has been changed to a [RFC4122] UUID V4 to identify the
-individual user as per the [Subject Identifier Types] section of the [OpenID Connect 1.0] specification. Please use the
-`preferred_username` [Claim] instead.*
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+The combination of the issuer (i.e. `iss`) [Claim](https://openid.net/specs/openid-connect-core-1_0.html#Claims) and
+subject (i.e. `sub`) [Claim](https://openid.net/specs/openid-connect-core-1_0.html#Claims) are utilized to uniquely
+identify a
+user and per the specification the only reliable way to do so as they are guaranteed to be a unique combination. As such
+this is the supported method for linking an account to Authelia. The `preferred_username` and `email` claims from the
+`profile` and `email` scopes respectively should only be utilized for provisioning a new account.
+
+In addition, the `sub` [Claim](https://openid.net/specs/openid-connect-core-1_0.html#Claims) utilizes
+a [RFC4122](https://datatracker.ietf.org/doc/html/rfc4122) UUID V4 to identify the individual user as per the
+[Subject Identifier Types](https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes) section of
+the [OpenID Connect 1.0](https://openid.net/connect/) specification.
+{{< /callout >}}
 
 |  [Claim]  |   JWT Type    | Authelia Attribute |                         Description                         |
 |:---------:|:-------------:|:------------------:|:-----------------------------------------------------------:|
@@ -87,7 +97,7 @@ individual user as per the [Subject Identifier Types] section of the [OpenID Con
 
 This scope is a special scope designed to allow applications to obtain a [Refresh Token] which allows extended access to
 an application on behalf of a user. A [Refresh Token] is a special [Access Token] that allows refreshing previously
-issued token credentials, effectively it allows the relying party to obtain new tokens periodically.
+issued token credentials, effectively it allows the Relying Party to obtain new tokens periodically.
 
 As per [OpenID Connect 1.0] Section 11 [Offline Access] can only be granted during the [Authorization Code Flow] or a
 [Hybrid Flow]. The [Refresh Token] will only ever be returned at the [Token Endpoint] when the client is exchanging
@@ -298,7 +308,8 @@ predictable for implementers we ensure the comparison is done against the lowerc
 Authelia currently supports adding the `amr` [Claim] to the [ID Token] utilizing the [RFC8176] Authentication Method
 Reference values.
 
-The values this [Claim] has are not strictly defined by the [OpenID Connect 1.0] specification. As such, some backends may
+The values this [Claim] has, are not strictly defined by the [OpenID Connect 1.0] specification. As such, some backends
+may
 expect a specification other than [RFC8176] for this purpose. If you have such an application and wish for us to support
 it then you're encouraged to create a [feature request](https://www.authelia.com/l/fr).
 
@@ -340,7 +351,7 @@ When responding with the Signed [JSON Web Token] the [JSON Web Token] `typ` head
 
 ## User Information Signing Algorithm
 
-The following table describes the response from the [UserInfo] endpoint depending on the
+The following table describes the response from the [UserInfo Endpoint] depending on the
 [userinfo_signed_response_alg](../../configuration/identity-providers/openid-connect/clients.md#userinfo_signed_response_alg).
 
 | Signing Algorithm |     Encoding     |           Content Type            |
@@ -359,8 +370,8 @@ The following table describes the response from the [UserInfo] endpoint dependin
 ## Endpoint Implementations
 
 The following section documents the endpoints we implement and their respective paths. This information can
-traditionally be discovered by relying parties that utilize [OpenID Connect Discovery 1.0], however this information may be
-useful for clients which do not implement this.
+traditionally be discovered by Relying Parties that utilize [OpenID Connect Discovery 1.0], however this information may
+be useful for clients which do not implement this.
 
 The endpoints can be discovered easily by visiting the Discovery and Metadata endpoints. It is recommended regardless
 of your version of Authelia that you utilize this version as it will always produce the correct endpoint URLs. The paths
@@ -369,14 +380,15 @@ below.
 
 These tables document the endpoints we currently support and their paths in the most recent version of Authelia. The
 paths are appended to the end of the primary URL used to access Authelia. The tables use the url
-https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}} as an example of the Authelia root URL which is also the OpenID Connect 1.0 Issuer.
+https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}} as an
+example of the Authelia root URL which is also the OpenID Connect 1.0 Issuer.
 
 ### Well Known Discovery Endpoints
 
 These endpoints can be utilized to discover other endpoints and metadata about the Authelia OP.
 
-|                 Endpoint                  |                                                     Path                                                      |
-|:-----------------------------------------:|:-------------------------------------------------------------------------------------------------------------:|
+|                 Endpoint                  |                                                                          Path                                                                          |
+|:-----------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------:|
 |      [OpenID Connect Discovery 1.0]       |    https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration     |
 | [OAuth 2.0 Authorization Server Metadata] | https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}//.well-known/oauth-authorization-server |
 
@@ -384,8 +396,8 @@ These endpoints can be utilized to discover other endpoints and metadata about t
 
 These endpoints implement OpenID Connect 1.0 Provider specifications.
 
-|            Endpoint             |                                                     Path                                                     |          Discovery Attribute          |
-|:-------------------------------:|:------------------------------------------------------------------------------------------------------------:|:-------------------------------------:|
+|            Endpoint             |                                                                         Path                                                                          |          Discovery Attribute          |
+|:-------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------:|
 |       [JSON Web Key Set]        |               https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}//jwks.json               |               jwks_uri                |
 |         [Authorization]         |        https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}//api/oidc/authorization         |        authorization_endpoint         |
 | [Pushed Authorization Requests] | https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}//api/oidc/pushed-authorization-request | pushed_authorization_request_endpoint |
@@ -398,17 +410,17 @@ These endpoints implement OpenID Connect 1.0 Provider specifications.
 
 The following information covers some security topics some users may wish to be familiar with. All of these elements
 offer hardening to the flows in differing ways (i.e. some validate the authorization server and some validate the
-client / relying party) which are not essential but recommended.
+client / Relying Party) which are not essential but recommended.
 
 #### Pushed Authorization Requests Endpoint
 
 The [Pushed Authorization Requests] endpoint is discussed in depth in [RFC9126] as well as in the
 [OAuth 2.0 Pushed Authorization Requests](https://oauth.net/2/pushed-authorization-requests/) documentation.
 
-Essentially it's a special endpoint that takes the same parameters as the [Authorization] endpoint (including
+Essentially it's a special endpoint that takes the same parameters as the [Authorization Endpoint] (including
 [Proof Key Code Exchange](#proof-key-code-exchange)) with a few caveats:
 
-1. The same [Client Authentication] mechanism required by the [Token] endpoint **MUST** be used.
+1. The same [Client Authentication] mechanism required by the [Token Endpoint] **MUST** be used.
 2. The request **MUST** use the [HTTP POST method].
 3. The request **MUST** use the `application/x-www-form-urlencoded` content type (i.e. the parameters **MUST** be in the
    body, not the URI).
@@ -420,7 +432,7 @@ The response of this endpoint is [JSON] encoded with two key-value pairs:
   - `expires_in`
 
 The `expires_in` indicates how long the `request_uri` is valid for. The `request_uri` is used as a parameter to the
-[Authorization] endpoint instead of the standard parameters (as the `request_uri` parameter).
+[Authorization Endpoint] instead of the standard parameters (as the `request_uri` parameter).
 
 The advantages of this approach are as follows:
 
@@ -428,7 +440,7 @@ The advantages of this approach are as follows:
 2. Since you can force all [Authorization] requests to be initiated via [Pushed Authorization Requests] you drastically
    improve the authorization flows resistance to phishing attacks (this can be done globally or on a per-client basis).
 3. Since the [Pushed Authorization Requests] endpoint requires all of the same [Client Authentication] mechanisms as the
-   [Token] endpoint:
+   [Token Endpoint]:
    1. Clients using the confidential [Client Type] can't have [Pushed Authorization Requests] generated by parties who do not
       have the credentials.
    2. Clients using the public [Client Type] and utilizing [Proof Key Code Exchange](#proof-key-code-exchange) never
@@ -436,20 +448,20 @@ The advantages of this approach are as follows:
 
 #### OAuth 2.0 Authorization Server Issuer Identification
 
-The [RFC9207: OAuth 2.0 Authorization Server Issuer Identification] implementation allows relying parties to validate
+The [RFC9207: OAuth 2.0 Authorization Server Issuer Identification] implementation allows Relying Parties to validate
 the Authorization Response was returned by the expected issuer by ensuring the response includes the exact issuer in
 the response. This is an additional check in addition to the `state` parameter.
 
-This validation is not supported by many clients but it should be utilized if it is supported.
+This validation is not supported by many clients, but it should be utilized if it is supported.
 
 #### JWT Secured Authorization Response Mode (JARM)
 
 The [JWT Secured Authorization Response Mode for OAuth 2.0 (JARM)] implementation similar to
 [OAuth 2.0 Authorization Server Issuer Identification](#oauth-20-authorization-server-issuer-identification) allows a
-relying party to ensure the Authorization Response was returned by the expected issuer and also ensures the response
+Relying Party to ensure the Authorization Response was returned by the expected issuer and also ensures the response
 was not tampered with or forged as it is cryptographically signed.
 
-This response mode is not supported by many clients but we recommend it is used if it's supported.
+This response mode is not supported by many clients, but we recommend it is used if it's supported.
 
 #### Proof Key Code Exchange
 
@@ -461,14 +473,14 @@ SHA256 hash. The original value is saved by the Relying Party, and the hashed va
 request in the `code_verifier` parameter with the `code_challenge_method` set to `S256` (or `plain` using a bad practice
 of not hashing the opaque value).
 
-When the Relying Party requests the token from the [Token] endpoint, they must include the `code_verifier` parameter
+When the Relying Party requests the token from the [Token Endpoint], they must include the `code_verifier` parameter
 again (in the body), but this time they send the value without it being hashed.
 
 The advantages of this approach are as follows:
 
 1. Provided the value was hashed it's certain that the Relying Party which generated the authorization request is the
    same party as the one requesting the token or is permitted by the Relying Party to make this request.
-2. Even when using the public [Client Type] there is a form of authentication on the  [Token] endpoint.
+2. Even when using the public [Client Type] there is a form of authentication on the  [Token Endpoint].
 
 [ID Token]: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
 [Access Token]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.4
@@ -490,8 +502,11 @@ The advantages of this approach are as follows:
 [Offline Access]: https://openid.net/specs/openid-connect-core-1_0.html#OfflineAccess
 
 [Authorization]: https://openid.net/specs/openid-connect-core-1_0.html#AuthorizationEndpoint
+[Authorization Endpoint]: https://openid.net/specs/openid-connect-core-1_0.html#AuthorizationEndpoint
 [Token]: https://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
+[Token Endpoint]: https://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
 [UserInfo]: https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
+[UserInfo Endpoint]: https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
 
 [Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
 [Introspection]: https://datatracker.ietf.org/doc/html/rfc7662

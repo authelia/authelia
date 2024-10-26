@@ -95,11 +95,12 @@ To configure [PowerDNS Admin] to utilize Authelia as an [OpenID Connect 1.0] Pro
    12. Autoprovision Account Name property: `preferred_username`
    13. Autoprovision Account Description property : `name`
 
-*__Note:__ Currently, Authelia only supports the preferred_username and name claims under the profile scope. However PowerDNS-Admin only supports a FirstName LastName system, where the two are separate, instead of using the name claim to fetch the full name. This means that the names in the system are incorrect. (See linked ticket(https://github.com/authelia/authelia/issues/4338))
-
-{{< figure src="powerdns.png" alt="PowerDNS Admin" width="736" style="padding-right: 10px" >}}
-
-*__Note:__ Currently, Authelia only supports the preferred_username and name claims under the profile scope. However PowerDNS-Admin only supports a FirstName LastName system, where the two are separate, instead of using the name claim to fetch the full name. This means that the names in the system are incorrect. (See linked ticket(https://github.com/authelia/authelia/issues/4338))
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+Currently, Authelia only supports the preferred_username and name claims under the profile scope. However PowerDNS-Admin
+only supports a FirstName LastName system, where the two are separate, instead of using the name claim to fetch the full
+name. This means that the names in the system are incorrect. See issue
+[#4338](https://github.com/authelia/authelia/issues/4338).
+{{< /callout >}}
 
 {{< figure src="powerdns.png" alt="PowerDNS Admin" width="736" style="padding-right: 10px" >}}
 

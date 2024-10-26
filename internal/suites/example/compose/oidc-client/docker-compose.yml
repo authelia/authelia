@@ -12,7 +12,7 @@ services:
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.routers.oidc.rule=Host(`oidc.example.com`)'
-      - 'traefik.http.routers.oidc.priority=150'
+      - 'traefik.http.routers.oidc.priority=1000'
       - 'traefik.http.routers.oidc.tls=true'
       - 'traefik.http.routers.oidc.middlewares=authelia@docker'
     networks:

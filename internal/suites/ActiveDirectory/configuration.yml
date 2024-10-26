@@ -3,6 +3,7 @@
 #                Authelia minimal configuration               #
 ###############################################################
 
+certificates_directory: /certs/
 theme: 'grey'
 
 server:
@@ -71,7 +72,6 @@ regulation:
 
 notifier:
   smtp:
-    address: 'smtp://smtp:1025'
+    address: 'smtp://mail.example.com:1025'
     sender: 'admin@example.com'
-    disable_require_tls: true
 ...

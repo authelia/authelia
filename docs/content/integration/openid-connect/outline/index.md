@@ -40,8 +40,10 @@ Some of the values presented in this guide can automatically be replaced with do
 
 {{< sitevar-preferences >}}
 
-*__Important Note:__ At the time of this writing [Outline] requires the `offline_access` scope by default. Failure to
-include this scope will result in an error as [Outline] will attempt to use a refresh token that is never issued.*
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+At the time of this writing [Outline](https://www.getoutline.com/) requires the `offline_access` scope by default. Failure to
+include this scope will result in an error as [Outline](https://www.getoutline.com/) will attempt to use a refresh token that is never issued.
+{{< /callout >}}
 
 ## Configuration
 
@@ -88,7 +90,7 @@ OIDC_TOKEN_URI=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{<
 OIDC_USERINFO_URI=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo
 OIDC_USERNAME_CLAIM=preferred_username
 OIDC_DISPLAY_NAME=Authelia
-OIDC_SCOPES="openid offline_access profile email"
+OIDC_SCOPES=openid offline_access profile email
 ```
 
 ## See Also

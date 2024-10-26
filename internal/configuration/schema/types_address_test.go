@@ -362,7 +362,7 @@ func TestAddressOutputValues(t *testing.T) {
 	assert.Equal(t, "", address.Host())
 	assert.Equal(t, "", address.Hostname())
 	assert.Equal(t, "", address.NetworkAddress())
-	assert.Equal(t, 0, address.Port())
+	assert.Equal(t, uint16(0), address.Port())
 
 	listener, err = address.Listener()
 
@@ -376,7 +376,7 @@ func TestAddressOutputValues(t *testing.T) {
 	assert.Equal(t, "0.0.0.0:8080", address.Host())
 	assert.Equal(t, "0.0.0.0", address.Hostname())
 	assert.Equal(t, "0.0.0.0:8080", address.NetworkAddress())
-	assert.Equal(t, 8080, address.Port())
+	assert.Equal(t, uint16(8080), address.Port())
 
 	listener, err = address.Listener()
 
@@ -390,7 +390,7 @@ func TestAddressOutputValues(t *testing.T) {
 	assert.Equal(t, "", address.Host())
 	assert.Equal(t, "", address.Hostname())
 	assert.Equal(t, "", address.NetworkAddress())
-	assert.Equal(t, 0, address.Port())
+	assert.Equal(t, uint16(0), address.Port())
 
 	listener, err = address.Listener()
 
@@ -405,7 +405,7 @@ func TestAddressOutputValues(t *testing.T) {
 	assert.Equal(t, "", address.Host())
 	assert.Equal(t, "", address.Hostname())
 	assert.Equal(t, "", address.NetworkAddress())
-	assert.Equal(t, 0, address.Port())
+	assert.Equal(t, uint16(0), address.Port())
 
 	listener, err = address.Listener()
 
@@ -419,7 +419,7 @@ func TestAddressOutputValues(t *testing.T) {
 	assert.Equal(t, "0.0.0.0:9091", address.Host())
 	assert.Equal(t, "0.0.0.0", address.Hostname())
 	assert.Equal(t, "0.0.0.0:9091", address.NetworkAddress())
-	assert.Equal(t, 9091, address.Port())
+	assert.Equal(t, uint16(9091), address.Port())
 
 	listener, err = address.Listener()
 
@@ -435,7 +435,7 @@ func TestAddressOutputValues(t *testing.T) {
 	assert.Equal(t, "0.0.0.0:9092", address.Host())
 	assert.Equal(t, "0.0.0.0", address.Hostname())
 	assert.Equal(t, "0.0.0.0:9092", address.NetworkAddress())
-	assert.Equal(t, 9092, address.Port())
+	assert.Equal(t, uint16(9092), address.Port())
 
 	listener, err = address.Listener()
 
@@ -451,7 +451,7 @@ func TestAddressOutputValues(t *testing.T) {
 	assert.Equal(t, "example.com:9092", address.Host())
 	assert.Equal(t, "example.com", address.Hostname())
 	assert.Equal(t, "example.com:9092", address.NetworkAddress())
-	assert.Equal(t, 9092, address.Port())
+	assert.Equal(t, uint16(9092), address.Port())
 }
 
 func TestNewAddressUnix(t *testing.T) {
@@ -473,11 +473,11 @@ func TestNewSMTPAddress(t *testing.T) {
 		name                            string
 		haveScheme                      string
 		haveHost                        string
-		havePort                        int
+		havePort                        uint16
 		expected                        string
 		expectedNetwork, expectedScheme string
 		expectedHostname                string
-		expectedPort                    int
+		expectedPort                    uint16
 		expectedExplicitTLS             bool
 	}{
 		{
@@ -887,7 +887,7 @@ func TestNewAddressFromNetworkValuesDefault(t *testing.T) {
 	testCases := []struct {
 		name                  string
 		haveHost              string
-		havePort              int
+		havePort              uint16
 		haveSchemeDefault     string
 		haveSchemeDefaultPath string
 		expected              string

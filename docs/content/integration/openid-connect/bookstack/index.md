@@ -40,11 +40,11 @@ Some of the values presented in this guide can automatically be replaced with do
 
 {{< sitevar-preferences >}}
 
-*__Important Note:__ [BookStack] does not properly URL encode the secret per [RFC6749 Appendix B] at the time this
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+[BookStack](https://www.bookstackapp.com/) does not properly URL encode the secret per [RFC6749 Appendix B](https://datatracker.ietf.org/doc/html/rfc6749#appendix-B) at the time this
 article was last modified (noted at the bottom). This means you'll either have to use only alphanumeric characters for
-the secret or URL encode the secret yourself.*
-
-[RFC6749 Appendix B]: https://datatracker.ietf.org/doc/html/rfc6749#appendix-B
+the secret or URL encode the secret yourself.
+{{< /callout >}}
 
 ## Configuration
 

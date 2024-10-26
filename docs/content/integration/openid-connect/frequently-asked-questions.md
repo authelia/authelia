@@ -51,7 +51,7 @@ separately.
 {{< envTabs "Generate a Random Client ID" >}}
 {{< envTab "Docker" >}}
 ```bash
-docker run authelia/authelia:latest authelia crypto rand --length 72 --charset rfc3986
+docker run --rm authelia/authelia:latest authelia crypto rand --length 72 --charset rfc3986
 ```
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
@@ -77,7 +77,7 @@ separately.
 {{< envTabs "Generate a Random Client Secret" >}}
 {{< envTab "Docker" >}}
 ```bash
-docker run authelia/authelia:latest authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986
+docker run --rm authelia/authelia:latest authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986
 ```
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
@@ -100,7 +100,11 @@ your hardware's capabilities.
 
 To test the duration of different work factors, you can measure it like this:
 `time authelia crypto hash generate pbkdf2 --variant sha512 --iterations 310000 --password insecure_password`.
-Note: You should not use your actual passwords for this test, the time taken should be the same for any reasonable password length.
+
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+You should not use your actual passwords for this test, the time taken should be the same for any reasonable password
+length.
+{{< /callout >}}
 
 You can read more about password hashing tuning in the
 [Passwords reference guide](../../reference/guides/passwords.md#tuning).
@@ -222,6 +226,31 @@ revoked due to known compromise; the revocation will take place much faster.
 Users who still desire or have an application that requires the Access Token is a JWT should configure the
 [access_token_signed_response_alg](../../configuration/identity-providers/openid-connect/clients.md#access_token_signed_response_alg)
 client configuration option.
+
+### How should I link user accounts to Authelia OpenID Connect 1.0 responses in the application I'm designing?
+
+There are several in-use methodologies for linking user accounts ot OpenID Connect 1.0 Providers. The specification has
+a fairly strong opinion about how this is done for various reasons and the supported method by Authelia is the same as
+what the specification supports.
+
+Specifically we support using the combination of the `iss` and `sub` claim as an anchor to local user accounts. This
+combination is a combination that must be unique for any given user identity. Claims such as `email` and
+`preferred_username` have no formal guarantees of stability by the OpenID Connect 1.0 specification.
+
+Several in-use applications including ones that Authelia users frequently use utilize claims such as `email` and
+`preferred_username`. However these implementations are in contradiction with the specification. These attributes
+realistically should only be used as hints when a user who has not linked their account tries to login with OpenID
+Connect 1.0 and has not logged in yet. For example an application may prefill the username or email field of a login or
+registration form using these claims.
+
+Utilization of these claims could potentially become problematic if we ever implement a feature to change usernames or
+email addresses. Therefore we only guarantee the stability of those specific claims and at such a time as we allow
+changing of usernames or email addresses the link between those values will remain stable, any other claim is to be
+considered fragile.
+
+If interested in the specification you can read the
+[Claim Stability and Uniqueness](https://openid.net/specs/openid-connect-core-1_0.html#ClaimStability) section of the
+specification.
 
 ## Solutions
 

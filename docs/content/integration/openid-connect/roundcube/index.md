@@ -94,12 +94,14 @@ $config['oauth_scope'] = 'email openid profile';
 // $config['oauth_login_redirect'] = true;
 ```
 
-*__Important Note:__ Roundcube's redirect URI is not configurable, but is dynamically built with bits coming from the
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Roundcube's redirect URI is not configurable, but is dynamically built with bits coming from the
 FCGI environment: `<scheme>://<fqdn>[:<port>]/...`. Specifically, the FQDN comes from the `HTTP_HOST` header. With
 Authelia, non-localhost HTTP redirection is not allowed, thus you might want to force HTTPS via Roundcube's conf flag
 `use_https`. However, the redirection breaks when the upstream application is listening on a explicit port, because the
 resulting redirect URI would be something like `https://<fqdn>:<port>/...`. Thus, to obtain the correct redirect URI
-`https://<fqdn>/...`, your reverse proxy's `fastcgi` parameter `SERVER_PORT` should be unset.*
+`https://<fqdn>/...`, your reverse proxy's `fastcgi` parameter `SERVER_PORT` should be unset.
+{{< /callout >}}
 
 IMAP and SMTP backend configuration:
 - For an IMAP instance on localhost, the default conf should be enough. Otherwise, set the corresponding SSL/TLS options
@@ -147,8 +149,10 @@ introspection_url = https://roundcube:insecure_secret@{{< sitevar name="subdomai
 username_attribute = username
 ```
 
-*__Important Note:__ The client ID and secret must figure as credentials in
-the `introspection_url`.*
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+The client ID and secret must figure as credentials in
+the `introspection_url`.
+{{< /callout >}}
 
 ### Postfix
 

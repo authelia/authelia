@@ -69,6 +69,6 @@ notifier:
     username: 'test'
     # This secret can also be set using the env variables AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE
     password: 'password'
-    address: 'smtp://mail.exmaple.com:25'
+    address: 'smtp://mail.example.com:25'
     sender: 'admin@example.com'
 ...

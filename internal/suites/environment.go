@@ -73,7 +73,7 @@ func waitUntilSambaIsReady(dockerEnvironment *DockerEnvironment) error {
 		[]string{"samba entered RUNNING state"})
 }
 
-func waitUntilRestartedServiceIsReady(dockerEnvironment *DockerEnvironment, service, log string) error {
+func waitUntilServiceLog(dockerEnvironment *DockerEnvironment, service, log string) error {
 	return waitUntilServiceLogDetected(
 		time.Second,
 		10*time.Second,

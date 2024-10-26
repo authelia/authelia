@@ -72,10 +72,12 @@ by Authelia from others.
 
 {{< confkey type="string" default="sha1" required="no" >}}
 
-*__Important Note:__ Many TOTP applications do not support this option. It is strongly advised you find out which
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Many TOTP applications do not support this option. It is strongly advised you find out which
 applications your users use and test them before changing this option. It is insufficient to test that the application
 can add the key, it must also authenticate with Authelia as some applications silently ignore these options. See the
-[Reference Guide](../../reference/integrations/time-based-one-time-password-apps.md) for tested applications.*
+[Reference Guide](../../reference/integrations/time-based-one-time-password-apps.md) for tested applications.
+{{< /callout >}}
 
 [Bitwarden]: https://bitwarden.com/
 
@@ -94,10 +96,12 @@ information.
 
 {{< confkey type="integer" default="6" required="no" >}}
 
-*__Important Note:__ Some TOTP applications do not support this option. It is strongly advised you find out which
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Some TOTP applications do not support this option. It is strongly advised you find out which
 applications your users use and test them before changing this option. It is insufficient to test that the application
 can add the key, it must also authenticate with Authelia as some applications silently ignore these options. See the
-[Reference Guide](../../reference/integrations/time-based-one-time-password-apps.md) for tested applications.*
+[Reference Guide](../../reference/integrations/time-based-one-time-password-apps.md) for tested applications.
+{{< /callout >}}
 
 The number of digits a user needs to input to perform authentication. It's generally not recommended for this to be
 altered as many TOTP applications do not support anything other than 6. What's worse is some TOTP applications allow
