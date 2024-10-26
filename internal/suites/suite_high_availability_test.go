@@ -305,12 +305,12 @@ func (s *HighAvailabilitySuite) TestBasicAuth() {
 	s.Assert().Equal(fasthttp.StatusFound, DoGetWithAuth(s.T(), "dontexist", "password"))
 }
 
-func (s *HighAvailabilitySuite) Test1FAScenario() {
-	suite.Run(s.T(), New1FAScenario())
+func (s *HighAvailabilitySuite) TestOneFactorScenario() {
+	suite.Run(s.T(), NewOneFactorScenario())
 }
 
-func (s *HighAvailabilitySuite) Test2FATOTPScenario() {
-	suite.Run(s.T(), New2FATOTPScenario())
+func (s *HighAvailabilitySuite) TestTwoFactorTOTPScenario() {
+	suite.Run(s.T(), NewTwoFactorTOTPScenario())
 }
 
 func (s *HighAvailabilitySuite) TestRegulationScenario() {

@@ -50,6 +50,19 @@ func (rs *RodSession) doLoginOneFactor(t *testing.T, page *rod.Page, username, p
 	rs.doFillLoginPageAndClick(t, page, username, password, keepMeLoggedIn)
 }
 
+func (rs *RodSession) doLoginPasskey(t *testing.T, page *rod.Page, keepMeLoggedIn bool, domain string, targetURL string) {
+	rs.doVisitLoginPage(t, page, domain, targetURL)
+
+	if keepMeLoggedIn {
+		keepMeLoggedInElement := rs.WaitElementLocatedByID(t, page, "remember-checkbox")
+		require.NoError(t, keepMeLoggedInElement.Click("left", 1))
+	}
+
+	passkeyElement := rs.WaitElementLocatedByID(t, page, "passkey-sign-in-button")
+
+	require.NoError(t, passkeyElement.Click("left", 1))
+}
+
 // Login 1FA and 2FA subsequently (must already be registered).
 func (rs *RodSession) doLoginSecondFactorTOTP(t *testing.T, page *rod.Page, username, password string, keepMeLoggedIn bool, targetURL string) {
 	rs.doLoginOneFactor(t, page, username, password, keepMeLoggedIn, BaseDomain, targetURL)

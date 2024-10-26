@@ -16,12 +16,12 @@ func NewPostgresSuite() *PostgresSuite {
 	}
 }
 
-func (s *PostgresSuite) Test1FAScenario() {
-	suite.Run(s.T(), New1FAScenario())
+func (s *PostgresSuite) TestOneFactorScenario() {
+	suite.Run(s.T(), NewOneFactorScenario())
 }
 
-func (s *PostgresSuite) Test2FATOTPScenario() {
-	suite.Run(s.T(), New2FATOTPScenario())
+func (s *PostgresSuite) TestTwoFactorTOTPScenario() {
+	suite.Run(s.T(), NewTwoFactorTOTPScenario())
 }
 
 func TestPostgresSuite(t *testing.T) {
