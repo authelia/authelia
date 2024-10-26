@@ -65,7 +65,7 @@ func TestWebAuthnFormatError(t *testing.T) {
 	}
 }
 
-func TestWebAuthnGetUserx(t *testing.T) {
+func TestWebAuthnGetUser(t *testing.T) {
 	testCases := []struct {
 		name        string
 		setup       func(t *testing.T, mock *mocks.MockAutheliaCtx)
@@ -490,6 +490,18 @@ func TestWebAuthnHandlerDiscoverableLogin(t *testing.T) {
 			},
 			nil,
 			"user does not exist",
+		},
+		{
+			"ShouldHandleUserNil",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				gomock.InOrder(
+					mock.StorageMock.EXPECT().
+						LoadWebAuthnUserByUserID(mock.Ctx, "https://example.com", "example").
+						Return(nil, nil),
+				)
+			},
+			nil,
+			"user not found",
 		},
 	}
 
