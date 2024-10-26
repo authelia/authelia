@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"net"
 	"sync"
@@ -19,11 +20,12 @@ import (
 type LDAPClientFactory interface {
 	Initialize() (err error)
 	GetClient(opts ...LDAPClientFactoryOption) (client ldap.Client, err error)
-	Shutdown() (err error)
+	ReleaseClient(client ldap.Client) (err error)
+	Close() (err error)
 }
 
-// NewLDAPClientFactoryStandard create a concrete ldap connection factory.
-func NewLDAPClientFactoryStandard(config *schema.AuthenticationBackendLDAP, certs *x509.CertPool, dialer LDAPClientDialer) *LDAPClientStandardFactory {
+// NewStandardLDAPClientFactory create a concrete ldap connection factory.
+func NewStandardLDAPClientFactory(config *schema.AuthenticationBackendLDAP, certs *x509.CertPool, dialer LDAPClientDialer) LDAPClientFactory {
 	if dialer == nil {
 		dialer = &LDAPClientDialerStandard{}
 	}
@@ -35,7 +37,7 @@ func NewLDAPClientFactoryStandard(config *schema.AuthenticationBackendLDAP, cert
 		ldap.DialWithTLSConfig(tlsc),
 	}
 
-	return &LDAPClientStandardFactory{
+	return &StandardLDAPClientFactory{
 		config: config,
 		tls:    tlsc,
 		opts:   opts,
@@ -43,125 +45,113 @@ func NewLDAPClientFactoryStandard(config *schema.AuthenticationBackendLDAP, cert
 	}
 }
 
-// LDAPClientStandardFactory the production implementation of an ldap connection factory.
-type LDAPClientStandardFactory struct {
+// StandardLDAPClientFactory the production implementation of an ldap connection factory.
+type StandardLDAPClientFactory struct {
 	config *schema.AuthenticationBackendLDAP
 	tls    *tls.Config
 	opts   []ldap.DialOpt
 	dialer LDAPClientDialer
 }
 
-func (f *LDAPClientStandardFactory) Initialize() (err error) {
+func (f *StandardLDAPClientFactory) Initialize() (err error) {
 	return nil
 }
 
-func (f *LDAPClientStandardFactory) GetClient(opts ...LDAPClientFactoryOption) (client ldap.Client, err error) {
-	config := &LDAPClientFactoryOptions{
-		Address:  f.config.Address.String(),
-		Username: f.config.User,
-		Password: f.config.Password,
-	}
-
-	for _, opt := range opts {
-		opt(config)
-	}
-
-	if client, err = f.dialer.DialURL(config.Address, f.opts...); err != nil {
-		return nil, fmt.Errorf("error occurred dialing address: %w", err)
-	}
-
-	if f.tls != nil && f.config.StartTLS {
-		if err = client.StartTLS(f.tls); err != nil {
-			_ = client.Close()
-
-			return nil, fmt.Errorf("error occurred performing starttls: %w", err)
-		}
-	}
-
-	if config.Password == "" {
-		err = client.UnauthenticatedBind(config.Username)
-	} else {
-		err = client.Bind(config.Username, config.Password)
-	}
-
-	if err != nil {
-		_ = client.Close()
-
-		return nil, fmt.Errorf("error occurred performing bind: %w", err)
-	}
-
-	return client, nil
+func (f *StandardLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (client ldap.Client, err error) {
+	return getLDAPClient(f.config.Address.String(), f.config.User, f.config.Password, f.dialer, f.tls, f.config.StartTLS, f.opts, opts...)
 }
 
-func (f *LDAPClientStandardFactory) Shutdown() (err error) {
+func (f *StandardLDAPClientFactory) ReleaseClient(client ldap.Client) (err error) {
+	if err = client.Close(); err != nil {
+		return fmt.Errorf("error occurred closing LDAP client: %w", err)
+	}
+
 	return nil
 }
 
-// NewLDAPConnectionFactoryPooled is a decorator for a LDAPClientFactory that performs pooling.
-func NewLDAPConnectionFactoryPooled(factory LDAPClientFactory, count, retries int, timeout time.Duration) (pool *LDAPClientPooledFactory) {
-	if count <= 0 {
-		count = 5
+func (f *StandardLDAPClientFactory) Close() (err error) {
+	return nil
+}
+
+// NewPooledLDAPClientFactory is a decorator for a LDAPClientFactory that performs pooling.
+func NewPooledLDAPClientFactory(config *schema.AuthenticationBackendLDAP, certs *x509.CertPool, dialer LDAPClientDialer) (factory LDAPClientFactory) {
+	if dialer == nil {
+		dialer = &LDAPClientDialerStandard{}
 	}
 
-	if retries <= 0 {
-		retries = 2
+	tlsc := utils.NewTLSConfig(config.TLS, certs)
+
+	opts := []ldap.DialOpt{
+		ldap.DialWithDialer(&net.Dialer{Timeout: config.Timeout}),
+		ldap.DialWithTLSConfig(tlsc),
 	}
 
-	if timeout.Seconds() <= 0 {
-		timeout = time.Second * 10
+	if config.Pooling.Count <= 0 {
+		config.Pooling.Count = 3
 	}
 
-	sleep := timeout / time.Duration(retries)
+	if config.Pooling.Retries <= 0 {
+		config.Pooling.Retries = 3
+	}
 
-	return &LDAPClientPooledFactory{
-		factory: factory,
-		count:   count,
-		timeout: timeout,
-		sleep:   sleep,
+	if config.Pooling.Timeout <= 0 {
+		config.Pooling.Timeout = time.Second
+	}
+
+	sleep := config.Pooling.Timeout / time.Duration(config.Pooling.Retries)
+
+	return &PooledLDAPClientFactory{
+		config: config,
+		tls:    tlsc,
+		opts:   opts,
+		dialer: dialer,
+		sleep:  sleep,
 	}
 }
 
-// LDAPClientPooledFactory is a LDAPClientFactory that takes another LDAPClientFactory and pools the
+// PooledLDAPClientFactory is a LDAPClientFactory that takes another LDAPClientFactory and pools the
 // factory generated connections using a channel for thread safety.
-type LDAPClientPooledFactory struct {
-	factory LDAPClientFactory
+type PooledLDAPClientFactory struct {
+	config *schema.AuthenticationBackendLDAP
+	tls    *tls.Config
+	opts   []ldap.DialOpt
+	dialer LDAPClientDialer
 
-	count int
+	pool chan *LDAPClientPooled
+	mu   sync.Mutex
 
-	timeout time.Duration
-	sleep   time.Duration
-
-	clients chan *LDAPClientPooled
+	sleep time.Duration
 
 	closing bool
-
-	mu sync.Mutex
-	wg sync.WaitGroup
 }
 
-func (f *LDAPClientPooledFactory) Initialize() (err error) {
+func (f *PooledLDAPClientFactory) Initialize() (err error) {
 	f.mu.Lock()
 
 	defer f.mu.Unlock()
 
-	f.clients = make(chan *LDAPClientPooled, f.count)
+	if f.pool != nil {
+		return nil
+	}
+
+	f.pool = make(chan *LDAPClientPooled, f.config.Pooling.Count)
 
 	var (
 		errs   []error
 		client *LDAPClientPooled
 	)
 
-	for i := 0; i < f.count; i++ {
+	for i := 0; i < f.config.Pooling.Count; i++ {
 		if client, err = f.new(); err != nil {
 			errs = append(errs, err)
 
 			continue
 		}
 
-		f.clients <- client
+		f.pool <- client
 	}
 
-	if len(errs) == f.count {
+	if len(errs) == f.config.Pooling.Count {
 		return fmt.Errorf("errors occurred initializing the client pool: no connections could be established")
 	}
 
@@ -169,56 +159,46 @@ func (f *LDAPClientPooledFactory) Initialize() (err error) {
 }
 
 // GetClient opens new client using the pool.
-func (f *LDAPClientPooledFactory) GetClient(opts ...LDAPClientFactoryOption) (conn ldap.Client, err error) {
+func (f *PooledLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (conn ldap.Client, err error) {
 	if len(opts) != 0 {
-		return f.factory.GetClient(opts...)
+		return getLDAPClient(f.config.Address.String(), f.config.User, f.config.Password, f.dialer, f.tls, f.config.StartTLS, f.opts, opts...)
 	}
 
 	return f.acquire(context.Background())
 }
 
-func (f *LDAPClientPooledFactory) new() (pooled *LDAPClientPooled, err error) {
-	f.mu.Lock()
-
-	defer f.mu.Unlock()
-
-	capacity, active := cap(f.clients), len(f.clients)
-
-	if active >= capacity {
-		return nil, fmt.Errorf("error occurred establishing new client for the pool: pool is already the maximum size")
-	}
-
+// The new function creates a pool based client. This function is not thread safe.
+func (f *PooledLDAPClientFactory) new() (pooled *LDAPClientPooled, err error) {
 	var client ldap.Client
 
-	if client, err = f.factory.GetClient(); err != nil {
-		return nil, err
+	if client, err = getLDAPClient(f.config.Address.String(), f.config.User, f.config.Password, f.dialer, f.tls, f.config.StartTLS, f.opts); err != nil {
+		return nil, fmt.Errorf("error occurred establishing new client for the pool: %w", err)
 	}
 
-	f.wg.Add(1)
-
-	return &LDAPClientPooled{pool: f, Client: client}, nil
+	return &LDAPClientPooled{Client: client}, nil
 }
 
-func (f *LDAPClientPooledFactory) relinquish(client *LDAPClientPooled) (err error) {
+// ReleaseClient returns a client using the pool or closes it.
+func (f *PooledLDAPClientFactory) ReleaseClient(client ldap.Client) (err error) {
 	f.mu.Lock()
 
 	defer f.mu.Unlock()
 
 	if f.closing {
-		return client.Client.Close()
+		return client.Close()
 	}
 
-	// Prevent extra connections from being added to the f and hanging around.
-	if cap(f.clients) == len(f.clients) {
-		return client.Client.Close()
+	if pool, ok := client.(*LDAPClientPooled); !ok || cap(f.pool) == len(f.pool) {
+		// Prevent extra or non-pool connections from being returned into the pool.
+		return client.Close()
+	} else {
+		f.pool <- pool
 	}
-
-	f.clients <- client
 
 	return nil
 }
 
-func (f *LDAPClientPooledFactory) acquire(ctx context.Context) (client *LDAPClientPooled, err error) {
+func (f *PooledLDAPClientFactory) acquire(ctx context.Context) (client *LDAPClientPooled, err error) {
 	f.mu.Lock()
 
 	defer f.mu.Unlock()
@@ -227,22 +207,20 @@ func (f *LDAPClientPooledFactory) acquire(ctx context.Context) (client *LDAPClie
 		return nil, fmt.Errorf("error acquiring client: the pool is closed")
 	}
 
-	if cap(f.clients) != f.count {
+	if cap(f.pool) != f.config.Pooling.Count {
 		if err = f.Initialize(); err != nil {
 			return nil, err
 		}
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, f.timeout)
+	ctx, cancel := context.WithTimeout(ctx, f.config.Pooling.Timeout)
 	defer cancel()
 
 	select {
 	case <-ctx.Done():
 		return nil, ctx.Err()
-	case client = <-f.clients:
+	case client = <-f.pool:
 		if client.IsClosing() || client.Client == nil {
-			f.wg.Done()
-
 			for {
 				select {
 				case <-ctx.Done():
@@ -263,41 +241,30 @@ func (f *LDAPClientPooledFactory) acquire(ctx context.Context) (client *LDAPClie
 	}
 }
 
-func (f *LDAPClientPooledFactory) Shutdown() (err error) {
+func (f *PooledLDAPClientFactory) Close() (err error) {
 	f.mu.Lock()
+
+	defer f.mu.Unlock()
 
 	f.closing = true
 
-	f.mu.Unlock()
+	close(f.pool)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	var errs []error
 
-	defer cancel()
-
-	go func() {
-		for {
-			select {
-			case client, ok := <-f.clients:
-				if !ok {
-					continue
-				}
-
-				_ = client.Client.Close()
-
-				f.wg.Done()
-			case <-ctx.Done():
-				return
-			}
+	for client := range f.pool {
+		if client.IsClosing() {
+			continue
 		}
-	}()
 
-	f.wg.Wait()
+		if err = client.Close(); err != nil {
+			errs = append(errs, err)
+		}
+	}
 
-	f.mu.Lock()
-
-	close(f.clients)
-
-	f.mu.Unlock()
+	if len(errs) > 0 {
+		return fmt.Errorf("errors occurred closing the client pool: %w", errors.Join(errs...))
+	}
 
 	return nil
 }
@@ -305,12 +272,43 @@ func (f *LDAPClientPooledFactory) Shutdown() (err error) {
 // LDAPClientPooled is a decorator for the ldap.Client which handles the pooling functionality. i.e. prevents the client
 // from being closed and instead relinquishes the connection back to the pool.
 type LDAPClientPooled struct {
-	pool *LDAPClientPooledFactory
-
 	ldap.Client
 }
 
-// Close the LDAPClientPooled by relinquishing access to it and making it available in the pool again.
-func (c *LDAPClientPooled) Close() (err error) {
-	return c.pool.relinquish(c)
+func getLDAPClient(address, username, password string, dialer LDAPClientDialer, tls *tls.Config, startTLS bool, dialerOpts []ldap.DialOpt, opts ...LDAPClientFactoryOption) (client ldap.Client, err error) {
+	config := &LDAPClientFactoryOptions{
+		Address:  address,
+		Username: username,
+		Password: password,
+	}
+
+	for _, opt := range opts {
+		opt(config)
+	}
+
+	if client, err = dialer.DialURL(config.Address, dialerOpts...); err != nil {
+		return nil, fmt.Errorf("error occurred dialing address: %w", err)
+	}
+
+	if tls != nil && startTLS {
+		if err = client.StartTLS(tls); err != nil {
+			_ = client.Close()
+
+			return nil, fmt.Errorf("error occurred performing starttls: %w", err)
+		}
+	}
+
+	if config.Password == "" {
+		err = client.UnauthenticatedBind(config.Username)
+	} else {
+		err = client.Bind(config.Username, config.Password)
+	}
+
+	if err != nil {
+		_ = client.Close()
+
+		return nil, fmt.Errorf("error occurred performing bind: %w", err)
+	}
+
+	return client, nil
 }

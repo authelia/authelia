@@ -46,16 +46,18 @@ type LDAPUserProvider struct {
 	groupsFilterReplacementsMemberOfRDN bool
 }
 
-// NewLDAPUserProvider creates a new instance of LDAPUserProvider with the LDAPClientStandardFactory.
+// NewLDAPUserProvider creates a new instance of LDAPUserProvider with the StandardLDAPClientFactory.
 func NewLDAPUserProvider(config schema.AuthenticationBackend, certs *x509.CertPool) (provider *LDAPUserProvider) {
 	if config.LDAP.TLS == nil {
 		config.LDAP.TLS = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.TLS
 	}
 
-	factory := NewLDAPClientFactoryStandard(config.LDAP, certs, nil)
+	var factory LDAPClientFactory
 
 	if config.LDAP.Pooling.Enable {
-		return NewLDAPUserProviderWithFactory(config.LDAP, config.PasswordReset.Disable, NewLDAPConnectionFactoryPooled(factory, config.LDAP.Pooling.Count, config.LDAP.Pooling.Retries, config.LDAP.Pooling.Timeout))
+		factory = NewPooledLDAPClientFactory(config.LDAP, certs, nil)
+	} else {
+		factory = NewStandardLDAPClientFactory(config.LDAP, certs, nil)
 	}
 
 	return NewLDAPUserProviderWithFactory(config.LDAP, config.PasswordReset.Disable, factory)
@@ -88,7 +90,11 @@ func (p *LDAPUserProvider) CheckUserPassword(username string, password string) (
 		return false, err
 	}
 
-	defer client.Close()
+	defer func() {
+		if err := p.factory.ReleaseClient(client); err != nil {
+			p.log.WithError(err).Warn("Error occurred releasing the LDAP client")
+		}
+	}()
 
 	if profile, err = p.getUserProfile(client, username); err != nil {
 		return false, err
@@ -98,7 +104,11 @@ func (p *LDAPUserProvider) CheckUserPassword(username string, password string) (
 		return false, fmt.Errorf("authentication failed. Cause: %w", err)
 	}
 
-	defer uclient.Close()
+	defer func() {
+		if err := p.factory.ReleaseClient(uclient); err != nil {
+			p.log.WithError(err).Warn("Error occurred releasing the LDAP client")
+		}
+	}()
 
 	return true, nil
 }
@@ -114,7 +124,11 @@ func (p *LDAPUserProvider) GetDetails(username string) (details *UserDetails, er
 		return nil, err
 	}
 
-	defer client.Close()
+	defer func() {
+		if err := p.factory.ReleaseClient(client); err != nil {
+			p.log.WithError(err).Warn("Error occurred releasing the LDAP client")
+		}
+	}()
 
 	if profile, err = p.getUserProfile(client, username); err != nil {
 		return nil, err
@@ -147,7 +161,11 @@ func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error)
 		return fmt.Errorf("unable to update password. Cause: %w", err)
 	}
 
-	defer client.Close()
+	defer func() {
+		if err := p.factory.ReleaseClient(client); err != nil {
+			p.log.WithError(err).Warn("Error occurred releasing the LDAP client")
+		}
+	}()
 
 	if profile, err = p.getUserProfile(client, username); err != nil {
 		return fmt.Errorf("unable to update password. Cause: %w", err)
@@ -229,7 +247,11 @@ func (p *LDAPUserProvider) searchReferral(referral string, request *ldap.SearchR
 		return fmt.Errorf("error occurred connecting to referred LDAP server '%s': %w", referral, err)
 	}
 
-	defer client.Close()
+	defer func() {
+		if err := p.factory.ReleaseClient(client); err != nil {
+			p.log.WithError(err).Warn("Error occurred releasing the LDAP client")
+		}
+	}()
 
 	if result, err = client.Search(request); err != nil {
 		return fmt.Errorf("error occurred performing search on referred LDAP server '%s': %w", referral, err)
@@ -551,7 +573,11 @@ func (p *LDAPUserProvider) modify(client ldap.Client, modifyRequest *ldap.Modify
 			return fmt.Errorf("error occurred connecting to referred LDAP server '%s': %+v. Original Error: %w", referral, errRef, err)
 		}
 
-		defer clientRef.Close()
+		defer func() {
+			if err := p.factory.ReleaseClient(clientRef); err != nil {
+				p.log.WithError(err).Warn("Error occurred releasing the LDAP client")
+			}
+		}()
 
 		if errRef = clientRef.Modify(modifyRequest); errRef != nil {
 			return fmt.Errorf("error occurred performing modify on referred LDAP server '%s': %+v. Original Error: %w", referral, errRef, err)
@@ -585,7 +611,11 @@ func (p *LDAPUserProvider) pwdModify(client ldap.Client, pwdModifyRequest *ldap.
 			return fmt.Errorf("error occurred connecting to referred LDAP server '%s': %+v. Original Error: %w", referral, errRef, err)
 		}
 
-		defer clientRef.Close()
+		defer func() {
+			if err := p.factory.ReleaseClient(clientRef); err != nil {
+				p.log.WithError(err).Warn("Error occurred releasing the LDAP client")
+			}
+		}()
 
 		if _, errRef = clientRef.PasswordModify(pwdModifyRequest); errRef != nil {
 			return fmt.Errorf("error occurred performing password modify on referred LDAP server '%s': %+v. Original Error: %w", referral, errRef, err)

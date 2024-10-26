@@ -40,6 +40,20 @@ func (m *MockLDAPClientFactory) EXPECT() *MockLDAPClientFactoryMockRecorder {
 	return m.recorder
 }
 
+// Close mocks base method.
+func (m *MockLDAPClientFactory) Close() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Close")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Close indicates an expected call of Close.
+func (mr *MockLDAPClientFactoryMockRecorder) Close() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockLDAPClientFactory)(nil).Close))
+}
+
 // GetClient mocks base method.
 func (m *MockLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (ldap.Client, error) {
 	m.ctrl.T.Helper()
@@ -73,16 +87,16 @@ func (mr *MockLDAPClientFactoryMockRecorder) Initialize() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Initialize", reflect.TypeOf((*MockLDAPClientFactory)(nil).Initialize))
 }
 
-// Shutdown mocks base method.
-func (m *MockLDAPClientFactory) Shutdown() error {
+// ReleaseClient mocks base method.
+func (m *MockLDAPClientFactory) ReleaseClient(client ldap.Client) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Shutdown")
+	ret := m.ctrl.Call(m, "ReleaseClient", client)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Shutdown indicates an expected call of Shutdown.
-func (mr *MockLDAPClientFactoryMockRecorder) Shutdown() *gomock.Call {
+// ReleaseClient indicates an expected call of ReleaseClient.
+func (mr *MockLDAPClientFactoryMockRecorder) ReleaseClient(client any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockLDAPClientFactory)(nil).Shutdown))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReleaseClient", reflect.TypeOf((*MockLDAPClientFactory)(nil).ReleaseClient), client)
 }

@@ -11,7 +11,7 @@ import (
 )
 
 func (p *LDAPUserProvider) Shutdown() (err error) {
-	return p.factory.Shutdown()
+	return p.factory.Close()
 }
 
 // StartupCheck implements the startup check provider interface.
@@ -26,7 +26,11 @@ func (p *LDAPUserProvider) StartupCheck() (err error) {
 		return err
 	}
 
-	defer client.Close()
+	defer func() {
+		if err := p.factory.ReleaseClient(client); err != nil {
+			p.log.WithError(err).Warn("Error occurred releasing the LDAP client")
+		}
+	}()
 
 	if p.features, err = p.getServerSupportedFeatures(client); err != nil {
 		return err
