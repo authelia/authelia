@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"fmt"
+
 	"github.com/go-webauthn/webauthn/webauthn"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -49,6 +51,8 @@ func handlerWebAuthnDiscoverableLogin(ctx *middlewares.AutheliaCtx, rpid string)
 
 		if u, err = ctx.Providers.StorageProvider.LoadWebAuthnUserByUserID(ctx, rpid, string(userHandle)); err != nil {
 			return nil, err
+		} else if u == nil {
+			return nil, fmt.Errorf("user not found")
 		}
 
 		if u.Credentials, err = ctx.Providers.StorageProvider.LoadWebAuthnPasskeyCredentialsByUsername(ctx, rpid, u.Username); err != nil {

@@ -183,14 +183,6 @@ export async function postWebAuthnPasskeyResponse(
         keepMeLoggedIn,
     };
 
-    if (data.response.response.userHandle) {
-        // Encode the userHandle to match the typing on the backend.
-        data.response.response.userHandle = btoa(data.response.response.userHandle)
-            .replace(/\+/g, "-")
-            .replace(/\//g, "_")
-            .replace(/=/g, "");
-    }
-
     if (targetURL) {
         data.targetURL = targetURL;
     }

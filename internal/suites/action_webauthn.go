@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+//nolint:unparam
 func (rs *RodSession) doWebAuthnInitialize(t *testing.T, page *rod.Page, enableUI bool) {
 	rs.doWebAuthnEnable(t, page, enableUI)
 
