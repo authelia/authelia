@@ -13,16 +13,16 @@ type TwoFactorSuite struct {
 func NewTwoFactorSuite() *TwoFactorSuite {
 	return &TwoFactorSuite{
 		BaseSuite: &BaseSuite{
-			Name: standaloneSuiteName,
+			Name: twoFactorSuiteName,
 		},
 	}
 }
 
-func (s *TwoFactorSuite) TestTwoFactorOneTimePasswordRegistrationScenario() {
+func (s *TwoFactorSuite) TestNewTwoFactorOneTimePasswordScenario() {
 	suite.Run(s.T(), NewTwoFactorOneTimePasswordScenario())
 }
 
-func (s *TwoFactorSuite) TestTwoFactorWebAuthnRegistrationScenario() {
+func (s *TwoFactorSuite) TestNewTwoFactorWebAuthnScenario() {
 	suite.Run(s.T(), NewTwoFactorWebAuthnScenario())
 }
 

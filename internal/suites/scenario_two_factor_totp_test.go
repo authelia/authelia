@@ -12,17 +12,17 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type TwoFactorTOTPSuite struct {
+type TwoFactorTOTPScenario struct {
 	*RodSuite
 }
 
-func New2FATOTPScenario() *TwoFactorTOTPSuite {
-	return &TwoFactorTOTPSuite{
+func NewTwoFactorTOTPScenario() *TwoFactorTOTPScenario {
+	return &TwoFactorTOTPScenario{
 		RodSuite: NewRodSuite(""),
 	}
 }
 
-func (s *TwoFactorTOTPSuite) SetupSuite() {
+func (s *TwoFactorTOTPScenario) SetupSuite() {
 	browser, err := NewRodSession(RodSessionWithCredentials(s))
 	if err != nil {
 		log.Fatal(err)
@@ -43,7 +43,7 @@ func (s *TwoFactorTOTPSuite) SetupSuite() {
 	s.doLoginAndRegisterTOTP(s.T(), s.Context(ctx), "john", "password", false)
 }
 
-func (s *TwoFactorTOTPSuite) TearDownSuite() {
+func (s *TwoFactorTOTPScenario) TearDownSuite() {
 	err := s.RodSession.Stop()
 
 	if err != nil {
@@ -51,17 +51,17 @@ func (s *TwoFactorTOTPSuite) TearDownSuite() {
 	}
 }
 
-func (s *TwoFactorTOTPSuite) SetupTest() {
+func (s *TwoFactorTOTPScenario) SetupTest() {
 	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
 	s.verifyIsHome(s.T(), s.Page)
 }
 
-func (s *TwoFactorTOTPSuite) TearDownTest() {
+func (s *TwoFactorTOTPScenario) TearDownTest() {
 	s.collectCoverage(s.Page)
 	s.MustClose()
 }
 
-func (s *TwoFactorTOTPSuite) TestShouldNotAuthorizeSecretBeforeTwoFactor() {
+func (s *TwoFactorTOTPScenario) TestShouldNotAuthorizeSecretBeforeTwoFactor() {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer func() {
 		cancel()
@@ -91,7 +91,7 @@ func (s *TwoFactorTOTPSuite) TestShouldNotAuthorizeSecretBeforeTwoFactor() {
 	s.verifyURLIsRegexp(s.T(), s.Context(ctx), rx)
 }
 
-func (s *TwoFactorTOTPSuite) TestShouldAuthorizeSecretAfterTwoFactor() {
+func (s *TwoFactorTOTPScenario) TestShouldAuthorizeSecretAfterTwoFactor() {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer func() {
 		cancel()
@@ -117,7 +117,7 @@ func (s *TwoFactorTOTPSuite) TestShouldAuthorizeSecretAfterTwoFactor() {
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 }
 
-func (s *TwoFactorTOTPSuite) TestShouldFailTwoFactor() {
+func (s *TwoFactorTOTPScenario) TestShouldFailTwoFactor() {
 	ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
 	defer func() {
 		cancel()
@@ -137,5 +137,5 @@ func TestRunTwoFactorTOTP(t *testing.T) {
 		t.Skip("skipping suite test in short mode")
 	}
 
-	suite.Run(t, New2FATOTPScenario())
+	suite.Run(t, NewTwoFactorTOTPScenario())
 }

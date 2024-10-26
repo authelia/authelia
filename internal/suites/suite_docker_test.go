@@ -16,12 +16,12 @@ func NewDockerSuite() *DockerSuite {
 	}
 }
 
-func (s *DockerSuite) Test1FAScenario() {
-	suite.Run(s.T(), New1FAScenario())
+func (s *DockerSuite) TestOneFactorScenario() {
+	suite.Run(s.T(), NewOneFactorScenario())
 }
 
-func (s *DockerSuite) Test2FATOTPScenario() {
-	suite.Run(s.T(), New2FATOTPScenario())
+func (s *DockerSuite) TestTwoFactorTOTPScenario() {
+	suite.Run(s.T(), NewTwoFactorTOTPScenario())
 }
 
 func TestDockerSuite(t *testing.T) {

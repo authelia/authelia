@@ -16,12 +16,12 @@ func NewLDAPSuite() *LDAPSuite {
 	}
 }
 
-func (s *LDAPSuite) Test1FAScenario() {
-	suite.Run(s.T(), New1FAScenario())
+func (s *LDAPSuite) TestOneFactorScenario() {
+	suite.Run(s.T(), NewOneFactorScenario())
 }
 
-func (s *LDAPSuite) Test2FATOTPScenario() {
-	suite.Run(s.T(), New2FATOTPScenario())
+func (s *LDAPSuite) TestTwoFactorTOTPScenario() {
+	suite.Run(s.T(), NewTwoFactorTOTPScenario())
 }
 
 func (s *LDAPSuite) TestResetPassword() {

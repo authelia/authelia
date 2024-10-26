@@ -50,6 +50,7 @@ func (rs *RodSession) doWebAuthnAddVirtualAuthenticator(t *testing.T, page *rod.
 			HasUserVerification:         true,
 			AutomaticPresenceSimulation: true,
 			IsUserVerified:              true,
+			HasResidentKey:              true,
 		},
 	}.Call(page)
 
