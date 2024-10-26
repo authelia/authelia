@@ -245,7 +245,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
-		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn passkey authentication challenge for user '%s': error retreiving user details", u.WebAuthnName())
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn passkey authentication challenge for user '%s': error retrieving user details", u.WebAuthnName())
 
 		return
 	}
@@ -277,8 +277,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 	// Set the cookie to expire if remember me is enabled and the user has asked us to.
 	if keepMeLoggedIn {
-		err = provider.UpdateExpiration(ctx.RequestCtx, provider.Config.RememberMe)
-		if err != nil {
+		if err = provider.UpdateExpiration(ctx.RequestCtx, provider.Config.RememberMe); err != nil {
 			ctx.SetStatusCode(fasthttp.StatusForbidden)
 			ctx.SetJSONError(messageMFAValidationFailed)
 

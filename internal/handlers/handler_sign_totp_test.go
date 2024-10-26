@@ -778,7 +778,7 @@ func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidConfig() {
 		res[0][1],
 		string(s.mock.Ctx.Request.Header.Cookie("authelia_session")))
 
-	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Error occurred validating a TOTP authentication for user 'john': error occurred retreiving the configuration from the storage backend", "not found")
+	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Error occurred validating a TOTP authentication for user 'john': error occurred retrieving the configuration from the storage backend", "not found")
 }
 
 func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidTokenLength() {
