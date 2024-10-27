@@ -150,12 +150,14 @@ func TestFirstFactorPasskeyGET(t *testing.T) {
 func TestFirstFactorPasskeyPOST(t *testing.T) {
 	const (
 		dataReqFmt         = `{"response":{"id":"rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","rawId":"rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","response":{"authenticatorData":"DGygg5w6VoNVeDP2GKJVZmXfKgiJZHh9U4ULStTTvtwFAAAAAw","userHandle":"ZXhhbXBsZQ","clientDataJSON":"%s","signature":"MEQCIBlJ2Fxf6ZwLNTCQglz0AW0pD4HlU8W5Yk696jjfxVxhAiAhAMkLh8iKyhW6zSmzwfQDjMF2nKjVHzEs7jLHRPDZ2A"},"type":"public-key","clientExtensionResults":{},"authenticatorAttachment":"cross-platform"},"targetURL":null}`
+		dataReqFmtKLI      = `{"keepMeLoggedIn":true,"response":{"id":"rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","rawId":"rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","response":{"authenticatorData":"DGygg5w6VoNVeDP2GKJVZmXfKgiJZHh9U4ULStTTvtwFAAAAAw","userHandle":"ZXhhbXBsZQ","clientDataJSON":"%s","signature":"MEQCIBlJ2Fxf6ZwLNTCQglz0AW0pD4HlU8W5Yk696jjfxVxhAiAhAMkLh8iKyhW6zSmzwfQDjMF2nKjVHzEs7jLHRPDZ2A"},"type":"public-key","clientExtensionResults":{},"authenticatorAttachment":"cross-platform"},"targetURL":null}`
 		dataReqNoHandleFmt = `{"response":{"id":"rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","rawId":"rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","response":{"authenticatorData":"DGygg5w6VoNVeDP2GKJVZmXfKgiJZHh9U4ULStTTvtwFAAAAAw","clientDataJSON":"%s","signature":"MEQCIBlJ2Fxf6ZwLNTCQglz0AW0pD4HlU8W5Yk696jjfxVxhAiAhAMkLh8iKyhW6zSmzwfQDjMF2nKjVHzEs7jLHRPDZ2A"},"type":"public-key","clientExtensionResults":{},"authenticatorAttachment":"cross-platform"},"targetURL":null}`
 		dataClientJSON     = `{"type":"webauthn.get","challenge":"in1cL-oWfSjSd7uuwUvv2ndOAmRXb0cOAbUoTtAqvGE","origin":"%s","crossOrigin":false,"other_keys_can_be_added_here":"do not compare clientDataJSON against a template. See https://goo.gl/yabPex"}`
 	)
 
 	var (
 		dataReqGood         = fmt.Sprintf(dataReqFmt, base64.RawURLEncoding.EncodeToString([]byte(fmt.Sprintf(dataClientJSON, "https://login.example.com:8080"))))
+		dataReqGoodKLI      = fmt.Sprintf(dataReqFmtKLI, base64.RawURLEncoding.EncodeToString([]byte(fmt.Sprintf(dataClientJSON, "https://login.example.com:8080"))))
 		dataReqBadRPIDHash  = fmt.Sprintf(dataReqFmt, base64.RawURLEncoding.EncodeToString([]byte(fmt.Sprintf(dataClientJSON, "http://example.com"))))
 		dataReqNoHandleGood = fmt.Sprintf(dataReqNoHandleFmt, base64.RawURLEncoding.EncodeToString([]byte(fmt.Sprintf(dataClientJSON, "https://login.example.com:8080"))))
 	)
@@ -381,6 +383,109 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				assert.Nil(t, us.WebAuthn)
+			},
+		},
+		{
+			name:   "ShouldSuccessKeepLoggedIn",
+			config: &schema.DefaultWebAuthnConfiguration,
+			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Clock = &mock.Clock
+				mock.Ctx.Configuration.Session.RememberMe = time.Hour
+
+				mock.Clock.Set(time.Unix(1000000, 0).UTC())
+
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				us.WebAuthn = &session.WebAuthn{
+					SessionData: &webauthn.SessionData{
+						Challenge:        "in1cL-oWfSjSd7uuwUvv2ndOAmRXb0cOAbUoTtAqvGE",
+						Expires:          time.Now().Add(time.Minute),
+						UserVerification: "preferred",
+					},
+				}
+
+				require.NoError(t, mock.Ctx.SaveSession(us))
+
+				credential := model.WebAuthnCredential{
+					ID:              1,
+					CreatedAt:       time.Now(),
+					LastUsedAt:      sql.NullTime{Time: time.Now(), Valid: true},
+					RPID:            "login.example.com",
+					Username:        testUsername,
+					Description:     "test",
+					KID:             model.NewBase64(decode("rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU=")),
+					AAGUID:          uuid.NullUUID{UUID: uuid.Must(uuid.Parse("01020304-0506-0708-0102-030405060708")), Valid: true},
+					AttestationType: "packed",
+					Attachment:      "cross-platform",
+					Transport:       "usb",
+					SignCount:       2,
+					CloneWarning:    false,
+					Discoverable:    true,
+					Present:         true,
+					Verified:        true,
+					BackupEligible:  false,
+					BackupState:     false,
+					PublicKey:       []byte{165, 1, 2, 3, 38, 32, 1, 33, 88, 32, 184, 17, 198, 170, 14, 81, 23, 237, 100, 218, 123, 122, 48, 76, 56, 148, 23, 111, 173, 245, 67, 239, 176, 229, 199, 205, 213, 46, 239, 91, 222, 183, 34, 88, 32, 171, 141, 116, 74, 68, 180, 81, 66, 81, 127, 81, 41, 236, 173, 38, 7, 9, 34, 128, 167, 101, 51, 25, 84, 239, 100, 10, 124, 117, 165, 178, 179},
+				}
+
+				updated := model.WebAuthnCredential{
+					ID:              1,
+					CreatedAt:       credential.CreatedAt,
+					LastUsedAt:      sql.NullTime{Time: mock.Clock.Now(), Valid: true},
+					RPID:            "login.example.com",
+					Username:        testUsername,
+					Description:     "test",
+					KID:             model.NewBase64(decode("rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU=")),
+					AAGUID:          uuid.NullUUID{UUID: uuid.Must(uuid.Parse("01020304-0506-0708-0102-030405060708")), Valid: true},
+					AttestationType: "packed",
+					Attachment:      "cross-platform",
+					Transport:       "usb",
+					SignCount:       3,
+					CloneWarning:    false,
+					Discoverable:    true,
+					Present:         true,
+					Verified:        true,
+					BackupEligible:  false,
+					BackupState:     false,
+					PublicKey:       []byte{165, 1, 2, 3, 38, 32, 1, 33, 88, 32, 184, 17, 198, 170, 14, 81, 23, 237, 100, 218, 123, 122, 48, 76, 56, 148, 23, 111, 173, 245, 67, 239, 176, 229, 199, 205, 213, 46, 239, 91, 222, 183, 34, 88, 32, 171, 141, 116, 74, 68, 180, 81, 66, 81, 127, 81, 41, 236, 173, 38, 7, 9, 34, 128, 167, 101, 51, 25, 84, 239, 100, 10, 124, 117, 165, 178, 179},
+				}
+
+				gomock.InOrder(
+					mock.StorageMock.EXPECT().
+						LoadWebAuthnUserByUserID(mock.Ctx, gomock.Eq("login.example.com"), gomock.Eq("example")).
+						Return(&model.WebAuthnUser{UserID: "example", Username: testUsername}, nil),
+					mock.StorageMock.EXPECT().
+						LoadWebAuthnPasskeyCredentialsByUsername(mock.Ctx, gomock.Eq("login.example.com"), gomock.Eq(testUsername)).
+						Return([]model.WebAuthnCredential{credential}, nil),
+					mock.StorageMock.EXPECT().
+						UpdateWebAuthnCredentialSignIn(mock.Ctx, updated).
+						Return(nil),
+					mock.UserProviderMock.EXPECT().
+						GetDetails(gomock.Eq(testUsername)).
+						Return(&authentication.UserDetails{Username: testUsername}, nil),
+					mock.StorageMock.EXPECT().
+						AppendAuthenticationLog(mock.Ctx, gomock.Eq(model.AuthenticationAttempt{
+							Time:       mock.Ctx.Clock.Now(),
+							Successful: true,
+							Banned:     false,
+							Username:   testUsername,
+							Type:       "Passkey",
+							RemoteIP:   model.NullIP{IP: net.ParseIP("0.0.0.0")},
+						})).
+						Return(nil),
+				)
+			},
+			have:           dataReqGoodKLI,
+			expectedStatus: fasthttp.StatusOK,
+			expectedf: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				us, err := mock.Ctx.GetSession()
+
+				require.NoError(t, err)
+
+				assert.Nil(t, us.WebAuthn)
+				assert.True(t, us.KeepMeLoggedIn)
 			},
 		},
 		{
