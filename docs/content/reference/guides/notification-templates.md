@@ -38,10 +38,10 @@ This guide effectively documents the usage of the
 | IdentityVerificationOTC | Used to render notifications sent when stateful validation is required such as managing credentials |
 | IdentityVerificationJWT | Used to render notifications sent when stateless validation is required such as resetting passwords |
 
-For example, to modify the `IdentityVerification` HTML template, if your
+For example, to modify the `IdentityVerificationJWT` HTML template, if your
 [template_path](../../configuration/notifications/introduction.md#template_path) was configured as
-`/config/email_templates`, you would create the `/config/email_templates/IdentityVerification.html` file to override the
-HTML `IdentityVerification` template.
+`/config/email_templates`, you would create the `/config/email_templates/IdentityVerificationJWT.html` file to override the
+HTML `IdentityVerificationJWT` template.
 
 ## Placeholder Variables
 
