@@ -202,6 +202,121 @@ func TestShouldValidateConfigurationWithFilters(t *testing.T) {
 	}
 }
 
+func TestShouldReadFilesWithFiltersSingleFile(t *testing.T) {
+	testSetEnv(t, "SESSION_SECRET", "abc")
+	testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "abc")
+	testSetEnv(t, "IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET", "abc")
+	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc")
+
+	t.Setenv("ABC_CLIENT_SECRET", "$plaintext$example-abc")
+	t.Setenv("XYZ_CLIENT_SECRET", "$plaintext$example-xyz")
+	t.Setenv("SERVICES_SERVER", "10.10.10.10")
+	t.Setenv("ROOT_DOMAIN", "example.org")
+
+	sources := NewDefaultSourcesFiltered([]string{"./test_resources/config.filtered.yml"}, NewFileFiltersDefault(), DefaultEnvPrefix, DefaultEnvDelimiter)
+
+	var (
+		source *FileSource
+		files  []*File
+		err    error
+		ok     bool
+	)
+
+	for _, s := range sources {
+		if source, ok = s.(*FileSource); !ok {
+			continue
+		}
+
+		var f []*File
+
+		f, err = source.ReadFiles()
+
+		require.NoError(t, err)
+
+		files = append(files, f...)
+	}
+
+	assert.Len(t, files, 1)
+
+	for _, file := range files {
+		switch file.Path {
+		case "./test_resources/config.filtered.yml":
+			data := string(file.Data)
+
+			assert.Contains(t, data, "- 'secure.example.org'")
+			assert.Contains(t, data, "address: 'ldap://10.10.10.10'")
+			assert.Contains(t, data, "address: 'tcp://10.10.10.10:9091'")
+			assert.Contains(t, data, "hostname: 'api-123456789.example.org'")
+			assert.Contains(t, data, "client_secret: 'example_secret value'")
+			assert.Contains(t, data, "sender: 'admin@example.org'")
+			assert.Contains(t, data, "domain: 'example.org'")
+			assert.Contains(t, data, "address: 'tcp://10.10.10.10:3306'")
+		default:
+			assert.Fail(t, "Unexpected File", "The file with path %s is not expected.", file.Path)
+		}
+	}
+}
+
+func TestShouldReadFilesWithFilters(t *testing.T) {
+	testSetEnv(t, "SESSION_SECRET", "abc")
+	testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "abc")
+	testSetEnv(t, "IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET", "abc")
+	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc")
+
+	t.Setenv("ABC_CLIENT_SECRET", "$plaintext$example-abc")
+	t.Setenv("XYZ_CLIENT_SECRET", "$plaintext$example-xyz")
+	t.Setenv("SERVICES_SERVER", "10.10.10.10")
+	t.Setenv("ROOT_DOMAIN", "example.org")
+
+	sources := NewDefaultSourcesFiltered([]string{"./test_resources/config-dir/filtered"}, NewFileFiltersDefault(), DefaultEnvPrefix, DefaultEnvDelimiter)
+
+	var (
+		source *FileSource
+		files  []*File
+		err    error
+		ok     bool
+	)
+
+	for _, s := range sources {
+		if source, ok = s.(*FileSource); !ok {
+			continue
+		}
+
+		var f []*File
+
+		f, err = source.ReadFiles()
+
+		require.NoError(t, err)
+
+		files = append(files, f...)
+	}
+
+	assert.Len(t, files, 7)
+
+	for _, file := range files {
+		switch file.Path {
+		case "test_resources/config-dir/filtered/access-control.yml":
+			assert.Contains(t, string(file.Data), "- 'secure.example.org'")
+		case "test_resources/config-dir/filtered/authentication-backend.yml":
+			assert.Contains(t, string(file.Data), "address: 'ldap://10.10.10.10'")
+		case "test_resources/config-dir/filtered/general.yml":
+			data := string(file.Data)
+			assert.Contains(t, data, "address: 'tcp://10.10.10.10:9091'")
+			assert.Contains(t, data, "hostname: 'api-123456789.example.org'")
+		case "test_resources/config-dir/filtered/identity-providers.yml":
+			assert.Contains(t, string(file.Data), "client_secret: 'example_secret value'")
+		case "test_resources/config-dir/filtered/notifier.yml":
+			assert.Contains(t, string(file.Data), "sender: 'admin@example.org'")
+		case "test_resources/config-dir/filtered/session.yml":
+			assert.Contains(t, string(file.Data), "domain: 'example.org'")
+		case "test_resources/config-dir/filtered/storage.yml":
+			assert.Contains(t, string(file.Data), "address: 'tcp://10.10.10.10:3306'")
+		default:
+			assert.Fail(t, "Unexpected File", "The file with path %s is not expected.", file.Path)
+		}
+	}
+}
+
 func TestShouldHandleNoAddressMySQLWithHostEnv(t *testing.T) {
 	testSetEnv(t, "STORAGE_MYSQL_HOST", "mysql")
 
