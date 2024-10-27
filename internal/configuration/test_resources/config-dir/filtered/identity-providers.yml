@@ -1,0 +1,24 @@
+---
+identity_providers:
+  oidc:
+    jwks:
+      # yamllint disable-line rule:braces
+      - key: {{ secret "./test_resources/crypto/rsa.2048.pem" | mindent 10 "|" | msquote }}
+    cors:
+      allowed_origins:
+        - 'https://google.com'
+        - 'https://example.com'
+    clients:
+      - client_id: 'abc'
+        client_secret: '${ABC_CLIENT_SECRET}'
+        consent_mode: 'explicit'
+      - client_id: 'xyz'
+        client_secret: '$XYZ_CLIENT_SECRET'
+        consent_mode: 'explicit'
+      - client_id: '123'
+        client_secret: '{{ secret "./test_resources/example_secret" }}'
+        consent_mode: explicit
+      - client_id: '456'
+        client_secret: '{{ secret "./test_resources/example_password_secret" }}'
+        consent_mode: explicit
+...
