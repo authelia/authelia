@@ -22,9 +22,10 @@ import (
 // NewMetaDataProvider generates a new metadata.Provider given a *schema.Configuration and storage.CachedDataProvider.
 func NewMetaDataProvider(config *schema.Configuration, store storage.CachedDataProvider) (provider MetaDataProvider, err error) {
 	p := &StoreCachedMetadataProvider{
-		new:   newMetadataProviderMemory(config),
-		clock: &metadata.RealClock{},
-		store: store,
+		new:     newMetadataProviderMemory(config),
+		clock:   &metadata.RealClock{},
+		store:   store,
+		handler: &productionMDS3Provider{},
 	}
 
 	if p.decoder, err = metadata.NewDecoder(metadata.WithIgnoreEntryParsingErrors()); err != nil {
@@ -63,7 +64,7 @@ type StoreCachedMetadataProvider struct {
 	store   storage.CachedDataProvider
 	decoder *metadata.Decoder
 	clock   metadata.Clock
-	client  *http.Client
+	handler MDS3Provider
 
 	latestNextUpdate time.Time
 	latestNumber     int
@@ -163,26 +164,11 @@ func (p *StoreCachedMetadataProvider) cached() (mds *metadata.Metadata, err erro
 }
 
 func (p *StoreCachedMetadataProvider) latest(ctx context.Context) (data []byte, err error) {
-	if p.client == nil {
-		p.client = &http.Client{}
+	if p.handler == nil {
+		p.handler = &productionMDS3Provider{}
 	}
 
-	var (
-		req  *http.Request
-		resp *http.Response
-	)
-
-	if req, err = http.NewRequestWithContext(ctx, http.MethodGet, metadata.ProductionMDSURL, nil); err != nil {
-		return nil, fmt.Errorf("error creating request while attempting to get latest metadata from metadata service: %w", err)
-	}
-
-	if resp, err = p.client.Do(req); err != nil {
-		return nil, fmt.Errorf("error getting latest metadata from metadata service: %w", err)
-	}
-
-	defer resp.Body.Close()
-
-	return io.ReadAll(resp.Body)
+	return p.handler.FetchMDS3(ctx)
 }
 
 func (p *StoreCachedMetadataProvider) parse(reader io.Reader) (mds *metadata.Metadata, err error) {
@@ -197,4 +183,35 @@ func (p *StoreCachedMetadataProvider) parse(reader io.Reader) (mds *metadata.Met
 	}
 
 	return mds, nil
+}
+
+type MDS3Provider interface {
+	FetchMDS3(ctx context.Context) (data []byte, err error)
+}
+
+type productionMDS3Provider struct {
+	client *http.Client
+}
+
+func (h *productionMDS3Provider) FetchMDS3(ctx context.Context) (data []byte, err error) {
+	if h.client == nil {
+		h.client = &http.Client{}
+	}
+
+	var (
+		req  *http.Request
+		resp *http.Response
+	)
+
+	if req, err = http.NewRequestWithContext(ctx, http.MethodGet, metadata.ProductionMDSURL, nil); err != nil {
+		return nil, fmt.Errorf("error creating request while attempting to get latest metadata from metadata service: %w", err)
+	}
+
+	if resp, err = h.client.Do(req); err != nil {
+		return nil, fmt.Errorf("error getting latest metadata from metadata service: %w", err)
+	}
+
+	defer resp.Body.Close()
+
+	return io.ReadAll(resp.Body)
 }
