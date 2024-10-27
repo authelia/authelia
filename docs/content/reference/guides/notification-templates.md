@@ -32,10 +32,11 @@ This guide effectively documents the usage of the
 
 ## Template Names
 
-|       Template       |                                    Description                                    |
-|:--------------------:|:---------------------------------------------------------------------------------:|
-| IdentityVerification | Used to render notifications sent when registering devices or resetting passwords |
-|    PasswordReset     |    Used to render notifications sent when password has successfully been reset    |
+|        Template         |                                             Description                                             |
+|:-----------------------:|:---------------------------------------------------------------------------------------------------:|
+|          Event          |                           Used to render notifications sent about events                            |
+| IdentityVerificationOTC | Used to render notifications sent when stateful validation is required such as managing credentials |
+| IdentityVerificationJWT | Used to render notifications sent when stateless validation is required such as resetting passwords |
 
 For example, to modify the `IdentityVerification` HTML template, if your
 [template_path](../../configuration/notifications/introduction.md#template_path) was configured as
@@ -46,13 +47,18 @@ HTML `IdentityVerification` template.
 
 In template files, you can use the following placeholders which are automatically injected into the templates:
 
-|     Placeholder      |      Templates       |                                                                  Description                                                                   |
-|:--------------------:|:--------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------:|
-|   `{{ .LinkURL }}`   | IdentityVerification |                                            The URL associated with the notification if applicable.                                             |
-|  `{{ .LinkText }}`   | IdentityVerification |                                 The display value for the URL associated with the notification if applicable.                                  |
-|    `{{ .Title }}`    |         All          | A predefined title for the email. <br> It will be `"Reset your password"` or `"Password changed successfully"`, depending on the current step. |
-| `{{ .DisplayName }}` |         All          |                                                     The name of the user, i.e. `John Doe`                                                      |
-|  `{{ .RemoteIP }}`   |         All          |                                      The remote IP address (client) that initiated the request or event.                                       |
+|         Placeholder         |                    Templates                     |                                                                  Description                                                                   |
+|:---------------------------:|:------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------:|
+|      `{{ .LinkURL }}`       | IdentityVerificationJWT, IdentityVerificationOTC |                                            The URL associated with the notification if applicable.                                             |
+|      `{{ .LinkText }}`      | IdentityVerificationJWT, IdentityVerificationOTC |                                 The display value for the URL associated with the notification if applicable.                                  |
+| `{{ .RevocationLinkURL }}`  | IdentityVerificationJWT, IdentityVerificationOTC |                                       The Revocation URL associated with the notification if applicable.                                       |
+| `{{ .RevocationLinkText }}` | IdentityVerificationJWT, IdentityVerificationOTC |                            The display value for the Revocation URL associated with the notification if applicable.                            |
+|     `{{ .BodyPrefix }}`     |                      Event                       |                                                           Prefix for the body event.                                                           |
+|     `{{ .BodyEvent }}`      |                      Event                       |                                                             The event description.                                                             |
+|       `{{ .Title }}`        |                       All                        | A predefined title for the email. <br> It will be `"Reset your password"` or `"Password changed successfully"`, depending on the current step. |
+|    `{{ .DisplayName }}`     |                       All                        |                                                     The name of the user, i.e. `John Doe`                                                      |
+|      `{{ .RemoteIP }}`      |                       All                        |                                      The remote IP address (client) that initiated the request or event.                                       |
+|       `{{ .Domain }}`       |                       All                        |                                                       The relevant domain for Authelia.                                                        |
 
 ## Examples
 
@@ -73,7 +79,7 @@ Some Additional examples for specific purposes can be found in the
 ## Original Templates
 
 The original template content can be found on
-[GitHub](https://github.com/authelia/authelia/tree/master/internal/templates/src/notification).
+[GitHub](https://github.com/authelia/authelia/tree/master/internal/templates/src/emails).
 
 ## Functions
 
