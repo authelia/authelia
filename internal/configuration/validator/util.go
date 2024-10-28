@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/go-jose/go-jose/v4"
-	"github.com/weppos/publicsuffix-go/net/publicsuffix"
+	"github.com/weppos/publicsuffix-go/publicsuffix"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -18,11 +18,14 @@ import (
 )
 
 func isCookieDomainAPublicSuffix(domain string) (valid bool) {
-	var suffix string
+	domain = strings.TrimLeft(domain, ".")
 
-	suffix, _ = publicsuffix.PublicSuffix(strings.TrimLeft(domain, "."))
+	_, err := publicsuffix.Domain(domain)
+	if err != nil {
+		return err.Error() == fmt.Sprintf(errFmtCookieDomainInPSL, domain)
+	}
 
-	return suffix == ""
+	return false
 }
 
 func validateListNotAllowed(values, filter []string) (invalid []string) {
