@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/go-jose/go-jose/v4"
-	"golang.org/x/net/publicsuffix"
+	"github.com/weppos/publicsuffix-go/net/publicsuffix"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -20,9 +20,9 @@ import (
 func isCookieDomainAPublicSuffix(domain string) (valid bool) {
 	var suffix string
 
-	suffix, _ = publicsuffix.PublicSuffix(domain)
+	suffix, _ = publicsuffix.PublicSuffix(strings.TrimLeft(domain, "."))
 
-	return len(strings.TrimLeft(domain, ".")) == len(suffix)
+	return suffix == ""
 }
 
 func validateListNotAllowed(values, filter []string) (invalid []string) {
