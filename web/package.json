@@ -10,10 +10,10 @@
   "pnpm": {
     "overrides": {
       "@babel/traverse": "7.25.9",
-      "@typescript-eslint/eslint-plugin": "8.11.0",
-      "@typescript-eslint/parser": "8.11.0",
-      "@typescript-eslint/typescript-estree": "8.11.0",
-      "@typescript-eslint/utils": "8.11.0",
+      "@typescript-eslint/eslint-plugin": "8.12.1",
+      "@typescript-eslint/parser": "8.12.1",
+      "@typescript-eslint/typescript-estree": "8.12.1",
+      "@typescript-eslint/utils": "8.12.1",
       "eslint-plugin-jest": "28.8.3",
       "eslint-plugin-testing-library": "6.4.0"
     },
@@ -91,8 +91,8 @@
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.1",
     "@types/zxcvbn": "4.4.5",
-    "@typescript-eslint/eslint-plugin": "8.11.0",
-    "@typescript-eslint/parser": "8.11.0",
+    "@typescript-eslint/eslint-plugin": "8.12.1",
+    "@typescript-eslint/parser": "8.12.1",
     "@vitejs/plugin-react": "4.3.3",
     "@vitest/coverage-istanbul": "2.1.4",
     "esbuild": "0.24.0",
