@@ -797,6 +797,12 @@ session:
     ## Use a unix socket instead
     # host: '/var/run/redis/redis.sock'
 
+    ## The connection timeout in the duration common syntax.
+    # timeout: '5 seconds'
+
+    ## The maximum number of retries on a failed command. Set it to 0 to disable retries.
+    # max_retries: 3
+
     ## Username used for redis authentication. This is optional and a new feature in redis 6.0.
     # username: 'authelia'
 

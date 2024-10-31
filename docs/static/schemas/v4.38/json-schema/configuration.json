@@ -2832,6 +2832,26 @@
           "description": "The redis server port.",
           "default": 6379
         },
+        "timeout": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Timeout",
+          "description": "The Redis server connection timeout."
+        },
+        "max_retries": {
+          "type": "integer",
+          "title": "Maximum Retries",
+          "description": "The maximum number of retries on a failed command.",
+          "default": 3
+        },
         "username": {
           "type": "string",
           "title": "Username",
