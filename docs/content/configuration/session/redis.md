@@ -29,6 +29,8 @@ session:
   redis:
     host: '127.0.0.1'
     port: 6379
+    timeout: '5s'
+    max_retries: 0
     username: 'authelia'
     password: 'authelia'
     database_index: 0
@@ -79,6 +81,18 @@ quoted:
 ```yaml {title="configuration.yml"}
 host: '[fd00:1111:2222:3333::1]'
 ```
+
+### timeout
+
+{{< confkey type="string,integer" syntax="duration" default="5 seconds" required="no" >}}
+
+The Redis connection timeout.
+
+### max_retries
+
+{{< confkey type="integer" default="0" required="no" >}}
+
+The maximum number of retries on a failed command. Setting this option to 0 disables retries entirely.
 
 ### port
 
