@@ -125,6 +125,8 @@ func NewSessionProvider(config schema.Session, certPool *x509.CertPool) (name st
 				Logger:           logging.LoggerCtxPrintf(logrus.TraceLevel),
 				MasterName:       config.Redis.HighAvailability.SentinelName,
 				SentinelAddrs:    addrs,
+				DialTimeout:      config.Redis.Timeout,
+				MaxRetries:       config.Redis.MaxRetries,
 				SentinelUsername: config.Redis.HighAvailability.SentinelUsername,
 				SentinelPassword: config.Redis.HighAvailability.SentinelPassword,
 				RouteByLatency:   config.Redis.HighAvailability.RouteByLatency,
@@ -155,6 +157,8 @@ func NewSessionProvider(config schema.Session, certPool *x509.CertPool) (name st
 				Logger:          logging.LoggerCtxPrintf(logrus.TraceLevel),
 				Network:         network,
 				Addr:            addr,
+				DialTimeout:     config.Redis.Timeout,
+				MaxRetries:      config.Redis.MaxRetries,
 				Username:        config.Redis.Username,
 				Password:        config.Redis.Password,
 				DB:              config.Redis.DatabaseIndex, // DB is the fasthttp/session property for the Redis DB Index.
