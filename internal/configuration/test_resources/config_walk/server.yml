@@ -1,0 +1,22 @@
+# yamllint disable rule:document-start rule:document-end
+server:
+  address: 'tcp://127.0.0.1:9091'
+  endpoints:
+    authz:
+      forward-auth:
+        implementation: 'ForwardAuth'
+        authn_strategies:
+          - name: 'HeaderProxyAuthorization'
+          - name: 'CookieSession'
+      ext-authz:
+        implementation: 'ExtAuthz'
+        authn_strategies:
+          - name: 'HeaderProxyAuthorization'
+          - name: 'CookieSession'
+      auth-request:
+        implementation: 'AuthRequest'
+        authn_strategies:
+          - name: 'HeaderAuthRequestProxyAuthorization'
+          - name: 'CookieSession'
+      legacy:
+        implementation: 'Legacy'
