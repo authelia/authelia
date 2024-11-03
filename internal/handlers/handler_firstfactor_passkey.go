@@ -287,6 +287,12 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		}
 	}
 
+	ctx.Logger.WithFields(map[string]any{
+		"hardware": response.ParsedPublicKeyCredential.AuthenticatorAttachment == protocol.CrossPlatform,
+		"presence": response.Response.AuthenticatorData.Flags.HasUserPresent(),
+		"verified": response.Response.AuthenticatorData.Flags.HasUserVerified(),
+	}).Debug("Passkey Login")
+
 	userSession.SetOneFactorPasskey(
 		ctx.Clock.Now(), details,
 		keepMeLoggedIn,
