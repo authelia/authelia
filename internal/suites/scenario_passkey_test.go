@@ -75,6 +75,8 @@ func (s *PasskeyScenario) TestShouldAuthorizeAfterPasskeyLogin() {
 
 	targetURL := fmt.Sprintf("%s/secret.html", AdminBaseURL)
 	s.doLoginPasskey(s.T(), s.Context(ctx), false, BaseDomain, targetURL)
+	s.verifyIsSecondFactorPasswordPage(s.T(), s.Context(ctx))
+	s.doFillPasswordAndClick(s.T(), s.Context(ctx), "password")
 
 	// And check if the user is redirected to the secret.
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))

@@ -44,13 +44,36 @@ click:
 	}
 }
 
+func (rs *RodSession) doFillPasswordAndClick(t *testing.T, page *rod.Page, password string) {
+	var err error
+
+	element := rs.WaitElementLocatedByID(t, page, "password-textfield")
+	button := rs.WaitElementLocatedByID(t, page, "sign-in-button")
+
+password:
+	err = element.MustSelectAllText().Input(password)
+	require.NoError(t, err)
+
+	if element.MustText() != password {
+		goto password
+	}
+
+click:
+	err = button.Click("left", 1)
+	require.NoError(t, err)
+
+	if button.MustInteractable() {
+		goto click
+	}
+}
+
 // Login 1FA.
-func (rs *RodSession) doLoginOneFactor(t *testing.T, page *rod.Page, username, password string, keepMeLoggedIn bool, domain string, targetURL string) {
+func (rs *RodSession) doLoginOneFactor(t *testing.T, page *rod.Page, username, password string, keepMeLoggedIn bool, domain, targetURL string) {
 	rs.doVisitLoginPage(t, page, domain, targetURL)
 	rs.doFillLoginPageAndClick(t, page, username, password, keepMeLoggedIn)
 }
 
-func (rs *RodSession) doLoginPasskey(t *testing.T, page *rod.Page, keepMeLoggedIn bool, domain string, targetURL string) {
+func (rs *RodSession) doLoginPasskey(t *testing.T, page *rod.Page, keepMeLoggedIn bool, domain, targetURL string) {
 	rs.doVisitLoginPage(t, page, domain, targetURL)
 
 	if keepMeLoggedIn {

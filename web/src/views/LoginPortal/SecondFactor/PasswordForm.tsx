@@ -1,6 +1,6 @@
-import React, { MutableRefObject, useCallback, useRef, useState } from "react";
+import React, { MutableRefObject, useCallback, useEffect, useRef, useState } from "react";
 
-import { Alert, AlertTitle, FormControl } from "@mui/material";
+import { Alert, AlertTitle, Button, CircularProgress, FormControl } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import TextField from "@mui/material/TextField";
 import { useTranslation } from "react-i18next";
@@ -19,16 +19,22 @@ export interface Props {
 const PasswordForm = function (props: Props) {
     const { createErrorNotification } = useNotifications();
     const { t: translate } = useTranslation();
-    const passwordRef = useRef() as MutableRefObject<HTMLInputElement>;
 
     const redirectionURL = useQueryParam(RedirectionURL);
     const [workflow, workflowID] = useWorkflow();
 
-    const [disabled, setDisabled] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [password, setPassword] = useState("");
     const [passwordCapsLock, setPasswordCapsLock] = useState(false);
     const [passwordCapsLockPartial, setPasswordCapsLockPartial] = useState(false);
     const [passwordError, setPasswordError] = useState(false);
+
+    const passwordRef = useRef() as MutableRefObject<HTMLInputElement>;
+
+    useEffect(() => {
+        const timeout = setTimeout(() => passwordRef.current.focus(), 10);
+        return () => clearTimeout(timeout);
+    }, [passwordRef]);
 
     const handleSignIn = useCallback(async () => {
         if (password === "") {
@@ -37,7 +43,7 @@ const PasswordForm = function (props: Props) {
             return;
         }
 
-        setDisabled(true);
+        setLoading(true);
 
         try {
             const res = await postSecondFactor(password, redirectionURL, workflow, workflowID);
@@ -45,8 +51,8 @@ const PasswordForm = function (props: Props) {
         } catch (err) {
             console.error(err);
             createErrorNotification(translate("Incorrect password"));
-            setDisabled(false);
             setPassword("");
+            setLoading(false);
             passwordRef.current.focus();
         }
     }, [createErrorNotification, password, props, redirectionURL, translate, workflow, workflowID]);
@@ -90,7 +96,7 @@ const PasswordForm = function (props: Props) {
 
     return (
         <FormControl id={"form-password"}>
-            <Grid container>
+            <Grid container spacing={2}>
                 <Grid size={{ xs: 12 }}>
                     <TextField
                         inputRef={passwordRef}
@@ -99,7 +105,7 @@ const PasswordForm = function (props: Props) {
                         variant="outlined"
                         required
                         fullWidth
-                        disabled={disabled}
+                        disabled={loading}
                         value={password}
                         error={passwordError}
                         onChange={(v) => setPassword(v.target.value)}
@@ -120,6 +126,19 @@ const PasswordForm = function (props: Props) {
                         </Alert>
                     </Grid>
                 ) : null}
+                <Grid size={{ xs: 12 }}>
+                    <Button
+                        id="sign-in-button"
+                        variant="contained"
+                        color="primary"
+                        fullWidth
+                        disabled={loading}
+                        onClick={handleSignIn}
+                        endIcon={loading ? <CircularProgress size={20} /> : null}
+                    >
+                        {translate("Authenticate")}
+                    </Button>
+                </Grid>
             </Grid>
         </FormControl>
     );
