@@ -3,9 +3,8 @@ package suites
 import (
 	"context"
 	"fmt"
-	"time"
-
 	"github.com/stretchr/testify/suite"
+	"time"
 )
 
 type TraefikSuite struct {
