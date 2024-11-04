@@ -192,3 +192,5 @@ notifier:
     password: 'yourapppassword'
     sender: 'admin@{{< sitevar name="domain" nojs="example.com" >}}'
 ```
+
+[security]: ../../overview/security/measures.md#notifier-security-measures-smtp
