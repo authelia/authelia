@@ -48,11 +48,112 @@ func newStorageCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd.PersistentFlags().String("postgres.ssl.key", "", "the PostgreSQL ssl key file location")
 
 	cmd.AddCommand(
+		newStorageCacheCmd(ctx),
 		newStorageMigrateCmd(ctx),
 		newStorageSchemaInfoCmd(ctx),
 		newStorageEncryptionCmd(ctx),
 		newStorageUserCmd(ctx),
 	)
+
+	return cmd
+}
+
+func newStorageCacheCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "cache",
+		Short:   cmdAutheliaStorageCacheShort,
+		Long:    cmdAutheliaStorageCacheLong,
+		Example: cmdAutheliaStorageCacheExample,
+		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.AddCommand(
+		newStorageCacheMDSCmd(ctx),
+	)
+
+	return cmd
+}
+
+func newStorageCacheMDSCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "mds3",
+		Short:   cmdAutheliaStorageCacheMDS3Short,
+		Long:    cmdAutheliaStorageCacheMDS3Long,
+		Example: cmdAutheliaStorageCacheMDS3Example,
+		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.AddCommand(
+		newStorageCacheMDSDeleteCmd(ctx),
+		newStorageCacheMDSStatusCmd(ctx),
+		newStorageCacheMDSUpdateCmd(ctx),
+		newStorageCacheMDSDumpCmd(ctx),
+	)
+
+	return cmd
+}
+
+func newStorageCacheMDSDeleteCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:               "delete",
+		Short:             cmdAutheliaStorageCacheMDS3DeleteShort,
+		Long:              cmdAutheliaStorageCacheMDS3DeleteLong,
+		Example:           cmdAutheliaStorageCacheMDS3DeleteExample,
+		Args:              cobra.NoArgs,
+		RunE:              ctx.StorageCacheDeleteRunE("mds3", "MDS3"),
+		DisableAutoGenTag: true,
+	}
+
+	return cmd
+}
+
+func newStorageCacheMDSStatusCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:               "status",
+		Short:             cmdAutheliaStorageCacheMDS3StatusShort,
+		Long:              cmdAutheliaStorageCacheMDS3StatusLong,
+		Example:           cmdAutheliaStorageCacheMDS3StatusExample,
+		Args:              cobra.NoArgs,
+		RunE:              ctx.StorageCacheMDS3StatusRunE,
+		DisableAutoGenTag: true,
+	}
+
+	return cmd
+}
+
+func newStorageCacheMDSUpdateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:               "update",
+		Short:             cmdAutheliaStorageCacheMDS3UpdateShort,
+		Long:              cmdAutheliaStorageCacheMDS3UpdateLong,
+		Example:           cmdAutheliaStorageCacheMDS3UpdateExample,
+		Args:              cobra.NoArgs,
+		RunE:              ctx.StorageCacheMDS3UpdateRunE,
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().String(cmdFlagNamePath, "", "updates from a file rather than from a web request")
+	cmd.Flags().BoolP(cmdFlagNameForce, "f", false, "forces the update even if it's not expired")
+
+	return cmd
+}
+
+func newStorageCacheMDSDumpCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:               "dump",
+		Short:             cmdAutheliaStorageCacheMDS3DumpShort,
+		Long:              cmdAutheliaStorageCacheMDS3DumpLong,
+		Example:           cmdAutheliaStorageCacheMDS3DumpExample,
+		Args:              cobra.NoArgs,
+		RunE:              ctx.StorageCacheMDS3DumpRunE,
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().String(cmdFlagNamePath, "data.mds3", "the path to save the dumped mds3 data blob")
 
 	return cmd
 }

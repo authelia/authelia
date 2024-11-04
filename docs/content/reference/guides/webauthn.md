@@ -2,7 +2,7 @@
 title: "WebAuthn"
 description: "A reference guide on various WebAuthn features and topics"
 summary: "This section contains reference documentation for Authelia's WebAuthn implementation and capabilities."
-date: 2024-10-23T10:35:56+11:00
+date: 2024-11-03T22:41:12+11:00
 draft: false
 images: []
 weight: 220

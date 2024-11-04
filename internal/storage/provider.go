@@ -312,6 +312,9 @@ type CachedDataProvider interface {
 
 	// SaveCachedData saves cached data to the database.
 	SaveCachedData(ctx context.Context, data model.CachedData) (err error)
+
+	// DeleteCachedData deletes cached data from the database.
+	DeleteCachedData(ctx context.Context, name string) (err error)
 }
 
 // RegulatorProvider is an interface providing storage capabilities for persisting any kind of data related to the regulator.

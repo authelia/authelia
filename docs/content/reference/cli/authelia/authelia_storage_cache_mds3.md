@@ -1,8 +1,8 @@
 ---
-title: "authelia storage"
-description: "Reference for the authelia storage command."
+title: "authelia storage cache mds3"
+description: "Reference for the authelia storage cache mds3 command."
 lead: ""
-date: 2022-06-15T17:51:47+10:00
+date: 2024-11-04T19:03:49+11:00
 draft: false
 images: []
 weight: 905
@@ -14,29 +14,34 @@ seo:
   noindex: false # false (default) or true
 ---
 
-## authelia storage
+## authelia storage cache mds3
 
-Manage the Authelia storage
+Manage storage MDS3 cache
 
 ### Synopsis
 
-Manage the Authelia storage.
+Manage storage MDS3 cache.
 
-This subcommand has several methods to interact with the Authelia SQL Database. This allows doing several advanced
-operations which would be much harder to do manually.
-
+This subcommand allows management of the storage MDS3 cache.
 
 ### Examples
 
 ```
-authelia storage --help
+authelia storage cache mds3 --help
 ```
 
 ### Options
 
 ```
+  -h, --help   help for mds3
+```
+
+### Options inherited from parent commands
+
+```
+  -c, --config strings                         configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
+      --config.experimental.filters strings    list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
       --encryption-key string                  the storage encryption key to use
-  -h, --help                                   help for storage
       --mysql.database string                  the MySQL database name (default "authelia")
       --mysql.host string                      the MySQL hostname
       --mysql.password string                  the MySQL password
@@ -55,19 +60,11 @@ authelia storage --help
       --sqlite.path string                     the SQLite database path
 ```
 
-### Options inherited from parent commands
-
-```
-  -c, --config strings                        configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
-      --config.experimental.filters strings   list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
-```
-
 ### SEE ALSO
 
-* [authelia](authelia.md)	 - authelia untagged-unknown-dirty (master, unknown)
 * [authelia storage cache](authelia_storage_cache.md)	 - Manage storage cache
-* [authelia storage encryption](authelia_storage_encryption.md)	 - Manage storage encryption
-* [authelia storage migrate](authelia_storage_migrate.md)	 - Perform or list migrations
-* [authelia storage schema-info](authelia_storage_schema-info.md)	 - Show the storage information
-* [authelia storage user](authelia_storage_user.md)	 - Manages user settings
+* [authelia storage cache mds3 delete](authelia_storage_cache_mds3_delete.md)	 - Delete storage MDS3 cache
+* [authelia storage cache mds3 dump](authelia_storage_cache_mds3_dump.md)	 - Dump storage MDS3 cache
+* [authelia storage cache mds3 status](authelia_storage_cache_mds3_status.md)	 - View storage MDS3 cache status
+* [authelia storage cache mds3 update](authelia_storage_cache_mds3_update.md)	 - Update storage MDS3 cache
 

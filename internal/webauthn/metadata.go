@@ -54,17 +54,15 @@ type MetaDataProvider interface {
 	metadata.Provider
 
 	StartupCheck() (err error)
-	Load(ctx context.Context) (err error)
-	LoadFile(ctx context.Context, path string) (err error)
-	LoadCache(ctx context.Context) (err error)
-	SaveCache(ctx context.Context) (err error)
+	Load(ctx context.Context) (mds *metadata.Metadata, data []byte, err error)
+	LoadFile(ctx context.Context, path string) (mds *metadata.Metadata, data []byte, err error)
+	LoadCache(ctx context.Context) (mds *metadata.Metadata, data []byte, err error)
+	SaveCache(ctx context.Context, data []byte) (err error)
 	Outdated() (outdated bool)
 }
 
 type StoreCachedMetadataProvider struct {
 	metadata.Provider
-
-	data []byte
 
 	new func(mds *metadata.Metadata) (provider metadata.Provider, err error)
 
@@ -92,10 +90,23 @@ func (p *StoreCachedMetadataProvider) GetEntry(ctx context.Context, aaguid uuid.
 	defer p.mu.Unlock()
 
 	if p.outdated() {
-		if err = p.loadCache(ctx); err != nil {
-			if err = p.load(ctx); err != nil {
+		var (
+			mds  *metadata.Metadata
+			data []byte
+		)
+
+		if mds, data, err = p.getCache(ctx); err != nil {
+			if mds, data, err = p.get(ctx); err != nil {
 				return nil, err
 			}
+		}
+
+		if err = p.configure(mds); err != nil {
+			return nil, err
+		}
+
+		if err = p.saveCache(ctx, data); err != nil {
+			return nil, err
 		}
 	}
 
@@ -107,66 +118,22 @@ func (p *StoreCachedMetadataProvider) init() (err error) {
 		return fmt.Errorf("error initializing provider: storage is not configured")
 	}
 
+	var data []byte
+
 	ctx := context.Background()
 
-	if err = p.loadCache(ctx); err == nil && !p.outdated() {
+	if _, _, err = p.loadCache(ctx); err == nil && !p.outdated() {
 		return nil
 	}
 
-	if err = p.load(ctx); err != nil {
+	if _, data, err = p.load(ctx); err != nil {
 		return err
 	}
 
-	return nil
+	return p.saveCache(ctx, data)
 }
 
-func (p *StoreCachedMetadataProvider) LoadFile(ctx context.Context, path string) (err error) {
-	var (
-		data []byte
-		mds  *metadata.Metadata
-	)
-
-	if data, err = os.ReadFile(path); err != nil {
-		return fmt.Errorf("error reading file '%s': %w", path, err)
-	}
-
-	p.mu.Lock()
-
-	defer p.mu.Unlock()
-
-	if mds, err = p.parse(bytes.NewReader(data)); err != nil {
-		return fmt.Errorf("error parsing metdaata: %w", err)
-	}
-
-	return p.configure(mds, data)
-}
-
-func (p *StoreCachedMetadataProvider) LoadCache(ctx context.Context) (err error) {
-	p.mu.Lock()
-
-	defer p.mu.Unlock()
-
-	return p.loadCache(ctx)
-}
-
-func (p *StoreCachedMetadataProvider) loadCache(ctx context.Context) (err error) {
-	var (
-		mds  *metadata.Metadata
-		data []byte
-	)
-
-	if mds, data, err = p.cached(ctx); err != nil {
-		return err
-	}
-
-	if mds == nil {
-		return nil
-	}
-
-	return p.configure(mds, data)
-}
-
-func (p *StoreCachedMetadataProvider) Load(ctx context.Context) (err error) {
+func (p *StoreCachedMetadataProvider) Load(ctx context.Context) (mds *metadata.Metadata, data []byte, err error) {
 	p.mu.Lock()
 
 	defer p.mu.Unlock()
@@ -174,73 +141,75 @@ func (p *StoreCachedMetadataProvider) Load(ctx context.Context) (err error) {
 	return p.load(ctx)
 }
 
-func (p *StoreCachedMetadataProvider) load(ctx context.Context) (err error) {
-	var (
-		mds  *metadata.Metadata
-		data []byte
-	)
+func (p *StoreCachedMetadataProvider) load(ctx context.Context) (mds *metadata.Metadata, data []byte, err error) {
+	if mds, data, err = p.get(ctx); err != nil {
+		return nil, nil, err
+	}
 
+	if err = p.configure(mds); err != nil {
+		return nil, nil, err
+	}
+
+	return mds, data, nil
+}
+
+func (p *StoreCachedMetadataProvider) get(ctx context.Context) (mds *metadata.Metadata, data []byte, err error) {
 	if data, err = p.latest(ctx); err != nil {
-		return fmt.Errorf("error loading latest metdaata: %w", err)
+		return nil, nil, fmt.Errorf("error loading latest metadata: %w", err)
 	}
 
 	if mds, err = p.parse(bytes.NewReader(data)); err != nil {
-		return fmt.Errorf("error parsing metdaata: %w", err)
+		return nil, nil, fmt.Errorf("error parsing metadata: %w", err)
 	}
 
-	return p.configure(mds, data)
+	return mds, data, nil
 }
 
-func (p *StoreCachedMetadataProvider) SaveCache(ctx context.Context) (err error) {
+func (p *StoreCachedMetadataProvider) LoadFile(ctx context.Context, path string) (mds *metadata.Metadata, data []byte, err error) {
+	if data, err = os.ReadFile(path); err != nil {
+		return nil, nil, fmt.Errorf("error reading file '%s': %w", path, err)
+	}
+
 	p.mu.Lock()
 
 	defer p.mu.Unlock()
 
-	return p.save(ctx)
-}
-
-func (p *StoreCachedMetadataProvider) save(ctx context.Context) (err error) {
-	cache := model.CachedData{Name: cacheMDS3, Value: p.data}
-
-	if err = p.store.SaveCachedData(ctx, cache); err != nil {
-		return fmt.Errorf("error saving metadata cache to database: %w", err)
+	if mds, err = p.parse(bytes.NewReader(data)); err != nil {
+		return nil, nil, fmt.Errorf("error parsing metadata: %w", err)
 	}
 
-	return nil
-}
-
-func (p *StoreCachedMetadataProvider) configure(mds *metadata.Metadata, data []byte) (err error) {
-	var provider metadata.Provider
-
-	if provider, err = p.new(mds); err != nil {
-		return fmt.Errorf("error initializing metadata provider: %w", err)
+	if err = p.configure(mds); err != nil {
+		return nil, nil, err
 	}
 
-	p.Provider = provider
-	p.data = data
-
-	p.update, p.number = mds.Parsed.NextUpdate, mds.Parsed.Number
-
-	return nil
+	return mds, data, nil
 }
 
-func (p *StoreCachedMetadataProvider) equal(mds *metadata.Metadata) bool {
-	return mds.Parsed.NextUpdate.Unix() == p.update.Unix() && mds.Parsed.Number == p.number
-}
-
-func (p *StoreCachedMetadataProvider) Outdated() bool {
+func (p *StoreCachedMetadataProvider) LoadCache(ctx context.Context) (mds *metadata.Metadata, data []byte, err error) {
 	p.mu.Lock()
 
 	defer p.mu.Unlock()
 
-	return p.outdated()
+	return p.loadCache(ctx)
 }
 
-func (p *StoreCachedMetadataProvider) outdated() bool {
-	return p.clock.Now().After(p.update)
+func (p *StoreCachedMetadataProvider) loadCache(ctx context.Context) (mds *metadata.Metadata, data []byte, err error) {
+	if mds, data, err = p.getCache(ctx); err != nil {
+		return nil, nil, err
+	}
+
+	if mds == nil {
+		return nil, nil, nil
+	}
+
+	if err = p.configure(mds); err != nil {
+		return nil, nil, err
+	}
+
+	return mds, data, nil
 }
 
-func (p *StoreCachedMetadataProvider) cached(ctx context.Context) (mds *metadata.Metadata, data []byte, err error) {
+func (p *StoreCachedMetadataProvider) getCache(ctx context.Context) (mds *metadata.Metadata, data []byte, err error) {
 	var cache *model.CachedData
 
 	if cache, err = p.store.LoadCachedData(ctx, cacheMDS3); err != nil {
@@ -256,6 +225,50 @@ func (p *StoreCachedMetadataProvider) cached(ctx context.Context) (mds *metadata
 	}
 
 	return mds, cache.Value, nil
+}
+
+func (p *StoreCachedMetadataProvider) SaveCache(ctx context.Context, data []byte) (err error) {
+	p.mu.Lock()
+
+	defer p.mu.Unlock()
+
+	return p.saveCache(ctx, data)
+}
+
+func (p *StoreCachedMetadataProvider) saveCache(ctx context.Context, data []byte) (err error) {
+	cache := model.CachedData{Name: cacheMDS3, Value: data}
+
+	if err = p.store.SaveCachedData(ctx, cache); err != nil {
+		return fmt.Errorf("error saving metadata cache to database: %w", err)
+	}
+
+	return nil
+}
+
+func (p *StoreCachedMetadataProvider) configure(mds *metadata.Metadata) (err error) {
+	var provider metadata.Provider
+
+	if provider, err = p.new(mds); err != nil {
+		return fmt.Errorf("error initializing metadata provider: %w", err)
+	}
+
+	p.Provider = provider
+
+	p.update, p.number = mds.Parsed.NextUpdate, mds.Parsed.Number
+
+	return nil
+}
+
+func (p *StoreCachedMetadataProvider) Outdated() bool {
+	p.mu.Lock()
+
+	defer p.mu.Unlock()
+
+	return p.outdated()
+}
+
+func (p *StoreCachedMetadataProvider) outdated() bool {
+	return p.clock.Now().After(p.update)
 }
 
 func (p *StoreCachedMetadataProvider) latest(ctx context.Context) (data []byte, err error) {

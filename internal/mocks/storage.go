@@ -158,6 +158,20 @@ func (mr *MockStorageMockRecorder) DeactivateOAuth2SessionByRequestID(ctx, sessi
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeactivateOAuth2SessionByRequestID", reflect.TypeOf((*MockStorage)(nil).DeactivateOAuth2SessionByRequestID), ctx, sessionType, requestID)
 }
 
+// DeleteCachedData mocks base method.
+func (m *MockStorage) DeleteCachedData(ctx context.Context, name string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteCachedData", ctx, name)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteCachedData indicates an expected call of DeleteCachedData.
+func (mr *MockStorageMockRecorder) DeleteCachedData(ctx, name any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCachedData", reflect.TypeOf((*MockStorage)(nil).DeleteCachedData), ctx, name)
+}
+
 // DeletePreferredDuoDevice mocks base method.
 func (m *MockStorage) DeletePreferredDuoDevice(ctx context.Context, username string) error {
 	m.ctrl.T.Helper()
