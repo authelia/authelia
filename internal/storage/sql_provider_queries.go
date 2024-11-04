@@ -308,6 +308,10 @@ const (
 		FROM %s
 		WHERE name = ?;`
 
+	queryFmtDeleteCachedData = `
+		DELETE FROM %s
+		WHERE name = ?;`
+
 	queryFmtSelectCachedDataEncryptedData = `
 		SELECT id, value
 		FROM %s

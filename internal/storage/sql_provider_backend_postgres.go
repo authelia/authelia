@@ -92,6 +92,7 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlSelectAuthenticationAttemptsByUsername = provider.db.Rebind(provider.sqlSelectAuthenticationAttemptsByUsername)
 
 	provider.sqlSelectCachedData = provider.db.Rebind(provider.sqlSelectCachedData)
+	provider.sqlDeleteCachedData = provider.db.Rebind(provider.sqlDeleteCachedData)
 
 	provider.sqlInsertMigration = provider.db.Rebind(provider.sqlInsertMigration)
 	provider.sqlSelectMigrations = provider.db.Rebind(provider.sqlSelectMigrations)

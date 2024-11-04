@@ -13,6 +13,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"github.com/go-webauthn/webauthn/metadata"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -24,6 +25,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/totp"
 	"github.com/authelia/authelia/v4/internal/utils"
+	"github.com/authelia/authelia/v4/internal/webauthn"
 )
 
 // LoadProvidersStorageRunE is a special PreRunE that loads the storage provider into the CmdCtx.
@@ -127,6 +129,176 @@ func (ctx *CmdCtx) ConfigValidateStorageRunE(_ *cobra.Command, _ []string) (err 
 
 		return err
 	}
+
+	return nil
+}
+
+func (ctx *CmdCtx) StorageCacheDeleteRunE(name, description string) func(cmd *cobra.Command, args []string) (err error) {
+	return func(cmd *cobra.Command, args []string) (err error) {
+		defer func() {
+			_ = ctx.providers.StorageProvider.Close()
+		}()
+
+		if err = ctx.CheckSchema(); err != nil {
+			return storageWrapCheckSchemaErr(err)
+		}
+
+		if err = ctx.providers.StorageProvider.DeleteCachedData(ctx, name); err != nil {
+			return err
+		}
+
+		_, _ = fmt.Fprintf(os.Stdout, "Successfully deleted cached %s data.", description)
+
+		return nil
+	}
+}
+
+func (ctx *CmdCtx) StorageCacheMDS3StatusRunE(cmd *cobra.Command, args []string) (err error) {
+	defer func() {
+		_ = ctx.providers.StorageProvider.Close()
+	}()
+
+	if err = ctx.CheckSchema(); err != nil {
+		return storageWrapCheckSchemaErr(err)
+	}
+
+	provider, err := webauthn.NewMetaDataProvider(ctx.config, ctx.providers.StorageProvider)
+	if err != nil {
+		return err
+	}
+
+	var (
+		mds *metadata.Metadata
+
+		valid, initialized, outdated bool
+	)
+
+	if mds, _, err = provider.LoadCache(ctx); err == nil {
+		valid = true
+
+		if mds != nil {
+			initialized = true
+			outdated = provider.Outdated()
+		}
+	}
+
+	_, _ = fmt.Fprintf(os.Stdout, "Cached WebAuthn MDS3 Status:\n\n\tValid: %t\n\tInitialized: %t\n\tOutdated: %t\n", valid, initialized, outdated)
+
+	if initialized {
+		_, _ = fmt.Fprintf(os.Stdout, "\tVersion: %d\n", mds.Parsed.Number)
+
+		if !outdated {
+			_, _ = fmt.Fprintf(os.Stdout, "\tNext Update: %s\n", mds.Parsed.NextUpdate)
+		}
+	}
+
+	return nil
+}
+
+func (ctx *CmdCtx) StorageCacheMDS3DumpRunE(cmd *cobra.Command, args []string) (err error) {
+	defer func() {
+		_ = ctx.providers.StorageProvider.Close()
+	}()
+
+	if err = ctx.CheckSchema(); err != nil {
+		return storageWrapCheckSchemaErr(err)
+	}
+
+	provider, err := webauthn.NewMetaDataProvider(ctx.config, ctx.providers.StorageProvider)
+	if err != nil {
+		return err
+	}
+
+	var (
+		file *os.File
+		mds  *metadata.Metadata
+		data []byte
+		path string
+	)
+
+	if path, err = cmd.Flags().GetString("path"); err != nil {
+		return err
+	}
+
+	if mds, data, err = provider.LoadCache(ctx); err != nil {
+		return err
+	} else if mds == nil {
+		return fmt.Errorf("error dumping metadata: no metadata is in the cache")
+	}
+
+	if file, err = os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
+		return err
+	}
+
+	defer file.Close()
+
+	if _, err = file.Write(data); err != nil {
+		return fmt.Errorf("error writing data to file: %w", err)
+	}
+
+	_ = file.Sync()
+
+	_, _ = fmt.Fprintf(os.Stdout, "Successfully dumped MDS3 data with version %d from cache to file '%s'.\n", mds.Parsed.Number, path)
+
+	return nil
+}
+
+func (ctx *CmdCtx) StorageCacheMDS3UpdateRunE(cmd *cobra.Command, args []string) (err error) {
+	defer func() {
+		_ = ctx.providers.StorageProvider.Close()
+	}()
+
+	if err = ctx.CheckSchema(); err != nil {
+		return storageWrapCheckSchemaErr(err)
+	}
+
+	provider, err := webauthn.NewMetaDataProvider(ctx.config, ctx.providers.StorageProvider)
+	if err != nil {
+		return err
+	}
+
+	var (
+		mds   *metadata.Metadata
+		data  []byte
+		path  string
+		force bool
+	)
+
+	if force, err = cmd.Flags().GetBool(cmdFlagNameForce); err != nil {
+		return err
+	}
+
+	if path, err = cmd.Flags().GetString(cmdFlagNamePath); err != nil {
+		return err
+	}
+
+	if mds, _, err = provider.LoadCache(ctx); err != nil {
+		return err
+	} else if mds != nil && !force && !provider.Outdated() {
+		_, _ = fmt.Fprintf(os.Stdout, "Cached WebAuthn MDS3 data with version %d due for update at %s does not require an update.\n", mds.Parsed.Number, mds.Parsed.NextUpdate)
+
+		return nil
+	}
+
+	if path != "" {
+		mds, data, err = provider.LoadFile(ctx, path)
+	} else {
+		mds, data, err = provider.Load(ctx)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	if data == nil {
+		return fmt.Errorf("error updating metadata: no data was returned")
+	}
+
+	if err = provider.SaveCache(ctx, data); err != nil {
+		return err
+	}
+
+	_, _ = fmt.Fprintf(os.Stdout, "Cached WebAuthn MDS3 data updated to version %d and is due for update at %s\n", mds.Parsed.Number, mds.Parsed.NextUpdate)
 
 	return nil
 }

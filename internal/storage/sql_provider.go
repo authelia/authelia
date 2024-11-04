@@ -41,6 +41,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 
 		sqlUpsertCachedData: fmt.Sprintf(queryFmtUpsertCachedData, tableCachedData),
 		sqlSelectCachedData: fmt.Sprintf(queryFmtSelectCachedData, tableCachedData),
+		sqlDeleteCachedData: fmt.Sprintf(queryFmtDeleteCachedData, tableCachedData),
 
 		sqlInsertIdentityVerification:  fmt.Sprintf(queryFmtInsertIdentityVerification, tableIdentityVerification),
 		sqlConsumeIdentityVerification: fmt.Sprintf(queryFmtConsumeIdentityVerification, tableIdentityVerification),
@@ -180,6 +181,7 @@ type SQLProvider struct {
 	// Table: cached_data.
 	sqlUpsertCachedData string
 	sqlSelectCachedData string
+	sqlDeleteCachedData string
 
 	// Table: identity_verification.
 	sqlInsertIdentityVerification  string
@@ -1427,7 +1429,7 @@ func (p *SQLProvider) SaveCachedData(ctx context.Context, data model.CachedData)
 		}
 	}
 
-	if _, err = p.db.ExecContext(ctx, p.sqlUpsertOAuth2BlacklistedJTI, data.Name, data.Encrypted, data.Value); err != nil {
+	if _, err = p.db.ExecContext(ctx, p.sqlUpsertCachedData, data.Name, data.Encrypted, data.Value); err != nil {
 		return fmt.Errorf("error inserting cached data with name '%s': %w", data.Name, err)
 	}
 
@@ -1452,4 +1454,16 @@ func (p *SQLProvider) LoadCachedData(ctx context.Context, name string) (data *mo
 	}
 
 	return data, nil
+}
+
+func (p *SQLProvider) DeleteCachedData(ctx context.Context, name string) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlDeleteCachedData, name); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
+		}
+
+		return fmt.Errorf("error deleting cached data with name '%s': %w", name, err)
+	}
+
+	return nil
 }
