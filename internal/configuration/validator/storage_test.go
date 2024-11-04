@@ -74,7 +74,7 @@ func (suite *StorageSuite) TestShouldValidateMySQLHostUsernamePasswordAndDatabas
 
 	suite.Require().Len(suite.val.Errors(), 3)
 	suite.EqualError(suite.val.Errors()[0], "storage: mysql: option 'address' is required")
-	suite.EqualError(suite.val.Errors()[1], "storage: mysql: option 'username' and 'password' are required")
+	suite.EqualError(suite.val.Errors()[1], "storage: mysql: option 'username' is required")
 	suite.EqualError(suite.val.Errors()[2], "storage: mysql: option 'database' is required")
 
 	suite.val.Clear()
@@ -170,7 +170,7 @@ func (suite *StorageSuite) TestShouldValidatePostgreSQLHostUsernamePasswordAndDa
 
 	suite.Require().Len(suite.val.Errors(), 3)
 	suite.EqualError(suite.val.Errors()[0], "storage: postgres: option 'address' is required")
-	suite.EqualError(suite.val.Errors()[1], "storage: postgres: option 'username' and 'password' are required")
+	suite.EqualError(suite.val.Errors()[1], "storage: postgres: option 'username' is required")
 	suite.EqualError(suite.val.Errors()[2], "storage: postgres: option 'database' is required")
 
 	suite.val.Clear()
