@@ -72,7 +72,7 @@ To generate an [Argon2] hash with the docker image interactively just run:
 {{< envTabs "Generate Password (Interactive)" >}}
 {{< envTab "Docker" >}}
 ```bash
-docker run -it authelia/authelia:latest authelia crypto hash generate argon2
+docker run --rm -it authelia/authelia:latest authelia crypto hash generate argon2
 ```
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
@@ -87,7 +87,7 @@ To generate an [Argon2] hash with the docker image without a prompt you can run:
 {{< envTabs "Generate Password" >}}
 {{< envTab "Docker" >}}
 ```bash
-docker run authelia/authelia:latest authelia crypto hash generate argon2 --password 'password'
+docker run --rm authelia/authelia:latest authelia crypto hash generate argon2 --password 'password'
 ```
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
@@ -109,7 +109,7 @@ in the current directory:
 {{< envTabs "Generate Password (Interactive)" >}}
 {{< envTab "Docker" >}}
 ```bash
-docker run -v ./configuration.yml:/configuration.yml -it authelia/authelia:latest authelia crypto hash generate --config /configuration.yml
+docker run --rm -it -v ./configuration.yml:/configuration.yml authelia/authelia:latest authelia crypto hash generate --config /configuration.yml
 ```
 {{< /envTab >}}
 {{< envTab "Bare Metal" >}}
