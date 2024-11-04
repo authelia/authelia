@@ -186,10 +186,9 @@ You need to generate an app password in order to use Gmail SMTP servers. The pro
 ```yaml {title="configuration.yml"}
 notifier:
   smtp:
+    address: 'smtp://smtp.gmail.com:587'
     username: 'myaccount@gmail.com'
     # Password can also be set using a secret: https://www.authelia.com/configuration/methods/secrets/
     password: 'yourapppassword'
     sender: 'admin@{{< sitevar name="domain" nojs="example.com" >}}'
-    host: 'smtp.gmail.com'
-    port: 587
 ```
