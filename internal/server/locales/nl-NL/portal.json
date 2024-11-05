@@ -91,6 +91,7 @@
 	"Time-based One-Time Password": "Tijdelijk eenmalig wachtwoord",
 	"Use OpenID to verify your identity": "Gebruik OpenID om je identiteit te verifiëren",
 	"Username": "Gebruikersnaam",
+	"Username is required": "Gebruikersnaam is vereist",
 	"You cancelled the assertion request": "Je hebt het assertieverzoek geannuleerd",
 	"You must view and accept the Privacy Policy before using": "U moet het <0>privacybeleid bekijken en accepteren voordat u het gebruikt",
 	"You're being signed out and redirected": "Je wordt afgemeld en doorgestuurd",
