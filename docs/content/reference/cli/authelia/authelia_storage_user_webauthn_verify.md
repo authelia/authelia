@@ -1,8 +1,8 @@
 ---
-title: "authelia storage cache mds3 update"
-description: "Reference for the authelia storage cache mds3 update command."
+title: "authelia storage user webauthn verify"
+description: "Reference for the authelia storage user webauthn verify command."
 lead: ""
-date: 2022-06-15T17:51:47+10:00
+date: 2024-11-05T22:18:30+11:00
 draft: false
 images: []
 weight: 905
@@ -14,32 +14,30 @@ seo:
   noindex: false # false (default) or true
 ---
 
-## authelia storage cache mds3 update
+## authelia storage user webauthn verify
 
-Update storage MDS3 cache
+Verify WebAuthn credentials
 
 ### Synopsis
 
-Update storage MDS3 cache.
+Verify WebAuthn credentials.
 
-This subcommand allows updating of the storage MDS3 cache.
+This subcommand allows verifying registered WebAuthn credentials.
 
 ```
-authelia storage cache mds3 update [flags]
+authelia storage user webauthn verify [flags]
 ```
 
 ### Examples
 
 ```
-authelia storage cache mds3 update
+authelia storage user webauthn verify
 ```
 
 ### Options
 
 ```
-  -f, --force         forces the update even if it's not expired
-  -h, --help          help for update
-      --path string   updates from a file rather than from a web request
+  -h, --help   help for verify
 ```
 
 ### Options inherited from parent commands
@@ -68,5 +66,5 @@ authelia storage cache mds3 update
 
 ### SEE ALSO
 
-* [authelia storage cache mds3](authelia_storage_cache_mds3.md)	 - Manage storage MDS3 cache
+* [authelia storage user webauthn](authelia_storage_user_webauthn.md)	 - Manage WebAuthn credentials
 

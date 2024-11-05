@@ -276,6 +276,14 @@ authelia storage user webauthn list john --config config.yml
 authelia storage user webauthn list --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
 authelia storage user webauthn list john --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
 
+	cmdAutheliaStorageUserWebAuthnVerifyShort = "Verify WebAuthn credentials"
+
+	cmdAutheliaStorageUserWebAuthnVerifyLong = `Verify WebAuthn credentials.
+
+This subcommand allows verifying registered WebAuthn credentials.`
+
+	cmdAutheliaStorageUserWebAuthnVerifyExample = `authelia storage user webauthn verify`
+
 	cmdAutheliaStorageUserWebAuthnDeleteShort = "Delete a WebAuthn credential"
 
 	cmdAutheliaStorageUserWebAuthnDeleteLong = `Delete a WebAuthn credential.
@@ -901,6 +909,11 @@ const (
 	providerNameUser             = "user"
 	providerNameNotification     = "notification"
 	providerNameWebAuthnMetaData = "webauthn-metadata"
+)
+
+const (
+	wordYes = "Yes"
+	wordNo  = "No"
 )
 
 const (
