@@ -72,14 +72,11 @@ identity_providers:
 ### Application
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-This configuration assumes [HedgeDoc] users are part of the `hedgedoc-users` group. Depending on
+This configuration assumes [HedgeDoc](https://hedgedoc.org/) users are part of the `hedgedoc-users` group. Depending on
 your specific group configuration, you will have to adapt the `CMD_OAUTH2_ACCESS_ROLE` variable. Alternatively you may
-elect to create a new authorization policy in [provider authorization policies] then utilize that policy as the
-[client authorization policy].
+elect to create a new authorization policy in [provider authorization policies](../../../configuration/identity-providers/openid-connect/provider.md#authorization_policies) then utilize that policy as the
+[client authorization policy](../../../configuration/identity-providers/openid-connect/clients.md#authorization_policy).
 {{< /callout >}}
-
-[client authorization policy]: ../../../configuration/identity-providers/openid-connect/clients.md#authorization_policy
-[provider authorization policies]: ../../../configuration/identity-providers/openid-connect/provider.md#authorization_policies
 
 To configure [HedgeDoc] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 

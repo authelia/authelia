@@ -14,7 +14,7 @@ require (
 	github.com/duosecurity/duo_api_golang v0.0.0-20240408132100-cb1770897e66
 	github.com/fasthttp/router v1.5.2
 	github.com/fasthttp/session/v2 v2.5.6
-	github.com/fsnotify/fsnotify v1.7.0
+	github.com/fsnotify/fsnotify v1.8.0
 	github.com/go-asn1-ber/asn1-ber v1.5.7
 	github.com/go-crypt/crypt v0.3.1
 	github.com/go-jose/go-jose/v4 v4.0.4
@@ -44,7 +44,8 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.9.0
 	github.com/trustelem/zxcvbn v1.0.1
-	github.com/valyala/fasthttp v1.56.0
+	github.com/valyala/fasthttp v1.57.0
+	github.com/weppos/publicsuffix-go v0.40.3-0.20241028103210-157ac7669b99
 	github.com/wneessen/go-mail v0.5.1
 	go.uber.org/mock v0.5.0
 	golang.org/x/net v0.30.0
@@ -57,7 +58,7 @@ require (
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 // indirect
-	github.com/andybalholm/brotli v1.1.0 // indirect
+	github.com/andybalholm/brotli v1.1.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/boombuler/barcode v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -80,7 +81,7 @@ require (
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
-	github.com/klauspost/compress v1.17.9 // indirect
+	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/knadh/koanf/maps v0.1.1 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect

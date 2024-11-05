@@ -438,6 +438,8 @@ const (
 
 	errFmtLoggingInvalid = "log: option '%s' must be one of %s but it's configured as '%s'"
 
+	errFmtCookieDomainInPSL = "%s is a suffix"
+
 	errFileHashing  = "config key incorrect: authentication_backend.file.hashing should be authentication_backend.file.password"
 	errFilePHashing = "config key incorrect: authentication_backend.file.password_hashing should be authentication_backend.file.password"
 	errFilePOptions = "config key incorrect: authentication_backend.file.password_options should be authentication_backend.file.password"
