@@ -627,7 +627,7 @@ func (ctx *CmdCtx) StorageUserWebAuthnExportRunE(cmd *cobra.Command, args []stri
 	count := 0
 
 	var (
-		devices []model.WebAuthnCredential
+		credentials []model.WebAuthnCredential
 	)
 
 	export := &model.WebAuthnCredentialExport{
@@ -635,13 +635,13 @@ func (ctx *CmdCtx) StorageUserWebAuthnExportRunE(cmd *cobra.Command, args []stri
 	}
 
 	for page := 0; true; page++ {
-		if devices, err = ctx.providers.StorageProvider.LoadWebAuthnCredentials(ctx, limit, page); err != nil {
+		if credentials, err = ctx.providers.StorageProvider.LoadWebAuthnCredentials(ctx, limit, page); err != nil {
 			return err
 		}
 
-		export.WebAuthnCredentials = append(export.WebAuthnCredentials, devices...)
+		export.WebAuthnCredentials = append(export.WebAuthnCredentials, credentials...)
 
-		l := len(devices)
+		l := len(credentials)
 
 		count += l
 
@@ -703,8 +703,8 @@ func (ctx *CmdCtx) StorageUserWebAuthnImportRunE(cmd *cobra.Command, args []stri
 		return storageWrapCheckSchemaErr(err)
 	}
 
-	for _, device := range export.WebAuthnCredentials {
-		if err = ctx.providers.StorageProvider.SaveWebAuthnCredential(ctx, device); err != nil {
+	for _, credential := range export.WebAuthnCredentials {
+		if err = ctx.providers.StorageProvider.SaveWebAuthnCredential(ctx, credential); err != nil {
 			return err
 		}
 	}
@@ -728,17 +728,17 @@ func (ctx *CmdCtx) StorageUserWebAuthnListRunE(cmd *cobra.Command, args []string
 		return storageWrapCheckSchemaErr(err)
 	}
 
-	var devices []model.WebAuthnCredential
+	var credentials []model.WebAuthnCredential
 
 	user := args[0]
 
-	devices, err = ctx.providers.StorageProvider.LoadWebAuthnCredentialsByUsername(ctx, "", user)
+	credentials, err = ctx.providers.StorageProvider.LoadWebAuthnCredentialsByUsername(ctx, "", user)
 
 	switch {
-	case len(devices) == 0 || (err != nil && errors.Is(err, storage.ErrNoWebAuthnCredential)):
+	case len(credentials) == 0 || (err != nil && errors.Is(err, storage.ErrNoWebAuthnCredential)):
 		return fmt.Errorf("user '%s' has no WebAuthn credentials", user)
 	case err != nil:
-		return fmt.Errorf("can't list devices for user '%s': %w", user, err)
+		return fmt.Errorf("can't list credentials for user '%s': %w", user, err)
 	default:
 		fmt.Printf("WebAuthn Credentials for user '%s':\n\n", user)
 
@@ -746,8 +746,8 @@ func (ctx *CmdCtx) StorageUserWebAuthnListRunE(cmd *cobra.Command, args []string
 
 		_, _ = fmt.Fprintln(w, "ID\tKID\tDescription")
 
-		for _, device := range devices {
-			_, _ = fmt.Fprintf(w, "%d\t%s\t%s\n", device.ID, device.KID, device.Description)
+		for _, credential := range credentials {
+			_, _ = fmt.Fprintf(w, "%d\t%s\t%s\n", credential.ID, credential.KID, credential.Description)
 		}
 
 		return w.Flush()
@@ -764,7 +764,7 @@ func (ctx *CmdCtx) StorageUserWebAuthnListAllRunE(_ *cobra.Command, _ []string) 
 		return storageWrapCheckSchemaErr(err)
 	}
 
-	var devices []model.WebAuthnCredential
+	var credentials []model.WebAuthnCredential
 
 	limit := 10
 
@@ -773,24 +773,96 @@ func (ctx *CmdCtx) StorageUserWebAuthnListAllRunE(_ *cobra.Command, _ []string) 
 	_, _ = fmt.Fprintln(w, "ID\tKID\tDescription\tUsername")
 
 	for page := 0; true; page++ {
-		if devices, err = ctx.providers.StorageProvider.LoadWebAuthnCredentials(ctx, limit, page); err != nil {
-			return fmt.Errorf("failed to list devices: %w", err)
+		if credentials, err = ctx.providers.StorageProvider.LoadWebAuthnCredentials(ctx, limit, page); err != nil {
+			return fmt.Errorf("failed to list credentials: %w", err)
 		}
 
-		if page == 0 && len(devices) == 0 {
+		if page == 0 && len(credentials) == 0 {
 			return errors.New("no WebAuthn credentials in database")
 		}
 
-		for _, device := range devices {
-			_, _ = fmt.Fprintf(w, "%d\t%s\t%s\t%s\n", device.ID, device.KID, device.Description, device.Username)
+		for _, credential := range credentials {
+			_, _ = fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\n", credential.ID, credential.RPID, credential.KID, credential.Description, credential.Username)
 		}
 
-		if len(devices) < limit {
+		if len(credentials) < limit {
 			break
 		}
 	}
 
 	fmt.Printf("WebAuthn Credentials:\n\n")
+
+	return w.Flush()
+}
+
+// StorageUserWebAuthnVerifyRunE is the RunE for the authelia storage user webauthn verify command when no args are specified.
+func (ctx *CmdCtx) StorageUserWebAuthnVerifyRunE(_ *cobra.Command, _ []string) (err error) {
+	defer func() {
+		_ = ctx.providers.StorageProvider.Close()
+	}()
+
+	if err = ctx.CheckSchema(); err != nil {
+		return storageWrapCheckSchemaErr(err)
+	}
+
+	var (
+		mds         webauthn.MetaDataProvider
+		credentials []model.WebAuthnCredential
+	)
+
+	if ctx.config.WebAuthn.Metadata.Enabled {
+		if mds, err = webauthn.NewMetaDataProvider(ctx.config, ctx.providers.StorageProvider); err != nil {
+			return err
+		}
+	}
+
+	limit := 10
+
+	w := tabwriter.NewWriter(os.Stdout, 1, 1, 4, ' ', 0)
+
+	_, _ = fmt.Fprintln(w, "ID\tRPID\tKID\tUsername\tAAGUID\tStatement\tBackup\tMDS")
+
+	for page := 0; true; page++ {
+		if credentials, err = ctx.providers.StorageProvider.LoadWebAuthnCredentials(ctx, limit, page); err != nil {
+			return fmt.Errorf("failed to verify credentials: %w", err)
+		}
+
+		if page == 0 && len(credentials) == 0 {
+			return errors.New("no WebAuthn credentials in database")
+		}
+
+		for _, credential := range credentials {
+			result := webauthn.VerifyCredential(&ctx.config.WebAuthn, &credential, mds)
+
+			strAAGUID, strStatement, strBackup, strMDS := wordYes, wordYes, wordYes, wordYes
+
+			if result.IsProhibitedAAGUID {
+				strAAGUID = wordNo
+			}
+
+			if result.MissingStatement {
+				strStatement = wordNo
+			}
+
+			if result.IsProhibitedBackupEligibility {
+				strBackup = wordNo
+			}
+
+			if result.Malformed {
+				strMDS = "Malformed"
+			} else if result.MetaDataValidationError {
+				strMDS = wordNo
+			}
+
+			_, _ = fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", credential.ID, credential.RPID, credential.KID, credential.Username, strAAGUID, strStatement, strBackup, strMDS)
+		}
+
+		if len(credentials) < limit {
+			break
+		}
+	}
+
+	fmt.Printf("WebAuthn Credential Verifications:\n\n")
 
 	return w.Flush()
 }

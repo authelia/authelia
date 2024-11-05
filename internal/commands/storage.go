@@ -335,6 +335,7 @@ func newStorageUserWebAuthnCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 
 	cmd.AddCommand(
 		newStorageUserWebAuthnListCmd(ctx),
+		newStorageUserWebAuthnVerifyCmd(ctx),
 		newStorageUserWebAuthnDeleteCmd(ctx),
 		newStorageUserWebAuthnExportCmd(ctx),
 		newStorageUserWebAuthnImportCmd(ctx),
@@ -383,6 +384,21 @@ func newStorageUserWebAuthnListCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Example: cmdAutheliaStorageUserWebAuthnListExample,
 		RunE:    ctx.StorageUserWebAuthnListRunE,
 		Args:    cobra.MaximumNArgs(1),
+
+		DisableAutoGenTag: true,
+	}
+
+	return cmd
+}
+
+func newStorageUserWebAuthnVerifyCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "verify",
+		Short:   cmdAutheliaStorageUserWebAuthnVerifyShort,
+		Long:    cmdAutheliaStorageUserWebAuthnVerifyLong,
+		Example: cmdAutheliaStorageUserWebAuthnVerifyExample,
+		RunE:    ctx.StorageUserWebAuthnVerifyRunE,
+		Args:    cobra.NoArgs,
 
 		DisableAutoGenTag: true,
 	}

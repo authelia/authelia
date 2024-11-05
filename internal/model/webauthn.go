@@ -65,48 +65,17 @@ func (u WebAuthnUser) WebAuthnIcon() string {
 func (u WebAuthnUser) WebAuthnCredentials() (credentials []webauthn.Credential) {
 	credentials = make([]webauthn.Credential, len(u.Credentials))
 
-	var c webauthn.Credential
+	var (
+		credential *webauthn.Credential
+		err        error
+	)
 
-	for i, credential := range u.Credentials {
-		aaguid, err := credential.AAGUID.MarshalBinary()
-		if err != nil {
+	for i, c := range u.Credentials {
+		if credential, err = c.ToCredential(); err != nil {
 			continue
 		}
 
-		c = webauthn.Credential{
-			ID:              credential.KID.Bytes(),
-			PublicKey:       credential.PublicKey,
-			AttestationType: credential.AttestationType,
-			Flags: webauthn.CredentialFlags{
-				UserPresent:    credential.Present,
-				UserVerified:   credential.Verified,
-				BackupEligible: credential.BackupEligible,
-				BackupState:    credential.BackupState,
-			},
-			Authenticator: webauthn.Authenticator{
-				AAGUID:       aaguid,
-				SignCount:    credential.SignCount,
-				CloneWarning: credential.CloneWarning,
-				Attachment:   protocol.AuthenticatorAttachment(credential.Attachment),
-			},
-		}
-
-		if len(credential.Attestation) != 0 {
-			_ = json.Unmarshal(credential.Attestation, &c.Attestation)
-		}
-
-		transports := strings.Split(credential.Transport, ",")
-		c.Transport = []protocol.AuthenticatorTransport{}
-
-		for _, t := range transports {
-			if t == "" {
-				continue
-			}
-
-			c.Transport = append(c.Transport, protocol.AuthenticatorTransport(t))
-		}
-
-		credentials[i] = c
+		credentials[i] = *credential
 	}
 
 	return credentials
@@ -224,6 +193,50 @@ func (c *WebAuthnCredential) DataValueAAGUID() *string {
 	}
 
 	return nil
+}
+
+func (c *WebAuthnCredential) ToCredential() (credential *webauthn.Credential, err error) {
+	aaguid, err := c.AAGUID.MarshalBinary()
+	if err != nil {
+		return nil, err
+	}
+
+	credential = &webauthn.Credential{
+		ID:              c.KID.Bytes(),
+		PublicKey:       c.PublicKey,
+		AttestationType: c.AttestationType,
+		Flags: webauthn.CredentialFlags{
+			UserPresent:    c.Present,
+			UserVerified:   c.Verified,
+			BackupEligible: c.BackupEligible,
+			BackupState:    c.BackupState,
+		},
+		Authenticator: webauthn.Authenticator{
+			AAGUID:       aaguid,
+			SignCount:    c.SignCount,
+			CloneWarning: c.CloneWarning,
+			Attachment:   protocol.AuthenticatorAttachment(c.Attachment),
+		},
+	}
+
+	if len(c.Attestation) != 0 {
+		if err = json.Unmarshal(c.Attestation, &credential.Attestation); err != nil {
+			return nil, err
+		}
+	}
+
+	transports := strings.Split(c.Transport, ",")
+	credential.Transport = []protocol.AuthenticatorTransport{}
+
+	for _, t := range transports {
+		if t == "" {
+			continue
+		}
+
+		credential.Transport = append(credential.Transport, protocol.AuthenticatorTransport(t))
+	}
+
+	return credential, nil
 }
 
 func (c *WebAuthnCredential) ToData() WebAuthnCredentialData {
