@@ -19,5 +19,10 @@ func TestNewMetaDataProvider(t *testing.T) {
 	store := mocks.NewMockStorage(ctrl)
 	provider, err := NewMetaDataProvider(&schema.Configuration{}, store)
 	assert.NoError(t, err)
+	assert.Nil(t, provider)
+
+	provider, err = NewMetaDataProvider(&schema.Configuration{WebAuthn: schema.WebAuthn{Metadata: schema.WebAuthnMetadata{Enabled: true}}}, store)
+
+	assert.NoError(t, err)
 	assert.NotNil(t, provider)
 }
