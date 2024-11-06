@@ -18,7 +18,7 @@ The Reset Password Identity Validation implementation ensures that users cannot 
 first ensuring the user is adequately identified. The settings below therefore can affect the level of security Authelia
 provides to your users so they should be carefully considered.
 
-This process is performed by issuing a HMAC signed JWT using a secret key only known by Authelia.
+This validation process uses a JWT that Authelia signs using HMAC. The signing uses a [secret key](#jwt_secret) that only Authelia possesses.
 
 ## Configuration
 
@@ -27,14 +27,24 @@ This process is performed by issuing a HMAC signed JWT using a secret key only k
 ```yaml {title="configuration.yml"}
 identity_validation:
   reset_password:
+    jwt_secret: ''
     jwt_lifespan: '5 minutes'
     jwt_algorithm: 'HS256'
-    jwt_secret: ''
 ```
 
 ## Options
 
 This section describes the individual configuration options.
+
+### jwt_secret
+
+{{< confkey type="string" required="yes" >}}
+
+The secret used with the HMAC algorithm to sign the JWT.
+
+It is __strongly recommended__ this is a
+[Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
+characters.
 
 ### jwt_lifespan
 
@@ -48,12 +58,3 @@ The lifespan of the JSON Web Token after it's initially generated after which it
 
 The JSON Web Token Algorithm used to sign the JWT. Must be HS256, HS384, or HS512.
 
-### jwt_secret
-
-{{< confkey type="string" required="yes" >}}
-
-The secret used with the HMAC algorithm to sign the JWT.
-
-It's __strongly recommended__ this is a
-[Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
-characters.
