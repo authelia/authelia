@@ -2,7 +2,7 @@
 title: "Authentication Method Reference Values"
 description: "This guide shows a list of Authentication Method Reference Values based on RFC8176 and how they are implemented within Authelia"
 summary: "This guide shows a list of other frequently asked question documents as well as some general ones."
-date: 2024-11-03T22:41:12+11:00
+date: 2024-11-06T23:13:53+11:00
 draft: false
 images: []
 weight: 220
