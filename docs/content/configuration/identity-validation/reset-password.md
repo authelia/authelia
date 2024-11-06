@@ -18,8 +18,7 @@ The Reset Password Identity Validation implementation ensures that users cannot 
 first ensuring the user is adequately identified. The settings below therefore can affect the level of security Authelia
 provides to your users so they should be carefully considered.
 
-This validation process uses a JWT that Authelia signs using HMAC. The signing uses a [secret key](#jwt_secret) that only Authelia possesses.
-
+This process is performed by issuing a HMAC signed JWT using a [secret key](#jwt_secret) only known by Authelia.
 ## Configuration
 
 {{< config-alert-example >}}
