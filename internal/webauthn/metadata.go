@@ -22,18 +22,22 @@ import (
 
 // NewMetaDataProvider generates a new metadata.Provider given a *schema.Configuration and storage.CachedDataProvider.
 func NewMetaDataProvider(config *schema.Configuration, store storage.CachedDataProvider) (provider MetaDataProvider, err error) {
-	p := &StoreCachedMetadataProvider{
-		new:     newMetadataProviderMemory(config),
-		clock:   &metadata.RealClock{},
-		store:   store,
-		handler: &productionMDS3Provider{},
+	if config.WebAuthn.Metadata.Enabled {
+		p := &StoreCachedMetadataProvider{
+			new:     newMetadataProviderMemory(config),
+			clock:   &metadata.RealClock{},
+			store:   store,
+			handler: &productionMDS3Provider{},
+		}
+
+		if p.decoder, err = metadata.NewDecoder(metadata.WithIgnoreEntryParsingErrors()); err != nil {
+			return nil, err
+		}
+
+		provider = p
 	}
 
-	if p.decoder, err = metadata.NewDecoder(metadata.WithIgnoreEntryParsingErrors()); err != nil {
-		return nil, err
-	}
-
-	return p, nil
+	return provider, nil
 }
 
 func newMetadataProviderMemory(config *schema.Configuration) cached.NewFunc {

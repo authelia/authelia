@@ -294,6 +294,10 @@ func (ctx *CmdCtx) StorageCacheMDS3UpdateRunE(cmd *cobra.Command, args []string)
 		return fmt.Errorf("error updating metadata: no data was returned")
 	}
 
+	if provider.Outdated() && !force {
+		_, _ = fmt.Fprintf(os.Stdout, "Provided WebAuthn MDS3 data with version %d was due for update at %s and can't be used.\n", mds.Parsed.Number, mds.Parsed.NextUpdate)
+	}
+
 	if err = provider.SaveCache(ctx, data); err != nil {
 		return err
 	}
@@ -806,14 +810,12 @@ func (ctx *CmdCtx) StorageUserWebAuthnVerifyRunE(_ *cobra.Command, _ []string) (
 	}
 
 	var (
-		mds         webauthn.MetaDataProvider
+		provider    webauthn.MetaDataProvider
 		credentials []model.WebAuthnCredential
 	)
 
-	if ctx.config.WebAuthn.Metadata.Enabled {
-		if mds, err = webauthn.NewMetaDataProvider(ctx.config, ctx.providers.StorageProvider); err != nil {
-			return err
-		}
+	if provider, err = webauthn.NewMetaDataProvider(ctx.config, ctx.providers.StorageProvider); err != nil {
+		return err
 	}
 
 	limit := 10
@@ -832,7 +834,7 @@ func (ctx *CmdCtx) StorageUserWebAuthnVerifyRunE(_ *cobra.Command, _ []string) (
 		}
 
 		for _, credential := range credentials {
-			result := webauthn.VerifyCredential(&ctx.config.WebAuthn, &credential, mds)
+			result := webauthn.VerifyCredential(&ctx.config.WebAuthn, &credential, provider)
 
 			strAAGUID, strStatement, strBackup, strMDS := wordYes, wordYes, wordYes, wordYes
 
