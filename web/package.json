@@ -48,7 +48,7 @@
     "react-dom": "18.3.1",
     "react-i18next": "15.1.0",
     "react-loading": "2.0.3",
-    "react-router-dom": "6.27.0",
+    "react-router-dom": "6.28.0",
     "react18-input-otp": "1.1.4",
     "zxcvbn": "4.4.2"
   },
@@ -106,7 +106,7 @@
     "eslint-plugin-prettier": "5.2.1",
     "eslint-plugin-react": "7.37.2",
     "eslint-plugin-react-hooks": "5.0.0",
-    "happy-dom": "15.10.2",
+    "happy-dom": "15.11.0",
     "husky": "9.1.6",
     "prettier": "3.3.3",
     "react-test-renderer": "18.3.1",
