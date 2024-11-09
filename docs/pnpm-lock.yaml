@@ -637,26 +637,32 @@ packages:
   '@hyas/bootstrap@1.1.1':
     resolution: {integrity: sha512-OvI9qe57aNkbHpTQE4Aoia/XqbDqEmCbCNSjKQGdq3yhtgp0JKt7ku3A9v6BbhD/lBS8uvEh86yhJFeWuxV1lA==}
     engines: {node: '>=20.11.0'}
+    deprecated: Package no longer supported. Use https://www.npmjs.com/package/@thulite/bootstrap instead.
 
   '@hyas/core@1.3.1':
     resolution: {integrity: sha512-njdEsCUBiDlGzvJnVs2BavZ3Gp69kphs7EateZmYhWi3e8ZzMZuMmTNyGpGpB5gowTn4lElosXxLImXvD4iaNQ==}
     engines: {node: '>=20.11.0'}
+    deprecated: Package no longer supported. Use https://www.npmjs.com/package/@thulite/core instead.
 
   '@hyas/doks-core@1.6.1':
     resolution: {integrity: sha512-PvsVggNjOIAdMDmd9TozMHDJoSjgemzb9qJE/MlHhipaNhVzC5sAaKSPtBh3N2hjrrF94S/z4WCHPyhZ3hXXjg==}
     engines: {node: '>=20.11.0'}
+    deprecated: Package no longer supported. Use https://www.npmjs.com/package/@thulite/doks-core instead.
 
   '@hyas/images@3.2.0':
     resolution: {integrity: sha512-z5l7NK9dmeCzhicx57DPBxznqm6vTmo9GzwxG0Zqg1GYEu2UzEEQ187GWvLZrh5AAOAhpC+xydNR8SYvccen2w==}
     engines: {node: '>=20.11.0'}
+    deprecated: Package no longer supported. Use https://www.npmjs.com/package/@thulite/images instead.
 
   '@hyas/inline-svg@1.1.0':
     resolution: {integrity: sha512-qvK8q6N4913kaDxYgiVVihkvGkk0LOuk0xG6A7KKMairsFx/l3sBwse0pX6xFcexD3aYYK36AWZuQ2VfZOrx/g==}
     engines: {node: '>=20.11.0'}
+    deprecated: Package no longer supported. Use https://www.npmjs.com/package/@thulite/inline-svg instead.
 
   '@hyas/seo@2.3.0':
     resolution: {integrity: sha512-ua9/XksaRatVEuIJzU879gJTTr0V/ThCtEncmGArsa8skevLXpcriMXrFSMLNdwZn/IwQ0IQbeSFaXqR6ly8IA==}
     engines: {node: '>=20.11.0'}
+    deprecated: Package no longer supported. Use https://www.npmjs.com/package/@thulite/seo instead.
 
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
@@ -1104,6 +1110,7 @@ packages:
   gethyas@2.4.2:
     resolution: {integrity: sha512-p+z7HqdFzoTva+Iy3Pip2VPtMRFlFIjgR1YkjfRE2/i1eEJVzhnfEvGT7fu+66bmIMBnIaGPXSLBeUkyb0NioQ==}
     engines: {node: '>=20.11.0'}
+    deprecated: Package no longer supported. Use https://www.npmjs.com/package/thulite instead.
 
   glob-all@3.3.1:
     resolution: {integrity: sha512-Y+ESjdI7ZgMwfzanHZYQ87C59jOO0i+Hd+QYtVt9PhLi6d8wlOpzQnfBxWUlaTuAoR3TkybLqqbIoWveU4Ji7Q==}
@@ -1321,8 +1328,8 @@ packages:
     resolution: {integrity: sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==}
     engines: {node: '>= 8'}
 
-  micromatch@4.0.7:
-    resolution: {integrity: sha512-LPP/3KorzCwBxfeUuZmaR6bG2kdeHSbe0P2tY3FLRU4vYrjYz5hI4QZwV0njUx3jeuKe67YukQ1LSPZBKDqO/Q==}
+  micromatch@4.0.8:
+    resolution: {integrity: sha512-PXwfBhYu0hBCPw8Dn0E+WDYb7af3dSLVWKi3HGv84IdF4TyFoC0ysxFd0Goxw7nSv4T/PzEJQxsYsEiFCKo2BA==}
     engines: {node: '>=8.6'}
 
   mimic-response@1.0.1:
@@ -3081,7 +3088,7 @@ snapshots:
       '@nodelib/fs.walk': 1.2.8
       glob-parent: 5.1.2
       merge2: 1.4.1
-      micromatch: 4.0.7
+      micromatch: 4.0.8
 
   fastq@1.17.1:
     dependencies:
@@ -3373,7 +3380,7 @@ snapshots:
 
   merge2@1.4.1: {}
 
-  micromatch@4.0.7:
+  micromatch@4.0.8:
     dependencies:
       braces: 3.0.3
       picomatch: 2.3.1
