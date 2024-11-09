@@ -122,8 +122,10 @@ func (n *SMTPNotifier) StartupCheck() (err error) {
 
 	switch {
 	case len(n.config.Username)+len(n.config.Password) > 0:
-		client.SetSMTPAuthCustom(NewOpportunisticSMTPAuth(n.config))
+		n.log.WithFields(map[string]any{"username": n.config.Username, "password": getSanitizedPassword(n.config.Password)}).Trace("Using opportunistic SMTP AUTH")
+		client.SetSMTPAuthCustom(NewOpportunisticSMTPAuth(n.log, n.config))
 	default:
+		n.log.Trace("Using no SMTP AUTH")
 		client.SetSMTPAuth(gomail.SMTPAuthNoAuth)
 	}
 
@@ -174,16 +176,22 @@ func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject
 		}
 	}
 
+	n.log.Trace("Email successfully composed")
+
 	var client *gomail.Client
 
 	if client, err = gomail.NewClient(n.config.Address.Hostname(), n.opts...); err != nil {
 		return fmt.Errorf("notifier: smtp: failed to establish client: %w", err)
 	}
 
+	n.log.Trace("Dialing SMTP server")
+
 	switch {
 	case len(n.config.Username)+len(n.config.Password) > 0:
-		client.SetSMTPAuthCustom(NewOpportunisticSMTPAuth(n.config))
+		n.log.WithFields(map[string]any{"username": n.config.Username, "password": getSanitizedPassword(n.config.Password)}).Trace("Using opportunistic SMTP AUTH")
+		client.SetSMTPAuthCustom(NewOpportunisticSMTPAuth(n.log, n.config))
 	default:
+		n.log.Trace("Using no SMTP AUTH")
 		client.SetSMTPAuth(gomail.SMTPAuthNoAuth)
 	}
 
@@ -191,13 +199,19 @@ func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject
 		return fmt.Errorf("notifier: smtp: failed to dial connection: %w", err)
 	}
 
+	n.log.Trace("SMTP server dialed, sending email")
+
 	if err = client.Send(msg); err != nil {
 		return fmt.Errorf("notifier: smtp: failed to send message: %w", err)
 	}
 
+	n.log.Trace("Email successfully sent")
+
 	if err = client.Close(); err != nil {
 		return fmt.Errorf("notifier: smtp: failed to close connection: %w", err)
 	}
+
+	n.log.Trace("SMTP connection closed")
 
 	return nil
 }

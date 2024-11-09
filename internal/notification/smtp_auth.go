@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/sirupsen/logrus"
 	"github.com/wneessen/go-mail"
 	"github.com/wneessen/go-mail/smtp"
 
@@ -12,7 +13,7 @@ import (
 )
 
 // NewOpportunisticSMTPAuth is an opportunistic smtp.Auth implementation.
-func NewOpportunisticSMTPAuth(config *schema.NotifierSMTP) smtp.Auth {
+func NewOpportunisticSMTPAuth(log *logrus.Entry, config *schema.NotifierSMTP) smtp.Auth {
 	if config.Username == "" && config.Password == "" {
 		return nil
 	}
@@ -21,12 +22,15 @@ func NewOpportunisticSMTPAuth(config *schema.NotifierSMTP) smtp.Auth {
 		username: config.Username,
 		password: config.Password,
 		host:     config.Address.Hostname(),
+		log:      log,
 	}
 }
 
 // OpportunisticSMTPAuth is an opportunistic smtp.Auth implementation.
 type OpportunisticSMTPAuth struct {
 	username, password, host string
+
+	log *logrus.Entry
 
 	satPreference []mail.SMTPAuthType
 	sa            smtp.Auth
@@ -57,14 +61,19 @@ func (a *OpportunisticSMTPAuth) setPreferred(server *smtp.ServerInfo) {
 		if utils.IsStringInSlice(string(pref), server.Auth) {
 			switch pref {
 			case mail.SMTPAuthPlain:
+				a.log.WithFields(map[string]any{"mechanism": string(pref), "mechanisms": server.Auth}).Trace("SMTP AUTH Preferred Mechanism Chosen")
 				a.sa = smtp.PlainAuth("", a.username, a.password, a.host, false)
 			case mail.SMTPAuthLogin:
+				a.log.WithFields(map[string]any{"mechanism": string(pref), "mechanisms": server.Auth}).Trace("SMTP AUTH Preferred Mechanism Chosen")
 				a.sa = smtp.LoginAuth(a.username, a.password, a.host, false)
 			case mail.SMTPAuthSCRAMSHA256:
+				a.log.WithFields(map[string]any{"mechanism": string(pref), "mechanisms": server.Auth}).Trace("SMTP AUTH Preferred Mechanism Chosen")
 				a.sa = smtp.ScramSHA256Auth(a.username, a.password)
 			case mail.SMTPAuthSCRAMSHA1:
+				a.log.WithFields(map[string]any{"mechanism": string(pref), "mechanisms": server.Auth}).Trace("SMTP AUTH Preferred Mechanism Chosen")
 				a.sa = smtp.ScramSHA1Auth(a.username, a.password)
 			case mail.SMTPAuthCramMD5:
+				a.log.WithFields(map[string]any{"mechanism": string(pref), "mechanisms": server.Auth}).Trace("SMTP AUTH Preferred Mechanism Chosen")
 				a.sa = smtp.CRAMMD5Auth(a.username, a.password)
 			}
 
@@ -79,15 +88,22 @@ func (a *OpportunisticSMTPAuth) set(server *smtp.ServerInfo) {
 	for _, sa := range server.Auth {
 		switch mail.SMTPAuthType(sa) {
 		case mail.SMTPAuthPlain:
+			a.log.WithFields(map[string]any{"mechanism": sa, "mechanisms": server.Auth}).Trace("SMTP AUTH Mechanism Chosen")
 			a.sa = smtp.PlainAuth("", a.username, a.password, a.host, false)
 		case mail.SMTPAuthLogin:
+			a.log.WithFields(map[string]any{"mechanism": sa, "mechanisms": server.Auth}).Trace("SMTP AUTH Mechanism Chosen")
 			a.sa = smtp.LoginAuth(a.username, a.password, a.host, false)
 		case mail.SMTPAuthSCRAMSHA256:
+			a.log.WithFields(map[string]any{"mechanism": sa, "mechanisms": server.Auth}).Trace("SMTP AUTH Mechanism Chosen")
 			a.sa = smtp.ScramSHA256Auth(a.username, a.password)
 		case mail.SMTPAuthSCRAMSHA1:
+			a.log.WithFields(map[string]any{"mechanism": sa, "mechanisms": server.Auth}).Trace("SMTP AUTH Mechanism Chosen")
 			a.sa = smtp.ScramSHA1Auth(a.username, a.password)
 		case mail.SMTPAuthCramMD5:
+			a.log.WithFields(map[string]any{"mechanism": sa, "mechanisms": server.Auth}).Trace("SMTP AUTH Mechanism Chosen")
 			a.sa = smtp.CRAMMD5Auth(a.username, a.password)
+		default:
+			a.log.WithFields(map[string]any{"mechanism": sa, "mechanisms": server.Auth}).Trace("SMTP AUTH Mechanism Not Supported")
 		}
 
 		if a.sa != nil {
