@@ -130,9 +130,9 @@ This is the implementation which supports [NGINX] via the [auth_request HTTP mod
 | Authelia URL [^1] | Session Cookie Configuration |      `authelia_url`      |
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
-This endpoint does not support automatic redirection. This is because there is no support on [NGINX]'s side
-to achieve this with `ngx_http_auth_request_module` and the redirection must be performed within the [NGINX]
-configuration. However we return the appropriate URL to redirect users to with the `Location` header which
+This endpoint does not support automatic redirection. This is because there is no support on [NGINX](https://www.nginx.com/)'s side
+to achieve this with `ngx_http_auth_request_module` and the redirection must be performed within the [NGINX](https://www.nginx.com/)
+configuration. However, we return the appropriate URL to redirect users to with the `Location` header which
 simplifies this process especially for multi-cookie domain deployments.
 {{< /callout >}}
 
