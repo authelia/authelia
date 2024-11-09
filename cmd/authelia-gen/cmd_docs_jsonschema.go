@@ -379,8 +379,16 @@ func jsonschemaKoanfMapper(t reflect.Type) *jsonschema.Schema {
 		}
 	case "mail.Address", "*mail.Address":
 		return &jsonschema.Schema{
-			Type:   jsonschema.TypeString,
-			Format: jsonschema.FormatStringEmail,
+			OneOf: []*jsonschema.Schema{
+				{
+					Type:   jsonschema.TypeString,
+					Format: jsonschema.FormatStringEmail,
+				},
+				{
+					Type:    jsonschema.TypeString,
+					Pattern: `^[^<]+\s\<[a-zA-Z0-9._~!#$%&'*/=?^{|}+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z0-9-]+\>$`,
+				},
+			},
 		}
 	case "schema.CSPTemplate":
 		return &jsonschema.Schema{
