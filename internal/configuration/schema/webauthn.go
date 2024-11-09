@@ -54,11 +54,6 @@ var DefaultWebAuthnConfiguration = WebAuthn{
 	Timeout:     time.Second * 60,
 
 	ConveyancePreference: protocol.PreferIndirectAttestation,
-	SelectionCriteria: WebAuthnSelectionCriteria{
-		Attachment:       protocol.CrossPlatform,
-		Discoverability:  protocol.ResidentKeyRequirementPreferred,
-		UserVerification: protocol.VerificationPreferred,
-	},
 	Metadata: WebAuthnMetadata{
 		Enabled:                       false,
 		ValidateTrustAnchor:           true,

@@ -57,7 +57,7 @@ func TestWebAuthnRegistrationPUT(t *testing.T) {
 						Return(nil, nil),
 				)
 			},
-			regexp.MustCompile(`^\{"status":"OK","data":\{"publicKey":\{"rp":\{"name":"Authelia","id":"example.com"},"user":\{"name":"john","displayName":"john","id":"Wnl0bEpsVnVXemRnTjJCeFR5SThVeTl1UzJ4cEpTZHNUMlpzSlVBNVVFQnZlMWMyTkVOQ0tETlNXV3BoYUdWQ0pFaGxRM3dwWVQ5SFFHQndJaTh6UUE9PQ"},"challenge":"[a-zA-Z0-9/_-]+","pubKeyCredParams":\[\{"type":"public-key","alg":-?\d+}(,{"type":"public-key","alg":-?\d+})*],"timeout":\d+,"authenticatorSelection":\{"authenticatorAttachment":"(cross-)?platform","requireResidentKey":(false|true),"residentKey":"(preferred)","userVerification":"preferred"},"attestation":"indirect","extensions":{"credProps":true}}}}$`),
+			regexp.MustCompile(`^\{"status":"OK","data":\{"publicKey":\{"rp":\{"name":"Authelia","id":"example.com"},"user":\{"name":"john","displayName":"john","id":"Wnl0bEpsVnVXemRnTjJCeFR5SThVeTl1UzJ4cEpTZHNUMlpzSlVBNVVFQnZlMWMyTkVOQ0tETlNXV3BoYUdWQ0pFaGxRM3dwWVQ5SFFHQndJaTh6UUE9PQ"},"challenge":"[a-zA-Z0-9/_-]+","pubKeyCredParams":\[\{"type":"public-key","alg":-?\d+}(,{"type":"public-key","alg":-?\d+})*],"timeout":\d+,"authenticatorSelection":\{},"attestation":"indirect","extensions":{"credProps":true}}}}$`),
 			fasthttp.StatusOK,
 			nil,
 		},

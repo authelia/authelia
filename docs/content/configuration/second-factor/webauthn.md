@@ -37,7 +37,6 @@ webauthn:
     user_verification: 'preferred'
   metadata:
     enabled: false
-    path: 'data.mds3'
     validate_trust_anchor: true
     validate_entry: true
     validate_entry_permit_zero_aaguid: false
@@ -83,7 +82,7 @@ information.
 {{< confkey type="string" default="indirect" required="no" >}}
 
 Sets the conveyance preference. Conveyancing allows collection of attestation statements about the authenticator such as
-the AAGUID. The AAGUID indicates the model of the device.
+the AAGUID. The AAGUID indicates the model of the authenticator.
 
 See the [W3C WebAuthn Documentation](https://www.w3.org/TR/webauthn-2/#enum-attestation-convey) for more information.
 
@@ -93,7 +92,7 @@ Available Options:
 |:--------:|:---------------------------------------------------------------------------------------------------------------------------------------------:|
 |   none   |                                           The client will be instructed not to perform conveyancing                                           |
 | indirect | The client will be instructed to perform conveyancing but the client can choose how to do this including using a third party anonymization CA |
-|  direct  |               The client will be instructed to perform conveyancing with an attestation statement directly signed by the device               |
+|  direct  |           The client will be instructed to perform conveyancing with an attestation statement directly signed by the authenticator            |
 
 ### timeout
 
@@ -165,11 +164,11 @@ See the [W3C WebAuthn Documentation](https://www.w3.org/TR/webauthn-2/#enum-user
 
 Available Options:
 
-|    Value    |                                              Description                                               |
-|:-----------:|:------------------------------------------------------------------------------------------------------:|
-| discouraged |                    The client will be discouraged from asking for user verification                    |
-|  preferred  |          The client if compliant will ask the user for verification if the device supports it          |
-|  required   | The client will ask the user for verification or will fail if the device does not support verification |
+|    Value    |                                                  Description                                                  |
+|:-----------:|:-------------------------------------------------------------------------------------------------------------:|
+| discouraged |                       The client will be discouraged from asking for user verification                        |
+|  preferred  |          The client if compliant will ask the user for verification if the authenticator supports it          |
+|  required   | The client will ask the user for verification or will fail if the authenticator does not support verification |
 
 ### metadata
 
