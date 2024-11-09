@@ -243,6 +243,7 @@ func (ctx *CmdCtx) StorageCacheMDS3DumpRunE(cmd *cobra.Command, args []string) (
 	return nil
 }
 
+//nolint:gocyclo
 func (ctx *CmdCtx) StorageCacheMDS3UpdateRunE(cmd *cobra.Command, args []string) (err error) {
 	defer func() {
 		_ = ctx.providers.StorageProvider.Close()
