@@ -85,7 +85,7 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 						Return([]model.WebAuthnCredential{credential}, nil),
 				)
 			},
-			regexp.MustCompile(`^\{"status":"OK","data":\{"publicKey":\{"challenge":"[a-zA-Z0-9/_-]+={0,2}","timeout":60000,"rpId":"login.example.com","allowCredentials":\[\{"type":"public-key","id":"rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","transports":\["usb"]}],"userVerification":"preferred"}}}$`),
+			regexp.MustCompile(`^\{"status":"OK","data":\{"publicKey":\{"challenge":"[a-zA-Z0-9/_-]+={0,2}","timeout":60000,"rpId":"login.example.com","allowCredentials":\[\{"type":"public-key","id":"rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","transports":\["usb"]}]}}}$`),
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				us, err := mock.Ctx.GetSession()

@@ -42,7 +42,7 @@ func TestFirstFactorPasskeyGET(t *testing.T) {
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
-			regexp.MustCompile(`^\{"status":"OK","data":\{"publicKey":\{"challenge":"[a-zA-Z0-9/_-]+={0,2}","timeout":60000,"rpId":"login.example.com","userVerification":"preferred"}}}$`),
+			regexp.MustCompile(`^\{"status":"OK","data":\{"publicKey":\{"challenge":"[a-zA-Z0-9/_-]+={0,2}","timeout":60000,"rpId":"login.example.com"}}}$`),
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				us, err := mock.Ctx.GetSession()

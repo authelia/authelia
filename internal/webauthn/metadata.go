@@ -14,6 +14,7 @@ import (
 	"github.com/go-webauthn/webauthn/metadata/providers/cached"
 	"github.com/go-webauthn/webauthn/metadata/providers/memory"
 	"github.com/google/uuid"
+	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -59,6 +60,7 @@ type MetaDataProvider interface {
 
 	StartupCheck() (err error)
 	Load(ctx context.Context) (mds *metadata.Metadata, data []byte, err error)
+	LoadForce(ctx context.Context) (mds *metadata.Metadata, data []byte, err error)
 	LoadFile(ctx context.Context, path string) (mds *metadata.Metadata, data []byte, err error)
 	LoadCache(ctx context.Context) (mds *metadata.Metadata, data []byte, err error)
 	SaveCache(ctx context.Context, data []byte) (err error)
@@ -100,7 +102,7 @@ func (p *StoreCachedMetadataProvider) GetEntry(ctx context.Context, aaguid uuid.
 		)
 
 		if mds, data, err = p.getCache(ctx); err != nil {
-			if mds, data, err = p.get(ctx); err != nil {
+			if mds, data, err = p.get(ctx, -1); err != nil {
 				return nil, err
 			}
 		}
@@ -126,12 +128,14 @@ func (p *StoreCachedMetadataProvider) init() (err error) {
 
 	ctx := context.Background()
 
-	if _, _, err = p.loadCache(ctx); err == nil && !p.outdated() {
-		return nil
+	_, _, _ = p.loadCache(ctx)
+
+	if _, data, err = p.loadCurrent(ctx, p.number); err != nil {
+		return err
 	}
 
-	if _, data, err = p.load(ctx); err != nil {
-		return err
+	if data == nil {
+		return nil
 	}
 
 	return p.saveCache(ctx, data)
@@ -145,8 +149,24 @@ func (p *StoreCachedMetadataProvider) Load(ctx context.Context) (mds *metadata.M
 	return p.load(ctx)
 }
 
+func (p *StoreCachedMetadataProvider) LoadForce(ctx context.Context) (mds *metadata.Metadata, data []byte, err error) {
+	p.mu.Lock()
+
+	defer p.mu.Unlock()
+
+	return p.loadForced(ctx)
+}
+
 func (p *StoreCachedMetadataProvider) load(ctx context.Context) (mds *metadata.Metadata, data []byte, err error) {
-	if mds, data, err = p.get(ctx); err != nil {
+	return p.loadCurrent(ctx, p.number)
+}
+
+func (p *StoreCachedMetadataProvider) loadForced(ctx context.Context) (mds *metadata.Metadata, data []byte, err error) {
+	return p.loadCurrent(ctx, -1)
+}
+
+func (p *StoreCachedMetadataProvider) loadCurrent(ctx context.Context, current int) (mds *metadata.Metadata, data []byte, err error) {
+	if mds, data, err = p.get(ctx, current); err != nil {
 		return nil, nil, err
 	}
 
@@ -157,9 +177,13 @@ func (p *StoreCachedMetadataProvider) load(ctx context.Context) (mds *metadata.M
 	return mds, data, nil
 }
 
-func (p *StoreCachedMetadataProvider) get(ctx context.Context) (mds *metadata.Metadata, data []byte, err error) {
-	if data, err = p.latest(ctx); err != nil {
+func (p *StoreCachedMetadataProvider) get(ctx context.Context, current int) (mds *metadata.Metadata, data []byte, err error) {
+	if data, err = p.latest(ctx, current); err != nil {
 		return nil, nil, fmt.Errorf("error loading latest metadata: %w", err)
+	}
+
+	if data == nil {
+		return nil, nil, nil
 	}
 
 	if mds, err = p.parse(bytes.NewReader(data)); err != nil {
@@ -240,6 +264,10 @@ func (p *StoreCachedMetadataProvider) SaveCache(ctx context.Context, data []byte
 }
 
 func (p *StoreCachedMetadataProvider) saveCache(ctx context.Context, data []byte) (err error) {
+	if len(data) == 0 {
+		return fmt.Errorf("error saving metadata cache to database: data is empty")
+	}
+
 	cache := model.CachedData{Name: cacheMDS3, Value: data}
 
 	if err = p.store.SaveCachedData(ctx, cache); err != nil {
@@ -251,6 +279,10 @@ func (p *StoreCachedMetadataProvider) saveCache(ctx context.Context, data []byte
 
 func (p *StoreCachedMetadataProvider) configure(mds *metadata.Metadata) (err error) {
 	var provider metadata.Provider
+
+	if mds == nil {
+		return fmt.Errorf("error initializing metadata provider: metadata was nil")
+	}
 
 	if provider, err = p.new(mds); err != nil {
 		return fmt.Errorf("error initializing metadata provider: %w", err)
@@ -275,12 +307,12 @@ func (p *StoreCachedMetadataProvider) outdated() bool {
 	return p.clock.Now().After(p.update)
 }
 
-func (p *StoreCachedMetadataProvider) latest(ctx context.Context) (data []byte, err error) {
+func (p *StoreCachedMetadataProvider) latest(ctx context.Context, current int) (data []byte, err error) {
 	if p.handler == nil {
 		p.handler = &productionMDS3Provider{}
 	}
 
-	return p.handler.FetchMDS3(ctx)
+	return p.handler.FetchMDS3(ctx, current)
 }
 
 func (p *StoreCachedMetadataProvider) parse(reader io.Reader) (mds *metadata.Metadata, err error) {
@@ -298,14 +330,14 @@ func (p *StoreCachedMetadataProvider) parse(reader io.Reader) (mds *metadata.Met
 }
 
 type MDS3Provider interface {
-	FetchMDS3(ctx context.Context) (data []byte, err error)
+	FetchMDS3(ctx context.Context, current int) (data []byte, err error)
 }
 
 type productionMDS3Provider struct {
 	client *http.Client
 }
 
-func (h *productionMDS3Provider) FetchMDS3(ctx context.Context) (data []byte, err error) {
+func (h *productionMDS3Provider) FetchMDS3(ctx context.Context, current int) (data []byte, err error) {
 	if h.client == nil {
 		h.client = &http.Client{}
 	}
@@ -319,11 +351,19 @@ func (h *productionMDS3Provider) FetchMDS3(ctx context.Context) (data []byte, er
 		return nil, fmt.Errorf("error creating request while attempting to get latest metadata from metadata service: %w", err)
 	}
 
+	if current > 0 {
+		req.Header.Set(fasthttp.HeaderIfNoneMatch, fmt.Sprintf("%d", current))
+	}
+
 	if resp, err = h.client.Do(req); err != nil {
 		return nil, fmt.Errorf("error getting latest metadata from metadata service: %w", err)
 	}
 
 	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotModified {
+		return nil, nil
+	}
 
 	return io.ReadAll(resp.Body)
 }

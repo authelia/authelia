@@ -280,9 +280,12 @@ func (ctx *CmdCtx) StorageCacheMDS3UpdateRunE(cmd *cobra.Command, args []string)
 		return nil
 	}
 
-	if path != "" {
+	switch {
+	case path != "":
 		mds, data, err = provider.LoadFile(ctx, path)
-	} else {
+	case force:
+		mds, data, err = provider.LoadForce(ctx)
+	default:
 		mds, data, err = provider.Load(ctx)
 	}
 

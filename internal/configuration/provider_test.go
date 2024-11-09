@@ -148,9 +148,24 @@ func TestShouldValidateConfigurationWithOverridenDefaults(t *testing.T) {
 
 	require.NoError(t, err)
 
+	validator.ValidateWebAuthn(config, val)
+
 	assert.Equal(t, protocol.ResidentKeyRequirement(""), config.WebAuthn.SelectionCriteria.Discoverability)
 	assert.Equal(t, protocol.AuthenticatorAttachment(""), config.WebAuthn.SelectionCriteria.Attachment)
 	assert.Equal(t, protocol.UserVerificationRequirement(""), config.WebAuthn.SelectionCriteria.UserVerification)
+}
+
+func TestShouldValidateConfigurationWithoutOverridenDefaults(t *testing.T) {
+	val := schema.NewStructValidator()
+	_, config, err := Load(val, NewDefaultSourcesWithDefaults([]string{"./test_resources/config.webauthn-defaults.yml"}, NewFileFiltersDefault(), DefaultEnvPrefix, DefaultEnvDelimiter, nil)...)
+
+	require.NoError(t, err)
+
+	validator.ValidateWebAuthn(config, val)
+
+	assert.Equal(t, protocol.ResidentKeyRequirementPreferred, config.WebAuthn.SelectionCriteria.Discoverability)
+	assert.Equal(t, protocol.CrossPlatform, config.WebAuthn.SelectionCriteria.Attachment)
+	assert.Equal(t, protocol.VerificationPreferred, config.WebAuthn.SelectionCriteria.UserVerification)
 }
 
 func TestShouldValidateConfigurationWithFilters(t *testing.T) {
