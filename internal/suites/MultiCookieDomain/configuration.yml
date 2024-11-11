@@ -61,7 +61,7 @@ password_policy:
 session:
   secret: 'unsecure_session_secret'
   expiration: '1 hour'
-  inactivity: '3 minutes'
+  inactivity: '5 minutes'
   remember_me: '1 year'
   cookies:
     - name: 'authelia_session'
