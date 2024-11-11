@@ -30,7 +30,7 @@ session:
       domain: 'example.com'
       authelia_url: 'https://login.example.com:8080'
       expiration: '1 hour'
-      inactivity: '3 minutes'
+      inactivity: '5 minutes'
       remember_me: '1 year'
 
 authentication_backend:

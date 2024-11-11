@@ -33,14 +33,13 @@ regulation:
   ban_time: '10 seconds'
 
 session:
-  name: 'authelia_session'
   secret: 'unsecure_session_secret'
-  expiration: '1 hour'
-  inactivity: '3 minutes'
-  remember_me: '1 year'
   cookies:
     - domain: 'example.com'
       authelia_url: 'https://login.example.com:8080'
+      expiration: '1 hour'
+      inactivity: '5 minutes'
+      remember_me: '1 year'
   redis:
     username: 'authelia'
     password: 'redis-user-password'
