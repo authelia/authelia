@@ -920,6 +920,36 @@
         "env": "AUTHELIA_SERVER_ENDPOINTS_ENABLE_EXPVARS"
     },
     {
+        "path": "server.endpoints.rate_limits.reset_password_start.enable",
+        "secret": false,
+        "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_RESET_PASSWORD_START_ENABLE"
+    },
+    {
+        "path": "server.endpoints.rate_limits.reset_password_finish.enable",
+        "secret": false,
+        "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_RESET_PASSWORD_FINISH_ENABLE"
+    },
+    {
+        "path": "server.endpoints.rate_limits.second_factor_totp.enable",
+        "secret": false,
+        "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_SECOND_FACTOR_TOTP_ENABLE"
+    },
+    {
+        "path": "server.endpoints.rate_limits.second_factor_duo.enable",
+        "secret": false,
+        "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_SECOND_FACTOR_DUO_ENABLE"
+    },
+    {
+        "path": "server.endpoints.rate_limits.session_elevation_start.enable",
+        "secret": false,
+        "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_SESSION_ELEVATION_START_ENABLE"
+    },
+    {
+        "path": "server.endpoints.rate_limits.session_elevation_finish.enable",
+        "secret": false,
+        "env": "AUTHELIA_SERVER_ENDPOINTS_RATE_LIMITS_SESSION_ELEVATION_FINISH_ENABLE"
+    },
+    {
         "path": "server.buffers.read",
         "secret": false,
         "env": "AUTHELIA_SERVER_BUFFERS_READ"

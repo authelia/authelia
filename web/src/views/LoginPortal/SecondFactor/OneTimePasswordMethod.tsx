@@ -72,8 +72,17 @@ const OneTimePasswordMethod = function (props: Props) {
         try {
             setState(State.InProgress);
             const res = await completeTOTPSignIn(passcodeStr, redirectionURL, workflow, workflowID);
-            setState(State.Success);
-            onSignInSuccessCallback(res ? res.redirect : undefined);
+
+            if (!res) {
+                onSignInErrorCallback(new Error(translate("The One-Time Password might be wrong")));
+                setState(State.Failure);
+            } else if (!res.limited) {
+                setState(State.Success);
+                onSignInSuccessCallback(res && res.data ? res.data.redirect : undefined);
+            } else {
+                onSignInErrorCallback(new Error(translate("You have made too many requests")));
+                setState(State.Failure);
+            }
         } catch (err) {
             console.error(err);
             onSignInErrorCallback(new Error(translate("The One-Time Password might be wrong")));

@@ -70,6 +70,7 @@ function toErrorResponse<T>(resp: AxiosResponse<ServiceResponse<T>>): ErrorRespo
     if (resp.data && "status" in resp.data && resp.data["status"] === "KO") {
         return resp.data as ErrorResponse;
     }
+
     return undefined;
 }
 
@@ -77,15 +78,53 @@ export function toData<T>(resp: AxiosResponse<ServiceResponse<T>>): T | undefine
     if (resp.data && "status" in resp.data && resp.data["status"] === "OK") {
         return resp.data.data as T;
     }
+
     return undefined;
+}
+
+export type RateLimitedData<T> = {
+    data?: T;
+    limited: boolean;
+};
+
+export function toDataRateLimited<T>(resp: AxiosResponse<ServiceResponse<T>>): RateLimitedData<T> | undefined {
+    if (resp.data && "status" in resp.data) {
+        if (resp.data["status"] === "OK") {
+            return { limited: false, data: resp.data.data as T };
+        } else if (resp.data["status"] === "KO" && resp.status === 429) {
+            return { limited: true };
+        }
+    }
+
+    return undefined;
+}
+
+function hasError(err: ErrorResponse | undefined) {
+    if (err && err.status === "KO") {
+        return { errored: true, message: err.message };
+    }
+
+    return { errored: false, message: null };
 }
 
 export function hasServiceError<T>(resp: AxiosResponse<ServiceResponse<T>>) {
     const errResp = toErrorResponse(resp);
-    if (errResp && errResp.status === "KO") {
-        return { errored: true, message: errResp.message };
+
+    return hasError(errResp);
+}
+
+export function hasServiceRateLimitedError<T>(resp: AxiosResponse<ServiceResponse<T>>) {
+    if (resp.status === 429) {
+        return undefined;
     }
-    return { errored: false, message: null };
+
+    const errResp = toErrorResponse(resp);
+
+    return hasError(errResp);
+}
+
+export function validateStatusTooManyRequests(status: number) {
+    return (status >= 200 && status < 300) || status === 429;
 }
 
 export function validateStatusAuthentication(status: number) {

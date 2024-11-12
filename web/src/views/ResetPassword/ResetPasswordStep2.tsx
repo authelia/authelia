@@ -55,7 +55,15 @@ const ResetPasswordStep2 = function () {
 
         try {
             setFormDisabled(true);
-            await completeResetPasswordProcess(processToken);
+
+            const success = await completeResetPasswordProcess(processToken);
+
+            if (!success) {
+                createErrorNotification(translate("You have made too many requests"));
+
+                return;
+            }
+
             const policy = await getPasswordPolicyConfiguration();
             setPPolicy(policy);
             setFormDisabled(false);
@@ -90,7 +98,16 @@ const ResetPasswordStep2 = function () {
         }
 
         try {
-            await resetPassword(password1);
+            const success = await resetPassword(password1);
+
+            if (!success) {
+                createErrorNotification(translate("You have made too many requests"));
+
+                setFormDisabled(true);
+
+                return;
+            }
+
             createSuccessNotification(translate("Password has been reset"));
             setTimeout(() => navigate(IndexRoute), 1500);
             setFormDisabled(true);
