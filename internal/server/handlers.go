@@ -258,11 +258,11 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	if !config.AuthenticationBackend.PasswordReset.Disable &&
 		config.AuthenticationBackend.PasswordReset.CustomURL.String() == "" {
 		// Password reset related endpoints.
-		r.POST("/api/reset-password/identity/start", middlewareAPI(handlers.ResetPasswordIdentityStart))
-		r.POST("/api/reset-password/identity/finish", middlewareAPI(handlers.ResetPasswordIdentityFinish))
+		r.POST("/api/reset-password/identity/start", middlewareAPI(middlewares.NewIPRateLimit(20, 5)(handlers.ResetPasswordIdentityStart)))
+		r.POST("/api/reset-password/identity/finish", middlewareAPI(middlewares.NewIPRateLimit(20, 5)(handlers.ResetPasswordIdentityFinish)))
 
-		r.POST("/api/reset-password", middlewareAPI(handlers.ResetPasswordPOST))
-		r.DELETE("/api/reset-password", middlewareAPI(handlers.ResetPasswordDELETE))
+		r.POST("/api/reset-password", middlewareAPI(middlewares.NewIPRateLimit(20, 5)(handlers.ResetPasswordPOST)))
+		r.DELETE("/api/reset-password", middlewareAPI(middlewares.NewIPRateLimit(20, 5)(handlers.ResetPasswordDELETE)))
 	}
 
 	// Information about the user.
