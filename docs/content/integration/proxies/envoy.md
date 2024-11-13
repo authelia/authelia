@@ -319,6 +319,108 @@ layered_runtime:
           global_downstream_max_connections: 50000
 ```
 
+## Gateway API (Kubernetes)
+
+### Secure route
+
+```yaml
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: authelia-example
+  namespace: example
+spec:
+  extAuth:
+    failOpen: false
+    headersToExtAuth:
+    - X-Forwarded-Proto
+    - authorization
+    - proxy-authorization
+    - accept
+    - cookie
+    http:
+      backendRefs:
+      - group: ""
+        kind: Service
+        name: authelia
+        namespace: authelia
+        port: 80
+      path: /api/authz/ext-authz/
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: example
+```
+
+If route namespace != authelia service, their is needed to declare a ReferanceGrant:
+```yaml
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: example-ref-authelia-svc
+  namespace: authelia
+spec:
+  from:
+  - group: gateway.envoyproxy.io
+    kind: SecurityPolicy
+    namespace: example
+    name: authelia-example
+  to:
+  - group: ""
+    kind: Service
+    name: authelia
+```
+
+### Secure gateway
+
+```yaml
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: authelia-example
+  namespace: example
+spec:
+  extAuth:
+    failOpen: false
+    headersToExtAuth:
+    - X-Forwarded-Proto
+    - authorization
+    - proxy-authorization
+    - accept
+    - cookie
+    http:
+      backendRefs:
+      - group: ""
+        kind: Service
+        name: authelia
+        namespace: authelia
+        port: 80
+      path: /api/authz/ext-authz/
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: example
+```
+
+If gateway namespace != authelia service, their is needed to declare a ReferanceGrant:
+```yaml
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: example-ref-authelia-svc
+  namespace: authelia
+spec:
+  from:
+  - group: gateway.envoyproxy.io
+    kind: SecurityPolicy
+    namespace: example
+    name: authelia-example
+  to:
+  - group: ""
+    kind: Service
+    name: authelia
+```
+
 ## See Also
 
 * [Envoy External Authorization Documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto.html#extensions-filters-http-ext-authz-v3-extauthz)
