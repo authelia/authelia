@@ -1,4 +1,4 @@
-FROM caddy:2.8.4-builder@sha256:a55a78f46e30bd6cc090fd9936669d7793b05e356f1382d13df5b3960ed99d31 AS builder
+FROM caddy:2.8.4-builder@sha256:03e3886f7b2af67ece93542d1e36d25ab0081166c4660411f661fac6df2bc1d6 AS builder
 
 RUN xcaddy build fix-empty-copy-headers
 
