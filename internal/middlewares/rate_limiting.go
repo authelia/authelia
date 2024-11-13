@@ -7,14 +7,37 @@ import (
 	"golang.org/x/time/rate"
 )
 
-func NewIPRateLimit(r float64, b int) AutheliaMiddleware {
-	bucket := NewIPRateLimitBucket(r, b)
+// The RateLimitBucket describes a limit (number of seconds), and a burst (number of events) that can occur for a given
+// rate limiter.
+type RateLimitBucket struct {
+	Limit float64
+	Burst int
+}
+
+// NewIPRateLimit given a series of RateLimitBucket items produces an AutheliaMiddleware which handles requests based
+// on the IPRateLimitBucket.
+func NewIPRateLimit(bs ...RateLimitBucket) AutheliaMiddleware {
+	buckets := make([]*IPRateLimitBucket, len(bs))
+
+	for i, b := range bs {
+		buckets[i] = NewIPRateLimitBucket(b)
+	}
 
 	return func(next RequestHandler) RequestHandler {
 		return func(ctx *AutheliaCtx) {
-			limiter := bucket.FetchCtx(ctx)
+			var exceeded bool
 
-			if !limiter.Allow() {
+			for _, bucket := range buckets {
+				limiter := bucket.FetchCtx(ctx)
+
+				if !limiter.Allow() {
+					exceeded = true
+				}
+			}
+
+			if exceeded {
+				ctx.Logger.Warn("Rate Limit Exceeded")
+
 				ctx.SetStatusCode(fasthttp.StatusTooManyRequests)
 
 				return
@@ -25,20 +48,22 @@ func NewIPRateLimit(r float64, b int) AutheliaMiddleware {
 	}
 }
 
-type IPRateLimitBucket struct {
-	bucket map[string]*rate.Limiter
-	mu     *sync.Mutex
-	r      rate.Limit
-	b      int
-}
-
-func NewIPRateLimitBucket(r float64, b int) (limiter *IPRateLimitBucket) {
+// NewIPRateLimitBucket returns a IPRateLimitBucket given a RateLimitBucket.
+func NewIPRateLimitBucket(bucket RateLimitBucket) (limiter *IPRateLimitBucket) {
 	return &IPRateLimitBucket{
 		bucket: make(map[string]*rate.Limiter),
-		mu:     &sync.Mutex{},
-		r:      rate.Limit(r),
-		b:      b,
+		mu:     sync.Mutex{},
+		r:      rate.Limit(bucket.Limit),
+		b:      bucket.Burst,
 	}
+}
+
+// IPRateLimitBucket is a RateLimitBucket which limits requests based on each of the buckets delimited by IP.
+type IPRateLimitBucket struct {
+	bucket map[string]*rate.Limiter
+	mu     sync.Mutex
+	r      rate.Limit
+	b      int
 }
 
 func (l *IPRateLimitBucket) Fetch(ip string) (limiter *rate.Limiter) {

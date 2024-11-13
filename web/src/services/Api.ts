@@ -88,6 +88,10 @@ export function hasServiceError<T>(resp: AxiosResponse<ServiceResponse<T>>) {
     return { errored: false, message: null };
 }
 
+export function validateStatusTooManyRequests(status: number) {
+    return (status >= 200 && status < 300) || status === 429;
+}
+
 export function validateStatusAuthentication(status: number) {
     return (status >= 200 && status < 300) || status === 401 || status === 403;
 }

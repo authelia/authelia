@@ -258,11 +258,21 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	if !config.AuthenticationBackend.PasswordReset.Disable &&
 		config.AuthenticationBackend.PasswordReset.CustomURL.String() == "" {
 		// Password reset related endpoints.
-		r.POST("/api/reset-password/identity/start", middlewareAPI(middlewares.NewIPRateLimit(20, 5)(handlers.ResetPasswordIdentityStart)))
-		r.POST("/api/reset-password/identity/finish", middlewareAPI(middlewares.NewIPRateLimit(20, 5)(handlers.ResetPasswordIdentityFinish)))
+		buckets := []middlewares.RateLimitBucket{
+			{Limit: 20, Burst: 5},
+			{Limit: 60, Burst: 10},
+		}
 
-		r.POST("/api/reset-password", middlewareAPI(middlewares.NewIPRateLimit(20, 5)(handlers.ResetPasswordPOST)))
-		r.DELETE("/api/reset-password", middlewareAPI(middlewares.NewIPRateLimit(20, 5)(handlers.ResetPasswordDELETE)))
+		bucketsStart := []middlewares.RateLimitBucket{
+			{Limit: 600, Burst: 5},
+			{Limit: 900, Burst: 10},
+		}
+
+		r.POST("/api/reset-password/identity/start", middlewareAPI(middlewares.NewIPRateLimit(bucketsStart...)(handlers.ResetPasswordIdentityStart)))
+		r.POST("/api/reset-password/identity/finish", middlewareAPI(middlewares.NewIPRateLimit(buckets...)(handlers.ResetPasswordIdentityFinish)))
+
+		r.POST("/api/reset-password", middlewareAPI(middlewares.NewIPRateLimit(buckets...)(handlers.ResetPasswordPOST)))
+		r.DELETE("/api/reset-password", middlewareAPI(middlewares.NewIPRateLimit(buckets...)(handlers.ResetPasswordDELETE)))
 	}
 
 	// Information about the user.
