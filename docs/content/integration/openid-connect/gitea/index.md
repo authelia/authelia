@@ -89,6 +89,8 @@ To configure [Gitea] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 {{< figure src="gitea.png" alt="Gitea" width="300" >}}
 
+#### CLI
+
 Alternatively, you can add the authentication source via command line:
 
 ```
