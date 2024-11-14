@@ -91,6 +91,7 @@
 	"Time-based One-Time Password": "Codice OTP",
 	"Use OpenID to verify your identity": "Usa OpenID per verificare la tua identità",
 	"Username": "Username",
+	"Username is required": "Il nome utente è obbligatorio",
 	"You cancelled the assertion request": "Hai annullato la richiesta di asserzione",
 	"You must view and accept the Privacy Policy before using": "Devi visualizzare e accettare l'Informativa sulla privacy <0></0> prima di utilizzare",
 	"You're being signed out and redirected": "Sei stato disconnesso e reindirizzato",

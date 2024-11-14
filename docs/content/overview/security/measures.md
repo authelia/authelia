@@ -6,7 +6,7 @@ date: 2018-08-26T23:46:15+02:00
 draft: false
 images: []
 weight: 420
-toc: false
+toc: true
 aliases:
   - /docs/security/measures.html
 seo:

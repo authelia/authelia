@@ -260,8 +260,8 @@ Permitted values `standard`, `sha256`.
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 The `sha256` variant is a special variant designed by
 [Passlib](https://passlib.readthedocs.io/en/stable/lib/passlib.hash.bcrypt_sha256.html). This variant passes the
-password through a SHA256 HMAC before passing it to the [Bcrypt] algorithm, effectively bypassing the 72 byte password
-truncation that [Bcrypt] does. It is not supported by many other systems.
+password through a SHA256 HMAC before passing it to the [Bcrypt](https://en.wikipedia.org/wiki/Bcrypt) algorithm, effectively bypassing the 72 byte password
+truncation that [Bcrypt](https://en.wikipedia.org/wiki/Bcrypt) does. It is not supported by many other systems.
 {{< /callout >}}
 
 #### cost

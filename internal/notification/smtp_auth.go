@@ -57,9 +57,9 @@ func (a *OpportunisticSMTPAuth) setPreferred(server *smtp.ServerInfo) {
 		if utils.IsStringInSlice(string(pref), server.Auth) {
 			switch pref {
 			case mail.SMTPAuthPlain:
-				a.sa = smtp.PlainAuth("", a.username, a.password, a.host)
+				a.sa = smtp.PlainAuth("", a.username, a.password, a.host, false)
 			case mail.SMTPAuthLogin:
-				a.sa = smtp.LoginAuth(a.username, a.password, a.host)
+				a.sa = smtp.LoginAuth(a.username, a.password, a.host, false)
 			case mail.SMTPAuthSCRAMSHA256:
 				a.sa = smtp.ScramSHA256Auth(a.username, a.password)
 			case mail.SMTPAuthSCRAMSHA1:
@@ -79,9 +79,9 @@ func (a *OpportunisticSMTPAuth) set(server *smtp.ServerInfo) {
 	for _, sa := range server.Auth {
 		switch mail.SMTPAuthType(sa) {
 		case mail.SMTPAuthPlain:
-			a.sa = smtp.PlainAuth("", a.username, a.password, a.host)
+			a.sa = smtp.PlainAuth("", a.username, a.password, a.host, false)
 		case mail.SMTPAuthLogin:
-			a.sa = smtp.LoginAuth(a.username, a.password, a.host)
+			a.sa = smtp.LoginAuth(a.username, a.password, a.host, false)
 		case mail.SMTPAuthSCRAMSHA256:
 			a.sa = smtp.ScramSHA256Auth(a.username, a.password)
 		case mail.SMTPAuthSCRAMSHA1:
