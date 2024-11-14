@@ -1,4 +1,26 @@
-# Contributor Covenant Code of Conduct
+---
+title: "Code of Conduct"
+description: "The Code of Conduct that all community members must agree to abide by."
+summary: "The Code of Conduct that all community members must agree to abide by."
+date: 2022-06-15T17:51:47+10:00
+draft: false
+images: []
+weight: 100
+toc: true
+type: legal
+aliases:
+  - /code-of-conduct
+  - /code-of-conduct.html
+  - /conduct
+  - /conduct.html
+  - /coc
+  - /coc.html
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
+---
 
 ## Our Pledge
 
