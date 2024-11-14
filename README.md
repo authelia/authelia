@@ -33,7 +33,7 @@ The following is a simple diagram of the architecture:
 [APT](https://apt.authelia.com/stable/debian/packages/authelia/),
 [FreeBSD Ports](https://svnweb.freebsd.org/ports/head/www/authelia/), or using a
 [static binary](https://github.com/authelia/authelia/releases/latest),
-[.deb package]((https://github.com/authelia/authelia/releases/latest)), as a container on [Docker] or [Kubernetes].
+[.deb package](https://github.com/authelia/authelia/releases/latest), as a container on [Docker] or [Kubernetes].
 
 
 Deployment can be orchestrated via the Helm [Chart](https://charts.authelia.com) (beta) leveraging ingress controllers
