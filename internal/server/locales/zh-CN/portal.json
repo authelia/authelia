@@ -91,6 +91,7 @@
 	"Time-based One-Time Password": "基于时间的一次性密码",
 	"Use OpenID to verify your identity": "使用 OpenID 验证您的身份",
 	"Username": "用户名",
+	"Username is required": "用户名是必需的",
 	"You cancelled the assertion request": "你取消了确认请求",
 	"You must view and accept the Privacy Policy before using": "在使用之前，您必须查看并接受<0>隐私策略</0>",
 	"You're being signed out and redirected": "您正在登出并重定向",

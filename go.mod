@@ -2,7 +2,7 @@ module github.com/authelia/authelia/v4
 
 go 1.23
 
-toolchain go1.23.2
+toolchain go1.23.3
 
 require (
 	authelia.com/provider/oauth2 v0.1.17
@@ -33,7 +33,7 @@ require (
 	github.com/knadh/koanf/providers/env v1.0.0
 	github.com/knadh/koanf/providers/posflag v0.1.0
 	github.com/knadh/koanf/providers/rawbytes v0.1.0
-	github.com/knadh/koanf/v2 v2.1.1
+	github.com/knadh/koanf/v2 v2.1.2
 	github.com/mattn/go-sqlite3 v1.14.24
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/otiai10/copy v1.14.0
@@ -45,13 +45,13 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/trustelem/zxcvbn v1.0.1
 	github.com/valyala/fasthttp v1.57.0
-	github.com/weppos/publicsuffix-go v0.40.3-0.20241028103210-157ac7669b99
-	github.com/wneessen/go-mail v0.5.1
+	github.com/weppos/publicsuffix-go v0.40.3-0.20241113104638-64ced1f03374
+	github.com/wneessen/go-mail v0.5.2
 	go.uber.org/mock v0.5.0
-	golang.org/x/net v0.30.0
-	golang.org/x/sync v0.8.0
-	golang.org/x/term v0.25.0
-	golang.org/x/text v0.19.0
+	golang.org/x/net v0.31.0
+	golang.org/x/sync v0.9.0
+	golang.org/x/term v0.26.0
+	golang.org/x/text v0.20.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -105,9 +105,9 @@ require (
 	github.com/ysmood/got v0.40.0 // indirect
 	github.com/ysmood/gson v0.7.3 // indirect
 	github.com/ysmood/leakless v0.9.0 // indirect
-	golang.org/x/crypto v0.28.0 // indirect
+	golang.org/x/crypto v0.29.0 // indirect
 	golang.org/x/oauth2 v0.22.0 // indirect
-	golang.org/x/sys v0.26.0 // indirect
+	golang.org/x/sys v0.27.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 )
 

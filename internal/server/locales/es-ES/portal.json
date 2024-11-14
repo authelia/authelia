@@ -91,6 +91,7 @@
 	"Time-based One-Time Password": "Contraseña de uso único - OTP",
 	"Use OpenID to verify your identity": "Utilizar OpenID para verificar su identidad",
 	"Username": "Usuario",
+	"Username is required": "Se requiere un nombre de usuario",
 	"You cancelled the assertion request": "Ha cancelado la solicitud de afirmación",
 	"You must view and accept the Privacy Policy before using": "Debes ver y aceptar la <0>Política de privacidad</0> antes de usar",
 	"You're being signed out and redirected": "Cerrando Sesión y redirigiendo",

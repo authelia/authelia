@@ -91,6 +91,7 @@
 	"Time-based One-Time Password": "Časově založené jednočasové heslo",
 	"Use OpenID to verify your identity": "Použijte OpenID k ověření Vaší identity",
 	"Username": "Uživatelské jméno",
+	"Username is required": "Uživatelské jméno je povinné",
 	"You cancelled the assertion request": "Zrušili jste žádost o potvrzení",
 	"You must view and accept the Privacy Policy before using": "Před použitím musíte zobrazit a přijmout <0>Zásady ochrany osobních údajů</0>",
 	"You're being signed out and redirected": "Probíhá odhlášení a přesměrování",

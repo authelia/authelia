@@ -91,6 +91,7 @@
 	"Time-based One-Time Password": "Tidsbaseret Engangskodeord",
 	"Use OpenID to verify your identity": "Brug OpenID til at bekræfte din identitet",
 	"Username": "Brugernavn",
+	"Username is required": "Brugernavn er påkrævet",
 	"You cancelled the assertion request": "Du annullerede påstand anmodningen",
 	"You must view and accept the Privacy Policy before using": "Du skal se og acceptere <0>Fortrolighedspolitik</0> før du bruger",
 	"You're being signed out and redirected": "Du bliver logget ud og omdirigeret",

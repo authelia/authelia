@@ -91,6 +91,7 @@
 	"Time-based One-Time Password": "時間ベースのワンタイムパスワード",
 	"Use OpenID to verify your identity": "OpenIDを使用して身元を確認してください",
 	"Username": "ユーザー名",
+	"Username is required": "ユーザー名は必須です",
 	"You cancelled the assertion request": "アサーションリクエストをキャンセルしました",
 	"You must view and accept the Privacy Policy before using": "使用する前に<0>プライバシーポリシー</0>を表示し、同意する必要があります",
 	"You're being signed out and redirected": "サインアウトしてリダイレクトしています",

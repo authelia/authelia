@@ -71,8 +71,8 @@ More information about [Kubernetes] deployments of Authelia can be read in the
 ### XHR Redirect
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
-The XHR is a deprecated web feature and applications should be using the new [Fetch API] which does not have
-the same issues regarding redirects (the [Fetch API] allows developers to
+The XHR is a deprecated web feature and applications should be using the new [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) which does not have
+the same issues regarding redirects (the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) allows developers to
 [control how to handle them](https://developer.mozilla.org/en-US/docs/Web/API/Request/redirect)). As such the fact
 a proxy does not support it should only be seen as a means to communicate a feature not that the proxy should not be
 used.
@@ -129,5 +129,3 @@ contribution.
 [IIS]: https://www.iis.net/
 [Kubernetes]: https://kubernetes.io/
 [Ingress Controller]: https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/
-
-[Fetch API]: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
