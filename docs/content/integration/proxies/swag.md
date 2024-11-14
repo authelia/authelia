@@ -305,3 +305,4 @@ server {
 [SWAG]: https://docs.linuxserver.io/general/swag
 [NGINX]: https://www.nginx.com/
 [Forwarded Headers]: forwarded-headers
+[linuxserver.io]: https://www.linuxserver.io/

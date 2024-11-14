@@ -91,6 +91,7 @@
 	"Time-based One-Time Password": "Parolă unică bazată pe timp",
 	"Use OpenID to verify your identity": "Folosiți OpenID pentru a vă verifica identitatea",
 	"Username": "Nume",
+	"Username is required": "Numele de utilizator este necesar",
 	"You cancelled the assertion request": "Ai anulat cererea de aserțiune",
 	"You must view and accept the Privacy Policy before using": "Trebuie să vizualizați și să acceptați politica de confidențialitate<0>înainte de a utiliza",
 	"You're being signed out and redirected": "Ești deconectat și redirecționat",

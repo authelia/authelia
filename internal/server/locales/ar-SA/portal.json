@@ -91,6 +91,7 @@
 	"Time-based One-Time Password": "كلمة المرور لمرة واحدة حسب الوقت",
 	"Use OpenID to verify your identity": "استخدم OpenID للتحقق من هويتك",
 	"Username": "اسم المستخدم",
+	"Username is required": "يجب إدخال اسم المستخدم",
 	"You cancelled the assertion request": "قمت بإلغاء طلب التأكيد",
 	"You must view and accept the Privacy Policy before using": "يجب عليك عرض وقبول <0>سياسة الخصوصية</0> قبل استخدام",
 	"You're being signed out and redirected": "يتم تسجيل الخروج وإعادة التوجيه",

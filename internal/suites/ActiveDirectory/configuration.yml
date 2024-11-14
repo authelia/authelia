@@ -1,9 +1,5 @@
 ---
-###############################################################
-#                Authelia minimal configuration               #
-###############################################################
-
-certificates_directory: /certs/
+certificates_directory: '/certs/'
 theme: 'grey'
 
 server:
@@ -15,9 +11,34 @@ server:
 log:
   level: 'debug'
 
+storage:
+  encryption_key: 'a_not_so_secure_encryption_key'
+  local:
+    path: '/config/db.sqlite3'
+
+notifier:
+  smtp:
+    address: 'smtp://mail.example.com:1025'
+    sender: 'admin@example.com'
+
 identity_validation:
   reset_password:
     jwt_secret: 'a_very_important_secret'
+
+regulation:
+  max_retries: 3
+  find_time: '5 minutes'
+  ban_time: '15 minutes'
+
+session:
+  secret: 'unsecure_session_secret'
+  cookies:
+    - domain: 'example.com'
+      authelia_url: 'https://login.example.com:8080'
+      default_redirection_url: 'https://home.example.com:8080/'
+      expiration: '1 hour'
+      inactivity: '5 minutes'
+      remember_me: '1 year'
 
 authentication_backend:
   ldap:
@@ -32,46 +53,24 @@ authentication_backend:
     user: 'CN=Administrator,CN=Users,DC=example,DC=com'
     password: 'password'
 
-session:
-  secret: 'unsecure_session_secret'
-  expiration: 3600  # 1 hour
-  inactivity: 300  # 5 minutes
-  remember_me: 1y
-  cookies:
-    - domain: 'example.com'
-      authelia_url: 'https://login.example.com:8080'
-      default_redirection_url: 'https://home.example.com:8080/'
-
-storage:
-  encryption_key: 'a_not_so_secure_encryption_key'
-  local:
-    path: '/config/db.sqlite3'
-
 totp:
   issuer: 'example.com'
   disable_reuse_security_policy: true
 
+webauthn:
+  disable: false
+
 access_control:
   default_policy: 'deny'
   rules:
-    - domain: ["home.example.com", "public.example.com"]
+    - domain: ['home.example.com', 'public.example.com']
       policy: 'bypass'
-    - domain: "deny.example.com"
+    - domain: 'deny.example.com'
       policy: 'deny'
-    - domain: "admin.example.com"
+    - domain: 'admin.example.com'
       policy: 'two_factor'
-    - domain: "secure.example.com"
+    - domain: 'secure.example.com'
       policy: 'two_factor'
-    - domain: "singlefactor.example.com"
+    - domain: 'singlefactor.example.com'
       policy: 'one_factor'
-
-regulation:
-  max_retries: 3
-  find_time: 300
-  ban_time: 900
-
-notifier:
-  smtp:
-    address: 'smtp://mail.example.com:1025'
-    sender: 'admin@example.com'
 ...
