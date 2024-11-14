@@ -352,7 +352,7 @@ spec:
     name: example
 ```
 
-If route namespace != authelia service, their is needed to declare a ReferanceGrant:
+If the route namespace differs from the authelia service namespace, there is a need to declare a ReferenceGrant:
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: ReferenceGrant
