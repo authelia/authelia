@@ -836,7 +836,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 
 				assert.Nil(t, us.WebAuthn)
 
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn passkey authentication challenge: error performing the login validation", "Unable to find the credential for the returned credential ID")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn passkey authentication challenge: error performing the login validation", "Unable to find the credential for the returned credential ID (invalid_request)")
 			},
 		},
 		{
@@ -969,7 +969,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 
 				assert.Nil(t, us.WebAuthn)
 
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn passkey authentication challenge: error performing the login validation", "Failed to lookup Client-side Discoverable Credential: failed to get creds")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn passkey authentication challenge: error performing the login validation", "Failed to lookup Client-side Discoverable Credential: failed to get creds (invalid_request)")
 			},
 		},
 		{
@@ -1009,11 +1009,11 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 
 				assert.Nil(t, us.WebAuthn)
 
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn passkey authentication challenge: error performing the login validation", "Failed to lookup Client-side Discoverable Credential: bad handle")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn passkey authentication challenge: error performing the login validation", "Failed to lookup Client-side Discoverable Credential: bad handle (invalid_request)")
 			},
 		},
 		{
-			name:   "ShouldFailGetHandle",
+			name:   "ShouldFailGetHandleBlank",
 			config: &schema.DefaultWebAuthnConfiguration,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				mock.Ctx.Clock = &mock.Clock
@@ -1043,7 +1043,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 
 				assert.Nil(t, us.WebAuthn)
 
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn passkey authentication challenge: error performing the login validation", "Client-side Discoverable Assertion was attempted with a blank User Handle")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn passkey authentication challenge: error performing the login validation", "Client-side Discoverable Assertion was attempted with a blank User Handle (invalid_request)")
 			},
 		},
 		{
@@ -1144,7 +1144,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 
 				assert.Nil(t, us.WebAuthn)
 
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn passkey authentication challenge: error performing the login validation", "Error validating origin")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn passkey authentication challenge: error performing the login validation", "Error validating origin (verification_error): Expected Values: [https://login.example.com:8080], Received: http://example.com")
 			},
 		},
 		{
