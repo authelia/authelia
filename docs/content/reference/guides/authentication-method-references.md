@@ -2,7 +2,7 @@
 title: "Authentication Method Reference Values"
 description: "This guide shows a list of Authentication Method Reference Values based on RFC8176 and how they are implemented within Authelia"
 summary: "This guide shows a list of other frequently asked question documents as well as some general ones."
-date: 2024-11-06T23:13:53+11:00
+date: 2024-11-16T16:17:22+11:00
 draft: false
 images: []
 weight: 220
@@ -14,7 +14,7 @@ seo:
   noindex: false # false (default) or true
 ---
 
-Authelia leverages [RFC8176] in a few areas to communicate and control authorizatiaon.
+Authelia leverages [RFC8176] in a few areas to communicate and control authorization.
 
 Below is a list of the Authentication Method Reference Values and how we currently support them:
 
