@@ -2181,8 +2181,16 @@
           "default": "localhost"
         },
         "sender": {
-          "type": "string",
-          "format": "email",
+          "oneOf": [
+            {
+              "type": "string",
+              "format": "email"
+            },
+            {
+              "type": "string",
+              "pattern": "^[^\u003c]+\\s\\\u003c[a-zA-Z0-9._~!#$%\u0026'*/=?^{|}+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z0-9-]+\\\u003e$"
+            }
+          ],
           "title": "Sender",
           "description": "The sender used for SMTP."
         },
@@ -2193,11 +2201,18 @@
           "default": "[Authelia] {title}"
         },
         "startup_check_address": {
-          "type": "string",
-          "format": "email",
+          "oneOf": [
+            {
+              "type": "string",
+              "format": "email"
+            },
+            {
+              "type": "string",
+              "pattern": "^[^\u003c]+\\s\\\u003c[a-zA-Z0-9._~!#$%\u0026'*/=?^{|}+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z0-9-]+\\\u003e$"
+            }
+          ],
           "title": "Startup Check Address",
-          "description": "The address used for the recipient in the startup check.",
-          "default": "Authelia Test \u003ctest@authelia.com\u003e"
+          "description": "The address used for the recipient in the startup check."
         },
         "disable_require_tls": {
           "type": "boolean",
