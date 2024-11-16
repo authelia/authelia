@@ -131,7 +131,11 @@ func (p *StoreCachedMetadataProvider) init() (err error) {
 	_, _, _ = p.loadCache(ctx)
 
 	if _, data, err = p.loadCurrent(ctx, p.number); err != nil {
-		return err
+		return fmt.Errorf("error initializing provider: %w", err)
+	}
+
+	if p.number <= 0 {
+		return fmt.Errorf("error initializing provider: no metadata was loaded")
 	}
 
 	if data == nil {
@@ -278,14 +282,14 @@ func (p *StoreCachedMetadataProvider) saveCache(ctx context.Context, data []byte
 }
 
 func (p *StoreCachedMetadataProvider) configure(mds *metadata.Metadata) (err error) {
-	var provider metadata.Provider
-
 	if mds == nil {
-		return fmt.Errorf("error initializing metadata provider: metadata was nil")
+		return nil
 	}
 
+	var provider metadata.Provider
+
 	if provider, err = p.new(mds); err != nil {
-		return fmt.Errorf("error initializing metadata provider: %w", err)
+		return err
 	}
 
 	p.Provider = provider
