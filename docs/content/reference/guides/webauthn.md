@@ -22,14 +22,15 @@ recommended configurations.
 
 ### Passkeys
 
-The following is a configuration that's relatively compliant with the NIST
+The following is a configuration that's compliant with NIST recommendations.
 
 ```yaml
+# yaml-language-server: $schema=https://www.authelia.com/schemas/latest/json-schema/configuration.json
 webauthn:
   enable_passkey_login: true
   attestation_conveyance_preference: 'direct'
   filtering:
-    prohibit_backup_eligible: true
+    prohibit_backup_eligibility: true
   metadata:
     enabled: true
     validate_trust_anchor: true

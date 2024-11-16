@@ -173,7 +173,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
-		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn passkey authentication challenge: error occurred provisioning the configuration")
+		ctx.Logger.WithError(iwebauthn.FormatError(err)).Errorf("Error occurred validating a WebAuthn passkey authentication challenge: error occurred provisioning the configuration")
 
 		return
 	}
@@ -182,7 +182,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
-		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn passkey authentication challenge: error performing the login validation")
+		ctx.Logger.WithError(iwebauthn.FormatError(err)).Errorf("Error occurred validating a WebAuthn passkey authentication challenge: error performing the login validation")
 
 		return
 	}

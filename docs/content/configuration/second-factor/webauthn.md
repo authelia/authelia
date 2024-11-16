@@ -200,9 +200,16 @@ blob. It's recommended this value is always the default value.
 {{< confkey type="boolean" default="true" required="no" >}}
 
 Enables validation that an entry exists for the authenticator in the MDS3 blob. It's recommended that this option is
-the default value, however this may exclude some authenticators which do not have FIDO compliance certification. The
-recommendation is based on the fact that the authenticity of a particular authenticator cannot be validated without
-this.
+the default value, however this may exclude some authenticators which **_DO NOT_** have FIDO compliance certification or
+have otherwise not registered with the MDS3. The recommendation is based on the fact that the authenticity of a
+particular authenticator cannot be validated without this.
+
+#### validate_entry_permit_zero_aaguid
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Allows authenticators which have provided an empty Authenticator Attestation GUID. This may be required for certain
+authenticators which **_DO NOT_** have FIDO compliance certification.
 
 #### validate_status
 
