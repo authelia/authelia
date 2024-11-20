@@ -299,7 +299,7 @@ func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error)
 	return nil
 }
 
-// UpdatePassword update the password of the given user.
+// ChangePassword update the password of the given user.
 func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassword string) (err error) {
 	var (
 		client  ldap.Client

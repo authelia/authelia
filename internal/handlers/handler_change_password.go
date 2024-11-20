@@ -1,19 +1,15 @@
 package handlers
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
-
-// these are redefined in /internal/authentication/const.go.
-var ErrIncorrectPassword = errors.New("incorrect password")
-var ErrReusePassword = errors.New("you cannot reuse your old password")
 
 type ErrorResponse struct {
 	Message string `json:"message"`
@@ -46,10 +42,12 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if err = ctx.Providers.UserProvider.ChangePassword(username, requestBody.OldPassword, requestBody.NewPassword); err != nil {
+		ctx.Logger.Debugf("error occurred changing password for user %s: %v", username, err)
+
 		switch {
-		case strings.Contains(err.Error(), ErrIncorrectPassword.Error()):
+		case strings.Contains(err.Error(), authentication.ErrIncorrectPassword.Error()):
 			ctx.Error(err, messageIncorrectPassword)
-		case strings.Contains(err.Error(), ErrReusePassword.Error()):
+		case strings.Contains(err.Error(), authentication.ErrPasswordReuse.Error()):
 			ctx.Error(err, messageCannotReusePassword)
 		case utils.IsStringInSliceContains(err.Error(), ldapPasswordComplexityCodes),
 			utils.IsStringInSliceContains(err.Error(), ldapPasswordComplexityErrors):
