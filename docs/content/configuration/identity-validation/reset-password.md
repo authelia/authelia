@@ -39,7 +39,7 @@ This section describes the individual configuration options.
 
 {{< confkey type="string" required="yes" >}}
 
-The secret used with the HMAC algorithm to sign the JWT.
+The secret used with the HMAC algorithm to sign the JWT. This value should be an arbitrary random string with printable ASCII characters.
 
 It is __strongly recommended__ this is a
 [Random Alphanumeric String](../../reference/guides/generating-secure-values.md#generating-a-random-alphanumeric-string) with 64 or more
