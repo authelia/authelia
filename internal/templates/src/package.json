@@ -19,7 +19,7 @@
 		"react-email": "3.0.2",
 		"tailwind-merge": "2.5.4",
 		"tailwindcss": "3.4.15",
-		"typescript": "5.6.3"
+		"typescript": "5.7.2"
 	},
 	"devDependencies": {
 		"@radix-ui/colors": "3.0.0",
