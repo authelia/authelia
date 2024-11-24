@@ -3261,6 +3261,20 @@
           "default": [
             "basic"
           ]
+        },
+        "scheme_basic_cache_lifespan": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Scheme Basic Cache Lifespan",
+          "description": "The lifespan for cached basic scheme authorization attempts."
         }
       },
       "additionalProperties": false,
