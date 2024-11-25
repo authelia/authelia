@@ -49,7 +49,7 @@ The first thing we want to do is set up the file structure. Which should look so
  ┗ 📁 traefik
     ┣ 📁 config
     ┃ ┣ 📄 acme.json
-    ┃ ┣ 📄 static.yaml
+    ┃ ┣ 📄 dynamic.yaml
     ┃ ┗ 📄 traefik.yaml
     ┣ 📁 logs
     ┗ 📁 secrets
@@ -73,8 +73,6 @@ services:
     restart: unless-stopped
     security_opt:
       - no-new-privileges=true
-    depends_on:
-      - {{< sitevar name="host" nojs="authelia" >}}
     networks:
       proxy: {}
       authelia:
@@ -89,8 +87,8 @@ services:
       CF_DNS_API_TOKEN_FILE: '/run/secrets/cloudflare_api_key'
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock:ro'
-      - './traefik/config/traefik.yml:/traefik.yml:ro'
-      - './traefik/config/static.yml:/static.yml:ro'
+      - './traefik/config/traefik.yaml:/traefik.yaml:ro'
+      - './traefik/config/dynamic.yaml:/dynamic.yaml:ro'
       - './traefik/config/acme.json:/acme.json'
       - './traefik/logs:/logs'
     secrets:
@@ -102,10 +100,6 @@ services:
       traefik.http.routers.dashboard.entrypoints: 'https'
       traefik.http.routers.dashboard.middlewares: 'authelia@docker'
       traefik.http.routers.dashboard.service: 'api@internal'
-      traefik.http.routers.dashboard.tls.certresolver: 'cloudflare'
-      traefik.http.middlewares.authelia.forwardAuth.address: '{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth'
-      traefik.http.middlewares.authelia.forwardAuth.trustForwardHeader: 'true'
-      traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders: 'Remote-User,Remote-Groups,Remote-Name,Remote-Email'
 
   whoami:
     image: traefik/whoami
@@ -115,8 +109,6 @@ services:
       traefik.enable: 'true'
       traefik.http.routers.whoami.rule: Host(`whoami.{{< sitevar name="domain" nojs="example.com" >}}`)
       traefik.http.routers.whoami.entrypoints: 'https'
-      traefik.http.services.whoami.loadbalancer.server.port: '80'
-      traefik.http.routers.whoami.tls.certresolver: 'cloudflare'
     networks:
       proxy: {}
 
@@ -135,7 +127,7 @@ Notes:
 Timezone strings can be found [here](https://go.dev/src/time/zoneinfo_abbrs_windows.go)
 
 #### Basic Traefik Configuration
-Now we configure Traeifk.
+Now we configure Traefik.
 The following files contain the minimal Traefik configuration needed for Authelia integration:
 
 ```yaml{title="traefik/config/traefik.yaml"}
@@ -146,7 +138,7 @@ api:
   insecure: false
 
 log:
-  level: DEBUG
+  level: INFO
   filePath: /logs/traefik.log
 accessLog:
   filePath: /logs/access.log
@@ -162,13 +154,20 @@ entryPoints:
          permanent: true
   https:
     address: ":443"
+    http:
+      tls:
+        certResolver: cloudflare@file
+        domains:
+          - main: '{{< sitevar name="domain" nojs="example.com" >}}.com'
+            sans:
+              - '*.{{< sitevar name="domain" nojs="example.com" >}}.com'
 
 providers:
   docker:
     endpoint: "unix:///var/run/docker.sock"
     exposedByDefault: false
   file:
-    filename: '/static.yml'
+    filename: '/dynamic.yaml'
 
 certificatesResolvers:
   cloudflare:
@@ -195,7 +194,7 @@ tls:
 Note: Create acme.json with 600 permissions before starting Traefik.
 
 ### Domain Configuration
-```yaml{title="traefik/config/static.yaml"}
+```yaml{title="traefik/config/dynamic.yaml"}
 ##This file can be used to define dynamic routers/services/middlewares.
 ```
 
@@ -204,7 +203,7 @@ These are minimal configurations focused on Authelia integration. Adjust them ac
 {{< /callout >}}
 
 ## Authelia Compose
-This configuration sets up Authelia's core service and configures forward authentication with Traefik. The portal will be available at `auth.example.com`. It also defines a new whoami container that will be protected by authelia.
+This configuration sets up Authelia's core service and configures forward authentication with Traefik. The portal will be available at `{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`. It also defines a new whoami container that will be protected by authelia.
 
 ```yaml{title="compose.yaml"}
 ...
@@ -223,7 +222,10 @@ This configuration sets up Authelia's core service and configures forward authen
       traefik.docker.network: 'authelia'
       traefik.http.routers.authelia.rule: 'Host(`{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`)'
       traefik.http.routers.authelia.entrypoints: 'https'
-      traefik.http.routers.authelia.tls.certresolver: 'cloudflare'
+      ## Setup Authelia Middlewares
+      traefik.http.middlewares.authelia.forwardAuth.address: '{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth'
+      traefik.http.middlewares.authelia.forwardAuth.trustForwardHeader: 'true'
+      traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders: 'Remote-User,Remote-Groups,Remote-Name,Remote-Email'
     environment:
       TZ: 'America/Los_Angeles'
       X_AUTHELIA_CONFIG_FILTERS: template
@@ -237,8 +239,6 @@ This configuration sets up Authelia's core service and configures forward authen
       traefik.http.routers.whoami-secure.rule: 'Host(`whoami-secure.{{< sitevar name="domain" nojs="example.com" >}}`)'
       traefik.http.routers.whoami-secure.entrypoints: 'https'
       traefik.http.routers.whoami-secure.middlewares: 'authelia@docker'
-      traefik.http.routers.whoami-secure.tls.certresolver: 'cloudflare'
-      traefik.http.services.whoami-secure.loadbalancer.server.port: '80'
     networks:
       proxy: {}
 ...
@@ -288,7 +288,7 @@ access_control:
   rules:
     - domain: traefik.{{< sitevar name="domain" nojs="example.com" >}}
       policy: one_factor
-    - domain: whoami-secure.e{{< sitevar name="domain" nojs="example.com" >}}
+    - domain: whoami-secure.{{< sitevar name="domain" nojs="example.com" >}}
       policy: two_factor
 
 session:
@@ -354,6 +354,10 @@ It is *strongly recommended* that these 3 values are [Random Alphanumeric String
 users:
   authelia: # Username
     displayname: "Authelia User"
+    # WARNING: This is a default password for testing only!
+    # IMPORTANT: Change this password before deploying to production!
+    # Generate a new hash using the instructions at:
+    # https://www.authelia.com/reference/guides/passwords/#passwords
     # Password is authelia
     password: "$6$rounds=50000$BpLnfgDsc2WD8F2q$Zis.ixdg9s/UOJYrs56b5QEZFiZECu0qZVNsIYxBaNJ7ucIL.nlxVCT5tqh8KHG8X4tlwCFm5r6NTOZZ5qRFN/"
     email: authelia@authelia.com
@@ -361,4 +365,4 @@ users:
       - admin
       - dev
 ```
-You must enter a [hashed password](https://www.authelia.com/reference/guides/passwords/#passwords).
+The current password listed is `authelia`. It is important you [Generate](https://www.authelia.com/reference/guides/passwords/#passwords) a new password hash.
