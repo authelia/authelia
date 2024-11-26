@@ -112,7 +112,7 @@ By default, the container looks for a configuration file at `/config/configurati
 This is an example of how to override the configuration files loaded in docker:
 
 ```bash
-docker run -d --volume /path/to/config:/config authelia:authelia:latest authelia --config=/config/configuration.yaml --config=/config/configuration.acl.yaml
+docker run -d --volume /path/to/config:/config authelia:authelia:latest authelia --config=/config/configuration.yml --config=/config/configuration.acl.yml
 ```
 
 See the [Docker Documentation](https://docs.docker.com/engine/reference/commandline/run/) for more information on the
@@ -129,8 +129,8 @@ services:
     image: 'authelia/authelia:latest'
     command:
       - 'authelia'
-      - '--config=/config/configuration.yaml'
-      - '--config=/config/configuration.acl.yaml'
+      - '--config=/config/configuration.yml'
+      - '--config=/config/configuration.acl.yml'
 
 ```
 
@@ -169,8 +169,8 @@ spec:
           command:
             - authelia
           args:
-            - '--config=/configuration.yaml'
-            - '--config=/configuration.acl.yaml'
+            - '--config=/configuration.yml'
+            - '--config=/configuration.acl.yml'
 ```
 
 See the Kubernetes [workloads documentation](https://kubernetes.io/docs/concepts/workloads/pods/#pod-templates) or the
