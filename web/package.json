@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=18.4.0",
+    "node": ">=22.11.0",
     "pnpm": "9"
   },
   "pnpm": {
@@ -46,7 +46,7 @@
     "qrcode.react": "4.1.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "react-i18next": "15.1.1",
+    "react-i18next": "15.1.2",
     "react-loading": "2.0.3",
     "react-router-dom": "7.0.1",
     "react18-input-otp": "1.1.4",
