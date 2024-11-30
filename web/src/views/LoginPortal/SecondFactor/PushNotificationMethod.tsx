@@ -217,8 +217,8 @@ const PushNotificationMethod = function (props: Props) {
     return (
         <MethodContainer
             id={props.id}
-            title="Push Notification"
-            explanation="A notification has been sent to your smartphone"
+            title={translate("Push Notification")}
+            explanation={translate("A notification has been sent to your smartphone")}
             duoSelfEnrollment={enroll_url ? props.duoSelfEnrollment : false}
             registered={props.registered}
             state={methodState}
@@ -228,7 +228,7 @@ const PushNotificationMethod = function (props: Props) {
             <div className={styles.icon}>{icon}</div>
             <div className={state !== State.Failure ? "hidden" : ""}>
                 <Button color="secondary" onClick={signInFunc}>
-                    Retry
+                    {translate("Retry")}
                 </Button>
             </div>
         </MethodContainer>
