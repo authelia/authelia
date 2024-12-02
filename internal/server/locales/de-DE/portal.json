@@ -42,7 +42,7 @@
 	"New password": "Neues Passwort",
 	"No compatible device found": "Kein kompatibles Gerät gefunden",
 	"No verification token provided": "Kein Verifizierungs-Token vorhanden",
-	"One-Time Password": "Einmal-Kennwort",
+	"One-Time Password": "Einmal-Passwort",
 	"Password has been reset": "Passwort wurde zurückgesetzt",
 	"Password": "Passwort",
 	"Passwords do not match": "Passwörter stimmen nicht überein",
@@ -73,7 +73,7 @@
 	"The browser did not respond with the expected attestation data": "Der Browser hat nicht mit den erwarteten Attestierungsdaten geantwortet",
 	"The One-Time Code identifier was not provided": "Der Einmal-Code Identifikator wurde nicht angegeben",
 	"The One-Time Password might be wrong": "Das Einmal-Passwort ist möglicherweise falsch",
-	"The password does not meet the password policy": "Das Passwort entspricht nicht der Passwortrichtlinie",
+	"The password does not meet the password policy": "Das Passwort entspricht nicht der Passwortrichtlinien",
 	"The password was entered with Caps Lock": "Das Passwort wurde mit aktivierter Feststelltaste eingegeben",
 	"The password was partially entered with Caps Lock": "Das Passwort wurde teilweise mit aktivierter Feststelltaste eingegeben",
 	"The resource you're attempting to access requires two-factor authentication": "Die Ressource, auf die Sie zugreifen möchten, erfordert Zwei-Faktor-Authentifizierung",
@@ -95,12 +95,12 @@
 	"This saves this consent as a pre-configured consent for future use": "Dies speichert Ihre Zustimmung als vorkonfigurierte Zustimmung für zukünftige Nutzung",
 	"Time-based One-Time Password": "Zeitbasiertes Einmal-Passwort",
 	"Touch the token of your security key": "Tippen Sie auf das Token Ihres Sicherheitsschlüssels",
-	"Use OpenID to verify your identity": "Verwenden Sie OpenID, um Ihre Identität zu bestätigen",
+	"Use OpenID to verify your identity": "Verwenden von OpenID, um Ihre Identität zu bestätigen",
 	"Username": "Benutzername",
 	"Username is required": "Benutzername ist erforderlich",
 	"You cancelled the assertion request": "Sie haben den Antrag auf Bestätigung storniert",
 	"You must view and accept the Privacy Policy before using": "Sie müssen erst die <0>Datenschutzerklärung</0> ansehen und akzeptieren",
 	"You're being signed out and redirected": "Sie werden abgemeldet und umgeleitet",
 	"Your browser does not support the WebAuthn protocol": "Ihr Browser unterstützt das WebAuthn-Protokoll nicht",
-	"Your supplied password does not meet the password policy requirements": "Ihr eingegebenes Passwort entspricht nicht den Anforderungen der Kennwortrichtlinien"
+	"Your supplied password does not meet the password policy requirements": "Ihr eingegebenes Passwort entspricht nicht den Anforderungen der Passwortrichtlinien"
 }
