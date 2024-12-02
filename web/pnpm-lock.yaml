@@ -131,7 +131,7 @@ importers:
         version: 8.16.0(eslint@8.57.1)(typescript@5.7.2)
       '@vitejs/plugin-react':
         specifier: 4.3.4
-        version: 4.3.4(vite@6.0.1(@types/node@22.10.1))
+        version: 4.3.4(vite@6.0.2(@types/node@22.10.1))
       '@vitest/coverage-istanbul':
         specifier: 2.1.6
         version: 2.1.6(vitest@2.1.6(@types/node@22.10.1)(happy-dom@15.11.7))
@@ -184,20 +184,20 @@ importers:
         specifier: 5.7.2
         version: 5.7.2
       vite:
-        specifier: 6.0.1
-        version: 6.0.1(@types/node@22.10.1)
+        specifier: 6.0.2
+        version: 6.0.2(@types/node@22.10.1)
       vite-plugin-checker:
         specifier: 0.8.0
-        version: 0.8.0(eslint@8.57.1)(optionator@0.9.3)(typescript@5.7.2)(vite@6.0.1(@types/node@22.10.1))
+        version: 0.8.0(eslint@8.57.1)(optionator@0.9.3)(typescript@5.7.2)(vite@6.0.2(@types/node@22.10.1))
       vite-plugin-istanbul:
         specifier: 6.0.2
-        version: 6.0.2(vite@6.0.1(@types/node@22.10.1))
+        version: 6.0.2(vite@6.0.2(@types/node@22.10.1))
       vite-plugin-svgr:
         specifier: 4.3.0
-        version: 4.3.0(rollup@4.27.4)(typescript@5.7.2)(vite@6.0.1(@types/node@22.10.1))
+        version: 4.3.0(rollup@4.27.4)(typescript@5.7.2)(vite@6.0.2(@types/node@22.10.1))
       vite-tsconfig-paths:
         specifier: 5.1.3
-        version: 5.1.3(typescript@5.7.2)(vite@6.0.1(@types/node@22.10.1))
+        version: 5.1.3(typescript@5.7.2)(vite@6.0.2(@types/node@22.10.1))
       vitest:
         specifier: 2.1.6
         version: 2.1.6(@types/node@22.10.1)(happy-dom@15.11.7)
@@ -4519,8 +4519,8 @@ packages:
       terser:
         optional: true
 
-  vite@6.0.1:
-    resolution: {integrity: sha512-Ldn6gorLGr4mCdFnmeAOLweJxZ34HjKnDm4HGo6P66IEqTxQb36VEdFJQENKxWjupNfoIjvRUnswjn1hpYEpjQ==}
+  vite@6.0.2:
+    resolution: {integrity: sha512-XdQ+VsY2tJpBsKGs0wf3U/+azx8BBpYRHFAyKm5VeEZNOJZRB63q7Sc8Iup3k0TrN3KO6QgyzFf+opSbfY1y0g==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
     hasBin: true
     peerDependencies:
@@ -4724,12 +4724,12 @@ snapshots:
   '@babel/code-frame@7.25.7':
     dependencies:
       '@babel/highlight': 7.25.7
-      picocolors: 1.1.0
+      picocolors: 1.1.1
 
   '@babel/code-frame@7.25.9':
     dependencies:
       '@babel/highlight': 7.25.9
-      picocolors: 1.1.0
+      picocolors: 1.1.1
 
   '@babel/code-frame@7.26.2':
     dependencies:
@@ -5088,14 +5088,14 @@ snapshots:
       '@babel/helper-validator-identifier': 7.25.9
       chalk: 2.4.2
       js-tokens: 4.0.0
-      picocolors: 1.1.0
+      picocolors: 1.1.1
 
   '@babel/highlight@7.25.9':
     dependencies:
       '@babel/helper-validator-identifier': 7.25.9
       chalk: 2.4.2
       js-tokens: 4.0.0
-      picocolors: 1.1.0
+      picocolors: 1.1.1
 
   '@babel/parser@7.24.0':
     dependencies:
@@ -6677,14 +6677,14 @@ snapshots:
 
   '@ungap/structured-clone@1.2.0': {}
 
-  '@vitejs/plugin-react@4.3.4(vite@6.0.1(@types/node@22.10.1))':
+  '@vitejs/plugin-react@4.3.4(vite@6.0.2(@types/node@22.10.1))':
     dependencies:
       '@babel/core': 7.26.0
       '@babel/plugin-transform-react-jsx-self': 7.25.9(@babel/core@7.26.0)
       '@babel/plugin-transform-react-jsx-source': 7.25.9(@babel/core@7.26.0)
       '@types/babel__core': 7.20.5
       react-refresh: 0.14.2
-      vite: 6.0.1(@types/node@22.10.1)
+      vite: 6.0.2(@types/node@22.10.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -6715,13 +6715,13 @@ snapshots:
       chai: 5.1.2
       tinyrainbow: 1.2.0
 
-  '@vitest/mocker@2.1.6(vite@6.0.1(@types/node@22.10.1))':
+  '@vitest/mocker@2.1.6(vite@6.0.2(@types/node@22.10.1))':
     dependencies:
       '@vitest/spy': 2.1.6
       estree-walker: 3.0.3
       magic-string: 0.30.12
     optionalDependencies:
-      vite: 6.0.1(@types/node@22.10.1)
+      vite: 6.0.2(@types/node@22.10.1)
 
   '@vitest/pretty-format@2.1.6':
     dependencies:
@@ -9351,13 +9351,13 @@ snapshots:
     dependencies:
       browserslist: 4.23.0
       escalade: 3.2.0
-      picocolors: 1.1.0
+      picocolors: 1.1.1
 
   update-browserslist-db@1.1.1(browserslist@4.24.0):
     dependencies:
       browserslist: 4.24.0
       escalade: 3.2.0
-      picocolors: 1.1.0
+      picocolors: 1.1.1
 
   uri-js@4.4.1:
     dependencies:
@@ -9373,7 +9373,7 @@ snapshots:
       debug: 4.3.7
       es-module-lexer: 1.5.4
       pathe: 1.1.2
-      vite: 6.0.1(@types/node@22.10.1)
+      vite: 6.0.2(@types/node@22.10.1)
     transitivePeerDependencies:
       - '@types/node'
       - jiti
@@ -9388,7 +9388,7 @@ snapshots:
       - tsx
       - yaml
 
-  vite-plugin-checker@0.8.0(eslint@8.57.1)(optionator@0.9.3)(typescript@5.7.2)(vite@6.0.1(@types/node@22.10.1)):
+  vite-plugin-checker@0.8.0(eslint@8.57.1)(optionator@0.9.3)(typescript@5.7.2)(vite@6.0.2(@types/node@22.10.1)):
     dependencies:
       '@babel/code-frame': 7.24.7
       ansi-escapes: 4.3.2
@@ -9400,7 +9400,7 @@ snapshots:
       npm-run-path: 4.0.1
       strip-ansi: 6.0.1
       tiny-invariant: 1.3.1
-      vite: 6.0.1(@types/node@22.10.1)
+      vite: 6.0.2(@types/node@22.10.1)
       vscode-languageclient: 7.0.0
       vscode-languageserver: 7.0.0
       vscode-languageserver-textdocument: 1.0.8
@@ -9410,7 +9410,7 @@ snapshots:
       optionator: 0.9.3
       typescript: 5.7.2
 
-  vite-plugin-istanbul@6.0.2(vite@6.0.1(@types/node@22.10.1)):
+  vite-plugin-istanbul@6.0.2(vite@6.0.2(@types/node@22.10.1)):
     dependencies:
       '@istanbuljs/load-nyc-config': 1.1.0
       espree: 10.0.1
@@ -9418,28 +9418,28 @@ snapshots:
       picocolors: 1.0.0
       source-map: 0.7.4
       test-exclude: 6.0.0
-      vite: 6.0.1(@types/node@22.10.1)
+      vite: 6.0.2(@types/node@22.10.1)
     transitivePeerDependencies:
       - supports-color
 
-  vite-plugin-svgr@4.3.0(rollup@4.27.4)(typescript@5.7.2)(vite@6.0.1(@types/node@22.10.1)):
+  vite-plugin-svgr@4.3.0(rollup@4.27.4)(typescript@5.7.2)(vite@6.0.2(@types/node@22.10.1)):
     dependencies:
       '@rollup/pluginutils': 5.1.3(rollup@4.27.4)
       '@svgr/core': 8.1.0(typescript@5.7.2)
       '@svgr/plugin-jsx': 8.1.0(@svgr/core@8.1.0(typescript@5.7.2))
-      vite: 6.0.1(@types/node@22.10.1)
+      vite: 6.0.2(@types/node@22.10.1)
     transitivePeerDependencies:
       - rollup
       - supports-color
       - typescript
 
-  vite-tsconfig-paths@5.1.3(typescript@5.7.2)(vite@6.0.1(@types/node@22.10.1)):
+  vite-tsconfig-paths@5.1.3(typescript@5.7.2)(vite@6.0.2(@types/node@22.10.1)):
     dependencies:
       debug: 4.3.7
       globrex: 0.1.2
       tsconfck: 3.0.3(typescript@5.7.2)
     optionalDependencies:
-      vite: 6.0.1(@types/node@22.10.1)
+      vite: 6.0.2(@types/node@22.10.1)
     transitivePeerDependencies:
       - supports-color
       - typescript
@@ -9454,7 +9454,7 @@ snapshots:
       '@types/node': 18.16.5
       fsevents: 2.3.3
 
-  vite@6.0.1(@types/node@22.10.1):
+  vite@6.0.2(@types/node@22.10.1):
     dependencies:
       esbuild: 0.24.0
       postcss: 8.4.49
@@ -9481,7 +9481,7 @@ snapshots:
   vitest@2.1.6(@types/node@22.10.1)(happy-dom@15.11.7):
     dependencies:
       '@vitest/expect': 2.1.6
-      '@vitest/mocker': 2.1.6(vite@6.0.1(@types/node@22.10.1))
+      '@vitest/mocker': 2.1.6(vite@6.0.2(@types/node@22.10.1))
       '@vitest/pretty-format': 2.1.6
       '@vitest/runner': 2.1.6
       '@vitest/snapshot': 2.1.6
@@ -9497,7 +9497,7 @@ snapshots:
       tinyexec: 0.3.1
       tinypool: 1.0.1
       tinyrainbow: 1.2.0
-      vite: 6.0.1(@types/node@22.10.1)
+      vite: 6.0.2(@types/node@22.10.1)
       vite-node: 2.1.6(@types/node@22.10.1)
       why-is-node-running: 2.3.0
     optionalDependencies:
