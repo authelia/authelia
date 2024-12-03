@@ -389,6 +389,7 @@ const (
 // Regulation Error Consts.
 const (
 	errFmtRegulationFindTimeGreaterThanBanTime = "regulation: option 'find_time' must be less than or equal to option 'ban_time'"
+	errFmtRegulationInvalidMode                = "regulation: option 'modes' must only contain the values 'user' and 'ip' but contains the value '%s'"
 )
 
 // Server Error constants.

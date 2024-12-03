@@ -328,7 +328,7 @@ func (c *Config) LoadHandlers(store *Store) {
 			Config:  c,
 		},
 
-		// Response Mode Handling.
+		// Response Modes Handling.
 		&oauthelia2.DefaultResponseModeHandler{
 			Config: c,
 		},

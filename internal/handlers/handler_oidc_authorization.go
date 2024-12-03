@@ -67,7 +67,7 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 
 	if !oidc.IsPushedAuthorizedRequest(requester, ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)) {
 		if err = client.ValidateResponseModePolicy(requester); err != nil {
-			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' failed to validate the Response Mode: %s", requester.GetID(), client.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
+			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' failed to validate the Response Modes: %s", requester.GetID(), client.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
 
 			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
 
@@ -197,7 +197,7 @@ func OpenIDConnectPushedAuthorizationRequest(ctx *middlewares.AutheliaCtx, rw ht
 	}
 
 	if err = client.ValidateResponseModePolicy(requester); err != nil {
-		ctx.Logger.Errorf("Pushed Authorization Request with id '%s' on client with id '%s' failed to validate the Response Mode: %s", requester.GetID(), client.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
+		ctx.Logger.Errorf("Pushed Authorization Request with id '%s' on client with id '%s' failed to validate the Response Modes: %s", requester.GetID(), client.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
 
 		ctx.Providers.OpenIDConnect.WritePushedAuthorizeError(ctx, rw, requester, err)
 

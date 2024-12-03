@@ -744,7 +744,7 @@
             "filter",
             "memberof"
           ],
-          "title": "Groups Search Mode",
+          "title": "Groups Search Modes",
           "description": "The LDAP group search mode used to search for group objects.",
           "default": "filter"
         },
@@ -1307,8 +1307,8 @@
             "explicit",
             "implicit"
           ],
-          "title": "Requested Audience Mode",
-          "description": "The Requested Audience Mode used for this client."
+          "title": "Requested Audience Modes",
+          "description": "The Requested Audience Modes used for this client."
         },
         "consent_mode": {
           "type": "string",
@@ -1318,8 +1318,8 @@
             "implicit",
             "pre-configured"
           ],
-          "title": "Consent Mode",
-          "description": "The Consent Mode used for this client."
+          "title": "Consent Modes",
+          "description": "The Consent Modes used for this client."
         },
         "pre_configured_consent_duration": {
           "oneOf": [
@@ -1333,7 +1333,7 @@
             }
           ],
           "title": "Pre-Configured Consent Duration",
-          "description": "The Pre-Configured Consent Duration when using Consent Mode pre-configured for this client."
+          "description": "The Pre-Configured Consent Duration when using Consent Modes pre-configured for this client."
         },
         "require_pushed_authorization_requests": {
           "type": "boolean",
@@ -1794,7 +1794,7 @@
             }
           ],
           "title": "JARM",
-          "description": "Allows tuning the token lifespan for the JWT Secured Authorization Response Mode (JARM)."
+          "description": "Allows tuning the token lifespan for the JWT Secured Authorization Response Modes (JARM)."
         },
         "custom": {
           "patternProperties": {
@@ -2372,6 +2372,21 @@
     },
     "Regulation": {
       "properties": {
+        "modes": {
+          "items": {
+            "type": "string",
+            "enum": [
+              "user",
+              "ip"
+            ]
+          },
+          "type": "array",
+          "title": "Regulation Modes",
+          "description": "The modes to use for regulation.",
+          "default": [
+            "user"
+          ]
+        },
         "max_retries": {
           "type": "integer",
           "title": "Maximum Retries",
@@ -3099,7 +3114,7 @@
             "require",
             "verify-full"
           ],
-          "title": "Mode",
+          "title": "Modes",
           "description": "The SSL mode to use, deprecated and replaced with the TLS options.",
           "deprecated": true
         },
