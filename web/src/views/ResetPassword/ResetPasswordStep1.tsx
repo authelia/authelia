@@ -33,8 +33,12 @@ const ResetPasswordStep1 = function () {
         }
 
         try {
-            await initiateResetPasswordProcess(username);
-            createInfoNotification(translate("An email has been sent to your address to complete the process"));
+            const success = await initiateResetPasswordProcess(username);
+            if (success) {
+                createInfoNotification(translate("An email has been sent to your address to complete the process"));
+            } else {
+                createErrorNotification(translate("You have made too many requests"));
+            }
         } catch {
             createErrorNotification(translate("There was an issue initiating the password reset process"));
         }
