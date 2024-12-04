@@ -23,7 +23,7 @@ func NewTimeBasedProvider(config schema.TOTP) (provider *TimeBased) {
 	}
 
 	if config.Skew != nil && *config.Skew >= 0 {
-		provider.skew = uint(*config.Skew) //nolint:gosec // This input is checked.
+		provider.skew = uint(*config.Skew)
 	} else {
 		provider.skew = 1
 	}
