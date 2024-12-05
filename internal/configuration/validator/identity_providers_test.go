@@ -3950,6 +3950,29 @@ func TestValidateOIDCAuthorizationPolicies(t *testing.T) {
 			nil,
 		},
 		{
+			"ShouldErrorOnInvalidSubject",
+			&schema.IdentityProvidersOpenIDConnect{
+				AuthorizationPolicies: map[string]schema.IdentityProvidersOpenIDConnectPolicy{
+					"example": {
+						DefaultPolicy: "two_factor",
+						Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
+							{
+								Policy: "deny",
+								Subjects: [][]string{
+									{"[user:john]"},
+								},
+							},
+						},
+					},
+				},
+			},
+			[]string{"one_factor", "two_factor", "example"},
+			nil,
+			[]string{
+				"identity_providers: oidc: authorization_policies: policy 'example': rules: rule #1: 'subject' option '[user:john]' is invalid: must start with 'user:' or 'group:'",
+			},
+		},
+		{
 			"ShouldSetDefaultPoliciesAndErrorOnSubject",
 			&schema.IdentityProvidersOpenIDConnect{
 				AuthorizationPolicies: map[string]schema.IdentityProvidersOpenIDConnectPolicy{
