@@ -12,7 +12,7 @@ require (
 	github.com/authelia/otp v1.0.0
 	github.com/deckarep/golang-set/v2 v2.7.0
 	github.com/duosecurity/duo_api_golang v0.0.0-20240408132100-cb1770897e66
-	github.com/fasthttp/router v1.5.2
+	github.com/fasthttp/router v1.5.3
 	github.com/fasthttp/session/v2 v2.5.7
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/go-asn1-ber/asn1-ber v1.5.7
