@@ -266,6 +266,7 @@ This strategy uses the [Proxy-Authorization] header to determine the users' iden
 [HeaderProxyAuthorization]: #headerproxyauthorization
 [HeaderAuthRequestProxyAuthorization]: #headerauthrequestproxyauthorization
 [HeaderLegacy]: #headerlegacy
+[HeaderAuthorization]: #headerauthorization
 [CookieSession]: #cookiesession
 
 [Cookie]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cookie
