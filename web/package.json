@@ -15,7 +15,7 @@
       "@typescript-eslint/typescript-estree": "8.17.0",
       "@typescript-eslint/utils": "8.17.0",
       "eslint-plugin-jest": "28.9.0",
-      "eslint-plugin-testing-library": "7.0.0"
+      "eslint-plugin-testing-library": "7.1.0"
     },
     "peerDependencyRules": {
       "allowedVersions": {
