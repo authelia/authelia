@@ -48,6 +48,22 @@ export function rejectConsent(clientID: string, consentID: string | null) {
     return Post<ConsentPostResponseBody>(ConsentPath, body);
 }
 
+export function formatScope(scope: string, fallback: string): string {
+    if (!scope.startsWith("scope.") && scope !== "") {
+        return scope;
+    } else {
+        return getScopeDescription(fallback);
+    }
+}
+
+export function formatClaim(claim: string, fallback: string): string {
+    if (!claim.startsWith("claim.") && claim !== "") {
+        return claim;
+    } else {
+        return getClaimDescription(fallback);
+    }
+}
+
 export function getScopeDescription(scope: string): string {
     switch (scope) {
         case "openid":

@@ -27,9 +27,9 @@ import { UserInfo } from "@models/UserInfo";
 import {
     ConsentGetResponseBody,
     acceptConsent,
-    getClaimDescription,
+    formatClaim,
+    formatScope,
     getConsentResponse,
-    getScopeDescription,
     rejectConsent,
 } from "@services/ConsentOpenIDConnect";
 import { AutheliaState } from "@services/State";
@@ -60,7 +60,7 @@ function scopeNameToAvatar(id: string) {
 }
 
 const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => {
-    const { t: translate } = useTranslation();
+    const { t: translate } = useTranslation(["portal", "consent"]);
 
     const { createErrorNotification, resetNotification } = useNotifications();
     const navigate = useNavigate();
@@ -191,7 +191,7 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
                                     <Tooltip title={translate("Scope", { name: scope })}>
                                         <ListItem id={"scope-" + scope} dense>
                                             <ListItemIcon>{scopeNameToAvatar(scope)}</ListItemIcon>
-                                            <ListItemText primary={translate(getScopeDescription(scope))} />
+                                            <ListItemText primary={formatScope(translate(`scope.${scope}`), scope)} />
                                         </ListItem>
                                     </Tooltip>
                                 ))}
@@ -205,8 +205,8 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
                                     {response?.essential_claims.map((claim: string) => (
                                         <Tooltip title={translate("Claim", { name: claim })}>
                                             <FormControlLabel
-                                                control={<Checkbox id={"claim-" + claim} disabled checked />}
-                                                label={translate(getClaimDescription(claim))}
+                                                control={<Checkbox id={`claim-${claim}-essential`} disabled checked />}
+                                                label={formatClaim(translate(`claim.${claim}`), claim)}
                                             />
                                         </Tooltip>
                                     ))}
@@ -221,7 +221,7 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
                                                         onChange={handleClaimCheckboxOnChange}
                                                     />
                                                 }
-                                                label={translate(getClaimDescription(claim))}
+                                                label={formatClaim(translate(`claim.${claim}`), claim)}
                                             />
                                         </Tooltip>
                                     ))}
