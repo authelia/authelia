@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@react-email/components':
-        specifier: 0.0.29
-        version: 0.0.29(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: 0.0.30
+        version: 0.0.30(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@react-email/render':
         specifier: 1.0.3
         version: 1.0.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -892,8 +892,8 @@ packages:
     peerDependencies:
       react: ^18.0 || ^19.0 || ^19.0.0-rc
 
-  '@react-email/components@0.0.29':
-    resolution: {integrity: sha512-rfnzXkPcovd6+mt3nz+xmtHbwzgF8+yxco3RicwiVlcXPxayIBaq6uZAr1nHX1h2fKURrWsQEHgKaqiyHAdrrg==}
+  '@react-email/components@0.0.30':
+    resolution: {integrity: sha512-JkPcGE/r3WsHMVO4kjkaQzAyXiSPATg5TgzTImypjGHbwrdLaDMVEBZz1SuLV8GexqCnmzo1qmhVHtHq8E7UWg==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       react: ^18.0 || ^19.0 || ^19.0.0-rc
@@ -945,8 +945,8 @@ packages:
     peerDependencies:
       react: ^18.0 || ^19.0 || ^19.0.0-rc
 
-  '@react-email/markdown@0.0.13':
-    resolution: {integrity: sha512-eDWd1ZGgD50bDX5A+pS+Lz65BkPVdwfWgFtEMtJTgXWBSsKkouQ94tmBFECUxUERr+bKSt+uJC6G6p9yD7BK9A==}
+  '@react-email/markdown@0.0.14':
+    resolution: {integrity: sha512-5IsobCyPkb4XwnQO8uFfGcNOxnsg3311GRXhJ3uKv51P7Jxme4ycC/MITnwIZ10w2zx7HIyTiqVzTj4XbuIHbg==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       react: ^18.0 || ^19.0 || ^19.0.0-rc
@@ -1740,10 +1740,10 @@ packages:
     engines: {node: '>= 16'}
     hasBin: true
 
-  md-to-react-email@5.0.4:
-    resolution: {integrity: sha512-+XXP7QWNh2g2EGKeCSP8UIrOG45hX4mxUaxSyn1qSO+BFH2uTZ7LE5tt2TAdGAeIUuGuvzZ/o3cByulQ68OxJg==}
+  md-to-react-email@5.0.5:
+    resolution: {integrity: sha512-OvAXqwq57uOk+WZqFFNCMZz8yDp8BD3WazW1wAKHUrPbbdr89K9DWS6JXY09vd9xNdPNeurI8DU/X4flcfaD8A==}
     peerDependencies:
-      react: 18.x
+      react: ^18.0 || ^19.0
 
   merge2@1.4.1:
     resolution: {integrity: sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==}
@@ -2885,7 +2885,7 @@ snapshots:
     dependencies:
       react: 18.3.1
 
-  '@react-email/components@0.0.29(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@react-email/components@0.0.30(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@react-email/body': 0.0.11(react@18.3.1)
       '@react-email/button': 0.0.19(react@18.3.1)
@@ -2900,7 +2900,7 @@ snapshots:
       '@react-email/html': 0.0.11(react@18.3.1)
       '@react-email/img': 0.0.11(react@18.3.1)
       '@react-email/link': 0.0.12(react@18.3.1)
-      '@react-email/markdown': 0.0.13(react@18.3.1)
+      '@react-email/markdown': 0.0.14(react@18.3.1)
       '@react-email/preview': 0.0.12(react@18.3.1)
       '@react-email/render': 1.0.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@react-email/row': 0.0.12(react@18.3.1)
@@ -2943,9 +2943,9 @@ snapshots:
     dependencies:
       react: 18.3.1
 
-  '@react-email/markdown@0.0.13(react@18.3.1)':
+  '@react-email/markdown@0.0.14(react@18.3.1)':
     dependencies:
-      md-to-react-email: 5.0.4(react@18.3.1)
+      md-to-react-email: 5.0.5(react@18.3.1)
       react: 18.3.1
 
   '@react-email/preview@0.0.12(react@18.3.1)':
@@ -3771,7 +3771,7 @@ snapshots:
 
   marked@7.0.4: {}
 
-  md-to-react-email@5.0.4(react@18.3.1):
+  md-to-react-email@5.0.5(react@18.3.1):
     dependencies:
       marked: 7.0.4
       react: 18.3.1
