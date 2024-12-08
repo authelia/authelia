@@ -62,7 +62,8 @@ func (s *StateGetSuite) TestShouldReturnAuthenticationLevelFromSession() {
 	userSession, err := s.mock.Ctx.GetSession()
 	s.Assert().NoError(err)
 
-	userSession.AuthenticationLevel = authentication.OneFactor
+	userSession.Username = "john"
+	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
 	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
 	require.NoError(s.T(), err)
 
@@ -76,9 +77,10 @@ func (s *StateGetSuite) TestShouldReturnAuthenticationLevelFromSession() {
 	expectedBody := Response{
 		Status: "OK",
 		Data: StateResponse{
-			Username:              "",
+			Username:              "john",
 			DefaultRedirectionURL: "https://www.example.com",
 			AuthenticationLevel:   authentication.OneFactor,
+			FactorKnowledge:       true,
 		},
 	}
 	actualBody := Response{}

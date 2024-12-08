@@ -1,0 +1,13 @@
+ALTER TABLE webauthn_credentials
+    ADD COLUMN attestation BLOB NULL DEFAULT NULL;
+
+CREATE TABLE IF NOT EXISTS cached_data (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL,
+    name VARCHAR(20) NOT NULL,
+    encrypted BOOLEAN NOT NULL DEFAULT FALSE,
+    value BLOB NOT NULL
+);
+
+CREATE UNIQUE INDEX cached_data_name_key ON cached_data (name);

@@ -94,6 +94,54 @@ operations which would be much harder to do manually.
 
 	cmdAutheliaStorageExample = `authelia storage --help`
 
+	cmdAutheliaStorageCacheShort = "Manage storage cache"
+
+	cmdAutheliaStorageCacheLong = `Manage storage cache.
+
+This subcommand allows management of the storage cache.`
+
+	cmdAutheliaStorageCacheExample = `authelia storage cache --help`
+
+	cmdAutheliaStorageCacheMDS3Short = "Manage storage MDS3 cache"
+
+	cmdAutheliaStorageCacheMDS3Long = `Manage storage MDS3 cache.
+
+This subcommand allows management of the storage MDS3 cache.`
+
+	cmdAutheliaStorageCacheMDS3Example = `authelia storage cache mds3 --help`
+
+	cmdAutheliaStorageCacheMDS3DeleteShort = "Delete storage MDS3 cache"
+
+	cmdAutheliaStorageCacheMDS3DeleteLong = `Delete storage MDS3 cache.
+
+This subcommand allows deletion of the storage MDS3 cache.`
+
+	cmdAutheliaStorageCacheMDS3DeleteExample = `authelia storage cache mds3 delete`
+
+	cmdAutheliaStorageCacheMDS3UpdateShort = "Update storage MDS3 cache"
+
+	cmdAutheliaStorageCacheMDS3UpdateLong = `Update storage MDS3 cache.
+
+This subcommand allows updating of the storage MDS3 cache.`
+
+	cmdAutheliaStorageCacheMDS3UpdateExample = `authelia storage cache mds3 update`
+
+	cmdAutheliaStorageCacheMDS3DumpShort = "Dump storage MDS3 cache"
+
+	cmdAutheliaStorageCacheMDS3DumpLong = `Dump storage MDS3 cache.
+
+This subcommand allows dumping of the storage MDS3 cache to a file.`
+
+	cmdAutheliaStorageCacheMDS3DumpExample = `authelia storage cache mds3 dump`
+
+	cmdAutheliaStorageCacheMDS3StatusShort = "View storage MDS3 cache status"
+
+	cmdAutheliaStorageCacheMDS3StatusLong = `View storage MDS3 cache status.
+
+This subcommand allows management of the storage MDS3 cache.`
+
+	cmdAutheliaStorageCacheMDS3StatusExample = `authelia storage cache mds3 status`
+
 	cmdAutheliaStorageEncryptionShort = "Manage storage encryption"
 
 	cmdAutheliaStorageEncryptionLong = `Manage storage encryption.
@@ -227,6 +275,14 @@ authelia storage user webauthn list --config config.yml
 authelia storage user webauthn list john --config config.yml
 authelia storage user webauthn list --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
 authelia storage user webauthn list john --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+
+	cmdAutheliaStorageUserWebAuthnVerifyShort = "Verify WebAuthn credentials"
+
+	cmdAutheliaStorageUserWebAuthnVerifyLong = `Verify WebAuthn credentials.
+
+This subcommand allows verifying registered WebAuthn credentials.`
+
+	cmdAutheliaStorageUserWebAuthnVerifyExample = `authelia storage user webauthn verify`
 
 	cmdAutheliaStorageUserWebAuthnDeleteShort = "Delete a WebAuthn credential"
 
@@ -848,10 +904,16 @@ const (
 	logFieldProvider            = "provider"
 	logMessageStartupCheckError = "Error occurred running a startup check"
 
-	providerNameNTP          = "ntp"
-	providerNameStorage      = "storage"
-	providerNameUser         = "user"
-	providerNameNotification = "notification"
+	providerNameNTP              = "ntp"
+	providerNameStorage          = "storage"
+	providerNameUser             = "user"
+	providerNameNotification     = "notification"
+	providerNameWebAuthnMetaData = "webauthn-metadata"
+)
+
+const (
+	wordYes = "Yes"
+	wordNo  = "No"
 )
 
 const (
