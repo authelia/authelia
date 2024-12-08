@@ -107,8 +107,6 @@ services:
     networks:
       net:
         aliases: []
-    expose:
-      - {{< sitevar name="port" nojs="9091" >}}
     secrets: ['JWT_SECRET', 'SESSION_SECRET', 'STORAGE_PASSWORD', 'STORAGE_ENCRYPTION_KEY']
     environment:
       AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE: '/run/secrets/JWT_SECRET'
@@ -139,8 +137,6 @@ services:
     networks:
       net:
         aliases: []
-    expose:
-      - {{< sitevar name="port" nojs="9091" >}}
     environment:
       AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE: '/secrets/JWT_SECRET'
       AUTHELIA_SESSION_SECRET_FILE: '/secrets/SESSION_SECRET'
@@ -231,8 +227,6 @@ services:
     networks:
       net:
         aliases: []
-    expose:
-      - {{< sitevar name="port" nojs="9091" >}}
     ports:
       - '127.0.0.1:{{< sitevar name="port" nojs="9091" >}}:{{< sitevar name="port" nojs="9091" >}}'
 ...

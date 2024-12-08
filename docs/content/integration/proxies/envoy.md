@@ -145,8 +145,6 @@ services:
     restart: 'unless-stopped'
     networks:
       net: {}
-    expose:
-      - {{< sitevar name="port" nojs="9091" >}}
     volumes:
       - '${PWD}/data/authelia/config:/config'
     environment:
@@ -157,8 +155,6 @@ services:
     restart: 'unless-stopped'
     networks:
       net: {}
-    expose:
-      - 443
     volumes:
       - '${PWD}/data/nextcloud/config:/config'
       - '${PWD}/data/nextcloud/data:/data'
