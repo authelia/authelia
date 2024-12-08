@@ -134,8 +134,6 @@ services:
     networks:
       net:
         aliases: []
-    expose:
-      - {{< sitevar name="port" nojs="9091" >}}
     volumes:
       - '${PWD}/data/authelia/config:/config'
     environment:
@@ -147,8 +145,6 @@ services:
     networks:
       net:
         aliases: []
-    expose:
-      - 80
     volumes:
       - '${PWD}/data/organizr/config:/config'
     environment:
@@ -162,8 +158,6 @@ services:
     networks:
       net:
         aliases: []
-    expose:
-      - 80
     environment:
       TZ: 'Australia/Melbourne'
 ...

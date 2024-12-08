@@ -160,10 +160,10 @@ services:
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
     networks:
-      - 'net'
+      net: {}
     labels:
-      - 'traefik.frontend.rule=Host:traefik.{{< sitevar name="domain" nojs="example.com" >}}'
-      - 'traefik.port=8081'
+      traefik.frontend.rule: 'Host:traefik.{{< sitevar name="domain" nojs="example.com" >}}'
+      traefik.port: '8081'
     ports:
       - '80:80'
       - '443:443'
@@ -189,11 +189,9 @@ services:
     volumes:
       - '/path/to/authelia:/config'
     networks:
-      - 'net'
+      net: {}
     labels:
-      - 'traefik.frontend.rule=Host:{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
-    expose:
-      - {{< sitevar name="port" nojs="9091" >}}
+      traefik.frontend.rule: 'Host:{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
     restart: 'unless-stopped'
     environment:
       TZ: 'Australia/Melbourne'
@@ -204,17 +202,15 @@ services:
       - '/path/to/nextcloud/config:/config'
       - '/path/to/nextcloud/data:/data'
     networks:
-      - 'net'
+      net: {}
     labels:
-      - 'traefik.frontend.rule=Host:nextcloud.{{< sitevar name="domain" nojs="example.com" >}}'
-      - 'traefik.frontend.auth.forward.address={{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth'
+      traefik.frontend.rule: 'Host:nextcloud.{{< sitevar name="domain" nojs="example.com" >}}'
+      traefik.frontend.auth.forward.address: '{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth'
       ## The following commented line is for configuring the Authelia URL in the proxy. We strongly suggest this is
       ## configured in the Session Cookies section of the Authelia configuration.
-      # - 'traefik.frontend.auth.forward.address={{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth?authelia_url=https%3A%2F%2F{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}%2F'
-      - 'traefik.frontend.auth.forward.trustForwardHeader=true'
-      - 'traefik.frontend.auth.forward.authResponseHeaders=Remote-User,Remote-Groups,Remote-Email,Remote-Name'
-    expose:
-      - 443
+      # traefik.frontend.auth.forward.address: '{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth?authelia_url=https%3A%2F%2F{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}%2F'
+      traefik.frontend.auth.forward.trustForwardHeader: 'true'
+      traefik.frontend.auth.forward.authResponseHeaders: 'Remote-User,Remote-Groups,Remote-Email,Remote-Name'
     restart: 'unless-stopped'
     environment:
       PUID: '1000'
@@ -226,14 +222,12 @@ services:
     volumes:
       - '/path/to/heimdall/config:/config'
     networks:
-      - 'net'
+      net: {}
     labels:
-      - 'traefik.frontend.rule=Host:heimdall.{{< sitevar name="domain" nojs="example.com" >}}'
-      - 'traefik.frontend.auth.forward.address={{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth/basic'
-      - 'traefik.frontend.auth.forward.trustForwardHeader=true'
-      - 'traefik.frontend.auth.forward.authResponseHeaders=Remote-User,Remote-Groups,Remote-Email,Remote-Name'
-    expose:
-      - 443
+      traefik.frontend.rule: 'Host:heimdall.{{< sitevar name="domain" nojs="example.com" >}}'
+      traefik.frontend.auth.forward.address: '{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth/basic'
+      traefik.frontend.auth.forward.trustForwardHeader: 'true'
+      traefik.frontend.auth.forward.authResponseHeaders: 'Remote-User,Remote-Groups,Remote-Email,Remote-Name'
     restart: 'unless-stopped'
     environment:
       PUID: '1000'
