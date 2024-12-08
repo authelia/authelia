@@ -83,6 +83,10 @@ const (
 	errSuffixMustBeOneOf = "must be one of %s but it's configured as '%s'"
 )
 
+const (
+	errFmtDefinitionsUserAttributesReservedOrDefined = "definitions: user_attributes: %s: attribute name '%s' is either reserved or already defined in the authentication backend"
+)
+
 // Authentication Backend Error constants.
 const (
 	errFmtAuthBackendNotConfigured = "authentication_backend: you must ensure either the 'file' or 'ldap' " +
@@ -94,8 +98,11 @@ const (
 	errFmtAuthBackendPasswordResetCustomURLScheme = "authentication_backend: password_reset: option 'custom_url' is" +
 		" configured to '%s' which has the scheme '%s' but the scheme must be either 'http' or 'https'"
 
-	errFmtFileAuthBackendPathNotConfigured  = "authentication_backend: file: option 'path' is required"
-	errFmtFileAuthBackendPasswordUnknownAlg = "authentication_backend: file: password: option 'algorithm' " +
+	errFmtFileAuthBackendPathNotConfigured              = "authentication_backend: file: option 'path' is required"
+	errFmtFileAuthBackendExtraAttributeValueTypeMissing = "authentication_backend: file: extra_attributes: %s: option 'value_type' is required"
+	errFmtFileAuthBackendExtraAttributeValueType        = "authentication_backend: file: extra_attributes: %s: option 'value_type' must be one of 'string', 'integer', or 'boolean' but it's configured as '%s'"
+	errFmtFileAuthBackendExtraAttributeReserved         = "authentication_backend: file: extra_attributes: %s: attribute name '%s' is reserved"
+	errFmtFileAuthBackendPasswordUnknownAlg             = "authentication_backend: file: password: option 'algorithm' " +
 		errSuffixMustBeOneOf
 	errFmtFileAuthBackendPassword               = "authentication_backend: file: password: %s: "
 	errFmtFileAuthBackendPasswordInvalidVariant = errFmtFileAuthBackendPassword +
@@ -110,10 +117,13 @@ const (
 	errFmtLDAPAuthBackendUnauthenticatedBindWithPassword     = "authentication_backend: ldap: option 'permit_unauthenticated_bind' can't be enabled when a password is specified"
 	errFmtLDAPAuthBackendUnauthenticatedBindWithResetEnabled = "authentication_backend: ldap: option 'permit_unauthenticated_bind' can't be enabled when password reset is enabled"
 
-	errFmtLDAPAuthBackendMissingOption     = "authentication_backend: ldap: option '%s' is required"
-	errFmtLDAPAuthBackendTLSConfigInvalid  = "authentication_backend: ldap: tls: %w"
-	errFmtLDAPAuthBackendOption            = "authentication_backend: ldap: option '%s' "
-	errFmtLDAPAuthBackendOptionMustBeOneOf = errFmtLDAPAuthBackendOption +
+	errFmtLDAPAuthBackendMissingOption                  = "authentication_backend: ldap: option '%s' is required"
+	errFmtLDAPAuthBackendExtraAttributeValueTypeMissing = "authentication_backend: ldap: attributes: extra: %s: option 'value_type' is required"
+	errFmtLDAPAuthBackendExtraAttributeValueType        = "authentication_backend: ldap: attributes: extra: %s: option 'value_type' must be one of 'string', 'integer', or 'boolean' but it's configured as '%s'"
+	errFmtLDAPAuthBackendExtraAttributeReserved         = "authentication_backend: ldap: attributes: extra: %s: attribute name '%s' is reserved"
+	errFmtLDAPAuthBackendTLSConfigInvalid               = "authentication_backend: ldap: tls: %w"
+	errFmtLDAPAuthBackendOption                         = "authentication_backend: ldap: option '%s' "
+	errFmtLDAPAuthBackendOptionMustBeOneOf              = errFmtLDAPAuthBackendOption +
 		errSuffixMustBeOneOf
 	errFmtLDAPAuthBackendFilterReplacedPlaceholders = errFmtLDAPAuthBackendOption +
 		"has an invalid placeholder: '%s' has been removed, please use '%s' instead"
@@ -195,12 +205,11 @@ const (
 	errFmtOIDCCORSInvalidOriginWildcardWithClients = "identity_providers: oidc: cors: option 'allowed_origins' contains the wildcard origin '*' cannot be specified with option 'allowed_origins_from_client_redirect_uris' enabled"
 	errFmtOIDCCORSInvalidEndpoint                  = "identity_providers: oidc: cors: option 'endpoints' contains an invalid value '%s': must be one of %s"
 
-	errFmtOIDCPolicyInvalidName         = "identity_providers: oidc: authorization_policies: authorization policies must have a name but one with a blank name exists"
-	errFmtOIDCPolicyInvalidNameStandard = "identity_providers: oidc: authorization_policies: policy '%s': option '%s' must not be one of %s but it's configured as '%s'"
-	errFmtOIDCPolicyMissingOption       = "identity_providers: oidc: authorization_policies: policy '%s': option '%s' is required"
-	errFmtOIDCPolicyRuleMissingOption   = "identity_providers: oidc: authorization_policies: policy '%s': rules: rule #%d: option '%s' is required"
-	errFmtOIDCPolicyRuleSubjectInvalid  = "identity_providers: oidc: authorization_policies: policy '%s': rules: rule #%d: 'subject' option '%s' is " +
-		"invalid: must start with 'user:' or 'group:'"
+	errFmtOIDCPolicyInvalidName          = "identity_providers: oidc: authorization_policies: authorization policies must have a name but one with a blank name exists"
+	errFmtOIDCPolicyInvalidNameStandard  = "identity_providers: oidc: authorization_policies: policy '%s': option '%s' must not be one of %s but it's configured as '%s'"
+	errFmtOIDCPolicyMissingOption        = "identity_providers: oidc: authorization_policies: policy '%s': option '%s' is required"
+	errFmtOIDCPolicyRuleMissingOption    = "identity_providers: oidc: authorization_policies: policy '%s': rules: rule #%d: option 'subject' or 'networks' is required"
+	errFmtOIDCPolicyRuleInvalidSubject   = "identity_providers: oidc: authorization_policies: policy '%s': rules: rule #%d: option 'subject' with value '%s' is invalid: must start with 'user:' or 'group:'"
 	errFmtOIDCPolicyInvalidDefaultPolicy = "identity_providers: oidc: authorization_policies: policy '%s': option 'default_policy' must be one of %s but it's configured as '%s'"
 	errFmtOIDCPolicyRuleInvalidPolicy    = "identity_providers: oidc: authorization_policies: policy '%s': rules: rule #%d: option 'policy' must be one of %s but it's configured as '%s'"
 
@@ -333,7 +342,9 @@ const (
 	errFmtAccessControlRuleNetworksInvalid = "access_control: rule %s: the network '%s' is not a " +
 		"valid Group Name, IP, or CIDR notation"
 	errFmtAccessControlRuleSubjectInvalid = "access_control: rule %s: 'subject' option '%s' is " +
-		"invalid: must start with 'user:' or 'group:'"
+		"invalid: must start with 'user:', 'group:', or 'oauth2:client:'"
+	errFmtAccessControlRuleOAuth2ClientSubjectInvalid = "access_control: rule %s: option 'subject' with value '%s' is " +
+		"invalid: the client id '%s' does not belong to a registered client"
 	errFmtAccessControlRuleInvalidEntries              = "access_control: rule %s: option '%s' must only have the values %s but the values %s are present"
 	errFmtAccessControlRuleInvalidDuplicates           = "access_control: rule %s: option '%s' must have unique values but the values %s are duplicated"
 	errFmtAccessControlRuleQueryInvalid                = "access_control: rule %s: query: option 'operator' must be one of %s but it's configured as '%s'"
