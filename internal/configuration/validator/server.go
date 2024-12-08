@@ -204,6 +204,11 @@ func validateServerEndpointsAuthzStrategies(name, implementation string, strateg
 		return
 	}
 
+	if implementation == schema.AuthzEndpointNameLegacy {
+		// TODO: Setup Error.
+		validator.Push(fmt.Errorf("TODO: ERROR MUST ONLY USE BASIC LIFESPAN WITH BASIC"))
+	}
+
 	names := make([]string, 0, len(strategies))
 
 	for i, strategy := range strategies {
@@ -212,6 +217,11 @@ func validateServerEndpointsAuthzStrategies(name, implementation string, strateg
 		}
 
 		names = append(names, strategy.Name)
+
+		if strategy.SchemeBasicCacheLifespan > 0 && !utils.IsStringInSlice(schema.SchemeBearer, strategy.Schemes) {
+			// TODO: Setup Error.
+			validator.Push(fmt.Errorf("TODO: ERROR MUST ONLY USE BASIC LIFESPAN WITH BASIC"))
+		}
 
 		switch {
 		case strategy.Name == "":

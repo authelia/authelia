@@ -33,6 +33,7 @@ server:
           - name: 'HeaderAuthorization'
             schemes:
               - 'Basic'
+            schema_basic_cache_lifespan: 0
           - name: 'CookieSession'
       ext-authz:
         implementation: 'ExtAuthz'
@@ -40,19 +41,18 @@ server:
           - name: 'HeaderAuthorization'
             schemes:
               - 'Basic'
+            schema_basic_cache_lifespan: 0
           - name: 'CookieSession'
       auth-request:
         implementation: 'AuthRequest'
         authn_strategies:
-          - name: 'HeaderAuthRequestProxyAuthorization'
+          - name: 'HeaderAuthRequestAuthorization'
             schemes:
               - 'Basic'
+            schema_basic_cache_lifespan: 0
           - name: 'CookieSession'
       legacy:
         implementation: 'Legacy'
-        authn_strategies:
-          - name: 'HeaderLegacy'
-          - name: 'CookieSession'
 ```
 
 ## name
@@ -99,3 +99,11 @@ the [reference guide](../../reference/guides/proxy-authorization.md#authn-strate
 The list of schemes allowed on this endpoint. Options are `Basic`, and `Bearer`. This option is only applicable to the
 `HeaderAuthorization`, `HeaderProxyAuthorization`, and `HeaderAuthRequestProxyAuthorization` strategies and unavailable
 with the `legacy` endpoint which only uses `Basic`.
+
+#### schema_basic_cache_lifespan
+
+{{< confkey type="string,integer" syntax="duration" default="0 seconds" required="no" >}}
+
+The lifespan to cache username and password combinations when using the `Basic` scheme. This option enables the use
+of the caching which is completely disabled by default. This option must only be used when the `Basic` scheme is
+configured, and like all new options may not be used with the `Legacy` implementation.

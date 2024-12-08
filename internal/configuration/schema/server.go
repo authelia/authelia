@@ -36,8 +36,9 @@ type ServerEndpointsAuthz struct {
 
 // ServerEndpointsAuthzAuthnStrategy is the Authz endpoints configuration for the HTTP server.
 type ServerEndpointsAuthzAuthnStrategy struct {
-	Name    string   `koanf:"name" json:"name" jsonschema:"enum=HeaderAuthorization,enum=HeaderProxyAuthorization,enum=HeaderAuthRequestProxyAuthorization,enum=HeaderLegacy,enum=CookieSession,title=Name" jsonschema_description:"The name of the Authorization strategy to use."`
-	Schemes []string `koanf:"schemes" json:"schemes" jsonschema:"enum=basic,enum=bearer,default=basic,title=Authorization Schemes" jsonschema_description:"The name of the authorization schemes to allow with the header strategies."`
+	Name                     string        `koanf:"name" json:"name" jsonschema:"enum=HeaderAuthorization,enum=HeaderProxyAuthorization,enum=HeaderAuthRequestProxyAuthorization,enum=HeaderLegacy,enum=CookieSession,title=Name" jsonschema_description:"The name of the Authorization strategy to use."`
+	Schemes                  []string      `koanf:"schemes" json:"schemes" jsonschema:"enum=basic,enum=bearer,default=basic,title=Authorization Schemes" jsonschema_description:"The name of the authorization schemes to allow with the header strategies."`
+	SchemeBasicCacheLifespan time.Duration `koanf:"scheme_basic_cache_lifespan" json:"scheme_basic_cache_lifespan" jsonschema:"default=0,title=Scheme Basic Cache Lifespan" jsonschema_description:"The lifespan for cached basic scheme authorization attempts."`
 }
 
 // ServerTLS represents the configuration of the http servers TLS options.
