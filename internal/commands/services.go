@@ -359,6 +359,10 @@ func servicesRun(ctx *CmdCtx) {
 
 	var err error
 
+	if err = ctx.providers.UserProvider.Shutdown(); err != nil {
+		ctx.log.WithError(err).Error("Error occurred closing authentication connections")
+	}
+
 	if err = ctx.providers.StorageProvider.Close(); err != nil {
 		ctx.log.WithError(err).Error("Error occurred closing database connections")
 	}

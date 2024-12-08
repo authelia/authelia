@@ -50,6 +50,11 @@ authentication_backend:
         -----BEGIN RSA PRIVATE KEY-----
         ...
         -----END RSA PRIVATE KEY-----
+    pooling:
+      enable: false
+      count: 5
+      retries: 2
+      timeout: '10 seconds'
     base_dn: '{{< sitevar name="domain" format="dn" nojs="DC=example,DC=com" >}}'
     additional_users_dn: 'OU=users'
     users_filter: '(&({username_attribute}={input})(objectClass=person))'
@@ -126,6 +131,35 @@ URL's are slightly more secure.
 {{< confkey type="structure" structure="tls" required="no" >}}
 
 Controls the TLS connection validation parameters for either StartTLS or the TLS socket.
+
+### pooling
+
+The connection pooling configuration.
+
+#### enable
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Enables the connection pooling functionality.
+
+#### count
+
+{{< confkey type="integer" default="5" required="no" >}}
+
+The number of open connections to be available in the pool at any given time.
+
+#### retries
+
+{{< confkey type="integer" default="2" required="no" >}}
+
+The number of attempts to obtain a free connecting that are made within the timeout period. This effectively splits the
+timeout into chunks.
+
+#### timeout
+
+{{< confkey type="string,integer" syntax="duration" default="5 seconds" required="no" >}}
+
+The amount of time that we wait for a connection to become free in the pool before giving up and failing with an error.
 
 ### base_dn
 
