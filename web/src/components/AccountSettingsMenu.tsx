@@ -5,7 +5,7 @@ import { Avatar, Box, Divider, IconButton, ListItemIcon, Menu, MenuItem, Tooltip
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
-import { LogoutRoute, SettingsRoute } from "@constants/Routes";
+import { AdminRoute, LogoutRoute, SettingsRoute } from "@constants/Routes";
 import { UserInfo } from "@models/UserInfo";
 
 export interface Props {
@@ -18,6 +18,11 @@ const AccountSettingsMenu = function (props: Props) {
     const [elementAccountSettings, setElementAccountSettings] = useState<null | HTMLElement>(null);
 
     const navigate = useNavigate();
+    const handleAdminClick = () => {
+        handleAccountSettingsClose();
+
+        navigate({ pathname: AdminRoute });
+    };
 
     const handleSettingsClick = () => {
         handleAccountSettingsClose();
@@ -97,6 +102,13 @@ const AccountSettingsMenu = function (props: Props) {
                 transformOrigin={{ horizontal: "right", vertical: "top" }}
                 anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
             >
+                <MenuItem onClick={handleAdminClick} id={"admin-settings"}>
+                    <ListItemIcon>
+                        <Settings fontSize="small" />
+                    </ListItemIcon>
+                    Admin UI
+                </MenuItem>
+                <Divider />
                 <MenuItem onClick={handleSettingsClick} id={"account-menu-settings"}>
                     <ListItemIcon>
                         <Settings fontSize="small" />
