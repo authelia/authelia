@@ -9,7 +9,8 @@ import (
 type UserProvider interface {
 	model.StartupCheck
 
-	CheckUserPassword(username string, password string) (valid bool, err error)
+	CheckUserPassword(username, password string) (valid bool, err error)
 	GetDetails(username string) (details *UserDetails, err error)
-	UpdatePassword(username string, newPassword string) (err error)
+	GetDetailsExtended(username string) (details *UserDetailsExtended, err error)
+	UpdatePassword(username, newPassword string) (err error)
 }

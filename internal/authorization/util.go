@@ -1,7 +1,6 @@
 package authorization
 
 import (
-	"net"
 	"regexp"
 	"strings"
 
@@ -119,74 +118,6 @@ func schemaMethodsToACL(methodRules []string) (methods []string) {
 	}
 
 	return methods
-}
-
-func schemaNetworksToACL(networkRules []string, networksMap map[string][]*net.IPNet, networksCacheMap map[string]*net.IPNet) (networks []*net.IPNet) {
-	for _, network := range networkRules {
-		if _, ok := networksMap[network]; !ok {
-			if _, ok := networksCacheMap[network]; ok {
-				networks = append(networks, networksCacheMap[network])
-			} else {
-				cidr, err := parseNetwork(network)
-				if err == nil {
-					networks = append(networks, cidr)
-					networksCacheMap[cidr.String()] = cidr
-
-					if cidr.String() != network {
-						networksCacheMap[network] = cidr
-					}
-				}
-			}
-		} else {
-			networks = append(networks, networksMap[network]...)
-		}
-	}
-
-	return networks
-}
-
-func parseSchemaNetworks(schemaNetworks []schema.AccessControlNetwork) (networksMap map[string][]*net.IPNet, networksCacheMap map[string]*net.IPNet) {
-	// These maps store pointers to the net.IPNet values so we can reuse them efficiently.
-	// The networksMap contains the named networks as keys, the networksCacheMap contains the CIDR notations as keys.
-	networksMap = map[string][]*net.IPNet{}
-	networksCacheMap = map[string]*net.IPNet{}
-
-	for _, aclNetwork := range schemaNetworks {
-		var networks []*net.IPNet
-
-		for _, networkRule := range aclNetwork.Networks {
-			cidr, err := parseNetwork(networkRule)
-			if err == nil {
-				networks = append(networks, cidr)
-				networksCacheMap[cidr.String()] = cidr
-
-				if cidr.String() != networkRule {
-					networksCacheMap[networkRule] = cidr
-				}
-			}
-		}
-
-		if _, ok := networksMap[aclNetwork.Name]; len(networks) != 0 && !ok {
-			networksMap[aclNetwork.Name] = networks
-		}
-	}
-
-	return networksMap, networksCacheMap
-}
-
-func parseNetwork(networkRule string) (cidr *net.IPNet, err error) {
-	if !strings.Contains(networkRule, "/") {
-		ip := net.ParseIP(networkRule)
-		if ip.To4() != nil {
-			_, cidr, err = net.ParseCIDR(networkRule + "/32")
-		} else {
-			_, cidr, err = net.ParseCIDR(networkRule + "/128")
-		}
-	} else {
-		_, cidr, err = net.ParseCIDR(networkRule)
-	}
-
-	return cidr, err
 }
 
 func schemaSubjectsToACL(subjectRules [][]string) (subjects []AccessControlSubjects) {
