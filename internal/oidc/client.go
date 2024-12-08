@@ -2,6 +2,7 @@ package oidc
 
 import (
 	"context"
+	"net/url"
 	"time"
 
 	oauthelia2 "authelia.com/provider/oauth2"
@@ -15,7 +16,7 @@ import (
 )
 
 // NewClient creates a new Client.
-func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.IdentityProvidersOpenIDConnect) (client Client) {
+func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.IdentityProvidersOpenIDConnect, policies map[string]ClientAuthorizationPolicy) (client Client) {
 	registered := &RegisteredClient{
 		ID:                  config.ID,
 		Name:                config.Name,
@@ -31,6 +32,8 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		ResponseTypes: config.ResponseTypes,
 		ResponseModes: []oauthelia2.ResponseModeType{},
 
+		ClaimsStrategy: NewCustomClaimsStrategy(config, c.Scopes, c.ClaimsPolicies),
+
 		RequirePKCE:                config.RequirePKCE || config.PKCEChallengeMethod != "",
 		RequirePKCEChallengeMethod: config.PKCEChallengeMethod != "",
 		PKCEChallengeMethod:        config.PKCEChallengeMethod,
@@ -39,7 +42,6 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 		ClientCredentialsFlowAllowImplicitScope: false,
 		AllowMultipleAuthenticationMethods:      config.AllowMultipleAuthenticationMethods,
 
-		AuthorizationPolicy:   NewClientAuthorizationPolicy(config.AuthorizationPolicy, c),
 		ConsentPolicy:         NewClientConsentPolicy(config.ConsentMode, config.ConsentPreConfiguredDuration),
 		RequestedAudienceMode: NewClientRequestedAudienceMode(config.RequestedAudienceMode),
 
@@ -59,6 +61,14 @@ func NewClient(config schema.IdentityProvidersOpenIDConnectClient, c *schema.Ide
 
 		JSONWebKeysURI: config.JSONWebKeysURI,
 		JSONWebKeys:    NewPublicJSONWebKeySetFromSchemaJWK(config.JSONWebKeys),
+	}
+
+	if policies == nil {
+		registered.AuthorizationPolicy = ClientAuthorizationPolicy{DefaultPolicy: authorization.TwoFactor}
+	} else if policy, ok := policies[config.AuthorizationPolicy]; ok {
+		registered.AuthorizationPolicy = policy
+	} else {
+		registered.AuthorizationPolicy = ClientAuthorizationPolicy{DefaultPolicy: authorization.TwoFactor}
 	}
 
 	if len(config.Lifespan) != 0 {
@@ -134,6 +144,10 @@ func (c *RegisteredClient) GetResponseTypes() (types oauthelia2.Arguments) {
 	}
 
 	return c.ResponseTypes
+}
+
+func (c *RegisteredClient) GetClaimsStrategy() (strategy ClaimsStrategy) {
+	return c.ClaimsStrategy
 }
 
 // GetScopes returns the Scopes.
@@ -454,6 +468,18 @@ func (c *RegisteredClient) GetConsentResponseBody(consent *model.OAuth2ConsentSe
 	if consent != nil {
 		body.Scopes = consent.RequestedScopes
 		body.Audience = consent.RequestedAudience
+
+		var (
+			form   url.Values
+			claims *ClaimsRequests
+			err    error
+		)
+
+		if form, err = consent.GetForm(); err == nil {
+			if claims, err = NewClaimRequests(form); err == nil {
+				body.Claims, body.EssentialClaims = claims.ToSlices()
+			}
+		}
 	}
 
 	return body
