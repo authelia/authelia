@@ -10,15 +10,27 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+func (p *LDAPUserProvider) Shutdown() (err error) {
+	return p.factory.Close()
+}
+
 // StartupCheck implements the startup check provider interface.
 func (p *LDAPUserProvider) StartupCheck() (err error) {
-	var client LDAPClient
-
-	if client, err = p.connect(); err != nil {
+	if err = p.factory.Initialize(); err != nil {
 		return err
 	}
 
-	defer client.Close()
+	var client ldap.Client
+
+	if client, err = p.factory.GetClient(); err != nil {
+		return err
+	}
+
+	defer func() {
+		if err := p.factory.ReleaseClient(client); err != nil {
+			p.log.WithError(err).Warn("Error occurred releasing the LDAP client")
+		}
+	}()
 
 	if p.features, err = p.getServerSupportedFeatures(client); err != nil {
 		return err
@@ -40,7 +52,7 @@ func (p *LDAPUserProvider) StartupCheck() (err error) {
 	return nil
 }
 
-func (p *LDAPUserProvider) getServerSupportedFeatures(client LDAPClient) (features LDAPSupportedFeatures, err error) {
+func (p *LDAPUserProvider) getServerSupportedFeatures(client ldap.Client) (features LDAPSupportedFeatures, err error) {
 	var (
 		request *ldap.SearchRequest
 		result  *ldap.SearchResult
