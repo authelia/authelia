@@ -47,6 +47,8 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 
 	ValidateAuthenticationBackend(&config.AuthenticationBackend, validator)
 
+	ValidateDefinitions(config, validator)
+
 	ValidateAccessControl(config, validator)
 
 	ValidateRules(config, validator)
