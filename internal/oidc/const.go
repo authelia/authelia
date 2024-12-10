@@ -173,6 +173,7 @@ const (
 	FormParameterScope        = valueScope
 	FormParameterIssuer       = valueIss
 	FormParameterPrompt       = "prompt"
+	FormParameterMaximumAge   = "max_age"
 )
 
 const (
@@ -212,7 +213,10 @@ const (
 
 // Paths.
 const (
-	EndpointPathConsent                           = "/consent"
+	EndpointPathConsent         = "/consent/openid"
+	EndpointPathConsentDecision = EndpointPathConsent + "/decision"
+	EndpointPathConsentLogin    = EndpointPathConsent + "/login"
+
 	EndpointPathWellKnownOpenIDConfiguration      = "/.well-known/openid-configuration"
 	EndpointPathWellKnownOAuthAuthorizationServer = "/.well-known/oauth-authorization-server"
 	EndpointPathJWKs                              = "/jwks.json"
