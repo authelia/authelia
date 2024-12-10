@@ -13,7 +13,6 @@ import (
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
-	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -34,7 +33,7 @@ func (s *HandlerSignTOTPSuite) SetupTest() {
 	s.Assert().NoError(err)
 
 	userSession.Username = testUsername
-	userSession.AuthenticationLevel = authentication.OneFactor
+	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
 	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
 
 	s.mock.Clock.Set(time.Unix(1701295903, 0))
@@ -516,7 +515,6 @@ func (s *HandlerSignTOTPSuite) TestShouldHandleAnonymous() {
 	s.Require().NoError(err)
 
 	us.Username = ""
-	us.AuthenticationLevel = authentication.NotAuthenticated
 
 	s.Require().NoError(s.mock.Ctx.SaveSession(us))
 
@@ -538,7 +536,6 @@ func (s *HandlerSignTOTPSuite) TestShouldHandleGETAnonymous() {
 	s.Require().NoError(err)
 
 	us.Username = ""
-	us.AuthenticationLevel = authentication.NotAuthenticated
 
 	s.Require().NoError(s.mock.Ctx.SaveSession(us))
 
@@ -781,7 +778,7 @@ func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidConfig() {
 		res[0][1],
 		string(s.mock.Ctx.Request.Header.Cookie("authelia_session")))
 
-	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Error occurred validating a TOTP authentication for user 'john': error occurred retreiving the configuration from the storage backend", "not found")
+	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Error occurred validating a TOTP authentication for user 'john': error occurred retrieving the configuration from the storage backend", "not found")
 }
 
 func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidTokenLength() {

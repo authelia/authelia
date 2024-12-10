@@ -16,12 +16,12 @@ func NewCaddySuite() *CaddySuite {
 	}
 }
 
-func (s *CaddySuite) Test1FAScenario() {
-	suite.Run(s.T(), New1FAScenario())
+func (s *CaddySuite) TestOneFactorScenario() {
+	suite.Run(s.T(), NewOneFactorScenario())
 }
 
-func (s *CaddySuite) Test2FATOTPScenario() {
-	suite.Run(s.T(), New2FATOTPScenario())
+func (s *CaddySuite) TestTwoFactorTOTPScenario() {
+	suite.Run(s.T(), NewTwoFactorTOTPScenario())
 }
 
 func (s *CaddySuite) TestCustomHeaders() {

@@ -16,12 +16,12 @@ func NewHAProxySuite() *HAProxySuite {
 	}
 }
 
-func (s *HAProxySuite) Test1FAScenario() {
-	suite.Run(s.T(), New1FAScenario())
+func (s *HAProxySuite) TestOneFactorScenario() {
+	suite.Run(s.T(), NewOneFactorScenario())
 }
 
-func (s *HAProxySuite) Test2FATOTPScenario() {
-	suite.Run(s.T(), New2FATOTPScenario())
+func (s *HAProxySuite) TestTwoFactorTOTPScenario() {
+	suite.Run(s.T(), NewTwoFactorTOTPScenario())
 }
 
 func (s *HAProxySuite) TestCustomHeaders() {

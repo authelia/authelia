@@ -6,6 +6,7 @@ import (
 
 const (
 	tableAuthenticationLogs   = "authentication_logs"
+	tableCachedData           = "cached_data"
 	tableDuoDevices           = "duo_devices"
 	tableIdentityVerification = "identity_verification"
 	tableOneTimeCode          = "one_time_code"

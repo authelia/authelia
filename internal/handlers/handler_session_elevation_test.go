@@ -15,7 +15,6 @@ import (
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
-	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/random"
@@ -39,7 +38,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -51,7 +50,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 					HasDuo:      true,
 				}, nil)
 			},
-			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"elevated":false,"expires":0}}`,
+			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":true,"elevated":false,"expires":0}}`,
 			fasthttp.StatusOK,
 			nil,
 		},
@@ -65,7 +64,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -77,7 +76,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 					HasDuo:      true,
 				}, nil)
 			},
-			`{"status":"OK","data":{"require_second_factor":true,"skip_second_factor":false,"can_skip_second_factor":false,"elevated":false,"expires":0}}`,
+			`{"status":"OK","data":{"require_second_factor":true,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":true,"elevated":false,"expires":0}}`,
 			fasthttp.StatusOK,
 			nil,
 		},
@@ -91,7 +90,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -103,7 +102,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 					HasDuo:      false,
 				}, nil)
 			},
-			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"elevated":false,"expires":0}}`,
+			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":true,"elevated":false,"expires":0}}`,
 			fasthttp.StatusOK,
 			nil,
 		},
@@ -117,7 +116,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -129,7 +128,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 					HasDuo:      true,
 				}, nil)
 			},
-			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":true,"elevated":false,"expires":0}}`,
+			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":true,"factor_knowledge":true,"elevated":false,"expires":0}}`,
 			fasthttp.StatusOK,
 			nil,
 		},
@@ -141,11 +140,12 @@ func TestUserSessionElevationGET(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.TwoFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+				us.AuthenticationMethodRefs.WebAuthn = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
-			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"elevated":false,"expires":0}}`,
+			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":false,"elevated":false,"expires":0}}`,
 			fasthttp.StatusOK,
 			nil,
 		},
@@ -159,11 +159,12 @@ func TestUserSessionElevationGET(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.TwoFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+				us.AuthenticationMethodRefs.WebAuthn = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
-			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":true,"can_skip_second_factor":false,"elevated":false,"expires":0}}`,
+			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":true,"can_skip_second_factor":false,"factor_knowledge":false,"elevated":false,"expires":0}}`,
 			fasthttp.StatusOK,
 			nil,
 		},
@@ -197,7 +198,8 @@ func TestUserSessionElevationGET(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.TwoFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+				us.AuthenticationMethodRefs.WebAuthn = true
 				us.Elevations.User = &session.Elevation{
 					ID:       1,
 					RemoteIP: mock.Ctx.RemoteIP(),
@@ -206,7 +208,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
-			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":true,"can_skip_second_factor":false,"elevated":true,"expires":600}}`,
+			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":true,"can_skip_second_factor":false,"factor_knowledge":false,"elevated":true,"expires":600}}`,
 			fasthttp.StatusOK,
 			nil,
 		},
@@ -218,7 +220,8 @@ func TestUserSessionElevationGET(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.TwoFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+				us.AuthenticationMethodRefs.WebAuthn = true
 				us.Elevations.User = &session.Elevation{
 					ID:       1,
 					RemoteIP: mock.Ctx.RemoteIP(),
@@ -227,7 +230,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
-			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"elevated":true,"expires":600}}`,
+			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":false,"elevated":true,"expires":600}}`,
 			fasthttp.StatusOK,
 			nil,
 		},
@@ -239,7 +242,8 @@ func TestUserSessionElevationGET(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.TwoFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+				us.AuthenticationMethodRefs.WebAuthn = true
 				us.Elevations.User = &session.Elevation{
 					ID:       1,
 					RemoteIP: net.ParseIP("1.1.1.1"),
@@ -248,7 +252,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
-			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"elevated":false,"expires":0}}`,
+			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":false,"elevated":false,"expires":0}}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				us, err := mock.Ctx.GetSession()
@@ -268,7 +272,8 @@ func TestUserSessionElevationGET(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.TwoFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
+				us.AuthenticationMethodRefs.WebAuthn = true
 				us.Elevations.User = &session.Elevation{
 					ID:       1,
 					RemoteIP: mock.Ctx.RemoteIP(),
@@ -277,7 +282,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
-			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"elevated":false,"expires":-60}}`,
+			`{"status":"OK","data":{"require_second_factor":false,"skip_second_factor":false,"can_skip_second_factor":false,"factor_knowledge":false,"elevated":false,"expires":-60}}`,
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				us, err := mock.Ctx.GetSession()
@@ -332,7 +337,7 @@ func TestUserSessionElevationPOST(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -382,7 +387,7 @@ func TestUserSessionElevationPOST(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -434,7 +439,7 @@ func TestUserSessionElevationPOST(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -476,7 +481,7 @@ func TestUserSessionElevationPOST(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -507,7 +512,7 @@ func TestUserSessionElevationPOST(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -594,7 +599,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -636,7 +641,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -700,7 +705,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -740,7 +745,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
@@ -762,7 +767,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
@@ -784,7 +789,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -828,7 +833,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -869,7 +874,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -910,7 +915,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -950,7 +955,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -990,7 +995,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -1019,7 +1024,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -1096,7 +1101,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -1138,7 +1143,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -1182,7 +1187,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -1222,7 +1227,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -1263,7 +1268,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -1304,7 +1309,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -1333,7 +1338,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
@@ -1355,7 +1360,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 				us.DisplayName = testDisplayName
 				us.Emails = []string{"john@example.com"}
 
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
