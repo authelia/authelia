@@ -112,6 +112,8 @@ type AuthenticationBackendLDAP struct {
 	StartTLS       bool          `koanf:"start_tls" json:"start_tls" jsonschema:"default=false,title=StartTLS" jsonschema_description:"Enables the use of StartTLS."`
 	TLS            *TLS          `koanf:"tls" json:"tls" jsonschema:"title=TLS" jsonschema_description:"The LDAP directory server TLS connection properties."`
 
+	Pooling AuthenticationBackendLDAPPooling `koanf:"pooling" json:"pooling" jsonschema:"title=Pooling" jsonschema_description:"The LDAP Connection Pooling properties."`
+
 	BaseDN string `koanf:"base_dn" json:"base_dn" jsonschema:"title=Base DN" jsonschema_description:"The base for all directory server operations."`
 
 	AdditionalUsersDN string `koanf:"additional_users_dn" json:"additional_users_dn" jsonschema:"title=Additional User Base" jsonschema_description:"The base in addition to the Base DN for all directory server operations for users."`
@@ -129,6 +131,13 @@ type AuthenticationBackendLDAP struct {
 
 	User     string `koanf:"user" json:"user" jsonschema:"title=User" jsonschema_description:"The user distinguished name for LDAP binding."`
 	Password string `koanf:"password" json:"password" jsonschema:"title=Password" jsonschema_description:"The password for LDAP authenticated binding."`
+}
+
+type AuthenticationBackendLDAPPooling struct {
+	Enable  bool          `koanf:"enable" json:"enable" jsonschema:"title=Enable,default=false" jsonschema_description:"Enable LDAP connection pooling."`
+	Count   int           `koanf:"count" json:"count" jsonschema:"title=Count,default=5" jsonschema_description:"The number of connections to keep open for LDAP connection pooling."`
+	Retries int           `koanf:"retries" json:"retries" jsonschema:"title=Retries,default=2" jsonschema_description:"The number of attempts to retrieve a connection from the pool during the timeout."`
+	Timeout time.Duration `koanf:"timeout" json:"timeout" jsonschema:"title=Timeout,default=10 seconds" jsonschema_description:"The duration of time to wait for a connection to become available in the connection pool."`
 }
 
 // AuthenticationBackendLDAPAttributes represents the configuration related to LDAP server attributes.
@@ -206,6 +215,11 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationCustom = Authenti
 		GroupName:   ldapAttrCommonName,
 	},
 	Timeout: time.Second * 5,
+	Pooling: AuthenticationBackendLDAPPooling{
+		Count:   5,
+		Retries: 2,
+		Timeout: time.Second * 10,
+	},
 	TLS: &TLS{
 		MinimumVersion: TLSVersion{tls.VersionTLS12},
 	},
