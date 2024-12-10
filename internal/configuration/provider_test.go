@@ -672,7 +672,7 @@ func TestShouldNotPanicJWKNilKey(t *testing.T) {
 	assert.Len(t, val.Warnings(), 0)
 
 	require.NotPanics(t, func() {
-		validator.ValidateIdentityProviders(validator.NewValidateCtx(), &config.IdentityProviders, val)
+		validator.ValidateIdentityProviders(validator.NewValidateCtx(), config, val)
 	})
 
 	assert.Len(t, val.Errors(), 5)
@@ -698,7 +698,7 @@ func TestShouldDisableOIDCEntropy(t *testing.T) {
 
 	assert.Equal(t, -1, config.IdentityProviders.OIDC.MinimumParameterEntropy)
 
-	validator.ValidateIdentityProviders(validator.NewValidateCtx(), &config.IdentityProviders, val)
+	validator.ValidateIdentityProviders(validator.NewValidateCtx(), config, val)
 
 	assert.Len(t, val.Errors(), 1)
 	require.Len(t, val.Warnings(), 2)
@@ -719,7 +719,7 @@ func TestShouldDisableOIDCModern(t *testing.T) {
 
 	val.Clear()
 
-	validator.ValidateIdentityProviders(validator.NewValidateCtx(), &config.IdentityProviders, val)
+	validator.ValidateIdentityProviders(validator.NewValidateCtx(), config, val)
 
 	require.Len(t, val.Errors(), 2)
 	require.Len(t, val.Warnings(), 1)
@@ -1126,6 +1126,62 @@ func TestShouldFailIfYmlIsInvalid(t *testing.T) {
 	assert.ErrorContains(t, val.Errors()[0], "unmarshal errors")
 }
 
+func TestConfigurationDefinitions(t *testing.T) {
+	var (
+		definitions *schema.Definitions
+		err         error
+	)
+
+	val := schema.NewStructValidator()
+
+	config := &schema.Configuration{}
+
+	sources := NewDefaultSourcesWithDefaults([]string{"./test_resources/config_with_definitions.yml"}, nil, DefaultEnvPrefix, DefaultEnvDelimiter, nil)
+
+	definitions, err = LoadDefinitions(val, sources...)
+
+	require.NoError(t, err)
+
+	var keys []string
+
+	keys, err = LoadAdvanced(val, "", config, definitions, sources...)
+
+	assert.Len(t, val.Warnings(), 0)
+	assert.Len(t, val.Errors(), 0)
+
+	val.Clear()
+
+	require.NoError(t, err)
+
+	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
+
+	assert.Len(t, val.Warnings(), 0)
+	assert.Len(t, val.Errors(), 0)
+
+	require.Len(t, config.Definitions.Network, 2)
+
+	require.Contains(t, config.Definitions.Network, "lan")
+	require.Len(t, config.Definitions.Network["lan"], 2)
+	assert.Equal(t, "192.168.1.0/24", config.Definitions.Network["lan"][0].String())
+	assert.Equal(t, "192.168.2.0/24", config.Definitions.Network["lan"][1].String())
+
+	require.Contains(t, config.Definitions.Network, "abc")
+	require.Len(t, config.Definitions.Network["abc"], 2)
+	assert.Equal(t, "192.168.3.0/24", config.Definitions.Network["abc"][0].String())
+	assert.Equal(t, "192.168.4.0/24", config.Definitions.Network["abc"][1].String())
+
+	require.Len(t, config.AccessControl.Rules, 12)
+	require.Len(t, config.AccessControl.Rules[1].Networks, 5)
+
+	assert.Equal(t, "192.168.0.0/24", config.AccessControl.Rules[1].Networks[0].String())
+	assert.Equal(t, "192.168.1.0/24", config.AccessControl.Rules[1].Networks[1].String())
+	assert.Equal(t, "192.168.2.0/24", config.AccessControl.Rules[1].Networks[2].String())
+	assert.Equal(t, "192.168.3.0/24", config.AccessControl.Rules[1].Networks[3].String())
+	assert.Equal(t, "192.168.4.0/24", config.AccessControl.Rules[1].Networks[4].String())
+
+	assert.Contains(t, config.Definitions.UserAttributes, "example")
+}
+
 func TestConfigurationTemplate(t *testing.T) {
 	buf := &bytes.Buffer{}
 
@@ -1203,7 +1259,21 @@ func TestConfigurationTemplate(t *testing.T) {
 
 	val := schema.NewStructValidator()
 
-	keys, _, err := Load(val, NewBytesSource(config))
+	var (
+		keys        []string
+		definitions *schema.Definitions
+	)
+
+	c := &schema.Configuration{}
+
+	src := NewBytesSource(config)
+
+	definitions, err = LoadDefinitions(val, src)
+
+	require.NoError(t, err)
+
+	keys, err = LoadAdvanced(val, "", c, definitions, src)
+
 	require.NoError(t, err)
 
 	assert.Len(t, val.Errors(), 0)

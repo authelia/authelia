@@ -1,11 +1,15 @@
 package authentication
 
 import (
+	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	ber "github.com/go-asn1-ber/asn1-ber"
 	"github.com/go-ldap/ldap/v3"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 func ldapEntriesContainsEntry(needle *ldap.Entry, haystack []*ldap.Entry) bool {
@@ -67,8 +71,10 @@ func ldapEscape(inputUsername string) string {
 }
 
 func ldapGetReferral(err error) (referral string, ok bool) {
-	switch e := err.(type) {
-	case *ldap.Error:
+	var e *ldap.Error
+
+	switch {
+	case errors.As(err, &e):
 		if e.ResultCode != ldap.LDAPResultReferral {
 			return "", false
 		}
@@ -103,4 +109,78 @@ func ldapGetReferral(err error) (referral string, ok bool) {
 	default:
 		return "", false
 	}
+}
+
+func getValueFromEntry(entry *ldap.Entry, attribute string) string {
+	if attribute == "" {
+		return ""
+	}
+
+	return entry.GetAttributeValue(attribute)
+}
+
+func getValuesFromEntry(entry *ldap.Entry, attribute string) []string {
+	if attribute == "" {
+		return nil
+	}
+
+	return entry.GetAttributeValues(attribute)
+}
+
+func getExtraValueFromEntry(entry *ldap.Entry, attribute string, properties schema.AuthenticationBackendLDAPAttributesAttribute) (value any, err error) {
+	if properties.MultiValued {
+		return getExtraValueMultiFromEntry(entry, attribute, properties)
+	}
+
+	str := getValueFromEntry(entry, attribute)
+
+	switch properties.ValueType {
+	case ValueTypeString:
+		value = str
+	case ValueTypeInteger:
+		if value, err = strconv.ParseFloat(str, 64); err != nil {
+			return nil, fmt.Errorf("cannot parse '%s' with value '%s' as integer: %w", attribute, str, err)
+		}
+	case ValueTypeBoolean:
+		if value, err = strconv.ParseBool(str); err != nil {
+			return nil, fmt.Errorf("cannot parse '%s' with value '%s' as boolean: %w", attribute, str, err)
+		}
+	}
+
+	return value, nil
+}
+
+func getExtraValueMultiFromEntry(entry *ldap.Entry, attribute string, properties schema.AuthenticationBackendLDAPAttributesAttribute) (value any, err error) {
+	strs := getValuesFromEntry(entry, attribute)
+
+	values := make([]any, len(strs))
+
+	switch properties.GetValueType() {
+	case ValueTypeString:
+		for i, v := range strs {
+			values[i] = v
+		}
+	case ValueTypeInteger:
+		var v float64
+
+		for i, str := range strs {
+			if v, err = strconv.ParseFloat(str, 64); err != nil {
+				return nil, fmt.Errorf("cannot parse '%s' with value '%s' as integer: %w", attribute, str, err)
+			}
+
+			values[i] = v
+		}
+	case ValueTypeBoolean:
+		var v bool
+
+		for i, str := range strs {
+			if v, err = strconv.ParseBool(str); err != nil {
+				return nil, fmt.Errorf("cannot parse '%s' with value '%s' as boolean: %w", attribute, str, err)
+			}
+
+			values[i] = v
+		}
+	}
+
+	return values, nil
 }

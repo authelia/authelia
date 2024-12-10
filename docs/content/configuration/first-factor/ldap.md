@@ -64,9 +64,32 @@ authentication_backend:
       distinguished_name: 'distinguishedName'
       username: 'uid'
       display_name: 'displayName'
+      family_name: 'sn'
+      given_name: 'givenName'
+      middle_name: 'middleName'
+      nickname: ''
+      gender: ''
+      birthdate: ''
+      website: 'wWWHomePage'
+      profile: ''
+      picture: ''
+      zoneinfo: ''
+      locale: ''
+      phone_number: 'telephoneNumber'
+      phone_extension: ''
+      street_address: 'streetAddress'
+      locality: 'l'
+      region: 'st'
+      postal_code: 'postalCode'
+      country: 'c'
       mail: 'mail'
       member_of: 'memberOf'
       group_name: 'cn'
+      extra:
+        extra_example:
+          name: ''
+          multi_valued: false
+          value_type: 'string'
 ```
 
 ## Options
@@ -231,7 +254,8 @@ characters and the user password is changed to this value.
 
 ### attributes
 
-The following options configure The directory server attribute mappings.
+The following options configure The directory server attribute mappings. It's also recommended to check out the
+[Attributes Reference Guide](../../reference/guides/attributes.md) for more information.
 
 #### distinguished_name
 
@@ -270,6 +294,116 @@ default negating this requirement. Refer to the [attribute defaults](../../refer
 
 The directory server attribute to retrieve which is shown on the Web UI to the user when they log in.
 
+#### family_name
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users family name.
+
+#### given_name
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users given name.
+
+#### middle_name
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users middle name.
+
+#### nickname
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users nickname.
+
+#### gender
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users gender.
+
+#### birthdate
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users birthdate.
+
+#### website
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users website URL.
+
+#### profile
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users profile URL.
+
+#### picture
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users picture URL.
+
+#### zoneinfo
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users timezone value from the
+[IANA Time Zone Database](https://www.iana.org/time-zones).
+
+#### locale
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users locale in the
+[RFC5646 BCP 47](https://www.rfc-editor.org/rfc/rfc5646.html) format.
+
+#### phone_number
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users phone number.
+
+#### phone_extension
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users phone extension.
+
+#### street_address
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users street address.
+
+#### locality
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users locality i.e. city.
+
+#### region
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users region i.e. state or province.
+
+#### postal_code
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users postal code.
+
+#### country
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users country.
+
 #### mail
 
 {{< confkey type="string" required="situational" >}}
@@ -305,6 +439,54 @@ default negating this requirement. Refer to the [attribute defaults](../../refer
 {{< /callout >}}
 
 The directory server attribute that is used by Authelia to determine the group name.
+
+#### extra
+
+{{< confkey type="dictionary(object)" required="no" >}}
+
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+In addition to the extra attributes, you can configure custom attributes based on the values of existing attributes.
+This is done via the [Definitions](../definitions/user-attributes.md) section.
+{{< /callout >}}
+
+The extra attributes to load from the directory server. These extra attributes can be used in other areas of Authelia
+such as [OpenID Connect 1.0](../identity-providers/openid-connect/provider.md).
+
+The key represents the backend attribute name, and by default is the name of the attribute within Authelia.
+
+In the example below, we load the directory server attribute `exampleServerAttribute` into the Authelia attribute
+`example_authelia_attribute`, treat it as a single valued attribute which has an underlying type of `integer`.
+
+```yaml
+authentication_backend:
+  ldap:
+    attributes:
+      extra:
+        exampleServerAttribute:
+          name: 'example_authelia_attribute'
+          multi_valued: false
+          value_type: 'integer'
+```
+
+#### name
+
+{{< confkey type="string" required="no" >}}
+
+This option changes that attribute name used for internal references within Authelia.
+
+#### value_type
+
+{{< confkey type="string" required="yes" >}}
+
+This defines the underlying type the attribute must be. This is required if an extra attribute is configured. The valid
+values are `string`, `integer`, or `boolean`. When using the `integer` and `boolean` types, the directory attributes
+must have parsable values.
+
+#### multi_valued
+
+{{< confkey type="boolean" required="no" >}}
+
+This indicates the underlying type can have multiple values.
 
 ## Refresh Interval
 
