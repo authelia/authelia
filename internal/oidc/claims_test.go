@@ -18,7 +18,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
-/*
 func TestClaimValidate(t *testing.T) {
 	config := schema.IdentityProvidersOpenIDConnect{
 		Scopes: map[string]schema.IdentityProvidersOpenIDConnectScope{
@@ -60,7 +59,6 @@ func TestClaimValidate(t *testing.T) {
 
 	assert.NoError(t, oauthelia2.ErrorToDebugRFC6749Error(err))
 }
-*/
 
 func TestClaimRequest_String(t *testing.T) {
 	testCases := []struct {

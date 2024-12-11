@@ -332,12 +332,18 @@ func NewCustomClaimsStrategy(client schema.IdentityProvidersOpenIDConnectClient,
 			continue
 		}
 
-		strategy.scopes[scope] = make(map[string]string)
+		switch scope {
+		case ScopeProfile, ScopeEmail, ScopePhone, ScopeAddress, ScopeGroups,
+			ScopeOpenID, ScopeAutheliaBearerAuthz, ScopeOffline, ScopeOfflineAccess:
+			continue
+		}
+
+		if _, ok = strategy.scopes[scope]; !ok {
+			strategy.scopes[scope] = make(map[string]string)
+		}
 
 		for _, name = range mapping.Claims {
-			if claim, ok = policy.CustomClaims[name]; !ok {
-				continue
-			}
+			claim = policy.CustomClaims[name]
 
 			if claim.Attribute == "" {
 				strategy.scopes[scope][name] = name
