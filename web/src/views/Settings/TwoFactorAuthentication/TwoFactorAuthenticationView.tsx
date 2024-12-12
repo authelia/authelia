@@ -1,6 +1,7 @@
 import React, { Fragment, useEffect, useState } from "react";
 
-import Grid from "@mui/material/Unstable_Grid2/Grid2";
+import { Paper, Typography } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import { useTranslation } from "react-i18next";
 
 import { useConfiguration } from "@hooks/Configuration";
@@ -110,11 +111,32 @@ const TwoFactorAuthenticationView = function (props: Props) {
         fetchUserInfo();
     };
 
+    const renderSecondFactorDisabled = () => {
+        if (!configuration || !userInfo) {
+            return false;
+        }
+
+        const hasAvailableMethods =
+            configuration.available_methods.has(SecondFactorMethod.TOTP) ||
+            configuration.available_methods.has(SecondFactorMethod.WebAuthn);
+
+        return !hasAvailableMethods;
+    };
+
     return (
         <Fragment>
             <Grid container spacing={2}>
+                {renderSecondFactorDisabled() ? (
+                    <Grid size={{ xs: 12 }} display="flex" justifyContent="center" alignItems="center">
+                        <Paper>
+                            <Typography variant={"h6"} sx={{ p: 6 }} text-align="center">
+                                {translate("There are no protected applications that require a second factor method")}
+                            </Typography>
+                        </Paper>
+                    </Grid>
+                ) : null}
                 {configuration?.available_methods.has(SecondFactorMethod.TOTP) ? (
-                    <Grid xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <OneTimePasswordPanel
                             info={userInfo}
                             config={userTOTPConfig}
@@ -123,7 +145,7 @@ const TwoFactorAuthenticationView = function (props: Props) {
                     </Grid>
                 ) : null}
                 {configuration?.available_methods.has(SecondFactorMethod.WebAuthn) ? (
-                    <Grid xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <WebAuthnCredentialsPanel
                             info={userInfo}
                             credentials={userWebAuthnCredentials}
@@ -132,7 +154,7 @@ const TwoFactorAuthenticationView = function (props: Props) {
                     </Grid>
                 ) : null}
                 {configuration && userInfo ? (
-                    <Grid xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <TwoFactorAuthenticationOptionsPanel
                             config={configuration}
                             info={userInfo}

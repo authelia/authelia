@@ -7,7 +7,10 @@ draft: false
 images: []
 weight: 620
 toc: true
-community: true
+support:
+  level: community
+  versions: true
+  integration: true
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -28,13 +31,19 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://outline.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://outline.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `outline`
 * __Client Secret:__ `insecure_secret`
 
-*__Important Note:__ At the time of this writing [Outline] requires the `offline_access` scope by default. Failure to
-include this scope will result in an error as [Outline] will attempt to use a refresh token that is never issued.*
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+At the time of this writing [Outline](https://www.getoutline.com/) requires the `offline_access` scope by default. Failure to
+include this scope will result in an error as [Outline](https://www.getoutline.com/) will attempt to use a refresh token that is never issued.
+{{< /callout >}}
 
 ## Configuration
 
@@ -55,7 +64,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://outline.example.com/auth/oidc.callback'
+          - 'https://outline.{{< sitevar name="domain" nojs="example.com" >}}/auth/oidc.callback'
         scopes:
           - 'openid'
           - 'offline_access'
@@ -71,17 +80,17 @@ To configure [Outline] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 1. Configure the following environment options:
 ```text
-URL=https://outline.example.com
+URL=https://outline.{{< sitevar name="domain" nojs="example.com" >}}
 FORCE_HTTPS=true
 
 OIDC_CLIENT_ID=outline
 OIDC_CLIENT_SECRET=insecure_secret
-OIDC_AUTH_URI=https://auth.example.com/api/oidc/authorization
-OIDC_TOKEN_URI=https://auth.example.com/api/oidc/token
-OIDC_USERINFO_URI=https://auth.example.com/api/oidc/userinfo
+OIDC_AUTH_URI=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization
+OIDC_TOKEN_URI=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token
+OIDC_USERINFO_URI=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo
 OIDC_USERNAME_CLAIM=preferred_username
 OIDC_DISPLAY_NAME=Authelia
-OIDC_SCOPES="openid offline_access profile email"
+OIDC_SCOPES=openid offline_access profile email
 ```
 
 ## See Also

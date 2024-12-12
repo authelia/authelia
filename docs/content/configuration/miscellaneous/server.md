@@ -23,7 +23,7 @@ seo:
 
 ```yaml {title="configuration.yml"}
 server:
-  address: 'tcp://:9091/'
+  address: 'tcp://:{{< sitevar name="port" nojs="9091" >}}/'
   disable_healthcheck: false
   tls:
     key: ''
@@ -50,7 +50,7 @@ server:
 
 {{< confkey type="string" syntax="address" default="tcp://:9091/" required="no" >}}
 
-{{< callout context="danger" title="Important Notes" icon="alert-octagon" >}}
+{{< callout context="danger" title="Important Notes" icon="outline/alert-octagon" >}}
 The [Proxy Integration](../../integration/proxies/introduction.md#important-notes) documentation has important notes on
 this option for when integrating it with a proxy.
 {{< /callout >}}
@@ -61,19 +61,19 @@ the `unix` scheme or one of the `tcp` schemes. It can configure the host, port, 
 To configure the path for a unix socket see the address syntax documentation linked above.
 
 If the path is configured to anything other than `/` requests will be handled for both `/` and the configured path.
-For example if configured to `tcp://:9091/authelia` then requests will be handled for both the `/` and `/authelia/`
+For example if configured to `tcp://:{{< sitevar name="port" nojs="9091" >}}/authelia` then requests will be handled for both the `/` and `/authelia/`
 path.
 
 #### Examples
 
 ```yaml {title="configuration.yml"}
 server:
-  address: 'tcp://127.0.0.1:9091/'
+  address: 'tcp://127.0.0.1:{{< sitevar name="port" nojs="9091" >}}/'
 ```
 
 ```yaml {title="configuration.yml"}
 server:
-  address: 'tcp://127.0.0.1:9091/subpath'
+  address: 'tcp://127.0.0.1:{{< sitevar name="port" nojs="9091" >}}/subpath'
 ```
 
 ```yaml {title="configuration.yml"}
@@ -170,8 +170,10 @@ Configures the server timeouts.
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
-*__Security Note:__ This is a developer endpoint. __DO NOT__ enable it unless you know why you're enabling it.
-__DO NOT__ enable this in production.*
+{{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
+This is a developer endpoint. __DO NOT__ enable it unless you know why you're enabling it.
+__DO NOT__ enable this in production.
+{{< /callout >}}
 
 Enables the go [pprof](https://pkg.go.dev/net/http/pprof) endpoints.
 
@@ -179,8 +181,10 @@ Enables the go [pprof](https://pkg.go.dev/net/http/pprof) endpoints.
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
-*__Security Note:__ This is a developer endpoint. __DO NOT__ enable it unless you know why you're enabling it.
-__DO NOT__ enable this in production.*
+{{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
+This is a developer endpoint. __DO NOT__ enable it unless you know why you're enabling it.
+__DO NOT__ enable this in production.
+{{< /callout >}}
 
 Enables the go [expvar](https://pkg.go.dev/expvar) endpoints.
 

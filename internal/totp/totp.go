@@ -17,12 +17,12 @@ func NewTimeBasedProvider(config schema.TOTP) (provider *TimeBased) {
 		opts:      NewTOTPOptionsFromSchema(config),
 		issuer:    config.Issuer,
 		algorithm: config.DefaultAlgorithm,
-		digits:    uint(config.DefaultDigits),
-		period:    uint(config.DefaultPeriod),
-		size:      uint(config.SecretSize),
+		digits:    uint32(config.DefaultDigits), //nolint:gosec // Validated at runtime.
+		period:    uint(config.DefaultPeriod),   //nolint:gosec // Validated at runtime.
+		size:      uint(config.SecretSize),      //nolint:gosec // Validated at runtime.
 	}
 
-	if config.Skew != nil {
+	if config.Skew != nil && *config.Skew >= 0 {
 		provider.skew = uint(*config.Skew)
 	} else {
 		provider.skew = 1
@@ -48,14 +48,14 @@ type TimeBased struct {
 
 	issuer    string
 	algorithm string
-	digits    uint
+	digits    uint32
 	period    uint
 	skew      uint
 	size      uint
 }
 
 // GenerateCustom generates a TOTP with custom options.
-func (p TimeBased) GenerateCustom(ctx Context, username, algorithm, secret string, digits, period, secretSize uint) (config *model.TOTPConfiguration, err error) {
+func (p TimeBased) GenerateCustom(ctx Context, username, algorithm, secret string, digits uint32, period, secretSize uint) (config *model.TOTPConfiguration, err error) {
 	var key *otp.Key
 
 	var secretData []byte

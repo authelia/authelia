@@ -7,7 +7,10 @@ draft: false
 images: []
 weight: 620
 toc: true
-community: true
+support:
+  level: community
+  versions: true
+  integration: true
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -28,10 +31,14 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://matrix.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://matrix.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `synapse`
 * __Client Secret:__ `insecure_secret`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -52,7 +59,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://synapse.example.com/_synapse/client/oidc/callback'
+          - 'https://synapse.{{< sitevar name="domain" nojs="example.com" >}}/_synapse/client/oidc/callback'
         scopes:
           - 'openid'
           - 'profile'
@@ -66,13 +73,13 @@ To configure [Synapse] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 1. Edit your [Synapse] `homeserver.yaml` configuration file and add configure the following:
 
-```yaml {title="configuration.yml"}
+```yaml {title="homeserver.yaml"}
 oidc_providers:
   - idp_id: authelia
     idp_name: "Authelia"
     idp_icon: "mxc://authelia.com/cKlrTPsGvlpKxAYeHWJsdVHI"
     discover: true
-    issuer: "https://auth.example.com"
+    issuer: "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}"
     client_id: "synapse"
     client_secret: "insecure_secret"
     scopes: ["openid", "profile", "email"]

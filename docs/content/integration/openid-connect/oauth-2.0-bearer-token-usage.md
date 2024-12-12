@@ -26,8 +26,10 @@ for the forwarded authentication flow integrated into a proxy (i.e. `access_cont
 session cookie-based authorization flow (which redirects unauthorized users) by utilizing
 [RFC6750: OAuth 2.0 Bearer Token Usage] authorization scheme norms (i.e. using the bearer scheme).
 
-_**Note:** these tokens are not intended for usage with the Authelia API, a separate exclusive scope (or scopes) and
-specific audiences will likely be implemented at a later date for this._
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+These tokens are not intended for usage with the Authelia API, a separate exclusive scope (or scopes) and
+specific audiences will likely be implemented at a later date for this.
+{{< /callout >}}
 
 ### General Protections
 
@@ -69,8 +71,8 @@ The following protections have been considered:
 - The audience of the token must explicitly be requested. Omission of the `audience` parameter may be denied and will
   not grant any audience (thus making it useless) even if the client has been whitelisted for the particular audience.
 
-For example, if `john` consents to grant the token, and it includes the audience `https://app1.example.com`, but the
- user `john` is not normally authorized to visit `https://app1.example.com` the token will not grant access to this resource.
+For example, if `john` consents to grant the token, and it includes the audience `https://app1.{{< sitevar name="domain" nojs="example.com" >}}`, but the
+ user `john` is not normally authorized to visit `https://app1.{{< sitevar name="domain" nojs="example.com" >}}` the token will not grant access to this resource.
 In addition, if `john` has his access updated via the access control rules, their groups, etc., then this access is
 automatically applied to these tokens.
 
@@ -142,9 +144,9 @@ This feature is only intended to be supported while using the new session config
 session:
   secret: 'insecure_session_secret'
   cookies:
-    - domain: 'example.com'
-      authelia_url: 'https://auth.example.com'
-      default_redirection_url: 'https://www.example.com'
+    - domain: '{{< sitevar name="domain" nojs="example.com" >}}'
+      authelia_url: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
+      default_redirection_url: 'https://www.{{< sitevar name="domain" nojs="example.com" >}}'
 ```
 
 ### Access Control Configuration
@@ -159,14 +161,14 @@ policy is useful for this grant type.
 ```yaml {title="configuration.yml"}
 access_control:
   rules:
-    ## The 'app1.example.com' domain for the user 'john' regardless if they're using OAuth 2.0 or session based flows.
-    - domain: app1.example.com
-      policy: one_factor
+    ## The 'app1.{{< sitevar name="domain" nojs="example.com" >}}' domain for the user 'john' regardless if they're using OAuth 2.0 or session based flows.
+    - domain: 'app1.{{< sitevar name="domain" nojs="example.com" >}}'
+      policy: 'one_factor'
       subject: 'user:john'
 
-    ## The 'app2.example.com' domain for the 'example-three' client when using the 'client_credentials' grant.
-    - domain: app2.example.com
-      policy: one_factor
+    ## The 'app2.{{< sitevar name="domain" nojs="example.com" >}}' domain for the 'example-three' client when using the 'client_credentials' grant.
+    - domain: 'app2.{{< sitevar name="domain" nojs="example.com" >}}'
+      policy: 'one_factor'
       subject: 'oauth2:client:example-three'
 ```
 ### Client Restrictions
@@ -210,8 +212,8 @@ identity_providers:
           - 'offline_access'
           - 'authelia.bearer.authz'
         audience:
-          - 'https://app1.example.com'
-          - 'https://app2.example.com'
+          - 'https://app1.{{< sitevar name="domain" nojs="example.com" >}}'
+          - 'https://app2.{{< sitevar name="domain" nojs="example.com" >}}'
         grant_types:
           - 'authorization_code'
           - 'refresh_token'
@@ -243,8 +245,8 @@ identity_providers:
           - 'offline_access'
           - 'authelia.bearer.authz'
         audience:
-          - 'https://app1.example.com'
-          - 'https://app2.example.com'
+          - 'https://app1.{{< sitevar name="domain" nojs="example.com" >}}'
+          - 'https://app2.{{< sitevar name="domain" nojs="example.com" >}}'
         grant_types:
           - 'authorization_code'
           - 'refresh_token'
@@ -273,8 +275,8 @@ identity_providers:
         scopes:
           - 'authelia.bearer.authz'
         audience:
-          - 'https://app1.example.com'
-          - 'https://app2.example.com'
+          - 'https://app1.{{< sitevar name="domain" nojs="example.com" >}}'
+          - 'https://app2.{{< sitevar name="domain" nojs="example.com" >}}'
         grant_types:
           - 'client_credentials'
         token_endpoint_auth_method: 'client_secret_basic'

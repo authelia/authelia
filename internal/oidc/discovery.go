@@ -116,7 +116,9 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 				},
 				IntrospectionEndpointAuthMethodsSupported: []string{
 					ClientAuthMethodClientSecretBasic,
-					ClientAuthMethodNone,
+					ClientAuthMethodClientSecretPost,
+					ClientAuthMethodClientSecretJWT,
+					ClientAuthMethodPrivateKeyJWT,
 				},
 			},
 			OAuth2JWTIntrospectionResponseDiscoveryOptions: &OAuth2JWTIntrospectionResponseDiscoveryOptions{
@@ -154,14 +156,19 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 				SigningAlgRSAPSSUsingSHA512,
 				SigningAlgNone,
 			},
+			ClaimTypesSupported: []string{
+				ClaimTypeNormal,
+			},
 			RequestParameterSupported:     true,
 			RequestURIParameterSupported:  true,
 			RequireRequestURIRegistration: true,
 		},
 		OpenIDConnectPromptCreateDiscoveryOptions: &OpenIDConnectPromptCreateDiscoveryOptions{
 			PromptValuesSupported: []string{
-				PromptNone,
 				PromptConsent,
+				PromptLogin,
+				PromptNone,
+				PromptSelectAccount,
 			},
 		},
 		OpenIDConnectJWTSecuredAuthorizationResponseModeDiscoveryOptions: &OpenIDConnectJWTSecuredAuthorizationResponseModeDiscoveryOptions{

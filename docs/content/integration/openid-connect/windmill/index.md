@@ -7,7 +7,10 @@ draft: false
 images: []
 weight: 620
 toc: true
-community: true
+support:
+  level: community
+  versions: true
+  integration: true
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -28,10 +31,14 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://windmill.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://windmill.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `windmill`
 * __Client Secret:__ `insecure_secret`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ### Authelia
 
@@ -49,7 +56,7 @@ identity_providers:
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://windmill.example.com/user/login_callback/authelia'
+          - 'https://windmill.{{< sitevar name="domain" nojs="example.com" >}}/user/login_callback/authelia'
         scopes:
           - 'openid'
           - 'profile'
@@ -64,7 +71,7 @@ identity_providers:
 
 **Superadmin settings > Core**
 
-- Base Url: https://windmill.example.com
+- Base Url: `https://windmill.{{< sitevar name="domain" nojs="example.com" >}}`
 
 {{< figure src="windmill_core.png" alt="Windmill" >}}
 
@@ -74,7 +81,7 @@ identity_providers:
 
 **Superadmin settings > SSO/OAuth**
 
-- Config URL: https://auth.example.com
+- Config URL: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 - Client Id: Windmill
 - Client Secret: insecure_secret
 

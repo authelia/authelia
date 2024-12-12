@@ -17,10 +17,16 @@ seo:
   noindex: false # false (default) or true
 ---
 
-*__Important Note:__ This section does not apply to OpenID Connect 1.0. See the [Frequently Asked Questions] for more
-information.*
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+This section does not apply to OpenID Connect 1.0. See the [Frequently Asked Questions](../../integration/openid-connect/frequently-asked-questions.md#why-doesnt-the-access-control-configuration-work-with-openid-connect-10) for more
+information.
+{{< /callout >}}
 
-[Frequently Asked Questions]: ../../integration/openid-connect/frequently-asked-questions.md#why-doesnt-the-access-control-configuration-work-with-openid-connect-10
+## Variables
+
+Some of the values within this page can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -36,8 +42,8 @@ access_control:
     - '172.16.0.0/12'
     - '192.168.0.0/18'
   rules:
-  - domain: 'private.example.com'
-    domain_regex: '^(\d+\-)?priv-img.example.com$'
+  - domain: 'private.{{< sitevar name="domain" nojs="example.com" >}}'
+    domain_regex: '^(\d+\-)?priv-img\.{{< sitevar name="domain" format="regex" nojs="example\.com" >}}$'
     policy: 'one_factor'
     networks:
     - 'internal'
@@ -135,14 +141,15 @@ matches.
 Rules may start with a few different wildcards:
 
 * The standard wildcard is `*.`, which when in front of a domain means that any subdomain is effectively a match. For
-  example `*.example.com` would match `abc.example.com` and `secure.example.com`. When using a wildcard like this the
-  string __must__ be quoted like `"*.example.com"`.
+  example `*.{{< sitevar name="domain" nojs="example.com" >}}` would match `abc.{{< sitevar name="domain" nojs="example.com" >}}` and `secure.{{< sitevar name="domain" nojs="example.com" >}}`.
+  When using a wildcard like this the string __must__ be quoted like `'*.{{< sitevar name="domain" nojs="example.com" >}}'`.
 * The user wildcard is `{user}.`, which when in front of a domain dynamically matches the username of the user. For
-  example `{user}.example.com` would match `fred.example.com` if the user logged in was named `fred`. *__Warning:__ this is
-  officially deprecated as the [domain_regex] criteria completely replaces the functionality in a much   more useful
-  way. It is strongly recommended you do not use this as it will be removed in a future version, most likely v5.0.0.*
+  example `{user}.{{< sitevar name="domain" nojs="example.com" >}}` would match `fred.{{< sitevar name="domain" nojs="example.com" >}}` if the user logged in was named
+  `fred`. *__Warning:__ this is officially deprecated as the [domain_regex] criteria completely replaces the
+  functionality in a much more useful way. It is strongly recommended you do not use this as it will be removed in a
+  future version, most likely v5.0.0.*
 * The group wildcard is `{group}.`, which when in front of a domain dynamically matches if the logged in user has the
-  group in that location. For example `{group}.example.com` would match `admins.example.com` if the user logged in was
+  group in that location. For example `{group}.{{< sitevar name="domain" nojs="example.com" >}}` would match `admins.{{< sitevar name="domain" nojs="example.com" >}}` if the user logged in was
   in the following groups `admins,users,people` because `admins` is in the list.
 
 Domains in this section must be the domain configured in the [session](../session/introduction.md#domain) configuration
@@ -154,41 +161,41 @@ implementation, and it is not currently a priority.
 
 ##### Examples
 
-*Single domain of `*.example.com` matched. All rules in this list are effectively the same rule just expressed in
+*Single domain of `*.{{< sitevar name="domain" nojs="example.com" >}}` matched. All rules in this list are effectively the same rule just expressed in
 different ways.*
 
 ```yaml {title="configuration.yml"}
 access_control:
   rules:
-  - domain: '*.example.com'
+  - domain: '*.{{< sitevar name="domain" nojs="example.com" >}}'
     policy: 'bypass'
   - domain:
-    - '*.example.com'
+    - '*.{{< sitevar name="domain" nojs="example.com" >}}'
     policy: 'bypass'
 ```
 
-*Multiple domains matched. These rules will match either `apple.example.com` or `orange.example.com`. All rules in this
+*Multiple domains matched. These rules will match either `apple.{{< sitevar name="domain" nojs="example.com" >}}` or `banana.{{< sitevar name="domain" nojs="example.com" >}}`. All rules in this
 list are effectively the same rule just expressed in different ways.*
 
 ```yaml {title="configuration.yml"}
 access_control:
   rules:
-  - domain: ['apple.example.com', 'banana.example.com']
+  - domain: ['apple.{{< sitevar name="domain" nojs="example.com" >}}', 'banana.{{< sitevar name="domain" nojs="example.com" >}}']
     policy: 'bypass'
   - domain:
-    - 'apple.example.com'
-    - 'banana.example.com'
+    - 'apple.{{< sitevar name="domain" nojs="example.com" >}}'
+    - 'banana.{{< sitevar name="domain" nojs="example.com" >}}'
     policy: 'bypass'
 ```
 
 *Multiple domains matched either via a static domain or via a [domain_regex]. This rule will match
-either `apple.example.com`, `pub-data.example.com`, or `img-data.example.com`.*
+either `apple.{{< sitevar name="domain" nojs="example.com" >}}`, `pub-data.{{< sitevar name="domain" nojs="example.com" >}}`, or `img-data.{{< sitevar name="domain" nojs="example.com" >}}`.*
 
 ```yaml {title="configuration.yml"}
 access_control:
   rules:
-  - domain: 'apple.example.com'
-    domain_regex: '^(pub|img)-data\.example\.com$'
+  - domain: 'apple.{{< sitevar name="domain" nojs="example.com" >}}'
+    domain_regex: '^(pub|img)-data\.{{< sitevar name="domain" format="regex" nojs="example\.com" >}}$'
     policy: bypass
 ```
 
@@ -196,12 +203,16 @@ access_control:
 
 {{< confkey type="list(string)" required="yes" >}}
 
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+If you intend to use this criteria with a bypass rule please read [Rule Matching Concept 2](#rule-matching-concept-2-subject-criteria-requires-authentication).
+{{< /callout >}}
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+To utilize regex you must escape it properly. See
+[regular expressions](../prologue/common.md#regular-expressions) for more information.
+{{< /callout >}}
+
 *__Required:__ This criteria and/or the [domain] criteria are required.*
-
-*__Important Note:__ If you intend to use this criteria with a bypass rule please read [Rule Matching Concept 2].*
-
-*__Important Note:__ to utilize regex you must escape it properly. See
-[regular expressions](../prologue/common.md#regular-expressions) for more information.*
 
 This criteria matches the domain name and has two methods of configuration, either as a single string or as a list of
 strings. When it's a list of strings the rule matches when __any__ of the domains in the list match the request domain.
@@ -214,27 +225,27 @@ In addition to standard regex patterns this criteria can match some [Named Regex
 ##### Examples
 
 *An advanced multiple domain regex example with user/group matching. This will match the user `john` in the groups
-`example` and `example1`, when the request is made to `user-john.example.com`, `group-example.example.com`, or
-`group-example1.example.com`, it would not match when the request is made to `user-fred.example.com` or
-`group-admin.example.com`.*
+`example` and `example1`, when the request is made to `user-john.{{< sitevar name="domain" nojs="example.com" >}}`,
+`group-example.{{< sitevar name="domain" nojs="example.com" >}}`, or `group-example1.{{< sitevar name="domain" nojs="example.com" >}}`, it would not match when the
+request is made to `user-fred.{{< sitevar name="domain" nojs="example.com" >}}` or `group-admin.{{< sitevar name="domain" nojs="example.com" >}}`.*
 
 ```yaml {title="configuration.yml"}
 access_control:
   rules:
   - domain_regex:
-    - '^user-(?P<User>\w+)\.example\.com$'
-    - '^group-(?P<Group>\w+)\.example\.com$'
+    - '^user-(?P<User>\w+)\.{{< sitevar name="domain" format="regex" nojs="example\.com" >}}$'
+    - '^group-(?P<Group>\w+)\.{{< sitevar name="domain" format="regex" nojs="example\.com" >}}$'
     policy: 'one_factor'
 ```
 
 *Multiple domains example, one with a static domain and one with a regex domain. This will match requests to
-`protected.example.com`, `img-private.example.com`, or `data-private.example.com`.*
+`protected.{{< sitevar name="domain" nojs="example.com" >}}`, `img-private.{{< sitevar name="domain" nojs="example.com" >}}`, or `data-private.{{< sitevar name="domain" nojs="example.com" >}}`.*
 
 ```yaml {title="configuration.yml"}
 access_control:
   rules:
-  - domain: 'protected.example.com'
-  - domain_regex: '^(img|data)-private\.example\.com'
+  - domain: 'protected.{{< sitevar name="domain" nojs="example.com" >}}'
+  - domain_regex: '^(img|data)-private\.{{< sitevar name="domain" format="regex" nojs="example\.com" >}}'
     policy: 'one_factor'
 ```
 
@@ -251,8 +262,10 @@ take when a match is made.
 
 {{< confkey type="list(list(string))" required="no" >}}
 
-*__Note:__ this rule criteria __may not__ be used for the [bypass] policy the minimum required authentication level to
-identify the subject is [one_factor]. See [Rule Matching Concept 2] for more information.*
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This rule criteria __may not__ be used for the [bypass](#bypass) policy the minimum required authentication level to
+identify the subject is [one_factor](#one_factor). See [Rule Matching Concept 2](#rule-matching-concept-2-subject-criteria-requires-authentication) for more information.
+{{< /callout >}}
 
 This criteria matches identifying characteristics about the subject. Currently this is either user or groups the user
 belongs to. This allows you to effectively control exactly what each user is authorized to access or to specifically
@@ -280,13 +293,13 @@ ways.*
 ```yaml {title="configuration.yml"}
 access_control:
   rules:
-  - domain: 'example.com'
+  - domain: '{{< sitevar name="domain" nojs="example.com" >}}'
     policy: 'two_factor'
     subject:
     - 'user:john'
     - ['group:admin', 'group:app-name']
     - 'group:super-admin'
-  - domain: 'example.com'
+  - domain: '{{< sitevar name="domain" nojs="example.com" >}}'
     policy: 'two_factor'
     subject:
     - ['user:john']
@@ -300,14 +313,14 @@ expressed in different ways.*
 ```yaml {title="configuration.yml"}
 access_control:
   rules:
-  - domain: 'example.com'
+  - domain: '{{< sitevar name="domain" nojs="example.com" >}}'
     policy: 'one_factor'
     subject: 'group:super-admin'
-  - domain: 'example.com'
+  - domain: '{{< sitevar name="domain" nojs="example.com" >}}'
     policy: 'one_factor'
     subject:
     - 'group:super-admin'
-  - domain: 'example.com'
+  - domain: '{{< sitevar name="domain" nojs="example.com" >}}'
     policy: 'one_factor'
     subject:
     - ['group:super-admin']
@@ -340,12 +353,12 @@ relevant methods are listed in this table:
 
 ##### Examples
 
-*Bypass `OPTIONS` requests to the `example.com` domain.*
+*Bypass `OPTIONS` requests to the `{{< sitevar name="domain" nojs="example.com" >}}` domain.*
 
 ```yaml {title="configuration.yml"}
 access_control:
   rules:
-  - domain: 'example.com'
+  - domain: '{{< sitevar name="domain" nojs="example.com" >}}'
     policy: 'bypass'
     methods:
     - 'OPTIONS'
@@ -390,19 +403,19 @@ access_control:
       - '172.16.0.0/12'
       - '192.168.0.0/18'
   rules:
-  - domain: 'secure.example.com'
+  - domain: 'secure.{{< sitevar name="domain" nojs="example.com" >}}'
     policy: 'one_factor'
     networks:
     - '10.0.0.0/8'
     - '172.16.0.0/12'
     - '192.168.0.0/18'
     - '112.134.145.167/32'
-  - domain: 'secure.example.com'
+  - domain: 'secure.{{< sitevar name="domain" nojs="example.com" >}}'
     policy: 'one_factor'
     networks:
     - 'internal'
     - '112.134.145.167/32'
-  - domain: 'secure.example.com'
+  - domain: 'secure.{{< sitevar name="domain" nojs="example.com" >}}'
     policy: 'two_factor'
 ```
 
@@ -410,8 +423,10 @@ access_control:
 
 {{< confkey type="list(string)" required="no" >}}
 
-*__Important Note:__ to utilize regex you must escape it properly. See
-[regular expressions](../prologue/common.md#regular-expressions) for more information.*
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+To utilize regex you must escape it properly. See
+[regular expressions](../prologue/common.md#regular-expressions) for more information.
+{{< /callout >}}
 
 This criteria matches the path and query of the request using regular expressions. The rule is expressed as a list of
 strings. If any one of the regular expressions in the list matches the request it's considered a match. A useful tool
@@ -428,13 +443,13 @@ likely save you a lot of time if you do it for all resource rules.
 
 ##### Examples
 
-*Applies the [bypass](#bypass) policy when the domain is `app.example.com` and the url is `/api`, or starts with either
+*Applies the [bypass](#bypass) policy when the domain is `app.{{< sitevar name="domain" nojs="example.com" >}}` and the url is `/api`, or starts with either
 `/api/` or `/api?`.*
 
 ```yaml {title="configuration.yml"}
 access_control:
   rules:
-  - domain: 'app.example.com'
+  - domain: 'app.{{< sitevar name="domain" nojs="example.com" >}}'
     policy: 'bypass'
     resources:
     - '^/api([/?].*)?$'
@@ -480,7 +495,7 @@ defaults to `present`.
 ```yaml {title="configuration.yml"}
 access_control:
   rules:
-    - domain: 'app.example.com'
+    - domain: 'app.{{< sitevar name="domain" nojs="example.com" >}}'
       policy: 'bypass'
       query:
       - - operator: 'present'
@@ -549,21 +564,21 @@ This is particularly __important__ for bypass rules. Bypass rules should general
 list. However you need to carefully evaluate your rule list __in order__ to see which rule matches a particular
 scenario. A comprehensive understanding of how rules apply is also recommended.
 
-For example the following rule will consider requests for either `example.com` or any subdomain of `example.com` a match
-if they have a path of exactly `/api` or if they start with `/api/`. This means that the second rule for
-`app.example.com` will not be considered if the request is to `https://app.example.com/api` because the first rule is
-a match for that request.
+For example the following rule will consider requests for either `{{< sitevar name="domain" nojs="example.com" >}}` or any subdomain of
+`{{< sitevar name="domain" nojs="example.com" >}}` a match if they have a path of exactly `/api` or if they start with `/api/`. This means that
+the second rule for `app.{{< sitevar name="domain" nojs="example.com" >}}` will not be considered if the request is to
+`https://app.{{< sitevar name="domain" nojs="example.com" >}}/api` because the first rule is a match for that request.
 
 ```yaml {title="configuration.yml"}
 - domain:
-    - 'example.com'
-    - '*.example.com'
+    - '{{< sitevar name="domain" nojs="example.com" >}}'
+    - '*.{{< sitevar name="domain" nojs="example.com" >}}'
   policy: 'bypass'
   resources:
     - '^/api$'
     - '^/api/'
 - domain:
-    - 'app.example.com'
+    - 'app.{{< sitevar name="domain" nojs="example.com" >}}'
   policy: 'two_factor'
 ```
 
@@ -625,15 +640,15 @@ access_control:
     - name: 'VPN'
       networks: '10.9.0.0/16'
   rules:
-    - domain: 'public.example.com'
+    - domain: 'public.{{< sitevar name="domain" nojs="example.com" >}}'
       policy: 'bypass'
 
-    - domain: '*.example.com'
+    - domain: '*.{{< sitevar name="domain" nojs="example.com" >}}'
       policy: 'bypass'
       methods:
         - 'OPTIONS'
 
-    - domain: 'secure.example.com'
+    - domain: 'secure.{{< sitevar name="domain" nojs="example.com" >}}'
       policy: 'one_factor'
       networks:
         - 'internal'
@@ -642,39 +657,36 @@ access_control:
         - '10.0.0.1'
 
     - domain:
-      - 'secure.example.com'
-      - 'private.example.com'
+      - 'secure.{{< sitevar name="domain" nojs="example.com" >}}'
+      - 'private.{{< sitevar name="domain" nojs="example.com" >}}'
       policy: 'two_factor'
 
-    - domain: 'singlefactor.example.com'
+    - domain: 'singlefactor.{{< sitevar name="domain" nojs="example.com" >}}'
       policy: 'one_factor'
 
-    - domain: 'mx2.mail.example.com'
+    - domain: 'mx2.mail.{{< sitevar name="domain" nojs="example.com" >}}'
       subject: 'group:admins'
       policy: 'deny'
 
-    - domain: '*.example.com'
+    - domain: '*.{{< sitevar name="domain" nojs="example.com" >}}'
       subject:
         - 'group:admins'
         - 'group:moderators'
       policy: 'two_factor'
 
-    - domain: 'dev.example.com'
+    - domain: 'dev.{{< sitevar name="domain" nojs="example.com" >}}'
       resources:
       - '^/groups/dev/.*$'
       subject: 'group:dev'
       policy: 'two_factor'
 
-    - domain: 'dev.example.com'
+    - domain: 'dev.{{< sitevar name="domain" nojs="example.com" >}}'
       resources:
       - '^/users/john/.*$'
       subject:
       - ['group:dev', 'user:john']
       - 'group:admins'
       policy: 'two_factor'
-
-    - domain: '{user}.example.com'
-      policy: 'bypass'
 ```
 
 [RFC7231]: https://datatracker.ietf.org/doc/html/rfc7231

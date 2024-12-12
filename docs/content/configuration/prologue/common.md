@@ -143,11 +143,11 @@ Various examples for these formats.
 0.0.0.0
 tcp://0.0.0.0
 tcp://0.0.0.0/subpath
-tcp://0.0.0.0:9091
-tcp://0.0.0.0:9091/subpath
-tcp://:9091
-tcp://:9091/subpath
-0.0.0.0:9091
+tcp://0.0.0.0:{{< sitevar name="port" nojs="9091" >}}
+tcp://0.0.0.0:{{< sitevar name="port" nojs="9091" >}}/subpath
+tcp://:{{< sitevar name="port" nojs="9091" >}}
+tcp://:{{< sitevar name="port" nojs="9091" >}}/subpath
+0.0.0.0:{{< sitevar name="port" nojs="9091" >}}
 
 udp://0.0.0.0:123
 udp://:123
@@ -238,7 +238,7 @@ sections. This section documents the common parts of this structure.
 
 ```yaml {title="configuration.yml"}
 tls:
-  server_name: 'example.com'
+  server_name: '{{< sitevar name="domain" nojs="example.com" >}}'
   skip_verify: false
   minimum_version: 'TLS1.2'
   maximum_version: 'TLS1.3'
@@ -300,10 +300,7 @@ certificate is provided, in top down order, each certificate must be signed by t
 
 #### private_key
 
-{{< confkey type="string" required="no" >}}
-
-*__Important Note:__ This can also be defined using a [secret](../methods/secrets.md) which is __strongly recommended__
-especially for containerized deployments.*
+{{< confkey type="string" required="no" secret="yes" >}}
 
 The private key to be used with the [certificate_chain](#certificate_chain) for mutual TLS authentication. The public key
 material of the private key must match the private key of the first certificate in the

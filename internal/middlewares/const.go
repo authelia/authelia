@@ -24,7 +24,6 @@ var (
 	headerXForwardedMethod = []byte("X-Forwarded-Method")
 
 	headerVary   = []byte(fasthttp.HeaderVary)
-	headerAllow  = []byte(fasthttp.HeaderAllow)
 	headerOrigin = []byte(fasthttp.HeaderOrigin)
 
 	headerAccessControlAllowCredentials = []byte(fasthttp.HeaderAccessControlAllowCredentials)
@@ -60,6 +59,7 @@ var (
 	headerValueZero            = []byte("0")
 	headerValueCSPNone         = []byte("default-src 'none'")
 	headerValueCSPNoneFormPost = []byte("default-src 'none'; script-src 'sha256-skflBqA90WuHvoczvimLdj49ExKdizFjX2Itd6xKZdU='")
+	headerValueCSPSelf         = []byte("default-src 'self'")
 
 	headerValueNoSniff                 = []byte("nosniff")
 	headerValueStrictOriginCrossOrigin = []byte("strict-origin-when-cross-origin")

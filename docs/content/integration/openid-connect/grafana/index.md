@@ -7,7 +7,10 @@ draft: false
 images: []
 weight: 620
 toc: true
-community: true
+support:
+  level: community
+  versions: true
+  integration: true
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -28,10 +31,14 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://grafana.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://grafana.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `grafana`
 * __Client Secret:__ `insecure_secret`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -54,7 +61,7 @@ identity_providers:
         require_pkce: true
         pkce_challenge_method: 'S256'
         redirect_uris:
-          - 'https://grafana.example.com/login/generic_oauth'
+          - 'https://grafana.{{< sitevar name="domain" nojs="example.com" >}}/login/generic_oauth'
         scopes:
           - 'openid'
           - 'profile'
@@ -74,7 +81,7 @@ Add the following Generic OAuth configuration to the [Grafana] configuration:
 
 ```ini
 [server]
-root_url = https://grafana.example.com
+root_url = https://grafana.{{< sitevar name="domain" nojs="example.com" >}}
 [auth.generic_oauth]
 enabled = true
 name = Authelia
@@ -83,9 +90,9 @@ client_id = grafana
 client_secret = insecure_secret
 scopes = openid profile email groups
 empty_scopes = false
-auth_url = https://auth.example.com/api/oidc/authorization
-token_url = https://auth.example.com/api/oidc/token
-api_url = https://auth.example.com/api/oidc/userinfo
+auth_url = https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization
+token_url = https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token
+api_url = https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo
 login_attribute_path = preferred_username
 groups_attribute_path = groups
 name_attribute_path = name
@@ -96,23 +103,23 @@ use_pkce = true
 
 Configure the following environment variables:
 
-|                  Variable                   |                      Value                      |
-|:-------------------------------------------:|:-----------------------------------------------:|
-|             GF_SERVER_ROOT_URL              |           https://grafana.example.com           |
-|        GF_AUTH_GENERIC_OAUTH_ENABLED        |                      true                       |
-|         GF_AUTH_GENERIC_OAUTH_NAME          |                    Authelia                     |
-|       GF_AUTH_GENERIC_OAUTH_CLIENT_ID       |                     grafana                     |
-|     GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET     |                 insecure_secret                 |
-|        GF_AUTH_GENERIC_OAUTH_SCOPES         |           openid profile email groups           |
-|     GF_AUTH_GENERIC_OAUTH_EMPTY_SCOPES      |                      false                      |
-|       GF_AUTH_GENERIC_OAUTH_AUTH_URL        | https://auth.example.com/api/oidc/authorization |
-|       GF_AUTH_GENERIC_OAUTH_TOKEN_URL       |     https://auth.example.com/api/oidc/token     |
-|        GF_AUTH_GENERIC_OAUTH_API_URL        |   https://auth.example.com/api/oidc/userinfo    |
-| GF_AUTH_GENERIC_OAUTH_LOGIN_ATTRIBUTE_PATH  |               preferred_username                |
-| GF_AUTH_GENERIC_OAUTH_GROUPS_ATTRIBUTE_PATH |                     groups                      |
-|  GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH  |                      name                       |
-|       GF_AUTH_GENERIC_OAUTH_USE_PKCE        |                      true                       |
-|  GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH  |            See [Role Attribute Path]            |
+|                  Variable                   |                                            Value                                             |
+|:-------------------------------------------:|:--------------------------------------------------------------------------------------------:|
+|             GF_SERVER_ROOT_URL              |                           https://grafana.{{< sitevar name="domain" nojs="example.com" >}}                           |
+|        GF_AUTH_GENERIC_OAUTH_ENABLED        |                                             true                                             |
+|         GF_AUTH_GENERIC_OAUTH_NAME          |                                           Authelia                                           |
+|       GF_AUTH_GENERIC_OAUTH_CLIENT_ID       |                                           grafana                                            |
+|     GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET     |                                       insecure_secret                                        |
+|        GF_AUTH_GENERIC_OAUTH_SCOPES         |                                 openid profile email groups                                  |
+|     GF_AUTH_GENERIC_OAUTH_EMPTY_SCOPES      |                                            false                                             |
+|       GF_AUTH_GENERIC_OAUTH_AUTH_URL        | https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization |
+|       GF_AUTH_GENERIC_OAUTH_TOKEN_URL       |     https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token     |
+|        GF_AUTH_GENERIC_OAUTH_API_URL        |    https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo     |
+| GF_AUTH_GENERIC_OAUTH_LOGIN_ATTRIBUTE_PATH  |                                      preferred_username                                      |
+| GF_AUTH_GENERIC_OAUTH_GROUPS_ATTRIBUTE_PATH |                                            groups                                            |
+|  GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH  |                                             name                                             |
+|       GF_AUTH_GENERIC_OAUTH_USE_PKCE        |                                             true                                             |
+|  GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH  |                                  See [Role Attribute Path]                                   |
 
 [Role Attribute Path]: #role-attribute-path
 

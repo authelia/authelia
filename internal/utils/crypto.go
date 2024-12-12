@@ -186,9 +186,17 @@ func (ekb ECDSAKeyBuilder) Build() (any, error) {
 
 // ParseX509FromPEM parses PEM bytes and returns a PKCS key.
 func ParseX509FromPEM(data []byte) (key any, err error) {
-	block, _ := pem.Decode(data)
-	if block == nil {
-		return nil, errors.New("failed to parse PEM block containing the key")
+	var (
+		block *pem.Block
+		rest  []byte
+	)
+
+	if block, rest = pem.Decode(data); block == nil {
+		return nil, errors.New("error occurred attempting to parse PEM block: either no PEM block was supplied or it was malformed")
+	}
+
+	if len(rest) != 0 {
+		return nil, errors.New("error occurred attempting to parse PEM block: the block either had trailing data or was otherwise malformed")
 	}
 
 	return ParsePEMBlock(block)

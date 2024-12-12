@@ -7,7 +7,10 @@ draft: false
 images: []
 weight: 620
 toc: true
-community: true
+support:
+  level: community
+  versions: true
+  integration: true
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -28,10 +31,14 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://minio.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://minio.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `minio`
 * __Client Secret:__ `insecure_secret`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -52,7 +59,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://minio.example.com/oauth_callback'
+          - 'https://minio.{{< sitevar name="domain" nojs="example.com" >}}/oauth_callback'
         scopes:
           - 'openid'
           - 'profile'
@@ -70,14 +77,14 @@ To configure [MinIO] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 3. On the top right, click `Create Configuration`
 4. On the screen that appears, enter the following information:
     - Name: `authelia`
-    - Config URL: `https://auth.example.com/.well-known/openid-configuration`
+    - Config URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
     - Client ID: `minio`
     - Client Secret: `insecure_secret`
     - Claim Name: `groups`
     - Display Name: `Authelia`
     - Claim Prefix: Leave Empty
     - Scopes: `openid,profile,email,groups`
-    - Redirect URI: `https://minio.example.com/oauth_callback`
+    - Redirect URI: `https://minio.{{< sitevar name="domain" nojs="example.com" >}}/oauth_callback`
     - Role Policy: Leave Empty
     - Claim User Info: Disabled
     - Redirect URI Dynamic: Disabled
@@ -92,7 +99,7 @@ To configure [MinIO] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 - [MinIO OpenID Identity Management](https://min.io/docs/minio/linux/reference/minio-server/minio-server.html#minio-server-envvar-external-identity-management-openid)
 
-[MinIO]: https://minio.com/
+[MinIO]: https://min.io/
 [Authelia]: https://www.authelia.com
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

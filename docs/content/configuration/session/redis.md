@@ -29,13 +29,15 @@ session:
   redis:
     host: '127.0.0.1'
     port: 6379
+    timeout: '5s'
+    max_retries: 0
     username: 'authelia'
     password: 'authelia'
     database_index: 0
     maximum_active_connections: 8
     minimum_idle_connections: 0
     tls:
-      server_name: 'myredis.example.com'
+      server_name: 'myredis.{{< sitevar name="domain" nojs="example.com" >}}'
       skip_verify: false
       minimum_version: 'TLS1.2'
       maximum_version: 'TLS1.3'
@@ -80,6 +82,18 @@ quoted:
 host: '[fd00:1111:2222:3333::1]'
 ```
 
+### timeout
+
+{{< confkey type="string,integer" syntax="duration" default="5 seconds" required="no" >}}
+
+The Redis connection timeout.
+
+### max_retries
+
+{{< confkey type="integer" default="0" required="no" >}}
+
+The maximum number of retries on a failed command. Setting this option to 0 disables retries entirely.
+
 ### port
 
 {{< confkey type="integer" default="6379" required="no" >}}
@@ -96,10 +110,7 @@ through the process of setting up [redis ACLs](https://redis.io/topics/acl).
 
 ### password
 
-{{< confkey type="string" required="no" >}}
-
-*__Important Note:__ This can also be defined using a [secret](../methods/secrets.md) which is __strongly recommended__
-especially for containerized deployments.*
+{{< confkey type="string" required="no" secret="yes" >}}
 
 The password for [redis authentication](https://redis.io/commands/auth).
 
@@ -155,10 +166,7 @@ be authenticated with traditional [requirepass] authentication.
 
 #### sentinel_password
 
-{{< confkey type="string" required="no (yes if sentinel_username is supplied)" >}}
-
-*__Important Note:__ This can also be defined using a [secret](../methods/secrets.md) which is __strongly recommended__
-especially for containerized deployments.*
+{{< confkey type="string" required="no (yes if sentinel_username is supplied)" secret="yes" >}}
 
 The password for the [redis sentinel] connection. If specified with sentinel_username, configures Authelia to
 authenticate to the Redis Sentinel with ACL-based authentication. Otherwise, this is used for [requirepass]

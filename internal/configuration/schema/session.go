@@ -43,14 +43,16 @@ type SessionCookie struct {
 
 // SessionRedis represents the configuration related to redis session store.
 type SessionRedis struct {
-	Host                     string `koanf:"host" json:"host" jsonschema:"title=Host" jsonschema_description:"The redis server host."`
-	Port                     int    `koanf:"port" json:"port" jsonschema:"default=6379,title=Host" jsonschema_description:"The redis server port."`
-	Username                 string `koanf:"username" json:"username" jsonschema:"title=Username" jsonschema_description:"The redis username."`
-	Password                 string `koanf:"password" json:"password" jsonschema:"title=Password" jsonschema_description:"The redis password."`
-	DatabaseIndex            int    `koanf:"database_index" json:"database_index" jsonschema:"default=0,title=Database Index" jsonschema_description:"The redis database index."`
-	MaximumActiveConnections int    `koanf:"maximum_active_connections" json:"maximum_active_connections" jsonschema:"default=8,title=Maximum Active Connections" jsonschema_description:"The maximum connections that can be made to redis at one time."`
-	MinimumIdleConnections   int    `koanf:"minimum_idle_connections" json:"minimum_idle_connections" jsonschema:"title=Minimum Idle Connections" jsonschema_description:"The minimum idle connections that should be open to redis."`
-	TLS                      *TLS   `koanf:"tls" json:"tls"`
+	Host                     string        `koanf:"host" json:"host" jsonschema:"title=Host" jsonschema_description:"The redis server host."`
+	Port                     int           `koanf:"port" json:"port" jsonschema:"default=6379,title=Host" jsonschema_description:"The redis server port."`
+	Timeout                  time.Duration `koanf:"timeout" json:"timeout" jsonschema:"default=5 seconds,title=Timeout" jsonschema_description:"The Redis server connection timeout."`
+	MaxRetries               int           `koanf:"max_retries" json:"max_retries" jsonschema:"default=3,title=Maximum Retries" jsonschema_description:"The maximum number of retries on a failed command."`
+	Username                 string        `koanf:"username" json:"username" jsonschema:"title=Username" jsonschema_description:"The redis username."`
+	Password                 string        `koanf:"password" json:"password" jsonschema:"title=Password" jsonschema_description:"The redis password."`
+	DatabaseIndex            int           `koanf:"database_index" json:"database_index" jsonschema:"default=0,title=Database Index" jsonschema_description:"The redis database index."`
+	MaximumActiveConnections int           `koanf:"maximum_active_connections" json:"maximum_active_connections" jsonschema:"default=8,title=Maximum Active Connections" jsonschema_description:"The maximum connections that can be made to redis at one time."`
+	MinimumIdleConnections   int           `koanf:"minimum_idle_connections" json:"minimum_idle_connections" jsonschema:"title=Minimum Idle Connections" jsonschema_description:"The minimum idle connections that should be open to redis."`
+	TLS                      *TLS          `koanf:"tls" json:"tls"`
 
 	HighAvailability *SessionRedisHighAvailability `koanf:"high_availability" json:"high_availability"`
 }
@@ -86,6 +88,8 @@ var DefaultSessionConfiguration = Session{
 // DefaultRedisConfiguration is the default redis configuration.
 var DefaultRedisConfiguration = SessionRedis{
 	Port:                     6379,
+	Timeout:                  time.Second * 5,
+	MaxRetries:               0,
 	MaximumActiveConnections: 8,
 	TLS: &TLS{
 		MinimumVersion: TLSVersion{Value: tls.VersionTLS12},
@@ -95,6 +99,8 @@ var DefaultRedisConfiguration = SessionRedis{
 // DefaultRedisHighAvailabilityConfiguration is the default redis configuration.
 var DefaultRedisHighAvailabilityConfiguration = SessionRedis{
 	Port:                     26379,
+	Timeout:                  time.Second * 5,
+	MaxRetries:               0,
 	MaximumActiveConnections: 8,
 	TLS: &TLS{
 		MinimumVersion: TLSVersion{Value: tls.VersionTLS12},

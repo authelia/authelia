@@ -35,3 +35,4 @@ seo:
 ## Identity Providers
 
 - [OpenID Connect 1.0 Integration](../../integration/openid-connect/frequently-asked-questions.md)
+- [Trusted Header SSO Integration](../../integration/trusted-header-sso/frequently-asked-questions.md)

@@ -51,7 +51,7 @@ separately.
 {{< envTabs "Generate a Random Client ID" >}}
 {{< envTab "Docker" >}}
 ```bash
-docker run authelia/authelia:latest authelia crypto rand --length 72 --charset rfc3986
+docker run --rm authelia/authelia:latest authelia crypto rand --length 72 --charset rfc3986
 ```
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
@@ -77,7 +77,7 @@ separately.
 {{< envTabs "Generate a Random Client Secret" >}}
 {{< envTab "Docker" >}}
 ```bash
-docker run authelia/authelia:latest authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986
+docker run --rm authelia/authelia:latest authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986
 ```
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
@@ -100,7 +100,11 @@ your hardware's capabilities.
 
 To test the duration of different work factors, you can measure it like this:
 `time authelia crypto hash generate pbkdf2 --variant sha512 --iterations 310000 --password insecure_password`.
-Note: You should not use your actual passwords for this test, the time taken should be the same for any reasonable password length.
+
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+You should not use your actual passwords for this test, the time taken should be the same for any reasonable password
+length.
+{{< /callout >}}
 
 You can read more about password hashing tuning in the
 [Passwords reference guide](../../reference/guides/passwords.md#tuning).
@@ -189,6 +193,8 @@ reasonably be matched to an individual authorization policy. Because the other c
 per-request authorization these criteria types are fairly unlikely to become part of OpenID Connect 1.0 as there are no
 ways to apply these criteria except during the initial authorization request.
 
+See [ADR1](../../reference/architecture-decision-log/1.md) for more information.
+
 ### Why isn't the Access Token a JSON Web Token?
 
 The Access Token and it's format is entirely up to Authorization Servers / OpenID Connect 1.0 Providers. The
@@ -221,6 +227,31 @@ Users who still desire or have an application that requires the Access Token is 
 [access_token_signed_response_alg](../../configuration/identity-providers/openid-connect/clients.md#access_token_signed_response_alg)
 client configuration option.
 
+### How should I link user accounts to Authelia OpenID Connect 1.0 responses in the application I'm designing?
+
+There are several in-use methodologies for linking user accounts ot OpenID Connect 1.0 Providers. The specification has
+a fairly strong opinion about how this is done for various reasons and the supported method by Authelia is the same as
+what the specification supports.
+
+Specifically we support using the combination of the `iss` and `sub` claim as an anchor to local user accounts. This
+combination is a combination that must be unique for any given user identity. Claims such as `email` and
+`preferred_username` have no formal guarantees of stability by the OpenID Connect 1.0 specification.
+
+Several in-use applications including ones that Authelia users frequently use utilize claims such as `email` and
+`preferred_username`. However these implementations are in contradiction with the specification. These attributes
+realistically should only be used as hints when a user who has not linked their account tries to login with OpenID
+Connect 1.0 and has not logged in yet. For example an application may prefill the username or email field of a login or
+registration form using these claims.
+
+Utilization of these claims could potentially become problematic if we ever implement a feature to change usernames or
+email addresses. Therefore we only guarantee the stability of those specific claims and at such a time as we allow
+changing of usernames or email addresses the link between those values will remain stable, any other claim is to be
+considered fragile.
+
+If interested in the specification you can read the
+[Claim Stability and Uniqueness](https://openid.net/specs/openid-connect-core-1_0.html#ClaimStability) section of the
+specification.
+
 ## Solutions
 
 The following section details solutions for multiple of the questions above.
@@ -251,7 +282,7 @@ you're facing.
    - If using `docker run` see the `--network-alias` option of the [docker run](https://docs.docker.com/engine/reference/commandline/run/)
      reference for more information.
 
-Examples (assuming your Authelia Root URL is `https://auth.example.com`):
+Examples (assuming your Authelia Root URL is `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`):
 
 ```yaml {title="docker-compose.yml"}
 services:
@@ -264,7 +295,7 @@ services:
       ## Mandatory that the proxy is on the same network as the application, and that it has this alias.
       proxy:
         aliases:
-          - 'auth.example.com'
+          - '{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
   authelia:
     networks:
       proxy: {}
@@ -276,7 +307,7 @@ networks:
 ```
 
 ```console
-docker run -d --name proxy --network proxy --network-alias auth.example.com <other proxy arguments>
+docker run -d --name proxy --network proxy --network-alias {{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}} <other proxy arguments>
 docker run -d --name application --network proxy <other application arguments>
 ```
 

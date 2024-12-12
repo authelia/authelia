@@ -1,6 +1,7 @@
 import React, { MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { Alert, AlertTitle, Button, Checkbox, FormControl, FormControlLabel, Grid, Link, Theme } from "@mui/material";
+import { Alert, AlertTitle, Button, Checkbox, FormControl, FormControlLabel, Link, Theme } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import TextField from "@mui/material/TextField";
 import makeStyles from "@mui/styles/makeStyles";
 import { BroadcastChannel } from "broadcast-channel";
@@ -222,7 +223,7 @@ const FirstFactorForm = function (props: Props) {
             <LanguageSelector value={lang} localeList={localeList} onChange={handleChangeLanguage} picker={true} />
             <FormControl id={"form-login"}>
                 <Grid container spacing={2}>
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <TextField
                             inputRef={usernameRef}
                             id="username-textfield"
@@ -240,7 +241,7 @@ const FirstFactorForm = function (props: Props) {
                             onKeyDown={handleUsernameKeyDown}
                         />
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <TextField
                             inputRef={passwordRef}
                             id="password-textfield"
@@ -260,7 +261,7 @@ const FirstFactorForm = function (props: Props) {
                         />
                     </Grid>
                     {passwordCapsLock ? (
-                        <Grid item xs={12} marginX={2}>
+                        <Grid size={{ xs: 12 }} marginX={2}>
                             <Alert severity={"warning"}>
                                 <AlertTitle>{translate("Warning")}</AlertTitle>
                                 {passwordCapsLockPartial
@@ -270,7 +271,7 @@ const FirstFactorForm = function (props: Props) {
                         </Grid>
                     ) : null}
                     {props.rememberMe ? (
-                        <Grid item xs={12} className={classnames(styles.actionRow)}>
+                        <Grid size={{ xs: 12 }} className={classnames(styles.actionRow)}>
                             <FormControlLabel
                                 control={
                                     <Checkbox
@@ -288,7 +289,7 @@ const FirstFactorForm = function (props: Props) {
                             />
                         </Grid>
                     ) : null}
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <Button
                             id="sign-in-button"
                             variant="contained"
@@ -301,7 +302,7 @@ const FirstFactorForm = function (props: Props) {
                         </Button>
                     </Grid>
                     {props.resetPassword ? (
-                        <Grid item xs={12} className={classnames(styles.actionRow, styles.flexEnd)}>
+                        <Grid size={{ xs: 12 }} className={classnames(styles.actionRow, styles.flexEnd)}>
                             <Link
                                 id="reset-password-button"
                                 component="button"

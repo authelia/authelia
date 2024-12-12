@@ -3,8 +3,9 @@
   functions = "functions"
 
 [build.environment]
-  NODE_VERSION = "20.10.0"
-  NPM_VERSION = "10.2.3"
+  NODE_VERSION = "20.11.0"
+  NPM_VERSION = "10.2.4"
+  HUGO_VERSION = "0.125.3"
 
 [context.production]
   command = "pnpm build"
@@ -38,7 +39,7 @@
     Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
     X-Content-Type-Options = "nosniff"
     X-XSS-Protection = "1; mode=block"
-    Content-Security-Policy = "default-src 'self'; manifest-src 'self'; connect-src 'self'; font-src 'self'; img-src 'self' https://avatars.githubusercontent.com data:; script-src 'self' 'nonce-dXNlcj0iaGVsbG8iLGRvbWFpbj0iaGVua3ZlcmxpbmRlLmNvbSIsZG9jdW1lbnQud3JpdGUodXNlcisiQCIrZG9tYWluKTs=' 'sha256-aWZ3y/RxbBYKHXH0z8+8ljrHG1mSBvyzSfxSMjBSaXk='; style-src 'self'"
+    Content-Security-Policy = "default-src 'self'; manifest-src 'self'; connect-src 'self'; font-src 'self'; img-src 'self' https://avatars.githubusercontent.com https://github.com data:; script-src 'self' 'nonce-dXNlcj0iaGVsbG8iLGRvbWFpbj0iaGVua3ZlcmxpbmRlLmNvbSIsZG9jdW1lbnQud3JpdGUodXNlcisiQCIrZG9tYWluKTs=' 'sha256-aWZ3y/RxbBYKHXH0z8+8ljrHG1mSBvyzSfxSMjBSaXk='; style-src 'self' 'unsafe-inline'"
     X-Frame-Options = "SAMEORIGIN"
     Referrer-Policy = "strict-origin"
     Permissions-Policy = "geolocation=(self), microphone=(), camera=()"

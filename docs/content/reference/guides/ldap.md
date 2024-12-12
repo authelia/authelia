@@ -157,7 +157,7 @@ Requirements:
 1. Must be using the `memberof` search mode.
 2. Directory server must support searching by the first relative distinguished name as an attribute.
 
-Splits every `memberOf` value to obtain th e first relative distinguished name and joins all of those after surrounding
+Splits every `memberOf` value to obtain the first relative distinguished name and joins all of those after surrounding
 them in parenthesis. This makes the general suggested filter pattern for this particular replacement
 `(|{memberof:rdn})`. The format of this value is as follows:
 

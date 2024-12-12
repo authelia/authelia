@@ -57,24 +57,28 @@ replaced with the source IP of the client.
 ## Assumptions and Adaptation
 
 This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
-can not reasonably have examples for every advanced configuration option that exists. The
-following are the assumptions we make:
+can not reasonably have examples for every advanced configuration option that exists. Some of these values can
+automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
+
+The following are the assumptions we make:
 
 * Deployment Scenario:
   * Single Host
-  * Authelia is deployed as a Container with the container name `authelia` on port `9091`
+  * Authelia is deployed as a Container with the container name `{{< sitevar name="host" nojs="authelia" >}}` on port `{{< sitevar name="port" nojs="9091" >}}`
   * Proxy is deployed as a Container on a network shared with Authelia
-* The above assumption means that Authelia should be accessible to the proxy on `http://authelia:9091` and as such:
+* The above assumption means that Authelia should be accessible to the proxy on `{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}` and as such:
   * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
     certificate defined
-  * You will have to adapt all instances of `authelia` in the URL if:
+  * You will have to adapt all instances of `{{< sitevar name="host" nojs="authelia" >}}` in the URL if:
     * you're using a different container name
     * you deployed the proxy to a different location
-  * You will have to adapt all instances of `9091` in the URL if:
+  * You will have to adapt all instances of `{{< sitevar name="port" nojs="9091" >}}` in the URL if:
     * you have adjusted the default port in the configuration
   * You will have to adapt the entire URL if:
     * Authelia is on a different host to the proxy
-* All services are part of the `example.com` domain:
+* All services are part of the `{{< sitevar name="domain" nojs="example.com" >}}` domain:
   * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
     just testing or you want to use that specific domain
 
@@ -105,16 +109,16 @@ configuration as well as the legacy configuration for context.
 ```yaml {title="configuration.yml"}
 session:
   cookies:
-    - domain: 'example.com'
-      authelia_url: 'https://auth.example.com'
-      default_redirection_url: 'https://www.example.com'
+    - domain: '{{</* sitevar name="domain" nojs="example.com" */>}}'
+      authelia_url: 'https://{{</* sitevar name="subdomain-authelia" nojs="auth" */>}}.{{</* sitevar name="domain" nojs="example.com" */>}}'
+      default_redirection_url: 'https://www.{{</* sitevar name="domain" nojs="example.com" */>}}'
 ```
 {{< /sessionTab >}}
 {{< sessionTab "Legacy" >}}
 ```yaml {title="configuration.yml"}
-default_redirection_url: 'https://www.example.com'
+default_redirection_url: 'https://www.{{</* sitevar name="domain" nojs="example.com" */>}}'
 session:
-  domain: 'example.com'
+  domain: '{{</* sitevar name="domain" nojs="example.com" */>}}'
 ```
 {{< /sessionTab >}}
 {{< /sessionTabs >}}
@@ -136,19 +140,21 @@ which includes ACME and various other useful utilities.
 ---
 networks:
   net:
-    driver: bridge
+    driver: 'bridge'
 
 services:
   nginx:
-    container_name: nginx
-    image: lscr.io/linuxserver/nginx
-    restart: unless-stopped
+    container_name: 'nginx'
+    image: 'lscr.io/linuxserver/nginx'
+    restart: 'unless-stopped'
     networks:
       net:
-        aliases: []
+        aliases:
+          - 'https://{{</* sitevar name="subdomain-authelia" nojs="auth" */>}}.{{</* sitevar name="domain" nojs="example.com" */>}}'
     ports:
-      - '80:80'
-      - '443:443'
+      - '80:80/tcp'
+      - '443:443/tcp'
+      - '443:443/udp'
     volumes:
       - '${PWD}/data/nginx/snippets:/config/nginx/snippets'
       - '${PWD}/data/nginx/site-confs:/config/nginx/site-confs'
@@ -156,43 +162,34 @@ services:
       TZ: 'Australia/Melbourne'
       DOCKER_MODS: 'linuxserver/mods:nginx-proxy-confs'
   authelia:
-    container_name: authelia
-    image: authelia/authelia
-    restart: unless-stopped
+    container_name: '{{< sitevar name="host" nojs="authelia" >}}'
+    image: 'authelia/authelia'
+    restart: 'unless-stopped'
     networks:
-      net:
-        aliases: []
-    expose:
-      - 9091
+      net: {}
     volumes:
-      - ${PWD}/data/authelia/config:/config
+      - '${PWD}/data/authelia/config:/config'
     environment:
       TZ: 'Australia/Melbourne'
   nextcloud:
-    container_name: nextcloud
-    image: lscr.io/linuxserver/nextcloud
-    restart: unless-stopped
+    container_name: 'nextcloud'
+    image: 'lscr.io/linuxserver/nextcloud'
+    restart: 'unless-stopped'
     networks:
-      net:
-        aliases: []
-    expose:
-      - 443
+      net: {}
     volumes:
-      - ${PWD}/data/nextcloud/config:/config
-      - ${PWD}/data/nextcloud/data:/data
+      - '${PWD}/data/nextcloud/config:/config'
+      - '${PWD}/data/nextcloud/data:/data'
     environment:
       PUID: '1000'
       PGID: '1000'
       TZ: 'Australia/Melbourne'
   whoami:
-    container_name: whoami
-    image: docker.io/traefik/whoami
-    restart: unless-stopped
+    container_name: 'whoami'
+    image: 'docker.io/traefik/whoami'
+    restart: 'unless-stopped'
     networks:
-      net:
-        aliases: []
-    expose:
-      - 80
+      net: {}
     environment:
       TZ: 'Australia/Melbourne'
 ...
@@ -216,11 +213,11 @@ Below you will find commented examples of the following configuration:
 
 ### Assumptions
 
-* Authelia is accessible to [NGINX] process with the hostname `authelia` on port `9091` making the URL
-  `http://authelia:9091`. If this is not the case adjust all instances of this as appropriate.
+* Authelia is accessible to [NGINX] process with the hostname `{{< sitevar name="host" nojs="authelia" >}}` on port `{{< sitevar name="port" nojs="9091" >}}` making the URL
+  `{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}`. If this is not the case adjust all instances of this as appropriate.
 * The [NGINX] configuration is in the folder `/config/nginx`. If this is not the case adjust all instances of this as
   appropriate.
-* The URL you wish Authelia to be accessible on is `https://auth.example.com`. If this is not the case adjust all
+* The URL you wish Authelia to be accessible on is `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`. If this is not the case adjust all
   instances of this as appropriate.
 
 ### Standard Example
@@ -249,7 +246,7 @@ server {
 
     include /config/nginx/snippets/ssl.conf;
 
-    set $upstream http://authelia:9091;
+    set $upstream {{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}};
 
     location / {
         include /config/nginx/snippets/proxy.conf;
@@ -429,7 +426,7 @@ proxy_set_header X-Forwarded-For $remote_addr;
 `auth_request` and is paired with [authelia-authrequest.conf](#authelia-authrequestconf).*
 
 ```nginx {title="authelia-location.conf"}
-set $upstream_authelia http://authelia:9091/api/authz/auth-request;
+set $upstream_authelia {{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/auth-request;
 
 ## Virtual endpoint created by nginx to forward auth requests.
 location /internal/authelia/authz {
@@ -499,8 +496,8 @@ error_page 401 =302 $redirection_url;
 # set_escape_uri $target_url $scheme://$http_host$request_uri;
 
 ## Legacy Method: When there is a 401 response code from the authz endpoint redirect to the portal with the 'rd'
-## URL parameter set to $target_url. This requires users update 'auth.example.com/' with their external authelia URL.
-# error_page 401 =302 https://auth.example.com/?rd=$target_url;
+## URL parameter set to $target_url. This requires users update '{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/' with their external authelia URL.
+# error_page 401 =302 https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/?rd=$target_url;
 ```
 
 #### authelia-location-basic.conf
@@ -511,11 +508,13 @@ snippet is rarely required. It's only used if you want to only allow
 [HTTP Basic Authentication](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication) for a particular
 endpoint. It's recommended to use [authelia-location.conf](#authelia-locationconf) instead.*
 
-_**Note:** This example assumes you configured an authz endpoint with the name `auth-request/basic` and the
-implementation `AuthRequest` which contains the `HeaderAuthorization` and `HeaderProxyAuthorization` strategies._
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This example assumes you configured an authz endpoint with the name `auth-request/basic` and the
+implementation `AuthRequest` which contains the `HeaderAuthorization` and `HeaderProxyAuthorization` strategies.
+{{< /callout >}}
 
 ```nginx {title="authelia-location-basic.conf"}
-set $upstream_authelia http://authelia:9091/api/authz/auth-request/basic;
+set $upstream_authelia {{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/auth-request/basic;
 
 # Virtual endpoint created by nginx to forward auth requests.
 location /internal/authelia/authz/basic {
@@ -610,12 +609,12 @@ location  /internal/authelia/authz/detect {
         return 401;
     }
 
-    ## IMPORTANT: The below URL `https://auth.example.com/` MUST be replaced with the externally accessible URL of the
+    ## IMPORTANT: The below URL `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/` MUST be replaced with the externally accessible URL of the
     ## Authelia Portal/Site.
     ##
     ## The original request didn't target /force-basic, redirect to the pretty login page
-    ## This is what `error_page 401 =302 https://auth.example.com/?rd=$target_url;` did.
-    return 302 https://auth.example.com/$is_args$args;
+    ## This is what `error_page 401 =302 https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/?rd=$target_url;` did.
+    return 302 https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/$is_args$args;
 }
 ```
 

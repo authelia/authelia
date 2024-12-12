@@ -7,7 +7,10 @@ draft: false
 images: []
 weight: 620
 toc: true
-community: true
+support:
+  level: community
+  versions: true
+  integration: true
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -27,18 +30,25 @@ seo:
 
 ### Specific Notes
 
-*__Important Note:__ [Synology DSM] does not support automatically creating users via [OpenID Connect 1.0]. It is therefore
-recommended that you ensure Authelia and [Synology DSM] share an LDAP server (for DSM v7.1).
-With DSM v7.2+ you have the possibility to also use local DSM accounts (see `Account type` below) and do not need to set up a shared LDAP.*
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+[Synology DSM](https://www.synology.com/en-global/dsm) does not support automatically creating users via [OpenID Connect 1.0](../../openid-connect/introduction.md). It is therefore
+recommended that you ensure Authelia and [Synology DSM](https://www.synology.com/en-global/dsm) share an LDAP server (for DSM v7.1).
+With DSM v7.2+ you have the possibility to also use local DSM accounts (see `Account type` below) and do not need to set
+up a shared LDAP.
+{{< /callout >}}
 
 ### Assumptions
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://dsm.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://dsm.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `synology-dsm`
 * __Client Secret:__ `insecure_secret`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -59,7 +69,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://dsm.example.com'
+          - 'https://dsm.{{< sitevar name="domain" nojs="example.com" >}}'
         scopes:
           - 'openid'
           - 'profile'
@@ -82,10 +92,10 @@ To configure [Synology DSM] to utilize Authelia as an [OpenID Connect 1.0] Provi
   * Profile: `OIDC`
   * Account type: `Domain/LDAP/local` (Note: Account type is supported DSM v7.2+)
   * Name: `Authelia`
-  * Well Known URL: `https://auth.example.com/.well-known/openid-configuration`
+  * Well Known URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
   * Application ID: `synology-dsm`
   * Application Key: `insecure_secret`
-  * Redirect URL: `https://dsm.example.com`
+  * Redirect URL: `https://dsm.{{< sitevar name="domain" nojs="example.com" >}}`
   * Authorisation Scope: `openid profile groups email`
   * Username Claim: `preferred_username`
 7. Save the settings.

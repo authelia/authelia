@@ -105,6 +105,12 @@ func (p *LDAPUserProvider) parseDynamicUsersConfiguration() {
 		p.usersAttributes = append(p.usersAttributes, p.config.Attributes.DisplayName)
 	}
 
+	if len(p.config.Attributes.MemberOf) != 0 {
+		if !utils.IsStringInSlice(p.config.Attributes.MemberOf, p.usersAttributes) {
+			p.usersAttributes = append(p.usersAttributes, p.config.Attributes.MemberOf)
+		}
+	}
+
 	if p.config.AdditionalUsersDN != "" {
 		p.usersBaseDN = p.config.AdditionalUsersDN + "," + p.config.BaseDN
 	} else {
@@ -173,16 +179,4 @@ func (p *LDAPUserProvider) parseDynamicGroupsConfiguration() {
 	}
 
 	p.log.Tracef("Detected group filter replacements that need to be resolved per lookup are: input=%v, username=%v, dn=%v", p.groupsFilterReplacementInput, p.groupsFilterReplacementUsername, p.groupsFilterReplacementDN)
-}
-
-func (p *LDAPUserProvider) parseDynamicConfiguration() {
-	if len(p.config.Attributes.MemberOf) != 0 {
-		if !utils.IsStringInSlice(p.config.Attributes.MemberOf, p.usersAttributes) {
-			p.usersAttributes = append(p.usersAttributes, p.config.Attributes.MemberOf)
-		}
-
-		if !utils.IsStringInSlice(p.config.Attributes.MemberOf, p.groupsAttributes) {
-			p.groupsAttributes = append(p.groupsAttributes, p.config.Attributes.MemberOf)
-		}
-	}
 }

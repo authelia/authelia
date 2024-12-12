@@ -7,7 +7,10 @@ draft: false
 images: []
 weight: 620
 toc: true
-community: true
+support:
+  level: community
+  versions: true
+  integration: true
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -28,10 +31,14 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://jellyfin.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://jellyfin.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `jellyfin`
 * __Client Secret:__ `insecure_secret`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -54,7 +61,7 @@ identity_providers:
         require_pkce: true
         pkce_challenge_method: 'S256'
         redirect_uris:
-          - 'https://jellyfin.example.com/sso/OID/redirect/authelia'
+          - 'https://jellyfin.{{< sitevar name="domain" nojs="example.com" >}}/sso/OID/redirect/authelia'
         scopes:
           - 'openid'
           - 'profile'
@@ -65,13 +72,13 @@ identity_providers:
 
 ### Application
 
-_**Important Note:** This configuration assumes [Jellyfin] administrators are part of the `jellyfin-admins` group, and
-[Jellyfin] users are part of the `jellyfin-users` group. Depending on your specific group configuration, you will have
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+This configuration assumes [Jellyfin](https://jellyfin.org/) administrators are part of the `jellyfin-admins` group, and
+[Jellyfin](https://jellyfin.org/) users are part of the `jellyfin-users` group. Depending on your specific group configuration, you will have
 to adapt the `AdminRoles` and `Roles` nodes respectively. Alternatively you may elect to create a new authorization
-policy in [provider authorization policies] then utilize that policy as the [client authorization policy]._
+policy in [provider authorization policies](../../../configuration/identity-providers/openid-connect/provider.md#authorization_policies) then utilize that policy as the [client authorization policy](./../../configuration/identity-providers/openid-connect/clients.md#authorization_policy).
+{{< /callout >}}
 
-[client authorization policy]: ../../../configuration/identity-providers/openid-connect/clients.md#authorization_policy
-[provider authorization policies]: ../../../configuration/identity-providers/openid-connect/provider.md#authorization_policies
 
 To configure [Jellyfin] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
@@ -109,7 +116,7 @@ To configure [Jellyfin] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
     1. Name of the OID Provider: `Authelia`
 
-    2. OID Endpoint: `https://auth.example.com`
+    2. OID Endpoint: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
 
     3. OpenID Client ID: `jellyfin`
 
@@ -148,7 +155,7 @@ Alternatively you can utilize the following configuration XML:
       </key>
       <value>
         <PluginConfiguration>
-          <OidEndpoint>https://auth.example.com</OidEndpoint>
+          <OidEndpoint>https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}</OidEndpoint>
           <OidClientId>jellyfin</OidClientId>
           <OidSecret>insecure_secret</OidSecret>
           <Enabled>true</Enabled>

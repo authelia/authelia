@@ -27,6 +27,10 @@ specific questions may be answered.
 
 1. Authelia *__MUST__* be served via the `https` scheme. This is not optional even for testing. This is a deliberate
    design decision to improve security directly (by using encrypted communication) and indirectly by reducing complexity.
+2. Your proxy configuration for Authelia *__MUST__* include all of the
+   [Required Headers](../proxies/introduction.md#required-headers).
+3. When using the [Proxy Authorization](../../reference/guides/proxy-authorization.md) the proxy must include all of the
+   required headers for the specific implementation that has been configured, similar to the curated examples.
 
 ### Forwarded Authentication
 
@@ -35,8 +39,8 @@ cookie to determine if a user must be forwarded to the authentication portal.
 
 In addition to the `https` scheme requirement for Authelia itself:
 
-1. Due to the fact a cookie is used, it's an intentional design decision that *__ALL__* applications/domains protected via
-this method *__MUST__* use secure schemes (`https` and `wss`) for all of their communication.
+1. Due to the fact a cookie is used, it's an intentional design decision that *__ALL__* applications/domains protected
+   via this method *__MUST__* use secure schemes (`https` and `wss`) for all of their communication.
 
 ### OpenID Connect 1.0
 
@@ -45,12 +49,18 @@ by the relevant specifications.
 
 ## Important Notes
 
-{{< callout context="danger" title="Important Notes" icon="alert-octagon" >}}
+{{< callout context="danger" title="Important Notes" icon="outline/alert-octagon" >}}
 The following section has general important notes for users getting started.
 {{< /callout >}}
 
 - When integrating Authelia with a proxy users should read the specific
   [Proxy Integration Important Notes](../proxies/introduction.md#important-notes).
+
+## Documentation Variables
+
+Some of the values presented in the documentation can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -87,7 +97,7 @@ The important sections to consider in initial configuration are as follows:
 access_control:
   default_policy: deny
   rules:
-    - domain: '*.example.com'
+    - domain: '*.{{< sitevar name="domain" nojs="example.com" >}}'
       policy: one_factor
 ```
 
@@ -101,9 +111,11 @@ There are several methods of deploying *Authelia* and we recommend reading the
 The default method of utilizing *Authelia* is via the [Proxy Integrations](../proxies/introduction.md). It's
 recommended that you read the relevant [Proxy Integration Documentation](../proxies/introduction.md).
 
-*__Important Note:__ When your [Deployment](#deployment) is on [Kubernetes](../kubernetes/introduction.md) we
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+When your [Deployment](#deployment) is on [Kubernetes](../kubernetes/introduction.md) we
 recommend viewing the dedicated [Kubernetes Documentation](../kubernetes/introduction.md) prior to viewing the
-[Proxy Integration Documentation](../proxies/introduction.md).*
+[Proxy Integration Documentation](../proxies/introduction.md).
+{{< /callout >}}
 
 ## Additional Useful Links
 

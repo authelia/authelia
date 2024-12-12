@@ -22,7 +22,7 @@ Perform RSA certificate cryptographic operations
 
 Perform RSA certificate cryptographic operations.
 
-This subcommand allows preforming RSA certificate cryptographic tasks.
+This subcommand allows performing RSA certificate cryptographic tasks.
 
 ### Examples
 

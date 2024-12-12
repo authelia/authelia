@@ -62,14 +62,14 @@ log:
 
 ```json
 {"level":"info","msg":"Logging severity set to info","time":"2020-01-01T00:00:00+11:00"}
-{"level":"info","msg":"Authelia is listening for non-TLS connections on 0.0.0.0:9091","time":"2020-01-01T00:00:00+11:00"}
+{"level":"info","msg":"Authelia is listening for non-TLS connections on 0.0.0.0:{{< sitevar name="port" nojs="9091" >}}","time":"2020-01-01T00:00:00+11:00"}
 ```
 
 #### Text format
 
 ```text
 time="2020-01-01T00:00:00+11:00" level=info msg="Logging severity set to info"
-time="2020-01-01T00:00:00+11:00" level=info msg="Authelia is listening for non-TLS connections on 0.0.0.0:9091"
+time="2020-01-01T00:00:00+11:00" level=info msg="Authelia is listening for non-TLS connections on 0.0.0.0:{{< sitevar name="port" nojs="9091" >}}"
 ```
 
 ### file_path
@@ -120,3 +120,5 @@ standard output, and the defined logging location.
 log:
   keep_stdout: true
 ```
+
+[RFC3339]: https://datatracker.ietf.org/doc/html/rfc3339

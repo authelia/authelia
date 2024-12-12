@@ -1351,14 +1351,28 @@ func TestStringToPrivateKeyHookFunc(t *testing.T) {
 			have:   x509PrivateKeyRSABad,
 			want:   nilRSA,
 			decode: true,
-			err:    "could not decode to a *rsa.PrivateKey: failed to parse PEM block containing the key",
+			err:    "could not decode to a *rsa.PrivateKey: error occurred attempting to parse PEM block: either no PEM block was supplied or it was malformed",
+		},
+		{
+			desc:   "ShouldNotDecodeBadRSAPrivateKeyTrailingData",
+			have:   strings.ReplaceAll(x509PrivateKeyRSA2048, "END PRIVATE KEY-----", "END PRIVATE KEY---------"),
+			want:   nilRSA,
+			decode: true,
+			err:    "could not decode to a *rsa.PrivateKey: error occurred attempting to parse PEM block: either no PEM block was supplied or it was malformed",
+		},
+		{
+			desc:   "ShouldNotDecodeBadRSAPrivateKeyTrailingDataDoubled",
+			have:   x509PrivateKeyRSA2048 + x509PrivateKeyRSA2048,
+			want:   nilRSA,
+			decode: true,
+			err:    "could not decode to a *rsa.PrivateKey: error occurred attempting to parse PEM block: the block either had trailing data or was otherwise malformed",
 		},
 		{
 			desc:   "ShouldNotDecodeBadECDSAPrivateKey",
 			have:   x509PrivateKeyECBad,
 			want:   nilECDSA,
 			decode: true,
-			err:    "could not decode to a *ecdsa.PrivateKey: failed to parse PEM block containing the key",
+			err:    "could not decode to a *ecdsa.PrivateKey: error occurred attempting to parse PEM block: either no PEM block was supplied or it was malformed",
 		},
 		{
 			desc:   "ShouldNotDecodeCertificateToRSAPrivateKey",
@@ -1473,7 +1487,7 @@ func TestStringToX509CertificateHookFunc(t *testing.T) {
 			have:   x509PrivateKeyRSABad,
 			want:   nilkey,
 			decode: true,
-			err:    "could not decode to a *x509.Certificate: failed to parse PEM block containing the key",
+			err:    "could not decode to a *x509.Certificate: error occurred attempting to parse PEM block: either no PEM block was supplied or it was malformed",
 		},
 	}
 

@@ -7,7 +7,10 @@ draft: false
 images: []
 weight: 620
 toc: true
-community: true
+support:
+  level: community
+  versions: true
+  integration: true
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -27,15 +30,19 @@ seo:
 This example makes the following assumptions:
 
 * __Cloudflare Team Name:__ `example-team`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `cloudflare`
 * __Client Secret:__ `insecure_secret`
 
-*__Important Note:__ [Cloudflare Zero Trust] does not properly URL encode the secret per [RFC6749 Appendix B] at the
-time this article was last modified (noted at the bottom). This means you'll either have to use only alphanumeric
-characters for the secret or URL encode the secret yourself.*
+Some of the values presented in this guide can automatically be replaced with documentation variables.
 
-[RFC6749 Appendix B]: https://datatracker.ietf.org/doc/html/rfc6749#appendix-B
+{{< sitevar-preferences >}}
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+[Cloudflare Zero Trust](https://www.cloudflare.com/products/zero-trust/) does not properly URL encode the secret per [RFC6749 Appendix B](https://datatracker.ietf.org/doc/html/rfc6749#appendix-B) at the
+time this article was last modified (noted at the bottom). This means you'll either have to use only alphanumeric
+characters for the secret or URL encode the secret yourself.
+{{< /callout >}}
 
 ## Configuration
 
@@ -66,9 +73,11 @@ identity_providers:
 
 ### Application
 
-*__Important Note:__ It is a requirement that the Authelia URL's can be requested by Cloudflare's servers. This usually
-means that the URL's are accessible to foreign clients on the internet. There may be a way to configure this without
-accessibility to foreign clients on the internet on Cloudflare's end but this is beyond the scope of this document.*
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+It is a requirement that the Authelia URL's can be requested by Cloudflare's servers. This usually
+means that the URLs are accessible to foreign clients on the internet. There may be a way to configure this without
+accessibility to foreign clients on the internet on Cloudflare's end, but this is beyond the scope of this document.
+{{< /callout >}}
 
 To configure [Cloudflare Zero Trust] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
@@ -81,9 +90,9 @@ To configure [Cloudflare Zero Trust] to utilize Authelia as an [OpenID Connect 1
    1. Name: `Authelia`
    2. App ID: `cloudflare`
    3. Client Secret: `insecure_secret`
-   4. Auth URL: `https://auth.example.com/api/oidc/authorization`
-   5. Token URL: `https://auth.example.com/api/oidc/token`
-   6. Certificate URL: `https://auth.example.com/jwks.json`
+   4. Auth URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
+   5. Token URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
+   6. Certificate URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/jwks.json`
    7. Enable `Proof Key for Code Exchange (PKCE)`
    8. Add the following OIDC Claims: `preferred_username`, `mail`
 7. Click Save

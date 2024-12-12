@@ -25,21 +25,21 @@
     "postinstall": "hugo-installer --version otherDependencies.hugo --extended --destination node_modules/.bin/hugo"
   },
   "dependencies": {
-    "@hyas/doks-core": "^1.4.1",
-    "@hyas/images": "^3.1.0",
-    "@hyas/inline-svg": "^1.0.5",
-    "@hyas/seo": "^2.1.0",
-    "@tabler/icons": "^2.40.0",
+    "@hyas/doks-core": "^1.6.1",
+    "@hyas/images": "^3.2.0",
+    "@hyas/inline-svg": "^1.1.0",
+    "@hyas/seo": "^2.3.0",
+    "@tabler/icons": "^3.2.0",
     "bootstrap-icons": "1.11.3",
     "exec-bin": "^1.0.0",
-    "gethyas": "^2.2.2",
+    "gethyas": "^2.4.1",
     "hugo-installer": "^4.0.1"
   },
   "devDependencies": {
     "shx": "^0.3.4"
   },
   "otherDependencies": {
-    "hugo": "0.123.7"
+    "hugo": "0.125.3"
   },
   "overrides": {
     "semver": "^7.5.4"
@@ -48,5 +48,5 @@
     "node": ">=18.14.1",
     "pnpm": ">=8.10.0"
   },
-  "packageManager": "pnpm@8.12.0"
+  "packageManager": "pnpm@9.0.5"
 }

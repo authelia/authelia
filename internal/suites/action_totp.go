@@ -64,6 +64,19 @@ func (rs *RodSession) doRegisterTOTPStart(t *testing.T, page *rod.Page, username
 	rs.doMaybeVerifyIdentity(t, page)
 }
 
+func (rs *RodSession) doRegisterTOTPStartBadCode(t *testing.T, page *rod.Page, username string) {
+	rs.doMaybeDeleteTOTP(t, page, username)
+
+	elementAdd := rs.WaitElementLocatedByID(t, page, "one-time-password-add")
+
+	require.NoError(t, elementAdd.Click("left", 1))
+
+	if rs.isVerifyIdentityShowing(t, page) {
+		rs.doMustVerifyIdentityBadCode(t, page)
+		rs.doMustVerifyIdentity(t, page)
+	}
+}
+
 func (rs *RodSession) doRegisterTOTPFinish(t *testing.T, page *rod.Page, username string, credential RodSuiteCredentialOneTimePassword) {
 	passcode, err := credential.Generate(time.Now())
 	require.NoError(t, err)
@@ -74,8 +87,12 @@ func (rs *RodSession) doRegisterTOTPFinish(t *testing.T, page *rod.Page, usernam
 	rs.SetOneTimePassword(username, credential)
 }
 
-func (rs *RodSession) doRegisterTOTPAdvanced(t *testing.T, page *rod.Page, username string, algorithm string, digits, period int) {
-	rs.doRegisterTOTPStart(t, page, username)
+func (rs *RodSession) doRegisterTOTPAdvanced(t *testing.T, page *rod.Page, invalid bool, username string, algorithm string, digits, period int) {
+	if invalid {
+		rs.doRegisterTOTPStartBadCode(t, page, username)
+	} else {
+		rs.doRegisterTOTPStart(t, page, username)
+	}
 
 	require.NoError(t, rs.WaitElementLocatedByID(t, page, "one-time-password-advanced").Click("left", 1))
 	require.NoError(t, rs.WaitElementLocatedByID(t, page, "one-time-password-algorithm-"+algorithm).Click("left", 1))
@@ -122,7 +139,7 @@ func (rs *RodSession) doRegisterTOTPAdvanced(t *testing.T, page *rod.Page, usern
 	}
 
 	credential.ValidationOptions = totp.ValidateOpts{
-		Period:    uint(uperiod),
+		Period:    uint(uperiod), //nolint:gosec // This is a test function.
 		Skew:      1,
 		Digits:    otp.Digits(udigits),
 		Algorithm: alg,

@@ -27,7 +27,9 @@ reason we think.
 
 ## Foreword
 
-_**Important Note:** This section is important to read for all users who are upgrading._
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+This section is important to read for all users who are upgrading, especially those who are automatically upgrading.
+{{< /callout >}}
 
 There are some changes in this release which deprecate older configurations, you will get a warning about these
 deprecations as it's likely in version v5.0.0 we'll remove support for them, however if a log message for
@@ -192,11 +194,13 @@ These features combined with our requirement for the HTTPS scheme are very power
 
 #### Client Authentication Method (Token Endpoint)
 
-_**Important Note:** This change may not work for some clients by default as the default option requires
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+This change may not work for some clients by default as the default option requires
 `client_secret_basic` which is the standardized default value most modern clients should use. However, it's really easy
 to update. Traditionally this would be considered a breaking change however per our
 [Versioning Policy](https://www.authelia.com/policies/versioning/) while we aim to avoid it the OpenID Connect 1.0
-implementation is considered excluded at this time._
+implementation is considered excluded at this time.
+{{< /callout >}}
 
 This release will allow administrators to configure the Client Authentication Method for the Token Endpoint,
 restricting the client usage of the token endpoint and paving the way to more advanced Client Authentication Methods.
@@ -334,8 +338,10 @@ Please see the [roadmap](../../roadmap/active/multi-domain-protection.md) for mo
 
 #### Initial Implementation
 
-_**Important Note:** This feature at the time of this writing, will not work well with WebAuthn. Steps are being taken
-to address this however it will not specifically delay the release of this feature._
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+This feature at the time of this writing, will not work well with WebAuthn. Steps are being taken
+to address this however it will not specifically delay the release of this feature.
+{{< /callout >}}
 
 This release sees the initial implementation of multi-domain protection. Users will be able to configure more than a
 single root domain for cookies provided none of them are a subdomain of another domain configured. In addition each
@@ -352,8 +358,10 @@ need to configure a single middleware or helper to perform automatic redirection
 
 #### Changes {#changes-multiple-domain-protection}
 
-_**Important Note:** If you decide to make these changes you should make these at the same time with the
-[Updated Proxy Configuration (Customizable Authorization Endpoints)](#changes-customizable-authorization-endpoints)._
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+If you decide to make these changes you should make these at the same time with the
+[Updated Proxy Configuration (Customizable Authorization Endpoints)](#changes-customizable-authorization-endpoints).
+{{< /callout >}}
 
 The following examples illustrate a before and after change for this element in the session configuration. If you do not
 make this change many of the new features in the Forwarded / Redirected Authorization Flow that will never be available.
@@ -440,8 +448,10 @@ information.
 
 ### Changes {#changes-customizable-authorization-endpoints}
 
-_**Important Note:** If you decide to make these changes you should make these at the same time with the
-[Session Changes (Multiple Domain Protection)](#changes-multiple-domain-protection)._
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+If you decide to make these changes you should make these at the same time with the
+[Session Changes (Multiple Domain Protection)](#changes-multiple-domain-protection)
+{{< /callout >}}
 
 It should be noted that making the following changes is strongly recommended to occur at the same time as the
 [Multi-Domain Protection](#changes-multiple-domain-protection) changes as several of the features are dependent on the
@@ -451,10 +461,10 @@ The main changes which need to occur for everyone is that instead of using the d
 for their proxy integration they need to upgrade to the `/api/authz/*` variant applicable to their proxy and remove the
 `rd` parameter from this integration as this is now handled via the new `authelia_url` value from the session changes.
 
-For example if your previous proxy configuration included `http://authelia:9091/api/verify?rd=https://auth.example.com`
-it now by default becomes `http://authelia:9091/api/authz/forward-auth` for Traefik / Caddy / HAProxy, by default
-becomes `http://authelia:9091/api/authz/auth-request` for NGINX based proxies, and by default becomes
-`http://authelia:9091/api/authz/ext-authz` for Envoy.
+For example if your previous proxy configuration included `{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/verify?rd=https://auth.example.com`
+it now by default becomes `{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth` for Traefik / Caddy / HAProxy, by default
+becomes `{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/auth-request` for NGINX based proxies, and by default becomes
+`{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/ext-authz` for Envoy.
 
 It should be noted these new endpoints can be customized in the
 [server endpoints authz](../../configuration/miscellaneous/server-endpoints-authz.md) section, if custom configuration
@@ -561,7 +571,7 @@ following shows how to properly map the old values to he new. For more informati
 ```yaml {title="configuration.yml"}
 server:
   host: '0.0.0.0'
-  port: 9091
+  port: {{</* sitevar name="port" nojs="9091" */>}}
   path: 'authelia'
 ```
 {{< /details >}}
@@ -569,7 +579,7 @@ server:
 {{< details "After" >}}
 ```yaml {title="configuration.yml"}
 server:
-  address: 'tcp://0.0.0.0:9091/authelia'
+  address: 'tcp://0.0.0.0:{{</* sitevar name="port" nojs="9091" */>}}/authelia'
 ```
 {{< /details >}}
 

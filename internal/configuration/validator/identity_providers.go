@@ -3,6 +3,7 @@ package validator
 import (
 	"crypto/ecdsa"
 	"crypto/rsa"
+	"errors"
 	"fmt"
 	"net/url"
 	"sort"
@@ -35,7 +36,7 @@ func validateOIDC(ctx *ValidateCtx, config *schema.IdentityProvidersOpenIDConnec
 
 	switch {
 	case config.MinimumParameterEntropy == -1:
-		validator.PushWarning(fmt.Errorf(errFmtOIDCProviderInsecureDisabledParameterEntropy))
+		validator.PushWarning(errors.New(errFmtOIDCProviderInsecureDisabledParameterEntropy))
 	case config.MinimumParameterEntropy <= 0:
 		config.MinimumParameterEntropy = oauthelia2.MinParameterEntropy
 	case config.MinimumParameterEntropy < oauthelia2.MinParameterEntropy:
@@ -52,7 +53,7 @@ func validateOIDC(ctx *ValidateCtx, config *schema.IdentityProvidersOpenIDConnec
 	validateOIDCOptionsCORS(config, validator)
 
 	if len(config.Clients) == 0 {
-		validator.Push(fmt.Errorf(errFmtOIDCProviderNoClientsConfigured))
+		validator.Push(errors.New(errFmtOIDCProviderNoClientsConfigured))
 	} else {
 		validateOIDCClients(ctx, config, validator)
 	}
@@ -66,7 +67,7 @@ func validateOIDCAuthorizationPolicies(config *schema.IdentityProvidersOpenIDCon
 
 		switch name {
 		case "":
-			validator.Push(fmt.Errorf(errFmtOIDCPolicyInvalidName))
+			validator.Push(errors.New(errFmtOIDCPolicyInvalidName))
 
 			add = false
 		case policyOneFactor, policyTwoFactor, policyDeny:
@@ -88,19 +89,8 @@ func validateOIDCAuthorizationPolicies(config *schema.IdentityProvidersOpenIDCon
 			validator.Push(fmt.Errorf(errFmtOIDCPolicyMissingOption, name, "rules"))
 		}
 
-		for i, rule := range policy.Rules {
-			switch rule.Policy {
-			case "":
-				policy.Rules[i].Policy = schema.DefaultOpenIDConnectPolicyConfiguration.DefaultPolicy
-			case policyOneFactor, policyTwoFactor, policyDeny:
-				break
-			default:
-				validator.Push(fmt.Errorf(errFmtOIDCPolicyRuleInvalidPolicy, name, i+1, utils.StringJoinAnd([]string{policyOneFactor, policyTwoFactor, policyDeny}), rule.Policy))
-			}
-
-			if len(rule.Subjects) == 0 {
-				validator.Push(fmt.Errorf(errFmtOIDCPolicyRuleMissingOption, name, i+1, "subject"))
-			}
+		for i := range policy.Rules {
+			validateOIDCAuthorizationPoliciesPolicyRules(i, name, config, validator)
 		}
 
 		config.AuthorizationPolicies[name] = policy
@@ -108,6 +98,35 @@ func validateOIDCAuthorizationPolicies(config *schema.IdentityProvidersOpenIDCon
 		if add {
 			config.Discovery.AuthorizationPolicies = append(config.Discovery.AuthorizationPolicies, name)
 		}
+	}
+}
+
+func validateOIDCAuthorizationPoliciesPolicyRules(i int, policy string, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+	switch config.AuthorizationPolicies[policy].Rules[i].Policy {
+	case "":
+		config.AuthorizationPolicies[policy].Rules[i].Policy = schema.DefaultOpenIDConnectPolicyConfiguration.DefaultPolicy
+	case policyOneFactor, policyTwoFactor, policyDeny:
+		break
+	default:
+		validator.Push(fmt.Errorf(errFmtOIDCPolicyRuleInvalidPolicy, policy, i+1, utils.StringJoinAnd([]string{policyOneFactor, policyTwoFactor, policyDeny}), config.AuthorizationPolicies[policy].Rules[i].Policy))
+	}
+
+	n := 0
+
+	for _, subjects := range config.AuthorizationPolicies[policy].Rules[i].Subjects {
+		for _, subject := range subjects {
+			if !IsSubjectValidStrict(subject) {
+				validator.Push(fmt.Errorf(errFmtOIDCPolicyRuleSubjectInvalid, policy, i+1, subject))
+
+				n = -1
+			} else if n != -1 {
+				n++
+			}
+		}
+	}
+
+	if n == 0 {
+		validator.Push(fmt.Errorf(errFmtOIDCPolicyRuleMissingOption, policy, i+1, "subject"))
 	}
 }
 
@@ -129,7 +148,7 @@ func validateOIDCIssuer(config *schema.IdentityProvidersOpenIDConnect, validator
 		validateOIDCIssuerJSONWebKeys(config, validator)
 		validateOIDDIssuerSigningAlgsDiscovery(config, validator)
 	default:
-		validator.Push(fmt.Errorf(errFmtOIDCProviderNoPrivateKey))
+		validator.Push(errors.New(errFmtOIDCProviderNoPrivateKey))
 	}
 }
 
@@ -174,6 +193,16 @@ func validateOIDCIssuerJSONWebKeys(config *schema.IdentityProvidersOpenIDConnect
 	config.Discovery.DefaultKeyIDs = map[string]string{}
 
 	for i := 0; i < len(config.JSONWebKeys); i++ {
+		if config.JSONWebKeys[i].Key == nil {
+			if len(config.JSONWebKeys[i].KeyID) != 0 {
+				validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysWithKeyID, i+1, config.JSONWebKeys[i].KeyID))
+			} else {
+				validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysMissing, i+1))
+			}
+
+			continue
+		}
+
 		if key, ok := config.JSONWebKeys[i].Key.(*rsa.PrivateKey); ok && key.PublicKey.N == nil {
 			validator.Push(fmt.Errorf(errFmtOIDCProviderPrivateKeysInvalid, i+1))
 
@@ -316,11 +345,11 @@ func validateOIDCOptionsCORSAllowedOrigins(config *schema.IdentityProvidersOpenI
 	for _, origin := range config.CORS.AllowedOrigins {
 		if origin.String() == "*" {
 			if len(config.CORS.AllowedOrigins) != 1 {
-				validator.Push(fmt.Errorf(errFmtOIDCCORSInvalidOriginWildcard))
+				validator.Push(errors.New(errFmtOIDCCORSInvalidOriginWildcard))
 			}
 
 			if config.CORS.AllowedOriginsFromClientRedirectURIs {
-				validator.Push(fmt.Errorf(errFmtOIDCCORSInvalidOriginWildcardWithClients))
+				validator.Push(errors.New(errFmtOIDCCORSInvalidOriginWildcardWithClients))
 			}
 
 			continue
@@ -400,7 +429,7 @@ func validateOIDCClients(ctx *ValidateCtx, config *schema.IdentityProvidersOpenI
 	}
 
 	if errDeprecated {
-		validator.PushWarning(fmt.Errorf(errFmtOIDCClientsDeprecated))
+		validator.PushWarning(errors.New(errFmtOIDCClientsDeprecated))
 	}
 
 	if len(blankClientIDs) != 0 {
@@ -509,13 +538,21 @@ func validateOIDCClientJSONWebKeysList(c int, config *schema.IdentityProvidersOp
 			continue
 		}
 
+		if config.Clients[c].JSONWebKeys[i].Key == nil {
+			if len(config.Clients[c].JSONWebKeys[i].KeyID) != 0 {
+				validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysWithIDInvalidOptionMissingOneOf, config.Clients[c].ID, i+1, config.Clients[c].JSONWebKeys[i].KeyID, attrOIDCKey))
+			} else {
+				validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysInvalidOptionMissingOneOf, config.Clients[c].ID, i+1, attrOIDCKey))
+			}
+
+			continue
+		}
+
 		validateOIDCClientJSONWebKeysListKeyUseAlg(c, i, props, config, validator)
 
 		var checkEqualKey bool
 
 		switch key := config.Clients[c].JSONWebKeys[i].Key.(type) {
-		case nil:
-			validator.Push(fmt.Errorf(errFmtOIDCClientPublicKeysInvalidOptionMissingOneOf, config.Clients[c].ID, i+1, attrOIDCKey))
 		case *rsa.PublicKey:
 			checkEqualKey = true
 

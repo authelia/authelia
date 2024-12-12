@@ -7,7 +7,10 @@ draft: false
 images: []
 weight: 620
 toc: true
-community: true
+support:
+  level: community
+  versions: true
+  integration: true
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -28,10 +31,14 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://mastodon.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://mastodon.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `mastodon`
 * __Client Secret:__ `insecure_secret`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -52,7 +59,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://mastodon.example.com/auth/auth/openid_connect/callback'
+          - 'https://mastodon.{{< sitevar name="domain" nojs="example.com" >}}/auth/auth/openid_connect/callback'
         scopes:
           - 'openid'
           - 'profile'
@@ -70,12 +77,12 @@ To configure [Mastodon] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 OIDC_ENABLED=true
 OIDC_DISPLAY_NAME=Authelia
 OIDC_DISCOVERY=true
-OIDC_ISSUER=https://auth.example.com
+OIDC_ISSUER=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 OIDC_SCOPE=openid,profile,email
 OIDC_UID_FIELD=preferred_username
 OIDC_CLIENT_ID=mastodon
 OIDC_CLIENT_SECRET=insecure_secret
-OIDC_REDIRECT_URI=https://mastodon.example.com/auth/auth/openid_connect/callback
+OIDC_REDIRECT_URI=https://mastodon.{{< sitevar name="domain" nojs="example.com" >}}/auth/auth/openid_connect/callback
 OIDC_SECURITY_ASSUME_EMAIL_IS_VERIFIED=true
 ```
 

@@ -20,6 +20,12 @@ seo:
 __Authelia__ relies on session cookies to authorize user access to various protected websites. This section configures
 the session cookie behavior and the domains which Authelia can service authorization requests for.
 
+## Variables
+
+Some of the values within this page can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
+
 ## Configuration
 
 {{< config-alert-example >}}
@@ -33,9 +39,9 @@ session:
   expiration: '1h'
   remember_me: '1M'
   cookies:
-    - domain: 'example.com'
-      authelia_url: 'https://auth.example.com'
-      default_redirection_url: 'https://www.example.com'
+    - domain: '{{< sitevar name="domain" nojs="example.com" >}}'
+      authelia_url: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
+      default_redirection_url: 'https://www.{{< sitevar name="domain" nojs="example.com" >}}'
       name: 'authelia_session'
       same_site: 'lax'
       inactivity: '5m'
@@ -63,10 +69,7 @@ This section describes the individual configuration options.
 
 ### secret
 
-{{< confkey type="string" required="yes" >}}
-
-*__Important Note:__ This can also be defined using a [secret](../methods/secrets.md) which is __strongly recommended__
-especially for containerized deployments.*
+{{< confkey type="string" required="yes" secret="yes" >}}
 
 The secret key used to encrypt session data in Redis.
 
@@ -114,15 +117,18 @@ configurations with individual settings.
 
 {{< confkey type="string" required="yes" >}}
 
-*__Important Note:__ Browsers have rules regarding which cookie domains a website can write. In particular the
-[Public Suffix List] usually contains domains which are not permitted.*
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Browsers have rules regarding which cookie domains a website can write. In particular the
+[Public Suffix List](https://publicsuffix.org/list/) usually contains domains which are not permitted.
+{{< /callout >}}
 
 The domain the session cookie is assigned to protect. This must be the same as the domain Authelia is served on or the
 root of the domain, and consequently if the [authelia_url](#authelia_url) is configured must be able to read and write
 cookies for this domain.
 
-For example if Authelia is accessible via the URL `https://auth.example.com` the domain should be either
-`auth.example.com` or `example.com`.
+For example if Authelia is accessible via the URL
+`https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}` the domain should be either
+`{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}` or `{{< sitevar name="domain" nojs="example.com" >}}`.
 
 The value must not match a domain on the [Public Suffix List] as browsers do not allow
 websites to write cookies for these domains. This includes most Dynamic DNS services such as `duckdns.org`. You should
@@ -142,9 +148,9 @@ be used to generate the appropriate redirection URL when authentication is requi
 
 1. Be able to read and write cookies for the configured [domain](#domain-1).
 2. Use the `https://` scheme.
-3. Include the path if relevant (i.e. `https://example.com/authelia` rather than `https://example.com` if you're using
+3. Include the path if relevant (i.e. `https://{{< sitevar name="domain" nojs="example.com" >}}/authelia` rather than `https://{{< sitevar name="domain" nojs="example.com" >}}` if you're using
    the [server address option](../miscellaneous/server.md#address) of `authelia` to specify a subpath and if the
-   Authelia portal is inaccessible from `https://example.com`).
+   Authelia portal is inaccessible from `https://{{< sitevar name="domain" nojs="example.com" >}}`).
 
 The appropriate query parameter or header for your relevant proxy can override this behavior.
 

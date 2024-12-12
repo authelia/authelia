@@ -193,6 +193,8 @@ var Keys = []string{
 	"session.cookies[]",
 	"session.redis.host",
 	"session.redis.port",
+	"session.redis.timeout",
+	"session.redis.max_retries",
 	"session.redis.username",
 	"session.redis.password",
 	"session.redis.database_index",

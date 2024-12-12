@@ -7,7 +7,10 @@ draft: false
 images: []
 weight: 620
 toc: true
-community: true
+support:
+  level: community
+  versions: true
+  integration: true
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -28,10 +31,14 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://homarr.example.com/`
-* __Authelia Root URL:__ `https://auth.example.com/`
+* __Application Root URL:__ `https://homarr.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `homarr`
 * __Client Secret:__ `insecure_secret`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
 
 ## Configuration
 
@@ -52,7 +59,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://homarr.example.com/api/auth/callback/oidc'
+          - 'https://homarr.{{< sitevar name="domain" nojs="example.com" >}}/api/auth/callback/oidc'
         scopes:
           - 'openid'
           - 'profile'
@@ -64,8 +71,10 @@ identity_providers:
 
 ### Application
 
-_**Important Note:** The following example assumes you want users with the `homarr-admins` group to be administrators in
-[Homarr], and users with the `homarr-owners` group to be owners in [Homarr]. You may be required to adjust this._
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+The following example assumes you want users with the `homarr-admins` group to be administrators in
+[Homarr](https://homarr.dev), and users with the `homarr-owners` group to be owners in [Homarr](https://homarr.dev). You may be required to adjust this.
+{{< /callout >}}
 
 To configure [Homarr] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
@@ -73,12 +82,13 @@ To configure [Homarr] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 ```env
 AUTH_PROVIDER=oidc
-AUTH_OIDC_URI=https://auth.example.com
+AUTH_OIDC_URI=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 AUTH_OIDC_CLIENT_SECRET=insecure_secret
 AUTH_OIDC_CLIENT_ID=homarr
 AUTH_OIDC_CLIENT_NAME=Authelia
 AUTH_OIDC_ADMIN_GROUP=homarr-admins
 AUTH_OIDC_OWNER_GROUP=homarr-owners
+NEXTAUTH_URL=https://homarr.{{< sitevar name="domain" nojs="example.com" >}}
 ```
 
 ## See Also

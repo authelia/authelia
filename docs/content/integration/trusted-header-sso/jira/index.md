@@ -7,7 +7,10 @@ draft: false
 images: []
 weight: 420
 toc: true
-community: true
+support:
+  level: community
+  versions: true
+  integration: true
 aliases:
   - /docs/community/using-remote-user-header-for-sso-with-jira.html
 seo:

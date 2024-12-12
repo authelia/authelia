@@ -1,7 +1,7 @@
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM alpine:3.19.1
+FROM alpine:3.21.0@sha256:21dc6063fd678b478f57c0e13f47560d0ea4eeba26dfc947b2a4f81f686b9f45
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -15,7 +15,7 @@ ENV PATH="/app:${PATH}" \
     X_AUTHELIA_CONFIG="/config/configuration.yml"
 
 RUN \
-	apk --no-cache add ca-certificates su-exec tzdata
+	apk --no-cache add ca-certificates su-exec tzdata wget
 
 COPY LICENSE .healthcheck.env entrypoint.sh healthcheck.sh ./
 

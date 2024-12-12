@@ -89,6 +89,14 @@ export function hasServiceError<T>(resp: AxiosResponse<ServiceResponse<T>>) {
     return { errored: false, message: null };
 }
 
-export function validateStatusAuthentication(status: number): boolean {
+export function validateStatusAuthentication(status: number) {
     return (status >= 200 && status < 300) || status === 401 || status === 403;
+}
+
+export function validateStatusOneTimeCode(status: number) {
+    return status === 401 || status === 403 || (status >= 200 && status < 400);
+}
+
+export function validateStatusWebAuthnCreation(status: number) {
+    return status < 300 || status === 409;
 }

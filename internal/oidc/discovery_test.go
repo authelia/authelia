@@ -216,7 +216,7 @@ func TestNewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfiguration(t *test
 	assert.Contains(t, disco.RevocationEndpointAuthMethodsSupported, oidc.ClientAuthMethodPrivateKeyJWT)
 	assert.Contains(t, disco.RevocationEndpointAuthMethodsSupported, oidc.ClientAuthMethodNone)
 
-	assert.Equal(t, []string{oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodNone}, disco.IntrospectionEndpointAuthMethodsSupported)
+	assert.Equal(t, []string{oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretJWT, oidc.ClientAuthMethodPrivateKeyJWT}, disco.IntrospectionEndpointAuthMethodsSupported)
 	assert.Equal(t, []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeImplicit, oidc.GrantTypeClientCredentials, oidc.GrantTypeRefreshToken}, disco.GrantTypesSupported)
 	assert.Equal(t, []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512, oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgECDSAUsingP521AndSHA512, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA512}, disco.RevocationEndpointAuthSigningAlgValuesSupported)
 	assert.Equal(t, []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512, oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgECDSAUsingP521AndSHA512, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA512}, disco.TokenEndpointAuthSigningAlgValuesSupported)
@@ -244,8 +244,10 @@ func TestNewOpenIDConnectProvider_GetOpenIDConnectWellKnownConfiguration(t *test
 	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimPreferredUsername)
 	assert.Contains(t, disco.ClaimsSupported, oidc.ClaimFullName)
 
-	assert.Len(t, disco.PromptValuesSupported, 2)
+	assert.Len(t, disco.PromptValuesSupported, 4)
 	assert.Contains(t, disco.PromptValuesSupported, oidc.PromptConsent)
+	assert.Contains(t, disco.PromptValuesSupported, oidc.PromptSelectAccount)
+	assert.Contains(t, disco.PromptValuesSupported, oidc.PromptLogin)
 	assert.Contains(t, disco.PromptValuesSupported, oidc.PromptNone)
 }
 

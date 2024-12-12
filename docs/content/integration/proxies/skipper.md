@@ -49,24 +49,28 @@ trust entire subnets unless that subnet only has trusted proxies and no other se
 ## Assumptions and Adaptation
 
 This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We
-can not reasonably have examples for every advanced configuration option that exists. The
-following are the assumptions we make:
+can not reasonably have examples for every advanced configuration option that exists. Some of these values can
+automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
+
+The following are the assumptions we make:
 
 * Deployment Scenario:
   * Single Host
-  * Authelia is deployed as a Container with the container name `authelia` on port `9091`
+  * Authelia is deployed as a Container with the container name `{{< sitevar name="host" nojs="authelia" >}}` on port `{{< sitevar name="port" nojs="9091" >}}`
   * Proxy is deployed as a Container on a network shared with Authelia
-* The above assumption means that Authelia should be accessible to the proxy on `http://authelia:9091` and as such:
+* The above assumption means that Authelia should be accessible to the proxy on `{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}` and as such:
   * You will have to adapt all instances of the above URL to be `https://` if Authelia configuration has a TLS key and
     certificate defined
-  * You will have to adapt all instances of `authelia` in the URL if:
+  * You will have to adapt all instances of `{{< sitevar name="host" nojs="authelia" >}}` in the URL if:
     * you're using a different container name
     * you deployed the proxy to a different location
-  * You will have to adapt all instances of `9091` in the URL if:
+  * You will have to adapt all instances of `{{< sitevar name="port" nojs="9091" >}}` in the URL if:
     * you have adjusted the default port in the configuration
   * You will have to adapt the entire URL if:
     * Authelia is on a different host to the proxy
-* All services are part of the `example.com` domain:
+* All services are part of the `{{< sitevar name="domain" nojs="example.com" >}}` domain:
   * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
     just testing or you want to use that specific domain
 

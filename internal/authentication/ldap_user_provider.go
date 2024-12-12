@@ -89,7 +89,6 @@ func NewLDAPUserProviderWithFactory(config schema.AuthenticationBackendLDAP, dis
 
 	provider.parseDynamicUsersConfiguration()
 	provider.parseDynamicGroupsConfiguration()
-	provider.parseDynamicConfiguration()
 
 	return provider
 }
@@ -344,8 +343,8 @@ func (p *LDAPUserProvider) getUserProfileResultToProfile(username string, result
 	for _, attr := range result.Entries[0].Attributes {
 		attrs := len(attr.Values)
 
-		switch attr.Name {
-		case p.config.Attributes.Username:
+		switch strings.ToLower(attr.Name) {
+		case strings.ToLower(p.config.Attributes.Username):
 			switch attrs {
 			case 1:
 				userProfile.Username = attr.Values[0]
@@ -364,19 +363,19 @@ func (p *LDAPUserProvider) getUserProfileResultToProfile(username string, result
 				return nil, fmt.Errorf("user '%s' has %d values for for attribute '%s' but the attribute must be a single value attribute",
 					username, attrs, p.config.Attributes.Username)
 			}
-		case p.config.Attributes.Mail:
+		case strings.ToLower(p.config.Attributes.Mail):
 			if attrs == 0 {
 				continue
 			}
 
 			userProfile.Emails = attr.Values
-		case p.config.Attributes.DisplayName:
+		case strings.ToLower(p.config.Attributes.DisplayName):
 			if attrs == 0 {
 				continue
 			}
 
 			userProfile.DisplayName = attr.Values[0]
-		case p.config.Attributes.MemberOf:
+		case strings.ToLower(p.config.Attributes.MemberOf):
 			if attrs == 0 {
 				continue
 			}
@@ -476,8 +475,8 @@ func (p *LDAPUserProvider) getUserGroupsRequestMemberOf(client LDAPClient, usern
 func (p *LDAPUserProvider) getUserGroupFromEntry(entry *ldap.Entry) string {
 attributes:
 	for _, attr := range entry.Attributes {
-		switch attr.Name {
-		case p.config.Attributes.GroupName:
+		switch strings.ToLower(attr.Name) {
+		case strings.ToLower(p.config.Attributes.GroupName):
 			switch len(attr.Values) {
 			case 0:
 				p.log.
@@ -526,7 +525,7 @@ func (p *LDAPUserProvider) resolveUsersFilter(input string) (filter string) {
 	}
 
 	if p.usersFilterReplacementDateTimeMicrosoftNTTimeEpoch {
-		filter = strings.ReplaceAll(filter, ldapPlaceholderDateTimeMicrosoftNTTimeEpoch, strconv.Itoa(int(utils.UnixNanoTimeToMicrosoftNTEpoch(p.clock.Now().UnixNano()))))
+		filter = strings.ReplaceAll(filter, ldapPlaceholderDateTimeMicrosoftNTTimeEpoch, strconv.FormatUint(utils.UnixNanoTimeToMicrosoftNTEpoch(p.clock.Now().UnixNano()), 10))
 	}
 
 	p.log.Tracef("Detected user filter is %s", filter)

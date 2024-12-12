@@ -34,8 +34,11 @@ When it comes to [Redis Sentinel] we support the versions supported by [Redis] t
 [Redis release cycle](https://redis.io/docs/about/releases/) documentation. This is typically the latest available
 version.
 
-_**Note:** Currently we only support [Redis Sentinel] version 6.x due to a breaking change to [Redis Sentinel] in
-version 7.x. This will be resolved in the near future._
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+Currently we only support [Redis Sentinel](https://redis.io/docs/management/sentinel/) version 6.x due to a breaking
+change to [Redis Sentinel](https://redis.io/docs/management/sentinel/) in version 7.x. This will be resolved in the near
+future.
+{{< /callout >}}
 
 [Redis]: https://redis.io/
 [Redis Standalone]: https://redis.io/docs/getting-started/

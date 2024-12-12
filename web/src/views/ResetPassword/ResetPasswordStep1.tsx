@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 
-import { Button, FormControl, Grid, Theme } from "@mui/material";
+import { Button, CircularProgress, FormControl, Theme } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import TextField from "@mui/material/TextField";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
@@ -15,22 +16,29 @@ const ResetPasswordStep1 = function () {
     const styles = useStyles();
     const [username, setUsername] = useState("");
     const [error, setError] = useState(false);
+    const [loading, setLoading] = useState(false);
     const { createInfoNotification, createErrorNotification } = useNotifications();
     const navigate = useNavigate();
     const { t: translate } = useTranslation();
 
     const doInitiateResetPasswordProcess = async () => {
+        setError(false);
+        setLoading(true);
+
         if (username === "") {
             setError(true);
+            setLoading(false);
+            createErrorNotification(translate("Username is required"));
             return;
         }
 
         try {
             await initiateResetPasswordProcess(username);
             createInfoNotification(translate("An email has been sent to your address to complete the process"));
-        } catch (err) {
+        } catch {
             createErrorNotification(translate("There was an issue initiating the password reset process"));
         }
+        setLoading(false);
     };
 
     const handleResetClick = () => {
@@ -45,10 +53,11 @@ const ResetPasswordStep1 = function () {
         <MinimalLayout title={translate("Reset password")} id="reset-password-step1-stage">
             <FormControl id={"form-reset-password-username"}>
                 <Grid container className={styles.root} spacing={2}>
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <TextField
                             id="username-textfield"
                             label={translate("Username")}
+                            disabled={loading}
                             variant="outlined"
                             fullWidth
                             error={error}
@@ -62,21 +71,24 @@ const ResetPasswordStep1 = function () {
                             }}
                         />
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid size={{ xs: 6 }}>
                         <Button
                             id="reset-button"
                             variant="contained"
+                            disabled={loading}
                             color="primary"
                             fullWidth
                             onClick={handleResetClick}
+                            startIcon={loading ? <CircularProgress color="inherit" size={20} /> : <></>}
                         >
                             {translate("Reset")}
                         </Button>
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid size={{ xs: 6 }}>
                         <Button
                             id="cancel-button"
                             variant="contained"
+                            disabled={loading}
                             color="primary"
                             fullWidth
                             onClick={handleCancelClick}

@@ -18,6 +18,8 @@ seo:
 
 ## What is Authelia?
 
+{{< sitevar name="domain" nojs="example.com" >}}
+
 Authelia is a project with several open source developers who contribute to the project in their free time. We are not
 a company or another type of incorporated entity, and do not have any monetization model. Individuals and Organizations
 are free to contribute [financially](../contributing/prologue/financial.md) or with their time to the
@@ -64,7 +66,10 @@ Our [localization platform](https://translate.authelia.com) is hosted by [Crowdi
 
 Our development IDE's are provided by [JetBrains](https://www.jetbrains.com/?from=Authelia).
 
-{{< inline-svg src="svgs/logos/jetbrains.svg" alt="JetBrains" width="50" style="padding-right: 10px" class="svg-inline-custom" ignoreStaticImages="false" >}}
+{{< inline-svg src="svgs/logos/jetbrains.svg" alt="JetBrains" width="50" height="50" style="padding-right: 10px" class="svg-inline-custom" ignoreStaticImages="false" >}}
+{{< inline-svg src="svgs/logos/goland.svg" alt="GoLand" width="50" height="50" style="padding-right: 10px" class="svg-inline-custom" ignoreStaticImages="false" >}}
+{{< inline-svg src="svgs/logos/intellij-idea.svg" alt="IntelliJ IDEA" width="50" height="50" style="padding-right: 10px" class="svg-inline-custom" ignoreStaticImages="false" >}}
+{{< inline-svg src="svgs/logos/webstorm.svg" alt="WebStorm" width="50" height="50" style="padding-right: 10px" class="svg-inline-custom" ignoreStaticImages="false" >}}
 
 ### Microsoft
 
@@ -73,7 +78,6 @@ and our [git repositories](https://github.com/authelia) are hosted on [GitHub](h
 which are both [Microsoft](https://www.microsoft.com/?from=Authelia) products.
 
 {{< inline-svg src="svgs/logos/microsoft.svg" alt="Microsoft" width="234" style="padding-right: 10px" class="svg-inline-custom" ignoreStaticImages="false" >}}
-
 {{< inline-svg src="svgs/logos/azure.svg" alt="Azure" width="173" style="padding-right: 10px" class="svg-inline-custom" ignoreStaticImages="false" >}}
 
 ### Netlify

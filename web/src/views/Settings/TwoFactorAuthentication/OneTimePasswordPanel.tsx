@@ -1,7 +1,7 @@
 import React, { Fragment, useCallback, useState } from "react";
 
-import { Button, Paper, Tooltip, Typography } from "@mui/material";
-import Grid from "@mui/material/Unstable_Grid2/Grid2";
+import { Button, CircularProgress, Paper, Tooltip, Typography } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import { useTranslation } from "react-i18next";
 
 import { UserInfoTOTPConfiguration } from "@models/TOTPConfiguration";
@@ -11,6 +11,7 @@ import IdentityVerificationDialog from "@views/Settings/Common/IdentityVerificat
 import SecondFactorDialog from "@views/Settings/Common/SecondFactorDialog";
 import OneTimePasswordConfiguration from "@views/Settings/TwoFactorAuthentication/OneTimePasswordConfiguration";
 import OneTimePasswordDeleteDialog from "@views/Settings/TwoFactorAuthentication/OneTimePasswordDeleteDialog";
+import OneTimePasswordInformationDialog from "@views/Settings/TwoFactorAuthentication/OneTimePasswordInformationDialog.tsx";
 import OneTimePasswordRegisterDialog from "@views/Settings/TwoFactorAuthentication/OneTimePasswordRegisterDialog";
 
 interface Props {
@@ -23,6 +24,8 @@ const OneTimePasswordPanel = function (props: Props) {
     const { t: translate } = useTranslation("settings");
 
     const [elevation, setElevation] = useState<UserSessionElevation>();
+
+    const [dialogInformationOpen, setDialogInformationOpen] = useState(false);
 
     const [dialogSFOpening, setDialogSFOpening] = useState(false);
     const [dialogIVOpening, setDialogIVOpening] = useState(false);
@@ -128,6 +131,10 @@ const OneTimePasswordPanel = function (props: Props) {
         setDialogSFOpening(true);
     };
 
+    const handleInformation = () => {
+        setDialogInformationOpen(true);
+    };
+
     const handleRegister = () => {
         setDialogRegisterOpening(true);
 
@@ -166,6 +173,13 @@ const OneTimePasswordPanel = function (props: Props) {
                     props.handleRefreshState();
                 }}
             />
+            <OneTimePasswordInformationDialog
+                open={dialogInformationOpen}
+                handleClose={() => {
+                    setDialogInformationOpen(false);
+                }}
+                config={props.config}
+            />
             <OneTimePasswordDeleteDialog
                 open={dialogDeleteOpen}
                 handleClose={() => {
@@ -175,10 +189,10 @@ const OneTimePasswordPanel = function (props: Props) {
             />
             <Paper variant={"outlined"}>
                 <Grid container spacing={2} padding={2}>
-                    <Grid xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <Typography variant={"h5"}>{translate("One-Time Password")}</Typography>
                     </Grid>
-                    <Grid xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <Tooltip
                             title={
                                 !registered
@@ -190,11 +204,14 @@ const OneTimePasswordPanel = function (props: Props) {
                         >
                             <span>
                                 <Button
+                                    id={"one-time-password-add"}
                                     variant="outlined"
                                     color="primary"
                                     onClick={handleRegister}
-                                    disabled={registered}
-                                    id={"one-time-password-add"}
+                                    disabled={registered || dialogRegisterOpening || dialogRegisterOpen}
+                                    endIcon={
+                                        dialogRegisterOpening ? <CircularProgress color="inherit" size={20} /> : null
+                                    }
                                 >
                                     {translate("Add")}
                                 </Button>
@@ -202,7 +219,7 @@ const OneTimePasswordPanel = function (props: Props) {
                         </Tooltip>
                     </Grid>
                     {props.config === null || props.config === undefined ? (
-                        <Grid xs={12}>
+                        <Grid size={{ xs: 12 }}>
                             <Typography variant={"subtitle2"}>
                                 {translate(
                                     "The One-Time Password has not been registered if you'd like to register it click add",
@@ -210,9 +227,10 @@ const OneTimePasswordPanel = function (props: Props) {
                             </Typography>
                         </Grid>
                     ) : (
-                        <Grid xs={12} md={6} xl={3}>
+                        <Grid size={{ xs: 12, md: 6, xl: 3 }}>
                             <OneTimePasswordConfiguration
                                 config={props.config}
+                                handleInformation={handleInformation}
                                 handleRefresh={props.handleRefreshState}
                                 handleDelete={handleDelete}
                             />

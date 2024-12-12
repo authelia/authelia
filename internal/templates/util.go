@@ -59,7 +59,7 @@ func readTemplate(name, ext, category, overridePath string) (tPath string, embed
 		}
 	}
 
-	tPath = path.Join("src", category, name+ext)
+	tPath = path.Join("embed", category, name+ext)
 
 	if data, err = embedFS.ReadFile(tPath); err != nil {
 		return tPath, true, nil, fmt.Errorf("failed to read embedded template '%s': %w", tPath, err)

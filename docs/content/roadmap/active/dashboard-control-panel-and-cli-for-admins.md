@@ -53,7 +53,7 @@ configuration similar to the example below.
 
 ```yaml {title="configuration.yml"}
 server:
-  address: 'tcp://:9091'
+  address: 'tcp://:{{< sitevar name="port" nojs="9091" >}}'
 
 administration:
   ## Explicitly enable Dynamic Configuration, either via CLI only or CLI and UI via enable_ui.

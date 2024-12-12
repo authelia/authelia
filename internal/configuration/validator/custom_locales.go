@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -14,7 +15,7 @@ func ValidateCustomLocales(config *schema.CustomLocales, validator *schema.Struc
 	}
 
 	if config.Path == "" {
-		validator.Push(fmt.Errorf(errFmtCustomLocalesPathUndefined))
+		validator.Push(errors.New(errFmtCustomLocalesPathUndefined))
 	}
 
 	switch _, err := os.Stat(config.Path); {

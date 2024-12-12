@@ -17,6 +17,12 @@ seo:
   noindex: false # false (default) or true
 ---
 
+## Variables
+
+Some of the values within this page can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
+
 ## Configuration
 
 {{< config-alert-example >}}
@@ -29,7 +35,7 @@ authentication_backend:
     timeout: '5s'
     start_tls: false
     tls:
-      server_name: 'ldap.example.com'
+      server_name: 'ldap.{{< sitevar name="domain" nojs="example.com" >}}'
       skip_verify: false
       minimum_version: 'TLS1.2'
       maximum_version: 'TLS1.3'
@@ -44,7 +50,7 @@ authentication_backend:
         -----BEGIN RSA PRIVATE KEY-----
         ...
         -----END RSA PRIVATE KEY-----
-    base_dn: 'DC=example,DC=com'
+    base_dn: '{{< sitevar name="domain" format="dn" nojs="DC=example,DC=com" >}}'
     additional_users_dn: 'OU=users'
     users_filter: '(&({username_attribute}={input})(objectClass=person))'
     additional_groups_dn: 'OU=groups'
@@ -52,7 +58,7 @@ authentication_backend:
     group_search_mode: 'filter'
     permit_referrals: false
     permit_unauthenticated_bind: false
-    user: 'CN=admin,DC=example,DC=com'
+    user: 'CN=admin,{{< sitevar name="domain" format="dn" nojs="DC=example,DC=com" >}}'
     password: 'password'
     attributes:
       distinguished_name: 'distinguishedName'
@@ -84,7 +90,7 @@ __Examples:__
 ```yaml {title="configuration.yml"}
 authentication_backend:
   ldap:
-    address: 'ldaps://dc1.example.com'
+    address: 'ldaps://dc1.{{< sitevar name="domain" nojs="example.com" >}}'
 ```
 
 ```yaml {title="configuration.yml"}
@@ -125,10 +131,10 @@ Controls the TLS connection validation parameters for either StartTLS or the TLS
 
 {{< confkey type="string" required="yes" >}}
 
-Sets the base distinguished name container for all LDAP queries. If your LDAP domain is example.com this is usually
-`DC=example,DC=com`, however you can fine tune this to be more specific for example to only include objects inside the
-authelia OU: `OU=authelia,DC=example,DC=com`. This is prefixed with the [additional_users_dn](#additional_users_dn) for
-user searches and [additional_groups_dn](#additional_groups_dn) for groups searches.
+Sets the base distinguished name container for all LDAP queries. If your LDAP domain is `{{< sitevar name="domain" nojs="example.com" >}}`
+this is usually `{{< sitevar name="domain" format="dn" nojs="DC=example,DC=com" >}}`, however you can fine tune this to be more specific for
+example to only include objects inside the authelia OU: `OU=authelia,{{< sitevar name="domain" format="dn" nojs="DC=example,DC=com" >}}`. This
+is prefixed with the [additional_users_dn](#additional_users_dn) for user searches and [additional_groups_dn](#additional_groups_dn) for groups searches.
 
 ### additional_users_dn
 
@@ -136,16 +142,18 @@ user searches and [additional_groups_dn](#additional_groups_dn) for groups searc
 
 Additional LDAP path to append to the [base_dn](#base_dn) when searching for users. Useful if you want to restrict
 exactly which OU to get users from for either security or performance reasons. For example setting it to
-`OU=users,OU=people` with a base_dn set to `DC=example,DC=com` will mean user searches will occur in
-`OU=users,OU=people,DC=example,DC=com`.
+`OU=users,OU=people` with a base_dn set to `{{< sitevar name="domain" format="dn" nojs="DC=example,DC=com" >}}` will mean user searches will
+occur in `OU=users,OU=people,{{< sitevar name="domain" format="dn" nojs="DC=example,DC=com" >}}`.
 
 ### users_filter
 
 {{< confkey type="string" required="situational" >}}
 
-*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This option is technically required however the [implementation](#implementation) option can implicitly set a
 default negating this requirement. Refer to the [filter defaults](../../reference/guides/ldap.md#filter-defaults) for
-more information.*
+more information.
+{{< /callout >}}
 
 The LDAP filter to narrow down which users are valid. This is important to set correctly as to exclude disabled users.
 The default value is dependent on the [implementation](#implementation), refer to the
@@ -161,9 +169,11 @@ Similar to [additional_users_dn](#additional_users_dn) but it applies to group s
 
 {{< confkey type="string" required="situational" >}}
 
-*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This option is technically required however the [implementation](#implementation) option can implicitly set a
 default negating this requirement. Refer to the [filter defaults](../../reference/guides/ldap.md#filter-defaults) for
-more information.*
+more information.
+{{< /callout >}}
 
 Similar to [users_filter](#users_filter) but it applies to group searches. In order to include groups the member is not
 a direct member of, but is a member of another group that is a member of those (i.e. recursive groups), you may try
@@ -211,10 +221,7 @@ The distinguished name of the user paired with the password to bind with for loo
 
 ### password
 
-{{< confkey type="string" required="yes" >}}
-
-*__Important Note:__ This can also be defined using a [secret](../methods/secrets.md) which is __strongly recommended__
-especially for containerized deployments.*
+{{< confkey type="string" required="yes" secret="yes" secret="yes" >}}
 
 The password paired with the [user](#user) used to bind to the LDAP server for lookup and password change operations.
 
@@ -230,8 +237,10 @@ The following options configure The directory server attribute mappings.
 
 {{< confkey type="string" required="situational" >}}
 
-*__Note:__ This option is technically not required however it is required when using the group search mode
-`memberof` replacement `{memberof:dn}`.*
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This option is technically not required however it is required when using the group search mode
+`memberof` replacement `{memberof:dn}`.
+{{< /callout >}}
 
 The directory server attribute which contains the distinguished name, primarily used to perform filtered searches. There
 is a clear distinction between the actual distinguished name and a distinguished name attribute, all directories have
@@ -243,8 +252,10 @@ The only known support at this time is with Active Directory.
 
 {{< confkey type="string" required="situational" >}}
 
-*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults] for more information.*
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This option is technically required however the [implementation](#implementation) option can implicitly set a
+default negating this requirement. Refer to the [attribute defaults](../../reference/guides/ldap.md#attribute-defaults) for more information.
+{{< /callout >}}
 
 The directory server attribute that maps to the username in *Authelia*. This must contain the `{username_attribute}` [placeholder].
 
@@ -252,8 +263,10 @@ The directory server attribute that maps to the username in *Authelia*. This mus
 
 {{< confkey type="string" required="situational" >}}
 
-*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults] for more information.*
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This option is technically required however the [implementation](#implementation) option can implicitly set a
+default negating this requirement. Refer to the [attribute defaults](../../reference/guides/ldap.md#attribute-defaults) for more information.
+{{< /callout >}}
 
 The directory server attribute to retrieve which is shown on the Web UI to the user when they log in.
 
@@ -261,8 +274,10 @@ The directory server attribute to retrieve which is shown on the Web UI to the u
 
 {{< confkey type="string" required="situational" >}}
 
-*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults] for more information.*
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This option is technically required however the [implementation](#implementation) option can implicitly set a
+default negating this requirement. Refer to the [attribute defaults](../../reference/guides/ldap.md#attribute-defaults) for more information.
+{{< /callout >}}
 
 The directory server attribute to retrieve which contains the users email addresses. This is important for the device
 registration and password reset processes. The user must have an email address in order for Authelia to perform
@@ -272,8 +287,10 @@ identity verification when a user attempts to reset their password or register a
 
 {{< confkey type="string" required="situational" >}}
 
-*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults] for more information.*
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This option is technically required however the [implementation](#implementation) option can implicitly set a
+default negating this requirement. Refer to the [attribute defaults](../../reference/guides/ldap.md#attribute-defaults) for more information.
+{{< /callout >}}
 
 The directory server attribute which contains the groups a user is a member of. This is currently only used for the
 `memberof` group search mode.
@@ -282,8 +299,10 @@ The directory server attribute which contains the groups a user is a member of. 
 
 {{< confkey type="string" required="situational" >}}
 
-*__Note:__ This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults] for more information.*
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This option is technically required however the [implementation](#implementation) option can implicitly set a
+default negating this requirement. Refer to the [attribute defaults](../../reference/guides/ldap.md#attribute-defaults) for more information.
+{{< /callout >}}
 
 The directory server attribute that is used by Authelia to determine the group name.
 
