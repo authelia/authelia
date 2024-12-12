@@ -72,15 +72,26 @@ achieve a secure result. Please see the [Cloudflare] documentation on
 10. Set the `Then` section `Header name` to `X-Forwarded-For`.
 11. Click `Deploy`.
 
-{{< figure src="cloudflare_1.png" alt="Steps 1 to 4" width="736" >}}
+{{< figure
+src="cloudflare_1.png"
+alt="Image of Cloudflare dashboard with steps 1 to 4 labeled"
+width="736"
+caption="Steps 1 - 4: Create New Request Header Transform Rule"
+title="Steps 1 - 4: Create New Request Header Transform Rule" >}}
 
-Steps 5-11: IP Source Address | is not in | *list of trusted source addresses*
+{{< figure
+src="cloudflare_2.png"
+alt="Image of Cloudflare dashboard with steps 5 to 11 labeled for Option 1"
+width="736"
+caption="Steps 5 - 11 Option 1: Always Remove Headers"
+title="Steps 5 - 11 Option 1: Always Remove Headers" >}}
 
-{{< figure src="cloudflare_2.png" alt="Steps 5 to 11" width="736" >}}
-
-Steps 5-11: X-Forwarded-Fo | does not equal | *blank*
-
-{{< figure src="cloudflare_3.png" alt="Steps 5 to 11" width="736" >}}
+{{< figure
+src="cloudflare_3.png"
+alt="Image of Cloudflare dashboard with steps 5 to 11 labeled for Option 2"
+width="736"
+caption="Steps 5 - 11 Option 2: Remove When Not From Trusted Source"
+title="Steps 5 - 11 Option 2: Remove When Not From Trusted Source" >}}
 
 #### Criteria
 
