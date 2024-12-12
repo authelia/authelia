@@ -3,6 +3,7 @@ package authentication
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"testing"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 	"golang.org/x/text/encoding/unicode"
+	"golang.org/x/text/language"
 
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -1046,6 +1048,7 @@ func TestShouldCombineUsernameFilterAndUsersFilter(t *testing.T) {
 	assert.EqualError(t, err, "user not found")
 }
 
+//nolint:unparam
 func createSearchResultWithAttributes(attributes ...*ldap.EntryAttribute) *ldap.SearchResult {
 	return &ldap.SearchResult{
 		Entries: []*ldap.Entry{
@@ -1162,6 +1165,711 @@ func TestShouldNotCrashWhenGroupsAreNotRetrievedFromLDAP(t *testing.T) {
 	assert.Equal(t, details.Username, "john")
 }
 
+func TestLDAPUserProvider_GetDetailsExtended_ShouldPass(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	provider := NewLDAPUserProviderWithFactory(
+		schema.AuthenticationBackendLDAP{
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
+				Username:       "uid",
+				Mail:           "mail",
+				DisplayName:    "displayName",
+				MemberOf:       "memberOf",
+				StreetAddress:  "street",
+				FamilyName:     "sn",
+				MiddleName:     "middle",
+				GivenName:      "givenName",
+				Nickname:       "nickname",
+				Gender:         "gender",
+				Birthdate:      "birthDate",
+				Website:        "website",
+				Profile:        "profile",
+				Picture:        "picture",
+				ZoneInfo:       "zoneinfo",
+				Locale:         "locale",
+				PhoneNumber:    "phone",
+				PhoneExtension: "ext",
+				Locality:       "locality",
+				Region:         "region",
+				PostalCode:     "postCode",
+				Country:        "c",
+				Extra: map[string]schema.AuthenticationBackendLDAPAttributesAttribute{
+					"exampleStr": {
+						AuthenticationBackendExtraAttribute: schema.AuthenticationBackendExtraAttribute{
+							MultiValued: false,
+							ValueType:   "string",
+						},
+					},
+					"exampleStrMV": {
+						AuthenticationBackendExtraAttribute: schema.AuthenticationBackendExtraAttribute{
+							MultiValued: true,
+							ValueType:   "string",
+						},
+					},
+					"exampleInt": {
+						Name: "exampleIntChangedAttributeName",
+						AuthenticationBackendExtraAttribute: schema.AuthenticationBackendExtraAttribute{
+							MultiValued: false,
+							ValueType:   "integer",
+						},
+					},
+					"exampleIntMV": {
+						AuthenticationBackendExtraAttribute: schema.AuthenticationBackendExtraAttribute{
+							MultiValued: true,
+							ValueType:   "integer",
+						},
+					},
+					"exampleBool": {
+						AuthenticationBackendExtraAttribute: schema.AuthenticationBackendExtraAttribute{
+							MultiValued: false,
+							ValueType:   "boolean",
+						},
+					},
+					"exampleBoolMV": {
+						AuthenticationBackendExtraAttribute: schema.AuthenticationBackendExtraAttribute{
+							MultiValued: true,
+							ValueType:   "boolean",
+						},
+					},
+				},
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   true,
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	connBind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connClose := mockClient.EXPECT().Close()
+
+	searchProfile := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=john,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "uid",
+							Values: []string{"john"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{},
+						},
+						{
+							Name:   "displayName",
+							Values: []string{},
+						},
+						{
+							Name:   "memberOf",
+							Values: []string{},
+						},
+						{
+							Name:   "street",
+							Values: []string{"123 Banksia Ln"},
+						},
+						{
+							Name:   "sn",
+							Values: []string{"Smith"},
+						},
+						{
+							Name:   "middle",
+							Values: []string{"Jacob"},
+						},
+						{
+							Name:   "givenName",
+							Values: []string{"John"},
+						},
+						{
+							Name:   "nickname",
+							Values: []string{"Johny"},
+						},
+						{
+							Name:   "gender",
+							Values: []string{"male"},
+						},
+						{
+							Name:   "birthDate",
+							Values: []string{"2/2/2021"},
+						},
+						{
+							Name:   "website",
+							Values: []string{"https://authelia.com"},
+						},
+						{
+							Name:   "profile",
+							Values: []string{"https://authelia.com/profile/jsmith.html"},
+						},
+						{
+							Name:   "picture",
+							Values: []string{"https://authelia.com/picture/jsmith.jpg"},
+						},
+						{
+							Name:   "zoneinfo",
+							Values: []string{"Australia/Melbourne"},
+						},
+						{
+							Name:   "locale",
+							Values: []string{"en-AU"},
+						},
+						{
+							Name:   "phone",
+							Values: []string{"+1 (604) 555-1234"},
+						},
+						{
+							Name:   "ext",
+							Values: []string{"5678"},
+						},
+						{
+							Name:   "locality",
+							Values: []string{"Melbourne"},
+						},
+						{
+							Name:   "region",
+							Values: []string{"Victoria"},
+						},
+						{
+							Name:   "postCode",
+							Values: []string{"2000"},
+						},
+						{
+							Name:   "c",
+							Values: []string{"Australia"},
+						},
+						{
+							Name:   "exampleStr",
+							Values: []string{"abc"},
+						},
+						{
+							Name:   "exampleStrMV",
+							Values: []string{"abc", "123"},
+						},
+						{
+							Name:   "exampleInt",
+							Values: []string{"123"},
+						},
+						{
+							Name:   "exampleIntMV",
+							Values: []string{"1023879012731.5", "123"},
+						},
+						{
+							Name:   "exampleBool",
+							Values: []string{"true"},
+						},
+						{
+							Name:   "exampleBoolMV",
+							Values: []string{"true", "false"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	searchGroup := mockClient.EXPECT().Search(gomock.Any()).Return(createSearchResultWithAttributes(), nil)
+
+	gomock.InOrder(dialURL, connBind, searchProfile, searchGroup, connClose)
+
+	enAU := language.MustParse("en-AU")
+	website, _ := url.Parse("https://authelia.com")
+	profile, _ := url.Parse("https://authelia.com/profile/jsmith.html")
+	picture, _ := url.Parse("https://authelia.com/picture/jsmith.jpg")
+
+	details, err := provider.GetDetailsExtended("john")
+	assert.Equal(t,
+		&UserDetailsExtended{
+			GivenName:      "John",
+			FamilyName:     "Smith",
+			MiddleName:     "Jacob",
+			Nickname:       "Johny",
+			Profile:        profile,
+			Picture:        picture,
+			Website:        website,
+			Gender:         "male",
+			Birthdate:      "2/2/2021",
+			ZoneInfo:       "Australia/Melbourne",
+			Locale:         &enAU,
+			PhoneNumber:    "+1 (604) 555-1234",
+			PhoneExtension: "5678",
+			Address: &UserDetailsAddress{
+				StreetAddress: "123 Banksia Ln",
+				Locality:      "Melbourne",
+				Region:        "Victoria",
+				PostalCode:    "2000",
+				Country:       "Australia",
+			},
+			Extra: map[string]any{
+				"exampleStr":                     "abc",
+				"exampleStrMV":                   []any{"abc", "123"},
+				"exampleIntChangedAttributeName": float64(123),
+				"exampleIntMV":                   []any{1023879012731.5, float64(123)},
+				"exampleBool":                    true,
+				"exampleBoolMV":                  []any{true, false},
+			},
+			UserDetails: &UserDetails{Username: "john", DisplayName: "", Emails: []string{}, Groups: []string(nil)},
+		}, details)
+
+	assert.NoError(t, err)
+}
+
+func TestLDAPUserProvider_GetDetailsExtended_ShouldParseError(t *testing.T) {
+	testCases := []struct {
+		name        string
+		valueType   string
+		multiValued bool
+		err         string
+	}{
+		{
+			"ShouldHandleBadInteger",
+			"integer",
+			false,
+			"cannot parse 'example' with value 'abc' as integer: strconv.ParseFloat: parsing \"abc\": invalid syntax",
+		},
+		{
+			"ShouldHandleBadIntegerMV",
+			"integer",
+			true,
+			"cannot parse 'example' with value 'abc' as integer: strconv.ParseFloat: parsing \"abc\": invalid syntax",
+		},
+		{
+			"ShouldHandleBadBoolean",
+			"boolean",
+			false,
+			"cannot parse 'example' with value 'abc' as boolean: strconv.ParseBool: parsing \"abc\": invalid syntax",
+		},
+		{
+			"ShouldHandleBadBooleanMV",
+			"boolean",
+			true,
+			"cannot parse 'example' with value 'abc' as boolean: strconv.ParseBool: parsing \"abc\": invalid syntax",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockFactory := NewMockLDAPClientFactory(ctrl)
+			mockClient := NewMockLDAPClient(ctrl)
+
+			provider := NewLDAPUserProviderWithFactory(
+				schema.AuthenticationBackendLDAP{
+					Address:  testLDAPAddress,
+					User:     "cn=admin,dc=example,dc=com",
+					Password: "password",
+					Attributes: schema.AuthenticationBackendLDAPAttributes{
+						Username:      "uid",
+						Mail:          "mail",
+						DisplayName:   "displayName",
+						MemberOf:      "memberOf",
+						StreetAddress: "street",
+						Extra: map[string]schema.AuthenticationBackendLDAPAttributesAttribute{
+							"example": {
+								AuthenticationBackendExtraAttribute: schema.AuthenticationBackendExtraAttribute{
+									MultiValued: tc.multiValued,
+									ValueType:   tc.valueType,
+								},
+							},
+						},
+					},
+					UsersFilter:       "uid={input}",
+					AdditionalUsersDN: "ou=users",
+					BaseDN:            "dc=example,dc=com",
+					PermitReferrals:   true,
+				},
+				false,
+				nil,
+				mockFactory)
+
+			dialURL := mockFactory.EXPECT().
+				DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+				Return(mockClient, nil)
+
+			connBind := mockClient.EXPECT().
+				Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+				Return(nil)
+
+			connClose := mockClient.EXPECT().Close()
+
+			searchProfile := mockClient.EXPECT().
+				Search(gomock.Any()).
+				Return(&ldap.SearchResult{
+					Entries: []*ldap.Entry{
+						{
+							DN: "uid=john,dc=example,dc=com",
+							Attributes: []*ldap.EntryAttribute{
+								{
+									Name:   "uid",
+									Values: []string{"john"},
+								},
+								{
+									Name:   "mail",
+									Values: []string{},
+								},
+								{
+									Name:   "displayName",
+									Values: []string{},
+								},
+								{
+									Name:   "memberOf",
+									Values: []string{},
+								},
+								{
+									Name:   "street",
+									Values: []string{"123 Banksia Ln"},
+								},
+								{
+									Name:   "example",
+									Values: []string{"abc"},
+								},
+							},
+						},
+					},
+				}, nil)
+
+			gomock.InOrder(dialURL, connBind, searchProfile, connClose)
+
+			details, err := provider.GetDetailsExtended("john")
+			assert.Nil(t, details)
+			assert.EqualError(t, err, tc.err)
+		})
+	}
+}
+
+func TestLDAPUserProvider_GetDetailsExtended_ShouldErrorBadPictureURL(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	provider := NewLDAPUserProviderWithFactory(
+		schema.AuthenticationBackendLDAP{
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+				Picture:     "photoURL",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   true,
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	connBind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connClose := mockClient.EXPECT().Close()
+
+	searchProfile := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=john,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "uid",
+							Values: []string{"john"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{},
+						},
+						{
+							Name:   "displayName",
+							Values: []string{},
+						},
+						{
+							Name:   "memberOf",
+							Values: []string{},
+						},
+						{
+							Name:   "photoURL",
+							Values: []string{"bad_+URL"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	searchGroup := mockClient.EXPECT().Search(gomock.Any()).Return(createSearchResultWithAttributes(), nil)
+
+	gomock.InOrder(dialURL, connBind, searchProfile, searchGroup, connClose)
+
+	details, err := provider.GetDetailsExtended("john")
+	assert.Nil(t, details)
+	assert.EqualError(t, err, "error occurred parsing user details for 'john': failed to parse the picture attribute 'photoURL' with value 'bad_+URL': parse \"bad_+URL\": invalid URI for request")
+}
+
+func TestLDAPUserProvider_GetDetailsExtended_ShouldErrorBadProfileURL(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	provider := NewLDAPUserProviderWithFactory(
+		schema.AuthenticationBackendLDAP{
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+				Profile:     "profile",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   true,
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	connBind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connClose := mockClient.EXPECT().Close()
+
+	searchProfile := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=john,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "uid",
+							Values: []string{"john"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{},
+						},
+						{
+							Name:   "displayName",
+							Values: []string{},
+						},
+						{
+							Name:   "memberOf",
+							Values: []string{},
+						},
+						{
+							Name:   "profile",
+							Values: []string{"bad_+URL"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	searchGroup := mockClient.EXPECT().Search(gomock.Any()).Return(createSearchResultWithAttributes(), nil)
+
+	gomock.InOrder(dialURL, connBind, searchProfile, searchGroup, connClose)
+
+	details, err := provider.GetDetailsExtended("john")
+	assert.Nil(t, details)
+	assert.EqualError(t, err, "error occurred parsing user details for 'john': failed to parse the profile attribute 'profile' with value 'bad_+URL': parse \"bad_+URL\": invalid URI for request")
+}
+
+func TestLDAPUserProvider_GetDetailsExtended_ShouldErrorBadWebsiteURL(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	provider := NewLDAPUserProviderWithFactory(
+		schema.AuthenticationBackendLDAP{
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+				Website:     "www",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   true,
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	connBind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connClose := mockClient.EXPECT().Close()
+
+	searchProfile := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=john,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "uid",
+							Values: []string{"john"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{},
+						},
+						{
+							Name:   "displayName",
+							Values: []string{},
+						},
+						{
+							Name:   "memberOf",
+							Values: []string{},
+						},
+						{
+							Name:   "www",
+							Values: []string{"bad_+URL"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	searchGroup := mockClient.EXPECT().Search(gomock.Any()).Return(createSearchResultWithAttributes(), nil)
+
+	gomock.InOrder(dialURL, connBind, searchProfile, searchGroup, connClose)
+
+	details, err := provider.GetDetailsExtended("john")
+	assert.Nil(t, details)
+	assert.EqualError(t, err, "error occurred parsing user details for 'john': failed to parse the website attribute 'www' with value 'bad_+URL': parse \"bad_+URL\": invalid URI for request")
+}
+
+func TestLDAPUserProvider_GetDetailsExtended_ShouldErrorBadLocale(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	provider := NewLDAPUserProviderWithFactory(
+		schema.AuthenticationBackendLDAP{
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+				Locale:      "locale",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   true,
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	connBind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connClose := mockClient.EXPECT().Close()
+
+	searchProfile := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(&ldap.SearchResult{
+			Entries: []*ldap.Entry{
+				{
+					DN: "uid=john,dc=example,dc=com",
+					Attributes: []*ldap.EntryAttribute{
+						{
+							Name:   "uid",
+							Values: []string{"john"},
+						},
+						{
+							Name:   "mail",
+							Values: []string{},
+						},
+						{
+							Name:   "displayName",
+							Values: []string{},
+						},
+						{
+							Name:   "memberOf",
+							Values: []string{},
+						},
+						{
+							Name:   "locale",
+							Values: []string{"ba12390-n2m3jkn123&!@#!_+"},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	searchGroup := mockClient.EXPECT().Search(gomock.Any()).Return(createSearchResultWithAttributes(), nil)
+
+	gomock.InOrder(dialURL, connBind, searchProfile, searchGroup, connClose)
+
+	details, err := provider.GetDetailsExtended("john")
+	assert.Nil(t, details)
+	assert.EqualError(t, err, "error occurred parsing user details for 'john': failed to parse the locale attribute 'locale' with value 'ba12390-n2m3jkn123&!@#!_+': language: tag is not well-formed")
+}
+
 func TestLDAPUserProvider_GetDetails_ShouldReturnOnUserError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -1206,6 +1914,135 @@ func TestLDAPUserProvider_GetDetails_ShouldReturnOnUserError(t *testing.T) {
 	gomock.InOrder(dialURL, connBind, searchProfile, connClose)
 
 	details, err := provider.GetDetails("john")
+	assert.Nil(t, details)
+	assert.EqualError(t, err, "cannot find user DN of user 'john'. Cause: failed to search")
+}
+
+func TestLDAPUserProvider_GetDetailsExtendedShouldReturnOnBindError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	provider := NewLDAPUserProviderWithFactory(
+		schema.AuthenticationBackendLDAP{
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   true,
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	connBind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(fmt.Errorf("bad bind"))
+
+	connClose := mockClient.EXPECT().Close().Return(nil)
+
+	gomock.InOrder(dialURL, connBind, connClose)
+
+	details, err := provider.GetDetailsExtended("john")
+	assert.Nil(t, details)
+	assert.EqualError(t, err, "bind failed with error: bad bind")
+}
+
+func TestLDAPUserProvider_GetDetailsExtendedShouldReturnOnDialError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+
+	provider := NewLDAPUserProviderWithFactory(
+		schema.AuthenticationBackendLDAP{
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   true,
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(nil, fmt.Errorf("failed to dial"))
+
+	gomock.InOrder(dialURL)
+
+	details, err := provider.GetDetailsExtended("john")
+	assert.Nil(t, details)
+	assert.EqualError(t, err, "dial failed with error: failed to dial")
+}
+
+func TestLDAPUserProvider_GetDetailsExtendedShouldReturnOnUserError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockFactory := NewMockLDAPClientFactory(ctrl)
+	mockClient := NewMockLDAPClient(ctrl)
+
+	provider := NewLDAPUserProviderWithFactory(
+		schema.AuthenticationBackendLDAP{
+			Address:  testLDAPAddress,
+			User:     "cn=admin,dc=example,dc=com",
+			Password: "password",
+			Attributes: schema.AuthenticationBackendLDAPAttributes{
+				Username:    "uid",
+				Mail:        "mail",
+				DisplayName: "displayName",
+				MemberOf:    "memberOf",
+			},
+			UsersFilter:       "uid={input}",
+			AdditionalUsersDN: "ou=users",
+			BaseDN:            "dc=example,dc=com",
+			PermitReferrals:   true,
+		},
+		false,
+		nil,
+		mockFactory)
+
+	dialURL := mockFactory.EXPECT().
+		DialURL(gomock.Eq("ldap://127.0.0.1:389"), gomock.Any()).
+		Return(mockClient, nil)
+
+	connBind := mockClient.EXPECT().
+		Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+		Return(nil)
+
+	connClose := mockClient.EXPECT().Close()
+
+	searchProfile := mockClient.EXPECT().
+		Search(gomock.Any()).
+		Return(nil, fmt.Errorf("failed to search"))
+
+	gomock.InOrder(dialURL, connBind, searchProfile, connClose)
+
+	details, err := provider.GetDetailsExtended("john")
 	assert.Nil(t, details)
 	assert.EqualError(t, err, "cannot find user DN of user 'john'. Cause: failed to search")
 }

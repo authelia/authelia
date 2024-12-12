@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"regexp"
 	"testing"
 	"time"
 
@@ -301,6 +302,56 @@ func (m *MockAutheliaCtx) Assert200OK(t *testing.T, data interface{}) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, string(b), string(m.Ctx.Response.Body()))
+}
+
+func (m *MockAutheliaCtx) AssertLastLogMessageRegexp(t *testing.T, message, err *regexp.Regexp) {
+	entry := m.Hook.LastEntry()
+
+	require.NotNil(t, entry)
+
+	if message != nil {
+		assert.Regexp(t, message, entry.Message)
+	}
+
+	v, ok := entry.Data["error"]
+
+	if err == nil {
+		assert.False(t, ok)
+		assert.Nil(t, v)
+	} else {
+		assert.True(t, ok)
+		require.NotNil(t, v)
+
+		theErr, ok := v.(error)
+		assert.True(t, ok)
+		require.NotNil(t, theErr)
+
+		assert.Regexp(t, err, theErr.Error())
+	}
+}
+
+func (m *MockAutheliaCtx) AssertLastLogMessage(t *testing.T, message, err string) {
+	entry := m.Hook.LastEntry()
+
+	require.NotNil(t, entry)
+
+	assert.Equal(t, message, entry.Message)
+
+	v, ok := entry.Data["error"]
+
+	if err == "" {
+		assert.False(t, ok)
+		assert.Nil(t, v)
+	} else {
+		assert.True(t, ok)
+		require.NotNil(t, v)
+
+		theErr, ok := v.(error)
+		assert.True(t, ok)
+		require.NotNil(t, theErr)
+
+		assert.EqualError(t, theErr, err)
+	}
 }
 
 // GetResponseData retrieves a response from the service.
