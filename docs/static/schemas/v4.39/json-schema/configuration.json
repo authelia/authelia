@@ -45,7 +45,17 @@
           "description": "The name of this network to be used in the networks section of the rules section."
         },
         "networks": {
-          "$ref": "#/$defs/AccessControlNetworkNetworks",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "title": "Networks",
           "description": "The remote IP's or network ranges in CIDR notation that this rule applies to."
         }
@@ -57,22 +67,6 @@
         "networks"
       ],
       "description": "AccessControlNetwork represents one ACL network group entry."
-    },
-    "AccessControlNetworkNetworks": {
-      "oneOf": [
-        {
-          "type": "string",
-          "pattern": "((^((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))(\\/([0-2]?[0-9]|3[0-2]))?$)|(^((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:)))?(\\/(12[0-8]|1[0-1][0-9]|[0-9]{1,2}))?$))"
-        },
-        {
-          "items": {
-            "type": "string",
-            "pattern": "((^((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))(\\/([0-2]?[0-9]|3[0-2]))?$)|(^((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:)))?(\\/(12[0-8]|1[0-1][0-9]|[0-9]{1,2}))?$))"
-          },
-          "type": "array",
-          "uniqueItems": true
-        }
-      ]
     },
     "AccessControlRule": {
       "oneOf": [
@@ -117,9 +111,19 @@
           "description": "The users or groups that this rule applies to."
         },
         "networks": {
-          "$ref": "#/$defs/AccessControlRuleNetworks",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
           "title": "Networks",
-          "description": "The remote IP's, network ranges in CIDR notation, or network names that this rule applies to."
+          "description": "The remote IP's, network ranges in CIDR notation, or network definition names that this rule applies to."
         },
         "resources": {
           "$ref": "#/$defs/AccessControlRuleRegex",
@@ -207,20 +211,6 @@
               "PROPPATCH",
               "UNLOCK"
             ]
-          },
-          "type": "array",
-          "uniqueItems": true
-        }
-      ]
-    },
-    "AccessControlRuleNetworks": {
-      "oneOf": [
-        {
-          "type": "string"
-        },
-        {
-          "items": {
-            "type": "string"
           },
           "type": "array",
           "uniqueItems": true
@@ -348,6 +338,27 @@
       "type": "object",
       "description": "AuthenticationBackend represents the configuration related to the authentication backend."
     },
+    "AuthenticationBackendExtraAttribute": {
+      "properties": {
+        "multi_valued": {
+          "type": "boolean",
+          "title": "Multi-Valued",
+          "description": "Defines the attribute as multi-valued."
+        },
+        "value_type": {
+          "type": "string",
+          "enum": [
+            "boolean",
+            "integer",
+            "string"
+          ],
+          "title": "Value Type",
+          "description": "Defines the value type for the attribute."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "AuthenticationBackendFile": {
       "properties": {
         "path": {
@@ -370,6 +381,16 @@
           "$ref": "#/$defs/AuthenticationBackendFileSearch",
           "title": "Search",
           "description": "Configures the user searching behaviour."
+        },
+        "extra_attributes": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/$defs/AuthenticationBackendExtraAttribute"
+            }
+          },
+          "type": "object",
+          "title": "Extra Attributes",
+          "description": "Configures the extra attributes available in expressions and other areas of Authelia."
         }
       },
       "additionalProperties": false,
@@ -801,6 +822,96 @@
           "title": "Attribute: User Display Name",
           "description": "The directory server attribute which contains the display name for all users."
         },
+        "family_name": {
+          "type": "string",
+          "title": "Attribute: Family Name",
+          "description": "The directory server attribute which contains the family name for all users."
+        },
+        "given_name": {
+          "type": "string",
+          "title": "Attribute: Given Name",
+          "description": "The directory server attribute which contains the given name for all users."
+        },
+        "middle_name": {
+          "type": "string",
+          "title": "Attribute: Middle Name",
+          "description": "The directory server attribute which contains the middle name for all users."
+        },
+        "nickname": {
+          "type": "string",
+          "title": "Attribute: Nickname",
+          "description": "The directory server attribute which contains the nickname for all users."
+        },
+        "gender": {
+          "type": "string",
+          "title": "Attribute: Gender",
+          "description": "The directory server attribute which contains the gender for all users."
+        },
+        "birthdate": {
+          "type": "string",
+          "title": "Attribute: Birthdate",
+          "description": "The directory server attribute which contains the birthdate for all users."
+        },
+        "website": {
+          "type": "string",
+          "title": "Attribute: Website",
+          "description": "The directory server attribute which contains the website URL for all users."
+        },
+        "profile": {
+          "type": "string",
+          "title": "Attribute: Profile",
+          "description": "The directory server attribute which contains the profile URL for all users."
+        },
+        "picture": {
+          "type": "string",
+          "title": "Attribute: Picture",
+          "description": "The directory server attribute which contains the picture URL for all users."
+        },
+        "zoneinfo": {
+          "type": "string",
+          "title": "Attribute: Zone Information",
+          "description": "The directory server attribute which contains the time zone information for all users."
+        },
+        "locale": {
+          "type": "string",
+          "title": "Attribute: Locale",
+          "description": "The directory server attribute which contains the locale information for all users."
+        },
+        "phone_number": {
+          "type": "string",
+          "title": "Attribute: Phone Number",
+          "description": "The directory server attribute which contains the phone number for all users."
+        },
+        "phone_extension": {
+          "type": "string",
+          "title": "Attribute: Phone Extension",
+          "description": "The directory server attribute which contains the phone extension for all users."
+        },
+        "street_address": {
+          "type": "string",
+          "title": "Attribute: Street Address",
+          "description": "The directory server attribute which contains the street address for all users."
+        },
+        "locality": {
+          "type": "string",
+          "title": "Attribute: Locality",
+          "description": "The directory server attribute which contains the locality for all users."
+        },
+        "region": {
+          "type": "string",
+          "title": "Attribute: Region",
+          "description": "The directory server attribute which contains the region for all users."
+        },
+        "postal_code": {
+          "type": "string",
+          "title": "Attribute: Postal Code",
+          "description": "The directory server attribute which contains the postal code for all users."
+        },
+        "country": {
+          "type": "string",
+          "title": "Attribute: Country",
+          "description": "The directory server attribute which contains the country for all users."
+        },
         "mail": {
           "type": "string",
           "title": "Attribute: User Mail",
@@ -815,11 +926,47 @@
           "type": "string",
           "title": "Attribute: Group Name",
           "description": "The directory server attribute which contains the group name for all groups."
+        },
+        "extra": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/$defs/AuthenticationBackendLDAPAttributesAttribute"
+            }
+          },
+          "type": "object",
+          "title": "Extra Attributes",
+          "description": "Configures the extra attributes available in expressions and other areas of Authelia."
         }
       },
       "additionalProperties": false,
       "type": "object",
       "description": "AuthenticationBackendLDAPAttributes represents the configuration related to LDAP server attributes."
+    },
+    "AuthenticationBackendLDAPAttributesAttribute": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name",
+          "description": "The name of the attribute within Authelia. This does not adjust the attribute queried from the LDAP server."
+        },
+        "multi_valued": {
+          "type": "boolean",
+          "title": "Multi-Valued",
+          "description": "Defines the attribute as multi-valued."
+        },
+        "value_type": {
+          "type": "string",
+          "enum": [
+            "boolean",
+            "integer",
+            "string"
+          ],
+          "title": "Value Type",
+          "description": "Defines the value type for the attribute."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "AuthenticationBackendPasswordReset": {
       "properties": {
@@ -954,6 +1101,11 @@
           "title": "Identity Validation",
           "description": "Identity Validation Configuration."
         },
+        "definitions": {
+          "$ref": "#/$defs/Definitions",
+          "title": "Definitions",
+          "description": "Definitions for items reused elsewhere in the configuration."
+        },
         "default_redirection_url": {
           "type": "string",
           "format": "uri",
@@ -965,6 +1117,42 @@
       "additionalProperties": false,
       "type": "object",
       "description": "Configuration object extracted from YAML configuration file."
+    },
+    "Definitions": {
+      "properties": {
+        "network": {
+          "patternProperties": {
+            ".*": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              ]
+            }
+          },
+          "type": "object",
+          "title": "Network Definitions",
+          "description": "Networks CIDR ranges that can be utilized elsewhere in the configuration."
+        },
+        "user_attributes": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/$defs/UserAttribute"
+            }
+          },
+          "type": "object",
+          "title": "User Attributes",
+          "description": "User attributes derived from other attributes."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "DuoAPI": {
       "properties": {
@@ -2181,8 +2369,16 @@
           "default": "localhost"
         },
         "sender": {
-          "type": "string",
-          "format": "email",
+          "oneOf": [
+            {
+              "type": "string",
+              "format": "email"
+            },
+            {
+              "type": "string",
+              "pattern": "^[^\u003c]+\\s\\\u003c[a-zA-Z0-9._~!#$%\u0026'*/=?^{|}+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z0-9-]+\\\u003e$"
+            }
+          ],
           "title": "Sender",
           "description": "The sender used for SMTP."
         },
@@ -2193,11 +2389,18 @@
           "default": "[Authelia] {title}"
         },
         "startup_check_address": {
-          "type": "string",
-          "format": "email",
+          "oneOf": [
+            {
+              "type": "string",
+              "format": "email"
+            },
+            {
+              "type": "string",
+              "pattern": "^[^\u003c]+\\s\\\u003c[a-zA-Z0-9._~!#$%\u0026'*/=?^{|}+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z0-9-]+\\\u003e$"
+            }
+          ],
           "title": "Startup Check Address",
-          "description": "The address used for the recipient in the startup check.",
-          "default": "Authelia Test \u003ctest@authelia.com\u003e"
+          "description": "The address used for the recipient in the startup check."
         },
         "disable_require_tls": {
           "type": "boolean",
@@ -3321,6 +3524,20 @@
       "additionalProperties": false,
       "type": "object",
       "description": "TelemetryMetrics represents the telemetry metrics config."
+    },
+    "UserAttribute": {
+      "properties": {
+        "expression": {
+          "type": "string",
+          "title": "Expression",
+          "description": "Expression to derive the user attribute using the common expression language."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "expression"
+      ]
     },
     "WebAuthn": {
       "properties": {
