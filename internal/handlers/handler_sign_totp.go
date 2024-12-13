@@ -115,7 +115,7 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if config, err = ctx.Providers.StorageProvider.LoadTOTPConfiguration(ctx, userSession.Username); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': error occurred retreiving the configuration from the storage backend", userSession.Username)
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': error occurred retrieving the configuration from the storage backend", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
