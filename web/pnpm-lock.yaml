@@ -72,8 +72,8 @@ importers:
         specifier: 3.0.1
         version: 3.0.1
       qrcode.react:
-        specifier: 4.1.0
-        version: 4.1.0(react@18.3.1)
+        specifier: 4.2.0
+        version: 4.2.0(react@18.3.1)
       react:
         specifier: 18.3.1
         version: 18.3.1
@@ -3982,10 +3982,10 @@ packages:
     resolution: {integrity: sha512-rRV+zQD8tVFys26lAGR9WUuS4iUAngJScM+ZRSKtvl5tKeZ2t5bvdNFdNHBW9FWR4guGHlgmsZ1G7BSm2wTbuA==}
     engines: {node: '>=6'}
 
-  qrcode.react@4.1.0:
-    resolution: {integrity: sha512-uqXVIIVD/IPgWLYxbOczCNAQw80XCM/LulYDADF+g2xDsPj5OoRwSWtIS4jGyp295wyjKstfG1qIv/I2/rNWpQ==}
+  qrcode.react@4.2.0:
+    resolution: {integrity: sha512-QpgqWi8rD9DsS9EP3z7BT+5lY5SFhsqGjpgW5DY/i3mK4M9DTBNz3ErMi8BWYEfI3L0d8GIbGmcdFAS1uIRGjA==}
     peerDependencies:
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   qs@6.13.0:
     resolution: {integrity: sha512-+38qI9SOr8tfZ4QmJNplMUxqjbe7LKvvZgWdExBOmd+egZTtjLB67Gu0HRX3u/XOq7UU2Nx6nsjvS16Z9uwfpg==}
@@ -8986,7 +8986,7 @@ snapshots:
 
   punycode@2.3.0: {}
 
-  qrcode.react@4.1.0(react@18.3.1):
+  qrcode.react@4.2.0(react@18.3.1):
     dependencies:
       react: 18.3.1
 
