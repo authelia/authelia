@@ -85,8 +85,8 @@ func newPublicHTMLEmbeddedHandler() fasthttp.RequestHandler {
 //nolint:gocyclo
 func newLocalesPathResolver() func(ctx *middlewares.AutheliaCtx) (supported bool, asset string, embedded bool) {
 	var (
-		languages, embededDirs, customDirs []string
-		aliases                            = map[string]string{}
+		languages, embededDirs []string
+		aliases                = map[string]string{}
 	)
 
 	entries, err := locales.ReadDir("locales")
@@ -154,38 +154,9 @@ func newLocalesPathResolver() func(ctx *middlewares.AutheliaCtx) (supported bool
 			return false, "", false
 		}
 
-		if ctx.Configuration.CustomLocales.Enabled {
-			fileSystem := os.DirFS(ctx.Configuration.CustomLocales.Path)
-
-			entries, err := fs.ReadDir(fileSystem, ".")
-			if err == nil {
-				for _, entry := range entries {
-					if entry.IsDir() {
-						var lng string
-
-						if lng, err = utils.GetLocaleParentOrBaseString(entry.Name()); err != nil {
-							continue
-						}
-
-						if !utils.IsStringInSlice(entry.Name(), customDirs) {
-							customDirs = append(customDirs, entry.Name())
-						}
-
-						if utils.IsStringInSlice(lng, languages) {
-							continue
-						}
-
-						languages = append(languages, lng)
-					}
-				}
-			}
-		}
-
 		switch {
 		case useAlias:
 			return true, fmt.Sprintf("locales/%s/%s.json", alias, namespace), true
-		case utils.IsStringInSlice(locale, customDirs):
-			return true, fmt.Sprintf("%s/%s/%s.json", ctx.Configuration.CustomLocales.Path, locale, namespace), false
 		case utils.IsStringInSlice(locale, embededDirs):
 			return true, fmt.Sprintf("locales/%s/%s.json", locale, namespace), true
 		case utils.IsStringInSlice(ll, embededDirs):
@@ -309,15 +280,6 @@ func newLocalesListHandler() (handler func(ctx *middlewares.AutheliaCtx)) {
 	}
 
 	return func(ctx *middlewares.AutheliaCtx) {
-		if ctx.Configuration.CustomLocales.Enabled {
-			customLocaleInfo, err := utils.GetCustomLanguages(ctx.Configuration.CustomLocales.Path)
-
-			if err != nil {
-				ctx.Logger.Errorf("Unable to load custom locales: %s", err)
-			}
-
-			mergeLocaleInfo(localeInfo, customLocaleInfo)
-		}
 		// parse embedded locales.
 		data, err = json.Marshal(middlewares.OKResponse{Status: "OK", Data: localeInfo})
 
@@ -356,23 +318,4 @@ func generateEtag(payload []byte) []byte {
 	sum.Write(payload)
 
 	return []byte(fmt.Sprintf("%x", sum.Sum(nil)))
-}
-
-func mergeLocaleInfo(embedded *utils.Languages, custom *utils.Languages) {
-	for _, c := range custom.Languages {
-		repeated := false
-
-		for i, e := range embedded.Languages {
-			if e.Locale == c.Locale {
-				embedded.Languages[i] = c
-				repeated = true
-
-				continue
-			}
-		}
-
-		if !repeated {
-			embedded.Languages = append(embedded.Languages, c)
-		}
-	}
 }

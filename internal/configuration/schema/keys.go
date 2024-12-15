@@ -357,7 +357,5 @@ var Keys = []string{
 	"identity_validation.elevated_session.characters",
 	"identity_validation.elevated_session.require_second_factor",
 	"identity_validation.elevated_session.skip_second_factor",
-	"custom_locales.enabled",
-	"custom_locales.path",
 	"default_redirection_url",
 }

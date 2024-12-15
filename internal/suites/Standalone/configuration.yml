@@ -48,9 +48,6 @@ password_policy:
     require_special: true
   zxcvbn:
     enabled: false
-custom_locales:
-  enabled: true
-  path: /config/locales
 session:
   cookies:
     - domain: 'example.com'
