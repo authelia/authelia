@@ -12,6 +12,8 @@ export function localStorageAvailable() {
             window.localStorage.setItem(testKey, testValue);
             window.localStorage.removeItem(testKey);
         } catch (e) {
+            console.error(`local storage not supported: ${e}`);
+
             hasLocalStorageSupport = false;
         }
     }
