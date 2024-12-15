@@ -48,6 +48,7 @@ password_policy:
     require_special: true
   zxcvbn:
     enabled: false
+
 session:
   cookies:
     - domain: 'example.com'
