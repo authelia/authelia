@@ -20,6 +20,8 @@ displayname(){
   read -ep "Enter your display name for Authelia (eg. John Doe): " DISPLAYNAME
 }
 
+DIR_TRAEFIKCERT="traefik/certs"
+
 echo "Checking for pre-requisites"
 
 if [[ ! -x "$(command -v docker)" ]]; then
@@ -44,8 +46,13 @@ fi
 echo "Pulling Authelia docker image for setup"
 sudo docker pull authelia/authelia > /dev/null
 
-echo "Resetting docker-compose.yml, configuration.yml and users_database.yml"
-sudo git checkout -- docker-compose.yml authelia/configuration.yml authelia/users_database.yml
+echo "Resetting docker-compose.yml, (authelia) configuration.yml and users_database.yml, (traefik) certificates.yml"
+sudo git checkout -- docker-compose.yml authelia/configuration.yml authelia/users_database.yml traefik/certificates.yml
+
+if [[ ! -d "$DIR_TRAEFIKCERT" ]]; then 
+  echo "$DIR_TRAEFIKCERT does not exist.  Creating empty directory: $DIR_TRAEFIKCERT."
+  mkdir "$DIR_TRAEFIKCERT" ; 
+fi
 
 read -ep "What root domain would you like to protect? (default/no selection is example.com): " DOMAIN
 
