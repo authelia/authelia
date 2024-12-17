@@ -48,9 +48,10 @@ The first thing we want to do is set up the file structure. Which should look so
  ┣ 📄 compose.yaml
  ┗ 📁 traefik
     ┣ 📁 config
-    ┃ ┣ 📄 acme.json
     ┃ ┣ 📄 dynamic.yaml
     ┃ ┗ 📄 traefik.yaml
+    ┣ 📁 data
+    ┃ ┗ 📄 acme.json
     ┣ 📁 logs
     ┗ 📁 secrets
 ```
@@ -89,7 +90,7 @@ services:
       - '/var/run/docker.sock:/var/run/docker.sock:ro'
       - './traefik/config/traefik.yaml:/traefik.yaml:ro'
       - './traefik/config/dynamic.yaml:/dynamic.yaml:ro'
-      - './traefik/config/acme.json:/acme.json'
+      - './traefik/data/:/data'
       - './traefik/logs:/logs'
     secrets:
       - cloudflare_email
@@ -107,7 +108,7 @@ services:
     container_name: whoami
     labels:
       traefik.enable: 'true'
-      traefik.http.routers.whoami.rule: Host(`whoami.{{< sitevar name="domain" nojs="example.com" >}}`)
+      traefik.http.routers.whoami.rule: 'Host(`whoami.{{< sitevar name="domain" nojs="example.com" >}}`)'
       traefik.http.routers.whoami.entrypoints: 'https'
     networks:
       proxy: {}
@@ -172,7 +173,7 @@ providers:
 certificatesResolvers:
   cloudflare:
     acme:
-      storage: acme.json
+      storage: /data/acme.json
       dnsChallenge:
         provider: cloudflare
         resolvers:
@@ -191,7 +192,6 @@ tls:
         - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
         - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
 ```
-Note: Create acme.json with 600 permissions before starting Traefik.
 
 ### Domain Configuration
 ```yaml{title="traefik/config/dynamic.yaml"}
@@ -228,7 +228,7 @@ This configuration sets up Authelia's core service and configures forward authen
       traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders: 'Remote-User,Remote-Groups,Remote-Name,Remote-Email'
     environment:
       TZ: 'America/Los_Angeles'
-      X_AUTHELIA_CONFIG_FILTERS: template
+      X_AUTHELIA_CONFIG_FILTERS: 'template'
 
   whoami-secure:
     image: traefik/whoami
@@ -277,11 +277,13 @@ authentication_backend:
     path: '/config/users.yaml'
     password:
       algorithm: argon2id
-      iterations: 3
-      salt_length: 16
-      parallelism: 8
-      memory: 32768
-      key_length: 32
+      argon2:
+        variant: 'argon2id'
+        iterations: 3
+        memory: 65535
+        parallelism: 4
+        key_length: 32
+        salt_length: 16
 
 access_control:
   default_policy: deny
@@ -314,18 +316,18 @@ notifier:
     filename: '/config/notification.txt'
 ```
 Each section in the configuration file above has detailed documentation available. Below are direct links.
-Note: There are options that have not been mentioned here.
+**Note**: There are config options that are not a part of this guide.
 
 ###### Core Configuration
 * [Server Configuration](https://www.authelia.com/configuration/miscellaneous/server/) - Configure the server address, ports, TLS settings, and other core server options
 * [Logging](https://www.authelia.com/configuration/miscellaneous/logging/) - Configure log levels, output locations, and format options
-* [Identity Validation](https://www.authelia.com/configuration/identity-validation/introduction/) - Configure settings for password reset, elevated sessions, and identity verification
+* [Identity Validation](https://www.authelia.com/configuration/identity-validation/introduction/) - Configure settings for password reset and elevated sessions.
 
 ###### Authentication & Security
-* [TOTP Configuration](https://www.authelia.com/configuration/second-factor/time-based-one-time-password/) - Configure Time-based One-Time Password settings for two-factor authentication
+* [TOTP Configuration](https://www.authelia.com/configuration/second-factor/time-based-one-time-password/) - Configure Time-based One-Time Password (TOTP) settings for two-factor authentication.
 * [Password Policy](https://www.authelia.com/configuration/security/password-policy/) - Configure password strength requirements and validation rules
 * [Authentication Backend](https://www.authelia.com/configuration/first-factor/introduction/) - Configure the authentication provider and settings
-* [Access Control](https://www.authelia.com/configuration/security/access-control/) - Configure access control rules and policies
+* [Access Control](https://www.authelia.com/configuration/security/access-control/) - Configure access control rules and policies for protected domains
 
 ###### Data & Sessions
 * [Session Configuration](https://www.authelia.com/configuration/session/introduction/) - Configure session management, cookies, and timeouts
@@ -358,7 +360,7 @@ users:
     # IMPORTANT: Change this password before deploying to production!
     # Generate a new hash using the instructions at:
     # https://www.authelia.com/reference/guides/passwords/#passwords
-    # Password is authelia
+    # Password is 'authelia'
     password: "$6$rounds=50000$BpLnfgDsc2WD8F2q$Zis.ixdg9s/UOJYrs56b5QEZFiZECu0qZVNsIYxBaNJ7ucIL.nlxVCT5tqh8KHG8X4tlwCFm5r6NTOZZ5qRFN/"
     email: authelia@authelia.com
     groups:
@@ -366,3 +368,6 @@ users:
       - dev
 ```
 The current password listed is `authelia`. It is important you [Generate](https://www.authelia.com/reference/guides/passwords/#passwords) a new password hash.
+
+### Starting the Stack
+Once all the configuration for [Traefik](https://doc.traefik.io/traefik/) and [Authelia](https://www.authelia.com/) are complete, from the `project/` directory run `docker compose up -d` to download and start the containers.
