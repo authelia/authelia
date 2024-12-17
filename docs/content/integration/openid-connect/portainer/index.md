@@ -25,7 +25,7 @@ seo:
 * [Authelia]
   * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [Portainer] CE and EE
-  * 2.12.2
+  * 2.12.4
 
 {{% oidc-common %}}
 
@@ -89,7 +89,7 @@ To configure [Portainer] to utilize Authelia as an [OpenID Connect 1.0] Provider
    9. Redirect URL: `https://portainer.{{< sitevar name="domain" nojs="example.com" >}}`
    10. User Identifier: `preferred_username`
    11. Scopes: `openid profile groups email`
-   12. Token Endpoint Auth Method: `client_secret_post`
+   12. Auth Style: `Auto Detect` (default)
 
 {{< figure src="portainer.png" alt="Portainer" width="736" style="padding-right: 10px" >}}
 
