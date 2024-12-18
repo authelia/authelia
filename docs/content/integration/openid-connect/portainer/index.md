@@ -90,7 +90,7 @@ To configure [Portainer] to utilize Authelia as an [OpenID Connect 1.0] Provider
    9. Redirect URL: `https://portainer.{{< sitevar name="domain" nojs="example.com" >}}`
    10. User Identifier: `preferred_username`
    11. Scopes: `openid profile groups email`
-   12. Auth Style: `In Params`
+   12. Auth Style: `Auto Detect`
 
 {{< figure src="portainer.png" alt="Portainer" width="736" style="padding-right: 10px" >}}
 
