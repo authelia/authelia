@@ -83,11 +83,11 @@ func (s *AuthzSuite) Builder() (builder *AuthzBuilder) {
 func (s *AuthzSuite) BuilderWithBearerScheme() (builder *AuthzBuilder) {
 	switch s.implementation {
 	case AuthzImplExtAuthz:
-		return NewAuthzBuilder().WithImplementationExtAuthz().WithStrategies(NewHeaderProxyAuthorizationAuthnStrategy(model.AuthorizationSchemeBasic.String(), model.AuthorizationSchemeBearer.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
+		return NewAuthzBuilder().WithImplementationExtAuthz().WithStrategies(NewHeaderProxyAuthorizationAuthnStrategy(time.Duration(0), model.AuthorizationSchemeBasic.String(), model.AuthorizationSchemeBearer.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
 	case AuthzImplForwardAuth:
-		return NewAuthzBuilder().WithImplementationForwardAuth().WithStrategies(NewHeaderProxyAuthorizationAuthnStrategy(model.AuthorizationSchemeBasic.String(), model.AuthorizationSchemeBearer.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
+		return NewAuthzBuilder().WithImplementationForwardAuth().WithStrategies(NewHeaderProxyAuthorizationAuthnStrategy(time.Duration(0), model.AuthorizationSchemeBasic.String(), model.AuthorizationSchemeBearer.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
 	case AuthzImplAuthRequest:
-		return NewAuthzBuilder().WithImplementationAuthRequest().WithStrategies(NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(model.AuthorizationSchemeBasic.String(), model.AuthorizationSchemeBearer.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
+		return NewAuthzBuilder().WithImplementationAuthRequest().WithStrategies(NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(time.Duration(0), model.AuthorizationSchemeBasic.String(), model.AuthorizationSchemeBearer.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
 	case AuthzImplLegacy:
 		return NewAuthzBuilder().WithImplementationLegacy().WithStrategies(NewHeaderLegacyAuthnStrategy(), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
 	default:
@@ -651,8 +651,8 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainWithAuthorizationHead
 	builder := NewAuthzBuilder().WithImplementationLegacy()
 
 	builder = builder.WithStrategies(
-		NewHeaderAuthorizationAuthnStrategy("basic"),
-		NewHeaderProxyAuthorizationAuthRequestAuthnStrategy("basic"),
+		NewHeaderAuthorizationAuthnStrategy(time.Duration(0), "basic"),
+		NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(time.Duration(0), "basic"),
 		NewCookieSessionAuthnStrategy(builder.config.RefreshInterval),
 	)
 
@@ -698,8 +698,8 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithoutHeaderNoCookie() {
 	builder := NewAuthzBuilder().WithImplementationLegacy()
 
 	builder = builder.WithStrategies(
-		NewHeaderAuthorizationAuthnStrategy("basic"),
-		NewHeaderProxyAuthorizationAuthRequestAuthnStrategy("basic"),
+		NewHeaderAuthorizationAuthnStrategy(time.Duration(0), "basic"),
+		NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(time.Duration(0), "basic"),
 	)
 
 	authz := builder.Build()
@@ -731,8 +731,8 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithEmptyAuthorizationHeader() {
 	builder := NewAuthzBuilder().WithImplementationLegacy()
 
 	builder = builder.WithStrategies(
-		NewHeaderAuthorizationAuthnStrategy("basic"),
-		NewHeaderProxyAuthorizationAuthRequestAuthnStrategy("basic"),
+		NewHeaderAuthorizationAuthnStrategy(time.Duration(0), "basic"),
+		NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(time.Duration(0), "basic"),
 	)
 
 	authz := builder.Build()
@@ -766,8 +766,8 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithAuthorizationHeaderInvalidPassword
 	builder := NewAuthzBuilder().WithImplementationLegacy()
 
 	builder = builder.WithStrategies(
-		NewHeaderAuthorizationAuthnStrategy("basic"),
-		NewHeaderProxyAuthorizationAuthRequestAuthnStrategy("basic"),
+		NewHeaderAuthorizationAuthnStrategy(time.Duration(0), "basic"),
+		NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(time.Duration(0), "basic"),
 	)
 
 	authz := builder.Build()
@@ -803,7 +803,7 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithIncorrectAuthHeader() { // TestSho
 	builder := s.Builder()
 
 	builder = builder.WithStrategies(
-		NewHeaderAuthorizationAuthnStrategy("basic"),
+		NewHeaderAuthorizationAuthnStrategy(time.Duration(0), "basic"),
 	)
 
 	authz := builder.Build()
