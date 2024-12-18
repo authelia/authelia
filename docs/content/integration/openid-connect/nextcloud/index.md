@@ -24,7 +24,7 @@ seo:
   * [v4.38.17](https://github.com/authelia/authelia/releases/tag/v4.38.17)
 * [Nextcloud]
   * 22.1.0 with the application oidc_login
-  * 29.0.10 with the application user_oidc v6.1.2
+  * [29.0.10](https://github.com/nextcloud/server/releases/tag/v29.0.10) with the application user_oidc [6.1.2](https://apps.nextcloud.com/apps/user_oidc/releases?platform=29#29)
 
 {{% oidc-common %}}
 
