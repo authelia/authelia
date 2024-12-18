@@ -229,6 +229,7 @@ This configuration sets up Authelia's core service and configures forward authen
     environment:
       TZ: 'America/Los_Angeles'
       X_AUTHELIA_CONFIG_FILTERS: 'template'
+      X_AUTHELIA_CONFIG: '/config/configuration.yaml'
 
   whoami-secure:
     image: traefik/whoami
