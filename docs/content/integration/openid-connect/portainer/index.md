@@ -23,9 +23,11 @@ seo:
 ## Tested Versions
 
 * [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-* [Portainer] CE and EE
-  * 2.12.4
+  * [v4.38.17](https://github.com/authelia/authelia/releases/tag/v4.38.17)
+* [Portainer] CE
+  * 2.25.0 (STS)
+* [Portainer] BE
+  * 2.21.4 (LTS)
 
 {{% oidc-common %}}
 
@@ -68,7 +70,6 @@ identity_providers:
           - 'groups'
           - 'email'
         userinfo_signed_response_alg: 'none'
-        token_endpoint_auth_method: client_secret_post
 ```
 
 ### Application
