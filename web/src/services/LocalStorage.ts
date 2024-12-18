@@ -13,7 +13,7 @@ export function localStorageAvailable() {
         try {
             window.localStorage.setItem(testKey, testValue);
             window.localStorage.removeItem(testKey);
-        } catch (e) {
+        } catch {
             hasLocalStorageSupport = false;
         }
     }
