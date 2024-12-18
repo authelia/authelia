@@ -25,7 +25,7 @@ seo:
 * [Authelia]
   * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [Portainer] CE and EE
-  * 2.12.4
+  * 2.21.4
 
 {{% oidc-common %}}
 
