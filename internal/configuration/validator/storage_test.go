@@ -32,7 +32,7 @@ func (suite *StorageSuite) TestShouldValidateOneStorageIsConfigured() {
 
 	suite.Require().Len(suite.val.Warnings(), 0)
 	suite.Require().Len(suite.val.Errors(), 1)
-	suite.Assert().EqualError(suite.val.Errors()[0], "storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided")
+	suite.EqualError(suite.val.Errors()[0], "storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided")
 }
 
 func (suite *StorageSuite) TestShouldValidateMultipleStorageIsConfigured() {
@@ -44,7 +44,7 @@ func (suite *StorageSuite) TestShouldValidateMultipleStorageIsConfigured() {
 
 	suite.Require().Len(suite.val.Warnings(), 0)
 	suite.Require().Len(suite.val.Errors(), 1)
-	suite.Assert().EqualError(suite.val.Errors()[0], "storage: option 'local', 'mysql' and 'postgres' are mutually exclusive but 'local', 'mysql', and 'postgres' have been configured")
+	suite.EqualError(suite.val.Errors()[0], "storage: option 'local', 'mysql' and 'postgres' are mutually exclusive but 'local', 'mysql', and 'postgres' have been configured")
 }
 
 func (suite *StorageSuite) TestShouldValidateLocalPathIsProvided() {
@@ -57,7 +57,7 @@ func (suite *StorageSuite) TestShouldValidateLocalPathIsProvided() {
 	suite.Require().Len(suite.val.Warnings(), 0)
 	suite.Require().Len(suite.val.Errors(), 1)
 
-	suite.Assert().EqualError(suite.val.Errors()[0], "storage: local: option 'path' is required")
+	suite.EqualError(suite.val.Errors()[0], "storage: local: option 'path' is required")
 
 	suite.val.Clear()
 	suite.config.Local.Path = "/myapth"
@@ -73,9 +73,9 @@ func (suite *StorageSuite) TestShouldValidateMySQLHostUsernamePasswordAndDatabas
 	ValidateStorage(suite.config, suite.val)
 
 	suite.Require().Len(suite.val.Errors(), 3)
-	suite.Assert().EqualError(suite.val.Errors()[0], "storage: mysql: option 'address' is required")
-	suite.Assert().EqualError(suite.val.Errors()[1], "storage: mysql: option 'username' and 'password' are required")
-	suite.Assert().EqualError(suite.val.Errors()[2], "storage: mysql: option 'database' is required")
+	suite.EqualError(suite.val.Errors()[0], "storage: mysql: option 'address' is required")
+	suite.EqualError(suite.val.Errors()[1], "storage: mysql: option 'username' and 'password' are required")
+	suite.EqualError(suite.val.Errors()[2], "storage: mysql: option 'database' is required")
 
 	suite.val.Clear()
 	suite.config.MySQL = &schema.StorageMySQL{
@@ -101,19 +101,19 @@ func (suite *StorageSuite) TestShouldSetDefaultMySQLTLSServerName() {
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
-		},
-		TLS: &schema.TLS{
-			MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS12},
+			TLS: &schema.TLS{
+				MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS12},
+			},
 		},
 	}
 
 	ValidateStorage(suite.config, suite.val)
 
-	suite.Assert().Len(suite.val.Warnings(), 0)
-	suite.Assert().Len(suite.val.Errors(), 0)
+	suite.Len(suite.val.Warnings(), 0)
+	suite.Len(suite.val.Errors(), 0)
 
-	suite.Assert().Equal(suite.config.MySQL.Address.Hostname(), suite.config.MySQL.TLS.ServerName)
-	suite.Assert().Equal("mysql", suite.config.MySQL.TLS.ServerName)
+	suite.Equal(suite.config.MySQL.Address.Hostname(), suite.config.MySQL.TLS.ServerName)
+	suite.Equal("mysql", suite.config.MySQL.TLS.ServerName)
 }
 
 func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidMySQLTLSVersion() {
@@ -125,18 +125,18 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidMySQLTLSVersion() {
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
-		},
-		TLS: &schema.TLS{
-			MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
+			TLS: &schema.TLS{
+				MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
+			},
 		},
 	}
 
 	ValidateStorage(suite.config, suite.val)
 
-	suite.Assert().Len(suite.val.Warnings(), 0)
+	suite.Len(suite.val.Warnings(), 0)
 	suite.Require().Len(suite.val.Errors(), 1)
 
-	suite.Assert().EqualError(suite.val.Errors()[0], "storage: mysql: tls: option 'minimum_version' is invalid: minimum version is TLS1.0 but SSL3.0 was configured")
+	suite.EqualError(suite.val.Errors()[0], "storage: mysql: tls: option 'minimum_version' is invalid: minimum version is TLS1.0 but SSL3.0 was configured")
 }
 
 func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidMySQLTLSMinVersionGreaterThanMaximum() {
@@ -148,19 +148,19 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidMySQLTLSMinVersionGreate
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
-		},
-		TLS: &schema.TLS{
-			MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS13},
-			MaximumVersion: schema.TLSVersion{Value: tls.VersionTLS11},
+			TLS: &schema.TLS{
+				MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS13},
+				MaximumVersion: schema.TLSVersion{Value: tls.VersionTLS11},
+			},
 		},
 	}
 
 	ValidateStorage(suite.config, suite.val)
 
-	suite.Assert().Len(suite.val.Warnings(), 0)
+	suite.Len(suite.val.Warnings(), 0)
 	suite.Require().Len(suite.val.Errors(), 1)
 
-	suite.Assert().EqualError(suite.val.Errors()[0], "storage: mysql: tls: option combination of 'minimum_version' and 'maximum_version' is invalid: minimum version TLS1.3 is greater than the maximum version TLS1.1")
+	suite.EqualError(suite.val.Errors()[0], "storage: mysql: tls: option combination of 'minimum_version' and 'maximum_version' is invalid: minimum version TLS1.3 is greater than the maximum version TLS1.1")
 }
 
 func (suite *StorageSuite) TestShouldValidatePostgreSQLHostUsernamePasswordAndDatabaseAreProvided() {
@@ -169,9 +169,9 @@ func (suite *StorageSuite) TestShouldValidatePostgreSQLHostUsernamePasswordAndDa
 	ValidateStorage(suite.config, suite.val)
 
 	suite.Require().Len(suite.val.Errors(), 3)
-	suite.Assert().EqualError(suite.val.Errors()[0], "storage: postgres: option 'address' is required")
-	suite.Assert().EqualError(suite.val.Errors()[1], "storage: postgres: option 'username' and 'password' are required")
-	suite.Assert().EqualError(suite.val.Errors()[2], "storage: postgres: option 'database' is required")
+	suite.EqualError(suite.val.Errors()[0], "storage: postgres: option 'address' is required")
+	suite.EqualError(suite.val.Errors()[1], "storage: postgres: option 'username' and 'password' are required")
+	suite.EqualError(suite.val.Errors()[2], "storage: postgres: option 'database' is required")
 
 	suite.val.Clear()
 	suite.config.PostgreSQL = &schema.StoragePostgreSQL{
@@ -186,8 +186,8 @@ func (suite *StorageSuite) TestShouldValidatePostgreSQLHostUsernamePasswordAndDa
 	}
 	ValidateStorage(suite.config, suite.val)
 
-	suite.Assert().Len(suite.val.Warnings(), 0)
-	suite.Assert().Len(suite.val.Errors(), 0)
+	suite.Len(suite.val.Warnings(), 0)
+	suite.Len(suite.val.Errors(), 0)
 }
 
 func (suite *StorageSuite) TestShouldValidatePostgresSchemaDefault() {
@@ -204,13 +204,13 @@ func (suite *StorageSuite) TestShouldValidatePostgresSchemaDefault() {
 
 	ValidateStorage(suite.config, suite.val)
 
-	suite.Assert().Len(suite.val.Warnings(), 0)
-	suite.Assert().Len(suite.val.Errors(), 0)
+	suite.Len(suite.val.Warnings(), 0)
+	suite.Len(suite.val.Errors(), 0)
 
-	suite.Assert().Nil(suite.config.PostgreSQL.SSL) //nolint:staticcheck
-	suite.Assert().Nil(suite.config.PostgreSQL.TLS)
+	suite.Nil(suite.config.PostgreSQL.SSL) //nolint:staticcheck
+	suite.Nil(suite.config.PostgreSQL.TLS)
 
-	suite.Assert().Equal("public", suite.config.PostgreSQL.Schema)
+	suite.Equal("public", suite.config.PostgreSQL.Schema)
 }
 
 func (suite *StorageSuite) TestShouldValidatePostgresTLSDefaults() {
@@ -222,19 +222,155 @@ func (suite *StorageSuite) TestShouldValidatePostgresTLSDefaults() {
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
+			TLS:      &schema.TLS{},
 		},
-		TLS: &schema.TLS{},
 	}
 
 	ValidateStorage(suite.config, suite.val)
 
-	suite.Assert().Len(suite.val.Warnings(), 0)
-	suite.Assert().Len(suite.val.Errors(), 0)
+	suite.Len(suite.val.Warnings(), 0)
+	suite.Len(suite.val.Errors(), 0)
 
-	suite.Assert().Nil(suite.config.PostgreSQL.SSL) //nolint:staticcheck
+	suite.Nil(suite.config.PostgreSQL.SSL) //nolint:staticcheck
 	suite.Require().NotNil(suite.config.PostgreSQL.TLS)
 
-	suite.Assert().Equal(uint16(tls.VersionTLS12), suite.config.PostgreSQL.TLS.MinimumVersion.Value)
+	suite.Equal(uint16(tls.VersionTLS12), suite.config.PostgreSQL.TLS.MinimumVersion.Value)
+}
+
+func (suite *StorageSuite) TestShouldValidatePostgresServers() {
+	suite.config.PostgreSQL = &schema.StoragePostgreSQL{
+		StorageSQL: schema.StorageSQL{
+			Address: &schema.AddressTCP{
+				Address: MustParseAddress("tcp://postgre:4321"),
+			},
+			Username: "myuser",
+			Password: "pass",
+			Database: "database",
+		},
+		Servers: []schema.StoragePostgreSQLServer{
+			{
+				Address: &schema.AddressTCP{
+					Address: MustParseAddress("udp://server1:4321"),
+				},
+			},
+			{},
+			{
+				Address: &schema.AddressTCP{
+					Address: MustParseAddress("tcp://server1"),
+				},
+			},
+			{
+				Address: &schema.AddressTCP{
+					Address: MustParseAddress("tcp://server1:5432"),
+				},
+				TLS: &schema.TLS{},
+			},
+			{
+				Address: &schema.AddressTCP{
+					Address: MustParseAddress("tcp://server1:5432"),
+				},
+				TLS: &schema.TLS{
+					MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS13},
+					MaximumVersion: schema.TLSVersion{Value: tls.VersionTLS10},
+				},
+			},
+		},
+	}
+
+	ValidateStorage(suite.config, suite.val)
+
+	suite.Len(suite.val.Warnings(), 0)
+	suite.Require().Len(suite.config.PostgreSQL.Servers, 5)
+
+	suite.Equal(uint16(5432), suite.config.PostgreSQL.Servers[2].Address.Port())
+	suite.Equal("server1", suite.config.PostgreSQL.Servers[3].TLS.ServerName)
+	suite.Equal(schema.TLSVersion{Value: tls.VersionTLS12}, suite.config.PostgreSQL.Servers[3].TLS.MinimumVersion)
+
+	errors := suite.val.Errors()
+
+	suite.Require().Len(errors, 3)
+	suite.EqualError(errors[0], "storage: postgres: servers: #1: option 'address' with value 'udp://server1:4321' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'udp'")
+	suite.EqualError(errors[1], "storage: postgres: servers: #2: option 'address' is required")
+	suite.EqualError(errors[2], "storage: postgres: servers: #5: tls: option combination of 'minimum_version' and 'maximum_version' is invalid: minimum version TLS1.3 is greater than the maximum version TLS1.0")
+}
+
+func (suite *StorageSuite) TestShouldValidatePostgresServersTLSMinMaxFromPrimary() {
+	suite.config.PostgreSQL = &schema.StoragePostgreSQL{
+		StorageSQL: schema.StorageSQL{
+			Address: &schema.AddressTCP{
+				Address: MustParseAddress("tcp://postgre:4321"),
+			},
+			Username: "myuser",
+			Password: "pass",
+			Database: "database",
+			TLS: &schema.TLS{
+				MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS10},
+				MaximumVersion: schema.TLSVersion{Value: tls.VersionTLS13},
+			},
+		},
+		Servers: []schema.StoragePostgreSQLServer{
+			{
+				Address: &schema.AddressTCP{
+					Address: MustParseAddress("tcp://server1:5432"),
+				},
+				TLS: &schema.TLS{},
+			},
+		},
+	}
+
+	ValidateStorage(suite.config, suite.val)
+
+	suite.Len(suite.val.Warnings(), 0)
+	suite.Len(suite.val.Errors(), 0)
+	suite.Require().Len(suite.config.PostgreSQL.Servers, 1)
+
+	suite.Equal("server1", suite.config.PostgreSQL.Servers[0].TLS.ServerName)
+	suite.Equal(schema.TLSVersion{Value: tls.VersionTLS10}, suite.config.PostgreSQL.Servers[0].TLS.MinimumVersion)
+	suite.Equal(schema.TLSVersion{Value: tls.VersionTLS13}, suite.config.PostgreSQL.Servers[0].TLS.MaximumVersion)
+}
+
+func (suite *StorageSuite) TestShouldValidatePostgresUDP() {
+	suite.config.PostgreSQL = &schema.StoragePostgreSQL{
+		StorageSQL: schema.StorageSQL{
+			Address: &schema.AddressTCP{
+				Address: MustParseAddress("udp://postgre:4321"),
+			},
+			Username: "myuser",
+			Password: "pass",
+			Database: "database",
+			TLS: &schema.TLS{
+				MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS10},
+				MaximumVersion: schema.TLSVersion{Value: tls.VersionTLS13},
+			},
+		},
+	}
+
+	ValidateStorage(suite.config, suite.val)
+
+	suite.Len(suite.val.Warnings(), 0)
+	suite.Require().Len(suite.val.Errors(), 1)
+
+	suite.EqualError(suite.val.Errors()[0], "storage: postgres: option 'address' with value 'udp://postgre:4321' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'udp'")
+}
+
+func (suite *StorageSuite) TestShouldValidatePostgresSetPort() {
+	suite.config.PostgreSQL = &schema.StoragePostgreSQL{
+		StorageSQL: schema.StorageSQL{
+			Address: &schema.AddressTCP{
+				Address: MustParseAddress("tcp://postgre"),
+			},
+			Username: "myuser",
+			Password: "pass",
+			Database: "database",
+		},
+	}
+
+	ValidateStorage(suite.config, suite.val)
+
+	suite.Len(suite.val.Warnings(), 0)
+	suite.Len(suite.val.Errors(), 0)
+
+	suite.Equal(uint16(5432), suite.config.PostgreSQL.Address.Port())
 }
 
 func (suite *StorageSuite) TestShouldSetDefaultPostgreSQLTLSServerName() {
@@ -246,18 +382,18 @@ func (suite *StorageSuite) TestShouldSetDefaultPostgreSQLTLSServerName() {
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
-		},
-		TLS: &schema.TLS{
-			MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS12},
+			TLS: &schema.TLS{
+				MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS12},
+			},
 		},
 	}
 
 	ValidateStorage(suite.config, suite.val)
 
-	suite.Assert().Len(suite.val.Warnings(), 0)
-	suite.Assert().Len(suite.val.Errors(), 0)
+	suite.Len(suite.val.Warnings(), 0)
+	suite.Len(suite.val.Errors(), 0)
 
-	suite.Assert().Equal(suite.config.PostgreSQL.Address.Hostname(), suite.config.PostgreSQL.TLS.ServerName)
+	suite.Equal(suite.config.PostgreSQL.Address.Hostname(), suite.config.PostgreSQL.TLS.ServerName)
 }
 
 func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidPostgreSQLTLSVersion() {
@@ -269,18 +405,18 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidPostgreSQLTLSVersion() {
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
-		},
-		TLS: &schema.TLS{
-			MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
+			TLS: &schema.TLS{
+				MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
+			},
 		},
 	}
 
 	ValidateStorage(suite.config, suite.val)
 
-	suite.Assert().Len(suite.val.Warnings(), 0)
+	suite.Len(suite.val.Warnings(), 0)
 	suite.Require().Len(suite.val.Errors(), 1)
 
-	suite.Assert().EqualError(suite.val.Errors()[0], "storage: postgres: tls: option 'minimum_version' is invalid: minimum version is TLS1.0 but SSL3.0 was configured")
+	suite.EqualError(suite.val.Errors()[0], "storage: postgres: tls: option 'minimum_version' is invalid: minimum version is TLS1.0 but SSL3.0 was configured")
 }
 
 func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidPostgreSQLMinVersionGreaterThanMaximum() {
@@ -292,19 +428,19 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidPostgreSQLMinVersionGrea
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
-		},
-		TLS: &schema.TLS{
-			MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS13},
-			MaximumVersion: schema.TLSVersion{Value: tls.VersionTLS11},
+			TLS: &schema.TLS{
+				MinimumVersion: schema.TLSVersion{Value: tls.VersionTLS13},
+				MaximumVersion: schema.TLSVersion{Value: tls.VersionTLS11},
+			},
 		},
 	}
 
 	ValidateStorage(suite.config, suite.val)
 
-	suite.Assert().Len(suite.val.Warnings(), 0)
+	suite.Len(suite.val.Warnings(), 0)
 	suite.Require().Len(suite.val.Errors(), 1)
 
-	suite.Assert().EqualError(suite.val.Errors()[0], "storage: postgres: tls: option combination of 'minimum_version' and 'maximum_version' is invalid: minimum version TLS1.3 is greater than the maximum version TLS1.1")
+	suite.EqualError(suite.val.Errors()[0], "storage: postgres: tls: option combination of 'minimum_version' and 'maximum_version' is invalid: minimum version TLS1.3 is greater than the maximum version TLS1.1")
 }
 
 func (suite *StorageSuite) TestShouldValidatePostgresSSLDefaults() {
@@ -322,13 +458,13 @@ func (suite *StorageSuite) TestShouldValidatePostgresSSLDefaults() {
 
 	ValidateStorage(suite.config, suite.val)
 
-	suite.Assert().Len(suite.val.Warnings(), 1)
-	suite.Assert().Len(suite.val.Errors(), 0)
+	suite.Len(suite.val.Warnings(), 1)
+	suite.Len(suite.val.Errors(), 0)
 
-	suite.Assert().NotNil(suite.config.PostgreSQL.SSL) //nolint:staticcheck
+	suite.NotNil(suite.config.PostgreSQL.SSL) //nolint:staticcheck
 	suite.Require().Nil(suite.config.PostgreSQL.TLS)
 
-	suite.Assert().Equal(schema.DefaultPostgreSQLStorageConfiguration.SSL.Mode, suite.config.PostgreSQL.SSL.Mode) //nolint:staticcheck
+	suite.Equal(schema.DefaultPostgreSQLStorageConfiguration.SSL.Mode, suite.config.PostgreSQL.SSL.Mode) //nolint:staticcheck
 }
 
 func (suite *StorageSuite) TestShouldRaiseErrorOnTLSAndLegacySSL() {
@@ -340,17 +476,17 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnTLSAndLegacySSL() {
 			Username: "myuser",
 			Password: "pass",
 			Database: "database",
+			TLS:      &schema.TLS{},
 		},
 		SSL: &schema.StoragePostgreSQLSSL{},
-		TLS: &schema.TLS{},
 	}
 
 	ValidateStorage(suite.config, suite.val)
 
-	suite.Assert().Len(suite.val.Warnings(), 0)
+	suite.Len(suite.val.Warnings(), 0)
 	suite.Require().Len(suite.val.Errors(), 1)
 
-	suite.Assert().EqualError(suite.val.Errors()[0], "storage: postgres: can't define both 'tls' and 'ssl' configuration options")
+	suite.EqualError(suite.val.Errors()[0], "storage: postgres: can't define both 'tls' and 'ssl' configuration options")
 }
 
 func (suite *StorageSuite) TestShouldValidatePostgresDefaultsDontOverrideConfiguration() {
@@ -372,12 +508,12 @@ func (suite *StorageSuite) TestShouldValidatePostgresDefaultsDontOverrideConfigu
 	ValidateStorage(suite.config, suite.val)
 
 	suite.Require().Len(suite.val.Warnings(), 1)
-	suite.Assert().Len(suite.val.Errors(), 0)
+	suite.Len(suite.val.Errors(), 0)
 
-	suite.Assert().Equal("require", suite.config.PostgreSQL.SSL.Mode) //nolint:staticcheck
-	suite.Assert().Equal("authelia", suite.config.PostgreSQL.Schema)
+	suite.Equal("require", suite.config.PostgreSQL.SSL.Mode) //nolint:staticcheck
+	suite.Equal("authelia", suite.config.PostgreSQL.Schema)
 
-	suite.Assert().EqualError(suite.val.Warnings()[0], "storage: postgres: ssl: the ssl configuration options are deprecated and we recommend the tls options instead")
+	suite.EqualError(suite.val.Warnings()[0], "storage: postgres: ssl: the ssl configuration options are deprecated and we recommend the tls options instead")
 }
 
 func (suite *StorageSuite) TestShouldValidatePostgresSSLModeMustBeValid() {
@@ -397,9 +533,9 @@ func (suite *StorageSuite) TestShouldValidatePostgresSSLModeMustBeValid() {
 
 	ValidateStorage(suite.config, suite.val)
 
-	suite.Assert().Len(suite.val.Warnings(), 1)
+	suite.Len(suite.val.Warnings(), 1)
 	suite.Require().Len(suite.val.Errors(), 1)
-	suite.Assert().EqualError(suite.val.Errors()[0], "storage: postgres: ssl: option 'mode' must be one of 'disable', 'require', 'verify-ca', or 'verify-full' but it's configured as 'unknown'")
+	suite.EqualError(suite.val.Errors()[0], "storage: postgres: ssl: option 'mode' must be one of 'disable', 'require', 'verify-ca', or 'verify-full' but it's configured as 'unknown'")
 }
 
 func (suite *StorageSuite) TestShouldRaiseErrorOnNoEncryptionKey() {
@@ -412,7 +548,7 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnNoEncryptionKey() {
 
 	suite.Require().Len(suite.val.Warnings(), 0)
 	suite.Require().Len(suite.val.Errors(), 1)
-	suite.Assert().EqualError(suite.val.Errors()[0], "storage: option 'encryption_key' is required")
+	suite.EqualError(suite.val.Errors()[0], "storage: option 'encryption_key' is required")
 }
 
 func (suite *StorageSuite) TestShouldRaiseErrorOnShortEncryptionKey() {
@@ -425,7 +561,7 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnShortEncryptionKey() {
 
 	suite.Require().Len(suite.val.Warnings(), 0)
 	suite.Require().Len(suite.val.Errors(), 1)
-	suite.Assert().EqualError(suite.val.Errors()[0], "storage: option 'encryption_key' must be 20 characters or longer")
+	suite.EqualError(suite.val.Errors()[0], "storage: option 'encryption_key' must be 20 characters or longer")
 }
 
 func TestShouldRunStorageSuite(t *testing.T) {
