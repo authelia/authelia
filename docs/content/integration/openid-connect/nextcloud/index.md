@@ -21,10 +21,10 @@ seo:
 ## Tested Versions
 
 * [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+  * [v4.38.17](https://github.com/authelia/authelia/releases/tag/v4.38.17)
 * [Nextcloud]
   * 22.1.0 with the application oidc_login
-  * 29.0.4 with the application user_oidc v6.0.1
+  * 29.0.10 with the application user_oidc v6.1.2
 
 {{% oidc-common %}}
 
@@ -166,7 +166,7 @@ identity_providers:
           - 'email'
           - 'groups'
         userinfo_signed_response_alg: 'none'
-        token_endpoint_auth_method: 'client_secret_basic'
+        token_endpoint_auth_method: 'client_secret_post'
 ```
 
 #### Application
@@ -181,13 +181,6 @@ To configure [Nextcloud] to utilize Authelia as an [OpenID Connect 1.0] Provider
 * Client secret: `insecure_secret`
 * Discovery endpoint: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
 * Scope: openid email profile
-
-3. Add the following to the [Nextcloud] `config.php` configuration:
-``` php
-'user_oidc' => [
-    'use_pkce' => true,
-],
-```
 
 ## See Also
 
