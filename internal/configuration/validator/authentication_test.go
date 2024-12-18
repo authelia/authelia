@@ -609,9 +609,22 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldValidateDefaultImplementa
 
 	suite.Equal(schema.LDAPImplementationCustom, suite.config.LDAP.Implementation)
 
-	suite.Equal(suite.config.LDAP.Attributes.Username, schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.Attributes.Username)
+	suite.Equal(schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.Attributes.Username, suite.config.LDAP.Attributes.Username)
 	suite.Len(suite.validator.Warnings(), 0)
 	suite.Len(suite.validator.Errors(), 0)
+
+	suite.Equal(0, suite.config.LDAP.Pooling.Retries)
+	suite.Equal(0, suite.config.LDAP.Pooling.Count)
+	suite.Equal(time.Duration(0), suite.config.LDAP.Pooling.Timeout)
+}
+
+func (suite *LDAPAuthenticationBackendSuite) TestShouldValidateDefaultPooling() {
+	suite.config.LDAP.Pooling.Enable = true
+	ValidateAuthenticationBackend(&suite.config, suite.validator)
+
+	suite.Equal(schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.Pooling.Retries, suite.config.LDAP.Pooling.Retries)
+	suite.Equal(schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.Pooling.Count, suite.config.LDAP.Pooling.Count)
+	suite.Equal(schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.Pooling.Timeout, suite.config.LDAP.Pooling.Timeout)
 }
 
 func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseErrorWhenImplementationIsInvalidMSAD() {
