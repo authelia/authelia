@@ -20,7 +20,8 @@ type MethodList = []string
 
 // configurationBody the content returned by the configuration endpoint.
 type configurationBody struct {
-	AvailableMethods MethodList `json:"available_methods"`
+	AvailableMethods       MethodList `json:"available_methods"`
+	PasswordChangeDisabled bool       `json:"password_change_disabled"`
 }
 
 // bodySignTOTPRequest is the  model of the request body of TOTP 2FA authentication endpoint.
@@ -172,6 +173,13 @@ type resetPasswordStep2RequestBody struct {
 
 type bodyRequestPasswordResetDELETE struct {
 	Token string `json:"token"`
+}
+
+// changePasswordRequestBody model of the change password request body.
+type changePasswordRequestBody struct {
+	Username    string `json:"username"`
+	OldPassword string `json:"oldPassword"`
+	NewPassword string `json:"newPassword"`
 }
 
 // PasswordPolicyBody represents the response sent by the password reset step 2.
