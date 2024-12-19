@@ -447,6 +447,7 @@ This subcommand allows performing cryptographic certificate, key pair, etc tasks
 This subcommand allows generating cryptographically secure random strings for use for encryption keys, HMAC keys, etc.`
 
 	cmdAutheliaCryptoRandExample = `authelia crypto rand --help
+authelia crypto rand --quiet
 authelia crypto rand --length 80
 authelia crypto rand -n 80
 authelia crypto rand --charset alphanumeric
@@ -454,7 +455,8 @@ authelia crypto rand --charset alphabetic
 authelia crypto rand --charset ascii
 authelia crypto rand --charset numeric
 authelia crypto rand --charset numeric-hex
-authelia crypto rand --characters 0123456789ABCDEF`
+authelia crypto rand --characters 0123456789ABCDEF
+authelia crypto rand --output-file random.txt`
 
 	cmdAutheliaCryptoHashShort = "Perform cryptographic hash operations"
 
@@ -633,6 +635,11 @@ const (
 	cmdFlagUsageCharacters = "sets the explicit characters for the random string"
 	cmdFlagNameLength      = "length"
 	cmdFlagUsageLength     = "sets the character length for the random string"
+	cmdFlagNameQuiet       = "quiet"
+	cmdFlagUsageQuiet      = "Suppress additional output"
+	cmdFlagNameOutputFile  = "output-file"
+	cmdFlagUsageOutputFile = "sets the output file"
+	cmdFlagUsageDirectory  = "directory where the generated keys, certificates, etc will be stored"
 
 	cmdFlagNameNewEncryptionKey = "new-encryption-key"
 
