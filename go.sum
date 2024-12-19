@@ -229,8 +229,8 @@ github.com/valyala/bytebufferpool v1.0.0 h1:GqA5TC/0021Y/b9FG4Oi9Mr3q7XYx6Kllzaw
 github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyCJ6HpOuEn7z0Csc=
 github.com/valyala/fasthttp v1.58.0 h1:GGB2dWxSbEprU9j0iMJHgdKYJVDyjrOwF9RE59PbRuE=
 github.com/valyala/fasthttp v1.58.0/go.mod h1:SYXvHHaFp7QZHGKSHmoMipInhrI5StHrhDTYVEjK/Kw=
-github.com/weppos/publicsuffix-go v0.40.3-0.20241218111332-1518a6f1cb34 h1:kUUh6yN67WhST4I2kCc9NPC5UroReYRZFtnEFn1Cifg=
-github.com/weppos/publicsuffix-go v0.40.3-0.20241218111332-1518a6f1cb34/go.mod h1:v7GQkAtYF7dDQH8N8t3wjfdiTzHMmHz33uasFn4Hy+s=
+github.com/weppos/publicsuffix-go v0.40.3-0.20241219082920-6c58f2cc10d8 h1:2OX/PBCu6dL1LfSoGbAP960Vd7vfhSXIUMJXVjOiaDw=
+github.com/weppos/publicsuffix-go v0.40.3-0.20241219082920-6c58f2cc10d8/go.mod h1:43Dfyxu2dpmLg56at26Q4k9gwf3yWSUiwk8kGnwzULk=
 github.com/wneessen/go-mail v0.5.2 h1:MZKwgHJoRboLJ+EHMLuHpZc95wo+u1xViL/4XSswDT8=
 github.com/wneessen/go-mail v0.5.2/go.mod h1:kRroJvEq2hOSEPFRiKjN7Csrz0G1w+RpiGR3b6yo+Ck=
 github.com/x448/float16 v0.8.4 h1:qLwI1I70+NjRFUR3zs1JPUCgaCXSh3SW62uAKT1mSBM=
