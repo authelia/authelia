@@ -1,7 +1,11 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
+	"regexp"
+	"slices"
+	"strings"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -107,4 +111,64 @@ func MergeUserInfoAndDetails(userInfo []model.UserInfo, users []authentication.U
 	}
 
 	return userInfo
+}
+
+const (
+	printableUnicodeRegexp = `^[\pL\pM\pN\pP\pS\s]{1,100}$`
+	emailRegex             = `^[a-zA-Z0-9+._~!#$%&'*/=?^{|}-]+@[a-zA-Z0-9-.]+\.[a-zA-Z0-9-]+$`
+	usernameAndGroupRegex  = `^[a-zA-Z0-9-_,]{1,100}$`
+)
+
+func ValidatePrintableUnicodeString(input string) error {
+	if strings.Contains(input, `@`) {
+		if err := ValidateEmailString(input); err != nil {
+			return err
+		}
+	}
+
+	var regex = regexp.MustCompile(printableUnicodeRegexp) //nolint:forbidigo
+	if !regex.MatchString(input) {
+		return errors.New(errNotValidPrintableUnicode)
+	}
+
+	return nil
+}
+
+func ValidateEmailString(input string) error {
+	var regex = regexp.MustCompile(emailRegex)
+	if !regex.MatchString(input) {
+		return errors.New(errNotValidEmail)
+	}
+
+	return nil
+}
+
+func ValidateGroup(input string) error {
+	var regex = regexp.MustCompile(usernameAndGroupRegex)
+	if !regex.MatchString(input) {
+		return errors.New("groups must only contain letters, numbers, hyphens, commas and underscores")
+	}
+
+	return nil
+}
+
+func ValidateUsername(input string) error {
+	if strings.Contains(input, `@`) {
+		if err := ValidateEmailString(input); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	var regex = regexp.MustCompile(usernameAndGroupRegex)
+	if !regex.MatchString(input) {
+		return errors.New("username must only contain letters, numbers, hyphens, commas and underscores or a valid email")
+	}
+
+	return nil
+}
+
+func UserIsAdmin(ctx *middlewares.AutheliaCtx, userGroups []string) bool {
+	return slices.Contains(userGroups, ctx.Configuration.Administration.AdminGroup)
 }

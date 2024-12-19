@@ -296,7 +296,7 @@ func (p *FileUserProvider) ChangeGroups(username string, newGroups []string) (er
 }
 
 // SetDisabled enables or disables a user.
-func (p *FileUserProvider) SetDisabled(username string, Disabled bool) (err error) {
+func (p *FileUserProvider) SetDisabled(username string, disabled bool) (err error) {
 	var details FileUserDatabaseUserDetails
 
 	if details, err = p.database.GetUserDetails(username); err != nil {
@@ -307,9 +307,62 @@ func (p *FileUserProvider) SetDisabled(username string, Disabled bool) (err erro
 		return ErrUserNotFound
 	}
 
-	details.Disabled = Disabled
+	details.Disabled = disabled
 
 	p.database.SetUserDetails(details.Username, &details)
+
+	p.mutex.Lock()
+
+	p.setTimeoutReload(time.Now())
+
+	p.mutex.Unlock()
+
+	if err = p.database.Save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *FileUserProvider) AddUser(username, displayname, password string, opts ...func(options *NewUserDetailsOpts)) (err error) {
+	var digest algorithm.Digest
+
+	if digest, err = p.hash.Hash(password); err != nil {
+		return err
+	}
+
+	options := &NewUserDetailsOpts{}
+
+	for _, opt := range opts {
+		opt(options)
+	}
+
+	details := FileUserDatabaseUserDetails{
+		Username:    username,
+		DisplayName: displayname,
+		Password:    schema.NewPasswordDigest(digest),
+		Email:       options.Email,
+		Groups:      options.Groups,
+		Disabled:    options.Disabled,
+	}
+
+	p.database.SetUserDetails(details.Username, &details)
+
+	p.mutex.Lock()
+
+	p.setTimeoutReload(time.Now())
+
+	p.mutex.Unlock()
+
+	if err = p.database.Save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *FileUserProvider) DeleteUser(username string) (err error) {
+	p.database.DeleteUserDetails(username)
 
 	p.mutex.Lock()
 

@@ -9,6 +9,12 @@ import (
 type UserProvider interface {
 	model.StartupCheck
 
+	// AddUser adds a user given the new user's information.
+	AddUser(username, displayname, password string, opts ...func(options *NewUserDetailsOpts)) (err error)
+
+	// DeleteUser deletes user given the username.
+	DeleteUser(username string) (err error)
+
 	// CheckUserPassword checks if provided password matches for the given user.
 	CheckUserPassword(username, password string) (valid bool, err error)
 

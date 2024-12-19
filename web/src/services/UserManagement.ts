@@ -1,6 +1,6 @@
 import { UserInfo } from "@models/UserInfo";
 import { AdminConfigPath, AdminManageUserPath, AdminUserInfoPath } from "@services/Api";
-import { Get, GetWithOptionalData, PostWithOptionalResponse } from "@services/Client";
+import { DeleteWithOptionalResponse, Get, PostWithOptionalResponse, PutWithOptionalResponse } from "@services/Client";
 import { UserInfoPayload, toSecondFactorMethod } from "@services/UserInfo";
 
 export async function getAllUserInfo(): Promise<UserInfo[]> {
@@ -15,10 +15,14 @@ interface UserChangeBody {
     groups: string[];
 }
 
-export interface AdminConfig {
+export interface AdminConfigBody {
     enabled: boolean;
     admin_group: string;
     allow_admins_to_add_admins: boolean;
+}
+
+interface DeleteUserBody {
+    username: string;
 }
 
 export async function postChangeUser(username: string, display_name: string, email: string, groups: string[]) {
@@ -28,11 +32,33 @@ export async function postChangeUser(username: string, display_name: string, ema
         email,
         groups,
     };
-    console.log(data);
     return PostWithOptionalResponse(AdminManageUserPath, data);
 }
 
-export async function getAdminConfiguration(): Promise<AdminConfig> {
-    const res = await Get<AdminConfig>(AdminConfigPath);
-    return res;
+export async function putNewUser(
+    username: string,
+    display_name: string,
+    password: string,
+    email: string,
+    groups: string[],
+) {
+    const data = {
+        username,
+        display_name,
+        password,
+        email,
+        groups,
+    };
+    return PutWithOptionalResponse(AdminManageUserPath, data);
+}
+
+export async function deleteDeleteUser(username: string) {
+    const data: DeleteUserBody = {
+        username,
+    };
+    return DeleteWithOptionalResponse(AdminManageUserPath, data);
+}
+
+export async function getAdminConfiguration(): Promise<AdminConfigBody> {
+    return await Get<AdminConfigBody>(AdminConfigPath);
 }

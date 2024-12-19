@@ -21,47 +21,29 @@ type Provider interface {
 	Close() (err error)
 
 	/*
-		Implementation for Basic User Attributes
+		Implementation for Basic User Metadata
 	*/
 
-	// CreateExistingUserAttributes add an existing user's attribute record to the storage provider without setting creation date.
-	CreateExistingUserAttributes(ctx context.Context, username string) (err error)
+	// CreateExistingUserMetadata add an existing user's attribute record to the storage provider without setting creation date.
+	CreateExistingUserMetadata(ctx context.Context, username string) (err error)
 
-	// CreateNewUserAttributes add a new user's attribute record to the storage provider along with the user's creation date.
-	CreateNewUserAttributes(ctx context.Context, username string) (err error)
+	// CreateNewUserMetadata add a new user's attribute record to the storage provider along with the user's creation date.
+	CreateNewUserMetadata(ctx context.Context, username string) (err error)
 
-	// LoadAllUsersAttributes load all user attributes from the database.
-	LoadAllUsersAttributes(ctx context.Context) (allUserAttributes []model.UserInfo, err error)
+	// LoadAllUsersMetadata load all user metadata from the database.
+	LoadAllUsersMetadata(ctx context.Context) (allUserMetadata []model.UserInfo, err error)
 
-	// LoadUserAttributes load the user attributes for a specific user.
-	LoadUserAttributesByUsername(ctx context.Context, username string) (userAttributes model.UserInfo, err error)
+	// LoadUserMetadataByUsername load the user metadata for a specific user.
+	LoadUserMetadataByUsername(ctx context.Context, username string) (userMetadata model.UserInfo, err error)
 
 	// UpdateUserSignInDateByUsername save the current time as the last time a user logged in successfully.
 	UpdateUserSignInDateByUsername(ctx context.Context, username string) (err error)
 
-	// UpdateUserAttributesByUsername updates multiple user attribute fields at once.
-	UpdateUserAttributesByUsername(ctx context.Context, disabled bool, password_change_required bool, logout_required bool, username string) (rowsAffected int64, err error)
-
-	// UpdateUserDisabledByUsername save the current disabled status for a username to the storage provider.
-	UpdateUserDisabledByUsername(ctx context.Context, username string, disabled bool) (err error)
-
-	// LoadDisabledUserByUsername loads a specific disabled user from the storage provider.
-	LoadDisabledUserByUsername(ctx context.Context, username string) (userAttributes model.UserInfo, err error)
-
-	// LoadDisabledUsers load all disabled users from the storage provider.
-	LoadDisabledUsers(ctx context.Context) (userAttributes []model.UserInfo, err error)
-
 	// DeleteUserByUsername deletes a specific user from the storage provider.
-	DeleteUserByUsername(ctx context.Context, username string, disabled bool) (err error)
+	DeleteUserByUsername(ctx context.Context, username string) (err error)
 
 	// UpdatePasswordChangedDateByUsername save the current time as the last time a user changed their password.
 	UpdatePasswordChangedDateByUsername(ctx context.Context, username string) (err error)
-
-	// UpdateRequirePasswordChangeByUsername save the desired state for the require password change flag.
-	UpdateRequirePasswordChangeByUsername(ctx context.Context, username string, needPasswordChange bool) (err error)
-
-	// UpdateLogoutRequiredByUsername save the desired state for the require logout flag.
-	UpdateLogoutRequiredByUsername(ctx context.Context, username string, logoutRequired bool) (err error)
 
 	/*
 		Implementation for Basic User Information.
@@ -79,8 +61,8 @@ type Provider interface {
 	// LoadAllUserInfo loads the model.UserInfo from the storage provider for all users.
 	LoadAllUserInfo(ctx context.Context) (info []model.UserInfo, err error)
 
-	// LoadAllUserInfoAndAttributes loads the model.UserInfo from the storage provider for all users.
-	LoadAllUserInfoAndAttributes(ctx context.Context) (info []model.UserInfo, err error)
+	// LoadAllUserInfoAndMetadata loads the model.UserInfo from the storage provider for all users.
+	LoadAllUserInfoAndMetadata(ctx context.Context) (info []model.UserInfo, err error)
 
 	/*
 		Implementation for User Opaque Identifiers.

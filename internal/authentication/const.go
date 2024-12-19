@@ -108,7 +108,7 @@ var (
 	// ErrIncorrectPassword is returned when the new password is the same as the existing password.
 	ErrPasswordReuse = errors.New("you cannot reuse your old password")
 
-	// ErrEmptyInput is returned when an empty string or nil value is used to set a value
+	// ErrEmptyInput is returned when an empty string or nil value is used to set a value.
 	ErrEmptyInput = errors.New("empty input is not valid")
 )
 

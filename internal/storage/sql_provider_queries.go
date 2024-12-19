@@ -35,9 +35,9 @@ const (
 
 const (
 	queryFmtSelectAllUserInfo = `
-	SELECT 
+	SELECT
 		u.username,
-		u.second_factor_method, 
+		u.second_factor_method,
 		CASE WHEN t.username IS NOT NULL THEN 1 ELSE 0 END AS has_totp,
 		CASE WHEN w.username IS NOT NULL THEN 1 ELSE 0 END AS has_webauthn,
 		CASE WHEN d.username IS NOT NULL THEN 1 ELSE 0 END AS has_duo
@@ -302,58 +302,45 @@ const (
 
 //nolint:gosec // The following queries are not hard coded credentials.
 const (
-	queryFmtInsertUserAttributes = `
+	queryFmtInsertUserMetadata = `
 	INSERT INTO %s (username)
 	VALUES (?);`
 
-	queryFmtInsertNewUserAttributes = `
+	queryFmtInsertNewUserMetadata = `
 	INSERT INTO %s (username, user_created_at)
 	VALUES (?, ?);`
 
-	queryFmtInsertNewUserAtLoginAttributes = `
+	queryFmtInsertNewUserAtLoginMetadata = `
 	INSERT INTO %s (username, last_logged_in)
 	VALUES (?, ?);`
 
-	queryFmtSelectUserAttributes = `
-	SELECT username, disabled, last_logged_in, password_change_required, last_password_change, logout_required, user_created_at
+	queryFmtSelectUserMetadata = `
+	SELECT username, last_logged_in, last_password_change, user_created_at
 	FROM %s
 	ORDER BY id ASC;`
 
-	queryFmtSelectMultipleUserAttributesByUsername = `
-	SELECT username, disabled, last_logged_in, password_change_required, last_password_change, logout_required, user_created_at
+	queryFmtSelectMultipleUserMetadataByUsername = `
+	SELECT username, last_logged_in, last_password_change, user_created_at
 	FROM %s
 	WHERE username IN (?);`
 
 	queryFmtSelectUserByUsername = `
-	SELECT username, disabled, last_logged_in, password_change_required, last_password_change, logout_required, user_created_at
+	SELECT username, last_logged_in, last_password_change, user_created_at
 	FROM %s
 	WHERE username = ?;`
 
-	queryFmtUpdateUserAttributesByUsername = `
-	UPDATE %s
-	SET 
-		disabled = COALESCE(?, disabled),
-		password_change_required = COALESCE(?, password_change_required),
-		logout_required = COALESCE(?, logout_required)
-	WHERE username = ?;`
-
-	queryFmtSelectAllUserInfoAndAttributes = `
-	SELECT 
+	queryFmtSelectAllUserInfoAndMetadata = `
+	SELECT
 		u.username,
 		u.second_factor_method,
-		
-		CASE WHEN attributes.disabled IS NOT NULL THEN 1 ELSE 0 END AS disabled,
-		attributes.last_logged_in AS last_logged_in,
-		CASE WHEN attributes.password_change_required IS NOT NULL THEN 1 ELSE 0 END AS password_change_required,
-		attributes.last_password_change AS last_password_change,
-		CASE WHEN attributes.logout_required IS NOT NULL THEN 1 ELSE 0 END AS logout_required,
-		attributes.user_created_at AS user_created_at,
-
+		metadata.last_logged_in AS last_logged_in,
+		metadata.last_password_change AS last_password_change,
+		metadata.user_created_at AS user_created_at,
 		CASE WHEN totp.username IS NOT NULL THEN 1 ELSE 0 END AS has_totp,
 		CASE WHEN webauthn.username IS NOT NULL THEN 1 ELSE 0 END AS has_webauthn,
 		CASE WHEN duo.username IS NOT NULL THEN 1 ELSE 0 END AS has_duo
 	FROM %s u
-	LEFT JOIN %s attributes ON u.username = attributes.username
+	LEFT JOIN %s metadata ON u.username = metadata.username
 
 	LEFT JOIN %s totp ON u.username = totp.username
 	LEFT JOIN %s webauthn ON u.username = webauthn.username
@@ -365,22 +352,7 @@ const (
 	SET last_logged_in = ?
 	WHERE username = ?;`
 
-	queryFmtUpdateUserRecordDisabledByUsername = `
-	UPDATE %s
-	SET disabled = ?
-	WHERE username = ?;`
-
-	queryFmtSelectDisabledUserByUsername = `
-	SELECT username, disabled, last_logged_in, password_change_required, last_password_change, logout_required, user_created_at
-	FROM %s
-	WHERE disabled = 1 AND username = ?;`
-
-	queryFmtSelectDisabledUsers = `
-	SELECT username, disabled, last_logged_in, change_password_required, last_password_change, logout_required, user_created_at
-	FROM %s
-	WHERE disabled;`
-
-	queryFmtDeleteUserAttributesByUsername = `
+	queryFmtDeleteUserMetadataByUsername = `
 	DELETE FROM %s
 	WHERE username = ?;`
 
@@ -388,16 +360,6 @@ const (
 	UPDATE %s
 	SET last_password_change = ?
 	WHERE username = ?`
-
-	queryFmtUpdateUserRecordRequirePasswordChangeByUsername = `
-	UPDATE %s
-	SET password_change_required = 1
-	WHERE username = ?;`
-
-	queryFmtUpdateUserRecordLogoutRequiredByUsername = `
-	UPDATE %s
-	SET logout_required = ?
-	WHERE username = ?;`
 )
 
 const (

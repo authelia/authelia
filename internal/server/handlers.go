@@ -270,9 +270,12 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 		r.DELETE("/api/reset-password", middlewareAPI(handlers.ResetPasswordDELETE))
 	}
 
-	// TODO(Brynn Crowley): implement configuration for password change -- allow admins to disable password change
-	// Priority: Low
-	// Issue: https://github.com/authelia/authelia/issues/3548
+	/**
+	* TODO(Brynn Crowley): implement configuration for password change -- allow admins to disable password change
+	* Priority: Low
+	* Issue: https://github.com/authelia/authelia/issues/3548
+	**/
+
 	r.POST("/api/change-password/identity/start", middlewareElevated1FA(handlers.ChangePasswordPOST))
 	r.POST("/api/change-password/identity/finish", middlewareElevated1FA(handlers.ChangePasswordPOST))
 
@@ -285,14 +288,16 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 
 	if config.Administration.Enabled {
 		r.GET("/api/admin/config", RequireAdminUser1FA(handlers.AdminConfigGET))
+
 		if config.Administration.EnableUserManagement {
+			// Information about all users.
 			r.GET("/api/admin/users/info", RequireAdminUser1FA(handlers.AllUsersInfoGET))
 
-			r.POST("/api/admin/user/", RequireAdminUser1FA(handlers.ChangeUserPOST))
-			r.PUT("/api/admin/user/", RequireAdminUser1FA(handlers.CreateUserPOST))
-			r.DELETE("/api/admin/user/", RequireAdminUser1FA(handlers.DeleteUserDELETE))
+			// Changing, Adding, and Deleting users.
+			r.POST("/api/admin/user", RequireAdminUser1FA(handlers.ChangeUserPOST))
+			r.PUT("/api/admin/user", RequireAdminUser1FA(handlers.NewUserPUT))
+			r.DELETE("/api/admin/user", RequireAdminUser1FA(handlers.DeleteUserDELETE))
 		}
-		// Information about all users.
 	}
 
 	// User Session Elevation.

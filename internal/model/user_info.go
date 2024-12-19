@@ -9,7 +9,7 @@ import (
 // UserInfo represents the user information required by the web UI.
 type UserInfo struct {
 
-	// The users username.
+	// The user's username.
 	Username string `db:"-" json:"username"`
 
 	// The users display name.
@@ -20,20 +20,11 @@ type UserInfo struct {
 
 	Groups []string `db:"-" json:"groups"`
 
-	// True if the user is currently disabled and logins should be prevented.
-	Disabled bool `db:"disabled" json:"user_disabled"`
-
 	// The last time the user logged in successfully.
 	LastLoggedIn *time.Time `db:"last_logged_in" json:"last_logged_in"`
 
-	// True if this user is required to change their password.
-	PasswordChangeRequired bool `db:"password_change_required" json:"password_change_required"`
-
 	// The last time the user changed their password.
 	LastPasswordChange *time.Time `db:"last_password_change" json:"last_password_change"`
-
-	// True if the user should be logged out.
-	LogoutRequired bool `db:"logout_required" json:"logout_required"`
 
 	// The time when the user was created.
 	UserCreatedAt *time.Time `db:"user_created_at" json:"user_created_at"`

@@ -4,7 +4,7 @@ import { Autocomplete, Button, Dialog, DialogContent, DialogTitle, FormControl, 
 import { useTranslation } from "react-i18next";
 
 import { useNotifications } from "@hooks/NotificationsContext";
-import { UserInfo } from "@models/UserInfo";
+import { UserInfo, ValidateDisplayName, ValidateEmail, ValidateGroup } from "@models/UserInfo";
 import { postChangeUser } from "@services/UserManagement";
 import VerifyExitDialog from "@views/Settings/Common/VerifyExitDialog";
 
@@ -14,7 +14,7 @@ interface Props {
     onClose: () => void;
 }
 
-const EditUserDialog: React.FC<Props> = ({ user, open, onClose }) => {
+const EditUserDialog = function (props: Props) {
     const { t: translate } = useTranslation("settings");
     const { createSuccessNotification, createErrorNotification } = useNotifications();
 
@@ -23,10 +23,12 @@ const EditUserDialog: React.FC<Props> = ({ user, open, onClose }) => {
     const [verifyExitDialogOpen, setVerifyExitDialogOpen] = useState(false);
     const [displayNameError, setDisplayNameError] = useState(false);
     const [emailError, setEmailError] = useState(false);
+    const [, setGroupsError] = useState(false);
+
     useEffect(() => {
-        setEditedUser(user);
+        setEditedUser(props.user);
         setChangesMade(false);
-    }, [user]);
+    }, [props.user]);
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value, type, checked } = event.target;
@@ -36,7 +38,7 @@ const EditUserDialog: React.FC<Props> = ({ user, open, onClose }) => {
                 ...prev,
                 [name]: type === "checkbox" ? checked : value,
             };
-            setChangesMade(JSON.stringify(editedUser) !== JSON.stringify(user));
+            setChangesMade(JSON.stringify(editedUser) !== JSON.stringify(props.user));
             return editedUser;
         });
     };
@@ -45,7 +47,7 @@ const EditUserDialog: React.FC<Props> = ({ user, open, onClose }) => {
         setEditedUser((prev) => {
             if (!prev) return null;
             const updatedUser = { ...prev, groups: value };
-            setChangesMade(JSON.stringify(updatedUser) !== JSON.stringify(user));
+            setChangesMade(JSON.stringify(updatedUser) !== JSON.stringify(props.user));
             return updatedUser;
         });
     };
@@ -55,18 +57,28 @@ const EditUserDialog: React.FC<Props> = ({ user, open, onClose }) => {
             return;
         }
         if (editedUser != null) {
-            console.log("Saving updated user:", editedUser);
-            if (editedUser.display_name.trim() === "" || editedUser.emails[0] === "") {
-                if (editedUser.display_name.trim() === "") {
-                    setDisplayNameError(true);
-                }
-                if (editedUser.display_name.trim() === "") {
-                    setEmailError(true);
-                }
+            let error = false;
+            if (ValidateDisplayName(editedUser.display_name)) {
+                error = true;
+                setDisplayNameError(true);
+            }
+            if (ValidateEmail(editedUser.emails[0])) {
+                error = true;
+                setEmailError(true);
+            }
+            if (editedUser.groups.length > 0) {
+                editedUser.groups.forEach((group) => {
+                    if (ValidateGroup(group)) {
+                        error = true;
+                        setGroupsError(true);
+                    }
+                });
+            }
+
+            if (error) {
                 return;
             }
             try {
-                console.log(editedUser.emails);
                 await postChangeUser(
                     editedUser.username,
                     editedUser.display_name,
@@ -74,15 +86,16 @@ const EditUserDialog: React.FC<Props> = ({ user, open, onClose }) => {
                     editedUser.groups,
                 );
                 createSuccessNotification(translate("User modified successfully."));
-                onClose();
             } catch (err) {
                 handleResetErrors();
+                console.log(err);
                 if ((err as Error).message.includes("")) {
                     createErrorNotification(translate("An error!"));
                 }
             }
-            onClose();
+            handleClose();
         } else {
+            handleClose();
             return;
         }
     };
@@ -90,32 +103,34 @@ const EditUserDialog: React.FC<Props> = ({ user, open, onClose }) => {
     const handleResetErrors = () => {
         setDisplayNameError(false);
         setEmailError(false);
+        setGroupsError(false);
     };
 
     const handleClose = () => {
         if (changesMade) {
             setVerifyExitDialogOpen(true);
         } else {
-            onClose();
+            handleResetErrors();
+            props.onClose();
         }
     };
 
     const handleConfirmExit = () => {
         setVerifyExitDialogOpen(false);
-        setEditedUser(user);
+        setEditedUser(props.user);
         setChangesMade(false);
-        onClose();
+        handleClose();
     };
 
     const handleCancelExit = () => {
         setVerifyExitDialogOpen(false);
     };
-    console.log(user);
+
     return (
         <div>
-            <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
+            <Dialog open={props.open} onClose={handleClose} maxWidth="xs" fullWidth>
                 <DialogTitle>
-                    {translate("Edit {{item}}:", { item: translate("User") })} {user?.username}
+                    {translate("Edit {{item}}:", { item: translate("User") })} {props.user?.username}
                 </DialogTitle>
                 <DialogContent>
                     <FormControl>
@@ -157,10 +172,10 @@ const EditUserDialog: React.FC<Props> = ({ user, open, onClose }) => {
                             </Grid2>
                             <Grid2 size={{ xs: 12 }} sx={{ pt: 3 }}>
                                 <Button color={"success"} onClick={handleSave} disabled={!changesMade}>
-                                    Save
+                                    {translate("Save")}
                                 </Button>
                                 <Button color={"error"} onClick={handleClose}>
-                                    Exit
+                                    {translate("Exit")}
                                 </Button>
                             </Grid2>
                         </Grid2>

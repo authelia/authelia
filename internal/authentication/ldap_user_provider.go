@@ -162,12 +162,8 @@ func (p *LDAPUserProvider) ListUsers() (users []UserDetails, err error) {
 	defer client.Close()
 
 	request := ldap.NewSearchRequest(
-		p.usersBaseDN,
-		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
-		0, 0, false,
-		"(objectClass=inetOrgPerson)",
-		p.usersAttributes,
-		nil,
+		p.usersBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
+		0, 0, false, p.resolveUsersFilter("*"), p.usersAttributes, nil,
 	)
 
 	p.log.
@@ -341,7 +337,7 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 	return nil
 }
 
-// ChangeDisplayName changes the display name for a specific user
+// ChangeDisplayName changes the display name for a specific user.
 func (p *LDAPUserProvider) ChangeDisplayName(username, newDisplayName string) (err error) {
 	var (
 		client  LDAPClient
@@ -351,6 +347,7 @@ func (p *LDAPUserProvider) ChangeDisplayName(username, newDisplayName string) (e
 	if client, err = p.connect(); err != nil {
 		return fmt.Errorf("unable to change display name for user '%s': %w", username, err)
 	}
+
 	defer client.Close()
 
 	if profile, err = p.getUserProfile(client, username); err != nil {
@@ -368,7 +365,7 @@ func (p *LDAPUserProvider) ChangeDisplayName(username, newDisplayName string) (e
 	return nil
 }
 
-// ChangeEmail changes the email for a specific user
+// ChangeEmail changes the email for a specific user.
 func (p *LDAPUserProvider) ChangeEmail(username, newEmail string) (err error) {
 	var (
 		client  LDAPClient
@@ -378,6 +375,7 @@ func (p *LDAPUserProvider) ChangeEmail(username, newEmail string) (err error) {
 	if client, err = p.connect(); err != nil {
 		return fmt.Errorf("unable to change email for user '%s': %w", username, err)
 	}
+
 	defer client.Close()
 
 	if profile, err = p.getUserProfile(client, username); err != nil {
@@ -395,6 +393,7 @@ func (p *LDAPUserProvider) ChangeEmail(username, newEmail string) (err error) {
 	return nil
 }
 
+// ChangeGroups changes the groups for a specific user.
 func (p *LDAPUserProvider) ChangeGroups(username string, newGroups []string) (err error) {
 	var (
 		client  LDAPClient
@@ -404,40 +403,43 @@ func (p *LDAPUserProvider) ChangeGroups(username string, newGroups []string) (er
 	if client, err = p.connect(); err != nil {
 		return fmt.Errorf("unable to change groups for user '%s': %w", username, err)
 	}
+
 	defer client.Close()
 
 	if profile, err = p.getUserProfile(client, username); err != nil {
 		return fmt.Errorf("unable to change groups for user '%s': %w", username, err)
 	}
 
-	// Get the current groups of the user
+	// Get the current groups of the user.
 	currentGroups, err := p.getUserGroups(client, username, profile)
 	if err != nil {
 		return fmt.Errorf("unable to retrieve current groups for user '%s': %w", username, err)
 	}
 
-	// Prepare the modify request
+	// Prepare the modify request.
 	modifyRequest := ldap.NewModifyRequest(profile.DN, nil)
 
-	// Remove all current group memberships
+	// Remove all current group memberships.
 	for _, group := range currentGroups {
 		groupDN, err := p.getGroupDN(client, group)
 		if err != nil {
 			return fmt.Errorf("unable to get DN for group '%s': %w", group, err)
 		}
+
 		modifyRequest.Delete(p.config.Attributes.MemberOf, []string{groupDN})
 	}
 
-	// Add new group memberships
+	// Add new group memberships.
 	for _, group := range newGroups {
 		groupDN, err := p.getGroupDN(client, group)
 		if err != nil {
 			return fmt.Errorf("unable to get DN for group '%s': %w", group, err)
 		}
+
 		modifyRequest.Add(p.config.Attributes.MemberOf, []string{groupDN})
 	}
 
-	// Perform the modification
+	// Perform the modification.
 	if err = p.modify(client, modifyRequest); err != nil {
 		return fmt.Errorf("unable to change groups for user '%s': %w", username, err)
 	}
@@ -445,7 +447,15 @@ func (p *LDAPUserProvider) ChangeGroups(username string, newGroups []string) (er
 	return nil
 }
 
-// getGroupDN is a helper function to get the DN of a group given its name
+func (p *LDAPUserProvider) AddUser(username, displayname, password string, opts ...func(options *NewUserDetailsOpts)) (err error) {
+	return nil
+}
+
+func (p *LDAPUserProvider) DeleteUser(username string) (err error) {
+	return nil
+}
+
+// getGroupDN is a helper function to get the DN of a group given its name.
 func (p *LDAPUserProvider) getGroupDN(client LDAPClient, groupName string) (string, error) {
 	searchRequest := ldap.NewSearchRequest(
 		p.groupsBaseDN,
@@ -767,12 +777,26 @@ attributes:
 	return ""
 }
 
-func (p *LDAPUserProvider) resolveUsersFilter(input string) (filter string) {
+type resolveUsersFilterOpts struct {
+	escape bool
+}
+
+func (p *LDAPUserProvider) resolveUsersFilter(input string, opts ...func(options *resolveUsersFilterOpts)) (filter string) {
+	options := &resolveUsersFilterOpts{}
+
+	for _, opt := range opts {
+		opt(options)
+	}
+
 	filter = p.config.UsersFilter
 
 	if p.usersFilterReplacementInput {
-		// The {input} placeholder is replaced by the username input.
-		filter = strings.ReplaceAll(filter, ldapPlaceholderInput, ldapEscape(input))
+		if options.escape {
+			// The {input} placeholder is replaced by the username input.
+			filter = strings.ReplaceAll(filter, ldapPlaceholderInput, ldapEscape(input))
+		} else {
+			filter = strings.ReplaceAll(filter, ldapPlaceholderInput, input)
+		}
 	}
 
 	if p.usersFilterReplacementDateTimeGeneralized {

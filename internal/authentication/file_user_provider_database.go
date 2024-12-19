@@ -20,6 +20,7 @@ type FileUserProviderDatabase interface {
 	GetUserDetails(username string) (user FileUserDatabaseUserDetails, err error)
 	GetAllUserDetails() (users []UserDetails, err error)
 	SetUserDetails(username string, details *FileUserDatabaseUserDetails)
+	DeleteUserDetails(username string)
 	GetAllUsers() map[string]FileUserDatabaseUserDetails
 }
 
@@ -197,7 +198,7 @@ func (m *FileUserDatabase) GetAllUsers() map[string]FileUserDatabaseUserDetails 
 	return usersCopy
 }
 
-// GetUserDetails get a FileUserDatabaseUserDetails given a username as a value type where the username must be the users actual
+// GetAllUserDetails get a FileUserDatabaseUserDetails given a username as a value type where the username must be the users actual
 // username.
 func (m *FileUserDatabase) GetAllUserDetails() ([]UserDetails, error) {
 	m.RLock()
@@ -234,6 +235,37 @@ func (m *FileUserDatabase) SetUserDetails(username string, details *FileUserData
 	m.Users[username] = *details
 
 	m.Unlock()
+}
+
+// AddUserDetails adds the FileUserDatabaseUserDetails for a given user.
+func (m *FileUserDatabase) AddUserDetails(username string, details *FileUserDatabaseUserDetails) {
+	if details == nil {
+		return
+	}
+
+	m.Lock()
+
+	m.Users[username] = *details
+
+	m.Unlock()
+}
+
+// DeleteUserDetails deletes a user from the database.
+func (m *FileUserDatabase) DeleteUserDetails(username string) {
+	m.Lock()
+	defer m.Unlock()
+
+	delete(m.Users, username)
+
+	if m.SearchEmail {
+		email := strings.ToLower(m.Users[username].Email)
+		delete(m.Emails, email)
+	}
+
+	if m.SearchCI {
+		alias := strings.ToLower(username)
+		delete(m.Aliases, alias)
+	}
 }
 
 // ToDatabaseModel converts the FileUserDatabase into the FileDatabaseModel for saving.
@@ -283,7 +315,7 @@ func (m FileUserDatabaseUserDetails) ToUserDetailsModel() (model FileDatabaseUse
 	}
 }
 
-// FileDatabaseModel is the model of users file database.
+// FileDatabaseModel is the model of the users file database.
 type FileDatabaseModel struct {
 	Users map[string]FileDatabaseUserDetailsModel `yaml:"users" json:"users" valid:"required" jsonschema:"required,title=Users" jsonschema_description:"The dictionary of users."`
 }

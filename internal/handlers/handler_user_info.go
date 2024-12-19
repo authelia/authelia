@@ -15,7 +15,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// UserInfoPOST handles setting up info for users if necessary when they login.
+// UserInfoPOST handles setting up info for users if necessary when they log in.
 func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 	var (
 		userSession session.UserSession
@@ -102,6 +102,8 @@ func UserInfoGET(ctx *middlewares.AutheliaCtx) {
 	}
 
 	userInfo.DisplayName = userSession.DisplayName
+	userInfo.Groups = userSession.Groups
+	userInfo.Emails = userSession.Emails
 
 	err = ctx.SetJSONBody(userInfo)
 	if err != nil {
@@ -109,7 +111,7 @@ func UserInfoGET(ctx *middlewares.AutheliaCtx) {
 	}
 }
 
-// UserInfoGET gets the info related to all users.
+// AllUsersInfoGET gets the info related to all users.
 func AllUsersInfoGET(ctx *middlewares.AutheliaCtx) {
 	var (
 		err      error
@@ -122,7 +124,7 @@ func AllUsersInfoGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if userInfo, err = ctx.Providers.StorageProvider.LoadAllUserInfoAndAttributes(ctx); err != nil {
+	if userInfo, err = ctx.Providers.StorageProvider.LoadAllUserInfoAndMetadata(ctx); err != nil {
 		ctx.Error(fmt.Errorf("unable to load user attributes: %w", err), messageOperationFailed)
 		return
 	}

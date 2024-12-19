@@ -146,19 +146,14 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 
 	provider.sqlSelectOAuth2BlacklistedJTI = provider.db.Rebind(provider.sqlSelectOAuth2BlacklistedJTI)
 
-	provider.sqlInsertUserAttributes = provider.db.Rebind(provider.sqlInsertUserAttributes)
-	provider.sqlInsertNewUserAttributes = provider.db.Rebind(provider.sqlInsertNewUserAttributes)
-	provider.sqlInsertExistingUserAtLoginAttributes = provider.db.Rebind(provider.sqlInsertExistingUserAtLoginAttributes)
-	provider.sqlSelectUserAttributesByUsername = provider.db.Rebind(provider.sqlSelectUserAttributesByUsername)
-	provider.sqlUpdateUserAttributesByUsername = provider.db.Rebind(provider.sqlUpdateUserAttributesByUsername)
-	provider.sqlUpdateUserRecordSignInByUsername = provider.db.Rebind(provider.sqlInsertExistingUserAtLoginAttributes)
-	provider.sqlUpdateUserRecordDisabledByUsername = provider.db.Rebind(provider.sqlUpdateUserRecordDisabledByUsername)
-	provider.sqlSelectDisabledUserByUsername = provider.db.Rebind(provider.sqlSelectDisabledUserByUsername)
-	provider.sqlSelectDisabledUsers = provider.db.Rebind(provider.sqlSelectDisabledUsers)
-	provider.sqlDeleteUserAttributesByUsername = provider.db.Rebind(provider.sqlDeleteUserAttributesByUsername)
+	provider.sqlInsertUserMetadata = provider.db.Rebind(provider.sqlInsertUserMetadata)
+	provider.sqlInsertNewUserMetadata = provider.db.Rebind(provider.sqlInsertNewUserMetadata)
+	provider.sqlInsertExistingUserAtLoginMetadata = provider.db.Rebind(provider.sqlInsertExistingUserAtLoginMetadata)
+	provider.sqlSelectUserMetadataByUsername = provider.db.Rebind(provider.sqlSelectUserMetadataByUsername)
+	provider.sqlUpdateUserRecordSignInByUsername = provider.db.Rebind(provider.sqlInsertExistingUserAtLoginMetadata)
+	provider.sqlDeleteUserMetadataByUsername = provider.db.Rebind(provider.sqlDeleteUserMetadataByUsername)
 	provider.sqlUpdateUserRecordPasswordChangedAtByUsername = provider.db.Rebind(provider.sqlUpdateUserRecordPasswordChangedAtByUsername)
 	provider.sqlUpdateUserRecordRequirePasswordChangedByUsername = provider.db.Rebind(provider.sqlUpdateUserRecordRequirePasswordChangedByUsername)
-	provider.sqlUpdateUserRecordLogoutRequiredByUsername = provider.db.Rebind(provider.sqlUpdateUserRecordLogoutRequiredByUsername)
 
 	provider.schema = config.Storage.PostgreSQL.Schema
 
