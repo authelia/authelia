@@ -472,10 +472,6 @@ func validateLDAPRequiredParameters(config *schema.AuthenticationBackend, valida
 		}
 	}
 
-	if config.LDAP.BaseDN == "" {
-		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "base_dn"))
-	}
-
 	if config.LDAP.UsersFilter == "" {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "users_filter"))
 	} else {
