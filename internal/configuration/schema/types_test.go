@@ -359,8 +359,6 @@ func TestJSONSchema(t *testing.T) {
 		&PasswordDigest{},
 		&TLSVersion{},
 		&X509CertificateChain{},
-		&AccessControlRuleNetworks{},
-		&AccessControlNetworkNetworks{},
 		&AccessControlRuleDomains{},
 		&AccessControlRuleMethods{},
 		&AccessControlRuleRegex{},
