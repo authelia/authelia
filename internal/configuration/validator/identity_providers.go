@@ -115,7 +115,7 @@ func validateOIDCAuthorizationPoliciesPolicyRules(i int, policy string, config *
 
 	for _, subjects := range config.AuthorizationPolicies[policy].Rules[i].Subjects {
 		for _, subject := range subjects {
-			if !IsSubjectValidStrict(subject) {
+			if !IsSubjectValidBasic(subject) {
 				validator.Push(fmt.Errorf(errFmtOIDCPolicyRuleSubjectInvalid, policy, i+1, subject))
 
 				n = -1
