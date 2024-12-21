@@ -17,7 +17,7 @@ import { useQueryParam } from "@hooks/QueryParam";
 import MinimalLayout from "@layouts/MinimalLayout";
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
 import { getPasswordPolicyConfiguration } from "@services/PasswordPolicyConfiguration";
-import { completeResetPasswordProcess, resetPassword } from "@services/ResetPassword";
+import { completeResetPasswordIVProcess, resetPassword } from "@services/ResetPassword";
 
 const ResetPasswordStep2 = function () {
     const styles = useStyles();
@@ -55,7 +55,7 @@ const ResetPasswordStep2 = function () {
 
         try {
             setFormDisabled(true);
-            await completeResetPasswordProcess(processToken);
+            await completeResetPasswordIVProcess(processToken);
             const policy = await getPasswordPolicyConfiguration();
             setPPolicy(policy);
             setFormDisabled(false);
