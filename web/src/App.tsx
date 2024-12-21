@@ -9,6 +9,7 @@ import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import NotificationBar from "@components/NotificationBar";
 import {
     ConsentRoute,
+    ErrorRoute,
     IndexRoute,
     LogoutRoute,
     ResetPasswordStep1Route,
@@ -23,6 +24,7 @@ import NotificationsContext from "@hooks/NotificationsContext";
 import { Notification } from "@models/Notifications";
 import { getBasePath } from "@utils/BasePath";
 import { getDuoSelfEnrollment, getRememberMe, getResetPassword, getResetPasswordCustomURL } from "@utils/Configuration";
+import BaseErrorView from "@views/Error/BaseErrorPage";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 import LoginPortal from "@views/LoginPortal/LoginPortal";
 
@@ -65,6 +67,7 @@ const App: React.FC<Props> = (props: Props) => {
                                     <Route path={ResetPasswordStep2Route} element={<ResetPasswordStep2 />} />
                                     <Route path={LogoutRoute} element={<SignOut />} />
                                     <Route path={ConsentRoute} element={<ConsentView />} />
+                                    <Route path={ErrorRoute} element={<BaseErrorView />} />
                                     <Route path={RevokeOneTimeCodeRoute} element={<RevokeOneTimeCodeView />} />
                                     <Route path={RevokeResetPasswordRoute} element={<RevokeResetPasswordTokenView />} />
                                     <Route path={`${SettingsRoute}/*`} element={<SettingsRouter />} />
