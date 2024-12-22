@@ -416,8 +416,7 @@ This subcommand allows debugging the filtered YAML files with any of the availab
 command needs to be executed with the same environment variables and working path as when normally running Authelia to
 be useful.`
 
-	cmdAutheliaConfigTemplateExample = `authelia config template --filters.experimental.template
-authelia config template --filters.experimental.expand-env --config config.yml`
+	cmdAutheliaConfigTemplateExample = `authelia config template --config.experimental.filters=template --config=config.yml`
 
 	cmdAutheliaConfigValidateShort = "Check a configuration against the internal configuration validation mechanisms"
 
@@ -719,7 +718,7 @@ var (
 )
 
 const (
-	helpTopicConfigFilters = `Configuration Filters are an experimental system for templating configuration files.
+	helpTopicConfigFilters = `Configuration Filters are a system for templating configuration files.
 
 Using the --config.experimental.filters flag users can define multiple filters to apply to all configuration files that
 are loaded by Authelia. These filters are applied after loading the file data from the filesystem, but before they are
@@ -730,18 +729,18 @@ string when the log level is set to trace.
 
 The following filters are available:
 
-	expand-env:
-
-		This filter expands environment variables in place where specified in the configuration. For example the string
-		${DOMAIN_NAME} will be replaced with the value from the DOMAIN_NAME environment variable or an empty string.
-
 	template:
 
 		This filter uses the go template system to filter the file. In addition to the standard functions, several
-		custom functions exist to facilitate this process. The 'env' function takes a single string does similar to the
-		'expand-env' filter for example.
+		custom functions exist to facilitate this process.
 
-		For a full list of functions see: https://www.authelia.com/configuration/methods/files/#functions`
+		For a full list of functions see: https://www.authelia.com/reference/guides/templating/#functions
+
+	expand-env:
+
+		DEPRECATED: This filter expands environment variables in place where specified in the configuration. For example
+        the string ${DOMAIN_NAME} will be replaced with the value from the DOMAIN_NAME environment variable or an empty
+		string.`
 
 	helpTopicConfig = `Configuration can be specified in multiple layers where each layer is a different source from
 the last. The layers are loaded in the order below where each layer potentially overrides the individual settings from
