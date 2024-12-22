@@ -140,19 +140,21 @@ which includes ACME and various other useful utilities.
 ---
 networks:
   net:
-    driver: bridge
+    driver: 'bridge'
 
 services:
   nginx:
-    container_name: nginx
-    image: lscr.io/linuxserver/nginx
-    restart: unless-stopped
+    container_name: 'nginx'
+    image: 'lscr.io/linuxserver/nginx'
+    restart: 'unless-stopped'
     networks:
       net:
-        aliases: []
+        aliases:
+          - 'https://{{</* sitevar name="subdomain-authelia" nojs="auth" */>}}.{{</* sitevar name="domain" nojs="example.com" */>}}'
     ports:
-      - '80:80'
-      - '443:443'
+      - '80:80/tcp'
+      - '443:443/tcp'
+      - '443:443/udp'
     volumes:
       - '${PWD}/data/nginx/snippets:/config/nginx/snippets'
       - '${PWD}/data/nginx/site-confs:/config/nginx/site-confs'
@@ -161,42 +163,33 @@ services:
       DOCKER_MODS: 'linuxserver/mods:nginx-proxy-confs'
   authelia:
     container_name: '{{< sitevar name="host" nojs="authelia" >}}'
-    image: authelia/authelia
-    restart: unless-stopped
+    image: 'authelia/authelia'
+    restart: 'unless-stopped'
     networks:
-      net:
-        aliases: []
-    expose:
-      - {{< sitevar name="port" nojs="9091" >}}
+      net: {}
     volumes:
-      - ${PWD}/data/authelia/config:/config
+      - '${PWD}/data/authelia/config:/config'
     environment:
       TZ: 'Australia/Melbourne'
   nextcloud:
-    container_name: nextcloud
-    image: lscr.io/linuxserver/nextcloud
-    restart: unless-stopped
+    container_name: 'nextcloud'
+    image: 'lscr.io/linuxserver/nextcloud'
+    restart: 'unless-stopped'
     networks:
-      net:
-        aliases: []
-    expose:
-      - 443
+      net: {}
     volumes:
-      - ${PWD}/data/nextcloud/config:/config
-      - ${PWD}/data/nextcloud/data:/data
+      - '${PWD}/data/nextcloud/config:/config'
+      - '${PWD}/data/nextcloud/data:/data'
     environment:
       PUID: '1000'
       PGID: '1000'
       TZ: 'Australia/Melbourne'
   whoami:
-    container_name: whoami
-    image: docker.io/traefik/whoami
-    restart: unless-stopped
+    container_name: 'whoami'
+    image: 'docker.io/traefik/whoami'
+    restart: 'unless-stopped'
     networks:
-      net:
-        aliases: []
-    expose:
-      - 80
+      net: {}
     environment:
       TZ: 'Australia/Melbourne'
 ...

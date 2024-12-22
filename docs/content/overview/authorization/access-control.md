@@ -27,16 +27,16 @@ For instance a rule can look like this:
 ```yaml {title="configuration.yml"}
 access_control:
   rules:
-    - domain: dev.example.com
+    - domain: 'dev.example.com'
       resources:
         - '^/groups/dev/.*$'
       subject: 'group:dev'
-      policy: two_factor
+      policy: 'two_factor'
       methods:
-        - GET
-        - POST
+        - 'GET'
+        - 'POST'
       networks:
-        - 192.168.1.0/24
+        - '192.168.1.0/24'
 ```
 
 This rule matches when the request targets the domain `dev.example.com`, the path matches the regular expression
