@@ -1,10 +1,11 @@
-import { startAuthentication, startRegistration } from "@simplewebauthn/browser";
 import {
     AuthenticationResponseJSON,
     PublicKeyCredentialCreationOptionsJSON,
     PublicKeyCredentialRequestOptionsJSON,
     RegistrationResponseJSON,
-} from "@simplewebauthn/types";
+    startAuthentication,
+    startRegistration,
+} from "@simplewebauthn/browser";
 import axios, { AxiosError, AxiosResponse } from "axios";
 
 import {
