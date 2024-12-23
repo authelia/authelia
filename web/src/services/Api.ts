@@ -53,6 +53,11 @@ export interface Response<T> extends OKResponse {
     data: T;
 }
 
+export interface ResponseRateLimited<T> extends OKResponse {
+    data?: T;
+    limited: boolean;
+}
+
 export interface OptionalDataResponse<T> extends OKResponse {
     data?: T;
 }
@@ -65,8 +70,17 @@ export type AuthenticationResponse<T> = Response<T> | AuthenticationErrorRespons
 export type AuthenticationOKResponse = OKResponse | AuthenticationErrorResponse;
 export type OptionalDataServiceResponse<T> = OptionalDataResponse<T> | ErrorResponse;
 export type ServiceResponse<T> = Response<T> | ErrorResponse;
+export type ServiceResponseRateLimited<T> = ResponseRateLimited<T> | ErrorResponse;
 
 function toErrorResponse<T>(resp: AxiosResponse<ServiceResponse<T>>): ErrorResponse | undefined {
+    if (resp.data && "status" in resp.data && resp.data["status"] === "KO") {
+        return resp.data as ErrorResponse;
+    }
+
+    return undefined;
+}
+
+function toErrorResponseRateLimited<T>(resp: AxiosResponse<ServiceResponseRateLimited<T>>): ErrorResponse | undefined {
     if (resp.data && "status" in resp.data && resp.data["status"] === "KO") {
         return resp.data as ErrorResponse;
     }
@@ -80,12 +94,43 @@ export function toData<T>(resp: AxiosResponse<ServiceResponse<T>>): T | undefine
     return undefined;
 }
 
+export type RateLimitedData<T> = {
+    data?: T;
+    limited: boolean;
+};
+
+export function toDataRateLimited<T>(
+    resp: AxiosResponse<ServiceResponseRateLimited<T>>,
+): RateLimitedData<T> | undefined {
+    if (resp.data && "status" in resp.data && resp.data["status"] === "OK") {
+        if (resp.data.limited) {
+            return { limited: true };
+        } else {
+            return { limited: false, data: resp.data.data as T };
+        }
+    }
+
+    return undefined;
+}
+
+function hasError(err: ErrorResponse | undefined) {
+    if (err && err.status === "KO") {
+        return { errored: true, message: err.message };
+    }
+
+    return { errored: false, message: null };
+}
+
 export function hasServiceError<T>(resp: AxiosResponse<ServiceResponse<T>>) {
     const errResp = toErrorResponse(resp);
-    if (errResp && errResp.status === "KO") {
-        return { errored: true, message: errResp.message };
-    }
-    return { errored: false, message: null };
+
+    return hasError(errResp);
+}
+
+export function hasServiceRateLimitedError<T>(resp: AxiosResponse<ServiceResponseRateLimited<T>>) {
+    const errResp = toErrorResponseRateLimited(resp);
+
+    return hasError(errResp);
 }
 
 export function validateStatusTooManyRequests(status: number) {
