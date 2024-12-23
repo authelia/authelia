@@ -105,6 +105,7 @@ app.use(
     issuerBaseURL: process.env.OIDC_ISSUER || 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}',
     pushedAuthorizationRequests: true,
     authorizationParams: {
+      redirect_uri: `${process.env.APP_BASE_URL}/callback`,
       response_type: 'code',
       scope: 'openid profile email groups',
     },
