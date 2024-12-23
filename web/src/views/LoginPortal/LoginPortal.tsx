@@ -6,6 +6,7 @@ import { Route, Routes, useLocation } from "react-router-dom";
 import {
     AuthenticatedRoute,
     IndexRoute,
+    SecondFactorPasswordSubRoute,
     SecondFactorPushSubRoute,
     SecondFactorRoute,
     SecondFactorTOTPSubRoute,
@@ -31,8 +32,8 @@ const SecondFactorForm = lazy(() => import("@views/LoginPortal/SecondFactor/Seco
 
 export interface Props {
     duoSelfEnrollment: boolean;
+    passkeyLogin: boolean;
     rememberMe: boolean;
-
     resetPassword: boolean;
     resetPasswordCustomURL: string;
 }
@@ -135,7 +136,9 @@ const LoginPortal = function (props: Props) {
                 } else {
                     const method = localStorageMethod || userInfo.method;
 
-                    if (method === SecondFactorMethod.WebAuthn) {
+                    if (!state.factor_knowledge) {
+                        navigate(`${SecondFactorRoute}${SecondFactorPasswordSubRoute}`);
+                    } else if (method === SecondFactorMethod.WebAuthn) {
                         navigate(`${SecondFactorRoute}${SecondFactorWebAuthnSubRoute}`);
                     } else if (method === SecondFactorMethod.MobilePush) {
                         navigate(`${SecondFactorRoute}${SecondFactorPushSubRoute}`);
@@ -187,11 +190,12 @@ const LoginPortal = function (props: Props) {
                     <ComponentOrLoading ready={firstFactorReady}>
                         <FirstFactorForm
                             disabled={firstFactorDisabled}
+                            passkeyLogin={props.passkeyLogin}
                             rememberMe={props.rememberMe}
                             resetPassword={props.resetPassword}
                             resetPasswordCustomURL={props.resetPasswordCustomURL}
                             onAuthenticationStart={() => setFirstFactorDisabled(true)}
-                            onAuthenticationFailure={() => setFirstFactorDisabled(false)}
+                            onAuthenticationStop={() => setFirstFactorDisabled(false)}
                             onAuthenticationSuccess={handleAuthSuccess}
                             onChannelStateChange={handleChannelStateChange}
                         />
@@ -204,6 +208,7 @@ const LoginPortal = function (props: Props) {
                     state && userInfo && configuration ? (
                         <SecondFactorForm
                             authenticationLevel={state.authentication_level}
+                            factorKnowledge={state.factor_knowledge}
                             userInfo={userInfo}
                             configuration={configuration}
                             duoSelfEnrollment={props.duoSelfEnrollment}

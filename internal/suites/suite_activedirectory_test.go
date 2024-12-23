@@ -16,12 +16,12 @@ func NewActiveDirectorySuite() *ActiveDirectorySuite {
 	}
 }
 
-func (s *ActiveDirectorySuite) Test1FAScenario() {
-	suite.Run(s.T(), New1FAScenario())
+func (s *ActiveDirectorySuite) TestOneFactorScenario() {
+	suite.Run(s.T(), NewOneFactorScenario())
 }
 
-func (s *ActiveDirectorySuite) Test2FATOTPScenario() {
-	suite.Run(s.T(), New2FATOTPScenario())
+func (s *ActiveDirectorySuite) TestTwoFactorTOTPScenario() {
+	suite.Run(s.T(), NewTwoFactorTOTPScenario())
 }
 
 func (s *ActiveDirectorySuite) TestResetPassword() {

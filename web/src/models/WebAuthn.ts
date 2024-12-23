@@ -3,7 +3,7 @@ import {
     PublicKeyCredentialCreationOptionsJSON,
     PublicKeyCredentialRequestOptionsJSON,
     RegistrationResponseJSON,
-} from "@simplewebauthn/types";
+} from "@simplewebauthn/browser";
 
 export interface PublicKeyCredentialCreationOptionsStatus {
     options?: PublicKeyCredentialCreationOptionsJSON;

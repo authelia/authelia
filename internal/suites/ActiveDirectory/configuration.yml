@@ -59,6 +59,26 @@ totp:
 
 webauthn:
   disable: false
+  enable_passkey_login: true
+  display_name: 'Authelia'
+  attestation_conveyance_preference: 'indirect'
+  timeout: '60 seconds'
+  filtering:
+    permitted_aaguids: []
+    prohibited_aaguids: []
+    prohibit_backup_eligibility: false
+  selection_criteria:
+    attachment: ''
+    discoverability: 'required'
+    user_verification: 'preferred'
+  metadata:
+    enabled: false
+    validate_trust_anchor: true
+    validate_entry: false
+    validate_entry_permit_zero_aaguid: true
+    validate_status: true
+    validate_status_permitted: []
+    validate_status_prohibited: []
 
 access_control:
   default_policy: 'deny'
