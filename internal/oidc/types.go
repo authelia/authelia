@@ -141,6 +141,9 @@ type Client interface {
 
 	GetRequirePushedAuthorizationRequests() (enforce bool)
 
+	GetJSONWebKeys() (jwks *jose.JSONWebKeySet)
+	GetJSONWebKeysURI() (uri string)
+
 	GetEnforcePKCE() (enforce bool)
 	GetEnforcePKCEChallengeMethod() (enforce bool)
 	GetPKCEChallengeMethod() (method string)

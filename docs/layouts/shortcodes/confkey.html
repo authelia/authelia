@@ -12,6 +12,7 @@
 {{- with $structure }}{{ $ref = . }}{{ end }}
 {{- else if eq $syntax "duration" }}{{ $ref = "duration" }}
 {{- else if eq $syntax "address" }}{{ $ref = "address" }}
+{{- else if eq $syntax "network" }}{{ $ref = "network" }}
 {{- end }}
 {{- end }}
 <div class="mb-3">

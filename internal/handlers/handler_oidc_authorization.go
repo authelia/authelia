@@ -4,12 +4,10 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
-	"time"
 
 	oauthelia2 "authelia.com/provider/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
-	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -27,18 +25,13 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		responder oauthelia2.AuthorizeResponder
 		client    oidc.Client
 		policy    oidc.ClientAuthorizationPolicy
-		authTime  time.Time
-		issuer    *url.URL
 		err       error
 	)
 
 	requester, err = ctx.Providers.OpenIDConnect.NewAuthorizeRequest(ctx, r)
+	if requester == nil {
+		err = oauthelia2.ErrServerError.WithDebug("The requester was nil.")
 
-	if requester != nil && requester.GetResponseMode() == oidc.ResponseModeFormPost {
-		ctx.SetUserValue(middlewares.UserValueKeyOpenIDConnectResponseModeFormPost, true)
-	}
-
-	if err != nil {
 		ctx.Logger.Errorf("Authorization Request failed with error: %s", oauthelia2.ErrorToDebugRFC6749Error(err))
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
@@ -48,6 +41,14 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 
 	if requester.GetResponseMode() == oidc.ResponseModeFormPost {
 		ctx.SetUserValue(middlewares.UserValueKeyOpenIDConnectResponseModeFormPost, true)
+	}
+
+	if err != nil {
+		ctx.Logger.Errorf("Authorization Request failed with error: %s", oauthelia2.ErrorToDebugRFC6749Error(err))
+
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
+
+		return
 	}
 
 	clientID := requester.GetClient().GetID()
@@ -79,6 +80,7 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 	}
 
 	var (
+		issuer      *url.URL
 		details     *authentication.UserDetails
 		userSession session.UserSession
 		consent     *model.OAuth2ConsentSession
@@ -127,17 +129,9 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 
 	extraClaims := oidcGrantRequests(requester, consent, details)
 
-	if authTime, err = userSession.AuthenticatedTime(client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{Username: details.Username, Groups: details.Groups, IP: ctx.RemoteIP()})); err != nil {
-		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' could not be processed: error occurred checking authentication time: %+v", requester.GetID(), client.GetID(), policy.Name, err)
+	ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' was successfully processed, proceeding to build Authorization Response", requester.GetID(), clientID)
 
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oauthelia2.ErrServerError.WithHint("Could not obtain the authentication time."))
-
-		return
-	}
-
-	ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' using policy '%s' was successfully processed for user '%s' with groups: %+v, proceeding to build Authorization Response", requester.GetID(), clientID, policy.Name, userSession.Username, userSession.Groups)
-
-	session := oidc.NewSessionWithAuthorizeRequest(ctx, issuer, ctx.Providers.OpenIDConnect.KeyManager.GetKeyID(ctx, client.GetIDTokenSignedResponseKeyID(), client.GetIDTokenSignedResponseAlg()), details.Username, userSession.AuthenticationMethodRefs.MarshalRFC8176(), extraClaims, authTime, consent, requester)
+	session := oidc.NewSessionWithAuthorizeRequest(ctx, issuer, ctx.Providers.OpenIDConnect.KeyManager.GetKeyID(ctx, client.GetIDTokenSignedResponseKeyID(), client.GetIDTokenSignedResponseAlg()), details.Username, userSession.AuthenticationMethodRefs.MarshalRFC8176(), extraClaims, userSession.LastAuthenticatedTime(), consent, requester)
 
 	ctx.Logger.Tracef("Authorization Request with id '%s' on client with id '%s' using policy '%s' creating session for Authorization Response for subject '%s' with username '%s' with groups: %+v and claims: %+v",
 		requester.GetID(), session.ClientID, policy.Name, session.Subject, session.Username, userSession.Groups, session.Claims)
@@ -159,8 +153,6 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 
 		return
 	}
-
-	responder.GetParameters().Set(oidc.FormParameterIssuer, issuer.String())
 
 	ctx.Providers.OpenIDConnect.WriteAuthorizeResponse(ctx, rw, requester, responder)
 }
