@@ -1,10 +1,12 @@
 package oidc_test
 
 import (
+	"net"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -12,91 +14,62 @@ import (
 )
 
 func TestNewClientAuthorizationPolicy(t *testing.T) {
+	lanip, lan, err := net.ParseCIDR("192.168.2.1/24")
+
+	require.NoError(t, err)
+
 	testCases := []struct {
 		name     string
-		policy   string
-		have     *schema.IdentityProvidersOpenIDConnect
+		have     schema.IdentityProvidersOpenIDConnectPolicy
 		expected oidc.ClientAuthorizationPolicy
 		extra    func(t *testing.T, actual oidc.ClientAuthorizationPolicy)
 	}{
 		{
-			"ShouldReturnStandardPolicy",
-			"two_factor",
-			&schema.IdentityProvidersOpenIDConnect{},
-			oidc.ClientAuthorizationPolicy{Name: "two_factor", DefaultPolicy: authorization.TwoFactor},
-			func(t *testing.T, actual oidc.ClientAuthorizationPolicy) {
-				assert.Equal(t, authorization.TwoFactor, actual.GetRequiredLevel(authorization.Subject{Username: abc}))
-				assert.Equal(t, authorization.TwoFactor, actual.GetRequiredLevel(authorization.Subject{Username: "john"}))
-				assert.Equal(t, authorization.TwoFactor, actual.GetRequiredLevel(authorization.Subject{}))
+			"ShouldHandleStandardExample",
+			schema.IdentityProvidersOpenIDConnectPolicy{
+				DefaultPolicy: "two_factor",
+				Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
+					{
+						Policy: "one_factor",
+						Subjects: [][]string{
+							{"user:john"},
+						},
+					},
+					{
+						Policy:   "one_factor",
+						Networks: []*net.IPNet{lan},
+					},
+				},
 			},
-		},
-		{
-			"ShouldReturnCustomPolicy",
-			"custom",
-			&schema.IdentityProvidersOpenIDConnect{
-				AuthorizationPolicies: map[string]schema.IdentityProvidersOpenIDConnectPolicy{
-					"custom": {
-						DefaultPolicy: "deny",
-						Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
+			oidc.ClientAuthorizationPolicy{
+				Name:          "test",
+				DefaultPolicy: authorization.TwoFactor,
+				Rules: []oidc.ClientAuthorizationPolicyRule{
+					{
+						Subjects: []authorization.AccessControlSubjects{
 							{
-								Policy: "two_factor",
-								Subjects: [][]string{
-									{"user:john"},
-								},
+								Subjects: []authorization.SubjectMatcher{authorization.AccessControlUser{Name: "john"}},
 							},
 						},
+						Policy: authorization.OneFactor,
+					},
+					{
+						Networks: []*net.IPNet{lan},
+						Policy:   authorization.OneFactor,
 					},
 				},
 			},
-			oidc.ClientAuthorizationPolicy{Name: "custom", DefaultPolicy: authorization.Denied, Rules: []oidc.ClientAuthorizationPolicyRule{
-				{
-					Policy: authorization.TwoFactor,
-					Subjects: []authorization.AccessControlSubjects{
-						{
-							Subjects: []authorization.SubjectMatcher{
-								authorization.AccessControlUser{Name: "john"},
-							},
-						},
-					},
-				},
-			}},
 			func(t *testing.T, actual oidc.ClientAuthorizationPolicy) {
-				assert.Equal(t, authorization.Denied, actual.GetRequiredLevel(authorization.Subject{Username: abc}))
-				assert.Equal(t, authorization.TwoFactor, actual.GetRequiredLevel(authorization.Subject{Username: "john"}))
-				assert.Equal(t, authorization.Denied, actual.GetRequiredLevel(authorization.Subject{}))
-			},
-		},
-		{
-			"ShouldReturnCustomPolicyNoSubjects",
-			"custom",
-			&schema.IdentityProvidersOpenIDConnect{
-				AuthorizationPolicies: map[string]schema.IdentityProvidersOpenIDConnectPolicy{
-					"custom": {
-						DefaultPolicy: "deny",
-						Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
-							{
-								Policy: "two_factor",
-							},
-						},
-					},
-				},
-			},
-			oidc.ClientAuthorizationPolicy{Name: "custom", DefaultPolicy: authorization.Denied, Rules: []oidc.ClientAuthorizationPolicyRule{
-				{
-					Policy: authorization.TwoFactor,
-				},
-			}},
-			func(t *testing.T, actual oidc.ClientAuthorizationPolicy) {
-				assert.Equal(t, authorization.TwoFactor, actual.GetRequiredLevel(authorization.Subject{Username: abc}))
-				assert.Equal(t, authorization.TwoFactor, actual.GetRequiredLevel(authorization.Subject{Username: "john"}))
 				assert.Equal(t, authorization.TwoFactor, actual.GetRequiredLevel(authorization.Subject{}))
+				assert.Equal(t, authorization.OneFactor, actual.GetRequiredLevel(authorization.Subject{Username: "john"}))
+				assert.Equal(t, authorization.OneFactor, actual.GetRequiredLevel(authorization.Subject{Username: "fred", IP: lanip}))
 			},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			actual := oidc.NewClientAuthorizationPolicy(tc.policy, tc.have)
+			actual := oidc.NewClientAuthorizationPolicy("test", tc.have)
 
 			assert.Equal(t, tc.expected, actual)
 
@@ -196,5 +169,5 @@ func TestNewClientRequestedAudienceMode(t *testing.T) {
 		})
 	}
 
-	assert.Equal(t, "", oidc.ClientConsentMode(-1).String())
+	assert.Equal(t, "", oidc.ClientRequestedAudienceMode(-1).String())
 }

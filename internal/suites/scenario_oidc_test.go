@@ -120,7 +120,7 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 		{oidc.ClaimFullName, "", "John Doe"},
 		{oidc.ClaimPreferredUsername, "", "john"},
 		{oidc.ClaimGroups, "", "admins, dev"},
-		{oidc.ClaimPreferredEmail, "", "john.doe@authelia.com"},
+		{oidc.ClaimEmail, "", "john.doe@authelia.com"},
 		{oidc.ClaimEmailVerified, "", rBoolean},
 	}
 

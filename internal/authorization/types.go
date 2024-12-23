@@ -9,6 +9,22 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+type AccessControlNetworks []*net.IPNet
+
+func (a AccessControlNetworks) IsMatch(subject Subject) bool {
+	if len(a) == 0 {
+		return true
+	}
+
+	for _, network := range a {
+		if network.Contains(subject.IP) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // SubjectMatcher is a matcher that takes a subject.
 type SubjectMatcher interface {
 	IsMatch(subject Subject) (match bool)
