@@ -1,0 +1,37 @@
+{
+	"Claim": "Claim {{name}}",
+	"Scope": "Scope {{name}}",
+	"scopes": {
+		"openid": "Use OpenID to verify your identity",
+		"offline_access": "Automatically refresh these permissions without user interaction",
+		"profile": "Access your profile information",
+		"groups": "Access your group memberships",
+		"email": "Access your email addresses",
+		"phone": "Access your phone number",
+		"address": "Access your address",
+		"authelia.bearer.authz": "Access protected resources logged in as you"
+	},
+	"claims": {
+		"sub": "Unique Identifier",
+		"name": "Display Name",
+		"given_name": "Given Name",
+		"family_name": "Family Name",
+		"middle_name": "Middle Name",
+		"nickname": "Nickname",
+		"preferred_username": "Preferred Username",
+		"profile": "Profile URL",
+		"picture": "Picture URL",
+		"website": "Website URL",
+		"email": "E-mail Address",
+		"email_verified": "E-mail Address (Verified)",
+		"gender": "Gender",
+		"birthdate": "Birthdate",
+		"zoneinfo": "Timezone",
+		"locale": "Locale / Language",
+		"phone_number": "Phone Number",
+		"phone_number_verified": "Phone Number (Verified)",
+		"address": "Postal Address",
+		"updated_at": "Profile Update Time",
+		"groups": "Group Membership"
+	}
+}
