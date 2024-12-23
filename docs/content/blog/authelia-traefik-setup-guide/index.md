@@ -18,7 +18,7 @@ seo:
 ---
 This is not a demo. If you would like an all-in-one demo, please take a look at our [local bundle](https://www.authelia.com/integration/deployment/docker/#local).
 ## Assumptions and Adaptation
-This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We can not reasonablly have examples for every advanced configuration option that exists. Some of these values can be automatically replaced with documentation variables.
+This guide makes a few assumptions. These assumptions may require adaptation in more advanced and complex scenarios. We can not reasonably have examples for every advanced configuration option that exists. Some of these values can be automatically replaced with documentation variables.
 
 {{< sitevar-preferences >}}
 
@@ -42,14 +42,14 @@ The first thing we want to do is set up the file structure. Which should look so
 📁 project
  ┣ 📁 authelia
  ┃  ┣ 📁 config
- ┃  ┃ ┣ 📄 configuration.yaml
- ┃  ┃ ┗ 📄 users.yaml
+ ┃  ┃ ┣ 📄 configuration.yml
+ ┃  ┃ ┗ 📄 users.yml
  ┃  ┗ 📁 secrets
- ┣ 📄 compose.yaml
+ ┣ 📄 compose.yml
  ┗ 📁 traefik
     ┣ 📁 config
-    ┃ ┣ 📄 dynamic.yaml
-    ┃ ┗ 📄 traefik.yaml
+    ┃ ┣ 📄 dynamic.yml
+    ┃ ┗ 📄 traefik.yml
     ┣ 📁 data
     ┃ ┗ 📄 acme.json
     ┣ 📁 logs
@@ -66,7 +66,7 @@ Next, we'll set up Traefik as our reverse proxy. For detailed Traefik documentat
 #### Docker Compose
 
 
-```yaml{title="compose.yaml"}
+```yaml{title="compose.yml"}
 services:
   traefik:
     image: traefik:latest
@@ -88,8 +88,8 @@ services:
       CF_DNS_API_TOKEN_FILE: '/run/secrets/cloudflare_api_key'
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock:ro'
-      - './traefik/config/traefik.yaml:/traefik.yaml:ro'
-      - './traefik/config/dynamic.yaml:/dynamic.yaml:ro'
+      - './traefik/config/traefik.yml:/traefik.yml:ro'
+      - './traefik/config/dynamic.yml:/dynamic.yml:ro'
       - './traefik/data/:/data'
       - './traefik/logs:/logs'
     secrets:
@@ -113,6 +113,8 @@ services:
     networks:
       proxy: {}
 
+  ## Other Services Go Here
+
 secrets:
   cloudflare_email:
     file: ./traefik/secrets/cloudflare_email.txt
@@ -131,7 +133,7 @@ Timezone strings can be found [here](https://go.dev/src/time/zoneinfo_abbrs_wind
 Now we configure Traefik.
 The following files contain the minimal Traefik configuration needed for Authelia integration:
 
-```yaml{title="traefik/config/traefik.yaml"}
+```yaml{title="traefik/config/traefik.yml"}
 # Base Traefik configuration
 api:
   dashboard: true
@@ -168,7 +170,7 @@ providers:
     endpoint: "unix:///var/run/docker.sock"
     exposedByDefault: false
   file:
-    filename: '/dynamic.yaml'
+    filename: '/dynamic.yml'
 
 certificatesResolvers:
   cloudflare:
@@ -194,7 +196,7 @@ tls:
 ```
 
 ### Domain Configuration
-```yaml{title="traefik/config/dynamic.yaml"}
+```yaml{title="traefik/config/dynamic.yml"}
 ##This file can be used to define dynamic routers/services/middlewares.
 ```
 
@@ -204,9 +206,9 @@ These are minimal configurations focused on Authelia integration. Adjust them ac
 
 ## Authelia Compose
 This configuration sets up Authelia's core service and configures forward authentication with Traefik. The portal will be available at `{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`. It also defines a new whoami container that will be protected by authelia.
+The docker compose services defined below should be added to the existing compose.yml created for traefik and whoami.
 
-```yaml{title="compose.yaml"}
-...
+```yaml{title="compose.yml"}
   authelia:
     image: authelia/authelia:4.38.17
     container_name: {{< sitevar name="host" nojs="authelia" >}}
@@ -222,7 +224,7 @@ This configuration sets up Authelia's core service and configures forward authen
       traefik.docker.network: 'authelia'
       traefik.http.routers.authelia.rule: 'Host(`{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`)'
       traefik.http.routers.authelia.entrypoints: 'https'
-      ## Setup Authelia Middlewares
+      ## Setup Authelia ForwardAuth Middlewares
       traefik.http.middlewares.authelia.forwardAuth.address: '{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth'
       traefik.http.middlewares.authelia.forwardAuth.trustForwardHeader: 'true'
       traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders: 'Remote-User,Remote-Groups,Remote-Name,Remote-Email'
@@ -242,11 +244,10 @@ This configuration sets up Authelia's core service and configures forward authen
       traefik.http.routers.whoami-secure.middlewares: 'authelia@docker'
     networks:
       proxy: {}
-...
 ```
 
 #### Authelia Configuration
-```yaml{title="authelia/config/configuration.yaml"}
+```yaml{title="authelia/config/configuration.yml"}
 server:
   address: 'tcp4://:{{< sitevar name="port" nojs="9091" >}}'
 
@@ -275,7 +276,7 @@ password_policy:
 
 authentication_backend:
   file:
-    path: '/config/users.yaml'
+    path: '/config/users.yml'
     password:
       algorithm: argon2id
       argon2:
@@ -348,12 +349,12 @@ There are 3 required secrets that we need to create and put in `authelia/secrets
 * storage_encryption_key.txt
 * session_secret.txt
 
-It is *strongly recommended* that these 3 values are [Random Alphanumeric Strings](https://www.authelia.com/reference/guides/generating-secure-values/#generating-a-random-alphanumeric-string) with 64 or more characters.
+It is *Strongly Recommended* that these 3 values are [Random Alphanumeric Strings](https://www.authelia.com/reference/guides/generating-secure-values/#generating-a-random-alphanumeric-string) with 64 or more characters.
 
 
 #### Users Database
 
-```yaml{title="authelia/config/users.yaml"}
+```yaml{title="authelia/config/users.yml"}
 users:
   authelia: # Username
     displayname: "Authelia User"
@@ -372,3 +373,19 @@ The current password listed is `authelia`. It is important you [Generate](https:
 
 ### Starting the Stack
 Once all the configuration for [Traefik](https://doc.traefik.io/traefik/) and [Authelia](https://www.authelia.com/) are complete, from the `project/` directory run `docker compose up -d` to download and start the containers.
+
+### Verifying the Setup
+1. Check container status: `docker compose ps`
+2. Access Traefik dashboard at `https://traefik.{{< sitevar name="domain" nojs="example.com" >}}`
+3. Test authentication at `https://whoami-secure.traefik.{{< sitevar name="domain" nojs="example.com" >}}`
+
+### Troubleshooting
+- Check container logs: `docker logs authelia`
+- Ensure all secrets files exist and have correct permissions.
+
+### Next Steps
+This guide is not intended to instruct users on how to set up every aspect of Authelia. There are other features that were not mentioned in this guide that provide additional functionality. Some of these include:
+- [Open ID Connect 1.0](https://www.authelia.com/configuration/identity-providers/openid-connect/provider/) which allows Authelia to handle authentication for applications that support the Open ID Connect protocol.
+- [External Databases](https://www.authelia.com/configuration/storage/introduction/). Authelia supports more database types than just [SQLite](https://www.sqlite.org/index.html), including [MySql](https://hub.docker.com/_/mysql/) and [Postgres](https://hub.docker.com/_/postgres).
+- [Non-memory Session Storage](https://www.authelia.com/configuration/session/introduction/) using [Redis](https://hub.docker.com/_/redis/). The default session provider is memory-only, this means that when Authelia restarts, all user sessions are destroyed and users are required to reauthenticate. Redis allows sessions to persist across restarts and makes Authelia fully stateless.
+- [Metrics](https://www.authelia.com/configuration/telemetry/metrics/) allows Authelia administrators to export [various statistics](https://www.authelia.com/reference/guides/metrics/) regarding their individual Authelia installation.
