@@ -258,21 +258,21 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	if !config.AuthenticationBackend.PasswordReset.Disable &&
 		config.AuthenticationBackend.PasswordReset.CustomURL.String() == "" {
 		// Password reset related endpoints.
-		buckets := []middlewares.RateLimitBucket{
+		bucketsResetPassword := []middlewares.RateLimitBucket{
 			{Limit: 20, Burst: 5},
 			{Limit: 60, Burst: 10},
 		}
 
-		bucketsStart := []middlewares.RateLimitBucket{
+		bucketsResetPasswordStart := []middlewares.RateLimitBucket{
 			{Limit: 600, Burst: 5},
 			{Limit: 900, Burst: 10},
 		}
 
-		r.POST("/api/reset-password/identity/start", middlewareAPI(middlewares.NewIPRateLimit(bucketsStart...)(handlers.ResetPasswordIdentityStart)))
-		r.POST("/api/reset-password/identity/finish", middlewareAPI(middlewares.NewIPRateLimit(buckets...)(handlers.ResetPasswordIdentityFinish)))
+		r.POST("/api/reset-password/identity/start", middlewareAPI(middlewares.NewIPRateLimit(bucketsResetPasswordStart...)(handlers.ResetPasswordIdentityStart)))
+		r.POST("/api/reset-password/identity/finish", middlewareAPI(middlewares.NewIPRateLimit(bucketsResetPassword...)(handlers.ResetPasswordIdentityFinish)))
 
-		r.POST("/api/reset-password", middlewareAPI(middlewares.NewIPRateLimit(buckets...)(handlers.ResetPasswordPOST)))
-		r.DELETE("/api/reset-password", middlewareAPI(middlewares.NewIPRateLimit(buckets...)(handlers.ResetPasswordDELETE)))
+		r.POST("/api/reset-password", middlewareAPI(middlewares.NewIPRateLimit(bucketsResetPassword...)(handlers.ResetPasswordPOST)))
+		r.DELETE("/api/reset-password", middlewareAPI(middlewares.NewIPRateLimit(bucketsResetPassword...)(handlers.ResetPasswordDELETE)))
 	}
 
 	// Information about the user.
@@ -290,9 +290,14 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	r.DELETE("/api/user/session/elevation/{id}", middlewareAPI(handlers.UserSessionElevateDELETE))
 
 	if !config.TOTP.Disable {
+		bucketsTOTP := []middlewares.RateLimitBucket{
+			{Limit: 60, Burst: 30},
+			{Limit: 120, Burst: 40},
+		}
+
 		// TOTP related endpoints.
 		r.GET("/api/secondfactor/totp", middleware1FA(handlers.TimeBasedOneTimePasswordGET))
-		r.POST("/api/secondfactor/totp", middleware1FA(handlers.TimeBasedOneTimePasswordPOST))
+		r.POST("/api/secondfactor/totp", middleware1FA(middlewares.NewIPRateLimit(bucketsTOTP...)(handlers.TimeBasedOneTimePasswordPOST)))
 		r.DELETE("/api/secondfactor/totp", middleware1FA(handlers.TOTPConfigurationDELETE))
 
 		r.GET("/api/secondfactor/totp/register", middlewareElevated1FA(handlers.TOTPRegisterGET))
@@ -318,7 +323,13 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 
 	// Configure DUO api endpoint only if configuration exists.
 	if !config.DuoAPI.Disable {
+		bucketsDUO := []middlewares.RateLimitBucket{
+			{Limit: 60, Burst: 10},
+			{Limit: 120, Burst: 15},
+		}
+
 		var duoAPI duo.API
+
 		if os.Getenv("ENVIRONMENT") == dev {
 			duoAPI = duo.NewDuoAPI(duoapi.NewDuoApi(
 				config.DuoAPI.IntegrationKey,
@@ -332,7 +343,7 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 		}
 
 		r.GET("/api/secondfactor/duo_devices", middleware1FA(handlers.DuoDevicesGET(duoAPI)))
-		r.POST("/api/secondfactor/duo", middleware1FA(handlers.DuoPOST(duoAPI)))
+		r.POST("/api/secondfactor/duo", middleware1FA(middlewares.NewIPRateLimit(bucketsDUO...)(handlers.DuoPOST(duoAPI))))
 		r.POST("/api/secondfactor/duo_device", middleware1FA(handlers.DuoDevicePOST))
 	}
 
