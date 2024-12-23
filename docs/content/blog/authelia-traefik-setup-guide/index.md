@@ -159,7 +159,7 @@ entryPoints:
       tls:
         certResolver: cloudflare@file
         domains:
-          - main: '{{< sitevar name="domain" nojs="example.com" >}}.com'
+          - main: '{{< sitevar name="domain" nojs="example.com" >}}'
             sans:
               - '*.{{< sitevar name="domain" nojs="example.com" >}}.com'
 
