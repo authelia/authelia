@@ -11,6 +11,8 @@ const (
 	ScopeOpenID        = "openid"
 	ScopeProfile       = "profile"
 	ScopeEmail         = "email"
+	ScopePhone         = "phone"
+	ScopeAddress       = "address"
 	ScopeGroups        = "groups"
 
 	ScopeAutheliaBearerAuthz = "authelia.bearer.authz"
@@ -29,14 +31,9 @@ const (
 	ClaimExpirationTime                      = "exp"
 	ClaimAuthenticationTime                  = "auth_time"
 	ClaimIssuer                              = valueIss
-	ClaimSubject                             = "sub"
 	ClaimNonce                               = "nonce"
 	ClaimAudience                            = "aud"
 	ClaimGroups                              = "groups"
-	ClaimFullName                            = "name"
-	ClaimPreferredUsername                   = "preferred_username"
-	ClaimPreferredEmail                      = "email"
-	ClaimEmailVerified                       = "email_verified"
 	ClaimAuthorizedParty                     = "azp"
 	ClaimAuthenticationContextClassReference = "acr"
 	ClaimAuthenticationMethodsReference      = "amr"
@@ -44,6 +41,26 @@ const (
 	ClaimScope                               = valueScope
 	ClaimScopeNonStandard                    = "scp"
 	ClaimExtra                               = "ext"
+	ClaimSubject                             = "sub"
+	ClaimFullName                            = "name"
+	ClaimGivenName                           = "given_name"
+	ClaimFamilyName                          = "family_name"
+	ClaimMiddleName                          = "middle_name"
+	ClaimNickname                            = "nickname"
+	ClaimPreferredUsername                   = "preferred_username"
+	ClaimProfile                             = "profile"
+	ClaimPicture                             = "picture"
+	ClaimWebsite                             = "website"
+	ClaimEmail                               = "email"
+	ClaimEmailVerified                       = "email_verified"
+	ClaimGender                              = "gender"
+	ClaimBirthdate                           = "birthdate"
+	ClaimZoneinfo                            = "zoneinfo"
+	ClaimLocale                              = "locale"
+	ClaimPhoneNumber                         = "phone_number"
+	ClaimPhoneNumberVerified                 = "phone_number_verified"
+	ClaimAddress                             = "address"
+	ClaimUpdatedAt                           = "updated_at"
 	ClaimActive                              = "active"
 	ClaimUsername                            = "username"
 	ClaimTokenIntrospection                  = "token_introspection"
@@ -91,6 +108,7 @@ const (
 	GrantTypeRefreshToken      = valueRefreshToken
 	GrantTypeAuthorizationCode = "authorization_code"
 	GrantTypeClientCredentials = "client_credentials"
+	GrantTypeDeviceCode        = "urn:ietf:params:oauth:grant-type:device_code"
 )
 
 // Client Auth Method strings.
@@ -173,6 +191,8 @@ const (
 	FormParameterScope        = valueScope
 	FormParameterIssuer       = valueIss
 	FormParameterPrompt       = "prompt"
+	FormParameterMaximumAge   = "max_age"
+	FormParameterClaims       = "claims"
 )
 
 const (
@@ -186,6 +206,7 @@ const (
 // Endpoints.
 const (
 	EndpointAuthorization              = "authorization"
+	EndpointDeviceAuthorization        = "device-authorization"
 	EndpointToken                      = "token"
 	EndpointUserinfo                   = "userinfo"
 	EndpointIntrospection              = "introspection"
@@ -212,22 +233,25 @@ const (
 
 // Paths.
 const (
-	EndpointPathConsent                           = "/consent"
+	EndpointPathConsent         = "/consent/openid"
+	EndpointPathConsentDecision = EndpointPathConsent + "/decision"
+	EndpointPathConsentLogin    = EndpointPathConsent + "/login"
+
+	EndpointPathRFC8628UserVerificationURL = EndpointPathConsent + "/" + EndpointDeviceAuthorization
+
 	EndpointPathWellKnownOpenIDConfiguration      = "/.well-known/openid-configuration"
 	EndpointPathWellKnownOAuthAuthorizationServer = "/.well-known/oauth-authorization-server"
 	EndpointPathJWKs                              = "/jwks.json"
 
 	EndpointPathRoot = "/api/oidc"
 
-	EndpointPathAuthorization = EndpointPathRoot + "/" + EndpointAuthorization
-	EndpointPathToken         = EndpointPathRoot + "/" + EndpointToken
-	EndpointPathUserinfo      = EndpointPathRoot + "/" + EndpointUserinfo
-	EndpointPathIntrospection = EndpointPathRoot + "/" + EndpointIntrospection
-	EndpointPathRevocation    = EndpointPathRoot + "/" + EndpointRevocation
-
+	EndpointPathAuthorization              = EndpointPathRoot + "/" + EndpointAuthorization
+	EndpointPathToken                      = EndpointPathRoot + "/" + EndpointToken
+	EndpointPathUserinfo                   = EndpointPathRoot + "/" + EndpointUserinfo
+	EndpointPathIntrospection              = EndpointPathRoot + "/" + EndpointIntrospection
+	EndpointPathRevocation                 = EndpointPathRoot + "/" + EndpointRevocation
+	EndpointPathDeviceAuthorization        = EndpointPathRoot + "/" + EndpointDeviceAuthorization
 	EndpointPathPushedAuthorizationRequest = EndpointPathRoot + "/" + EndpointPushedAuthorizationRequest
-
-	EndpointPathRFC8628UserVerificationURL = EndpointPathRoot + "/device-code/user-verification"
 )
 
 // Authentication Method Reference Values https://datatracker.ietf.org/doc/html/rfc8176

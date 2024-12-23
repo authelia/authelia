@@ -11,7 +11,9 @@ import (
 	"github.com/go-crypt/crypt/algorithm/scrypt"
 	"github.com/go-crypt/crypt/algorithm/shacrypt"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -55,6 +57,21 @@ func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validat
 func validateFileAuthenticationBackend(config *schema.AuthenticationBackendFile, validator *schema.StructValidator) {
 	if config.Path == "" {
 		validator.Push(errors.New(errFmtFileAuthBackendPathNotConfigured))
+	}
+
+	for name, attr := range config.ExtraAttributes {
+		switch attr.ValueType {
+		case authentication.ValueTypeString, authentication.ValueTypeInteger, authentication.ValueTypeBoolean:
+			break
+		case "":
+			validator.Push(fmt.Errorf(errFmtFileAuthBackendExtraAttributeValueTypeMissing, name))
+		default:
+			validator.Push(fmt.Errorf(errFmtFileAuthBackendExtraAttributeValueType, name, attr.ValueType))
+		}
+
+		if expression.IsReservedAttribute(name) {
+			validator.Push(fmt.Errorf(errFmtFileAuthBackendExtraAttributeReserved, name, name))
+		}
 	}
 
 	ValidatePasswordConfiguration(&config.Password, validator)
@@ -344,6 +361,7 @@ func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackend, val
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterReplacedPlaceholders, "groups_filter", "{1}", "{username}"))
 	}
 
+	validateLDAPExtraAttributes(config, validator)
 	validateLDAPRequiredParameters(config, validator)
 }
 
@@ -500,6 +518,29 @@ func validateLDAPRequiredParameters(config *schema.AuthenticationBackend, valida
 	}
 
 	validateLDAPGroupFilter(config, validator)
+}
+
+func validateLDAPExtraAttributes(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
+	for name, attr := range config.LDAP.Attributes.Extra {
+		switch attr.ValueType {
+		case authentication.ValueTypeString, authentication.ValueTypeInteger, authentication.ValueTypeBoolean:
+			break
+		case "":
+			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendExtraAttributeValueTypeMissing, name))
+		default:
+			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendExtraAttributeValueType, name, attr.ValueType))
+		}
+
+		attribute := name
+
+		if attr.Name != "" {
+			attribute = attr.Name
+		}
+
+		if expression.IsReservedAttribute(attribute) {
+			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendExtraAttributeReserved, name, attribute))
+		}
+	}
 }
 
 func validateLDAPGroupFilter(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
