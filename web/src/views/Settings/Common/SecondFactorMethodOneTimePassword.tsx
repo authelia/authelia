@@ -2,6 +2,7 @@ import React, { Fragment, useCallback, useEffect, useState } from "react";
 
 import { useTranslation } from "react-i18next";
 
+import { useNotifications } from "@hooks/NotificationsContext";
 import { useUserInfoTOTPConfiguration } from "@hooks/UserInfoTOTPConfiguration";
 import { completeTOTPSignIn } from "@services/OneTimePassword";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
@@ -24,6 +25,7 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
 
     const [passcode, setPasscode] = useState("");
     const [state, setState] = useState(State.Idle);
+    const { createErrorNotification } = useNotifications();
 
     const [config, fetchConfig, , fetchConfigError] = useUserInfoTOTPConfiguration();
 
@@ -50,17 +52,26 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
         try {
             setState(State.InProgress);
 
-            await completeTOTPSignIn(passcodeStr);
+            const res = await completeTOTPSignIn(passcodeStr);
 
-            setState(State.Success);
-            props.onSecondFactorSuccess();
+            if (res) {
+                if (!res.limited) {
+                    setState(State.Success);
+                } else {
+                    createErrorNotification(translate("You have made too many requests"));
+                    setState(State.Failure);
+                }
+            } else {
+                createErrorNotification(translate("The One-Time Password might be wrong"));
+                setState(State.Failure);
+            }
         } catch (err) {
             console.error(err);
             setState(State.Failure);
         }
 
         setPasscode("");
-    }, [passcode, config, props]);
+    }, [passcode, config, createErrorNotification, translate]);
 
     useEffect(() => {
         handleSignIn().catch(console.error);

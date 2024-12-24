@@ -248,21 +248,18 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	}
 
 	r.POST("/api/checks/safe-redirection", middlewareAPI(handlers.CheckSafeRedirectionPOST))
-
-	delayFunc := middlewares.TimingAttackDelay(10, 250, 85, time.Second, true)
-
-	r.POST("/api/firstfactor", middlewareAPI(handlers.FirstFactorPOST(delayFunc)))
+	r.POST("/api/firstfactor", middlewareAPI(middlewares.NewRateLimitFirstFactor()(handlers.FirstFactorPOST(middlewares.TimingAttackDelay(10, 250, 85, time.Second, true)))))
 	r.POST("/api/logout", middlewareAPI(handlers.LogoutPOST))
 
 	// Only register endpoints if forgot password is not disabled.
 	if !config.AuthenticationBackend.PasswordReset.Disable &&
 		config.AuthenticationBackend.PasswordReset.CustomURL.String() == "" {
 		// Password reset related endpoints.
-		r.POST("/api/reset-password/identity/start", middlewareAPI(handlers.ResetPasswordIdentityStart))
-		r.POST("/api/reset-password/identity/finish", middlewareAPI(handlers.ResetPasswordIdentityFinish))
+		r.POST("/api/reset-password/identity/start", middlewareAPI(middlewares.NewRateLimitResetPasswordStart()(handlers.ResetPasswordIdentityStart)))
+		r.POST("/api/reset-password/identity/finish", middlewareAPI(middlewares.NewRateLimitResetPassword()(handlers.ResetPasswordIdentityFinish)))
 
-		r.POST("/api/reset-password", middlewareAPI(handlers.ResetPasswordPOST))
-		r.DELETE("/api/reset-password", middlewareAPI(handlers.ResetPasswordDELETE))
+		r.POST("/api/reset-password", middlewareAPI(middlewares.NewRateLimitResetPassword()(handlers.ResetPasswordPOST)))
+		r.DELETE("/api/reset-password", middlewareAPI(middlewares.NewRateLimitResetPassword()(handlers.ResetPasswordDELETE)))
 	}
 
 	// Information about the user.
@@ -280,9 +277,14 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	r.DELETE("/api/user/session/elevation/{id}", middlewareAPI(handlers.UserSessionElevateDELETE))
 
 	if !config.TOTP.Disable {
+		middlewareRateLimitTOTP := middlewares.NewBridgeBuilder(*config, providers).
+			WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+			WithPostMiddlewares(middlewares.NewRateLimitDUO(), middlewares.Require1FA).
+			Build()
+
 		// TOTP related endpoints.
 		r.GET("/api/secondfactor/totp", middleware1FA(handlers.TimeBasedOneTimePasswordGET))
-		r.POST("/api/secondfactor/totp", middleware1FA(handlers.TimeBasedOneTimePasswordPOST))
+		r.POST("/api/secondfactor/totp", middlewareRateLimitTOTP(handlers.TimeBasedOneTimePasswordPOST))
 		r.DELETE("/api/secondfactor/totp", middleware1FA(handlers.TOTPConfigurationDELETE))
 
 		r.GET("/api/secondfactor/totp/register", middlewareElevated1FA(handlers.TOTPRegisterGET))
@@ -309,6 +311,7 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	// Configure DUO api endpoint only if configuration exists.
 	if !config.DuoAPI.Disable {
 		var duoAPI duo.API
+
 		if os.Getenv("ENVIRONMENT") == dev {
 			duoAPI = duo.NewDuoAPI(duoapi.NewDuoApi(
 				config.DuoAPI.IntegrationKey,
@@ -321,8 +324,13 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 				config.DuoAPI.Hostname, ""))
 		}
 
+		middlewareRateLimitDuo := middlewares.NewBridgeBuilder(*config, providers).
+			WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+			WithPostMiddlewares(middlewares.NewRateLimitDUO(), middlewares.Require1FA).
+			Build()
+
 		r.GET("/api/secondfactor/duo_devices", middleware1FA(handlers.DuoDevicesGET(duoAPI)))
-		r.POST("/api/secondfactor/duo", middleware1FA(handlers.DuoPOST(duoAPI)))
+		r.POST("/api/secondfactor/duo", middlewareRateLimitDuo(handlers.DuoPOST(duoAPI)))
 		r.POST("/api/secondfactor/duo_device", middleware1FA(handlers.DuoDevicePOST))
 	}
 
