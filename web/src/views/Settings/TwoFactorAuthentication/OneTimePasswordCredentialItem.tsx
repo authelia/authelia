@@ -3,9 +3,9 @@ import React, { Fragment, useState } from "react";
 import { QrCode2 } from "@mui/icons-material";
 import { useTranslation } from "react-i18next";
 
-import { UserInfoTOTPConfiguration } from "@models/TOTPConfiguration.ts";
+import { UserInfoTOTPConfiguration } from "@models/TOTPConfiguration";
 import CredentialItem from "@views/Settings/TwoFactorAuthentication/CredentialItem";
-import OneTimePasswordInformationDialog from "@views/Settings/TwoFactorAuthentication/OneTimePasswordInformationDialog.tsx";
+import OneTimePasswordInformationDialog from "@views/Settings/TwoFactorAuthentication/OneTimePasswordInformationDialog";
 
 interface Props {
     config: UserInfoTOTPConfiguration;

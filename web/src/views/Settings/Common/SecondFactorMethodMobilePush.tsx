@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import FailureIcon from "@components/FailureIcon";
 import PushNotificationIcon from "@components/PushNotificationIcon";
 import { useIsMountedRef } from "@hooks/Mounted";
+import { useNotifications } from "@hooks/NotificationsContext";
 import {
     DuoDevicePostRequest,
     completeDuoDeviceSelectionProcess,
@@ -38,6 +39,8 @@ const SecondFactorMethodMobilePush = function (props: Props) {
     const mounted = useIsMountedRef();
     const [devices, setDevices] = useState([] as SelectableDevice[]);
 
+    const { createErrorNotification } = useNotifications();
+
     const handleSelectDevice = useCallback(async () => {
         try {
             const res = await initiateDuoDeviceSelectionProcess();
@@ -52,24 +55,24 @@ const SecondFactorMethodMobilePush = function (props: Props) {
                     setState(State.Selection);
                     break;
                 case "allow":
-                    console.error(new Error(translate("Device selection was bypassed by Duo policy")));
+                    createErrorNotification(translate("Device selection was bypassed by Duo policy"));
                     setState(State.Success);
                     break;
                 case "deny":
-                    console.error(new Error(translate("Device selection was denied by Duo policy")));
+                    createErrorNotification(translate("Device selection was denied by Duo policy"));
                     setState(State.Failure);
                     break;
                 case "enroll":
-                    console.error(new Error(translate("No compatible device found")));
+                    createErrorNotification(translate("No compatible device found"));
                     setState(State.Failure);
                     break;
             }
         } catch (err) {
             if (!mounted.current) return;
             console.error(err);
-            console.error(new Error(translate("There was an issue fetching Duo device(s)")));
+            createErrorNotification(translate("There was an issue fetching Duo device(s)"));
         }
-    }, [mounted, translate]);
+    }, [createErrorNotification, mounted, translate]);
 
     const handleDuoPush = useCallback(async () => {
         try {
@@ -78,39 +81,50 @@ const SecondFactorMethodMobilePush = function (props: Props) {
             // If the request was initiated and the user changed 2FA method in the meantime,
             // the process is interrupted to avoid updating state of unmounted component.
             if (!mounted.current) return;
+
             if (res) {
-                switch (res.result) {
-                    case "auth":
-                        let selectableDevices = [] as SelectableDevice[];
-                        res.devices.forEach((d) =>
-                            selectableDevices.push({ id: d.device, name: d.display_name, methods: d.capabilities }),
-                        );
-                        setDevices(selectableDevices);
-                        setState(State.Selection);
-                        return;
-                    case "enroll":
-                        console.error(new Error(translate("No compatible device found")));
-                        setState(State.Failure);
-                        return;
-                    case "deny":
-                        console.error(new Error(translate("Device selection was denied by Duo policy")));
-                        setState(State.Failure);
-                        return;
+                if (res.data && !res.limited) {
+                    switch (res.data.result) {
+                        case "auth":
+                            let selectableDevices = [] as SelectableDevice[];
+                            res.data.devices.forEach((d) =>
+                                selectableDevices.push({ id: d.device, name: d.display_name, methods: d.capabilities }),
+                            );
+                            setDevices(selectableDevices);
+                            setState(State.Selection);
+                            return;
+                        case "enroll":
+                            createErrorNotification(translate("No compatible device found"));
+                            setState(State.Failure);
+                            return;
+                        case "deny":
+                            createErrorNotification(translate("Device selection was denied by Duo policy"));
+                            setState(State.Failure);
+                            return;
+                        default:
+                            setState(State.Success);
+                            props.onSecondFactorSuccess();
+                            return;
+                    }
+                } else if (res.limited) {
+                    createErrorNotification(translate("You have made too many requests"));
+                    setState(State.Failure);
+                    return;
                 }
             }
 
-            setState(State.Success);
-            props.onSecondFactorSuccess();
+            createErrorNotification(translate("There was an issue completing sign in process"));
+            setState(State.Failure);
         } catch (err) {
             // If the request was initiated and the user changed 2FA method in the meantime,
             // the process is interrupted to avoid updating state of unmounted component.
             if (!mounted.current || state !== State.SignInInProgress) return;
 
             console.error(err);
-            console.error(new Error(translate("There was an issue completing sign in process")));
+            createErrorNotification(translate("There was an issue completing sign in process"));
             setState(State.Failure);
         }
-    }, [mounted, props, state, translate]);
+    }, [createErrorNotification, mounted, props, state, translate]);
 
     const updateDuoDevice = useCallback(
         async function (device: DuoDevicePostRequest) {

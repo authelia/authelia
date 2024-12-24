@@ -102,32 +102,43 @@ const PushNotificationMethod = function (props: Props) {
             // If the request was initiated and the user changed 2FA method in the meantime,
             // the process is interrupted to avoid updating state of unmounted component.
             if (!mounted.current) return;
-            if (res && res.result === "auth") {
-                let selectableDevices = [] as SelectableDevice[];
-                res.devices.forEach((d) =>
-                    selectableDevices.push({ id: d.device, name: d.display_name, methods: d.capabilities }),
-                );
-                setDevices(selectableDevices);
-                setState(State.Selection);
-                return;
-            }
-            if (res && res.result === "enroll") {
-                onSignInErrorCallback(new Error(translate("No compatible device found")));
-                if (res.enroll_url && props.duoSelfEnrollment) setEnrollUrl(res.enroll_url);
-                setState(State.Enroll);
-                return;
-            }
-            if (res && res.result === "deny") {
-                onSignInErrorCallback(new Error(translate("Device selection was denied by Duo policy")));
-                setState(State.Failure);
-                return;
+            if (res) {
+                if (res.data && !res.limited) {
+                    switch (res.data.result) {
+                        case "auth":
+                            let selectableDevices = [] as SelectableDevice[];
+                            res.data.devices.forEach((d) =>
+                                selectableDevices.push({ id: d.device, name: d.display_name, methods: d.capabilities }),
+                            );
+                            setDevices(selectableDevices);
+                            setState(State.Selection);
+                            return;
+                        case "enroll":
+                            onSignInErrorCallback(new Error(translate("No compatible device found")));
+                            if (res.data.enroll_url && props.duoSelfEnrollment) setEnrollUrl(res.data.enroll_url);
+                            setState(State.Enroll);
+                            return;
+                        case "deny":
+                            onSignInErrorCallback(new Error(translate("Device selection was denied by Duo policy")));
+                            setState(State.Failure);
+                            return;
+                        default:
+                            setState(State.Success);
+                            setTimeout(() => {
+                                if (!mounted.current) return;
+                                onSignInSuccessCallback(res.data ? res.data.redirect : undefined);
+                            }, 1500);
+                            return;
+                    }
+                } else if (res.limited) {
+                    onSignInErrorCallback(new Error(translate("You have made too many requests")));
+                    setState(State.Failure);
+                    return;
+                }
             }
 
-            setState(State.Success);
-            setTimeout(() => {
-                if (!mounted.current) return;
-                onSignInSuccessCallback(res ? res.redirect : undefined);
-            }, 1500);
+            onSignInErrorCallback(new Error(translate("There was an issue completing sign in process")));
+            setState(State.Failure);
         } catch (err) {
             // If the request was initiated and the user changed 2FA method in the meantime,
             // the process is interrupted to avoid updating state of unmounted component.
