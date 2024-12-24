@@ -1,0 +1,141 @@
+---
+networks:
+  net:
+    driver: 'bridge'
+
+services:
+  authelia:
+    image: 'authelia/authelia'
+    container_name: 'authelia'
+    restart: 'unless-stopped'
+    healthcheck:
+      ## In production the healthcheck section should be commented.
+      disable: true
+    networks:
+      net: {}
+    volumes:
+      - './authelia:/config'
+    env_file:
+      - path: '.env'
+        required: true
+      - path: 'authelia.env'
+        required: true
+      - path: 'authelia.overrides.env'
+        required: false
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.authelia.rule: 'Host(`${SUBDOMAIN_AUTHELIA:-auth}.${DOMAIN:-example.com}`)'
+      traefik.http.routers.authelia.entrypoints: 'https'
+      traefik.http.routers.authelia.tls: 'true'
+      traefik.http.routers.authelia.tls.options: 'default'
+      traefik.http.middlewares.authelia.forwardauth.address: 'http://authelia:9091/api/authz/forward-auth'  # yamllint disable-line rule:line-length
+      traefik.http.middlewares.authelia.forwardauth.trustForwardHeader: 'true'
+      traefik.http.middlewares.authelia.forwardauth.authResponseHeaders: 'Remote-User,Remote-Groups,Remote-Name,Remote-Email'  # yamllint disable-line rule:line-length
+
+  lldap:
+    image: 'lldap/lldap:stable'
+    container_name: 'lldap'
+    restart: 'unless-stopped'
+    networks:
+      net: {}
+    volumes:
+      - './lldap:/data'
+    env_file:
+      - path: '.env'
+        required: true
+      - path: 'lldap.env'
+        required: true
+      - path: 'lldap.overrides.env'
+        required: false
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.lldap.rule: 'Host(`${SUBDOMAIN_LLDAP:-lldap}.${DOMAIN:-example.com}`)'
+      traefik.http.routers.lldap.entrypoints: 'https'
+      traefik.http.routers.lldap.tls: 'true'
+      traefik.http.routers.lldap.tls.options: 'default'
+      traefik.http.services.lldap.loadbalancer.server.port: '17170'
+
+  traefik:
+    image: 'traefik:v3.2.3'
+    container_name: 'traefik'
+    restart: 'unless-stopped'
+    networks:
+      net: {}
+    ports:
+      - '80:80/tcp'
+      - '443:443/tcp'
+      - '443:443/udp'
+    volumes:
+      - './traefik:/etc/traefik'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+    command:
+      - '--api'
+      - '--providers.docker=true'
+      - '--providers.docker.exposedByDefault=false'
+      - '--providers.file.filename=/etc/traefik/certificates.yml'
+      - '--entrypoints.http=true'
+      - '--entrypoints.http.address=:80'
+      - '--entrypoints.http.http.redirections.entrypoint.to=https'
+      - '--entrypoints.http.http.redirections.entrypoint.scheme=https'
+      - '--entrypoints.https=true'
+      - '--entrypoints.https.address=:443'
+      - '--log=true'
+      - '--log.level=DEBUG'
+    env_file:
+      - path: '.env'
+        required: true
+      - path: 'traefik.env'
+        required: true
+      - path: 'traefik.overrides.env'
+        required: false
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.api.rule: 'Host(`${SUBDOMAIN_TRAEFIK:-traefik}.${DOMAIN:-example.com}`)'
+      traefik.http.routers.api.entrypoints: 'https'
+      traefik.http.routers.api.service: 'api@internal'
+      traefik.http.routers.api.tls: 'true'
+      traefik.http.routers.api.tls.options: 'default'
+      traefik.http.routers.api.middlewares: 'authelia@docker'
+
+  secure:
+    image: 'traefik/whoami'
+    container_name: 'secure'
+    restart: 'unless-stopped'
+    networks:
+      net: {}
+    env_file:
+      - path: '.env'
+        required: true
+      - path: 'secure.env'
+        required: true
+      - path: 'secure.overrides.env'
+        required: false
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.secure.rule: 'Host(`${SUBDOMAIN_SECURE:-secure}.${DOMAIN:-example.com}`)'
+      traefik.http.routers.secure.entrypoints: 'https'
+      traefik.http.routers.secure.tls: 'true'
+      traefik.http.routers.secure.tls.options: 'default'
+      traefik.http.routers.secure.middlewares: 'authelia@docker'
+
+  public:
+    image: 'traefik/whoami'
+    container_name: 'public'
+    restart: 'unless-stopped'
+    networks:
+      net: {}
+    env_file:
+      - path: '.env'
+        required: true
+      - path: 'public.env'
+        required: true
+      - path: 'public.overrides.env'
+        required: false
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.public.rule: 'Host(`${SUBDOMAIN_PUBLIC:-public}.${DOMAIN:-example.com}`)'
+      traefik.http.routers.public.entrypoints: 'https'
+      traefik.http.routers.public.tls: 'true'
+      traefik.http.routers.public.tls.options: 'default'
+      traefik.http.routers.public.middlewares: 'authelia@docker'
+...

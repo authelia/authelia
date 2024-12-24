@@ -5,7 +5,7 @@ summary: "Authelia has several features which make automation easy."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-weight: 220
+weight: 320
 toc: true
 seo:
   title: "" # custom title (optional)

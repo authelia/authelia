@@ -5,7 +5,7 @@ summary: "Frequently Asked Questions regarding integrating the Authelia OpenID C
 date: 2022-10-20T15:27:09+11:00
 draft: false
 images: []
-weight: 615
+weight: 715
 toc: true
 seo:
   title: "" # custom title (optional)

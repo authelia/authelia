@@ -8,7 +8,7 @@ images: []
 menu:
 integration:
 parent: "kubernetes"
-weight: 551
+weight: 651
 toc: true
 seo:
   title: "" # custom title (optional)
