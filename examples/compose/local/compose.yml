@@ -6,7 +6,7 @@ networks:
 services:
   authelia:
     image: 'authelia/authelia'
-    container_name: authelia
+    container_name: 'authelia'
     volumes:
       - './authelia:/config'
     networks:

@@ -1,0 +1,4 @@
+*.overrides.env
+traefik/
+authelia/users_database.yml
+authelia/users_database.yaml

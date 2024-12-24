@@ -5,7 +5,7 @@ summary: ""
 date: 2024-04-16T06:05:17+10:00
 draft: false
 images: []
-weight: 620
+weight: 720
 toc: true
 aliases:
   - '/integration/openid-connect/immich/'

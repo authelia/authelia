@@ -8,7 +8,7 @@ images: []
 menu:
 integration:
 parent: "kubernetes"
-weight: 553
+weight: 651
 toc: true
 aliases:
   - '/kubernetes/istio/'

@@ -5,7 +5,7 @@ summary: ""
 date: 2024-10-09T07:24:14+11:00
 draft: false
 images: []
-weight: 620
+weight: 720
 toc: true
 aliases:
   - '/integration/openid-connect/photoprism/'

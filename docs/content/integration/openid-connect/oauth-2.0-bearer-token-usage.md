@@ -5,7 +5,7 @@ summary: "An introduction into utilizing the Authelia OAuth 2.0 Provider as an a
 date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
-weight: 611
+weight: 711
 toc: true
 seo:
   title: "" # custom title (optional)

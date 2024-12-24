@@ -5,7 +5,7 @@ summary: "Frequently Asked Questions regarding integrating the Authelia Trusted 
 date: 2024-09-19T05:54:35+10:00
 draft: false
 images: []
-weight: 615
+weight: 515
 toc: true
 seo:
   title: "" # custom title (optional)

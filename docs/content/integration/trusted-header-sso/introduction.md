@@ -5,7 +5,7 @@ summary: "An introduction into integrating Authelia with an application which im
 date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
-weight: 410
+weight: 510
 toc: true
 seo:
   title: "" # custom title (optional)
