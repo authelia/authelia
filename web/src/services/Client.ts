@@ -3,9 +3,7 @@ import axios from "axios";
 import {
     RateLimitedData,
     ServiceResponse,
-    ServiceResponseRateLimited,
     hasServiceError,
-    hasServiceRateLimitedError,
     toData,
     toDataRateLimited,
     validateStatusTooManyRequests,
@@ -35,14 +33,16 @@ export async function PostWithOptionalResponseRateLimited<T = undefined>(
     path: string,
     body?: any,
 ): Promise<RateLimitedData<T> | undefined> {
-    const res = await axios.post<ServiceResponseRateLimited<T>>(path, body, {
+    const res = await axios.post<ServiceResponse<T>>(path, body, {
         validateStatus: validateStatusTooManyRequests,
     });
 
-    if (res.status !== 200 || hasServiceRateLimitedError(res).errored) {
-        throw new Error(
-            `Failed POST to ${path}. Code: ${res.status}. Message: ${hasServiceRateLimitedError(res).message}`,
-        );
+    if (res.status !== 200 || hasServiceError(res).errored) {
+        if (res.status === 429) {
+            return { limited: true };
+        }
+
+        throw new Error(`Failed POST to ${path}. Code: ${res.status}. Message: ${hasServiceError(res).message}`);
     }
 
     return toDataRateLimited<T>(res);

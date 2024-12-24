@@ -53,11 +53,6 @@ export interface Response<T> extends OKResponse {
     data: T;
 }
 
-export interface ResponseRateLimited<T> extends OKResponse {
-    data?: T;
-    limited: boolean;
-}
-
 export interface OptionalDataResponse<T> extends OKResponse {
     data?: T;
 }
@@ -70,7 +65,6 @@ export type AuthenticationResponse<T> = Response<T> | AuthenticationErrorRespons
 export type AuthenticationOKResponse = OKResponse | AuthenticationErrorResponse;
 export type OptionalDataServiceResponse<T> = OptionalDataResponse<T> | ErrorResponse;
 export type ServiceResponse<T> = Response<T> | ErrorResponse;
-export type ServiceResponseRateLimited<T> = ResponseRateLimited<T> | ErrorResponse;
 
 function toErrorResponse<T>(resp: AxiosResponse<ServiceResponse<T>>): ErrorResponse | undefined {
     if (resp.data && "status" in resp.data && resp.data["status"] === "KO") {
@@ -80,17 +74,11 @@ function toErrorResponse<T>(resp: AxiosResponse<ServiceResponse<T>>): ErrorRespo
     return undefined;
 }
 
-function toErrorResponseRateLimited<T>(resp: AxiosResponse<ServiceResponseRateLimited<T>>): ErrorResponse | undefined {
-    if (resp.data && "status" in resp.data && resp.data["status"] === "KO") {
-        return resp.data as ErrorResponse;
-    }
-    return undefined;
-}
-
 export function toData<T>(resp: AxiosResponse<ServiceResponse<T>>): T | undefined {
     if (resp.data && "status" in resp.data && resp.data["status"] === "OK") {
         return resp.data.data as T;
     }
+
     return undefined;
 }
 
@@ -99,14 +87,12 @@ export type RateLimitedData<T> = {
     limited: boolean;
 };
 
-export function toDataRateLimited<T>(
-    resp: AxiosResponse<ServiceResponseRateLimited<T>>,
-): RateLimitedData<T> | undefined {
-    if (resp.data && "status" in resp.data && resp.data["status"] === "OK") {
-        if (resp.data.limited) {
-            return { limited: true };
-        } else {
+export function toDataRateLimited<T>(resp: AxiosResponse<ServiceResponse<T>>): RateLimitedData<T> | undefined {
+    if (resp.data && "status" in resp.data) {
+        if (resp.data["status"] === "OK") {
             return { limited: false, data: resp.data.data as T };
+        } else if (resp.data["status"] === "KO" && resp.status === 429) {
+            return { limited: true };
         }
     }
 
@@ -127,8 +113,12 @@ export function hasServiceError<T>(resp: AxiosResponse<ServiceResponse<T>>) {
     return hasError(errResp);
 }
 
-export function hasServiceRateLimitedError<T>(resp: AxiosResponse<ServiceResponseRateLimited<T>>) {
-    const errResp = toErrorResponseRateLimited(resp);
+export function hasServiceRateLimitedError<T>(resp: AxiosResponse<ServiceResponse<T>>) {
+    if (resp.status === 429) {
+        return undefined;
+    }
+
+    const errResp = toErrorResponse(resp);
 
     return hasError(errResp);
 }
