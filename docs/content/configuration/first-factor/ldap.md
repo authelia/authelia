@@ -129,12 +129,15 @@ Controls the TLS connection validation parameters for either StartTLS or the TLS
 
 ### base_dn
 
-{{< confkey type="string" required="yes" >}}
+{{< confkey type="string" required="situational" >}}
 
-Sets the base distinguished name container for all LDAP queries. If your LDAP domain is `{{< sitevar name="domain" nojs="example.com" >}}`
-this is usually `{{< sitevar name="domain" format="dn" nojs="DC=example,DC=com" >}}`, however you can fine tune this to be more specific for
-example to only include objects inside the authelia OU: `OU=authelia,{{< sitevar name="domain" format="dn" nojs="DC=example,DC=com" >}}`. This
-is prefixed with the [additional_users_dn](#additional_users_dn) for user searches and [additional_groups_dn](#additional_groups_dn) for groups searches.
+Sets the base distinguished name container for all LDAP queries. If your LDAP domain is
+`{{< sitevar name="domain" nojs="example.com" >}}` this is usually
+`{{< sitevar name="domain" format="dn" nojs="DC=example,DC=com" >}}`, however you can fine tune this to be more specific
+for example to only include objects inside the authelia OU:
+`OU=authelia,{{< sitevar name="domain" format="dn" nojs="DC=example,DC=com" >}}`. This is prefixed with the
+[additional_users_dn](#additional_users_dn) for user searches and [additional_groups_dn](#additional_groups_dn) for
+groups searches.
 
 ### additional_users_dn
 
