@@ -54,14 +54,13 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
 
             const res = await completeTOTPSignIn(passcodeStr);
 
-            if (!res) {
-                createErrorNotification(translate("The One-Time Password might be wrong"));
-                setState(State.Failure);
-            } else if (res.limited) {
-                createErrorNotification(translate("You have made too many requests"));
-                setState(State.Failure);
-            } else if (res.data) {
-                setState(State.Success);
+            if (res) {
+                if (!res.limited) {
+                    setState(State.Success);
+                } else {
+                    createErrorNotification(translate("You have made too many requests"));
+                    setState(State.Failure);
+                }
             } else {
                 createErrorNotification(translate("The One-Time Password might be wrong"));
                 setState(State.Failure);

@@ -76,14 +76,11 @@ const OneTimePasswordMethod = function (props: Props) {
             if (!res) {
                 onSignInErrorCallback(new Error(translate("The One-Time Password might be wrong")));
                 setState(State.Failure);
-            } else if (res.limited) {
-                onSignInErrorCallback(new Error(translate("You have made too many requests")));
-                setState(State.Failure);
-            } else if (res.data) {
+            } else if (!res.limited) {
                 setState(State.Success);
-                onSignInSuccessCallback(res ? res.data.redirect : undefined);
+                onSignInSuccessCallback(res && res.data ? res.data.redirect : undefined);
             } else {
-                onSignInErrorCallback(new Error(translate("The One-Time Password might be wrong")));
+                onSignInErrorCallback(new Error(translate("You have made too many requests")));
                 setState(State.Failure);
             }
         } catch (err) {
