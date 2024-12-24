@@ -9,7 +9,7 @@ import (
 )
 
 func (rs *RodSession) isVerifyIdentityShowing(t *testing.T, page *rod.Page) bool {
-	require.NoError(t, page.WaitStable(time.Millisecond*100))
+	require.NoError(t, page.WaitStable(time.Millisecond*200))
 
 	has, _, err := page.Has("#dialog-verify-one-time-code")
 	require.NoError(t, err)
