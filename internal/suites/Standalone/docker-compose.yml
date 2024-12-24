@@ -10,5 +10,6 @@ services:
       - './common/pki:/pki'
       - './common/pki/public.crt:/certs/public.crt'
       - '/tmp:/tmp'
+      - './Standalone/locales:/config/locales'
     user: '${USER_ID}:${GROUP_ID}'
 ...
