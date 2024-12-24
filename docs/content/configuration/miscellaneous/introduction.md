@@ -34,7 +34,7 @@ This section describes the individual configuration options.
 ### certificates_directory
 
 This option defines the location of additional certificates to load into the trust chain specifically for Authelia.
-This currently affects both the SMTP notifier and the LDAP authentication backend. The certificates should all be in the
+This currently affects both the [SMTP](../notifications/smtp.md#tls) notifier, the [LDAP](../first-factor/ldap.md#tls) authentication backend, [PostgreSQL](../storage/postgres.md#tls) and [MySQL](../storage/mysql.md#tls) storage backends, and [Redis](../session/redis.md#tls). The certificates should all be in the
 PEM format and end with the extension `.pem`, `.crt`, or `.cer`. You can either add the individual certificates public
 key or the CA public key which signed them (don't add the private key).
 
