@@ -6,6 +6,7 @@ import (
 	"crypto/sha512"
 	"hash"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -767,5 +768,165 @@ func TestFuncFileContent(t *testing.T) {
 		} else {
 			assert.NoError(t, theErr)
 		}
+	}
+}
+
+func TestFuncAgo(t *testing.T) {
+	testCases := []struct {
+		name     string
+		value    any
+		expected string
+	}{
+		{"ShouldHandleOneSecond", time.Now().Add(-time.Second), "1s"},
+		{"ShouldHandleOneHour", time.Now().Add(-time.Hour), "1h0m0s"},
+		{"ShouldHandleZero", time.Now(), "0s"},
+		{"ShouldHandleNegative", time.Now().Add(time.Hour), "-1h0m0s"},
+		{"ShouldHandleMultipleUnits", time.Now().Add(-2*time.Hour - 30*time.Minute - 15*time.Second), "2h30m15s"},
+		{"ShouldHandleLargeDuration", time.Now().Add(-24 * time.Hour), "24h0m0s"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, FuncAgo(tc.value))
+		})
+	}
+}
+
+func TestFuncDate(t *testing.T) {
+	example := time.Unix(1240000000, 0)
+
+	testCases := []struct {
+		name     string
+		format   string
+		value    any
+		expected string
+	}{
+		{"ShouldHandleTimeValue", time.DateOnly, example, "2009-04-18"},
+		{"ShouldHandleEpochValue", time.DateOnly, 1240000000, "2009-04-18"},
+		{"ShouldHandleEpochValueInt", time.DateOnly, int(1240000000), "2009-04-18"},
+		{"ShouldHandleEpochValueInt64", time.DateOnly, int64(1240000000), "2009-04-18"},
+		{"ShouldHandleEpochValueInt32", time.DateOnly, int32(1240000000), "2009-04-18"},
+		{"ShouldHandleEpochValueTimePointer", time.DateOnly, &example, "2009-04-18"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, FuncDate(tc.format, tc.value))
+			assert.Equal(t, tc.expected, FuncHTMLDate(tc.value))
+		})
+	}
+}
+
+func TestFuncFuncDateInZone(t *testing.T) {
+	example := time.Unix(1240000000, 0)
+
+	testCases := []struct {
+		name     string
+		format   string
+		value    any
+		zone     string
+		expected string
+	}{
+		{"ShouldHandleTimeValue", time.DateOnly, example, "Local", "2009-04-18"},
+		{"ShouldHandleTimeValueEmptyZone", time.DateOnly, example, "", "2009-04-17"},
+		{"ShouldHandleTimeValueUTC", time.DateOnly, example, "UTC", "2009-04-17"},
+		{"ShouldHandleTimeValueBad", time.DateOnly, example, "BADBADBAD", "2009-04-17"},
+		{"ShouldHandleEpochValue", time.DateOnly, 1240000000, "Local", "2009-04-18"},
+		{"ShouldHandleEpochValueInt", time.DateOnly, int(1240000000), "Local", "2009-04-18"},
+		{"ShouldHandleEpochValueInt64", time.DateOnly, int64(1240000000), "Local", "2009-04-18"},
+		{"ShouldHandleEpochValueInt32", time.DateOnly, int32(1240000000), "Local", "2009-04-18"},
+		{"ShouldHandleEpochValueTimePointer", time.DateOnly, &example, "Local", "2009-04-18"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, FuncDateInZone(tc.format, tc.value, tc.zone))
+			assert.Equal(t, tc.expected, FuncHTMLDateInZone(tc.value, tc.zone))
+		})
+	}
+}
+
+func TestFuncDuration(t *testing.T) {
+	testCases := []struct {
+		name     string
+		value    any
+		expected string
+	}{
+		{"ShouldHandleString", "1", "1s"},
+		{"ShouldHandleInt", 2, "2s"},
+		{"ShouldHandleInt32", int32(3), "3s"},
+		{"ShouldHandleInt64", int64(4), "4s"},
+		{"ShouldHandleBool", false, "0s"},
+		{"ShouldHandleInvalidString", "invalid", "0s"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, FuncDuration(tc.value))
+		})
+	}
+}
+
+func TestFuncToDate(t *testing.T) {
+	testCases := []struct {
+		name     string
+		format   string
+		value    string
+		expected time.Time
+	}{
+		{"ShouldHandle", time.DateOnly, "2024-01-01", time.Date(2024, time.January, 1, 0, 0, 0, 0, time.Local)},
+		{"ShouldHandleInvalid", time.DateOnly, "abc", time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC)},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, FuncToDate(tc.format, tc.value))
+		})
+	}
+}
+
+func TestFuncMustToDate(t *testing.T) {
+	testCases := []struct {
+		name     string
+		format   string
+		value    string
+		expected time.Time
+		err      string
+	}{
+		{"ShouldHandle", time.DateOnly, "2024-01-01", time.Date(2024, time.January, 1, 0, 0, 0, 0, time.Local), ""},
+		{"ShouldHandleInvalid", time.DateOnly, "abc", time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC), `parsing time "abc" as "2006-01-02": cannot parse "abc" as "2006"`},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, err := FuncMustToDate(tc.format, tc.value)
+			assert.Equal(t, tc.expected, actual)
+
+			if tc.err != "" {
+				assert.EqualError(t, err, tc.err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestFuncUnixEpoch(t *testing.T) {
+	testCases := []struct {
+		name     string
+		value    time.Time
+		expected string
+	}{
+		{"ShouldHandle", time.Date(2024, time.January, 1, 0, 0, 0, 0, time.Local), "1704027600"},
+		{"ShouldHandleZero", time.Time{}, "-62135596800"},
+		{"ShouldHandlePreEpoch", time.Date(1960, time.January, 1, 0, 0, 0, 0, time.UTC), "-315619200"},
+		{"ShouldHandleFarFuture", time.Date(2050, time.January, 1, 0, 0, 0, 0, time.UTC), "2524608000"},
+		{"ShouldHandleWithTimezone", time.Date(2024, time.January, 1, 0, 0, 0, 0, time.UTC), "1704067200"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, FuncUnixEpoch(tc.value))
+		})
 	}
 }
