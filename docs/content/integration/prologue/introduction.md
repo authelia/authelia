@@ -17,3 +17,6 @@ seo:
 Authelia's [architecture](../../overview/prologue/architecture) is relatively simple which makes the methods of
 integrating it within your existing architecture fairly vast. This section of the documentation provides non-exhaustive
 insights and examples into how administrators may achieve integration.
+
+For a curated [Get Started](../get-started/introduction.md) experience see the
+[Get Started](../get-started/introduction.md) guide.
