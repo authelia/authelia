@@ -5,7 +5,7 @@ summary: "A guide on integrating Authelia with the HAProxy reverse proxy."
 date: 2020-02-29T01:43:59+01:00
 draft: false
 images: []
-weight: 340
+weight: 440
 toc: true
 aliases:
   - /i/haproxy

@@ -5,7 +5,7 @@ summary: "This is one of the primary ways we deliver Authelia to users and the r
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-weight: 230
+weight: 330
 toc: true
 seo:
   title: "" # custom title (optional)

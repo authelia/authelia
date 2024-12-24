@@ -26,7 +26,7 @@ mainSections = ["overview", "configuration", "integration", "contributing", "roa
 
   ## Button
   navBarButton = true # false (default) or true
-  navBarButtonUrl = "/integration/prologue/get-started/"
+  navBarButtonUrl = "/integration/get-started/introduction/"
   navBarButtonText = "Get started"
 
   # FlexSearch

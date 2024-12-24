@@ -5,7 +5,7 @@ summary: "A guide on integrating Authelia with NGINX Proxy Manager."
 date: 2022-10-08T12:43:26+11:00
 draft: false
 images: []
-weight: 352
+weight: 452
 toc: true
 aliases:
   - /i/npm

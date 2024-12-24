@@ -5,7 +5,7 @@ summary: "A guide to integrating Authelia with the NGINX Kubernetes Ingress."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-weight: 552
+weight: 652
 toc: true
 seo:
   title: "" # custom title (optional)

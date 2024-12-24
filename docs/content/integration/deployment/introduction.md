@@ -5,7 +5,7 @@ summary: "An introduction into integrating Authelia within your architecture."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-weight: 210
+weight: 310
 toc: true
 seo:
   title: "" # custom title (optional)

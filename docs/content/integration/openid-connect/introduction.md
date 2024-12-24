@@ -5,7 +5,7 @@ summary: "An introduction into integrating the Authelia OpenID Connect 1.0 Provi
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-weight: 610
+weight: 710
 toc: true
 aliases:
   - /docs/community/oidc-integrations.html

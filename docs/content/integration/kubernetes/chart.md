@@ -5,7 +5,7 @@ summary: "A guide to using the Authelia helm chart to integrate Authelia with Ku
 date: 2022-06-22T22:58:23+10:00
 draft: false
 images: []
-weight: 520
+weight: 620
 toc: true
 seo:
   title: "" # custom title (optional)
