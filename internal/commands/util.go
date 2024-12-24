@@ -117,6 +117,31 @@ func flagsGetRandomCharacters(flags *pflag.FlagSet, flagNameLength, flagNameChar
 	return rand.StringCustom(n, charset), nil
 }
 
+func flagsGetFilePath(flags *pflag.FlagSet, flagNameOutputFile, flagNameDirectory string) (r string, err error) {
+	var (
+		file      string
+		directory string
+	)
+
+	if file, err = flags.GetString(flagNameOutputFile); err != nil {
+		return "", err
+	}
+
+	if directory, err = flags.GetString(flagNameDirectory); err != nil {
+		return "", err
+	}
+
+	if file == "" {
+		return "", nil
+	}
+
+	if directory == "" {
+		directory = "."
+	}
+
+	return filepath.Join(directory, file), nil
+}
+
 func termReadConfirmation(flags *pflag.FlagSet, name, prompt, confirmation string) (confirmed bool, err error) {
 	if confirmed, _ = flags.GetBool(name); confirmed {
 		return confirmed, nil
