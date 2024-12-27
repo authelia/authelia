@@ -1,6 +1,8 @@
 ---
 networks:
-  net:
+  proxy:
+    driver: 'bridge'
+  authelia:
     driver: 'bridge'
 
 services:
@@ -8,11 +10,8 @@ services:
     image: 'authelia/authelia'
     container_name: 'authelia'
     restart: 'unless-stopped'
-    healthcheck:
-      ## In production the healthcheck section should be commented.
-      disable: true
     networks:
-      net: {}
+      authelia: {}
     volumes:
       - './authelia:/config'
     env_file:
@@ -32,12 +31,12 @@ services:
       traefik.http.middlewares.authelia.forwardauth.trustForwardHeader: 'true'
       traefik.http.middlewares.authelia.forwardauth.authResponseHeaders: 'Remote-User,Remote-Groups,Remote-Name,Remote-Email'  # yamllint disable-line rule:line-length
 
-  lldap:
+  authelia-lldap:
     image: 'lldap/lldap:stable'
-    container_name: 'lldap'
+    container_name: 'authelia-lldap'
     restart: 'unless-stopped'
     networks:
-      net: {}
+      authelia: {}
     volumes:
       - './lldap:/data'
     env_file:
@@ -55,12 +54,47 @@ services:
       traefik.http.routers.lldap.tls.options: 'default'
       traefik.http.services.lldap.loadbalancer.server.port: '17170'
 
+  authelia-redis:
+    image: 'lldap/lldap:stable'
+    container_name: 'authelia-redis'
+    restart: 'unless-stopped'
+    networks:
+      authelia: {}
+    volumes:
+      - './lldap:/data'
+    env_file:
+      - path: '.env'
+        required: true
+      - path: 'authelia-redis.env'
+        required: true
+      - path: 'authelia-redis.overrides.env'
+        required: false
+
+  authelia-postgres:
+    image: 'lldap/lldap:stable'
+    container_name: 'authelia-postgres'
+    restart: 'unless-stopped'
+    networks:
+      authelia: {}
+    volumes:
+      - './lldap:/data'
+    env_file:
+      - path: '.env'
+        required: true
+      - path: 'authelia-redis.env'
+        required: true
+      - path: 'authelia-redis.overrides.env'
+        required: false
+
   traefik:
     image: 'traefik:v3.2.3'
     container_name: 'traefik'
     restart: 'unless-stopped'
     networks:
-      net: {}
+      proxy:
+        - aliases:
+            - '${SUBDOMAIN_AUTHELIA:-auth}.${DOMAIN:-example.com}'
+      authelia: {}
     ports:
       - '80:80/tcp'
       - '443:443/tcp'
@@ -102,7 +136,7 @@ services:
     container_name: 'secure'
     restart: 'unless-stopped'
     networks:
-      net: {}
+      proxy: {}
     env_file:
       - path: '.env'
         required: true
@@ -123,7 +157,7 @@ services:
     container_name: 'public'
     restart: 'unless-stopped'
     networks:
-      net: {}
+      proxy: {}
     env_file:
       - path: '.env'
         required: true

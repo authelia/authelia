@@ -5,7 +5,7 @@ summary: "This document serves as a get started guide for Authelia. It contains 
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-weight: 120
+weight: 220
 toc: true
 seo:
   title: "" # custom title (optional)
