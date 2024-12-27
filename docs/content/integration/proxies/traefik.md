@@ -159,8 +159,10 @@ This is an example configuration using [docker compose] labels:
 ```yaml {title="compose.yml"}
 ---
 networks:
-  net:
-    driver: bridge
+  proxy:
+    driver: 'bridge'
+  authelia:
+    driver: 'bridge'
 services:
   traefik:
     container_name: 'traefik'
@@ -195,7 +197,10 @@ services:
       - '--entryPoints.https.forwardedHeaders.insecure=false'
       - '--entryPoints.https.proxyProtocol.insecure=false'
     networks:
-      net: {}
+      proxy:
+        aliases:
+          - 'https://{{</* sitevar name="subdomain-authelia" nojs="auth" */>}}.{{</* sitevar name="domain" nojs="example.com" */>}}'
+      authelia: {}
     ports:
       - '80:8080'
       - '443:8443'
@@ -214,7 +219,7 @@ services:
     image: 'authelia/authelia'
     restart: 'unless-stopped'
     networks:
-      net: {}
+      authelia: {}
     volumes:
       - '${PWD}/data/authelia/config:/config'
     environment:
@@ -235,7 +240,7 @@ services:
     image: 'linuxserver/nextcloud'
     restart: 'unless-stopped'
     networks:
-      net: {}
+      proxy: {}
     volumes:
       - '${PWD}/data/nextcloud/config:/config'
       - '${PWD}/data/nextcloud/data:/data'
@@ -254,7 +259,7 @@ services:
     image: 'linuxserver/heimdall'
     restart: 'unless-stopped'
     networks:
-      net: {}
+      proxy: {}
     volumes:
       - '${PWD}/data/heimdall/config:/config'
     environment:
