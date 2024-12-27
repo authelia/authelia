@@ -97,18 +97,20 @@ which includes ACME and various other useful utilities.
 ```yaml {title="compose.yml"}
 ---
 networks:
-  net:
+  proxy:
     driver: 'bridge'
-
+  authelia:
+    driver: 'bridge'
 services:
   swag:
     container_name: 'swag'
     image: 'lscr.io/linuxserver/swag'
     restart: 'unless-stopped'
     networks:
-      net:
+      proxy:
         aliases:
           - '{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
+      authelia: {}
     ports:
       - '80:80'
       - '443:443'
@@ -131,7 +133,7 @@ services:
     image: 'authelia/authelia'
     restart: 'unless-stopped'
     networks:
-      net: {}
+      authelia: {}
     volumes:
       - '${PWD}/data/authelia/config:/config'
     environment:
@@ -141,7 +143,7 @@ services:
     image: 'organizr/organizr'
     restart: 'unless-stopped'
     networks:
-      net: {}
+      proxy: {}
     volumes:
       - '${PWD}/data/organizr/config:/config'
     environment:
@@ -153,7 +155,7 @@ services:
     image: 'docker.io/traefik/whoami'
     restart: 'unless-stopped'
     networks:
-      net: {}
+      proxy: {}
     environment:
       TZ: 'Australia/Melbourne'
 ...

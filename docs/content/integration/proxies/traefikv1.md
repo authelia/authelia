@@ -151,7 +151,9 @@ Given that this is not compatible with [Traefik] 1.x you can call the __Authelia
 
 ```yaml {title="compose.yml"}
 networks:
-  net:
+  proxy:
+    driver: 'bridge'
+  authelia:
     driver: 'bridge'
 services:
   traefik:
@@ -160,7 +162,10 @@ services:
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
     networks:
-      net: {}
+      proxy:
+        aliases:
+          - 'https://{{</* sitevar name="subdomain-authelia" nojs="auth" */>}}.{{</* sitevar name="domain" nojs="example.com" */>}}'
+      authelia: {}
     labels:
       traefik.frontend.rule: 'Host:traefik.{{< sitevar name="domain" nojs="example.com" >}}'
       traefik.port: '8081'
@@ -189,7 +194,7 @@ services:
     volumes:
       - '/path/to/authelia:/config'
     networks:
-      net: {}
+      authelia: {}
     labels:
       traefik.frontend.rule: 'Host:{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
     restart: 'unless-stopped'
@@ -202,7 +207,7 @@ services:
       - '/path/to/nextcloud/config:/config'
       - '/path/to/nextcloud/data:/data'
     networks:
-      net: {}
+      proxy: {}
     labels:
       traefik.frontend.rule: 'Host:nextcloud.{{< sitevar name="domain" nojs="example.com" >}}'
       traefik.frontend.auth.forward.address: '{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth'
@@ -222,7 +227,7 @@ services:
     volumes:
       - '/path/to/heimdall/config:/config'
     networks:
-      net: {}
+      proxy: {}
     labels:
       traefik.frontend.rule: 'Host:heimdall.{{< sitevar name="domain" nojs="example.com" >}}'
       traefik.frontend.auth.forward.address: '{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth/basic'
