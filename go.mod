@@ -5,7 +5,7 @@ go 1.23
 toolchain go1.23.4
 
 require (
-	authelia.com/provider/oauth2 v0.1.17
+	authelia.com/provider/oauth2 v0.1.19
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
 	github.com/authelia/jsonschema v0.1.7
@@ -16,9 +16,9 @@ require (
 	github.com/fasthttp/session/v2 v2.5.7
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/go-asn1-ber/asn1-ber v1.5.7
-	github.com/go-crypt/crypt v0.3.1
+	github.com/go-crypt/crypt v0.3.2
 	github.com/go-jose/go-jose/v4 v4.0.4
-	github.com/go-ldap/ldap/v3 v3.4.9
+	github.com/go-ldap/ldap/v3 v3.4.10
 	github.com/go-rod/rod v0.116.2
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/go-viper/mapstructure/v2 v2.2.1
@@ -26,7 +26,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-retryablehttp v0.7.7
-	github.com/jackc/pgx/v5 v5.7.1
+	github.com/jackc/pgx/v5 v5.7.2
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/knadh/koanf/parsers/yaml v0.1.0
 	github.com/knadh/koanf/providers/confmap v0.1.0
@@ -45,10 +45,10 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/trustelem/zxcvbn v1.0.1
 	github.com/valyala/fasthttp v1.58.0
-	github.com/weppos/publicsuffix-go v0.40.3-0.20241216151638-1967f074f9a8
+	github.com/weppos/publicsuffix-go v0.40.3-0.20241226095751-7ff70d4ea61c
 	github.com/wneessen/go-mail v0.5.2
 	go.uber.org/mock v0.5.0
-	golang.org/x/net v0.32.0
+	golang.org/x/net v0.33.0
 	golang.org/x/sync v0.10.0
 	golang.org/x/term v0.27.0
 	golang.org/x/text v0.21.0
@@ -70,7 +70,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/fxamacker/cbor/v2 v2.6.0 // indirect
-	github.com/go-crypt/x v0.3.1 // indirect
+	github.com/go-crypt/x v0.3.2 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-webauthn/x v0.1.9 // indirect
 	github.com/golang/glog v1.2.2 // indirect
@@ -106,7 +106,7 @@ require (
 	github.com/ysmood/gson v0.7.3 // indirect
 	github.com/ysmood/leakless v0.9.0 // indirect
 	golang.org/x/crypto v0.31.0 // indirect
-	golang.org/x/oauth2 v0.22.0 // indirect
+	golang.org/x/oauth2 v0.24.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 )
