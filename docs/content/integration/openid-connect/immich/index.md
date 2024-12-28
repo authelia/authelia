@@ -23,7 +23,7 @@ seo:
 * [Authelia]
   * [v4.38.17](https://github.com/authelia/authelia/releases/tag/v4.38.17)
 * [immich]
-  * [v1.123.0](https://github.com/immich-app/immich/releases/tag/v1.117.0)
+  * [v1.123.0](https://github.com/immich-app/immich/releases/tag/v1.123.0)
 
 {{% oidc-common %}}
 
