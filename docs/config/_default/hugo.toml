@@ -8,7 +8,6 @@ enableEmoji = true
 enableGitInfo = true
 enableRobotsTXT = true
 languageCode = "en-US"
-paginate = 10
 rssLimit = 10
 summarylength = 20 # 70 (default)
 
@@ -40,6 +39,9 @@ copyRight = "Copyright (c) 2016-%s Authelia"
   isPlainText = true
   noUgly = true
   rel  = "sitemap"
+
+[pagination]
+  pagerSize = 10
 
 [sitemap]
   changefreq = "monthly"

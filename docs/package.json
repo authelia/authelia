@@ -39,16 +39,16 @@
     "shx": "^0.3.4"
   },
   "otherDependencies": {
-    "hugo": "0.125.3"
+    "hugo": "0.140.1"
   },
   "overrides": {
     "semver": "^7.5.4"
   },
   "engines": {
-    "node": ">=18.14.1",
-    "pnpm": ">=8.10.0"
+    "node": ">=22.12.0",
+    "pnpm": ">=9.15.1"
   },
-  "packageManager": "pnpm@9.0.5",
+  "packageManager": "pnpm@9.15.1",
   "pnpm": {
     "overrides": {
       "semver@<7.5.2": "7.6.3",
