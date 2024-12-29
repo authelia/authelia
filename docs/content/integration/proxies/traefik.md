@@ -156,8 +156,7 @@ The following are the assumptions we make:
 
 This is an example configuration using [docker compose] labels:
 
-{{< details "docker-compose.yml" >}}
-```yaml {title="docker-compose.yml"}
+```yaml {title="compose.yml"}
 ---
 networks:
   net:
@@ -270,13 +269,12 @@ services:
       traefik.http.routers.heimdall.middlewares: 'authelia-basic@docker'
 ...
 ```
-{{< /details >}}
 
 ### YAML
 
-This example uses a `docker-compose.yml` similar to the one above however it has two major differences:
+This example uses a `compose.yml` similar to the one above however it has two major differences:
 
-1. A majority of the configuration is in YAML instead of the `labels` section of the `docker-compose.yml` file.
+1. A majority of the configuration is in YAML instead of the `labels` section of the `compose.yml` file.
 2. It connects to __Authelia__ over TLS with client certificates which ensures that [Traefik] is a proxy
    authorized to communicate with __Authelia__. This expects that the
    [Server TLS](../../configuration/miscellaneous/server.md#tls) section is configured correctly.
@@ -286,8 +284,7 @@ This example uses a `docker-compose.yml` similar to the one above however it has
      all `forwardAuth` middlewares, adjusting the `authelia` router in the `http.routers` section to use the
      `authelia-net@docker` service, and commenting the `authelia` service in the `http.service` section.
 
-{{< details "docker-compose.yml" >}}
-```yaml {title="docker-compose.yml"}
+```yaml {title="compose.yml"}
 ---
 networks:
   net:
@@ -383,13 +380,11 @@ services:
       traefik.enable: 'true'
 ...
 ```
-{{< /details >}}
 
 This file is part of the dynamic configuration and should have the path
 `${PWD}/data/traefik/config/dynamic/traefik.yml`. Please see the [Traefik] service and the volume that mounts the
 `${PWD}/data/traefik/config` in the docker compose above.
 
-{{< details "traefik.yml" >}}
 ```yaml {title="traefik.yml"}
 ---
 entryPoints:
@@ -530,7 +525,6 @@ http:
         - '/certificates/ca.public.crt'
 ...
 ```
-{{< /details >}}
 
 ## Frequently Asked Questions
 
@@ -553,7 +547,7 @@ This can be avoided a couple different ways:
    * Utilise the [depends_on](https://docs.docker.com/compose/compose-file/#depends_on) option
 2. Define the __Authelia__ middleware on your [Traefik] container. See the below example.
 
-```yaml {title="docker-compose.yml"}
+```yaml {title="compose.yml"}
 traefik.http.middlewares.authelia.forwardAuth.address: '{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth'
 ## The following commented line is for configuring the Authelia URL in the proxy. We strongly suggest this is
 ## configured in the Session Cookies section of the Authelia configuration.

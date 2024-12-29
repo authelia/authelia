@@ -147,9 +147,9 @@ Authelia provides the means to be able to authenticate your first factor via the
 Given that this is not compatible with [Traefik] 1.x you can call the __Authelia__ `/api/verify` endpoint with the
 `auth=basic` query parameter to force a switch to the `Authentication` header.
 
-##### docker-compose.yml
+##### compose.yml
 
-```yaml {title="docker-compose.yml"}
+```yaml {title="compose.yml"}
 networks:
   net:
     driver: 'bridge'

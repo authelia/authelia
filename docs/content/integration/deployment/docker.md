@@ -88,7 +88,7 @@ It expects the following:
 Use this [Standalone Example](#standalone-example) if you want to use
 [docker secrets](https://docs.docker.com/engine/swarm/secrets/).
 
-```yaml {title="docker-compose.yml"}
+```yaml {title="compose.yml"}
 ---
 secrets:
   JWT_SECRET:
@@ -127,7 +127,7 @@ networks:
 Use this [Standalone Example](#standalone-example) if you want to use a standard
 [docker volume](https://docs.docker.com/storage/volumes/) or bind mount for your secrets.
 
-```yaml {title="docker-compose.yml"}
+```yaml {title="compose.yml"}
 ---
 services:
   authelia:
@@ -172,7 +172,7 @@ process:
 3. Edit `users_database.yml` and either change the username of the `authelia` user, or
    [generate a new password](../../reference/guides/passwords.md#passwords), or both. The default password is
    `authelia`.
-4. Edit the `configuration.yml` and `docker-compose.yml` with your respective domains and secrets.
+4. Edit the `configuration.yml` and `compose.yml` with your respective domains and secrets.
 5. Edit the `configuration.yml` to configure the [SMTP Server](../../configuration/notifications/smtp.md).
 6. Run `docker compose up -d` or `docker-compose up -d`.
 
@@ -217,7 +217,7 @@ The example below includes the additional `ports` option which must be added in 
 [Standalone Example](#standalone-example) above. The example allows *Authelia* to be communicated with over the
 localhost IP address `127.0.0.1` on port `9091`. You need to adjust this to your specific needs.
 
-```yaml {title="docker-compose.yml"}
+```yaml {title="compose.yml"}
 ---
 services:
   authelia:
