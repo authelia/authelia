@@ -35,9 +35,9 @@ authelia storage user identifiers import <filename> [flags]
 
 ```
 authelia storage user identifiers import
-authelia storage user identifiers import authelia.export.opaque-identifiers.yaml
-authelia storage user identifiers import --config config.yml export.yaml
-authelia storage user identifiers import --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw export.yaml
+authelia storage user identifiers import authelia.export.opaque-identifiers.yml
+authelia storage user identifiers import --config config.yml export.yml
+authelia storage user identifiers import --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw export.yml
 ```
 
 ### Options

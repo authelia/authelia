@@ -1,0 +1,8 @@
+# yamllint disable-file
+---
+{{- range (walk "./test_resources/config_walk/" "" false) }}
+  {{ if not .IsDir }}
+{{ fileContent .Path }}
+  {{- end }}
+{{- end }}
+...
