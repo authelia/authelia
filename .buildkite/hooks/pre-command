@@ -48,15 +48,15 @@ if [[ "${BUILDKITE_LABEL}" =~ ":selenium:" ]]; then
 
   if [[ "${BUILD_DUO}" == "true" ]] && [[ "${SUITE}" == "DuoPush" ]]; then
     CONTAINER="integration-duo"
-    FILE="internal/suites/example/compose/duo-api/docker-compose.yml"
+    FILE="internal/suites/example/compose/duo-api/compose.yml"
     INTEGRATION
   elif [[ "${BUILD_HAPROXY}" == "true" ]] && [[ "${SUITE}" == "HAProxy" ]]; then
     CONTAINER="integration-haproxy"
-    FILE="internal/suites/example/compose/haproxy/docker-compose.yml"
+    FILE="internal/suites/example/compose/haproxy/compose.yml"
     INTEGRATION
   elif [[ "${BUILD_SAMBA}" == "true" ]] && [[ "${SUITE}" == "ActiveDirectory" ]]; then
       CONTAINER="integration-samba"
-      FILE="internal/suites/example/compose/samba/docker-compose.yml"
+      FILE="internal/suites/example/compose/samba/compose.yml"
       INTEGRATION
   fi
 fi
