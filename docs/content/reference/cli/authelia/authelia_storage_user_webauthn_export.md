@@ -32,7 +32,7 @@ authelia storage user webauthn export [flags]
 
 ```
 authelia storage user webauthn export
-authelia storage user webauthn export --file authelia.export.webauthn.yaml
+authelia storage user webauthn export --file authelia.export.webauthn.yml
 authelia storage user webauthn export --config config.yml
 authelia storage user webauthn export--encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
 ```
@@ -40,7 +40,7 @@ authelia storage user webauthn export--encryption-key b3453fde-ecc2-4a1f-9422-27
 ### Options
 
 ```
-  -f, --file string   The file name for the YAML export (default "authelia.export.webauthn.yaml")
+  -f, --file string   The file name for the YAML export (default "authelia.export.webauthn.yml")
   -h, --help          help for export
 ```
 

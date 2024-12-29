@@ -44,7 +44,7 @@ server:
       auth-request:
         implementation: 'AuthRequest'
         authn_strategies:
-          - name: 'HeaderAuthRequestProxyAuthorization'
+          - name: 'HeaderAuthorization'
             schemes:
               - 'Basic'
           - name: 'CookieSession'
