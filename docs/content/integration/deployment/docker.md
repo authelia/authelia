@@ -174,7 +174,7 @@ process:
    `authelia`.
 4. Edit the `configuration.yml` and `compose.yml` with your respective domains and secrets.
 5. Edit the `configuration.yml` to configure the [SMTP Server](../../configuration/notifications/smtp.md).
-6. Run `docker compose up -d` or `docker-compose up -d`.
+6. Run `docker compose up -d`.
 
 #### local
 
