@@ -149,8 +149,8 @@ networks:
   net:
     external: true
     name: 'net'
-```
 ...
+```
 
 ### Bundles
 
