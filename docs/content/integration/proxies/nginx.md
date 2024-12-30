@@ -136,7 +136,7 @@ they have several configuration examples in the `/config/nginx/proxy-confs` dire
 If you're looking for a more complete solution [linuxserver.io] also have an nginx container called [SWAG](swag.md)
 which includes ACME and various other useful utilities.
 
-```yaml {title="docker-compose.yml"}
+```yaml {title="compose.yml"}
 ---
 networks:
   net:
@@ -288,6 +288,38 @@ server {
 }
 ```
 
+```nginx {title="site-confs/portainer.conf"}
+server {
+    listen 80;
+    server_name portainer.*;
+
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name portainer.*;
+
+    include /config/nginx/snippets/ssl.conf;
+    include /config/nginx/snippets/authelia-location.conf;
+
+    set $upstream http://portainer:9000;
+
+    location / {
+        include /config/nginx/snippets/proxy.conf;
+        include /config/nginx/snippets/authelia-authrequest.conf;
+        proxy_pass $upstream;
+    }
+
+    location /api/websocket/ {
+        include /config/nginx/snippets/proxy.conf;
+        include /config/nginx/snippets/websocket.conf;
+        include /config/nginx/snippets/authelia-authrequest.conf;
+        proxy_pass $upstream;
+    }
+}
+```
+
 ```nginx {title="site-confs/whoami.conf"}
 server {
     listen 80;
@@ -418,6 +450,22 @@ proxy_set_header X-Forwarded-Host $http_host;
 proxy_set_header X-Forwarded-URI $request_uri;
 proxy_set_header X-Forwarded-Ssl on;
 proxy_set_header X-Forwarded-For $remote_addr;
+```
+
+#### websocket.conf
+
+The following is an example `websocket.conf`. This can be utilized on locations that require websockets. The standard
+example has an example usage of this file.
+
+```nginx {title="websocket.conf"}
+## WebSocket Example
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+proxy_set_header Upgrade $http_upgrade;
+proxy_set_header Connection $connection_upgrade;
 ```
 
 #### authelia-location.conf

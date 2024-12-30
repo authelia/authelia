@@ -1022,7 +1022,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 		expectedLines = append(expectedLines, config.URI())
 	}
 
-	yml := filepath.Join(dir, "authelia.export.totp.yaml")
+	yml := filepath.Join(dir, "authelia.export.totp.yml")
 	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "totp", "export", "--file", yml, "--config=/config/configuration.storage.yml"})
 	s.NoError(err)
 	s.Contains(output, fmt.Sprintf("Successfully exported %d TOTP configurations as YAML to the '%s' file\n", len(expectedLines), yml))

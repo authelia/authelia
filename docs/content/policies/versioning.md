@@ -92,18 +92,22 @@ Notable Advanced Customizations:
   - Content Security Policy header
 - Localization / Internationalization Assets
 
-### Breaking Changes
+### Experimental Features
 
-All features which are marked as:
+Features which are described in a way which indicates they are not ready for use do not have the same guarantees under
+this versioning policy. The reasoning is as we develop these features there may be mistakes and/or uncertainty about a
+particular feature (i.e. the feature may be problematic due to its nature) and we may need to make a change that would
+normally be considered a breaking change. As these features graduate from their status to generally available they will
+move into our standard versioning policy and lose their exception status.
+
+This exception applies to all features which are described as:
 
 - beta
 - experimental
 
 Notable examples:
 
-- OpenID Connect 1.0
-- File Filters
+- [OpenID Connect 1.0](../configuration/identity-providers/openid-connect/provider.md)
+- [File Filters](../configuration/methods/files.md#file-filters)
 
-The reasoning is as we develop these features there may be mistakes and we may need to make a change that would normally
-be considered a breaking change. As these features graduate from their status to generally available they will move into
-our standard versioning policy and lose their exception status.
+

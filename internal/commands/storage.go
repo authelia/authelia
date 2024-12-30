@@ -371,7 +371,7 @@ func newStorageUserWebAuthnExportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.Flags().StringP(cmdFlagNameFile, "f", "authelia.export.webauthn.yaml", "The file name for the YAML export")
+	cmd.Flags().StringP(cmdFlagNameFile, "f", "authelia.export.webauthn.yml", "The file name for the YAML export")
 
 	return cmd
 }
@@ -518,7 +518,7 @@ func newStorageUserTOTPExportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		newStorageUserTOTPExportURICmd(ctx),
 	)
 
-	cmd.Flags().StringP(cmdFlagNameFile, "f", "authelia.export.totp.yaml", "The file name for the YAML export")
+	cmd.Flags().StringP(cmdFlagNameFile, "f", "authelia.export.totp.yml", "The file name for the YAML export")
 
 	return cmd
 }

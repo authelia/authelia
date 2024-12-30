@@ -110,7 +110,7 @@ else
   password
 fi
 
-sudo docker-compose up -d
+sudo docker compose up -d
 
 if [[ $? != 0 ]]; then
   exit 1
