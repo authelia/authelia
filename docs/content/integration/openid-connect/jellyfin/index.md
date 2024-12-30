@@ -21,9 +21,9 @@ seo:
 ## Tested Versions
 
 * [Authelia]
-    * [v4.38.6](https://github.com/authelia/authelia/releases/tag/v4.38.6)
+  * [v4.38.17](https://github.com/authelia/authelia/releases/tag/v4.38.17)
 * [Jellyfin]
-    * [10.8.13](https://github.com/jellyfin/jellyfin/releases/tag/v10.8.13)
+  * [10.10.3](https://github.com/jellyfin/jellyfin/releases/tag/v10.10.3)
 
 {{% oidc-common %}}
 

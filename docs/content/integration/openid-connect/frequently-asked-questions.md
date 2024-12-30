@@ -284,7 +284,7 @@ you're facing.
 
 Examples (assuming your Authelia Root URL is `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`):
 
-```yaml {title="docker-compose.yml"}
+```yaml {title="compose.yml"}
 services:
   application:
     ## Mandatory that the application is on the same network as the proxy.

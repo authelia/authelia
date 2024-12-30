@@ -1,8 +1,8 @@
 {
   "name": "authelia",
-  "version": "0.0.0",
+  "version": "1.7.0",
   "description": "Doks theme",
-  "author": "Hyas",
+  "author": "Thulite",
   "license": "MIT",
   "scripts": {
     "dev": "exec-bin node_modules/.bin/hugo/hugo server --bind=0.0.0.0 --disableFastRender --baseURL=http://localhost --noHTTPCache",
@@ -25,28 +25,34 @@
     "postinstall": "hugo-installer --version otherDependencies.hugo --extended --destination node_modules/.bin/hugo"
   },
   "dependencies": {
-    "@hyas/doks-core": "^1.6.1",
-    "@hyas/images": "^3.2.0",
-    "@hyas/inline-svg": "^1.1.0",
-    "@hyas/seo": "^2.3.0",
-    "@tabler/icons": "^3.2.0",
+    "@tabler/icons": "3.26.0",
+    "@thulite/doks-core": "1.8.0",
+    "@thulite/images": "3.3.0",
+    "@thulite/inline-svg": "1.2.0",
+    "@thulite/seo": "2.4.1",
     "bootstrap-icons": "1.11.3",
     "exec-bin": "^1.0.0",
-    "gethyas": "^2.4.1",
-    "hugo-installer": "^4.0.1"
+    "hugo-installer": "4.0.1",
+    "thulite": "2.5.0"
   },
   "devDependencies": {
     "shx": "^0.3.4"
   },
   "otherDependencies": {
-    "hugo": "0.125.3"
+    "hugo": "0.140.1"
   },
   "overrides": {
     "semver": "^7.5.4"
   },
   "engines": {
-    "node": ">=18.14.1",
-    "pnpm": ">=8.10.0"
+    "node": ">=22.12.0",
+    "pnpm": ">=9.15.1"
   },
-  "packageManager": "pnpm@9.0.5"
+  "packageManager": "pnpm@9.15.1",
+  "pnpm": {
+    "overrides": {
+      "semver@<7.5.2": "7.6.3",
+      "nanoid@<3.3.8": "3.3.8"
+    }
+  }
 }
