@@ -16,13 +16,13 @@ seo:
 
 ## authelia storage cache mds3
 
-Manage storage MDS3 cache
+Manage WebAuthn MDS3 cache storage
 
 ### Synopsis
 
-Manage storage MDS3 cache.
+Manage WebAuthn MDS3 cache storage.
 
-This subcommand allows management of the storage MDS3 cache.
+This subcommand allows management of the WebAuthn MDS3 cache storage.
 
 ### Examples
 
@@ -63,8 +63,8 @@ authelia storage cache mds3 --help
 ### SEE ALSO
 
 * [authelia storage cache](authelia_storage_cache.md)	 - Manage storage cache
-* [authelia storage cache mds3 delete](authelia_storage_cache_mds3_delete.md)	 - Delete storage MDS3 cache
-* [authelia storage cache mds3 dump](authelia_storage_cache_mds3_dump.md)	 - Dump storage MDS3 cache
-* [authelia storage cache mds3 status](authelia_storage_cache_mds3_status.md)	 - View storage MDS3 cache status
-* [authelia storage cache mds3 update](authelia_storage_cache_mds3_update.md)	 - Update storage MDS3 cache
+* [authelia storage cache mds3 delete](authelia_storage_cache_mds3_delete.md)	 - Delete WebAuthn MDS3 cache storage
+* [authelia storage cache mds3 dump](authelia_storage_cache_mds3_dump.md)	 - Dump WebAuthn MDS3 cache storage
+* [authelia storage cache mds3 status](authelia_storage_cache_mds3_status.md)	 - View WebAuthn MDS3 cache storage status
+* [authelia storage cache mds3 update](authelia_storage_cache_mds3_update.md)	 - Update WebAuthn MDS3 cache storage
 

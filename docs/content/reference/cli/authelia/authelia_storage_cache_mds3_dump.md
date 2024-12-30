@@ -16,13 +16,13 @@ seo:
 
 ## authelia storage cache mds3 dump
 
-Dump storage MDS3 cache
+Dump WebAuthn MDS3 cache storage
 
 ### Synopsis
 
-Dump storage MDS3 cache.
+Dump WebAuthn MDS3 cache storage.
 
-This subcommand allows dumping of the storage MDS3 cache to a file.
+This subcommand allows dumping of the WebAuthn MDS3 cache storage to a file.
 
 ```
 authelia storage cache mds3 dump [flags]
@@ -67,5 +67,5 @@ authelia storage cache mds3 dump
 
 ### SEE ALSO
 
-* [authelia storage cache mds3](authelia_storage_cache_mds3.md)	 - Manage storage MDS3 cache
+* [authelia storage cache mds3](authelia_storage_cache_mds3.md)	 - Manage WebAuthn MDS3 cache storage
 

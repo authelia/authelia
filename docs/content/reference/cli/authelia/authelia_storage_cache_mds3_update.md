@@ -16,13 +16,13 @@ seo:
 
 ## authelia storage cache mds3 update
 
-Update storage MDS3 cache
+Update WebAuthn MDS3 cache storage
 
 ### Synopsis
 
-Update storage MDS3 cache.
+Update WebAuthn MDS3 cache storage.
 
-This subcommand allows updating of the storage MDS3 cache.
+This subcommand allows updating of the WebAuthn MDS3 cache storage.
 
 ```
 authelia storage cache mds3 update [flags]
@@ -68,5 +68,5 @@ authelia storage cache mds3 update
 
 ### SEE ALSO
 
-* [authelia storage cache mds3](authelia_storage_cache_mds3.md)	 - Manage storage MDS3 cache
+* [authelia storage cache mds3](authelia_storage_cache_mds3.md)	 - Manage WebAuthn MDS3 cache storage
 

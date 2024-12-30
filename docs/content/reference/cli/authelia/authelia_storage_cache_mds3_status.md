@@ -16,13 +16,13 @@ seo:
 
 ## authelia storage cache mds3 status
 
-View storage MDS3 cache status
+View WebAuthn MDS3 cache storage status
 
 ### Synopsis
 
-View storage MDS3 cache status.
+View WebAuthn MDS3 cache storage status.
 
-This subcommand allows management of the storage MDS3 cache.
+This subcommand allows management of the WebAuthn MDS3 cache storage.
 
 ```
 authelia storage cache mds3 status [flags]
@@ -66,5 +66,5 @@ authelia storage cache mds3 status
 
 ### SEE ALSO
 
-* [authelia storage cache mds3](authelia_storage_cache_mds3.md)	 - Manage storage MDS3 cache
+* [authelia storage cache mds3](authelia_storage_cache_mds3.md)	 - Manage WebAuthn MDS3 cache storage
 

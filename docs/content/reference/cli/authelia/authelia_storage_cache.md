@@ -63,5 +63,5 @@ authelia storage cache --help
 ### SEE ALSO
 
 * [authelia storage](authelia_storage.md)	 - Manage the Authelia storage
-* [authelia storage cache mds3](authelia_storage_cache_mds3.md)	 - Manage storage MDS3 cache
+* [authelia storage cache mds3](authelia_storage_cache_mds3.md)	 - Manage WebAuthn MDS3 cache storage
 

@@ -147,7 +147,7 @@ func (ctx *CmdCtx) StorageCacheDeleteRunE(name, description string) func(cmd *co
 			return err
 		}
 
-		_, _ = fmt.Fprintf(os.Stdout, "Successfully deleted cached %s data.", description)
+		_, _ = fmt.Fprintf(os.Stdout, "Successfully deleted cached %s data.\n", description)
 
 		return nil
 	}
@@ -157,6 +157,10 @@ func (ctx *CmdCtx) StorageCacheMDS3StatusRunE(cmd *cobra.Command, args []string)
 	defer func() {
 		_ = ctx.providers.StorageProvider.Close()
 	}()
+
+	if !ctx.config.WebAuthn.Metadata.Enabled {
+		return fmt.Errorf("webauthn metadata is disabled")
+	}
 
 	if err = ctx.CheckSchema(); err != nil {
 		return storageWrapCheckSchemaErr(err)
@@ -182,13 +186,13 @@ func (ctx *CmdCtx) StorageCacheMDS3StatusRunE(cmd *cobra.Command, args []string)
 		}
 	}
 
-	_, _ = fmt.Fprintf(os.Stdout, "Cached WebAuthn MDS3 Status:\n\n\tValid: %t\n\tInitialized: %t\n\tOutdated: %t\n", valid, initialized, outdated)
+	_, _ = fmt.Fprintf(os.Stdout, "WebAuthn MDS3 Cache Status:\n\n\tValid: %t\n\tInitialized: %t\n\tOutdated: %t\n", valid, initialized, outdated)
 
 	if initialized {
 		_, _ = fmt.Fprintf(os.Stdout, "\tVersion: %d\n", mds.Parsed.Number)
 
 		if !outdated {
-			_, _ = fmt.Fprintf(os.Stdout, "\tNext Update: %s\n", mds.Parsed.NextUpdate)
+			_, _ = fmt.Fprintf(os.Stdout, "\tNext Update: %s\n", mds.Parsed.NextUpdate.Format("January 2, 2006"))
 		}
 	}
 
@@ -199,6 +203,10 @@ func (ctx *CmdCtx) StorageCacheMDS3DumpRunE(cmd *cobra.Command, args []string) (
 	defer func() {
 		_ = ctx.providers.StorageProvider.Close()
 	}()
+
+	if !ctx.config.WebAuthn.Metadata.Enabled {
+		return fmt.Errorf("webauthn metadata is disabled")
+	}
 
 	if err = ctx.CheckSchema(); err != nil {
 		return storageWrapCheckSchemaErr(err)
@@ -238,7 +246,7 @@ func (ctx *CmdCtx) StorageCacheMDS3DumpRunE(cmd *cobra.Command, args []string) (
 
 	_ = file.Sync()
 
-	_, _ = fmt.Fprintf(os.Stdout, "Successfully dumped MDS3 data with version %d from cache to file '%s'.\n", mds.Parsed.Number, path)
+	_, _ = fmt.Fprintf(os.Stdout, "Successfully dumped WebAuthn MDS3 data with version %d from cache to file '%s'.\n", mds.Parsed.Number, path)
 
 	return nil
 }
@@ -248,6 +256,10 @@ func (ctx *CmdCtx) StorageCacheMDS3UpdateRunE(cmd *cobra.Command, args []string)
 	defer func() {
 		_ = ctx.providers.StorageProvider.Close()
 	}()
+
+	if !ctx.config.WebAuthn.Metadata.Enabled {
+		return fmt.Errorf("webauthn metadata is disabled")
+	}
 
 	if err = ctx.CheckSchema(); err != nil {
 		return storageWrapCheckSchemaErr(err)
@@ -276,7 +288,7 @@ func (ctx *CmdCtx) StorageCacheMDS3UpdateRunE(cmd *cobra.Command, args []string)
 	if mds, _, err = provider.LoadCache(ctx); err != nil {
 		return err
 	} else if mds != nil && !force && !provider.Outdated() {
-		_, _ = fmt.Fprintf(os.Stdout, "Cached WebAuthn MDS3 data with version %d due for update at %s does not require an update.\n", mds.Parsed.Number, mds.Parsed.NextUpdate)
+		_, _ = fmt.Fprintf(os.Stdout, "WebAuthn MDS3 cache data with version %d due for update on %s does not require an update.\n", mds.Parsed.Number, mds.Parsed.NextUpdate.Format("January 2, 2006"))
 
 		return nil
 	}
@@ -299,14 +311,14 @@ func (ctx *CmdCtx) StorageCacheMDS3UpdateRunE(cmd *cobra.Command, args []string)
 	}
 
 	if provider.Outdated() && !force {
-		_, _ = fmt.Fprintf(os.Stdout, "Provided WebAuthn MDS3 data with version %d was due for update at %s and can't be used.\n", mds.Parsed.Number, mds.Parsed.NextUpdate)
+		_, _ = fmt.Fprintf(os.Stdout, "Provided WebAuthn MDS3 data with version %d was due for update on %s and can't be used.\n", mds.Parsed.Number, mds.Parsed.NextUpdate.Format("January 2, 2006"))
 	}
 
 	if err = provider.SaveCache(ctx, data); err != nil {
 		return err
 	}
 
-	_, _ = fmt.Fprintf(os.Stdout, "Cached WebAuthn MDS3 data updated to version %d and is due for update at %s\n", mds.Parsed.Number, mds.Parsed.NextUpdate)
+	_, _ = fmt.Fprintf(os.Stdout, "WebAuthn MDS3 cache data updated to version %d and is due for update on %s.\n", mds.Parsed.Number, mds.Parsed.NextUpdate.Format("January 2, 2006"))
 
 	return nil
 }

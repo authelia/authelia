@@ -102,43 +102,43 @@ This subcommand allows management of the storage cache.`
 
 	cmdAutheliaStorageCacheExample = `authelia storage cache --help`
 
-	cmdAutheliaStorageCacheMDS3Short = "Manage storage MDS3 cache"
+	cmdAutheliaStorageCacheMDS3Short = "Manage WebAuthn MDS3 cache storage"
 
-	cmdAutheliaStorageCacheMDS3Long = `Manage storage MDS3 cache.
+	cmdAutheliaStorageCacheMDS3Long = `Manage WebAuthn MDS3 cache storage.
 
-This subcommand allows management of the storage MDS3 cache.`
+This subcommand allows management of the WebAuthn MDS3 cache storage.`
 
 	cmdAutheliaStorageCacheMDS3Example = `authelia storage cache mds3 --help`
 
-	cmdAutheliaStorageCacheMDS3DeleteShort = "Delete storage MDS3 cache"
+	cmdAutheliaStorageCacheMDS3DeleteShort = "Delete WebAuthn MDS3 cache storage"
 
-	cmdAutheliaStorageCacheMDS3DeleteLong = `Delete storage MDS3 cache.
+	cmdAutheliaStorageCacheMDS3DeleteLong = `Delete WebAuthn MDS3 cache storage.
 
-This subcommand allows deletion of the storage MDS3 cache.`
+This subcommand allows deletion of the WebAuthn MDS3 cache storage.`
 
 	cmdAutheliaStorageCacheMDS3DeleteExample = `authelia storage cache mds3 delete`
 
-	cmdAutheliaStorageCacheMDS3UpdateShort = "Update storage MDS3 cache"
+	cmdAutheliaStorageCacheMDS3UpdateShort = "Update WebAuthn MDS3 cache storage"
 
-	cmdAutheliaStorageCacheMDS3UpdateLong = `Update storage MDS3 cache.
+	cmdAutheliaStorageCacheMDS3UpdateLong = `Update WebAuthn MDS3 cache storage.
 
-This subcommand allows updating of the storage MDS3 cache.`
+This subcommand allows updating of the WebAuthn MDS3 cache storage.`
 
 	cmdAutheliaStorageCacheMDS3UpdateExample = `authelia storage cache mds3 update`
 
-	cmdAutheliaStorageCacheMDS3DumpShort = "Dump storage MDS3 cache"
+	cmdAutheliaStorageCacheMDS3DumpShort = "Dump WebAuthn MDS3 cache storage"
 
-	cmdAutheliaStorageCacheMDS3DumpLong = `Dump storage MDS3 cache.
+	cmdAutheliaStorageCacheMDS3DumpLong = `Dump WebAuthn MDS3 cache storage.
 
-This subcommand allows dumping of the storage MDS3 cache to a file.`
+This subcommand allows dumping of the WebAuthn MDS3 cache storage to a file.`
 
 	cmdAutheliaStorageCacheMDS3DumpExample = `authelia storage cache mds3 dump`
 
-	cmdAutheliaStorageCacheMDS3StatusShort = "View storage MDS3 cache status"
+	cmdAutheliaStorageCacheMDS3StatusShort = "View WebAuthn MDS3 cache storage status"
 
-	cmdAutheliaStorageCacheMDS3StatusLong = `View storage MDS3 cache status.
+	cmdAutheliaStorageCacheMDS3StatusLong = `View WebAuthn MDS3 cache storage status.
 
-This subcommand allows management of the storage MDS3 cache.`
+This subcommand allows management of the WebAuthn MDS3 cache storage.`
 
 	cmdAutheliaStorageCacheMDS3StatusExample = `authelia storage cache mds3 status`
 

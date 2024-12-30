@@ -16,13 +16,13 @@ seo:
 
 ## authelia storage cache mds3 delete
 
-Delete storage MDS3 cache
+Delete WebAuthn MDS3 cache storage
 
 ### Synopsis
 
-Delete storage MDS3 cache.
+Delete WebAuthn MDS3 cache storage.
 
-This subcommand allows deletion of the storage MDS3 cache.
+This subcommand allows deletion of the WebAuthn MDS3 cache storage.
 
 ```
 authelia storage cache mds3 delete [flags]
@@ -66,5 +66,5 @@ authelia storage cache mds3 delete
 
 ### SEE ALSO
 
-* [authelia storage cache mds3](authelia_storage_cache_mds3.md)	 - Manage storage MDS3 cache
+* [authelia storage cache mds3](authelia_storage_cache_mds3.md)	 - Manage WebAuthn MDS3 cache storage
 
