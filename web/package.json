@@ -15,7 +15,10 @@
       "@typescript-eslint/typescript-estree": "8.19.0",
       "@typescript-eslint/utils": "8.19.0",
       "eslint-plugin-jest": "28.10.0",
-      "eslint-plugin-testing-library": "7.1.1"
+      "eslint-plugin-testing-library": "7.1.1",
+      "path-to-regexp@<0.1.12": "0.1.12",
+      "semver@<7.5.2": "7.6.3",
+      "vite@<3.2.11": "6.0.6"
     },
     "peerDependencyRules": {
       "allowedVersions": {
