@@ -283,7 +283,7 @@ func (ctx *CmdCtx) CryptoHashGenerateRunE(cmd *cobra.Command, args []string) (er
 		ctx.config.AuthenticationBackend.File.Password.Algorithm = cmd.Use
 	}
 
-	if hash, err = authentication.NewFileCryptoHashFromConfig(ctx.config.AuthenticationBackend.File.Password); err != nil {
+	if hash, err = authentication.NewCryptoHashFromConfig(ctx.config.AuthenticationBackend.File.Password); err != nil {
 		return err
 	}
 

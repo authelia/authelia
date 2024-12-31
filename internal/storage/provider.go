@@ -311,8 +311,11 @@ type RegulatorProvider interface {
 
 // AuthenticatorProvider is an interface providint storage capabilities for persisting any kind of data related to the authentication provider.
 type AuthenticatorProvider interface {
-	// LoadUser loads the model.User from the storage provider.
-	LoadUser(ctx context.Context, username string) (details model.User, err error)
+	// LoadUserByUsername loads the model.User from the storage provider.
+	LoadUserByUsername(ctx context.Context, username string) (details model.User, err error)
+
+	// LoadUserByEmail loads the model.User from the storage provider using an email address.
+	LoadUserByEmail(ctx context.Context, email string) (details model.User, err error)
 
 	// UpdateUserPassword updates the user's password into storage provider.
 	UpdateUserPassword(ctx context.Context, username, password string) (err error)

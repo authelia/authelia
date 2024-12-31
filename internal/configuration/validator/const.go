@@ -87,7 +87,7 @@ const (
 const (
 	errFmtAuthBackendNotConfigured = "authentication_backend: you must ensure either the 'file' or 'ldap' " +
 		"authentication backend is configured"
-	errFmtAuthBackendMultipleConfigured = "authentication_backend: please ensure only one of the 'file' or 'ldap' " +
+	errFmtAuthBackendMultipleConfigured = "authentication_backend: please ensure only one of the 'file' or 'ldap' or 'db' " +
 		"backend is configured"
 	errFmtAuthBackendRefreshInterval = "authentication_backend: option 'refresh_interval' is configured to '%s' but " +
 		"it must be either in duration common syntax or one of 'disable', or 'always': %w"

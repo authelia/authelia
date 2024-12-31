@@ -151,8 +151,9 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 
 		sqlFmtRenameTable: queryFmtRenameTable,
 
-		sqlSelectUser:         fmt.Sprintf(queryFmtSelectUser, tableUsers),
-		sqlUpdateUserPassword: fmt.Sprintf(queryFmtUpdateUserPassword, tableUsers),
+		sqlSelectUserByUsername: fmt.Sprintf(queryFmtSelectUser, tableUsers, tableUsersFieldUsername),
+		sqlSelectUserByEmail:    fmt.Sprintf(queryFmtSelectUser, tableUsers, tableUsersFieldEmail),
+		sqlUpdateUserPassword:   fmt.Sprintf(queryFmtUpdateUserPassword, tableUsers),
 	}
 
 	return provider
@@ -312,8 +313,9 @@ type SQLProvider struct {
 	sqlFmtRenameTable       string
 
 	// Table: users.
-	sqlSelectUser         string
-	sqlUpdateUserPassword string
+	sqlSelectUserByUsername string
+	sqlSelectUserByEmail    string
+	sqlUpdateUserPassword   string
 }
 
 // SQLProviderKeys are the cryptography keys used by a SQLProvider.
@@ -1343,9 +1345,23 @@ func (p *SQLProvider) LoadAuthenticationLogs(ctx context.Context, username strin
 	return attempts, nil
 }
 
-// LoadUser implements storage.Provider.LoadUser.
-func (p *SQLProvider) LoadUser(ctx context.Context, username string) (details model.User, err error) {
-	err = p.db.GetContext(ctx, &details, p.sqlSelectUser, username)
+// LoadUserByUsername implements storage.Provider.LoadUserByUsername.
+func (p *SQLProvider) LoadUserByUsername(ctx context.Context, username string) (details model.User, err error) {
+	err = p.db.GetContext(ctx, &details, p.sqlSelectUserByUsername, username)
+
+	switch {
+	case err == nil:
+		return details, nil
+	case errors.Is(err, sql.ErrNoRows):
+		return model.User{}, errors.New(errUserNotFound)
+	default:
+		return model.User{}, fmt.Errorf(errLoadingUserDetails, username, err)
+	}
+}
+
+// LoadUserByEmail implements storage.Provider.LoadUserByEmail.
+func (p *SQLProvider) LoadUserByEmail(ctx context.Context, username string) (details model.User, err error) {
+	err = p.db.GetContext(ctx, &details, p.sqlSelectUserByEmail, username)
 
 	switch {
 	case err == nil:
@@ -1360,7 +1376,7 @@ func (p *SQLProvider) LoadUser(ctx context.Context, username string) (details mo
 // UpdateUserPassword implements storage.Provider.UpdateUserPassword.
 func (p *SQLProvider) UpdateUserPassword(ctx context.Context, username, password string) (err error) {
 	// check that user exists.
-	if _, err = p.LoadUser(ctx, username); err != nil {
+	if _, err = p.LoadUserByUsername(ctx, username); err != nil {
 		return err
 	}
 

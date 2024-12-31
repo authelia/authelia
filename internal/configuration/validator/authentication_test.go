@@ -13,7 +13,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
-func TestShouldRaiseErrorWhenBothBackendsProvided(t *testing.T) {
+func TestShouldRaiseErrorWhenLdapAndFileBackendsProvided(t *testing.T) {
 	validator := schema.NewStructValidator()
 	backendConfig := schema.AuthenticationBackend{}
 
@@ -25,13 +25,47 @@ func TestShouldRaiseErrorWhenBothBackendsProvided(t *testing.T) {
 	ValidateAuthenticationBackend(&backendConfig, validator)
 
 	require.Len(t, validator.Errors(), 7)
-	assert.EqualError(t, validator.Errors()[0], "authentication_backend: please ensure only one of the 'file' or 'ldap' backend is configured")
+	assert.EqualError(t, validator.Errors()[0], errFmtAuthBackendMultipleConfigured)
 	assert.EqualError(t, validator.Errors()[1], "authentication_backend: ldap: option 'address' is required")
 	assert.EqualError(t, validator.Errors()[2], "authentication_backend: ldap: option 'user' is required")
 	assert.EqualError(t, validator.Errors()[3], "authentication_backend: ldap: option 'password' is required")
 	assert.EqualError(t, validator.Errors()[4], "authentication_backend: ldap: option 'base_dn' is required")
 	assert.EqualError(t, validator.Errors()[5], "authentication_backend: ldap: option 'users_filter' is required")
 	assert.EqualError(t, validator.Errors()[6], "authentication_backend: ldap: option 'groups_filter' is required")
+}
+
+func TestShouldRaiseErrorWhenLdapAndDbBackendsProvided(t *testing.T) {
+	validator := schema.NewStructValidator()
+	backendConfig := schema.AuthenticationBackend{}
+
+	backendConfig.LDAP = &schema.AuthenticationBackendLDAP{}
+	backendConfig.DB = &schema.AuthenticationBackendDB{}
+
+	ValidateAuthenticationBackend(&backendConfig, validator)
+
+	require.Len(t, validator.Errors(), 7)
+	assert.EqualError(t, validator.Errors()[0], errFmtAuthBackendMultipleConfigured)
+	assert.EqualError(t, validator.Errors()[1], "authentication_backend: ldap: option 'address' is required")
+	assert.EqualError(t, validator.Errors()[2], "authentication_backend: ldap: option 'user' is required")
+	assert.EqualError(t, validator.Errors()[3], "authentication_backend: ldap: option 'password' is required")
+	assert.EqualError(t, validator.Errors()[4], "authentication_backend: ldap: option 'base_dn' is required")
+	assert.EqualError(t, validator.Errors()[5], "authentication_backend: ldap: option 'users_filter' is required")
+	assert.EqualError(t, validator.Errors()[6], "authentication_backend: ldap: option 'groups_filter' is required")
+}
+
+func TestShouldRaiseErrorWhenFileAndDbBackendsProvided(t *testing.T) {
+	validator := schema.NewStructValidator()
+	backendConfig := schema.AuthenticationBackend{}
+
+	backendConfig.DB = &schema.AuthenticationBackendDB{}
+	backendConfig.File = &schema.AuthenticationBackendFile{
+		Path: "/tmp",
+	}
+
+	ValidateAuthenticationBackend(&backendConfig, validator)
+
+	require.Len(t, validator.Errors(), 1)
+	assert.EqualError(t, validator.Errors()[0], errFmtAuthBackendMultipleConfigured)
 }
 
 func TestShouldRaiseErrorWhenNoBackendProvided(t *testing.T) {

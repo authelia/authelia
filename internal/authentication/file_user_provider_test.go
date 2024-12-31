@@ -653,7 +653,7 @@ func TestNewFileCryptoHashFromConfig(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			actual, theError := NewFileCryptoHashFromConfig(tc.have)
+			actual, theError := NewCryptoHashFromConfig(tc.have)
 
 			if tc.err == "" {
 				assert.NoError(t, theError)

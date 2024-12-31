@@ -4,27 +4,22 @@ import (
 	"context"
 
 	"github.com/go-crypt/crypt/algorithm"
-	// "github.com/go-crypt/crypt/algorithm/argon2"
-	// "github.com/go-crypt/crypt/algorithm/bcrypt"
-	// "github.com/go-crypt/crypt/algorithm/pbkdf2"
-	// "github.com/go-crypt/crypt/algorithm/scrypt"
-	// "github.com/go-crypt/crypt/algorithm/shacrypt".
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	// "github.com/authelia/authelia/v4/internal/logging".
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
-	// "github.com/authelia/authelia/v4/internal/logging".
 )
 
 // DBUserProvider is a provider reading details from a sql database.
 type DBUserProvider struct {
-	config   *schema.AuthenticationBackendSQL
+	config   *schema.AuthenticationBackendDB
 	database storage.Provider
 	hash     algorithm.Hash
 }
 
 // NewDBUserProvider creates a new instance of FileUserProvider.
-func NewDBUserProvider(config *schema.AuthenticationBackendSQL, database storage.Provider) (provider *DBUserProvider) {
+func NewDBUserProvider(config *schema.AuthenticationBackendDB, database storage.Provider) (provider *DBUserProvider) {
 	return &DBUserProvider{
 		config:   config,
 		database: database,
@@ -39,7 +34,7 @@ func (p *DBUserProvider) StartupCheck() (err error) {
 
 	// TODO: verify that table exists.
 
-	if p.hash, err = NewFileCryptoHashFromConfig(p.config.Password); err != nil {
+	if p.hash, err = NewCryptoHashFromConfig(p.config.Password); err != nil {
 		return err
 	}
 
@@ -90,7 +85,7 @@ func (p *DBUserProvider) UpdatePassword(username string, newPassword string) (er
 
 	user.Password = schema.NewPasswordDigest(digest)
 
-	if err = p.database.UpdateUserPassword(context.Background(), username, user.Password.Encode()); err != nil {
+	if err = p.database.UpdateUserPassword(context.Background(), user.Username, user.Password.Encode()); err != nil {
 		return err
 	}
 
@@ -104,7 +99,16 @@ func (p *DBUserProvider) loadUser(username string) (*model.User, error) {
 	var err error
 
 	// TODO: see howto inject a real context.
-	if user, err = p.database.LoadUser(context.Background(), username); err != nil {
+	var ctx = context.Background()
+
+	if p.config.Search.Email {
+		user, err = p.database.LoadUserByEmail(ctx, username)
+		if err == nil && !user.Disabled {
+			return nil, err
+		}
+	}
+
+	if user, err = p.database.LoadUserByUsername(ctx, username); err != nil {
 		return nil, err
 	}
 

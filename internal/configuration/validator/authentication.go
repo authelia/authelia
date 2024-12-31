@@ -17,7 +17,7 @@ import (
 
 // ValidateAuthenticationBackend validates and updates the authentication backend configuration.
 func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
-	if config.LDAP == nil && config.File == nil {
+	if config.LDAP == nil && config.File == nil && config.DB == nil {
 		validator.Push(errors.New(errFmtAuthBackendNotConfigured))
 	}
 
@@ -38,7 +38,15 @@ func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validat
 		}
 	}
 
-	if config.LDAP != nil && config.File != nil {
+	validateAuthenticationBackendType(config, validator)
+}
+
+// validateAuthenticationBackendType validates and updates the authentication backend configuration.
+func validateAuthenticationBackendType(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
+	// TODO: find a best solution for this.
+	if config.LDAP != nil && config.File != nil ||
+		config.LDAP != nil && config.DB != nil ||
+		config.File != nil && config.DB != nil {
 		validator.Push(errors.New(errFmtAuthBackendMultipleConfigured))
 	}
 
@@ -48,6 +56,10 @@ func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validat
 
 	if config.LDAP != nil {
 		validateLDAPAuthenticationBackend(config, validator)
+	}
+
+	if config.DB != nil {
+		validateDbAuthenticationBackend(config.File, validator)
 	}
 }
 
@@ -73,15 +85,15 @@ func ValidatePasswordConfiguration(config *schema.AuthenticationBackendPassword,
 		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordUnknownAlg, utils.StringJoinOr(validHashAlgorithms), config.Algorithm))
 	}
 
-	validateFileAuthenticationBackendPasswordConfigArgon2(config, validator)
-	validateFileAuthenticationBackendPasswordConfigSHA2Crypt(config, validator)
-	validateFileAuthenticationBackendPasswordConfigPBKDF2(config, validator)
-	validateFileAuthenticationBackendPasswordConfigBCrypt(config, validator)
-	validateFileAuthenticationBackendPasswordConfigSCrypt(config, validator)
+	validateAuthenticationBackendPasswordConfigArgon2(config, validator)
+	validateAuthenticationBackendPasswordConfigSHA2Crypt(config, validator)
+	validateAuthenticationBackendPasswordConfigPBKDF2(config, validator)
+	validateAuthenticationBackendPasswordConfigBCrypt(config, validator)
+	validateAuthenticationBackendPasswordConfigSCrypt(config, validator)
 }
 
 //nolint:gocyclo // Function is well formed.
-func validateFileAuthenticationBackendPasswordConfigArgon2(config *schema.AuthenticationBackendPassword, validator *schema.StructValidator) {
+func validateAuthenticationBackendPasswordConfigArgon2(config *schema.AuthenticationBackendPassword, validator *schema.StructValidator) {
 	switch {
 	case config.Argon2.Variant == "":
 		config.Argon2.Variant = schema.DefaultPasswordConfig.Argon2.Variant
@@ -139,7 +151,7 @@ func validateFileAuthenticationBackendPasswordConfigArgon2(config *schema.Authen
 	}
 }
 
-func validateFileAuthenticationBackendPasswordConfigSHA2Crypt(config *schema.AuthenticationBackendPassword, validator *schema.StructValidator) {
+func validateAuthenticationBackendPasswordConfigSHA2Crypt(config *schema.AuthenticationBackendPassword, validator *schema.StructValidator) {
 	switch {
 	case config.SHA2Crypt.Variant == "":
 		config.SHA2Crypt.Variant = schema.DefaultPasswordConfig.SHA2Crypt.Variant
@@ -168,7 +180,7 @@ func validateFileAuthenticationBackendPasswordConfigSHA2Crypt(config *schema.Aut
 	}
 }
 
-func validateFileAuthenticationBackendPasswordConfigPBKDF2(config *schema.AuthenticationBackendPassword, validator *schema.StructValidator) {
+func validateAuthenticationBackendPasswordConfigPBKDF2(config *schema.AuthenticationBackendPassword, validator *schema.StructValidator) {
 	switch {
 	case config.PBKDF2.Variant == "":
 		config.PBKDF2.Variant = schema.DefaultPasswordConfig.PBKDF2.Variant
@@ -197,7 +209,7 @@ func validateFileAuthenticationBackendPasswordConfigPBKDF2(config *schema.Authen
 	}
 }
 
-func validateFileAuthenticationBackendPasswordConfigBCrypt(config *schema.AuthenticationBackendPassword, validator *schema.StructValidator) {
+func validateAuthenticationBackendPasswordConfigBCrypt(config *schema.AuthenticationBackendPassword, validator *schema.StructValidator) {
 	switch {
 	case config.BCrypt.Variant == "":
 		config.BCrypt.Variant = schema.DefaultPasswordConfig.BCrypt.Variant
@@ -218,7 +230,7 @@ func validateFileAuthenticationBackendPasswordConfigBCrypt(config *schema.Authen
 }
 
 //nolint:gocyclo
-func validateFileAuthenticationBackendPasswordConfigSCrypt(config *schema.AuthenticationBackendPassword, validator *schema.StructValidator) {
+func validateAuthenticationBackendPasswordConfigSCrypt(config *schema.AuthenticationBackendPassword, validator *schema.StructValidator) {
 	switch {
 	case config.SCrypt.Iterations == 0:
 		config.SCrypt.Iterations = schema.DefaultPasswordConfig.SCrypt.Iterations
@@ -526,4 +538,9 @@ func validateLDAPGroupFilter(config *schema.AuthenticationBackend, validator *sc
 	if (pMemberOfDN || pMemberOfRDN) && config.LDAP.Attributes.MemberOf == "" {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingAttribute, "member_of", utils.StringJoinOr([]string{"{memberof:rdn}", "{memberof:dn}"})))
 	}
+}
+
+// validateDbAuthenticationBackend validates and updates the db authentication backend configuration.
+func validateDbAuthenticationBackend(config *schema.AuthenticationBackendFile, validator *schema.StructValidator) {
+	ValidatePasswordConfiguration(&config.Password, validator)
 }

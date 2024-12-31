@@ -458,7 +458,7 @@ const (
 	queryFmtSelectUser = `
 		SELECT username, password, display_name, email, groups, disabled
 		FROM %s
-		WHERE username = ?;`
+		WHERE %s = ?;`
 
 	//nolint:gosec
 	queryFmtUpdateUserPassword = `

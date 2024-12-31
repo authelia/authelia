@@ -15,7 +15,7 @@ type AuthenticationBackend struct {
 	// The file authentication backend configuration.
 	File *AuthenticationBackendFile `koanf:"file" json:"file" jsonschema:"title=File Backend" jsonschema_description:"The file authentication backend configuration."`
 	LDAP *AuthenticationBackendLDAP `koanf:"ldap" json:"ldap" jsonschema:"title=LDAP Backend" jsonschema_description:"The LDAP authentication backend configuration."`
-	SQL  *AuthenticationBackendSQL  `koanf:"sql" json:"sql" jsonschema:"title=SQL Backend" jsonschema_description:"The SQL authentication backend configuration."`
+	DB   *AuthenticationBackendDB   `koanf:"db" json:"db" jsonschema:"title=SQL Backend" jsonschema_description:"The SQL authentication backend configuration."`
 }
 
 // AuthenticationBackendPasswordReset represents the configuration related to password reset functionality.
@@ -305,13 +305,13 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth = Authenti
 	},
 }
 
-// AuthenticationBackendSQL represents the configuration related to sql-based backend.
-type AuthenticationBackendSQL struct {
-	Password AuthenticationBackendPassword  `koanf:"password" json:"password" jsonschema:"title=Password Options" jsonschema_description:"Allows configuration of the password hashing options when the user passwords are changed directly by Authelia."`
-	Search   AuthenticationBackendSQLSearch `koanf:"search" json:"search" jsonschema:"title=Search" jsonschema_description:"Configures the user searching behaviour."`
+// AuthenticationBackendDB represents the configuration related to sql-based backend.
+type AuthenticationBackendDB struct {
+	Password AuthenticationBackendPassword `koanf:"password" json:"password" jsonschema:"title=Password Options" jsonschema_description:"Allows configuration of the password hashing options when the user passwords are changed directly by Authelia."`
+	Search   AuthenticationBackendDBSearch `koanf:"search" json:"search" jsonschema:"title=Search" jsonschema_description:"Configures the user searching behaviour."`
 }
 
-// AuthenticationBackendSQLSearch represents the configuration related to sql-based backend searching.
-type AuthenticationBackendSQLSearch struct {
+// AuthenticationBackendDBSearch represents the configuration related to sql-based backend searching.
+type AuthenticationBackendDBSearch struct {
 	Email bool `koanf:"email" json:"email" jsonschema:"default=false,title=Email Searching" jsonschema_description:"Allows users to either use their username or their configured email as a username."`
 }

@@ -29,8 +29,6 @@ const (
 
 	tableMigrations = "migrations"
 	tableEncryption = "encryption"
-
-	tableUsers = "users"
 )
 
 const (
@@ -78,4 +76,10 @@ var (
 const (
 	na      = "N/A"
 	invalid = "invalid"
+)
+
+const (
+	tableUsers              = "users"
+	tableUsersFieldUsername = "username"
+	tableUsersFieldEmail    = "username"
 )
