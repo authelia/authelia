@@ -453,7 +453,9 @@ authelia crypto rand --charset alphabetic
 authelia crypto rand --charset ascii
 authelia crypto rand --charset numeric
 authelia crypto rand --charset numeric-hex
-authelia crypto rand --characters 0123456789ABCDEF`
+authelia crypto rand --characters 0123456789ABCDEF
+authelia crypto rand directory/file1 directory/file2
+authelia crypto rand --file directory/file3,directory/file4`
 
 	cmdAutheliaCryptoHashShort = "Perform cryptographic hash operations"
 
@@ -563,7 +565,8 @@ const (
 )
 
 const (
-	cmdFlagNameDirectory = "directory"
+	cmdFlagNameDirectory       = "directory"
+	cmdFlagNameModeDirectories = "mode-dirs"
 
 	cmdFlagNamePathCA  = "path.ca"
 	cmdFlagNameBundles = "bundles"
@@ -636,6 +639,7 @@ const (
 	cmdFlagNameNewEncryptionKey = "new-encryption-key"
 
 	cmdFlagNameFile        = "file"
+	cmdFlagNameModeFiles   = "mode-files"
 	cmdFlagNameUsers       = "users"
 	cmdFlagNameServices    = "services"
 	cmdFlagNameSectors     = "sectors"
