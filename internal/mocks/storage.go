@@ -469,6 +469,21 @@ func (mr *MockStorageMockRecorder) LoadTOTPConfigurations(ctx, limit, page any) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadTOTPConfigurations", reflect.TypeOf((*MockStorage)(nil).LoadTOTPConfigurations), ctx, limit, page)
 }
 
+// LoadUser mocks base method.
+func (m *MockStorage) LoadUser(ctx context.Context, username string) (model.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadUser", ctx, username)
+	ret0, _ := ret[0].(model.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadUser indicates an expected call of LoadUser.
+func (mr *MockStorageMockRecorder) LoadUser(ctx, username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadUser", reflect.TypeOf((*MockStorage)(nil).LoadUser), ctx, username)
+}
+
 // LoadUserInfo mocks base method.
 func (m *MockStorage) LoadUserInfo(ctx context.Context, username string) (model.UserInfo, error) {
 	m.ctrl.T.Helper()
@@ -1086,6 +1101,20 @@ func (m *MockStorage) UpdateTOTPConfigurationSignIn(ctx context.Context, id int,
 func (mr *MockStorageMockRecorder) UpdateTOTPConfigurationSignIn(ctx, id, lastUsedAt any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTOTPConfigurationSignIn", reflect.TypeOf((*MockStorage)(nil).UpdateTOTPConfigurationSignIn), ctx, id, lastUsedAt)
+}
+
+// UpdateUserPassword mocks base method.
+func (m *MockStorage) UpdateUserPassword(ctx context.Context, username, password string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserPassword", ctx, username, password)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUserPassword indicates an expected call of UpdateUserPassword.
+func (mr *MockStorageMockRecorder) UpdateUserPassword(ctx, username, password any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserPassword", reflect.TypeOf((*MockStorage)(nil).UpdateUserPassword), ctx, username, password)
 }
 
 // UpdateWebAuthnCredentialDescription mocks base method.

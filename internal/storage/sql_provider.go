@@ -150,6 +150,9 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectEncryptionValue: fmt.Sprintf(queryFmtSelectEncryptionValue, tableEncryption),
 
 		sqlFmtRenameTable: queryFmtRenameTable,
+
+		sqlSelectUser:         fmt.Sprintf(queryFmtSelectUser, tableUsers),
+		sqlUpdateUserPassword: fmt.Sprintf(queryFmtUpdateUserPassword, tableUsers),
 	}
 
 	return provider
@@ -307,6 +310,10 @@ type SQLProvider struct {
 	// Utility.
 	sqlSelectExistingTables string
 	sqlFmtRenameTable       string
+
+	// Table: users.
+	sqlSelectUser         string
+	sqlUpdateUserPassword string
 }
 
 // SQLProviderKeys are the cryptography keys used by a SQLProvider.
@@ -430,7 +437,7 @@ func (p *SQLProvider) LoadPreferred2FAMethod(ctx context.Context, username strin
 	}
 }
 
-// LoadUserInfo loads the model.UserInfo from the storage provider.
+// SaveUserDetails loads the model.UserInfo from the storage provider.
 func (p *SQLProvider) LoadUserInfo(ctx context.Context, username string) (info model.UserInfo, err error) {
 	err = p.db.GetContext(ctx, &info, p.sqlSelectUserInfo, username, username, username, username)
 
@@ -1334,4 +1341,32 @@ func (p *SQLProvider) LoadAuthenticationLogs(ctx context.Context, username strin
 	}
 
 	return attempts, nil
+}
+
+// LoadUser implements storage.Provider.LoadUser.
+func (p *SQLProvider) LoadUser(ctx context.Context, username string) (details model.User, err error) {
+	err = p.db.GetContext(ctx, &details, p.sqlSelectUser, username)
+
+	switch {
+	case err == nil:
+		return details, nil
+	case errors.Is(err, sql.ErrNoRows):
+		return model.User{}, errors.New(errUserNotFound)
+	default:
+		return model.User{}, fmt.Errorf(errLoadingUserDetails, username, err)
+	}
+}
+
+// UpdateUserPassword implements storage.Provider.UpdateUserPassword.
+func (p *SQLProvider) UpdateUserPassword(ctx context.Context, username, password string) (err error) {
+	// check that user exists.
+	if _, err = p.LoadUser(ctx, username); err != nil {
+		return err
+	}
+
+	if _, err = p.db.ExecContext(ctx, p.sqlUpdateUserPassword, password, username); err != nil {
+		return fmt.Errorf(errUpdatingUserPassword, username, err)
+	}
+
+	return
 }

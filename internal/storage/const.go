@@ -29,6 +29,8 @@ const (
 
 	tableMigrations = "migrations"
 	tableEncryption = "encryption"
+
+	tableUsers = "users"
 )
 
 const (

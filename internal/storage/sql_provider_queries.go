@@ -452,3 +452,17 @@ const (
 		SELECT id, service, sector_id, username, identifier
 		FROM %s;`
 )
+
+// querys for user table.
+const (
+	queryFmtSelectUser = `
+		SELECT username, password, display_name, email, groups, disabled
+		FROM %s
+		WHERE username = ?;`
+
+	//nolint:gosec
+	queryFmtUpdateUserPassword = `
+		UPDATE %s
+		SET password = ?
+		WHERE username = ?;`
+)

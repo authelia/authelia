@@ -296,6 +296,8 @@ type Provider interface {
 	SchemaEncryptionCheckKey(ctx context.Context, verbose bool) (result EncryptionValidationResult, err error)
 
 	RegulatorProvider
+
+	AuthenticatorProvider
 }
 
 // RegulatorProvider is an interface providing storage capabilities for persisting any kind of data related to the regulator.
@@ -305,4 +307,13 @@ type RegulatorProvider interface {
 
 	// LoadAuthenticationLogs loads authentication attempts from the storage provider (paginated).
 	LoadAuthenticationLogs(ctx context.Context, username string, fromDate time.Time, limit, page int) (attempts []model.AuthenticationAttempt, err error)
+}
+
+// AuthenticatorProvider is an interface providint storage capabilities for persisting any kind of data related to the authentication provider.
+type AuthenticatorProvider interface {
+	// LoadUser loads the model.User from the storage provider.
+	LoadUser(ctx context.Context, username string) (details model.User, err error)
+
+	// UpdateUserPassword updates the user's password into storage provider.
+	UpdateUserPassword(ctx context.Context, username, password string) (err error)
 }

@@ -63,3 +63,9 @@ const (
 	errFmtMigrationPre1                 = "schema migration %s pre1 is no longer supported: you must use an older version of authelia to perform this migration: %s"
 	errFmtMigrationPre1SuggestedVersion = "the suggested authelia version is 4.37.2"
 )
+
+const (
+	errUserNotFound         = "user not found"
+	errLoadingUserDetails   = "error selecting user details for user '%s': %w"
+	errUpdatingUserPassword = "error updating password for user '%s': %w"
+)
