@@ -61,15 +61,11 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 
 	ctx.Logger.Debugf("User %s has changed their password", username)
 
-	// Reset the request.
-	userSession.PasswordResetUsername = nil
-
 	if err = ctx.SaveSession(userSession); err != nil {
 		ctx.Error(fmt.Errorf("unable to update password reset state: %w", err), messageOperationFailed)
 		return
 	}
 
-	// Send Notification.
 	userInfo, err := ctx.Providers.UserProvider.GetDetails(username)
 	if err != nil {
 		ctx.Logger.Error(err)

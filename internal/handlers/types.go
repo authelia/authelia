@@ -208,8 +208,8 @@ type bodyRequestPasswordResetDELETE struct {
 // changePasswordRequestBody model of the change password request body.
 type changePasswordRequestBody struct {
 	Username    string `json:"username"`
-	OldPassword string `json:"oldPassword"`
-	NewPassword string `json:"newPassword"`
+	OldPassword string `json:"old_password"`
+	NewPassword string `json:"new_password"`
 }
 
 // PasswordPolicyBody represents the response sent by the password reset step 2.
