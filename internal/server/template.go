@@ -263,6 +263,7 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 		Theme:                  config.Theme,
 
 		EndpointsPasswordReset: !(config.AuthenticationBackend.PasswordReset.Disable || config.AuthenticationBackend.PasswordReset.CustomURL.String() != ""),
+		EndpointsPasswordChange: !config.AuthenticationBackend.PasswordChange.Disable,
 		EndpointsWebAuthn:      !config.WebAuthn.Disable,
 		EndpointsPasskeys:      !config.WebAuthn.Disable && config.WebAuthn.EnablePasskeyLogin,
 		EndpointsTOTP:          !config.TOTP.Disable,
@@ -298,6 +299,7 @@ type TemplatedFileOptions struct {
 	Theme                  string
 
 	EndpointsPasswordReset bool
+	EndpointsPasswordChange bool
 	EndpointsWebAuthn      bool
 	EndpointsPasskeys      bool
 	EndpointsTOTP          bool
@@ -354,13 +356,13 @@ func (options *TemplatedFileOptions) commonDataWithRememberMe(base, baseURL, dom
 // OpenAPIData returns a TemplatedFileOpenAPIData with the dynamic options.
 func (options *TemplatedFileOptions) OpenAPIData(base, baseURL, domain, nonce string) TemplatedFileOpenAPIData {
 	return TemplatedFileOpenAPIData{
-		Base:     base,
-		BaseURL:  baseURL,
-		Domain:   domain,
-		CSPNonce: nonce,
-
+		Base:           base,
+		BaseURL:        baseURL,
+		Domain:         domain,
+		CSPNonce:       nonce,
 		Session:        options.Session,
 		PasswordReset:  options.EndpointsPasswordReset,
+		PasswordChange: options.EndpointsPasswordChange,
 		WebAuthn:       options.EndpointsWebAuthn,
 		Passkeys:       options.EndpointsPasskeys,
 		TOTP:           options.EndpointsTOTP,
@@ -390,17 +392,18 @@ type TemplatedFileCommonData struct {
 
 // TemplatedFileOpenAPIData is a struct which is used for the OpenAPI spec file.
 type TemplatedFileOpenAPIData struct {
-	Base          string
-	BaseURL       string
-	Domain        string
-	CSPNonce      string
-	Session       string
-	PasswordReset bool
-	WebAuthn      bool
-	Passkeys      bool
-	TOTP          bool
-	Duo           bool
-	OpenIDConnect bool
+	Base           string
+	BaseURL        string
+	Domain         string
+	CSPNonce       string
+	Session        string
+	PasswordReset  bool
+	PasswordChange bool
+	WebAuthn       bool
+	Passkeys       bool
+	TOTP           bool
+	Duo            bool
+	OpenIDConnect  bool
 
 	EndpointsAuthz map[string]schema.ServerEndpointsAuthz
 }

@@ -29,10 +29,10 @@ tags:
   - name: User Information
     description: User configuration endpoints
   {{- end }}
-  { { - if .PasswordChange } }
+  {{- if .PasswordChange }}
   - name: Password Change
-    description: Password change endpoint\
-  { { - end } }
+    description: Password change endpoint
+  {{- end }}
   {{- if (or .TOTP .WebAuthn .Duo) }}
   - name: Second Factor
     description: TOTP, WebAuthn and Duo endpoints
@@ -589,8 +589,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.OK'
       security:
-        - authelia_auth: [ ]
-  { { - end } }
+        - authelia_auth: []
+  {{- end }}
   {{- if .PasswordReset }}
   /api/reset-password/identity/start:
     post:
