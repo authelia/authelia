@@ -15,6 +15,7 @@ type AuthenticationBackend struct {
 	// The file authentication backend configuration.
 	File *AuthenticationBackendFile `koanf:"file" json:"file" jsonschema:"title=File Backend" jsonschema_description:"The file authentication backend configuration."`
 	LDAP *AuthenticationBackendLDAP `koanf:"ldap" json:"ldap" jsonschema:"title=LDAP Backend" jsonschema_description:"The LDAP authentication backend configuration."`
+	SQL  *AuthenticationBackendSQL  `koanf:"sql" json:"sql" jsonschema:"title=SQL Backend" jsonschema_description:"The SQL authentication backend configuration."`
 }
 
 // AuthenticationBackendPasswordReset represents the configuration related to password reset functionality.
@@ -28,7 +29,7 @@ type AuthenticationBackendFile struct {
 	Path  string `koanf:"path" json:"path" jsonschema:"title=Path" jsonschema_description:"The file path to the user database."`
 	Watch bool   `koanf:"watch" json:"watch" jsonschema:"default=false,title=Watch" jsonschema_description:"Enables watching the file for external changes and dynamically reloading the database."`
 
-	Password AuthenticationBackendFilePassword `koanf:"password" json:"password" jsonschema:"title=Password Options" jsonschema_description:"Allows configuration of the password hashing options when the user passwords are changed directly by Authelia."`
+	Password AuthenticationBackendPassword `koanf:"password" json:"password" jsonschema:"title=Password Options" jsonschema_description:"Allows configuration of the password hashing options when the user passwords are changed directly by Authelia."`
 
 	Search AuthenticationBackendFileSearch `koanf:"search" json:"search" jsonschema:"title=Search" jsonschema_description:"Configures the user searching behaviour."`
 }
@@ -39,15 +40,15 @@ type AuthenticationBackendFileSearch struct {
 	CaseInsensitive bool `koanf:"case_insensitive" json:"case_insensitive" jsonschema:"default=false,title=Case Insensitive Searching" jsonschema_description:"Allows usernames to be any case during the search."`
 }
 
-// AuthenticationBackendFilePassword represents the configuration related to password hashing.
-type AuthenticationBackendFilePassword struct {
+// AuthenticationBackendPassword represents the configuration related to password hashing.
+type AuthenticationBackendPassword struct {
 	Algorithm string `koanf:"algorithm" json:"algorithm" jsonschema:"default=argon2,enum=argon2,enum=sha2crypt,enum=pbkdf2,enum=bcrypt,enum=scrypt,title=Algorithm" jsonschema_description:"The password hashing algorithm to use."`
 
-	Argon2    AuthenticationBackendFilePasswordArgon2    `koanf:"argon2" json:"argon2" jsonschema:"title=Argon2" jsonschema_description:"Configure the Argon2 password hashing parameters."`
-	SHA2Crypt AuthenticationBackendFilePasswordSHA2Crypt `koanf:"sha2crypt" json:"sha2crypt" jsonschema:"title=SHA2Crypt" jsonschema_description:"Configure the SHA2Crypt password hashing parameters."`
-	PBKDF2    AuthenticationBackendFilePasswordPBKDF2    `koanf:"pbkdf2" json:"pbkdf2" jsonschema:"title=PBKDF2" jsonschema_description:"Configure the PBKDF2 password hashing parameters."`
-	BCrypt    AuthenticationBackendFilePasswordBCrypt    `koanf:"bcrypt" json:"bcrypt" jsonschema:"title=BCrypt" jsonschema_description:"Configure the BCrypt password hashing parameters."`
-	SCrypt    AuthenticationBackendFilePasswordSCrypt    `koanf:"scrypt" json:"scrypt" jsonschema:"title=SCrypt" jsonschema_description:"Configure the SCrypt password hashing parameters."`
+	Argon2    AuthenticationBackendPasswordArgon2    `koanf:"argon2" json:"argon2" jsonschema:"title=Argon2" jsonschema_description:"Configure the Argon2 password hashing parameters."`
+	SHA2Crypt AuthenticationBackendPasswordSHA2Crypt `koanf:"sha2crypt" json:"sha2crypt" jsonschema:"title=SHA2Crypt" jsonschema_description:"Configure the SHA2Crypt password hashing parameters."`
+	PBKDF2    AuthenticationBackendPasswordPBKDF2    `koanf:"pbkdf2" json:"pbkdf2" jsonschema:"title=PBKDF2" jsonschema_description:"Configure the PBKDF2 password hashing parameters."`
+	BCrypt    AuthenticationBackendPasswordBCrypt    `koanf:"bcrypt" json:"bcrypt" jsonschema:"title=BCrypt" jsonschema_description:"Configure the BCrypt password hashing parameters."`
+	SCrypt    AuthenticationBackendPasswordSCrypt    `koanf:"scrypt" json:"scrypt" jsonschema:"title=SCrypt" jsonschema_description:"Configure the SCrypt password hashing parameters."`
 
 	// Deprecated: Use individual password options instead.
 	Iterations int `koanf:"iterations" json:"iterations" jsonschema:"deprecated,title=Iterations"`
@@ -65,8 +66,8 @@ type AuthenticationBackendFilePassword struct {
 	SaltLength int `koanf:"salt_length" json:"salt_length" jsonschema:"deprecated,title=Salt Length"`
 }
 
-// AuthenticationBackendFilePasswordArgon2 represents the argon2 hashing settings.
-type AuthenticationBackendFilePasswordArgon2 struct {
+// AuthenticationBackendPasswordArgon2 represents the argon2 hashing settings.
+type AuthenticationBackendPasswordArgon2 struct {
 	Variant     string `koanf:"variant" json:"variant" jsonschema:"default=argon2id,enum=argon2id,enum=argon2i,enum=argon2d,title=Variant" jsonschema_description:"The Argon2 variant to be used."`
 	Iterations  int    `koanf:"iterations" json:"iterations" jsonschema:"default=3,title=Iterations" jsonschema_description:"The number of Argon2 iterations (parameter t) to be used."`
 	Memory      int    `koanf:"memory" json:"memory" jsonschema:"default=65536,minimum=8,maximum=4294967295,title=Memory" jsonschema_description:"The Argon2 amount of memory in kibibytes (parameter m) to be used."`
@@ -75,28 +76,28 @@ type AuthenticationBackendFilePasswordArgon2 struct {
 	SaltLength  int    `koanf:"salt_length" json:"salt_length" jsonschema:"default=16,minimum=1,maximum=2147483647,title=Salt Length" jsonschema_description:"The Argon2 salt length."`
 }
 
-// AuthenticationBackendFilePasswordSHA2Crypt represents the sha2crypt hashing settings.
-type AuthenticationBackendFilePasswordSHA2Crypt struct {
+// AuthenticationBackendPasswordSHA2Crypt represents the sha2crypt hashing settings.
+type AuthenticationBackendPasswordSHA2Crypt struct {
 	Variant    string `koanf:"variant" json:"variant" jsonschema:"default=sha512,enum=sha256,enum=sha512,title=Variant" jsonschema_description:"The SHA2Crypt variant to be used."`
 	Iterations int    `koanf:"iterations" json:"iterations" jsonschema:"default=50000,minimum=1000,maximum=999999999,title=Iterations" jsonschema_description:"The SHA2Crypt iterations (parameter rounds) to be used."`
 	SaltLength int    `koanf:"salt_length" json:"salt_length" jsonschema:"default=16,minimum=1,maximum=16,title=Salt Length" jsonschema_description:"The SHA2Crypt salt length to be used."`
 }
 
-// AuthenticationBackendFilePasswordPBKDF2 represents the PBKDF2 hashing settings.
-type AuthenticationBackendFilePasswordPBKDF2 struct {
+// AuthenticationBackendPasswordPBKDF2 represents the PBKDF2 hashing settings.
+type AuthenticationBackendPasswordPBKDF2 struct {
 	Variant    string `koanf:"variant" json:"variant" jsonschema:"default=sha512,enum=sha1,enum=sha224,enum=sha256,enum=sha384,enum=sha512,title=Variant" jsonschema_description:"The PBKDF2 variant to be used."`
 	Iterations int    `koanf:"iterations" json:"iterations" jsonschema:"default=310000,minimum=100000,maximum=2147483647,title=Iterations" jsonschema_description:"The PBKDF2 iterations to be used."`
 	SaltLength int    `koanf:"salt_length" json:"salt_length" jsonschema:"default=16,minimum=8,maximum=2147483647,title=Salt Length" jsonschema_description:"The PBKDF2 salt length to be used."`
 }
 
-// AuthenticationBackendFilePasswordBCrypt represents the bcrypt hashing settings.
-type AuthenticationBackendFilePasswordBCrypt struct {
+// AuthenticationBackendPasswordBCrypt represents the bcrypt hashing settings.
+type AuthenticationBackendPasswordBCrypt struct {
 	Variant string `koanf:"variant" json:"variant" jsonschema:"default=standard,enum=standard,enum=sha256,title=Variant" jsonschema_description:"The BCrypt variant to be used."`
 	Cost    int    `koanf:"cost" json:"cost" jsonschema:"default=12,minimum=10,maximum=31,title=Cost" jsonschema_description:"The BCrypt cost to be used."`
 }
 
-// AuthenticationBackendFilePasswordSCrypt represents the scrypt hashing settings.
-type AuthenticationBackendFilePasswordSCrypt struct {
+// AuthenticationBackendPasswordSCrypt represents the scrypt hashing settings.
+type AuthenticationBackendPasswordSCrypt struct {
 	Iterations  int `koanf:"iterations" json:"iterations" jsonschema:"default=16,minimum=1,maximum=58,title=Iterations" jsonschema_description:"The SCrypt iterations to be used."`
 	BlockSize   int `koanf:"block_size" json:"block_size" jsonschema:"default=8,minimum=1,maximum=36028797018963967,title=Key Length" jsonschema_description:"The SCrypt block size to be used."`
 	Parallelism int `koanf:"parallelism" json:"parallelism" jsonschema:"default=1,minimum=1,maximum=1073741823,title=Key Length" jsonschema_description:"The SCrypt parallelism factor to be used."`
@@ -146,9 +147,9 @@ var DefaultAuthenticationBackendConfig = AuthenticationBackend{
 }
 
 // DefaultPasswordConfig represents the default configuration related to Argon2id hashing.
-var DefaultPasswordConfig = AuthenticationBackendFilePassword{
+var DefaultPasswordConfig = AuthenticationBackendPassword{
 	Algorithm: argon2,
-	Argon2: AuthenticationBackendFilePasswordArgon2{
+	Argon2: AuthenticationBackendPasswordArgon2{
 		Variant:     argon2id,
 		Iterations:  3,
 		Memory:      64 * 1024,
@@ -156,21 +157,21 @@ var DefaultPasswordConfig = AuthenticationBackendFilePassword{
 		KeyLength:   32,
 		SaltLength:  16,
 	},
-	SHA2Crypt: AuthenticationBackendFilePasswordSHA2Crypt{
+	SHA2Crypt: AuthenticationBackendPasswordSHA2Crypt{
 		Variant:    sha512,
 		Iterations: 50000,
 		SaltLength: 16,
 	},
-	PBKDF2: AuthenticationBackendFilePasswordPBKDF2{
+	PBKDF2: AuthenticationBackendPasswordPBKDF2{
 		Variant:    sha512,
 		Iterations: 310000,
 		SaltLength: 16,
 	},
-	BCrypt: AuthenticationBackendFilePasswordBCrypt{
+	BCrypt: AuthenticationBackendPasswordBCrypt{
 		Variant: "standard",
 		Cost:    12,
 	},
-	SCrypt: AuthenticationBackendFilePasswordSCrypt{
+	SCrypt: AuthenticationBackendPasswordSCrypt{
 		Iterations:  16,
 		BlockSize:   8,
 		Parallelism: 1,
@@ -180,16 +181,16 @@ var DefaultPasswordConfig = AuthenticationBackendFilePassword{
 }
 
 // DefaultCIPasswordConfig represents the default configuration related to Argon2id hashing for CI.
-var DefaultCIPasswordConfig = AuthenticationBackendFilePassword{
+var DefaultCIPasswordConfig = AuthenticationBackendPassword{
 	Algorithm: argon2,
-	Argon2: AuthenticationBackendFilePasswordArgon2{
+	Argon2: AuthenticationBackendPasswordArgon2{
 		Iterations:  3,
 		Memory:      64,
 		Parallelism: 4,
 		KeyLength:   32,
 		SaltLength:  16,
 	},
-	SHA2Crypt: AuthenticationBackendFilePasswordSHA2Crypt{
+	SHA2Crypt: AuthenticationBackendPasswordSHA2Crypt{
 		Variant:    sha512,
 		Iterations: 50000,
 		SaltLength: 16,
@@ -302,4 +303,15 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth = Authenti
 	TLS: &TLS{
 		MinimumVersion: TLSVersion{tls.VersionTLS12},
 	},
+}
+
+// AuthenticationBackendSQL represents the configuration related to sql-based backend.
+type AuthenticationBackendSQL struct {
+	Password AuthenticationBackendPassword  `koanf:"password" json:"password" jsonschema:"title=Password Options" jsonschema_description:"Allows configuration of the password hashing options when the user passwords are changed directly by Authelia."`
+	Search   AuthenticationBackendSQLSearch `koanf:"search" json:"search" jsonschema:"title=Search" jsonschema_description:"Configures the user searching behaviour."`
+}
+
+// AuthenticationBackendSQLSearch represents the configuration related to sql-based backend searching.
+type AuthenticationBackendSQLSearch struct {
+	Email bool `koanf:"email" json:"email" jsonschema:"default=false,title=Email Searching" jsonschema_description:"Allows users to either use their username or their configured email as a username."`
 }

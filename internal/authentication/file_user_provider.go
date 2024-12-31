@@ -157,7 +157,7 @@ func (p *FileUserProvider) setTimeoutReload(now time.Time) {
 }
 
 // NewFileCryptoHashFromConfig returns a crypt.Hash given a valid configuration.
-func NewFileCryptoHashFromConfig(config schema.AuthenticationBackendFilePassword) (hash algorithm.Hash, err error) {
+func NewFileCryptoHashFromConfig(config schema.AuthenticationBackendPassword) (hash algorithm.Hash, err error) {
 	switch config.Algorithm {
 	case hashArgon2, "":
 		hash, err = argon2.New(

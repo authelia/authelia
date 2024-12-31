@@ -90,7 +90,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorWhenNoPathProvi
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldSetDefaultConfigurationWhenBlank() {
-	suite.config.File.Password = schema.AuthenticationBackendFilePassword{}
+	suite.config.File.Password = schema.AuthenticationBackendPassword{}
 
 	suite.Equal("", suite.config.File.Password.Algorithm)
 	suite.Equal(0, suite.config.File.Password.KeyLength)   //nolint:staticcheck
@@ -113,10 +113,10 @@ func (suite *FileBasedAuthenticationBackend) TestShouldSetDefaultConfigurationWh
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfigurationSHA512() {
-	suite.config.File.Password = schema.AuthenticationBackendFilePassword{}
+	suite.config.File.Password = schema.AuthenticationBackendPassword{}
 	suite.Equal("", suite.config.File.Password.Algorithm)
 
-	suite.config.File.Password = schema.AuthenticationBackendFilePassword{
+	suite.config.File.Password = schema.AuthenticationBackendPassword{
 		Algorithm:  digestSHA512,
 		Iterations: 1000000,
 		SaltLength: 8,
@@ -134,14 +134,14 @@ func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfiguratio
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfigurationSHA512ButNotOverride() {
-	suite.config.File.Password = schema.AuthenticationBackendFilePassword{}
+	suite.config.File.Password = schema.AuthenticationBackendPassword{}
 	suite.Equal("", suite.config.File.Password.Algorithm)
 
-	suite.config.File.Password = schema.AuthenticationBackendFilePassword{
+	suite.config.File.Password = schema.AuthenticationBackendPassword{
 		Algorithm:  digestSHA512,
 		Iterations: 1000000,
 		SaltLength: 8,
-		SHA2Crypt: schema.AuthenticationBackendFilePasswordSHA2Crypt{
+		SHA2Crypt: schema.AuthenticationBackendPasswordSHA2Crypt{
 			Variant:    digestSHA256,
 			Iterations: 50000,
 			SaltLength: 12,
@@ -160,10 +160,10 @@ func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfiguratio
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfigurationSHA512Alt() {
-	suite.config.File.Password = schema.AuthenticationBackendFilePassword{}
+	suite.config.File.Password = schema.AuthenticationBackendPassword{}
 	suite.Equal("", suite.config.File.Password.Algorithm)
 
-	suite.config.File.Password = schema.AuthenticationBackendFilePassword{
+	suite.config.File.Password = schema.AuthenticationBackendPassword{
 		Algorithm:  digestSHA512,
 		Iterations: 1000000,
 		SaltLength: 64,
@@ -181,10 +181,10 @@ func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfiguratio
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfigurationArgon2() {
-	suite.config.File.Password = schema.AuthenticationBackendFilePassword{}
+	suite.config.File.Password = schema.AuthenticationBackendPassword{}
 	suite.Equal("", suite.config.File.Password.Algorithm)
 
-	suite.config.File.Password = schema.AuthenticationBackendFilePassword{
+	suite.config.File.Password = schema.AuthenticationBackendPassword{
 		Algorithm:   "argon2id",
 		Iterations:  4,
 		Memory:      1024,
@@ -208,17 +208,17 @@ func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfiguratio
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfigurationArgon2ButNotOverride() {
-	suite.config.File.Password = schema.AuthenticationBackendFilePassword{}
+	suite.config.File.Password = schema.AuthenticationBackendPassword{}
 	suite.Equal("", suite.config.File.Password.Algorithm)
 
-	suite.config.File.Password = schema.AuthenticationBackendFilePassword{
+	suite.config.File.Password = schema.AuthenticationBackendPassword{
 		Algorithm:   "argon2id",
 		Iterations:  4,
 		Memory:      1024,
 		Parallelism: 4,
 		KeyLength:   64,
 		SaltLength:  64,
-		Argon2: schema.AuthenticationBackendFilePasswordArgon2{
+		Argon2: schema.AuthenticationBackendPasswordArgon2{
 			Variant:     "argon2d",
 			Iterations:  1,
 			Memory:      2048,
@@ -243,7 +243,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfiguratio
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfigurationWhenOnlySHA512Set() {
-	suite.config.File.Password = schema.AuthenticationBackendFilePassword{}
+	suite.config.File.Password = schema.AuthenticationBackendPassword{}
 	suite.Equal("", suite.config.File.Password.Algorithm)
 	suite.config.File.Password.Algorithm = digestSHA512
 
@@ -259,7 +259,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldMigrateLegacyConfiguratio
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorOnInvalidArgon2Variant() {
-	suite.config.File.Password = schema.AuthenticationBackendFilePassword{}
+	suite.config.File.Password = schema.AuthenticationBackendPassword{}
 	suite.Equal("", suite.config.File.Password.Algorithm)
 	suite.config.File.Password.Algorithm = "argon2"
 	suite.config.File.Password.Argon2.Variant = testInvalid
@@ -273,7 +273,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorOnInvalidArgon2
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorOnInvalidSHA2CryptVariant() {
-	suite.config.File.Password = schema.AuthenticationBackendFilePassword{}
+	suite.config.File.Password = schema.AuthenticationBackendPassword{}
 	suite.Equal("", suite.config.File.Password.Algorithm)
 	suite.config.File.Password.Algorithm = hashSHA2Crypt
 	suite.config.File.Password.SHA2Crypt.Variant = testInvalid
@@ -287,7 +287,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorOnInvalidSHA2Cr
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorOnInvalidSHA2CryptSaltLength() {
-	suite.config.File.Password = schema.AuthenticationBackendFilePassword{}
+	suite.config.File.Password = schema.AuthenticationBackendPassword{}
 	suite.Equal("", suite.config.File.Password.Algorithm)
 	suite.config.File.Password.Algorithm = hashSHA2Crypt
 	suite.config.File.Password.SHA2Crypt.SaltLength = 40
@@ -301,7 +301,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorOnInvalidSHA2Cr
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorOnInvalidPBKDF2Variant() {
-	suite.config.File.Password = schema.AuthenticationBackendFilePassword{}
+	suite.config.File.Password = schema.AuthenticationBackendPassword{}
 	suite.Equal("", suite.config.File.Password.Algorithm)
 	suite.config.File.Password.Algorithm = "pbkdf2"
 	suite.config.File.Password.PBKDF2.Variant = testInvalid
@@ -315,7 +315,7 @@ func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorOnInvalidPBKDF2
 }
 
 func (suite *FileBasedAuthenticationBackend) TestShouldRaiseErrorOnInvalidBCryptVariant() {
-	suite.config.File.Password = schema.AuthenticationBackendFilePassword{}
+	suite.config.File.Password = schema.AuthenticationBackendPassword{}
 	suite.Equal("", suite.config.File.Password.Algorithm)
 	suite.config.File.Password.Algorithm = "bcrypt"
 	suite.config.File.Password.BCrypt.Variant = testInvalid

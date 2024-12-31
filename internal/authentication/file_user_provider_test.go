@@ -589,15 +589,15 @@ func TestShouldAllowLookupCI(t *testing.T) {
 func TestNewFileCryptoHashFromConfig(t *testing.T) {
 	testCases := []struct {
 		name     string
-		have     schema.AuthenticationBackendFilePassword
+		have     schema.AuthenticationBackendPassword
 		expected any
 		err      string
 	}{
 		{
 			"ShouldCreatePBKDF2",
-			schema.AuthenticationBackendFilePassword{
+			schema.AuthenticationBackendPassword{
 				Algorithm: "pbkdf2",
-				PBKDF2: schema.AuthenticationBackendFilePasswordPBKDF2{
+				PBKDF2: schema.AuthenticationBackendPasswordPBKDF2{
 					Variant:    "sha256",
 					Iterations: 100000,
 					SaltLength: 16,
@@ -608,9 +608,9 @@ func TestNewFileCryptoHashFromConfig(t *testing.T) {
 		},
 		{
 			"ShouldCreateSCrypt",
-			schema.AuthenticationBackendFilePassword{
+			schema.AuthenticationBackendPassword{
 				Algorithm: "scrypt",
-				SCrypt: schema.AuthenticationBackendFilePasswordSCrypt{
+				SCrypt: schema.AuthenticationBackendPasswordSCrypt{
 					Iterations:  12,
 					SaltLength:  16,
 					Parallelism: 1,
@@ -623,9 +623,9 @@ func TestNewFileCryptoHashFromConfig(t *testing.T) {
 		},
 		{
 			"ShouldCreateBCrypt",
-			schema.AuthenticationBackendFilePassword{
+			schema.AuthenticationBackendPassword{
 				Algorithm: "bcrypt",
-				BCrypt: schema.AuthenticationBackendFilePasswordBCrypt{
+				BCrypt: schema.AuthenticationBackendPasswordBCrypt{
 					Variant: "standard",
 					Cost:    12,
 				},
@@ -635,7 +635,7 @@ func TestNewFileCryptoHashFromConfig(t *testing.T) {
 		},
 		{
 			"ShouldFailToCreateSCryptInvalidParameter",
-			schema.AuthenticationBackendFilePassword{
+			schema.AuthenticationBackendPassword{
 				Algorithm: "scrypt",
 			},
 			nil,
@@ -643,7 +643,7 @@ func TestNewFileCryptoHashFromConfig(t *testing.T) {
 		},
 		{
 			"ShouldFailUnknown",
-			schema.AuthenticationBackendFilePassword{
+			schema.AuthenticationBackendPassword{
 				Algorithm: "unknown",
 			},
 			nil,

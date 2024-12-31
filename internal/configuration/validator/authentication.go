@@ -61,7 +61,7 @@ func validateFileAuthenticationBackend(config *schema.AuthenticationBackendFile,
 }
 
 // ValidatePasswordConfiguration validates the file auth backend password configuration.
-func ValidatePasswordConfiguration(config *schema.AuthenticationBackendFilePassword, validator *schema.StructValidator) {
+func ValidatePasswordConfiguration(config *schema.AuthenticationBackendPassword, validator *schema.StructValidator) {
 	validateFileAuthenticationBackendPasswordConfigLegacy(config)
 
 	switch {
@@ -81,7 +81,7 @@ func ValidatePasswordConfiguration(config *schema.AuthenticationBackendFilePassw
 }
 
 //nolint:gocyclo // Function is well formed.
-func validateFileAuthenticationBackendPasswordConfigArgon2(config *schema.AuthenticationBackendFilePassword, validator *schema.StructValidator) {
+func validateFileAuthenticationBackendPasswordConfigArgon2(config *schema.AuthenticationBackendPassword, validator *schema.StructValidator) {
 	switch {
 	case config.Argon2.Variant == "":
 		config.Argon2.Variant = schema.DefaultPasswordConfig.Argon2.Variant
@@ -139,7 +139,7 @@ func validateFileAuthenticationBackendPasswordConfigArgon2(config *schema.Authen
 	}
 }
 
-func validateFileAuthenticationBackendPasswordConfigSHA2Crypt(config *schema.AuthenticationBackendFilePassword, validator *schema.StructValidator) {
+func validateFileAuthenticationBackendPasswordConfigSHA2Crypt(config *schema.AuthenticationBackendPassword, validator *schema.StructValidator) {
 	switch {
 	case config.SHA2Crypt.Variant == "":
 		config.SHA2Crypt.Variant = schema.DefaultPasswordConfig.SHA2Crypt.Variant
@@ -168,7 +168,7 @@ func validateFileAuthenticationBackendPasswordConfigSHA2Crypt(config *schema.Aut
 	}
 }
 
-func validateFileAuthenticationBackendPasswordConfigPBKDF2(config *schema.AuthenticationBackendFilePassword, validator *schema.StructValidator) {
+func validateFileAuthenticationBackendPasswordConfigPBKDF2(config *schema.AuthenticationBackendPassword, validator *schema.StructValidator) {
 	switch {
 	case config.PBKDF2.Variant == "":
 		config.PBKDF2.Variant = schema.DefaultPasswordConfig.PBKDF2.Variant
@@ -197,7 +197,7 @@ func validateFileAuthenticationBackendPasswordConfigPBKDF2(config *schema.Authen
 	}
 }
 
-func validateFileAuthenticationBackendPasswordConfigBCrypt(config *schema.AuthenticationBackendFilePassword, validator *schema.StructValidator) {
+func validateFileAuthenticationBackendPasswordConfigBCrypt(config *schema.AuthenticationBackendPassword, validator *schema.StructValidator) {
 	switch {
 	case config.BCrypt.Variant == "":
 		config.BCrypt.Variant = schema.DefaultPasswordConfig.BCrypt.Variant
@@ -218,7 +218,7 @@ func validateFileAuthenticationBackendPasswordConfigBCrypt(config *schema.Authen
 }
 
 //nolint:gocyclo
-func validateFileAuthenticationBackendPasswordConfigSCrypt(config *schema.AuthenticationBackendFilePassword, validator *schema.StructValidator) {
+func validateFileAuthenticationBackendPasswordConfigSCrypt(config *schema.AuthenticationBackendPassword, validator *schema.StructValidator) {
 	switch {
 	case config.SCrypt.Iterations == 0:
 		config.SCrypt.Iterations = schema.DefaultPasswordConfig.SCrypt.Iterations
@@ -266,7 +266,7 @@ func validateFileAuthenticationBackendPasswordConfigSCrypt(config *schema.Authen
 }
 
 //nolint:gocyclo,staticcheck // Function is clear enough and being used for deprecated functionality mapping.
-func validateFileAuthenticationBackendPasswordConfigLegacy(config *schema.AuthenticationBackendFilePassword) {
+func validateFileAuthenticationBackendPasswordConfigLegacy(config *schema.AuthenticationBackendPassword) {
 	switch config.Algorithm {
 	case hashLegacySHA512:
 		config.Algorithm = hashSHA2Crypt
