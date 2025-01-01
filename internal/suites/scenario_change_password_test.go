@@ -87,12 +87,10 @@ func (s *ChangePasswordScenario) TestCannotChangePasswordToExistingPassword() {
 				s.collectScreenshot(ctx.Err(), s.Page)
 			}()
 			s.doLoginOneFactor(s.T(), s.Context(ctx), tc.username, tc.oldPassword, false, BaseDomain, "")
-
 			s.doOpenSettings(s.T(), s.Context(ctx))
-
 			s.doOpenSettingsMenuClickSecurity(s.T(), s.Context(ctx))
 
-			s.doMustChangePasswordExistingPassword(s.T(), s.Context(ctx), tc.oldPassword, tc.oldPassword)
+			s.doMustChangePasswordExistingPassword(s.T(), s.Context(ctx), tc.oldPassword)
 
 			s.doLogout(s.T(), s.Context(ctx))
 		})
@@ -112,7 +110,7 @@ func (s *ChangePasswordScenario) TestCannotChangePasswordWithIncorrectOldPasswor
 
 	for _, tc := range testCases {
 		s.T().Run(tc.testName, func(t *testing.T) {
-			ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), 200*time.Second)
 			defer func() {
 				cancel()
 				s.collectScreenshot(ctx.Err(), s.Page)

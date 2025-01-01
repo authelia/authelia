@@ -141,17 +141,6 @@ const (
 	auth   = "auth"
 )
 
-const ldapPasswordComplexityCode = "0000052D."
-
-var ldapPasswordComplexityCodes = []string{
-	"0000052D", "SynoNumber", "SynoMixedCase", "SynoExcludeNameDesc", "SynoSpecialChar",
-}
-
-var ldapPasswordComplexityErrors = []string{
-	"LDAP Result Code 19 \"Constraint Violation\": Password fails quality checking policy",
-	"LDAP Result Code 19 \"Constraint Violation\": Password is too young to change",
-}
-
 const (
 	errStrReqBodyParse        = "error parsing the request body"
 	errStrRespBody            = "error occurred writing the response body"

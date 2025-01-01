@@ -164,7 +164,7 @@ func (p *FileUserProvider) ChangePassword(username string, oldPassword string, n
 	var details FileUserDatabaseUserDetails
 
 	if details, err = p.database.GetUserDetails(username); err != nil {
-		return err
+		return fmt.Errorf("%w : %v", ErrUserNotFound, err)
 	}
 
 	if details.Disabled {
@@ -172,11 +172,11 @@ func (p *FileUserProvider) ChangePassword(username string, oldPassword string, n
 	}
 
 	if strings.TrimSpace(newPassword) == "" {
-		return ErrPasswordEmpty
+		return ErrPasswordWeak
 	}
 
 	if oldPassword == newPassword {
-		return ErrPasswordReuse
+		return ErrPasswordWeak
 	}
 
 	oldPasswordCorrect, err := p.CheckUserPassword(username, oldPassword)
@@ -192,7 +192,7 @@ func (p *FileUserProvider) ChangePassword(username string, oldPassword string, n
 	var digest algorithm.Digest
 
 	if digest, err = p.hash.Hash(newPassword); err != nil {
-		return err
+		return fmt.Errorf("%w : %v", ErrOperationFailed, err)
 	}
 
 	details.Password = schema.NewPasswordDigest(digest)
@@ -206,7 +206,7 @@ func (p *FileUserProvider) ChangePassword(username string, oldPassword string, n
 	p.mutex.Unlock()
 
 	if err = p.database.Save(); err != nil {
-		return err
+		return fmt.Errorf("%w : %v", ErrOperationFailed, err)
 	}
 
 	return nil
