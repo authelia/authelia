@@ -210,7 +210,7 @@ func TestChangePasswordPOST_ShouldFailWhenPasswordReuseIsNotAllowed(t *testing.T
 
 	mock.UserProviderMock.EXPECT().
 		ChangePassword(testUsername, oldPassword, newPassword).
-		Return(authentication.ErrPasswordReuse)
+		Return(authentication.ErrPasswordWeak)
 
 	ChangePasswordPOST(mock.Ctx)
 

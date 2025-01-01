@@ -98,13 +98,12 @@ var (
 	// ErrNoContent is returned when the file is empty.
 	ErrNoContent = errors.New("no file content")
 
+	ErrOperationFailed = errors.New("operation failed")
+
 	// ErrIncorrectPassword is returned when the password provided is incorrect.
 	ErrIncorrectPassword = errors.New("incorrect password")
 
-	// ErrIncorrectPassword is returned when the new password is the same as the existing password.
-	ErrPasswordReuse = errors.New("you cannot reuse your old password")
-
-	ErrPasswordEmpty = errors.New("your password cannot be blank")
+	ErrPasswordWeak = errors.New("your supplied password does not meet the password policy requirements")
 
 	ErrAuthenticationFailed = errors.New("authentication failed")
 )

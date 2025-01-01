@@ -11,6 +11,7 @@ import {
     Grid2,
     TextField,
 } from "@mui/material";
+import axios from "axios";
 import { useTranslation } from "react-i18next";
 
 import PasswordMeter from "@components/PasswordMeter";
@@ -133,24 +134,35 @@ const ChangePasswordDialog = (props: Props) => {
             handleClose();
         } catch (err) {
             resetPasswordErrors();
-            const errorMessage = (err as Error).message;
-            if (errorMessage.includes("0000052D.") || errorMessage.includes("policy")) {
-                setNewPasswordError(true);
-                setRepeatNewPasswordError(true);
-                createErrorNotification(
-                    translate("Your supplied password does not meet the password policy requirements"),
-                );
-            } else if (errorMessage.includes("Incorrect")) {
-                setOldPasswordError(true);
-                createErrorNotification(translate("Incorrect password"));
-            } else if (errorMessage.includes("reuse")) {
-                createErrorNotification(translate("You cannot reuse your old password"));
+            setLoading(false);
+            if (axios.isAxiosError(err) && err.response) {
+                switch (err.response.status) {
+                    case 400: // Bad Request - Weak Password
+                        setNewPasswordError(true);
+                        setRepeatNewPasswordError(true);
+                        createErrorNotification(
+                            translate("Your supplied password does not meet the password policy requirements"),
+                        );
+                        break;
+
+                    case 401: // Unauthorized - Incorrect Password
+                        setOldPasswordError(true);
+                        createErrorNotification(translate("Incorrect password"));
+                        break;
+
+                    case 500: // Internal Server Error
+                    default:
+                        createErrorNotification(
+                            translate("There was an issue changing the {{item}}", { item: translate("password") }),
+                        );
+                        break;
+                }
             } else {
+                // Handle non-axios errors
                 createErrorNotification(
                     translate("There was an issue changing the {{item}}", { item: translate("password") }),
                 );
             }
-            setLoading(false);
             return;
         }
     }, [

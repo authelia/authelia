@@ -1,14 +1,14 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
-	"strings"
+	"net/http"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/templates"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 type ErrorResponse struct {
@@ -42,18 +42,27 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if err = ctx.Providers.UserProvider.ChangePassword(username, requestBody.OldPassword, requestBody.NewPassword); err != nil {
-		ctx.Logger.Debugf("error occurred changing password for user %s: %v", username, err)
-
 		switch {
-		case strings.Contains(err.Error(), authentication.ErrIncorrectPassword.Error()):
-			ctx.Error(err, messageIncorrectPassword)
-		case strings.Contains(err.Error(), authentication.ErrPasswordReuse.Error()):
-			ctx.Error(err, messageCannotReusePassword)
-		case utils.IsStringInSliceContains(err.Error(), ldapPasswordComplexityCodes),
-			utils.IsStringInSliceContains(err.Error(), ldapPasswordComplexityErrors):
-			ctx.Error(err, ldapPasswordComplexityCode)
+		case errors.Is(err, authentication.ErrIncorrectPassword):
+			ctx.Logger.WithError(err).Debugf("Unable to change password for user '%s'", username)
+			ctx.SetJSONError(messageIncorrectPassword)
+			ctx.SetStatusCode(http.StatusUnauthorized)
+		case errors.Is(err, authentication.ErrPasswordWeak):
+			ctx.Logger.WithError(err).Debugf("Unable to change password for user '%s'", username)
+			ctx.SetJSONError(messagePasswordWeak)
+			ctx.SetStatusCode(http.StatusBadRequest)
+		case errors.Is(err, authentication.ErrAuthenticationFailed):
+			ctx.Logger.WithError(err).Errorf("Unable to change password for user '%s'", username)
+			ctx.SetJSONError(messageOperationFailed)
+			ctx.SetStatusCode(http.StatusUnauthorized)
+		case errors.Is(err, authentication.ErrOperationFailed):
+			ctx.Logger.WithError(err).Errorf("Unable to change password for user '%s'", username)
+			ctx.SetJSONError(messageOperationFailed)
+			ctx.SetStatusCode(http.StatusInternalServerError)
 		default:
-			ctx.Error(err, messageUnableToChangePassword)
+			ctx.Logger.WithError(err).Errorf("Unable to change password for user '%s'", username)
+			ctx.SetJSONError(messageOperationFailed)
+			ctx.SetStatusCode(http.StatusInternalServerError)
 		}
 
 		return
