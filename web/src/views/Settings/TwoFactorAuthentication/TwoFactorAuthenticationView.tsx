@@ -4,6 +4,7 @@ import { Paper, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { useTranslation } from "react-i18next";
 
+import { useLocalStorageMethodContext } from "@contexts/LocalStorageMethodContext";
 import { useConfiguration } from "@hooks/Configuration";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useUserInfoPOST } from "@hooks/UserInfo";
@@ -27,6 +28,7 @@ const TwoFactorAuthenticationView = function (props: Props) {
     const [configuration, fetchConfiguration, , fetchConfigurationError] = useConfiguration();
     const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoPOST();
     const [userTOTPConfig, fetchUserTOTPConfig, , fetchUserTOTPConfigError] = useUserInfoTOTPConfigurationOptional();
+    const { setLocalStorageMethod, localStorageMethodAvailable } = useLocalStorageMethodContext();
     const [userWebAuthnCredentials, fetchUserWebAuthnCredentials, , fetchUserWebAuthnCredentialsError] =
         useUserWebAuthnCredentials();
     const [hasTOTP, setHasTOTP] = useState(false);
@@ -46,6 +48,12 @@ const TwoFactorAuthenticationView = function (props: Props) {
         fetchConfiguration();
         fetchUserInfo();
     }, [fetchConfiguration, fetchUserInfo, refreshState]);
+
+    useEffect(() => {
+        if (localStorageMethodAvailable && configuration?.available_methods.size === 1) {
+            setLocalStorageMethod([...configuration.available_methods][0]);
+        }
+    }, [configuration, localStorageMethodAvailable, setLocalStorageMethod]);
 
     useEffect(() => {
         if (userInfo === undefined) {

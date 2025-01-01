@@ -1,7 +1,7 @@
 import React from "react";
 
 import { UserInfoTOTPConfiguration } from "@models/TOTPConfiguration";
-import OneTimePasswordCredentialItem from "@views/Settings/TwoFactorAuthentication/OneTimePasswordCredentialItem.tsx";
+import OneTimePasswordCredentialItem from "@views/Settings/TwoFactorAuthentication/OneTimePasswordCredentialItem";
 
 interface Props {
     config: UserInfoTOTPConfiguration;
