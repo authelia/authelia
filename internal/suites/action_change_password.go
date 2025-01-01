@@ -16,7 +16,7 @@ func (rs *RodSession) doChangePassword(t *testing.T, page *rod.Page, oldPassword
 
 	oldPasswordInput := rs.WaitElementLocatedByID(t, page, "old-password")
 	newPasswordInput := rs.WaitElementLocatedByID(t, page, "new-password")
-	repeatNewPasswordInput := rs.WaitElementLocatedByID(t, page, "repeat-new-password ")
+	repeatNewPasswordInput := rs.WaitElementLocatedByID(t, page, "repeat-new-password")
 
 	require.NoError(t, oldPasswordInput.Type(rs.toInputs(oldPassword)...))
 	require.NoError(t, newPasswordInput.Type(rs.toInputs(newPassword1)...))
