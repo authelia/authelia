@@ -104,6 +104,8 @@ var (
 	// ErrIncorrectPassword is returned when the new password is the same as the existing password.
 	ErrPasswordReuse = errors.New("you cannot reuse your old password")
 
+	ErrPasswordEmpty = errors.New("your password cannot be blank")
+
 	ErrAuthenticationFailed = errors.New("authentication failed")
 )
 
