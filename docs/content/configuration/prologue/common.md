@@ -228,13 +228,11 @@ guide on configuring any particular instance.
 
 ### TLS
 
-Various sections of the configuration use a uniform configuration section called TLS. Notably LDAP and SMTP.
-This section documents the usage.
-
 Various sections of the configuration use a uniform configuration section called `tls` which configure TLS socket and
-TLS verification parameters. Notably the [LDAP](../first-factor/ldap.md#tls), [SMTP](../notifications/smtp.md#tls),
-[PostgreSQL](../storage/postgres.md#tls), [MySQL](../storage/mysql.md#tls), and [Redis](../session/redis.md#tls)
-sections. This section documents the common parts of this structure.
+TLS verification parameters. This section documents the common parts of this structure. By default Authelia uses the
+system certificate trust for TLS certificate verification but you can augment this with the global
+[certificates_directory](../miscellaneous/introduction.md#certificates_directory) option, and can disable TLS
+certificate verification entirely with the [skip_verify](#skip_verify) option.
 
 ```yaml {title="configuration.yml"}
 tls:

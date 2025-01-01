@@ -23,9 +23,9 @@ seo:
 ## Tested Versions
 
 * [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+  * [v4.38.17](https://github.com/authelia/authelia/releases/tag/v4.38.17)
 * [Proxmox]
-  * 7.1-10
+  * [8.3.0](https://pve.proxmox.com/wiki/Roadmap#Proxmox_VE_8.3)
 
 {{% oidc-common %}}
 

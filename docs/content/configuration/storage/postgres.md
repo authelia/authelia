@@ -134,7 +134,11 @@ The SQL connection timeout.
 
 {{< confkey type="structure" structure="tls" required="no" >}}
 
-If defined enables connecting to [PostgreSQL] over a TLS socket, and additionally controls the TLS connection
-validation parameters.
+If defined enables connecting over a TLS socket and additionally controls the TLS connection
+verification parameters for the [PostgreSQL] server.
+
+By default Authelia uses the system certificate trust for TLS certificate verification of TLS connections and the
+[certificates_directory](../miscellaneous/introduction.md#certificates_directory) global option can be used to augment
+this.
 
 [PostgreSQL]: https://www.postgresql.org/

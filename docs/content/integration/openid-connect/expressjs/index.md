@@ -97,7 +97,7 @@ const app = express();
 app.use(
   auth({
     authRequired: false,
-    baseURL: `${process.env.APP_BASE_URL || 'https://express.{{< sitevar name="domain" nojs="example.com" >}}'}/callback`,
+    baseURL: `${process.env.APP_BASE_URL || 'https://express.{{< sitevar name="domain" nojs="example.com" >}}'}`,
     secret: process.env.SESSION_ENCRYPTION_SECRET || randomBytes(64).toString('hex'),
     clientID: process.env.OIDC_CLIENT_ID || 'Express.js',
     clientSecret: process.env.OIDC_CLIENT_SECRET || 'insecure_secret',
