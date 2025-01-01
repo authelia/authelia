@@ -4,17 +4,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-
-	"github.com/authelia/authelia/v4/internal/authentication"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/templates"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // ResetPasswordDELETE handler for deleting password reset JWT's.
@@ -157,26 +155,11 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 
 	if err = ctx.Providers.UserProvider.UpdatePassword(username, requestBody.Password); err != nil {
 		switch {
-		case errors.Is(err, authentication.ErrIncorrectPassword):
-			ctx.Logger.WithError(err).Debugf("Unable to reset password for user '%s'", username)
-			ctx.SetJSONError(messageIncorrectPassword)
-			ctx.SetStatusCode(http.StatusUnauthorized)
-		case errors.Is(err, authentication.ErrPasswordWeak):
-			ctx.Logger.WithError(err).Debugf("Unable to reset password for user '%s'", username)
-			ctx.SetJSONError(messagePasswordWeak)
-			ctx.SetStatusCode(http.StatusBadRequest)
-		case errors.Is(err, authentication.ErrAuthenticationFailed):
-			ctx.Logger.WithError(err).Errorf("Unable to reset password for user '%s'", username)
-			ctx.SetJSONError(messageOperationFailed)
-			ctx.SetStatusCode(http.StatusUnauthorized)
-		case errors.Is(err, authentication.ErrOperationFailed):
-			ctx.Logger.WithError(err).Errorf("Unable to reset password for user '%s'", username)
-			ctx.SetJSONError(messageOperationFailed)
-			ctx.SetStatusCode(http.StatusInternalServerError)
+		case utils.IsStringInSliceContains(err.Error(), ldapPasswordComplexityCodes),
+			utils.IsStringInSliceContains(err.Error(), ldapPasswordComplexityErrors):
+			ctx.Error(err, ldapPasswordComplexityCode)
 		default:
-			ctx.Logger.WithError(err).Errorf("Unable to reset password for user '%s'", username)
-			ctx.SetJSONError(messageOperationFailed)
-			ctx.SetStatusCode(http.StatusInternalServerError)
+			ctx.Error(err, messageUnableToResetPassword)
 		}
 
 		return

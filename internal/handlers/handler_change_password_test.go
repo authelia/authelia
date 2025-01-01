@@ -216,7 +216,7 @@ func TestChangePasswordPOST_ShouldFailWhenPasswordReuseIsNotAllowed(t *testing.T
 
 	errResponse := mock.GetResponseError(t)
 	assert.Equal(t, "KO", errResponse.Status)
-	assert.Equal(t, messageCannotReusePassword, errResponse.Message)
+	assert.Equal(t, messagePasswordWeak, errResponse.Message)
 }
 
 func TestChangePasswordPOST_ShouldSucceedButLogErrorWhenUserHasNoEmail(t *testing.T) {
