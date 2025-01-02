@@ -8,6 +8,12 @@ server:
   tls:
     certificate: '/pki/public.backend.crt'
     key: '/pki/private.backend.pem'
+  endpoints:
+    rate_limits:
+      second_factor_totp:
+        buckets:
+          - period: '2 minutes'
+            requests: 50
 
 telemetry:
   metrics:
