@@ -49,8 +49,8 @@ github.com/dustin/go-humanize v1.0.1 h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkp
 github.com/dustin/go-humanize v1.0.1/go.mod h1:Mu1zIs6XwVuF/gI1OepvI0qD18qycQx+mFykh5fBlto=
 github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 h1:JWuenKqqX8nojtoVVWjGfOF9635RETekkoH6Cc9SX0A=
 github.com/facebookgo/stack v0.0.0-20160209184415-751773369052/go.mod h1:UbMTZqLaRiH3MsBH8va0n7s1pQYcu3uTb8G4tygF4Zg=
-github.com/fasthttp/router v1.5.3 h1:BFWXqa3e4thRI3MgPKTNtz0Oiq6UYN2OsEtb+YQ5TMI=
-github.com/fasthttp/router v1.5.3/go.mod h1:b864KkDIapOYh77AVG/SNkwfRZ6k6ecWvD+ZRXmP5pw=
+github.com/fasthttp/router v1.5.4 h1:oxdThbBwQgsDIYZ3wR1IavsNl6ZS9WdjKukeMikOnC8=
+github.com/fasthttp/router v1.5.4/go.mod h1:3/hysWq6cky7dTfzaaEPZGdptwjwx0qzTgFCKEWRjgc=
 github.com/fasthttp/session/v2 v2.5.7 h1:eKL28JJ1avCK1TbiV1EI6SWKmlIWwV0X+JQzly3qCx4=
 github.com/fasthttp/session/v2 v2.5.7/go.mod h1:nJuNViXkJuHo3y3+SaBYBYksdHDPVTajyrgRAVpvb4Y=
 github.com/fatih/color v1.16.0 h1:zmkK9Ngbjj+K0yRhTVONQh1p/HknKYSlNT+vZCzyokM=
