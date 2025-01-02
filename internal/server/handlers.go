@@ -336,7 +336,7 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 
 		middlewareRateLimitDuo := middlewares.NewBridgeBuilder(*config, providers).
 			WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
-			WithPostMiddlewares(middlewares.NewRateLimit(config.Server.Endpoints.RateLimits.SessionElevationStart), middlewares.Require1FA).
+			WithPostMiddlewares(middlewares.NewRateLimit(config.Server.Endpoints.RateLimits.SecondFactorDuo), middlewares.Require1FA).
 			Build()
 
 		r.GET("/api/secondfactor/duo_devices", middleware1FA(handlers.DuoDevicesGET(duoAPI)))

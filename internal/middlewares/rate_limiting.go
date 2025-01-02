@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"strconv"
 	"sync"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 // RateLimitBucket describes an implementation of a bucket which can be leveraged for rate limiting.
 type RateLimitBucket interface {
 	FetchCtx(ctx *AutheliaCtx) (limiter *rate.Limiter)
+	GC()
 }
 
 // The RateLimitBucketConfig describes a limit (number of seconds), and a burst (number of events) that can occur for a
@@ -31,7 +33,6 @@ func NewIPRateLimit(bs ...RateLimitBucketConfig) AutheliaMiddleware {
 type NewRateLimiterFunc func(bucket RateLimitBucketConfig) RateLimitBucket
 
 func HandlerRateLimitAPI(ctx *AutheliaCtx) {
-	ctx.SetStatusCode(fasthttp.StatusTooManyRequests)
 	ctx.SetJSONError(fasthttp.StatusMessage(fasthttp.StatusTooManyRequests))
 }
 
@@ -46,21 +47,42 @@ func NewRateLimiter(newBucket func(bucket RateLimitBucketConfig) RateLimitBucket
 		handler = HandlerRateLimitAPI
 	}
 
+	ticker := time.NewTicker(time.Minute * 30)
+
+	go func() {
+		for range ticker.C {
+			for _, bucket := range buckets {
+				bucket.GC()
+			}
+		}
+	}()
+
 	return func(next RequestHandler) RequestHandler {
 		return func(ctx *AutheliaCtx) {
-			var exceeded bool
+			var (
+				retryAfter time.Duration
+			)
 
 			for i, bucket := range buckets {
 				limiter := bucket.FetchCtx(ctx)
 
 				if !limiter.Allow() {
-					ctx.Logger.WithField("bucket", i+1).Warn("Rate Limit Exceeded")
+					reservation := limiter.ReserveN(ctx.Clock.Now(), 1)
 
-					exceeded = true
+					ctx.Logger.WithFields(map[string]any{"bucket": i + 1, "delay": reservation.Delay().Seconds()}).Warn("Rate Limit Exceeded")
+
+					if reservation.Delay() > retryAfter {
+						retryAfter = reservation.Delay()
+					}
+
+					reservation.CancelAt(ctx.Clock.Now())
 				}
 			}
 
-			if exceeded {
+			if retryAfter > 0 {
+				ctx.Response.Header.SetBytesK(headerRetryAfter, strconv.FormatInt(int64(retryAfter.Seconds()), 10))
+				ctx.SetStatusCode(fasthttp.StatusTooManyRequests)
+
 				handler(ctx)
 
 				return
@@ -76,7 +98,7 @@ func NewIPRateLimitBucket(bucket RateLimitBucketConfig) (limiter RateLimitBucket
 	return &IPRateLimitBucket{
 		bucket: make(map[string]*rate.Limiter),
 		mu:     sync.Mutex{},
-		r:      rate.Limit(bucket.Period.Seconds()),
+		r:      rate.Every(bucket.Period),
 		b:      bucket.Requests,
 	}
 }
@@ -101,6 +123,22 @@ func (l *IPRateLimitBucket) Fetch(key string) (limiter *rate.Limiter) {
 	}
 
 	return limiter
+}
+
+func (l *IPRateLimitBucket) GC() {
+	if len(l.bucket) == 0 {
+		return
+	}
+
+	l.mu.Lock()
+
+	defer l.mu.Unlock()
+
+	for k, limiter := range l.bucket {
+		if limiter.Tokens() >= float64(l.b) {
+			delete(l.bucket, k)
+		}
+	}
 }
 
 func (l *IPRateLimitBucket) FetchCtx(ctx *AutheliaCtx) (limiter *rate.Limiter) {

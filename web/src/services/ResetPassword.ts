@@ -6,37 +6,20 @@ import {
     InitiateResetPasswordPath,
     OKResponse,
     ResetPasswordPath,
-    ServiceResponse,
-    hasServiceError,
     validateStatusTooManyRequests,
 } from "@services/Api";
-
-async function postWithPossibleTooManyRequests(path: string, body?: any) {
-    const res = await axios.post<ServiceResponse<undefined>>(path, body, {
-        validateStatus: validateStatusTooManyRequests,
-    });
-
-    if (res.status === 429) {
-        return false;
-    }
-
-    if (res.status !== 200 || hasServiceError(res).errored) {
-        throw new Error(`Failed POST to ${path}. Code: ${res.status}. Message: ${hasServiceError(res).message}`);
-    }
-
-    return true;
-}
+import { PostWithOptionalResponse, PostWithOptionalResponseRateLimited } from "@services/Client.ts";
 
 export async function initiateResetPasswordProcess(username: string) {
-    return postWithPossibleTooManyRequests(InitiateResetPasswordPath, { username });
+    return PostWithOptionalResponseRateLimited(InitiateResetPasswordPath, { username });
 }
 
 export async function completeResetPasswordProcess(token: string) {
-    return postWithPossibleTooManyRequests(CompleteResetPasswordPath, { token });
+    return PostWithOptionalResponseRateLimited(CompleteResetPasswordPath, { token });
 }
 
 export async function resetPassword(newPassword: string) {
-    return postWithPossibleTooManyRequests(ResetPasswordPath, { password: newPassword });
+    return PostWithOptionalResponse(ResetPasswordPath, { password: newPassword });
 }
 
 export async function deleteResetPasswordToken(token: string) {

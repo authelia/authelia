@@ -164,16 +164,16 @@ var DefaultServerConfiguration = Server{
 			},
 			SessionElevationStart: ServerEndpointRateLimit{
 				Buckets: []ServerEndpointRateLimitBucket{
-					{Period: 1, Requests: 3}, {Period: 1, Requests: 3}, // 3 requests per 1.0x of identity_validation.elevated_session.code_lifespan.
-					{Period: 2, Requests: 5}, {Period: 2, Requests: 5}, // 5 requests per 2.0x of identity_validation.elevated_session.code_lifespan.
-					{Period: 12, Requests: 15}, {Period: 12, Requests: 15}, // 15 requests per 12.0x of identity_validation.elevated_session.code_lifespan.
+					{Period: 1, Requests: 3},   // 3 requests per 1.0x of identity_validation.elevated_session.code_lifespan.
+					{Period: 2, Requests: 5},   // 5 requests per 2.0x of identity_validation.elevated_session.code_lifespan.
+					{Period: 12, Requests: 15}, // 15 requests per 12.0x of identity_validation.elevated_session.code_lifespan.
 				},
 			},
 			SessionElevationFinish: ServerEndpointRateLimit{
 				Buckets: []ServerEndpointRateLimitBucket{
-					{Period: 1, Requests: 3}, {Period: 1, Requests: 3}, // 3 requests per 1.0x of identity_validation.elevated_session.elevation_lifespan.
-					{Period: 2, Requests: 5}, {Period: 2, Requests: 5}, // 5 requests per 2.0x of identity_validation.elevated_session.elevation_lifespan.
-					{Period: 6, Requests: 15}, {Period: 6, Requests: 15}, // 15 requests per 6.0x of identity_validation.elevated_session.elevation_lifespan.
+					{Period: 1, Requests: 3},  // 3 requests per 1.0x of identity_validation.elevated_session.elevation_lifespan.
+					{Period: 2, Requests: 5},  // 5 requests per 2.0x of identity_validation.elevated_session.elevation_lifespan.
+					{Period: 6, Requests: 15}, // 15 requests per 6.0x of identity_validation.elevated_session.elevation_lifespan.
 				},
 			},
 		},

@@ -162,8 +162,8 @@ func ValidateServerEndpoints(config *schema.Configuration, validator *schema.Str
 }
 
 func validateServerEndpointsRateLimits(config *schema.Configuration, validator *schema.StructValidator) {
-	validateServerEndpointsRateLimitDefault(&config.Server.Endpoints.RateLimits.ResetPasswordStart, schema.DefaultServerConfiguration.Endpoints.RateLimits.SessionElevationStart, validator)
-	validateServerEndpointsRateLimitDefault(&config.Server.Endpoints.RateLimits.ResetPasswordFinish, schema.DefaultServerConfiguration.Endpoints.RateLimits.SessionElevationFinish, validator)
+	validateServerEndpointsRateLimitDefault(&config.Server.Endpoints.RateLimits.ResetPasswordStart, schema.DefaultServerConfiguration.Endpoints.RateLimits.ResetPasswordStart, validator)
+	validateServerEndpointsRateLimitDefault(&config.Server.Endpoints.RateLimits.ResetPasswordFinish, schema.DefaultServerConfiguration.Endpoints.RateLimits.ResetPasswordFinish, validator)
 	validateServerEndpointsRateLimitDefault(&config.Server.Endpoints.RateLimits.SecondFactorTOTP, schema.DefaultServerConfiguration.Endpoints.RateLimits.SecondFactorTOTP, validator)
 	validateServerEndpointsRateLimitDefault(&config.Server.Endpoints.RateLimits.SecondFactorDuo, schema.DefaultServerConfiguration.Endpoints.RateLimits.SecondFactorDuo, validator)
 
@@ -176,7 +176,9 @@ func validateServerEndpointsRateLimitDefault(config *schema.ServerEndpointRateLi
 		return
 	}
 
-	config.Buckets = defaults.Buckets
+	config.Buckets = make([]schema.ServerEndpointRateLimitBucket, len(defaults.Buckets))
+
+	copy(config.Buckets, defaults.Buckets)
 }
 
 func validateServerEndpointsRateLimitDefaultWeighted(config *schema.ServerEndpointRateLimit, defaults schema.ServerEndpointRateLimit, weight time.Duration, _ *schema.StructValidator) {
@@ -188,7 +190,7 @@ func validateServerEndpointsRateLimitDefaultWeighted(config *schema.ServerEndpoi
 
 	for i := range defaults.Buckets {
 		config.Buckets[i] = schema.ServerEndpointRateLimitBucket{
-			Period:   defaults.Buckets[i].Period * weight,
+			Period:   weight * defaults.Buckets[i].Period,
 			Requests: defaults.Buckets[i].Requests,
 		}
 	}

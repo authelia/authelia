@@ -49,6 +49,11 @@ export interface ErrorResponse {
     message: string;
 }
 
+export interface ErrorRateLimitResponse extends ErrorResponse {
+    limited: boolean;
+    retryAfter: number;
+}
+
 export interface Response<T> extends OKResponse {
     data: T;
 }
@@ -85,14 +90,33 @@ export function toData<T>(resp: AxiosResponse<ServiceResponse<T>>): T | undefine
 export type RateLimitedData<T> = {
     data?: T;
     limited: boolean;
+    retryAfter: number;
 };
+
+function getRetryAfter(resp: AxiosResponse): number {
+    if (resp.status !== 429) {
+        return 0;
+    }
+
+    if (resp.headers["retry-after"]) {
+        const retryAfter = parseFloat(resp.headers["retry-after"]);
+
+        if (Number.isNaN(retryAfter)) {
+            throw new Error("Header Retry-After has an invalid value");
+        }
+
+        return retryAfter;
+    }
+
+    throw new Error("Header Retry-After is missing");
+}
 
 export function toDataRateLimited<T>(resp: AxiosResponse<ServiceResponse<T>>): RateLimitedData<T> | undefined {
     if (resp.data && "status" in resp.data) {
         if (resp.data["status"] === "OK") {
-            return { limited: false, data: resp.data.data as T };
-        } else if (resp.data["status"] === "KO" && resp.status === 429) {
-            return { limited: true };
+            return { limited: false, retryAfter: 0, data: resp.data.data as T };
+        } else if (resp.data["status"] === "KO") {
+            return { limited: resp.status === 429, retryAfter: getRetryAfter(resp) };
         }
     }
 
@@ -108,16 +132,6 @@ function hasError(err: ErrorResponse | undefined) {
 }
 
 export function hasServiceError<T>(resp: AxiosResponse<ServiceResponse<T>>) {
-    const errResp = toErrorResponse(resp);
-
-    return hasError(errResp);
-}
-
-export function hasServiceRateLimitedError<T>(resp: AxiosResponse<ServiceResponse<T>>) {
-    if (resp.status === 429) {
-        return undefined;
-    }
-
     const errResp = toErrorResponse(resp);
 
     return hasError(errResp);

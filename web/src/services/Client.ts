@@ -39,7 +39,7 @@ export async function PostWithOptionalResponseRateLimited<T = undefined>(
 
     if (res.status !== 200 || hasServiceError(res).errored) {
         if (res.status === 429) {
-            return { limited: true };
+            return toDataRateLimited<T>(res);
         }
 
         throw new Error(`Failed POST to ${path}. Code: ${res.status}. Message: ${hasServiceError(res).message}`);

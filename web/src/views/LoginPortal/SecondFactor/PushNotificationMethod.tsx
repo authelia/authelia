@@ -30,6 +30,7 @@ export enum State {
     Failure = 3,
     Selection = 4,
     Enroll = 5,
+    RateLimited = 6,
 }
 
 export interface Props {
@@ -57,7 +58,27 @@ const PushNotificationMethod = function (props: Props) {
     const onSignInErrorCallback = useRef(onSignInError).current;
     const onSignInSuccessCallback = useRef(onSignInSuccess).current;
 
-    const fetchDuoDevicesFunc = useCallback(async () => {
+    const timeoutRateLimit = useRef<NodeJS.Timeout>();
+
+    useEffect(() => {
+        return clearTimeout(timeoutRateLimit.current);
+    }, []);
+
+    const handleRateLimited = useCallback(
+        (retryAfter: number) => {
+            setState(State.RateLimited);
+
+            onSignInErrorCallback(new Error(translate("You have made too many requests")));
+
+            timeoutRateLimit.current = setTimeout(() => {
+                setState(State.Failure);
+                timeoutRateLimit.current = undefined;
+            }, retryAfter * 1000);
+        },
+        [onSignInErrorCallback, translate],
+    );
+
+    const handleFetchDuoDevices = useCallback(async () => {
         try {
             const res = await initiateDuoDeviceSelectionProcess();
             if (!mounted.current) return;
@@ -91,7 +112,7 @@ const PushNotificationMethod = function (props: Props) {
         }
     }, [props.duoSelfEnrollment, mounted, onSignInErrorCallback, translate]);
 
-    const signInFunc = useCallback(async () => {
+    const handleSignIn = useCallback(async () => {
         if (props.authenticationLevel === AuthenticationLevel.TwoFactor) {
             return;
         }
@@ -112,33 +133,33 @@ const PushNotificationMethod = function (props: Props) {
                             );
                             setDevices(selectableDevices);
                             setState(State.Selection);
-                            return;
+                            break;
                         case "enroll":
                             onSignInErrorCallback(new Error(translate("No compatible device found")));
                             if (res.data.enroll_url && props.duoSelfEnrollment) setEnrollUrl(res.data.enroll_url);
                             setState(State.Enroll);
-                            return;
+                            break;
                         case "deny":
                             onSignInErrorCallback(new Error(translate("Device selection was denied by Duo policy")));
                             setState(State.Failure);
-                            return;
+                            break;
                         default:
                             setState(State.Success);
                             setTimeout(() => {
                                 if (!mounted.current) return;
                                 onSignInSuccessCallback(res.data ? res.data.redirect : undefined);
                             }, 1500);
-                            return;
                     }
                 } else if (res.limited) {
-                    onSignInErrorCallback(new Error(translate("You have made too many requests")));
+                    handleRateLimited(res.retryAfter);
+                } else {
+                    onSignInErrorCallback(new Error(translate("There was an issue completing sign in process")));
                     setState(State.Failure);
-                    return;
                 }
+            } else {
+                onSignInErrorCallback(new Error(translate("There was an issue completing sign in process")));
+                setState(State.Failure);
             }
-
-            onSignInErrorCallback(new Error(translate("There was an issue completing sign in process")));
-            setState(State.Failure);
         } catch (err) {
             // If the request was initiated and the user changed 2FA method in the meantime,
             // the process is interrupted to avoid updating state of unmounted component.
@@ -156,9 +177,10 @@ const PushNotificationMethod = function (props: Props) {
         workflowID,
         mounted,
         onSignInErrorCallback,
-        onSignInSuccessCallback,
-        state,
         translate,
+        onSignInSuccessCallback,
+        handleRateLimited,
+        state,
     ]);
 
     const updateDuoDevice = useCallback(
@@ -194,8 +216,8 @@ const PushNotificationMethod = function (props: Props) {
     }, [props.authenticationLevel, setState]);
 
     useEffect(() => {
-        if (state === State.SignInInProgress) signInFunc();
-    }, [signInFunc, state]);
+        if (state === State.SignInInProgress) handleSignIn();
+    }, [handleSignIn, state]);
 
     if (state === State.Selection)
         return (
@@ -233,12 +255,12 @@ const PushNotificationMethod = function (props: Props) {
             duoSelfEnrollment={enroll_url ? props.duoSelfEnrollment : false}
             registered={props.registered}
             state={methodState}
-            onSelectClick={fetchDuoDevicesFunc}
+            onSelectClick={handleFetchDuoDevices}
             onRegisterClick={() => window.open(enroll_url, "_blank")}
         >
             <div className={styles.icon}>{icon}</div>
             <div className={state !== State.Failure ? "hidden" : ""}>
-                <Button color="secondary" onClick={signInFunc}>
+                <Button color="secondary" onClick={handleSignIn}>
                     {translate("Retry")}
                 </Button>
             </div>

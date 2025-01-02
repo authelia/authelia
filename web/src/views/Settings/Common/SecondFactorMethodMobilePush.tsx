@@ -1,4 +1,4 @@
-import React, { Fragment, ReactNode, useCallback, useEffect, useState } from "react";
+import React, { Fragment, ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
 import { Box, Button, Link, Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
@@ -24,6 +24,7 @@ export enum State {
     Success = 2,
     Failure = 3,
     Selection = 4,
+    RateLimited = 5,
 }
 
 export interface Props {
@@ -40,6 +41,26 @@ const SecondFactorMethodMobilePush = function (props: Props) {
     const [devices, setDevices] = useState([] as SelectableDevice[]);
 
     const { createErrorNotification } = useNotifications();
+
+    const timeoutRateLimit = useRef<NodeJS.Timeout>();
+
+    useEffect(() => {
+        return clearTimeout(timeoutRateLimit.current);
+    }, []);
+
+    const handleRateLimited = useCallback(
+        (retryAfter: number) => {
+            setState(State.RateLimited);
+
+            createErrorNotification(translate("You have made too many requests"));
+
+            timeoutRateLimit.current = setTimeout(() => {
+                setState(State.Failure);
+                timeoutRateLimit.current = undefined;
+            }, retryAfter * 1000);
+        },
+        [createErrorNotification, translate],
+    );
 
     const handleSelectDevice = useCallback(async () => {
         try {
@@ -92,29 +113,30 @@ const SecondFactorMethodMobilePush = function (props: Props) {
                             );
                             setDevices(selectableDevices);
                             setState(State.Selection);
-                            return;
+                            break;
                         case "enroll":
                             createErrorNotification(translate("No compatible device found"));
                             setState(State.Failure);
-                            return;
+                            break;
                         case "deny":
                             createErrorNotification(translate("Device selection was denied by Duo policy"));
                             setState(State.Failure);
-                            return;
+                            break;
                         default:
                             setState(State.Success);
                             props.onSecondFactorSuccess();
-                            return;
+                            break;
                     }
                 } else if (res.limited) {
-                    createErrorNotification(translate("You have made too many requests"));
+                    handleRateLimited(res.retryAfter);
+                } else {
+                    createErrorNotification(translate("There was an issue completing sign in process"));
                     setState(State.Failure);
-                    return;
                 }
+            } else {
+                createErrorNotification(translate("There was an issue completing sign in process"));
+                setState(State.Failure);
             }
-
-            createErrorNotification(translate("There was an issue completing sign in process"));
-            setState(State.Failure);
         } catch (err) {
             // If the request was initiated and the user changed 2FA method in the meantime,
             // the process is interrupted to avoid updating state of unmounted component.
@@ -124,7 +146,7 @@ const SecondFactorMethodMobilePush = function (props: Props) {
             createErrorNotification(translate("There was an issue completing sign in process"));
             setState(State.Failure);
         }
-    }, [createErrorNotification, mounted, props, state, translate]);
+    }, [createErrorNotification, handleRateLimited, mounted, props, state, translate]);
 
     const updateDuoDevice = useCallback(
         async function (device: DuoDevicePostRequest) {
