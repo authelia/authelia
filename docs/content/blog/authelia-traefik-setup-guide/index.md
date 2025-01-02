@@ -156,10 +156,6 @@ entryPoints:
     http:
       tls:
         certResolver: myresolver
-        domains:
-          - main: '{{< sitevar name="domain" nojs="example.com" >}}'
-            sans:
-              - '*.{{< sitevar name="domain" nojs="example.com" >}}'
 
 providers:
   docker:
@@ -271,7 +267,7 @@ identity_validation:
     require_second_factor: true
   reset_password:
     jwt_lifespan: '5 minutes'
-    jwt_secret: {{ secret "/secrets/jwt_secret.txt" | mindent 0 "|" | msquote}}
+    jwt_secret: {{ secret "/secrets/jwt_secret.txt" | mindent 0 "|" | msquote }}
 
 totp:
   disable: false
@@ -307,7 +303,7 @@ access_control:
 
 session:
   name: authelia_session
-  secret: {{ secret "/secrets/session_secret.txt" | mindent 0 "|" | msquote}}
+  secret: {{ secret "/secrets/session_secret.txt" | mindent 0 "|" | msquote }}
   cookies:
     - domain: '{{< sitevar name="domain" nojs="example.com" >}}'
       authelia_url: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
@@ -318,7 +314,7 @@ regulation:
   ban_time: 300
 
 storage:
-  encryption_key: {{ secret "/secrets/storage_encryption_key.txt" | mindent 0 "|" | msquote}}
+  encryption_key: {{ secret "/secrets/storage_encryption_key.txt" | mindent 0 "|" | msquote }}
   local:
     path: '/config/db.sqlite3'
 
@@ -352,14 +348,23 @@ Each section in the configuration file above has detailed documentation availabl
 These documentation pages provide comprehensive information about each configuration section, including all available options, examples, and best practices for setting up your Authelia instance.
 
 #### Secrets
-In the config there are [go templates](https://www.authelia.com/reference/guides/templating/) that can be identified by `{{ }}`. These are replaced with the contents of the files specified when Authelia is started.
+In the config there are go templates that can be identified by `{{ }}`. These are replaced with the contents of the files specified when Authelia is started. More information on them and the directives involved can be found [here](https://www.authelia.com/reference/guides/templating/).
 
 There are 3 required secrets that we need to create and put in `authelia/secrets/` directory:
 * jwt_secret.txt
 * storage_encryption_key.txt
 * session_secret.txt
 
-It is *Strongly Recommended* that these 3 values are [Random Alphanumeric Strings](https://www.authelia.com/reference/guides/generating-secure-values/#generating-a-random-alphanumeric-string) with 64 or more characters.
+You can automatically generate these secrets by running the following commands in the project root directory `project/`.
+```shell{{title="Ensure Correct Permissions"}}
+chown 8000:8000 ./authelia/secrets && chmod 0700 ./authelia/secrets
+```
+```shell{{title="Generate Secrets"}
+docker run --rm -u 8000:8000 -v ./authelia/secrets:/secrets docker.io/authelia/authelia sh -c "cd /secrets && authelia crypto rand --length 64 session_secret.txt storage_encryption_key.txt jwt_secret.txt"
+```
+
+
+**Note** If you elect to generate these secrets yourself, it is *Strongly Recommended* that these 3 values are [Random Alphanumeric Strings](https://www.authelia.com/reference/guides/generating-secure-values/#generating-a-random-alphanumeric-string) with 64 or more characters.
 
 
 #### Users Database
