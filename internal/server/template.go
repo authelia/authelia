@@ -251,25 +251,25 @@ func writeHealthCheckEnv(disabled bool, scheme, host, path string, port uint16) 
 // NewTemplatedFileOptions returns a new *TemplatedFileOptions.
 func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileOptions) {
 	opts = &TemplatedFileOptions{
-		AssetPath:              config.Server.AssetPath,
-		DuoSelfEnrollment:      strFalse,
-		PasskeyLogin:           strconv.FormatBool(config.WebAuthn.EnablePasskeyLogin),
-		RememberMe:             strconv.FormatBool(!config.Session.DisableRememberMe),
-		ResetPassword:          strconv.FormatBool(!config.AuthenticationBackend.PasswordReset.Disable),
-		ResetPasswordCustomURL: config.AuthenticationBackend.PasswordReset.CustomURL.String(),
-		PasswordChange:         strconv.FormatBool(!config.AuthenticationBackend.PasswordChange.Disable),
-		PrivacyPolicyURL:       "",
-		PrivacyPolicyAccept:    strFalse,
-		Theme:                  config.Theme,
-
-		EndpointsPasswordReset: !(config.AuthenticationBackend.PasswordReset.Disable || config.AuthenticationBackend.PasswordReset.CustomURL.String() != ""),
+		AssetPath:               config.Server.AssetPath,
+		DuoSelfEnrollment:       strFalse,
+		PasskeyLogin:            strconv.FormatBool(config.WebAuthn.EnablePasskeyLogin),
+		RememberMe:              strconv.FormatBool(!config.Session.DisableRememberMe),
+		ResetPassword:           strconv.FormatBool(!config.AuthenticationBackend.PasswordReset.Disable),
+		ResetPasswordCustomURL:  config.AuthenticationBackend.PasswordReset.CustomURL.String(),
+		PasswordChange:          strconv.FormatBool(!config.AuthenticationBackend.PasswordChange.Disable),
+		PrivacyPolicyURL:        "",
+		PrivacyPolicyAccept:     strFalse,
+		Session:                 "",
+		Theme:                   config.Theme,
+		EndpointsPasswordReset:  !(config.AuthenticationBackend.PasswordReset.Disable || config.AuthenticationBackend.PasswordReset.CustomURL.String() != ""),
 		EndpointsPasswordChange: !config.AuthenticationBackend.PasswordChange.Disable,
-		EndpointsWebAuthn:      !config.WebAuthn.Disable,
-		EndpointsPasskeys:      !config.WebAuthn.Disable && config.WebAuthn.EnablePasskeyLogin,
-		EndpointsTOTP:          !config.TOTP.Disable,
-		EndpointsDuo:           !config.DuoAPI.Disable,
-		EndpointsOpenIDConnect: !(config.IdentityProviders.OIDC == nil),
-		EndpointsAuthz:         config.Server.Endpoints.Authz,
+		EndpointsWebAuthn:       !config.WebAuthn.Disable,
+		EndpointsPasskeys:       !config.WebAuthn.Disable && config.WebAuthn.EnablePasskeyLogin,
+		EndpointsTOTP:           !config.TOTP.Disable,
+		EndpointsDuo:            !config.DuoAPI.Disable,
+		EndpointsOpenIDConnect:  !(config.IdentityProviders.OIDC == nil),
+		EndpointsAuthz:          config.Server.Endpoints.Authz,
 	}
 
 	if config.PrivacyPolicy.Enabled {
@@ -298,13 +298,13 @@ type TemplatedFileOptions struct {
 	Session                string
 	Theme                  string
 
-	EndpointsPasswordReset bool
+	EndpointsPasswordReset  bool
 	EndpointsPasswordChange bool
-	EndpointsWebAuthn      bool
-	EndpointsPasskeys      bool
-	EndpointsTOTP          bool
-	EndpointsDuo           bool
-	EndpointsOpenIDConnect bool
+	EndpointsWebAuthn       bool
+	EndpointsPasskeys       bool
+	EndpointsTOTP           bool
+	EndpointsDuo            bool
+	EndpointsOpenIDConnect  bool
 
 	EndpointsAuthz map[string]schema.ServerEndpointsAuthz
 }

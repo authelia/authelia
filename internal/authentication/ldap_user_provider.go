@@ -164,7 +164,11 @@ func (p *LDAPUserProvider) GetDetailsExtended(username string) (details *UserDet
 		return nil, err
 	}
 
-	defer client.Close()
+	defer func() {
+		if err := p.factory.ReleaseClient(client); err != nil {
+			p.log.WithError(err).Warn("Error occurred releasing the LDAP client")
+		}
+	}()
 
 	if profile, err = p.getUserProfileExtended(client, username); err != nil {
 		return nil, err
@@ -246,7 +250,7 @@ func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error)
 	)
 
 	if client, err = p.factory.GetClient(); err != nil {
-		return fmt.Errorf("%w : %v", ErrOperationFailed, err)
+		return fmt.Errorf("unable to update password. Cause: %v", err)
 	}
 
 	defer func() {
@@ -346,7 +350,7 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 	}
 
 	if oldPassword == newPassword {
-		return ErrPasswordReuse
+		return ErrPasswordWeak
 	}
 
 	switch {
@@ -369,6 +373,7 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 
 		modifyRequest.Replace(ldapAttributeUnicodePwd, []string{pwdEncoded})
 
+		//nolint
 		err = p.modify(client, modifyRequest)
 	default:
 		modifyRequest := ldap.NewModifyRequest(profile.DN, controls)

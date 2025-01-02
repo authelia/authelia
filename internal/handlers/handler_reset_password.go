@@ -241,9 +241,9 @@ func identityRetrieverFromStorage(ctx *middlewares.AutheliaCtx) (*session.Identi
 	}, nil
 }
 
-// ResetPasswordIdentityVerificationStart is the handler for initiating the identity validation for resetting a password.
+// ResetPasswordIdentityStart is the handler for initiating the identity validation for resetting a password.
 // We need to ensure the attacker cannot perform user enumeration by always replying with 200 whatever what happens in backend.
-var ResetPasswordIdentityVerificationStart = middlewares.IdentityVerificationStart(middlewares.IdentityVerificationStartArgs{
+var ResetPasswordIdentityStart = middlewares.IdentityVerificationStart(middlewares.IdentityVerificationStartArgs{
 	MailTitle:               "Reset your password",
 	MailButtonContent:       "Reset",
 	MailButtonRevokeContent: "Revoke",
@@ -274,6 +274,6 @@ func resetPasswordIdentityVerificationFinish(ctx *middlewares.AutheliaCtx, usern
 	}
 }
 
-// ResetPasswordIdentityVerificationFinish the handler for finishing the identity validation.
-var ResetPasswordIdentityVerificationFinish = middlewares.IdentityVerificationFinish(
+// ResetPasswordIdentityFinish the handler for finishing the identity validation.
+var ResetPasswordIdentityFinish = middlewares.IdentityVerificationFinish(
 	middlewares.IdentityVerificationFinishArgs{ActionClaim: ActionResetPassword}, resetPasswordIdentityVerificationFinish)
