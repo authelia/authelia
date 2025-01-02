@@ -307,6 +307,7 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth = Authenti
 
 // AuthenticationBackendDB represents the configuration related to sql-based backend.
 type AuthenticationBackendDB struct {
+	Enabled  bool                          `koanf:"enabled" json:"enabled" jsonschema:"default=false,title=Enabled" jsonschema_description:"Enables the DB authentication backend."`
 	Password AuthenticationBackendPassword `koanf:"password" json:"password" jsonschema:"title=Password Options" jsonschema_description:"Allows configuration of the password hashing options when the user passwords are changed directly by Authelia."`
 	Search   AuthenticationBackendDBSearch `koanf:"search" json:"search" jsonschema:"title=Search" jsonschema_description:"Configures the user searching behaviour."`
 }

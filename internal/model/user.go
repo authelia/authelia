@@ -17,8 +17,8 @@ type User struct {
 	// The email for the user.
 	Email string `db:"email" json:"email"`
 
-	// The groups list for the user.
-	Groups []string `db:"groups" json:"groups"`
+	// // The groups list for the user.
+	// Groups []string `db:"groups" json:"groups"`
 
 	// True if the user is disabled.
 	Disabled bool `db:"disabled" json:"disabled"`

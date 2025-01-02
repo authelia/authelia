@@ -173,6 +173,7 @@ var Keys = []string{
 	"authentication_backend.ldap.permit_feature_detection_failure",
 	"authentication_backend.ldap.user",
 	"authentication_backend.ldap.password",
+	"authentication_backend.db.enabled",
 	"authentication_backend.db.password.algorithm",
 	"authentication_backend.db.password.argon2.variant",
 	"authentication_backend.db.password.argon2.iterations",

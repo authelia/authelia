@@ -456,7 +456,7 @@ const (
 // querys for user table.
 const (
 	queryFmtSelectUser = `
-		SELECT username, password, display_name, email, groups, disabled
+		SELECT username, password, display_name, email, disabled
 		FROM %s
 		WHERE %s = ?;`
 

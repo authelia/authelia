@@ -17,7 +17,7 @@ import (
 
 // ValidateAuthenticationBackend validates and updates the authentication backend configuration.
 func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
-	if config.LDAP == nil && config.File == nil && config.DB == nil {
+	if config.LDAP == nil && config.File == nil && (config.DB == nil || !config.DB.Enabled) {
 		validator.Push(errors.New(errFmtAuthBackendNotConfigured))
 	}
 
@@ -59,7 +59,7 @@ func validateAuthenticationBackendType(config *schema.AuthenticationBackend, val
 	}
 
 	if config.DB != nil {
-		validateDbAuthenticationBackend(config.File, validator)
+		validateDbAuthenticationBackend(config.DB, validator)
 	}
 }
 
@@ -541,6 +541,6 @@ func validateLDAPGroupFilter(config *schema.AuthenticationBackend, validator *sc
 }
 
 // validateDbAuthenticationBackend validates and updates the db authentication backend configuration.
-func validateDbAuthenticationBackend(config *schema.AuthenticationBackendFile, validator *schema.StructValidator) {
+func validateDbAuthenticationBackend(config *schema.AuthenticationBackendDB, validator *schema.StructValidator) {
 	ValidatePasswordConfiguration(&config.Password, validator)
 }

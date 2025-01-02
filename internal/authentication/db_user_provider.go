@@ -14,12 +14,12 @@ import (
 // DBUserProvider is a provider reading details from a sql database.
 type DBUserProvider struct {
 	config   *schema.AuthenticationBackendDB
-	database storage.Provider
+	database storage.AuthenticationProvider
 	hash     algorithm.Hash
 }
 
 // NewDBUserProvider creates a new instance of FileUserProvider.
-func NewDBUserProvider(config *schema.AuthenticationBackendDB, database storage.Provider) (provider *DBUserProvider) {
+func NewDBUserProvider(config *schema.AuthenticationBackendDB, database storage.AuthenticationProvider) (provider *DBUserProvider) {
 	return &DBUserProvider{
 		config:   config,
 		database: database,
@@ -28,10 +28,6 @@ func NewDBUserProvider(config *schema.AuthenticationBackendDB, database storage.
 
 // StartupCheck implements authentication.UserProvider.StartupCheck().
 func (p *DBUserProvider) StartupCheck() (err error) {
-	if err := p.database.StartupCheck(); err != nil {
-		return err
-	}
-
 	// TODO: verify that table exists.
 
 	if p.hash, err = NewCryptoHashFromConfig(p.config.Password); err != nil {
@@ -65,7 +61,8 @@ func (p *DBUserProvider) GetDetails(username string) (details *UserDetails, err 
 		Username:    user.Username,
 		DisplayName: user.DisplayName,
 		Emails:      []string{user.Email},
-		Groups:      user.Groups,
+		 //TODO: buscar lista de grupos de una tablaexterna
+		Groups:      []string{"admins", "dev"},
 	}, nil
 }
 
