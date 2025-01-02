@@ -29,7 +29,6 @@ func NewDBUserProvider(config *schema.AuthenticationBackendDB, database storage.
 // StartupCheck implements authentication.UserProvider.StartupCheck().
 func (p *DBUserProvider) StartupCheck() (err error) {
 	// TODO: verify that table exists.
-
 	if p.hash, err = NewCryptoHashFromConfig(p.config.Password); err != nil {
 		return err
 	}
@@ -61,8 +60,8 @@ func (p *DBUserProvider) GetDetails(username string) (details *UserDetails, err 
 		Username:    user.Username,
 		DisplayName: user.DisplayName,
 		Emails:      []string{user.Email},
-		 //TODO: buscar lista de grupos de una tablaexterna
-		Groups:      []string{"admins", "dev"},
+		//TODO: buscar lista de grupos de una tablaexterna.
+		Groups: []string{"admins", "dev"},
 	}, nil
 }
 
