@@ -35,7 +35,7 @@ func (s *ChangePasswordSuite) SetupTest() {
 	userSession.Username = testUsername
 	userSession.DisplayName = testUsername
 	userSession.Emails[0] = testEmail
-	userSession.AuthenticationLevel = 1
+	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
 	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
 }
 
