@@ -46,7 +46,7 @@ func (p *DBUserProvider) CheckUserPassword(username string, password string) (va
 
 	var d algorithm.Digest
 
-	if d, err = crypt.Decode(user.Password); err != nil {
+	if d, err = crypt.Decode(string(user.Password)); err != nil {
 		return false, err
 	}
 

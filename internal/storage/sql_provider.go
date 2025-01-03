@@ -1360,8 +1360,10 @@ func (p *SQLProvider) LoadUserByEmail(ctx context.Context, email string) (detail
 }
 
 // loadUser loads user information using specific query.
-func (p *SQLProvider) loadUser(ctx context.Context, query, identifier string) (details model.User, err error) {
-	err = p.db.GetContext(ctx, &details, query, identifier)
+func (p *SQLProvider) loadUser(ctx context.Context, query, identifier string) (model.User, error) {
+	var user model.User
+
+	err := p.db.GetContext(ctx, &user, query, identifier)
 
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
@@ -1370,25 +1372,35 @@ func (p *SQLProvider) loadUser(ctx context.Context, query, identifier string) (d
 		return model.User{}, fmt.Errorf(errLoadingUserDetails, identifier, err)
 	}
 
+	if user.Password, err = p.decrypt(user.Password); err != nil {
+		return model.User{}, fmt.Errorf("error decrypting password for user '%s': %w", identifier, err)
+	}
+
 	var groups []string
 
-	if groups, err = p.getUserGroups(context.Background(), details.ID); err != nil {
+	if groups, err = p.getUserGroups(context.Background(), user.ID); err != nil {
 		return model.User{}, err
 	}
 
-	details.Groups = groups
+	user.Groups = groups
 
-	return details, nil
+	return user, nil
 }
 
 // UpdateUserPassword implements storage.Provider.UpdateUserPassword.
 func (p *SQLProvider) UpdateUserPassword(ctx context.Context, username, password string) (err error) {
+	var encryptedPassword []byte
+
 	// check that user exists.
 	if _, err = p.LoadUserByUsername(ctx, username); err != nil {
 		return err
 	}
 
-	if _, err = p.db.ExecContext(ctx, p.sqlUpdateUserPassword, password, username); err != nil {
+	if encryptedPassword, err = p.encrypt([]byte(password)); err != nil {
+		return fmt.Errorf("error encrypting password for user '%s': %w", username, err)
+	}
+
+	if _, err = p.db.ExecContext(ctx, p.sqlUpdateUserPassword, encryptedPassword, username); err != nil {
 		return fmt.Errorf(errUpdatingUserPassword, username, err)
 	}
 

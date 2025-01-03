@@ -10,7 +10,7 @@ type User struct {
 	Username string `db:"username"`
 
 	// the user's password.
-	Password string `db:"password"`
+	Password []byte `db:"password"`
 
 	// The users display name.
 	DisplayName string `db:"display_name"`
