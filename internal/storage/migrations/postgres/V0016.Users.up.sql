@@ -1,0 +1,22 @@
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    display_name VARCHAR(100) DEFAULT NULL,
+    password BYTEA NOT NULL,
+    disabled BOOLEAN DEFAULT FALSE
+);
+
+CREATE TABLE IF NOT EXISTS groups (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS users_groups (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    group_id INT NOT NULL,
+    UNIQUE(user_id, group_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
+);

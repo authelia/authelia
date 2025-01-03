@@ -43,10 +43,9 @@ func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validat
 
 // validateAuthenticationBackendType validates and updates the authentication backend configuration.
 func validateAuthenticationBackendType(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
-	// TODO: find a best solution for this.
 	if config.LDAP != nil && config.File != nil ||
-		config.LDAP != nil && config.DB != nil ||
-		config.File != nil && config.DB != nil {
+		config.LDAP != nil && (config.DB != nil && config.DB.Enabled) ||
+		config.File != nil && (config.DB != nil && config.DB.Enabled) {
 		validator.Push(errors.New(errFmtAuthBackendMultipleConfigured))
 	}
 

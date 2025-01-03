@@ -1,24 +1,22 @@
-PRAGMA foreign_keys = ON;
-
 CREATE TABLE IF NOT EXISTS `users` (
-    `id` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `username` VARCHAR(100) NOT NULL UNIQUE,
     `email` VARCHAR(255) NOT NULL UNIQUE,
     `display_name` VARCHAR(100) DEFAULT NULL,
     `password` BLOB NOT NULL,
-    `disabled` INT DEFAULT 0
-);
+    `disabled` TINYINT(1) DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `groups` (
-    `id` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `name` VARCHAR(100) NOT NULL UNIQUE
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `users_groups` (
-    `id` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    `user_id` INTEGER NOT NULL,
-    `group_id` INTEGER NOT NULL,
-    UNIQUE(user_id, group_id),
+    `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `user_id` INT NOT NULL,
+    `group_id` INT NOT NULL,
+    UNIQUE KEY `uniq_user_group` (`user_id`, `group_id`),
     FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`group_id`) REFERENCES `groups`(`id`) ON DELETE CASCADE
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

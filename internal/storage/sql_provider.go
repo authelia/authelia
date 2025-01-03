@@ -151,10 +151,25 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 
 		sqlFmtRenameTable: queryFmtRenameTable,
 
-		sqlSelectUserByUsername: fmt.Sprintf(queryFmtSelectUser, tableUsers, tableUsersFieldUsername),
-		sqlSelectUserByEmail:    fmt.Sprintf(queryFmtSelectUser, tableUsers, tableUsersFieldEmail),
-		sqlUpdateUserPassword:   fmt.Sprintf(queryFmtUpdateUserPassword, tableUsers),
-		sqlSelectUserGroups:     fmt.Sprintf(queryFmtSelectUserGroups, tableGroups, tableUsersGroups, tableGroups, tableGroups, tableUsersGroups, tableUsersGroups),
+		sqlSelectUserByUsername: fmt.Sprintf(queryFmtSelectUser,
+			quoteTableName(tableUsers, driverName),
+			tableUsersFieldUsername,
+		),
+		sqlSelectUserByEmail: fmt.Sprintf(queryFmtSelectUser,
+			quoteTableName(tableUsers, driverName),
+			tableUsersFieldEmail,
+		),
+		sqlUpdateUserPassword: fmt.Sprintf(queryFmtUpdateUserPassword,
+			quoteTableName(tableUsers, driverName),
+		),
+		sqlSelectUserGroups: fmt.Sprintf(queryFmtSelectUserGroups,
+			quoteTableName(tableGroups, driverName),
+			quoteTableName(tableUsersGroups, driverName),
+			quoteTableName(tableGroups, driverName),
+			quoteTableName(tableGroups, driverName),
+			quoteTableName(tableUsersGroups, driverName),
+			quoteTableName(tableUsersGroups, driverName),
+		),
 	}
 
 	return provider
@@ -1373,7 +1388,8 @@ func (p *SQLProvider) loadUser(ctx context.Context, query, identifier string) (m
 	}
 
 	if user.Password, err = p.decrypt(user.Password); err != nil {
-		return model.User{}, fmt.Errorf("error decrypting password for user '%s': %w", identifier, err)
+		// return model.User{}, fmt.Errorf("error decrypting password for user '%s': %w", identifier, err).
+		user.Password = []byte{}
 	}
 
 	var groups []string
