@@ -32,6 +32,10 @@ const ResetPasswordStep1 = function () {
 
     const handleRateLimited = useCallback(
         (retryAfter: number) => {
+            if (timeoutRateLimit.current) {
+                clearTimeout(timeoutRateLimit.current);
+            }
+
             setRateLimited(true);
 
             createErrorNotification(translate("You have made too many requests"));

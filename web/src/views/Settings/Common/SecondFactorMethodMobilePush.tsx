@@ -50,6 +50,10 @@ const SecondFactorMethodMobilePush = function (props: Props) {
 
     const handleRateLimited = useCallback(
         (retryAfter: number) => {
+            if (timeoutRateLimit.current) {
+                clearTimeout(timeoutRateLimit.current);
+            }
+
             setState(State.RateLimited);
 
             createErrorNotification(translate("You have made too many requests"));

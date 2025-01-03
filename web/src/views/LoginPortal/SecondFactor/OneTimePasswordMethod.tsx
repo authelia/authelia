@@ -59,6 +59,10 @@ const OneTimePasswordMethod = function (props: Props) {
 
     const handleRateLimited = useCallback(
         (retryAfter: number) => {
+            if (timeoutRateLimit.current) {
+                clearTimeout(timeoutRateLimit.current);
+            }
+
             setState(State.RateLimited);
 
             onSignInErrorCallback(new Error(translate("You have made too many requests")));

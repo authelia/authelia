@@ -99,13 +99,24 @@ function getRetryAfter(resp: AxiosResponse): number {
     }
 
     if (resp.headers["retry-after"]) {
-        const retryAfter = parseFloat(resp.headers["retry-after"]);
+        const value = resp.headers["retry-after"];
 
-        if (Number.isNaN(retryAfter)) {
-            throw new Error("Header Retry-After has an invalid value");
+        if (/^\d+$/.test(value)) {
+            const retryAfter = parseFloat(resp.headers["retry-after"]);
+
+            if (Number.isNaN(retryAfter)) {
+                throw new Error("Header Retry-After has an invalid number value");
+            }
+
+            return retryAfter;
+        } else {
+            const date = new Date(value);
+            if (isNaN(date.getTime())) {
+                throw new Error("Header Retry-After has an invalid date value");
+            }
+
+            return Math.max(0, (date.getTime() - Date.now()) / 1000);
         }
-
-        return retryAfter;
     }
 
     throw new Error("Header Retry-After is missing");
@@ -117,6 +128,8 @@ export function toDataRateLimited<T>(resp: AxiosResponse<ServiceResponse<T>>): R
             return { limited: false, retryAfter: 0, data: resp.data.data as T };
         } else if (resp.data["status"] === "KO") {
             return { limited: resp.status === 429, retryAfter: getRetryAfter(resp) };
+        } else if (resp.status === 429) {
+            return { limited: true, retryAfter: getRetryAfter(resp) };
         }
     }
 

@@ -27,10 +27,6 @@ consuming too many resources or using brute-force to potentially compromise secu
 
 {{< config-alert-example >}}
 
-## Configuration
-
-{{< config-alert-example >}}
-
 ```yaml {title=configuration.yml}
 server:
   endpoints:
