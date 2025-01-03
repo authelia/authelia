@@ -16,12 +16,12 @@ func NewEnvoySuite() *EnvoySuite {
 	}
 }
 
-func (s *EnvoySuite) Test1FAScenario() {
-	suite.Run(s.T(), New1FAScenario())
+func (s *EnvoySuite) TestOneFactorScenario() {
+	suite.Run(s.T(), NewOneFactorScenario())
 }
 
-func (s *EnvoySuite) Test2FATOTPScenario() {
-	suite.Run(s.T(), New2FATOTPScenario())
+func (s *EnvoySuite) TestTwoFactorTOTPScenario() {
+	suite.Run(s.T(), NewTwoFactorTOTPScenario())
 }
 
 func (s *EnvoySuite) TestCustomHeaders() {

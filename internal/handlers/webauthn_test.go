@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/go-webauthn/webauthn/protocol"
+	gowebauthn "github.com/go-webauthn/webauthn/webauthn"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
@@ -15,6 +16,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/webauthn"
 )
 
 func TestWebAuthnFormatError(t *testing.T) {
@@ -56,14 +58,14 @@ func TestWebAuthnFormatError(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			actual := formatWebAuthnError(tc.have)
+			actual := webauthn.FormatError(tc.have)
 
 			assert.EqualError(t, actual, tc.expected)
 		})
 	}
 }
 
-func TestWebAuthnGetUserx(t *testing.T) {
+func TestWebAuthnGetUser(t *testing.T) {
 	testCases := []struct {
 		name        string
 		setup       func(t *testing.T, mock *mocks.MockAutheliaCtx)
@@ -428,128 +430,96 @@ func TestWebAuthnNewWebAuthnShouldReturnErrWhenHeadersNotAvailable(t *testing.T)
 	ctx := mocks.NewMockAutheliaCtx(t)
 	ctx.Ctx.Request.Header.Del(fasthttp.HeaderXForwardedHost)
 
-	w, err := handleNewWebAuthn(ctx.Ctx)
+	w, err := ctx.Ctx.GetWebAuthnProvider()
 
 	assert.Nil(t, w)
 	assert.EqualError(t, err, "missing required X-Forwarded-Host header")
 }
 
-func TestWebAuthnNewWebAuthnShouldReturnErrWhenWebAuthnNotConfigured(t *testing.T) {
-	ctx := mocks.NewMockAutheliaCtx(t)
-
-	ctx.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedHost, exampleDotCom)
-	ctx.Ctx.Request.Header.Set("X-Forwarded-URI", "/")
-	ctx.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedProto, "https")
-
-	w, err := handleNewWebAuthn(ctx.Ctx)
-
-	assert.Nil(t, w)
-	assert.EqualError(t, err, "error occurred validating the configuration: the field 'RPDisplayName' must be configured but it is empty")
-}
-
-func TestWebauthnCredentialCreationIsDiscoverable(t *testing.T) {
+func TestWebAuthnHandlerDiscoverableLogin(t *testing.T) {
 	testCases := []struct {
-		name      string
-		have      *protocol.ParsedCredentialCreationData
-		expected  bool
-		expectedf func(t *testing.T, mock *mocks.MockAutheliaCtx)
+		name     string
+		setup    func(t *testing.T, mock *mocks.MockAutheliaCtx)
+		expected gowebauthn.User
+		err      string
 	}{
 		{
-			"ShouldBeDiscoverable",
-			&protocol.ParsedCredentialCreationData{
-				ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{
-					ClientExtensionResults: map[string]any{
-						WebAuthnExtensionCredProps: map[string]any{
-							WebAuthnExtensionCredPropsResidentKey: true,
-						},
-					},
+			"ShouldHandleSuccessCondition",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				gomock.InOrder(
+					mock.StorageMock.EXPECT().
+						LoadWebAuthnUserByUserID(mock.Ctx, "https://example.com", "example").
+						Return(&model.WebAuthnUser{ID: 1, Username: "john"}, nil),
+					mock.StorageMock.EXPECT().
+						LoadWebAuthnPasskeyCredentialsByUsername(mock.Ctx, "https://example.com", "john").
+						Return([]model.WebAuthnCredential{{ID: 1, RPID: exampleDotCom, Username: testUsername}}, nil),
+				)
+			},
+			&model.WebAuthnUser{
+				ID:       1,
+				Username: "john",
+				Credentials: []model.WebAuthnCredential{
+					{ID: 1, RPID: exampleDotCom, Username: testUsername},
 				},
 			},
-			true,
-			nil,
+			"",
 		},
 		{
-			"ShouldNotBeDiscoverableExplicit",
-			&protocol.ParsedCredentialCreationData{
-				ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{
-					ClientExtensionResults: map[string]any{
-						WebAuthnExtensionCredProps: map[string]any{
-							WebAuthnExtensionCredPropsResidentKey: false,
-						},
-					},
-				},
+			"ShouldHandleCredentialsError",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				gomock.InOrder(
+					mock.StorageMock.EXPECT().
+						LoadWebAuthnUserByUserID(mock.Ctx, "https://example.com", "example").
+						Return(&model.WebAuthnUser{ID: 1, Username: "john"}, nil),
+					mock.StorageMock.EXPECT().
+						LoadWebAuthnPasskeyCredentialsByUsername(mock.Ctx, "https://example.com", "john").
+						Return(nil, fmt.Errorf("bad credentials")),
+				)
 			},
-			false,
 			nil,
+			"bad credentials",
 		},
 		{
-			"ShouldNotBeDiscoverableImplicitType",
-			&protocol.ParsedCredentialCreationData{
-				ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{
-					ClientExtensionResults: map[string]any{
-						WebAuthnExtensionCredProps: map[string]any{
-							WebAuthnExtensionCredPropsResidentKey: 1,
-						},
-					},
-				},
+			"ShouldHandleUserError",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				gomock.InOrder(
+					mock.StorageMock.EXPECT().
+						LoadWebAuthnUserByUserID(mock.Ctx, "https://example.com", "example").
+						Return(nil, fmt.Errorf("user does not exist")),
+				)
 			},
-			false,
 			nil,
+			"user does not exist",
 		},
 		{
-			"ShouldNotBeDiscoverableImplicitNoRK",
-			&protocol.ParsedCredentialCreationData{
-				ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{
-					ClientExtensionResults: map[string]any{
-						WebAuthnExtensionCredProps: map[string]any{},
-					},
-				},
+			"ShouldHandleUserNil",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				gomock.InOrder(
+					mock.StorageMock.EXPECT().
+						LoadWebAuthnUserByUserID(mock.Ctx, "https://example.com", "example").
+						Return(nil, nil),
+				)
 			},
-			false,
 			nil,
-		},
-		{
-			"ShouldNotBeDiscoverableImplicitNoCredPropsType",
-			&protocol.ParsedCredentialCreationData{
-				ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{
-					ClientExtensionResults: map[string]any{
-						WebAuthnExtensionCredProps: 1,
-					},
-				},
-			},
-			false,
-			nil,
-		},
-		{
-			"ShouldNotBeDiscoverableImplicitNoCredProps",
-			&protocol.ParsedCredentialCreationData{
-				ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{
-					ClientExtensionResults: map[string]any{},
-				},
-			},
-			false,
-			nil,
-		},
-		{
-			"ShouldNotBeDiscoverableImplicitNoCredPropsNil",
-			&protocol.ParsedCredentialCreationData{
-				ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{},
-			},
-			false,
-			nil,
+			"user not found",
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			mock := mocks.NewMockAutheliaCtx(t)
-
 			defer mock.Close()
 
-			assert.Equal(t, tc.expected, handleWebAuthnCredentialCreationIsDiscoverable(mock.Ctx, tc.have))
+			tc.setup(t, mock)
 
-			if tc.expectedf != nil {
-				tc.expectedf(t, mock)
+			handler := handlerWebAuthnDiscoverableLogin(mock.Ctx, "https://example.com")
+
+			actual, err := handler([]byte("example"), []byte("example"))
+			if len(tc.err) > 0 {
+				assert.EqualError(t, err, tc.err)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tc.expected, actual)
 			}
 		})
 	}

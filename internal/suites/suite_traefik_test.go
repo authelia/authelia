@@ -18,12 +18,12 @@ func NewTraefikSuite(name string) *TraefikSuite {
 	}
 }
 
-func (s *TraefikSuite) Test1FAScenario() {
-	suite.Run(s.T(), New1FAScenario())
+func (s *TraefikSuite) TestOneFactorScenario() {
+	suite.Run(s.T(), NewOneFactorScenario())
 }
 
-func (s *TraefikSuite) Test2FATOTPScenario() {
-	suite.Run(s.T(), New2FATOTPScenario())
+func (s *TraefikSuite) TestTwoFactorTOTPScenario() {
+	suite.Run(s.T(), NewTwoFactorTOTPScenario())
 }
 
 func (s *TraefikSuite) TestCustomHeaders() {

@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"fmt"
+	"net/url"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -12,6 +13,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
+	iwebauthn "github.com/authelia/authelia/v4/internal/webauthn"
 )
 
 // WebAuthnAssertionGET handler starts the assertion ceremony.
@@ -24,37 +26,50 @@ func WebAuthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 	)
 
 	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn authentication challenge: %s", errStrUserSessionData)
-
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
+
+		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn authentication challenge: %s", errStrUserSessionData)
 
 		return
 	}
 
 	if userSession.IsAnonymous() {
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
 		ctx.Logger.WithError(errUserAnonymous).Error("Error occurred generating a WebAuthn authentication challenge")
 
-		ctx.SetStatusCode(fasthttp.StatusForbidden)
-		ctx.SetJSONError(messageMFAValidationFailed)
-
 		return
 	}
 
-	if w, err = handleNewWebAuthn(ctx); err != nil {
+	var origin *url.URL
+
+	if origin, err = ctx.GetOrigin(); err != nil {
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
 		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn authentication challenge for user '%s': error occurred provisioning the configuration", userSession.Username)
 
+		return
+	}
+
+	if w, err = ctx.GetWebAuthnProvider(); err != nil {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
+
+		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn authentication challenge for user '%s': error occurred provisioning the configuration", userSession.Username)
 
 		return
 	}
 
-	if user, err = handleGetWebAuthnUserByRPID(ctx, userSession.Username, userSession.DisplayName, w.Config.RPID); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn authentication challenge for user '%s': error occurred retrieving the WebAuthn user configuration from the storage backend", userSession.Username)
+	rpid := origin.Hostname()
 
+	if user, err = handleGetWebAuthnUserByRPID(ctx, userSession.Username, userSession.DisplayName, rpid); err != nil {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
+
+		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn authentication challenge for user '%s': error occurred retrieving the WebAuthn user configuration from the storage backend", userSession.Username)
 
 		return
 	}
@@ -67,6 +82,7 @@ func WebAuthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 
 	var opts = []webauthn.LoginOption{
 		webauthn.WithAllowedCredentials(user.WebAuthnCredentialDescriptors()),
+		webauthn.WithLoginRelyingPartyID(rpid),
 	}
 
 	if len(extensions) != 0 {
@@ -79,10 +95,10 @@ func WebAuthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 	)
 
 	if assertion, data.SessionData, err = w.BeginLogin(user, opts...); err != nil {
-		ctx.Logger.WithError(formatWebAuthnError(err)).Errorf("Error occurred generating a WebAuthn authentication challenge for user '%s': error occurred starting the authentication session", userSession.Username)
-
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
+
+		ctx.Logger.WithError(iwebauthn.FormatError(err)).Errorf("Error occurred generating a WebAuthn authentication challenge for user '%s': error occurred starting the authentication session", userSession.Username)
 
 		return
 	}
@@ -90,19 +106,19 @@ func WebAuthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 	userSession.WebAuthn = &data
 
 	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn authentication challenge for user '%s': %s", userSession.Username, errStrUserSessionDataSave)
-
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
+
+		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn authentication challenge for user '%s': %s", userSession.Username, errStrUserSessionDataSave)
 
 		return
 	}
 
 	if err = ctx.SetJSONBody(assertion); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn authentication challenge for user '%s': %s", userSession.Username, errStrRespBody)
-
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageUnableToRegisterSecurityKey)
+
+		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn authentication challenge for user '%s': %s", userSession.Username, errStrRespBody)
 
 		return
 	}
@@ -123,7 +139,7 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 
 		bodyJSON bodySignWebAuthnRequest
 
-		assertionResponse *protocol.ParsedCredentialAssertionData
+		response *protocol.ParsedCredentialAssertionData
 	)
 
 	if userSession, err = ctx.GetSession(); err != nil {
@@ -153,8 +169,8 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if assertionResponse, err = protocol.ParseCredentialRequestResponseBody(bytes.NewReader(bodyJSON.Response)); err != nil {
-		ctx.Logger.WithError(formatWebAuthnError(err)).Errorf("Error occurred validating a WebAuthn authentication challenge for user '%s': %s", userSession.Username, errStrReqBodyParse)
+	if response, err = protocol.ParseCredentialRequestResponseBody(bytes.NewReader(bodyJSON.Response)); err != nil {
+		ctx.Logger.WithError(iwebauthn.FormatError(err)).Errorf("Error occurred validating a WebAuthn authentication challenge for user '%s': %s", userSession.Username, errStrReqBodyParse)
 
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetJSONError(messageMFAValidationFailed)
@@ -171,7 +187,7 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if w, err = handleNewWebAuthn(ctx); err != nil {
+	if w, err = ctx.GetWebAuthnProvider(); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn authentication challenge for user '%s': error occurred provisioning the configuration", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -189,8 +205,8 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if c, err = w.ValidateLogin(user, *userSession.WebAuthn.SessionData, assertionResponse); err != nil {
-		_ = markAuthenticationAttempt(ctx, false, nil, userSession.Username, regulation.AuthTypeWebAuthn, formatWebAuthnError(err))
+	if c, err = w.ValidateLogin(user, *userSession.WebAuthn.SessionData, response); err != nil {
+		_ = markAuthenticationAttempt(ctx, false, nil, userSession.Username, regulation.AuthTypeWebAuthn, iwebauthn.FormatError(err))
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
@@ -262,9 +278,9 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	userSession.SetTwoFactorWebAuthn(ctx.Clock.Now(),
-		assertionResponse.ParsedPublicKeyCredential.AuthenticatorAttachment == protocol.CrossPlatform,
-		assertionResponse.Response.AuthenticatorData.Flags.HasUserPresent(),
-		assertionResponse.Response.AuthenticatorData.Flags.HasUserVerified())
+		response.ParsedPublicKeyCredential.AuthenticatorAttachment == protocol.CrossPlatform,
+		response.Response.AuthenticatorData.Flags.HasUserPresent(),
+		response.Response.AuthenticatorData.Flags.HasUserVerified())
 
 	if bodyJSON.Workflow == workflowOpenIDConnect {
 		handleOIDCWorkflowResponse(ctx, &userSession, bodyJSON.TargetURL, bodyJSON.WorkflowID)

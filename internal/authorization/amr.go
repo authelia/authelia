@@ -1,8 +1,10 @@
-package oidc
+package authorization
 
 func NewAuthenticationMethodsReferencesFromClaim(claim []string) (amr AuthenticationMethodsReferences) {
 	for _, ref := range claim {
 		switch ref {
+		case AMRKnowledgeBasedAuthentication:
+			amr.KnowledgeBasedAuthentication = true
 		case AMRPasswordBasedAuthentication:
 			amr.UsernameAndPassword = true
 		case AMROneTimePassword:
@@ -27,19 +29,20 @@ func NewAuthenticationMethodsReferencesFromClaim(claim []string) (amr Authentica
 
 // AuthenticationMethodsReferences holds AMR information.
 type AuthenticationMethodsReferences struct {
-	UsernameAndPassword  bool
-	TOTP                 bool
-	Duo                  bool
-	WebAuthn             bool
-	WebAuthnHardware     bool
-	WebAuthnSoftware     bool
-	WebAuthnUserPresence bool
-	WebAuthnUserVerified bool
+	KnowledgeBasedAuthentication bool
+	UsernameAndPassword          bool
+	TOTP                         bool
+	Duo                          bool
+	WebAuthn                     bool
+	WebAuthnHardware             bool
+	WebAuthnSoftware             bool
+	WebAuthnUserPresence         bool
+	WebAuthnUserVerified         bool
 }
 
 // FactorKnowledge returns true if a "something you know" factor of authentication was used.
 func (r AuthenticationMethodsReferences) FactorKnowledge() bool {
-	return r.UsernameAndPassword
+	return r.UsernameAndPassword || r.KnowledgeBasedAuthentication
 }
 
 // FactorPossession returns true if a "something you have" factor of authentication was used.
@@ -74,6 +77,10 @@ func (r AuthenticationMethodsReferences) MarshalRFC8176() []string {
 
 	if r.UsernameAndPassword {
 		amr = append(amr, AMRPasswordBasedAuthentication)
+	}
+
+	if r.KnowledgeBasedAuthentication {
+		amr = append(amr, AMRKnowledgeBasedAuthentication)
 	}
 
 	if r.TOTP {

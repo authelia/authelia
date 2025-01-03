@@ -17,14 +17,18 @@ import {
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import makeStyles from "@mui/styles/makeStyles";
-import { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/types";
+import { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/browser";
 import { useTranslation } from "react-i18next";
 
 import InformationIcon from "@components/InformationIcon";
 import WebAuthnRegisterIcon from "@components/WebAuthnRegisterIcon";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { AttestationResult, AttestationResultFailureString, WebAuthnTouchState } from "@models/WebAuthn";
-import { finishRegistration, getAttestationCreationOptions, startWebAuthnRegistration } from "@services/WebAuthn";
+import {
+    finishWebAuthnRegistration,
+    getWebAuthnRegistrationOptions,
+    startWebAuthnRegistration,
+} from "@services/WebAuthn";
 
 const steps = ["Description", "Verification"];
 
@@ -83,7 +87,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                     throw new Error("Credential Creation Request succeeded but Registration Response is empty.");
                 }
 
-                const response = await finishRegistration(result.response);
+                const response = await finishWebAuthnRegistration(result.response);
 
                 switch (response.status) {
                     case AttestationResult.Success:
@@ -147,7 +151,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                 return;
             }
 
-            const res = await getAttestationCreationOptions(description);
+            const res = await getWebAuthnRegistrationOptions(description);
 
             switch (res.status) {
                 case 200:

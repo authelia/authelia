@@ -22,7 +22,8 @@ func StateGET(ctx *middlewares.AutheliaCtx) {
 
 	stateResponse := StateResponse{
 		Username:            userSession.Username,
-		AuthenticationLevel: userSession.AuthenticationLevel,
+		AuthenticationLevel: userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA),
+		FactorKnowledge:     userSession.AuthenticationMethodRefs.FactorKnowledge(),
 	}
 
 	if uri := ctx.GetDefaultRedirectionURL(); uri != nil {

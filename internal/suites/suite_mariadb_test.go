@@ -16,12 +16,12 @@ func NewMariaDBSuite() *MariaDBSuite {
 	}
 }
 
-func (s *MariaDBSuite) Test1FAScenario() {
-	suite.Run(s.T(), New1FAScenario())
+func (s *MariaDBSuite) TestOneFactorScenario() {
+	suite.Run(s.T(), NewOneFactorScenario())
 }
 
-func (s *MariaDBSuite) Test2FATOTPScenario() {
-	suite.Run(s.T(), New2FATOTPScenario())
+func (s *MariaDBSuite) TestTwoFactorTOTPScenario() {
+	suite.Run(s.T(), NewTwoFactorTOTPScenario())
 }
 
 func TestMariaDBSuite(t *testing.T) {
