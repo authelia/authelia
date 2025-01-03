@@ -244,6 +244,21 @@ func (mr *MockStorageMockRecorder) FindIdentityVerification(ctx, jti any) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindIdentityVerification", reflect.TypeOf((*MockStorage)(nil).FindIdentityVerification), ctx, jti)
 }
 
+// GetUserGroups mocks base method.
+func (m *MockStorage) GetUserGroups(ctx context.Context, userID int) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserGroups", ctx, userID)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserGroups indicates an expected call of GetUserGroups.
+func (mr *MockStorageMockRecorder) GetUserGroups(ctx, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserGroups", reflect.TypeOf((*MockStorage)(nil).GetUserGroups), ctx, userID)
+}
+
 // LoadAuthenticationLogs mocks base method.
 func (m *MockStorage) LoadAuthenticationLogs(ctx context.Context, username string, fromDate time.Time, limit, page int) ([]model.AuthenticationAttempt, error) {
 	m.ctrl.T.Helper()

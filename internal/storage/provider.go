@@ -319,4 +319,7 @@ type AuthenticationProvider interface {
 
 	// UpdateUserPassword updates the user's password into storage provider.
 	UpdateUserPassword(ctx context.Context, username, password string) (err error)
+
+	// GetUserGroups returns the groups assotiated with a user
+	// GetUserGroups(ctx context.Context, userID int) ([]string, error).
 }

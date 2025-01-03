@@ -3,10 +3,10 @@ package authentication
 import (
 	"context"
 
+	"github.com/go-crypt/crypt"
 	"github.com/go-crypt/crypt/algorithm"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	// "github.com/authelia/authelia/v4/internal/logging".
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
 )
@@ -44,7 +44,13 @@ func (p *DBUserProvider) CheckUserPassword(username string, password string) (va
 		return false, err
 	}
 
-	return user.Password.MatchAdvanced(password)
+	var d algorithm.Digest
+
+	if d, err = crypt.Decode(user.Password); err != nil {
+		return false, err
+	}
+
+	return d.MatchAdvanced(password)
 }
 
 // GetDetails implements authentication.UserProvider.GetDetails().
@@ -55,13 +61,11 @@ func (p *DBUserProvider) GetDetails(username string) (details *UserDetails, err 
 		return nil, err
 	}
 
-	// TODO: refactor to a mapper function.
 	return &UserDetails{
 		Username:    user.Username,
 		DisplayName: user.DisplayName,
 		Emails:      []string{user.Email},
-		//TODO: buscar lista de grupos de una tablaexterna.
-		Groups: []string{"admins", "dev"},
+		Groups:      user.Groups,
 	}, nil
 }
 
@@ -79,9 +83,12 @@ func (p *DBUserProvider) UpdatePassword(username string, newPassword string) (er
 		return err
 	}
 
-	user.Password = schema.NewPasswordDigest(digest)
+	// the user real username.
+	username = user.Username
 
-	if err = p.database.UpdateUserPassword(context.Background(), user.Username, user.Password.Encode()); err != nil {
+	var passwordDigest = schema.NewPasswordDigest(digest).String()
+
+	if err = p.database.UpdateUserPassword(context.Background(), username, passwordDigest); err != nil {
 		return err
 	}
 

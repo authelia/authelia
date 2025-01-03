@@ -1,25 +1,26 @@
 package model
 
-import (
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
-)
+// "github.com/authelia/authelia/v4/internal/configuration/schema".
 
 // User represents the user authentication details. used for authentication provider.
 type User struct {
-	// The user's username.
-	Username string `db:"username" json:"username" valid:"required"`
+	ID int `db:"id"`
 
-	Password *schema.PasswordDigest `db:"password" json:"password"`
+	// The user's username.
+	Username string `db:"username"`
+
+	// the user's password.
+	Password string `db:"password"`
 
 	// The users display name.
-	DisplayName string `db:"display_name" json:"display_name"`
+	DisplayName string `db:"display_name"`
 
 	// The email for the user.
-	Email string `db:"email" json:"email"`
+	Email string `db:"email"`
 
 	// // The groups list for the user.
-	// Groups []string `db:"groups" json:"groups"`.
+	Groups []string `db:"-"`
 
 	// True if the user is disabled.
-	Disabled bool `db:"disabled" json:"disabled"`
+	Disabled bool `db:"disabled"`
 }

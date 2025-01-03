@@ -154,6 +154,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectUserByUsername: fmt.Sprintf(queryFmtSelectUser, tableUsers, tableUsersFieldUsername),
 		sqlSelectUserByEmail:    fmt.Sprintf(queryFmtSelectUser, tableUsers, tableUsersFieldEmail),
 		sqlUpdateUserPassword:   fmt.Sprintf(queryFmtUpdateUserPassword, tableUsers),
+		sqlSelectUserGroups:     fmt.Sprintf(queryFmtSelectUserGroups, tableGroups, tableUsersGroups, tableGroups, tableGroups, tableUsersGroups, tableUsersGroups),
 	}
 
 	return provider
@@ -316,6 +317,9 @@ type SQLProvider struct {
 	sqlSelectUserByUsername string
 	sqlSelectUserByEmail    string
 	sqlUpdateUserPassword   string
+
+	// Table: groups.
+	sqlSelectUserGroups string
 }
 
 // SQLProviderKeys are the cryptography keys used by a SQLProvider.
@@ -1347,30 +1351,34 @@ func (p *SQLProvider) LoadAuthenticationLogs(ctx context.Context, username strin
 
 // LoadUserByUsername implements storage.Provider.LoadUserByUsername.
 func (p *SQLProvider) LoadUserByUsername(ctx context.Context, username string) (details model.User, err error) {
-	err = p.db.GetContext(ctx, &details, p.sqlSelectUserByUsername, username)
-
-	switch {
-	case err == nil:
-		return details, nil
-	case errors.Is(err, sql.ErrNoRows):
-		return model.User{}, errors.New(errUserNotFound)
-	default:
-		return model.User{}, fmt.Errorf(errLoadingUserDetails, username, err)
-	}
+	return p.loadUser(ctx, p.sqlSelectUserByUsername, username)
 }
 
 // LoadUserByEmail implements storage.Provider.LoadUserByEmail.
-func (p *SQLProvider) LoadUserByEmail(ctx context.Context, username string) (details model.User, err error) {
-	err = p.db.GetContext(ctx, &details, p.sqlSelectUserByEmail, username)
+func (p *SQLProvider) LoadUserByEmail(ctx context.Context, email string) (details model.User, err error) {
+	return p.loadUser(ctx, p.sqlSelectUserByEmail, email)
+}
+
+// loadUser loads user information using specific query.
+func (p *SQLProvider) loadUser(ctx context.Context, query, identifier string) (details model.User, err error) {
+	err = p.db.GetContext(ctx, &details, query, identifier)
 
 	switch {
-	case err == nil:
-		return details, nil
 	case errors.Is(err, sql.ErrNoRows):
 		return model.User{}, errors.New(errUserNotFound)
-	default:
-		return model.User{}, fmt.Errorf(errLoadingUserDetails, username, err)
+	case err != nil:
+		return model.User{}, fmt.Errorf(errLoadingUserDetails, identifier, err)
 	}
+
+	var groups []string
+
+	if groups, err = p.getUserGroups(context.Background(), details.ID); err != nil {
+		return model.User{}, err
+	}
+
+	details.Groups = groups
+
+	return details, nil
 }
 
 // UpdateUserPassword implements storage.Provider.UpdateUserPassword.
@@ -1382,6 +1390,17 @@ func (p *SQLProvider) UpdateUserPassword(ctx context.Context, username, password
 
 	if _, err = p.db.ExecContext(ctx, p.sqlUpdateUserPassword, password, username); err != nil {
 		return fmt.Errorf(errUpdatingUserPassword, username, err)
+	}
+
+	return
+}
+
+// getUserGroups get group list for specied userid.
+func (p *SQLProvider) getUserGroups(ctx context.Context, userID int) (groups []string, err error) {
+	err = p.db.SelectContext(ctx, &groups, p.sqlSelectUserGroups, userID)
+
+	if err != nil {
+		return groups, fmt.Errorf(erroLoadingUserGroups, userID, err)
 	}
 
 	return

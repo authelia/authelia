@@ -456,7 +456,7 @@ const (
 // querys for user table.
 const (
 	queryFmtSelectUser = `
-		SELECT username, password, display_name, email, disabled
+		SELECT id, username, password, display_name, email, disabled
 		FROM %s
 		WHERE %s = ?;`
 
@@ -465,4 +465,11 @@ const (
 		UPDATE %s
 		SET password = ?
 		WHERE username = ?;`
+
+	queryFmtSelectUserGroups = `
+		SELECT %s.name
+		FROM %s
+			LEFT JOIN %s
+			ON ( %s.id = %s.group_id )
+		WHERE %s.user_id = ?;`
 )
