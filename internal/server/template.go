@@ -336,6 +336,8 @@ func (options *TemplatedFileOptions) commonDataWithRememberMe(base, baseURL, dom
 		RememberMe:             rememberMe,
 		ResetPassword:          options.ResetPassword,
 		ResetPasswordCustomURL: options.ResetPasswordCustomURL,
+		PrivacyPolicyURL:       options.PrivacyPolicyURL,
+		PrivacyPolicyAccept:    options.PrivacyPolicyAccept,
 		Session:                options.Session,
 		Theme:                  options.Theme,
 	}

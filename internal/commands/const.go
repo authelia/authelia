@@ -145,9 +145,9 @@ This subcommand allows performing various tasks related to the opaque identifier
 This subcommand allows exporting the opaque identifiers for users in order to back them up.`
 
 	cmdAutheliaStorageUserIdentifiersExportExample = `authelia storage user identifiers export
-authelia storage user identifiers export --file export.yaml
-authelia storage user identifiers export --file export.yaml --config config.yml
-authelia storage user identifiers export --file export.yaml --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+authelia storage user identifiers export --file export.yml
+authelia storage user identifiers export --file export.yml --config config.yml
+authelia storage user identifiers export --file export.yml --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
 
 	cmdAutheliaStorageUserIdentifiersImportShort = "Import the identifiers from a YAML file"
 
@@ -159,9 +159,9 @@ The YAML file can either be automatically generated using the authelia storage u
 manually provided the file is in the same format.`
 
 	cmdAutheliaStorageUserIdentifiersImportExample = `authelia storage user identifiers import
-authelia storage user identifiers import authelia.export.opaque-identifiers.yaml
-authelia storage user identifiers import --config config.yml export.yaml
-authelia storage user identifiers import --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw export.yaml`
+authelia storage user identifiers import authelia.export.opaque-identifiers.yml
+authelia storage user identifiers import --config config.yml export.yml
+authelia storage user identifiers import --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw export.yml`
 
 	cmdAutheliaStorageUserIdentifiersGenerateShort = "Generate opaque identifiers in bulk"
 
@@ -200,9 +200,9 @@ This subcommand allows interacting with WebAuthn credentials.`
 This subcommand allows importing WebAuthn credentials from the YAML format.`
 
 	cmdAutheliaStorageUserWebAuthnImportExample = `authelia storage user webauthn export
-authelia storage user webauthn import --file authelia.export.webauthn.yaml
-authelia storage user webauthn import --file authelia.export.webauthn.yaml --config config.yml
-authelia storage user webauthn import --file authelia.export.webauthn.yaml --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+authelia storage user webauthn import --file authelia.export.webauthn.yml
+authelia storage user webauthn import --file authelia.export.webauthn.yml --config config.yml
+authelia storage user webauthn import --file authelia.export.webauthn.yml --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
 
 	cmdAutheliaStorageUserWebAuthnExportShort = "Perform exports of the WebAuthn credentials"
 
@@ -211,7 +211,7 @@ authelia storage user webauthn import --file authelia.export.webauthn.yaml --enc
 This subcommand allows exporting WebAuthn credentials to various formats.`
 
 	cmdAutheliaStorageUserWebAuthnExportExample = `authelia storage user webauthn export
-authelia storage user webauthn export --file authelia.export.webauthn.yaml
+authelia storage user webauthn export --file authelia.export.webauthn.yml
 authelia storage user webauthn export --config config.yml
 authelia storage user webauthn export--encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
 
@@ -282,9 +282,9 @@ authelia storage user totp delete john --encryption-key b3453fde-ecc2-4a1f-9422-
 
 This subcommand allows importing TOTP configurations from the YAML format.`
 
-	cmdAutheliaStorageUserTOTPImportExample = `authelia storage user totp import authelia.export.totp.yaml
-authelia storage user totp import --config config.yml authelia.export.totp.yaml
-authelia storage user totp import --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw authelia.export.totp.yaml`
+	cmdAutheliaStorageUserTOTPImportExample = `authelia storage user totp import authelia.export.totp.yml
+authelia storage user totp import --config config.yml authelia.export.totp.yml
+authelia storage user totp import --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw authelia.export.totp.yml`
 
 	cmdAutheliaStorageUserTOTPExportShort = "Perform exports of the TOTP configurations"
 
@@ -292,7 +292,7 @@ authelia storage user totp import --encryption-key b3453fde-ecc2-4a1f-9422-2707d
 
 This subcommand allows exporting TOTP configurations to importable YAML files, or use the subcommands to export them to other non-importable formats.`
 
-	cmdAutheliaStorageUserTOTPExportExample = `authelia storage user totp export --file example.yaml
+	cmdAutheliaStorageUserTOTPExportExample = `authelia storage user totp export --file example.yml
 authelia storage user totp export --config config.yml
 authelia storage user totp export --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
 
@@ -453,7 +453,9 @@ authelia crypto rand --charset alphabetic
 authelia crypto rand --charset ascii
 authelia crypto rand --charset numeric
 authelia crypto rand --charset numeric-hex
-authelia crypto rand --characters 0123456789ABCDEF`
+authelia crypto rand --characters 0123456789ABCDEF
+authelia crypto rand directory/file1 directory/file2
+authelia crypto rand --file directory/file3,directory/file4`
 
 	cmdAutheliaCryptoHashShort = "Perform cryptographic hash operations"
 
@@ -563,7 +565,8 @@ const (
 )
 
 const (
-	cmdFlagNameDirectory = "directory"
+	cmdFlagNameDirectory       = "directory"
+	cmdFlagNameModeDirectories = "mode-dirs"
 
 	cmdFlagNamePathCA  = "path.ca"
 	cmdFlagNameBundles = "bundles"
@@ -636,6 +639,7 @@ const (
 	cmdFlagNameNewEncryptionKey = "new-encryption-key"
 
 	cmdFlagNameFile        = "file"
+	cmdFlagNameModeFiles   = "mode-files"
 	cmdFlagNameUsers       = "users"
 	cmdFlagNameServices    = "services"
 	cmdFlagNameSectors     = "sectors"

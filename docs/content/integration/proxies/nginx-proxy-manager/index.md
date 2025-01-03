@@ -74,7 +74,7 @@ The following are the assumptions we make:
 
 The following docker compose example has various applications suitable for setting up an example environment.
 
-```yaml {title="docker-compose.yml"}
+```yaml {title="compose.yml"}
 ---
 networks:
   net:

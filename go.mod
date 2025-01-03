@@ -5,20 +5,20 @@ go 1.23
 toolchain go1.23.4
 
 require (
-	authelia.com/provider/oauth2 v0.1.18
+	authelia.com/provider/oauth2 v0.1.19
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
 	github.com/authelia/jsonschema v0.1.7
 	github.com/authelia/otp v1.0.0
 	github.com/deckarep/golang-set/v2 v2.7.0
 	github.com/duosecurity/duo_api_golang v0.0.0-20240408132100-cb1770897e66
-	github.com/fasthttp/router v1.5.3
-	github.com/fasthttp/session/v2 v2.5.7
+	github.com/fasthttp/router v1.5.4
+	github.com/fasthttp/session/v2 v2.5.9
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/go-asn1-ber/asn1-ber v1.5.7
 	github.com/go-crypt/crypt v0.3.2
 	github.com/go-jose/go-jose/v4 v4.0.4
-	github.com/go-ldap/ldap/v3 v3.4.9
+	github.com/go-ldap/ldap/v3 v3.4.10
 	github.com/go-rod/rod v0.116.2
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/go-viper/mapstructure/v2 v2.2.1
@@ -97,7 +97,7 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/savsgio/gotils v0.0.0-20240704082632-aef3928b8a38 // indirect
 	github.com/test-go/testify v1.1.4 // indirect
-	github.com/tinylib/msgp v1.2.4 // indirect
+	github.com/tinylib/msgp v1.2.5 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/ysmood/fetchup v0.2.3 // indirect

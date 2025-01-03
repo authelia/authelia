@@ -944,7 +944,7 @@ users:
 func WithDatabase(t *testing.T, content []byte, f func(path string)) {
 	dir := t.TempDir()
 
-	db, err := os.CreateTemp(dir, "users_database.*.yaml")
+	db, err := os.CreateTemp(dir, "users_database.*.yml")
 	require.NoError(t, err)
 
 	_, err = db.Write(content)
