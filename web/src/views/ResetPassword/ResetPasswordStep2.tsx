@@ -46,7 +46,14 @@ const ResetPasswordStep2 = function () {
     // the secret for OTP.
     const processToken = useQueryParam(IdentityToken);
 
-    const completeProcess = useCallback(async () => {
+    const handleRateLimited = useCallback(
+        (retryAfter: number) => {
+            createErrorNotification(translate("You have made too many requests"));
+        },
+        [createErrorNotification, translate],
+    );
+
+    const handleSubmitReset = useCallback(async () => {
         if (!processToken) {
             setFormDisabled(true);
             createErrorNotification(translate("No verification token provided"));
@@ -56,10 +63,10 @@ const ResetPasswordStep2 = function () {
         try {
             setFormDisabled(true);
 
-            const success = await completeResetPasswordProcess(processToken);
+            const response = await completeResetPasswordProcess(processToken);
 
-            if (!success) {
-                createErrorNotification(translate("You have made too many requests"));
+            if (response && response.limited) {
+                handleRateLimited(response.retryAfter);
 
                 return;
             }
@@ -74,13 +81,16 @@ const ResetPasswordStep2 = function () {
             );
             setFormDisabled(true);
         }
-    }, [processToken, createErrorNotification, translate]);
+    }, [processToken, createErrorNotification, translate, handleRateLimited]);
 
     useEffect(() => {
-        completeProcess();
-    }, [completeProcess]);
+        handleSubmitReset();
+    }, [handleSubmitReset]);
 
     const doResetPassword = async () => {
+        setPassword1("");
+        setPassword2("");
+
         if (password1 === "" || password2 === "") {
             if (password1 === "") {
                 setErrorPassword1(true);
@@ -90,6 +100,7 @@ const ResetPasswordStep2 = function () {
             }
             return;
         }
+
         if (password1 !== password2) {
             setErrorPassword1(true);
             setErrorPassword2(true);
@@ -97,20 +108,13 @@ const ResetPasswordStep2 = function () {
             return;
         }
 
+        setFormDisabled(true);
+
         try {
-            const success = await resetPassword(password1);
-
-            if (!success) {
-                createErrorNotification(translate("You have made too many requests"));
-
-                setFormDisabled(true);
-
-                return;
-            }
+            await resetPassword(password1);
 
             createSuccessNotification(translate("Password has been reset"));
             setTimeout(() => navigate(IndexRoute), 1500);
-            setFormDisabled(true);
         } catch (err) {
             console.error(err);
             if ((err as Error).message.includes("0000052D.")) {
