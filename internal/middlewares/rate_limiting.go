@@ -144,7 +144,7 @@ func (l *IPRateLimitBucket) GC() {
 	defer l.mu.Unlock()
 
 	for k, limiter := range l.bucket {
-		if limiter.updated.Before(time.Now().Add(l.p)) {
+		if limiter.updated.Add(l.p).Before(time.Now()) {
 			delete(l.bucket, k)
 		}
 	}
