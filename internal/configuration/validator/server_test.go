@@ -116,6 +116,60 @@ func TestShouldSetDefaultConfigRateLimits(t *testing.T) {
 	}
 }
 
+func TestValidateRateLimitErrors(t *testing.T) {
+	have := &schema.Configuration{
+		Server: schema.Server{
+			Endpoints: schema.ServerEndpoints{
+				RateLimits: schema.ServerEndpointRateLimits{
+					ResetPasswordStart: schema.ServerEndpointRateLimit{
+						Buckets: []schema.ServerEndpointRateLimitBucket{
+							{Period: time.Second, Requests: 5},
+						},
+					},
+					ResetPasswordFinish: schema.ServerEndpointRateLimit{
+						Buckets: []schema.ServerEndpointRateLimitBucket{
+							{Period: time.Second, Requests: 5},
+						},
+					},
+					SecondFactorTOTP: schema.ServerEndpointRateLimit{
+						Buckets: []schema.ServerEndpointRateLimitBucket{
+							{Period: time.Second, Requests: 5},
+						},
+					},
+					SecondFactorDuo: schema.ServerEndpointRateLimit{
+						Buckets: []schema.ServerEndpointRateLimitBucket{
+							{Period: time.Second, Requests: 5},
+						},
+					},
+					SessionElevationStart: schema.ServerEndpointRateLimit{
+						Buckets: []schema.ServerEndpointRateLimitBucket{
+							{Period: time.Second, Requests: 5},
+						},
+					},
+					SessionElevationFinish: schema.ServerEndpointRateLimit{
+						Buckets: []schema.ServerEndpointRateLimitBucket{
+							{Period: time.Duration(0), Requests: 0},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	validator := schema.NewStructValidator()
+
+	ValidateServer(have, validator)
+
+	require.Len(t, validator.Errors(), 7)
+	assert.EqualError(t, validator.Errors()[0], "server: endpoints: rate_limits: reset_password_start: bucket 1: option 'period' has a value of '1s' but it must be greater than 10 seconds")
+	assert.EqualError(t, validator.Errors()[1], "server: endpoints: rate_limits: reset_password_finish: bucket 1: option 'period' has a value of '1s' but it must be greater than 10 seconds")
+	assert.EqualError(t, validator.Errors()[2], "server: endpoints: rate_limits: second_factor_totp: bucket 1: option 'period' has a value of '1s' but it must be greater than 10 seconds")
+	assert.EqualError(t, validator.Errors()[3], "server: endpoints: rate_limits: second_factor_duo: bucket 1: option 'period' has a value of '1s' but it must be greater than 10 seconds")
+	assert.EqualError(t, validator.Errors()[4], "server: endpoints: rate_limits: session_elevation_start: bucket 1: option 'period' has a value of '1s' but it must be greater than 10 seconds")
+	assert.EqualError(t, validator.Errors()[5], "server: endpoints: rate_limits: session_elevation_finish: bucket 1: option 'period' must have a value")
+	assert.EqualError(t, validator.Errors()[6], "server: endpoints: rate_limits: session_elevation_finish: bucket 1: option 'requests' has a value of '0' but it must be greater than 1")
+}
+
 func TestValidateSeverAddress(t *testing.T) {
 	config := &schema.Configuration{
 		Server: schema.Server{
@@ -147,24 +201,24 @@ func TestValidateServerShouldCorrectlyIdentifyValidAddressSchemes(t *testing.T) 
 		{"http", "server: option 'address' with value 'http://:9091' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'http'"},
 	}
 
-	have := &schema.Configuration{
-		Server: schema.Server{
-			Buffers: schema.ServerBuffers{
-				Read:  -1,
-				Write: -1,
-			},
-			Timeouts: schema.ServerTimeouts{
-				Read:  time.Second * -1,
-				Write: time.Second * -1,
-				Idle:  time.Second * -1,
-			},
-		},
-	}
-
 	validator := schema.NewStructValidator()
 
 	for _, tc := range testCases {
 		t.Run(tc.have, func(t *testing.T) {
+			have := &schema.Configuration{
+				Server: schema.Server{
+					Buffers: schema.ServerBuffers{
+						Read:  -1,
+						Write: -1,
+					},
+					Timeouts: schema.ServerTimeouts{
+						Read:  time.Second * -1,
+						Write: time.Second * -1,
+						Idle:  time.Second * -1,
+					},
+				},
+			}
+
 			validator.Clear()
 
 			switch tc.have {

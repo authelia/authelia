@@ -162,36 +162,54 @@ func ValidateServerEndpoints(config *schema.Configuration, validator *schema.Str
 }
 
 func validateServerEndpointsRateLimits(config *schema.Configuration, validator *schema.StructValidator) {
-	validateServerEndpointsRateLimitDefault(&config.Server.Endpoints.RateLimits.ResetPasswordStart, schema.DefaultServerConfiguration.Endpoints.RateLimits.ResetPasswordStart, validator)
-	validateServerEndpointsRateLimitDefault(&config.Server.Endpoints.RateLimits.ResetPasswordFinish, schema.DefaultServerConfiguration.Endpoints.RateLimits.ResetPasswordFinish, validator)
-	validateServerEndpointsRateLimitDefault(&config.Server.Endpoints.RateLimits.SecondFactorTOTP, schema.DefaultServerConfiguration.Endpoints.RateLimits.SecondFactorTOTP, validator)
-	validateServerEndpointsRateLimitDefault(&config.Server.Endpoints.RateLimits.SecondFactorDuo, schema.DefaultServerConfiguration.Endpoints.RateLimits.SecondFactorDuo, validator)
+	validateServerEndpointsRateLimitDefault("reset_password_start", &config.Server.Endpoints.RateLimits.ResetPasswordStart, schema.DefaultServerConfiguration.Endpoints.RateLimits.ResetPasswordStart, validator)
+	validateServerEndpointsRateLimitDefault("reset_password_finish", &config.Server.Endpoints.RateLimits.ResetPasswordFinish, schema.DefaultServerConfiguration.Endpoints.RateLimits.ResetPasswordFinish, validator)
+	validateServerEndpointsRateLimitDefault("second_factor_totp", &config.Server.Endpoints.RateLimits.SecondFactorTOTP, schema.DefaultServerConfiguration.Endpoints.RateLimits.SecondFactorTOTP, validator)
+	validateServerEndpointsRateLimitDefault("second_factor_duo", &config.Server.Endpoints.RateLimits.SecondFactorDuo, schema.DefaultServerConfiguration.Endpoints.RateLimits.SecondFactorDuo, validator)
 
-	validateServerEndpointsRateLimitDefaultWeighted(&config.Server.Endpoints.RateLimits.SessionElevationStart, schema.DefaultServerConfiguration.Endpoints.RateLimits.SessionElevationStart, config.IdentityValidation.ElevatedSession.CodeLifespan, validator)
-	validateServerEndpointsRateLimitDefaultWeighted(&config.Server.Endpoints.RateLimits.SessionElevationFinish, schema.DefaultServerConfiguration.Endpoints.RateLimits.SessionElevationFinish, config.IdentityValidation.ElevatedSession.ElevationLifespan, validator)
+	validateServerEndpointsRateLimitDefaultWeighted("session_elevation_start", &config.Server.Endpoints.RateLimits.SessionElevationStart, schema.DefaultServerConfiguration.Endpoints.RateLimits.SessionElevationStart, config.IdentityValidation.ElevatedSession.CodeLifespan, validator)
+	validateServerEndpointsRateLimitDefaultWeighted("session_elevation_finish", &config.Server.Endpoints.RateLimits.SessionElevationFinish, schema.DefaultServerConfiguration.Endpoints.RateLimits.SessionElevationFinish, config.IdentityValidation.ElevatedSession.ElevationLifespan, validator)
 }
 
-func validateServerEndpointsRateLimitDefault(config *schema.ServerEndpointRateLimit, defaults schema.ServerEndpointRateLimit, _ *schema.StructValidator) {
-	if len(config.Buckets) > 0 {
+func validateServerEndpointsRateLimitDefault(name string, config *schema.ServerEndpointRateLimit, defaults schema.ServerEndpointRateLimit, validator *schema.StructValidator) {
+	if len(config.Buckets) == 0 {
+		config.Buckets = make([]schema.ServerEndpointRateLimitBucket, len(defaults.Buckets))
+
+		copy(config.Buckets, defaults.Buckets)
+
 		return
 	}
 
-	config.Buckets = make([]schema.ServerEndpointRateLimitBucket, len(defaults.Buckets))
-
-	copy(config.Buckets, defaults.Buckets)
+	validateServerEndpointsRateLimitBuckets(name, config, validator)
 }
 
-func validateServerEndpointsRateLimitDefaultWeighted(config *schema.ServerEndpointRateLimit, defaults schema.ServerEndpointRateLimit, weight time.Duration, _ *schema.StructValidator) {
-	if len(config.Buckets) > 0 {
+func validateServerEndpointsRateLimitDefaultWeighted(name string, config *schema.ServerEndpointRateLimit, defaults schema.ServerEndpointRateLimit, weight time.Duration, validator *schema.StructValidator) {
+	if len(config.Buckets) == 0 {
+		config.Buckets = make([]schema.ServerEndpointRateLimitBucket, len(defaults.Buckets))
+
+		for i := range defaults.Buckets {
+			config.Buckets[i] = schema.ServerEndpointRateLimitBucket{
+				Period:   weight * defaults.Buckets[i].Period,
+				Requests: defaults.Buckets[i].Requests,
+			}
+		}
+
 		return
 	}
 
-	config.Buckets = make([]schema.ServerEndpointRateLimitBucket, len(defaults.Buckets))
+	validateServerEndpointsRateLimitBuckets(name, config, validator)
+}
 
-	for i := range defaults.Buckets {
-		config.Buckets[i] = schema.ServerEndpointRateLimitBucket{
-			Period:   weight * defaults.Buckets[i].Period,
-			Requests: defaults.Buckets[i].Requests,
+func validateServerEndpointsRateLimitBuckets(name string, config *schema.ServerEndpointRateLimit, validator *schema.StructValidator) {
+	for i, bucket := range config.Buckets {
+		if bucket.Period == 0 {
+			validator.Push(fmt.Errorf(errFmtServerEndpointsRateLimitsBucketPeriodZero, name, i+1))
+		} else if bucket.Period < (time.Second * 10) {
+			validator.Push(fmt.Errorf(errFmtServerEndpointsRateLimitsBucketPeriodTooLow, name, i+1, bucket.Period))
+		}
+
+		if bucket.Requests <= 0 {
+			validator.Push(fmt.Errorf(errFmtServerEndpointsRateLimitsBucketRequestsZero, name, i+1, bucket.Requests))
 		}
 	}
 }

@@ -13,7 +13,7 @@ import (
 
 // RateLimitBucket describes an implementation of a bucket which can be leveraged for rate limiting.
 type RateLimitBucket interface {
-	FetchCtx(ctx *AutheliaCtx) (limiter *rate.Limiter)
+	FetchCtx(ctx *AutheliaCtx) (limiter *RateLimiter)
 	GC()
 }
 
@@ -67,7 +67,8 @@ func NewRateLimiter(newBucket func(bucket RateLimitBucketConfig) RateLimitBucket
 				limiter := bucket.FetchCtx(ctx)
 
 				if !limiter.Allow() {
-					reservation := limiter.ReserveN(ctx.Clock.Now(), 1)
+					reservation := limiter.ReserveN(time.Now(), 1)
+					limiter.updated = time.Now()
 
 					ctx.Logger.WithFields(map[string]any{"bucket": i + 1, "delay": reservation.Delay().Seconds()}).Warn("Rate Limit Exceeded")
 
@@ -75,7 +76,7 @@ func NewRateLimiter(newBucket func(bucket RateLimitBucketConfig) RateLimitBucket
 						retryAfter = reservation.Delay()
 					}
 
-					reservation.CancelAt(ctx.Clock.Now())
+					reservation.Cancel()
 				}
 			}
 
@@ -96,22 +97,30 @@ func NewRateLimiter(newBucket func(bucket RateLimitBucketConfig) RateLimitBucket
 // NewIPRateLimitBucket returns a IPRateLimitBucket given a RateLimitBucketConfig.
 func NewIPRateLimitBucket(bucket RateLimitBucketConfig) (limiter RateLimitBucket) {
 	return &IPRateLimitBucket{
-		bucket: make(map[string]*rate.Limiter),
+		bucket: make(map[string]*RateLimiter),
 		mu:     sync.Mutex{},
+		p:      bucket.Period,
 		r:      rate.Every(bucket.Period),
 		b:      bucket.Requests,
 	}
 }
 
+type RateLimiter struct {
+	*rate.Limiter
+
+	updated time.Time
+}
+
 // IPRateLimitBucket is a RateLimitBucket which limits requests based on each of the buckets delimited by IP.
 type IPRateLimitBucket struct {
-	bucket map[string]*rate.Limiter
+	bucket map[string]*RateLimiter
 	mu     sync.Mutex
+	p      time.Duration
 	r      rate.Limit
 	b      int
 }
 
-func (l *IPRateLimitBucket) Fetch(key string) (limiter *rate.Limiter) {
+func (l *IPRateLimitBucket) Fetch(key string) (limiter *RateLimiter) {
 	l.mu.Lock()
 
 	defer l.mu.Unlock()
@@ -135,18 +144,18 @@ func (l *IPRateLimitBucket) GC() {
 	defer l.mu.Unlock()
 
 	for k, limiter := range l.bucket {
-		if limiter.Tokens() >= float64(l.b) {
+		if limiter.updated.Before(time.Now().Add(l.p)) {
 			delete(l.bucket, k)
 		}
 	}
 }
 
-func (l *IPRateLimitBucket) FetchCtx(ctx *AutheliaCtx) (limiter *rate.Limiter) {
+func (l *IPRateLimitBucket) FetchCtx(ctx *AutheliaCtx) (limiter *RateLimiter) {
 	return l.Fetch(ctx.RemoteIP().String())
 }
 
-func (l *IPRateLimitBucket) new(ip string) *rate.Limiter {
-	limiter := rate.NewLimiter(l.r, l.b)
+func (l *IPRateLimitBucket) new(ip string) (limiter *RateLimiter) {
+	limiter = &RateLimiter{Limiter: rate.NewLimiter(l.r, l.b), updated: time.Now()}
 
 	l.bucket[ip] = limiter
 
