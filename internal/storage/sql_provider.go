@@ -1388,7 +1388,7 @@ func (p *SQLProvider) loadUser(ctx context.Context, query, identifier string) (m
 	}
 
 	if user.Password, err = p.decrypt(user.Password); err != nil {
-		p.log.WithError(err).WithField("user", identifier).
+		p.log.WithError(err).
 			Warning("Failed to decrypt user password, the user must reset their password") //lint:nosec
 		// TODO: Consider setting a flag to force password reset.
 		user.Password = []byte{}
