@@ -23,7 +23,7 @@ instructions on how to set up push notifications in Authelia.
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
 The configuration options in the following sections are noted as required. They are however only required when
-you have this section defined. i.e. if you don't wish to use the [Duo] push notifications, you can just not define this
+you have this section defined. i.e. if you don't wish to use the [Duo](https://duo.com/) push notifications, you can just not define this
 section of the configuration.
 {{< /callout >}}
 

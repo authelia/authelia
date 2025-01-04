@@ -147,7 +147,7 @@ all algorithms. The main cost type measurements are:
 * Memory
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-When using algorithms that use a memory cost like [Argon2] and [Scrypt] it should be noted that
+When using algorithms that use a memory cost like [Argon2](https://datatracker.ietf.org/doc/html/rfc9106) and [Scrypt](https://en.wikipedia.org/wiki/Scrypt) it should be noted that
 this memory is released by Go after the hashing process completes, however the operating system may not reclaim the
 memory until a later time such as when the system is experiencing memory pressure which may cause the appearance of more
 memory being in use than Authelia is actually actively using. Authelia will typically reuse this memory if it has not be

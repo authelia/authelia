@@ -136,23 +136,25 @@ they have several configuration examples in the `/config/nginx/proxy-confs` dire
 If you're looking for a more complete solution [linuxserver.io] also have an nginx container called [SWAG](swag.md)
 which includes ACME and various other useful utilities.
 
-```yaml {title="docker-compose.yml"}
+```yaml {title="compose.yml"}
 ---
 networks:
   net:
-    driver: bridge
+    driver: 'bridge'
 
 services:
   nginx:
-    container_name: nginx
-    image: lscr.io/linuxserver/nginx
-    restart: unless-stopped
+    container_name: 'nginx'
+    image: 'lscr.io/linuxserver/nginx'
+    restart: 'unless-stopped'
     networks:
       net:
-        aliases: []
+        aliases:
+          - 'https://{{</* sitevar name="subdomain-authelia" nojs="auth" */>}}.{{</* sitevar name="domain" nojs="example.com" */>}}'
     ports:
-      - '80:80'
-      - '443:443'
+      - '80:80/tcp'
+      - '443:443/tcp'
+      - '443:443/udp'
     volumes:
       - '${PWD}/data/nginx/snippets:/config/nginx/snippets'
       - '${PWD}/data/nginx/site-confs:/config/nginx/site-confs'
@@ -161,42 +163,33 @@ services:
       DOCKER_MODS: 'linuxserver/mods:nginx-proxy-confs'
   authelia:
     container_name: '{{< sitevar name="host" nojs="authelia" >}}'
-    image: authelia/authelia
-    restart: unless-stopped
+    image: 'authelia/authelia'
+    restart: 'unless-stopped'
     networks:
-      net:
-        aliases: []
-    expose:
-      - {{< sitevar name="port" nojs="9091" >}}
+      net: {}
     volumes:
-      - ${PWD}/data/authelia/config:/config
+      - '${PWD}/data/authelia/config:/config'
     environment:
       TZ: 'Australia/Melbourne'
   nextcloud:
-    container_name: nextcloud
-    image: lscr.io/linuxserver/nextcloud
-    restart: unless-stopped
+    container_name: 'nextcloud'
+    image: 'lscr.io/linuxserver/nextcloud'
+    restart: 'unless-stopped'
     networks:
-      net:
-        aliases: []
-    expose:
-      - 443
+      net: {}
     volumes:
-      - ${PWD}/data/nextcloud/config:/config
-      - ${PWD}/data/nextcloud/data:/data
+      - '${PWD}/data/nextcloud/config:/config'
+      - '${PWD}/data/nextcloud/data:/data'
     environment:
       PUID: '1000'
       PGID: '1000'
       TZ: 'Australia/Melbourne'
   whoami:
-    container_name: whoami
-    image: docker.io/traefik/whoami
-    restart: unless-stopped
+    container_name: 'whoami'
+    image: 'docker.io/traefik/whoami'
+    restart: 'unless-stopped'
     networks:
-      net:
-        aliases: []
-    expose:
-      - 80
+      net: {}
     environment:
       TZ: 'Australia/Melbourne'
 ...
@@ -289,6 +282,38 @@ server {
 
     location / {
         include /config/nginx/snippets/proxy.conf;
+        include /config/nginx/snippets/authelia-authrequest.conf;
+        proxy_pass $upstream;
+    }
+}
+```
+
+```nginx {title="site-confs/portainer.conf"}
+server {
+    listen 80;
+    server_name portainer.*;
+
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name portainer.*;
+
+    include /config/nginx/snippets/ssl.conf;
+    include /config/nginx/snippets/authelia-location.conf;
+
+    set $upstream http://portainer:9000;
+
+    location / {
+        include /config/nginx/snippets/proxy.conf;
+        include /config/nginx/snippets/authelia-authrequest.conf;
+        proxy_pass $upstream;
+    }
+
+    location /api/websocket/ {
+        include /config/nginx/snippets/proxy.conf;
+        include /config/nginx/snippets/websocket.conf;
         include /config/nginx/snippets/authelia-authrequest.conf;
         proxy_pass $upstream;
     }
@@ -425,6 +450,22 @@ proxy_set_header X-Forwarded-Host $http_host;
 proxy_set_header X-Forwarded-URI $request_uri;
 proxy_set_header X-Forwarded-Ssl on;
 proxy_set_header X-Forwarded-For $remote_addr;
+```
+
+#### websocket.conf
+
+The following is an example `websocket.conf`. This can be utilized on locations that require websockets. The standard
+example has an example usage of this file.
+
+```nginx {title="websocket.conf"}
+## WebSocket Example
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+proxy_set_header Upgrade $http_upgrade;
+proxy_set_header Connection $connection_upgrade;
 ```
 
 #### authelia-location.conf

@@ -121,7 +121,7 @@ Support for [Envoy] is possible with Authelia v4.37.0 and higher via the [Envoy]
 
 [external authorization]: https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto.html#extensions-filters-http-ext-authz-v3-extauthz
 
-```yaml {title="docker-compose.yml"}
+```yaml {title="compose.yml"}
 ---
 networks:
   net:
@@ -145,8 +145,6 @@ services:
     restart: 'unless-stopped'
     networks:
       net: {}
-    expose:
-      - {{< sitevar name="port" nojs="9091" >}}
     volumes:
       - '${PWD}/data/authelia/config:/config'
     environment:
@@ -157,8 +155,6 @@ services:
     restart: 'unless-stopped'
     networks:
       net: {}
-    expose:
-      - 443
     volumes:
       - '${PWD}/data/nextcloud/config:/config'
       - '${PWD}/data/nextcloud/data:/data'
@@ -317,6 +313,110 @@ layered_runtime:
                 connection_limit: 10000
         overload:
           global_downstream_max_connections: 50000
+```
+
+## Gateway API (Kubernetes)
+
+### Secure route
+
+```yaml
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: authelia-example
+  namespace: example
+spec:
+  extAuth:
+    failOpen: false
+    headersToExtAuth:
+    - X-Forwarded-Proto
+    - authorization
+    - proxy-authorization
+    - accept
+    - cookie
+    http:
+      backendRefs:
+      - group: ""
+        kind: Service
+        name: authelia
+        namespace: authelia
+        port: 80
+      path: /api/authz/ext-authz/
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: example
+```
+
+If the route namespace differs from the authelia service namespace, there is a need to declare a ReferenceGrant:
+
+```yaml
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: example-ref-authelia-svc
+  namespace: authelia
+spec:
+  from:
+  - group: gateway.envoyproxy.io
+    kind: SecurityPolicy
+    namespace: example
+    name: authelia-example
+  to:
+  - group: ""
+    kind: Service
+    name: authelia
+```
+
+### Secure gateway
+
+```yaml
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: authelia-example
+  namespace: example
+spec:
+  extAuth:
+    failOpen: false
+    headersToExtAuth:
+    - X-Forwarded-Proto
+    - authorization
+    - proxy-authorization
+    - accept
+    - cookie
+    http:
+      backendRefs:
+      - group: ""
+        kind: Service
+        name: authelia
+        namespace: authelia
+        port: 80
+      path: /api/authz/ext-authz/
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: example
+```
+
+If the gateway namespace differs from the authelia service namespace, there is a need to declare a ReferenceGrant:
+
+```yaml
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: example-ref-authelia-svc
+  namespace: authelia
+spec:
+  from:
+  - group: gateway.envoyproxy.io
+    kind: SecurityPolicy
+    namespace: example
+    name: authelia-example
+  to:
+  - group: ""
+    kind: Service
+    name: authelia
 ```
 
 ## See Also

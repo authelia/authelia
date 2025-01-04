@@ -89,10 +89,14 @@ To configure [Gitea] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 {{< figure src="gitea.png" alt="Gitea" width="300" >}}
 
-Alternatively, you can add the authentication source via command line (from the directory of the `gitea` binary):
+#### CLI
+
+_**Important Note:** Please refer to the [Gitea CLI Guide](https://docs.gitea.com/administration/command-line) regarding the correct usage of the CLI._
+
+Alternatively, you can add the authentication source via command line:
 
 ```
-./gitea admin auth add-oauth --provider=openidConnect name=authelia key=gitea --secret=insecure_secret --auto-discover-url=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration --scopes='openid email profile'
+gitea admin auth add-oauth --provider=openidConnect --name=authelia --key=gitea --secret=insecure_secret --auto-discover-url=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration --scopes='openid email profile'
 ```
 
 You might have to run `./gitea migrate` first in order to set up the database with the required structure.

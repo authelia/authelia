@@ -74,7 +74,7 @@ The following are the assumptions we make:
 
 The following docker compose example has various applications suitable for setting up an example environment.
 
-```yaml {title="docker-compose.yml"}
+```yaml {title="compose.yml"}
 ---
 networks:
   net:
@@ -105,8 +105,6 @@ services:
     networks:
       net:
         aliases: []
-    expose:
-      - {{< sitevar name="port" nojs="9091" >}}
     volumes:
       - '${PWD}/data/authelia/config:/config'
     environment:
@@ -118,8 +116,6 @@ services:
     networks:
       net:
         aliases: []
-    expose:
-      - 443
     volumes:
       - '${PWD}/data/nextcloud/config:/config'
       - '${PWD}/data/nextcloud/data:/data'
@@ -134,8 +130,6 @@ services:
     networks:
       net:
         aliases: []
-    expose:
-      - 80
     environment:
       TZ: 'Australia/Melbourne'
 ...

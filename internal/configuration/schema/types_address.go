@@ -478,6 +478,16 @@ func (a *Address) validate() (err error) {
 		if err = a.validateUnixSocket(); err != nil {
 			return err
 		}
+
+		host := a.url.Host != ""
+
+		if err = a.validateTCPUDP(); err != nil {
+			return err
+		}
+
+		if !host {
+			a.url.Host = ""
+		}
 	case AddressSchemeTCP, AddressSchemeTCP4, AddressSchemeTCP6, AddressSchemeUDP, AddressSchemeUDP4, AddressSchemeUDP6:
 		if err = a.validateTCPUDP(); err != nil {
 			return err
@@ -548,8 +558,8 @@ func (a *Address) validateUnixSocket() (err error) {
 	switch {
 	case a.url.Path == "" && a.url.Scheme != AddressSchemeLDAPI:
 		return fmt.Errorf("error validating the unix socket address: could not determine path from '%s'", a.url.String())
-	case a.url.Host != "":
-		return fmt.Errorf("error validating the unix socket address: the url '%s' appears to have a host but this is not valid for unix sockets: this may occur if you omit the leading forward slash from the socket path", a.url.String())
+	case a.url.Hostname() != "":
+		return fmt.Errorf("error validating the unix socket address: the url '%s' appears to have a hostname but this is not valid for unix sockets: this may occur if you omit the leading forward slash from the socket path", a.url.String())
 	}
 
 	if a.url.Query().Has(addressQueryParamUmask) {

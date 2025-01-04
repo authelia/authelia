@@ -1,9 +1,5 @@
 ---
-###############################################################
-#                Authelia minimal configuration               #
-###############################################################
-
-certificates_directory: /certs/
+certificates_directory: '/certs/'
 
 identity_validation:
   reset_password:
@@ -13,54 +9,57 @@ server:
   address: 'tcp://:9091'
   asset_path: '/config/assets/'
   tls:
-    certificate: /pki/public.backend.crt
-    key: /pki/private.backend.pem
+    certificate: '/pki/public.backend.crt'
+    key: '/pki/private.backend.pem'
   endpoints:
     authz:
       caddy:
-        implementation: ForwardAuth
+        implementation: 'ForwardAuth'
         authn_strategies: []
 
 log:
-  level: debug
+  level: 'debug'
 
 authentication_backend:
   file:
-    path: /config/users.yml
+    path: '/config/users.yml'
 
 session:
-  secret: unsecure_session_secret
-  expiration: 3600  # 1 hour
-  inactivity: 300  # 5 minutes
-  remember_me: 1y
+  secret: 'unsecure_session_secret'
   cookies:
     - domain: 'example.com'
       authelia_url: 'https://login.example.com:8080'
+      expiration: '1 hour'
+      inactivity: '5 minutes'
+      remember_me: '1 year'
 
 storage:
-  encryption_key: a_not_so_secure_encryption_key
+  encryption_key: 'a_not_so_secure_encryption_key'
   local:
-    path: /config/db.sqlite
+    path: '/config/db.sqlite'
+
+totp:
+  disable_reuse_security_policy: true
+
+webauthn:
+  disable: false
 
 access_control:
   default_policy: deny
   rules:
-    - domain: ["home.example.com", "public.example.com"]
-      policy: bypass
-    - domain: "deny.example.com"
-      policy: deny
-    - domain: "admin.example.com"
-      policy: two_factor
-    - domain: "secure.example.com"
-      policy: two_factor
-    - domain: "singlefactor.example.com"
-      policy: one_factor
+    - domain: ['home.example.com', 'public.example.com']
+      policy: 'bypass'
+    - domain: 'deny.example.com'
+      policy: 'deny'
+    - domain: 'admin.example.com'
+      policy: 'two_factor'
+    - domain: 'secure.example.com'
+      policy: 'two_factor'
+    - domain: 'singlefactor.example.com'
+      policy: 'one_factor'
 
 notifier:
   smtp:
     address: 'smtp://mail.example.com:1025'
     sender: 'admin@example.com'
-
-totp:
-  disable_reuse_security_policy: true
 ...
