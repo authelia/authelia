@@ -82,7 +82,7 @@ const (
 const (
 	tableUsers              = "users"
 	tableUsersFieldUsername = "username"
-	tableUsersFieldEmail    = "username"
+	tableUsersFieldEmail    = "email"
 	tableGroups             = "groups"
 	tableUsersGroups        = "users_groups"
 )
