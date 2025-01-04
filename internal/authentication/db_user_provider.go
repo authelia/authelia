@@ -18,7 +18,7 @@ type DBUserProvider struct {
 	hash     algorithm.Hash
 }
 
-// NewDBUserProvider creates a new instance of FileUserProvider.
+// NewDBUserProvider creates a new instance of DBUserProvider.
 func NewDBUserProvider(config *schema.AuthenticationBackendDB, database storage.AuthenticationProvider) (provider *DBUserProvider) {
 	return &DBUserProvider{
 		config:   config,
