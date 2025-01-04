@@ -8,7 +8,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/regulation"
 )
 
-// FirstFactorPasswordPOST is the handler performing the first factory.
+// FirstFactorPasswordPOST is the handler performing the first factor authn with a password.
 //
 //nolint:gocyclo // TODO: Consider refactoring time permitting.
 func FirstFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.RequestHandler {
