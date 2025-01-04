@@ -25,7 +25,7 @@ func FirstFactorPasskeyGET(ctx *middlewares.AutheliaCtx) {
 	)
 
 	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn passkey authentication challenge: %s", errStrUserSessionData)
+		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, errStrUserSessionData)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
@@ -34,7 +34,7 @@ func FirstFactorPasskeyGET(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if !userSession.IsAnonymous() {
-		ctx.Logger.WithError(errUserIsAlreadyAuthenticated).Errorf("Error occurred generating a WebAuthn passkey authentication challenge: %s", errStrUserSessionData)
+		ctx.Logger.WithError(errUserIsAlreadyAuthenticated).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, errStrUserSessionData)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
@@ -43,7 +43,7 @@ func FirstFactorPasskeyGET(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if w, err = ctx.GetWebAuthnProvider(); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn passkey authentication challenge: error occurred provisioning the configuration")
+		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, "error occurred provisioning the configuration")
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
@@ -59,7 +59,7 @@ func FirstFactorPasskeyGET(ctx *middlewares.AutheliaCtx) {
 	)
 
 	if assertion, data.SessionData, err = w.BeginDiscoverableLogin(opts...); err != nil {
-		ctx.Logger.WithError(iwebauthn.FormatError(err)).Error("Error occurred generating a WebAuthn passkey authentication challenge: error occurred starting the authentication session")
+		ctx.Logger.WithError(iwebauthn.FormatError(err)).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, "error occurred starting the authentication session")
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
@@ -70,7 +70,7 @@ func FirstFactorPasskeyGET(ctx *middlewares.AutheliaCtx) {
 	userSession.WebAuthn = &data
 
 	if err = ctx.SaveSession(userSession); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn passkey authentication challenge: %s", errStrUserSessionDataSave)
+		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, errStrUserSessionDataSave)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
@@ -79,7 +79,7 @@ func FirstFactorPasskeyGET(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if err = ctx.SetJSONBody(assertion); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn passkey authentication challenge: %s", errStrRespBody)
+		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, errStrRespBody)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageUnableToRegisterSecurityKey)
@@ -108,7 +108,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 	)
 
 	if provider, err = ctx.GetSessionProvider(); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn passkey authentication challenge: %s", errStrUserSessionData)
+		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidate, errStrUserSessionData)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
@@ -120,7 +120,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
-		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn passkey authentication challenge: %s", errStrUserSessionData)
+		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidate, errStrUserSessionData)
 
 		return
 	}
@@ -138,7 +138,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		userSession.WebAuthn = nil
 
 		if err = ctx.SaveSession(userSession); err != nil {
-			ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn passkey authentication challenge for user '%s': %s", userSession.Username, errStrUserSessionDataSave)
+			ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, userSession.Username, errStrUserSessionDataSave)
 		}
 	}()
 
@@ -146,7 +146,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
-		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn passkey authentication challenge: %s", errStrReqBodyParse)
+		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidate, errStrReqBodyParse)
 
 		return
 	}
@@ -155,7 +155,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
-		ctx.Logger.WithError(iwebauthn.FormatError(err)).Errorf("Error occurred validating a WebAuthn passkey authentication challenge: %s", errStrReqBodyParse)
+		ctx.Logger.WithError(iwebauthn.FormatError(err)).Errorf(logFmtErrPasskeyAuthenticationChallengeValidate, errStrReqBodyParse)
 
 		return
 	}
@@ -164,7 +164,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
-		ctx.Logger.WithError(fmt.Errorf("challenge session data is not present")).Errorf("Error occurred validating a WebAuthn passkey authentication challenge: %s", errStrUserSessionData)
+		ctx.Logger.WithError(fmt.Errorf("challenge session data is not present")).Errorf(logFmtErrPasskeyAuthenticationChallengeValidate, errStrUserSessionData)
 
 		return
 	}
@@ -173,7 +173,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
-		ctx.Logger.WithError(iwebauthn.FormatError(err)).Errorf("Error occurred validating a WebAuthn passkey authentication challenge: error occurred provisioning the configuration")
+		ctx.Logger.WithError(iwebauthn.FormatError(err)).Errorf(logFmtErrPasskeyAuthenticationChallengeValidate, "error occurred provisioning the configuration")
 
 		return
 	}
@@ -182,7 +182,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
-		ctx.Logger.WithError(iwebauthn.FormatError(err)).Errorf("Error occurred validating a WebAuthn passkey authentication challenge: error performing the login validation")
+		ctx.Logger.WithError(iwebauthn.FormatError(err)).Errorf(logFmtErrPasskeyAuthenticationChallengeValidate, "error performing the login validation")
 
 		return
 	}
@@ -197,7 +197,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
-		ctx.Logger.Errorf("Error occurred validating a WebAuthn passkey authentication challenge for user '%s': the user object was not of the correct type", u.WebAuthnName())
+		ctx.Logger.Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, "the user object was not of the correct type", u.WebAuthnName())
 
 		return
 	}
@@ -214,7 +214,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 				ctx.SetStatusCode(fasthttp.StatusForbidden)
 				ctx.SetJSONError(messageMFAValidationFailed)
 
-				ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn passkey authentication challenge for user '%s': error occurred saving the credential sign-in information to the storage backend", u.WebAuthnName())
+				ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, u.WebAuthnName(), "error occurred saving the credential sign-in information to the storage backend")
 
 				return
 			}
@@ -227,7 +227,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
-		ctx.Logger.WithError(fmt.Errorf("credential was not found")).Errorf("Error occurred validating a WebAuthn passkey authentication challenge for user '%s': error occurred saving the credential sign-in information to storage", u.WebAuthnName())
+		ctx.Logger.WithError(fmt.Errorf("credential was not found")).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, u.WebAuthnName(), "error occurred saving the credential sign-in information to storage")
 
 		return
 	}
@@ -236,7 +236,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
-		ctx.Logger.WithError(fmt.Errorf("authenticator sign count indicates that it is cloned")).Errorf("Error occurred validating a WebAuthn passkey authentication challenge for user '%s': error occurred validating the authenticator response", u.WebAuthnName())
+		ctx.Logger.WithError(fmt.Errorf("authenticator sign count indicates that it is cloned")).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, u.WebAuthnName(), "error occurred validating the authenticator response")
 
 		return
 	}
@@ -245,7 +245,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
-		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn passkey authentication challenge for user '%s': error retrieving user details", u.WebAuthnName())
+		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, u.WebAuthnName(), "error retrieving user details")
 
 		return
 	}
@@ -254,7 +254,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
-		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn passkey authentication challenge for user '%s': error regenerating the user session", details.Username)
+		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, details.Username, "error regenerating the user session")
 
 		return
 	}
@@ -263,7 +263,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
-		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn passkey authentication challenge for user '%s': error occurred recording the authentication attempt", details.Username)
+		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, details.Username, "error occurred recording the authentication attempt")
 
 		return
 	}
