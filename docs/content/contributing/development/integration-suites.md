@@ -76,7 +76,7 @@ authelia-scripts suites test --headless
 
 Creating a suite is as easy. Let's take the example of the __Standalone__ suite:
 
-* __suite_standalone.go__ - It defines the setup and teardown phases. It likely uses docker-compose to setup the
+* __suite_standalone.go__ - It defines the setup and teardown phases. It likely uses docker compose to setup the
   ecosystem. This file also defines the timeouts.
 * __suite_standalone_test.go__ - It defines the set of tests to run against the suite.
 * __Standalone__ directory - It contains resources required by the suite and likely mounted in the containers.

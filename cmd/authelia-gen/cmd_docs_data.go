@@ -66,13 +66,13 @@ func docsDataMiscRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	if tag, err = readComposeTag("traefik", root, "internal", "suites", "example", "compose", "traefik", "docker-compose.v3.yml"); err != nil {
+	if tag, err = readComposeTag("traefik", root, "internal", "suites", "example", "compose", "traefik", "compose.v3.yml"); err != nil {
 		return err
 	}
 
 	data.Support.Traefik = append(data.Support.Traefik, tag)
 
-	if tag, err = readComposeTag("traefik", root, "internal", "suites", "example", "compose", "traefik", "docker-compose.v2.yml"); err != nil {
+	if tag, err = readComposeTag("traefik", root, "internal", "suites", "example", "compose", "traefik", "compose.v2.yml"); err != nil {
 		return err
 	}
 
