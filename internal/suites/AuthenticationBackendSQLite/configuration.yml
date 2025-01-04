@@ -1,0 +1,88 @@
+---
+certificates_directory: '/certs/'
+theme: 'auto'
+
+server:
+  address: 'tcp://:9091'
+  tls:
+    certificate: '/pki/public.backend.crt'
+    key: '/pki/private.backend.pem'
+
+telemetry:
+  metrics:
+    enabled: true
+    address: 'tcp://0.0.0.0:9959'
+
+log:
+  level: 'debug'
+
+storage:
+  encryption_key: 'a_not_so_secure_encryption_key'
+  local:
+    path: '/tmp/db.sqlite3'
+
+notifier:
+  smtp:
+    address: 'smtp://mail.example.com:1025'
+    sender: 'admin@example.com'
+
+ntp:
+  address: 'udp://time.cloudflare.com:123'
+  version: 4
+  max_desync: '3 seconds'
+  disable_startup_check: false
+
+regulation:
+  max_retries: 3
+  find_time: '5 minutes'
+  ban_time: '15 minutes'
+
+password_policy:
+  standard:
+    enabled: false
+    min_length: 8
+    max_length: 0
+    require_uppercase: true
+    require_lowercase: true
+    require_number: true
+    require_special: true
+  zxcvbn:
+    enabled: false
+
+session:
+  cookies:
+    - domain: 'example.com'
+      authelia_url: 'https://login.example.com:8080'
+      expiration: '1 hour'
+      inactivity: '3 minutes'
+      remember_me: '1 year'
+
+authentication_backend:
+  db:
+    enabled: true
+
+totp:
+  issuer: 'example.com'
+  disable_reuse_security_policy: true
+
+webauthn:
+  disable: false
+
+access_control:
+  default_policy: 'deny'
+  rules:
+    - domain: ['home.example.com', 'public.example.com']
+      policy: 'bypass'
+    - domain: 'secure.example.com'
+      policy: 'bypass'
+      methods:
+        - 'OPTIONS'
+    - domain: 'deny.example.com'
+      policy: 'deny'
+    - domain: 'admin.example.com'
+      policy: 'two_factor'
+    - domain: 'secure.example.com'
+      policy: 'two_factor'
+    - domain: 'singlefactor.example.com'
+      policy: 'one_factor'
+...
