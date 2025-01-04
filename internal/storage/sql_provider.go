@@ -458,7 +458,7 @@ func (p *SQLProvider) LoadPreferred2FAMethod(ctx context.Context, username strin
 	}
 }
 
-// SaveUserDetails loads the model.UserInfo from the storage provider.
+// LoadUserInfo loads the model.UserInfo from the storage provider.
 func (p *SQLProvider) LoadUserInfo(ctx context.Context, username string) (info model.UserInfo, err error) {
 	err = p.db.GetContext(ctx, &info, p.sqlSelectUserInfo, username, username, username, username)
 

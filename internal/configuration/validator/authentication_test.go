@@ -39,7 +39,9 @@ func TestShouldRaiseErrorWhenLdapAndDbBackendsProvided(t *testing.T) {
 	backendConfig := schema.AuthenticationBackend{}
 
 	backendConfig.LDAP = &schema.AuthenticationBackendLDAP{}
-	backendConfig.DB = &schema.AuthenticationBackendDB{}
+	backendConfig.DB = &schema.AuthenticationBackendDB{
+		Enabled: true,
+	}
 
 	ValidateAuthenticationBackend(&backendConfig, validator)
 
@@ -57,7 +59,9 @@ func TestShouldRaiseErrorWhenFileAndDbBackendsProvided(t *testing.T) {
 	validator := schema.NewStructValidator()
 	backendConfig := schema.AuthenticationBackend{}
 
-	backendConfig.DB = &schema.AuthenticationBackendDB{}
+	backendConfig.DB = &schema.AuthenticationBackendDB{
+		Enabled: true,
+	}
 	backendConfig.File = &schema.AuthenticationBackendFile{
 		Path: "/tmp",
 	}

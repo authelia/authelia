@@ -107,7 +107,7 @@ func (p *DBUserProvider) loadUser(username string) (*model.User, error) {
 	if p.config.Search.Email {
 		user, err = p.database.LoadUserByEmail(ctx, username)
 		if err == nil && !user.Disabled {
-			return nil, err
+			return &user, err
 		}
 	}
 

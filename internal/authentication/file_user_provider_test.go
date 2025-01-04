@@ -42,6 +42,14 @@ func TestShouldErrorAndGenerateUserDB(t *testing.T) {
 	require.EqualError(t, checkDatabase(f), fmt.Sprintf("user authentication database file doesn't exist at path '%s' and has been generated", f))
 }
 
+func TestShouldErrorIfCantGenerateFile(t *testing.T) {
+	dir := t.TempDir()
+
+	f := filepath.Join(dir, "x", "y", "z", "users_database.yml")
+
+	assert.ErrorContains(t, checkDatabase(f), fmt.Sprintf("user authentication database file doesn't exist at path '%s' and could not be generated:", f))
+}
+
 func TestShouldErrorFailCreateDB(t *testing.T) {
 	dir := t.TempDir()
 
