@@ -1,0 +1,24 @@
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE IF NOT EXISTS `users` (
+    `id` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    `username` VARCHAR(100) NOT NULL UNIQUE,
+    `email` VARCHAR(255) NOT NULL UNIQUE,
+    `display_name` VARCHAR(100) DEFAULT NULL,
+    `password` BLOB NOT NULL,
+    `disabled` INT DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS `groups` (
+    `id` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    `name` VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS `users_groups` (
+    `id` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    `user_id` INTEGER NOT NULL,
+    `group_id` INTEGER NOT NULL,
+    UNIQUE(user_id, group_id),
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`group_id`) REFERENCES `groups`(`id`) ON DELETE CASCADE
+);

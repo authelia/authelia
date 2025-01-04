@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/pflag"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -118,4 +119,17 @@ func storageWebAuthnDeleteRunEOptsFromFlags(flags *pflag.FlagSet, args []string)
 	}
 
 	return
+}
+
+func getAuthenticationProvider(ctx *CmdCtx) authentication.UserProvider {
+	switch {
+	case ctx.config.AuthenticationBackend.File != nil:
+		return authentication.NewFileUserProvider(ctx.config.AuthenticationBackend.File)
+	case ctx.config.AuthenticationBackend.LDAP != nil:
+		return authentication.NewLDAPUserProvider(ctx.config.AuthenticationBackend, ctx.trusted)
+	case ctx.config.AuthenticationBackend.DB != nil:
+		return authentication.NewDBUserProvider(ctx.config.AuthenticationBackend.DB, ctx.providers.StorageProvider)
+	}
+
+	return nil
 }

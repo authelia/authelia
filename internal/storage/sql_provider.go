@@ -150,6 +150,26 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectEncryptionValue: fmt.Sprintf(queryFmtSelectEncryptionValue, tableEncryption),
 
 		sqlFmtRenameTable: queryFmtRenameTable,
+
+		sqlSelectUserByUsername: fmt.Sprintf(queryFmtSelectUser,
+			quoteTableName(tableUsers, driverName),
+			tableUsersFieldUsername,
+		),
+		sqlSelectUserByEmail: fmt.Sprintf(queryFmtSelectUser,
+			quoteTableName(tableUsers, driverName),
+			tableUsersFieldEmail,
+		),
+		sqlUpdateUserPassword: fmt.Sprintf(queryFmtUpdateUserPassword,
+			quoteTableName(tableUsers, driverName),
+		),
+		sqlSelectUserGroups: fmt.Sprintf(queryFmtSelectUserGroups,
+			quoteTableName(tableGroups, driverName),
+			quoteTableName(tableUsersGroups, driverName),
+			quoteTableName(tableGroups, driverName),
+			quoteTableName(tableGroups, driverName),
+			quoteTableName(tableUsersGroups, driverName),
+			quoteTableName(tableUsersGroups, driverName),
+		),
 	}
 
 	return provider
@@ -307,6 +327,14 @@ type SQLProvider struct {
 	// Utility.
 	sqlSelectExistingTables string
 	sqlFmtRenameTable       string
+
+	// Table: users.
+	sqlSelectUserByUsername string
+	sqlSelectUserByEmail    string
+	sqlUpdateUserPassword   string
+
+	// Table: groups.
+	sqlSelectUserGroups string
 }
 
 // SQLProviderKeys are the cryptography keys used by a SQLProvider.
@@ -1334,4 +1362,74 @@ func (p *SQLProvider) LoadAuthenticationLogs(ctx context.Context, username strin
 	}
 
 	return attempts, nil
+}
+
+// LoadUserByUsername implements storage.Provider.LoadUserByUsername.
+func (p *SQLProvider) LoadUserByUsername(ctx context.Context, username string) (details model.User, err error) {
+	return p.loadUser(ctx, p.sqlSelectUserByUsername, username)
+}
+
+// LoadUserByEmail implements storage.Provider.LoadUserByEmail.
+func (p *SQLProvider) LoadUserByEmail(ctx context.Context, email string) (details model.User, err error) {
+	return p.loadUser(ctx, p.sqlSelectUserByEmail, email)
+}
+
+// loadUser loads user information using specific query.
+func (p *SQLProvider) loadUser(ctx context.Context, query, identifier string) (model.User, error) {
+	var user model.User
+
+	err := p.db.GetContext(ctx, &user, query, identifier)
+
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+		return model.User{}, errors.New(errUserNotFound)
+	case err != nil:
+		return model.User{}, fmt.Errorf(errLoadingUserDetails, identifier, err)
+	}
+
+	if user.Password, err = p.decrypt(user.Password); err != nil {
+		// return model.User{}, fmt.Errorf("error decrypting password for user '%s': %w", identifier, err).
+		user.Password = []byte{}
+	}
+
+	var groups []string
+
+	if groups, err = p.getUserGroups(context.Background(), user.ID); err != nil {
+		return model.User{}, err
+	}
+
+	user.Groups = groups
+
+	return user, nil
+}
+
+// UpdateUserPassword implements storage.Provider.UpdateUserPassword.
+func (p *SQLProvider) UpdateUserPassword(ctx context.Context, username, password string) (err error) {
+	var encryptedPassword []byte
+
+	// check that user exists.
+	if _, err = p.LoadUserByUsername(ctx, username); err != nil {
+		return err
+	}
+
+	if encryptedPassword, err = p.encrypt([]byte(password)); err != nil {
+		return fmt.Errorf("error encrypting password for user '%s': %w", username, err)
+	}
+
+	if _, err = p.db.ExecContext(ctx, p.sqlUpdateUserPassword, encryptedPassword, username); err != nil {
+		return fmt.Errorf(errUpdatingUserPassword, username, err)
+	}
+
+	return
+}
+
+// getUserGroups get group list for specied userid.
+func (p *SQLProvider) getUserGroups(ctx context.Context, userID int) (groups []string, err error) {
+	err = p.db.SelectContext(ctx, &groups, p.sqlSelectUserGroups, userID)
+
+	if err != nil {
+		return groups, fmt.Errorf(erroLoadingUserGroups, userID, err)
+	}
+
+	return
 }
