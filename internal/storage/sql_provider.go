@@ -1394,7 +1394,7 @@ func (p *SQLProvider) loadUser(ctx context.Context, query, identifier string) (m
 
 	var groups []string
 
-	if groups, err = p.getUserGroups(context.Background(), user.ID); err != nil {
+	if groups, err = p.getUserGroups(ctx, user.ID); err != nil {
 		return model.User{}, err
 	}
 
@@ -1428,7 +1428,7 @@ func (p *SQLProvider) getUserGroups(ctx context.Context, userID int) (groups []s
 	err = p.db.SelectContext(ctx, &groups, p.sqlSelectUserGroups, userID)
 
 	if err != nil {
-		return groups, fmt.Errorf(erroLoadingUserGroups, userID, err)
+		return groups, fmt.Errorf(errLoadingUserGroups, userID, err)
 	}
 
 	return

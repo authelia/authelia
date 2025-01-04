@@ -1,6 +1,7 @@
 package suites
 
 import (
+	"fmt"
 	"os"
 	"time"
 )
@@ -39,10 +40,15 @@ func init() {
 	}
 
 	teardown := func(suitePath string) error {
-		err := dockerEnvironment.Down()
-		_ = os.Remove("/tmp/db.sqlite3")
+		if err := dockerEnvironment.Down(); err != nil {
+			return fmt.Errorf("failed to tear down docker environment: %w", err)
+		}
 
-		return err
+		if err := os.Remove("/tmp/db.sqlite3"); err != nil && !os.IsNotExist(err) {
+			return fmt.Errorf("failed to remove SQLite database: %w", err)
+		}
+
+		return nil
 	}
 
 	GlobalRegistry.Register(authBackendSqliteSuiteName, Suite{
