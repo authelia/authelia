@@ -358,6 +358,8 @@ func (s *MapSource) Load(_ *schema.StructValidator) (err error) {
 
 // NewDefaultSources returns a slice of Source configured to load from specified YAML files.
 func NewDefaultSources(paths []string, prefix, delimiter string, additionalSources ...Source) (sources []Source) {
+	sources = []Source{NewMapSource(defaults)}
+
 	fileSources := NewFileSources(paths)
 	for _, source := range fileSources {
 		sources = append(sources, source)
@@ -375,6 +377,8 @@ func NewDefaultSources(paths []string, prefix, delimiter string, additionalSourc
 
 // NewDefaultSourcesFiltered returns a slice of Source configured to load from specified YAML files.
 func NewDefaultSourcesFiltered(paths []string, filters []BytesFilter, prefix, delimiter string, additionalSources ...Source) (sources []Source) {
+	sources = []Source{NewMapSource(defaults)}
+
 	fileSources := NewFilteredFileSources(paths, filters)
 	for _, source := range fileSources {
 		sources = append(sources, source)
@@ -391,11 +395,11 @@ func NewDefaultSourcesFiltered(paths []string, filters []BytesFilter, prefix, de
 }
 
 // NewDefaultSourcesWithDefaults returns a slice of Source configured to load from specified YAML files with additional sources.
-func NewDefaultSourcesWithDefaults(paths []string, filters []BytesFilter, prefix, delimiter string, defaults []Source, additionalSources ...Source) (sources []Source) {
-	sources = []Source{NewMapSource(defaultsMapSource)}
+func NewDefaultSourcesWithDefaults(paths []string, filters []BytesFilter, prefix, delimiter string, defaultSources []Source, additionalSources ...Source) (sources []Source) {
+	sources = []Source{NewMapSource(defaults)}
 
-	if len(defaults) != 0 {
-		sources = append(sources, defaults...)
+	if defaultSources != nil {
+		sources = append(sources, defaultSources...)
 	}
 
 	if len(filters) == 0 {
@@ -411,5 +415,5 @@ func NewDefaultSourcesWithDefaults(paths []string, filters []BytesFilter, prefix
 // setting defaults that otherwise can't be set. In the future it can be used to generate documentation or be generated
 // by jsonschema. It will also reduce some areas of the validation package.
 func NewDefaultsSource() (source Source) {
-	return NewMapSource(mapDefaults)
+	return NewMapSource(defaults)
 }

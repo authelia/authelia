@@ -62,9 +62,25 @@ func TestNewAddressFromString(t *testing.T) {
 			"ShouldNotParseAddressWithQuery",
 			"tcp://0.0.0.0?umask=0022",
 			nil,
-			"0.0.0.0:0",
-			"tcp://0.0.0.0:0",
+			"",
+			"",
 			"error validating the address: the url 'tcp://0.0.0.0?umask=0022' appears to have a query but this is not valid for addresses with the 'tcp' scheme",
+		},
+		{
+			"ShouldNotParseAddressWithBadProtocolPort",
+			"ldap://0.0.0.0:123901827390123",
+			nil,
+			"",
+			"",
+			"failed to parse port: strconv.ParseUint: parsing \"123901827390123\": value out of range",
+		},
+		{
+			"ShouldNotParseAddressWithBadTCPPort",
+			"tcp://0.0.0.0:123901827390123",
+			nil,
+			"",
+			"",
+			"failed to parse port: strconv.ParseUint: parsing \"123901827390123\": value out of range",
 		},
 		{
 			"ShouldParseUnixSocket",
@@ -80,7 +96,23 @@ func TestNewAddressFromString(t *testing.T) {
 			nil,
 			"",
 			"",
-			"error validating the unix socket address: the url 'unix://ahost/path/to/a/socket.sock' appears to have a host but this is not valid for unix sockets: this may occur if you omit the leading forward slash from the socket path",
+			"error validating the unix socket address: the url 'unix://ahost/path/to/a/socket.sock' appears to have a hostname but this is not valid for unix sockets: this may occur if you omit the leading forward slash from the socket path",
+		},
+		{
+			"ShouldParseUnixSocketWithPort",
+			"unix://:5432/path/to/a/socket.sock",
+			&Address{true, true, -1, 5432, &url.URL{Scheme: AddressSchemeUnix, Host: ":5432", Path: "/path/to/a/socket.sock"}},
+			"/path/to/a/socket.sock",
+			"unix://:5432/path/to/a/socket.sock",
+			"",
+		},
+		{
+			"ShouldNotParseUnixSocketWithBadPort",
+			"unix://:5432123123/path/to/a/socket.sock",
+			nil,
+			"",
+			"",
+			"failed to parse port: strconv.ParseUint: parsing \"5432123123\": value out of range",
 		},
 		{
 			"ShouldNotParseUnixSocketWithoutPath",
@@ -395,6 +427,19 @@ func TestAddressOutputValues(t *testing.T) {
 
 	assert.Nil(t, listener)
 	assert.EqualError(t, err, "address url is nil")
+
+	assert.Equal(t, "", address.Path())
+
+	address.SetPath("/abc")
+
+	address.valid = true
+	address.url = &url.URL{Scheme: AddressSchemeUnix}
+
+	assert.Equal(t, "", address.Path())
+
+	address.SetPath("/abc")
+
+	assert.Equal(t, "/abc", address.Path())
 
 	address = &Address{true, false, -1, 9091, &url.URL{Scheme: AddressSchemeTCP, Host: "0.0.0.0:9091"}}
 

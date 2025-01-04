@@ -7,6 +7,7 @@ import (
 	"hash"
 	"os"
 	"path/filepath"
+	"strconv"
 	"testing"
 	"time"
 
@@ -890,20 +891,20 @@ func TestFuncDate(t *testing.T) {
 		name     string
 		format   string
 		value    any
-		expected string
+		expected []string
 	}{
-		{"ShouldHandleTimeValue", time.DateOnly, example, "2009-04-18"},
-		{"ShouldHandleEpochValue", time.DateOnly, 1240000000, "2009-04-18"},
-		{"ShouldHandleEpochValueInt", time.DateOnly, int(1240000000), "2009-04-18"},
-		{"ShouldHandleEpochValueInt64", time.DateOnly, int64(1240000000), "2009-04-18"},
-		{"ShouldHandleEpochValueInt32", time.DateOnly, int32(1240000000), "2009-04-18"},
-		{"ShouldHandleEpochValueTimePointer", time.DateOnly, &example, "2009-04-18"},
+		{"ShouldHandleTimeValue", time.DateOnly, example, []string{"2009-04-17", "2009-04-18"}},
+		{"ShouldHandleEpochValue", time.DateOnly, 1240000000, []string{"2009-04-17", "2009-04-18"}},
+		{"ShouldHandleEpochValueInt", time.DateOnly, int(1240000000), []string{"2009-04-17", "2009-04-18"}},
+		{"ShouldHandleEpochValueInt64", time.DateOnly, int64(1240000000), []string{"2009-04-17", "2009-04-18"}},
+		{"ShouldHandleEpochValueInt32", time.DateOnly, int32(1240000000), []string{"2009-04-17", "2009-04-18"}},
+		{"ShouldHandleEpochValueTimePointer", time.DateOnly, &example, []string{"2009-04-17", "2009-04-18"}},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, FuncDate(tc.format, tc.value))
-			assert.Equal(t, tc.expected, FuncHTMLDate(tc.value))
+			assert.Contains(t, tc.expected, FuncDate(tc.format, tc.value))
+			assert.Contains(t, tc.expected, FuncHTMLDate(tc.value))
 		})
 	}
 }
@@ -916,23 +917,23 @@ func TestFuncFuncDateInZone(t *testing.T) {
 		format   string
 		value    any
 		zone     string
-		expected string
+		expected []string
 	}{
-		{"ShouldHandleTimeValue", time.DateOnly, example, "Local", "2009-04-18"},
-		{"ShouldHandleTimeValueEmptyZone", time.DateOnly, example, "", "2009-04-17"},
-		{"ShouldHandleTimeValueUTC", time.DateOnly, example, "UTC", "2009-04-17"},
-		{"ShouldHandleTimeValueBad", time.DateOnly, example, "BADBADBAD", "2009-04-17"},
-		{"ShouldHandleEpochValue", time.DateOnly, 1240000000, "Local", "2009-04-18"},
-		{"ShouldHandleEpochValueInt", time.DateOnly, int(1240000000), "Local", "2009-04-18"},
-		{"ShouldHandleEpochValueInt64", time.DateOnly, int64(1240000000), "Local", "2009-04-18"},
-		{"ShouldHandleEpochValueInt32", time.DateOnly, int32(1240000000), "Local", "2009-04-18"},
-		{"ShouldHandleEpochValueTimePointer", time.DateOnly, &example, "Local", "2009-04-18"},
+		{"ShouldHandleTimeValue", time.DateOnly, example, "Local", []string{"2009-04-17", "2009-04-18"}},
+		{"ShouldHandleTimeValueEmptyZone", time.DateOnly, example, "", []string{"2009-04-17"}},
+		{"ShouldHandleTimeValueUTC", time.DateOnly, example, "UTC", []string{"2009-04-17"}},
+		{"ShouldHandleTimeValueBad", time.DateOnly, example, "BADBADBAD", []string{"2009-04-17"}},
+		{"ShouldHandleEpochValue", time.DateOnly, 1240000000, "Local", []string{"2009-04-17", "2009-04-18"}},
+		{"ShouldHandleEpochValueInt", time.DateOnly, int(1240000000), "Local", []string{"2009-04-17", "2009-04-18"}},
+		{"ShouldHandleEpochValueInt64", time.DateOnly, int64(1240000000), "Local", []string{"2009-04-17", "2009-04-18"}},
+		{"ShouldHandleEpochValueInt32", time.DateOnly, int32(1240000000), "Local", []string{"2009-04-17", "2009-04-18"}},
+		{"ShouldHandleEpochValueTimePointer", time.DateOnly, &example, "Local", []string{"2009-04-17", "2009-04-18"}},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, FuncDateInZone(tc.format, tc.value, tc.zone))
-			assert.Equal(t, tc.expected, FuncHTMLDateInZone(tc.value, tc.zone))
+			assert.Contains(t, tc.expected, FuncDateInZone(tc.format, tc.value, tc.zone))
+			assert.Contains(t, tc.expected, FuncHTMLDateInZone(tc.value, tc.zone))
 		})
 	}
 }
@@ -1004,20 +1005,38 @@ func TestFuncMustToDate(t *testing.T) {
 
 func TestFuncUnixEpoch(t *testing.T) {
 	testCases := []struct {
-		name     string
-		value    time.Time
-		expected string
+		name        string
+		value       time.Time
+		expectedMin string
+		expectedMax string
 	}{
-		{"ShouldHandle", time.Date(2024, time.January, 1, 0, 0, 0, 0, time.Local), "1704027600"},
-		{"ShouldHandleZero", time.Time{}, "-62135596800"},
-		{"ShouldHandlePreEpoch", time.Date(1960, time.January, 1, 0, 0, 0, 0, time.UTC), "-315619200"},
-		{"ShouldHandleFarFuture", time.Date(2050, time.January, 1, 0, 0, 0, 0, time.UTC), "2524608000"},
-		{"ShouldHandleWithTimezone", time.Date(2024, time.January, 1, 0, 0, 0, 0, time.UTC), "1704067200"},
+		{"ShouldHandle", time.Date(2024, time.January, 1, 0, 0, 0, 0, time.Local), "1704016800", "1704110400"},
+		{"ShouldHandleUTCPlus14",
+			time.Date(2024, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC+14", 14*60*60)),
+			"1704016800",
+			"1704016800"},
+		{"ShouldHandleUTCMinus12",
+			time.Date(2024, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC-12", -12*60*60)),
+			"1704110400",
+			"1704110400"},
+		{"ShouldHandleZero", time.Time{}, "-62135596800", "-62135596800"},
+		{"ShouldHandlePreEpoch", time.Date(1960, time.January, 1, 0, 0, 0, 0, time.UTC), "-315619200", "-315619200"},
+		{"ShouldHandleFarFuture", time.Date(2050, time.January, 1, 0, 0, 0, 0, time.UTC), "2524608000", "2524608000"},
+		{"ShouldHandleWithTimezone", time.Date(2024, time.January, 1, 0, 0, 0, 0, time.UTC), "1704067200", "1704067200"},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, FuncUnixEpoch(tc.value))
+			result := FuncUnixEpoch(tc.value)
+			if tc.expectedMin == tc.expectedMax {
+				assert.Equal(t, tc.expectedMin, result)
+			} else {
+				resultInt, _ := strconv.ParseInt(result, 10, 64)
+				minInt, _ := strconv.ParseInt(tc.expectedMin, 10, 64)
+				maxInt, _ := strconv.ParseInt(tc.expectedMax, 10, 64)
+				assert.True(t, resultInt >= minInt && resultInt <= maxInt,
+					"Expected value between %s and %s, got %s", tc.expectedMin, tc.expectedMax, result)
+			}
 		})
 	}
 }
