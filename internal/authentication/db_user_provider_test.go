@@ -193,7 +193,7 @@ func (s *DBUserProviderSuite) TestCheckPasswordFailsIfUserNotFound() {
 }
 
 // TODO: test that hashed password meets expected hash.
-func (s *DBUserProviderSuite) TestUpdatePasswordFailsIfUserNotFound() {
+func (s *DBUserProviderSuite) TestUpdatePasswordOk() {
 	provider := s.mock.Ctx.Providers.UserProvider
 
 	s.mock.StorageMock.EXPECT().LoadUserByUsername(context.Background(), gomock.Eq("john")).
@@ -210,4 +210,51 @@ func (s *DBUserProviderSuite) TestUpdatePasswordFailsIfUserNotFound() {
 
 	err := provider.UpdatePassword("john", "password")
 	s.NoError(err)
+}
+
+func (s *DBUserProviderSuite) TestUpdatePasswordFailsIfUserIsDisabled() {
+	provider := s.mock.Ctx.Providers.UserProvider
+
+	s.mock.StorageMock.EXPECT().LoadUserByUsername(context.Background(), gomock.Eq("john")).
+		Return(model.User{
+			Username:    "john",
+			Email:       "john@example.com",
+			DisplayName: "John Doe",
+			Groups:      []string{"admins", "dev"},
+			Disabled:    true,
+		}, nil)
+
+	err := provider.UpdatePassword("john", "password")
+	s.ErrorContains(err, "user not found")
+}
+
+func (s *DBUserProviderSuite) TestUpdatePasswordFailsIfUserNotFound() {
+	provider := s.mock.Ctx.Providers.UserProvider
+
+	s.mock.StorageMock.EXPECT().LoadUserByUsername(context.Background(), gomock.Eq("ada")).
+		Return(model.User{}, errors.New("user not found"))
+
+	err := provider.UpdatePassword("ada", "password")
+	s.ErrorContains(err, "user not found")
+}
+
+func (s *DBUserProviderSuite) TestUpdatePasswordFailsIfStorageBackendFails() {
+	provider := s.mock.Ctx.Providers.UserProvider
+
+	var spectedError = errors.New("some error")
+
+	s.mock.StorageMock.EXPECT().LoadUserByUsername(context.Background(), gomock.Eq("john")).
+		Return(model.User{
+			Username:    "john",
+			Email:       "john@example.com",
+			DisplayName: "John Doe",
+			Groups:      []string{"admins", "dev"},
+			Disabled:    false,
+		}, nil)
+
+	s.mock.StorageMock.EXPECT().UpdateUserPassword(context.Background(), gomock.Eq("john"), gomock.Any()).
+		Return(spectedError)
+
+	err := provider.UpdatePassword("john", "password")
+	s.ErrorIs(err, spectedError)
 }
