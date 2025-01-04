@@ -30,7 +30,6 @@ func init() {
 		if err = waitUntilAutheliaIsReady(dockerEnvironment, authBackendSqliteSuiteName); err != nil {
 			return err
 		}
-		// dockerEnvironment.Exec()
 
 		return updateDevEnvFileForDomain(BaseDomain, true)
 	}
