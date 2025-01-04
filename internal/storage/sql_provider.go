@@ -1386,11 +1386,12 @@ func (p *SQLProvider) loadUser(ctx context.Context, query, identifier string) (m
 	case err != nil:
 		return model.User{}, fmt.Errorf(errLoadingUserDetails, identifier, err)
 	}
+
 	if user.Password, err = p.decrypt(user.Password); err != nil {
 		p.log.WithError(err).WithField("user", identifier).
-			Warning("Failed to decrypt user password, marking account for password reset")
+			Warning("Failed to decrypt user password, the user must reset their password") //lint:nosec
+		// TODO: Consider setting a flag to force password reset.
 		user.Password = []byte{}
-		// TODO: Consider setting a flag to force password reset
 	}
 
 	var groups []string
