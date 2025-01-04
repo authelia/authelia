@@ -58,6 +58,10 @@ type Object struct {
 
 // String is a string representation of the Object.
 func (o Object) String() string {
+	if o.URL == nil {
+		return ""
+	}
+
 	return o.URL.String()
 }
 
