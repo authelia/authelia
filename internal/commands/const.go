@@ -557,6 +557,29 @@ This subcommand allows generating an %s key pair.`
 	cmdAutheliaCryptoPairECDSAGenerateExample = `authelia crypto pair ecdsa generate --help`
 
 	cmdAutheliaCryptoPairEd25519GenerateExample = `authelia crypto pair ed25519 generate --help`
+
+	cmdAutheliaUserShort = "Manage users"
+
+	cmdAutheliaUserLong = `Manage users.
+
+This subcommand allows basic user management.`
+	cmdAutheliaUserExample = `authelia user --help`
+
+	cmdAutheliaUserPasswordShort = "Change user password"
+
+	cmdAutheliaUserPasswordLong = `Change user password.
+
+This subcommand allows password change for existing users.`
+
+	cmdAutheliaUserPasswordExample = `authelia user password john <new_password>` //nolint:gosec
+
+	cmdAutheliaUserShowShort = "Show user details"
+
+	cmdAutheliaUserShowLong = `Show user details.
+
+This subcommand allows to show the user information.`
+
+	cmdAutheliaUserShowExample = `authelia user show john`
 )
 
 const (
@@ -817,6 +840,8 @@ due to arguments which only had an effect on one algorithm and not the other,
 and the new command makes the available options a lot clearer. In addition
 the old command was not compatible with all of the available algorithms the
 new one is compatible for and retrofitting it would be incredibly difficult.`
+
+	helpTopicUser = ``
 )
 
 const (
