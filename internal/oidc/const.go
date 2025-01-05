@@ -11,6 +11,8 @@ const (
 	ScopeOpenID        = "openid"
 	ScopeProfile       = "profile"
 	ScopeEmail         = "email"
+	ScopePhone         = "phone"
+	ScopeAddress       = "address"
 	ScopeGroups        = "groups"
 
 	ScopeAutheliaBearerAuthz = "authelia.bearer.authz"
@@ -29,14 +31,9 @@ const (
 	ClaimExpirationTime                      = "exp"
 	ClaimAuthenticationTime                  = "auth_time"
 	ClaimIssuer                              = valueIss
-	ClaimSubject                             = "sub"
 	ClaimNonce                               = "nonce"
 	ClaimAudience                            = "aud"
 	ClaimGroups                              = "groups"
-	ClaimFullName                            = "name"
-	ClaimPreferredUsername                   = "preferred_username"
-	ClaimPreferredEmail                      = "email"
-	ClaimEmailVerified                       = "email_verified"
 	ClaimAuthorizedParty                     = "azp"
 	ClaimAuthenticationContextClassReference = "acr"
 	ClaimAuthenticationMethodsReference      = "amr"
@@ -44,6 +41,26 @@ const (
 	ClaimScope                               = valueScope
 	ClaimScopeNonStandard                    = "scp"
 	ClaimExtra                               = "ext"
+	ClaimSubject                             = "sub"
+	ClaimFullName                            = "name"
+	ClaimGivenName                           = "given_name"
+	ClaimFamilyName                          = "family_name"
+	ClaimMiddleName                          = "middle_name"
+	ClaimNickname                            = "nickname"
+	ClaimPreferredUsername                   = "preferred_username"
+	ClaimProfile                             = "profile"
+	ClaimPicture                             = "picture"
+	ClaimWebsite                             = "website"
+	ClaimEmail                               = "email"
+	ClaimEmailVerified                       = "email_verified"
+	ClaimGender                              = "gender"
+	ClaimBirthdate                           = "birthdate"
+	ClaimZoneinfo                            = "zoneinfo"
+	ClaimLocale                              = "locale"
+	ClaimPhoneNumber                         = "phone_number"
+	ClaimPhoneNumberVerified                 = "phone_number_verified"
+	ClaimAddress                             = "address"
+	ClaimUpdatedAt                           = "updated_at"
 	ClaimActive                              = "active"
 	ClaimUsername                            = "username"
 	ClaimTokenIntrospection                  = "token_introspection"
@@ -173,6 +190,8 @@ const (
 	FormParameterScope        = valueScope
 	FormParameterIssuer       = valueIss
 	FormParameterPrompt       = "prompt"
+	FormParameterMaximumAge   = "max_age"
+	FormParameterClaims       = "claims"
 )
 
 const (
@@ -212,7 +231,10 @@ const (
 
 // Paths.
 const (
-	EndpointPathConsent                           = "/consent"
+	EndpointPathConsent         = "/consent/openid"
+	EndpointPathConsentDecision = EndpointPathConsent + "/decision"
+	EndpointPathConsentLogin    = EndpointPathConsent + "/login"
+
 	EndpointPathWellKnownOpenIDConfiguration      = "/.well-known/openid-configuration"
 	EndpointPathWellKnownOAuthAuthorizationServer = "/.well-known/oauth-authorization-server"
 	EndpointPathJWKs                              = "/jwks.json"

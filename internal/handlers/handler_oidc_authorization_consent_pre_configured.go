@@ -75,6 +75,12 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Auth
 		return nil, true
 	}
 
+	if oidc.RequesterRequiresLogin(requester, consent.RequestedAt, userSession.LastAuthenticatedTime()) {
+		handleOIDCAuthorizationConsentPromptLoginRedirect(ctx, issuer, client, userSession, rw, r, requester, consent)
+
+		return nil, true
+	}
+
 	if !consent.CanGrant() {
 		ctx.Logger.Errorf(logFmtErrConsentCantGrantPreConf, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID)
 
@@ -92,11 +98,11 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Auth
 	}
 
 	if config != nil {
-		consent.Grant()
+		consent.GrantWithClaims(config.GrantedClaims)
 
 		consent.PreConfiguration = sql.NullInt64{Int64: config.ID, Valid: true}
 
-		if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, *consent, false); err != nil {
+		if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, false); err != nil {
 			ctx.Logger.Errorf(logFmtErrConsentSaveSessionResponse, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, err)
 
 			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotSave)
@@ -168,7 +174,7 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares.A
 		return nil, true
 	}
 
-	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSession(ctx, *consent); err != nil {
+	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSession(ctx, consent); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentSaveSession, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, err)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotSave)
@@ -184,11 +190,19 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares.A
 		return nil, true
 	}
 
+	if oidc.RequesterRequiresLogin(requester, consent.RequestedAt, userSession.LastAuthenticatedTime()) {
+		handleOIDCAuthorizationConsentPromptLoginRedirect(ctx, issuer, client, userSession, rw, r, requester, consent)
+
+		return nil, true
+	} else {
+		ctx.Logger.WithFields(map[string]any{"requested_at": consent.RequestedAt, "authenticated_at": userSession.LastAuthenticatedTime(), "prompt": requester.GetRequestForm().Get("prompt")}).Debugf("Authorization Request with id '%s' on client with id '%s' is not being redirected for reauthentication", requester.GetID(), client.GetID())
+	}
+
 	consent.Grant()
 
 	consent.PreConfiguration = sql.NullInt64{Int64: config.ID, Valid: true}
 
-	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, *consent, false); err != nil {
+	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, false); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentSaveSessionResponse, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, err)
 
 		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotSave)
@@ -216,20 +230,50 @@ func handleOIDCAuthorizationConsentModePreConfiguredGetPreConfig(ctx *middleware
 		}
 	}()
 
+	var (
+		requests *oidc.ClaimsRequests
+
+		serialized, signature string
+	)
+
+	if requests, err = oidc.NewClaimRequests(requester.GetRequestForm()); err != nil {
+		return nil, fmt.Errorf("error parsing claim requests: %w", err)
+	} else if requests != nil {
+		if serialized, signature, err = requests.Serialized(); err != nil {
+			return nil, fmt.Errorf("error serializing claim requests: %w", err)
+		}
+	}
+
 	scopes, audience := requester.GetRequestedScopes(), requester.GetRequestedAudience()
+
+	log := ctx.Logger.WithFields(map[string]any{"scopes": scopes, "claims": serialized, "audience": audience, "client_id": client.GetID()})
 
 	for rows.Next() {
 		if config, err = rows.Get(); err != nil {
 			return nil, fmt.Errorf("error iterating rows: %w", err)
 		}
 
-		if config.HasExactGrants(scopes, audience) && config.CanConsent() {
-			ctx.Logger.Debugf(logFmtDbgConsentPreConfSuccessfulLookup, requester.GetID(), client.GetID(), client.GetConsentPolicy(), client.GetID(), subject, strings.Join(requester.GetRequestedScopes(), " "), config.ID)
+		if !config.CanConsent() {
+			log.Debugf("Authorization Request with id '%s' on client with id '%s' using consent mode '%s' found a matching pre-configuration with id '%d' but it is revoked, expired, or otherwise can no longer provide consent", requester.GetID(), client.GetID(), client.GetConsentPolicy(), config.ID)
 
-			return config, nil
+			continue
 		}
 
-		ctx.Logger.Debugf("Authorization Request with id '%s' on client with id '%s' using consent mode '%s' request with scopes '%s' and audience '%s' did not match pre-configured consent with scopes '%s' and audience '%s'", requester.GetID(), client.GetID(), client.GetConsentPolicy(), strings.Join(scopes, " "), strings.Join(audience, " "), strings.Join(config.Scopes, " "), strings.Join(config.Audience, " "))
+		if !config.HasExactGrants(scopes, audience) {
+			log.Debugf("Authorization Request with id '%s' on client with id '%s' using consent mode '%s' found a matching pre-configuration with id '%d' but the configuration has scopes '%s' and audience '%s' which coes not match the request", requester.GetID(), client.GetID(), client.GetConsentPolicy(), config.ID, strings.Join(config.Scopes, " "), strings.Join(config.Audience, " "))
+
+			continue
+		}
+
+		if !config.HasClaimsSignature(signature) {
+			log.Debugf("Authorization Request with id '%s' on client with id '%s' using consent mode '%s' found a matching pre-configuration with id '%d' but the configuration had the requested claims '%s' which coes not match the request", requester.GetID(), client.GetID(), client.GetConsentPolicy(), config.ID, config.RequestedClaims.String)
+
+			continue
+		}
+
+		log.Debugf(logFmtDbgConsentPreConfSuccessfulLookup, requester.GetID(), client.GetID(), client.GetConsentPolicy(), client.GetID(), subject, strings.Join(requester.GetRequestedScopes(), " "), config.ID)
+
+		return config, nil
 	}
 
 	ctx.Logger.Debugf(logFmtDbgConsentPreConfUnsuccessfulLookup, requester.GetID(), client.GetID(), client.GetConsentPolicy(), client.GetID(), subject, strings.Join(scopes, " "), strings.Join(audience, " "))

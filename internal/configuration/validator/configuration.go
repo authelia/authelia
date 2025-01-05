@@ -47,6 +47,8 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 
 	ValidateAuthenticationBackend(&config.AuthenticationBackend, validator)
 
+	ValidateDefinitions(config, validator)
+
 	ValidateAccessControl(config, validator)
 
 	ValidateRules(config, validator)
@@ -63,7 +65,7 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 
 	ValidateNotifier(&config.Notifier, validator)
 
-	ValidateIdentityProviders(ctx, &config.IdentityProviders, validator)
+	ValidateIdentityProviders(ctx, config, validator)
 
 	ValidateIdentityValidation(config, validator)
 

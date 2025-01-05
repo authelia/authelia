@@ -976,7 +976,8 @@ func (p *SQLProvider) SaveOAuth2ConsentPreConfiguration(ctx context.Context, con
 	case providerPostgres:
 		if err = p.db.GetContext(ctx, &insertedID, p.sqlInsertOAuth2ConsentPreConfiguration,
 			config.ClientID, config.Subject, config.CreatedAt, config.ExpiresAt,
-			config.Revoked, config.Scopes, config.Audience); err != nil {
+			config.Revoked, config.Scopes, config.Audience,
+			config.RequestedClaims, config.SignatureClaims, config.GrantedClaims); err != nil {
 			return -1, fmt.Errorf("error inserting oauth2 consent pre-configuration for subject '%s' with client id '%s' and scopes '%s': %w", config.Subject.String(), config.ClientID, strings.Join(config.Scopes, " "), err)
 		}
 
@@ -986,7 +987,8 @@ func (p *SQLProvider) SaveOAuth2ConsentPreConfiguration(ctx context.Context, con
 
 		if result, err = p.db.ExecContext(ctx, p.sqlInsertOAuth2ConsentPreConfiguration,
 			config.ClientID, config.Subject, config.CreatedAt, config.ExpiresAt,
-			config.Revoked, config.Scopes, config.Audience); err != nil {
+			config.Revoked, config.Scopes, config.Audience,
+			config.RequestedClaims, config.SignatureClaims, config.GrantedClaims); err != nil {
 			return -1, fmt.Errorf("error inserting oauth2 consent pre-configuration for subject '%s' with client id '%s' and scopes '%s': %w", config.Subject.String(), config.ClientID, strings.Join(config.Scopes, " "), err)
 		}
 
@@ -1010,11 +1012,11 @@ func (p *SQLProvider) LoadOAuth2ConsentPreConfigurations(ctx context.Context, cl
 }
 
 // SaveOAuth2ConsentSession inserts an OAuth2.0 consent session to the storage provider.
-func (p *SQLProvider) SaveOAuth2ConsentSession(ctx context.Context, consent model.OAuth2ConsentSession) (err error) {
+func (p *SQLProvider) SaveOAuth2ConsentSession(ctx context.Context, consent *model.OAuth2ConsentSession) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlInsertOAuth2ConsentSession,
 		consent.ChallengeID, consent.ClientID, consent.Subject, consent.Authorized, consent.Granted,
 		consent.RequestedAt, consent.RespondedAt, consent.Form,
-		consent.RequestedScopes, consent.GrantedScopes, consent.RequestedAudience, consent.GrantedAudience, consent.PreConfiguration); err != nil {
+		consent.RequestedScopes, consent.GrantedScopes, consent.RequestedAudience, consent.GrantedAudience, consent.GrantedClaims, consent.PreConfiguration); err != nil {
 		return fmt.Errorf("error inserting oauth2 consent session with challenge id '%s' for subject '%s': %w", consent.ChallengeID.String(), consent.Subject.UUID.String(), err)
 	}
 
@@ -1022,7 +1024,7 @@ func (p *SQLProvider) SaveOAuth2ConsentSession(ctx context.Context, consent mode
 }
 
 // SaveOAuth2ConsentSessionSubject updates an OAuth2.0 consent session in the storage provider with the subject.
-func (p *SQLProvider) SaveOAuth2ConsentSessionSubject(ctx context.Context, consent model.OAuth2ConsentSession) (err error) {
+func (p *SQLProvider) SaveOAuth2ConsentSessionSubject(ctx context.Context, consent *model.OAuth2ConsentSession) (err error) {
 	if _, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2ConsentSessionSubject, consent.Subject, consent.ID); err != nil {
 		return fmt.Errorf("error updating oauth2 consent session subject with id '%d' and challenge id '%s' for subject '%s': %w", consent.ID, consent.ChallengeID, consent.Subject.UUID, err)
 	}
@@ -1031,8 +1033,8 @@ func (p *SQLProvider) SaveOAuth2ConsentSessionSubject(ctx context.Context, conse
 }
 
 // SaveOAuth2ConsentSessionResponse updates an OAuth2.0 consent session in the storage provider with the response.
-func (p *SQLProvider) SaveOAuth2ConsentSessionResponse(ctx context.Context, consent model.OAuth2ConsentSession, authorized bool) (err error) {
-	if _, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2ConsentSessionResponse, authorized, consent.GrantedScopes, consent.GrantedAudience, consent.PreConfiguration, consent.ID); err != nil {
+func (p *SQLProvider) SaveOAuth2ConsentSessionResponse(ctx context.Context, consent *model.OAuth2ConsentSession, authorized bool) (err error) {
+	if _, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2ConsentSessionResponse, authorized, consent.GrantedScopes, consent.GrantedAudience, consent.GrantedClaims, consent.PreConfiguration, consent.ID); err != nil {
 		return fmt.Errorf("error updating oauth2 consent session (authorized  '%t') with id '%d' and challenge id '%s' for subject '%s': %w", authorized, consent.ID, consent.ChallengeID, consent.Subject.UUID, err)
 	}
 
@@ -1090,7 +1092,7 @@ func (p *SQLProvider) SaveOAuth2Session(ctx context.Context, sessionType OAuth2S
 		session.Active, session.Revoked, session.Form, session.Session)
 
 	if err != nil {
-		return fmt.Errorf("error inserting oauth2 %s session data with signature '%s' for subject '%s' and request id '%s' and challenge id '%s': %w", sessionType, session.Signature, session.Subject.String, session.RequestID, session.ChallengeID.UUID, err)
+		return fmt.Errorf("error inserting oauth2 %s session with signature '%s' for subject '%s' and request id '%s' and challenge id '%s': %w", sessionType, session.Signature, session.Subject.String, session.RequestID, session.ChallengeID.UUID, err)
 	}
 
 	return nil
@@ -1335,3 +1337,7 @@ func (p *SQLProvider) LoadAuthenticationLogs(ctx context.Context, username strin
 
 	return attempts, nil
 }
+
+var (
+	_ Provider = (*SQLProvider)(nil)
+)

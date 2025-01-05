@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"sort"
 	"strconv"
+	"strings"
 
 	oauthelia2 "authelia.com/provider/oauth2"
 
@@ -17,52 +18,56 @@ import (
 )
 
 // ValidateIdentityProviders validates and updates the IdentityProviders configuration.
-func ValidateIdentityProviders(ctx *ValidateCtx, config *schema.IdentityProviders, validator *schema.StructValidator) {
-	validateOIDC(ctx, config.OIDC, validator)
+func ValidateIdentityProviders(ctx *ValidateCtx, config *schema.Configuration, validator *schema.StructValidator) {
+	validateOIDC(ctx, config, validator)
 }
 
-func validateOIDC(ctx *ValidateCtx, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
-	if config == nil {
+func validateOIDC(ctx *ValidateCtx, config *schema.Configuration, validator *schema.StructValidator) {
+	if config == nil || config.IdentityProviders.OIDC == nil {
 		return
 	}
 
+	config.IdentityProviders.OIDC.Discovery.Scopes = append(config.IdentityProviders.OIDC.Discovery.Scopes, validOIDCClientScopes...)
+
 	setOIDCDefaults(config)
 
-	validateOIDCIssuer(config, validator)
+	validateOIDCIssuer(config.IdentityProviders.OIDC, validator)
 	validateOIDCAuthorizationPolicies(config, validator)
 	validateOIDCLifespans(config, validator)
+	validateOIDCClaims(config, validator)
+	validateOIDCScopes(config, validator)
 
-	sort.Sort(oidc.SortedSigningAlgs(config.Discovery.ResponseObjectSigningAlgs))
+	sort.Sort(oidc.SortedSigningAlgs(config.IdentityProviders.OIDC.Discovery.ResponseObjectSigningAlgs))
 
 	switch {
-	case config.MinimumParameterEntropy == -1:
+	case config.IdentityProviders.OIDC.MinimumParameterEntropy == -1:
 		validator.PushWarning(errors.New(errFmtOIDCProviderInsecureDisabledParameterEntropy))
-	case config.MinimumParameterEntropy <= 0:
-		config.MinimumParameterEntropy = oauthelia2.MinParameterEntropy
-	case config.MinimumParameterEntropy < oauthelia2.MinParameterEntropy:
-		validator.PushWarning(fmt.Errorf(errFmtOIDCProviderInsecureParameterEntropyUnsafe, oauthelia2.MinParameterEntropy, config.MinimumParameterEntropy))
+	case config.IdentityProviders.OIDC.MinimumParameterEntropy <= 0:
+		config.IdentityProviders.OIDC.MinimumParameterEntropy = oauthelia2.MinParameterEntropy
+	case config.IdentityProviders.OIDC.MinimumParameterEntropy < oauthelia2.MinParameterEntropy:
+		validator.PushWarning(fmt.Errorf(errFmtOIDCProviderInsecureParameterEntropyUnsafe, oauthelia2.MinParameterEntropy, config.IdentityProviders.OIDC.MinimumParameterEntropy))
 	}
 
-	switch config.EnforcePKCE {
+	switch config.IdentityProviders.OIDC.EnforcePKCE {
 	case "always", "never", "public_clients_only":
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtOIDCProviderEnforcePKCEInvalidValue, config.EnforcePKCE))
+		validator.Push(fmt.Errorf(errFmtOIDCProviderEnforcePKCEInvalidValue, config.IdentityProviders.OIDC.EnforcePKCE))
 	}
 
-	validateOIDCOptionsCORS(config, validator)
+	validateOIDCOptionsCORS(config.IdentityProviders.OIDC, validator)
 
-	if len(config.Clients) == 0 {
+	if len(config.IdentityProviders.OIDC.Clients) == 0 {
 		validator.Push(errors.New(errFmtOIDCProviderNoClientsConfigured))
 	} else {
-		validateOIDCClients(ctx, config, validator)
+		validateOIDCClients(ctx, config.IdentityProviders.OIDC, validator)
 	}
 }
 
-func validateOIDCAuthorizationPolicies(config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
-	config.Discovery.AuthorizationPolicies = []string{policyOneFactor, policyTwoFactor}
+func validateOIDCAuthorizationPolicies(config *schema.Configuration, validator *schema.StructValidator) {
+	config.IdentityProviders.OIDC.Discovery.AuthorizationPolicies = []string{policyOneFactor, policyTwoFactor}
 
-	for name, policy := range config.AuthorizationPolicies {
+	for name, policy := range config.IdentityProviders.OIDC.AuthorizationPolicies {
 		add := true
 
 		switch name {
@@ -90,50 +95,192 @@ func validateOIDCAuthorizationPolicies(config *schema.IdentityProvidersOpenIDCon
 		}
 
 		for i := range policy.Rules {
-			validateOIDCAuthorizationPoliciesPolicyRules(i, name, config, validator)
+			validateOIDCAuthorizationPoliciesRule(name, i, config, validator)
 		}
 
-		config.AuthorizationPolicies[name] = policy
+		config.IdentityProviders.OIDC.AuthorizationPolicies[name] = policy
 
 		if add {
-			config.Discovery.AuthorizationPolicies = append(config.Discovery.AuthorizationPolicies, name)
+			config.IdentityProviders.OIDC.Discovery.AuthorizationPolicies = append(config.IdentityProviders.OIDC.Discovery.AuthorizationPolicies, name)
 		}
 	}
 }
 
-func validateOIDCAuthorizationPoliciesPolicyRules(i int, policy string, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
-	switch config.AuthorizationPolicies[policy].Rules[i].Policy {
+func validateOIDCAuthorizationPoliciesRule(name string, i int, config *schema.Configuration, validator *schema.StructValidator) {
+	switch config.IdentityProviders.OIDC.AuthorizationPolicies[name].Rules[i].Policy {
 	case "":
-		config.AuthorizationPolicies[policy].Rules[i].Policy = schema.DefaultOpenIDConnectPolicyConfiguration.DefaultPolicy
+		config.IdentityProviders.OIDC.AuthorizationPolicies[name].Rules[i].Policy = schema.DefaultOpenIDConnectPolicyConfiguration.DefaultPolicy
 	case policyOneFactor, policyTwoFactor, policyDeny:
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtOIDCPolicyRuleInvalidPolicy, policy, i+1, utils.StringJoinAnd([]string{policyOneFactor, policyTwoFactor, policyDeny}), config.AuthorizationPolicies[policy].Rules[i].Policy))
+		validator.Push(fmt.Errorf(errFmtOIDCPolicyRuleInvalidPolicy, name, i+1, utils.StringJoinAnd([]string{policyOneFactor, policyTwoFactor, policyDeny}), config.IdentityProviders.OIDC.AuthorizationPolicies[name].Rules[i].Policy))
 	}
 
-	n := 0
+	if len(config.IdentityProviders.OIDC.AuthorizationPolicies[name].Rules[i].Subjects) == 0 && len(config.IdentityProviders.OIDC.AuthorizationPolicies[name].Rules[i].Networks) == 0 {
+		validator.Push(fmt.Errorf(errFmtOIDCPolicyRuleMissingOption, name, i+1))
 
-	for _, subjects := range config.AuthorizationPolicies[policy].Rules[i].Subjects {
-		for _, subject := range subjects {
-			if !IsSubjectValidStrict(subject) {
-				validator.Push(fmt.Errorf(errFmtOIDCPolicyRuleSubjectInvalid, policy, i+1, subject))
+		return
+	}
 
-				n = -1
-			} else if n != -1 {
-				n++
+	for _, subjectRule := range config.IdentityProviders.OIDC.AuthorizationPolicies[name].Rules[i].Subjects {
+		for _, subject := range subjectRule {
+			if !IsSubjectValidBasic(subject) {
+				validator.Push(fmt.Errorf(errFmtOIDCPolicyRuleInvalidSubject, name, i+1, subject))
 			}
 		}
 	}
+}
 
-	if n == 0 {
-		validator.Push(fmt.Errorf(errFmtOIDCPolicyRuleMissingOption, policy, i+1, "subject"))
+func validateOIDCLifespans(config *schema.Configuration, _ *schema.StructValidator) {
+	for name := range config.IdentityProviders.OIDC.Lifespans.Custom {
+		config.IdentityProviders.OIDC.Discovery.Lifespans = append(config.IdentityProviders.OIDC.Discovery.Lifespans, name)
 	}
 }
 
-func validateOIDCLifespans(config *schema.IdentityProvidersOpenIDConnect, _ *schema.StructValidator) {
-	for name := range config.Lifespans.Custom {
-		config.Discovery.Lifespans = append(config.Discovery.Lifespans, name)
+func validateOIDCClaims(config *schema.Configuration, validator *schema.StructValidator) {
+	for name, policy := range config.IdentityProviders.OIDC.ClaimsPolicies {
+		for claim, properties := range policy.CustomClaims {
+			if utils.IsStringInSlice(claim, validOIDCReservedClaims) {
+				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: claim with name '%s' is specifically reserved and cannot be customized", name, claim))
+			}
+
+			if !utils.IsStringInSlice(claim, config.IdentityProviders.OIDC.Discovery.Claims) {
+				config.IdentityProviders.OIDC.Discovery.Claims = append(config.IdentityProviders.OIDC.Discovery.Claims, claim)
+			}
+
+			if properties.Attribute == "" {
+				properties.Attribute = claim
+				policy.CustomClaims[claim] = properties
+				config.IdentityProviders.OIDC.ClaimsPolicies[name] = policy
+			}
+
+			if !isUserAttributeValid(properties.Attribute, config) {
+				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: claim with name '%s' has an attribute name '%s' which is unknown", name, claim, properties.Attribute))
+			}
+		}
+
+		for _, claim := range policy.IDToken {
+			if utils.IsStringInSlice(claim, validOIDCReservedClaims) {
+				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: id_token: claim with name '%s' is specifically reserved and cannot be customized", name, claim))
+			} else if !utils.IsStringInSlice(claim, config.IdentityProviders.OIDC.Discovery.Claims) && !utils.IsStringInSlice(claim, validOIDCClientClaims) {
+				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: id_token: claim with name '%s' is not known", name, claim))
+			}
+		}
+
+		for _, claim := range policy.AccessToken {
+			if utils.IsStringInSlice(claim, validOIDCReservedClaims) {
+				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: access_token: claim with name '%s' is specifically reserved and cannot be customized", name, claim))
+			}
+
+			if !utils.IsStringInSlice(claim, config.IdentityProviders.OIDC.Discovery.Claims) && !utils.IsStringInSlice(claim, validOIDCClientClaims) {
+				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: access_token: claim with name '%s' is not known", name, claim))
+			}
+		}
 	}
+}
+
+func validateOIDCScopes(config *schema.Configuration, validator *schema.StructValidator) {
+	for scope, properties := range config.IdentityProviders.OIDC.Scopes {
+		if utils.IsStringInSlice(scope, validOIDCClientScopes) {
+			validator.Push(fmt.Errorf("identity_providers: oidc: scopes: scope with name '%s' can't be used as it's a reserved scope", scope))
+		} else if strings.HasPrefix(scope, "authelia.") {
+			validator.Push(fmt.Errorf("identity_providers: oidc: scopes: scope with name '%s' can't be used as all scopes prefixed with 'authelia.' are reserved", scope))
+		}
+
+		if !utils.IsStringInSlice(scope, config.IdentityProviders.OIDC.Discovery.Scopes) {
+			config.IdentityProviders.OIDC.Discovery.Scopes = append(config.IdentityProviders.OIDC.Discovery.Scopes, scope)
+		}
+
+		for _, claim := range properties.Claims {
+			if utils.IsStringInSlice(claim, validOIDCReservedClaims) {
+				validator.Push(fmt.Errorf("identity_providers: oidc: scopes: %s: claim with name '%s' is specifically reserved and cannot be customized", scope, claim))
+			}
+
+			if !utils.IsStringInSlice(claim, config.IdentityProviders.OIDC.Discovery.Claims) && !utils.IsStringInSlice(claim, validOIDCClientClaims) {
+				validator.Push(fmt.Errorf("identity_providers: oidc: scopes: %s: claim with name '%s' is unknown", scope, claim))
+			}
+		}
+	}
+}
+
+//nolint:gocyclo
+func isUserAttributeValid(name string, config *schema.Configuration) (valid bool) {
+	if _, ok := config.Definitions.UserAttributes[name]; ok {
+		return true
+	}
+
+	if config.AuthenticationBackend.LDAP != nil {
+		switch name {
+		case attributeUserUsername, attributeUserDisplayName, attributeUserGroups, attributeUserEmail, attributeUserEmails:
+			return true
+		case attributeUserGivenName:
+			return config.AuthenticationBackend.LDAP.Attributes.GivenName != ""
+		case attributeUserMiddleName:
+			return config.AuthenticationBackend.LDAP.Attributes.MiddleName != ""
+		case attributeUserFamilyName:
+			return config.AuthenticationBackend.LDAP.Attributes.FamilyName != ""
+		case attributeUserNickname:
+			return config.AuthenticationBackend.LDAP.Attributes.Nickname != ""
+		case attributeUserProfile:
+			return config.AuthenticationBackend.LDAP.Attributes.Profile != ""
+		case attributeUserPicture:
+			return config.AuthenticationBackend.LDAP.Attributes.Picture != ""
+		case attributeUserWebsite:
+			return config.AuthenticationBackend.LDAP.Attributes.Website != ""
+		case attributeUserGender:
+			return config.AuthenticationBackend.LDAP.Attributes.Gender != ""
+		case attributeUserBirthdate:
+			return config.AuthenticationBackend.LDAP.Attributes.Birthdate != ""
+		case attributeUserZoneInfo:
+			return config.AuthenticationBackend.LDAP.Attributes.ZoneInfo != ""
+		case attributeUserLocale:
+			return config.AuthenticationBackend.LDAP.Attributes.Locale != ""
+		case attributeUserPhoneNumber:
+			return config.AuthenticationBackend.LDAP.Attributes.PhoneNumber != ""
+		case attributeUserPhoneExtension:
+			return config.AuthenticationBackend.LDAP.Attributes.PhoneExtension != ""
+		case attributeUserStreetAddress:
+			return config.AuthenticationBackend.LDAP.Attributes.StreetAddress != ""
+		case attributeUserLocality:
+			return config.AuthenticationBackend.LDAP.Attributes.Locality != ""
+		case attributeUserRegion:
+			return config.AuthenticationBackend.LDAP.Attributes.Region != ""
+		case attributeUserPostalCode:
+			return config.AuthenticationBackend.LDAP.Attributes.PostalCode != ""
+		case attributeUserCountry:
+			return config.AuthenticationBackend.LDAP.Attributes.Country != ""
+		default:
+			if config.AuthenticationBackend.LDAP.Attributes.Extra == nil {
+				return false
+			}
+
+			for key, attr := range config.AuthenticationBackend.LDAP.Attributes.Extra {
+				if attr.Name != "" {
+					if attr.Name == name {
+						return true
+					}
+				} else if key == name {
+					return true
+				}
+			}
+
+			return false
+		}
+	}
+
+	if utils.IsStringInSlice(name, validUserAttributes) {
+		return true
+	}
+
+	if config.AuthenticationBackend.File == nil {
+		return false
+	}
+
+	if _, ok := config.AuthenticationBackend.File.ExtraAttributes[name]; ok {
+		return true
+	}
+
+	return false
 }
 
 func validateOIDCIssuer(config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
@@ -309,25 +456,25 @@ func validateOIDCIssuerPrivateKeyPair(i int, config *schema.IdentityProvidersOpe
 	}
 }
 
-func setOIDCDefaults(config *schema.IdentityProvidersOpenIDConnect) {
-	if config.Lifespans.AccessToken == durationZero {
-		config.Lifespans.AccessToken = schema.DefaultOpenIDConnectConfiguration.Lifespans.AccessToken
+func setOIDCDefaults(config *schema.Configuration) {
+	if config.IdentityProviders.OIDC.Lifespans.AccessToken == durationZero {
+		config.IdentityProviders.OIDC.Lifespans.AccessToken = schema.DefaultOpenIDConnectConfiguration.Lifespans.AccessToken
 	}
 
-	if config.Lifespans.AuthorizeCode == durationZero {
-		config.Lifespans.AuthorizeCode = schema.DefaultOpenIDConnectConfiguration.Lifespans.AuthorizeCode
+	if config.IdentityProviders.OIDC.Lifespans.AuthorizeCode == durationZero {
+		config.IdentityProviders.OIDC.Lifespans.AuthorizeCode = schema.DefaultOpenIDConnectConfiguration.Lifespans.AuthorizeCode
 	}
 
-	if config.Lifespans.IDToken == durationZero {
-		config.Lifespans.IDToken = schema.DefaultOpenIDConnectConfiguration.Lifespans.IDToken
+	if config.IdentityProviders.OIDC.Lifespans.IDToken == durationZero {
+		config.IdentityProviders.OIDC.Lifespans.IDToken = schema.DefaultOpenIDConnectConfiguration.Lifespans.IDToken
 	}
 
-	if config.Lifespans.RefreshToken == durationZero {
-		config.Lifespans.RefreshToken = schema.DefaultOpenIDConnectConfiguration.Lifespans.RefreshToken
+	if config.IdentityProviders.OIDC.Lifespans.RefreshToken == durationZero {
+		config.IdentityProviders.OIDC.Lifespans.RefreshToken = schema.DefaultOpenIDConnectConfiguration.Lifespans.RefreshToken
 	}
 
-	if config.EnforcePKCE == "" {
-		config.EnforcePKCE = schema.DefaultOpenIDConnectConfiguration.EnforcePKCE
+	if config.IdentityProviders.OIDC.EnforcePKCE == "" {
+		config.IdentityProviders.OIDC.EnforcePKCE = schema.DefaultOpenIDConnectConfiguration.EnforcePKCE
 	}
 }
 
