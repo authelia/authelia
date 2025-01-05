@@ -17,8 +17,8 @@ import (
 
 // ValidateAuthenticationBackend validates and updates the authentication backend configuration.
 func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
-	if config.LDAP == nil && config.File == nil && (config.DB == nil || !config.DB.Enabled) {
-		validator.Push(errors.New(errFmtAuthBackendNotConfigured))
+	if config.LDAP == nil && config.File == nil && config.DB == nil {
+		config.DB = &schema.DefaultDBAuthenticationBackendConfig
 	}
 
 	if !config.RefreshInterval.Valid() {
@@ -44,8 +44,8 @@ func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validat
 // validateAuthenticationBackendType validates and updates the authentication backend configuration.
 func validateAuthenticationBackendType(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
 	if config.LDAP != nil && config.File != nil ||
-		config.LDAP != nil && (config.DB != nil && config.DB.Enabled) ||
-		config.File != nil && (config.DB != nil && config.DB.Enabled) {
+		config.LDAP != nil && (config.DB != nil) ||
+		config.File != nil && (config.DB != nil) {
 		validator.Push(errors.New(errFmtAuthBackendMultipleConfigured))
 	}
 

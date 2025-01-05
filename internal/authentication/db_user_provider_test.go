@@ -27,9 +27,7 @@ type DBUserProviderSuite struct {
 func (s *DBUserProviderSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
 	s.mock.Ctx.Configuration.AuthenticationBackend = schema.AuthenticationBackend{
-		DB: &schema.AuthenticationBackendDB{
-			Enabled: true, Password: schema.DefaultPasswordConfig,
-		},
+		DB: &schema.DefaultDBAuthenticationBackendConfig,
 	}
 
 	provider := authentication.NewDBUserProvider(s.mock.Ctx.Configuration.AuthenticationBackend.DB, s.mock.StorageMock)
@@ -50,7 +48,6 @@ func (s *DBUserProviderSuite) TestStartupCheckShouldPass() {
 
 func (s *DBUserProviderSuite) TestStartupCheckShouldFailIfInvalidPasswordAlgorithm() {
 	provider := authentication.NewDBUserProvider(&schema.AuthenticationBackendDB{
-		Enabled: true,
 		Password: schema.AuthenticationBackendPassword{
 			Algorithm: "invalid",
 		},
@@ -106,7 +103,6 @@ func (s *DBUserProviderSuite) TestGetUserShouldGetUserByUsername() {
 
 func (s *DBUserProviderSuite) TestGetUserShouldGetUserByEmail() {
 	provider := authentication.NewDBUserProvider(&schema.AuthenticationBackendDB{
-		Enabled: true,
 		Search: schema.AuthenticationBackendDBSearch{
 			Email: true,
 		},

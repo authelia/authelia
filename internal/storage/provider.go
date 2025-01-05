@@ -297,7 +297,7 @@ type Provider interface {
 
 	RegulatorProvider
 
-	AuthenticationProvider
+	AuthenticationStorageProvider
 }
 
 // RegulatorProvider is an interface providing storage capabilities for persisting any kind of data related to the regulator.
@@ -309,8 +309,8 @@ type RegulatorProvider interface {
 	LoadAuthenticationLogs(ctx context.Context, username string, fromDate time.Time, limit, page int) (attempts []model.AuthenticationAttempt, err error)
 }
 
-// AuthenticationProvider is an interface providint storage capabilities for persisting any kind of data related to the authentication provider.
-type AuthenticationProvider interface {
+// AuthenticationStorageProvider is an interface providint storage capabilities for persisting any kind of data related to the authentication provider.
+type AuthenticationStorageProvider interface {
 	// LoadUserByUsername loads the model.User from the storage provider.
 	LoadUserByUsername(ctx context.Context, username string) (details model.User, err error)
 

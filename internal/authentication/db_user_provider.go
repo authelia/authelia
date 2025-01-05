@@ -14,12 +14,12 @@ import (
 // DBUserProvider is a provider reading details from a sql database.
 type DBUserProvider struct {
 	config   *schema.AuthenticationBackendDB
-	database storage.AuthenticationProvider
+	database storage.AuthenticationStorageProvider
 	hash     algorithm.Hash
 }
 
 // NewDBUserProvider creates a new instance of DBUserProvider.
-func NewDBUserProvider(config *schema.AuthenticationBackendDB, database storage.AuthenticationProvider) (provider *DBUserProvider) {
+func NewDBUserProvider(config *schema.AuthenticationBackendDB, database storage.AuthenticationStorageProvider) (provider *DBUserProvider) {
 	return &DBUserProvider{
 		config:   config,
 		database: database,

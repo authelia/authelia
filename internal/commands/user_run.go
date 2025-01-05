@@ -1,8 +1,7 @@
 package commands
 
 import (
-	// "fmt".
-
+	"errors"
 	"fmt"
 	"strings"
 
@@ -24,6 +23,10 @@ func (ctx *CmdCtx) LoadProvidersAuthenticationRunE(cmd *cobra.Command, args []st
 
 // UserChangePasswordRunE updates user's password .
 func (ctx *CmdCtx) UserChangePasswordRunE(cmd *cobra.Command, args []string) (err error) {
+	if len(args) != 2 {
+		return errors.New("invalid number of parameters")
+	}
+
 	var username = args[0]
 
 	var password = args[1]

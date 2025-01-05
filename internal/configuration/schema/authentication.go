@@ -142,8 +142,20 @@ type AuthenticationBackendLDAPAttributes struct {
 	GroupName         string `koanf:"group_name" json:"group_name" jsonschema:"title=Attribute: Group Name" jsonschema_description:"The directory server attribute which contains the group name for all groups."`
 }
 
+// AuthenticationBackendDB represents the configuration related to sql-based backend.
+type AuthenticationBackendDB struct {
+	Password AuthenticationBackendPassword `koanf:"password" json:"password" jsonschema:"title=Password Options" jsonschema_description:"Allows configuration of the password hashing options when the user passwords are changed directly by Authelia."`
+	Search   AuthenticationBackendDBSearch `koanf:"search" json:"search" jsonschema:"title=Search" jsonschema_description:"Configures the user searching behaviour."`
+}
+
+// AuthenticationBackendDBSearch represents the configuration related to sql-based backend searching.
+type AuthenticationBackendDBSearch struct {
+	Email bool `koanf:"email" json:"email" jsonschema:"default=false,title=Email Searching" jsonschema_description:"Allows users to either use their username or their configured email as a username."`
+}
+
 var DefaultAuthenticationBackendConfig = AuthenticationBackend{
 	RefreshInterval: NewRefreshIntervalDuration(time.Minute * 5),
+	DB:              &DefaultDBAuthenticationBackendConfig,
 }
 
 // DefaultPasswordConfig represents the default configuration related to Argon2id hashing.
@@ -305,14 +317,7 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationGLAuth = Authenti
 	},
 }
 
-// AuthenticationBackendDB represents the configuration related to sql-based backend.
-type AuthenticationBackendDB struct {
-	Enabled  bool                          `koanf:"enabled" json:"enabled" jsonschema:"default=false,title=Enabled" jsonschema_description:"Enables the DB authentication backend."`
-	Password AuthenticationBackendPassword `koanf:"password" json:"password" jsonschema:"title=Password Options" jsonschema_description:"Allows configuration of the password hashing options when the user passwords are changed directly by Authelia."`
-	Search   AuthenticationBackendDBSearch `koanf:"search" json:"search" jsonschema:"title=Search" jsonschema_description:"Configures the user searching behaviour."`
-}
-
-// AuthenticationBackendDBSearch represents the configuration related to sql-based backend searching.
-type AuthenticationBackendDBSearch struct {
-	Email bool `koanf:"email" json:"email" jsonschema:"default=false,title=Email Searching" jsonschema_description:"Allows users to either use their username or their configured email as a username."`
+// DefaultDBAuthenticationBackendConfig represents the default configuration for DB authentication backend.
+var DefaultDBAuthenticationBackendConfig = AuthenticationBackendDB{
+	Password: DefaultPasswordConfig,
 }

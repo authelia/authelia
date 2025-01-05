@@ -39,9 +39,7 @@ func TestShouldRaiseErrorWhenLdapAndDbBackendsProvided(t *testing.T) {
 	backendConfig := schema.AuthenticationBackend{}
 
 	backendConfig.LDAP = &schema.AuthenticationBackendLDAP{}
-	backendConfig.DB = &schema.AuthenticationBackendDB{
-		Enabled: true,
-	}
+	backendConfig.DB = &schema.AuthenticationBackendDB{}
 
 	ValidateAuthenticationBackend(&backendConfig, validator)
 
@@ -59,9 +57,7 @@ func TestShouldRaiseErrorWhenFileAndDbBackendsProvided(t *testing.T) {
 	validator := schema.NewStructValidator()
 	backendConfig := schema.AuthenticationBackend{}
 
-	backendConfig.DB = &schema.AuthenticationBackendDB{
-		Enabled: true,
-	}
+	backendConfig.DB = &schema.AuthenticationBackendDB{}
 	backendConfig.File = &schema.AuthenticationBackendFile{
 		Path: "/tmp",
 	}
@@ -72,14 +68,14 @@ func TestShouldRaiseErrorWhenFileAndDbBackendsProvided(t *testing.T) {
 	assert.EqualError(t, validator.Errors()[0], errFmtAuthBackendMultipleConfigured)
 }
 
-func TestShouldRaiseErrorWhenNoBackendProvided(t *testing.T) {
+func TestDefaultAuthenticationProviderIsDB(t *testing.T) {
 	validator := schema.NewStructValidator()
 	backendConfig := schema.AuthenticationBackend{}
 
 	ValidateAuthenticationBackend(&backendConfig, validator)
 
-	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], errFmtAuthBackendNotConfigured)
+	require.Len(t, validator.Errors(), 0)
+	assert.NotNil(t, backendConfig.DB)
 }
 
 type FileBasedAuthenticationBackend struct {

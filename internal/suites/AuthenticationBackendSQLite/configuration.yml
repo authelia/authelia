@@ -57,9 +57,10 @@ session:
       inactivity: '3 minutes'
       remember_me: '1 year'
 
-authentication_backend:
-  db:
-    enabled: true
+# authentication_backend:
+#   db:
+#     search:
+#       email: true
 
 totp:
   issuer: 'example.com'
