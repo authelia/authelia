@@ -82,7 +82,6 @@ func NewSMTPNotifier(config *schema.NotifierSMTP, certPool *x509.CertPool) *SMTP
 		"port":    config.Address.Port(),
 		"helo":    config.Identifier,
 		"timeout": config.Timeout.Seconds(),
-		"tls":     tlsconfig,
 		"domain":  domain,
 	}).Trace("Configuring Provider")
 
