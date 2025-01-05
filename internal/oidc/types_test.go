@@ -7,6 +7,7 @@ import (
 	"time"
 
 	oauthelia2 "authelia.com/provider/oauth2"
+	xjwt "authelia.com/provider/oauth2/token/jwt"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/random"
@@ -69,7 +71,7 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 
 	ctx.Clock = clock.NewFixed(time.Unix(10000000000, 0))
 
-	session := oidc.NewSessionWithAuthorizeRequest(ctx, MustParseRequestURI(issuer), "primary", "john", amr, extra, authAt, consent, request)
+	session := oidc.NewSessionWithRequester(ctx, MustParseRequestURI(issuer), "primary", "john", amr, extra, authAt, consent, request, nil)
 
 	require.NotNil(t, session)
 	require.NotNil(t, session.Extra)
@@ -87,8 +89,8 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	assert.Equal(t, "abc123xyzauthelia", session.Claims.Nonce)
 	assert.Equal(t, subject.String(), session.Claims.Subject)
 	assert.Equal(t, amr, session.Claims.AuthenticationMethodsReferences)
-	assert.Equal(t, authAt, session.Claims.AuthTime)
-	assert.Equal(t, requested, session.Claims.RequestedAt)
+	assert.Equal(t, xjwt.NewNumericDate(authAt.UTC()), session.Claims.AuthTime)
+	assert.Equal(t, xjwt.NewNumericDate(requested.UTC()), session.Claims.RequestedAt)
 	assert.Equal(t, issuer, session.Claims.Issuer)
 	assert.Equal(t, "john", session.Claims.Extra[oidc.ClaimPreferredUsername])
 
@@ -99,7 +101,7 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 		RequestedAt: requested,
 	}
 
-	session = oidc.NewSessionWithAuthorizeRequest(ctx, MustParseRequestURI(issuer), "primary", "john", nil, nil, authAt, consent, request)
+	session = oidc.NewSessionWithRequester(ctx, MustParseRequestURI(issuer), "primary", "john", nil, nil, authAt, consent, request, nil)
 
 	require.NotNil(t, session)
 	require.NotNil(t, session.Claims)
@@ -131,6 +133,10 @@ func (m *TestContext) GetRandom() (r random.Provider) {
 
 func (m *TestContext) GetConfiguration() (config schema.Configuration) {
 	return m.Config
+}
+
+func (m *TestContext) GetProviderUserAttributeResolver() expression.UserAttributeResolver {
+	return &expression.UserAttributes{}
 }
 
 // IssuerURL returns the MockIssuerURL.

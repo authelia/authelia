@@ -28,9 +28,9 @@ func NewSession() (session *Session) {
 	}
 }
 
-// NewSessionWithAuthorizeRequest uses details from an AuthorizeRequester to generate an OpenIDSession.
-func NewSessionWithAuthorizeRequest(ctx Context, issuer *url.URL, kid, username string, amr []string, extra map[string]any,
-	authTime time.Time, consent *model.OAuth2ConsentSession, requester oauthelia2.AuthorizeRequester) (session *Session) {
+// NewSessionWithRequester uses details from a Requester to generate an OpenIDSession.
+func NewSessionWithRequester(ctx Context, issuer *url.URL, kid, username string, amr []string, extra map[string]any,
+	authTime time.Time, consent *model.OAuth2ConsentSession, requester oauthelia2.Requester, claims *ClaimsRequests) (session *Session) {
 	if extra == nil {
 		extra = map[string]any{}
 	}
@@ -38,15 +38,15 @@ func NewSessionWithAuthorizeRequest(ctx Context, issuer *url.URL, kid, username 
 	session = &Session{
 		DefaultSession: &openid.DefaultSession{
 			Claims: &jwt.IDTokenClaims{
-				Subject:     consent.Subject.UUID.String(),
-				Issuer:      issuer.String(),
-				AuthTime:    authTime,
-				RequestedAt: consent.RequestedAt,
-				IssuedAt:    ctx.GetClock().Now().UTC(),
-				Nonce:       requester.GetRequestForm().Get(ClaimNonce),
-				Extra:       extra,
-
+				Issuer:                          issuer.String(),
+				Subject:                         consent.Subject.UUID.String(),
+				IssuedAt:                        jwt.NewNumericDate(ctx.GetClock().Now()),
+				AuthTime:                        jwt.NewNumericDate(authTime),
+				RequestedAt:                     jwt.NewNumericDate(consent.RequestedAt),
+				Nonce:                           requester.GetRequestForm().Get(ClaimNonce),
+				Extra:                           extra,
 				AuthenticationMethodsReferences: amr,
+				AuthorizedParty:                 requester.GetClient().GetID(),
 			},
 			Headers: &jwt.Headers{
 				Extra: map[string]any{
@@ -57,15 +57,13 @@ func NewSessionWithAuthorizeRequest(ctx Context, issuer *url.URL, kid, username 
 			Username: username,
 		},
 		ChallengeID:           model.NullUUID(consent.ChallengeID),
-		KID:                   kid,
 		ClientID:              requester.GetClient().GetID(),
 		ExcludeNotBeforeClaim: false,
 		AllowedTopLevelClaims: nil,
+		ClaimRequests:         claims,
+		GrantedClaims:         consent.GrantedClaims,
 		Extra:                 map[string]any{},
 	}
-
-	session.Claims.Add(ClaimAuthorizedParty, session.ClientID)
-	session.Claims.Add(ClaimClientIdentifier, session.ClientID)
 
 	return session
 }
@@ -74,17 +72,19 @@ func NewSessionWithAuthorizeRequest(ctx Context, issuer *url.URL, kid, username 
 type Session struct {
 	*openid.DefaultSession `json:"id_token"`
 
-	ChallengeID           uuid.NullUUID  `json:"challenge_id"`
-	KID                   string         `json:"kid"`
-	ClientID              string         `json:"client_id"`
-	ClientCredentials     bool           `json:"client_credentials"`
-	ExcludeNotBeforeClaim bool           `json:"exclude_nbf_claim"`
-	AllowedTopLevelClaims []string       `json:"allowed_top_level_claims"`
-	Extra                 map[string]any `json:"extra"`
+	ChallengeID           uuid.NullUUID   `json:"challenge_id"`
+	KID                   string          `json:"kid"`
+	ClientID              string          `json:"client_id"`
+	ClientCredentials     bool            `json:"client_credentials"`
+	ExcludeNotBeforeClaim bool            `json:"exclude_nbf_claim"`
+	AllowedTopLevelClaims []string        `json:"allowed_top_level_claims"`
+	ClaimRequests         *ClaimsRequests `json:"claim_requests,omitempty"`
+	GrantedClaims         []string        `json:"granted_claims,omitempty"`
+	Extra                 map[string]any  `json:"extra"`
 }
 
 // GetChallengeID returns the challenge id.
-func (s *Session) GetChallengeID() uuid.NullUUID {
+func (s *Session) GetChallengeID() (challenge uuid.NullUUID) {
 	return s.ChallengeID
 }
 
@@ -157,7 +157,7 @@ func (s *Session) GetJWTClaims() jwt.JWTClaimsContainer {
 }
 
 // GetIDTokenClaims returns the *jwt.IDTokenClaims for this session.
-func (s *Session) GetIDTokenClaims() *jwt.IDTokenClaims {
+func (s *Session) GetIDTokenClaims() (claims *jwt.IDTokenClaims) {
 	if s.DefaultSession == nil {
 		return nil
 	}
