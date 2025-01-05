@@ -35,7 +35,7 @@
     "@mui/icons-material": "6.4.1",
     "@mui/material": "6.4.1",
     "@mui/styles": "6.4.1",
-    "@simplewebauthn/browser": "13.0.0",
+    "@simplewebauthn/browser": "13.1.0",
     "axios": "1.7.9",
     "broadcast-channel": "7.0.0",
     "classnames": "2.5.1",
