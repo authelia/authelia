@@ -163,11 +163,19 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 			quoteTableName(tableUsers, driverName),
 		),
 		sqlSelectUserGroups: fmt.Sprintf(queryFmtSelectUserGroups,
-			quoteTableName(tableGroups, driverName),
 			quoteTableName(tableUsersGroups, driverName),
-			quoteTableName(tableGroups, driverName),
-			quoteTableName(tableGroups, driverName),
+		),
+
+		sqlUpdateUser: fmt.Sprintf(queryFmtUpdateUser,
+			quoteTableName(tableUsers, driverName),
+		),
+		sqlInsertUser: fmt.Sprintf(queryFmtInsertIntoUser,
+			quoteTableName(tableUsers, driverName),
+		),
+		sqlClearUserGroups: fmt.Sprintf(queryFmtDeleteFromUserGroups,
 			quoteTableName(tableUsersGroups, driverName),
+		),
+		sqlAssignGroupToUser: fmt.Sprintf(queryFmtInsertIntoUserGroups,
 			quoteTableName(tableUsersGroups, driverName),
 		),
 	}
@@ -332,8 +340,12 @@ type SQLProvider struct {
 	sqlSelectUserByUsername string
 	sqlSelectUserByEmail    string
 	sqlUpdateUserPassword   string
+	sqlUpdateUser           string
+	sqlInsertUser           string
+	sqlClearUserGroups      string
+	sqlAssignGroupToUser    string
 
-	// Table: groups.
+	// Table: users_groups.
 	sqlSelectUserGroups string
 }
 
@@ -1394,14 +1406,6 @@ func (p *SQLProvider) loadUser(ctx context.Context, query, identifier string) (m
 		user.Password = []byte{}
 	}
 
-	var groups []string
-
-	if groups, err = p.getUserGroups(ctx, user.ID); err != nil {
-		return model.User{}, err
-	}
-
-	user.Groups = groups
-
 	return user, nil
 }
 
@@ -1411,7 +1415,7 @@ func (p *SQLProvider) UpdateUserPassword(ctx context.Context, username, password
 
 	// check that user exists.
 	if _, err = p.LoadUserByUsername(ctx, username); err != nil {
-		return err
+		return fmt.Errorf("error updating user's passwword: %w", err) //lint: nosec
 	}
 
 	if encryptedPassword, err = p.encrypt([]byte(password)); err != nil {
@@ -1425,13 +1429,74 @@ func (p *SQLProvider) UpdateUserPassword(ctx context.Context, username, password
 	return
 }
 
-// getUserGroups get group list for specied userid.
-func (p *SQLProvider) getUserGroups(ctx context.Context, userID int) (groups []string, err error) {
-	err = p.db.SelectContext(ctx, &groups, p.sqlSelectUserGroups, userID)
+// GetUserGroups implements storage.Provider.GetUserGroups.
+func (p *SQLProvider) GetUserGroups(ctx context.Context, username string) (groups []string, err error) {
+	err = p.db.SelectContext(ctx, &groups, p.sqlSelectUserGroups, username)
 
 	if err != nil {
-		return groups, fmt.Errorf(errLoadingUserGroups, userID, err)
+		return groups, fmt.Errorf(errLoadingUserGroups, username, err)
 	}
 
 	return
+}
+
+// UpdateUserDetails implements storage.Provider.UpdateUserDetails.
+func (p *SQLProvider) UpdateUserDetails(ctx context.Context, username string, details model.User) (err error) {
+	if _, err = p.LoadUserByUsername(ctx, username); err != nil {
+		return fmt.Errorf(errUpdatingUser, err)
+	}
+
+	if _, err = p.db.ExecContext(ctx, p.sqlUpdateUser, details.Email, details.DisplayName, details.Disabled, username); err != nil {
+		return fmt.Errorf(errUpdatingUser, err)
+	}
+
+	return nil
+}
+
+// CreateUser implements storage.Provider.CreateUser.
+func (p *SQLProvider) CreateUser(ctx context.Context, details model.User) (err error) {
+	if err := validateUsername(details.Username); err != nil {
+		return fmt.Errorf(errCreatingUser, err)
+	}
+
+	if _, err = p.LoadUserByUsername(ctx, details.Username); !isUserNotFoundError(err) {
+		return errors.New(errUserAlreadyExists)
+	}
+
+	if details.Password, err = p.encrypt(details.Password); err != nil {
+		return fmt.Errorf("error encrypting password for user '%s': %w", details.Username, err)
+	}
+
+	if _, err = p.db.ExecContext(ctx, p.sqlInsertUser, details.Username, details.Email, details.DisplayName, details.Password); err != nil {
+		// TODO: capture and mask error message.
+		return fmt.Errorf(errCreatingUser, err)
+	}
+
+	return nil
+}
+
+// AssignGroupsToUser implements storage.Provider.AssignGroupsToUser.
+func (p *SQLProvider) AssignGroupsToUser(ctx context.Context, username string, groups ...string) (err error) {
+	// TODO: add transaction.
+	if _, err = p.LoadUserByUsername(ctx, username); err != nil {
+		return fmt.Errorf(errAssigningGroupToUser, err)
+	}
+
+	if _, err = p.db.ExecContext(ctx, p.sqlClearUserGroups, username); err != nil {
+		// TODO: capture and mask error message.
+		return fmt.Errorf(errAssigningGroupToUser, err)
+	}
+
+	for _, group := range groups {
+		if err := validateGroupname(group); err != nil {
+			return fmt.Errorf(errAssigningGroupToUser, err)
+		}
+
+		if _, err = p.db.ExecContext(ctx, p.sqlAssignGroupToUser, username, group); err != nil {
+			// TODO: capture and mask error message.
+			return fmt.Errorf(errAssigningGroupToUser, err)
+		}
+	}
+
+	return nil
 }

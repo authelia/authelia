@@ -9,16 +9,10 @@ CREATE TABLE IF NOT EXISTS `users` (
     `disabled` INT DEFAULT 0
 );
 
-CREATE TABLE IF NOT EXISTS `groups` (
-    `id` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    `name` VARCHAR(100) NOT NULL UNIQUE
-);
-
 CREATE TABLE IF NOT EXISTS `users_groups` (
     `id` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    `user_id` INTEGER NOT NULL,
-    `group_id` INTEGER NOT NULL,
-    UNIQUE(user_id, group_id),
-    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
-    FOREIGN KEY (`group_id`) REFERENCES `groups`(`id`) ON DELETE CASCADE
+    `username` VARCHAR(100) NOT NULL,
+    `groupname` VARCHAR(100) NOT NULL,
+    UNIQUE(username, groupname),
+    FOREIGN KEY (`username`) REFERENCES `users`(`username`) ON DELETE CASCADE
 );

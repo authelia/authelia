@@ -466,10 +466,25 @@ const (
 		SET password = ?
 		WHERE username = ?;`
 
+	queryFmtUpdateUser = `
+		UPDATE %s
+		SET email = ?, display_name = ?, disabled = ?
+		WHERE username = ?;`
+
+	queryFmtInsertIntoUser = `
+		INSERT INTO %s
+			(username, email, display_name, password) VALUES (?, ?, ?, ?);`
+
 	queryFmtSelectUserGroups = `
-		SELECT %s.name
+		SELECT groupname
 		FROM %s
-			LEFT JOIN %s
-			ON ( %s.id = %s.group_id )
-		WHERE %s.user_id = ?;`
+		WHERE username = ?;`
+
+	queryFmtDeleteFromUserGroups = `
+		DELETE
+		FROM %s
+		WHERE username = ?;`
+
+	queryFmtInsertIntoUserGroups = `
+		INSERT INTO %s (username, groupname) VALUES (?, ?);`
 )

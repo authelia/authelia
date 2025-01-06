@@ -115,7 +115,16 @@ func (p *DBUserProvider) loadUser(username string) (*model.User, error) {
 		return nil, err
 	}
 
+	var groups []string
+
+	if groups, err = p.database.GetUserGroups(ctx, username); err != nil {
+		return nil, err
+	}
+
+	user.Groups = groups
+
 	if user.Disabled {
+		// TODO: consider return &user, ErrUserDisabled.
 		return nil, ErrUserNotFound
 	}
 

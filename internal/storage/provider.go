@@ -319,4 +319,17 @@ type AuthenticationStorageProvider interface {
 
 	// UpdateUserPassword updates the user's password into storage provider.
 	UpdateUserPassword(ctx context.Context, username, password string) (err error)
+
+	// UpdateUserDetails updates a user in storage provider.
+	UpdateUserDetails(ctx context.Context, username string, details model.User) (err error)
+
+	// CreateUser creates a user in storage provider.
+	CreateUser(ctx context.Context, user model.User) (err error)
+
+	// GetUserGroups gets the list of groups of specified username.
+	GetUserGroups(ctx context.Context, username string) (groups []string, err error)
+
+	// AssignGroupsToUser assign the specified groups to a user in storage provider.
+	//  note that this method deletes previous assigned groups
+	AssignGroupsToUser(ctx context.Context, username string, groups ...string) (err error)
 }

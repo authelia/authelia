@@ -68,5 +68,9 @@ const (
 	errUserNotFound         = "user not found"
 	errLoadingUserDetails   = "error selecting user details for user '%s': %w"
 	errUpdatingUserPassword = "error updating password for user '%s': %w"
-	errLoadingUserGroups    = "error getting groups for userid '%d': %w"
+	errLoadingUserGroups    = "error getting groups for user '%s': %w"
+	errUserAlreadyExists    = "the user already exists"
+	errUpdatingUser         = "error updating user: %w"
+	errCreatingUser         = "error creating user: %w"
+	errAssigningGroupToUser = "error assigning groups to the user: %w"
 )

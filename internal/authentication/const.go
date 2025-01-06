@@ -94,6 +94,7 @@ const (
 var (
 	// ErrUserNotFound indicates the user wasn't found in the authentication backend.
 	ErrUserNotFound = errors.New("user not found")
+	ErrUserDisabled = errors.New("the user is disabled")
 
 	// ErrNoContent is returned when the file is empty.
 	ErrNoContent = errors.New("no file content")
