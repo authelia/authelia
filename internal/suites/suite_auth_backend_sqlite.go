@@ -1,9 +1,15 @@
 package suites
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"time"
+
+	log "github.com/sirupsen/logrus"
+
+	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/storage"
 )
 
 var authBackendSqliteSuiteName = "AuthBackendSqlite"
@@ -23,6 +29,23 @@ func init() {
 		"internal/suites/example/compose/smtp/docker-compose.yml",
 	})
 
+	createUser := func(provider *storage.SQLiteProvider, user model.User, groups ...string) error {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer func() {
+			cancel()
+		}()
+
+		if err := provider.CreateUser(ctx, user); err != nil {
+			return err
+		}
+
+		if err := provider.AssignGroupsToUser(ctx, user.Username, groups...); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
 	setup := func(suitePath string) (err error) {
 		if err = dockerEnvironment.Up(); err != nil {
 			return err
@@ -30,6 +53,52 @@ func init() {
 
 		if err = waitUntilAutheliaIsReady(dockerEnvironment, authBackendSqliteSuiteName); err != nil {
 			return err
+		}
+
+		provider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
+
+		var userJohn = model.User{
+			Username:    "john",
+			Email:       "john.doe@authelia.com",
+			DisplayName: "John Doe",
+			Password:    []byte("$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"),
+		}
+
+		if err = createUser(provider, userJohn, "admins", "dev"); err != nil {
+			log.Warnf("could not create user %s (%s).\n", userJohn.Username, err)
+		}
+
+		var userHarry = model.User{
+			Username:    "harry",
+			Email:       "harry.potter@authelia.com",
+			DisplayName: "Harry Potter",
+			Password:    []byte("$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"),
+		}
+
+		if err = createUser(provider, userHarry); err != nil {
+			log.Warnf("could not create user %s (%s).\n", userHarry.Username, err)
+		}
+
+		var userBob = model.User{
+			Username:    "bob",
+			Email:       "bob.dylan@authelia.com",
+			DisplayName: "Bob Dylan",
+			Password:    []byte("$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"),
+		}
+
+		if err = createUser(provider, userBob, "dev"); err != nil {
+			log.Warnf("could not create user %s (%s).\n", userBob.Username, err)
+		}
+
+		var userJames = model.User{
+			Username:    "james",
+			Email:       "james.dean@authelia.com",
+			DisplayName: "James Dean",
+			Password:    []byte("$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"),
+		}
+
+		if err = createUser(provider, userJames); err != nil {
+			log.Warnf("could not create user %s (%s).\n", userJames.Username, err)
 		}
 
 		return updateDevEnvFileForDomain(BaseDomain, true)
