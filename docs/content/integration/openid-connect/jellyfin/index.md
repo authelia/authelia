@@ -114,7 +114,7 @@ To configure [Jellyfin] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 15. Add a provider with the following settings:
 
-    1. Name of the OID Provider: `Authelia`
+    1. Name of the OID Provider: `authelia`
 
     2. OID Endpoint: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
 
