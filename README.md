@@ -106,9 +106,9 @@ Authelia works in combination with [nginx], [Traefik], [Caddy], [Skipper], [Envo
 See the [Get Started Guide](https://www.authelia.com/integration/prologue/get-started/) or one of the curated examples
 below.
 
-### docker-compose
+### docker compose
 
-The `docker-compose` bundles act as a starting point for anyone wanting to see Authelia in action. You will have to
+The `docker compose` bundles act as a starting point for anyone wanting to see Authelia in action. You will have to
 customize them to your needs as they come with self-signed certificates.
 
 #### [Local](https://www.authelia.com/integration/deployment/docker/#local)

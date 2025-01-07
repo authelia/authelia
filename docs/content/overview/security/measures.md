@@ -457,7 +457,7 @@ option for containers as no process accessible to the container ever runs as roo
 from exploiting unnecessary privileges.
 
 The directive can either be applied in your `docker run` command using the `--user` argument or by
-the docker-compose `user:` key. The examples below assume you'd like to run the container as UID 8000 and GID 9000.
+the docker compose `user:` key. The examples below assume you'd like to run the container as UID 8000 and GID 9000.
 
 Example for the docker CLI:
 
@@ -465,7 +465,7 @@ Example for the docker CLI:
 docker run --user 8000:9000 -v /authelia:/config authelia/authelia:latest
 ```
 
-Example for docker-compose:
+Example for docker compose:
 
 ```yaml {title="compose.yml"}
 services:
@@ -497,7 +497,7 @@ Example for the docker CLI:
 docker run -e PUID=8000 -e PGID=9000 -v /authelia:/config authelia/authelia:latest
 ```
 
-Example for docker-compose:
+Example for docker compose:
 
 ```yaml {title="compose.yml"}
 services:

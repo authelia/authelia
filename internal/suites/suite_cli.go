@@ -9,9 +9,9 @@ var cliSuiteName = "CLI"
 
 func init() {
 	dockerEnvironment := NewDockerEnvironment([]string{
-		"internal/suites/docker-compose.yml",
-		"internal/suites/CLI/docker-compose.yml",
-		"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
+		"internal/suites/compose.yml",
+		"internal/suites/CLI/compose.yml",
+		"internal/suites/example/compose/authelia/compose.backend.{}.yml",
 	})
 
 	setup := func(suitePath string) (err error) {
