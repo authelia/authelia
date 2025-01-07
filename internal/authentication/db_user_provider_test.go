@@ -1,7 +1,6 @@
 package authentication_test
 
 import (
-	"context"
 	"errors"
 	"testing"
 
@@ -58,7 +57,7 @@ func (s *DBUserProviderSuite) TestStartupCheckShouldFailIfInvalidPasswordAlgorit
 
 func (s *DBUserProviderSuite) TestGetUserShouldFailIfUserNotFound() {
 	provider := s.mock.Ctx.Providers.UserProvider
-	s.mock.StorageMock.EXPECT().LoadUserByUsername(context.Background(), gomock.Eq("ada")).
+	s.mock.StorageMock.EXPECT().LoadUserByUsername(gomock.Any(), gomock.Eq("ada")).
 		Return(model.User{}, errors.New("user not found"))
 
 	user, err := provider.GetDetails("ada")
@@ -66,27 +65,10 @@ func (s *DBUserProviderSuite) TestGetUserShouldFailIfUserNotFound() {
 	s.ErrorContains(err, "user not found")
 }
 
-func (s *DBUserProviderSuite) TestGetUserShouldFailIfUserIsDisabled() {
-	provider := s.mock.Ctx.Providers.UserProvider
-
-	s.mock.StorageMock.EXPECT().LoadUserByUsername(context.Background(), gomock.Eq("john")).
-		Return(model.User{
-			Username:    "john",
-			Email:       "john@example.com",
-			DisplayName: "John Doe",
-			Groups:      []string{"admins", "dev"},
-			Disabled:    true,
-		}, nil)
-
-	user, err := provider.GetDetails("john")
-	s.Nil(user)
-	s.ErrorContains(err, "user not found")
-}
-
 func (s *DBUserProviderSuite) TestGetUserShouldGetUserByUsername() {
 	provider := s.mock.Ctx.Providers.UserProvider
 
-	s.mock.StorageMock.EXPECT().LoadUserByUsername(context.Background(), gomock.Eq("john")).
+	s.mock.StorageMock.EXPECT().LoadUserByUsername(gomock.Any(), gomock.Eq("john")).
 		Return(model.User{
 			Username:    "john",
 			Email:       "john@example.com",
@@ -108,7 +90,7 @@ func (s *DBUserProviderSuite) TestGetUserShouldGetUserByEmail() {
 		},
 	}, s.mock.StorageMock)
 
-	s.mock.StorageMock.EXPECT().LoadUserByEmail(context.Background(), gomock.Eq("john@example.com")).
+	s.mock.StorageMock.EXPECT().LoadUserByEmail(gomock.Any(), gomock.Eq("john@example.com")).
 		Return(model.User{
 			Username:    "john",
 			Email:       "john@example.com",
@@ -126,7 +108,7 @@ func (s *DBUserProviderSuite) TestGetUserShouldGetUserByEmail() {
 func (s *DBUserProviderSuite) TestCheckPasswordOk() {
 	provider := s.mock.Ctx.Providers.UserProvider
 
-	s.mock.StorageMock.EXPECT().LoadUserByUsername(context.Background(), gomock.Eq("john")).
+	s.mock.StorageMock.EXPECT().LoadUserByUsername(gomock.Any(), gomock.Eq("john")).
 		Return(model.User{
 			Username:    "john",
 			Email:       "john@example.com",
@@ -144,7 +126,7 @@ func (s *DBUserProviderSuite) TestCheckPasswordOk() {
 func (s *DBUserProviderSuite) TestCheckPasswordFailsIfPasswordDoesNotMatch() {
 	provider := s.mock.Ctx.Providers.UserProvider
 
-	s.mock.StorageMock.EXPECT().LoadUserByUsername(context.Background(), gomock.Eq("john")).
+	s.mock.StorageMock.EXPECT().LoadUserByUsername(gomock.Any(), gomock.Eq("john")).
 		Return(model.User{
 			Username:    "john",
 			Email:       "john@example.com",
@@ -162,7 +144,7 @@ func (s *DBUserProviderSuite) TestCheckPasswordFailsIfPasswordDoesNotMatch() {
 func (s *DBUserProviderSuite) TestCheckPasswordFailsIfPasswordInStorageIsEmpty() {
 	provider := s.mock.Ctx.Providers.UserProvider
 
-	s.mock.StorageMock.EXPECT().LoadUserByUsername(context.Background(), gomock.Eq("john")).
+	s.mock.StorageMock.EXPECT().LoadUserByUsername(gomock.Any(), gomock.Eq("john")).
 		Return(model.User{
 			Username:    "john",
 			Email:       "john@example.com",
@@ -180,7 +162,7 @@ func (s *DBUserProviderSuite) TestCheckPasswordFailsIfPasswordInStorageIsEmpty()
 func (s *DBUserProviderSuite) TestCheckPasswordFailsIfUserNotFound() {
 	provider := s.mock.Ctx.Providers.UserProvider
 
-	s.mock.StorageMock.EXPECT().LoadUserByUsername(context.Background(), gomock.Eq("ada")).
+	s.mock.StorageMock.EXPECT().LoadUserByUsername(gomock.Any(), gomock.Eq("ada")).
 		Return(model.User{}, errors.New("user not found"))
 
 	valid, err := provider.CheckUserPassword("ada", "any")
@@ -192,7 +174,7 @@ func (s *DBUserProviderSuite) TestCheckPasswordFailsIfUserNotFound() {
 func (s *DBUserProviderSuite) TestUpdatePasswordOk() {
 	provider := s.mock.Ctx.Providers.UserProvider
 
-	s.mock.StorageMock.EXPECT().LoadUserByUsername(context.Background(), gomock.Eq("john")).
+	s.mock.StorageMock.EXPECT().LoadUserByUsername(gomock.Any(), gomock.Eq("john")).
 		Return(model.User{
 			Username:    "john",
 			Email:       "john@example.com",
@@ -201,7 +183,7 @@ func (s *DBUserProviderSuite) TestUpdatePasswordOk() {
 			Disabled:    false,
 		}, nil)
 
-	s.mock.StorageMock.EXPECT().UpdateUserPassword(context.Background(), gomock.Eq("john"), gomock.Any()).
+	s.mock.StorageMock.EXPECT().UpdateUserPassword(gomock.Any(), gomock.Eq("john"), gomock.Any()).
 		Return(nil)
 
 	err := provider.UpdatePassword("john", "password")
@@ -211,7 +193,7 @@ func (s *DBUserProviderSuite) TestUpdatePasswordOk() {
 func (s *DBUserProviderSuite) TestUpdatePasswordFailsIfUserIsDisabled() {
 	provider := s.mock.Ctx.Providers.UserProvider
 
-	s.mock.StorageMock.EXPECT().LoadUserByUsername(context.Background(), gomock.Eq("john")).
+	s.mock.StorageMock.EXPECT().LoadUserByUsername(gomock.Any(), gomock.Eq("john")).
 		Return(model.User{
 			Username:    "john",
 			Email:       "john@example.com",
@@ -227,7 +209,7 @@ func (s *DBUserProviderSuite) TestUpdatePasswordFailsIfUserIsDisabled() {
 func (s *DBUserProviderSuite) TestUpdatePasswordFailsIfUserNotFound() {
 	provider := s.mock.Ctx.Providers.UserProvider
 
-	s.mock.StorageMock.EXPECT().LoadUserByUsername(context.Background(), gomock.Eq("ada")).
+	s.mock.StorageMock.EXPECT().LoadUserByUsername(gomock.Any(), gomock.Eq("ada")).
 		Return(model.User{}, errors.New("user not found"))
 
 	err := provider.UpdatePassword("ada", "password")
@@ -239,7 +221,7 @@ func (s *DBUserProviderSuite) TestUpdatePasswordFailsIfStorageBackendFails() {
 
 	var spectedError = errors.New("some error")
 
-	s.mock.StorageMock.EXPECT().LoadUserByUsername(context.Background(), gomock.Eq("john")).
+	s.mock.StorageMock.EXPECT().LoadUserByUsername(gomock.Any(), gomock.Eq("john")).
 		Return(model.User{
 			Username:    "john",
 			Email:       "john@example.com",
@@ -248,7 +230,7 @@ func (s *DBUserProviderSuite) TestUpdatePasswordFailsIfStorageBackendFails() {
 			Disabled:    false,
 		}, nil)
 
-	s.mock.StorageMock.EXPECT().UpdateUserPassword(context.Background(), gomock.Eq("john"), gomock.Any()).
+	s.mock.StorageMock.EXPECT().UpdateUserPassword(gomock.Any(), gomock.Eq("john"), gomock.Any()).
 		Return(spectedError)
 
 	err := provider.UpdatePassword("john", "password")

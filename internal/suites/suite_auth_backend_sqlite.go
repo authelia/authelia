@@ -29,23 +29,6 @@ func init() {
 		"internal/suites/example/compose/smtp/docker-compose.yml",
 	})
 
-	createUser := func(provider *storage.SQLiteProvider, user model.User, groups ...string) error {
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer func() {
-			cancel()
-		}()
-
-		if err := provider.CreateUser(ctx, user); err != nil {
-			return err
-		}
-
-		if err := provider.AssignGroupsToUser(ctx, user.Username, groups...); err != nil {
-			return err
-		}
-
-		return nil
-	}
-
 	setup := func(suitePath string) (err error) {
 		if err = dockerEnvironment.Up(); err != nil {
 			return err
@@ -57,48 +40,45 @@ func init() {
 
 		provider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
 
-		var userJohn = model.User{
-			Username:    "john",
-			Email:       "john.doe@authelia.com",
-			DisplayName: "John Doe",
-			Password:    []byte("$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"),
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer func() {
+			cancel()
+		}()
+
+		passwordHash := []byte("$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/")
+		userList := []model.User{
+			{
+				Username:    "john",
+				Email:       "john.doe@authelia.com",
+				DisplayName: "John Doe",
+				Groups:      []string{"admins", "dev"},
+				Password:    passwordHash,
+			},
+			{
+				Username:    "harry",
+				Email:       "harry.potter@authelia.com",
+				DisplayName: "Harry Potter",
+				Password:    passwordHash,
+			},
+			{
+				Username:    "bob",
+				Email:       "bob.dylan@authelia.com",
+				DisplayName: "Bob Dylan",
+				Groups:      []string{"dev"},
+				Password:    passwordHash,
+			},
+			{
+				Username:    "james",
+				Email:       "james.dean@authelia.com",
+				DisplayName: "James Dean",
+				Password:    passwordHash,
+			},
 		}
 
-		if err = createUser(provider, userJohn, "admins", "dev"); err != nil {
-			log.Warnf("could not create user %s (%s).\n", userJohn.Username, err)
-		}
-
-		var userHarry = model.User{
-			Username:    "harry",
-			Email:       "harry.potter@authelia.com",
-			DisplayName: "Harry Potter",
-			Password:    []byte("$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"),
-		}
-
-		if err = createUser(provider, userHarry); err != nil {
-			log.Warnf("could not create user %s (%s).\n", userHarry.Username, err)
-		}
-
-		var userBob = model.User{
-			Username:    "bob",
-			Email:       "bob.dylan@authelia.com",
-			DisplayName: "Bob Dylan",
-			Password:    []byte("$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"),
-		}
-
-		if err = createUser(provider, userBob, "dev"); err != nil {
-			log.Warnf("could not create user %s (%s).\n", userBob.Username, err)
-		}
-
-		var userJames = model.User{
-			Username:    "james",
-			Email:       "james.dean@authelia.com",
-			DisplayName: "James Dean",
-			Password:    []byte("$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"),
-		}
-
-		if err = createUser(provider, userJames); err != nil {
-			log.Warnf("could not create user %s (%s).\n", userJames.Username, err)
+		for _, user := range userList {
+			if err := provider.CreateUser(ctx, user); err != nil {
+				log.Warnf("could not create user %s (%s).\n", user.Username, err)
+			}
 		}
 
 		return updateDevEnvFileForDomain(BaseDomain, true)

@@ -59,25 +59,6 @@ func (mr *MockStorageMockRecorder) AppendAuthenticationLog(ctx, attempt any) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AppendAuthenticationLog", reflect.TypeOf((*MockStorage)(nil).AppendAuthenticationLog), ctx, attempt)
 }
 
-// AssignGroupsToUser mocks base method.
-func (m *MockStorage) AssignGroupsToUser(ctx context.Context, username string, groups ...string) error {
-	m.ctrl.T.Helper()
-	varargs := []any{ctx, username}
-	for _, a := range groups {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "AssignGroupsToUser", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// AssignGroupsToUser indicates an expected call of AssignGroupsToUser.
-func (mr *MockStorageMockRecorder) AssignGroupsToUser(ctx, username any, groups ...any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, username}, groups...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AssignGroupsToUser", reflect.TypeOf((*MockStorage)(nil).AssignGroupsToUser), varargs...)
-}
-
 // BeginTX mocks base method.
 func (m *MockStorage) BeginTX(ctx context.Context) (context.Context, error) {
 	m.ctrl.T.Helper()
@@ -275,21 +256,6 @@ func (m *MockStorage) FindIdentityVerification(ctx context.Context, jti string) 
 func (mr *MockStorageMockRecorder) FindIdentityVerification(ctx, jti any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindIdentityVerification", reflect.TypeOf((*MockStorage)(nil).FindIdentityVerification), ctx, jti)
-}
-
-// GetUserGroups mocks base method.
-func (m *MockStorage) GetUserGroups(ctx context.Context, username string) ([]string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserGroups", ctx, username)
-	ret0, _ := ret[0].([]string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetUserGroups indicates an expected call of GetUserGroups.
-func (mr *MockStorageMockRecorder) GetUserGroups(ctx, username any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserGroups", reflect.TypeOf((*MockStorage)(nil).GetUserGroups), ctx, username)
 }
 
 // LoadAuthenticationLogs mocks base method.

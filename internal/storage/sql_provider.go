@@ -1396,7 +1396,7 @@ func (p *SQLProvider) loadUser(ctx context.Context, query, identifier string) (m
 	case errors.Is(err, sql.ErrNoRows):
 		return model.User{}, errors.New(errUserNotFound)
 	case err != nil:
-		return model.User{}, fmt.Errorf(errLoadingUserDetails, identifier, err)
+		return model.User{}, fmt.Errorf(errLoadingUserDetails, err)
 	}
 
 	if user.Password, err = p.decrypt(user.Password); err != nil {
@@ -1404,6 +1404,10 @@ func (p *SQLProvider) loadUser(ctx context.Context, query, identifier string) (m
 			Warning("Failed to decrypt user password, the user must reset their password") //lint:nosec
 		// TODO: Consider setting a flag to force password reset.
 		user.Password = []byte{}
+	}
+
+	if user.Groups, err = p.getUserGroups(ctx, user.Username); err != nil {
+		return model.User{}, err
 	}
 
 	return user, nil
@@ -1423,18 +1427,18 @@ func (p *SQLProvider) UpdateUserPassword(ctx context.Context, username, password
 	}
 
 	if _, err = p.db.ExecContext(ctx, p.sqlUpdateUserPassword, encryptedPassword, username); err != nil {
-		return fmt.Errorf(errUpdatingUserPassword, username, err)
+		return fmt.Errorf(errUpdatingUserPassword, err)
 	}
 
 	return
 }
 
-// GetUserGroups implements storage.Provider.GetUserGroups.
-func (p *SQLProvider) GetUserGroups(ctx context.Context, username string) (groups []string, err error) {
+// getUserGroups implements storage.Provider.getUserGroups.
+func (p *SQLProvider) getUserGroups(ctx context.Context, username string) (groups []string, err error) {
 	err = p.db.SelectContext(ctx, &groups, p.sqlSelectUserGroups, username)
 
 	if err != nil {
-		return groups, fmt.Errorf(errLoadingUserGroups, username, err)
+		return groups, fmt.Errorf(errLoadingUserGroups, err)
 	}
 
 	return
@@ -1446,11 +1450,36 @@ func (p *SQLProvider) UpdateUserDetails(ctx context.Context, username string, de
 		return fmt.Errorf(errUpdatingUser, err)
 	}
 
-	if _, err = p.db.ExecContext(ctx, p.sqlUpdateUser, details.Email, details.DisplayName, details.Disabled, username); err != nil {
-		return fmt.Errorf(errUpdatingUser, err)
+	if ctx, err = p.BeginTX(ctx); err != nil {
+		return fmt.Errorf("failed to start transaction: %w", err)
 	}
 
-	return nil
+	defer func() {
+		if err != nil {
+			if rollbackErr := p.Rollback(ctx); rollbackErr != nil {
+				err = fmt.Errorf("rollback failed: %v: after a failed user creation: %w", rollbackErr, err)
+			}
+
+			return
+		}
+
+		if err = p.Commit(ctx); err != nil {
+			err = fmt.Errorf("commit failed while creating user: %w", err)
+		}
+	}()
+
+	tx, ok := ctx.Value(ctxKeyTransaction).(*sql.Tx)
+
+	if !ok {
+		return errors.New("could not retrieve tx")
+	}
+
+	if _, err = tx.ExecContext(ctx, p.sqlUpdateUser, details.Email, details.DisplayName, details.Disabled, username); err != nil {
+		err = fmt.Errorf(errUpdatingUser, err)
+		return
+	}
+
+	return p.assignGroupsToUser(ctx, username, details.Groups)
 }
 
 // CreateUser implements storage.Provider.CreateUser.
@@ -1467,23 +1496,50 @@ func (p *SQLProvider) CreateUser(ctx context.Context, details model.User) (err e
 		return fmt.Errorf("error encrypting password for user '%s': %w", details.Username, err)
 	}
 
-	if _, err = p.db.ExecContext(ctx, p.sqlInsertUser, details.Username, details.Email, details.DisplayName, details.Password); err != nil {
-		// TODO: capture and mask error message.
+	if ctx, err = p.BeginTX(ctx); err != nil {
+		return fmt.Errorf("failed to start transaction: %w", err)
+	}
+
+	defer func() {
+		if err != nil {
+			if rollbackErr := p.Rollback(ctx); rollbackErr != nil {
+				err = fmt.Errorf("rollback failed: %v: after a failed user creation: %w", rollbackErr, err)
+			}
+
+			return
+		}
+
+		if err = p.Commit(ctx); err != nil {
+			err = fmt.Errorf("commit failed while creating user: %w", err)
+		}
+	}()
+
+	tx, ok := ctx.Value(ctxKeyTransaction).(*sql.Tx)
+
+	if !ok {
+		return errors.New("could not retrieve tx")
+	}
+
+	if _, err = tx.ExecContext(ctx, p.sqlInsertUser, details.Username, details.Email, details.DisplayName, details.Password); err != nil {
 		return fmt.Errorf(errCreatingUser, err)
 	}
 
-	return nil
+	return p.assignGroupsToUser(ctx, details.Username, details.Groups)
 }
 
-// AssignGroupsToUser implements storage.Provider.AssignGroupsToUser.
-func (p *SQLProvider) AssignGroupsToUser(ctx context.Context, username string, groups ...string) (err error) {
-	// TODO: add transaction.
-	if _, err = p.LoadUserByUsername(ctx, username); err != nil {
-		return fmt.Errorf(errAssigningGroupToUser, err)
+// assignGroupsToUser assigns groups to a user.
+func (p *SQLProvider) assignGroupsToUser(ctx context.Context, username string, groups []string) (err error) {
+	var conn sqlx.ExecerContext
+
+	// if this call to de func is part of a transaction, use it.
+	conn, ok := ctx.Value(ctxKeyTransaction).(*sql.Tx)
+
+	// else use direct connection.
+	if !ok {
+		conn = p.db
 	}
 
-	if _, err = p.db.ExecContext(ctx, p.sqlClearUserGroups, username); err != nil {
-		// TODO: capture and mask error message.
+	if _, err = conn.ExecContext(ctx, p.sqlClearUserGroups, username); err != nil {
 		return fmt.Errorf(errAssigningGroupToUser, err)
 	}
 
@@ -1492,8 +1548,7 @@ func (p *SQLProvider) AssignGroupsToUser(ctx context.Context, username string, g
 			return fmt.Errorf(errAssigningGroupToUser, err)
 		}
 
-		if _, err = p.db.ExecContext(ctx, p.sqlAssignGroupToUser, username, group); err != nil {
-			// TODO: capture and mask error message.
+		if _, err = conn.ExecContext(ctx, p.sqlAssignGroupToUser, username, group); err != nil {
 			return fmt.Errorf(errAssigningGroupToUser, err)
 		}
 	}

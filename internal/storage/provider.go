@@ -326,10 +326,10 @@ type AuthenticationStorageProvider interface {
 	// CreateUser creates a user in storage provider.
 	CreateUser(ctx context.Context, user model.User) (err error)
 
-	// GetUserGroups gets the list of groups of specified username.
-	GetUserGroups(ctx context.Context, username string) (groups []string, err error)
+	// // GetUserGroups gets the list of groups of specified username.
+	// GetUserGroups(ctx context.Context, username string) (groups []string, err error).
 
-	// AssignGroupsToUser assign the specified groups to a user in storage provider.
-	//  note that this method deletes previous assigned groups
-	AssignGroupsToUser(ctx context.Context, username string, groups ...string) (err error)
+	// // AssignGroupsToUser assign the specified groups to a user in storage provider.
+	// //  note that this method deletes previous assigned groups
+	// AssignGroupsToUser(ctx context.Context, username string, groups ...string) (err error).
 }

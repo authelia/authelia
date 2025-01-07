@@ -2,6 +2,8 @@ package authentication
 
 import (
 	"context"
+	"errors"
+	"time"
 
 	"github.com/go-crypt/crypt"
 	"github.com/go-crypt/crypt/algorithm"
@@ -28,7 +30,10 @@ func NewDBUserProvider(config *schema.AuthenticationBackendDB, database storage.
 
 // StartupCheck implements authentication.UserProvider.StartupCheck().
 func (p *DBUserProvider) StartupCheck() (err error) {
-	// TODO: verify that table exists.
+	if p.config == nil {
+		return errors.New("nil configuration provided")
+	}
+
 	if p.hash, err = NewCryptoHashFromConfig(p.config.Password); err != nil {
 		return err
 	}
@@ -40,8 +45,16 @@ func (p *DBUserProvider) StartupCheck() (err error) {
 func (p *DBUserProvider) CheckUserPassword(username string, password string) (valid bool, err error) {
 	var user *model.User
 
-	if user, err = p.loadUser(username); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
+	defer cancel()
+
+	if user, err = p.loadUser(ctx, username); err != nil {
 		return false, err
+	}
+
+	if user.Disabled {
+		return false, ErrUserNotFound
 	}
 
 	var d algorithm.Digest
@@ -57,7 +70,11 @@ func (p *DBUserProvider) CheckUserPassword(username string, password string) (va
 func (p *DBUserProvider) GetDetails(username string) (details *UserDetails, err error) {
 	var user *model.User
 
-	if user, err = p.loadUser(username); err != nil {
+	var ctx, cancel = context.WithTimeout(context.Background(), 30*time.Second)
+
+	defer cancel()
+
+	if user, err = p.loadUser(ctx, username); err != nil {
 		return nil, err
 	}
 
@@ -73,8 +90,16 @@ func (p *DBUserProvider) GetDetails(username string) (details *UserDetails, err 
 func (p *DBUserProvider) UpdatePassword(username string, newPassword string) (err error) {
 	var user *model.User
 
-	if user, err = p.loadUser(username); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
+	defer cancel()
+
+	if user, err = p.loadUser(ctx, username); err != nil {
 		return err
+	}
+
+	if user.Disabled {
+		return ErrUserNotFound
 	}
 
 	var digest algorithm.Digest
@@ -88,7 +113,7 @@ func (p *DBUserProvider) UpdatePassword(username string, newPassword string) (er
 
 	var passwordDigest = schema.NewPasswordDigest(digest).String()
 
-	if err = p.database.UpdateUserPassword(context.Background(), username, passwordDigest); err != nil {
+	if err = p.database.UpdateUserPassword(ctx, username, passwordDigest); err != nil {
 		return err
 	}
 
@@ -96,13 +121,10 @@ func (p *DBUserProvider) UpdatePassword(username string, newPassword string) (er
 }
 
 // loadUser load user info, returns error if user not exists or is disabled.
-func (p *DBUserProvider) loadUser(username string) (*model.User, error) {
+func (p *DBUserProvider) loadUser(ctx context.Context, username string) (*model.User, error) {
 	var user model.User
 
 	var err error
-
-	// TODO: see howto inject a real context.
-	var ctx = context.Background()
 
 	if p.config.Search.Email {
 		user, err = p.database.LoadUserByEmail(ctx, username)
@@ -113,19 +135,6 @@ func (p *DBUserProvider) loadUser(username string) (*model.User, error) {
 
 	if user, err = p.database.LoadUserByUsername(ctx, username); err != nil {
 		return nil, err
-	}
-
-	var groups []string
-
-	if groups, err = p.database.GetUserGroups(ctx, username); err != nil {
-		return nil, err
-	}
-
-	user.Groups = groups
-
-	if user.Disabled {
-		// TODO: consider return &user, ErrUserDisabled.
-		return nil, ErrUserNotFound
 	}
 
 	return &user, nil
