@@ -112,4 +112,22 @@ var (
 			},
 		},
 	}
+
+	storageMySQLTmpConfig = schema.Configuration{
+		TOTP: schema.TOTP{
+			Issuer:        "Authelia",
+			DefaultPeriod: 6,
+		},
+		Storage: schema.Storage{
+			EncryptionKey: "a_not_so_secure_encryption_key",
+			MySQL: &schema.StorageMySQL{
+				StorageSQL: schema.StorageSQL{
+					// Address: schema.NewAddressFromURL(url.URL{Scheme: AddressSchemeTCP, Host: "localhost:3306"}),.
+					Database: "authelia",
+					Username: "admin",
+					Password: "password",
+				},
+			},
+		},
+	}
 )

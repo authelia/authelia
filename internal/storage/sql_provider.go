@@ -1488,8 +1488,14 @@ func (p *SQLProvider) CreateUser(ctx context.Context, details model.User) (err e
 		return fmt.Errorf(errCreatingUser, err)
 	}
 
-	if _, err = p.LoadUserByUsername(ctx, details.Username); !isUserNotFoundError(err) {
+	_, err = p.LoadUserByUsername(ctx, details.Username)
+
+	switch {
+	case isUserNotFoundError(err): // do nothing.
+	case err == nil:
 		return errors.New(errUserAlreadyExists)
+	default:
+		return err
 	}
 
 	if details.Password, err = p.encrypt(details.Password); err != nil {

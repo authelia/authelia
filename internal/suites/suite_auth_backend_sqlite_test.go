@@ -24,7 +24,7 @@ type AuthBackendSqliteWebDriverSuite struct {
 
 func NewAuthBackendSqliteWebDriverSuite() *AuthBackendSqliteWebDriverSuite {
 	return &AuthBackendSqliteWebDriverSuite{
-		RodSuite: NewRodSuite(""),
+		RodSuite: NewRodSuite(authBackendSqliteSuiteName),
 	}
 }
 
