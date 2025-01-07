@@ -151,6 +151,10 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlSelectUserByUsername = provider.db.Rebind(provider.sqlSelectUserByUsername)
 	provider.sqlUpdateUserPassword = provider.db.Rebind(provider.sqlUpdateUserPassword)
 	provider.sqlSelectUserGroups = provider.db.Rebind(provider.sqlSelectUserGroups)
+	provider.sqlUpdateUser = provider.db.Rebind(provider.sqlUpdateUser)
+	provider.sqlInsertUser = provider.db.Rebind(provider.sqlInsertUser)
+	provider.sqlClearUserGroups = provider.db.Rebind(provider.sqlClearUserGroups)
+	provider.sqlAssignGroupToUser = provider.db.Rebind(provider.sqlAssignGroupToUser)
 
 	provider.schema = config.Storage.PostgreSQL.Schema
 

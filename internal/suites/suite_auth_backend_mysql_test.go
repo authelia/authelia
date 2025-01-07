@@ -24,7 +24,7 @@ func (s *AuthBackendMySQLSuite) Test2FATOTPScenario() {
 	suite.Run(s.T(), New2FATOTPScenario())
 }
 
-func AuthBackendTestMySQLSuite(t *testing.T) {
+func TestAuthBackendMySQLSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
 	}

@@ -7,16 +7,10 @@ CREATE TABLE IF NOT EXISTS users (
     disabled BOOLEAN DEFAULT FALSE
 );
 
-CREATE TABLE IF NOT EXISTS groups (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL UNIQUE
-);
-
 CREATE TABLE IF NOT EXISTS users_groups (
     id SERIAL PRIMARY KEY,
-    user_id INT NOT NULL,
-    group_id INT NOT NULL,
-    UNIQUE(user_id, group_id),
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
+    username VARCHAR(100) NOT NULL,
+    groupname VARCHAR(100) NOT NULL,
+    UNIQUE(username, groupname),
+    FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
 );

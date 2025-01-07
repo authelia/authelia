@@ -130,4 +130,22 @@ var (
 			},
 		},
 	}
+
+	storagePostgressTmpConfig = schema.Configuration{
+		TOTP: schema.TOTP{
+			Issuer:        "Authelia",
+			DefaultPeriod: 6,
+		},
+		Storage: schema.Storage{
+			EncryptionKey: "a_not_so_secure_encryption_key",
+			PostgreSQL: &schema.StoragePostgreSQL{
+				StorageSQL: schema.StorageSQL{
+					Database: "authelia",
+					Username: "admin",
+					Password: "password",
+				},
+				Schema: "public",
+			},
+		},
+	}
 )
