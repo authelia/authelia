@@ -580,6 +580,14 @@ This subcommand allows password change for existing users.`
 This subcommand allows to show the user information.`
 
 	cmdAutheliaUserShowExample = `authelia user show john`
+
+	cmdAutheliaUserAddShort = "Add user"
+
+	cmdAutheliaUserAddLong = `Add user.
+
+This subcommand allows the creation of a new users.`
+
+	cmdAutheliaUserAddExample = `authelia user add john --password "<the password" --display-name="John Doe" --email="john@example.com" --group="a group" --group="another group"`
 )
 
 const (

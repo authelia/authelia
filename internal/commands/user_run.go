@@ -58,3 +58,45 @@ func (ctx *CmdCtx) UserShowInfoRunE(cmd *cobra.Command, args []string) (err erro
 
 	return nil
 }
+
+// UserAddRunE adds a user.
+func (ctx *CmdCtx) UserAddRunE(cmd *cobra.Command, args []string) (err error) {
+	if ctx.config.AuthenticationBackend.DB == nil {
+		return errors.New("this command is only available for 'db' authentication backend")
+	}
+
+	var username = args[0]
+
+	var flags = cmd.Flags()
+
+	password, err := flags.GetString("password")
+	if err != nil {
+		return err
+	}
+
+	email, err := flags.GetString("email")
+	if err != nil {
+		return err
+	}
+
+	displayName, err := flags.GetString("display-name")
+	if err != nil {
+		return err
+	}
+
+	groups, err := flags.GetStringSlice("group")
+	if err != nil {
+		return err
+	}
+
+	provider := ctx.providers.UserProvider.(*authentication.DBUserProvider)
+
+	err = provider.AddUser(username, displayName, password, authentication.WithEmail(email), authentication.WithGroups(groups))
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("user added.")
+
+	return nil
+}

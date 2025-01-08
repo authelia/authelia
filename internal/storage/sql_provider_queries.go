@@ -473,7 +473,7 @@ const (
 
 	queryFmtInsertIntoUser = `
 		INSERT INTO %s
-			(username, email, display_name, password) VALUES (?, ?, ?, ?);`
+			(username, email, display_name, password, disabled) VALUES (?, ?, ?, ?, ?);`
 
 	queryFmtSelectUserGroups = `
 		SELECT groupname

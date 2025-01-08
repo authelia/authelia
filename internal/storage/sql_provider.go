@@ -1402,7 +1402,7 @@ func (p *SQLProvider) loadUser(ctx context.Context, query, identifier string) (m
 	if user.Password, err = p.decrypt(user.Password); err != nil {
 		p.log.WithError(err).
 			Warning("Failed to decrypt user password, the user must reset their password") //lint:nosec
-		// TODO: Consider setting a flag to force password reset.
+
 		user.Password = []byte{}
 	}
 
@@ -1526,7 +1526,7 @@ func (p *SQLProvider) CreateUser(ctx context.Context, details model.User) (err e
 		return errors.New("could not retrieve tx")
 	}
 
-	if _, err = tx.ExecContext(ctx, p.sqlInsertUser, details.Username, details.Email, details.DisplayName, details.Password); err != nil {
+	if _, err = tx.ExecContext(ctx, p.sqlInsertUser, details.Username, details.Email, details.DisplayName, details.Password, details.Disabled); err != nil {
 		return fmt.Errorf(errCreatingUser, err)
 	}
 

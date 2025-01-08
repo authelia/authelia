@@ -27,6 +27,7 @@ func newUserCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd.AddCommand(
 		newUserPasswordCmd(ctx),
 		newUserShowCmd(ctx),
+		newUserAddCmd(ctx),
 	)
 
 	return cmd
@@ -58,6 +59,26 @@ func newUserShowCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		RunE:              ctx.UserShowInfoRunE,
 		DisableAutoGenTag: true,
 	}
+
+	return cmd
+}
+
+func newUserAddCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:               "add",
+		Short:             cmdAutheliaUserAddShort,
+		Long:              cmdAutheliaUserAddLong,
+		Example:           cmdAutheliaUserAddExample,
+		Args:              cobra.MinimumNArgs(1),
+		ArgAliases:        []string{"username"},
+		RunE:              ctx.UserAddRunE,
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().String("password", "", "the new user's password")
+	cmd.Flags().String("display-name", "", "the new user's display name")
+	cmd.Flags().String("email", "", "the new user's email")
+	cmd.Flags().StringSlice("group", []string{}, "assign the group to the user. ")
 
 	return cmd
 }

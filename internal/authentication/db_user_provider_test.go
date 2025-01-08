@@ -236,3 +236,36 @@ func (s *DBUserProviderSuite) TestUpdatePasswordFailsIfStorageBackendFails() {
 	err := provider.UpdatePassword("john", "password")
 	s.ErrorIs(err, spectedError)
 }
+
+func (s *DBUserProviderSuite) TestAddUserShouldFailIfEmptyPassword() {
+	provider := s.mock.Ctx.Providers.UserProvider.(*authentication.DBUserProvider)
+
+	err := provider.AddUser("john", "Jon Doe", "", authentication.WithEmail("john@example.com"))
+	s.ErrorIs(err, authentication.ErrEmptyPassword)
+}
+
+func (s *DBUserProviderSuite) TestAddUserShouldFailHasEmptyEmail() {
+	provider := s.mock.Ctx.Providers.UserProvider.(*authentication.DBUserProvider)
+
+	err := provider.AddUser("john", "Jon Doe", "password")
+	s.ErrorIs(err, authentication.ErrInvalidEmail)
+}
+
+func (s *DBUserProviderSuite) TestAddUserShouldFailHasInvalidEmail() {
+	provider := s.mock.Ctx.Providers.UserProvider.(*authentication.DBUserProvider)
+
+	err := provider.AddUser("john", "Jon Doe", "password", authentication.WithEmail("not_a_email"))
+
+	s.ErrorIs(err, authentication.ErrInvalidEmail)
+}
+
+func (s *DBUserProviderSuite) TestAddUserShouldNotFailIfHasRequiredFields() {
+	provider := s.mock.Ctx.Providers.UserProvider.(*authentication.DBUserProvider)
+
+	s.mock.StorageMock.EXPECT().CreateUser(gomock.Any(), gomock.Any()).
+		Return(nil)
+
+	err := provider.AddUser("john", "Jon Doe", "password", authentication.WithEmail("john@example.com"))
+
+	s.NoError(err)
+}

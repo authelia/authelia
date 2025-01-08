@@ -102,16 +102,14 @@ func (p *DBUserProvider) UpdatePassword(username string, newPassword string) (er
 		return ErrUserNotFound
 	}
 
-	var digest algorithm.Digest
-
-	if digest, err = p.hash.Hash(newPassword); err != nil {
-		return err
-	}
-
 	// the user real username.
 	username = user.Username
 
-	var passwordDigest = schema.NewPasswordDigest(digest).String()
+	var passwordDigest string
+
+	if passwordDigest, err = p.hashPassword(newPassword); err != nil {
+		return err
+	}
 
 	if err = p.database.UpdateUserPassword(ctx, username, passwordDigest); err != nil {
 		return err
@@ -120,7 +118,19 @@ func (p *DBUserProvider) UpdatePassword(username string, newPassword string) (er
 	return nil
 }
 
-// loadUser load user info, returns error if user not exists or is disabled.
+func (p *DBUserProvider) hashPassword(password string) (passwordDigest string, err error) {
+	var digest algorithm.Digest
+
+	if digest, err = p.hash.Hash(password); err != nil {
+		return "", errors.New("error hashing user's  password")
+	}
+
+	passwordDigest = schema.NewPasswordDigest(digest).String()
+
+	return
+}
+
+// loadUser load user info, returns error if user not exists.
 func (p *DBUserProvider) loadUser(ctx context.Context, username string) (*model.User, error) {
 	var user model.User
 
@@ -138,4 +148,70 @@ func (p *DBUserProvider) loadUser(ctx context.Context, username string) (*model.
 	}
 
 	return &user, nil
+}
+
+// AddUser adds a user given the new user's information.
+func (p *DBUserProvider) AddUser(username, displayname, password string, opts ...func(options *NewUserDetailsOpts)) (err error) {
+	var passwordDigest string
+
+	var ctx, cancel = context.WithTimeout(context.Background(), 30*time.Second)
+
+	defer cancel()
+
+	if passwordDigest, err = p.hashPassword(password); err != nil {
+		return err
+	}
+
+	options := &NewUserDetailsOpts{}
+
+	for _, opt := range opts {
+		opt(options)
+	}
+
+	if password == "" {
+		return ErrEmptyPassword
+	}
+
+	if options.Email, err = parseEmail(options.Email); err != nil {
+		return ErrInvalidEmail
+	}
+
+	return p.database.CreateUser(ctx, model.User{
+		Username:    username,
+		Password:    []byte(passwordDigest),
+		DisplayName: displayname,
+		Email:       options.Email,
+		Groups:      options.Groups,
+		Disabled:    options.Disabled,
+	})
+}
+
+// DeleteUser deletes user given the username.
+func (p *DBUserProvider) DeleteUser(username string) (err error) {
+	return errors.New("not implemented")
+}
+
+// ChangePassword validates the old password then changes the password of the given user.
+func (p *DBUserProvider) ChangePassword(username, oldPassword, newPassword string) (err error) {
+	return errors.New("not implemented")
+}
+
+// ChangeDisplayName changes the display name for a specific user.
+func (p *DBUserProvider) ChangeDisplayName(username, newDisplayName string) (err error) {
+	return errors.New("not implemented")
+}
+
+// ChangeEmail changes the email for a specific user.
+func (p *DBUserProvider) ChangeEmail(username, newEmail string) (err error) {
+	return errors.New("not implemented")
+}
+
+// ChangeGroups changes the groups for a specific user.
+func (p *DBUserProvider) ChangeGroups(username string, newGroups []string) (err error) {
+	return errors.New("not implemented")
+}
+
+// ListUsers returns a list of all users and their attributes.
+func (p *DBUserProvider) ListUsers() (userList []UserDetails, err error) {
+	return userList, errors.New("not implemented")
 }

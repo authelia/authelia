@@ -59,6 +59,28 @@ type UserDetails struct {
 	Groups      []string
 }
 
+func WithEmail(email string) func(detailsOpts *NewUserDetailsOpts) {
+	return func(opts *NewUserDetailsOpts) {
+		opts.Email = email
+	}
+}
+func WithGroups(groups []string) func(detailsOpts *NewUserDetailsOpts) {
+	return func(opts *NewUserDetailsOpts) {
+		opts.Groups = groups
+	}
+}
+func WithDisabled(disabled bool) func(detailsOpts *NewUserDetailsOpts) {
+	return func(opts *NewUserDetailsOpts) {
+		opts.Disabled = disabled
+	}
+}
+
+type NewUserDetailsOpts struct {
+	Email    string
+	Disabled bool
+	Groups   []string
+}
+
 // Addresses returns the Emails []string as []mail.Address formatted with DisplayName as the Name attribute.
 func (d UserDetails) Addresses() (addresses []mail.Address) {
 	if len(d.Emails) == 0 {
