@@ -75,6 +75,28 @@ func TestValidateTOTP(t *testing.T) {
 			},
 		},
 		{
+			desc: "ShouldValidateGoodTOTPSkew",
+			have: schema.TOTP{
+				DefaultAlgorithm: digestSHA1,
+				DefaultDigits:    6,
+				DefaultPeriod:    30,
+				SecretSize:       32,
+				Skew:             &[]uint{10}[0],
+				Issuer:           "abc",
+			},
+			expected: schema.TOTP{
+				DefaultAlgorithm:  schema.TOTPAlgorithmSHA1,
+				DefaultDigits:     6,
+				DefaultPeriod:     30,
+				SecretSize:        32,
+				Skew:              &[]uint{10}[0],
+				Issuer:            "abc",
+				AllowedAlgorithms: []string{schema.TOTPAlgorithmSHA1},
+				AllowedDigits:     []int{6},
+				AllowedPeriods:    []int{30},
+			},
+		},
+		{
 			desc: "ShouldRaiseErrorWhenInvalidTOTPAlgorithm",
 			have: schema.TOTP{
 				DefaultAlgorithm: "sha3",

@@ -124,7 +124,7 @@ func TestTOTPGenerateCustom(t *testing.T) {
 }
 
 func TestTOTPGenerate(t *testing.T) {
-	skew := 2
+	var skew uint = 2
 
 	totp := NewTimeBasedProvider(schema.TOTP{
 		Issuer:           "Authelia",
