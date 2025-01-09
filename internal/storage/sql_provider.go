@@ -159,6 +159,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlInsertUser:           fmt.Sprintf(queryFmtInsertIntoUser, tableUsers),
 		sqlClearUserGroups:      fmt.Sprintf(queryFmtDeleteFromUserGroups, tableUsersGroups),
 		sqlAssignGroupToUser:    fmt.Sprintf(queryFmtInsertIntoUserGroups, tableUsersGroups),
+		sqlDeleteUserUser:       fmt.Sprintf(queryFmtDeleteUser, tableUsers),
 	}
 
 	return provider
@@ -325,6 +326,7 @@ type SQLProvider struct {
 	sqlInsertUser           string
 	sqlClearUserGroups      string
 	sqlAssignGroupToUser    string
+	sqlDeleteUserUser       string
 
 	// Table: users_groups.
 	sqlSelectUserGroups string
@@ -1414,11 +1416,6 @@ func (p *SQLProvider) loadUser(ctx context.Context, query, identifier string) (m
 func (p *SQLProvider) UpdateUserPassword(ctx context.Context, username, password string) (err error) {
 	var encryptedPassword []byte
 
-	// check that user exists.
-	if _, err = p.LoadUser(ctx, username, false); err != nil {
-		return fmt.Errorf("error updating user's passwword: %w", err) //lint: nosec
-	}
-
 	if encryptedPassword, err = p.encrypt([]byte(password)); err != nil {
 		return fmt.Errorf("error encrypting password for user '%s': %w", username, err)
 	}
@@ -1457,7 +1454,7 @@ func (p *SQLProvider) CreateUser(ctx context.Context, details model.User) (err e
 	}
 
 	if err = p.Commit(ctx); err != nil {
-		return fmt.Errorf("commit failed while creating user: %w", err)
+		return fmt.Errorf("failed to commit user creation: %w", err)
 	}
 
 	return nil
@@ -1520,4 +1517,27 @@ func (p *SQLProvider) UpdateUserGroups(ctx context.Context, username string, gro
 	}
 
 	return nil
+}
+
+// DeleteUser assigns groups to a user.
+func (p *SQLProvider) DeleteUser(ctx context.Context, username string) (err error) {
+	if _, err = p.ExecContext(ctx, p.sqlDeleteUserUser, username); err != nil {
+		return fmt.Errorf(errDeletingUser, err)
+	}
+
+	return nil
+}
+
+// UserExists implements storage.UserExists.
+func (p *SQLProvider) UserExists(ctx context.Context, username string) (exists bool, err error) {
+	_, err = p.LoadUser(ctx, username, false)
+
+	switch {
+	case err == nil:
+		return true, nil
+	case err.Error() == errUserNotFound:
+		return false, nil
+	default:
+		return false, err
+	}
 }

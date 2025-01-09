@@ -200,6 +200,20 @@ func (mr *MockStorageMockRecorder) DeleteTOTPConfiguration(ctx, username any) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTOTPConfiguration", reflect.TypeOf((*MockStorage)(nil).DeleteTOTPConfiguration), ctx, username)
 }
 
+// DeleteUser mocks base method.
+func (m *MockStorage) DeleteUser(ctx context.Context, username string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteUser", ctx, username)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteUser indicates an expected call of DeleteUser.
+func (mr *MockStorageMockRecorder) DeleteUser(ctx, username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUser", reflect.TypeOf((*MockStorage)(nil).DeleteUser), ctx, username)
+}
+
 // DeleteWebAuthnCredential mocks base method.
 func (m *MockStorage) DeleteWebAuthnCredential(ctx context.Context, kid string) error {
 	m.ctrl.T.Helper()
@@ -1191,4 +1205,19 @@ func (m *MockStorage) UpdateWebAuthnCredentialSignIn(ctx context.Context, creden
 func (mr *MockStorageMockRecorder) UpdateWebAuthnCredentialSignIn(ctx, credential any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWebAuthnCredentialSignIn", reflect.TypeOf((*MockStorage)(nil).UpdateWebAuthnCredentialSignIn), ctx, credential)
+}
+
+// UserExists mocks base method.
+func (m *MockStorage) UserExists(ctx context.Context, username string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UserExists", ctx, username)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UserExists indicates an expected call of UserExists.
+func (mr *MockStorageMockRecorder) UserExists(ctx, username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserExists", reflect.TypeOf((*MockStorage)(nil).UserExists), ctx, username)
 }

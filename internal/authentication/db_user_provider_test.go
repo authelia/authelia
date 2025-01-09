@@ -304,7 +304,46 @@ func (s *DBUserProviderSuite) TestAddUserShouldNotFailIfHasRequiredFields() {
 	s.mock.StorageMock.EXPECT().CreateUser(gomock.Any(), gomock.Any()).
 		Return(nil)
 
+	s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq("john")).
+		Return(false, nil)
+
 	err := provider.AddUser("john", "Jon Doe", "password", authentication.WithEmail("john@example.com"))
+
+	s.NoError(err)
+}
+
+func (s *DBUserProviderSuite) TestAddUserShouldFailIfUserAlreadyExists() {
+	provider := s.mock.Ctx.Providers.UserProvider.(*authentication.DBUserProvider)
+
+	s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq("john")).
+		Return(true, nil)
+
+	err := provider.AddUser("john", "Jon Doe", "password", authentication.WithEmail("john@example.com"))
+
+	s.ErrorContains(err, "user already exists")
+}
+
+func (s *DBUserProviderSuite) TestDeleteUserShouldFailIfUserNotExists() {
+	provider := s.mock.Ctx.Providers.UserProvider.(*authentication.DBUserProvider)
+
+	s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq("john")).
+		Return(false, nil)
+
+	err := provider.DeleteUser("john")
+
+	s.ErrorIs(err, authentication.ErrUserNotFound)
+}
+
+func (s *DBUserProviderSuite) TestDeleteUserShouldSuccessIfExists() {
+	provider := s.mock.Ctx.Providers.UserProvider.(*authentication.DBUserProvider)
+
+	s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq("john")).
+		Return(true, nil)
+
+	s.mock.StorageMock.EXPECT().DeleteUser(gomock.Any(), gomock.Eq("john")).
+		Return(nil)
+
+	err := provider.DeleteUser("john")
 
 	s.NoError(err)
 }

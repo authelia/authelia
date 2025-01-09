@@ -73,4 +73,5 @@ const (
 	errUpdatingUser         = "error updating user: %w"
 	errCreatingUser         = "error creating user: %w"
 	errAssigningGroupToUser = "error assigning groups to the user: %w"
+	errDeletingUser         = "error deleting user: %s"
 )

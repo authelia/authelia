@@ -588,6 +588,14 @@ This subcommand allows to show the user information.`
 This subcommand allows the creation of a new users.`
 
 	cmdAutheliaUserAddExample = `authelia user add john --password "<the password" --display-name="John Doe" --email="john@example.com" --group="a group" --group="another group"`
+
+	cmdAutheliaUserDeleteShort = "Delete user"
+
+	cmdAutheliaUserDeleteLong = `Delete user.
+
+This subcommand allows the deletion of a existing user.`
+
+	cmdAutheliaUserDeleteExample = `authelia user del john"`
 )
 
 const (

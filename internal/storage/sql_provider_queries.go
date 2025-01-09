@@ -487,4 +487,8 @@ const (
 
 	queryFmtInsertIntoUserGroups = `
 		INSERT INTO %s (username, groupname) VALUES (?, ?);`
+
+	queryFmtDeleteUser = `
+		DELETE FROM %s
+		WHERE username = ?;`
 )

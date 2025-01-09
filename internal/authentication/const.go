@@ -2,6 +2,7 @@ package authentication
 
 import (
 	"errors"
+	"time"
 
 	"golang.org/x/text/encoding/unicode"
 )
@@ -104,6 +105,9 @@ var (
 	ErrInvalidPassword      = errors.New("invalid pasword")
 	ErrUpdatingUserPassword = errors.New("error updating password")
 	ErrCreatingUser         = errors.New("error creating user")
+	ErrUserExists           = errors.New("user already exists")
+
+	ErrDeletingUser = errors.New("error deleting user")
 )
 
 const fileAuthenticationMode = 0600
@@ -114,4 +118,8 @@ const specialLDAPRunes = ",#+<>;\"="
 
 var (
 	encodingUTF16LittleEndian = unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM)
+)
+
+const (
+	contextTimeout time.Duration = 20
 )

@@ -327,6 +327,12 @@ type AuthenticationStorageProvider interface {
 	//  note that this method deletes previous assigned groups
 	UpdateUserGroups(ctx context.Context, username string, groups ...string) (err error)
 
+	// DeleteUser deletes a user from storage provider.
+	DeleteUser(ctx context.Context, username string) (err error)
+
+	// UserExists returns true if the specified user exists in the storage provider.
+	UserExists(ctx context.Context, username string) (exists bool, err error)
+
 	// UpdateUserDetails updates a user in storage provider.
 	// UpdateUserDetails(ctx context.Context, username string, details model.User) (err error).
 

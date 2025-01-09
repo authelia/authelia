@@ -28,6 +28,7 @@ func newUserCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		newUserPasswordCmd(ctx),
 		newUserShowCmd(ctx),
 		newUserAddCmd(ctx),
+		newUserDeleteCmd(ctx),
 	)
 
 	return cmd
@@ -79,6 +80,21 @@ func newUserAddCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd.Flags().String("display-name", "", "the new user's display name")
 	cmd.Flags().String("email", "", "the new user's email")
 	cmd.Flags().StringSlice("group", []string{}, "assign the group to the user. ")
+
+	return cmd
+}
+
+func newUserDeleteCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:               "del",
+		Short:             cmdAutheliaUserDeleteShort,
+		Long:              cmdAutheliaUserDeleteLong,
+		Example:           cmdAutheliaUserDeleteExample,
+		Args:              cobra.MinimumNArgs(1),
+		ArgAliases:        []string{"username"},
+		RunE:              ctx.UserDeleteRunE,
+		DisableAutoGenTag: true,
+	}
 
 	return cmd
 }

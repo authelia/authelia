@@ -46,7 +46,7 @@ func (p *DBUserProvider) StartupCheck() (err error) {
 func (p *DBUserProvider) CheckUserPassword(username string, password string) (valid bool, err error) {
 	var user model.User
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout*time.Second)
 
 	defer cancel()
 
@@ -74,7 +74,7 @@ func (p *DBUserProvider) CheckUserPassword(username string, password string) (va
 func (p *DBUserProvider) UpdatePassword(username string, newPassword string) (err error) {
 	var user model.User
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout*time.Second)
 
 	defer cancel()
 
@@ -140,7 +140,7 @@ func (p *DBUserProvider) GetDetailsExtended(username string) (*UserDetailsExtend
 
 	var err error
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout*time.Second)
 
 	defer cancel()
 
@@ -176,7 +176,7 @@ func (p *DBUserProvider) AddUser(username, displayname, password string, opts ..
 		opt(options)
 	}
 
-	var ctx, cancel = context.WithTimeout(context.Background(), 30*time.Second)
+	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout*time.Second)
 
 	defer cancel()
 
@@ -187,7 +187,14 @@ func (p *DBUserProvider) AddUser(username, displayname, password string, opts ..
 	var passwordDigest string
 
 	if passwordDigest, err = p.hashPassword(password); err != nil {
-		return err
+		logging.Logger().WithError(err).Warn("error generating password hash for user")
+		return ErrCreatingUser
+	}
+
+	if exists, err := p.database.UserExists(ctx, username); err != nil {
+		return ErrCreatingUser
+	} else if exists {
+		return ErrUserExists
 	}
 
 	err = p.database.CreateUser(ctx, model.User{
@@ -209,7 +216,23 @@ func (p *DBUserProvider) AddUser(username, displayname, password string, opts ..
 
 // DeleteUser deletes user given the username.
 func (p *DBUserProvider) DeleteUser(username string) (err error) {
-	return errors.New("not implemented")
+	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout*time.Second)
+
+	defer cancel()
+
+	if exists, err := p.database.UserExists(ctx, username); err != nil {
+		logging.Logger().WithError(err).Warn("error deleting user")
+		return ErrDeletingUser
+	} else if !exists {
+		return ErrUserNotFound
+	}
+
+	if err = p.database.DeleteUser(ctx, username); err != nil {
+		logging.Logger().WithError(err).Warn("error deleting user")
+		return ErrDeletingUser
+	}
+
+	return nil
 }
 
 // ChangePassword validates the old password then changes the password of the given user.
