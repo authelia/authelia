@@ -99,8 +99,11 @@ var (
 	// ErrNoContent is returned when the file is empty.
 	ErrNoContent = errors.New("no file content")
 
-	ErrInvalidEmail  = errors.New("invalid email address")
-	ErrEmptyPassword = errors.New("can't use empty password")
+	ErrInvalidUsername      = errors.New("invalid username")
+	ErrInvalidEmail         = errors.New("invalid email address")
+	ErrInvalidPassword      = errors.New("invalid pasword")
+	ErrUpdatingUserPassword = errors.New("error updating password")
+	ErrCreatingUser         = errors.New("error creating user")
 )
 
 const fileAuthenticationMode = 0600

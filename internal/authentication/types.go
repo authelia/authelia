@@ -59,6 +59,12 @@ type UserDetails struct {
 	Groups      []string
 }
 
+// UserDetailsExtended represents a user's extended details.
+type UserDetailsExtended struct {
+	UserDetails
+	Disabled bool
+}
+
 func WithEmail(email string) func(detailsOpts *NewUserDetailsOpts) {
 	return func(opts *NewUserDetailsOpts) {
 		opts.Email = email

@@ -151,33 +151,14 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 
 		sqlFmtRenameTable: queryFmtRenameTable,
 
-		sqlSelectUserByUsername: fmt.Sprintf(queryFmtSelectUser,
-			quoteTableName(tableUsers, driverName),
-			tableUsersFieldUsername,
-		),
-		sqlSelectUserByEmail: fmt.Sprintf(queryFmtSelectUser,
-			quoteTableName(tableUsers, driverName),
-			tableUsersFieldEmail,
-		),
-		sqlUpdateUserPassword: fmt.Sprintf(queryFmtUpdateUserPassword,
-			quoteTableName(tableUsers, driverName),
-		),
-		sqlSelectUserGroups: fmt.Sprintf(queryFmtSelectUserGroups,
-			quoteTableName(tableUsersGroups, driverName),
-		),
-
-		sqlUpdateUser: fmt.Sprintf(queryFmtUpdateUser,
-			quoteTableName(tableUsers, driverName),
-		),
-		sqlInsertUser: fmt.Sprintf(queryFmtInsertIntoUser,
-			quoteTableName(tableUsers, driverName),
-		),
-		sqlClearUserGroups: fmt.Sprintf(queryFmtDeleteFromUserGroups,
-			quoteTableName(tableUsersGroups, driverName),
-		),
-		sqlAssignGroupToUser: fmt.Sprintf(queryFmtInsertIntoUserGroups,
-			quoteTableName(tableUsersGroups, driverName),
-		),
+		sqlSelectUserByUsername: fmt.Sprintf(queryFmtSelectUser, tableUsers, tableUsersFieldUsername),
+		sqlSelectUserByEmail:    fmt.Sprintf(queryFmtSelectUser, tableUsers, tableUsersFieldEmail),
+		sqlUpdateUserPassword:   fmt.Sprintf(queryFmtUpdateUserPassword, tableUsers),
+		sqlSelectUserGroups:     fmt.Sprintf(queryFmtSelectUserGroups, tableUsersGroups),
+		sqlUpdateUser:           fmt.Sprintf(queryFmtUpdateUser, tableUsers),
+		sqlInsertUser:           fmt.Sprintf(queryFmtInsertIntoUser, tableUsers),
+		sqlClearUserGroups:      fmt.Sprintf(queryFmtDeleteFromUserGroups, tableUsersGroups),
+		sqlAssignGroupToUser:    fmt.Sprintf(queryFmtInsertIntoUserGroups, tableUsersGroups),
 	}
 
 	return provider
@@ -445,6 +426,21 @@ func (p *SQLProvider) Rollback(ctx context.Context) (err error) {
 // Close the underlying storage provider.
 func (p *SQLProvider) Close() (err error) {
 	return p.db.Close()
+}
+
+// ExecContext executes givend query, using transaction if provided in context.
+func (p *SQLProvider) ExecContext(ctx context.Context, query string, args ...interface{}) (result sql.Result, err error) {
+	var conn sqlx.ExecerContext
+
+	// if this call to de func is part of a transaction, use it.
+	conn, ok := ctx.Value(ctxKeyTransaction).(*sql.Tx)
+
+	// else use direct connection.
+	if !ok {
+		conn = p.db
+	}
+
+	return conn.ExecContext(ctx, query, args...)
 }
 
 // SavePreferred2FAMethod save the preferred method for 2FA for a username to the storage provider.
@@ -1376,14 +1372,15 @@ func (p *SQLProvider) LoadAuthenticationLogs(ctx context.Context, username strin
 	return attempts, nil
 }
 
-// LoadUserByUsername implements storage.Provider.LoadUserByUsername.
-func (p *SQLProvider) LoadUserByUsername(ctx context.Context, username string) (details model.User, err error) {
-	return p.loadUser(ctx, p.sqlSelectUserByUsername, username)
-}
+// LoadUser implements storage.Provider.LoadUser.
+func (p *SQLProvider) LoadUser(ctx context.Context, username string, allowEmailSearch bool) (details model.User, err error) {
+	if allowEmailSearch {
+		if details, err = p.loadUser(ctx, p.sqlSelectUserByEmail, username); err == nil {
+			return details, nil
+		}
+	}
 
-// LoadUserByEmail implements storage.Provider.LoadUserByEmail.
-func (p *SQLProvider) LoadUserByEmail(ctx context.Context, email string) (details model.User, err error) {
-	return p.loadUser(ctx, p.sqlSelectUserByEmail, email)
+	return p.loadUser(ctx, p.sqlSelectUserByUsername, username)
 }
 
 // loadUser loads user information using specific query.
@@ -1406,7 +1403,7 @@ func (p *SQLProvider) loadUser(ctx context.Context, query, identifier string) (m
 		user.Password = []byte{}
 	}
 
-	if user.Groups, err = p.getUserGroups(ctx, user.Username); err != nil {
+	if user.Groups, err = p.GetUserGroups(ctx, user.Username); err != nil {
 		return model.User{}, err
 	}
 
@@ -1418,7 +1415,7 @@ func (p *SQLProvider) UpdateUserPassword(ctx context.Context, username, password
 	var encryptedPassword []byte
 
 	// check that user exists.
-	if _, err = p.LoadUserByUsername(ctx, username); err != nil {
+	if _, err = p.LoadUser(ctx, username, false); err != nil {
 		return fmt.Errorf("error updating user's passwword: %w", err) //lint: nosec
 	}
 
@@ -1426,15 +1423,81 @@ func (p *SQLProvider) UpdateUserPassword(ctx context.Context, username, password
 		return fmt.Errorf("error encrypting password for user '%s': %w", username, err)
 	}
 
-	if _, err = p.db.ExecContext(ctx, p.sqlUpdateUserPassword, encryptedPassword, username); err != nil {
+	if _, err = p.ExecContext(ctx, p.sqlUpdateUserPassword, encryptedPassword, username); err != nil {
 		return fmt.Errorf(errUpdatingUserPassword, err)
 	}
 
 	return
 }
 
-// getUserGroups implements storage.Provider.getUserGroups.
-func (p *SQLProvider) getUserGroups(ctx context.Context, username string) (groups []string, err error) {
+// CreateUser implements storage.Provider.CreateUser.
+func (p *SQLProvider) CreateUser(ctx context.Context, details model.User) (err error) {
+	if details.Password, err = p.encrypt(details.Password); err != nil {
+		return fmt.Errorf("error encrypting password for user '%s': %w", details.Username, err)
+	}
+
+	if ctx, err = p.BeginTX(ctx); err != nil {
+		return fmt.Errorf("failed to start transaction: %w", err)
+	}
+
+	if _, err = p.ExecContext(ctx, p.sqlInsertUser, details.Username, details.Email, details.DisplayName, details.Password, details.Disabled); err != nil {
+		if rbErr := p.Rollback(ctx); rbErr != nil {
+			return fmt.Errorf("error rolling back changes: %s. trying to create user. original error: %s", rbErr, err)
+		}
+
+		return fmt.Errorf(errCreatingUser, err)
+	}
+
+	if err = p.UpdateUserGroups(ctx, details.Username, details.Groups...); err != nil {
+		if rbErr := p.Rollback(ctx); rbErr != nil {
+			return fmt.Errorf("error rolling back changes: %s. trying to create user. original error: %s", rbErr, err)
+		}
+
+		return fmt.Errorf(errCreatingUser, err)
+	}
+
+	if err = p.Commit(ctx); err != nil {
+		return fmt.Errorf("commit failed while creating user: %w", err)
+	}
+
+	return nil
+}
+
+/*
+// UpdateUserDetails implements storage.Provider.UpdateUserDetails.
+func (p *SQLProvider) UpdateUserDetails(ctx context.Context, username string, details model.User) (err error) {
+	if _, err = p.LoadUser(ctx, username, false); err != nil {
+		return fmt.Errorf(errUpdatingUser, err)
+	}
+
+	if ctx, err = p.BeginTX(ctx); err != nil {
+		return fmt.Errorf("failed to start transaction: %w", err)
+	}
+
+	if _, err = p.ExecContext(ctx, p.sqlUpdateUser, details.Email, details.DisplayName, details.Disabled, username); err != nil {
+		if rbErr := p.Rollback(ctx); rbErr != nil {
+			return fmt.Errorf("error rolling back changes: %s. trying to create user. original error: %s", rbErr, err)
+		}
+		return fmt.Errorf(errUpdatingUser, err)
+	}
+
+	if err = p.UpdateUserGroups(ctx, details.Username, details.Groups...); err != nil {
+		if rbErr := p.Rollback(ctx); rbErr != nil {
+			return fmt.Errorf("error rolling back changes: %s. trying to create user. original error: %s", rbErr, err)
+		}
+		return fmt.Errorf(errCreatingUser, err)
+	}
+
+	if err = p.Commit(ctx); err != nil {
+		return fmt.Errorf("commit failed while creating user: %w", err)
+	}
+
+	return nil
+}.
+*/
+
+// GetUserGroups implements storage.Provider.GetUserGroups.
+func (p *SQLProvider) GetUserGroups(ctx context.Context, username string) (groups []string, err error) {
 	err = p.db.SelectContext(ctx, &groups, p.sqlSelectUserGroups, username)
 
 	if err != nil {
@@ -1444,117 +1507,14 @@ func (p *SQLProvider) getUserGroups(ctx context.Context, username string) (group
 	return
 }
 
-// UpdateUserDetails implements storage.Provider.UpdateUserDetails.
-func (p *SQLProvider) UpdateUserDetails(ctx context.Context, username string, details model.User) (err error) {
-	if _, err = p.LoadUserByUsername(ctx, username); err != nil {
-		return fmt.Errorf(errUpdatingUser, err)
-	}
-
-	if ctx, err = p.BeginTX(ctx); err != nil {
-		return fmt.Errorf("failed to start transaction: %w", err)
-	}
-
-	defer func() {
-		if err != nil {
-			if rollbackErr := p.Rollback(ctx); rollbackErr != nil {
-				err = fmt.Errorf("rollback failed: %v: after a failed user creation: %w", rollbackErr, err)
-			}
-
-			return
-		}
-
-		if err = p.Commit(ctx); err != nil {
-			err = fmt.Errorf("commit failed while creating user: %w", err)
-		}
-	}()
-
-	tx, ok := ctx.Value(ctxKeyTransaction).(*sql.Tx)
-
-	if !ok {
-		return errors.New("could not retrieve tx")
-	}
-
-	if _, err = tx.ExecContext(ctx, p.sqlUpdateUser, details.Email, details.DisplayName, details.Disabled, username); err != nil {
-		err = fmt.Errorf(errUpdatingUser, err)
-		return
-	}
-
-	return p.assignGroupsToUser(ctx, username, details.Groups)
-}
-
-// CreateUser implements storage.Provider.CreateUser.
-func (p *SQLProvider) CreateUser(ctx context.Context, details model.User) (err error) {
-	if err := validateUsername(details.Username); err != nil {
-		return fmt.Errorf(errCreatingUser, err)
-	}
-
-	_, err = p.LoadUserByUsername(ctx, details.Username)
-
-	switch {
-	case isUserNotFoundError(err): // do nothing.
-	case err == nil:
-		return errors.New(errUserAlreadyExists)
-	default:
-		return err
-	}
-
-	if details.Password, err = p.encrypt(details.Password); err != nil {
-		return fmt.Errorf("error encrypting password for user '%s': %w", details.Username, err)
-	}
-
-	if ctx, err = p.BeginTX(ctx); err != nil {
-		return fmt.Errorf("failed to start transaction: %w", err)
-	}
-
-	defer func() {
-		if err != nil {
-			if rollbackErr := p.Rollback(ctx); rollbackErr != nil {
-				err = fmt.Errorf("rollback failed: %v: after a failed user creation: %w", rollbackErr, err)
-			}
-
-			return
-		}
-
-		if err = p.Commit(ctx); err != nil {
-			err = fmt.Errorf("commit failed while creating user: %w", err)
-		}
-	}()
-
-	tx, ok := ctx.Value(ctxKeyTransaction).(*sql.Tx)
-
-	if !ok {
-		return errors.New("could not retrieve tx")
-	}
-
-	if _, err = tx.ExecContext(ctx, p.sqlInsertUser, details.Username, details.Email, details.DisplayName, details.Password, details.Disabled); err != nil {
-		return fmt.Errorf(errCreatingUser, err)
-	}
-
-	return p.assignGroupsToUser(ctx, details.Username, details.Groups)
-}
-
-// assignGroupsToUser assigns groups to a user.
-func (p *SQLProvider) assignGroupsToUser(ctx context.Context, username string, groups []string) (err error) {
-	var conn sqlx.ExecerContext
-
-	// if this call to de func is part of a transaction, use it.
-	conn, ok := ctx.Value(ctxKeyTransaction).(*sql.Tx)
-
-	// else use direct connection.
-	if !ok {
-		conn = p.db
-	}
-
-	if _, err = conn.ExecContext(ctx, p.sqlClearUserGroups, username); err != nil {
+// UpdateUserGroups assigns groups to a user.
+func (p *SQLProvider) UpdateUserGroups(ctx context.Context, username string, groups ...string) (err error) {
+	if _, err = p.ExecContext(ctx, p.sqlClearUserGroups, username); err != nil {
 		return fmt.Errorf(errAssigningGroupToUser, err)
 	}
 
 	for _, group := range groups {
-		if err := validateGroupname(group); err != nil {
-			return fmt.Errorf(errAssigningGroupToUser, err)
-		}
-
-		if _, err = conn.ExecContext(ctx, p.sqlAssignGroupToUser, username, group); err != nil {
+		if _, err = p.ExecContext(ctx, p.sqlAssignGroupToUser, username, group); err != nil {
 			return fmt.Errorf(errAssigningGroupToUser, err)
 		}
 	}

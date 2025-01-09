@@ -311,25 +311,23 @@ type RegulatorProvider interface {
 
 // AuthenticationStorageProvider is an interface providint storage capabilities for persisting any kind of data related to the authentication provider.
 type AuthenticationStorageProvider interface {
-	// LoadUserByUsername loads the model.User from the storage provider.
-	LoadUserByUsername(ctx context.Context, username string) (details model.User, err error)
-
-	// LoadUserByEmail loads the model.User from the storage provider using an email address.
-	LoadUserByEmail(ctx context.Context, email string) (details model.User, err error)
+	// LoadUser loads the model.User from the storage provider.
+	LoadUser(ctx context.Context, username string, allowEmailSearch bool) (details model.User, err error)
 
 	// UpdateUserPassword updates the user's password into storage provider.
 	UpdateUserPassword(ctx context.Context, username, password string) (err error)
 
-	// UpdateUserDetails updates a user in storage provider.
-	UpdateUserDetails(ctx context.Context, username string, details model.User) (err error)
-
 	// CreateUser creates a user in storage provider.
 	CreateUser(ctx context.Context, user model.User) (err error)
 
-	// // GetUserGroups gets the list of groups of specified username.
-	// GetUserGroups(ctx context.Context, username string) (groups []string, err error).
+	// GetUserGroups gets the list of groups of specified username.
+	GetUserGroups(ctx context.Context, username string) (groups []string, err error)
 
-	// // AssignGroupsToUser assign the specified groups to a user in storage provider.
-	// //  note that this method deletes previous assigned groups
-	// AssignGroupsToUser(ctx context.Context, username string, groups ...string) (err error).
+	// UpdateUserGroups assign the specified groups to a user in storage provider.
+	//  note that this method deletes previous assigned groups
+	UpdateUserGroups(ctx context.Context, username string, groups ...string) (err error)
+
+	// UpdateUserDetails updates a user in storage provider.
+	// UpdateUserDetails(ctx context.Context, username string, details model.User) (err error).
+
 }
