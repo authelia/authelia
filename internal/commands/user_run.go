@@ -126,48 +126,6 @@ func (ctx *CmdCtx) UserDeleteRunE(cmd *cobra.Command, args []string) (err error)
 	return nil
 }
 
-// UserDisableRunE disables a user.
-func (ctx *CmdCtx) UserDisableRunE(cmd *cobra.Command, args []string) (err error) {
-	if ctx.config.AuthenticationBackend.DB == nil {
-		return errors.New("this command is only available for 'db' authentication backend")
-	}
-
-	var username = args[0]
-
-	provider := ctx.providers.UserProvider.(*authentication.DBUserProvider)
-
-	err = provider.DisableUser(username)
-	if err != nil {
-		fmt.Println(err.Error())
-		return nil
-	}
-
-	fmt.Println("user disabled.")
-
-	return nil
-}
-
-// UserEnableRunE enables a user.
-func (ctx *CmdCtx) UserEnableRunE(cmd *cobra.Command, args []string) (err error) {
-	if ctx.config.AuthenticationBackend.DB == nil {
-		return errors.New("this command is only available for 'db' authentication backend")
-	}
-
-	var username = args[0]
-
-	provider := ctx.providers.UserProvider.(*authentication.DBUserProvider)
-
-	err = provider.EnableUser(username)
-	if err != nil {
-		fmt.Println(err.Error())
-		return nil
-	}
-
-	fmt.Println("user enabled.")
-
-	return nil
-}
-
 // UserChangeNameRunE changes the user display name.
 func (ctx *CmdCtx) UserChangeNameRunE(cmd *cobra.Command, args []string) (err error) {
 	if ctx.config.AuthenticationBackend.DB == nil {
@@ -210,6 +168,29 @@ func (ctx *CmdCtx) UserChangeEmailRunE(cmd *cobra.Command, args []string) (err e
 	}
 
 	fmt.Println("user's email changed.")
+
+	return nil
+}
+
+// UserChangeNameRunE changes the user display name.
+func (ctx *CmdCtx) UserChangeGroupsRunE(cmd *cobra.Command, args []string) (err error) {
+	if ctx.config.AuthenticationBackend.DB == nil {
+		return errors.New("this command is only available for 'db' authentication backend")
+	}
+
+	var username = args[0]
+
+	var groups = args[1:]
+
+	provider := ctx.providers.UserProvider.(*authentication.DBUserProvider)
+
+	err = provider.ChangeGroups(username, groups)
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil
+	}
+
+	fmt.Println("user's groups changed.")
 
 	return nil
 }

@@ -64,11 +64,16 @@ const (
 	errFmtMigrationPre1SuggestedVersion = "the suggested authelia version is 4.37.2"
 )
 
+// errors for user storage provider.
+var (
+	ErrUserNotFound      = errors.New("user not found")
+	ErrUserAlreadyExists = errors.New("the user already exists")
+)
+
+// error formats for use storage provider.
 const (
-	errUserNotFound            = "user not found"
 	errLoadingUserDetails      = "error selecting user details for user: %w"
 	errLoadingUserGroups       = "error getting groups for user: %w"
-	errUserAlreadyExists       = "the user already exists"
 	errCreatingUser            = "error creating user: %w"
 	errAssigningGroupToUser    = "error assigning groups to the user: %w"
 	errDeletingUser            = "error deleting user: %s"

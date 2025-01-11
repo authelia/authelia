@@ -109,6 +109,10 @@ func (p *DBUserProvider) UpdatePassword(username string, newPassword string) (er
 func (p *DBUserProvider) hashPassword(password string) (passwordDigest string, err error) {
 	var digest algorithm.Digest
 
+	if p.hash == nil {
+		return "", errors.New("hash algorithm not defined")
+	}
+
 	if digest, err = p.hash.Hash(password); err != nil {
 		return "", err
 	}
@@ -239,13 +243,6 @@ func (p *DBUserProvider) addUserTx(ctx context.Context, username, displayname, p
 		}
 	}
 
-	if options.Disabled {
-		if err = p.database.UpdateUserStatus(ctx, username, options.Disabled); err != nil {
-			logging.Logger().WithError(err).Warn("error changing user's status")
-			return ErrCreatingUser
-		}
-	}
-
 	return nil
 }
 
@@ -319,7 +316,7 @@ func (p *DBUserProvider) ChangeGroups(username string, newGroups []string) (err 
 	defer cancel()
 
 	if exists, err := p.database.UserExists(ctx, username); err != nil {
-		logging.Logger().WithError(err).Warn("error creating transaction")
+		logging.Logger().WithError(err).Warn("error checking if user exists")
 		return ErrUpdatingUser
 	} else if !exists {
 		return ErrUserNotFound
@@ -340,48 +337,6 @@ func (p *DBUserProvider) ChangeGroups(username string, newGroups []string) (err 
 
 	if err = p.database.Commit(ctx); err != nil {
 		logging.Logger().WithError(err).Warn("failed to commit user creation")
-		return ErrUpdatingUser
-	}
-
-	return nil
-}
-
-// DisableUser disables a user.
-func (p *DBUserProvider) DisableUser(username string) (err error) {
-	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout*time.Second)
-
-	defer cancel()
-
-	if exists, err := p.database.UserExists(ctx, username); err != nil {
-		logging.Logger().WithError(err).Warn("error disabling user")
-		return ErrUpdatingUser
-	} else if !exists {
-		return ErrUserNotFound
-	}
-
-	if err = p.database.UpdateUserStatus(ctx, username, true); err != nil {
-		logging.Logger().WithError(err).Warn("error disabling user")
-		return ErrUpdatingUser
-	}
-
-	return nil
-}
-
-// EnableUser disables a user.
-func (p *DBUserProvider) EnableUser(username string) (err error) {
-	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout*time.Second)
-
-	defer cancel()
-
-	if exists, err := p.database.UserExists(ctx, username); err != nil {
-		logging.Logger().WithError(err).Warn("error enabling user")
-		return ErrUpdatingUser
-	} else if !exists {
-		return ErrUserNotFound
-	}
-
-	if err = p.database.UpdateUserStatus(ctx, username, false); err != nil {
-		logging.Logger().WithError(err).Warn("error enabling user")
 		return ErrUpdatingUser
 	}
 

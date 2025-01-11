@@ -1397,7 +1397,7 @@ func (p *SQLProvider) loadUser(ctx context.Context, query, identifier string) (m
 
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
-		return model.User{}, errors.New(errUserNotFound)
+		return model.User{}, ErrUserNotFound
 	case err != nil:
 		return model.User{}, fmt.Errorf(errLoadingUserDetails, err)
 	}
@@ -1485,10 +1485,10 @@ func (p *SQLProvider) DeleteUser(ctx context.Context, username string) (err erro
 func (p *SQLProvider) UserExists(ctx context.Context, username string) (exists bool, err error) {
 	_, err = p.LoadUser(ctx, username, false)
 
-	switch {
-	case err == nil:
+	switch err {
+	case nil:
 		return true, nil
-	case err.Error() == errUserNotFound:
+	case ErrUserNotFound:
 		return false, nil
 	default:
 		return false, err
