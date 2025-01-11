@@ -258,12 +258,18 @@ func (ctx *CmdCtx) UserListRunE(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	for _, u := range users {
-		_, _ = fmt.Fprintf(w, " %s\t%s\t%s\t%s\t%v\n",
+		disabled := "no" //nolint: goconst
+
+		if u.Disabled {
+			disabled = "yes"
+		}
+
+		_, _ = fmt.Fprintf(w, " %s\t%s\t%s\t%s\t%s\n",
 			u.Username,
 			u.DisplayName,
 			strings.Join(u.Emails, ", "),
 			strings.Join(u.Groups, ", "),
-			u.Disabled,
+			disabled,
 		)
 	}
 

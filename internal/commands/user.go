@@ -143,7 +143,7 @@ func newUserGroupsCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Example:           cmdAutheliaUserDeleteExample,
 		Args:              cobra.MinimumNArgs(2),
 		ArgAliases:        []string{"username", "group"},
-		RunE:              ctx.UserChangeEmailRunE,
+		RunE:              ctx.UserChangeGroupsRunE,
 		DisableAutoGenTag: true,
 	}
 

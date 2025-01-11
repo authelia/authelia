@@ -9,7 +9,6 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
@@ -46,38 +45,48 @@ func init() {
 			return err
 		}
 
-		passwordHash := []byte("$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/")
-		userList := []model.User{
+		userList := []struct {
+			Username    string
+			Email       string
+			DisplayName string
+			Groups      []string
+			Password    string
+		}{
 			{
 				Username:    "john",
 				Email:       "john.doe@authelia.com",
 				DisplayName: "John Doe",
 				Groups:      []string{"admins", "dev"},
-				Password:    passwordHash,
+				Password:    "password",
 			},
 			{
 				Username:    "harry",
 				Email:       "harry.potter@authelia.com",
 				DisplayName: "Harry Potter",
-				Password:    passwordHash,
+				Password:    "password",
 			},
 			{
 				Username:    "bob",
 				Email:       "bob.dylan@authelia.com",
 				DisplayName: "Bob Dylan",
 				Groups:      []string{"dev"},
-				Password:    passwordHash,
+				Password:    "password",
 			},
 			{
 				Username:    "james",
 				Email:       "james.dean@authelia.com",
 				DisplayName: "James Dean",
-				Password:    passwordHash,
+				Password:    "password",
 			},
 		}
 
 		for _, user := range userList {
-			if err := userProvider.AddUser(user.Username, user.DisplayName, string(user.Password), authentication.WithEmail(user.Email)); err != nil {
+			if err := userProvider.AddUser(
+				user.Username,
+				user.DisplayName,
+				user.Password,
+				authentication.WithEmail(user.Email),
+				authentication.WithGroups(user.Groups)); err != nil {
 				log.Warnf("failed to create demo user '%s': %s.\n", user.Username, err)
 			}
 		}

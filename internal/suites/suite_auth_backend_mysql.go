@@ -1,14 +1,13 @@
 package suites
 
 import (
-	"context"
 	"net/url"
 	"time"
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
@@ -37,47 +36,61 @@ func init() {
 		}
 
 		address, err := schema.NewAddressFromURL(&url.URL{Scheme: schema.AddressSchemeTCP, Host: "192.168.240.150:3306"})
+		if err != nil {
+			return err
+		}
+
 		storageMySQLTmpConfig.Storage.MySQL.StorageSQL.Address = &schema.AddressTCP{Address: *address}
-		provider := storage.NewMySQLProvider(&storageMySQLTmpConfig, nil)
+		storageProvider := storage.NewMySQLProvider(&storageMySQLTmpConfig, nil)
+		userProvider := authentication.NewDBUserProvider(&schema.DefaultDBAuthenticationBackendConfig, storageProvider)
 
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer func() {
-			cancel()
-		}()
+		if err = userProvider.StartupCheck(); err != nil {
+			return err
+		}
 
-		passwordHash := []byte("$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/")
-		userList := []model.User{
+		userList := []struct {
+			Username    string
+			Email       string
+			DisplayName string
+			Groups      []string
+			Password    string
+		}{
 			{
 				Username:    "john",
 				Email:       "john.doe@authelia.com",
 				DisplayName: "John Doe",
 				Groups:      []string{"admins", "dev"},
-				Password:    passwordHash,
+				Password:    "password",
 			},
 			{
 				Username:    "harry",
 				Email:       "harry.potter@authelia.com",
 				DisplayName: "Harry Potter",
-				Password:    passwordHash,
+				Password:    "password",
 			},
 			{
 				Username:    "bob",
 				Email:       "bob.dylan@authelia.com",
 				DisplayName: "Bob Dylan",
 				Groups:      []string{"dev"},
-				Password:    passwordHash,
+				Password:    "password",
 			},
 			{
 				Username:    "james",
 				Email:       "james.dean@authelia.com",
 				DisplayName: "James Dean",
-				Password:    passwordHash,
+				Password:    "password",
 			},
 		}
 
 		for _, user := range userList {
-			if err := provider.CreateUser(ctx, user.Username, user.Email, string(user.Password)); err != nil {
-				log.Warnf("could not create user %s (%s).\n", user.Username, err)
+			if err := userProvider.AddUser(
+				user.Username,
+				user.DisplayName,
+				user.Password,
+				authentication.WithEmail(user.Email),
+				authentication.WithGroups(user.Groups)); err != nil {
+				log.Warnf("failed to create demo user '%s': %s.\n", user.Username, err)
 			}
 		}
 
