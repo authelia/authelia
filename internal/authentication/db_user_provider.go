@@ -162,6 +162,10 @@ func (p *DBUserProvider) GetDetailsExtended(username string) (*UserDetailsExtend
 
 // AddUser adds a user given the new user's information.
 func (p *DBUserProvider) AddUser(username, displayname, password string, opts ...func(options *NewUserDetailsOpts)) (err error) {
+	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout*time.Second)
+
+	defer cancel()
+
 	if username == "" {
 		return ErrInvalidUsername
 	}
@@ -176,10 +180,6 @@ func (p *DBUserProvider) AddUser(username, displayname, password string, opts ..
 		opt(options)
 	}
 
-	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout*time.Second)
-
-	defer cancel()
-
 	if options.Email, err = parseEmail(options.Email); err != nil {
 		return ErrInvalidEmail
 	}
@@ -188,27 +188,62 @@ func (p *DBUserProvider) AddUser(username, displayname, password string, opts ..
 
 	if passwordDigest, err = p.hashPassword(password); err != nil {
 		logging.Logger().WithError(err).Warn("error generating password hash for user")
+
 		return ErrCreatingUser
 	}
 
+	if ctx, err = p.database.BeginTX(ctx); err != nil {
+		logging.Logger().WithError(err).Warn("error creating transaction for user creation")
+
+		return ErrCreatingUser
+	}
+
+	if err = p.addUserTx(ctx, username, displayname, passwordDigest, options); err != nil {
+		if rbErr := p.database.Rollback(ctx); rbErr != nil {
+			logging.Logger().WithError(err).Warn("failed to rollback user creation changes")
+		}
+
+		return err
+	}
+
+	if err = p.database.Commit(ctx); err != nil {
+		logging.Logger().WithError(err).Warn("failed to commit user creation")
+
+		return ErrCreatingUser
+	}
+
+	return nil
+}
+
+func (p *DBUserProvider) addUserTx(ctx context.Context, username, displayname, password string, options *NewUserDetailsOpts) (err error) {
 	if exists, err := p.database.UserExists(ctx, username); err != nil {
 		return ErrCreatingUser
 	} else if exists {
 		return ErrUserExists
 	}
 
-	err = p.database.CreateUser(ctx, model.User{
-		Username:    username,
-		Password:    []byte(passwordDigest),
-		DisplayName: displayname,
-		Email:       options.Email,
-		Groups:      options.Groups,
-		Disabled:    options.Disabled,
-	})
-
-	if err != nil {
+	if err = p.database.CreateUser(ctx, username, options.Email, password); err != nil {
 		logging.Logger().WithError(err).Warn("error creating user")
 		return ErrCreatingUser
+	}
+
+	if err = p.database.UpdateUserGroups(ctx, username, options.Groups...); err != nil {
+		logging.Logger().WithError(err).Warn("assigning group to user")
+		return ErrCreatingUser
+	}
+
+	if displayname != "" {
+		if err = p.database.UpdateUserDisplayName(ctx, username, displayname); err != nil {
+			logging.Logger().WithError(err).Warn("error changing user's display name")
+			return ErrCreatingUser
+		}
+	}
+
+	if options.Disabled {
+		if err = p.database.UpdateUserStatus(ctx, username, options.Disabled); err != nil {
+			logging.Logger().WithError(err).Warn("error changing user's status")
+			return ErrCreatingUser
+		}
 	}
 
 	return nil
@@ -235,24 +270,122 @@ func (p *DBUserProvider) DeleteUser(username string) (err error) {
 	return nil
 }
 
-// ChangePassword validates the old password then changes the password of the given user.
-func (p *DBUserProvider) ChangePassword(username, oldPassword, newPassword string) (err error) {
-	return errors.New("not implemented")
-}
-
 // ChangeDisplayName changes the display name for a specific user.
 func (p *DBUserProvider) ChangeDisplayName(username, newDisplayName string) (err error) {
-	return errors.New("not implemented")
+	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout*time.Second)
+
+	defer cancel()
+
+	if exists, err := p.database.UserExists(ctx, username); err != nil {
+		logging.Logger().WithError(err).Warn("error changing user's display name")
+		return ErrUpdatingUser
+	} else if !exists {
+		return ErrUserNotFound
+	}
+
+	if err = p.database.UpdateUserDisplayName(ctx, username, newDisplayName); err != nil {
+		logging.Logger().WithError(err).Warn("error changing user's display name")
+		return ErrUpdatingUser
+	}
+
+	return nil
 }
 
 // ChangeEmail changes the email for a specific user.
 func (p *DBUserProvider) ChangeEmail(username, newEmail string) (err error) {
-	return errors.New("not implemented")
+	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout*time.Second)
+
+	defer cancel()
+
+	if exists, err := p.database.UserExists(ctx, username); err != nil {
+		logging.Logger().WithError(err).Warn("error changing user's email")
+		return ErrUpdatingUser
+	} else if !exists {
+		return ErrUserNotFound
+	}
+
+	if err = p.database.UpdateUserEmail(ctx, username, newEmail); err != nil {
+		logging.Logger().WithError(err).Warn("error changing user's email")
+		return ErrUpdatingUser
+	}
+
+	return nil
 }
 
 // ChangeGroups changes the groups for a specific user.
 func (p *DBUserProvider) ChangeGroups(username string, newGroups []string) (err error) {
-	return errors.New("not implemented")
+	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout*time.Second)
+
+	defer cancel()
+
+	if exists, err := p.database.UserExists(ctx, username); err != nil {
+		logging.Logger().WithError(err).Warn("error creating transaction")
+		return ErrUpdatingUser
+	} else if !exists {
+		return ErrUserNotFound
+	}
+
+	if ctx, err = p.database.BeginTX(ctx); err != nil {
+		logging.Logger().WithError(err).Warn("error creating transaction")
+		return ErrUpdatingUser
+	}
+
+	if err = p.database.UpdateUserGroups(ctx, username, newGroups...); err != nil {
+		if rbErr := p.database.Rollback(ctx); rbErr != nil {
+			logging.Logger().WithError(err).Warn("failed to rollback user changes")
+		}
+
+		return ErrUpdatingUser
+	}
+
+	if err = p.database.Commit(ctx); err != nil {
+		logging.Logger().WithError(err).Warn("failed to commit user creation")
+		return ErrUpdatingUser
+	}
+
+	return nil
+}
+
+// DisableUser disables a user.
+func (p *DBUserProvider) DisableUser(username string) (err error) {
+	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout*time.Second)
+
+	defer cancel()
+
+	if exists, err := p.database.UserExists(ctx, username); err != nil {
+		logging.Logger().WithError(err).Warn("error disabling user")
+		return ErrUpdatingUser
+	} else if !exists {
+		return ErrUserNotFound
+	}
+
+	if err = p.database.UpdateUserStatus(ctx, username, true); err != nil {
+		logging.Logger().WithError(err).Warn("error disabling user")
+		return ErrUpdatingUser
+	}
+
+	return nil
+}
+
+// EnableUser disables a user.
+func (p *DBUserProvider) EnableUser(username string) (err error) {
+	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout*time.Second)
+
+	defer cancel()
+
+	if exists, err := p.database.UserExists(ctx, username); err != nil {
+		logging.Logger().WithError(err).Warn("error enabling user")
+		return ErrUpdatingUser
+	} else if !exists {
+		return ErrUserNotFound
+	}
+
+	if err = p.database.UpdateUserStatus(ctx, username, false); err != nil {
+		logging.Logger().WithError(err).Warn("error enabling user")
+		return ErrUpdatingUser
+	}
+
+	return nil
 }
 
 // ListUsers returns a list of all users and their attributes.

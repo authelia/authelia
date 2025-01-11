@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     `id` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     `username` VARCHAR(100) NOT NULL UNIQUE,
     `email` VARCHAR(255) NOT NULL UNIQUE,
-    `display_name` VARCHAR(100) DEFAULT NULL,
+    `display_name` VARCHAR(100) DEFAULT '',
     `password` BLOB NOT NULL,
     `disabled` INT DEFAULT 0
 );

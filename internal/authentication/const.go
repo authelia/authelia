@@ -103,9 +103,10 @@ var (
 	ErrInvalidUsername      = errors.New("invalid username")
 	ErrInvalidEmail         = errors.New("invalid email address")
 	ErrInvalidPassword      = errors.New("invalid pasword")
-	ErrUpdatingUserPassword = errors.New("error updating password")
 	ErrCreatingUser         = errors.New("error creating user")
 	ErrUserExists           = errors.New("user already exists")
+	ErrUpdatingUserPassword = errors.New("error updating password")
+	ErrUpdatingUser         = errors.New("error updating user")
 
 	ErrDeletingUser = errors.New("error deleting user")
 )

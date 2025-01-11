@@ -1,6 +1,7 @@
 package authentication_test
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -300,12 +301,22 @@ func (s *DBUserProviderSuite) TestAddUserShouldFailIfHasInvalidEmail() {
 
 func (s *DBUserProviderSuite) TestAddUserShouldNotFailIfHasRequiredFields() {
 	provider := s.mock.Ctx.Providers.UserProvider.(*authentication.DBUserProvider)
+	ctx := context.Background()
 
-	s.mock.StorageMock.EXPECT().CreateUser(gomock.Any(), gomock.Any()).
+	s.mock.StorageMock.EXPECT().BeginTX(gomock.Any()).
+		Return(ctx, nil)
+
+	s.mock.StorageMock.EXPECT().CreateUser(gomock.Any(), gomock.Eq("john"), gomock.Eq("john@example.com"), gomock.Any()).
 		Return(nil)
 
 	s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq("john")).
 		Return(false, nil)
+
+	s.mock.StorageMock.EXPECT().UpdateUserGroups(gomock.Any(), gomock.Any()).
+		Return(nil)
+
+	s.mock.StorageMock.EXPECT().Commit(gomock.Any()).
+		Return(nil)
 
 	err := provider.AddUser("john", "Jon Doe", "password", authentication.WithEmail("john@example.com"))
 

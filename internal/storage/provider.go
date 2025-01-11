@@ -311,6 +311,8 @@ type RegulatorProvider interface {
 
 // AuthenticationStorageProvider is an interface providint storage capabilities for persisting any kind of data related to the authentication provider.
 type AuthenticationStorageProvider interface {
+	Transactioner
+
 	// LoadUser loads the model.User from the storage provider.
 	LoadUser(ctx context.Context, username string, allowEmailSearch bool) (details model.User, err error)
 
@@ -318,7 +320,7 @@ type AuthenticationStorageProvider interface {
 	UpdateUserPassword(ctx context.Context, username, password string) (err error)
 
 	// CreateUser creates a user in storage provider.
-	CreateUser(ctx context.Context, user model.User) (err error)
+	CreateUser(ctx context.Context, username, email, password string) (err error)
 
 	// GetUserGroups gets the list of groups of specified username.
 	GetUserGroups(ctx context.Context, username string) (groups []string, err error)
@@ -333,7 +335,19 @@ type AuthenticationStorageProvider interface {
 	// UserExists returns true if the specified user exists in the storage provider.
 	UserExists(ctx context.Context, username string) (exists bool, err error)
 
-	// UpdateUserDetails updates a user in storage provider.
-	// UpdateUserDetails(ctx context.Context, username string, details model.User) (err error).
+	// UpdateUserDisplayName updates a user display name on storage provider.
+	UpdateUserDisplayName(ctx context.Context, username, displayName string) (err error)
 
+	// UpdateUserEmail updates the user's email on  storage provider.
+	UpdateUserEmail(ctx context.Context, username, email string) (err error)
+
+	// UpdateUserEmail updates the user's disabled status.
+	UpdateUserStatus(ctx context.Context, username string, disabled bool) error
+}
+
+// Transactioner represents an storage provider that supports transactions.
+type Transactioner interface {
+	BeginTX(ctx context.Context) (c context.Context, err error)
+	Commit(ctx context.Context) (err error)
+	Rollback(ctx context.Context) (err error)
 }

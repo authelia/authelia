@@ -29,6 +29,10 @@ func newUserCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		newUserShowCmd(ctx),
 		newUserAddCmd(ctx),
 		newUserDeleteCmd(ctx),
+		newUserDisableCmd(ctx),
+		newUserEnableCmd(ctx),
+		newUserNameCmd(ctx),
+		newUserEmailCmd(ctx),
 	)
 
 	return cmd
@@ -93,6 +97,66 @@ func newUserDeleteCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Args:              cobra.MinimumNArgs(1),
 		ArgAliases:        []string{"username"},
 		RunE:              ctx.UserDeleteRunE,
+		DisableAutoGenTag: true,
+	}
+
+	return cmd
+}
+
+func newUserDisableCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:               "disable",
+		Short:             cmdAutheliaUserDeleteShort,
+		Long:              cmdAutheliaUserDeleteLong,
+		Example:           cmdAutheliaUserDeleteExample,
+		Args:              cobra.MinimumNArgs(1),
+		ArgAliases:        []string{"username"},
+		RunE:              ctx.UserDisableRunE,
+		DisableAutoGenTag: true,
+	}
+
+	return cmd
+}
+
+func newUserEnableCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:               "enable",
+		Short:             cmdAutheliaUserDeleteShort,
+		Long:              cmdAutheliaUserDeleteLong,
+		Example:           cmdAutheliaUserDeleteExample,
+		Args:              cobra.MinimumNArgs(1),
+		ArgAliases:        []string{"username"},
+		RunE:              ctx.UserEnableRunE,
+		DisableAutoGenTag: true,
+	}
+
+	return cmd
+}
+
+func newUserNameCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:               "display-name",
+		Short:             cmdAutheliaUserDeleteShort,
+		Long:              cmdAutheliaUserDeleteLong,
+		Example:           cmdAutheliaUserDeleteExample,
+		Args:              cobra.MinimumNArgs(1),
+		ArgAliases:        []string{"username", "display-name"},
+		RunE:              ctx.UserChangeNameRunE,
+		DisableAutoGenTag: true,
+	}
+
+	return cmd
+}
+
+func newUserEmailCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:               "email",
+		Short:             cmdAutheliaUserDeleteShort,
+		Long:              cmdAutheliaUserDeleteLong,
+		Example:           cmdAutheliaUserDeleteExample,
+		Args:              cobra.MinimumNArgs(1),
+		ArgAliases:        []string{"username", "email"},
+		RunE:              ctx.UserChangeEmailRunE,
 		DisableAutoGenTag: true,
 	}
 

@@ -1,13 +1,14 @@
 package suites
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"time"
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
 )
@@ -38,12 +39,12 @@ func init() {
 			return err
 		}
 
-		provider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
+		storageProvider := storage.NewSQLiteProvider(&storageLocalTmpConfig)
+		userProvider := authentication.NewDBUserProvider(&schema.DefaultDBAuthenticationBackendConfig, storageProvider)
 
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer func() {
-			cancel()
-		}()
+		if err = userProvider.StartupCheck(); err != nil {
+			return err
+		}
 
 		passwordHash := []byte("$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/")
 		userList := []model.User{
@@ -76,8 +77,8 @@ func init() {
 		}
 
 		for _, user := range userList {
-			if err := provider.CreateUser(ctx, user); err != nil {
-				log.Warnf("could not create user %s (%s).\n", user.Username, err)
+			if err := userProvider.AddUser(user.Username, user.DisplayName, string(user.Password), authentication.WithEmail(user.Email)); err != nil {
+				log.Warnf("failed to create demo user '%s': %s.\n", user.Username, err)
 			}
 		}
 

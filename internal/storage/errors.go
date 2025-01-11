@@ -65,13 +65,15 @@ const (
 )
 
 const (
-	errUserNotFound         = "user not found"
-	errLoadingUserDetails   = "error selecting user details for user: %w"
-	errUpdatingUserPassword = "error updating password for user: %w"
-	errLoadingUserGroups    = "error getting groups for user: %w"
-	errUserAlreadyExists    = "the user already exists"
-	errUpdatingUser         = "error updating user: %w"
-	errCreatingUser         = "error creating user: %w"
-	errAssigningGroupToUser = "error assigning groups to the user: %w"
-	errDeletingUser         = "error deleting user: %s"
+	errUserNotFound            = "user not found"
+	errLoadingUserDetails      = "error selecting user details for user: %w"
+	errLoadingUserGroups       = "error getting groups for user: %w"
+	errUserAlreadyExists       = "the user already exists"
+	errCreatingUser            = "error creating user: %w"
+	errAssigningGroupToUser    = "error assigning groups to the user: %w"
+	errDeletingUser            = "error deleting user: %s"
+	errUpdatingUserPassword    = "error updating password for user: %w"
+	errUpdatingUserDisplayName = "error updating user's display name: %w"
+	errUpdatingUserEmail       = "error updating user's email: %w"
+	errUpdatingUserStatus      = "error updating user's status: %w"
 )

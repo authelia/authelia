@@ -466,14 +466,9 @@ const (
 		SET password = ?
 		WHERE username = ?;`
 
-	queryFmtUpdateUser = `
-		UPDATE %s
-		SET email = ?, display_name = ?, disabled = ?
-		WHERE username = ?;`
-
 	queryFmtInsertIntoUser = `
 		INSERT INTO %s
-			(username, email, display_name, password, disabled) VALUES (?, ?, ?, ?, ?);`
+			(username, email, password) VALUES (?, ?, ?);`
 
 	queryFmtSelectUserGroups = `
 		SELECT groupname
@@ -490,5 +485,20 @@ const (
 
 	queryFmtDeleteUser = `
 		DELETE FROM %s
+		WHERE username = ?;`
+
+	queryFmtUpdateUserDisplayName = `
+		UPDATE %s
+		SET display_name = ?
+		WHERE username = ?;`
+
+	queryFmtUpdateUserEmail = `
+		UPDATE %s
+		SET email = ?
+		WHERE username = ?;`
+
+	queryFmtUpdateUserStatus = `
+		UPDATE %s
+		SET disabled = ?
 		WHERE username = ?;`
 )

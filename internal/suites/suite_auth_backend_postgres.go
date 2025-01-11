@@ -76,7 +76,7 @@ func init() {
 		}
 
 		for _, user := range userList {
-			if err := provider.CreateUser(ctx, user); err != nil {
+			if err := provider.CreateUser(ctx, user.Username, user.Email, string(user.Password)); err != nil {
 				log.Warnf("could not create user %s (%s).\n", user.Username, err)
 			}
 		}
