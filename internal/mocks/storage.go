@@ -287,6 +287,21 @@ func (mr *MockStorageMockRecorder) GetUserGroups(ctx, username any) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserGroups", reflect.TypeOf((*MockStorage)(nil).GetUserGroups), ctx, username)
 }
 
+// ListUsers mocks base method.
+func (m *MockStorage) ListUsers(ctx context.Context) ([]model.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListUsers", ctx)
+	ret0, _ := ret[0].([]model.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListUsers indicates an expected call of ListUsers.
+func (mr *MockStorageMockRecorder) ListUsers(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUsers", reflect.TypeOf((*MockStorage)(nil).ListUsers), ctx)
+}
+
 // LoadAuthenticationLogs mocks base method.
 func (m *MockStorage) LoadAuthenticationLogs(ctx context.Context, username string, fromDate time.Time, limit, page int) ([]model.AuthenticationAttempt, error) {
 	m.ctrl.T.Helper()

@@ -343,6 +343,9 @@ type AuthenticationStorageProvider interface {
 
 	// UpdateUserEmail updates the user's disabled status.
 	UpdateUserStatus(ctx context.Context, username string, disabled bool) error
+
+	// ListUsers return de list of existing users.
+	ListUsers(ctx context.Context) (users []model.User, err error)
 }
 
 // Transactioner represents an storage provider that supports transactions.

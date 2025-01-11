@@ -108,6 +108,8 @@ var (
 	ErrUpdatingUserPassword = errors.New("error updating password")
 	ErrUpdatingUser         = errors.New("error updating user")
 
+	ErrListingUser = errors.New("error while getting the user list")
+
 	ErrDeletingUser = errors.New("error deleting user")
 )
 

@@ -153,6 +153,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 
 		sqlSelectUserByUsername:  fmt.Sprintf(queryFmtSelectUser, tableUsers, tableUsersFieldUsername),
 		sqlSelectUserByEmail:     fmt.Sprintf(queryFmtSelectUser, tableUsers, tableUsersFieldEmail),
+		sqlSelectUsers:           fmt.Sprintf(queryFmtSelectUsers, tableUsers),
 		sqlUpdateUserPassword:    fmt.Sprintf(queryFmtUpdateUserPassword, tableUsers),
 		sqlSelectUserGroups:      fmt.Sprintf(queryFmtSelectUserGroups, tableUsersGroups),
 		sqlInsertUser:            fmt.Sprintf(queryFmtInsertIntoUser, tableUsers),
@@ -323,6 +324,7 @@ type SQLProvider struct {
 	// Table: users.
 	sqlSelectUserByUsername  string
 	sqlSelectUserByEmail     string
+	sqlSelectUsers           string
 	sqlUpdateUserPassword    string
 	sqlUpdateUserDisplayName string
 	sqlUpdateUserEmail       string
@@ -1520,4 +1522,13 @@ func (p *SQLProvider) UpdateUserStatus(ctx context.Context, username string, dis
 	}
 
 	return nil
+}
+
+// ListUsers implements storage.AuthenticationStorageProvider.ListUsers.
+func (p *SQLProvider) ListUsers(ctx context.Context) (users []model.User, err error) {
+	if err := p.db.SelectContext(ctx, &users, p.sqlSelectUsers); err != nil {
+		return users, fmt.Errorf("failed to get user list: %s", err)
+	}
+
+	return users, nil
 }

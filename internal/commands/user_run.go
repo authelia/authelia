@@ -3,7 +3,9 @@ package commands
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strings"
+	"text/tabwriter"
 
 	"github.com/spf13/cobra"
 
@@ -126,6 +128,48 @@ func (ctx *CmdCtx) UserDeleteRunE(cmd *cobra.Command, args []string) (err error)
 	return nil
 }
 
+// UserDisableRunE disables a user.
+func (ctx *CmdCtx) UserDisableRunE(cmd *cobra.Command, args []string) (err error) {
+	if ctx.config.AuthenticationBackend.DB == nil {
+		return errors.New("this command is only available for 'db' authentication backend")
+	}
+
+	var username = args[0]
+
+	provider := ctx.providers.UserProvider.(*authentication.DBUserProvider)
+
+	err = provider.DisableUser(username)
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil
+	}
+
+	fmt.Println("user disabled.")
+
+	return nil
+}
+
+// UserEnableRunE enables a user.
+func (ctx *CmdCtx) UserEnableRunE(cmd *cobra.Command, args []string) (err error) {
+	if ctx.config.AuthenticationBackend.DB == nil {
+		return errors.New("this command is only available for 'db' authentication backend")
+	}
+
+	var username = args[0]
+
+	provider := ctx.providers.UserProvider.(*authentication.DBUserProvider)
+
+	err = provider.EnableUser(username)
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil
+	}
+
+	fmt.Println("user enabled.")
+
+	return nil
+}
+
 // UserChangeNameRunE changes the user display name.
 func (ctx *CmdCtx) UserChangeNameRunE(cmd *cobra.Command, args []string) (err error) {
 	if ctx.config.AuthenticationBackend.DB == nil {
@@ -191,6 +235,39 @@ func (ctx *CmdCtx) UserChangeGroupsRunE(cmd *cobra.Command, args []string) (err 
 	}
 
 	fmt.Println("user's groups changed.")
+
+	return nil
+}
+
+// UserListRunE list users.
+func (ctx *CmdCtx) UserListRunE(cmd *cobra.Command, args []string) (err error) {
+	if ctx.config.AuthenticationBackend.DB == nil {
+		return errors.New("this command is only available for 'db' authentication backend")
+	}
+
+	w := tabwriter.NewWriter(os.Stdout, 10, 1, 4, ' ', 0)
+
+	_, _ = fmt.Fprintln(w, " Username\tDisplay Name\tEmail\tGroups\tDisabled")
+
+	provider := ctx.providers.UserProvider.(*authentication.DBUserProvider)
+
+	users, err := provider.ListUsers()
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil
+	}
+
+	for _, u := range users {
+		_, _ = fmt.Fprintf(w, " %s\t%s\t%s\t%s\t%v\n",
+			u.Username,
+			u.DisplayName,
+			strings.Join(u.Emails, ", "),
+			strings.Join(u.Groups, ", "),
+			u.Disabled,
+		)
+	}
+
+	_ = w.Flush()
 
 	return nil
 }

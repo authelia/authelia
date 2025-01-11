@@ -460,6 +460,10 @@ const (
 		FROM %s
 		WHERE %s = ?;`
 
+	queryFmtSelectUsers = `
+		SELECT id, username, password, display_name, email, disabled
+		FROM %s`
+
 	//nolint:gosec
 	queryFmtUpdateUserPassword = `
 		UPDATE %s

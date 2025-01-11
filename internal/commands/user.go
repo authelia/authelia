@@ -32,6 +32,9 @@ func newUserCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		newUserNameCmd(ctx),
 		newUserEmailCmd(ctx),
 		newUserGroupsCmd(ctx),
+		newListUsersCmd(ctx),
+		newUserEnableCmd(ctx),
+		newUserDisableCmd(ctx),
 	)
 
 	return cmd
@@ -141,6 +144,49 @@ func newUserGroupsCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Args:              cobra.MinimumNArgs(2),
 		ArgAliases:        []string{"username", "group"},
 		RunE:              ctx.UserChangeEmailRunE,
+		DisableAutoGenTag: true,
+	}
+
+	return cmd
+}
+
+func newListUsersCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:               "list",
+		Short:             cmdAutheliaUserDeleteShort,
+		Long:              cmdAutheliaUserDeleteLong,
+		Example:           cmdAutheliaUserDeleteExample,
+		RunE:              ctx.UserListRunE,
+		DisableAutoGenTag: true,
+	}
+
+	return cmd
+}
+
+func newUserDisableCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:               "disable",
+		Short:             cmdAutheliaUserDeleteShort,
+		Long:              cmdAutheliaUserDeleteLong,
+		Example:           cmdAutheliaUserDeleteExample,
+		Args:              cobra.MinimumNArgs(1),
+		ArgAliases:        []string{"username"},
+		RunE:              ctx.UserDisableRunE,
+		DisableAutoGenTag: true,
+	}
+
+	return cmd
+}
+
+func newUserEnableCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:               "enable",
+		Short:             cmdAutheliaUserDeleteShort,
+		Long:              cmdAutheliaUserDeleteLong,
+		Example:           cmdAutheliaUserDeleteExample,
+		Args:              cobra.MinimumNArgs(1),
+		ArgAliases:        []string{"username"},
+		RunE:              ctx.UserEnableRunE,
 		DisableAutoGenTag: true,
 	}
 

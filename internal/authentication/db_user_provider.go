@@ -153,15 +153,9 @@ func (p *DBUserProvider) GetDetailsExtended(username string) (*UserDetailsExtend
 		return nil, ErrUserNotFound
 	}
 
-	return &UserDetailsExtended{
-		UserDetails: UserDetails{
-			Username:    user.Username,
-			DisplayName: user.DisplayName,
-			Emails:      []string{user.Email},
-			Groups:      user.Groups,
-		},
-		Disabled: user.Disabled,
-	}, nil
+	var details = userModelToUserDetailsExtended(user)
+
+	return &details, nil
 }
 
 // AddUser adds a user given the new user's information.
@@ -344,6 +338,68 @@ func (p *DBUserProvider) ChangeGroups(username string, newGroups []string) (err 
 }
 
 // ListUsers returns a list of all users and their attributes.
-func (p *DBUserProvider) ListUsers() (userList []UserDetails, err error) {
-	return userList, errors.New("not implemented")
+func (p *DBUserProvider) ListUsers() (userList []UserDetailsExtended, err error) {
+	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout*time.Second)
+
+	defer cancel()
+
+	var models []model.User
+
+	if models, err = p.database.ListUsers(ctx); err != nil {
+		logging.Logger().WithError(err).Warn("couldn't get the user list")
+
+		return userList, ErrListingUser
+	}
+
+	for _, u := range models {
+		if u.Groups, err = p.database.GetUserGroups(ctx, u.Username); err != nil {
+			logging.Logger().WithError(err).Warn("failed to get groups for user")
+		}
+
+		userList = append(userList, userModelToUserDetailsExtended(u))
+	}
+
+	return userList, nil
+}
+
+// DisableUser disables a user.
+func (p *DBUserProvider) DisableUser(username string) (err error) {
+	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout*time.Second)
+
+	defer cancel()
+
+	if exists, err := p.database.UserExists(ctx, username); err != nil {
+		logging.Logger().WithError(err).Warn("error disabling user")
+		return ErrUpdatingUser
+	} else if !exists {
+		return ErrUserNotFound
+	}
+
+	if err = p.database.UpdateUserStatus(ctx, username, true); err != nil {
+		logging.Logger().WithError(err).Warn("error disabling user")
+		return ErrUpdatingUser
+	}
+
+	return nil
+}
+
+// EnableUser enables a user.
+func (p *DBUserProvider) EnableUser(username string) (err error) {
+	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout*time.Second)
+
+	defer cancel()
+
+	if exists, err := p.database.UserExists(ctx, username); err != nil {
+		logging.Logger().WithError(err).Warn("error enabling user")
+		return ErrUpdatingUser
+	} else if !exists {
+		return ErrUserNotFound
+	}
+
+	if err = p.database.UpdateUserStatus(ctx, username, false); err != nil {
+		logging.Logger().WithError(err).Warn("error enabling user")
+		return ErrUpdatingUser
+	}
+
+	return nil
 }

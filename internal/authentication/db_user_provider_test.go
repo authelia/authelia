@@ -905,3 +905,53 @@ func (s *DBUserProviderSuite) TestChangeUserGroups() {
 		})
 	}
 }
+
+func (s *DBUserProviderSuite) TestListUsers() {
+	var userList = []model.User{
+		{
+			Username:    "john",
+			Email:       "john@example.com",
+			DisplayName: "John Doe",
+			Groups:      []string{"admins", "dev"},
+			Disabled:    false,
+		},
+	}
+
+	var testCases = []struct {
+		name        string
+		setup       func(mock *mocks.MockAutheliaCtx)
+		expect      []model.User
+		expectError error
+	}{
+		{
+			"ShouldGetUsers",
+			func(mock *mocks.MockAutheliaCtx) {
+				s.mock.StorageMock.EXPECT().ListUsers(gomock.Any()).
+					Return(userList, nil)
+			},
+			userList,
+			nil,
+		},
+		{
+			"ShouldFailIfStorageFailed",
+			func(mock *mocks.MockAutheliaCtx) {
+				s.mock.StorageMock.EXPECT().ListUsers(gomock.Any()).
+					Return([]model.User{}, errors.New("error loading users"))
+			},
+			userList,
+			authentication.ErrListingUser,
+		},
+	}
+
+	provider := s.mock.Ctx.Providers.UserProvider.(*authentication.DBUserProvider)
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			tc.setup(s.mock)
+
+			_, err := provider.ListUsers()
+
+			s.Equal(tc.expectError, err)
+		})
+	}
+}
