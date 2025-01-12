@@ -23,9 +23,8 @@ func (suite *AccessControl) SetupTest() {
 	suite.config = &schema.Configuration{
 		AccessControl: schema.AccessControl{
 			DefaultPolicy: policyDeny,
-
-			Networks: schema.DefaultACLNetwork,
-			Rules:    schema.DefaultACLRule,
+			Networks:      schema.DefaultACLNetwork,
+			Rules:         schema.DefaultACLRule,
 		},
 	}
 }

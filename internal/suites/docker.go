@@ -87,6 +87,19 @@ func (de *DockerEnvironment) Exec(service string, command []string) (string, err
 	return string(content), err
 }
 
+func (de *DockerEnvironment) ExecWithEnv(service string, command []string, env map[string]string) (string, error) {
+	envs := make([]string, 0, len(env))
+
+	for k, v := range env {
+		envs = append(envs, fmt.Sprintf("-e %s=%s", k, v))
+	}
+
+	cmd := de.createCommand(fmt.Sprintf("exec %s -T %s %s", strings.Join(envs, " "), service, strings.Join(command, " ")))
+	content, err := cmd.CombinedOutput()
+
+	return string(content), err
+}
+
 // Logs get logs of a given service of the environment.
 func (de *DockerEnvironment) Logs(service string, flags []string) (string, error) {
 	cmd := de.createCommand(fmt.Sprintf("logs %s %s", strings.Join(flags, " "), service))

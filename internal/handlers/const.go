@@ -124,6 +124,12 @@ const (
 	logFmtErrConsentSaveSession                 = logFmtErrConsentWithIDCouldNotBeProcessed + "error occurred saving consent session: %+v"
 )
 
+const (
+	logFmtErrPasskeyAuthenticationChallengeGenerate     = "Error occurred generating a WebAuthn passkey authentication challenge: %s"
+	logFmtErrPasskeyAuthenticationChallengeValidate     = "Error occurred validating a WebAuthn passkey authentication challenge: %s"
+	logFmtErrPasskeyAuthenticationChallengeValidateUser = "Error occurred validating a WebAuthn passkey authentication challenge for user '%s': %s"
+)
+
 // Duo constants.
 const (
 	allow  = "allow"
@@ -151,5 +157,6 @@ const (
 )
 
 var (
-	errUserAnonymous = errors.New("user is anonymous")
+	errUserAnonymous              = errors.New("user is anonymous")
+	errUserIsAlreadyAuthenticated = errors.New("user is already authenticated")
 )
