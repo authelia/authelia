@@ -11,6 +11,12 @@ import (
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
+func TestMiscMissingCoverage(t *testing.T) {
+	kid, err := jwkCalculateKID(struct{}{}, nil, "")
+	assert.NoError(t, err)
+	assert.Equal(t, "", kid)
+}
+
 func TestIsCookieDomainValid(t *testing.T) {
 	testCases := []struct {
 		domain   string
