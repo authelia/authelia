@@ -3,7 +3,6 @@ package authentication
 import (
 	"context"
 	"errors"
-	"time"
 
 	"github.com/go-crypt/crypt"
 	"github.com/go-crypt/crypt/algorithm"
@@ -46,7 +45,7 @@ func (p *DBUserProvider) StartupCheck() (err error) {
 func (p *DBUserProvider) CheckUserPassword(username string, password string) (valid bool, err error) {
 	var user model.User
 
-	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout)
 
 	defer cancel()
 
@@ -74,7 +73,7 @@ func (p *DBUserProvider) CheckUserPassword(username string, password string) (va
 func (p *DBUserProvider) UpdatePassword(username string, newPassword string) (err error) {
 	var user model.User
 
-	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout)
 
 	defer cancel()
 
@@ -144,7 +143,7 @@ func (p *DBUserProvider) GetDetailsExtended(username string) (*UserDetailsExtend
 
 	var err error
 
-	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout)
 
 	defer cancel()
 
@@ -160,7 +159,7 @@ func (p *DBUserProvider) GetDetailsExtended(username string) (*UserDetailsExtend
 
 // AddUser adds a user given the new user's information.
 func (p *DBUserProvider) AddUser(username, displayname, password string, opts ...func(options *NewUserDetailsOpts)) (err error) {
-	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout*time.Second)
+	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout)
 
 	defer cancel()
 
@@ -242,7 +241,7 @@ func (p *DBUserProvider) addUserTx(ctx context.Context, username, displayname, p
 
 // DeleteUser deletes user given the username.
 func (p *DBUserProvider) DeleteUser(username string) (err error) {
-	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout*time.Second)
+	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout)
 
 	defer cancel()
 
@@ -263,7 +262,7 @@ func (p *DBUserProvider) DeleteUser(username string) (err error) {
 
 // ChangeDisplayName changes the display name for a specific user.
 func (p *DBUserProvider) ChangeDisplayName(username, newDisplayName string) (err error) {
-	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout*time.Second)
+	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout)
 
 	defer cancel()
 
@@ -284,7 +283,7 @@ func (p *DBUserProvider) ChangeDisplayName(username, newDisplayName string) (err
 
 // ChangeEmail changes the email for a specific user.
 func (p *DBUserProvider) ChangeEmail(username, newEmail string) (err error) {
-	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout*time.Second)
+	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout)
 
 	defer cancel()
 
@@ -305,7 +304,7 @@ func (p *DBUserProvider) ChangeEmail(username, newEmail string) (err error) {
 
 // ChangeGroups changes the groups for a specific user.
 func (p *DBUserProvider) ChangeGroups(username string, newGroups []string) (err error) {
-	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout*time.Second)
+	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout)
 
 	defer cancel()
 
@@ -339,7 +338,7 @@ func (p *DBUserProvider) ChangeGroups(username string, newGroups []string) (err 
 
 // ListUsers returns a list of all users and their attributes.
 func (p *DBUserProvider) ListUsers() (userList []UserDetailsExtended, err error) {
-	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout*time.Second)
+	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout)
 
 	defer cancel()
 
@@ -364,7 +363,7 @@ func (p *DBUserProvider) ListUsers() (userList []UserDetailsExtended, err error)
 
 // DisableUser disables a user.
 func (p *DBUserProvider) DisableUser(username string) (err error) {
-	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout*time.Second)
+	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout)
 
 	defer cancel()
 
@@ -385,7 +384,7 @@ func (p *DBUserProvider) DisableUser(username string) (err error) {
 
 // EnableUser enables a user.
 func (p *DBUserProvider) EnableUser(username string) (err error) {
-	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout*time.Second)
+	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout)
 
 	defer cancel()
 

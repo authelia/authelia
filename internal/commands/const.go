@@ -595,7 +595,55 @@ This subcommand allows the creation of a new users.`
 
 This subcommand allows the deletion of a existing user.`
 
-	cmdAutheliaUserDeleteExample = `authelia user del john"`
+	cmdAutheliaUserDeleteExample = `authelia user del john`
+
+	cmdAutheliaUserChangeDisplayNameShort = "Change user's display name"
+
+	cmdAutheliaUserChangeDisplayNameLong = `Change user's display name.
+
+This subcommand allows the change the display name of a existing user.`
+
+	cmdAutheliaUserChangeDisplayNameExample = `authelia user display-name john "John Doe"`
+
+	cmdAutheliaUserChangeEmailShort = "Change user's email"
+
+	cmdAutheliaUserChangeEmailLong = `Change user's email.
+
+This subcommand allows the change the email of a existing user.`
+
+	cmdAutheliaUserChangeEmailExample = `authelia user email john "john@example.com"`
+
+	cmdAutheliaUserChangeGroupsShort = "Change user's groups"
+
+	cmdAutheliaUserChangeGroupsLong = `Change user's groups.
+
+This subcommand allows the change the groups of a existing user.`
+
+	cmdAutheliaUserChangeGroupsExample = `authelia user groups john groups1 group2 ... groupN`
+
+	cmdAutheliaUserListShort = "List users"
+
+	cmdAutheliaUserListLong = `List users.
+
+This subcommand allows list existing users.`
+
+	cmdAutheliaUserListExample = `authelia user list`
+
+	cmdAutheliaUserDisableShort = "Disables user"
+
+	cmdAutheliaUserDisableLong = `Disables user.
+
+This subcommand allows disabling users.`
+
+	cmdAutheliaUserDisableExample = `authelia user disable john`
+
+	cmdAutheliaUserEnableShort = "Enables user"
+
+	cmdAutheliaUserEnableLong = `Enables user.
+
+This subcommand allows enabling users.`
+
+	cmdAutheliaUserEnableExample = `authelia user enable john`
 )
 
 const (

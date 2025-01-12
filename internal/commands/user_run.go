@@ -17,7 +17,7 @@ func (ctx *CmdCtx) LoadProvidersAuthenticationRunE(cmd *cobra.Command, args []st
 	ctx.providers.UserProvider = getAuthenticationProvider(ctx)
 
 	if err = doStartupCheck(ctx, providerNameUser, ctx.providers.UserProvider, false); err != nil {
-		return err
+		ctx.log.Fatal(err)
 	}
 
 	return nil
@@ -33,7 +33,7 @@ func (ctx *CmdCtx) UserChangePasswordRunE(cmd *cobra.Command, args []string) (er
 
 	var password = args[1]
 
-	if err := ctx.providers.UserProvider.UpdatePassword(username, password); err != nil {
+	if err = ctx.providers.UserProvider.UpdatePassword(username, password); err != nil {
 		ctx.log.Fatal(err)
 	}
 
@@ -48,7 +48,11 @@ func (ctx *CmdCtx) UserShowInfoRunE(cmd *cobra.Command, args []string) (err erro
 
 	var details *authentication.UserDetailsExtended
 
-	provider := ctx.providers.UserProvider.(*authentication.DBUserProvider)
+	var provider, ok = ctx.providers.UserProvider.(*authentication.DBUserProvider)
+
+	if !ok {
+		return errors.New("this command is only available for 'db' authentication backend")
+	}
 
 	if details, err = provider.GetDetailsExtended(username); err != nil {
 		ctx.log.Fatal(err)
@@ -76,30 +80,33 @@ func (ctx *CmdCtx) UserAddRunE(cmd *cobra.Command, args []string) (err error) {
 
 	password, err := flags.GetString("password")
 	if err != nil {
-		return err
+		ctx.log.Fatal(err)
 	}
 
 	email, err := flags.GetString("email")
 	if err != nil {
-		return err
+		ctx.log.Fatal(err)
 	}
 
 	displayName, err := flags.GetString("display-name")
 	if err != nil {
-		return err
+		ctx.log.Fatal(err)
 	}
 
 	groups, err := flags.GetStringSlice("group")
 	if err != nil {
-		return err
+		ctx.log.Fatal(err)
 	}
 
-	provider := ctx.providers.UserProvider.(*authentication.DBUserProvider)
+	var provider, ok = ctx.providers.UserProvider.(*authentication.DBUserProvider)
+
+	if !ok {
+		return errors.New("this command is only available for 'db' authentication backend")
+	}
 
 	err = provider.AddUser(username, displayName, password, authentication.WithEmail(email), authentication.WithGroups(groups))
 	if err != nil {
-		fmt.Println(err.Error())
-		return nil
+		ctx.log.Fatal(err)
 	}
 
 	fmt.Println("user added.")
@@ -115,12 +122,14 @@ func (ctx *CmdCtx) UserDeleteRunE(cmd *cobra.Command, args []string) (err error)
 
 	var username = args[0]
 
-	provider := ctx.providers.UserProvider.(*authentication.DBUserProvider)
+	var provider, ok = ctx.providers.UserProvider.(*authentication.DBUserProvider)
 
-	err = provider.DeleteUser(username)
-	if err != nil {
-		fmt.Println(err.Error())
-		return nil
+	if !ok {
+		return errors.New("this command is only available for 'db' authentication backend")
+	}
+
+	if err = provider.DeleteUser(username); err != nil {
+		ctx.log.Fatal(err)
 	}
 
 	fmt.Println("user deleted.")
@@ -136,12 +145,14 @@ func (ctx *CmdCtx) UserDisableRunE(cmd *cobra.Command, args []string) (err error
 
 	var username = args[0]
 
-	provider := ctx.providers.UserProvider.(*authentication.DBUserProvider)
+	var provider, ok = ctx.providers.UserProvider.(*authentication.DBUserProvider)
 
-	err = provider.DisableUser(username)
-	if err != nil {
-		fmt.Println(err.Error())
-		return nil
+	if !ok {
+		return errors.New("this command is only available for 'db' authentication backend")
+	}
+
+	if err = provider.DisableUser(username); err != nil {
+		ctx.log.Fatal(err)
 	}
 
 	fmt.Println("user disabled.")
@@ -157,12 +168,14 @@ func (ctx *CmdCtx) UserEnableRunE(cmd *cobra.Command, args []string) (err error)
 
 	var username = args[0]
 
-	provider := ctx.providers.UserProvider.(*authentication.DBUserProvider)
+	var provider, ok = ctx.providers.UserProvider.(*authentication.DBUserProvider)
 
-	err = provider.EnableUser(username)
-	if err != nil {
-		fmt.Println(err.Error())
-		return nil
+	if !ok {
+		return errors.New("this command is only available for 'db' authentication backend")
+	}
+
+	if err = provider.EnableUser(username); err != nil {
+		ctx.log.Fatal(err)
 	}
 
 	fmt.Println("user enabled.")
@@ -180,12 +193,14 @@ func (ctx *CmdCtx) UserChangeNameRunE(cmd *cobra.Command, args []string) (err er
 
 	var name = args[1]
 
-	provider := ctx.providers.UserProvider.(*authentication.DBUserProvider)
+	var provider, ok = ctx.providers.UserProvider.(*authentication.DBUserProvider)
 
-	err = provider.ChangeDisplayName(username, name)
-	if err != nil {
-		fmt.Println(err.Error())
-		return nil
+	if !ok {
+		return errors.New("this command is only available for 'db' authentication backend")
+	}
+
+	if err = provider.ChangeDisplayName(username, name); err != nil {
+		ctx.log.Fatal(err)
 	}
 
 	fmt.Println("user's display name changed.")
@@ -203,12 +218,14 @@ func (ctx *CmdCtx) UserChangeEmailRunE(cmd *cobra.Command, args []string) (err e
 
 	var email = args[1]
 
-	provider := ctx.providers.UserProvider.(*authentication.DBUserProvider)
+	var provider, ok = ctx.providers.UserProvider.(*authentication.DBUserProvider)
 
-	err = provider.ChangeEmail(username, email)
-	if err != nil {
-		fmt.Println(err.Error())
-		return nil
+	if !ok {
+		return errors.New("this command is only available for 'db' authentication backend")
+	}
+
+	if err = provider.ChangeEmail(username, email); err != nil {
+		ctx.log.Fatal(err)
 	}
 
 	fmt.Println("user's email changed.")
@@ -226,12 +243,14 @@ func (ctx *CmdCtx) UserChangeGroupsRunE(cmd *cobra.Command, args []string) (err 
 
 	var groups = args[1:]
 
-	provider := ctx.providers.UserProvider.(*authentication.DBUserProvider)
+	var provider, ok = ctx.providers.UserProvider.(*authentication.DBUserProvider)
 
-	err = provider.ChangeGroups(username, groups)
-	if err != nil {
-		fmt.Println(err.Error())
-		return nil
+	if !ok {
+		return errors.New("this command is only available for 'db' authentication backend")
+	}
+
+	if err = provider.ChangeGroups(username, groups); err != nil {
+		ctx.log.Fatal(err)
 	}
 
 	fmt.Println("user's groups changed.")
@@ -249,16 +268,19 @@ func (ctx *CmdCtx) UserListRunE(cmd *cobra.Command, args []string) (err error) {
 
 	_, _ = fmt.Fprintln(w, " Username\tDisplay Name\tEmail\tGroups\tDisabled")
 
-	provider := ctx.providers.UserProvider.(*authentication.DBUserProvider)
+	var provider, ok = ctx.providers.UserProvider.(*authentication.DBUserProvider)
+
+	if !ok {
+		return errors.New("this command is only available for 'db' authentication backend")
+	}
 
 	users, err := provider.ListUsers()
 	if err != nil {
-		fmt.Println(err.Error())
-		return nil
+		ctx.log.Fatal(err)
 	}
 
 	for _, u := range users {
-		disabled := "no" //nolint: goconst
+		disabled := "no"
 
 		if u.Disabled {
 			disabled = "yes"

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"testing"
@@ -32,9 +31,8 @@ func (s *AuthBackendSqliteWebDriverSuite) SetupSuite() {
 	s.BaseSuite.SetupSuite()
 
 	browser, err := NewRodSession(RodSessionWithCredentials(s))
-	if err != nil {
-		log.Fatal(err)
-	}
+
+	s.Require().NoError(err, "Failed to start Rod session")
 
 	s.RodSession = browser
 }
@@ -42,9 +40,7 @@ func (s *AuthBackendSqliteWebDriverSuite) SetupSuite() {
 func (s *AuthBackendSqliteWebDriverSuite) TearDownSuite() {
 	err := s.RodSession.Stop()
 
-	if err != nil {
-		log.Fatal(err)
-	}
+	s.Require().NoError(err, "Failed to stop Rod session")
 }
 
 func (s *AuthBackendSqliteWebDriverSuite) SetupTest() {
@@ -80,11 +76,12 @@ func (s *AuthBackendSqliteWebDriverSuite) TestShouldRedirectAfterOneFactorOnAnot
 	targetURL := fmt.Sprintf("%s/secret.html", SingleFactorBaseURL)
 	page2 := s.Browser().MustPage(targetURL)
 
+	defer page2.MustClose()
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
 		s.collectScreenshot(ctx.Err(), page2)
-		page2.MustClose()
 	}()
 
 	// Open second tab with secret page.

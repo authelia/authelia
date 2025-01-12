@@ -14,17 +14,13 @@ import (
 var authBackendMysqlSuiteName = "AuthBackendMySQL"
 
 func init() {
-	dockerEnvironment := NewDockerEnvironment([]string{
-		"internal/suites/docker-compose.yml",
+	composeFiles := defaultComposeFiles
+	composeFiles = append(composeFiles,
 		"internal/suites/AuthenticationBackendMySQL/docker-compose.yml",
-		"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
-		"internal/suites/example/compose/authelia/docker-compose.frontend.{}.yml",
-		"internal/suites/example/compose/nginx/backend/docker-compose.yml",
-		"internal/suites/example/compose/nginx/portal/docker-compose.yml",
-		"internal/suites/example/compose/smtp/docker-compose.yml",
 		"internal/suites/example/compose/mysql/docker-compose.yml",
-		"internal/suites/example/compose/ldap/docker-compose.yml",
-	})
+	)
+
+	dockerEnvironment := NewDockerEnvironment(composeFiles)
 
 	setup := func(suitePath string) (err error) {
 		if err = dockerEnvironment.Up(); err != nil {
@@ -44,54 +40,8 @@ func init() {
 		storageProvider := storage.NewMySQLProvider(&storageMySQLTmpConfig, nil)
 		userProvider := authentication.NewDBUserProvider(&schema.DefaultDBAuthenticationBackendConfig, storageProvider)
 
-		if err = userProvider.StartupCheck(); err != nil {
-			return err
-		}
-
-		userList := []struct {
-			Username    string
-			Email       string
-			DisplayName string
-			Groups      []string
-			Password    string
-		}{
-			{
-				Username:    "john",
-				Email:       "john.doe@authelia.com",
-				DisplayName: "John Doe",
-				Groups:      []string{"admins", "dev"},
-				Password:    "password",
-			},
-			{
-				Username:    "harry",
-				Email:       "harry.potter@authelia.com",
-				DisplayName: "Harry Potter",
-				Password:    "password",
-			},
-			{
-				Username:    "bob",
-				Email:       "bob.dylan@authelia.com",
-				DisplayName: "Bob Dylan",
-				Groups:      []string{"dev"},
-				Password:    "password",
-			},
-			{
-				Username:    "james",
-				Email:       "james.dean@authelia.com",
-				DisplayName: "James Dean",
-				Password:    "password",
-			},
-		}
-
-		for _, user := range userList {
-			if err := userProvider.AddUser(
-				user.Username,
-				user.DisplayName,
-				user.Password,
-				authentication.WithEmail(user.Email),
-				authentication.WithGroups(user.Groups)); err != nil {
-				log.Warnf("failed to create demo user '%s': %s.\n", user.Username, err)
-			}
+		if err = createDemoUsers(userProvider); err != nil {
+			log.Warn(err)
 		}
 
 		return updateDevEnvFileForDomain(BaseDomain, true)

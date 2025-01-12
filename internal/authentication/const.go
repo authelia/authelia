@@ -102,7 +102,7 @@ var (
 
 	ErrInvalidUsername      = errors.New("invalid username")
 	ErrInvalidEmail         = errors.New("invalid email address")
-	ErrInvalidPassword      = errors.New("invalid pasword")
+	ErrInvalidPassword      = errors.New("invalid password")
 	ErrCreatingUser         = errors.New("error creating user")
 	ErrUserExists           = errors.New("user already exists")
 	ErrUpdatingUserPassword = errors.New("error updating password")
@@ -124,5 +124,5 @@ var (
 )
 
 const (
-	contextTimeout time.Duration = 20
+	contextTimeout time.Duration = 20 * time.Second
 )

@@ -76,7 +76,7 @@ const (
 	errLoadingUserGroups       = "error getting groups for user: %w"
 	errCreatingUser            = "error creating user: %w"
 	errAssigningGroupToUser    = "error assigning groups to the user: %w"
-	errDeletingUser            = "error deleting user: %s"
+	errDeletingUser            = "error deleting user: %w"
 	errUpdatingUserPassword    = "error updating password for user: %w"
 	errUpdatingUserDisplayName = "error updating user's display name: %w"
 	errUpdatingUserEmail       = "error updating user's email: %w"
