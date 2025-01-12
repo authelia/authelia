@@ -84,7 +84,8 @@ func (ctx *CmdCtx) UserShowInfoRunE(cmd *cobra.Command, args []string) (err erro
 }
 
 // UserAddRunE adds a user.
-//nolint: gocyclo
+//
+//nolint:gocyclo
 func (ctx *CmdCtx) UserAddRunE(cmd *cobra.Command, args []string) (err error) {
 	if ctx.config.AuthenticationBackend.DB == nil {
 		return errors.New("this command is only available for 'db' authentication backend")
