@@ -17,7 +17,7 @@ func (ctx *CmdCtx) LoadProvidersAuthenticationRunE(cmd *cobra.Command, args []st
 	ctx.providers.UserProvider = getAuthenticationProvider(ctx)
 
 	if err = doStartupCheck(ctx, providerNameUser, ctx.providers.UserProvider, false); err != nil {
-		ctx.log.Fatal(err)
+		return err
 	}
 
 	return nil
@@ -40,12 +40,12 @@ func (ctx *CmdCtx) UserChangePasswordRunE(cmd *cobra.Command, args []string) (er
 		fmt.Printf("Change Password for user %s\n", username)
 
 		if password, err = askPassword(); err != nil {
-			ctx.log.Fatal(err)
+			return err
 		}
 	}
 
 	if err = ctx.providers.UserProvider.UpdatePassword(username, password); err != nil {
-		ctx.log.Fatal(err)
+		return err
 	}
 
 	ctx.log.Info("password changed!")
@@ -70,7 +70,7 @@ func (ctx *CmdCtx) UserShowInfoRunE(cmd *cobra.Command, args []string) (err erro
 	}
 
 	if details, err = provider.GetDetailsExtended(username); err != nil {
-		ctx.log.Fatal(err)
+		return err
 	}
 
 	fmt.Printf(`User '%s' Info:
@@ -84,7 +84,7 @@ func (ctx *CmdCtx) UserShowInfoRunE(cmd *cobra.Command, args []string) (err erro
 }
 
 // UserAddRunE adds a user.
-// nolint: gocyclo
+//nolint: gocyclo
 func (ctx *CmdCtx) UserAddRunE(cmd *cobra.Command, args []string) (err error) {
 	if ctx.config.AuthenticationBackend.DB == nil {
 		return errors.New("this command is only available for 'db' authentication backend")
@@ -102,28 +102,28 @@ func (ctx *CmdCtx) UserAddRunE(cmd *cobra.Command, args []string) (err error) {
 	password, err = flags.GetString("password")
 	if err != nil || password == "" {
 		if password, err = askPassword(); err != nil {
-			ctx.log.Fatal(err)
+			return err
 		}
 	}
 
 	email, err = flags.GetString("email")
 	if err != nil || email == "" {
 		if email, err = askEmail(); err != nil {
-			ctx.log.Fatal(err)
+			return err
 		}
 	}
 
 	displayName, err = flags.GetString("display-name")
 	if err != nil || displayName == "" {
 		if displayName, err = askDisplayName(); err != nil {
-			ctx.log.Fatal(err)
+			return err
 		}
 	}
 
 	groups, err = flags.GetStringSlice("group")
 	if err != nil || len(groups) == 0 {
 		if groups, err = askGroups(); err != nil {
-			ctx.log.Fatal(err)
+			return err
 		}
 	}
 
@@ -135,7 +135,7 @@ func (ctx *CmdCtx) UserAddRunE(cmd *cobra.Command, args []string) (err error) {
 
 	err = provider.AddUser(username, displayName, password, authentication.WithEmail(email), authentication.WithGroups(groups))
 	if err != nil {
-		ctx.log.Fatal(err)
+		return err
 	}
 
 	fmt.Println("user added.")
@@ -162,7 +162,7 @@ func (ctx *CmdCtx) UserDeleteRunE(cmd *cobra.Command, args []string) (err error)
 	}
 
 	if err = provider.DeleteUser(username); err != nil {
-		ctx.log.Fatal(err)
+		return err
 	}
 
 	fmt.Println("user deleted.")
@@ -191,7 +191,7 @@ func (ctx *CmdCtx) UserChangeNameRunE(cmd *cobra.Command, args []string) (err er
 	}
 
 	if err = provider.ChangeDisplayName(username, name); err != nil {
-		ctx.log.Fatal(err)
+		return err
 	}
 
 	fmt.Println("user's display name changed.")
@@ -216,7 +216,7 @@ func (ctx *CmdCtx) UserChangeEmailRunE(cmd *cobra.Command, args []string) (err e
 	}
 
 	if err = provider.ChangeEmail(username, email); err != nil {
-		ctx.log.Fatal(err)
+		return err
 	}
 
 	fmt.Println("user's email changed.")
@@ -245,7 +245,7 @@ func (ctx *CmdCtx) UserChangeGroupsRunE(cmd *cobra.Command, args []string) (err 
 	}
 
 	if err = provider.ChangeGroups(username, groups); err != nil {
-		ctx.log.Fatal(err)
+		return err
 	}
 
 	fmt.Println("user's groups changed.")
@@ -271,7 +271,7 @@ func (ctx *CmdCtx) UserListRunE(cmd *cobra.Command, args []string) (err error) {
 
 	users, err := provider.ListUsers()
 	if err != nil {
-		ctx.log.Fatal(err)
+		return err
 	}
 
 	for _, u := range users {
@@ -314,7 +314,7 @@ func (ctx *CmdCtx) UserDisableRunE(cmd *cobra.Command, args []string) (err error
 	}
 
 	if err = provider.DisableUser(username); err != nil {
-		ctx.log.Fatal(err)
+		return err
 	}
 
 	fmt.Println("user disabled.")
@@ -341,7 +341,7 @@ func (ctx *CmdCtx) UserEnableRunE(cmd *cobra.Command, args []string) (err error)
 	}
 
 	if err = provider.EnableUser(username); err != nil {
-		ctx.log.Fatal(err)
+		return err
 	}
 
 	fmt.Println("user enabled.")
