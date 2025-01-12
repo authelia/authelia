@@ -6,6 +6,14 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
+func TestAuthBackendMySQLSuite(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping suite test in short mode")
+	}
+
+	suite.Run(t, NewAuthBackendMySQLSuite())
+}
+
 type AuthBackendMySQLSuite struct {
 	*RodSuite
 }
@@ -24,10 +32,17 @@ func (s *AuthBackendMySQLSuite) Test2FATOTPScenario() {
 	suite.Run(s.T(), New2FATOTPScenario())
 }
 
-func TestAuthBackendMySQLSuite(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping suite test in short mode")
-	}
+func (s *AuthBackendMySQLSuite) TestResetPasswordScenario() {
+	suite.Run(s.T(), NewResetPasswordScenario())
+}
 
-	suite.Run(t, NewAuthBackendMySQLSuite())
+func (s *AuthBackendMySQLSuite) TestCLIScenario() {
+	composeFiles := defaultComposeFiles
+	composeFiles = append(composeFiles,
+		"internal/suites/AuthenticationBackendMySQL/docker-compose.yml",
+		"internal/suites/example/compose/mysql/docker-compose.yml",
+	)
+
+	dockerEnvironment := NewDockerEnvironment(composeFiles)
+	suite.Run(s.T(), NewCLIScenario(s.Name, dockerEnvironment))
 }

@@ -52,6 +52,8 @@ func newUserPasswordCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
+	_ = cmd.MarkFlagRequired("password")
+
 	return cmd
 }
 

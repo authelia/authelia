@@ -26,7 +26,7 @@ func (ctx *CmdCtx) LoadProvidersAuthenticationRunE(cmd *cobra.Command, args []st
 // UserChangePasswordRunE updates user's password .
 func (ctx *CmdCtx) UserChangePasswordRunE(cmd *cobra.Command, args []string) (err error) {
 	if len(args) != 2 {
-		return errors.New("invalid number of parameters")
+		return errors.New("invalid number of arguments")
 	}
 
 	var username = args[0]
@@ -44,6 +44,10 @@ func (ctx *CmdCtx) UserChangePasswordRunE(cmd *cobra.Command, args []string) (er
 
 // UserShowInfoRunE shows user info.
 func (ctx *CmdCtx) UserShowInfoRunE(cmd *cobra.Command, args []string) (err error) {
+	if len(args) != 1 {
+		return errors.New("invalid number of arguments")
+	}
+
 	var username = args[0]
 
 	var details *authentication.UserDetailsExtended
@@ -120,6 +124,10 @@ func (ctx *CmdCtx) UserDeleteRunE(cmd *cobra.Command, args []string) (err error)
 		return errors.New("this command is only available for 'db' authentication backend")
 	}
 
+	if len(args) != 1 {
+		return errors.New("invalid number of arguments")
+	}
+
 	var username = args[0]
 
 	var provider, ok = ctx.providers.UserProvider.(*authentication.DBUserProvider)
@@ -137,56 +145,14 @@ func (ctx *CmdCtx) UserDeleteRunE(cmd *cobra.Command, args []string) (err error)
 	return nil
 }
 
-// UserDisableRunE disables a user.
-func (ctx *CmdCtx) UserDisableRunE(cmd *cobra.Command, args []string) (err error) {
-	if ctx.config.AuthenticationBackend.DB == nil {
-		return errors.New("this command is only available for 'db' authentication backend")
-	}
-
-	var username = args[0]
-
-	var provider, ok = ctx.providers.UserProvider.(*authentication.DBUserProvider)
-
-	if !ok {
-		return errors.New("this command is only available for 'db' authentication backend")
-	}
-
-	if err = provider.DisableUser(username); err != nil {
-		ctx.log.Fatal(err)
-	}
-
-	fmt.Println("user disabled.")
-
-	return nil
-}
-
-// UserEnableRunE enables a user.
-func (ctx *CmdCtx) UserEnableRunE(cmd *cobra.Command, args []string) (err error) {
-	if ctx.config.AuthenticationBackend.DB == nil {
-		return errors.New("this command is only available for 'db' authentication backend")
-	}
-
-	var username = args[0]
-
-	var provider, ok = ctx.providers.UserProvider.(*authentication.DBUserProvider)
-
-	if !ok {
-		return errors.New("this command is only available for 'db' authentication backend")
-	}
-
-	if err = provider.EnableUser(username); err != nil {
-		ctx.log.Fatal(err)
-	}
-
-	fmt.Println("user enabled.")
-
-	return nil
-}
-
 // UserChangeNameRunE changes the user display name.
 func (ctx *CmdCtx) UserChangeNameRunE(cmd *cobra.Command, args []string) (err error) {
 	if ctx.config.AuthenticationBackend.DB == nil {
 		return errors.New("this command is only available for 'db' authentication backend")
+	}
+
+	if len(args) != 2 {
+		return errors.New("invalid number of arguments")
 	}
 
 	var username = args[0]
@@ -208,7 +174,7 @@ func (ctx *CmdCtx) UserChangeNameRunE(cmd *cobra.Command, args []string) (err er
 	return nil
 }
 
-// UserChangeNameRunE changes the user's email.
+// UserChangeEmailRunE changes the user's email.
 func (ctx *CmdCtx) UserChangeEmailRunE(cmd *cobra.Command, args []string) (err error) {
 	if ctx.config.AuthenticationBackend.DB == nil {
 		return errors.New("this command is only available for 'db' authentication backend")
@@ -233,10 +199,14 @@ func (ctx *CmdCtx) UserChangeEmailRunE(cmd *cobra.Command, args []string) (err e
 	return nil
 }
 
-// UserChangeNameRunE changes the user display name.
+// UserChangeGroupsRunE changes the user's group name.
 func (ctx *CmdCtx) UserChangeGroupsRunE(cmd *cobra.Command, args []string) (err error) {
 	if ctx.config.AuthenticationBackend.DB == nil {
 		return errors.New("this command is only available for 'db' authentication backend")
+	}
+
+	if len(args) < 2 {
+		return errors.New("invalid number of arguments")
 	}
 
 	var username = args[0]
@@ -296,6 +266,60 @@ func (ctx *CmdCtx) UserListRunE(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	_ = w.Flush()
+
+	return nil
+}
+
+// UserDisableRunE disables a user.
+func (ctx *CmdCtx) UserDisableRunE(cmd *cobra.Command, args []string) (err error) {
+	if ctx.config.AuthenticationBackend.DB == nil {
+		return errors.New("this command is only available for 'db' authentication backend")
+	}
+
+	if len(args) != 1 {
+		return errors.New("invalid number of arguments")
+	}
+
+	var username = args[0]
+
+	var provider, ok = ctx.providers.UserProvider.(*authentication.DBUserProvider)
+
+	if !ok {
+		return errors.New("this command is only available for 'db' authentication backend")
+	}
+
+	if err = provider.DisableUser(username); err != nil {
+		ctx.log.Fatal(err)
+	}
+
+	fmt.Println("user disabled.")
+
+	return nil
+}
+
+// UserEnableRunE enables a user.
+func (ctx *CmdCtx) UserEnableRunE(cmd *cobra.Command, args []string) (err error) {
+	if ctx.config.AuthenticationBackend.DB == nil {
+		return errors.New("this command is only available for 'db' authentication backend")
+	}
+
+	if len(args) != 1 {
+		return errors.New("invalid number of arguments")
+	}
+
+	var username = args[0]
+
+	var provider, ok = ctx.providers.UserProvider.(*authentication.DBUserProvider)
+
+	if !ok {
+		return errors.New("this command is only available for 'db' authentication backend")
+	}
+
+	if err = provider.EnableUser(username); err != nil {
+		ctx.log.Fatal(err)
+	}
+
+	fmt.Println("user enabled.")
 
 	return nil
 }

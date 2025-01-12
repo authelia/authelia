@@ -6,6 +6,14 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
+func TestAuthBackendPostgresSuite(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping suite test in short mode")
+	}
+
+	suite.Run(t, NewAuthBackendPostgresSuite())
+}
+
 type AuthBackendPostgresSuite struct {
 	*RodSuite
 }
@@ -24,10 +32,17 @@ func (s *AuthBackendPostgresSuite) Test2FATOTPScenario() {
 	suite.Run(s.T(), New2FATOTPScenario())
 }
 
-func TestAuthBackendPostgresSuite(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping suite test in short mode")
-	}
+func (s *AuthBackendPostgresSuite) TestResetPasswordScenario() {
+	suite.Run(s.T(), NewResetPasswordScenario())
+}
 
-	suite.Run(t, NewAuthBackendPostgresSuite())
+func (s *AuthBackendPostgresSuite) TestCLIScenario() {
+	composeFiles := defaultComposeFiles
+	composeFiles = append(composeFiles,
+		"internal/suites/AuthenticationBackendPostgres/docker-compose.yml",
+		"internal/suites/example/compose/postgres/docker-compose.yml",
+	)
+
+	dockerEnvironment := NewDockerEnvironment(composeFiles)
+	suite.Run(s.T(), NewCLIScenario(s.Name, dockerEnvironment))
 }
