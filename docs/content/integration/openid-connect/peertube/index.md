@@ -2,7 +2,7 @@
 title: "PeerTube"
 description: "Integrating PeerTube with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2025-01-12T15:26:39+01:00
+date: 2024-01-12T15:26:39+01:00
 draft: false
 images: []
 weight: 620
@@ -74,7 +74,7 @@ identity_providers:
 ### Application
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-Users will not be able to login using this provider if you do not set the `Allowed group` parameter.
+Users will not be able to log in using this provider if you do not set the `Allowed group` parameter.
 {{< /callout >}}
 
 1. Install the Plugin:
@@ -87,18 +87,18 @@ Users will not be able to login using this provider if you do not set the `Allow
    2. Visit `Plugins/Themes`.
    3. Visit `Installed plugins`.
    4. Click the `Settings` button of the installed plugin.
-   5. Enter the following configuration :
-    - Auth display name: `Authelia`.
+   5. Enter the following configuration:
+    - Auth display name: `Authelia`
     - Discover URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
+    - Client ID: `peertube`
     - Client secret: `insecure_secret`
     - Scope: `openid email profile groups`
-    - Username property: `preferred_username`.
-    - Email property: `email`.
-    - Display name property: `name`.
-    - Group property: `groups`.
-    - Allowed group: Authelia's group allowed to login using this provider.
+    - Username property: `preferred_username`
+    - Email property: `email`
+    - Display name property: `name`
+    - Group property: `groups`
+    - Allowed group: Authelia's group allowed to log in using this provider.
     - Token signature algorithm: `RS256`
-
 
 ## See Also
 
