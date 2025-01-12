@@ -6,6 +6,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -110,6 +111,8 @@ func ValidateServerAddress(config *schema.Configuration, validator *schema.Struc
 
 // ValidateServerEndpoints configures the default endpoints and checks the configuration of custom endpoints.
 func ValidateServerEndpoints(config *schema.Configuration, validator *schema.StructValidator) {
+	validateServerEndpointsRateLimits(config, validator)
+
 	if config.Server.Endpoints.EnableExpvars {
 		validator.PushWarning(fmt.Errorf("server: endpoints: option 'enable_expvars' should not be enabled in production"))
 	}
@@ -155,6 +158,59 @@ func ValidateServerEndpoints(config *schema.Configuration, validator *schema.Str
 		}
 
 		validateServerEndpointsAuthzStrategies(name, endpoint.Implementation, endpoint.AuthnStrategies, validator)
+	}
+}
+
+func validateServerEndpointsRateLimits(config *schema.Configuration, validator *schema.StructValidator) {
+	validateServerEndpointsRateLimitDefault("reset_password_start", &config.Server.Endpoints.RateLimits.ResetPasswordStart, schema.DefaultServerConfiguration.Endpoints.RateLimits.ResetPasswordStart, validator)
+	validateServerEndpointsRateLimitDefault("reset_password_finish", &config.Server.Endpoints.RateLimits.ResetPasswordFinish, schema.DefaultServerConfiguration.Endpoints.RateLimits.ResetPasswordFinish, validator)
+	validateServerEndpointsRateLimitDefault("second_factor_totp", &config.Server.Endpoints.RateLimits.SecondFactorTOTP, schema.DefaultServerConfiguration.Endpoints.RateLimits.SecondFactorTOTP, validator)
+	validateServerEndpointsRateLimitDefault("second_factor_duo", &config.Server.Endpoints.RateLimits.SecondFactorDuo, schema.DefaultServerConfiguration.Endpoints.RateLimits.SecondFactorDuo, validator)
+
+	validateServerEndpointsRateLimitDefaultWeighted("session_elevation_start", &config.Server.Endpoints.RateLimits.SessionElevationStart, schema.DefaultServerConfiguration.Endpoints.RateLimits.SessionElevationStart, config.IdentityValidation.ElevatedSession.CodeLifespan, validator)
+	validateServerEndpointsRateLimitDefaultWeighted("session_elevation_finish", &config.Server.Endpoints.RateLimits.SessionElevationFinish, schema.DefaultServerConfiguration.Endpoints.RateLimits.SessionElevationFinish, config.IdentityValidation.ElevatedSession.ElevationLifespan, validator)
+}
+
+func validateServerEndpointsRateLimitDefault(name string, config *schema.ServerEndpointRateLimit, defaults schema.ServerEndpointRateLimit, validator *schema.StructValidator) {
+	if len(config.Buckets) == 0 {
+		config.Buckets = make([]schema.ServerEndpointRateLimitBucket, len(defaults.Buckets))
+
+		copy(config.Buckets, defaults.Buckets)
+
+		return
+	}
+
+	validateServerEndpointsRateLimitBuckets(name, config, validator)
+}
+
+func validateServerEndpointsRateLimitDefaultWeighted(name string, config *schema.ServerEndpointRateLimit, defaults schema.ServerEndpointRateLimit, weight time.Duration, validator *schema.StructValidator) {
+	if len(config.Buckets) == 0 {
+		config.Buckets = make([]schema.ServerEndpointRateLimitBucket, len(defaults.Buckets))
+
+		for i := range defaults.Buckets {
+			config.Buckets[i] = schema.ServerEndpointRateLimitBucket{
+				Period:   weight * defaults.Buckets[i].Period,
+				Requests: defaults.Buckets[i].Requests,
+			}
+		}
+
+		return
+	}
+
+	validateServerEndpointsRateLimitBuckets(name, config, validator)
+}
+
+func validateServerEndpointsRateLimitBuckets(name string, config *schema.ServerEndpointRateLimit, validator *schema.StructValidator) {
+	for i, bucket := range config.Buckets {
+		if bucket.Period == 0 {
+			validator.Push(fmt.Errorf(errFmtServerEndpointsRateLimitsBucketPeriodZero, name, i+1))
+		} else if bucket.Period < (time.Second * 10) {
+			validator.Push(fmt.Errorf(errFmtServerEndpointsRateLimitsBucketPeriodTooLow, name, i+1, bucket.Period))
+		}
+
+		if bucket.Requests <= 0 {
+			validator.Push(fmt.Errorf(errFmtServerEndpointsRateLimitsBucketRequestsZero, name, i+1, bucket.Requests))
+		}
 	}
 }
 
