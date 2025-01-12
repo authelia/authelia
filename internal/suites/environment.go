@@ -11,7 +11,10 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-var suitSetupTimeout = 90 * time.Second
+var (
+	serviceCheckInterval = 5 * time.Second
+	suitSetupTimeout     = 90 * time.Second
+)
 
 func init() {
 	var setupTimeoutStr = os.Getenv("SUITE_SETUP_TIMEOUT")
@@ -49,7 +52,7 @@ func waitUntilServiceLogDetected(
 
 func waitUntilAutheliaBackendIsReady(dockerEnvironment *DockerEnvironment) error {
 	return waitUntilServiceLogDetected(
-		5*time.Second,
+		serviceCheckInterval,
 		suitSetupTimeout,
 		dockerEnvironment,
 		"authelia-backend",
@@ -58,7 +61,7 @@ func waitUntilAutheliaBackendIsReady(dockerEnvironment *DockerEnvironment) error
 
 func waitUntilAutheliaFrontendIsReady(dockerEnvironment *DockerEnvironment) error {
 	return waitUntilServiceLogDetected(
-		5*time.Second,
+		serviceCheckInterval,
 		suitSetupTimeout,
 		dockerEnvironment,
 		"authelia-frontend",
@@ -67,7 +70,7 @@ func waitUntilAutheliaFrontendIsReady(dockerEnvironment *DockerEnvironment) erro
 
 func waitUntilK3DIsReady(dockerEnvironment *DockerEnvironment) error {
 	return waitUntilServiceLogDetected(
-		5*time.Second,
+		serviceCheckInterval,
 		suitSetupTimeout,
 		dockerEnvironment,
 		"k3d",
@@ -76,7 +79,7 @@ func waitUntilK3DIsReady(dockerEnvironment *DockerEnvironment) error {
 
 func waitUntilSambaIsReady(dockerEnvironment *DockerEnvironment) error {
 	return waitUntilServiceLogDetected(
-		5*time.Second,
+		serviceCheckInterval,
 		suitSetupTimeout,
 		dockerEnvironment,
 		"sambaldap",
