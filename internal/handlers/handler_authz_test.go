@@ -83,11 +83,28 @@ func (s *AuthzSuite) Builder() (builder *AuthzBuilder) {
 func (s *AuthzSuite) BuilderWithBearerScheme() (builder *AuthzBuilder) {
 	switch s.implementation {
 	case AuthzImplExtAuthz:
-		return NewAuthzBuilder().WithImplementationExtAuthz().WithStrategies(NewHeaderProxyAuthorizationAuthnStrategy(model.AuthorizationSchemeBasic.String(), model.AuthorizationSchemeBearer.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
+		return NewAuthzBuilder().WithImplementationExtAuthz().WithStrategies(NewHeaderProxyAuthorizationAuthnStrategy(time.Duration(0), model.AuthorizationSchemeBasic.String(), model.AuthorizationSchemeBearer.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
 	case AuthzImplForwardAuth:
-		return NewAuthzBuilder().WithImplementationForwardAuth().WithStrategies(NewHeaderProxyAuthorizationAuthnStrategy(model.AuthorizationSchemeBasic.String(), model.AuthorizationSchemeBearer.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
+		return NewAuthzBuilder().WithImplementationForwardAuth().WithStrategies(NewHeaderProxyAuthorizationAuthnStrategy(time.Duration(0), model.AuthorizationSchemeBasic.String(), model.AuthorizationSchemeBearer.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
 	case AuthzImplAuthRequest:
-		return NewAuthzBuilder().WithImplementationAuthRequest().WithStrategies(NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(model.AuthorizationSchemeBasic.String(), model.AuthorizationSchemeBearer.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
+		return NewAuthzBuilder().WithImplementationAuthRequest().WithStrategies(NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(time.Duration(0), model.AuthorizationSchemeBasic.String(), model.AuthorizationSchemeBearer.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
+	case AuthzImplLegacy:
+		return NewAuthzBuilder().WithImplementationLegacy().WithStrategies(NewHeaderLegacyAuthnStrategy(), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
+	default:
+		s.T().FailNow()
+	}
+
+	return nil
+}
+
+func (s *AuthzSuite) BuilderWithProxyAuthorizationBasicSchemeCached() (builder *AuthzBuilder) {
+	switch s.implementation {
+	case AuthzImplExtAuthz:
+		return NewAuthzBuilder().WithImplementationExtAuthz().WithStrategies(NewHeaderProxyAuthorizationAuthnStrategy(time.Minute, model.AuthorizationSchemeBasic.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
+	case AuthzImplForwardAuth:
+		return NewAuthzBuilder().WithImplementationForwardAuth().WithStrategies(NewHeaderProxyAuthorizationAuthnStrategy(time.Minute, model.AuthorizationSchemeBasic.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
+	case AuthzImplAuthRequest:
+		return NewAuthzBuilder().WithImplementationAuthRequest().WithStrategies(NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(time.Minute, model.AuthorizationSchemeBasic.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
 	case AuthzImplLegacy:
 		return NewAuthzBuilder().WithImplementationLegacy().WithStrategies(NewHeaderLegacyAuthnStrategy(), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
 	default:
@@ -277,6 +294,209 @@ func (s *AuthzSuite) TestShouldVerifyFailureToGetDetailsUsingBasicScheme() {
 			GetDetails(gomock.Eq("john")).
 			Return(nil, fmt.Errorf("generic failure")),
 	)
+
+	authz.Handler(mock.Ctx)
+
+	switch s.implementation {
+	case AuthzImplAuthRequest, AuthzImplLegacy:
+		s.Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+		s.Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate)))
+		s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
+	default:
+		s.Equal(fasthttp.StatusProxyAuthRequired, mock.Ctx.Response.StatusCode())
+		s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
+		s.Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate)))
+	}
+}
+
+func (s *AuthzSuite) TestShouldVerifyFailureToGetDetailsUsingBasicSchemeCached() {
+	if s.setRequest == nil {
+		s.T().Skip()
+	}
+
+	authz := s.BuilderWithProxyAuthorizationBasicSchemeCached().Build()
+
+	mock := mocks.NewMockAutheliaCtx(s.T())
+
+	defer mock.Close()
+
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
+
+	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
+
+	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
+
+	gomock.InOrder(
+		mock.UserProviderMock.EXPECT().
+			CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+			Return(true, nil),
+
+		mock.UserProviderMock.EXPECT().
+			GetDetails(gomock.Eq("john")).
+			Return(nil, fmt.Errorf("generic failure")),
+	)
+
+	authz.Handler(mock.Ctx)
+
+	switch s.implementation {
+	case AuthzImplAuthRequest, AuthzImplLegacy:
+		s.Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+		s.Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate)))
+		s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
+	default:
+		s.Equal(fasthttp.StatusProxyAuthRequired, mock.Ctx.Response.StatusCode())
+		s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
+		s.Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate)))
+	}
+
+	mock.Ctx.Request.Reset()
+	mock.Ctx.Response.Reset()
+
+	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
+
+	if s.implementation == AuthzImplLegacy {
+		gomock.InOrder(
+			mock.UserProviderMock.EXPECT().
+				CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+				Return(true, nil),
+
+			mock.UserProviderMock.EXPECT().
+				GetDetails(gomock.Eq("john")).
+				Return(nil, fmt.Errorf("generic failure")),
+		)
+	} else {
+		gomock.InOrder(
+			mock.UserProviderMock.EXPECT().
+				GetDetails(gomock.Eq("john")).
+				Return(nil, fmt.Errorf("generic failure")),
+		)
+	}
+
+	authz.Handler(mock.Ctx)
+
+	switch s.implementation {
+	case AuthzImplAuthRequest, AuthzImplLegacy:
+		s.Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+		s.Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate)))
+		s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
+	default:
+		s.Equal(fasthttp.StatusProxyAuthRequired, mock.Ctx.Response.StatusCode())
+		s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
+		s.Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate)))
+	}
+}
+
+func (s *AuthzSuite) TestShouldVerifyFailureToCheckPasswordUsingBasicSchemeCached() {
+	if s.setRequest == nil {
+		s.T().Skip()
+	}
+
+	authz := s.BuilderWithProxyAuthorizationBasicSchemeCached().Build()
+
+	mock := mocks.NewMockAutheliaCtx(s.T())
+
+	defer mock.Close()
+
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
+
+	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
+
+	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
+
+	mock.UserProviderMock.EXPECT().
+		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+		Return(false, nil)
+
+	authz.Handler(mock.Ctx)
+
+	switch s.implementation {
+	case AuthzImplAuthRequest, AuthzImplLegacy:
+		s.Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+		s.Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate)))
+		s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
+	default:
+		s.Equal(fasthttp.StatusProxyAuthRequired, mock.Ctx.Response.StatusCode())
+		s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
+		s.Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate)))
+	}
+
+	mock.Ctx.Request.Reset()
+	mock.Ctx.Response.Reset()
+
+	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
+
+	mock.UserProviderMock.EXPECT().
+		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+		Return(false, nil)
+
+	authz.Handler(mock.Ctx)
+
+	switch s.implementation {
+	case AuthzImplAuthRequest, AuthzImplLegacy:
+		s.Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+		s.Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate)))
+		s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
+	default:
+		s.Equal(fasthttp.StatusProxyAuthRequired, mock.Ctx.Response.StatusCode())
+		s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
+		s.Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate)))
+	}
+}
+
+func (s *AuthzSuite) TestShouldVerifyErrorToCheckPasswordUsingBasicSchemeCached() {
+	if s.setRequest == nil {
+		s.T().Skip()
+	}
+
+	authz := s.BuilderWithProxyAuthorizationBasicSchemeCached().Build()
+
+	mock := mocks.NewMockAutheliaCtx(s.T())
+
+	defer mock.Close()
+
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
+
+	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
+
+	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
+
+	mock.UserProviderMock.EXPECT().
+		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+		Return(false, fmt.Errorf("bad data"))
+
+	authz.Handler(mock.Ctx)
+
+	switch s.implementation {
+	case AuthzImplAuthRequest, AuthzImplLegacy:
+		s.Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+		s.Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate)))
+		s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
+	default:
+		s.Equal(fasthttp.StatusProxyAuthRequired, mock.Ctx.Response.StatusCode())
+		s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
+		s.Equal(`Basic realm="Authorization Required"`, string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate)))
+	}
+
+	mock.Ctx.Request.Reset()
+	mock.Ctx.Response.Reset()
+
+	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
+
+	mock.UserProviderMock.EXPECT().
+		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+		Return(false, fmt.Errorf("bad data"))
 
 	authz.Handler(mock.Ctx)
 
@@ -510,6 +730,81 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomain() {
 	s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
 }
 
+func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainCached() {
+	if s.setRequest == nil {
+		s.T().Skip()
+	}
+
+	authz := s.BuilderWithProxyAuthorizationBasicSchemeCached().Build()
+
+	mock := mocks.NewMockAutheliaCtx(s.T())
+
+	defer mock.Close()
+
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
+
+	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
+
+	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
+
+	if s.implementation == AuthzImplLegacy {
+		gomock.InOrder(
+			mock.UserProviderMock.EXPECT().
+				CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+				Return(true, nil),
+			mock.UserProviderMock.EXPECT().
+				GetDetails(gomock.Eq("john")).
+				Return(&authentication.UserDetails{
+					Emails: []string{"john@example.com"},
+					Groups: []string{"dev", "admins"},
+				}, nil),
+			mock.UserProviderMock.EXPECT().
+				CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+				Return(true, nil),
+			mock.UserProviderMock.EXPECT().
+				GetDetails(gomock.Eq("john")).
+				Return(&authentication.UserDetails{
+					Emails: []string{"john@example.com"},
+					Groups: []string{"dev", "admins"},
+				}, nil),
+		)
+	} else {
+		gomock.InOrder(
+			mock.UserProviderMock.EXPECT().
+				CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+				Return(true, nil),
+			mock.UserProviderMock.EXPECT().
+				GetDetails(gomock.Eq("john")).
+				Times(2).
+				Return(&authentication.UserDetails{
+					Emails: []string{"john@example.com"},
+					Groups: []string{"dev", "admins"},
+				}, nil),
+		)
+	}
+
+	authz.Handler(mock.Ctx)
+
+	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
+	s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
+
+	mock.Ctx.Request.Reset()
+	mock.Ctx.Response.Reset()
+
+	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
+
+	authz.Handler(mock.Ctx)
+
+	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderWWWAuthenticate))
+	s.Equal([]byte(nil), mock.Ctx.Response.Header.Peek(fasthttp.HeaderProxyAuthenticate))
+}
+
 func (s *AuthzSuite) TestShouldHandleAnyCaseSchemeParameter() {
 	if s.setRequest == nil {
 		s.T().Skip()
@@ -651,8 +946,8 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainWithAuthorizationHead
 	builder := NewAuthzBuilder().WithImplementationLegacy()
 
 	builder = builder.WithStrategies(
-		NewHeaderAuthorizationAuthnStrategy("basic"),
-		NewHeaderProxyAuthorizationAuthRequestAuthnStrategy("basic"),
+		NewHeaderAuthorizationAuthnStrategy(time.Duration(0), "basic"),
+		NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(time.Duration(0), "basic"),
 		NewCookieSessionAuthnStrategy(builder.config.RefreshInterval),
 	)
 
@@ -698,8 +993,8 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithoutHeaderNoCookie() {
 	builder := NewAuthzBuilder().WithImplementationLegacy()
 
 	builder = builder.WithStrategies(
-		NewHeaderAuthorizationAuthnStrategy("basic"),
-		NewHeaderProxyAuthorizationAuthRequestAuthnStrategy("basic"),
+		NewHeaderAuthorizationAuthnStrategy(time.Duration(0), "basic"),
+		NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(time.Duration(0), "basic"),
 	)
 
 	authz := builder.Build()
@@ -731,8 +1026,8 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithEmptyAuthorizationHeader() {
 	builder := NewAuthzBuilder().WithImplementationLegacy()
 
 	builder = builder.WithStrategies(
-		NewHeaderAuthorizationAuthnStrategy("basic"),
-		NewHeaderProxyAuthorizationAuthRequestAuthnStrategy("basic"),
+		NewHeaderAuthorizationAuthnStrategy(time.Duration(0), "basic"),
+		NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(time.Duration(0), "basic"),
 	)
 
 	authz := builder.Build()
@@ -766,8 +1061,8 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithAuthorizationHeaderInvalidPassword
 	builder := NewAuthzBuilder().WithImplementationLegacy()
 
 	builder = builder.WithStrategies(
-		NewHeaderAuthorizationAuthnStrategy("basic"),
-		NewHeaderProxyAuthorizationAuthRequestAuthnStrategy("basic"),
+		NewHeaderAuthorizationAuthnStrategy(time.Duration(0), "basic"),
+		NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(time.Duration(0), "basic"),
 	)
 
 	authz := builder.Build()
@@ -803,7 +1098,7 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithIncorrectAuthHeader() { // TestSho
 	builder := s.Builder()
 
 	builder = builder.WithStrategies(
-		NewHeaderAuthorizationAuthnStrategy("basic"),
+		NewHeaderAuthorizationAuthnStrategy(time.Duration(0), "basic"),
 	)
 
 	authz := builder.Build()

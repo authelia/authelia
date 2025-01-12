@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -33,7 +34,7 @@ func NewCookieSessionAuthnStrategy(refresh schema.RefreshIntervalDuration) *Cook
 
 // NewHeaderAuthorizationAuthnStrategy creates a new HeaderAuthnStrategy using the Authorization and WWW-Authenticate
 // headers, and the 407 Proxy Auth Required response.
-func NewHeaderAuthorizationAuthnStrategy(schemes ...string) *HeaderAuthnStrategy {
+func NewHeaderAuthorizationAuthnStrategy(schemaBasicCacheLifeSpan time.Duration, schemes ...string) *HeaderAuthnStrategy {
 	return &HeaderAuthnStrategy{
 		authn:              AuthnTypeAuthorization,
 		headerAuthorize:    headerAuthorization,
@@ -41,12 +42,13 @@ func NewHeaderAuthorizationAuthnStrategy(schemes ...string) *HeaderAuthnStrategy
 		handleAuthenticate: true,
 		statusAuthenticate: fasthttp.StatusUnauthorized,
 		schemes:            model.NewAuthorizationSchemes(schemes...),
+		basic:              NewBasicAuthHandler(schemaBasicCacheLifeSpan),
 	}
 }
 
 // NewHeaderProxyAuthorizationAuthnStrategy creates a new HeaderAuthnStrategy using the Proxy-Authorization and
 // Proxy-Authenticate headers, and the 407 Proxy Auth Required response.
-func NewHeaderProxyAuthorizationAuthnStrategy(schemes ...string) *HeaderAuthnStrategy {
+func NewHeaderProxyAuthorizationAuthnStrategy(schemaBasicCacheLifeSpan time.Duration, schemes ...string) *HeaderAuthnStrategy {
 	return &HeaderAuthnStrategy{
 		authn:              AuthnTypeProxyAuthorization,
 		headerAuthorize:    headerProxyAuthorization,
@@ -54,13 +56,14 @@ func NewHeaderProxyAuthorizationAuthnStrategy(schemes ...string) *HeaderAuthnStr
 		handleAuthenticate: true,
 		statusAuthenticate: fasthttp.StatusProxyAuthRequired,
 		schemes:            model.NewAuthorizationSchemes(schemes...),
+		basic:              NewBasicAuthHandler(schemaBasicCacheLifeSpan),
 	}
 }
 
 // NewHeaderProxyAuthorizationAuthRequestAuthnStrategy creates a new HeaderAuthnStrategy using the Proxy-Authorization
 // and WWW-Authenticate headers, and the 401 Proxy Auth Required response. This is a special AuthnStrategy for the
 // AuthRequest implementation.
-func NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(schemes ...string) *HeaderAuthnStrategy {
+func NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(schemaBasicCacheLifeSpan time.Duration, schemes ...string) *HeaderAuthnStrategy {
 	return &HeaderAuthnStrategy{
 		authn:              AuthnTypeProxyAuthorization,
 		headerAuthorize:    headerProxyAuthorization,
@@ -68,6 +71,7 @@ func NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(schemes ...string) *Hea
 		handleAuthenticate: true,
 		statusAuthenticate: fasthttp.StatusUnauthorized,
 		schemes:            model.NewAuthorizationSchemes(schemes...),
+		basic:              NewBasicAuthHandler(schemaBasicCacheLifeSpan),
 	}
 }
 
@@ -163,6 +167,46 @@ type HeaderAuthnStrategy struct {
 	handleAuthenticate bool
 	statusAuthenticate int
 	schemes            model.AuthorizationSchemes
+
+	basic BasicAuthHandler
+}
+
+type BasicAuthHandler func(ctx *middlewares.AutheliaCtx, authorization *model.Authorization) (valid bool, err error)
+
+func NewBasicAuthHandler(lifespan time.Duration) BasicAuthHandler {
+	if lifespan == 0 {
+		return DefaultBasicAuthHandler
+	}
+
+	return NewCachedBasicAuthHandler(lifespan)
+}
+
+func DefaultBasicAuthHandler(ctx *middlewares.AutheliaCtx, authorization *model.Authorization) (valid bool, err error) {
+	return ctx.Providers.UserProvider.CheckUserPassword(authorization.Basic())
+}
+
+func NewCachedBasicAuthHandler(lifespan time.Duration) BasicAuthHandler {
+	cache := authentication.NewCredentialCacheHMAC(sha256.New, lifespan)
+
+	return func(ctx *middlewares.AutheliaCtx, authorization *model.Authorization) (valid bool, err error) {
+		if valid, _ = cache.Valid(authorization.Basic()); valid {
+			return true, nil
+		}
+
+		if valid, err = ctx.Providers.UserProvider.CheckUserPassword(authorization.Basic()); err != nil {
+			return false, err
+		}
+
+		if valid {
+			if err = cache.Put(authorization.Basic()); err != nil {
+				ctx.Logger.WithError(err).Errorf("Error occurred saving basic authorization credentials to cache for user '%s'", authorization.BasicUsername())
+			}
+
+			return true, nil
+		}
+
+		return false, nil
+	}
 }
 
 // Get returns the Authn information for this AuthnStrategy.
@@ -261,12 +305,12 @@ func (s *HeaderAuthnStrategy) handleGetBasic(ctx *middlewares.AutheliaCtx, authn
 		valid bool
 	)
 
-	if valid, err = ctx.Providers.UserProvider.CheckUserPassword(authn.Header.Authorization.Basic()); err != nil {
+	if valid, err = s.basic(ctx, authn.Header.Authorization); err != nil {
 		return "", authentication.NotAuthenticated, fmt.Errorf("failed to validate parsed credentials of %s header for user '%s': %w", s.headerAuthorize, authn.Header.Authorization.BasicUsername(), err)
 	}
 
 	if !valid {
-		return "", authentication.NotAuthenticated, fmt.Errorf("validated parsed credentials of %s header but they are not valid for user '%s': %w", s.headerAuthorize, authn.Header.Authorization.BasicUsername(), err)
+		return "", authentication.NotAuthenticated, fmt.Errorf("validated parsed credentials of %s header but they are not valid for user '%s'", s.headerAuthorize, authn.Header.Authorization.BasicUsername())
 	}
 
 	return authn.Header.Authorization.BasicUsername(), authentication.OneFactor, nil
