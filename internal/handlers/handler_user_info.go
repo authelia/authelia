@@ -70,6 +70,7 @@ func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	userInfo.DisplayName = userSession.DisplayName
+	userInfo.Emails = userSession.Emails
 
 	err = ctx.SetJSONBody(userInfo)
 	if err != nil {
