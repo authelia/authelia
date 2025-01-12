@@ -368,10 +368,6 @@ func TestTOTPRegisterDELETE(t *testing.T) {
 }
 
 func TestTOTPRegisterPOST(t *testing.T) {
-	intPtr := func(in int) *int {
-		return &in
-	}
-
 	testCases := []struct {
 		name           string
 		config         schema.TOTP
@@ -607,7 +603,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 				DefaultAlgorithm:           schema.TOTPAlgorithmSHA1,
 				DefaultDigits:              6,
 				DefaultPeriod:              30,
-				Skew:                       intPtr(1),
+				Skew:                       &[]uint{1}[0],
 				SecretSize:                 schema.TOTPSecretSizeDefault,
 				AllowedAlgorithms:          []string{schema.TOTPAlgorithmSHA1},
 				AllowedDigits:              []int{6},
