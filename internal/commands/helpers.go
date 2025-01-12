@@ -1,11 +1,16 @@
 package commands
 
 import (
+	"bufio"
 	"encoding/base32"
 	"errors"
 	"fmt"
+	"os"
+	"strings"
+	"syscall"
 
 	"github.com/spf13/pflag"
+	"golang.org/x/term"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -132,4 +137,103 @@ func getAuthenticationProvider(ctx *CmdCtx) authentication.UserProvider {
 	}
 
 	return nil
+}
+
+func askPassword() (string, error) {
+	var (
+		password             string
+		passwordConfirmation string
+	)
+
+	fmt.Print("Password: ")
+
+	bytePassword, err := term.ReadPassword(syscall.Stdin)
+
+	if err != nil {
+		return "", fmt.Errorf("cant read password: %w", err)
+	}
+
+	password = string(bytePassword)
+
+	fmt.Println()
+
+	fmt.Print("Repeat password: ")
+
+	bytePassword, err = term.ReadPassword(syscall.Stdin)
+
+	if err != nil {
+		return "", fmt.Errorf("cant read password: %w", err)
+	}
+
+	passwordConfirmation = string(bytePassword)
+
+	fmt.Println()
+
+	if password != passwordConfirmation {
+		return "", errors.New("passwords doesn't match")
+	}
+
+	if password == "" {
+		return "", errors.New("password cant be empty")
+	}
+
+	return password, nil
+}
+
+func askEmail() (string, error) {
+	in := bufio.NewReader(os.Stdin)
+
+	fmt.Print("Email: ")
+
+	email, err := in.ReadString('\n')
+
+	if err != nil {
+		return "", fmt.Errorf("failed to read email: %s", err)
+	}
+
+	email = strings.TrimSpace(email)
+
+	if email == "" {
+		return "", errors.New("email is required")
+	}
+
+	return email, nil
+}
+
+func askDisplayName() (string, error) {
+	in := bufio.NewReader(os.Stdin)
+
+	fmt.Print("Display Name: ")
+
+	displayName, err := in.ReadString('\n')
+
+	if err != nil {
+		return "", fmt.Errorf("failed to read display name: %w", err)
+	}
+
+	displayName = strings.TrimSpace(displayName)
+
+	return displayName, nil
+}
+
+func askGroups() ([]string, error) {
+	in := bufio.NewReader(os.Stdin)
+
+	var groupsStr string
+
+	fmt.Print("Groups (comma separated): ")
+
+	groupsStr, err := in.ReadString('\n')
+
+	if err != nil {
+		return []string{}, fmt.Errorf("failed to read groups: %w", err)
+	}
+
+	groups := strings.Split(groupsStr, ",")
+
+	for i := range groups {
+		groups[i] = strings.TrimSpace(groups[i])
+	}
+
+	return groups, nil
 }

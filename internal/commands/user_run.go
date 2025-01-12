@@ -1,16 +1,13 @@
 package commands
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"os"
 	"strings"
-	"syscall"
 	"text/tabwriter"
 
 	"github.com/spf13/cobra"
-	"golang.org/x/term"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 )
@@ -33,45 +30,17 @@ func (ctx *CmdCtx) UserChangePasswordRunE(cmd *cobra.Command, args []string) (er
 	}
 
 	var (
-		username             = args[0]
-		password             string
-		passwordConfirmation string
+		username = args[0]
+		password string
 	)
 
 	if len(args) > 1 {
 		password = args[1]
 	} else {
 		fmt.Printf("Change Password for user %s\n", username)
-		fmt.Print("Password: ")
 
-		bytePassword, err := term.ReadPassword(syscall.Stdin)
-
-		if err != nil {
-			ctx.log.Fatal("cant read password: %w", err)
-		}
-
-		password = string(bytePassword)
-
-		fmt.Println()
-
-		fmt.Print("Repeat password: ")
-
-		bytePassword, err = term.ReadPassword(syscall.Stdin)
-
-		if err != nil {
-			ctx.log.Fatal("cant read password: %w", err)
-		}
-
-		passwordConfirmation = string(bytePassword)
-
-		fmt.Println()
-
-		if password != passwordConfirmation {
-			ctx.log.Fatal("passwords doesn't match")
-		}
-
-		if password == "" {
-			ctx.log.Fatal("password cant be empty")
+		if password, err = askPassword(); err != nil {
+			ctx.log.Fatal(err)
 		}
 	}
 
@@ -115,109 +84,46 @@ func (ctx *CmdCtx) UserShowInfoRunE(cmd *cobra.Command, args []string) (err erro
 }
 
 // UserAddRunE adds a user.
-//nolint: gocyclo
+// nolint: gocyclo
 func (ctx *CmdCtx) UserAddRunE(cmd *cobra.Command, args []string) (err error) {
 	if ctx.config.AuthenticationBackend.DB == nil {
 		return errors.New("this command is only available for 'db' authentication backend")
 	}
 
 	var (
-		username             = args[0]
-		flags                = cmd.Flags()
-		password             string
-		passwordConfirmation string
-		email                string
-		displayName          string
-		groups               []string
+		username    = args[0]
+		flags       = cmd.Flags()
+		password    string
+		email       string
+		displayName string
+		groups      []string
 	)
 
 	password, err = flags.GetString("password")
 	if err != nil || password == "" {
-		fmt.Print("Password: ")
-
-		bytePassword, err := term.ReadPassword(syscall.Stdin)
-
-		if err != nil {
-			ctx.log.Fatal("cant read password: %w", err)
-		}
-
-		password = string(bytePassword)
-
-		fmt.Println()
-
-		fmt.Print("Repeat password: ")
-
-		bytePassword, err = term.ReadPassword(syscall.Stdin)
-
-		if err != nil {
-			ctx.log.Fatal("cant read password: %w", err)
-		}
-
-		passwordConfirmation = string(bytePassword)
-
-		fmt.Println()
-
-		if password != passwordConfirmation {
-			ctx.log.Fatal("passwords doesn't match")
-		}
-
-		if password == "" {
-			ctx.log.Fatal("password cant be empty")
+		if password, err = askPassword(); err != nil {
+			ctx.log.Fatal(err)
 		}
 	}
 
 	email, err = flags.GetString("email")
 	if err != nil || email == "" {
-		in := bufio.NewReader(os.Stdin)
-
-		fmt.Print("Email: ")
-
-		email, err = in.ReadString('\n')
-
-		if err != nil {
-			ctx.log.Fatal("failed to read email")
-		}
-
-		email = strings.TrimSpace(email)
-
-		if email == "" {
-			ctx.log.Fatal("email is required")
+		if email, err = askEmail(); err != nil {
+			ctx.log.Fatal(err)
 		}
 	}
 
 	displayName, err = flags.GetString("display-name")
 	if err != nil || displayName == "" {
-		in := bufio.NewReader(os.Stdin)
-
-		fmt.Print("Display Name: ")
-
-		displayName, err = in.ReadString('\n')
-
-		if err != nil {
-			ctx.log.Fatal("failed to read display name")
+		if displayName, err = askDisplayName(); err != nil {
+			ctx.log.Fatal(err)
 		}
-
-		displayName = strings.TrimSpace(displayName)
 	}
 
 	groups, err = flags.GetStringSlice("group")
 	if err != nil || len(groups) == 0 {
-		in := bufio.NewReader(os.Stdin)
-
-		var groupsStr string
-
-		fmt.Print("Groups (comma separated): ")
-
-		groupsStr, err := in.ReadString('\n')
-
-		if err != nil {
-			ctx.log.Fatal("failed to read groups")
-		}
-
-		groups = strings.Split(groupsStr, ",")
-
-		for i := range groups {
-			groups[i] = strings.TrimSpace(groups[i])
+		if groups, err = askGroups(); err != nil {
+			ctx.log.Fatal(err)
 		}
 	}
 
