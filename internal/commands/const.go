@@ -569,9 +569,12 @@ This subcommand allows basic user management.`
 
 	cmdAutheliaUserPasswordLong = `Change user password.
 
-This subcommand allows password change for existing users.`
+This subcommand allows password change for existing users.
+If the password is provided in the command (less secure, but useful for batch changes), it will used
+If no password is provided in the command, it will be asked
+`
 
-	cmdAutheliaUserPasswordExample = `authelia user password john <new_password>` //nolint:gosec
+	cmdAutheliaUserPasswordExample = `authelia user password john [new_password]` //nolint:gosec
 
 	cmdAutheliaUserShowShort = "Show user details"
 

@@ -84,7 +84,7 @@ func (s *CLIAuthScenario) TestUserCRUD() {
 			},
 		},
 		{
-			"ShouldChangePassowrd",
+			"ShouldChangePassword",
 			func() {
 				output, err := s.Exec("authelia-backend", cmdChangePassword)
 				s.NoError(err)
@@ -128,7 +128,7 @@ func (s *CLIAuthScenario) TestUserCRUD() {
 			},
 		},
 		{
-			"ShouldFailChangePassowrdIfDisabled",
+			"ShouldFailChangePasswordIfDisabled",
 			func() {
 				output, err := s.Exec("authelia-backend", cmdDisableUser)
 				s.NoError(err)

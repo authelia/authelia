@@ -46,8 +46,8 @@ func newUserPasswordCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Short:             cmdAutheliaUserPasswordShort,
 		Long:              cmdAutheliaUserPasswordLong,
 		Example:           cmdAutheliaUserPasswordExample,
-		Args:              cobra.MinimumNArgs(2),
-		ArgAliases:        []string{"username", "password"},
+		Args:              cobra.MinimumNArgs(1),
+		ArgAliases:        []string{"username"},
 		RunE:              ctx.UserChangePasswordRunE,
 		DisableAutoGenTag: true,
 	}
