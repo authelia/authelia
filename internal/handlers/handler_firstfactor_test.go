@@ -274,6 +274,43 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
 	assert.Equal(s.T(), []string{"dev", "admins"}, userSession.Groups)
 }
 
+func (s *FirstFactorSuite) TestShouldAuthenticateUserWithEmailAsUsernameInput() {
+	gomock.InOrder(
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq("test@example.com")).
+			Return(&authentication.UserDetails{
+				Username: "test",
+				Emails:   []string{"test@example.com"},
+				Groups:   []string{"dev", "admins"},
+			}, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			CheckUserPassword(gomock.Eq("test"), gomock.Eq("hello")).
+			Return(true, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(model.AuthenticationAttempt{Time: s.mock.Clock.Now(), Successful: true, Username: "test", Type: regulation.AuthType1FA, RemoteIP: model.NewNullIP(s.mock.Ctx.RemoteIP())})).
+			Return(nil),
+	)
+
+	s.mock.Ctx.Request.SetBodyString(`{"username":"test@example.com","password":"hello","requestMethod":"GET","keepMeLoggedIn":false}`)
+	FirstFactorPOST(nil)(s.mock.Ctx)
+
+	// Respond with 200.
+	s.Equal(fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
+	s.Equal([]byte("{\"status\":\"OK\"}"), s.mock.Ctx.Response.Body())
+
+	userSession, err := s.mock.Ctx.GetSession()
+	s.Assert().NoError(err)
+
+	s.Equal("test", userSession.Username)
+	s.Equal(false, userSession.KeepMeLoggedIn)
+	s.Equal(authentication.OneFactor, userSession.AuthenticationLevel)
+	s.Equal([]string{"test@example.com"}, userSession.Emails)
+	s.Equal([]string{"dev", "admins"}, userSession.Groups)
+}
+
 func (s *FirstFactorSuite) TestShouldSaveUsernameFromAuthenticationBackendInSession() {
 	s.mock.UserProviderMock.
 		EXPECT().
