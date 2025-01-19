@@ -1,0 +1,12 @@
+---
+services:
+  authelia-backend:
+    volumes:
+      - './AuthenticationBackendMySQL/configuration.yml:/config/configuration.yml'
+      - './common/pki:/pki'
+      - './common/pki/public.crt:/certs/public.crt'
+  mysql:
+    networks:
+      authelianet:
+        ipv4_address: 192.168.240.150
+...

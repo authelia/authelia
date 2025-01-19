@@ -401,7 +401,7 @@ func (ctx *CmdCtx) StorageSchemaInfoRunE(_ *cobra.Command, _ []string) (err erro
 	if latest > version {
 		upgradeStr = fmt.Sprintf("yes - version %d", latest)
 	} else {
-		upgradeStr = "no"
+		upgradeStr = "no" //nolint: goconst
 	}
 
 	var (

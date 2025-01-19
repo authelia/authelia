@@ -2,6 +2,7 @@ package suites
 
 import (
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -9,6 +10,28 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/utils"
 )
+
+var (
+	serviceCheckInterval = 5 * time.Second
+	suitSetupTimeout     = 90 * time.Second
+)
+
+func init() {
+	var setupTimeoutStr = os.Getenv("SUITE_SETUP_TIMEOUT")
+	if setupTimeoutStr != "" {
+		setupTimeout, err := strconv.Atoi(setupTimeoutStr)
+
+		switch {
+		case err != nil:
+			log.Warnf("Invalid SUITE_SETUP_TIMEOUT value '%s': %v", setupTimeoutStr, err)
+		case setupTimeout <= 0:
+			log.Warnf("SUITE_SETUP_TIMEOUT must be positive, got %d", setupTimeout)
+		default:
+			suitSetupTimeout = time.Duration(setupTimeout) * time.Second
+			log.Debugf("Set suite setup timeout to %v", suitSetupTimeout)
+		}
+	}
+}
 
 func waitUntilServiceLogDetected(
 	interval time.Duration,
@@ -39,8 +62,8 @@ func waitUntilServiceLogDetected(
 
 func waitUntilAutheliaBackendIsReady(dockerEnvironment *DockerEnvironment) error {
 	return waitUntilServiceLogDetected(
-		5*time.Second,
-		90*time.Second,
+		serviceCheckInterval,
+		suitSetupTimeout,
 		dockerEnvironment,
 		"authelia-backend",
 		[]string{"Startup complete"})
@@ -48,8 +71,8 @@ func waitUntilAutheliaBackendIsReady(dockerEnvironment *DockerEnvironment) error
 
 func waitUntilAutheliaFrontendIsReady(dockerEnvironment *DockerEnvironment) error {
 	return waitUntilServiceLogDetected(
-		5*time.Second,
-		90*time.Second,
+		serviceCheckInterval,
+		suitSetupTimeout,
 		dockerEnvironment,
 		"authelia-frontend",
 		[]string{"dev server running at", "ready in", "server restarted"})
@@ -57,8 +80,8 @@ func waitUntilAutheliaFrontendIsReady(dockerEnvironment *DockerEnvironment) erro
 
 func waitUntilK3DIsReady(dockerEnvironment *DockerEnvironment) error {
 	return waitUntilServiceLogDetected(
-		5*time.Second,
-		90*time.Second,
+		serviceCheckInterval,
+		suitSetupTimeout,
 		dockerEnvironment,
 		"k3d",
 		[]string{"API listen on [::]:2376"})
@@ -66,8 +89,8 @@ func waitUntilK3DIsReady(dockerEnvironment *DockerEnvironment) error {
 
 func waitUntilSambaIsReady(dockerEnvironment *DockerEnvironment) error {
 	return waitUntilServiceLogDetected(
-		5*time.Second,
-		90*time.Second,
+		serviceCheckInterval,
+		suitSetupTimeout,
 		dockerEnvironment,
 		"sambaldap",
 		[]string{"samba entered RUNNING state"})

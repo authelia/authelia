@@ -112,4 +112,51 @@ var (
 			},
 		},
 	}
+
+	storageMySQLTmpConfig = schema.Configuration{
+		TOTP: schema.TOTP{
+			Issuer:        "Authelia",
+			DefaultPeriod: 6,
+		},
+		Storage: schema.Storage{
+			EncryptionKey: "a_not_so_secure_encryption_key",
+			MySQL: &schema.StorageMySQL{
+				StorageSQL: schema.StorageSQL{
+					// Address: schema.NewAddressFromURL(url.URL{Scheme: AddressSchemeTCP, Host: "localhost:3306"}),.
+					Database: "authelia",
+					Username: "admin",
+					Password: "password",
+				},
+			},
+		},
+	}
+
+	storagePostgressTmpConfig = schema.Configuration{
+		TOTP: schema.TOTP{
+			Issuer:        "Authelia",
+			DefaultPeriod: 6,
+		},
+		Storage: schema.Storage{
+			EncryptionKey: "a_not_so_secure_encryption_key",
+			PostgreSQL: &schema.StoragePostgreSQL{
+				StorageSQL: schema.StorageSQL{
+					Database: "authelia",
+					Username: "admin",
+					Password: "password",
+				},
+				Schema: "public",
+			},
+		},
+	}
+)
+
+var (
+	defaultComposeFiles = []string{
+		"internal/suites/docker-compose.yml",
+		"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
+		"internal/suites/example/compose/authelia/docker-compose.frontend.{}.yml",
+		"internal/suites/example/compose/nginx/backend/docker-compose.yml",
+		"internal/suites/example/compose/nginx/portal/docker-compose.yml",
+		"internal/suites/example/compose/smtp/docker-compose.yml",
+	}
 )

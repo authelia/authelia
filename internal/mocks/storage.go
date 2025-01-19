@@ -130,6 +130,20 @@ func (mr *MockStorageMockRecorder) ConsumeOneTimeCode(ctx, code any) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumeOneTimeCode", reflect.TypeOf((*MockStorage)(nil).ConsumeOneTimeCode), ctx, code)
 }
 
+// CreateUser mocks base method.
+func (m *MockStorage) CreateUser(ctx context.Context, username, email, password string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateUser", ctx, username, email, password)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateUser indicates an expected call of CreateUser.
+func (mr *MockStorageMockRecorder) CreateUser(ctx, username, email, password any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockStorage)(nil).CreateUser), ctx, username, email, password)
+}
+
 // DeactivateOAuth2Session mocks base method.
 func (m *MockStorage) DeactivateOAuth2Session(ctx context.Context, sessionType storage.OAuth2SessionType, signature string) error {
 	m.ctrl.T.Helper()
@@ -184,6 +198,20 @@ func (m *MockStorage) DeleteTOTPConfiguration(ctx context.Context, username stri
 func (mr *MockStorageMockRecorder) DeleteTOTPConfiguration(ctx, username any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTOTPConfiguration", reflect.TypeOf((*MockStorage)(nil).DeleteTOTPConfiguration), ctx, username)
+}
+
+// DeleteUser mocks base method.
+func (m *MockStorage) DeleteUser(ctx context.Context, username string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteUser", ctx, username)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteUser indicates an expected call of DeleteUser.
+func (mr *MockStorageMockRecorder) DeleteUser(ctx, username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUser", reflect.TypeOf((*MockStorage)(nil).DeleteUser), ctx, username)
 }
 
 // DeleteWebAuthnCredential mocks base method.
@@ -242,6 +270,36 @@ func (m *MockStorage) FindIdentityVerification(ctx context.Context, jti string) 
 func (mr *MockStorageMockRecorder) FindIdentityVerification(ctx, jti any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindIdentityVerification", reflect.TypeOf((*MockStorage)(nil).FindIdentityVerification), ctx, jti)
+}
+
+// GetUserGroups mocks base method.
+func (m *MockStorage) GetUserGroups(ctx context.Context, username string) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserGroups", ctx, username)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserGroups indicates an expected call of GetUserGroups.
+func (mr *MockStorageMockRecorder) GetUserGroups(ctx, username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserGroups", reflect.TypeOf((*MockStorage)(nil).GetUserGroups), ctx, username)
+}
+
+// ListUsers mocks base method.
+func (m *MockStorage) ListUsers(ctx context.Context) ([]model.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListUsers", ctx)
+	ret0, _ := ret[0].([]model.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListUsers indicates an expected call of ListUsers.
+func (mr *MockStorageMockRecorder) ListUsers(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUsers", reflect.TypeOf((*MockStorage)(nil).ListUsers), ctx)
 }
 
 // LoadAuthenticationLogs mocks base method.
@@ -467,6 +525,21 @@ func (m *MockStorage) LoadTOTPConfigurations(ctx context.Context, limit, page in
 func (mr *MockStorageMockRecorder) LoadTOTPConfigurations(ctx, limit, page any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadTOTPConfigurations", reflect.TypeOf((*MockStorage)(nil).LoadTOTPConfigurations), ctx, limit, page)
+}
+
+// LoadUser mocks base method.
+func (m *MockStorage) LoadUser(ctx context.Context, username string, allowEmailSearch bool) (model.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadUser", ctx, username, allowEmailSearch)
+	ret0, _ := ret[0].(model.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadUser indicates an expected call of LoadUser.
+func (mr *MockStorageMockRecorder) LoadUser(ctx, username, allowEmailSearch any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadUser", reflect.TypeOf((*MockStorage)(nil).LoadUser), ctx, username, allowEmailSearch)
 }
 
 // LoadUserInfo mocks base method.
@@ -1088,6 +1161,81 @@ func (mr *MockStorageMockRecorder) UpdateTOTPConfigurationSignIn(ctx, id, lastUs
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTOTPConfigurationSignIn", reflect.TypeOf((*MockStorage)(nil).UpdateTOTPConfigurationSignIn), ctx, id, lastUsedAt)
 }
 
+// UpdateUserDisplayName mocks base method.
+func (m *MockStorage) UpdateUserDisplayName(ctx context.Context, username, displayName string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserDisplayName", ctx, username, displayName)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUserDisplayName indicates an expected call of UpdateUserDisplayName.
+func (mr *MockStorageMockRecorder) UpdateUserDisplayName(ctx, username, displayName any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserDisplayName", reflect.TypeOf((*MockStorage)(nil).UpdateUserDisplayName), ctx, username, displayName)
+}
+
+// UpdateUserEmail mocks base method.
+func (m *MockStorage) UpdateUserEmail(ctx context.Context, username, email string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserEmail", ctx, username, email)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUserEmail indicates an expected call of UpdateUserEmail.
+func (mr *MockStorageMockRecorder) UpdateUserEmail(ctx, username, email any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserEmail", reflect.TypeOf((*MockStorage)(nil).UpdateUserEmail), ctx, username, email)
+}
+
+// UpdateUserGroups mocks base method.
+func (m *MockStorage) UpdateUserGroups(ctx context.Context, username string, groups ...string) error {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, username}
+	for _, a := range groups {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpdateUserGroups", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUserGroups indicates an expected call of UpdateUserGroups.
+func (mr *MockStorageMockRecorder) UpdateUserGroups(ctx, username any, groups ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, username}, groups...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserGroups", reflect.TypeOf((*MockStorage)(nil).UpdateUserGroups), varargs...)
+}
+
+// UpdateUserPassword mocks base method.
+func (m *MockStorage) UpdateUserPassword(ctx context.Context, username, password string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserPassword", ctx, username, password)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUserPassword indicates an expected call of UpdateUserPassword.
+func (mr *MockStorageMockRecorder) UpdateUserPassword(ctx, username, password any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserPassword", reflect.TypeOf((*MockStorage)(nil).UpdateUserPassword), ctx, username, password)
+}
+
+// UpdateUserStatus mocks base method.
+func (m *MockStorage) UpdateUserStatus(ctx context.Context, username string, disabled bool) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserStatus", ctx, username, disabled)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUserStatus indicates an expected call of UpdateUserStatus.
+func (mr *MockStorageMockRecorder) UpdateUserStatus(ctx, username, disabled any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserStatus", reflect.TypeOf((*MockStorage)(nil).UpdateUserStatus), ctx, username, disabled)
+}
+
 // UpdateWebAuthnCredentialDescription mocks base method.
 func (m *MockStorage) UpdateWebAuthnCredentialDescription(ctx context.Context, username string, credentialID int, description string) error {
 	m.ctrl.T.Helper()
@@ -1114,4 +1262,19 @@ func (m *MockStorage) UpdateWebAuthnCredentialSignIn(ctx context.Context, creden
 func (mr *MockStorageMockRecorder) UpdateWebAuthnCredentialSignIn(ctx, credential any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWebAuthnCredentialSignIn", reflect.TypeOf((*MockStorage)(nil).UpdateWebAuthnCredentialSignIn), ctx, credential)
+}
+
+// UserExists mocks base method.
+func (m *MockStorage) UserExists(ctx context.Context, username string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UserExists", ctx, username)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UserExists indicates an expected call of UserExists.
+func (mr *MockStorageMockRecorder) UserExists(ctx, username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserExists", reflect.TypeOf((*MockStorage)(nil).UserExists), ctx, username)
 }
