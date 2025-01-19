@@ -367,24 +367,20 @@ func (s *DBUserProviderSuite) TestAddUser() {
 			[]func(options *authentication.NewUserDetailsOpts){authentication.WithEmail(email)},
 			func(mock *mocks.MockAutheliaCtx) {
 				ctx := context.Background()
-
-				s.mock.StorageMock.EXPECT().BeginTX(gomock.Any()).
-					Return(ctx, nil)
-
-				s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq("john")).
-					Return(false, nil)
-
-				s.mock.StorageMock.EXPECT().CreateUser(gomock.Any(), gomock.Eq("john"), gomock.Eq("john@example.com"), gomock.Any()).
-					Return(nil)
-
-				s.mock.StorageMock.EXPECT().UpdateUserGroups(gomock.Any(), gomock.Any()).
-					Return(nil)
-
-				s.mock.StorageMock.EXPECT().UpdateUserDisplayName(gomock.Any(), gomock.Eq("john"), gomock.Any()).
-					Return(nil)
-
-				s.mock.StorageMock.EXPECT().Commit(gomock.Any()).
-					Return(nil)
+				gomock.InOrder(
+					s.mock.StorageMock.EXPECT().BeginTX(gomock.Any()).
+						Return(ctx, nil),
+					s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq("john")).
+						Return(false, nil),
+					s.mock.StorageMock.EXPECT().CreateUser(gomock.Any(), gomock.Eq("john"), gomock.Eq("john@example.com"), gomock.Any()).
+						Return(nil),
+					s.mock.StorageMock.EXPECT().UpdateUserGroups(gomock.Any(), gomock.Any()).
+						Return(nil),
+					s.mock.StorageMock.EXPECT().UpdateUserDisplayName(gomock.Any(), gomock.Eq("john"), gomock.Any()).
+						Return(nil),
+					s.mock.StorageMock.EXPECT().Commit(gomock.Any()).
+						Return(nil),
+				)
 			},
 			nil,
 		},
@@ -433,14 +429,14 @@ func (s *DBUserProviderSuite) TestAddUser() {
 			func(mock *mocks.MockAutheliaCtx) {
 				ctx := context.Background()
 
-				s.mock.StorageMock.EXPECT().BeginTX(gomock.Any()).
-					Return(ctx, nil)
-
-				s.mock.StorageMock.EXPECT().Rollback(gomock.Any()).
-					Return(nil)
-
-				s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq("john")).
-					Return(true, nil)
+				gomock.InOrder(
+					s.mock.StorageMock.EXPECT().BeginTX(gomock.Any()).
+						Return(ctx, nil),
+					s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq("john")).
+						Return(true, nil),
+					s.mock.StorageMock.EXPECT().Rollback(gomock.Any()).
+						Return(nil),
+				)
 			},
 			authentication.ErrUserExists,
 		},
@@ -467,17 +463,16 @@ func (s *DBUserProviderSuite) TestAddUser() {
 			func(mock *mocks.MockAutheliaCtx) {
 				ctx := context.Background()
 
-				s.mock.StorageMock.EXPECT().BeginTX(gomock.Any()).
-					Return(ctx, nil)
-
-				s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq("john")).
-					Return(false, nil)
-
-				s.mock.StorageMock.EXPECT().CreateUser(gomock.Any(), gomock.Eq("john"), gomock.Eq("john@example.com"), gomock.Any()).
-					Return(errors.New("error creating user"))
-
-				s.mock.StorageMock.EXPECT().Rollback(gomock.Any()).
-					Return(nil)
+				gomock.InOrder(
+					s.mock.StorageMock.EXPECT().BeginTX(gomock.Any()).
+						Return(ctx, nil),
+					s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq("john")).
+						Return(false, nil),
+					s.mock.StorageMock.EXPECT().CreateUser(gomock.Any(), gomock.Eq("john"), gomock.Eq("john@example.com"), gomock.Any()).
+						Return(errors.New("error creating user")),
+					s.mock.StorageMock.EXPECT().Rollback(gomock.Any()).
+						Return(nil),
+				)
 			},
 			authentication.ErrCreatingUser,
 		},
@@ -490,17 +485,16 @@ func (s *DBUserProviderSuite) TestAddUser() {
 			func(mock *mocks.MockAutheliaCtx) {
 				ctx := context.Background()
 
-				s.mock.StorageMock.EXPECT().BeginTX(gomock.Any()).
-					Return(ctx, nil)
-
-				s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq("john")).
-					Return(false, nil)
-
-				s.mock.StorageMock.EXPECT().CreateUser(gomock.Any(), gomock.Eq("john"), gomock.Eq("john@example.com"), gomock.Any()).
-					Return(errors.New("error creating user"))
-
-				s.mock.StorageMock.EXPECT().Rollback(gomock.Any()).
-					Return(errors.New("error rolling back!"))
+				gomock.InOrder(
+					s.mock.StorageMock.EXPECT().BeginTX(gomock.Any()).
+						Return(ctx, nil),
+					s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq("john")).
+						Return(false, nil),
+					s.mock.StorageMock.EXPECT().CreateUser(gomock.Any(), gomock.Eq("john"), gomock.Eq("john@example.com"), gomock.Any()).
+						Return(errors.New("error creating user")),
+					s.mock.StorageMock.EXPECT().Rollback(gomock.Any()).
+						Return(errors.New("error rolling back!")),
+				)
 			},
 			authentication.ErrCreatingUser,
 		},
@@ -513,23 +507,20 @@ func (s *DBUserProviderSuite) TestAddUser() {
 			func(mock *mocks.MockAutheliaCtx) {
 				ctx := context.Background()
 
-				s.mock.StorageMock.EXPECT().BeginTX(gomock.Any()).
-					Return(ctx, nil)
-
-				s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq("john")).
-					Return(false, nil)
-
-				s.mock.StorageMock.EXPECT().CreateUser(gomock.Any(), gomock.Eq("john"), gomock.Eq("john@example.com"), gomock.Any()).
-					Return(nil)
-
-				s.mock.StorageMock.EXPECT().UpdateUserGroups(gomock.Any(), gomock.Any()).
-					Return(nil)
-
-				s.mock.StorageMock.EXPECT().UpdateUserDisplayName(gomock.Any(), gomock.Eq("john"), gomock.Any()).
-					Return(nil)
-
-				s.mock.StorageMock.EXPECT().Commit(gomock.Any()).
-					Return(errors.New("error committing changes!"))
+				gomock.InOrder(
+					s.mock.StorageMock.EXPECT().BeginTX(gomock.Any()).
+						Return(ctx, nil),
+					s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq("john")).
+						Return(false, nil),
+					s.mock.StorageMock.EXPECT().CreateUser(gomock.Any(), gomock.Eq("john"), gomock.Eq("john@example.com"), gomock.Any()).
+						Return(nil),
+					s.mock.StorageMock.EXPECT().UpdateUserGroups(gomock.Any(), gomock.Any()).
+						Return(nil),
+					s.mock.StorageMock.EXPECT().UpdateUserDisplayName(gomock.Any(), gomock.Eq("john"), gomock.Any()).
+						Return(nil),
+					s.mock.StorageMock.EXPECT().Commit(gomock.Any()).
+						Return(errors.New("error committing changes!")),
+				)
 			},
 			authentication.ErrCreatingUser,
 		},
@@ -542,23 +533,20 @@ func (s *DBUserProviderSuite) TestAddUser() {
 			func(mock *mocks.MockAutheliaCtx) {
 				ctx := context.Background()
 
-				s.mock.StorageMock.EXPECT().BeginTX(gomock.Any()).
-					Return(ctx, nil)
-
-				s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq("john")).
-					Return(false, nil)
-
-				s.mock.StorageMock.EXPECT().CreateUser(gomock.Any(), gomock.Eq("john"), gomock.Eq("john@example.com"), gomock.Any()).
-					Return(nil)
-
-				s.mock.StorageMock.EXPECT().UpdateUserGroups(gomock.Any(), gomock.Any()).
-					Return(nil)
-
-				s.mock.StorageMock.EXPECT().UpdateUserDisplayName(gomock.Any(), gomock.Eq("john"), gomock.Any()).
-					Return(errors.New("error updating display name"))
-
-				s.mock.StorageMock.EXPECT().Rollback(gomock.Any()).
-					Return(nil)
+				gomock.InOrder(
+					s.mock.StorageMock.EXPECT().BeginTX(gomock.Any()).
+						Return(ctx, nil),
+					s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq("john")).
+						Return(false, nil),
+					s.mock.StorageMock.EXPECT().CreateUser(gomock.Any(), gomock.Eq("john"), gomock.Eq("john@example.com"), gomock.Any()).
+						Return(nil),
+					s.mock.StorageMock.EXPECT().UpdateUserGroups(gomock.Any(), gomock.Any()).
+						Return(nil),
+					s.mock.StorageMock.EXPECT().UpdateUserDisplayName(gomock.Any(), gomock.Eq("john"), gomock.Any()).
+						Return(errors.New("error updating display name")),
+					s.mock.StorageMock.EXPECT().Rollback(gomock.Any()).
+						Return(nil),
+				)
 			},
 			authentication.ErrCreatingUser,
 		},
@@ -571,20 +559,18 @@ func (s *DBUserProviderSuite) TestAddUser() {
 			func(mock *mocks.MockAutheliaCtx) {
 				ctx := context.Background()
 
-				s.mock.StorageMock.EXPECT().BeginTX(gomock.Any()).
-					Return(ctx, nil)
-
-				s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq("john")).
-					Return(false, nil)
-
-				s.mock.StorageMock.EXPECT().CreateUser(gomock.Any(), gomock.Eq("john"), gomock.Eq("john@example.com"), gomock.Any()).
-					Return(nil)
-
-				s.mock.StorageMock.EXPECT().UpdateUserGroups(gomock.Any(), gomock.Any()).
-					Return(errors.New("cant update user's groups"))
-
-				s.mock.StorageMock.EXPECT().Rollback(gomock.Any()).
-					Return(nil)
+				gomock.InOrder(
+					s.mock.StorageMock.EXPECT().BeginTX(gomock.Any()).
+						Return(ctx, nil),
+					s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq("john")).
+						Return(false, nil),
+					s.mock.StorageMock.EXPECT().CreateUser(gomock.Any(), gomock.Eq("john"), gomock.Eq("john@example.com"), gomock.Any()).
+						Return(nil),
+					s.mock.StorageMock.EXPECT().UpdateUserGroups(gomock.Any(), gomock.Any()).
+						Return(errors.New("cant update user's groups")),
+					s.mock.StorageMock.EXPECT().Rollback(gomock.Any()).
+						Return(nil),
+				)
 			},
 			authentication.ErrCreatingUser,
 		},
@@ -614,18 +600,19 @@ func (s *DBUserProviderSuite) TestDeleteUser() {
 		{
 			"ShouldSuccessIfUserExists",
 			func(mock *mocks.MockAutheliaCtx) {
-				mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
-					Return(true, nil)
-
-				s.mock.StorageMock.EXPECT().DeleteUser(gomock.Any(), gomock.Eq(username)).
-					Return(nil)
+				gomock.InOrder(
+					s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
+						Return(true, nil),
+					s.mock.StorageMock.EXPECT().DeleteUser(gomock.Any(), gomock.Eq(username)).
+						Return(nil),
+				)
 			},
 			nil,
 		},
 		{
 			"ShouldFailIfUserNotExists",
 			func(mock *mocks.MockAutheliaCtx) {
-				mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
+				s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
 					Return(false, nil)
 			},
 			authentication.ErrUserNotFound,
@@ -633,7 +620,7 @@ func (s *DBUserProviderSuite) TestDeleteUser() {
 		{
 			"ShouldFailIfErrorWhileCheckingIfUserIxists",
 			func(mock *mocks.MockAutheliaCtx) {
-				mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
+				s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
 					Return(false, errors.New("some error"))
 			},
 			authentication.ErrDeletingUser,
@@ -641,11 +628,12 @@ func (s *DBUserProviderSuite) TestDeleteUser() {
 		{
 			"ShouldFailIfHaveErrorSavingChanges",
 			func(mock *mocks.MockAutheliaCtx) {
-				mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
-					Return(true, nil)
-
-				s.mock.StorageMock.EXPECT().DeleteUser(gomock.Any(), gomock.Eq(username)).
-					Return(errors.New("some error error"))
+				gomock.InOrder(
+					s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
+						Return(true, nil),
+					s.mock.StorageMock.EXPECT().DeleteUser(gomock.Any(), gomock.Eq(username)).
+						Return(errors.New("some error error")),
+				)
 			},
 			authentication.ErrDeletingUser,
 		},
@@ -675,18 +663,19 @@ func (s *DBUserProviderSuite) TestChangeUserDisplayName() {
 		{
 			"ShouldSuccessIfUserExists",
 			func(mock *mocks.MockAutheliaCtx) {
-				mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
-					Return(true, nil)
-
-				s.mock.StorageMock.EXPECT().UpdateUserDisplayName(gomock.Any(), gomock.Eq(username), gomock.Eq(displayname)).
-					Return(nil)
+				gomock.InOrder(
+					s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
+						Return(true, nil),
+					s.mock.StorageMock.EXPECT().UpdateUserDisplayName(gomock.Any(), gomock.Eq(username), gomock.Eq(displayname)).
+						Return(nil),
+				)
 			},
 			nil,
 		},
 		{
 			"ShouldFailIfUserNotExists",
 			func(mock *mocks.MockAutheliaCtx) {
-				mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
+				s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
 					Return(false, nil)
 			},
 			authentication.ErrUserNotFound,
@@ -694,7 +683,7 @@ func (s *DBUserProviderSuite) TestChangeUserDisplayName() {
 		{
 			"ShouldFailIfErrorWhileCheckingIfUserIxists",
 			func(mock *mocks.MockAutheliaCtx) {
-				mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
+				s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
 					Return(false, errors.New("some error"))
 			},
 			authentication.ErrUpdatingUser,
@@ -702,11 +691,12 @@ func (s *DBUserProviderSuite) TestChangeUserDisplayName() {
 		{
 			"ShouldFailIfHaveErrorSavingChanges",
 			func(mock *mocks.MockAutheliaCtx) {
-				mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
-					Return(true, nil)
-
-				s.mock.StorageMock.EXPECT().UpdateUserDisplayName(gomock.Any(), gomock.Eq(username), gomock.Eq(displayname)).
-					Return(errors.New("some error saving user"))
+				gomock.InOrder(
+					s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
+						Return(true, nil),
+					s.mock.StorageMock.EXPECT().UpdateUserDisplayName(gomock.Any(), gomock.Eq(username), gomock.Eq(displayname)).
+						Return(errors.New("some error saving user")),
+				)
 			},
 			authentication.ErrUpdatingUser,
 		},
@@ -736,18 +726,19 @@ func (s *DBUserProviderSuite) TestChangeUserEmail() {
 		{
 			"ShouldSuccessIfUserExists",
 			func(mock *mocks.MockAutheliaCtx) {
-				mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
-					Return(true, nil)
-
-				s.mock.StorageMock.EXPECT().UpdateUserEmail(gomock.Any(), gomock.Eq(username), gomock.Eq(email)).
-					Return(nil)
+				gomock.InOrder(
+					s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
+						Return(true, nil),
+					s.mock.StorageMock.EXPECT().UpdateUserEmail(gomock.Any(), gomock.Eq(username), gomock.Eq(email)).
+						Return(nil),
+				)
 			},
 			nil,
 		},
 		{
 			"ShouldFailIfUserNotExists",
 			func(mock *mocks.MockAutheliaCtx) {
-				mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
+				s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
 					Return(false, nil)
 			},
 			authentication.ErrUserNotFound,
@@ -755,7 +746,7 @@ func (s *DBUserProviderSuite) TestChangeUserEmail() {
 		{
 			"ShouldFailIfErrorWhileCheckingIfUserIxists",
 			func(mock *mocks.MockAutheliaCtx) {
-				mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
+				s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
 					Return(false, errors.New("some error"))
 			},
 			authentication.ErrUpdatingUser,
@@ -763,11 +754,12 @@ func (s *DBUserProviderSuite) TestChangeUserEmail() {
 		{
 			"ShouldFailIfHaveErrorSavingChanges",
 			func(mock *mocks.MockAutheliaCtx) {
-				mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
-					Return(true, nil)
-
-				s.mock.StorageMock.EXPECT().UpdateUserEmail(gomock.Any(), gomock.Eq(username), gomock.Eq(email)).
-					Return(errors.New("some error saving user"))
+				gomock.InOrder(
+					s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
+						Return(true, nil),
+					s.mock.StorageMock.EXPECT().UpdateUserEmail(gomock.Any(), gomock.Eq(username), gomock.Eq(email)).
+						Return(errors.New("some error saving user")),
+				)
 			},
 			authentication.ErrUpdatingUser,
 		},
@@ -799,24 +791,23 @@ func (s *DBUserProviderSuite) TestChangeUserGroups() {
 		{
 			"ShouldSuccessIfUserExists",
 			func(mock *mocks.MockAutheliaCtx) {
-				mock.StorageMock.EXPECT().BeginTX(gomock.Any()).
-					Return(ctx, nil)
-
-				mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
-					Return(true, nil)
-
-				s.mock.StorageMock.EXPECT().UpdateUserGroups(gomock.Any(), gomock.Eq(username), gomock.Eq(groups)).
-					Return(nil)
-
-				s.mock.StorageMock.EXPECT().Commit(gomock.Any()).
-					Return(nil)
+				gomock.InOrder(
+					s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
+						Return(true, nil),
+					s.mock.StorageMock.EXPECT().BeginTX(gomock.Any()).
+						Return(ctx, nil),
+					s.mock.StorageMock.EXPECT().UpdateUserGroups(gomock.Any(), gomock.Eq(username), gomock.Eq(groups)).
+						Return(nil),
+					s.mock.StorageMock.EXPECT().Commit(gomock.Any()).
+						Return(nil),
+				)
 			},
 			nil,
 		},
 		{
 			"ShouldFailIfUserNotExists",
 			func(mock *mocks.MockAutheliaCtx) {
-				mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
+				s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
 					Return(false, nil)
 			},
 			authentication.ErrUserNotFound,
@@ -824,7 +815,7 @@ func (s *DBUserProviderSuite) TestChangeUserGroups() {
 		{
 			"ShouldFailIfErrorWhileCheckingIfUserIxists",
 			func(mock *mocks.MockAutheliaCtx) {
-				mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
+				s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
 					Return(false, errors.New("some error"))
 			},
 			authentication.ErrUpdatingUser,
@@ -832,62 +823,60 @@ func (s *DBUserProviderSuite) TestChangeUserGroups() {
 		{
 			"ShouldFailIfCantCreateTransaction",
 			func(mock *mocks.MockAutheliaCtx) {
-				mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
-					Return(true, nil)
-
-				mock.StorageMock.EXPECT().BeginTX(gomock.Any()).
-					Return(ctx, errors.New("some error"))
+				gomock.InOrder(
+					s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
+						Return(true, nil),
+					s.mock.StorageMock.EXPECT().BeginTX(gomock.Any()).
+						Return(ctx, errors.New("some error")),
+				)
 			},
 			authentication.ErrUpdatingUser,
 		},
 		{
 			"ShouldFailIfHaveErrorSavingChanges",
 			func(mock *mocks.MockAutheliaCtx) {
-				mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
-					Return(true, nil)
-
-				mock.StorageMock.EXPECT().BeginTX(gomock.Any()).
-					Return(ctx, nil)
-
-				s.mock.StorageMock.EXPECT().UpdateUserGroups(gomock.Any(), gomock.Eq(username), gomock.Eq(groups)).
-					Return(errors.New("some error"))
-
-				s.mock.StorageMock.EXPECT().Rollback(gomock.Any()).
-					Return(nil)
+				gomock.InOrder(
+					s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
+						Return(true, nil),
+					s.mock.StorageMock.EXPECT().BeginTX(gomock.Any()).
+						Return(ctx, nil),
+					s.mock.StorageMock.EXPECT().UpdateUserGroups(gomock.Any(), gomock.Eq(username), gomock.Eq(groups)).
+						Return(errors.New("some error")),
+					s.mock.StorageMock.EXPECT().Rollback(gomock.Any()).
+						Return(nil),
+				)
 			},
 			authentication.ErrUpdatingUser,
 		},
 		{
 			"ShouldFailIfCantRollbackAfterError",
 			func(mock *mocks.MockAutheliaCtx) {
-				mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
-					Return(true, nil)
-
-				mock.StorageMock.EXPECT().BeginTX(gomock.Any()).
-					Return(ctx, nil)
-
-				s.mock.StorageMock.EXPECT().UpdateUserGroups(gomock.Any(), gomock.Eq(username), gomock.Eq(groups)).
-					Return(errors.New("some error"))
-
-				s.mock.StorageMock.EXPECT().Rollback(gomock.Any()).
-					Return(errors.New("no way"))
+				gomock.InOrder(
+					s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
+						Return(true, nil),
+					s.mock.StorageMock.EXPECT().BeginTX(gomock.Any()).
+						Return(ctx, nil),
+					s.mock.StorageMock.EXPECT().UpdateUserGroups(gomock.Any(), gomock.Eq(username), gomock.Eq(groups)).
+						Return(errors.New("some error")),
+					s.mock.StorageMock.EXPECT().Rollback(gomock.Any()).
+						Return(errors.New("no way")),
+				)
 			},
 			authentication.ErrUpdatingUser,
 		},
 		{
 			"ShouldFailIfCantCommitChanges",
 			func(mock *mocks.MockAutheliaCtx) {
-				mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
-					Return(true, nil)
-
-				mock.StorageMock.EXPECT().BeginTX(gomock.Any()).
-					Return(ctx, nil)
-
-				s.mock.StorageMock.EXPECT().UpdateUserGroups(gomock.Any(), gomock.Eq(username), gomock.Eq(groups)).
-					Return(nil)
-
-				s.mock.StorageMock.EXPECT().Commit(gomock.Any()).
-					Return(errors.New("commit error"))
+				gomock.InOrder(
+					s.mock.StorageMock.EXPECT().UserExists(gomock.Any(), gomock.Eq(username)).
+						Return(true, nil),
+					s.mock.StorageMock.EXPECT().BeginTX(gomock.Any()).
+						Return(ctx, nil),
+					s.mock.StorageMock.EXPECT().UpdateUserGroups(gomock.Any(), gomock.Eq(username), gomock.Eq(groups)).
+						Return(nil),
+					s.mock.StorageMock.EXPECT().Commit(gomock.Any()).
+						Return(errors.New("commit error")),
+				)
 			},
 			authentication.ErrUpdatingUser,
 		},
@@ -913,6 +902,13 @@ func (s *DBUserProviderSuite) TestListUsers() {
 			Email:       "john@example.com",
 			DisplayName: "John Doe",
 			Groups:      []string{"admins", "dev"},
+			Disabled:    false,
+		},
+		{
+			Username:    "john",
+			Email:       "john@example.com",
+			DisplayName: "John Doe",
+			Groups:      []string{"dev"},
 			Disabled:    false,
 		},
 	}

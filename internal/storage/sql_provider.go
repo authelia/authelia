@@ -1530,5 +1530,11 @@ func (p *SQLProvider) ListUsers(ctx context.Context) (users []model.User, err er
 		return users, fmt.Errorf("failed to get user list: %s", err)
 	}
 
+	for i := range users {
+		if users[i].Groups, err = p.GetUserGroups(ctx, users[i].Username); err != nil {
+			return []model.User{}, errors.New("failed to get user's groups")
+		}
+	}
+
 	return users, nil
 }

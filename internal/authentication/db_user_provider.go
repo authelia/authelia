@@ -351,10 +351,6 @@ func (p *DBUserProvider) ListUsers() (userList []UserDetailsExtended, err error)
 	}
 
 	for _, u := range models {
-		if u.Groups, err = p.database.GetUserGroups(ctx, u.Username); err != nil {
-			logging.Logger().WithError(err).Warn("failed to get groups for user")
-		}
-
 		userList = append(userList, userModelToUserDetailsExtended(u))
 	}
 

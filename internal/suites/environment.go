@@ -18,8 +18,18 @@ var (
 
 func init() {
 	var setupTimeoutStr = os.Getenv("SUITE_SETUP_TIMEOUT")
-	if setupTimeout, err := strconv.Atoi(setupTimeoutStr); err == nil && setupTimeout > 0 {
-		suitSetupTimeout = time.Duration(setupTimeout) * time.Second
+	if setupTimeoutStr != "" {
+		setupTimeout, err := strconv.Atoi(setupTimeoutStr)
+
+		switch {
+		case err != nil:
+			log.Warnf("Invalid SUITE_SETUP_TIMEOUT value '%s': %v", setupTimeoutStr, err)
+		case setupTimeout <= 0:
+			log.Warnf("SUITE_SETUP_TIMEOUT must be positive, got %d", setupTimeout)
+		default:
+			suitSetupTimeout = time.Duration(setupTimeout) * time.Second
+			log.Debugf("Set suite setup timeout to %v", suitSetupTimeout)
+		}
 	}
 }
 
