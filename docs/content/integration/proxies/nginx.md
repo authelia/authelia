@@ -459,13 +459,8 @@ example has an example usage of this file.
 
 ```nginx {title="websocket.conf"}
 ## WebSocket Example
-map $http_upgrade $connection_upgrade {
-    default upgrade;
-    ''      close;
-}
-
 proxy_set_header Upgrade $http_upgrade;
-proxy_set_header Connection $connection_upgrade;
+proxy_set_header Connection "upgrade";
 ```
 
 #### authelia-location.conf
