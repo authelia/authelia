@@ -156,7 +156,7 @@ func (s *DBUserProviderSuite) TestGetDetails() {
 
 			_, err := tc.provider.GetDetails(tc.username)
 
-			s.Equal(tc.expectError, err)
+			s.ErrorIs(err, tc.expectError)
 		})
 	}
 }
@@ -263,7 +263,7 @@ func (s *DBUserProviderSuite) TestCheckPassword() {
 
 			s.Equal(tc.expect, valid)
 
-			s.Equal(tc.expectError, err)
+			s.ErrorIs(err, tc.expectError)
 		})
 	}
 }
@@ -342,7 +342,7 @@ func (s *DBUserProviderSuite) TestUpdatePassword() {
 
 			err := provider.UpdatePassword(username, password)
 
-			s.Equal(tc.expectError, err)
+			s.ErrorIs(err, tc.expectError)
 		})
 	}
 }
@@ -584,7 +584,7 @@ func (s *DBUserProviderSuite) TestAddUser() {
 
 			err := provider.AddUser(tc.username, tc.displayname, tc.password, tc.options...)
 
-			s.Equal(tc.expectError, err)
+			s.ErrorIs(err, tc.expectError)
 		})
 	}
 }
@@ -647,7 +647,7 @@ func (s *DBUserProviderSuite) TestDeleteUser() {
 
 			err := provider.DeleteUser(username)
 
-			s.Equal(tc.expectError, err)
+			s.ErrorIs(err, tc.expectError)
 		})
 	}
 }
@@ -710,7 +710,7 @@ func (s *DBUserProviderSuite) TestChangeUserDisplayName() {
 
 			err := provider.ChangeDisplayName(username, displayname)
 
-			s.Equal(tc.expectErr, err)
+			s.ErrorIs(err, tc.expectErr)
 		})
 	}
 }
@@ -773,7 +773,7 @@ func (s *DBUserProviderSuite) TestChangeUserEmail() {
 
 			err := provider.ChangeEmail(username, email)
 
-			s.Equal(tc.expectError, err)
+			s.ErrorIs(err, tc.expectError)
 		})
 	}
 }
@@ -890,7 +890,7 @@ func (s *DBUserProviderSuite) TestChangeUserGroups() {
 
 			err := provider.ChangeGroups(username, groups)
 
-			s.Equal(tc.expectError, err)
+			s.ErrorIs(err, tc.expectError)
 		})
 	}
 }
@@ -947,7 +947,7 @@ func (s *DBUserProviderSuite) TestListUsers() {
 
 			_, err := provider.ListUsers()
 
-			s.Equal(tc.expectError, err)
+			s.ErrorIs(err, tc.expectError)
 		})
 	}
 }

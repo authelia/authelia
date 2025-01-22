@@ -3,6 +3,7 @@ package authentication
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/go-crypt/crypt"
 	"github.com/go-crypt/crypt/algorithm"
@@ -50,20 +51,17 @@ func (p *DBUserProvider) CheckUserPassword(username string, password string) (va
 	defer cancel()
 
 	if user, err = p.database.LoadUser(ctx, username, p.config.Search.Email); err != nil {
-		logging.Logger().WithError(err).Warn("error loading user info")
-		return false, ErrUserNotFound
+		return false, fmt.Errorf("%w: %w", ErrUserNotFound, err)
 	}
 
 	if user.Disabled {
-		logging.Logger().WithError(err).Warn("user is disabled")
-		return false, ErrUserNotFound
+		return false, fmt.Errorf("%w: %w", ErrUserNotFound, ErrUserDisabled)
 	}
 
 	var d algorithm.Digest
 
 	if d, err = crypt.Decode(string(user.Password)); err != nil {
-		logging.Logger().WithError(err).Warn("error decoding user's password hash")
-		return false, ErrInvalidPassword
+		return false, fmt.Errorf("%w: %w", ErrInvalidPassword, err)
 	}
 
 	return d.MatchAdvanced(password)
@@ -78,13 +76,11 @@ func (p *DBUserProvider) UpdatePassword(username string, newPassword string) (er
 	defer cancel()
 
 	if user, err = p.database.LoadUser(ctx, username, p.config.Search.Email); err != nil {
-		logging.Logger().WithError(err).Warn("error loading user info")
-		return ErrUserNotFound
+		return fmt.Errorf("%w: %w", ErrUserNotFound, err)
 	}
 
 	if user.Disabled {
-		logging.Logger().WithError(err).Warn("trying to update password to disabled user")
-		return ErrUserNotFound
+		return fmt.Errorf("%w: %w", ErrUserNotFound, ErrUserDisabled)
 	}
 
 	// the user real username.
@@ -93,13 +89,11 @@ func (p *DBUserProvider) UpdatePassword(username string, newPassword string) (er
 	var passwordDigest string
 
 	if passwordDigest, err = p.hashPassword(newPassword); err != nil {
-		logging.Logger().WithError(err).Warn("error hashing user's password")
-		return ErrUpdatingUserPassword
+		return fmt.Errorf("%w: %w", ErrUpdatingUserPassword, err)
 	}
 
 	if err = p.database.UpdateUserPassword(ctx, username, passwordDigest); err != nil {
-		logging.Logger().WithError(err).Warn("error updating user's passord")
-		return ErrUpdatingUserPassword
+		return fmt.Errorf("%w: %w", ErrUpdatingUserPassword, err)
 	}
 
 	return nil
@@ -109,11 +103,11 @@ func (p *DBUserProvider) hashPassword(password string) (passwordDigest string, e
 	var digest algorithm.Digest
 
 	if p.hash == nil {
-		return "", errors.New("hash algorithm not defined")
+		return "", fmt.Errorf("%w: hash algorithm not defined", ErrHashError)
 	}
 
 	if digest, err = p.hash.Hash(password); err != nil {
-		return "", err
+		return "", fmt.Errorf("%w: %w", ErrHashError, err)
 	}
 
 	passwordDigest = schema.NewPasswordDigest(digest).String()
@@ -130,8 +124,7 @@ func (p *DBUserProvider) GetDetails(username string) (details *UserDetails, err 
 	}
 
 	if user.Disabled {
-		logging.Logger().WithError(err).Warn("user is disabled")
-		return nil, ErrUserNotFound
+		return nil, fmt.Errorf("%w: %w", ErrUserNotFound, ErrUserDisabled)
 	}
 
 	return &user.UserDetails, nil
@@ -184,29 +177,23 @@ func (p *DBUserProvider) AddUser(username, displayname, password string, opts ..
 	var passwordDigest string
 
 	if passwordDigest, err = p.hashPassword(password); err != nil {
-		logging.Logger().WithError(err).Warn("error generating password hash for user")
-
-		return ErrCreatingUser
+		return fmt.Errorf("%w: %w", ErrCreatingUser, err)
 	}
 
 	if ctx, err = p.database.BeginTX(ctx); err != nil {
-		logging.Logger().WithError(err).Warn("error creating transaction for user creation")
-
-		return ErrCreatingUser
+		return fmt.Errorf("%w: %w", ErrCreatingUser, err)
 	}
 
 	if err = p.addUserTx(ctx, username, displayname, passwordDigest, options); err != nil {
 		if rbErr := p.database.Rollback(ctx); rbErr != nil {
-			logging.Logger().WithError(err).Warn("failed to rollback user creation changes")
+			return fmt.Errorf("%w: %w: %w", ErrCreatingUser, err, rbErr)
 		}
 
-		return err
+		return fmt.Errorf("%w: %w", ErrCreatingUser, err)
 	}
 
 	if err = p.database.Commit(ctx); err != nil {
-		logging.Logger().WithError(err).Warn("failed to commit user creation")
-
-		return ErrCreatingUser
+		return fmt.Errorf("%w: %w", ErrCreatingUser, err)
 	}
 
 	return nil
@@ -220,24 +207,44 @@ func (p *DBUserProvider) addUserTx(ctx context.Context, username, displayname, p
 	}
 
 	if err = p.database.CreateUser(ctx, username, options.Email, password); err != nil {
-		logging.Logger().WithError(err).Warn("error creating user")
-		return ErrCreatingUser
+		return err
 	}
 
 	if err = p.database.UpdateUserGroups(ctx, username, options.Groups...); err != nil {
-		logging.Logger().WithError(err).Warn("assigning group to user")
-		return ErrCreatingUser
+		return err
 	}
 
 	if displayname != "" {
 		if err = p.database.UpdateUserDisplayName(ctx, username, displayname); err != nil {
-			logging.Logger().WithError(err).Warn("error changing user's display name")
-			return ErrCreatingUser
+			return err
 		}
 	}
 
 	return nil
 }
+
+/*
+// UpdateUser updates a user.
+func (p *DBUserProvider) UpdateUser(username string, before, after *UserDetails) (err error) {
+	var ctx, cancel = context.WithTimeout(context.Background(), contextTimeout)
+
+	defer cancel()
+
+	if exists, err := p.database.UserExists(ctx, username); err != nil {
+		return fmt.Errorf("%w: %w", ErrUpdatingUser, err)
+	} else if !exists {
+		return ErrUserNotFound
+	}
+
+	data := model.User{}
+
+	if err = p.database.UpdateUser(ctx, username, data); err != nil {
+		return fmt.Errorf("%w: %w", ErrUpdatingUser, err)
+	}
+
+	return nil
+}.
+*/
 
 // DeleteUser deletes user given the username.
 func (p *DBUserProvider) DeleteUser(username string) (err error) {
@@ -246,15 +253,13 @@ func (p *DBUserProvider) DeleteUser(username string) (err error) {
 	defer cancel()
 
 	if exists, err := p.database.UserExists(ctx, username); err != nil {
-		logging.Logger().WithError(err).Warn("error deleting user")
-		return ErrDeletingUser
+		return fmt.Errorf("%w: error checking user: %w", ErrDeletingUser, err)
 	} else if !exists {
 		return ErrUserNotFound
 	}
 
 	if err = p.database.DeleteUser(ctx, username); err != nil {
-		logging.Logger().WithError(err).Warn("error deleting user")
-		return ErrDeletingUser
+		return fmt.Errorf("%w: %w", ErrDeletingUser, err)
 	}
 
 	return nil
@@ -345,9 +350,7 @@ func (p *DBUserProvider) ListUsers() (userList []UserDetailsExtended, err error)
 	var models []model.User
 
 	if models, err = p.database.ListUsers(ctx); err != nil {
-		logging.Logger().WithError(err).Warn("couldn't get the user list")
-
-		return userList, ErrListingUser
+		return userList, fmt.Errorf("%w: %w", ErrListingUser, err)
 	}
 
 	for _, u := range models {

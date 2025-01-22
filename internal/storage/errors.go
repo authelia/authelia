@@ -68,6 +68,7 @@ const (
 var (
 	ErrUserNotFound      = errors.New("user not found")
 	ErrUserAlreadyExists = errors.New("the user already exists")
+	ErrUpdatingUser      = errors.New("error updating user")
 )
 
 // error formats for use storage provider.

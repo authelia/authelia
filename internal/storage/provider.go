@@ -322,6 +322,9 @@ type AuthenticationStorageProvider interface {
 	// CreateUser creates a user in storage provider.
 	CreateUser(ctx context.Context, username, email, password string) (err error)
 
+	// // UpdateUser updates a user.
+	// UpdateUser(ctx context.Context, username string, data model.User) (err error).
+
 	// GetUserGroups gets the list of groups of specified username.
 	GetUserGroups(ctx context.Context, username string) (groups []string, err error)
 

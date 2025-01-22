@@ -157,9 +157,10 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlUpdateUserPassword:    fmt.Sprintf(queryFmtUpdateUserPassword, tableUsers),
 		sqlSelectUserGroups:      fmt.Sprintf(queryFmtSelectUserGroups, tableUsersGroups),
 		sqlInsertUser:            fmt.Sprintf(queryFmtInsertIntoUser, tableUsers),
+		sqlUpdateUser:            fmt.Sprintf(queryFmtUpdateUser, tableUsers),
+		sqlDeleteUser:            fmt.Sprintf(queryFmtDeleteUser, tableUsers),
 		sqlClearUserGroups:       fmt.Sprintf(queryFmtDeleteFromUserGroups, tableUsersGroups),
 		sqlAssignGroupToUser:     fmt.Sprintf(queryFmtInsertIntoUserGroups, tableUsersGroups),
-		sqlDeleteUserUser:        fmt.Sprintf(queryFmtDeleteUser, tableUsers),
 		sqlUpdateUserDisplayName: fmt.Sprintf(queryFmtUpdateUserDisplayName, tableUsers),
 		sqlUpdateUserEmail:       fmt.Sprintf(queryFmtUpdateUserEmail, tableUsers),
 		sqlUpdateUserStatus:      fmt.Sprintf(queryFmtUpdateUserStatus, tableUsers),
@@ -325,6 +326,7 @@ type SQLProvider struct {
 	sqlSelectUserByUsername  string
 	sqlSelectUserByEmail     string
 	sqlSelectUsers           string
+	sqlUpdateUser            string
 	sqlUpdateUserPassword    string
 	sqlUpdateUserDisplayName string
 	sqlUpdateUserEmail       string
@@ -332,7 +334,7 @@ type SQLProvider struct {
 	sqlInsertUser            string
 	sqlClearUserGroups       string
 	sqlAssignGroupToUser     string
-	sqlDeleteUserUser        string
+	sqlDeleteUser            string
 
 	// Table: users_groups.
 	sqlSelectUserGroups string
@@ -1476,8 +1478,17 @@ func (p *SQLProvider) UpdateUserGroups(ctx context.Context, username string, gro
 
 // DeleteUser implements storage.AuthenticationStorageProvider.DeleteUser.
 func (p *SQLProvider) DeleteUser(ctx context.Context, username string) (err error) {
-	if _, err = p.ExecContext(ctx, p.sqlDeleteUserUser, username); err != nil {
+	if _, err = p.ExecContext(ctx, p.sqlDeleteUser, username); err != nil {
 		return fmt.Errorf(errDeletingUser, err)
+	}
+
+	return nil
+}
+
+// UpdateUser implements storage.AuthenticationStorageProvider.UpdateUser.
+func (p *SQLProvider) UpdateUser(ctx context.Context, username string, data model.User) (err error) {
+	if _, err = p.ExecContext(ctx, p.sqlUpdateUser, data.Password, data.Email, data.DisplayName, data.Disabled, username); err != nil {
+		return fmt.Errorf("%w: %w", ErrUpdatingUser, err)
 	}
 
 	return nil
@@ -1527,12 +1538,12 @@ func (p *SQLProvider) UpdateUserStatus(ctx context.Context, username string, dis
 // ListUsers implements storage.AuthenticationStorageProvider.ListUsers.
 func (p *SQLProvider) ListUsers(ctx context.Context) (users []model.User, err error) {
 	if err := p.db.SelectContext(ctx, &users, p.sqlSelectUsers); err != nil {
-		return users, fmt.Errorf("failed to get user list: %s", err)
+		return users, fmt.Errorf("error selecting users from database: %w", err)
 	}
 
 	for i := range users {
 		if users[i].Groups, err = p.GetUserGroups(ctx, users[i].Username); err != nil {
-			return []model.User{}, errors.New("failed to get user's groups")
+			return nil, fmt.Errorf("error getting groups for user '%s': %w", users[i].Username, err)
 		}
 	}
 

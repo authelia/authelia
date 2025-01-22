@@ -107,6 +107,7 @@ var (
 	ErrUserExists           = errors.New("user already exists")
 	ErrUpdatingUserPassword = errors.New("error updating password")
 	ErrUpdatingUser         = errors.New("error updating user")
+	ErrHashError            = errors.New("error hashing password")
 
 	ErrListingUser = errors.New("error while getting the user list")
 
