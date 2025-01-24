@@ -61,7 +61,7 @@ identity_providers:
         require_pkce: true
         pkce_challenge_method: 'S256'
         redirect_uris:
-          - 'https://peertube.{{< sitevar name="domain" nojs="example.com" >}/plugins/auth-openid-connect/router/code-cb'
+          - 'https://peertube.{{< sitevar name="domain" nojs="example.com" >}}/plugins/auth-openid-connect/router/code-cb'
         scopes:
           - 'openid'
           - 'profile'
@@ -99,6 +99,8 @@ Users will not be able to log in using this provider if you do not set the `Allo
     - Group property: `groups`
     - Allowed group: Authelia's group allowed to log in using this provider.
     - Token signature algorithm: `RS256`
+
+{{< figure src="peertube.png" alt="Peertube" width="736" style="padding-right: 10px" >}}
 
 ## See Also
 
