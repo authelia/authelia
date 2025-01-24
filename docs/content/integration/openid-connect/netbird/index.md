@@ -2,7 +2,7 @@
 title: "NetBird"
 description: "Integrating NetBird with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2025-01-21T22:31:25+11:00
+date: 2025-01-21T22:32:51+11:00
 draft: false
 images: []
 weight: 620
@@ -23,7 +23,7 @@ seo:
 * [Authelia]
   * [v4.38.8](https://github.com/authelia/authelia/releases/tag/v4.38.8)
 * [NetBird]
-  * [2.0.1 3b9ed2f](https://github.com/m4rc3l-h3/netbird)
+  * [v0.36.3](https://github.com/netbirdio/netbird/releases/tag/v0.36.3)
 
 {{% oidc-common %}}
 
@@ -162,11 +162,9 @@ Take a look at the [See Also](#see-also) section for the cheatsheets correspondi
 
 ## See Also
 
-- [NetBird]
-  - [Authentication](https://github.com/m4rc3l-h3/netbird/blob/master/docs/auth.rst#authentication)
-  - [Configuration](https://github.com/m4rc3l-h3/netbird/blob/master/docs/config.rst#configuration)
+- [NetBird Identity Providers Documentation](https://docs.netbird.io/selfhosted/identity-providers)
 
 [Authelia]: https://www.authelia.com
-[NetBird]: https://github.com/m4rc3l-h3/netbird/blob/master/docs/auth.rst#authelia-oauth
+[NetBird]: https://netbird.io/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

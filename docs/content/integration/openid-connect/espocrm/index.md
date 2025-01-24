@@ -2,7 +2,7 @@
 title: "EspoCRM"
 description: "Integrating EspoCRM with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2025-01-21T22:31:25+11:00
+date: 2025-01-21T22:32:51+11:00
 draft: false
 images: []
 weight: 620
@@ -74,17 +74,11 @@ identity_providers:
 
 To configure [EspoCRM] to utilize Authelia as an [OpenID Connect 1.0] Provider you must use the GUI to configure it.
 
-1. [plugin:oauth](https://www.dokuwiki.org/plugin:oauth)
-2. [plugin:oauthgeneric](https://www.dokuwiki.org/plugin:oauthgeneric)
-
-Within [EspoCRM] visit the Administration section and then the Configuration Settings.
-
 1. Visit [EspoCRM].
 2. Login as an Administration user.
-3. Visit Administration.
-4. Visit Authentication.
-5. Select OIDC as the method.
-6. Configure the following options:
+3. Visit Authentication.
+4. Select OIDC as the method.
+5. Configure the following options:
    - Client ID: `espocrm`.
    - Client Secret: `insecure_secret`
    - Authorization Redirect URI: `https://espocrm.{{< sitevar name="domain" nojs="example.com" >}}/oauth-callback.php`

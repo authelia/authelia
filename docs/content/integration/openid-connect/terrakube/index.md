@@ -21,7 +21,7 @@ seo:
 ## Tested Versions
 
 * [Authelia]
-  * [v4.38.8](https://github.com/authelia/authelia/releases/tag/v4.38.18)
+  * [v4.38.18](https://github.com/authelia/authelia/releases/tag/v4.38.18)
 * [Terrakube]
   * [2.24.1](https://github.com/AzBuilder/terrakube/releases/tag/2.24.1)
 

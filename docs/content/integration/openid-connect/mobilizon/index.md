@@ -2,7 +2,7 @@
 title: "Mobilizon"
 description: "Integrating Mobilizon with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2025-01-21T22:31:25+11:00
+date: 2025-01-21T22:32:51+11:00
 draft: false
 images: []
 weight: 620
@@ -92,7 +92,7 @@ config :ueberauth, Ueberauth.Strategy.Keycloak.OAuth,
   site: "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}",
   authorize_url: "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization",
   token_url: "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token",
-  userinfo_url: "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/userinfo",
+  userinfo_url: "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo",
   token_method: :post
 ```
 

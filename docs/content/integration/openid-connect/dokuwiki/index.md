@@ -2,7 +2,7 @@
 title: "DokuWiki"
 description: "Integrating DokuWiki with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2025-01-21T22:31:25+11:00
+date: 2025-01-21T22:32:51+11:00
 draft: false
 images: []
 weight: 620
