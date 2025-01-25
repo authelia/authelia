@@ -327,6 +327,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/samos667"><img src="https://avatars.githubusercontent.com/u/50653464?v=4?s=100" width="100px;" alt="samos667"/><br /><sub><b>samos667</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=samos667" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/0xSysR3ll"><img src="https://avatars.githubusercontent.com/u/31414959?v=4?s=100" width="100px;" alt="0xsysr3ll"/><br /><sub><b>0xsysr3ll</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=0xSysR3ll" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/cromelex"><img src="https://avatars.githubusercontent.com/u/96779452?v=4?s=100" width="100px;" alt="Dan"/><br /><sub><b>Dan</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=cromelex" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>

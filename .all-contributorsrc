@@ -982,6 +982,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "cromelex",
+      "name": "Dan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/96779452?v=4",
+      "profile": "https://github.com/cromelex",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
