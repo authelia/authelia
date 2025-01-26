@@ -69,7 +69,7 @@ identity_providers:
 
 ### Application
 
-To configure [hoarder] to utilize Authelia as an [OpenID Connect 1.0] Provider, specify below environment variables in hoarder provided `.env` file:
+To configure [hoarder] to utilize Authelia as an [OpenID Connect 1.0] Provider, specify the below environment variables in hoarder provided `.env` file:
 
 ```.env
 OAUTH_WELLKNOWN_URL=https://auth.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration
@@ -81,7 +81,7 @@ OAUTH_PROVIDER_NAME="Authelia"
 ## See Also
 
 - [Hoarder OAuth OIDC config](https://docs.hoarder.app/configuration#authentication--signup)
-- [Hoarder GitHub Dicussion Authelia Configuration](https://github.com/hoarder-app/hoarder/discussions/419)
+- [Hoarder GitHub Discussion Authelia Configuration](https://github.com/hoarder-app/hoarder/discussions/419)
 
 [hoarder]: https://hoarder.app/
 [Authelia]: https://www.authelia.com
