@@ -991,6 +991,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "Shaamallow",
+      "name": "Eyal Benaroche",
+      "avatar_url": "https://avatars.githubusercontent.com/u/39766320?v=4",
+      "profile": "http://shaamallow.com",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
