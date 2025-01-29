@@ -65,6 +65,7 @@ authelia storage --help
 ### SEE ALSO
 
 * [authelia](authelia.md)	 - authelia untagged-unknown-dirty (master, unknown)
+* [authelia storage bans](authelia_storage_bans.md)	 - Manages user and ip bans
 * [authelia storage encryption](authelia_storage_encryption.md)	 - Manage storage encryption
 * [authelia storage migrate](authelia_storage_migrate.md)	 - Perform or list migrations
 * [authelia storage schema-info](authelia_storage_schema-info.md)	 - Show the storage information

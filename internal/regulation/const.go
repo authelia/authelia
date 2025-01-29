@@ -18,3 +18,11 @@ const (
 	// AuthTypeDuo is the string representing an auth log for second-factor authentication via DUO.
 	AuthTypeDuo = "Duo"
 )
+
+const (
+	typeUser        = "user"
+	typeIP          = "ip"
+	fieldBanType    = "ban_type"
+	fieldUsername   = "username"
+	fieldRecordType = "record_type"
+)

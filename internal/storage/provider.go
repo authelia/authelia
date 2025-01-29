@@ -303,6 +303,41 @@ type RegulatorProvider interface {
 	// AppendAuthenticationLog saves an authentication attempt to the storage provider.
 	AppendAuthenticationLog(ctx context.Context, attempt model.AuthenticationAttempt) (err error)
 
-	// LoadAuthenticationLogs loads authentication attempts from the storage provider (paginated).
-	LoadAuthenticationLogs(ctx context.Context, username string, fromDate time.Time, limit, page int) (attempts []model.AuthenticationAttempt, err error)
+	// LoadRegulationRecordsByUser loads authentication logs for a given username for the purpose of regulation. As such
+	// compared to standard authentication logs the amount of available data is very low.
+	LoadRegulationRecordsByUser(ctx context.Context, username string, since time.Time, limit int) (records []model.RegulationRecord, err error)
+
+	// SaveBannedUser saves a banned user to the database.
+	SaveBannedUser(ctx context.Context, ban *model.BannedUser) (err error)
+
+	// LoadBannedUser loads banned users from the database given a username.
+	LoadBannedUser(ctx context.Context, username string) (bans []model.BannedUser, err error)
+
+	// LoadBannedUserByID loads a banned user record given an id.
+	LoadBannedUserByID(ctx context.Context, id int) (ban model.BannedUser, err error)
+
+	// LoadBannedUsers loads pages of banned users from the database.
+	LoadBannedUsers(ctx context.Context, limit, page int) (bans []model.BannedUser, err error)
+
+	// RevokeBannedUser revokes a user ban in the database.
+	RevokeBannedUser(ctx context.Context, id int, expired time.Time) (err error)
+
+	// LoadRegulationRecordsByIP loads authentication logs for a given ip for the purpose of regulation. As such
+	// compared to standard authentication logs the amount of available data is very low.
+	LoadRegulationRecordsByIP(ctx context.Context, ip model.IP, since time.Time, limit int) (records []model.RegulationRecord, err error)
+
+	// SaveBannedIP saves a banned ip to the database.
+	SaveBannedIP(ctx context.Context, ban *model.BannedIP) (err error)
+
+	// LoadBannedIP loads banned ip's from the database given an ip.
+	LoadBannedIP(ctx context.Context, remoteIP model.IP) (bans []model.BannedIP, err error)
+
+	// LoadBannedIPByID loads a banned ip record given an id.
+	LoadBannedIPByID(ctx context.Context, id int) (ban model.BannedIP, err error)
+
+	// LoadBannedIPs loads pages of banned ip's from the database.
+	LoadBannedIPs(ctx context.Context, limit, page int) (bans []model.BannedIP, err error)
+
+	// RevokeBannedIP revokes an ip ban in the database.
+	RevokeBannedIP(ctx context.Context, id int, expired time.Time) (err error)
 }

@@ -635,6 +635,11 @@
         "env": "AUTHELIA_NTP_DISABLE_FAILURE"
     },
     {
+        "path": "regulation.modes",
+        "secret": false,
+        "env": "AUTHELIA_REGULATION_MODES"
+    },
+    {
         "path": "regulation.max_retries",
         "secret": false,
         "env": "AUTHELIA_REGULATION_MAX_RETRIES"
