@@ -395,11 +395,11 @@ func NewDefaultSourcesFiltered(paths []string, filters []BytesFilter, prefix, de
 }
 
 // NewDefaultSourcesWithDefaults returns a slice of Source configured to load from specified YAML files with additional sources.
-func NewDefaultSourcesWithDefaults(paths []string, filters []BytesFilter, prefix, delimiter string, defaultSource Source, additionalSources ...Source) (sources []Source) {
+func NewDefaultSourcesWithDefaults(paths []string, filters []BytesFilter, prefix, delimiter string, defaultSources []Source, additionalSources ...Source) (sources []Source) {
 	sources = []Source{NewMapSource(defaults)}
 
-	if defaultSource != nil {
-		sources = append(sources, defaultSource)
+	if len(defaultSources) != 0 {
+		sources = append(sources, defaultSources...)
 	}
 
 	if len(filters) == 0 {
@@ -409,4 +409,11 @@ func NewDefaultSourcesWithDefaults(paths []string, filters []BytesFilter, prefix
 	}
 
 	return sources
+}
+
+// NewDefaultsSource is a base configuration which sets defaults, this is particularly useful at the present time for
+// setting defaults that otherwise can't be set. In the future it can be used to generate documentation or be generated
+// by jsonschema. It will also reduce some areas of the validation package.
+func NewDefaultsSource() (source Source) {
+	return NewMapSource(mapDefaults)
 }

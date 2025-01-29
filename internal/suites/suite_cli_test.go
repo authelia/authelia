@@ -1244,6 +1244,113 @@ func (s *CLISuite) TestStorage06ShouldMigrateDown() {
 	s.Regexp(pattern1, output)
 }
 
+func (s *CLISuite) TestStorage07CacheMDS3() {
+	var (
+		output string
+		err    error
+	)
+
+	dir := s.T().TempDir()
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "--help"})
+	s.NoError(err)
+	s.Contains(output, "Manage WebAuthn MDS3 cache storage.")
+	s.Contains(output, "  delete ")
+	s.Contains(output, "  dump ")
+	s.Contains(output, "  status ")
+	s.Contains(output, "  update ")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "status"})
+	s.EqualError(err, "exit status 1")
+	s.Contains(output, "Error: webauthn metadata is disabled")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "delete"})
+	s.NoError(err)
+	s.Contains(output, "Successfully deleted cached MDS3 data.")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "dump", "--path=" + filepath.Join(dir, "data.mds3")})
+	s.EqualError(err, "exit status 1")
+	s.Contains(output, "Error: webauthn metadata is disabled")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "update"})
+	s.EqualError(err, "exit status 1")
+	s.Contains(output, "Error: webauthn metadata is disabled")
+
+	env := map[string]string{"AUTHELIA_WEBAUTHN_METADATA_ENABLED": "true"}
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "status"}, env)
+	s.NoError(err)
+	s.Contains(output, "WebAuthn MDS3 Cache Status:\n\n\tValid: true\n\tInitialized: false\n\tOutdated: false\n")
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "delete"}, env)
+	s.NoError(err)
+	s.Contains(output, "Successfully deleted cached MDS3 data.")
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "dump", "--path=" + filepath.Join(dir, "data.mds3")}, env)
+	s.EqualError(err, "exit status 1")
+	s.Contains(output, "Error: error dumping metadata: no metadata is in the cache")
+
+	reUpdated := regexp.MustCompile(`^WebAuthn MDS3 cache data updated to version (\d+) and is due for update on ([A-Za-z]+ \d{1,2}, \d{4}).`)
+	reAlreadyUpToDate := regexp.MustCompile(`^WebAuthn MDS3 cache data with version (\d+) due for update on ([A-Za-z]+ \d{1,2}, \d{4}) does not require an update.`)
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "update"}, env)
+	s.NoError(err)
+	s.Regexp(reUpdated, output)
+
+	matches := reUpdated.FindStringSubmatch(output)
+
+	version := matches[1]
+	date := matches[2]
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "update"}, env)
+	s.NoError(err)
+	s.Regexp(reAlreadyUpToDate, output)
+	s.Contains(output, version)
+	s.Contains(output, date)
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "update", "-f"}, env)
+	s.NoError(err)
+	s.Regexp(reUpdated, output)
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "status"}, env)
+	s.NoError(err)
+	s.Contains(output, fmt.Sprintf("WebAuthn MDS3 Cache Status:\n\n\tValid: true\n\tInitialized: true\n\tOutdated: false\n\tVersion: %s\n\tNext Update: %s\n", version, date))
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "dump", "--path=" + filepath.Join(dir, "data.mds3")}, env)
+	s.NoError(err)
+	s.Contains(output, fmt.Sprintf("Successfully dumped WebAuthn MDS3 data with version %s from cache to file '%s'.", version, filepath.Join(dir, "data.mds3")))
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "update", "--path=" + filepath.Join(dir, "data.mds3")}, env)
+	s.NoError(err)
+	s.Regexp(reAlreadyUpToDate, output)
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "update", "--path=" + filepath.Join(dir, "data.mds3"), "-f"}, env)
+	s.NoError(err)
+	s.Regexp(reUpdated, output)
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "delete"}, env)
+	s.NoError(err)
+	s.Contains(output, "Successfully deleted cached MDS3 data.")
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "status"}, env)
+	s.NoError(err)
+	s.Contains(output, "WebAuthn MDS3 Cache Status:\n\n\tValid: true\n\tInitialized: false\n\tOutdated: false\n")
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "update", "--path=" + filepath.Join(dir, "data.mds3")}, env)
+	s.NoError(err)
+	s.Regexp(reUpdated, output)
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "status"}, env)
+	s.NoError(err)
+	s.Contains(output, fmt.Sprintf("WebAuthn MDS3 Cache Status:\n\n\tValid: true\n\tInitialized: true\n\tOutdated: false\n\tVersion: %s\n\tNext Update: %s\n", version, date))
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "update"}, env)
+	s.NoError(err)
+	s.Regexp(reAlreadyUpToDate, output)
+	s.Contains(output, version)
+	s.Contains(output, date)
+}
+
 func (s *CLISuite) TestACLPolicyCheckVerbose() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", "access-control", "check-policy", "--url=https://public.example.com", "--verbose", "--config=/config/configuration.yml"})
 	s.NoError(err)

@@ -16,12 +16,12 @@ func NewMySQLSuite() *MySQLSuite {
 	}
 }
 
-func (s *MySQLSuite) Test1FAScenario() {
-	suite.Run(s.T(), New1FAScenario())
+func (s *MySQLSuite) TestOneFactorScenario() {
+	suite.Run(s.T(), NewOneFactorScenario())
 }
 
-func (s *MySQLSuite) Test2FATOTPScenario() {
-	suite.Run(s.T(), New2FATOTPScenario())
+func (s *MySQLSuite) TestTwoFactorTOTPScenario() {
+	suite.Run(s.T(), NewTwoFactorTOTPScenario())
 }
 
 func TestMySQLSuite(t *testing.T) {

@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import WebAuthnTryIcon from "@components/WebAuthnTryIcon";
 import { useIsMountedRef } from "@hooks/Mounted";
 import { AssertionResult, AssertionResultFailureString, WebAuthnTouchState } from "@models/WebAuthn";
-import { getAuthenticationOptions, getAuthenticationResult, postAuthenticationResponse } from "@services/WebAuthn";
+import { getWebAuthnOptions, getWebAuthnResult, postWebAuthnResponse } from "@services/WebAuthn";
 
 export interface Props {
     closing: boolean;
@@ -26,7 +26,7 @@ const SecondFactorMethodWebAuthn = function (props: Props) {
         setStarted(true);
 
         try {
-            const optionsStatus = await getAuthenticationOptions();
+            const optionsStatus = await getWebAuthnOptions();
 
             if (optionsStatus.status !== 200 || optionsStatus.options == null) {
                 setState(WebAuthnTouchState.Failure);
@@ -35,7 +35,7 @@ const SecondFactorMethodWebAuthn = function (props: Props) {
                 return;
             }
 
-            const result = await getAuthenticationResult(optionsStatus.options);
+            const result = await getWebAuthnResult(optionsStatus.options);
 
             if (result.result !== AssertionResult.Success) {
                 if (!mounted.current) return;
@@ -58,7 +58,7 @@ const SecondFactorMethodWebAuthn = function (props: Props) {
 
             setState(WebAuthnTouchState.InProgress);
 
-            const response = await postAuthenticationResponse(result.response);
+            const response = await postWebAuthnResponse(result.response);
 
             if (response.data.status === "OK" && response.status === 200) {
                 props.onSecondFactorSuccess();
