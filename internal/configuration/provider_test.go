@@ -92,6 +92,23 @@ func TestShouldHaveNotifier(t *testing.T) {
 	assert.NotNil(t, config.Notifier)
 }
 
+func TestShouldHaveEndpointSubPath(t *testing.T) {
+	testSetEnv(t, "SESSION_SECRET", "abc")
+	testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "abc")
+	testSetEnv(t, "IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET", "abc")
+	testSetEnv(t, "AUTHENTICATION_BACKEND_LDAP_PASSWORD", "abc")
+
+	val := schema.NewStructValidator()
+	keys, config, err := Load(val, NewDefaultSources([]string{"./test_resources/config_authz_subpath.yml"}, DefaultEnvPrefix, DefaultEnvDelimiter)...)
+	assert.NoError(t, err)
+
+	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
+
+	assert.Len(t, val.Errors(), 0)
+	assert.Len(t, val.Warnings(), 0)
+	assert.Contains(t, config.Server.Endpoints.Authz, "auth-request/basic")
+}
+
 func TestShouldConfigureRefreshIntervalDisable(t *testing.T) {
 	testSetEnv(t, "SESSION_SECRET", "abc")
 	testSetEnv(t, "STORAGE_MYSQL_PASSWORD", "abc")

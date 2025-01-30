@@ -11,23 +11,23 @@
 	"author": "Authelia",
 	"license": "Apache-2.0",
 	"dependencies": {
-		"@react-email/components": "0.0.31",
-		"@react-email/render": "1.0.3",
+		"@react-email/components": "0.0.32",
+		"@react-email/render": "1.0.4",
 		"esbuild": "0.24.2",
 		"react": "18.3.1",
 		"react-dom": "18.3.1",
-		"react-email": "3.0.4",
+		"react-email": "3.0.6",
 		"tailwind-merge": "2.6.0",
-		"tailwindcss": "3.4.17",
-		"typescript": "5.7.2"
+		"tailwindcss": "4.0.1",
+		"typescript": "5.7.3"
 	},
 	"devDependencies": {
 		"@radix-ui/colors": "3.0.0",
-		"@types/node": "22.10.5",
+		"@types/node": "22.12.0",
 		"@types/react": "18.3.18",
 		"@types/react-dom": "18.3.5",
-		"eslint": "9.17.0",
+		"eslint": "9.19.0",
 		"tsx": "4.19.2",
-		"vitest": "2.1.8"
+		"vitest": "3.0.4"
 	}
 }
