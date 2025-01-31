@@ -217,7 +217,9 @@ location / {
     proxy_pass $forward_scheme://$server:$port;
 }
 ```
-{{< callout context="note" title="Websockets" icon="outline/info-circle" >}}Note that because we are using the advanced configuration tab, the switches on the `Details` tab will have no effect.  If websockets are required for a protected application, you must include the websocket.conf from the [NGINX Snippets](../nginx.md#supporting-configuration-snippets). {{< /callout >}}
+{{< callout context="note" title="Websockets" icon="outline/info-circle" >}}
+Note that because we are using the advanced configuration tab, the switches on the `Details` tab will have no effect.  If websockets are required for a protected application, you must include the websocket.conf from the [NGINX Snippets](../nginx.md#supporting-configuration-snippets). 
+{{< /callout >}}
 
 #### Protected Application Screenshots
 
