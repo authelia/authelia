@@ -11,7 +11,7 @@ require (
 	github.com/authelia/jsonschema v0.1.7
 	github.com/authelia/otp v1.0.0
 	github.com/deckarep/golang-set/v2 v2.7.0
-	github.com/duosecurity/duo_api_golang v0.0.0-20240408132100-cb1770897e66
+	github.com/duosecurity/duo_api_golang v0.0.0-20250128191753-8aff7fde9979
 	github.com/fasthttp/router v1.5.4
 	github.com/fasthttp/session/v2 v2.5.9
 	github.com/fsnotify/fsnotify v1.8.0
@@ -41,11 +41,11 @@ require (
 	github.com/prometheus/client_golang v1.20.5
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.1
-	github.com/spf13/pflag v1.0.5
+	github.com/spf13/pflag v1.0.6
 	github.com/stretchr/testify v1.10.0
 	github.com/trustelem/zxcvbn v1.0.1
 	github.com/valyala/fasthttp v1.58.0
-	github.com/weppos/publicsuffix-go v0.40.3-0.20250124150712-b4719ce95b9a
+	github.com/weppos/publicsuffix-go v0.40.3-0.20250127173806-e489a31678ca
 	github.com/wneessen/go-mail v0.5.2
 	go.uber.org/mock v0.5.0
 	golang.org/x/net v0.34.0
