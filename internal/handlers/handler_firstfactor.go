@@ -7,6 +7,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/regulation"
+	"github.com/authelia/authelia/v4/internal/session"
 )
 
 // FirstFactorPOST is the handler performing the first factory.
@@ -84,8 +85,9 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 			return
 		}
 
-		provider, err := ctx.GetSessionProvider()
-		if err != nil {
+		var provider *session.Session
+
+		if provider, err = ctx.GetSessionProvider(); err != nil {
 			ctx.Logger.WithError(err).Error("Failed to get session provider during 1FA attempt")
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
@@ -93,19 +95,15 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 			return
 		}
 
-		userSession, err := provider.GetSession(ctx.RequestCtx)
-		if err != nil {
-			ctx.Logger.Errorf("%s", err)
-
-			respondUnauthorized(ctx, messageAuthenticationFailed)
-
-			return
+		if err = provider.DestroySession(ctx.RequestCtx); err != nil {
+			// This failure is not likely to be critical as we ensure to regenerate the session below.
+			ctx.Logger.WithError(err).Trace("Failed to destroy session during 1FA attempt")
 		}
 
-		newSession := provider.NewDefaultUserSession()
+		userSession := provider.NewDefaultUserSession()
 
 		// Reset all values from previous session except OIDC workflow before regenerating the cookie.
-		if err = ctx.SaveSession(newSession); err != nil {
+		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
 			ctx.Logger.WithError(err).Errorf(logFmtErrSessionReset, regulation.AuthType1FA, details.Username)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
@@ -113,7 +111,7 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 			return
 		}
 
-		if err = ctx.RegenerateSession(); err != nil {
+		if err = provider.RegenerateSession(ctx.RequestCtx); err != nil {
 			ctx.Logger.WithError(err).Errorf(logFmtErrSessionRegenerate, regulation.AuthType1FA, details.Username)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
@@ -144,7 +142,7 @@ func FirstFactorPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.Re
 			userSession.RefreshTTL = ctx.Clock.Now().Add(ctx.Configuration.AuthenticationBackend.RefreshInterval.Value())
 		}
 
-		if err = ctx.SaveSession(userSession); err != nil {
+		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
 			ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "updated profile", regulation.AuthType1FA, logFmtActionAuthentication, details.Username)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
