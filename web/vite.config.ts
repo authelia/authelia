@@ -91,6 +91,7 @@ export default defineConfig(({ mode }) => {
         server: {
             open: false,
             port: 3000,
+            allowedHosts: ["login.example.com"],
         },
         test: {
             coverage: {
