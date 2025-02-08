@@ -9,7 +9,7 @@
   },
   "pnpm": {
     "overrides": {
-      "@babel/traverse": "7.26.7",
+      "@babel/traverse": "7.26.8",
       "@typescript-eslint/eslint-plugin": "8.22.0",
       "@typescript-eslint/parser": "8.22.0",
       "@typescript-eslint/typescript-estree": "8.22.0",
