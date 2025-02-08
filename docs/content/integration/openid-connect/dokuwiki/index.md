@@ -68,8 +68,13 @@ identity_providers:
           - 'profile'
           - 'groups'
           - 'offline_access'
+        grant_types:
+          - 'authorization_code'
+          - 'refresh_token'
+        response_types:
+          - 'code'
         userinfo_signed_response_alg: 'none'
-        token_endpoint_auth_method: 'client_secret_basic'
+        token_endpoint_auth_method: 'client_secret_post'
 ```
 
 ### Application
