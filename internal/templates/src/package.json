@@ -13,7 +13,7 @@
 	"dependencies": {
 		"@react-email/components": "0.0.32",
 		"@react-email/render": "1.0.4",
-		"esbuild": "0.24.2",
+		"esbuild": "0.25.0",
 		"react": "18.3.1",
 		"react-dom": "18.3.1",
 		"react-email": "3.0.6",
