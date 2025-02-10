@@ -49,7 +49,7 @@ require (
 	github.com/wneessen/go-mail v0.5.2
 	go.uber.org/mock v0.5.0
 	golang.org/x/net v0.34.0
-	golang.org/x/sync v0.10.0
+	golang.org/x/sync v0.11.0
 	golang.org/x/term v0.29.0
 	golang.org/x/text v0.21.0
 	gopkg.in/yaml.v3 v3.0.1
