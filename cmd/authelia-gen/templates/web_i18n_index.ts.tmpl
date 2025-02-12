@@ -56,6 +56,16 @@ i18n.use(Backend)
             escapeValue: false,
         },
         debug: false,
+    })
+    .then(() => {
+        const rootElement = document.getElementById("root");
+        if (rootElement) {
+            rootElement.lang = i18n.language;
+
+            i18n.on("languageChanged", (lng) => {
+                rootElement.lang = lng;
+            });
+        }
     });
 
 export default i18n;
