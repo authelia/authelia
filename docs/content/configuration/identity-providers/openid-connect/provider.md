@@ -427,7 +427,7 @@ The policy which is applied if this rule matches. Valid values are `one_factor`,
 
 ##### subject
 
-{{< confkey type="list(string(string))" required="yes" >}}
+{{< confkey type="list(list(string))" required="yes" >}}
 
 The subjects criteria as per the [Access Control Configuration](../../security/access-control.md#subject). This must be
 included for the rule to be considered valid.
