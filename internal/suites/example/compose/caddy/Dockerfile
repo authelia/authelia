@@ -2,6 +2,6 @@ FROM caddy:2.9.1-builder@sha256:4199ffa369bfa56693d6dce853dbf294c0472ddceb629127
 
 RUN xcaddy build fix-empty-copy-headers
 
-FROM caddy:2.9.1@sha256:ca29b067a632213b310e82a2881a17f186b87913044eb6ed9ea632aeb0d36cea
+FROM caddy:2.9.1@sha256:f27c4c64e20ca80651d1fdee831785e49553169bf9c9668600b456932f75ac47
 
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy
