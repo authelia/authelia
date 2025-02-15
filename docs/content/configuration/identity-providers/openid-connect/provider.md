@@ -410,7 +410,7 @@ identity_providers:
 
 {{< confkey type="string" default="two_factor" required="no" >}}
 
-The default effective policy of none of the rules are able to determine the effective policy.
+The default effective policy if none of the rules are able to determine the effective policy.
 
 #### rules
 
