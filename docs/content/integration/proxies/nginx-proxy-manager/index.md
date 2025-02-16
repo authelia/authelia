@@ -159,7 +159,7 @@ either most likely require an adjustment, or may require an adjustment if you're
 The examples assume you've mounted a volume containing the relevant
 [NGINX Snippets](../nginx.md#supporting-configuration-snippets) from the [NGINX Integration Guide](../nginx.md). The
 suggested snippets are the `proxy.conf`, `authelia-location.conf`, and `authelia-authrequest.conf`. It may be fine to
-substitute the standard variant of the `proxy.conf` for the headers only variant but this is untested.
+substitute the standard variant of the `proxy.conf` for the headers only variant but this is untested.  You will need `websocket.conf` if any protected applications require websockets.
 
 These snippets make the addition of a protected proxy host substantially easier.
 
@@ -217,6 +217,9 @@ location / {
     proxy_pass $forward_scheme://$server:$port;
 }
 ```
+{{< callout context="note" title="Websockets" icon="outline/info-circle" >}}
+Note that because we are using the advanced configuration tab, the switches on the `Details` tab will have no effect.  If websockets are required for a protected application, you must include the websocket.conf from the [NGINX Snippets](../nginx.md#supporting-configuration-snippets). 
+{{< /callout >}}
 
 #### Protected Application Screenshots
 

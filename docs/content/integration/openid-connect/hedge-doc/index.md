@@ -21,7 +21,7 @@ seo:
 ## Tested Versions
 
 * [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+  * [v4.38.16](https://github.com/authelia/authelia/releases/tag/v4.38.16)
 * [HedgeDoc]
   * [v1.10.0](https://github.com/hedgedoc/hedgedoc/releases/tag/1.10.0)
 
@@ -94,7 +94,7 @@ CMD_OAUTH2_USER_PROFILE_USERNAME_ATTR=preferred_username
 CMD_OAUTH2_USER_PROFILE_DISPLAY_NAME_ATTR=name
 CMD_OAUTH2_USER_PROFILE_EMAIL_ATTR=email
 CMD_OAUTH2_ROLES_CLAIM=groups
-CMD_OAUTH2_ACCESS_ROLE=hedgedoc
+CMD_OAUTH2_ACCESS_ROLE=hedgedoc-users
 ```
 
 ## See Also
