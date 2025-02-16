@@ -34,7 +34,7 @@ const CredentialItem = function (props: Props) {
         <Paper variant={"outlined"} id={props.id}>
             <Box sx={{ p: 3 }}>
                 <Grid container size={{ xs: 12 }} alignItems={"center"} height={"100%"}>
-                    <Grid size={{ xs: 2, sm: 1 }} marginRight={{ xs: 1, md: 2, xl: 3 }}>
+                    <Grid container size={{ xs: 2, sm: 1 }} marginRight={{ xs: 1, md: 2, xl: 3 }}>
                         {props.icon}
                     </Grid>
                     <Grid size={{ xs: 3, sm: 6 }}>
