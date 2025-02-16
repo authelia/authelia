@@ -22,7 +22,10 @@
         "@types/react": "18",
         "react": "18"
       }
-    }
+    },
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   },
   "dependencies": {
     "@emotion/cache": "11.14.0",

@@ -8,7 +8,7 @@ if [ $# -eq 0 ]; then
   echo "--- :go::service_dog: Running yamllint"
   yamllint . || FAILED=1
   echo "--- :go::service_dog: Running eslint"
-  cd web && eslint '*/**/*.{js,ts,tsx}' && cd .. || FAILED=1
+  cd web && eslint '*/**/*.{js,ts,tsx}' || FAILED=1 && cd ..
 
   echo "--- :go::service_dog: Lint Runners Completed"
   if [ $FAILED -ne 0 ]; then
