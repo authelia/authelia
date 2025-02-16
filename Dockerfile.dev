@@ -14,7 +14,7 @@ RUN yarn global add pnpm && \
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.23.6-alpine@sha256:f9c247344be37d3f045fcfda7ec0ca266f38c09ad2023889f1c47aca74fbff67 AS builder-backend
+FROM golang:1.23.6-alpine@sha256:f8113c4b13e2a8b3a168dceaee88ac27743cc84e959f43b9dbd2291e9c3f57a0 AS builder-backend
 
 WORKDIR /go/src/app
 
