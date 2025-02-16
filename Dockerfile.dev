@@ -1,7 +1,7 @@
 # ========================================
 # ===== Build image for the frontend =====
 # ========================================
-FROM node:23-alpine@sha256:70eca392e3d52cb7d133b52d52e8600d8c410a5eaee6105c11324b28868f9ac9 AS builder-frontend
+FROM node:23-alpine@sha256:0a29d8a047149079bf48dab598f287815e39867d547e8f3935cfdece0a4379cc AS builder-frontend
 
 WORKDIR /node/src/app
 
@@ -14,7 +14,7 @@ RUN yarn global add pnpm && \
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.23.5-alpine@sha256:47d337594bd9e667d35514b241569f95fb6d95727c24b19468813d596d5ae596 AS builder-backend
+FROM golang:1.23.6-alpine@sha256:f9c247344be37d3f045fcfda7ec0ca266f38c09ad2023889f1c47aca74fbff67 AS builder-backend
 
 WORKDIR /go/src/app
 
@@ -44,7 +44,7 @@ RUN \
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM alpine:3.21.2@sha256:56fa17d2a7e7f168a043a2712e63aed1f8543aeafdcee47c58dcffe38ed51099
+FROM alpine:3.21.3@sha256:a8560b36e8b8210634f77d9f7f9efd7ffa463e380b75e2e74aff4511df3ef88c
 
 WORKDIR /app
 
