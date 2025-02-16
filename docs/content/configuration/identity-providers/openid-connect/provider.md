@@ -410,7 +410,7 @@ identity_providers:
 
 {{< confkey type="string" default="two_factor" required="no" >}}
 
-The default effective policy of none of the rules are able to determine the effective policy.
+The default effective policy if none of the rules are able to determine the effective policy.
 
 #### rules
 
@@ -427,7 +427,7 @@ The policy which is applied if this rule matches. Valid values are `one_factor`,
 
 ##### subject
 
-{{< confkey type="list(string(string))" required="yes" >}}
+{{< confkey type="list(list(string))" required="yes" >}}
 
 The subjects criteria as per the [Access Control Configuration](../../security/access-control.md#subject). This must be
 included for the rule to be considered valid.
