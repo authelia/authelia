@@ -36,8 +36,8 @@ const MinimalLayout = function (props: Props) {
 
     return (
         <Box>
-            <AppBar position="static" color="transparent" elevation={0}>
-                <Toolbar variant="regular">
+            <AppBar position={"static"} color={"transparent"} elevation={0}>
+                <Toolbar variant={"regular"}>
                     <Typography style={{ flexGrow: 1 }} />
                     {props.userInfo ? <AccountSettingsMenu userInfo={props.userInfo} /> : null}
                 </Toolbar>
@@ -47,10 +47,10 @@ const MinimalLayout = function (props: Props) {
                 className={styles.root}
                 container
                 spacing={0}
-                alignItems="center"
-                justifyContent="center"
+                alignItems={"center"}
+                justifyContent={"center"}
             >
-                <Container maxWidth="xs" className={styles.rootContainer}>
+                <Container maxWidth={"xs"} className={styles.rootContainer}>
                     <Grid container>
                         <Grid size={{ xs: 12 }}>{logo}</Grid>
                         {props.title ? (

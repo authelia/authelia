@@ -7,4 +7,5 @@ services:
       - './OIDC/configuration.yml:/config/configuration.yml'
       - './OIDC/users.yml:/config/users.yml'
       - './common/pki:/pki'
+      - './common/pki/public.crt:/certs/public.crt'
 ...

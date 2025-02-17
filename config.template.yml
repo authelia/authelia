@@ -595,8 +595,8 @@ identity_validation:
 ##
 ## Access control is a list of rules defining the authorizations applied for one resource to users or group of users.
 ##
-## If 'access_control' is not defined, ACL rules are disabled and the 'bypass' rule is applied, i.e., access is allowed
-## to anyone. Otherwise restrictions follow the rules defined.
+## If 'access_control' is not defined, ACL rules are disabled and the 'deny' rule is applied, i.e., access is denied
+## to everyone. Otherwise restrictions follow the rules defined.
 ##
 ## Note: One can use the wildcard * to match any subdomain.
 ## It must stand at the beginning of the pattern. (example: *.example.com)
@@ -796,6 +796,12 @@ session:
     # port: 6379
     ## Use a unix socket instead
     # host: '/var/run/redis/redis.sock'
+
+    ## The connection timeout in the duration common syntax.
+    # timeout: '5 seconds'
+
+    ## The maximum number of retries on a failed command. Set it to 0 to disable retries.
+    # max_retries: 3
 
     ## Username used for redis authentication. This is optional and a new feature in redis 6.0.
     # username: 'authelia'
@@ -1143,8 +1149,8 @@ session:
   ##
   ## OpenID Connect (Identity Provider)
   ##
-  ## It's recommended you read the documentation before configuration of this section:
-  ## https://www.authelia.com/c/oidc
+  ## It's recommended you read the documentation before configuration of this section.
+  ## See: https://www.authelia.com/c/oidc/provider
   # oidc:
     ## The hmac_secret is used to sign OAuth2 tokens (authorization code, access tokens and refresh tokens).
     ## HMAC Secret can also be set using a secret: https://www.authelia.com/c/secrets
@@ -1243,7 +1249,9 @@ session:
       ## provided they have the scheme http or https and do not have the hostname of localhost.
       # allowed_origins_from_client_redirect_uris: false
 
-    ## Clients is a list of known clients and their configuration.
+    ## Clients is a list of registered clients and their configuration.
+    ## It's recommended you read the documentation before configuration of a registered client.
+    ## See: https://www.authelia.com/c/oidc/registered-clients
     # clients:
       # -
         ## The Client ID is the OAuth 2.0 and OpenID Connect 1.0 Client ID which is used to link an application to a

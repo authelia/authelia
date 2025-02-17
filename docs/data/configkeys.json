@@ -435,6 +435,16 @@
         "env": "AUTHELIA_SESSION_REDIS_PORT"
     },
     {
+        "path": "session.redis.timeout",
+        "secret": false,
+        "env": "AUTHELIA_SESSION_REDIS_TIMEOUT"
+    },
+    {
+        "path": "session.redis.max_retries",
+        "secret": false,
+        "env": "AUTHELIA_SESSION_REDIS_MAX_RETRIES"
+    },
+    {
         "path": "session.redis.username",
         "secret": false,
         "env": "AUTHELIA_SESSION_REDIS_USERNAME"

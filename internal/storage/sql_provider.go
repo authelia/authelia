@@ -561,7 +561,7 @@ func (p *SQLProvider) LoadTOTPConfiguration(ctx context.Context, username string
 
 // SaveTOTPHistory saves a TOTP history item in the storage provider.
 func (p *SQLProvider) SaveTOTPHistory(ctx context.Context, username string, step uint64) (err error) {
-	signature := p.otpHMACSignature([]byte(strconv.Itoa(int(step))), []byte(username))
+	signature := p.otpHMACSignature([]byte(strconv.FormatUint(step, 10)), []byte(username))
 
 	if _, err = p.db.ExecContext(ctx, p.sqlInsertTOTPHistory, username, signature); err != nil {
 		return fmt.Errorf("error inserting TOTP history for user '%s': %w", username, err)
@@ -574,7 +574,7 @@ func (p *SQLProvider) SaveTOTPHistory(ctx context.Context, username string, step
 func (p *SQLProvider) ExistsTOTPHistory(ctx context.Context, username string, step uint64) (exists bool, err error) {
 	var count int
 
-	signature := p.otpHMACSignature([]byte(strconv.Itoa(int(step))), []byte(username))
+	signature := p.otpHMACSignature([]byte(strconv.FormatUint(step, 10)), []byte(username))
 
 	if err = p.db.GetContext(ctx, &count, p.sqlSelectTOTPHistory, username, signature); err != nil {
 		return false, fmt.Errorf("error checking if TOTP history exists: %w", err)

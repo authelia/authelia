@@ -21,9 +21,9 @@ seo:
 ## Tested Versions
 
 * [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+  * [v4.38.17](https://github.com/authelia/authelia/releases/tag/v4.38.17)
 * [immich]
-  * [v1.101.0](https://github.com/immich-app/immich/releases/tag/v1.101.0)
+  * [v1.123.0](https://github.com/immich-app/immich/releases/tag/v1.123.0)
 
 {{% oidc-common %}}
 
@@ -61,7 +61,7 @@ identity_providers:
         redirect_uris:
           - 'https://immich.{{< sitevar name="domain" nojs="example.com" >}}/auth/login'
           - 'https://immich.{{< sitevar name="domain" nojs="example.com" >}}/user-settings'
-          - 'app.immich:/'
+          - 'app.immich:///oauth-callback'
         scopes:
           - 'openid'
           - 'profile'

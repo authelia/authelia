@@ -120,8 +120,8 @@ const WebAuthnMethod = function (props: Props) {
     return (
         <MethodContainer
             id={props.id}
-            title="Security Key"
-            explanation="Touch the token of your security key"
+            title={translate("Security Key")}
+            explanation={translate("Touch the token of your security key")}
             duoSelfEnrollment={false}
             registered={props.registered}
             state={methodState}

@@ -163,7 +163,7 @@ func (suite *NotifierSuite) TestSMTPShouldDefaultTLSServerNameToHost() {
 
 func (suite *NotifierSuite) TestSMTPShouldErrorOnSSL30() {
 	suite.config.SMTP.TLS = &schema.TLS{
-		MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30},
+		MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
 	}
 
 	ValidateNotifier(&suite.config, suite.validator)

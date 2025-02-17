@@ -381,7 +381,7 @@ func (c *Config) LoadHandlers(store *Store) {
 // GetAllowedPrompts returns the allowed prompts.
 func (c *Config) GetAllowedPrompts(ctx context.Context) (prompts []string) {
 	if len(c.AllowedPrompts) == 0 {
-		c.AllowedPrompts = []string{PromptNone, PromptLogin, PromptConsent}
+		c.AllowedPrompts = []string{PromptNone, PromptLogin, PromptConsent, PromptSelectAccount}
 	}
 
 	return c.AllowedPrompts

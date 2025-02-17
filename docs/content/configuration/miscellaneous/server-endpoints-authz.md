@@ -44,7 +44,7 @@ server:
       auth-request:
         implementation: 'AuthRequest'
         authn_strategies:
-          - name: 'HeaderAuthRequestProxyAuthorization'
+          - name: 'HeaderAuthorization'
             schemes:
               - 'Basic'
           - name: 'CookieSession'
@@ -65,7 +65,7 @@ The first level under the `authz` directive is the name of the endpoint. In the 
 The name correlates with the path of the endpoint. All endpoints start with `/api/authz/`, and end with the name. In the
 example the `forward-auth` endpoint has a full path of `/api/authz/forward-auth`.
 
-Valid characters for the name are alphanumeric as well as `-` and `_`. They MUST start AND end with an
+Valid characters for the name are alphanumeric as well as `-`, `_`, and `/`. They MUST start AND end with an
 alphanumeric character.
 
 ### implementation

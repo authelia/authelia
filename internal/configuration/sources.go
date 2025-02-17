@@ -358,6 +358,8 @@ func (s *MapSource) Load(_ *schema.StructValidator) (err error) {
 
 // NewDefaultSources returns a slice of Source configured to load from specified YAML files.
 func NewDefaultSources(paths []string, prefix, delimiter string, additionalSources ...Source) (sources []Source) {
+	sources = []Source{NewMapSource(defaults)}
+
 	fileSources := NewFileSources(paths)
 	for _, source := range fileSources {
 		sources = append(sources, source)
@@ -375,6 +377,8 @@ func NewDefaultSources(paths []string, prefix, delimiter string, additionalSourc
 
 // NewDefaultSourcesFiltered returns a slice of Source configured to load from specified YAML files.
 func NewDefaultSourcesFiltered(paths []string, filters []BytesFilter, prefix, delimiter string, additionalSources ...Source) (sources []Source) {
+	sources = []Source{NewMapSource(defaults)}
+
 	fileSources := NewFilteredFileSources(paths, filters)
 	for _, source := range fileSources {
 		sources = append(sources, source)
@@ -391,9 +395,11 @@ func NewDefaultSourcesFiltered(paths []string, filters []BytesFilter, prefix, de
 }
 
 // NewDefaultSourcesWithDefaults returns a slice of Source configured to load from specified YAML files with additional sources.
-func NewDefaultSourcesWithDefaults(paths []string, filters []BytesFilter, prefix, delimiter string, defaults Source, additionalSources ...Source) (sources []Source) {
-	if defaults != nil {
-		sources = []Source{defaults}
+func NewDefaultSourcesWithDefaults(paths []string, filters []BytesFilter, prefix, delimiter string, defaultSource Source, additionalSources ...Source) (sources []Source) {
+	sources = []Source{NewMapSource(defaults)}
+
+	if defaultSource != nil {
+		sources = append(sources, defaultSource)
 	}
 
 	if len(filters) == 0 {

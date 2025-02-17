@@ -38,6 +38,16 @@
       "datasources": [
         "docker"
       ],
+      "matchPackageNames": "traefik",
+      "matchFileNames": [
+      	"internal/suites/example/compose/traefik/docker-compose.v2.yml"
+      ],
+      "allowedVersions": "<3.0.0"
+    },
+    {
+      "datasources": [
+        "docker"
+      ],
       "addLabels": [
         "docker"
       ]

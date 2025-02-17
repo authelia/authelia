@@ -1,0 +1,5 @@
+---
+services:
+  traefik:
+    image: 'traefik:v3.3.3'
+...

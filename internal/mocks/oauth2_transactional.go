@@ -20,6 +20,7 @@ import (
 type MockTransactional struct {
 	ctrl     *gomock.Controller
 	recorder *MockTransactionalMockRecorder
+	isgomock struct{}
 }
 
 // MockTransactionalMockRecorder is the mock recorder for MockTransactional.
@@ -40,44 +41,44 @@ func (m *MockTransactional) EXPECT() *MockTransactionalMockRecorder {
 }
 
 // BeginTX mocks base method.
-func (m *MockTransactional) BeginTX(arg0 context.Context) (context.Context, error) {
+func (m *MockTransactional) BeginTX(ctx context.Context) (context.Context, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BeginTX", arg0)
+	ret := m.ctrl.Call(m, "BeginTX", ctx)
 	ret0, _ := ret[0].(context.Context)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // BeginTX indicates an expected call of BeginTX.
-func (mr *MockTransactionalMockRecorder) BeginTX(arg0 any) *gomock.Call {
+func (mr *MockTransactionalMockRecorder) BeginTX(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BeginTX", reflect.TypeOf((*MockTransactional)(nil).BeginTX), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BeginTX", reflect.TypeOf((*MockTransactional)(nil).BeginTX), ctx)
 }
 
 // Commit mocks base method.
-func (m *MockTransactional) Commit(arg0 context.Context) error {
+func (m *MockTransactional) Commit(ctx context.Context) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Commit", arg0)
+	ret := m.ctrl.Call(m, "Commit", ctx)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Commit indicates an expected call of Commit.
-func (mr *MockTransactionalMockRecorder) Commit(arg0 any) *gomock.Call {
+func (mr *MockTransactionalMockRecorder) Commit(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Commit", reflect.TypeOf((*MockTransactional)(nil).Commit), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Commit", reflect.TypeOf((*MockTransactional)(nil).Commit), ctx)
 }
 
 // Rollback mocks base method.
-func (m *MockTransactional) Rollback(arg0 context.Context) error {
+func (m *MockTransactional) Rollback(ctx context.Context) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Rollback", arg0)
+	ret := m.ctrl.Call(m, "Rollback", ctx)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Rollback indicates an expected call of Rollback.
-func (mr *MockTransactionalMockRecorder) Rollback(arg0 any) *gomock.Call {
+func (mr *MockTransactionalMockRecorder) Rollback(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Rollback", reflect.TypeOf((*MockTransactional)(nil).Rollback), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Rollback", reflect.TypeOf((*MockTransactional)(nil).Rollback), ctx)
 }

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
+import { Box } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import { RedirectionURL } from "@constants/SearchParams";
@@ -120,7 +121,7 @@ const OneTimePasswordMethod = function (props: Props) {
             state={methodState}
             onRegisterClick={props.onRegisterClick}
         >
-            <div>
+            <Box>
                 {resp !== undefined || err !== undefined ? (
                     <OTPDial
                         passcode={passcode}
@@ -132,7 +133,7 @@ const OneTimePasswordMethod = function (props: Props) {
                 ) : (
                     <LoadingPage />
                 )}
-            </div>
+            </Box>
         </MethodContainer>
     );
 };

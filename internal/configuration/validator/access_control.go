@@ -18,7 +18,11 @@ func IsPolicyValid(policy string) (isValid bool) {
 
 // IsSubjectValid check if a subject is valid.
 func IsSubjectValid(subject string) (isValid bool) {
-	return subject == "" || strings.HasPrefix(subject, "user:") || strings.HasPrefix(subject, "group:") || strings.HasPrefix(subject, "oauth2:client:")
+	return subject == "" || IsSubjectValidStrict(subject) || strings.HasPrefix(subject, "oauth2:client:")
+}
+
+func IsSubjectValidStrict(subject string) (isValid bool) {
+	return strings.HasPrefix(subject, "user:") || strings.HasPrefix(subject, "group:")
 }
 
 // IsNetworkGroupValid check if a network group is valid.

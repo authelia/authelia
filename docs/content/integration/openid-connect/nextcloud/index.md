@@ -21,10 +21,10 @@ seo:
 ## Tested Versions
 
 * [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+  * [v4.38.17](https://github.com/authelia/authelia/releases/tag/v4.38.17)
 * [Nextcloud]
   * 22.1.0 with the application oidc_login
-  * 29.0.4 with the application user_oidc v6.0.1
+  * [29.0.10](https://github.com/nextcloud/server/releases/tag/v29.0.10) with the application user_oidc [6.1.2](https://apps.nextcloud.com/apps/user_oidc/releases?platform=29#29)
 
 {{% oidc-common %}}
 
@@ -42,7 +42,7 @@ Some of the values presented in this guide can automatically be replaced with do
 {{< sitevar-preferences >}}
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-It has been reported that some of the [Nextcloud] plugins do not properly encode the client secret.
+It has been reported that some of the [Nextcloud](https://nextcloud.com/) plugins do not properly encode the client secret.
 as such it's important to only use alphanumeric characters as well as the other
 [RFC3986 Unreserved Characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3). We recommend using the
 generating client secrets guidance above.
@@ -166,7 +166,7 @@ identity_providers:
           - 'email'
           - 'groups'
         userinfo_signed_response_alg: 'none'
-        token_endpoint_auth_method: 'client_secret_basic'
+        token_endpoint_auth_method: 'client_secret_post'
 ```
 
 #### Application
@@ -181,13 +181,6 @@ To configure [Nextcloud] to utilize Authelia as an [OpenID Connect 1.0] Provider
 * Client secret: `insecure_secret`
 * Discovery endpoint: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
 * Scope: openid email profile
-
-3. Add the following to the [Nextcloud] `config.php` configuration:
-``` php
-'user_oidc' => [
-    'use_pkce' => true,
-],
-```
 
 ## See Also
 

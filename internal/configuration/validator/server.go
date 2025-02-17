@@ -204,7 +204,7 @@ func validateServerEndpointsAuthzStrategies(name, implementation string, strateg
 		return
 	}
 
-	names := make([]string, len(strategies))
+	names := make([]string, 0, len(strategies))
 
 	for i, strategy := range strategies {
 		if strategy.Name != "" && utils.IsStringInSlice(strategy.Name, names) {

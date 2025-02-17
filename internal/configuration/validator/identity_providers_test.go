@@ -3202,6 +3202,19 @@ func TestValidateOIDCClientJWKS(t *testing.T) {
 			nil,
 			nil,
 			[]string{
+				"identity_providers: oidc: clients: client 'test': jwks: key #1 with key id 'test': option 'key' must be provided",
+			},
+		},
+		{
+			"ShouldFailOnEmptyKeyNoKeyID",
+			nil,
+			[]schema.JWK{
+				{KeyID: "", Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgRSAUsingSHA256, Key: nil},
+			},
+			nil,
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': jwks: key #1: option 'key_id' must be provided",
 				"identity_providers: oidc: clients: client 'test': jwks: key #1: option 'key' must be provided",
 			},
 		},
@@ -3553,6 +3566,44 @@ func TestValidateOIDCIssuer(t *testing.T) {
 			},
 		},
 		{
+			"ShouldErrorNilKeyWithoutKID",
+			&schema.IdentityProvidersOpenIDConnect{
+				JSONWebKeys: []schema.JWK{
+					{Key: nil, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature},
+				},
+			},
+			schema.IdentityProvidersOpenIDConnect{
+				JSONWebKeys: []schema.JWK{
+					{Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature},
+				},
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
+					DefaultKeyIDs: map[string]string{},
+				},
+			},
+			[]string{
+				"identity_providers: oidc: jwks: key #1: option 'key' must be provided",
+			},
+		},
+		{
+			"ShouldErrorNilKey",
+			&schema.IdentityProvidersOpenIDConnect{
+				JSONWebKeys: []schema.JWK{
+					{Key: nil, KeyID: "example", Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature},
+				},
+			},
+			schema.IdentityProvidersOpenIDConnect{
+				JSONWebKeys: []schema.JWK{
+					{KeyID: "example", Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature},
+				},
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
+					DefaultKeyIDs: map[string]string{},
+				},
+			},
+			[]string{
+				"identity_providers: oidc: jwks: key #1 with key id 'example': option 'key' must be provided",
+			},
+		},
+		{
 			"ShouldRaiseErrorOnBadUse",
 			&schema.IdentityProvidersOpenIDConnect{
 				JSONWebKeys: []schema.JWK{
@@ -3897,6 +3948,29 @@ func TestValidateOIDCAuthorizationPolicies(t *testing.T) {
 			[]string{"one_factor", "two_factor", "example"},
 			nil,
 			nil,
+		},
+		{
+			"ShouldErrorOnInvalidSubject",
+			&schema.IdentityProvidersOpenIDConnect{
+				AuthorizationPolicies: map[string]schema.IdentityProvidersOpenIDConnectPolicy{
+					"example": {
+						DefaultPolicy: "two_factor",
+						Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
+							{
+								Policy: "deny",
+								Subjects: [][]string{
+									{"[user:john]"},
+								},
+							},
+						},
+					},
+				},
+			},
+			[]string{"one_factor", "two_factor", "example"},
+			nil,
+			[]string{
+				"identity_providers: oidc: authorization_policies: policy 'example': rules: rule #1: 'subject' option '[user:john]' is invalid: must start with 'user:' or 'group:'",
+			},
 		},
 		{
 			"ShouldSetDefaultPoliciesAndErrorOnSubject",

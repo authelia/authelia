@@ -89,9 +89,13 @@ func (f *TemplateBytesFilter) Name() (name string) {
 }
 
 func (f *TemplateBytesFilter) Filter(in []byte) (out []byte, err error) {
-	if f.t, err = f.t.Parse(string(in)); err != nil {
+	var t *template.Template
+
+	if t, err = f.t.Parse(string(in)); err != nil {
 		return nil, err
 	}
+
+	f.t = t
 
 	buf := &bytes.Buffer{}
 

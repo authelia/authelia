@@ -964,6 +964,53 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "samos667",
+      "name": "samos667",
+      "avatar_url": "https://avatars.githubusercontent.com/u/50653464?v=4",
+      "profile": "https://github.com/samos667",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "0xSysR3ll",
+      "name": "0xsysr3ll",
+      "avatar_url": "https://avatars.githubusercontent.com/u/31414959?v=4",
+      "profile": "https://github.com/0xSysR3ll",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "cromelex",
+      "name": "Dan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/96779452?v=4",
+      "profile": "https://github.com/cromelex",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "Shaamallow",
+      "name": "Eyal Benaroche",
+      "avatar_url": "https://avatars.githubusercontent.com/u/39766320?v=4",
+      "profile": "http://shaamallow.com",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "wangweixuan",
+      "name": "Wang Weixuan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/24620923?v=4",
+      "profile": "https://github.com/wangweixuan",
+      "contributions": [
+        "bug",
+        "code",
+        "test"
+      ]
     }
   ],
   "contributorsPerLine": 7,

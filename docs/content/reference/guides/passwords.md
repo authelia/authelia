@@ -72,7 +72,7 @@ To generate an [Argon2] hash with the docker image interactively just run:
 {{< envTabs "Generate Password (Interactive)" >}}
 {{< envTab "Docker" >}}
 ```bash
-docker run -it authelia/authelia:latest authelia crypto hash generate argon2
+docker run --rm -it authelia/authelia:latest authelia crypto hash generate argon2
 ```
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
@@ -87,7 +87,7 @@ To generate an [Argon2] hash with the docker image without a prompt you can run:
 {{< envTabs "Generate Password" >}}
 {{< envTab "Docker" >}}
 ```bash
-docker run authelia/authelia:latest authelia crypto hash generate argon2 --password 'password'
+docker run --rm authelia/authelia:latest authelia crypto hash generate argon2 --password 'password'
 ```
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
@@ -109,7 +109,7 @@ in the current directory:
 {{< envTabs "Generate Password (Interactive)" >}}
 {{< envTab "Docker" >}}
 ```bash
-docker run -v ./configuration.yml:/configuration.yml -it authelia/authelia:latest authelia crypto hash generate --config /configuration.yml
+docker run --rm -it -v ./configuration.yml:/configuration.yml authelia/authelia:latest authelia crypto hash generate --config /configuration.yml
 ```
 {{< /envTab >}}
 {{< envTab "Bare Metal" >}}
@@ -147,7 +147,7 @@ all algorithms. The main cost type measurements are:
 * Memory
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-When using algorithms that use a memory cost like [Argon2] and [Scrypt] it should be noted that
+When using algorithms that use a memory cost like [Argon2](https://datatracker.ietf.org/doc/html/rfc9106) and [Scrypt](https://en.wikipedia.org/wiki/Scrypt) it should be noted that
 this memory is released by Go after the hashing process completes, however the operating system may not reclaim the
 memory until a later time such as when the system is experiencing memory pressure which may cause the appearance of more
 memory being in use than Authelia is actually actively using. Authelia will typically reuse this memory if it has not be
