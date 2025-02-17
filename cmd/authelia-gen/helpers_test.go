@@ -136,10 +136,10 @@ func TestContainsType(t *testing.T) {
 
 func TestReadTags(t *testing.T) {
 	assert.NotPanics(t, func() {
-		readTags("", reflect.TypeOf(schema.Configuration{}), false, false)
+		iReadTags("", reflect.TypeOf(schema.Configuration{}), false, false, false)
 	})
 
 	assert.NotPanics(t, func() {
-		readTags("", reflect.TypeOf(schema.Configuration{}), true, true)
+		iReadTags("", reflect.TypeOf(schema.Configuration{}), true, true, false)
 	})
 }
