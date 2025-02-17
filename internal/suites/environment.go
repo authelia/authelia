@@ -40,7 +40,7 @@ func waitUntilServiceLogDetected(
 func waitUntilAutheliaBackendIsReady(dockerEnvironment *DockerEnvironment) error {
 	return waitUntilServiceLogDetected(
 		5*time.Second,
-		90*time.Second,
+		180*time.Second,
 		dockerEnvironment,
 		"authelia-backend",
 		[]string{"Startup complete"})
@@ -49,7 +49,7 @@ func waitUntilAutheliaBackendIsReady(dockerEnvironment *DockerEnvironment) error
 func waitUntilAutheliaFrontendIsReady(dockerEnvironment *DockerEnvironment) error {
 	return waitUntilServiceLogDetected(
 		5*time.Second,
-		90*time.Second,
+		180*time.Second,
 		dockerEnvironment,
 		"authelia-frontend",
 		[]string{"dev server running at", "ready in", "server restarted"})
@@ -58,7 +58,7 @@ func waitUntilAutheliaFrontendIsReady(dockerEnvironment *DockerEnvironment) erro
 func waitUntilK3DIsReady(dockerEnvironment *DockerEnvironment) error {
 	return waitUntilServiceLogDetected(
 		5*time.Second,
-		90*time.Second,
+		180*time.Second,
 		dockerEnvironment,
 		"k3d",
 		[]string{"API listen on [::]:2376"})
@@ -67,7 +67,7 @@ func waitUntilK3DIsReady(dockerEnvironment *DockerEnvironment) error {
 func waitUntilSambaIsReady(dockerEnvironment *DockerEnvironment) error {
 	return waitUntilServiceLogDetected(
 		5*time.Second,
-		90*time.Second,
+		180*time.Second,
 		dockerEnvironment,
 		"sambaldap",
 		[]string{"samba entered RUNNING state"})
