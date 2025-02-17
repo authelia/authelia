@@ -24,14 +24,13 @@ func TestShouldRaiseErrorWhenBothBackendsProvided(t *testing.T) {
 
 	ValidateAuthenticationBackend(&backendConfig, validator)
 
-	require.Len(t, validator.Errors(), 7)
+	require.Len(t, validator.Errors(), 6)
 	assert.EqualError(t, validator.Errors()[0], "authentication_backend: please ensure only one of the 'file' or 'ldap' backend is configured")
 	assert.EqualError(t, validator.Errors()[1], "authentication_backend: ldap: option 'address' is required")
 	assert.EqualError(t, validator.Errors()[2], "authentication_backend: ldap: option 'user' is required")
 	assert.EqualError(t, validator.Errors()[3], "authentication_backend: ldap: option 'password' is required")
-	assert.EqualError(t, validator.Errors()[4], "authentication_backend: ldap: option 'base_dn' is required")
-	assert.EqualError(t, validator.Errors()[5], "authentication_backend: ldap: option 'users_filter' is required")
-	assert.EqualError(t, validator.Errors()[6], "authentication_backend: ldap: option 'groups_filter' is required")
+	assert.EqualError(t, validator.Errors()[4], "authentication_backend: ldap: option 'users_filter' is required")
+	assert.EqualError(t, validator.Errors()[5], "authentication_backend: ldap: option 'groups_filter' is required")
 }
 
 func TestShouldRaiseErrorWhenNoBackendProvided(t *testing.T) {
@@ -720,17 +719,6 @@ func (suite *LDAPAuthenticationBackendSuite) TestShouldNotRaiseErrorWhenPermitUn
 
 	suite.Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 0)
-}
-
-func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseErrorWhenBaseDNNotProvided() {
-	suite.config.LDAP.BaseDN = ""
-
-	ValidateAuthenticationBackend(&suite.config, suite.validator)
-
-	suite.Len(suite.validator.Warnings(), 0)
-	suite.Len(suite.validator.Errors(), 1)
-
-	suite.EqualError(suite.validator.Errors()[0], "authentication_backend: ldap: option 'base_dn' is required")
 }
 
 func (suite *LDAPAuthenticationBackendSuite) TestShouldRaiseOnEmptyGroupsFilter() {
