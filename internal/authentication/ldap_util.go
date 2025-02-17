@@ -1,6 +1,7 @@
 package authentication
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -103,4 +104,14 @@ func ldapGetReferral(err error) (referral string, ok bool) {
 	default:
 		return "", false
 	}
+}
+
+func ldapGetErrorCode(err error) int {
+	var e *ldap.Error
+
+	if errors.As(err, &e) {
+		return int(e.ResultCode)
+	}
+
+	return -1
 }

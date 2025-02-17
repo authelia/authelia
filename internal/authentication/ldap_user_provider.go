@@ -209,6 +209,111 @@ func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error)
 	return nil
 }
 
+// ChangePassword is used to change a user's password but requires their old password to be successfully verified.
+//
+//nolint:gocyclo
+func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassword string) (err error) {
+	var (
+		client  LDAPClient
+		uclient LDAPClient
+		profile *ldapUserProfile
+	)
+
+	if client, err = p.connect(); err != nil {
+		return fmt.Errorf("%w : %v", ErrOperationFailed, err)
+	}
+
+	defer client.Close()
+
+	if profile, err = p.getUserProfile(client, username); err != nil {
+		return fmt.Errorf("%w : %v", ErrUserNotFound, err)
+	}
+
+	var controls []ldap.Control
+
+	switch {
+	case p.features.ControlTypes.MsftPwdPolHints:
+		controls = append(controls, &controlMsftServerPolicyHints{ldapOIDControlMsftServerPolicyHints})
+	case p.features.ControlTypes.MsftPwdPolHintsDeprecated:
+		controls = append(controls, &controlMsftServerPolicyHints{ldapOIDControlMsftServerPolicyHintsDeprecated})
+	}
+
+	if strings.TrimSpace(newPassword) == "" {
+		return ErrPasswordWeak
+	}
+
+	if oldPassword == newPassword {
+		return ErrPasswordWeak
+	}
+
+	if uclient, err = p.connectCustom(p.config.Address.String(), profile.DN, oldPassword, p.config.StartTLS, p.dialOpts...); err != nil {
+		if errorCode := ldapGetErrorCode(err); errorCode != -1 {
+			switch errorCode {
+			case ldap.LDAPResultInvalidCredentials,
+				ldap.LDAPResultInappropriateAuthentication:
+				return ErrIncorrectPassword
+			}
+		}
+
+		return fmt.Errorf("%w : %v", ErrOperationFailed, err)
+	}
+
+	switch {
+	case p.features.Extensions.PwdModifyExOp:
+		pwdModifyRequest := ldap.NewPasswordModifyRequest(
+			profile.DN,
+			oldPassword,
+			newPassword,
+		)
+
+		err = p.pwdModify(uclient, pwdModifyRequest)
+	case p.config.Implementation == schema.LDAPImplementationActiveDirectory:
+		modifyRequest := ldap.NewModifyRequest(profile.DN, controls)
+		// The password needs to be enclosed in quotes
+		// https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/6e803168-f140-4d23-b2d3-c3a8ab5917d2
+		pwdEncoded, err := encodingUTF16LittleEndian.NewEncoder().String(fmt.Sprintf("\"%s\"", newPassword))
+		if err != nil {
+			return fmt.Errorf("%w : %v", ErrOperationFailed, err)
+		}
+
+		modifyRequest.Replace(ldapAttributeUnicodePwd, []string{pwdEncoded})
+
+		err = p.modify(uclient, modifyRequest)
+		if err != nil {
+			return fmt.Errorf("%w : %v", ErrOperationFailed, err)
+		}
+	default:
+		modifyRequest := ldap.NewModifyRequest(profile.DN, controls)
+		modifyRequest.Replace(ldapAttributeUserPassword, []string{newPassword})
+
+		err = p.modify(uclient, modifyRequest)
+	}
+
+	//TODO: Better inform users regarding password reuse/password history.
+	if err != nil {
+		if errorCode := ldapGetErrorCode(err); errorCode != -1 {
+			switch errorCode {
+			case ldap.LDAPResultInvalidCredentials,
+				ldap.LDAPResultInappropriateAuthentication:
+				return ErrIncorrectPassword
+			case ldap.LDAPResultConstraintViolation,
+				ldap.LDAPResultObjectClassViolation,
+				ldap.ErrorEmptyPassword,
+				ldap.LDAPResultUnwillingToPerform:
+				return ErrPasswordWeak
+			case ldap.LDAPResultInsufficientAccessRights:
+				return ErrOperationFailed
+			default:
+				return ErrOperationFailed
+			}
+		}
+
+		return ErrOperationFailed
+	}
+
+	return nil
+}
+
 func (p *LDAPUserProvider) connect() (client LDAPClient, err error) {
 	return p.connectCustom(p.config.Address.String(), p.config.User, p.config.Password, p.config.StartTLS, p.dialOpts...)
 }
