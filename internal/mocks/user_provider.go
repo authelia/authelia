@@ -40,6 +40,81 @@ func (m *MockUserProvider) EXPECT() *MockUserProviderMockRecorder {
 	return m.recorder
 }
 
+// AddUser mocks base method.
+func (m *MockUserProvider) AddUser(username, displayname, password string, opts ...func(*authentication.NewUserDetailsOpts)) error {
+	m.ctrl.T.Helper()
+	varargs := []any{username, displayname, password}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "AddUser", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddUser indicates an expected call of AddUser.
+func (mr *MockUserProviderMockRecorder) AddUser(username, displayname, password any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{username, displayname, password}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddUser", reflect.TypeOf((*MockUserProvider)(nil).AddUser), varargs...)
+}
+
+// ChangeDisplayName mocks base method.
+func (m *MockUserProvider) ChangeDisplayName(username, newDisplayName string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChangeDisplayName", username, newDisplayName)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ChangeDisplayName indicates an expected call of ChangeDisplayName.
+func (mr *MockUserProviderMockRecorder) ChangeDisplayName(username, newDisplayName any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeDisplayName", reflect.TypeOf((*MockUserProvider)(nil).ChangeDisplayName), username, newDisplayName)
+}
+
+// ChangeEmail mocks base method.
+func (m *MockUserProvider) ChangeEmail(username, newEmail string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChangeEmail", username, newEmail)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ChangeEmail indicates an expected call of ChangeEmail.
+func (mr *MockUserProviderMockRecorder) ChangeEmail(username, newEmail any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeEmail", reflect.TypeOf((*MockUserProvider)(nil).ChangeEmail), username, newEmail)
+}
+
+// ChangeGroups mocks base method.
+func (m *MockUserProvider) ChangeGroups(username string, newGroups []string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChangeGroups", username, newGroups)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ChangeGroups indicates an expected call of ChangeGroups.
+func (mr *MockUserProviderMockRecorder) ChangeGroups(username, newGroups any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeGroups", reflect.TypeOf((*MockUserProvider)(nil).ChangeGroups), username, newGroups)
+}
+
+// ChangePassword mocks base method.
+func (m *MockUserProvider) ChangePassword(username, oldPassword, newPassword string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChangePassword", username, oldPassword, newPassword)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ChangePassword indicates an expected call of ChangePassword.
+func (mr *MockUserProviderMockRecorder) ChangePassword(username, oldPassword, newPassword any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangePassword", reflect.TypeOf((*MockUserProvider)(nil).ChangePassword), username, oldPassword, newPassword)
+}
+
 // CheckUserPassword mocks base method.
 func (m *MockUserProvider) CheckUserPassword(username, password string) (bool, error) {
 	m.ctrl.T.Helper()
@@ -55,6 +130,20 @@ func (mr *MockUserProviderMockRecorder) CheckUserPassword(username, password any
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckUserPassword", reflect.TypeOf((*MockUserProvider)(nil).CheckUserPassword), username, password)
 }
 
+// DeleteUser mocks base method.
+func (m *MockUserProvider) DeleteUser(username string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteUser", username)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteUser indicates an expected call of DeleteUser.
+func (mr *MockUserProviderMockRecorder) DeleteUser(username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUser", reflect.TypeOf((*MockUserProvider)(nil).DeleteUser), username)
+}
+
 // GetDetails mocks base method.
 func (m *MockUserProvider) GetDetails(username string) (*authentication.UserDetails, error) {
 	m.ctrl.T.Helper()
@@ -68,6 +157,21 @@ func (m *MockUserProvider) GetDetails(username string) (*authentication.UserDeta
 func (mr *MockUserProviderMockRecorder) GetDetails(username any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDetails", reflect.TypeOf((*MockUserProvider)(nil).GetDetails), username)
+}
+
+// ListUsers mocks base method.
+func (m *MockUserProvider) ListUsers() ([]authentication.UserDetails, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListUsers")
+	ret0, _ := ret[0].([]authentication.UserDetails)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListUsers indicates an expected call of ListUsers.
+func (mr *MockUserProviderMockRecorder) ListUsers() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUsers", reflect.TypeOf((*MockUserProvider)(nil).ListUsers))
 }
 
 // StartupCheck mocks base method.

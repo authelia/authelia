@@ -63,3 +63,23 @@ const (
 	errFmtMigrationPre1                 = "schema migration %s pre1 is no longer supported: you must use an older version of authelia to perform this migration: %s"
 	errFmtMigrationPre1SuggestedVersion = "the suggested authelia version is 4.37.2"
 )
+
+// errors for user storage provider.
+var (
+	ErrUserNotFound      = errors.New("user not found")
+	ErrUserAlreadyExists = errors.New("the user already exists")
+	ErrUpdatingUser      = errors.New("error updating user")
+)
+
+// error formats for use storage provider.
+const (
+	errLoadingUserDetails      = "error selecting user details for user: %w"
+	errLoadingUserGroups       = "error getting groups for user: %w"
+	errCreatingUser            = "error creating user: %w"
+	errAssigningGroupToUser    = "error assigning groups to the user: %w"
+	errDeletingUser            = "error deleting user: %w"
+	errUpdatingUserPassword    = "error updating password for user: %w"
+	errUpdatingUserDisplayName = "error updating user's display name: %w"
+	errUpdatingUserEmail       = "error updating user's email: %w"
+	errUpdatingUserStatus      = "error updating user's status: %w"
+)

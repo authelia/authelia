@@ -1,0 +1,70 @@
+---
+certificates_directory: '/certs/'
+
+server:
+  address: 'tcp://:9091'
+  tls:
+    certificate: '/pki/public.backend.crt'
+    key: '/pki/private.backend.pem'
+
+log:
+  level: 'debug'
+
+storage:
+  encryption_key: 'a_not_so_secure_encryption_key'
+  mysql:
+    address: 'tcp://mysql:3306'
+    database: 'authelia'
+    username: 'admin'
+    password: 'password'
+
+notifier:
+  smtp:
+    address: 'smtp://mail.example.com:1025'
+    sender: 'admin@example.com'
+
+identity_validation:
+  reset_password:
+    jwt_secret: 'a_very_important_secret'
+
+regulation:
+  max_retries: 3
+  find_time: '8 seconds'
+  ban_time: '10 seconds'
+
+session:
+  secret: 'unsecure_session_secret'
+  cookies:
+    - domain: 'example.com'
+      authelia_url: 'https://login.example.com:8080'
+      default_redirection_url: 'https://home.example.com:8080/'
+      expiration: '1 hour'
+      inactivity: '5 minutes'
+      remember_me: '1 year'
+
+# authentication_backend:
+#   db:
+#     search:
+#       email: true
+
+totp:
+  issuer: 'example.com'
+  disable_reuse_security_policy: true
+
+webauthn:
+  disable: false
+
+access_control:
+  default_policy: 'deny'
+  rules:
+    - domain: ['home.example.com', 'public.example.com']
+      policy: 'bypass'
+    - domain: 'deny.example.com'
+      policy: 'deny'
+    - domain: 'admin.example.com'
+      policy: 'two_factor'
+    - domain: 'secure.example.com'
+      policy: 'two_factor'
+    - domain: 'singlefactor.example.com'
+      policy: 'one_factor'
+...
