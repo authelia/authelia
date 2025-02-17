@@ -128,6 +128,8 @@ function ThemeFromName(name: string) {
             return themes.Dark;
         case themes.ThemeNameGrey:
             return themes.Grey;
+        case themes.ThemeNameOled:
+            return themes.Oled;
         case themes.ThemeNameAuto:
             return window.matchMedia(MediaQueryDarkMode).matches ? themes.Dark : themes.Light;
         default:
