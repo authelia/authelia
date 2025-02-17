@@ -65,6 +65,7 @@ identity_providers:
         scopes:
           - 'openid'
           - 'groups'
+          - 'email'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_post'
 ```

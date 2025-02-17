@@ -29,6 +29,8 @@ session:
   redis:
     host: '127.0.0.1'
     port: 6379
+    timeout: '5s'
+    max_retries: 0
     username: 'authelia'
     password: 'authelia'
     database_index: 0
@@ -80,6 +82,18 @@ quoted:
 host: '[fd00:1111:2222:3333::1]'
 ```
 
+### timeout
+
+{{< confkey type="string,integer" syntax="duration" default="5 seconds" required="no" >}}
+
+The Redis connection timeout.
+
+### max_retries
+
+{{< confkey type="integer" default="0" required="no" >}}
+
+The maximum number of retries on a failed command. Setting this option to 0 disables retries entirely.
+
 ### port
 
 {{< confkey type="integer" default="6379" required="no" >}}
@@ -127,8 +141,12 @@ is useful if there are long delays in establishing connections.
 
 {{< confkey type="structure" structure="tls" required="no" >}}
 
-If defined enables connecting to [redis] over a TLS socket, and additionally controls the TLS connection
-validation parameters.
+If defined enables connecting over a TLS socket and additionally controls the TLS connection
+verification parameters for the [redis] server.
+
+By default Authelia uses the system certificate trust for TLS certificate verification of TLS connections and the
+[certificates_directory](../miscellaneous/introduction.md#certificates_directory) global option can be used to augment
+this.
 
 ### high_availability
 

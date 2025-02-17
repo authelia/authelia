@@ -11,7 +11,7 @@ import {
 } from "@react-email/components";
 import * as React from "react";
 
-interface EventProps {
+export interface EventProps {
 	title?: string;
     bodyEvent?: string;
     bodyPrefix?: string;
@@ -22,6 +22,7 @@ interface EventProps {
 	detailsValue?: string;
 	detailsPrefix?: string;
 	detailsSuffix?: string;
+	hidePreview?: boolean;
 }
 
 export const Event = ({
@@ -35,11 +36,14 @@ export const Event = ({
 						  detailsValue,
 						  detailsPrefix,
 						  detailsSuffix,
+	                      hidePreview,
 					  }: EventProps) => {
 	return (
 		<Html lang="en" dir="ltr">
 			<Head />
-			<Preview>An important event has occurred with your account</Preview>
+			{!hidePreview ? (
+				<Preview>An important event has occurred with your account</Preview>
+			) : null}
 			<Tailwind>
 				<Body className="bg-white my-auto mx-auto font-sans px-2">
 					<Container className="border border-solid border-[#eaeaea] rounded my-[40px] mx-auto p-[20px] max-w-[465px]">

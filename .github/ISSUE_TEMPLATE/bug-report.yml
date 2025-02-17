@@ -34,6 +34,9 @@ body:
         What version(s) of Authelia can you reproduce this bug on?
       multiple: true
       options:
+        - 'v4.38.19'
+        - 'v4.38.18'
+        - 'v4.38.17'
         - 'v4.38.16'
         - 'v4.38.15'
         - 'v4.38.14'
@@ -208,6 +211,18 @@ body:
         Provide any relevant specification or other documentation if applicable.
     validations:
       required: false
+  - type: 'dropdown'
+    id: 'ai'
+    attributes:
+      label: |
+        Generative AI
+      description: |
+        Indicate if generative AI used to create this issue.
+      options:
+        - 'Yes'
+        - 'No'
+    validations:
+      required: true
   - type: 'checkboxes'
     id: 'checklist'
     attributes:

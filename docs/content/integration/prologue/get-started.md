@@ -27,6 +27,10 @@ specific questions may be answered.
 
 1. Authelia *__MUST__* be served via the `https` scheme. This is not optional even for testing. This is a deliberate
    design decision to improve security directly (by using encrypted communication) and indirectly by reducing complexity.
+2. Your proxy configuration for Authelia *__MUST__* include all of the
+   [Required Headers](../proxies/introduction.md#required-headers).
+3. When using the [Proxy Authorization](../../reference/guides/proxy-authorization.md) the proxy must include all of the
+   required headers for the specific implementation that has been configured, similar to the curated examples.
 
 ### Forwarded Authentication
 
@@ -35,8 +39,8 @@ cookie to determine if a user must be forwarded to the authentication portal.
 
 In addition to the `https` scheme requirement for Authelia itself:
 
-1. Due to the fact a cookie is used, it's an intentional design decision that *__ALL__* applications/domains protected via
-this method *__MUST__* use secure schemes (`https` and `wss`) for all of their communication.
+1. Due to the fact a cookie is used, it's an intentional design decision that *__ALL__* applications/domains protected
+   via this method *__MUST__* use secure schemes (`https` and `wss`) for all of their communication.
 
 ### OpenID Connect 1.0
 

@@ -18,10 +18,10 @@ seo:
 
 There are several options which affect the loading of files:
 
-|       Name        |            Argument             |    Environment Variable     |                                    Description                                     |
-|:-----------------:|:-------------------------------:|:---------------------------:|:----------------------------------------------------------------------------------:|
-| Files/Directories |        `--config`, `-c`         |     `X_AUTHELIA_CONFIG`     | A list of file or directory (non-recursive) paths to load configuration files from |
-|      Filters      | `--config.experimental.filters` | `X_AUTHELIA_CONFIG_FILTERS` |   A list of filters applied to every file from the Files or Directories options    |
+|           Name           |            Argument             |    Environment Variable     |                                    Description                                     |
+|:------------------------:|:-------------------------------:|:---------------------------:|:----------------------------------------------------------------------------------:|
+|    Files/Directories     |        `--config`, `-c`         |     `X_AUTHELIA_CONFIG`     | A list of file or directory (non-recursive) paths to load configuration files from |
+| [Filters](#file-filters) | `--config.experimental.filters` | `X_AUTHELIA_CONFIG_FILTERS` |   A list of filters applied to every file from the Files or Directories options    |
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
 When specifying directories and files, the individual files specified must not be within any of the
@@ -112,7 +112,7 @@ By default, the container looks for a configuration file at `/config/configurati
 This is an example of how to override the configuration files loaded in docker:
 
 ```bash
-docker run -d --volume /path/to/config:/config authelia:authelia:latest authelia --config=/config/configuration.yaml --config=/config/configuration.acl.yaml
+docker run -d --volume /path/to/config:/config authelia:authelia:latest authelia --config=/config/configuration.yml --config=/config/configuration.acl.yml
 ```
 
 See the [Docker Documentation](https://docs.docker.com/engine/reference/commandline/run/) for more information on the
@@ -122,15 +122,15 @@ See the [Docker Documentation](https://docs.docker.com/engine/reference/commandl
 
 An excerpt from a docker compose that allows you to specify multiple configuration files is as follows:
 
-```yaml {title="cocker-compose.yml"}
+```yaml {title="compose.yml"}
 services:
   authelia:
     container_name: '{{< sitevar name="host" nojs="authelia" >}}'
     image: 'authelia/authelia:latest'
     command:
       - 'authelia'
-      - '--config=/config/configuration.yaml'
-      - '--config=/config/configuration.acl.yaml'
+      - '--config=/config/configuration.yml'
+      - '--config=/config/configuration.acl.yml'
 
 ```
 
@@ -169,8 +169,8 @@ spec:
           command:
             - authelia
           args:
-            - '--config=/configuration.yaml'
-            - '--config=/configuration.acl.yaml'
+            - '--config=/configuration.yml'
+            - '--config=/configuration.acl.yml'
 ```
 
 See the Kubernetes [workloads documentation](https://kubernetes.io/docs/concepts/workloads/pods/#pod-templates) or the
@@ -179,14 +179,14 @@ information.
 
 ## File Filters
 
-Experimental file filters exist which allow modification of all configuration files after reading them from the
-filesystem but before parsing their content. These filters are _**NOT**_ covered by our
-[Standard Versioning Policy](../../policies/versioning.md) at least at this time, however we will make every effort
-to avoid breaking them unnecessarily and we include several of these filters within our CI testing regiment.
+File filters exist which allow modification of all configuration files after reading them from the
+filesystem but before parsing their content. Unless explicitly specified these filters are _**NOT**_ covered by our
+[Standard Versioning Policy](../../policies/versioning.md) and
 
 There __*WILL*__ be a point where:
-- the name of the CLI argument will change (we suggest using the environment variable which will not)
-- the `expand-env` filter might be removed
+
+- The name of the CLI argument will change (we suggest using the environment variable which will not)
+- The `expand-env` filter will be removed as it's deprecated
 
 The filters are configured as a list of filter names by the `--config.experimental.filters` CLI argument and
 `X_AUTHELIA_CONFIG_FILTERS` environment variable. We recommend using the environment variable as it ensures
@@ -209,12 +209,12 @@ Examples:
 {{< envTabs "Filters By Argument" >}}
 {{< envTab "Docker" >}}
 ```bash
-docker run -d authelia/authelia:latest authelia --config /config/configuration.yml --config.experimental.filters expand-env,template
+docker run -d authelia/authelia:latest authelia --config /config/configuration.yml --config.experimental.filters template
 ```
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
 ```bash
-authelia --config /config/configuration.yml --config.experimental.filters expand-env,template
+authelia --config /config/configuration.yml --config.experimental.filters template
 ```
 {{< /envTab >}}
 {{< /envTabs >}}
@@ -222,38 +222,19 @@ authelia --config /config/configuration.yml --config.experimental.filters expand
 {{< envTabs "Filters By Environment" >}}
 {{< envTab "Docker" >}}
 ```bash
-docker run -d -e X_AUTHELIA_CONFIG_FILTERS=expand-env,template -e X_AUTHELIA_CONFIG=/config/configuration.yml authelia/authelia:latest authelia
+docker run -d -e X_AUTHELIA_CONFIG_FILTERS=template -e X_AUTHELIA_CONFIG=/config/configuration.yml authelia/authelia:latest authelia
 ```
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
 ```bash
-X_AUTHELIA_CONFIG_FILTERS=expand-env,template X_AUTHELIA_CONFIG=/config/configuration.yml authelia
+X_AUTHELIA_CONFIG_FILTERS=template X_AUTHELIA_CONFIG=/config/configuration.yml authelia
 ```
 {{< /envTab >}}
 {{< /envTabs >}}
 
-### Expand Environment Variable Filter
-
-The name used to enable this filter is `expand-env`.
-
-This filter is the most common filter type used by many other applications. It is similar to using `envsubst` where it
-replaces a string like `$EXAMPLE` or `${EXAMPLE}` with the value of the `EXAMPLE` environment variable.
-
-This filter utilizes [os.ExpandEnv](https://pkg.go.dev/os#ExpandEnv) but does not include any environment variables that
-look like they're an Authelia secret. This filter is very limited in what we can achieve, and there are known
-limitations with this filter which may not be possible for us to work around. We discourage it's usage as the `template`
-is much more robust and we have a lot more freedom to make adjustments to this filter compared to the `expand-env`
-filter.
-
-Known Limitations:
-
-- Has no way to handle escaping a `$` so treats all `$` values as an expansion value. This can be escaped using `$$` as
-  an indication that it should be a `$` literal. However this functionality likely will not work under all
-  circumstances.
-
 ### Go Template Filter
 
-The name used to enable this filter is `template`.
+The name used to enable this filter is `template`. This filter is considered stable.
 
 This filter uses the [Go template engine](https://pkg.go.dev/text/template) to render the configuration files. It uses
 similar syntax to Jinja2 templates with different function names.
@@ -267,3 +248,32 @@ output at each filter stage as a base64 string when trace logging is enabled.
 In addition to the standard builtin functions we support several other functions which should operate similar.
 
 See the [Templating Reference Guide](../../reference/guides/templating.md) for more information.
+
+### Expand Environment Variable Filter
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+The Expand Environment Variable filter (i.e. `expand-env`) is officially deprecated. It will be removed in v4.40.0 and
+will result in a startup error. This removal is done based on the experimental introduction of this feature and our
+[Versioning Policy](../../policies/versioning.md). The removal decision was made due to the fact the
+[Go Template Filter](#go-template-filter) can effectively do everything this filter can do without the
+[Known Limitations](#known-limitations) which should be read carefully before usage of this filter.
+{{< /callout >}}
+
+The name used to enable this filter is `expand-env`.
+
+This filter is the most common filter type used by many other applications. It is similar to using `envsubst` where it
+replaces a string like `$EXAMPLE` or `${EXAMPLE}` with the value of the `EXAMPLE` environment variable.
+
+This filter utilizes [os.ExpandEnv](https://pkg.go.dev/os#ExpandEnv) but does not include any environment variables that
+look like they're an Authelia secret. This filter is very limited in what we can achieve, and there are known
+limitations with this filter which may not be possible for us to work around. We discourage it's usage as the `template`
+is much more robust and we have a lot more freedom to make adjustments to this filter compared to the `expand-env`
+filter.
+
+#### Known Limitations
+
+The following known limitations exist with the Expand Environment Variable Filter.
+
+- Has no inbuilt way to handle escaping a `$` so treats all `$` values as an expansion value. This can be escaped using
+  `$$` as an indication that it should be a `$` literal. However this functionality likely will not work under all
+  circumstances and is not guaranteed.

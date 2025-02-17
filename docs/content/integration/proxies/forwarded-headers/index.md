@@ -57,10 +57,10 @@ achieve a secure result. Please see the [Cloudflare] documentation on
 
 #### Steps
 
-1. Click `Rules`.
+1. On the left sidebar, click `Rules`.
 2. Click `Transform Rules`.
-3. Click `Create transform rules`.
-4. Click `Modify Request Header`.
+3. On the right, click `Modify Request Header` tab.
+4. Click `Create rule`.
 5. Set the `Rule name` to something appropriate like `Remove X-Forwarded-For Header`.
 6. Set the `Field` option in the `When incoming requests match` section to an appropriate value (see criteria table
    below).
@@ -70,10 +70,28 @@ achieve a secure result. Please see the [Cloudflare] documentation on
    below).
 9. Set the `Then` section dropdown to `Remove`.
 10. Set the `Then` section `Header name` to `X-Forwarded-For`.
-11. Click `Save`.
+11. Click `Deploy`.
 
-{{< figure src="cloudflare_1.png" alt="Steps 1 to 4" width="736" >}}
-{{< figure src="cloudflare_2.png" alt="Steps 5 to 11" width="736" >}}
+{{< figure
+src="cloudflare_1.png"
+alt="Image of Cloudflare dashboard with steps 1 to 4 labeled"
+width="736"
+caption="Steps 1 - 4: Create New Request Header Transform Rule"
+title="Steps 1 - 4: Create New Request Header Transform Rule" >}}
+
+{{< figure
+src="cloudflare_2.png"
+alt="Image of Cloudflare dashboard with steps 5 to 11 labeled for Option 1"
+width="736"
+caption="Steps 5 - 11 Option 1: Always Remove Headers"
+title="Steps 5 - 11 Option 1: Always Remove Headers" >}}
+
+{{< figure
+src="cloudflare_3.png"
+alt="Image of Cloudflare dashboard with steps 5 to 11 labeled for Option 2"
+width="736"
+caption="Steps 5 - 11 Option 2: Remove When Not From Trusted Source"
+title="Steps 5 - 11 Option 2: Remove When Not From Trusted Source" >}}
 
 #### Criteria
 

@@ -55,59 +55,72 @@ The following functions which mimic the behavior of helm exist in most templatin
 - split
 - splitList
 - join
-- contains
-- hasPrefix
-- hasSuffix
-- lower
-- upper
-- title
-- trim
-- trimAll
-- trimSuffix
-- trimPrefix
-- replace
-- quote
-- sha1sum
-- sha256sum
+- [contains](https://helm.sh/docs/chart_template_guide/function_list/#contains)
+- [hasPrefix](https://helm.sh/docs/chart_template_guide/function_list/#hasprefix-and-hassuffix)
+- [hasSuffix](https://helm.sh/docs/chart_template_guide/function_list/#hasprefix-and-hassuffix)
+- [lower](https://helm.sh/docs/chart_template_guide/function_list/#lower)
+- [upper](https://helm.sh/docs/chart_template_guide/function_list/#upper)
+- [title](https://helm.sh/docs/chart_template_guide/function_list/#title)
+- [trim](https://helm.sh/docs/chart_template_guide/function_list/#trim)
+- [trimAll](https://helm.sh/docs/chart_template_guide/function_list/#trimAll)
+- [trimSuffix](https://helm.sh/docs/chart_template_guide/function_list/#trimSuffix)
+- [trimPrefix](https://helm.sh/docs/chart_template_guide/function_list/#trimPrefix)
+- [replace](https://helm.sh/docs/chart_template_guide/function_list/#replace)
+- [quote](https://helm.sh/docs/chart_template_guide/function_list/#quote-and-squote)
+- [sha1sum](https://helm.sh/docs/chart_template_guide/function_list/#sha1sum)
+- [sha256sum](https://helm.sh/docs/chart_template_guide/function_list/#sha256sum)
 - sha512sum
-- squote
-- now
-- keys
-- sortAlpha
-- b64enc
-- b64dec
-- b32enc
-- b32dec
-- list
-- dict
-- get
-- set
-- isAbs
-- base
-- dir
-- ext
-- clean
+- [squote](https://helm.sh/docs/chart_template_guide/function_list/#quote-and-squote)
+- [now](https://helm.sh/docs/chart_template_guide/function_list/#now)
+- [ago](https://helm.sh/docs/chart_template_guide/function_list/#ago)
+- [toDate](https://helm.sh/docs/chart_template_guide/function_list/#toDate)
+- [mustToDate](https://helm.sh/docs/chart_template_guide/function_list/#mustToDate)
+- [date](https://helm.sh/docs/chart_template_guide/function_list/#date)
+- [dateInZone](https://helm.sh/docs/chart_template_guide/function_list/#dateinzone)
+- [htmlDate](https://helm.sh/docs/chart_template_guide/function_list/#htmldate)
+- [htmlDateInZone](https://helm.sh/docs/chart_template_guide/function_list/#htmldateinzone)
+- [duration](https://helm.sh/docs/chart_template_guide/function_list/#duration)
+- [unixEpoch](https://helm.sh/docs/chart_template_guide/function_list/#unixepoch)
+- [keys](https://helm.sh/docs/chart_template_guide/function_list/#keys)
+- [sortAlpha](https://helm.sh/docs/chart_template_guide/function_list/#keys)
+- [b64enc](https://helm.sh/docs/chart_template_guide/function_list/#encoding-functions)
+- [b64dec](https://helm.sh/docs/chart_template_guide/function_list/#encoding-functions)
+- [b32enc](https://helm.sh/docs/chart_template_guide/function_list/#encoding-functions)
+- [b32dec](https://helm.sh/docs/chart_template_guide/function_list/#encoding-functions)
+- [list](https://helm.sh/docs/chart_template_guide/function_list/#lists-and-list-functions)
+- [dict](https://helm.sh/docs/chart_template_guide/function_list/#dict)
+- [get](https://helm.sh/docs/chart_template_guide/function_list/#get)
+- [set](https://helm.sh/docs/chart_template_guide/function_list/#set)
+- [isAbs](https://helm.sh/docs/chart_template_guide/function_list/#isabs)
+- [base](https://helm.sh/docs/chart_template_guide/function_list/#base)
+- [dir](https://helm.sh/docs/chart_template_guide/function_list/#dir)
+- [ext](https://helm.sh/docs/chart_template_guide/function_list/#ext)
+- [clean](https://helm.sh/docs/chart_template_guide/function_list/#clean)
 - osBase
 - osClean
 - osDir
 - osExt
 - osIsAbs
-- deepEqual
-- typeOf
-- typeIs
-- typeIsLike
-- kindOf
-- kindIs
-- default
-- empty
-- indent
-- nindent
-- uuidv4
-- urlquery
+- [deepEqual](https://helm.sh/docs/chart_template_guide/function_list/#deepequal)
+- [typeOf](https://helm.sh/docs/chart_template_guide/function_list/#type-functions)
+- [typeIs](https://helm.sh/docs/chart_template_guide/function_list/#type-functions)
+- [typeIsLike](https://helm.sh/docs/chart_template_guide/function_list/#type-functions)
+- [kindOf](https://helm.sh/docs/chart_template_guide/function_list/#kind-functions)
+- [kindIs](https://helm.sh/docs/chart_template_guide/function_list/#kind-functions)
+- [default](https://helm.sh/docs/chart_template_guide/function_list/#default)
+- [empty](https://helm.sh/docs/chart_template_guide/function_list/#empty)
+- [indent](https://helm.sh/docs/chart_template_guide/function_list/#indent)
+- [nindent](https://helm.sh/docs/chart_template_guide/function_list/#nindent)
+- [uuidv4](https://helm.sh/docs/chart_template_guide/function_list/#uuid-functions)
+- [urlquery](https://helm.sh/docs/chart_template_guide/function_list/#urlquery)
 - urlunquery (opposite of urlquery)
+- [fromYaml](https://helm.sh/docs/chart_template_guide/function_list/#fromyaml)
+- [toYaml](https://helm.sh/docs/chart_template_guide/function_list/#type-conversion-functions)
+- [toYamlPretty](https://helm.sh/docs/chart_template_guide/function_list/#type-conversion-functions)
 
 See the [Helm Documentation](https://helm.sh/docs/chart_template_guide/function_list/) for more information. Please
-note that only the functions listed above are supported and the functions don't necessarily behave exactly the same.
+note that only the functions listed above are supported and while the intention is to make the functions behave exactly
+the same they may not necessarily behave exactly the same.
 
 __*Special Note:* The `env` and `expandenv` function automatically excludes environment variables that start with
 `AUTHELIA_` or `X_AUTHELIA_` and end with one of `KEY`, `SECRET`, `PASSWORD`, `TOKEN`, or `CERTIFICATE_CHAIN`.__
@@ -184,3 +197,94 @@ quote char is `"` instead of `'`).
 Similar to the `squote` function except it skips quoting for strings with multiple lines.
 
 See the [mindent example](#mindent-example) for an example usage.
+
+#### glob
+
+The `glob` function takes a single glob pattern argument and returns a list of files that match that pattern.
+
+Examples:
+
+```yaml {title="Print Names of Files in the '/opt/data' directory which have the .yml extension"}
+{{ range (glob "/opt/data/*.yml") }}
+{{ . }}
+{{ end }}
+```
+
+```yaml {title="Print Content of Files in the '/opt/data' directory"}
+{{ range (walk "/opt/data/*" "" false) }}
+{{ fileContent . }}
+{{ end }}
+```
+
+#### walk
+
+The `walk` function takes three arguments, `path` (string), `pattern` (string), and `skipDir` (boolean). It's a function
+which walks an entire tree of a given path and produces a list of structs with the following spec for every file in
+that path:
+
+```go
+type WalkInfo struct {
+  // Path is the relative path of the file or directory.
+  Path string
+
+  // AbsolutePath is the absolute file system path of the file or directory.
+  AbsolutePath string
+
+  // Name is the file or directory name.
+  Name string
+
+  // Size is the size in bytes of the file or directory.
+  Size int64
+
+  // Mode is the os.FileMode of the file or directory.
+  Mode os.FileMode
+
+  // Modified is time.Time that the file or directory was last modified.
+  Modified time.Time
+
+  // IsDir is truthy if this is a directory otherwise it is not.
+  IsDir bool
+}
+```
+
+The `path` must be defined and must be a valid file path.
+
+If `pattern` is defined it must be a valid go regex pattern and the full file path and name is evaluated against the
+pattern.
+
+If `skipDir` is true any directories will be removed from the results.
+
+Examples:
+
+```yaml {title="Print Names of Files in the '/opt/data' directory"}
+{{ range (walk "/opt/data" "" false) }}
+{{ .AbsolutePath }}
+{{ end }}
+```
+
+```yaml {title="Print Content of Files in the '/opt/data' directory"}
+{{ range (walk "/opt/data" "" false) }}
+  {{ if not .IsDir }}
+{{ fileContent .AbsolutePath }}
+  {{- end }}
+{{ end }}
+```
+
+```yaml {title="Print Names of Files in the '/opt/data' directory which have the .yml extension"}
+{{ range (walk "/opt/data" "^.*\.yml" false) }}
+{{ .AbsolutePath }}
+{{ end }}
+```
+
+```yaml {title="Print Content of Files in the '/opt/data' directory which have the .yml extension"}
+{{ range (walk "/opt/data" "^.*\.yml" false) }}
+  {{ if not .IsDir }}
+{{ fileContent .AbsolutePath }}
+  {{- end }}
+{{ end }}
+```
+
+#### toYamlCustom
+
+Converts an object into a YAML string with custom space indentation. Takes two inputs the first being the same as
+`toYaml` the second being the number of spaces to indent the YAML with.

@@ -89,19 +89,8 @@ func validateOIDCAuthorizationPolicies(config *schema.IdentityProvidersOpenIDCon
 			validator.Push(fmt.Errorf(errFmtOIDCPolicyMissingOption, name, "rules"))
 		}
 
-		for i, rule := range policy.Rules {
-			switch rule.Policy {
-			case "":
-				policy.Rules[i].Policy = schema.DefaultOpenIDConnectPolicyConfiguration.DefaultPolicy
-			case policyOneFactor, policyTwoFactor, policyDeny:
-				break
-			default:
-				validator.Push(fmt.Errorf(errFmtOIDCPolicyRuleInvalidPolicy, name, i+1, utils.StringJoinAnd([]string{policyOneFactor, policyTwoFactor, policyDeny}), rule.Policy))
-			}
-
-			if len(rule.Subjects) == 0 {
-				validator.Push(fmt.Errorf(errFmtOIDCPolicyRuleMissingOption, name, i+1, "subject"))
-			}
+		for i := range policy.Rules {
+			validateOIDCAuthorizationPoliciesPolicyRules(i, name, config, validator)
 		}
 
 		config.AuthorizationPolicies[name] = policy
@@ -109,6 +98,35 @@ func validateOIDCAuthorizationPolicies(config *schema.IdentityProvidersOpenIDCon
 		if add {
 			config.Discovery.AuthorizationPolicies = append(config.Discovery.AuthorizationPolicies, name)
 		}
+	}
+}
+
+func validateOIDCAuthorizationPoliciesPolicyRules(i int, policy string, config *schema.IdentityProvidersOpenIDConnect, validator *schema.StructValidator) {
+	switch config.AuthorizationPolicies[policy].Rules[i].Policy {
+	case "":
+		config.AuthorizationPolicies[policy].Rules[i].Policy = schema.DefaultOpenIDConnectPolicyConfiguration.DefaultPolicy
+	case policyOneFactor, policyTwoFactor, policyDeny:
+		break
+	default:
+		validator.Push(fmt.Errorf(errFmtOIDCPolicyRuleInvalidPolicy, policy, i+1, utils.StringJoinAnd([]string{policyOneFactor, policyTwoFactor, policyDeny}), config.AuthorizationPolicies[policy].Rules[i].Policy))
+	}
+
+	n := 0
+
+	for _, subjects := range config.AuthorizationPolicies[policy].Rules[i].Subjects {
+		for _, subject := range subjects {
+			if !IsSubjectValidStrict(subject) {
+				validator.Push(fmt.Errorf(errFmtOIDCPolicyRuleSubjectInvalid, policy, i+1, subject))
+
+				n = -1
+			} else if n != -1 {
+				n++
+			}
+		}
+	}
+
+	if n == 0 {
+		validator.Push(fmt.Errorf(errFmtOIDCPolicyRuleMissingOption, policy, i+1, "subject"))
 	}
 }
 

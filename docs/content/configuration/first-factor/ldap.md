@@ -125,7 +125,12 @@ URL's are slightly more secure.
 
 {{< confkey type="structure" structure="tls" required="no" >}}
 
-Controls the TLS connection validation parameters for either StartTLS or the TLS socket.
+If defined this option controls the TLS connection verification parameters for the LDAP server.
+
+By default Authelia uses the system certificate trust for TLS certificate verification of TLS connections and the
+[certificates_directory](../miscellaneous/introduction.md#certificates_directory) global option can be used to augment
+this.
+
 
 ### base_dn
 
@@ -254,7 +259,7 @@ The only known support at this time is with Active Directory.
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
 This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults] for more information.
+default negating this requirement. Refer to the [attribute defaults](../../reference/guides/ldap.md#attribute-defaults) for more information.
 {{< /callout >}}
 
 The directory server attribute that maps to the username in *Authelia*. This must contain the `{username_attribute}` [placeholder].
@@ -265,7 +270,7 @@ The directory server attribute that maps to the username in *Authelia*. This mus
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
 This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults] for more information.
+default negating this requirement. Refer to the [attribute defaults](../../reference/guides/ldap.md#attribute-defaults) for more information.
 {{< /callout >}}
 
 The directory server attribute to retrieve which is shown on the Web UI to the user when they log in.
@@ -276,7 +281,7 @@ The directory server attribute to retrieve which is shown on the Web UI to the u
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
 This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults] for more information.
+default negating this requirement. Refer to the [attribute defaults](../../reference/guides/ldap.md#attribute-defaults) for more information.
 {{< /callout >}}
 
 The directory server attribute to retrieve which contains the users email addresses. This is important for the device
@@ -289,7 +294,7 @@ identity verification when a user attempts to reset their password or register a
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
 This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults] for more information.
+default negating this requirement. Refer to the [attribute defaults](../../reference/guides/ldap.md#attribute-defaults) for more information.
 {{< /callout >}}
 
 The directory server attribute which contains the groups a user is a member of. This is currently only used for the
@@ -301,7 +306,7 @@ The directory server attribute which contains the groups a user is a member of. 
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
 This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults] for more information.
+default negating this requirement. Refer to the [attribute defaults](../../reference/guides/ldap.md#attribute-defaults) for more information.
 {{< /callout >}}
 
 The directory server attribute that is used by Authelia to determine the group name.

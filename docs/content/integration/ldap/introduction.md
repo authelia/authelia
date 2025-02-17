@@ -125,7 +125,7 @@ Authelia taking the email attribute for users straight from the 'mail' attribute
 ### lldap
 
 **Tested:**
-* Version: [v0.4.0](https://github.com/nitnelave/lldap/releases/tag/v0.4.07)
+* Version: [v0.6.1](https://github.com/lldap/lldap/releases/tag/v0.6.1)
 
 Create within lldap, a basic user with a complex password, and add to the group "lldap_password_manager"
 You can also create a group to use within Authelia if you would like granular control of who can login, and reference it
