@@ -7,7 +7,6 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -86,7 +85,6 @@ func TestShouldNotPanicOnNilDB(t *testing.T) {
 
 	provider := &FileUserProvider{
 		config:        &schema.AuthenticationBackendFile{Path: f, Password: schema.DefaultPasswordConfig},
-		mutex:         &sync.Mutex{},
 		timeoutReload: time.Now().Add(-1 * time.Second),
 	}
 
