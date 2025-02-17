@@ -4,11 +4,11 @@
         "development": "default-src 'self' 'unsafe-eval'; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-${NONCE}'; frame-ancestors 'none'; base-uri 'self'",
         "nonce": "${NONCE}"
     },
-    "latest": "4.38.18",
+    "latest": "4.38.19",
     "support": {
         "traefik": [
             "v3.2.3",
-            "v2.11.16"
+            "v2.11.17"
         ]
     }
 }
