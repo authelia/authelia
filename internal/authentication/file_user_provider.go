@@ -137,7 +137,7 @@ func (p *FileUserProvider) StartupCheck() (err error) {
 		return fmt.Errorf("one or more errors occurred checking the authentication database")
 	}
 
-	if p.hash, err = NewFileCryptoHashFromConfig(p.config.Password); err != nil {
+	if p.hash, err = NewCryptoHashFromConfig(p.config.Password); err != nil {
 		return err
 	}
 
@@ -156,8 +156,8 @@ func (p *FileUserProvider) setTimeoutReload(now time.Time) {
 	p.timeoutReload = now.Add(time.Second / 2)
 }
 
-// NewFileCryptoHashFromConfig returns a crypt.Hash given a valid configuration.
-func NewFileCryptoHashFromConfig(config schema.AuthenticationBackendFilePassword) (hash algorithm.Hash, err error) {
+// NewCryptoHashFromConfig returns a crypt.Hash given a valid configuration.
+func NewCryptoHashFromConfig(config schema.AuthenticationBackendPassword) (hash algorithm.Hash, err error) {
 	switch config.Algorithm {
 	case hashArgon2, "":
 		hash, err = argon2.New(

@@ -452,3 +452,66 @@ const (
 		SELECT id, service, sector_id, username, identifier
 		FROM %s;`
 )
+
+// querys for user table.
+const (
+	queryFmtSelectUser = `
+		SELECT id, username, password, display_name, email, disabled
+		FROM %s
+		WHERE %s = ?;`
+
+	queryFmtSelectUsers = `
+		SELECT id, username, password, display_name, email, disabled
+		FROM %s`
+
+	queryFmtUpdateUser = `
+		UPDATE %s
+		SET password = ?,
+			email = ?,
+			display_name = ?,
+			disabled = ?
+		WHERE username = ?;
+		`
+
+	//nolint:gosec
+	queryFmtUpdateUserPassword = `
+		UPDATE %s
+		SET password = ?
+		WHERE username = ?;`
+
+	queryFmtInsertIntoUser = `
+		INSERT INTO %s
+			(username, email, password) VALUES (?, ?, ?);`
+
+	queryFmtSelectUserGroups = `
+		SELECT groupname
+		FROM %s
+		WHERE username = ?;`
+
+	queryFmtDeleteFromUserGroups = `
+		DELETE
+		FROM %s
+		WHERE username = ?;`
+
+	queryFmtInsertIntoUserGroups = `
+		INSERT INTO %s (username, groupname) VALUES (?, ?);`
+
+	queryFmtDeleteUser = `
+		DELETE FROM %s
+		WHERE username = ?;`
+
+	queryFmtUpdateUserDisplayName = `
+		UPDATE %s
+		SET display_name = ?
+		WHERE username = ?;`
+
+	queryFmtUpdateUserEmail = `
+		UPDATE %s
+		SET email = ?
+		WHERE username = ?;`
+
+	queryFmtUpdateUserStatus = `
+		UPDATE %s
+		SET disabled = ?
+		WHERE username = ?;`
+)

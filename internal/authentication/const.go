@@ -2,6 +2,7 @@ package authentication
 
 import (
 	"errors"
+	"time"
 
 	"golang.org/x/text/encoding/unicode"
 )
@@ -94,9 +95,23 @@ const (
 var (
 	// ErrUserNotFound indicates the user wasn't found in the authentication backend.
 	ErrUserNotFound = errors.New("user not found")
+	ErrUserDisabled = errors.New("the user is disabled")
 
 	// ErrNoContent is returned when the file is empty.
 	ErrNoContent = errors.New("no file content")
+
+	ErrInvalidUsername      = errors.New("invalid username")
+	ErrInvalidEmail         = errors.New("invalid email address")
+	ErrInvalidPassword      = errors.New("invalid password")
+	ErrCreatingUser         = errors.New("error creating user")
+	ErrUserExists           = errors.New("user already exists")
+	ErrUpdatingUserPassword = errors.New("error updating password")
+	ErrUpdatingUser         = errors.New("error updating user")
+	ErrHashError            = errors.New("error hashing password")
+
+	ErrListingUser = errors.New("error while getting the user list")
+
+	ErrDeletingUser = errors.New("error deleting user")
 )
 
 const fileAuthenticationMode = 0600
@@ -107,4 +122,8 @@ const specialLDAPRunes = ",#+<>;\"="
 
 var (
 	encodingUTF16LittleEndian = unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM)
+)
+
+const (
+	contextTimeout time.Duration = 20 * time.Second
 )

@@ -15,7 +15,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration"
@@ -152,12 +151,7 @@ func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
 
 	var err error
 
-	switch {
-	case ctx.config.AuthenticationBackend.File != nil:
-		ctx.providers.UserProvider = authentication.NewFileUserProvider(ctx.config.AuthenticationBackend.File)
-	case ctx.config.AuthenticationBackend.LDAP != nil:
-		ctx.providers.UserProvider = authentication.NewLDAPUserProvider(ctx.config.AuthenticationBackend, ctx.trusted)
-	}
+	ctx.providers.UserProvider = getAuthenticationProvider(ctx)
 
 	if ctx.providers.Templates, err = templates.New(templates.Config{EmailTemplatesPath: ctx.config.Notifier.TemplatePath}); err != nil {
 		errs = append(errs, err)

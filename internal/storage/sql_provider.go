@@ -150,6 +150,20 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectEncryptionValue: fmt.Sprintf(queryFmtSelectEncryptionValue, tableEncryption),
 
 		sqlFmtRenameTable: queryFmtRenameTable,
+
+		sqlSelectUserByUsername:  fmt.Sprintf(queryFmtSelectUser, tableUsers, tableUsersFieldUsername),
+		sqlSelectUserByEmail:     fmt.Sprintf(queryFmtSelectUser, tableUsers, tableUsersFieldEmail),
+		sqlSelectUsers:           fmt.Sprintf(queryFmtSelectUsers, tableUsers),
+		sqlUpdateUserPassword:    fmt.Sprintf(queryFmtUpdateUserPassword, tableUsers),
+		sqlSelectUserGroups:      fmt.Sprintf(queryFmtSelectUserGroups, tableUsersGroups),
+		sqlInsertUser:            fmt.Sprintf(queryFmtInsertIntoUser, tableUsers),
+		sqlUpdateUser:            fmt.Sprintf(queryFmtUpdateUser, tableUsers),
+		sqlDeleteUser:            fmt.Sprintf(queryFmtDeleteUser, tableUsers),
+		sqlClearUserGroups:       fmt.Sprintf(queryFmtDeleteFromUserGroups, tableUsersGroups),
+		sqlAssignGroupToUser:     fmt.Sprintf(queryFmtInsertIntoUserGroups, tableUsersGroups),
+		sqlUpdateUserDisplayName: fmt.Sprintf(queryFmtUpdateUserDisplayName, tableUsers),
+		sqlUpdateUserEmail:       fmt.Sprintf(queryFmtUpdateUserEmail, tableUsers),
+		sqlUpdateUserStatus:      fmt.Sprintf(queryFmtUpdateUserStatus, tableUsers),
 	}
 
 	return provider
@@ -307,6 +321,23 @@ type SQLProvider struct {
 	// Utility.
 	sqlSelectExistingTables string
 	sqlFmtRenameTable       string
+
+	// Table: users.
+	sqlSelectUserByUsername  string
+	sqlSelectUserByEmail     string
+	sqlSelectUsers           string
+	sqlUpdateUser            string
+	sqlUpdateUserPassword    string
+	sqlUpdateUserDisplayName string
+	sqlUpdateUserEmail       string
+	sqlUpdateUserStatus      string
+	sqlInsertUser            string
+	sqlClearUserGroups       string
+	sqlAssignGroupToUser     string
+	sqlDeleteUser            string
+
+	// Table: users_groups.
+	sqlSelectUserGroups string
 }
 
 // SQLProviderKeys are the cryptography keys used by a SQLProvider.
@@ -405,6 +436,21 @@ func (p *SQLProvider) Rollback(ctx context.Context) (err error) {
 // Close the underlying storage provider.
 func (p *SQLProvider) Close() (err error) {
 	return p.db.Close()
+}
+
+// ExecContext executes givend query, using transaction if provided in context.
+func (p *SQLProvider) ExecContext(ctx context.Context, query string, args ...interface{}) (result sql.Result, err error) {
+	var conn sqlx.ExecerContext
+
+	// if this call to de func is part of a transaction, use it.
+	conn, ok := ctx.Value(ctxKeyTransaction).(*sql.Tx)
+
+	// else use direct connection.
+	if !ok {
+		conn = p.db
+	}
+
+	return conn.ExecContext(ctx, query, args...)
 }
 
 // SavePreferred2FAMethod save the preferred method for 2FA for a username to the storage provider.
@@ -1334,4 +1380,172 @@ func (p *SQLProvider) LoadAuthenticationLogs(ctx context.Context, username strin
 	}
 
 	return attempts, nil
+}
+
+// LoadUser implements storage.AuthenticationStorageProvider.LoadUser.
+func (p *SQLProvider) LoadUser(ctx context.Context, username string, allowEmailSearch bool) (details model.User, err error) {
+	if allowEmailSearch {
+		if details, err = p.loadUser(ctx, p.sqlSelectUserByEmail, username); err == nil {
+			return details, nil
+		}
+	}
+
+	return p.loadUser(ctx, p.sqlSelectUserByUsername, username)
+}
+
+// loadUser loads user information using specific query.
+func (p *SQLProvider) loadUser(ctx context.Context, query, identifier string) (model.User, error) {
+	var user model.User
+
+	err := p.db.GetContext(ctx, &user, query, identifier)
+
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+		return model.User{}, ErrUserNotFound
+	case err != nil:
+		return model.User{}, fmt.Errorf(errLoadingUserDetails, err)
+	}
+
+	if user.Password, err = p.decrypt(user.Password); err != nil {
+		p.log.WithError(err).
+			Warning("Failed to decrypt user password, the user must reset their password") //lint:nosec
+
+		user.Password = []byte{}
+	}
+
+	if user.Groups, err = p.GetUserGroups(ctx, user.Username); err != nil {
+		return model.User{}, err
+	}
+
+	return user, nil
+}
+
+// UpdateUserPassword implements storage.AuthenticationStorageProvider.UpdateUserPassword.
+func (p *SQLProvider) UpdateUserPassword(ctx context.Context, username, password string) (err error) {
+	var encryptedPassword []byte
+
+	if encryptedPassword, err = p.encrypt([]byte(password)); err != nil {
+		return fmt.Errorf("error encrypting password for user '%s': %w", username, err)
+	}
+
+	if _, err = p.ExecContext(ctx, p.sqlUpdateUserPassword, encryptedPassword, username); err != nil {
+		return fmt.Errorf(errUpdatingUserPassword, err)
+	}
+
+	return
+}
+
+// CreateUser implements storage.AuthenticationStorageProvider.CreateUser.
+func (p *SQLProvider) CreateUser(ctx context.Context, username, email, password string) (err error) {
+	var encryptedPassword []byte
+
+	if encryptedPassword, err = p.encrypt([]byte(password)); err != nil {
+		return fmt.Errorf("error encrypting password for user '%s': %w", username, err)
+	}
+
+	if _, err = p.ExecContext(ctx, p.sqlInsertUser, username, email, encryptedPassword); err != nil {
+		return fmt.Errorf(errCreatingUser, err)
+	}
+
+	return nil
+}
+
+// GetUserGroups implements storage.AuthenticationStorageProvider.GetUserGroups.
+func (p *SQLProvider) GetUserGroups(ctx context.Context, username string) (groups []string, err error) {
+	err = p.db.SelectContext(ctx, &groups, p.sqlSelectUserGroups, username)
+
+	if err != nil {
+		return groups, fmt.Errorf(errLoadingUserGroups, err)
+	}
+
+	return
+}
+
+// UpdateUserGroups implements storage.AuthenticationStorageProvider.UpdateUserGroups.
+func (p *SQLProvider) UpdateUserGroups(ctx context.Context, username string, groups ...string) (err error) {
+	if _, err = p.ExecContext(ctx, p.sqlClearUserGroups, username); err != nil {
+		return fmt.Errorf(errAssigningGroupToUser, err)
+	}
+
+	for _, group := range groups {
+		if _, err = p.ExecContext(ctx, p.sqlAssignGroupToUser, username, group); err != nil {
+			return fmt.Errorf(errAssigningGroupToUser, err)
+		}
+	}
+
+	return nil
+}
+
+// DeleteUser implements storage.AuthenticationStorageProvider.DeleteUser.
+func (p *SQLProvider) DeleteUser(ctx context.Context, username string) (err error) {
+	if _, err = p.ExecContext(ctx, p.sqlDeleteUser, username); err != nil {
+		return fmt.Errorf(errDeletingUser, err)
+	}
+
+	return nil
+}
+
+// UpdateUser implements storage.AuthenticationStorageProvider.UpdateUser.
+func (p *SQLProvider) UpdateUser(ctx context.Context, username string, data model.User) (err error) {
+	if _, err = p.ExecContext(ctx, p.sqlUpdateUser, data.Password, data.Email, data.DisplayName, data.Disabled, username); err != nil {
+		return fmt.Errorf("%w: %w", ErrUpdatingUser, err)
+	}
+
+	return nil
+}
+
+// UserExists implements storage.AuthenticationStorageProvider.UserExists.
+func (p *SQLProvider) UserExists(ctx context.Context, username string) (exists bool, err error) {
+	_, err = p.LoadUser(ctx, username, false)
+
+	switch err {
+	case nil:
+		return true, nil
+	case ErrUserNotFound:
+		return false, nil
+	default:
+		return false, err
+	}
+}
+
+// UpdateUserDisplayName implements storage.AuthenticationStorageProvider.UpdateUserDisplayName.
+func (p *SQLProvider) UpdateUserDisplayName(ctx context.Context, username, displayName string) (err error) {
+	if _, err = p.ExecContext(ctx, p.sqlUpdateUserDisplayName, displayName, username); err != nil {
+		return fmt.Errorf(errUpdatingUserDisplayName, err)
+	}
+
+	return nil
+}
+
+// UpdateUserEmail implements storage.AuthenticationStorageProvider.UpdateUserEmail.
+func (p *SQLProvider) UpdateUserEmail(ctx context.Context, username, email string) (err error) {
+	if _, err = p.ExecContext(ctx, p.sqlUpdateUserEmail, email, username); err != nil {
+		return fmt.Errorf(errUpdatingUserEmail, err)
+	}
+
+	return nil
+}
+
+// UpdateUserStatus implements storage.AuthenticationStorageProvider.UpdateUserStatus.
+func (p *SQLProvider) UpdateUserStatus(ctx context.Context, username string, disabled bool) (err error) {
+	if _, err = p.ExecContext(ctx, p.sqlUpdateUserStatus, disabled, username); err != nil {
+		return fmt.Errorf(errUpdatingUserStatus, err)
+	}
+
+	return nil
+}
+
+// ListUsers implements storage.AuthenticationStorageProvider.ListUsers.
+func (p *SQLProvider) ListUsers(ctx context.Context) (users []model.User, err error) {
+	if err := p.db.SelectContext(ctx, &users, p.sqlSelectUsers); err != nil {
+		return users, fmt.Errorf("error selecting users from database: %w", err)
+	}
+
+	for i := range users {
+		if users[i].Groups, err = p.GetUserGroups(ctx, users[i].Username); err != nil {
+			return nil, fmt.Errorf("error getting groups for user '%s': %w", users[i].Username, err)
+		}
+	}
+
+	return users, nil
 }

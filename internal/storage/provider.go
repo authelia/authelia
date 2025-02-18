@@ -296,6 +296,8 @@ type Provider interface {
 	SchemaEncryptionCheckKey(ctx context.Context, verbose bool) (result EncryptionValidationResult, err error)
 
 	RegulatorProvider
+
+	AuthenticationStorageProvider
 }
 
 // RegulatorProvider is an interface providing storage capabilities for persisting any kind of data related to the regulator.
@@ -305,4 +307,53 @@ type RegulatorProvider interface {
 
 	// LoadAuthenticationLogs loads authentication attempts from the storage provider (paginated).
 	LoadAuthenticationLogs(ctx context.Context, username string, fromDate time.Time, limit, page int) (attempts []model.AuthenticationAttempt, err error)
+}
+
+// AuthenticationStorageProvider is an interface providint storage capabilities for persisting any kind of data related to the authentication provider.
+type AuthenticationStorageProvider interface {
+	Transactioner
+
+	// LoadUser loads the model.User from the storage provider.
+	LoadUser(ctx context.Context, username string, allowEmailSearch bool) (details model.User, err error)
+
+	// UpdateUserPassword updates the user's password into storage provider.
+	UpdateUserPassword(ctx context.Context, username, password string) (err error)
+
+	// CreateUser creates a user in storage provider.
+	CreateUser(ctx context.Context, username, email, password string) (err error)
+
+	// // UpdateUser updates a user.
+	// UpdateUser(ctx context.Context, username string, data model.User) (err error).
+
+	// GetUserGroups gets the list of groups of specified username.
+	GetUserGroups(ctx context.Context, username string) (groups []string, err error)
+
+	// UpdateUserGroups assign the specified groups to a user in storage provider.
+	//  note that this method deletes previous assigned groups
+	UpdateUserGroups(ctx context.Context, username string, groups ...string) (err error)
+
+	// DeleteUser deletes a user from storage provider.
+	DeleteUser(ctx context.Context, username string) (err error)
+
+	// UserExists returns true if the specified user exists in the storage provider.
+	UserExists(ctx context.Context, username string) (exists bool, err error)
+
+	// UpdateUserDisplayName updates a user display name on storage provider.
+	UpdateUserDisplayName(ctx context.Context, username, displayName string) (err error)
+
+	// UpdateUserEmail updates the user's email on  storage provider.
+	UpdateUserEmail(ctx context.Context, username, email string) (err error)
+
+	// UpdateUserEmail updates the user's disabled status.
+	UpdateUserStatus(ctx context.Context, username string, disabled bool) error
+
+	// ListUsers return de list of existing users.
+	ListUsers(ctx context.Context) (users []model.User, err error)
+}
+
+// Transactioner represents an storage provider that supports transactions.
+type Transactioner interface {
+	BeginTX(ctx context.Context) (c context.Context, err error)
+	Commit(ctx context.Context) (err error)
+	Rollback(ctx context.Context) (err error)
 }

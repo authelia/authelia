@@ -557,6 +557,96 @@ This subcommand allows generating an %s key pair.`
 	cmdAutheliaCryptoPairECDSAGenerateExample = `authelia crypto pair ecdsa generate --help`
 
 	cmdAutheliaCryptoPairEd25519GenerateExample = `authelia crypto pair ed25519 generate --help`
+
+	cmdAutheliaUserShort = "Manage users"
+
+	cmdAutheliaUserLong = `Manage users.
+
+This subcommand allows basic user management.`
+	cmdAutheliaUserExample = `authelia user --help`
+
+	cmdAutheliaUserPasswordShort = "Change user password"
+
+	cmdAutheliaUserPasswordLong = `Change user password.
+
+This subcommand allows password change for existing users.
+If the password is provided in the command (less secure, but useful for batch changes), it will used
+If no password is provided in the command, it will be asked
+`
+
+	cmdAutheliaUserPasswordExample = `authelia user password john [new_password]` //nolint:gosec
+
+	cmdAutheliaUserShowShort = "Show user details"
+
+	cmdAutheliaUserShowLong = `Show user details.
+
+This subcommand allows to show the user information.`
+
+	cmdAutheliaUserShowExample = `authelia user show john`
+
+	cmdAutheliaUserAddShort = "Add user"
+
+	cmdAutheliaUserAddLong = `Add user.
+
+This subcommand allows the creation of a new users.`
+
+	cmdAutheliaUserAddExample = `authelia user add john --password "<the password" --display-name="John Doe" --email="john@example.com" --group="a group" --group="another group"`
+
+	cmdAutheliaUserDeleteShort = "Delete user"
+
+	cmdAutheliaUserDeleteLong = `Delete user.
+
+This subcommand allows the deletion of a existing user.`
+
+	cmdAutheliaUserDeleteExample = `authelia user del john`
+
+	cmdAutheliaUserChangeDisplayNameShort = "Change user's display name"
+
+	cmdAutheliaUserChangeDisplayNameLong = `Change user's display name.
+
+This subcommand allows the change the display name of a existing user.`
+
+	cmdAutheliaUserChangeDisplayNameExample = `authelia user display-name john "John Doe"`
+
+	cmdAutheliaUserChangeEmailShort = "Change user's email"
+
+	cmdAutheliaUserChangeEmailLong = `Change user's email.
+
+This subcommand allows the change the email of a existing user.`
+
+	cmdAutheliaUserChangeEmailExample = `authelia user email john "john@example.com"`
+
+	cmdAutheliaUserChangeGroupsShort = "Change user's groups"
+
+	cmdAutheliaUserChangeGroupsLong = `Change user's groups.
+
+This subcommand allows the change the groups of a existing user.`
+
+	cmdAutheliaUserChangeGroupsExample = `authelia user groups john groups1 group2 ... groupN`
+
+	cmdAutheliaUserListShort = "List users"
+
+	cmdAutheliaUserListLong = `List users.
+
+This subcommand allows list existing users.`
+
+	cmdAutheliaUserListExample = `authelia user list`
+
+	cmdAutheliaUserDisableShort = "Disables user"
+
+	cmdAutheliaUserDisableLong = `Disables user.
+
+This subcommand allows disabling users.`
+
+	cmdAutheliaUserDisableExample = `authelia user disable john`
+
+	cmdAutheliaUserEnableShort = "Enables user"
+
+	cmdAutheliaUserEnableLong = `Enables user.
+
+This subcommand allows enabling users.`
+
+	cmdAutheliaUserEnableExample = `authelia user enable john`
 )
 
 const (
@@ -817,6 +907,8 @@ due to arguments which only had an effect on one algorithm and not the other,
 and the new command makes the available options a lot clearer. In addition
 the old command was not compatible with all of the available algorithms the
 new one is compatible for and retrofitting it would be incredibly difficult.`
+
+	helpTopicUser = ``
 )
 
 const (

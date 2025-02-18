@@ -78,3 +78,10 @@ const (
 	na      = "N/A"
 	invalid = "invalid"
 )
+
+const (
+	tableUsers              = "users"
+	tableUsersFieldUsername = "username"
+	tableUsersFieldEmail    = "email"
+	tableUsersGroups        = "users_groups"
+)
