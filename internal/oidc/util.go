@@ -6,10 +6,12 @@ import (
 	"net/http"
 	"net/url"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
 	oauthelia2 "authelia.com/provider/oauth2"
+	fjwt "authelia.com/provider/oauth2/token/jwt"
 	"github.com/go-jose/go-jose/v4"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/text/language"
@@ -19,7 +21,11 @@ import (
 
 // IsPushedAuthorizedRequest returns true if the requester has a PushedAuthorizationRequest redirect_uri value.
 func IsPushedAuthorizedRequest(r oauthelia2.Requester, prefix string) bool {
-	return strings.HasPrefix(r.GetRequestForm().Get(FormParameterRequestURI), prefix)
+	return IsPushedAuthorizedRequestForm(r.GetRequestForm(), prefix)
+}
+
+func IsPushedAuthorizedRequestForm(form url.Values, prefix string) bool {
+	return strings.HasPrefix(form.Get(FormParameterRequestURI), prefix)
 }
 
 // SortedSigningAlgs is a sorting type which allows the use of sort.Sort to order a list of OAuth 2.0 Signing Algs.
@@ -282,8 +288,8 @@ func PopulateClientCredentialsFlowSessionWithAccessRequest(ctx Context, client o
 	session.Claims.Subject = client.GetID()
 	session.ClientID = client.GetID()
 	session.DefaultSession.Claims.Issuer = issuer.String()
-	session.DefaultSession.Claims.IssuedAt = ctx.GetClock().Now().UTC()
-	session.DefaultSession.Claims.RequestedAt = ctx.GetClock().Now().UTC()
+	session.DefaultSession.Claims.IssuedAt = fjwt.NewNumericDate(ctx.GetClock().Now().UTC())
+	session.DefaultSession.Claims.RequestedAt = fjwt.NewNumericDate(ctx.GetClock().Now().UTC())
 	session.ClientCredentials = true
 
 	return nil
@@ -368,6 +374,45 @@ func IsMaybeSignedJWT(value string) (is bool) {
 	return strings.Count(value, ".") == 2
 }
 
+// RequesterRequiresLogin returns true if the oauthelia2.Requester requires the user to authenticate again.
+func RequesterRequiresLogin(requester oauthelia2.Requester, requested, authenticated time.Time) (required bool) {
+	if requester == nil {
+		return false
+	}
+
+	if _, ok := requester.(oauthelia2.DeviceAuthorizeRequester); ok {
+		return false
+	}
+
+	return RequestFormRequiresLogin(requester.GetRequestForm(), requested, authenticated)
+}
+
+// RequestFormRequiresLogin returns true if the form requires the user to authenticate again.
+func RequestFormRequiresLogin(form url.Values, requested, authenticated time.Time) (required bool) {
+	if form.Has(FormParameterPrompt) {
+		if oauthelia2.Arguments(oauthelia2.RemoveEmpty(strings.Split(form.Get(FormParameterPrompt), " "))).Has(PromptLogin) && authenticated.Before(requested) {
+			return true
+		}
+	}
+
+	if form.Has(FormParameterMaximumAge) {
+		value := form.Get(FormParameterMaximumAge)
+
+		var (
+			age int64
+			err error
+		)
+
+		if age, err = strconv.ParseInt(value, 10, 64); err != nil {
+			age = 0
+		}
+
+		return age == 0 || authenticated.IsZero() || requested.IsZero() || authenticated.Add(time.Duration(age)*time.Second).Before(requested)
+	}
+
+	return false
+}
+
 func ValidateSectorIdentifierURI(ctx ClientContext, cache map[string][]string, sectorURI *url.URL, redirectURIs []string) (err error) {
 	var (
 		sectorRedirectURIs []string
@@ -425,4 +470,53 @@ func getSectorIdentifierURICache(ctx ClientContext, cache map[string][]string, s
 	}
 
 	return redirectURIs, nil
+}
+
+func float64Match(expected float64, value any, values []any) (ok bool) {
+	var f float64
+
+	if value != nil {
+		if f, ok = float64As(value); ok {
+			return expected == f
+		}
+	}
+
+	for _, v := range values {
+		if f, ok = float64As(v); ok && expected == f {
+			return true
+		}
+	}
+
+	return false
+}
+
+func float64As(value any) (float64, bool) {
+	switch v := value.(type) {
+	case float64:
+		return v, true
+	case float32:
+		return float64(v), true
+	case int64:
+		return float64(v), true
+	case int32:
+		return float64(v), true
+	case int16:
+		return float64(v), true
+	case int8:
+		return float64(v), true
+	case int:
+		return float64(v), true
+	case uint64:
+		return float64(v), true
+	case uint32:
+		return float64(v), true
+	case uint16:
+		return float64(v), true
+	case uint8:
+		return float64(v), true
+	case uint:
+		return float64(v), true
+	default:
+		return 0, false
+	}
 }
