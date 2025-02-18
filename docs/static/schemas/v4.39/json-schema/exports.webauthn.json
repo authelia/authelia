@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.authelia.com/schemas/v4.39/json-schema/exports.webauthn.json",
+  "$ref": "#/$defs/WebAuthnCredentialDataExport",
+  "$defs": {
+    "WebAuthnCredentialData": {
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "title": "Created At",
+          "description": "The time this credential was created."
+        },
+        "last_used_at": {
+          "type": "string",
+          "format": "date-time",
+          "title": "Last Used At",
+          "description": "The last time this credential was used."
+        },
+        "rpid": {
+          "type": "string",
+          "title": "Relying Party ID",
+          "description": "The Relying Party ID used to register this credential."
+        },
+        "username": {
+          "type": "string",
+          "title": "Username",
+          "description": "The username of the user this credential belongs to."
+        },
+        "description": {
+          "type": "string",
+          "title": "Description",
+          "description": "The user description of this credential."
+        },
+        "kid": {
+          "type": "string",
+          "title": "Public Key ID",
+          "description": "The Public Key ID of this credential."
+        },
+        "aaguid": {
+          "type": "string",
+          "title": "AAGUID",
+          "description": "The Authenticator Attestation Global Unique Identifier of this credential."
+        },
+        "attestation_type": {
+          "type": "string",
+          "title": "Attestation Type",
+          "description": "The attestation format type this credential uses."
+        },
+        "attachment": {
+          "type": "string",
+          "title": "Attachment",
+          "description": "The last recorded credential attachment type."
+        },
+        "transports": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "title": "Transports",
+          "description": "The last recorded credential transports."
+        },
+        "sign_count": {
+          "type": "integer",
+          "title": "Sign Count",
+          "description": "The last recorded credential sign count."
+        },
+        "clone_warning": {
+          "type": "boolean",
+          "title": "Clone Warning",
+          "description": "The clone warning status of the credential."
+        },
+        "legacy": {
+          "type": "boolean",
+          "title": "Legacy",
+          "description": "The legacy value indicates this credential may need to be registered again."
+        },
+        "discoverable": {
+          "type": "boolean",
+          "title": "Discoverable",
+          "description": "The discoverable status of this credential."
+        },
+        "present": {
+          "type": "boolean",
+          "title": "Present",
+          "description": "The user presence status of this credential."
+        },
+        "verified": {
+          "type": "boolean",
+          "title": "Verified",
+          "description": "The verified status of this credential."
+        },
+        "backup_eligible": {
+          "type": "boolean",
+          "title": "Backup Eligible",
+          "description": "The backup eligible status of this credential."
+        },
+        "backup_state": {
+          "type": "boolean",
+          "title": "Backup Eligible",
+          "description": "The backup eligible status of this credential."
+        },
+        "public_key": {
+          "type": "string",
+          "title": "Public Key",
+          "description": "The credential public key."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "WebAuthnCredentialDataExport": {
+      "properties": {
+        "webauthn_credentials": {
+          "items": {
+            "$ref": "#/$defs/WebAuthnCredentialData"
+          },
+          "type": "array",
+          "title": "WebAuthn Credentials",
+          "description": "The list of WebAuthn credentials."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    }
+  }
+}

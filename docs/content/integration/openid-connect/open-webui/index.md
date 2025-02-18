@@ -2,7 +2,7 @@
 title: "Open WebUI"
 description: "Integrating Open WebUI with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2025-01-16T14:55:47-08:00
+date: 2025-01-25T00:03:43+00:00
 draft: false
 images: []
 weight: 620
