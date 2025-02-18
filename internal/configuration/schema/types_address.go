@@ -463,6 +463,7 @@ func (a *Address) setport(port uint16) {
 	a.url.Host = net.JoinHostPort(a.url.Hostname(), strconv.Itoa(int(port)))
 }
 
+//nolint:gocyclo
 func (a *Address) validate() (err error) {
 	if a.url == nil {
 		return fmt.Errorf("error validating the address: address url was nil")
