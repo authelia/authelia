@@ -13,9 +13,38 @@ import (
 	"github.com/weppos/publicsuffix-go/publicsuffix"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
+
+func isUserAttributeDefinitionNameValid(attribute string, config *schema.Configuration) bool {
+	if expression.IsReservedAttribute(attribute) {
+		return false
+	}
+
+	if config.AuthenticationBackend.LDAP != nil {
+		for attrname, attr := range config.AuthenticationBackend.LDAP.Attributes.Extra {
+			if attr.Name != "" {
+				if attr.Name == attribute {
+					return false
+				}
+			} else if attrname == attribute {
+				return false
+			}
+		}
+	}
+
+	if config.AuthenticationBackend.File != nil {
+		for attrname := range config.AuthenticationBackend.File.ExtraAttributes {
+			if attrname == attribute {
+				return false
+			}
+		}
+	}
+
+	return true
+}
 
 func isCookieDomainAPublicSuffix(domain string) (valid bool) {
 	domain = strings.TrimLeft(domain, ".")

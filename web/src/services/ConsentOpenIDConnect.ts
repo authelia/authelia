@@ -43,3 +43,22 @@ export function rejectConsent(clientID: string, consentID: string | null) {
     };
     return Post<ConsentPostResponseBody>(ConsentPath, body);
 }
+
+export function getScopeDescription(scope: string): string {
+    switch (scope) {
+        case "openid":
+            return "Use OpenID to verify your identity";
+        case "offline_access":
+            return "Automatically refresh these permissions without user interaction";
+        case "profile":
+            return "Access your profile information";
+        case "groups":
+            return "Access your group membership";
+        case "email":
+            return "Access your email addresses";
+        case "authelia.bearer.authz":
+            return "Access protected resources logged in as you";
+        default:
+            return scope;
+    }
+}

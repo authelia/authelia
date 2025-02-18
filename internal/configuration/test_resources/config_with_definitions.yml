@@ -82,6 +82,9 @@ definitions:
     lan:
       - '192.168.1.0/24'
       - '192.168.2.0/24'
+  user_attributes:
+    example:
+      expression: '"admin" in groups'
 
 access_control:
   default_policy: 'deny'
