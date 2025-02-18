@@ -9,6 +9,10 @@ import (
 	"time"
 
 	oauthelia2 "authelia.com/provider/oauth2"
+	"authelia.com/provider/oauth2/handler/oauth2"
+	"authelia.com/provider/oauth2/handler/openid"
+	"authelia.com/provider/oauth2/handler/rfc8628"
+	ostorage "authelia.com/provider/oauth2/storage"
 	"github.com/google/uuid"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -19,7 +23,7 @@ import (
 )
 
 // NewStore returns a Store when provided with a schema.OpenIDConnect and storage.Provider.
-func NewStore(config *schema.IdentityProvidersOpenIDConnect, provider storage.Provider) (store *Store) {
+func NewStore(config *schema.Configuration, provider storage.Provider) (store *Store) {
 	store = &Store{
 		ClientStore: NewMemoryClientStore(config),
 		provider:    provider,
@@ -28,18 +32,26 @@ func NewStore(config *schema.IdentityProvidersOpenIDConnect, provider storage.Pr
 	return store
 }
 
-func NewMemoryClientStore(config *schema.IdentityProvidersOpenIDConnect) (store *MemoryClientStore) {
+func NewMemoryClientStore(config *schema.Configuration) (store *MemoryClientStore) {
 	logger := logging.Logger()
 
 	store = &MemoryClientStore{
 		clients: map[string]Client{},
 	}
 
-	for _, client := range config.Clients {
-		policy := authorization.NewLevel(client.AuthorizationPolicy)
-		logger.Debugf("Registering client %s with policy %s (%v)", client.ID, client.AuthorizationPolicy, policy)
+	policies := map[string]ClientAuthorizationPolicy{
+		"one_factor": {Name: "one_factor", DefaultPolicy: authorization.NewLevel("one_factor")},
+		"two_factor": {Name: "two_factor", DefaultPolicy: authorization.NewLevel("two_factor")},
+	}
 
-		store.clients[client.ID] = NewClient(client, config)
+	for name, p := range config.IdentityProviders.OIDC.AuthorizationPolicies {
+		policies[name] = NewClientAuthorizationPolicy(name, p)
+	}
+
+	for _, client := range config.IdentityProviders.OIDC.Clients {
+		logger.Debugf("Registering OpenID Connect 1.0 client with client id '%s' and policy '%s'", client.ID, client.AuthorizationPolicy)
+
+		store.clients[client.ID] = NewClient(client, config.IdentityProviders.OIDC, policies)
 	}
 
 	return store
@@ -263,6 +275,59 @@ func (s *Store) GetOpenIDConnectSession(ctx context.Context, authorizeCode strin
 	return s.loadRequesterBySignature(ctx, storage.OAuth2SessionTypeOpenIDConnect, authorizeCode, request.GetSession())
 }
 
+func (s *Store) CreateDeviceCodeSession(ctx context.Context, signature string, request oauthelia2.DeviceAuthorizeRequester) (err error) {
+	session, err := model.NewOAuth2DeviceCodeSessionFromRequest(request)
+	if err != nil {
+		return err
+	}
+
+	return s.provider.SaveOAuth2DeviceCodeSession(ctx, session)
+}
+
+func (s *Store) UpdateDeviceCodeSession(ctx context.Context, signature string, request oauthelia2.DeviceAuthorizeRequester) (err error) {
+	return s.provider.UpdateOAuth2DeviceCodeSession(ctx, signature, int(request.GetStatus()), request.GetLastChecked())
+}
+
+func (s *Store) GetDeviceCodeSession(ctx context.Context, signature string, session oauthelia2.Session) (request oauthelia2.DeviceAuthorizeRequester, err error) {
+	data, err := s.provider.LoadOAuth2DeviceCodeSession(ctx, signature)
+	if err != nil {
+		return nil, err
+	}
+
+	if !data.Active {
+		return nil, oauthelia2.ErrInvalidatedDeviceCode
+	}
+
+	r, err := data.ToRequest(ctx, session, s)
+	if err != nil {
+		return nil, err
+	}
+
+	return r, nil
+}
+
+func (s *Store) InvalidateDeviceCodeSession(ctx context.Context, signature string) (err error) {
+	return s.provider.DeactivateOAuth2DeviceCodeSession(ctx, signature)
+}
+
+func (s *Store) GetDeviceCodeSessionByUserCode(ctx context.Context, signature string, session oauthelia2.Session) (request oauthelia2.DeviceAuthorizeRequester, err error) {
+	data, err := s.provider.LoadOAuth2DeviceCodeSessionByUserCode(ctx, signature)
+	if err != nil {
+		return nil, err
+	}
+
+	if !data.Active {
+		return nil, oauthelia2.ErrInvalidatedUserCode
+	}
+
+	r, err := data.ToRequest(ctx, session, s)
+	if err != nil {
+		return nil, err
+	}
+
+	return r, nil
+}
+
 // CreatePARSession stores the pushed authorization request context. The requestURI is used to derive the key.
 // This implements a portion of oauthelia2.PARStorage.
 func (s *Store) CreatePARSession(ctx context.Context, requestURI string, request oauthelia2.AuthorizeRequester) (err error) {
@@ -364,3 +429,13 @@ func (s *Store) revokeSessionByRequestID(ctx context.Context, sessionType storag
 
 	return nil
 }
+
+var (
+	_ oauthelia2.PARStorage              = (*Store)(nil)
+	_ oauthelia2.ClientManager           = (*Store)(nil)
+	_ ostorage.Transactional             = (*Store)(nil)
+	_ oauth2.AuthorizeCodeStorage        = (*Store)(nil)
+	_ oauth2.TokenRevocationStorage      = (*Store)(nil)
+	_ openid.OpenIDConnectRequestStorage = (*Store)(nil)
+	_ rfc8628.Storage                    = (*Store)(nil)
+)

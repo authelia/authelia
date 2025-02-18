@@ -328,6 +328,13 @@ identity_validation:
 ## The definitions are used in other areas as reference points to reduce duplication.
 ##
 # definitions:
+  ## The user attribute definitions.
+  # user_attributes:
+    ## The name of the definition.
+    # definition_name:
+      ## The common expression language expression for this definition.
+      # expression: ''
+
   ## The network definitions.
   # network:
     ## The name of the definition followed by the list of CIDR network addresses in this definition.
@@ -1225,6 +1232,8 @@ session:
         # rules:
           # - policy: 'one_factor'
           #   subject: 'group:services'
+          #   networks:
+              #  - '192.168.1.0/24'
 
     ## The lifespans configure the expiration for these token types in the duration common syntax. In addition to this
     ## syntax the lifespans can be customized per-client.

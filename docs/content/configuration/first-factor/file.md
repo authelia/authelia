@@ -28,6 +28,10 @@ authentication_backend:
     search:
       email: false
       case_insensitive: false
+    extra_attributes:
+      extra_example:
+        multi_valued: false
+        value_type: 'string'
     password:
       algorithm: 'argon2'
       argon2:
@@ -103,6 +107,47 @@ Emails are always checked using case-insensitive lookup.
 
 Enabling this search option allows users to login with their username regardless of case. If enabled users must only
 have lowercase usernames.
+
+### extra_attributes
+
+{{< confkey type="dictionary(object)" required="no" >}}
+
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+In addition to the extra attributes, you can configure custom attributes based on the values of existing attributes.
+This is done via the [Definitions](../definitions/user-attributes.md) section.
+{{< /callout >}}
+
+The extra attributes to load from the directory server. These extra attributes can be used in other areas of _Authelia_
+such as [OpenID Connect 1.0](../identity-providers/openid-connect/provider.md).  It's also recommended to check out the
+[Attributes Reference Guide](../../reference/guides/attributes.md) for more information.
+
+The key represents the backend attribute name. The database will be validated given the `multi_valued` and `value_type`
+configuration.
+
+In the example below, we load the directory server attribute `example_file_attribute` into the _Authelia_ attribute
+`example_file_attribute`, treat it as a single valued attribute which has an underlying type of `integer`.
+
+```yaml
+authentication_backend:
+  file:
+    extra_attributes:
+      example_file_attribute:
+        multi_valued: false
+        value_type: 'integer'
+```
+
+#### value_type
+
+{{< confkey type="string" required="yes" >}}
+
+This defines the underlying type the attribute must be. This is required if an extra attribute is configured. The valid
+values are `string`, `integer`, or `boolean`.
+
+#### multi_valued
+
+{{< confkey type="boolean" required="no" >}}
+
+This indicates the underlying type can have multiple values.
 
 ## Password Options
 
