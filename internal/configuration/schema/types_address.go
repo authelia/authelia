@@ -439,13 +439,11 @@ func (a *Address) NetworkAddress() string {
 	}
 
 	if a.socket {
-		prefix := ""
 		if a.url.User != nil {
-			// recover prefix @ for abstract socket.
-			prefix = "@"
+			return fmt.Sprintf("@%s%s", a.url.Hostname(), a.url.Path)
 		}
 
-		return prefix + a.url.Host + a.url.Path
+		return a.url.Path
 	}
 
 	return a.url.Host
@@ -544,7 +542,9 @@ func (a *Address) validateTCPUDP() (err error) {
 
 	switch port {
 	case "":
-		a.setport(0)
+		if a.url.User == nil {
+			a.setport(0)
+		}
 	default:
 		var actualPort uint64
 
@@ -564,7 +564,7 @@ func (a *Address) validateUnixSocket() (err error) {
 	switch {
 	case a.url.Path == "" && a.url.Scheme != AddressSchemeLDAPI && a.url.User == nil:
 		return fmt.Errorf("error validating the unix socket address: could not determine path from '%s'", a.url.String())
-  case a.url.Hostname() != "" && (a.url.User == nil || a.url.User.Username() != ""):
+	case a.url.Hostname() != "" && (a.url.User == nil || a.url.User.Username() != ""):
 		return fmt.Errorf("error validating the unix socket address: the url '%s' appears to have a hostname but this is not valid for unix sockets: this may occur if you omit the leading forward slash from the socket path", a.url.String())
 	}
 
