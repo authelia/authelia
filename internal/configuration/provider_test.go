@@ -711,7 +711,7 @@ func TestShouldNotPanicJWKNilKey(t *testing.T) {
 	assert.Len(t, val.Warnings(), 0)
 
 	require.NotPanics(t, func() {
-		validator.ValidateIdentityProviders(validator.NewValidateCtx(), &config.IdentityProviders, val)
+		validator.ValidateIdentityProviders(validator.NewValidateCtx(), config, val)
 	})
 
 	assert.Len(t, val.Errors(), 5)
@@ -737,7 +737,7 @@ func TestShouldDisableOIDCEntropy(t *testing.T) {
 
 	assert.Equal(t, -1, config.IdentityProviders.OIDC.MinimumParameterEntropy)
 
-	validator.ValidateIdentityProviders(validator.NewValidateCtx(), &config.IdentityProviders, val)
+	validator.ValidateIdentityProviders(validator.NewValidateCtx(), config, val)
 
 	assert.Len(t, val.Errors(), 1)
 	require.Len(t, val.Warnings(), 2)
@@ -758,7 +758,7 @@ func TestShouldDisableOIDCModern(t *testing.T) {
 
 	val.Clear()
 
-	validator.ValidateIdentityProviders(validator.NewValidateCtx(), &config.IdentityProviders, val)
+	validator.ValidateIdentityProviders(validator.NewValidateCtx(), config, val)
 
 	require.Len(t, val.Errors(), 2)
 	require.Len(t, val.Warnings(), 1)
@@ -1181,9 +1181,21 @@ func TestConfigurationDefinitions(t *testing.T) {
 
 	require.NoError(t, err)
 
-	_, err = LoadAdvanced(val, "", config, definitions, sources...)
+	var keys []string
+
+	keys, err = LoadAdvanced(val, "", config, definitions, sources...)
+
+	assert.Len(t, val.Warnings(), 0)
+	assert.Len(t, val.Errors(), 0)
+
+	val.Clear()
 
 	require.NoError(t, err)
+
+	validator.ValidateKeys(keys, GetMultiKeyMappedDeprecationKeys(), DefaultEnvPrefix, val)
+
+	assert.Len(t, val.Warnings(), 0)
+	assert.Len(t, val.Errors(), 0)
 
 	require.Len(t, config.Definitions.Network, 2)
 
@@ -1205,6 +1217,8 @@ func TestConfigurationDefinitions(t *testing.T) {
 	assert.Equal(t, "192.168.2.0/24", config.AccessControl.Rules[1].Networks[2].String())
 	assert.Equal(t, "192.168.3.0/24", config.AccessControl.Rules[1].Networks[3].String())
 	assert.Equal(t, "192.168.4.0/24", config.AccessControl.Rules[1].Networks[4].String())
+
+	assert.Contains(t, config.Definitions.UserAttributes, "example")
 }
 
 func TestConfigurationTemplate(t *testing.T) {
