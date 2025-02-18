@@ -2,7 +2,7 @@
 title: "hoarder"
 description: "Integrating hoarder with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2025-01-26
+date: 2025-01-26T23:14:15+11:00
 draft: false
 images: []
 weight: 620
