@@ -350,6 +350,96 @@
         "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_DISPLAY_NAME"
     },
     {
+        "path": "authentication_backend.ldap.attributes.family_name",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_FAMILY_NAME"
+    },
+    {
+        "path": "authentication_backend.ldap.attributes.given_name",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_GIVEN_NAME"
+    },
+    {
+        "path": "authentication_backend.ldap.attributes.middle_name",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_MIDDLE_NAME"
+    },
+    {
+        "path": "authentication_backend.ldap.attributes.nickname",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_NICKNAME"
+    },
+    {
+        "path": "authentication_backend.ldap.attributes.gender",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_GENDER"
+    },
+    {
+        "path": "authentication_backend.ldap.attributes.birthdate",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_BIRTHDATE"
+    },
+    {
+        "path": "authentication_backend.ldap.attributes.website",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_WEBSITE"
+    },
+    {
+        "path": "authentication_backend.ldap.attributes.profile",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_PROFILE"
+    },
+    {
+        "path": "authentication_backend.ldap.attributes.picture",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_PICTURE"
+    },
+    {
+        "path": "authentication_backend.ldap.attributes.zoneinfo",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_ZONEINFO"
+    },
+    {
+        "path": "authentication_backend.ldap.attributes.locale",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_LOCALE"
+    },
+    {
+        "path": "authentication_backend.ldap.attributes.phone_number",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_PHONE_NUMBER"
+    },
+    {
+        "path": "authentication_backend.ldap.attributes.phone_extension",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_PHONE_EXTENSION"
+    },
+    {
+        "path": "authentication_backend.ldap.attributes.street_address",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_STREET_ADDRESS"
+    },
+    {
+        "path": "authentication_backend.ldap.attributes.locality",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_LOCALITY"
+    },
+    {
+        "path": "authentication_backend.ldap.attributes.region",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_REGION"
+    },
+    {
+        "path": "authentication_backend.ldap.attributes.postal_code",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_POSTAL_CODE"
+    },
+    {
+        "path": "authentication_backend.ldap.attributes.country",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_COUNTRY"
+    },
+    {
         "path": "authentication_backend.ldap.attributes.mail",
         "secret": false,
         "env": "AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ATTRIBUTES_MAIL"

@@ -338,6 +338,27 @@
       "type": "object",
       "description": "AuthenticationBackend represents the configuration related to the authentication backend."
     },
+    "AuthenticationBackendExtraAttribute": {
+      "properties": {
+        "multi_valued": {
+          "type": "boolean",
+          "title": "Multi-Valued",
+          "description": "Defines the attribute as multi-valued."
+        },
+        "value_type": {
+          "type": "string",
+          "enum": [
+            "boolean",
+            "integer",
+            "string"
+          ],
+          "title": "Value Type",
+          "description": "Defines the value type for the attribute."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "AuthenticationBackendFile": {
       "properties": {
         "path": {
@@ -360,6 +381,16 @@
           "$ref": "#/$defs/AuthenticationBackendFileSearch",
           "title": "Search",
           "description": "Configures the user searching behaviour."
+        },
+        "extra_attributes": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/$defs/AuthenticationBackendExtraAttribute"
+            }
+          },
+          "type": "object",
+          "title": "Extra Attributes",
+          "description": "Configures the extra attributes available in expressions and other areas of Authelia."
         }
       },
       "additionalProperties": false,
@@ -791,6 +822,96 @@
           "title": "Attribute: User Display Name",
           "description": "The directory server attribute which contains the display name for all users."
         },
+        "family_name": {
+          "type": "string",
+          "title": "Attribute: Family Name",
+          "description": "The directory server attribute which contains the family name for all users."
+        },
+        "given_name": {
+          "type": "string",
+          "title": "Attribute: Given Name",
+          "description": "The directory server attribute which contains the given name for all users."
+        },
+        "middle_name": {
+          "type": "string",
+          "title": "Attribute: Middle Name",
+          "description": "The directory server attribute which contains the middle name for all users."
+        },
+        "nickname": {
+          "type": "string",
+          "title": "Attribute: Nickname",
+          "description": "The directory server attribute which contains the nickname for all users."
+        },
+        "gender": {
+          "type": "string",
+          "title": "Attribute: Gender",
+          "description": "The directory server attribute which contains the gender for all users."
+        },
+        "birthdate": {
+          "type": "string",
+          "title": "Attribute: Birthdate",
+          "description": "The directory server attribute which contains the birthdate for all users."
+        },
+        "website": {
+          "type": "string",
+          "title": "Attribute: Website",
+          "description": "The directory server attribute which contains the website URL for all users."
+        },
+        "profile": {
+          "type": "string",
+          "title": "Attribute: Profile",
+          "description": "The directory server attribute which contains the profile URL for all users."
+        },
+        "picture": {
+          "type": "string",
+          "title": "Attribute: Picture",
+          "description": "The directory server attribute which contains the picture URL for all users."
+        },
+        "zoneinfo": {
+          "type": "string",
+          "title": "Attribute: Zone Information",
+          "description": "The directory server attribute which contains the time zone information for all users."
+        },
+        "locale": {
+          "type": "string",
+          "title": "Attribute: Locale",
+          "description": "The directory server attribute which contains the locale information for all users."
+        },
+        "phone_number": {
+          "type": "string",
+          "title": "Attribute: Phone Number",
+          "description": "The directory server attribute which contains the phone number for all users."
+        },
+        "phone_extension": {
+          "type": "string",
+          "title": "Attribute: Phone Extension",
+          "description": "The directory server attribute which contains the phone extension for all users."
+        },
+        "street_address": {
+          "type": "string",
+          "title": "Attribute: Street Address",
+          "description": "The directory server attribute which contains the street address for all users."
+        },
+        "locality": {
+          "type": "string",
+          "title": "Attribute: Locality",
+          "description": "The directory server attribute which contains the locality for all users."
+        },
+        "region": {
+          "type": "string",
+          "title": "Attribute: Region",
+          "description": "The directory server attribute which contains the region for all users."
+        },
+        "postal_code": {
+          "type": "string",
+          "title": "Attribute: Postal Code",
+          "description": "The directory server attribute which contains the postal code for all users."
+        },
+        "country": {
+          "type": "string",
+          "title": "Attribute: Country",
+          "description": "The directory server attribute which contains the country for all users."
+        },
         "mail": {
           "type": "string",
           "title": "Attribute: User Mail",
@@ -805,11 +926,47 @@
           "type": "string",
           "title": "Attribute: Group Name",
           "description": "The directory server attribute which contains the group name for all groups."
+        },
+        "extra": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/$defs/AuthenticationBackendLDAPAttributesAttribute"
+            }
+          },
+          "type": "object",
+          "title": "Extra Attributes",
+          "description": "Configures the extra attributes available in expressions and other areas of Authelia."
         }
       },
       "additionalProperties": false,
       "type": "object",
       "description": "AuthenticationBackendLDAPAttributes represents the configuration related to LDAP server attributes."
+    },
+    "AuthenticationBackendLDAPAttributesAttribute": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name",
+          "description": "The name of the attribute within Authelia. This does not adjust the attribute queried from the LDAP server."
+        },
+        "multi_valued": {
+          "type": "boolean",
+          "title": "Multi-Valued",
+          "description": "Defines the attribute as multi-valued."
+        },
+        "value_type": {
+          "type": "string",
+          "enum": [
+            "boolean",
+            "integer",
+            "string"
+          ],
+          "title": "Value Type",
+          "description": "Defines the value type for the attribute."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "AuthenticationBackendPasswordReset": {
       "properties": {
@@ -982,6 +1139,16 @@
           "type": "object",
           "title": "Network Definitions",
           "description": "Networks CIDR ranges that can be utilized elsewhere in the configuration."
+        },
+        "user_attributes": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/$defs/UserAttribute"
+            }
+          },
+          "type": "object",
+          "title": "User Attributes",
+          "description": "User attributes derived from other attributes."
         }
       },
       "additionalProperties": false,
@@ -1138,6 +1305,26 @@
           "title": "Lifespans",
           "description": "Token lifespans configuration."
         },
+        "claims_policies": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/$defs/IdentityProvidersOpenIDConnectClaimsPolicy"
+            }
+          },
+          "type": "object",
+          "title": "Claims Policies",
+          "description": "The dictionary of claims policies which can be applied to clients."
+        },
+        "scopes": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/$defs/IdentityProvidersOpenIDConnectScope"
+            }
+          },
+          "type": "object",
+          "title": "Scopes",
+          "description": "List of custom scopes."
+        },
         "issuer_certificate_chain": {
           "$ref": "#/$defs/X509CertificateChain",
           "title": "Issuer Certificate Chain",
@@ -1194,6 +1381,38 @@
       "additionalProperties": false,
       "type": "object",
       "description": "IdentityProvidersOpenIDConnectCORS represents an OpenID Connect 1.0 CORS config."
+    },
+    "IdentityProvidersOpenIDConnectClaimsPolicy": {
+      "properties": {
+        "id_token": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "title": "ID Token",
+          "description": "The list of claims to automatically apply to an ID Token in addition to the specified ID Token Claims."
+        },
+        "access_token": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "title": "Access Token",
+          "description": "The list of claims to automatically apply to an Access Token in addition to the specified Access Token Claims."
+        },
+        "custom_claims": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/$defs/IdentityProvidersOpenIDConnectCustomClaim"
+            }
+          },
+          "type": "object",
+          "title": "Custom Claims",
+          "description": "The custom claims available in this policy in addition to the Standard Claims."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "IdentityProvidersOpenIDConnectClient": {
       "properties": {
@@ -1321,6 +1540,11 @@
           "type": "string",
           "title": "Lifespan Name",
           "description": "The name of the custom lifespan to utilize for this client."
+        },
+        "claims_policy": {
+          "type": "string",
+          "title": "Claims Policy",
+          "description": "The claims policy to apply to this client."
         },
         "requested_audience_mode": {
           "type": "string",
@@ -1581,6 +1805,17 @@
           "uniqueItems": true
         }
       ]
+    },
+    "IdentityProvidersOpenIDConnectCustomClaim": {
+      "properties": {
+        "attribute": {
+          "type": "string",
+          "title": "Attribute",
+          "description": "The attribute that populates this claim."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "IdentityProvidersOpenIDConnectLifespan": {
       "properties": {
@@ -1871,12 +2106,41 @@
         "subject": {
           "$ref": "#/$defs/AccessControlRuleSubjects",
           "title": "Subject",
-          "description": "Allows tuning the token lifespans for the authorize code grant."
+          "description": "Subject criteria of the Authorization for this rule to be a match."
+        },
+        "networks": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "title": "Networks",
+          "description": "Networks criteria of the Authorization for this rule to be a match."
         }
       },
       "additionalProperties": false,
       "type": "object",
       "description": "IdentityProvidersOpenIDConnectPolicyRule configuration for OpenID Connect 1.0 authorization policies rules."
+    },
+    "IdentityProvidersOpenIDConnectScope": {
+      "properties": {
+        "claims": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "title": "Claims",
+          "description": "The list of claims that this scope includes. When this scope is used by a client the clients claim policy must satisfy every claim."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "IdentityValidation": {
       "properties": {
@@ -3357,6 +3621,20 @@
       "additionalProperties": false,
       "type": "object",
       "description": "TelemetryMetrics represents the telemetry metrics config."
+    },
+    "UserAttribute": {
+      "properties": {
+        "expression": {
+          "type": "string",
+          "title": "Expression",
+          "description": "Expression to derive the user attribute using the common expression language."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "expression"
+      ]
     },
     "WebAuthn": {
       "properties": {

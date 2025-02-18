@@ -155,6 +155,10 @@ type OAuth2ConsentPreConfig struct {
 
 	Scopes   StringSlicePipeDelimited `db:"scopes"`
 	Audience StringSlicePipeDelimited `db:"audience"`
+
+	RequestedClaims sql.NullString           `db:"requested_claims"`
+	SignatureClaims sql.NullString           `db:"signature_claims"`
+	GrantedClaims   StringSlicePipeDelimited `db:"granted_claims"`
 }
 
 // HasExactGrants returns true if the granted audience and scopes of this consent pre-configuration matches exactly with
@@ -171,6 +175,11 @@ func (s *OAuth2ConsentPreConfig) HasExactGrantedAudience(audience []string) (has
 // HasExactGrantedScopes returns true if the granted scopes of this consent matches exactly with another set of scopes.
 func (s *OAuth2ConsentPreConfig) HasExactGrantedScopes(scopes []string) (has bool) {
 	return !utils.IsStringSlicesDifferent(s.Scopes, scopes)
+}
+
+// HasClaimsSignature returns true if the requested claims signature of this consent matches exactly with another request.
+func (s *OAuth2ConsentPreConfig) HasClaimsSignature(signature string) (has bool) {
+	return (s.SignatureClaims.Valid || len(signature) == 0) && strings.EqualFold(signature, s.SignatureClaims.String)
 }
 
 // CanConsent returns true if this pre-configuration can still provide consent.
@@ -197,6 +206,7 @@ type OAuth2ConsentSession struct {
 	GrantedScopes     StringSlicePipeDelimited `db:"granted_scopes"`
 	RequestedAudience StringSlicePipeDelimited `db:"requested_audience"`
 	GrantedAudience   StringSlicePipeDelimited `db:"granted_audience"`
+	GrantedClaims     StringSlicePipeDelimited `db:"granted_claims"`
 
 	PreConfiguration sql.NullInt64
 }
@@ -205,6 +215,12 @@ type OAuth2ConsentSession struct {
 func (s *OAuth2ConsentSession) Grant() {
 	s.GrantedScopes = s.RequestedScopes
 	s.GrantedAudience = s.RequestedAudience
+}
+
+func (s *OAuth2ConsentSession) GrantWithClaims(claims []string) {
+	s.Grant()
+
+	s.GrantedClaims = claims
 }
 
 // HasExactGrants returns true if the granted audience and scopes of this consent matches exactly with another
