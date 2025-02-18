@@ -2,7 +2,7 @@
 title: "Actual Budget"
 description: "Integrating Actual Budget with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2025-01-21T22:32:51+11:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 weight: 620
