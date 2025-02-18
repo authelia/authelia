@@ -116,6 +116,24 @@ func (suite *StorageSuite) TestShouldSetDefaultMySQLTLSServerName() {
 	suite.Assert().Equal("mysql", suite.config.MySQL.TLS.ServerName)
 }
 
+func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidMySQLAddressScheme() {
+	suite.config.MySQL = &schema.StorageMySQL{
+		StorageSQL: schema.StorageSQL{
+			Address:  &schema.AddressTCP{Address: MustParseAddress("udp://mysql:1234")},
+			Username: "myuser",
+			Password: "pass",
+			Database: "database",
+		},
+	}
+
+	ValidateStorage(suite.config, suite.val)
+
+	suite.Len(suite.val.Warnings(), 0)
+	suite.Require().Len(suite.val.Errors(), 1)
+
+	suite.EqualError(suite.val.Errors()[0], "server: option 'address' with value 'udp://mysql:1234' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'udp'")
+}
+
 func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidMySQLTLSVersion() {
 	suite.config.MySQL = &schema.StorageMySQL{
 		StorageSQL: schema.StorageSQL{
@@ -211,6 +229,27 @@ func (suite *StorageSuite) TestShouldValidatePostgresSchemaDefault() {
 	suite.Assert().Nil(suite.config.PostgreSQL.TLS)
 
 	suite.Assert().Equal("public", suite.config.PostgreSQL.Schema)
+}
+
+func (suite *StorageSuite) TestShouldValidatePostgresPortDefault() {
+	suite.config.PostgreSQL = &schema.StoragePostgreSQL{
+		StorageSQL: schema.StorageSQL{
+			Address: &schema.AddressTCP{
+				Address: MustParseAddress("tcp://postgre"),
+			},
+			Username: "myuser",
+			Password: "pass",
+			Database: "database",
+		},
+		Schema: "public",
+	}
+
+	ValidateStorage(suite.config, suite.val)
+
+	suite.Assert().Len(suite.val.Warnings(), 0)
+	suite.Assert().Len(suite.val.Errors(), 0)
+
+	suite.Equal(uint16(5432), suite.config.PostgreSQL.Address.Port())
 }
 
 func (suite *StorageSuite) TestShouldValidatePostgresTLSDefaults() {
