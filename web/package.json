@@ -109,7 +109,7 @@
     "eslint-plugin-prettier": "5.2.3",
     "eslint-plugin-react": "7.37.4",
     "eslint-plugin-react-hooks": "5.1.0",
-    "happy-dom": "17.1.0",
+    "happy-dom": "17.1.1",
     "husky": "9.1.7",
     "prettier": "3.5.1",
     "react-test-renderer": "18.3.1",
