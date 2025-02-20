@@ -66,8 +66,8 @@ importers:
         specifier: 24.2.2
         version: 24.2.2(typescript@5.7.3)
       i18next-browser-languagedetector:
-        specifier: 8.0.3
-        version: 8.0.3
+        specifier: 8.0.4
+        version: 8.0.4
       i18next-http-backend:
         specifier: 3.0.2
         version: 3.0.2
@@ -3343,8 +3343,8 @@ packages:
   hyphenate-style-name@1.0.4:
     resolution: {integrity: sha512-ygGZLjmXfPHj+ZWh6LwbC37l43MhfztxetbFCoYTM2VjkIUpeHgSNn7QIyVFj7YQ1Wl9Cbw5sholVJPzWvC2MQ==}
 
-  i18next-browser-languagedetector@8.0.3:
-    resolution: {integrity: sha512-beOOLArattPBc2YZG5IXGJytdYFgUR7cS8Wd6HT4IczIoWKgmTspOQ2yasaGklelVo5seLPmnEKvLHR+E/MdWQ==}
+  i18next-browser-languagedetector@8.0.4:
+    resolution: {integrity: sha512-f3frU3pIxD50/Tz20zx9TD9HobKYg47fmAETb117GKGPrhwcSSPJDoCposXlVycVebQ9GQohC3Efbpq7/nnJ5w==}
 
   i18next-http-backend@3.0.2:
     resolution: {integrity: sha512-PdlvPnvIp4E1sYi46Ik4tBYh/v/NbYfFFgTjkwFl0is8A18s7/bx9aXqsrOax9WUbeNS6mD2oix7Z0yGGf6m5g==}
@@ -8605,7 +8605,7 @@ snapshots:
 
   hyphenate-style-name@1.0.4: {}
 
-  i18next-browser-languagedetector@8.0.3:
+  i18next-browser-languagedetector@8.0.4:
     dependencies:
       '@babel/runtime': 7.26.0
 
