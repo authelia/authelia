@@ -84,11 +84,12 @@ default_2fa_method: totp
 
 {{< confkey type="string " default="light" required="no" >}}
 
-There are currently 3 available themes for Authelia:
+There are currently 4 available themes for Authelia:
 
 * light (default)
 * dark
 * grey
+* oled
 
 To enable automatic switching between themes, you can set `theme` to `auto`. The theme will be set to either `dark` or
 `light` depending on the user's system preference which is determined using media queries. To read more technical
