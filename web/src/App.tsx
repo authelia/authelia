@@ -8,6 +8,7 @@ import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 
 import NotificationBar from "@components/NotificationBar";
 import {
+    AdminRoute,
     ConsentRoute,
     IndexRoute,
     LogoutRoute,
@@ -33,6 +34,7 @@ const SignOut = lazy(() => import("@views/LoginPortal/SignOut/SignOut"));
 const ResetPasswordStep1 = lazy(() => import("@views/ResetPassword/ResetPasswordStep1"));
 const ResetPasswordStep2 = lazy(() => import("@views/ResetPassword/ResetPasswordStep2"));
 const SettingsRouter = lazy(() => import("@views/Settings/SettingsRouter"));
+const AdminRouter = lazy(() => import("@views/AdminUI/AdminRouter"));
 const RevokeOneTimeCodeView = lazy(() => import("@views/Revoke/RevokeOneTimeCodeView"));
 const RevokeResetPasswordTokenView = lazy(() => import("@views/Revoke/RevokeResetPasswordTokenView"));
 
@@ -68,6 +70,7 @@ const App: React.FC<Props> = (props: Props) => {
                                     <Route path={RevokeOneTimeCodeRoute} element={<RevokeOneTimeCodeView />} />
                                     <Route path={RevokeResetPasswordRoute} element={<RevokeResetPasswordTokenView />} />
                                     <Route path={`${SettingsRoute}/*`} element={<SettingsRouter />} />
+                                    <Route path={`${AdminRoute}/*`} element={<AdminRouter />} />
                                     <Route
                                         path={`${IndexRoute}*`}
                                         element={
