@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { IndexRoute } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
 import MinimalLayout from "@layouts/MinimalLayout";
-import { initiateResetPasswordProcess } from "@services/ResetPassword";
+import { initiateResetPasswordIVProcess } from "@services/ResetPassword";
 
 const ResetPasswordStep1 = function () {
     const styles = useStyles();
@@ -33,7 +33,7 @@ const ResetPasswordStep1 = function () {
         }
 
         try {
-            await initiateResetPasswordProcess(username);
+            await initiateResetPasswordIVProcess(username);
             createInfoNotification(translate("An email has been sent to your address to complete the process"));
         } catch {
             createErrorNotification(translate("There was an issue initiating the password reset process"));
