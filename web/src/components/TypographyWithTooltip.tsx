@@ -11,7 +11,7 @@ export interface Props {
     tooltip?: string;
 }
 
-const TypographyWithTooltip = function (props: Props): JSX.Element {
+const TypographyWithTooltip = function (props: Props): React.JSX.Element {
     return (
         <Fragment>
             {props.tooltip ? (
