@@ -2,6 +2,8 @@ package storage
 
 import (
 	"context"
+	"database/sql"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -50,6 +52,24 @@ type encOneTimeCode struct {
 type encEncryption struct {
 	ID    int    `db:"id"`
 	Value []byte `db:"value"`
+}
+
+type banExpiresExpired struct {
+	Expires sql.NullTime `db:"expires"`
+	Expired sql.NullTime `db:"expired"`
+	Revoked bool         `db:"revoked"`
+}
+
+func (b *banExpiresExpired) Expiration() time.Time {
+	if b.Revoked && b.Expired.Valid {
+		return b.Expired.Time
+	}
+
+	if b.Expires.Valid {
+		return b.Expires.Time
+	}
+
+	return time.Unix(0, 0)
 }
 
 // EncryptionValidationResult contains information about the success of a schema encryption validation.
