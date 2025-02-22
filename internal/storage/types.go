@@ -111,6 +111,7 @@ type OAuth2SessionType int
 const (
 	OAuth2SessionTypeAccessToken OAuth2SessionType = iota
 	OAuth2SessionTypeAuthorizeCode
+	OAuth2SessionTypeDeviceAuthorizeCode
 	OAuth2SessionTypeOpenIDConnect
 	OAuth2SessionTypePAR
 	OAuth2SessionTypePKCEChallenge
@@ -124,6 +125,8 @@ func (s OAuth2SessionType) String() string {
 		return "access token"
 	case OAuth2SessionTypeAuthorizeCode:
 		return "authorization code"
+	case OAuth2SessionTypeDeviceAuthorizeCode:
+		return "device code"
 	case OAuth2SessionTypeOpenIDConnect:
 		return "openid connect"
 	case OAuth2SessionTypePAR:
@@ -144,6 +147,8 @@ func (s OAuth2SessionType) Table() string {
 		return tableOAuth2AccessTokenSession
 	case OAuth2SessionTypeAuthorizeCode:
 		return tableOAuth2AuthorizeCodeSession
+	case OAuth2SessionTypeDeviceAuthorizeCode:
+		return tableOAuth2DeviceCodeSession
 	case OAuth2SessionTypeOpenIDConnect:
 		return tableOAuth2OpenIDConnectSession
 	case OAuth2SessionTypePAR:

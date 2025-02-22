@@ -26,7 +26,7 @@ type OpenIDConnectProvider struct {
 	*Store
 	*Config
 
-	KeyManager *KeyManager
+	Issuer *Issuer
 
 	discovery OpenIDConnectWellKnownConfiguration
 
@@ -80,27 +80,51 @@ type RegisteredClient struct {
 	Lifespans      schema.IdentityProvidersOpenIDConnectLifespan
 	ClaimsStrategy ClaimsStrategy
 
-	AuthorizationSignedResponseAlg              string
-	AuthorizationSignedResponseKeyID            string
-	AuthorizationEncryptedResponseAlg           string
-	AuthorizationEncryptedResponseEncryptionAlg string
+	AuthorizationSignedResponseAlg      string
+	AuthorizationSignedResponseKeyID    string
+	AuthorizationEncryptedResponseAlg   string
+	AuthorizationEncryptedResponseEnc   string
+	AuthorizationEncryptedResponseKeyID string
 
-	IDTokenSignedResponseAlg   string
-	IDTokenSignedResponseKeyID string
+	IDTokenSignedResponseAlg      string
+	IDTokenSignedResponseKeyID    string
+	IDTokenEncryptedResponseAlg   string
+	IDTokenEncryptedResponseEnc   string
+	IDTokenEncryptedResponseKeyID string
 
-	AccessTokenSignedResponseAlg   string
-	AccessTokenSignedResponseKeyID string
+	AccessTokenSignedResponseAlg      string
+	AccessTokenSignedResponseKeyID    string
+	AccessTokenEncryptedResponseAlg   string
+	AccessTokenEncryptedResponseEnc   string
+	AccessTokenEncryptedResponseKeyID string
 
-	UserinfoSignedResponseAlg   string
-	UserinfoSignedResponseKeyID string
+	UserinfoSignedResponseAlg      string
+	UserinfoSignedResponseKeyID    string
+	UserinfoEncryptedResponseAlg   string
+	UserinfoEncryptedResponseEnc   string
+	UserinfoEncryptedResponseKeyID string
 
-	IntrospectionSignedResponseAlg   string
-	IntrospectionSignedResponseKeyID string
+	IntrospectionSignedResponseAlg      string
+	IntrospectionSignedResponseKeyID    string
+	IntrospectionEncryptedResponseAlg   string
+	IntrospectionEncryptedResponseEnc   string
+	IntrospectionEncryptedResponseKeyID string
 
-	RequestObjectSigningAlg string
+	RequestObjectSigningAlg    string
+	RequestObjectEncryptionAlg string
+	RequestObjectEncryptionEnc string
 
 	TokenEndpointAuthMethod     string
 	TokenEndpointAuthSigningAlg string
+
+	RevocationEndpointAuthMethod     string
+	RevocationEndpointAuthSigningAlg string
+
+	IntrospectionEndpointAuthMethod     string
+	IntrospectionEndpointAuthSigningAlg string
+
+	PushedAuthorizationRequestEndpointAuthMethod     string
+	PushedAuthorizationRequestEndpointAuthSigningAlg string
 
 	RefreshFlowIgnoreOriginalGrantedScopes  bool
 	AllowMultipleAuthenticationMethods      bool
@@ -128,19 +152,35 @@ type Client interface {
 	GetClaimsStrategy() (strategy ClaimsStrategy)
 
 	GetAuthorizationSignedResponseKeyID() (kid string)
+	GetAuthorizationSignedResponseAlg() (alg string)
+	GetAuthorizationEncryptedResponseKeyID() (kid string)
+	GetAuthorizationEncryptedResponseAlg() (alg string)
+	GetAuthorizationEncryptedResponseEnc() (enc string)
 
-	GetIDTokenSignedResponseAlg() (alg string)
 	GetIDTokenSignedResponseKeyID() (kid string)
+	GetIDTokenSignedResponseAlg() (alg string)
+	GetIDTokenEncryptedResponseKeyID() (kid string)
+	GetIDTokenEncryptedResponseAlg() (kid string)
+	GetIDTokenEncryptedResponseEnc() (kid string)
 
-	GetAccessTokenSignedResponseAlg() (alg string)
 	GetAccessTokenSignedResponseKeyID() (kid string)
+	GetAccessTokenSignedResponseAlg() (alg string)
+	GetAccessTokenEncryptedResponseKeyID() (kid string)
+	GetAccessTokenEncryptedResponseAlg() (alg string)
+	GetAccessTokenEncryptedResponseEnc() (enc string)
 	GetEnableJWTProfileOAuthAccessTokens() bool
 
-	GetUserinfoSignedResponseAlg() (alg string)
 	GetUserinfoSignedResponseKeyID() (kid string)
+	GetUserinfoSignedResponseAlg() (alg string)
+	GetUserinfoEncryptedResponseKeyID() (kid string)
+	GetUserinfoEncryptedResponseAlg() (alg string)
+	GetUserinfoEncryptedResponseEnc() (enc string)
 
-	GetIntrospectionSignedResponseAlg() (alg string)
 	GetIntrospectionSignedResponseKeyID() (kid string)
+	GetIntrospectionSignedResponseAlg() (alg string)
+	GetIntrospectionEncryptedResponseKeyID() (kid string)
+	GetIntrospectionEncryptedResponseAlg() (kid string)
+	GetIntrospectionEncryptedResponseEnc() (kid string)
 
 	GetRequirePushedAuthorizationRequests() (enforce bool)
 
@@ -213,7 +253,7 @@ type AuthorizationServerIssuerIdentificationProvider interface {
 // JWTSecuredResponseModeProvider provides JARM related methods.
 type JWTSecuredResponseModeProvider interface {
 	GetJWTSecuredAuthorizeResponseModeLifespan(ctx context.Context) (lifespan time.Duration)
-	GetJWTSecuredAuthorizeResponseModeSigner(ctx context.Context) (signer fjwt.Signer)
+	GetJWTSecuredAuthorizeResponseModeStrategy(ctx context.Context) (strategy fjwt.Strategy)
 	GetJWTSecuredAuthorizeResponseModeIssuer(ctx context.Context) (issuer string)
 }
 
@@ -967,10 +1007,8 @@ type OAuth2WellKnownSignedConfiguration struct {
 	SignedMetadata string `json:"signed_metadata,omitempty"`
 }
 
-type OAuth2WellKnownClaims struct {
-	OAuth2WellKnownSignedConfiguration
-
-	jwt.RegisteredClaims
+func (claims *OAuth2WellKnownSignedConfiguration) ToMap() (result fjwt.MapClaims) {
+	return fjwt.NewMapClaims(claims)
 }
 
 // OpenIDConnectWellKnownConfiguration represents the well known discovery document specific to OpenID Connect.
@@ -998,15 +1036,18 @@ type OpenIDConnectWellKnownSignedConfiguration struct {
 	SignedMetadata string `json:"signed_metadata,omitempty"`
 }
 
-type OpenIDConnectWellKnownClaims struct {
-	OpenIDConnectWellKnownSignedConfiguration
+func (claims *OpenIDConnectWellKnownSignedConfiguration) ToMap() (result fjwt.MapClaims) {
+	return fjwt.NewMapClaims(claims)
+}
 
-	jwt.RegisteredClaims
+type Number interface {
+	~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~float32 | ~float64
 }
 
 var (
 	_ Client                                                       = (*RegisteredClient)(nil)
 	_ oauthelia2.Client                                            = (*RegisteredClient)(nil)
+	_ oauthelia2.UserInfoClient                                    = (*RegisteredClient)(nil)
 	_ oauthelia2.RotatedClientSecretsClient                        = (*RegisteredClient)(nil)
 	_ oauthelia2.ProofKeyCodeExchangeClient                        = (*RegisteredClient)(nil)
 	_ oauthelia2.ClientAuthenticationPolicyClient                  = (*RegisteredClient)(nil)
