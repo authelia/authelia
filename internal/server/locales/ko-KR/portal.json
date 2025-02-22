@@ -59,7 +59,6 @@
 	"Reset password?": "비밀번호를 재설정하시겠습니까?",
 	"Reset": "재설정",
 	"Retry": "재시도",
-	"Scope": "범위 {{name}}",
 	"Secret": "비밀",
 	"Security Key - WebAuthn": "보안 키 - WebAuthn",
 	"Security Key": "보안 키",
