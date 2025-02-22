@@ -245,9 +245,9 @@ func TestNewConfig(t *testing.T) {
 
 	require.NoError(t, err)
 
-	signer := oidc.NewKeyManager(c)
+	strategy := oidc.NewIssuer(c.JSONWebKeys)
 
-	config := oidc.NewConfig(c, signer, tmpl)
+	config := oidc.NewConfig(c, strategy, tmpl)
 
 	assert.IsType(t, &oauth2.JWTProfileCoreStrategy{}, config.Strategy.Core)
 
@@ -345,8 +345,8 @@ func TestMisc(t *testing.T) {
 	}
 
 	config := &oidc.Config{}
-	assert.Nil(t, config.GetIntrospectionJWTResponseSigner(context.Background()))
-	assert.Nil(t, config.GetJWTSecuredAuthorizeResponseModeSigner(context.Background()))
+	assert.Nil(t, config.GetIntrospectionJWTResponseStrategy(context.Background()))
+	assert.Nil(t, config.GetJWTSecuredAuthorizeResponseModeStrategy(context.Background()))
 
 	secret, err := config.GetGlobalSecret(context.Background())
 	assert.NoError(t, err)

@@ -2,7 +2,7 @@
 title: "OpenID Connect 1.0 Claims"
 description: "An introduction into utilizing the Authelia OpenID Connect 1.0 Claims functionality"
 summary: "An introduction into utilizing the Authelia OpenID Connect 1.0 Claims functionality."
-date: 2024-03-05T19:11:16+10:00
+date: 2025-02-22T08:20:34+00:00
 draft: false
 images: []
 weight: 611
