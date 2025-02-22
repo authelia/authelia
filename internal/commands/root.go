@@ -102,37 +102,37 @@ func doStartupChecks(ctx *CmdCtx) {
 		err      error
 	)
 
-	ctx.log.WithFields(map[string]any{logFieldProvider: providerNameStorage}).Trace("Performing Startup Check")
+	ctx.log.WithFields(map[string]any{logFieldProvider: providerNameStorage}).Trace(logMessageStartupCheckPerforming)
 
 	if err = doStartupCheck(ctx, providerNameStorage, ctx.providers.StorageProvider, false); err != nil {
 		ctx.log.WithError(err).WithField(logFieldProvider, providerNameStorage).Error(logMessageStartupCheckError)
 
 		failures = append(failures, providerNameStorage)
 	} else {
-		ctx.log.WithFields(map[string]any{logFieldProvider: providerNameStorage}).Trace("Startup Check Completed Successfully")
+		ctx.log.WithFields(map[string]any{logFieldProvider: providerNameStorage}).Trace(logMessageStartupCheckSuccess)
 	}
 
-	ctx.log.WithFields(map[string]any{logFieldProvider: providerNameUser}).Trace("Performing Startup Check")
+	ctx.log.WithFields(map[string]any{logFieldProvider: providerNameUser}).Trace(logMessageStartupCheckPerforming)
 
 	if err = doStartupCheck(ctx, providerNameUser, ctx.providers.UserProvider, false); err != nil {
 		ctx.log.WithError(err).WithField(logFieldProvider, providerNameUser).Error(logMessageStartupCheckError)
 
 		failures = append(failures, providerNameUser)
 	} else {
-		ctx.log.WithFields(map[string]any{logFieldProvider: providerNameUser}).Trace("Startup Check Completed Successfully")
+		ctx.log.WithFields(map[string]any{logFieldProvider: providerNameUser}).Trace(logMessageStartupCheckSuccess)
 	}
 
-	ctx.log.WithFields(map[string]any{logFieldProvider: providerNameNotification}).Trace("Performing Startup Check")
+	ctx.log.WithFields(map[string]any{logFieldProvider: providerNameNotification}).Trace(logMessageStartupCheckPerforming)
 
 	if err = doStartupCheck(ctx, providerNameNotification, ctx.providers.Notifier, ctx.config.Notifier.DisableStartupCheck); err != nil {
 		ctx.log.WithError(err).WithField(logFieldProvider, providerNameNotification).Error(logMessageStartupCheckError)
 
 		failures = append(failures, providerNameNotification)
 	} else {
-		ctx.log.WithFields(map[string]any{logFieldProvider: providerNameNotification}).Trace("Startup Check Completed Successfully")
+		ctx.log.WithFields(map[string]any{logFieldProvider: providerNameNotification}).Trace(logMessageStartupCheckSuccess)
 	}
 
-	ctx.log.WithFields(map[string]any{logFieldProvider: providerNameNTP}).Trace("Performing Startup Check")
+	ctx.log.WithFields(map[string]any{logFieldProvider: providerNameNTP}).Trace(logMessageStartupCheckPerforming)
 
 	if err = doStartupCheck(ctx, providerNameNTP, ctx.providers.NTP, ctx.config.NTP.DisableStartupCheck); err != nil {
 		if !ctx.config.NTP.DisableFailure {
@@ -143,7 +143,17 @@ func doStartupChecks(ctx *CmdCtx) {
 			ctx.log.WithError(err).WithField(logFieldProvider, providerNameNTP).Warn(logMessageStartupCheckError)
 		}
 	} else {
-		ctx.log.WithFields(map[string]any{logFieldProvider: providerNameNTP}).Trace("Startup Check Completed Successfully")
+		ctx.log.WithFields(map[string]any{logFieldProvider: providerNameNTP}).Trace(logMessageStartupCheckSuccess)
+	}
+
+	ctx.log.WithFields(map[string]any{logFieldProvider: providerNameExpressions}).Trace(logMessageStartupCheckPerforming)
+
+	if err = doStartupCheck(ctx, providerNameExpressions, ctx.providers.UserAttributeResolver, false); err != nil {
+		ctx.log.WithError(err).WithField(logFieldProvider, providerNameExpressions).Error(logMessageStartupCheckError)
+
+		failures = append(failures, providerNameExpressions)
+	} else {
+		ctx.log.WithFields(map[string]any{logFieldProvider: providerNameExpressions}).Trace(logMessageStartupCheckSuccess)
 	}
 
 	if len(failures) != 0 {

@@ -328,6 +328,13 @@ identity_validation:
 ## The definitions are used in other areas as reference points to reduce duplication.
 ##
 # definitions:
+  ## The user attribute definitions.
+  # user_attributes:
+    ## The name of the definition.
+    # definition_name:
+      ## The common expression language expression for this definition.
+      # expression: ''
+
   ## The network definitions.
   # network:
     ## The name of the definition followed by the list of CIDR network addresses in this definition.

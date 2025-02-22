@@ -8,6 +8,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/metrics"
 	"github.com/authelia/authelia/v4/internal/notification"
 	"github.com/authelia/authelia/v4/internal/ntp"
@@ -35,19 +36,20 @@ type AutheliaCtx struct {
 
 // Providers contain all provider provided to Authelia.
 type Providers struct {
-	Authorizer      *authorization.Authorizer
-	SessionProvider *session.Provider
-	Regulator       *regulation.Regulator
-	OpenIDConnect   *oidc.OpenIDConnectProvider
-	Metrics         metrics.Provider
-	NTP             *ntp.Provider
-	UserProvider    authentication.UserProvider
-	StorageProvider storage.Provider
-	Notifier        notification.Notifier
-	Templates       *templates.Provider
-	TOTP            totp.Provider
-	PasswordPolicy  PasswordPolicyProvider
-	Random          random.Provider
+	Authorizer            *authorization.Authorizer
+	SessionProvider       *session.Provider
+	Regulator             *regulation.Regulator
+	OpenIDConnect         *oidc.OpenIDConnectProvider
+	Metrics               metrics.Provider
+	NTP                   *ntp.Provider
+	UserProvider          authentication.UserProvider
+	StorageProvider       storage.Provider
+	Notifier              notification.Notifier
+	Templates             *templates.Provider
+	TOTP                  totp.Provider
+	PasswordPolicy        PasswordPolicyProvider
+	Random                random.Provider
+	UserAttributeResolver expression.UserAttributeResolver
 }
 
 // RequestHandler represents an Authelia request handler.

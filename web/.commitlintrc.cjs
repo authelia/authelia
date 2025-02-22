@@ -28,6 +28,7 @@ module.exports = {
                 "deps",
                 "docker",
                 "duo",
+                "expression",
                 "go",
                 "golangci-lint",
                 "handlers",

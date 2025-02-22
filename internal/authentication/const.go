@@ -108,3 +108,9 @@ const specialLDAPRunes = ",#+<>;\"="
 var (
 	encodingUTF16LittleEndian = unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM)
 )
+
+const (
+	ValueTypeString  = "string"
+	ValueTypeInteger = "integer"
+	ValueTypeBoolean = "boolean"
+)
