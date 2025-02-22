@@ -59,7 +59,6 @@
 	"Reset password?": "รีเซ็ตรหัสผ่าน?",
 	"Reset": "รีเซ็ต",
 	"Retry": "ลองใหม่",
-	"Scope": "ขอบเขต {{name}}",
 	"Secret": "ความลับ",
 	"Security Key - WebAuthn": "กุญแจรักษาความปลอดภัย - WebAuthn",
 	"Security Key": "คีย์รักษาความปลอดภัย",
