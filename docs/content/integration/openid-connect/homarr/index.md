@@ -93,7 +93,7 @@ NEXTAUTH_URL=https://homarr.{{< sitevar name="domain" nojs="example.com" >}}
 
 ## See Also
 
-* [Homarr SSO Documentation](https://homarr.dev/docs/advanced/sso)
+* [Homarr SSO Documentation](https://homarr.dev/docs/advanced/single-sign-on/)
 
 [Authelia]: https://www.authelia.com
 [Homarr]: https://homarr.dev
