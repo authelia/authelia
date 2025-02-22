@@ -59,7 +59,6 @@
 	"Reset password?": "إعادة تعيين كلمة المرور؟",
 	"Reset": "Reset",
 	"Retry": "إعادة المحاولة",
-	"Scope": "النطاق {{name}}",
 	"Secret": "سرية",
 	"Security Key - WebAuthn": "مفتاح الأمان - WebAuthn",
 	"Security Key": "مفتاح الأمان",
