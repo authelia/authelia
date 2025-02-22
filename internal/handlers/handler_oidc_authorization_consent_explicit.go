@@ -70,6 +70,12 @@ func handleOIDCAuthorizationConsentModeExplicitWithID(ctx *middlewares.AutheliaC
 		return nil, true
 	}
 
+	if oidc.RequesterRequiresLogin(requester, consent.RequestedAt, userSession.LastAuthenticatedTime()) {
+		handleOIDCAuthorizationConsentPromptLoginRedirect(ctx, issuer, client, userSession, rw, r, requester, consent)
+
+		return nil, true
+	}
+
 	if !consent.CanGrant() {
 		ctx.Logger.Errorf(logFmtErrConsentCantGrant, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, "explicit")
 

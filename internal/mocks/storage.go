@@ -717,7 +717,7 @@ func (mr *MockStorageMockRecorder) SaveOAuth2ConsentPreConfiguration(ctx, config
 }
 
 // SaveOAuth2ConsentSession mocks base method.
-func (m *MockStorage) SaveOAuth2ConsentSession(ctx context.Context, consent model.OAuth2ConsentSession) error {
+func (m *MockStorage) SaveOAuth2ConsentSession(ctx context.Context, consent *model.OAuth2ConsentSession) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveOAuth2ConsentSession", ctx, consent)
 	ret0, _ := ret[0].(error)
@@ -745,7 +745,7 @@ func (mr *MockStorageMockRecorder) SaveOAuth2ConsentSessionGranted(ctx, id any) 
 }
 
 // SaveOAuth2ConsentSessionResponse mocks base method.
-func (m *MockStorage) SaveOAuth2ConsentSessionResponse(ctx context.Context, consent model.OAuth2ConsentSession, rejection bool) error {
+func (m *MockStorage) SaveOAuth2ConsentSessionResponse(ctx context.Context, consent *model.OAuth2ConsentSession, rejection bool) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveOAuth2ConsentSessionResponse", ctx, consent, rejection)
 	ret0, _ := ret[0].(error)
@@ -759,7 +759,7 @@ func (mr *MockStorageMockRecorder) SaveOAuth2ConsentSessionResponse(ctx, consent
 }
 
 // SaveOAuth2ConsentSessionSubject mocks base method.
-func (m *MockStorage) SaveOAuth2ConsentSessionSubject(ctx context.Context, consent model.OAuth2ConsentSession) error {
+func (m *MockStorage) SaveOAuth2ConsentSessionSubject(ctx context.Context, consent *model.OAuth2ConsentSession) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveOAuth2ConsentSessionSubject", ctx, consent)
 	ret0, _ := ret[0].(error)

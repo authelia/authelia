@@ -84,7 +84,7 @@ type Session struct {
 }
 
 // GetChallengeID returns the challenge id.
-func (s *Session) GetChallengeID() uuid.NullUUID {
+func (s *Session) GetChallengeID() (challenge uuid.NullUUID) {
 	return s.ChallengeID
 }
 
@@ -157,7 +157,7 @@ func (s *Session) GetJWTClaims() jwt.JWTClaimsContainer {
 }
 
 // GetIDTokenClaims returns the *jwt.IDTokenClaims for this session.
-func (s *Session) GetIDTokenClaims() *jwt.IDTokenClaims {
+func (s *Session) GetIDTokenClaims() (claims *jwt.IDTokenClaims) {
 	if s.DefaultSession == nil {
 		return nil
 	}
