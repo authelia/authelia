@@ -38,24 +38,25 @@ func handleAuthzUnauthorizedForwardAuth(ctx *middlewares.AutheliaCtx, authn *Aut
 		statusCode int
 	)
 
-	switch {
-	case ctx.IsXHR() || !ctx.AcceptsMIME("text/html"):
+	if isNotRequestingWebpage(ctx) {
 		statusCode = fasthttp.StatusUnauthorized
-	default:
-		switch authn.Object.Method {
-		case fasthttp.MethodGet, fasthttp.MethodOptions, fasthttp.MethodHead:
-			statusCode = fasthttp.StatusFound
-		default:
-			statusCode = fasthttp.StatusSeeOther
-		}
+	} else {
+		statusCode = deriveStatusCodeFromAuthnMethod(authn)
 	}
 
-	ctx.Logger.Infof(logFmtAuthzRedirect, authn.Object.String(), authn.Method, authn.Username, statusCode, redirectionURL)
+	handleAuthzSpecialRedirect(ctx, authn, redirectionURL, statusCode)
+}
 
-	switch authn.Object.Method {
-	case fasthttp.MethodHead:
-		ctx.SpecialRedirectNoBody(redirectionURL.String(), statusCode)
-	default:
-		ctx.SpecialRedirect(redirectionURL.String(), statusCode)
+func handleAuthzForbiddenForwardAuth(ctx *middlewares.AutheliaCtx, authn *Authn, redirectionURL *url.URL) {
+	var (
+		statusCode int
+	)
+
+	if isNotRequestingWebpage(ctx) {
+		statusCode = fasthttp.StatusForbidden
+	} else {
+		statusCode = deriveStatusCodeFromAuthnMethod(authn)
 	}
+
+	handleAuthzSpecialRedirect(ctx, authn, redirectionURL, statusCode)
 }

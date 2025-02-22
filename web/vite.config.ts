@@ -1,11 +1,11 @@
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { PluginOption, UserConfig, defineConfig } from "vite";
 import checkerPlugin from "vite-plugin-checker";
 import istanbul from "vite-plugin-istanbul";
 import svgr from "vite-plugin-svgr";
 import tsconfigPaths from "vite-tsconfig-paths";
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ command, mode }) => {
     const isCoverage = process.env.VITE_COVERAGE === "true";
     const sourcemap = isCoverage ? "inline" : undefined;
 
@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => {
           })
         : undefined;
 
-    return {
+    const config: UserConfig = {
         base: "./",
         build: {
             assetsDir: "static",
@@ -112,4 +112,27 @@ export default defineConfig(({ mode }) => {
             tsconfigPaths(),
         ],
     };
+
+    if (command === "serve") {
+        config.plugins?.push(injectDevHomeLinkToIndex());
+    }
+
+    return config;
 });
+
+const injectDevHomeLinkToIndex: () => PluginOption = () => {
+    return {
+        name: "html-transform",
+        transformIndexHtml(html: string) {
+            const injectedHomeLinkHtml: string = `
+            <a style="position:absolute; height: 30px; z-index: 99; top: 0px;
+                    left: 0px; background-color: white;" href="https://home.example.com:8080">
+                <b> &#127968; Demo Home</b>
+            </a>`;
+
+            const htmlArray = html.split("</body>");
+
+            return htmlArray[0] + injectedHomeLinkHtml + "</body>" + htmlArray[1];
+        },
+    };
+};

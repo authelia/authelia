@@ -45,6 +45,7 @@ const (
 	queryArgConsentID  = "consent_id"
 	queryArgWorkflow   = "workflow"
 	queryArgWorkflowID = "workflow_id"
+	queryArgEC         = "ec"
 )
 
 var (
@@ -52,6 +53,14 @@ var (
 	qryArgRD        = []byte(queryArgRD)
 	qryArgAuth      = []byte(queryArgAuth)
 	qryArgConsentID = []byte(queryArgConsentID)
+)
+
+var (
+	baseErrorPath = "error"
+)
+
+var (
+	errorForbidden = "forbidden"
 )
 
 var (
@@ -91,7 +100,7 @@ const (
 )
 
 const (
-	logFmtAuthzRedirect = "Access to %s (method %s) is not authorized to user %s, responding with status code %d with location redirect to %s"
+	logFmtAuthzRedirect = "Access to %s (method %s) is not granted to user %s, responding with status code %d with location redirect to %s"
 
 	logFmtAuthorizationPrefix = "Authorization Request with id '%s' on client with id '%s' "
 
