@@ -388,6 +388,31 @@ const (
 		SET active = FALSE
 		WHERE request_id = ?;`
 
+	queryFmtSelectOAuth2DeviceCodeSession = `
+		SELECT id, challenge_id, request_id, client_id, signature, user_code_signature, status, subject,
+		requested_at, checked_at, requested_scopes, granted_scopes, requested_audience, granted_audience,
+		active, revoked, form_data, session_data
+		FROM %s
+		WHERE signature = ? AND revoked = FALSE;`
+
+	queryFmtSelectOAuth2DeviceCodeSessionByUserCode = `
+		SELECT id, challenge_id, request_id, client_id, signature, user_code_signature, status, subject,
+		requested_at, checked_at, requested_scopes, granted_scopes, requested_audience, granted_audience,
+		active, revoked, form_data, session_data
+		FROM %s
+		WHERE user_code_signature = ? AND revoked = FALSE;`
+
+	queryFmtInsertOAuth2DeviceCodeSession = `
+		INSERT INTO %s (challenge_id, request_id, client_id, signature, user_code_signature, status, subject,
+		requested_at, checked_at, requested_scopes, granted_scopes, requested_audience, granted_audience,
+		active, revoked, form_data, session_data)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+
+	queryFmtUpdateOAuth2DeviceCodeSession = `
+		UPDATE %s
+		SET checked_at = ?, status = ?
+		WHERE signature = ?;`
+
 	queryFmtSelectOAuth2PARContext = `
 		SELECT id, signature, request_id, client_id, requested_at, scopes, audience,
 		handled_response_types, response_mode, response_mode_default, revoked,
