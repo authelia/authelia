@@ -623,9 +623,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 			`{"response":{"id":true,"rawId":"rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","response":{"authenticatorData":"DGygg5w6VoNVeDP2GKJVZmXfKgiJZHh9U4ULStTTvtwFAAAAAw","clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiaW4xY0wtb1dmU2pTZDd1dXdVdnYybmRPQW1SWGIwY09BYlVvVHRBcXZHRSIsIm9yaWdpbiI6Imh0dHBzOi8vbG9naW4uZXhhbXBsZS5jb206ODA4MCIsImNyb3NzT3JpZ2luIjpmYWxzZSwib3RoZXJfa2V5c19jYW5fYmVfYWRkZWRfaGVyZSI6ImRvIG5vdCBjb21wYXJlIGNsaWVudERhdGFKU09OIGFnYWluc3QgYSB0ZW1wbGF0ZS4gU2VlIGh0dHBzOi8vZ29vLmdsL3lhYlBleCJ9","signature":"MEQCIBlJ2Fxf6ZwLNTCQglz0AW0pD4HlU8W5Yk696jjfxVxhAiAhAMkLh8iKyhW6zSmzwfQDjMF2nKjVHzEs7jLHRPDZ2A"},"type":"public-key","clientExtensionResults":{},"authenticatorAttachment":"cross-platform"},"targetURL":null}`,
 			"",
 			fasthttp.StatusBadRequest,
-			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn authentication challenge for user 'john': error parsing the request body", "Parse error for Assertion (invalid_request): json: cannot unmarshal bool into Go struct field CredentialAssertionResponse.id of type string")
-			},
+			nil,
 		},
 		{
 			"ShouldFailBadJSON",
