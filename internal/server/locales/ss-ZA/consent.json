@@ -1,0 +1,37 @@
+{
+	"Claim": "Wemukela {{name}}",
+	"Scope": "Umkhawulo {{name}}",
+	"scopes": {
+		"openid": "Sebenzisa i-OpenID ukuqinisekisa ubuqiniso bakho",
+		"offline_access": "Vuselela lemithetho le iyi nawe ngaphandle kokuphazanyiswa komsebenzisi",
+		"profile": "Faka ulwazi lwakho lwephrofayela",
+		"groups": "Finyelela emalungwini akho eguma",
+		"email": "Finyelela emakhophi akho e-imeyili",
+		"phone": "Finyelela inombolo yakho Yethelevishini",
+		"address": "Finyelela ikheli lakho",
+		"authelia.bearer.authz": "Finyelela ezintweni ezivikelwe unjiniyela njengokuthi"
+	},
+	"claims": {
+		"sub": "Umfanekiso weXhumana",
+		"name": "Igama Lokubonisa",
+		"given_name": "Igama Elinikeziwe",
+		"family_name": "Igama Lomndeni",
+		"middle_name": "Igama Eliphakathi",
+		"nickname": "Igama Lokudayisa",
+		"preferred_username": "Igama Lokukhetha",
+		"profile": "URL yeProfile",
+		"picture": "URL yePicture",
+		"website": "URL yeWebhusayithi",
+		"email": "Ikheli le-imeyili",
+		"email_verified": "Ikheli le-imeyili (Liqinisekisiwe)",
+		"gender": "Ubungozi",
+		"birthdate": "Usuku Lokuzalwa",
+		"zoneinfo": "Isikhathi Sendawo",
+		"locale": "Ulwimi / Iziqondiso",
+		"phone_number": "Inombolo Yethelevishini",
+		"phone_number_verified": "Inombolo Yethelevishini (Iqinisiwe)",
+		"address": "Ikheli Leposi",
+		"updated_at": "Isikhathi Sokwenziwa Kwesichazamazwi",
+		"groups": "Umlayezo weMigomo"
+	}
+}
