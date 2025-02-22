@@ -1,0 +1,37 @@
+{
+	"Claim": "Claim {{name}}",
+	"Scope": "Omfattning {{name}}",
+	"scopes": {
+		"openid": "Använd OpenID till att verifiera din identitet",
+		"offline_access": "Uppdatera automatiskt dessa behörigheter utan användarinteraktion",
+		"profile": "Hantera din profilinformation",
+		"groups": "Få tillgång till ditt gruppmedlemskap",
+		"email": "Hantera din e-postadress",
+		"phone": "Få tillgång till ditt telefonnummer",
+		"address": "Få tillgång till din adress",
+		"authelia.bearer.authz": "Få tillgång till skyddade resurser inloggade som du"
+	},
+	"claims": {
+		"sub": "Unique Identifier",
+		"name": "Visningsnamn",
+		"given_name": "Angivet namn",
+		"family_name": "Efternamn",
+		"middle_name": "Mitten namn",
+		"nickname": "Smeknamn",
+		"preferred_username": "Önskat användarnamn",
+		"profile": "Profilens URL",
+		"picture": "URL för bild",
+		"website": "Webbplatsens URL",
+		"email": "E-postadress",
+		"email_verified": "E-postadress (Verifierad)",
+		"gender": "Kön",
+		"birthdate": "Födelsedatum",
+		"zoneinfo": "Timezone",
+		"locale": "Språk / Språk",
+		"phone_number": "Telefonnummer",
+		"phone_number_verified": "Telefonnummer (Verifierad)",
+		"address": "Postadress",
+		"updated_at": "Profilens uppdateringstid",
+		"groups": "Grupp medlemskap"
+	}
+}
