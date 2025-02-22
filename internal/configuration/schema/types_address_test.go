@@ -131,6 +131,22 @@ func TestNewAddressFromString(t *testing.T) {
 			"",
 		},
 		{
+			"ShouldParseAbstractUnixSocket",
+			"unix://@abstract",
+			&Address{true, true, -1, 0, &url.URL{Scheme: AddressSchemeUnix, User: url.User(""), Host: "abstract", Path: ""}},
+			"@abstract",
+			"unix://@abstract",
+			"",
+		},
+		{
+			"ShouldParseAbstractUnixSocketWithSlash",
+			"unix://@abstract/path",
+			&Address{true, true, -1, 0, &url.URL{Scheme: AddressSchemeUnix, User: url.User(""), Host: "abstract", Path: "/path"}},
+			"@abstract/path",
+			"unix://@abstract/path",
+			"",
+		},
+		{
 			"ShouldNotParseUnixSocketWithFragment",
 			"unix:///path/to/a/socket.sock#example",
 			nil,

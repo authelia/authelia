@@ -416,7 +416,7 @@ func (a *Address) SocketHostname() string {
 	}
 
 	if a.socket {
-		return a.url.Path
+		return a.NetworkAddress()
 	}
 
 	return a.url.Hostname()
@@ -439,6 +439,10 @@ func (a *Address) NetworkAddress() string {
 	}
 
 	if a.socket {
+		if a.url.User != nil {
+			return fmt.Sprintf("@%s%s", a.url.Hostname(), a.url.Path)
+		}
+
 		return a.url.Path
 	}
 
@@ -459,6 +463,7 @@ func (a *Address) setport(port uint16) {
 	a.url.Host = net.JoinHostPort(a.url.Hostname(), strconv.Itoa(int(port)))
 }
 
+//nolint:gocyclo
 func (a *Address) validate() (err error) {
 	if a.url == nil {
 		return fmt.Errorf("error validating the address: address url was nil")
@@ -469,7 +474,7 @@ func (a *Address) validate() (err error) {
 		return fmt.Errorf("error validating the address: the url '%s' appears to have a query but this is not valid for addresses with the '%s' scheme", a.url.String(), a.url.Scheme)
 	case a.url.RawFragment != "", a.url.Fragment != "":
 		return fmt.Errorf("error validating the address: the url '%s' appears to have a fragment but this is not valid for addresses", a.url.String())
-	case a.url.User != nil:
+	case a.url.User != nil && (a.url.Scheme != AddressSchemeUnix || a.url.User.Username() != ""):
 		return fmt.Errorf("error validating the address: the url '%s' appears to have user info but this is not valid for addresses", a.url.String())
 	}
 
@@ -538,7 +543,9 @@ func (a *Address) validateTCPUDP() (err error) {
 
 	switch port {
 	case "":
-		a.setport(0)
+		if a.url.User == nil {
+			a.setport(0)
+		}
 	default:
 		var actualPort uint64
 
@@ -556,9 +563,9 @@ func (a *Address) validateUnixSocket() (err error) {
 	umask := -1
 
 	switch {
-	case a.url.Path == "" && a.url.Scheme != AddressSchemeLDAPI:
+	case a.url.Path == "" && a.url.Scheme != AddressSchemeLDAPI && a.url.User == nil:
 		return fmt.Errorf("error validating the unix socket address: could not determine path from '%s'", a.url.String())
-	case a.url.Hostname() != "":
+	case a.url.Hostname() != "" && (a.url.User == nil || a.url.User.Username() != ""):
 		return fmt.Errorf("error validating the unix socket address: the url '%s' appears to have a hostname but this is not valid for unix sockets: this may occur if you omit the leading forward slash from the socket path", a.url.String())
 	}
 

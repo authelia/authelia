@@ -73,9 +73,9 @@ func TestShouldRaiseErrorOnInvalidFile(t *testing.T) {
 
 	switch runtime.GOOS {
 	case "windows":
-		assert.EqualError(t, err, "open /not/a/valid/path/to.log: The system cannot find the path specified.")
+		assert.EqualError(t, err, "error opening log file: open /not/a/valid/path/to.log: The system cannot find the path specified.")
 	default:
-		assert.EqualError(t, err, "open /not/a/valid/path/to.log: no such file or directory")
+		assert.EqualError(t, err, "error opening log file: open /not/a/valid/path/to.log: no such file or directory")
 	}
 }
 

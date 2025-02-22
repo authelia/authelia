@@ -91,7 +91,7 @@ func SecondFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middl
 		successful = true
 
 		if bodyJSON.Workflow == workflowOpenIDConnect {
-			handleOIDCWorkflowResponse(ctx, &userSession, bodyJSON.TargetURL, bodyJSON.WorkflowID)
+			handleOIDCWorkflowResponse(ctx, &userSession, bodyJSON.WorkflowID)
 		} else {
 			Handle2FAResponse(ctx, bodyJSON.TargetURL)
 		}

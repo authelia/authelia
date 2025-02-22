@@ -55,7 +55,7 @@ func TestCryptographical(t *testing.T) {
 	assert.Equal(t, 0, i)
 
 	bi := p.Int(big.NewInt(999))
-	assert.Greater(t, bi.Int64(), int64(0))
+	assert.GreaterOrEqual(t, bi.Int64(), int64(0))
 	assert.Less(t, bi.Int64(), int64(999))
 
 	bi = p.Int(nil)

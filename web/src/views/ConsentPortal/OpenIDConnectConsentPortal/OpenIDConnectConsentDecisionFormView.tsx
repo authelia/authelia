@@ -1,6 +1,6 @@
-import React, { Fragment, ReactNode, useEffect, useState } from "react";
+import React, { Fragment, ReactNode, useCallback, useEffect, useState } from "react";
 
-import { AccountBox, Autorenew, CheckBox, Contacts, Drafts, Group, LockOpen } from "@mui/icons-material";
+import { AccountBox, Autorenew, Contacts, Drafts, Group, LockOpen, Policy } from "@mui/icons-material";
 import {
     Box,
     Button,
@@ -23,12 +23,23 @@ import { IndexRoute } from "@constants/Routes";
 import { Identifier } from "@constants/SearchParams";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useRedirector } from "@hooks/Redirector";
-import { useUserInfoGET } from "@hooks/UserInfo";
 import LoginLayout from "@layouts/LoginLayout";
-import { ConsentGetResponseBody, acceptConsent, getConsentResponse, rejectConsent } from "@services/Consent";
+import { UserInfo } from "@models/UserInfo";
+import {
+    ConsentGetResponseBody,
+    acceptConsent,
+    formatClaim,
+    formatScope,
+    getConsentResponse,
+    rejectConsent,
+} from "@services/ConsentOpenIDConnect";
+import { AutheliaState } from "@services/State";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 
-export interface Props {}
+export interface Props {
+    userInfo: UserInfo;
+    state: AutheliaState;
+}
 
 function scopeNameToAvatar(id: string) {
     switch (id) {
@@ -45,14 +56,12 @@ function scopeNameToAvatar(id: string) {
         case "authelia.bearer.authz":
             return <LockOpen />;
         default:
-            return <CheckBox />;
+            return <Policy />;
     }
 }
 
-const ConsentView = function (props: Props) {
-    const { t: translate } = useTranslation();
-
-    const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoGET();
+const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => {
+    const { t: translate } = useTranslation(["portal", "consent"]);
 
     const { createErrorNotification, resetNotification } = useNotifications();
     const navigate = useNavigate();
@@ -62,6 +71,7 @@ const ConsentView = function (props: Props) {
 
     const [response, setResponse] = useState<ConsentGetResponseBody>();
     const [error, setError] = useState<any>(undefined);
+    const [claims, setClaims] = useState<string>("");
     const [preConfigure, setPreConfigure] = useState(false);
 
     const styles = useStyles();
@@ -71,14 +81,11 @@ const ConsentView = function (props: Props) {
     };
 
     useEffect(() => {
-        fetchUserInfo();
-    }, [fetchUserInfo]);
-
-    useEffect(() => {
         if (consentID !== null) {
             getConsentResponse(consentID)
                 .then((r) => {
                     setResponse(r);
+                    setClaims(JSON.stringify(r.claims));
                 })
                 .catch((error) => {
                     setError(error);
@@ -93,37 +100,12 @@ const ConsentView = function (props: Props) {
         }
     }, [navigate, resetNotification, createErrorNotification, error]);
 
-    useEffect(() => {
-        if (fetchUserInfoError) {
-            createErrorNotification(translate("There was an issue retrieving user preferences"));
-        }
-    }, [fetchUserInfoError, resetNotification, createErrorNotification, translate]);
-
-    const translateScopeNameToDescription = (id: string): string => {
-        switch (id) {
-            case "openid":
-                return translate("Use OpenID to verify your identity");
-            case "offline_access":
-                return translate("Automatically refresh these permissions without user interaction");
-            case "profile":
-                return translate("Access your profile information");
-            case "groups":
-                return translate("Access your group membership");
-            case "email":
-                return translate("Access your email addresses");
-            case "authelia.bearer.authz":
-                return translate("Access protected resources logged in as you");
-            default:
-                return id;
-        }
-    };
-
     const handleAcceptConsent = async () => {
         // This case should not happen in theory because the buttons are disabled when response is undefined.
         if (!response) {
             return;
         }
-        const res = await acceptConsent(preConfigure, response.client_id, consentID);
+        const res = await acceptConsent(preConfigure, response.client_id, consentID, JSON.parse(claims));
         if (res.redirect_uri) {
             redirect(res.redirect_uri);
         } else {
@@ -143,11 +125,44 @@ const ConsentView = function (props: Props) {
         }
     };
 
+    const handleClaimCheckboxOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setClaims((prevState) => {
+            const value = event.target.value;
+            const arrClaims: string[] = JSON.parse(prevState);
+            const checking = !arrClaims.includes(event.target.value);
+
+            if (checking) {
+                if (!arrClaims.includes(value)) {
+                    arrClaims.push(value);
+                }
+            } else {
+                const i = arrClaims.indexOf(value);
+
+                if (i > -1) {
+                    arrClaims.splice(i, 1);
+                }
+            }
+
+            return JSON.stringify(arrClaims);
+        });
+    };
+
+    const claimChecked = useCallback(
+        (claim: string) => {
+            const arrClaims: string[] = JSON.parse(claims);
+
+            return arrClaims.includes(claim);
+        },
+        [claims],
+    );
+
+    const hasClaims = response?.essential_claims || response?.claims;
+
     return (
-        <ComponentOrLoading ready={response !== undefined && userInfo !== undefined}>
+        <ComponentOrLoading ready={response !== undefined}>
             <LoginLayout
                 id="consent-stage"
-                title={`${translate("Hi")} ${userInfo?.display_name}`}
+                title={`${translate("Hi")} ${props.userInfo.display_name}`}
                 subtitle={translate("Consent Request")}
             >
                 <Grid container alignItems={"center"} justifyContent="center">
@@ -174,16 +189,58 @@ const ConsentView = function (props: Props) {
                         <Box className={styles.scopesListContainer}>
                             <List className={styles.scopesList}>
                                 {response?.scopes.map((scope: string) => (
-                                    <Tooltip title={translate("Scope", { name: scope })}>
+                                    <Tooltip title={translate("Scope", { name: scope, ns: "consent" })}>
                                         <ListItem id={"scope-" + scope} dense>
                                             <ListItemIcon>{scopeNameToAvatar(scope)}</ListItemIcon>
-                                            <ListItemText primary={translateScopeNameToDescription(scope)} />
+                                            <ListItemText
+                                                primary={formatScope(
+                                                    translate(`scopes.${scope}`, { ns: "consent" }),
+                                                    scope,
+                                                )}
+                                            />
                                         </ListItem>
                                     </Tooltip>
                                 ))}
                             </List>
                         </Box>
                     </Grid>
+                    {hasClaims ? (
+                        <Grid size={{ xs: 12 }}>
+                            <Box className={styles.claimsListContainer}>
+                                <List className={styles.claimsList}>
+                                    {response?.essential_claims?.map((claim: string) => (
+                                        <Tooltip title={translate("Claim", { name: claim, ns: "consent" })}>
+                                            <FormControlLabel
+                                                control={<Checkbox id={`claim-${claim}-essential`} disabled checked />}
+                                                label={formatClaim(
+                                                    translate(`claims.${claim}`, { ns: "consent" }),
+                                                    claim,
+                                                )}
+                                            />
+                                        </Tooltip>
+                                    ))}
+                                    {response?.claims?.map((claim: string) => (
+                                        <Tooltip title={translate("Claim", { name: claim, ns: "consent" })}>
+                                            <FormControlLabel
+                                                control={
+                                                    <Checkbox
+                                                        id={"claim-" + claim}
+                                                        value={claim}
+                                                        checked={claimChecked(claim)}
+                                                        onChange={handleClaimCheckboxOnChange}
+                                                    />
+                                                }
+                                                label={formatClaim(
+                                                    translate(`claims.${claim}`, { ns: "consent" }),
+                                                    claim,
+                                                )}
+                                            />
+                                        </Tooltip>
+                                    ))}
+                                </List>
+                            </Box>
+                        </Grid>
+                    ) : null}
                     {response?.pre_configuration ? (
                         <Grid size={{ xs: 12 }}>
                             <Tooltip
@@ -258,6 +315,15 @@ const useStyles = makeStyles((theme: Theme) => ({
         marginTop: theme.spacing(2),
         marginBottom: theme.spacing(2),
     },
+    claimsListContainer: {
+        textAlign: "center",
+    },
+    claimsList: {
+        display: "inline-block",
+        backgroundColor: theme.palette.background.paper,
+        marginTop: theme.spacing(2),
+        marginBottom: theme.spacing(2),
+    },
     clientID: {
         fontWeight: "bold",
     },
@@ -297,4 +363,4 @@ function ComponentOrLoading(props: ComponentOrLoadingProps) {
     );
 }
 
-export default ConsentView;
+export default OpenIDConnectConsentDecisionFormView;

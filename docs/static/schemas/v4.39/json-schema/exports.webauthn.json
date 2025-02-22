@@ -107,11 +107,6 @@
           "type": "string",
           "title": "Public Key",
           "description": "The credential public key."
-        },
-        "attestation": {
-          "type": "string",
-          "title": "Attestation",
-          "description": "The credential attestation information for auditing and validation."
         }
       },
       "additionalProperties": false,

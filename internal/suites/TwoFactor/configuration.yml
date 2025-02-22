@@ -24,6 +24,8 @@ storage:
 notifier:
   smtp:
     address: 'smtp://mail.example.com:1025'
+    username: 'authelia'
+    password: 'mailer'
     sender: 'admin@example.com'
 
 ntp:

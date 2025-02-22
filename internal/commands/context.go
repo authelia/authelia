@@ -21,6 +21,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
+	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/metrics"
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -84,6 +85,21 @@ type CmdCtxConfig struct {
 
 // CobraRunECmd describes a function that can be used as a *cobra.Command RunE, PreRunE, or PostRunE.
 type CobraRunECmd func(cmd *cobra.Command, args []string) (err error)
+
+// GetLogger returns the *logrus.Logger satisfying part of the ServiceCtx.
+func (ctx *CmdCtx) GetLogger() *logrus.Logger {
+	return ctx.log
+}
+
+// GetProviders returns middlewares.Providers satisfying part of the ServiceCtx.
+func (ctx *CmdCtx) GetProviders() middlewares.Providers {
+	return ctx.providers
+}
+
+// GetConfiguration returns *schema.Configuration satisfying part of the ServiceCtx.
+func (ctx *CmdCtx) GetConfiguration() *schema.Configuration {
+	return ctx.config
+}
 
 func (ctx *CmdCtx) CheckSchemaVersion() (err error) {
 	if ctx.providers.StorageProvider == nil {
@@ -151,6 +167,7 @@ func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
 	ctx.providers.Regulator = regulation.NewRegulator(ctx.config.Regulation, ctx.providers.StorageProvider, clock.New())
 	ctx.providers.SessionProvider = session.NewProvider(ctx.config.Session, ctx.trusted)
 	ctx.providers.TOTP = totp.NewTimeBasedProvider(ctx.config.TOTP)
+	ctx.providers.UserAttributeResolver = expression.NewUserAttributes(ctx.config)
 
 	var err error
 
@@ -176,7 +193,7 @@ func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
 		ctx.providers.Notifier = notification.NewFileNotifier(*ctx.config.Notifier.FileSystem)
 	}
 
-	ctx.providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(ctx.config.IdentityProviders.OIDC, ctx.providers.StorageProvider, ctx.providers.Templates)
+	ctx.providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(ctx.config, ctx.providers.StorageProvider, ctx.providers.Templates)
 
 	if ctx.config.Telemetry.Metrics.Enabled {
 		ctx.providers.Metrics = metrics.NewPrometheus()
@@ -403,7 +420,8 @@ func (ctx *CmdCtx) ConfigEnsureExistsRunE(cmd *cobra.Command, _ []string) (err e
 // HelperConfigLoadRunE loads the configuration into the CmdCtx.
 func (ctx *CmdCtx) HelperConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
-		filters []configuration.BytesFilter
+		definitions *schema.Definitions
+		filters     []configuration.BytesFilter
 	)
 
 	if ctx.cconfig == nil {
@@ -432,10 +450,15 @@ func (ctx *CmdCtx) HelperConfigLoadRunE(cmd *cobra.Command, _ []string) (err err
 		ctx.cconfig.defaults,
 		ctx.cconfig.sources...)
 
+	if definitions, err = configuration.LoadDefinitions(ctx.cconfig.validator, ctx.cconfig.sources...); err != nil {
+		return err
+	}
+
 	if ctx.cconfig.keys, err = configuration.LoadAdvanced(
 		ctx.cconfig.validator,
 		"",
 		ctx.config,
+		definitions,
 		ctx.cconfig.sources...); err != nil {
 		return err
 	}
