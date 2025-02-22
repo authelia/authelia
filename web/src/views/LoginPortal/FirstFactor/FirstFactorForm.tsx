@@ -9,6 +9,8 @@ import classnames from "classnames";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
+import LanguageSelector from "@components/LanguageSelector";
+import { LocalStorageLanguagePreference } from "@constants/LocalStorage";
 import { ResetPasswordStep1Route } from "@constants/Routes";
 import { RedirectionURL, RequestMethod } from "@constants/SearchParams";
 import { useNotifications } from "@hooks/NotificationsContext";
@@ -17,6 +19,8 @@ import { useWorkflow } from "@hooks/Workflow";
 import LoginLayout from "@layouts/LoginLayout";
 import { IsCapsLockModified } from "@services/CapsLock";
 import { postFirstFactor } from "@services/FirstFactor";
+import { getLocaleInformation } from "@services/LocaleInformation";
+import { localStoreSet } from "@utils/localStorage";
 
 export interface Props {
     disabled: boolean;
@@ -32,7 +36,7 @@ export interface Props {
 }
 
 const FirstFactorForm = function (props: Props) {
-    const { t: translate } = useTranslation();
+    const { t: translate, i18n } = useTranslation();
 
     const navigate = useNavigate();
     const redirectionURL = useQueryParam(RedirectionURL);
@@ -52,6 +56,8 @@ const FirstFactorForm = function (props: Props) {
 
     const usernameRef = useRef() as MutableRefObject<HTMLInputElement>;
     const passwordRef = useRef() as MutableRefObject<HTMLInputElement>;
+    const [lang, setLang] = useState(i18n.language);
+    const [localeList, setLocaleList] = useState<Array<any>>([]);
 
     const styles = useStyles();
 
@@ -199,8 +205,31 @@ const FirstFactorForm = function (props: Props) {
         [handleSignIn, password.length, username.length],
     );
 
+    // handle the language selection
+    const handleChangeLanguage = (lng: string) => {
+        setLang(lng);
+        i18n.changeLanguage(lng);
+        localStoreSet(LocalStorageLanguagePreference, lng);
+    };
+
+    const localeInfoCB = useCallback(async () => {
+        try {
+            const data = await getLocaleInformation();
+            setLocaleList(data.languages);
+
+            return data;
+        } catch (err) {
+            console.error("could not get locale list:", err);
+        }
+    }, []);
+
+    useEffect(() => {
+        localeInfoCB();
+    }, [localeInfoCB]);
+
     return (
         <LoginLayout id="first-factor-stage" title={translate("Sign in")}>
+            <LanguageSelector value={lang} localeList={localeList} onChange={handleChangeLanguage} picker={true} />
             <FormControl id={"form-login"}>
                 <Grid container spacing={2}>
                     <Grid size={{ xs: 12 }}>
