@@ -20,6 +20,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
@@ -369,7 +370,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 							Successful: true,
 							Banned:     false,
 							Username:   testUsername,
-							Type:       "Passkey",
+							Type:       regulation.AuthTypePasskey,
 							RemoteIP:   model.NullIP{IP: net.ParseIP("0.0.0.0")},
 						})).
 						Return(nil),
@@ -580,7 +581,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 				)
 			},
 			have:           dataReqGood,
-			expectedStatus: fasthttp.StatusForbidden,
+			expectedStatus: fasthttp.StatusOK,
 			expectedf: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				us, err := mock.Ctx.GetSession()
 
@@ -588,7 +589,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 
 				assert.Nil(t, us.WebAuthn)
 
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn passkey authentication challenge for user 'john': error occurred recording the authentication attempt", "error marking auth")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Failed to record Passkey authentication attempt", "error marking auth")
 			},
 		},
 		{

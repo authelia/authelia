@@ -24,3 +24,11 @@ const (
 	// AuthTypePassword is the string representing an auth log for second-factor authentication via a Password.
 	AuthTypePassword = "Password"
 )
+
+const (
+	typeUser        = "user"
+	typeIP          = "ip"
+	fieldBanType    = "ban_type"
+	fieldUsername   = "username"
+	fieldRecordType = "record_type"
+)
