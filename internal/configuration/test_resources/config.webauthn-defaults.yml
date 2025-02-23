@@ -1,0 +1,4 @@
+---
+webauthn:
+  disable: false
+...

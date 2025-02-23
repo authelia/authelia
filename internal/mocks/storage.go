@@ -172,6 +172,20 @@ func (mr *MockStorageMockRecorder) DeactivateOAuth2SessionByRequestID(ctx, sessi
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeactivateOAuth2SessionByRequestID", reflect.TypeOf((*MockStorage)(nil).DeactivateOAuth2SessionByRequestID), ctx, sessionType, requestID)
 }
 
+// DeleteCachedData mocks base method.
+func (m *MockStorage) DeleteCachedData(ctx context.Context, name string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteCachedData", ctx, name)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteCachedData indicates an expected call of DeleteCachedData.
+func (mr *MockStorageMockRecorder) DeleteCachedData(ctx, name any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCachedData", reflect.TypeOf((*MockStorage)(nil).DeleteCachedData), ctx, name)
+}
+
 // DeletePreferredDuoDevice mocks base method.
 func (m *MockStorage) DeletePreferredDuoDevice(ctx context.Context, username string) error {
 	m.ctrl.T.Helper()
@@ -271,6 +285,21 @@ func (m *MockStorage) LoadAuthenticationLogs(ctx context.Context, username strin
 func (mr *MockStorageMockRecorder) LoadAuthenticationLogs(ctx, username, fromDate, limit, page any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadAuthenticationLogs", reflect.TypeOf((*MockStorage)(nil).LoadAuthenticationLogs), ctx, username, fromDate, limit, page)
+}
+
+// LoadCachedData mocks base method.
+func (m *MockStorage) LoadCachedData(ctx context.Context, name string) (*model.CachedData, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadCachedData", ctx, name)
+	ret0, _ := ret[0].(*model.CachedData)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadCachedData indicates an expected call of LoadCachedData.
+func (mr *MockStorageMockRecorder) LoadCachedData(ctx, name any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadCachedData", reflect.TypeOf((*MockStorage)(nil).LoadCachedData), ctx, name)
 }
 
 // LoadIdentityVerification mocks base method.
@@ -618,6 +647,21 @@ func (mr *MockStorageMockRecorder) LoadWebAuthnCredentialsByUsername(ctx, rpid, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadWebAuthnCredentialsByUsername", reflect.TypeOf((*MockStorage)(nil).LoadWebAuthnCredentialsByUsername), ctx, rpid, username)
 }
 
+// LoadWebAuthnPasskeyCredentialsByUsername mocks base method.
+func (m *MockStorage) LoadWebAuthnPasskeyCredentialsByUsername(ctx context.Context, rpid, username string) ([]model.WebAuthnCredential, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadWebAuthnPasskeyCredentialsByUsername", ctx, rpid, username)
+	ret0, _ := ret[0].([]model.WebAuthnCredential)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadWebAuthnPasskeyCredentialsByUsername indicates an expected call of LoadWebAuthnPasskeyCredentialsByUsername.
+func (mr *MockStorageMockRecorder) LoadWebAuthnPasskeyCredentialsByUsername(ctx, rpid, username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadWebAuthnPasskeyCredentialsByUsername", reflect.TypeOf((*MockStorage)(nil).LoadWebAuthnPasskeyCredentialsByUsername), ctx, rpid, username)
+}
+
 // LoadWebAuthnUser mocks base method.
 func (m *MockStorage) LoadWebAuthnUser(ctx context.Context, rpid, username string) (*model.WebAuthnUser, error) {
 	m.ctrl.T.Helper()
@@ -631,6 +675,21 @@ func (m *MockStorage) LoadWebAuthnUser(ctx context.Context, rpid, username strin
 func (mr *MockStorageMockRecorder) LoadWebAuthnUser(ctx, rpid, username any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadWebAuthnUser", reflect.TypeOf((*MockStorage)(nil).LoadWebAuthnUser), ctx, rpid, username)
+}
+
+// LoadWebAuthnUserByUserID mocks base method.
+func (m *MockStorage) LoadWebAuthnUserByUserID(ctx context.Context, rpid, userID string) (*model.WebAuthnUser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadWebAuthnUserByUserID", ctx, rpid, userID)
+	ret0, _ := ret[0].(*model.WebAuthnUser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadWebAuthnUserByUserID indicates an expected call of LoadWebAuthnUserByUserID.
+func (mr *MockStorageMockRecorder) LoadWebAuthnUserByUserID(ctx, rpid, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadWebAuthnUserByUserID", reflect.TypeOf((*MockStorage)(nil).LoadWebAuthnUserByUserID), ctx, rpid, userID)
 }
 
 // RevokeIdentityVerification mocks base method.
@@ -715,6 +774,20 @@ func (m *MockStorage) Rollback(ctx context.Context) error {
 func (mr *MockStorageMockRecorder) Rollback(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Rollback", reflect.TypeOf((*MockStorage)(nil).Rollback), ctx)
+}
+
+// SaveCachedData mocks base method.
+func (m *MockStorage) SaveCachedData(ctx context.Context, data model.CachedData) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveCachedData", ctx, data)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveCachedData indicates an expected call of SaveCachedData.
+func (mr *MockStorageMockRecorder) SaveCachedData(ctx, data any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveCachedData", reflect.TypeOf((*MockStorage)(nil).SaveCachedData), ctx, data)
 }
 
 // SaveIdentityVerification mocks base method.

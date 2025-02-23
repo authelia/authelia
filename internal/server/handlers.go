@@ -249,10 +249,10 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 
 	r.POST("/api/checks/safe-redirection", middlewareAPI(handlers.CheckSafeRedirectionPOST))
 
-	delayFunc := middlewares.TimingAttackDelay(10, 250, 85, time.Second, true)
+	funcDelayPassword := middlewares.TimingAttackDelay(10, 250, 85, time.Second, true)
 
-	r.POST("/api/firstfactor", middlewareAPI(handlers.FirstFactorPOST(delayFunc)))
-	r.POST("/api/firstfactor/reauthenticate", middleware1FA(handlers.FirstFactorReauthenticatePOST(delayFunc)))
+	r.POST("/api/firstfactor", middlewareAPI(handlers.FirstFactorPasswordPOST(funcDelayPassword)))
+	r.POST("/api/firstfactor/reauthenticate", middleware1FA(handlers.FirstFactorReauthenticatePOST(funcDelayPassword)))
 	r.POST("/api/logout", middlewareAPI(handlers.LogoutPOST))
 
 	// Only register endpoints if forgot password is not disabled.
@@ -295,6 +295,12 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	if !config.WebAuthn.Disable {
 		r.GET("/api/secondfactor/webauthn", middleware1FA(handlers.WebAuthnAssertionGET))
 		r.POST("/api/secondfactor/webauthn", middleware1FA(handlers.WebAuthnAssertionPOST))
+
+		if config.WebAuthn.EnablePasskeyLogin {
+			r.GET("/api/firstfactor/passkey", middlewareAPI(handlers.FirstFactorPasskeyGET))
+			r.POST("/api/firstfactor/passkey", middlewareAPI(handlers.FirstFactorPasskeyPOST))
+			r.POST("/api/secondfactor/password", middleware1FA(handlers.SecondFactorPasswordPOST(funcDelayPassword)))
+		}
 
 		// Management of the WebAuthn credentials.
 		r.GET("/api/secondfactor/webauthn/credentials", middleware1FA(handlers.WebAuthnCredentialsGET))

@@ -54,7 +54,8 @@ Yes, as of v4.38.0 and above Authelia supports registering multiple WebAuthn cre
 
 ### Can I perform a passwordless login?
 
-Not at this time. We will tackle this at a later date as per the [roadmap](../../../roadmap/active/webauthn.md#passwordless-login).
+Yes, as of v4.39.0 and above Authelia supports passwordless logins via Passkeys as per the
+[roadmap](../../../roadmap/active/webauthn.md#passwordless-login).
 
 ### Why don't I have access to the *Security Key* option?
 
