@@ -28,6 +28,7 @@
 	"Failed to revoke the Token": "ไม่สามารถถอนโทเค็น",
 	"Hi": "สวัสดี",
 	"Incorrect username or password": "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง",
+	"Incorrect password": "รหัสผ่านไม่ถูกต้อง",
 	"Login": "เข้าสู่ระบบ",
 	"Logout": "ออกจากระบบ",
 	"Manage devices": "จัดการอุปกรณ์",
