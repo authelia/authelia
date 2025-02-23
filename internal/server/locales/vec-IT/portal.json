@@ -28,6 +28,7 @@
 	"Failed to revoke the Token": "Impossibile revocare el token",
 	"Hi": "Ciao",
 	"Incorrect username or password": "Nome utente o password incorretti",
+	"Incorrect password": "Password sbaglià",
 	"Login": "Accesso",
 	"Logout": "Disconnetti",
 	"Manage devices": "Gestisci i dispositivi",
