@@ -70,8 +70,8 @@ func validateSQLConfiguration(config, defaults *schema.StorageSQL, validator *sc
 		config.Address.SetPort(defaults.Address.Port())
 	}
 
-	if config.Username == "" || config.Password == "" {
-		validator.Push(fmt.Errorf(errFmtStorageUserPassMustBeProvided, provider))
+	if config.Username == "" {
+		validator.Push(fmt.Errorf(errFmtStorageUserMustBeProvided, provider))
 	}
 
 	if config.Database == "" {
