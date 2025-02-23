@@ -28,6 +28,7 @@
 	"Failed to revoke the Token": "A token visszavonása nem sikerült",
 	"Hi": "Helló",
 	"Incorrect username or password": "Hibás felhasználónév vagy jelszó",
+	"Incorrect password": "Helytelen jelszó",
 	"Login": "Bejelentkezés",
 	"Logout": "Kijelentkezés",
 	"Manage devices": "Eszközök kezelése",
