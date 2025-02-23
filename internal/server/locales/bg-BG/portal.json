@@ -28,6 +28,7 @@
 	"Failed to revoke the Token": "Неуспешно оттегляне на токена",
 	"Hi": "Здравей",
 	"Incorrect username or password": "Невалидно потребителско име или парола",
+	"Incorrect password": "Неправилна парола",
 	"Login": "Вход",
 	"Logout": "Изход",
 	"Manage devices": "Управление на устройства",
