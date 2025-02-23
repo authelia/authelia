@@ -28,6 +28,7 @@
 	"Failed to revoke the Token": "Nepodarilo sa zrušiť token",
 	"Hi": "Ahoj",
 	"Incorrect username or password": "Nesprávne používateľské meno alebo heslo",
+	"Incorrect password": "Nesprávne heslo",
 	"Login": "Prihlásiť sa",
 	"Logout": "Odhlásiť sa",
 	"Manage devices": "Spravovať zariadenia",
