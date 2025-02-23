@@ -182,8 +182,8 @@ configuration.
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
-Enables the metadata service checking. This requires the download of the metadata service blob which will utilize
-about 5MB of data in your configured [storage](../storage/introduction.md) backend.
+Enables metadata service validation of authenticators and credentials. This requires the download of the metadata
+service blob which will utilize about 5MB of data in your configured [storage](../storage/introduction.md) backend.
 
 By default to prevent breaking changes this value is false. It's recommended however users take the time to configure
 it now that it's available.

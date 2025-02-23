@@ -2445,16 +2445,16 @@ components:
           type: object
           properties:
             require_second_factor:
-              description: The indicator of if the elevation requires a second factor.
+              description: Indicates if the elevation requires a second factor.
               type: boolean
             skip_second_factor:
-              description: The indicator of if the requirement for a One-Time Code can be skipped if satisfying the 2FA rule.
+              description: Indicates if the requirement for a One-Time Code can be skipped if satisfying the 2FA rule.
               type: boolean
             factor_knowledge:
-              description: The indicator of if the knowledge factor of 2FA has been satisfied.
+              description: Indicates if the knowledge factor of 2FA has been satisfied.
               type: boolean
             elevated:
-              description: The indicator of if the session is elevated.
+              description: Indicates if the session is elevated.
               type: boolean
             expires:
               description: The number of seconds the elevation is still valid for.

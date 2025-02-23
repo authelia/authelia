@@ -111,25 +111,6 @@ func TestWebAuthnMisc(t *testing.T) {
 		},
 	}
 
-	/*
-			c = webauthn.Credential{
-			ID:              credential.KID.Bytes(),
-			PublicKey:       credential.PublicKey,
-			AttestationType: credential.AttestationType,
-			Flags: webauthn.CredentialFlags{
-				UserPresent:    credential.Present,
-				UserVerified:   credential.Verified,
-				BackupEligible: credential.BackupEligible,
-				BackupState:    credential.BackupState,
-			},
-			Authenticator: webauthn.Authenticator{
-				AAGUID:       aaguid,
-				SignCount:    credential.SignCount,
-				CloneWarning: credential.CloneWarning,
-				Attachment:   protocol.AuthenticatorAttachment(credential.Attachment),
-			},
-		}
-	*/
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.expectedID, tc.have.WebAuthnID())

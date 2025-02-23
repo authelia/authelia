@@ -7,7 +7,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/regulation"
 )
 
-// SecondFactorPasswordPOST is the handler performing the knowledge based authentication factor after a user users a
+// SecondFactorPasswordPOST is the handler performing the knowledge based authentication factor after a user utilizes a
 // alternative to usernames and passwords like passkeys.
 func SecondFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.RequestHandler {
 	return func(ctx *middlewares.AutheliaCtx) {
