@@ -406,6 +406,8 @@ func (s *AuthzSuite) TestShouldVerifyFailureToGetDetailsUsingBasicSchemeCached()
 
 	defer mock.Close()
 
+	setUpMockClock(mock)
+
 	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
@@ -414,15 +416,45 @@ func (s *AuthzSuite) TestShouldVerifyFailureToGetDetailsUsingBasicSchemeCached()
 
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 
-	gomock.InOrder(
-		mock.UserProviderMock.EXPECT().
-			CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
-			Return(true, nil),
+	attempt := model.AuthenticationAttempt{
+		Time:          mock.Ctx.Clock.Now(),
+		Successful:    true,
+		Banned:        false,
+		Username:      "john",
+		Type:          regulation.AuthType1FA,
+		RemoteIP:      model.NewNullIP(mock.Ctx.RemoteIP()),
+		RequestURI:    "https://one-factor.example.com",
+		RequestMethod: fasthttp.MethodGet,
+	}
 
-		mock.UserProviderMock.EXPECT().
-			GetDetails(gomock.Eq("john")).
-			Return(nil, fmt.Errorf("generic failure")),
-	)
+	if s.implementation == AuthzImplLegacy {
+		gomock.InOrder(
+			mock.UserProviderMock.EXPECT().
+				CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+				Return(true, nil),
+			mock.UserProviderMock.EXPECT().
+				GetDetails(gomock.Eq("john")).
+				Return(nil, fmt.Errorf("generic failure")),
+		)
+	} else {
+		gomock.InOrder(
+			mock.StorageMock.
+				EXPECT().
+				LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).Return(nil, nil),
+			mock.StorageMock.
+				EXPECT().
+				LoadBannedUser(gomock.Eq(mock.Ctx), gomock.Eq("john")).Return(nil, nil),
+			mock.UserProviderMock.EXPECT().
+				CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+				Return(true, nil),
+			mock.StorageMock.
+				EXPECT().
+				AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attempt)).Return(nil),
+			mock.UserProviderMock.EXPECT().
+				GetDetails(gomock.Eq("john")).
+				Return(nil, fmt.Errorf("generic failure")),
+		)
+	}
 
 	authz.Handler(mock.Ctx)
 
@@ -449,13 +481,18 @@ func (s *AuthzSuite) TestShouldVerifyFailureToGetDetailsUsingBasicSchemeCached()
 			mock.UserProviderMock.EXPECT().
 				CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 				Return(true, nil),
-
 			mock.UserProviderMock.EXPECT().
 				GetDetails(gomock.Eq("john")).
 				Return(nil, fmt.Errorf("generic failure")),
 		)
 	} else {
 		gomock.InOrder(
+			mock.StorageMock.
+				EXPECT().
+				LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).Return(nil, nil),
+			mock.StorageMock.
+				EXPECT().
+				LoadBannedUser(gomock.Eq(mock.Ctx), gomock.Eq("john")).Return(nil, nil),
 			mock.UserProviderMock.EXPECT().
 				GetDetails(gomock.Eq("john")).
 				Return(nil, fmt.Errorf("generic failure")),
@@ -487,6 +524,8 @@ func (s *AuthzSuite) TestShouldVerifyFailureToCheckPasswordUsingBasicSchemeCache
 
 	defer mock.Close()
 
+	setUpMockClock(mock)
+
 	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
@@ -495,9 +534,39 @@ func (s *AuthzSuite) TestShouldVerifyFailureToCheckPasswordUsingBasicSchemeCache
 
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 
-	mock.UserProviderMock.EXPECT().
-		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
-		Return(false, nil)
+	attempt := model.AuthenticationAttempt{
+		Time:          mock.Ctx.Clock.Now(),
+		Successful:    false,
+		Banned:        false,
+		Username:      "john",
+		Type:          regulation.AuthType1FA,
+		RemoteIP:      model.NewNullIP(mock.Ctx.RemoteIP()),
+		RequestURI:    "https://one-factor.example.com",
+		RequestMethod: fasthttp.MethodGet,
+	}
+
+	if s.implementation == AuthzImplLegacy {
+		gomock.InOrder(
+			mock.UserProviderMock.EXPECT().
+				CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+				Return(false, nil),
+		)
+	} else {
+		gomock.InOrder(
+			mock.StorageMock.
+				EXPECT().
+				LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).Return(nil, nil),
+			mock.StorageMock.
+				EXPECT().
+				LoadBannedUser(gomock.Eq(mock.Ctx), gomock.Eq("john")).Return(nil, nil),
+			mock.UserProviderMock.EXPECT().
+				CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+				Return(false, nil),
+			mock.StorageMock.
+				EXPECT().
+				AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attempt)).Return(nil),
+		)
+	}
 
 	authz.Handler(mock.Ctx)
 
@@ -519,9 +588,28 @@ func (s *AuthzSuite) TestShouldVerifyFailureToCheckPasswordUsingBasicSchemeCache
 
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 
-	mock.UserProviderMock.EXPECT().
-		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
-		Return(false, nil)
+	if s.implementation == AuthzImplLegacy {
+		gomock.InOrder(
+			mock.UserProviderMock.EXPECT().
+				CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+				Return(false, nil),
+		)
+	} else {
+		gomock.InOrder(
+			mock.StorageMock.
+				EXPECT().
+				LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).Return(nil, nil),
+			mock.StorageMock.
+				EXPECT().
+				LoadBannedUser(gomock.Eq(mock.Ctx), gomock.Eq("john")).Return(nil, nil),
+			mock.UserProviderMock.EXPECT().
+				CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+				Return(false, nil),
+			mock.StorageMock.
+				EXPECT().
+				AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attempt)).Return(nil),
+		)
+	}
 
 	authz.Handler(mock.Ctx)
 
@@ -548,6 +636,8 @@ func (s *AuthzSuite) TestShouldVerifyErrorToCheckPasswordUsingBasicSchemeCached(
 
 	defer mock.Close()
 
+	setUpMockClock(mock)
+
 	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
@@ -556,9 +646,39 @@ func (s *AuthzSuite) TestShouldVerifyErrorToCheckPasswordUsingBasicSchemeCached(
 
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 
-	mock.UserProviderMock.EXPECT().
-		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
-		Return(false, fmt.Errorf("bad data"))
+	attempt := model.AuthenticationAttempt{
+		Time:          mock.Ctx.Clock.Now(),
+		Successful:    false,
+		Banned:        false,
+		Username:      "john",
+		Type:          regulation.AuthType1FA,
+		RemoteIP:      model.NewNullIP(mock.Ctx.RemoteIP()),
+		RequestURI:    "https://one-factor.example.com",
+		RequestMethod: fasthttp.MethodGet,
+	}
+
+	if s.implementation == AuthzImplLegacy {
+		gomock.InOrder(
+			mock.UserProviderMock.EXPECT().
+				CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+				Return(false, fmt.Errorf("bad data")),
+		)
+	} else {
+		gomock.InOrder(
+			mock.StorageMock.
+				EXPECT().
+				LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).Return(nil, nil),
+			mock.StorageMock.
+				EXPECT().
+				LoadBannedUser(gomock.Eq(mock.Ctx), gomock.Eq("john")).Return(nil, nil),
+			mock.UserProviderMock.EXPECT().
+				CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+				Return(false, fmt.Errorf("bad data")),
+			mock.StorageMock.
+				EXPECT().
+				AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attempt)).Return(nil),
+		)
+	}
 
 	authz.Handler(mock.Ctx)
 
@@ -580,9 +700,28 @@ func (s *AuthzSuite) TestShouldVerifyErrorToCheckPasswordUsingBasicSchemeCached(
 
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 
-	mock.UserProviderMock.EXPECT().
-		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
-		Return(false, fmt.Errorf("bad data"))
+	if s.implementation == AuthzImplLegacy {
+		gomock.InOrder(
+			mock.UserProviderMock.EXPECT().
+				CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+				Return(false, fmt.Errorf("bad data")),
+		)
+	} else {
+		gomock.InOrder(
+			mock.StorageMock.
+				EXPECT().
+				LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).Return(nil, nil),
+			mock.StorageMock.
+				EXPECT().
+				LoadBannedUser(gomock.Eq(mock.Ctx), gomock.Eq("john")).Return(nil, nil),
+			mock.UserProviderMock.EXPECT().
+				CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
+				Return(false, fmt.Errorf("bad data")),
+			mock.StorageMock.
+				EXPECT().
+				AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attempt)).Return(nil),
+		)
+	}
 
 	authz.Handler(mock.Ctx)
 
@@ -885,6 +1024,8 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainCached() {
 
 	defer mock.Close()
 
+	setUpMockClock(mock)
+
 	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 
 	targetURI := s.RequireParseRequestURI("https://one-factor.example.com")
@@ -915,13 +1056,44 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainCached() {
 				}, nil),
 		)
 	} else {
+		attempt := model.AuthenticationAttempt{
+			Time:          mock.Ctx.Clock.Now(),
+			Successful:    true,
+			Banned:        false,
+			Username:      "john",
+			Type:          regulation.AuthType1FA,
+			RemoteIP:      model.NewNullIP(mock.Ctx.RemoteIP()),
+			RequestURI:    "https://one-factor.example.com",
+			RequestMethod: fasthttp.MethodGet,
+		}
+
 		gomock.InOrder(
+			mock.StorageMock.
+				EXPECT().
+				LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).Return(nil, nil),
+			mock.StorageMock.
+				EXPECT().
+				LoadBannedUser(gomock.Eq(mock.Ctx), gomock.Eq("john")).Return(nil, nil),
 			mock.UserProviderMock.EXPECT().
 				CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 				Return(true, nil),
+			mock.StorageMock.
+				EXPECT().
+				AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attempt)).Return(nil),
 			mock.UserProviderMock.EXPECT().
 				GetDetails(gomock.Eq("john")).
-				Times(2).
+				Return(&authentication.UserDetails{
+					Emails: []string{"john@example.com"},
+					Groups: []string{"dev", "admins"},
+				}, nil),
+			mock.StorageMock.
+				EXPECT().
+				LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).Return(nil, nil),
+			mock.StorageMock.
+				EXPECT().
+				LoadBannedUser(gomock.Eq(mock.Ctx), gomock.Eq("john")).Return(nil, nil),
+			mock.UserProviderMock.EXPECT().
+				GetDetails(gomock.Eq("john")).
 				Return(&authentication.UserDetails{
 					Emails: []string{"john@example.com"},
 					Groups: []string{"dev", "admins"},
@@ -971,9 +1143,7 @@ func (s *AuthzSuite) TestShouldHandleAnyCaseSchemeParameter() {
 
 			defer mock.Close()
 
-			mock.Ctx.Clock = &mock.Clock
-
-			mock.Clock.Set(time.Now())
+			setUpMockClock(mock)
 
 			s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
 

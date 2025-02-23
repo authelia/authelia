@@ -172,7 +172,7 @@ type HeaderAuthnStrategy struct {
 	basic BasicAuthHandler
 }
 
-type BasicAuthHandler func(ctx *middlewares.AutheliaCtx, authorization *model.Authorization) (valid bool, err error)
+type BasicAuthHandler func(ctx *middlewares.AutheliaCtx, authorization *model.Authorization) (valid, cached bool, err error)
 
 func NewBasicAuthHandler(lifespan time.Duration) BasicAuthHandler {
 	if lifespan == 0 {
@@ -182,20 +182,22 @@ func NewBasicAuthHandler(lifespan time.Duration) BasicAuthHandler {
 	return NewCachedBasicAuthHandler(lifespan)
 }
 
-func DefaultBasicAuthHandler(ctx *middlewares.AutheliaCtx, authorization *model.Authorization) (valid bool, err error) {
-	return ctx.Providers.UserProvider.CheckUserPassword(authorization.Basic())
+func DefaultBasicAuthHandler(ctx *middlewares.AutheliaCtx, authorization *model.Authorization) (valid, cached bool, err error) {
+	valid, err = ctx.Providers.UserProvider.CheckUserPassword(authorization.Basic())
+
+	return valid, false, err
 }
 
 func NewCachedBasicAuthHandler(lifespan time.Duration) BasicAuthHandler {
 	cache := authentication.NewCredentialCacheHMAC(sha256.New, lifespan)
 
-	return func(ctx *middlewares.AutheliaCtx, authorization *model.Authorization) (valid bool, err error) {
+	return func(ctx *middlewares.AutheliaCtx, authorization *model.Authorization) (valid, cached bool, err error) {
 		if valid, _ = cache.Valid(authorization.Basic()); valid {
-			return true, nil
+			return true, true, nil
 		}
 
 		if valid, err = ctx.Providers.UserProvider.CheckUserPassword(authorization.Basic()); err != nil {
-			return false, err
+			return false, false, err
 		}
 
 		if valid {
@@ -203,10 +205,10 @@ func NewCachedBasicAuthHandler(lifespan time.Duration) BasicAuthHandler {
 				ctx.Logger.WithError(err).Errorf("Error occurred saving basic authorization credentials to cache for user '%s'", authorization.BasicUsername())
 			}
 
-			return true, nil
+			return true, false, nil
 		}
 
-		return false, nil
+		return false, false, nil
 	}
 }
 
@@ -303,20 +305,12 @@ func (s *HeaderAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session.Sessi
 
 func (s *HeaderAuthnStrategy) handleGetBasic(ctx *middlewares.AutheliaCtx, authn *Authn, object *authorization.Object) (username string, level authentication.Level, err error) {
 	var (
-		valid    bool
-	)
-
-	if valid, err = s.basic(ctx, authn.Header.Authorization); err != nil {
-		doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, object.String(), object.Method, err)
-
-		return "", authentication.NotAuthenticated, fmt.Errorf("failed to validate parsed credentials of %s header for user '%s': %w", s.headerAuthorize, authn.Header.Authorization.BasicUsername(), err)
-	}
-
-	var (
 		ban     regulation.BanType
 		value   string
 		expires *time.Time
 	)
+
+	username = authn.Header.Authorization.BasicUsername()
 
 	if ban, value, expires, err = ctx.Providers.Regulator.BanCheck(ctx, username); err != nil {
 		if errors.Is(err, regulation.ErrUserIsBanned) {
@@ -330,15 +324,25 @@ func (s *HeaderAuthnStrategy) handleGetBasic(ctx *middlewares.AutheliaCtx, authn
 		return "", authentication.NotAuthenticated, fmt.Errorf("validated parsed credentials of %s header for user '%s' but an error occurred checking the regulation status of the user: %w", s.headerAuthorize, username, err)
 	}
 
+	var valid, cached bool
+
+	if valid, cached, err = s.basic(ctx, authn.Header.Authorization); err != nil {
+		doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, object.String(), object.Method, err)
+
+		return "", authentication.NotAuthenticated, fmt.Errorf("failed to validate parsed credentials of %s header for user '%s': %w", s.headerAuthorize, authn.Header.Authorization.BasicUsername(), err)
+	}
+
 	if !valid {
 		doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, object.String(), object.Method, nil)
 
 		return "", authentication.NotAuthenticated, fmt.Errorf("failed to validate parsed credentials of %s header valid for user '%s': the username and password do not match", s.headerAuthorize, username)
 	}
 
-	doMarkAuthenticationAttemptWithRequest(ctx, true, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, object.String(), object.Method, nil)
+	if !cached {
+		doMarkAuthenticationAttemptWithRequest(ctx, true, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, object.String(), object.Method, nil)
+	}
 
-	return authn.Header.Authorization.BasicUsername(), authentication.OneFactor, nil
+	return username, authentication.OneFactor, nil
 }
 
 // CanHandleUnauthorized returns true if this AuthnStrategy should handle Unauthorized requests.
