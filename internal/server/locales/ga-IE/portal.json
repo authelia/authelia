@@ -28,6 +28,7 @@
 	"Failed to revoke the Token": "Theip ar an gToken a chur ar ceal",
 	"Hi": "Dia dhuit",
 	"Incorrect username or password": "Ainm úsáideora nó pasfhocal mícheart",
+	"Incorrect password": "Focal faire mícheart",
 	"Login": "Logáil isteach",
 	"Logout": "Logáil amach",
 	"Manage devices": "Bainistigh na gléasanna",
