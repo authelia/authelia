@@ -28,6 +28,7 @@
 	"Failed to revoke the Token": "Nepodařilo se zrušit token",
 	"Hi": "Hi",
 	"Incorrect username or password": "Nesprávné uživatelské jméno nebo heslo",
+	"Incorrect password": "Nesprávné heslo",
 	"Login": "Přihlásit se",
 	"Logout": "Odhlásit se",
 	"Manage devices": "Spravovat zařízení",
