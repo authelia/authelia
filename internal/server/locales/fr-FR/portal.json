@@ -28,6 +28,7 @@
 	"Failed to revoke the Token": "Échec de la révocation du jeton",
 	"Hi": "Bonjour",
 	"Incorrect username or password": "Nom d'utilisateur ou mot de passe incorrect",
+	"Incorrect password": "Mot de passe incorrect",
 	"Login": "Connexion",
 	"Logout": "Se déconnecter",
 	"Manage devices": "Gérer les appareils",
