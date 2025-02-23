@@ -28,6 +28,7 @@
 	"Failed to revoke the Token": "Token iptal edilemedi",
 	"Hi": "Merhaba",
 	"Incorrect username or password": "Kullanıcı adı veya şifre hatalı",
+	"Incorrect password": "Yanlış şifre",
 	"Login": "Giriş",
 	"Logout": "Oturumu kapat",
 	"Manage devices": "Aygıtları yönet",
