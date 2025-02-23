@@ -28,6 +28,7 @@
 	"Failed to revoke the Token": "Falha ao revogar o Token",
 	"Hi": "Olá",
 	"Incorrect username or password": "Nome de usuário ou senha incorretos",
+	"Incorrect password": "Senha incorreta",
 	"Login": "Entrar",
 	"Logout": "Sair",
 	"Manage devices": "Gerenciar dispositivos",
