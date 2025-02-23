@@ -28,6 +28,7 @@
 	"Failed to revoke the Token": "Nu s-a reușit revocarea token-ului",
 	"Hi": "Hi",
 	"Incorrect username or password": "Nume utilizator sau parolă incorecte",
+	"Incorrect password": "Parolă incorectă",
 	"Login": "Autentificare",
 	"Logout": "Deconectare",
 	"Manage devices": "Gestionați dispozitivele",
