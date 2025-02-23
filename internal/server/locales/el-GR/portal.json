@@ -28,6 +28,7 @@
 	"Failed to revoke the Token": "Αποτυχία ανάκλησης του διακριτικού",
 	"Hi": "Hi",
 	"Incorrect username or password": "Εσφαλμένο όνομα χρήστη ή κωδικός πρόσβασης",
+	"Incorrect password": "Εσφαλμένος κωδικός πρόσβασης",
 	"Login": "Είσοδος",
 	"Logout": "Αποσύνδεση",
 	"Manage devices": "Διαχείριση συσκευών",
