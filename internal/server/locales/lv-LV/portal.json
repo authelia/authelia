@@ -28,6 +28,7 @@
 	"Failed to revoke the Token": "Neizdevās atcelt tokenu",
 	"Hi": "Sveiki",
 	"Incorrect username or password": "Nepareizs lietotājvārds vai parole",
+	"Incorrect password": "Nepareiza parole",
 	"Login": "Pieteikšanās",
 	"Logout": "Iziet",
 	"Manage devices": "Pārvaldīt ierīces",
