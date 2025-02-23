@@ -28,6 +28,7 @@
 	"Failed to revoke the Token": "فشل في إلغاء الرمز المميز",
 	"Hi": "Hi",
 	"Incorrect username or password": "اسم المستخدم أو كلمة المرور غير صحيحة",
+	"Incorrect password": "كلمة المرور غير صحيحة",
 	"Login": "تسجيل الدخول",
 	"Logout": "تسجيل الخروج",
 	"Manage devices": "إدارة الأجهزة",
