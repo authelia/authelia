@@ -28,6 +28,7 @@
 	"Failed to revoke the Token": "撤銷令牌失敗",
 	"Hi": "嗨",
 	"Incorrect username or password": "用戶名或密碼不正確",
+	"Incorrect password": "密碼錯誤",
 	"Login": "登入",
 	"Logout": "登出",
 	"Manage devices": "管理設備",
