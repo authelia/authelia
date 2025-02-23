@@ -28,6 +28,7 @@
 	"Failed to revoke the Token": "Nepavyko atšaukti ženklo",
 	"Hi": "Sveiki",
 	"Incorrect username or password": "Neteisingas vartotojo vardas arba slaptažodis",
+	"Incorrect password": "Neteisingas slaptažodis",
 	"Login": "Prisijungti",
 	"Logout": "Atsijungti",
 	"Manage devices": "Tvarkyti įrenginius",
