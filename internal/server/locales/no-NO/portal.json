@@ -28,6 +28,7 @@
 	"Failed to revoke the Token": "Kan ikke tilbakekalle tokenet",
 	"Hi": "Hei",
 	"Incorrect username or password": "Ugyldig brukernavn eller passord",
+	"Incorrect password": "Feil passord",
 	"Login": "Innlogging",
 	"Logout": "Logg ut",
 	"Manage devices": "Administrer enheter",
