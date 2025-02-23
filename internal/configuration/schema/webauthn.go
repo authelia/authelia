@@ -37,7 +37,7 @@ type WebAuthnMetadata struct {
 }
 
 type WebAuthnSelectionCriteria struct {
-	Attachment       protocol.AuthenticatorAttachment     `koanf:"attachment" json:"attachment" jsonschema:"default=cross-platform,enum=platform,enum=cross-platform,title=Attachment" jsonschema_description:"WebAuthn Authenticator attachment preference."`
+	Attachment       protocol.AuthenticatorAttachment     `koanf:"attachment" json:"attachment" jsonschema:"default=,enum=platform,enum=cross-platform,title=Attachment" jsonschema_description:"WebAuthn Authenticator attachment preference."`
 	Discoverability  protocol.ResidentKeyRequirement      `koanf:"discoverability" json:"discoverability" jsonschema:"default=preferred,enum=discouraged,enum=preferred,enum=required,title=Discoverability Selection" jsonschema_description:"The default discoverable preference when registering WebAuthn credentials."`
 	UserVerification protocol.UserVerificationRequirement `koanf:"user_verification" json:"user_verification" jsonschema:"default=preferred,enum=discouraged,enum=preferred,enum=required,title=User Verification" jsonschema_description:"The default user verification preference for all WebAuthn credentials."`
 }

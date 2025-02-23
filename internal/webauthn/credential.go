@@ -13,12 +13,16 @@ func VerifyCredential(config *schema.WebAuthn, credential *model.WebAuthnCredent
 		err error
 	)
 
-	if len(credential.Attestation) == 0 {
-		result.MissingStatement = true
-	}
-
 	if c, err = credential.ToCredential(); err != nil {
 		result.Malformed = true
+	}
+
+	if len(credential.Attestation) == 0 {
+		result.MissingStatement = true
+	} else if c != nil && mds != nil {
+		if err = c.Verify(mds); err != nil {
+			result.MetaDataValidationError = true
+		}
 	}
 
 	if config.Filtering.ProhibitBackupEligibility && credential.BackupEligible {
@@ -48,12 +52,6 @@ func VerifyCredential(config *schema.WebAuthn, credential *model.WebAuthnCredent
 
 				break
 			}
-		}
-	}
-
-	if c != nil {
-		if err = c.Verify(mds); err != nil {
-			result.MetaDataValidationError = true
 		}
 	}
 

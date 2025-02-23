@@ -32,8 +32,8 @@ webauthn:
     prohibited_aaguids: []
     prohibit_backup_eligibility: false
   selection_criteria:
-    attachment: 'cross-platform'
-    discoverability: 'discouraged'
+    attachment: ''
+    discoverability: 'preferred'
     user_verification: 'preferred'
   metadata:
     enabled: false
@@ -131,16 +131,17 @@ The selection criteria options set preferences for selecting a suitable authenti
 
 #### attachment
 
-{{< confkey type="string" default="cross-platform" required="no" >}}
+{{< confkey type="string" default="" required="no" >}}
 
 Sets the attachment preference for newly created credentials.
 
 Available Options:
 
-|     Value      |                                      Description                                       |
-|:--------------:|:--------------------------------------------------------------------------------------:|
-| cross-platform | Authenticators that can move from one system to another such as physical security keys |
-|    platform    |    Authenticators that are part of the platform such as Windows Hello, AppleID, etc    |
+|     Value      |                                           Description                                           |
+|:--------------:|:-----------------------------------------------------------------------------------------------:|
+|    _empty_     | The Authenticators that are available will be shown and the user can pick the specific criteria |
+| cross-platform |     Authenticators that can move from one system to another such as physical security keys      |
+|    platform    |        Authenticators that are part of the platform such as Windows Hello, AppleID, etc         |
 
 #### discoverability
 

@@ -4179,7 +4179,7 @@
           ],
           "title": "Attachment",
           "description": "WebAuthn Authenticator attachment preference.",
-          "default": "cross-platform"
+          "default": ""
         },
         "discoverability": {
           "type": "string",

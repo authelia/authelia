@@ -181,7 +181,7 @@ func TestShouldValidateConfigurationWithoutOverridenDefaults(t *testing.T) {
 	validator.ValidateWebAuthn(config, val)
 
 	assert.Equal(t, protocol.ResidentKeyRequirementPreferred, config.WebAuthn.SelectionCriteria.Discoverability)
-	assert.Equal(t, protocol.CrossPlatform, config.WebAuthn.SelectionCriteria.Attachment)
+	assert.Equal(t, protocol.AuthenticatorAttachment(""), config.WebAuthn.SelectionCriteria.Attachment)
 	assert.Equal(t, protocol.VerificationPreferred, config.WebAuthn.SelectionCriteria.UserVerification)
 }
 

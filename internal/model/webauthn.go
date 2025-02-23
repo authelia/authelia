@@ -196,11 +196,6 @@ func (c *WebAuthnCredential) DataValueAAGUID() *string {
 }
 
 func (c *WebAuthnCredential) ToCredential() (credential *webauthn.Credential, err error) {
-	aaguid, err := c.AAGUID.MarshalBinary()
-	if err != nil {
-		return nil, err
-	}
-
 	credential = &webauthn.Credential{
 		ID:              c.KID.Bytes(),
 		PublicKey:       c.PublicKey,
@@ -212,11 +207,15 @@ func (c *WebAuthnCredential) ToCredential() (credential *webauthn.Credential, er
 			BackupState:    c.BackupState,
 		},
 		Authenticator: webauthn.Authenticator{
-			AAGUID:       aaguid,
 			SignCount:    c.SignCount,
 			CloneWarning: c.CloneWarning,
 			Attachment:   protocol.AuthenticatorAttachment(c.Attachment),
 		},
+	}
+
+	// This function never returns errors though we return here just in case that changes.
+	if credential.Authenticator.AAGUID, err = c.AAGUID.MarshalBinary(); err != nil {
+		return nil, err
 	}
 
 	if len(c.Attestation) != 0 {
