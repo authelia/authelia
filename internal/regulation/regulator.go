@@ -44,7 +44,7 @@ func (r *Regulator) HandleAttempt(ctx Context, successful, banned bool, username
 	}
 
 	// We only need to perform the ban checks when; the attempt is unsuccessful, there is not an effective ban in place,
-	// regulation is enabled, and the authentication type is 1FA.
+	// regulation is enabled, and the authentication type is 1FA. Thus if this is not the case we can return here.
 	if successful || banned || (!r.ips && !r.users) || authType != AuthType1FA {
 		return
 	}

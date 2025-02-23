@@ -317,7 +317,7 @@ const (
 	queryFmtSelectBannedUsers = `
 		SELECT id, time, expires, expired, revoked, username, source, reason
 		FROM %s
-		WHERE revoked = FALSE AND (expires IS NULL OR expires > ?) AND expired IS NULL
+		WHERE revoked = ? AND (expires IS NULL OR expires > ?) AND expired IS NULL
 		LIMIT ?
 		OFFSET ?;`
 
@@ -337,7 +337,7 @@ const (
 	queryFmtSelectBannedIP = `
 		SELECT id, time, expires, expired, revoked, ip, source, reason
 		FROM %s
-		WHERE ip = ? AND revoked = FALSE AND (expires IS NULL OR expires > ?) AND expired IS NULL
+		WHERE ip = ? AND revoked = ? AND (expires IS NULL OR expires > ?) AND expired IS NULL
 		ORDER BY time DESC;`
 
 	queryFmtSelectBannedIPByID = `

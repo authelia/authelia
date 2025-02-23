@@ -310,7 +310,14 @@ func newStorageBansAddCmd(ctx *CmdCtx, use string) (cmd *cobra.Command) {
 		Long:    fmt.Sprintf(cmdAutheliaStorageBansAddLong, use, use),
 		Example: fmt.Sprintf(cmdAutheliaStorageBansAddExample, use),
 		Args:    cobra.ExactArgs(1),
-		RunE:    ctx.StorageBansAddRunE(use),
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if cmd.Flags().Changed("permanent") && cmd.Flags().Changed(cmdFlagNameDuration) {
+				return fmt.Errorf("invalid flag combination specified: both duration and permanent flags can't be uesd at the same time")
+			}
+
+			return nil
+		},
+		RunE: ctx.StorageBansAddRunE(use),
 
 		DisableAutoGenTag: true,
 	}

@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS banned_user (
 );
 
 CREATE INDEX banned_user_username_idx ON banned_user (username);
+CREATE INDEX banned_user_lookup_idx ON banned_user (username, revoked, expires, expired);
+CREATE INDEX banned_user_list_idx ON banned_user (revoked, expires, expired);
 
 CREATE TABLE IF NOT EXISTS banned_ip (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -23,3 +25,5 @@ CREATE TABLE IF NOT EXISTS banned_ip (
 );
 
 CREATE INDEX banned_ip_ip_idx ON banned_ip (ip);
+CREATE INDEX banned_ip_lookup_idx ON banned_ip (ip, revoked, expires, expired);
+CREATE INDEX banned_ip_list_idx ON banned_ip (revoked, expires, expired);
