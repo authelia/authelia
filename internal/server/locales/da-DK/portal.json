@@ -28,6 +28,7 @@
 	"Failed to revoke the Token": "Mislykkedes at tilbagekalde Token",
 	"Hi": "Hi",
 	"Incorrect username or password": "Forkert brugernavn eller adgangskode",
+	"Incorrect password": "Forkert adgangskode",
 	"Login": "Login",
 	"Logout": "Log Ud",
 	"Manage devices": "Administrer enheder",
