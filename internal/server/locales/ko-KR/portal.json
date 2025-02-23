@@ -28,6 +28,7 @@
 	"Failed to revoke the Token": "토큰 취소에 실패했습니다",
 	"Hi": "안녕하세요",
 	"Incorrect username or password": "잘못된 사용자 이름 또는 비밀번호",
+	"Incorrect password": "잘못된 비밀번호",
 	"Login": "로그인",
 	"Logout": "로그 아웃",
 	"Manage devices": "디바이스 관리",
