@@ -28,6 +28,7 @@
 	"Failed to revoke the Token": "Халепа! Неможливо відкликати жетон",
 	"Hi": "Вітаємо,",
 	"Incorrect username or password": "Неправильне ім'я користувача або пароль",
+	"Incorrect password": "Неправильний пароль",
 	"Login": "Логін",
 	"Logout": "Вихід із системи",
 	"Manage devices": "Керування пристроями",
