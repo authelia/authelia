@@ -28,6 +28,7 @@
 	"Failed to revoke the Token": "Ni bilo mogoče preklicati žetona",
 	"Hi": "Pozdravljeni",
 	"Incorrect username or password": "Nepravilno uporabniško ime ali geslo",
+	"Incorrect password": "Napačno geslo",
 	"Login": "Prijava",
 	"Logout": "Odjava",
 	"Manage devices": "Upravljajte naprave",
