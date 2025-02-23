@@ -86,7 +86,6 @@ func TestShouldNotPanicOnNilDB(t *testing.T) {
 
 	provider := &FileUserProvider{
 		config:        &schema.AuthenticationBackendFile{Path: f, Password: schema.DefaultPasswordConfig},
-		mutex:         &sync.Mutex{},
 		timeoutReload: time.Now().Add(-1 * time.Second),
 	}
 
@@ -102,7 +101,7 @@ func TestShouldHandleBadConfig(t *testing.T) {
 
 	provider := &FileUserProvider{
 		config:        &schema.AuthenticationBackendFile{Path: f, Password: schema.DefaultPasswordConfig, ExtraAttributes: map[string]schema.AuthenticationBackendExtraAttribute{"example": {ValueType: "integer"}}},
-		mutex:         &sync.Mutex{},
+		mutex:         sync.Mutex{},
 		timeoutReload: time.Now().Add(-1 * time.Second),
 	}
 
