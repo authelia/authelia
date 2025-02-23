@@ -28,6 +28,7 @@
 	"Failed to revoke the Token": "Fehler beim Widerrufen des Tokens",
 	"Hi": "Hallo",
 	"Incorrect username or password": "Benutzername oder Passwort falsch",
+	"Incorrect password": "Falsches Passwort",
 	"Login": "Anmelden",
 	"Logout": "Abmelden",
 	"Manage devices": "Geräte verwalten",
