@@ -28,6 +28,7 @@
 	"Failed to revoke the Token": "टोकन रद्द गर्न असफल",
 	"Hi": "नमस्कार",
 	"Incorrect username or password": "गलत प्रयोगकर्ता नाम वा पासवर्ड",
+	"Incorrect password": "गलत पासवर्ड",
 	"Login": "लगिन",
 	"Logout": "लगआउट",
 	"Manage devices": "उपकरण व्यवस्थापन गर्नुहोस्",
