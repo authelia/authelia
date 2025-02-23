@@ -1,4 +1,4 @@
-import { FirstFactorPath, FirstFactorReauthenticatePath } from "@services/Api";
+import { CompletePasswordSignInPath, FirstFactorPath, FirstFactorReauthenticatePath } from "@services/Api";
 import { PostWithOptionalResponse } from "@services/Client";
 import { SignInResponse } from "@services/SignIn";
 
@@ -83,5 +83,38 @@ export async function postFirstFactorReauthenticate(
     }
 
     const res = await PostWithOptionalResponse<SignInResponse>(FirstFactorReauthenticatePath, data);
+    return res ? res : ({} as SignInResponse);
+}
+
+interface PostSecondFactorBody {
+    password: string;
+    targetURL?: string;
+    workflow?: string;
+    workflowID?: string;
+}
+
+export async function postSecondFactor(
+    password: string,
+    targetURL?: string | undefined,
+    workflow?: string,
+    workflowID?: string,
+) {
+    const data: PostSecondFactorBody = {
+        password,
+    };
+
+    if (targetURL) {
+        data.targetURL = targetURL;
+    }
+
+    if (workflow) {
+        data.workflow = workflow;
+    }
+
+    if (workflowID) {
+        data.workflowID = workflowID;
+    }
+
+    const res = await PostWithOptionalResponse<SignInResponse>(CompletePasswordSignInPath, data);
     return res ? res : ({} as SignInResponse);
 }

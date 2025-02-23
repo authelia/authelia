@@ -49,7 +49,7 @@ the backend, it's just the public facing interface elements remaining.
 
 ### Platform Authenticator
 
-{{< roadmap-status version="v4.39.0" >}}
+{{< roadmap-status stage="complete" version="v4.39.0" >}}
 
 Implement [WebAuthn] Platform Authenticators so that people can use things like [Windows Hello], [TouchID], [FaceID],
 or [Android Security Key]. This would also allow configuration of the [Authenticator Attachment] setting most likely,
@@ -57,14 +57,14 @@ or at least allow admins to configure which ones are available for registration.
 
 ### Passkeys
 
-{{< roadmap-status version="v4.39.0" >}}
+{{< roadmap-status stage="complete" version="v4.39.0" >}}
 
 Implement the ability to add Passkeys to later be used with [Passwordless Login](#passwordless-login) but immediately as
 a 2FA credential.
 
 ### Passwordless Login
 
-{{< roadmap-status >}}
+{{< roadmap-status stage="complete" version="v4.39.0" >}}
 
 Implement the [WebAuthn] flow for [Passwordless Login]. This would also allow configuration of the
 [Resident Key Requirement] setting most likely, or at least allow admins to configure which ones are available for

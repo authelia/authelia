@@ -16,7 +16,7 @@ import (
 )
 
 // Handle1FAResponse handle the redirection upon 1FA authentication.
-func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod string, username string, groups []string) {
+func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, username string, groups []string) {
 	var err error
 
 	if len(targetURI) == 0 {
@@ -128,6 +128,15 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 	ctx.ReplyOK()
 }
 
+// HandlePasskeyResponse is a specialized handler for the Passkey login flow which switches adaptively between the 1FA and 2FA response handlers respectively.
+func HandlePasskeyResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, username string, groups []string, isTwoFactor bool) {
+	if isTwoFactor {
+		Handle2FAResponse(ctx, targetURI)
+	}
+
+	Handle1FAResponse(ctx, targetURI, requestMethod, username, groups)
+}
+
 func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, id string) {
 	var (
 		workflowID uuid.UUID
@@ -214,7 +223,7 @@ func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx, userSession *sessi
 	level := client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()})
 
 	switch {
-	case authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel, level), level == authorization.Denied:
+	case authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA), level), level == authorization.Denied:
 		targetURL := issuer.JoinPath(oidc.EndpointPathAuthorization)
 
 		form.Set(queryArgConsentID, workflowID.String())

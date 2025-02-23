@@ -322,6 +322,14 @@ var deprecations = map[string]Deprecation{
 		MapFunc: nil,
 		ErrFunc: nil,
 	},
+	"webauthn.user_verification": {
+		Version: model.SemanticVersion{Major: 4, Minor: 39},
+		Key:     "webauthn.user_verification",
+		NewKey:  "webauthn.selection_criteria.user_verification",
+		AutoMap: true,
+		MapFunc: nil,
+		ErrFunc: nil,
+	},
 }
 
 // MultiKeyMappedDeprecation represents a deprecated configuration key.

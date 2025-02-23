@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { Route, Routes, useNavigate } from "react-router-dom";
 
 import {
+    SecondFactorPasswordSubRoute,
     SecondFactorPushSubRoute,
     SecondFactorTOTPSubRoute,
     SecondFactorWebAuthnSubRoute,
@@ -28,9 +29,11 @@ import MethodSelectionDialog from "@views/LoginPortal/SecondFactor/MethodSelecti
 const OneTimePasswordMethod = lazy(() => import("@views/LoginPortal/SecondFactor/OneTimePasswordMethod"));
 const PushNotificationMethod = lazy(() => import("@views/LoginPortal/SecondFactor/PushNotificationMethod"));
 const WebAuthnMethod = lazy(() => import("@views/LoginPortal/SecondFactor/WebAuthnMethod"));
+const PasswordMethod = lazy(() => import("@views/LoginPortal/SecondFactor/PasswordMethod"));
 
 export interface Props {
     authenticationLevel: AuthenticationLevel;
+    factorKnowledge: boolean;
     userInfo: UserInfo;
     configuration: Configuration;
     duoSelfEnrollment: boolean;
@@ -80,13 +83,15 @@ const SecondFactorForm = function (props: Props) {
         navigate(SignOutRoute);
     };
 
+    const showMethods = props.factorKnowledge && props.configuration.available_methods.size > 1;
+
     return (
         <LoginLayout
             id={"second-factor-stage"}
             title={`${translate("Hi")} ${props.userInfo.display_name}`}
             userInfo={props.userInfo}
         >
-            {props.configuration.available_methods.size > 1 ? (
+            {showMethods ? (
                 <MethodSelectionDialog
                     open={methodSelectionOpen}
                     methods={props.configuration.available_methods}
@@ -100,15 +105,26 @@ const SecondFactorForm = function (props: Props) {
                     <Button id={"logout-button"} color={"secondary"} onClick={handleLogoutClick}>
                         {translate("Logout")}
                     </Button>
-                    {props.configuration.available_methods.size > 1 ? " | " : null}
-                    {props.configuration.available_methods.size > 1 ? (
-                        <Button id={"methods-button"} color={"secondary"} onClick={handleMethodSelectionClick}>
+                    {showMethods ? " | " : null}
+                    {showMethods ? (
+                        <Button id={"methods-button"} color="secondary" onClick={handleMethodSelectionClick}>
                             {translate("Methods")}
                         </Button>
                     ) : null}
                 </Grid>
                 <Box className={styles.methodContainer}>
                     <Routes>
+                        <Route
+                            path={SecondFactorPasswordSubRoute}
+                            element={
+                                <PasswordMethod
+                                    id="password-method"
+                                    authenticationLevel={props.authenticationLevel}
+                                    userInfo={props.userInfo}
+                                    onAuthenticationSuccess={props.onAuthenticationSuccess}
+                                />
+                            }
+                        />
                         <Route
                             path={SecondFactorTOTPSubRoute}
                             element={

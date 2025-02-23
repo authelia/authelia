@@ -22,7 +22,13 @@ import ThemeContextProvider from "@contexts/ThemeContext";
 import NotificationsContext from "@hooks/NotificationsContext";
 import { Notification } from "@models/Notifications";
 import { getBasePath } from "@utils/BasePath";
-import { getDuoSelfEnrollment, getRememberMe, getResetPassword, getResetPasswordCustomURL } from "@utils/Configuration";
+import {
+    getDuoSelfEnrollment,
+    getPasskeyLogin,
+    getRememberMe,
+    getResetPassword,
+    getResetPasswordCustomURL,
+} from "@utils/Configuration";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 import LoginPortal from "@views/LoginPortal/LoginPortal";
 
@@ -73,6 +79,7 @@ const App: React.FC<Props> = (props: Props) => {
                                         element={
                                             <LoginPortal
                                                 duoSelfEnrollment={getDuoSelfEnrollment()}
+                                                passkeyLogin={getPasskeyLogin()}
                                                 rememberMe={getRememberMe()}
                                                 resetPassword={getResetPassword()}
                                                 resetPasswordCustomURL={getResetPasswordCustomURL()}
