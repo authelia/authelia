@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+// NewCredentialCacheHMAC creates a new CredentialCacheHMAC with a given hash.Hash func and lifespan.
 func NewCredentialCacheHMAC(h func() hash.Hash, lifespan time.Duration) *CredentialCacheHMAC {
 	secret := make([]byte, h().BlockSize())
 
@@ -23,6 +24,7 @@ func NewCredentialCacheHMAC(h func() hash.Hash, lifespan time.Duration) *Credent
 	}
 }
 
+// CredentialCacheHMAC implements in-memory credential caching using a HMAC function and effective lifespan.
 type CredentialCacheHMAC struct {
 	mu   sync.Mutex
 	hash hash.Hash
@@ -32,6 +34,9 @@ type CredentialCacheHMAC struct {
 	values map[string]CachedCredential
 }
 
+// Valid checks the cache for results for a given username and password in the cache and returns two booleans. The valid
+// return value is indicative if the credential cache had an exact match, and the ok return value returns true if a
+// current cached value exists within the cache.
 func (c *CredentialCacheHMAC) Valid(username, password string) (valid, ok bool) {
 	c.mu.Lock()
 
@@ -77,6 +82,7 @@ func (c *CredentialCacheHMAC) sum(username, password string) (sum []byte, err er
 	return c.hash.Sum(nil), nil
 }
 
+// Put a new credential combination into the cache.
 func (c *CredentialCacheHMAC) Put(username, password string) (err error) {
 	c.mu.Lock()
 
@@ -93,6 +99,7 @@ func (c *CredentialCacheHMAC) Put(username, password string) (err error) {
 	return nil
 }
 
+// CachedCredential is a cached credential which has an expiration and checksum value.
 type CachedCredential struct {
 	expires time.Time
 	value   []byte

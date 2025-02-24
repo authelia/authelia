@@ -172,8 +172,10 @@ type HeaderAuthnStrategy struct {
 	basic BasicAuthHandler
 }
 
+// BasicAuthHandler is a function signature that handles basic authentication. This is used to implement caching.
 type BasicAuthHandler func(ctx *middlewares.AutheliaCtx, authorization *model.Authorization) (valid, cached bool, err error)
 
+// NewBasicAuthHandler creates a new BasicAuthHandler depending on the lifespan.
 func NewBasicAuthHandler(lifespan time.Duration) BasicAuthHandler {
 	if lifespan == 0 {
 		return DefaultBasicAuthHandler
@@ -182,12 +184,15 @@ func NewBasicAuthHandler(lifespan time.Duration) BasicAuthHandler {
 	return NewCachedBasicAuthHandler(lifespan)
 }
 
+// DefaultBasicAuthHandler is a BasicAuthHandler that just checks the username and password directly.
 func DefaultBasicAuthHandler(ctx *middlewares.AutheliaCtx, authorization *model.Authorization) (valid, cached bool, err error) {
 	valid, err = ctx.Providers.UserProvider.CheckUserPassword(authorization.Basic())
 
 	return valid, false, err
 }
 
+// NewCachedBasicAuthHandler creates a new BasicAuthHandler which uses the authentication.NewCredentialCacheHMAC using
+// the sha256 checksum functions.
 func NewCachedBasicAuthHandler(lifespan time.Duration) BasicAuthHandler {
 	cache := authentication.NewCredentialCacheHMAC(sha256.New, lifespan)
 
