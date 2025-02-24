@@ -321,12 +321,12 @@ func (s *HeaderAuthnStrategy) handleGetBasic(ctx *middlewares.AutheliaCtx, authn
 		if errors.Is(err, regulation.ErrUserIsBanned) {
 			doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(ban, value, expires), regulation.AuthType1FA, object.String(), object.Method, nil)
 
-			return "", authentication.NotAuthenticated, fmt.Errorf("validated parsed credentials of %s header for user '%s' but they are currently banned: %w", s.headerAuthorize, username, err)
+			return "", authentication.NotAuthenticated, fmt.Errorf("failed to validate the credentials of user '%s' parsed from the %s header: %w", username, s.headerAuthorize, err)
 		}
 
 		ctx.Logger.WithError(err).Errorf(logFmtErrRegulationFail, regulation.AuthType1FA, username)
 
-		return "", authentication.NotAuthenticated, fmt.Errorf("validated parsed credentials of %s header for user '%s' but an error occurred checking the regulation status of the user: %w", s.headerAuthorize, username, err)
+		return "", authentication.NotAuthenticated, fmt.Errorf("failed to check the regulation status of user '%s' during an attempt to authenticate using the %s header: %w", username, s.headerAuthorize, err)
 	}
 
 	var valid, cached bool
@@ -334,7 +334,7 @@ func (s *HeaderAuthnStrategy) handleGetBasic(ctx *middlewares.AutheliaCtx, authn
 	if valid, cached, err = s.basic(ctx, authn.Header.Authorization); err != nil {
 		doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, object.String(), object.Method, err)
 
-		return "", authentication.NotAuthenticated, fmt.Errorf("failed to validate parsed credentials of %s header for user '%s': %w", s.headerAuthorize, authn.Header.Authorization.BasicUsername(), err)
+		return "", authentication.NotAuthenticated, fmt.Errorf("failed to validate the credentials of user '%s' parsed from the %s header: %w", username, s.headerAuthorize, err)
 	}
 
 	if !valid {
