@@ -29,10 +29,10 @@ func newBootstrapCmd() (cmd *cobra.Command) {
 
 func cmdBootstrapRun(_ *cobra.Command, _ []string) {
 	bootstrapPrintln("Checking command installation...")
-	checkCommandExist("node", "Follow installation guidelines from https://nodejs.org/en/download/package-manager/ or download installer from https://nodejs.org/en/download/")
+	checkCommandExist("node", "Follow installation guidelines from https://nodejs.org/en/download")
 	checkCommandExist("pnpm", "Follow installation guidelines from https://pnpm.io/installation")
 	checkCommandExist("docker", "Follow installation guidelines from https://docs.docker.com/get-docker/")
-	checkCommandExist("docker-compose", "Follow installation guidelines from https://docs.docker.com/compose/install/")
+	checkCommandExist("docker compose", "Follow installation guidelines from https://docs.docker.com/compose/install/")
 
 	bootstrapPrintln("Getting versions of tools")
 	readVersions()
@@ -308,5 +308,5 @@ func readVersions() {
 	readVersion("node", "--version")
 	readVersion("pnpm", "--version")
 	readVersion("docker", "--version")
-	readVersion("docker-compose", "version")
+	readVersion("docker", "compose", "version")
 }

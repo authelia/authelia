@@ -36,9 +36,9 @@ func (s *CLISuite) SetupSuite() {
 	s.BaseSuite.SetupSuite()
 
 	dockerEnvironment := NewDockerEnvironment([]string{
-		"internal/suites/docker-compose.yml",
-		"internal/suites/CLI/docker-compose.yml",
-		"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
+		"internal/suites/compose.yml",
+		"internal/suites/CLI/compose.yml",
+		"internal/suites/example/compose/authelia/compose.backend.{}.yml",
 	})
 	s.DockerEnvironment = dockerEnvironment
 }
