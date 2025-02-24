@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS banned_user;
+DROP TABLE IF EXISTS banned_ip;

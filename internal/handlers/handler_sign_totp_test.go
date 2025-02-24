@@ -13,7 +13,6 @@ import (
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
-	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -34,7 +33,7 @@ func (s *HandlerSignTOTPSuite) SetupTest() {
 	s.Assert().NoError(err)
 
 	userSession.Username = testUsername
-	userSession.AuthenticationLevel = authentication.OneFactor
+	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
 	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
 
 	s.mock.Clock.Set(time.Unix(1701295903, 0))
@@ -516,7 +515,6 @@ func (s *HandlerSignTOTPSuite) TestShouldHandleAnonymous() {
 	s.Require().NoError(err)
 
 	us.Username = ""
-	us.AuthenticationLevel = authentication.NotAuthenticated
 
 	s.Require().NoError(s.mock.Ctx.SaveSession(us))
 
@@ -538,7 +536,6 @@ func (s *HandlerSignTOTPSuite) TestShouldHandleGETAnonymous() {
 	s.Require().NoError(err)
 
 	us.Username = ""
-	us.AuthenticationLevel = authentication.NotAuthenticated
 
 	s.Require().NoError(s.mock.Ctx.SaveSession(us))
 
@@ -689,7 +686,7 @@ func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidBooleanMarkErr() {
 		res[0][1],
 		string(s.mock.Ctx.Request.Header.Cookie("authelia_session")))
 
-	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Unable to mark TOTP authentication attempt by user 'john'", "failed to insert")
+	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Unsuccessful TOTP authentication attempt by user 'john'", "")
 }
 
 func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidJSON() {
@@ -708,7 +705,7 @@ func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidJSON() {
 	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Error occurred validating a TOTP authentication for user 'john': error parsing the request body", "unable to parse body: invalid character '1' after object key")
 }
 
-func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidBooleanMarkErrSuccess() {
+func (s *HandlerSignTOTPSuite) TestShouldNotReturnErrorOnInvalidBooleanMarkErrSuccess() {
 	config := model.TOTPConfiguration{ID: 1, Username: testUsername, Digits: 6, Secret: []byte("secret"), Period: 30, Algorithm: "SHA1"}
 
 	gomock.InOrder(
@@ -737,6 +734,10 @@ func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidBooleanMarkErrSucce
 				RemoteIP:   model.NewNullIPFromString("0.0.0.0"),
 			}).
 			Return(fmt.Errorf("failed to insert")),
+		s.mock.StorageMock.
+			EXPECT().
+			UpdateTOTPConfigurationSignIn(s.mock.Ctx, gomock.Any(), gomock.Any()).
+			Return(nil),
 	)
 
 	bodyBytes, err := json.Marshal(bodySignTOTPRequest{
@@ -749,13 +750,15 @@ func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidBooleanMarkErrSucce
 	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
 
 	TimeBasedOneTimePasswordPOST(s.mock.Ctx)
-	s.mock.Assert403KO(s.T(), "Authentication failed, please retry later.")
+	s.mock.Assert200OK(s.T(), redirectResponse{
+		Redirect: testRedirectionURLString,
+	})
 
 	s.NotEqual(
 		res[0][1],
 		string(s.mock.Ctx.Request.Header.Cookie("authelia_session")))
 
-	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Unable to mark TOTP authentication attempt by user 'john'", "failed to insert")
+	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Failed to record TOTP authentication attempt", "failed to insert")
 }
 
 func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidConfig() {
@@ -781,7 +784,7 @@ func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidConfig() {
 		res[0][1],
 		string(s.mock.Ctx.Request.Header.Cookie("authelia_session")))
 
-	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Error occurred validating a TOTP authentication for user 'john': error occurred retreiving the configuration from the storage backend", "not found")
+	AssertLogEntryMessageAndError(s.T(), s.mock.Hook.LastEntry(), "Error occurred validating a TOTP authentication for user 'john': error occurred retrieving the configuration from the storage backend", "not found")
 }
 
 func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidTokenLength() {

@@ -14,6 +14,7 @@ export interface UserSessionElevation {
     require_second_factor: boolean;
     skip_second_factor: boolean;
     can_skip_second_factor: boolean;
+    factor_knowledge: boolean;
     elevated: boolean;
     expires: number;
 }

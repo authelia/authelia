@@ -67,4 +67,5 @@ authelia storage user webauthn --help
 * [authelia storage user webauthn export](authelia_storage_user_webauthn_export.md)	 - Perform exports of the WebAuthn credentials
 * [authelia storage user webauthn import](authelia_storage_user_webauthn_import.md)	 - Perform imports of the WebAuthn credentials
 * [authelia storage user webauthn list](authelia_storage_user_webauthn_list.md)	 - List WebAuthn credentials
+* [authelia storage user webauthn verify](authelia_storage_user_webauthn_verify.md)	 - Verify WebAuthn credentials
 

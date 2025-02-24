@@ -257,6 +257,19 @@ Per the [RFC7523 Section 3: JWT Format and Processing Requirements](https://data
 this claim must be compared using [RFC3987 Section 6.2.1: Simple String Comparison] and to assist with making this
 predictable for implementers we ensure the comparison is done against the lowercase form of this URL.
 
+## Authentication Method References
+
+Authelia currently supports adding the `amr` [Claim] to the [ID Token] utilizing the [RFC8176] Authentication Method
+Reference values.
+
+The values this [Claim] has, are not strictly defined by the [OpenID Connect 1.0] specification. As such, some backends
+may
+expect a specification other than [RFC8176] for this purpose. If you have such an application and wish for us to support
+it then you're encouraged to create a [feature request](https://www.authelia.com/l/fr).
+
+A list of [RFC8176] Authentication Method Reference Values can be found in the
+[reference guide](../../reference/guides/authentication-method-references.md).
+
 ## Introspection Signing Algorithm
 
 The following table describes the response from the [Introspection] endpoint depending on the

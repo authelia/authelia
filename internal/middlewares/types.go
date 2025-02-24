@@ -19,6 +19,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/templates"
 	"github.com/authelia/authelia/v4/internal/totp"
+	"github.com/authelia/authelia/v4/internal/webauthn"
 )
 
 // AutheliaCtx contains all server variables related to Authelia.
@@ -50,6 +51,7 @@ type Providers struct {
 	PasswordPolicy        PasswordPolicyProvider
 	Random                random.Provider
 	UserAttributeResolver expression.UserAttributeResolver
+	MetaDataService       webauthn.MetaDataProvider
 }
 
 // RequestHandler represents an Authelia request handler.

@@ -21,9 +21,9 @@ seo:
 ## Tested Versions
 
 * [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+  * [v4.38.19](https://github.com/authelia/authelia/releases/tag/v4.38.19)
 * [Homarr]
-  * 0.15.2
+  * [1.7.0](https://github.com/homarr-labs/homarr/releases/tag/v1.7.0)
 
 {{% oidc-common %}}
 
@@ -71,29 +71,25 @@ identity_providers:
 
 ### Application
 
-{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-The following example assumes you want users with the `homarr-admins` group to be administrators in
-[Homarr](https://homarr.dev), and users with the `homarr-owners` group to be owners in [Homarr](https://homarr.dev). You may be required to adjust this.
-{{< /callout >}}
-
 To configure [Homarr] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 1. Include the [Homarr] environment variables for [OpenID Connect 1.0] configuration:
 
 ```env
-AUTH_PROVIDER=oidc
-AUTH_OIDC_URI=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
+AUTH_PROVIDERS=oidc
+AUTH_OIDC_ISSUER=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 AUTH_OIDC_CLIENT_SECRET=insecure_secret
 AUTH_OIDC_CLIENT_ID=homarr
 AUTH_OIDC_CLIENT_NAME=Authelia
-AUTH_OIDC_ADMIN_GROUP=homarr-admins
-AUTH_OIDC_OWNER_GROUP=homarr-owners
-NEXTAUTH_URL=https://homarr.{{< sitevar name="domain" nojs="example.com" >}}
+AUTH_OIDC_SCOPE_OVERWRITE=openid email profile groups
+AUTH_OIDC_GROUPS_ATTRIBUTE=groups
+AUTH_LOGOUT_REDIRECT_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/logout # Optional but recommended.
 ```
+2. To assign users to Homarr groups, refer to the Homarr SSO Documentation on their [permission system](https://homarr.dev/docs/advanced/single-sign-on/#permission-system).
 
 ## See Also
 
-* [Homarr SSO Documentation](https://homarr.dev/docs/advanced/sso)
+* [Homarr SSO Documentation](https://homarr.dev/docs/advanced/single-sign-on/)
 
 [Authelia]: https://www.authelia.com
 [Homarr]: https://homarr.dev

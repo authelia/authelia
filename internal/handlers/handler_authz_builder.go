@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"time"
+
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -88,11 +90,11 @@ func (b *AuthzBuilder) WithEndpointConfig(config schema.ServerEndpointsAuthz) *A
 		case AuthnStrategyCookieSession:
 			b.strategies = append(b.strategies, NewCookieSessionAuthnStrategy(b.config.RefreshInterval))
 		case AuthnStrategyHeaderAuthorization:
-			b.strategies = append(b.strategies, NewHeaderAuthorizationAuthnStrategy(strategy.Schemes...))
+			b.strategies = append(b.strategies, NewHeaderAuthorizationAuthnStrategy(strategy.SchemeBasicCacheLifespan, strategy.Schemes...))
 		case AuthnStrategyHeaderProxyAuthorization:
-			b.strategies = append(b.strategies, NewHeaderProxyAuthorizationAuthnStrategy(strategy.Schemes...))
+			b.strategies = append(b.strategies, NewHeaderProxyAuthorizationAuthnStrategy(strategy.SchemeBasicCacheLifespan, strategy.Schemes...))
 		case AuthnStrategyHeaderAuthRequestProxyAuthorization:
-			b.strategies = append(b.strategies, NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(strategy.Schemes...))
+			b.strategies = append(b.strategies, NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(strategy.SchemeBasicCacheLifespan, strategy.Schemes...))
 		case AuthnStrategyHeaderLegacy:
 			b.strategies = append(b.strategies, NewHeaderLegacyAuthnStrategy())
 		}
@@ -117,9 +119,9 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 		case AuthzImplLegacy:
 			authz.strategies = []AuthnStrategy{NewHeaderLegacyAuthnStrategy(), NewCookieSessionAuthnStrategy(b.config.RefreshInterval)}
 		case AuthzImplAuthRequest:
-			authz.strategies = []AuthnStrategy{NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(model.AuthorizationSchemeBasic.String()), NewCookieSessionAuthnStrategy(b.config.RefreshInterval)}
+			authz.strategies = []AuthnStrategy{NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(time.Duration(0), model.AuthorizationSchemeBasic.String()), NewCookieSessionAuthnStrategy(b.config.RefreshInterval)}
 		default:
-			authz.strategies = []AuthnStrategy{NewHeaderProxyAuthorizationAuthnStrategy(model.AuthorizationSchemeBasic.String()), NewCookieSessionAuthnStrategy(b.config.RefreshInterval)}
+			authz.strategies = []AuthnStrategy{NewHeaderProxyAuthorizationAuthnStrategy(time.Duration(0), model.AuthorizationSchemeBasic.String()), NewCookieSessionAuthnStrategy(b.config.RefreshInterval)}
 		}
 	}
 

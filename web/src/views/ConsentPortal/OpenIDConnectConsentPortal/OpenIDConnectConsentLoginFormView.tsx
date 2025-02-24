@@ -12,7 +12,7 @@ import { useWorkflow } from "@hooks/Workflow";
 import LoginLayout from "@layouts/LoginLayout";
 import { UserInfo } from "@models/UserInfo";
 import { IsCapsLockModified } from "@services/CapsLock";
-import { postFirstFactorReauthenticate } from "@services/FirstFactor";
+import { postFirstFactorReauthenticate } from "@services/Password";
 import { AutheliaState } from "@services/State";
 
 export interface Props {

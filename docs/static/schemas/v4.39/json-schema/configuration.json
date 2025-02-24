@@ -734,6 +734,11 @@
           "title": "TLS",
           "description": "The LDAP directory server TLS connection properties."
         },
+        "pooling": {
+          "$ref": "#/$defs/AuthenticationBackendLDAPPooling",
+          "title": "Pooling",
+          "description": "The LDAP Connection Pooling properties."
+        },
         "base_dn": {
           "type": "string",
           "title": "Base DN",
@@ -765,7 +770,7 @@
             "filter",
             "memberof"
           ],
-          "title": "Groups Search Mode",
+          "title": "Groups Search Modes",
           "description": "The LDAP group search mode used to search for group objects.",
           "default": "filter"
         },
@@ -963,6 +968,44 @@
           ],
           "title": "Value Type",
           "description": "Defines the value type for the attribute."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "AuthenticationBackendLDAPPooling": {
+      "properties": {
+        "enable": {
+          "type": "boolean",
+          "title": "Enable",
+          "description": "Enable LDAP connection pooling.",
+          "default": false
+        },
+        "count": {
+          "type": "integer",
+          "title": "Count",
+          "description": "The number of connections to keep open for LDAP connection pooling.",
+          "default": 5
+        },
+        "retries": {
+          "type": "integer",
+          "title": "Retries",
+          "description": "The number of attempts to retrieve a connection from the pool during the timeout.",
+          "default": 2
+        },
+        "timeout": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Timeout",
+          "description": "The duration of time to wait for a connection to become available in the connection pool."
         }
       },
       "additionalProperties": false,
@@ -1554,8 +1597,8 @@
             "explicit",
             "implicit"
           ],
-          "title": "Requested Audience Mode",
-          "description": "The Requested Audience Mode used for this client."
+          "title": "Requested Audience Modes",
+          "description": "The Requested Audience Modes used for this client."
         },
         "consent_mode": {
           "type": "string",
@@ -1565,8 +1608,8 @@
             "implicit",
             "pre-configured"
           ],
-          "title": "Consent Mode",
-          "description": "The Consent Mode used for this client."
+          "title": "Consent Modes",
+          "description": "The Consent Modes used for this client."
         },
         "pre_configured_consent_duration": {
           "oneOf": [
@@ -1580,7 +1623,7 @@
             }
           ],
           "title": "Pre-Configured Consent Duration",
-          "description": "The Pre-Configured Consent Duration when using Consent Mode pre-configured for this client."
+          "description": "The Pre-Configured Consent Duration when using Consent Modes pre-configured for this client."
         },
         "require_pushed_authorization_requests": {
           "type": "boolean",
@@ -2392,7 +2435,7 @@
             }
           ],
           "title": "JARM",
-          "description": "Allows tuning the token lifespan for the JWT Secured Authorization Response Mode (JARM)."
+          "description": "Allows tuning the token lifespan for the JWT Secured Authorization Response Modes (JARM)."
         },
         "custom": {
           "patternProperties": {
@@ -3014,6 +3057,21 @@
     },
     "Regulation": {
       "properties": {
+        "modes": {
+          "items": {
+            "type": "string",
+            "enum": [
+              "user",
+              "ip"
+            ]
+          },
+          "type": "array",
+          "title": "Regulation Modes",
+          "description": "The modes to use for regulation.",
+          "default": [
+            "user"
+          ]
+        },
         "max_retries": {
           "type": "integer",
           "title": "Maximum Retries",
@@ -3203,6 +3261,20 @@
           "default": [
             "basic"
           ]
+        },
+        "scheme_basic_cache_lifespan": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Scheme Basic Cache Lifespan",
+          "description": "The lifespan for cached basic scheme authorization attempts."
         }
       },
       "additionalProperties": false,
@@ -3636,7 +3708,7 @@
         "address": {
           "$ref": "#/$defs/AddressTCP",
           "title": "Address",
-          "description": "The address of the database."
+          "description": "The address of the SQL Server."
         },
         "database": {
           "type": "string",
@@ -3680,7 +3752,7 @@
         "address": {
           "$ref": "#/$defs/AddressTCP",
           "title": "Address",
-          "description": "The address of the database."
+          "description": "The address of the SQL Server."
         },
         "database": {
           "type": "string",
@@ -3711,14 +3783,22 @@
           "title": "Timeout",
           "description": "The timeout for the database connection."
         },
+        "tls": {
+          "$ref": "#/$defs/TLS"
+        },
         "schema": {
           "type": "string",
           "title": "Schema",
           "description": "The default schema name to use.",
           "default": "public"
         },
-        "tls": {
-          "$ref": "#/$defs/TLS"
+        "servers": {
+          "items": {
+            "$ref": "#/$defs/StoragePostgreSQLServer"
+          },
+          "type": "array",
+          "title": "Servers",
+          "description": "The fallback PostgreSQL severs to connect to in addition to the one defined by the address."
         },
         "ssl": {
           "$ref": "#/$defs/StoragePostgreSQLSSL",
@@ -3767,6 +3847,20 @@
       "additionalProperties": false,
       "type": "object",
       "description": "StoragePostgreSQLSSL represents the SSL configuration of a PostgreSQL database."
+    },
+    "StoragePostgreSQLServer": {
+      "properties": {
+        "address": {
+          "$ref": "#/$defs/AddressTCP",
+          "title": "Address",
+          "description": "The address of the PostgreSQL Server."
+        },
+        "tls": {
+          "$ref": "#/$defs/TLS"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "TLS": {
       "properties": {
@@ -3964,6 +4058,14 @@
       "type": "object",
       "description": "TelemetryMetrics represents the telemetry metrics config."
     },
+    "UUID": {
+      "items": {
+        "type": "integer"
+      },
+      "type": "array",
+      "maxItems": 16,
+      "minItems": 16
+    },
     "UserAttribute": {
       "properties": {
         "expression": {
@@ -3986,6 +4088,18 @@
           "description": "Disables the WebAuthn 2FA functionality.",
           "default": false
         },
+        "enable_passkey_login": {
+          "type": "boolean",
+          "title": "Enable Passkey Logins",
+          "description": "Allows users to sign in via Passkeys.",
+          "default": false
+        },
+        "experimental_enable_passkey_uv_two_factors": {
+          "type": "boolean",
+          "title": "Experimental: Enable User Verified Passkey Second Factor",
+          "description": "This option is experimental and WILL be removed. When true this will consider a Passkey login where the WebAuthn user verification requirement is met as being a single event 2FA login.",
+          "default": false
+        },
         "display_name": {
           "type": "string",
           "title": "Display Name",
@@ -4003,17 +4117,6 @@
           "description": "The default conveyance preference for all WebAuthn credentials.",
           "default": "indirect"
         },
-        "user_verification": {
-          "type": "string",
-          "enum": [
-            "discouraged",
-            "preferred",
-            "required"
-          ],
-          "title": "User Verification",
-          "description": "The default user verification preference for all WebAuthn credentials.",
-          "default": "preferred"
-        },
         "timeout": {
           "oneOf": [
             {
@@ -4027,11 +4130,176 @@
           ],
           "title": "Timeout",
           "description": "The default timeout for all WebAuthn ceremonies."
+        },
+        "filtering": {
+          "$ref": "#/$defs/WebAuthnFiltering",
+          "title": "Filtering",
+          "description": "WebAuthn Authenticator filtering settings."
+        },
+        "selection_criteria": {
+          "$ref": "#/$defs/WebAuthnSelectionCriteria",
+          "description": "WebAuthn Authenticator selection criteria settings."
+        },
+        "metadata": {
+          "$ref": "#/$defs/WebAuthnMetadata",
+          "description": "WebAuthn Metadata Service settings."
         }
       },
       "additionalProperties": false,
       "type": "object",
       "description": "WebAuthn represents the webauthn config."
+    },
+    "WebAuthnFiltering": {
+      "properties": {
+        "prohibit_backup_eligibility": {
+          "type": "boolean",
+          "title": "Prohibit Backup Eligibility",
+          "description": "Prohibits registering authenticators which claim backup eligibility i.e. exporting credentials off of the device.",
+          "default": false
+        },
+        "permitted_aaguids": {
+          "items": {
+            "$ref": "#/$defs/UUID"
+          },
+          "type": "array",
+          "title": "Permitted AAGUIDs",
+          "description": "List of allowed WebAuthn AAGUIDs. No other authenticator can be registered."
+        },
+        "prohibited_aaguids": {
+          "items": {
+            "$ref": "#/$defs/UUID"
+          },
+          "type": "array",
+          "title": "Prohibited AAGUIDs",
+          "description": "List of prohibited WebAuthn AAGUIDs. Authenticators with these AAGUIDs cannot be registered."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "WebAuthnMetadata": {
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Enabled",
+          "description": "Enables the use of the WebAuthn Metadata Service.",
+          "default": false
+        },
+        "validate_trust_anchor": {
+          "type": "boolean",
+          "title": "Validate Trust Anchor",
+          "description": "WebAuthn Authenticator metadata entry trust anchor validation.",
+          "default": true
+        },
+        "validate_entry": {
+          "type": "boolean",
+          "title": "Filtering",
+          "description": "WebAuthn Authenticator metadata entry validation requires the AAGUID exists as a MDS3 registered entry.",
+          "default": true
+        },
+        "validate_entry_permit_zero_aaguid": {
+          "type": "boolean",
+          "title": "Filtering",
+          "description": "WebAuthn Authenticator metadata entry validation zero AAGUID's can be skipped'.",
+          "default": true
+        },
+        "validate_status": {
+          "type": "boolean",
+          "title": "Validate Status",
+          "description": "WebAuthn Authenticator status validation.",
+          "default": true
+        },
+        "validate_status_permitted": {
+          "items": {
+            "type": "string",
+            "enum": [
+              "FIDO_NOT_CERTIFIED",
+              "FIDO_CERTIFIED",
+              "USER_VERIFICATION_BYPASS",
+              "ATTESTATION_KEY_COMPROMISE",
+              "USER_KEY_REMOTE_COMPROMISE",
+              "USER_KEY_PHYSICAL_COMPROMISE",
+              "UPDATE_AVAILABLE",
+              "REVOKED",
+              "SELF_ASSERTION_SUBMITTED",
+              "FIDO_CERTIFIED_L1",
+              "FIDO_CERTIFIED_L1plus",
+              "FIDO_CERTIFIED_L2",
+              "FIDO_CERTIFIED_L2plus",
+              "FIDO_CERTIFIED_L3",
+              "FIDO_CERTIFIED_L3plus"
+            ]
+          },
+          "type": "array",
+          "title": "Validate Status (Permitted Statuses)",
+          "description": "WebAuthn Authenticator status validation can be configured to permit certain statuses. Generally this is discouraged."
+        },
+        "validate_status_prohibited": {
+          "items": {
+            "type": "string",
+            "enum": [
+              "FIDO_NOT_CERTIFIED",
+              "FIDO_CERTIFIED",
+              "USER_VERIFICATION_BYPASS",
+              "ATTESTATION_KEY_COMPROMISE",
+              "USER_KEY_REMOTE_COMPROMISE",
+              "USER_KEY_PHYSICAL_COMPROMISE",
+              "UPDATE_AVAILABLE",
+              "REVOKED",
+              "SELF_ASSERTION_SUBMITTED",
+              "FIDO_CERTIFIED_L1",
+              "FIDO_CERTIFIED_L1plus",
+              "FIDO_CERTIFIED_L2",
+              "FIDO_CERTIFIED_L2plus",
+              "FIDO_CERTIFIED_L3",
+              "FIDO_CERTIFIED_L3plus"
+            ]
+          },
+          "type": "array",
+          "title": "Validate Status (Prohibited Statuses)",
+          "description": "WebAuthn Authenticator status validation can prohibit certain statuses. Generally this is discouraged as the defaults are safe."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "WebAuthnSelectionCriteria": {
+      "properties": {
+        "attachment": {
+          "type": "string",
+          "enum": [
+            "platform",
+            "cross-platform"
+          ],
+          "title": "Attachment",
+          "description": "WebAuthn Authenticator attachment preference.",
+          "default": ""
+        },
+        "discoverability": {
+          "type": "string",
+          "enum": [
+            "discouraged",
+            "preferred",
+            "required"
+          ],
+          "title": "Discoverability Selection",
+          "description": "The default discoverable preference when registering WebAuthn credentials.",
+          "default": "preferred"
+        },
+        "user_verification": {
+          "type": "string",
+          "enum": [
+            "discouraged",
+            "preferred",
+            "required"
+          ],
+          "title": "User Verification",
+          "description": "The default user verification preference for all WebAuthn credentials.",
+          "default": "preferred"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "X509CertificateChain": {
       "type": "string",

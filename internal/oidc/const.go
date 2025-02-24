@@ -91,7 +91,7 @@ const (
 	ClaimEmailAlts = "alt_emails"
 )
 
-// Response Mode strings.
+// Response Modes strings.
 const (
 	ResponseModeFormPost    = "form_post"
 	ResponseModeQuery       = "query"

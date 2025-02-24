@@ -3,7 +3,6 @@ package handlers
 import (
 	"fmt"
 	"net/url"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/valyala/fasthttp"
@@ -12,11 +11,12 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
 // Handle1FAResponse handle the redirection upon 1FA authentication.
-func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod string, username string, groups []string) {
+func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, username string, groups []string) {
 	var err error
 
 	if len(targetURI) == 0 {
@@ -128,6 +128,15 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 	ctx.ReplyOK()
 }
 
+// HandlePasskeyResponse is a specialized handler for the Passkey login flow which switches adaptively between the 1FA and 2FA response handlers respectively.
+func HandlePasskeyResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, username string, groups []string, isTwoFactor bool) {
+	if isTwoFactor {
+		Handle2FAResponse(ctx, targetURI)
+	}
+
+	Handle1FAResponse(ctx, targetURI, requestMethod, username, groups)
+}
+
 func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, id string) {
 	var (
 		workflowID uuid.UUID
@@ -214,7 +223,7 @@ func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx, userSession *sessi
 	level := client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()})
 
 	switch {
-	case authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel, level), level == authorization.Denied:
+	case authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA), level), level == authorization.Denied:
 		targetURL := issuer.JoinPath(oidc.EndpointPathAuthorization)
 
 		form.Set(queryArgConsentID, workflowID.String())
@@ -231,12 +240,10 @@ func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx, userSession *sessi
 	}
 }
 
-func markAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, bannedUntil *time.Time, username string, authType string, errAuth error) (err error) {
-	// We only Mark if there was no underlying error.
-	ctx.Logger.Debugf("Mark %s authentication attempt made by user '%s'", authType, username)
-
+func doMarkAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, ban *regulation.Ban, authType string, errAuth error) {
 	var (
 		requestURI, requestMethod string
+		err                       error
 	)
 
 	if referer := ctx.Request.Header.Referer(); referer != nil {
@@ -248,26 +255,27 @@ func markAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, ba
 		}
 	}
 
-	if err = ctx.Providers.Regulator.Mark(ctx, successful, bannedUntil != nil, username, requestURI, requestMethod, authType); err != nil {
-		ctx.Logger.WithError(err).Errorf("Unable to mark %s authentication attempt by user '%s'", authType, username)
+	doMarkAuthenticationAttemptWithRequest(ctx, successful, ban, authType, requestURI, requestMethod, errAuth)
+}
 
-		return err
-	}
+func doMarkAuthenticationAttemptWithRequest(ctx *middlewares.AutheliaCtx, successful bool, ban *regulation.Ban, authType, requestURI, requestMethod string, errAuth error) {
+	// We only Mark if there was no underlying error.
+	ctx.Logger.Debugf("Mark %s authentication attempt made by user '%s'", authType, ban.Value())
+
+	ctx.Providers.Regulator.HandleAttempt(ctx, successful, ban.IsBanned(), ban.Value(), requestURI, requestMethod, authType)
 
 	if successful {
-		ctx.Logger.Debugf("Successful %s authentication attempt made by user '%s'", authType, username)
+		ctx.Logger.Debugf("Successful %s authentication attempt made by user '%s'", authType, ban.Value())
 	} else {
 		switch {
 		case errAuth != nil:
-			ctx.Logger.WithError(errAuth).Errorf("Unsuccessful %s authentication attempt by user '%s'", authType, username)
-		case bannedUntil != nil:
-			ctx.Logger.Errorf("Unsuccessful %s authentication attempt by user '%s' and they are banned until %s", authType, username, bannedUntil)
+			ctx.Logger.WithError(errAuth).Errorf("Unsuccessful %s authentication attempt by user '%s'", authType, ban.Value())
+		case ban.IsBanned():
+			ctx.Logger.Errorf("Unsuccessful %s authentication attempt by user '%s' and they are banned until %s", authType, ban.Value(), ban.FormatExpires())
 		default:
-			ctx.Logger.Errorf("Unsuccessful %s authentication attempt by user '%s'", authType, username)
+			ctx.Logger.Errorf("Unsuccessful %s authentication attempt by user '%s'", authType, ban.Value())
 		}
 	}
-
-	return nil
 }
 
 func respondUnauthorized(ctx *middlewares.AutheliaCtx, message string) {

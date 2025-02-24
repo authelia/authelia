@@ -1,0 +1,7 @@
+---
+webauthn:
+  selection_criteria:
+    discoverability: ''
+    attachment: ''
+    user_verification: ''
+...
