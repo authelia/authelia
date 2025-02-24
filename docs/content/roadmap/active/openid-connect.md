@@ -143,12 +143,14 @@ Feature List:
 
 ### Beta 7
 
-{{< roadmap-status version="v4.39.0" >}}
+{{< roadmap-status stage="complete" version="v4.39.0" >}}
 
 Feature List:
 
 * Prompt Handling
 * Display Handling
+* Claims Handling
+* Attribute Mapping
 * [RFC8628: OAuth 2.0 Device Authorization Grant]
 * [JSON Web Encryption](https://datatracker.ietf.org/doc/html/rfc7516)
 
