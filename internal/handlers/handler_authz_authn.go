@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -34,7 +35,7 @@ func NewCookieSessionAuthnStrategy(refresh schema.RefreshIntervalDuration) *Cook
 
 // NewHeaderAuthorizationAuthnStrategy creates a new HeaderAuthnStrategy using the Authorization and WWW-Authenticate
 // headers, and the 407 Proxy Auth Required response.
-func NewHeaderAuthorizationAuthnStrategy(schemes ...string) *HeaderAuthnStrategy {
+func NewHeaderAuthorizationAuthnStrategy(schemaBasicCacheLifeSpan time.Duration, schemes ...string) *HeaderAuthnStrategy {
 	return &HeaderAuthnStrategy{
 		authn:              AuthnTypeAuthorization,
 		headerAuthorize:    headerAuthorization,
@@ -42,12 +43,13 @@ func NewHeaderAuthorizationAuthnStrategy(schemes ...string) *HeaderAuthnStrategy
 		handleAuthenticate: true,
 		statusAuthenticate: fasthttp.StatusUnauthorized,
 		schemes:            model.NewAuthorizationSchemes(schemes...),
+		basic:              NewBasicAuthHandler(schemaBasicCacheLifeSpan),
 	}
 }
 
 // NewHeaderProxyAuthorizationAuthnStrategy creates a new HeaderAuthnStrategy using the Proxy-Authorization and
 // Proxy-Authenticate headers, and the 407 Proxy Auth Required response.
-func NewHeaderProxyAuthorizationAuthnStrategy(schemes ...string) *HeaderAuthnStrategy {
+func NewHeaderProxyAuthorizationAuthnStrategy(schemaBasicCacheLifeSpan time.Duration, schemes ...string) *HeaderAuthnStrategy {
 	return &HeaderAuthnStrategy{
 		authn:              AuthnTypeProxyAuthorization,
 		headerAuthorize:    headerProxyAuthorization,
@@ -55,13 +57,14 @@ func NewHeaderProxyAuthorizationAuthnStrategy(schemes ...string) *HeaderAuthnStr
 		handleAuthenticate: true,
 		statusAuthenticate: fasthttp.StatusProxyAuthRequired,
 		schemes:            model.NewAuthorizationSchemes(schemes...),
+		basic:              NewBasicAuthHandler(schemaBasicCacheLifeSpan),
 	}
 }
 
 // NewHeaderProxyAuthorizationAuthRequestAuthnStrategy creates a new HeaderAuthnStrategy using the Proxy-Authorization
 // and WWW-Authenticate headers, and the 401 Proxy Auth Required response. This is a special AuthnStrategy for the
 // AuthRequest implementation.
-func NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(schemes ...string) *HeaderAuthnStrategy {
+func NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(schemaBasicCacheLifeSpan time.Duration, schemes ...string) *HeaderAuthnStrategy {
 	return &HeaderAuthnStrategy{
 		authn:              AuthnTypeProxyAuthorization,
 		headerAuthorize:    headerProxyAuthorization,
@@ -69,6 +72,7 @@ func NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(schemes ...string) *Hea
 		handleAuthenticate: true,
 		statusAuthenticate: fasthttp.StatusUnauthorized,
 		schemes:            model.NewAuthorizationSchemes(schemes...),
+		basic:              NewBasicAuthHandler(schemaBasicCacheLifeSpan),
 	}
 }
 
@@ -164,6 +168,53 @@ type HeaderAuthnStrategy struct {
 	handleAuthenticate bool
 	statusAuthenticate int
 	schemes            model.AuthorizationSchemes
+
+	basic BasicAuthHandler
+}
+
+// BasicAuthHandler is a function signature that handles basic authentication. This is used to implement caching.
+type BasicAuthHandler func(ctx *middlewares.AutheliaCtx, authorization *model.Authorization) (valid, cached bool, err error)
+
+// NewBasicAuthHandler creates a new BasicAuthHandler depending on the lifespan.
+func NewBasicAuthHandler(lifespan time.Duration) BasicAuthHandler {
+	if lifespan == 0 {
+		return DefaultBasicAuthHandler
+	}
+
+	return NewCachedBasicAuthHandler(lifespan)
+}
+
+// DefaultBasicAuthHandler is a BasicAuthHandler that just checks the username and password directly.
+func DefaultBasicAuthHandler(ctx *middlewares.AutheliaCtx, authorization *model.Authorization) (valid, cached bool, err error) {
+	valid, err = ctx.Providers.UserProvider.CheckUserPassword(authorization.Basic())
+
+	return valid, false, err
+}
+
+// NewCachedBasicAuthHandler creates a new BasicAuthHandler which uses the authentication.NewCredentialCacheHMAC using
+// the sha256 checksum functions.
+func NewCachedBasicAuthHandler(lifespan time.Duration) BasicAuthHandler {
+	cache := authentication.NewCredentialCacheHMAC(sha256.New, lifespan)
+
+	return func(ctx *middlewares.AutheliaCtx, authorization *model.Authorization) (valid, cached bool, err error) {
+		if valid, _ = cache.Valid(authorization.Basic()); valid {
+			return true, true, nil
+		}
+
+		if valid, err = ctx.Providers.UserProvider.CheckUserPassword(authorization.Basic()); err != nil {
+			return false, false, err
+		}
+
+		if valid {
+			if err = cache.Put(authorization.Basic()); err != nil {
+				ctx.Logger.WithError(err).Errorf("Error occurred saving basic authorization credentials to cache for user '%s'", authorization.BasicUsername())
+			}
+
+			return true, false, nil
+		}
+
+		return false, false, nil
+	}
 }
 
 // Get returns the Authn information for this AuthnStrategy.
@@ -259,34 +310,31 @@ func (s *HeaderAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session.Sessi
 
 func (s *HeaderAuthnStrategy) handleGetBasic(ctx *middlewares.AutheliaCtx, authn *Authn, object *authorization.Object) (username string, level authentication.Level, err error) {
 	var (
-		valid    bool
-		password string
-	)
-
-	username, password = authn.Header.Authorization.Basic()
-
-	if valid, err = ctx.Providers.UserProvider.CheckUserPassword(username, password); err != nil {
-		doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, object.String(), object.Method, err)
-
-		return "", authentication.NotAuthenticated, fmt.Errorf("failed to validate parsed credentials of %s header for user '%s': %w", s.headerAuthorize, username, err)
-	}
-
-	var (
 		ban     regulation.BanType
 		value   string
 		expires *time.Time
 	)
 
+	username = authn.Header.Authorization.BasicUsername()
+
 	if ban, value, expires, err = ctx.Providers.Regulator.BanCheck(ctx, username); err != nil {
 		if errors.Is(err, regulation.ErrUserIsBanned) {
 			doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(ban, value, expires), regulation.AuthType1FA, object.String(), object.Method, nil)
 
-			return "", authentication.NotAuthenticated, fmt.Errorf("validated parsed credentials of %s header for user '%s' but they are currently banned: %w", s.headerAuthorize, username, err)
+			return "", authentication.NotAuthenticated, fmt.Errorf("failed to validate the credentials of user '%s' parsed from the %s header: %w", username, s.headerAuthorize, err)
 		}
 
 		ctx.Logger.WithError(err).Errorf(logFmtErrRegulationFail, regulation.AuthType1FA, username)
 
-		return "", authentication.NotAuthenticated, fmt.Errorf("validated parsed credentials of %s header for user '%s' but an error occurred checking the regulation status of the user: %w", s.headerAuthorize, username, err)
+		return "", authentication.NotAuthenticated, fmt.Errorf("failed to check the regulation status of user '%s' during an attempt to authenticate using the %s header: %w", username, s.headerAuthorize, err)
+	}
+
+	var valid, cached bool
+
+	if valid, cached, err = s.basic(ctx, authn.Header.Authorization); err != nil {
+		doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, object.String(), object.Method, err)
+
+		return "", authentication.NotAuthenticated, fmt.Errorf("failed to validate the credentials of user '%s' parsed from the %s header: %w", username, s.headerAuthorize, err)
 	}
 
 	if !valid {
@@ -295,13 +343,11 @@ func (s *HeaderAuthnStrategy) handleGetBasic(ctx *middlewares.AutheliaCtx, authn
 		return "", authentication.NotAuthenticated, fmt.Errorf("failed to validate parsed credentials of %s header valid for user '%s': the username and password do not match", s.headerAuthorize, username)
 	}
 
-	doMarkAuthenticationAttemptWithRequest(ctx, true, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, object.String(), object.Method, nil)
-
-	if !valid {
-		return "", authentication.NotAuthenticated, fmt.Errorf("validated parsed credentials of %s header but they are not valid for user '%s': %w", s.headerAuthorize, authn.Header.Authorization.BasicUsername(), err)
+	if !cached {
+		doMarkAuthenticationAttemptWithRequest(ctx, true, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, object.String(), object.Method, nil)
 	}
 
-	return authn.Header.Authorization.BasicUsername(), authentication.OneFactor, nil
+	return username, authentication.OneFactor, nil
 }
 
 // CanHandleUnauthorized returns true if this AuthnStrategy should handle Unauthorized requests.
