@@ -41,7 +41,7 @@ features which dictate the need to make an adjustment to how we handle some thin
 
 ## On This Page
 
-This blog article is rather large so this serves as an index for all of the areas so you can best find a particular item.
+This blog article is rather large so this serves as an index for all the areas so you can best find a particular item.
 
 - Key Sections:
   - [OpenID Connect 1.0](#openid-connect-10)
@@ -62,6 +62,13 @@ This blog article is rather large so this serves as an index for all of the area
 - Important Modification Considerations (changes that you are not required to make but may run into issues if you're
   not careful):
   - [Server Listener](#server-listener) changes
+- Other Improvements:
+  - [Password Change](#password-change) adds the ability to change passwords from the settings interface.
+  - [Log File Reopening](#log-file-reopening) adds support for graceful log file rotation.
+  - [Basic Authorization Caching](#basic-authorization-caching) add optional basic authorization caching to improve endpoint response speeds.
+
+
+---
 
 ## WebAuthn
 
@@ -88,8 +95,8 @@ granular custom access control policies to complement `one_factor` and `two_fact
 ### FIDO Alliance Metadata Service
 
 This release allows administrators to enable validation of authenticators via the FIDO Alliance MDS3. This includes
-comprehensive checks that can be customized. This is generally considered a business feature but it's something we'd
-generally users enable since it has little downsides. See the
+comprehensive checks that can be customized. This is generally considered a business feature, but it's something we'd
+generally recommend users enable since it has little downsides. See the
 [configuration](../../configuration/second-factor/webauthn.md#metadata) documentation for more information.
 
 ### Credential Filtering
@@ -102,6 +109,8 @@ usually for company policy where employees are expected to use a specific set of
 
 This release allows support for the platform attachment modality whereas previously we only specifically allowed the
 cross-platform attachment. This should allow services such as Windows Hello to register a credential.
+
+---
 
 ## OpenID Connect 1.0
 
@@ -141,7 +150,7 @@ Prior to this release the only option for users was to use signed JSON Web Token
 the JSON Web Encryption Nested JSON Web Tokens. This allows superior privacy in transmission of JSON Web Tokens as well
 as some security when using alternative keys for signing and encryption.
 
-This feature requires specific support by a client and it is rare to see clients support it but it's a feature that
+This feature requires specific support by a client, and it is rare to see clients support it, but it's a feature that
 exists within the scope of where we intend Authelia to sit within the ecosystem.
 
 ### OAuth 2.0 Device Code Flow
@@ -150,3 +159,22 @@ We now support the Device Code Flow which is the last major flow we did not supp
 may be familiar with where they either scan a QR code on a TV-like device and sign in on a separate device like a mobile
 phone, or visit a URL and enter a code.
 
+---
+
+## Password Change
+
+Prior to this release, the only option for users who wish to change their password was to complete the reset password flow. In this release, we add the ability for users to change their password directly from the settings interface. Additionally, administrators can disable this functionality using the [disable](../../configuration/first-factor/introduction.md#disable-1) option.
+
+## Log File Reopening
+
+Prior to this release, Authelia didn't handle SIGHUP signals for reopening log files. This release adds this capability, enabling proper integration with external log rotation tools. When Authelia receives a SIGHUP signal, it will:
+
+1. Safely reopen its log file handle
+2. Create the log file if it doesn't exist
+3. Support time-based file patterns using current timestamps
+
+This improvement ensures Authelia works correctly with standard Unix log rotation tools and practices.
+
+## Basic Authorization Caching
+
+Prior to this release, Authelia re-validated basic authentication credentials on every request. This release introduces basic authorization caching, which improves performance by temporarily storing successful authentication results. This means less load on your authentication backend and faster response times for requests using basic authentication, while maintaining security through configurable cache timeouts.
