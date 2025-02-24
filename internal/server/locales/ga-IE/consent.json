@@ -1,0 +1,37 @@
+{
+	"Claim": "Éiligh {{name}}",
+	"Scope": "Raon {{name}}",
+	"scopes": {
+		"openid": "Úsáid OpenID chun do shíniú a fhíorú",
+		"offline_access": "Nuashonraigh na ceadanna seo go huathoibríoch gan idirghníomhú ón úsáideoir",
+		"profile": "Rochtain ar do chuid eolais ghréasáin",
+		"groups": "Rochtain ar do shíntiúsanna grúpa",
+		"email": "Rochtain ar do sheoltaí ríomhphoist",
+		"phone": "Rochtain ar do uimhir gutháin",
+		"address": "Rochtain ar do sheoladh",
+		"authelia.bearer.authz": "Rochtain ar acmhainní cosanta logáilte isteach mar tú"
+	},
+	"claims": {
+		"sub": "Aitheantas Uunique",
+		"name": "Ainm Taispeána",
+		"given_name": "Ainm Tugtha",
+		"family_name": "Ainm Teaghlaigh",
+		"middle_name": "Ainm Lár",
+		"nickname": "Leasainm",
+		"preferred_username": "Ainm Úsáideora Preferred",
+		"profile": "URL Próifíle",
+		"picture": "URL Grianghraf",
+		"website": "URL Suíomh Gréasáin",
+		"email": "Seoladh Ríomhphoist",
+		"email_verified": "Seoladh Ríomhphoist (Deimhnithe)",
+		"gender": "Gnéas",
+		"birthdate": "Dáta Breithe",
+		"zoneinfo": "Cónaí",
+		"locale": "Teanga / Lán",
+		"phone_number": "Uimhir Telefóin",
+		"phone_number_verified": "Uimhir Telefóin (Deimhnithe)",
+		"address": "Seoladh Poist",
+		"updated_at": "Am Nuashonraithe Próifíle",
+		"groups": "Comhaltacht Grúpa"
+	}
+}

@@ -1,0 +1,37 @@
+{
+	"Claim": "Mag-claim {{name}}",
+	"Scope": "Saklaw {{name}}",
+	"scopes": {
+		"openid": "Gamitin ang OpenID upang beripikahin ang iyong pagkakakilanlan",
+		"offline_access": "Awtomatikong i-refresh ang mga pahintulot na ito nang hindi kinakailangang makipag-ugnayan ang gumagamit",
+		"profile": "Access ang iyong impormasyon sa profile",
+		"groups": "Kumuha ng access sa iyong mga membership sa grupo",
+		"email": "Kumuha ng access sa iyong mga email address",
+		"phone": "Kumuha ng access sa iyong numero ng telepono",
+		"address": "Kumuha ng access sa iyong address",
+		"authelia.bearer.authz": "Kumuha ng access sa mga pinagtutungguhang mapagkukunan na nakalogin bilang ikaw"
+	},
+	"claims": {
+		"sub": "Natatanging Tagatukoy",
+		"name": "Pangalan ng Ipinapakita",
+		"given_name": "Ibinigay na Pangalan",
+		"family_name": "Apelyido",
+		"middle_name": "Gitnang Pangalan",
+		"nickname": "Tawag",
+		"preferred_username": "Paboritong Pangalan ng Gumagamit",
+		"profile": "URL ng Profile",
+		"picture": "URL ng Larawan",
+		"website": "URL ng Website",
+		"email": "E-mail Address",
+		"email_verified": "E-mail Address (Napatunayan)",
+		"gender": "Kasarian",
+		"birthdate": "Petsa ng Kapanganakan",
+		"zoneinfo": "Timezone",
+		"locale": "Wika / Wika",
+		"phone_number": "Numero ng Telepono",
+		"phone_number_verified": "Numero ng Telepono (Napatunayan)",
+		"address": "Tirahan ng Postal",
+		"updated_at": "Oras ng Pag-update ng Profile",
+		"groups": "Membership ng Grupo"
+	}
+}
