@@ -270,6 +270,8 @@ it then you're encouraged to create a [feature request](https://www.authelia.com
 A list of [RFC8176] Authentication Method Reference Values can be found in the
 [reference guide](../../reference/guides/authentication-method-references.md).
 
+[RFC8176]: https://datatracker.ietf.org/doc/html/rfc8176
+
 ## Introspection Signing Algorithm
 
 The following table describes the response from the [Introspection] endpoint depending on the
