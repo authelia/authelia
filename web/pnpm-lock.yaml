@@ -131,7 +131,7 @@ importers:
         version: 4.3.4(vite@6.1.1(@types/node@22.13.5)(jiti@2.4.1))
       '@vitest/coverage-istanbul':
         specifier: 3.0.7
-        version: 3.0.7(vitest@3.0.7(@types/node@22.13.5)(happy-dom@17.1.4)(jiti@2.4.1))
+        version: 3.0.7(vitest@3.0.7(@types/node@22.13.5)(happy-dom@17.1.8)(jiti@2.4.1))
       esbuild:
         specifier: 0.25.0
         version: 0.25.0
@@ -166,8 +166,8 @@ importers:
         specifier: 5.1.0
         version: 5.1.0(eslint@8.57.1)
       happy-dom:
-        specifier: 17.1.4
-        version: 17.1.4
+        specifier: 17.1.8
+        version: 17.1.8
       husky:
         specifier: 9.1.7
         version: 9.1.7
@@ -197,7 +197,7 @@ importers:
         version: 5.1.4(typescript@5.7.3)(vite@6.1.1(@types/node@22.13.5)(jiti@2.4.1))
       vitest:
         specifier: 3.0.7
-        version: 3.0.7(@types/node@22.13.5)(happy-dom@17.1.4)(jiti@2.4.1)
+        version: 3.0.7(@types/node@22.13.5)(happy-dom@17.1.8)(jiti@2.4.1)
       vitest-preview:
         specifier: 0.0.1
         version: 0.0.1
@@ -3265,8 +3265,8 @@ packages:
   graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
 
-  happy-dom@17.1.4:
-    resolution: {integrity: sha512-cMxE0HP45kLIgWdI0PFfnitNb95Cv8kG8moqI7CK6kcEcfV7xoYVVvSmJ7EuGfDatSKWtjhG/czVooqEV0L4rA==}
+  happy-dom@17.1.8:
+    resolution: {integrity: sha512-Yxbq/FG79z1rhAf/iB6YM8wO2JB/JDQBy99RiLSs+2siEAi5J05x9eW1nnASHZJbpldjJE2KuFLsLZ+AzX/IxA==}
     engines: {node: '>=18.0.0'}
 
   has-bigints@1.0.2:
@@ -6990,7 +6990,7 @@ snapshots:
     dependencies:
       open: 8.4.2
 
-  '@vitest/coverage-istanbul@3.0.7(vitest@3.0.7(@types/node@22.13.5)(happy-dom@17.1.4)(jiti@2.4.1))':
+  '@vitest/coverage-istanbul@3.0.7(vitest@3.0.7(@types/node@22.13.5)(happy-dom@17.1.8)(jiti@2.4.1))':
     dependencies:
       '@istanbuljs/schema': 0.1.3
       debug: 4.4.0
@@ -7002,7 +7002,7 @@ snapshots:
       magicast: 0.3.5
       test-exclude: 7.0.1
       tinyrainbow: 2.0.0
-      vitest: 3.0.7(@types/node@22.13.5)(happy-dom@17.1.4)(jiti@2.4.1)
+      vitest: 3.0.7(@types/node@22.13.5)(happy-dom@17.1.8)(jiti@2.4.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -8519,7 +8519,7 @@ snapshots:
 
   graphemer@1.4.0: {}
 
-  happy-dom@17.1.4:
+  happy-dom@17.1.8:
     dependencies:
       webidl-conversions: 7.0.0
       whatwg-mimetype: 3.0.0
@@ -10111,7 +10111,7 @@ snapshots:
       - supports-color
       - terser
 
-  vitest@3.0.7(@types/node@22.13.5)(happy-dom@17.1.4)(jiti@2.4.1):
+  vitest@3.0.7(@types/node@22.13.5)(happy-dom@17.1.8)(jiti@2.4.1):
     dependencies:
       '@vitest/expect': 3.0.7
       '@vitest/mocker': 3.0.7(vite@6.1.1(@types/node@22.13.5)(jiti@2.4.1))
@@ -10135,7 +10135,7 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 22.13.5
-      happy-dom: 17.1.4
+      happy-dom: 17.1.8
     transitivePeerDependencies:
       - jiti
       - less
