@@ -2,7 +2,7 @@
 title: "Server Endpoint Rate Limits"
 description: "Configuring the Server Authz Endpoint Settings."
 summary: "Authelia supports several authorization endpoints on the internal web server. This section describes how to configure and tune them."
-date: 2025-01-04T21:09:30+11:00
+date: 2025-02-26T22:06:24+11:00
 draft: false
 images: []
 menu:
