@@ -39,7 +39,7 @@
     "@mui/material": "6.4.5",
     "@mui/styles": "6.4.5",
     "@simplewebauthn/browser": "13.1.0",
-    "axios": "1.7.9",
+    "axios": "1.8.1",
     "broadcast-channel": "7.0.0",
     "classnames": "2.5.1",
     "i18next": "24.2.2",
