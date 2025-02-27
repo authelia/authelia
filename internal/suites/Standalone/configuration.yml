@@ -7,6 +7,28 @@ server:
   tls:
     certificate: '/pki/public.backend.crt'
     key: '/pki/private.backend.pem'
+  endpoints:
+    rate_limits:
+      reset_password_start:
+        buckets:
+          - period: '2 minutes'
+            requests: 20
+      reset_password_finish:
+        buckets:
+          - period: '2 minutes'
+            requests: 20
+      session_elevation_start:
+        buckets:
+          - period: '20 seconds'
+            requests: 20
+          - period: '30 seconds'
+            requests: 30
+      session_elevation_finish:
+        buckets:
+          - period: '20 seconds'
+            requests: 20
+          - period: '30 seconds'
+            requests: 30
 
 telemetry:
   metrics:

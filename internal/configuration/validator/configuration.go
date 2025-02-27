@@ -45,6 +45,8 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 
 	ValidateWebAuthn(config, validator)
 
+	ValidateIdentityValidation(config, validator)
+
 	ValidateAuthenticationBackend(&config.AuthenticationBackend, validator)
 
 	ValidateDefinitions(config, validator)
@@ -66,8 +68,6 @@ func ValidateConfiguration(config *schema.Configuration, validator *schema.Struc
 	ValidateNotifier(&config.Notifier, validator)
 
 	ValidateIdentityProviders(ctx, config, validator)
-
-	ValidateIdentityValidation(config, validator)
 
 	ValidateNTP(config, validator)
 

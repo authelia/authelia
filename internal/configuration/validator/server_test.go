@@ -26,6 +26,9 @@ func TestShouldSetDefaultServerValues(t *testing.T) {
 	assert.Equal(t, schema.DefaultServerConfiguration.Address, config.Server.Address)
 	assert.Equal(t, schema.DefaultServerConfiguration.Buffers.Read, config.Server.Buffers.Read)
 	assert.Equal(t, schema.DefaultServerConfiguration.Buffers.Write, config.Server.Buffers.Write)
+	assert.Equal(t, schema.DefaultServerConfiguration.Timeouts.Read, config.Server.Timeouts.Read)
+	assert.Equal(t, schema.DefaultServerConfiguration.Timeouts.Write, config.Server.Timeouts.Write)
+	assert.Equal(t, schema.DefaultServerConfiguration.Timeouts.Idle, config.Server.Timeouts.Idle)
 	assert.Equal(t, schema.DefaultServerConfiguration.TLS.Key, config.Server.TLS.Key)
 	assert.Equal(t, schema.DefaultServerConfiguration.TLS.Certificate, config.Server.TLS.Certificate)
 	assert.Equal(t, schema.DefaultServerConfiguration.Endpoints.EnableExpvars, config.Server.Endpoints.EnableExpvars)
@@ -33,17 +36,138 @@ func TestShouldSetDefaultServerValues(t *testing.T) {
 	assert.Equal(t, schema.DefaultServerConfiguration.Endpoints.Authz, config.Server.Endpoints.Authz)
 }
 
-func TestShouldSetDefaultConfig(t *testing.T) {
+func TestShouldSetDefaultConfigRateLimits(t *testing.T) {
+	testCases := []struct {
+		name     string
+		config   *schema.Configuration
+		expected schema.ServerEndpointRateLimits
+	}{
+		{
+			name: "ShouldSetDefaults",
+			config: &schema.Configuration{
+				IdentityValidation: schema.IdentityValidation{
+					ResetPassword: schema.IdentityValidationResetPassword{
+						JWTSecret: "dfgdfgdzfgdgdfgdfg",
+					},
+				},
+			},
+			expected: schema.ServerEndpointRateLimits{
+				ResetPasswordStart: schema.ServerEndpointRateLimit{
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: 10 * time.Minute, Requests: 5},
+						{Period: 15 * time.Minute, Requests: 10},
+						{Period: 30 * time.Minute, Requests: 15},
+					},
+				},
+				ResetPasswordFinish: schema.ServerEndpointRateLimit{
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: 1 * time.Minute, Requests: 10},
+						{Period: 2 * time.Minute, Requests: 15},
+					},
+				},
+				SecondFactorTOTP: schema.ServerEndpointRateLimit{
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: 1 * time.Minute, Requests: 30},
+						{Period: 2 * time.Minute, Requests: 40},
+						{Period: 10 * time.Minute, Requests: 50},
+					},
+				},
+				SecondFactorDuo: schema.ServerEndpointRateLimit{
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: 1 * time.Minute, Requests: 10},
+						{Period: 2 * time.Minute, Requests: 15},
+					},
+				},
+				SessionElevationStart: schema.ServerEndpointRateLimit{
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: schema.DefaultIdentityValidation.ElevatedSession.CodeLifespan * 1, Requests: 3},
+						{Period: schema.DefaultIdentityValidation.ElevatedSession.CodeLifespan * 2, Requests: 5},
+						{Period: schema.DefaultIdentityValidation.ElevatedSession.CodeLifespan * 12, Requests: 15},
+					},
+				},
+				SessionElevationFinish: schema.ServerEndpointRateLimit{
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: schema.DefaultIdentityValidation.ElevatedSession.ElevationLifespan * 1, Requests: 3},
+						{Period: schema.DefaultIdentityValidation.ElevatedSession.ElevationLifespan * 2, Requests: 5},
+						{Period: schema.DefaultIdentityValidation.ElevatedSession.ElevationLifespan * 6, Requests: 15},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+
+			ValidateIdentityValidation(tc.config, validator)
+			ValidateServer(tc.config, validator)
+
+			assert.Len(t, validator.Errors(), 0)
+			assert.Len(t, validator.Warnings(), 0)
+
+			assert.Equal(t, tc.expected.ResetPasswordStart, tc.config.Server.Endpoints.RateLimits.ResetPasswordStart)
+			assert.Equal(t, tc.expected.ResetPasswordFinish, tc.config.Server.Endpoints.RateLimits.ResetPasswordFinish)
+			assert.Equal(t, tc.expected.SecondFactorTOTP, tc.config.Server.Endpoints.RateLimits.SecondFactorTOTP)
+			assert.Equal(t, tc.expected.SecondFactorDuo, tc.config.Server.Endpoints.RateLimits.SecondFactorDuo)
+			assert.Equal(t, tc.expected.SessionElevationStart, tc.config.Server.Endpoints.RateLimits.SessionElevationStart)
+			assert.Equal(t, tc.expected.SessionElevationFinish, tc.config.Server.Endpoints.RateLimits.SessionElevationFinish)
+		})
+	}
+}
+
+func TestValidateRateLimitErrors(t *testing.T) {
+	have := &schema.Configuration{
+		Server: schema.Server{
+			Endpoints: schema.ServerEndpoints{
+				RateLimits: schema.ServerEndpointRateLimits{
+					ResetPasswordStart: schema.ServerEndpointRateLimit{
+						Buckets: []schema.ServerEndpointRateLimitBucket{
+							{Period: time.Second, Requests: 5},
+						},
+					},
+					ResetPasswordFinish: schema.ServerEndpointRateLimit{
+						Buckets: []schema.ServerEndpointRateLimitBucket{
+							{Period: time.Second, Requests: 5},
+						},
+					},
+					SecondFactorTOTP: schema.ServerEndpointRateLimit{
+						Buckets: []schema.ServerEndpointRateLimitBucket{
+							{Period: time.Second, Requests: 5},
+						},
+					},
+					SecondFactorDuo: schema.ServerEndpointRateLimit{
+						Buckets: []schema.ServerEndpointRateLimitBucket{
+							{Period: time.Second, Requests: 5},
+						},
+					},
+					SessionElevationStart: schema.ServerEndpointRateLimit{
+						Buckets: []schema.ServerEndpointRateLimitBucket{
+							{Period: time.Second, Requests: 5},
+						},
+					},
+					SessionElevationFinish: schema.ServerEndpointRateLimit{
+						Buckets: []schema.ServerEndpointRateLimitBucket{
+							{Period: time.Duration(0), Requests: 0},
+						},
+					},
+				},
+			},
+		},
+	}
+
 	validator := schema.NewStructValidator()
-	config := &schema.Configuration{}
 
-	ValidateServer(config, validator)
+	ValidateServer(have, validator)
 
-	assert.Len(t, validator.Errors(), 0)
-	assert.Len(t, validator.Warnings(), 0)
-
-	assert.Equal(t, schema.DefaultServerConfiguration.Buffers.Read, config.Server.Buffers.Read)
-	assert.Equal(t, schema.DefaultServerConfiguration.Buffers.Write, config.Server.Buffers.Write)
+	require.Len(t, validator.Errors(), 7)
+	assert.EqualError(t, validator.Errors()[0], "server: endpoints: rate_limits: reset_password_start: bucket 1: option 'period' has a value of '1s' but it must be greater than 10 seconds")
+	assert.EqualError(t, validator.Errors()[1], "server: endpoints: rate_limits: reset_password_finish: bucket 1: option 'period' has a value of '1s' but it must be greater than 10 seconds")
+	assert.EqualError(t, validator.Errors()[2], "server: endpoints: rate_limits: second_factor_totp: bucket 1: option 'period' has a value of '1s' but it must be greater than 10 seconds")
+	assert.EqualError(t, validator.Errors()[3], "server: endpoints: rate_limits: second_factor_duo: bucket 1: option 'period' has a value of '1s' but it must be greater than 10 seconds")
+	assert.EqualError(t, validator.Errors()[4], "server: endpoints: rate_limits: session_elevation_start: bucket 1: option 'period' has a value of '1s' but it must be greater than 10 seconds")
+	assert.EqualError(t, validator.Errors()[5], "server: endpoints: rate_limits: session_elevation_finish: bucket 1: option 'period' must have a value")
+	assert.EqualError(t, validator.Errors()[6], "server: endpoints: rate_limits: session_elevation_finish: bucket 1: option 'requests' has a value of '0' but it must be greater than 1")
 }
 
 func TestValidateSeverAddress(t *testing.T) {
@@ -77,24 +201,24 @@ func TestValidateServerShouldCorrectlyIdentifyValidAddressSchemes(t *testing.T) 
 		{"http", "server: option 'address' with value 'http://:9091' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'http'"},
 	}
 
-	have := &schema.Configuration{
-		Server: schema.Server{
-			Buffers: schema.ServerBuffers{
-				Read:  -1,
-				Write: -1,
-			},
-			Timeouts: schema.ServerTimeouts{
-				Read:  time.Second * -1,
-				Write: time.Second * -1,
-				Idle:  time.Second * -1,
-			},
-		},
-	}
-
 	validator := schema.NewStructValidator()
 
 	for _, tc := range testCases {
 		t.Run(tc.have, func(t *testing.T) {
+			have := &schema.Configuration{
+				Server: schema.Server{
+					Buffers: schema.ServerBuffers{
+						Read:  -1,
+						Write: -1,
+					},
+					Timeouts: schema.ServerTimeouts{
+						Read:  time.Second * -1,
+						Write: time.Second * -1,
+						Idle:  time.Second * -1,
+					},
+				},
+			}
+
 			validator.Clear()
 
 			switch tc.have {

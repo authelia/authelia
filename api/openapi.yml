@@ -588,6 +588,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.OK'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                format: http-date
+              description: The date time that the request can be retried.
       security:
         - authelia_auth: []
   /api/reset-password/identity/finish:
@@ -614,6 +626,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.OK'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                format: http-date
+              description: The date time that the request can be retried.
       security:
         - authelia_auth: []
   /api/reset-password:
@@ -639,6 +663,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.OK'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                format: http-date
+              description: The date time that the request can be retried.
       security:
         - authelia_auth: []
     delete:
@@ -661,6 +697,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.API'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                format: http-date
+              description: The date time that the request can be retried.
       security:
         - authelia_auth: []
   {{- end }}
@@ -984,6 +1032,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.KO'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                format: http-date
+              description: The date time that the request can be retried.
       security:
         - authelia_auth: []
     delete:
@@ -1254,6 +1314,18 @@ paths:
                 $ref: '#/components/schemas/handlers.redirectResponse'
         "401":
           description: Unauthorized
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                format: http-date
+              description: The date time that the request can be retried.
       security:
         - authelia_auth: []
   /api/secondfactor/duo_devices:
@@ -1713,6 +1785,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                format: http-date
+              description: The date time that the request can be retried.
         "500":
           description: Internal Server Error
           content:

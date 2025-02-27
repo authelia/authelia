@@ -6,6 +6,14 @@ server:
   tls:
     certificate: '/pki/public.backend.crt'
     key: '/pki/private.backend.pem'
+  endpoints:
+    rate_limits:
+      second_factor_duo:
+        buckets:
+          - period: '20 seconds'
+            requests: 20
+          - period: '30 seconds'
+            requests: 30
 
 log:
   level: 'trace'

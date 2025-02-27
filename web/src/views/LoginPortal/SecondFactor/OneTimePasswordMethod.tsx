@@ -11,14 +11,7 @@ import { completeTOTPSignIn } from "@services/OneTimePassword";
 import { AuthenticationLevel } from "@services/State";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 import MethodContainer, { State as MethodContainerState } from "@views/LoginPortal/SecondFactor/MethodContainer";
-import OTPDial from "@views/LoginPortal/SecondFactor/OTPDial";
-
-export enum State {
-    Idle = 1,
-    InProgress = 2,
-    Success = 3,
-    Failure = 4,
-}
+import OTPDial, { State } from "@views/LoginPortal/SecondFactor/OTPDial";
 
 export interface Props {
     id: string;
@@ -44,6 +37,8 @@ const OneTimePasswordMethod = function (props: Props) {
     const onSignInSuccessCallback = useRef(onSignInSuccess).current;
     const [resp, fetch, , err] = useUserInfoTOTPConfiguration();
 
+    const timeoutRateLimit = useRef<NodeJS.Timeout>();
+
     useEffect(() => {
         if (err) {
             console.error(err);
@@ -57,6 +52,28 @@ const OneTimePasswordMethod = function (props: Props) {
             fetch();
         }
     }, [fetch, props.authenticationLevel, props.registered]);
+
+    useEffect(() => {
+        return clearTimeout(timeoutRateLimit.current);
+    }, []);
+
+    const handleRateLimited = useCallback(
+        (retryAfter: number) => {
+            if (timeoutRateLimit.current) {
+                clearTimeout(timeoutRateLimit.current);
+            }
+
+            setState(State.RateLimited);
+
+            onSignInErrorCallback(new Error(translate("You have made too many requests")));
+
+            timeoutRateLimit.current = setTimeout(() => {
+                setState(State.Idle);
+                timeoutRateLimit.current = undefined;
+            }, retryAfter * 1000);
+        },
+        [onSignInErrorCallback, translate],
+    );
 
     const signInFunc = useCallback(async () => {
         if (!props.registered || props.authenticationLevel === AuthenticationLevel.TwoFactor) {
@@ -72,8 +89,16 @@ const OneTimePasswordMethod = function (props: Props) {
         try {
             setState(State.InProgress);
             const res = await completeTOTPSignIn(passcodeStr, redirectionURL, workflow, workflowID);
-            setState(State.Success);
-            onSignInSuccessCallback(res ? res.redirect : undefined);
+
+            if (!res) {
+                onSignInErrorCallback(new Error(translate("The One-Time Password might be wrong")));
+                setState(State.Failure);
+            } else if (!res.limited) {
+                setState(State.Success);
+                onSignInSuccessCallback(res && res.data ? res.data.redirect : undefined);
+            } else {
+                handleRateLimited(res.retryAfter);
+            }
         } catch (err) {
             console.error(err);
             onSignInErrorCallback(new Error(translate("The One-Time Password might be wrong")));
@@ -81,16 +106,17 @@ const OneTimePasswordMethod = function (props: Props) {
         }
         setPasscode("");
     }, [
-        onSignInErrorCallback,
-        onSignInSuccessCallback,
+        props.registered,
+        props.authenticationLevel,
         passcode,
+        resp?.digits,
         redirectionURL,
         workflow,
         workflowID,
-        resp,
-        props.authenticationLevel,
-        props.registered,
+        onSignInErrorCallback,
         translate,
+        onSignInSuccessCallback,
+        handleRateLimited,
     ]);
 
     // Set successful state if user is already authenticated.
