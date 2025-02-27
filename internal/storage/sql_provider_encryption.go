@@ -39,6 +39,7 @@ func (p *SQLProvider) SchemaEncryptionChangeKey(ctx context.Context, rawKey stri
 		schemaEncryptionChangeKeyOneTimeCode,
 		schemaEncryptionChangeKeyTOTP,
 		schemaEncryptionChangeKeyWebAuthn,
+		schemaEncryptionChangeKeyCachedData,
 	}
 
 	for i := 0; true; i++ {
@@ -90,6 +91,7 @@ func (p *SQLProvider) SchemaEncryptionCheckKey(ctx context.Context, verbose bool
 			schemaEncryptionCheckKeyOneTimeCode,
 			schemaEncryptionCheckKeyTOTP,
 			schemaEncryptionCheckKeyWebAuthn,
+			schemaEncryptionCheckKeyCachedData,
 		}
 
 		for i := 0; true; i++ {
@@ -226,8 +228,52 @@ func schemaEncryptionChangeKeyWebAuthn(ctx context.Context, provider *SQLProvide
 			return fmt.Errorf("error encrypting WebAuthn credential public key with id '%d': %w", d.ID, err)
 		}
 
-		if _, err = tx.ExecContext(ctx, query, d.PublicKey, d.ID); err != nil {
-			return fmt.Errorf("error updating WebAuthn credential public key with id '%d': %w", d.ID, err)
+		if d.Attestation != nil {
+			if d.Attestation, err = provider.decrypt(d.Attestation); err != nil {
+				return fmt.Errorf("error decrypting WebAuthn credential attestation with id '%d': %w", d.ID, err)
+			}
+
+			if d.Attestation, err = utils.Encrypt(d.Attestation, &key); err != nil {
+				return fmt.Errorf("error encrypting WebAuthn credential attestation with id '%d': %w", d.ID, err)
+			}
+		}
+
+		if _, err = tx.ExecContext(ctx, query, d.PublicKey, d.Attestation, d.ID); err != nil {
+			return fmt.Errorf("error updating WebAuthn credential encrypted columns with id '%d': %w", d.ID, err)
+		}
+	}
+
+	return nil
+}
+
+func schemaEncryptionChangeKeyCachedData(ctx context.Context, provider *SQLProvider, tx *sqlx.Tx, key [32]byte) (err error) {
+	var caches []encCachedData
+
+	if err = tx.SelectContext(ctx, &caches, fmt.Sprintf(queryFmtSelectCachedDataEncryptedData, tableCachedData)); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
+		}
+
+		return fmt.Errorf("error selecting cached data: %w", err)
+	}
+
+	query := provider.db.Rebind(fmt.Sprintf(queryFmtUpdateCachedDataEncryptedData, tableCachedData))
+
+	for _, d := range caches {
+		if len(d.Value) == 0 {
+			continue
+		}
+
+		if d.Value, err = provider.decrypt(d.Value); err != nil {
+			return fmt.Errorf("error decrypting cached data value id '%d': %w", d.ID, err)
+		}
+
+		if d.Value, err = utils.Encrypt(d.Value, &key); err != nil {
+			return fmt.Errorf("error encrypting cached data value id '%d': %w", d.ID, err)
+		}
+
+		if _, err = tx.ExecContext(ctx, query, d.Value, d.ID); err != nil {
+			return fmt.Errorf("error updating cached data encrypted columns with id '%d': %w", d.ID, err)
 		}
 	}
 
@@ -397,12 +443,47 @@ func schemaEncryptionCheckKeyWebAuthn(ctx context.Context, provider *SQLProvider
 
 		if _, err = provider.decrypt(credential.PublicKey); err != nil {
 			result.Invalid++
+		} else if credential.Attestation != nil {
+			if _, err = provider.decrypt(credential.Attestation); err != nil {
+				result.Invalid++
+			}
 		}
 	}
 
 	_ = rows.Close()
 
 	return tableWebAuthnCredentials, result
+}
+
+func schemaEncryptionCheckKeyCachedData(ctx context.Context, provider *SQLProvider) (table string, result EncryptionValidationTableResult) {
+	var (
+		rows *sqlx.Rows
+		err  error
+	)
+
+	if rows, err = provider.db.QueryxContext(ctx, fmt.Sprintf(queryFmtSelectCachedDataEncryptedData, tableCachedData)); err != nil {
+		return tableCachedData, EncryptionValidationTableResult{Error: fmt.Errorf("error selecting cached data: %w", err)}
+	}
+
+	var cache encCachedData
+
+	for rows.Next() {
+		result.Total++
+
+		if err = rows.StructScan(&cache); err != nil {
+			_ = rows.Close()
+
+			return tableCachedData, EncryptionValidationTableResult{Error: fmt.Errorf("error scanning cached data to struct: %w", err)}
+		}
+
+		if _, err = provider.decrypt(cache.Value); err != nil {
+			result.Invalid++
+		}
+	}
+
+	_ = rows.Close()
+
+	return tableCachedData, result
 }
 
 func schemaEncryptionCheckKeyOpenIDConnect(typeOAuth2Session OAuth2SessionType) EncryptionCheckKeyFunc {

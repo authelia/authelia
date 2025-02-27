@@ -2,7 +2,7 @@
 title: "PeerTube"
 description: "Integrating PeerTube with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2024-01-12T15:26:39+01:00
+date: 2025-01-24T23:57:05+00:00
 draft: false
 images: []
 weight: 620

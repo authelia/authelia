@@ -78,7 +78,7 @@ func DuoPOST(duoAPI duo.API) middlewares.RequestHandler {
 		}
 
 		if authResponse.Result != allow {
-			_ = markAuthenticationAttempt(ctx, false, nil, userSession.Username, regulation.AuthTypeDuo,
+			doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, userSession.Username, nil), regulation.AuthTypeDuo,
 				fmt.Errorf("duo auth result: %s, status: %s, message: %s", authResponse.Result, authResponse.Status,
 					authResponse.StatusMessage))
 
@@ -87,10 +87,7 @@ func DuoPOST(duoAPI duo.API) middlewares.RequestHandler {
 			return
 		}
 
-		if err = markAuthenticationAttempt(ctx, true, nil, userSession.Username, regulation.AuthTypeDuo, nil); err != nil {
-			respondUnauthorized(ctx, messageMFAValidationFailed)
-			return
-		}
+		doMarkAuthenticationAttempt(ctx, true, regulation.NewBan(regulation.BanTypeNone, userSession.Username, nil), regulation.AuthTypeDuo, nil)
 
 		HandleAllow(ctx, &userSession, bodyJSON)
 	}
@@ -274,7 +271,7 @@ func HandleAllow(ctx *middlewares.AutheliaCtx, userSession *session.UserSession,
 	}
 
 	if bodyJSON.Workflow == workflowOpenIDConnect {
-		handleOIDCWorkflowResponse(ctx, userSession, bodyJSON.TargetURL, bodyJSON.WorkflowID)
+		handleOIDCWorkflowResponse(ctx, userSession, bodyJSON.WorkflowID)
 	} else {
 		Handle2FAResponse(ctx, bodyJSON.TargetURL)
 	}

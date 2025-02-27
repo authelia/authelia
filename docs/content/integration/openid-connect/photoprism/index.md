@@ -59,7 +59,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://photoprism.{{< sitevar name="domain" nojs="example.com" >}}/api/v1/oidc/redirect
+          - 'https://photoprism.{{< sitevar name="domain" nojs="example.com" >}}/api/v1/oidc/redirect'
         scopes:
           - 'openid'
           - 'profile'

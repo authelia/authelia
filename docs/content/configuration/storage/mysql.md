@@ -109,7 +109,7 @@ The username paired with the password used to connect to the database.
 
 ### password
 
-{{< confkey type="string" required="yes" secret="yes" >}}
+{{< confkey type="string" required="situational" secret="yes" >}}
 
 The password paired with the [username](#username) used to connect to the database.
 

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"net/url"
 	"path"
-	"time"
 
+	"authelia.com/provider/oauth2"
 	"github.com/google/uuid"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
@@ -33,6 +33,7 @@ func OpenIDConnectConsentGET(ctx *middlewares.AutheliaCtx) {
 
 	var (
 		consent *model.OAuth2ConsentSession
+		form    url.Values
 		client  oidc.Client
 		handled bool
 	)
@@ -41,12 +42,21 @@ func OpenIDConnectConsentGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if err = ctx.SetJSONBody(client.GetConsentResponseBody(consent)); err != nil {
+	if form, err = handleGetFormFromConsent(ctx, consent); err != nil {
+		ctx.Logger.WithError(err).Errorf("Unable to get form from consent session with id '%s': %+v", consent.ChallengeID, err)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	if err = ctx.SetJSONBody(client.GetConsentResponseBody(consent, form)); err != nil {
 		ctx.Error(fmt.Errorf("unable to set JSON body: %w", err), "Operation failed")
 	}
 }
 
 // OpenIDConnectConsentPOST handles consent responses for OpenID Connect.
+//
+//nolint:gocyclo
 func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 	var (
 		consentID uuid.UUID
@@ -87,7 +97,7 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel, authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
+	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA), authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
 		ctx.Logger.Errorf("User '%s' can't consent to authorization request for client with id '%s' as they are not sufficiently authenticated",
 			userSession.Username, consent.ClientID)
 		ctx.SetJSONError(messageOperationFailed)
@@ -95,18 +105,44 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	var form url.Values
+
+	if form, err = consent.GetForm(); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred getting request form from consent session for user '%s' and client with id '%s'", userSession.Username, consent.ClientID)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
 	if bodyJSON.Consent {
-		consent.Grant()
+		consent.GrantWithClaims(bodyJSON.Claims)
 
 		if bodyJSON.PreConfigure {
 			if client.GetConsentPolicy().Mode == oidc.ClientConsentModePreConfigured {
 				config := model.OAuth2ConsentPreConfig{
-					ClientID:  consent.ClientID,
-					Subject:   consent.Subject.UUID,
-					CreatedAt: time.Now(),
-					ExpiresAt: sql.NullTime{Time: time.Now().Add(client.GetConsentPolicy().Duration), Valid: true},
-					Scopes:    consent.GrantedScopes,
-					Audience:  consent.GrantedAudience,
+					ClientID:      consent.ClientID,
+					Subject:       consent.Subject.UUID,
+					CreatedAt:     ctx.Clock.Now(),
+					ExpiresAt:     sql.NullTime{Time: ctx.Clock.Now().Add(client.GetConsentPolicy().Duration), Valid: true},
+					Scopes:        consent.GrantedScopes,
+					Audience:      consent.GrantedAudience,
+					GrantedClaims: bodyJSON.Claims,
+				}
+
+				var (
+					requests   *oidc.ClaimsRequests
+					actualForm url.Values
+				)
+
+				if actualForm, err = handleGetFormFromConsentForm(ctx, form); err != nil {
+					ctx.Logger.WithError(err).Debug("Error occurred resolving the actual form from the consent form")
+				} else if requests, err = oidc.NewClaimRequests(actualForm); err != nil {
+					ctx.Logger.WithError(err).Debug("Error occurred parsing claims parameter from request form for claims signature")
+				} else if config.RequestedClaims.String, config.SignatureClaims.String, err = requests.Serialized(); err != nil {
+					ctx.Logger.WithError(err).Debug("Error occurred calculating claims signature")
+				} else {
+					config.RequestedClaims.Valid = true
+					config.SignatureClaims.Valid = true
 				}
 
 				var id int64
@@ -127,7 +163,7 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 		}
 	}
 
-	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, *consent, bodyJSON.Consent); err != nil {
+	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, bodyJSON.Consent); err != nil {
 		ctx.Logger.Errorf("Failed to save the consent session response to the database: %+v", err)
 		ctx.SetJSONError(messageOperationFailed)
 
@@ -215,7 +251,7 @@ func handleOpenIDConnectConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx
 		}
 	}
 
-	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel, authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
+	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA), authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
 		ctx.Logger.Errorf("Unable to perform OpenID Connect Consent for user '%s' and client id '%s': the user is not sufficiently authenticated", userSession.Username, consent.ClientID)
 		ctx.ReplyForbidden()
 
@@ -223,4 +259,36 @@ func handleOpenIDConnectConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx
 	}
 
 	return userSession, consent, client, false
+}
+
+func handleGetFormFromConsent(ctx *middlewares.AutheliaCtx, consent *model.OAuth2ConsentSession) (form url.Values, err error) {
+	if form, err = consent.GetForm(); err != nil {
+		return nil, err
+	}
+
+	return handleGetFormFromConsentForm(ctx, form)
+}
+
+func handleGetFormFromConsentForm(ctx *middlewares.AutheliaCtx, original url.Values) (form url.Values, err error) {
+	var requester oauth2.AuthorizeRequester
+
+	if requester, err = handleGetPushedAuthorizationRequesterFromForm(ctx, original); err != nil {
+		return nil, err
+	} else if requester != nil {
+		return requester.GetRequestForm(), nil
+	}
+
+	return form, err
+}
+
+func handleGetPushedAuthorizationRequesterFromForm(ctx *middlewares.AutheliaCtx, form url.Values) (requester oauth2.AuthorizeRequester, err error) {
+	if oidc.IsPushedAuthorizedRequestForm(form, ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)) {
+		if requester, err = ctx.Providers.OpenIDConnect.GetPARSession(ctx, form.Get(oidc.FormParameterRequestURI)); err != nil {
+			return nil, err
+		}
+
+		return requester, nil
+	}
+
+	return nil, nil
 }

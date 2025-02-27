@@ -1,0 +1,37 @@
+{
+	"Claim": "Claim {{name}}",
+	"Scope": "Oblast působnosti {{name}}",
+	"scopes": {
+		"openid": "Použijte OpenID k ověření Vaší identity",
+		"offline_access": "Automaticky obnovit tato oprávnění bez interakce uživatele",
+		"profile": "Přístup k informacím o vašem profilu",
+		"groups": "Přístup k Vašemu členství ve skupině",
+		"email": "Přístup k vašim e-mailovým adresám",
+		"phone": "Přístup k vašemu telefonnímu číslu",
+		"address": "Přístup k vaší adrese",
+		"authelia.bearer.authz": "Přístup k chráněným surovinám přihlášeným jako vy"
+	},
+	"claims": {
+		"sub": "Unique Identifier",
+		"name": "Zobrazované jméno",
+		"given_name": "Jméno",
+		"family_name": "Příjmení",
+		"middle_name": "Střední jméno",
+		"nickname": "Přezdívka",
+		"preferred_username": "Preferované uživatelské jméno",
+		"profile": "URL profilu",
+		"picture": "URL obrázku",
+		"website": "URL webu",
+		"email": "E-mailová adresa",
+		"email_verified": "E-mailová adresa (ověřena)",
+		"gender": "Pohlaví",
+		"birthdate": "Datum narození",
+		"zoneinfo": "Timezone",
+		"locale": "Jazyk / jazyk",
+		"phone_number": "Telefon",
+		"phone_number_verified": "Telefonní číslo (ověřeno)",
+		"address": "PSČ",
+		"updated_at": "Čas aktualizace profilu",
+		"groups": "Členství ve skupině"
+	}
+}

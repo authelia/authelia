@@ -1,0 +1,37 @@
+{
+	"Claim": "Claim {{name}}",
+	"Scope": "Scope {{name}}",
+	"scopes": {
+		"openid": "Gebruik OpenID om je identiteit te verifiëren",
+		"offline_access": "Vernieuw deze machtigingen automatisch zonder gebruikersinteractie",
+		"profile": "Toegang tot je profielgegevens",
+		"groups": "Toegang tot groepslidmaatschappen",
+		"email": "Toegang tot je e-mailadressen",
+		"phone": "Toegang tot uw telefoonnummer",
+		"address": "Toegang tot uw adres",
+		"authelia.bearer.authz": "Toegang tot beschermde bronnen aangemeld als u"
+	},
+	"claims": {
+		"sub": "Unique Identifier",
+		"name": "Toon naam",
+		"given_name": "Gegeven naam",
+		"family_name": "Familie naam",
+		"middle_name": "Tweede naam",
+		"nickname": "Gebruikersnaam",
+		"preferred_username": "Voorkeur gebruikersnaam",
+		"profile": "Profiel URL",
+		"picture": "URL afbeelding",
+		"website": "Website URL",
+		"email": "Uw e-mailadres",
+		"email_verified": "E-mailadres (geverifieerd)",
+		"gender": "Geslacht",
+		"birthdate": "Geboortedatum",
+		"zoneinfo": "Timezone",
+		"locale": "Lokalisatie / Taal",
+		"phone_number": "Telefoon nummer",
+		"phone_number_verified": "Telefoonnummer (geverifieerd)",
+		"address": "Postadres adres",
+		"updated_at": "Profiel Update Tijd",
+		"groups": "Groep Lidmaatschap"
+	}
+}

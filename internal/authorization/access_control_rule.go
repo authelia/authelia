@@ -1,30 +1,26 @@
 package authorization
 
 import (
-	"net"
-
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewAccessControlRules converts a schema.AccessControl into an AccessControlRule slice.
 func NewAccessControlRules(config schema.AccessControl) (rules []*AccessControlRule) {
-	networksMap, networksCacheMap := parseSchemaNetworks(config.Networks)
-
 	for i, schemaRule := range config.Rules {
-		rules = append(rules, NewAccessControlRule(i+1, schemaRule, networksMap, networksCacheMap))
+		rules = append(rules, NewAccessControlRule(i+1, schemaRule))
 	}
 
 	return rules
 }
 
 // NewAccessControlRule parses a schema ACL and generates an internal ACL.
-func NewAccessControlRule(pos int, rule schema.AccessControlRule, networksMap map[string][]*net.IPNet, networksCacheMap map[string]*net.IPNet) *AccessControlRule {
+func NewAccessControlRule(pos int, rule schema.AccessControlRule) *AccessControlRule {
 	r := &AccessControlRule{
 		Position: pos,
 		Query:    NewAccessControlQuery(rule.Query),
 		Methods:  schemaMethodsToACL(rule.Methods),
-		Networks: schemaNetworksToACL(rule.Networks, networksMap, networksCacheMap),
+		Networks: AccessControlNetworks(rule.Networks),
 		Subjects: schemaSubjectsToACL(rule.Subjects),
 		Policy:   NewLevel(rule.Policy),
 	}
@@ -49,7 +45,7 @@ type AccessControlRule struct {
 	Resources []AccessControlResource
 	Query     []AccessControlQuery
 	Methods   []string
-	Networks  []*net.IPNet
+	Networks  AccessControlNetworks
 	Subjects  []AccessControlSubjects
 	Policy    Level
 }
@@ -146,19 +142,7 @@ func (acr *AccessControlRule) MatchesMethods(object Object) (match bool) {
 
 // MatchesNetworks returns true if the rule matches the networks.
 func (acr *AccessControlRule) MatchesNetworks(subject Subject) (match bool) {
-	// If there are no networks in this rule then the network condition is a match.
-	if len(acr.Networks) == 0 {
-		return true
-	}
-
-	// Iterate over the networks until we find a match (return true) or until we exit the loop (return false).
-	for _, network := range acr.Networks {
-		if network.Contains(subject.IP) {
-			return true
-		}
-	}
-
-	return false
+	return acr.Networks.IsMatch(subject)
 }
 
 // MatchesSubjects returns true if the rule matches the subjects.

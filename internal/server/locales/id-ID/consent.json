@@ -1,0 +1,37 @@
+{
+	"Claim": "Klaim {{name}}",
+	"Scope": "Ruang {{name}}",
+	"scopes": {
+		"openid": "Gunakan OpenID untuk memverifikasi identitas Anda",
+		"offline_access": "Segarkan izin ini secara otomatis tanpa interaksi pengguna",
+		"profile": "Akses informasi profil Anda",
+		"groups": "Akses ke keanggotaan grup Anda",
+		"email": "Akses ke alamat email Anda",
+		"phone": "Akses ke nomor telepon Anda",
+		"address": "Akses ke alamat Anda",
+		"authelia.bearer.authz": "Akses ke sumber daya yang dilindungi dengan masuk sebagai Anda"
+	},
+	"claims": {
+		"sub": "Pengenal Unik",
+		"name": "Nama Tampilkan",
+		"given_name": "Nama Depan",
+		"family_name": "Nama Belakang",
+		"middle_name": "Nama Tengah",
+		"nickname": "Nama Panggilan",
+		"preferred_username": "Nama Pengguna yang Disukai",
+		"profile": "URL Profil",
+		"picture": "URL Gambar",
+		"website": "URL Situs Web",
+		"email": "Alamat E-mail",
+		"email_verified": "Alamat E-mail (Terverifikasi)",
+		"gender": "Jenis Kelamin",
+		"birthdate": "Tanggal Lahir",
+		"zoneinfo": "Zona Waktu",
+		"locale": "Locale / Bahasa",
+		"phone_number": "Nomor Telepon",
+		"phone_number_verified": "Nomor Telepon (Terverifikasi)",
+		"address": "Alamat Pos",
+		"updated_at": "Waktu Pembaruan Profil",
+		"groups": "Keanggotaan Grup"
+	}
+}

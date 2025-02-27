@@ -430,6 +430,15 @@ func TestServerAuthzEndpointErrors(t *testing.T) {
 			},
 		},
 		{
+			"ShouldErrorOnInvalidSchemeOption",
+			map[string]schema.ServerEndpointsAuthz{
+				"example": {Implementation: "ForwardAuth", AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{{Name: "HeaderAuthorization", SchemeBasicCacheLifespan: time.Minute, Schemes: []string{"bearer"}}}},
+			},
+			[]string{
+				"server: endpoints: authz: example: authn_strategies: strategy #1: option 'scheme_basic_cache_lifespan' can't be configured unless the 'basic' scheme is configured but only the 'bearer' schemes are configured",
+			},
+		},
+		{
 			"ShouldErrorOnInvalidChars",
 			map[string]schema.ServerEndpointsAuthz{
 				"/abc":  {Implementation: "ForwardAuth"},

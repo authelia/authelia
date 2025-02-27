@@ -15,6 +15,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -25,7 +26,7 @@ type OpenIDConnectProvider struct {
 	*Store
 	*Config
 
-	KeyManager *KeyManager
+	Issuer *Issuer
 
 	discovery OpenIDConnectWellKnownConfiguration
 
@@ -76,29 +77,54 @@ type RegisteredClient struct {
 	ResponseTypes []string
 	ResponseModes []oauthelia2.ResponseModeType
 
-	Lifespans schema.IdentityProvidersOpenIDConnectLifespan
+	Lifespans      schema.IdentityProvidersOpenIDConnectLifespan
+	ClaimsStrategy ClaimsStrategy
 
-	AuthorizationSignedResponseAlg              string
-	AuthorizationSignedResponseKeyID            string
-	AuthorizationEncryptedResponseAlg           string
-	AuthorizationEncryptedResponseEncryptionAlg string
+	AuthorizationSignedResponseAlg      string
+	AuthorizationSignedResponseKeyID    string
+	AuthorizationEncryptedResponseAlg   string
+	AuthorizationEncryptedResponseEnc   string
+	AuthorizationEncryptedResponseKeyID string
 
-	IDTokenSignedResponseAlg   string
-	IDTokenSignedResponseKeyID string
+	IDTokenSignedResponseAlg      string
+	IDTokenSignedResponseKeyID    string
+	IDTokenEncryptedResponseAlg   string
+	IDTokenEncryptedResponseEnc   string
+	IDTokenEncryptedResponseKeyID string
 
-	AccessTokenSignedResponseAlg   string
-	AccessTokenSignedResponseKeyID string
+	AccessTokenSignedResponseAlg      string
+	AccessTokenSignedResponseKeyID    string
+	AccessTokenEncryptedResponseAlg   string
+	AccessTokenEncryptedResponseEnc   string
+	AccessTokenEncryptedResponseKeyID string
 
-	UserinfoSignedResponseAlg   string
-	UserinfoSignedResponseKeyID string
+	UserinfoSignedResponseAlg      string
+	UserinfoSignedResponseKeyID    string
+	UserinfoEncryptedResponseAlg   string
+	UserinfoEncryptedResponseEnc   string
+	UserinfoEncryptedResponseKeyID string
 
-	IntrospectionSignedResponseAlg   string
-	IntrospectionSignedResponseKeyID string
+	IntrospectionSignedResponseAlg      string
+	IntrospectionSignedResponseKeyID    string
+	IntrospectionEncryptedResponseAlg   string
+	IntrospectionEncryptedResponseEnc   string
+	IntrospectionEncryptedResponseKeyID string
 
-	RequestObjectSigningAlg string
+	RequestObjectSigningAlg    string
+	RequestObjectEncryptionAlg string
+	RequestObjectEncryptionEnc string
 
 	TokenEndpointAuthMethod     string
 	TokenEndpointAuthSigningAlg string
+
+	RevocationEndpointAuthMethod     string
+	RevocationEndpointAuthSigningAlg string
+
+	IntrospectionEndpointAuthMethod     string
+	IntrospectionEndpointAuthSigningAlg string
+
+	PushedAuthorizationRequestEndpointAuthMethod     string
+	PushedAuthorizationRequestEndpointAuthSigningAlg string
 
 	RefreshFlowIgnoreOriginalGrantedScopes  bool
 	AllowMultipleAuthenticationMethods      bool
@@ -123,23 +149,43 @@ type Client interface {
 	GetName() (name string)
 	GetSectorIdentifierURI() (sector string)
 
-	GetAuthorizationSignedResponseAlg() (alg string)
+	GetClaimsStrategy() (strategy ClaimsStrategy)
+
 	GetAuthorizationSignedResponseKeyID() (kid string)
+	GetAuthorizationSignedResponseAlg() (alg string)
+	GetAuthorizationEncryptedResponseKeyID() (kid string)
+	GetAuthorizationEncryptedResponseAlg() (alg string)
+	GetAuthorizationEncryptedResponseEnc() (enc string)
 
-	GetIDTokenSignedResponseAlg() (alg string)
 	GetIDTokenSignedResponseKeyID() (kid string)
+	GetIDTokenSignedResponseAlg() (alg string)
+	GetIDTokenEncryptedResponseKeyID() (kid string)
+	GetIDTokenEncryptedResponseAlg() (kid string)
+	GetIDTokenEncryptedResponseEnc() (kid string)
 
-	GetAccessTokenSignedResponseAlg() (alg string)
 	GetAccessTokenSignedResponseKeyID() (kid string)
+	GetAccessTokenSignedResponseAlg() (alg string)
+	GetAccessTokenEncryptedResponseKeyID() (kid string)
+	GetAccessTokenEncryptedResponseAlg() (alg string)
+	GetAccessTokenEncryptedResponseEnc() (enc string)
 	GetEnableJWTProfileOAuthAccessTokens() bool
 
-	GetUserinfoSignedResponseAlg() (alg string)
 	GetUserinfoSignedResponseKeyID() (kid string)
+	GetUserinfoSignedResponseAlg() (alg string)
+	GetUserinfoEncryptedResponseKeyID() (kid string)
+	GetUserinfoEncryptedResponseAlg() (alg string)
+	GetUserinfoEncryptedResponseEnc() (enc string)
 
-	GetIntrospectionSignedResponseAlg() (alg string)
 	GetIntrospectionSignedResponseKeyID() (kid string)
+	GetIntrospectionSignedResponseAlg() (alg string)
+	GetIntrospectionEncryptedResponseKeyID() (kid string)
+	GetIntrospectionEncryptedResponseAlg() (kid string)
+	GetIntrospectionEncryptedResponseEnc() (kid string)
 
 	GetRequirePushedAuthorizationRequests() (enforce bool)
+
+	GetJSONWebKeys() (jwks *jose.JSONWebKeySet)
+	GetJSONWebKeysURI() (uri string)
 
 	GetEnforcePKCE() (enforce bool)
 	GetEnforcePKCEChallengeMethod() (enforce bool)
@@ -147,7 +193,7 @@ type Client interface {
 
 	ValidateResponseModePolicy(r oauthelia2.AuthorizeRequester) (err error)
 
-	GetConsentResponseBody(consent *model.OAuth2ConsentSession) (body ConsentGetResponseBody)
+	GetConsentResponseBody(consent *model.OAuth2ConsentSession, form url.Values) (body ConsentGetResponseBody)
 	GetConsentPolicy() ClientConsentPolicy
 	IsAuthenticationLevelSufficient(level authentication.Level, subject authorization.Subject) (sufficient bool)
 	GetAuthorizationPolicyRequiredLevel(subject authorization.Subject) (level authorization.Level)
@@ -171,6 +217,7 @@ type Context interface {
 	GetRandom() (random random.Provider)
 	GetConfiguration() (config schema.Configuration)
 	GetJWTWithTimeFuncOption() (option jwt.ParserOption)
+	GetProviderUserAttributeResolver() expression.UserAttributeResolver
 
 	context.Context
 }
@@ -206,7 +253,7 @@ type AuthorizationServerIssuerIdentificationProvider interface {
 // JWTSecuredResponseModeProvider provides JARM related methods.
 type JWTSecuredResponseModeProvider interface {
 	GetJWTSecuredAuthorizeResponseModeLifespan(ctx context.Context) (lifespan time.Duration)
-	GetJWTSecuredAuthorizeResponseModeSigner(ctx context.Context) (signer fjwt.Signer)
+	GetJWTSecuredAuthorizeResponseModeStrategy(ctx context.Context) (strategy fjwt.Strategy)
 	GetJWTSecuredAuthorizeResponseModeIssuer(ctx context.Context) (issuer string)
 }
 
@@ -221,6 +268,26 @@ type UserDetailer interface {
 	GetGroups() (groups []string)
 	GetDisplayName() (name string)
 	GetEmails() (emails []string)
+	GetGivenName() (given string)
+	GetFamilyName() (family string)
+	GetMiddleName() (middle string)
+	GetNickname() (nickname string)
+	GetProfile() (profile string)
+	GetPicture() (picture string)
+	GetWebsite() (website string)
+	GetGender() (gender string)
+	GetBirthdate() (birthdate string)
+	GetZoneInfo() (info string)
+	GetLocale() (locale string)
+	GetPhoneNumber() (number string)
+	GetPhoneExtension() (extension string)
+	GetPhoneNumberRFC3966() (number string)
+	GetStreetAddress() (address string)
+	GetLocality() (locality string)
+	GetRegion() (region string)
+	GetPostalCode() (postcode string)
+	GetCountry() (country string)
+	GetExtra() (extra map[string]any)
 }
 
 // ConsentGetResponseBody schema of the response body of the consent GET endpoint.
@@ -230,14 +297,17 @@ type ConsentGetResponseBody struct {
 	Scopes            []string `json:"scopes"`
 	Audience          []string `json:"audience"`
 	PreConfiguration  bool     `json:"pre_configuration"`
+	Claims            []string `json:"claims"`
+	EssentialClaims   []string `json:"essential_claims"`
 }
 
 // ConsentPostRequestBody schema of the request body of the consent POST endpoint.
 type ConsentPostRequestBody struct {
-	ConsentID    string `json:"id"`
-	ClientID     string `json:"client_id"`
-	Consent      bool   `json:"consent"`
-	PreConfigure bool   `json:"pre_configure"`
+	ConsentID    string   `json:"id"`
+	ClientID     string   `json:"client_id"`
+	Consent      bool     `json:"consent"`
+	PreConfigure bool     `json:"pre_configure"`
+	Claims       []string `json:"claims"`
 }
 
 // ConsentPostResponseBody schema of the response body of the consent POST endpoint.
@@ -846,7 +916,7 @@ type OpenIDConnectClientInitiatedBackChannelAuthFlowDiscoveryOptions struct {
 }
 
 // OpenIDConnectJWTSecuredAuthorizationResponseModeDiscoveryOptions represents the discovery options specific to
-// JWT Secured Authorization Response Mode for OAuth 2.0 (JARM).
+// JWT Secured Authorization Response Modes for OAuth 2.0 (JARM).
 //
 // Authorization servers SHOULD publish the supported algorithms for signing and encrypting the JWT of an authorization
 // response by utilizing OAuth 2.0 Authorization Server Metadata [RFC8414] parameters. The following parameters are
@@ -854,7 +924,7 @@ type OpenIDConnectClientInitiatedBackChannelAuthFlowDiscoveryOptions struct {
 //
 // See Also:
 //
-// JWT Secured Authorization Response Mode for OAuth 2.0 (JARM):
+// JWT Secured Authorization Response Modes for OAuth 2.0 (JARM):
 // https://openid.net/specs/oauth-v2-jarm.html#name-authorization-server-metada
 type OpenIDConnectJWTSecuredAuthorizationResponseModeDiscoveryOptions struct {
 	/*
@@ -937,10 +1007,8 @@ type OAuth2WellKnownSignedConfiguration struct {
 	SignedMetadata string `json:"signed_metadata,omitempty"`
 }
 
-type OAuth2WellKnownClaims struct {
-	OAuth2WellKnownSignedConfiguration
-
-	jwt.RegisteredClaims
+func (claims *OAuth2WellKnownSignedConfiguration) ToMap() (result fjwt.MapClaims) {
+	return fjwt.NewMapClaims(claims)
 }
 
 // OpenIDConnectWellKnownConfiguration represents the well known discovery document specific to OpenID Connect.
@@ -968,15 +1036,18 @@ type OpenIDConnectWellKnownSignedConfiguration struct {
 	SignedMetadata string `json:"signed_metadata,omitempty"`
 }
 
-type OpenIDConnectWellKnownClaims struct {
-	OpenIDConnectWellKnownSignedConfiguration
+func (claims *OpenIDConnectWellKnownSignedConfiguration) ToMap() (result fjwt.MapClaims) {
+	return fjwt.NewMapClaims(claims)
+}
 
-	jwt.RegisteredClaims
+type Number interface {
+	~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~float32 | ~float64
 }
 
 var (
 	_ Client                                                       = (*RegisteredClient)(nil)
 	_ oauthelia2.Client                                            = (*RegisteredClient)(nil)
+	_ oauthelia2.UserInfoClient                                    = (*RegisteredClient)(nil)
 	_ oauthelia2.RotatedClientSecretsClient                        = (*RegisteredClient)(nil)
 	_ oauthelia2.ProofKeyCodeExchangeClient                        = (*RegisteredClient)(nil)
 	_ oauthelia2.ClientAuthenticationPolicyClient                  = (*RegisteredClient)(nil)

@@ -1,0 +1,37 @@
+{
+	"Claim": "Claim {{name}}",
+	"Scope": "スコープ {{name}}",
+	"scopes": {
+		"openid": "OpenIDを使用して身元を確認してください",
+		"offline_access": "ユーザーの操作なしでこれらの権限を自動的に更新する",
+		"profile": "プロフィール情報にアクセスする",
+		"groups": "グループのメンバーシップにアクセス",
+		"email": "メールアドレスにアクセスする",
+		"phone": "電話番号にアクセス",
+		"address": "住所にアクセス",
+		"authelia.bearer.authz": "ログイン中に保護されたリソースにアクセスする"
+	},
+	"claims": {
+		"sub": "Unique Identifier",
+		"name": "表示名",
+		"given_name": "与えられた名前",
+		"family_name": "ファミリー 名",
+		"middle_name": "ミドルネーム",
+		"nickname": "ニックネーム：",
+		"preferred_username": "優先するユーザー名",
+		"profile": "プロファイルURL",
+		"picture": "画像 URL",
+		"website": "Website URL",
+		"email": "メールアドレス",
+		"email_verified": "メールアドレス（確認済み）",
+		"gender": "性別",
+		"birthdate": "誕生日",
+		"zoneinfo": "Timezone",
+		"locale": "言語/言語",
+		"phone_number": "電話番号",
+		"phone_number_verified": "電話番号（確認済）",
+		"address": "住所",
+		"updated_at": "プロフィールの更新時間",
+		"groups": "グループメンバシップ"
+	}
+}

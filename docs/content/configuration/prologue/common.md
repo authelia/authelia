@@ -22,6 +22,25 @@ The following represent common syntax used within the configuration which have s
 used in multiple areas. This is intended on assisting in understanding these specific values, and not as a specific
 guide on configuring any particular instance.
 
+### Dictionary Reference
+
+The dictionary reference syntax is a syntax where often the key can arbitrarily be set by an administrator and the key
+can be used elsewhere to reference this configuration.
+
+For instance, when considering the below example if the key named `policies` was noted as a dictionary within the
+documentation then the `aribtrary_name` could be used elsewhere to communicate the policy to be applied, like in the
+`usage_example` section where it's used as the `policy`.
+
+```yaml
+policies:
+  arbitrary_name:
+    enable: true
+
+usage_example:
+  - name: 'example'
+    policy: 'arbitrary_name'
+```
+
 ### Duration
 
 The base type for this syntax is a string, and it also handles integers however this is discouraged.
@@ -219,6 +238,20 @@ Bad Example:
 ```yaml {title="configuration.yml"}
 domain_regex: "^(admin|secure)\.example\.com$"
 ```
+
+### Network
+
+We support a network syntax which unmarshalls strings into a network range. The string format uses the standard CIDR
+notation and assumes a single host (adapted as /32 for IPv4 and /128 for IPv6) if the CIDR suffix is absent.
+
+|                  Example                  |                    CIDR                    |                                       Range                                       |
+|:-----------------------------------------:|:------------------------------------------:|:---------------------------------------------------------------------------------:|
+|                192.168.0.1                |               192.168.0.1/32               |                                    192.168.0.1                                    |
+|              192.168.1.0/24               |               192.168.1.0/24               |                            192.168.1.0 - 192.168.1.255                            |
+|              192.168.2.1/24               |               192.168.2.0/24               |                            192.168.2.0 - 192.168.2.255                            |
+|  2001:db8:3333:4444:5555:6666:7777:8888   | 2001:db8:3333:4444:5555:6666:7777:8888/128 |                      2001:db8:3333:4444:5555:6666:7777:8888                       |
+|          2001:db8:3333:4400::/56          |          2001:db8:3333:4400::/56           | 2001:0db8:3333:4400:0000:0000:0000:0000 - 2001:0db8:3333:44ff:ffff:ffff:ffff:ffff |
+| 2001:db8:3333:4444:5555:6666:7777:8888/56 |          2001:db8:3333:4400::/56           | 2001:0db8:3333:4400:0000:0000:0000:0000 - 2001:0db8:3333:44ff:ffff:ffff:ffff:ffff |
 
 ## Structures
 

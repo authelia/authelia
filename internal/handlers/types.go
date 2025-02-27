@@ -50,11 +50,23 @@ type bodySignWebAuthnRequest struct {
 	Response json.RawMessage `json:"response"`
 }
 
+// bodySignPasskeyRequest is the  model of the request body of WebAuthn 2FA authentication endpoint.
+type bodySignPasskeyRequest struct {
+	TargetURL      string `json:"targetURL"`
+	Workflow       string `json:"workflow"`
+	WorkflowID     string `json:"workflowID"`
+	RequestMethod  string `json:"requestMethod"`
+	KeepMeLoggedIn *bool  `json:"keepMeLoggedIn"`
+
+	Response json.RawMessage `json:"response"`
+}
+
 // bodyGETUserSessionElevate is the  model of the request body of the User Session Elevation PUT endpoint.
 type bodyGETUserSessionElevate struct {
 	RequireSecondFactor bool `json:"require_second_factor"`
 	SkipSecondFactor    bool `json:"skip_second_factor"`
 	CanSkipSecondFactor bool `json:"can_skip_second_factor"`
+	FactorKnowledge     bool `json:"factor_knowledge"`
 	Elevated            bool `json:"elevated"`
 	Expires             int  `json:"expires"`
 }
@@ -94,13 +106,30 @@ type bodyPreferred2FAMethod struct {
 type bodyFirstFactorRequest struct {
 	Username       string `json:"username" valid:"required"`
 	Password       string `json:"password" valid:"required"`
-	TargetURL      string `json:"targetURL"`
 	Workflow       string `json:"workflow"`
 	WorkflowID     string `json:"workflowID"`
+	TargetURL      string `json:"targetURL"`
 	RequestMethod  string `json:"requestMethod"`
 	KeepMeLoggedIn *bool  `json:"keepMeLoggedIn"`
 	// KeepMeLoggedIn: Cannot require this field because of https://github.com/asaskevich/govalidator/pull/329
 	// TODO(c.michaud): add required validation once the above PR is merged.
+}
+
+// bodyFirstFactorRequest represents the JSON body received by the endpoint.
+type bodySecondFactorPasswordRequest struct {
+	Password   string `json:"password" valid:"required"`
+	TargetURL  string `json:"targetURL"`
+	Workflow   string `json:"workflow"`
+	WorkflowID string `json:"workflowID"`
+}
+
+// bodyFirstFactorRequest represents the JSON body received by the endpoint.
+type bodyFirstFactorReauthenticateRequest struct {
+	Password      string `json:"password" valid:"required"`
+	Workflow      string `json:"workflow"`
+	WorkflowID    string `json:"workflowID"`
+	TargetURL     string `json:"targetURL"`
+	RequestMethod string `json:"requestMethod"`
 }
 
 // checkURIWithinDomainRequestBody represents the JSON body received by the endpoint checking if an URI is within
@@ -157,7 +186,8 @@ type DuoSignResponse struct {
 type StateResponse struct {
 	Username              string               `json:"username"`
 	AuthenticationLevel   authentication.Level `json:"authentication_level"`
-	DefaultRedirectionURL string               `json:"default_redirection_url"`
+	FactorKnowledge       bool                 `json:"factor_knowledge"`
+	DefaultRedirectionURL string               `json:"default_redirection_url,omitempty"`
 }
 
 // resetPasswordStep1RequestBody model of the reset password (step1) request body.
@@ -190,4 +220,4 @@ type handlerAuthorizationConsent func(
 	ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
 	userSession session.UserSession, subject uuid.UUID,
 	rw http.ResponseWriter, r *http.Request,
-	requester oauthelia2.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool)
+	requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool)

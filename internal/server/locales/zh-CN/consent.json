@@ -1,0 +1,37 @@
+{
+	"Claim": "声明 {{name}}",
+	"Scope": "区域 {{name}}",
+	"scopes": {
+		"openid": "使用 OpenID 验证您的身份",
+		"offline_access": "在不通知您的情况下访问以上数据",
+		"profile": "访问您的个人资料信息",
+		"groups": "访问您的所属用户组",
+		"email": "访问您的电子邮件地址",
+		"phone": "访问您的电话号码",
+		"address": "访问您的地址",
+		"authelia.bearer.authz": "访问登录时受保护的资源"
+	},
+	"claims": {
+		"sub": "唯一标识符",
+		"name": "显示名称",
+		"given_name": "名字",
+		"family_name": "姓氏",
+		"middle_name": "中间名",
+		"nickname": "昵称",
+		"preferred_username": "首选用户名",
+		"profile": "个人资料 URL",
+		"picture": "图片 URL",
+		"website": "网站 URL",
+		"email": "电子邮件地址",
+		"email_verified": "电子邮件地址 (已验证)",
+		"gender": "性别",
+		"birthdate": "出生日期",
+		"zoneinfo": "时区",
+		"locale": "区域 / 语言",
+		"phone_number": "电话号码",
+		"phone_number_verified": "电话号码 (已验证)",
+		"address": "邮政地址",
+		"updated_at": "个人资料更新时间",
+		"groups": "组成员资格"
+	}
+}

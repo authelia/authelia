@@ -245,9 +245,9 @@ func TestNewConfig(t *testing.T) {
 
 	require.NoError(t, err)
 
-	signer := oidc.NewKeyManager(c)
+	strategy := oidc.NewIssuer(c.JSONWebKeys)
 
-	config := oidc.NewConfig(c, signer, tmpl)
+	config := oidc.NewConfig(c, strategy, tmpl)
 
 	assert.IsType(t, &oauth2.JWTProfileCoreStrategy{}, config.Strategy.Core)
 
@@ -345,8 +345,8 @@ func TestMisc(t *testing.T) {
 	}
 
 	config := &oidc.Config{}
-	assert.Nil(t, config.GetIntrospectionJWTResponseSigner(context.Background()))
-	assert.Nil(t, config.GetJWTSecuredAuthorizeResponseModeSigner(context.Background()))
+	assert.Nil(t, config.GetIntrospectionJWTResponseStrategy(context.Background()))
+	assert.Nil(t, config.GetJWTSecuredAuthorizeResponseModeStrategy(context.Background()))
 
 	secret, err := config.GetGlobalSecret(context.Background())
 	assert.NoError(t, err)
@@ -382,6 +382,5 @@ func TestMisc(t *testing.T) {
 
 	assert.Equal(t, []string{"https://example.com/issuer", "https://example.com/issuer/api/oidc/token", "https://example.com/issuer/api/oidc/pushed-authorization-request"}, config.GetAllowedJWTAssertionAudiences(tctx))
 
-	assert.Equal(t, "https://example.com/issuer/api/oidc/device-code/user-verification", config.GetRFC8628UserVerificationURL(tctx))
-	assert.Equal(t, "https://example.com/issuer/api/oidc/device-code/user-verification", config.GetRFC8628UserVerificationURL(tctx))
+	assert.Equal(t, "https://example.com/issuer/consent/openid/device-authorization", config.GetRFC8628UserVerificationURL(tctx))
 }

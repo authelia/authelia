@@ -3,8 +3,6 @@ package handlers
 import (
 	"fmt"
 	"net/url"
-	"path"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/valyala/fasthttp"
@@ -13,11 +11,12 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
 // Handle1FAResponse handle the redirection upon 1FA authentication.
-func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod string, username string, groups []string) {
+func Handle1FAResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, username string, groups []string) {
 	var err error
 
 	if len(targetURI) == 0 {
@@ -129,51 +128,16 @@ func Handle2FAResponse(ctx *middlewares.AutheliaCtx, targetURI string) {
 	ctx.ReplyOK()
 }
 
-// handleOIDCWorkflowResponse handle the redirection upon authentication in the OIDC workflow.
-func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, targetURI, workflowID string) {
-	switch {
-	case len(workflowID) != 0:
-		handleOIDCWorkflowResponseWithID(ctx, userSession, workflowID)
-	case len(targetURI) != 0:
-		handleOIDCWorkflowResponseWithTargetURL(ctx, userSession, targetURI)
-	default:
-		ctx.Error(fmt.Errorf("invalid post data: must contain either a target url or a workflow id"), messageAuthenticationFailed)
+// HandlePasskeyResponse is a specialized handler for the Passkey login flow which switches adaptively between the 1FA and 2FA response handlers respectively.
+func HandlePasskeyResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMethod, username string, groups []string, isTwoFactor bool) {
+	if isTwoFactor {
+		Handle2FAResponse(ctx, targetURI)
 	}
+
+	Handle1FAResponse(ctx, targetURI, requestMethod, username, groups)
 }
 
-func handleOIDCWorkflowResponseWithTargetURL(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, targetURI string) {
-	var (
-		issuerURL *url.URL
-		targetURL *url.URL
-		err       error
-	)
-
-	if targetURL, err = url.ParseRequestURI(targetURI); err != nil {
-		ctx.Error(fmt.Errorf("unable to parse target URL '%s': %w", targetURI, err), messageAuthenticationFailed)
-
-		return
-	}
-
-	issuerURL = ctx.RootURL()
-
-	if targetURL.Host != issuerURL.Host {
-		ctx.Error(fmt.Errorf("unable to redirect to '%s': target host '%s' does not match expected issuer host '%s'", targetURL, targetURL.Host, issuerURL.Host), messageAuthenticationFailed)
-
-		return
-	}
-
-	if userSession.IsAnonymous() {
-		ctx.Error(fmt.Errorf("unable to redirect to '%s': user is anonymous", targetURL), messageAuthenticationFailed)
-
-		return
-	}
-
-	if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURL.String()}); err != nil {
-		ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
-	}
-}
-
-func handleOIDCWorkflowResponseWithID(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, id string) {
+func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, id string) {
 	var (
 		workflowID uuid.UUID
 		client     oidc.Client
@@ -194,7 +158,7 @@ func handleOIDCWorkflowResponseWithID(ctx *middlewares.AutheliaCtx, userSession 
 	}
 
 	if consent.Responded() {
-		ctx.Error(fmt.Errorf("consent has already been responded to '%s': %w", id, err), messageAuthenticationFailed)
+		ctx.Error(fmt.Errorf("consent has already been responded to '%s'", id), messageAuthenticationFailed)
 
 		return
 	}
@@ -211,26 +175,58 @@ func handleOIDCWorkflowResponseWithID(ctx *middlewares.AutheliaCtx, userSession 
 		return
 	}
 
-	level := client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()})
-
-	switch {
-	case authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel, level), level == authorization.Denied:
-		var (
-			targetURL *url.URL
-			form      url.Values
-		)
-
-		targetURL = ctx.RootURL()
-
-		if form, err = consent.GetForm(); err != nil {
-			ctx.Error(fmt.Errorf("unable to get authorization form values from consent session with challenge id '%s': %w", consent.ChallengeID, err), messageAuthenticationFailed)
+	if !consent.Subject.Valid {
+		if consent.Subject.UUID, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifierURI(), userSession.Username); err != nil {
+			ctx.Error(fmt.Errorf("unable to determine consent subject for client with id '%s' with consent challenge id '%s': %w", client.GetID(), consent.ChallengeID, err), messageAuthenticationFailed)
 
 			return
 		}
 
-		form.Set(queryArgConsentID, workflowID.String())
+		consent.Subject.Valid = true
 
-		targetURL.Path = path.Join(targetURL.Path, oidc.EndpointPathAuthorization)
+		if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionSubject(ctx, consent); err != nil {
+			ctx.Error(fmt.Errorf("unable to update consent subject for client with id '%s' with consent challenge id '%s': %w", client.GetID(), consent.ChallengeID, err), messageAuthenticationFailed)
+
+			return
+		}
+	}
+
+	var (
+		issuer *url.URL
+		form   url.Values
+	)
+
+	issuer = ctx.RootURL()
+
+	if form, err = consent.GetForm(); err != nil {
+		ctx.Error(fmt.Errorf("unable to get authorization form values from consent session with challenge id '%s': %w", consent.ChallengeID, err), messageAuthenticationFailed)
+
+		return
+	}
+
+	if oidc.RequestFormRequiresLogin(form, consent.RequestedAt, userSession.LastAuthenticatedTime()) {
+		targetURL := issuer.JoinPath(oidc.EndpointPathConsentLogin)
+
+		query := targetURL.Query()
+		query.Set(queryArgWorkflow, workflowOpenIDConnect)
+		query.Set(queryArgWorkflowID, workflowID.String())
+
+		targetURL.RawQuery = query.Encode()
+
+		if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURL.String()}); err != nil {
+			ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
+		}
+
+		return
+	}
+
+	level := client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()})
+
+	switch {
+	case authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA), level), level == authorization.Denied:
+		targetURL := issuer.JoinPath(oidc.EndpointPathAuthorization)
+
+		form.Set(queryArgConsentID, workflowID.String())
 		targetURL.RawQuery = form.Encode()
 
 		if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURL.String()}); err != nil {
@@ -244,12 +240,10 @@ func handleOIDCWorkflowResponseWithID(ctx *middlewares.AutheliaCtx, userSession 
 	}
 }
 
-func markAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, bannedUntil *time.Time, username string, authType string, errAuth error) (err error) {
-	// We only Mark if there was no underlying error.
-	ctx.Logger.Debugf("Mark %s authentication attempt made by user '%s'", authType, username)
-
+func doMarkAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, ban *regulation.Ban, authType string, errAuth error) {
 	var (
 		requestURI, requestMethod string
+		err                       error
 	)
 
 	if referer := ctx.Request.Header.Referer(); referer != nil {
@@ -261,26 +255,27 @@ func markAuthenticationAttempt(ctx *middlewares.AutheliaCtx, successful bool, ba
 		}
 	}
 
-	if err = ctx.Providers.Regulator.Mark(ctx, successful, bannedUntil != nil, username, requestURI, requestMethod, authType); err != nil {
-		ctx.Logger.WithError(err).Errorf("Unable to mark %s authentication attempt by user '%s'", authType, username)
+	doMarkAuthenticationAttemptWithRequest(ctx, successful, ban, authType, requestURI, requestMethod, errAuth)
+}
 
-		return err
-	}
+func doMarkAuthenticationAttemptWithRequest(ctx *middlewares.AutheliaCtx, successful bool, ban *regulation.Ban, authType, requestURI, requestMethod string, errAuth error) {
+	// We only Mark if there was no underlying error.
+	ctx.Logger.Debugf("Mark %s authentication attempt made by user '%s'", authType, ban.Value())
+
+	ctx.Providers.Regulator.HandleAttempt(ctx, successful, ban.IsBanned(), ban.Value(), requestURI, requestMethod, authType)
 
 	if successful {
-		ctx.Logger.Debugf("Successful %s authentication attempt made by user '%s'", authType, username)
+		ctx.Logger.Debugf("Successful %s authentication attempt made by user '%s'", authType, ban.Value())
 	} else {
 		switch {
 		case errAuth != nil:
-			ctx.Logger.WithError(errAuth).Errorf("Unsuccessful %s authentication attempt by user '%s'", authType, username)
-		case bannedUntil != nil:
-			ctx.Logger.Errorf("Unsuccessful %s authentication attempt by user '%s' and they are banned until %s", authType, username, bannedUntil)
+			ctx.Logger.WithError(errAuth).Errorf("Unsuccessful %s authentication attempt by user '%s'", authType, ban.Value())
+		case ban.IsBanned():
+			ctx.Logger.Errorf("Unsuccessful %s authentication attempt by user '%s' and they are banned until %s", authType, ban.Value(), ban.FormatExpires())
 		default:
-			ctx.Logger.Errorf("Unsuccessful %s authentication attempt by user '%s'", authType, username)
+			ctx.Logger.Errorf("Unsuccessful %s authentication attempt by user '%s'", authType, ban.Value())
 		}
 	}
-
-	return nil
 }
 
 func respondUnauthorized(ctx *middlewares.AutheliaCtx, message string) {
