@@ -29,12 +29,10 @@ const RevokeResetPasswordTokenView = function () {
 
         if (ok) {
             createSuccessNotification(translate("Successfully revoked the Token"));
+        } else if (status === 429) {
+            createErrorNotification(translate("You have made too many requests"));
         } else {
-            if (status === 429) {
-                createErrorNotification(translate("You have made too many requests"));
-            } else {
-                createErrorNotification(translate("Failed to revoke the Token"));
-            }
+            createErrorNotification(translate("Failed to revoke the Token"));
         }
 
         handleRedirect();
