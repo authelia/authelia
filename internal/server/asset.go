@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha1" //nolint:gosec // Usage is for collision avoidance not security.
 	"embed"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -249,4 +250,72 @@ func hfsHandleErr(ctx *fasthttp.RequestCtx, err error) {
 	default:
 		handlers.SetStatusCodeResponse(ctx, fasthttp.StatusInternalServerError)
 	}
+}
+
+// ValidateTranslations checks that translations contain required placeholders.
+func ValidateTranslations() error {
+	criticalTranslations := map[string]map[string][]string{
+		"portal.json": {
+			"You must view and accept the Privacy Policy before using {{authelia}}": {"authelia"},
+			"Powered by {{authelia}}": {"authelia"},
+		},
+	}
+
+	allLocales, err := locales.ReadDir("locales")
+	if err != nil {
+		return fmt.Errorf("failed to read locales directory: %w", err)
+	}
+
+	var validationErrors []string
+
+	for _, currentLocaleDirectory := range allLocales {
+		localeToCheck := currentLocaleDirectory.Name()
+
+		for fileName, keysToCheck := range criticalTranslations {
+			if len(keysToCheck) == 0 {
+				continue
+			}
+
+			translationFile := fmt.Sprintf("locales/%s/%s", localeToCheck, fileName)
+			data, err := locales.ReadFile(translationFile)
+
+			if err != nil {
+				return fmt.Errorf("failed to read required translation file %s: %w", translationFile, err)
+			}
+
+			var translations map[string]interface{}
+			if err := json.Unmarshal(data, &translations); err != nil {
+				return fmt.Errorf("failed to parse translation file %s: %w", translationFile, err)
+			}
+
+			for key, requiredPlaceholders := range keysToCheck {
+				translationValue, exists := translations[key]
+				if !exists {
+					continue
+				}
+
+				translation, ok := translationValue.(string)
+				if !ok {
+					validationErrors = append(validationErrors,
+						fmt.Sprintf("%s locale, file %s: key %s is not a string", localeToCheck, fileName, key))
+					continue
+				}
+
+				for _, placeholder := range requiredPlaceholders {
+					if !strings.Contains(translation, fmt.Sprintf("{{%s}}", placeholder)) {
+						validationErrors = append(validationErrors,
+							fmt.Sprintf("%s locale, file %s: missing placeholder {{%s}} in key %s",
+								localeToCheck, fileName, placeholder, key))
+					}
+				}
+			}
+		}
+	}
+
+	if len(validationErrors) > 0 {
+		return fmt.Errorf("translation validation failed with %d errors:\n%s",
+			len(validationErrors), strings.Join(validationErrors, "\n"))
+	}
+
+	return nil
 }
