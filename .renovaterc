@@ -6,6 +6,9 @@
     ":separatePatchReleases",
     "workarounds:doNotUpgradeFromAlpineStableToEdge"
   ],
+  "ignoreDeps": [
+  	"vite-plugin-checker"
+  ],
   "ignorePaths": [
   	"docs/**"
   ],
