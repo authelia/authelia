@@ -1,7 +1,7 @@
 import React, { ReactNode, useEffect } from "react";
 
 import { AppBar, Box, Container, Theme, Toolbar, Typography } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 

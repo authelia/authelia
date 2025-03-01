@@ -1,7 +1,7 @@
 import React, { lazy, useEffect, useState } from "react";
 
 import { Box, Button, Theme } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import makeStyles from "@mui/styles/makeStyles";
 import { browserSupportsWebAuthn } from "@simplewebauthn/browser";
 import { useTranslation } from "react-i18next";

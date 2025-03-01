@@ -11,7 +11,7 @@ import {
     Link,
     Theme,
 } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import makeStyles from "@mui/styles/makeStyles";
 import { BroadcastChannel } from "broadcast-channel";
