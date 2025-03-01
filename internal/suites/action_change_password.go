@@ -8,11 +8,11 @@ import (
 )
 
 func (rs *RodSession) doChangePassword(t *testing.T, page *rod.Page, oldPassword, newPassword1, newPassword2 string) {
+	t.Helper()
+
 	require.NoError(t, rs.WaitElementLocatedByID(t, page, "change-password-button").Click("left", 1))
 
 	rs.doMaybeVerifyIdentity(t, page)
-
-	t.Helper()
 
 	oldPasswordInput := rs.WaitElementLocatedByID(t, page, "old-password")
 	newPasswordInput := rs.WaitElementLocatedByID(t, page, "new-password")
@@ -45,10 +45,11 @@ func (rs *RodSession) doMustChangePasswordExistingPassword(t *testing.T, page *r
 }
 
 func (rs *RodSession) doMustChangePasswordWrongExistingPassword(t *testing.T, page *rod.Page, oldPassword, newPassword1 string) {
+	t.Helper()
+
 	require.NoError(t, rs.WaitElementLocatedByID(t, page, "change-password-button").Click("left", 1))
 
 	rs.doMaybeVerifyIdentity(t, page)
-	t.Helper()
 
 	oldPasswordInput := rs.WaitElementLocatedByID(t, page, "old-password")
 	newPasswordInput := rs.WaitElementLocatedByID(t, page, "new-password")

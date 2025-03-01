@@ -338,8 +338,9 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 	userPasswordOk, err := p.CheckUserPassword(username, oldPassword)
 
 	if err != nil {
-		if strings.Contains(err.Error(), ErrIncorrectPassword.Error()) {
-			userPasswordOk = false
+		errorCode := ldapGetErrorCode(err)
+		if errorCode == ldap.LDAPResultInvalidCredentials {
+			return ErrIncorrectPassword
 		} else {
 			return err
 		}
