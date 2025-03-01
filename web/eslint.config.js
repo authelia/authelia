@@ -1,12 +1,11 @@
+import ESImport from 'eslint-plugin-import';
 import TSESLint from "typescript-eslint";
-import importPlugin from 'eslint-plugin-import';
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
-import { createTypeScriptImportResolver } from "eslint-import-resolver-typescript";
-import ESLintConfigPrettier from "eslint-config-prettier";
+import Prettier from "eslint-config-prettier";
+import react from "eslint-plugin-react";
+import reactHooks from 'eslint-plugin-react-hooks';
 
 export default TSESLint.config(
-    ESLintConfigPrettier,
-    importPlugin.flatConfigs.recommended,
     {
         ignores: [
             "build/*",
@@ -14,35 +13,39 @@ export default TSESLint.config(
             "!.*.js",
         ],
     },
+    Prettier,
+    ESImport.flatConfigs.recommended,
     {
         plugins: {
             '@typescript-eslint': TSESLint.plugin,
+            react,
+            "react-hooks": reactHooks,
         },
-        files: ["**/*.ts", "**/*.tsx"],
+        files: ["**/*.{ts,tsx}"],
         settings: {
-            "import-x/resolver-next": [
-                createTypeScriptImportResolver({
-                    alwaysTryTypes: true,
-                    project: "tsconfig.json",
-                }),
-            ],
             "import/resolver": {
                 typescript: {}
             }
         },
         languageOptions: {
-            ecmaVersion: 2020,
+            ecmaVersion: "latest",
             sourceType: "module",
             parser: TSESLint.parser,
             parserOptions: {
                 project: "tsconfig.json",
                 createDefaultProgram: true,
+                ecmaFeatures: {
+                    impliedStrict: true,
+                    jsx: true
+                }
             },
         },
         extends: [
             eslintPluginPrettierRecommended
         ],
         rules: {
+            "react/jsx-uses-react": "error",
+            "react/jsx-uses-vars": "error",
             "import/order": [
                 "error",
                 {
