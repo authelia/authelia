@@ -137,11 +137,18 @@ func validateOIDCLifespans(config *schema.Configuration, _ *schema.StructValidat
 	}
 }
 
+//nolint:gocyclo
 func validateOIDCClaims(config *schema.Configuration, validator *schema.StructValidator) {
 	for name, policy := range config.IdentityProviders.OIDC.ClaimsPolicies {
+		var claims []string
+
 		for claim, properties := range policy.CustomClaims {
 			if utils.IsStringInSlice(claim, validOIDCReservedClaims) {
-				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: claim with name '%s' is specifically reserved and cannot be customized", name, claim))
+				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: custom_claims: claim with name '%s' can't be used in a claims policy as it's a standard claim", name, claim))
+			}
+
+			if !utils.IsStringInSlice(claim, claims) {
+				claims = append(claims, claim)
 			}
 
 			if !utils.IsStringInSlice(claim, config.IdentityProviders.OIDC.Discovery.Claims) {
@@ -151,40 +158,48 @@ func validateOIDCClaims(config *schema.Configuration, validator *schema.StructVa
 			if properties.Attribute == "" {
 				properties.Attribute = claim
 				policy.CustomClaims[claim] = properties
-				config.IdentityProviders.OIDC.ClaimsPolicies[name] = policy
 			}
 
 			if !isUserAttributeValid(properties.Attribute, config) {
-				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: claim with name '%s' has an attribute name '%s' which is unknown", name, claim, properties.Attribute))
+				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: claim with name '%s' has an attribute name '%s' which is not a known attribute", name, claim, properties.Attribute))
 			}
 		}
 
 		for _, claim := range policy.IDToken {
 			if utils.IsStringInSlice(claim, validOIDCReservedClaims) {
-				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: id_token: claim with name '%s' is specifically reserved and cannot be customized", name, claim))
-			} else if !utils.IsStringInSlice(claim, config.IdentityProviders.OIDC.Discovery.Claims) && !utils.IsStringInSlice(claim, validOIDCClientClaims) {
+				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: id_token: claim with name '%s' can't be used in a claims policy as it's a standard claim", name, claim))
+			} else if !utils.IsStringInSlice(claim, claims) && !utils.IsStringInSlice(claim, validOIDCClientClaims) {
 				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: id_token: claim with name '%s' is not known", name, claim))
 			}
 		}
 
+		switch policy.IDTokenAudienceMode {
+		case "":
+			policy.IDTokenAudienceMode = oidc.IDTokenAudienceModeSpecification
+		case oidc.IDTokenAudienceModeSpecification, oidc.IDTokenAudienceModeExperimentalMerged:
+			break
+		default:
+			validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: option 'id_token_audience_mode' must be one of %s but it's configured as '%s'", name, utils.StringJoinOr([]string{oidc.IDTokenAudienceModeSpecification, oidc.IDTokenAudienceModeExperimentalMerged}), policy.IDTokenAudienceMode))
+		}
+
 		for _, claim := range policy.AccessToken {
 			if utils.IsStringInSlice(claim, validOIDCReservedClaims) {
-				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: access_token: claim with name '%s' is specifically reserved and cannot be customized", name, claim))
-			}
-
-			if !utils.IsStringInSlice(claim, config.IdentityProviders.OIDC.Discovery.Claims) && !utils.IsStringInSlice(claim, validOIDCClientClaims) {
+				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: access_token: claim with name '%s' can't be used in a claims policy as it's a standard claim", name, claim))
+			} else if !utils.IsStringInSlice(claim, claims) && !utils.IsStringInSlice(claim, validOIDCClientClaims) {
 				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: access_token: claim with name '%s' is not known", name, claim))
 			}
 		}
+
+		config.IdentityProviders.OIDC.ClaimsPolicies[name] = policy
 	}
 }
 
 func validateOIDCScopes(config *schema.Configuration, validator *schema.StructValidator) {
 	for scope, properties := range config.IdentityProviders.OIDC.Scopes {
 		if utils.IsStringInSlice(scope, validOIDCClientScopes) {
-			validator.Push(fmt.Errorf("identity_providers: oidc: scopes: scope with name '%s' can't be used as it's a reserved scope", scope))
+			validator.Push(fmt.Errorf("identity_providers: oidc: scopes: scope with name '%s' can't be used as a custom scope because it's a standard scope", scope))
 		} else if strings.HasPrefix(scope, "authelia.") {
-			validator.Push(fmt.Errorf("identity_providers: oidc: scopes: scope with name '%s' can't be used as all scopes prefixed with 'authelia.' are reserved", scope))
+			validator.Push(fmt.Errorf("identity_providers: oidc: scopes: scope with name '%s' can't be used as a custom scope because all scopes prefixed with 'authelia.' are reserved", scope))
 		}
 
 		if !utils.IsStringInSlice(scope, config.IdentityProviders.OIDC.Discovery.Scopes) {
@@ -193,11 +208,9 @@ func validateOIDCScopes(config *schema.Configuration, validator *schema.StructVa
 
 		for _, claim := range properties.Claims {
 			if utils.IsStringInSlice(claim, validOIDCReservedClaims) {
-				validator.Push(fmt.Errorf("identity_providers: oidc: scopes: %s: claim with name '%s' is specifically reserved and cannot be customized", scope, claim))
-			}
-
-			if !utils.IsStringInSlice(claim, config.IdentityProviders.OIDC.Discovery.Claims) && !utils.IsStringInSlice(claim, validOIDCClientClaims) {
-				validator.Push(fmt.Errorf("identity_providers: oidc: scopes: %s: claim with name '%s' is unknown", scope, claim))
+				validator.Push(fmt.Errorf("identity_providers: oidc: scopes: %s: claim with name '%s' can't be used in a custom scope as it's a standard claim", scope, claim))
+			} else if !utils.IsStringInSlice(claim, config.IdentityProviders.OIDC.Discovery.Claims) && !utils.IsStringInSlice(claim, validOIDCClientClaims) {
+				validator.Push(fmt.Errorf("identity_providers: oidc: scopes: %s: claim with name '%s' is not a known claim", scope, claim))
 			}
 		}
 	}
