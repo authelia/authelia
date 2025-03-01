@@ -131,7 +131,7 @@ func (s *RegulatorSuite) TestShouldHandleBanCheckIPBanned() {
 
 	b := regulation.NewBan(ban, value, expires)
 
-	s.Regexp(`expires at \d{2}:\d{2}:\d{2}(AM|PM) on \w+ \d{1,2} \d{4} \(\+\d{2}:\d{2}\)`, b.FormatExpires())
+	s.Regexp(`\d{2}:\d{2}:\d{2}(AM|PM) on \w+ \d{1,2} \d{4} \(\+\d{2}:\d{2}\)`, b.FormatExpires())
 	s.Equal(regulation.BanTypeIP, b.Type())
 	s.Equal("127.0.0.1", b.Value())
 
@@ -430,7 +430,7 @@ func (s *RegulatorSuite) TestShouldHandleBanCheckUserBanned() {
 
 	b := regulation.NewBan(ban, value, expires)
 
-	s.Regexp(`expires at \d{2}:\d{2}:\d{2}(AM|PM) on \w+ \d{1,2} \d{4} \(\+\d{2}:\d{2}\)`, b.FormatExpires())
+	s.Regexp(`\d{2}:\d{2}:\d{2}(AM|PM) on \w+ \d{1,2} \d{4} \(\+\d{2}:\d{2}\)`, b.FormatExpires())
 	s.Equal(regulation.BanTypeUser, b.Type())
 	s.Equal("john", b.Value())
 

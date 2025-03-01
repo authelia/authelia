@@ -18,7 +18,7 @@ func FormatExpiresLong(expires *time.Time) string {
 		return "never expires"
 	}
 
-	return expires.Format("expires at 3:04:05PM on January 2 2006 (-07:00)")
+	return expires.Format("3:04:05PM on January 2 2006 (-07:00)")
 }
 
 func FormatExpiresShort(expires sql.NullTime) string {
