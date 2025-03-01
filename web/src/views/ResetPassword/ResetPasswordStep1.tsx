@@ -20,13 +20,15 @@ const ResetPasswordStep1 = function () {
     const [loading, setLoading] = useState(false);
 
     const [rateLimited, setRateLimited] = useState(false);
-    const timeoutRateLimit = useRef<NodeJS.Timeout>();
+    const timeoutRateLimit = useRef<NodeJS.Timeout | null>(null);
 
     const { createInfoNotification, createErrorNotification } = useNotifications();
     const navigate = useNavigate();
     const { t: translate } = useTranslation();
 
     useEffect(() => {
+        if (timeoutRateLimit.current === null) return;
+
         return clearTimeout(timeoutRateLimit.current);
     }, []);
 
@@ -42,7 +44,7 @@ const ResetPasswordStep1 = function () {
 
             timeoutRateLimit.current = setTimeout(() => {
                 setRateLimited(false);
-                timeoutRateLimit.current = undefined;
+                timeoutRateLimit.current = null;
             }, retryAfter * 1000);
         },
         [createErrorNotification, translate],
