@@ -1038,7 +1038,8 @@
             "auto",
             "light",
             "dark",
-            "grey"
+            "grey",
+            "oled"
           ],
           "title": "Theme Name",
           "description": "The name of the theme to apply to the web UI.",
@@ -1443,6 +1444,16 @@
           "type": "array",
           "title": "Access Token",
           "description": "The list of claims to automatically apply to an Access Token in addition to the specified Access Token Claims."
+        },
+        "id_token_audience_mode": {
+          "type": "string",
+          "enum": [
+            "specification",
+            "experimental-merged"
+          ],
+          "title": "ID Token Audience Mode",
+          "description": "Sets the mode for ID Token audience derivation for clients that use this policy.",
+          "default": "specification"
         },
         "custom_claims": {
           "patternProperties": {

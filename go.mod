@@ -24,7 +24,7 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.2.1
 	github.com/go-webauthn/webauthn v0.12.1
 	github.com/golang-jwt/jwt/v5 v5.2.1
-	github.com/google/cel-go v0.23.2
+	github.com/google/cel-go v0.24.1
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/jackc/pgx/v5 v5.7.2
@@ -46,7 +46,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/trustelem/zxcvbn v1.0.1
 	github.com/valyala/fasthttp v1.59.0
-	github.com/weppos/publicsuffix-go v0.40.3-0.20250225163358-a49121864bc8
+	github.com/weppos/publicsuffix-go v0.40.3-0.20250227085603-4c9735597a00
 	github.com/wneessen/go-mail v0.6.2
 	go.uber.org/mock v0.5.0
 	golang.org/x/net v0.35.0

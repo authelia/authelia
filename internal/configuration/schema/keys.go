@@ -142,6 +142,7 @@ var Keys = []string{
 	"identity_providers.oidc.claims_policies.*.custom_claims.*",
 	"identity_providers.oidc.claims_policies.*.custom_claims.*.attribute",
 	"identity_providers.oidc.claims_policies.*.id_token",
+	"identity_providers.oidc.claims_policies.*.id_token_audience_mode",
 	"identity_providers.oidc.clients",
 	"identity_providers.oidc.clients[]",
 	"identity_providers.oidc.clients[].access_token_encrypted_response_alg",

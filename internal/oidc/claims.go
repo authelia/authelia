@@ -394,6 +394,7 @@ type ClaimsStrategy interface {
 	PopulateIDTokenClaims(ctx Context, strategy oauthelia2.ScopeStrategy, client Client, scopes, claims oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, updated time.Time, original, extra map[string]any) (err error)
 	PopulateUserInfoClaims(ctx Context, strategy oauthelia2.ScopeStrategy, client Client, scopes, claims oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, updated time.Time, original, extra map[string]any) (err error)
 	PopulateClientCredentialsUserInfoClaims(ctx Context, client Client, original, extra map[string]any) (err error)
+	MergeAccessTokenClaimsIntoIDToken() (include bool)
 }
 
 func NewDefaultCustomClaimsStrategy() (strategy *CustomClaimsStrategy) {
@@ -456,6 +457,10 @@ func NewCustomClaimsStrategy(client schema.IdentityProvidersOpenIDConnectClient,
 		return strategy
 	}
 
+	if policy.IDTokenAudienceMode == IDTokenAudienceModeExperimentalMerged {
+		strategy.mergeAccessTokenClaimsIntoIDToken = true
+	}
+
 	if policy.IDToken != nil {
 		strategy.claimsIDToken = policy.IDToken
 	}
@@ -502,6 +507,8 @@ type CustomClaimsStrategy struct {
 	claimsIDToken     []string
 	claimsAccessToken []string
 	scopes            map[string]map[string]string
+
+	mergeAccessTokenClaimsIntoIDToken bool
 }
 
 //nolint:gocyclo
@@ -624,6 +631,10 @@ func (s *CustomClaimsStrategy) PopulateClientCredentialsUserInfoClaims(ctx Conte
 	s.populateClaimsAudience(client, original, extra)
 
 	return nil
+}
+
+func (s *CustomClaimsStrategy) MergeAccessTokenClaimsIntoIDToken() (include bool) {
+	return s.mergeAccessTokenClaimsIntoIDToken
 }
 
 func (s *CustomClaimsStrategy) isClaimAllowed(claim string, allowed []string) (isAllowed bool) {
