@@ -47,7 +47,7 @@
 	"Password has been reset": "Password has been reset",
 	"Password": "Password",
 	"Passwords do not match": "Passwords do not match",
-	"Powered by": "Powered by",
+	"Powered by {{authelia}}": "Powered by {{authelia}}",
 	"Privacy Policy": "Privacy Policy",
 	"Push Notification": "Push Notification",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "Redirection was determined to be unsafe and aborted ensure the redirection URL is correct",
@@ -100,7 +100,7 @@
 	"Username is required": "Username is required",
 	"You cancelled the assertion request": "You cancelled the assertion request",
 	"You have made too many requests": "You have made too many requests",
-	"You must view and accept the Privacy Policy before using": "You must view and accept the <0>Privacy Policy</0> before using",
+	"You must view and accept the Privacy Policy before using {{authelia}}.": "You must view and accept the <policy>Privacy Policy</policy> before using {{authelia}}",
 	"You're being signed out and redirected": "You're being signed out and redirected",
 	"Your browser does not support the WebAuthn protocol": "Your browser does not support the WebAuthn protocol",
 	"Your supplied password does not meet the password policy requirements": "Your supplied password does not meet the password policy requirements"
