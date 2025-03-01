@@ -32,7 +32,7 @@ export default TSESLint.config(
         },
         languageOptions: {
             ecmaVersion: 2020,
-            sourceType: "script",
+            sourceType: "module",
             parser: TSESLint.parser,
             parserOptions: {
                 project: "tsconfig.json",

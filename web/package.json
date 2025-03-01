@@ -68,9 +68,6 @@
     "test:preview": "vitest-preview",
     "report": "nyc report -r clover -r json -r lcov -r text"
   },
-  "eslintConfig": {
-    "extends": "react-app"
-  },
   "browserslist": {
     "production": [
       ">0.2%",
