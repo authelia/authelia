@@ -53,7 +53,7 @@ require (
 	golang.org/x/sync v0.11.0
 	golang.org/x/term v0.29.0
 	golang.org/x/text v0.22.0
-	golang.org/x/time v0.8.0
+	golang.org/x/time v0.10.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
