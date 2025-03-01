@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import React, { createContext, use, useCallback, useEffect, useState } from "react";
 
 import { Theme, ThemeProvider } from "@mui/material";
 
@@ -77,7 +77,7 @@ export default function ThemeContextProvider(props: Props) {
     );
 
     return (
-        <ThemeContext.Provider
+        <ThemeContext
             value={{
                 theme,
                 themeName,
@@ -85,12 +85,12 @@ export default function ThemeContextProvider(props: Props) {
             }}
         >
             <ThemeWrapper>{props.children}</ThemeWrapper>
-        </ThemeContext.Provider>
+        </ThemeContext>
     );
 }
 
 export function useThemeContext() {
-    const context = useContext(ThemeContext);
+    const context = use(ThemeContext);
     if (!context) {
         throw new Error("useThemeContext must be used within a ThemeContextProvider");
     }

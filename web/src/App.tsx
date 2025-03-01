@@ -48,7 +48,7 @@ export interface Props {
     nonce?: string;
 }
 
-const App: React.FC<Props> = (props: Props) => {
+function App(props: Props) {
     const [notification, setNotification] = useState(null as Notification | null);
 
     const cache = createCache({
@@ -62,7 +62,7 @@ const App: React.FC<Props> = (props: Props) => {
             <ThemeContextProvider>
                 <Suspense fallback={<LoadingPage />}>
                     <CssBaseline />
-                    <NotificationsContext.Provider value={{ notification, setNotification }}>
+                    <NotificationsContext value={{ notification, setNotification }}>
                         <LocalStorageMethodContextProvider>
                             <Router basename={getBasePath()}>
                                 <NotificationBar onClose={() => setNotification(null)} />
@@ -89,11 +89,11 @@ const App: React.FC<Props> = (props: Props) => {
                                 </Routes>
                             </Router>
                         </LocalStorageMethodContextProvider>
-                    </NotificationsContext.Provider>
+                    </NotificationsContext>
                 </Suspense>
             </ThemeContextProvider>
         </CacheProvider>
     );
-};
+}
 
 export default App;

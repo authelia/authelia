@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import React, { createContext, use, useCallback, useEffect, useState } from "react";
 
 import { LocalStorageSecondFactorMethod } from "@constants/LocalStorage";
 import { SecondFactorMethod } from "@models/Methods";
@@ -70,7 +70,7 @@ export default function LocalStorageMethodContextProvider(props: Props) {
     }, [localStorageMethodAvailable, refresh]);
 
     return (
-        <LocalStorageMethodContext.Provider
+        <LocalStorageMethodContext
             value={{
                 localStorageMethod: localStorageMethod,
                 setLocalStorageMethod: callback,
@@ -78,12 +78,12 @@ export default function LocalStorageMethodContextProvider(props: Props) {
             }}
         >
             {props.children}
-        </LocalStorageMethodContext.Provider>
+        </LocalStorageMethodContext>
     );
 }
 
 export function useLocalStorageMethodContext() {
-    const context = useContext(LocalStorageMethodContext);
+    const context = use(LocalStorageMethodContext);
     if (!context) {
         throw new Error("useLocalStorageMethodContext must be used within a LocalStorageMethodContextProvider");
     }
