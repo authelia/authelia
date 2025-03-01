@@ -1,0 +1,37 @@
+{
+	"Claim": "Tuntut {{name}}",
+	"Scope": "Skop {{name}}",
+	"scopes": {
+		"openid": "Gunakan OpenID untuk mengesahkan identiti anda",
+		"offline_access": "Segar semula kebenaran ini secara automatik tanpa interaksi pengguna",
+		"profile": "Akses maklumat profil anda",
+		"groups": "Akses ke keanggotaan kumpulan anda",
+		"email": "Akses ke alamat e-mel anda",
+		"phone": "Akses ke nombor telefon anda",
+		"address": "Akses ke alamat anda",
+		"authelia.bearer.authz": "Akses sumber yang dilindungi log masuk sebagai anda"
+	},
+	"claims": {
+		"sub": "Pengenal Pasti Unik",
+		"name": "Nama Paparan",
+		"given_name": "Nama Diberi",
+		"family_name": "Nama Keluarga",
+		"middle_name": "Nama Tengah",
+		"nickname": "Nama Pentas",
+		"preferred_username": "Nama Pengguna Pilihan",
+		"profile": "URL Profil",
+		"picture": "URL Gambar",
+		"website": "URL Laman Web",
+		"email": "Alamat E-mel",
+		"email_verified": "Alamat E-mel (Disahkan)",
+		"gender": "Jantina",
+		"birthdate": "Tarikh Lahir",
+		"zoneinfo": "Zon Masa",
+		"locale": "Bahasa / Lokasi",
+		"phone_number": "Nombor Telefon",
+		"phone_number_verified": "Nombor Telefon (Disahkan)",
+		"address": "Alamat Pos",
+		"updated_at": "Masa Kemas kini Profil",
+		"groups": "Keanggotaan Kumpulan"
+	}
+}

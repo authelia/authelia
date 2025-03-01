@@ -1,0 +1,37 @@
+{
+	"Claim": "Hawlio {{name}}",
+	"Scope": "Cylch {{name}}",
+	"scopes": {
+		"openid": "Defnyddiwch OpenID i wirio eich hunaniaeth",
+		"offline_access": "Ail-feddwl y caniatâd hwn heb ryngweithio gan y defnyddiwr",
+		"profile": "Mynd at eich gwybodaeth proffil",
+		"groups": "Mynediad at eich aelodaeth grŵp",
+		"email": "Mynediad at eich cyfeiriadau e-bost",
+		"phone": "Mynediad at eich rhif ffôn",
+		"address": "Mynediad at eich cyfeiriad",
+		"authelia.bearer.authz": "Mynediad at adnoddau diogel wedi cofrestru fel chi"
+	},
+	"claims": {
+		"sub": "Rhif Ehanghennog",
+		"name": "Enw arddangos",
+		"given_name": "Enw rhodd",
+		"family_name": "Enw teulu",
+		"middle_name": "Enw canol",
+		"nickname": "Enw-i-gyd",
+		"preferred_username": "Enw defnyddiwr sydd ei eisiau",
+		"profile": "URL Proffil",
+		"picture": "URL Llun",
+		"website": "URL Gwefan",
+		"email": "Cyfeiriad e-bost",
+		"email_verified": "Cyfeiriad e-bost (Wedi'i Ddirprwyo)",
+		"gender": "Rhyw",
+		"birthdate": "Dyddiad Geni",
+		"zoneinfo": "Amserlen",
+		"locale": "Locale / Iaith",
+		"phone_number": "Rhif Ffôn",
+		"phone_number_verified": "Rhif Ffôn (Wedi'i Ddirprwyo)",
+		"address": "Cyfeiriad Post",
+		"updated_at": "Amser Diweddariad Proffil",
+		"groups": "Aelodaeth Grŵp"
+	}
+}

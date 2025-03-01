@@ -17,6 +17,111 @@ import (
 	"github.com/authelia/authelia/v4/internal/model"
 )
 
+func TestWebAuthnMisc(t *testing.T) {
+	u := uuid.Must(uuid.Parse("cb69481e-8ff7-4039-93ec-0a2729a154a8"))
+
+	uuidBinary, err := u.MarshalBinary()
+	require.NoError(t, err)
+
+	testCases := []struct {
+		name                          string
+		have                          *model.WebAuthnUser
+		expectedID                    []byte
+		expectedName                  string
+		expectedDisplayName           string
+		expectedCredentials           []webauthn.Credential
+		expectedCredentialDescriptors []protocol.CredentialDescriptor
+	}{
+		{
+			"ShouldHandleBasicElements",
+			&model.WebAuthnUser{
+				ID:          1,
+				RPID:        "https://example.com",
+				Username:    "john",
+				UserID:      "abc",
+				DisplayName: "John Smith",
+			},
+			[]byte("abc"),
+			"john",
+			"John Smith",
+			[]webauthn.Credential{},
+			[]protocol.CredentialDescriptor{},
+		},
+		{
+			"ShouldHandleCredentials",
+			&model.WebAuthnUser{
+				ID: 1,
+				Credentials: []model.WebAuthnCredential{
+					{
+						ID:              1,
+						KID:             model.NewBase64([]byte("abc")),
+						PublicKey:       []byte("notapubkey"),
+						AttestationType: "packed",
+						Present:         true,
+						Verified:        true,
+						BackupEligible:  false,
+						BackupState:     false,
+						AAGUID:          model.MustNullUUID(model.ParseNullUUID("cb69481e-8ff7-4039-93ec-0a2729a154a8")),
+						SignCount:       10,
+						CloneWarning:    false,
+						Attachment:      "cross-platform",
+						Transport:       "usb",
+						Attestation:     []byte(`{"clientDataJSON":"ZXhhbXBsZQ==","clientDataHash":"ZXhhbXBsZQ==","authenticatorData":"ZXhhbXBsZQ==","publicKeyAlgorithm":1,"object":"ZXhhbXBsZQ=="}`),
+					},
+				},
+			},
+			[]byte{},
+			"",
+			"",
+			[]webauthn.Credential{
+				{
+					ID:              []byte("abc"),
+					PublicKey:       []byte("notapubkey"),
+					AttestationType: "packed",
+					Transport:       []protocol.AuthenticatorTransport{protocol.USB},
+					Flags: webauthn.CredentialFlags{
+						UserPresent:    true,
+						UserVerified:   true,
+						BackupState:    false,
+						BackupEligible: false,
+					},
+					Authenticator: webauthn.Authenticator{
+						AAGUID:       uuidBinary,
+						Attachment:   protocol.CrossPlatform,
+						SignCount:    10,
+						CloneWarning: false,
+					},
+					Attestation: webauthn.CredentialAttestation{
+						ClientDataJSON:     []byte("example"),
+						ClientDataHash:     []byte("example"),
+						AuthenticatorData:  []byte("example"),
+						PublicKeyAlgorithm: 1,
+						Object:             []byte("example"),
+					},
+				},
+			},
+			[]protocol.CredentialDescriptor{
+				{
+					Type:            "public-key",
+					CredentialID:    []byte("abc"),
+					Transport:       []protocol.AuthenticatorTransport{protocol.USB},
+					AttestationType: "packed",
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expectedID, tc.have.WebAuthnID())
+			assert.Equal(t, tc.expectedName, tc.have.WebAuthnName())
+			assert.Equal(t, tc.expectedDisplayName, tc.have.WebAuthnDisplayName())
+			assert.Equal(t, tc.expectedCredentials, tc.have.WebAuthnCredentials())
+			assert.Equal(t, tc.expectedCredentialDescriptors, tc.have.WebAuthnCredentialDescriptors())
+		})
+	}
+}
+
 func TestWebAuthnUser(t *testing.T) {
 	testCases := []struct {
 		name            string
@@ -331,6 +436,7 @@ func TestNewWebAuthnCredential(t *testing.T) {
 				Transport:   "nfc,usb",
 				CreatedAt:   mock.Clock.Now(),
 				AAGUID:      uuid.NullUUID{UUID: uuid.Must(uuid.Parse("b4e159da-a52b-4690-81dd-08972950db5f")), Valid: true},
+				Attestation: []byte(`{"clientDataJSON":null,"clientDataHash":null,"authenticatorData":null,"publicKeyAlgorithm":0,"object":null}`),
 			},
 		},
 	}

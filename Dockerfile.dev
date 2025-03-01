@@ -1,7 +1,7 @@
 # ========================================
 # ===== Build image for the frontend =====
 # ========================================
-FROM node:22-alpine@sha256:c9bb43423a6229aeddf3d16ae6aaa0ff71a0b2951ce18ec8fedb6f5d766cf286 AS builder-frontend
+FROM node:23-alpine@sha256:dc4d20572e425f9d4c68a6f9c382fbcfec3fa2f8ef0b12cb1d96feabdb479a48 AS builder-frontend
 
 WORKDIR /node/src/app
 
@@ -16,7 +16,7 @@ RUN \
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.23.2-bookworm@sha256:18d2f940cc20497f85466fdbe6c3d7a52ed2db1d5a1a49a4508ffeee2dff1463 AS builder-backend
+FROM golang:1.24.0-bookworm@sha256:b970e6d47c09fdd34179acef5c4fecaf6410f0b597a759733b3cbea04b4e604a AS builder-backend
 
 WORKDIR /go/src/app
 
@@ -57,8 +57,6 @@ COPY --link --from=builder-backend /go/src/app/authelia /go/src/app/LICENSE /go/
 COPY --link	--from=builder-backend --chmod=666 /go/src/app/.healthcheck.env ./
 
 EXPOSE 9091
-
-VOLUME /config
 
 ENTRYPOINT ["/app/entrypoint.sh"]
 HEALTHCHECK --interval=30s --timeout=3s --start-period=1m CMD /app/healthcheck.sh

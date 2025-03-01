@@ -1,0 +1,37 @@
+{
+	"Claim": "Eskaera {{name}}",
+	"Scope": "Baldintza {{name}}",
+	"scopes": {
+		"openid": "Erabili OpenID zure identitate egiaztatzeko",
+		"offline_access": "Baieztapen hauek automatikoki eguneratu erabiltzailearen interakziorik gabe",
+		"profile": "Sar zaitez zure profilen informazioan",
+		"groups": "Sartu zure taldeen kidegoak",
+		"email": "Zure helbide elektronikoetara sartu",
+		"phone": "Sartu zure telefono zenbakia",
+		"address": "Sartu zure helbidea",
+		"authelia.bearer.authz": "Atzitu babestutako baliabideak konektatuta"
+	},
+	"claims": {
+		"sub": "Identifikatzaile Berezia",
+		"name": "Izen Errorea",
+		"given_name": "Izena",
+		"family_name": "Familia Izena",
+		"middle_name": "Hurko Izena",
+		"nickname": "Mikelo",
+		"preferred_username": "Lehenetsitako Erabiltzailea",
+		"profile": "Profila URL",
+		"picture": "Irudi URL",
+		"website": "Webgune URL",
+		"email": "E-mail Helbidea",
+		"email_verified": "E-mail Helbidea (Berretsia)",
+		"gender": "Genero",
+		"birthdate": "Jaiotze Data",
+		"zoneinfo": "Denbora Zelaia",
+		"locale": "Hizkuntza / Herrialdea",
+		"phone_number": "Telefono Zenbakia",
+		"phone_number_verified": "Telefono Zenbakia (Berretsia)",
+		"address": "Posta Helbidea",
+		"updated_at": "Profile Eguneratze Denbora",
+		"groups": "Talde Kidegoa"
+	}
+}

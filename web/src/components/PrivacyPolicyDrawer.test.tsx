@@ -5,22 +5,6 @@ import { beforeEach } from "vitest";
 
 import PrivacyPolicyDrawer from "@components/PrivacyPolicyDrawer";
 
-vi.mock("react-i18next", () => ({
-    withTranslation: () => (Component: any) => {
-        Component.defaultProps = { ...Component.defaultProps, t: (children: any) => children };
-        return Component;
-    },
-    Trans: ({ children }: any) => children,
-    useTranslation: () => {
-        return {
-            t: (str: any) => str,
-            i18n: {
-                changeLanguage: () => new Promise(() => {}),
-            },
-        };
-    },
-}));
-
 beforeEach(() => {
     document.body.setAttribute("data-privacypolicyurl", "");
     document.body.setAttribute("data-privacypolicyaccept", "false");

@@ -40,6 +40,8 @@ authelia crypto rand --charset ascii
 authelia crypto rand --charset numeric
 authelia crypto rand --charset numeric-hex
 authelia crypto rand --characters 0123456789ABCDEF
+authelia crypto rand directory/file1 directory/file2
+authelia crypto rand --file directory/file3,directory/file4
 ```
 
 ### Options
@@ -47,8 +49,11 @@ authelia crypto rand --characters 0123456789ABCDEF
 ```
       --characters string   sets the explicit characters for the random string
   -x, --charset string      sets the charset for the random password, options are 'ascii', 'alphanumeric', 'alphabetic', 'numeric', 'numeric-hex', and 'rfc3986' (default "alphanumeric")
+      --file strings        files to export the unique random values to instead of printing them
   -h, --help                help for rand
   -n, --length int          sets the character length for the random string (default 72)
+      --mode-dirs string    mode for the created directories (default "0700")
+      --mode-files string   mode for the created files (default "0600")
 ```
 
 ### Options inherited from parent commands

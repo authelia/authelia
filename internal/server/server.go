@@ -21,6 +21,10 @@ func CreateDefaultServer(config *schema.Configuration, providers middlewares.Pro
 		return nil, nil, nil, false, fmt.Errorf("failed to load templated assets: %w", err)
 	}
 
+	if err = ValidateTranslations(); err != nil {
+		return nil, nil, nil, false, fmt.Errorf("translation validation failed: %w", err)
+	}
+
 	server = &fasthttp.Server{
 		ErrorHandler:          handleError("server"),
 		Handler:               handleRouter(config, providers),

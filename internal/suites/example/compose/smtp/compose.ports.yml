@@ -1,0 +1,6 @@
+---
+services:
+  smtp:
+    ports:
+      - 1025:1025
+...

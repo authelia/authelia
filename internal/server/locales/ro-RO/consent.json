@@ -1,0 +1,37 @@
+{
+	"Claim": "Claim {{name}}",
+	"Scope": "Scope {{name}}",
+	"scopes": {
+		"openid": "Folosiți OpenID pentru a vă verifica identitatea",
+		"offline_access": "Împrospătează automat aceste permisiuni fără interacțiunea utilizatorului",
+		"profile": "Accesează-ți informațiile de profil",
+		"groups": "Accesează membrii grupului tău",
+		"email": "Accesează-ți adresele de e-mail",
+		"phone": "Accesează-ți numărul de telefon",
+		"address": "Accesează-ți adresa",
+		"authelia.bearer.authz": "Accesează resursele protejate conectate când ești tu"
+	},
+	"claims": {
+		"sub": "Unique Identifier",
+		"name": "Nume afișat",
+		"given_name": "Nume dat",
+		"family_name": "Nume familie",
+		"middle_name": "Al doilea prenume",
+		"nickname": "Porecla",
+		"preferred_username": "Utilizator preferat",
+		"profile": "URL Profil",
+		"picture": "URL imagine",
+		"website": "URL website",
+		"email": "Adresă e-mail",
+		"email_verified": "Adresă e-mail (Verificată)",
+		"gender": "Sex",
+		"birthdate": "Data nașterii",
+		"zoneinfo": "Timezone",
+		"locale": "Localizare / Limbă",
+		"phone_number": "Număr de telefon",
+		"phone_number_verified": "Număr de telefon (Verificat)",
+		"address": "Adresă poștală",
+		"updated_at": "Timp Actualizare Profil",
+		"groups": "Membru al grupului"
+	}
+}

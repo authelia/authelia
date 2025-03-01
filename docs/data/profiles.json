@@ -51,6 +51,19 @@
         "tag": ""
       },
       "matrix": ""
+    },
+    "brynn-crowley": {
+      "display": "Brynn Crowley",
+      "description": "",
+      "team": "maintainers",
+      "location": "San Francisco, California, United States",
+      "github": "Crowley723",
+      "email": "",
+      "discord": {
+        "id": "",
+        "tag": ""
+      },
+      "matrix": ""
     }
   },
   "teams": {
@@ -71,7 +84,7 @@
     "maintainers": {
       "display": "Maintainers",
       "description": "The Maintainer Team are traditional repository maintainers.",
-      "people": ["manuel-nunez"],
+      "people": ["manuel-nunez", "brynn-crowley"],
       "responsibilities": [
         "Review and merge pull requests from external parties",
         "Respond to bug reports, feature requests, discussions, and support chat rooms"

@@ -1,0 +1,12 @@
+---
+services:
+  redis:
+    image: 'redis:7.4-alpine'
+    command: '/entrypoint.sh master'
+    volumes:
+      - './example/compose/redis/templates:/templates'
+      - './example/compose/redis/users.acl:/data/users.acl'
+      - './example/compose/redis/entrypoint.sh:/entrypoint.sh'
+    networks:
+      authelianet: {}
+...

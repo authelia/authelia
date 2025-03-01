@@ -21,9 +21,9 @@ seo:
 ## Tested Versions
 
 * [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+  * [v4.38.18](https://github.com/authelia/authelia/releases/tag/v4.38.18)
 * [Wordpress]
-  * [v6.5.2](https://core.svn.wordpress.org/tags/6.5.2/)
+  * [v6.7.1](https://core.svn.wordpress.org/tags/6.7.1/)
 
 {{% oidc-common %}}
 
@@ -58,8 +58,6 @@ identity_providers:
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
         authorization_policy: 'two_factor'
-        require_pkce: true
-        pkce_challenge_method: 'S256'
         redirect_uris:
           - 'https://wordpress.{{< sitevar name="domain" nojs="example.com" >}}/wp-admin/admin-ajax.php?action=openid-connect-authorize'
         scopes:

@@ -17,19 +17,19 @@ seo:
   noindex: false # false (default) or true
 ---
 
-|                  Proxy                  | [Implementation] |                [Standard](#standard)                |                               [Kubernetes](#kubernetes)                               |   [XHR Redirect](#xhr-redirect)   | [Request Method](#request-method) |
-|:---------------------------------------:|:----------------:|:---------------------------------------------------:|:-------------------------------------------------------------------------------------:|:---------------------------------:|:---------------------------------:|
-|     [Traefik] ([guide](/i/traefik))     |  [ForwardAuth]   |  {{% support support="full" link="/i/traefik" %}}   | {{% support support="full" link="../../integration/kubernetes/traefik-ingress.md" %}} |  {{% support support="full" %}}   |  {{% support support="full" %}}   |
-|       [Caddy] ([guide](/i/caddy))       |  [ForwardAuth]   |   {{% support support="full" link="/i/caddy" %}}    |                           {{% support support="unknown" %}}                           |  {{% support support="full" %}}   |  {{% support support="full" %}}   |
-|       [Envoy] ([guide](/i/envoy))       |    [ExtAuthz]    |   {{% support support="full" link="/i/envoy" %}}    |      {{% support support="full" link="../../integration/kubernetes/istio.md" %}}      | {{% support support="unknown" %}} |  {{% support support="full" %}}   |
-|       [NGINX] ([guide](/i/nginx))       |  [AuthRequest]   |   {{% support support="full" link="/i/nginx" %}}    |  {{% support support="full" link="../../integration/kubernetes/nginx-ingress.md" %}}  |          {{% support %}}          |  {{% support support="full" %}}   |
-| [NGINX Proxy Manager] ([guide](/i/npm)) |  [AuthRequest]   |    {{% support support="full" link="/i/npm" %}}     |                           {{% support support="unknown" %}}                           |          {{% support %}}          |  {{% support support="full" %}}   |
-|        [SWAG] ([guide](/i/swag))        |  [AuthRequest]   |    {{% support support="full" link="/i/swag" %}}    |                           {{% support support="unknown" %}}                           |          {{% support %}}          |  {{% support support="full" %}}   |
-|     [HAProxy] ([guide](/i/haproxy))     |  [ForwardAuth]   |  {{% support support="full" link="/i/haproxy" %}}   |                           {{% support support="unknown" %}}                           | {{% support support="unknown" %}} |  {{% support support="full" %}}   |
-|     [Skipper] ([guide](/i/skipper))     |  [ForwardAuth]   |  {{% support support="full" link="/i/skipper" %}}   |                           {{% support support="unknown" %}}                           | {{% support support="unknown" %}} | {{% support support="unknown" %}} |
-| [Traefik] 1.x ([guide](/i/traefik/v1))  |  [ForwardAuth]   | {{% support support="full" link="/i/traefik/v1" %}} |                           {{% support support="unknown" %}}                           |  {{% support support="full" %}}   |  {{% support support="full" %}}   |
-|                [Apache]                 |       N/A        |           {{% support link="#apache" %}}            |                                    {{% support %}}                                    |          {{% support %}}          |          {{% support %}}          |
-|                  [IIS]                  |       N/A        |             {{% support link="#iis" %}}             |                                    {{% support %}}                                    |          {{% support %}}          |          {{% support %}}          |
+|                  Proxy                  | [Implementation] |                 [Standard](#standard)                 |                               [Kubernetes](#kubernetes)                               |   [XHR Redirect](#xhr-redirect)   | [Request Method](#request-method) |
+|:---------------------------------------:|:----------------:|:-----------------------------------------------------:|:-------------------------------------------------------------------------------------:|:---------------------------------:|:---------------------------------:|
+|     [Traefik] ([guide](/i/traefik))     |  [ForwardAuth]   |   {{% support support="full" link="/i/traefik" %}}    | {{% support support="full" link="../../integration/kubernetes/traefik-ingress.md" %}} |  {{% support support="full" %}}   |  {{% support support="full" %}}   |
+|       [Caddy] ([guide](/i/caddy))       |  [ForwardAuth]   |    {{% support support="full" link="/i/caddy" %}}     |                           {{% support support="unknown" %}}                           |  {{% support support="full" %}}   |  {{% support support="full" %}}   |
+|       [Envoy] ([guide](/i/envoy))       |    [ExtAuthz]    |    {{% support support="full" link="/i/envoy" %}}     |      {{% support support="full" link="../../integration/kubernetes/istio.md" %}}      | {{% support support="unknown" %}} |  {{% support support="full" %}}   |
+|       [NGINX] ([guide](/i/nginx))       |  [AuthRequest]   |    {{% support support="full" link="/i/nginx" %}}     |  {{% support support="full" link="../../integration/kubernetes/nginx-ingress.md" %}}  |          {{% support %}}          |  {{% support support="full" %}}   |
+| [NGINX Proxy Manager] ([guide](/i/npm)) |  [AuthRequest]   |     {{% support support="full" link="/i/npm" %}}      |                           {{% support support="unknown" %}}                           |          {{% support %}}          |  {{% support support="full" %}}   |
+|        [SWAG] ([guide](/i/swag))        |  [AuthRequest]   |     {{% support support="full" link="/i/swag" %}}     |                           {{% support support="unknown" %}}                           |          {{% support %}}          |  {{% support support="full" %}}   |
+|     [HAProxy] ([guide](/i/haproxy))     |  [ForwardAuth]   |   {{% support support="full" link="/i/haproxy" %}}    |                           {{% support support="unknown" %}}                           | {{% support support="unknown" %}} |  {{% support support="full" %}}   |
+|     [Skipper] ([guide](/i/skipper))     |  [ForwardAuth]   |   {{% support support="full" link="/i/skipper" %}}    |                           {{% support support="unknown" %}}                           | {{% support support="unknown" %}} | {{% support support="unknown" %}} |
+| [Traefik] 1.x ([guide](/i/traefik/v1))  |  [ForwardAuth]   | {{% support support="legacy" link="/i/traefik/v1" %}} |                           {{% support support="unknown" %}}                           | {{% support support="legacy" %}}  | {{% support support="legacy" %}}  |
+|                [Apache]                 |       N/A        |            {{% support link="#apache" %}}             |                                    {{% support %}}                                    |          {{% support %}}          |          {{% support %}}          |
+|                  [IIS]                  |       N/A        |              {{% support link="#iis" %}}              |                                    {{% support %}}                                    |          {{% support %}}          |          {{% support %}}          |
 
 [ForwardAuth]: ../../reference/guides/proxy-authorization.md#forwardauth
 [AuthRequest]: ../../reference/guides/proxy-authorization.md#authrequest
@@ -38,12 +38,13 @@ seo:
 
 Legend:
 
-|               Icon                |       Meaning       |
-|:---------------------------------:|:-------------------:|
-|  {{% support support="full" %}}   |      Supported      |
-| {{% support support="unknown" %}} |       Unknown       |
-| {{% support support="partial" %}} | Partially Supported |
-|  {{% support support="none" %}}   |    Not Supported    |
+|               Icon                |                  Meaning                  |
+|:---------------------------------:|:-----------------------------------------:|
+|  {{% support support="full" %}}   |                 Supported                 |
+| {{% support support="unknown" %}} |                  Unknown                  |
+| {{% support support="partial" %}} | Partially Supported and/or Legacy Support |
+| {{% support support="legacy" %}}  | Previously / Formally Supported (Legacy)  |
+|  {{% support support="none" %}}   |               Not Supported               |
 
 ## Support
 
@@ -70,8 +71,8 @@ More information about [Kubernetes] deployments of Authelia can be read in the
 ### XHR Redirect
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
-The XHR is a deprecated web feature and applications should be using the new [Fetch API] which does not have
-the same issues regarding redirects (the [Fetch API] allows developers to
+The XHR is a deprecated web feature and applications should be using the new [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) which does not have
+the same issues regarding redirects (the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) allows developers to
 [control how to handle them](https://developer.mozilla.org/en-US/docs/Web/API/Request/redirect)). As such the fact
 a proxy does not support it should only be seen as a means to communicate a feature not that the proxy should not be
 used.
@@ -128,5 +129,3 @@ contribution.
 [IIS]: https://www.iis.net/
 [Kubernetes]: https://kubernetes.io/
 [Ingress Controller]: https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/
-
-[Fetch API]: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API

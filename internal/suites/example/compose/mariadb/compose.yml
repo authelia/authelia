@@ -1,0 +1,12 @@
+---
+services:
+  mariadb:
+    image: 'mariadb:11.7.2'
+    environment:
+      MARIADB_ROOT_PASSWORD: 'rootpassword'
+      MARIADB_USER: 'admin'
+      MARIADB_PASSWORD: 'password'
+      MARIADB_DATABASE: 'authelia'
+    networks:
+      authelianet: {}
+...

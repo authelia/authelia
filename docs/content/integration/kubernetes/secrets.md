@@ -40,7 +40,7 @@ can manually create a secret like this with `kubectl apply -f`.
 
 ##### String Data Example
 
-##### secret.yaml
+##### secret.yml
 
 ```yaml {title="secret.yml"}
 ---

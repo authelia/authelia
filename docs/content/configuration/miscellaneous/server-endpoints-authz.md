@@ -33,6 +33,7 @@ server:
           - name: 'HeaderAuthorization'
             schemes:
               - 'Basic'
+            scheme_basic_cache_lifespan: 0
           - name: 'CookieSession'
       ext-authz:
         implementation: 'ExtAuthz'
@@ -40,19 +41,18 @@ server:
           - name: 'HeaderAuthorization'
             schemes:
               - 'Basic'
+            scheme_basic_cache_lifespan: 0
           - name: 'CookieSession'
       auth-request:
         implementation: 'AuthRequest'
         authn_strategies:
-          - name: 'HeaderAuthRequestProxyAuthorization'
+          - name: 'HeaderAuthorization'
             schemes:
               - 'Basic'
+            scheme_basic_cache_lifespan: 0
           - name: 'CookieSession'
       legacy:
         implementation: 'Legacy'
-        authn_strategies:
-          - name: 'HeaderLegacy'
-          - name: 'CookieSession'
 ```
 
 ## name
@@ -65,7 +65,7 @@ The first level under the `authz` directive is the name of the endpoint. In the 
 The name correlates with the path of the endpoint. All endpoints start with `/api/authz/`, and end with the name. In the
 example the `forward-auth` endpoint has a full path of `/api/authz/forward-auth`.
 
-Valid characters for the name are alphanumeric as well as `-` and `_`. They MUST start AND end with an
+Valid characters for the name are alphanumeric as well as `-`, `_`, and `/`. They MUST start AND end with an
 alphanumeric character.
 
 ### implementation
@@ -99,3 +99,11 @@ the [reference guide](../../reference/guides/proxy-authorization.md#authn-strate
 The list of schemes allowed on this endpoint. Options are `Basic`, and `Bearer`. This option is only applicable to the
 `HeaderAuthorization`, `HeaderProxyAuthorization`, and `HeaderAuthRequestProxyAuthorization` strategies and unavailable
 with the `legacy` endpoint which only uses `Basic`.
+
+#### scheme_basic_cache_lifespan
+
+{{< confkey type="string,integer" syntax="duration" default="0 seconds" required="no" >}}
+
+The lifespan to cache username and password combinations when using the `Basic` scheme. This option enables the use
+of the caching which is completely disabled by default. This option must only be used when the `Basic` scheme is
+configured, and like all new options may not be used with the `Legacy` implementation.

@@ -5,7 +5,11 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"hash"
+	"os"
+	"path/filepath"
+	"strconv"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -37,6 +41,14 @@ func TestFuncGetEnv(t *testing.T) {
 				"ANOTHER_ENV":         "b",
 			},
 		},
+		{"ShouldEscape",
+			map[string]string{
+				"$": "example",
+			},
+			map[string]string{
+				"$": "$",
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -47,6 +59,87 @@ func TestFuncGetEnv(t *testing.T) {
 
 			for key, expected := range tc.expected {
 				assert.Equal(t, expected, FuncGetEnv(key))
+			}
+		})
+	}
+}
+
+func TestFuncMustGetEnv(t *testing.T) {
+	type expected struct {
+		value, err string
+	}
+
+	testCases := []struct {
+		name     string
+		have     map[string]string
+		expected map[string]expected
+	}{
+		{"ShouldGetEnv",
+			map[string]string{
+				"AN_ENV":      "a",
+				"ANOTHER_ENV": "b",
+			},
+			map[string]expected{
+				"AN_ENV": {
+					value: "a",
+				},
+				"ANOTHER_ENV": {
+					value: "b",
+				},
+			},
+		},
+		{"ShouldNotGetSecretEnv",
+			map[string]string{
+				"AUTHELIA_ENV_SECRET": "a",
+				"ANOTHER_ENV":         "b",
+			},
+			map[string]expected{
+				"AUTHELIA_ENV_SECRET": {
+					value: "",
+				},
+				"ANOTHER_ENV": {
+					value: "b",
+				},
+			},
+		},
+		{"ShouldEscape",
+			map[string]string{
+				"$": "example",
+			},
+			map[string]expected{
+				"$": {
+					value: "$",
+				},
+			},
+		},
+		{"ShouldReturnError",
+			map[string]string{},
+			map[string]expected{
+				"AUTHELIA_ENV_SECRET": {
+					err: "environment variable 'AUTHELIA_ENV_SECRET' isn't set",
+				},
+				"ANOTHER_ENV": {
+					err: "environment variable 'ANOTHER_ENV' isn't set",
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			for key, value := range tc.have {
+				t.Setenv(key, value)
+			}
+
+			for key, expected := range tc.expected {
+				actual, err := FuncMustGetEnv(key)
+				if expected.err == "" {
+					assert.NoError(t, err)
+					assert.Equal(t, expected.value, actual)
+				} else {
+					assert.EqualError(t, err, expected.err)
+					assert.Equal(t, expected.value, actual)
+				}
 			}
 		})
 	}
@@ -767,5 +860,375 @@ func TestFuncFileContent(t *testing.T) {
 		} else {
 			assert.NoError(t, theErr)
 		}
+	}
+}
+
+func TestFuncAgo(t *testing.T) {
+	testCases := []struct {
+		name     string
+		value    any
+		expected string
+	}{
+		{"ShouldHandleOneSecond", time.Now().Add(-time.Second), "1s"},
+		{"ShouldHandleOneHour", time.Now().Add(-time.Hour), "1h0m0s"},
+		{"ShouldHandleZero", time.Now(), "0s"},
+		{"ShouldHandleNegative", time.Now().Add(time.Hour), "-1h0m0s"},
+		{"ShouldHandleMultipleUnits", time.Now().Add(-2*time.Hour - 30*time.Minute - 15*time.Second), "2h30m15s"},
+		{"ShouldHandleLargeDuration", time.Now().Add(-24 * time.Hour), "24h0m0s"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, FuncAgo(tc.value))
+		})
+	}
+}
+
+func TestFuncDate(t *testing.T) {
+	example := time.Unix(1240000000, 0)
+
+	testCases := []struct {
+		name     string
+		format   string
+		value    any
+		expected []string
+	}{
+		{"ShouldHandleTimeValue", time.DateOnly, example, []string{"2009-04-17", "2009-04-18"}},
+		{"ShouldHandleEpochValue", time.DateOnly, 1240000000, []string{"2009-04-17", "2009-04-18"}},
+		{"ShouldHandleEpochValueInt", time.DateOnly, int(1240000000), []string{"2009-04-17", "2009-04-18"}},
+		{"ShouldHandleEpochValueInt64", time.DateOnly, int64(1240000000), []string{"2009-04-17", "2009-04-18"}},
+		{"ShouldHandleEpochValueInt32", time.DateOnly, int32(1240000000), []string{"2009-04-17", "2009-04-18"}},
+		{"ShouldHandleEpochValueTimePointer", time.DateOnly, &example, []string{"2009-04-17", "2009-04-18"}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Contains(t, tc.expected, FuncDate(tc.format, tc.value))
+			assert.Contains(t, tc.expected, FuncHTMLDate(tc.value))
+		})
+	}
+}
+
+func TestFuncFuncDateInZone(t *testing.T) {
+	example := time.Unix(1240000000, 0)
+
+	testCases := []struct {
+		name     string
+		format   string
+		value    any
+		zone     string
+		expected []string
+	}{
+		{"ShouldHandleTimeValue", time.DateOnly, example, "Local", []string{"2009-04-17", "2009-04-18"}},
+		{"ShouldHandleTimeValueEmptyZone", time.DateOnly, example, "", []string{"2009-04-17"}},
+		{"ShouldHandleTimeValueUTC", time.DateOnly, example, "UTC", []string{"2009-04-17"}},
+		{"ShouldHandleTimeValueBad", time.DateOnly, example, "BADBADBAD", []string{"2009-04-17"}},
+		{"ShouldHandleEpochValue", time.DateOnly, 1240000000, "Local", []string{"2009-04-17", "2009-04-18"}},
+		{"ShouldHandleEpochValueInt", time.DateOnly, int(1240000000), "Local", []string{"2009-04-17", "2009-04-18"}},
+		{"ShouldHandleEpochValueInt64", time.DateOnly, int64(1240000000), "Local", []string{"2009-04-17", "2009-04-18"}},
+		{"ShouldHandleEpochValueInt32", time.DateOnly, int32(1240000000), "Local", []string{"2009-04-17", "2009-04-18"}},
+		{"ShouldHandleEpochValueTimePointer", time.DateOnly, &example, "Local", []string{"2009-04-17", "2009-04-18"}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Contains(t, tc.expected, FuncDateInZone(tc.format, tc.value, tc.zone))
+			assert.Contains(t, tc.expected, FuncHTMLDateInZone(tc.value, tc.zone))
+		})
+	}
+}
+
+func TestFuncDuration(t *testing.T) {
+	testCases := []struct {
+		name     string
+		value    any
+		expected string
+	}{
+		{"ShouldHandleString", "1", "1s"},
+		{"ShouldHandleInt", 2, "2s"},
+		{"ShouldHandleInt32", int32(3), "3s"},
+		{"ShouldHandleInt64", int64(4), "4s"},
+		{"ShouldHandleBool", false, "0s"},
+		{"ShouldHandleInvalidString", "invalid", "0s"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, FuncDuration(tc.value))
+		})
+	}
+}
+
+func TestFuncToDate(t *testing.T) {
+	testCases := []struct {
+		name     string
+		format   string
+		value    string
+		expected time.Time
+	}{
+		{"ShouldHandle", time.DateOnly, "2024-01-01", time.Date(2024, time.January, 1, 0, 0, 0, 0, time.Local)},
+		{"ShouldHandleInvalid", time.DateOnly, "abc", time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC)},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, FuncToDate(tc.format, tc.value))
+		})
+	}
+}
+
+func TestFuncMustToDate(t *testing.T) {
+	testCases := []struct {
+		name     string
+		format   string
+		value    string
+		expected time.Time
+		err      string
+	}{
+		{"ShouldHandle", time.DateOnly, "2024-01-01", time.Date(2024, time.January, 1, 0, 0, 0, 0, time.Local), ""},
+		{"ShouldHandleInvalid", time.DateOnly, "abc", time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC), `parsing time "abc" as "2006-01-02": cannot parse "abc" as "2006"`},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, err := FuncMustToDate(tc.format, tc.value)
+			assert.Equal(t, tc.expected, actual)
+
+			if tc.err != "" {
+				assert.EqualError(t, err, tc.err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestFuncUnixEpoch(t *testing.T) {
+	testCases := []struct {
+		name        string
+		value       time.Time
+		expectedMin string
+		expectedMax string
+	}{
+		{"ShouldHandle", time.Date(2024, time.January, 1, 0, 0, 0, 0, time.Local), "1704016800", "1704110400"},
+		{"ShouldHandleUTCPlus14",
+			time.Date(2024, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC+14", 14*60*60)),
+			"1704016800",
+			"1704016800"},
+		{"ShouldHandleUTCMinus12",
+			time.Date(2024, time.January, 1, 0, 0, 0, 0, time.FixedZone("UTC-12", -12*60*60)),
+			"1704110400",
+			"1704110400"},
+		{"ShouldHandleZero", time.Time{}, "-62135596800", "-62135596800"},
+		{"ShouldHandlePreEpoch", time.Date(1960, time.January, 1, 0, 0, 0, 0, time.UTC), "-315619200", "-315619200"},
+		{"ShouldHandleFarFuture", time.Date(2050, time.January, 1, 0, 0, 0, 0, time.UTC), "2524608000", "2524608000"},
+		{"ShouldHandleWithTimezone", time.Date(2024, time.January, 1, 0, 0, 0, 0, time.UTC), "1704067200", "1704067200"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := FuncUnixEpoch(tc.value)
+			if tc.expectedMin == tc.expectedMax {
+				assert.Equal(t, tc.expectedMin, result)
+			} else {
+				resultInt, _ := strconv.ParseInt(result, 10, 64)
+				minInt, _ := strconv.ParseInt(tc.expectedMin, 10, 64)
+				maxInt, _ := strconv.ParseInt(tc.expectedMax, 10, 64)
+				assert.True(t, resultInt >= minInt && resultInt <= maxInt,
+					"Expected value between %s and %s, got %s", tc.expectedMin, tc.expectedMax, result)
+			}
+		})
+	}
+}
+
+func TestFuncWalk(t *testing.T) {
+	dir := t.TempDir()
+
+	file, err := os.Create(filepath.Join(dir, "test.txt"))
+	require.NoError(t, err)
+
+	_, err = file.WriteString("test_data")
+	require.NoError(t, err)
+
+	info, err := os.Stat(filepath.Join(dir, "test.txt"))
+	require.NoError(t, err)
+
+	testCases := []struct {
+		name    string
+		root    string
+		pattern string
+		skipDir bool
+		infos   []WalkInfo
+		err     string
+	}{
+		{
+			"ShouldErrorDirectoryNotExists",
+			"/not/a/path",
+			"",
+			true,
+			nil,
+			"error occurred walking directory: lstat /not/a/path: no such file or directory",
+		},
+		{
+			"ShouldErrorEmptyRoot",
+			"",
+			"",
+			true,
+			nil,
+			"error occurred performing walk: root path cannot be empty",
+		},
+		{
+			"ShouldErrorBadPattern",
+			"/tmp",
+			`(abc`,
+			true,
+			nil,
+			"error occurred compiling walk pattern: error parsing regexp: missing closing ): `(abc`",
+		},
+		{
+			"ShouldReturnTempExample",
+			dir,
+			"",
+			true,
+			[]WalkInfo{
+				{
+					Path:         filepath.Join(dir, "test.txt"),
+					AbsolutePath: filepath.Join(dir, "test.txt"),
+					FileInfo:     info,
+				},
+			},
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			infos, err := FuncWalk(tc.root, tc.pattern, tc.skipDir)
+			if tc.err == "" {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.infos, infos)
+			} else {
+				assert.Len(t, infos, 0)
+				assert.EqualError(t, err, tc.err)
+			}
+		})
+	}
+}
+
+func TestYAML(t *testing.T) {
+	type example struct {
+		Name   string
+		Profit bool
+		Config map[string]any `yaml:",omitempty"`
+		Tags   []string       `yaml:",omitempty"`
+		Nested struct {
+			Description string `yaml:",omitempty"`
+			Active      bool   `yaml:",omitempty"`
+		} `yaml:",omitempty"`
+	}
+
+	testCases := []struct {
+		name               string
+		example            example
+		expectedYAML       string
+		expectedYAMLPretty string
+	}{
+		{
+			"ShouldHandleExample",
+			example{
+				Name: "example",
+			},
+			"name: example\nprofit: false",
+			"name: example\nprofit: false",
+		},
+		{
+			"ShouldHandleComplexExample",
+			example{
+				Name: "example",
+				Tags: []string{"tag1", "tag2", "tag3"},
+				Nested: struct {
+					Description string `yaml:",omitempty"`
+					Active      bool   `yaml:",omitempty"`
+				}{
+					Description: "description",
+					Active:      true,
+				},
+			},
+			"name: example\nprofit: false\ntags:\n    - tag1\n    - tag2\n    - tag3\nnested:\n    description: description\n    active: true",
+			"name: example\nprofit: false\ntags:\n  - tag1\n  - tag2\n  - tag3\nnested:\n  description: description\n  active: true",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			yamldata, err := FuncToYAML(tc.example)
+			assert.NoError(t, err)
+			assert.Equal(t, tc.expectedYAML, yamldata)
+
+			actual, err := FuncFromYAML(yamldata)
+			assert.NoError(t, err)
+
+			assert.Equal(t, tc.example.Name, actual["name"])
+			assert.Equal(t, tc.example.Profit, actual["profit"])
+
+			yamldata, err = FuncToYAMLPretty(tc.example)
+			assert.NoError(t, err)
+			assert.Equal(t, tc.expectedYAMLPretty, yamldata)
+
+			actual, err = FuncFromYAML(yamldata)
+			assert.NoError(t, err)
+
+			assert.Equal(t, tc.example.Name, actual["name"])
+			assert.Equal(t, tc.example.Profit, actual["profit"])
+		})
+	}
+
+	data := "this is not valid yaml"
+
+	actual, err := FuncFromYAML(data)
+
+	assert.EqualError(t, err, "yaml: unmarshal errors:\n  line 1: cannot unmarshal !!str `this is...` into map[string]interface {}")
+	assert.Nil(t, actual)
+}
+
+func TestFuncStringJoinX(t *testing.T) {
+	testCases := []struct {
+		name     string
+		elems    []string
+		sep      string
+		n        int
+		p        string
+		expected string
+	}{
+		{
+			"ShouldHandleSimple",
+			[]string{"abc", "123"},
+			"-",
+			1,
+			"",
+			"abc-123",
+		},
+		{
+			"ShouldHandleSimple",
+			[]string{"abc", "123"},
+			"-",
+			2,
+			"",
+			"abc-123",
+		},
+		{
+			"ShouldHandleSimple",
+			[]string{"abc", "456", "123"},
+			"-",
+			2,
+			"aa",
+			"aaabc-aa456-aa123",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, FuncStringJoinX(tc.elems, tc.sep, tc.n, tc.p))
+		})
 	}
 }

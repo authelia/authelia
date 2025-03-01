@@ -1,0 +1,18 @@
+---
+authentication_backend:
+  ldap:
+    address: 'ldap://{{ env "SERVICES_SERVER" }}'
+    tls:
+      private_key: |
+        {{- secret "./test_resources/example_filter_rsa_private_key" | nindent 8 }}
+    base_dn: 'dc=example,dc=com'
+    additional_users_dn: 'ou=users'
+    users_filter: '(&({username_attribute}={input})(objectCategory=person)(objectClass=user))'
+    additional_groups_dn: 'ou=groups'
+    groups_filter: '(&(member={dn})(objectClass=groupOfNames))'
+    user: 'cn=admin,dc=example,dc=com'
+    attributes:
+      username: 'uid'
+      group_name: 'cn'
+      mail: 'mail'
+...

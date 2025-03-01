@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/sirupsen/logrus"
@@ -29,7 +30,11 @@ func AssertLogEntryMessageAndError(t *testing.T, entry *logrus.Entry, message, e
 		assert.True(t, ok)
 		require.NotNil(t, theErr)
 
-		assert.EqualError(t, theErr, err)
+		if strings.HasPrefix(err, "^") && strings.HasSuffix(err, "$") {
+			assert.Regexp(t, err, theErr.Error())
+		} else {
+			assert.EqualError(t, theErr, err)
+		}
 	}
 }
 

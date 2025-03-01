@@ -1,0 +1,37 @@
+{
+	"Claim": "Nárok {{name}}",
+	"Scope": "Rozsah {{name}}",
+	"scopes": {
+		"openid": "Použite OpenID pre overenie vašej identity",
+		"offline_access": "Automaticky obnoviť tieto oprávnenia bez interakcie používateľa",
+		"profile": "Prístup k informáciám o vašom profile",
+		"groups": "Prístup k vašemu členstvu v skupinách",
+		"email": "Prístup k vašim e-mailovým adresám",
+		"phone": "Prístup k vášmu telefónnemu číslu",
+		"address": "Prístup k vašej adrese",
+		"authelia.bearer.authz": "Prístup k chráneným zdrojom prihláseným ako vy"
+	},
+	"claims": {
+		"sub": "Jedinečný identifikátor",
+		"name": "Zobrazované meno",
+		"given_name": "Krstné meno",
+		"family_name": "Priezvisko",
+		"middle_name": "Stredné meno",
+		"nickname": "Prezývka",
+		"preferred_username": "Preferované používateľské meno",
+		"profile": "URL profilu",
+		"picture": "URL obrázka",
+		"website": "URL webovej stránky",
+		"email": "E-mailová adresa",
+		"email_verified": "E-mailová adresa (overená)",
+		"gender": "Pohlavie",
+		"birthdate": "Dátum narodenia",
+		"zoneinfo": "Časové pásmo",
+		"locale": "Jazyk / Locale",
+		"phone_number": "Telefónne číslo",
+		"phone_number_verified": "Telefónne číslo (overené)",
+		"address": "Poštová adresa",
+		"updated_at": "Čas aktualizácie profilu",
+		"groups": "Členstvo v skupine"
+	}
+}

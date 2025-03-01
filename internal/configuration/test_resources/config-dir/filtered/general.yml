@@ -1,0 +1,21 @@
+---
+default_redirection_url: 'https://home.{{ env "ROOT_DOMAIN" }}:8080/'
+
+server:
+  address: 'tcp://{{ env "SERVICES_SERVER" }}:9091'
+
+log:
+  level: 'debug'
+
+totp:
+  issuer: 'authelia.com'
+
+duo_api:
+  hostname: 'api-123456789.{{ env "ROOT_DOMAIN" }}'
+  integration_key: 'ABCDEF'
+
+regulation:
+  max_retries: 3
+  find_time: '2 minutes'
+  ban_time: '5 minutes'
+...

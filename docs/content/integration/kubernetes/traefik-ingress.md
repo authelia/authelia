@@ -54,11 +54,11 @@ configured it to be served on the URL `https://{{< sitevar name="subdomain-authe
 that your cluster is configured with the default DNS domain name of `cluster.local`.
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-The [Middleware] should be applied to an [Ingress] / [IngressRoute] you wish to protect. It
-__SHOULD NOT__ be applied to the Authelia [Ingress] / [IngressRoute] itself.
+The [Middleware](#middleware) should be applied to an [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) / [IngressRoute](https://doc.traefik.io/traefik/providers/kubernetes-crd/) you wish to protect. It
+__SHOULD NOT__ be applied to the Authelia [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) / [IngressRoute](https://doc.traefik.io/traefik/providers/kubernetes-crd/) itself.
 {{< /callout >}}
 
-```yaml {title="middleware.yaml"}
+```yaml {title="middleware.yml"}
 ---
 apiVersion: 'traefik.containo.us/v1alpha1'
 kind: 'Middleware'
@@ -85,7 +85,7 @@ This is an example [Ingress] manifest which uses the above [Middleware](#middlew
 application you wish to serve on `https://app.{{< sitevar name="domain" nojs="example.com" >}}` and there is a Kubernetes [Service] with the name `app` in
 the `default` [Namespace] with TCP port `80` configured to route to the application [Pod]'s HTTP port.
 
-```yaml {title="ingress.yaml"}
+```yaml {title="ingress.yml"}
 ---
 apiVersion: 'networking.k8s.io/v1'
 kind: 'Ingress'
@@ -94,7 +94,7 @@ metadata:
   namespace: 'default'
   annotations:
     traefik.ingress.kubernetes.io/router.entryPoints: 'websecure' # name of your https entry point (default is 'websecure')
-    traefik.ingress.kubernetes.io/router.middlewares: 'default-forwardauth-authelia@kubernetescrd' # name of your middleware, as defined in your middleware.yaml
+    traefik.ingress.kubernetes.io/router.middlewares: 'default-forwardauth-authelia@kubernetescrd' # name of your middleware, as defined in your middleware.yml
     traefik.ingress.kubernetes.io/router.tls: 'true'
 spec:
   rules:
@@ -117,7 +117,7 @@ This is an example [IngressRoute] manifest which uses the above [Middleware](#mi
 an application you wish to serve on `https://app.{{< sitevar name="domain" nojs="example.com" >}}` and there is a Kubernetes [Service] with the name `app` in
 the `default` [Namespace] with TCP port `80` configured to route to the application [Pod]'s HTTP port.
 
-```yaml {title="ingressRoute.yaml"}
+```yaml {title="ingressRoute.yml"}
 ---
 apiVersion: 'traefik.containo.us/v1alpha1'
 kind: 'IngressRoute'
@@ -131,7 +131,7 @@ spec:
     - kind: 'Rule'
       match: 'Host(`app.{{< sitevar name="domain" nojs="example.com" >}}`)'
       middlewares:
-        - name: 'forwardauth-authelia' # name of your middleware, as defined in your middleware.yaml
+        - name: 'forwardauth-authelia' # name of your middleware, as defined in your middleware.yml
           namespace: 'default'
       services:
         - kind: 'Service'

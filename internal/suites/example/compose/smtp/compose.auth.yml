@@ -1,0 +1,7 @@
+---
+services:
+  smtp:
+    environment:
+      MP_SMTP_AUTH: 'authelia:mailer'
+      MP_SMTP_AUTH_ACCEPT_ANY: '0'
+...

@@ -1,0 +1,37 @@
+{
+	"Claim": "Dai {{name}}",
+	"Scope": "Muktadha {{name}}",
+	"scopes": {
+		"openid": "Tumia OpenID kuthibitisha kitambulisho chako",
+		"offline_access": "Badilisha ruhusa hizi kiatomati bila mwingiliano wa mtumiaji",
+		"profile": "Fikia taarifa za wasifu wako",
+		"groups": "Fikia uanachama wa kikundi chako",
+		"email": "Fikia anwani zako za barua pepe",
+		"phone": "Fikia nambari yako ya simu",
+		"address": "Fikia anwani yako",
+		"authelia.bearer.authz": "Fikia rasilimali zilizo na ulinzi ukiwa umeingia kama wewe"
+	},
+	"claims": {
+		"sub": "Kitambulisho Maalum",
+		"name": "Jina la Kuonyesha",
+		"given_name": "Jina la Kwanza",
+		"family_name": "Jina la Familia",
+		"middle_name": "Jina la Kati",
+		"nickname": "Jina la Utani",
+		"preferred_username": "Jina la Mtumiaji Lililopendekezwa",
+		"profile": "URL ya Profaili",
+		"picture": "URL ya Picha",
+		"website": "URL ya Tovuti",
+		"email": "Anwani ya Barua Pepe",
+		"email_verified": "Anwani ya Barua Pepe (Iliyothibitishwa)",
+		"gender": "Jinsia",
+		"birthdate": "Tarehe ya Kuzaliwa",
+		"zoneinfo": "Kanda ya Muda",
+		"locale": "Lugha / Kiswahili",
+		"phone_number": "Nambari ya Simu",
+		"phone_number_verified": "Nambari ya Simu (Iliyothibitishwa)",
+		"address": "Anwani ya Kijakazi",
+		"updated_at": "Muda wa Sasisho la Profaili",
+		"groups": "Uanachama wa Kundi"
+	}
+}

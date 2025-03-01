@@ -39,7 +39,7 @@ The next command starts the suite called *Standalone*:
 authelia-scripts suites setup Standalone
 ```
 
-Most of the suites are using docker-compose to bootstrap the environment. Therefore, you can check the logs of all
+Most of the suites are using docker compose to bootstrap the environment. Therefore, you can check the logs of all
 application by running the following command on the component you want to monitor.
 
 ```bash

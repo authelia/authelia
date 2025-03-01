@@ -119,7 +119,7 @@ configurations with individual settings.
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 Browsers have rules regarding which cookie domains a website can write. In particular the
-[Public Suffix List] usually contains domains which are not permitted.
+[Public Suffix List](https://publicsuffix.org/list/) usually contains domains which are not permitted.
 {{< /callout >}}
 
 The domain the session cookie is assigned to protect. This must be the same as the domain Authelia is served on or the

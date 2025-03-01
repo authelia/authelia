@@ -1,0 +1,37 @@
+{
+	"Claim": "索取 {{name}}",
+	"Scope": "範圍 {{name}}",
+	"scopes": {
+		"openid": "使用 OpenID 驗證您的身份",
+		"offline_access": "自動重新整理這些權限，無需使用者互動",
+		"profile": "訪問您的個人資料",
+		"groups": "訪問您的群組資訊",
+		"email": "訪問您的電子郵件地址",
+		"phone": "訪問您的電話號碼",
+		"address": "訪問您的地址",
+		"authelia.bearer.authz": "以您的身份登入存取受保護的資源"
+	},
+	"claims": {
+		"sub": "唯一識別碼",
+		"name": "顯示名稱",
+		"given_name": "名字",
+		"family_name": "姓氏",
+		"middle_name": "中間名",
+		"nickname": "暱稱",
+		"preferred_username": "首選用戶名",
+		"profile": "個人檔案網址",
+		"picture": "圖片網址",
+		"website": "網站網址",
+		"email": "電子郵件地址",
+		"email_verified": "電子郵件地址（已驗證）",
+		"gender": "性別",
+		"birthdate": "出生日期",
+		"zoneinfo": "時區",
+		"locale": "語言 / 地區",
+		"phone_number": "電話號碼",
+		"phone_number_verified": "電話號碼（已驗證）",
+		"address": "郵寄地址",
+		"updated_at": "檔案更新時間",
+		"groups": "群組會員資格"
+	}
+}

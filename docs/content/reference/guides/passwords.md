@@ -22,9 +22,11 @@ This file should be set with read/write permissions as it could be updated by us
 
 ### YAML Format
 
-The format of the [YAML] file is as follows:
+The format of the [YAML] file is documented via the [JSONSchema](schemas.md#json-schema). An example of this is as
+follows:
 
 ```yaml {title="users-database.yml"}
+# yaml-language-server: $schema=https://www.authelia.com/schemas/latest/json-schema/user-database.json
 users:
   john:
     disabled: false
@@ -40,6 +42,12 @@ users:
     password: '$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM'
     email: 'harry.potter@authelia.com'
     groups: []
+  james:
+    disabled: false
+    displayname: 'James Dean'
+    password: '$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM'
+    email: 'james.dean@authelia.com'
+    groups: []
   bob:
     disabled: false
     displayname: 'Bob Dylan'
@@ -47,13 +55,32 @@ users:
     email: 'bob.dylan@authelia.com'
     groups:
       - 'dev'
-  james:
-    disabled: false
-    displayname: 'James Dean'
-    password: '$argon2id$v=19$m=65536,t=3,p=2$BpLnfgDsc2WD8F2q$o/vzA4myCqZZ36bUGsDY//8mKUYNZZaR0t4MFFSs+iM'
-    email: 'james.dean@authelia.com'
-    groups: []
+    given_name: 'Robert'
+    family_name: 'Zimmerman'
+    middle_name: 'Allen'
+    nickname: 'Bob'
+    profile: 'https://en.wikipedia.org/wiki/Bob_Dylan'
+    picture: 'https://kelvinokaforart.com/wp-content/uploads/2023/01/Bob-Dylan.jpg'
+    website: 'https://www.bobdylan.com/'
+    gender: 'male'
+    birthdate: '1941-05-24'
+    zoneinfo: 'America/Chicago'
+    locale: 'en-US'
+    phone_number: '+1 (425) 555-1212'
+    phone_extension: '1000'
+    address:
+      street_address: '2-3 Kitanomarukoen'
+      locality: 'Chiyoda City'
+      region: 'Tokyo'
+      postal_code: '102-8321'
+      country: 'Japan'
+    extra:
+      example: 'value'
 ```
+
+It's recommended to check out the [Attributes Reference Guide](../../reference/guides/attributes.md) for more
+information on all of the attribute specifics, and it should be noted that all of the attributes are validated
+including the extra attributes which may not exist unless they are configured.
 
 ## Passwords
 
@@ -72,7 +99,7 @@ To generate an [Argon2] hash with the docker image interactively just run:
 {{< envTabs "Generate Password (Interactive)" >}}
 {{< envTab "Docker" >}}
 ```bash
-docker run -it authelia/authelia:latest authelia crypto hash generate argon2
+docker run --rm -it authelia/authelia:latest authelia crypto hash generate argon2
 ```
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
@@ -87,7 +114,7 @@ To generate an [Argon2] hash with the docker image without a prompt you can run:
 {{< envTabs "Generate Password" >}}
 {{< envTab "Docker" >}}
 ```bash
-docker run authelia/authelia:latest authelia crypto hash generate argon2 --password 'password'
+docker run --rm authelia/authelia:latest authelia crypto hash generate argon2 --password 'password'
 ```
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
@@ -109,7 +136,7 @@ in the current directory:
 {{< envTabs "Generate Password (Interactive)" >}}
 {{< envTab "Docker" >}}
 ```bash
-docker run -v ./configuration.yml:/configuration.yml -it authelia/authelia:latest authelia crypto hash generate --config /configuration.yml
+docker run --rm -it -v ./configuration.yml:/configuration.yml authelia/authelia:latest authelia crypto hash generate --config /configuration.yml
 ```
 {{< /envTab >}}
 {{< envTab "Bare Metal" >}}
@@ -147,7 +174,7 @@ all algorithms. The main cost type measurements are:
 * Memory
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-When using algorithms that use a memory cost like [Argon2] and [Scrypt] it should be noted that
+When using algorithms that use a memory cost like [Argon2](https://datatracker.ietf.org/doc/html/rfc9106) and [Scrypt](https://en.wikipedia.org/wiki/Scrypt) it should be noted that
 this memory is released by Go after the hashing process completes, however the operating system may not reclaim the
 memory until a later time such as when the system is experiencing memory pressure which may cause the appearance of more
 memory being in use than Authelia is actually actively using. Authelia will typically reuse this memory if it has not be

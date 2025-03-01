@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"syscall"
 
@@ -115,6 +116,23 @@ func flagsGetRandomCharacters(flags *pflag.FlagSet, flagNameLength, flagNameChar
 	rand := &random.Cryptographical{}
 
 	return rand.StringCustom(n, charset), nil
+}
+
+func flagParseFileMode(name string, flags *pflag.FlagSet) (mode os.FileMode, err error) {
+	var (
+		value string
+		octal uint64
+	)
+
+	if value, err = flags.GetString(name); err != nil {
+		return mode, err
+	}
+
+	if octal, err = strconv.ParseUint(value, 8, 32); err != nil {
+		return mode, err
+	}
+
+	return os.FileMode(octal), nil
 }
 
 func termReadConfirmation(flags *pflag.FlagSet, name, prompt, confirmation string) (confirmed bool, err error) {

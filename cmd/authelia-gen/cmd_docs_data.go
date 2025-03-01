@@ -59,6 +59,26 @@ func docsDataMiscRunE(cmd *cobra.Command, args []string) (err error) {
 	data.Latest = version.String()
 
 	var (
+		root, tag string
+	)
+
+	if root, err = getPFlagPath(cmd.Flags(), cmdFlagRoot); err != nil {
+		return err
+	}
+
+	if tag, err = readComposeTag("traefik", root, "internal", "suites", "example", "compose", "traefik", "compose.v3.yml"); err != nil {
+		return err
+	}
+
+	data.Support.Traefik = append(data.Support.Traefik, tag)
+
+	if tag, err = readComposeTag("traefik", root, "internal", "suites", "example", "compose", "traefik", "compose.v2.yml"); err != nil {
+		return err
+	}
+
+	data.Support.Traefik = append(data.Support.Traefik, tag)
+
+	var (
 		outputPath string
 	)
 
@@ -103,9 +123,13 @@ func docsKeysRunE(cmd *cobra.Command, args []string) (err error) {
 		data []ConfigurationKey
 	)
 
-	keys := readTags("", reflect.TypeOf(schema.Configuration{}), true, true)
+	keys := readTags("", reflect.TypeOf(schema.Configuration{}), true, true, true)
 
 	for _, key := range keys {
+		if strings.HasSuffix(key, ".*") {
+			continue
+		}
+
 		ck := ConfigurationKey{
 			Path:   key,
 			Secret: configuration.IsSecretKey(key),

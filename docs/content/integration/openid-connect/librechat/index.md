@@ -80,11 +80,11 @@ To configure [LibreChat] to utilize Authelia as an [OpenID Connect 1.0] Provider
 ```env
 ALLOW_SOCIAL_LOGIN=true
 OPENID_BUTTON_LABEL=Log in with Authelia
-OPENID_ISSUER=https://auth.{{< sitevar name="domain" nojs="example.com" >}}
+OPENID_ISSUER=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration
 OPENID_CLIENT_ID=librechat
 OPENID_CLIENT_SECRET=insecure_secret
 OPENID_SESSION_SECRET=insecure_session_secret
-OPENID_CALLBACK_URL=https://auth.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization
+OPENID_CALLBACK_URL=/oauth/openid/callback
 OPENID_SCOPE=openid profile email
 OPENID_IMAGE_URL=https://www.authelia.com/images/branding/logo-cropped.png
 ```

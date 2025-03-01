@@ -339,6 +339,20 @@ func getJSONSchemaOutputPath(cmd *cobra.Command, flag string) (dir, file string,
 
 func jsonschemaKoanfMapper(t reflect.Type) *jsonschema.Schema {
 	switch t.String() {
+	case "[]*net.IPNet":
+		return &jsonschema.Schema{
+			OneOf: []*jsonschema.Schema{
+				{
+					Type: jsonschema.TypeString,
+				},
+				{
+					Type: jsonschema.TypeArray,
+					Items: &jsonschema.Schema{
+						Type: jsonschema.TypeString,
+					},
+				},
+			},
+		}
 	case "regexp.Regexp", "*regexp.Regexp":
 		return &jsonschema.Schema{
 			Type:   jsonschema.TypeString,
@@ -379,8 +393,16 @@ func jsonschemaKoanfMapper(t reflect.Type) *jsonschema.Schema {
 		}
 	case "mail.Address", "*mail.Address":
 		return &jsonschema.Schema{
-			Type:   jsonschema.TypeString,
-			Format: jsonschema.FormatStringEmail,
+			OneOf: []*jsonschema.Schema{
+				{
+					Type:   jsonschema.TypeString,
+					Format: jsonschema.FormatStringEmail,
+				},
+				{
+					Type:    jsonschema.TypeString,
+					Pattern: `^[^<]+\s\<[a-zA-Z0-9._~!#$%&'*/=?^{|}+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z0-9-]+\>$`,
+				},
+			},
 		}
 	case "schema.CSPTemplate":
 		return &jsonschema.Schema{

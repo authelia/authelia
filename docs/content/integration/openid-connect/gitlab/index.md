@@ -45,8 +45,8 @@ Some of the values presented in this guide can automatically be replaced with do
 ### Authelia
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-This configuration assumes you've configured the `client_auth_method` in [GitLab] as per below. If you
-have not done this the default in [GitLab] will require the `token_endpoint_auth_method` changes to
+This configuration assumes you've configured the `client_auth_method` in [GitLab](https://about.gitlab.com/) as per below. If you
+have not done this, the default in [GitLab](https://about.gitlab.com/) will require the `token_endpoint_auth_method` changes to
 `client_secret_post`.
 {{< /callout >}}
 

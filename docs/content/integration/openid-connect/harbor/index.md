@@ -21,9 +21,9 @@ seo:
 ## Tested Versions
 
 * [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+  * [v4.38.15](https://github.com/authelia/authelia/releases/tag/v4.38.15)
 * [Harbor]
-  * 2.5.0
+  * 2.11.2
 
 {{% oidc-common %}}
 
@@ -60,11 +60,15 @@ identity_providers:
         authorization_policy: 'two_factor'
         redirect_uris:
           - 'https://harbor.{{< sitevar name="domain" nojs="example.com" >}}/c/oidc/callback'
+        grant_types:
+          - 'refresh_token'
+          - 'authorization_code'
         scopes:
           - 'openid'
           - 'profile'
           - 'groups'
           - 'email'
+          - 'offline_access'
         userinfo_signed_response_alg: 'none'
 ```
 
@@ -82,8 +86,8 @@ To configure [Harbor] to utilize Authelia as an [OpenID Connect 1.0] Provider:
    3. OIDC Client ID: `harbor`
    4. OIDC Client Secret: `insecure_secret`
    5. Group Claim Name: `groups`
-   6. OIDC Scope: `openid,profile,email,groups`
-   7. For OIDC Admin Group you can specify a group name that matches your authentication backend.
+   6. For OIDC Admin Group you can specify a group name that matches your authentication backend.
+   7. OIDC Scope: `openid,profile,email,groups,offline_access`
    8. Ensure `Verify Certificate` is checked.
    9. Ensure `Automatic onboarding` is checked if you want users to be created by default.
    10. Username Claim: `preferred_username`
@@ -92,7 +96,7 @@ To configure [Harbor] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 ## See Also
 
-* [Harbor OpenID Connect Provider Documentation](https://goharbor.io/docs/2.5.0/administration/configure-authentication/oidc-auth/)
+* [Harbor OpenID Connect Provider Documentation](https://goharbor.io/docs/2.11.0/administration/configure-authentication/oidc-auth/)
 
 [Authelia]: https://www.authelia.com
 [Harbor]: https://goharbor.io/

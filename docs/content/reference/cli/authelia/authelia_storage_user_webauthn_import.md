@@ -32,9 +32,9 @@ authelia storage user webauthn import <filename> [flags]
 
 ```
 authelia storage user webauthn export
-authelia storage user webauthn import --file authelia.export.webauthn.yaml
-authelia storage user webauthn import --file authelia.export.webauthn.yaml --config config.yml
-authelia storage user webauthn import --file authelia.export.webauthn.yaml --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
+authelia storage user webauthn import --file authelia.export.webauthn.yml
+authelia storage user webauthn import --file authelia.export.webauthn.yml --config config.yml
+authelia storage user webauthn import --file authelia.export.webauthn.yml --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
 ```
 
 ### Options

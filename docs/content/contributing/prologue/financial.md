@@ -29,7 +29,8 @@ Potential usage for the money, ranked in order of priority:
 1. Put Authelia through a comprehensive [Security Audit](../../policies/security.md#help-wanted).
    1. Audit of Code Security via Analysis.
    2. Audit via Penetration Testing.
-2. Bug Bounty Program.
+2. Obtain formal accreditations.
+3. Bug Bounty Program.
 
 ## How to Contribute Financially
 
@@ -40,7 +41,17 @@ Please visit [Open Collective] in order to financially contribute to Authelia.
 Authelia is sponsored by several companies via indirect means. These companies deserve a special mention since their
 contributions are very important to us but not easily visible.
 
-If you feel you have a product or service that Authelia could benefit from please feel free to [contact](../../information/contact.md) us.
+If you feel you have a product or service that Authelia could benefit from please feel free to
+[contact](../../information/contact.md) us.
+
+In the event that an entity decides to sponsor an entire or large part of a formal and industry recognized audit we
+would be willing to discuss terms including but not limited to making formal acknowledgement in the form of a blog post,
+perpetual recognition on the eventual publication of the results, and long term recognition on other various areas of
+the project.
+
+We would however not be interested in discussion of project direction ideas that contradict with our core values, or in
+any way compromise the integrity of the development or architecture processes we engage in, or any advertising within
+the Authelia binary itself.
 
 We are currently directly looking for someone to sponsor:
 

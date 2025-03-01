@@ -9,10 +9,10 @@
 users:
   <USERNAME>:
     disabled: false
-    displayname: "<DISPLAYNAME>"
-    password: "<PASSWORD>"
-    email: <USERNAME>@example.com
+    displayname: '<DISPLAYNAME>'
+    password: '<PASSWORD>'
+    email: '<USERNAME>@example.com'
     groups:
-      - admins
-      - dev
+      - 'admins'
+      - 'dev'
 ...

@@ -1,0 +1,11 @@
+---
+services:
+  postgres:
+    image: 'postgres:17'
+    environment:
+      POSTGRES_PASSWORD: 'password'
+      POSTGRES_USER: 'admin'
+      POSTGRES_DB: 'authelia'
+    networks:
+      authelianet: {}
+...

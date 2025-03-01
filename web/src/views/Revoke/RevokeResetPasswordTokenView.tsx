@@ -25,10 +25,12 @@ const RevokeResetPasswordTokenView = function () {
     const handleRevoke = useCallback(async () => {
         if (!token) return;
 
-        const ok = await deleteResetPasswordToken(token);
+        const { ok, status } = await deleteResetPasswordToken(token);
 
         if (ok) {
             createSuccessNotification(translate("Successfully revoked the Token"));
+        } else if (status === 429) {
+            createErrorNotification(translate("You have made too many requests"));
         } else {
             createErrorNotification(translate("Failed to revoke the Token"));
         }

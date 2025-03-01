@@ -6,7 +6,7 @@ date: 2020-04-16T18:12:41+10:00
 draft: false
 images: []
 weight: 430
-toc: false
+toc: true
 aliases:
   - /o/threatmodel
   - /docs/security/threat-model.html

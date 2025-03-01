@@ -1,0 +1,88 @@
+---
+access_control:
+  default_policy: 'deny'
+
+  rules:
+    # Rules applied to everyone
+    - domain:
+        - 'public.{{ env "ROOT_DOMAIN" }}'
+      policy: 'bypass'
+
+    - domain:
+        - 'secure.{{ env "ROOT_DOMAIN" }}'
+      policy: 'one_factor'
+      # Network based rule, if not provided any network matches.
+      networks:
+        - '192.168.1.0/24'
+    - domain:
+        - 'secure.{{ env "ROOT_DOMAIN" }}'
+      policy: 'two_factor'
+
+    - domain:
+        - 'singlefactor.{{ env "ROOT_DOMAIN" }}'
+        - 'onefactor.{{ env "ROOT_DOMAIN" }}'
+      policy: 'one_factor'
+
+    # Rules applied to 'admins' group
+    - domain:
+        - 'mx2.mail.{{ env "ROOT_DOMAIN" }}'
+      subject:
+        - 'group:admins'
+      policy: 'deny'
+    - domain:
+        - '*.{{ env "ROOT_DOMAIN" }}'
+      subject:
+        - ['group:admins']
+      policy: 'two_factor'
+
+    # Rules applied to 'dev' group
+    - domain:
+        - 'dev.{{ env "ROOT_DOMAIN" }}'
+      resources:
+        - '^/groups/dev/.*$'
+      subject:
+        - ['group:dev']
+      policy: 'two_factor'
+
+    # Rules applied to user 'john'
+    - domain:
+        - 'dev.{{ env "ROOT_DOMAIN" }}'
+      resources:
+        - '^/users/john/.*$'
+      subject:
+        - ['user:john']
+      policy: 'two_factor'
+
+    # Rules applied to 'dev' group and user 'john'
+    - domain:
+        - 'dev.{{ env "ROOT_DOMAIN" }}'
+      resources:
+        - "^/deny-all.*$"
+      subject:
+        - ['group:dev']
+        - ['user:john']
+      policy: 'deny'
+
+    # Rules applied to user 'harry'
+    - domain:
+        - 'dev.{{ env "ROOT_DOMAIN" }}'
+      resources:
+        - '^/users/harry/.*$'
+      subject:
+        - ['user:harry']
+      policy: 'two_factor'
+
+    # Rules applied to user 'bob'
+    - domain:
+        - '*.mail.{{ env "ROOT_DOMAIN" }}'
+      subject:
+        - ['user:bob']
+      policy: 'two_factor'
+    - domain:
+        - 'dev.{{ env "ROOT_DOMAIN" }}'
+      resources:
+        - '^/users/bob/.*$'
+      subject:
+        - ['user:bob']
+      policy: 'two_factor'
+...

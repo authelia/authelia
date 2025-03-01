@@ -32,7 +32,22 @@ See [support](support.md) for support information.
 
 ### Required Headers
 
-__Authelia__ itself requires the following headers are set when secured behind a reverse proxy:
+There are several required headers for Authelia to operate properly. These headers are considered part of the supported
+configuration and they are assumed to be present for future development.
+
+You may not be able to do several things that rely on these headers such as but not limited to:
+
+  - Properly identify the request information for Access Control, such as client IP, hostname, request URL or Scheme,
+    etc.
+  - Properly identify the correct domain for session cookies.
+  - Properly identify the public facing URL for redirection or email links making redirection or email based
+    verifications inoperable.
+  - Properly identify the OpenID Connect 1.0 Issuer or Endpoint URL's making OpenID Connect 1.0 inoperable.
+  - Properly identify the WebAuthn Relying Party Identifier making WebAuthn inoperable.
+
+In addition to the [Proxy Authorization Endpoint](../../reference/guides/proxy-authorization.md) implementations and the
+headers required by those, __Authelia__ itself requires the following headers are set when secured behind a reverse
+proxy i.e. the headers a reverse proxy must include for the __Authelia__ portal app itself:
 
 * Scheme Detection:
   * Default: [X-Forwarded-Proto] (header)

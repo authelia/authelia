@@ -10,19 +10,59 @@ import (
 	"strings"
 
 	"github.com/go-jose/go-jose/v4"
-	"golang.org/x/net/publicsuffix"
+	"github.com/weppos/publicsuffix-go/publicsuffix"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+func isUserAttributeDefinitionNameValid(attribute string, config *schema.Configuration) bool {
+	if expression.IsReservedAttribute(attribute) {
+		return false
+	}
+
+	if config.AuthenticationBackend.LDAP != nil {
+		for attrname, attr := range config.AuthenticationBackend.LDAP.Attributes.Extra {
+			if attr.Name != "" {
+				if attr.Name == attribute {
+					return false
+				}
+			} else if attrname == attribute {
+				return false
+			}
+		}
+	}
+
+	if config.AuthenticationBackend.File != nil {
+		for attrname := range config.AuthenticationBackend.File.ExtraAttributes {
+			if attrname == attribute {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
+func boolApply(current, new bool) bool {
+	if current || new {
+		return true
+	}
+
+	return false
+}
+
 func isCookieDomainAPublicSuffix(domain string) (valid bool) {
-	var suffix string
+	domain = strings.TrimLeft(domain, ".")
 
-	suffix, _ = publicsuffix.PublicSuffix(domain)
+	_, err := publicsuffix.Domain(domain)
+	if err != nil {
+		return err.Error() == fmt.Sprintf(errFmtCookieDomainInPSL, domain)
+	}
 
-	return len(strings.TrimLeft(domain, ".")) == len(suffix)
+	return false
 }
 
 func validateListNotAllowed(values, filter []string) (invalid []string) {
@@ -77,10 +117,17 @@ type JWKProperties struct {
 	Curve     elliptic.Curve
 }
 
+//nolint:gocyclo
 func schemaJWKGetProperties(jwk schema.JWK) (properties *JWKProperties, err error) {
+	if jwk.Use == oidc.KeyUseEncryption {
+		return schemaJWKGetPropertiesEnc(jwk)
+	}
+
 	switch key := jwk.Key.(type) {
 	case nil:
 		return nil, nil
+	case []byte:
+		return nil, fmt.Errorf("symmetric keys are not permitted for signing")
 	case ed25519.PrivateKey, ed25519.PublicKey:
 		return &JWKProperties{}, nil
 	case *rsa.PrivateKey:
@@ -117,6 +164,48 @@ func schemaJWKGetProperties(jwk schema.JWK) (properties *JWKProperties, err erro
 		default:
 			return &JWKProperties{oidc.KeyUseSignature, "", -1, key.Curve}, nil
 		}
+	default:
+		return nil, fmt.Errorf("the key type '%T' is unknown or not valid for the configuration", key)
+	}
+}
+
+func schemaJWKGetPropertiesEnc(jwk schema.JWK) (properties *JWKProperties, err error) {
+	switch key := jwk.Key.(type) {
+	case nil:
+		return nil, nil
+	case []byte:
+		switch n := len(key); n {
+		case 256:
+			return &JWKProperties{oidc.KeyUseEncryption, oidc.EncryptionAlgA256GCMKW, n, nil}, nil
+		case 192:
+			return &JWKProperties{oidc.KeyUseEncryption, oidc.EncryptionAlgA192GCMKW, n, nil}, nil
+		case 128:
+			return &JWKProperties{oidc.KeyUseEncryption, oidc.EncryptionAlgA128GCMKW, n, nil}, nil
+		default:
+			if n > 32 {
+				return nil, fmt.Errorf("invalid symmetric key length of %d but the minimum is 32", n)
+			}
+
+			return &JWKProperties{oidc.KeyUseEncryption, oidc.EncryptionAlgDirect, n, nil}, nil
+		}
+	case ed25519.PrivateKey, ed25519.PublicKey:
+		return &JWKProperties{}, nil
+	case *rsa.PrivateKey:
+		if key.PublicKey.N == nil {
+			return &JWKProperties{oidc.KeyUseEncryption, oidc.EncryptionAlgRSAOAEP256, 0, nil}, nil
+		}
+
+		return &JWKProperties{oidc.KeyUseEncryption, oidc.EncryptionAlgRSAOAEP256, key.Size(), nil}, nil
+	case *rsa.PublicKey:
+		if key.N == nil {
+			return &JWKProperties{oidc.KeyUseEncryption, oidc.EncryptionAlgRSAOAEP256, 0, nil}, nil
+		}
+
+		return &JWKProperties{oidc.KeyUseEncryption, oidc.EncryptionAlgRSAOAEP256, key.Size(), nil}, nil
+	case *ecdsa.PublicKey:
+		return &JWKProperties{oidc.KeyUseEncryption, oidc.EncryptionAlgECDHESA256KW, -1, key.Curve}, nil
+	case *ecdsa.PrivateKey:
+		return &JWKProperties{oidc.KeyUseEncryption, oidc.EncryptionAlgECDHESA256KW, -1, key.Curve}, nil
 	default:
 		return nil, fmt.Errorf("the key type '%T' is unknown or not valid for the configuration", key)
 	}

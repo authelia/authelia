@@ -31,7 +31,7 @@ authelia storage user totp export [flags]
 ### Examples
 
 ```
-authelia storage user totp export --file example.yaml
+authelia storage user totp export --file example.yml
 authelia storage user totp export --config config.yml
 authelia storage user totp export --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
 ```
@@ -39,7 +39,7 @@ authelia storage user totp export --encryption-key b3453fde-ecc2-4a1f-9422-2707d
 ### Options
 
 ```
-  -f, --file string   The file name for the YAML export (default "authelia.export.totp.yaml")
+  -f, --file string   The file name for the YAML export (default "authelia.export.totp.yml")
   -h, --help          help for export
 ```
 

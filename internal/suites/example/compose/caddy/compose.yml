@@ -1,0 +1,12 @@
+---
+services:
+  caddy:
+    # build: ./example/compose/caddy/ # used for debugging
+    image: caddy:2.9.1-alpine
+    volumes:
+      - './example/compose/caddy/Caddyfile:/etc/caddy/Caddyfile'
+      - './common/pki:/pki'
+    networks:
+      authelianet:
+        ipv4_address: 192.168.240.100
+...

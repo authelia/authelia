@@ -1,0 +1,21 @@
+---
+services:
+  authelia-backend:
+    image: 'authelia:dist'
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.authelia_backend.rule: 'Host(`login.example.com`) || Host(`login.example.com`) && PathPrefix(`${PathPrefix}/`)'  # yamllint disable-line rule:line-length
+      traefik.http.routers.authelia_backend.entrypoints: 'https'
+      traefik.http.routers.authelia_backend.tls: 'true'
+      traefik.http.services.authelia_backend.loadbalancer.server.scheme: 'https'
+    healthcheck:
+      disable: true
+    volumes:
+      - '../..:/authelia'
+    environment:
+      ENVIRONMENT: 'dev'
+    restart: 'always'
+    networks:
+      authelianet:
+        ipv4_address: 192.168.240.50
+...

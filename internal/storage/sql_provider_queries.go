@@ -181,23 +181,23 @@ const (
 //nolint:gosec // The following queries are not hard coded credentials.
 const (
 	queryFmtSelectWebAuthnCredentials = `
-		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, legacy, discoverable, present, verified, backup_eligible, backup_state, public_key
+		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, legacy, discoverable, present, verified, backup_eligible, backup_state, public_key, attestation
 		FROM %s
 		LIMIT ?
 		OFFSET ?;`
 
 	queryFmtSelectWebAuthnCredentialsByUsername = `
-		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, legacy, discoverable, present, verified, backup_eligible, backup_state, public_key
+		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, legacy, discoverable, present, verified, backup_eligible, backup_state, public_key, attestation
 		FROM %s
-		WHERE username = ?;`
+		WHERE username = ? AND (? = FALSE OR discoverable = TRUE);`
 
 	queryFmtSelectWebAuthnCredentialsByRPIDByUsername = `
-		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, legacy, discoverable, present, verified, backup_eligible, backup_state, public_key
+		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, legacy, discoverable, present, verified, backup_eligible, backup_state, public_key, attestation
 		FROM %s
-		WHERE rpid = ? AND username = ?;`
+		WHERE rpid = ? AND username = ? AND (? = FALSE OR discoverable = TRUE);`
 
 	queryFmtSelectWebAuthnCredentialByID = `
-		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, legacy, discoverable, present, verified, backup_eligible, backup_state, public_key
+		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, legacy, discoverable, present, verified, backup_eligible, backup_state, public_key, attestation
 		FROM %s
 		WHERE id = ?;`
 
@@ -214,8 +214,8 @@ const (
 		WHERE id = ?;`
 
 	queryFmtInsertWebAuthnCredential = `
-		INSERT INTO %s (created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, discoverable, present, verified, backup_eligible, backup_state, public_key)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+		INSERT INTO %s (created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, discoverable, present, verified, backup_eligible, backup_state, public_key, attestation)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
 	queryFmtDeleteWebAuthnCredential = `
 		DELETE FROM %s
@@ -230,12 +230,12 @@ const (
 		WHERE username = ? AND description = ?;`
 
 	queryFmtSelectWebAuthnCredentialsEncryptedData = `
-		SELECT id, public_key
+		SELECT id, public_key, attestation
 		FROM %s;`
 
 	queryFmtUpdateWebAuthnCredentialsEncryptedData = `
 		UPDATE %s
-		SET public_key = ?
+		SET public_key = ?, attestation = ?
 		WHERE id = ?;`
 )
 
@@ -248,6 +248,11 @@ const (
 		SELECT id, rpid, username, userid
 		FROM %s
 		WHERE rpid = ? AND username = ?;`
+
+	queryFmtSelectWebAuthnUserByUserID = `
+		SELECT id, rpid, username, userid
+		FROM %s
+		WHERE rpid = ? AND userid = ?;`
 )
 
 const (
@@ -278,13 +283,119 @@ const (
 		INSERT INTO %s (time, successful, banned, username, auth_type, remote_ip, request_uri, request_method)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?);`
 
-	queryFmtSelect1FAAuthenticationLogEntryByUsername = `
-		SELECT time, successful, username
+	queryFmtSelectAuthenticationLogsRegulationRecordsByUsername = `
+		SELECT time, successful
 		FROM %s
-		WHERE time > ? AND username = ? AND auth_type = '1FA' AND banned = FALSE
+		WHERE time > ? AND username = ? AND auth_type = '1FA' AND banned = ?
 		ORDER BY time DESC
+		LIMIT ?;`
+
+	queryFmtSelectAuthenticationLogsRegulationRecordsByRemoteIP = `
+		SELECT time, successful
+		FROM %s
+		WHERE time > ? AND remote_ip = ? AND auth_type = '1FA' AND banned = ?
+		ORDER BY time DESC
+		LIMIT ?;`
+)
+
+const (
+	queryFmtInsertBannedUser = `
+		INSERT INTO %s (expires, username, source, reason)
+		VALUES (?, ?, ?, ?);`
+
+	queryFmtSelectBannedUser = `
+		SELECT id, time, expires, expired, revoked, username, source, reason
+		FROM %s
+		WHERE username = ? AND revoked = FALSE AND (expires IS NULL OR expires > ?) AND expired IS NULL
+		ORDER BY time DESC;`
+
+	queryFmtSelectBannedUserByID = `
+		SELECT id, time, expires, expired, revoked, username, source, reason
+		FROM %s
+		WHERE id = ?;`
+
+	queryFmtSelectBannedUsers = `
+		SELECT id, time, expires, expired, revoked, username, source, reason
+		FROM %s
+		WHERE revoked = ? AND (expires IS NULL OR expires > ?) AND expired IS NULL
 		LIMIT ?
 		OFFSET ?;`
+
+	queryFmtSelectBannedUserLastExpires = `
+		SELECT expires, expired, revoked
+		FROM %s
+		WHERE username = ?
+		ORDER BY time DESC
+		LIMIT 1;`
+)
+
+const (
+	queryFmtInsertBannedIP = `
+		INSERT INTO %s (expires, ip, source, reason)
+		VALUES (?, ?, ?, ?);`
+
+	queryFmtSelectBannedIP = `
+		SELECT id, time, expires, expired, revoked, ip, source, reason
+		FROM %s
+		WHERE ip = ? AND revoked = ? AND (expires IS NULL OR expires > ?) AND expired IS NULL
+		ORDER BY time DESC;`
+
+	queryFmtSelectBannedIPByID = `
+		SELECT id, time, expires, expired, revoked, ip, source, reason
+		FROM %s
+		WHERE id = ?;`
+
+	queryFmtSelectBannedIPs = `
+		SELECT id, time, expires, expired, revoked, ip, source, reason
+		FROM %s
+		WHERE revoked = FALSE AND (expires IS NULL OR expires > ?)
+		LIMIT ?
+		OFFSET ?;`
+
+	queryFmtSelectBannedIPLastExpires = `
+		SELECT expires, expired, revoked
+		FROM %s
+		WHERE ip = ?
+		ORDER BY time DESC
+		LIMIT 1;`
+)
+
+const (
+	queryFmtRevokeBannedEntry = `
+		UPDATE %s
+		SET expired = ?, revoked = TRUE
+		WHERE id = ?;`
+)
+
+const (
+	queryFmtUpsertCachedData = `
+		REPLACE INTO %s (updated_at, name, encrypted, value)
+		VALUES (CURRENT_TIMESTAMP, ?, ?, ?);`
+
+	queryFmtUpsertCachedDataPostgreSQL = `
+		INSERT INTO %s (updated_at, name, encrypted, value)
+		VALUES (CURRENT_TIMESTAMP, $1, $2, $3)
+			ON CONFLICT (name)
+			DO UPDATE SET encrypted = $2, value = $3;`
+
+	queryFmtSelectCachedData = `
+		SELECT id, created_at, updated_at, name, encrypted, value
+		FROM %s
+		WHERE name = ?;`
+
+	queryFmtDeleteCachedData = `
+		DELETE FROM %s
+		WHERE name = ?;`
+
+	queryFmtSelectCachedDataEncryptedData = `
+		SELECT id, value
+		FROM %s
+		WHERE encrypted = 1;`
+
+	queryFmtUpdateCachedDataEncryptedData = `
+		UPDATE %s
+		SET value = ?
+		WHERE id = ?;`
 )
 
 const (
@@ -315,30 +426,30 @@ const (
 
 const (
 	queryFmtSelectOAuth2ConsentPreConfigurations = `
-		SELECT id, client_id, subject, created_at, expires_at, revoked, scopes, audience
+		SELECT id, client_id, subject, created_at, expires_at, revoked, scopes, audience, requested_claims, signature_claims, granted_claims
 		FROM %s
 		WHERE client_id = ? AND subject = ? AND
 			  revoked = FALSE AND (expires_at IS NULL OR expires_at >= CURRENT_TIMESTAMP);`
 
 	queryFmtInsertOAuth2ConsentPreConfiguration = `
-		INSERT INTO %s (client_id, subject, created_at, expires_at, revoked, scopes, audience)
-		VALUES(?, ?, ?, ?, ?, ?, ?);`
+		INSERT INTO %s (client_id, subject, created_at, expires_at, revoked, scopes, audience, requested_claims, signature_claims, granted_claims)
+		VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
 	queryFmtInsertOAuth2ConsentPreConfigurationPostgreSQL = `
-		INSERT INTO %s (client_id, subject, created_at, expires_at, revoked, scopes, audience)
-		VALUES($1, $2, $3, $4, $5, $6, $7)
+		INSERT INTO %s (client_id, subject, created_at, expires_at, revoked, scopes, audience, requested_claims, signature_claims, granted_claims)
+		VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 		RETURNING id;`
 
 	queryFmtSelectOAuth2ConsentSessionByChallengeID = `
 		SELECT id, challenge_id, client_id, subject, authorized, granted, requested_at, responded_at,
-		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience, preconfiguration
+		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience, granted_claims, preconfiguration
 		FROM %s
 		WHERE challenge_id = ?;`
 
 	queryFmtInsertOAuth2ConsentSession = `
 		INSERT INTO %s (challenge_id, client_id, subject, authorized, granted, requested_at, responded_at,
-		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience, preconfiguration)
-		VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience, granted_claims, preconfiguration)
+		VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
 	queryFmtUpdateOAuth2ConsentSessionSubject = `
 		UPDATE %s
@@ -347,7 +458,7 @@ const (
 
 	queryFmtUpdateOAuth2ConsentSessionResponse = `
 		UPDATE %s
-		SET authorized = ?, responded_at = CURRENT_TIMESTAMP, granted_scopes = ?, granted_audience = ?, preconfiguration = ?
+		SET authorized = ?, responded_at = CURRENT_TIMESTAMP, granted_scopes = ?, granted_audience = ?, granted_claims = ?, preconfiguration = ?
 		WHERE id = ? AND responded_at IS NULL;`
 
 	queryFmtUpdateOAuth2ConsentSessionGranted = `
@@ -387,6 +498,31 @@ const (
 		UPDATE %s
 		SET active = FALSE
 		WHERE request_id = ?;`
+
+	queryFmtSelectOAuth2DeviceCodeSession = `
+		SELECT id, challenge_id, request_id, client_id, signature, user_code_signature, status, subject,
+		requested_at, checked_at, requested_scopes, granted_scopes, requested_audience, granted_audience,
+		active, revoked, form_data, session_data
+		FROM %s
+		WHERE signature = ? AND revoked = FALSE;`
+
+	queryFmtSelectOAuth2DeviceCodeSessionByUserCode = `
+		SELECT id, challenge_id, request_id, client_id, signature, user_code_signature, status, subject,
+		requested_at, checked_at, requested_scopes, granted_scopes, requested_audience, granted_audience,
+		active, revoked, form_data, session_data
+		FROM %s
+		WHERE user_code_signature = ? AND revoked = FALSE;`
+
+	queryFmtInsertOAuth2DeviceCodeSession = `
+		INSERT INTO %s (challenge_id, request_id, client_id, signature, user_code_signature, status, subject,
+		requested_at, checked_at, requested_scopes, granted_scopes, requested_audience, granted_audience,
+		active, revoked, form_data, session_data)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+
+	queryFmtUpdateOAuth2DeviceCodeSession = `
+		UPDATE %s
+		SET checked_at = ?, status = ?
+		WHERE signature = ?;`
 
 	queryFmtSelectOAuth2PARContext = `
 		SELECT id, signature, request_id, client_id, requested_at, scopes, audience,

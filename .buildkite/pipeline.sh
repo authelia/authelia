@@ -45,7 +45,7 @@ env:
 
 steps:
   - label: ":service_dog: Linting"
-    command: "reviewdog -reporter=github-check -filter-mode=nofilter -fail-on-error"
+    command: ".buildkite/lint.sh -reporter=github-check -filter-mode=nofilter -fail-level=error"
     if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.message !~ /\[(skip test|test skip)\]/
 
   - label: ":hammer_and_wrench: Unit Test"

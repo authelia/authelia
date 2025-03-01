@@ -1,0 +1,13 @@
+---
+services:
+  httpbin:
+    image: citizenstig/httpbin
+    networks:
+      authelianet: {}
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.httpbin.rule: 'Host(`public.example.com`) && Path(`/headers`)'
+      traefik.http.routers.httpbin.priority: '1000'
+      traefik.http.routers.httpbin.tls: 'true'
+      traefik.http.routers.httpbin.middlewares: 'authelia@docker'
+...

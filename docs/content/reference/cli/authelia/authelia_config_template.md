@@ -33,8 +33,7 @@ authelia config template [flags]
 ### Examples
 
 ```
-authelia config template --filters.experimental.template
-authelia config template --filters.experimental.expand-env --config config.yml
+authelia config template --config.experimental.filters=template --config=config.yml
 ```
 
 ### Options

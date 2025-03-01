@@ -17,12 +17,17 @@ seo:
   noindex: false # false (default) or true
 ---
 
-[Traefik] v1 is a reverse proxy supported by __Authelia__.
+[Traefik] v1 is a reverse proxy formally supported by __Authelia__.
 
 *__Important:__ When using these guides, it's important to recognize that we cannot provide a guide for every possible
 method of deploying a proxy. These guides show a suggested setup only, and you need to understand the proxy
 configuration and customize it to your needs. To-that-end, we include links to the official proxy documentation
 throughout this documentation and in the [See Also](#see-also) section.*
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Traefik formally has removed support for this version of Traefik. As such we no longer formally support it either. This
+guide will remain at least for a time as a form of legacy support.
+{{< /callout >}}
 
 ## Get started
 
@@ -142,9 +147,9 @@ Authelia provides the means to be able to authenticate your first factor via the
 Given that this is not compatible with [Traefik] 1.x you can call the __Authelia__ `/api/verify` endpoint with the
 `auth=basic` query parameter to force a switch to the `Authentication` header.
 
-##### docker-compose.yml
+#### compose.yml
 
-```yaml {title="docker-compose.yml"}
+```yaml {title="compose.yml"}
 networks:
   net:
     driver: 'bridge'
@@ -155,10 +160,10 @@ services:
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
     networks:
-      - 'net'
+      net: {}
     labels:
-      - 'traefik.frontend.rule=Host:traefik.{{< sitevar name="domain" nojs="example.com" >}}'
-      - 'traefik.port=8081'
+      traefik.frontend.rule: 'Host:traefik.{{< sitevar name="domain" nojs="example.com" >}}'
+      traefik.port: '8081'
     ports:
       - '80:80'
       - '443:443'
@@ -184,11 +189,9 @@ services:
     volumes:
       - '/path/to/authelia:/config'
     networks:
-      - 'net'
+      net: {}
     labels:
-      - 'traefik.frontend.rule=Host:{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
-    expose:
-      - {{< sitevar name="port" nojs="9091" >}}
+      traefik.frontend.rule: 'Host:{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
     restart: 'unless-stopped'
     environment:
       TZ: 'Australia/Melbourne'
@@ -199,17 +202,15 @@ services:
       - '/path/to/nextcloud/config:/config'
       - '/path/to/nextcloud/data:/data'
     networks:
-      - 'net'
+      net: {}
     labels:
-      - 'traefik.frontend.rule=Host:nextcloud.{{< sitevar name="domain" nojs="example.com" >}}'
-      - 'traefik.frontend.auth.forward.address={{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth'
+      traefik.frontend.rule: 'Host:nextcloud.{{< sitevar name="domain" nojs="example.com" >}}'
+      traefik.frontend.auth.forward.address: '{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth'
       ## The following commented line is for configuring the Authelia URL in the proxy. We strongly suggest this is
       ## configured in the Session Cookies section of the Authelia configuration.
-      # - 'traefik.frontend.auth.forward.address={{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth?authelia_url=https%3A%2F%2F{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}%2F'
-      - 'traefik.frontend.auth.forward.trustForwardHeader=true'
-      - 'traefik.frontend.auth.forward.authResponseHeaders=Remote-User,Remote-Groups,Remote-Email,Remote-Name'
-    expose:
-      - 443
+      # traefik.frontend.auth.forward.address: '{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth?authelia_url=https%3A%2F%2F{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}%2F'
+      traefik.frontend.auth.forward.trustForwardHeader: 'true'
+      traefik.frontend.auth.forward.authResponseHeaders: 'Remote-User,Remote-Groups,Remote-Email,Remote-Name'
     restart: 'unless-stopped'
     environment:
       PUID: '1000'
@@ -221,14 +222,12 @@ services:
     volumes:
       - '/path/to/heimdall/config:/config'
     networks:
-      - 'net'
+      net: {}
     labels:
-      - 'traefik.frontend.rule=Host:heimdall.{{< sitevar name="domain" nojs="example.com" >}}'
-      - 'traefik.frontend.auth.forward.address={{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth/basic'
-      - 'traefik.frontend.auth.forward.trustForwardHeader=true'
-      - 'traefik.frontend.auth.forward.authResponseHeaders=Remote-User,Remote-Groups,Remote-Email,Remote-Name'
-    expose:
-      - 443
+      traefik.frontend.rule: 'Host:heimdall.{{< sitevar name="domain" nojs="example.com" >}}'
+      traefik.frontend.auth.forward.address: '{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth/basic'
+      traefik.frontend.auth.forward.trustForwardHeader: 'true'
+      traefik.frontend.auth.forward.authResponseHeaders: 'Remote-User,Remote-Groups,Remote-Email,Remote-Name'
     restart: 'unless-stopped'
     environment:
       PUID: '1000'

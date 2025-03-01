@@ -1,0 +1,37 @@
+{
+	"Claim": "Khiếu nại {{name}}",
+	"Scope": "Phạm vi {{name}}",
+	"scopes": {
+		"openid": "Dùng OpenID để xác thực danh tính của bạn",
+		"offline_access": "Tự động làm mới những quyền hạn này mà không cần sự tương tác của người dùng",
+		"profile": "Truy cập thông tin tài khoản của bạn",
+		"groups": "Truy cập nhóm thành viên của bạn",
+		"email": "Truy cập địa chỉ email của bạn",
+		"phone": "Truy cập số điện thoại của bạn",
+		"address": "Truy cập địa chỉ của bạn",
+		"authelia.bearer.authz": "Truy cập tài nguyên được bảo vệ khi được đăng nhập bởi bạn"
+	},
+	"claims": {
+		"sub": "Mã định danh duy nhất",
+		"name": "Tên hiển thị",
+		"given_name": "Tên được cho",
+		"family_name": "Họ",
+		"middle_name": "Tên đệm",
+		"nickname": "Tên gọi",
+		"preferred_username": "Tên tài khoản ưa thích",
+		"profile": "URL Hồ sơ",
+		"picture": "URL Hình ảnh",
+		"website": "URL Trang web",
+		"email": "Địa chỉ E-mail",
+		"email_verified": "Địa chỉ E-mail (Đã xác minh)",
+		"gender": "Giới tính",
+		"birthdate": "Ngày sinh",
+		"zoneinfo": "Múi giờ",
+		"locale": "Ngôn ngữ / Địa phương",
+		"phone_number": "Số điện thoại",
+		"phone_number_verified": "Số điện thoại (Đã xác minh)",
+		"address": "Địa chỉ Bưu điện",
+		"updated_at": "Thời gian cập nhật hồ sơ",
+		"groups": "Thành viên nhóm"
+	}
+}

@@ -22,6 +22,7 @@ import (
 type MockNotifier struct {
 	ctrl     *gomock.Controller
 	recorder *MockNotifierMockRecorder
+	isgomock struct{}
 }
 
 // MockNotifierMockRecorder is the mock recorder for MockNotifier.
@@ -42,17 +43,17 @@ func (m *MockNotifier) EXPECT() *MockNotifierMockRecorder {
 }
 
 // Send mocks base method.
-func (m *MockNotifier) Send(arg0 context.Context, arg1 mail.Address, arg2 string, arg3 *templates.EmailTemplate, arg4 any) error {
+func (m *MockNotifier) Send(ctx context.Context, recipient mail.Address, subject string, et *templates.EmailTemplate, data any) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Send", arg0, arg1, arg2, arg3, arg4)
+	ret := m.ctrl.Call(m, "Send", ctx, recipient, subject, et, data)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Send indicates an expected call of Send.
-func (mr *MockNotifierMockRecorder) Send(arg0, arg1, arg2, arg3, arg4 any) *gomock.Call {
+func (mr *MockNotifierMockRecorder) Send(ctx, recipient, subject, et, data any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Send", reflect.TypeOf((*MockNotifier)(nil).Send), arg0, arg1, arg2, arg3, arg4)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Send", reflect.TypeOf((*MockNotifier)(nil).Send), ctx, recipient, subject, et, data)
 }
 
 // StartupCheck mocks base method.

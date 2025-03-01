@@ -1,0 +1,37 @@
+{
+	"Claim": "Claim {{name}}",
+	"Scope": "Laajuus {{name}}",
+	"scopes": {
+		"openid": "Käytä OpenID:tä vahvistaaksesi henkilöllisyytesi",
+		"offline_access": "Päivitä nämä oikeudet automaattisesti ilman käyttäjän vuorovaikutusta",
+		"profile": "Käytä profiilitietojasi",
+		"groups": "Käytä ryhmäjäsenyyksiäsi",
+		"email": "Käytä sähköpostiosoitteitasi",
+		"phone": "Käytä puhelinnumeroasi",
+		"address": "Käytä osoitettasi",
+		"authelia.bearer.authz": "Käytä suojattuja resursseja kirjautuneena sisään"
+	},
+	"claims": {
+		"sub": "Unique Identifier",
+		"name": "Näytön Nimi",
+		"given_name": "Annettu Nimi",
+		"family_name": "Perheen Nimi",
+		"middle_name": "Toinen Nimi",
+		"nickname": "Lempinimi",
+		"preferred_username": "Ensisijainen Käyttäjänimi",
+		"profile": "Profiilin URL",
+		"picture": "Kuvan URL",
+		"website": "Sivuston URL",
+		"email": "Sähköposti Osoite",
+		"email_verified": "Sähköpostiosoite (eriytetty)",
+		"gender": "Sukupuoli",
+		"birthdate": "Syntymäaika",
+		"zoneinfo": "Timezone",
+		"locale": "Lokaatio / Kieli",
+		"phone_number": "Puhelinnumero",
+		"phone_number_verified": "Puhelinnumero (eriytetty)",
+		"address": "Postiosoite",
+		"updated_at": "Profiilin Päivityksen Aika",
+		"groups": "Ryhmän Jäsenyys"
+	}
+}

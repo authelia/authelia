@@ -3,7 +3,7 @@ title: "Roundcube"
 description: "Integrating Roundcube and Dovecot with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
 date: 2023-11-15T08:58:00+11:00
-draft: true
+draft: false
 images: []
 weight: 620
 toc: true

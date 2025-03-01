@@ -1,0 +1,20 @@
+---
+services:
+  oidc-client:
+    image: 'ghcr.io/authelia/oidc-tester-app:master-c3235cd'
+    command: '/entrypoint.sh'
+    depends_on:
+      - 'authelia-backend'
+    volumes:
+      - './example/compose/oidc-client/entrypoint.sh:/entrypoint.sh'
+    expose:
+      - 8080
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.oidc.rule: 'Host(`oidc.example.com`)'
+      traefik.http.routers.oidc.priority: '1000'
+      traefik.http.routers.oidc.tls: 'true'
+      traefik.http.routers.oidc.middlewares: 'authelia@docker'
+    networks:
+      authelianet: {}
+...

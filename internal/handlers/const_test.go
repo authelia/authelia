@@ -40,6 +40,10 @@ const (
 	exampleDotCom            = "example.com"
 )
 
+const (
+	testValue = "test"
+)
+
 var (
 	testRedirectionURL = func() *url.URL {
 		u, err := url.ParseRequestURI(testRedirectionURLString)

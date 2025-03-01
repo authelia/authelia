@@ -1,0 +1,37 @@
+{
+	"Claim": "Nõua {{name}}",
+	"Scope": "Ulatus {{name}}",
+	"scopes": {
+		"openid": "Kasuta OpenID-d oma isiku tuvastamiseks",
+		"offline_access": "Uuenda neid õigusi automaatselt ilma kasutaja sekkumiseta",
+		"profile": "Juurdepääs oma profiili teabele",
+		"groups": "Juurdepääs teie grupi liikmesustele",
+		"email": "Juurdepääs teie e-posti aadressidele",
+		"phone": "Juurdepääs teie telefoninumbrile",
+		"address": "Juurdepääs teie aadressile",
+		"authelia.bearer.authz": "Juurdepääs kaitstud ressurssidele sisse logides teie nime all"
+	},
+	"claims": {
+		"sub": "Ainulaadne Identifikaator",
+		"name": "Kuva Nimi",
+		"given_name": "Eesnimi",
+		"family_name": "Perekonnanimi",
+		"middle_name": "Keskmine Nimi",
+		"nickname": "Hüüdnimi",
+		"preferred_username": "Eelistatud Kasutajanimi",
+		"profile": "Profiili URL",
+		"picture": "Pildi URL",
+		"website": "Veebisaidi URL",
+		"email": "E-posti Aadress",
+		"email_verified": "E-posti Aadress (Kinnitatud)",
+		"gender": "Sugu",
+		"birthdate": "Sünnipäev",
+		"zoneinfo": "Ajavöönd",
+		"locale": "Keel / Keel",
+		"phone_number": "Telefoninumber",
+		"phone_number_verified": "Telefoninumber (Kinnitatud)",
+		"address": "Postiaadress",
+		"updated_at": "Profiili Uuendamise Aeg",
+		"groups": "Grupi Liikmesus"
+	}
+}

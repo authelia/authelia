@@ -21,7 +21,7 @@ seo:
 ## Tested Versions
 
 * [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+  * [v4.38.16](https://github.com/authelia/authelia/releases/tag/v4.38.16)
 * [HedgeDoc]
   * [v1.10.0](https://github.com/hedgedoc/hedgedoc/releases/tag/1.10.0)
 
@@ -72,14 +72,11 @@ identity_providers:
 ### Application
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-This configuration assumes [HedgeDoc] users are part of the `hedgedoc-users` group. Depending on
+This configuration assumes [HedgeDoc](https://hedgedoc.org/) users are part of the `hedgedoc-users` group. Depending on
 your specific group configuration, you will have to adapt the `CMD_OAUTH2_ACCESS_ROLE` variable. Alternatively you may
-elect to create a new authorization policy in [provider authorization policies] then utilize that policy as the
-[client authorization policy].
+elect to create a new authorization policy in [provider authorization policies](../../../configuration/identity-providers/openid-connect/provider.md#authorization_policies) then utilize that policy as the
+[client authorization policy](../../../configuration/identity-providers/openid-connect/clients.md#authorization_policy).
 {{< /callout >}}
-
-[client authorization policy]: ../../../configuration/identity-providers/openid-connect/clients.md#authorization_policy
-[provider authorization policies]: ../../../configuration/identity-providers/openid-connect/provider.md#authorization_policies
 
 To configure [HedgeDoc] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
@@ -97,7 +94,7 @@ CMD_OAUTH2_USER_PROFILE_USERNAME_ATTR=preferred_username
 CMD_OAUTH2_USER_PROFILE_DISPLAY_NAME_ATTR=name
 CMD_OAUTH2_USER_PROFILE_EMAIL_ATTR=email
 CMD_OAUTH2_ROLES_CLAIM=groups
-CMD_OAUTH2_ACCESS_ROLE=hedgedoc
+CMD_OAUTH2_ACCESS_ROLE=hedgedoc-users
 ```
 
 ## See Also

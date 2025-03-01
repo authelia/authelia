@@ -1,6 +1,7 @@
 package templates
 
 import (
+	"bytes"
 	"crypto/sha1" //nolint:gosec
 	"crypto/sha256"
 	"crypto/sha512"
@@ -14,6 +15,7 @@ import (
 	"path"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -21,73 +23,90 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gopkg.in/yaml.v3"
 )
 
 // FuncMap returns the template FuncMap commonly used in several templates.
 func FuncMap() map[string]any {
 	return map[string]any{
-		"iterate":     FuncIterate,
-		"fileContent": FuncFileContent,
-		"secret":      FuncSecret,
-		"env":         FuncGetEnv,
-		"mustEnv":     FuncMustGetEnv,
-		"expandenv":   FuncExpandEnv,
-		"split":       FuncStringSplit,
-		"splitList":   FuncStringSplitList,
-		"join":        FuncElemsJoin,
-		"contains":    FuncStringContains,
-		"hasPrefix":   FuncStringHasPrefix,
-		"hasSuffix":   FuncStringHasSuffix,
-		"lower":       strings.ToLower,
-		"keys":        FuncKeys,
-		"sortAlpha":   FuncSortAlpha,
-		"upper":       strings.ToUpper,
-		"title":       strings.ToTitle,
-		"trim":        strings.TrimSpace,
-		"trimAll":     FuncStringTrimAll,
-		"trimSuffix":  FuncStringTrimSuffix,
-		"trimPrefix":  FuncStringTrimPrefix,
-		"replace":     FuncStringReplace,
-		"quote":       FuncStringQuote,
-		"mquote":      FuncStringQuoteMultiLine(rune(34)),
-		"sha1sum":     FuncHashSum(sha1.New),
-		"sha256sum":   FuncHashSum(sha256.New),
-		"sha512sum":   FuncHashSum(sha512.New),
-		"squote":      FuncStringSQuote,
-		"msquote":     FuncStringQuoteMultiLine(rune(39)),
-		"now":         time.Now,
-		"b64enc":      FuncB64Enc,
-		"b64dec":      FuncB64Dec,
-		"b32enc":      FuncB32Enc,
-		"b32dec":      FuncB32Dec,
-		"list":        FuncList,
-		"dict":        FuncDict,
-		"get":         FuncGet,
-		"set":         FuncSet,
-		"isAbs":       path.IsAbs,
-		"base":        path.Base,
-		"dir":         path.Dir,
-		"ext":         path.Ext,
-		"clean":       path.Clean,
-		"osBase":      filepath.Base,
-		"osClean":     filepath.Clean,
-		"osDir":       filepath.Dir,
-		"osExt":       filepath.Ext,
-		"osIsAbs":     filepath.IsAbs,
-		"deepEqual":   reflect.DeepEqual,
-		"typeOf":      FuncTypeOf,
-		"typeIs":      FuncTypeIs,
-		"typeIsLike":  FuncTypeIsLike,
-		"kindOf":      FuncKindOf,
-		"kindIs":      FuncKindIs,
-		"default":     FuncDefault,
-		"empty":       FuncEmpty,
-		"indent":      FuncIndent,
-		"nindent":     FuncNewlineIndent,
-		"mindent":     FuncMultilineIndent,
-		"uuidv4":      FuncUUIDv4,
-		"urlquery":    url.QueryEscape,
-		"urlunquery":  url.QueryUnescape,
+		"iterate":        FuncIterate,
+		"fileContent":    FuncFileContent,
+		"secret":         FuncSecret,
+		"env":            FuncGetEnv,
+		"mustEnv":        FuncMustGetEnv,
+		"expandenv":      FuncExpandEnv,
+		"split":          FuncStringSplit,
+		"splitList":      FuncStringSplitList,
+		"join":           FuncElemsJoin,
+		"contains":       FuncStringContains,
+		"hasPrefix":      FuncStringHasPrefix,
+		"hasSuffix":      FuncStringHasSuffix,
+		"lower":          strings.ToLower,
+		"keys":           FuncKeys,
+		"sortAlpha":      FuncSortAlpha,
+		"upper":          strings.ToUpper,
+		"title":          strings.ToTitle,
+		"trim":           strings.TrimSpace,
+		"trimAll":        FuncStringTrimAll,
+		"trimSuffix":     FuncStringTrimSuffix,
+		"trimPrefix":     FuncStringTrimPrefix,
+		"replace":        FuncStringReplace,
+		"quote":          FuncStringQuote,
+		"mquote":         FuncStringQuoteMultiLine(rune(34)),
+		"sha1sum":        FuncHashSum(sha1.New),
+		"sha256sum":      FuncHashSum(sha256.New),
+		"sha512sum":      FuncHashSum(sha512.New),
+		"squote":         FuncStringSQuote,
+		"msquote":        FuncStringQuoteMultiLine(rune(39)),
+		"now":            time.Now,
+		"ago":            FuncAgo,
+		"toDate":         FuncToDate,
+		"mustToDate":     FuncMustToDate,
+		"date":           FuncDate,
+		"dateInZone":     FuncDateInZone,
+		"htmlDate":       FuncHTMLDate,
+		"htmlDateInZone": FuncHTMLDateInZone,
+		"duration":       FuncDuration,
+		"unixEpoch":      FuncUnixEpoch,
+		"b64enc":         FuncB64Enc,
+		"b64dec":         FuncB64Dec,
+		"b32enc":         FuncB32Enc,
+		"b32dec":         FuncB32Dec,
+		"list":           FuncList,
+		"dict":           FuncDict,
+		"get":            FuncGet,
+		"set":            FuncSet,
+		"isAbs":          path.IsAbs,
+		"base":           path.Base,
+		"dir":            path.Dir,
+		"ext":            path.Ext,
+		"clean":          path.Clean,
+		"osBase":         filepath.Base,
+		"osClean":        filepath.Clean,
+		"osDir":          filepath.Dir,
+		"osExt":          filepath.Ext,
+		"osIsAbs":        filepath.IsAbs,
+		"deepEqual":      reflect.DeepEqual,
+		"typeOf":         FuncTypeOf,
+		"typeIs":         FuncTypeIs,
+		"typeIsLike":     FuncTypeIsLike,
+		"kindOf":         FuncKindOf,
+		"kindIs":         FuncKindIs,
+		"default":        FuncDefault,
+		"empty":          FuncEmpty,
+		"indent":         FuncIndent,
+		"nindent":        FuncNewlineIndent,
+		"mindent":        FuncMultilineIndent,
+		"uuidv4":         FuncUUIDv4,
+		"urlquery":       url.QueryEscape,
+		"urlunquery":     url.QueryUnescape,
+		"glob":           filepath.Glob,
+		"walk":           FuncWalk,
+
+		"fromYaml":     FuncFromYAML,
+		"toYaml":       FuncToYAML,
+		"toYamlPretty": FuncToYAMLPretty,
+		"toYamlCustom": FuncToYAMLCustom,
 	}
 }
 
@@ -143,14 +162,18 @@ func FuncGetEnv(key string) string {
 
 // FuncMustGetEnv is a special version of os.GetEnv that excludes secret keys and returns an error if it doesn't exist.
 func FuncMustGetEnv(key string) (string, error) {
-	if isSecretEnvKey(key) {
-		return "", nil
+	if key == "$" {
+		return key, nil
 	}
 
 	value, found := syscall.Getenv(key)
 
 	if !found {
 		return "", fmt.Errorf("environment variable '%s' isn't set", key)
+	}
+
+	if isSecretEnvKey(key) {
+		return "", nil
 	}
 
 	return value, nil
@@ -489,4 +512,154 @@ func FuncSecret(path string) (data string, err error) {
 	}
 
 	return strings.TrimRight(data, "\n"), nil
+}
+
+type WalkInfo struct {
+	Path         string
+	AbsolutePath string
+
+	os.FileInfo
+}
+
+func FuncWalk(root, pattern string, skipDir bool) (infos []WalkInfo, err error) {
+	if root == "" {
+		return nil, fmt.Errorf("error occurred performing walk: root path cannot be empty")
+	}
+
+	var rePattern *regexp.Regexp
+
+	infos = []WalkInfo{}
+
+	if pattern != "" {
+		if rePattern, err = regexp.Compile(pattern); err != nil {
+			return nil, fmt.Errorf("error occurred compiling walk pattern: %w", err)
+		}
+	}
+
+	if err = filepath.Walk(root, func(name string, info os.FileInfo, walkErr error) (err error) {
+		if walkErr != nil {
+			return fmt.Errorf("error occurred walking directory: %w", walkErr)
+		}
+
+		walkinfo := WalkInfo{
+			Path:     name,
+			FileInfo: info,
+		}
+
+		if skipDir && walkinfo.IsDir() {
+			return nil
+		}
+
+		if walkinfo.AbsolutePath, err = filepath.Abs(walkinfo.Path); err != nil {
+			return err
+		}
+
+		if rePattern != nil && !rePattern.MatchString(walkinfo.AbsolutePath) {
+			return nil
+		}
+
+		infos = append(infos, walkinfo)
+
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	return infos, nil
+}
+
+func FuncFromYAML(yml string) (object map[string]any, err error) {
+	object = map[string]any{}
+
+	if err = yaml.Unmarshal([]byte(yml), &object); err != nil {
+		return nil, err
+	}
+
+	return object, nil
+}
+
+func FuncToYAML(object any) (yml string, err error) {
+	return FuncToYAMLCustom(object, -1)
+}
+
+func FuncToYAMLPretty(object any) (yml string, err error) {
+	return FuncToYAMLCustom(object, 2)
+}
+
+func FuncToYAMLCustom(object any, indent int) (yml string, err error) {
+	var data bytes.Buffer
+
+	encoder := yaml.NewEncoder(&data)
+
+	if indent >= 0 {
+		encoder.SetIndent(indent)
+	}
+
+	if err = encoder.Encode(object); err != nil {
+		return "", err
+	}
+
+	return strings.TrimSuffix(data.String(), "\n"), nil
+}
+
+func FuncAgo(date any) string {
+	return time.Since(convertAnyToTime(date)).Round(time.Second).String()
+}
+
+func FuncDate(format string, date any) string {
+	return formatTimeWithLocation(format, convertAnyToTime(date), time.Local)
+}
+
+func FuncDateInZone(format string, date any, zone string) string {
+	var (
+		location *time.Location
+		err      error
+	)
+
+	if location, err = time.LoadLocation(zone); err != nil {
+		location = time.UTC
+	}
+
+	return formatTimeWithLocation(format, convertAnyToTime(date), location)
+}
+
+func FuncHTMLDate(date any) string {
+	return formatHTMLTimeWithLocation(convertAnyToTime(date), time.Local)
+}
+
+func FuncHTMLDateInZone(date any, zone string) string {
+	return FuncDateInZone(time.DateOnly, date, zone)
+}
+
+func FuncDuration(sec any) string {
+	var n int64
+
+	switch v := sec.(type) {
+	case string:
+		n, _ = strconv.ParseInt(v, 10, 64)
+	case int:
+		n = int64(v)
+	case int32:
+		n = int64(v)
+	case int64:
+		n = v
+	default:
+		n = 0
+	}
+
+	return (time.Duration(n) * time.Second).String()
+}
+
+func FuncToDate(format, date string) time.Time {
+	t, _ := time.ParseInLocation(format, date, time.Local)
+
+	return t
+}
+
+func FuncMustToDate(format, date string) (time.Time, error) {
+	return time.ParseInLocation(format, date, time.Local)
+}
+
+func FuncUnixEpoch(date time.Time) string {
+	return strconv.FormatInt(date.Unix(), 10)
 }

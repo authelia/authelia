@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 
 import { Box, Button, Theme, useTheme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
+import { useTranslation } from "react-i18next";
 
 import FailureIcon from "@components/FailureIcon";
 import FingerTouchIcon from "@components/FingerTouchIcon";
@@ -16,6 +17,7 @@ interface Props {
 }
 
 const WebAuthnTryIcon = function (props: Props) {
+    const { t: translate } = useTranslation();
     const touchTimeout = 30;
     const theme = useTheme();
     const [timerPercent, triggerTimer, clearTimer] = useTimer(touchTimeout * 1000 - 500);
@@ -54,7 +56,7 @@ const WebAuthnTryIcon = function (props: Props) {
             className={props.webauthnTouchState === WebAuthnTouchState.Failure ? undefined : "hidden"}
         >
             <Button color="secondary" onClick={handleRetryClick}>
-                Retry
+                {translate("Retry")}
             </Button>
         </IconWithContext>
     );

@@ -101,14 +101,14 @@ const AccountSettingsMenu = function (props: Props) {
                     <ListItemIcon>
                         <Settings fontSize="small" />
                     </ListItemIcon>
-                    Settings
+                    {translate("Settings")}
                 </MenuItem>
                 <Divider />
                 <MenuItem onClick={handleLogoutClick} id={"account-menu-logout"}>
                     <ListItemIcon>
                         <Logout fontSize="small" />
                     </ListItemIcon>
-                    Logout
+                    {translate("Logout")}
                 </MenuItem>
             </Menu>
         </Fragment>

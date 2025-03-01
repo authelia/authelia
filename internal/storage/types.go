@@ -2,6 +2,8 @@ package storage
 
 import (
 	"context"
+	"database/sql"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -33,8 +35,14 @@ type encOAuth2Session struct {
 }
 
 type encWebAuthnCredential struct {
-	ID        int    `db:"id"`
-	PublicKey []byte `db:"public_key"`
+	ID          int    `db:"id"`
+	PublicKey   []byte `db:"public_key"`
+	Attestation []byte `db:"attestation"`
+}
+
+type encCachedData struct {
+	ID    int    `db:"id"`
+	Value []byte `db:"value"`
 }
 
 type encTOTPConfiguration struct {
@@ -50,6 +58,24 @@ type encOneTimeCode struct {
 type encEncryption struct {
 	ID    int    `db:"id"`
 	Value []byte `db:"value"`
+}
+
+type banExpiresExpired struct {
+	Expires sql.NullTime `db:"expires"`
+	Expired sql.NullTime `db:"expired"`
+	Revoked bool         `db:"revoked"`
+}
+
+func (b *banExpiresExpired) Expiration() time.Time {
+	if b.Revoked && b.Expired.Valid {
+		return b.Expired.Time
+	}
+
+	if b.Expires.Valid {
+		return b.Expires.Time
+	}
+
+	return time.Unix(0, 0)
 }
 
 // EncryptionValidationResult contains information about the success of a schema encryption validation.
@@ -111,6 +137,7 @@ type OAuth2SessionType int
 const (
 	OAuth2SessionTypeAccessToken OAuth2SessionType = iota
 	OAuth2SessionTypeAuthorizeCode
+	OAuth2SessionTypeDeviceAuthorizeCode
 	OAuth2SessionTypeOpenIDConnect
 	OAuth2SessionTypePAR
 	OAuth2SessionTypePKCEChallenge
@@ -124,6 +151,8 @@ func (s OAuth2SessionType) String() string {
 		return "access token"
 	case OAuth2SessionTypeAuthorizeCode:
 		return "authorization code"
+	case OAuth2SessionTypeDeviceAuthorizeCode:
+		return "device code"
 	case OAuth2SessionTypeOpenIDConnect:
 		return "openid connect"
 	case OAuth2SessionTypePAR:
@@ -144,6 +173,8 @@ func (s OAuth2SessionType) Table() string {
 		return tableOAuth2AccessTokenSession
 	case OAuth2SessionTypeAuthorizeCode:
 		return tableOAuth2AuthorizeCodeSession
+	case OAuth2SessionTypeDeviceAuthorizeCode:
+		return tableOAuth2DeviceCodeSession
 	case OAuth2SessionTypeOpenIDConnect:
 		return tableOAuth2OpenIDConnectSession
 	case OAuth2SessionTypePAR:

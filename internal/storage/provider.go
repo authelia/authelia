@@ -90,6 +90,9 @@ type Provider interface {
 	// LoadWebAuthnUser loads a registered WebAuthn user from the storage provider.
 	LoadWebAuthnUser(ctx context.Context, rpid, username string) (user *model.WebAuthnUser, err error)
 
+	// LoadWebAuthnUserByUserID loads a registered WebAuthn user from the storage provider.
+	LoadWebAuthnUserByUserID(ctx context.Context, rpid, userID string) (user *model.WebAuthnUser, err error)
+
 	/*
 		Implementation for User WebAuthn Device Registrations.
 	*/
@@ -118,6 +121,10 @@ type Provider interface {
 	// LoadWebAuthnCredentialsByUsername loads all WebAuthn credential registrations from the storage provider for a
 	// given username.
 	LoadWebAuthnCredentialsByUsername(ctx context.Context, rpid, username string) (credential []model.WebAuthnCredential, err error)
+
+	// LoadWebAuthnPasskeyCredentialsByUsername loads passkey WebAuthn credential registrations from the storage provider
+	// for a given username.
+	LoadWebAuthnPasskeyCredentialsByUsername(ctx context.Context, rpid, username string) (credentials []model.WebAuthnCredential, err error)
 
 	// LoadWebAuthnCredentialByID loads a WebAuthn credential registration from the storage provider for a given id.
 	LoadWebAuthnCredentialByID(ctx context.Context, id int) (credential *model.WebAuthnCredential, err error)
@@ -197,13 +204,13 @@ type Provider interface {
 	*/
 
 	// SaveOAuth2ConsentSession inserts an OAuth2.0 consent session to the storage provider.
-	SaveOAuth2ConsentSession(ctx context.Context, consent model.OAuth2ConsentSession) (err error)
+	SaveOAuth2ConsentSession(ctx context.Context, consent *model.OAuth2ConsentSession) (err error)
 
 	// SaveOAuth2ConsentSessionSubject updates an OAuth2.0 consent session in the storage provider with the subject.
-	SaveOAuth2ConsentSessionSubject(ctx context.Context, consent model.OAuth2ConsentSession) (err error)
+	SaveOAuth2ConsentSessionSubject(ctx context.Context, consent *model.OAuth2ConsentSession) (err error)
 
 	// SaveOAuth2ConsentSessionResponse updates an OAuth2.0 consent session in the storage provider with the response.
-	SaveOAuth2ConsentSessionResponse(ctx context.Context, consent model.OAuth2ConsentSession, rejection bool) (err error)
+	SaveOAuth2ConsentSessionResponse(ctx context.Context, consent *model.OAuth2ConsentSession, rejection bool) (err error)
 
 	// SaveOAuth2ConsentSessionGranted updates an OAuth2.0 consent session in the storage provider recording that it
 	// has been granted by the authorization endpoint.
@@ -232,8 +239,29 @@ type Provider interface {
 	// DeactivateOAuth2SessionByRequestID marks an OAuth2.0 session as inactive in the storage provider.
 	DeactivateOAuth2SessionByRequestID(ctx context.Context, sessionType OAuth2SessionType, requestID string) (err error)
 
-	// LoadOAuth2Session saves an OAuth2.0 session from the storage provider.
+	// LoadOAuth2Session loads an OAuth2.0 session from the storage provider.
 	LoadOAuth2Session(ctx context.Context, sessionType OAuth2SessionType, signature string) (session *model.OAuth2Session, err error)
+
+	/*
+		Implementation for OAuth2.0 Device Code Sessions.
+	*/
+
+	// SaveOAuth2DeviceCodeSession saves an OAuth2.0 device code session to the storage provider.
+	SaveOAuth2DeviceCodeSession(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error)
+
+	// UpdateOAuth2DeviceCodeSession updates an OAuth2.0 device code session in the storage provider.
+	UpdateOAuth2DeviceCodeSession(ctx context.Context, signature string, status int, checked time.Time) (err error)
+
+	// DeactivateOAuth2DeviceCodeSession marks an OAuth2.0 device code session as inactive in the storage provider.
+	DeactivateOAuth2DeviceCodeSession(ctx context.Context, signature string) (err error)
+
+	// LoadOAuth2DeviceCodeSession loads an OAuth2.0 device code session from the storage provider given the signature
+	// of the device code.
+	LoadOAuth2DeviceCodeSession(ctx context.Context, signature string) (session *model.OAuth2DeviceCodeSession, err error)
+
+	// LoadOAuth2DeviceCodeSessionByUserCode loads an OAuth2.0 device code session from the storage provider given the
+	// signature of a user code.
+	LoadOAuth2DeviceCodeSessionByUserCode(ctx context.Context, signature string) (session *model.OAuth2DeviceCodeSession, err error)
 
 	/*
 		Implementation for OAuth2.0 PAR Contexts.
@@ -296,6 +324,18 @@ type Provider interface {
 	SchemaEncryptionCheckKey(ctx context.Context, verbose bool) (result EncryptionValidationResult, err error)
 
 	RegulatorProvider
+	CachedDataProvider
+}
+
+type CachedDataProvider interface {
+	// LoadCachedData loads cached data from the database.
+	LoadCachedData(ctx context.Context, name string) (data *model.CachedData, err error)
+
+	// SaveCachedData saves cached data to the database.
+	SaveCachedData(ctx context.Context, data model.CachedData) (err error)
+
+	// DeleteCachedData deletes cached data from the database.
+	DeleteCachedData(ctx context.Context, name string) (err error)
 }
 
 // RegulatorProvider is an interface providing storage capabilities for persisting any kind of data related to the regulator.
@@ -303,6 +343,41 @@ type RegulatorProvider interface {
 	// AppendAuthenticationLog saves an authentication attempt to the storage provider.
 	AppendAuthenticationLog(ctx context.Context, attempt model.AuthenticationAttempt) (err error)
 
-	// LoadAuthenticationLogs loads authentication attempts from the storage provider (paginated).
-	LoadAuthenticationLogs(ctx context.Context, username string, fromDate time.Time, limit, page int) (attempts []model.AuthenticationAttempt, err error)
+	// LoadRegulationRecordsByUser loads authentication logs for a given username for the purpose of regulation. As such
+	// compared to standard authentication logs the amount of available data is very low.
+	LoadRegulationRecordsByUser(ctx context.Context, username string, since time.Time, limit int) (records []model.RegulationRecord, err error)
+
+	// SaveBannedUser saves a banned user to the database.
+	SaveBannedUser(ctx context.Context, ban *model.BannedUser) (err error)
+
+	// LoadBannedUser loads banned users from the database given a username.
+	LoadBannedUser(ctx context.Context, username string) (bans []model.BannedUser, err error)
+
+	// LoadBannedUserByID loads a banned user record given an id.
+	LoadBannedUserByID(ctx context.Context, id int) (ban model.BannedUser, err error)
+
+	// LoadBannedUsers loads pages of banned users from the database.
+	LoadBannedUsers(ctx context.Context, limit, page int) (bans []model.BannedUser, err error)
+
+	// RevokeBannedUser revokes a user ban in the database.
+	RevokeBannedUser(ctx context.Context, id int, expired time.Time) (err error)
+
+	// LoadRegulationRecordsByIP loads authentication logs for a given ip for the purpose of regulation. As such
+	// compared to standard authentication logs the amount of available data is very low.
+	LoadRegulationRecordsByIP(ctx context.Context, ip model.IP, since time.Time, limit int) (records []model.RegulationRecord, err error)
+
+	// SaveBannedIP saves a banned ip to the database.
+	SaveBannedIP(ctx context.Context, ban *model.BannedIP) (err error)
+
+	// LoadBannedIP loads banned ip's from the database given an ip.
+	LoadBannedIP(ctx context.Context, remoteIP model.IP) (bans []model.BannedIP, err error)
+
+	// LoadBannedIPByID loads a banned ip record given an id.
+	LoadBannedIPByID(ctx context.Context, id int) (ban model.BannedIP, err error)
+
+	// LoadBannedIPs loads pages of banned ip's from the database.
+	LoadBannedIPs(ctx context.Context, limit, page int) (bans []model.BannedIP, err error)
+
+	// RevokeBannedIP revokes an ip ban in the database.
+	RevokeBannedIP(ctx context.Context, id int, expired time.Time) (err error)
 }

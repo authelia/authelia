@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	"net/url"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -44,7 +45,6 @@ func newCryptoRandCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Short:   cmdAutheliaCryptoRandShort,
 		Long:    cmdAutheliaCryptoRandLong,
 		Example: cmdAutheliaCryptoRandExample,
-		Args:    cobra.NoArgs,
 		RunE:    ctx.CryptoRandRunE,
 
 		DisableAutoGenTag: true,
@@ -53,6 +53,9 @@ func newCryptoRandCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd.Flags().StringP(cmdFlagNameCharSet, "x", cmdFlagValueCharSet, cmdFlagUsageCharset)
 	cmd.Flags().String(cmdFlagNameCharacters, "", cmdFlagUsageCharacters)
 	cmd.Flags().IntP(cmdFlagNameLength, "n", 72, cmdFlagUsageLength)
+	cmd.Flags().StringSlice(cmdFlagNameFile, nil, "files to export the unique random values to instead of printing them")
+	cmd.Flags().String(cmdFlagNameModeFiles, "0600", "mode for the created files")
+	cmd.Flags().String(cmdFlagNameModeDirectories, "0700", "mode for the created directories")
 
 	return cmd
 }
@@ -246,17 +249,102 @@ func newCryptoGenerateCmd(ctx *CmdCtx, category, algorithm string) (cmd *cobra.C
 // CryptoRandRunE is the RunE for the authelia crypto rand command.
 func (ctx *CmdCtx) CryptoRandRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
-		random string
+		files []string
+		out   = os.Stdout
 	)
+
+	if cmd.Flags().Changed(cmdFlagNameFile) {
+		if len(args) > 0 {
+			return fmt.Errorf("arguments may not be specified at the same time as the files flag")
+		}
+
+		if files, err = cmd.Flags().GetStringSlice(cmdFlagNameFile); err != nil {
+			return err
+		}
+	} else {
+		files = args
+	}
+
+	if len(files) == 0 {
+		return ctx.CryptoRandPrintRunE(cmd, args, out)
+	} else {
+		return ctx.CryptoRandFilesRunE(cmd, args, out, files)
+	}
+}
+
+func (ctx *CmdCtx) CryptoRandPrintRunE(cmd *cobra.Command, args []string, out *os.File) (err error) {
+	var random string
 
 	if random, err = flagsGetRandomCharacters(cmd.Flags(), cmdFlagNameLength, cmdFlagNameCharSet, cmdFlagNameCharacters); err != nil {
 		return err
 	}
 
-	fmt.Printf("Random Value: %s\n", random)
+	_, _ = fmt.Fprintf(out, "Random Value: %s\n", random)
 
 	if value := url.QueryEscape(random); random != value {
-		fmt.Printf("Random Value (URL Encoded): %s\n", value)
+		_, _ = fmt.Fprintf(out, "Random Value (URL Encoded): %s\n", value)
+	}
+
+	return nil
+}
+
+func (ctx *CmdCtx) CryptoRandFilesRunE(cmd *cobra.Command, args []string, out *os.File, files []string) (err error) {
+	var (
+		fmode  os.FileMode
+		dmode  os.FileMode
+		i      int
+		name   string
+		values = make([]string, len(files))
+		file   *os.File
+		info   os.FileInfo
+	)
+
+	if fmode, err = flagParseFileMode(cmdFlagNameModeFiles, cmd.Flags()); err != nil {
+		return err
+	}
+
+	if dmode, err = flagParseFileMode(cmdFlagNameModeDirectories, cmd.Flags()); err != nil {
+		return err
+	}
+
+	for i = range files {
+		if values[i], err = flagsGetRandomCharacters(cmd.Flags(), cmdFlagNameLength, cmdFlagNameCharSet, cmdFlagNameCharacters); err != nil {
+			return err
+		}
+	}
+
+	for i, name = range files {
+		dir, _ := filepath.Split(name)
+
+		if dir != "" {
+			if err = os.MkdirAll(dir, dmode); err != nil {
+				if !os.IsExist(err) {
+					return fmt.Errorf("error making directory for file '%s': %w", name, err)
+				} else if info, err = os.Stat(dir); err == nil {
+					if info.Mode().Perm() != dmode {
+						return fmt.Errorf("error making directory for file '%s': directory '%s' already exists with wrong permissions: %v", name, dir, info.Mode().Perm())
+					}
+				}
+			}
+		}
+
+		if file, err = os.OpenFile(name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fmode); err != nil {
+			return fmt.Errorf("error opening file '%s': %w", name, err)
+		}
+
+		if _, err = file.WriteString(values[i]); err != nil {
+			return err
+		}
+
+		if err = file.Close(); err != nil {
+			return fmt.Errorf("error closing file '%s': %w", name, err)
+		}
+	}
+
+	_, _ = fmt.Fprintf(out, "Created %d files with unique random values:\n", len(files))
+
+	for _, name = range files {
+		_, _ = fmt.Fprintf(out, "\t- %s\n", name)
 	}
 
 	return nil

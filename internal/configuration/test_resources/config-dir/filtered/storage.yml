@@ -1,0 +1,7 @@
+---
+storage:
+  mysql:
+    address: 'tcp://{{ env "SERVICES_SERVER" }}:3306'
+    database: 'authelia'
+    username: 'authelia'
+...

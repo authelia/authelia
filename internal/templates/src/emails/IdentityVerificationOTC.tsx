@@ -22,6 +22,7 @@ interface IdentityVerificationOTCProps {
     oneTimeCode?: string;
     revocationLinkURL?: string;
     revocationLinkText?: string;
+	hidePreview?: boolean;
 }
 
 export const IdentityVerificationOTC = ({
@@ -32,13 +33,16 @@ export const IdentityVerificationOTC = ({
     oneTimeCode,
     revocationLinkURL,
     revocationLinkText,
+	hidePreview,
 }: IdentityVerificationOTCProps) => {
     return (
         <Html lang="en" dir="ltr">
             <Head />
-            <Preview>
-                A one-time code has been generated for session elevation
-            </Preview>
+			{!hidePreview ? (
+				<Preview>
+					A one-time code has been generated for session elevation
+				</Preview>
+			) : null}
             <Tailwind>
                 <Body className="bg-white my-auto mx-auto font-sans px-2">
                     <Container className="border border-solid border-[#eaeaea] rounded my-[40px] mx-auto p-[20px] max-w-[465px]">

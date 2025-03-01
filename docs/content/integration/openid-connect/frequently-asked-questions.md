@@ -51,7 +51,7 @@ separately.
 {{< envTabs "Generate a Random Client ID" >}}
 {{< envTab "Docker" >}}
 ```bash
-docker run authelia/authelia:latest authelia crypto rand --length 72 --charset rfc3986
+docker run --rm authelia/authelia:latest authelia crypto rand --length 72 --charset rfc3986
 ```
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
@@ -77,7 +77,7 @@ separately.
 {{< envTabs "Generate a Random Client Secret" >}}
 {{< envTab "Docker" >}}
 ```bash
-docker run authelia/authelia:latest authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986
+docker run --rm authelia/authelia:latest authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986
 ```
 {{< /envTab >}}
 {{< envTab "Bare-Metal" >}}
@@ -284,7 +284,7 @@ you're facing.
 
 Examples (assuming your Authelia Root URL is `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`):
 
-```yaml {title="docker-compose.yml"}
+```yaml {title="compose.yml"}
 services:
   application:
     ## Mandatory that the application is on the same network as the proxy.

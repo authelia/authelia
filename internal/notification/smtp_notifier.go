@@ -82,7 +82,6 @@ func NewSMTPNotifier(config *schema.NotifierSMTP, certPool *x509.CertPool) *SMTP
 		"port":    config.Address.Port(),
 		"helo":    config.Identifier,
 		"timeout": config.Timeout.Seconds(),
-		"tls":     tlsconfig,
 		"domain":  domain,
 	}).Trace("Configuring Provider")
 
@@ -120,7 +119,12 @@ func (n *SMTPNotifier) StartupCheck() (err error) {
 
 	n.log.Trace("Dialing Startup Check Connection")
 
-	client.SetSMTPAuthCustom(NewOpportunisticSMTPAuth(n.config))
+	switch {
+	case len(n.config.Username)+len(n.config.Password) > 0:
+		client.SetSMTPAuthCustom(NewOpportunisticSMTPAuth(n.config))
+	default:
+		client.SetSMTPAuth(gomail.SMTPAuthNoAuth)
+	}
 
 	if err = client.DialWithContext(ctx); err != nil {
 		return fmt.Errorf("failed to dial connection: %w", err)
@@ -175,7 +179,12 @@ func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject
 		return fmt.Errorf("notifier: smtp: failed to establish client: %w", err)
 	}
 
-	client.SetSMTPAuthCustom(NewOpportunisticSMTPAuth(n.config))
+	switch {
+	case len(n.config.Username)+len(n.config.Password) > 0:
+		client.SetSMTPAuthCustom(NewOpportunisticSMTPAuth(n.config))
+	default:
+		client.SetSMTPAuth(gomail.SMTPAuthNoAuth)
+	}
 
 	if err = client.DialWithContext(ctx); err != nil {
 		return fmt.Errorf("notifier: smtp: failed to dial connection: %w", err)

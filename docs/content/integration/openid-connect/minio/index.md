@@ -99,7 +99,7 @@ To configure [MinIO] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 - [MinIO OpenID Identity Management](https://min.io/docs/minio/linux/reference/minio-server/minio-server.html#minio-server-envvar-external-identity-management-openid)
 
-[MinIO]: https://minio.com/
+[MinIO]: https://min.io/
 [Authelia]: https://www.authelia.com
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

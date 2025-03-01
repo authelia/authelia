@@ -1,0 +1,37 @@
+{
+	"Claim": "Reclama {{name}}",
+	"Scope": "Scoperta {{name}}",
+	"scopes": {
+		"openid": "Dovè usar OpenID par verificar la to identità",
+		"offline_access": "Aggiorna automaticamente 'sti permessi senze interazion del utente",
+		"profile": "Accesso a le info del to profilo",
+		"groups": "Acsè a i to gruppi de membri",
+		"email": "Acsè a e to indirissi email",
+		"phone": "Acsè al to numer de telefono",
+		"address": "Acsè al to indirìzzo",
+		"authelia.bearer.authz": "Acsè a risorse protette registrà con ti"
+	},
+	"claims": {
+		"sub": "Identificatore Unico",
+		"name": "Nome da Visualizàr",
+		"given_name": "Nome de Battesimo",
+		"family_name": "Cognome",
+		"middle_name": "Nome di Mezzo",
+		"nickname": "Soprannome",
+		"preferred_username": "Nome Utente Preferìo",
+		"profile": "URL del Profilo",
+		"picture": "URL de l'Immagine",
+		"website": "URL del Sito Web",
+		"email": "Indirizzo E-mail",
+		"email_verified": "Indirizzo E-mail (Verificà)",
+		"gender": "Genere",
+		"birthdate": "Data de Nascità",
+		"zoneinfo": "Fuso Orario",
+		"locale": "Lingua / Locale",
+		"phone_number": "Numero de Telefono",
+		"phone_number_verified": "Numero de Telefono (Verificà)",
+		"address": "Indirizzo Postale",
+		"updated_at": "Ora de Aggiornamento del Profilo",
+		"groups": "Membri del Gruppo"
+	}
+}

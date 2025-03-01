@@ -1,0 +1,37 @@
+{
+	"Claim": "Xaqiiji {{name}}",
+	"Scope": "Xadka {{name}}",
+	"scopes": {
+		"openid": "Isticmaal OpenID si aad u xaqiijiso aqoonsigaaga",
+		"offline_access": "Si otomaatig ah u cusboonaysii rukumadahan adoon la falgalin isticmaalaha",
+		"profile": "Hel macluumaadkaaga profile-ka",
+		"groups": "Hel xubin ka mid ah kooxahaaga",
+		"email": "Hel cinwaannada emailkaaga",
+		"phone": "Hel lambarkaaga telefoonka",
+		"address": "Hel cinwaankaaga",
+		"authelia.bearer.authz": "Hel kheyraadka la ilaaliyo adigoo gashay sidaada"
+	},
+	"claims": {
+		"sub": "Aqoonsi gaar ah",
+		"name": "Magaca Dhawaaqa",
+		"given_name": "Magaca La Siiyay",
+		"family_name": "Magaca Qoyska",
+		"middle_name": "Magaca Dhexda",
+		"nickname": "Magaca Shaqsiyeed",
+		"preferred_username": "Magaca Isticmaalaha ee La Doorbiday",
+		"profile": "URL-ka Profileka",
+		"picture": "URL-ka Sawirka",
+		"website": "URL-ka Websiteka",
+		"email": "Cinwaanka E-mailka",
+		"email_verified": "Cinwaanka E-mailka (La Xaqiijiyey)",
+		"gender": "Jinsiga",
+		"birthdate": "Taariikhda Dhalashada",
+		"zoneinfo": "Waqtiga Deegaanka",
+		"locale": "Deegaanka / Luqadda",
+		"phone_number": "Lambarka Telefoonka",
+		"phone_number_verified": "Lambarka Telefoonka (La Xaqiijiyey)",
+		"address": "Cinwaanka Boostada",
+		"updated_at": "Waqtiga Cusboonaysiinta Profileka",
+		"groups": "Xubin Kooxeed"
+	}
+}

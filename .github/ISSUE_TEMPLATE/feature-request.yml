@@ -52,6 +52,18 @@ body:
         Provide any relevant specification or other documentation if applicable
     validations:
       required: false
+  - type: 'dropdown'
+    id: 'ai'
+    attributes:
+      label: |
+        Generative AI
+      description: |
+        Indicate if generative AI used to create this issue.
+      options:
+        - 'Yes'
+        - 'No'
+    validations:
+      required: true
   - type: 'checkboxes'
     id: 'checklist'
     attributes:

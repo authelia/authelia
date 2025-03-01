@@ -1,0 +1,37 @@
+{
+	"Claim": "청구 {{name}}",
+	"Scope": "범위 {{name}}",
+	"scopes": {
+		"openid": "OpenID를 사용하여 본인 확인하기",
+		"offline_access": "사용자 상호작용 없이 이러한 권한을 자동으로 새로 고침합니다",
+		"profile": "프로필 정보를 접근하세요",
+		"groups": "그룹 구성원에 접근하기",
+		"email": "이메일 주소에 접근하기",
+		"phone": "전화번호에 접근하기",
+		"address": "주소에 접근하기",
+		"authelia.bearer.authz": "당신으로 로그인한 보호된 리소스에 접근하기"
+	},
+	"claims": {
+		"sub": "고유 식별자",
+		"name": "표시 이름",
+		"given_name": "이름",
+		"family_name": "성",
+		"middle_name": "중간 이름",
+		"nickname": "닉네임",
+		"preferred_username": "선호하는 사용자 이름",
+		"profile": "프로필 URL",
+		"picture": "사진 URL",
+		"website": "웹사이트 URL",
+		"email": "이메일 주소",
+		"email_verified": "이메일 주소 (확인됨)",
+		"gender": "성별",
+		"birthdate": "생년월일",
+		"zoneinfo": "시간대",
+		"locale": "지역 / 언어",
+		"phone_number": "전화번호",
+		"phone_number_verified": "전화번호 (확인됨)",
+		"address": "우편 주소",
+		"updated_at": "프로필 업데이트 시간",
+		"groups": "그룹 구성원"
+	}
+}

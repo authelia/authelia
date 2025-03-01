@@ -23,6 +23,7 @@ interface IdentityVerificationJWTProps {
     linkText?: string;
     revocationLinkURL?: string;
     revocationLinkText?: string;
+    hidePreview?: boolean;
 }
 
 export const IdentityVerificationJWT = ({
@@ -34,11 +35,14 @@ export const IdentityVerificationJWT = ({
     linkText,
     revocationLinkURL,
     revocationLinkText,
+	hidePreview,
 }: IdentityVerificationJWTProps) => {
     return (
         <Html lang="en" dir="ltr">
             <Head />
-            <Preview>{title ? title : 'Confirm an action'}</Preview>
+			{!hidePreview ? (
+				<Preview>{title ? title : 'Confirm an action'}</Preview>
+			) : null}
             <Tailwind>
                 <Body className="bg-white my-auto mx-auto font-sans px-2">
                     <Container className="border border-solid border-[#eaeaea] rounded my-[40px] mx-auto p-[20px] max-w-[465px]">

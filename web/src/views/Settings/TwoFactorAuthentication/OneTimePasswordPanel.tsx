@@ -11,6 +11,7 @@ import IdentityVerificationDialog from "@views/Settings/Common/IdentityVerificat
 import SecondFactorDialog from "@views/Settings/Common/SecondFactorDialog";
 import OneTimePasswordConfiguration from "@views/Settings/TwoFactorAuthentication/OneTimePasswordConfiguration";
 import OneTimePasswordDeleteDialog from "@views/Settings/TwoFactorAuthentication/OneTimePasswordDeleteDialog";
+import OneTimePasswordInformationDialog from "@views/Settings/TwoFactorAuthentication/OneTimePasswordInformationDialog";
 import OneTimePasswordRegisterDialog from "@views/Settings/TwoFactorAuthentication/OneTimePasswordRegisterDialog";
 
 interface Props {
@@ -23,6 +24,8 @@ const OneTimePasswordPanel = function (props: Props) {
     const { t: translate } = useTranslation("settings");
 
     const [elevation, setElevation] = useState<UserSessionElevation>();
+
+    const [dialogInformationOpen, setDialogInformationOpen] = useState(false);
 
     const [dialogSFOpening, setDialogSFOpening] = useState(false);
     const [dialogIVOpening, setDialogIVOpening] = useState(false);
@@ -128,6 +131,10 @@ const OneTimePasswordPanel = function (props: Props) {
         setDialogSFOpening(true);
     };
 
+    const handleInformation = () => {
+        setDialogInformationOpen(true);
+    };
+
     const handleRegister = () => {
         setDialogRegisterOpening(true);
 
@@ -165,6 +172,13 @@ const OneTimePasswordPanel = function (props: Props) {
                     handleResetState();
                     props.handleRefreshState();
                 }}
+            />
+            <OneTimePasswordInformationDialog
+                open={dialogInformationOpen}
+                handleClose={() => {
+                    setDialogInformationOpen(false);
+                }}
+                config={props.config}
             />
             <OneTimePasswordDeleteDialog
                 open={dialogDeleteOpen}
@@ -216,6 +230,7 @@ const OneTimePasswordPanel = function (props: Props) {
                         <Grid size={{ xs: 12, md: 6, xl: 3 }}>
                             <OneTimePasswordConfiguration
                                 config={props.config}
+                                handleInformation={handleInformation}
                                 handleRefresh={props.handleRefreshState}
                                 handleDelete={handleDelete}
                             />

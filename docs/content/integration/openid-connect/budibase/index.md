@@ -91,7 +91,7 @@ Go the builder main page: **Settings > Auth > OpenID Connect** or url : https://
 - Name: `Authelia`
 - Icon: `authelia.svg` (Upload your own here [authelia branding](https://www.authelia.com/reference/guides/branding/))
 
-> ⚠️ **Don't forget to press save.**
+⚠️ **Don't forget to press save.**
 
 ## See Also
 

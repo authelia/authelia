@@ -1,0 +1,37 @@
+{
+	"Claim": "Prasīt {{name}}",
+	"Scope": "Apjoma {{name}}",
+	"scopes": {
+		"openid": "Izmantojiet OpenID, lai pārbaudītu savu identitāti",
+		"offline_access": "Automātiski atjaunināt šīs atļaujas bez lietotāja mijiedarbības",
+		"profile": "Piekļūstiet sava profila informācijai",
+		"groups": "Piekļūstiet savām grupu biedrībām",
+		"email": "Piekļūstiet savām e-pasta adresēm",
+		"phone": "Piekļūstiet savam tālruņa numuram",
+		"address": "Piekļūstiet savai adresei",
+		"authelia.bearer.authz": "Piekļūstiet aizsargātajiem resursiem, ielogojoties kā jūs"
+	},
+	"claims": {
+		"sub": "Unikālais identifikators",
+		"name": "Izstādes nosaukums",
+		"given_name": "Vārds",
+		"family_name": "Uzvārds",
+		"middle_name": "Otrais vārds",
+		"nickname": "Segvārds",
+		"preferred_username": "Nepieciešamais lietotājvārds",
+		"profile": "Profila URL",
+		"picture": "Attēla URL",
+		"website": "Mājaslapas URL",
+		"email": "E-pasta adrese",
+		"email_verified": "E-pasta adrese (apstiprināta)",
+		"gender": "Dzimums",
+		"birthdate": "Dzimšanas datums",
+		"zoneinfo": "Laika josla",
+		"locale": "Valoda / Valoda",
+		"phone_number": "Tālruņa numurs",
+		"phone_number_verified": "Tālruņa numurs (apstiprināts)",
+		"address": "Pasta adrese",
+		"updated_at": "Profila atjaunināšanas laiks",
+		"groups": "Grupas biedrība"
+	}
+}
