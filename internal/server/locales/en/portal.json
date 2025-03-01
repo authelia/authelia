@@ -99,7 +99,7 @@
 	"Username": "Username",
 	"Username is required": "Username is required",
 	"You cancelled the assertion request": "You cancelled the assertion request",
-  "You have made too many requests": "You have made too many requests",
+	"You have made too many requests": "You have made too many requests",
 	"You must view and accept the Privacy Policy before using {{authelia}}.": "You must view and accept the <policy>Privacy Policy</policy> before using {{authelia}}",
 	"You're being signed out and redirected": "You're being signed out and redirected",
 	"Your browser does not support the WebAuthn protocol": "Your browser does not support the WebAuthn protocol",
