@@ -1,9 +1,11 @@
-import tseslint from "typescript-eslint";
-import typescriptEslintParser from "@typescript-eslint/parser";
+import TSESLint from "typescript-eslint";
 import importPlugin from 'eslint-plugin-import';
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
+import { createTypeScriptImportResolver } from "eslint-import-resolver-typescript";
+import ESLintConfigPrettier from "eslint-config-prettier";
 
-export default tseslint.config(
+export default TSESLint.config(
+    ESLintConfigPrettier,
     importPlugin.flatConfigs.recommended,
     {
         ignores: [
@@ -13,16 +15,25 @@ export default tseslint.config(
         ],
     },
     {
+        plugins: {
+            '@typescript-eslint': TSESLint.plugin,
+        },
         files: ["**/*.ts", "**/*.tsx"],
         settings: {
+            "import-x/resolver-next": [
+                createTypeScriptImportResolver({
+                    alwaysTryTypes: true,
+                    project: "tsconfig.json",
+                }),
+            ],
             "import/resolver": {
                 typescript: {}
             }
         },
         languageOptions: {
             ecmaVersion: 2020,
-            sourceType: "module",
-            parser: typescriptEslintParser,
+            sourceType: "script",
+            parser: TSESLint.parser,
             parserOptions: {
                 project: "tsconfig.json",
                 createDefaultProgram: true,
