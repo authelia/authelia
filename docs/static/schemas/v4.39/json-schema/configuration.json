@@ -1038,7 +1038,8 @@
             "auto",
             "light",
             "dark",
-            "grey"
+            "grey",
+            "oled"
           ],
           "title": "Theme Name",
           "description": "The name of the theme to apply to the web UI.",
@@ -1443,6 +1444,16 @@
           "type": "array",
           "title": "Access Token",
           "description": "The list of claims to automatically apply to an Access Token in addition to the specified Access Token Claims."
+        },
+        "id_token_audience_mode": {
+          "type": "string",
+          "enum": [
+            "specification",
+            "experimental-merged"
+          ],
+          "title": "ID Token Audience Mode",
+          "description": "Sets the mode for ID Token audience derivation for clients that use this policy.",
+          "default": "specification"
         },
         "custom_claims": {
           "patternProperties": {
@@ -3178,6 +3189,68 @@
       "type": "object",
       "description": "ServerBuffers represents server buffer configurations."
     },
+    "ServerEndpointRateLimit": {
+      "properties": {
+        "enable": {
+          "type": "boolean"
+        },
+        "buckets": {
+          "items": {
+            "$ref": "#/$defs/ServerEndpointRateLimitBucket"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ServerEndpointRateLimitBucket": {
+      "properties": {
+        "period": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "description": "The period of time this rate limit bucket applies to."
+        },
+        "requests": {
+          "type": "integer",
+          "description": "The number of requests allowed in this rate limit bucket for the configured period before the rate limit kicks in."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ServerEndpointRateLimits": {
+      "properties": {
+        "reset_password_start": {
+          "$ref": "#/$defs/ServerEndpointRateLimit"
+        },
+        "reset_password_finish": {
+          "$ref": "#/$defs/ServerEndpointRateLimit"
+        },
+        "second_factor_totp": {
+          "$ref": "#/$defs/ServerEndpointRateLimit"
+        },
+        "second_factor_duo": {
+          "$ref": "#/$defs/ServerEndpointRateLimit"
+        },
+        "session_elevation_start": {
+          "$ref": "#/$defs/ServerEndpointRateLimit"
+        },
+        "session_elevation_finish": {
+          "$ref": "#/$defs/ServerEndpointRateLimit"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "ServerEndpoints": {
       "properties": {
         "enable_pprof": {
@@ -3191,6 +3264,9 @@
           "title": "Enable ExpVars",
           "description": "Enables the developer specific ExpVars endpoints which should not be used in production and only used for debugging purposes.",
           "default": false
+        },
+        "rate_limits": {
+          "$ref": "#/$defs/ServerEndpointRateLimits"
         },
         "authz": {
           "patternProperties": {

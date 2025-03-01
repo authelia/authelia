@@ -1,5 +1,9 @@
 import { CompleteTOTPSignInPath, TOTPRegistrationPath } from "@services/Api";
-import { DeleteWithOptionalResponse, PostWithOptionalResponse } from "@services/Client";
+import {
+    DeleteWithOptionalResponse,
+    PostWithOptionalResponse,
+    PostWithOptionalResponseRateLimited,
+} from "@services/Client";
 import { SignInResponse } from "@services/SignIn";
 
 interface CompleteTOTPSignInBody {
@@ -17,7 +21,7 @@ export function completeTOTPSignIn(passcode: string, targetURL?: string, workflo
         workflowID: workflowID,
     };
 
-    return PostWithOptionalResponse<SignInResponse>(CompleteTOTPSignInPath, body);
+    return PostWithOptionalResponseRateLimited<SignInResponse>(CompleteTOTPSignInPath, body);
 }
 
 export function completeTOTPRegister(passcode: string) {

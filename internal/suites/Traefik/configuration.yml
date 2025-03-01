@@ -12,6 +12,15 @@ server:
       forward-auth:
         implementation: 'ForwardAuth'
         authn_strategies: []
+    rate_limits:
+      reset_password_start:
+        buckets:
+          - period: '2 minutes'
+            requests: 20
+      reset_password_finish:
+        buckets:
+          - period: '2 minutes'
+            requests: 20
 
 log:
   level: 'debug'

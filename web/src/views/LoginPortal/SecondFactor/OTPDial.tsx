@@ -8,7 +8,6 @@ import OtpInput from "react18-input-otp";
 import SuccessIcon from "@components/SuccessIcon";
 import TimerIcon from "@components/TimerIcon";
 import IconWithContext from "@views/LoginPortal/SecondFactor/IconWithContext";
-import { State } from "@views/LoginPortal/SecondFactor/OneTimePasswordMethod";
 
 export interface Props {
     passcode: string;
@@ -18,6 +17,14 @@ export interface Props {
     period: number;
 
     onChange: (passcode: string) => void;
+}
+
+export enum State {
+    Idle = 1,
+    InProgress = 2,
+    Success = 3,
+    Failure = 4,
+    RateLimited = 5,
 }
 
 const OTPDial = function (props: Props) {
@@ -31,7 +38,11 @@ const OTPDial = function (props: Props) {
                     onChange={props.onChange}
                     value={props.passcode}
                     numInputs={props.digits}
-                    isDisabled={props.state === State.InProgress || props.state === State.Success}
+                    isDisabled={
+                        props.state === State.InProgress ||
+                        props.state === State.Success ||
+                        props.state === State.RateLimited
+                    }
                     isInputNum
                     hasErrored={props.state === State.Failure}
                     autoComplete="one-time-code"
