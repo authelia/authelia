@@ -47,7 +47,7 @@
 	"Password has been reset": "Passordet ble tilbakestilt",
 	"Password": "Passord",
 	"Passwords do not match": "Passordene samsvarer ikke",
-	"Powered by": "Drives av",
+	"Powered by {{authelia}}": "Drevet av {{authelia}}",
 	"Privacy Policy": "Personvernerklæring",
 	"Push Notification": "Push varsling",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "Omadressering ble bestemt for å være utrygg og avbrutt sikre at omdirigerings-URL er korrekt",
@@ -99,7 +99,8 @@
 	"Username": "Brukernavn",
 	"Username is required": "Brukernavn er påkrevd",
 	"You cancelled the assertion request": "Du kansellerte forespørelsen forespørselen",
-	"You must view and accept the Privacy Policy before using": "Du må lese og akseptere <0>Personvernerklæringen</0> før du bruker",
+	"You have made too many requests": "Du har gjort for mange forespørsler",
+	"You must view and accept the Privacy Policy before using {{authelia}}.": "Du må se og akseptere <policy>Personvernerklæringen</policy> før du bruker {{authelia}}",
 	"You're being signed out and redirected": "Du blir logget ut og omdirigert",
 	"Your browser does not support the WebAuthn protocol": "Nettleseren din støtter ikke WebAuthn protokollen",
 	"Your supplied password does not meet the password policy requirements": "Ditt oppgitte passord oppfyller ikke kravene for passord"
