@@ -16,9 +16,8 @@ seo:
   noindex: false # false (default) or true
 ---
 
-
-__Authelia__ can temporarily ban accounts when there are too many
-authentication attempts. This helps prevent brute-force attacks.
+__Authelia__ can temporarily ban accounts when there are too many authentication attempts on the username / password
+endpoint. This helps prevent brute-force attacks.
 
 ## Configuration
 
