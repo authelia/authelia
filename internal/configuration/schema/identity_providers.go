@@ -49,6 +49,8 @@ type IdentityProvidersOpenIDConnectClaimsPolicy struct {
 	IDToken     []string `koanf:"id_token" json:"id_token" jsonschema:"title=ID Token" jsonschema_description:"The list of claims to automatically apply to an ID Token in addition to the specified ID Token Claims."`
 	AccessToken []string `koanf:"access_token" json:"access_token" jsonschema:"title=Access Token" jsonschema_description:"The list of claims to automatically apply to an Access Token in addition to the specified Access Token Claims."`
 
+	IDTokenAudienceMode string `koanf:"id_token_audience_mode" json:"id_token_audience_mode" jsonschema:"default=specification,title=ID Token Audience Mode,enum=specification,enum=experimental-merged" jsonschema_description:"Sets the mode for ID Token audience derivation for clients that use this policy."`
+
 	CustomClaims map[string]IdentityProvidersOpenIDConnectCustomClaim `koanf:"custom_claims" json:"custom_claims" jsonschema:"title=Custom Claims" jsonschema_description:"The custom claims available in this policy in addition to the Standard Claims."`
 }
 
