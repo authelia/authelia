@@ -41,8 +41,7 @@ import { toAlgorithmString } from "@models/TOTPConfiguration";
 import { completeTOTPRegister, stopTOTPRegister } from "@services/OneTimePassword";
 import { getTOTPSecret } from "@services/RegisterDevice";
 import { getTOTPOptions } from "@services/UserInfoTOTPConfiguration";
-import { State } from "@views/LoginPortal/SecondFactor/OneTimePasswordMethod";
-import OTPDial from "@views/LoginPortal/SecondFactor/OTPDial";
+import OTPDial, { State } from "@views/LoginPortal/SecondFactor/OTPDial";
 
 const steps = ["Start", "Register", "Confirm"];
 
