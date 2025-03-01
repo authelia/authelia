@@ -1,5 +1,5 @@
 import { Button, Drawer, DrawerProps, Typography } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import { Trans, useTranslation } from "react-i18next";
 
 import PrivacyPolicyLink from "@components/PrivacyPolicyLink";

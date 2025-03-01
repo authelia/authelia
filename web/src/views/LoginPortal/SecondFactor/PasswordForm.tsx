@@ -1,7 +1,7 @@
 import React, { MutableRefObject, useCallback, useEffect, useRef, useState } from "react";
 
 import { Alert, AlertTitle, Button, CircularProgress, FormControl } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import { useTranslation } from "react-i18next";
 
