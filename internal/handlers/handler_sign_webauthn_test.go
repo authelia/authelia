@@ -624,7 +624,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 			fasthttp.StatusBadRequest,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(),
-					"Error occurred validating a WebAuthn authentication challenge for user 'john': error parsing the request body", "^Parse error for Assertion \\(invalid_request\\): json: cannot unmarshal bool into Go struct field CredentialAssertionResponse(\\.PublicKeyCredential\\.Credential)?\\.id of type string$")
+					"Error occurred validating a WebAuthn authentication challenge for user 'john': error parsing the request body", regexp.MustCompile(`^Parse error for Assertion \(invalid_request\): json: cannot unmarshal bool into Go struct field CredentialAssertionResponse(\.PublicKeyCredential\.Credential)?\.id of type string$`))
 			},
 		},
 		{

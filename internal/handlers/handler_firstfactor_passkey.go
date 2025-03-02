@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 
 	"github.com/go-webauthn/webauthn/protocol"
@@ -131,6 +132,8 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 		ctx.Logger.WithError(errUserIsAlreadyAuthenticated).Error("Error occurred validating a WebAuthn passkey authentication challenge")
 
+		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, nil)
+
 		return
 	}
 
@@ -148,6 +151,8 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidate, errStrReqBodyParse)
 
+		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, nil)
+
 		return
 	}
 
@@ -156,6 +161,8 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.SetJSONError(messageMFAValidationFailed)
 
 		ctx.Logger.WithError(iwebauthn.FormatError(err)).Errorf(logFmtErrPasskeyAuthenticationChallengeValidate, errStrReqBodyParse)
+
+		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, nil)
 
 		return
 	}
@@ -166,6 +173,8 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 		ctx.Logger.WithError(fmt.Errorf("challenge session data is not present")).Errorf(logFmtErrPasskeyAuthenticationChallengeValidate, errStrUserSessionData)
 
+		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, nil)
+
 		return
 	}
 
@@ -175,6 +184,8 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 		ctx.Logger.WithError(iwebauthn.FormatError(err)).Errorf(logFmtErrPasskeyAuthenticationChallengeValidate, "error occurred provisioning the configuration")
 
+		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, nil)
+
 		return
 	}
 
@@ -183,6 +194,8 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.SetJSONError(messageMFAValidationFailed)
 
 		ctx.Logger.WithError(iwebauthn.FormatError(err)).Errorf(logFmtErrPasskeyAuthenticationChallengeValidate, "error performing the login validation")
+
+		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, nil)
 
 		return
 	}
@@ -198,6 +211,8 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.SetJSONError(messageMFAValidationFailed)
 
 		ctx.Logger.Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, "the user object was not of the correct type", u.WebAuthnName())
+
+		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, nil)
 
 		return
 	}
@@ -216,6 +231,8 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 				ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, u.WebAuthnName(), "error occurred saving the credential sign-in information to the storage backend")
 
+				doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, nil)
+
 				return
 			}
 
@@ -224,19 +241,27 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if !ok {
+		err = fmt.Errorf("credential was not found")
+
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
-		ctx.Logger.WithError(fmt.Errorf("credential was not found")).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, u.WebAuthnName(), "error occurred saving the credential sign-in information to storage")
+		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, u.WebAuthnName(), "error occurred saving the credential sign-in information to storage")
+
+		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, err)
 
 		return
 	}
 
 	if c.Authenticator.CloneWarning {
+		err = fmt.Errorf("authenticator sign count indicates that it is cloned")
+
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
-		ctx.Logger.WithError(fmt.Errorf("authenticator sign count indicates that it is cloned")).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, u.WebAuthnName(), "error occurred validating the authenticator response")
+		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, u.WebAuthnName(), "error occurred validating the authenticator response")
+
+		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, err)
 
 		return
 	}
@@ -247,6 +272,21 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, u.WebAuthnName(), "error retrieving user details")
 
+		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, nil)
+
+		return
+	}
+
+	if ban, _, expires, err := ctx.Providers.Regulator.BanCheck(ctx, details.Username); err != nil {
+		ctx.SetStatusCode(fasthttp.StatusUnauthorized)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
+		if errors.Is(err, regulation.ErrUserIsBanned) {
+			doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(ban, details.Username, expires), regulation.AuthTypePasskey, nil)
+		} else {
+			ctx.Logger.WithError(err).Errorf(logFmtErrRegulationFail, regulation.AuthTypePasskey, details.Username)
+		}
+
 		return
 	}
 
@@ -255,6 +295,8 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.SetJSONError(messageMFAValidationFailed)
 
 		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, details.Username, "error regenerating the user session")
+
+		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, details.Username, nil), regulation.AuthTypePasskey, nil)
 
 		return
 	}
