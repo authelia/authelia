@@ -1,9 +1,12 @@
 package validator
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"time"
@@ -59,6 +62,7 @@ func validateServerTLSFileExists(name, path string, validator *schema.StructVali
 func ValidateServer(config *schema.Configuration, validator *schema.StructValidator) {
 	ValidateServerAddress(config, validator)
 	ValidateServerTLS(config, validator)
+	validateServerAssets(config, validator)
 
 	if config.Server.Buffers.Read <= 0 {
 		config.Server.Buffers.Read = schema.DefaultServerConfiguration.Buffers.Read
@@ -84,8 +88,6 @@ func ValidateServer(config *schema.Configuration, validator *schema.StructValida
 }
 
 // ValidateServerAddress checks the configured server address is correct.
-//
-
 func ValidateServerAddress(config *schema.Configuration, validator *schema.StructValidator) {
 	if config.Server.Address == nil {
 		config.Server.Address = schema.DefaultServerConfiguration.Address
@@ -158,6 +160,111 @@ func ValidateServerEndpoints(config *schema.Configuration, validator *schema.Str
 		}
 
 		validateServerEndpointsAuthzStrategies(name, endpoint.Implementation, endpoint.AuthnStrategies, validator)
+	}
+}
+
+func validateServerAssets(config *schema.Configuration, validator *schema.StructValidator) {
+	if config.Server.AssetPath == "" {
+		return
+	}
+
+	if _, err := os.Stat(config.Server.AssetPath); err != nil {
+		validator.Push(fmt.Errorf("server: asset_path: error occurred reading the '%s' directory: %w", config.Server.AssetPath, err))
+
+		return
+	}
+
+	var (
+		entries []fs.DirEntry
+		err     error
+	)
+
+	if entries, err = os.ReadDir(filepath.Join(config.Server.AssetPath, "locales")); err != nil {
+		if !os.IsNotExist(err) {
+			validator.Push(fmt.Errorf("server: asset_path: error occurred reading the '%s' directory: %w", filepath.Join(config.Server.AssetPath, "locales"), err))
+		}
+
+		return
+	}
+
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+
+		locale := entry.Name()
+
+		var namespaceEntries []fs.DirEntry
+
+		if namespaceEntries, err = os.ReadDir(filepath.Join(config.Server.AssetPath, "locales", locale)); err != nil {
+			validator.Push(fmt.Errorf("server: asset_path: error occurred reading the '%s' directory: %w", filepath.Join(config.Server.AssetPath, "locales", locale), err))
+		}
+
+		for _, namespaceEntry := range namespaceEntries {
+			if namespaceEntry.IsDir() || !strings.HasSuffix(namespaceEntry.Name(), ".json") {
+				continue
+			}
+
+			path := filepath.Join(config.Server.AssetPath, "locales", locale, namespaceEntry.Name())
+
+			var (
+				data         []byte
+				translations map[string]any
+			)
+
+			if data, err = os.ReadFile(path); err != nil {
+				validator.Push(fmt.Errorf("server: asset_path: error occurred reading the '%s' file: %w", path, err))
+
+				continue
+			}
+
+			if err = json.Unmarshal(data, &translations); err != nil {
+				validator.Push(fmt.Errorf("server: asset_path: error occurred decoding the '%s' file: %w", path, err))
+
+				continue
+			}
+
+			validateServerAssetsIterate("", path, translations, validator)
+		}
+	}
+}
+
+func validateServerAssetsIterate(keyRoot, path string, translations map[string]any, validator *schema.StructValidator) {
+	for key, raw := range translations {
+		var (
+			value   string
+			fullkey string
+			sub     map[string]any
+			ok      bool
+		)
+
+		if keyRoot == "" {
+			fullkey = key
+		} else {
+			fullkey = strings.Join([]string{keyRoot, key}, ".")
+		}
+
+		if sub, ok = raw.(map[string]any); ok {
+			validateServerAssetsIterate(fullkey, path, sub, validator)
+
+			continue
+		}
+
+		if !strings.Contains(key, i18nAuthelia) {
+			continue
+		}
+
+		if value, ok = raw.(string); !ok {
+			validator.Push(fmt.Errorf("server: asset_path: error occurred decoding the '%s' file: translation key '%s' has a value which is not the required type", path, fullkey))
+
+			continue
+		}
+
+		if !strings.Contains(value, i18nAuthelia) {
+			validator.Push(fmt.Errorf("server: asset_path: error occurred decoding the '%s' file: translation key '%s' has a value which is missing a required placeholder", path, fullkey))
+
+			continue
+		}
 	}
 }
 
