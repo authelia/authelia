@@ -19,13 +19,14 @@ func NewPrometheus() (provider *Prometheus) {
 
 // Prometheus is a middleware for recording prometheus metrics.
 type Prometheus struct {
-	authnDuration   *prometheus.HistogramVec
-	reqDuration     *prometheus.HistogramVec
-	reqDurationOIDC *prometheus.HistogramVec
-	reqCounter      *prometheus.CounterVec
-	authzCounter    *prometheus.CounterVec
-	authnCounter    *prometheus.CounterVec
-	authn2FACounter *prometheus.CounterVec
+	authnDuration       *prometheus.HistogramVec
+	reqDuration         *prometheus.HistogramVec
+	reqDurationOIDC     *prometheus.HistogramVec
+	reqCounter          *prometheus.CounterVec
+	authzCounter        *prometheus.CounterVec
+	authnCounter        *prometheus.CounterVec
+	authnPasskeyCounter *prometheus.CounterVec
+	authn2FACounter     *prometheus.CounterVec
 }
 
 // RecordRequest takes the statusCode string, requestMethod string, and the elapsed time.Duration to record the request and request duration metrics.
@@ -49,6 +50,8 @@ func (r *Prometheus) RecordAuthn(success, banned bool, authType string) {
 	switch authType {
 	case "1fa", "":
 		r.authnCounter.WithLabelValues(strconv.FormatBool(success), strconv.FormatBool(banned)).Inc()
+	case "passkey":
+		r.authnPasskeyCounter.WithLabelValues(strconv.FormatBool(success)).Inc()
 	default:
 		r.authn2FACounter.WithLabelValues(strconv.FormatBool(success), strconv.FormatBool(banned), authType).Inc()
 	}
@@ -115,6 +118,15 @@ func (r *Prometheus) register() {
 			Help:      "The number of 1FA authentications processed.",
 		},
 		[]string{"success", "banned"},
+	)
+
+	r.authnPasskeyCounter = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Subsystem: "authelia",
+			Name:      "authn_passkey",
+			Help:      "The number of Passkey authentications processed.",
+		},
+		[]string{"success"},
 	)
 
 	r.authn2FACounter = promauto.NewCounterVec(
