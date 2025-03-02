@@ -1,4 +1,4 @@
-import React, { Fragment, MutableRefObject, useCallback, useEffect, useRef, useState } from "react";
+import React, { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
 import {
     Box,
@@ -50,7 +50,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
     const [description, setDescription] = useState("");
     const [errorDescription, setErrorDescription] = useState(false);
 
-    const nameRef = useRef() as MutableRefObject<HTMLInputElement>;
+    const nameRef = useRef<HTMLInputElement | null>(null);
 
     const resetStates = () => {
         setState(WebAuthnTouchState.WaitTouch);

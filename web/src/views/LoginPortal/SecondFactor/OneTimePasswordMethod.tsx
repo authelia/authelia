@@ -37,7 +37,13 @@ const OneTimePasswordMethod = function (props: Props) {
     const onSignInSuccessCallback = useRef(onSignInSuccess).current;
     const [resp, fetch, , err] = useUserInfoTOTPConfiguration();
 
-    const timeoutRateLimit = useRef<NodeJS.Timeout>();
+    const timeoutRateLimit = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        if (timeoutRateLimit.current === null) return;
+
+        return clearTimeout(timeoutRateLimit.current);
+    }, []);
 
     useEffect(() => {
         if (err) {
@@ -53,10 +59,6 @@ const OneTimePasswordMethod = function (props: Props) {
         }
     }, [fetch, props.authenticationLevel, props.registered]);
 
-    useEffect(() => {
-        return clearTimeout(timeoutRateLimit.current);
-    }, []);
-
     const handleRateLimited = useCallback(
         (retryAfter: number) => {
             if (timeoutRateLimit.current) {
@@ -69,7 +71,7 @@ const OneTimePasswordMethod = function (props: Props) {
 
             timeoutRateLimit.current = setTimeout(() => {
                 setState(State.Idle);
-                timeoutRateLimit.current = undefined;
+                timeoutRateLimit.current = null;
             }, retryAfter * 1000);
         },
         [onSignInErrorCallback, translate],
