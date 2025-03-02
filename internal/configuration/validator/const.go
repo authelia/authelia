@@ -25,6 +25,10 @@ const (
 )
 
 const (
+	i18nAuthelia = "{{authelia}}"
+)
+
+const (
 	durationZero = time.Duration(0)
 )
 

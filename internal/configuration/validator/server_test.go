@@ -3,6 +3,8 @@ package validator
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"regexp"
 	"testing"
 	"time"
 
@@ -727,4 +729,155 @@ func TestValidateTLSPathIsDir(t *testing.T) {
 	require.Len(t, validator.Errors(), 1)
 
 	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf("server: tls: option 'key' with path '%s' refers to a directory but it should refer to a file", dir))
+}
+
+func TestValidateServerAssets(t *testing.T) {
+	testCases := []struct {
+		name   string
+		have   string
+		setup  func(t *testing.T, have string) string
+		errors []any
+	}{
+		{
+			name: "ShouldValidateEmbedded",
+			have: "../../server",
+		},
+		{
+			name: "ShouldValidateEmptyPath",
+			have: "",
+		},
+		{
+			name: "ShouldValidateNoPath",
+			have: "../../nopath",
+			errors: []any{
+				"server: asset_path: error occurred reading the '../../nopath' directory: the directory does not exist",
+			},
+		},
+		{
+			name: "ShouldValidateValueExcludePlaceholder",
+			have: "../test_resources/i18n/example1",
+			errors: []any{
+				"server: asset_path: error occurred decoding the '../test_resources/i18n/example1/locales/en/portal.json' file: translation key 'Powered by {{authelia}}' has a value which is missing a required placeholder",
+			},
+		},
+		{
+			name: "ShouldValidateValueExcludePlaceholder",
+			have: "../test_resources/i18n/example2",
+			errors: []any{
+				"server: asset_path: error occurred decoding the '../test_resources/i18n/example2/locales/en/portal.json' file: translation key 'Powered by {{authelia}}' has a value which is not the required type",
+			},
+		},
+		{
+			name: "ShouldErrorReadDirectory",
+			setup: func(t *testing.T, have string) (out string) {
+				out = t.TempDir()
+
+				require.NoError(t, os.Mkdir(filepath.Join(out, "locales"), 0000))
+
+				return out
+			},
+			errors: []any{
+				regexp.MustCompile(`server: asset_path: error occurred reading the '[\w#/\\]+/locales' directory: open [\w#/\\]+locales: permission denied`),
+			},
+		},
+		{
+			name: "ShouldErrorReadLocaleDirectory",
+			setup: func(t *testing.T, have string) (out string) {
+				out = t.TempDir()
+
+				require.NoError(t, os.Mkdir(filepath.Join(out, "locales"), 0777))
+				require.NoError(t, os.Mkdir(filepath.Join(out, "locales", "en"), 0000))
+
+				return out
+			},
+			errors: []any{
+				regexp.MustCompile(`server: asset_path: error occurred reading the '[\w#/\\]+/locales/en' directory: open [\w#/\\]+locales/en: permission denied`),
+			},
+		},
+		{
+			name: "ShouldErrorReadNamespaceFile",
+			setup: func(t *testing.T, have string) (out string) {
+				out = t.TempDir()
+
+				require.NoError(t, os.Mkdir(filepath.Join(out, "locales"), 0777))
+				require.NoError(t, os.Mkdir(filepath.Join(out, "locales", "en"), 0777))
+
+				f, err := os.Create(filepath.Join(out, "locales", "en", "portal.json"))
+				require.NoError(t, err)
+
+				require.NoError(t, f.Chmod(0000))
+
+				require.NoError(t, f.Close())
+
+				return out
+			},
+			errors: []any{
+				regexp.MustCompile(`server: asset_path: error occurred reading the '[\w#/\\]+/locales/en/portal.json' file: open [\w#/\\]+locales/en/portal.json: permission denied`),
+			},
+		},
+		{
+			name: "ShouldErrorDecodeJSON",
+			setup: func(t *testing.T, have string) (out string) {
+				out = t.TempDir()
+
+				require.NoError(t, os.Mkdir(filepath.Join(out, "locales"), 0777))
+				require.NoError(t, os.Mkdir(filepath.Join(out, "locales", "en"), 0777))
+				require.NoError(t, os.Mkdir(filepath.Join(out, "locales", "en", "notafile"), 0777))
+
+				f, err := os.Create(filepath.Join(out, "locales", "notadir"))
+				require.NoError(t, err)
+				require.NoError(t, f.Close())
+
+				f, err = os.Create(filepath.Join(out, "locales", "en", "x.notjson"))
+				require.NoError(t, err)
+				require.NoError(t, f.Close())
+
+				f, err = os.Create(filepath.Join(out, "locales", "en", "portal.json"))
+				require.NoError(t, err)
+
+				_, err = f.Write([]byte("not json"))
+				require.NoError(t, err)
+
+				require.NoError(t, f.Close())
+
+				return out
+			},
+			errors: []any{
+				regexp.MustCompile(`server: asset_path: error occurred decoding the '[\w#/\\]+/locales/en/portal.json' file: invalid character 'o' in literal null \(expecting 'u'\)`),
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			have := tc.have
+
+			if tc.setup != nil {
+				have = tc.setup(t, have)
+			}
+
+			config := &schema.Configuration{Server: schema.Server{AssetPath: have}}
+
+			validator := schema.NewStructValidator()
+
+			validateServerAssets(config, validator)
+
+			warnings := validator.Warnings()
+			errors := validator.Errors()
+
+			assert.Len(t, warnings, 0)
+			require.Len(t, errors, len(tc.errors))
+
+			for i, expected := range tc.errors {
+				switch e := expected.(type) {
+				case *regexp.Regexp:
+					assert.Regexp(t, e, errors[i])
+				case string:
+					assert.EqualError(t, errors[i], e)
+				default:
+					t.Fatal("Expected regex or string for error type")
+				}
+			}
+		})
+	}
 }
