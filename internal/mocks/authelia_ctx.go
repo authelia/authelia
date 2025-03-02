@@ -268,6 +268,18 @@ func (m *MockAutheliaCtx) SetRequestBody(t *testing.T, body interface{}) {
 	m.Ctx.Request.SetBody(bodyBytes)
 }
 
+func (m *MockAutheliaCtx) LogEntryN(i int) *logrus.Entry {
+	entries := m.Hook.AllEntries()
+
+	n := len(entries) - (1 + i)
+
+	if n < 0 {
+		return nil
+	}
+
+	return entries[n]
+}
+
 // AssertKO assert an error response from the service.
 func (m *MockAutheliaCtx) AssertKO(t *testing.T, message string, code int) {
 	assert.Equal(t, code, m.Ctx.Response.StatusCode())
