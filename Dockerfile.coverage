@@ -5,60 +5,58 @@ FROM node:23-alpine@sha256:dc4d20572e425f9d4c68a6f9c382fbcfec3fa2f8ef0b12cb1d96f
 
 WORKDIR /node/src/app
 
-COPY .local /root/.local
-COPY web ./
+COPY --link .local /root/.local
+COPY --link web ./
 
 # Install the dependencies and build
-RUN yarn global add pnpm && \
-    pnpm install --frozen-lockfile && pnpm coverage
+RUN \
+	yarn global add pnpm && \
+	pnpm install --frozen-lockfile && \
+	pnpm coverage
 
 # =======================================
 # ===== Build image for the backend =====
 # =======================================
-FROM golang:1.24.0-alpine@sha256:2d40d4fc278dad38be0777d5e2a88a2c6dee51b0b29c97a764fc6c6a11ca893c AS builder-backend
+FROM golang:1.24.0-bookworm@sha256:b970e6d47c09fdd34179acef5c4fecaf6410f0b597a759733b3cbea04b4e604a AS builder-backend
 
 WORKDIR /go/src/app
 
-RUN \
-	echo ">> Downloading required apk's..." && \
-	apk --no-cache add gcc musl-dev
-
-COPY go.mod go.sum ./
+COPY --link go.mod go.sum ./
 
 RUN \
 	echo ">> Downloading go modules..." && \
 	go mod download
 
-COPY / ./
+COPY --link / ./
 
 # Prepare static files to be embedded in Go binary
-COPY --from=builder-frontend /node/src/internal/server/public_html internal/server/public_html
+COPY --link --from=builder-frontend /node/src/internal/server/public_html internal/server/public_html
 
 ARG LDFLAGS_EXTRA
+
 RUN \
 	mv api internal/server/public_html/api && \
-	cd cmd/authelia && \
-	chmod 0666 /go/src/app/.healthcheck.env && \
 	echo ">> Starting go build (coverage via -cover)..." && \
 	CGO_ENABLED=1 CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2 -fstack-protector-strong" CGO_LDFLAGS="-Wl,-z,relro,-z,now" go build -cover -covermode=atomic \
-	-ldflags "${LDFLAGS_EXTRA}" -o authelia
+	-ldflags "${LDFLAGS_EXTRA}" -o authelia ./cmd/authelia
 
 # ===================================
 # ===== Authelia official image =====
 # ===================================
-FROM alpine:3.21.3@sha256:a8560b36e8b8210634f77d9f7f9efd7ffa463e380b75e2e74aff4511df3ef88c
-
-RUN apk --no-cache add ca-certificates tzdata wget
+FROM authelia/base:latest
 
 WORKDIR /app
 
-COPY --from=builder-backend /go/src/app/cmd/authelia/authelia /go/src/app/LICENSE /go/src/app/healthcheck.sh /go/src/app/.healthcheck.env ./
+COPY --link --from=builder-backend /go/src/app/authelia /go/src/app/LICENSE /go/src/app/healthcheck.sh ./
+
+COPY --link	--from=builder-backend --chmod=666 /go/src/app/.healthcheck.env ./
 
 EXPOSE 9091
 
-ENV PATH="/app:${PATH}" \
+ENV \
+	PATH="/app:${PATH}" \
 	GOCOVERDIR="/authelia/coverage/" \
-    X_AUTHELIA_CONFIG="/config/configuration.yml"
+	X_AUTHELIA_CONFIG="/config/configuration.yml"
 
 CMD ["authelia"]
 HEALTHCHECK --interval=30s --timeout=3s CMD /app/healthcheck.sh

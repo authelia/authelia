@@ -22,10 +22,30 @@ env:
   CI_BYPASS: ${CI_BYPASS}
 
 steps:
+  - label: ":rocket: Trigger Pipeline [baseimage]"
+    trigger: "baseimage"
+    build:
+      message: "${BUILDKITE_MESSAGE}"
+      env:
+        AUTHELIA_RELEASE: "${BUILDKITE_TAG//v}"
+        BUILDKITE_PULL_REQUEST: "${BUILDKITE_PULL_REQUEST}"
+        BUILDKITE_PULL_REQUEST_BASE_BRANCH: "${BUILDKITE_PULL_REQUEST_BASE_BRANCH}"
+        BUILDKITE_PULL_REQUEST_REPO: "${BUILDKITE_PULL_REQUEST_REPO}"
+    depends_on: ~
+    key: "baseimage"
+    if: build.tag != null && build.env("CI_BYPASS") != "true"
+
   - label: ":docker: Deploy Manifest"
     command: "authelia-scripts docker push-manifest"
     depends_on:
       - "unit-test"
+EOF
+if [[ "${BUILDKITE_TAG}" != "" ]]; then
+cat << EOF
+      - "baseimage"
+EOF
+fi
+cat << EOF
     retry:
       manual:
         permit_on_passed: true
@@ -45,7 +65,7 @@ steps:
     agents:
       upload: "fast"
     key: "artifacts"
-    if: build.tag != null
+    if: build.tag != null && build.env("CI_BYPASS") != "true"
 
   - label: ":linux: Deploy AUR"
     command: ".buildkite/steps/aurpackages.sh | buildkite-agent pipeline upload"
@@ -60,5 +80,5 @@ steps:
       - "build-deb-package-armhf"
     agents:
       upload: "fast"
-    if: build.tag != null
+    if: build.tag != null && build.env("CI_BYPASS") != "true"
 EOF
