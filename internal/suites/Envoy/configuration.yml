@@ -3,7 +3,6 @@ certificates_directory: '/certs/'
 
 server:
   address: 'tcp://:9091'
-  asset_path: '/config/assets/'
   tls:
     certificate: '/pki/public.backend.crt'
     key: '/pki/private.backend.pem'

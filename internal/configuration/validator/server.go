@@ -169,7 +169,14 @@ func validateServerAssets(config *schema.Configuration, validator *schema.Struct
 	}
 
 	if _, err := os.Stat(config.Server.AssetPath); err != nil {
-		validator.Push(fmt.Errorf("server: asset_path: error occurred reading the '%s' directory: %w", config.Server.AssetPath, err))
+		switch {
+		case os.IsNotExist(err):
+			validator.Push(fmt.Errorf("server: asset_path: error occurred reading the '%s' directory: the directory does not exist", config.Server.AssetPath))
+		case os.IsPermission(err):
+			validator.Push(fmt.Errorf("server: asset_path: error occurred reading the '%s' directory: a permission error occurred trying to read the directory", config.Server.AssetPath))
+		default:
+			validator.Push(fmt.Errorf("server: asset_path: error occurred reading the '%s' directory: %w", config.Server.AssetPath, err))
+		}
 
 		return
 	}

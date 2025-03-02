@@ -750,7 +750,7 @@ func TestValidateServerAssets(t *testing.T) {
 			name: "ShouldValidateNoPath",
 			have: "../../nopath",
 			errors: []any{
-				"server: asset_path: error occurred reading the '../../nopath' directory: stat ../../nopath: no such file or directory",
+				"server: asset_path: error occurred reading the '../../nopath' directory: the directory does not exist",
 			},
 		},
 		{
