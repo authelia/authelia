@@ -97,6 +97,15 @@ var (
 
 	// ErrNoContent is returned when the file is empty.
 	ErrNoContent = errors.New("no file content")
+
+	ErrOperationFailed = errors.New("operation failed")
+
+	// ErrIncorrectPassword is returned when the password provided is incorrect.
+	ErrIncorrectPassword = errors.New("incorrect password")
+
+	ErrPasswordWeak = errors.New("your supplied password does not meet the password policy requirements")
+
+	ErrAuthenticationFailed = errors.New("authentication failed")
 )
 
 const fileAuthenticationMode = 0600

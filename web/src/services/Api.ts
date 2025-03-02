@@ -29,6 +29,8 @@ export const CompletePasswordSignInPath = basePath + "/api/secondfactor/password
 export const InitiateResetPasswordPath = basePath + "/api/reset-password/identity/start";
 export const CompleteResetPasswordPath = basePath + "/api/reset-password/identity/finish";
 
+export const ChangePasswordPath = basePath + "/api/change-password";
+
 // Do the password reset during completion.
 export const ResetPasswordPath = basePath + "/api/reset-password";
 export const ChecksSafeRedirectionPath = basePath + "/api/checks/safe-redirection";

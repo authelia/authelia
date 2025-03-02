@@ -17,6 +17,14 @@ server:
         buckets:
           - period: '2 minutes'
             requests: 20
+      session_elevation_start:
+        buckets:
+          - period: '2 minutes'
+            requests: 20
+      session_elevation_finish:
+        buckets:
+          - period: '2 minutes'
+            requests: 20
 
 log:
   level: 'debug'
