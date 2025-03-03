@@ -95,6 +95,20 @@ const (
 	UserValueRouterKeyExtAuthzPath = "extauthz"
 )
 
+const (
+	logFieldProvider                 = "provider"
+	logMessageStartupCheckError      = "Error occurred running a startup check"
+	logMessageStartupCheckPerforming = "Performing Startup Check"
+	logMessageStartupCheckSuccess    = "Startup Check Completed Successfully"
+
+	providerNameNTP              = "ntp"
+	providerNameStorage          = "storage"
+	providerNameUser             = "user"
+	providerNameNotification     = "notification"
+	providerNameExpressions      = "expressions"
+	providerNameWebAuthnMetaData = "webauthn-metadata"
+)
+
 var (
 	protoHTTPS = []byte(strProtoHTTPS)
 	protoHTTP  = []byte(strProtoHTTP)

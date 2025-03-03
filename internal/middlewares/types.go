@@ -1,6 +1,8 @@
 package middlewares
 
 import (
+	"context"
+
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
@@ -52,6 +54,14 @@ type Providers struct {
 	Random                random.Provider
 	UserAttributeResolver expression.UserAttributeResolver
 	MetaDataService       webauthn.MetaDataProvider
+}
+
+type Context interface {
+	GetLogger() *logrus.Logger
+	GetProviders() Providers
+	GetConfiguration() *schema.Configuration
+
+	context.Context
 }
 
 // RequestHandler represents an Authelia request handler.

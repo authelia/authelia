@@ -8,7 +8,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/authelia/authelia/v4/internal/logging"
-	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -86,7 +85,7 @@ func (ctx *CmdCtx) RootRunE(_ *cobra.Command, _ []string) (err error) {
 		ctx.log.Fatalf("Errors occurred provisioning providers.")
 	}
 
-	doStartupChecks(ctx)
+	ctx.providers.StartupChecks(ctx)
 
 	ctx.cconfig = nil
 
@@ -95,90 +94,4 @@ func (ctx *CmdCtx) RootRunE(_ *cobra.Command, _ []string) (err error) {
 	service.RunAll(ctx)
 
 	return nil
-}
-
-func doStartupChecks(ctx *CmdCtx) {
-	var (
-		failures []string
-		err      error
-	)
-
-	ctx.log.WithFields(map[string]any{logFieldProvider: providerNameStorage}).Trace(logMessageStartupCheckPerforming)
-
-	if err = doStartupCheck(ctx, providerNameStorage, ctx.providers.StorageProvider, false); err != nil {
-		ctx.log.WithError(err).WithField(logFieldProvider, providerNameStorage).Error(logMessageStartupCheckError)
-
-		failures = append(failures, providerNameStorage)
-	} else {
-		ctx.log.WithFields(map[string]any{logFieldProvider: providerNameStorage}).Trace(logMessageStartupCheckSuccess)
-	}
-
-	ctx.log.WithFields(map[string]any{logFieldProvider: providerNameUser}).Trace(logMessageStartupCheckPerforming)
-
-	if err = doStartupCheck(ctx, providerNameUser, ctx.providers.UserProvider, false); err != nil {
-		ctx.log.WithError(err).WithField(logFieldProvider, providerNameUser).Error(logMessageStartupCheckError)
-
-		failures = append(failures, providerNameUser)
-	} else {
-		ctx.log.WithFields(map[string]any{logFieldProvider: providerNameUser}).Trace(logMessageStartupCheckSuccess)
-	}
-
-	ctx.log.WithFields(map[string]any{logFieldProvider: providerNameNotification}).Trace(logMessageStartupCheckPerforming)
-
-	if err = doStartupCheck(ctx, providerNameNotification, ctx.providers.Notifier, ctx.config.Notifier.DisableStartupCheck); err != nil {
-		ctx.log.WithError(err).WithField(logFieldProvider, providerNameNotification).Error(logMessageStartupCheckError)
-
-		failures = append(failures, providerNameNotification)
-	} else {
-		ctx.log.WithFields(map[string]any{logFieldProvider: providerNameNotification}).Trace(logMessageStartupCheckSuccess)
-	}
-
-	ctx.log.WithFields(map[string]any{logFieldProvider: providerNameNTP}).Trace(logMessageStartupCheckPerforming)
-
-	if err = doStartupCheck(ctx, providerNameNTP, ctx.providers.NTP, ctx.config.NTP.DisableStartupCheck); err != nil {
-		if !ctx.config.NTP.DisableFailure {
-			ctx.log.WithError(err).WithField(logFieldProvider, providerNameNTP).Error(logMessageStartupCheckError)
-
-			failures = append(failures, providerNameNTP)
-		} else {
-			ctx.log.WithError(err).WithField(logFieldProvider, providerNameNTP).Warn(logMessageStartupCheckError)
-		}
-	} else {
-		ctx.log.WithFields(map[string]any{logFieldProvider: providerNameNTP}).Trace(logMessageStartupCheckSuccess)
-	}
-
-	ctx.log.WithFields(map[string]any{logFieldProvider: providerNameExpressions}).Trace(logMessageStartupCheckPerforming)
-
-	if err = doStartupCheck(ctx, providerNameExpressions, ctx.providers.UserAttributeResolver, false); err != nil {
-		ctx.log.WithError(err).WithField(logFieldProvider, providerNameExpressions).Error(logMessageStartupCheckError)
-
-		failures = append(failures, providerNameExpressions)
-	} else {
-		ctx.log.WithFields(map[string]any{logFieldProvider: providerNameExpressions}).Trace(logMessageStartupCheckSuccess)
-	}
-
-	if err = doStartupCheck(ctx, providerNameWebAuthnMetaData, ctx.providers.MetaDataService, !ctx.config.WebAuthn.Metadata.Enabled || ctx.providers.MetaDataService == nil); err != nil {
-		ctx.log.WithError(err).WithField(logFieldProvider, providerNameWebAuthnMetaData).Error(logMessageStartupCheckError)
-
-		failures = append(failures, providerNameWebAuthnMetaData)
-	} else {
-		ctx.log.WithFields(map[string]any{logFieldProvider: providerNameWebAuthnMetaData}).Trace("Startup Check Completed Successfully")
-	}
-
-	if len(failures) != 0 {
-		ctx.log.WithField("providers", failures).Fatalf("One or more providers had fatal failures performing startup checks, for more detail check the error level logs")
-	}
-}
-
-func doStartupCheck(ctx *CmdCtx, name string, provider model.StartupCheck, disabled bool) error {
-	if disabled {
-		ctx.log.Debugf("%s provider: startup check skipped as it is disabled", name)
-		return nil
-	}
-
-	if provider == nil {
-		return fmt.Errorf("unrecognized provider or it is not configured properly")
-	}
-
-	return provider.StartupCheck()
 }
