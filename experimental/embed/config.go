@@ -8,7 +8,10 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
 )
 
-func NewConfig(paths []string, filters []configuration.BytesFilter) (keys []string, config *schema.Configuration, val *schema.StructValidator, err error) {
+// NewConfiguration builds a new configuration given a list of paths and filters. The filters can either be nil or
+// generated using NewNamedConfigFileFilters. This function essentially operates the same as Authelia does normally in
+// configuration steps.
+func NewConfiguration(paths []string, filters []configuration.BytesFilter) (keys []string, config *schema.Configuration, val *schema.StructValidator, err error) {
 	sources := configuration.NewDefaultSourcesWithDefaults(
 		paths,
 		filters,
@@ -38,15 +41,28 @@ func NewConfig(paths []string, filters []configuration.BytesFilter) (keys []stri
 	return keys, config, val, nil
 }
 
-func ValidateConfigKeys(keys []string, val *schema.StructValidator) {
+// ValidateConfigurationAndKeys performs all configuration validation steps. The provided *schema.StructValidator should
+// at minimum be checked for errors before continuing.
+func ValidateConfigurationAndKeys(config *schema.Configuration, keys []string, val *schema.StructValidator) {
+	ValidateConfigurationKeys(keys, val)
+	ValidateConfiguration(config, val)
+}
+
+// ValidateConfigurationKeys just the keys validation steps. The provided *schema.StructValidator should
+// at minimum be checked for errors before continuing. This should be used prior to using ValidateConfiguration.
+func ValidateConfigurationKeys(keys []string, val *schema.StructValidator) {
 	validator.ValidateKeys(keys, configuration.GetMultiKeyMappedDeprecationKeys(), configuration.DefaultEnvPrefix, val)
 }
 
-func ValidateConfig(config *schema.Configuration, val *schema.StructValidator) {
+// ValidateConfiguration just the configuration validation steps. The provided *schema.StructValidator should
+// at minimum be checked for errors before continuing. This should be used after using ValidateConfigurationKeys.
+func ValidateConfiguration(config *schema.Configuration, val *schema.StructValidator) {
 	validator.ValidateConfiguration(config, val)
 }
 
-func NewConfigFileFilters(names ...string) (filters []configuration.BytesFilter, err error) {
+// NewNamedConfigFileFilters allows configuring a set of file filters. The officially supported filter has the name
+// 'template'. The only other one at this stage is 'expand-env' which is deprecated.
+func NewNamedConfigFileFilters(names ...string) (filters []configuration.BytesFilter, err error) {
 	if filters, err = configuration.NewFileFilters(names); err != nil {
 		return nil, fmt.Errorf("error occurred loading filters: %w", err)
 	}

@@ -13,9 +13,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/authelia/authelia/v4/internal/logging"
-
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
@@ -23,11 +22,11 @@ import (
 type mockServiceCtx struct {
 	ctx       context.Context
 	config    *schema.Configuration
-	logger    *logrus.Logger
+	logger    *logrus.Entry
 	providers middlewares.Providers
 }
 
-func (m *mockServiceCtx) GetLogger() *logrus.Logger {
+func (m *mockServiceCtx) GetLogger() *logrus.Entry {
 	return m.logger
 }
 
@@ -64,7 +63,7 @@ func newMockServiceCtx() *mockServiceCtx {
 	return &mockServiceCtx{
 		ctx:       context.Background(),
 		config:    config,
-		logger:    logger,
+		logger:    logger.WithFields(map[string]any{}),
 		providers: middlewares.Providers{},
 	}
 }
@@ -202,7 +201,7 @@ func TestLogReopenFiles(t *testing.T) {
 	ctx := &mockServiceCtx{
 		ctx:       context.Background(),
 		config:    config,
-		logger:    logging.Logger(),
+		logger:    logging.Logger().WithFields(map[string]any{}),
 		providers: middlewares.Providers{},
 	}
 

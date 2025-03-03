@@ -96,17 +96,17 @@ const (
 )
 
 const (
-	logFieldProvider                 = "provider"
-	logMessageStartupCheckError      = "Error occurred running a startup check"
-	logMessageStartupCheckPerforming = "Performing Startup Check"
-	logMessageStartupCheckSuccess    = "Startup Check Completed Successfully"
+	LogFieldProvider                 = "provider"
+	LogMessageStartupCheckError      = "Error occurred running a startup check"
+	LogMessageStartupCheckPerforming = "Performing Startup Check"
+	LogMessageStartupCheckSuccess    = "Startup Check Completed Successfully"
 
-	providerNameNTP              = "ntp"
-	providerNameStorage          = "storage"
-	providerNameUser             = "user"
-	providerNameNotification     = "notification"
-	providerNameExpressions      = "expressions"
-	providerNameWebAuthnMetaData = "webauthn-metadata"
+	ProviderNameNTP              = "ntp"
+	ProviderNameStorage          = "storage"
+	ProviderNameUser             = "user"
+	ProviderNameNotification     = "notification"
+	ProviderNameExpressions      = "expressions"
+	ProviderNameWebAuthnMetaData = "webauthn-metadata"
 )
 
 var (

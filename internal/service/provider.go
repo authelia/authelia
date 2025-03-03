@@ -44,7 +44,7 @@ func GetProvisioners() []Provisioner {
 }
 
 type Context interface {
-	GetLogger() *logrus.Logger
+	GetLogger() *logrus.Entry
 	GetProviders() middlewares.Providers
 	GetConfiguration() *schema.Configuration
 

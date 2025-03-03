@@ -32,7 +32,7 @@ func ProvisionUsersFileWatcher(ctx Context) (service Provider, err error) {
 }
 
 // NewFileWatcher creates a new FileWatcher with the appropriate logger etc.
-func NewFileWatcher(name, path string, reload ReloadableProvider, log *logrus.Logger) (service *FileWatcher, err error) {
+func NewFileWatcher(name, path string, reload ReloadableProvider, log *logrus.Entry) (service *FileWatcher, err error) {
 	if path == "" {
 		return nil, fmt.Errorf("path must be specified")
 	}

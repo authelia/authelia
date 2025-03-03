@@ -57,7 +57,7 @@ type Providers struct {
 }
 
 type Context interface {
-	GetLogger() *logrus.Logger
+	GetLogger() *logrus.Entry
 	GetProviders() Providers
 	GetConfiguration() *schema.Configuration
 

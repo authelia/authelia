@@ -31,7 +31,7 @@ func NewCmdCtx() *CmdCtx {
 
 	return &CmdCtx{
 		Context: ctx,
-		log:     logging.Logger(),
+		log:     logging.Logger().WithFields(logrus.Fields{}),
 		providers: middlewares.Providers{
 			Random: &random.Cryptographical{},
 		},
@@ -43,7 +43,7 @@ func NewCmdCtx() *CmdCtx {
 type CmdCtx struct {
 	context.Context
 
-	log *logrus.Logger
+	log *logrus.Entry
 
 	config    *schema.Configuration
 	providers middlewares.Providers
@@ -74,8 +74,8 @@ type CmdCtxConfig struct {
 type CobraRunECmd func(cmd *cobra.Command, args []string) (err error)
 
 // GetLogger returns the *logrus.Logger satisfying part of the ServiceCtx.
-func (ctx *CmdCtx) GetLogger() *logrus.Logger {
-	return ctx.log
+func (ctx *CmdCtx) GetLogger() *logrus.Entry {
+	return ctx.log.WithFields(map[string]any{})
 }
 
 // GetProviders returns middlewares.Providers satisfying part of the ServiceCtx.
@@ -141,6 +141,10 @@ func (ctx *CmdCtx) LoadTrustedCertificates() (warns, errs []error) {
 
 // LoadProviders loads all providers into the CmdCtx.
 func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
+	if warns, errs = ctx.LoadTrustedCertificates(); len(warns) != 0 || len(errs) != 0 {
+		return warns, errs
+	}
+
 	ctx.providers, warns, errs = middlewares.NewProviders(ctx.config, ctx.trusted)
 
 	return warns, errs

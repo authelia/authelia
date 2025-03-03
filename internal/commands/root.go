@@ -1,13 +1,15 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
-	"github.com/authelia/authelia/v4/internal/service"
 	"os"
 
 	"github.com/spf13/cobra"
 
 	"github.com/authelia/authelia/v4/internal/logging"
+	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/service"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -82,10 +84,18 @@ func (ctx *CmdCtx) RootRunE(_ *cobra.Command, _ []string) (err error) {
 			ctx.log.Error(err)
 		}
 
-		ctx.log.Fatalf("Errors occurred provisioning providers.")
+		ctx.log.Fatal("Errors occurred provisioning providers")
 	}
 
-	ctx.providers.StartupChecks(ctx)
+	if err = ctx.providers.StartupChecks(ctx, true); err != nil {
+		var scerr *middlewares.ErrProviderStartupCheck
+
+		if errors.As(err, &scerr) {
+			ctx.GetLogger().WithField("providers", scerr.Failed()).Fatalf("One or more providers had fatal failures performing startup checks, for more details check the error level logs")
+		} else {
+			ctx.log.Fatal("Errors occurred performing startup checks")
+		}
+	}
 
 	ctx.cconfig = nil
 

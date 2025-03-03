@@ -32,6 +32,7 @@ func SetContentTypeTextPlain(ctx *fasthttp.RequestCtx) {
 	ctx.SetContentTypeBytes(contentTypeTextPlain)
 }
 
+// NewProviders provisions all providers based on the configuration provided.
 func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (providers Providers, warns, errs []error) {
 	providers.StorageProvider = storage.NewProvider(config, caCertPool)
 	providers.Authorizer = authorization.NewAuthorizer(config)

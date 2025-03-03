@@ -53,7 +53,7 @@ func ProvisionServerMetrics(ctx Context) (service Provider, err error) {
 }
 
 // NewBaseServer creates a new Server with the appropriate logger etc.
-func NewBaseServer(name string, server *fasthttp.Server, listener net.Listener, paths []string, isTLS bool, log *logrus.Logger) (service *Server) {
+func NewBaseServer(name string, server *fasthttp.Server, listener net.Listener, paths []string, isTLS bool, log *logrus.Entry) (service *Server) {
 	return &Server{
 		name:     name,
 		server:   server,
