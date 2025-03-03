@@ -9,6 +9,7 @@ func ConfigurationGET(ctx *middlewares.AutheliaCtx) {
 	body := configurationBody{
 		AvailableMethods:       make(MethodList, 0, 3),
 		PasswordChangeDisabled: false,
+		PasswordResetDisabled:  false,
 	}
 
 	if ctx.Providers.Authorizer.IsSecondFactorEnabled() {
@@ -16,17 +17,14 @@ func ConfigurationGET(ctx *middlewares.AutheliaCtx) {
 	}
 
 	body.PasswordChangeDisabled = ctx.Configuration.AuthenticationBackend.PasswordChange.Disable
+	body.PasswordResetDisabled = ctx.Configuration.AuthenticationBackend.PasswordReset.Disable
 
-	var passwordChangeString string
-
-	if body.PasswordChangeDisabled {
-		passwordChangeString = "disabled."
-	} else {
-		passwordChangeString = "enabled."
-	}
-
-	ctx.Logger.Tracef("Available methods are %s", body.AvailableMethods)
-	ctx.Logger.Tracef("Password change is %s", passwordChangeString)
+	ctx.Logger.WithFields(
+		map[string]any{
+			"available_methods":        body.AvailableMethods,
+			"password_change_disabled": body.PasswordChangeDisabled,
+			"password_reset_disabled":  body.PasswordResetDisabled,
+		}).Trace("Authelia configuration requested")
 
 	if err := ctx.SetJSONBody(body); err != nil {
 		ctx.Logger.Errorf("Unable to set configuration response in body: %s", err)

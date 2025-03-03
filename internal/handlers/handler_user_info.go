@@ -70,7 +70,6 @@ func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	userInfo.DisplayName = userSession.DisplayName
-	userInfo.Emails = userSession.Emails
 
 	err = ctx.SetJSONBody(userInfo)
 	if err != nil {
@@ -101,6 +100,11 @@ func UserInfoGET(ctx *middlewares.AutheliaCtx) {
 	}
 
 	userInfo.DisplayName = userSession.DisplayName
+
+	// it should be noted that UserInfo only contains info from the database and NOT any info from the authn_backend (email/groups).
+	for _, email := range userSession.Emails {
+		userInfo.Emails = append(userInfo.Emails, redactEmail(email))
+	}
 
 	err = ctx.SetJSONBody(userInfo)
 	if err != nil {

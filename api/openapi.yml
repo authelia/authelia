@@ -2239,6 +2239,12 @@ components:
             passkey_login:
               type: boolean
               description: Value which indicates if Passkey logins are enabled.
+            password_change_disabled:
+              type: boolean
+              description: Value which indicates if users are allowed to change their password from account settings.
+            password_reset_disabled:
+              type: boolean
+              description: Value which indicates if users are allowed to reset their password.
     handlers.configuration.PasswordPolicyConfigurationBody:
       type: object
       properties:

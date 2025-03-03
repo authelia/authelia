@@ -22,6 +22,7 @@ type MethodList = []string
 type configurationBody struct {
 	AvailableMethods       MethodList `json:"available_methods"`
 	PasswordChangeDisabled bool       `json:"password_change_disabled"`
+	PasswordResetDisabled  bool       `json:"password_reset_disabled"`
 }
 
 // bodySignTOTPRequest is the  model of the request body of TOTP 2FA authentication endpoint.

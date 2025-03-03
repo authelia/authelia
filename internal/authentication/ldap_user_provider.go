@@ -250,7 +250,7 @@ func (p *LDAPUserProvider) UpdatePassword(username, password string) (err error)
 	)
 
 	if client, err = p.factory.GetClient(); err != nil {
-		return fmt.Errorf("unable to update password. Cause: %v", err)
+		return fmt.Errorf("unable to update password. Cause: %w", err)
 	}
 
 	defer func() {

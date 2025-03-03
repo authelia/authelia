@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { useConfiguration } from "@hooks/Configuration";
 import { useNotifications } from "@hooks/NotificationsContext";
-import { useUserInfoPOST } from "@hooks/UserInfo";
+import { useUserInfoGET } from "@hooks/UserInfo";
 import { UserSessionElevation, getUserSessionElevation } from "@services/UserSessionElevation";
 import IdentityVerificationDialog from "@views/Settings/Common/IdentityVerificationDialog";
 import SecondFactorDialog from "@views/Settings/Common/SecondFactorDialog";
@@ -16,7 +16,7 @@ const SettingsView = function () {
     const theme = useTheme();
     const { createErrorNotification } = useNotifications();
 
-    const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoPOST();
+    const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoGET();
     const [elevation, setElevation] = useState<UserSessionElevation>();
     const [dialogSFOpening, setDialogSFOpening] = useState(false);
     const [dialogIVOpening, setDialogIVOpening] = useState(false);
