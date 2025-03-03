@@ -1,4 +1,4 @@
-package services
+package service
 
 const (
 	fmtLogServerListening = "Listening for %s connections on '%s' path '%s'"

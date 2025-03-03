@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"github.com/authelia/authelia/v4/internal/service"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -91,7 +92,7 @@ func (ctx *CmdCtx) RootRunE(_ *cobra.Command, _ []string) (err error) {
 
 	ctx.log.Trace("Starting Services")
 
-	servicesRun(ctx)
+	service.RunAll(ctx)
 
 	return nil
 }

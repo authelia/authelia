@@ -1,4 +1,4 @@
-package commands
+package service
 
 import (
 	"context"
@@ -98,7 +98,12 @@ func TestSignalService_Run(t *testing.T) {
 				return tc.actionError
 			}
 
-			service := NewSignalService("test", action, logger, tc.signal)
+			service := &Signal{
+				name:    "log-reload",
+				signals: []os.Signal{syscall.SIGHUP},
+				action:  action,
+				log:     logger.WithFields(map[string]any{logFieldService: serviceTypeSignal, serviceTypeSignal: "log-reload"}),
+			}
 
 			errChan := make(chan error, 1)
 			done := make(chan struct{})
@@ -163,7 +168,7 @@ func TestSvcSignalLogReOpenFunc(t *testing.T) {
 			mockCtx := newMockServiceCtx()
 			mockCtx.config.Log.FilePath = tc.logFilePath
 
-			service := svcSignalLogReOpenFunc(mockCtx)
+			service, _ := ProvisionLoggingSignal(mockCtx)
 
 			if tc.expectService {
 				require.NotNil(t, service)
@@ -201,7 +206,7 @@ func TestLogReopenFiles(t *testing.T) {
 		providers: middlewares.Providers{},
 	}
 
-	service := svcSignalLogReOpenFunc(ctx)
+	service, _ := ProvisionLoggingSignal(ctx)
 	require.NotNil(t, service)
 
 	errChan := make(chan error, 1)
@@ -237,7 +242,12 @@ func TestLogReopenFiles(t *testing.T) {
 func TestSignalService_Shutdown(t *testing.T) {
 	logger := logrus.New()
 	action := func() error { return nil }
-	service := NewSignalService("test", action, logger, syscall.SIGHUP)
+	service := &Signal{
+		name:    "test",
+		signals: []os.Signal{syscall.SIGHUP},
+		action:  action,
+		log:     logger.WithFields(map[string]any{logFieldService: serviceTypeSignal, serviceTypeSignal: "test"}),
+	}
 
 	done := make(chan struct{})
 	go func() {

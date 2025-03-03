@@ -947,14 +947,6 @@ const (
 )
 
 const (
-	logFieldService = "service"
-	logFieldFile    = "file"
-	logFieldOP      = "op"
-
-	serviceTypeServer  = "server"
-	serviceTypeWatcher = "watcher"
-	serviceTypeSignal  = "signal"
-
 	logFieldProvider                 = "provider"
 	logMessageStartupCheckError      = "Error occurred running a startup check"
 	logMessageStartupCheckPerforming = "Performing Startup Check"

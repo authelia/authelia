@@ -1,4 +1,4 @@
-package services
+package service
 
 import (
 	"context"
@@ -9,12 +9,10 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/server"
 )
 
-func ProvisionServer(config *schema.Configuration, providers middlewares.Providers, log *logrus.Logger) (service Provider, err error) {
+func ProvisionServer(ctx Context) (service Provider, err error) {
 	var (
 		s        *fasthttp.Server
 		listener net.Listener
@@ -22,11 +20,11 @@ func ProvisionServer(config *schema.Configuration, providers middlewares.Provide
 		isTLS    bool
 	)
 
-	switch s, listener, paths, isTLS, err = server.New(config, providers); {
+	switch s, listener, paths, isTLS, err = server.New(ctx.GetConfiguration(), ctx.GetProviders()); {
 	case err != nil:
 		return nil, err
 	case s != nil && listener != nil:
-		service = NewBaseServer("main", s, listener, paths, isTLS, log)
+		service = NewBaseServer("main", s, listener, paths, isTLS, ctx.GetLogger())
 	default:
 		return nil, nil
 	}
@@ -34,7 +32,7 @@ func ProvisionServer(config *schema.Configuration, providers middlewares.Provide
 	return service, nil
 }
 
-func ProvisionServerMetrics(config *schema.Configuration, providers middlewares.Providers, log *logrus.Logger) (service Provider, err error) {
+func ProvisionServerMetrics(ctx Context) (service Provider, err error) {
 	var (
 		s        *fasthttp.Server
 		listener net.Listener
@@ -42,11 +40,11 @@ func ProvisionServerMetrics(config *schema.Configuration, providers middlewares.
 		isTLS    bool
 	)
 
-	switch s, listener, paths, isTLS, err = server.NewMetrics(config, providers); {
+	switch s, listener, paths, isTLS, err = server.NewMetrics(ctx.GetConfiguration(), ctx.GetProviders()); {
 	case err != nil:
 		return nil, err
 	case s != nil && listener != nil:
-		service = NewBaseServer("metrics", s, listener, paths, isTLS, log)
+		service = NewBaseServer("metrics", s, listener, paths, isTLS, ctx.GetLogger())
 	default:
 		return nil, nil
 	}

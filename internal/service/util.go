@@ -1,4 +1,4 @@
-package services
+package service
 
 import (
 	"context"
@@ -8,14 +8,16 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
-
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
-func Run(ctx Context, config *schema.Configuration, providers middlewares.Providers, log *logrus.Logger) {
+func RunAll(ctx Context) {
+	provisioners := GetProvisioners()
+
+	Run(ctx, provisioners...)
+}
+
+func Run(ctx Context, provisioners ...Provisioner) {
 	cctx, cancel := context.WithCancel(ctx)
 
 	group, cctx := errgroup.WithContext(cctx)
@@ -32,10 +34,10 @@ func Run(ctx Context, config *schema.Configuration, providers middlewares.Provid
 		services []Provider
 	)
 
-	provisioners := GetProvisioners()
+	log := ctx.GetLogger()
 
 	for _, provisioner := range provisioners {
-		if service, err := provisioner(config, providers, log); err != nil {
+		if service, err := provisioner(ctx); err != nil {
 			service.Log().Trace("Service Loaded")
 
 			services = append(services, service)

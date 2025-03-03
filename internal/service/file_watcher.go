@@ -1,4 +1,4 @@
-package services
+package service
 
 import (
 	"errors"
@@ -10,11 +10,12 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
-func ProvisionUsersFileWatcher(config *schema.Configuration, providers middlewares.Providers, log *logrus.Logger) (service Provider, err error) {
+func ProvisionUsersFileWatcher(ctx Context) (service Provider, err error) {
+	config := ctx.GetConfiguration()
+	providers := ctx.GetProviders()
+
 	if config.AuthenticationBackend.File != nil && config.AuthenticationBackend.File.Watch {
 		provider, ok := providers.UserProvider.(*authentication.FileUserProvider)
 
@@ -22,7 +23,7 @@ func ProvisionUsersFileWatcher(config *schema.Configuration, providers middlewar
 			return nil, errors.New("error occurred asserting user provider")
 		}
 
-		if service, err = NewFileWatcher("users", config.AuthenticationBackend.File.Path, provider, log); err != nil {
+		if service, err = NewFileWatcher("users", config.AuthenticationBackend.File.Path, provider, ctx.GetLogger()); err != nil {
 			return nil, err
 		}
 	}

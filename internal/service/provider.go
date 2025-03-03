@@ -1,4 +1,4 @@
-package services
+package service
 
 import (
 	"context"
@@ -32,7 +32,7 @@ type ReloadableProvider interface {
 	Reload() (reloaded bool, err error)
 }
 
-type Provisioner func(config *schema.Configuration, providers middlewares.Providers, log *logrus.Logger) (provider Provider, err error)
+type Provisioner func(ctx Context) (provider Provider, err error)
 
 func GetProvisioners() []Provisioner {
 	return []Provisioner{

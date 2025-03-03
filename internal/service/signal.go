@@ -1,4 +1,4 @@
-package services
+package service
 
 import (
 	"os"
@@ -7,17 +7,21 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
-	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
-func ProvisionLoggingSignal(config *schema.Configuration, providers middlewares.Providers, log *logrus.Logger) (service Provider, err error) {
+func ProvisionLoggingSignal(ctx Context) (service Provider, err error) {
+	config := ctx.GetConfiguration()
+
+	if config == nil || len(config.Log.FilePath) == 0 {
+		return nil, nil
+	}
+
 	return &Signal{
 		name:    "log-reload",
 		signals: []os.Signal{syscall.SIGHUP},
 		action:  logging.Reopen,
-		log:     log.WithFields(map[string]any{logFieldService: serviceTypeSignal, serviceTypeSignal: "log-reload"}),
+		log:     ctx.GetLogger().WithFields(map[string]any{logFieldService: serviceTypeSignal, serviceTypeSignal: "log-reload"}),
 	}, nil
 }
 
