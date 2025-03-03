@@ -101,7 +101,5 @@ func (ctx *CmdCtx) RootRunE(_ *cobra.Command, _ []string) (err error) {
 
 	ctx.log.Trace("Starting Services")
 
-	service.RunAll(ctx)
-
-	return nil
+	return service.RunAll(ctx)
 }

@@ -11,13 +11,13 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func RunAll(ctx Context) {
+func RunAll(ctx Context) (err error) {
 	provisioners := GetProvisioners()
 
-	Run(ctx, provisioners...)
+	return Run(ctx, provisioners...)
 }
 
-func Run(ctx Context, provisioners ...Provisioner) {
+func Run(ctx Context, provisioners ...Provisioner) (err error) {
 	cctx, cancel := context.WithCancel(ctx)
 
 	group, cctx := errgroup.WithContext(cctx)
@@ -38,12 +38,14 @@ func Run(ctx Context, provisioners ...Provisioner) {
 
 	for _, provisioner := range provisioners {
 		if service, err := provisioner(ctx); err != nil {
-			service.Log().Trace("Service Loaded")
-
+			return fmt.Errorf("error occurred provisioning services: %w", err)
+		} else if service != nil {
 			services = append(services, service)
-
-			group.Go(service.Run)
 		}
+	}
+
+	for _, service := range services {
+		group.Go(service.Run)
 	}
 
 	log.Info("Startup complete")
@@ -79,8 +81,6 @@ func Run(ctx Context, provisioners ...Provisioner) {
 
 	wgShutdown.Wait()
 
-	var err error
-
 	if err = ctx.GetProviders().UserProvider.Close(); err != nil {
 		ctx.GetLogger().WithError(err).Error("Error occurred closing authentication connections")
 	}
@@ -94,6 +94,8 @@ func Run(ctx Context, provisioners ...Provisioner) {
 	}
 
 	log.Info("Shutdown complete")
+
+	return nil
 }
 
 func connectionType(isTLS bool) string {
