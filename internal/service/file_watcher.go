@@ -37,14 +37,21 @@ func NewFileWatcher(name, path string, reload ReloadableProvider, log *logrus.En
 		return nil, fmt.Errorf("path must be specified")
 	}
 
+	if path, err = filepath.Abs(path); err != nil {
+		return nil, fmt.Errorf("error determining absolute path of file '%s': %w", path, err)
+	}
+
 	var info os.FileInfo
 
 	if info, err = os.Stat(path); err != nil {
-		return nil, fmt.Errorf("error stating file '%s': %w", path, err)
-	}
-
-	if path, err = filepath.Abs(path); err != nil {
-		return nil, fmt.Errorf("error determining absolute path of file '%s': %w", path, err)
+		switch {
+		case os.IsNotExist(err):
+			return nil, fmt.Errorf("error stating file '%s': file does not exist", path)
+		case os.IsPermission(err):
+			return nil, fmt.Errorf("error stating file '%s': permission denied trying to read the file", path)
+		default:
+			return nil, fmt.Errorf("error stating file '%s': %w", path, err)
+		}
 	}
 
 	var watcher *fsnotify.Watcher
