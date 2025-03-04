@@ -11,11 +11,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/templates"
 )
 
-type ErrorResponse struct {
-	Message string `json:"message"`
-	Code    string `json:"code"`
-}
-
 func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	var (
 		userSession session.UserSession
@@ -42,25 +37,19 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if err = ctx.Providers.UserProvider.ChangePassword(username, requestBody.OldPassword, requestBody.NewPassword); err != nil {
+		ctx.Logger.WithError(err).Debugf("Unable to change password for user '%s'", username)
+
 		switch {
 		case errors.Is(err, authentication.ErrIncorrectPassword):
-			ctx.Logger.WithError(err).Debugf("Unable to change password for user '%s'", username)
 			ctx.SetJSONError(messageIncorrectPassword)
 			ctx.SetStatusCode(http.StatusUnauthorized)
 		case errors.Is(err, authentication.ErrPasswordWeak):
-			ctx.Logger.WithError(err).Debugf("Unable to change password for user '%s'", username)
 			ctx.SetJSONError(messagePasswordWeak)
 			ctx.SetStatusCode(http.StatusBadRequest)
 		case errors.Is(err, authentication.ErrAuthenticationFailed):
-			ctx.Logger.WithError(err).Errorf("Unable to change password for user '%s'", username)
 			ctx.SetJSONError(messageOperationFailed)
 			ctx.SetStatusCode(http.StatusUnauthorized)
-		case errors.Is(err, authentication.ErrOperationFailed):
-			ctx.Logger.WithError(err).Errorf("Unable to change password for user '%s'", username)
-			ctx.SetJSONError(messageOperationFailed)
-			ctx.SetStatusCode(http.StatusInternalServerError)
 		default:
-			ctx.Logger.WithError(err).Errorf("Unable to change password for user '%s'", username)
 			ctx.SetJSONError(messageOperationFailed)
 			ctx.SetStatusCode(http.StatusInternalServerError)
 		}
