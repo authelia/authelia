@@ -18,9 +18,9 @@ it("renders without crashing", () => {
 
 it("displays notification message and level correctly", async () => {
     render(
-        <NotificationsContext.Provider value={{ notification: testNotification, setNotification: () => {} }}>
+        <NotificationsContext value={{ notification: testNotification, setNotification: () => {} }}>
             <NotificationBar onClose={() => {}} />
-        </NotificationsContext.Provider>,
+        </NotificationsContext>,
     );
 
     const alert = await screen.getByRole("alert");

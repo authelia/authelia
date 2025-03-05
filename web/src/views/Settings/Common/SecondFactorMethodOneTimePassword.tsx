@@ -22,7 +22,7 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
 
     const [config, fetchConfig, , fetchConfigError] = useUserInfoTOTPConfiguration();
 
-    const timeoutRateLimit = useRef<NodeJS.Timeout>();
+    const timeoutRateLimit = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
         if (fetchConfigError) {
@@ -36,6 +36,8 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
     }, [fetchConfig]);
 
     useEffect(() => {
+        if (timeoutRateLimit.current === null) return;
+
         return clearTimeout(timeoutRateLimit.current);
     }, []);
 
@@ -51,7 +53,7 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
 
             timeoutRateLimit.current = setTimeout(() => {
                 setState(State.Idle);
-                timeoutRateLimit.current = undefined;
+                timeoutRateLimit.current = null;
             }, retryAfter * 1000);
         },
         [createErrorNotification, translate],

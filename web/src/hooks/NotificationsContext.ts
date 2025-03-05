@@ -1,4 +1,4 @@
-import { createContext, useContext, useRef } from "react";
+import { createContext, use, useRef } from "react";
 
 import { AlertColor } from "@mui/material";
 
@@ -16,7 +16,7 @@ interface NotificationContextProps {
 const NotificationsContext = createContext<NotificationContextProps>({ notification: null, setNotification: () => {} });
 
 export function useNotifications() {
-    let useNotificationsProps = useContext(NotificationsContext);
+    let useNotificationsProps = use(NotificationsContext);
 
     const notificationBuilder = (level: AlertColor) => {
         return (message: string, timeout?: number) => {
