@@ -27,6 +27,7 @@ func waitUntilServiceLogDetected(
 
 		for _, pattern := range logPatterns {
 			if strings.Contains(logs, pattern) {
+				log.Debug("Service " + service + " is ready!")
 				return true, nil
 			}
 		}
