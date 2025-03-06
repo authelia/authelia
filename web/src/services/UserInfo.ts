@@ -7,6 +7,7 @@ export type Method2FA = "webauthn" | "totp" | "mobile_push";
 
 export interface UserInfoPayload {
     display_name: string;
+    emails: string[];
     method: Method2FA;
     has_webauthn: boolean;
     has_totp: boolean;

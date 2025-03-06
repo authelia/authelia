@@ -111,6 +111,16 @@ func ldapGetReferral(err error) (referral string, ok bool) {
 	}
 }
 
+func ldapGetErrorCode(err error) int {
+	var e *ldap.Error
+
+	if errors.As(err, &e) {
+		return int(e.ResultCode)
+	}
+
+	return -1
+}
+
 func getValueFromEntry(entry *ldap.Entry, attribute string) string {
 	if attribute == "" {
 		return ""

@@ -268,6 +268,10 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 		r.DELETE("/api/reset-password", middlewareAPI(resetPasswordTokenRL(handlers.ResetPasswordDELETE)))
 	}
 
+	if !config.AuthenticationBackend.PasswordChange.Disable {
+		r.POST("/api/change-password", middlewareElevated1FA(handlers.ChangePasswordPOST))
+	}
+
 	// Information about the user.
 	r.GET("/api/user/info", middleware1FA(handlers.UserInfoGET))
 	r.POST("/api/user/info", middleware1FA(handlers.UserInfoPOST))

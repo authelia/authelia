@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -21,9 +22,10 @@ const (
 	eventEmailAction2FAAddedSuffix   = "was added to your account."
 	eventEmailAction2FARemovedSuffix = "was removed from your account."
 
-	eventEmailActionPasswordResetPrefix = "your"
-	eventEmailActionPasswordReset       = "Password Reset"
-	eventEmailActionPasswordResetSuffix = "was successful."
+	eventEmailActionPasswordModifyPrefix = "your"
+	eventEmailActionPasswordReset        = "Password Reset"
+	eventEmailActionPasswordChange       = "Password Change"
+	eventEmailActionPasswordModifySuffix = "was successful."
 
 	eventLogCategoryOneTimePassword    = "One-Time Password"
 	eventLogCategoryWebAuthnCredential = "WebAuthn Credential" //nolint:gosec
@@ -74,4 +76,24 @@ func ctxLogEvent(ctx *middlewares.AutheliaCtx, username, description string, bod
 		ctx.Logger.WithError(err).Errorf("Error occurred sending notification to user '%s' while attempting to alert them of an important event", username)
 		return
 	}
+}
+
+func redactEmail(email string) string {
+	parts := strings.Split(email, "@")
+	if len(parts) != 2 {
+		return ""
+	}
+
+	localPart := parts[0]
+	domain := parts[1]
+
+	if len(localPart) <= 2 {
+		return strings.Repeat("*", len(localPart)) + "@" + domain
+	}
+
+	first := string(localPart[0])
+	last := string(localPart[len(localPart)-1])
+	middle := strings.Repeat("*", len(localPart)-2)
+
+	return first + middle + last + "@" + domain
 }
