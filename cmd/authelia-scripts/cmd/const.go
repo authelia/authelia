@@ -3,6 +3,9 @@ package cmd
 // OutputDir the output directory where the built version of Authelia is located.
 var OutputDir = "dist"
 
+// BaseImageName the official name of Authelia base docker image.
+var BaseImageName = "authelia/base"
+
 // DockerImageName the official name of Authelia docker image.
 var DockerImageName = "authelia/authelia"
 

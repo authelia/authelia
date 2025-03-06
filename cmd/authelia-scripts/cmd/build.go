@@ -77,22 +77,7 @@ func buildAutheliaBinaryGOX(xflags []string) {
 
 	s := time.Now()
 
-	wg.Add(2)
-
-	go func() {
-		defer wg.Done()
-
-		cmd := utils.CommandWithStdout("gox", "-output={{.Dir}}-{{.OS}}-{{.Arch}}-musl", "-buildmode=pie", "-trimpath", "-cgo", "-ldflags=-linkmode=external -s -w "+strings.Join(xflags, " "), "-osarch=linux/amd64 linux/arm linux/arm64", "./cmd/authelia/")
-
-		cmd.Env = append(os.Environ(),
-			"CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong", "CGO_LDFLAGS=-Wl,-z,relro,-z,now",
-			"GOX_LINUX_ARM_CC=arm-linux-musleabihf-gcc", "GOX_LINUX_ARM64_CC=aarch64-linux-musl-gcc")
-
-		err := cmd.Run()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}()
+	wg.Add(1)
 
 	go func() {
 		defer wg.Done()
