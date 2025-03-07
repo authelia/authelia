@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/go-ldap/ldap/v3"
+	"github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -6519,4 +6521,255 @@ func TestShouldReturnLDAPSAlreadySecuredWhenStartTLSAttempted(t *testing.T) {
 
 	_, err := provider.GetDetails("john")
 	assert.EqualError(t, err, "error occurred performing starttls: LDAP Result Code 200 \"Network Error\": ldap: already encrypted")
+}
+
+func TestLDAPUserProviderChangePasswordErrors(t *testing.T) {
+	testCases := []struct {
+		name            string
+		setupMocks      func(ctrl *gomock.Controller) (*MockLDAPClientDialer, *MockLDAPClient)
+		username        string
+		oldPassword     string
+		newPassword     string
+		expectedError   error
+		expectedLogMsg  string
+		expectedLogType logrus.Level
+	}{
+		{
+			name: "ShouldFailWhenClientError",
+			setupMocks: func(ctrl *gomock.Controller) (*MockLDAPClientDialer, *MockLDAPClient) {
+				mockDialer := NewMockLDAPClientDialer(ctrl)
+				mockClient := NewMockLDAPClient(ctrl)
+
+				mockDialer.EXPECT().DialURL("ldap://127.0.0.1:389", gomock.Any()).
+					Return(nil, errors.New("connection error"))
+
+				return mockDialer, mockClient
+			},
+			username:        "john",
+			oldPassword:     "oldpass",
+			newPassword:     "newpass",
+			expectedError:   fmt.Errorf("unable to update password for user 'john'. Cause: error occurred dialing address: connection error"),
+			expectedLogMsg:  "",
+			expectedLogType: 0,
+		},
+		{
+			name: "ShouldFailWhenGetUserProfileError",
+			setupMocks: func(ctrl *gomock.Controller) (*MockLDAPClientDialer, *MockLDAPClient) {
+				mockDialer := NewMockLDAPClientDialer(ctrl)
+				mockClient := NewMockLDAPClient(ctrl)
+
+				mockDialer.EXPECT().DialURL("ldap://127.0.0.1:389", gomock.Any()).
+					Return(mockClient, nil)
+
+				mockClient.EXPECT().
+					Bind(gomock.Eq("cn=admin,dc=example,dc=com"), gomock.Eq("password")).
+					Return(nil)
+
+				mockClient.EXPECT().
+					Search(gomock.Any()).
+					Return(nil, errors.New("search error"))
+
+				mockClient.EXPECT().Close()
+
+				return mockDialer, mockClient
+			},
+			username:        "john",
+			oldPassword:     "oldpass",
+			newPassword:     "newpass",
+			expectedError:   fmt.Errorf("unable to update password for user 'john'. Cause: cannot find user DN of user 'john'. Cause: search error"),
+			expectedLogMsg:  "",
+			expectedLogType: 0,
+		},
+		{
+			name: "ShouldFailWithInvalidCredentials",
+			setupMocks: func(ctrl *gomock.Controller) (*MockLDAPClientDialer, *MockLDAPClient) {
+				mockDialer := NewMockLDAPClientDialer(ctrl)
+				mockClient := NewMockLDAPClient(ctrl)
+
+				mockDialer.EXPECT().DialURL("ldap://127.0.0.1:389", gomock.Any()).
+					Return(mockClient, nil)
+
+				mockDialer.EXPECT().DialURL("ldap://127.0.0.1:389", gomock.Any()).
+					Return(mockClient, nil)
+
+				mockDialer.EXPECT().DialURL("ldap://127.0.0.1:389", gomock.Any()).
+					Return(mockClient, nil)
+
+				mockClient.EXPECT().Bind("cn=admin,dc=example,dc=com", "password").
+					Return(nil)
+
+				mockClient.EXPECT().Bind("cn=admin,dc=example,dc=com", "password").
+					Return(nil)
+
+				mockClient.EXPECT().Search(gomock.Any()).
+					Return(&ldap.SearchResult{
+						Entries: []*ldap.Entry{
+							{
+								DN: "uid=john,ou=users,dc=example,dc=com",
+								Attributes: []*ldap.EntryAttribute{
+									{
+										Name:   "uid",
+										Values: []string{"john"},
+									},
+								},
+							},
+						},
+					}, nil)
+
+				mockClient.EXPECT().Search(gomock.Any()).
+					Return(&ldap.SearchResult{
+						Entries: []*ldap.Entry{
+							{
+								DN: "uid=john,ou=users,dc=example,dc=com",
+								Attributes: []*ldap.EntryAttribute{
+									{
+										Name:   "uid",
+										Values: []string{"john"},
+									},
+								},
+							},
+						},
+					}, nil)
+
+				mockClient.EXPECT().Bind("uid=john,ou=users,dc=example,dc=com", "oldpass").
+					Return(ldap.NewError(ldap.LDAPResultInvalidCredentials, errors.New("invalid credentials")))
+
+				mockClient.EXPECT().Close().Times(3)
+
+				return mockDialer, mockClient
+			},
+			username:        "john",
+			oldPassword:     "oldpass",
+			newPassword:     "newpass",
+			expectedError:   ErrIncorrectPassword,
+			expectedLogMsg:  "",
+			expectedLogType: 0,
+		},
+		{
+			name: "ShouldFailWhenSamePassword",
+			setupMocks: func(ctrl *gomock.Controller) (*MockLDAPClientDialer, *MockLDAPClient) {
+				mockDialer := NewMockLDAPClientDialer(ctrl)
+				mockClient := NewMockLDAPClient(ctrl)
+
+				mockDialer.EXPECT().DialURL("ldap://127.0.0.1:389", gomock.Any()).
+					Return(mockClient, nil).Times(3)
+
+				mockClient.EXPECT().Bind("cn=admin,dc=example,dc=com", "password").
+					Return(nil).Times(2)
+
+				mockClient.EXPECT().Search(gomock.Any()).
+					Return(&ldap.SearchResult{
+						Entries: []*ldap.Entry{
+							{
+								DN: "uid=john,ou=users,dc=example,dc=com",
+								Attributes: []*ldap.EntryAttribute{
+									{Name: "uid", Values: []string{"john"}},
+								},
+							},
+						},
+					}, nil).Times(2)
+
+				mockClient.EXPECT().Bind("uid=john,ou=users,dc=example,dc=com", "samepass").
+					Return(nil)
+
+				mockClient.EXPECT().Close().Times(3)
+
+				return mockDialer, mockClient
+			},
+			username:        "john",
+			oldPassword:     "samepass",
+			newPassword:     "samepass",
+			expectedError:   ErrPasswordWeak,
+			expectedLogMsg:  "",
+			expectedLogType: 0,
+		},
+		{
+			name: "ShouldFailOnModifyError",
+			setupMocks: func(ctrl *gomock.Controller) (*MockLDAPClientDialer, *MockLDAPClient) {
+				mockDialer := NewMockLDAPClientDialer(ctrl)
+				mockClient := NewMockLDAPClient(ctrl)
+
+				mockDialer.EXPECT().DialURL("ldap://127.0.0.1:389", gomock.Any()).
+					Return(mockClient, nil).Times(3)
+
+				mockClient.EXPECT().Bind("cn=admin,dc=example,dc=com", "password").
+					Return(nil).Times(2)
+
+				mockClient.EXPECT().Search(gomock.Any()).
+					Return(&ldap.SearchResult{
+						Entries: []*ldap.Entry{
+							{
+								DN: "uid=john,ou=users,dc=example,dc=com",
+								Attributes: []*ldap.EntryAttribute{
+									{Name: "uid", Values: []string{"john"}},
+								},
+							},
+						},
+					}, nil).Times(2)
+
+				mockClient.EXPECT().Bind("uid=john,ou=users,dc=example,dc=com", "oldpass").
+					Return(nil)
+
+				mockClient.EXPECT().Modify(gomock.Any()).
+					Return(ldap.NewError(ldap.LDAPResultConstraintViolation, errors.New("password too weak")))
+
+				mockClient.EXPECT().Close().Times(3)
+
+				return mockDialer, mockClient
+			},
+			username:        "john",
+			oldPassword:     "oldpass",
+			newPassword:     "newpass",
+			expectedError:   fmt.Errorf("your supplied password does not meet the password policy requirements: LDAP Result Code 19 \"Constraint Violation\": password too weak"),
+			expectedLogMsg:  "",
+			expectedLogType: 0,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			// can't use mocks package due to circular import (mocks -> authentication, authentication(test) -> mocks).
+			logger := logrus.New()
+			hook := test.NewLocal(logger)
+			logger.SetLevel(logrus.TraceLevel)
+
+			mockDialer, _ := tc.setupMocks(ctrl)
+
+			config := &schema.AuthenticationBackendLDAP{
+				Address:  testLDAPAddress,
+				User:     "cn=admin,dc=example,dc=com",
+				Password: "password",
+				Attributes: schema.AuthenticationBackendLDAPAttributes{
+					Username:    "uid",
+					Mail:        "mail",
+					DisplayName: "displayName",
+					MemberOf:    "memberOf",
+				},
+				UsersFilter:       "uid={input}",
+				AdditionalUsersDN: "ou=users",
+				BaseDN:            "dc=example,dc=com",
+			}
+
+			provider := NewLDAPUserProviderWithFactory(config, false, NewStandardLDAPClientFactory(config, nil, mockDialer))
+
+			err := provider.ChangePassword(tc.username, tc.oldPassword, tc.newPassword)
+
+			if tc.expectedError != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tc.expectedError.Error(), err.Error())
+			} else {
+				assert.NoError(t, err)
+			}
+
+			if tc.expectedLogMsg != "" {
+				entry := hook.LastEntry()
+				require.NotNil(t, entry)
+				assert.Equal(t, tc.expectedLogType, logger.Level)
+				assert.Contains(t, entry.Message, tc.expectedLogMsg)
+			}
+		})
+	}
 }
