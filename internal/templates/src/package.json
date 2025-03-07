@@ -18,16 +18,21 @@
 		"react-dom": "18.3.1",
 		"react-email": "3.0.7",
 		"tailwind-merge": "3.0.2",
-		"tailwindcss": "4.0.8",
-		"typescript": "5.7.3"
+		"tailwindcss": "4.0.11",
+		"typescript": "5.8.2"
 	},
 	"devDependencies": {
 		"@radix-ui/colors": "3.0.0",
-		"@types/node": "22.13.5",
+		"@types/node": "22.13.9",
 		"@types/react": "18.3.18",
 		"@types/react-dom": "18.3.5",
 		"eslint": "9.21.0",
 		"tsx": "4.19.3",
-		"vitest": "3.0.7"
+		"vitest": "3.0.8"
+	},
+	"pnpm": {
+		"overrides": {
+			"nanoid@<3.3.8": "3.3.8"
+		}
 	}
 }

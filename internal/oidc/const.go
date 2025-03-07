@@ -233,17 +233,6 @@ const (
 	// PromptCreate  = "create" // This prompt value is currently unused.
 )
 
-// Endpoints.
-const (
-	EndpointAuthorization              = "authorization"
-	EndpointDeviceAuthorization        = "device-authorization"
-	EndpointToken                      = "token"
-	EndpointUserinfo                   = "userinfo"
-	EndpointIntrospection              = "introspection"
-	EndpointRevocation                 = "revocation"
-	EndpointPushedAuthorizationRequest = "pushed-authorization-request"
-)
-
 // JWT Headers.
 const (
 	// JWTHeaderKeyIdentifier is the JWT Header referencing the JWS Key Identifier used to sign a token.
@@ -258,6 +247,22 @@ const (
 
 const (
 	JWTHeaderTypeValueAccessTokenJWT = "at+jwt"
+)
+
+const (
+	IDTokenAudienceModeSpecification      = "specification"
+	IDTokenAudienceModeExperimentalMerged = "experimental-merged"
+)
+
+// Endpoints.
+const (
+	EndpointAuthorization              = "authorization"
+	EndpointDeviceAuthorization        = "device-authorization"
+	EndpointToken                      = "token"
+	EndpointUserinfo                   = "userinfo"
+	EndpointIntrospection              = "introspection"
+	EndpointRevocation                 = "revocation"
+	EndpointPushedAuthorizationRequest = "pushed-authorization-request"
 )
 
 // Paths.

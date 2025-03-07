@@ -25,6 +25,10 @@ const (
 )
 
 const (
+	i18nAuthelia = "{{authelia}}"
+)
+
+const (
 	durationZero = time.Duration(0)
 )
 
@@ -427,6 +431,9 @@ const (
 	errFmtServerEndpointsAuthzStrategySchemeOnlyOption  = "server: endpoints: authz: %s: authn_strategies: strategy #%d: option '%s' can't be configured unless the '%s' scheme is configured but only the %s schemes are configured"
 	errFmtServerEndpointsAuthzStrategyDuplicate         = "server: endpoints: authz: %s: authn_strategies: duplicate strategy name detected with name '%s'"
 	errFmtServerEndpointsAuthzPrefixDuplicate           = "server: endpoints: authz: %s: endpoint starts with the same prefix as the '%s' endpoint with the '%s' implementation which accepts prefixes as part of its implementation"
+	errFmtServerEndpointsRateLimitsBucketPeriodZero     = "server: endpoints: rate_limits: %s: bucket %d: option 'period' must have a value"
+	errFmtServerEndpointsRateLimitsBucketPeriodTooLow   = "server: endpoints: rate_limits: %s: bucket %d: option 'period' has a value of '%s' but it must be greater than 10 seconds"
+	errFmtServerEndpointsRateLimitsBucketRequestsZero   = "server: endpoints: rate_limits: %s: bucket %d: option 'requests' has a value of '%d' but it must be greater than 1"
 	errFmtServerEndpointsAuthzInvalidName               = "server: endpoints: authz: %s: contains invalid characters"
 
 	errFmtServerEndpointsAuthzLegacyInvalidImplementation = "server: endpoints: authz: %s: option 'implementation' is invalid: the endpoint with the name 'legacy' must use the 'Legacy' implementation"
@@ -519,7 +526,7 @@ var (
 
 var (
 	validStoragePostgreSQLSSLModes           = []string{"disable", "require", "verify-ca", "verify-full"}
-	validThemeNames                          = []string{"light", "dark", "grey", auto}
+	validThemeNames                          = []string{"light", "dark", "grey", "oled", auto}
 	validSessionSameSiteValues               = []string{"none", "lax", "strict"}
 	validLogLevels                           = []string{logging.LevelTrace, logging.LevelDebug, logging.LevelInfo, logging.LevelWarn, logging.LevelError}
 	validLogFormats                          = []string{logging.FormatText, logging.FormatJSON}

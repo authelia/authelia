@@ -44,7 +44,7 @@ obtain the certificate.
 Note that using [HSTS] has consequences, and you should do adequate research into understanding [HSTS] before you enable
 it. For example the [nginx blog] has a good article helping users understand it.
 
-## Protection against username enumeration
+## Protection against username enumeration and password brute-force attacks
 
 Authelia adaptively delays authentication attempts based on the mean (average) of the previous 10 successful attempts
 in addition to a small random interval of time. The result of this delay is that it makes it incredibly difficult to
@@ -61,10 +61,15 @@ the added effect of creating an additional delay for all authentication attempts
 attack will take, this combined with regulation greatly delays brute-force attacks and the effectiveness of them in
 general.
 
-## Protections against password cracking (File authentication provider)
+## Protections against password brute-force attacks
 
-Authelia implements a variety of measures to prevent an attacker cracking passwords if they somehow obtain the file used
-by the file authentication provider, this is unrelated to LDAP auth.
+Authelia implements a variety of measures to prevent an attacker brute-forcing passwords if they somehow obtain the file
+used by the file authentication provider.
+
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+The LDAP authentication provider honors the password modify extended operation if available which delegates this task to
+the LDAP server.
+{{< /callout >}}
 
 First and foremost Authelia only uses very secure hashing algorithms with sane and secure defaults. The first and
 default hashing algorithm we use is Argon2id which is currently considered the most secure hashing algorithm. We also
@@ -77,6 +82,14 @@ attacker obtains the file, each password has to be brute forced individually.
 Lastly Authelia's implementation of Argon2id is highly tunable. You can tune the key length, salt used, iterations
 (time), parallelism, and memory usage. To read more about this, please read how to
 [configure](../../configuration/first-factor/file.md) file authentication.
+
+## Protection against request brute-force attacks
+
+Authelia implements a tokenized bucket rate limiter on specific endpoints which greatly reduces the chances these
+endpoints can be brute-forced for various outcomes including guessing secret values, or inundating an inbox with emails.
+
+These rate limiters are applied on a per-IP basis and can be
+[configured](../../configuration/miscellaneous/server-endpoint-rate-limits.md) depending on a particular use case.
 
 ## Protections against return oriented programming attacks and general hardening
 

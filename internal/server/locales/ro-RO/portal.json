@@ -47,7 +47,7 @@
 	"Password has been reset": "Parola a fost resetată",
 	"Password": "Parolă",
 	"Passwords do not match": "Parolele nu corespund",
-	"Powered by": "Oferit de",
+	"Powered by {{authelia}}": "Oferit de {{authelia}}",
 	"Privacy Policy": "Politica de confidenţialitate",
 	"Push Notification": "Notificare push",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "Redirecționarea a fost determinată să fie nesigură și abandonată asigurați-vă că redirecționarea URL este corectă",
@@ -99,7 +99,8 @@
 	"Username": "Nume",
 	"Username is required": "Numele de utilizator este necesar",
 	"You cancelled the assertion request": "Ai anulat cererea de aserțiune",
-	"You must view and accept the Privacy Policy before using": "Trebuie să vizualizați și să acceptați politica de confidențialitate<0>înainte de a utiliza",
+	"You have made too many requests": "Ați depus prea multe cereri",
+	"You must view and accept the Privacy Policy before using {{authelia}}.": "Trebuie să vizualizați și să acceptați <policy>Politica de confidențialitate</policy> înainte de a utiliza {{authelia}}",
 	"You're being signed out and redirected": "Ești deconectat și redirecționat",
 	"Your browser does not support the WebAuthn protocol": "Browserul dvs. nu acceptă protocolul WebAuthn",
 	"Your supplied password does not meet the password policy requirements": "Parola furnizată nu îndeplinește cerințele politicii de utilizare a parolei"

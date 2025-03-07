@@ -8,13 +8,19 @@ import (
 
 // AuthenticationBackend represents the configuration related to the authentication backend.
 type AuthenticationBackend struct {
-	PasswordReset AuthenticationBackendPasswordReset `koanf:"password_reset" json:"password_reset" jsonschema:"title=Password Reset" jsonschema_description:"Allows configuration of the password reset behaviour."`
+	PasswordReset  AuthenticationBackendPasswordReset  `koanf:"password_reset" json:"password_reset" jsonschema:"title=Password Reset" jsonschema_description:"Allows configuration of the password reset behaviour."`
+	PasswordChange AuthenticationBackendPasswordChange `koanf:"password_change" json:"password_change" jsonschema:"title=Password Reset" jsonschema_description:"Allows configuration of the password reset behaviour."`
 
 	RefreshInterval RefreshIntervalDuration `koanf:"refresh_interval" json:"refresh_interval" jsonschema:"default=5 minutes,title=Refresh Interval" jsonschema_description:"How frequently the user details are refreshed from the backend."`
 
 	// The file authentication backend configuration.
 	File *AuthenticationBackendFile `koanf:"file" json:"file" jsonschema:"title=File Backend" jsonschema_description:"The file authentication backend configuration."`
 	LDAP *AuthenticationBackendLDAP `koanf:"ldap" json:"ldap" jsonschema:"title=LDAP Backend" jsonschema_description:"The LDAP authentication backend configuration."`
+}
+
+// AuthenticationBackendPasswordChange represents the configuration related to password reset functionality.
+type AuthenticationBackendPasswordChange struct {
+	Disable bool `koanf:"disable" json:"disable" jsonschema:"default=false,title=Disable" jsonschema_description:"Disables the Password Change option."`
 }
 
 // AuthenticationBackendPasswordReset represents the configuration related to password reset functionality.

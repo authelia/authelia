@@ -42,6 +42,7 @@ server:
     enable_pprof: false
     enable_expvars: false
     authz: {} ## See the dedicated "Server Authz Endpoints" configuration guide.
+    rate_limits: {} ## See the dedicated "Server Endpoint Rate Limits" configuration guide.
 ```
 
 ## Options
@@ -192,7 +193,13 @@ Enables the go [expvar](https://pkg.go.dev/expvar) endpoints.
 
 This is an *__advanced__* option allowing configuration of the authorization endpoints and has its own section.
 Generally this does not need to be configured for most use cases. See the
-[authz configuration](./server-endpoints-authz.md) for more information.
+[Server Authz Endpoints](./server-endpoints-authz.md) configuration guide for more information.
+
+#### rate_limits
+
+This is an *__advanced__* option allowing configuration of the endpoint rate limits and has its own section.
+Generally this does not need to be configured for most use cases. See the
+[Server Endpoint Rate Limits](./server-endpoint-rate-limits.md) configuration guide for more information.
 
 ## Additional Notes
 

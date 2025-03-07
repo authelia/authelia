@@ -44,7 +44,7 @@ Users should also be able to view all of their registered devices, and revoke th
 
 ### Password Reset
 
-{{< roadmap-status >}}
+{{< roadmap-status stage="complete">}}
 
 Add a method for users to reset their password given they know their current password.
 
