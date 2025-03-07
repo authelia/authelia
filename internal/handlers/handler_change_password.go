@@ -39,19 +39,27 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	if err = ctx.Providers.UserProvider.ChangePassword(username, requestBody.OldPassword, requestBody.NewPassword); err != nil {
 		switch {
 		case errors.Is(err, authentication.ErrIncorrectPassword):
-			ctx.Logger.Debug(fmt.Sprintf("Incorrect password attempt for user %s", username))
+			ctx.Logger.WithError(err).
+				WithFields(map[string]any{"username": username}).
+				Debug("Unable to change password for user as their old password was incorrect")
 			ctx.SetJSONError(messageIncorrectPassword)
 			ctx.SetStatusCode(http.StatusUnauthorized)
 		case errors.Is(err, authentication.ErrPasswordWeak):
-			ctx.Logger.Debug(fmt.Sprintf("Weak password attempt for user %s", username))
+			ctx.Logger.WithError(err).
+				WithFields(map[string]any{"username": username}).
+				Debug("Unable to change password for user as their new password was weak or empty")
 			ctx.SetJSONError(messagePasswordWeak)
 			ctx.SetStatusCode(http.StatusBadRequest)
 		case errors.Is(err, authentication.ErrAuthenticationFailed):
-			ctx.Error(fmt.Errorf("unable to change password for user: '%s': %w", username, err), messageOperationFailed)
+			ctx.Logger.WithError(err).
+				WithFields(map[string]any{"username": username}).
+				Error("Unable to change password for user as authentication failed for the user")
 			ctx.SetJSONError(messageOperationFailed)
 			ctx.SetStatusCode(http.StatusUnauthorized)
 		default:
-			ctx.Error(fmt.Errorf("unable to change password for user: '%s': %w", username, err), messageOperationFailed)
+			ctx.Logger.WithError(err).
+				WithFields(map[string]any{"username": username}).
+				Error("Unable to change password for user for an unknown reason")
 			ctx.SetJSONError(messageOperationFailed)
 			ctx.SetStatusCode(http.StatusInternalServerError)
 		}
