@@ -33,7 +33,7 @@ of support for [Traefik] can be read about in the official
 
 It should be noted that while these are the listed versions that are supported you may have luck with older versions.
 
-We can officially guarantee the following verions of [Traefik] as these are the versions we perform integration testing
+We can officially guarantee the following versions of [Traefik] as these are the versions we perform integration testing
 with at the current time:
 
 {{% supported-product product="traefik" format="* [Traefik $version](https://github.com/traefik/traefik/releases/tag/$version)" %}}
