@@ -2,7 +2,7 @@
 title: "Zipline"
 description: "Integrating Zipline with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2025-03-04T12:18:02+10:00
+date: 2023-11-12T21:18:09+11:00
 draft: false
 images: []
 weight: 620
