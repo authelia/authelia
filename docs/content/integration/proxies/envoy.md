@@ -121,7 +121,7 @@ Support for [Envoy] is possible with Authelia v4.37.0 and higher via the [Envoy]
 
 [external authorization]: https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto.html#extensions-filters-http-ext-authz-v3-extauthz
 
-```yaml {title="docker-compose.yml"}
+```yaml {title="compose.yml"}
 ---
 networks:
   net:

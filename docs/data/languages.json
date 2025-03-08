@@ -8,6 +8,7 @@
         "namespace": "portal"
     },
     "namespaces": [
+        "consent",
         "portal",
         "settings"
     ],
@@ -16,6 +17,7 @@
             "display": "English",
             "locale": "en",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -28,6 +30,7 @@
             "display": "Afrikaans",
             "locale": "af",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -39,6 +42,7 @@
             "display": "Afrikaans (South Africa)",
             "locale": "af-ZA",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -51,6 +55,7 @@
             "display": "العربية",
             "locale": "ar",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -63,6 +68,7 @@
             "display": "العربية",
             "locale": "ar-SA",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -76,6 +82,7 @@
             "display": "Bulgarian",
             "locale": "bg",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -87,6 +94,7 @@
             "display": "Czech",
             "locale": "cs",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -99,6 +107,7 @@
             "display": "Čeština",
             "locale": "cs-CZ",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -112,6 +121,7 @@
             "display": "Welsh",
             "locale": "cy",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -123,6 +133,7 @@
             "display": "Welsh (United Kingdom)",
             "locale": "cy-GB",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -135,6 +146,7 @@
             "display": "Danish",
             "locale": "da",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -147,6 +159,7 @@
             "display": "Dansk",
             "locale": "da-DK",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -160,6 +173,7 @@
             "display": "Deutsch",
             "locale": "de",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -184,6 +198,7 @@
             "display": "Ελληνικά",
             "locale": "el",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -196,6 +211,7 @@
             "display": "Ελληνικά",
             "locale": "el-GR",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -209,6 +225,7 @@
             "display": "Español",
             "locale": "es",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -233,6 +250,7 @@
             "display": "Estonian",
             "locale": "et",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -244,6 +262,7 @@
             "display": "Estonian (Estonia)",
             "locale": "et-EE",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -256,6 +275,7 @@
             "display": "Basque",
             "locale": "eu",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -267,6 +287,7 @@
             "display": "Basque (Spain)",
             "locale": "eu-ES",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -279,6 +300,7 @@
             "display": "Finnish",
             "locale": "fi",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -303,6 +325,7 @@
             "display": "Filipino",
             "locale": "fil",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -314,6 +337,7 @@
             "display": "Filipino (Philippines)",
             "locale": "fil-PH",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -326,6 +350,7 @@
             "display": "Français",
             "locale": "fr",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -350,6 +375,7 @@
             "display": "Irish",
             "locale": "ga",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -361,6 +387,7 @@
             "display": "Irish (Ireland)",
             "locale": "ga-IE",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -373,6 +400,7 @@
             "display": "Hindi",
             "locale": "hi",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -384,6 +412,7 @@
             "display": "Hindi (India)",
             "locale": "hi-IN",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -396,6 +425,7 @@
             "display": "Croatian",
             "locale": "hr",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -407,6 +437,7 @@
             "display": "Hungarian",
             "locale": "hu",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -418,6 +449,7 @@
             "display": "Indonesian",
             "locale": "id",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -442,6 +474,7 @@
             "display": "Italiano",
             "locale": "it",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -466,6 +499,7 @@
             "display": "日本語",
             "locale": "ja",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -478,6 +512,7 @@
             "display": "日本語",
             "locale": "ja-JP",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -491,6 +526,7 @@
             "display": "Korean",
             "locale": "ko",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -502,6 +538,7 @@
             "display": "Korean (South Korea)",
             "locale": "ko-KR",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -514,6 +551,7 @@
             "display": "Kurdish",
             "locale": "ku",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -525,6 +563,7 @@
             "display": "Kurdish (Turkey)",
             "locale": "ku-TR",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -537,6 +576,7 @@
             "display": "Lithuanian",
             "locale": "lt",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -548,6 +588,7 @@
             "display": "Latvian",
             "locale": "lv",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -559,6 +600,7 @@
             "display": "Malay",
             "locale": "ms",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -570,6 +612,7 @@
             "display": "Malay (Malaysia)",
             "locale": "ms-MY",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -582,6 +625,7 @@
             "display": "Maltese",
             "locale": "mt",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -593,6 +637,7 @@
             "display": "Norwegian Bokmål",
             "locale": "nb",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -604,6 +649,7 @@
             "display": "Norwegian Bokmål (Norway)",
             "locale": "nb-NO",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -613,6 +659,7 @@
             "display": "Nepali",
             "locale": "ne",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -624,6 +671,7 @@
             "display": "Nepali (Nepal)",
             "locale": "ne-NP",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -636,6 +684,7 @@
             "display": "Dutch",
             "locale": "nl",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -648,6 +697,7 @@
             "display": "Nederlands",
             "locale": "nl-NL",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -661,6 +711,7 @@
             "display": "Polski",
             "locale": "pl",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -685,6 +736,7 @@
             "display": "Português",
             "locale": "pt",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -697,6 +749,7 @@
             "display": "Português",
             "locale": "pt-BR",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -722,6 +775,7 @@
             "display": "Română",
             "locale": "ro",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -746,6 +800,7 @@
             "display": "Русский",
             "locale": "ru",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -770,6 +825,7 @@
             "display": "Sardinian",
             "locale": "sc",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -781,6 +837,7 @@
             "display": "Sardinian (Italy)",
             "locale": "sc-IT",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -793,6 +850,7 @@
             "display": "Slovak",
             "locale": "sk",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -804,6 +862,7 @@
             "display": "Slovenian",
             "locale": "sl",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -816,6 +875,7 @@
             "display": "Slovenščina",
             "locale": "sl-SI",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -829,6 +889,7 @@
             "display": "Somali",
             "locale": "so",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -840,6 +901,7 @@
             "display": "Serbian",
             "locale": "srp",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -851,6 +913,7 @@
             "display": "Swati",
             "locale": "ss",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -862,6 +925,7 @@
             "display": "Swati (South Africa)",
             "locale": "ss-ZA",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -874,6 +938,7 @@
             "display": "Sundanese",
             "locale": "su",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -885,6 +950,7 @@
             "display": "Sundanese (Indonesia)",
             "locale": "su-ID",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -897,6 +963,7 @@
             "display": "Swedish",
             "locale": "sv",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -909,6 +976,7 @@
             "display": "Svenska",
             "locale": "sv-SE",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -922,6 +990,7 @@
             "display": "Swahili",
             "locale": "sw",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -933,6 +1002,7 @@
             "display": "Swahili (Kenya)",
             "locale": "sw-KE",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -945,6 +1015,7 @@
             "display": "Tamil",
             "locale": "ta",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -956,6 +1027,7 @@
             "display": "Tamil (India)",
             "locale": "ta-IN",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -968,6 +1040,7 @@
             "display": "Thai",
             "locale": "th",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -979,6 +1052,7 @@
             "display": "Filipino (Philippines)",
             "locale": "tl-PH",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -990,6 +1064,7 @@
             "display": "Turkish",
             "locale": "tr",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -1001,6 +1076,7 @@
             "display": "Tahitian",
             "locale": "ty",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -1012,6 +1088,7 @@
             "display": "Tahitian (French Polynesia)",
             "locale": "ty-PF",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -1024,6 +1101,7 @@
             "display": "Ukrainian",
             "locale": "uk",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -1036,6 +1114,7 @@
             "display": "Українська",
             "locale": "uk-UA",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -1049,6 +1128,7 @@
             "display": "Venetian",
             "locale": "vec",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -1060,6 +1140,7 @@
             "display": "Venetian (Italy)",
             "locale": "vec-IT",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -1072,6 +1153,7 @@
             "display": "Vietnamese",
             "locale": "vi",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -1083,6 +1165,7 @@
             "display": "Vietnamese (Vietnam)",
             "locale": "vi-VN",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -1095,6 +1178,7 @@
             "display": "Yiddish",
             "locale": "yi",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -1106,6 +1190,7 @@
             "display": "Yiddish (Germany)",
             "locale": "yi-DE",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -1118,6 +1203,7 @@
             "display": "Chinese",
             "locale": "zh",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -1130,6 +1216,7 @@
             "display": "中文",
             "locale": "zh-CN",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -1143,6 +1230,7 @@
             "display": "Chinese (Hong Kong SAR China)",
             "locale": "zh-HK",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -1154,6 +1242,7 @@
             "display": "Chinese (Singapore)",
             "locale": "zh-SG",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -1165,6 +1254,7 @@
             "display": "Chinese (Taiwan)",
             "locale": "zh-TW",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],

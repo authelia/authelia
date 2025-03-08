@@ -37,7 +37,12 @@ const (
 	testRedirectionURLString = "https://www.example.com"
 	testUsername             = "john"
 	testDisplayName          = "john"
+	testEmail                = "john@example.com"
 	exampleDotCom            = "example.com"
+)
+
+const (
+	testValue = "test"
 )
 
 var (

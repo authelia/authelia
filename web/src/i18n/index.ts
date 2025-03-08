@@ -27,7 +27,7 @@ i18n.use(Backend)
             loadPath: basePath + "/locales/{{lng}}/{{ns}}.json",
         },
         load: "all",
-        ns: ["portal", "settings"],
+        ns: ["consent", "portal", "settings"],
         defaultNS: "portal",
         fallbackLng: {
             default: ["en"],

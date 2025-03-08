@@ -1,6 +1,6 @@
 ---
-title: "freshrss"
-description: "Integrating Freshrss with the Authelia OpenID Connect 1.0 Provider."
+title: "FreshRSS"
+description: "Integrating FreshRSS with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
 date: 2024-03-05T21:58:32+11:00
 draft: false
@@ -62,7 +62,7 @@ identity_providers:
     ## See: https://www.authelia.com/c/oidc
     clients:
       - client_id: 'freshrss'
-        client_name: 'freshrss'
+        client_name: 'FreshRSS'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
         authorization_policy: 'two_factor'
@@ -98,7 +98,7 @@ environment:
 
 ## See Also
 
-- [freshrss OIDC documentation](https://freshrss.github.io/FreshRSS/en/admins/16_OpenID-Connect.html)
+- [FreshRSS OIDC documentation](https://freshrss.github.io/FreshRSS/en/admins/16_OpenID-Connect.html)
 
 [Authelia]: https://www.authelia.com
 [FreshRSS]: https://freshrss.github.io/FreshRSS/

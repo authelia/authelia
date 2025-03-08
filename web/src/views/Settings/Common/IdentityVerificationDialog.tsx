@@ -131,6 +131,22 @@ const IdentityVerificationDialog = function (props: Props) {
         }
     }, [codeInput, handleFailure, handleSuccess]);
 
+    const handleSubmitKeyDown = useCallback(
+        (event: React.KeyboardEvent<HTMLDivElement>) => {
+            if (event.key === "Enter") {
+                if (!codeInput.length) {
+                    setCodeError(true);
+                } else if (codeInput.length) {
+                    handleSubmit();
+                } else {
+                    setCodeError(false);
+                    codeRef.current?.focus();
+                }
+            }
+        },
+        [codeInput.length, handleSubmit],
+    );
+
     useEffect(() => {
         if (closing || !props.opening || !props.elevation) {
             return;
@@ -190,6 +206,7 @@ const IdentityVerificationDialog = function (props: Props) {
                             error={codeError}
                             disabled={loading}
                             inputRef={codeRef}
+                            onKeyDown={handleSubmitKeyDown}
                         />
                     </Box>
                 </DialogContent>

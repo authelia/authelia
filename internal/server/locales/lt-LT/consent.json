@@ -1,0 +1,37 @@
+{
+	"Claim": "Prašymas {{name}}",
+	"Scope": "Apimtis {{name}}",
+	"scopes": {
+		"openid": "Naudokite OpenID, kad patvirtintumėte savo tapatybę",
+		"offline_access": "Automatiškai atnaujinti šiuos leidimus be naudotojo sąveikos",
+		"profile": "Priėjimas prie jūsų profilio informacijos",
+		"groups": "Prieiga prie jūsų grupių narystės",
+		"email": "Prieiga prie jūsų elektroninio pašto adresų",
+		"phone": "Prieiga prie jūsų telefono numerio",
+		"address": "Prieiga prie jūsų adreso",
+		"authelia.bearer.authz": "Prieiga prie apsaugotų išteklių, prisijungus kaip jūs"
+	},
+	"claims": {
+		"sub": "Unikalus identifikatorius",
+		"name": "Demonstruojamas vardas",
+		"given_name": "Vardas",
+		"family_name": "Pavardė",
+		"middle_name": "Tarpinis vardas",
+		"nickname": "Slapyvardis",
+		"preferred_username": "Pageidaujamas naudotojo vardas",
+		"profile": "Profilio URL",
+		"picture": "Nuotraukos URL",
+		"website": "Tinklalapio URL",
+		"email": "El. pašto adresas",
+		"email_verified": "El. pašto adresas (patvirtintas)",
+		"gender": "Lytis",
+		"birthdate": "Gimimo data",
+		"zoneinfo": "Laiko zona",
+		"locale": "Vietinė kalba / kalba",
+		"phone_number": "Telefono numeris",
+		"phone_number_verified": "Telefono numeris (patvirtintas)",
+		"address": "Pašto adresas",
+		"updated_at": "Profilio atnaujinimo laikas",
+		"groups": "Grupės narystė"
+	}
+}

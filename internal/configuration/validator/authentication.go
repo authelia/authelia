@@ -11,7 +11,9 @@ import (
 	"github.com/go-crypt/crypt/algorithm/scrypt"
 	"github.com/go-crypt/crypt/algorithm/shacrypt"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -55,6 +57,21 @@ func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validat
 func validateFileAuthenticationBackend(config *schema.AuthenticationBackendFile, validator *schema.StructValidator) {
 	if config.Path == "" {
 		validator.Push(errors.New(errFmtFileAuthBackendPathNotConfigured))
+	}
+
+	for name, attr := range config.ExtraAttributes {
+		switch attr.ValueType {
+		case authentication.ValueTypeString, authentication.ValueTypeInteger, authentication.ValueTypeBoolean:
+			break
+		case "":
+			validator.Push(fmt.Errorf(errFmtFileAuthBackendExtraAttributeValueTypeMissing, name))
+		default:
+			validator.Push(fmt.Errorf(errFmtFileAuthBackendExtraAttributeValueType, name, attr.ValueType))
+		}
+
+		if expression.IsReservedAttribute(name) {
+			validator.Push(fmt.Errorf(errFmtFileAuthBackendExtraAttributeReserved, name, name))
+		}
 	}
 
 	ValidatePasswordConfiguration(&config.Password, validator)
@@ -332,6 +349,20 @@ func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackend, val
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendTLSConfigInvalid, err))
 	}
 
+	if config.LDAP.Pooling.Enable {
+		if config.LDAP.Pooling.Count < 1 {
+			config.LDAP.Pooling.Count = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.Pooling.Count
+		}
+
+		if config.LDAP.Pooling.Retries < 1 {
+			config.LDAP.Pooling.Retries = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.Pooling.Retries
+		}
+
+		if config.LDAP.Pooling.Timeout < 1 {
+			config.LDAP.Pooling.Timeout = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.Pooling.Timeout
+		}
+	}
+
 	if strings.Contains(config.LDAP.UsersFilter, "{0}") {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterReplacedPlaceholders, "users_filter", "{0}", "{input}"))
 	}
@@ -344,6 +375,7 @@ func validateLDAPAuthenticationBackend(config *schema.AuthenticationBackend, val
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterReplacedPlaceholders, "groups_filter", "{1}", "{username}"))
 	}
 
+	validateLDAPExtraAttributes(config, validator)
 	validateLDAPRequiredParameters(config, validator)
 }
 
@@ -472,10 +504,6 @@ func validateLDAPRequiredParameters(config *schema.AuthenticationBackend, valida
 		}
 	}
 
-	if config.LDAP.BaseDN == "" {
-		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "base_dn"))
-	}
-
 	if config.LDAP.UsersFilter == "" {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendMissingOption, "users_filter"))
 	} else {
@@ -500,6 +528,29 @@ func validateLDAPRequiredParameters(config *schema.AuthenticationBackend, valida
 	}
 
 	validateLDAPGroupFilter(config, validator)
+}
+
+func validateLDAPExtraAttributes(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
+	for name, attr := range config.LDAP.Attributes.Extra {
+		switch attr.ValueType {
+		case authentication.ValueTypeString, authentication.ValueTypeInteger, authentication.ValueTypeBoolean:
+			break
+		case "":
+			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendExtraAttributeValueTypeMissing, name))
+		default:
+			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendExtraAttributeValueType, name, attr.ValueType))
+		}
+
+		attribute := name
+
+		if attr.Name != "" {
+			attribute = attr.Name
+		}
+
+		if expression.IsReservedAttribute(attribute) {
+			validator.Push(fmt.Errorf(errFmtLDAPAuthBackendExtraAttributeReserved, name, attribute))
+		}
+	}
 }
 
 func validateLDAPGroupFilter(config *schema.AuthenticationBackend, validator *schema.StructValidator) {

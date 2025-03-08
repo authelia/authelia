@@ -6,6 +6,9 @@
     ":separatePatchReleases",
     "workarounds:doNotUpgradeFromAlpineStableToEdge"
   ],
+  "ignoreDeps": [
+  	"vite-plugin-checker"
+  ],
   "ignorePaths": [
   	"docs/**"
   ],
@@ -40,7 +43,7 @@
       ],
       "matchPackageNames": "traefik",
       "matchFileNames": [
-      	"internal/suites/example/compose/traefik/docker-compose.v2.yml"
+      	"internal/suites/example/compose/traefik/compose.v2.yml"
       ],
       "allowedVersions": "<3.0.0"
     },

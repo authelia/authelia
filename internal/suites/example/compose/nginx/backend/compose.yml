@@ -1,0 +1,16 @@
+---
+services:
+  nginx-backend:
+    image: 'nginx:1.27.4-alpine'
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.protectedapps.rule: 'Host(`admin.example.com`) || Host(`deny.example.com`) || Host(`home.example.com`) || Host(`public.example.com`) || Host(`secure.example.com`) || Host(`singlefactor.example.com`)'  # yamllint disable-line rule:line-length
+      traefik.http.routers.protectedapps.entrypoints: 'https'
+      traefik.http.routers.protectedapps.tls: 'true'
+      traefik.http.routers.protectedapps.middlewares: 'authelia@docker'
+    volumes:
+      - './example/compose/nginx/backend/html:/usr/share/nginx/html'
+      - './example/compose/nginx/backend/nginx.conf:/etc/nginx/nginx.conf'
+    networks:
+      authelianet: {}
+...

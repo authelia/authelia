@@ -14,7 +14,7 @@ import Grid from "@mui/material/Grid2";
 import { useTranslation } from "react-i18next";
 
 import { FormatDateHumanReadable } from "@i18n/formats";
-import { UserInfoTOTPConfiguration, toAlgorithmString } from "@models/TOTPConfiguration.ts";
+import { UserInfoTOTPConfiguration, toAlgorithmString } from "@models/TOTPConfiguration";
 
 interface Props {
     config: UserInfoTOTPConfiguration | undefined | null;

@@ -16,9 +16,11 @@ type Source interface {
 
 // FileSource is a file configuration.Source.
 type FileSource struct {
-	koanf   *koanf.Koanf
-	path    string
-	filters []BytesFilter
+	koanf     *koanf.Koanf
+	provider  *FilteredFile
+	providers map[string]*FilteredFile
+	path      string
+	filters   []BytesFilter
 }
 
 // BytesSource is a raw bytes configuration.Source.

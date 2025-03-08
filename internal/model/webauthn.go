@@ -65,44 +65,17 @@ func (u WebAuthnUser) WebAuthnIcon() string {
 func (u WebAuthnUser) WebAuthnCredentials() (credentials []webauthn.Credential) {
 	credentials = make([]webauthn.Credential, len(u.Credentials))
 
-	var c webauthn.Credential
+	var (
+		credential *webauthn.Credential
+		err        error
+	)
 
-	for i, credential := range u.Credentials {
-		aaguid, err := credential.AAGUID.MarshalBinary()
-		if err != nil {
+	for i, c := range u.Credentials {
+		if credential, err = c.ToCredential(); err != nil {
 			continue
 		}
 
-		c = webauthn.Credential{
-			ID:              credential.KID.Bytes(),
-			PublicKey:       credential.PublicKey,
-			AttestationType: credential.AttestationType,
-			Flags: webauthn.CredentialFlags{
-				UserPresent:    credential.Present,
-				UserVerified:   credential.Verified,
-				BackupEligible: credential.BackupEligible,
-				BackupState:    credential.BackupState,
-			},
-			Authenticator: webauthn.Authenticator{
-				AAGUID:       aaguid,
-				SignCount:    credential.SignCount,
-				CloneWarning: credential.CloneWarning,
-				Attachment:   protocol.AuthenticatorAttachment(credential.Attachment),
-			},
-		}
-
-		transports := strings.Split(credential.Transport, ",")
-		c.Transport = []protocol.AuthenticatorTransport{}
-
-		for _, t := range transports {
-			if t == "" {
-				continue
-			}
-
-			c.Transport = append(c.Transport, protocol.AuthenticatorTransport(t))
-		}
-
-		credentials[i] = c
+		credentials[i] = *credential
 	}
 
 	return credentials
@@ -148,6 +121,8 @@ func NewWebAuthnCredential(ctx Context, rpid, username, description string, cred
 		PublicKey:       credential.PublicKey,
 	}
 
+	c.Attestation, _ = json.Marshal(credential.Attestation)
+
 	aaguid, err := uuid.Parse(hex.EncodeToString(credential.Authenticator.AAGUID))
 	if err == nil {
 		c.AAGUID = NullUUID(aaguid)
@@ -178,6 +153,7 @@ type WebAuthnCredential struct {
 	BackupEligible  bool          `db:"backup_eligible"`
 	BackupState     bool          `db:"backup_state"`
 	PublicKey       []byte        `db:"public_key"`
+	Attestation     []byte        `db:"attestation"`
 }
 
 // UpdateSignInInfo adjusts the values of the WebAuthnCredential after a sign in.
@@ -219,6 +195,49 @@ func (c *WebAuthnCredential) DataValueAAGUID() *string {
 	return nil
 }
 
+func (c *WebAuthnCredential) ToCredential() (credential *webauthn.Credential, err error) {
+	credential = &webauthn.Credential{
+		ID:              c.KID.Bytes(),
+		PublicKey:       c.PublicKey,
+		AttestationType: c.AttestationType,
+		Flags: webauthn.CredentialFlags{
+			UserPresent:    c.Present,
+			UserVerified:   c.Verified,
+			BackupEligible: c.BackupEligible,
+			BackupState:    c.BackupState,
+		},
+		Authenticator: webauthn.Authenticator{
+			SignCount:    c.SignCount,
+			CloneWarning: c.CloneWarning,
+			Attachment:   protocol.AuthenticatorAttachment(c.Attachment),
+		},
+	}
+
+	// This function never returns errors though we return here just in case that changes.
+	if credential.Authenticator.AAGUID, err = c.AAGUID.MarshalBinary(); err != nil {
+		return nil, err
+	}
+
+	if len(c.Attestation) != 0 {
+		if err = json.Unmarshal(c.Attestation, &credential.Attestation); err != nil {
+			return nil, err
+		}
+	}
+
+	transports := strings.Split(c.Transport, ",")
+	credential.Transport = []protocol.AuthenticatorTransport{}
+
+	for _, t := range transports {
+		if t == "" {
+			continue
+		}
+
+		credential.Transport = append(credential.Transport, protocol.AuthenticatorTransport(t))
+	}
+
+	return credential, nil
+}
+
 func (c *WebAuthnCredential) ToData() WebAuthnCredentialData {
 	o := WebAuthnCredentialData{
 		ID:              c.ID,
@@ -234,11 +253,13 @@ func (c *WebAuthnCredential) ToData() WebAuthnCredentialData {
 		SignCount:       c.SignCount,
 		CloneWarning:    c.CloneWarning,
 		Legacy:          c.Legacy,
+		Discoverable:    c.Discoverable,
 		Present:         c.Present,
 		Verified:        c.Verified,
 		BackupEligible:  c.BackupEligible,
 		BackupState:     c.BackupState,
 		PublicKey:       base64.StdEncoding.EncodeToString(c.PublicKey),
+		Attestation:     base64.StdEncoding.EncodeToString(c.Attestation),
 	}
 
 	if c.Transport != "" {
@@ -268,6 +289,12 @@ func (c *WebAuthnCredential) UnmarshalYAML(value *yaml.Node) (err error) {
 
 	if c.PublicKey, err = base64.StdEncoding.DecodeString(o.PublicKey); err != nil {
 		return err
+	}
+
+	if len(o.Attestation) != 0 {
+		if c.Attestation, err = base64.StdEncoding.DecodeString(o.Attestation); err != nil {
+			return err
+		}
 	}
 
 	var aaguid uuid.UUID
@@ -332,6 +359,7 @@ type WebAuthnCredentialData struct {
 	BackupEligible  bool       `yaml:"backup_eligible" json:"backup_eligible" jsonschema:"title=Backup Eligible" jsonschema_description:"The backup eligible status of this credential."`
 	BackupState     bool       `yaml:"backup_state" json:"backup_state" jsonschema:"title=Backup Eligible" jsonschema_description:"The backup eligible status of this credential."`
 	PublicKey       string     `yaml:"public_key" json:"public_key" jsonschema:"title=Public Key" jsonschema_description:"The credential public key."`
+	Attestation     string     `yaml:"attestation" json:"attestation,omitempty" jsonschema:"title=Attestation" jsonschema_description:"The credential attestation information for auditing and validation."`
 }
 
 func (c *WebAuthnCredentialData) ToCredential() (credential *WebAuthnCredential, err error) {
@@ -355,6 +383,12 @@ func (c *WebAuthnCredentialData) ToCredential() (credential *WebAuthnCredential,
 
 	if len(c.PublicKey) != 0 {
 		if credential.PublicKey, err = base64.StdEncoding.DecodeString(c.PublicKey); err != nil {
+			return nil, err
+		}
+	}
+
+	if len(c.Attestation) != 0 {
+		if credential.Attestation, err = base64.StdEncoding.DecodeString(c.Attestation); err != nil {
 			return nil, err
 		}
 	}

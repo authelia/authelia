@@ -1,4 +1,4 @@
-FROM golang:1.23.4-alpine@sha256:6c5c9590f169f77c8046e45c611d3b28fe477789acd8d3762d23d4744de69812
+FROM golang:1.24.1-alpine@sha256:43c094ad24b6ac0546c62193baeb3e6e49ce14d3250845d166c77c25f64b0386
 
 ARG USER_ID
 ARG GROUP_ID
@@ -7,7 +7,8 @@ RUN addgroup --gid ${GROUP_ID} dev && \
     adduser --uid ${USER_ID} -G dev -D dev && \
     apk --no-cache add gcc git musl-dev
 
-RUN mkdir -p /config && chown dev:dev /config
+RUN \
+	mkdir -p /config && chown dev:dev /config
 
 USER dev
 

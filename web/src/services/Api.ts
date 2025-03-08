@@ -8,6 +8,8 @@ const basePath = getBasePath();
 export const ConsentPath = basePath + "/api/oidc/consent";
 
 export const FirstFactorPath = basePath + "/api/firstfactor";
+export const FirstFactorPasskeyPath = basePath + "/api/firstfactor/passkey";
+export const FirstFactorReauthenticatePath = basePath + "/api/firstfactor/reauthenticate";
 
 export const TOTPRegistrationPath = basePath + "/api/secondfactor/totp/register";
 export const TOTPConfigurationPath = basePath + "/api/secondfactor/totp";
@@ -22,9 +24,12 @@ export const CompleteDuoDeviceSelectionPath = basePath + "/api/secondfactor/duo_
 
 export const CompletePushNotificationSignInPath = basePath + "/api/secondfactor/duo";
 export const CompleteTOTPSignInPath = basePath + "/api/secondfactor/totp";
+export const CompletePasswordSignInPath = basePath + "/api/secondfactor/password";
 
 export const InitiateResetPasswordPath = basePath + "/api/reset-password/identity/start";
 export const CompleteResetPasswordPath = basePath + "/api/reset-password/identity/finish";
+
+export const ChangePasswordPath = basePath + "/api/change-password";
 
 // Do the password reset during completion.
 export const ResetPasswordPath = basePath + "/api/reset-password";
@@ -50,6 +55,11 @@ export interface ErrorResponse {
     message: string;
 }
 
+export interface ErrorRateLimitResponse extends ErrorResponse {
+    limited: boolean;
+    retryAfter: number;
+}
+
 export interface Response<T> extends OKResponse {
     data: T;
 }
@@ -71,6 +81,7 @@ function toErrorResponse<T>(resp: AxiosResponse<ServiceResponse<T>>): ErrorRespo
     if (resp.data && "status" in resp.data && resp.data["status"] === "KO") {
         return resp.data as ErrorResponse;
     }
+
     return undefined;
 }
 
@@ -78,15 +89,74 @@ export function toData<T>(resp: AxiosResponse<ServiceResponse<T>>): T | undefine
     if (resp.data && "status" in resp.data && resp.data["status"] === "OK") {
         return resp.data.data as T;
     }
+
     return undefined;
+}
+
+export type RateLimitedData<T> = {
+    data?: T;
+    limited: boolean;
+    retryAfter: number;
+};
+
+function getRetryAfter(resp: AxiosResponse): number {
+    if (resp.status !== 429) {
+        return 0;
+    }
+
+    const valueRetryAfter = resp.headers["retry-after"];
+    if (valueRetryAfter) {
+        if (/^\d+$/.test(valueRetryAfter)) {
+            const retryAfter = parseFloat(valueRetryAfter);
+
+            if (Number.isNaN(retryAfter)) {
+                throw new Error("Header Retry-After has an invalid number value");
+            }
+
+            return retryAfter;
+        } else {
+            const date = new Date(valueRetryAfter);
+            if (isNaN(date.getTime())) {
+                throw new Error("Header Retry-After has an invalid date value");
+            }
+
+            return Math.max(0, (date.getTime() - Date.now()) / 1000);
+        }
+    }
+
+    throw new Error("Header Retry-After is missing");
+}
+
+export function toDataRateLimited<T>(resp: AxiosResponse<ServiceResponse<T>>): RateLimitedData<T> | undefined {
+    if (resp.data && "status" in resp.data) {
+        if (resp.data["status"] === "OK") {
+            return { limited: false, retryAfter: 0, data: resp.data.data as T };
+        } else if (resp.data["status"] === "KO") {
+            return { limited: resp.status === 429, retryAfter: getRetryAfter(resp) };
+        } else if (resp.status === 429) {
+            return { limited: true, retryAfter: getRetryAfter(resp) };
+        }
+    }
+
+    return undefined;
+}
+
+function hasError(err: ErrorResponse | undefined) {
+    if (err && err.status === "KO") {
+        return { errored: true, message: err.message };
+    }
+
+    return { errored: false, message: null };
 }
 
 export function hasServiceError<T>(resp: AxiosResponse<ServiceResponse<T>>) {
     const errResp = toErrorResponse(resp);
-    if (errResp && errResp.status === "KO") {
-        return { errored: true, message: errResp.message };
-    }
-    return { errored: false, message: null };
+
+    return hasError(errResp);
+}
+
+export function validateStatusTooManyRequests(status: number) {
+    return (status >= 200 && status < 300) || status === 429;
 }
 
 export function validateStatusAuthentication(status: number) {

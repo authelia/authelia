@@ -11,23 +11,28 @@
 	"author": "Authelia",
 	"license": "Apache-2.0",
 	"dependencies": {
-		"@react-email/components": "0.0.31",
-		"@react-email/render": "1.0.3",
-		"esbuild": "0.24.0",
+		"@react-email/components": "0.0.33",
+		"@react-email/render": "1.0.5",
+		"esbuild": "0.25.0",
 		"react": "18.3.1",
 		"react-dom": "18.3.1",
-		"react-email": "3.0.4",
-		"tailwind-merge": "2.5.5",
-		"tailwindcss": "3.4.17",
-		"typescript": "5.7.2"
+		"react-email": "3.0.7",
+		"tailwind-merge": "3.0.2",
+		"tailwindcss": "4.0.12",
+		"typescript": "5.8.2"
 	},
 	"devDependencies": {
 		"@radix-ui/colors": "3.0.0",
-		"@types/node": "22.10.2",
-		"@types/react": "18.3.17",
+		"@types/node": "22.13.10",
+		"@types/react": "18.3.18",
 		"@types/react-dom": "18.3.5",
-		"eslint": "9.17.0",
-		"tsx": "4.19.2",
-		"vitest": "2.1.8"
+		"eslint": "9.22.0",
+		"tsx": "4.19.3",
+		"vitest": "3.0.8"
+	},
+	"pnpm": {
+		"overrides": {
+			"nanoid@<3.3.8": "3.3.9"
+		}
 	}
 }

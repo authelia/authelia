@@ -10,7 +10,7 @@ import (
 func JSONWebKeySetGET(ctx *middlewares.AutheliaCtx) {
 	ctx.SetContentTypeApplicationJSON()
 
-	if err := json.NewEncoder(ctx).Encode(ctx.Providers.OpenIDConnect.KeyManager.Set(ctx)); err != nil {
+	if err := json.NewEncoder(ctx).Encode(ctx.Providers.OpenIDConnect.Issuer.GetPublicJSONWebKeys(ctx)); err != nil {
 		ctx.Error(err, "failed to serve json web key set")
 	}
 }

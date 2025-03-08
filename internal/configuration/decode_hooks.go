@@ -5,7 +5,9 @@ import (
 	"crypto/ed25519"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/base64"
 	"fmt"
+	"net"
 	"net/mail"
 	"net/url"
 	"reflect"
@@ -16,6 +18,7 @@ import (
 
 	"github.com/go-crypt/crypt/algorithm/plaintext"
 	"github.com/go-viper/mapstructure/v2"
+	"github.com/google/uuid"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -557,12 +560,13 @@ func StringToTLSVersionHookFunc() mapstructure.DecodeHookFuncType {
 
 // StringToCryptoPrivateKeyHookFunc decodes strings to schema.CryptographicPrivateKey's.
 func StringToCryptoPrivateKeyHookFunc() mapstructure.DecodeHookFuncType {
+	field, _ := reflect.TypeOf(schema.TLS{}).FieldByName("PrivateKey")
+
 	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
 		if f.Kind() != reflect.String {
 			return data, nil
 		}
 
-		field, _ := reflect.TypeOf(schema.TLS{}).FieldByName("PrivateKey")
 		expectedType := field.Type
 
 		if t != expectedType {
@@ -602,6 +606,14 @@ func StringToCryptographicKeyHookFunc() mapstructure.DecodeHookFuncType {
 		dataStr := data.(string)
 
 		if value, err = utils.ParseX509FromPEM([]byte(dataStr)); err != nil {
+			if !strings.Contains(dataStr, "\n") && !strings.HasPrefix(dataStr, "-----") {
+				var key []byte
+
+				if key, err = base64.URLEncoding.DecodeString(dataStr); err == nil {
+					return key, nil
+				}
+			}
+
 			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseBasic, "", expectedType, err)
 		}
 
@@ -748,5 +760,116 @@ func StringToPasswordDigestHookFunc() mapstructure.DecodeHookFuncType {
 		}
 
 		return *result, nil
+	}
+}
+
+//nolint:gocyclo
+func StringToIPNetworksHookFunc(definitions map[string][]*net.IPNet) mapstructure.DecodeHookFuncType {
+	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
+		if f.Kind() != reflect.String && (f.Kind() != reflect.Slice || (f.Elem().Kind() != reflect.Interface && f.Elem().Kind() != reflect.String)) {
+			return data, nil
+		}
+
+		expectedType := reflect.TypeOf(net.IPNet{})
+
+		isSlice := t.Kind() == reflect.Slice && t.Elem().Kind() == reflect.Ptr && t.Elem().Elem() == expectedType
+		isKind := t.Kind() == reflect.Ptr && t.Elem() == expectedType
+
+		if !isSlice && !isKind {
+			return data, nil
+		}
+
+		var values []string
+
+		switch d := data.(type) {
+		case string:
+			values = []string{d}
+		case []string:
+			values = d
+		case []any:
+			values = make([]string, 0, len(d))
+
+			for i := range d {
+				switch v := d[i].(type) {
+				case string:
+					values = append(values, v)
+				default:
+					values = append(values, fmt.Sprint(v))
+				}
+			}
+		}
+
+		var (
+			ok         bool
+			definition []*net.IPNet
+			networks   []*net.IPNet
+			network    *net.IPNet
+		)
+
+		for _, str := range values {
+			if definitions != nil {
+				if definition, ok = definitions[str]; ok {
+					networks = append(networks, definition...)
+
+					continue
+				}
+			}
+
+			if network, err = utils.ParseHostCIDR(str); err != nil {
+				return nil, fmt.Errorf("failed to parse network %q: %w", str, err)
+			}
+
+			networks = append(networks, network)
+		}
+
+		return networks, nil
+	}
+}
+
+// StringToUUIDHookFunc decodes a string into a uuid.UUID.
+func StringToUUIDHookFunc() mapstructure.DecodeHookFuncType {
+	return func(f reflect.Type, t reflect.Type, data any) (value any, err error) {
+		var ptr bool
+
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+
+		prefixType := ""
+
+		if t.Kind() == reflect.Ptr {
+			ptr = true
+			prefixType = "*"
+		}
+
+		expectedType := reflect.TypeOf(uuid.UUID{})
+
+		if ptr && t.Elem() != expectedType {
+			return data, nil
+		} else if !ptr && t != expectedType {
+			return data, nil
+		}
+
+		dataStr := data.(string)
+
+		var result uuid.UUID
+
+		if dataStr == "" {
+			if ptr {
+				return (*uuid.UUID)(nil), nil
+			} else {
+				return nil, fmt.Errorf(errFmtDecodeHookCouldNotParseEmptyValue, prefixType, expectedType.String(), errDecodeNonPtrMustHaveValue)
+			}
+		}
+
+		if result, err = uuid.Parse(dataStr); err != nil {
+			return nil, fmt.Errorf(errFmtDecodeHookCouldNotParse, dataStr, prefixType, expectedType.String(), err)
+		}
+
+		if ptr {
+			return &result, nil
+		}
+
+		return result, nil
 	}
 }

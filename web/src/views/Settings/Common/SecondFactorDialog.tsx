@@ -25,6 +25,7 @@ import { SecondFactorMethod } from "@models/Methods";
 import { UserInfo } from "@models/UserInfo";
 import { UserSessionElevation } from "@services/UserSessionElevation";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
+import PasswordForm from "@views/LoginPortal/SecondFactor/PasswordForm.tsx";
 
 const SecondFactorMethodMobilePush = lazy(() => import("@views/Settings/Common/SecondFactorMethodMobilePush"));
 const SecondFactorMethodOneTimePassword = lazy(
@@ -87,6 +88,10 @@ const SecondFactorDialog = function (props: Props) {
         if (!open) {
             props.handleOpened();
             setOpen(true);
+        }
+
+        if (!props.elevation.factor_knowledge) {
+            setActiveStep(1);
         }
     }, [closing, handleClose, open, props]);
 
@@ -193,7 +198,9 @@ const SecondFactorDialog = function (props: Props) {
                     </Stack>
                 ) : activeStep === 1 ? (
                     <Stack alignContent={"center"} justifyContent={"center"} alignItems={"center"} my={8}>
-                        {method === SecondFactorMethod.WebAuthn ? (
+                        {!props.elevation.factor_knowledge ? (
+                            <PasswordForm onAuthenticationSuccess={handleSuccess} />
+                        ) : method === SecondFactorMethod.WebAuthn ? (
                             <SecondFactorMethodWebAuthn onSecondFactorSuccess={handleSuccess} closing={closing} />
                         ) : method === SecondFactorMethod.TOTP ? (
                             <SecondFactorMethodOneTimePassword

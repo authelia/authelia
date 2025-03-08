@@ -97,7 +97,7 @@ const app = express();
 app.use(
   auth({
     authRequired: false,
-    baseURL: `${process.env.APP_BASE_URL || 'https://express.{{< sitevar name="domain" nojs="example.com" >}}'}/callback`,
+    baseURL: `${process.env.APP_BASE_URL || 'https://express.{{< sitevar name="domain" nojs="example.com" >}}'}`,
     secret: process.env.SESSION_ENCRYPTION_SECRET || randomBytes(64).toString('hex'),
     clientID: process.env.OIDC_CLIENT_ID || 'Express.js',
     clientSecret: process.env.OIDC_CLIENT_SECRET || 'insecure_secret',
@@ -118,9 +118,11 @@ app.get('/', requiresAuth(), (req, res) => {
         accessToken: req.oidc.accessToken,
         refreshToken: req.oidc.refreshToken,
         idToken: req.oidc.idToken,
-        claims: req.oidc.idTokenClaims,
+        claims: {
+          id_token: req.oidc.idToken,
+          userinfo: userInfo,
+        },
         scopes: req.oidc.scope,
-        userInfo,
       }, null, 2);
 
     res.send(`<html lang='en'><body><pre><code>${data}</code></pre></body></html>`);

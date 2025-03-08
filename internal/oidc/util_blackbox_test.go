@@ -163,6 +163,115 @@ func TestGetLangFromRequester(t *testing.T) {
 	}
 }
 
+func TestRequesterRequiresLogin(t *testing.T) {
+	testCases := []struct {
+		name                     string
+		have                     oauthelia2.Requester
+		requested, authenticated int64
+		expected                 bool
+	}{
+		{
+			name: "ShouldNotRequireWithoutPrompt",
+			have: &oauthelia2.Request{
+				Form: url.Values{},
+			},
+			requested:     0,
+			authenticated: 0,
+			expected:      false,
+		},
+		{
+			name:          "ShouldHandleNilForm",
+			have:          &oauthelia2.Request{},
+			requested:     0,
+			authenticated: 0,
+			expected:      false,
+		},
+		{
+			name:          "ShouldHandleNil",
+			have:          nil,
+			requested:     0,
+			authenticated: 0,
+			expected:      false,
+		},
+		{
+			name: "ShouldNotRequireWithPromptNone",
+			have: &oauthelia2.Request{
+				Form: url.Values{oidc.FormParameterPrompt: []string{oidc.PromptNone}},
+			},
+			requested:     0,
+			authenticated: 0,
+			expected:      false,
+		},
+		{
+			name: "ShouldNotRequireWithPromptNonePastAuthenticated",
+			have: &oauthelia2.Request{
+				Form: url.Values{oidc.FormParameterPrompt: []string{oidc.PromptNone}},
+			},
+			requested:     100000,
+			authenticated: 0,
+			expected:      false,
+		},
+		{
+			name: "ShouldNotRequireWithPromptLogin",
+			have: &oauthelia2.Request{
+				Form: url.Values{oidc.FormParameterPrompt: []string{oidc.PromptLogin}},
+			},
+			requested:     0,
+			authenticated: 0,
+			expected:      false,
+		},
+		{
+			name: "ShouldRequireWithPromptLoginPastAuthenticated",
+			have: &oauthelia2.Request{
+				Form: url.Values{oidc.FormParameterPrompt: []string{oidc.PromptLogin}},
+			},
+			requested:     100000,
+			authenticated: 0,
+			expected:      true,
+		},
+		{
+			name: "ShouldNotRequireWithMaxAge",
+			have: &oauthelia2.Request{
+				Form: url.Values{oidc.FormParameterMaximumAge: []string{"100"}},
+			},
+			requested:     0,
+			authenticated: 0,
+			expected:      false,
+		},
+		{
+			name: "ShouldRequireWithMaxAgePastAuthenticated",
+			have: &oauthelia2.Request{
+				Form: url.Values{oidc.FormParameterMaximumAge: []string{"100"}},
+			},
+			requested:     100000,
+			authenticated: 0,
+			expected:      true,
+		},
+		{
+			name: "ShouldRequireWithMaxAgePastAuthenticatedInvalid",
+			have: &oauthelia2.Request{
+				Form: url.Values{oidc.FormParameterMaximumAge: []string{"not100"}},
+			},
+			requested:     1,
+			authenticated: 0,
+			expected:      true,
+		},
+		{
+			name:          "ShouldHandleDeviceCode",
+			have:          &oauthelia2.DeviceAuthorizeRequest{},
+			requested:     0,
+			authenticated: 0,
+			expected:      false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, oidc.RequesterRequiresLogin(tc.have, time.Unix(tc.requested, 0), time.Unix(tc.authenticated, 0)))
+		})
+	}
+}
+
 type TestGetLangRequester struct {
 }
 

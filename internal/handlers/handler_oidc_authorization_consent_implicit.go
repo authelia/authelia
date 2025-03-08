@@ -15,7 +15,7 @@ import (
 
 func handleOIDCAuthorizationConsentModeImplicit(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
 	userSession session.UserSession, subject uuid.UUID,
-	rw http.ResponseWriter, r *http.Request, requester oauthelia2.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
+	rw http.ResponseWriter, r *http.Request, requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
 		consentID uuid.UUID
 		err       error
@@ -28,7 +28,7 @@ func handleOIDCAuthorizationConsentModeImplicit(ctx *middlewares.AutheliaCtx, is
 		if consentID, err = uuid.ParseBytes(bytesConsentID); err != nil {
 			ctx.Logger.Errorf(logFmtErrConsentParseChallengeID, requester.GetID(), client.GetID(), client.GetConsentPolicy(), bytesConsentID, err)
 
-			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentMalformedChallengeID)
+			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentMalformedChallengeID)
 
 			return nil, true
 		}
@@ -37,9 +37,9 @@ func handleOIDCAuthorizationConsentModeImplicit(ctx *middlewares.AutheliaCtx, is
 	}
 }
 
-func handleOIDCAuthorizationConsentModeImplicitWithID(ctx *middlewares.AutheliaCtx, _ *url.URL, client oidc.Client,
+func handleOIDCAuthorizationConsentModeImplicitWithID(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
 	userSession session.UserSession, subject uuid.UUID, consentID uuid.UUID,
-	rw http.ResponseWriter, _ *http.Request, requester oauthelia2.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
+	rw http.ResponseWriter, r *http.Request, requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
 		err error
 	)
@@ -47,7 +47,7 @@ func handleOIDCAuthorizationConsentModeImplicitWithID(ctx *middlewares.AutheliaC
 	if consentID == uuid.Nil {
 		ctx.Logger.Errorf(logFmtErrConsentZeroID, requester.GetID(), client.GetID(), client.GetConsentPolicy())
 
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotLookup)
+		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotLookup)
 
 		return nil, true
 	}
@@ -55,7 +55,7 @@ func handleOIDCAuthorizationConsentModeImplicitWithID(ctx *middlewares.AutheliaC
 	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, consentID); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentLookupLoadingSession, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consentID, err)
 
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotLookup)
+		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotLookup)
 
 		return nil, true
 	}
@@ -63,25 +63,39 @@ func handleOIDCAuthorizationConsentModeImplicitWithID(ctx *middlewares.AutheliaC
 	if subject != consent.Subject.UUID {
 		ctx.Logger.Errorf(logFmtErrConsentSessionSubjectNotAuthorized, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, userSession.Username, subject, consent.Subject.UUID)
 
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotLookup)
+		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotLookup)
 
 		return nil, true
+	}
+
+	if oidc.RequesterRequiresLogin(requester, consent.RequestedAt, userSession.LastAuthenticatedTime()) {
+		handleOIDCAuthorizationConsentPromptLoginRedirect(ctx, issuer, client, userSession, rw, r, requester, consent)
+
+		return nil, true
+	} else {
+		ctx.Logger.WithFields(map[string]any{"requested_at": consent.RequestedAt, "authenticated_at": userSession.LastAuthenticatedTime(), "prompt": requester.GetRequestForm().Get("prompt")}).Debugf("Authorization Request with id '%s' on client with id '%s' is not being redirected for reauthentication", requester.GetID(), client.GetID())
 	}
 
 	if !consent.CanGrant() {
 		ctx.Logger.Errorf(logFmtErrConsentCantGrant, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, "implicit")
 
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotPerform)
+		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotPerform)
 
 		return nil, true
 	}
 
-	consent.Grant()
+	var requests *oidc.ClaimsRequests
 
-	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, *consent, false); err != nil {
+	if requests, err = oidc.NewClaimRequests(requester.GetRequestForm()); err == nil && requests != nil {
+		consent.GrantWithClaims(requests.ToSlice())
+	} else {
+		consent.Grant()
+	}
+
+	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, false); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentSaveSessionResponse, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, err)
 
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotSave)
+		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotSave)
 
 		return nil, true
 	}
@@ -89,9 +103,9 @@ func handleOIDCAuthorizationConsentModeImplicitWithID(ctx *middlewares.AutheliaC
 	return consent, false
 }
 
-func handleOIDCAuthorizationConsentModeImplicitWithoutID(ctx *middlewares.AutheliaCtx, _ *url.URL, client oidc.Client,
-	_ session.UserSession, subject uuid.UUID,
-	rw http.ResponseWriter, _ *http.Request, requester oauthelia2.AuthorizeRequester) (consent *model.OAuth2ConsentSession, handled bool) {
+func handleOIDCAuthorizationConsentModeImplicitWithoutID(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
+	userSession session.UserSession, subject uuid.UUID,
+	rw http.ResponseWriter, r *http.Request, requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
 		err error
 	)
@@ -99,33 +113,49 @@ func handleOIDCAuthorizationConsentModeImplicitWithoutID(ctx *middlewares.Authel
 	if consent, err = handleOpenIDConnectNewConsentSession(subject, requester, ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentGenerateError, requester.GetID(), client.GetID(), client.GetConsentPolicy(), "generating", err)
 
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotGenerate)
+		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotGenerate)
 
 		return nil, true
 	}
 
-	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSession(ctx, *consent); err != nil {
+	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSession(ctx, consent); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentSaveSession, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, err)
 
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotSave)
+		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotSave)
 
 		return nil, true
 	}
 
-	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, consent.ChallengeID); err != nil {
-		ctx.Logger.Errorf(logFmtErrConsentSaveSession, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, err)
+	challenge := consent.ChallengeID
 
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotSave)
+	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, challenge); err != nil {
+		ctx.Logger.Errorf(logFmtErrConsentSaveSession, requester.GetID(), client.GetID(), client.GetConsentPolicy(), challenge, err)
+
+		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotSave)
 
 		return nil, true
 	}
 
-	consent.Grant()
+	if oidc.RequesterRequiresLogin(requester, consent.RequestedAt, userSession.LastAuthenticatedTime()) {
+		handleOIDCAuthorizationConsentPromptLoginRedirect(ctx, issuer, client, userSession, rw, r, requester, consent)
 
-	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, *consent, false); err != nil {
+		return nil, true
+	} else {
+		ctx.Logger.WithFields(map[string]any{"requested_at": consent.RequestedAt, "authenticated_at": userSession.LastAuthenticatedTime(), "prompt": requester.GetRequestForm().Get("prompt")}).Debugf("Authorization Request with id '%s' on client with id '%s' is not being redirected for reauthentication", requester.GetID(), client.GetID())
+	}
+
+	var requests *oidc.ClaimsRequests
+
+	if requests, err = oidc.NewClaimRequests(requester.GetRequestForm()); err == nil && requests != nil {
+		consent.GrantWithClaims(requests.ToSlice())
+	} else {
+		consent.Grant()
+	}
+
+	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, false); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentSaveSessionResponse, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, err)
 
-		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotSave)
+		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotSave)
 
 		return nil, true
 	}

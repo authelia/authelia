@@ -33,7 +33,7 @@ of support for [Traefik] can be read about in the official
 
 It should be noted that while these are the listed versions that are supported you may have luck with older versions.
 
-We can officially guarantee the following verions of [Traefik] as these are the versions we perform integration testing
+We can officially guarantee the following versions of [Traefik] as these are the versions we perform integration testing
 with at the current time:
 
 {{% supported-product product="traefik" format="* [Traefik $version](https://github.com/traefik/traefik/releases/tag/$version)" %}}
@@ -156,8 +156,7 @@ The following are the assumptions we make:
 
 This is an example configuration using [docker compose] labels:
 
-{{< details "docker-compose.yml" >}}
-```yaml {title="docker-compose.yml"}
+```yaml {title="compose.yml"}
 ---
 networks:
   net:
@@ -205,13 +204,13 @@ services:
       - '${PWD}/data/traefik:/config'
     labels:
       traefik.enable: 'true'
-      traefik.http.routers.api.rule: 'Host(`traefik.{{</* sitevar name="domain" nojs="example.com" */>}}`)'
+      traefik.http.routers.api.rule: 'Host(`traefik.{{< sitevar name="domain" nojs="example.com" >}}`)'
       traefik.http.routers.api.entryPoints: 'https'
       traefik.http.routers.api.tls: 'true'
       traefik.http.routers.api.service: 'api@internal'
       traefik.http.routers.api.middlewares: 'authelia@docker'
   authelia:
-    container_name: '{{</* sitevar name="host" nojs="authelia" */>}}'
+    container_name: '{{< sitevar name="host" nojs="authelia" >}}'
     image: 'authelia/authelia'
     restart: 'unless-stopped'
     networks:
@@ -222,13 +221,13 @@ services:
       TZ: "Australia/Melbourne"
     labels:
       traefik.enable: 'true'
-      traefik.http.routers.authelia.rule: 'Host(`{{</* sitevar name="subdomain-authelia" nojs="auth" */>}}.{{</* sitevar name="domain" nojs="example.com" */>}}`)'
+      traefik.http.routers.authelia.rule: 'Host(`{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`)'
       traefik.http.routers.authelia.entryPoints: 'https'
       traefik.http.routers.authelia.tls: 'true'
-      traefik.http.middlewares.authelia.forwardAuth.address: '{{</* sitevar name="tls" nojs="http" */>}}://{{</* sitevar name="host" nojs="authelia" */>}}:{{</* sitevar name="port" nojs="9091" */>}}/api/authz/forward-auth'
+      traefik.http.middlewares.authelia.forwardAuth.address: '{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth'
       ## The following commented line is for configuring the Authelia URL in the proxy. We strongly suggest this is
       ## configured in the Session Cookies section of the Authelia configuration.
-      # traefik.http.middlewares.authelia.forwardAuth.address: '{{</* sitevar name="tls" nojs="http" */>}}://{{</* sitevar name="host" nojs="authelia" */>}}:{{</* sitevar name="port" nojs="9091" */>}}/api/authz/forward-auth?authelia_url=https%3A%2F%2F{{</* sitevar name="subdomain-authelia" nojs="auth" */>}}.{{</* sitevar name="domain" nojs="example.com" */>}}%2F'
+      # traefik.http.middlewares.authelia.forwardAuth.address: '{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth?authelia_url=https%3A%2F%2F{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}%2F'
       traefik.http.middlewares.authelia.forwardAuth.trustForwardHeader: 'true'
       traefik.http.middlewares.authelia.forwardAuth.authResponseHeaders: 'Remote-User,Remote-Groups,Remote-Email,Remote-Name'
   nextcloud:
@@ -246,7 +245,7 @@ services:
       TZ: 'Australia/Melbourne'
     labels:
       traefik.enable: 'true'
-      traefik.http.routers.nextcloud.rule: 'Host(`nextcloud.{{</* sitevar name="domain" nojs="example.com" */>}}`)'
+      traefik.http.routers.nextcloud.rule: 'Host(`nextcloud.{{< sitevar name="domain" nojs="example.com" >}}`)'
       traefik.http.routers.nextcloud.entryPoints: 'https'
       traefik.http.routers.nextcloud.tls: 'true'
       traefik.http.routers.nextcloud.middlewares: 'authelia@docker'
@@ -264,19 +263,18 @@ services:
       TZ: 'Australia/Melbourne'
     labels:
       traefik.enable: 'true'
-      traefik.http.routers.heimdall.rule: 'Host(`heimdall.{{</* sitevar name="domain" nojs="example.com" */>}}`)'
+      traefik.http.routers.heimdall.rule: 'Host(`heimdall.{{< sitevar name="domain" nojs="example.com" >}}`)'
       traefik.http.routers.heimdall.entryPoints: 'https'
       traefik.http.routers.heimdall.tls: 'true'
       traefik.http.routers.heimdall.middlewares: 'authelia-basic@docker'
 ...
 ```
-{{< /details >}}
 
 ### YAML
 
-This example uses a `docker-compose.yml` similar to the one above however it has two major differences:
+This example uses a `compose.yml` similar to the one above however it has two major differences:
 
-1. A majority of the configuration is in YAML instead of the `labels` section of the `docker-compose.yml` file.
+1. A majority of the configuration is in YAML instead of the `labels` section of the `compose.yml` file.
 2. It connects to __Authelia__ over TLS with client certificates which ensures that [Traefik] is a proxy
    authorized to communicate with __Authelia__. This expects that the
    [Server TLS](../../configuration/miscellaneous/server.md#tls) section is configured correctly.
@@ -286,8 +284,7 @@ This example uses a `docker-compose.yml` similar to the one above however it has
      all `forwardAuth` middlewares, adjusting the `authelia` router in the `http.routers` section to use the
      `authelia-net@docker` service, and commenting the `authelia` service in the `http.service` section.
 
-{{< details "docker-compose.yml" >}}
-```yaml {title="docker-compose.yml"}
+```yaml {title="compose.yml"}
 ---
 networks:
   net:
@@ -330,7 +327,7 @@ services:
     labels:
       traefik.enable: 'true'
   authelia:
-    container_name: '{{</* sitevar name="host" nojs="authelia" */>}}'
+    container_name: '{{< sitevar name="host" nojs="authelia" >}}'
     image: 'authelia/authelia'
     restart: 'unless-stopped'
     networks:
@@ -383,13 +380,11 @@ services:
       traefik.enable: 'true'
 ...
 ```
-{{< /details >}}
 
 This file is part of the dynamic configuration and should have the path
 `${PWD}/data/traefik/config/dynamic/traefik.yml`. Please see the [Traefik] service and the volume that mounts the
 `${PWD}/data/traefik/config` in the docker compose above.
 
-{{< details "traefik.yml" >}}
 ```yaml {title="traefik.yml"}
 ---
 entryPoints:
@@ -424,10 +419,10 @@ http:
   middlewares:
     authelia:
       forwardAuth:
-        address: '{{</* sitevar name="tls" nojs="http" */>}}://{{</* sitevar name="host" nojs="authelia" */>}}:{{</* sitevar name="port" nojs="9091" */>}}/api/authz/forward-auth'
+        address: '{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth'
         ## The following commented line is for configuring the Authelia URL in the proxy. We strongly suggest this is
         ## configured in the Session Cookies section of the Authelia configuration.
-        # address: '{{</* sitevar name="tls" nojs="http" */>}}://{{</* sitevar name="host" nojs="authelia" */>}}:{{</* sitevar name="port" nojs="9091" */>}}/api/authz/forward-auth?authelia_url=https%3A%2F%2F{{</* sitevar name="subdomain-authelia" nojs="auth" */>}}.{{</* sitevar name="domain" nojs="example.com" */>}}%2F'
+        # address: '{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth?authelia_url=https%3A%2F%2F{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}%2F'
         trustForwardHeader: true
         authResponseHeaders:
           - 'Remote-User'
@@ -440,7 +435,7 @@ http:
           key: '/certificates/traefik.private.pem'
     authelia-basic:
       forwardAuth:
-        address: '{{</* sitevar name="tls" nojs="http" */>}}://{{</* sitevar name="host" nojs="authelia" */>}}:{{</* sitevar name="port" nojs="9091" */>}}/api/verify?auth=basic'
+        address: '{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/verify?auth=basic'
         trustForwardHeader: true
         authResponseHeaders:
           - 'Remote-User'
@@ -453,7 +448,7 @@ http:
           key: '/certificates/traefik.private.pem'
   routers:
     traefik:
-      rule: 'Host(`traefik.{{</* sitevar name="domain" nojs="example.com" */>}}`)'
+      rule: 'Host(`traefik.{{< sitevar name="domain" nojs="example.com" >}}`)'
       entryPoints: 'websecure'
       service: 'api@internal'
       middlewares:
@@ -462,11 +457,11 @@ http:
         options: 'modern@file'
         certResolver: 'default'
         domains:
-          - main: '{{</* sitevar name="domain" nojs="example.com" */>}}'
+          - main: '{{< sitevar name="domain" nojs="example.com" >}}'
             sans:
-              - '*.{{</* sitevar name="domain" nojs="example.com" */>}}'
+              - '*.{{< sitevar name="domain" nojs="example.com" >}}'
     whoami:
-      rule: 'Host(`whoami.{{</* sitevar name="domain" nojs="example.com" */>}}`)'
+      rule: 'Host(`whoami.{{< sitevar name="domain" nojs="example.com" >}}`)'
       entryPoints: 'websecure'
       service: 'whoami-net@docker'
       middlewares:
@@ -475,11 +470,11 @@ http:
         options: 'modern@file'
         certResolver: 'default'
         domains:
-          - main: '{{</* sitevar name="domain" nojs="example.com" */>}}'
+          - main: '{{< sitevar name="domain" nojs="example.com" >}}'
             sans:
-              - '*.{{</* sitevar name="domain" nojs="example.com" */>}}'
+              - '*.{{< sitevar name="domain" nojs="example.com" >}}'
     nextcloud:
-      rule: 'Host(`nextcloud.{{</* sitevar name="domain" nojs="example.com" */>}}`)'
+      rule: 'Host(`nextcloud.{{< sitevar name="domain" nojs="example.com" >}}`)'
       entryPoints: 'websecure'
       service: 'nextcloud-net@docker'
       middlewares:
@@ -488,11 +483,11 @@ http:
         options: 'modern@file'
         certResolver: 'default'
         domains:
-          - main: '{{</* sitevar name="domain" nojs="example.com" */>}}'
+          - main: '{{< sitevar name="domain" nojs="example.com" >}}'
             sans:
-              - '*.{{</* sitevar name="domain" nojs="example.com" */>}}'
+              - '*.{{< sitevar name="domain" nojs="example.com" >}}'
     heimdall:
-      rule: 'Host(`heimdall.{{</* sitevar name="domain" nojs="example.com" */>}}`)'
+      rule: 'Host(`heimdall.{{< sitevar name="domain" nojs="example.com" >}}`)'
       entryPoints: 'websecure'
       service: 'heimdall-net@docker'
       middlewares:
@@ -501,25 +496,25 @@ http:
         options: 'modern@file'
         certResolver: 'default'
         domains:
-          - main: '{{</* sitevar name="domain" nojs="example.com" */>}}'
+          - main: '{{< sitevar name="domain" nojs="example.com" >}}'
             sans:
-              - '*.{{</* sitevar name="domain" nojs="example.com" */>}}'
+              - '*.{{< sitevar name="domain" nojs="example.com" >}}'
     authelia:
-      rule: 'Host(`{{</* sitevar name="subdomain-authelia" nojs="auth" */>}}.{{</* sitevar name="domain" nojs="example.com" */>}}`)'
+      rule: 'Host(`{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`)'
       entryPoints: 'websecure'
       service: 'authelia@file'
       tls:
         options: 'modern@file'
         certResolver: 'default'
         domains:
-          - main: '{{</* sitevar name="domain" nojs="example.com" */>}}'
+          - main: '{{< sitevar name="domain" nojs="example.com" >}}'
             sans:
-              - '*.{{</* sitevar name="domain" nojs="example.com" */>}}'
+              - '*.{{< sitevar name="domain" nojs="example.com" >}}'
   services:
     authelia:
       loadBalancer:
         servers:
-          - url: '{{</* sitevar name="tls" nojs="http" */>}}://{{</* sitevar name="host" nojs="authelia" */>}}:{{</* sitevar name="port" nojs="9091" */>}}/'
+          - url: '{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/'
         serversTransport: 'autheliaMutualTLS'
   serversTransports:
     autheliaMutualTLS:
@@ -530,7 +525,6 @@ http:
         - '/certificates/ca.public.crt'
 ...
 ```
-{{< /details >}}
 
 ## Frequently Asked Questions
 
@@ -553,7 +547,7 @@ This can be avoided a couple different ways:
    * Utilise the [depends_on](https://docs.docker.com/compose/compose-file/#depends_on) option
 2. Define the __Authelia__ middleware on your [Traefik] container. See the below example.
 
-```yaml {title="docker-compose.yml"}
+```yaml {title="compose.yml"}
 traefik.http.middlewares.authelia.forwardAuth.address: '{{< sitevar name="tls" nojs="http" >}}://{{< sitevar name="host" nojs="authelia" >}}:{{< sitevar name="port" nojs="9091" >}}/api/authz/forward-auth'
 ## The following commented line is for configuring the Authelia URL in the proxy. We strongly suggest this is
 ## configured in the Session Cookies section of the Authelia configuration.

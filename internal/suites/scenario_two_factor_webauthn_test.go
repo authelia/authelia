@@ -10,17 +10,17 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type TwoFactorWebAuthnSuite struct {
+type TwoFactorWebAuthnScenario struct {
 	*RodSuite
 }
 
-func NewTwoFactorWebAuthnScenario() *TwoFactorWebAuthnSuite {
-	return &TwoFactorWebAuthnSuite{
+func NewTwoFactorWebAuthnScenario() *TwoFactorWebAuthnScenario {
+	return &TwoFactorWebAuthnScenario{
 		RodSuite: NewRodSuite(""),
 	}
 }
 
-func (s *TwoFactorWebAuthnSuite) SetupSuite() {
+func (s *TwoFactorWebAuthnScenario) SetupSuite() {
 	browser, err := NewRodSession(RodSessionWithCredentials(s))
 	if err != nil {
 		log.Fatal(err)
@@ -45,7 +45,7 @@ func (s *TwoFactorWebAuthnSuite) SetupSuite() {
 	s.doLogout(s.T(), s.Page)
 }
 
-func (s *TwoFactorWebAuthnSuite) TearDownSuite() {
+func (s *TwoFactorWebAuthnScenario) TearDownSuite() {
 	err := s.RodSession.Stop()
 
 	if err != nil {
@@ -53,7 +53,7 @@ func (s *TwoFactorWebAuthnSuite) TearDownSuite() {
 	}
 }
 
-func (s *TwoFactorWebAuthnSuite) SetupTest() {
+func (s *TwoFactorWebAuthnScenario) SetupTest() {
 	s.Page = s.doCreateTab(s.T(), HomeBaseURL)
 	s.verifyIsHome(s.T(), s.Page)
 
@@ -61,12 +61,12 @@ func (s *TwoFactorWebAuthnSuite) SetupTest() {
 	s.doWebAuthnRestoreCredentials(s.T(), s.Page)
 }
 
-func (s *TwoFactorWebAuthnSuite) TearDownTest() {
+func (s *TwoFactorWebAuthnScenario) TearDownTest() {
 	s.collectCoverage(s.Page)
 	s.MustClose()
 }
 
-func (s *TwoFactorWebAuthnSuite) TestShouldAuthorizeSecretAfterTwoFactor() {
+func (s *TwoFactorWebAuthnScenario) TestShouldAuthorizeSecretAfterTwoFactor() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer func() {
 		cancel()
@@ -93,7 +93,7 @@ func (s *TwoFactorWebAuthnSuite) TestShouldAuthorizeSecretAfterTwoFactor() {
 	s.verifySecretAuthorized(s.T(), s.Context(ctx))
 }
 
-func (s *TwoFactorWebAuthnSuite) TestShouldRenameCredential() {
+func (s *TwoFactorWebAuthnScenario) TestShouldRenameCredential() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer func() {
 		cancel()
@@ -118,7 +118,7 @@ func (s *TwoFactorWebAuthnSuite) TestShouldRenameCredential() {
 	s.Assert().Equal("testing", s.WaitElementLocatedByID(s.T(), s.Context(ctx), "webauthn-credential-0-description").MustText())
 }
 
-func (s *TwoFactorWebAuthnSuite) TestShouldShowCredentialInformation() {
+func (s *TwoFactorWebAuthnScenario) TestShouldShowCredentialInformation() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer func() {
 		cancel()
@@ -136,7 +136,7 @@ func (s *TwoFactorWebAuthnSuite) TestShouldShowCredentialInformation() {
 	s.Require().NoError(s.WaitElementLocatedByID(s.T(), s.Context(ctx), "dialog-close").Click("left", 1))
 }
 
-func (s *TwoFactorWebAuthnSuite) TestShouldDeleteAndRegisterCredential() {
+func (s *TwoFactorWebAuthnScenario) TestShouldDeleteAndRegisterCredential() {
 	ctx, cancel := context.WithTimeout(context.Background(), 40*time.Second)
 	defer func() {
 		cancel()

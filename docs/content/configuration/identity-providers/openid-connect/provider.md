@@ -76,11 +76,24 @@ identity_providers:
         rules:
           - policy: 'deny'
             subject: 'group:services'
+            networks:
+              - '192.168.1.0/24'
+              - '192.168.2.51'
     lifespans:
       access_token: '1h'
       authorize_code: '1m'
       id_token: '1h'
       refresh_token: '90m'
+    claims_policies:
+      policy_name:
+        id_token: []
+        access_token: []
+        custom_claims:
+          claim_name:
+            attribute: 'attribute_name'
+    scopes:
+      scope_name:
+        claims: []
     cors:
       endpoints:
         - 'authorization'
@@ -161,7 +174,7 @@ hexadecimal, followed by a hyphen, then followed by the lowercase algorithm valu
 
 {{< confkey type="string" default="sig" required="no" >}}
 
-The key usage. Defaults to `sig` which is the only available option at this time.
+The key usage. Defaults to `sig`. Available options are `sig` and `enc`.
 
 #### algorithm
 
@@ -401,6 +414,9 @@ identity_providers:
         rules:
           - policy: 'deny'
             subject: 'group:services'
+            networks:
+              - '192.168.1.0/24'
+              - '192.168.2.51'
     clients:
       - client_id: 'client_with_policy_name'
         authorization_policy: 'policy_name'
@@ -410,7 +426,7 @@ identity_providers:
 
 {{< confkey type="string" default="two_factor" required="no" >}}
 
-The default effective policy of none of the rules are able to determine the effective policy.
+The default effective policy if none of the rules are able to determine the effective policy.
 
 #### rules
 
@@ -427,10 +443,28 @@ The policy which is applied if this rule matches. Valid values are `one_factor`,
 
 ##### subject
 
-{{< confkey type="list(string(string))" required="yes" >}}
+{{< confkey type="list(list(string))" required="situational" >}}
 
-The subjects criteria as per the [Access Control Configuration](../../security/access-control.md#subject). This must be
-included for the rule to be considered valid.
+_**Situational Note:** Either this option or the [networks](#networks) must be configured or this rule is considered
+invalid._
+
+The subjects criteria as per the [Access Control Configuration](../../security/access-control.md#subject).
+
+##### networks
+
+{{< confkey type="list(string)" syntax="network" required="situational" >}}
+{{< callout context="danger" title="Security Note" icon="outline/rocket" >}}
+The rules can only apply to the Authorization Code Flow when the resource owner is optionally providing
+consent to the Authorization Request. While this is not a major issue for the [subject](#subject) criteria, the users
+IP address may change and there is no technical way to enforce this check after consent has been granted and the tokens
+have been issued. See [ADR1](../../../reference/architecture-decision-log/1.md) for more information.
+{{< /callout >}}
+
+_**Situational Note:** Either this option or the [subject](#subject) must be configured or this rule is considered
+invalid._
+
+The list of networks this rule applies to. Items in this list can also be named
+[Network Definitions](../../definitions/network.md).
 
 ### lifespans
 
@@ -529,6 +563,84 @@ identity_providers:
               id_token: '1h'
               refresh_token: '90m'
 ```
+
+### claims_policies
+
+{{< confkey type="string" syntax="dictionary" common="dictionary-reference" required="no" >}}
+
+The claims policies are policies which allow customizing the behaviour of claims and the available claims for a
+particular client.
+
+The keys under `claims_policies` is an arbitrary value that can be used in the
+[OpenID Connect 1.0 Client](clients.md#claims_policy) as the [claims_policy](clients.md#claims_policy) value.
+
+#### id_token
+
+{{< confkey type="list(string)" required="no" >}}
+
+The list of claims automatically copied to the ID Token in addition to the standard ID Token claims provided the
+relevant scope was granted.
+
+#### id_token_audience_mode
+
+{{< confkey type="string" default="specification" required="no" >}}
+
+The ID Token audience derivation mode for clients using this claims policy. It's recommended this is not configured
+as the default mode is the correct mode in almost all situations, and if are considering changing this first read
+the section on audiences in the [Integration Guide](../../../integration/openid-connect/introduction.md#audiences),
+as there may be unintended security issues caused for relying parties that trust Authelia as a provider if you're not
+cautious.
+
+The following table describes all of the modes. Please note that any mode value prefixed with `experimental-` may be
+removed or renamed without notice, and it's suggested if you're using these modes that you start a
+[Discussion](https://github.com/authelia/authelia/discussions/new?category=show-and-tell) showcasing how you're using
+a specific mode so we can adequately gauge its overall value.
+
+|         Value         |                                                   Description                                                   |
+|:---------------------:|:---------------------------------------------------------------------------------------------------------------:|
+|    `specification`    |           This is the specification compliant mode where only the client id is recorded in the claim.           |
+| `experimental-merged` | This mode includes the same value as `specification` but also merges the granted audience from the Access Token |
+
+#### access_token
+
+{{< confkey type="list(string)" required="no" >}}
+
+The list of claims automatically copied to the Access Token in addition to the standard JWT Profile claims provided the
+relevant scope was granted.
+
+#### custom_claims
+
+{{< confkey type="string" syntax="dictionary" common="dictionary-reference" required="no" >}}
+
+The list of claims available in this policy in addition to the standard claims. These claims are anchored to attributes
+which can either be concrete attributes from the [first factor](../../first-factor/introduction.md) backend or can be
+those defined via [definitions](../../definitions/user-attributes.md).
+
+The keys under `custom_claims` are arbitrary values which are the names of the claims.
+
+##### attribute
+
+{{< confkey type="string" required="no" >}}
+
+The attribute name that this claim returns. By default it's the same as the claim name.
+
+### scopes
+
+{{< confkey type="string" syntax="dictionary" common="dictionary-reference" required="no" >}}
+
+A list of scope definitions available in addition to the standard ones.
+
+The keys under `scopes` are arbitrary values which are the names of the scopes.
+
+#### claims
+
+{{< confkey type="list(string)" required="no" >}}
+
+The claims to be available to this scope.
+
+If the scope is configured in a [OpenID Connect 1.0 Client](clients.md#scopes) in the [scopes](clients.md#scopes) then
+every claim available in this list must either be a Standard Claim or must be fulfilled by the
+[claims_policy](clients.md#claims_policy).
 
 ### cors
 

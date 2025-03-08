@@ -5,7 +5,7 @@ set +u
 if [[ ${BUILDKITE_PULL_REQUEST} != "false" ]]; then
   if [[ ${BUILDKITE_LABEL} == ":service_dog: Linting" ]]; then
     echo "--- :go::service_dog: Provide in-line commentary for pull request"
-    reviewdog -reporter=github-pr-review
+    .buildkite/lint.sh -reporter=github-pr-review
   fi
 fi
 
@@ -41,10 +41,6 @@ fi
 
 if [[ ${BUILDKITE_LABEL} == ":debian: Package Builds" ]]; then
   buildkite-agent annotate --style "success" --context "ctx-success" < .buildkite/annotations/artifacts
-fi
-
-if [[ ${BUILDKITE_LABEL} == ":docker: Build and Deploy Image" ]]; then
-  docker logout
 fi
 
 if [[ ${BUILDKITE_LABEL} =~ ":docker: Deploy" ]]; then

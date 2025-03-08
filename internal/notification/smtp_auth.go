@@ -12,15 +12,16 @@ import (
 )
 
 // NewOpportunisticSMTPAuth is an opportunistic smtp.Auth implementation.
-func NewOpportunisticSMTPAuth(config *schema.NotifierSMTP) smtp.Auth {
-	if config.Username == "" && config.Password == "" {
+func NewOpportunisticSMTPAuth(config *schema.NotifierSMTP, preference ...mail.SMTPAuthType) smtp.Auth {
+	if len(config.Username)+len(config.Password) == 0 {
 		return nil
 	}
 
 	return &OpportunisticSMTPAuth{
-		username: config.Username,
-		password: config.Password,
-		host:     config.Address.Hostname(),
+		username:      config.Username,
+		password:      config.Password,
+		host:          config.Address.Hostname(),
+		satPreference: preference,
 	}
 }
 
@@ -56,16 +57,16 @@ func (a *OpportunisticSMTPAuth) setPreferred(server *smtp.ServerInfo) {
 	for _, pref := range a.satPreference {
 		if utils.IsStringInSlice(string(pref), server.Auth) {
 			switch pref {
-			case mail.SMTPAuthPlain:
-				a.sa = smtp.PlainAuth("", a.username, a.password, a.host, false)
-			case mail.SMTPAuthLogin:
-				a.sa = smtp.LoginAuth(a.username, a.password, a.host, false)
 			case mail.SMTPAuthSCRAMSHA256:
 				a.sa = smtp.ScramSHA256Auth(a.username, a.password)
 			case mail.SMTPAuthSCRAMSHA1:
 				a.sa = smtp.ScramSHA1Auth(a.username, a.password)
 			case mail.SMTPAuthCramMD5:
 				a.sa = smtp.CRAMMD5Auth(a.username, a.password)
+			case mail.SMTPAuthPlain:
+				a.sa = smtp.PlainAuth("", a.username, a.password, a.host, false)
+			case mail.SMTPAuthLogin:
+				a.sa = smtp.LoginAuth(a.username, a.password, a.host, false)
 			}
 
 			if a.sa != nil {
@@ -78,16 +79,16 @@ func (a *OpportunisticSMTPAuth) setPreferred(server *smtp.ServerInfo) {
 func (a *OpportunisticSMTPAuth) set(server *smtp.ServerInfo) {
 	for _, sa := range server.Auth {
 		switch mail.SMTPAuthType(sa) {
-		case mail.SMTPAuthPlain:
-			a.sa = smtp.PlainAuth("", a.username, a.password, a.host, false)
-		case mail.SMTPAuthLogin:
-			a.sa = smtp.LoginAuth(a.username, a.password, a.host, false)
 		case mail.SMTPAuthSCRAMSHA256:
 			a.sa = smtp.ScramSHA256Auth(a.username, a.password)
 		case mail.SMTPAuthSCRAMSHA1:
 			a.sa = smtp.ScramSHA1Auth(a.username, a.password)
 		case mail.SMTPAuthCramMD5:
 			a.sa = smtp.CRAMMD5Auth(a.username, a.password)
+		case mail.SMTPAuthPlain:
+			a.sa = smtp.PlainAuth("", a.username, a.password, a.host, false)
+		case mail.SMTPAuthLogin:
+			a.sa = smtp.LoginAuth(a.username, a.password, a.host, false)
 		}
 
 		if a.sa != nil {

@@ -48,11 +48,113 @@ func newStorageCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd.PersistentFlags().String("postgres.ssl.key", "", "the PostgreSQL ssl key file location")
 
 	cmd.AddCommand(
+		newStorageCacheCmd(ctx),
 		newStorageMigrateCmd(ctx),
 		newStorageSchemaInfoCmd(ctx),
 		newStorageEncryptionCmd(ctx),
 		newStorageUserCmd(ctx),
+		newStorageBansCmd(ctx),
 	)
+
+	return cmd
+}
+
+func newStorageCacheCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "cache",
+		Short:   cmdAutheliaStorageCacheShort,
+		Long:    cmdAutheliaStorageCacheLong,
+		Example: cmdAutheliaStorageCacheExample,
+		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.AddCommand(
+		newStorageCacheMDSCmd(ctx),
+	)
+
+	return cmd
+}
+
+func newStorageCacheMDSCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "mds3",
+		Short:   cmdAutheliaStorageCacheMDS3Short,
+		Long:    cmdAutheliaStorageCacheMDS3Long,
+		Example: cmdAutheliaStorageCacheMDS3Example,
+		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.AddCommand(
+		newStorageCacheMDSDeleteCmd(ctx),
+		newStorageCacheMDSStatusCmd(ctx),
+		newStorageCacheMDSUpdateCmd(ctx),
+		newStorageCacheMDSDumpCmd(ctx),
+	)
+
+	return cmd
+}
+
+func newStorageCacheMDSDeleteCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:               "delete",
+		Short:             cmdAutheliaStorageCacheMDS3DeleteShort,
+		Long:              cmdAutheliaStorageCacheMDS3DeleteLong,
+		Example:           cmdAutheliaStorageCacheMDS3DeleteExample,
+		Args:              cobra.NoArgs,
+		RunE:              ctx.StorageCacheDeleteRunE("mds3", "MDS3"),
+		DisableAutoGenTag: true,
+	}
+
+	return cmd
+}
+
+func newStorageCacheMDSStatusCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:               "status",
+		Short:             cmdAutheliaStorageCacheMDS3StatusShort,
+		Long:              cmdAutheliaStorageCacheMDS3StatusLong,
+		Example:           cmdAutheliaStorageCacheMDS3StatusExample,
+		Args:              cobra.NoArgs,
+		RunE:              ctx.StorageCacheMDS3StatusRunE,
+		DisableAutoGenTag: true,
+	}
+
+	return cmd
+}
+
+func newStorageCacheMDSUpdateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:               "update",
+		Short:             cmdAutheliaStorageCacheMDS3UpdateShort,
+		Long:              cmdAutheliaStorageCacheMDS3UpdateLong,
+		Example:           cmdAutheliaStorageCacheMDS3UpdateExample,
+		Args:              cobra.NoArgs,
+		RunE:              ctx.StorageCacheMDS3UpdateRunE,
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().String(cmdFlagNamePath, "", "updates from a file rather than from a web request")
+	cmd.Flags().BoolP(cmdFlagNameForce, "f", false, "forces the update even if it's not expired")
+
+	return cmd
+}
+
+func newStorageCacheMDSDumpCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:               "dump",
+		Short:             cmdAutheliaStorageCacheMDS3DumpShort,
+		Long:              cmdAutheliaStorageCacheMDS3DumpLong,
+		Example:           cmdAutheliaStorageCacheMDS3DumpExample,
+		Args:              cobra.NoArgs,
+		RunE:              ctx.StorageCacheMDS3DumpRunE,
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().String(cmdFlagNamePath, "data.mds3", "the path to save the dumped mds3 data blob")
 
 	return cmd
 }
@@ -110,9 +212,126 @@ func newStorageEncryptionChangeKeyCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	return cmd
 }
 
+func newStorageBansCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "bans",
+		Short:   cmdAutheliaStorageBansShort,
+		Long:    cmdAutheliaStorageBansLong,
+		Example: cmdAutheliaStorageBansExample,
+		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.AddCommand(
+		newStorageBansUserCmd(ctx),
+		newStorageBansIPCmd(ctx),
+	)
+
+	return cmd
+}
+
+func newStorageBansUserCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     cmdUseUser,
+		Short:   cmdAutheliaStorageBansUserShort,
+		Long:    cmdAutheliaStorageBansUserLong,
+		Example: cmdAutheliaStorageBansUserExample,
+		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.AddCommand(
+		newStorageBansListCmd(ctx, cmdUseUser),
+		newStorageBansRevokeCmd(ctx, cmdUseUser),
+		newStorageBansAddCmd(ctx, cmdUseUser),
+	)
+
+	return cmd
+}
+
+func newStorageBansIPCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     cmdUseIP,
+		Short:   cmdAutheliaStorageBansIPShort,
+		Long:    cmdAutheliaStorageBansIPLong,
+		Example: cmdAutheliaStorageBansIPExample,
+		Args:    cobra.NoArgs,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.AddCommand(
+		newStorageBansListCmd(ctx, cmdUseIP),
+		newStorageBansRevokeCmd(ctx, cmdUseIP),
+		newStorageBansAddCmd(ctx, cmdUseIP),
+	)
+
+	return cmd
+}
+
+func newStorageBansListCmd(ctx *CmdCtx, use string) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "list",
+		Short:   fmt.Sprintf(cmdAutheliaStorageBansListShort, use),
+		Long:    fmt.Sprintf(cmdAutheliaStorageBansListLong, use, use),
+		Example: fmt.Sprintf(cmdAutheliaStorageBansListExample, use),
+		Args:    cobra.NoArgs,
+		RunE:    ctx.StorageBansListRunE(use),
+
+		DisableAutoGenTag: true,
+	}
+
+	return cmd
+}
+
+func newStorageBansRevokeCmd(ctx *CmdCtx, use string) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     fmt.Sprintf("revoke [%s]", use),
+		Short:   fmt.Sprintf(cmdAutheliaStorageBansRevokeShort, use),
+		Long:    fmt.Sprintf(cmdAutheliaStorageBansRevokeLong, use, use),
+		Example: fmt.Sprintf(cmdAutheliaStorageBansRevokeExample, use),
+		Args:    cobra.RangeArgs(0, 1),
+		RunE:    ctx.StorageBansRevokeRunE(use),
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().IntP("id", "i", 0, fmt.Sprintf("revokes the ban with the given id instead of the %s value", use))
+
+	return cmd
+}
+
+func newStorageBansAddCmd(ctx *CmdCtx, use string) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     fmt.Sprintf("add <%s>", use),
+		Short:   fmt.Sprintf(cmdAutheliaStorageBansAddShort, use),
+		Long:    fmt.Sprintf(cmdAutheliaStorageBansAddLong, use, use),
+		Example: fmt.Sprintf(cmdAutheliaStorageBansAddExample, use),
+		Args:    cobra.ExactArgs(1),
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if cmd.Flags().Changed("permanent") && cmd.Flags().Changed(cmdFlagNameDuration) {
+				return fmt.Errorf("invalid flag combination specified: both duration and permanent flags can't be uesd at the same time")
+			}
+
+			return nil
+		},
+		RunE: ctx.StorageBansAddRunE(use),
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().BoolP("permanent", "p", false, "makes the ban effectively permanent")
+	cmd.Flags().StringP("reason", "r", "", "includes a reason for the ban")
+	cmd.Flags().StringP("duration", "d", "1 day", "the duration for the ban")
+
+	return cmd
+}
+
 func newStorageUserCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "user",
+		Use:     cmdUseUser,
 		Short:   cmdAutheliaStorageUserShort,
 		Long:    cmdAutheliaStorageUserLong,
 		Example: cmdAutheliaStorageUserExample,
@@ -234,6 +453,7 @@ func newStorageUserWebAuthnCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 
 	cmd.AddCommand(
 		newStorageUserWebAuthnListCmd(ctx),
+		newStorageUserWebAuthnVerifyCmd(ctx),
 		newStorageUserWebAuthnDeleteCmd(ctx),
 		newStorageUserWebAuthnExportCmd(ctx),
 		newStorageUserWebAuthnImportCmd(ctx),
@@ -269,7 +489,7 @@ func newStorageUserWebAuthnExportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.Flags().StringP(cmdFlagNameFile, "f", "authelia.export.webauthn.yaml", "The file name for the YAML export")
+	cmd.Flags().StringP(cmdFlagNameFile, "f", "authelia.export.webauthn.yml", "The file name for the YAML export")
 
 	return cmd
 }
@@ -282,6 +502,21 @@ func newStorageUserWebAuthnListCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Example: cmdAutheliaStorageUserWebAuthnListExample,
 		RunE:    ctx.StorageUserWebAuthnListRunE,
 		Args:    cobra.MaximumNArgs(1),
+
+		DisableAutoGenTag: true,
+	}
+
+	return cmd
+}
+
+func newStorageUserWebAuthnVerifyCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "verify",
+		Short:   cmdAutheliaStorageUserWebAuthnVerifyShort,
+		Long:    cmdAutheliaStorageUserWebAuthnVerifyLong,
+		Example: cmdAutheliaStorageUserWebAuthnVerifyExample,
+		RunE:    ctx.StorageUserWebAuthnVerifyRunE,
+		Args:    cobra.NoArgs,
 
 		DisableAutoGenTag: true,
 	}
@@ -401,7 +636,7 @@ func newStorageUserTOTPExportCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		newStorageUserTOTPExportURICmd(ctx),
 	)
 
-	cmd.Flags().StringP(cmdFlagNameFile, "f", "authelia.export.totp.yaml", "The file name for the YAML export")
+	cmd.Flags().StringP(cmdFlagNameFile, "f", "authelia.export.totp.yml", "The file name for the YAML export")
 
 	return cmd
 }

@@ -10,15 +10,18 @@ import (
 	"encoding/pem"
 	"fmt"
 	"math"
+	"net"
 	"net/mail"
 	"net/url"
 	"os"
+	"path"
 	"reflect"
 	"regexp"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -2005,6 +2008,172 @@ func TestStringToX509CertificateChainHookFunc(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestStringToUUIDHookFunc(t *testing.T) {
+	var nilkey *uuid.UUID
+
+	toPtr := func(value uuid.UUID) *uuid.UUID {
+		return &value
+	}
+
+	testCases := []struct {
+		name      string
+		have      any
+		expected  any
+		err, verr string
+		decode    bool
+	}{
+		{
+			name:     "ShouldNotDecodeEmptyString",
+			have:     "",
+			expected: uuid.UUID{},
+			decode:   true,
+			err:      "could not decode an empty value to a uuid.UUID: must have a non-empty value",
+		},
+		{
+			name:     "ShouldDecodeEmptyStringNil",
+			have:     "",
+			expected: nilkey,
+			decode:   true,
+			err:      "",
+		},
+		{
+			name:     "ShouldDecodeValid",
+			have:     "cb69481e-8ff7-4039-93ec-0a2729a154a8",
+			expected: uuid.MustParse("cb69481e-8ff7-4039-93ec-0a2729a154a8"),
+			decode:   true,
+			err:      "",
+		},
+		{
+			name:     "ShouldDecodeValidPtr",
+			have:     "cb69481e-8ff7-4039-93ec-0a2729a154a8",
+			expected: toPtr(uuid.MustParse("cb69481e-8ff7-4039-93ec-0a2729a154a8")),
+			decode:   true,
+			err:      "",
+		},
+		{
+			name:     "ShouldNotDecodeParseError",
+			have:     "cb69481e-4039-93ec-0a2729a154a8",
+			expected: uuid.UUID{},
+			decode:   true,
+			err:      "could not decode 'cb69481e-4039-93ec-0a2729a154a8' to a uuid.UUID: invalid UUID length: 31",
+		},
+		{
+			name:     "ShouldNotDecodeParseErrorPtr",
+			have:     "cb69481e-4039-93ec-0a2729a154a8",
+			expected: nilkey,
+			decode:   true,
+			err:      "could not decode 'cb69481e-4039-93ec-0a2729a154a8' to a *uuid.UUID: invalid UUID length: 31",
+		},
+	}
+
+	hook := configuration.StringToUUIDHookFunc()
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, err := hook(reflect.TypeOf(tc.have), reflect.TypeOf(tc.expected), tc.have)
+
+			switch {
+			case !tc.decode:
+				assert.NoError(t, err)
+				assert.Equal(t, tc.have, actual)
+			case tc.err == "":
+				assert.NoError(t, err)
+				require.Equal(t, tc.expected, actual)
+			default:
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, actual)
+			}
+		})
+	}
+}
+
+func TestStringToIPNetworksHookFunc(t *testing.T) {
+	mustParseNet := func(in string) *net.IPNet {
+		_, n, err := net.ParseCIDR(in)
+		if err != nil {
+			panic(err)
+		}
+
+		return n
+	}
+
+	testCases := []struct {
+		name     string
+		path     string
+		have     *schema.Definitions
+		expected TestConfigDefinitions
+		err      string
+	}{
+		{
+			"ShouldDecode",
+			"decode_networks.yml",
+			&schema.Definitions{},
+			TestConfigDefinitions{
+				Definitions: schema.Definitions{
+					Network: map[string][]*net.IPNet{
+						"single": {
+							mustParseNet("192.168.0.1/32"),
+						},
+						"example": {
+							mustParseNet("192.168.1.20/32"),
+							mustParseNet("192.168.2.0/24"),
+						},
+					},
+				},
+			},
+			"",
+		},
+		{
+			"ShouldDecodeDefinitions",
+			"decode_networks_abc.yml",
+			&schema.Definitions{
+				Network: map[string][]*net.IPNet{
+					"abc": {
+						mustParseNet("1.1.1.1/32"),
+						mustParseNet("1.1.1.2/32"),
+					},
+				},
+			},
+			TestConfigDefinitions{
+				Definitions: schema.Definitions{
+					Network: map[string][]*net.IPNet{
+						"example": {
+							mustParseNet("192.168.1.20/32"),
+							mustParseNet("192.168.2.0/24"),
+							mustParseNet("1.1.1.1/32"),
+							mustParseNet("1.1.1.2/32"),
+						},
+					},
+				},
+			},
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := TestConfigDefinitions{}
+
+			val := schema.NewStructValidator()
+			_, err := configuration.LoadAdvanced(val, "", &result, tc.have, configuration.NewDefaultSourcesFiltered([]string{path.Join("./test_resources", tc.path)}, nil, configuration.DefaultEnvPrefix, configuration.DefaultEnvDelimiter)...)
+
+			if tc.err == "" {
+				assert.NoError(t, err)
+
+				assert.Equal(t, tc.expected, result)
+
+				assert.Len(t, val.Errors(), 0)
+			} else {
+				assert.EqualError(t, err, tc.err)
+			}
+		})
+	}
+}
+
+type TestConfigDefinitions struct {
+	Definitions schema.Definitions `koanf:"definitions"`
 }
 
 var (

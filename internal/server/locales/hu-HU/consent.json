@@ -1,0 +1,37 @@
+{
+	"Claim": "Igénylés {{name}}",
+	"Scope": "Terjedelem {{name}}",
+	"scopes": {
+		"openid": "OpenID használata az azonosításhoz",
+		"offline_access": "Automatikusan frissítse ezeket az engedélyeket felhasználói beavatkozás nélkül",
+		"profile": "Hozzáférés a profil adatokhoz",
+		"groups": "Hozzáférés a csoport tagságához",
+		"email": "Hozzáférés az email címeihez",
+		"phone": "Hozzáférés a telefonszámodhoz",
+		"address": "Hozzáférés a címedhez",
+		"authelia.bearer.authz": "Hozzáférés a védett erőforrásokhoz bejelentkezve"
+	},
+	"claims": {
+		"sub": "Egyedi azonosító",
+		"name": "Megjelenítési név",
+		"given_name": "Keresztnév",
+		"family_name": "Családi név",
+		"middle_name": "Második név",
+		"nickname": "Becenév",
+		"preferred_username": "Preferált felhasználónév",
+		"profile": "Profil URL",
+		"picture": "Kép URL",
+		"website": "Weboldal URL",
+		"email": "E-mail cím",
+		"email_verified": "E-mail cím (ellenőrzött)",
+		"gender": "Nem",
+		"birthdate": "Születési dátum",
+		"zoneinfo": "Időzóna",
+		"locale": "Helyi nyelv / nyelv",
+		"phone_number": "Telefonszám",
+		"phone_number_verified": "Telefonszám (ellenőrzött)",
+		"address": "Postai cím",
+		"updated_at": "Profil frissítési idő",
+		"groups": "Csoporttagság"
+	}
+}
