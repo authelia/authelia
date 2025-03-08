@@ -318,6 +318,11 @@
           "title": "Password Reset",
           "description": "Allows configuration of the password reset behaviour."
         },
+        "password_change": {
+          "$ref": "#/$defs/AuthenticationBackendPasswordChange",
+          "title": "Password Reset",
+          "description": "Allows configuration of the password reset behaviour."
+        },
         "refresh_interval": {
           "$ref": "#/$defs/RefreshIntervalDuration",
           "title": "Refresh Interval",
@@ -1010,6 +1015,19 @@
       },
       "additionalProperties": false,
       "type": "object"
+    },
+    "AuthenticationBackendPasswordChange": {
+      "properties": {
+        "disable": {
+          "type": "boolean",
+          "title": "Disable",
+          "description": "Disables the Password Change option.",
+          "default": false
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AuthenticationBackendPasswordChange represents the configuration related to password reset functionality."
     },
     "AuthenticationBackendPasswordReset": {
       "properties": {
