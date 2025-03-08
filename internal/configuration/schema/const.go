@@ -122,6 +122,7 @@ const (
 
 const (
 	addressQueryParamUmask = "umask"
+	addressQueryParamPath  = "path"
 )
 
 const (
