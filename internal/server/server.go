@@ -38,14 +38,14 @@ func New(config *schema.Configuration, providers middlewares.Providers) (server 
 	)
 
 	if listener, err = config.Server.Address.Listener(); err != nil {
-		return nil, nil, nil, false, fmt.Errorf("error occurred while attempting to initialize main server listener for address '%s': %w", config.Server.Address.String(), err)
+		return nil, nil, nil, false, fmt.Errorf("error occurred initializing main server listener for address '%s': %w", config.Server.Address.String(), err)
 	}
 
 	if config.Server.TLS.Certificate != "" && config.Server.TLS.Key != "" {
 		isTLS, connectionScheme = true, schemeHTTPS
 
 		if err = server.AppendCert(config.Server.TLS.Certificate, config.Server.TLS.Key); err != nil {
-			return nil, nil, nil, false, fmt.Errorf("unable to load tls server certificate '%s' or private key '%s': %w", config.Server.TLS.Certificate, config.Server.TLS.Key, err)
+			return nil, nil, nil, false, fmt.Errorf("error occurred initializing main server tls parameters: failed to load certificate '%s' or private key '%s': %w", config.Server.TLS.Certificate, config.Server.TLS.Key, err)
 		}
 
 		if len(config.Server.TLS.ClientCertificates) > 0 {
@@ -55,7 +55,7 @@ func New(config *schema.Configuration, providers middlewares.Providers) (server 
 
 			for _, path := range config.Server.TLS.ClientCertificates {
 				if cert, err = os.ReadFile(path); err != nil {
-					return nil, nil, nil, false, fmt.Errorf("unable to load tls client certificate '%s': %w", path, err)
+					return nil, nil, nil, false, fmt.Errorf("error occurred initializing main server tls parameters: failed to load client certificate '%s': %w", path, err)
 				}
 
 				caCertPool.AppendCertsFromPEM(cert)
@@ -72,7 +72,7 @@ func New(config *schema.Configuration, providers middlewares.Providers) (server 
 
 	if err = writeHealthCheckEnv(config.Server.DisableHealthcheck, connectionScheme, config.Server.Address.Hostname(),
 		config.Server.Address.RouterPath(), config.Server.Address.Port()); err != nil {
-		return nil, nil, nil, false, fmt.Errorf("unable to configure healthcheck: %w", err)
+		return nil, nil, nil, false, fmt.Errorf("error occurred initializing main server healthcheck metadata: %w", err)
 	}
 
 	paths = []string{"/"}
@@ -106,7 +106,7 @@ func NewMetrics(config *schema.Configuration, providers middlewares.Providers) (
 	}
 
 	if listener, err = config.Telemetry.Metrics.Address.Listener(); err != nil {
-		return nil, nil, nil, false, fmt.Errorf("error occurred while attempting to initialize metrics telemetry server listener for address '%s': %w", config.Telemetry.Metrics.Address.String(), err)
+		return nil, nil, nil, false, fmt.Errorf("error occurred initializing metrics telemetry server listener for address '%s': %w", config.Telemetry.Metrics.Address.String(), err)
 	}
 
 	return server, listener, []string{config.Telemetry.Metrics.Address.RouterPath()}, false, nil
