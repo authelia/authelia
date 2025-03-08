@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -34,7 +35,7 @@ func TestNewMainServer(t *testing.T) {
 		Providers: middlewares.Providers{
 			Templates: tx,
 		},
-		Logger: logging.Logger().WithFields(logrus.Fields{}),
+		Logger: logrus.NewEntry(logging.Logger()),
 	}
 
 	server, err := ProvisionServer(ctx)
@@ -44,6 +45,9 @@ func TestNewMainServer(t *testing.T) {
 	go func() {
 		require.NoError(t, server.Run())
 	}()
+
+	// Give the service a moment to start
+	time.Sleep(100 * time.Millisecond)
 
 	assert.Equal(t, "main", server.ServiceName())
 	assert.Equal(t, "server", server.ServiceType())
@@ -75,7 +79,7 @@ func TestNewMetricsServer(t *testing.T) {
 			Templates: tx,
 			Metrics:   metrics.NewPrometheus(),
 		},
-		Logger: logging.Logger().WithFields(logrus.Fields{}),
+		Logger: logrus.NewEntry(logging.Logger()),
 	}
 
 	server, err := ProvisionServerMetrics(ctx)
@@ -85,6 +89,9 @@ func TestNewMetricsServer(t *testing.T) {
 	go func() {
 		require.NoError(t, server.Run())
 	}()
+
+	// Give the service a moment to start
+	time.Sleep(100 * time.Millisecond)
 
 	assert.Equal(t, "metrics", server.ServiceName())
 	assert.Equal(t, "server", server.ServiceType())

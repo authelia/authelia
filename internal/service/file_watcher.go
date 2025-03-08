@@ -34,11 +34,11 @@ func ProvisionUsersFileWatcher(ctx Context) (service Provider, err error) {
 // NewFileWatcher creates a new FileWatcher with the appropriate logger etc.
 func NewFileWatcher(name, path string, reload ReloadableProvider, log *logrus.Entry) (service *FileWatcher, err error) {
 	if path == "" {
-		return nil, fmt.Errorf("path must be specified")
+		return nil, fmt.Errorf("error initializing file watcher: path must be specified")
 	}
 
 	if path, err = filepath.Abs(path); err != nil {
-		return nil, fmt.Errorf("error determining absolute path of file '%s': %w", path, err)
+		return nil, fmt.Errorf("error initializing file watcher: could not determine the absolute path of file '%s': %w", path, err)
 	}
 
 	var info os.FileInfo
@@ -46,11 +46,11 @@ func NewFileWatcher(name, path string, reload ReloadableProvider, log *logrus.En
 	if info, err = os.Stat(path); err != nil {
 		switch {
 		case os.IsNotExist(err):
-			return nil, fmt.Errorf("error stating file '%s': file does not exist", path)
+			return nil, fmt.Errorf("error initializing file watcher: error stating file '%s': file does not exist", path)
 		case os.IsPermission(err):
-			return nil, fmt.Errorf("error stating file '%s': permission denied trying to read the file", path)
+			return nil, fmt.Errorf("error initializing file watcher: error stating file '%s': permission denied trying to read the file", path)
 		default:
-			return nil, fmt.Errorf("error stating file '%s': %w", path, err)
+			return nil, fmt.Errorf("error initializing file watcher: error stating file '%s': %w", path, err)
 		}
 	}
 

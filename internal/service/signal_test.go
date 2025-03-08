@@ -63,7 +63,7 @@ func newMockServiceCtx() *mockServiceCtx {
 	return &mockServiceCtx{
 		ctx:       context.Background(),
 		config:    config,
-		logger:    logger.WithFields(map[string]any{}),
+		logger:    logrus.NewEntry(logger),
 		providers: middlewares.Providers{},
 	}
 }
@@ -114,6 +114,7 @@ func TestSignalService_Run(t *testing.T) {
 				close(done)
 			}()
 
+			// Give the service a moment to start
 			time.Sleep(100 * time.Millisecond)
 
 			p, err := os.FindProcess(os.Getpid())
@@ -201,7 +202,7 @@ func TestLogReopenFiles(t *testing.T) {
 	ctx := &mockServiceCtx{
 		ctx:       context.Background(),
 		config:    config,
-		logger:    logging.Logger().WithFields(map[string]any{}),
+		logger:    logrus.NewEntry(logging.Logger()),
 		providers: middlewares.Providers{},
 	}
 
@@ -218,6 +219,7 @@ func TestLogReopenFiles(t *testing.T) {
 		close(done)
 	}()
 
+	// Give the service a moment to start
 	time.Sleep(100 * time.Millisecond)
 
 	p, err := os.FindProcess(os.Getpid())

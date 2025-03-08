@@ -31,7 +31,7 @@ func NewCmdCtx() *CmdCtx {
 
 	return &CmdCtx{
 		Context: ctx,
-		log:     logging.Logger().WithFields(logrus.Fields{}),
+		log:     logrus.NewEntry(logging.Logger()),
 		providers: middlewares.Providers{
 			Random: &random.Cryptographical{},
 		},
@@ -75,7 +75,7 @@ type CobraRunECmd func(cmd *cobra.Command, args []string) (err error)
 
 // GetLogger returns the *logrus.Logger satisfying part of the ServiceCtx.
 func (ctx *CmdCtx) GetLogger() *logrus.Entry {
-	return ctx.log.WithFields(map[string]any{})
+	return ctx.log
 }
 
 // GetProviders returns middlewares.Providers satisfying part of the ServiceCtx.
