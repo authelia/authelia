@@ -457,7 +457,7 @@ func TestShouldCheckLDAPServerExtensionsPooled(t *testing.T) {
 	assert.False(t, provider.features.ControlTypes.MsftPwdPolHints)
 	assert.False(t, provider.features.ControlTypes.MsftPwdPolHintsDeprecated)
 
-	assert.EqualError(t, provider.Shutdown(), "errors occurred closing the client pool: close error")
+	assert.EqualError(t, provider.Close(), "errors occurred closing the client pool: close error")
 }
 
 func TestShouldNotCheckLDAPServerExtensionsWhenRootDSEReturnsMoreThanOneEntry(t *testing.T) {
@@ -597,7 +597,7 @@ func TestShouldNotCheckLDAPServerExtensionsWhenRootDSEReturnsMoreThanOneEntryPoo
 	assert.False(t, provider.features.ControlTypes.MsftPwdPolHints)
 	assert.False(t, provider.features.ControlTypes.MsftPwdPolHintsDeprecated)
 
-	assert.NoError(t, provider.Shutdown())
+	assert.NoError(t, provider.Close())
 }
 
 func TestShouldNotCheckLDAPServerExtensionsWhenRootDSEReturnsMoreThanOneEntryPooledClosing(t *testing.T) {
@@ -680,7 +680,7 @@ func TestShouldNotCheckLDAPServerExtensionsWhenRootDSEReturnsMoreThanOneEntryPoo
 	assert.False(t, provider.features.ControlTypes.MsftPwdPolHints)
 	assert.False(t, provider.features.ControlTypes.MsftPwdPolHintsDeprecated)
 
-	assert.NoError(t, provider.Shutdown())
+	assert.NoError(t, provider.Close())
 }
 
 func TestShouldCheckLDAPServerControlTypes(t *testing.T) {
@@ -820,7 +820,7 @@ func TestShouldCheckLDAPServerControlTypesPooled(t *testing.T) {
 	assert.True(t, provider.features.ControlTypes.MsftPwdPolHints)
 	assert.True(t, provider.features.ControlTypes.MsftPwdPolHintsDeprecated)
 
-	assert.NoError(t, provider.Shutdown())
+	assert.NoError(t, provider.Close())
 }
 
 func TestShouldNotEnablePasswdModifyExtensionOrControlTypes(t *testing.T) {
@@ -886,7 +886,7 @@ func TestShouldNotEnablePasswdModifyExtensionOrControlTypes(t *testing.T) {
 	assert.False(t, provider.features.ControlTypes.MsftPwdPolHints)
 	assert.False(t, provider.features.ControlTypes.MsftPwdPolHintsDeprecated)
 
-	assert.NoError(t, provider.Shutdown())
+	assert.NoError(t, provider.Close())
 }
 
 func TestShouldNotEnablePasswdModifyExtensionOrControlTypesPooled(t *testing.T) {
@@ -962,7 +962,7 @@ func TestShouldNotEnablePasswdModifyExtensionOrControlTypesPooled(t *testing.T) 
 	assert.False(t, provider.features.ControlTypes.MsftPwdPolHints)
 	assert.False(t, provider.features.ControlTypes.MsftPwdPolHintsDeprecated)
 
-	assert.NoError(t, provider.Shutdown())
+	assert.NoError(t, provider.Close())
 }
 
 func TestShouldReturnCheckServerConnectError(t *testing.T) {
@@ -1092,7 +1092,7 @@ func TestShouldReturnCheckServerSearchErrorPooled(t *testing.T) {
 
 	assert.False(t, provider.features.Extensions.PwdModifyExOp)
 
-	assert.NoError(t, provider.Shutdown())
+	assert.NoError(t, provider.Close())
 }
 
 func TestShouldPermitRootDSEFailure(t *testing.T) {
@@ -1187,7 +1187,7 @@ func TestShouldPermitRootDSEFailurePooled(t *testing.T) {
 	)
 
 	assert.NoError(t, provider.StartupCheck())
-	assert.NoError(t, provider.Shutdown())
+	assert.NoError(t, provider.Close())
 }
 
 type SearchRequestMatcher struct {

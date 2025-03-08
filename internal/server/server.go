@@ -15,10 +15,10 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
-// CreateDefaultServer Create Authelia's internal web server with the given configuration and providers.
-func CreateDefaultServer(config *schema.Configuration, providers middlewares.Providers) (server *fasthttp.Server, listener net.Listener, paths []string, isTLS bool, err error) {
+// New Create Authelia's internal web server with the given configuration and providers.
+func New(config *schema.Configuration, providers middlewares.Providers) (server *fasthttp.Server, listener net.Listener, paths []string, isTLS bool, err error) {
 	if err = providers.Templates.LoadTemplatedAssets(assets); err != nil {
-		return nil, nil, nil, false, fmt.Errorf("failed to load templated assets: %w", err)
+		return nil, nil, nil, false, fmt.Errorf("error occurred initializing main server: error occurred loading templated assets: %w", err)
 	}
 
 	server = &fasthttp.Server{
@@ -38,14 +38,14 @@ func CreateDefaultServer(config *schema.Configuration, providers middlewares.Pro
 	)
 
 	if listener, err = config.Server.Address.Listener(); err != nil {
-		return nil, nil, nil, false, fmt.Errorf("error occurred while attempting to initialize main server listener for address '%s': %w", config.Server.Address.String(), err)
+		return nil, nil, nil, false, fmt.Errorf("error occurred initializing main server listener for address '%s': %w", config.Server.Address.String(), err)
 	}
 
 	if config.Server.TLS.Certificate != "" && config.Server.TLS.Key != "" {
 		isTLS, connectionScheme = true, schemeHTTPS
 
 		if err = server.AppendCert(config.Server.TLS.Certificate, config.Server.TLS.Key); err != nil {
-			return nil, nil, nil, false, fmt.Errorf("unable to load tls server certificate '%s' or private key '%s': %w", config.Server.TLS.Certificate, config.Server.TLS.Key, err)
+			return nil, nil, nil, false, fmt.Errorf("error occurred initializing main server tls parameters: failed to load certificate '%s' or private key '%s': %w", config.Server.TLS.Certificate, config.Server.TLS.Key, err)
 		}
 
 		if len(config.Server.TLS.ClientCertificates) > 0 {
@@ -55,7 +55,7 @@ func CreateDefaultServer(config *schema.Configuration, providers middlewares.Pro
 
 			for _, path := range config.Server.TLS.ClientCertificates {
 				if cert, err = os.ReadFile(path); err != nil {
-					return nil, nil, nil, false, fmt.Errorf("unable to load tls client certificate '%s': %w", path, err)
+					return nil, nil, nil, false, fmt.Errorf("error occurred initializing main server tls parameters: failed to load client certificate '%s': %w", path, err)
 				}
 
 				caCertPool.AppendCertsFromPEM(cert)
@@ -72,7 +72,7 @@ func CreateDefaultServer(config *schema.Configuration, providers middlewares.Pro
 
 	if err = writeHealthCheckEnv(config.Server.DisableHealthcheck, connectionScheme, config.Server.Address.Hostname(),
 		config.Server.Address.RouterPath(), config.Server.Address.Port()); err != nil {
-		return nil, nil, nil, false, fmt.Errorf("unable to configure healthcheck: %w", err)
+		return nil, nil, nil, false, fmt.Errorf("error occurred initializing main server healthcheck metadata: %w", err)
 	}
 
 	paths = []string{"/"}
@@ -87,8 +87,8 @@ func CreateDefaultServer(config *schema.Configuration, providers middlewares.Pro
 	return server, listener, paths, isTLS, nil
 }
 
-// CreateMetricsServer creates a metrics server.
-func CreateMetricsServer(config *schema.Configuration, providers middlewares.Providers) (server *fasthttp.Server, listener net.Listener, paths []string, tls bool, err error) {
+// NewMetrics creates a metrics server.
+func NewMetrics(config *schema.Configuration, providers middlewares.Providers) (server *fasthttp.Server, listener net.Listener, paths []string, tls bool, err error) {
 	if providers.Metrics == nil {
 		return
 	}
@@ -106,7 +106,7 @@ func CreateMetricsServer(config *schema.Configuration, providers middlewares.Pro
 	}
 
 	if listener, err = config.Telemetry.Metrics.Address.Listener(); err != nil {
-		return nil, nil, nil, false, fmt.Errorf("error occurred while attempting to initialize metrics telemetry server listener for address '%s': %w", config.Telemetry.Metrics.Address.String(), err)
+		return nil, nil, nil, false, fmt.Errorf("error occurred initializing metrics telemetry server listener for address '%s': %w", config.Telemetry.Metrics.Address.String(), err)
 	}
 
 	return server, listener, []string{config.Telemetry.Metrics.Address.RouterPath()}, false, nil

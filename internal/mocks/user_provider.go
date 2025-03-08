@@ -69,6 +69,20 @@ func (mr *MockUserProviderMockRecorder) CheckUserPassword(username, password any
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckUserPassword", reflect.TypeOf((*MockUserProvider)(nil).CheckUserPassword), username, password)
 }
 
+// Close mocks base method.
+func (m *MockUserProvider) Close() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Close")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Close indicates an expected call of Close.
+func (mr *MockUserProviderMockRecorder) Close() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockUserProvider)(nil).Close))
+}
+
 // GetDetails mocks base method.
 func (m *MockUserProvider) GetDetails(username string) (*authentication.UserDetails, error) {
 	m.ctrl.T.Helper()
@@ -97,20 +111,6 @@ func (m *MockUserProvider) GetDetailsExtended(username string) (*authentication.
 func (mr *MockUserProviderMockRecorder) GetDetailsExtended(username any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDetailsExtended", reflect.TypeOf((*MockUserProvider)(nil).GetDetailsExtended), username)
-}
-
-// Shutdown mocks base method.
-func (m *MockUserProvider) Shutdown() error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Shutdown")
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Shutdown indicates an expected call of Shutdown.
-func (mr *MockUserProviderMockRecorder) Shutdown() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockUserProvider)(nil).Shutdown))
 }
 
 // StartupCheck mocks base method.

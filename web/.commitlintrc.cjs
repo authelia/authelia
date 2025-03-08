@@ -47,6 +47,7 @@ module.exports = {
                 "renovate",
                 "reviewdog",
                 "server",
+                "service",
                 "session",
                 "storage",
                 "suites",

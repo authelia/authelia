@@ -926,8 +926,6 @@ new one is compatible for and retrofitting it would be incredibly difficult.`
 )
 
 const (
-	fmtLogServerListening = "Listening for %s connections on '%s' path '%s'"
-
 	fmtYAMLConfigTemplateHeader = `
 ---
 ##
@@ -944,28 +942,6 @@ const (
 ##
 
 `
-)
-
-const (
-	logFieldService = "service"
-	logFieldFile    = "file"
-	logFieldOP      = "op"
-
-	serviceTypeServer  = "server"
-	serviceTypeWatcher = "watcher"
-	serviceTypeSignal  = "signal"
-
-	logFieldProvider                 = "provider"
-	logMessageStartupCheckError      = "Error occurred running a startup check"
-	logMessageStartupCheckPerforming = "Performing Startup Check"
-	logMessageStartupCheckSuccess    = "Startup Check Completed Successfully"
-
-	providerNameNTP              = "ntp"
-	providerNameStorage          = "storage"
-	providerNameUser             = "user"
-	providerNameNotification     = "notification"
-	providerNameExpressions      = "expressions"
-	providerNameWebAuthnMetaData = "webauthn-metadata"
 )
 
 const (

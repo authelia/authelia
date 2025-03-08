@@ -2,6 +2,7 @@ package configuration
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/knadh/koanf/providers/confmap"
@@ -34,6 +35,8 @@ func koanfGetKeys(ko *koanf.Koanf) (keys []string) {
 			}
 		}
 	}
+
+	sort.Strings(keys)
 
 	return keys
 }
