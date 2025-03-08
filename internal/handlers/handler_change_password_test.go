@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
-
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
@@ -45,6 +45,10 @@ func (s *ChangePasswordSuite) TearDownTest() {
 
 func TestChangePasswordPOST_ShouldSucceedWithValidCredentials(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
+
+	defer mock.Close()
+
+	mock.Ctx.Logger.Logger.SetLevel(logrus.DebugLevel)
 
 	userSession, err := mock.Ctx.GetSession()
 	assert.NoError(t, err)
@@ -83,11 +87,17 @@ func TestChangePasswordPOST_ShouldSucceedWithValidCredentials(t *testing.T) {
 
 	ChangePasswordPOST(mock.Ctx)
 
+	mock.AssertLogMessageAdvanced(t, 1, logrus.DebugLevel, "User has changed their password", map[string]any{"username": testUsername})
+
 	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 }
 
 func TestChangePasswordPOST_ShouldFailWhenPasswordPolicyNotMet(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
+
+	defer mock.Close()
+
+	mock.Ctx.Logger.Logger.SetLevel(logrus.DebugLevel)
 
 	userSession, err := mock.Ctx.GetSession()
 	assert.NoError(t, err)
@@ -124,6 +134,8 @@ func TestChangePasswordPOST_ShouldFailWhenPasswordPolicyNotMet(t *testing.T) {
 
 	ChangePasswordPOST(mock.Ctx)
 
+	mock.AssertLogMessageAdvanced(t, 0, logrus.DebugLevel, "Unable to change password for user as their new password was weak or empty", map[string]any{"username": testUsername})
+
 	errResponse := mock.GetResponseError(t)
 
 	assert.Equal(t, "KO", errResponse.Status)
@@ -132,6 +144,10 @@ func TestChangePasswordPOST_ShouldFailWhenPasswordPolicyNotMet(t *testing.T) {
 
 func TestChangePasswordPOST_ShouldFailWhenRequestBodyIsInvalid(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
+
+	defer mock.Close()
+
+	mock.Ctx.Logger.Logger.SetLevel(logrus.DebugLevel)
 
 	userSession, err := mock.Ctx.GetSession()
 	assert.NoError(t, err)
@@ -144,6 +160,12 @@ func TestChangePasswordPOST_ShouldFailWhenRequestBodyIsInvalid(t *testing.T) {
 
 	ChangePasswordPOST(mock.Ctx)
 
+	mock.AssertLogMessageAdvanced(t, 0, logrus.ErrorLevel, "Unable to change password for user: unable to parse request body", nil)
+
+	errorField := mock.GetLogEntryN(0).Data["error"]
+	errorMsg := errorField.(error).Error()
+	assert.Regexp(t, "^(unable to parse body: .+|unable to validate body: .+|Body is not valid)$", errorMsg)
+
 	errResponse := mock.GetResponseError(t)
 	assert.Equal(t, "KO", errResponse.Status)
 	assert.Equal(t, messageUnableToChangePassword, errResponse.Message)
@@ -151,6 +173,10 @@ func TestChangePasswordPOST_ShouldFailWhenRequestBodyIsInvalid(t *testing.T) {
 
 func TestChangePasswordPOST_ShouldFailWhenOldPasswordIsIncorrect(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
+
+	defer mock.Close()
+
+	mock.Ctx.Logger.Logger.SetLevel(logrus.DebugLevel)
 
 	userSession, err := mock.Ctx.GetSession()
 	assert.NoError(t, err)
@@ -179,6 +205,11 @@ func TestChangePasswordPOST_ShouldFailWhenOldPasswordIsIncorrect(t *testing.T) {
 
 	ChangePasswordPOST(mock.Ctx)
 
+	mock.AssertLogMessageAdvanced(t, 0, logrus.DebugLevel, "Unable to change password for user as their old password was incorrect", nil)
+
+	errorField := mock.GetLogEntryN(0).Data["error"]
+	assert.ErrorIs(t, authentication.ErrIncorrectPassword, errorField.(error))
+
 	errResponse := mock.GetResponseError(t)
 	assert.Equal(t, "KO", errResponse.Status)
 	assert.Equal(t, messageIncorrectPassword, errResponse.Message)
@@ -186,6 +217,10 @@ func TestChangePasswordPOST_ShouldFailWhenOldPasswordIsIncorrect(t *testing.T) {
 
 func TestChangePasswordPOST_ShouldFailWhenPasswordReuseIsNotAllowed(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
+
+	defer mock.Close()
+
+	mock.Ctx.Logger.Logger.SetLevel(logrus.DebugLevel)
 
 	userSession, err := mock.Ctx.GetSession()
 	assert.NoError(t, err)
@@ -214,6 +249,11 @@ func TestChangePasswordPOST_ShouldFailWhenPasswordReuseIsNotAllowed(t *testing.T
 
 	ChangePasswordPOST(mock.Ctx)
 
+	mock.AssertLogMessageAdvanced(t, 0, logrus.DebugLevel, "Unable to change password for user as their new password was weak or empty", nil)
+
+	errorField := mock.GetLogEntryN(0).Data["error"]
+	assert.ErrorIs(t, authentication.ErrPasswordWeak, errorField.(error))
+
 	errResponse := mock.GetResponseError(t)
 	assert.Equal(t, "KO", errResponse.Status)
 	assert.Equal(t, messagePasswordWeak, errResponse.Message)
@@ -221,6 +261,9 @@ func TestChangePasswordPOST_ShouldFailWhenPasswordReuseIsNotAllowed(t *testing.T
 
 func TestChangePasswordPOST_ShouldSucceedButLogErrorWhenUserHasNoEmail(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	mock.Ctx.Logger.Logger.SetLevel(logrus.DebugLevel)
 
 	userSession, err := mock.Ctx.GetSession()
 	assert.NoError(t, err)
@@ -255,11 +298,16 @@ func TestChangePasswordPOST_ShouldSucceedButLogErrorWhenUserHasNoEmail(t *testin
 
 	ChangePasswordPOST(mock.Ctx)
 
+	mock.AssertLogMessageAdvanced(t, 1, logrus.DebugLevel, "User has changed their password", map[string]any{"username": testUsername})
+
 	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 }
 
 func TestChangePasswordPOST_ShouldSucceedButLogErrorWhenNotificationFails(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	mock.Ctx.Logger.Logger.SetLevel(logrus.DebugLevel)
 
 	userSession, err := mock.Ctx.GetSession()
 	assert.NoError(t, err)
@@ -294,9 +342,15 @@ func TestChangePasswordPOST_ShouldSucceedButLogErrorWhenNotificationFails(t *tes
 
 	mock.NotifierMock.EXPECT().
 		Send(mock.Ctx, gomock.Any(), "Password changed successfully", gomock.Any(), gomock.Any()).
-		Return(fmt.Errorf("failed to send notification"))
+		Return(fmt.Errorf("notifier: smtp: failed to send message: connection refused"))
 
 	ChangePasswordPOST(mock.Ctx)
+
+	mock.AssertLogMessageAdvanced(t, 0, logrus.DebugLevel, "Unable to notify user of password change", map[string]any{"username": testUsername, "email": nil})
+
+	errorField := mock.GetLogEntryN(0).Data["error"]
+	errorMsg := errorField.(error).Error()
+	assert.Regexp(t, "^notifier: smtp: failed to .*: .+$", errorMsg)
 
 	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 }

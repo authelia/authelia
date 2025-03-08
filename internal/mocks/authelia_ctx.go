@@ -376,6 +376,45 @@ func (m *MockAutheliaCtx) AssertLastLogMessage(t *testing.T, message, err string
 	}
 }
 
+func (m *MockAutheliaCtx) GetLogEntryN(n int) (entry *logrus.Entry) {
+	entries := m.Hook.AllEntries()
+
+	if i := len(entries) - (1 + n); i < 0 {
+		return nil
+	} else {
+		return entries[i]
+	}
+}
+
+func (m *MockAutheliaCtx) AssertLogMessageAdvanced(t *testing.T, n int, level logrus.Level, message any, fields map[string]any) {
+	entry := m.GetLogEntryN(n)
+
+	require.NotNil(t, entry)
+
+	assert.Equal(t, level, entry.Level)
+
+	AssertIsStringEqualOrRegexp(t, message, entry.Message)
+
+	for field, expected := range fields {
+		require.Contains(t, entry.Data, field)
+
+		AssertIsStringEqualOrRegexp(t, expected, entry.Data[field])
+	}
+}
+
+func AssertIsStringEqualOrRegexp(t *testing.T, expected any, actual any) {
+	switch v := expected.(type) {
+	case string:
+		assert.Equal(t, v, actual)
+	case *regexp.Regexp:
+		assert.Regexp(t, v, actual)
+	case nil:
+		break
+	default:
+		t.Fatal("Expected value must be a string or Regexp")
+	}
+}
+
 // GetResponseData retrieves a response from the service.
 func (m *MockAutheliaCtx) GetResponseData(t *testing.T, data interface{}) {
 	okResponse := middlewares.OKResponse{}
