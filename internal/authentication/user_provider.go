@@ -22,5 +22,5 @@ type UserProvider interface {
 	// ChangePassword is used to change a user's password but requires their old password to be successfully verified.
 	ChangePassword(username string, oldPassword string, newPassword string) (err error)
 
-	Shutdown() (err error)
+	Close() (err error)
 }

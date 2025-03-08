@@ -112,10 +112,10 @@ func handleMethodNotAllowed(ctx *fasthttp.RequestCtx) {
 	ctx.SetBodyString(fmt.Sprintf("%d %s", fasthttp.StatusMethodNotAllowed, fasthttp.StatusMessage(fasthttp.StatusMethodNotAllowed)))
 }
 
+type RegisterRoutesBridgedFunc = func(r *router.Router, config *schema.Configuration, providers middlewares.Providers, bridge middlewares.Bridge)
+
 //nolint:gocyclo
 func handleRouter(config *schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
-	log := logging.Logger()
-
 	optsTemplatedFile := NewTemplatedFileOptions(config)
 
 	serveIndexHandler := ServeTemplatedFile(providers.Templates.GetAssetIndexTemplate(), optsTemplatedFile)
@@ -215,32 +215,14 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 
 		switch name {
 		case "legacy":
-			log.
-				WithField("path_prefix", pathAuthzLegacy).
-				WithField("implementation", endpoint.Implementation).
-				WithField("methods", "*").
-				Trace("Registering Authz Endpoint")
-
 			r.ANY(pathAuthzLegacy, handler)
 			r.ANY(path.Join(pathAuthzLegacy, pathParamAuthzEnvoy), handler)
 		default:
 			switch endpoint.Implementation {
 			case handlers.AuthzImplLegacy.String(), handlers.AuthzImplExtAuthz.String():
-				log.
-					WithField("path_prefix", uri).
-					WithField("implementation", endpoint.Implementation).
-					WithField("methods", "*").
-					Trace("Registering Authz Endpoint")
-
 				r.ANY(uri, handler)
 				r.ANY(path.Join(uri, pathParamAuthzEnvoy), handler)
 			default:
-				log.
-					WithField("path", uri).
-					WithField("implementation", endpoint.Implementation).
-					WithField("methods", []string{fasthttp.MethodGet, fasthttp.MethodHead}).
-					Trace("Registering Authz Endpoint")
-
 				r.GET(uri, handler)
 				r.HEAD(uri, handler)
 			}
@@ -367,112 +349,7 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	}
 
 	if providers.OpenIDConnect != nil {
-		bridgeOIDC := middlewares.NewBridgeBuilder(*config, providers).WithPreMiddlewares(
-			middlewares.SecurityHeadersBase, middlewares.SecurityHeadersCSPNoneOpenIDConnect, middlewares.SecurityHeadersNoStore,
-		).Build()
-
-		r.GET("/api/oidc/consent", bridgeOIDC(handlers.OpenIDConnectConsentGET))
-		r.POST("/api/oidc/consent", bridgeOIDC(handlers.OpenIDConnectConsentPOST))
-
-		allowedOrigins := utils.StringSliceFromURLs(config.IdentityProviders.OIDC.CORS.AllowedOrigins)
-
-		r.OPTIONS(oidc.EndpointPathWellKnownOpenIDConfiguration, policyCORSPublicGET.HandleOPTIONS)
-		r.GET(oidc.EndpointPathWellKnownOpenIDConfiguration, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, "openid_configuration"), policyCORSPublicGET.Middleware(bridgeOIDC(handlers.OpenIDConnectConfigurationWellKnownGET))))
-
-		r.OPTIONS(oidc.EndpointPathWellKnownOAuthAuthorizationServer, policyCORSPublicGET.HandleOPTIONS)
-		r.GET(oidc.EndpointPathWellKnownOAuthAuthorizationServer, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, "oauth_configuration"), policyCORSPublicGET.Middleware(bridgeOIDC(handlers.OAuthAuthorizationServerWellKnownGET))))
-
-		r.OPTIONS(oidc.EndpointPathJWKs, policyCORSPublicGET.HandleOPTIONS)
-		r.GET(oidc.EndpointPathJWKs, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, "jwks"), policyCORSPublicGET.Middleware(middlewareAPI(handlers.JSONWebKeySetGET))))
-
-		// TODO (james-d-elliott): Remove in GA. This is a legacy implementation of the above endpoint.
-		r.OPTIONS("/api/oidc/jwks", policyCORSPublicGET.HandleOPTIONS)
-		r.GET("/api/oidc/jwks", middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, "jwks"), policyCORSPublicGET.Middleware(bridgeOIDC(handlers.JSONWebKeySetGET))))
-
-		policyCORSAuthorization := middlewares.NewCORSPolicyBuilder().
-			WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodGet, fasthttp.MethodPost).
-			WithAllowedOrigins(allowedOrigins...).
-			WithEnabled(utils.IsStringInSlice(oidc.EndpointAuthorization, config.IdentityProviders.OIDC.CORS.Endpoints)).
-			Build()
-
-		authorization := middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointAuthorization), policyCORSAuthorization.Middleware(bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectAuthorization))))
-
-		r.OPTIONS(oidc.EndpointPathAuthorization, policyCORSAuthorization.HandleOnlyOPTIONS)
-		r.GET(oidc.EndpointPathAuthorization, authorization)
-		r.POST(oidc.EndpointPathAuthorization, authorization)
-
-		// TODO (james-d-elliott): Remove in GA. This is a legacy endpoint.
-		r.OPTIONS("/api/oidc/authorize", policyCORSAuthorization.HandleOnlyOPTIONS)
-		r.GET("/api/oidc/authorize", authorization)
-		r.POST("/api/oidc/authorize", authorization)
-
-		policyCORSDeviceAuthorization := middlewares.NewCORSPolicyBuilder().
-			WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodPost).
-			WithAllowedOrigins(allowedOrigins...).
-			WithEnabled(utils.IsStringInSlice(oidc.EndpointDeviceAuthorization, config.IdentityProviders.OIDC.CORS.Endpoints)).
-			Build()
-
-		r.OPTIONS(oidc.EndpointPathDeviceAuthorization, policyCORSDeviceAuthorization.HandleOnlyOPTIONS)
-		r.POST(oidc.EndpointPathDeviceAuthorization, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointDeviceAuthorization), policyCORSDeviceAuthorization.Middleware(bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthDeviceAuthorizationPOST)))))
-		r.PUT(oidc.EndpointPathDeviceAuthorization, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointDeviceAuthorization), bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthDeviceAuthorizationPUT))))
-
-		policyCORSPAR := middlewares.NewCORSPolicyBuilder().
-			WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodPost).
-			WithAllowedOrigins(allowedOrigins...).
-			WithEnabled(utils.IsStringInSliceFold(oidc.EndpointPushedAuthorizationRequest, config.IdentityProviders.OIDC.CORS.Endpoints)).
-			Build()
-
-		r.OPTIONS(oidc.EndpointPathPushedAuthorizationRequest, policyCORSPAR.HandleOnlyOPTIONS)
-		r.POST(oidc.EndpointPathPushedAuthorizationRequest, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointPushedAuthorizationRequest), policyCORSPAR.Middleware(bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectPushedAuthorizationRequest)))))
-
-		policyCORSToken := middlewares.NewCORSPolicyBuilder().
-			WithAllowCredentials(true).
-			WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodPost).
-			WithAllowedOrigins(allowedOrigins...).
-			WithEnabled(utils.IsStringInSlice(oidc.EndpointToken, config.IdentityProviders.OIDC.CORS.Endpoints)).
-			Build()
-
-		r.OPTIONS(oidc.EndpointPathToken, policyCORSToken.HandleOPTIONS)
-		r.POST(oidc.EndpointPathToken, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointToken), policyCORSToken.Middleware(bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectTokenPOST)))))
-
-		policyCORSUserinfo := middlewares.NewCORSPolicyBuilder().
-			WithAllowCredentials(true).
-			WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodGet, fasthttp.MethodPost).
-			WithAllowedOrigins(allowedOrigins...).
-			WithEnabled(utils.IsStringInSlice(oidc.EndpointUserinfo, config.IdentityProviders.OIDC.CORS.Endpoints)).
-			Build()
-
-		r.OPTIONS(oidc.EndpointPathUserinfo, policyCORSUserinfo.HandleOPTIONS)
-		r.GET(oidc.EndpointPathUserinfo, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointUserinfo), policyCORSUserinfo.Middleware(bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectUserinfo)))))
-		r.POST(oidc.EndpointPathUserinfo, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointUserinfo), policyCORSUserinfo.Middleware(bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectUserinfo)))))
-
-		policyCORSIntrospection := middlewares.NewCORSPolicyBuilder().
-			WithAllowCredentials(true).
-			WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodPost).
-			WithAllowedOrigins(allowedOrigins...).
-			WithEnabled(utils.IsStringInSlice(oidc.EndpointIntrospection, config.IdentityProviders.OIDC.CORS.Endpoints)).
-			Build()
-
-		r.OPTIONS(oidc.EndpointPathIntrospection, policyCORSIntrospection.HandleOPTIONS)
-		r.POST(oidc.EndpointPathIntrospection, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointIntrospection), policyCORSIntrospection.Middleware(bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthIntrospectionPOST)))))
-
-		// TODO (james-d-elliott): Remove in GA. This is a legacy implementation of the above endpoint.
-		r.OPTIONS("/api/oidc/introspect", policyCORSIntrospection.HandleOPTIONS)
-		r.POST("/api/oidc/introspect", middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointIntrospection), policyCORSIntrospection.Middleware(bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthIntrospectionPOST)))))
-
-		policyCORSRevocation := middlewares.NewCORSPolicyBuilder().
-			WithAllowCredentials(true).
-			WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodPost).
-			WithAllowedOrigins(allowedOrigins...).
-			WithEnabled(utils.IsStringInSlice(oidc.EndpointRevocation, config.IdentityProviders.OIDC.CORS.Endpoints)).
-			Build()
-
-		r.OPTIONS(oidc.EndpointPathRevocation, policyCORSRevocation.HandleOPTIONS)
-		r.POST(oidc.EndpointPathRevocation, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointRevocation), policyCORSRevocation.Middleware(bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthRevocationPOST)))))
-
-		// TODO (james-d-elliott): Remove in GA. This is a legacy implementation of the above endpoint.
-		r.OPTIONS("/api/oidc/revoke", policyCORSRevocation.HandleOPTIONS)
-		r.POST("/api/oidc/revoke", middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointRevocation), policyCORSRevocation.Middleware(bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthRevocationPOST)))))
+		RegisterOpenIDConnectRoutes(r, config, providers)
 	}
 
 	r.RedirectFixedPath = false
@@ -488,6 +365,125 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	handler = middlewares.MultiWrap(handler, middlewares.RecoverPanic, middlewares.NewMetricsRequest(providers.Metrics))
 
 	return handler
+}
+
+// RegisterOpenIDConnectRoutes handles registration of OpenID Connect 1.0 routes.
+func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration, providers middlewares.Providers) {
+	middlewareAPI := middlewares.NewBridgeBuilder(*config, providers).
+		WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+		Build()
+
+	policyCORSPublicGET := middlewares.NewCORSPolicyBuilder().
+		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodGet).
+		WithAllowedOrigins("*").
+		Build()
+
+	bridgeOIDC := middlewares.NewBridgeBuilder(*config, providers).WithPreMiddlewares(
+		middlewares.SecurityHeadersBase, middlewares.SecurityHeadersCSPNoneOpenIDConnect, middlewares.SecurityHeadersNoStore,
+	).Build()
+
+	r.GET("/api/oidc/consent", bridgeOIDC(handlers.OpenIDConnectConsentGET))
+	r.POST("/api/oidc/consent", bridgeOIDC(handlers.OpenIDConnectConsentPOST))
+
+	allowedOrigins := utils.StringSliceFromURLs(config.IdentityProviders.OIDC.CORS.AllowedOrigins)
+
+	r.OPTIONS(oidc.EndpointPathWellKnownOpenIDConfiguration, policyCORSPublicGET.HandleOPTIONS)
+	r.GET(oidc.EndpointPathWellKnownOpenIDConfiguration, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, "openid_configuration"), policyCORSPublicGET.Middleware(bridgeOIDC(handlers.OpenIDConnectConfigurationWellKnownGET))))
+
+	r.OPTIONS(oidc.EndpointPathWellKnownOAuthAuthorizationServer, policyCORSPublicGET.HandleOPTIONS)
+	r.GET(oidc.EndpointPathWellKnownOAuthAuthorizationServer, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, "oauth_configuration"), policyCORSPublicGET.Middleware(bridgeOIDC(handlers.OAuthAuthorizationServerWellKnownGET))))
+
+	r.OPTIONS(oidc.EndpointPathJWKs, policyCORSPublicGET.HandleOPTIONS)
+	r.GET(oidc.EndpointPathJWKs, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, "jwks"), policyCORSPublicGET.Middleware(middlewareAPI(handlers.JSONWebKeySetGET))))
+
+	// TODO (james-d-elliott): Remove in GA. This is a legacy implementation of the above endpoint.
+	r.OPTIONS("/api/oidc/jwks", policyCORSPublicGET.HandleOPTIONS)
+	r.GET("/api/oidc/jwks", middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, "jwks"), policyCORSPublicGET.Middleware(bridgeOIDC(handlers.JSONWebKeySetGET))))
+
+	policyCORSAuthorization := middlewares.NewCORSPolicyBuilder().
+		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodGet, fasthttp.MethodPost).
+		WithAllowedOrigins(allowedOrigins...).
+		WithEnabled(utils.IsStringInSlice(oidc.EndpointAuthorization, config.IdentityProviders.OIDC.CORS.Endpoints)).
+		Build()
+
+	authorization := middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointAuthorization), policyCORSAuthorization.Middleware(bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectAuthorization))))
+
+	r.OPTIONS(oidc.EndpointPathAuthorization, policyCORSAuthorization.HandleOnlyOPTIONS)
+	r.GET(oidc.EndpointPathAuthorization, authorization)
+	r.POST(oidc.EndpointPathAuthorization, authorization)
+
+	// TODO (james-d-elliott): Remove in GA. This is a legacy endpoint.
+	r.OPTIONS("/api/oidc/authorize", policyCORSAuthorization.HandleOnlyOPTIONS)
+	r.GET("/api/oidc/authorize", authorization)
+	r.POST("/api/oidc/authorize", authorization)
+
+	policyCORSDeviceAuthorization := middlewares.NewCORSPolicyBuilder().
+		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodPost).
+		WithAllowedOrigins(allowedOrigins...).
+		WithEnabled(utils.IsStringInSlice(oidc.EndpointDeviceAuthorization, config.IdentityProviders.OIDC.CORS.Endpoints)).
+		Build()
+
+	r.OPTIONS(oidc.EndpointPathDeviceAuthorization, policyCORSDeviceAuthorization.HandleOnlyOPTIONS)
+	r.POST(oidc.EndpointPathDeviceAuthorization, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointDeviceAuthorization), policyCORSDeviceAuthorization.Middleware(bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthDeviceAuthorizationPOST)))))
+	r.PUT(oidc.EndpointPathDeviceAuthorization, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointDeviceAuthorization), bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthDeviceAuthorizationPUT))))
+
+	policyCORSPAR := middlewares.NewCORSPolicyBuilder().
+		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodPost).
+		WithAllowedOrigins(allowedOrigins...).
+		WithEnabled(utils.IsStringInSliceFold(oidc.EndpointPushedAuthorizationRequest, config.IdentityProviders.OIDC.CORS.Endpoints)).
+		Build()
+
+	r.OPTIONS(oidc.EndpointPathPushedAuthorizationRequest, policyCORSPAR.HandleOnlyOPTIONS)
+	r.POST(oidc.EndpointPathPushedAuthorizationRequest, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointPushedAuthorizationRequest), policyCORSPAR.Middleware(bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectPushedAuthorizationRequest)))))
+
+	policyCORSToken := middlewares.NewCORSPolicyBuilder().
+		WithAllowCredentials(true).
+		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodPost).
+		WithAllowedOrigins(allowedOrigins...).
+		WithEnabled(utils.IsStringInSlice(oidc.EndpointToken, config.IdentityProviders.OIDC.CORS.Endpoints)).
+		Build()
+
+	r.OPTIONS(oidc.EndpointPathToken, policyCORSToken.HandleOPTIONS)
+	r.POST(oidc.EndpointPathToken, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointToken), policyCORSToken.Middleware(bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectTokenPOST)))))
+
+	policyCORSUserinfo := middlewares.NewCORSPolicyBuilder().
+		WithAllowCredentials(true).
+		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodGet, fasthttp.MethodPost).
+		WithAllowedOrigins(allowedOrigins...).
+		WithEnabled(utils.IsStringInSlice(oidc.EndpointUserinfo, config.IdentityProviders.OIDC.CORS.Endpoints)).
+		Build()
+
+	r.OPTIONS(oidc.EndpointPathUserinfo, policyCORSUserinfo.HandleOPTIONS)
+	r.GET(oidc.EndpointPathUserinfo, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointUserinfo), policyCORSUserinfo.Middleware(bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectUserinfo)))))
+	r.POST(oidc.EndpointPathUserinfo, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointUserinfo), policyCORSUserinfo.Middleware(bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectUserinfo)))))
+
+	policyCORSIntrospection := middlewares.NewCORSPolicyBuilder().
+		WithAllowCredentials(true).
+		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodPost).
+		WithAllowedOrigins(allowedOrigins...).
+		WithEnabled(utils.IsStringInSlice(oidc.EndpointIntrospection, config.IdentityProviders.OIDC.CORS.Endpoints)).
+		Build()
+
+	r.OPTIONS(oidc.EndpointPathIntrospection, policyCORSIntrospection.HandleOPTIONS)
+	r.POST(oidc.EndpointPathIntrospection, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointIntrospection), policyCORSIntrospection.Middleware(bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthIntrospectionPOST)))))
+
+	// TODO (james-d-elliott): Remove in GA. This is a legacy implementation of the above endpoint.
+	r.OPTIONS("/api/oidc/introspect", policyCORSIntrospection.HandleOPTIONS)
+	r.POST("/api/oidc/introspect", middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointIntrospection), policyCORSIntrospection.Middleware(bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthIntrospectionPOST)))))
+
+	policyCORSRevocation := middlewares.NewCORSPolicyBuilder().
+		WithAllowCredentials(true).
+		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodPost).
+		WithAllowedOrigins(allowedOrigins...).
+		WithEnabled(utils.IsStringInSlice(oidc.EndpointRevocation, config.IdentityProviders.OIDC.CORS.Endpoints)).
+		Build()
+
+	r.OPTIONS(oidc.EndpointPathRevocation, policyCORSRevocation.HandleOPTIONS)
+	r.POST(oidc.EndpointPathRevocation, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointRevocation), policyCORSRevocation.Middleware(bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthRevocationPOST)))))
+
+	// TODO (james-d-elliott): Remove in GA. This is a legacy implementation of the above endpoint.
+	r.OPTIONS("/api/oidc/revoke", policyCORSRevocation.HandleOPTIONS)
+	r.POST("/api/oidc/revoke", middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointRevocation), policyCORSRevocation.Middleware(bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthRevocationPOST)))))
 }
 
 func handleMetrics(path string) fasthttp.RequestHandler {

@@ -21,19 +21,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func recoverErr(i any) error {
-	switch v := i.(type) {
-	case nil:
-		return nil
-	case string:
-		return fmt.Errorf("recovered panic: %s", v)
-	case error:
-		return fmt.Errorf("recovered panic: %w", v)
-	default:
-		return fmt.Errorf("recovered panic with unknown type: %v", v)
-	}
-}
-
 func flagsGetUserIdentifiersGenerateOptions(flags *pflag.FlagSet) (users, services, sectors []string, err error) {
 	if users, err = flags.GetStringSlice(cmdFlagNameUsers); err != nil {
 		return nil, nil, nil, err
@@ -72,7 +59,7 @@ func flagsGetRandomCharacters(flags *pflag.FlagSet, flagNameLength, flagNameChar
 	}
 
 	switch {
-	case useCharSet, !useCharSet && !useCharacters:
+	case useCharSet, !useCharacters:
 		var c string
 
 		if c, err = flags.GetString(flagNameCharSet); err != nil {
@@ -107,7 +94,7 @@ func flagsGetRandomCharacters(flags *pflag.FlagSet, flagNameLength, flagNameChar
 		default:
 			return "", fmt.Errorf("flag '--%s' with value '%s' is invalid, must be one of 'ascii', 'alphanumeric', 'alphabetic', 'numeric', 'numeric-hex', or 'rfc3986'", flagNameCharSet, c)
 		}
-	case useCharacters:
+	default:
 		if charset, err = flags.GetString(flagNameCharacters); err != nil {
 			return "", err
 		}
