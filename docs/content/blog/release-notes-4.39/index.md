@@ -33,7 +33,7 @@ This section is important to read for all users who are upgrading, especially th
 There are some changes in this release which deprecate older configurations, you will get a warning about these
 deprecations as it's likely in version v5.0.0 we'll remove support for them, however if a log message for
 a configuration is a warning then it's just a warning, and can fairly safely be ignored for now. These changes should be
-backwards compatible, however mistakes happen. If you find a mistake please kindly let us know.
+backwards compatible, however mistakes happen. If you find a mistake we kindly request that you let us know.
 
 By far the most important change to be aware of is a change to OpenID Connect 1.0 and the default claims in issued ID
 Tokens. As we get closer to practical completion and removing OpenID Connect 1.0 beta status we're adding additional
@@ -41,32 +41,36 @@ features which dictate the need to make an adjustment to how we handle some thin
 
 ## On This Page
 
-This blog article is rather large so this serves as an index for all the areas so you can best find a particular item.
+This blog article is rather large so this serves as an index for the section headings and relevant important changes.
 
 - Key Sections:
+  - [Docker](#docker)
   - [OpenID Connect 1.0](#openid-connect-10)
-  - [Multi-Domain Protection](#multi-domain-protection)
   - [WebAuthn](#webauthn)
-  - [Customizable Authorization Endpoints](#customizable-authorization-endpoints)
-  - [Configuration](#configuration)
-- Important Changes (these will require manual intervention to gain access to new features, but old ones should still
-  work):
-  - [Multi-Domain Protection](#changes-multiple-domain-protection) which is important for all users.
-  - [Customizable Authorization Endpoints](#changes-customizable-authorization-endpoints) which is important for all
-    users.
-  - [OpenID Connect 1.0: Multiple JSON Web Keys](#changes-multiple-json-web-keys) which is important for users of the
-    OpenID Connect 1.0 Provider features.
-  - [Client Authentication Method (Token Endpoint)](#client-authentication-method-token-endpoint) may require
-    administrators provide configuration after the update.
-  - [OpenID Connect 1.0: Other Notable Changes](#other-notable-changes)
-- Important Modification Considerations (changes that you are not required to make but may run into issues if you're
-  not careful):
-  - [Server Listener](#server-listener) changes
-- Other Improvements:
-  - [Password Change](#password-change) adds the ability to change passwords from the settings interface.
-  - [Log File Reopening](#log-file-reopening) adds support for graceful log file rotation.
-  - [Basic Authorization Caching](#basic-authorization-caching) add optional basic authorization caching to improve endpoint response speeds.
+- [Other Improvements](#other-improvements)
+  - [Password Change](#password-change)
+  - [Log File Reopening](#log-file-reopening)
+  - [Basic Authorization Caching](#basic-authorization-caching)
 
+
+---
+
+## Docker
+
+As an intentional improvement to both the compatibility and security of the Authelia container we've made a number of
+important changes to our container image.
+
+The first change which is most impactful to security in as much as it hardens the Authelia container is we've moved
+away from the Alpine Linux base image and developed our own base image using
+[chisel](https://github.com/canonical/chisel). This base image is a glibc minimal image that only has the essentials
+for running the Authelia binary and the healthcheck, there is no package manager, and some unnecessary but common tools
+have been removed. This container is rebuilt daily and on every tagged release.
+
+The second change which is most impactful to end users is the removal of the `VOLUME` directive from our images. This
+directive is fairly useless overall, the most impactful thing it does is leaves dangling docker volumes that get
+forgotten about and lose their association with the original container, in effect making the volume data seem deleted.
+Most users will not see an impact from this, and those who've used the `volumes` directive in a compose to manually map
+volumes will not.
 
 ---
 
@@ -161,20 +165,59 @@ phone, or visit a URL and enter a code.
 
 ---
 
-## Password Change
+## Other Improvements
 
-Prior to this release, the only option for users who wish to change their password was to complete the reset password flow. In this release, we add the ability for users to change their password directly from the settings interface. Additionally, administrators can disable this functionality using the [disable](../../configuration/first-factor/introduction.md#disable-1) option.
+This section contains all the other improvements that don't fit well into any particular grouping.
 
-## Log File Reopening
+### Password Change
 
-Prior to this release, Authelia didn't handle SIGHUP signals for reopening log files. This release adds this capability, enabling proper integration with external log rotation tools. When Authelia receives a SIGHUP signal, it will:
+For a long time we've supported the ability to reset passwords. This is an exceptionally useful feature for users
+who have forgotten their passwords provided the admin is agreeable to allowing this. However it's quite reasonable to
+also allow users to change their known password.
+
+In this release, we have added the ability for users to accomplish exactly this directly from the settings interface.
+This means that should a user want to change a password they already know they are easily able to. This feature requires
+the user perform session elevation in addition to knowing their current password.
+
+Additionally, administrators can disable this functionality using the
+[disable](../../configuration/first-factor/introduction.md#disable-1) option.
+
+This also offers a technically more secure way for users to change their passwords, so it's quite reasonable to assume
+that this may offer an alternative for administrators who had previously disabled or wanted to disable the reset
+password functionality due to some of these concerns.
+
+### Log File Reopening
+
+Sending the `SIGHUP` signal in this release will instruct Authelia to reopen any log files. This facilitates the ability
+to use a external log rotation tool like [logrotate](https://linux.die.net/man/8/logrotate) to rotate the log file while
+Authelia is running. It could also realistically be used with the available replacement options the
+[file_path](../../configuration/miscellaneous/logging.md#file_path) configuration option has.
+
+When Authelia receives a SIGHUP signal, it will:
 
 1. Safely reopen its log file handle
 2. Create the log file if it doesn't exist
-3. Support time-based file patterns using current timestamps
 
-This improvement ensures Authelia works correctly with standard Unix log rotation tools and practices.
+### Basic Authorization Caching
 
-## Basic Authorization Caching
+While we generally at this time recommend using the
+[Bearer Scheme via OAuth 2.0 Bearer Token Usage](../../integration/openid-connect/oauth-2.0-bearer-token-usage.md) the
+Basic Scheme is still widely used. This scheme can take some time to perform validation due to the backing password hash
+which is good for security but bad for some performance requirements.
 
-Prior to this release, Authelia re-validated basic authentication credentials on every request. This release introduces basic authorization caching, which improves performance by temporarily storing successful authentication results. This means less load on your authentication backend and faster response times for requests using basic authentication, while maintaining security through configurable cache timeouts.
+For this reason we've added an optional cache system for the Basic Scheme. This is only available on the new
+[Server Authz Endpoints](../../configuration/miscellaneous/server-endpoints-authz.md) not the deprecated `/api/verify`
+endpoint. The cache mechanism is in-memory and is activated by configuring the
+[scheme_basic_cache_lifespan](../../configuration/miscellaneous/server-endpoints-authz.md#scheme_basic_cache_lifespan).
+
+The lifespan configures how long each cached credential exists. The credentials are cached in a dictionary where the key
+is the username, and he value is a data structure that contains the expiration and a comparison value. The comparison
+value is a HMAC-SHA256 digest of the password and username, i.e. `HMAC-SHA256(password+username)`. The secret key for
+the HMAC-SHA256 algorithm is cryptographically randomly generated for each
+[Server Authz Endpoint](../../configuration/miscellaneous/server-endpoints-authz.md) on startup.
+
+In the event the cached value does not yet exist or does not match the password is revalidated and the cache is updated
+if the newly provided password is correct.
+
+We do not recommend enabling this if you have the ability to utilize a more appropriate and modern scheme such as the
+Bearer Scheme.
