@@ -2,7 +2,7 @@
 title: "4.39: Release Notes"
 description: "Authelia 4.39 release notes."
 summary: "Authelia 4.39 has been released and the following is a guide on all the massive changes."
-date: 2025-02-30T10:00:00+11:00
+date: 2025-03-08T15:54:02+11:00
 draft: false
 weight: 50
 categories: ["News", "Release Notes"]
