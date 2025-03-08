@@ -114,7 +114,7 @@ func TestSignalService_Run(t *testing.T) {
 				close(done)
 			}()
 
-			// Give the service a moment to start
+			// Give the service a moment to start.
 			time.Sleep(100 * time.Millisecond)
 
 			p, err := os.FindProcess(os.Getpid())
@@ -219,7 +219,7 @@ func TestLogReopenFiles(t *testing.T) {
 		close(done)
 	}()
 
-	// Give the service a moment to start
+	// Give the service a moment to start.
 	time.Sleep(100 * time.Millisecond)
 
 	p, err := os.FindProcess(os.Getpid())

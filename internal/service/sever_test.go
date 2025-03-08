@@ -46,7 +46,7 @@ func TestNewMainServer(t *testing.T) {
 		require.NoError(t, server.Run())
 	}()
 
-	// Give the service a moment to start
+	// Give the service a moment to start.
 	time.Sleep(100 * time.Millisecond)
 
 	assert.Equal(t, "main", server.ServiceName())
@@ -90,7 +90,7 @@ func TestNewMetricsServer(t *testing.T) {
 		require.NoError(t, server.Run())
 	}()
 
-	// Give the service a moment to start
+	// Give the service a moment to start.
 	time.Sleep(100 * time.Millisecond)
 
 	assert.Equal(t, "metrics", server.ServiceName())

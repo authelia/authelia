@@ -107,7 +107,7 @@ func TestNewFileWatcher(t *testing.T) {
 		require.NoError(t, service.Run())
 	}()
 
-	// Give the service a moment to start
+	// Give the service a moment to start.
 	time.Sleep(100 * time.Millisecond)
 
 	_, err = f.Write([]byte("test"))
@@ -143,7 +143,7 @@ func TestNewFileWatcherDirectory(t *testing.T) {
 		require.NoError(t, service.Run())
 	}()
 
-	// Give the service a moment to start
+	// Give the service a moment to start.
 	time.Sleep(100 * time.Millisecond)
 
 	f, err := os.Create(filepath.Join(dir, "test.log"))
