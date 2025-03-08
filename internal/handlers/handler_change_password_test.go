@@ -3,11 +3,11 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
@@ -21,27 +21,6 @@ const (
 	testPasswordOld = "old_password123"
 	testPasswordNew = "new_password456"
 )
-
-type ChangePasswordSuite struct {
-	suite.Suite
-	mock *mocks.MockAutheliaCtx
-}
-
-func (s *ChangePasswordSuite) SetupTest() {
-	s.mock = mocks.NewMockAutheliaCtx(s.T())
-	userSession, err := s.mock.Ctx.GetSession()
-	s.Assert().NoError(err)
-
-	userSession.Username = testUsername
-	userSession.DisplayName = testUsername
-	userSession.Emails[0] = testEmail
-	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
-	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
-}
-
-func (s *ChangePasswordSuite) TearDownTest() {
-	s.mock.Close()
-}
 
 func TestChangePasswordPOST_ShouldSucceedWithValidCredentials(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
@@ -87,7 +66,7 @@ func TestChangePasswordPOST_ShouldSucceedWithValidCredentials(t *testing.T) {
 
 	ChangePasswordPOST(mock.Ctx)
 
-	mock.AssertLogMessageAdvanced(t, 1, logrus.DebugLevel, "User has changed their password", map[string]any{"username": testUsername})
+	mock.AssertLogEntryAdvanced(t, 1, logrus.DebugLevel, "User has changed their password", map[string]any{"username": testUsername})
 
 	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 }
@@ -134,7 +113,7 @@ func TestChangePasswordPOST_ShouldFailWhenPasswordPolicyNotMet(t *testing.T) {
 
 	ChangePasswordPOST(mock.Ctx)
 
-	mock.AssertLogMessageAdvanced(t, 0, logrus.DebugLevel, "Unable to change password for user as their new password was weak or empty", map[string]any{"username": testUsername})
+	mock.AssertLogEntryAdvanced(t, 0, logrus.DebugLevel, "Unable to change password for user as their new password was weak or empty", map[string]any{"username": testUsername, "error": "the supplied password does not met the security policy"})
 
 	errResponse := mock.GetResponseError(t)
 
@@ -160,11 +139,7 @@ func TestChangePasswordPOST_ShouldFailWhenRequestBodyIsInvalid(t *testing.T) {
 
 	ChangePasswordPOST(mock.Ctx)
 
-	mock.AssertLogMessageAdvanced(t, 0, logrus.ErrorLevel, "Unable to change password for user: unable to parse request body", nil)
-
-	errorField := mock.GetLogEntryN(0).Data["error"]
-	errorMsg := errorField.(error).Error()
-	assert.Regexp(t, "^(unable to parse body: .+|unable to validate body: .+|Body is not valid)$", errorMsg)
+	mock.AssertLogEntryAdvanced(t, 0, logrus.ErrorLevel, "Unable to change password for user: unable to parse request body", map[string]any{"username": testUsername, "error": regexp.MustCompile(`^(unable to parse body: .+|unable to validate body: .+|Body is not valid)$`)})
 
 	errResponse := mock.GetResponseError(t)
 	assert.Equal(t, "KO", errResponse.Status)
@@ -205,9 +180,9 @@ func TestChangePasswordPOST_ShouldFailWhenOldPasswordIsIncorrect(t *testing.T) {
 
 	ChangePasswordPOST(mock.Ctx)
 
-	mock.AssertLogMessageAdvanced(t, 0, logrus.DebugLevel, "Unable to change password for user as their old password was incorrect", nil)
+	mock.AssertLogEntryAdvanced(t, 0, logrus.DebugLevel, "Unable to change password for user as their old password was incorrect", map[string]any{"username": testUsername, "error": "incorrect password"})
 
-	errorField := mock.GetLogEntryN(0).Data["error"]
+	errorField := mock.Hook.LastEntry().Data["error"]
 	assert.ErrorIs(t, authentication.ErrIncorrectPassword, errorField.(error))
 
 	errResponse := mock.GetResponseError(t)
@@ -249,9 +224,9 @@ func TestChangePasswordPOST_ShouldFailWhenPasswordReuseIsNotAllowed(t *testing.T
 
 	ChangePasswordPOST(mock.Ctx)
 
-	mock.AssertLogMessageAdvanced(t, 0, logrus.DebugLevel, "Unable to change password for user as their new password was weak or empty", nil)
+	mock.AssertLogEntryAdvanced(t, 0, logrus.DebugLevel, "Unable to change password for user as their new password was weak or empty", map[string]any{"username": testUsername, "error": "your supplied password does not meet the password policy requirements"})
 
-	errorField := mock.GetLogEntryN(0).Data["error"]
+	errorField := mock.Hook.LastEntry().Data["error"]
 	assert.ErrorIs(t, authentication.ErrPasswordWeak, errorField.(error))
 
 	errResponse := mock.GetResponseError(t)
@@ -298,7 +273,7 @@ func TestChangePasswordPOST_ShouldSucceedButLogErrorWhenUserHasNoEmail(t *testin
 
 	ChangePasswordPOST(mock.Ctx)
 
-	mock.AssertLogMessageAdvanced(t, 1, logrus.DebugLevel, "User has changed their password", map[string]any{"username": testUsername})
+	mock.AssertLogEntryAdvanced(t, 1, logrus.DebugLevel, "User has changed their password", map[string]any{"username": testUsername})
 
 	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 }
@@ -346,11 +321,7 @@ func TestChangePasswordPOST_ShouldSucceedButLogErrorWhenNotificationFails(t *tes
 
 	ChangePasswordPOST(mock.Ctx)
 
-	mock.AssertLogMessageAdvanced(t, 0, logrus.DebugLevel, "Unable to notify user of password change", map[string]any{"username": testUsername, "email": nil})
-
-	errorField := mock.GetLogEntryN(0).Data["error"]
-	errorMsg := errorField.(error).Error()
-	assert.Regexp(t, "^notifier: smtp: failed to .*: .+$", errorMsg)
+	mock.AssertLogEntryAdvanced(t, 0, logrus.DebugLevel, "Unable to notify user of password change", map[string]any{"username": testUsername, "email": nil, "error": regexp.MustCompile(`^notifier: smtp: failed to .*: .+$`)})
 
 	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 }

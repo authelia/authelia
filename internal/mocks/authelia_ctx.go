@@ -268,16 +268,14 @@ func (m *MockAutheliaCtx) SetRequestBody(t *testing.T, body interface{}) {
 	m.Ctx.Request.SetBody(bodyBytes)
 }
 
-func (m *MockAutheliaCtx) LogEntryN(i int) *logrus.Entry {
+func (m *MockAutheliaCtx) LogEntryN(n int) *logrus.Entry {
 	entries := m.Hook.AllEntries()
 
-	n := len(entries) - (1 + i)
-
-	if n < 0 {
+	if i := len(entries) - (1 + n); i < 0 {
 		return nil
+	} else {
+		return entries[i]
 	}
-
-	return entries[n]
 }
 
 // AssertKO assert an error response from the service.
@@ -376,18 +374,8 @@ func (m *MockAutheliaCtx) AssertLastLogMessage(t *testing.T, message, err string
 	}
 }
 
-func (m *MockAutheliaCtx) GetLogEntryN(n int) (entry *logrus.Entry) {
-	entries := m.Hook.AllEntries()
-
-	if i := len(entries) - (1 + n); i < 0 {
-		return nil
-	} else {
-		return entries[i]
-	}
-}
-
-func (m *MockAutheliaCtx) AssertLogMessageAdvanced(t *testing.T, n int, level logrus.Level, message any, fields map[string]any) {
-	entry := m.GetLogEntryN(n)
+func (m *MockAutheliaCtx) AssertLogEntryAdvanced(t *testing.T, n int, level logrus.Level, message any, fields map[string]any) {
+	entry := m.LogEntryN(n)
 
 	require.NotNil(t, entry)
 
@@ -399,19 +387,6 @@ func (m *MockAutheliaCtx) AssertLogMessageAdvanced(t *testing.T, n int, level lo
 		require.Contains(t, entry.Data, field)
 
 		AssertIsStringEqualOrRegexp(t, expected, entry.Data[field])
-	}
-}
-
-func AssertIsStringEqualOrRegexp(t *testing.T, expected any, actual any) {
-	switch v := expected.(type) {
-	case string:
-		assert.Equal(t, v, actual)
-	case *regexp.Regexp:
-		assert.Regexp(t, v, actual)
-	case nil:
-		break
-	default:
-		t.Fatal("Expected value must be a string or Regexp")
 	}
 }
 
@@ -429,4 +404,27 @@ func (m *MockAutheliaCtx) GetResponseError(t *testing.T) (errResponse middleware
 	require.NoError(t, err)
 
 	return errResponse
+}
+
+func AssertIsStringEqualOrRegexp(t *testing.T, expected any, actual any) {
+	switch v := expected.(type) {
+	case string:
+		switch a := actual.(type) {
+		case error:
+			assert.EqualError(t, a, v)
+		default:
+			assert.Equal(t, v, a)
+		}
+	case *regexp.Regexp:
+		switch a := actual.(type) {
+		case error:
+			assert.Regexp(t, v, a.Error())
+		default:
+			assert.Regexp(t, v, a)
+		}
+	case nil:
+		break
+	default:
+		t.Fatal("Expected value must be a string or Regexp")
+	}
 }
