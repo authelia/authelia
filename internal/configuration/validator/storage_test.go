@@ -131,7 +131,7 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidMySQLAddressScheme() {
 	suite.Len(suite.val.Warnings(), 0)
 	suite.Require().Len(suite.val.Errors(), 1)
 
-	suite.EqualError(suite.val.Errors()[0], "storage: mysql: option 'address' with value 'udp://mysql:1234' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'udp'")
+	suite.EqualError(suite.val.Errors()[0], "storage: mysql: option 'address' with value 'udp://mysql:1234' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', 'unix', or 'fd' but is configured as 'udp'")
 }
 
 func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidMySQLTLSVersion() {
@@ -328,7 +328,7 @@ func (suite *StorageSuite) TestShouldValidatePostgresServers() {
 	errors := suite.val.Errors()
 
 	suite.Require().Len(errors, 3)
-	suite.EqualError(errors[0], "storage: postgres: servers: #1: option 'address' with value 'udp://server1:4321' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'udp'")
+	suite.EqualError(errors[0], "storage: postgres: servers: #1: option 'address' with value 'udp://server1:4321' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', 'unix', or 'fd' but is configured as 'udp'")
 	suite.EqualError(errors[1], "storage: postgres: servers: #2: option 'address' is required")
 	suite.EqualError(errors[2], "storage: postgres: servers: #5: tls: option combination of 'minimum_version' and 'maximum_version' is invalid: minimum version TLS1.3 is greater than the maximum version TLS1.0")
 }
@@ -389,7 +389,7 @@ func (suite *StorageSuite) TestShouldValidatePostgresUDP() {
 	suite.Len(suite.val.Warnings(), 0)
 	suite.Require().Len(suite.val.Errors(), 1)
 
-	suite.EqualError(suite.val.Errors()[0], "storage: postgres: option 'address' with value 'udp://postgre:4321' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'udp'")
+	suite.EqualError(suite.val.Errors()[0], "storage: postgres: option 'address' with value 'udp://postgre:4321' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', 'unix', or 'fd' but is configured as 'udp'")
 }
 
 func (suite *StorageSuite) TestShouldValidatePostgresSetPort() {
