@@ -29,7 +29,7 @@
 	"Hi": "Kaixo",
 	"Incorrect username or password": "Erabiltzaile izena edo pasahitza okerra da",
 	"Incorrect password": "Pasahitz okerra",
-	"Login": "Saioa hasi",
+	"Login - {{authelia}}": "Saioa hasi - {{authelia}}",
 	"Logout": "Irten",
 	"Manage devices": "Kudeatu gailuak",
 	"Methods": "Metodoak",

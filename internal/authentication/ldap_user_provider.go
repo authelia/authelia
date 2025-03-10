@@ -338,7 +338,7 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 	userPasswordOk, err := p.CheckUserPassword(username, oldPassword)
 
 	if err != nil {
-		errorCode := ldapGetErrorCode(err)
+		errorCode := getLDAPResultCode(err)
 		if errorCode == ldap.LDAPResultInvalidCredentials {
 			return ErrIncorrectPassword
 		} else {
@@ -385,24 +385,22 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 
 	//TODO: Better inform users regarding password reuse/password history.
 	if err != nil {
-		if errorCode := ldapGetErrorCode(err); errorCode != -1 {
+		if errorCode := getLDAPResultCode(err); errorCode != -1 {
 			switch errorCode {
 			case ldap.LDAPResultInvalidCredentials,
 				ldap.LDAPResultInappropriateAuthentication:
-				return ErrIncorrectPassword
+				return fmt.Errorf("%w: %v", ErrIncorrectPassword, err)
 			case ldap.LDAPResultConstraintViolation,
 				ldap.LDAPResultObjectClassViolation,
 				ldap.ErrorEmptyPassword,
 				ldap.LDAPResultUnwillingToPerform:
-				return ErrPasswordWeak
-			case ldap.LDAPResultInsufficientAccessRights:
-				return ErrOperationFailed
+				return fmt.Errorf("%w: %v", ErrPasswordWeak, err)
 			default:
-				return ErrOperationFailed
+				return fmt.Errorf("%w: %v", ErrOperationFailed, err)
 			}
 		}
 
-		return ErrOperationFailed
+		return fmt.Errorf("%w: %v", ErrOperationFailed, err)
 	}
 
 	return nil

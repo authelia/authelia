@@ -15,27 +15,14 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/authelia/authelia/v4/internal/authentication"
-	"github.com/authelia/authelia/v4/internal/authorization"
-	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
-	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/logging"
-	"github.com/authelia/authelia/v4/internal/metrics"
 	"github.com/authelia/authelia/v4/internal/middlewares"
-	"github.com/authelia/authelia/v4/internal/notification"
-	"github.com/authelia/authelia/v4/internal/ntp"
-	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/random"
-	"github.com/authelia/authelia/v4/internal/regulation"
-	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/storage"
-	"github.com/authelia/authelia/v4/internal/templates"
-	"github.com/authelia/authelia/v4/internal/totp"
 	"github.com/authelia/authelia/v4/internal/utils"
-	"github.com/authelia/authelia/v4/internal/webauthn"
 )
 
 // NewCmdCtx returns a new CmdCtx.
@@ -44,7 +31,7 @@ func NewCmdCtx() *CmdCtx {
 
 	return &CmdCtx{
 		Context: ctx,
-		log:     logging.Logger(),
+		log:     logrus.NewEntry(logging.Logger()),
 		providers: middlewares.Providers{
 			Random: &random.Cryptographical{},
 		},
@@ -56,7 +43,7 @@ func NewCmdCtx() *CmdCtx {
 type CmdCtx struct {
 	context.Context
 
-	log *logrus.Logger
+	log *logrus.Entry
 
 	config    *schema.Configuration
 	providers middlewares.Providers
@@ -87,7 +74,7 @@ type CmdCtxConfig struct {
 type CobraRunECmd func(cmd *cobra.Command, args []string) (err error)
 
 // GetLogger returns the *logrus.Logger satisfying part of the ServiceCtx.
-func (ctx *CmdCtx) GetLogger() *logrus.Logger {
+func (ctx *CmdCtx) GetLogger() *logrus.Entry {
 	return ctx.log
 }
 
@@ -154,50 +141,11 @@ func (ctx *CmdCtx) LoadTrustedCertificates() (warns, errs []error) {
 
 // LoadProviders loads all providers into the CmdCtx.
 func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
-	// TODO: Adjust this so the CertPool can be used like a provider.
 	if warns, errs = ctx.LoadTrustedCertificates(); len(warns) != 0 || len(errs) != 0 {
 		return warns, errs
 	}
 
-	ctx.providers.StorageProvider = getStorageProvider(ctx)
-
-	ctx.providers.Authorizer = authorization.NewAuthorizer(ctx.config)
-	ctx.providers.NTP = ntp.NewProvider(&ctx.config.NTP)
-	ctx.providers.PasswordPolicy = middlewares.NewPasswordPolicyProvider(ctx.config.PasswordPolicy)
-	ctx.providers.Regulator = regulation.NewRegulator(ctx.config.Regulation, ctx.providers.StorageProvider, clock.New())
-	ctx.providers.SessionProvider = session.NewProvider(ctx.config.Session, ctx.trusted)
-	ctx.providers.TOTP = totp.NewTimeBasedProvider(ctx.config.TOTP)
-	ctx.providers.UserAttributeResolver = expression.NewUserAttributes(ctx.config)
-
-	var err error
-
-	switch {
-	case ctx.config.AuthenticationBackend.File != nil:
-		ctx.providers.UserProvider = authentication.NewFileUserProvider(ctx.config.AuthenticationBackend.File)
-	case ctx.config.AuthenticationBackend.LDAP != nil:
-		ctx.providers.UserProvider = authentication.NewLDAPUserProvider(ctx.config.AuthenticationBackend, ctx.trusted)
-	}
-
-	if ctx.providers.Templates, err = templates.New(templates.Config{EmailTemplatesPath: ctx.config.Notifier.TemplatePath}); err != nil {
-		errs = append(errs, err)
-	}
-
-	if ctx.providers.MetaDataService, err = webauthn.NewMetaDataProvider(ctx.config, ctx.providers.StorageProvider); err != nil {
-		errs = append(errs, err)
-	}
-
-	switch {
-	case ctx.config.Notifier.SMTP != nil:
-		ctx.providers.Notifier = notification.NewSMTPNotifier(ctx.config.Notifier.SMTP, ctx.trusted)
-	case ctx.config.Notifier.FileSystem != nil:
-		ctx.providers.Notifier = notification.NewFileNotifier(*ctx.config.Notifier.FileSystem)
-	}
-
-	ctx.providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(ctx.config, ctx.providers.StorageProvider, ctx.providers.Templates)
-
-	if ctx.config.Telemetry.Metrics.Enabled {
-		ctx.providers.Metrics = metrics.NewPrometheus()
-	}
+	ctx.providers, warns, errs = middlewares.NewProviders(ctx.config, ctx.trusted)
 
 	return warns, errs
 }

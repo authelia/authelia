@@ -82,6 +82,7 @@
 	"Seconds": "Sekondes",
 	"Secret": "Geheim",
 	"Settings": "Instellings",
+	"Settings - {{authelia}}": "Instellings - {{authelia}}",
 	"Start": "Begin",
 	"Successfully {{action}} the {{item}}": "Suksesvol {{action}} die {{item}}",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "Die attestasie-uitdaging is as verkeerd of onverenigbaar deur jou blaaier verwerp",

@@ -17,6 +17,7 @@ import {
 import IconButton from "@mui/material/IconButton";
 import { useTranslation } from "react-i18next";
 
+import { EncodedName } from "@constants/constants";
 import {
     IndexRoute,
     SecuritySubRoute,
@@ -28,8 +29,6 @@ import { useRouterNavigate } from "@hooks/RouterNavigate";
 export interface Props {
     id?: string;
     children?: ReactNode;
-    title?: string;
-    titlePrefix?: string;
     drawerWidth?: number;
 }
 
@@ -40,20 +39,8 @@ const SettingsLayout = function (props: Props) {
     const [drawerOpen, setDrawerOpen] = useState(false);
 
     useEffect(() => {
-        if (props.title) {
-            if (props.titlePrefix) {
-                document.title = `${props.titlePrefix} - ${props.title} - Authelia`;
-            } else {
-                document.title = `${props.title} - Authelia`;
-            }
-        } else {
-            if (props.titlePrefix) {
-                document.title = `${props.titlePrefix} - ${translate("Settings")} - Authelia`;
-            } else {
-                document.title = `${translate("Settings")} - Authelia`;
-            }
-        }
-    }, [props.title, props.titlePrefix, translate]);
+        document.title = translate("Settings - {{authelia}}", { authelia: atob(String.fromCharCode(...EncodedName)) });
+    }, [translate]);
 
     const drawerWidth = props.drawerWidth === undefined ? defaultDrawerWidth : props.drawerWidth;
 

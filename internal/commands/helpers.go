@@ -13,16 +13,7 @@ import (
 )
 
 func getStorageProvider(ctx *CmdCtx) (provider storage.Provider) {
-	switch {
-	case ctx.config.Storage.PostgreSQL != nil:
-		return storage.NewPostgreSQLProvider(ctx.config, ctx.trusted)
-	case ctx.config.Storage.MySQL != nil:
-		return storage.NewMySQLProvider(ctx.config, ctx.trusted)
-	case ctx.config.Storage.Local != nil:
-		return storage.NewSQLiteProvider(ctx.config)
-	default:
-		return nil
-	}
+	return storage.NewProvider(ctx.config, ctx.trusted)
 }
 
 func containsIdentifier(identifier model.UserOpaqueIdentifier, identifiers []model.UserOpaqueIdentifier) bool {

@@ -89,6 +89,7 @@
 	"Seconds": "Sekuntia",
 	"Secret": "Salainen",
 	"Settings": "Asetukset",
+	"Settings - {{authelia}}": "Asetukset - {{authelia}}",
 	"Start": "Aloita",
 	"Submit": "Lähetä",
 	"Successfully {{action}} the {{item}}": "Onnistuneesti {{action}} {{item}}",

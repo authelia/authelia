@@ -10,7 +10,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func (p *LDAPUserProvider) Shutdown() (err error) {
+func (p *LDAPUserProvider) Close() (err error) {
 	return p.factory.Close()
 }
 

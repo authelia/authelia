@@ -82,6 +82,7 @@
 	"Seconds": "Segundos",
 	"Secret": "Lihim",
 	"Settings": "Mga Setting",
+	"Settings - {{authelia}}": "Mga Setting - {{authelia}}",
 	"Start": "Simulan",
 	"Successfully {{action}} the {{item}}": "Matagumpay na {{action}} ang {{item}}",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "Ang attestation challenge ay tinanggihan bilang malformed o hindi tugma ng iyong browser",

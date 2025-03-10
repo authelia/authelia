@@ -29,7 +29,7 @@
 	"Hi": "Hi",
 	"Incorrect username or password": "اسم المستخدم أو كلمة المرور غير صحيحة",
 	"Incorrect password": "كلمة المرور غير صحيحة",
-	"Login": "تسجيل الدخول",
+	"Login - {{authelia}}": "تسجيل الدخول - {{authelia}}",
 	"Logout": "تسجيل الخروج",
 	"Manage devices": "إدارة الأجهزة",
 	"Methods": "الأساليب",

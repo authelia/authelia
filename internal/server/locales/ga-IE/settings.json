@@ -82,6 +82,7 @@
 	"Seconds": "Soicindí",
 	"Secret": "Rúnda",
 	"Settings": "Socruithe",
+	"Settings - {{authelia}}": "Socruithe - {{authelia}}",
 	"Start": "Tús",
 	"Successfully {{action}} the {{item}}": "Rinneadh {{action}} go rathúil {{item}}",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "Díbhíodh an dúshlán deimhniúcháin mar mhailíseach nó neamh-chomhoiriúnach ag do bhrabhsálaí",

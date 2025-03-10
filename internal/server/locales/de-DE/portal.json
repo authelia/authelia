@@ -29,7 +29,7 @@
 	"Hi": "Hallo",
 	"Incorrect username or password": "Benutzername oder Passwort falsch",
 	"Incorrect password": "Falsches Passwort",
-	"Login": "Anmelden",
+	"Login - {{authelia}}": "Anmelden - {{authelia}}",
 	"Logout": "Abmelden",
 	"Manage devices": "Geräte verwalten",
 	"Methods": "Verfahren",

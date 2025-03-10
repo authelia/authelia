@@ -29,7 +29,7 @@
 	"Hi": "Здравей",
 	"Incorrect username or password": "Невалидно потребителско име или парола",
 	"Incorrect password": "Неправилна парола",
-	"Login": "Вход",
+	"Login - {{authelia}}": "Вход - {{authelia}}",
 	"Logout": "Изход",
 	"Manage devices": "Управление на устройства",
 	"Methods": "Методи",

@@ -82,6 +82,7 @@
 	"Seconds": "Ilbiriqsi",
 	"Secret": "Sir",
 	"Settings": "Dejinta",
+	"Settings - {{authelia}}": "Dejinta - {{authelia}}",
 	"Start": "Bilow",
 	"Successfully {{action}} the {{item}}": "Si guul leh {{action}} {{item}}",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "Tijaabinta dhibaatada ayaa lagu diiday qaab khaldan ama aan la waafaqsaneyn biraawsarkaaga",

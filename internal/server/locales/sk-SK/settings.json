@@ -82,6 +82,7 @@
 	"Seconds": "Sekundy",
 	"Secret": "Tajný kľúč",
 	"Settings": "Nastavenia",
+	"Settings - {{authelia}}": "Nastavenia - {{authelia}}",
 	"Start": "Štart",
 	"Successfully {{action}} the {{item}}": "Úspešne {{action}} {{item}}",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "Výzva na attestation bola zamietnutá ako nesprávna alebo nekompatibilná vaším prehliadačom",

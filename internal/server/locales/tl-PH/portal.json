@@ -29,7 +29,7 @@
 	"Hi": "Hi",
 	"Incorrect username or password": "Maling username o password",
 	"Incorrect password": "Maling password",
-	"Login": "Mag-login",
+	"Login - {{authelia}}": "Mag-login - {{authelia}}",
 	"Logout": "Mag-logout",
 	"Manage devices": "Pamahalaan ang mga aparato",
 	"Methods": "Mga Paraan",

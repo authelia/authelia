@@ -29,7 +29,7 @@
 	"Hi": "नमस्ते",
 	"Incorrect username or password": "गलत उपयोगकर्ता नाम या पासवर्ड",
 	"Incorrect password": "गलत पासवर्ड",
-	"Login": "लॉगिन",
+	"Login - {{authelia}}": "लॉगिन - {{authelia}}",
 	"Logout": "लॉगआउट",
 	"Manage devices": "आधार उपकरणों का प्रबंधन करें",
 	"Methods": "तरीके",

@@ -29,7 +29,7 @@
 	"Hi": "Вітаємо,",
 	"Incorrect username or password": "Неправильне ім'я користувача або пароль",
 	"Incorrect password": "Неправильний пароль",
-	"Login": "Логін",
+	"Login - {{authelia}}": "Логін - {{authelia}}",
 	"Logout": "Вихід із системи",
 	"Manage devices": "Керування пристроями",
 	"Methods": "Методи",

@@ -29,7 +29,7 @@
 	"Hi": "Hai",
 	"Incorrect username or password": "Nama pengguna atau kata sandi salah",
 	"Incorrect password": "Kata sandi salah",
-	"Login": "Masuk",
+	"Login - {{authelia}}": "Masuk - {{authelia}}",
 	"Logout": "Keluar",
 	"Manage devices": "Kelola perangkat",
 	"Methods": "Metode",

@@ -82,6 +82,7 @@
 	"Seconds": "Segundu",
 	"Secret": "Sekretua",
 	"Settings": "Ezarpenak",
+	"Settings - {{authelia}}": "Ezarpenak - {{authelia}}",
 	"Start": "Hasiera",
 	"Successfully {{action}} the {{item}}": "Arrakastaz {{action}} da {{item}}",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "Ziurtagiri-erronka gaitzetsi egin da, gaizki formatuta edo nabigatzailearen bateraezintasuna dela-eta",

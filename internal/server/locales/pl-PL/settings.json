@@ -89,6 +89,7 @@
 	"Seconds": "Sekundy",
 	"Secret": "Tajny klucz",
 	"Settings": "Ustawienia",
+	"Settings - {{authelia}}": "Ustawienia - {{authelia}}",
 	"Start": "Rozpocznij",
 	"Submit": "Prześlij",
 	"Successfully {{action}} the {{item}}": "Pomyślnie {{action}} {{item}}",

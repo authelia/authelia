@@ -82,6 +82,7 @@
 	"Seconds": "秒",
 	"Secret": "密錀",
 	"Settings": "設定",
+	"Settings - {{authelia}}": "設定 - {{authelia}}",
 	"Start": "開始",
 	"Successfully {{action}} the {{item}}": "成功 {{action}}{{item}}",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "您的瀏覽器因格式錯誤或不相容而拒絕了驗證挑戰 (Challenge) ",

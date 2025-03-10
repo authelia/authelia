@@ -82,6 +82,7 @@
 	"Seconds": "Sekondi",
 	"Secret": "Sigriet",
 	"Settings": "Impostazzjonijiet",
+	"Settings - {{authelia}}": "Impostazzjonijiet - {{authelia}}",
 	"Start": "Ibda",
 	"Successfully {{action}} the {{item}}": "Suċċessivament {{action}} il-{{item}}",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "Il-challenge ta' attestazzjoni ġiet miċħuda bħala ħażina jew inkompatibbli mill-browser tiegħek",

@@ -82,6 +82,7 @@
 	"Seconds": "Sekunde",
 	"Secret": "Tajna",
 	"Settings": "Podešavanja",
+	"Settings - {{authelia}}": "Podešavanja - {{authelia}}",
 	"Start": "Počni",
 	"Successfully {{action}} the {{item}}": "Uspešno {{action}} {{item}}",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "Izazov za attestaciju je odbijen kao neispravan ili nekompatibilan od strane vašeg pretraživača",

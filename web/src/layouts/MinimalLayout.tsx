@@ -9,6 +9,7 @@ import UserSvg from "@assets/images/user.svg?react";
 import AccountSettingsMenu from "@components/AccountSettingsMenu";
 import PrivacyPolicyDrawer from "@components/PrivacyPolicyDrawer";
 import TypographyWithTooltip from "@components/TypographyWithTooltip";
+import { EncodedName } from "@constants/constants";
 import { UserInfo } from "@models/UserInfo";
 import { getLogoOverride } from "@utils/Configuration";
 
@@ -31,7 +32,7 @@ const MinimalLayout = function (props: Props) {
     );
 
     useEffect(() => {
-        document.title = `${translate("Login")} - Authelia`;
+        document.title = translate("Login - {{authelia}}", { authelia: atob(String.fromCharCode(...EncodedName)) });
     }, [translate]);
 
     return (

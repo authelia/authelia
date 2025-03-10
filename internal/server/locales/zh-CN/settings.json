@@ -89,6 +89,7 @@
 	"Seconds": "秒",
 	"Secret": "密钥",
 	"Settings": "设置",
+	"Settings - {{authelia}}": "设置 - {{authelia}}",
 	"Start": "开始",
 	"Submit": "提交",
 	"Successfully {{action}} the {{item}}": "成功 {{action}} {{item}}",

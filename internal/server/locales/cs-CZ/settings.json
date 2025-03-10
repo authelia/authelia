@@ -89,6 +89,7 @@
 	"Seconds": "Sekund",
 	"Secret": "Tajný klíč",
 	"Settings": "Nastavení",
+	"Settings - {{authelia}}": "Nastavení - {{authelia}}",
 	"Start": "Začít",
 	"Submit": "Odeslat",
 	"Successfully {{action}} the {{item}}": "Úspěšně {{action}} {{item}}",
