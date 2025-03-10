@@ -185,7 +185,7 @@ timeout into chunks.
 
 #### timeout
 
-{{< confkey type="string,integer" syntax="duration" default="5 seconds" required="no" >}}
+{{< confkey type="string,integer" syntax="duration" default="20 seconds" required="no" >}}
 
 The amount of time that we wait for a connection to become free in the pool before giving up and failing with an error.
 
