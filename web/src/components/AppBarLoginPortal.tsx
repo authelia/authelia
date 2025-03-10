@@ -1,11 +1,12 @@
 import React from "react";
 
+import { AppBar, Toolbar, Typography } from "@mui/material";
+import { styled } from "@mui/styles";
+
 import AppBarItemAccountSettings from "@components/AppBarItemAccountSettings";
 import AppBarItemLanguage from "@components/AppBarItemLanguage";
 import { Language } from "@models/LocaleInformation";
 import { UserInfo } from "@models/UserInfo";
-import { AppBar, Toolbar, Typography } from "@mui/material";
-import { styled } from "@mui/styles";
 
 export interface Props {
     userInfo?: UserInfo;

@@ -4,7 +4,6 @@ import { getBasePath } from "@utils/BasePath";
 
 const basePath = getBasePath();
 
-// Note: If you change this const you must also do so in the backend at internal/handlers/cost.go.
 export const ConsentPath = basePath + "/api/oidc/consent";
 
 export const FirstFactorPath = basePath + "/api/firstfactor";
@@ -31,7 +30,6 @@ export const CompleteResetPasswordPath = basePath + "/api/reset-password/identit
 
 export const ChangePasswordPath = basePath + "/api/change-password";
 
-// Do the password reset during completion.
 export const ResetPasswordPath = basePath + "/api/reset-password";
 export const ChecksSafeRedirectionPath = basePath + "/api/checks/safe-redirection";
 
@@ -45,6 +43,7 @@ export const ConfigurationPath = basePath + "/api/configuration";
 export const PasswordPolicyConfigurationPath = basePath + "/api/configuration/password-policy";
 
 export const LocaleInformationPath = basePath + "/locales";
+
 export interface AuthenticationErrorResponse extends ErrorResponse {
     authentication: boolean;
     elevation: boolean;
