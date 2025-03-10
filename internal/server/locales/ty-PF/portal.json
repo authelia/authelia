@@ -29,7 +29,7 @@
 	"Hi": "Ia ora na",
 	"Incorrect username or password": "Aita i te huru nāna te pātai",
 	"Incorrect password": "Faataurîte ia oe te nuù i te numera paari",
-	"Login": "Haeremai",
+	"Login - {{authelia}}": "Haeremai - {{authelia}}",
 	"Logout": "Tātea",
 	"Manage devices": "Fa'ata'iraa i te mau aparai",
 	"Methods": "Roa",

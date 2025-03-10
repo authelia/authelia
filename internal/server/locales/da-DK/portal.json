@@ -29,7 +29,7 @@
 	"Hi": "Hi",
 	"Incorrect username or password": "Forkert brugernavn eller adgangskode",
 	"Incorrect password": "Forkert adgangskode",
-	"Login": "Login",
+	"Login - {{authelia}}": "Login - {{authelia}}",
 	"Logout": "Log Ud",
 	"Manage devices": "Administrer enheder",
 	"Methods": "Metoder",

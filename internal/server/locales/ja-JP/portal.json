@@ -29,7 +29,7 @@
 	"Hi": "Hi",
 	"Incorrect username or password": "ユーザー名またはパスワードが間違っています",
 	"Incorrect password": "パスワードが間違っています",
-	"Login": "ログイン",
+	"Login - {{authelia}}": "ログイン - {{authelia}}",
 	"Logout": "ログアウト",
 	"Manage devices": "デバイスの管理",
 	"Methods": "メソッド",

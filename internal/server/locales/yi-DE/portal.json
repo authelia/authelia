@@ -29,7 +29,7 @@
 	"Hi": "העלא",
 	"Incorrect username or password": "אין קעניגער מענטש אָדער פּאַראָל",
 	"Incorrect password": "אבעריק פּאַראָל",
-	"Login": "אינסטרוקציע",
+	"Login - {{authelia}}": "אינסטרוקציע - {{authelia}}",
 	"Logout": "אַליינאַר פאָרן",
 	"Manage devices": "מאַנאדזש דעוויסעס",
 	"Methods": "מעדאָוד",

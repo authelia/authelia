@@ -29,7 +29,7 @@
 	"Hi": "Hai",
 	"Incorrect username or password": "Nami pangguna atanapi sandi salah",
 	"Incorrect password": "Sandi salah",
-	"Login": "Asup",
+	"Login - {{authelia}}": "Asup - {{authelia}}",
 	"Logout": "Kaluar",
 	"Manage devices": "Ngatur alat",
 	"Methods": "Métode",

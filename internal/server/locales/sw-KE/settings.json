@@ -82,6 +82,7 @@
 	"Seconds": "Sekunde",
 	"Secret": "Siri",
 	"Settings": "Mipangilio",
+	"Settings - {{authelia}}": "Mipangilio - {{authelia}}",
 	"Start": "Anza",
 	"Successfully {{action}} the {{item}}": "Imefanikiwa {{action}} {{item}}",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "Changamoto ya uthibitisho ilikataa kama isiyo sahihi au isiyofanana na kivinjari chako",

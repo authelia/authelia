@@ -82,6 +82,7 @@
 	"Seconds": "सेकंड",
 	"Secret": "गुप्त",
 	"Settings": "सेटिंग्स",
+	"Settings - {{authelia}}": "सेटिंग्स - {{authelia}}",
 	"Start": "शुरू करें",
 	"Successfully {{action}} the {{item}}": "सफलतापूर्वक {{action}} किया गया {{item}}",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "प्रमाणन चुनौती को आपके ब्राउज़र द्वारा अपूर्ण या असंगत के रूप में अस्वीकार कर दिया गया",

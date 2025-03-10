@@ -82,6 +82,7 @@
 	"Seconds": "Sekundes",
 	"Secret": "Noslēpums",
 	"Settings": "Iestatījumi",
+	"Settings - {{authelia}}": "Iestatījumi - {{authelia}}",
 	"Start": "Sākt",
 	"Successfully {{action}} the {{item}}": "Veiksmīgi {{action}} {{item}}",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "Apstiprinājuma izaicinājums tika noraidīts kā nepareizs vai nesaderīgs ar jūsu pārlūkprogrammu",

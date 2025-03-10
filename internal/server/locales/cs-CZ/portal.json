@@ -29,7 +29,7 @@
 	"Hi": "Hi",
 	"Incorrect username or password": "Nesprávné uživatelské jméno nebo heslo",
 	"Incorrect password": "Nesprávné heslo",
-	"Login": "Přihlásit se",
+	"Login - {{authelia}}": "Přihlásit se - {{authelia}}",
 	"Logout": "Odhlásit se",
 	"Manage devices": "Spravovat zařízení",
 	"Methods": "Metody",

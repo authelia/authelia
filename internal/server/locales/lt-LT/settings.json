@@ -82,6 +82,7 @@
 	"Seconds": "Sekundės",
 	"Secret": "Paslaptis",
 	"Settings": "Nustatymai",
+	"Settings - {{authelia}}": "Nustatymai - {{authelia}}",
 	"Start": "Pradėti",
 	"Successfully {{action}} the {{item}}": "Sėkmingai {{action}} {{item}}",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "Patvirtinimo iššūkis buvo atmestas kaip neteisingas arba nesuderinamas jūsų naršyklėje",

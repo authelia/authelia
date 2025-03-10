@@ -29,7 +29,7 @@
 	"Hi": "Tere",
 	"Incorrect username or password": "Vale kasutajanimi või parool",
 	"Incorrect password": "Vale parooleht",
-	"Login": "Logige sisse",
+	"Login - {{authelia}}": "Logige sisse - {{authelia}}",
 	"Logout": "Logi välja",
 	"Manage devices": "Halda seadmeid",
 	"Methods": "Meetodid",

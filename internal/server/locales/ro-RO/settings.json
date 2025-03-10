@@ -89,6 +89,7 @@
 	"Seconds": "Secunde",
 	"Secret": "Secret",
 	"Settings": "Setări",
+	"Settings - {{authelia}}": "Setări - {{authelia}}",
 	"Start": "Pornire",
 	"Submit": "Trimiteți",
 	"Successfully {{action}} the {{item}}": "{{action}} {{item}} cu succes",

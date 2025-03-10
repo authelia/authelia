@@ -29,7 +29,7 @@
 	"Hi": "Hi",
 	"Incorrect username or password": "用户名或密码错误",
 	"Incorrect password": "密码错误",
-	"Login": "登录",
+	"Login - {{authelia}}": "登录 - {{authelia}}",
 	"Logout": "注销",
 	"Manage devices": "管理设备",
 	"Methods": "验证方法",

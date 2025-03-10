@@ -82,6 +82,7 @@
 	"Seconds": "Saniye",
 	"Secret": "Gizli",
 	"Settings": "Ayarlar",
+	"Settings - {{authelia}}": "Ayarlar - {{authelia}}",
 	"Start": "Başlat",
 	"Successfully {{action}} the {{item}}": "Başarıyla {{action}} {{item}}",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "Doğrulama meydan okuma, tarayıcınız tarafından geçersiz veya uyumsuz olarak reddedildi",

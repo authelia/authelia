@@ -29,7 +29,7 @@
 	"Hi": "Hi",
 	"Incorrect username or password": "Εσφαλμένο όνομα χρήστη ή κωδικός πρόσβασης",
 	"Incorrect password": "Εσφαλμένος κωδικός πρόσβασης",
-	"Login": "Είσοδος",
+	"Login - {{authelia}}": "Είσοδος - {{authelia}}",
 	"Logout": "Αποσύνδεση",
 	"Manage devices": "Διαχείριση συσκευών",
 	"Methods": "Μέθοδοι",

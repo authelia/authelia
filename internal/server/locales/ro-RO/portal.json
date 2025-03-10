@@ -29,7 +29,7 @@
 	"Hi": "Hi",
 	"Incorrect username or password": "Nume utilizator sau parolă incorecte",
 	"Incorrect password": "Parolă incorectă",
-	"Login": "Autentificare",
+	"Login - {{authelia}}": "Autentificare - {{authelia}}",
 	"Logout": "Deconectare",
 	"Manage devices": "Gestionați dispozitivele",
 	"Methods": "Metode",

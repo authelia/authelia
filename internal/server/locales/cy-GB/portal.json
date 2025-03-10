@@ -29,7 +29,7 @@
 	"Hi": "Helo",
 	"Incorrect username or password": "Enw defnyddiwr neu gyfrinair anghywir",
 	"Incorrect password": "Cyfrinair anghywir",
-	"Login": "Mewngofnod",
+	"Login - {{authelia}}": "Mewngofnod - {{authelia}}",
 	"Logout": "Allgofnodi",
 	"Manage devices": "Rheoli dyfeisiau",
 	"Methods": "Dulliau",

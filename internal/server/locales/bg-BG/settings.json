@@ -82,6 +82,7 @@
 	"Seconds": "Секунди",
 	"Secret": "Тайна",
 	"Settings": "Настройки",
+	"Settings - {{authelia}}": "Настройки - {{authelia}}",
 	"Start": "Започнете",
 	"Successfully {{action}} the {{item}}": "Успешно {{action}} {{item}}",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "Предизвикателството за удостоверяване беше отказано като невалидно или несъвместимо от вашия браузър",

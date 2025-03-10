@@ -29,7 +29,7 @@
 	"Hi": "Merhaba",
 	"Incorrect username or password": "Kullanıcı adı veya şifre hatalı",
 	"Incorrect password": "Yanlış şifre",
-	"Login": "Giriş",
+	"Login - {{authelia}}": "Giriş - {{authelia}}",
 	"Logout": "Oturumu kapat",
 	"Manage devices": "Aygıtları yönet",
 	"Methods": "Yöntemler",

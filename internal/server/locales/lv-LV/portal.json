@@ -29,7 +29,7 @@
 	"Hi": "Sveiki",
 	"Incorrect username or password": "Nepareizs lietotājvārds vai parole",
 	"Incorrect password": "Nepareiza parole",
-	"Login": "Pieteikšanās",
+	"Login - {{authelia}}": "Pieteikšanās - {{authelia}}",
 	"Logout": "Iziet",
 	"Manage devices": "Pārvaldīt ierīces",
 	"Methods": "Metodes",
