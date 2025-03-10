@@ -14,9 +14,9 @@ import (
 	"golang.org/x/text/language/display"
 )
 
-// GetCustomLanguages return the available languages info form specified path.
-func GetCustomLanguages(dir string) (languages *Languages, err error) {
-	fileSystem := os.DirFS(dir)
+// GetDirectoryLanguages returns the languages information from a given directory.
+func GetDirectoryLanguages(path string) (languages *Languages, err error) {
+	fileSystem := os.DirFS(path)
 
 	lng, err := getLanguages(fileSystem)
 	if err != nil {
@@ -26,7 +26,7 @@ func GetCustomLanguages(dir string) (languages *Languages, err error) {
 	return lng, nil
 }
 
-// GetLanguagesFromPath return the available languages info form specified path.
+// GetEmbeddedLanguages returns the available languages info from an embed.FS.
 func GetEmbeddedLanguages(fs embed.FS) (languages *Languages, err error) {
 	return getLanguages(fs)
 }
@@ -101,10 +101,10 @@ func getLanguages(dir fs.FS) (languages *Languages, err error) {
 			return fmt.Errorf("failed to parse language '%s': %w", locale, err)
 		}
 
-		caser := cases.Title(tag)
+		langDisplay := cases.Title(tag)
 
 		l := Language{
-			Display:    caser.String(display.Self.Name(tag)),
+			Display:    langDisplay.String(display.Self.Name(tag)),
 			Locale:     locale,
 			Namespaces: []string{ns},
 			Fallbacks:  []string{languages.Defaults.Language.Locale},
@@ -153,9 +153,9 @@ func getLanguages(dir fs.FS) (languages *Languages, err error) {
 			continue
 		}
 
-		caser := cases.Title(lang.Tag)
+		fallbackDisplay := cases.Title(lang.Tag)
 		l := Language{
-			Display:    caser.String(display.Self.Name(p)),
+			Display:    fallbackDisplay.String(display.Self.Name(p)),
 			Locale:     parentString,
 			Namespaces: lang.Namespaces,
 			Fallbacks:  []string{languages.Defaults.Language.Locale},
@@ -170,7 +170,15 @@ func getLanguages(dir fs.FS) (languages *Languages, err error) {
 	languages.Languages = append(languages.Languages, langs...)
 
 	sort.Slice(languages.Languages, func(i, j int) bool {
-		return languages.Languages[i].Locale == localeDefault || languages.Languages[i].Locale < languages.Languages[j].Locale
+		if languages.Languages[i].Locale == localeDefault {
+			return true
+		}
+
+		if languages.Languages[j].Locale == localeDefault {
+			return false
+		}
+
+		return languages.Languages[i].Locale < languages.Languages[j].Locale
 	})
 
 	return languages, nil
@@ -187,6 +195,7 @@ func GetLocaleParentOrBaseString(locale string) (string, error) {
 
 	if parent.String() == undefinedLocaleTag || strings.Contains(parent.String(), "-") {
 		base, _ := tag.Base()
+
 		return base.String(), nil
 	}
 

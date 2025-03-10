@@ -59,7 +59,7 @@ const AppBarItemLanguage = function (props: Props) {
         }
 
         console.error(
-            `Error determining display language for locale ${locale} (the locale is going to be displayed instead): the locale is not known by the browser, golang, and does not have a distinct fallback configured`,
+            `Error determining display value for locale ${locale} as it's unknown by both the browser and Golang, and does not have a unique fallback configured. Using the raw locale instead.`,
         );
 
         return browser || locale;

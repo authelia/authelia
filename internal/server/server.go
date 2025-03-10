@@ -17,13 +17,19 @@ import (
 
 // New Create Authelia's internal web server with the given configuration and providers.
 func New(config *schema.Configuration, providers middlewares.Providers) (server *fasthttp.Server, listener net.Listener, paths []string, isTLS bool, err error) {
+	var handler fasthttp.RequestHandler
+
 	if err = providers.Templates.LoadTemplatedAssets(assets); err != nil {
 		return nil, nil, nil, false, fmt.Errorf("error occurred initializing main server: error occurred loading templated assets: %w", err)
 	}
 
+	if handler, err = handlerMain(config, providers); err != nil {
+		return nil, nil, nil, false, fmt.Errorf("error occurred initializing main server: error occurred loading handler: %w", err)
+	}
+
 	server = &fasthttp.Server{
 		ErrorHandler:          handleError("server"),
-		Handler:               handleRouter(config, providers),
+		Handler:               handler,
 		NoDefaultServerHeader: true,
 		ReadBufferSize:        config.Server.Buffers.Read,
 		WriteBufferSize:       config.Server.Buffers.Write,
@@ -96,7 +102,7 @@ func NewMetrics(config *schema.Configuration, providers middlewares.Providers) (
 	server = &fasthttp.Server{
 		ErrorHandler:          handleError("telemetry.metrics"),
 		NoDefaultServerHeader: true,
-		Handler:               handleMetrics(config.Telemetry.Metrics.Address.RouterPath()),
+		Handler:               handlerMetrics(config.Telemetry.Metrics.Address.RouterPath()),
 		ReadBufferSize:        config.Telemetry.Metrics.Buffers.Read,
 		WriteBufferSize:       config.Telemetry.Metrics.Buffers.Write,
 		ReadTimeout:           config.Telemetry.Metrics.Timeouts.Read,

@@ -267,29 +267,28 @@ func hfsHandleErr(ctx *fasthttp.RequestCtx, err error) {
 }
 
 // newLocalesListHandler handles request for obtaining the available locales in backend.
-func newLocalesListHandler() (handler func(ctx *middlewares.AutheliaCtx)) {
+func newLocalesListHandler() (handler func(ctx *middlewares.AutheliaCtx), err error) {
 	var (
 		data []byte
-		err  error
 	)
 
 	// preload embedded locales.
 	localeInfo, err := utils.GetEmbeddedLanguages(locales)
 	if err != nil {
-		panic(errCantLoadLocaleInfo + err.Error())
+		return nil, fmt.Errorf("error occurred initializing the locale list handler: error occurrred loading embedded languages: %w", err)
 	}
 
+	// parse embedded locales.
+	data, err = json.Marshal(middlewares.OKResponse{Status: "OK", Data: localeInfo})
+
+	if err != nil {
+		return nil, fmt.Errorf("error occurred initializing the locale list handler: error occurrred marshalling the locale list: %w", err)
+	}
+
+	// generate etag for embedded locales.
+	etag := generateEtag(data)
+
 	return func(ctx *middlewares.AutheliaCtx) {
-		// parse embedded locales.
-		data, err = json.Marshal(middlewares.OKResponse{Status: "OK", Data: localeInfo})
-
-		if err != nil {
-			ctx.Logger.Errorf("Unable to marshal locales: %s", err)
-		}
-
-		// generate etag for embedded locales.
-		etag := generateEtag(data)
-
 		ctx.Response.Header.SetBytesKV(headerETag, etag)
 		ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueCacheControlETaggedAssets)
 
@@ -309,7 +308,7 @@ func newLocalesListHandler() (handler func(ctx *middlewares.AutheliaCtx)) {
 		default:
 			ctx.SetBody(data)
 		}
-	}
+	}, nil
 }
 
 // generateEtag generates a unique etag for specified payload.

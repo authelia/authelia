@@ -26,6 +26,7 @@ func newLocalesCmd() *cobra.Command {
 func localesRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
 		root, pathLocales     string
+		pathWebI18NIndex      string
 		pathDocsDataLanguages string
 	)
 
@@ -37,34 +38,34 @@ func localesRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	// if pathWebI18NIndex, err = getPFlagPath(cmd.Flags(), cmdFlagRoot, cmdFlagWeb, cmdFlagFileWebI18N); err != nil {
-	// 	return err
-	// }.
+	if pathWebI18NIndex, err = getPFlagPath(cmd.Flags(), cmdFlagRoot, cmdFlagWeb, cmdFlagFileWebI18N); err != nil {
+		return err
+	}
 
 	if pathDocsDataLanguages, err = getPFlagPath(cmd.Flags(), cmdFlagRoot, cmdFlagDocs, cmdFlagDocsData, cmdFlagDocsDataLanguages); err != nil {
 		return err
 	}
 
-	data, err := utils.GetCustomLanguages(filepath.Join(root, pathLocales))
+	data, err := utils.GetDirectoryLanguages(filepath.Join(root, pathLocales))
 	if err != nil {
 		return err
 	}
 
-	// fullPathWebI18NIndex := filepath.Join(root, pathWebI18NIndex).
+	fullPathWebI18NIndex := filepath.Join(root, pathWebI18NIndex)
 
 	var (
 		f *os.File
 	)
 
-	// if f, err = os.Create(fullPathWebI18NIndex); err != nil {
-	// 	return fmt.Errorf("failed to create file '%s': %w", fullPathWebI18NIndex, err)
-	// }.
+	if f, err = os.Create(fullPathWebI18NIndex); err != nil {
+		return fmt.Errorf("failed to create file '%s': %w", fullPathWebI18NIndex, err)
+	}
 
-	// if err = tmplWebI18NIndex.Execute(f, data); err != nil {
-	// 	return err
-	// }.
+	if err = tmplWebI18NIndex.Execute(f, data); err != nil {
+		return err
+	}
 
-	// _ = f.Close().
+	_ = f.Close()
 
 	fullPathDocsDataLanguages := filepath.Join(root, pathDocsDataLanguages)
 
@@ -79,6 +80,8 @@ func localesRunE(cmd *cobra.Command, args []string) (err error) {
 	if err = encoder.Encode(data); err != nil {
 		return fmt.Errorf("failed to encode json data: %w", err)
 	}
+
+	_ = f.Close()
 
 	return nil
 }
