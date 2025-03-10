@@ -457,7 +457,7 @@ identity_validation:
     # implementation: 'custom'
 
     ## The dial timeout for LDAP in the duration common syntax.
-    # timeout: '5 seconds'
+    # timeout: '20 seconds'
 
     ## Use StartTLS with the LDAP connection.
     # start_tls: false

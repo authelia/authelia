@@ -129,7 +129,7 @@ type AuthenticationBackendFilePasswordSCrypt struct {
 type AuthenticationBackendLDAP struct {
 	Address        *AddressLDAP  `koanf:"address" json:"address" jsonschema:"title=Address" jsonschema_description:"The address of the LDAP directory server."`
 	Implementation string        `koanf:"implementation" json:"implementation" jsonschema:"default=custom,enum=custom,enum=activedirectory,enum=rfc2307bis,enum=freeipa,enum=lldap,enum=glauth,title=Implementation" jsonschema_description:"The implementation which mostly decides the default values."`
-	Timeout        time.Duration `koanf:"timeout" json:"timeout" jsonschema:"default=5 seconds,title=Timeout" jsonschema_description:"The LDAP directory server connection timeout."`
+	Timeout        time.Duration `koanf:"timeout" json:"timeout" jsonschema:"default=20 seconds,title=Timeout" jsonschema_description:"The LDAP directory server connection timeout."`
 	StartTLS       bool          `koanf:"start_tls" json:"start_tls" jsonschema:"default=false,title=StartTLS" jsonschema_description:"Enables the use of StartTLS."`
 	TLS            *TLS          `koanf:"tls" json:"tls" jsonschema:"title=TLS" jsonschema_description:"The LDAP directory server TLS connection properties."`
 
@@ -257,7 +257,7 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationCustom = Authenti
 		Mail:        ldapAttrMail,
 		GroupName:   ldapAttrCommonName,
 	},
-	Timeout: time.Second * 5,
+	Timeout: time.Second * 20,
 	Pooling: AuthenticationBackendLDAPPooling{
 		Count:   5,
 		Retries: 2,
