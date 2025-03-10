@@ -21,8 +21,6 @@ const Fallbacks: { [id: string]: string } = {
     vec: "vèneto",
 };
 
-const ITEM_HEIGHT = 80;
-
 const AppBarItemLanguage = function (props: Props) {
     const { t: translate } = useTranslation();
     const theme = useTheme();
@@ -159,7 +157,7 @@ const AppBarItemLanguage = function (props: Props) {
                     paper: {
                         elevation: 0,
                         style: {
-                            maxHeight: ITEM_HEIGHT * 4.5,
+                            maxHeight: "45vh",
                         },
                         sx: {
                             filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
@@ -180,14 +178,9 @@ const AppBarItemLanguage = function (props: Props) {
             >
                 {items.map((language) => {
                     return (
-                        <Fragment>
-                            <MenuItem
-                                key={language.locale}
-                                value={language.locale}
-                                selected={props.localeCurrent === language.locale}
-                            >
+                        <Fragment key={language.locale}>
+                            <MenuItem value={language.locale} selected={props.localeCurrent === language.locale}>
                                 <ListItemText
-                                    key={`item-${language.locale}`}
                                     onClick={
                                         language.children.length <= 1
                                             ? () => handleChange(language)
@@ -197,20 +190,13 @@ const AppBarItemLanguage = function (props: Props) {
                                     {language.display} ({language.locale})
                                 </ListItemText>
                                 {language.children.length <= 1 ? null : expanded === language.locale ? (
-                                    <ExpandLess
-                                        key={`expand-${language.locale}`}
-                                        onClick={() => handleCollapse(language.locale)}
-                                    />
+                                    <ExpandLess onClick={() => handleCollapse(language.locale)} />
                                 ) : (
-                                    <ExpandMore
-                                        key={`expand-${language.locale}`}
-                                        onClick={() => handleCollapse(language.locale)}
-                                    />
+                                    <ExpandMore onClick={() => handleCollapse(language.locale)} />
                                 )}
                             </MenuItem>
                             {language.children.length <= 1 ? null : (
                                 <Collapse
-                                    key={`collapse-${language.locale}`}
                                     in={expanded === language.locale}
                                     timeout="auto"
                                     onClick={() => handleCollapse(language.locale)}
@@ -218,12 +204,12 @@ const AppBarItemLanguage = function (props: Props) {
                                     {language.children.map((child) => {
                                         return (
                                             <MenuItem
-                                                key={`child-${child.locale}`}
+                                                key={`${language.locale}-child-${child.locale}`}
                                                 onClick={() => handleChange(child)}
                                                 value={child.locale}
                                                 selected={props.localeCurrent === language.locale}
                                             >
-                                                <ListItemText key={`item-${child.locale}`}>
+                                                <ListItemText>
                                                     &nbsp;&nbsp;{child.display} ({child.locale})
                                                 </ListItemText>
                                             </MenuItem>
