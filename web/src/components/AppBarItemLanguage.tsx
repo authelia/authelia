@@ -156,10 +156,8 @@ const AppBarItemLanguage = function (props: Props) {
                     },
                     paper: {
                         elevation: 0,
-                        style: {
-                            maxHeight: "45vh",
-                        },
                         sx: {
+                            maxHeight: { xs: "80vh", sm: "70vh", md: "50vh", lg: "40vh" },
                             filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
                             "&::before": {
                                 content: '""',
