@@ -208,11 +208,11 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 	// Locales.
 	r.GET("/locales", middlewareAPI(handlerLocalesList))
 
-	r.HEAD("/locales/{language:[a-z]{1,3}}-{variant:[a-zA-Z0-9-]+}/{namespace:[a-z]+}.json", middlewareAPI(handlerLocales))
-	r.GET("/locales/{language:[a-z]{1,3}}-{variant:[a-zA-Z0-9-]+}/{namespace:[a-z]+}.json", middlewareAPI(handlerLocales))
+	r.HEAD("/locales/{language:[a-z]{1,3}}-{variant:[a-zA-Z0-9-]+}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, middlewareAPI(handlerLocales)))
+	r.GET("/locales/{language:[a-z]{1,3}}-{variant:[a-zA-Z0-9-]+}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, middlewareAPI(handlerLocales)))
 
-	r.HEAD("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middlewareAPI(handlerLocales))
-	r.GET("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middlewareAPI(handlerLocales))
+	r.HEAD("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, middlewareAPI(handlerLocales)))
+	r.GET("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, middlewareAPI(handlerLocales)))
 
 	r.HEAD("/api/health", middlewareAPI(handlers.HealthGET))
 	r.GET("/api/health", middlewareAPI(handlers.HealthGET))
