@@ -219,7 +219,7 @@ const AppBarItemLanguage = function (props: Props) {
                                                 key={`${language.locale}-child-${child.locale}`}
                                                 onClick={() => handleChange(child)}
                                                 value={child.locale}
-                                                selected={props.localeCurrent === language.locale}
+                                                selected={props.localeCurrent === child.locale}
                                             >
                                                 <ListItemText>
                                                     &nbsp;&nbsp;{child.display} ({child.locale})

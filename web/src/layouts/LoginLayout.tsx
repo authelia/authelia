@@ -11,12 +11,11 @@ import Brand from "@components/Brand";
 import PrivacyPolicyDrawer from "@components/PrivacyPolicyDrawer";
 import TypographyWithTooltip from "@components/TypographyWithTooltip";
 import { EncodedName } from "@constants/constants";
-import { LocalStorageLanguagePreference } from "@constants/LocalStorage";
+import { useLanguageContext } from "@contexts/LanguageContext";
 import { Language } from "@models/LocaleInformation";
 import { UserInfo } from "@models/UserInfo";
 import { getLocaleInformation } from "@services/LocaleInformation";
 import { getLogoOverride } from "@utils/Configuration";
-import { localStoreSet } from "@utils/localStorage";
 
 export interface Props {
     id?: string;
@@ -29,9 +28,9 @@ export interface Props {
 }
 
 const LoginLayout = function (props: Props) {
-    const { t: translate, i18n } = useTranslation();
+    const { t: translate } = useTranslation();
+    const { locale, setLocale } = useLanguageContext();
 
-    const [localeCurrent, setLocaleCurrent] = useState(i18n.language);
     const [localeList, setLocaleList] = useState<Language[]>([]);
 
     const styles = useStyles();
@@ -44,9 +43,7 @@ const LoginLayout = function (props: Props) {
 
     // handle the language selection
     const handleChangeLanguage = (locale: string) => {
-        setLocaleCurrent(locale);
-        i18n.changeLanguage(locale).then();
-        localStoreSet(LocalStorageLanguagePreference, locale);
+        setLocale(locale);
     };
 
     const fetchLocaleInformation = useCallback(async () => {
@@ -74,7 +71,7 @@ const LoginLayout = function (props: Props) {
                 userInfo={props.userInfo}
                 onLocaleChange={handleChangeLanguage}
                 localeList={localeList}
-                localeCurrent={localeCurrent}
+                localeCurrent={locale}
             />
             <Grid
                 id={props.id}

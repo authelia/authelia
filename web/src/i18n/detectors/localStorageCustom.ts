@@ -1,8 +1,7 @@
 import { CustomDetector, DetectorOptions } from "i18next-browser-languagedetector";
 
 import { LocalStorageLanguagePreference } from "@constants/LocalStorage";
-import { getLocalStorage } from "@services/LocalStorage";
-import { localStorageAvailable } from "@utils/localStorage";
+import { getLocalStorage, localStorageAvailable } from "@services/LocalStorage";
 
 const LocalStorageCustomDetector: CustomDetector = {
     name: "localStorageCustom",
