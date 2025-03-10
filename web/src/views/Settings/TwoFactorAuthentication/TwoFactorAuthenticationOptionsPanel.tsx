@@ -100,7 +100,7 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
                         <Grid size={{ xs: 12 }}>
                             <Grid container spacing={2} padding={2}>
                                 {method === undefined ? null : (
-                                    <Grid size={{ xs: 4 }}>
+                                    <Grid size={{ xs: 12, md: 4 }}>
                                         <TwoFactorAuthenticationOptionsMethodsRadioGroup
                                             id={"account"}
                                             name={"Default Method"}
@@ -111,7 +111,7 @@ const TwoFactorAuthenticationOptionsPanel = function (props: Props) {
                                     </Grid>
                                 )}
                                 {!localStorageMethodAvailable || localStorageMethod === undefined ? null : (
-                                    <Grid size={{ xs: 4 }}>
+                                    <Grid size={{ xs: 12, md: 4 }}>
                                         <TwoFactorAuthenticationOptionsMethodsRadioGroup
                                             id={"local"}
                                             name={"Default Method (Browser)"}
