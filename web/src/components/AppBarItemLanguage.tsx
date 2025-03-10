@@ -96,32 +96,46 @@ const AppBarItemLanguage = function (props: Props) {
         const locales = props.localeList;
 
         const items: Locale[] = locales.filter(filterParent).map((parent) => {
-            const language = {
+            return {
                 display: handleLanguageDisplayName(parent.locale, parent.display),
                 locale: parent.locale,
                 children: locales.filter(filterChildren(parent)).map((child) => {
-                    const childLanguage = {
+                    return {
                         display: handleLanguageDisplayName(child.locale, child.display),
                         locale: child.locale,
                     };
-
-                    if (props.localeCurrent === childLanguage.locale) {
-                        setCurrent(childLanguage);
-                    }
-
-                    return childLanguage;
                 }),
             };
-
-            if (props.localeCurrent === language.locale) {
-                setCurrent(language);
-            }
-
-            return language;
         });
 
         setItems(items);
-    }, [props.localeList, props.localeCurrent, render, handleLanguageDisplayName]);
+    }, [props.localeList, render, handleLanguageDisplayName]);
+
+    useEffect(() => {
+        let localeNew: ChildLocale | null = null;
+
+        for (const parent of items) {
+            if (parent.locale === props.localeCurrent) {
+                localeNew = parent;
+                break;
+            }
+
+            for (const child of parent.children) {
+                if (child.locale === props.localeCurrent) {
+                    localeNew = child;
+                    break;
+                }
+            }
+
+            if (localeNew) {
+                break;
+            }
+        }
+
+        if (localeNew) {
+            setCurrent(localeNew);
+        }
+    }, [items, props.localeCurrent]);
 
     useEffect(() => {
         generate();
