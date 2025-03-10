@@ -65,6 +65,7 @@
 	"Security Key": "Säkerhetsnyckel",
 	"Select a Device": "Välj en enhet",
 	"Sign in": "Logga in",
+	"Sign in with a passkey": "Logga in med ett lösenord",
 	"Sign out": "Logga ut",
 	"Successfully revoked the One-Time Code": "Framgångsrikt återkallat engångskoden",
 	"Successfully revoked the Token": "Lyckades återkalla token",

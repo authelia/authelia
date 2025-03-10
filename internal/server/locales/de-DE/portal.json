@@ -65,6 +65,7 @@
 	"Security Key": "Sicherheitsschlüssel",
 	"Select a Device": "Gerät auswählen",
 	"Sign in": "Anmelden",
+	"Sign in with a passkey": "Mit einem Passwort anmelden",
 	"Sign out": "Abmelden",
 	"Successfully revoked the One-Time Code": "Einmal-Code erfolgreich widerrufen",
 	"Successfully revoked the Token": "Token erfolgreich widerrufen",
