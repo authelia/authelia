@@ -8,7 +8,7 @@ import {
     ResetPasswordPath,
     validateStatusTooManyRequests,
 } from "@services/Api";
-import { PostWithOptionalResponse, PostWithOptionalResponseRateLimited } from "@services/Client.ts";
+import { PostWithOptionalResponse, PostWithOptionalResponseRateLimited } from "@services/Client";
 
 export async function initiateResetPasswordProcess(username: string) {
     return PostWithOptionalResponseRateLimited(InitiateResetPasswordPath, { username });

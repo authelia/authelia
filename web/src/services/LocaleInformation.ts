@@ -7,8 +7,8 @@ interface LocaleInformationPayload {
         language: DefaultLanguage;
         namespace: string;
     };
-    namespaces: Array<string>;
-    languages: Array<Language>;
+    namespaces: string[];
+    languages: Language[];
 }
 
 export async function getLocaleInformation(): Promise<LocaleInformation> {

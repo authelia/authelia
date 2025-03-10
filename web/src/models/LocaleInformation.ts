@@ -3,8 +3,8 @@ export interface LocaleInformation {
         language: DefaultLanguage;
         namespace: string;
     };
-    namespaces: Array<string>;
-    languages: Array<Language>;
+    namespaces: string[];
+    languages: Language[];
 }
 
 export interface DefaultLanguage {
@@ -15,8 +15,17 @@ export interface DefaultLanguage {
 
 export interface Language {
     display: string;
-    fallbacks: Array<string>;
+    fallbacks: string[];
     locale: string;
-    namespaces: Array<string>;
+    namespaces: string[];
     parent?: string;
+}
+
+export interface ChildLocale {
+    display: string;
+    locale: string;
+}
+
+export interface Locale extends ChildLocale {
+    children: ChildLocale[];
 }
