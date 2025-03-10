@@ -83,47 +83,53 @@ func newPublicHTMLEmbeddedHandler() fasthttp.RequestHandler {
 }
 
 //nolint:gocyclo
-func newLocalesPathResolver() func(ctx *middlewares.AutheliaCtx) (supported bool, asset string, embedded bool) {
+func newLocalesPathResolver() (handler func(ctx *middlewares.AutheliaCtx) (supported bool, asset string, embedded bool), err error) {
 	var (
 		languages, embededDirs []string
 		aliases                = map[string]string{}
+		entries                []fs.DirEntry
 	)
 
-	entries, err := locales.ReadDir("locales")
-	if err == nil {
-		for _, entry := range entries {
-			if entry.IsDir() {
-				var lng string
+	if entries, err = locales.ReadDir("locales"); err != nil {
+		return nil, err
+	}
 
-				if lng, err = utils.GetLocaleParentOrBaseString(entry.Name()); err != nil {
-					continue
-				}
+	for _, entry := range entries {
+		if entry.IsDir() {
+			var lng string
 
-				if !utils.IsStringInSlice(entry.Name(), embededDirs) {
-					embededDirs = append(embededDirs, entry.Name())
-				}
-
-				if utils.IsStringInSlice(lng, languages) {
-					continue
-				}
-
-				languages = append(languages, lng)
+			if lng, err = utils.GetLocaleParentOrBaseString(entry.Name()); err != nil {
+				continue
 			}
+
+			if !utils.IsStringInSlice(entry.Name(), embededDirs) {
+				embededDirs = append(embededDirs, entry.Name())
+			}
+
+			if utils.IsStringInSlice(lng, languages) {
+				continue
+			}
+
+			languages = append(languages, lng)
 		}
 	}
 
 	// generate list of macro to micro locale aliases.
-	if localeInfo, err := utils.GetEmbeddedLanguages(locales); err == nil {
-		for _, v := range localeInfo.Languages {
-			if v.Parent == "" {
-				continue
-			}
+	var languagesInfo *utils.Languages
 
-			_, ok := aliases[v.Parent]
+	if languagesInfo, err = utils.GetEmbeddedLanguages(locales); err != nil {
+		return nil, err
+	}
 
-			if !ok {
-				aliases[v.Parent] = v.Locale
-			}
+	for _, v := range languagesInfo.Languages {
+		if v.Parent == "" {
+			continue
+		}
+
+		_, ok := aliases[v.Parent]
+
+		if !ok {
+			aliases[v.Parent] = v.Locale
 		}
 	}
 
@@ -164,15 +170,19 @@ func newLocalesPathResolver() func(ctx *middlewares.AutheliaCtx) (supported bool
 		default:
 			return true, fmt.Sprintf("locales/%s/%s.json", locale, namespace), true
 		}
-	}
+	}, nil
 }
 
-func newLocalesEmbeddedHandler() (handler func(ctx *middlewares.AutheliaCtx)) {
+func newLocalesEmbeddedHandler() (handler func(ctx *middlewares.AutheliaCtx), err error) {
 	etags := map[string][]byte{}
 
 	getEmbedETags(locales, "locales", etags)
 
-	getAssetName := newLocalesPathResolver()
+	var getAssetName func(ctx *middlewares.AutheliaCtx) (supported bool, asset string, embedded bool)
+
+	if getAssetName, err = newLocalesPathResolver(); err != nil {
+		return nil, fmt.Errorf("error occurred initializing the embedded locales handler: %w", err)
+	}
 
 	return func(ctx *middlewares.AutheliaCtx) {
 		supported, asset, useEmbeded := getAssetName(ctx)
@@ -223,7 +233,7 @@ func newLocalesEmbeddedHandler() (handler func(ctx *middlewares.AutheliaCtx)) {
 		default:
 			ctx.SetBody(data)
 		}
-	}
+	}, nil
 }
 
 func getEmbedETags(embedFS embed.FS, root string, etags map[string][]byte) {
@@ -275,14 +285,14 @@ func newLocalesListHandler() (handler func(ctx *middlewares.AutheliaCtx), err er
 	// preload embedded locales.
 	localeInfo, err := utils.GetEmbeddedLanguages(locales)
 	if err != nil {
-		return nil, fmt.Errorf("error occurred initializing the locale list handler: error occurrred loading embedded languages: %w", err)
+		return nil, fmt.Errorf("error occurred initializing the locale list handler: error occurred loading embedded languages: %w", err)
 	}
 
 	// parse embedded locales.
 	data, err = json.Marshal(middlewares.OKResponse{Status: "OK", Data: localeInfo})
 
 	if err != nil {
-		return nil, fmt.Errorf("error occurred initializing the locale list handler: error occurrred marshalling the locale list: %w", err)
+		return nil, fmt.Errorf("error occurred initializing the locale list handler: error occurred marshalling the locale list: %w", err)
 	}
 
 	// generate etag for embedded locales.

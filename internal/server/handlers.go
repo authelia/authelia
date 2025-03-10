@@ -122,8 +122,6 @@ type RegisterRoutesBridgedFunc = func(r *router.Router, config *schema.Configura
 
 //nolint:gocyclo
 func handlerMain(config *schema.Configuration, providers middlewares.Providers) (handler fasthttp.RequestHandler, err error) {
-	var handlerLocalesList middlewares.RequestHandler
-
 	optsTemplatedFile := NewTemplatedFileOptions(config)
 
 	serveIndexHandler := ServeTemplatedFile(providers.Templates.GetAssetIndexTemplate(), optsTemplatedFile)
@@ -131,7 +129,15 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 	serveOpenAPISpecHandler := ETagRootURL(ServeTemplatedOpenAPI(providers.Templates.GetAssetOpenAPISpecTemplate(), optsTemplatedFile))
 
 	handlerPublicHTML := newPublicHTMLEmbeddedHandler()
-	handlerLocales := newLocalesEmbeddedHandler()
+
+	var (
+		handlerLocales, handlerLocalesList middlewares.RequestHandler
+	)
+
+	if handlerLocales, err = newLocalesEmbeddedHandler(); err != nil {
+		return nil, err
+	}
+
 	if handlerLocalesList, err = newLocalesListHandler(); err != nil {
 		return nil, err
 	}

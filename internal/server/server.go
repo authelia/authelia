@@ -24,7 +24,7 @@ func New(config *schema.Configuration, providers middlewares.Providers) (server 
 	}
 
 	if handler, err = handlerMain(config, providers); err != nil {
-		return nil, nil, nil, false, fmt.Errorf("error occurred initializing main server: error occurred loading handler: %w", err)
+		return nil, nil, nil, false, fmt.Errorf("error occurred initializing main server: error occurred loading the handlers: %w", err)
 	}
 
 	server = &fasthttp.Server{
