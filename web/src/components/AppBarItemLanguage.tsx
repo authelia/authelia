@@ -96,7 +96,7 @@ const AppBarItemLanguage = function (props: Props) {
         const locales = props.localeList;
 
         const items: Locale[] = locales.filter(filterParent).map((parent) => {
-            return {
+            const locale: Locale = {
                 display: handleLanguageDisplayName(parent.locale, parent.display),
                 locale: parent.locale,
                 children: locales.filter(filterChildren(parent)).map((child) => {
@@ -106,6 +106,12 @@ const AppBarItemLanguage = function (props: Props) {
                     };
                 }),
             };
+
+            if (locale.children.length === 1) {
+                locale.locale = locale.children[0].locale;
+            }
+
+            return locale;
         });
 
         setItems(items);

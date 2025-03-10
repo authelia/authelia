@@ -146,8 +146,6 @@ func newLocalesPathResolver() (handler func(ctx *middlewares.AutheliaCtx) (suppo
 		}
 	}
 
-	aliases["no"] = "nb"
-
 	return func(ctx *middlewares.AutheliaCtx) (supported bool, asset string, embedded bool) {
 		var language, namespace, variant, locale string
 
