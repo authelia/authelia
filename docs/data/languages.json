@@ -246,6 +246,7 @@
             "display": "Español",
             "locale": "es",
             "namespaces": [
+                "consent",
                 "portal",
                 "settings"
             ],
@@ -255,8 +256,8 @@
             "parent": ""
         },
         {
-            "display": "Español Latinoamericano",
-            "locale": "es-419",
+            "display": "Español De España",
+            "locale": "es-ES",
             "namespaces": [
                 "consent",
                 "portal",
@@ -766,6 +767,20 @@
                 "en"
             ],
             "parent": ""
+        },
+        {
+            "display": "Norsk Bokmål",
+            "locale": "nb-NO",
+            "namespaces": [
+                "consent",
+                "portal",
+                "settings"
+            ],
+            "fallbacks": [
+                "nb",
+                "en"
+            ],
+            "parent": "nb"
         },
         {
             "display": "नेपाली",
