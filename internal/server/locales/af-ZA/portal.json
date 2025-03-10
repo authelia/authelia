@@ -29,7 +29,7 @@
 	"Hi": "Hallo",
 	"Incorrect username or password": "Verkeerde gebruikersnaam of wagwoord",
 	"Incorrect password": "Onjuiste wagwoord",
-	"Login": "Teken in",
+	"Login - {{authelia}}": "Teken in - {{authelia}}",
 	"Logout": "Teken uit",
 	"Manage devices": "Bestuur toestelle",
 	"Methods": "Metodes",

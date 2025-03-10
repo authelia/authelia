@@ -89,6 +89,7 @@
 	"Seconds": "Sekunder",
 	"Secret": "Kod",
 	"Settings": "Inställningar",
+	"Settings - {{authelia}}": "Inställningar - {{authelia}}",
 	"Start": "Starta",
 	"Submit": "Skicka",
 	"Successfully {{action}} the {{item}}": "{{action}} den {{item}}",

@@ -29,7 +29,7 @@
 	"Hi": "Hi",
 	"Incorrect username or password": "Incorrect username or password",
 	"Incorrect password": "Incorrect password",
-	"Login": "Login",
+	"Login - {{authelia}}": "Login - {{authelia}}",
 	"Logout": "Logout",
 	"Manage devices": "Manage devices",
 	"Methods": "Methods",

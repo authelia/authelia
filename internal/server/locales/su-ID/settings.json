@@ -82,6 +82,7 @@
 	"Seconds": "Detik",
 	"Secret": "Rahasia",
 	"Settings": "Setélan",
+	"Settings - {{authelia}}": "Setélan - {{authelia}}",
 	"Start": "Mimitian",
 	"Successfully {{action}} the {{item}}": "Sukses {{action}} {{item}}",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "Tantangan attestation ditolak salaku malformed atanapi henteu cocog ku panyungsi anjeun",

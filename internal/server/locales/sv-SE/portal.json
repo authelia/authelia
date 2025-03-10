@@ -29,7 +29,7 @@
 	"Hi": "Hej!",
 	"Incorrect username or password": "Felaktigt användarnamn eller lösenord",
 	"Incorrect password": "Felaktigt lösenord",
-	"Login": "Inloggning",
+	"Login - {{authelia}}": "Inloggning - {{authelia}}",
 	"Logout": "Logga ut",
 	"Manage devices": "Hantera enheter",
 	"Methods": "Metoder",

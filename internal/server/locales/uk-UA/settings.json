@@ -89,6 +89,7 @@
 	"Seconds": "Секунд",
 	"Secret": "Секрет",
 	"Settings": "Налаштування",
+	"Settings - {{authelia}}": "Налаштування - {{authelia}}",
 	"Start": "Старт",
 	"Submit": "Ввести",
 	"Successfully {{action}} the {{item}}": "Успішно {{action}} {{item}}",

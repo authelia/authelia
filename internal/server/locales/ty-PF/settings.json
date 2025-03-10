@@ -82,6 +82,7 @@
 	"Seconds": "Noa",
 	"Secret": "Ōhipa",
 	"Settings": "Hātea",
+	"Settings - {{authelia}}": "Hātea - {{authelia}}",
 	"Start": "Haapii",
 	"Successfully {{action}} the {{item}}": "Ua laki i ka mau {{action}} e nā kekahi {{item}}",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "Ua hihia i ka wahine i ka pā aio a mākou ʻiʻo a",

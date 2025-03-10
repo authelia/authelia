@@ -82,6 +82,7 @@
 	"Seconds": "Saat",
 	"Secret": "Rahsia",
 	"Settings": "Tetapan",
+	"Settings - {{authelia}}": "Tetapan - {{authelia}}",
 	"Start": "Mula",
 	"Successfully {{action}} the {{item}}": "Berjaya {{action}} {{item}}",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "Cabaran pengesahan ditolak sebagai salah format atau tidak serasi oleh pelayar anda",

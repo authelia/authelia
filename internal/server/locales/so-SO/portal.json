@@ -29,7 +29,7 @@
 	"Hi": "Salaam",
 	"Incorrect username or password": "Magaca isticmaale ama erayga sirta ayaa qaldan",
 	"Incorrect password": "Furaha sirta ah ee khaldan",
-	"Login": "Gal",
+	"Login - {{authelia}}": "Gal - {{authelia}}",
 	"Logout": "Ka bax",
 	"Manage devices": "Maaree qalabka",
 	"Methods": "Habab",

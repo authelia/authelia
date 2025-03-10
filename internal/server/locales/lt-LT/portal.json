@@ -29,7 +29,7 @@
 	"Hi": "Sveiki",
 	"Incorrect username or password": "Neteisingas vartotojo vardas arba slaptažodis",
 	"Incorrect password": "Neteisingas slaptažodis",
-	"Login": "Prisijungti",
+	"Login - {{authelia}}": "Prisijungti - {{authelia}}",
 	"Logout": "Atsijungti",
 	"Manage devices": "Tvarkyti įrenginius",
 	"Methods": "Metodai",

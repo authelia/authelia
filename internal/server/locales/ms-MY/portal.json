@@ -29,7 +29,7 @@
 	"Hi": "Hai",
 	"Incorrect username or password": "Nama pengguna atau kata laluan tidak betul",
 	"Incorrect password": "Katalaluan tidak betul",
-	"Login": "Log Masuk",
+	"Login - {{authelia}}": "Log Masuk - {{authelia}}",
 	"Logout": "Log keluar",
 	"Manage devices": "Urus peranti",
 	"Methods": "Kaedah",

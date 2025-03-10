@@ -29,7 +29,7 @@
 	"Hi": "Pozdravljeni",
 	"Incorrect username or password": "Nepravilno uporabniško ime ali geslo",
 	"Incorrect password": "Napačno geslo",
-	"Login": "Prijava",
+	"Login - {{authelia}}": "Prijava - {{authelia}}",
 	"Logout": "Odjava",
 	"Manage devices": "Upravljajte naprave",
 	"Methods": "Metode",

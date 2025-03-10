@@ -29,7 +29,7 @@
 	"Hi": "Habari",
 	"Incorrect username or password": "Jina la mtumiaji au nywila sio sahihi",
 	"Incorrect password": "Nenosiri si sahihi",
-	"Login": "Ingia",
+	"Login - {{authelia}}": "Ingia - {{authelia}}",
 	"Logout": "Toka",
 	"Manage devices": "Simamizi vifaa",
 	"Methods": "Mbinu",

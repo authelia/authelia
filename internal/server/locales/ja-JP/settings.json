@@ -89,6 +89,7 @@
 	"Seconds": "秒",
 	"Secret": "シークレット",
 	"Settings": "設定",
+	"Settings - {{authelia}}": "設定 - {{authelia}}",
 	"Start": "開始",
 	"Submit": "送信",
 	"Successfully {{action}} the {{item}}": "{{action}} の {{item}} に成功しました",

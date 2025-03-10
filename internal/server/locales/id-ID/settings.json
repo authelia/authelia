@@ -82,6 +82,7 @@
 	"Seconds": "Detik",
 	"Secret": "Rahasia",
 	"Settings": "Pengaturan",
+	"Settings - {{authelia}}": "Pengaturan - {{authelia}}",
 	"Start": "Mulai",
 	"Successfully {{action}} the {{item}}": "Berhasil {{action}} {{item}}",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "Tantangan attestation ditolak karena tidak dapat dibaca atau tidak kompatibel oleh browser Anda",
