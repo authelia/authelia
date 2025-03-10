@@ -86,8 +86,9 @@ func newPublicHTMLEmbeddedHandler() fasthttp.RequestHandler {
 func newLocalesPathResolver() (handler func(ctx *middlewares.AutheliaCtx) (supported bool, asset string, embedded bool), err error) {
 	var (
 		languages, embededDirs []string
-		aliases                = map[string]string{}
-		entries                []fs.DirEntry
+
+		aliases map[string]string
+		entries []fs.DirEntry
 	)
 
 	if entries, err = locales.ReadDir("locales"); err != nil {
@@ -119,6 +120,18 @@ func newLocalesPathResolver() (handler func(ctx *middlewares.AutheliaCtx) (suppo
 
 	if languagesInfo, err = utils.GetEmbeddedLanguages(locales); err != nil {
 		return nil, err
+	}
+
+	aliases = map[string]string{
+		"cs": "cs-CZ",
+		"da": "da-DK",
+		"el": "el-GR",
+		"ja": "ja-JP",
+		"nb": "nb-NO",
+		"sv": "sv-SE",
+		"uk": "uk-UA",
+		"zh": "zh-CN",
+		"no": "no-NO",
 	}
 
 	for _, v := range languagesInfo.Languages {
