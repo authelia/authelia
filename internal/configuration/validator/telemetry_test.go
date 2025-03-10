@@ -72,7 +72,7 @@ func TestValidateTelemetry(t *testing.T) {
 			&schema.Configuration{Telemetry: schema.Telemetry{Metrics: schema.TelemetryMetrics{Address: mustParseAddress("udp://0.0.0.0")}}},
 			&schema.Configuration{Telemetry: schema.Telemetry{Metrics: schema.TelemetryMetrics{Address: mustParseAddress("udp://0.0.0.0:9959/metrics")}}},
 			nil,
-			[]string{"telemetry: metrics: option 'address' with value 'udp://0.0.0.0:0' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'udp'"},
+			[]string{"telemetry: metrics: option 'address' with value 'udp://0.0.0.0:0' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', 'unix', or 'fd' but is configured as 'udp'"},
 		},
 	}
 
@@ -122,11 +122,11 @@ func TestValidateTelemetryShouldCorrectlyIdentifyValidAddressSchemes(t *testing.
 		{schema.AddressSchemeTCP, ""},
 		{schema.AddressSchemeTCP4, ""},
 		{schema.AddressSchemeTCP6, ""},
-		{schema.AddressSchemeUDP, "telemetry: metrics: option 'address' with value 'udp://:9091' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'udp'"},
-		{schema.AddressSchemeUDP4, "telemetry: metrics: option 'address' with value 'udp4://:9091' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'udp4'"},
-		{schema.AddressSchemeUDP6, "telemetry: metrics: option 'address' with value 'udp6://:9091' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'udp6'"},
+		{schema.AddressSchemeUDP, "telemetry: metrics: option 'address' with value 'udp://:9091' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', 'unix', or 'fd' but is configured as 'udp'"},
+		{schema.AddressSchemeUDP4, "telemetry: metrics: option 'address' with value 'udp4://:9091' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', 'unix', or 'fd' but is configured as 'udp4'"},
+		{schema.AddressSchemeUDP6, "telemetry: metrics: option 'address' with value 'udp6://:9091' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', 'unix', or 'fd' but is configured as 'udp6'"},
 		{schema.AddressSchemeUnix, ""},
-		{"http", "telemetry: metrics: option 'address' with value 'http://:9091' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'http'"},
+		{"http", "telemetry: metrics: option 'address' with value 'http://:9091' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', 'unix', or 'fd' but is configured as 'http'"},
 	}
 
 	have := &schema.Configuration{}

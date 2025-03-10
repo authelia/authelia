@@ -36,7 +36,7 @@
   ## Formats:
   ##  - [<scheme>://]<hostname>[:<port>][/<path>]
   ##  - [<scheme>://][hostname]:<port>[/<path>]
-  ## Square brackets indicate optional portions of the format. Scheme must be 'tcp', 'tcp4', 'tcp6', or 'unix'.
+  ## Square brackets indicate optional portions of the format. Scheme must be 'tcp', 'tcp4', 'tcp6', 'unix', or 'fd'.
   ## The default scheme is 'unix' if the address is an absolute path otherwise it's 'tcp'. The default port is '9091'.
   ## If the path is specified this configures the router to handle both the `/` path and the configured path.
   # address: 'tcp://:9091/'
@@ -148,7 +148,7 @@
     ## Formats:
     ##  - [<scheme>://]<hostname>[:<port>][/<path>]
     ##  - [<scheme>://][hostname]:<port>[/<path>]
-    ## Square brackets indicate optional portions of the format. Scheme must be 'tcp', 'tcp4', 'tcp6', or 'unix'.
+    ## Square brackets indicate optional portions of the format. Scheme must be 'tcp', 'tcp4', 'tcp6', 'unix', or 'fd'.
     ## The default scheme is 'unix' if the address is an absolute path otherwise it's 'tcp'. The default port is '9959'.
     ## If the path is not specified it defaults to `/metrics`.
     # address: 'tcp://:9959/metrics'
