@@ -25,7 +25,7 @@ import { SecondFactorMethod } from "@models/Methods";
 import { UserInfo } from "@models/UserInfo";
 import { UserSessionElevation } from "@services/UserSessionElevation";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
-import PasswordForm from "@views/LoginPortal/SecondFactor/PasswordForm.tsx";
+import PasswordForm from "@views/LoginPortal/SecondFactor/PasswordForm";
 
 const SecondFactorMethodMobilePush = lazy(() => import("@views/Settings/Common/SecondFactorMethodMobilePush"));
 const SecondFactorMethodOneTimePassword = lazy(

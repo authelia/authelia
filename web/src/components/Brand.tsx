@@ -7,7 +7,7 @@ import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 
 import PrivacyPolicyLink from "@components/PrivacyPolicyLink";
-import { EncodedName, EncodedURL } from "@constants/constants.ts";
+import { EncodedName, EncodedURL } from "@constants/constants";
 import { getPrivacyPolicyEnabled } from "@utils/Configuration";
 
 export interface Props {}

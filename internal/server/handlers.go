@@ -2,6 +2,7 @@ package server
 
 import (
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -49,12 +50,17 @@ func handleError(cpath string) func(ctx *fasthttp.RequestCtx, err error) {
 			message    string
 		)
 
-		switch e := err.(type) {
-		case *fasthttp.ErrSmallBuffer:
+		var (
+			fsbErr *fasthttp.ErrSmallBuffer
+			noErr  *net.OpError
+		)
+
+		switch {
+		case errors.As(err, &fsbErr):
 			statusCode = fasthttp.StatusRequestHeaderFieldsTooLarge
 			message = fmt.Sprintf(errFmtMessageServerReadBuffer, cpath)
-		case *net.OpError:
-			if e.Timeout() {
+		case errors.As(err, &noErr):
+			if noErr.Timeout() {
 				statusCode = fasthttp.StatusRequestTimeout
 				message = errMessageServerRequestTimeout
 			} else {
@@ -115,7 +121,7 @@ func handleMethodNotAllowed(ctx *fasthttp.RequestCtx) {
 type RegisterRoutesBridgedFunc = func(r *router.Router, config *schema.Configuration, providers middlewares.Providers, bridge middlewares.Bridge)
 
 //nolint:gocyclo
-func handleRouter(config *schema.Configuration, providers middlewares.Providers) fasthttp.RequestHandler {
+func handlerMain(config *schema.Configuration, providers middlewares.Providers) (handler fasthttp.RequestHandler, err error) {
 	optsTemplatedFile := NewTemplatedFileOptions(config)
 
 	serveIndexHandler := ServeTemplatedFile(providers.Templates.GetAssetIndexTemplate(), optsTemplatedFile)
@@ -123,7 +129,18 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	serveOpenAPISpecHandler := ETagRootURL(ServeTemplatedOpenAPI(providers.Templates.GetAssetOpenAPISpecTemplate(), optsTemplatedFile))
 
 	handlerPublicHTML := newPublicHTMLEmbeddedHandler()
-	handlerLocales := newLocalesEmbeddedHandler()
+
+	var (
+		handlerLocales, handlerLocalesList middlewares.RequestHandler
+	)
+
+	if handlerLocales, err = newLocalesEmbeddedHandler(); err != nil {
+		return nil, err
+	}
+
+	if handlerLocalesList, err = newLocalesListHandler(); err != nil {
+		return nil, err
+	}
 
 	bridge := middlewares.NewBridgeBuilder(*config, providers).
 		WithPreMiddlewares(middlewares.SecurityHeadersBase).Build()
@@ -157,11 +174,13 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	r.GET("/static/{filepath:*}", handlerPublicHTML)
 
 	// Locales.
-	r.HEAD("/locales/{language:[a-z]{1,3}}-{variant:[a-zA-Z0-9-]+}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, handlerLocales))
-	r.GET("/locales/{language:[a-z]{1,3}}-{variant:[a-zA-Z0-9-]+}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, handlerLocales))
+	r.GET("/locales", bridge(handlerLocalesList))
 
-	r.HEAD("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, handlerLocales))
-	r.GET("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, handlerLocales))
+	r.HEAD("/locales/{language:[a-z]{1,3}}-{variant:[a-zA-Z0-9-]+}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, bridge(handlerLocales)))
+	r.GET("/locales/{language:[a-z]{1,3}}-{variant:[a-zA-Z0-9-]+}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, bridge(handlerLocales)))
+
+	r.HEAD("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, bridge(handlerLocales)))
+	r.GET("/locales/{language:[a-z]{1,3}}/{namespace:[a-z]+}.json", middlewares.AssetOverride(config.Server.AssetPath, 0, bridge(handlerLocales)))
 
 	// Swagger.
 	r.HEAD(prefixAPI, bridgeSwagger(serveOpenAPIHandler))
@@ -211,20 +230,20 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 
 		authz := handlers.NewAuthzBuilder().WithConfig(config).WithEndpointConfig(endpoint).Build()
 
-		handler := middlewares.Wrap(metricsVRMW, bridge(authz.Handler))
+		handlerAuthz := middlewares.Wrap(metricsVRMW, bridge(authz.Handler))
 
 		switch name {
 		case "legacy":
-			r.ANY(pathAuthzLegacy, handler)
-			r.ANY(path.Join(pathAuthzLegacy, pathParamAuthzEnvoy), handler)
+			r.ANY(pathAuthzLegacy, handlerAuthz)
+			r.ANY(path.Join(pathAuthzLegacy, pathParamAuthzEnvoy), handlerAuthz)
 		default:
 			switch endpoint.Implementation {
 			case handlers.AuthzImplLegacy.String(), handlers.AuthzImplExtAuthz.String():
-				r.ANY(uri, handler)
-				r.ANY(path.Join(uri, pathParamAuthzEnvoy), handler)
+				r.ANY(uri, handlerAuthz)
+				r.ANY(path.Join(uri, pathParamAuthzEnvoy), handlerAuthz)
 			default:
-				r.GET(uri, handler)
-				r.HEAD(uri, handler)
+				r.GET(uri, handlerAuthz)
+				r.HEAD(uri, handlerAuthz)
 			}
 		}
 	}
@@ -357,14 +376,14 @@ func handleRouter(config *schema.Configuration, providers middlewares.Providers)
 	r.MethodNotAllowed = handleMethodNotAllowed
 	r.NotFound = handleNotFound(bridge(serveIndexHandler))
 
-	handler := middlewares.LogRequest(r.Handler)
+	handler = middlewares.LogRequest(r.Handler)
 	if config.Server.Address.RouterPath() != "/" {
 		handler = middlewares.StripPath(config.Server.Address.RouterPath())(handler)
 	}
 
 	handler = middlewares.MultiWrap(handler, middlewares.RecoverPanic, middlewares.NewMetricsRequest(providers.Metrics))
 
-	return handler
+	return handler, nil
 }
 
 // RegisterOpenIDConnectRoutes handles registration of OpenID Connect 1.0 routes.
@@ -486,7 +505,7 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 	r.POST("/api/oidc/revoke", middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointRevocation), policyCORSRevocation.Middleware(bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthRevocationPOST)))))
 }
 
-func handleMetrics(path string) fasthttp.RequestHandler {
+func handlerMetrics(path string) fasthttp.RequestHandler {
 	r := router.New()
 
 	r.GET(path, fasthttpadaptor.NewFastHTTPHandler(promhttp.Handler()))
