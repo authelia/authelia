@@ -43,34 +43,18 @@ features which dictate the need to make an adjustment to how we handle some thin
 
 This blog article is rather large so this serves as an index for the section headings and relevant important changes.
 
+- Key Changes which all users should read carefully:
+  - [ID Token Changes](#id-token-changes)
+  - [Container Changes](#container-changes) (if you're using docker or equivalent)
 - Key Sections:
-  - [Docker](#docker)
   - [OpenID Connect 1.0](#openid-connect-10)
   - [WebAuthn](#webauthn)
+  - [User Attributes](#user-attributes)
+  - [Container Changes](#container-changes)
 - [Other Improvements](#other-improvements)
   - [Password Change](#password-change)
   - [Log File Reopening](#log-file-reopening)
   - [Basic Authorization Caching](#basic-authorization-caching)
-
-
----
-
-## Docker
-
-As an intentional improvement to both the compatibility and security of the Authelia container we've made a number of
-important changes to our container image.
-
-The first change which is most impactful to security in as much as it hardens the Authelia container is we've moved
-away from the Alpine Linux base image and developed our own base image using
-[chisel](https://github.com/canonical/chisel). This base image is a glibc minimal image that only has the essentials
-for running the Authelia binary and the healthcheck, there is no package manager, and some unnecessary but common tools
-have been removed. This container is rebuilt daily and on every tagged release.
-
-The second change which is most impactful to end users is the removal of the `VOLUME` directive from our images. This
-directive is fairly useless overall, the most impactful thing it does is leaves dangling docker volumes that get
-forgotten about and lose their association with the original container, in effect making the volume data seem deleted.
-Most users will not see an impact from this, and those who've used the `volumes` directive in a compose to manually map
-volumes will not.
 
 ---
 
@@ -138,15 +122,17 @@ We have introduced a concept of
 controlling the default claims for ID Tokens and Access Tokens where access is applicable as well as custom claims and
 claim scopes.
 
-### Custom Attributes and Mapping
+### Custom Scopes and Claims
 
-We've introduced a heavily requested feature of custom attributes. These custom attributes can either be directly
-configured in your relevant backend such as [LDAP](../../configuration/first-factor/ldap.md#extra) or
-[File](../../configuration/first-factor/file.md#extra_attributes), or they can be derived from existing attributes using
-[Common Expression Language](../../configuration/definitions/user-attributes.md).
+We've introduced a heavily requested feature of custom scopes and custom claims. These can either be mapped from
+existing attributes, or you can enhance this functionality directly by configuring your relevant backend via
+[Extra Attributes](#extra-attributes) or via [Custom Attributes](#custom-attributes).
 
-These attributes currently can only be used with OpenID Connect 1.0 but expect this to flow through to other things
-at a later time.
+The custom scopes and claims available to a client are determined by the [Claims Policy](#claims-policies) attached to
+the client.
+
+See the [Custom Claims](../../integration/openid-connect/openid-connect-1.0-claims.md#custom-claims) for a fairly
+comprehensive example.
 
 ### JSON Web Encryption
 
@@ -162,6 +148,80 @@ exists within the scope of where we intend Authelia to sit within the ecosystem.
 We now support the Device Code Flow which is the last major flow we did not support. This flow is the experience some
 may be familiar with where they either scan a QR code on a TV-like device and sign in on a separate device like a mobile
 phone, or visit a URL and enter a code.
+
+### OpenID Connect 1.0 Authorization Policies: Network Criteria
+
+The [Authorization Policies](../../configuration/identity-providers/openid-connect/provider.md#authorization_policies)
+applied to various [OpenID Connect 1.0] clients can now include a network criteria. These networks can either be
+arbitrary or can be referenced from the new [Network Definitions](../../configuration/definitions/network.md)
+configuration which is shared with the [Access Control](../../configuration/security/access-control.md) configuration.
+
+It's important to note that the network policy may only be applied at the time of authorization. There is no
+specification means to be able to accurately validate the resource owners IP after they've already provided consent and
+authorization has been completed. This means in the instance where a [Refresh Token] is issued that the resource owner
+effectively can remain authenticated indefinitely as the Refresh Flow is not performed by the resource owner but by the
+relying party.
+
+[Refresh Token]: https://openid.net/specs/openid-connect-core-1_0.html#RefreshTokens
+[OpenID Connect 1.0]: https://openid.net/connect/
+
+---
+
+## User Attributes
+
+Authelia has expanded the number of attributes available to users in various ways. These attributes can be configured
+in the authentication backend such as [LDAP](../../configuration/first-factor/ldap.md#extra) or
+[File](../../configuration/first-factor/file.md#extra_attributes) either via [Standard Attributes](#standard-attributes)
+or [Extra Attributes](#extra-attributes), or they can be derived from existing attributes using
+[Custom Attributes](#custom-attributes).
+
+At the time of release these additional attribute options are only available via
+[OpenID Connect 1.0 Claims Policies](#claims-policies) but it's likely they'll become available to the authorization
+handlers as response headers.
+
+### Standard Attributes
+
+Many of the standard attributes required for OpenID Connect 1.0 and other similar identity frameworks are now available
+by default. You can read more about all of the standard attributes in the
+[reference guide](../../reference/guides/attributes.md#standard-attributes) or for configuration see the relevant
+authentication backend configuration guide.
+
+### Extra Attributes
+
+In addition to the standard attributes we now allow configuration of extra attributes which will be available in other
+areas of the configuration. These extra attributes require you to define typing information for each of them which is
+validated either at startup for the [File](../../configuration/first-factor/file.md#extra_attributes) backend or
+at the time user objects are retrieved for the [LDAP](../../configuration/first-factor/ldap.md#extra) backend.
+
+### Custom Attributes
+
+This is probably the most exciting feature related to attributes. Similar to extra attributes administrators will be
+able to configure custom attributes. These custom attributes can be derived from any other existing attribute using
+[Common Expression Language](https://cel.dev/) which can be configured in the
+[definitions under user attributes](../../configuration/definitions/user-attributes.md).
+
+This means for applications that require attributes in a specific format that you don't currently have in your backend
+you are likely able to produce the format you wish (i.e. booleans etc). We will endeavor to enhance this functionality
+in the future to ensure any reasonable attribute requirements are met where possible.
+
+---
+
+## Container Changes
+
+As an intentional improvement to both the compatibility and security of the Authelia container we've made a number of
+important changes to our container image.
+
+The first change which is most impactful to security in as much as it hardens the Authelia container is we've moved
+away from the Alpine Linux base image and developed our own base image using
+[chisel](https://github.com/canonical/chisel). This base image is a glibc minimal image that only has the essentials
+for running the Authelia binary and the healthcheck, there is no package manager, and some unnecessary but common tools
+have been removed. This container is rebuilt daily and on every tagged release.
+
+The second change which is most impactful to end users is the removal of the `VOLUME` directive from our images. This
+directive is fairly useless overall, the most impactful thing it does is leaves dangling docker volumes that get
+forgotten about and lose their association with the original container, in effect making the volume data seem deleted.
+Most users will not see an impact from this, and those who've used the `volumes` directive in a compose to manually map
+volumes will not.
 
 ---
 
