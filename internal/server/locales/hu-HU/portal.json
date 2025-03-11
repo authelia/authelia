@@ -29,7 +29,7 @@
 	"Hi": "Helló",
 	"Incorrect username or password": "Hibás felhasználónév vagy jelszó",
 	"Incorrect password": "Helytelen jelszó",
-	"Login": "Bejelentkezés",
+	"Login - {{authelia}}": "Bejelentkezés - {{authelia}}",
 	"Logout": "Kijelentkezés",
 	"Manage devices": "Eszközök kezelése",
 	"Methods": "Módszerek",

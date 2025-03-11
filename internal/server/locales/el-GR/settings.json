@@ -89,6 +89,7 @@
 	"Seconds": "Δευτερόλεπτα",
 	"Secret": "Μυστικό",
 	"Settings": "Ρυθμίσεις",
+	"Settings - {{authelia}}": "Ρυθμίσεις - {{authelia}}",
 	"Start": "Έναρξη",
 	"Submit": "Υποβολή",
 	"Successfully {{action}} the {{item}}": "Επιτυχώς {{action}} το {{item}}",

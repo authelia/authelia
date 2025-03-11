@@ -29,7 +29,7 @@
 	"Hi": "Hei",
 	"Incorrect username or password": "Virheellinen käyttäjätunnus tai salasana",
 	"Incorrect password": "Virheellinen salasana",
-	"Login": "Kirjaudu",
+	"Login - {{authelia}}": "Kirjaudu - {{authelia}}",
 	"Logout": "Kirjaudu Ulos",
 	"Manage devices": "Hallinnoi laitteita",
 	"Methods": "Menetelmät",

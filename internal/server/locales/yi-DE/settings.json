@@ -82,6 +82,7 @@
 	"Seconds": "סעקונדעס",
 	"Secret": "סוד",
 	"Settings": "סעטינגס",
+	"Settings - {{authelia}}": "סעטינגס - {{authelia}}",
 	"Start": "אַנפאַנגען",
 	"Successfully {{action}} the {{item}}": "צוגעבן {{action}} דעם {{item}}",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "די אַטאַטשמאַנט טשאַלדזש איז פארווארפן ווי פֿאַרשיטן אָדער נישט קאַמפּאַטיבלע דורך דיין ברויזער",

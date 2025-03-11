@@ -58,7 +58,7 @@ func (f *StandardLDAPClientFactory) Initialize() (err error) {
 }
 
 func (f *StandardLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (client ldap.Client, err error) {
-	return getLDAPClient(f.config.Address.String(), f.config.User, f.config.Password, f.dialer, f.tls, f.config.StartTLS, f.opts, opts...)
+	return getLDAPClient(f.config.Address.String(), f.config.User, f.config.Password, f.config.Timeout, f.dialer, f.tls, f.config.StartTLS, f.opts, opts...)
 }
 
 func (f *StandardLDAPClientFactory) ReleaseClient(client ldap.Client) (err error) {
@@ -87,15 +87,15 @@ func NewPooledLDAPClientFactory(config *schema.AuthenticationBackendLDAP, certs 
 	}
 
 	if config.Pooling.Count <= 0 {
-		config.Pooling.Count = 3
+		config.Pooling.Count = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.Pooling.Count
 	}
 
 	if config.Pooling.Retries <= 0 {
-		config.Pooling.Retries = 3
+		config.Pooling.Retries = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.Pooling.Retries
 	}
 
 	if config.Pooling.Timeout <= 0 {
-		config.Pooling.Timeout = time.Second
+		config.Pooling.Timeout = schema.DefaultLDAPAuthenticationBackendConfigurationImplementationCustom.Pooling.Timeout
 	}
 
 	sleep := config.Pooling.Timeout / time.Duration(config.Pooling.Retries)
@@ -161,7 +161,7 @@ func (f *PooledLDAPClientFactory) Initialize() (err error) {
 // GetClient opens new client using the pool.
 func (f *PooledLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (conn ldap.Client, err error) {
 	if len(opts) != 0 {
-		return getLDAPClient(f.config.Address.String(), f.config.User, f.config.Password, f.dialer, f.tls, f.config.StartTLS, f.opts, opts...)
+		return getLDAPClient(f.config.Address.String(), f.config.User, f.config.Password, f.config.Timeout, f.dialer, f.tls, f.config.StartTLS, f.opts, opts...)
 	}
 
 	return f.acquire(context.Background())
@@ -171,7 +171,7 @@ func (f *PooledLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (co
 func (f *PooledLDAPClientFactory) new() (pooled *LDAPClientPooled, err error) {
 	var client ldap.Client
 
-	if client, err = getLDAPClient(f.config.Address.String(), f.config.User, f.config.Password, f.dialer, f.tls, f.config.StartTLS, f.opts); err != nil {
+	if client, err = getLDAPClient(f.config.Address.String(), f.config.User, f.config.Password, f.config.Timeout, f.dialer, f.tls, f.config.StartTLS, f.opts); err != nil {
 		return nil, fmt.Errorf("error occurred establishing new client for the pool: %w", err)
 	}
 
@@ -275,7 +275,7 @@ type LDAPClientPooled struct {
 	ldap.Client
 }
 
-func getLDAPClient(address, username, password string, dialer LDAPClientDialer, tls *tls.Config, startTLS bool, dialerOpts []ldap.DialOpt, opts ...LDAPClientFactoryOption) (client ldap.Client, err error) {
+func getLDAPClient(address, username, password string, timeout time.Duration, dialer LDAPClientDialer, tls *tls.Config, startTLS bool, dialerOpts []ldap.DialOpt, opts ...LDAPClientFactoryOption) (client ldap.Client, err error) {
 	config := &LDAPClientFactoryOptions{
 		Address:  address,
 		Username: username,
@@ -289,6 +289,8 @@ func getLDAPClient(address, username, password string, dialer LDAPClientDialer, 
 	if client, err = dialer.DialURL(config.Address, dialerOpts...); err != nil {
 		return nil, fmt.Errorf("error occurred dialing address: %w", err)
 	}
+
+	client.SetTimeout(timeout)
 
 	if tls != nil && startTLS {
 		if err = client.StartTLS(tls); err != nil {

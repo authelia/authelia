@@ -3,7 +3,7 @@ import Grid from "@mui/material/Grid2";
 import { Trans, useTranslation } from "react-i18next";
 
 import PrivacyPolicyLink from "@components/PrivacyPolicyLink";
-import { EncodedName } from "@constants/constants.ts";
+import { EncodedName } from "@constants/constants";
 import { LocalStoragePrivacyPolicyAccepted } from "@constants/LocalStorage";
 import { usePersistentStorageValue } from "@hooks/PersistentStorage";
 import { getPrivacyPolicyEnabled, getPrivacyPolicyRequireAccept } from "@utils/Configuration";

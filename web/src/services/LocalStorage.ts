@@ -26,3 +26,11 @@ export function getLocalStorage(key: string) {
 
     return window.localStorage.getItem(key);
 }
+
+export function setLocalStorage(key: string, value: string) {
+    if (!localStorageAvailable()) return false;
+
+    window.localStorage.setItem(key, value);
+
+    return true;
+}

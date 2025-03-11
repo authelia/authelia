@@ -29,7 +29,7 @@
 	"Hi": "Chào",
 	"Incorrect username or password": "Sai tài khoản hoặc mật khẩu",
 	"Incorrect password": "Sai mật khẩu",
-	"Login": "Đăng nhập",
+	"Login - {{authelia}}": "Đăng nhập - {{authelia}}",
 	"Logout": "Đăng xuất",
 	"Manage devices": "Quản lý thiết bị",
 	"Methods": "Các phương pháp",

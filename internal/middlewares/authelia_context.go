@@ -667,6 +667,11 @@ func (ctx *AutheliaCtx) GetConfiguration() (config schema.Configuration) {
 	return ctx.Configuration
 }
 
+// GetProviders returns the providers for this context.
+func (ctx *AutheliaCtx) GetProviders() (providers Providers) {
+	return ctx.Providers
+}
+
 func (ctx *AutheliaCtx) GetWebAuthnProvider() (w *webauthn.WebAuthn, err error) {
 	var (
 		origin *url.URL

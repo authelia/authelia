@@ -29,7 +29,7 @@
 	"Hi": "Bok",
 	"Incorrect username or password": "Pogrešno korisničko ime ili lozinka",
 	"Incorrect password": "Pogrešna lozinka",
-	"Login": "Prijavite se",
+	"Login - {{authelia}}": "Prijavite se - {{authelia}}",
 	"Logout": "Odjava",
 	"Manage devices": "Upravljanje uređajima",
 	"Methods": "Metode",

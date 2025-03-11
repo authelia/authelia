@@ -29,7 +29,7 @@
 	"Hi": "Dia dhuit",
 	"Incorrect username or password": "Ainm úsáideora nó pasfhocal mícheart",
 	"Incorrect password": "Focal faire mícheart",
-	"Login": "Logáil isteach",
+	"Login - {{authelia}}": "Logáil isteach - {{authelia}}",
 	"Logout": "Logáil amach",
 	"Manage devices": "Bainistigh na gléasanna",
 	"Methods": "Modhanna",

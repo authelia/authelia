@@ -82,6 +82,7 @@
 	"Seconds": "초",
 	"Secret": "비밀",
 	"Settings": "설정",
+	"Settings - {{authelia}}": "설정 - {{authelia}}",
 	"Start": "시작",
 	"Successfully {{action}} the {{item}}": "Successfully {{action}} the {{item}}",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "증명 요청이 잘못되었거나 브라우저에서 호환되지 않아 거부되었습니다.",

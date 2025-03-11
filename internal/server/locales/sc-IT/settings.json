@@ -82,6 +82,7 @@
 	"Seconds": "Secondi",
 	"Secret": "Secretu",
 	"Settings": "Impostazioni",
+	"Settings - {{authelia}}": "Impostazioni - {{authelia}}",
 	"Start": "Inizia",
 	"Successfully {{action}} the {{item}}": "Ha {{action}} il {{item}} con successo",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "La sfida di attestazione è stata rifiutata come malformata o incompatibile dal tuo browser",

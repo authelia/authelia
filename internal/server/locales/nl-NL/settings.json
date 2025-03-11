@@ -89,6 +89,7 @@
 	"Seconds": "seconden",
 	"Secret": "Geheim",
 	"Settings": "Instellingen",
+	"Settings - {{authelia}}": "Instellingen - {{authelia}}",
 	"Start": "Beginnen",
 	"Submit": "Bevestigen",
 	"Successfully {{action}} the {{item}}": "Succesvol {{action}} de {{item}}",

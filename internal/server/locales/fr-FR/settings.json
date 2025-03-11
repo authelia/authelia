@@ -89,6 +89,7 @@
 	"Seconds": "Secondes",
 	"Secret": "Secret",
 	"Settings": "Réglages",
+	"Settings - {{authelia}}": "Réglages - {{authelia}}",
 	"Start": "Début",
 	"Submit": "Soumettre",
 	"Successfully {{action}} the {{item}}": "{{action}} la {{item}} avec succès",

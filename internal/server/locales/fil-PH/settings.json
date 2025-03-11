@@ -82,6 +82,7 @@
 	"Seconds": "Segundo",
 	"Secret": "Sikreto",
 	"Settings": "Mga Setting",
+	"Settings - {{authelia}}": "Mga Setting - {{authelia}}",
 	"Start": "Simulan",
 	"Successfully {{action}} the {{item}}": "Matagumpay na {{action}} ang {{item}}",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "Ang hamon sa patunay ay tinanggihan bilang maling format o hindi tugma ng iyong browser",

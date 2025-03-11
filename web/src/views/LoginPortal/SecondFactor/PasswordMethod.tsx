@@ -1,7 +1,7 @@
 import React from "react";
 
 import { UserInfo } from "@models/UserInfo";
-import { AuthenticationLevel } from "@services/State.ts";
+import { AuthenticationLevel } from "@services/State";
 import MethodContainer, { State as MethodContainerState } from "@views/LoginPortal/SecondFactor/MethodContainer";
 import PasswordForm from "@views/LoginPortal/SecondFactor/PasswordForm";
 

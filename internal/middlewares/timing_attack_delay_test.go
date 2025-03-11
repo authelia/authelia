@@ -47,7 +47,7 @@ func TestTimingAttackDelayCalculations(t *testing.T) {
 	expectedMinimumDelayMs := avgExecDurationMs - float64(execDuration.Milliseconds())
 
 	ctx := &AutheliaCtx{
-		Logger: logging.Logger().WithFields(logrus.Fields{}),
+		Logger: logrus.NewEntry(logging.Logger()),
 		Providers: Providers{
 			Random: &random.Cryptographical{},
 		},

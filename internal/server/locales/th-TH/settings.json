@@ -82,6 +82,7 @@
 	"Seconds": "วินาที",
 	"Secret": "ความลับ",
 	"Settings": "การตั้งค่า",
+	"Settings - {{authelia}}": "การตั้งค่า - {{authelia}}",
 	"Start": "เริ่มต้น",
 	"Successfully {{action}} the {{item}}": "สำเร็จ {{action}} '{{item}}'",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "การยืนยันการลงทะเบียนถูกปฏิเสธโดยเว็บเบราว์เซอร์ของคุณเนื่องจากมีลักษณะไม่ถูกต้องหรือไม่เข้ากัน",

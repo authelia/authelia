@@ -82,6 +82,7 @@
 	"Seconds": "چند پێویستە",
 	"Secret": "پەیام",
 	"Settings": "چەند بەرزکردنەوەکان",
+	"Settings - {{authelia}}": "چەند بەرزکردنەوەکان - {{authelia}}",
 	"Start": "دەستپێک",
 	"Successfully {{action}} the {{item}}": "بە سەرکەوتوویی {{action}} یەک {{item}}",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "چالاکی تایبەتی سەرکەوتوو کردیە لە شێوەی شێوەی تێپەڕەکان بەرزە بەرزە بەم بەرزە",

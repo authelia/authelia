@@ -82,6 +82,7 @@
 	"Seconds": "Sekunde",
 	"Secret": "Skrivnost",
 	"Settings": "Nastavitve",
+	"Settings - {{authelia}}": "Nastavitve - {{authelia}}",
 	"Start": "Začni",
 	"Successfully {{action}} the {{item}}": "Uspešno {{action}} {{item}}",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "Izziv potrditve je bil zavrnjen kot neveljaven ali nezdružljiv s vašim brskalnikom",

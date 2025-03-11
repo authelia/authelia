@@ -82,6 +82,7 @@
 	"Seconds": "Giây",
 	"Secret": "Bí mật",
 	"Settings": "Cài đặt",
+	"Settings - {{authelia}}": "Cài đặt - {{authelia}}",
 	"Start": "Bắt đầu",
 	"Successfully {{action}} the {{item}}": "{{action}} {{item}} thành công",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "Thử thách xác thực đã bị từ chối bởi trình duyệt của bạn do không đúng định dạng hoặc không tương thích",

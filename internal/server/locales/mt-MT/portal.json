@@ -29,7 +29,7 @@
 	"Hi": "Ħej",
 	"Incorrect username or password": "Isem tal-utent jew password żbalji",
 	"Incorrect password": "Il-password mhux korretta",
-	"Login": "Login",
+	"Login - {{authelia}}": "Login - {{authelia}}",
 	"Logout": "Oħroġ",
 	"Manage devices": "Immaniġġa d-devices",
 	"Methods": "Metodi",

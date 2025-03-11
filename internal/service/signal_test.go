@@ -1,4 +1,4 @@
-package commands
+package service
 
 import (
 	"context"
@@ -13,9 +13,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/authelia/authelia/v4/internal/logging"
-
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
@@ -23,11 +22,11 @@ import (
 type mockServiceCtx struct {
 	ctx       context.Context
 	config    *schema.Configuration
-	logger    *logrus.Logger
+	logger    *logrus.Entry
 	providers middlewares.Providers
 }
 
-func (m *mockServiceCtx) GetLogger() *logrus.Logger {
+func (m *mockServiceCtx) GetLogger() *logrus.Entry {
 	return m.logger
 }
 
@@ -64,7 +63,7 @@ func newMockServiceCtx() *mockServiceCtx {
 	return &mockServiceCtx{
 		ctx:       context.Background(),
 		config:    config,
-		logger:    logger,
+		logger:    logrus.NewEntry(logger),
 		providers: middlewares.Providers{},
 	}
 }
@@ -98,7 +97,12 @@ func TestSignalService_Run(t *testing.T) {
 				return tc.actionError
 			}
 
-			service := NewSignalService("test", action, logger, tc.signal)
+			service := &Signal{
+				name:    "log-reload",
+				signals: []os.Signal{syscall.SIGHUP},
+				action:  action,
+				log:     logger.WithFields(map[string]any{logFieldService: serviceTypeSignal, serviceTypeSignal: "log-reload"}),
+			}
 
 			errChan := make(chan error, 1)
 			done := make(chan struct{})
@@ -110,6 +114,7 @@ func TestSignalService_Run(t *testing.T) {
 				close(done)
 			}()
 
+			// Give the service a moment to start.
 			time.Sleep(100 * time.Millisecond)
 
 			p, err := os.FindProcess(os.Getpid())
@@ -163,7 +168,7 @@ func TestSvcSignalLogReOpenFunc(t *testing.T) {
 			mockCtx := newMockServiceCtx()
 			mockCtx.config.Log.FilePath = tc.logFilePath
 
-			service := svcSignalLogReOpenFunc(mockCtx)
+			service, _ := ProvisionLoggingSignal(mockCtx)
 
 			if tc.expectService {
 				require.NotNil(t, service)
@@ -197,11 +202,11 @@ func TestLogReopenFiles(t *testing.T) {
 	ctx := &mockServiceCtx{
 		ctx:       context.Background(),
 		config:    config,
-		logger:    logging.Logger(),
+		logger:    logrus.NewEntry(logging.Logger()),
 		providers: middlewares.Providers{},
 	}
 
-	service := svcSignalLogReOpenFunc(ctx)
+	service, _ := ProvisionLoggingSignal(ctx)
 	require.NotNil(t, service)
 
 	errChan := make(chan error, 1)
@@ -214,6 +219,7 @@ func TestLogReopenFiles(t *testing.T) {
 		close(done)
 	}()
 
+	// Give the service a moment to start.
 	time.Sleep(100 * time.Millisecond)
 
 	p, err := os.FindProcess(os.Getpid())
@@ -237,7 +243,12 @@ func TestLogReopenFiles(t *testing.T) {
 func TestSignalService_Shutdown(t *testing.T) {
 	logger := logrus.New()
 	action := func() error { return nil }
-	service := NewSignalService("test", action, logger, syscall.SIGHUP)
+	service := &Signal{
+		name:    "test",
+		signals: []os.Signal{syscall.SIGHUP},
+		action:  action,
+		log:     logger.WithFields(map[string]any{logFieldService: serviceTypeSignal, serviceTypeSignal: "test"}),
+	}
 
 	done := make(chan struct{})
 	go func() {

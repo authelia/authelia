@@ -82,6 +82,7 @@
 	"Seconds": "Sekondi",
 	"Secret": "Imfihlo",
 	"Settings": "Izilungiselelo",
+	"Settings - {{authelia}}": "Izilungiselelo - {{authelia}}",
 	"Start": "Qala",
 	"Successfully {{action}} the {{item}}": "Impumelelo {{action}} {{item}}",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "I-challenge ye-attestation yehliselwa ngenxa yokuthi yephukile noma ayivumelani nebhrawuza yakho",

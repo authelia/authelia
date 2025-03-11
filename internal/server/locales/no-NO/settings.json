@@ -89,6 +89,7 @@
 	"Seconds": "Sekunder",
 	"Secret": "Hemmelig",
 	"Settings": "Innstillinger",
+	"Settings - {{authelia}}": "Innstillinger - {{authelia}}",
 	"Start": "Begynn",
 	"Submit": "Send",
 	"Successfully {{action}} the {{item}}": "{{action}} var vellykket i {{item}}",

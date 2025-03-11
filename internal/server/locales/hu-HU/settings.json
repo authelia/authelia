@@ -82,6 +82,7 @@
 	"Seconds": "Másodpercek",
 	"Secret": "Secret",
 	"Settings": "Beállítások",
+	"Settings - {{authelia}}": "Beállítások - {{authelia}}",
 	"Start": "Indítás",
 	"Successfully {{action}} the {{item}}": "Sikeresen {{action}} a {{item}}",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "A hitelesítési kihívást a böngészője hibásnak vagy inkompatibilisnek minősítette",

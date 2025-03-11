@@ -89,6 +89,7 @@
 	"Seconds": "ثواني",
 	"Secret": "سرية",
 	"Settings": "الإعدادات",
+	"Settings - {{authelia}}": "الإعدادات - {{authelia}}",
 	"Start": "ابدأ",
 	"Submit": "إرسال",
 	"Successfully {{action}} the {{item}}": "تم بنجاح {{action}} {{item}}",
