@@ -63,6 +63,7 @@ authentication_backend:
     group_search_mode: 'filter'
     permit_referrals: false
     permit_unauthenticated_bind: false
+    permit_feature_detection_failure: false
     user: 'CN=admin,{{< sitevar name="domain" format="dn" nojs="DC=example,DC=com" >}}'
     password: 'password'
     attributes:
