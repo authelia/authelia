@@ -23,7 +23,7 @@ seo:
 * [Authelia]
   * [v4.38.17](https://github.com/authelia/authelia/releases/tag/v4.38.17)
 * [Jellyfin]
-  * [10.10.3](https://github.com/jellyfin/jellyfin/releases/tag/v10.10.3)
+  * [10.10.6](https://github.com/jellyfin/jellyfin/releases/tag/v10.10.6)
 
 {{% oidc-common %}}
 
@@ -141,6 +141,10 @@ To configure [Jellyfin] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 16. All other options may remain unchecked or unconfigured.
 
 17. Click `Save`.
+
+18. To log in visit `https://jellyfin.{{< sitevar name="domain" nojs="example.com" >}}/sso/OID/start/authelia`.
+
+19. Follow the [Jellyfin SSO Plugin] documentation on how to create a button on the [Jellyfin] login page.
 
 Alternatively you can utilize the following configuration XML:
 
