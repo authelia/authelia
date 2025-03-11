@@ -249,6 +249,48 @@ This also offers a technically more secure way for users to change their passwor
 that this may offer an alternative for administrators who had previously disabled or wanted to disable the reset
 password functionality due to some of these concerns.
 
+### Regulation Changes
+
+This release allows for two major enhancements to the regulation system. First and foremost users can now manage the
+list of banned users via the CLI. This is all achieved while retaining the ability to audit previous bad authentication
+attempts and previous bans.
+
+The ability to manage banned users will be simple to integrate into an administration portal at a future date; hopefully
+soon.
+
+The second feature is the ability to tweak the regulation mode. Previously we only banned user accounts, but now you can
+configure regulation to also ban the IP or combine them both.
+
+See the [Regulation Configuration](../../configuration/security/regulation.md#modes) for more information on the various
+modes, and see the [authelia storage bans](../../reference/cli/authelia/authelia_storage_bans.md) command for
+information on managing ban entries.
+
+### Tokenized Bucket Rate Limits
+
+Several endpoints have received additional protection by introducing rate limits. These can be tuned, and this is
+implemented via normative means with the
+[429 Too Many Requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429) status code and accompanying
+headers in either format.
+
+This is currently per-instance with no short term plans to distributed it in a high availability configuration, however
+because the frontend handles these status codes on the affected endpoints, even if you're using a high availability
+setup you can now implement a rate limiter in your highly available architecture and the user experience should be
+unaffected.
+
+In these highly available setups where you've configured the rate limits on the necessary endpoints within your
+architecture it is recommended that you disable them within Authelia itself.
+
+It should be noted that we believe the defaults are suitable for most scenarios however we can't exclude tuning these
+values if there is feedback via the [GitHub Discussions](https://github.com/authelia/authelia/discussions) that would
+indicate it's necessary.
+
+See the [Server Endpoint Rate Limits Configuration](../../configuration/miscellaneous/server-endpoint-rate-limits.md)
+for more information.
+
+### Internationalization Language Preference
+
+In this release users will notice a brand-new language preference setting from the frontend.
+
 ### Log File Reopening
 
 Sending the `SIGHUP` signal in this release will instruct Authelia to reopen any log files. This facilitates the ability
@@ -284,3 +326,26 @@ if the newly provided password is correct.
 
 We do not recommend enabling this if you have the ability to utilize a more appropriate and modern scheme such as the
 Bearer Scheme.
+
+### LDAP Connection Pooling
+
+This release allows for LDAP connection pooling which also keeps connections open for longer periods of time to ensure
+that the cost of authentication of users is minimally increased by performing an authenticated bind by the
+administration user.
+
+See the [LDAP Configuration](../../configuration/first-factor/ldap.md#pooling) for more information.
+
+### Networking Enhancements
+
+This release see's the ability for Authelia to utilize both abstract unix sockets and exact file descriptors in various
+ways, primarily for listeners.
+
+### PostgreSQL Failover
+
+This release allows for failover for people using PostgreSQL using the native driver.
+
+See the [PostgreSQL Configuration](../../configuration/storage/postgres.md#servers) for more information.
+
+### SQL Peer Authentication
+
+This release supports peer authentication for both PostgreSQL and MySQL.
