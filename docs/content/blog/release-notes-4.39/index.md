@@ -122,6 +122,9 @@ We have introduced a concept of
 controlling the default claims for ID Tokens and Access Tokens where access is applicable as well as custom claims and
 claim scopes.
 
+The claims policy also gives access to an experimental feature which allows merging the Access Token audience with the
+ID Token audience which is useful for some applications.
+
 ### Custom Scopes and Claims
 
 We've introduced a heavily requested feature of custom scopes and custom claims. These can either be mapped from
