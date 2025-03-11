@@ -271,7 +271,7 @@ endpoint. The cache mechanism is in-memory and is activated by configuring the
 [scheme_basic_cache_lifespan](../../configuration/miscellaneous/server-endpoints-authz.md#scheme_basic_cache_lifespan).
 
 The lifespan configures how long each cached credential exists. The credentials are cached in a dictionary where the key
-is the username, and he value is a data structure that contains the expiration and a comparison value. The comparison
+is the username, and the value is a data structure that contains the expiration and a comparison value. The comparison
 value is a HMAC-SHA256 digest of the password and username, i.e. `HMAC-SHA256(password+username)`. The secret key for
 the HMAC-SHA256 algorithm is cryptographically randomly generated for each
 [Server Authz Endpoint](../../configuration/miscellaneous/server-endpoints-authz.md) on startup.
