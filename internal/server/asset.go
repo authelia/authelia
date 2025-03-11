@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"crypto/sha1" //nolint:gosec // Usage is for collision avoidance not security.
 	"embed"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
 	"mime"
 	"net/http"
+	"os"
 	"path"
 	"path/filepath"
 	"strconv"
@@ -60,6 +62,7 @@ func newPublicHTMLEmbeddedHandler() fasthttp.RequestHandler {
 		}
 
 		middlewares.SetBaseSecurityHeaders(ctx)
+		middlewares.SetSecurityHeadersCSPNone(ctx)
 
 		contentType := mime.TypeByExtension(path.Ext(p))
 		if len(contentType) == 0 {
@@ -79,40 +82,47 @@ func newPublicHTMLEmbeddedHandler() fasthttp.RequestHandler {
 	}
 }
 
-func newLocalesPathResolver() func(ctx *fasthttp.RequestCtx) (supported bool, asset string) {
+//nolint:gocyclo
+func newLocalesPathResolver() (handler func(ctx *middlewares.AutheliaCtx) (supported bool, asset string, embedded bool), err error) {
 	var (
-		languages, dirs []string
+		languages, embededDirs []string
+
+		aliases map[string]string
+		entries []fs.DirEntry
 	)
 
-	entries, err := locales.ReadDir("locales")
-	if err == nil {
-		for _, entry := range entries {
-			if entry.IsDir() {
-				var lng string
+	if entries, err = locales.ReadDir("locales"); err != nil {
+		return nil, err
+	}
 
-				switch len(entry.Name()) {
-				case 2:
-					lng = entry.Name()
-				case 0:
-					continue
-				default:
-					lng = strings.SplitN(entry.Name(), "-", 2)[0]
-				}
+	for _, entry := range entries {
+		if entry.IsDir() {
+			var lng string
 
-				if !utils.IsStringInSlice(entry.Name(), dirs) {
-					dirs = append(dirs, entry.Name())
-				}
-
-				if utils.IsStringInSlice(lng, languages) {
-					continue
-				}
-
-				languages = append(languages, lng)
+			if lng, err = utils.GetLocaleParentOrBaseString(entry.Name()); err != nil {
+				continue
 			}
+
+			if !utils.IsStringInSlice(entry.Name(), embededDirs) {
+				embededDirs = append(embededDirs, entry.Name())
+			}
+
+			if utils.IsStringInSlice(lng, languages) {
+				continue
+			}
+
+			languages = append(languages, lng)
 		}
 	}
 
-	aliases := map[string]string{
+	// generate list of macro to micro locale aliases.
+	var languagesInfo *utils.Languages
+
+	if languagesInfo, err = utils.GetEmbeddedLanguages(locales); err != nil {
+		return nil, err
+	}
+
+	aliases = map[string]string{
 		"cs": "cs-CZ",
 		"da": "da-DK",
 		"el": "el-GR",
@@ -121,16 +131,25 @@ func newLocalesPathResolver() func(ctx *fasthttp.RequestCtx) (supported bool, as
 		"sv": "sv-SE",
 		"uk": "uk-UA",
 		"zh": "zh-CN",
+		"no": "no-NO",
 	}
 
-	return func(ctx *fasthttp.RequestCtx) (supported bool, asset string) {
+	for _, v := range languagesInfo.Languages {
+		if v.Parent == "" {
+			continue
+		}
+
+		_, ok := aliases[v.Parent]
+
+		if !ok {
+			aliases[v.Parent] = v.Locale
+		}
+	}
+
+	return func(ctx *middlewares.AutheliaCtx) (supported bool, asset string, embedded bool) {
 		var language, namespace, variant, locale string
 
 		language, namespace = ctx.UserValue("language").(string), ctx.UserValue("namespace").(string)
-
-		if !utils.IsStringInSlice(language, languages) {
-			return false, ""
-		}
 
 		if v := ctx.UserValue("variant"); v != nil {
 			variant = v.(string)
@@ -140,33 +159,47 @@ func newLocalesPathResolver() func(ctx *fasthttp.RequestCtx) (supported bool, as
 		}
 
 		ll := language + "-" + strings.ToUpper(language)
-		alias, ok := aliases[locale]
+
+		alias, useAlias := aliases[locale]
+		if useAlias {
+			if language, err = utils.GetLocaleParentOrBaseString(alias); err != nil {
+				return false, "", false
+			}
+		}
+
+		if !utils.IsStringInSlice(language, languages) {
+			return false, "", false
+		}
 
 		switch {
-		case ok:
-			return true, fmt.Sprintf("locales/%s/%s.json", alias, namespace)
-		case utils.IsStringInSlice(locale, dirs):
-			return true, fmt.Sprintf("locales/%s/%s.json", locale, namespace)
-		case utils.IsStringInSlice(ll, dirs):
-			return true, fmt.Sprintf("locales/%s-%s/%s.json", language, strings.ToUpper(language), namespace)
+		case useAlias:
+			return true, fmt.Sprintf("locales/%s/%s.json", alias, namespace), true
+		case utils.IsStringInSlice(locale, embededDirs):
+			return true, fmt.Sprintf("locales/%s/%s.json", locale, namespace), true
+		case utils.IsStringInSlice(ll, embededDirs):
+			return true, fmt.Sprintf("locales/%s-%s/%s.json", language, strings.ToUpper(language), namespace), true
 		default:
-			return true, fmt.Sprintf("locales/%s/%s.json", locale, namespace)
+			return true, fmt.Sprintf("locales/%s/%s.json", locale, namespace), true
 		}
-	}
+	}, nil
 }
 
-func newLocalesEmbeddedHandler() (handler fasthttp.RequestHandler) {
+func newLocalesEmbeddedHandler() (handler func(ctx *middlewares.AutheliaCtx), err error) {
 	etags := map[string][]byte{}
 
 	getEmbedETags(locales, "locales", etags)
 
-	getAssetName := newLocalesPathResolver()
+	var getAssetName func(ctx *middlewares.AutheliaCtx) (supported bool, asset string, embedded bool)
 
-	return func(ctx *fasthttp.RequestCtx) {
-		supported, asset := getAssetName(ctx)
+	if getAssetName, err = newLocalesPathResolver(); err != nil {
+		return nil, fmt.Errorf("error occurred initializing the embedded locales handler: %w", err)
+	}
+
+	return func(ctx *middlewares.AutheliaCtx) {
+		supported, asset, useEmbeded := getAssetName(ctx)
 
 		if !supported {
-			handlers.SetStatusCodeResponse(ctx, fasthttp.StatusNotFound)
+			handlers.SetStatusCodeResponse(ctx.RequestCtx, fasthttp.StatusNotFound)
 
 			return
 		}
@@ -187,12 +220,21 @@ func newLocalesEmbeddedHandler() (handler fasthttp.RequestHandler) {
 			err  error
 		)
 
-		if data, err = locales.ReadFile(asset); err != nil {
-			data = []byte("{}")
+		if useEmbeded {
+			if data, err = locales.ReadFile(asset); err != nil {
+				data = []byte("{}")
+			}
+		} else {
+			fileSystem := os.DirFS(filepath.Dir(asset))
+
+			if data, err = fs.ReadFile(fileSystem, filepath.Base(asset)); err != nil {
+				data = []byte("{}")
+			}
 		}
 
-		middlewares.SetBaseSecurityHeaders(ctx)
-		middlewares.SetContentTypeApplicationJSON(ctx)
+		middlewares.SetBaseSecurityHeaders(ctx.RequestCtx)
+		middlewares.SetSecurityHeadersCSPNone(ctx.RequestCtx)
+		middlewares.SetContentTypeApplicationJSON(ctx.RequestCtx)
 
 		switch {
 		case ctx.IsHead():
@@ -202,7 +244,7 @@ func newLocalesEmbeddedHandler() (handler fasthttp.RequestHandler) {
 		default:
 			ctx.SetBody(data)
 		}
-	}
+	}, nil
 }
 
 func getEmbedETags(embedFS embed.FS, root string, etags map[string][]byte) {
@@ -230,11 +272,7 @@ func getEmbedETags(embedFS embed.FS, root string, etags map[string][]byte) {
 			continue
 		}
 
-		sum := sha1.New() //nolint:gosec // Usage is for collision avoidance not security.
-
-		sum.Write(data)
-
-		etags[p] = []byte(fmt.Sprintf("%x", sum.Sum(nil)))
+		etags[p] = generateEtag(data)
 	}
 }
 
@@ -247,4 +285,57 @@ func hfsHandleErr(ctx *fasthttp.RequestCtx, err error) {
 	default:
 		handlers.SetStatusCodeResponse(ctx, fasthttp.StatusInternalServerError)
 	}
+}
+
+// newLocalesListHandler handles request for obtaining the available locales in backend.
+func newLocalesListHandler() (handler func(ctx *middlewares.AutheliaCtx), err error) {
+	var (
+		data []byte
+	)
+
+	// preload embedded locales.
+	localeInfo, err := utils.GetEmbeddedLanguages(locales)
+	if err != nil {
+		return nil, fmt.Errorf("error occurred initializing the locale list handler: error occurred loading embedded languages: %w", err)
+	}
+
+	// parse embedded locales.
+	data, err = json.Marshal(middlewares.OKResponse{Status: "OK", Data: localeInfo})
+
+	if err != nil {
+		return nil, fmt.Errorf("error occurred initializing the locale list handler: error occurred marshalling the locale list: %w", err)
+	}
+
+	// generate etag for embedded locales.
+	etag := generateEtag(data)
+
+	return func(ctx *middlewares.AutheliaCtx) {
+		ctx.Response.Header.SetBytesKV(headerETag, etag)
+		ctx.Response.Header.SetBytesKV(headerCacheControl, headerValueCacheControlETaggedAssets)
+
+		if bytes.Equal(etag, ctx.Request.Header.PeekBytes(headerIfNoneMatch)) {
+			ctx.SetStatusCode(fasthttp.StatusNotModified)
+			return
+		}
+
+		middlewares.SetStandardSecurityHeaders(ctx.RequestCtx)
+		middlewares.SetContentTypeApplicationJSON(ctx.RequestCtx)
+
+		switch {
+		case ctx.IsHead():
+			ctx.Response.ResetBody()
+			ctx.Response.SkipBody = true
+			ctx.Response.Header.Set(fasthttp.HeaderContentLength, strconv.Itoa(len(data)))
+		default:
+			ctx.SetBody(data)
+		}
+	}, nil
+}
+
+// generateEtag generates a unique etag for specified payload.
+func generateEtag(payload []byte) []byte {
+	sum := sha1.New() //nolint:gosec // Usage is for collision avoidance not security.
+	sum.Write(payload)
+
+	return []byte(fmt.Sprintf("%x", sum.Sum(nil)))
 }

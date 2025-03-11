@@ -1,28 +1,58 @@
 ---
-###############################################################
-#                   Authelia configuration                    #
-###############################################################
+certificates_directory: '/certs/'
 
 server:
   address: 'tcp://:443'
   tls:
-    certificate: /pki/public.backend.crt
-    key: /pki/private.backend.pem
+    certificate: '/pki/public.backend.crt'
+    key: '/pki/private.backend.pem'
 
 log:
-  level: debug
+  level: 'debug'
+
+storage:
+  mysql:
+    address: 'tcp://mariadb-service:3306'
+    database: 'authelia'
+    username: 'admin'
+
+notifier:
+  smtp:
+    address: 'smtp://mailpit-service:1025'
+    username: 'authelia'
+    password: 'mailer'
+    sender: 'admin@example.com'
+    tls:
+      server_name: 'mail.example.com'
+
+regulation:
+  max_retries: 3
+  find_time: '2 minutes'
+  ban_time: '5 minutes'
+
+session:
+  cookies:
+    - domain: 'example.com'
+      authelia_url: 'https://login.example.com:8080'
+      default_redirection_url: 'https://home.example.com:8080'
+      expiration: '1 hour'
+      inactivity: '5 minutes'
+      remember_me: '1 year'
+  redis:
+    host: 'redis-service'
+    port: 6379
 
 authentication_backend:
   ldap:
     address: 'ldaps://ldap-service'
     tls:
       skip_verify: true
-    base_dn: dc=example,dc=com
-    additional_users_dn: ou=users
-    users_filter: (&({username_attribute}={input})(objectClass=person))
-    additional_groups_dn: ou=groups
-    groups_filter: (&(member={dn})(objectClass=groupOfNames))
-    user: cn=admin,dc=example,dc=com
+    base_dn: 'dc=example,dc=com'
+    additional_users_dn: 'ou=users'
+    users_filter: '(&({username_attribute}={input})(objectClass=person))'
+    additional_groups_dn: 'ou=groups'
+    groups_filter: '(&(member={dn})(objectClass=groupOfNames))'
+    user: 'cn=admin,dc=example,dc=com'
     attributes:
       distinguished_name: ''
       username: 'uid'
@@ -31,51 +61,44 @@ authentication_backend:
       member_of: 'memberOf'
       group_name: 'cn'
 
-access_control:
-  default_policy: deny
-  rules:
-    - domain: ["home.example.com", "public.example.com"]
-      policy: bypass
-    - domain: "deny.example.com"
-      policy: deny
-    - domain: "admin.example.com"
-      policy: two_factor
-    - domain: "secure.example.com"
-      policy: two_factor
-    - domain: "singlefactor.example.com"
-      policy: one_factor
-
-session:
-  expiration: 3600  # 1 hour
-  inactivity: 300  # 5 minutes
-  remember_me: 1y
-  cookies:
-    - domain: 'example.com'
-      authelia_url: 'https://login.example.com:8080'
-      default_redirection_url: 'https://home.example.com:8080'
-
-  redis:
-    host: redis-service
-    port: 6379
-
 totp:
   issuer: example.com
   disable_reuse_security_policy: true
 
-regulation:
-  max_retries: 3
-  find_time: 120
-  ban_time: 300
+webauthn:
+  disable: false
+  enable_passkey_login: true
+  display_name: 'Authelia'
+  attestation_conveyance_preference: 'indirect'
+  timeout: '60 seconds'
+  filtering:
+    permitted_aaguids: []
+    prohibited_aaguids: []
+    prohibit_backup_eligibility: false
+  selection_criteria:
+    attachment: ''
+    discoverability: 'required'
+    user_verification: 'preferred'
+  metadata:
+    enabled: false
+    validate_trust_anchor: true
+    validate_entry: false
+    validate_entry_permit_zero_aaguid: true
+    validate_status: true
+    validate_status_permitted: []
+    validate_status_prohibited: []
 
-storage:
-  mysql:
-    address: 'tcp://mariadb-service:3306'
-    database: authelia
-    username: admin
-
-notifier:
-  smtp:
-    address: 'smtp://mailcatcher-service:1025'
-    sender: 'admin@example.com'
-    disable_require_tls: true
+access_control:
+  default_policy: deny
+  rules:
+    - domain: ['home.example.com', 'public.example.com']
+      policy: 'bypass'
+    - domain: 'deny.example.com'
+      policy: 'deny'
+    - domain: 'admin.example.com'
+      policy: 'two_factor'
+    - domain: 'secure.example.com'
+      policy: 'two_factor'
+    - domain: 'singlefactor.example.com'
+      policy: 'one_factor'
 ...

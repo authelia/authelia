@@ -2,17 +2,21 @@ package commands
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	"image"
 	"image/png"
+	"net"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 	"text/tabwriter"
+	"time"
 
+	"github.com/go-webauthn/webauthn/metadata"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -21,9 +25,11 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/random"
+	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/totp"
 	"github.com/authelia/authelia/v4/internal/utils"
+	"github.com/authelia/authelia/v4/internal/webauthn"
 )
 
 // LoadProvidersStorageRunE is a special PreRunE that loads the storage provider into the CmdCtx.
@@ -127,6 +133,196 @@ func (ctx *CmdCtx) ConfigValidateStorageRunE(_ *cobra.Command, _ []string) (err 
 
 		return err
 	}
+
+	return nil
+}
+
+func (ctx *CmdCtx) StorageCacheDeleteRunE(name, description string) func(cmd *cobra.Command, args []string) (err error) {
+	return func(cmd *cobra.Command, args []string) (err error) {
+		defer func() {
+			_ = ctx.providers.StorageProvider.Close()
+		}()
+
+		if err = ctx.CheckSchema(); err != nil {
+			return storageWrapCheckSchemaErr(err)
+		}
+
+		if err = ctx.providers.StorageProvider.DeleteCachedData(ctx, name); err != nil {
+			return err
+		}
+
+		_, _ = fmt.Fprintf(os.Stdout, "Successfully deleted cached %s data.\n", description)
+
+		return nil
+	}
+}
+
+func (ctx *CmdCtx) StorageCacheMDS3StatusRunE(cmd *cobra.Command, args []string) (err error) {
+	defer func() {
+		_ = ctx.providers.StorageProvider.Close()
+	}()
+
+	if !ctx.config.WebAuthn.Metadata.Enabled {
+		return fmt.Errorf("webauthn metadata is disabled")
+	}
+
+	if err = ctx.CheckSchema(); err != nil {
+		return storageWrapCheckSchemaErr(err)
+	}
+
+	provider, err := webauthn.NewMetaDataProvider(ctx.config, ctx.providers.StorageProvider)
+	if err != nil {
+		return err
+	}
+
+	var (
+		mds *metadata.Metadata
+
+		valid, initialized, outdated bool
+	)
+
+	if mds, _, err = provider.LoadCache(ctx); err == nil {
+		valid = true
+
+		if mds != nil {
+			initialized = true
+			outdated = provider.Outdated()
+		}
+	}
+
+	_, _ = fmt.Fprintf(os.Stdout, "WebAuthn MDS3 Cache Status:\n\n\tValid: %t\n\tInitialized: %t\n\tOutdated: %t\n", valid, initialized, outdated)
+
+	if initialized {
+		_, _ = fmt.Fprintf(os.Stdout, "\tVersion: %d\n", mds.Parsed.Number)
+
+		if !outdated {
+			_, _ = fmt.Fprintf(os.Stdout, "\tNext Update: %s\n", mds.Parsed.NextUpdate.Format("January 2, 2006"))
+		}
+	}
+
+	return nil
+}
+
+func (ctx *CmdCtx) StorageCacheMDS3DumpRunE(cmd *cobra.Command, args []string) (err error) {
+	defer func() {
+		_ = ctx.providers.StorageProvider.Close()
+	}()
+
+	if !ctx.config.WebAuthn.Metadata.Enabled {
+		return fmt.Errorf("webauthn metadata is disabled")
+	}
+
+	if err = ctx.CheckSchema(); err != nil {
+		return storageWrapCheckSchemaErr(err)
+	}
+
+	provider, err := webauthn.NewMetaDataProvider(ctx.config, ctx.providers.StorageProvider)
+	if err != nil {
+		return err
+	}
+
+	var (
+		file *os.File
+		mds  *metadata.Metadata
+		data []byte
+		path string
+	)
+
+	if path, err = cmd.Flags().GetString("path"); err != nil {
+		return err
+	}
+
+	if mds, data, err = provider.LoadCache(ctx); err != nil {
+		return err
+	} else if mds == nil {
+		return fmt.Errorf("error dumping metadata: no metadata is in the cache")
+	}
+
+	if file, err = os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
+		return err
+	}
+
+	defer file.Close()
+
+	if _, err = file.Write(data); err != nil {
+		return fmt.Errorf("error writing data to file: %w", err)
+	}
+
+	_ = file.Sync()
+
+	_, _ = fmt.Fprintf(os.Stdout, "Successfully dumped WebAuthn MDS3 data with version %d from cache to file '%s'.\n", mds.Parsed.Number, path)
+
+	return nil
+}
+
+//nolint:gocyclo
+func (ctx *CmdCtx) StorageCacheMDS3UpdateRunE(cmd *cobra.Command, args []string) (err error) {
+	defer func() {
+		_ = ctx.providers.StorageProvider.Close()
+	}()
+
+	if !ctx.config.WebAuthn.Metadata.Enabled {
+		return fmt.Errorf("webauthn metadata is disabled")
+	}
+
+	if err = ctx.CheckSchema(); err != nil {
+		return storageWrapCheckSchemaErr(err)
+	}
+
+	provider, err := webauthn.NewMetaDataProvider(ctx.config, ctx.providers.StorageProvider)
+	if err != nil {
+		return err
+	}
+
+	var (
+		mds   *metadata.Metadata
+		data  []byte
+		path  string
+		force bool
+	)
+
+	if force, err = cmd.Flags().GetBool(cmdFlagNameForce); err != nil {
+		return err
+	}
+
+	if path, err = cmd.Flags().GetString(cmdFlagNamePath); err != nil {
+		return err
+	}
+
+	if mds, _, err = provider.LoadCache(ctx); err != nil {
+		return err
+	} else if mds != nil && !force && !provider.Outdated() {
+		_, _ = fmt.Fprintf(os.Stdout, "WebAuthn MDS3 cache data with version %d due for update on %s does not require an update.\n", mds.Parsed.Number, mds.Parsed.NextUpdate.Format("January 2, 2006"))
+
+		return nil
+	}
+
+	switch {
+	case path != "":
+		mds, data, err = provider.LoadFile(ctx, path)
+	case force:
+		mds, data, err = provider.LoadForce(ctx)
+	default:
+		mds, data, err = provider.Load(ctx)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	if data == nil {
+		return fmt.Errorf("error updating metadata: no data was returned")
+	}
+
+	if provider.Outdated() && !force {
+		_, _ = fmt.Fprintf(os.Stdout, "Provided WebAuthn MDS3 data with version %d was due for update on %s and can't be used.\n", mds.Parsed.Number, mds.Parsed.NextUpdate.Format("January 2, 2006"))
+	}
+
+	if err = provider.SaveCache(ctx, data); err != nil {
+		return err
+	}
+
+	_, _ = fmt.Fprintf(os.Stdout, "WebAuthn MDS3 cache data updated to version %d and is due for update on %s.\n", mds.Parsed.Number, mds.Parsed.NextUpdate.Format("January 2, 2006"))
 
 	return nil
 }
@@ -427,6 +623,284 @@ func (ctx *CmdCtx) StorageSchemaInfoRunE(_ *cobra.Command, _ []string) (err erro
 	return nil
 }
 
+func (ctx *CmdCtx) StorageBansListRunE(use string) func(cmd *cobra.Command, args []string) (err error) {
+	return func(cmd *cobra.Command, args []string) (err error) {
+		defer func() {
+			_ = ctx.providers.StorageProvider.Close()
+		}()
+
+		if err = ctx.CheckSchema(); err != nil {
+			return storageWrapCheckSchemaErr(err)
+		}
+
+		switch use {
+		case cmdUseIP:
+			var results []model.BannedIP
+
+			limit := 10
+			count := 0
+
+			for page := 0; true; page++ {
+				var bans []model.BannedIP
+
+				if bans, err = ctx.providers.StorageProvider.LoadBannedIPs(context.Background(), limit, page); err != nil {
+					return err
+				}
+
+				l := len(bans)
+
+				count += l
+
+				results = append(results, bans...)
+
+				if l < limit {
+					break
+				}
+			}
+
+			if count == 0 {
+				fmt.Printf("No results.\n")
+
+				return nil
+			}
+
+			w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
+
+			_, _ = fmt.Fprintln(w, "ID\tIP\tExpires\tSource\tReason")
+
+			for _, ban := range results {
+				_, _ = fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\n", ban.ID, ban.IP, regulation.FormatExpiresShort(ban.Expires), ban.Source, ban.Reason.String)
+			}
+
+			return w.Flush()
+		case cmdUseUser:
+			var results []model.BannedUser
+
+			limit := 10
+			count := 0
+
+			for page := 0; true; page++ {
+				var bans []model.BannedUser
+
+				if bans, err = ctx.providers.StorageProvider.LoadBannedUsers(context.Background(), limit, page); err != nil {
+					return err
+				}
+
+				l := len(bans)
+
+				count += l
+
+				results = append(results, bans...)
+
+				if l < limit {
+					break
+				}
+			}
+
+			if count == 0 {
+				fmt.Printf("No results.\n")
+
+				return nil
+			}
+
+			w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
+
+			_, _ = fmt.Fprintln(w, "ID\tUsername\tExpires\tSource\tReason")
+
+			for _, ban := range results {
+				_, _ = fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\n", ban.ID, ban.Username, regulation.FormatExpiresShort(ban.Expires), ban.Source, ban.Reason.String)
+			}
+
+			return w.Flush()
+		default:
+			return fmt.Errorf("unknown command %q", use)
+		}
+	}
+}
+
+//nolint:gocyclo
+func (ctx *CmdCtx) StorageBansRevokeRunE(use string) func(cmd *cobra.Command, args []string) (err error) {
+	return func(cmd *cobra.Command, args []string) (err error) {
+		defer func() {
+			_ = ctx.providers.StorageProvider.Close()
+		}()
+
+		if err = ctx.CheckSchema(); err != nil {
+			return storageWrapCheckSchemaErr(err)
+		}
+
+		var (
+			id     int
+			target string
+		)
+
+		if id, err = cmd.Flags().GetInt("id"); err != nil {
+			return err
+		}
+
+		if len(args) != 0 {
+			target = args[0]
+		}
+
+		switch use {
+		case cmdUseIP:
+			ip := net.ParseIP(target)
+
+			var bans []model.BannedIP
+
+			if id == 0 {
+				if bans, err = ctx.providers.StorageProvider.LoadBannedIP(ctx, model.NewIP(ip)); err != nil {
+					return err
+				}
+			} else {
+				var ban model.BannedIP
+
+				if ban, err = ctx.providers.StorageProvider.LoadBannedIPByID(ctx, id); err != nil {
+					return err
+				}
+
+				bans = []model.BannedIP{ban}
+			}
+
+			for _, ban := range bans {
+				if ban.Revoked {
+					fmt.Printf("SKIPPED\tIP ban with id '%d' for '%s is already revoked.\n", ban.ID, ban.IP)
+				} else {
+					if err = ctx.providers.StorageProvider.RevokeBannedIP(ctx, ban.ID, time.Now()); err != nil {
+						fmt.Printf("ERROR\tIP ban with id '%d' for '%s' had error when being revoked: %+v\n", ban.ID, ban.IP, err)
+					} else {
+						fmt.Printf("REVOKED\tIP ban with id '%d' for '%s' has been revoked\n", ban.ID, ban.IP)
+					}
+				}
+			}
+		case cmdUseUser:
+			var bans []model.BannedUser
+
+			if id == 0 {
+				if bans, err = ctx.providers.StorageProvider.LoadBannedUser(ctx, target); err != nil {
+					return err
+				}
+			} else {
+				var ban model.BannedUser
+
+				if ban, err = ctx.providers.StorageProvider.LoadBannedUserByID(ctx, id); err != nil {
+					return err
+				}
+
+				bans = []model.BannedUser{ban}
+			}
+
+			for _, ban := range bans {
+				if ban.Revoked {
+					fmt.Printf("SKIPPED\tUser ban with id '%d' for '%s is already revoked.\n", ban.ID, ban.Username)
+				} else {
+					if err = ctx.providers.StorageProvider.RevokeBannedUser(ctx, ban.ID, time.Now()); err != nil {
+						fmt.Printf("ERROR\tUser ban with id '%d' for '%s' had error when being revoked: %+v\n", ban.ID, ban.Username, err)
+					} else {
+						fmt.Printf("REVOKED\tUser ban with id '%d' for '%s' has been revoked\n", ban.ID, ban.Username)
+					}
+				}
+			}
+		default:
+			return fmt.Errorf("unknown command %q", use)
+		}
+
+		return nil
+	}
+}
+
+//nolint:gocyclo
+func (ctx *CmdCtx) StorageBansAddRunE(use string) func(cmd *cobra.Command, args []string) (err error) {
+	return func(cmd *cobra.Command, args []string) (err error) {
+		defer func() {
+			_ = ctx.providers.StorageProvider.Close()
+		}()
+
+		if err = ctx.CheckSchema(); err != nil {
+			return storageWrapCheckSchemaErr(err)
+		}
+
+		var (
+			permanent           bool
+			reason, durationStr string
+		)
+
+		if permanent, err = cmd.Flags().GetBool("permanent"); err != nil {
+			return err
+		}
+
+		if reason, err = cmd.Flags().GetString("reason"); err != nil {
+			return err
+		}
+
+		if durationStr, err = cmd.Flags().GetString("duration"); err != nil {
+			return err
+		}
+
+		duration, err := utils.ParseDurationString(durationStr)
+		if err != nil {
+			return fmt.Errorf("failed to parse duration string: %w", err)
+		}
+
+		if duration <= 0 {
+			return fmt.Errorf("duration must be a positive value")
+		}
+
+		target := args[0]
+
+		switch use {
+		case cmdUseIP:
+			// TODO: Check for existing ban and revoke it?
+			ip := net.ParseIP(target)
+
+			if ip == nil {
+				return fmt.Errorf("invalid IP address: %s", target)
+			}
+
+			ban := &model.BannedIP{
+				IP:     model.NewIP(ip),
+				Source: "cli",
+			}
+
+			if reason != "" {
+				ban.Reason = sql.NullString{Valid: true, String: reason}
+			}
+
+			if !permanent {
+				ban.Expires = sql.NullTime{Valid: true, Time: time.Now().Add(duration)}
+			}
+
+			if err = ctx.providers.StorageProvider.SaveBannedIP(ctx, ban); err != nil {
+				return err
+			}
+
+			return nil
+		case cmdUseUser:
+			// TODO: Check for existing ban and revoke it?
+			ban := &model.BannedUser{
+				Username: target,
+				Source:   "cli",
+			}
+
+			if reason != "" {
+				ban.Reason = sql.NullString{Valid: true, String: reason}
+			}
+
+			if !permanent {
+				ban.Expires = sql.NullTime{Valid: true, Time: time.Now().Add(duration)}
+			}
+
+			if err = ctx.providers.StorageProvider.SaveBannedUser(ctx, ban); err != nil {
+				return err
+			}
+
+			return nil
+		default:
+			return fmt.Errorf("unknown command %q", use)
+		}
+	}
+}
+
 func (ctx *CmdCtx) StorageUserWebAuthnExportRunE(cmd *cobra.Command, args []string) (err error) {
 	defer func() {
 		_ = ctx.providers.StorageProvider.Close()
@@ -455,7 +929,7 @@ func (ctx *CmdCtx) StorageUserWebAuthnExportRunE(cmd *cobra.Command, args []stri
 	count := 0
 
 	var (
-		devices []model.WebAuthnCredential
+		credentials []model.WebAuthnCredential
 	)
 
 	export := &model.WebAuthnCredentialExport{
@@ -463,13 +937,13 @@ func (ctx *CmdCtx) StorageUserWebAuthnExportRunE(cmd *cobra.Command, args []stri
 	}
 
 	for page := 0; true; page++ {
-		if devices, err = ctx.providers.StorageProvider.LoadWebAuthnCredentials(ctx, limit, page); err != nil {
+		if credentials, err = ctx.providers.StorageProvider.LoadWebAuthnCredentials(ctx, limit, page); err != nil {
 			return err
 		}
 
-		export.WebAuthnCredentials = append(export.WebAuthnCredentials, devices...)
+		export.WebAuthnCredentials = append(export.WebAuthnCredentials, credentials...)
 
-		l := len(devices)
+		l := len(credentials)
 
 		count += l
 
@@ -531,8 +1005,8 @@ func (ctx *CmdCtx) StorageUserWebAuthnImportRunE(cmd *cobra.Command, args []stri
 		return storageWrapCheckSchemaErr(err)
 	}
 
-	for _, device := range export.WebAuthnCredentials {
-		if err = ctx.providers.StorageProvider.SaveWebAuthnCredential(ctx, device); err != nil {
+	for _, credential := range export.WebAuthnCredentials {
+		if err = ctx.providers.StorageProvider.SaveWebAuthnCredential(ctx, credential); err != nil {
 			return err
 		}
 	}
@@ -556,17 +1030,17 @@ func (ctx *CmdCtx) StorageUserWebAuthnListRunE(cmd *cobra.Command, args []string
 		return storageWrapCheckSchemaErr(err)
 	}
 
-	var devices []model.WebAuthnCredential
+	var credentials []model.WebAuthnCredential
 
 	user := args[0]
 
-	devices, err = ctx.providers.StorageProvider.LoadWebAuthnCredentialsByUsername(ctx, "", user)
+	credentials, err = ctx.providers.StorageProvider.LoadWebAuthnCredentialsByUsername(ctx, "", user)
 
 	switch {
-	case len(devices) == 0 || (err != nil && errors.Is(err, storage.ErrNoWebAuthnCredential)):
+	case len(credentials) == 0 || (err != nil && errors.Is(err, storage.ErrNoWebAuthnCredential)):
 		return fmt.Errorf("user '%s' has no WebAuthn credentials", user)
 	case err != nil:
-		return fmt.Errorf("can't list devices for user '%s': %w", user, err)
+		return fmt.Errorf("can't list credentials for user '%s': %w", user, err)
 	default:
 		fmt.Printf("WebAuthn Credentials for user '%s':\n\n", user)
 
@@ -574,8 +1048,8 @@ func (ctx *CmdCtx) StorageUserWebAuthnListRunE(cmd *cobra.Command, args []string
 
 		_, _ = fmt.Fprintln(w, "ID\tKID\tDescription")
 
-		for _, device := range devices {
-			_, _ = fmt.Fprintf(w, "%d\t%s\t%s\n", device.ID, device.KID, device.Description)
+		for _, credential := range credentials {
+			_, _ = fmt.Fprintf(w, "%d\t%s\t%s\n", credential.ID, credential.KID, credential.Description)
 		}
 
 		return w.Flush()
@@ -592,7 +1066,7 @@ func (ctx *CmdCtx) StorageUserWebAuthnListAllRunE(_ *cobra.Command, _ []string) 
 		return storageWrapCheckSchemaErr(err)
 	}
 
-	var devices []model.WebAuthnCredential
+	var credentials []model.WebAuthnCredential
 
 	limit := 10
 
@@ -601,24 +1075,94 @@ func (ctx *CmdCtx) StorageUserWebAuthnListAllRunE(_ *cobra.Command, _ []string) 
 	_, _ = fmt.Fprintln(w, "ID\tKID\tDescription\tUsername")
 
 	for page := 0; true; page++ {
-		if devices, err = ctx.providers.StorageProvider.LoadWebAuthnCredentials(ctx, limit, page); err != nil {
-			return fmt.Errorf("failed to list devices: %w", err)
+		if credentials, err = ctx.providers.StorageProvider.LoadWebAuthnCredentials(ctx, limit, page); err != nil {
+			return fmt.Errorf("failed to list credentials: %w", err)
 		}
 
-		if page == 0 && len(devices) == 0 {
+		if page == 0 && len(credentials) == 0 {
 			return errors.New("no WebAuthn credentials in database")
 		}
 
-		for _, device := range devices {
-			_, _ = fmt.Fprintf(w, "%d\t%s\t%s\t%s\n", device.ID, device.KID, device.Description, device.Username)
+		for _, credential := range credentials {
+			_, _ = fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\n", credential.ID, credential.RPID, credential.KID, credential.Description, credential.Username)
 		}
 
-		if len(devices) < limit {
+		if len(credentials) < limit {
 			break
 		}
 	}
 
 	fmt.Printf("WebAuthn Credentials:\n\n")
+
+	return w.Flush()
+}
+
+// StorageUserWebAuthnVerifyRunE is the RunE for the authelia storage user webauthn verify command when no args are specified.
+func (ctx *CmdCtx) StorageUserWebAuthnVerifyRunE(_ *cobra.Command, _ []string) (err error) {
+	defer func() {
+		_ = ctx.providers.StorageProvider.Close()
+	}()
+
+	if err = ctx.CheckSchema(); err != nil {
+		return storageWrapCheckSchemaErr(err)
+	}
+
+	var (
+		provider    webauthn.MetaDataProvider
+		credentials []model.WebAuthnCredential
+	)
+
+	if provider, err = webauthn.NewMetaDataProvider(ctx.config, ctx.providers.StorageProvider); err != nil {
+		return err
+	}
+
+	limit := 10
+
+	w := tabwriter.NewWriter(os.Stdout, 1, 1, 4, ' ', 0)
+
+	_, _ = fmt.Fprintln(w, "ID\tRPID\tKID\tUsername\tAAGUID\tStatement\tBackup\tMDS")
+
+	for page := 0; true; page++ {
+		if credentials, err = ctx.providers.StorageProvider.LoadWebAuthnCredentials(ctx, limit, page); err != nil {
+			return fmt.Errorf("failed to verify credentials: %w", err)
+		}
+
+		if page == 0 && len(credentials) == 0 {
+			return errors.New("no WebAuthn credentials in database")
+		}
+
+		for _, credential := range credentials {
+			result := webauthn.VerifyCredential(&ctx.config.WebAuthn, &credential, provider)
+
+			strAAGUID, strStatement, strBackup, strMDS := wordYes, wordYes, wordYes, wordYes
+
+			if result.IsProhibitedAAGUID {
+				strAAGUID = wordNo
+			}
+
+			if result.MissingStatement {
+				strStatement = wordNo
+			}
+
+			if result.IsProhibitedBackupEligibility {
+				strBackup = wordNo
+			}
+
+			if result.Malformed {
+				strMDS = "Malformed"
+			} else if result.MetaDataValidationError {
+				strMDS = wordNo
+			}
+
+			_, _ = fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", credential.ID, credential.RPID, credential.KID, credential.Username, strAAGUID, strStatement, strBackup, strMDS)
+		}
+
+		if len(credentials) < limit {
+			break
+		}
+	}
+
+	fmt.Printf("WebAuthn Credential Verifications:\n\n")
 
 	return w.Flush()
 }
@@ -699,7 +1243,7 @@ func (ctx *CmdCtx) StorageUserTOTPGenerateRunE(cmd *cobra.Command, args []string
 
 	totpProvider := totp.NewTimeBasedProvider(ctx.config.TOTP)
 
-	if c, err = totpProvider.GenerateCustom(totp.NewContext(ctx, &clock.Real{}, &random.Cryptographical{}), args[0], ctx.config.TOTP.DefaultAlgorithm, secret, uint(ctx.config.TOTP.DefaultDigits), uint(ctx.config.TOTP.DefaultPeriod), uint(ctx.config.TOTP.SecretSize)); err != nil {
+	if c, err = totpProvider.GenerateCustom(totp.NewContext(ctx, &clock.Real{}, &random.Cryptographical{}), args[0], ctx.config.TOTP.DefaultAlgorithm, secret, uint32(ctx.config.TOTP.DefaultDigits), uint(ctx.config.TOTP.DefaultPeriod), uint(ctx.config.TOTP.SecretSize)); err != nil { //nolint:gosec // Validated at runtime.
 		return err
 	}
 

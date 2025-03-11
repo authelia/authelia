@@ -1,0 +1,9 @@
+---
+services:
+  authelia-backend:
+    volumes:
+      - './PathPrefix/configuration.yml:/config/configuration.yml'
+      - './PathPrefix/users.yml:/config/users.yml'
+      - './common/pki:/pki'
+      - './common/pki/public.crt:/certs/public.crt'
+...

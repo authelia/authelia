@@ -1,15 +1,12 @@
 ---
-###############################################################
-#                Authelia minimal configuration               #
-###############################################################
-
-theme: auto
+certificates_directory: '/certs/'
+theme: 'auto'
 
 server:
   address: 'tcp://:9091'
   tls:
-    certificate: /pki/public.backend.crt
-    key: /pki/private.backend.pem
+    certificate: '/pki/public.backend.crt'
+    key: '/pki/private.backend.pem'
 
 telemetry:
   metrics:
@@ -17,54 +14,55 @@ telemetry:
     address: 'tcp://:9959'
 
 log:
-  level: debug
+  level: 'debug'
 
-##
-## Identity Validation Configuration
-##
-## This configuration tunes the identity validation flows.
+storage:
+  encryption_key: 'a_not_so_secure_encryption_key'
+  local:
+    path: '/config/db.sqlite'
+
+notifier:
+  smtp:
+    address: 'smtp://mail.example.com:1025'
+    sender: 'admin@example.com'
+
+ntp:
+  address: 'udp://time.cloudflare.com:123'
+  version: 4
+  max_desync: 3s
+  disable_startup_check: false
+
 identity_validation:
-
-  ## Reset Password flow. Adjusts how the reset password flow operates.
   reset_password:
-    ## Maximum allowed time before the JWT is generated and when the user uses it in the duration common syntax.
-    # expiration: '5 minutes'
-
-    ## The algorithm used for the Reset Password JWT.
-    # jwt_algorithm: 'HS256'
-
-    ## The secret key used to sign and verify the JWT.
     jwt_secret: 'a_very_important_secret'
-
-  ## Elevated Session flows. Adjusts the flow which require elevated sessions for example managing credentials, adding,
-  ## removing, etc.
   elevated_session:
-    ## Maximum allowed time after the One-Time Code is generated that it is considered valid.
     code_lifespan: '5 minutes'
-
-    ## Maximum allowed time after the user uses the One-Time Code and the user must perform the validation again in the
-    ## duration common syntax.
     elevation_lifespan: '10 minutes'
-
-    ## Number of characters the one-time password contains.
     characters: 8
-
-    ## In addition to the One-Time Code requires the user performs a second factor authentication.
     require_second_factor: true
 
-    ## Skips the elevation requirement and entry of the One-Time Code if the user has performed second factor
-    ## authentication.
-    # skip_second_factor: false
+regulation:
+  max_retries: 3
+  find_time: '5 minutes'
+  ban_time: '15 minutes'
 
-authentication_backend:
-  file:
-    path: /config/users.yml
+password_policy:
+  standard:
+    enabled: false
+    min_length: 8
+    max_length: 0
+    require_uppercase: true
+    require_lowercase: true
+    require_number: true
+    require_special: true
+  zxcvbn:
+    enabled: false
 
 session:
-  secret: unsecure_session_secret
-  expiration: 3600
-  inactivity: 300
-  remember_me: 1y
+  secret: 'unsecure_session_secret'
+  expiration: '1 hour'
+  inactivity: '5 minutes'
+  remember_me: '1 year'
   cookies:
     - name: 'authelia_session'
       domain: 'example.com'
@@ -77,18 +75,17 @@ session:
       domain: 'example3.com'
       authelia_url: 'https://login.example3.com:8080'
 
-storage:
-  encryption_key: a_not_so_secure_encryption_key
-  local:
-    path: /config/db.sqlite
+authentication_backend:
+  file:
+    path: '/config/users.yml'
 
 totp:
-  issuer: example.com
+  issuer: 'example.com'
   disable_reuse_security_policy: true
   allowed_algorithms:
-    - SHA1
-    - SHA256
-    - SHA512
+    - 'SHA1'
+    - 'SHA256'
+    - 'SHA512'
   allowed_digits:
     - 6
     - 8
@@ -98,171 +95,123 @@ totp:
     - 90
     - 120
 
+webauthn:
+  disable: false
+  enable_passkey_login: true
+  display_name: 'Authelia'
+  attestation_conveyance_preference: 'indirect'
+  timeout: '60 seconds'
+  filtering:
+    permitted_aaguids: []
+    prohibited_aaguids: []
+    prohibit_backup_eligibility: false
+  selection_criteria:
+    attachment: ''
+    discoverability: 'required'
+    user_verification: 'preferred'
+  metadata:
+    enabled: false
+    validate_trust_anchor: true
+    validate_entry: false
+    validate_entry_permit_zero_aaguid: true
+    validate_status: true
+    validate_status_permitted: []
+    validate_status_prohibited: []
+
 access_control:
-  default_policy: deny
-
+  default_policy: 'deny'
   rules:
-    # First cookie domain
-    - domain: singlefactor.example.com
-      policy: one_factor
-
-    - domain: public.example.com
-      policy: bypass
-
-    - domain: secure.example.com
-      policy: bypass
+    - domain: 'singlefactor.example.com'
+      policy: 'one_factor'
+    - domain: 'public.example.com'
+      policy: 'bypass'
+    - domain: 'secure.example.com'
+      policy: 'bypass'
       methods:
-        - OPTIONS
-
-    - domain: secure.example.com
-      policy: two_factor
-
-    - domain: "*.example.com"
-      subject: "group:admins"
-      policy: two_factor
-
-    - domain: dev.example.com
+        - 'OPTIONS'
+    - domain: 'secure.example.com'
+      policy: 'two_factor'
+    - domain: '*.example.com'
+      subject: 'group:admins'
+      policy: 'two_factor'
+    - domain: 'dev.example.com'
       resources:
-        - "^/users/john/.*$"
-      subject: "user:john"
-      policy: two_factor
-
-    - domain: dev.example.com
+        - '^/users/john/.*$'
+      subject: 'user:john'
+      policy: 'two_factor'
+    - domain: 'dev.example.com'
       resources:
-        - "^/users/harry/.*$"
-      subject: "user:harry"
-      policy: two_factor
-
-    - domain: "*.mail.example.com"
-      subject: "user:bob"
-      policy: two_factor
-
-    - domain: dev.example.com
+        - '^/users/harry/.*$'
+      subject: 'user:harry'
+      policy: 'two_factor'
+    - domain: '*.mail.example.com'
+      subject: 'user:bob'
+      policy: 'two_factor'
+    - domain: 'dev.example.com'
       resources:
-        - "^/users/bob/.*$"
-      subject: "user:bob"
-      policy: two_factor
-
-    # Second cookie domain
-    - domain: singlefactor.example2.com
-      policy: one_factor
-
-    - domain: public.example2.com
-      policy: bypass
-
-    - domain: secure.example2.com
-      policy: bypass
+        - '^/users/bob/.*$'
+      subject: 'user:bob'
+      policy: 'two_factor'
+    - domain: 'singlefactor.example2.com'
+      policy: 'one_factor'
+    - domain: 'public.example2.com'
+      policy: 'bypass'
+    - domain: 'secure.example2.com'
+      policy: 'bypass'
       methods:
-        - OPTIONS
-
-    - domain: secure.example2.com
-      policy: two_factor
-
-    - domain: "*.example2.com"
-      subject: "group:admins"
-      policy: two_factor
-
-    - domain: dev.example2.com
+        - 'OPTIONS'
+    - domain: 'secure.example2.com'
+      policy: 'two_factor'
+    - domain: '*.example2.com'
+      subject: 'group:admins'
+      policy: 'two_factor'
+    - domain: 'dev.example2.com'
       resources:
-        - "^/users/john/.*$"
-      subject: "user:john"
-      policy: two_factor
-
-    - domain: dev.example2.com
+        - '^/users/john/.*$'
+      subject: 'user:john'
+      policy: 'two_factor'
+    - domain: 'dev.example2.com'
       resources:
-        - "^/users/harry/.*$"
-      subject: "user:harry"
-      policy: two_factor
-
-    - domain: "*.mail.example2.com"
-      subject: "user:bob"
-      policy: two_factor
-
-    - domain: dev.example2.com
+        - '^/users/harry/.*$'
+      subject: 'user:harry'
+      policy: 'two_factor'
+    - domain: '*.mail.example2.com'
+      subject: 'user:bob'
+      policy: 'two_factor'
+    - domain: 'dev.example2.com'
       resources:
-        - "^/users/bob/.*$"
-      subject: "user:bob"
-      policy: two_factor
-
-    # Third cookie domain
-    - domain: singlefactor.example3.com
-      policy: one_factor
-
-    - domain: public.example3.com
-      policy: bypass
-
-    - domain: secure.example3.com
-      policy: bypass
+        - '^/users/bob/.*$'
+      subject: 'user:bob'
+      policy: 'two_factor'
+    - domain: 'singlefactor.example3.com'
+      policy: 'one_factor'
+    - domain: 'public.example3.com'
+      policy: 'bypass'
+    - domain: 'secure.example3.com'
+      policy: 'bypass'
       methods:
-        - OPTIONS
-
-    - domain: secure.example3.com
-      policy: two_factor
-
-    - domain: "*.example3.com"
-      subject: "group:admins"
-      policy: two_factor
-
-    - domain: dev.example3.com
+        - 'OPTIONS'
+    - domain: 'secure.example3.com'
+      policy: 'two_factor'
+    - domain: '*.example3.com'
+      subject: 'group:admins'
+      policy: 'two_factor'
+    - domain: 'dev.example3.com'
       resources:
-        - "^/users/john/.*$"
-      subject: "user:john"
-      policy: two_factor
-
-    - domain: dev.example3.com
+        - '^/users/john/.*$'
+      subject: 'user:john'
+      policy: 'two_factor'
+    - domain: 'dev.example3.com'
       resources:
-        - "^/users/harry/.*$"
-      subject: "user:harry"
-      policy: two_factor
-
-    - domain: "*.mail.example3.com"
-      subject: "user:bob"
-      policy: two_factor
-
-    - domain: dev.example3.com
+        - '^/users/harry/.*$'
+      subject: 'user:harry'
+      policy: 'two_factor'
+    - domain: '*.mail.example3.com'
+      subject: 'user:bob'
+      policy: 'two_factor'
+    - domain: 'dev.example3.com'
       resources:
-        - "^/users/bob/.*$"
-      subject: "user:bob"
-      policy: two_factor
-
-
-regulation:
-  # Set it to 0 to disable max_retries.
-  max_retries: 3
-  # The user is banned if the authentication failed `max_retries` times in a `find_time` seconds window.
-  find_time: 300
-  # The length of time before a banned user can login again.
-  ban_time: 900
-
-notifier:
-  smtp:
-    address: 'smtp://smtp:1025'
-    sender: admin@example.com
-    disable_require_tls: true
-ntp:
-  ## NTP server address
-  address: 'udp://time.cloudflare.com:123'
-  ## ntp version
-  version: 4
-  ## "maximum desynchronization" is the allowed offset time between the host and the ntp server
-  max_desync: 3s
-  ## You can enable or disable the NTP synchronization check on startup
-  disable_startup_check: false
-
-password_policy:
-  standard:
-    # Enables standard password Policy
-    enabled: false
-    min_length: 8
-    max_length: 0
-    require_uppercase: true
-    require_lowercase: true
-    require_number: true
-    require_special: true
-  zxcvbn:
-    ##  zxcvbn: uses zxcvbn for password strength checking (see: https://github.com/dropbox/zxcvbn)
-    ##    Note that the zxcvbn option does not prohibit the user from using a weak password,
-    ##    it only offers feedback about the strength of the password they are entering.
-    ##    if you need to enforce password rules, you should use `mode=classic`
-    enabled: false
+        - '^/users/bob/.*$'
+      subject: 'user:bob'
+      policy: 'two_factor'
 ...

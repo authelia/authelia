@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"syscall"
 
@@ -19,19 +20,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
-
-func recoverErr(i any) error {
-	switch v := i.(type) {
-	case nil:
-		return nil
-	case string:
-		return fmt.Errorf("recovered panic: %s", v)
-	case error:
-		return fmt.Errorf("recovered panic: %w", v)
-	default:
-		return fmt.Errorf("recovered panic with unknown type: %v", v)
-	}
-}
 
 func flagsGetUserIdentifiersGenerateOptions(flags *pflag.FlagSet) (users, services, sectors []string, err error) {
 	if users, err = flags.GetStringSlice(cmdFlagNameUsers); err != nil {
@@ -71,7 +59,7 @@ func flagsGetRandomCharacters(flags *pflag.FlagSet, flagNameLength, flagNameChar
 	}
 
 	switch {
-	case useCharSet, !useCharSet && !useCharacters:
+	case useCharSet, !useCharacters:
 		var c string
 
 		if c, err = flags.GetString(flagNameCharSet); err != nil {
@@ -106,7 +94,7 @@ func flagsGetRandomCharacters(flags *pflag.FlagSet, flagNameLength, flagNameChar
 		default:
 			return "", fmt.Errorf("flag '--%s' with value '%s' is invalid, must be one of 'ascii', 'alphanumeric', 'alphabetic', 'numeric', 'numeric-hex', or 'rfc3986'", flagNameCharSet, c)
 		}
-	case useCharacters:
+	default:
 		if charset, err = flags.GetString(flagNameCharacters); err != nil {
 			return "", err
 		}
@@ -115,6 +103,23 @@ func flagsGetRandomCharacters(flags *pflag.FlagSet, flagNameLength, flagNameChar
 	rand := &random.Cryptographical{}
 
 	return rand.StringCustom(n, charset), nil
+}
+
+func flagParseFileMode(name string, flags *pflag.FlagSet) (mode os.FileMode, err error) {
+	var (
+		value string
+		octal uint64
+	)
+
+	if value, err = flags.GetString(name); err != nil {
+		return mode, err
+	}
+
+	if octal, err = strconv.ParseUint(value, 8, 32); err != nil {
+		return mode, err
+	}
+
+	return os.FileMode(octal), nil
 }
 
 func termReadConfirmation(flags *pflag.FlagSet, name, prompt, confirmation string) (confirmed bool, err error) {

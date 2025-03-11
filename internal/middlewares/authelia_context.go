@@ -9,12 +9,15 @@ import (
 	"strings"
 
 	"github.com/asaskevich/govalidator"
+	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/random"
@@ -664,6 +667,68 @@ func (ctx *AutheliaCtx) GetConfiguration() (config schema.Configuration) {
 	return ctx.Configuration
 }
 
+// GetProviders returns the providers for this context.
+func (ctx *AutheliaCtx) GetProviders() (providers Providers) {
+	return ctx.Providers
+}
+
+func (ctx *AutheliaCtx) GetWebAuthnProvider() (w *webauthn.WebAuthn, err error) {
+	var (
+		origin *url.URL
+	)
+
+	if origin, err = ctx.GetOrigin(); err != nil {
+		return nil, err
+	}
+
+	config := &webauthn.Config{
+		RPID:                  origin.Hostname(),
+		RPDisplayName:         ctx.Configuration.WebAuthn.DisplayName,
+		RPOrigins:             []string{origin.String()},
+		AttestationPreference: ctx.Configuration.WebAuthn.ConveyancePreference,
+		AuthenticatorSelection: protocol.AuthenticatorSelection{
+			AuthenticatorAttachment: ctx.Configuration.WebAuthn.SelectionCriteria.Attachment,
+			ResidentKey:             ctx.Configuration.WebAuthn.SelectionCriteria.Discoverability,
+			UserVerification:        ctx.Configuration.WebAuthn.SelectionCriteria.UserVerification,
+		},
+		Debug:                false,
+		EncodeUserIDAsString: false,
+		Timeouts: webauthn.TimeoutsConfig{
+			Login: webauthn.TimeoutConfig{
+				Enforce:    true,
+				Timeout:    ctx.Configuration.WebAuthn.Timeout,
+				TimeoutUVD: ctx.Configuration.WebAuthn.Timeout,
+			},
+			Registration: webauthn.TimeoutConfig{
+				Enforce:    true,
+				Timeout:    ctx.Configuration.WebAuthn.Timeout,
+				TimeoutUVD: ctx.Configuration.WebAuthn.Timeout,
+			},
+		},
+		MDS: ctx.Providers.MetaDataService,
+	}
+
+	switch ctx.Configuration.WebAuthn.SelectionCriteria.Attachment {
+	case protocol.Platform, protocol.CrossPlatform:
+		config.AuthenticatorSelection.AuthenticatorAttachment = ctx.Configuration.WebAuthn.SelectionCriteria.Attachment
+	}
+
+	switch ctx.Configuration.WebAuthn.SelectionCriteria.Discoverability {
+	case protocol.ResidentKeyRequirementRequired:
+		config.AuthenticatorSelection.RequireResidentKey = protocol.ResidentKeyRequired()
+	case protocol.ResidentKeyRequirementPreferred, protocol.ResidentKeyRequirementDiscouraged:
+		config.AuthenticatorSelection.RequireResidentKey = protocol.ResidentKeyNotRequired()
+	}
+
+	ctx.Logger.Tracef("Creating new WebAuthn RP instance with ID %s and Origins %s", config.RPID, strings.Join(config.RPOrigins, ", "))
+
+	return webauthn.New(config)
+}
+
+func (ctx *AutheliaCtx) GetProviderUserAttributeResolver() expression.UserAttributeResolver {
+	return ctx.Providers.UserAttributeResolver
+}
+
 // Value is a shaded method of context.Context which returns the AutheliaCtx struct if the key is the internal key
 // otherwise it returns the shaded value.
 func (ctx *AutheliaCtx) Value(key any) any {
@@ -672,4 +737,9 @@ func (ctx *AutheliaCtx) Value(key any) any {
 	}
 
 	return ctx.RequestCtx.Value(key)
+}
+
+// GetLogger returns the logger for this request.
+func (ctx *AutheliaCtx) GetLogger() *logrus.Entry {
+	return ctx.Logger
 }

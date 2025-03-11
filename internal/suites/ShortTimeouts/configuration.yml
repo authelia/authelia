@@ -1,86 +1,101 @@
 ---
-###############################################################
-#                Authelia minimal configuration               #
-###############################################################
+certificates_directory: '/certs/'
 
 server:
   address: 'tcp://:9091'
   tls:
-    certificate: /pki/public.backend.crt
-    key: /pki/private.backend.pem
+    certificate: '/pki/public.backend.crt'
+    key: '/pki/private.backend.pem'
 
 log:
-  level: debug
-
-authentication_backend:
-  file:
-    path: /config/users.yml
-
-session:
-  secret: unsecure_session_secret
-  cookies:
-    - name: 'authelia_sessin'
-      domain: 'example.com'
-      authelia_url: 'https://login.example.com:8080'
-      default_redirection_url: 'https://home.example.com:8080/'
-      inactivity: 7
-      expiration: 10
-      remember_me: 1y
+  level: 'debug'
 
 storage:
-  encryption_key: a_not_so_secure_encryption_key
+  encryption_key: 'a_not_so_secure_encryption_key'
   local:
-    path: /config/db.sqlite
+    path: '/config/db.sqlite'
 
-totp:
-  issuer: example.com
-  disable_reuse_security_policy: true
+notifier:
+  smtp:
+    address: 'smtp://mail.example.com:1025'
+    sender: 'admin@example.com'
 
 identity_validation:
   reset_password:
     jwt_secret: 'a_very_important_secret'
 
-access_control:
-  default_policy: deny
-
-  rules:
-    - domain: singlefactor.example.com
-      policy: one_factor
-
-    - domain: "*.example.com"
-      subject: "group:admins"
-      policy: two_factor
-
-    - domain: dev.example.com
-      resources:
-        - "^/users/john/.*$"
-      subject: "user:john"
-      policy: two_factor
-
-    - domain: dev.example.com
-      resources:
-        - "^/users/harry/.*$"
-      subject: "user:harry"
-      policy: two_factor
-
-    - domain: "*.mail.example.com"
-      subject: "user:bob"
-      policy: two_factor
-
-    - domain: dev.example.com
-      resources:
-        - "^/users/bob/.*$"
-      subject: "user:bob"
-      policy: two_factor
-
 regulation:
   max_retries: 3
-  find_time: 5
-  ban_time: 10
+  find_time: '5 seconds'
+  ban_time: '10 seconds'
 
-notifier:
-  smtp:
-    address: 'smtp://smtp:1025'
-    sender: admin@example.com
-    disable_require_tls: true
+session:
+  secret: 'unsecure_session_secret'
+  cookies:
+    - name: 'authelia_sessin'
+      domain: 'example.com'
+      authelia_url: 'https://login.example.com:8080'
+      default_redirection_url: 'https://home.example.com:8080/'
+      expiration: '10 seconds'
+      inactivity: '7 seconds'
+      remember_me: '1 year'
+
+authentication_backend:
+  file:
+    path: '/config/users.yml'
+
+totp:
+  issuer: 'example.com'
+  disable_reuse_security_policy: true
+
+webauthn:
+  disable: false
+  enable_passkey_login: true
+  display_name: 'Authelia'
+  attestation_conveyance_preference: 'indirect'
+  timeout: '60 seconds'
+  filtering:
+    permitted_aaguids: []
+    prohibited_aaguids: []
+    prohibit_backup_eligibility: false
+  selection_criteria:
+    attachment: ''
+    discoverability: 'required'
+    user_verification: 'preferred'
+  metadata:
+    enabled: false
+    validate_trust_anchor: true
+    validate_entry: false
+    validate_entry_permit_zero_aaguid: true
+    validate_status: true
+    validate_status_permitted: []
+    validate_status_prohibited: []
+
+access_control:
+  default_policy: 'deny'
+  rules:
+    - domain: 'singlefactor.example.com'
+      policy: 'one_factor'
+    - domain: '*.example.com'
+      subject: 'group:admins'
+      policy: 'two_factor'
+    - domain: 'dev.example.com'
+      resources:
+        - '^/users/john/.*$'
+      subject: 'user:john'
+      policy: 'two_factor'
+    - domain: 'dev.example.com'
+      resources:
+        - '^/users/harry/.*$'
+      subject: 'user:harry'
+      policy: 'two_factor'
+    - domain: '*.mail.example.com'
+      subject: 'user:bob'
+      policy: 'two_factor'
+
+    - domain: 'dev.example.com'
+      resources:
+        - '^/users/bob/.*$'
+      subject: 'user:bob'
+      policy: 'two_factor'
 ...

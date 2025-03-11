@@ -1,0 +1,37 @@
+{
+	"Claim": "Eis {{name}}",
+	"Scope": "Omvang {{name}}",
+	"scopes": {
+		"openid": "Gebruik OpenID om jou identiteit te verifieer",
+		"offline_access": "Herlaai hierdie toestemmings outomaties sonder gebruikersinteraksie",
+		"profile": "Toegang tot jou profiele inligting",
+		"groups": "Toegang tot jou groep lidmaatskappe",
+		"email": "Toegang tot jou e-posadresse",
+		"phone": "Toegang tot jou telefoonnommer",
+		"address": "Toegang tot jou adres",
+		"authelia.bearer.authz": "Toegang tot beskermde hulpbronne wat ingelogde is as jy"
+	},
+	"claims": {
+		"sub": "Unieke Identifiseerder",
+		"name": "Vertoonnaam",
+		"given_name": "Gegewe Naam",
+		"family_name": "Familienaam",
+		"middle_name": "Middlename",
+		"nickname": "Bynaam",
+		"preferred_username": "Gunsteling gebruikersnaam",
+		"profile": "Profiel URL",
+		"picture": "Prent URL",
+		"website": "Webwerf URL",
+		"email": "E-posadres",
+		"email_verified": "E-posadres (Geverifieer)",
+		"gender": "Geslag",
+		"birthdate": "Geboortedatum",
+		"zoneinfo": "Tydsone",
+		"locale": "Locale / Taal",
+		"phone_number": "Telefoonnommer",
+		"phone_number_verified": "Telefoonnommer (Geverifieer)",
+		"address": "Posadres",
+		"updated_at": "Profiel opdateringstyd",
+		"groups": "Groep Lidmaatskap"
+	}
+}

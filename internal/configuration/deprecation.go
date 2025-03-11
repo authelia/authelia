@@ -322,6 +322,14 @@ var deprecations = map[string]Deprecation{
 		MapFunc: nil,
 		ErrFunc: nil,
 	},
+	"webauthn.user_verification": {
+		Version: model.SemanticVersion{Major: 4, Minor: 39},
+		Key:     "webauthn.user_verification",
+		NewKey:  "webauthn.selection_criteria.user_verification",
+		AutoMap: true,
+		MapFunc: nil,
+		ErrFunc: nil,
+	},
 }
 
 // MultiKeyMappedDeprecation represents a deprecated configuration key.
@@ -450,7 +458,7 @@ var deprecationsMKM = []MultiKeyMappedDeprecation{
 	},
 }
 
-func getHostPort(hostKey, portKey, hostFallback string, portFallback int, keys map[string]any) (host string, port int, err error) {
+func getHostPort(hostKey, portKey, hostFallback string, portFallback uint16, keys map[string]any) (host string, port uint16, err error) {
 	var (
 		ok bool
 		v  any
@@ -462,12 +470,20 @@ func getHostPort(hostKey, portKey, hostFallback string, portFallback int, keys m
 
 	if v, ok = keys[portKey]; ok {
 		switch value := v.(type) {
-		case int:
+		case uint16:
 			port = value
+		case int:
+			if value >= 0 && value <= 65535 {
+				port = uint16(value)
+			}
 		case string:
-			if port, err = strconv.Atoi(value); err != nil {
+			var p uint64
+
+			if p, err = strconv.ParseUint(value, 10, 16); err != nil {
 				return "", 0, fmt.Errorf("error occurred converting the port from a string: %w", err)
 			}
+
+			port = uint16(p)
 		}
 	}
 

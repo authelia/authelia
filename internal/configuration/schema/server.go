@@ -24,6 +24,8 @@ type ServerEndpoints struct {
 	EnablePprof   bool `koanf:"enable_pprof" json:"enable_pprof" jsonschema:"default=false,title=Enable PProf" jsonschema_description:"Enables the developer specific pprof endpoints which should not be used in production and only used for debugging purposes."`
 	EnableExpvars bool `koanf:"enable_expvars" json:"enable_expvars" jsonschema:"default=false,title=Enable ExpVars" jsonschema_description:"Enables the developer specific ExpVars endpoints which should not be used in production and only used for debugging purposes."`
 
+	RateLimits ServerEndpointRateLimits `koanf:"rate_limits" json:"rate_limits"`
+
 	Authz map[string]ServerEndpointsAuthz `koanf:"authz" json:"authz" jsonschema:"title=Authz" jsonschema_description:"Configures the Authorization endpoints."`
 }
 
@@ -36,8 +38,9 @@ type ServerEndpointsAuthz struct {
 
 // ServerEndpointsAuthzAuthnStrategy is the Authz endpoints configuration for the HTTP server.
 type ServerEndpointsAuthzAuthnStrategy struct {
-	Name    string   `koanf:"name" json:"name" jsonschema:"enum=HeaderAuthorization,enum=HeaderProxyAuthorization,enum=HeaderAuthRequestProxyAuthorization,enum=HeaderLegacy,enum=CookieSession,title=Name" jsonschema_description:"The name of the Authorization strategy to use."`
-	Schemes []string `koanf:"schemes" json:"schemes" jsonschema:"enum=basic,enum=bearer,default=basic,title=Authorization Schemes" jsonschema_description:"The name of the authorization schemes to allow with the header strategies."`
+	Name                     string        `koanf:"name" json:"name" jsonschema:"enum=HeaderAuthorization,enum=HeaderProxyAuthorization,enum=HeaderAuthRequestProxyAuthorization,enum=HeaderLegacy,enum=CookieSession,title=Name" jsonschema_description:"The name of the Authorization strategy to use."`
+	Schemes                  []string      `koanf:"schemes" json:"schemes" jsonschema:"enum=basic,enum=bearer,default=basic,title=Authorization Schemes" jsonschema_description:"The name of the authorization schemes to allow with the header strategies."`
+	SchemeBasicCacheLifespan time.Duration `koanf:"scheme_basic_cache_lifespan" json:"scheme_basic_cache_lifespan" jsonschema:"default=0,title=Scheme Basic Cache Lifespan" jsonschema_description:"The lifespan for cached basic scheme authorization attempts."`
 }
 
 // ServerTLS represents the configuration of the http servers TLS options.
@@ -52,9 +55,28 @@ type ServerHeaders struct {
 	CSPTemplate CSPTemplate `koanf:"csp_template" json:"csp_template" jsonschema:"title=CSP Template" jsonschema_description:"The Content Security Policy template."`
 }
 
+type ServerEndpointRateLimits struct {
+	ResetPasswordStart     ServerEndpointRateLimit `koanf:"reset_password_start" json:"reset_password_start"`
+	ResetPasswordFinish    ServerEndpointRateLimit `koanf:"reset_password_finish" json:"reset_password_finish"`
+	SecondFactorTOTP       ServerEndpointRateLimit `koanf:"second_factor_totp" json:"second_factor_totp"`
+	SecondFactorDuo        ServerEndpointRateLimit `koanf:"second_factor_duo" json:"second_factor_duo"`
+	SessionElevationStart  ServerEndpointRateLimit `koanf:"session_elevation_start" json:"session_elevation_start"`
+	SessionElevationFinish ServerEndpointRateLimit `koanf:"session_elevation_finish" json:"session_elevation_finish"`
+}
+
+type ServerEndpointRateLimit struct {
+	Enable  bool                            `koanf:"enable" json:"enable"`
+	Buckets []ServerEndpointRateLimitBucket `koanf:"buckets" json:"buckets"`
+}
+
+type ServerEndpointRateLimitBucket struct {
+	Period   time.Duration `koanf:"period" json:"period" jsonschema:"" jsonschema_description:"The period of time this rate limit bucket applies to."`
+	Requests int           `koanf:"requests" json:"requests" jsonschema:"" jsonschema_description:"The number of requests allowed in this rate limit bucket for the configured period before the rate limit kicks in."`
+}
+
 // DefaultServerConfiguration represents the default values of the Server.
 var DefaultServerConfiguration = Server{
-	Address: &AddressTCP{Address{true, false, -1, 9091, &url.URL{Scheme: AddressSchemeTCP, Host: ":9091", Path: "/"}}},
+	Address: &AddressTCP{Address{true, false, -1, 9091, nil, &url.URL{Scheme: AddressSchemeTCP, Host: ":9091", Path: "/"}}},
 	Buffers: ServerBuffers{
 		Read:  4096,
 		Write: 4096,
@@ -111,6 +133,48 @@ var DefaultServerConfiguration = Server{
 					{
 						Name: AuthzStrategyHeaderCookieSession,
 					},
+				},
+			},
+		},
+		RateLimits: ServerEndpointRateLimits{
+			ResetPasswordStart: ServerEndpointRateLimit{
+				Buckets: []ServerEndpointRateLimitBucket{
+					{Period: 10 * time.Minute, Requests: 5},
+					{Period: 15 * time.Minute, Requests: 10},
+					{Period: 30 * time.Minute, Requests: 15},
+				},
+			},
+			ResetPasswordFinish: ServerEndpointRateLimit{
+				Buckets: []ServerEndpointRateLimitBucket{
+					{Period: 1 * time.Minute, Requests: 10},
+					{Period: 2 * time.Minute, Requests: 15},
+				},
+			},
+			SecondFactorTOTP: ServerEndpointRateLimit{
+				Buckets: []ServerEndpointRateLimitBucket{
+					{Period: 1 * time.Minute, Requests: 30},
+					{Period: 2 * time.Minute, Requests: 40},
+					{Period: 10 * time.Minute, Requests: 50},
+				},
+			},
+			SecondFactorDuo: ServerEndpointRateLimit{
+				Buckets: []ServerEndpointRateLimitBucket{
+					{Period: 1 * time.Minute, Requests: 10},
+					{Period: 2 * time.Minute, Requests: 15},
+				},
+			},
+			SessionElevationStart: ServerEndpointRateLimit{
+				Buckets: []ServerEndpointRateLimitBucket{
+					{Period: 1, Requests: 3},   // 3 requests per 1.0x of identity_validation.elevated_session.code_lifespan.
+					{Period: 2, Requests: 5},   // 5 requests per 2.0x of identity_validation.elevated_session.code_lifespan.
+					{Period: 12, Requests: 15}, // 15 requests per 12.0x of identity_validation.elevated_session.code_lifespan.
+				},
+			},
+			SessionElevationFinish: ServerEndpointRateLimit{
+				Buckets: []ServerEndpointRateLimitBucket{
+					{Period: 1, Requests: 3},  // 3 requests per 1.0x of identity_validation.elevated_session.elevation_lifespan.
+					{Period: 2, Requests: 5},  // 5 requests per 2.0x of identity_validation.elevated_session.elevation_lifespan.
+					{Period: 6, Requests: 15}, // 15 requests per 6.0x of identity_validation.elevated_session.elevation_lifespan.
 				},
 			},
 		},

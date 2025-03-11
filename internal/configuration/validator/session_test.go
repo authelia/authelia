@@ -3,6 +3,7 @@ package validator
 import (
 	"crypto/tls"
 	"fmt"
+	"net"
 	"net/url"
 	"testing"
 	"time"
@@ -677,7 +678,7 @@ func TestShouldRaiseErrorOnBadRedisTLSOptionsSSL30(t *testing.T) {
 		Host: "redis.local",
 		Port: 6379,
 		TLS: &schema.TLS{
-			MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30},
+			MinimumVersion: schema.TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
 		},
 	}
 
@@ -845,8 +846,12 @@ func TestShouldRaiseErrorWhenDomainIsInvalid(t *testing.T) {
 		{"ShouldNotRaiseErrorOnValidIPLocalHost1", "127.0.0.1", nil, nil},
 		{"ShouldNotRaiseErrorOnValidIPLocalHost30", "127.0.0.30", nil, nil},
 		{"ShouldNotRaiseErrorOnValidIPClassC40", "192.168.0.40", nil, nil},
+		{"ShouldNotRaiseErrorOnValidIPClassC40", "fe80::", nil, nil},
 		{"ShouldRaiseErrorOnMissingDomain", "", nil, []string{"session: domain config #1 (domain ''): option 'domain' is required"}},
 		{"ShouldRaiseErrorOnDomainWithInvalidChars", "example!.com", nil, []string{"session: domain config #1 (domain 'example!.com'): option 'domain' does not appear to be a valid cookie domain or an ip address"}},
+		{"ShouldNotRaiseErrorOnSingleLetterDomain", "a.b.c", nil, nil},
+		{"ShouldNotRaiseErrorOnDomainWithHyphen", "example-domain.com", nil, nil},
+		{"ShouldRaiseErrorOnDomainWithInvalidHyphen", "example-.com", nil, []string{"session: domain config #1 (domain 'example-.com'): option 'domain' does not appear to be a valid cookie domain or an ip address"}},
 		{"ShouldRaiseErrorOnDomainWithoutDots", "localhost", nil, []string{"session: domain config #1 (domain 'localhost'): option 'domain' is not a valid cookie domain: must have at least a single period or be an ip address"}},
 		{"ShouldRaiseErrorOnPublicDomainDuckDNS", "duckdns.org", nil, []string{"session: domain config #1 (domain 'duckdns.org'): option 'domain' is not a valid cookie domain: the domain is part of the special public suffix list"}},
 		{"ShouldNotRaiseErrorOnSuffixOfPublicDomainDuckDNS", "example.duckdns.org", nil, nil},
@@ -868,7 +873,15 @@ func TestShouldRaiseErrorWhenDomainIsInvalid(t *testing.T) {
 			}
 
 			if tc.have != "" {
-				config.Session.Cookies[0].AutheliaURL = &url.URL{Scheme: schemeHTTPS, Host: authdot + tc.have}
+				if ip := net.ParseIP(tc.have); ip == nil {
+					config.Session.Cookies[0].AutheliaURL = &url.URL{Scheme: schemeHTTPS, Host: authdot + tc.have}
+				} else {
+					if ip.To4() == nil {
+						config.Session.Cookies[0].AutheliaURL = &url.URL{Scheme: schemeHTTPS, Host: fmt.Sprintf("[%s]", tc.have)}
+					} else {
+						config.Session.Cookies[0].AutheliaURL = &url.URL{Scheme: schemeHTTPS, Host: tc.have}
+					}
+				}
 			}
 
 			ValidateSession(&config, validator)

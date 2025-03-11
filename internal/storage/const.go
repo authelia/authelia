@@ -6,6 +6,9 @@ import (
 
 const (
 	tableAuthenticationLogs   = "authentication_logs"
+	tableBannedUser           = "banned_user"
+	tableBannedIP             = "banned_ip"
+	tableCachedData           = "cached_data"
 	tableDuoDevices           = "duo_devices"
 	tableIdentityVerification = "identity_verification"
 	tableOneTimeCode          = "one_time_code"
@@ -22,6 +25,7 @@ const (
 
 	tableOAuth2AccessTokenSession   = "oauth2_access_token_session" //nolint:gosec // This is not a hardcoded credential.
 	tableOAuth2AuthorizeCodeSession = "oauth2_authorization_code_session"
+	tableOAuth2DeviceCodeSession    = "oauth2_device_code_session"
 	tableOAuth2OpenIDConnectSession = "oauth2_openid_connect_session"
 	tableOAuth2PARContext           = "oauth2_par_context"
 	tableOAuth2PKCERequestSession   = "oauth2_pkce_request_session"
@@ -70,7 +74,8 @@ const (
 )
 
 var (
-	reMigration = regexp.MustCompile(`^V(?P<Version>\d{4})\.(?P<Name>[^.]+)\.(?P<Direction>(up|down))\.sql$`)
+	reMigration                  = regexp.MustCompile(`^V(?P<Version>\d{4})\.(?P<Name>[^.]+)\.(?P<Direction>(up|down))\.sql$`)
+	rePostgreSQLUnixDomainSocket = regexp.MustCompile(`^\.s\.PGSQL\.(\d+)$`)
 )
 
 const (

@@ -1,0 +1,37 @@
+{
+	"Claim": "Ihingi {{name}}",
+	"Scope": "Saklaw {{name}}",
+	"scopes": {
+		"openid": "Gumamit ng OpenID upang beripikahin ang iyong pagkatao",
+		"offline_access": "Awtomatikong i-refresh ang mga pahintulot na ito nang walang pakikialam ng gumagamit",
+		"profile": "Kunin ang impormasyon ng iyong profile",
+		"groups": "Kunin ang iyong mga kasapi sa grupo",
+		"email": "Kunin ang iyong mga email address",
+		"phone": "Kunin ang iyong numero ng telepono",
+		"address": "Kunin ang iyong address",
+		"authelia.bearer.authz": "Kunin ang mga protektadong mapagkukunan na naka-log in bilang ikaw"
+	},
+	"claims": {
+		"sub": "Natatanging Tagatukoy",
+		"name": "Pangalan sa Display",
+		"given_name": "Ibinigay na Pangalan",
+		"family_name": "Apelyido",
+		"middle_name": "Gitnang Pangalan",
+		"nickname": "Palayaw",
+		"preferred_username": "Nais na Username",
+		"profile": "URL ng Profile",
+		"picture": "URL ng Larawan",
+		"website": "URL ng Website",
+		"email": "Email Address",
+		"email_verified": "E-mail Address (Naka-verify)",
+		"gender": "Kasarian",
+		"birthdate": "Petsa ng Kapanganakan",
+		"zoneinfo": "Pook ng Oras",
+		"locale": "Wika / Wika",
+		"phone_number": "Numero ng Telepono",
+		"phone_number_verified": "Numero ng Telepono (Naka-verify)",
+		"address": "Tirahan ng Postal",
+		"updated_at": "Oras ng Pag-update ng Profile",
+		"groups": "Kasapi ng Grupo"
+	}
+}

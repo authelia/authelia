@@ -1,0 +1,23 @@
+---
+services:
+  openldap:
+    image: 'osixia/openldap:1.5.0'
+    hostname: 'ldap.example.com'
+    environment:
+      LDAP_ORGANISATION: 'MyCompany'
+      LDAP_DOMAIN: 'example.com'
+      LDAP_ADMIN_PASSWORD: 'password'
+      LDAP_CONFIG_PASSWORD: 'password'
+      LDAP_ADDITIONAL_MODULES: 'memberof'
+      LDAP_ADDITIONAL_SCHEMAS: 'openldap'
+      LDAP_FORCE_RECONFIGURE: 'true'
+      LDAP_TLS_VERIFY_CLIENT: 'try'
+    volumes:
+      - './example/compose/ldap/ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom'
+    command:
+      - '--copy-service'
+      - '--loglevel'
+      - 'debug'
+    networks:
+      authelianet: {}
+...

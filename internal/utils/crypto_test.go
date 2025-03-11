@@ -343,7 +343,7 @@ func TestPublicKeyFromPrivateKey(t *testing.T) {
 	}{
 		{
 			Name:       "RSA2048",
-			PrivateKey: testMustBuildPrivateKey(RSAKeyBuilder{}.WithKeySize(512)),
+			PrivateKey: testMustBuildPrivateKey(RSAKeyBuilder{}.WithKeySize(2048)),
 			Expected:   &rsa.PublicKey{},
 		},
 		{
@@ -486,7 +486,7 @@ func TestTLSVersionFromBytesString(t *testing.T) {
 		{
 			"ShouldDecodeSSL3.0",
 			"0300",
-			tls.VersionSSL30,
+			tls.VersionSSL30, //nolint:staticcheck
 			"",
 		},
 		{

@@ -9,6 +9,7 @@ weight: 110200
 toc: true
 aliases:
   - /c/oidc
+  - /c/oidc/provider
   - /docs/configuration/identity-providers/oidc.html
 seo:
   title: "" # custom title (optional)
@@ -75,11 +76,25 @@ identity_providers:
         rules:
           - policy: 'deny'
             subject: 'group:services'
+            networks:
+              - '192.168.1.0/24'
+              - '192.168.2.51'
     lifespans:
       access_token: '1h'
       authorize_code: '1m'
       id_token: '1h'
       refresh_token: '90m'
+    claims_policies:
+      policy_name:
+        id_token: []
+        access_token: []
+        id_token_audience_mode: 'specification'
+        custom_claims:
+          claim_name:
+            attribute: 'attribute_name'
+    scopes:
+      scope_name:
+        claims: []
     cors:
       endpoints:
         - 'authorization'
@@ -160,7 +175,7 @@ hexadecimal, followed by a hyphen, then followed by the lowercase algorithm valu
 
 {{< confkey type="string" default="sig" required="no" >}}
 
-The key usage. Defaults to `sig` which is the only available option at this time.
+The key usage. Defaults to `sig`. Available options are `sig` and `enc`.
 
 #### algorithm
 
@@ -224,10 +239,14 @@ identity_providers:
 
 {{< confkey type="string" required="no" >}}
 
+{{< callout context="tip" title="Not Required" icon="outline/alert-triangle" >}}
+This option is rarely required as most clients do not support validating these values in the JSON Web Key Set document.
+{{< /callout >}}
+
 The certificate chain/bundle to be used with the [key](#key) DER base64 ([RFC4648])
 encoded PEM format used to sign/encrypt the [OpenID Connect 1.0] [JWT]'s. When configured it enables the [x5c] and [x5t]
-JSON key's in the JWKs [Discoverable Endpoint](../../../integration/openid-connect/introduction.md#discoverable-endpoints)
-as per [RFC7517].
+JSON Web Key's in the JSON Web Key Set
+[Discoverable Endpoint](../../../integration/openid-connect/introduction.md#discoverable-endpoints) as per [RFC7517].
 
 [RFC7517]: https://datatracker.ietf.org/doc/html/rfc7517
 [x5c]: https://datatracker.ietf.org/doc/html/rfc7517#section-4.7
@@ -284,8 +303,8 @@ When set to `always`, [PKCE] will be required for all clients using the Authoriz
 {{< confkey type="boolean" default="false" required="no" >}}
 
 {{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
-Changing this value is generally discouraged. Applications should use the `S256` [PKCE] challenge
-method instead.
+Changing this value is generally discouraged. Applications should use the `S256`
+[PKCE](https://datatracker.ietf.org/doc/html/rfc7636) challenge method instead.
 {{< /callout >}}
 
 Allows [PKCE] `plain` challenges when set to `true`.
@@ -360,14 +379,13 @@ When enabled all authorization requests must use the [Pushed Authorization Reque
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
 This section is aimed at providing authorization customization for various
 [OpenID Connect 1.0 Registered Clients](clients.md#authorization_policy). This section should not be confused with the
-[Access Control Rules] section, the way these policies are used and the options
-available are distinctly and intentionally different to those of the [Access Control Rules] unless explicitly specified
-in this section. The reasons for the differences are clearly explained in the [OpenID Connect 1.0 FAQ] and [ADR1].
+[Access Control Rules](../../security/access-control.md#rules) section, the way these policies are used and the options
+available are distinctly and intentionally different to those of the
+[Access Control Rules](../../security/access-control.md#rules) unless explicitly specified in this section. The reasons
+for the differences are clearly explained in the
+[OpenID Connect 1.0 FAQ](../../../integration/openid-connect/frequently-asked-questions.md#why-doesnt-the-access-control-configuration-work-with-openid-connect-10)
+and [ADR1](../../../reference/architecture-decision-log/1.md).
 {{< /callout >}}
-
-[Access Control Rules]: ../../security/access-control.md#rules
-[OpenID Connect 1.0 FAQ]: ../../../integration/openid-connect/frequently-asked-questions.md#why-doesnt-the-access-control-configuration-work-with-openid-connect-10
-[ADR1]: ../../../reference/architecture-decision-log/1.md
 
 The authorization policies section allows creating custom authorization policies which can be applied to clients. This
 is useful if you wish to only allow specific users to access specific clients i.e. RBAC. It's generally recommended
@@ -397,6 +415,9 @@ identity_providers:
         rules:
           - policy: 'deny'
             subject: 'group:services'
+            networks:
+              - '192.168.1.0/24'
+              - '192.168.2.51'
     clients:
       - client_id: 'client_with_policy_name'
         authorization_policy: 'policy_name'
@@ -406,7 +427,7 @@ identity_providers:
 
 {{< confkey type="string" default="two_factor" required="no" >}}
 
-The default effective policy of none of the rules are able to determine the effective policy.
+The default effective policy if none of the rules are able to determine the effective policy.
 
 #### rules
 
@@ -423,10 +444,28 @@ The policy which is applied if this rule matches. Valid values are `one_factor`,
 
 ##### subject
 
-{{< confkey type="list(string(string))" required="yes" >}}
+{{< confkey type="list(list(string))" required="situational" >}}
 
-The subjects criteria as per the [Access Control Configuration](../../security/access-control.md#subject). This must be
-included for the rule to be considered valid.
+_**Situational Note:** Either this option or the [networks](#networks) must be configured or this rule is considered
+invalid._
+
+The subjects criteria as per the [Access Control Configuration](../../security/access-control.md#subject).
+
+##### networks
+
+{{< confkey type="list(string)" syntax="network" required="situational" >}}
+{{< callout context="danger" title="Security Note" icon="outline/rocket" >}}
+The rules can only apply to the Authorization Code Flow when the resource owner is optionally providing
+consent to the Authorization Request. While this is not a major issue for the [subject](#subject) criteria, the users
+IP address may change and there is no technical way to enforce this check after consent has been granted and the tokens
+have been issued. See [ADR1](../../../reference/architecture-decision-log/1.md) for more information.
+{{< /callout >}}
+
+_**Situational Note:** Either this option or the [subject](#subject) must be configured or this rule is considered
+invalid._
+
+The list of networks this rule applies to. Items in this list can also be named
+[Network Definitions](../../definitions/network.md).
 
 ### lifespans
 
@@ -525,6 +564,84 @@ identity_providers:
               id_token: '1h'
               refresh_token: '90m'
 ```
+
+### claims_policies
+
+{{< confkey type="string" syntax="dictionary" common="dictionary-reference" required="no" >}}
+
+The claims policies are policies which allow customizing the behaviour of claims and the available claims for a
+particular client.
+
+The keys under `claims_policies` is an arbitrary value that can be used in the
+[OpenID Connect 1.0 Client](clients.md#claims_policy) as the [claims_policy](clients.md#claims_policy) value.
+
+#### id_token
+
+{{< confkey type="list(string)" required="no" >}}
+
+The list of claims automatically copied to the ID Token in addition to the standard ID Token claims provided the
+relevant scope was granted.
+
+#### id_token_audience_mode
+
+{{< confkey type="string" default="specification" required="no" >}}
+
+The ID Token audience derivation mode for clients using this claims policy. It's recommended this is not configured
+as the default mode is the correct mode in almost all situations, and if are considering changing this first read
+the section on audiences in the [Integration Guide](../../../integration/openid-connect/introduction.md#audiences),
+as there may be unintended security issues caused for relying parties that trust Authelia as a provider if you're not
+cautious.
+
+The following table describes all of the modes. Please note that any mode value prefixed with `experimental-` may be
+removed or renamed without notice, and it's suggested if you're using these modes that you start a
+[Discussion](https://github.com/authelia/authelia/discussions/new?category=show-and-tell) showcasing how you're using
+a specific mode so we can adequately gauge its overall value.
+
+|         Value         |                                                   Description                                                   |
+|:---------------------:|:---------------------------------------------------------------------------------------------------------------:|
+|    `specification`    |           This is the specification compliant mode where only the client id is recorded in the claim.           |
+| `experimental-merged` | This mode includes the same value as `specification` but also merges the granted audience from the Access Token |
+
+#### access_token
+
+{{< confkey type="list(string)" required="no" >}}
+
+The list of claims automatically copied to the Access Token in addition to the standard JWT Profile claims provided the
+relevant scope was granted.
+
+#### custom_claims
+
+{{< confkey type="string" syntax="dictionary" common="dictionary-reference" required="no" >}}
+
+The list of claims available in this policy in addition to the standard claims. These claims are anchored to attributes
+which can either be concrete attributes from the [first factor](../../first-factor/introduction.md) backend or can be
+those defined via [definitions](../../definitions/user-attributes.md).
+
+The keys under `custom_claims` are arbitrary values which are the names of the claims.
+
+##### attribute
+
+{{< confkey type="string" required="no" >}}
+
+The attribute name that this claim returns. By default it's the same as the claim name.
+
+### scopes
+
+{{< confkey type="string" syntax="dictionary" common="dictionary-reference" required="no" >}}
+
+A list of scope definitions available in addition to the standard ones.
+
+The keys under `scopes` are arbitrary values which are the names of the scopes.
+
+#### claims
+
+{{< confkey type="list(string)" required="no" >}}
+
+The claims to be available to this scope.
+
+If the scope is configured in a [OpenID Connect 1.0 Client](clients.md#scopes) in the [scopes](clients.md#scopes) then
+every claim available in this list must either be a Standard Claim or must be fulfilled by the
+[claims_policy](clients.md#claims_policy).
 
 ### cors
 

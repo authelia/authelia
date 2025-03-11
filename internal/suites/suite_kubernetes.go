@@ -13,8 +13,8 @@ var kubernetesSuiteName = "Kubernetes"
 
 func init() {
 	dockerEnvironment := NewDockerEnvironment([]string{
-		"internal/suites/docker-compose.yml",
-		"internal/suites/example/compose/k3d/docker-compose.yml",
+		"internal/suites/compose.yml",
+		"internal/suites/example/compose/k3d/compose.yml",
 	})
 
 	k3d := K3D{}

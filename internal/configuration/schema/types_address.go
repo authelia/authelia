@@ -22,7 +22,7 @@ func NewAddress(value string) (address *Address, err error) {
 // else without a scheme is the schemeDefault scheme.
 func NewAddressDefault(value, schemeDefault, schemeDefaultPath string) (address *Address, err error) {
 	if len(value) == 0 {
-		return &Address{true, false, -1, 0, &url.URL{Scheme: AddressSchemeTCP, Host: ":0"}}, nil
+		return &Address{true, false, -1, 0, nil, &url.URL{Scheme: AddressSchemeTCP, Host: ":0"}}, nil
 	}
 
 	var u *url.URL
@@ -47,7 +47,7 @@ func NewAddressDefault(value, schemeDefault, schemeDefaultPath string) (address 
 // NewAddressFromNetworkValuesDefault returns an *Address and error depending on the ability to parse the string as an Address.
 // It also assumes any value without a scheme which looks like a path is the schemeDefaultPath scheme, and everything
 // else without a scheme is the schemeDefault scheme.
-func NewAddressFromNetworkValuesDefault(value string, port int, schemeDefault, schemeDefaultPath string) (address *Address, err error) {
+func NewAddressFromNetworkValuesDefault(value string, port uint16, schemeDefault, schemeDefaultPath string) (address *Address, err error) {
 	var u *url.URL
 
 	if regexpHasScheme.MatchString(value) {
@@ -72,21 +72,21 @@ func NewAddressFromNetworkValuesDefault(value string, port int, schemeDefault, s
 
 // NewAddressUnix returns an *Address from a path value.
 func NewAddressUnix(path string) Address {
-	return Address{true, true, -1, 0, &url.URL{Scheme: AddressSchemeUnix, Path: path}}
+	return Address{true, true, -1, 0, nil, &url.URL{Scheme: AddressSchemeUnix, Path: path}}
 }
 
 // NewAddressFromNetworkValues returns an *Address from network values.
-func NewAddressFromNetworkValues(network, host string, port int) Address {
+func NewAddressFromNetworkValues(network, host string, port uint16) Address {
 	return NewAddressFromNetworkPathValues(network, host, port, "")
 }
 
 // NewAddressFromNetworkPathValues returns an *Address from network values and a path.
-func NewAddressFromNetworkPathValues(network, host string, port int, path string) Address {
-	return Address{true, false, -1, port, &url.URL{Scheme: network, Host: fmt.Sprintf("%s:%d", host, port), Path: path}}
+func NewAddressFromNetworkPathValues(network, host string, port uint16, path string) Address {
+	return Address{true, false, -1, port, nil, &url.URL{Scheme: network, Host: fmt.Sprintf("%s:%d", host, port), Path: path}}
 }
 
 // NewSMTPAddress returns an *AddressSMTP from SMTP values.
-func NewSMTPAddress(scheme, host string, port int) *AddressSMTP {
+func NewSMTPAddress(scheme, host string, port uint16) *AddressSMTP {
 	if port == 0 {
 		switch scheme {
 		case AddressSchemeSUBMISSIONS:
@@ -109,7 +109,7 @@ func NewSMTPAddress(scheme, host string, port int) *AddressSMTP {
 		}
 	}
 
-	return &AddressSMTP{Address: Address{true, false, -1, port, &url.URL{Scheme: scheme, Host: fmt.Sprintf("%s:%d", host, port)}}}
+	return &AddressSMTP{Address: Address{true, false, -1, port, nil, &url.URL{Scheme: scheme, Host: fmt.Sprintf("%s:%d", host, port)}}}
 }
 
 // NewAddressFromURL returns an *Address and error depending on the ability to parse the *url.URL as an Address.
@@ -187,7 +187,8 @@ type Address struct {
 	valid  bool
 	socket bool
 	umask  int
-	port   int
+	port   uint16
+	fd     *uint64
 
 	url *url.URL
 }
@@ -218,6 +219,11 @@ func (a *Address) Umask() string {
 // IsUnixDomainSocket returns true if the address has been determined to be a Unix Domain Socket.
 func (a *Address) IsUnixDomainSocket() bool {
 	return a.socket
+}
+
+// IsFileDescriptor returns true if the address has been determined to be a File Descriptor.
+func (a *Address) IsFileDescriptor() bool {
+	return a.fd != nil
 }
 
 // IsTCP returns true if the address is one of the TCP schemes (not including application schemes that use TCP).
@@ -253,10 +259,10 @@ func (a *Address) IsExplicitlySecure() bool {
 // ValidateListener returns true if the Address is valid for a connection listener.
 func (a *Address) ValidateListener() error {
 	switch a.Scheme() {
-	case AddressSchemeTCP, AddressSchemeTCP4, AddressSchemeTCP6, AddressSchemeUDP, AddressSchemeUDP4, AddressSchemeUDP6, AddressSchemeUnix:
+	case AddressSchemeTCP, AddressSchemeTCP4, AddressSchemeTCP6, AddressSchemeUDP, AddressSchemeUDP4, AddressSchemeUDP6, AddressSchemeUnix, AddressSchemeFileDescriptor:
 		break
 	default:
-		return fmt.Errorf("scheme must be one of 'tcp', 'tcp4', 'tcp6', 'udp', 'udp4', 'udp6', or 'unix' but is configured as '%s'", a.Scheme())
+		return fmt.Errorf("scheme must be one of 'tcp', 'tcp4', 'tcp6', 'udp', 'udp4', 'udp6', 'unix', or 'fd' but is configured as '%s'", a.Scheme())
 	}
 
 	return nil
@@ -269,10 +275,10 @@ func (a *Address) ValidateHTTP() error {
 	}
 
 	switch a.Scheme() {
-	case AddressSchemeUnix:
+	case AddressSchemeUnix, AddressSchemeFileDescriptor:
 		return nil
 	default:
-		return fmt.Errorf("scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as '%s'", a.Scheme())
+		return fmt.Errorf("scheme must be one of 'tcp', 'tcp4', 'tcp6', 'unix', or 'fd' but is configured as '%s'", a.Scheme())
 	}
 }
 
@@ -296,7 +302,7 @@ func (a *Address) ValidateSQL() error {
 	case AddressSchemeUnix:
 		return nil
 	default:
-		return fmt.Errorf("scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as '%s'", a.Scheme())
+		return fmt.Errorf("scheme must be one of 'tcp', 'tcp4', 'tcp6', 'unix', or 'fd' but is configured as '%s'", a.Scheme())
 	}
 }
 
@@ -360,12 +366,12 @@ func (a *Address) SetHostname(hostname string) {
 }
 
 // Port returns the port.
-func (a *Address) Port() int {
+func (a *Address) Port() uint16 {
 	return a.port
 }
 
 // SetPort sets the port preserving the hostname.
-func (a *Address) SetPort(port int) {
+func (a *Address) SetPort(port uint16) {
 	if !a.valid || a.url == nil {
 		return
 	}
@@ -389,9 +395,9 @@ func (a *Address) RouterPath() string {
 		return ""
 	}
 
-	if a.socket {
-		if a.url.Query().Has("path") {
-			return fmt.Sprintf("/%s", a.url.Query().Get("path"))
+	if a.socket || a.fd != nil {
+		if a.url.Query().Has(addressQueryParamPath) {
+			return fmt.Sprintf("/%s", a.url.Query().Get(addressQueryParamPath))
 		}
 
 		return "/"
@@ -416,7 +422,7 @@ func (a *Address) SocketHostname() string {
 	}
 
 	if a.socket {
-		return a.url.Path
+		return a.NetworkAddress()
 	}
 
 	return a.url.Hostname()
@@ -439,6 +445,10 @@ func (a *Address) NetworkAddress() string {
 	}
 
 	if a.socket {
+		if a.url.User != nil {
+			return fmt.Sprintf("@%s%s", a.url.Hostname(), a.url.Path)
+		}
+
 		return a.url.Path
 	}
 
@@ -454,22 +464,23 @@ func (a *Address) Dial() (net.Conn, error) {
 	return net.Dial(a.Network(), a.NetworkAddress())
 }
 
-func (a *Address) setport(port int) {
+func (a *Address) setport(port uint16) {
 	a.port = port
-	a.url.Host = net.JoinHostPort(a.url.Hostname(), strconv.Itoa(port))
+	a.url.Host = net.JoinHostPort(a.url.Hostname(), strconv.Itoa(int(port)))
 }
 
+//nolint:gocyclo
 func (a *Address) validate() (err error) {
 	if a.url == nil {
 		return fmt.Errorf("error validating the address: address url was nil")
 	}
 
 	switch {
-	case a.url.RawQuery != "" && a.url.Scheme != AddressSchemeUnix:
+	case a.url.RawQuery != "" && a.url.Scheme != AddressSchemeUnix && a.url.Scheme != AddressSchemeFileDescriptor:
 		return fmt.Errorf("error validating the address: the url '%s' appears to have a query but this is not valid for addresses with the '%s' scheme", a.url.String(), a.url.Scheme)
 	case a.url.RawFragment != "", a.url.Fragment != "":
 		return fmt.Errorf("error validating the address: the url '%s' appears to have a fragment but this is not valid for addresses", a.url.String())
-	case a.url.User != nil:
+	case a.url.User != nil && (a.url.Scheme != AddressSchemeUnix || a.url.User.Username() != ""):
 		return fmt.Errorf("error validating the address: the url '%s' appears to have user info but this is not valid for addresses", a.url.String())
 	}
 
@@ -478,12 +489,26 @@ func (a *Address) validate() (err error) {
 		if err = a.validateUnixSocket(); err != nil {
 			return err
 		}
+
+		host := a.url.Host != ""
+
+		if err = a.validateTCPUDP(); err != nil {
+			return err
+		}
+
+		if !host {
+			a.url.Host = ""
+		}
 	case AddressSchemeTCP, AddressSchemeTCP4, AddressSchemeTCP6, AddressSchemeUDP, AddressSchemeUDP4, AddressSchemeUDP6:
 		if err = a.validateTCPUDP(); err != nil {
 			return err
 		}
 	case AddressSchemeLDAP, AddressSchemeLDAPS, AddressSchemeSMTP, AddressSchemeSUBMISSION, AddressSchemeSUBMISSIONS:
 		if err = a.validateProtocol(); err != nil {
+			return err
+		}
+	case AddressSchemeFileDescriptor:
+		if err = a.validateFD(); err != nil {
 			return err
 		}
 	}
@@ -511,9 +536,13 @@ func (a *Address) validateProtocol() (err error) {
 			a.setport(465)
 		}
 	default:
-		actualPort, _ := strconv.Atoi(port)
+		var actualPort uint64
 
-		a.setport(actualPort)
+		if actualPort, err = strconv.ParseUint(port, 10, 16); err != nil {
+			return fmt.Errorf("failed to parse port: %w", err)
+		}
+
+		a.setport(uint16(actualPort))
 	}
 
 	return nil
@@ -524,11 +553,17 @@ func (a *Address) validateTCPUDP() (err error) {
 
 	switch port {
 	case "":
-		a.setport(0)
+		if a.url.User == nil {
+			a.setport(0)
+		}
 	default:
-		actualPort, _ := strconv.Atoi(port)
+		var actualPort uint64
 
-		a.setport(actualPort)
+		if actualPort, err = strconv.ParseUint(port, 10, 16); err != nil {
+			return fmt.Errorf("failed to parse port: %w", err)
+		}
+
+		a.setport(uint16(actualPort))
 	}
 
 	return nil
@@ -538,10 +573,10 @@ func (a *Address) validateUnixSocket() (err error) {
 	umask := -1
 
 	switch {
-	case a.url.Path == "" && a.url.Scheme != AddressSchemeLDAPI:
+	case a.url.Path == "" && a.url.Scheme != AddressSchemeLDAPI && a.url.User == nil:
 		return fmt.Errorf("error validating the unix socket address: could not determine path from '%s'", a.url.String())
-	case a.url.Host != "":
-		return fmt.Errorf("error validating the unix socket address: the url '%s' appears to have a host but this is not valid for unix sockets: this may occur if you omit the leading forward slash from the socket path", a.url.String())
+	case a.url.Hostname() != "" && (a.url.User == nil || a.url.User.Username() != ""):
+		return fmt.Errorf("error validating the unix socket address: the url '%s' appears to have a hostname but this is not valid for unix sockets: this may occur if you omit the leading forward slash from the socket path", a.url.String())
 	}
 
 	if a.url.Query().Has(addressQueryParamUmask) {
@@ -559,6 +594,35 @@ func (a *Address) validateUnixSocket() (err error) {
 	}
 
 	a.socket = true
+	a.umask = umask
+
+	return nil
+}
+
+func (a *Address) validateFD() (err error) {
+	var actualFD uint64
+
+	if actualFD, err = strconv.ParseUint(a.url.Host, 10, 64); err != nil {
+		return fmt.Errorf("failed to parse file descriptor: %w", err)
+	}
+
+	umask := -1
+
+	if a.url.Query().Has(addressQueryParamUmask) {
+		v := a.url.Query().Get(addressQueryParamUmask)
+
+		if !regexpIsUmask.MatchString(v) {
+			return fmt.Errorf("error validating the file descriptor address: could not parse address '%s': the address has a umask value of '%s' which does not appear to be a valid octal string", a.url.String(), v)
+		}
+
+		var p int64
+
+		p, _ = strconv.ParseInt(v, 8, 0)
+
+		umask = int(p)
+	}
+
+	a.fd = &actualFD
 	a.umask = umask
 
 	return nil

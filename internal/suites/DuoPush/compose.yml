@@ -1,0 +1,11 @@
+---
+services:
+  authelia-backend:
+    volumes:
+      - './DuoPush/configuration.yml:/config/configuration.yml'
+      - './DuoPush/users.yml:/config/users.yml'
+      - './common/pki:/pki'
+      - './common/pki/public.crt:/certs/public.crt'
+      - '/tmp:/tmp'
+    user: ${USER_ID}:${GROUP_ID}
+...

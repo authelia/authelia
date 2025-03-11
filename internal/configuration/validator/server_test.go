@@ -3,6 +3,8 @@ package validator
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"regexp"
 	"testing"
 	"time"
 
@@ -26,6 +28,9 @@ func TestShouldSetDefaultServerValues(t *testing.T) {
 	assert.Equal(t, schema.DefaultServerConfiguration.Address, config.Server.Address)
 	assert.Equal(t, schema.DefaultServerConfiguration.Buffers.Read, config.Server.Buffers.Read)
 	assert.Equal(t, schema.DefaultServerConfiguration.Buffers.Write, config.Server.Buffers.Write)
+	assert.Equal(t, schema.DefaultServerConfiguration.Timeouts.Read, config.Server.Timeouts.Read)
+	assert.Equal(t, schema.DefaultServerConfiguration.Timeouts.Write, config.Server.Timeouts.Write)
+	assert.Equal(t, schema.DefaultServerConfiguration.Timeouts.Idle, config.Server.Timeouts.Idle)
 	assert.Equal(t, schema.DefaultServerConfiguration.TLS.Key, config.Server.TLS.Key)
 	assert.Equal(t, schema.DefaultServerConfiguration.TLS.Certificate, config.Server.TLS.Certificate)
 	assert.Equal(t, schema.DefaultServerConfiguration.Endpoints.EnableExpvars, config.Server.Endpoints.EnableExpvars)
@@ -33,17 +38,138 @@ func TestShouldSetDefaultServerValues(t *testing.T) {
 	assert.Equal(t, schema.DefaultServerConfiguration.Endpoints.Authz, config.Server.Endpoints.Authz)
 }
 
-func TestShouldSetDefaultConfig(t *testing.T) {
+func TestShouldSetDefaultConfigRateLimits(t *testing.T) {
+	testCases := []struct {
+		name     string
+		config   *schema.Configuration
+		expected schema.ServerEndpointRateLimits
+	}{
+		{
+			name: "ShouldSetDefaults",
+			config: &schema.Configuration{
+				IdentityValidation: schema.IdentityValidation{
+					ResetPassword: schema.IdentityValidationResetPassword{
+						JWTSecret: "dfgdfgdzfgdgdfgdfg",
+					},
+				},
+			},
+			expected: schema.ServerEndpointRateLimits{
+				ResetPasswordStart: schema.ServerEndpointRateLimit{
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: 10 * time.Minute, Requests: 5},
+						{Period: 15 * time.Minute, Requests: 10},
+						{Period: 30 * time.Minute, Requests: 15},
+					},
+				},
+				ResetPasswordFinish: schema.ServerEndpointRateLimit{
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: 1 * time.Minute, Requests: 10},
+						{Period: 2 * time.Minute, Requests: 15},
+					},
+				},
+				SecondFactorTOTP: schema.ServerEndpointRateLimit{
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: 1 * time.Minute, Requests: 30},
+						{Period: 2 * time.Minute, Requests: 40},
+						{Period: 10 * time.Minute, Requests: 50},
+					},
+				},
+				SecondFactorDuo: schema.ServerEndpointRateLimit{
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: 1 * time.Minute, Requests: 10},
+						{Period: 2 * time.Minute, Requests: 15},
+					},
+				},
+				SessionElevationStart: schema.ServerEndpointRateLimit{
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: schema.DefaultIdentityValidation.ElevatedSession.CodeLifespan * 1, Requests: 3},
+						{Period: schema.DefaultIdentityValidation.ElevatedSession.CodeLifespan * 2, Requests: 5},
+						{Period: schema.DefaultIdentityValidation.ElevatedSession.CodeLifespan * 12, Requests: 15},
+					},
+				},
+				SessionElevationFinish: schema.ServerEndpointRateLimit{
+					Buckets: []schema.ServerEndpointRateLimitBucket{
+						{Period: schema.DefaultIdentityValidation.ElevatedSession.ElevationLifespan * 1, Requests: 3},
+						{Period: schema.DefaultIdentityValidation.ElevatedSession.ElevationLifespan * 2, Requests: 5},
+						{Period: schema.DefaultIdentityValidation.ElevatedSession.ElevationLifespan * 6, Requests: 15},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+
+			ValidateIdentityValidation(tc.config, validator)
+			ValidateServer(tc.config, validator)
+
+			assert.Len(t, validator.Errors(), 0)
+			assert.Len(t, validator.Warnings(), 0)
+
+			assert.Equal(t, tc.expected.ResetPasswordStart, tc.config.Server.Endpoints.RateLimits.ResetPasswordStart)
+			assert.Equal(t, tc.expected.ResetPasswordFinish, tc.config.Server.Endpoints.RateLimits.ResetPasswordFinish)
+			assert.Equal(t, tc.expected.SecondFactorTOTP, tc.config.Server.Endpoints.RateLimits.SecondFactorTOTP)
+			assert.Equal(t, tc.expected.SecondFactorDuo, tc.config.Server.Endpoints.RateLimits.SecondFactorDuo)
+			assert.Equal(t, tc.expected.SessionElevationStart, tc.config.Server.Endpoints.RateLimits.SessionElevationStart)
+			assert.Equal(t, tc.expected.SessionElevationFinish, tc.config.Server.Endpoints.RateLimits.SessionElevationFinish)
+		})
+	}
+}
+
+func TestValidateRateLimitErrors(t *testing.T) {
+	have := &schema.Configuration{
+		Server: schema.Server{
+			Endpoints: schema.ServerEndpoints{
+				RateLimits: schema.ServerEndpointRateLimits{
+					ResetPasswordStart: schema.ServerEndpointRateLimit{
+						Buckets: []schema.ServerEndpointRateLimitBucket{
+							{Period: time.Second, Requests: 5},
+						},
+					},
+					ResetPasswordFinish: schema.ServerEndpointRateLimit{
+						Buckets: []schema.ServerEndpointRateLimitBucket{
+							{Period: time.Second, Requests: 5},
+						},
+					},
+					SecondFactorTOTP: schema.ServerEndpointRateLimit{
+						Buckets: []schema.ServerEndpointRateLimitBucket{
+							{Period: time.Second, Requests: 5},
+						},
+					},
+					SecondFactorDuo: schema.ServerEndpointRateLimit{
+						Buckets: []schema.ServerEndpointRateLimitBucket{
+							{Period: time.Second, Requests: 5},
+						},
+					},
+					SessionElevationStart: schema.ServerEndpointRateLimit{
+						Buckets: []schema.ServerEndpointRateLimitBucket{
+							{Period: time.Second, Requests: 5},
+						},
+					},
+					SessionElevationFinish: schema.ServerEndpointRateLimit{
+						Buckets: []schema.ServerEndpointRateLimitBucket{
+							{Period: time.Duration(0), Requests: 0},
+						},
+					},
+				},
+			},
+		},
+	}
+
 	validator := schema.NewStructValidator()
-	config := &schema.Configuration{}
 
-	ValidateServer(config, validator)
+	ValidateServer(have, validator)
 
-	assert.Len(t, validator.Errors(), 0)
-	assert.Len(t, validator.Warnings(), 0)
-
-	assert.Equal(t, schema.DefaultServerConfiguration.Buffers.Read, config.Server.Buffers.Read)
-	assert.Equal(t, schema.DefaultServerConfiguration.Buffers.Write, config.Server.Buffers.Write)
+	require.Len(t, validator.Errors(), 7)
+	assert.EqualError(t, validator.Errors()[0], "server: endpoints: rate_limits: reset_password_start: bucket 1: option 'period' has a value of '1s' but it must be greater than 10 seconds")
+	assert.EqualError(t, validator.Errors()[1], "server: endpoints: rate_limits: reset_password_finish: bucket 1: option 'period' has a value of '1s' but it must be greater than 10 seconds")
+	assert.EqualError(t, validator.Errors()[2], "server: endpoints: rate_limits: second_factor_totp: bucket 1: option 'period' has a value of '1s' but it must be greater than 10 seconds")
+	assert.EqualError(t, validator.Errors()[3], "server: endpoints: rate_limits: second_factor_duo: bucket 1: option 'period' has a value of '1s' but it must be greater than 10 seconds")
+	assert.EqualError(t, validator.Errors()[4], "server: endpoints: rate_limits: session_elevation_start: bucket 1: option 'period' has a value of '1s' but it must be greater than 10 seconds")
+	assert.EqualError(t, validator.Errors()[5], "server: endpoints: rate_limits: session_elevation_finish: bucket 1: option 'period' must have a value")
+	assert.EqualError(t, validator.Errors()[6], "server: endpoints: rate_limits: session_elevation_finish: bucket 1: option 'requests' has a value of '0' but it must be greater than 1")
 }
 
 func TestValidateSeverAddress(t *testing.T) {
@@ -70,31 +196,31 @@ func TestValidateServerShouldCorrectlyIdentifyValidAddressSchemes(t *testing.T) 
 		{schema.AddressSchemeTCP, ""},
 		{schema.AddressSchemeTCP4, ""},
 		{schema.AddressSchemeTCP6, ""},
-		{schema.AddressSchemeUDP, "server: option 'address' with value 'udp://:9091' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'udp'"},
-		{schema.AddressSchemeUDP4, "server: option 'address' with value 'udp4://:9091' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'udp4'"},
-		{schema.AddressSchemeUDP6, "server: option 'address' with value 'udp6://:9091' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'udp6'"},
+		{schema.AddressSchemeUDP, "server: option 'address' with value 'udp://:9091' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', 'unix', or 'fd' but is configured as 'udp'"},
+		{schema.AddressSchemeUDP4, "server: option 'address' with value 'udp4://:9091' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', 'unix', or 'fd' but is configured as 'udp4'"},
+		{schema.AddressSchemeUDP6, "server: option 'address' with value 'udp6://:9091' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', 'unix', or 'fd' but is configured as 'udp6'"},
 		{schema.AddressSchemeUnix, ""},
-		{"http", "server: option 'address' with value 'http://:9091' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', or 'unix' but is configured as 'http'"},
-	}
-
-	have := &schema.Configuration{
-		Server: schema.Server{
-			Buffers: schema.ServerBuffers{
-				Read:  -1,
-				Write: -1,
-			},
-			Timeouts: schema.ServerTimeouts{
-				Read:  time.Second * -1,
-				Write: time.Second * -1,
-				Idle:  time.Second * -1,
-			},
-		},
+		{"http", "server: option 'address' with value 'http://:9091' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', 'unix', or 'fd' but is configured as 'http'"},
 	}
 
 	validator := schema.NewStructValidator()
 
 	for _, tc := range testCases {
 		t.Run(tc.have, func(t *testing.T) {
+			have := &schema.Configuration{
+				Server: schema.Server{
+					Buffers: schema.ServerBuffers{
+						Read:  -1,
+						Write: -1,
+					},
+					Timeouts: schema.ServerTimeouts{
+						Read:  time.Second * -1,
+						Write: time.Second * -1,
+						Idle:  time.Second * -1,
+					},
+				},
+			}
+
 			validator.Clear()
 
 			switch tc.have {
@@ -430,6 +556,15 @@ func TestServerAuthzEndpointErrors(t *testing.T) {
 			},
 		},
 		{
+			"ShouldErrorOnInvalidSchemeOption",
+			map[string]schema.ServerEndpointsAuthz{
+				"example": {Implementation: "ForwardAuth", AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{{Name: "HeaderAuthorization", SchemeBasicCacheLifespan: time.Minute, Schemes: []string{"bearer"}}}},
+			},
+			[]string{
+				"server: endpoints: authz: example: authn_strategies: strategy #1: option 'scheme_basic_cache_lifespan' can't be configured unless the 'basic' scheme is configured but only the 'bearer' schemes are configured",
+			},
+		},
+		{
 			"ShouldErrorOnInvalidChars",
 			map[string]schema.ServerEndpointsAuthz{
 				"/abc":  {Implementation: "ForwardAuth"},
@@ -594,4 +729,155 @@ func TestValidateTLSPathIsDir(t *testing.T) {
 	require.Len(t, validator.Errors(), 1)
 
 	assert.EqualError(t, validator.Errors()[0], fmt.Sprintf("server: tls: option 'key' with path '%s' refers to a directory but it should refer to a file", dir))
+}
+
+func TestValidateServerAssets(t *testing.T) {
+	testCases := []struct {
+		name   string
+		have   string
+		setup  func(t *testing.T, have string) string
+		errors []any
+	}{
+		{
+			name: "ShouldValidateEmbedded",
+			have: "../../server",
+		},
+		{
+			name: "ShouldValidateEmptyPath",
+			have: "",
+		},
+		{
+			name: "ShouldValidateNoPath",
+			have: "../../nopath",
+			errors: []any{
+				"server: asset_path: error occurred reading the '../../nopath' directory: the directory does not exist",
+			},
+		},
+		{
+			name: "ShouldValidateValueExcludePlaceholder",
+			have: "../test_resources/i18n/example1",
+			errors: []any{
+				"server: asset_path: error occurred decoding the '../test_resources/i18n/example1/locales/en/portal.json' file: translation key 'Powered by {{authelia}}' has a value which is missing a required placeholder",
+			},
+		},
+		{
+			name: "ShouldValidateValueExcludePlaceholder",
+			have: "../test_resources/i18n/example2",
+			errors: []any{
+				"server: asset_path: error occurred decoding the '../test_resources/i18n/example2/locales/en/portal.json' file: translation key 'Powered by {{authelia}}' has a value which is not the required type",
+			},
+		},
+		{
+			name: "ShouldErrorReadDirectory",
+			setup: func(t *testing.T, have string) (out string) {
+				out = t.TempDir()
+
+				require.NoError(t, os.Mkdir(filepath.Join(out, "locales"), 0000))
+
+				return out
+			},
+			errors: []any{
+				regexp.MustCompile(`server: asset_path: error occurred reading the '[\w#/\\]+/locales' directory: open [\w#/\\]+locales: permission denied`),
+			},
+		},
+		{
+			name: "ShouldErrorReadLocaleDirectory",
+			setup: func(t *testing.T, have string) (out string) {
+				out = t.TempDir()
+
+				require.NoError(t, os.Mkdir(filepath.Join(out, "locales"), 0777))
+				require.NoError(t, os.Mkdir(filepath.Join(out, "locales", "en"), 0000))
+
+				return out
+			},
+			errors: []any{
+				regexp.MustCompile(`server: asset_path: error occurred reading the '[\w#/\\]+/locales/en' directory: open [\w#/\\]+locales/en: permission denied`),
+			},
+		},
+		{
+			name: "ShouldErrorReadNamespaceFile",
+			setup: func(t *testing.T, have string) (out string) {
+				out = t.TempDir()
+
+				require.NoError(t, os.Mkdir(filepath.Join(out, "locales"), 0777))
+				require.NoError(t, os.Mkdir(filepath.Join(out, "locales", "en"), 0777))
+
+				f, err := os.Create(filepath.Join(out, "locales", "en", "portal.json"))
+				require.NoError(t, err)
+
+				require.NoError(t, f.Chmod(0000))
+
+				require.NoError(t, f.Close())
+
+				return out
+			},
+			errors: []any{
+				regexp.MustCompile(`server: asset_path: error occurred reading the '[\w#/\\]+/locales/en/portal.json' file: open [\w#/\\]+locales/en/portal.json: permission denied`),
+			},
+		},
+		{
+			name: "ShouldErrorDecodeJSON",
+			setup: func(t *testing.T, have string) (out string) {
+				out = t.TempDir()
+
+				require.NoError(t, os.Mkdir(filepath.Join(out, "locales"), 0777))
+				require.NoError(t, os.Mkdir(filepath.Join(out, "locales", "en"), 0777))
+				require.NoError(t, os.Mkdir(filepath.Join(out, "locales", "en", "notafile"), 0777))
+
+				f, err := os.Create(filepath.Join(out, "locales", "notadir"))
+				require.NoError(t, err)
+				require.NoError(t, f.Close())
+
+				f, err = os.Create(filepath.Join(out, "locales", "en", "x.notjson"))
+				require.NoError(t, err)
+				require.NoError(t, f.Close())
+
+				f, err = os.Create(filepath.Join(out, "locales", "en", "portal.json"))
+				require.NoError(t, err)
+
+				_, err = f.Write([]byte("not json"))
+				require.NoError(t, err)
+
+				require.NoError(t, f.Close())
+
+				return out
+			},
+			errors: []any{
+				regexp.MustCompile(`server: asset_path: error occurred decoding the '[\w#/\\]+/locales/en/portal.json' file: invalid character 'o' in literal null \(expecting 'u'\)`),
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			have := tc.have
+
+			if tc.setup != nil {
+				have = tc.setup(t, have)
+			}
+
+			config := &schema.Configuration{Server: schema.Server{AssetPath: have}}
+
+			validator := schema.NewStructValidator()
+
+			validateServerAssets(config, validator)
+
+			warnings := validator.Warnings()
+			errors := validator.Errors()
+
+			assert.Len(t, warnings, 0)
+			require.Len(t, errors, len(tc.errors))
+
+			for i, expected := range tc.errors {
+				switch e := expected.(type) {
+				case *regexp.Regexp:
+					assert.Regexp(t, e, errors[i])
+				case string:
+					assert.EqualError(t, errors[i], e)
+				default:
+					t.Fatal("Expected regex or string for error type")
+				}
+			}
+		})
+	}
 }

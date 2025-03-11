@@ -198,6 +198,9 @@ func ResetPasswordPOST(ctx *middlewares.AutheliaCtx) {
 		Details: map[string]any{
 			"Action": "Password Reset",
 		},
+		BodyPrefix: eventEmailActionPasswordModifyPrefix,
+		BodyEvent:  eventEmailActionPasswordReset,
+		BodySuffix: eventEmailActionPasswordModifySuffix,
 	}
 
 	addresses := userInfo.Addresses()
@@ -250,7 +253,7 @@ var ResetPasswordIdentityStart = middlewares.IdentityVerificationStart(middlewar
 	IdentityRetrieverFunc:   identityRetrieverFromStorage,
 }, middlewares.TimingAttackDelay(10, 250, 85, time.Millisecond*500, false))
 
-func resetPasswordIdentityFinish(ctx *middlewares.AutheliaCtx, username string) {
+func resetPasswordIdentityVerificationFinish(ctx *middlewares.AutheliaCtx, username string) {
 	var (
 		userSession session.UserSession
 		err         error
@@ -273,4 +276,4 @@ func resetPasswordIdentityFinish(ctx *middlewares.AutheliaCtx, username string) 
 
 // ResetPasswordIdentityFinish the handler for finishing the identity validation.
 var ResetPasswordIdentityFinish = middlewares.IdentityVerificationFinish(
-	middlewares.IdentityVerificationFinishArgs{ActionClaim: ActionResetPassword}, resetPasswordIdentityFinish)
+	middlewares.IdentityVerificationFinishArgs{ActionClaim: ActionResetPassword}, resetPasswordIdentityVerificationFinish)

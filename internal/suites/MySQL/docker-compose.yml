@@ -1,8 +1,0 @@
----
-services:
-  authelia-backend:
-    volumes:
-      - './MySQL/configuration.yml:/config/configuration.yml'
-      - './MySQL/users.yml:/config/users.yml'
-      - './common/pki:/pki'
-...

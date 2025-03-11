@@ -1,12 +1,13 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
-import { Button, FormControl, Theme } from "@mui/material";
+import { Button, CircularProgress, FormControl, Theme } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import TextField from "@mui/material/TextField";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
+import ComponentWithTooltip from "@components/ComponentWithTooltip";
 import { IndexRoute } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
 import MinimalLayout from "@layouts/MinimalLayout";
@@ -16,22 +17,62 @@ const ResetPasswordStep1 = function () {
     const styles = useStyles();
     const [username, setUsername] = useState("");
     const [error, setError] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    const [rateLimited, setRateLimited] = useState(false);
+    const timeoutRateLimit = useRef<NodeJS.Timeout>();
+
     const { createInfoNotification, createErrorNotification } = useNotifications();
     const navigate = useNavigate();
     const { t: translate } = useTranslation();
 
+    useEffect(() => {
+        return clearTimeout(timeoutRateLimit.current);
+    }, []);
+
+    const handleRateLimited = useCallback(
+        (retryAfter: number) => {
+            if (timeoutRateLimit.current) {
+                clearTimeout(timeoutRateLimit.current);
+            }
+
+            setRateLimited(true);
+
+            createErrorNotification(translate("You have made too many requests"));
+
+            timeoutRateLimit.current = setTimeout(() => {
+                setRateLimited(false);
+                timeoutRateLimit.current = undefined;
+            }, retryAfter * 1000);
+        },
+        [createErrorNotification, translate],
+    );
+
     const doInitiateResetPasswordProcess = async () => {
+        setError(false);
+        setLoading(true);
+
         if (username === "") {
             setError(true);
+            setLoading(false);
+            createErrorNotification(translate("Username is required"));
             return;
         }
 
         try {
-            await initiateResetPasswordProcess(username);
-            createInfoNotification(translate("An email has been sent to your address to complete the process"));
-        } catch (err) {
+            const response = await initiateResetPasswordProcess(username);
+            if (response && !response.limited) {
+                createInfoNotification(translate("An email has been sent to your address to complete the process"));
+                navigate(IndexRoute);
+            } else if (response && response.limited) {
+                handleRateLimited(response.retryAfter);
+            } else {
+                createErrorNotification(translate("There was an issue initiating the password reset process"));
+            }
+        } catch {
             createErrorNotification(translate("There was an issue initiating the password reset process"));
         }
+        setLoading(false);
     };
 
     const handleResetClick = () => {
@@ -50,6 +91,7 @@ const ResetPasswordStep1 = function () {
                         <TextField
                             id="username-textfield"
                             label={translate("Username")}
+                            disabled={loading}
                             variant="outlined"
                             fullWidth
                             error={error}
@@ -57,27 +99,35 @@ const ResetPasswordStep1 = function () {
                             onChange={(e) => setUsername(e.target.value)}
                             onKeyDown={(ev) => {
                                 if (ev.key === "Enter") {
-                                    doInitiateResetPasswordProcess();
                                     ev.preventDefault();
+                                    doInitiateResetPasswordProcess();
                                 }
                             }}
                         />
                     </Grid>
                     <Grid size={{ xs: 6 }}>
-                        <Button
-                            id="reset-button"
-                            variant="contained"
-                            color="primary"
-                            fullWidth
-                            onClick={handleResetClick}
+                        <ComponentWithTooltip
+                            render={rateLimited}
+                            title={translate(translate("You have made too many requests"))}
                         >
-                            {translate("Reset")}
-                        </Button>
+                            <Button
+                                id="reset-button"
+                                variant="contained"
+                                disabled={loading || rateLimited}
+                                color="primary"
+                                fullWidth
+                                onClick={handleResetClick}
+                                startIcon={loading ? <CircularProgress color="inherit" size={20} /> : <></>}
+                            >
+                                {translate("Reset")}
+                            </Button>
+                        </ComponentWithTooltip>
                     </Grid>
                     <Grid size={{ xs: 6 }}>
                         <Button
                             id="cancel-button"
                             variant="contained"
+                            disabled={loading}
                             color="primary"
                             fullWidth
                             onClick={handleCancelClick}

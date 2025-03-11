@@ -16,9 +16,8 @@ seo:
   noindex: false # false (default) or true
 ---
 
-
-__Authelia__ can temporarily ban accounts when there are too many
-authentication attempts. This helps prevent brute-force attacks.
+__Authelia__ can temporarily ban accounts when there are too many authentication attempts on the username / password
+endpoint. This helps prevent brute-force attacks.
 
 ## Configuration
 
@@ -26,6 +25,9 @@ authentication attempts. This helps prevent brute-force attacks.
 
 ```yaml {title="configuration.yml"}
 regulation:
+  modes:
+    - 'user'
+    - 'ip'
   max_retries: 3
   find_time: '2m'
   ban_time: '5m'
@@ -34,6 +36,20 @@ regulation:
 ## Options
 
 This section describes the individual configuration options.
+
+### modes
+
+{{< confkey type="list(string)" default="['user']" required="no" >}}
+
+The modes for regulation. The table below describes each option. The recommended mode is `ip`. It should be noted that,
+regardless of the currently configured ban modes, if bans exist in the database, the user or IP will be denied access.
+See the [authelia storage bans](../../reference/cli/authelia/authelia_storage_bans.md) command for information on
+managing ban entries.
+
+| Mode |                             Description                             |
+|:----:|:-------------------------------------------------------------------:|
+| user |        The user account is the subject of any automatic bans        |
+|  ip  |         The remote ip is the subject of any automatic bans          |
 
 ### max_retries
 

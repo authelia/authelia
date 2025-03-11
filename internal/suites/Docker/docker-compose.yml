@@ -1,8 +1,0 @@
----
-services:
-  authelia-backend:
-    volumes:
-      - './Docker/configuration.yml:/config/configuration.yml'
-      - './Docker/users.yml:/config/users.yml'
-      - './common/pki:/pki'
-...

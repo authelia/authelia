@@ -31,3 +31,6 @@ indent_size = 2
 [internal/suites/example/compose/nginx/*/*.conf]
 charset                     = UTF-8
 indent_style                = space
+
+[*.ts.tmpl]
+indent_style                = space

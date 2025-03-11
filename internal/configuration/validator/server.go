@@ -1,11 +1,15 @@
 package validator
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -58,6 +62,7 @@ func validateServerTLSFileExists(name, path string, validator *schema.StructVali
 func ValidateServer(config *schema.Configuration, validator *schema.StructValidator) {
 	ValidateServerAddress(config, validator)
 	ValidateServerTLS(config, validator)
+	validateServerAssets(config, validator)
 
 	if config.Server.Buffers.Read <= 0 {
 		config.Server.Buffers.Read = schema.DefaultServerConfiguration.Buffers.Read
@@ -83,8 +88,6 @@ func ValidateServer(config *schema.Configuration, validator *schema.StructValida
 }
 
 // ValidateServerAddress checks the configured server address is correct.
-//
-
 func ValidateServerAddress(config *schema.Configuration, validator *schema.StructValidator) {
 	if config.Server.Address == nil {
 		config.Server.Address = schema.DefaultServerConfiguration.Address
@@ -110,6 +113,8 @@ func ValidateServerAddress(config *schema.Configuration, validator *schema.Struc
 
 // ValidateServerEndpoints configures the default endpoints and checks the configuration of custom endpoints.
 func ValidateServerEndpoints(config *schema.Configuration, validator *schema.StructValidator) {
+	validateServerEndpointsRateLimits(config, validator)
+
 	if config.Server.Endpoints.EnableExpvars {
 		validator.PushWarning(fmt.Errorf("server: endpoints: option 'enable_expvars' should not be enabled in production"))
 	}
@@ -155,6 +160,171 @@ func ValidateServerEndpoints(config *schema.Configuration, validator *schema.Str
 		}
 
 		validateServerEndpointsAuthzStrategies(name, endpoint.Implementation, endpoint.AuthnStrategies, validator)
+	}
+}
+
+func validateServerAssets(config *schema.Configuration, validator *schema.StructValidator) {
+	if config.Server.AssetPath == "" {
+		return
+	}
+
+	if _, err := os.Stat(config.Server.AssetPath); err != nil {
+		switch {
+		case os.IsNotExist(err):
+			validator.Push(fmt.Errorf("server: asset_path: error occurred reading the '%s' directory: the directory does not exist", config.Server.AssetPath))
+		case os.IsPermission(err):
+			validator.Push(fmt.Errorf("server: asset_path: error occurred reading the '%s' directory: a permission error occurred trying to read the directory", config.Server.AssetPath))
+		default:
+			validator.Push(fmt.Errorf("server: asset_path: error occurred reading the '%s' directory: %w", config.Server.AssetPath, err))
+		}
+
+		return
+	}
+
+	var (
+		entries []fs.DirEntry
+		err     error
+	)
+
+	if entries, err = os.ReadDir(filepath.Join(config.Server.AssetPath, "locales")); err != nil {
+		if !os.IsNotExist(err) {
+			validator.Push(fmt.Errorf("server: asset_path: error occurred reading the '%s' directory: %w", filepath.Join(config.Server.AssetPath, "locales"), err))
+		}
+
+		return
+	}
+
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+
+		locale := entry.Name()
+
+		var namespaceEntries []fs.DirEntry
+
+		if namespaceEntries, err = os.ReadDir(filepath.Join(config.Server.AssetPath, "locales", locale)); err != nil {
+			validator.Push(fmt.Errorf("server: asset_path: error occurred reading the '%s' directory: %w", filepath.Join(config.Server.AssetPath, "locales", locale), err))
+		}
+
+		for _, namespaceEntry := range namespaceEntries {
+			if namespaceEntry.IsDir() || !strings.HasSuffix(namespaceEntry.Name(), ".json") {
+				continue
+			}
+
+			path := filepath.Join(config.Server.AssetPath, "locales", locale, namespaceEntry.Name())
+
+			var (
+				data         []byte
+				translations map[string]any
+			)
+
+			if data, err = os.ReadFile(path); err != nil {
+				validator.Push(fmt.Errorf("server: asset_path: error occurred reading the '%s' file: %w", path, err))
+
+				continue
+			}
+
+			if err = json.Unmarshal(data, &translations); err != nil {
+				validator.Push(fmt.Errorf("server: asset_path: error occurred decoding the '%s' file: %w", path, err))
+
+				continue
+			}
+
+			validateServerAssetsIterate("", path, translations, validator)
+		}
+	}
+}
+
+func validateServerAssetsIterate(keyRoot, path string, translations map[string]any, validator *schema.StructValidator) {
+	for key, raw := range translations {
+		var (
+			value   string
+			fullkey string
+			sub     map[string]any
+			ok      bool
+		)
+
+		if keyRoot == "" {
+			fullkey = key
+		} else {
+			fullkey = strings.Join([]string{keyRoot, key}, ".")
+		}
+
+		if sub, ok = raw.(map[string]any); ok {
+			validateServerAssetsIterate(fullkey, path, sub, validator)
+
+			continue
+		}
+
+		if !strings.Contains(key, i18nAuthelia) {
+			continue
+		}
+
+		if value, ok = raw.(string); !ok {
+			validator.Push(fmt.Errorf("server: asset_path: error occurred decoding the '%s' file: translation key '%s' has a value which is not the required type", path, fullkey))
+
+			continue
+		}
+
+		if !strings.Contains(value, i18nAuthelia) {
+			validator.Push(fmt.Errorf("server: asset_path: error occurred decoding the '%s' file: translation key '%s' has a value which is missing a required placeholder", path, fullkey))
+
+			continue
+		}
+	}
+}
+
+func validateServerEndpointsRateLimits(config *schema.Configuration, validator *schema.StructValidator) {
+	validateServerEndpointsRateLimitDefault("reset_password_start", &config.Server.Endpoints.RateLimits.ResetPasswordStart, schema.DefaultServerConfiguration.Endpoints.RateLimits.ResetPasswordStart, validator)
+	validateServerEndpointsRateLimitDefault("reset_password_finish", &config.Server.Endpoints.RateLimits.ResetPasswordFinish, schema.DefaultServerConfiguration.Endpoints.RateLimits.ResetPasswordFinish, validator)
+	validateServerEndpointsRateLimitDefault("second_factor_totp", &config.Server.Endpoints.RateLimits.SecondFactorTOTP, schema.DefaultServerConfiguration.Endpoints.RateLimits.SecondFactorTOTP, validator)
+	validateServerEndpointsRateLimitDefault("second_factor_duo", &config.Server.Endpoints.RateLimits.SecondFactorDuo, schema.DefaultServerConfiguration.Endpoints.RateLimits.SecondFactorDuo, validator)
+
+	validateServerEndpointsRateLimitDefaultWeighted("session_elevation_start", &config.Server.Endpoints.RateLimits.SessionElevationStart, schema.DefaultServerConfiguration.Endpoints.RateLimits.SessionElevationStart, config.IdentityValidation.ElevatedSession.CodeLifespan, validator)
+	validateServerEndpointsRateLimitDefaultWeighted("session_elevation_finish", &config.Server.Endpoints.RateLimits.SessionElevationFinish, schema.DefaultServerConfiguration.Endpoints.RateLimits.SessionElevationFinish, config.IdentityValidation.ElevatedSession.ElevationLifespan, validator)
+}
+
+func validateServerEndpointsRateLimitDefault(name string, config *schema.ServerEndpointRateLimit, defaults schema.ServerEndpointRateLimit, validator *schema.StructValidator) {
+	if len(config.Buckets) == 0 {
+		config.Buckets = make([]schema.ServerEndpointRateLimitBucket, len(defaults.Buckets))
+
+		copy(config.Buckets, defaults.Buckets)
+
+		return
+	}
+
+	validateServerEndpointsRateLimitBuckets(name, config, validator)
+}
+
+func validateServerEndpointsRateLimitDefaultWeighted(name string, config *schema.ServerEndpointRateLimit, defaults schema.ServerEndpointRateLimit, weight time.Duration, validator *schema.StructValidator) {
+	if len(config.Buckets) == 0 {
+		config.Buckets = make([]schema.ServerEndpointRateLimitBucket, len(defaults.Buckets))
+
+		for i := range defaults.Buckets {
+			config.Buckets[i] = schema.ServerEndpointRateLimitBucket{
+				Period:   weight * defaults.Buckets[i].Period,
+				Requests: defaults.Buckets[i].Requests,
+			}
+		}
+
+		return
+	}
+
+	validateServerEndpointsRateLimitBuckets(name, config, validator)
+}
+
+func validateServerEndpointsRateLimitBuckets(name string, config *schema.ServerEndpointRateLimit, validator *schema.StructValidator) {
+	for i, bucket := range config.Buckets {
+		if bucket.Period == 0 {
+			validator.Push(fmt.Errorf(errFmtServerEndpointsRateLimitsBucketPeriodZero, name, i+1))
+		} else if bucket.Period < (time.Second * 10) {
+			validator.Push(fmt.Errorf(errFmtServerEndpointsRateLimitsBucketPeriodTooLow, name, i+1, bucket.Period))
+		}
+
+		if bucket.Requests <= 0 {
+			validator.Push(fmt.Errorf(errFmtServerEndpointsRateLimitsBucketRequestsZero, name, i+1, bucket.Requests))
+		}
 	}
 }
 
@@ -204,7 +374,7 @@ func validateServerEndpointsAuthzStrategies(name, implementation string, strateg
 		return
 	}
 
-	names := make([]string, len(strategies))
+	names := make([]string, 0, len(strategies))
 
 	for i, strategy := range strategies {
 		if strategy.Name != "" && utils.IsStringInSlice(strategy.Name, names) {
@@ -212,6 +382,10 @@ func validateServerEndpointsAuthzStrategies(name, implementation string, strateg
 		}
 
 		names = append(names, strategy.Name)
+
+		if strategy.SchemeBasicCacheLifespan > 0 && !utils.IsStringInSlice(schema.SchemeBasic, strategy.Schemes) {
+			validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzStrategySchemeOnlyOption, name, i+1, "scheme_basic_cache_lifespan", schema.SchemeBasic, utils.StringJoinAnd(strategy.Schemes)))
+		}
 
 		switch {
 		case strategy.Name == "":

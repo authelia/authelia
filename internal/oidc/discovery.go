@@ -1,10 +1,7 @@
 package oidc
 
 import (
-	"sort"
-
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewOpenIDConnectWellKnownConfiguration generates a new OpenIDConnectWellKnownConfiguration.
@@ -30,6 +27,7 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 					GrantTypeImplicit,
 					GrantTypeClientCredentials,
 					GrantTypeRefreshToken,
+					GrantTypeDeviceCode,
 				},
 				ResponseModesSupported: []string{
 					ResponseModeFormPost,
@@ -44,8 +42,10 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 					ScopeOfflineAccess,
 					ScopeOpenID,
 					ScopeProfile,
-					ScopeGroups,
 					ScopeEmail,
+					ScopeAddress,
+					ScopePhone,
+					ScopeGroups,
 				},
 				ClaimsSupported: []string{
 					ClaimAuthenticationMethodsReference,
@@ -57,15 +57,30 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 					ClaimIssuer,
 					ClaimJWTID,
 					ClaimRequestedAt,
-					ClaimSubject,
 					ClaimAuthenticationTime,
 					ClaimNonce,
-					ClaimPreferredEmail,
+					ClaimGroups,
+					ClaimSubject,
+					ClaimFullName,
+					ClaimGivenName,
+					ClaimFamilyName,
+					ClaimMiddleName,
+					ClaimNickname,
+					ClaimPreferredUsername,
+					ClaimProfile,
+					ClaimPicture,
+					ClaimWebsite,
+					ClaimEmail,
 					ClaimEmailVerified,
 					ClaimEmailAlts,
-					ClaimGroups,
-					ClaimPreferredUsername,
-					ClaimFullName,
+					ClaimGender,
+					ClaimBirthdate,
+					ClaimZoneinfo,
+					ClaimLocale,
+					ClaimPhoneNumber,
+					ClaimPhoneNumberVerified,
+					ClaimAddress,
+					ClaimUpdatedAt,
 				},
 				TokenEndpointAuthMethodsSupported: []string{
 					ClientAuthMethodClientSecretBasic,
@@ -121,10 +136,46 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 					ClientAuthMethodPrivateKeyJWT,
 				},
 			},
+			OAuth2DeviceAuthorizationGrantDiscoveryOptions: &OAuth2DeviceAuthorizationGrantDiscoveryOptions{},
 			OAuth2JWTIntrospectionResponseDiscoveryOptions: &OAuth2JWTIntrospectionResponseDiscoveryOptions{
 				IntrospectionSigningAlgValuesSupported: []string{
 					SigningAlgRSAUsingSHA256,
+					SigningAlgRSAUsingSHA384,
+					SigningAlgRSAUsingSHA512,
+					SigningAlgECDSAUsingP256AndSHA256,
+					SigningAlgECDSAUsingP384AndSHA384,
+					SigningAlgECDSAUsingP521AndSHA512,
+					SigningAlgRSAPSSUsingSHA256,
+					SigningAlgRSAPSSUsingSHA384,
+					SigningAlgRSAPSSUsingSHA512,
 					SigningAlgNone,
+				},
+				IntrospectionEncryptionAlgValuesSupported: []string{
+					EncryptionAlgRSA15,
+					EncryptionAlgRSAOAEP,
+					EncryptionAlgRSAOAEP256,
+					EncryptionAlgA128KW,
+					EncryptionAlgA192KW,
+					EncryptionAlgA256KW,
+					EncryptionAlgDirect,
+					EncryptionAlgECDHES,
+					EncryptionAlgECDHESA128KW,
+					EncryptionAlgECDHESA192KW,
+					EncryptionAlgECDHESA256KW,
+					EncryptionAlgA128GCMKW,
+					EncryptionAlgA192GCMKW,
+					EncryptionAlgA256GCMKW,
+					EncryptionAlgPBES2HS256A128KW,
+					EncryptionAlgPBES2HS284A192KW,
+					EncryptionAlgPBES2HS512A256KW,
+				},
+				IntrospectionEncryptionEncValuesSupported: []string{
+					EncryptionEncA128CBCHS256,
+					EncryptionEncA192CBCHS384,
+					EncryptionEncA256CBCHS512,
+					EncryptionEncA128GCM,
+					EncryptionEncA192GCM,
+					EncryptionEncA256GCM,
 				},
 			},
 			OAuth2PushedAuthorizationDiscoveryOptions: &OAuth2PushedAuthorizationDiscoveryOptions{
@@ -138,11 +189,81 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 		OpenIDConnectDiscoveryOptions: OpenIDConnectDiscoveryOptions{
 			IDTokenSigningAlgValuesSupported: []string{
 				SigningAlgRSAUsingSHA256,
+				SigningAlgRSAUsingSHA384,
+				SigningAlgRSAUsingSHA512,
+				SigningAlgECDSAUsingP256AndSHA256,
+				SigningAlgECDSAUsingP384AndSHA384,
+				SigningAlgECDSAUsingP521AndSHA512,
+				SigningAlgRSAPSSUsingSHA256,
+				SigningAlgRSAPSSUsingSHA384,
+				SigningAlgRSAPSSUsingSHA512,
 				SigningAlgNone,
+			},
+			IDTokenEncryptionAlgValuesSupported: []string{
+				EncryptionAlgRSA15,
+				EncryptionAlgRSAOAEP,
+				EncryptionAlgRSAOAEP256,
+				EncryptionAlgA128KW,
+				EncryptionAlgA192KW,
+				EncryptionAlgA256KW,
+				EncryptionAlgDirect,
+				EncryptionAlgECDHES,
+				EncryptionAlgECDHESA128KW,
+				EncryptionAlgECDHESA192KW,
+				EncryptionAlgECDHESA256KW,
+				EncryptionAlgA128GCMKW,
+				EncryptionAlgA192GCMKW,
+				EncryptionAlgA256GCMKW,
+				EncryptionAlgPBES2HS256A128KW,
+				EncryptionAlgPBES2HS284A192KW,
+				EncryptionAlgPBES2HS512A256KW,
+			},
+			IDTokenEncryptionEncValuesSupported: []string{
+				EncryptionEncA128CBCHS256,
+				EncryptionEncA192CBCHS384,
+				EncryptionEncA256CBCHS512,
+				EncryptionEncA128GCM,
+				EncryptionEncA192GCM,
+				EncryptionEncA256GCM,
 			},
 			UserinfoSigningAlgValuesSupported: []string{
 				SigningAlgRSAUsingSHA256,
+				SigningAlgRSAUsingSHA384,
+				SigningAlgRSAUsingSHA512,
+				SigningAlgECDSAUsingP256AndSHA256,
+				SigningAlgECDSAUsingP384AndSHA384,
+				SigningAlgECDSAUsingP521AndSHA512,
+				SigningAlgRSAPSSUsingSHA256,
+				SigningAlgRSAPSSUsingSHA384,
+				SigningAlgRSAPSSUsingSHA512,
 				SigningAlgNone,
+			},
+			UserinfoEncryptionAlgValuesSupported: []string{
+				EncryptionAlgRSA15,
+				EncryptionAlgRSAOAEP,
+				EncryptionAlgRSAOAEP256,
+				EncryptionAlgA128KW,
+				EncryptionAlgA192KW,
+				EncryptionAlgA256KW,
+				EncryptionAlgDirect,
+				EncryptionAlgECDHES,
+				EncryptionAlgECDHESA128KW,
+				EncryptionAlgECDHESA192KW,
+				EncryptionAlgECDHESA256KW,
+				EncryptionAlgA128GCMKW,
+				EncryptionAlgA192GCMKW,
+				EncryptionAlgA256GCMKW,
+				EncryptionAlgPBES2HS256A128KW,
+				EncryptionAlgPBES2HS284A192KW,
+				EncryptionAlgPBES2HS512A256KW,
+			},
+			UserinfoEncryptionEncValuesSupported: []string{
+				EncryptionEncA128CBCHS256,
+				EncryptionEncA192CBCHS384,
+				EncryptionEncA256CBCHS512,
+				EncryptionEncA128GCM,
+				EncryptionEncA192GCM,
+				EncryptionEncA256GCM,
 			},
 			RequestObjectSigningAlgValuesSupported: []string{
 				SigningAlgRSAUsingSHA256,
@@ -156,48 +277,90 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 				SigningAlgRSAPSSUsingSHA512,
 				SigningAlgNone,
 			},
+			RequestObjectEncryptionAlgValuesSupported: []string{
+				EncryptionAlgRSA15,
+				EncryptionAlgRSAOAEP,
+				EncryptionAlgRSAOAEP256,
+				EncryptionAlgA128KW,
+				EncryptionAlgA192KW,
+				EncryptionAlgA256KW,
+				EncryptionAlgDirect,
+				EncryptionAlgECDHES,
+				EncryptionAlgECDHESA128KW,
+				EncryptionAlgECDHESA192KW,
+				EncryptionAlgECDHESA256KW,
+				EncryptionAlgA128GCMKW,
+				EncryptionAlgA192GCMKW,
+				EncryptionAlgA256GCMKW,
+				EncryptionAlgPBES2HS256A128KW,
+				EncryptionAlgPBES2HS284A192KW,
+				EncryptionAlgPBES2HS512A256KW,
+			},
+			RequestObjectEncryptionEncValuesSupported: []string{
+				EncryptionEncA128CBCHS256,
+				EncryptionEncA192CBCHS384,
+				EncryptionEncA256CBCHS512,
+				EncryptionEncA128GCM,
+				EncryptionEncA192GCM,
+				EncryptionEncA256GCM,
+			},
 			ClaimTypesSupported: []string{
 				ClaimTypeNormal,
 			},
 			RequestParameterSupported:     true,
 			RequestURIParameterSupported:  true,
 			RequireRequestURIRegistration: true,
+			ClaimsParameterSupported:      true,
 		},
 		OpenIDConnectPromptCreateDiscoveryOptions: &OpenIDConnectPromptCreateDiscoveryOptions{
 			PromptValuesSupported: []string{
-				PromptNone,
 				PromptConsent,
+				PromptLogin,
+				PromptNone,
+				PromptSelectAccount,
 			},
 		},
 		OpenIDConnectJWTSecuredAuthorizationResponseModeDiscoveryOptions: &OpenIDConnectJWTSecuredAuthorizationResponseModeDiscoveryOptions{
 			AuthorizationSigningAlgValuesSupported: []string{
 				SigningAlgRSAUsingSHA256,
+				SigningAlgRSAUsingSHA384,
+				SigningAlgRSAUsingSHA512,
+				SigningAlgECDSAUsingP256AndSHA256,
+				SigningAlgECDSAUsingP384AndSHA384,
+				SigningAlgECDSAUsingP521AndSHA512,
+				SigningAlgRSAPSSUsingSHA256,
+				SigningAlgRSAPSSUsingSHA384,
+				SigningAlgRSAPSSUsingSHA512,
+			},
+			AuthorizationEncryptionAlgValuesSupported: []string{
+				EncryptionAlgRSA15,
+				EncryptionAlgRSAOAEP,
+				EncryptionAlgRSAOAEP256,
+				EncryptionAlgA128KW,
+				EncryptionAlgA192KW,
+				EncryptionAlgA256KW,
+				EncryptionAlgDirect,
+				EncryptionAlgECDHES,
+				EncryptionAlgECDHESA128KW,
+				EncryptionAlgECDHESA192KW,
+				EncryptionAlgECDHESA256KW,
+				EncryptionAlgA128GCMKW,
+				EncryptionAlgA192GCMKW,
+				EncryptionAlgA256GCMKW,
+				EncryptionAlgPBES2HS256A128KW,
+				EncryptionAlgPBES2HS284A192KW,
+				EncryptionAlgPBES2HS512A256KW,
+			},
+			AuthorizationEncryptionEncValuesSupported: []string{
+				EncryptionEncA128CBCHS256,
+				EncryptionEncA192CBCHS384,
+				EncryptionEncA256CBCHS512,
+				EncryptionEncA128GCM,
+				EncryptionEncA192GCM,
+				EncryptionEncA256GCM,
 			},
 		},
 	}
-
-	for _, alg := range c.Discovery.ResponseObjectSigningAlgs {
-		if !utils.IsStringInSlice(alg, config.IDTokenSigningAlgValuesSupported) {
-			config.IDTokenSigningAlgValuesSupported = append(config.IDTokenSigningAlgValuesSupported, alg)
-		}
-
-		if !utils.IsStringInSlice(alg, config.UserinfoSigningAlgValuesSupported) {
-			config.UserinfoSigningAlgValuesSupported = append(config.UserinfoSigningAlgValuesSupported, alg)
-		}
-
-		if !utils.IsStringInSlice(alg, config.IntrospectionSigningAlgValuesSupported) {
-			config.IntrospectionSigningAlgValuesSupported = append(config.IntrospectionSigningAlgValuesSupported, alg)
-		}
-
-		if !utils.IsStringInSlice(alg, config.AuthorizationSigningAlgValuesSupported) {
-			config.AuthorizationSigningAlgValuesSupported = append(config.AuthorizationSigningAlgValuesSupported, alg)
-		}
-	}
-
-	sort.Sort(SortedSigningAlgs(config.IDTokenSigningAlgValuesSupported))
-	sort.Sort(SortedSigningAlgs(config.UserinfoSigningAlgValuesSupported))
-	sort.Sort(SortedSigningAlgs(config.IntrospectionSigningAlgValuesSupported))
-	sort.Sort(SortedSigningAlgs(config.AuthorizationSigningAlgValuesSupported))
 
 	if c.EnablePKCEPlainChallenge {
 		config.CodeChallengeMethodsSupported = append(config.CodeChallengeMethodsSupported, PKCEChallengeMethodPlain)

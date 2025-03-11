@@ -1,8 +1,0 @@
----
-services:
-  authelia-backend:
-    volumes:
-      - './NetworkACL/configuration.yml:/config/configuration.yml'
-      - './NetworkACL/users.yml:/config/users.yml'
-      - './common/pki:/pki'
-...

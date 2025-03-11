@@ -314,6 +314,10 @@ func IsX509PrivateKey(i any) bool {
 
 // NewTLSConfig generates a tls.Config from a schema.TLS and a x509.CertPool.
 func NewTLSConfig(config *schema.TLS, rootCAs *x509.CertPool) (tlsConfig *tls.Config) {
+	if config == nil {
+		return nil
+	}
+
 	var certificates []tls.Certificate
 
 	if config.PrivateKey != nil && config.CertificateChain.HasCertificates() {
@@ -703,8 +707,8 @@ func TLSVersionFromBytesString(input string) (version int, err error) {
 	version = int(value)
 
 	switch version {
-	case tls.VersionSSL30:
-		return tls.VersionSSL30, nil
+	case tls.VersionSSL30: //nolint:staticcheck
+		return tls.VersionSSL30, nil //nolint:staticcheck
 	case tls.VersionTLS10:
 		return tls.VersionTLS10, nil
 	case tls.VersionTLS11:

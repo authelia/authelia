@@ -1,0 +1,25 @@
+---
+services:
+  traefik:
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock'
+      - './example/compose/traefik/config:/config'
+      - './common/pki:/pki'
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.api.rule: 'Host(`traefik.example.com`)'
+      traefik.http.routers.api.entrypoints: 'https'
+      traefik.http.routers.api.service: 'api@internal'
+      traefik.http.routers.api.tls: 'true'
+      traefik.http.middlewares.authelia.forwardauth.address: 'https://authelia-backend:9091${PathPrefix}/api/authz/forward-auth'  # yamllint disable-line rule:line-length
+      traefik.http.middlewares.authelia.forwardauth.tls.insecureSkipVerify: 'true'
+      traefik.http.middlewares.authelia.forwardauth.trustForwardHeader: 'true'
+      traefik.http.middlewares.authelia.forwardauth.authResponseHeaders: 'Authorization,Proxy-Authorization,Remote-User,Remote-Groups,Remote-Email,Remote-Name'  # yamllint disable-line rule:line-length
+    command:
+      - '--configFile=/config/static.yml'
+    networks:
+      authelianet:
+        aliases:
+          - login.example.com
+        ipv4_address: 192.168.240.100
+...

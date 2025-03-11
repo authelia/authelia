@@ -50,6 +50,11 @@ authentication_backend:
         -----BEGIN RSA PRIVATE KEY-----
         ...
         -----END RSA PRIVATE KEY-----
+    pooling:
+      enable: false
+      count: 5
+      retries: 2
+      timeout: '10 seconds'
     base_dn: '{{< sitevar name="domain" format="dn" nojs="DC=example,DC=com" >}}'
     additional_users_dn: 'OU=users'
     users_filter: '(&({username_attribute}={input})(objectClass=person))'
@@ -58,15 +63,39 @@ authentication_backend:
     group_search_mode: 'filter'
     permit_referrals: false
     permit_unauthenticated_bind: false
+    permit_feature_detection_failure: false
     user: 'CN=admin,{{< sitevar name="domain" format="dn" nojs="DC=example,DC=com" >}}'
     password: 'password'
     attributes:
       distinguished_name: 'distinguishedName'
       username: 'uid'
       display_name: 'displayName'
+      family_name: 'sn'
+      given_name: 'givenName'
+      middle_name: 'middleName'
+      nickname: ''
+      gender: ''
+      birthdate: ''
+      website: 'wWWHomePage'
+      profile: ''
+      picture: ''
+      zoneinfo: ''
+      locale: ''
+      phone_number: 'telephoneNumber'
+      phone_extension: ''
+      street_address: 'streetAddress'
+      locality: 'l'
+      region: 'st'
+      postal_code: 'postalCode'
+      country: 'c'
       mail: 'mail'
       member_of: 'memberOf'
       group_name: 'cn'
+      extra:
+        extra_example:
+          name: ''
+          multi_valued: false
+          value_type: 'string'
 ```
 
 ## Options
@@ -125,16 +154,53 @@ URL's are slightly more secure.
 
 {{< confkey type="structure" structure="tls" required="no" >}}
 
-Controls the TLS connection validation parameters for either StartTLS or the TLS socket.
+If defined this option controls the TLS connection verification parameters for the LDAP server.
+
+By default Authelia uses the system certificate trust for TLS certificate verification of TLS connections and the
+[certificates_directory](../miscellaneous/introduction.md#certificates_directory) global option can be used to augment
+this.
+
+
+### pooling
+
+The connection pooling configuration.
+
+#### enable
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+Enables the connection pooling functionality.
+
+#### count
+
+{{< confkey type="integer" default="5" required="no" >}}
+
+The number of open connections to be available in the pool at any given time.
+
+#### retries
+
+{{< confkey type="integer" default="2" required="no" >}}
+
+The number of attempts to obtain a free connecting that are made within the timeout period. This effectively splits the
+timeout into chunks.
+
+#### timeout
+
+{{< confkey type="string,integer" syntax="duration" default="20 seconds" required="no" >}}
+
+The amount of time that we wait for a connection to become free in the pool before giving up and failing with an error.
 
 ### base_dn
 
-{{< confkey type="string" required="yes" >}}
+{{< confkey type="string" required="situational" >}}
 
-Sets the base distinguished name container for all LDAP queries. If your LDAP domain is `{{< sitevar name="domain" nojs="example.com" >}}`
-this is usually `{{< sitevar name="domain" format="dn" nojs="DC=example,DC=com" >}}`, however you can fine tune this to be more specific for
-example to only include objects inside the authelia OU: `OU=authelia,{{< sitevar name="domain" format="dn" nojs="DC=example,DC=com" >}}`. This
-is prefixed with the [additional_users_dn](#additional_users_dn) for user searches and [additional_groups_dn](#additional_groups_dn) for groups searches.
+Sets the base distinguished name container for all LDAP queries. If your LDAP domain is
+`{{< sitevar name="domain" nojs="example.com" >}}` this is usually
+`{{< sitevar name="domain" format="dn" nojs="DC=example,DC=com" >}}`, however you can fine tune this to be more specific
+for example to only include objects inside the authelia OU:
+`OU=authelia,{{< sitevar name="domain" format="dn" nojs="DC=example,DC=com" >}}`. This is prefixed with the
+[additional_users_dn](#additional_users_dn) for user searches and [additional_groups_dn](#additional_groups_dn) for
+groups searches.
 
 ### additional_users_dn
 
@@ -231,7 +297,8 @@ characters and the user password is changed to this value.
 
 ### attributes
 
-The following options configure The directory server attribute mappings.
+The following options configure The directory server attribute mappings. It's also recommended to check out the
+[Attributes Reference Guide](../../reference/guides/attributes.md) for more information.
 
 #### distinguished_name
 
@@ -254,7 +321,7 @@ The only known support at this time is with Active Directory.
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
 This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults] for more information.
+default negating this requirement. Refer to the [attribute defaults](../../reference/guides/ldap.md#attribute-defaults) for more information.
 {{< /callout >}}
 
 The directory server attribute that maps to the username in *Authelia*. This must contain the `{username_attribute}` [placeholder].
@@ -265,10 +332,120 @@ The directory server attribute that maps to the username in *Authelia*. This mus
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
 This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults] for more information.
+default negating this requirement. Refer to the [attribute defaults](../../reference/guides/ldap.md#attribute-defaults) for more information.
 {{< /callout >}}
 
 The directory server attribute to retrieve which is shown on the Web UI to the user when they log in.
+
+#### family_name
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users family name.
+
+#### given_name
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users given name.
+
+#### middle_name
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users middle name.
+
+#### nickname
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users nickname.
+
+#### gender
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users gender.
+
+#### birthdate
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users birthdate.
+
+#### website
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users website URL.
+
+#### profile
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users profile URL.
+
+#### picture
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users picture URL.
+
+#### zoneinfo
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users timezone value from the
+[IANA Time Zone Database](https://www.iana.org/time-zones).
+
+#### locale
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users locale in the
+[RFC5646 BCP 47](https://www.rfc-editor.org/rfc/rfc5646.html) format.
+
+#### phone_number
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users phone number.
+
+#### phone_extension
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users phone extension.
+
+#### street_address
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users street address.
+
+#### locality
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users locality i.e. city.
+
+#### region
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users region i.e. state or province.
+
+#### postal_code
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users postal code.
+
+#### country
+
+{{< confkey type="string" required="no" >}}
+
+The directory server attribute which contains the users country.
 
 #### mail
 
@@ -276,7 +453,7 @@ The directory server attribute to retrieve which is shown on the Web UI to the u
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
 This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults] for more information.
+default negating this requirement. Refer to the [attribute defaults](../../reference/guides/ldap.md#attribute-defaults) for more information.
 {{< /callout >}}
 
 The directory server attribute to retrieve which contains the users email addresses. This is important for the device
@@ -289,7 +466,7 @@ identity verification when a user attempts to reset their password or register a
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
 This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults] for more information.
+default negating this requirement. Refer to the [attribute defaults](../../reference/guides/ldap.md#attribute-defaults) for more information.
 {{< /callout >}}
 
 The directory server attribute which contains the groups a user is a member of. This is currently only used for the
@@ -301,10 +478,58 @@ The directory server attribute which contains the groups a user is a member of. 
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
 This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults] for more information.
+default negating this requirement. Refer to the [attribute defaults](../../reference/guides/ldap.md#attribute-defaults) for more information.
 {{< /callout >}}
 
 The directory server attribute that is used by Authelia to determine the group name.
+
+#### extra
+
+{{< confkey type="dictionary(object)" required="no" >}}
+
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+In addition to the extra attributes, you can configure custom attributes based on the values of existing attributes.
+This is done via the [Definitions](../definitions/user-attributes.md) section.
+{{< /callout >}}
+
+The extra attributes to load from the directory server. These extra attributes can be used in other areas of Authelia
+such as [OpenID Connect 1.0](../identity-providers/openid-connect/provider.md).
+
+The key represents the backend attribute name, and by default is the name of the attribute within Authelia.
+
+In the example below, we load the directory server attribute `exampleServerAttribute` into the Authelia attribute
+`example_authelia_attribute`, treat it as a single valued attribute which has an underlying type of `integer`.
+
+```yaml
+authentication_backend:
+  ldap:
+    attributes:
+      extra:
+        exampleServerAttribute:
+          name: 'example_authelia_attribute'
+          multi_valued: false
+          value_type: 'integer'
+```
+
+#### name
+
+{{< confkey type="string" required="no" >}}
+
+This option changes that attribute name used for internal references within Authelia.
+
+#### value_type
+
+{{< confkey type="string" required="yes" >}}
+
+This defines the underlying type the attribute must be. This is required if an extra attribute is configured. The valid
+values are `string`, `integer`, or `boolean`. When using the `integer` and `boolean` types, the directory attributes
+must have parsable values.
+
+#### multi_valued
+
+{{< confkey type="boolean" required="no" >}}
+
+This indicates the underlying type can have multiple values.
 
 ## Refresh Interval
 

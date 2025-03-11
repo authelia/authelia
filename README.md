@@ -33,7 +33,7 @@ The following is a simple diagram of the architecture:
 [APT](https://apt.authelia.com/stable/debian/packages/authelia/),
 [FreeBSD Ports](https://svnweb.freebsd.org/ports/head/www/authelia/), or using a
 [static binary](https://github.com/authelia/authelia/releases/latest),
-[.deb package]((https://github.com/authelia/authelia/releases/latest)), as a container on [Docker] or [Kubernetes].
+[.deb package](https://github.com/authelia/authelia/releases/latest), as a container on [Docker] or [Kubernetes].
 
 
 Deployment can be orchestrated via the Helm [Chart](https://charts.authelia.com) (beta) leveraging ingress controllers
@@ -106,9 +106,9 @@ Authelia works in combination with [nginx], [Traefik], [Caddy], [Skipper], [Envo
 See the [Get Started Guide](https://www.authelia.com/integration/prologue/get-started/) or one of the curated examples
 below.
 
-### docker-compose
+### docker compose
 
-The `docker-compose` bundles act as a starting point for anyone wanting to see Authelia in action. You will have to
+The `docker compose` bundles act as a starting point for anyone wanting to see Authelia in action. You will have to
 customize them to your needs as they come with self-signed certificates.
 
 #### [Local](https://www.authelia.com/integration/deployment/docker/#local)
@@ -323,6 +323,14 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://budimanjojo.com"><img src="https://avatars.githubusercontent.com/u/13085918?v=4?s=100" width="100px;" alt="Budiman Jojo"/><br /><sub><b>Budiman Jojo</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=budimanjojo" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/hendrik1120"><img src="https://avatars.githubusercontent.com/u/89412959?v=4?s=100" width="100px;" alt="Hendrik Sievers"/><br /><sub><b>Hendrik Sievers</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=hendrik1120" title="Documentation">📖</a> <a href="#design-hendrik1120" title="Design">🎨</a> <a href="#ideas-hendrik1120" title="Ideas, Planning, & Feedback">🤔</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/m-georgi"><img src="https://avatars.githubusercontent.com/u/20987691?v=4?s=100" width="100px;" alt="Marcus Georgi"/><br /><sub><b>Marcus Georgi</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=m-georgi" title="Documentation">📖</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/samos667"><img src="https://avatars.githubusercontent.com/u/50653464?v=4?s=100" width="100px;" alt="samos667"/><br /><sub><b>samos667</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=samos667" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/0xSysR3ll"><img src="https://avatars.githubusercontent.com/u/31414959?v=4?s=100" width="100px;" alt="0xsysr3ll"/><br /><sub><b>0xsysr3ll</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=0xSysR3ll" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/cromelex"><img src="https://avatars.githubusercontent.com/u/96779452?v=4?s=100" width="100px;" alt="Dan"/><br /><sub><b>Dan</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=cromelex" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://shaamallow.com"><img src="https://avatars.githubusercontent.com/u/39766320?v=4?s=100" width="100px;" alt="Eyal Benaroche"/><br /><sub><b>Eyal Benaroche</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=Shaamallow" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/wangweixuan"><img src="https://avatars.githubusercontent.com/u/24620923?v=4?s=100" width="100px;" alt="Wang Weixuan"/><br /><sub><b>Wang Weixuan</b></sub></a><br /><a href="https://github.com/authelia/authelia/issues?q=author%3Awangweixuan" title="Bug reports">🐛</a> <a href="https://github.com/authelia/authelia/commits?author=wangweixuan" title="Code">💻</a> <a href="https://github.com/authelia/authelia/commits?author=wangweixuan" title="Tests">⚠️</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://t.me/daniw1337"><img src="https://avatars.githubusercontent.com/u/21097466?v=4?s=100" width="100px;" alt="Dani"/><br /><sub><b>Dani</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=DaniW42" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>

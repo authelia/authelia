@@ -1,8 +1,0 @@
----
-services:
-  authelia-backend:
-    volumes:
-      - './MariaDB/configuration.yml:/config/configuration.yml'
-      - './MariaDB/users.yml:/config/users.yml'
-      - './common/pki:/pki'
-...

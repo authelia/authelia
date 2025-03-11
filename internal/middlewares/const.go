@@ -33,6 +33,7 @@ var (
 	headerAccessControlMaxAge           = []byte(fasthttp.HeaderAccessControlMaxAge)
 	headerAccessControlRequestHeaders   = []byte(fasthttp.HeaderAccessControlRequestHeaders)
 	headerAccessControlRequestMethod    = []byte(fasthttp.HeaderAccessControlRequestMethod)
+	headerRetryAfter                    = []byte(fasthttp.HeaderRetryAfter)
 
 	headerXContentTypeOptions   = []byte(fasthttp.HeaderXContentTypeOptions)
 	headerReferrerPolicy        = []byte(fasthttp.HeaderReferrerPolicy)
@@ -59,6 +60,7 @@ var (
 	headerValueZero            = []byte("0")
 	headerValueCSPNone         = []byte("default-src 'none'")
 	headerValueCSPNoneFormPost = []byte("default-src 'none'; script-src 'sha256-skflBqA90WuHvoczvimLdj49ExKdizFjX2Itd6xKZdU='")
+	headerValueCSPSelf         = []byte("default-src 'self'")
 
 	headerValueNoSniff                 = []byte("nosniff")
 	headerValueStrictOriginCrossOrigin = []byte("strict-origin-when-cross-origin")
@@ -91,6 +93,20 @@ const (
 
 const (
 	UserValueRouterKeyExtAuthzPath = "extauthz"
+)
+
+const (
+	LogFieldProvider                 = "provider"
+	LogMessageStartupCheckError      = "Error occurred running a startup check"
+	LogMessageStartupCheckPerforming = "Performing Startup Check"
+	LogMessageStartupCheckSuccess    = "Startup Check Completed Successfully"
+
+	ProviderNameNTP              = "ntp"
+	ProviderNameStorage          = "storage"
+	ProviderNameUser             = "user"
+	ProviderNameNotification     = "notification"
+	ProviderNameExpressions      = "expressions"
+	ProviderNameWebAuthnMetaData = "webauthn-metadata"
 )
 
 var (

@@ -17,26 +17,32 @@ import * as React from 'react';
 interface IdentityVerificationOTCProps {
     title?: string;
     displayName?: string;
+    domain?: string;
     remoteIP?: string;
     oneTimeCode?: string;
     revocationLinkURL?: string;
     revocationLinkText?: string;
+	hidePreview?: boolean;
 }
 
 export const IdentityVerificationOTC = ({
     title,
     displayName,
+    domain,
     remoteIP,
     oneTimeCode,
     revocationLinkURL,
     revocationLinkText,
+	hidePreview,
 }: IdentityVerificationOTCProps) => {
     return (
         <Html lang="en" dir="ltr">
             <Head />
-            <Preview>
-                A one-time code has been generated for session elevation
-            </Preview>
+			{!hidePreview ? (
+				<Preview>
+					A one-time code has been generated for session elevation
+				</Preview>
+			) : null}
             <Tailwind>
                 <Body className="bg-white my-auto mx-auto font-sans px-2">
                     <Container className="border border-solid border-[#eaeaea] rounded my-[40px] mx-auto p-[20px] max-w-[465px]">
@@ -51,7 +57,7 @@ export const IdentityVerificationOTC = ({
                             This notification has been sent to you in order to
                             verify your identity to{' '}
                             <strong>change security details</strong> for your
-                            account.{' '}
+                            account at <i>{domain}</i>.{' '}
                         </Text>
                         <Text className="text-black text-[14px] leading-[24px] text-center">
                             <strong>
@@ -107,7 +113,7 @@ export const IdentityVerificationOTC = ({
                             alternatively copy and paste this URL into your
                             browser:{' '}
                         </Text>
-                        <Text className="text-black text-[14px] leading-[24px] text-center">
+                        <Text className="text-black text-[12px] leading-[24px] text-center">
                             <Link
                                 href={revocationLinkURL}
                                 className="text-blue-600 no-underline"
@@ -146,6 +152,7 @@ export const IdentityVerificationOTC = ({
 IdentityVerificationOTC.PreviewProps = {
     title: 'Confirm your identity',
     displayName: 'John Doe',
+    domain: 'example.com',
     oneTimeCode: 'ABC123',
     revocationLinkURL: 'https://auth.example.com',
     revocationLinkText: 'Revoke',

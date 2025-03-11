@@ -1,0 +1,37 @@
+{
+	"Claim": "Talba {{name}}",
+	"Scope": "Skop {{name}}",
+	"scopes": {
+		"openid": "Uża OpenID biex tivverifika l-identità tiegħek",
+		"offline_access": "Awtomatikament aġġorna dawn il-permessi mingħajr interazzjoni tal-utent",
+		"profile": "Aċċessa l-informazzjoni tal-profil tiegħek",
+		"groups": "Aċċessa l-membri tal-grupp tiegħek",
+		"email": "Aċċessa l-indirizzi tal-email tiegħek",
+		"phone": "Aċċessa n-numru tat-telefon tiegħek",
+		"address": "Aċċessa l-indirizz tiegħek",
+		"authelia.bearer.authz": "Aċċessa riżorsi protetti lura bħala inti"
+	},
+	"claims": {
+		"sub": "Identifikatur Uniċi",
+		"name": "Isem tal-Wiri",
+		"given_name": "Isem Mogħti",
+		"family_name": "Isem Familjari",
+		"middle_name": "Ismi Tiegħi",
+		"nickname": "Nom de Guerre",
+		"preferred_username": "Isem Utent Preferut",
+		"profile": "URL tal-Profil",
+		"picture": "URL tal-Immaġni",
+		"website": "URL tal-Websajt",
+		"email": "Indirizz Elettroniku",
+		"email_verified": "Indirizz Elettroniku (Verifikat)",
+		"gender": "Ġeneru",
+		"birthdate": "Data tat-Twelid",
+		"zoneinfo": "Żona",
+		"locale": "Lingwa / Dialett",
+		"phone_number": "Numru tat-Telefon",
+		"phone_number_verified": "Numru tat-Telefon (Verifikat)",
+		"address": "Indirizz Postali",
+		"updated_at": "Ħin ta' Aġġornament tal-Profil",
+		"groups": "Membri tal-Grup"
+	}
+}

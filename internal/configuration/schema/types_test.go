@@ -76,7 +76,7 @@ func TestNewTLSVersion(t *testing.T) {
 		{
 			"ShouldParseSSL3.0",
 			"SSL3.0",
-			&TLSVersion{Value: tls.VersionSSL30},
+			&TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
 			"",
 		},
 		{
@@ -160,10 +160,10 @@ func TestTLSVersion_Functions(t *testing.T) {
 		},
 		{
 			"ShouldReturnCorrectValueSSL3.0",
-			&TLSVersion{Value: tls.VersionSSL30},
+			&TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
 			expected{
-				tls.VersionSSL30,
-				tls.VersionSSL30,
+				tls.VersionSSL30, //nolint:staticcheck
+				tls.VersionSSL30, //nolint:staticcheck
 				"SSL3.0",
 			},
 		},
@@ -359,8 +359,6 @@ func TestJSONSchema(t *testing.T) {
 		&PasswordDigest{},
 		&TLSVersion{},
 		&X509CertificateChain{},
-		&AccessControlRuleNetworks{},
-		&AccessControlNetworkNetworks{},
 		&AccessControlRuleDomains{},
 		&AccessControlRuleMethods{},
 		&AccessControlRuleRegex{},

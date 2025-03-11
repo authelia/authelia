@@ -29,10 +29,10 @@ func newBootstrapCmd() (cmd *cobra.Command) {
 
 func cmdBootstrapRun(_ *cobra.Command, _ []string) {
 	bootstrapPrintln("Checking command installation...")
-	checkCommandExist("node", "Follow installation guidelines from https://nodejs.org/en/download/package-manager/ or download installer from https://nodejs.org/en/download/")
+	checkCommandExist("node", "Follow installation guidelines from https://nodejs.org/en/download")
 	checkCommandExist("pnpm", "Follow installation guidelines from https://pnpm.io/installation")
 	checkCommandExist("docker", "Follow installation guidelines from https://docs.docker.com/get-docker/")
-	checkCommandExist("docker-compose", "Follow installation guidelines from https://docs.docker.com/compose/install/")
+	checkCommandExist("docker compose", "Follow installation guidelines from https://docs.docker.com/compose/install/")
 
 	bootstrapPrintln("Getting versions of tools")
 	readVersions()
@@ -175,13 +175,17 @@ func createTemporaryDirectory() {
 }
 
 func createPNPMDirectory() {
-	home := os.Getenv("HOME")
-	if home != "" {
-		bootstrapPrintln("Creating ", home+pathPNPMStore)
-		err := os.MkdirAll(home+pathPNPMStore, 0755)
+	if _, ok := os.LookupEnv("PNPM_HOME"); !ok {
+		home := os.Getenv("HOME")
+		if home != "" {
+			if _, err := os.Stat(home + pathPNPMStore); os.IsNotExist(err) {
+				bootstrapPrintln("Creating ", home+pathPNPMStore)
 
-		if err != nil {
-			panic(err)
+				err = os.MkdirAll(home+pathPNPMStore, 0755)
+				if err != nil {
+					panic(err)
+				}
+			}
 		}
 	}
 }
@@ -194,7 +198,13 @@ func pnpmInstall() {
 		panic(err)
 	}
 
-	shell(fmt.Sprintf("cd %s/web && pnpm install --force", cwd))
+	if _, err = os.Stat(cwd + pathPNPMModule); err == nil {
+		if err = os.Remove(cwd + pathPNPMModule); err != nil {
+			panic(err)
+		}
+	}
+
+	shell(fmt.Sprintf("cd %s/web && pnpm install", cwd))
 }
 
 func bootstrapPrintln(args ...any) {
@@ -298,5 +308,5 @@ func readVersions() {
 	readVersion("node", "--version")
 	readVersion("pnpm", "--version")
 	readVersion("docker", "--version")
-	readVersion("docker-compose", "version")
+	readVersion("docker", "compose", "version")
 }

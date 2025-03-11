@@ -24,6 +24,14 @@ func (rs *RodSession) doOpenSettingsMenu(t *testing.T, page *rod.Page) {
 	require.NoError(t, page.WaitStable(time.Millisecond*10))
 }
 
+func (rs *RodSession) doOpenSettingsMenuClickSecurity(t *testing.T, page *rod.Page) {
+	rs.doOpenSettingsMenu(t, page)
+
+	require.NoError(t, rs.WaitElementLocatedByID(t, page, "settings-menu-security").Click("left", 1))
+
+	require.NoError(t, page.WaitStable(time.Millisecond*10))
+}
+
 func (rs *RodSession) doOpenSettingsMenuClickTwoFactor(t *testing.T, page *rod.Page) {
 	rs.doOpenSettingsMenu(t, page)
 

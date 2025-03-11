@@ -1,0 +1,37 @@
+{
+	"Claim": "Pretendi {{name}}",
+	"Scope": "Scopu {{name}}",
+	"scopes": {
+		"openid": "Usa OpenID pro verificare sa tua identitate",
+		"offline_access": "Rinfrescare automaticamente custi permessi senza interazzione cun su utente",
+		"profile": "Acèssia informatzione de su profilu tuo",
+		"groups": "Accessu a is iscritziones de su gruppu",
+		"email": "Accessu a is indiritzos email",
+		"phone": "Accessu a su numeru de telefunu",
+		"address": "Accessu a s'indirizzu",
+		"authelia.bearer.authz": "Accessu a is recursos protetti cun s'authenticazione de su utente"
+	},
+	"claims": {
+		"sub": "Identificadore Unicu",
+		"name": "Nòmine de Mostra",
+		"given_name": "Nòmine d'Origine",
+		"family_name": "Cognome",
+		"middle_name": "Nòmine Mediu",
+		"nickname": "Nòmine d'Affettu",
+		"preferred_username": "Nòmine Preferida",
+		"profile": "URL de su Profilu",
+		"picture": "URL de sa Immagini",
+		"website": "URL de su Sitio Web",
+		"email": "Indirizzu E-mail",
+		"email_verified": "Indirizzu E-mail (Verificau)",
+		"gender": "Genere",
+		"birthdate": "Data de Nascita",
+		"zoneinfo": "Fusione Temporale",
+		"locale": "Localidade / Lingua",
+		"phone_number": "Numeru de Telefunu",
+		"phone_number_verified": "Numeru de Telefunu (Verificau)",
+		"address": "Indirizzu Postale",
+		"updated_at": "Ora de Aggiornamentu de su Profilu",
+		"groups": "Iscritzione de Su Grupp"
+	}
+}

@@ -125,11 +125,11 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 		s.Require().NoError(err)
 	}()
 
-	err = haDockerEnvironment.Stop("redis-node-2")
+	err = haDockerEnvironment.Stop("redis-node-0")
 	s.Require().NoError(err)
 
 	defer func() {
-		err = haDockerEnvironment.Start("redis-node-2")
+		err = haDockerEnvironment.Start("redis-node-0")
 		s.Require().NoError(err)
 	}()
 
@@ -157,6 +157,7 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserDataInDB() {
 	s.Require().NoError(err)
 
 	s.Require().NoError(waitUntilServiceLog(haDockerEnvironment, "mariadb", "mariadbd: ready for connections"))
+	time.Sleep(time.Second * 3)
 
 	s.doLoginSecondFactorTOTP(s.T(), s.Context(ctx), "john", "password", false, "")
 	s.verifyIsSecondFactorPage(s.T(), s.Context(ctx))

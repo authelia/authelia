@@ -72,8 +72,8 @@ identity_providers:
 ### Application
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-The [Seafile's WebDAV extension]
-[does not support OAuth Bearer](https://github.com/haiwen/seafdav/issues/76) at the time of this writing.
+The [Seafile's WebDAV extension](https://manual.seafile.com/extension/webdav/)
+does not [support OAuth Bearer](https://github.com/haiwen/seafdav/issues/76) at the time of this writing.
 {{< /callout >}}
 
 Configure [Seafile] to use Authelia as an [OpenID Connect 1.0] Provider.

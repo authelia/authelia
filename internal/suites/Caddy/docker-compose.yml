@@ -1,8 +1,0 @@
----
-services:
-  authelia-backend:
-    volumes:
-      - './Caddy/configuration.yml:/config/configuration.yml'
-      - './Caddy/users.yml:/config/users.yml'
-      - './common/pki:/pki'
-...

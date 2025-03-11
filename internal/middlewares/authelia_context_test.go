@@ -423,6 +423,14 @@ func TestShouldDetectNonXHR(t *testing.T) {
 	assert.False(t, mock.Ctx.IsXHR())
 }
 
+func TestAutheliaCtxMisc(t *testing.T) {
+	ctx := middlewares.NewAutheliaCtx(&fasthttp.RequestCtx{}, schema.Configuration{}, middlewares.Providers{})
+
+	assert.NotNil(t, ctx.GetConfiguration())
+	assert.NotNil(t, ctx.GetProviders())
+	assert.NotNil(t, ctx.GetLogger())
+}
+
 func TestShouldReturnCorrectSecondFactorMethods(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()

@@ -1,0 +1,9 @@
+{{- $key := .Get "product" -}}
+{{- $format := .Get "format" -}}
+{{- with index $.Site.Data.misc.support $key -}}
+  {{- range . }}
+{{ replace $format "$version" . -}}
+  {{- end -}}
+{{- else -}}
+  {{- errorf "Product '%s' not found in support data" $key -}}
+{{- end -}}

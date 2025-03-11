@@ -225,7 +225,7 @@ nextcloud.{{< sitevar name="domain" nojs="example.com" >}} {
         }
 
         reverse_proxy nextcloud:80 {
-                header_up Cookie "authelia_session=[^;]+;" "authelia_session=_;"
+                header_up Cookie "authelia_session=[^;]+" "authelia_session=_"
         }
 }
 ```

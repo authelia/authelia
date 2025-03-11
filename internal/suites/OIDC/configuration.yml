@@ -1,65 +1,70 @@
 ---
+certificates_directory: '/certs/'
+
 server:
   address: 'tcp://:9091'
   tls:
-    certificate: /pki/public.backend.crt
-    key: /pki/private.backend.pem
+    certificate: '/pki/public.backend.crt'
+    key: '/pki/private.backend.pem'
 
 log:
-  level: debug
+  level: 'debug'
+
+storage:
+  encryption_key: 'a_not_so_secure_encryption_key'
+  local:
+    path: '/config/db.sqlite'
+
+notifier:
+  smtp:
+    address: 'smtp://mail.example.com:1025'
+    sender: 'admin@example.com'
 
 identity_validation:
   reset_password:
     jwt_secret: 'unsecure_secret'
 
-authentication_backend:
-  file:
-    path: /config/users.yml
-
 session:
-  secret: unsecure_session_secret
-
+  secret: 'unsecure_session_secret'
   cookies:
     - domain: 'example.com'
       authelia_url: 'https://login.example.com:8080'
-      expiration: 3600  # 1 hour
-      inactivity: 300  # 5 minutes
-      remember_me: 1y
-
-  # We use redis here to keep the users authenticated when Authelia restarts
-  # It eases development.
+      expiration: '1 hour'
+      inactivity: '5 minutes'
+      remember_me: '1 year'
   redis:
-    host: redis
+    host: 'redis'
     port: 6379
 
-storage:
-  encryption_key: a_not_so_secure_encryption_key
-  local:
-    path: /config/db.sqlite
+authentication_backend:
+  file:
+    path: '/config/users.yml'
 
-access_control:
-  default_policy: deny
-  rules:
-    - domain: "home.example.com"
-      policy: bypass
-    - domain: "public.example.com"
-      policy: bypass
-    - domain: "admin.example.com"
-      policy: two_factor
-    - domain: "secure.example.com"
-      policy: two_factor
-    - domain: "singlefactor.example.com"
-      policy: one_factor
-    - domain: "oidc.example.com"
-      policy: two_factor
-    - domain: "oidc-public.example.com"
-      policy: bypass
+totp:
+  disable_reuse_security_policy: true
 
-notifier:
-  smtp:
-    address: 'smtp://smtp:1025'
-    sender: admin@example.com
-    disable_require_tls: true
+webauthn:
+  disable: false
+  enable_passkey_login: true
+  display_name: 'Authelia'
+  attestation_conveyance_preference: 'indirect'
+  timeout: '60 seconds'
+  filtering:
+    permitted_aaguids: []
+    prohibited_aaguids: []
+    prohibit_backup_eligibility: false
+  selection_criteria:
+    attachment: ''
+    discoverability: 'required'
+    user_verification: 'preferred'
+  metadata:
+    enabled: false
+    validate_trust_anchor: true
+    validate_entry: false
+    validate_entry_permit_zero_aaguid: true
+    validate_status: true
+    validate_status_permitted: []
+    validate_status_prohibited: []
 
 identity_providers:
   oidc:
@@ -70,20 +75,31 @@ identity_providers:
         certificate_chain: {{ secret "/pki/public.oidc.chain.pem" | mindent 10 "|" | msquote }}
     clients:
       - client_id: 'oidc-tester-app'
-        ## 'foobar'
         client_secret: '$pbkdf2-sha512$310000$EniFUo2z8Yjw3op3lrtuyA$xhopyOyffx2TqsQvEhoMSo1sxywIvJV8HZw/zdf62xtyryY/nkNkdcUV82r.xtd5NuyvZo7DPkOlcffM/Wvsmw'  # yamllint disable-line rule:line-length
         authorization_policy: 'two_factor'
         redirect_uris:
           - 'https://oidc.example.com:8080/oauth2/callback'
-      # This client is used for testing purpose. As of now, the app must be protected by ACLs
-      # otherwise it won't work properly.
       - client_id: 'oidc-tester-app-public'
-        ## 'foobar'
         client_secret: '$pbkdf2-sha512$310000$EniFUo2z8Yjw3op3lrtuyA$xhopyOyffx2TqsQvEhoMSo1sxywIvJV8HZw/zdf62xtyryY/nkNkdcUV82r.xtd5NuyvZo7DPkOlcffM/Wvsmw'  # yamllint disable-line rule:line-length
         authorization_policy: 'one_factor'
         redirect_uris:
           - 'https://oidc-public.example.com:8080/oauth2/callback'
 
-totp:
-  disable_reuse_security_policy: true
+access_control:
+  default_policy: 'deny'
+  rules:
+    - domain: 'home.example.com'
+      policy: 'bypass'
+    - domain: 'public.example.com'
+      policy: 'bypass'
+    - domain: 'admin.example.com'
+      policy: 'two_factor'
+    - domain: 'secure.example.com'
+      policy: 'two_factor'
+    - domain: 'singlefactor.example.com'
+      policy: 'one_factor'
+    - domain: 'oidc.example.com'
+      policy: 'two_factor'
+    - domain: 'oidc-public.example.com'
+      policy: 'bypass'
 ...

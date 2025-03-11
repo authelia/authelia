@@ -46,16 +46,18 @@ func UserSessionElevationGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	switch {
-	case userSession.AuthenticationLevel >= authentication.TwoFactor:
+	switch level := userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA); {
+	case level >= authentication.TwoFactor:
 		if ctx.Configuration.IdentityValidation.ElevatedSession.SkipSecondFactor {
 			response.SkipSecondFactor = true
 		}
-	case userSession.AuthenticationLevel == authentication.OneFactor:
+	case level == authentication.OneFactor:
 		var (
 			has  bool
 			info model.UserInfo
 		)
+
+		response.FactorKnowledge = userSession.AuthenticationMethodRefs.FactorKnowledge()
 
 		info, err = ctx.Providers.StorageProvider.LoadUserInfo(ctx, userSession.Username)
 
@@ -177,12 +179,15 @@ func UserSessionElevationPOST(ctx *middlewares.AutheliaCtx) {
 
 	identity := userSession.Identity()
 
+	domain, _ := ctx.GetCookieDomain()
+
 	data := templates.EmailIdentityVerificationOTCValues{
 		Title:              "Confirm your identity",
 		RevocationLinkURL:  linkURL.String(),
 		RevocationLinkText: "Revoke",
 		DisplayName:        identity.DisplayName,
 		RemoteIP:           ctx.RemoteIP().String(),
+		Domain:             domain,
 		OneTimeCode:        string(otp.Code),
 	}
 

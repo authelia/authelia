@@ -3,7 +3,7 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import { Theme, ThemeProvider } from "@mui/material";
 
 import { LocalStorageThemeName } from "@constants/LocalStorage";
-import { localStorageAvailable } from "@services/LocalStorage";
+import { localStorageAvailable, setLocalStorage } from "@services/LocalStorage";
 import * as themes from "@themes/index";
 import { getTheme } from "@utils/Configuration";
 
@@ -24,7 +24,6 @@ export interface ValueProps {
 export default function ThemeContextProvider(props: Props) {
     const [theme, setTheme] = useState(GetCurrentTheme());
     const [themeName, setThemeName] = useState(GetCurrentThemeName());
-    const isLocalStorageAvailable = localStorageAvailable();
 
     useEffect(() => {
         if (themeName === themes.ThemeNameAuto) {
@@ -65,16 +64,11 @@ export default function ThemeContextProvider(props: Props) {
         setTheme(ev.matches ? themes.Dark : themes.Light);
     };
 
-    const callback = useCallback(
-        (name: string) => {
-            setThemeName(name);
+    const callback = useCallback((name: string) => {
+        setThemeName(name);
 
-            if (isLocalStorageAvailable) {
-                window.localStorage.setItem(LocalStorageThemeName, name);
-            }
-        },
-        [isLocalStorageAvailable],
-    );
+        setLocalStorage(LocalStorageThemeName, name);
+    }, []);
 
     return (
         <ThemeContext.Provider
@@ -128,6 +122,8 @@ function ThemeFromName(name: string) {
             return themes.Dark;
         case themes.ThemeNameGrey:
             return themes.Grey;
+        case themes.ThemeNameOled:
+            return themes.Oled;
         case themes.ThemeNameAuto:
             return window.matchMedia(MediaQueryDarkMode).matches ? themes.Dark : themes.Light;
         default:

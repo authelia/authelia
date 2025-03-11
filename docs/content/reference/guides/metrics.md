@@ -43,12 +43,13 @@ when configured. If metrics are enabled the metrics listener listens on `:9959` 
 
 ##### Vectored Counters
 
-|        Name         |           Vectors           |     Description      |
-|:-------------------:|:---------------------------:|:--------------------:|
-|       request       |      `code`, `method`       |     All Requests     |
-|        authz        |           `code`            |    Authz Requests    |
-|        authn        |     `success`, `banned`     | Authn Requests (1FA) |
-| authn_second_factor | `success`, `banned`, `type` | Authn Requests (2FA) |
+|        Name         |           Vectors           |       Description        |
+|:-------------------:|:---------------------------:|:------------------------:|
+|       request       |      `code`, `method`       |       All Requests       |
+|        authz        |           `code`            |      Authz Requests      |
+|        authn        |     `success`, `banned`     |   Authn Requests (1FA)   |
+|    authn_passkey    |          `success`          | Authn Requests (Passkey) |
+| authn_second_factor | `success`, `banned`, `type` |   Authn Requests (2FA)   |
 
 ##### Vectored Histograms
 

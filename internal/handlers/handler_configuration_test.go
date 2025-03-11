@@ -10,12 +10,12 @@ import (
 	"github.com/authelia/authelia/v4/internal/mocks"
 )
 
-type SecondFactorAvailableMethodsFixture struct {
+type ConfigurationHandlerFixture struct {
 	suite.Suite
 	mock *mocks.MockAutheliaCtx
 }
 
-func (s *SecondFactorAvailableMethodsFixture) SetupTest() {
+func (s *ConfigurationHandlerFixture) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&schema.Configuration{
 		AccessControl: schema.AccessControl{
@@ -24,11 +24,11 @@ func (s *SecondFactorAvailableMethodsFixture) SetupTest() {
 		}})
 }
 
-func (s *SecondFactorAvailableMethodsFixture) TearDownTest() {
+func (s *ConfigurationHandlerFixture) TearDownTest() {
 	s.mock.Close()
 }
 
-func (s *SecondFactorAvailableMethodsFixture) TestShouldHaveAllConfiguredMethods() {
+func (s *ConfigurationHandlerFixture) TestShouldHaveAllConfiguredMethods() {
 	s.mock.Ctx.Configuration = schema.Configuration{
 		DuoAPI: schema.DuoAPI{
 			Disable: false,
@@ -58,7 +58,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldHaveAllConfiguredMethods
 	})
 }
 
-func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveTOTPFromAvailableMethodsWhenDisabled() {
+func (s *ConfigurationHandlerFixture) TestShouldRemoveTOTPFromAvailableMethodsWhenDisabled() {
 	s.mock.Ctx.Configuration = schema.Configuration{
 		DuoAPI: schema.DuoAPI{
 			Disable: false,
@@ -88,7 +88,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveTOTPFromAvailableM
 	})
 }
 
-func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveWebAuthnFromAvailableMethodsWhenDisabled() {
+func (s *ConfigurationHandlerFixture) TestShouldRemoveWebAuthnFromAvailableMethodsWhenDisabled() {
 	s.mock.Ctx.Configuration = schema.Configuration{
 		DuoAPI: schema.DuoAPI{
 			Disable: false,
@@ -118,7 +118,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveWebAuthnFromAvaila
 	})
 }
 
-func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveDuoFromAvailableMethodsWhenNotConfigured() {
+func (s *ConfigurationHandlerFixture) TestShouldRemoveDuoFromAvailableMethodsWhenNotConfigured() {
 	s.mock.Ctx.Configuration = schema.Configuration{
 		DuoAPI: schema.DuoAPI{
 			Disable: true,
@@ -148,7 +148,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveDuoFromAvailableMe
 	})
 }
 
-func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveAllMethodsWhenNoTwoFactorACLRulesConfigured() {
+func (s *ConfigurationHandlerFixture) TestShouldRemoveAllMethodsWhenNoTwoFactorACLRulesConfigured() {
 	s.mock.Ctx.Configuration = schema.Configuration{
 		DuoAPI: schema.DuoAPI{
 			Disable: false,
@@ -178,7 +178,7 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveAllMethodsWhenNoTw
 	})
 }
 
-func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveAllMethodsWhenAllDisabledOrNotConfigured() {
+func (s *ConfigurationHandlerFixture) TestShouldRemoveAllMethodsWhenAllDisabledOrNotConfigured() {
 	s.mock.Ctx.Configuration = schema.Configuration{
 		DuoAPI: schema.DuoAPI{
 			Disable: true,
@@ -208,7 +208,71 @@ func (s *SecondFactorAvailableMethodsFixture) TestShouldRemoveAllMethodsWhenAllD
 	})
 }
 
+func (s *ConfigurationHandlerFixture) TestDisablePasswordResetChangeOptions() {
+	testCases := []struct {
+		name                  string
+		passwordChangeDisable bool
+		passwordResetDisable  bool
+	}{
+		{
+			name:                  "BothEnabled",
+			passwordChangeDisable: false,
+			passwordResetDisable:  false,
+		},
+		{
+			name:                  "PasswordChangeDisabled",
+			passwordChangeDisable: true,
+			passwordResetDisable:  false,
+		},
+		{
+			name:                  "PasswordResetDisabled",
+			passwordChangeDisable: false,
+			passwordResetDisable:  true,
+		},
+		{
+			name:                  "BothDisabled",
+			passwordChangeDisable: true,
+			passwordResetDisable:  true,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.T().Run(tc.name, func(t *testing.T) {
+			mock := mocks.NewMockAutheliaCtx(t)
+			defer mock.Close()
+
+			mock.Ctx.Configuration = schema.Configuration{
+				AuthenticationBackend: schema.AuthenticationBackend{
+					PasswordChange: schema.AuthenticationBackendPasswordChange{
+						Disable: tc.passwordChangeDisable,
+					},
+					PasswordReset: schema.AuthenticationBackendPasswordReset{
+						Disable: tc.passwordResetDisable,
+					},
+				},
+				DuoAPI: schema.DuoAPI{
+					Disable: true,
+				},
+				TOTP: schema.TOTP{
+					Disable: true,
+				},
+				WebAuthn: schema.WebAuthn{
+					Disable: true,
+				},
+			}
+
+			ConfigurationGET(mock.Ctx)
+
+			mock.Assert200OK(s.T(), configurationBody{
+				AvailableMethods:       []string{},
+				PasswordChangeDisabled: tc.passwordChangeDisable,
+				PasswordResetDisabled:  tc.passwordResetDisable,
+			})
+		})
+	}
+}
+
 func TestRunSuite(t *testing.T) {
-	s := new(SecondFactorAvailableMethodsFixture)
+	s := new(ConfigurationHandlerFixture)
 	suite.Run(t, s)
 }

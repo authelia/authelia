@@ -52,9 +52,6 @@ const (
 
 const (
 	delimiterLineFrontMatter = "---"
-
-	localeDefault          = "en"
-	localeNamespaceDefault = "portal"
 )
 
 const (

@@ -1,0 +1,12 @@
+---
+services:
+  mysql:
+    image: 'mysql:9.2'
+    environment:
+      MYSQL_ROOT_PASSWORD: 'rootpassword'
+      MYSQL_USER: 'admin'
+      MYSQL_PASSWORD: 'password'
+      MYSQL_DATABASE: 'authelia'
+    networks:
+      authelianet: {}
+...

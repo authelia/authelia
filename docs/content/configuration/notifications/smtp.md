@@ -176,7 +176,11 @@ mixed emails which contain both HTML and text so this option is rarely necessary
 
 {{< confkey type="structure" structure="tls" required="no" >}}
 
-Controls the TLS connection validation parameters for either StartTLS or the TLS socket.
+If defined this option controls the TLS connection verification parameters for the SMTP server.
+
+By default Authelia uses the system certificate trust for TLS certificate verification of TLS connections and the
+[certificates_directory](../miscellaneous/introduction.md#certificates_directory) global option can be used to augment
+this.
 
 ## Using Gmail
 
@@ -186,10 +190,11 @@ You need to generate an app password in order to use Gmail SMTP servers. The pro
 ```yaml {title="configuration.yml"}
 notifier:
   smtp:
+    address: 'submission://smtp.gmail.com:587'
     username: 'myaccount@gmail.com'
     # Password can also be set using a secret: https://www.authelia.com/configuration/methods/secrets/
     password: 'yourapppassword'
     sender: 'admin@{{< sitevar name="domain" nojs="example.com" >}}'
-    host: 'smtp.gmail.com'
-    port: 587
 ```
+
+[security]: ../../overview/security/measures.md#notifier-security-measures-smtp

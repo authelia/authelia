@@ -713,6 +713,11 @@
           "title": "TLS",
           "description": "The LDAP directory server TLS connection properties."
         },
+        "pooling": {
+          "$ref": "#/$defs/AuthenticationBackendLDAPPooling",
+          "title": "Pooling",
+          "description": "The LDAP Connection Pooling properties."
+        },
         "base_dn": {
           "type": "string",
           "title": "Base DN",
@@ -820,6 +825,44 @@
       "additionalProperties": false,
       "type": "object",
       "description": "AuthenticationBackendLDAPAttributes represents the configuration related to LDAP server attributes."
+    },
+    "AuthenticationBackendLDAPPooling": {
+      "properties": {
+        "enable": {
+          "type": "boolean",
+          "title": "Enable",
+          "description": "Enable LDAP connection pooling.",
+          "default": false
+        },
+        "count": {
+          "type": "integer",
+          "title": "Count",
+          "description": "The number of connections to keep open for LDAP connection pooling.",
+          "default": 5
+        },
+        "retries": {
+          "type": "integer",
+          "title": "Retries",
+          "description": "The number of attempts to retrieve a connection from the pool during the timeout.",
+          "default": 2
+        },
+        "timeout": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Timeout",
+          "description": "The duration of time to wait for a connection to become available in the connection pool."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "AuthenticationBackendPasswordReset": {
       "properties": {
@@ -2181,8 +2224,16 @@
           "default": "localhost"
         },
         "sender": {
-          "type": "string",
-          "format": "email",
+          "oneOf": [
+            {
+              "type": "string",
+              "format": "email"
+            },
+            {
+              "type": "string",
+              "pattern": "^[^\u003c]+\\s\\\u003c[a-zA-Z0-9._~!#$%\u0026'*/=?^{|}+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z0-9-]+\\\u003e$"
+            }
+          ],
           "title": "Sender",
           "description": "The sender used for SMTP."
         },
@@ -2193,11 +2244,18 @@
           "default": "[Authelia] {title}"
         },
         "startup_check_address": {
-          "type": "string",
-          "format": "email",
+          "oneOf": [
+            {
+              "type": "string",
+              "format": "email"
+            },
+            {
+              "type": "string",
+              "pattern": "^[^\u003c]+\\s\\\u003c[a-zA-Z0-9._~!#$%\u0026'*/=?^{|}+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z0-9-]+\\\u003e$"
+            }
+          ],
           "title": "Startup Check Address",
-          "description": "The address used for the recipient in the startup check.",
-          "default": "Authelia Test \u003ctest@authelia.com\u003e"
+          "description": "The address used for the recipient in the startup check."
         },
         "disable_require_tls": {
           "type": "boolean",
@@ -2831,6 +2889,26 @@
           "title": "Host",
           "description": "The redis server port.",
           "default": 6379
+        },
+        "timeout": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Timeout",
+          "description": "The Redis server connection timeout."
+        },
+        "max_retries": {
+          "type": "integer",
+          "title": "Maximum Retries",
+          "description": "The maximum number of retries on a failed command.",
+          "default": 3
         },
         "username": {
           "type": "string",

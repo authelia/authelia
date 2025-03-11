@@ -9,25 +9,27 @@ var pathPrefixSuiteName = "PathPrefix"
 
 func init() {
 	dockerEnvironment := NewDockerEnvironment([]string{
-		"internal/suites/docker-compose.yml",
-		"internal/suites/PathPrefix/docker-compose.yml",
-		"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
-		"internal/suites/example/compose/authelia/docker-compose.frontend.{}.yml",
-		"internal/suites/example/compose/nginx/backend/docker-compose.yml",
-		"internal/suites/example/compose/traefik2/docker-compose.yml",
-		"internal/suites/example/compose/smtp/docker-compose.yml",
-		"internal/suites/example/compose/httpbin/docker-compose.yml",
+		"internal/suites/compose.yml",
+		"internal/suites/PathPrefix/compose.yml",
+		"internal/suites/example/compose/authelia/compose.backend.{}.yml",
+		"internal/suites/example/compose/authelia/compose.frontend.{}.yml",
+		"internal/suites/example/compose/nginx/backend/compose.yml",
+		"internal/suites/example/compose/traefik/compose.yml",
+		"internal/suites/example/compose/traefik/compose.v3.yml",
+		"internal/suites/example/compose/smtp/compose.yml",
+		"internal/suites/example/compose/httpbin/compose.yml",
 	})
 
 	if os.Getenv("CI") == t {
 		dockerEnvironment = NewDockerEnvironment([]string{
-			"internal/suites/docker-compose.yml",
-			"internal/suites/PathPrefix/docker-compose.yml",
-			"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
-			"internal/suites/example/compose/nginx/backend/docker-compose.yml",
-			"internal/suites/example/compose/traefik2/docker-compose.yml",
-			"internal/suites/example/compose/smtp/docker-compose.yml",
-			"internal/suites/example/compose/httpbin/docker-compose.yml",
+			"internal/suites/compose.yml",
+			"internal/suites/PathPrefix/compose.yml",
+			"internal/suites/example/compose/authelia/compose.backend.{}.yml",
+			"internal/suites/example/compose/nginx/backend/compose.yml",
+			"internal/suites/example/compose/traefik/compose.yml",
+			"internal/suites/example/compose/traefik/compose.v3.yml",
+			"internal/suites/example/compose/smtp/compose.yml",
+			"internal/suites/example/compose/httpbin/compose.yml",
 		})
 	}
 

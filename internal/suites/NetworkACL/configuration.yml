@@ -1,81 +1,89 @@
 ---
-###############################################################
-#                Authelia minimal configuration               #
-###############################################################
+certificates_directory: '/certs/'
 
 server:
   address: 'tcp://:9091'
   tls:
-    certificate: /pki/public.backend.crt
-    key: /pki/private.backend.pem
+    certificate: '/pki/public.backend.crt'
+    key: '/pki/private.backend.pem'
 
 log:
-  level: debug
+  level: 'debug'
+
+storage:
+  encryption_key: 'a_not_so_secure_encryption_key'
+  local:
+    path: '/config/db.sqlite'
+
+notifier:
+  smtp:
+    address: 'smtp://mail.example.com:1025'
+    sender: 'admin@example.com'
 
 identity_validation:
   reset_password:
     jwt_secret: 'a_very_important_secret'
 
-authentication_backend:
-  file:
-    path: /config/users.yml
+regulation:
+  max_retries: 3
+  find_time: '5 minutes'
+  ban_time: '15 minutes'
 
 session:
-  secret: unsecure_session_secret
-  expiration: 3600  # 1 hour
-  inactivity: 300  # 5 minutes
-  remember_me: 1y
+  secret: 'unsecure_session_secret'
   cookies:
     - domain: 'example.com'
       authelia_url: 'https://login.example.com:8080'
+      expiration: '1 hour'
+      inactivity: '5 minutes'
+      remember_me: '1 year'
 
-# Configuration of the storage backend used to store data and secrets. i.e. totp data
-storage:
-  encryption_key: a_not_so_secure_encryption_key
-  local:
-    path: /config/db.sqlite
-
-# Access Control
-#
-# Access control is a set of rules you can use to restrict user access to certain
-# resources.
-access_control:
-  default_policy: deny
-  networks:
-    - name: Clients
-      networks:
-        - 192.168.240.202/32
-        - 192.168.240.203/32
-  rules:
-    - domain: secure.example.com
-      policy: one_factor
-      networks:
-        - 192.168.240.201/32
-
-    - domain: secure.example.com
-      policy: bypass
-      networks:
-        - Clients
-
-    - domain: secure.example.com
-      policy: two_factor
-
-# Configuration of the authentication regulation mechanism.
-regulation:
-  # Set it to 0 to disable max_retries.
-  max_retries: 3
-  # The user is banned if the authentication failed `max_retries` times in a `find_time` seconds window.
-  find_time: 300
-  # The length of time before a banned user can login again.
-  ban_time: 900
-
-notifier:
-  # Use a SMTP server for sending notifications
-  smtp:
-    address: 'smtp://smtp:1025'
-    sender: admin@example.com
-    disable_require_tls: true
+authentication_backend:
+  file:
+    path: '/config/users.yml'
 
 totp:
   disable_reuse_security_policy: true
+
+webauthn:
+  disable: false
+  enable_passkey_login: true
+  display_name: 'Authelia'
+  attestation_conveyance_preference: 'indirect'
+  timeout: '60 seconds'
+  filtering:
+    permitted_aaguids: []
+    prohibited_aaguids: []
+    prohibit_backup_eligibility: false
+  selection_criteria:
+    attachment: ''
+    discoverability: 'required'
+    user_verification: 'preferred'
+  metadata:
+    enabled: false
+    validate_trust_anchor: true
+    validate_entry: false
+    validate_entry_permit_zero_aaguid: true
+    validate_status: true
+    validate_status_permitted: []
+    validate_status_prohibited: []
+
+access_control:
+  default_policy: 'deny'
+  networks:
+    - name: 'Clients'
+      networks:
+        - '192.168.240.202/32'
+        - '192.168.240.203/32'
+  rules:
+    - domain: 'secure.example.com'
+      policy: 'one_factor'
+      networks:
+        - '192.168.240.201/32'
+    - domain: 'secure.example.com'
+      policy: 'bypass'
+      networks:
+        - 'Clients'
+    - domain: 'secure.example.com'
+      policy: 'two_factor'
 ...

@@ -266,7 +266,13 @@ func WebAuthnCredentialDELETE(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	ctxLogEvent(ctx, userSession.Username, eventLogAction2FARemoved, map[string]any{eventLogKeyAction: eventLogAction2FARemoved, eventLogKeyCategory: eventLogCategoryWebAuthnCredential, eventLogKeyDescription: credential.Description})
+	body := emailEventBody{
+		Prefix: eventEmailAction2FAPrefix,
+		Body:   eventEmailAction2FABody,
+		Suffix: eventEmailAction2FARemovedSuffix,
+	}
+
+	ctxLogEvent(ctx, userSession.Username, eventLogAction2FARemoved, body, map[string]any{eventLogKeyAction: eventLogAction2FARemoved, eventLogKeyCategory: eventLogCategoryWebAuthnCredential, eventLogKeyDescription: credential.Description})
 
 	ctx.ReplyOK()
 }

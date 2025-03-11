@@ -15,24 +15,13 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/authelia/authelia/v4/internal/authentication"
-	"github.com/authelia/authelia/v4/internal/authorization"
-	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
 	"github.com/authelia/authelia/v4/internal/logging"
-	"github.com/authelia/authelia/v4/internal/metrics"
 	"github.com/authelia/authelia/v4/internal/middlewares"
-	"github.com/authelia/authelia/v4/internal/notification"
-	"github.com/authelia/authelia/v4/internal/ntp"
-	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/random"
-	"github.com/authelia/authelia/v4/internal/regulation"
-	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/storage"
-	"github.com/authelia/authelia/v4/internal/templates"
-	"github.com/authelia/authelia/v4/internal/totp"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -42,7 +31,7 @@ func NewCmdCtx() *CmdCtx {
 
 	return &CmdCtx{
 		Context: ctx,
-		log:     logging.Logger(),
+		log:     logrus.NewEntry(logging.Logger()),
 		providers: middlewares.Providers{
 			Random: &random.Cryptographical{},
 		},
@@ -54,7 +43,7 @@ func NewCmdCtx() *CmdCtx {
 type CmdCtx struct {
 	context.Context
 
-	log *logrus.Logger
+	log *logrus.Entry
 
 	config    *schema.Configuration
 	providers middlewares.Providers
@@ -67,6 +56,7 @@ type CmdCtx struct {
 func NewCmdCtxConfig() *CmdCtxConfig {
 	return &CmdCtxConfig{
 		validator: schema.NewStructValidator(),
+		defaults:  []configuration.Source{configuration.NewDefaultsSource()},
 	}
 }
 
@@ -74,7 +64,7 @@ func NewCmdCtxConfig() *CmdCtxConfig {
 type CmdCtxConfig struct {
 	files     []string
 	filters   []string
-	defaults  configuration.Source
+	defaults  []configuration.Source
 	sources   []configuration.Source
 	keys      []string
 	validator *schema.StructValidator
@@ -82,6 +72,21 @@ type CmdCtxConfig struct {
 
 // CobraRunECmd describes a function that can be used as a *cobra.Command RunE, PreRunE, or PostRunE.
 type CobraRunECmd func(cmd *cobra.Command, args []string) (err error)
+
+// GetLogger returns the *logrus.Logger satisfying part of the ServiceCtx.
+func (ctx *CmdCtx) GetLogger() *logrus.Entry {
+	return ctx.log
+}
+
+// GetProviders returns middlewares.Providers satisfying part of the ServiceCtx.
+func (ctx *CmdCtx) GetProviders() middlewares.Providers {
+	return ctx.providers
+}
+
+// GetConfiguration returns *schema.Configuration satisfying part of the ServiceCtx.
+func (ctx *CmdCtx) GetConfiguration() *schema.Configuration {
+	return ctx.config
+}
 
 func (ctx *CmdCtx) CheckSchemaVersion() (err error) {
 	if ctx.providers.StorageProvider == nil {
@@ -136,45 +141,11 @@ func (ctx *CmdCtx) LoadTrustedCertificates() (warns, errs []error) {
 
 // LoadProviders loads all providers into the CmdCtx.
 func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
-	// TODO: Adjust this so the CertPool can be used like a provider.
 	if warns, errs = ctx.LoadTrustedCertificates(); len(warns) != 0 || len(errs) != 0 {
 		return warns, errs
 	}
 
-	ctx.providers.StorageProvider = getStorageProvider(ctx)
-
-	ctx.providers.Authorizer = authorization.NewAuthorizer(ctx.config)
-	ctx.providers.NTP = ntp.NewProvider(&ctx.config.NTP)
-	ctx.providers.PasswordPolicy = middlewares.NewPasswordPolicyProvider(ctx.config.PasswordPolicy)
-	ctx.providers.Regulator = regulation.NewRegulator(ctx.config.Regulation, ctx.providers.StorageProvider, clock.New())
-	ctx.providers.SessionProvider = session.NewProvider(ctx.config.Session, ctx.trusted)
-	ctx.providers.TOTP = totp.NewTimeBasedProvider(ctx.config.TOTP)
-
-	var err error
-
-	switch {
-	case ctx.config.AuthenticationBackend.File != nil:
-		ctx.providers.UserProvider = authentication.NewFileUserProvider(ctx.config.AuthenticationBackend.File)
-	case ctx.config.AuthenticationBackend.LDAP != nil:
-		ctx.providers.UserProvider = authentication.NewLDAPUserProvider(ctx.config.AuthenticationBackend, ctx.trusted)
-	}
-
-	if ctx.providers.Templates, err = templates.New(templates.Config{EmailTemplatesPath: ctx.config.Notifier.TemplatePath}); err != nil {
-		errs = append(errs, err)
-	}
-
-	switch {
-	case ctx.config.Notifier.SMTP != nil:
-		ctx.providers.Notifier = notification.NewSMTPNotifier(ctx.config.Notifier.SMTP, ctx.trusted)
-	case ctx.config.Notifier.FileSystem != nil:
-		ctx.providers.Notifier = notification.NewFileNotifier(*ctx.config.Notifier.FileSystem)
-	}
-
-	ctx.providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(ctx.config.IdentityProviders.OIDC, ctx.providers.StorageProvider, ctx.providers.Templates)
-
-	if ctx.config.Telemetry.Metrics.Enabled {
-		ctx.providers.Metrics = metrics.NewPrometheus()
-	}
+	ctx.providers, warns, errs = middlewares.NewProviders(ctx.config, ctx.trusted)
 
 	return warns, errs
 }
@@ -210,7 +181,7 @@ func (ctx *CmdCtx) HelperConfigSetDefaultsRunE(defaults map[string]any) CobraRun
 			ctx.cconfig = NewCmdCtxConfig()
 		}
 
-		ctx.cconfig.defaults = configuration.NewMapSource(defaults)
+		ctx.cconfig.defaults = append(ctx.cconfig.defaults, configuration.NewMapSource(defaults))
 
 		return nil
 	}
@@ -397,7 +368,8 @@ func (ctx *CmdCtx) ConfigEnsureExistsRunE(cmd *cobra.Command, _ []string) (err e
 // HelperConfigLoadRunE loads the configuration into the CmdCtx.
 func (ctx *CmdCtx) HelperConfigLoadRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
-		filters []configuration.BytesFilter
+		definitions *schema.Definitions
+		filters     []configuration.BytesFilter
 	)
 
 	if ctx.cconfig == nil {
@@ -411,6 +383,10 @@ func (ctx *CmdCtx) HelperConfigLoadRunE(cmd *cobra.Command, _ []string) (err err
 	ctx.cconfig.filters = make([]string, len(filters))
 
 	for i, filter := range filters {
+		if filter.Name() == "expand-env" {
+			ctx.log.Warn("Experimental file filter 'expand-env' is deprecated in favor of the 'template' filter and will be removed in v4.40.0")
+		}
+
 		ctx.cconfig.filters[i] = filter.Name()
 	}
 
@@ -422,10 +398,15 @@ func (ctx *CmdCtx) HelperConfigLoadRunE(cmd *cobra.Command, _ []string) (err err
 		ctx.cconfig.defaults,
 		ctx.cconfig.sources...)
 
+	if definitions, err = configuration.LoadDefinitions(ctx.cconfig.validator, ctx.cconfig.sources...); err != nil {
+		return err
+	}
+
 	if ctx.cconfig.keys, err = configuration.LoadAdvanced(
 		ctx.cconfig.validator,
 		"",
 		ctx.config,
+		definitions,
 		ctx.cconfig.sources...); err != nil {
 		return err
 	}

@@ -42,6 +42,7 @@ server:
     enable_pprof: false
     enable_expvars: false
     authz: {} ## See the dedicated "Server Authz Endpoints" configuration guide.
+    rate_limits: {} ## See the dedicated "Server Endpoint Rate Limits" configuration guide.
 ```
 
 ## Options
@@ -55,10 +56,11 @@ The [Proxy Integration](../../integration/proxies/introduction.md#important-note
 this option for when integrating it with a proxy.
 {{< /callout >}}
 
-Configures the listener address for the Main HTTP Server. The address itself is a listener and the scheme must either be
-the `unix` scheme or one of the `tcp` schemes. It can configure the host, port, and path the listener responds to.
+Configures the listener address for the Main HTTP Server. The address itself is a listener and the scheme must be the
+`unix` scheme, the `fd` scheme, or one of the `tcp` schemes. It can configure the host, port, and path the listener
+responds to.
 
-To configure the path for a unix socket see the address syntax documentation linked above.
+To configure the path for a `unix` or `fd` scheme see the address syntax documentation linked above.
 
 If the path is configured to anything other than `/` requests will be handled for both `/` and the configured path.
 For example if configured to `tcp://:{{< sitevar name="port" nojs="9091" >}}/authelia` then requests will be handled for both the `/` and `/authelia/`
@@ -79,6 +81,12 @@ server:
 ```yaml {title="configuration.yml"}
 server:
   address: 'unix:///var/run/authelia.sock'
+```
+
+```yaml
+# When running "systemd-socket-activate -l 9091 go run ./cmd/authelia", the connections to port 9091 will be forwaded to file descriptor 3.
+server:
+  address: fd://:3
 ```
 
 ### asset_path
@@ -192,7 +200,13 @@ Enables the go [expvar](https://pkg.go.dev/expvar) endpoints.
 
 This is an *__advanced__* option allowing configuration of the authorization endpoints and has its own section.
 Generally this does not need to be configured for most use cases. See the
-[authz configuration](./server-endpoints-authz.md) for more information.
+[Server Authz Endpoints](./server-endpoints-authz.md) configuration guide for more information.
+
+#### rate_limits
+
+This is an *__advanced__* option allowing configuration of the endpoint rate limits and has its own section.
+Generally this does not need to be configured for most use cases. See the
+[Server Endpoint Rate Limits](./server-endpoint-rate-limits.md) configuration guide for more information.
 
 ## Additional Notes
 

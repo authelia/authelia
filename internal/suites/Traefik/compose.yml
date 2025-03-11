@@ -1,0 +1,11 @@
+---
+services:
+  authelia-backend:
+    volumes:
+      - './Traefik/configuration.yml:/config/configuration.yml'
+      - './Traefik/users.yml:/config/users.yml'
+      - './Traefik/favicon.ico:/config/assets/favicon.ico'
+      - './Traefik/logo.png:/config/assets/logo.png'
+      - './common/pki:/pki'
+      - './common/pki/public.crt:/certs/public.crt'
+...

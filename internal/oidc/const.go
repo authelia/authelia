@@ -11,6 +11,8 @@ const (
 	ScopeOpenID        = "openid"
 	ScopeProfile       = "profile"
 	ScopeEmail         = "email"
+	ScopePhone         = "phone"
+	ScopeAddress       = "address"
 	ScopeGroups        = "groups"
 
 	ScopeAutheliaBearerAuthz = "authelia.bearer.authz"
@@ -29,14 +31,9 @@ const (
 	ClaimExpirationTime                      = "exp"
 	ClaimAuthenticationTime                  = "auth_time"
 	ClaimIssuer                              = valueIss
-	ClaimSubject                             = "sub"
 	ClaimNonce                               = "nonce"
 	ClaimAudience                            = "aud"
 	ClaimGroups                              = "groups"
-	ClaimFullName                            = "name"
-	ClaimPreferredUsername                   = "preferred_username"
-	ClaimPreferredEmail                      = "email"
-	ClaimEmailVerified                       = "email_verified"
 	ClaimAuthorizedParty                     = "azp"
 	ClaimAuthenticationContextClassReference = "acr"
 	ClaimAuthenticationMethodsReference      = "amr"
@@ -44,6 +41,26 @@ const (
 	ClaimScope                               = valueScope
 	ClaimScopeNonStandard                    = "scp"
 	ClaimExtra                               = "ext"
+	ClaimSubject                             = "sub"
+	ClaimFullName                            = "name"
+	ClaimGivenName                           = "given_name"
+	ClaimFamilyName                          = "family_name"
+	ClaimMiddleName                          = "middle_name"
+	ClaimNickname                            = "nickname"
+	ClaimPreferredUsername                   = "preferred_username"
+	ClaimProfile                             = "profile"
+	ClaimPicture                             = "picture"
+	ClaimWebsite                             = "website"
+	ClaimEmail                               = "email"
+	ClaimEmailVerified                       = "email_verified"
+	ClaimGender                              = "gender"
+	ClaimBirthdate                           = "birthdate"
+	ClaimZoneinfo                            = "zoneinfo"
+	ClaimLocale                              = "locale"
+	ClaimPhoneNumber                         = "phone_number"
+	ClaimPhoneNumberVerified                 = "phone_number_verified"
+	ClaimAddress                             = "address"
+	ClaimUpdatedAt                           = "updated_at"
 	ClaimActive                              = "active"
 	ClaimUsername                            = "username"
 	ClaimTokenIntrospection                  = "token_introspection"
@@ -74,7 +91,7 @@ const (
 	ClaimEmailAlts = "alt_emails"
 )
 
-// Response Mode strings.
+// Response Modes strings.
 const (
 	ResponseModeFormPost    = "form_post"
 	ResponseModeQuery       = "query"
@@ -91,6 +108,7 @@ const (
 	GrantTypeRefreshToken      = valueRefreshToken
 	GrantTypeAuthorizationCode = "authorization_code"
 	GrantTypeClientCredentials = "client_credentials"
+	GrantTypeDeviceCode        = "urn:ietf:params:oauth:grant-type:device_code"
 )
 
 // Client Auth Method strings.
@@ -135,6 +153,35 @@ const (
 	SigningAlgHMACUsingSHA512 = "HS512"
 )
 
+const (
+	EncryptionAlgRSA15            = "RSA1_5"
+	EncryptionAlgRSAOAEP          = "RSA-OAEP"
+	EncryptionAlgRSAOAEP256       = "RSA-OAEP-256"
+	EncryptionAlgA128KW           = "A128KW"
+	EncryptionAlgA192KW           = "A192KW"
+	EncryptionAlgA256KW           = "A256KW"
+	EncryptionAlgDirect           = "dir"
+	EncryptionAlgECDHES           = "ECDH-ES"
+	EncryptionAlgECDHESA128KW     = "ECDH-ES+A128KW"
+	EncryptionAlgECDHESA192KW     = "ECDH-ES+A192KW"
+	EncryptionAlgECDHESA256KW     = "ECDH-ES+A256KW"
+	EncryptionAlgA128GCMKW        = "A128GCMKW"
+	EncryptionAlgA192GCMKW        = "A192GCMKW"
+	EncryptionAlgA256GCMKW        = "A256GCMKW"
+	EncryptionAlgPBES2HS256A128KW = "PBES2-HS256+A128KW"
+	EncryptionAlgPBES2HS284A192KW = "PBES2-HS384+A192KW"
+	EncryptionAlgPBES2HS512A256KW = "PBES2-HS512+A256KW"
+)
+
+const (
+	EncryptionEncA128CBCHS256 = "A128CBC-HS256"
+	EncryptionEncA192CBCHS384 = "A192CBC-HS384"
+	EncryptionEncA256CBCHS512 = "A256CBC-HS512"
+	EncryptionEncA128GCM      = "A128GCM"
+	EncryptionEncA192GCM      = "A192GCM"
+	EncryptionEncA256GCM      = "A256GCM"
+)
+
 // JWS Algorithm Prefixes.
 const (
 	SigningAlgPrefixRSA    = "RS"
@@ -144,7 +191,8 @@ const (
 )
 
 const (
-	KeyUseSignature = "sig"
+	KeyUseSignature  = "sig"
+	KeyUseEncryption = "enc"
 )
 
 // Subject Type strings.
@@ -173,23 +221,16 @@ const (
 	FormParameterScope        = valueScope
 	FormParameterIssuer       = valueIss
 	FormParameterPrompt       = "prompt"
+	FormParameterMaximumAge   = "max_age"
+	FormParameterClaims       = "claims"
 )
 
 const (
-	PromptNone    = valueNone
-	PromptLogin   = "login"
-	PromptConsent = "consent"
+	PromptConsent       = "consent"
+	PromptLogin         = "login"
+	PromptNone          = valueNone
+	PromptSelectAccount = "select_account"
 	// PromptCreate  = "create" // This prompt value is currently unused.
-)
-
-// Endpoints.
-const (
-	EndpointAuthorization              = "authorization"
-	EndpointToken                      = "token"
-	EndpointUserinfo                   = "userinfo"
-	EndpointIntrospection              = "introspection"
-	EndpointRevocation                 = "revocation"
-	EndpointPushedAuthorizationRequest = "pushed-authorization-request"
 )
 
 // JWT Headers.
@@ -205,28 +246,46 @@ const (
 )
 
 const (
-	JWTHeaderTypeValueTokenIntrospectionJWT = "token-introspection+jwt"
-	JWTHeaderTypeValueAccessTokenJWT        = "at+jwt"
+	JWTHeaderTypeValueAccessTokenJWT = "at+jwt"
+)
+
+const (
+	IDTokenAudienceModeSpecification      = "specification"
+	IDTokenAudienceModeExperimentalMerged = "experimental-merged"
+)
+
+// Endpoints.
+const (
+	EndpointAuthorization              = "authorization"
+	EndpointDeviceAuthorization        = "device-authorization"
+	EndpointToken                      = "token"
+	EndpointUserinfo                   = "userinfo"
+	EndpointIntrospection              = "introspection"
+	EndpointRevocation                 = "revocation"
+	EndpointPushedAuthorizationRequest = "pushed-authorization-request"
 )
 
 // Paths.
 const (
-	EndpointPathConsent                           = "/consent"
+	EndpointPathConsent         = "/consent/openid"
+	EndpointPathConsentDecision = EndpointPathConsent + "/decision"
+	EndpointPathConsentLogin    = EndpointPathConsent + "/login"
+
+	EndpointPathRFC8628UserVerificationURL = EndpointPathConsent + "/" + EndpointDeviceAuthorization
+
 	EndpointPathWellKnownOpenIDConfiguration      = "/.well-known/openid-configuration"
 	EndpointPathWellKnownOAuthAuthorizationServer = "/.well-known/oauth-authorization-server"
 	EndpointPathJWKs                              = "/jwks.json"
 
 	EndpointPathRoot = "/api/oidc"
 
-	EndpointPathAuthorization = EndpointPathRoot + "/" + EndpointAuthorization
-	EndpointPathToken         = EndpointPathRoot + "/" + EndpointToken
-	EndpointPathUserinfo      = EndpointPathRoot + "/" + EndpointUserinfo
-	EndpointPathIntrospection = EndpointPathRoot + "/" + EndpointIntrospection
-	EndpointPathRevocation    = EndpointPathRoot + "/" + EndpointRevocation
-
+	EndpointPathAuthorization              = EndpointPathRoot + "/" + EndpointAuthorization
+	EndpointPathToken                      = EndpointPathRoot + "/" + EndpointToken
+	EndpointPathUserinfo                   = EndpointPathRoot + "/" + EndpointUserinfo
+	EndpointPathIntrospection              = EndpointPathRoot + "/" + EndpointIntrospection
+	EndpointPathRevocation                 = EndpointPathRoot + "/" + EndpointRevocation
+	EndpointPathDeviceAuthorization        = EndpointPathRoot + "/" + EndpointDeviceAuthorization
 	EndpointPathPushedAuthorizationRequest = EndpointPathRoot + "/" + EndpointPushedAuthorizationRequest
-
-	EndpointPathRFC8628UserVerificationURL = EndpointPathRoot + "/device-code/user-verification"
 )
 
 // Authentication Method Reference Values https://datatracker.ietf.org/doc/html/rfc8176

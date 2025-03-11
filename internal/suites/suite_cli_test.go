@@ -36,9 +36,9 @@ func (s *CLISuite) SetupSuite() {
 	s.BaseSuite.SetupSuite()
 
 	dockerEnvironment := NewDockerEnvironment([]string{
-		"internal/suites/docker-compose.yml",
-		"internal/suites/CLI/docker-compose.yml",
-		"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
+		"internal/suites/compose.yml",
+		"internal/suites/CLI/compose.yml",
+		"internal/suites/example/compose/authelia/compose.backend.{}.yml",
 	})
 	s.DockerEnvironment = dockerEnvironment
 }
@@ -999,7 +999,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 
 	for _, testCase := range testCases {
 		if testCase.png {
-			output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "totp", "generate", testCase.config.Username, "--period", strconv.Itoa(int(testCase.config.Period)), "--algorithm", testCase.config.Algorithm, "--digits", strconv.Itoa(int(testCase.config.Digits)), "--path", qr, "--config=/config/configuration.storage.yml"})
+			output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "totp", "generate", testCase.config.Username, "--period", strconv.FormatUint(uint64(testCase.config.Period), 10), "--algorithm", testCase.config.Algorithm, "--digits", strconv.Itoa(int(testCase.config.Digits)), "--path", qr, "--config=/config/configuration.storage.yml"})
 			s.NoError(err)
 			s.Contains(output, fmt.Sprintf(" and saved it as a PNG image at the path '%s'", qr))
 
@@ -1009,7 +1009,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 			s.False(fileInfo.IsDir())
 			s.Greater(fileInfo.Size(), int64(1000))
 		} else {
-			output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "totp", "generate", testCase.config.Username, "--period", strconv.Itoa(int(testCase.config.Period)), "--algorithm", testCase.config.Algorithm, "--digits", strconv.Itoa(int(testCase.config.Digits)), "--config=/config/configuration.storage.yml"})
+			output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "totp", "generate", testCase.config.Username, "--period", strconv.FormatUint(uint64(testCase.config.Period), 10), "--algorithm", testCase.config.Algorithm, "--digits", strconv.Itoa(int(testCase.config.Digits)), "--config=/config/configuration.storage.yml"})
 			s.NoError(err)
 		}
 
@@ -1022,7 +1022,7 @@ func (s *CLISuite) TestStorage03ShouldExportTOTP() {
 		expectedLines = append(expectedLines, config.URI())
 	}
 
-	yml := filepath.Join(dir, "authelia.export.totp.yaml")
+	yml := filepath.Join(dir, "authelia.export.totp.yml")
 	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "totp", "export", "--file", yml, "--config=/config/configuration.storage.yml"})
 	s.NoError(err)
 	s.Contains(output, fmt.Sprintf("Successfully exported %d TOTP configurations as YAML to the '%s' file\n", len(expectedLines), yml))
@@ -1244,22 +1244,129 @@ func (s *CLISuite) TestStorage06ShouldMigrateDown() {
 	s.Regexp(pattern1, output)
 }
 
+func (s *CLISuite) TestStorage07CacheMDS3() {
+	var (
+		output string
+		err    error
+	)
+
+	dir := s.T().TempDir()
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "--help"})
+	s.NoError(err)
+	s.Contains(output, "Manage WebAuthn MDS3 cache storage.")
+	s.Contains(output, "  delete ")
+	s.Contains(output, "  dump ")
+	s.Contains(output, "  status ")
+	s.Contains(output, "  update ")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "status"})
+	s.EqualError(err, "exit status 1")
+	s.Contains(output, "Error: webauthn metadata is disabled")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "delete"})
+	s.NoError(err)
+	s.Contains(output, "Successfully deleted cached MDS3 data.")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "dump", "--path=" + filepath.Join(dir, "data.mds3")})
+	s.EqualError(err, "exit status 1")
+	s.Contains(output, "Error: webauthn metadata is disabled")
+
+	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "update"})
+	s.EqualError(err, "exit status 1")
+	s.Contains(output, "Error: webauthn metadata is disabled")
+
+	env := map[string]string{"AUTHELIA_WEBAUTHN_METADATA_ENABLED": "true"}
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "status"}, env)
+	s.NoError(err)
+	s.Contains(output, "WebAuthn MDS3 Cache Status:\n\n\tValid: true\n\tInitialized: false\n\tOutdated: false\n")
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "delete"}, env)
+	s.NoError(err)
+	s.Contains(output, "Successfully deleted cached MDS3 data.")
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "dump", "--path=" + filepath.Join(dir, "data.mds3")}, env)
+	s.EqualError(err, "exit status 1")
+	s.Contains(output, "Error: error dumping metadata: no metadata is in the cache")
+
+	reUpdated := regexp.MustCompile(`^WebAuthn MDS3 cache data updated to version (\d+) and is due for update on ([A-Za-z]+ \d{1,2}, \d{4}).`)
+	reAlreadyUpToDate := regexp.MustCompile(`^WebAuthn MDS3 cache data with version (\d+) due for update on ([A-Za-z]+ \d{1,2}, \d{4}) does not require an update.`)
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "update"}, env)
+	s.NoError(err)
+	s.Regexp(reUpdated, output)
+
+	matches := reUpdated.FindStringSubmatch(output)
+
+	version := matches[1]
+	date := matches[2]
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "update"}, env)
+	s.NoError(err)
+	s.Regexp(reAlreadyUpToDate, output)
+	s.Contains(output, version)
+	s.Contains(output, date)
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "update", "-f"}, env)
+	s.NoError(err)
+	s.Regexp(reUpdated, output)
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "status"}, env)
+	s.NoError(err)
+	s.Contains(output, fmt.Sprintf("WebAuthn MDS3 Cache Status:\n\n\tValid: true\n\tInitialized: true\n\tOutdated: false\n\tVersion: %s\n\tNext Update: %s\n", version, date))
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "dump", "--path=" + filepath.Join(dir, "data.mds3")}, env)
+	s.NoError(err)
+	s.Contains(output, fmt.Sprintf("Successfully dumped WebAuthn MDS3 data with version %s from cache to file '%s'.", version, filepath.Join(dir, "data.mds3")))
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "update", "--path=" + filepath.Join(dir, "data.mds3")}, env)
+	s.NoError(err)
+	s.Regexp(reAlreadyUpToDate, output)
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "update", "--path=" + filepath.Join(dir, "data.mds3"), "-f"}, env)
+	s.NoError(err)
+	s.Regexp(reUpdated, output)
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "delete"}, env)
+	s.NoError(err)
+	s.Contains(output, "Successfully deleted cached MDS3 data.")
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "status"}, env)
+	s.NoError(err)
+	s.Contains(output, "WebAuthn MDS3 Cache Status:\n\n\tValid: true\n\tInitialized: false\n\tOutdated: false\n")
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "update", "--path=" + filepath.Join(dir, "data.mds3")}, env)
+	s.NoError(err)
+	s.Regexp(reUpdated, output)
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "status"}, env)
+	s.NoError(err)
+	s.Contains(output, fmt.Sprintf("WebAuthn MDS3 Cache Status:\n\n\tValid: true\n\tInitialized: true\n\tOutdated: false\n\tVersion: %s\n\tNext Update: %s\n", version, date))
+
+	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "update"}, env)
+	s.NoError(err)
+	s.Regexp(reAlreadyUpToDate, output)
+	s.Contains(output, version)
+	s.Contains(output, date)
+}
+
 func (s *CLISuite) TestACLPolicyCheckVerbose() {
 	output, err := s.Exec("authelia-backend", []string{"authelia", "access-control", "check-policy", "--url=https://public.example.com", "--verbose", "--config=/config/configuration.yml"})
 	s.NoError(err)
 
 	// This is an example of `authelia access-control check-policy --config .\internal\suites\CLI\configuration.yml --url=https://public.example.com --verbose`.
 	s.Contains(output, "Performing policy check for request to 'https://public.example.com' method 'GET'.\n\n")
-	s.Regexp(regexp.MustCompile(`#\s+Domain\s+Resource\s+Method\s+Network\s+Subject\n`), output)
-	s.Regexp(regexp.MustCompile(`\* 1\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  2\s+miss\s+hit\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  3\s+miss\s+hit\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  4\s+miss\s+hit\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  5\s+miss\s+miss\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  6\s+miss\s+hit\s+miss\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  7\s+miss\s+hit\s+hit\s+miss\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  8\s+miss\s+hit\s+hit\s+hit\s+may\n`), output)
-	s.Regexp(regexp.MustCompile(`  9\s+miss\s+hit\s+hit\s+hit\s+may\n`), output)
+	s.Regexp(regexp.MustCompile(`#\s+Domain\s+Resource\s+Query\s+Method\s+Network\s+Subject\n`), output)
+	s.Regexp(regexp.MustCompile(`\* 1\s+hit\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  2\s+miss\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  3\s+miss\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  4\s+miss\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  5\s+miss\s+miss\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  6\s+miss\s+hit\s+hit\s+miss\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  7\s+miss\s+hit\s+hit\s+hit\s+miss\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  8\s+miss\s+hit\s+hit\s+hit\s+hit\s+may\n`), output)
+	s.Regexp(regexp.MustCompile(`  9\s+miss\s+hit\s+hit\s+hit\s+hit\s+may\n`), output)
 	s.Contains(output, "The policy 'bypass' from rule #1 will be applied to this request.")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", "access-control", "check-policy", "--url=https://admin.example.com", "--method=HEAD", "--username=tom", "--groups=basic,test", "--ip=192.168.2.3", "--verbose", "--config=/config/configuration.yml"})
@@ -1267,16 +1374,16 @@ func (s *CLISuite) TestACLPolicyCheckVerbose() {
 
 	// This is an example of `authelia access-control check-policy --config .\internal\suites\CLI\configuration.yml --url=https://admin.example.com --method=HEAD --username=tom --groups=basic,test --ip=192.168.2.3 --verbose`.
 	s.Contains(output, "Performing policy check for request to 'https://admin.example.com' method 'HEAD' username 'tom' groups 'basic,test' from IP '192.168.2.3'.\n\n")
-	s.Regexp(regexp.MustCompile(`#\s+Domain\s+Resource\s+Method\s+Network\s+Subject\n`), output)
-	s.Regexp(regexp.MustCompile(`  1\s+miss\s+hit\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`\* 2\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  3\s+miss\s+hit\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  4\s+miss\s+hit\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  5\s+miss\s+miss\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  6\s+miss\s+hit\s+miss\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  7\s+miss\s+hit\s+hit\s+miss\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  8\s+miss\s+hit\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  9\s+miss\s+hit\s+hit\s+hit\s+miss\n`), output)
+	s.Regexp(regexp.MustCompile(`#\s+Domain\s+Resource\s+Query\s+Method\s+Network\s+Subject\n`), output)
+	s.Regexp(regexp.MustCompile(`  1\s+miss\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`\* 2\s+hit\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  3\s+miss\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  4\s+miss\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  5\s+miss\s+miss\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  6\s+miss\s+hit\s+hit\s+miss\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  7\s+miss\s+hit\s+hit\s+hit\s+miss\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  8\s+miss\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  9\s+miss\s+hit\s+hit\s+hit\s+hit\s+miss\n`), output)
 	s.Contains(output, "The policy 'two_factor' from rule #2 will be applied to this request.")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", "access-control", "check-policy", "--url=https://resources.example.com/resources/test", "--method=POST", "--username=john", "--groups=admin,test", "--ip=192.168.1.3", "--verbose", "--config=/config/configuration.yml"})
@@ -1284,16 +1391,16 @@ func (s *CLISuite) TestACLPolicyCheckVerbose() {
 
 	// This is an example of `authelia access-control check-policy --config .\internal\suites\CLI\configuration.yml --url=https://resources.example.com/resources/test --method=POST --username=john --groups=admin,test --ip=192.168.1.3 --verbose`.
 	s.Contains(output, "Performing policy check for request to 'https://resources.example.com/resources/test' method 'POST' username 'john' groups 'admin,test' from IP '192.168.1.3'.\n\n")
-	s.Regexp(regexp.MustCompile(`#\s+Domain\s+Resource\s+Method\s+Network\s+Subject\n`), output)
-	s.Regexp(regexp.MustCompile(`  1\s+miss\s+hit\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  2\s+miss\s+hit\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  3\s+miss\s+hit\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  4\s+miss\s+hit\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`\* 5\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  6\s+miss\s+hit\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  7\s+miss\s+hit\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  8\s+miss\s+hit\s+hit\s+hit\s+miss\n`), output)
-	s.Regexp(regexp.MustCompile(`  9\s+miss\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`#\s+Domain\s+Resource\s+Query\s+Method\s+Network\s+Subject\n`), output)
+	s.Regexp(regexp.MustCompile(`  1\s+miss\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  2\s+miss\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  3\s+miss\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  4\s+miss\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`\* 5\s+hit\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  6\s+miss\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  7\s+miss\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  8\s+miss\s+hit\s+hit\s+hit\s+hit\s+miss\n`), output)
+	s.Regexp(regexp.MustCompile(`  9\s+miss\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
 	s.Contains(output, "The policy 'one_factor' from rule #5 will be applied to this request.")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", "access-control", "check-policy", "--url=https://user.example.com/resources/test", "--method=HEAD", "--username=john", "--groups=admin,test", "--ip=192.168.1.3", "--verbose", "--config=/config/configuration.yml"})
@@ -1301,16 +1408,16 @@ func (s *CLISuite) TestACLPolicyCheckVerbose() {
 
 	// This is an example of `access-control check-policy --config .\internal\suites\CLI\configuration.yml --url=https://user.example.com --method=HEAD --username=john --groups=admin,test --ip=192.168.1.3 --verbose`.
 	s.Contains(output, "Performing policy check for request to 'https://user.example.com/resources/test' method 'HEAD' username 'john' groups 'admin,test' from IP '192.168.1.3'.\n\n")
-	s.Regexp(regexp.MustCompile(`#\s+Domain\s+Resource\s+Method\s+Network\s+Subject\n`), output)
-	s.Regexp(regexp.MustCompile(`  1\s+miss\s+hit\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  2\s+miss\s+hit\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  3\s+miss\s+hit\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  4\s+miss\s+hit\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  5\s+miss\s+hit\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  6\s+miss\s+hit\s+miss\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  7\s+miss\s+hit\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  8\s+miss\s+hit\s+hit\s+hit\s+miss\n`), output)
-	s.Regexp(regexp.MustCompile(`\* 9\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`#\s+Domain\s+Resource\s+Query\s+Method\s+Network\s+Subject\n`), output)
+	s.Regexp(regexp.MustCompile(`  1\s+miss\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  2\s+miss\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  3\s+miss\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  4\s+miss\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  5\s+miss\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  6\s+miss\s+hit\s+hit\s+miss\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  7\s+miss\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  8\s+miss\s+hit\s+hit\s+hit\s+hit\s+miss\n`), output)
+	s.Regexp(regexp.MustCompile(`\* 9\s+hit\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
 	s.Contains(output, "The policy 'one_factor' from rule #9 will be applied to this request.")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", "access-control", "check-policy", "--url=https://user.example.com", "--method=HEAD", "--ip=192.168.1.3", "--verbose", "--config=/config/configuration.yml"})
@@ -1318,16 +1425,16 @@ func (s *CLISuite) TestACLPolicyCheckVerbose() {
 
 	// This is an example of `authelia access-control check-policy --config .\internal\suites\CLI\configuration.yml --url=https://user.example.com --method=HEAD --ip=192.168.1.3 --verbose`.
 	s.Contains(output, "Performing policy check for request to 'https://user.example.com' method 'HEAD' from IP '192.168.1.3'.\n\n")
-	s.Regexp(regexp.MustCompile(`#\s+Domain\s+Resource\s+Method\s+Network\s+Subject\n`), output)
-	s.Regexp(regexp.MustCompile(`  1\s+miss\s+hit\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  2\s+miss\s+hit\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  3\s+miss\s+hit\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  4\s+miss\s+hit\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  5\s+miss\s+miss\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  6\s+miss\s+hit\s+miss\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  7\s+miss\s+hit\s+hit\s+hit\s+hit\n`), output)
-	s.Regexp(regexp.MustCompile(`  8\s+miss\s+hit\s+hit\s+hit\s+may\n`), output)
-	s.Regexp(regexp.MustCompile(`~ 9\s+hit\s+hit\s+hit\s+hit\s+may\n`), output)
+	s.Regexp(regexp.MustCompile(`#\s+Domain\s+Resource\s+Query\s+Method\s+Network\s+Subject\n`), output)
+	s.Regexp(regexp.MustCompile(`  1\s+miss\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  2\s+miss\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  3\s+miss\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  4\s+miss\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  5\s+miss\s+miss\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  6\s+miss\s+hit\s+hit\s+miss\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  7\s+miss\s+hit\s+hit\s+hit\s+hit\s+hit\n`), output)
+	s.Regexp(regexp.MustCompile(`  8\s+miss\s+hit\s+hit\s+hit\s+hit\s+may\n`), output)
+	s.Regexp(regexp.MustCompile(`~ 9\s+hit\s+hit\s+hit\s+hit\s+hit\s+may\n`), output)
 	s.Contains(output, "The policy 'one_factor' from rule #9 will potentially be applied to this request. Otherwise the policy 'bypass' from the default policy will be.")
 }
 

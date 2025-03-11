@@ -27,9 +27,11 @@ import (
 
 func TestShouldRaiseErrorWhenInvalidOIDCServerConfiguration(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProviders{
-		OIDC: &schema.IdentityProvidersOpenIDConnect{
-			HMACSecret: "abc",
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret: "abc",
+			},
 		},
 	}
 
@@ -43,15 +45,17 @@ func TestShouldRaiseErrorWhenInvalidOIDCServerConfiguration(t *testing.T) {
 
 func TestShouldRaiseErrorWhenInvalidOIDCServerConfigurationBothKeyTypesSpecified(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProviders{
-		OIDC: &schema.IdentityProvidersOpenIDConnect{
-			HMACSecret:       "abc",
-			IssuerPrivateKey: keyRSA2048,
-			JSONWebKeys: []schema.JWK{
-				{
-					Use:       "sig",
-					Algorithm: "RS256",
-					Key:       keyRSA4096,
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret:       "abc",
+				IssuerPrivateKey: keyRSA2048,
+				JSONWebKeys: []schema.JWK{
+					{
+						Use:       "sig",
+						Algorithm: "RS256",
+						Key:       keyRSA4096,
+					},
 				},
 			},
 		},
@@ -67,17 +71,19 @@ func TestShouldRaiseErrorWhenInvalidOIDCServerConfigurationBothKeyTypesSpecified
 
 func TestShouldNotRaiseErrorWhenCORSEndpointsValid(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProviders{
-		OIDC: &schema.IdentityProvidersOpenIDConnect{
-			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: keyRSA2048,
-			CORS: schema.IdentityProvidersOpenIDConnectCORS{
-				Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo},
-			},
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
-				{
-					ID:     "example",
-					Secret: tOpenIDConnectPlainTextClientSecret,
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+				IssuerPrivateKey: keyRSA2048,
+				CORS: schema.IdentityProvidersOpenIDConnectCORS{
+					Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo},
+				},
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:     "example",
+						Secret: tOpenIDConnectPlainTextClientSecret,
+					},
 				},
 			},
 		},
@@ -90,17 +96,19 @@ func TestShouldNotRaiseErrorWhenCORSEndpointsValid(t *testing.T) {
 
 func TestShouldRaiseErrorWhenCORSEndpointsNotValid(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProviders{
-		OIDC: &schema.IdentityProvidersOpenIDConnect{
-			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: keyRSA2048,
-			CORS: schema.IdentityProvidersOpenIDConnectCORS{
-				Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo, "invalid_endpoint"},
-			},
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
-				{
-					ID:     "example",
-					Secret: tOpenIDConnectPlainTextClientSecret,
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+				IssuerPrivateKey: keyRSA2048,
+				CORS: schema.IdentityProvidersOpenIDConnectCORS{
+					Endpoints: []string{oidc.EndpointAuthorization, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo, "invalid_endpoint"},
+				},
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:     "example",
+						Secret: tOpenIDConnectPlainTextClientSecret,
+					},
 				},
 			},
 		},
@@ -110,16 +118,19 @@ func TestShouldRaiseErrorWhenCORSEndpointsNotValid(t *testing.T) {
 
 	require.Len(t, validator.Errors(), 1)
 
-	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: cors: option 'endpoints' contains an invalid value 'invalid_endpoint': must be one of 'authorization', 'pushed-authorization-request', 'token', 'introspection', 'revocation', or 'userinfo'")
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: cors: option 'endpoints' contains an invalid value 'invalid_endpoint': must be one of 'authorization', 'device-authorization', 'pushed-authorization-request', 'token', 'introspection', 'revocation', or 'userinfo'")
 }
 
 func TestShouldRaiseErrorWhenOIDCPKCEEnforceValueInvalid(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProviders{
-		OIDC: &schema.IdentityProvidersOpenIDConnect{
-			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: keyRSA2048,
-			EnforcePKCE:      testInvalid,
+
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+				IssuerPrivateKey: keyRSA2048,
+				EnforcePKCE:      testInvalid,
+			},
 		},
 	}
 
@@ -134,20 +145,22 @@ func TestShouldRaiseErrorWhenOIDCPKCEEnforceValueInvalid(t *testing.T) {
 func TestShouldRaiseErrorWhenOIDCCORSOriginsHasInvalidValues(t *testing.T) {
 	validator := schema.NewStructValidator()
 
-	config := &schema.IdentityProviders{
-		OIDC: &schema.IdentityProvidersOpenIDConnect{
-			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: keyRSA2048,
-			CORS: schema.IdentityProvidersOpenIDConnectCORS{
-				AllowedOrigins:                       utils.URLsFromStringSlice([]string{"https://example.com/", "https://site.example.com/subpath", "https://site.example.com?example=true", "*"}),
-				AllowedOriginsFromClientRedirectURIs: true,
-			},
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
-				{
-					ID:                  "myclient",
-					Secret:              tOpenIDConnectPlainTextClientSecret,
-					AuthorizationPolicy: "two_factor",
-					RedirectURIs:        []string{"https://example.com/oauth2_callback", "https://localhost:566/callback", "http://an.example.com/callback", "file://a/file"},
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+				IssuerPrivateKey: keyRSA2048,
+				CORS: schema.IdentityProvidersOpenIDConnectCORS{
+					AllowedOrigins:                       utils.URLsFromStringSlice([]string{"https://example.com/", "https://site.example.com/subpath", "https://site.example.com?example=true", "*"}),
+					AllowedOriginsFromClientRedirectURIs: true,
+				},
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  "myclient",
+						Secret:              tOpenIDConnectPlainTextClientSecret,
+						AuthorizationPolicy: "two_factor",
+						RedirectURIs:        []string{"https://example.com/oauth2_callback", "https://localhost:566/callback", "http://an.example.com/callback", "file://a/file"},
+					},
 				},
 			},
 		},
@@ -162,17 +175,19 @@ func TestShouldRaiseErrorWhenOIDCCORSOriginsHasInvalidValues(t *testing.T) {
 	assert.EqualError(t, validator.Errors()[3], "identity_providers: oidc: cors: option 'allowed_origins' contains the wildcard origin '*' with more than one origin but the wildcard origin must be defined by itself")
 	assert.EqualError(t, validator.Errors()[4], "identity_providers: oidc: cors: option 'allowed_origins' contains the wildcard origin '*' cannot be specified with option 'allowed_origins_from_client_redirect_uris' enabled")
 
-	require.Len(t, config.OIDC.CORS.AllowedOrigins, 6)
-	assert.Equal(t, "*", config.OIDC.CORS.AllowedOrigins[3].String())
-	assert.Equal(t, "https://example.com", config.OIDC.CORS.AllowedOrigins[4].String())
+	require.Len(t, config.IdentityProviders.OIDC.CORS.AllowedOrigins, 6)
+	assert.Equal(t, "*", config.IdentityProviders.OIDC.CORS.AllowedOrigins[3].String())
+	assert.Equal(t, "https://example.com", config.IdentityProviders.OIDC.CORS.AllowedOrigins[4].String())
 }
 
 func TestShouldRaiseErrorWhenOIDCServerNoClients(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProviders{
-		OIDC: &schema.IdentityProvidersOpenIDConnect{
-			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: keyRSA2048,
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+				IssuerPrivateKey: keyRSA2048,
+			},
 		},
 	}
 
@@ -430,7 +445,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
 					ID:                  "client-invalid-sector",
-					Secret:              tOpenIDConnectPlainTextClientSecret,
+					Secret:              tOpenIDConnectPBKDF2ClientSecret,
 					AuthorizationPolicy: policyTwoFactor,
 					RedirectURIs: []string{
 						"https://google.com",
@@ -443,7 +458,6 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			},
 			warns: []string{
 				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier_uri' with value 'example.com/path?query=abc#fragment': should be an absolute URI",
-				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'client_secret' is plaintext but for clients not using the 'token_endpoint_auth_method' of 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed in the near future",
 				"identity_providers: oidc: clients: warnings for clients above indicate deprecated functionality and it's strongly suggested these issues are checked and fixed if they're legitimate issues or reported if they are not as in a future version these warnings will become errors",
 			},
 		},
@@ -452,7 +466,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			clients: []schema.IdentityProvidersOpenIDConnectClient{
 				{
 					ID:                  "client-invalid-sector",
-					Secret:              tOpenIDConnectPlainTextClientSecret,
+					Secret:              tOpenIDConnectPBKDF2ClientSecret,
 					AuthorizationPolicy: policyTwoFactor,
 					RedirectURIs: []string{
 						"https://google.com",
@@ -462,9 +476,6 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			},
 			errors: []string{
 				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'sector_identifier_uri' with value 'http://example.com/path?query=abc': must have the 'https' scheme but has the 'http' scheme",
-			},
-			warns: []string{
-				"identity_providers: oidc: clients: client 'client-invalid-sector': option 'client_secret' is plaintext but for clients not using the 'token_endpoint_auth_method' of 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed in the near future",
 			},
 		},
 		{
@@ -589,11 +600,13 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			validator := schema.NewStructValidator()
-			config := &schema.IdentityProviders{
-				OIDC: &schema.IdentityProvidersOpenIDConnect{
-					HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-					IssuerPrivateKey: keyRSA2048,
-					Clients:          tc.clients,
+			config := &schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+						IssuerPrivateKey: keyRSA2048,
+						Clients:          tc.clients,
+					},
 				},
 			}
 
@@ -617,7 +630,7 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 			}
 
 			if tc.test != nil {
-				tc.test(t, config.OIDC.Clients)
+				tc.test(t, config.IdentityProviders.OIDC.Clients)
 			}
 
 			warns := validator.Warnings()
@@ -637,18 +650,20 @@ func TestShouldRaiseErrorWhenOIDCServerClientBadValues(t *testing.T) {
 
 func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadGrantTypes(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProviders{
-		OIDC: &schema.IdentityProvidersOpenIDConnect{
-			HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerPrivateKey: keyRSA2048,
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
-				{
-					ID:                  "good_id",
-					Secret:              tOpenIDConnectPBKDF2ClientSecret,
-					AuthorizationPolicy: "two_factor",
-					GrantTypes:          []string{"bad_grant_type"},
-					RedirectURIs: []string{
-						"https://google.com/callback",
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret:       "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+				IssuerPrivateKey: keyRSA2048,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  "good_id",
+						Secret:              tOpenIDConnectPBKDF2ClientSecret,
+						AuthorizationPolicy: "two_factor",
+						GrantTypes:          []string{"bad_grant_type"},
+						RedirectURIs: []string{
+							"https://google.com/callback",
+						},
 					},
 				},
 			},
@@ -658,23 +673,25 @@ func TestShouldRaiseErrorWhenOIDCClientConfiguredWithBadGrantTypes(t *testing.T)
 	ValidateIdentityProviders(NewValidateCtx(), config, validator)
 
 	require.Len(t, validator.Errors(), 1)
-	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: clients: client 'good_id': option 'grant_types' must only have the values 'authorization_code', 'implicit', 'client_credentials', or 'refresh_token' but the values 'bad_grant_type' are present")
+	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: clients: client 'good_id': option 'grant_types' must only have the values 'authorization_code', 'implicit', 'client_credentials', 'refresh_token', or 'urn:ietf:params:oauth:grant-type:device_code' but the values 'bad_grant_type' are present")
 }
 
 func TestShouldNotErrorOnCertificateValid(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProviders{
-		OIDC: &schema.IdentityProvidersOpenIDConnect{
-			HMACSecret:             "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerCertificateChain: certRSA2048,
-			IssuerPrivateKey:       keyRSA2048,
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
-				{
-					ID:                  "good_id",
-					Secret:              tOpenIDConnectPBKDF2ClientSecret,
-					AuthorizationPolicy: "two_factor",
-					RedirectURIs: []string{
-						"https://google.com/callback",
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret:             "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+				IssuerCertificateChain: certRSA2048,
+				IssuerPrivateKey:       keyRSA2048,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  "good_id",
+						Secret:              tOpenIDConnectPBKDF2ClientSecret,
+						AuthorizationPolicy: "two_factor",
+						RedirectURIs: []string{
+							"https://google.com/callback",
+						},
 					},
 				},
 			},
@@ -689,18 +706,20 @@ func TestShouldNotErrorOnCertificateValid(t *testing.T) {
 
 func TestShouldRaiseErrorOnCertificateNotValid(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProviders{
-		OIDC: &schema.IdentityProvidersOpenIDConnect{
-			HMACSecret:             "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
-			IssuerCertificateChain: certRSA2048,
-			IssuerPrivateKey:       keyRSA4096,
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
-				{
-					ID:                  "good_id",
-					Secret:              tOpenIDConnectPBKDF2ClientSecret,
-					AuthorizationPolicy: "two_factor",
-					RedirectURIs: []string{
-						"https://google.com/callback",
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret:             "rLABDrx87et5KvRHVUgTm3pezWWd8LMN",
+				IssuerCertificateChain: certRSA2048,
+				IssuerPrivateKey:       keyRSA4096,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  "good_id",
+						Secret:              tOpenIDConnectPBKDF2ClientSecret,
+						AuthorizationPolicy: "two_factor",
+						RedirectURIs: []string{
+							"https://google.com/callback",
+						},
 					},
 				},
 			},
@@ -763,18 +782,20 @@ func TestValidateIdentityProvidersOpenIDConnectMinimumParameterEntropy(t *testin
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			validator := schema.NewStructValidator()
-			config := &schema.IdentityProviders{
-				OIDC: &schema.IdentityProvidersOpenIDConnect{
-					HMACSecret:              "abc",
-					IssuerPrivateKey:        keyRSA2048,
-					MinimumParameterEntropy: tc.have,
-					Clients: []schema.IdentityProvidersOpenIDConnectClient{
-						{
-							ID:                  "good_id",
-							Secret:              tOpenIDConnectPBKDF2ClientSecret,
-							AuthorizationPolicy: "two_factor",
-							RedirectURIs: []string{
-								"https://google.com/callback",
+			config := &schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						HMACSecret:              "abc",
+						IssuerPrivateKey:        keyRSA2048,
+						MinimumParameterEntropy: tc.have,
+						Clients: []schema.IdentityProvidersOpenIDConnectClient{
+							{
+								ID:                  "good_id",
+								Secret:              tOpenIDConnectPBKDF2ClientSecret,
+								AuthorizationPolicy: "two_factor",
+								RedirectURIs: []string{
+									"https://google.com/callback",
+								},
 							},
 						},
 					},
@@ -783,7 +804,7 @@ func TestValidateIdentityProvidersOpenIDConnectMinimumParameterEntropy(t *testin
 
 			ValidateIdentityProviders(NewValidateCtx(), config, validator)
 
-			assert.Equal(t, tc.expected, config.OIDC.MinimumParameterEntropy)
+			assert.Equal(t, tc.expected, config.IdentityProviders.OIDC.MinimumParameterEntropy)
 
 			if n := len(tc.warnings); n == 0 {
 				assert.Len(t, validator.Warnings(), 0)
@@ -810,27 +831,29 @@ func TestValidateIdentityProvidersOpenIDConnectMinimumParameterEntropy(t *testin
 
 func TestValidateIdentityProvidersShouldRaiseErrorsOnInvalidClientTypes(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProviders{
-		OIDC: &schema.IdentityProvidersOpenIDConnect{
-			HMACSecret:       "hmac1",
-			IssuerPrivateKey: keyRSA2048,
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
-				{
-					ID:                  "client-with-invalid-secret",
-					Secret:              tOpenIDConnectPlainTextClientSecret,
-					Public:              true,
-					AuthorizationPolicy: "two_factor",
-					RedirectURIs: []string{
-						"https://localhost",
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret:       "hmac1",
+				IssuerPrivateKey: keyRSA2048,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  "client-with-invalid-secret",
+						Secret:              tOpenIDConnectPlainTextClientSecret,
+						Public:              true,
+						AuthorizationPolicy: "two_factor",
+						RedirectURIs: []string{
+							"https://localhost",
+						},
 					},
-				},
-				{
-					ID:                  "client-with-bad-redirect-uri",
-					Secret:              tOpenIDConnectPBKDF2ClientSecret,
-					Public:              false,
-					AuthorizationPolicy: "two_factor",
-					RedirectURIs: []string{
-						oidc.RedirectURISpecialOAuth2InstalledApp,
+					{
+						ID:                  "client-with-bad-redirect-uri",
+						Secret:              tOpenIDConnectPBKDF2ClientSecret,
+						Public:              false,
+						AuthorizationPolicy: "two_factor",
+						RedirectURIs: []string{
+							oidc.RedirectURISpecialOAuth2InstalledApp,
+						},
 					},
 				},
 			},
@@ -848,52 +871,54 @@ func TestValidateIdentityProvidersShouldRaiseErrorsOnInvalidClientTypes(t *testi
 
 func TestValidateIdentityProvidersShouldNotRaiseErrorsOnValidClientOptions(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProviders{
-		OIDC: &schema.IdentityProvidersOpenIDConnect{
-			HMACSecret:       "hmac1",
-			IssuerPrivateKey: keyRSA2048,
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
-				{
-					ID:                  "installed-app-client",
-					Public:              true,
-					AuthorizationPolicy: "two_factor",
-					RedirectURIs: []string{
-						oidc.RedirectURISpecialOAuth2InstalledApp,
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret:       "hmac1",
+				IssuerPrivateKey: keyRSA2048,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  "installed-app-client",
+						Public:              true,
+						AuthorizationPolicy: "two_factor",
+						RedirectURIs: []string{
+							oidc.RedirectURISpecialOAuth2InstalledApp,
+						},
 					},
-				},
-				{
-					ID:                  "client-with-https-scheme",
-					Public:              true,
-					AuthorizationPolicy: "two_factor",
-					RedirectURIs: []string{
-						"https://localhost:9000",
+					{
+						ID:                  "client-with-https-scheme",
+						Public:              true,
+						AuthorizationPolicy: "two_factor",
+						RedirectURIs: []string{
+							"https://localhost:9000",
+						},
 					},
-				},
-				{
-					ID:                  "client-with-loopback",
-					Public:              true,
-					AuthorizationPolicy: "two_factor",
-					RedirectURIs: []string{
-						"http://127.0.0.1",
+					{
+						ID:                  "client-with-loopback",
+						Public:              true,
+						AuthorizationPolicy: "two_factor",
+						RedirectURIs: []string{
+							"http://127.0.0.1",
+						},
 					},
-				},
-				{
-					ID:                  "client-with-pkce-mode-plain",
-					Public:              true,
-					AuthorizationPolicy: "two_factor",
-					RedirectURIs: []string{
-						"https://pkce.com",
+					{
+						ID:                  "client-with-pkce-mode-plain",
+						Public:              true,
+						AuthorizationPolicy: "two_factor",
+						RedirectURIs: []string{
+							"https://pkce.com",
+						},
+						PKCEChallengeMethod: "plain",
 					},
-					PKCEChallengeMethod: "plain",
-				},
-				{
-					ID:                  "client-with-pkce-mode-S256",
-					Public:              true,
-					AuthorizationPolicy: "two_factor",
-					RedirectURIs: []string{
-						"https://pkce.com",
+					{
+						ID:                  "client-with-pkce-mode-S256",
+						Public:              true,
+						AuthorizationPolicy: "two_factor",
+						RedirectURIs: []string{
+							"https://pkce.com",
+						},
+						PKCEChallengeMethod: "S256",
 					},
-					PKCEChallengeMethod: "S256",
 				},
 			},
 		},
@@ -907,17 +932,19 @@ func TestValidateIdentityProvidersShouldNotRaiseErrorsOnValidClientOptions(t *te
 
 func TestValidateIdentityProvidersShouldRaiseWarningOnPlainTextClients(t *testing.T) {
 	validator := schema.NewStructValidator()
-	config := &schema.IdentityProviders{
-		OIDC: &schema.IdentityProvidersOpenIDConnect{
-			HMACSecret:       "hmac1",
-			IssuerPrivateKey: keyRSA2048,
-			Clients: []schema.IdentityProvidersOpenIDConnectClient{
-				{
-					ID:                  "client-with-invalid-secret_standard",
-					Secret:              tOpenIDConnectPlainTextClientSecret,
-					AuthorizationPolicy: "two_factor",
-					RedirectURIs: []string{
-						"https://localhost",
+	config := &schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				HMACSecret:       "hmac1",
+				IssuerPrivateKey: keyRSA2048,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  "client-with-invalid-secret_standard",
+						Secret:              tOpenIDConnectPlainTextClientSecret,
+						AuthorizationPolicy: "two_factor",
+						RedirectURIs: []string{
+							"https://localhost",
+						},
 					},
 				},
 			},
@@ -929,7 +956,7 @@ func TestValidateIdentityProvidersShouldRaiseWarningOnPlainTextClients(t *testin
 	assert.Len(t, validator.Errors(), 0)
 	require.Len(t, validator.Warnings(), 1)
 
-	assert.EqualError(t, validator.Warnings()[0], "identity_providers: oidc: clients: client 'client-with-invalid-secret_standard': option 'client_secret' is plaintext but for clients not using the 'token_endpoint_auth_method' of 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed in the near future")
+	assert.EqualError(t, validator.Warnings()[0], "identity_providers: oidc: clients: client 'client-with-invalid-secret_standard': option 'client_secret' is plaintext but for clients not using any endpoint authentication method 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed in the near future")
 }
 
 // All valid schemes are supported as defined in https://datatracker.ietf.org/doc/html/rfc8252#section-7.1
@@ -1203,7 +1230,7 @@ func TestValidateOIDCClients(t *testing.T) {
 				[]string{oidc.GrantTypeAuthorizationCode},
 			},
 			[]string{
-				"identity_providers: oidc: clients: client 'test': option 'scopes' only expects the values 'openid', 'email', 'profile', 'groups', 'offline_access', 'offline', or 'authelia.bearer.authz' but the unknown values 'group' are present and should generally only be used if a particular client requires a scope outside of our standard scopes",
+				"identity_providers: oidc: clients: client 'test': option 'scopes' only expects the values 'openid', 'email', 'profile', 'address', 'phone', 'groups', 'offline_access', 'offline', or 'authelia.bearer.authz' but the unknown values 'group' are present and should generally only be used if a particular client requires a scope outside of our standard scopes",
 			},
 			nil,
 		},
@@ -1352,7 +1379,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			},
 			nil,
 			[]string{
-				"identity_providers: oidc: clients: client 'test': option 'grant_types' must only have the values 'authorization_code', 'implicit', 'client_credentials', or 'refresh_token' but the values 'invalid' are present",
+				"identity_providers: oidc: clients: client 'test': option 'grant_types' must only have the values 'authorization_code', 'implicit', 'client_credentials', 'refresh_token', or 'urn:ietf:params:oauth:grant-type:device_code' but the values 'invalid' are present",
 			},
 		},
 		{
@@ -2647,6 +2674,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			[]string{
 				"identity_providers: oidc: clients: client 'test': option 'token_endpoint_auth_signing_alg' must be one of 'RS256', 'PS256', 'ES256', 'RS384', 'PS384', 'ES384', 'RS512', 'PS512', or 'ES512' when option 'token_endpoint_auth_method' is configured to 'private_key_jwt'",
 				"identity_providers: oidc: clients: client 'test': option 'jwks_uri' or 'jwks' is required with 'token_endpoint_auth_method' set to 'private_key_jwt'",
+				"identity_providers: oidc: clients: client 'test': option 'client_secret' is required",
 			},
 		},
 		{
@@ -2679,6 +2707,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			nil,
 			[]string{
 				"identity_providers: oidc: clients: client 'test': option 'token_endpoint_auth_signing_alg' must be one of the registered public key algorithm values 'RS256' when option 'token_endpoint_auth_method' is configured to 'private_key_jwt'",
+				"identity_providers: oidc: clients: client 'test': option 'client_secret' is required",
 			},
 		},
 		{
@@ -2704,6 +2733,7 @@ func TestValidateOIDCClients(t *testing.T) {
 			nil,
 			[]string{
 				"identity_providers: oidc: clients: client 'test': option 'jwks_uri' or 'jwks' is required with 'token_endpoint_auth_method' set to 'private_key_jwt'",
+				"identity_providers: oidc: clients: client 'test': option 'client_secret' is required",
 			},
 		},
 		{
@@ -2734,6 +2764,9 @@ func TestValidateOIDCClients(t *testing.T) {
 			"ShouldNotRaiseWarningOrErrorOnCorrectlyConfiguredTokenEndpointClientAuthMethodClientSecretJWT",
 			func(have *schema.IdentityProvidersOpenIDConnect) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
+				have.Clients[0].RevocationEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
+				have.Clients[0].IntrospectionEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
+				have.Clients[0].PushedAuthorizationRequestEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
 				have.Clients[0].Secret = tOpenIDConnectPlainTextClientSecret
 			},
 			nil,
@@ -2780,6 +2813,9 @@ func TestValidateOIDCClients(t *testing.T) {
 			"ShouldNotRaiseWarningOrErrorOnCorrectlyConfiguredTokenEndpointClientAuthMethodClientSecretJWT",
 			func(have *schema.IdentityProvidersOpenIDConnect) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
+				have.Clients[0].RevocationEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
+				have.Clients[0].IntrospectionEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
+				have.Clients[0].PushedAuthorizationRequestEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
 				have.Clients[0].Secret = MustDecodeSecret("$plaintext$abc123")
 			},
 			nil,
@@ -2869,6 +2905,9 @@ func TestValidateOIDCClients(t *testing.T) {
 			"ShouldSetDefaultTokenEndpointAuthSigAlg",
 			func(have *schema.IdentityProvidersOpenIDConnect) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
+				have.Clients[0].RevocationEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
+				have.Clients[0].IntrospectionEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
+				have.Clients[0].PushedAuthorizationRequestEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
 				have.Clients[0].Secret = tOpenIDConnectPlainTextClientSecret
 			},
 			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
@@ -2921,6 +2960,9 @@ func TestValidateOIDCClients(t *testing.T) {
 			"ShouldRaiseErrorOnInvalidTokenAuthAlgClientTypeConfidential",
 			func(have *schema.IdentityProvidersOpenIDConnect) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
+				have.Clients[0].RevocationEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
+				have.Clients[0].IntrospectionEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
+				have.Clients[0].PushedAuthorizationRequestEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
 				have.Clients[0].TokenEndpointAuthSigningAlg = oidc.EndpointToken
 				have.Clients[0].Secret = tOpenIDConnectPlainTextClientSecret
 			},
@@ -2952,6 +2994,7 @@ func TestValidateOIDCClients(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			have := &schema.IdentityProvidersOpenIDConnect{
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
+					Scopes:                    validOIDCClientScopes,
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
 				Clients: []schema.IdentityProvidersOpenIDConnectClient{
@@ -3020,9 +3063,7 @@ func TestValidateOIDCClientTokenEndpointAuthMethod(t *testing.T) {
 			"",
 			false,
 			oidc.ClientAuthMethodClientSecretBasic,
-			[]string{
-				"identity_providers: oidc: clients: client 'test': option 'client_secret' is required",
-			},
+			nil,
 		},
 		{
 			"ShouldErrorOnInvalidValue",
@@ -3063,7 +3104,7 @@ func TestValidateOIDCClientTokenEndpointAuthMethod(t *testing.T) {
 
 			validator := schema.NewStructValidator()
 
-			validateOIDCClientTokenEndpointAuth(0, have, validator)
+			have.Clients[0].TokenEndpointAuthMethod, have.Clients[0].TokenEndpointAuthSigningAlg, _, _ = validateOIDCClientEndpointAuth(0, have, attrOIDCTokenAuthMethod, have.Clients[0].TokenEndpointAuthMethod, attrOIDCTokenAuthSigningAlg, have.Clients[0].TokenEndpointAuthSigningAlg, validator)
 
 			assert.Equal(t, tc.expected, have.Clients[0].TokenEndpointAuthMethod)
 			assert.Len(t, validator.Warnings(), 0)
@@ -3184,12 +3225,12 @@ func TestValidateOIDCClientJWKS(t *testing.T) {
 			"ShouldFailOnBadUseAlg",
 			nil,
 			[]schema.JWK{
-				{KeyID: "test", Use: "enc", Algorithm: "bad", Key: keyRSA2048Legacy.Public()},
+				{KeyID: "test", Use: "cne", Algorithm: "bad", Key: keyRSA2048Legacy.Public()},
 			},
 			nil,
 			nil,
 			[]string{
-				"identity_providers: oidc: clients: client 'test': jwks: key #1 with key id 'test': option 'use' must be one of 'sig' but it's configured as 'enc'",
+				"identity_providers: oidc: clients: client 'test': jwks: key #1 with key id 'test': option 'use' must be one of 'sig' or 'enc' but it's configured as 'cne'",
 				"identity_providers: oidc: clients: client 'test': jwks: key #1 with key id 'test': option 'algorithm' must be one of 'RS256', 'PS256', 'ES256', 'RS384', 'PS384', 'ES384', 'RS512', 'PS512', or 'ES512' but it's configured as 'bad'",
 			},
 		},
@@ -3202,6 +3243,19 @@ func TestValidateOIDCClientJWKS(t *testing.T) {
 			nil,
 			nil,
 			[]string{
+				"identity_providers: oidc: clients: client 'test': jwks: key #1 with key id 'test': option 'key' must be provided",
+			},
+		},
+		{
+			"ShouldFailOnEmptyKeyNoKeyID",
+			nil,
+			[]schema.JWK{
+				{KeyID: "", Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgRSAUsingSHA256, Key: nil},
+			},
+			nil,
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': jwks: key #1: option 'key_id' must be provided",
 				"identity_providers: oidc: clients: client 'test': jwks: key #1: option 'key' must be provided",
 			},
 		},
@@ -3414,7 +3468,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 					{KeyID: "35db6c-rs256", Key: keyRSA2048, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
-					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "35db6c-rs256"},
+					DefaultSigKeyIDs:          map[string]string{oidc.SigningAlgRSAUsingSHA256: "35db6c-rs256"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
 			},
@@ -3438,7 +3492,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 					{Key: keyECDSAP521, CertificateChain: certECDSAP521, Algorithm: oidc.SigningAlgECDSAUsingP521AndSHA512, Use: oidc.KeyUseSignature, KeyID: "556238-es512"},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
-					DefaultKeyIDs: map[string]string{
+					DefaultSigKeyIDs: map[string]string{
 						oidc.SigningAlgRSAUsingSHA256:          "35db6c-rs256",
 						oidc.SigningAlgECDSAUsingP256AndSHA256: "d0fe7d-es256",
 						oidc.SigningAlgECDSAUsingP384AndSHA384: "45839a-es384",
@@ -3463,7 +3517,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "c4c7ca-rs256"},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
-					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "35db6c-rs256"},
+					DefaultSigKeyIDs:          map[string]string{oidc.SigningAlgRSAUsingSHA256: "35db6c-rs256"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
 			},
@@ -3481,7 +3535,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA512, Use: oidc.KeyUseSignature, KeyID: "c4c7ca-rs512"},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
-					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA512: "c4c7ca-rs512"},
+					DefaultSigKeyIDs:          map[string]string{oidc.SigningAlgRSAUsingSHA512: "c4c7ca-rs512"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA512},
 				},
 			},
@@ -3503,7 +3557,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 					{Key: keyECDSAP224, CertificateChain: certECDSAP224},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
-					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "c4c7ca-rs256"},
+					DefaultSigKeyIDs:          map[string]string{oidc.SigningAlgRSAUsingSHA256: "c4c7ca-rs256"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
 			},
@@ -3523,7 +3577,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 					{Key: keyRSA1024, CertificateChain: certRSA1024, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "09920c-rs256"},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
-					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "09920c-rs256"},
+					DefaultSigKeyIDs:          map[string]string{oidc.SigningAlgRSAUsingSHA256: "09920c-rs256"},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
 			},
@@ -3543,13 +3597,51 @@ func TestValidateOIDCIssuer(t *testing.T) {
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: "invalid", Use: oidc.KeyUseSignature, KeyID: "c4c7ca-invalid"},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
-					DefaultKeyIDs:             map[string]string{},
+					DefaultSigKeyIDs:          map[string]string{},
 					ResponseObjectSigningAlgs: []string{"invalid"},
 				},
 			},
 			[]string{
 				"identity_providers: oidc: jwks: key #1 with key id 'c4c7ca-invalid': option 'algorithm' must be one of 'RS256', 'PS256', 'ES256', 'RS384', 'PS384', 'ES384', 'RS512', 'PS512', or 'ES512' but it's configured as 'invalid'",
 				"identity_providers: oidc: jwks: keys: must at least have one key supporting the 'RS256' algorithm but only has 'invalid'",
+			},
+		},
+		{
+			"ShouldErrorNilKeyWithoutKID",
+			&schema.IdentityProvidersOpenIDConnect{
+				JSONWebKeys: []schema.JWK{
+					{Key: nil, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature},
+				},
+			},
+			schema.IdentityProvidersOpenIDConnect{
+				JSONWebKeys: []schema.JWK{
+					{Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature},
+				},
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
+					DefaultSigKeyIDs: map[string]string{},
+				},
+			},
+			[]string{
+				"identity_providers: oidc: jwks: key #1: option 'key' must be provided",
+			},
+		},
+		{
+			"ShouldErrorNilKey",
+			&schema.IdentityProvidersOpenIDConnect{
+				JSONWebKeys: []schema.JWK{
+					{Key: nil, KeyID: "example", Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature},
+				},
+			},
+			schema.IdentityProvidersOpenIDConnect{
+				JSONWebKeys: []schema.JWK{
+					{KeyID: "example", Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature},
+				},
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
+					DefaultSigKeyIDs: map[string]string{},
+				},
+			},
+			[]string{
+				"identity_providers: oidc: jwks: key #1 with key id 'example': option 'key' must be provided",
 			},
 		},
 		{
@@ -3561,15 +3653,15 @@ func TestValidateOIDCIssuer(t *testing.T) {
 			},
 			schema.IdentityProvidersOpenIDConnect{
 				JSONWebKeys: []schema.JWK{
-					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: "invalid", KeyID: "c4c7ca-rs256"},
+					{Key: keyRSA4096, CertificateChain: certRSA4096, Use: "invalid", KeyID: "c4c7ca-rs256"},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
-					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "c4c7ca-rs256"},
-					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
+					DefaultSigKeyIDs:          map[string]string{},
+					ResponseObjectSigningAlgs: []string{},
 				},
 			},
 			[]string{
-				"identity_providers: oidc: jwks: key #1 with key id 'c4c7ca-rs256': option 'use' must be one of 'sig' but it's configured as 'invalid'",
+				"identity_providers: oidc: jwks: key #1 with key id 'c4c7ca-rs256': option 'use' must be one of 'sig' or 'enc' but it's configured as 'invalid'",
 			},
 		},
 		{
@@ -3584,8 +3676,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "thisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolong"},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
-					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "thisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolong"},
-					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
+					DefaultSigKeyIDs: map[string]string{oidc.SigningAlgRSAUsingSHA256: "thisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolong"},
 				},
 			},
 			[]string{
@@ -3608,8 +3699,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "xx."},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
-					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "x@x"},
-					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
+					DefaultSigKeyIDs: map[string]string{oidc.SigningAlgRSAUsingSHA256: "x@x"},
 				},
 			},
 			[]string{
@@ -3634,8 +3724,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "xx"},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
-					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "x-x"},
-					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
+					DefaultSigKeyIDs: map[string]string{oidc.SigningAlgRSAUsingSHA256: "x-x"},
 				},
 			},
 			nil,
@@ -3654,8 +3743,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 					{Key: keyRSA2048, CertificateChain: certRSA2048, Algorithm: oidc.SigningAlgRSAPSSUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "x"},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
-					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "x", oidc.SigningAlgRSAPSSUsingSHA256: "x"},
-					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA256},
+					DefaultSigKeyIDs: map[string]string{oidc.SigningAlgRSAUsingSHA256: "x", oidc.SigningAlgRSAPSSUsingSHA256: "x"},
 				},
 			},
 			[]string{
@@ -3674,11 +3762,11 @@ func TestValidateOIDCIssuer(t *testing.T) {
 					{Key: keyEd2519, CertificateChain: certEd15519, KeyID: "ca54bd"},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
-					DefaultKeyIDs:             map[string]string{},
-					ResponseObjectSigningAlgs: []string(nil),
+					DefaultSigKeyIDs: map[string]string{},
 				},
 			},
 			[]string{
+				"identity_providers: oidc: jwks: key #1 with key id 'ca54bd': option 'use' must be one of 'sig' or 'enc' but it's configured as ''",
 				"identity_providers: oidc: jwks: key #1 with key id 'ca54bd': option 'key' must be a RSA private key or ECDSA private key but it's type is ed25519.PrivateKey",
 			},
 		},
@@ -3694,8 +3782,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 					{Key: certRSA2048.Certificates()[0].PublicKey, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "35db6c-rs256"},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
-					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "35db6c-rs256"},
-					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
+					DefaultSigKeyIDs: map[string]string{oidc.SigningAlgRSAUsingSHA256: "35db6c-rs256"},
 				},
 			},
 			[]string{
@@ -3714,8 +3801,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 					{Key: keyRSA2048, CertificateChain: frankenchain, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "35db6c-rs256"},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
-					DefaultKeyIDs:             map[string]string{oidc.SigningAlgRSAUsingSHA256: "35db6c-rs256"},
-					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
+					DefaultSigKeyIDs: map[string]string{oidc.SigningAlgRSAUsingSHA256: "35db6c-rs256"},
 				},
 			},
 			[]string{
@@ -3734,8 +3820,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 					{Key: frankenkey},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
-					DefaultKeyIDs:             map[string]string{},
-					ResponseObjectSigningAlgs: []string(nil),
+					DefaultSigKeyIDs: map[string]string{},
 				},
 			},
 			[]string{
@@ -3754,8 +3839,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 					{Key: certRSA2048},
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
-					DefaultKeyIDs:             map[string]string{},
-					ResponseObjectSigningAlgs: []string(nil),
+					DefaultSigKeyIDs: map[string]string{},
 				},
 			},
 			[]string{
@@ -3772,8 +3856,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 
 			validateOIDCIssuer(tc.have, validator)
 
-			assert.Equal(t, tc.expected.Discovery.DefaultKeyIDs, tc.have.Discovery.DefaultKeyIDs)
-			assert.Equal(t, tc.expected.Discovery.ResponseObjectSigningAlgs, tc.have.Discovery.ResponseObjectSigningAlgs)
+			assert.Equal(t, tc.expected.Discovery.DefaultSigKeyIDs, tc.have.Discovery.DefaultSigKeyIDs)
 			assert.Equal(t, tc.expected.IssuerPrivateKey, tc.have.IssuerPrivateKey)
 			assert.Equal(t, tc.expected.IssuerCertificateChain, tc.have.IssuerCertificateChain)
 
@@ -3805,22 +3888,26 @@ func TestValidateOIDCIssuer(t *testing.T) {
 func TestValidateLifespans(t *testing.T) {
 	testCases := []struct {
 		name     string
-		have     *schema.IdentityProvidersOpenIDConnect
+		have     *schema.Configuration
 		expected []string
 		errors   []string
 	}{
 		{
 			"ShouldHandleNone",
-			&schema.IdentityProvidersOpenIDConnect{},
+			&schema.Configuration{IdentityProviders: schema.IdentityProviders{OIDC: &schema.IdentityProvidersOpenIDConnect{}}},
 			nil,
 			nil,
 		},
 		{
 			"ShouldHandleCustom",
-			&schema.IdentityProvidersOpenIDConnect{
-				Lifespans: schema.IdentityProvidersOpenIDConnectLifespans{
-					Custom: map[string]schema.IdentityProvidersOpenIDConnectLifespan{
-						"custom": {},
+			&schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						Lifespans: schema.IdentityProvidersOpenIDConnectLifespans{
+							Custom: map[string]schema.IdentityProvidersOpenIDConnectLifespan{
+								"custom": {},
+							},
+						},
 					},
 				},
 			},
@@ -3835,7 +3922,7 @@ func TestValidateLifespans(t *testing.T) {
 
 			validateOIDCLifespans(tc.have, validator)
 
-			assert.Equal(t, tc.expected, tc.have.Discovery.Lifespans)
+			assert.Equal(t, tc.expected, tc.have.IdentityProviders.OIDC.Discovery.Lifespans)
 			require.Len(t, validator.Errors(), len(tc.errors))
 
 			for i, err := range tc.errors {
@@ -3850,24 +3937,28 @@ func TestValidateLifespans(t *testing.T) {
 func TestValidateOIDCAuthorizationPolicies(t *testing.T) {
 	testCases := []struct {
 		name     string
-		have     *schema.IdentityProvidersOpenIDConnect
+		have     *schema.Configuration
 		expected []string
 		expectf  func(t *testing.T, actual *schema.IdentityProvidersOpenIDConnect)
 		errors   []string
 	}{
 		{
 			"ShouldIncludeDefaults",
-			&schema.IdentityProvidersOpenIDConnect{},
+			&schema.Configuration{IdentityProviders: schema.IdentityProviders{OIDC: &schema.IdentityProvidersOpenIDConnect{}}},
 			[]string{"one_factor", "two_factor"},
 			nil,
 			nil,
 		},
 		{
 			"ShouldErrorOnInvalidPoliciesNoRules",
-			&schema.IdentityProvidersOpenIDConnect{
-				AuthorizationPolicies: map[string]schema.IdentityProvidersOpenIDConnectPolicy{
-					"example": {
-						DefaultPolicy: "two_factor",
+			&schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						AuthorizationPolicies: map[string]schema.IdentityProvidersOpenIDConnectPolicy{
+							"example": {
+								DefaultPolicy: "two_factor",
+							},
+						},
 					},
 				},
 			},
@@ -3879,15 +3970,19 @@ func TestValidateOIDCAuthorizationPolicies(t *testing.T) {
 		},
 		{
 			"ShouldIncludeValidPolicies",
-			&schema.IdentityProvidersOpenIDConnect{
-				AuthorizationPolicies: map[string]schema.IdentityProvidersOpenIDConnectPolicy{
-					"example": {
-						DefaultPolicy: "two_factor",
-						Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
-							{
-								Policy: "deny",
-								Subjects: [][]string{
-									{"user:john"},
+			&schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						AuthorizationPolicies: map[string]schema.IdentityProvidersOpenIDConnectPolicy{
+							"example": {
+								DefaultPolicy: "two_factor",
+								Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
+									{
+										Policy: "deny",
+										Subjects: [][]string{
+											{"user:john"},
+										},
+									},
 								},
 							},
 						},
@@ -3899,35 +3994,66 @@ func TestValidateOIDCAuthorizationPolicies(t *testing.T) {
 			nil,
 		},
 		{
-			"ShouldSetDefaultPoliciesAndErrorOnSubject",
-			&schema.IdentityProvidersOpenIDConnect{
-				AuthorizationPolicies: map[string]schema.IdentityProvidersOpenIDConnectPolicy{
-					"example": {
-						DefaultPolicy: "",
-						Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
-							{
-								Policy: "",
-							},
-						},
-					},
-					"": {
-						DefaultPolicy: "two_factor",
-						Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
-							{
-								Policy: "two_factor",
-								Subjects: [][]string{
-									{"user:john"},
+			"ShouldErrorOnInvalidSubject",
+			&schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						AuthorizationPolicies: map[string]schema.IdentityProvidersOpenIDConnectPolicy{
+							"example": {
+								DefaultPolicy: "two_factor",
+								Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
+									{
+										Policy: "deny",
+										Subjects: [][]string{
+											{"[user:john]"},
+										},
+									},
 								},
 							},
 						},
 					},
-					"two_factor": {
-						DefaultPolicy: "two_factor",
-						Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
-							{
-								Policy: "two_factor",
-								Subjects: [][]string{
-									{"user:john"},
+				},
+			},
+			[]string{"one_factor", "two_factor", "example"},
+			nil,
+			[]string{
+				"identity_providers: oidc: authorization_policies: policy 'example': rules: rule #1: option 'subject' with value '[user:john]' is invalid: must start with 'user:' or 'group:'",
+			},
+		},
+		{
+			"ShouldSetDefaultPoliciesAndErrorOnSubject",
+			&schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						AuthorizationPolicies: map[string]schema.IdentityProvidersOpenIDConnectPolicy{
+							"example": {
+								DefaultPolicy: "",
+								Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
+									{
+										Policy: "",
+									},
+								},
+							},
+							"": {
+								DefaultPolicy: "two_factor",
+								Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
+									{
+										Policy: "two_factor",
+										Subjects: [][]string{
+											{"user:john"},
+										},
+									},
+								},
+							},
+							"two_factor": {
+								DefaultPolicy: "two_factor",
+								Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
+									{
+										Policy: "two_factor",
+										Subjects: [][]string{
+											{"user:john"},
+										},
+									},
 								},
 							},
 						},
@@ -3941,21 +4067,25 @@ func TestValidateOIDCAuthorizationPolicies(t *testing.T) {
 			},
 			[]string{
 				"identity_providers: oidc: authorization_policies: authorization policies must have a name but one with a blank name exists",
-				"identity_providers: oidc: authorization_policies: policy 'example': rules: rule #1: option 'subject' is required",
+				"identity_providers: oidc: authorization_policies: policy 'example': rules: rule #1: option 'subject' or 'networks' is required",
 				"identity_providers: oidc: authorization_policies: policy 'two_factor': option 'name' must not be one of 'one_factor', 'two_factor', and 'deny' but it's configured as 'two_factor'",
 			},
 		},
 		{
 			"ShouldErrorBadPolicyValues",
-			&schema.IdentityProvidersOpenIDConnect{
-				AuthorizationPolicies: map[string]schema.IdentityProvidersOpenIDConnectPolicy{
-					"example": {
-						DefaultPolicy: "abc",
-						Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
-							{
-								Policy: "xyz",
-								Subjects: [][]string{
-									{"user:john"},
+			&schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						AuthorizationPolicies: map[string]schema.IdentityProvidersOpenIDConnectPolicy{
+							"example": {
+								DefaultPolicy: "abc",
+								Rules: []schema.IdentityProvidersOpenIDConnectPolicyRule{
+									{
+										Policy: "xyz",
+										Subjects: [][]string{
+											{"user:john"},
+										},
+									},
 								},
 							},
 						},
@@ -3977,12 +4107,12 @@ func TestValidateOIDCAuthorizationPolicies(t *testing.T) {
 
 			validateOIDCAuthorizationPolicies(tc.have, validator)
 
-			assert.Equal(t, tc.expected, tc.have.Discovery.AuthorizationPolicies)
+			assert.Equal(t, tc.expected, tc.have.IdentityProviders.OIDC.Discovery.AuthorizationPolicies)
 
 			errs := validator.Errors()
 			sort.Sort(utils.ErrSliceSortAlphabetical(errs))
 
-			require.Len(t, validator.Errors(), len(tc.errors))
+			require.Len(t, errs, len(tc.errors))
 
 			for i, err := range tc.errors {
 				t.Run(fmt.Sprintf("Error%d", i+1), func(t *testing.T) {
@@ -3991,7 +4121,541 @@ func TestValidateOIDCAuthorizationPolicies(t *testing.T) {
 			}
 
 			if tc.expectf != nil {
-				tc.expectf(t, tc.have)
+				tc.expectf(t, tc.have.IdentityProviders.OIDC)
+			}
+		})
+	}
+}
+
+func TestShouldValidateOpenIDConnectClaimsPolicies(t *testing.T) {
+	testCases := []struct {
+		name    string
+		have    *schema.Configuration
+		expectf func(t *testing.T, actual *schema.IdentityProvidersOpenIDConnect)
+		errors  []string
+	}{
+		{
+			name: "ShouldValidateWithoutPolicies",
+			have: &schema.Configuration{
+				AuthenticationBackend: schema.AuthenticationBackend{File: &schema.AuthenticationBackendFile{}},
+				IdentityProviders:     schema.IdentityProviders{OIDC: &schema.IdentityProvidersOpenIDConnect{}},
+			},
+		},
+		{
+			name: "ShouldSetDefaultIDTokenAudienceMode",
+			have: &schema.Configuration{
+				AuthenticationBackend: schema.AuthenticationBackend{
+					File: &schema.AuthenticationBackendFile{},
+				},
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						ClaimsPolicies: map[string]schema.IdentityProvidersOpenIDConnectClaimsPolicy{
+							"example": {
+								IDTokenAudienceMode: "",
+							},
+							"example-spec": {
+								IDTokenAudienceMode: "specification",
+							},
+							"example-merged": {
+								IDTokenAudienceMode: "experimental-merged",
+							},
+						},
+					},
+				},
+			},
+			expectf: func(t *testing.T, actual *schema.IdentityProvidersOpenIDConnect) {
+				assert.Equal(t, "specification", actual.ClaimsPolicies["example"].IDTokenAudienceMode)
+				assert.Equal(t, "specification", actual.ClaimsPolicies["example-spec"].IDTokenAudienceMode)
+				assert.Equal(t, "experimental-merged", actual.ClaimsPolicies["example-merged"].IDTokenAudienceMode)
+			},
+		},
+		{
+			name: "ShouldErrorOnInvalidIDTokenAudienceMode",
+			have: &schema.Configuration{
+				AuthenticationBackend: schema.AuthenticationBackend{
+					File: &schema.AuthenticationBackendFile{},
+				},
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						ClaimsPolicies: map[string]schema.IdentityProvidersOpenIDConnectClaimsPolicy{
+							"example": {
+								IDTokenAudienceMode: "invalid",
+							},
+						},
+					},
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: claims_policies: example: option 'id_token_audience_mode' must be one of 'specification' or 'experimental-merged' but it's configured as 'invalid'",
+			},
+		},
+		{
+			name: "ShouldNotAllowReservedOrNonMetaClaims",
+			have: &schema.Configuration{
+				AuthenticationBackend: schema.AuthenticationBackend{
+					File: &schema.AuthenticationBackendFile{},
+				},
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						ClaimsPolicies: map[string]schema.IdentityProvidersOpenIDConnectClaimsPolicy{
+							"example": {
+								IDToken:     []string{"no-id-claim", "sub"},
+								AccessToken: []string{"no-at-claim", "sub"},
+							},
+						},
+					},
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: claims_policies: example: access_token: claim with name 'no-at-claim' is not known",
+				"identity_providers: oidc: claims_policies: example: access_token: claim with name 'sub' can't be used in a claims policy as it's a standard claim",
+				"identity_providers: oidc: claims_policies: example: id_token: claim with name 'no-id-claim' is not known",
+				"identity_providers: oidc: claims_policies: example: id_token: claim with name 'sub' can't be used in a claims policy as it's a standard claim",
+			},
+		},
+		{
+			name: "ShouldAllowCustomClaimsManual",
+			have: &schema.Configuration{
+				AuthenticationBackend: schema.AuthenticationBackend{
+					File: &schema.AuthenticationBackendFile{},
+				},
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						ClaimsPolicies: map[string]schema.IdentityProvidersOpenIDConnectClaimsPolicy{
+							"example": {
+								IDToken:     []string{"id-claim"},
+								AccessToken: []string{"at-claim"},
+								CustomClaims: map[string]schema.IdentityProvidersOpenIDConnectCustomClaim{
+									"id-claim": {Attribute: "email"},
+									"at-claim": {Attribute: "email"},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "ShouldNotAllowCustomClaimsAutoMissingAttribute",
+			have: &schema.Configuration{
+				AuthenticationBackend: schema.AuthenticationBackend{
+					File: &schema.AuthenticationBackendFile{},
+				},
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						ClaimsPolicies: map[string]schema.IdentityProvidersOpenIDConnectClaimsPolicy{
+							"example": {
+								IDToken:     []string{"id-claim"},
+								AccessToken: []string{"at-claim"},
+								CustomClaims: map[string]schema.IdentityProvidersOpenIDConnectCustomClaim{
+									"id-claim": {},
+									"at-claim": {},
+								},
+							},
+						},
+					},
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: claims_policies: example: claim with name 'at-claim' has an attribute name 'at-claim' which is not a known attribute",
+				"identity_providers: oidc: claims_policies: example: claim with name 'id-claim' has an attribute name 'id-claim' which is not a known attribute",
+			},
+		},
+		{
+			name: "ShouldNotAllowCustomClaimsAutoMissingProvider",
+			have: &schema.Configuration{
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						ClaimsPolicies: map[string]schema.IdentityProvidersOpenIDConnectClaimsPolicy{
+							"example": {
+								IDToken:     []string{"id-claim"},
+								AccessToken: []string{"at-claim"},
+								CustomClaims: map[string]schema.IdentityProvidersOpenIDConnectCustomClaim{
+									"id-claim": {},
+									"at-claim": {},
+								},
+							},
+						},
+					},
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: claims_policies: example: claim with name 'at-claim' has an attribute name 'at-claim' which is not a known attribute",
+				"identity_providers: oidc: claims_policies: example: claim with name 'id-claim' has an attribute name 'id-claim' which is not a known attribute",
+			},
+		},
+		{
+			name: "ShouldNotAllowCustomClaimsReserved",
+			have: &schema.Configuration{
+				AuthenticationBackend: schema.AuthenticationBackend{
+					File: &schema.AuthenticationBackendFile{},
+				},
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						ClaimsPolicies: map[string]schema.IdentityProvidersOpenIDConnectClaimsPolicy{
+							"example": {
+								CustomClaims: map[string]schema.IdentityProvidersOpenIDConnectCustomClaim{
+									"sub": {Attribute: "email"},
+								},
+							},
+						},
+					},
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: claims_policies: example: custom_claims: claim with name 'sub' can't be used in a claims policy as it's a standard claim",
+			},
+		},
+		{
+			name: "ShouldAllowCustomClaimsAuto",
+			have: &schema.Configuration{
+				AuthenticationBackend: schema.AuthenticationBackend{
+					File: &schema.AuthenticationBackendFile{
+						ExtraAttributes: map[string]schema.AuthenticationBackendExtraAttribute{
+							"id-claim": {
+								ValueType: "string",
+							},
+							"at-claim": {
+								ValueType: "string",
+							},
+						},
+					},
+				},
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						ClaimsPolicies: map[string]schema.IdentityProvidersOpenIDConnectClaimsPolicy{
+							"example": {
+								IDToken:     []string{"id-claim"},
+								AccessToken: []string{"at-claim"},
+								CustomClaims: map[string]schema.IdentityProvidersOpenIDConnectCustomClaim{
+									"id-claim": {},
+									"at-claim": {},
+								},
+							},
+						},
+					},
+				},
+			},
+			expectf: func(t *testing.T, actual *schema.IdentityProvidersOpenIDConnect) {
+				assert.Equal(t, "at-claim", actual.ClaimsPolicies["example"].CustomClaims["at-claim"].Attribute)
+				assert.Equal(t, "id-claim", actual.ClaimsPolicies["example"].CustomClaims["id-claim"].Attribute)
+			},
+		},
+		{
+			name: "ShouldNotAllowStandardClaimUnmappedLDAP",
+			have: &schema.Configuration{
+				AuthenticationBackend: schema.AuthenticationBackend{
+					LDAP: &schema.AuthenticationBackendLDAP{},
+				},
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						ClaimsPolicies: map[string]schema.IdentityProvidersOpenIDConnectClaimsPolicy{
+							"example": {
+								IDToken:     []string{"id-claim"},
+								AccessToken: []string{"at-claim"},
+								CustomClaims: map[string]schema.IdentityProvidersOpenIDConnectCustomClaim{
+									"id-claim":              {Attribute: "given_name"},
+									"at-claim":              {Attribute: "middle_name"},
+									"claim-family_name":     {Attribute: "family_name"},
+									"claim-nickname":        {Attribute: "nickname"},
+									"claim-profile":         {Attribute: "profile"},
+									"claim-picture":         {Attribute: "picture"},
+									"claim-website":         {Attribute: "website"},
+									"claim-gender":          {Attribute: "gender"},
+									"claim-birthdate":       {Attribute: "birthdate"},
+									"claim-zoneinfo":        {Attribute: "zoneinfo"},
+									"claim-locale":          {Attribute: "locale"},
+									"claim-phone_number":    {Attribute: "phone_number"},
+									"claim-phone_extension": {Attribute: "phone_extension"},
+									"claim-street_address":  {Attribute: "street_address"},
+									"claim-locality":        {Attribute: "locality"},
+									"claim-region":          {Attribute: "region"},
+									"claim-postal_code":     {Attribute: "postal_code"},
+									"claim-country":         {Attribute: "country"},
+									"claim-extra1":          {Attribute: "extra1"},
+								},
+							},
+						},
+					},
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: claims_policies: example: claim with name 'at-claim' has an attribute name 'middle_name' which is not a known attribute",
+				"identity_providers: oidc: claims_policies: example: claim with name 'claim-birthdate' has an attribute name 'birthdate' which is not a known attribute",
+				"identity_providers: oidc: claims_policies: example: claim with name 'claim-country' has an attribute name 'country' which is not a known attribute",
+				"identity_providers: oidc: claims_policies: example: claim with name 'claim-extra1' has an attribute name 'extra1' which is not a known attribute",
+				"identity_providers: oidc: claims_policies: example: claim with name 'claim-family_name' has an attribute name 'family_name' which is not a known attribute",
+				"identity_providers: oidc: claims_policies: example: claim with name 'claim-gender' has an attribute name 'gender' which is not a known attribute",
+				"identity_providers: oidc: claims_policies: example: claim with name 'claim-locale' has an attribute name 'locale' which is not a known attribute",
+				"identity_providers: oidc: claims_policies: example: claim with name 'claim-locality' has an attribute name 'locality' which is not a known attribute",
+				"identity_providers: oidc: claims_policies: example: claim with name 'claim-nickname' has an attribute name 'nickname' which is not a known attribute",
+				"identity_providers: oidc: claims_policies: example: claim with name 'claim-phone_extension' has an attribute name 'phone_extension' which is not a known attribute",
+				"identity_providers: oidc: claims_policies: example: claim with name 'claim-phone_number' has an attribute name 'phone_number' which is not a known attribute",
+				"identity_providers: oidc: claims_policies: example: claim with name 'claim-picture' has an attribute name 'picture' which is not a known attribute",
+				"identity_providers: oidc: claims_policies: example: claim with name 'claim-postal_code' has an attribute name 'postal_code' which is not a known attribute",
+				"identity_providers: oidc: claims_policies: example: claim with name 'claim-profile' has an attribute name 'profile' which is not a known attribute",
+				"identity_providers: oidc: claims_policies: example: claim with name 'claim-region' has an attribute name 'region' which is not a known attribute",
+				"identity_providers: oidc: claims_policies: example: claim with name 'claim-street_address' has an attribute name 'street_address' which is not a known attribute",
+				"identity_providers: oidc: claims_policies: example: claim with name 'claim-website' has an attribute name 'website' which is not a known attribute",
+				"identity_providers: oidc: claims_policies: example: claim with name 'claim-zoneinfo' has an attribute name 'zoneinfo' which is not a known attribute",
+				"identity_providers: oidc: claims_policies: example: claim with name 'id-claim' has an attribute name 'given_name' which is not a known attribute",
+			},
+		},
+		{
+			name: "ShouldNotAllowStandardClaimUnmappedLDAPWithExtra",
+			have: &schema.Configuration{
+				AuthenticationBackend: schema.AuthenticationBackend{
+					LDAP: &schema.AuthenticationBackendLDAP{
+						Attributes: schema.AuthenticationBackendLDAPAttributes{
+							Extra: map[string]schema.AuthenticationBackendLDAPAttributesAttribute{},
+						},
+					},
+				},
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						ClaimsPolicies: map[string]schema.IdentityProvidersOpenIDConnectClaimsPolicy{
+							"example": {
+								CustomClaims: map[string]schema.IdentityProvidersOpenIDConnectCustomClaim{
+									"claim-extra1": {Attribute: "extra1"},
+								},
+							},
+						},
+					},
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: claims_policies: example: claim with name 'claim-extra1' has an attribute name 'extra1' which is not a known attribute",
+			},
+		},
+		{
+			name: "ShouldNotAllowStandardClaimMappedLDAPWithExtraMismatchedName",
+			have: &schema.Configuration{
+				AuthenticationBackend: schema.AuthenticationBackend{
+					LDAP: &schema.AuthenticationBackendLDAP{
+						Attributes: schema.AuthenticationBackendLDAPAttributes{
+							Extra: map[string]schema.AuthenticationBackendLDAPAttributesAttribute{
+								"extra1": {
+									Name: "x",
+									AuthenticationBackendExtraAttribute: schema.AuthenticationBackendExtraAttribute{
+										ValueType: "string",
+									},
+								},
+							},
+						},
+					},
+				},
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						ClaimsPolicies: map[string]schema.IdentityProvidersOpenIDConnectClaimsPolicy{
+							"example": {
+								CustomClaims: map[string]schema.IdentityProvidersOpenIDConnectCustomClaim{
+									"claim-extra1": {Attribute: "extra1"},
+								},
+							},
+						},
+					},
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: claims_policies: example: claim with name 'claim-extra1' has an attribute name 'extra1' which is not a known attribute",
+			},
+		},
+		{
+			name: "ShouldAllowStandardClaimMappedLDAPWithExtra",
+			have: &schema.Configuration{
+				AuthenticationBackend: schema.AuthenticationBackend{
+					LDAP: &schema.AuthenticationBackendLDAP{
+						Attributes: schema.AuthenticationBackendLDAPAttributes{
+							Extra: map[string]schema.AuthenticationBackendLDAPAttributesAttribute{
+								"extra1": {
+									Name: "extra1",
+									AuthenticationBackendExtraAttribute: schema.AuthenticationBackendExtraAttribute{
+										ValueType: "string",
+									},
+								},
+								"extra2": {
+									AuthenticationBackendExtraAttribute: schema.AuthenticationBackendExtraAttribute{
+										ValueType: "string",
+									},
+								},
+							},
+						},
+					},
+				},
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						ClaimsPolicies: map[string]schema.IdentityProvidersOpenIDConnectClaimsPolicy{
+							"example": {
+								CustomClaims: map[string]schema.IdentityProvidersOpenIDConnectCustomClaim{
+									"claim-extra1": {Attribute: "extra1"},
+									"claim-extra2": {Attribute: "extra2"},
+									"claim-extra3": {Attribute: "username"},
+									"claim-extra4": {Attribute: "email"},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "ShouldAllowDefinitionClaim",
+			have: &schema.Configuration{
+				Definitions: schema.Definitions{
+					UserAttributes: map[string]schema.UserAttribute{
+						"custom-1": {},
+					},
+				},
+				AuthenticationBackend: schema.AuthenticationBackend{
+					LDAP: &schema.AuthenticationBackendLDAP{},
+				},
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						ClaimsPolicies: map[string]schema.IdentityProvidersOpenIDConnectClaimsPolicy{
+							"example": {
+								CustomClaims: map[string]schema.IdentityProvidersOpenIDConnectCustomClaim{
+									"claim-extra1": {Attribute: "custom-1"},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			val := schema.NewStructValidator()
+
+			validateOIDCClaims(tc.have, val)
+
+			if tc.expectf != nil {
+				tc.expectf(t, tc.have.IdentityProviders.OIDC)
+			}
+
+			errs := val.Errors()
+			sort.Sort(utils.ErrSliceSortAlphabetical(errs))
+
+			require.Len(t, errs, len(tc.errors))
+
+			for i, err := range tc.errors {
+				assert.EqualError(t, errs[i], err)
+			}
+		})
+	}
+}
+
+func TestShouldValidateOpenIDConnectScopes(t *testing.T) {
+	testCases := []struct {
+		name    string
+		have    *schema.Configuration
+		expectf func(t *testing.T, actual *schema.IdentityProvidersOpenIDConnect)
+		errors  []string
+	}{
+		{
+			name: "ShouldValidateWithoutPolicies",
+			have: &schema.Configuration{
+				AuthenticationBackend: schema.AuthenticationBackend{File: &schema.AuthenticationBackendFile{}},
+				IdentityProviders:     schema.IdentityProviders{OIDC: &schema.IdentityProvidersOpenIDConnect{}},
+			},
+		},
+		{
+			name: "ShouldNotValidateUnknownClaim",
+			have: &schema.Configuration{
+				AuthenticationBackend: schema.AuthenticationBackend{File: &schema.AuthenticationBackendFile{}},
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						Scopes: map[string]schema.IdentityProvidersOpenIDConnectScope{
+							"scopes-ex": {
+								Claims: []string{"example"},
+							},
+						},
+					},
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: scopes: scopes-ex: claim with name 'example' is not a known claim",
+			},
+		},
+		{
+			name: "ShouldValidateKnownClaim",
+			have: &schema.Configuration{
+				AuthenticationBackend: schema.AuthenticationBackend{File: &schema.AuthenticationBackendFile{}},
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						Scopes: map[string]schema.IdentityProvidersOpenIDConnectScope{
+							"scopes-ex": {
+								Claims: []string{"example"},
+							},
+						},
+						Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
+							Claims: []string{"example"},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "ShouldNotValidateStandardClaim",
+			have: &schema.Configuration{
+				AuthenticationBackend: schema.AuthenticationBackend{File: &schema.AuthenticationBackendFile{}},
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						Scopes: map[string]schema.IdentityProvidersOpenIDConnectScope{
+							"scopes-ex": {
+								Claims: []string{"sub"},
+							},
+						},
+					},
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: scopes: scopes-ex: claim with name 'sub' can't be used in a custom scope as it's a standard claim",
+			},
+		},
+		{
+			name: "ShouldNotValidateSpecialReservedScopes",
+			have: &schema.Configuration{
+				AuthenticationBackend: schema.AuthenticationBackend{File: &schema.AuthenticationBackendFile{}},
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						Scopes: map[string]schema.IdentityProvidersOpenIDConnectScope{
+							"authelia.scopes-ex": {
+								Claims: []string{"example"},
+							},
+							"profile": {},
+						},
+						Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
+							Claims: []string{"example"},
+						},
+					},
+				},
+			},
+			errors: []string{
+				"identity_providers: oidc: scopes: scope with name 'authelia.scopes-ex' can't be used as a custom scope because all scopes prefixed with 'authelia.' are reserved",
+				"identity_providers: oidc: scopes: scope with name 'profile' can't be used as a custom scope because it's a standard scope",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			val := schema.NewStructValidator()
+
+			validateOIDCScopes(tc.have, val)
+
+			if tc.expectf != nil {
+				tc.expectf(t, tc.have.IdentityProviders.OIDC)
+			}
+
+			errs := val.Errors()
+			sort.Sort(utils.ErrSliceSortAlphabetical(errs))
+
+			require.Len(t, errs, len(tc.errors))
+
+			for i, err := range tc.errors {
+				assert.EqualError(t, errs[i], err)
 			}
 		})
 	}

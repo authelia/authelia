@@ -1,8 +1,0 @@
----
-services:
-  authelia-backend:
-    volumes:
-      - './BypassAll/configuration.yml:/config/configuration.yml'
-      - './BypassAll/users.yml:/config/users.yml'
-      - './common/pki:/pki'
-...

@@ -24,17 +24,18 @@ In order to build and contribute to __Authelia__, you need to make sure the foll
   * [git]
 * Backend Development:
   * [go]:
-    * Minimum is *v1.21 or greater*.
+    * Minimum is *v1.24 or greater*.
     * The toolchain version noted in [go.mod](https://github.com/authelia/authelia/blob/master/go.mod#L5) is the
       officially supported version.
+    * We will not officially support old versions of go generally without a very good reason.
   * [gcc]
   * [gomock]
 * Frontend Development
-  * [Node.js] *(v20 or greater)*.
-  * [pnpm] *(v9.4.0 or greater)*.
+  * [Node.js] *(v22.14.0 or greater)*.
+  * [pnpm] *(v10.5.2 or greater)*.
 * Integration Suites:
-  * [Docker] *(v27.0.0 or greater)*.
-  * [Docker Compose] *(v2.22.0 or greater)*
+  * [Docker] *(v27.5.0 or greater)*.
+  * [Docker Compose] *(v2.32.4 or greater)*
   * [chromium]
 
 The additional tools are recommended:
@@ -74,10 +75,12 @@ guide.
 At the present time this is not officially supported. Some of the maintainers utilize Windows however running suites
 under Windows or OSX is not something that is currently possible to do easily. As such we recommend utilizing Linux.
 
-### What version of Docker and docker-compose should I use?
+### What version of Docker and docker compose should I use?
 
-We have no firm recommendations on the version to use but we actively use the latest versions available to us in the
-distributions of our choice. As long as it's a modern version it should be sufficient for the development environment.
+We have no firm recommendations on the version to use with the exception that we no longer support v1 and instead only
+support the newer v2 plugin. We do however actively use the latest versions available to us in the distributions of our
+choice and we recommend the same for our users. As long as it's a modern version it should be sufficient for the
+development environment.
 
 ### How can I serve my application under example.com?
 

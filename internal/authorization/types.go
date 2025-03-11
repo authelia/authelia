@@ -9,6 +9,22 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+type AccessControlNetworks []*net.IPNet
+
+func (a AccessControlNetworks) IsMatch(subject Subject) bool {
+	if len(a) == 0 {
+		return true
+	}
+
+	for _, network := range a {
+		if network.Contains(subject.IP) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // SubjectMatcher is a matcher that takes a subject.
 type SubjectMatcher interface {
 	IsMatch(subject Subject) (match bool)
@@ -58,6 +74,10 @@ type Object struct {
 
 // String is a string representation of the Object.
 func (o Object) String() string {
+	if o.URL == nil {
+		return ""
+	}
+
 	return o.URL.String()
 }
 
@@ -93,10 +113,10 @@ type RuleMatchResult struct {
 
 // IsMatch returns true if all the criteria matched.
 func (r RuleMatchResult) IsMatch() (match bool) {
-	return r.MatchDomain && r.MatchResources && r.MatchMethods && r.MatchNetworks && r.MatchSubjectsExact
+	return r.MatchDomain && r.MatchResources && r.MatchQuery && r.MatchMethods && r.MatchNetworks && r.MatchSubjectsExact
 }
 
 // IsPotentialMatch returns true if the rule is potentially a match.
 func (r RuleMatchResult) IsPotentialMatch() (match bool) {
-	return r.MatchDomain && r.MatchResources && r.MatchMethods && r.MatchNetworks && r.MatchSubjects && !r.MatchSubjectsExact
+	return r.MatchDomain && r.MatchResources && r.MatchQuery && r.MatchMethods && r.MatchNetworks && r.MatchSubjects && !r.MatchSubjectsExact
 }

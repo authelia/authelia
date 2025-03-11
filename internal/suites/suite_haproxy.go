@@ -9,25 +9,25 @@ var haproxySuiteName = "HAProxy"
 
 func init() {
 	dockerEnvironment := NewDockerEnvironment([]string{
-		"internal/suites/docker-compose.yml",
-		"internal/suites/HAProxy/docker-compose.yml",
-		"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
-		"internal/suites/example/compose/authelia/docker-compose.frontend.{}.yml",
-		"internal/suites/example/compose/nginx/backend/docker-compose.yml",
-		"internal/suites/example/compose/haproxy/docker-compose.yml",
-		"internal/suites/example/compose/smtp/docker-compose.yml",
-		"internal/suites/example/compose/httpbin/docker-compose.yml",
+		"internal/suites/compose.yml",
+		"internal/suites/HAProxy/compose.yml",
+		"internal/suites/example/compose/authelia/compose.backend.{}.yml",
+		"internal/suites/example/compose/authelia/compose.frontend.{}.yml",
+		"internal/suites/example/compose/nginx/backend/compose.yml",
+		"internal/suites/example/compose/haproxy/compose.yml",
+		"internal/suites/example/compose/smtp/compose.yml",
+		"internal/suites/example/compose/httpbin/compose.yml",
 	})
 
 	if os.Getenv("CI") == t {
 		dockerEnvironment = NewDockerEnvironment([]string{
-			"internal/suites/docker-compose.yml",
-			"internal/suites/HAProxy/docker-compose.yml",
-			"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
-			"internal/suites/example/compose/nginx/backend/docker-compose.yml",
-			"internal/suites/example/compose/haproxy/docker-compose.yml",
-			"internal/suites/example/compose/smtp/docker-compose.yml",
-			"internal/suites/example/compose/httpbin/docker-compose.yml",
+			"internal/suites/compose.yml",
+			"internal/suites/HAProxy/compose.yml",
+			"internal/suites/example/compose/authelia/compose.backend.{}.yml",
+			"internal/suites/example/compose/nginx/backend/compose.yml",
+			"internal/suites/example/compose/haproxy/compose.yml",
+			"internal/suites/example/compose/smtp/compose.yml",
+			"internal/suites/example/compose/httpbin/compose.yml",
 		})
 	}
 

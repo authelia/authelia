@@ -82,6 +82,20 @@ func SecurityHeadersCSPNoneOpenIDConnect(next fasthttp.RequestHandler) fasthttp.
 	}
 }
 
+// SecurityHeadersCSPSelf middleware adds the Content-Security-Policy header with the value "default-src 'self';".
+func SecurityHeadersCSPSelf(next fasthttp.RequestHandler) fasthttp.RequestHandler {
+	return func(ctx *fasthttp.RequestCtx) {
+		ctx.Response.Header.SetBytesKV(headerContentSecurityPolicy, headerValueCSPSelf)
+
+		next(ctx)
+	}
+}
+
+// SetSecurityHeadersCSPNone function adds the Content-Security-Policy header with the value "default-src 'none';".
+func SetSecurityHeadersCSPNone(ctx *fasthttp.RequestCtx) {
+	ctx.Response.Header.SetBytesKV(headerContentSecurityPolicy, headerValueCSPNone)
+}
+
 // SecurityHeadersNoStore middleware adds the Pragma no-cache and Cache-Control no-store headers.
 func SecurityHeadersNoStore(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 	return func(ctx *fasthttp.RequestCtx) {

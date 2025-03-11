@@ -2,9 +2,9 @@
 title = "Authelia"
 description = "The Single Sign-On Multi-Factor portal for web apps"
 images = ["cover.png"]
-footer = 'Powered by <a class="text-muted" href="https://www.netlify.com/">Netlify</a>, <a class="text-muted" href="https://gohugo.io/">Hugo</a>, and <a class="text-muted" href="https://gethyas.com/">Hyas</a>'
+footer = 'Powered by <a class="text-muted" href="https://www.netlify.com/">Netlify</a>, <a class="text-muted" href="https://gohugo.io/">Hugo</a>, and <a class="text-muted" href="https://thulite.io/">Thulite</a>'
 copyRight = 'Copyright © 2016-%s <a class="text-muted" href="https://github.com/authelia">Authelia</a>'
-alertText = '<a class="alert-link stretched-link fw-normal" href="/blog/example-post/">Doks version 1.0 just shipped!</a>'
+alertText = '<a class="alert-link stretched-link fw-normal" href="/contributing/prologue/financial/">Help us fund a security audit.</a>'
 lead = 'Authelia is an open-source <a href="./overview/authentication/introduction/">authentication</a> and <a href="./overview/authorization/access-control/">authorization</a> server and portal fulfilling the identity and access management (IAM) role of information security in providing <a href="./overview/authentication/introduction/">multi-factor authentication</a> and single sign-on (SSO) for your applications via a web portal. It acts as a companion for <a href="./overview/prologue/supported-proxies/">common reverse proxies</a>.'
 licenseLead = 'Open-source Apache 2.0 Licensed. <a href="https://github.com/authelia/authelia">GitHub v%s</a>'
 
@@ -14,7 +14,7 @@ mainSections = ["overview", "configuration", "integration", "contributing", "roa
 [social]
   # twitter = "getdoks"
 
-# Doks (@hyas/doks-core)
+# Doks (@thulite/doks-core)
 [doks]
   # Color mode
   colorMode = "auto" # auto (default), light or dark
@@ -42,8 +42,8 @@ mainSections = ["overview", "configuration", "integration", "contributing", "roa
   searchLimit = 99 # 0 (no limit, default) or natural number
 
   # Global alert
-  alert = false # false (default) or true
-  alertDismissable = true # true (default) or false
+  alert = true # false (default) or true
+  alertDismissable = false # true (default) or false
 
   # Bootstrap
   bootstrapJavascript = true # false (default) or true
@@ -106,9 +106,9 @@ mainSections = ["overview", "configuration", "integration", "contributing", "roa
   errorLevel = 'ignore' # ignore (default), warning, or error (fails the build)
   highlightBroken = true # true or false (default)
 
-# Images (@hyas/images)
-[hyas_images]
-  [hyas_images.defaults]
+# Images (@thulite/images)
+[thulite_images]
+  [thulite_images.defaults]
     decoding = "async" # sync, async, or auto (default)
     fetchpriority = "auto" # high, low, or auto (default)
     loading = "lazy" # eager or lazy (default)
@@ -117,11 +117,11 @@ mainSections = ["overview", "configuration", "integration", "contributing", "roa
     process = "" # "fill 1600x900" or "fill 2100x900" for example
     lqip = "16x webp q20" # "16x webp q20" or "21x webp q20" for example
 
-# Inline SVG (@hyas/inline-svg)
+# Inline SVG (@thulite/inline-svg)
 [inline_svg]
   iconSetDir = "tabler-icons" # "tabler-icons" (default)
 
-# SEO (@hyas/seo)
+# SEO (@thulite/seo)
 [seo]
   [seo.title]
     separator = " | "
