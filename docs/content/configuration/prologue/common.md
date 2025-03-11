@@ -89,6 +89,15 @@ The base type for this syntax is a string.
 The address type is a string that indicates how to configure a listener (i.e. listening for connections) or connector
 (i.e. opening remote connections), which are the two primary categories of addresses.
 
+#### Query Parameters
+
+Some schemes support parameters, this table describes them.
+
+| Parameter | Listeners | Connectors |                                                                                                           Purpose                                                                                                            |
+|:---------:|:---------:|:----------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+|  `umask`  |    Yes    |     No     |                                             Sets the umask prior to creating the socket and restores it after creating it. The value must be an octal number with 3 or 4 digits.                                             |
+|  `path`   |    Yes    |     No     | Sets the path variable to configure the subpath, specifically for a unix socket but technically works for TCP as well. Note that this should just be the alphanumeric portion it should not be prefixed with a forward slash |
+
 
 #### Format
 
@@ -123,20 +132,38 @@ available addresses when not provided.
 [<scheme>://][hostname]:<port>[/<path>]
 ```
 
+##### File Descriptors
+
+The following format represents the file descriptor format. It's valid only for a listener. Refer to the individual
+documentation for an option for clarity. In this format as per the notation there are no optional portions.
+
+The File Descriptor format also accepts a query string. The [Query Parameters](#query-parameters) described above
+control certain behavior of this address type.
+
+```text
+fd://<file descriptor number>
+```
+
+```text
+fd://<file descriptor number>?umask=0022
+```
+
+```text
+fd://<file descriptor number>?path=auth
+```
+
+```text
+fd://<file descriptor number>?umask=0022&path=auth
+```
+
 ##### Unix Domain Socket
 
 The following format represents the unix domain socket format. It's valid for both a listener and connector in most
 instances. Refer to the individual documentation for an option for clarity. In this format as per the notation there
 are no optional portions.
 
-The Unix Domain Socket format also accepts a query string. The following query parameters control certain behavior of
-this address type.
-
-| Parameter | Listeners | Connectors |                                                                                                           Purpose                                                                                                            |
-|:---------:|:---------:|:----------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-|  `umask`  |    Yes    |     No     |                                             Sets the umask prior to creating the socket and restores it after creating it. The value must be an octal number with 3 or 4 digits.                                             |
-|  `path`   |    Yes    |     No     | Sets the path variable to configure the subpath, specifically for a unix socket but technically works for TCP as well. Note that this should just be the alphanumeric portion it should not be prefixed with a forward slash |
-
+The Unix Domain Socket format also accepts a query string. The [Query Parameters](#query-parameters) described above
+control certain behavior of this address type.
 
 ```text
 unix://<path>

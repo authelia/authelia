@@ -76,7 +76,7 @@ type ServerEndpointRateLimitBucket struct {
 
 // DefaultServerConfiguration represents the default values of the Server.
 var DefaultServerConfiguration = Server{
-	Address: &AddressTCP{Address{true, false, -1, 9091, &url.URL{Scheme: AddressSchemeTCP, Host: ":9091", Path: "/"}}},
+	Address: &AddressTCP{Address{true, false, -1, 9091, nil, &url.URL{Scheme: AddressSchemeTCP, Host: ":9091", Path: "/"}}},
 	Buffers: ServerBuffers{
 		Read:  4096,
 		Write: 4096,

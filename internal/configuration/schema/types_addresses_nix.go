@@ -5,6 +5,8 @@ package schema
 import (
 	"fmt"
 	"net"
+	"os"
+	"strconv"
 	"syscall"
 )
 
@@ -14,15 +16,37 @@ func (a *Address) Listener() (ln net.Listener, err error) {
 		return nil, fmt.Errorf("address url is nil")
 	}
 
-	if a.socket && a.umask != -1 {
-		umask := syscall.Umask(a.umask)
+	var create func() (ln net.Listener, err error)
 
-		ln, err = net.Listen(a.Network(), a.NetworkAddress())
+	if a.fd != nil {
+		create = func() (ln net.Listener, err error) {
+			fd := os.NewFile(uintptr(*a.fd), strconv.FormatUint(*a.fd, 10))
 
-		_ = syscall.Umask(umask)
+			defer func() {
+				_ = fd.Close()
+			}()
 
-		return ln, err
+			return net.FileListener(fd)
+		}
+	} else {
+		create = func() (ln net.Listener, err error) {
+			return net.Listen(a.Network(), a.NetworkAddress())
+		}
 	}
 
-	return net.Listen(a.Network(), a.NetworkAddress())
+	return a.listenerWithUmask(create)
+}
+
+func (a *Address) listenerWithUmask(create func() (net.Listener, error)) (ln net.Listener, err error) {
+	if a.umask == -1 {
+		return create()
+	}
+
+	umask := syscall.Umask(a.umask)
+
+	defer func() {
+		_ = syscall.Umask(umask)
+	}()
+
+	return create()
 }
