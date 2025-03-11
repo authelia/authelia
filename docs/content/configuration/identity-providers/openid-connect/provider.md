@@ -88,6 +88,7 @@ identity_providers:
       policy_name:
         id_token: []
         access_token: []
+        id_token_audience_mode: 'specification'
         custom_claims:
           claim_name:
             attribute: 'attribute_name'
