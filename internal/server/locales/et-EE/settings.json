@@ -82,6 +82,7 @@
 	"Seconds": "Sekundid",
 	"Secret": "Salajane",
 	"Settings": "Seaded",
+	"Settings - {{authelia}}": "Seaded - {{authelia}}",
 	"Start": "Alusta",
 	"Successfully {{action}} the {{item}}": "Eduka {{action}} {{item}}",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "Atesteerimise väljakutse lükati tagasi, kuna see oli vigane või teie brauser ei toeta seda",

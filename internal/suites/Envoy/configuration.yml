@@ -3,7 +3,6 @@ certificates_directory: '/certs/'
 
 server:
   address: 'tcp://:9091'
-  asset_path: '/config/assets/'
   tls:
     certificate: '/pki/public.backend.crt'
     key: '/pki/private.backend.pem'
@@ -12,6 +11,23 @@ server:
       ext-authz:
         implementation: 'ExtAuthz'
         authn_strategies: []
+    rate_limits:
+      reset_password_start:
+        buckets:
+          - period: '2 minutes'
+            requests: 20
+      reset_password_finish:
+        buckets:
+          - period: '2 minutes'
+            requests: 20
+      session_elevation_start:
+        buckets:
+          - period: '2 minutes'
+            requests: 20
+      session_elevation_finish:
+        buckets:
+          - period: '2 minutes'
+            requests: 20
 
 log:
   level: 'debug'

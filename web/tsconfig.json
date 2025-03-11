@@ -16,7 +16,7 @@
       "@utils/*": ["utils/*"],
       "@views/*": ["views/*"]
     },
-    "target": "es6",
+    "target": "es2022",
     "lib": [
       "dom",
       "dom.iterable",
@@ -32,7 +32,7 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "node10",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,

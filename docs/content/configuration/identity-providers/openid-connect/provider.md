@@ -88,6 +88,7 @@ identity_providers:
       policy_name:
         id_token: []
         access_token: []
+        id_token_audience_mode: 'specification'
         custom_claims:
           claim_name:
             attribute: 'attribute_name'
@@ -580,6 +581,26 @@ The keys under `claims_policies` is an arbitrary value that can be used in the
 
 The list of claims automatically copied to the ID Token in addition to the standard ID Token claims provided the
 relevant scope was granted.
+
+#### id_token_audience_mode
+
+{{< confkey type="string" default="specification" required="no" >}}
+
+The ID Token audience derivation mode for clients using this claims policy. It's recommended this is not configured
+as the default mode is the correct mode in almost all situations, and if are considering changing this first read
+the section on audiences in the [Integration Guide](../../../integration/openid-connect/introduction.md#audiences),
+as there may be unintended security issues caused for relying parties that trust Authelia as a provider if you're not
+cautious.
+
+The following table describes all of the modes. Please note that any mode value prefixed with `experimental-` may be
+removed or renamed without notice, and it's suggested if you're using these modes that you start a
+[Discussion](https://github.com/authelia/authelia/discussions/new?category=show-and-tell) showcasing how you're using
+a specific mode so we can adequately gauge its overall value.
+
+|         Value         |                                                   Description                                                   |
+|:---------------------:|:---------------------------------------------------------------------------------------------------------------:|
+|    `specification`    |           This is the specification compliant mode where only the client id is recorded in the claim.           |
+| `experimental-merged` | This mode includes the same value as `specification` but also merges the granted audience from the Access Token |
 
 #### access_token
 

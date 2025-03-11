@@ -29,6 +29,10 @@ tags:
   - name: User Information
     description: User configuration endpoints
   {{- end }}
+  {{- if .PasswordChange }}
+  - name: Password Change
+    description: Password change endpoint
+  {{- end }}
   {{- if (or .TOTP .WebAuthn .Duo) }}
   - name: Second Factor
     description: TOTP, WebAuthn and Duo endpoints
@@ -562,6 +566,31 @@ paths:
                 $ref: '#/components/schemas/handlers.logoutResponseBody'
       security:
         - authelia_auth: []
+  {{- if .PasswordChange }}
+  /api/change-password:
+    post:
+      tags:
+        - Password Change
+      summary: Password Change
+      description: >
+        The password change endpoint validates the user session, validates, and changes the password.
+        The same session cookie must be used for all steps in this process.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.PasswordChangeRequestBody'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.OK'
+      security:
+        - authelia_auth: []
+  {{- end }}
   {{- if .PasswordReset }}
   /api/reset-password/identity/start:
     post:
@@ -588,6 +617,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.OK'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                format: http-date
+              description: The date time that the request can be retried.
       security:
         - authelia_auth: []
   /api/reset-password/identity/finish:
@@ -614,6 +655,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.OK'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                format: http-date
+              description: The date time that the request can be retried.
       security:
         - authelia_auth: []
   /api/reset-password:
@@ -639,6 +692,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.OK'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                format: http-date
+              description: The date time that the request can be retried.
       security:
         - authelia_auth: []
     delete:
@@ -661,6 +726,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.API'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                format: http-date
+              description: The date time that the request can be retried.
       security:
         - authelia_auth: []
   {{- end }}
@@ -984,6 +1061,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.KO'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                format: http-date
+              description: The date time that the request can be retried.
       security:
         - authelia_auth: []
     delete:
@@ -1254,6 +1343,18 @@ paths:
                 $ref: '#/components/schemas/handlers.redirectResponse'
         "401":
           description: Unauthorized
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                format: http-date
+              description: The date time that the request can be retried.
       security:
         - authelia_auth: []
   /api/secondfactor/duo_devices:
@@ -1713,6 +1814,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                format: http-date
+              description: The date time that the request can be retried.
         "500":
           description: Internal Server Error
           content:
@@ -2132,6 +2239,12 @@ components:
             passkey_login:
               type: boolean
               description: Value which indicates if Passkey logins are enabled.
+            password_change_disabled:
+              type: boolean
+              description: Value which indicates if users are allowed to change their password from account settings.
+            password_reset_disabled:
+              type: boolean
+              description: Value which indicates if users are allowed to reset their password.
     handlers.configuration.PasswordPolicyConfigurationBody:
       type: object
       properties:
@@ -2287,6 +2400,24 @@ components:
             redirect:
               type: string
               example: 'https://home.{{ .Domain | default "example.com" }}'
+    {{- if .PasswordChange }}
+    handlers.PasswordChangeRequestBody:
+      required:
+        - 'username'
+        - 'old_password'
+        - 'new_password'
+      type: object
+      properties:
+        username:
+          type: string
+          example: john
+        old_password:
+          type: string
+          example: old_password123
+        new_password:
+          type: string
+          example: new_password456
+    {{- end }}
     {{- if .PasswordReset }}
     handlers.PasswordResetStep1RequestBody:
       required:

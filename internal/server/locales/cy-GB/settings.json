@@ -82,6 +82,7 @@
 	"Seconds": "Eiliadau",
 	"Secret": "Cudd",
 	"Settings": "Gosodiadau",
+	"Settings - {{authelia}}": "Gosodiadau - {{authelia}}",
 	"Start": "Dechreuwch",
 	"Successfully {{action}} the {{item}}": "Ychwanegwyd {{action}} y {{item}}",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "Mae'r sialens ardystio wedi'i gwrthod fel fformat annilys neu'n ansawdd nas gall eich porwr",

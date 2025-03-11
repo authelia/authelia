@@ -18,7 +18,7 @@ Authelia has three primary methods of deriving attributes:
 
 1. Standard Attributes derived directly from the authentication backend.
 2. Extra Attributes which are manually configured but still derived from the authentication backend.
-3. Custom Attributes derived from the other available attribute sources using the [Common Expression Language].
+3. Custom Attributes derived from the other available attribute sources using the [Common Expression Language](https://github.com/google/cel-spec).
 
 ## Standard Attributes
 
@@ -35,6 +35,39 @@ authentication_backend:
     attributes:
       locality: 'l'
 ```
+
+### Validation
+
+The standard user attributes are validated against several constraints. This table describes the constraints, the
+attribute must satisfy all the constrains not marked as `N/A`.
+
+|    Attribute    | Constraint: Type | Constraint: Multi-Value |   Constraint: Syntax    |
+|:---------------:|:----------------:|:-----------------------:|:-----------------------:|
+|    username     |      string      |      Single Valued      |           N/A           |
+|  display_name   |      string      |      Single Valued      |           N/A           |
+|   family_name   |      string      |      Single Valued      |           N/A           |
+|   given_name    |      string      |      Single Valued      |           N/A           |
+|   middle_name   |      string      |      Single Valued      |           N/A           |
+|    nickname     |      string      |      Single Valued      |           N/A           |
+|     gender      |      string      |      Single Valued      |           N/A           |
+|    birthdate    |      string      |      Single Valued      |           N/A           |
+|     website     |      string      |      Single Valued      | [RFC3986: Absolute URI] |
+|     profile     |      string      |      Single Valued      | [RFC3986: Absolute URI] |
+|     picture     |      string      |      Single Valued      | [RFC3986: Absolute URI] |
+|    zoneinfo     |      string      |      Single Valued      |           N/A           |
+|     locale      |      string      |      Single Valued      |        [BCP 47]         |
+|  phone_number   |      string      |      Single Valued      |           N/A           |
+| phone_extension |      string      |      Single Valued      |           N/A           |
+| street_address  |      string      |      Single Valued      |           N/A           |
+|    locality     |      string      |      Single Valued      |           N/A           |
+|     region      |      string      |      Single Valued      |           N/A           |
+|   postal_code   |      string      |      Single Valued      |           N/A           |
+|     country     |      string      |      Single Valued      |           N/A           |
+|      mail       |      string      |           N/A           |     [RFC5322: Addr]     |
+
+[BCP 47]: https://www.rfc-editor.org/info/bcp47
+[RFC3986: Absolute URI]: https://datatracker.ietf.org/doc/html/rfc3986#section-4.3
+[RFC5322: Addr]: https://datatracker.ietf.org/doc/html/rfc5322#section-3.4.1
 
 ## Extra Attributes
 

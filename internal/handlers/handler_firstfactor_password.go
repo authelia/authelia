@@ -46,9 +46,9 @@ func FirstFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middle
 			return
 		}
 
-		if ban, value, expires, err := ctx.Providers.Regulator.BanCheck(ctx, details.Username); err != nil {
+		if ban, _, expires, err := ctx.Providers.Regulator.BanCheck(ctx, details.Username); err != nil {
 			if errors.Is(err, regulation.ErrUserIsBanned) {
-				doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(ban, value, expires), regulation.AuthType1FA, nil)
+				doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(ban, details.Username, expires), regulation.AuthType1FA, nil)
 
 				respondUnauthorized(ctx, messageAuthenticationFailed)
 

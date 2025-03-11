@@ -34,10 +34,10 @@ There are three special ways to achieve this goal:
    - Can be used anywhere in the configuration generally for any purpose.
    - Does not include the value in the environment which is slightly more secure.
 3. Using the native [Environment](../methods/environment.md) system which:
-  - Loads the value from the environment variable itself
-  - Generally easy to set up.
-  - Can't be used keys located within lists.
-  - Does include the value in the environment which is slightly less secure.
+   - Loads the value from the environment variable itself
+   - Generally easy to set up.
+   - Can't be used keys located within lists.
+   - Does include the value in the environment which is slightly less secure.
 
 
 ## Template Example

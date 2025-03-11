@@ -268,6 +268,16 @@ func (m *MockAutheliaCtx) SetRequestBody(t *testing.T, body interface{}) {
 	m.Ctx.Request.SetBody(bodyBytes)
 }
 
+func (m *MockAutheliaCtx) LogEntryN(n int) *logrus.Entry {
+	entries := m.Hook.AllEntries()
+
+	if i := len(entries) - (1 + n); i < 0 {
+		return nil
+	} else {
+		return entries[i]
+	}
+}
+
 // AssertKO assert an error response from the service.
 func (m *MockAutheliaCtx) AssertKO(t *testing.T, message string, code int) {
 	assert.Equal(t, code, m.Ctx.Response.StatusCode())
@@ -364,6 +374,22 @@ func (m *MockAutheliaCtx) AssertLastLogMessage(t *testing.T, message, err string
 	}
 }
 
+func (m *MockAutheliaCtx) AssertLogEntryAdvanced(t *testing.T, n int, level logrus.Level, message any, fields map[string]any) {
+	entry := m.LogEntryN(n)
+
+	require.NotNil(t, entry)
+
+	assert.Equal(t, level, entry.Level)
+
+	AssertIsStringEqualOrRegexp(t, message, entry.Message)
+
+	for field, expected := range fields {
+		require.Contains(t, entry.Data, field)
+
+		AssertIsStringEqualOrRegexp(t, expected, entry.Data[field])
+	}
+}
+
 // GetResponseData retrieves a response from the service.
 func (m *MockAutheliaCtx) GetResponseData(t *testing.T, data interface{}) {
 	okResponse := middlewares.OKResponse{}
@@ -378,4 +404,27 @@ func (m *MockAutheliaCtx) GetResponseError(t *testing.T) (errResponse middleware
 	require.NoError(t, err)
 
 	return errResponse
+}
+
+func AssertIsStringEqualOrRegexp(t *testing.T, expected any, actual any) {
+	switch v := expected.(type) {
+	case string:
+		switch a := actual.(type) {
+		case error:
+			assert.EqualError(t, a, v)
+		default:
+			assert.Equal(t, v, a)
+		}
+	case *regexp.Regexp:
+		switch a := actual.(type) {
+		case error:
+			assert.Regexp(t, v, a.Error())
+		default:
+			assert.Regexp(t, v, a)
+		}
+	case nil:
+		break
+	default:
+		t.Fatal("Expected value must be a string or Regexp")
+	}
 }

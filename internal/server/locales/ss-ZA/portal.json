@@ -29,7 +29,7 @@
 	"Hi": "Sawubona",
 	"Incorrect username or password": "Igama lomsebenzisi noma iphasiwedi ayilungile",
 	"Incorrect password": "Ngencenye yephasiwedi",
-	"Login": "Ngena",
+	"Login - {{authelia}}": "Ngena - {{authelia}}",
 	"Logout": "Phuma",
 	"Manage devices": "Phatha imishini",
 	"Methods": "Izindlela",

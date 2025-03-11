@@ -82,6 +82,7 @@
 	"Seconds": "வினாடிகள்",
 	"Secret": "ரகசியம்",
 	"Settings": "அமைப்புகள்",
+	"Settings - {{authelia}}": "அமைப்புகள் - {{authelia}}",
 	"Start": "எழுத starten",
 	"Successfully {{action}} the {{item}}": "வெற்றிகரமாக {{action}} தன்னொற்றையை {{item}}",
 	"The attestation challenge was rejected as malformed or incompatible by your browser": "அட்டெஸ்டேஷன் சவால் உங்கள் உலாவில் பொருந்தாதவாறு மறுக்கப்பட்டது",

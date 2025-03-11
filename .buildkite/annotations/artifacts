@@ -5,8 +5,6 @@
     <dd>
       <a href="artifact://authelia-linux-amd64.tar.gz">authelia-linux-amd64.tar.gz</a><br>
       <a href="artifact://authelia-linux-amd64.tar.gz.sha256">authelia-linux-amd64.tar.gz.sha256</a><br>
-      <a href="artifact://authelia-linux-amd64-musl.tar.gz">authelia-linux-amd64-musl.tar.gz</a><br>
-      <a href="artifact://authelia-linux-amd64-musl.tar.gz.sha256">authelia-linux-amd64-musl.tar.gz.sha256</a><br>
       <a href="artifact://authelia-freebsd-amd64.tar.gz">authelia-freebsd-amd64.tar.gz</a><br>
       <a href="artifact://authelia-freebsd-amd64.tar.gz.sha256">authelia-freebsd-amd64.tar.gz.sha256</a><br>
       <a href="artifact://authelia_amd64.deb">authelia_amd64.deb</a><br>
@@ -18,8 +16,6 @@
     <dd>
       <a href="artifact://authelia-linux-arm.tar.gz">authelia-linux-arm.tar.gz</a><br>
       <a href="artifact://authelia-linux-arm.tar.gz.sha256">authelia-linux-arm.tar.gz.sha256</a><br>
-      <a href="artifact://authelia-linux-arm-musl.tar.gz">authelia-linux-arm-musl.tar.gz</a><br>
-      <a href="artifact://authelia-linux-arm-musl.tar.gz.sha256">authelia-linux-arm-musl.tar.gz.sha256</a><br>
       <a href="artifact://authelia_armhf.deb">authelia_armhf.deb</a><br>
       <a href="artifact://authelia_armhf.deb.sha256">authelia_armhf.deb.sha256</a>
     </dd>
@@ -29,8 +25,6 @@
     <dd>
       <a href="artifact://authelia-linux-arm64.tar.gz">authelia-linux-arm64.tar.gz</a><br>
       <a href="artifact://authelia-linux-arm64.tar.gz.sha256">authelia-linux-arm64.tar.gz.sha256</a><br>
-      <a href="artifact://authelia-linux-arm64-musl.tar.gz">authelia-linux-arm64-musl.tar.gz</a><br>
-      <a href="artifact://authelia-linux-arm64-musl.tar.gz.sha256">authelia-linux-arm64-musl.tar.gz.sha256</a><br>
       <a href="artifact://authelia_arm64.deb">authelia_arm64.deb</a><br>
       <a href="artifact://authelia_arm64.deb.sha256">authelia_arm64.deb.sha256</a>
     </dd>

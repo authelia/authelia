@@ -878,15 +878,19 @@ The content encryption algorithm used to encrypt the authorization responses.
 
 See the encryption algorithms section of the
 [integration guide](../../../integration/openid-connect/introduction.md#encryption-algorithms) for more information
-including the algorithm column for supported values.### introspection_signed_response_key_id
+including the algorithm column for supported values.
+
+### introspection_signed_response_key_id
 
 {{< confkey type="string" required="no" >}}
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 A majority of clients will not support this option with any value other than `none` as this enables encoding the
-[Introspection Response] as a JWT as per [JWT Response for OAuth Token Introspection] i.e. rather than being a JSON
-document the [Introspection Response] becomes a signed JWT in the `application/token-introspection+jwt` format and the
-signed JWT is optionally nested within an encrypted JWT.
+[Introspection Response](https://datatracker.ietf.org/doc/html/rfc7662#section-2.2) as a JWT as per
+[JWT Response for OAuth Token Introspection](https://www.ietf.org/archive/id/draft-ietf-oauth-jwt-introspection-response-12.html)
+i.e. rather than being a JSON document the
+[Introspection Response](https://datatracker.ietf.org/doc/html/rfc7662#section-2.2) becomes a signed JWT in the
+`application/token-introspection+jwt` format and the signed JWT is optionally nested within an encrypted JWT.
 {{< /callout >}}
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
@@ -907,9 +911,11 @@ To be considered valid:
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 A majority of clients will not support this option with any value other than `none` as this enables encoding the
-[Introspection Response] as a JWT as per [JWT Response for OAuth Token Introspection] i.e. rather than being a JSON
-document the [Introspection Response] becomes a signed JWT in the `application/token-introspection+jwt` format and the
-signed JWT is optionally nested within an encrypted JWT.
+[Introspection Response](https://datatracker.ietf.org/doc/html/rfc7662#section-2.2) as a JWT as per
+[JWT Response for OAuth Token Introspection](https://www.ietf.org/archive/id/draft-ietf-oauth-jwt-introspection-response-12.html)
+i.e. rather than being a JSON document the
+[Introspection Response](https://datatracker.ietf.org/doc/html/rfc7662#section-2.2) becomes a signed JWT in the
+`application/token-introspection+jwt` format and the signed JWT is optionally nested within an encrypted JWT.
 {{< /callout >}}
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
@@ -933,9 +939,11 @@ supported values come from the algorithm column with a use of `sig`.
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 A majority of clients will not support this option with any value other than `none` as this enables encoding the
-[Introspection Response] as a JWT as per [JWT Response for OAuth Token Introspection] i.e. rather than being a JSON
-document the [Introspection Response] becomes a signed JWT in the `application/token-introspection+jwt` format and the
-signed JWT is optionally nested within an encrypted JWT.
+[Introspection Response](https://datatracker.ietf.org/doc/html/rfc7662#section-2.2) as a JWT as per
+[JWT Response for OAuth Token Introspection](https://www.ietf.org/archive/id/draft-ietf-oauth-jwt-introspection-response-12.html)
+i.e. rather than being a JSON document the
+[Introspection Response](https://datatracker.ietf.org/doc/html/rfc7662#section-2.2) becomes a signed JWT in the
+`application/token-introspection+jwt` format and the signed JWT is optionally nested within an encrypted JWT.
 {{< /callout >}}
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
@@ -954,9 +962,11 @@ To be considered valid:
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 A majority of clients will not support this option with any value other than `none` as this enables encoding the
-[Introspection Response] as a JWT as per [JWT Response for OAuth Token Introspection] i.e. rather than being a JSON
-document the [Introspection Response] becomes a signed JWT in the `application/token-introspection+jwt` format and the
-signed JWT is optionally nested within an encrypted JWT.
+[Introspection Response](https://datatracker.ietf.org/doc/html/rfc7662#section-2.2) as a JWT as per
+[JWT Response for OAuth Token Introspection](https://www.ietf.org/archive/id/draft-ietf-oauth-jwt-introspection-response-12.html)
+i.e. rather than being a JSON document the
+[Introspection Response](https://datatracker.ietf.org/doc/html/rfc7662#section-2.2) becomes a signed JWT in the
+`application/token-introspection+jwt` format and the signed JWT is optionally nested within an encrypted JWT.
 {{< /callout >}}
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
@@ -983,9 +993,11 @@ supported values come from the algorithm column with a use of `enc`.
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 A majority of clients will not support this option with any value other than `none` as this enables encoding the
-[Introspection Response] as a JWT as per [JWT Response for OAuth Token Introspection] i.e. rather than being a JSON
-document the [Introspection Response] becomes a signed JWT in the `application/token-introspection+jwt` format and the
-signed JWT is optionally nested within an encrypted JWT.
+[Introspection Response](https://datatracker.ietf.org/doc/html/rfc7662#section-2.2) as a JWT as per
+[JWT Response for OAuth Token Introspection](https://www.ietf.org/archive/id/draft-ietf-oauth-jwt-introspection-response-12.html)
+i.e. rather than being a JSON document the
+[Introspection Response](https://datatracker.ietf.org/doc/html/rfc7662#section-2.2) becomes a signed JWT in the
+`application/token-introspection+jwt` format and the signed JWT is optionally nested within an encrypted JWT.
 {{< /callout >}}
 
 The content encryption algorithm used to encrypt the authorization responses.
@@ -1310,5 +1322,3 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 [Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
 [jwks]: provider.md#jwks
 [JSON Web Key]: provider.md#jwks
-[JWT Response for OAuth Token Introspection]: https://www.ietf.org/archive/id/draft-ietf-oauth-jwt-introspection-response-12.html
-[Introspection Response]: https://datatracker.ietf.org/doc/html/rfc7662#section-2.2

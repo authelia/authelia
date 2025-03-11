@@ -343,7 +343,7 @@ func TestPublicKeyFromPrivateKey(t *testing.T) {
 	}{
 		{
 			Name:       "RSA2048",
-			PrivateKey: testMustBuildPrivateKey(RSAKeyBuilder{}.WithKeySize(512)),
+			PrivateKey: testMustBuildPrivateKey(RSAKeyBuilder{}.WithKeySize(2048)),
 			Expected:   &rsa.PublicKey{},
 		},
 		{

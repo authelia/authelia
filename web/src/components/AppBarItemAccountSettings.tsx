@@ -9,10 +9,10 @@ import { LogoutRoute, SettingsRoute } from "@constants/Routes";
 import { UserInfo } from "@models/UserInfo";
 
 export interface Props {
-    userInfo: UserInfo;
+    userInfo?: UserInfo;
 }
 
-const AccountSettingsMenu = function (props: Props) {
+const AppBarItemAccountSettings = function (props: Props) {
     const { t: translate } = useTranslation();
 
     const [elementAccountSettings, setElementAccountSettings] = useState<null | HTMLElement>(null);
@@ -41,7 +41,7 @@ const AccountSettingsMenu = function (props: Props) {
         setElementAccountSettings(null);
     };
 
-    return (
+    return props.userInfo ? (
         <Fragment>
             <Box sx={{ display: "flex", alignItems: "center", textAlign: "center" }}>
                 <Tooltip title={translate("Account Settings")}>
@@ -112,7 +112,7 @@ const AccountSettingsMenu = function (props: Props) {
                 </MenuItem>
             </Menu>
         </Fragment>
-    );
+    ) : null;
 };
 
-export default AccountSettingsMenu;
+export default AppBarItemAccountSettings;

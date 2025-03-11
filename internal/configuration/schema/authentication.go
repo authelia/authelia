@@ -8,13 +8,19 @@ import (
 
 // AuthenticationBackend represents the configuration related to the authentication backend.
 type AuthenticationBackend struct {
-	PasswordReset AuthenticationBackendPasswordReset `koanf:"password_reset" json:"password_reset" jsonschema:"title=Password Reset" jsonschema_description:"Allows configuration of the password reset behaviour."`
+	PasswordReset  AuthenticationBackendPasswordReset  `koanf:"password_reset" json:"password_reset" jsonschema:"title=Password Reset" jsonschema_description:"Allows configuration of the password reset behaviour."`
+	PasswordChange AuthenticationBackendPasswordChange `koanf:"password_change" json:"password_change" jsonschema:"title=Password Reset" jsonschema_description:"Allows configuration of the password reset behaviour."`
 
 	RefreshInterval RefreshIntervalDuration `koanf:"refresh_interval" json:"refresh_interval" jsonschema:"default=5 minutes,title=Refresh Interval" jsonschema_description:"How frequently the user details are refreshed from the backend."`
 
 	// The file authentication backend configuration.
 	File *AuthenticationBackendFile `koanf:"file" json:"file" jsonschema:"title=File Backend" jsonschema_description:"The file authentication backend configuration."`
 	LDAP *AuthenticationBackendLDAP `koanf:"ldap" json:"ldap" jsonschema:"title=LDAP Backend" jsonschema_description:"The LDAP authentication backend configuration."`
+}
+
+// AuthenticationBackendPasswordChange represents the configuration related to password reset functionality.
+type AuthenticationBackendPasswordChange struct {
+	Disable bool `koanf:"disable" json:"disable" jsonschema:"default=false,title=Disable" jsonschema_description:"Disables the Password Change option."`
 }
 
 // AuthenticationBackendPasswordReset represents the configuration related to password reset functionality.
@@ -123,7 +129,7 @@ type AuthenticationBackendFilePasswordSCrypt struct {
 type AuthenticationBackendLDAP struct {
 	Address        *AddressLDAP  `koanf:"address" json:"address" jsonschema:"title=Address" jsonschema_description:"The address of the LDAP directory server."`
 	Implementation string        `koanf:"implementation" json:"implementation" jsonschema:"default=custom,enum=custom,enum=activedirectory,enum=rfc2307bis,enum=freeipa,enum=lldap,enum=glauth,title=Implementation" jsonschema_description:"The implementation which mostly decides the default values."`
-	Timeout        time.Duration `koanf:"timeout" json:"timeout" jsonschema:"default=5 seconds,title=Timeout" jsonschema_description:"The LDAP directory server connection timeout."`
+	Timeout        time.Duration `koanf:"timeout" json:"timeout" jsonschema:"default=20 seconds,title=Timeout" jsonschema_description:"The LDAP directory server connection timeout."`
 	StartTLS       bool          `koanf:"start_tls" json:"start_tls" jsonschema:"default=false,title=StartTLS" jsonschema_description:"Enables the use of StartTLS."`
 	TLS            *TLS          `koanf:"tls" json:"tls" jsonschema:"title=TLS" jsonschema_description:"The LDAP directory server TLS connection properties."`
 
@@ -251,7 +257,7 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationCustom = Authenti
 		Mail:        ldapAttrMail,
 		GroupName:   ldapAttrCommonName,
 	},
-	Timeout: time.Second * 5,
+	Timeout: time.Second * 20,
 	Pooling: AuthenticationBackendLDAPPooling{
 		Count:   5,
 		Retries: 2,

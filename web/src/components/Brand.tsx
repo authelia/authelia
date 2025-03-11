@@ -7,11 +7,10 @@ import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 
 import PrivacyPolicyLink from "@components/PrivacyPolicyLink";
+import { EncodedName, EncodedURL } from "@constants/constants";
 import { getPrivacyPolicyEnabled } from "@utils/Configuration";
 
 export interface Props {}
-
-const url = "https://www.authelia.com";
 
 const Brand = function (props: Props) {
     const { t: translate } = useTranslation();
@@ -22,8 +21,13 @@ const Brand = function (props: Props) {
     return (
         <Grid container size={{ xs: 12 }} alignItems="center" justifyContent="center">
             <Grid size={{ xs: 4 }}>
-                <Link href={url} target="_blank" underline="hover" className={styles.links}>
-                    {translate("Powered by")} Authelia
+                <Link
+                    href={atob(String.fromCharCode(...EncodedURL))}
+                    target="_blank"
+                    underline="hover"
+                    className={styles.links}
+                >
+                    {translate("Powered by {{authelia}}", { authelia: atob(String.fromCharCode(...EncodedName)) })}
                 </Link>
             </Grid>
             {privacyEnabled ? (

@@ -75,31 +75,57 @@ Below is a list of the potential values we place in the [Claim] and their meanin
 ### Custom Claims
 
 Authelia supports methods to define your own claims. These can either come from [Standard Attributes] or
-[Custom Attributes]. These claims are delivered to provided via a claims policy which describes which claims are
-available to specific scopes.
+[Custom Attributes]. These claims are delivered to relying parties either via an [ID Token] minted by Authelia or
+via the User Information endpoint when requested with the [Access Token]. The claims are made available to clients by
+assigning them to a custom scope, and then allowing that client to request that scope. Clients which are allowed to
+request a claim by requested scope, are also able to request that same claim via the claims parameter.
 
-In the example below we configure a claims policy named `custom_claims_policy` which provides a claim named `claim_name`
-which comes from the attribute named `attribute_name`. The claim `claim_name` is then made available via the scope named
-`scope_name`.
+In the example below we configure 6 elements.
 
-This policy and scope is then configured within the client with client id `client_example_id`. The client can then
-either request the claim via the `claims` parameter or via the `scope` parameter.
+1. The authentication backend is configured to provide the `extra_example` attribute.
+2. The definitions section is configured to provide the `attribute_name` attribute.
+3. The claims policy named `custom_claims_policy` is configured to provide two claims named `claim_name` and
+   `extra_claim_name` which comes from the attributes named `attribute_name` and `extra_example` respectively.
+4. The claims `claim_name` and `extra_claim_name` are then made available via the scope named `scope_name`.
+5. The claims policy `custom_claims_policy` is assigned to the client with id `client_example_id`.
+6. The custom scope named `scope_name` is permitted to be requested by the client with id  `client_example_id` via the
+   registered `scopes` which makes the claims available to the client via the `scope` or `claism` parameters.
 
 ```yaml
+authentication_backend:
+  ldap:
+    attributes:
+      extra:
+        ## Gives Authelia access to a user attribute named 'extra_example'.
+        extra_example:
+          multi_valued: false
+          value_type: 'string'
+definitions:
+  user_attributes:
+    ## Gives Authelia access to a user attribute named 'attribute_name'.
+    attribute_name:
+      expression: '"attibute_name_users" in groups'
 identity_providers:
   oidc:
     claims_policies:
       custom_claims_policy:
         custom_claims:
+          ## Gives the 'custom_claims_policy' claim policy access to the 'claim_name' and 'extra_claim_name' claims.
           claim_name:
             attribute: 'attribute_name'
+          extra_claim_name:
+            attribute: 'extra_example'
     scopes:
+      ## Gives the arbitrary scope 'scope_name` access to the 'claim_name' and 'extra_claim_name' claims.
       scope_name:
         claims:
           - 'claim_name'
+          - 'extra_claim_name'
     clients:
       - client_id: 'client_example_id'
+        ## Assigns the 'custom_claims_policy' to this client.
         claims_policy: 'custom_claims_policy'
+        ## Allows this client to request the scope with the extra claims or the individual claims themselves.
         scopes:
           - 'scope_name'
 ```

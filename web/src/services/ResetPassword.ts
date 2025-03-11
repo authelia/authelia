@@ -6,15 +6,16 @@ import {
     InitiateResetPasswordPath,
     OKResponse,
     ResetPasswordPath,
+    validateStatusTooManyRequests,
 } from "@services/Api";
-import { PostWithOptionalResponse } from "@services/Client";
+import { PostWithOptionalResponse, PostWithOptionalResponseRateLimited } from "@services/Client";
 
 export async function initiateResetPasswordProcess(username: string) {
-    return PostWithOptionalResponse(InitiateResetPasswordPath, { username });
+    return PostWithOptionalResponseRateLimited(InitiateResetPasswordPath, { username });
 }
 
 export async function completeResetPasswordProcess(token: string) {
-    return PostWithOptionalResponse(CompleteResetPasswordPath, { token });
+    return PostWithOptionalResponseRateLimited(CompleteResetPasswordPath, { token });
 }
 
 export async function resetPassword(newPassword: string) {
@@ -26,7 +27,8 @@ export async function deleteResetPasswordToken(token: string) {
         method: "DELETE",
         url: ResetPasswordPath,
         data: { token: token },
+        validateStatus: validateStatusTooManyRequests,
     });
 
-    return res.status === 200 && res.data.status === "OK";
+    return { ok: res.status === 200 && res.data.status === "OK", status: res.status };
 }

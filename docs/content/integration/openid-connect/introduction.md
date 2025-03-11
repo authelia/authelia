@@ -44,10 +44,15 @@ determine what audiences these tokens are meant for. It should also be noted tha
 should effectively never change this also applies to the audience of this token.
 
 For these reasons the audience of the [Access Token], [Refresh Token], and [ID Token] are effectively completely
-separate and Authelia treats them in this manner. An [ID Token] will always and only have the client identifier of the
-specific client that requested it per specification, the [Access Token] will always have the granted audience of the
-Authorization Flow or last successful Refresh Flow, and the [Refresh Token] will always have the granted audience of
-the Authorization Flow.
+separate and Authelia treats them in this manner. An [ID Token] will always and by default only have the client
+identifier of the specific client that requested it and will lack the audiences granted to the [Access Token] as per the
+specification, the [Access Token] will always have the granted audience of the Authorization Flow or last successful
+Refresh Flow, and the [Refresh Token] will always have the granted audience of the Authorization Flow.
+
+You may adjust the derivation of the [ID Token] audience by configuring a
+[claims policy](../../configuration/identity-providers/openid-connect/provider.md#claims_policies) and changing the
+[id_token_audience_mode](../../configuration/identity-providers/openid-connect/provider.md#id_token_audience_mode)
+option.
 
 For more information about the opaque [Access Token] default see
 [Why isn't the Access Token a JSON Web Token? (Frequently Asked Questions)](./frequently-asked-questions.md#why-isnt-the-access-token-a-json-web-token).
@@ -269,6 +274,8 @@ it then you're encouraged to create a [feature request](https://www.authelia.com
 
 A list of [RFC8176] Authentication Method Reference Values can be found in the
 [reference guide](../../reference/guides/authentication-method-references.md).
+
+[RFC8176]: https://datatracker.ietf.org/doc/html/rfc8176
 
 ## Introspection Signing Algorithm
 
