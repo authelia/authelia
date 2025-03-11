@@ -37,14 +37,14 @@ regulation:
 
 This section describes the individual configuration options.
 
-### mode
+### modes
 
 {{< confkey type="list(string)" default="['user']" required="no" >}}
 
-The mode for regulation. The table below describes each option. The recommended mode is `ip`. It should be noted that,
-regardless of the ban mode, if bans exist in the database, the user or IP will be denied access. See the
-[authelia storage bans](../../reference/cli/authelia/authelia_storage_bans.md) command for information on managing
-ban entries.
+The modes for regulation. The table below describes each option. The recommended mode is `ip`. It should be noted that,
+regardless of the currently configured ban modes, if bans exist in the database, the user or IP will be denied access.
+See the [authelia storage bans](../../reference/cli/authelia/authelia_storage_bans.md) command for information on
+managing ban entries.
 
 | Mode |                             Description                             |
 |:----:|:-------------------------------------------------------------------:|
