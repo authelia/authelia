@@ -20,10 +20,6 @@ if [[ "${BUILDKITE_LABEL}" == ":docker: Build Image [coverage]" ]]; then
   cp -R /buildkite/.local .
 fi
 
-if [[ "${BUILDKITE_STEP_KEY}" =~ build-deb-package-(arm64|armhf) && "${BUILDKITE_AGENT_NAME}" =~ sauron* ]]; then
-  docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-fi
-
 if [[ "${BUILDKITE_LABEL}" =~ ":debian: Build Package" ]]; then
   buildkite-agent artifact download "authelia-linux-${ARCH}.tar.gz" .
 fi
@@ -32,9 +28,10 @@ if [[ "${BUILDKITE_LABEL}" =~ ":selenium:" ]]; then
   echo "--- :docker: Extract and load build container"
   mkdir coverage
 
-  if [[ "${BUILDKITE_AGENT_NAME}" =~ ^(aquilla|vega)[0-9]+$ ]]; then
-    BUILDKITE_S3_ENDPOINT="${S3_ENDPOINT}" BUILDKITE_ARTIFACT_UPLOAD_DESTINATION="${S3_BUCKET}" BUILDKITE_S3_ACCESS_URL="${S3_ACCESS_URL}" BUILDKITE_S3_ACCESS_KEY_ID="${S3_ACCESS_KEY_ID}" BUILDKITE_S3_SECRET_ACCESS_KEY="${S3_SECRET_ACCESS_KEY}" buildkite-agent artifact download "authelia-image-coverage-cygnus*" .
-    mv authelia-image-coverage-cygnus.tar.zst authelia-image-coverage.tar.zst
+  if [[ "${BUILDKITE_AGENT_NAME}" =~ ^(atlas|vega)[0-9]+$ ]]; then
+    BUILDKITE_S3_ENDPOINT="${S3_ENDPOINT}" BUILDKITE_ARTIFACT_UPLOAD_DESTINATION="${S3_BUCKET}" BUILDKITE_S3_ACCESS_URL="${S3_ACCESS_URL}" BUILDKITE_S3_ACCESS_KEY_ID="${S3_ACCESS_KEY_ID}" BUILDKITE_S3_SECRET_ACCESS_KEY="${S3_SECRET_ACCESS_KEY}" buildkite-agent artifact download "authelia-image-coverage-cygnus*" . && \
+    mv authelia-image-coverage-cygnus.tar.zst authelia-image-coverage.tar.zst || \
+    buildkite-agent artifact download "authelia-image-coverage.*" .
   else
     buildkite-agent artifact download "authelia-image-coverage.*" .
   fi
@@ -47,15 +44,15 @@ if [[ "${BUILDKITE_LABEL}" =~ ":selenium:" ]]; then
 
   if [[ "${BUILD_DUO}" == "true" ]] && [[ "${SUITE}" == "DuoPush" ]]; then
     CONTAINER="integration-duo"
-    FILE="internal/suites/example/compose/duo-api/docker-compose.yml"
+    FILE="internal/suites/example/compose/duo-api/compose.yml"
     INTEGRATION
   elif [[ "${BUILD_HAPROXY}" == "true" ]] && [[ "${SUITE}" == "HAProxy" ]]; then
     CONTAINER="integration-haproxy"
-    FILE="internal/suites/example/compose/haproxy/docker-compose.yml"
+    FILE="internal/suites/example/compose/haproxy/compose.yml"
     INTEGRATION
   elif [[ "${BUILD_SAMBA}" == "true" ]] && [[ "${SUITE}" == "ActiveDirectory" ]]; then
       CONTAINER="integration-samba"
-      FILE="internal/suites/example/compose/samba/docker-compose.yml"
+      FILE="internal/suites/example/compose/samba/compose.yml"
       INTEGRATION
   fi
 fi
@@ -66,8 +63,8 @@ fi
 
 if [[ "${BUILDKITE_LABEL}" == ":docker: Deploy Manifest" ]]; then
   echo "--- :go: :react: :swagger: Extract pre-built binary"
-  buildkite-agent artifact download "authelia-linux-*-musl.tar.gz" .
-  for archive in authelia-linux-*-musl.tar.gz; do tar xzf "${archive}" --wildcards "authelia-linux-*"; done
+  buildkite-agent artifact download "authelia-linux-*.tar.gz" .
+  for archive in authelia-linux-*.tar.gz; do tar xzf "${archive}" --wildcards "authelia-linux-*"; done
 fi
 
 if [[ "${BUILDKITE_LABEL}" == ":github: Deploy Artifacts" ]]; then

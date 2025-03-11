@@ -2,7 +2,6 @@ package validator
 
 import (
 	"fmt"
-	"net"
 	"regexp"
 	"strings"
 
@@ -11,47 +10,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// IsPolicyValid check if policy is valid.
-func IsPolicyValid(policy string) (isValid bool) {
-	return utils.IsStringInSlice(policy, validACLRulePolicies)
-}
-
-// IsSubjectValid check if a subject is valid.
-func IsSubjectValid(subject string) (isValid bool) {
-	return subject == "" || strings.HasPrefix(subject, "user:") || strings.HasPrefix(subject, "group:") || strings.HasPrefix(subject, "oauth2:client:")
-}
-
-// IsNetworkGroupValid check if a network group is valid.
-func IsNetworkGroupValid(config schema.AccessControl, network string) bool {
-	for _, networks := range config.Networks {
-		if network != networks.Name {
-			continue
-		} else {
-			return true
-		}
-	}
-
-	return false
-}
-
-// IsNetworkValid checks if a network is valid.
-func IsNetworkValid(network string) (isValid bool) {
-	if net.ParseIP(network) == nil {
-		_, _, err := net.ParseCIDR(network)
-		return err == nil
-	}
-
-	return true
-}
-
-func ruleDescriptor(position int, rule schema.AccessControlRule) string {
-	if len(rule.Domains) == 0 {
-		return fmt.Sprintf("#%d", position)
-	}
-
-	return fmt.Sprintf("#%d (domain '%s')", position, strings.Join(rule.Domains, ","))
-}
-
 // ValidateAccessControl validates access control configuration.
 func ValidateAccessControl(config *schema.Configuration, validator *schema.StructValidator) {
 	if config.AccessControl.DefaultPolicy == "" {
@@ -59,21 +17,13 @@ func ValidateAccessControl(config *schema.Configuration, validator *schema.Struc
 	}
 
 	if !IsPolicyValid(config.AccessControl.DefaultPolicy) {
-		validator.Push(fmt.Errorf(errFmtAccessControlDefaultPolicyValue, strJoinOr(validACLRulePolicies), config.AccessControl.DefaultPolicy))
-	}
-
-	for _, n := range config.AccessControl.Networks {
-		for _, networks := range n.Networks {
-			if !IsNetworkValid(networks) {
-				validator.Push(fmt.Errorf(errFmtAccessControlNetworkGroupIPCIDRInvalid, n.Name, networks))
-			}
-		}
+		validator.Push(fmt.Errorf(errFmtAccessControlDefaultPolicyValue, utils.StringJoinOr(validACLRulePolicies), config.AccessControl.DefaultPolicy))
 	}
 }
 
 // ValidateRules validates an ACL Rule configuration.
 func ValidateRules(config *schema.Configuration, validator *schema.StructValidator) {
-	if config.AccessControl.Rules == nil || len(config.AccessControl.Rules) == 0 {
+	if len(config.AccessControl.Rules) == 0 {
 		if config.AccessControl.DefaultPolicy != policyOneFactor && config.AccessControl.DefaultPolicy != policyTwoFactor {
 			validator.Push(fmt.Errorf(errFmtAccessControlDefaultPolicyWithoutRules, config.AccessControl.DefaultPolicy))
 
@@ -95,13 +45,11 @@ func ValidateRules(config *schema.Configuration, validator *schema.StructValidat
 			validator.Push(fmt.Errorf(errFmtAccessControlRuleNoPolicy, ruleDescriptor(rulePosition, rule)))
 		default:
 			if !IsPolicyValid(rule.Policy) {
-				validator.Push(fmt.Errorf(errFmtAccessControlRuleInvalidPolicy, ruleDescriptor(rulePosition, rule), strJoinOr(validACLRulePolicies), rule.Policy))
+				validator.Push(fmt.Errorf(errFmtAccessControlRuleInvalidPolicy, ruleDescriptor(rulePosition, rule), utils.StringJoinOr(validACLRulePolicies), rule.Policy))
 			}
 		}
 
-		validateNetworks(rulePosition, rule, config.AccessControl, validator)
-
-		validateSubjects(rulePosition, rule, validator)
+		validateSubjects(rulePosition, rule, config, validator)
 
 		validateMethods(rulePosition, rule, validator)
 
@@ -138,21 +86,22 @@ func validateDomains(rulePosition int, rule schema.AccessControlRule, validator 
 	}
 }
 
-func validateNetworks(rulePosition int, rule schema.AccessControlRule, config schema.AccessControl, validator *schema.StructValidator) {
-	for _, network := range rule.Networks {
-		if !IsNetworkValid(network) {
-			if !IsNetworkGroupValid(config, network) {
-				validator.Push(fmt.Errorf(errFmtAccessControlRuleNetworksInvalid, ruleDescriptor(rulePosition, rule), network))
-			}
-		}
-	}
-}
+func validateSubjects(rulePosition int, rule schema.AccessControlRule, config *schema.Configuration, validator *schema.StructValidator) {
+	var (
+		id      string
+		isValid bool
+	)
 
-func validateSubjects(rulePosition int, rule schema.AccessControlRule, validator *schema.StructValidator) {
 	for _, subjectRule := range rule.Subjects {
 		for _, subject := range subjectRule {
-			if !IsSubjectValid(subject) {
+			if id, isValid = IsSubjectValid(subject); !isValid {
 				validator.Push(fmt.Errorf(errFmtAccessControlRuleSubjectInvalid, ruleDescriptor(rulePosition, rule), subject))
+
+				continue
+			}
+
+			if len(id) != 0 && !IsSubjectValidOAuth20(config, id) {
+				validator.Push(fmt.Errorf(errFmtAccessControlRuleOAuth2ClientSubjectInvalid, ruleDescriptor(rulePosition, rule), subject, id))
 			}
 		}
 	}
@@ -162,11 +111,11 @@ func validateMethods(rulePosition int, rule schema.AccessControlRule, validator 
 	invalid, duplicates := validateList(rule.Methods, validACLHTTPMethodVerbs, true)
 
 	if len(invalid) != 0 {
-		validator.Push(fmt.Errorf(errFmtAccessControlRuleInvalidEntries, ruleDescriptor(rulePosition, rule), "methods", strJoinOr(validACLHTTPMethodVerbs), strJoinAnd(invalid)))
+		validator.Push(fmt.Errorf(errFmtAccessControlRuleInvalidEntries, ruleDescriptor(rulePosition, rule), "methods", utils.StringJoinOr(validACLHTTPMethodVerbs), utils.StringJoinAnd(invalid)))
 	}
 
 	if len(duplicates) != 0 {
-		validator.Push(fmt.Errorf(errFmtAccessControlRuleInvalidDuplicates, ruleDescriptor(rulePosition, rule), "methods", strJoinAnd(duplicates)))
+		validator.Push(fmt.Errorf(errFmtAccessControlRuleInvalidDuplicates, ruleDescriptor(rulePosition, rule), "methods", utils.StringJoinAnd(duplicates)))
 	}
 }
 
@@ -184,7 +133,7 @@ func validateQuery(i int, rule schema.AccessControlRule, config *schema.Configur
 					}
 				}
 			} else if !utils.IsStringInSliceFold(config.AccessControl.Rules[i].Query[j][k].Operator, validACLRuleOperators) {
-				validator.Push(fmt.Errorf(errFmtAccessControlRuleQueryInvalid, ruleDescriptor(i+1, rule), strJoinOr(validACLRuleOperators), config.AccessControl.Rules[i].Query[j][k].Operator))
+				validator.Push(fmt.Errorf(errFmtAccessControlRuleQueryInvalid, ruleDescriptor(i+1, rule), utils.StringJoinOr(validACLRuleOperators), config.AccessControl.Rules[i].Query[j][k].Operator))
 			}
 
 			if config.AccessControl.Rules[i].Query[j][k].Key == "" {
@@ -225,4 +174,47 @@ func validateQuery(i int, rule schema.AccessControlRule, config *schema.Configur
 			}
 		}
 	}
+}
+
+// IsPolicyValid check if policy is valid.
+func IsPolicyValid(policy string) (isValid bool) {
+	return utils.IsStringInSlice(policy, validACLRulePolicies)
+}
+
+// IsSubjectValid validates if a subject has a valid prefix and returns the client id if applicable.
+func IsSubjectValid(subject string) (id string, isValid bool) {
+	switch {
+	case IsSubjectValidBasic(subject):
+		return "", true
+	case strings.HasPrefix(subject, "oauth2:client:"):
+		return strings.TrimPrefix(subject, "oauth2:client:"), true
+	default:
+		return "", false
+	}
+}
+
+func IsSubjectValidBasic(subject string) (isValid bool) {
+	return strings.HasPrefix(subject, "user:") || strings.HasPrefix(subject, "group:")
+}
+
+func IsSubjectValidOAuth20(config *schema.Configuration, id string) (isValid bool) {
+	if config.IdentityProviders.OIDC == nil || len(config.IdentityProviders.OIDC.Clients) == 0 {
+		return false
+	}
+
+	for _, client := range config.IdentityProviders.OIDC.Clients {
+		if client.ID == id {
+			return true
+		}
+	}
+
+	return false
+}
+
+func ruleDescriptor(position int, rule schema.AccessControlRule) string {
+	if len(rule.Domains) == 0 {
+		return fmt.Sprintf("#%d", position)
+	}
+
+	return fmt.Sprintf("#%d (domain '%s')", position, strings.Join(rule.Domains, ","))
 }

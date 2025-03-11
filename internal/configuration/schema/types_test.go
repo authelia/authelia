@@ -359,13 +359,11 @@ func TestJSONSchema(t *testing.T) {
 		&PasswordDigest{},
 		&TLSVersion{},
 		&X509CertificateChain{},
-		&AccessControlRuleNetworks{},
-		&AccessControlNetworkNetworks{},
 		&AccessControlRuleDomains{},
 		&AccessControlRuleMethods{},
 		&AccessControlRuleRegex{},
 		&AccessControlRuleSubjects{},
-		&IdentityProvidersOpenIDConnectClientRedirectURIs{},
+		&IdentityProvidersOpenIDConnectClientURIs{},
 	}
 
 	for _, tc := range testCases {

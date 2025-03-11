@@ -10,6 +10,8 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/binary"
+	"encoding/hex"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -184,9 +186,17 @@ func (ekb ECDSAKeyBuilder) Build() (any, error) {
 
 // ParseX509FromPEM parses PEM bytes and returns a PKCS key.
 func ParseX509FromPEM(data []byte) (key any, err error) {
-	block, _ := pem.Decode(data)
-	if block == nil {
-		return nil, errors.New("failed to parse PEM block containing the key")
+	var (
+		block *pem.Block
+		rest  []byte
+	)
+
+	if block, rest = pem.Decode(data); block == nil {
+		return nil, errors.New("error occurred attempting to parse PEM block: either no PEM block was supplied or it was malformed")
+	}
+
+	if len(rest) != 0 {
+		return nil, errors.New("error occurred attempting to parse PEM block: the block either had trailing data or was otherwise malformed")
 	}
 
 	return ParsePEMBlock(block)
@@ -304,6 +314,10 @@ func IsX509PrivateKey(i any) bool {
 
 // NewTLSConfig generates a tls.Config from a schema.TLS and a x509.CertPool.
 func NewTLSConfig(config *schema.TLS, rootCAs *x509.CertPool) (tlsConfig *tls.Config) {
+	if config == nil {
+		return nil
+	}
+
 	var certificates []tls.Certificate
 
 	if config.PrivateKey != nil && config.CertificateChain.HasCertificates() {
@@ -675,4 +689,35 @@ loop:
 	}
 
 	return extKeyUsage
+}
+
+// TLSVersionFromBytesString converts a given 4 byte hexadecimal string into the appropriate TLS version.
+func TLSVersionFromBytesString(input string) (version int, err error) {
+	if n := len(input); n != 4 {
+		return -1, fmt.Errorf("the input size was incorrect: should be 4 but was %d", n)
+	}
+
+	decoded, err := hex.DecodeString(input)
+	if err != nil {
+		return -1, fmt.Errorf("failed to decode hex: %w", err)
+	}
+
+	value := binary.BigEndian.Uint16(decoded)
+
+	version = int(value)
+
+	switch version {
+	case tls.VersionSSL30: //nolint:staticcheck
+		return tls.VersionSSL30, nil //nolint:staticcheck
+	case tls.VersionTLS10:
+		return tls.VersionTLS10, nil
+	case tls.VersionTLS11:
+		return tls.VersionTLS11, nil
+	case tls.VersionTLS12:
+		return tls.VersionTLS12, nil
+	case tls.VersionTLS13:
+		return tls.VersionTLS13, nil
+	default:
+		return -1, fmt.Errorf("tls version 0x%x is unknown", version)
+	}
 }

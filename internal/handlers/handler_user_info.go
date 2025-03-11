@@ -57,6 +57,18 @@ func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 		}
 	}
 
+	if ctx.Configuration.TOTP.Disable {
+		userInfo.HasTOTP = false
+	}
+
+	if ctx.Configuration.WebAuthn.Disable {
+		userInfo.HasWebAuthn = false
+	}
+
+	if ctx.Configuration.DuoAPI.Disable {
+		userInfo.HasDuo = false
+	}
+
 	userInfo.DisplayName = userSession.DisplayName
 
 	err = ctx.SetJSONBody(userInfo)
@@ -88,6 +100,11 @@ func UserInfoGET(ctx *middlewares.AutheliaCtx) {
 	}
 
 	userInfo.DisplayName = userSession.DisplayName
+
+	// it should be noted that UserInfo only contains info from the database and NOT any info from the authn_backend (email/groups).
+	for _, email := range userSession.Emails {
+		userInfo.Emails = append(userInfo.Emails, redactEmail(email))
+	}
 
 	err = ctx.SetJSONBody(userInfo)
 	if err != nil {

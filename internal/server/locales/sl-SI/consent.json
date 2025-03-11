@@ -1,0 +1,37 @@
+{
+	"Claim": "Zahtevaj {{name}}",
+	"Scope": "Obseg {{name}}",
+	"scopes": {
+		"openid": "Uporabite OpenID za preverjanje vaše identitete",
+		"offline_access": "Samodejno osvežite ta dovoljenja brez interakcije uporabnika",
+		"profile": "Dostop do podatkov o vašem profilu",
+		"groups": "Dostop do članstva v skupini",
+		"email": "Dostop do vaših e-poštnih naslovov",
+		"phone": "Dostop do vašega telefonskega številke",
+		"address": "Dostop do vaše naslova",
+		"authelia.bearer.authz": "Dostop do zaščitenih virov prijavljen kot vi"
+	},
+	"claims": {
+		"sub": "Edinstveni identifikator",
+		"name": "Prikazno ime",
+		"given_name": "Ime",
+		"family_name": "Priimek",
+		"middle_name": "Srednje ime",
+		"nickname": "Vzdevek",
+		"preferred_username": "Želeno uporabniško ime",
+		"profile": "URL profila",
+		"picture": "URL slike",
+		"website": "URL spletne strani",
+		"email": "E-poštni naslov",
+		"email_verified": "E-poštni naslov (verificiran)",
+		"gender": "Spol",
+		"birthdate": "Datum rojstva",
+		"zoneinfo": "Časovni pas",
+		"locale": "Jezik / Lokalno",
+		"phone_number": "Telefonska številka",
+		"phone_number_verified": "Telefonska številka (verificirana)",
+		"address": "Poštni naslov",
+		"updated_at": "Čas posodobitve profila",
+		"groups": "Članstvo v skupini"
+	}
+}

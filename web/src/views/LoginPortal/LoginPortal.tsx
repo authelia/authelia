@@ -1,10 +1,12 @@
 import React, { Fragment, ReactNode, lazy, useEffect, useState } from "react";
 
+import { useTranslation } from "react-i18next";
 import { Route, Routes, useLocation } from "react-router-dom";
 
 import {
     AuthenticatedRoute,
     IndexRoute,
+    SecondFactorPasswordSubRoute,
     SecondFactorPushSubRoute,
     SecondFactorRoute,
     SecondFactorTOTPSubRoute,
@@ -30,14 +32,14 @@ const SecondFactorForm = lazy(() => import("@views/LoginPortal/SecondFactor/Seco
 
 export interface Props {
     duoSelfEnrollment: boolean;
+    passkeyLogin: boolean;
     rememberMe: boolean;
-
     resetPassword: boolean;
     resetPasswordCustomURL: string;
 }
 
 const RedirectionErrorMessage =
-    "Redirection was determined to be unsafe and aborted. Ensure the redirection URL is correct.";
+    "Redirection was determined to be unsafe and aborted ensure the redirection URL is correct";
 
 const LoginPortal = function (props: Props) {
     const location = useLocation();
@@ -47,6 +49,7 @@ const LoginPortal = function (props: Props) {
     const [broadcastRedirect, setBroadcastRedirect] = useState(false);
     const redirector = useRedirector();
     const { localStorageMethod } = useLocalStorageMethodContext();
+    const { t: translate } = useTranslation();
 
     const [state, fetchState, , fetchStateError] = useAutheliaState();
     const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoPOST();
@@ -77,23 +80,23 @@ const LoginPortal = function (props: Props) {
     // Display an error when state fetching fails
     useEffect(() => {
         if (fetchStateError) {
-            createErrorNotification("There was an issue fetching the current user state");
+            createErrorNotification(translate("There was an issue retrieving the current user state"));
         }
-    }, [fetchStateError, createErrorNotification]);
+    }, [fetchStateError, createErrorNotification, translate]);
 
     // Display an error when configuration fetching fails
     useEffect(() => {
         if (fetchConfigurationError) {
-            createErrorNotification("There was an issue retrieving global configuration");
+            createErrorNotification(translate("There was an issue retrieving global configuration"));
         }
-    }, [fetchConfigurationError, createErrorNotification]);
+    }, [fetchConfigurationError, createErrorNotification, translate]);
 
     // Display an error when preferences fetching fails
     useEffect(() => {
         if (fetchUserInfoError) {
-            createErrorNotification("There was an issue retrieving user preferences");
+            createErrorNotification(translate("There was an issue retrieving user preferences"));
         }
-    }, [fetchUserInfoError, createErrorNotification]);
+    }, [fetchUserInfoError, createErrorNotification, translate]);
 
     // Redirect to the correct stage if not enough authenticated
     useEffect(() => {
@@ -115,10 +118,10 @@ const LoginPortal = function (props: Props) {
                     if (res && res.ok) {
                         redirector(redirectionURL);
                     } else {
-                        createErrorNotification(RedirectionErrorMessage);
+                        createErrorNotification(translate(RedirectionErrorMessage));
                     }
-                } catch (err) {
-                    createErrorNotification(RedirectionErrorMessage);
+                } catch {
+                    createErrorNotification(translate(RedirectionErrorMessage));
                 }
 
                 return;
@@ -133,7 +136,9 @@ const LoginPortal = function (props: Props) {
                 } else {
                     const method = localStorageMethod || userInfo.method;
 
-                    if (method === SecondFactorMethod.WebAuthn) {
+                    if (!state.factor_knowledge) {
+                        navigate(`${SecondFactorRoute}${SecondFactorPasswordSubRoute}`);
+                    } else if (method === SecondFactorMethod.WebAuthn) {
                         navigate(`${SecondFactorRoute}${SecondFactorWebAuthnSubRoute}`);
                     } else if (method === SecondFactorMethod.MobilePush) {
                         navigate(`${SecondFactorRoute}${SecondFactorPushSubRoute}`);
@@ -154,6 +159,7 @@ const LoginPortal = function (props: Props) {
         redirector,
         broadcastRedirect,
         localStorageMethod,
+        translate,
     ]);
 
     const handleChannelStateChange = async () => {
@@ -184,11 +190,12 @@ const LoginPortal = function (props: Props) {
                     <ComponentOrLoading ready={firstFactorReady}>
                         <FirstFactorForm
                             disabled={firstFactorDisabled}
+                            passkeyLogin={props.passkeyLogin}
                             rememberMe={props.rememberMe}
                             resetPassword={props.resetPassword}
                             resetPasswordCustomURL={props.resetPasswordCustomURL}
                             onAuthenticationStart={() => setFirstFactorDisabled(true)}
-                            onAuthenticationFailure={() => setFirstFactorDisabled(false)}
+                            onAuthenticationStop={() => setFirstFactorDisabled(false)}
                             onAuthenticationSuccess={handleAuthSuccess}
                             onChannelStateChange={handleChannelStateChange}
                         />
@@ -201,6 +208,7 @@ const LoginPortal = function (props: Props) {
                     state && userInfo && configuration ? (
                         <SecondFactorForm
                             authenticationLevel={state.authentication_level}
+                            factorKnowledge={state.factor_knowledge}
                             userInfo={userInfo}
                             configuration={configuration}
                             duoSelfEnrollment={props.duoSelfEnrollment}

@@ -1,0 +1,37 @@
+{
+	"Claim": "Tuntutan {{name}}",
+	"Scope": "Lingkup {{name}}",
+	"scopes": {
+		"openid": "Anggo OpenID pikeun verifikasi identitas anjeun",
+		"offline_access": "Menyegarkan izin ieu sacara otomatis tanpa interaksi pangguna",
+		"profile": "Aksés informasi profil anjeun",
+		"groups": "Akses kabéh anggota grup anjeun",
+		"email": "Akses alamat email anjeun",
+		"phone": "Akses nomer telepon anjeun",
+		"address": "Akses alamat anjeun",
+		"authelia.bearer.authz": "Akses sumber daya anu dilindungi dikonci salaku anjeun"
+	},
+	"claims": {
+		"sub": "Pangidentifikasi Unik",
+		"name": "Nami Tampilan",
+		"given_name": "Nami Anu Diberikan",
+		"family_name": "Nami Keluarga",
+		"middle_name": "Nami Tengah",
+		"nickname": "Nami Panggilan",
+		"preferred_username": "Nami Anu Dipikaresep",
+		"profile": "URL Profil",
+		"picture": "URL Gambar",
+		"website": "URL Laman Wéb",
+		"email": "Alamat E-mail",
+		"email_verified": "Alamat E-mail (Divérifikasi)",
+		"gender": "Jender",
+		"birthdate": "Tanggal Lahir",
+		"zoneinfo": "Zona Waktu",
+		"locale": "Locale / Basa",
+		"phone_number": "Nomer Telepon",
+		"phone_number_verified": "Nomer Telepon (Divérifikasi)",
+		"address": "Alamat Pos",
+		"updated_at": "Waktos Pembaruan Profil",
+		"groups": "Anggota Grup"
+	}
+}

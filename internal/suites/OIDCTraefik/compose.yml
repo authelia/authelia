@@ -1,0 +1,11 @@
+---
+services:
+  authelia-backend:
+    environment:
+      X_AUTHELIA_CONFIG_FILTERS: 'template'
+    volumes:
+      - './OIDCTraefik/configuration.yml:/config/configuration.yml'
+      - './OIDCTraefik/users.yml:/config/users.yml'
+      - './common/pki:/pki'
+      - './common/pki/public.crt:/certs/public.crt'
+...

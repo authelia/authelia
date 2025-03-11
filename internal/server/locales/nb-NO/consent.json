@@ -1,0 +1,37 @@
+{
+	"Claim": "Claim {{name}}",
+	"Scope": "Omfang {{name}}",
+	"scopes": {
+		"openid": "Bruk OpenID for å bekrefte identiteten din",
+		"offline_access": "Oppdater disse tillatelsene automatisk uten brukerinteraksjon",
+		"profile": "Få tilgang til profilinformasjonen din",
+		"groups": "Tilgang til gruppemedlemskap",
+		"email": "Få tilgang til e-postadressene",
+		"phone": "Tilgang til telefonnummeret ditt",
+		"address": "Tilgang til din adresse",
+		"authelia.bearer.authz": "Få tilgang til beskyttede ressurser logget inn som du"
+	},
+	"claims": {
+		"sub": "Unique Identifier",
+		"name": "Vis navn",
+		"given_name": "Gitt navn",
+		"family_name": "Familiens navn",
+		"middle_name": "Mellomnavn (Automatic Translation)",
+		"nickname": "Kallenavn",
+		"preferred_username": "Foretrukket brukernavn",
+		"profile": "Profil Lenke",
+		"picture": "URL til bilde",
+		"website": "URL til nettsted",
+		"email": "Uw e-mailadres",
+		"email_verified": "E-post (bekreftet)",
+		"gender": "Kjønn",
+		"birthdate": "Fødselsdato",
+		"zoneinfo": "Timezone",
+		"locale": "Språk / språk",
+		"phone_number": "Telefon nummer",
+		"phone_number_verified": "Telefonnummer (bekreftet)",
+		"address": "Postal adresse",
+		"updated_at": "Profil oppdateringstid",
+		"groups": "Gruppe medlemskap"
+	}
+}

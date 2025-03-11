@@ -33,7 +33,7 @@ The following is a simple diagram of the architecture:
 [APT](https://apt.authelia.com/stable/debian/packages/authelia/),
 [FreeBSD Ports](https://svnweb.freebsd.org/ports/head/www/authelia/), or using a
 [static binary](https://github.com/authelia/authelia/releases/latest),
-[.deb package]((https://github.com/authelia/authelia/releases/latest)), as a container on [Docker] or [Kubernetes].
+[.deb package](https://github.com/authelia/authelia/releases/latest), as a container on [Docker] or [Kubernetes].
 
 
 Deployment can be orchestrated via the Helm [Chart](https://charts.authelia.com) (beta) leveraging ingress controllers
@@ -72,7 +72,7 @@ This is a list of the key features of Authelia:
 * Compatible with [Traefik](https://doc.traefik.io/traefik) out of the box using the
   [ForwardAuth](https://doc.traefik.io/traefik/middlewares/http/forwardauth/) middleware.
 * Curated configuration from [LinuxServer](https://www.linuxserver.io/) via their
-  [Swag](https://docs.linuxserver.io/general/swag) container as well as a
+  [SWAG](https://docs.linuxserver.io/general/swag) container as well as a
   [guide](https://blog.linuxserver.io/2020/08/26/setting-up-authelia/).
 * Compatible with [Caddy] using the [forward_auth](https://caddyserver.com/docs/caddyfile/directives/forward_auth)
   directive.
@@ -83,7 +83,7 @@ This is a list of the key features of Authelia:
     * [Traefik Kubernetes Ingress](https://www.authelia.com/integration/kubernetes/traefik-ingress/#ingress)
     * [Istio](https://www.authelia.com/integration/kubernetes/istio/)
   * Beta support for installing via Helm using our [Charts](https://charts.authelia.com).
-* Beta support for [OpenID Connect](https://www.authelia.com/roadmap/active/openid-connect/).
+* Beta support for [OAuth 2.0 and OpenID Connect 1.0](https://www.authelia.com/roadmap/active/openid-connect/).
 
 For more details take a look at the [Overview](https://www.authelia.com/overview/prologue/introduction/).
 
@@ -106,9 +106,9 @@ Authelia works in combination with [nginx], [Traefik], [Caddy], [Skipper], [Envo
 See the [Get Started Guide](https://www.authelia.com/integration/prologue/get-started/) or one of the curated examples
 below.
 
-### docker-compose
+### docker compose
 
-The `docker-compose` bundles act as a starting point for anyone wanting to see Authelia in action. You will have to
+The `docker compose` bundles act as a starting point for anyone wanting to see Authelia in action. You will have to
 customize them to your needs as they come with self-signed certificates.
 
 #### [Local](https://www.authelia.com/integration/deployment/docker/#local)
@@ -125,7 +125,7 @@ will not scale well.
 ## Deployment
 
 Now that you have tested **Authelia** and you want to try it out in your own infrastructure,
-you can learn how to deploy and use it with [Deployment](https://www.authelia.com/docs/deployment/deployment-ha).
+you can learn how to deploy and use it with [Deployment](https://www.authelia.com/integration/deployment/introduction/).
 This guide will show you how to deploy it on bare metal as well as on
 [Kubernetes](https://kubernetes.io/).
 
@@ -134,8 +134,8 @@ This guide will show you how to deploy it on bare metal as well as on
 Authelia takes security very seriously. If you discover a vulnerability in Authelia, please see our
 [Security Policy](https://github.com/authelia/authelia/security/policy).
 
-For more information about [security](https://www.authelia.com/information/security/) related matters, please read
-[the documentation](https://www.authelia.com/information/security/).
+For more information about [security](https://www.authelia.com/policies/security/) related matters, please read
+[the documentation](https://www.authelia.com/policies/security/).
 
 ## Contact Options
 
@@ -319,6 +319,18 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/silasfrancisco"><img src="https://avatars.githubusercontent.com/u/84447762?v=4?s=100" width="100px;" alt="silasfrancisco"/><br /><sub><b>silasfrancisco</b></sub></a><br /><a href="#security-silasfrancisco" title="Security">🛡️</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/n4m3l3ss-b0t"><img src="https://avatars.githubusercontent.com/u/1162710?v=4?s=100" width="100px;" alt="Ricardo Pesqueira"/><br /><sub><b>Ricardo Pesqueira</b></sub></a><br /><a href="#security-n4m3l3ss-b0t" title="Security">🛡️</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/HaroldVB"><img src="https://avatars.githubusercontent.com/u/73724671?v=4?s=100" width="100px;" alt="Harold"/><br /><sub><b>Harold</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=HaroldVB" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Crowley723"><img src="https://avatars.githubusercontent.com/u/26265198?v=4?s=100" width="100px;" alt="Brynn Crowley"/><br /><sub><b>Brynn Crowley</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=Crowley723" title="Documentation">📖</a> <a href="#design-Crowley723" title="Design">🎨</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://budimanjojo.com"><img src="https://avatars.githubusercontent.com/u/13085918?v=4?s=100" width="100px;" alt="Budiman Jojo"/><br /><sub><b>Budiman Jojo</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=budimanjojo" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/hendrik1120"><img src="https://avatars.githubusercontent.com/u/89412959?v=4?s=100" width="100px;" alt="Hendrik Sievers"/><br /><sub><b>Hendrik Sievers</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=hendrik1120" title="Documentation">📖</a> <a href="#design-hendrik1120" title="Design">🎨</a> <a href="#ideas-hendrik1120" title="Ideas, Planning, & Feedback">🤔</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/m-georgi"><img src="https://avatars.githubusercontent.com/u/20987691?v=4?s=100" width="100px;" alt="Marcus Georgi"/><br /><sub><b>Marcus Georgi</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=m-georgi" title="Documentation">📖</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/samos667"><img src="https://avatars.githubusercontent.com/u/50653464?v=4?s=100" width="100px;" alt="samos667"/><br /><sub><b>samos667</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=samos667" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/0xSysR3ll"><img src="https://avatars.githubusercontent.com/u/31414959?v=4?s=100" width="100px;" alt="0xsysr3ll"/><br /><sub><b>0xsysr3ll</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=0xSysR3ll" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/cromelex"><img src="https://avatars.githubusercontent.com/u/96779452?v=4?s=100" width="100px;" alt="Dan"/><br /><sub><b>Dan</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=cromelex" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://shaamallow.com"><img src="https://avatars.githubusercontent.com/u/39766320?v=4?s=100" width="100px;" alt="Eyal Benaroche"/><br /><sub><b>Eyal Benaroche</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=Shaamallow" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/wangweixuan"><img src="https://avatars.githubusercontent.com/u/24620923?v=4?s=100" width="100px;" alt="Wang Weixuan"/><br /><sub><b>Wang Weixuan</b></sub></a><br /><a href="https://github.com/authelia/authelia/issues?q=author%3Awangweixuan" title="Bug reports">🐛</a> <a href="https://github.com/authelia/authelia/commits?author=wangweixuan" title="Code">💻</a> <a href="https://github.com/authelia/authelia/commits?author=wangweixuan" title="Tests">⚠️</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://t.me/daniw1337"><img src="https://avatars.githubusercontent.com/u/21097466?v=4?s=100" width="100px;" alt="Dani"/><br /><sub><b>Dani</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=DaniW42" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>
@@ -341,17 +353,17 @@ Authelia.
 
 #### Balto
 
-Thank you to [<img src="https://www.authelia.com/images/logos/balto.svg" alt="Balto" width="32"> Balto](https://www.getbalto.com/)
+Thank you to [<img src="https://www.authelia.com/svgs/logos/balto.svg" alt="Balto" width="32"> Balto](https://www.getbalto.com/)
 for hosting our apt repository.
 
 #### JetBrains
 
-Thank you to [<img src="https://www.authelia.com/images/logos/jetbrains.svg" alt="JetBrains" width="32"> JetBrains](https://www.jetbrains.com/?from=Authelia)
+Thank you to [<img src="https://www.authelia.com/svgs/logos/jetbrains.svg" alt="JetBrains" width="32"> JetBrains](https://www.jetbrains.com/?from=Authelia)
 for providing us with free licenses to their great tools.
 
-* [<img src="https://www.authelia.com/images/logos/intellij-idea.svg" alt="IDEA" width="32"> IDEA](http://www.jetbrains.com/idea/)
-* [<img src="https://www.authelia.com/images/logos/goland.svg" alt="GoLand" width="32"> GoLand](http://www.jetbrains.com/go/)
-* [<img src="https://www.authelia.com/images/logos/webstorm.svg" alt="WebStorm" width="32"> WebStorm](http://www.jetbrains.com/webstorm/)
+* [<img src="https://www.authelia.com/svgs/logos/intellij-idea.svg" alt="IDEA" width="32"> IDEA](http://www.jetbrains.com/idea/)
+* [<img src="https://www.authelia.com/svgs/logos/goland.svg" alt="GoLand" width="32"> GoLand](http://www.jetbrains.com/go/)
+* [<img src="https://www.authelia.com/svgs/logos/webstorm.svg" alt="WebStorm" width="32"> WebStorm](http://www.jetbrains.com/webstorm/)
 
 #### Microsoft
 
@@ -359,9 +371,9 @@ Our pipeline agents which we rely on for productivity are hosted on [Azure](http
 and our [git repositories](https://github.com/authelia) are hosted on [GitHub](https://github.com/?from=Authela)
 which are both [Microsoft](https://www.microsoft.com/?from=Authelia) products.
 
-[<img src="https://www.authelia.com/images/logos/microsoft.svg" alt="microsoft" height="32">](https://www.microsoft.com/?from=Authelia)
+[<img src="https://www.authelia.com/svgs/logos/microsoft.svg" alt="microsoft" height="32">](https://www.microsoft.com/?from=Authelia)
 
-[<img src="https://www.authelia.com/images/logos/azure.svg" alt="Azure" height="32">](https://azure.microsoft.com/?from=Authelia)
+[<img src="https://www.authelia.com/svgs/logos/azure.svg" alt="Azure" height="32">](https://azure.microsoft.com/?from=Authelia)
 
 ### Open Collective
 

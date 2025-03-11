@@ -250,7 +250,7 @@ func docsJSONSchemaGenerateRunE(cmd *cobra.Command, _ []string, version *model.S
 	versions, _ = cmd.Flags().GetStringSlice(cmdFlagVersions)
 
 	if len(versions) == 0 {
-		versions = []string{metaVersionNext, metaVersionLatest}
+		versions = []string{metaVersionLatest, metaVersionCurrent}
 	}
 
 	next := utils.IsStringInSlice(metaVersionNext, versions)
@@ -339,6 +339,20 @@ func getJSONSchemaOutputPath(cmd *cobra.Command, flag string) (dir, file string,
 
 func jsonschemaKoanfMapper(t reflect.Type) *jsonschema.Schema {
 	switch t.String() {
+	case "[]*net.IPNet":
+		return &jsonschema.Schema{
+			OneOf: []*jsonschema.Schema{
+				{
+					Type: jsonschema.TypeString,
+				},
+				{
+					Type: jsonschema.TypeArray,
+					Items: &jsonschema.Schema{
+						Type: jsonschema.TypeString,
+					},
+				},
+			},
+		}
 	case "regexp.Regexp", "*regexp.Regexp":
 		return &jsonschema.Schema{
 			Type:   jsonschema.TypeString,
@@ -359,21 +373,36 @@ func jsonschemaKoanfMapper(t reflect.Type) *jsonschema.Schema {
 		}
 	case "schema.CryptographicKey":
 		return &jsonschema.Schema{
-			Type: jsonschema.TypeString,
+			Type:    jsonschema.TypeString,
+			Pattern: `^-{5}BEGIN (((RSA|EC) )?(PRIVATE|PUBLIC) KEY|CERTIFICATE)-{5}\n([a-zA-Z0-9\/+]{1,64}\n)+([a-zA-Z0-9\/+]{1,64}[=]{0,2})\n-{5}END (((RSA|EC) )?(PRIVATE|PUBLIC) KEY|CERTIFICATE)-{5}\n?$`,
 		}
 	case "schema.CryptographicPrivateKey":
 		return &jsonschema.Schema{
 			Type:    jsonschema.TypeString,
-			Pattern: `^-{5}(BEGIN ((RSA|EC) )?PRIVATE KEY-{5}\n([a-zA-Z0-9/+]{1,64}\n)+([a-zA-Z0-9/+]{1,64}[=]{0,2})\n-{5}END ((RSA|EC) )?PRIVATE KEY-{5}\n?)+$`,
+			Pattern: `^-{5}BEGIN ((RSA|EC) )?PRIVATE KEY-{5}\n([a-zA-Z0-9\/+]{1,64}\n)+([a-zA-Z0-9\/+]{1,64}[=]{0,2})\n-{5}END ((RSA|EC) )?PRIVATE KEY-{5}\n?$`,
 		}
-	case "rsa.PrivateKey", "*rsa.PrivateKey", "ecdsa.PrivateKey", "*.ecdsa.PrivateKey":
+	case "rsa.PrivateKey", "*rsa.PrivateKey":
 		return &jsonschema.Schema{
-			Type: jsonschema.TypeString,
+			Type:    jsonschema.TypeString,
+			Pattern: `^-{5}(BEGIN (RSA )?PRIVATE KEY-{5}\n([a-zA-Z0-9\/+]{1,64}\n)+([a-zA-Z0-9\/+]{1,64}[=]{0,2})\n-{5}END (RSA )?PRIVATE KEY-{5}\n?)+$`,
+		}
+	case "ecdsa.PrivateKey", "*.ecdsa.PrivateKey":
+		return &jsonschema.Schema{
+			Type:    jsonschema.TypeString,
+			Pattern: `^-{5}(BEGIN ((EC )?PRIVATE KEY-{5}\n([a-zA-Z0-9\/+]{1,64}\n)+([a-zA-Z0-9\/+]{1,64}[=]{0,2})\n-{5}END (EC )?PRIVATE KEY-{5}\n?)+$`,
 		}
 	case "mail.Address", "*mail.Address":
 		return &jsonschema.Schema{
-			Type:   jsonschema.TypeString,
-			Format: jsonschema.FormatStringEmail,
+			OneOf: []*jsonschema.Schema{
+				{
+					Type:   jsonschema.TypeString,
+					Format: jsonschema.FormatStringEmail,
+				},
+				{
+					Type:    jsonschema.TypeString,
+					Pattern: `^[^<]+\s\<[a-zA-Z0-9._~!#$%&'*/=?^{|}+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z0-9-]+\>$`,
+				},
+			},
 		}
 	case "schema.CSPTemplate":
 		return &jsonschema.Schema{

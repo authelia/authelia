@@ -1,15 +1,18 @@
 package handlers
 
 import (
+	"context"
+	"errors"
 	"net/url"
 
-	"github.com/ory/fosite"
+	oauthelia2 "authelia.com/provider/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
@@ -83,7 +86,7 @@ type HeaderAuthorization struct {
 	Authorization *model.Authorization
 	Realm         string
 	Scope         string
-	Error         *fosite.RFC6749Error
+	Error         *oauthelia2.RFC6749Error
 }
 
 // AuthzConfig represents the configuration elements of the Authz type.
@@ -106,6 +109,7 @@ type AuthzBuilder struct {
 type AuthnStrategy interface {
 	Get(ctx *middlewares.AutheliaCtx, provider *session.Session, object *authorization.Object) (authn *Authn, err error)
 	CanHandleUnauthorized() (handle bool)
+	HeaderStrategy() (is bool)
 	HandleUnauthorized(ctx *middlewares.AutheliaCtx, authn *Authn, redirectionURL *url.URL)
 }
 
@@ -165,3 +169,13 @@ func (i AuthzImplementation) String() string {
 		return ""
 	}
 }
+
+type AuthzBearerIntrospectionProvider interface {
+	GetRegisteredClient(ctx context.Context, id string) (client oidc.Client, err error)
+	GetAudienceStrategy(ctx context.Context) (strategy oauthelia2.AudienceMatchingStrategy)
+	IntrospectToken(ctx context.Context, token string, tokenUse oauthelia2.TokenUse, session oauthelia2.Session, scope ...string) (oauthelia2.TokenUse, oauthelia2.AccessRequester, error)
+}
+
+var (
+	errTokenIntent = errors.New("the bearer token doesn't appear to be an authelia bearer token")
+)

@@ -19,7 +19,7 @@ body:
         4. Please only provide a released specific version or versions. Latest is not a version. Only released stable versions should be reported here; unreleased, untagged, or beta versions should have a report submitted via a [discussion](https://github.com/authelia/authelia/discussions/new/choose) instead.
         5. Please only report bugs with the Authelia application itself. Issues which match one of the following criteria should not be reported here (for the purpose of keeping the issue tracking clear and concise) but should be a [discussion](https://github.com/authelia/authelia/discussions/new/choose) instead:
             - Bugs with third-party software.
-            - Mistakes in the documentation.
+            - Mistakes in the documentation (which should be reported via the [Documentation Feedback](https://github.com/authelia/authelia/discussions/new?category=documentation-feedback) discussions).
             - Potential bugs where it is not somewhat clear that it's a bug with Authelia itself, a third party, or a misunderstanding/assumption about functionality.
         6. Please read the [Troubleshooting](https://www.authelia.com/r/troubleshooting) reference guide:
             - Do not truncate any logs unless you are complying with the specific instructions in the [Logs](https://www.authelia.com/r/troubleshooting#logs) section.
@@ -34,6 +34,26 @@ body:
         What version(s) of Authelia can you reproduce this bug on?
       multiple: true
       options:
+        - 'v4.38.19'
+        - 'v4.38.18'
+        - 'v4.38.17'
+        - 'v4.38.16'
+        - 'v4.38.15'
+        - 'v4.38.14'
+        - 'v4.38.13'
+        - 'v4.38.12'
+        - 'v4.38.11'
+        - 'v4.38.10'
+        - 'v4.38.9'
+        - 'v4.38.8'
+        - 'v4.38.7'
+        - 'v4.38.6'
+        - 'v4.38.5'
+        - 'v4.38.4'
+        - 'v4.38.3'
+        - 'v4.38.2'
+        - 'v4.38.1'
+        - 'v4.38.0'
         - 'v4.37.5'
         - 'v4.37.4'
         - 'v4.37.3'
@@ -67,9 +87,6 @@ body:
         - 'v4.33.2'
         - 'v4.33.1'
         - 'v4.33.0'
-        - 'v4.32.2'
-        - 'v4.32.1'
-        - 'v4.32.0'
     validations:
       required: true
   - type: 'dropdown'
@@ -194,6 +211,18 @@ body:
         Provide any relevant specification or other documentation if applicable.
     validations:
       required: false
+  - type: 'dropdown'
+    id: 'ai'
+    attributes:
+      label: |
+        Generative AI
+      description: |
+        Indicate if generative AI used to create this issue.
+      options:
+        - 'Yes'
+        - 'No'
+    validations:
+      required: true
   - type: 'checkboxes'
     id: 'checklist'
     attributes:

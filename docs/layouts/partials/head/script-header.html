@@ -1,8 +1,1 @@
-{{ if .Site.Params.options.darkMode -}}
-  {{ $darkModeInit := resources.Get "js/darkmode-init.js" | js.Build | minify -}}
-  <script>{{ $darkModeInit.Content | safeJS }}</script>
-{{ end -}}
-{{- if and (.Site.Params.alert) (.Site.Params.alertDismissable) -}}
-  {{ $alertInit := resources.Get "js/alert-init.js" | js.Build | minify -}}
-  <script>{{ $alertInit.Content | safeJS }}</script>
-{{- end -}}
+<!-- Insert scripts NOT needed by stylesheets here -->

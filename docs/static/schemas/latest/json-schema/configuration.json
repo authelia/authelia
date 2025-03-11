@@ -279,12 +279,12 @@
       "oneOf": [
         {
           "type": "string",
-          "pattern": "^(user|group|oauth2:client:):.+$"
+          "pattern": "^(user|group|oauth2:client):.+$"
         },
         {
           "items": {
             "type": "string",
-            "pattern": "^(user|group|oauth2:client:):.+$"
+            "pattern": "^(user|group|oauth2:client):.+$"
           },
           "type": "array"
         },
@@ -292,7 +292,7 @@
           "items": {
             "items": {
               "type": "string",
-              "pattern": "^(user|group|oauth2:client:):.+$"
+              "pattern": "^(user|group|oauth2:client):.+$"
             },
             "type": "array"
           },
@@ -713,6 +713,11 @@
           "title": "TLS",
           "description": "The LDAP directory server TLS connection properties."
         },
+        "pooling": {
+          "$ref": "#/$defs/AuthenticationBackendLDAPPooling",
+          "title": "Pooling",
+          "description": "The LDAP Connection Pooling properties."
+        },
         "base_dn": {
           "type": "string",
           "title": "Base DN",
@@ -820,6 +825,44 @@
       "additionalProperties": false,
       "type": "object",
       "description": "AuthenticationBackendLDAPAttributes represents the configuration related to LDAP server attributes."
+    },
+    "AuthenticationBackendLDAPPooling": {
+      "properties": {
+        "enable": {
+          "type": "boolean",
+          "title": "Enable",
+          "description": "Enable LDAP connection pooling.",
+          "default": false
+        },
+        "count": {
+          "type": "integer",
+          "title": "Count",
+          "description": "The number of connections to keep open for LDAP connection pooling.",
+          "default": 5
+        },
+        "retries": {
+          "type": "integer",
+          "title": "Retries",
+          "description": "The number of attempts to retrieve a connection from the pool during the timeout.",
+          "default": 2
+        },
+        "timeout": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Timeout",
+          "description": "The duration of time to wait for a connection to become available in the connection pool."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "AuthenticationBackendPasswordReset": {
       "properties": {
@@ -1026,18 +1069,6 @@
           "title": "Issuer JSON Web Keys",
           "description": "The JWK's which are to be used to sign various objects like ID Tokens."
         },
-        "issuer_certificate_chain": {
-          "$ref": "#/$defs/X509CertificateChain",
-          "title": "Issuer Certificate Chain",
-          "description": "The Issuer Certificate Chain with an RSA Public Key used to sign ID Tokens.",
-          "deprecated": true
-        },
-        "issuer_private_key": {
-          "type": "string",
-          "title": "Issuer Private Key",
-          "description": "The Issuer Private Key with an RSA Private Key used to sign ID Tokens.",
-          "deprecated": true
-        },
         "enable_client_debug_messages": {
           "type": "boolean",
           "title": "Enable Client Debug Messages",
@@ -1073,10 +1104,33 @@
           "title": "Enable JWT Access Token Stateless Introspection",
           "description": "Allows the use of stateless introspection of JWT Access Tokens which is not recommended."
         },
-        "pushed_authorizations": {
-          "$ref": "#/$defs/IdentityProvidersOpenIDConnectPAR",
-          "title": "Pushed Authorizations",
-          "description": "Configuration options for Pushed Authorization Requests."
+        "discovery_signed_response_alg": {
+          "type": "string",
+          "enum": [
+            "none",
+            "RS256",
+            "RS384",
+            "RS512",
+            "ES256",
+            "ES384",
+            "ES512",
+            "PS256",
+            "PS384",
+            "PS512"
+          ],
+          "title": "Discovery Response Signing Algorithm",
+          "description": "The Algorithm this provider uses to sign the Discovery and Metadata Document responses.",
+          "default": "none"
+        },
+        "discovery_signed_response_key_id": {
+          "type": "string",
+          "title": "Discovery Response Signing Key ID",
+          "description": "The Key ID this provider uses to sign the Discovery and Metadata Document responses (overrides the 'discovery_signed_response_alg')."
+        },
+        "require_pushed_authorization_requests": {
+          "type": "boolean",
+          "title": "Require Pushed Authorization Requests",
+          "description": "Requires Pushed Authorization Requests for all clients for this Issuer."
         },
         "cors": {
           "$ref": "#/$defs/IdentityProvidersOpenIDConnectCORS",
@@ -1105,6 +1159,19 @@
           "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespans",
           "title": "Lifespans",
           "description": "Token lifespans configuration."
+        },
+        "issuer_certificate_chain": {
+          "$ref": "#/$defs/X509CertificateChain",
+          "title": "Issuer Certificate Chain",
+          "description": "The Issuer Certificate Chain with an RSA Public Key used to sign ID Tokens.",
+          "deprecated": true
+        },
+        "issuer_private_key": {
+          "type": "string",
+          "pattern": "^-{5}(BEGIN (RSA )?PRIVATE KEY-{5}\\n([a-zA-Z0-9\\/+]{1,64}\\n)+([a-zA-Z0-9\\/+]{1,64}[=]{0,2})\\n-{5}END (RSA )?PRIVATE KEY-{5}\\n?)+$",
+          "title": "Issuer Private Key",
+          "description": "The Issuer Private Key with an RSA Private Key used to sign ID Tokens.",
+          "deprecated": true
         }
       },
       "additionalProperties": false,
@@ -1181,9 +1248,14 @@
           "default": false
         },
         "redirect_uris": {
-          "$ref": "#/$defs/IdentityProvidersOpenIDConnectClientRedirectURIs",
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectClientURIs",
           "title": "Redirect URIs",
-          "description": "List of authorized redirect URIs."
+          "description": "List of whitelisted redirect URIs."
+        },
+        "request_uris": {
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectClientURIs",
+          "title": "Request URIs",
+          "description": "List of whitelisted request URIs."
         },
         "audience": {
           "items": {
@@ -1202,7 +1274,8 @@
               "offline_access",
               "groups",
               "email",
-              "profile"
+              "profile",
+              "authelia.bearer.authz"
             ]
           },
           "type": "array",
@@ -1216,7 +1289,8 @@
             "enum": [
               "authorization_code",
               "implicit",
-              "refresh_token"
+              "refresh_token",
+              "client_credentials"
             ]
           },
           "type": "array",
@@ -1247,8 +1321,12 @@
             "type": "string",
             "enum": [
               "form_post",
+              "form_post.jwt",
               "query",
-              "fragment"
+              "query.jwt",
+              "fragment",
+              "fragment.jwt",
+              "jwt"
             ]
           },
           "type": "array",
@@ -1482,6 +1560,11 @@
           "title": "Token Endpoint Auth Method",
           "description": "The Token Endpoint Auth Method enforced by the provider for this client."
         },
+        "allow_multiple_auth_methods": {
+          "type": "boolean",
+          "title": "Allow Multiple Authentication Methods",
+          "description": "Permits this registered client to accept misbehaving clients which use a broad authentication approach. This is not standards complaint, use at your own security risk."
+        },
         "jwks_uri": {
           "type": "string",
           "format": "uri",
@@ -1501,12 +1584,11 @@
       "type": "object",
       "required": [
         "client_id",
-        "redirect_uris",
         "scopes"
       ],
       "description": "IdentityProvidersOpenIDConnectClient represents a configuration for an OpenID Connect 1.0 client."
     },
-    "IdentityProvidersOpenIDConnectClientRedirectURIs": {
+    "IdentityProvidersOpenIDConnectClientURIs": {
       "oneOf": [
         {
           "type": "string",
@@ -1771,33 +1853,6 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "IdentityProvidersOpenIDConnectPAR": {
-      "properties": {
-        "enforce": {
-          "type": "boolean",
-          "title": "Enforce",
-          "description": "Enforce the use of PAR for all requests on all clients.",
-          "default": false
-        },
-        "context_lifespan": {
-          "oneOf": [
-            {
-              "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
-            },
-            {
-              "type": "integer",
-              "description": "The duration in seconds"
-            }
-          ],
-          "title": "Context Lifespan",
-          "description": "How long a PAR context is valid for."
-        }
-      },
-      "additionalProperties": false,
-      "type": "object",
-      "description": "IdentityProvidersOpenIDConnectPAR represents an OpenID Connect 1.0 PAR config."
-    },
     "IdentityProvidersOpenIDConnectPolicy": {
       "properties": {
         "default_policy": {
@@ -1864,7 +1919,7 @@
     },
     "IdentityValidationElevatedSession": {
       "properties": {
-        "expiration": {
+        "code_lifespan": {
           "oneOf": [
             {
               "type": "string",
@@ -1875,10 +1930,10 @@
               "description": "The duration in seconds"
             }
           ],
-          "title": "Expiration",
-          "description": "Duration of time the OTP code is considered valid."
+          "title": "Code Lifespan",
+          "description": "The lifespan of the randomly generated One Time Code after which it's considered invalid."
         },
-        "elevation_expiration": {
+        "elevation_lifespan": {
           "oneOf": [
             {
               "type": "string",
@@ -1889,8 +1944,8 @@
               "description": "The duration in seconds"
             }
           ],
-          "title": "Elevation Expiration",
-          "description": "Duration of time the elevation can exist for after the user performs the validation."
+          "title": "Elevation Lifespan",
+          "description": "The lifespan of the elevation after initially validating the One-Time Code before it expires."
         },
         "otp_characters": {
           "type": "integer",
@@ -1919,7 +1974,7 @@
     },
     "IdentityValidationResetPassword": {
       "properties": {
-        "expiration": {
+        "jwt_lifespan": {
           "oneOf": [
             {
               "type": "string",
@@ -1930,8 +1985,8 @@
               "description": "The duration in seconds"
             }
           ],
-          "title": "Expiration",
-          "description": "Duration of time the JWT is considered valid."
+          "title": "JWT Lifespan",
+          "description": "The lifespan of the JSON Web Token after it's initially generated after which it's considered invalid."
         },
         "jwt_algorithm": {
           "type": "string",
@@ -1941,13 +1996,13 @@
             "HS512"
           ],
           "title": "JWT Algorithm",
-          "description": "The JWT Algorithm (JWA) used to sign the Reset Password flow JWT's.",
+          "description": "The JSON Web Token Algorithm (JWA) used to sign the Reset Password flow JSON Web Token's.",
           "default": "HS256"
         },
         "jwt_secret": {
           "type": "string",
           "title": "JWT Secret",
-          "description": "The JWT secret used to sign the Reset Password flow JWT's."
+          "description": "The secret key used to sign the Reset Password flow JSON Web Token's."
         }
       },
       "additionalProperties": false,
@@ -1992,6 +2047,7 @@
         },
         "key": {
           "type": "string",
+          "pattern": "^-{5}BEGIN (((RSA|EC) )?(PRIVATE|PUBLIC) KEY|CERTIFICATE)-{5}\\n([a-zA-Z0-9\\/+]{1,64}\\n)+([a-zA-Z0-9\\/+]{1,64}[=]{0,2})\\n-{5}END (((RSA|EC) )?(PRIVATE|PUBLIC) KEY|CERTIFICATE)-{5}\\n?$",
           "description": "The Private/Public key material of this JWK in Base64 PEM format."
         },
         "certificate_chain": {
@@ -2168,8 +2224,16 @@
           "default": "localhost"
         },
         "sender": {
-          "type": "string",
-          "format": "email",
+          "oneOf": [
+            {
+              "type": "string",
+              "format": "email"
+            },
+            {
+              "type": "string",
+              "pattern": "^[^\u003c]+\\s\\\u003c[a-zA-Z0-9._~!#$%\u0026'*/=?^{|}+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z0-9-]+\\\u003e$"
+            }
+          ],
           "title": "Sender",
           "description": "The sender used for SMTP."
         },
@@ -2180,11 +2244,18 @@
           "default": "[Authelia] {title}"
         },
         "startup_check_address": {
-          "type": "string",
-          "format": "email",
+          "oneOf": [
+            {
+              "type": "string",
+              "format": "email"
+            },
+            {
+              "type": "string",
+              "pattern": "^[^\u003c]+\\s\\\u003c[a-zA-Z0-9._~!#$%\u0026'*/=?^{|}+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z0-9-]+\\\u003e$"
+            }
+          ],
           "title": "Startup Check Address",
-          "description": "The address used for the recipient in the startup check.",
-          "default": "Authelia Test \u003ctest@authelia.com\u003e"
+          "description": "The address used for the recipient in the startup check."
         },
         "disable_require_tls": {
           "type": "boolean",
@@ -2440,24 +2511,6 @@
           "$ref": "#/$defs/ServerTimeouts",
           "title": "Timeouts",
           "description": "The server timeouts configuration."
-        },
-        "host": {
-          "type": "string",
-          "title": "Host",
-          "description": "Deprecated: use address instead.",
-          "deprecated": true
-        },
-        "port": {
-          "type": "integer",
-          "title": "Port",
-          "description": "Deprecated: use address instead.",
-          "deprecated": true
-        },
-        "path": {
-          "type": "string",
-          "title": "Path",
-          "description": "Deprecated: use address instead.",
-          "deprecated": true
         }
       },
       "additionalProperties": false,
@@ -2837,6 +2890,26 @@
           "description": "The redis server port.",
           "default": 6379
         },
+        "timeout": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Timeout",
+          "description": "The Redis server connection timeout."
+        },
+        "max_retries": {
+          "type": "integer",
+          "title": "Maximum Retries",
+          "description": "The maximum number of retries on a failed command.",
+          "default": 3
+        },
         "username": {
           "type": "string",
           "title": "Username",
@@ -3010,18 +3083,6 @@
           "title": "Timeout",
           "description": "The timeout for the database connection."
         },
-        "host": {
-          "type": "string",
-          "title": "Host",
-          "description": "Deprecated: use address instead.",
-          "deprecated": true
-        },
-        "port": {
-          "type": "integer",
-          "title": "Host",
-          "description": "Deprecated: use address instead.",
-          "deprecated": true
-        },
         "tls": {
           "$ref": "#/$defs/TLS"
         }
@@ -3065,18 +3126,6 @@
           ],
           "title": "Timeout",
           "description": "The timeout for the database connection."
-        },
-        "host": {
-          "type": "string",
-          "title": "Host",
-          "description": "Deprecated: use address instead.",
-          "deprecated": true
-        },
-        "port": {
-          "type": "integer",
-          "title": "Host",
-          "description": "Deprecated: use address instead.",
-          "deprecated": true
         },
         "schema": {
           "type": "string",
@@ -3161,7 +3210,7 @@
         },
         "private_key": {
           "type": "string",
-          "pattern": "^-{5}(BEGIN ((RSA|EC) )?PRIVATE KEY-{5}\\n([a-zA-Z0-9/+]{1,64}\\n)+([a-zA-Z0-9/+]{1,64}[=]{0,2})\\n-{5}END ((RSA|EC) )?PRIVATE KEY-{5}\\n?)+$",
+          "pattern": "^-{5}BEGIN ((RSA|EC) )?PRIVATE KEY-{5}\\n([a-zA-Z0-9\\/+]{1,64}\\n)+([a-zA-Z0-9\\/+]{1,64}[=]{0,2})\\n-{5}END ((RSA|EC) )?PRIVATE KEY-{5}\\n?$",
           "title": "Private Key",
           "description": "The private key."
         },
@@ -3388,7 +3437,7 @@
     },
     "X509CertificateChain": {
       "type": "string",
-      "pattern": "^(-{5}BEGIN CERTIFICATE-{5}\\n([a-zA-Z0-9/+]{1,64}\\n)+([a-zA-Z0-9/+]{1,64}[=]{0,2})\\n-{5}END CERTIFICATE-{5}\\n?)+$"
+      "pattern": "^(-{5}BEGIN CERTIFICATE-{5}\\n([a-zA-Z0-9\\/+]{1,64}\\n)+([a-zA-Z0-9\\/+]{1,64}[=]{0,2})\\n-{5}END CERTIFICATE-{5}\\n?)+$"
     }
   }
 }

@@ -46,16 +46,18 @@ func UserSessionElevationGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	switch {
-	case userSession.AuthenticationLevel >= authentication.TwoFactor:
+	switch level := userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA); {
+	case level >= authentication.TwoFactor:
 		if ctx.Configuration.IdentityValidation.ElevatedSession.SkipSecondFactor {
 			response.SkipSecondFactor = true
 		}
-	case userSession.AuthenticationLevel == authentication.OneFactor:
+	case level == authentication.OneFactor:
 		var (
 			has  bool
 			info model.UserInfo
 		)
+
+		response.FactorKnowledge = userSession.AuthenticationMethodRefs.FactorKnowledge()
 
 		info, err = ctx.Providers.StorageProvider.LoadUserInfo(ctx, userSession.Username)
 
@@ -144,7 +146,7 @@ func UserSessionElevationPOST(ctx *middlewares.AutheliaCtx) {
 		otp *model.OneTimeCode
 	)
 
-	if otp, err = model.NewOneTimeCode(ctx, userSession.Username, ctx.Configuration.IdentityValidation.ElevatedSession.Characters, ctx.Configuration.IdentityValidation.ElevatedSession.Expiration); err != nil {
+	if otp, err = model.NewOneTimeCode(ctx, userSession.Username, ctx.Configuration.IdentityValidation.ElevatedSession.Characters, ctx.Configuration.IdentityValidation.ElevatedSession.CodeLifespan); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred creating user session elevation One-Time Code challenge for user '%s': error occurred generating the challenge", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -177,12 +179,15 @@ func UserSessionElevationPOST(ctx *middlewares.AutheliaCtx) {
 
 	identity := userSession.Identity()
 
+	domain, _ := ctx.GetCookieDomain()
+
 	data := templates.EmailIdentityVerificationOTCValues{
 		Title:              "Confirm your identity",
 		RevocationLinkURL:  linkURL.String(),
 		RevocationLinkText: "Revoke",
 		DisplayName:        identity.DisplayName,
 		RemoteIP:           ctx.RemoteIP().String(),
+		Domain:             domain,
 		OneTimeCode:        string(otp.Code),
 	}
 
@@ -335,7 +340,7 @@ func UserSessionElevationPUT(ctx *middlewares.AutheliaCtx) {
 	userSession.Elevations.User = &session.Elevation{
 		ID:       code.ID,
 		RemoteIP: ctx.RemoteIP(),
-		Expires:  ctx.Clock.Now().Add(ctx.Configuration.IdentityValidation.ElevatedSession.ElevationExpiration),
+		Expires:  ctx.Clock.Now().Add(ctx.Configuration.IdentityValidation.ElevatedSession.ElevationLifespan),
 	}
 
 	if err = ctx.SaveSession(userSession); err != nil {

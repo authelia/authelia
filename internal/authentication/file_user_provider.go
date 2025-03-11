@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -16,6 +17,7 @@ import (
 	"github.com/go-crypt/crypt/algorithm/shacrypt"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/logging"
 )
 
@@ -24,7 +26,7 @@ type FileUserProvider struct {
 	config        *schema.AuthenticationBackendFile
 	hash          algorithm.Hash
 	database      FileUserProviderDatabase
-	mutex         *sync.Mutex
+	mutex         sync.Mutex
 	timeoutReload time.Time
 }
 
@@ -32,10 +34,21 @@ type FileUserProvider struct {
 func NewFileUserProvider(config *schema.AuthenticationBackendFile) (provider *FileUserProvider) {
 	return &FileUserProvider{
 		config:        config,
-		mutex:         &sync.Mutex{},
 		timeoutReload: time.Now().Add(-1 * time.Second),
-		database:      NewFileUserDatabase(config.Path, config.Search.Email, config.Search.CaseInsensitive),
+		database:      NewFileUserDatabase(config.Path, config.Search.Email, config.Search.CaseInsensitive, getExtra(config)),
 	}
+}
+
+func getExtra(config *schema.AuthenticationBackendFile) (extra map[string]expression.ExtraAttribute) {
+	extra = make(map[string]expression.ExtraAttribute, len(config.ExtraAttributes))
+
+	if len(config.ExtraAttributes) != 0 {
+		for name, attribute := range config.ExtraAttributes {
+			extra[name] = attribute
+		}
+	}
+
+	return extra
 }
 
 // Reload the database.
@@ -62,6 +75,10 @@ func (p *FileUserProvider) Reload() (reloaded bool, err error) {
 	p.setTimeoutReload(now)
 
 	return true, nil
+}
+
+func (p *FileUserProvider) Close() (err error) {
+	return nil
 }
 
 // CheckUserPassword checks if provided password matches for the given user.
@@ -92,6 +109,20 @@ func (p *FileUserProvider) GetDetails(username string) (details *UserDetails, er
 	}
 
 	return d.ToUserDetails(), nil
+}
+
+func (p *FileUserProvider) GetDetailsExtended(username string) (details *UserDetailsExtended, err error) {
+	var d FileUserDatabaseUserDetails
+
+	if d, err = p.database.GetUserDetails(username); err != nil {
+		return nil, err
+	}
+
+	if d.Disabled {
+		return nil, ErrUserNotFound
+	}
+
+	return d.ToExtendedUserDetails(), nil
 }
 
 // UpdatePassword update the password of the given user.
@@ -129,6 +160,58 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (
 	return nil
 }
 
+func (p *FileUserProvider) ChangePassword(username string, oldPassword string, newPassword string) (err error) {
+	var details FileUserDatabaseUserDetails
+
+	if details, err = p.database.GetUserDetails(username); err != nil {
+		return fmt.Errorf("%w : %v", ErrUserNotFound, err)
+	}
+
+	if details.Disabled {
+		return ErrUserNotFound
+	}
+
+	if strings.TrimSpace(newPassword) == "" {
+		return ErrPasswordWeak
+	}
+
+	if oldPassword == newPassword {
+		return ErrPasswordWeak
+	}
+
+	oldPasswordCorrect, err := p.CheckUserPassword(username, oldPassword)
+
+	if err != nil {
+		return ErrAuthenticationFailed
+	}
+
+	if !oldPasswordCorrect {
+		return ErrIncorrectPassword
+	}
+
+	var digest algorithm.Digest
+
+	if digest, err = p.hash.Hash(newPassword); err != nil {
+		return fmt.Errorf("%w : %v", ErrOperationFailed, err)
+	}
+
+	details.Password = schema.NewPasswordDigest(digest)
+
+	p.database.SetUserDetails(details.Username, &details)
+
+	p.mutex.Lock()
+
+	p.setTimeoutReload(time.Now())
+
+	p.mutex.Unlock()
+
+	if err = p.database.Save(); err != nil {
+		return fmt.Errorf("%w : %v", ErrOperationFailed, err)
+	}
+
+	return nil
+}
+
 // StartupCheck implements the startup check provider interface.
 func (p *FileUserProvider) StartupCheck() (err error) {
 	if err = checkDatabase(p.config.Path); err != nil {
@@ -142,7 +225,7 @@ func (p *FileUserProvider) StartupCheck() (err error) {
 	}
 
 	if p.database == nil {
-		p.database = NewFileUserDatabase(p.config.Path, p.config.Search.Email, p.config.Search.CaseInsensitive)
+		p.database = NewFileUserDatabase(p.config.Path, p.config.Search.Email, p.config.Search.CaseInsensitive, getExtra(p.config))
 	}
 
 	if err = p.database.Load(); err != nil {
@@ -163,7 +246,7 @@ func NewFileCryptoHashFromConfig(config schema.AuthenticationBackendFilePassword
 		hash, err = argon2.New(
 			argon2.WithVariantName(config.Argon2.Variant),
 			argon2.WithT(config.Argon2.Iterations),
-			argon2.WithM(uint32(config.Argon2.Memory)),
+			argon2.WithM(uint32(config.Argon2.Memory)), //nolint:gosec // Validated at runtime.
 			argon2.WithP(config.Argon2.Parallelism),
 			argon2.WithK(config.Argon2.KeyLength),
 			argon2.WithS(config.Argon2.SaltLength),

@@ -42,7 +42,7 @@ func TestCryptographical(t *testing.T) {
 	assert.Len(t, strdata, 11)
 
 	i := p.Intn(999)
-	assert.Greater(t, i, 0)
+	assert.GreaterOrEqual(t, i, 0)
 	assert.Less(t, i, 999)
 
 	i, err = p.IntnErr(999)
@@ -55,7 +55,7 @@ func TestCryptographical(t *testing.T) {
 	assert.Equal(t, 0, i)
 
 	bi := p.Int(big.NewInt(999))
-	assert.Greater(t, bi.Int64(), int64(0))
+	assert.GreaterOrEqual(t, bi.Int64(), int64(0))
 	assert.Less(t, bi.Int64(), int64(999))
 
 	bi = p.Int(nil)

@@ -1,0 +1,130 @@
+@import "bootstrap-icons/font/bootstrap-icons.scss";
+
+figure.figure-blog {
+  display: flex;
+  justify-content: center;
+}
+
+.text-orange {
+  --bs-text-opacity: 1;
+
+  color: $orange;
+}
+
+body code span.line.hl {
+  background: $orange;
+  display: block;
+  width: 100%;
+}
+
+@mixin icon-support($icon-class, $color-class) {
+  @extend .bi;
+  @extend #{$icon-class};
+  @extend #{$color-class};
+}
+
+@include color-mode(light) {
+  .pagination > div {
+    color: $link-color;
+  }
+  .icon-support-full {
+    @include icon-support('.bi-check-circle-fill', '.text-success');
+  }
+  .icon-support-unknown {
+    @include icon-support('.bi-question-circle-fill', '.text-warning');
+  }
+  .icon-support-partial {
+    @include icon-support('.bi-exclamation-circle-fill', '.text-orange');
+  }
+  .icon-support-legacy {
+    @include icon-support('.bi-archive-fill', '.text-orange');
+  }
+  .icon-support-none {
+    @include icon-support('.bi-x-circle-fill', '.text-danger');
+  }
+}
+
+@include color-mode(dark) {
+  .pagination > div {
+    color: $body-color-dark;
+  }
+  .icon-support-full {
+    @include icon-support('.bi-check-circle', '.text-success');
+  }
+  .icon-support-unknown {
+    @include icon-support('.bi-question-circle', '.text-warning');
+  }
+  .icon-support-partial {
+    @include icon-support('.bi-exclamation-circle', '.text-orange');
+  }
+  .icon-support-legacy {
+    @include icon-support('.bi-archive', '.text-orange');
+  }
+  .icon-support-none {
+    @include icon-support('.bi-x-circle', '.text-danger');
+  }
+}
+
+.confkey-type {
+  background-color: $purple;
+}
+
+.confkey-syntax {
+  color: $white !important;
+  background-color: $pink;
+  text-decoration: none !important;
+}
+
+a:hover.confkey-syntax {
+  background-color: #ff00ff;
+  text-decoration: none !important;
+}
+
+.confkey-default {
+  background-color: $blue;
+}
+
+.confkey-required {
+  background-color: $dark-red;
+}
+
+.confkey-notrequired {
+  background-color: $dark-green;
+}
+
+.confkey-situational {
+  background-color: $orange;
+}
+
+.card-list > .card:hover {
+  transform: scale(1.025);
+}
+
+.card-list > .card {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.card-list {
+  margin-top: 2.25rem;
+}
+
+.rs-not-started {
+  background-color: $red;
+}
+
+.rs-complete {
+  background-color: $dark-green;
+}
+
+.rs-started {
+  background-color: $blue;
+}
+
+.rs-waiting {
+  background-color: $yellow;
+}
+
+.rs-version {
+  background-color: $purple;
+}

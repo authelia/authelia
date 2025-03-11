@@ -1,15 +1,20 @@
-import React, { ReactNode, useEffect } from "react";
+import React, { ReactNode, useCallback, useEffect, useState } from "react";
 
-import { AppBar, Box, Container, Grid, Theme, Toolbar, Typography } from "@mui/material";
+import { Box, Container, Theme } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 
 import UserSvg from "@assets/images/user.svg?react";
-import AccountSettingsMenu from "@components/AccountSettingsMenu";
+import AppBarLoginPortal from "@components/AppBarLoginPortal";
 import Brand from "@components/Brand";
 import PrivacyPolicyDrawer from "@components/PrivacyPolicyDrawer";
 import TypographyWithTooltip from "@components/TypographyWithTooltip";
+import { EncodedName } from "@constants/constants";
+import { useLanguageContext } from "@contexts/LanguageContext";
+import { Language } from "@models/LocaleInformation";
 import { UserInfo } from "@models/UserInfo";
+import { getLocaleInformation } from "@services/LocaleInformation";
 import { getLogoOverride } from "@utils/Configuration";
 
 export interface Props {
@@ -19,12 +24,14 @@ export interface Props {
     titleTooltip?: string | null;
     subtitle?: string | null;
     subtitleTooltip?: string | null;
-    showBrand?: boolean;
     userInfo?: UserInfo;
 }
 
 const LoginLayout = function (props: Props) {
     const { t: translate } = useTranslation();
+    const { locale, setLocale } = useLanguageContext();
+
+    const [localeList, setLocaleList] = useState<Language[]>([]);
 
     const styles = useStyles();
 
@@ -34,18 +41,38 @@ const LoginLayout = function (props: Props) {
         <UserSvg className={styles.icon} />
     );
 
+    // handle the language selection
+    const handleChangeLanguage = (locale: string) => {
+        setLocale(locale);
+    };
+
+    const fetchLocaleInformation = useCallback(async () => {
+        try {
+            const data = await getLocaleInformation();
+            setLocaleList(data.languages);
+
+            return data;
+        } catch (err) {
+            console.error("could not get locale list:", err);
+        }
+    }, []);
+
     useEffect(() => {
-        document.title = `${translate("Login")} - Authelia`;
+        fetchLocaleInformation().then();
+    }, [fetchLocaleInformation]);
+
+    useEffect(() => {
+        document.title = translate("Login - {{authelia}}", { authelia: atob(String.fromCharCode(...EncodedName)) });
     }, [translate]);
 
     return (
         <Box>
-            <AppBar position="static" color="transparent" elevation={0}>
-                <Toolbar variant="regular">
-                    <Typography style={{ flexGrow: 1 }} />
-                    {props.userInfo ? <AccountSettingsMenu userInfo={props.userInfo} /> : null}
-                </Toolbar>
-            </AppBar>
+            <AppBarLoginPortal
+                userInfo={props.userInfo}
+                onLocaleChange={handleChangeLanguage}
+                localeList={localeList}
+                localeCurrent={locale}
+            />
             <Grid
                 id={props.id}
                 className={styles.root}
@@ -56,11 +83,9 @@ const LoginLayout = function (props: Props) {
             >
                 <Container maxWidth="xs" className={styles.rootContainer}>
                     <Grid container>
-                        <Grid item xs={12}>
-                            {logo}
-                        </Grid>
+                        <Grid size={{ xs: 12 }}>{logo}</Grid>
                         {props.title ? (
-                            <Grid item xs={12}>
+                            <Grid size={{ xs: 12 }}>
                                 <TypographyWithTooltip
                                     variant={"h5"}
                                     value={props.title}
@@ -69,7 +94,7 @@ const LoginLayout = function (props: Props) {
                             </Grid>
                         ) : null}
                         {props.subtitle ? (
-                            <Grid item xs={12}>
+                            <Grid size={{ xs: 12 }}>
                                 <TypographyWithTooltip
                                     variant={"h6"}
                                     value={props.subtitle}
@@ -77,10 +102,10 @@ const LoginLayout = function (props: Props) {
                                 />
                             </Grid>
                         ) : null}
-                        <Grid item xs={12} className={styles.body}>
+                        <Grid size={{ xs: 12 }} className={styles.body}>
                             {props.children}
                         </Grid>
-                        {props.showBrand ? <Brand /> : null}
+                        <Brand />
                     </Grid>
                 </Container>
                 <PrivacyPolicyDrawer />

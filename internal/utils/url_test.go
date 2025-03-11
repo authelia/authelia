@@ -87,3 +87,37 @@ func MustParseURL(uri *url.URL, err error) *url.URL {
 
 	return uri
 }
+
+func TestIsURLInSlice(t *testing.T) {
+	urls := URLsFromStringSlice([]string{"https://google.com", "https://example.com", "https://www.authelia.com/docs"})
+
+	google, err := url.ParseRequestURI("https://google.com")
+	assert.NoError(t, err)
+
+	microsoft, err := url.ParseRequestURI("https://microsoft.com")
+	assert.NoError(t, err)
+
+	example, err := url.ParseRequestURI("https://example.com")
+	assert.NoError(t, err)
+
+	autheliaOne, err := url.ParseRequestURI("https://www.aUthelia.com/docs")
+	assert.NoError(t, err)
+
+	autheliaTwo, err := url.ParseRequestURI("https://www.authelia.com/docs")
+	assert.NoError(t, err)
+
+	autheliaThree, err := url.ParseRequestURI("https://www.authelia.com/")
+	assert.NoError(t, err)
+
+	autheliaFour, err := url.ParseRequestURI("httpS://www.autHelia.com/docs")
+	assert.NoError(t, err)
+
+	assert.True(t, IsURLInSlice(google, urls))
+	assert.False(t, IsURLInSlice(microsoft, urls))
+	assert.True(t, IsURLInSlice(example, urls))
+
+	assert.True(t, IsURLInSlice(autheliaOne, urls))
+	assert.True(t, IsURLInSlice(autheliaTwo, urls))
+	assert.False(t, IsURLInSlice(autheliaThree, urls))
+	assert.True(t, IsURLInSlice(autheliaFour, urls))
+}

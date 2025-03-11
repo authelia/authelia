@@ -1,59 +1,78 @@
 ---
-###############################################################
-#                Authelia minimal configuration               #
-###############################################################
+certificates_directory: '/certs/'
 
 server:
   address: 'tcp://:9091'
   tls:
-    certificate: /pki/public.backend.crt
-    key: /pki/private.backend.pem
+    certificate: '/pki/public.backend.crt'
+    key: '/pki/private.backend.pem'
 
 log:
-  level: debug
+  level: 'debug'
+
+storage:
+  encryption_key: 'a_not_so_secure_encryption_key'
+  local:
+    path: '/config/db.sqlite'
+
+notifier:
+  smtp:
+    address: 'smtp://mail.example.com:1025'
+    sender: 'admin@example.com'
 
 identity_validation:
   reset_password:
     jwt_secret: 'a_very_important_secret'
 
-authentication_backend:
-  file:
-    path: /config/users.yml
-
 session:
-  secret: unsecure_session_secret
-  expiration: 3600  # 1 hour
-  inactivity: 300  # 5 minutes
-  remember_me: 1y
+  secret: 'unsecure_session_secret'
   cookies:
     - domain: 'example.com'
       authelia_url: 'https://login.example.com:8080'
+      expiration: '1 hour'
+      inactivity: '5 minutes'
+      remember_me: '1 year'
 
-storage:
-  encryption_key: a_not_so_secure_encryption_key
-  local:
-    path: /config/db.sqlite
+authentication_backend:
+  file:
+    path: '/config/users.yml'
 
-# The Duo Push Notification API configuration
+totp:
+  disable_reuse_security_policy: true
+
+webauthn:
+  disable: false
+  enable_passkey_login: true
+  display_name: 'Authelia'
+  attestation_conveyance_preference: 'indirect'
+  timeout: '60 seconds'
+  filtering:
+    permitted_aaguids: []
+    prohibited_aaguids: []
+    prohibit_backup_eligibility: false
+  selection_criteria:
+    attachment: ''
+    discoverability: 'required'
+    user_verification: 'preferred'
+  metadata:
+    enabled: false
+    validate_trust_anchor: true
+    validate_entry: false
+    validate_entry_permit_zero_aaguid: true
+    validate_status: true
+    validate_status_permitted: []
+    validate_status_prohibited: []
+
 duo_api:
-  hostname: duo.example.com
-  integration_key: ABCDEFGHIJKL
-  secret_key: abcdefghijklmnopqrstuvwxyz123456789
+  hostname: 'duo.example.com'
+  integration_key: 'ABCDEFGHIJKL'
+  secret_key: 'abcdefghijklmnopqrstuvwxyz123456789'
 
 access_control:
   default_policy: bypass
   rules:
-    - domain: "public.example.com"
-      policy: bypass
-    - domain: "secure.example.com"
-      policy: two_factor
-
-notifier:
-  smtp:
-    address: 'smtp://smtp:1025'
-    sender: admin@example.com
-    disable_require_tls: true
-
-totp:
-  disable_reuse_security_policy: true
+    - domain: 'public.example.com'
+      policy: 'bypass'
+    - domain: 'secure.example.com'
+      policy: 'two_factor'
 ...

@@ -27,12 +27,14 @@ if [[ ! -x "$(command -v docker)" ]]; then
   exit 1
 fi
 
-if [[ ! -x "$(command -v docker-compose)" ]]; then
-  echo "You must install Docker Compose on your machine";
+docker compose version > /dev/null 2>&1
+
+if [ $? -ne 0 ]; then
+  echo "You must install Docker Compose on your machine"
   exit 1
 fi
 
-if [[ $(id -u)  != 0 ]]; then
+if [ $(id -u) != 0 ]; then
   echo "The script requires root access to perform some functions such as modifying your /etc/hosts file"
   read -rp "Would you like to elevate access with sudo? [y/N] " confirmsudo
   if ! [[ "$confirmsudo" =~ ^([yY][eE][sS]|[yY])$ ]]; then
@@ -44,8 +46,8 @@ fi
 echo "Pulling Authelia docker image for setup"
 sudo docker pull authelia/authelia > /dev/null
 
-echo "Resetting docker-compose.yml, configuration.yml and users_database.yml"
-sudo git checkout -- docker-compose.yml authelia/configuration.yml authelia/users_database.yml
+echo "Resetting compose.yml, configuration.yml and users_database.yml"
+sudo git checkout -- compose.yml authelia/configuration.yml authelia/users_database.yml
 
 read -ep "What root domain would you like to protect? (default/no selection is example.com): " DOMAIN
 
@@ -64,9 +66,9 @@ sudo docker run -a stdout -v $PWD/traefik/certs:/tmp/certs authelia/authelia aut
 
 if [[ $DOMAIN != "example.com" ]]; then
   if [[ $(uname) == "Darwin" ]]; then
-    sudo sed -i '' "s/example.com/$DOMAIN/g" {docker-compose.yml,authelia/configuration.yml}
+    sudo sed -i '' "s/example.com/$DOMAIN/g" {compose.yml,authelia/configuration.yml}
   else
-    sudo sed -i "s/example.com/$DOMAIN/g" {docker-compose.yml,authelia/configuration.yml}
+    sudo sed -i "s/example.com/$DOMAIN/g" {compose.yml,authelia/configuration.yml}
   fi
 fi
 
@@ -110,7 +112,7 @@ else
   password
 fi
 
-sudo docker-compose up -d
+sudo docker compose up -d
 
 if [[ $? != 0 ]]; then
   exit 1

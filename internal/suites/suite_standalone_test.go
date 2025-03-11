@@ -136,7 +136,7 @@ func (s *StandaloneWebDriverSuite) TestShouldNotRedirectAlreadyAuthenticatedUser
 
 	// Visit the login page and wait for redirection to 2FA page with success icon displayed.
 	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s?rd=https://secure.example.local:8080", GetLoginBaseURL(BaseDomain)))
-	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Redirection was determined to be unsafe and aborted. Ensure the redirection URL is correct.")
+	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "Redirection was determined to be unsafe and aborted ensure the redirection URL is correct")
 }
 
 func (s *StandaloneWebDriverSuite) TestShouldCheckUserIsAskedToRegisterDevice() {
@@ -330,12 +330,8 @@ func (s *StandaloneSuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *StandaloneSuite) TestTwoFactorTOTPScenario() {
-	suite.Run(s.T(), NewTwoFactorTOTPScenario())
-}
-
-func (s *StandaloneSuite) TestTwoFactorWebAuthnScenario() {
-	suite.Run(s.T(), NewTwoFactorWebAuthnScenario())
+func (s *StandaloneSuite) Test2FATOTPScenario() {
+	suite.Run(s.T(), New2FATOTPScenario())
 }
 
 func (s *StandaloneSuite) TestBypassPolicyScenario() {
@@ -348,6 +344,10 @@ func (s *StandaloneSuite) TestBackendProtectionScenario() {
 
 func (s *StandaloneSuite) TestResetPasswordScenario() {
 	suite.Run(s.T(), NewResetPasswordScenario())
+}
+
+func (s *StandaloneSuite) TestChangePasswordScenario() {
+	suite.Run(s.T(), NewChangePasswordScenario())
 }
 
 func (s *StandaloneSuite) TestRequestMethodScenario() {

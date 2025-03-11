@@ -1,0 +1,55 @@
+---
+title: "ADR{{ .ADR }}: {{ .Title }}"
+description: "An official Architecture Decision Record"
+date: {{ .Date }}
+weight: {{ .Weight }}
+toc: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
+---
+
+Date: {{ .DateHuman }}
+
+## Status
+
+{{ .Status | default "Proposed" }}
+
+## Submitters
+
+- [Submitters Name](Submitters URL), [Submitters Organization Name](Submitters Organization URL)
+
+## Change Log
+
+|    Date    | PR |  Status  |                           Notes                           |
+|:----------:|:--:|:--------:|:---------------------------------------------------------:|
+| {{ .DateISO }} |    | {{ .Status | default "Proposed" }} |                    Initial Publication                    |
+
+## Context
+
+{{ .Context | default "_N/A_" }}
+
+## Proposed Design
+
+{{ .ProposedDesign | default "_N/A_" }}
+
+## Decision
+
+{{ .Decision | default "_N/A_" }}
+
+## Consequences
+
+{{ .Consequences | default "_N/A_" }}
+
+## Related ADRs
+
+{{- if .RelatedADRs }}
+{{ range .RelatedADRs }}
+- [ADR{{ . }}]({{ . }}.md)
+{{- end }}
+{{- else }}
+
+_N/A_
+{{- end }}

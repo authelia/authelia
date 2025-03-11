@@ -11,6 +11,12 @@ import (
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
+func TestMiscMissingCoverage(t *testing.T) {
+	kid, err := jwkCalculateKID(struct{}{}, nil, "")
+	assert.NoError(t, err)
+	assert.Equal(t, "", kid)
+}
+
 func TestIsCookieDomainValid(t *testing.T) {
 	testCases := []struct {
 		domain   string
@@ -23,6 +29,7 @@ func TestIsCookieDomainValid(t *testing.T) {
 		{"duckdns.org", true},
 		{".duckdns.org", true},
 		{"example.duckdns.org", false},
+		{"shiftcrypto.dev", false},
 		{"192.168.2.1", false},
 		{"localhost", true},
 		{"com", true},
@@ -42,11 +49,6 @@ func TestIsCookieDomainValid(t *testing.T) {
 			})
 		})
 	}
-}
-
-func TestBuildStringFuncsMissingTests(t *testing.T) {
-	assert.Equal(t, "", buildJoinedString(".", ":", "'", nil))
-	assert.Equal(t, "'abc', '123'", strJoinComma("", []string{"abc", "123"}))
 }
 
 func TestSchemaJWKGetPropertiesMissingTests(t *testing.T) {

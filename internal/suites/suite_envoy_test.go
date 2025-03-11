@@ -20,8 +20,8 @@ func (s *EnvoySuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *EnvoySuite) TestTwoFactorTOTPScenario() {
-	suite.Run(s.T(), NewTwoFactorTOTPScenario())
+func (s *EnvoySuite) Test2FATOTPScenario() {
+	suite.Run(s.T(), New2FATOTPScenario())
 }
 
 func (s *EnvoySuite) TestCustomHeaders() {
@@ -30,6 +30,10 @@ func (s *EnvoySuite) TestCustomHeaders() {
 
 func (s *EnvoySuite) TestResetPasswordScenario() {
 	suite.Run(s.T(), NewResetPasswordScenario())
+}
+
+func (s *EnvoySuite) TestChangePasswordScenario() {
+	suite.Run(s.T(), NewChangePasswordScenario())
 }
 
 func TestEnvoySuite(t *testing.T) {

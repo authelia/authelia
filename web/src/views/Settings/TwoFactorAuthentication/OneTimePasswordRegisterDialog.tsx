@@ -26,7 +26,7 @@ import {
     Typography,
 } from "@mui/material";
 import { red } from "@mui/material/colors";
-import Grid from "@mui/material/Unstable_Grid2/Grid2";
+import Grid from "@mui/material/Grid2";
 import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
 import { QRCodeSVG } from "qrcode.react";
@@ -41,8 +41,7 @@ import { toAlgorithmString } from "@models/TOTPConfiguration";
 import { completeTOTPRegister, stopTOTPRegister } from "@services/OneTimePassword";
 import { getTOTPSecret } from "@services/RegisterDevice";
 import { getTOTPOptions } from "@services/UserInfoTOTPConfiguration";
-import { State } from "@views/LoginPortal/SecondFactor/OneTimePasswordMethod";
-import OTPDial from "@views/LoginPortal/SecondFactor/OTPDial";
+import OTPDial, { State } from "@views/LoginPortal/SecondFactor/OTPDial";
 
 const steps = ["Start", "Register", "Confirm"];
 
@@ -301,15 +300,15 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                 return (
                     <Fragment>
                         {defaults === null ? (
-                            <Grid xs={12} my={3}>
+                            <Grid size={{ xs: 12 }} my={3}>
                                 <Typography>Loading...</Typography>
                             </Grid>
                         ) : (
                             <Grid container>
-                                <Grid xs={12} my={3}>
+                                <Grid size={{ xs: 12 }} my={3}>
                                     <Typography>{translate("To begin select next")}</Typography>
                                 </Grid>
-                                <Grid xs={12} hidden={disableAdvanced}>
+                                <Grid size={{ xs: 12 }} hidden={disableAdvanced}>
                                     <FormControlLabel
                                         disabled={disableAdvanced}
                                         control={
@@ -323,7 +322,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                     />
                                 </Grid>
                                 <Grid
-                                    xs={12}
+                                    size={{ xs: 12 }}
                                     hidden={disableAdvanced || !showAdvanced}
                                     justifyContent={"center"}
                                     alignItems={"center"}
@@ -421,7 +420,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
             case 1:
                 return (
                     <Fragment>
-                        <Grid xs={12} my={2}>
+                        <Grid size={{ xs: 12 }} my={2}>
                             <FormControlLabel
                                 control={
                                     <Switch
@@ -435,7 +434,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                 label={translate("QR Code")}
                             />
                         </Grid>
-                        <Grid xs={12} hidden={!showQRCode}>
+                        <Grid size={{ xs: 12 }} hidden={!showQRCode}>
                             <Box className={classnames(qrcodeFuzzyStyle, styles.qrcodeContainer)}>
                                 {secretURL !== null ? (
                                     <Link href={secretURL} underline="hover">
@@ -450,9 +449,9 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                 ) : null}
                             </Box>
                         </Grid>
-                        <Grid xs={12} hidden={showQRCode}>
+                        <Grid size={{ xs: 12 }} hidden={showQRCode}>
                             <Grid container spacing={2} justifyContent={"center"}>
-                                <Grid xs={4}>
+                                <Grid size={{ xs: 4 }}>
                                     <CopyButton
                                         tooltip={translate("Click to Copy")}
                                         value={secretURL}
@@ -462,7 +461,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                         {translate("URI")}
                                     </CopyButton>
                                 </Grid>
-                                <Grid xs={4}>
+                                <Grid size={{ xs: 4 }}>
                                     <CopyButton
                                         tooltip={translate("Click to Copy")}
                                         value={secretValue}
@@ -472,7 +471,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                         {translate("Secret")}
                                     </CopyButton>
                                 </Grid>
-                                <Grid xs={12}>
+                                <Grid size={{ xs: 12 }}>
                                     <TextField
                                         id={"secret-url"}
                                         label={translate("Secret")}
@@ -486,7 +485,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                 </Grid>
                             </Grid>
                         </Grid>
-                        <Grid xs={12} sx={{ display: { xs: "none", md: "block" } }}>
+                        <Grid size={{ xs: 12 }} sx={{ display: { xs: "none", md: "block" } }}>
                             <Box>
                                 <Typography className={styles.googleAuthenticatorText}>
                                     {translate("Need Google Authenticator?")}
@@ -505,7 +504,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
             case 2:
                 return (
                     <Fragment>
-                        <Grid xs={12} paddingY={4}>
+                        <Grid size={{ xs: 12 }} paddingY={4}>
                             {success ? (
                                 <Box className={styles.success}>
                                     <SuccessIcon />
@@ -535,7 +534,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                     })}
                 </DialogContentText>
                 <Grid container spacing={0} alignItems={"center"} justifyContent={"center"} textAlign={"center"}>
-                    <Grid xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <Stepper activeStep={activeStep}>
                             {steps.map((label, index) => {
                                 const stepProps: { completed?: boolean } = {};
@@ -550,7 +549,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                             })}
                         </Stepper>
                     </Grid>
-                    <Grid xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <Grid container spacing={1} justifyContent={"center"}>
                             {renderStep(activeStep)}
                         </Grid>

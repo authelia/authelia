@@ -35,3 +35,9 @@ const (
 	FormatJSONSchemaIdentifier         = "https://www.authelia.com/schemas/%s/json-schema/%s.json"
 	FormatJSONSchemaYAMLLanguageServer = "# yaml-language-server: $schema=" + FormatJSONSchemaIdentifier
 )
+
+type CtxKey int
+
+const (
+	CtxKeyAutheliaCtx CtxKey = iota
+)

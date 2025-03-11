@@ -3,7 +3,7 @@ import {
     PublicKeyCredentialCreationOptionsJSON,
     PublicKeyCredentialRequestOptionsJSON,
     RegistrationResponseJSON,
-} from "@simplewebauthn/types";
+} from "@simplewebauthn/browser";
 
 export interface PublicKeyCredentialCreationOptionsStatus {
     options?: PublicKeyCredentialCreationOptionsJSON;
@@ -59,42 +59,42 @@ export function AssertionResultFailureString(result: AssertionResult) {
         case AssertionResult.Success:
             return "";
         case AssertionResult.FailureUserConsent:
-            return "You cancelled the assertion request.";
+            return "You cancelled the assertion request";
         case AssertionResult.FailureU2FFacetID:
-            return "The server responded with an invalid Facet ID for the URL.";
+            return "The server responded with an invalid Facet ID for the URL";
         case AssertionResult.FailureSyntax:
-            return "The assertion challenge was rejected as malformed or incompatible by your browser.";
+            return "The assertion challenge was rejected as malformed or incompatible by your browser";
         case AssertionResult.FailureWebAuthnNotSupported:
-            return "Your browser does not support the WebAuthn protocol.";
+            return "Your browser does not support the WebAuthn protocol";
         case AssertionResult.FailureUnrecognized:
-            return "This device is not registered.";
+            return "This device is not registered";
         case AssertionResult.FailureUnknownSecurity:
-            return "An unknown security error occurred.";
+            return "An unknown security error occurred";
         case AssertionResult.FailureUnknown:
-            return "An unknown error occurred.";
+            return "An unknown error occurred";
         default:
-            return "An unexpected error occurred.";
+            return "An unexpected error occurred";
     }
 }
 
 export function AttestationResultFailureString(result: AttestationResult) {
     switch (result) {
         case AttestationResult.FailureToken:
-            return "You must open the link from the same device and browser that initiated the registration process.";
+            return "You must open the link from the same device and browser that initiated the registration process";
         case AttestationResult.FailureSupport:
-            return "Your browser does not appear to support the configuration.";
+            return "Your browser does not appear to support the configuration";
         case AttestationResult.FailureSyntax:
-            return "The attestation challenge was rejected as malformed or incompatible by your browser.";
+            return "The attestation challenge was rejected as malformed or incompatible by your browser";
         case AttestationResult.FailureWebAuthnNotSupported:
-            return "Your browser does not support the WebAuthn protocol.";
+            return "Your browser does not support the WebAuthn protocol";
         case AttestationResult.FailureUserConsent:
-            return "You cancelled the attestation request.";
+            return "You cancelled the attestation request";
         case AttestationResult.FailureUserVerificationOrResidentKey:
-            return "Your device does not support user verification or resident keys but this was required.";
+            return "Your device does not support user verification or resident keys but this was required";
         case AttestationResult.FailureExcluded:
-            return "You have registered this device already.";
+            return "You have registered this device already";
         case AttestationResult.FailureUnknown:
-            return "An unknown error occurred.";
+            return "An unknown error occurred";
     }
 
     return "";

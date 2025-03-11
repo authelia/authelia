@@ -1,4 +1,0 @@
-{{ with .Parent -}}
-  {{ partial "main/breadcrumb.html" . -}}
-  <li class="breadcrumb-item"><a href="{{ .RelPermalink }}">{{ if .IsHome }}Home{{ else if eq .CurrentSection .FirstSection }}{{ .Section | humanize }}{{ else }}{{ .Title }}{{ end }}</a></li>
-{{ end -}}

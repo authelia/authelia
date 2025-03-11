@@ -1,6 +1,17 @@
 import React, { MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { Alert, AlertTitle, Button, Checkbox, FormControl, FormControlLabel, Grid, Link, Theme } from "@mui/material";
+import {
+    Alert,
+    AlertTitle,
+    Button,
+    Checkbox,
+    CircularProgress,
+    FormControl,
+    FormControlLabel,
+    Link,
+    Theme,
+} from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import TextField from "@mui/material/TextField";
 import makeStyles from "@mui/styles/makeStyles";
 import { BroadcastChannel } from "broadcast-channel";
@@ -15,17 +26,18 @@ import { useQueryParam } from "@hooks/QueryParam";
 import { useWorkflow } from "@hooks/Workflow";
 import LoginLayout from "@layouts/LoginLayout";
 import { IsCapsLockModified } from "@services/CapsLock";
-import { postFirstFactor } from "@services/FirstFactor";
+import { postFirstFactor } from "@services/Password";
+import PasskeyForm from "@views/LoginPortal/FirstFactor/PasskeyForm";
 
 export interface Props {
     disabled: boolean;
+    passkeyLogin: boolean;
     rememberMe: boolean;
-
     resetPassword: boolean;
     resetPasswordCustomURL: string;
 
     onAuthenticationStart: () => void;
-    onAuthenticationFailure: () => void;
+    onAuthenticationStop: () => void;
     onAuthenticationSuccess: (redirectURL: string | undefined) => void;
     onChannelStateChange: () => void;
 }
@@ -36,7 +48,7 @@ const FirstFactorForm = function (props: Props) {
     const navigate = useNavigate();
     const redirectionURL = useQueryParam(RedirectionURL);
     const requestMethod = useQueryParam(RequestMethod);
-    const [workflow] = useWorkflow();
+    const [workflow, workflowID] = useWorkflow();
     const { createErrorNotification } = useNotifications();
 
     const loginChannel = useMemo(() => new BroadcastChannel<boolean>("login"), []);
@@ -48,6 +60,7 @@ const FirstFactorForm = function (props: Props) {
     const [passwordCapsLock, setPasswordCapsLock] = useState(false);
     const [passwordCapsLockPartial, setPasswordCapsLockPartial] = useState(false);
     const [passwordError, setPasswordError] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const usernameRef = useRef() as MutableRefObject<HTMLInputElement>;
     const passwordRef = useRef() as MutableRefObject<HTMLInputElement>;
@@ -85,15 +98,30 @@ const FirstFactorForm = function (props: Props) {
             return;
         }
 
+        setLoading(true);
+
         props.onAuthenticationStart();
+
         try {
-            const res = await postFirstFactor(username, password, rememberMe, redirectionURL, requestMethod, workflow);
+            const res = await postFirstFactor(
+                username,
+                password,
+                rememberMe,
+                redirectionURL,
+                requestMethod,
+                workflow,
+                workflowID,
+            );
+
+            setLoading(false);
+
             await loginChannel.postMessage(true);
             props.onAuthenticationSuccess(res ? res.redirect : undefined);
         } catch (err) {
             console.error(err);
             createErrorNotification(translate("Incorrect username or password"));
-            props.onAuthenticationFailure();
+            setLoading(false);
+            props.onAuthenticationStop();
             setPassword("");
             passwordRef.current.focus();
         }
@@ -108,6 +136,7 @@ const FirstFactorForm = function (props: Props) {
         translate,
         username,
         workflow,
+        workflowID,
     ]);
 
     const handleResetPasswordClick = () => {
@@ -190,10 +219,10 @@ const FirstFactorForm = function (props: Props) {
     );
 
     return (
-        <LoginLayout id="first-factor-stage" title={translate("Sign in")} showBrand>
+        <LoginLayout id="first-factor-stage" title={translate("Sign in")}>
             <FormControl id={"form-login"}>
                 <Grid container spacing={2}>
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <TextField
                             inputRef={usernameRef}
                             id="username-textfield"
@@ -211,7 +240,7 @@ const FirstFactorForm = function (props: Props) {
                             onKeyDown={handleUsernameKeyDown}
                         />
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <TextField
                             inputRef={passwordRef}
                             id="password-textfield"
@@ -231,7 +260,7 @@ const FirstFactorForm = function (props: Props) {
                         />
                     </Grid>
                     {passwordCapsLock ? (
-                        <Grid item xs={12} marginX={2}>
+                        <Grid size={{ xs: 12 }} marginX={2}>
                             <Alert severity={"warning"}>
                                 <AlertTitle>{translate("Warning")}</AlertTitle>
                                 {passwordCapsLockPartial
@@ -241,7 +270,7 @@ const FirstFactorForm = function (props: Props) {
                         </Grid>
                     ) : null}
                     {props.rememberMe ? (
-                        <Grid item xs={12} className={classnames(styles.actionRow)}>
+                        <Grid size={{ xs: 12 }} className={classnames(styles.actionRow)}>
                             <FormControlLabel
                                 control={
                                     <Checkbox
@@ -259,7 +288,7 @@ const FirstFactorForm = function (props: Props) {
                             />
                         </Grid>
                     ) : null}
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <Button
                             id="sign-in-button"
                             variant="contained"
@@ -267,12 +296,27 @@ const FirstFactorForm = function (props: Props) {
                             fullWidth
                             disabled={disabled}
                             onClick={handleSignIn}
+                            endIcon={loading ? <CircularProgress size={20} /> : null}
                         >
                             {translate("Sign in")}
                         </Button>
                     </Grid>
+                    {props.passkeyLogin ? (
+                        <PasskeyForm
+                            disabled={props.disabled}
+                            rememberMe={props.rememberMe}
+                            onAuthenticationError={(err) => createErrorNotification(err.message)}
+                            onAuthenticationStart={() => {
+                                setUsername("");
+                                setPassword("");
+                                props.onAuthenticationStart();
+                            }}
+                            onAuthenticationStop={props.onAuthenticationStop}
+                            onAuthenticationSuccess={props.onAuthenticationSuccess}
+                        />
+                    ) : null}
                     {props.resetPassword ? (
-                        <Grid item xs={12} className={classnames(styles.actionRow, styles.flexEnd)}>
+                        <Grid size={{ xs: 12 }} className={classnames(styles.actionRow, styles.flexEnd)}>
                             <Link
                                 id="reset-password-button"
                                 component="button"

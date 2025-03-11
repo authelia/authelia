@@ -1,26 +1,31 @@
-{{ $parts := slice .Site.Params.docsRepo }}
+{{ $parts := slice site.Params.doks.docsRepo }}
 
-{{ if (eq .Site.Params.repoHost "GitHub") }}
-  {{ $parts = $parts | append "blob" .Site.Params.docsRepoBranch }}
-{{ else if (eq .Site.Params.repoHost "Gitea") }}
-  {{ $parts = $parts | append "_edit" .Site.Params.docsRepoBranch }}
-{{ else if (eq .Site.Params.repoHost "GitLab") }}
-  {{ $parts = $parts | append "-/blob" .Site.Params.docsRepoBranch }}
-{{ else if (eq .Site.Params.repoHost "Bitbucket") }}
-  {{ $parts = $parts | append "src" .Site.Params.docsRepoBranch }}
-{{ else if (eq .Site.Params.repoHost "BitbucketServer") }}
-  {{ $parts = $parts | append "browse" .Site.Params.docsRepoBranch }}
+{{ if (eq site.Params.doks.repoHost "GitHub") }}
+{{ $parts = $parts | append "blob" site.Params.doks.docsRepoBranch }}
+{{ else if (eq site.Params.doks.repoHost "Gitea") }}
+{{ $parts = $parts | append "_edit" site.Params.doks.docsRepoBranch }}
+{{ else if (eq site.Params.doks.repoHost "GitLab") }}
+{{ $parts = $parts | append "-/blob" site.Params.doks.docsRepoBranch }}
+{{ else if (eq site.Params.doks.repoHost "Bitbucket") }}
+{{ $parts = $parts | append "src" site.Params.doks.docsRepoBranch }}
+{{ else if (eq site.Params.doks.repoHost "BitbucketServer") }}
+{{ $parts = $parts | append "browse" site.Params.doks.docsRepoBranch }}
 {{ end }}
 
-{{ if isset .Site.Params "docsreposubpath" }}
-  {{ if not (eq .Site.Params.docsRepoSubPath "") }}
-    {{ $parts = $parts | append .Site.Params.docsRepoSubPath }}
-  {{ end }}
+{{ if isset site.Params.doks "docsreposubpath" }}
+{{ if not (eq site.Params.doks.docsRepoSubPath "") }}
+{{ $parts = $parts | append site.Params.doks.docsRepoSubPath }}
+{{ end }}
 {{ end }}
 
 {{ $filePath := replace .File.Path "\\" "/" }}
 
-{{ $parts = $parts | append "content" .Lang $filePath }}
+{{ $lang := "" }}
+{{ if site.Params.doks.multilingualMode }}
+{{ $lang = .Lang }}
+{{ end }}
+
+{{ $parts = $parts | append "content" $lang $filePath }}
 
 {{ $url := delimit $parts "/" }}
 
@@ -29,6 +34,6 @@
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit-2">
       <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
     </svg>
-    Edit this page on {{ .Site.Params.repoHost }}
+    {{ i18n "edit_page" }} {{ site.Params.doks.repoHost }}
   </a>
 </div>

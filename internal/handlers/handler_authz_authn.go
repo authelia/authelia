@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -10,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ory/fosite"
+	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
@@ -20,6 +21,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
+	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -33,7 +35,7 @@ func NewCookieSessionAuthnStrategy(refresh schema.RefreshIntervalDuration) *Cook
 
 // NewHeaderAuthorizationAuthnStrategy creates a new HeaderAuthnStrategy using the Authorization and WWW-Authenticate
 // headers, and the 407 Proxy Auth Required response.
-func NewHeaderAuthorizationAuthnStrategy(schemes ...string) *HeaderAuthnStrategy {
+func NewHeaderAuthorizationAuthnStrategy(schemaBasicCacheLifeSpan time.Duration, schemes ...string) *HeaderAuthnStrategy {
 	return &HeaderAuthnStrategy{
 		authn:              AuthnTypeAuthorization,
 		headerAuthorize:    headerAuthorization,
@@ -41,12 +43,13 @@ func NewHeaderAuthorizationAuthnStrategy(schemes ...string) *HeaderAuthnStrategy
 		handleAuthenticate: true,
 		statusAuthenticate: fasthttp.StatusUnauthorized,
 		schemes:            model.NewAuthorizationSchemes(schemes...),
+		basic:              NewBasicAuthHandler(schemaBasicCacheLifeSpan),
 	}
 }
 
 // NewHeaderProxyAuthorizationAuthnStrategy creates a new HeaderAuthnStrategy using the Proxy-Authorization and
 // Proxy-Authenticate headers, and the 407 Proxy Auth Required response.
-func NewHeaderProxyAuthorizationAuthnStrategy(schemes ...string) *HeaderAuthnStrategy {
+func NewHeaderProxyAuthorizationAuthnStrategy(schemaBasicCacheLifeSpan time.Duration, schemes ...string) *HeaderAuthnStrategy {
 	return &HeaderAuthnStrategy{
 		authn:              AuthnTypeProxyAuthorization,
 		headerAuthorize:    headerProxyAuthorization,
@@ -54,13 +57,14 @@ func NewHeaderProxyAuthorizationAuthnStrategy(schemes ...string) *HeaderAuthnStr
 		handleAuthenticate: true,
 		statusAuthenticate: fasthttp.StatusProxyAuthRequired,
 		schemes:            model.NewAuthorizationSchemes(schemes...),
+		basic:              NewBasicAuthHandler(schemaBasicCacheLifeSpan),
 	}
 }
 
 // NewHeaderProxyAuthorizationAuthRequestAuthnStrategy creates a new HeaderAuthnStrategy using the Proxy-Authorization
 // and WWW-Authenticate headers, and the 401 Proxy Auth Required response. This is a special AuthnStrategy for the
 // AuthRequest implementation.
-func NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(schemes ...string) *HeaderAuthnStrategy {
+func NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(schemaBasicCacheLifeSpan time.Duration, schemes ...string) *HeaderAuthnStrategy {
 	return &HeaderAuthnStrategy{
 		authn:              AuthnTypeProxyAuthorization,
 		headerAuthorize:    headerProxyAuthorization,
@@ -68,6 +72,7 @@ func NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(schemes ...string) *Hea
 		handleAuthenticate: true,
 		statusAuthenticate: fasthttp.StatusUnauthorized,
 		schemes:            model.NewAuthorizationSchemes(schemes...),
+		basic:              NewBasicAuthHandler(schemaBasicCacheLifeSpan),
 	}
 }
 
@@ -109,7 +114,7 @@ func (s *CookieSessionAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, provider 
 		}
 	}
 
-	if invalid := handleVerifyGETAuthnCookieValidate(ctx, provider, &userSession, s.refresh); invalid {
+	if invalid := handleAuthnCookieValidate(ctx, provider, &userSession, s.refresh); invalid {
 		if err = ctx.DestroySession(); err != nil {
 			ctx.Logger.WithError(err).Errorf("Unable to destroy user session")
 		}
@@ -136,13 +141,18 @@ func (s *CookieSessionAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, provider 
 			Emails:      userSession.Emails,
 			Groups:      userSession.Groups,
 		},
-		Level: userSession.AuthenticationLevel,
+		Level: userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA),
 		Type:  AuthnTypeCookie,
 	}, nil
 }
 
 // CanHandleUnauthorized returns true if this AuthnStrategy should handle Unauthorized requests.
 func (s *CookieSessionAuthnStrategy) CanHandleUnauthorized() (handle bool) {
+	return false
+}
+
+// HeaderStrategy returns true if this AuthnStrategy is header based.
+func (s *CookieSessionAuthnStrategy) HeaderStrategy() (header bool) {
 	return false
 }
 
@@ -158,6 +168,53 @@ type HeaderAuthnStrategy struct {
 	handleAuthenticate bool
 	statusAuthenticate int
 	schemes            model.AuthorizationSchemes
+
+	basic BasicAuthHandler
+}
+
+// BasicAuthHandler is a function signature that handles basic authentication. This is used to implement caching.
+type BasicAuthHandler func(ctx *middlewares.AutheliaCtx, authorization *model.Authorization) (valid, cached bool, err error)
+
+// NewBasicAuthHandler creates a new BasicAuthHandler depending on the lifespan.
+func NewBasicAuthHandler(lifespan time.Duration) BasicAuthHandler {
+	if lifespan == 0 {
+		return DefaultBasicAuthHandler
+	}
+
+	return NewCachedBasicAuthHandler(lifespan)
+}
+
+// DefaultBasicAuthHandler is a BasicAuthHandler that just checks the username and password directly.
+func DefaultBasicAuthHandler(ctx *middlewares.AutheliaCtx, authorization *model.Authorization) (valid, cached bool, err error) {
+	valid, err = ctx.Providers.UserProvider.CheckUserPassword(authorization.Basic())
+
+	return valid, false, err
+}
+
+// NewCachedBasicAuthHandler creates a new BasicAuthHandler which uses the authentication.NewCredentialCacheHMAC using
+// the sha256 checksum functions.
+func NewCachedBasicAuthHandler(lifespan time.Duration) BasicAuthHandler {
+	cache := authentication.NewCredentialCacheHMAC(sha256.New, lifespan)
+
+	return func(ctx *middlewares.AutheliaCtx, authorization *model.Authorization) (valid, cached bool, err error) {
+		if valid, _ = cache.Valid(authorization.Basic()); valid {
+			return true, true, nil
+		}
+
+		if valid, err = ctx.Providers.UserProvider.CheckUserPassword(authorization.Basic()); err != nil {
+			return false, false, err
+		}
+
+		if valid {
+			if err = cache.Put(authorization.Basic()); err != nil {
+				ctx.Logger.WithError(err).Errorf("Error occurred saving basic authorization credentials to cache for user '%s'", authorization.BasicUsername())
+			}
+
+			return true, false, nil
+		}
+
+		return false, false, nil
+	}
 }
 
 // Get returns the Authn information for this AuthnStrategy.
@@ -192,7 +249,11 @@ func (s *HeaderAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session.Sessi
 	scheme := authn.Header.Authorization.Scheme()
 
 	if !s.schemes.Has(scheme) {
-		return authn, fmt.Errorf("invalid scheme: scheme with name '%s' isn't available on this endpoint", scheme.String())
+		ctx.Logger.
+			WithFields(map[string]any{"scheme": authn.Header.Authorization.SchemeRaw(), "header": string(s.headerAuthorize)}).
+			Debug("Skipping header authorization as the scheme and header combination is unknown to this endpoint configuration")
+
+		return authn, nil
 	}
 
 	switch scheme {
@@ -201,10 +262,18 @@ func (s *HeaderAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session.Sessi
 	case model.AuthorizationSchemeBearer:
 		username, clientID, ccs, level, err = handleVerifyGETAuthorizationBearer(ctx, authn, object)
 	default:
-		err = fmt.Errorf("failed to parse content of %s header: the scheme '%s' is not known", s.headerAuthorize, authn.Header.Authorization.SchemeRaw())
+		ctx.Logger.
+			WithFields(map[string]any{"scheme": authn.Header.Authorization.SchemeRaw(), "header": string(s.headerAuthorize)}).
+			Debug("Skipping header authorization as the scheme is unknown to this endpoint configuration")
+
+		return authn, nil
 	}
 
 	if err != nil {
+		if errors.Is(err, errTokenIntent) {
+			return authn, nil
+		}
+
 		return authn, fmt.Errorf("failed to validate %s header with %s scheme: %w", s.headerAuthorize, scheme, err)
 	}
 
@@ -239,25 +308,56 @@ func (s *HeaderAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session.Sessi
 	return authn, nil
 }
 
-func (s *HeaderAuthnStrategy) handleGetBasic(ctx *middlewares.AutheliaCtx, authn *Authn, _ *authorization.Object) (username string, level authentication.Level, err error) {
+func (s *HeaderAuthnStrategy) handleGetBasic(ctx *middlewares.AutheliaCtx, authn *Authn, object *authorization.Object) (username string, level authentication.Level, err error) {
 	var (
-		valid bool
+		ban     regulation.BanType
+		value   string
+		expires *time.Time
 	)
 
-	if valid, err = ctx.Providers.UserProvider.CheckUserPassword(authn.Header.Authorization.Basic()); err != nil {
-		return "", authentication.NotAuthenticated, fmt.Errorf("failed to validate parsed credentials of %s header for user '%s': %w", s.headerAuthorize, authn.Header.Authorization.BasicUsername(), err)
+	username = authn.Header.Authorization.BasicUsername()
+
+	if ban, value, expires, err = ctx.Providers.Regulator.BanCheck(ctx, username); err != nil {
+		if errors.Is(err, regulation.ErrUserIsBanned) {
+			doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(ban, value, expires), regulation.AuthType1FA, object.String(), object.Method, nil)
+
+			return "", authentication.NotAuthenticated, fmt.Errorf("failed to validate the credentials of user '%s' parsed from the %s header: %w", username, s.headerAuthorize, err)
+		}
+
+		ctx.Logger.WithError(err).Errorf(logFmtErrRegulationFail, regulation.AuthType1FA, username)
+
+		return "", authentication.NotAuthenticated, fmt.Errorf("failed to check the regulation status of user '%s' during an attempt to authenticate using the %s header: %w", username, s.headerAuthorize, err)
+	}
+
+	var valid, cached bool
+
+	if valid, cached, err = s.basic(ctx, authn.Header.Authorization); err != nil {
+		doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, object.String(), object.Method, err)
+
+		return "", authentication.NotAuthenticated, fmt.Errorf("failed to validate the credentials of user '%s' parsed from the %s header: %w", username, s.headerAuthorize, err)
 	}
 
 	if !valid {
-		return "", authentication.NotAuthenticated, fmt.Errorf("validated parsed credentials of %s header but they are not valid for user '%s': %w", s.headerAuthorize, authn.Header.Authorization.BasicUsername(), err)
+		doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, object.String(), object.Method, nil)
+
+		return "", authentication.NotAuthenticated, fmt.Errorf("failed to validate parsed credentials of %s header valid for user '%s': the username and password do not match", s.headerAuthorize, username)
 	}
 
-	return authn.Header.Authorization.BasicUsername(), authentication.OneFactor, nil
+	if !cached {
+		doMarkAuthenticationAttemptWithRequest(ctx, true, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, object.String(), object.Method, nil)
+	}
+
+	return username, authentication.OneFactor, nil
 }
 
 // CanHandleUnauthorized returns true if this AuthnStrategy should handle Unauthorized requests.
 func (s *HeaderAuthnStrategy) CanHandleUnauthorized() (handle bool) {
 	return s.handleAuthenticate
+}
+
+// HeaderStrategy returns true if this AuthnStrategy is header based.
+func (s *HeaderAuthnStrategy) HeaderStrategy() (header bool) {
+	return true
 }
 
 // HandleUnauthorized is the Unauthorized handler for the header AuthnStrategy.
@@ -348,27 +448,33 @@ func (s *HeaderLegacyAuthnStrategy) CanHandleUnauthorized() (handle bool) {
 	return true
 }
 
+// HeaderStrategy returns true if this AuthnStrategy is header based.
+func (s *HeaderLegacyAuthnStrategy) HeaderStrategy() (header bool) {
+	return true
+}
+
 // HandleUnauthorized is the Unauthorized handler for the Legacy header AuthnStrategy.
 func (s *HeaderLegacyAuthnStrategy) HandleUnauthorized(ctx *middlewares.AutheliaCtx, authn *Authn, _ *url.URL) {
 	handleAuthzUnauthorizedAuthorizationBasic(ctx, authn)
 }
 
-func handleVerifyGETAuthnCookieValidate(ctx *middlewares.AutheliaCtx, provider *session.Session, userSession *session.UserSession, refresh schema.RefreshIntervalDuration) (invalid bool) {
+func handleAuthnCookieValidate(ctx *middlewares.AutheliaCtx, provider *session.Session, userSession *session.UserSession, refresh schema.RefreshIntervalDuration) (invalid bool) {
+	// TODO: Remove this check as it's no longer possible i.e. ineffectual.
 	isAnonymous := userSession.Username == ""
 
-	if isAnonymous && userSession.AuthenticationLevel != authentication.NotAuthenticated {
-		ctx.Logger.WithFields(map[string]any{"username": anonymous, "level": userSession.AuthenticationLevel.String()}).Errorf("Session for user has an invalid authentication level: this may be a sign of a compromise")
+	if isAnonymous && userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA) != authentication.NotAuthenticated {
+		ctx.Logger.WithFields(map[string]any{"username": anonymous, "level": userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA).String()}).Errorf("Session for user has an invalid authentication level: this may be a sign of a compromise")
 
 		return true
 	}
 
-	if invalid = handleVerifyGETAuthnCookieValidateInactivity(ctx, provider, userSession, isAnonymous); invalid {
+	if invalid = handleAuthnCookieValidateInactivity(ctx, provider, userSession, isAnonymous); invalid {
 		ctx.Logger.WithField("username", userSession.Username).Info("Session for user not marked as remembered has exceeded configured session inactivity")
 
 		return true
 	}
 
-	if invalid = handleVerifyGETAuthnCookieValidateRefresh(ctx, userSession, isAnonymous, refresh); invalid {
+	if invalid = handleSessionValidateRefresh(ctx, userSession, refresh); invalid {
 		return true
 	}
 
@@ -385,7 +491,7 @@ func handleVerifyGETAuthnCookieValidate(ctx *middlewares.AutheliaCtx, provider *
 	return false
 }
 
-func handleVerifyGETAuthnCookieValidateInactivity(ctx *middlewares.AutheliaCtx, provider *session.Session, userSession *session.UserSession, isAnonymous bool) (invalid bool) {
+func handleAuthnCookieValidateInactivity(ctx *middlewares.AutheliaCtx, provider *session.Session, userSession *session.UserSession, isAnonymous bool) (invalid bool) {
 	if isAnonymous || userSession.KeepMeLoggedIn || int64(provider.Config.Inactivity.Seconds()) == 0 {
 		return false
 	}
@@ -395,8 +501,8 @@ func handleVerifyGETAuthnCookieValidateInactivity(ctx *middlewares.AutheliaCtx, 
 	return time.Unix(userSession.LastActivity, 0).Add(provider.Config.Inactivity).Before(ctx.Clock.Now())
 }
 
-func handleVerifyGETAuthnCookieValidateRefresh(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, isAnonymous bool, refresh schema.RefreshIntervalDuration) (invalid bool) {
-	if refresh.Never() || isAnonymous {
+func handleSessionValidateRefresh(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, refresh schema.RefreshIntervalDuration) (invalid bool) {
+	if refresh.Never() || userSession.IsAnonymous() {
 		return false
 	}
 
@@ -454,40 +560,38 @@ func handleVerifyGETAuthnCookieValidateRefresh(ctx *middlewares.AutheliaCtx, use
 }
 
 func handleVerifyGETAuthorizationBearer(ctx *middlewares.AutheliaCtx, authn *Authn, object *authorization.Object) (username, clientID string, ccs bool, level authentication.Level, err error) {
-	if ctx.Providers.OpenIDConnect == nil || ctx.Configuration.IdentityProviders.OIDC == nil || !ctx.Configuration.IdentityProviders.OIDC.Discovery.BearerAuthorization {
-		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("authorization bearer scheme requires an OpenID Connect 1.0 configuration but it's absent")
-	}
+	var at bool
 
-	if !ctx.Configuration.IdentityProviders.OIDC.Discovery.BearerAuthorization {
-		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("authorization bearer scheme requires an OAuth 2.0 or OpenID Connect 1.0 client to be registered with the '%s' scope but there are none", oidc.ScopeAutheliaBearerAuthz)
+	if at, err = oidc.IsAccessToken(ctx, authn.Header.Authorization.Value()); !at {
+		if err != nil {
+			ctx.Logger.WithError(err).Debug("The bearer token does not appear to be a relevant access token")
+		} else {
+			ctx.Logger.Debug("The bearer token does not appear to be a relevant access token")
+		}
+
+		return "", "", false, authentication.NotAuthenticated, errTokenIntent
 	}
 
 	return handleVerifyGETAuthorizationBearerIntrospection(ctx, ctx.Providers.OpenIDConnect, authn, object)
 }
 
-type AuthzBearerIntrospectionProvider interface {
-	GetFullClient(ctx context.Context, id string) (client oidc.Client, err error)
-	GetAudienceStrategy(ctx context.Context) (strategy fosite.AudienceMatchingStrategy)
-	IntrospectToken(ctx context.Context, token string, tokenUse fosite.TokenUse, session fosite.Session, scope ...string) (fosite.TokenUse, fosite.AccessRequester, error)
-}
-
 func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provider AuthzBearerIntrospectionProvider, authn *Authn, object *authorization.Object) (username, clientID string, ccs bool, level authentication.Level, err error) {
 	var (
-		use       fosite.TokenUse
-		requester fosite.AccessRequester
+		use       oauthelia2.TokenUse
+		requester oauthelia2.AccessRequester
 	)
 
-	authn.Header.Error = &fosite.RFC6749Error{
+	authn.Header.Error = &oauthelia2.RFC6749Error{
 		ErrorField:       "invalid_token",
 		DescriptionField: "The access token is expired, revoked, malformed, or invalid for other reasons. The client can obtain a new access token and try again.",
 	}
 
-	if use, requester, err = provider.IntrospectToken(ctx, authn.Header.Authorization.Value(), fosite.AccessToken, oidc.NewSession(), oidc.ScopeAutheliaBearerAuthz); err != nil {
-		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("error performing token introspection: %w", err)
+	if use, requester, err = provider.IntrospectToken(ctx, authn.Header.Authorization.Value(), oauthelia2.AccessToken, oidc.NewSession(), oidc.ScopeAutheliaBearerAuthz); err != nil {
+		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("error performing token introspection: %w", oauthelia2.ErrorToDebugRFC6749Error(err))
 	}
 
-	if use != fosite.AccessToken {
-		authn.Header.Error = fosite.ErrInvalidRequest
+	if use != oauthelia2.AccessToken {
+		authn.Header.Error = oauthelia2.ErrInvalidRequest
 
 		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("token is not an access token")
 	}
@@ -511,7 +615,7 @@ func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provid
 		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("introspection returned an invalid session type")
 	}
 
-	if client, err = provider.GetFullClient(ctx, osession.ClientID); err != nil || client == nil {
+	if client, err = provider.GetRegisteredClient(ctx, osession.ClientID); err != nil || client == nil {
 		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("client id '%s' is not registered", osession.ClientID)
 	}
 
@@ -533,7 +637,7 @@ func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provid
 		return "", osession.ClientID, true, authentication.OneFactor, nil
 	}
 
-	if oidc.NewAuthenticationMethodsReferencesFromClaim(osession.DefaultSession.Claims.AuthenticationMethodsReferences).MultiFactorAuthentication() {
+	if authorization.NewAuthenticationMethodsReferencesFromClaim(osession.DefaultSession.Claims.AuthenticationMethodsReferences).MultiFactorAuthentication() {
 		level = authentication.TwoFactor
 	} else {
 		level = authentication.OneFactor

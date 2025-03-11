@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"path"
@@ -46,19 +47,19 @@ func validateSession(config *schema.Configuration, validator *schema.StructValid
 	if config.Session.SameSite == "" {
 		config.Session.SameSite = schema.DefaultSessionConfiguration.SameSite
 	} else if !utils.IsStringInSlice(config.Session.SameSite, validSessionSameSiteValues) {
-		validator.Push(fmt.Errorf(errFmtSessionSameSite, strJoinOr(validSessionSameSiteValues), config.Session.SameSite))
+		validator.Push(fmt.Errorf(errFmtSessionSameSite, utils.StringJoinOr(validSessionSameSiteValues), config.Session.SameSite))
 	}
 
 	cookies := len(config.Session.Cookies)
 	n := len(config.Session.Domain) //nolint:staticcheck
 
 	if cookies != 0 && config.DefaultRedirectionURL != nil { //nolint:staticcheck
-		validator.Push(fmt.Errorf(errFmtSessionLegacyRedirectionURL))
+		validator.Push(errors.New(errFmtSessionLegacyRedirectionURL))
 	}
 
 	switch {
 	case cookies == 0 && n != 0:
-		validator.PushWarning(fmt.Errorf(errFmtSessionDomainLegacy))
+		validator.PushWarning(errors.New(errFmtSessionDomainLegacy))
 		// Add legacy configuration to the domains list.
 		config.Session.Cookies = append(config.Session.Cookies, schema.SessionCookie{
 			SessionCookieCommon: schema.SessionCookieCommon{
@@ -74,7 +75,7 @@ func validateSession(config *schema.Configuration, validator *schema.StructValid
 			Legacy:                true,
 		})
 	case cookies != 0 && n != 0:
-		validator.Push(fmt.Errorf(errFmtSessionLegacyAndWarning))
+		validator.Push(errors.New(errFmtSessionLegacyAndWarning))
 	}
 
 	validateSessionCookieDomains(&config.Session, validator)
@@ -163,6 +164,8 @@ func validateSessionUniqueCookieDomain(i int, config *schema.Session, domains []
 }
 
 // validateSessionCookiesURLs validates the AutheliaURL and DefaultRedirectionURL.
+//
+//nolint:gocyclo
 func validateSessionCookiesURLs(i int, config *schema.Session, validator *schema.StructValidator) {
 	var d = config.Cookies[i]
 
@@ -171,6 +174,17 @@ func validateSessionCookiesURLs(i int, config *schema.Session, validator *schema
 			validator.Push(fmt.Errorf(errFmtSessionDomainOptionRequired, sessionDomainDescriptor(i, d), attrSessionAutheliaURL))
 		}
 	} else {
+		switch d.AutheliaURL.Path {
+		case "", "/":
+			break
+		default:
+			if strings.HasSuffix(d.AutheliaURL.Path, "/") || !d.AutheliaURL.IsAbs() {
+				break
+			}
+
+			d.AutheliaURL.Path += "/"
+		}
+
 		if !d.AutheliaURL.IsAbs() {
 			validator.Push(fmt.Errorf(errFmtSessionDomainURLNotAbsolute, sessionDomainDescriptor(i, d), attrSessionAutheliaURL, d.AutheliaURL))
 		} else if !utils.IsURISecure(d.AutheliaURL) {
@@ -190,13 +204,20 @@ func validateSessionCookiesURLs(i int, config *schema.Session, validator *schema
 		}
 
 		if d.Domain != "" && !utils.HasURIDomainSuffix(d.DefaultRedirectionURL, d.Domain) {
-			validator.Push(fmt.Errorf(errFmtSessionDomainURLNotInCookieScope, sessionDomainDescriptor(i, d), attrDefaultRedirectionURL, d.Domain, d.DefaultRedirectionURL))
+			if d.Legacy {
+				validator.PushWarning(fmt.Errorf(errFmtSessionDomainURLNotInCookieScope, sessionDomainDescriptor(i, d), attrDefaultRedirectionURL, d.Domain, d.DefaultRedirectionURL))
+				d.DefaultRedirectionURL = nil
+			} else {
+				validator.Push(fmt.Errorf(errFmtSessionDomainURLNotInCookieScope, sessionDomainDescriptor(i, d), attrDefaultRedirectionURL, d.Domain, d.DefaultRedirectionURL))
+			}
 		}
 
 		if d.AutheliaURL != nil && utils.EqualURLs(d.AutheliaURL, d.DefaultRedirectionURL) {
 			validator.Push(fmt.Errorf(errFmtSessionDomainAutheliaURLAndRedirectionURLEqual, sessionDomainDescriptor(i, d), d.DefaultRedirectionURL, d.AutheliaURL))
 		}
 	}
+
+	config.Cookies[i] = d
 }
 
 func validateSessionRememberMe(i int, config *schema.Session) {
@@ -217,7 +238,7 @@ func validateSessionSameSite(i int, config *schema.Session, validator *schema.St
 			config.Cookies[i].SameSite = schema.DefaultSessionConfiguration.SameSite
 		}
 	} else if !utils.IsStringInSlice(config.Cookies[i].SameSite, validSessionSameSiteValues) {
-		validator.Push(fmt.Errorf(errFmtSessionDomainSameSite, sessionDomainDescriptor(i, config.Cookies[i]), strJoinOr(validSessionSameSiteValues), config.Cookies[i].SameSite))
+		validator.Push(fmt.Errorf(errFmtSessionDomainSameSite, sessionDomainDescriptor(i, config.Cookies[i]), utils.StringJoinOr(validSessionSameSiteValues), config.Cookies[i].SameSite))
 	}
 }
 
@@ -245,7 +266,7 @@ func validateRedisCommon(config *schema.Session, validator *schema.StructValidat
 
 func validateRedis(config *schema.Session, validator *schema.StructValidator) {
 	if config.Redis.Host == "" {
-		validator.Push(fmt.Errorf(errFmtSessionRedisHostRequired))
+		validator.Push(errors.New(errFmtSessionRedisHostRequired))
 	}
 
 	validateRedisCommon(config, validator)
@@ -265,7 +286,7 @@ func validateRedis(config *schema.Session, validator *schema.StructValidator) {
 
 func validateRedisSentinel(config *schema.Session, validator *schema.StructValidator) {
 	if config.Redis.HighAvailability.SentinelName == "" {
-		validator.Push(fmt.Errorf(errFmtSessionRedisSentinelMissingName))
+		validator.Push(errors.New(errFmtSessionRedisSentinelMissingName))
 	}
 
 	if config.Redis.Port == 0 {
@@ -275,7 +296,7 @@ func validateRedisSentinel(config *schema.Session, validator *schema.StructValid
 	}
 
 	if config.Redis.Host == "" && len(config.Redis.HighAvailability.Nodes) == 0 {
-		validator.Push(fmt.Errorf(errFmtSessionRedisHostOrNodesRequired))
+		validator.Push(errors.New(errFmtSessionRedisHostOrNodesRequired))
 	}
 
 	validateRedisCommon(config, validator)
@@ -293,6 +314,6 @@ func validateRedisSentinel(config *schema.Session, validator *schema.StructValid
 	}
 
 	if hostMissing {
-		validator.Push(fmt.Errorf(errFmtSessionRedisSentinelNodeHostMissing))
+		validator.Push(errors.New(errFmtSessionRedisSentinelNodeHostMissing))
 	}
 }

@@ -1,0 +1,37 @@
+{
+	"Claim": "Talep {{name}}",
+	"Scope": "Kapsam {{name}}",
+	"scopes": {
+		"openid": "Kimliğinizi doğrulamak için OpenID kullanın",
+		"offline_access": "Bu izinleri kullanıcı etkileşimi olmadan otomatik olarak yenileyin",
+		"profile": "Profil bilgilerinize erişin",
+		"groups": "Grup üyeliklerinize erişin",
+		"email": "E-posta adreslerinize erişin",
+		"phone": "Telefon numaranıza erişin",
+		"address": "Adresinize erişin",
+		"authelia.bearer.authz": "Sizin gibi oturum açmış korumalı kaynaklara erişin"
+	},
+	"claims": {
+		"sub": "Benzersiz Tanımlayıcı",
+		"name": "Gösterim Adı",
+		"given_name": "Verilen Ad",
+		"family_name": "Soyad",
+		"middle_name": "İkinci Ad",
+		"nickname": "Takma Ad",
+		"preferred_username": "Tercih Edilen Kullanıcı Adı",
+		"profile": "Profil URL'si",
+		"picture": "Resim URL'si",
+		"website": "Web Sitesi URL'si",
+		"email": "E-posta Adresi",
+		"email_verified": "E-posta Adresi (Doğrulanmış)",
+		"gender": "Cinsiyet",
+		"birthdate": "Doğum Tarihi",
+		"zoneinfo": "Zaman Dilimi",
+		"locale": "Yerel / Dil",
+		"phone_number": "Telefon Numarası",
+		"phone_number_verified": "Telefon Numarası (Doğrulanmış)",
+		"address": "Posta Adresi",
+		"updated_at": "Profil Güncelleme Zamanı",
+		"groups": "Grup Üyeliği"
+	}
+}

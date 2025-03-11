@@ -1,6 +1,6 @@
 import React, { ReactNode, SyntheticEvent, useCallback, useEffect, useState } from "react";
 
-import { Close, Dashboard, Menu, SystemSecurityUpdateGood } from "@mui/icons-material";
+import { Close, Dashboard, Menu, Security, SystemSecurityUpdateGood } from "@mui/icons-material";
 import {
     AppBar,
     Box,
@@ -17,14 +17,18 @@ import {
 import IconButton from "@mui/material/IconButton";
 import { useTranslation } from "react-i18next";
 
-import { IndexRoute, SettingsRoute, SettingsTwoFactorAuthenticationSubRoute } from "@constants/Routes";
+import { EncodedName } from "@constants/constants";
+import {
+    IndexRoute,
+    SecuritySubRoute,
+    SettingsRoute,
+    SettingsTwoFactorAuthenticationSubRoute,
+} from "@constants/Routes";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 
 export interface Props {
     id?: string;
     children?: ReactNode;
-    title?: string;
-    titlePrefix?: string;
     drawerWidth?: number;
 }
 
@@ -35,20 +39,8 @@ const SettingsLayout = function (props: Props) {
     const [drawerOpen, setDrawerOpen] = useState(false);
 
     useEffect(() => {
-        if (props.title) {
-            if (props.titlePrefix) {
-                document.title = `${props.titlePrefix} - ${props.title} - Authelia`;
-            } else {
-                document.title = `${props.title} - Authelia`;
-            }
-        } else {
-            if (props.titlePrefix) {
-                document.title = `${props.titlePrefix} - ${translate("Settings")} - Authelia`;
-            } else {
-                document.title = `${translate("Settings")} - Authelia`;
-            }
-        }
-    }, [props.title, props.titlePrefix, translate]);
+        document.title = translate("Settings - {{authelia}}", { authelia: atob(String.fromCharCode(...EncodedName)) });
+    }, [translate]);
 
     const drawerWidth = props.drawerWidth === undefined ? defaultDrawerWidth : props.drawerWidth;
 
@@ -127,7 +119,7 @@ const SettingsLayout = function (props: Props) {
                     {drawer}
                 </SwipeableDrawer>
             </Box>
-            <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+            <Box component="main" sx={{ flexGrow: 1, p: { xs: 0, sm: 3 } }}>
                 <Toolbar />
                 {props.children}
             </Box>
@@ -144,6 +136,12 @@ interface NavItem {
 
 const navItems: NavItem[] = [
     { keyname: "overview", text: "Overview", pathname: SettingsRoute, icon: <Dashboard color={"primary"} /> },
+    {
+        keyname: "security",
+        text: "Security",
+        pathname: `${SettingsRoute}${SecuritySubRoute}`,
+        icon: <Security color={"primary"} />,
+    },
     {
         keyname: "twofactor",
         text: "Two-Factor Authentication",

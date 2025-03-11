@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/valyala/fasthttp"
 
-	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/session"
 )
@@ -15,8 +15,10 @@ var okMessageBytes = []byte("{\"status\":\"OK\"}")
 
 func TestHealthOk(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtxWithUserSession(t, session.UserSession{
-		Username:            "john",
-		AuthenticationLevel: authentication.OneFactor,
+		Username: "john",
+		AuthenticationMethodRefs: authorization.AuthenticationMethodsReferences{
+			UsernameAndPassword: true,
+		},
 	})
 	defer mock.Close()
 

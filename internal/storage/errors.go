@@ -8,6 +8,9 @@ var (
 	// ErrNoAuthenticationLogs error thrown when no matching authentication logs have been found in DB.
 	ErrNoAuthenticationLogs = errors.New("no matching authentication logs found")
 
+	// ErrNoCurrentBans is an error which indicates no bans were found.
+	ErrNoCurrentBans = errors.New("no current bans found")
+
 	// ErrNoTOTPConfiguration error thrown when no TOTP configuration has been found in DB.
 	ErrNoTOTPConfiguration = errors.New("no TOTP configuration for user")
 

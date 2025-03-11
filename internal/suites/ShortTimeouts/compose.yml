@@ -1,0 +1,9 @@
+---
+services:
+  authelia-backend:
+    volumes:
+      - './ShortTimeouts/configuration.yml:/config/configuration.yml'
+      - './ShortTimeouts/users.yml:/config/users.yml'
+      - './common/pki:/pki'
+      - './common/pki/public.crt:/certs/public.crt'
+...

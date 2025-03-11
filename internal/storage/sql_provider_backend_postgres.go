@@ -3,11 +3,15 @@ package storage
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strconv"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/stdlib"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -36,6 +40,7 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlUpsertEncryptionValue = fmt.Sprintf(queryFmtUpsertEncryptionValuePostgreSQL, tableEncryption)
 	provider.sqlUpsertOAuth2BlacklistedJTI = fmt.Sprintf(queryFmtUpsertOAuth2BlacklistedJTIPostgreSQL, tableOAuth2BlacklistedJTI)
 	provider.sqlInsertOAuth2ConsentPreConfiguration = fmt.Sprintf(queryFmtInsertOAuth2ConsentPreConfigurationPostgreSQL, tableOAuth2ConsentPreConfiguration)
+	provider.sqlUpsertCachedData = fmt.Sprintf(queryFmtUpsertCachedDataPostgreSQL, tableCachedData)
 
 	// PostgreSQL requires rebinding of any query that contains a '?' placeholder to use the '$#' notation placeholders.
 	provider.sqlFmtRenameTable = provider.db.Rebind(provider.sqlFmtRenameTable)
@@ -71,6 +76,7 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 
 	provider.sqlInsertWebAuthnUser = provider.db.Rebind(provider.sqlInsertWebAuthnUser)
 	provider.sqlSelectWebAuthnUser = provider.db.Rebind(provider.sqlSelectWebAuthnUser)
+	provider.sqlSelectWebAuthnUserByUserID = provider.db.Rebind(provider.sqlSelectWebAuthnUserByUserID)
 
 	provider.sqlInsertWebAuthnCredential = provider.db.Rebind(provider.sqlInsertWebAuthnCredential)
 	provider.sqlSelectWebAuthnCredentials = provider.db.Rebind(provider.sqlSelectWebAuthnCredentials)
@@ -87,7 +93,25 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlDeleteDuoDevice = provider.db.Rebind(provider.sqlDeleteDuoDevice)
 
 	provider.sqlInsertAuthenticationAttempt = provider.db.Rebind(provider.sqlInsertAuthenticationAttempt)
-	provider.sqlSelectAuthenticationAttemptsByUsername = provider.db.Rebind(provider.sqlSelectAuthenticationAttemptsByUsername)
+	provider.sqlSelectAuthenticationLogsRegulationRecordsByUsername = provider.db.Rebind(provider.sqlSelectAuthenticationLogsRegulationRecordsByUsername)
+	provider.sqlSelectAuthenticationLogsRegulationRecordsByRemoteIP = provider.db.Rebind(provider.sqlSelectAuthenticationLogsRegulationRecordsByRemoteIP)
+
+	provider.sqlInsertBannedUser = provider.db.Rebind(provider.sqlInsertBannedUser)
+	provider.sqlSelectBannedUser = provider.db.Rebind(provider.sqlSelectBannedUser)
+	provider.sqlSelectBannedUserByID = provider.db.Rebind(provider.sqlSelectBannedUserByID)
+	provider.sqlSelectBannedUsers = provider.db.Rebind(provider.sqlSelectBannedUsers)
+	provider.sqlSelectBannedUserLastTime = provider.db.Rebind(provider.sqlSelectBannedUserLastTime)
+	provider.sqlRevokeBannedUser = provider.db.Rebind(provider.sqlRevokeBannedUser)
+
+	provider.sqlInsertBannedIP = provider.db.Rebind(provider.sqlInsertBannedIP)
+	provider.sqlSelectBannedIP = provider.db.Rebind(provider.sqlSelectBannedIP)
+	provider.sqlSelectBannedIPByID = provider.db.Rebind(provider.sqlSelectBannedIPByID)
+	provider.sqlSelectBannedIPs = provider.db.Rebind(provider.sqlSelectBannedIPs)
+	provider.sqlSelectBannedIPLastTime = provider.db.Rebind(provider.sqlSelectBannedIPLastTime)
+	provider.sqlRevokeBannedIP = provider.db.Rebind(provider.sqlRevokeBannedIP)
+
+	provider.sqlSelectCachedData = provider.db.Rebind(provider.sqlSelectCachedData)
+	provider.sqlDeleteCachedData = provider.db.Rebind(provider.sqlDeleteCachedData)
 
 	provider.sqlInsertMigration = provider.db.Rebind(provider.sqlInsertMigration)
 	provider.sqlSelectMigrations = provider.db.Rebind(provider.sqlSelectMigrations)
@@ -116,6 +140,12 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlDeactivateOAuth2AuthorizeCodeSession = provider.db.Rebind(provider.sqlDeactivateOAuth2AuthorizeCodeSession)
 	provider.sqlDeactivateOAuth2AuthorizeCodeSessionByRequestID = provider.db.Rebind(provider.sqlDeactivateOAuth2AuthorizeCodeSessionByRequestID)
 	provider.sqlSelectOAuth2AuthorizeCodeSession = provider.db.Rebind(provider.sqlSelectOAuth2AuthorizeCodeSession)
+
+	provider.sqlInsertOAuth2DeviceCodeSession = provider.db.Rebind(provider.sqlInsertOAuth2DeviceCodeSession)
+	provider.sqlSelectOAuth2DeviceCodeSession = provider.db.Rebind(provider.sqlSelectOAuth2DeviceCodeSession)
+	provider.sqlUpdateOAuth2DeviceCodeSession = provider.db.Rebind(provider.sqlUpdateOAuth2DeviceCodeSession)
+	provider.sqlDeactivateOAuth2DeviceCodeSession = provider.db.Rebind(provider.sqlDeactivateOAuth2DeviceCodeSession)
+	provider.sqlSelectOAuth2DeviceCodeSessionByUserCode = provider.db.Rebind(provider.sqlSelectOAuth2DeviceCodeSessionByUserCode)
 
 	provider.sqlInsertOAuth2OpenIDConnectSession = provider.db.Rebind(provider.sqlInsertOAuth2OpenIDConnectSession)
 	provider.sqlRevokeOAuth2OpenIDConnectSession = provider.db.Rebind(provider.sqlRevokeOAuth2OpenIDConnectSession)
@@ -153,38 +183,85 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 func dsnPostgreSQL(config *schema.StoragePostgreSQL, globalCACertPool *x509.CertPool) (dsn string) {
 	dsnConfig, _ := pgx.ParseConfig("")
 
-	dsnConfig.Host = config.Address.SocketHostname()
-	dsnConfig.Port = uint16(config.Address.Port())
+	dsnConfig.Host, dsnConfig.Port = dsnPostgreSQLHostPort(config.Address)
 	dsnConfig.Database = config.Database
 	dsnConfig.User = config.Username
 	dsnConfig.Password = config.Password
 	dsnConfig.TLSConfig = loadPostgreSQLTLSConfig(config, globalCACertPool)
 	dsnConfig.ConnectTimeout = config.Timeout
 	dsnConfig.RuntimeParams = map[string]string{
-		"search_path": config.Schema,
+		"application_name": fmt.Sprintf("Authelia %s", utils.Version()),
+		"search_path":      config.Schema,
 	}
 
-	if dsnConfig.Port == 0 && config.Address.IsUnixDomainSocket() {
-		dsnConfig.Port = 5432
+	if len(config.Servers) != 0 {
+		dsnPostgreSQLFallbacks(config, globalCACertPool, dsnConfig)
 	}
 
 	return stdlib.RegisterConnConfig(dsnConfig)
 }
 
-func loadPostgreSQLTLSConfig(config *schema.StoragePostgreSQL, globalCACertPool *x509.CertPool) (tlsConfig *tls.Config) {
-	if config.TLS != nil {
-		return utils.NewTLSConfig(config.TLS, globalCACertPool)
+func dsnPostgreSQLHostPort(address *schema.AddressTCP) (host string, port uint16) {
+	if !address.IsUnixDomainSocket() {
+		return address.SocketHostname(), address.Port()
 	}
 
-	return loadPostgreSQLLegacyTLSConfig(config, globalCACertPool)
+	host, port = address.SocketHostname(), address.Port()
+
+	if port == 0 {
+		port = 5432
+	}
+
+	dir, base := filepath.Dir(host), filepath.Base(host)
+
+	matches := rePostgreSQLUnixDomainSocket.FindStringSubmatch(base)
+
+	if len(matches) != 2 {
+		return host, port
+	}
+
+	if raw, err := strconv.ParseUint(matches[1], 10, 16); err == nil {
+		host = dir
+		port = uint16(raw)
+	}
+
+	return host, port
+}
+
+func dsnPostgreSQLFallbacks(config *schema.StoragePostgreSQL, globalCACertPool *x509.CertPool, dsnConfig *pgx.ConnConfig) {
+	dsnConfig.Fallbacks = make([]*pgconn.FallbackConfig, len(config.Servers))
+
+	for i, server := range config.Servers {
+		fallback := &pgconn.FallbackConfig{
+			TLSConfig: loadPostgreSQLModernTLSConfig(server.TLS, globalCACertPool),
+		}
+
+		fallback.Host, fallback.Port = dsnPostgreSQLHostPort(server.Address)
+
+		if fallback.Port == 0 && !server.Address.IsUnixDomainSocket() {
+			fallback.Port = 5432
+		}
+
+		dsnConfig.Fallbacks[i] = fallback
+	}
+}
+
+func loadPostgreSQLTLSConfig(config *schema.StoragePostgreSQL, globalCACertPool *x509.CertPool) (tlsConfig *tls.Config) {
+	if config.TLS != nil {
+		return loadPostgreSQLModernTLSConfig(config.TLS, globalCACertPool)
+	} else if config.SSL != nil { //nolint:staticcheck
+		return loadPostgreSQLLegacyTLSConfig(config, globalCACertPool)
+	}
+
+	return nil
+}
+
+func loadPostgreSQLModernTLSConfig(config *schema.TLS, globalCACertPool *x509.CertPool) (tlsConfig *tls.Config) {
+	return utils.NewTLSConfig(config, globalCACertPool)
 }
 
 //nolint:staticcheck // Used for legacy purposes.
 func loadPostgreSQLLegacyTLSConfig(config *schema.StoragePostgreSQL, globalCACertPool *x509.CertPool) (tlsConfig *tls.Config) {
-	if config.SSL == nil {
-		return nil
-	}
-
 	var (
 		ca    *x509.Certificate
 		certs []tls.Certificate
@@ -202,7 +279,7 @@ func loadPostgreSQLLegacyTLSConfig(config *schema.StoragePostgreSQL, globalCACer
 		case nil:
 			caCertPool = globalCACertPool
 		default:
-			caCertPool = globalCACertPool.Clone()
+			caCertPool = globalCACertPool
 			caCertPool.AddCert(ca)
 		}
 
@@ -231,34 +308,38 @@ func loadPostgreSQLLegacyTLSConfigFiles(config *schema.StoragePostgreSQL) (ca *x
 	)
 
 	if config.SSL.RootCertificate != "" {
-		var caPEMBlock []byte
+		var (
+			data  []byte
+			block *pem.Block
+		)
 
-		if caPEMBlock, err = os.ReadFile(config.SSL.RootCertificate); err != nil {
+		if data, err = os.ReadFile(config.SSL.RootCertificate); err != nil {
 			return nil, nil
 		}
 
-		if ca, err = x509.ParseCertificate(caPEMBlock); err != nil {
+		block, _ = pem.Decode(data)
+
+		if ca, err = x509.ParseCertificate(block.Bytes); err != nil {
 			return nil, nil
 		}
 	}
 
 	if config.SSL.Certificate != "" && config.SSL.Key != "" {
 		var (
-			keyPEMBlock  []byte
-			certPEMBlock []byte
+			dataKey, dataCert []byte
 		)
 
-		if keyPEMBlock, err = os.ReadFile(config.SSL.Key); err != nil {
+		if dataKey, err = os.ReadFile(config.SSL.Key); err != nil {
 			return nil, nil
 		}
 
-		if certPEMBlock, err = os.ReadFile(config.SSL.Certificate); err != nil {
+		if dataCert, err = os.ReadFile(config.SSL.Certificate); err != nil {
 			return nil, nil
 		}
 
 		var cert tls.Certificate
 
-		if cert, err = tls.X509KeyPair(certPEMBlock, keyPEMBlock); err != nil {
+		if cert, err = tls.X509KeyPair(dataCert, dataKey); err != nil {
 			return nil, nil
 		}
 

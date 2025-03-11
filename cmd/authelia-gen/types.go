@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strings"
 	"time"
-
-	"golang.org/x/text/language"
 )
 
 type tmplIssueTemplateData struct {
@@ -74,8 +72,13 @@ type GitHubAuthorJSON struct {
 
 // DocsDataMisc represents the docs misc data schema.
 type DocsDataMisc struct {
-	CSP    TemplateCSP `json:"csp"`
-	Latest string      `json:"latest"`
+	CSP     TemplateCSP         `json:"csp"`
+	Latest  string              `json:"latest"`
+	Support DocsDataMiscSupport `json:"support"`
+}
+
+type DocsDataMiscSupport struct {
+	Traefik []string `json:"traefik"`
 }
 
 // TemplateCSP represents the CSP template vars.
@@ -92,26 +95,12 @@ type ConfigurationKey struct {
 	Env    string `json:"env"`
 }
 
-// Languages is the docs json model for the Authelia languages configuration.
-type Languages struct {
-	Defaults   DefaultsLanguages `json:"defaults"`
-	Namespaces []string          `json:"namespaces"`
-	Languages  []Language        `json:"languages"`
+type Compose struct {
+	Services map[string]ComposeService `json:"services"`
 }
 
-type DefaultsLanguages struct {
-	Language  Language `json:"language"`
-	Namespace string   `json:"namespace"`
-}
-
-// Language is the docs json model for a language.
-type Language struct {
-	Display    string   `json:"display"`
-	Locale     string   `json:"locale"`
-	Namespaces []string `json:"namespaces,omitempty"`
-	Fallbacks  []string `json:"fallbacks,omitempty"`
-
-	Tag language.Tag `json:"-"`
+type ComposeService struct {
+	Image string `json:"image"`
 }
 
 const (

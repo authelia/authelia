@@ -1,8 +1,8 @@
 ---
 server:
-  host: '0.0.0.0'
-  port: 9091
-  path: "auth"
+  host: '127.0.0.44'
+  port: 90
+  path: "abc"
 
 authentication_backend:
   ldap:
@@ -10,14 +10,14 @@ authentication_backend:
 
 storage:
   mysql:
-    host: 127.0.0.1
-    port: 3306
+    host: 127.0.0.45
+    port: 13306
   postgres:
-    host: 127.0.0.1
-    port: 5432
+    host: 127.0.0.46
+    port: 15432
 
 notifier:
   smtp:
-    host: 127.0.0.1
-    port: 1025
+    host: 127.0.0.47
+    port: 2025
 ...

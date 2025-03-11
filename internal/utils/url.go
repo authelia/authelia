@@ -104,3 +104,14 @@ func EqualURLs(first, second *url.URL) bool {
 
 	return true
 }
+
+// IsURLInSlice returns true if the needle url.URL is in the []url.URL haystack.
+func IsURLInSlice(needle *url.URL, haystack []*url.URL) (has bool) {
+	for i := 0; i < len(haystack); i++ {
+		if EqualURLs(needle, haystack[i]) {
+			return true
+		}
+	}
+
+	return false
+}

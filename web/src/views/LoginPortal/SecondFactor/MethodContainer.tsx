@@ -56,23 +56,23 @@ const DefaultMethodContainer = function (props: Props) {
     }
 
     return (
-        <div id={props.id}>
-            <Typography variant="h6">{props.title}</Typography>
-            <div className={classnames(styles.container, stateClass)} id="2fa-container">
-                <div className={styles.containerFlex}>{container}</div>
-            </div>
+        <Box id={props.id}>
+            <Typography variant={"h6"}>{props.title}</Typography>
+            <Box id={"2fa-container"} className={classnames(styles.container, stateClass)}>
+                <Box className={styles.containerFlex}>{container}</Box>
+            </Box>
             {props.onSelectClick && props.registered ? (
-                <Link component="button" id="selection-link" onClick={props.onSelectClick} underline="hover">
+                <Link id={"selection-link"} component={"button"} onClick={props.onSelectClick} underline={"hover"}>
                     {translate("Select a Device")}
                 </Link>
             ) : null}
             {(props.onRegisterClick && props.title !== "Push Notification") ||
             (props.onRegisterClick && props.title === "Push Notification" && props.duoSelfEnrollment) ? (
-                <Link component="button" id="register-link" onClick={props.onRegisterClick} underline="hover">
+                <Link id={"register-link"} component={"button"} onClick={props.onRegisterClick} underline={"hover"}>
                     {registerMessage}
                 </Link>
             ) : null}
-        </div>
+        </Box>
     );
 };
 
@@ -124,7 +124,7 @@ function NotRegisteredContainer(props: NotRegisteredContainerProps) {
                 {props.title === "Push Notification"
                     ? props.duoSelfEnrollment
                         ? translate("Register your first device by clicking on the link below")
-                        : translate("Contact your administrator to register a device.")
+                        : translate("Contact your administrator to register a device")
                     : translate("Register your first device by clicking on the link below")}
             </Typography>
         </Fragment>

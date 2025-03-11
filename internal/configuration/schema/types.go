@@ -9,6 +9,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -90,6 +91,26 @@ func (d *PasswordDigest) IsPlainText() (is bool) {
 		return true
 	default:
 		return false
+	}
+}
+
+// Valid returns true if this digest has a value.
+func (d *PasswordDigest) Valid() (valid bool) {
+	return d != nil && d.Digest != nil
+}
+
+// GetPlainTextValue returns a *plaintext.Digest's byte value from Key() and an error. If the PasswordDigest is not a
+// plaintext.Digest then it returns nil and an error, otherwise it returns the value and nil.
+func (d *PasswordDigest) GetPlainTextValue() (value []byte, err error) {
+	if d == nil || d.Digest == nil {
+		return nil, errors.New("error: nil value")
+	}
+
+	switch digest := d.Digest.(type) {
+	case *plaintext.Digest:
+		return digest.Key(), nil
+	default:
+		return nil, errors.New("error: digest isn't plaintext")
 	}
 }
 
@@ -244,7 +265,7 @@ type X509CertificateChain struct {
 func (X509CertificateChain) JSONSchema() *jsonschema.Schema {
 	return &jsonschema.Schema{
 		Type:    jsonschema.TypeString,
-		Pattern: `^(-{5}BEGIN CERTIFICATE-{5}\n([a-zA-Z0-9/+]{1,64}\n)+([a-zA-Z0-9/+]{1,64}[=]{0,2})\n-{5}END CERTIFICATE-{5}\n?)+$`,
+		Pattern: `^(-{5}BEGIN CERTIFICATE-{5}\n([a-zA-Z0-9\/+]{1,64}\n)+([a-zA-Z0-9\/+]{1,64}[=]{0,2})\n-{5}END CERTIFICATE-{5}\n?)+$`,
 	}
 }
 
@@ -472,37 +493,15 @@ func (RefreshIntervalDuration) JSONSchema() *jsonschema.Schema {
 	}
 }
 
-type AccessControlRuleNetworks []string
+type IdentityProvidersOpenIDConnectClientURIs []string
 
-func (AccessControlRuleNetworks) JSONSchema() *jsonschema.Schema {
-	return &jsonschemaWeakStringUniqueSlice
-}
-
-type IdentityProvidersOpenIDConnectClientRedirectURIs []string
-
-func (IdentityProvidersOpenIDConnectClientRedirectURIs) JSONSchema() *jsonschema.Schema {
+func (IdentityProvidersOpenIDConnectClientURIs) JSONSchema() *jsonschema.Schema {
 	return &jsonschema.Schema{
 		OneOf: []*jsonschema.Schema{
 			&jsonschemaURI,
 			{
 				Type:        jsonschema.TypeArray,
 				Items:       &jsonschemaURI,
-				UniqueItems: true,
-			},
-		},
-	}
-}
-
-// AccessControlNetworkNetworks represents the ACL AccessControlNetworkNetworks type.
-type AccessControlNetworkNetworks []string
-
-func (AccessControlNetworkNetworks) JSONSchema() *jsonschema.Schema {
-	return &jsonschema.Schema{
-		OneOf: []*jsonschema.Schema{
-			&jsonschemaACLNetwork,
-			{
-				Type:        jsonschema.TypeArray,
-				Items:       &jsonschemaACLNetwork,
 				UniqueItems: true,
 			},
 		},
@@ -597,14 +596,9 @@ var jsonschemaWeakStringUniqueSlice = jsonschema.Schema{
 	},
 }
 
-var jsonschemaACLNetwork = jsonschema.Schema{
-	Type:    jsonschema.TypeString,
-	Pattern: `((^((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))(\/([0-2]?[0-9]|3[0-2]))?$)|(^((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))?(\/(12[0-8]|1[0-1][0-9]|[0-9]{1,2}))?$))`,
-}
-
 var jsonschemaACLSubject = jsonschema.Schema{
 	Type:    jsonschema.TypeString,
-	Pattern: "^(user|group|oauth2:client:):.+$",
+	Pattern: "^(user|group|oauth2:client):.+$",
 }
 
 var jsonschemaACLMethod = jsonschema.Schema{

@@ -80,7 +80,7 @@ export async function getTOTPOptions(): Promise<TOTPOptions> {
 }
 
 export async function deleteUserTOTPConfiguration() {
-    return await axios<AuthenticationOKResponse>({
+    return axios<AuthenticationOKResponse>({
         method: "DELETE",
         url: CompleteTOTPSignInPath,
         validateStatus: validateStatusAuthentication,

@@ -8,7 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ory/fosite"
+	oauthelia2 "authelia.com/provider/oauth2"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -23,16 +24,20 @@ import (
 )
 
 func TestOpenIDConnectStore_GetInternalClient(t *testing.T) {
-	s := oidc.NewStore(&schema.IdentityProvidersOpenIDConnect{
-		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       x509PrivateKeyRSA2048,
-		Clients: []schema.IdentityProvidersOpenIDConnectClient{
-			{
-				ID:                  myclient,
-				Name:                myclientdesc,
-				AuthorizationPolicy: onefactor,
-				Scopes:              []string{oidc.ScopeOpenID, oidc.ScopeProfile},
-				Secret:              tOpenIDConnectPlainTextClientSecret,
+	s := oidc.NewStore(&schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				IssuerCertificateChain: schema.X509CertificateChain{},
+				IssuerPrivateKey:       x509PrivateKeyRSA2048,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  myclient,
+						Name:                myclientdesc,
+						AuthorizationPolicy: onefactor,
+						Scopes:              []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+						Secret:              tOpenIDConnectPlainTextClientSecret,
+					},
+				},
 			},
 		},
 	}, nil)
@@ -60,23 +65,27 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 		Secret:              tOpenIDConnectPlainTextClientSecret,
 	}
 
-	s := oidc.NewStore(&schema.IdentityProvidersOpenIDConnect{
-		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       x509PrivateKeyRSA2048,
-		Clients:                []schema.IdentityProvidersOpenIDConnectClient{c1},
+	s := oidc.NewStore(&schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				IssuerCertificateChain: schema.X509CertificateChain{},
+				IssuerPrivateKey:       x509PrivateKeyRSA2048,
+				Clients:                []schema.IdentityProvidersOpenIDConnectClient{c1},
+			},
+		},
 	}, nil)
 
-	client, err := s.GetFullClient(ctx, id)
+	client, err := s.GetRegisteredClient(ctx, id)
 	require.NoError(t, err)
 	require.NotNil(t, client)
 	assert.Equal(t, id, client.GetID())
 	assert.Equal(t, myclientdesc, client.GetName())
-	assert.Equal(t, fosite.Arguments(c1.Scopes), client.GetScopes())
-	assert.Equal(t, fosite.Arguments([]string{oidc.GrantTypeAuthorizationCode}), client.GetGrantTypes())
-	assert.Equal(t, fosite.Arguments([]string{oidc.ResponseTypeAuthorizationCodeFlow}), client.GetResponseTypes())
+	assert.Equal(t, oauthelia2.Arguments(c1.Scopes), client.GetScopes())
+	assert.Equal(t, oauthelia2.Arguments([]string{oidc.GrantTypeAuthorizationCode}), client.GetGrantTypes())
+	assert.Equal(t, oauthelia2.Arguments([]string{oidc.ResponseTypeAuthorizationCodeFlow}), client.GetResponseTypes())
 	assert.Equal(t, []string(nil), client.GetRedirectURIs())
 	assert.Equal(t, authorization.OneFactor, client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{}))
-	assert.Equal(t, "$plaintext$client-secret", client.GetSecret().Encode())
+	assert.Equal(t, "$plaintext$client-secret", client.GetClientSecret().(*oidc.ClientSecretDigest).Encode())
 }
 
 func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
@@ -90,13 +99,17 @@ func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
 		Secret:              tOpenIDConnectPlainTextClientSecret,
 	}
 
-	s := oidc.NewStore(&schema.IdentityProvidersOpenIDConnect{
-		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       x509PrivateKeyRSA2048,
-		Clients:                []schema.IdentityProvidersOpenIDConnectClient{c1},
+	s := oidc.NewStore(&schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				IssuerCertificateChain: schema.X509CertificateChain{},
+				IssuerPrivateKey:       x509PrivateKeyRSA2048,
+				Clients:                []schema.IdentityProvidersOpenIDConnectClient{c1},
+			},
+		},
 	}, nil)
 
-	client, err := s.GetFullClient(ctx, "another-client")
+	client, err := s.GetRegisteredClient(ctx, "another-client")
 	assert.Nil(t, client)
 	assert.EqualError(t, err, "invalid_client")
 }
@@ -104,16 +117,20 @@ func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
 func TestOpenIDConnectStore_IsValidClientID(t *testing.T) {
 	ctx := context.Background()
 
-	s := oidc.NewStore(&schema.IdentityProvidersOpenIDConnect{
-		IssuerCertificateChain: schema.X509CertificateChain{},
-		IssuerPrivateKey:       x509PrivateKeyRSA2048,
-		Clients: []schema.IdentityProvidersOpenIDConnectClient{
-			{
-				ID:                  myclient,
-				Name:                myclientdesc,
-				AuthorizationPolicy: onefactor,
-				Scopes:              []string{oidc.ScopeOpenID, oidc.ScopeProfile},
-				Secret:              tOpenIDConnectPlainTextClientSecret,
+	s := oidc.NewStore(&schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				IssuerCertificateChain: schema.X509CertificateChain{},
+				IssuerPrivateKey:       x509PrivateKeyRSA2048,
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  myclient,
+						Name:                myclientdesc,
+						AuthorizationPolicy: onefactor,
+						Scopes:              []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+						Secret:              tOpenIDConnectPlainTextClientSecret,
+					},
+				},
 			},
 		},
 	}, nil)
@@ -142,19 +159,24 @@ func (s *StoreSuite) SetupTest() {
 	s.ctx = context.Background()
 	s.ctrl = gomock.NewController(s.T())
 	s.mock = mocks.NewMockStorage(s.ctrl)
-	s.store = oidc.NewStore(&schema.IdentityProvidersOpenIDConnect{
-		Clients: []schema.IdentityProvidersOpenIDConnectClient{
-			{
-				ID:                  "hs256",
-				Secret:              tOpenIDConnectPBKDF2ClientSecret,
-				AuthorizationPolicy: authorization.OneFactor.String(),
-				RedirectURIs: []string{
-					"https://client.example.com",
+	s.store = oidc.NewStore(&schema.Configuration{
+		IdentityProviders: schema.IdentityProviders{
+			OIDC: &schema.IdentityProvidersOpenIDConnect{
+				Clients: []schema.IdentityProvidersOpenIDConnectClient{
+					{
+						ID:                  "hs256",
+						Secret:              tOpenIDConnectPBKDF2ClientSecret,
+						AuthorizationPolicy: authorization.OneFactor.String(),
+						RedirectURIs: []string{
+							"https://client.example.com",
+						},
+						TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
+						TokenEndpointAuthSigningAlg: oidc.SigningAlgHMACUsingSHA256,
+					},
 				},
-				TokenEndpointAuthMethod:     oidc.ClientAuthMethodClientSecretJWT,
-				TokenEndpointAuthSigningAlg: oidc.SigningAlgHMACUsingSHA256,
 			},
-		}}, s.mock)
+		},
+	}, s.mock)
 }
 
 func (s *StoreSuite) TestGetSubject() {
@@ -184,7 +206,7 @@ func (s *StoreSuite) TestGetSubject() {
 		opaqueID, err := s.store.GetSubject(s.ctx, "", "john")
 
 		assert.EqualError(t, err, "failed to load")
-		assert.Equal(t, uint32(0), opaqueID.ID())
+		assert.Equal(t, uuid.Nil, opaqueID)
 	})
 
 	s.T().Run("ReturnDatabaseErrorOnSave", func(t *testing.T) {
@@ -201,7 +223,7 @@ func (s *StoreSuite) TestGetSubject() {
 		opaqueID, err := s.store.GetSubject(s.ctx, "", "john")
 
 		assert.EqualError(t, err, "failed to save")
-		assert.Equal(t, uint32(0), opaqueID.ID())
+		assert.Equal(t, uuid.Nil, opaqueID)
 	})
 }
 
@@ -295,7 +317,7 @@ func (s *StoreSuite) TestCreateSessions() {
 			Return(nil),
 	)
 
-	s.NoError(s.store.CreateAuthorizeCodeSession(s.ctx, abc, &fosite.Request{
+	s.NoError(s.store.CreateAuthorizeCodeSession(s.ctx, abc, &oauthelia2.Request{
 		ID: abc,
 		Client: &oidc.RegisteredClient{
 			ID: "example",
@@ -303,7 +325,7 @@ func (s *StoreSuite) TestCreateSessions() {
 		Session: session,
 	}))
 
-	s.EqualError(s.store.CreateAuthorizeCodeSession(s.ctx, abc, &fosite.Request{
+	s.EqualError(s.store.CreateAuthorizeCodeSession(s.ctx, abc, &oauthelia2.Request{
 		ID: abc,
 		Client: &oidc.RegisteredClient{
 			ID: "example",
@@ -311,7 +333,7 @@ func (s *StoreSuite) TestCreateSessions() {
 		Session: session,
 	}), "duplicate key")
 
-	s.EqualError(s.store.CreateAuthorizeCodeSession(s.ctx, abc, &fosite.Request{
+	s.EqualError(s.store.CreateAuthorizeCodeSession(s.ctx, abc, &oauthelia2.Request{
 		ID: abc,
 		Client: &oidc.RegisteredClient{
 			ID: "example",
@@ -319,7 +341,7 @@ func (s *StoreSuite) TestCreateSessions() {
 		Session: nil,
 	}), "failed to create new *model.OAuth2Session: the session type OpenIDSession was expected but the type '<nil>' was used")
 
-	s.NoError(s.store.CreateAccessTokenSession(s.ctx, abc, &fosite.Request{
+	s.NoError(s.store.CreateAccessTokenSession(s.ctx, abc, &oauthelia2.Request{
 		ID: abc,
 		Client: &oidc.RegisteredClient{
 			ID: "example",
@@ -327,7 +349,7 @@ func (s *StoreSuite) TestCreateSessions() {
 		Session: session,
 	}))
 
-	s.NoError(s.store.CreateRefreshTokenSession(s.ctx, abc, &fosite.Request{
+	s.NoError(s.store.CreateRefreshTokenSession(s.ctx, abc, &oauthelia2.Request{
 		ID: abc,
 		Client: &oidc.RegisteredClient{
 			ID: "example",
@@ -335,7 +357,7 @@ func (s *StoreSuite) TestCreateSessions() {
 		Session: session,
 	}))
 
-	s.NoError(s.store.CreateOpenIDConnectSession(s.ctx, abc, &fosite.Request{
+	s.NoError(s.store.CreateOpenIDConnectSession(s.ctx, abc, &oauthelia2.Request{
 		ID: abc,
 		Client: &oidc.RegisteredClient{
 			ID: "example",
@@ -343,7 +365,7 @@ func (s *StoreSuite) TestCreateSessions() {
 		Session: session,
 	}))
 
-	s.NoError(s.store.CreatePKCERequestSession(s.ctx, abc, &fosite.Request{
+	s.NoError(s.store.CreatePKCERequestSession(s.ctx, abc, &oauthelia2.Request{
 		ID: abc,
 		Client: &oidc.RegisteredClient{
 			ID: "example",
@@ -351,8 +373,8 @@ func (s *StoreSuite) TestCreateSessions() {
 		Session: session,
 	}))
 
-	s.NoError(s.store.CreatePARSession(s.ctx, abc, &fosite.AuthorizeRequest{
-		Request: fosite.Request{
+	s.NoError(s.store.CreatePARSession(s.ctx, abc, &oauthelia2.AuthorizeRequest{
+		Request: oauthelia2.Request{
 			ID: abc,
 			Client: &oidc.RegisteredClient{
 				ID: "example",
@@ -360,8 +382,8 @@ func (s *StoreSuite) TestCreateSessions() {
 			Session: session,
 		}}))
 
-	s.EqualError(s.store.CreatePARSession(s.ctx, abc, &fosite.AuthorizeRequest{
-		Request: fosite.Request{
+	s.EqualError(s.store.CreatePARSession(s.ctx, abc, &oauthelia2.AuthorizeRequest{
+		Request: oauthelia2.Request{
 			ID: abc,
 			Client: &oidc.RegisteredClient{
 				ID: "example",
@@ -533,7 +555,7 @@ func (s *StoreSuite) TestGetSessions() {
 	)
 
 	var (
-		r   fosite.Requester
+		r   oauthelia2.Requester
 		err error
 	)
 
@@ -569,7 +591,7 @@ func (s *StoreSuite) TestGetSessions() {
 	s.NotNil(r)
 	s.NoError(err)
 
-	r, err = s.store.GetOpenIDConnectSession(s.ctx, "ot", &fosite.Request{
+	r, err = s.store.GetOpenIDConnectSession(s.ctx, "ot", &oauthelia2.Request{
 		ID: abc,
 		Client: &oidc.RegisteredClient{
 			ID: "example",

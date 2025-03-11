@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { Button, FormControl, Grid, IconButton, InputAdornment, Theme } from "@mui/material";
+import { Button, FormControl, IconButton, InputAdornment, Theme } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import TextField from "@mui/material/TextField";
 import makeStyles from "@mui/styles/makeStyles";
 import classnames from "classnames";
@@ -13,7 +14,7 @@ import { IndexRoute } from "@constants/Routes";
 import { IdentityToken } from "@constants/SearchParams";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useQueryParam } from "@hooks/QueryParam";
-import LoginLayout from "@layouts/LoginLayout";
+import MinimalLayout from "@layouts/MinimalLayout";
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
 import { getPasswordPolicyConfiguration } from "@services/PasswordPolicyConfiguration";
 import { completeResetPasswordProcess, resetPassword } from "@services/ResetPassword";
@@ -45,7 +46,14 @@ const ResetPasswordStep2 = function () {
     // the secret for OTP.
     const processToken = useQueryParam(IdentityToken);
 
-    const completeProcess = useCallback(async () => {
+    const handleRateLimited = useCallback(
+        (retryAfter: number) => {
+            createErrorNotification(translate("You have made too many requests"));
+        },
+        [createErrorNotification, translate],
+    );
+
+    const handleSubmitReset = useCallback(async () => {
         if (!processToken) {
             setFormDisabled(true);
             createErrorNotification(translate("No verification token provided"));
@@ -54,24 +62,35 @@ const ResetPasswordStep2 = function () {
 
         try {
             setFormDisabled(true);
-            await completeResetPasswordProcess(processToken);
+
+            const response = await completeResetPasswordProcess(processToken);
+
+            if (response && response.limited) {
+                handleRateLimited(response.retryAfter);
+
+                return;
+            }
+
             const policy = await getPasswordPolicyConfiguration();
             setPPolicy(policy);
             setFormDisabled(false);
         } catch (err) {
             console.error(err);
             createErrorNotification(
-                translate("There was an issue completing the process. The verification token might have expired"),
+                translate("There was an issue completing the process the verification token might have expired"),
             );
             setFormDisabled(true);
         }
-    }, [processToken, createErrorNotification, translate]);
+    }, [processToken, createErrorNotification, translate, handleRateLimited]);
 
     useEffect(() => {
-        completeProcess();
-    }, [completeProcess]);
+        handleSubmitReset();
+    }, [handleSubmitReset]);
 
     const doResetPassword = async () => {
+        setPassword1("");
+        setPassword2("");
+
         if (password1 === "" || password2 === "") {
             if (password1 === "") {
                 setErrorPassword1(true);
@@ -81,6 +100,7 @@ const ResetPasswordStep2 = function () {
             }
             return;
         }
+
         if (password1 !== password2) {
             setErrorPassword1(true);
             setErrorPassword2(true);
@@ -88,17 +108,23 @@ const ResetPasswordStep2 = function () {
             return;
         }
 
+        setFormDisabled(true);
+
         try {
             await resetPassword(password1);
+
             createSuccessNotification(translate("Password has been reset"));
             setTimeout(() => navigate(IndexRoute), 1500);
-            setFormDisabled(true);
         } catch (err) {
             console.error(err);
             if ((err as Error).message.includes("0000052D.")) {
-                createErrorNotification("Your supplied password does not meet the password policy requirements.");
+                createErrorNotification(
+                    translate("Your supplied password does not meet the password policy requirements"),
+                );
             } else if ((err as Error).message.includes("policy")) {
-                createErrorNotification("Your supplied password does not meet the password policy requirements.");
+                createErrorNotification(
+                    translate("Your supplied password does not meet the password policy requirements"),
+                );
             } else {
                 createErrorNotification(translate("There was an issue resetting the password"));
             }
@@ -110,10 +136,10 @@ const ResetPasswordStep2 = function () {
     const handleCancelClick = () => navigate(IndexRoute);
 
     return (
-        <LoginLayout title={translate("Enter new password")} id="reset-password-step2-stage">
+        <MinimalLayout title={translate("Enter new password")} id="reset-password-step2-stage">
             <FormControl id={"form-reset-password"}>
                 <Grid container className={styles.root} spacing={2}>
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <TextField
                             id="password1-textfield"
                             label={translate("New password")}
@@ -144,7 +170,7 @@ const ResetPasswordStep2 = function () {
                             <PasswordMeter value={password1} policy={pPolicy} />
                         )}
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <TextField
                             id="password2-textfield"
                             label={translate("Repeat new password")}
@@ -164,7 +190,7 @@ const ResetPasswordStep2 = function () {
                             autoComplete="new-password"
                         />
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid size={{ xs: 6 }}>
                         <Button
                             id="reset-button"
                             variant="contained"
@@ -177,7 +203,7 @@ const ResetPasswordStep2 = function () {
                             {translate("Reset")}
                         </Button>
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid size={{ xs: 6 }}>
                         <Button
                             id="cancel-button"
                             variant="contained"
@@ -191,7 +217,7 @@ const ResetPasswordStep2 = function () {
                     </Grid>
                 </Grid>
             </FormControl>
-        </LoginLayout>
+        </MinimalLayout>
     );
 };
 

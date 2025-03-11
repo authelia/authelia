@@ -71,7 +71,7 @@ func TestAuthzBuilder_WithEndpointConfig(t *testing.T) {
 	builder.WithEndpointConfig(schema.ServerEndpointsAuthz{
 		Implementation: "ExtAuthz",
 		AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{
-			{Name: "HeaderProxyAuthorization"},
+			{Name: "HeaderProxyAuthorization", SchemeBasicCacheLifespan: time.Hour},
 			{Name: "CookieSession"},
 		},
 	})
@@ -83,7 +83,7 @@ func TestAuthzBuilder_WithEndpointConfig(t *testing.T) {
 		AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{
 			{Name: "HeaderAuthorization"},
 			{Name: "HeaderProxyAuthorization"},
-			{Name: "HeaderAuthRequestProxyAuthorization"},
+			{Name: "HeaderAuthRequestProxyAuthorization", SchemeBasicCacheLifespan: time.Hour},
 			{Name: "HeaderLegacy"},
 			{Name: "CookieSession"},
 		},

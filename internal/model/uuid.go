@@ -12,9 +12,22 @@ func NewRandomNullUUID() (uuid.NullUUID, error) {
 	return uuid.NullUUID{UUID: id, Valid: true}, nil
 }
 
+func ParseNullUUID(in string) (uuid.NullUUID, error) {
+	if in == "" {
+		return uuid.NullUUID{}, nil
+	}
+
+	id, err := uuid.Parse(in)
+	if err != nil {
+		return uuid.NullUUID{}, err
+	}
+
+	return uuid.NullUUID{UUID: id, Valid: true}, nil
+}
+
 // NullUUID converts a uuid.UUID to a uuid.NullUUID.
 func NullUUID(in uuid.UUID) uuid.NullUUID {
-	return uuid.NullUUID{UUID: in, Valid: in.ID() != 0}
+	return uuid.NullUUID{UUID: in, Valid: in != uuid.Nil}
 }
 
 // MustNullUUID is a uuid.Must variant for the uuid.NullUUID methods.

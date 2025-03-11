@@ -8,13 +8,19 @@ import (
 
 // AuthenticationBackend represents the configuration related to the authentication backend.
 type AuthenticationBackend struct {
-	PasswordReset AuthenticationBackendPasswordReset `koanf:"password_reset" json:"password_reset" jsonschema:"title=Password Reset" jsonschema_description:"Allows configuration of the password reset behaviour."`
+	PasswordReset  AuthenticationBackendPasswordReset  `koanf:"password_reset" json:"password_reset" jsonschema:"title=Password Reset" jsonschema_description:"Allows configuration of the password reset behaviour."`
+	PasswordChange AuthenticationBackendPasswordChange `koanf:"password_change" json:"password_change" jsonschema:"title=Password Reset" jsonschema_description:"Allows configuration of the password reset behaviour."`
 
 	RefreshInterval RefreshIntervalDuration `koanf:"refresh_interval" json:"refresh_interval" jsonschema:"default=5 minutes,title=Refresh Interval" jsonschema_description:"How frequently the user details are refreshed from the backend."`
 
 	// The file authentication backend configuration.
 	File *AuthenticationBackendFile `koanf:"file" json:"file" jsonschema:"title=File Backend" jsonschema_description:"The file authentication backend configuration."`
 	LDAP *AuthenticationBackendLDAP `koanf:"ldap" json:"ldap" jsonschema:"title=LDAP Backend" jsonschema_description:"The LDAP authentication backend configuration."`
+}
+
+// AuthenticationBackendPasswordChange represents the configuration related to password reset functionality.
+type AuthenticationBackendPasswordChange struct {
+	Disable bool `koanf:"disable" json:"disable" jsonschema:"default=false,title=Disable" jsonschema_description:"Disables the Password Change option."`
 }
 
 // AuthenticationBackendPasswordReset represents the configuration related to password reset functionality.
@@ -31,6 +37,21 @@ type AuthenticationBackendFile struct {
 	Password AuthenticationBackendFilePassword `koanf:"password" json:"password" jsonschema:"title=Password Options" jsonschema_description:"Allows configuration of the password hashing options when the user passwords are changed directly by Authelia."`
 
 	Search AuthenticationBackendFileSearch `koanf:"search" json:"search" jsonschema:"title=Search" jsonschema_description:"Configures the user searching behaviour."`
+
+	ExtraAttributes map[string]AuthenticationBackendExtraAttribute `koanf:"extra_attributes" json:"extra_attributes" jsonschema:"title=Extra Attributes" jsonschema_description:"Configures the extra attributes available in expressions and other areas of Authelia."`
+}
+
+type AuthenticationBackendExtraAttribute struct {
+	MultiValued bool   `koanf:"multi_valued" json:"multi_valued" jsonschema:"title=Multi-Valued" jsonschema_description:"Defines the attribute as multi-valued."`
+	ValueType   string `koanf:"value_type" json:"value_type" jsonschema:"enum=boolean,enum=integer,enum=string,title=Value Type" jsonschema_description:"Defines the value type for the attribute."`
+}
+
+func (a AuthenticationBackendExtraAttribute) IsMultiValued() (multi bool) {
+	return a.MultiValued
+}
+
+func (a AuthenticationBackendExtraAttribute) GetValueType() (vtype string) {
+	return a.ValueType
 }
 
 // AuthenticationBackendFileSearch represents the configuration related to file-based backend searching.
@@ -108,9 +129,11 @@ type AuthenticationBackendFilePasswordSCrypt struct {
 type AuthenticationBackendLDAP struct {
 	Address        *AddressLDAP  `koanf:"address" json:"address" jsonschema:"title=Address" jsonschema_description:"The address of the LDAP directory server."`
 	Implementation string        `koanf:"implementation" json:"implementation" jsonschema:"default=custom,enum=custom,enum=activedirectory,enum=rfc2307bis,enum=freeipa,enum=lldap,enum=glauth,title=Implementation" jsonschema_description:"The implementation which mostly decides the default values."`
-	Timeout        time.Duration `koanf:"timeout" json:"timeout" jsonschema:"default=5 seconds,title=Timeout" jsonschema_description:"The LDAP directory server connection timeout."`
+	Timeout        time.Duration `koanf:"timeout" json:"timeout" jsonschema:"default=20 seconds,title=Timeout" jsonschema_description:"The LDAP directory server connection timeout."`
 	StartTLS       bool          `koanf:"start_tls" json:"start_tls" jsonschema:"default=false,title=StartTLS" jsonschema_description:"Enables the use of StartTLS."`
 	TLS            *TLS          `koanf:"tls" json:"tls" jsonschema:"title=TLS" jsonschema_description:"The LDAP directory server TLS connection properties."`
+
+	Pooling AuthenticationBackendLDAPPooling `koanf:"pooling" json:"pooling" jsonschema:"title=Pooling" jsonschema_description:"The LDAP Connection Pooling properties."`
 
 	BaseDN string `koanf:"base_dn" json:"base_dn" jsonschema:"title=Base DN" jsonschema_description:"The base for all directory server operations."`
 
@@ -119,7 +142,7 @@ type AuthenticationBackendLDAP struct {
 
 	AdditionalGroupsDN string `koanf:"additional_groups_dn" json:"additional_groups_dn" jsonschema:"title=Additional Group Base" jsonschema_description:"The base in addition to the Base DN for all directory server operations for groups."`
 	GroupsFilter       string `koanf:"groups_filter" json:"groups_filter" jsonschema:"title=Groups Filter" jsonschema_description:"The LDAP filter used to search for group objects."`
-	GroupSearchMode    string `koanf:"group_search_mode" json:"group_search_mode" jsonschema:"default=filter,enum=filter,enum=memberof,title=Groups Search Mode" jsonschema_description:"The LDAP group search mode used to search for group objects."`
+	GroupSearchMode    string `koanf:"group_search_mode" json:"group_search_mode" jsonschema:"default=filter,enum=filter,enum=memberof,title=Groups Search Modes" jsonschema_description:"The LDAP group search mode used to search for group objects."`
 
 	Attributes AuthenticationBackendLDAPAttributes `koanf:"attributes" json:"attributes"`
 
@@ -131,18 +154,47 @@ type AuthenticationBackendLDAP struct {
 	Password string `koanf:"password" json:"password" jsonschema:"title=Password" jsonschema_description:"The password for LDAP authenticated binding."`
 }
 
+type AuthenticationBackendLDAPPooling struct {
+	Enable  bool          `koanf:"enable" json:"enable" jsonschema:"title=Enable,default=false" jsonschema_description:"Enable LDAP connection pooling."`
+	Count   int           `koanf:"count" json:"count" jsonschema:"title=Count,default=5" jsonschema_description:"The number of connections to keep open for LDAP connection pooling."`
+	Retries int           `koanf:"retries" json:"retries" jsonschema:"title=Retries,default=2" jsonschema_description:"The number of attempts to retrieve a connection from the pool during the timeout."`
+	Timeout time.Duration `koanf:"timeout" json:"timeout" jsonschema:"title=Timeout,default=10 seconds" jsonschema_description:"The duration of time to wait for a connection to become available in the connection pool."`
+}
+
 // AuthenticationBackendLDAPAttributes represents the configuration related to LDAP server attributes.
 type AuthenticationBackendLDAPAttributes struct {
 	DistinguishedName string `koanf:"distinguished_name" json:"distinguished_name" jsonschema:"title=Attribute: Distinguished Name" jsonschema_description:"The directory server attribute which contains the distinguished name for all objects."`
 	Username          string `koanf:"username" json:"username" jsonschema:"title=Attribute: User Username" jsonschema_description:"The directory server attribute which contains the username for all users."`
 	DisplayName       string `koanf:"display_name" json:"display_name" jsonschema:"title=Attribute: User Display Name" jsonschema_description:"The directory server attribute which contains the display name for all users."`
+	FamilyName        string `koanf:"family_name" json:"family_name" jsonschema:"title=Attribute: Family Name" jsonschema_description:"The directory server attribute which contains the family name for all users."`
+	GivenName         string `koanf:"given_name" json:"given_name" jsonschema:"title=Attribute: Given Name" jsonschema_description:"The directory server attribute which contains the given name for all users."`
+	MiddleName        string `koanf:"middle_name" json:"middle_name" jsonschema:"title=Attribute: Middle Name" jsonschema_description:"The directory server attribute which contains the middle name for all users."`
+	Nickname          string `koanf:"nickname" json:"nickname" jsonschema:"title=Attribute: Nickname" jsonschema_description:"The directory server attribute which contains the nickname for all users."`
+	Gender            string `koanf:"gender" json:"gender" jsonschema:"title=Attribute: Gender" jsonschema_description:"The directory server attribute which contains the gender for all users."`
+	Birthdate         string `koanf:"birthdate" json:"birthdate" jsonschema:"title=Attribute: Birthdate" jsonschema_description:"The directory server attribute which contains the birthdate for all users."`
+	Website           string `koanf:"website" json:"website" jsonschema:"title=Attribute: Website" jsonschema_description:"The directory server attribute which contains the website URL for all users."`
+	Profile           string `koanf:"profile" json:"profile" jsonschema:"title=Attribute: Profile" jsonschema_description:"The directory server attribute which contains the profile URL for all users."`
+	Picture           string `koanf:"picture" json:"picture" jsonschema:"title=Attribute: Picture" jsonschema_description:"The directory server attribute which contains the picture URL for all users."`
+	ZoneInfo          string `koanf:"zoneinfo" json:"zoneinfo" jsonschema:"title=Attribute: Zone Information" jsonschema_description:"The directory server attribute which contains the time zone information for all users."`
+	Locale            string `koanf:"locale" json:"locale" jsonschema:"title=Attribute: Locale" jsonschema_description:"The directory server attribute which contains the locale information for all users."`
+	PhoneNumber       string `koanf:"phone_number" json:"phone_number" jsonschema:"title=Attribute: Phone Number" jsonschema_description:"The directory server attribute which contains the phone number for all users."`
+	PhoneExtension    string `koanf:"phone_extension" json:"phone_extension" jsonschema:"title=Attribute: Phone Extension" jsonschema_description:"The directory server attribute which contains the phone extension for all users."`
+	StreetAddress     string `koanf:"street_address" json:"street_address" jsonschema:"title=Attribute: Street Address" jsonschema_description:"The directory server attribute which contains the street address for all users."`
+	Locality          string `koanf:"locality" json:"locality" jsonschema:"title=Attribute: Locality" jsonschema_description:"The directory server attribute which contains the locality for all users."`
+	Region            string `koanf:"region" json:"region" jsonschema:"title=Attribute: Region" jsonschema_description:"The directory server attribute which contains the region for all users."`
+	PostalCode        string `koanf:"postal_code" json:"postal_code" jsonschema:"title=Attribute: Postal Code" jsonschema_description:"The directory server attribute which contains the postal code for all users."`
+	Country           string `koanf:"country" json:"country" jsonschema:"title=Attribute: Country" jsonschema_description:"The directory server attribute which contains the country for all users."`
 	Mail              string `koanf:"mail" json:"mail" jsonschema:"title=Attribute: User Mail" jsonschema_description:"The directory server attribute which contains the mail address for all users and groups."`
 	MemberOf          string `koanf:"member_of" jsonschema:"title=Attribute: Member Of" jsonschema_description:"The directory server attribute which contains the objects that an object is a member of."`
 	GroupName         string `koanf:"group_name" json:"group_name" jsonschema:"title=Attribute: Group Name" jsonschema_description:"The directory server attribute which contains the group name for all groups."`
+
+	Extra map[string]AuthenticationBackendLDAPAttributesAttribute `koanf:"extra" json:"extra" jsonschema:"title=Extra Attributes" jsonschema_description:"Configures the extra attributes available in expressions and other areas of Authelia."`
 }
 
-var DefaultAuthenticationBackendConfig = AuthenticationBackend{
-	RefreshInterval: NewRefreshIntervalDuration(time.Minute * 5),
+type AuthenticationBackendLDAPAttributesAttribute struct {
+	Name string `koanf:"name" json:"name" jsonschema:"title=Name" jsonschema_description:"The name of the attribute within Authelia. This does not adjust the attribute queried from the LDAP server."`
+
+	AuthenticationBackendExtraAttribute `koanf:",squash"`
 }
 
 // DefaultPasswordConfig represents the default configuration related to Argon2id hashing.
@@ -205,7 +257,12 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationCustom = Authenti
 		Mail:        ldapAttrMail,
 		GroupName:   ldapAttrCommonName,
 	},
-	Timeout: time.Second * 5,
+	Timeout: time.Second * 20,
+	Pooling: AuthenticationBackendLDAPPooling{
+		Count:   5,
+		Retries: 2,
+		Timeout: time.Second * 10,
+	},
 	TLS: &TLS{
 		MinimumVersion: TLSVersion{tls.VersionTLS12},
 	},
@@ -220,7 +277,17 @@ var DefaultLDAPAuthenticationBackendConfigurationImplementationActiveDirectory =
 		DistinguishedName: ldapAttrDistinguishedName,
 		Username:          ldapAttrSAMAccountName,
 		DisplayName:       ldapAttrDisplayName,
+		FamilyName:        ldapAttrSurname,
+		GivenName:         ldapAttrGivenName,
+		MiddleName:        ldapAttrMiddleName,
+		Website:           "wWWHomePage",
 		Mail:              ldapAttrMail,
+		PhoneNumber:       "telephoneNumber",
+		StreetAddress:     "streetAddress",
+		Locality:          "l",
+		Region:            "st",
+		PostalCode:        "postalCode",
+		Country:           "c",
 		MemberOf:          ldapAttrMemberOf,
 		GroupName:         ldapAttrCommonName,
 	},

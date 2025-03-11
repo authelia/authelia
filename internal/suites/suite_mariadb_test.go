@@ -20,8 +20,8 @@ func (s *MariaDBSuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
-func (s *MariaDBSuite) TestTwoFactorTOTPScenario() {
-	suite.Run(s.T(), NewTwoFactorTOTPScenario())
+func (s *MariaDBSuite) Test2FATOTPScenario() {
+	suite.Run(s.T(), New2FATOTPScenario())
 }
 
 func TestMariaDBSuite(t *testing.T) {

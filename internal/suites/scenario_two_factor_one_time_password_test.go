@@ -10,17 +10,17 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type TwoFactorOneTimePasswordSuite struct {
+type TwoFactorOneTimePasswordScenario struct {
 	*RodSuite
 }
 
-func NewTwoFactorOneTimePasswordScenario() *TwoFactorOneTimePasswordSuite {
-	return &TwoFactorOneTimePasswordSuite{
+func NewTwoFactorOneTimePasswordScenario() *TwoFactorOneTimePasswordScenario {
+	return &TwoFactorOneTimePasswordScenario{
 		RodSuite: NewRodSuite(""),
 	}
 }
 
-func (s *TwoFactorOneTimePasswordSuite) SetupSuite() {
+func (s *TwoFactorOneTimePasswordScenario) SetupSuite() {
 	browser, err := NewRodSession(RodSessionWithCredentials(s))
 	if err != nil {
 		log.Fatal(err)
@@ -29,7 +29,7 @@ func (s *TwoFactorOneTimePasswordSuite) SetupSuite() {
 	s.RodSession = browser
 }
 
-func (s *TwoFactorOneTimePasswordSuite) TearDownSuite() {
+func (s *TwoFactorOneTimePasswordScenario) TearDownSuite() {
 	err := s.RodSession.Stop()
 
 	if err != nil {
@@ -37,12 +37,12 @@ func (s *TwoFactorOneTimePasswordSuite) TearDownSuite() {
 	}
 }
 
-func (s *TwoFactorOneTimePasswordSuite) TearDownTest() {
+func (s *TwoFactorOneTimePasswordScenario) TearDownTest() {
 	s.collectCoverage(s.Page)
 	s.MustClose()
 }
 
-func (s *TwoFactorOneTimePasswordSuite) TestShouldRegisterAllAdvancedOptions() {
+func (s *TwoFactorOneTimePasswordScenario) TestShouldRegisterAllAdvancedOptions() {
 	ctx, cancel := context.WithTimeout(context.Background(), 240*time.Second)
 	defer func() {
 		cancel()
@@ -58,12 +58,11 @@ func (s *TwoFactorOneTimePasswordSuite) TestShouldRegisterAllAdvancedOptions() {
 	lengths := []int{6, 8}
 	periods := []int{30, 60, 90, 120}
 
-	for _, algorithm := range algorithms {
-		for _, length := range lengths {
-			for _, period := range periods {
+	for a, algorithm := range algorithms {
+		for l, length := range lengths {
+			for p, period := range periods {
 				s.T().Run(fmt.Sprintf("%s-%d-%d", algorithm, length, period), func(t *testing.T) {
-					s.doMaybeDeleteTOTP(t, s.Context(ctx), "john")
-					s.doRegisterTOTPAdvanced(t, s.Context(ctx), "john", algorithm, length, period)
+					s.doRegisterTOTPAdvanced(t, s.Context(ctx), a+l+p == 0, "john", algorithm, length, period)
 				})
 			}
 		}

@@ -7,12 +7,14 @@ import {
     UserSessionElevationPath,
     hasServiceError,
     toData,
+    validateStatusOneTimeCode,
 } from "@services/Api";
 
 export interface UserSessionElevation {
     require_second_factor: boolean;
     skip_second_factor: boolean;
     can_skip_second_factor: boolean;
+    factor_knowledge: boolean;
     elevated: boolean;
     expires: number;
 }
@@ -56,9 +58,7 @@ export async function verifyUserSessionElevation(otc: string) {
         method: "PUT",
         url: UserSessionElevationPath,
         data: { otc: otc },
-        validateStatus: (status) => {
-            return status === 401 || (status >= 200 && status < 400);
-        },
+        validateStatus: validateStatusOneTimeCode,
     });
 
     return res.status === 200 && res.data.status === "OK";

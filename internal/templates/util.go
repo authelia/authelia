@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"strings"
 	tt "text/template"
+	"time"
 )
 
 const (
@@ -59,7 +60,7 @@ func readTemplate(name, ext, category, overridePath string) (tPath string, embed
 		}
 	}
 
-	tPath = path.Join("src", category, name+ext)
+	tPath = path.Join("embed", category, name+ext)
 
 	if data, err = embedFS.ReadFile(tPath); err != nil {
 		return tPath, true, nil, fmt.Errorf("failed to read embedded template '%s': %w", tPath, err)
@@ -170,4 +171,31 @@ func strslice(v any) []string {
 			return []string{strval(v)}
 		}
 	}
+}
+
+func formatHTMLTimeWithLocation(date time.Time, location *time.Location) string {
+	return formatTimeWithLocation(time.DateOnly, date, location)
+}
+
+func formatTimeWithLocation(format string, date time.Time, location *time.Location) string {
+	return date.In(location).Format(format)
+}
+
+func convertAnyToTime(date any) (t time.Time) {
+	switch v := date.(type) {
+	case time.Time:
+		t = v
+	case *time.Time:
+		t = *v
+	case int64:
+		t = time.Unix(v, 0)
+	case int:
+		t = time.Unix(int64(v), 0)
+	case int32:
+		t = time.Unix(int64(v), 0)
+	default:
+		t = time.Now()
+	}
+
+	return t
 }

@@ -3,7 +3,9 @@ package mocks
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/url"
+	"regexp"
 	"testing"
 	"time"
 
@@ -250,11 +252,30 @@ func (m *MockAutheliaCtx) Close() {
 	m.Ctrl.Finish()
 }
 
+func (m *MockAutheliaCtx) SetLogLevel(level logrus.Level) {
+	logger := logrus.New()
+	logger.Out = io.Discard
+	logger.SetLevel(level)
+
+	m.Hook = test.NewLocal(logger)
+	m.Ctx.Logger = logrus.NewEntry(logger)
+}
+
 // SetRequestBody set the request body from a struct with json tags.
 func (m *MockAutheliaCtx) SetRequestBody(t *testing.T, body interface{}) {
 	bodyBytes, err := json.Marshal(body)
 	require.NoError(t, err)
 	m.Ctx.Request.SetBody(bodyBytes)
+}
+
+func (m *MockAutheliaCtx) LogEntryN(n int) *logrus.Entry {
+	entries := m.Hook.AllEntries()
+
+	if i := len(entries) - (1 + n); i < 0 {
+		return nil
+	} else {
+		return entries[i]
+	}
 }
 
 // AssertKO assert an error response from the service.
@@ -303,6 +324,72 @@ func (m *MockAutheliaCtx) Assert200OK(t *testing.T, data interface{}) {
 	assert.Equal(t, string(b), string(m.Ctx.Response.Body()))
 }
 
+func (m *MockAutheliaCtx) AssertLastLogMessageRegexp(t *testing.T, message, err *regexp.Regexp) {
+	entry := m.Hook.LastEntry()
+
+	require.NotNil(t, entry)
+
+	if message != nil {
+		assert.Regexp(t, message, entry.Message)
+	}
+
+	v, ok := entry.Data["error"]
+
+	if err == nil {
+		assert.False(t, ok)
+		assert.Nil(t, v)
+	} else {
+		assert.True(t, ok)
+		require.NotNil(t, v)
+
+		theErr, ok := v.(error)
+		assert.True(t, ok)
+		require.NotNil(t, theErr)
+
+		assert.Regexp(t, err, theErr.Error())
+	}
+}
+
+func (m *MockAutheliaCtx) AssertLastLogMessage(t *testing.T, message, err string) {
+	entry := m.Hook.LastEntry()
+
+	require.NotNil(t, entry)
+
+	assert.Equal(t, message, entry.Message)
+
+	v, ok := entry.Data["error"]
+
+	if err == "" {
+		assert.False(t, ok)
+		assert.Nil(t, v)
+	} else {
+		assert.True(t, ok)
+		require.NotNil(t, v)
+
+		theErr, ok := v.(error)
+		assert.True(t, ok)
+		require.NotNil(t, theErr)
+
+		assert.EqualError(t, theErr, err)
+	}
+}
+
+func (m *MockAutheliaCtx) AssertLogEntryAdvanced(t *testing.T, n int, level logrus.Level, message any, fields map[string]any) {
+	entry := m.LogEntryN(n)
+
+	require.NotNil(t, entry)
+
+	assert.Equal(t, level, entry.Level)
+
+	AssertIsStringEqualOrRegexp(t, message, entry.Message)
+
+	for field, expected := range fields {
+		require.Contains(t, entry.Data, field)
+
+		AssertIsStringEqualOrRegexp(t, expected, entry.Data[field])
+	}
+}
+
 // GetResponseData retrieves a response from the service.
 func (m *MockAutheliaCtx) GetResponseData(t *testing.T, data interface{}) {
 	okResponse := middlewares.OKResponse{}
@@ -317,4 +404,27 @@ func (m *MockAutheliaCtx) GetResponseError(t *testing.T) (errResponse middleware
 	require.NoError(t, err)
 
 	return errResponse
+}
+
+func AssertIsStringEqualOrRegexp(t *testing.T, expected any, actual any) {
+	switch v := expected.(type) {
+	case string:
+		switch a := actual.(type) {
+		case error:
+			assert.EqualError(t, a, v)
+		default:
+			assert.Equal(t, v, a)
+		}
+	case *regexp.Regexp:
+		switch a := actual.(type) {
+		case error:
+			assert.Regexp(t, v, a.Error())
+		default:
+			assert.Regexp(t, v, a)
+		}
+	case nil:
+		break
+	default:
+		t.Fatal("Expected value must be a string or Regexp")
+	}
 }

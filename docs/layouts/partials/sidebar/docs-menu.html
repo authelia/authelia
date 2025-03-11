@@ -1,9 +1,0 @@
-{{ if and .Site.Params.menu.section.auto .Site.Params.menu.section.collapsibleSidebar -}}
-  {{ partial "sidebar/auto-collapsible-menu.html" . -}}
-{{ else if and .Site.Params.menu.section.auto (not .Site.Params.menu.section.collapsibleSidebar) -}}
-  {{ partial "sidebar/auto-default-menu.html" . -}}
-{{ else if and (not .Site.Params.menu.section.auto) .Site.Params.menu.section.collapsibleSidebar -}}
-  {{ partial "sidebar/manual-collapsible-menu.html" . -}}
-{{ else if and (not .Site.Params.menu.section.auto) (not .Site.Params.menu.section.collapsibleSidebar) -}}
-  {{ partial "sidebar/manual-default-menu.html" . -}}
-{{ end -}}

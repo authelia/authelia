@@ -38,7 +38,7 @@ func TestParseTemplateDirectories(t *testing.T) {
 	testCases := []struct {
 		name, path string
 	}{
-		{"Templates", "./src"},
+		{"Templates", "./embed"},
 		{"OpenAPI", "../../api"},
 		{"Generators", "../../cmd/authelia-gen/templates"},
 	}

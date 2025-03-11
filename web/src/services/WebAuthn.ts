@@ -1,10 +1,11 @@
-import { startAuthentication, startRegistration } from "@simplewebauthn/browser";
 import {
     AuthenticationResponseJSON,
     PublicKeyCredentialCreationOptionsJSON,
     PublicKeyCredentialRequestOptionsJSON,
     RegistrationResponseJSON,
-} from "@simplewebauthn/types";
+    startAuthentication,
+    startRegistration,
+} from "@simplewebauthn/browser";
 import axios, { AxiosError, AxiosResponse } from "axios";
 
 import {
@@ -19,13 +20,14 @@ import {
 } from "@models/WebAuthn";
 import {
     AuthenticationOKResponse,
-    OKResponse,
+    FirstFactorPasskeyPath,
     OptionalDataServiceResponse,
     ServiceResponse,
     WebAuthnAssertionPath,
     WebAuthnCredentialPath,
     WebAuthnRegistrationPath,
     validateStatusAuthentication,
+    validateStatusWebAuthnCreation,
 } from "@services/Api";
 import { SignInResponse } from "@services/SignIn";
 
@@ -85,34 +87,7 @@ function getAssertionResultFromDOMException(
     }
 }
 
-export async function getAttestationCreationOptions(
-    description: string,
-): Promise<PublicKeyCredentialCreationOptionsStatus> {
-    const response = await axios.put<ServiceResponse<CredentialCreation>>(
-        WebAuthnRegistrationPath,
-        {
-            description: description,
-        },
-        {
-            validateStatus: function (status) {
-                return status < 300 || status === 409;
-            },
-        },
-    );
-
-    if (response.data.status !== "OK" || response.data.data == null) {
-        return {
-            status: response.status,
-        };
-    }
-
-    return {
-        options: response.data.data.publicKey,
-        status: response.status,
-    };
-}
-
-export async function getAuthenticationOptions(): Promise<PublicKeyCredentialRequestOptionsStatus> {
+export async function getWebAuthnOptions(): Promise<PublicKeyCredentialRequestOptionsStatus> {
     let response: AxiosResponse<ServiceResponse<CredentialRequest>>;
 
     response = await axios.get<ServiceResponse<CredentialRequest>>(WebAuthnAssertionPath);
@@ -129,38 +104,13 @@ export async function getAuthenticationOptions(): Promise<PublicKeyCredentialReq
     };
 }
 
-export async function startWebAuthnRegistration(options: PublicKeyCredentialCreationOptionsJSON) {
-    const result: RegistrationResult = {
-        result: AttestationResult.Failure,
-    };
-
-    try {
-        result.response = await startRegistration(options);
-    } catch (e) {
-        const exception = e as DOMException;
-        if (exception !== undefined) {
-            result.result = getAttestationResultFromDOMException(exception);
-            console.error(exception);
-            return result;
-        } else {
-            console.error(`Unhandled exception occurred during WebAuthn attestation: ${e}`);
-        }
-    }
-
-    if (result.response != null) {
-        result.result = AttestationResult.Success;
-    }
-
-    return result;
-}
-
-export async function getAuthenticationResult(options: PublicKeyCredentialRequestOptionsJSON) {
+export async function getWebAuthnResult(options: PublicKeyCredentialRequestOptionsJSON) {
     const result: AuthenticationResult = {
         result: AssertionResult.Success,
     };
 
     try {
-        result.response = await startAuthentication(options);
+        result.response = await startAuthentication({ optionsJSON: options });
     } catch (e) {
         const exception = e as DOMException;
         if (exception !== undefined) {
@@ -183,26 +133,12 @@ export async function getAuthenticationResult(options: PublicKeyCredentialReques
     return result;
 }
 
-async function postRegistrationResponse(
-    response: RegistrationResponseJSON,
-): Promise<AxiosResponse<OptionalDataServiceResponse<any>>> {
-    return axios.post<OptionalDataServiceResponse<any>>(WebAuthnRegistrationPath, response);
-}
-
-export async function postAuthenticationResponse(
+export async function postWebAuthnResponse(
     response: AuthenticationResponseJSON,
     targetURL?: string | undefined,
     workflow?: string,
     workflowID?: string,
 ) {
-    if (response.response.userHandle) {
-        // Encode the userHandle to match the typing on the backend.
-        response.response.userHandle = btoa(response.response.userHandle)
-            .replace(/\+/g, "-")
-            .replace(/\//g, "_")
-            .replace(/=/g, "");
-    }
-
     return axios.post<ServiceResponse<SignInResponse>>(WebAuthnAssertionPath, {
         response: response,
         targetURL: targetURL,
@@ -211,14 +147,122 @@ export async function postAuthenticationResponse(
     });
 }
 
-export async function finishRegistration(response: RegistrationResponseJSON) {
+export async function getWebAuthnPasskeyOptions(): Promise<PublicKeyCredentialRequestOptionsStatus> {
+    let response: AxiosResponse<ServiceResponse<CredentialRequest>>;
+
+    response = await axios.get<ServiceResponse<CredentialRequest>>(FirstFactorPasskeyPath);
+
+    if (response.data.status !== "OK" || response.data.data == null) {
+        return {
+            status: response.status,
+        };
+    }
+
+    return {
+        options: response.data.data.publicKey,
+        status: response.status,
+    };
+}
+
+interface PostFirstFactorPasskeyBody {
+    response: AuthenticationResponseJSON;
+    keepMeLoggedIn: boolean;
+    targetURL?: string;
+    requestMethod?: string;
+    workflow?: string;
+}
+
+export async function postWebAuthnPasskeyResponse(
+    response: AuthenticationResponseJSON,
+    keepMeLoggedIn: boolean,
+    targetURL?: string | undefined,
+    requestMethod?: string,
+    workflow?: string,
+) {
+    const data: PostFirstFactorPasskeyBody = {
+        response,
+        keepMeLoggedIn,
+    };
+
+    if (targetURL) {
+        data.targetURL = targetURL;
+    }
+
+    if (requestMethod) {
+        data.requestMethod = requestMethod;
+    }
+
+    if (workflow) {
+        data.workflow = workflow;
+    }
+
+    return axios.post<ServiceResponse<SignInResponse>>(FirstFactorPasskeyPath, data);
+}
+
+export async function getWebAuthnRegistrationOptions(
+    description: string,
+): Promise<PublicKeyCredentialCreationOptionsStatus> {
+    const response = await axios.put<ServiceResponse<CredentialCreation>>(
+        WebAuthnRegistrationPath,
+        {
+            description: description,
+        },
+        {
+            validateStatus: validateStatusWebAuthnCreation,
+        },
+    );
+
+    if (response.data.status !== "OK" || response.data.data == null) {
+        return {
+            status: response.status,
+        };
+    }
+
+    return {
+        options: response.data.data.publicKey,
+        status: response.status,
+    };
+}
+
+export async function startWebAuthnRegistration(options: PublicKeyCredentialCreationOptionsJSON) {
+    const result: RegistrationResult = {
+        result: AttestationResult.Failure,
+    };
+
+    try {
+        result.response = await startRegistration({ optionsJSON: options });
+    } catch (e) {
+        const exception = e as DOMException;
+        if (exception !== undefined) {
+            result.result = getAttestationResultFromDOMException(exception);
+            console.error(exception);
+            return result;
+        } else {
+            console.error(`Unhandled exception occurred during WebAuthn attestation: ${e}`);
+        }
+    }
+
+    if (result.response != null) {
+        result.result = AttestationResult.Success;
+    }
+
+    return result;
+}
+
+async function postWebAuthnRegistrationResponse(
+    response: RegistrationResponseJSON,
+): Promise<AxiosResponse<OptionalDataServiceResponse<any>>> {
+    return axios.post<OptionalDataServiceResponse<any>>(WebAuthnRegistrationPath, response);
+}
+
+export async function finishWebAuthnRegistration(response: RegistrationResponseJSON) {
     let result = {
         status: AttestationResult.Failure,
         message: "Device registration failed.",
     };
 
     try {
-        const resp = await postRegistrationResponse(response);
+        const resp = await postWebAuthnRegistrationResponse(response);
         if (resp.data.status === "OK" && (resp.status === 200 || resp.status === 201)) {
             return {
                 status: AttestationResult.Success,
@@ -232,18 +276,6 @@ export async function finishRegistration(response: RegistrationResponseJSON) {
     }
 
     return result;
-}
-
-export async function deleteRegistration() {
-    try {
-        await axios.delete<OKResponse>(WebAuthnRegistrationPath);
-    } catch (e) {
-        console.error(e);
-
-        return false;
-    }
-
-    return true;
 }
 
 export async function deleteUserWebAuthnCredential(credentialID: string) {

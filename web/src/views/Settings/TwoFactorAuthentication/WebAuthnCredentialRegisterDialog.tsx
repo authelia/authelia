@@ -15,16 +15,20 @@ import {
     Theme,
     Typography,
 } from "@mui/material";
-import Grid from "@mui/material/Unstable_Grid2/Grid2";
+import Grid from "@mui/material/Grid2";
 import makeStyles from "@mui/styles/makeStyles";
-import { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/types";
+import { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/browser";
 import { useTranslation } from "react-i18next";
 
 import InformationIcon from "@components/InformationIcon";
 import WebAuthnRegisterIcon from "@components/WebAuthnRegisterIcon";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { AttestationResult, AttestationResultFailureString, WebAuthnTouchState } from "@models/WebAuthn";
-import { finishRegistration, getAttestationCreationOptions, startWebAuthnRegistration } from "@services/WebAuthn";
+import {
+    finishWebAuthnRegistration,
+    getWebAuthnRegistrationOptions,
+    startWebAuthnRegistration,
+} from "@services/WebAuthn";
 
 const steps = ["Description", "Verification"];
 
@@ -83,7 +87,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                     throw new Error("Credential Creation Request succeeded but Registration Response is empty.");
                 }
 
-                const response = await finishRegistration(result.response);
+                const response = await finishWebAuthnRegistration(result.response);
 
                 switch (response.status) {
                     case AttestationResult.Success:
@@ -101,13 +105,13 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
 
                 return;
             } else {
-                createErrorNotification(AttestationResultFailureString(result.result));
+                createErrorNotification(translate(AttestationResultFailureString(result.result)));
                 setState(WebAuthnTouchState.Failure);
             }
         } catch (err) {
             console.error(err);
             createErrorNotification(
-                "Failed to register your credential. The identity verification process might have timed out.",
+                translate("Failed to register your credential, the identity verification process might have timed out"),
             );
         } finally {
             handleClose();
@@ -147,7 +151,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                 return;
             }
 
-            const res = await getAttestationCreationOptions(description);
+            const res = await getWebAuthnRegistrationOptions(description);
 
             switch (res.status) {
                 case 200:
@@ -200,7 +204,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                             {translate("Enter a description for this WebAuthn Credential")}
                         </Typography>
                         <Grid container spacing={1}>
-                            <Grid xs={12}>
+                            <Grid size={{ xs: 12 }}>
                                 <TextField
                                     inputRef={nameRef}
                                     id="webauthn-credential-description"
@@ -258,7 +262,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                     })}
                 </DialogContentText>
                 <Grid container spacing={0} alignItems={"center"} justifyContent={"center"} textAlign={"center"}>
-                    <Grid xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <Stepper activeStep={activeStep}>
                             {steps.map((label, index) => {
                                 const stepProps: { completed?: boolean } = {};
@@ -273,7 +277,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                             })}
                         </Stepper>
                     </Grid>
-                    <Grid xs={12}>{renderStep(activeStep)}</Grid>
+                    <Grid size={{ xs: 12 }}>{renderStep(activeStep)}</Grid>
                 </Grid>
             </DialogContent>
             <DialogActions>

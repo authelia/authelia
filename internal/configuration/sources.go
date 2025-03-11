@@ -20,8 +20,10 @@ import (
 // accessing this path it also returns an error.
 func NewFileSource(path string) (source *FileSource) {
 	return &FileSource{
-		koanf: koanf.New(constDelimiter),
-		path:  path,
+		koanf:     koanf.New(constDelimiter),
+		provider:  FilteredFileProvider(path),
+		providers: make(map[string]*FilteredFile),
+		path:      path,
 	}
 }
 
@@ -29,9 +31,11 @@ func NewFileSource(path string) (source *FileSource) {
 // an issue accessing this path it also returns an error.
 func NewFilteredFileSource(path string, filters ...BytesFilter) (source *FileSource) {
 	return &FileSource{
-		koanf:   koanf.New(constDelimiter),
-		path:    path,
-		filters: filters,
+		koanf:     koanf.New(constDelimiter),
+		provider:  FilteredFileProvider(path, filters...),
+		providers: make(map[string]*FilteredFile),
+		path:      path,
+		filters:   filters,
 	}
 }
 
@@ -83,7 +87,7 @@ func (s *FileSource) Load(val *schema.StructValidator) (err error) {
 		return s.loadDir(val)
 	}
 
-	return s.koanf.Load(FilteredFileProvider(s.path, s.filters...), yaml.Parser())
+	return s.koanf.Load(s.provider, yaml.Parser())
 }
 
 func (s *FileSource) loadDir(_ *schema.StructValidator) (err error) {
@@ -93,6 +97,11 @@ func (s *FileSource) loadDir(_ *schema.StructValidator) (err error) {
 		return err
 	}
 
+	var (
+		provider *FilteredFile
+		ok       bool
+	)
+
 	for _, entry := range entries {
 		if entry.IsDir() {
 			continue
@@ -100,9 +109,17 @@ func (s *FileSource) loadDir(_ *schema.StructValidator) (err error) {
 
 		name := entry.Name()
 
+		file := filepath.Join(s.path, name)
+
 		switch ext := filepath.Ext(name); ext {
 		case extYML, extYAML:
-			if err = s.koanf.Load(FilteredFileProvider(filepath.Join(s.path, name), s.filters...), yaml.Parser()); err != nil {
+			if provider, ok = s.providers[file]; !ok {
+				provider = FilteredFileProvider(file, s.filters...)
+
+				s.providers[file] = provider
+			}
+
+			if err = s.koanf.Load(provider, yaml.Parser()); err != nil {
 				return err
 			}
 		}
@@ -181,6 +198,16 @@ func (s *FileSource) readFilesDirectory(path string) (files []*File, err error) 
 	return files, nil
 }
 
+func (s *FileSource) GetBytesFilterNames() (names []string) {
+	names = make([]string, len(s.filters))
+
+	for i, filter := range s.filters {
+		names[i] = filter.Name()
+	}
+
+	return names
+}
+
 // NewBytesSource returns a configuration.Source configured to load from a specified bytes.
 func NewBytesSource(data []byte) (source *BytesSource) {
 	return &BytesSource{
@@ -219,7 +246,7 @@ func (b *BytesSource) ReadBytes() (data []byte, err error) {
 	copy(data, b.data)
 
 	for _, filter := range b.filters {
-		if data, err = filter(data); err != nil {
+		if data, err = filter.Filter(data); err != nil {
 			return nil, err
 		}
 	}
@@ -253,7 +280,7 @@ func (s *EnvironmentSource) Merge(ko *koanf.Koanf, _ *schema.StructValidator) (e
 
 // Load the Source into the EnvironmentSource koanf.Koanf.
 func (s *EnvironmentSource) Load(_ *schema.StructValidator) (err error) {
-	keyMap, ignoredKeys := getEnvConfigMap(schema.Keys, s.prefix, s.delimiter, deprecations)
+	keyMap, ignoredKeys := getEnvConfigMap(schema.Keys, s.prefix, s.delimiter, deprecations, deprecationsMKM)
 
 	return s.koanf.Load(env.ProviderWithValue(s.prefix, constDelimiter, koanfEnvironmentCallback(keyMap, ignoredKeys, s.prefix, s.delimiter)), nil)
 }
@@ -348,6 +375,8 @@ func (s *MapSource) Load(_ *schema.StructValidator) (err error) {
 
 // NewDefaultSources returns a slice of Source configured to load from specified YAML files.
 func NewDefaultSources(paths []string, prefix, delimiter string, additionalSources ...Source) (sources []Source) {
+	sources = []Source{NewMapSource(defaults)}
+
 	fileSources := NewFileSources(paths)
 	for _, source := range fileSources {
 		sources = append(sources, source)
@@ -365,6 +394,8 @@ func NewDefaultSources(paths []string, prefix, delimiter string, additionalSourc
 
 // NewDefaultSourcesFiltered returns a slice of Source configured to load from specified YAML files.
 func NewDefaultSourcesFiltered(paths []string, filters []BytesFilter, prefix, delimiter string, additionalSources ...Source) (sources []Source) {
+	sources = []Source{NewMapSource(defaults)}
+
 	fileSources := NewFilteredFileSources(paths, filters)
 	for _, source := range fileSources {
 		sources = append(sources, source)
@@ -381,9 +412,11 @@ func NewDefaultSourcesFiltered(paths []string, filters []BytesFilter, prefix, de
 }
 
 // NewDefaultSourcesWithDefaults returns a slice of Source configured to load from specified YAML files with additional sources.
-func NewDefaultSourcesWithDefaults(paths []string, filters []BytesFilter, prefix, delimiter string, defaults Source, additionalSources ...Source) (sources []Source) {
-	if defaults != nil {
-		sources = []Source{defaults}
+func NewDefaultSourcesWithDefaults(paths []string, filters []BytesFilter, prefix, delimiter string, defaultSources []Source, additionalSources ...Source) (sources []Source) {
+	sources = []Source{NewMapSource(defaults)}
+
+	if len(defaultSources) != 0 {
+		sources = append(sources, defaultSources...)
 	}
 
 	if len(filters) == 0 {
@@ -393,4 +426,11 @@ func NewDefaultSourcesWithDefaults(paths []string, filters []BytesFilter, prefix
 	}
 
 	return sources
+}
+
+// NewDefaultsSource is a base configuration which sets defaults, this is particularly useful at the present time for
+// setting defaults that otherwise can't be set. In the future it can be used to generate documentation or be generated
+// by jsonschema. It will also reduce some areas of the validation package.
+func NewDefaultsSource() (source Source) {
+	return NewMapSource(mapDefaults)
 }

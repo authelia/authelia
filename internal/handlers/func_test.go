@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/sirupsen/logrus"
@@ -11,25 +12,51 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
-func AssertLogEntryMessageAndError(t *testing.T, entry *logrus.Entry, message, err string) {
+func AssertLogEntryMessageAndError(t *testing.T, entry *logrus.Entry, message, err any) {
 	require.NotNil(t, entry)
 
-	assert.Equal(t, message, entry.Message)
+	switch value := message.(type) {
+	case *regexp.Regexp:
+		assert.Regexp(t, value, entry.Message)
+	case string:
+		assert.Equal(t, value, entry.Message)
+	case nil:
+		break
+	default:
+		t.Fatal("Message should be a string, nil, or *regexp.Regex")
+	}
 
 	v, ok := entry.Data["error"]
 
-	if err == "" {
-		assert.False(t, ok)
-		assert.Nil(t, v)
-	} else {
+	switch value := err.(type) {
+	case *regexp.Regexp:
 		assert.True(t, ok)
-		require.NotNil(t, v)
 
 		theErr, ok := v.(error)
 		assert.True(t, ok)
 		require.NotNil(t, theErr)
 
-		assert.EqualError(t, theErr, err)
+		assert.Regexp(t, value, theErr.Error())
+	case string:
+		if value == "" {
+			assert.False(t, ok)
+			assert.Nil(t, v)
+
+			break
+		}
+
+		assert.True(t, ok)
+
+		theErr, ok := v.(error)
+		assert.True(t, ok)
+		require.NotNil(t, theErr)
+
+		assert.EqualError(t, theErr, value)
+	case nil:
+		assert.False(t, ok)
+		assert.Nil(t, v)
+	default:
+		t.Fatal("Err should be a string, nil, or *regexp.Regex")
 	}
 }
 
@@ -47,5 +74,5 @@ func getStepTOTP(ctx *middlewares.AutheliaCtx, period int) uint64 {
 		period = ctx.Configuration.TOTP.DefaultPeriod
 	}
 
-	return uint64(int(step) / period)
+	return uint64(int(step) / period) //nolint:gosec // This is a testing func.
 }

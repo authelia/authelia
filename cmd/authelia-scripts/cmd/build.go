@@ -77,27 +77,12 @@ func buildAutheliaBinaryGOX(xflags []string) {
 
 	s := time.Now()
 
-	wg.Add(2)
+	wg.Add(1)
 
 	go func() {
 		defer wg.Done()
 
-		cmd := utils.CommandWithStdout("gox", "-output={{.Dir}}-{{.OS}}-{{.Arch}}-musl", "-buildmode=pie", "-trimpath", "-cgo", "-ldflags=-linkmode=external -s -w "+strings.Join(xflags, " "), "-osarch=linux/amd64 linux/arm linux/arm64", "./cmd/authelia/")
-
-		cmd.Env = append(os.Environ(),
-			"CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong", "CGO_LDFLAGS=-Wl,-z,relro,-z,now",
-			"GOX_LINUX_ARM_CC=arm-linux-musleabihf-gcc", "GOX_LINUX_ARM64_CC=aarch64-linux-musl-gcc")
-
-		err := cmd.Run()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}()
-
-	go func() {
-		defer wg.Done()
-
-		cmd := utils.CommandWithStdout("bash", "-c", "docker run --rm -e GOX_LINUX_ARM_CC=arm-linux-gnueabihf-gcc -e GOX_LINUX_ARM64_CC=aarch64-linux-gnu-gcc -e GOX_FREEBSD_AMD64_CC=x86_64-pc-freebsd13-gcc -v ${PWD}:/workdir -v /buildkite/.go:/root/go authelia/crossbuild "+
+		cmd := utils.CommandWithStdout("bash", "-c", "docker run --rm -e GOX_LINUX_ARM_CC=arm-linux-gnueabihf-gcc -e GOX_LINUX_ARM64_CC=aarch64-linux-gnu-gcc -e GOX_FREEBSD_AMD64_CC=x86_64-pc-freebsd14-gcc -v ${PWD}:/workdir -v /buildkite/.go:/root/go authelia/crossbuild "+
 			"gox -output={{.Dir}}-{{.OS}}-{{.Arch}} -buildmode=pie -trimpath -cgo -ldflags=\"-linkmode=external -s -w "+strings.Join(xflags, " ")+"\" -osarch=\"linux/amd64 linux/arm linux/arm64 freebsd/amd64\" ./cmd/authelia/")
 
 		err := cmd.Run()
@@ -160,7 +145,7 @@ func buildSwagger() {
 		log.Fatal(err)
 	}
 
-	cmd = utils.CommandWithStdout("tar", "-C", "internal/server/public_html/api", "--exclude=index.html", "--strip-components=2", "-xf", "v"+versionSwaggerUI+extTarballGzip, "swagger-ui-"+versionSwaggerUI+"/dist")
+	cmd = utils.CommandWithStdout("tar", "-C", "internal/server/public_html/api", "--exclude=index.html", "--exclude=*.map", "--exclude=*-es-*", "--exclude=swagger-{ui,initializer}.js", "--strip-components=2", "-xf", "v"+versionSwaggerUI+extTarballGzip, "swagger-ui-"+versionSwaggerUI+"/dist")
 
 	err = cmd.Run()
 	if err != nil {

@@ -13,7 +13,7 @@ export function localStorageAvailable() {
         try {
             window.localStorage.setItem(testKey, testValue);
             window.localStorage.removeItem(testKey);
-        } catch (e) {
+        } catch {
             hasLocalStorageSupport = false;
         }
     }
@@ -25,4 +25,12 @@ export function getLocalStorage(key: string) {
     if (!localStorageAvailable()) return null;
 
     return window.localStorage.getItem(key);
+}
+
+export function setLocalStorage(key: string, value: string) {
+    if (!localStorageAvailable()) return false;
+
+    window.localStorage.setItem(key, value);
+
+    return true;
 }

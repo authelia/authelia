@@ -58,15 +58,11 @@ type EmailTemplate struct {
 // EmailEventValues are the values used for event templates.
 type EmailEventValues struct {
 	Title       string
+	BodyPrefix  string
+	BodySuffix  string
+	BodyEvent   string
 	DisplayName string
 	Details     map[string]any
-	RemoteIP    string
-}
-
-// EmailPasswordResetValues are the values used for password reset templates.
-type EmailPasswordResetValues struct {
-	Title       string
-	DisplayName string
 	RemoteIP    string
 }
 
@@ -74,6 +70,7 @@ type EmailPasswordResetValues struct {
 type EmailIdentityVerificationJWTValues struct {
 	Title              string
 	DisplayName        string
+	Domain             string
 	RemoteIP           string
 	LinkURL            string
 	LinkText           string
@@ -85,6 +82,7 @@ type EmailIdentityVerificationJWTValues struct {
 type EmailIdentityVerificationOTCValues struct {
 	Title              string
 	DisplayName        string
+	Domain             string
 	RemoteIP           string
 	OneTimeCode        string
 	RevocationLinkURL  string

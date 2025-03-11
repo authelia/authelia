@@ -1,0 +1,37 @@
+{
+	"Claim": "Tāpuni {{name}}",
+	"Scope": "Tei {{name}}",
+	"scopes": {
+		"openid": "Ahi i te OpenID e faa'ite i to oe i'oa",
+		"offline_access": "Aita e farii i te mau fa'amauraa e teita'i i te mau a'i",
+		"profile": "Ahi i to oe mau fa'ahuarau parau",
+		"groups": "Hopoi i tō mau pāteʻa rūpū",
+		"email": "Hopoi i tō mau mīharo ī-mel",
+		"phone": "Hopoi i tō mau namu pā",
+		"address": "Hopoi i tō mau bōrā",
+		"authelia.bearer.authz": "Hopoi i nā mau Ōrihī i te tāpuhi i kā oe"
+	},
+	"claims": {
+		"sub": "Te 'Ākau Tahi",
+		"name": "I'oa Pānui",
+		"given_name": "I'oa Tāpuni",
+		"family_name": "I'oa Rū",
+		"middle_name": "I'oa Nū",
+		"nickname": "I'oa Tina",
+		"preferred_username": "I'oa Fa'avae",
+		"profile": "URL Pānui",
+		"picture": "URL Pic",
+		"website": "URL Pātai",
+		"email": "Āmīl 'ōi",
+		"email_verified": "Āmīl 'ōi (Ua Pī'ā)",
+		"gender": "'Ōra",
+		"birthdate": "Rā'ira",
+		"zoneinfo": "Tāianei",
+		"locale": "Tai'ā / Reo",
+		"phone_number": "Namua pā",
+		"phone_number_verified": "Namua pā (Ua Pī'ā)",
+		"address": "'Āre pato",
+		"updated_at": "Wā Rere te Pā",
+		"groups": "Pāho Rūpū"
+	}
+}

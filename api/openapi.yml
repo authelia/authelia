@@ -1,5 +1,5 @@
 ---
-openapi: 3.0.3
+openapi: 3.1.0
 info:
   title: Authelia API
   description: >
@@ -28,6 +28,10 @@ tags:
     description: Password reset endpoints
   - name: User Information
     description: User configuration endpoints
+  {{- end }}
+  {{- if .PasswordChange }}
+  - name: Password Change
+    description: Password change endpoint
   {{- end }}
   {{- if (or .TOTP .WebAuthn .Duo) }}
   - name: Second Factor
@@ -464,6 +468,59 @@ paths:
           description: Unauthorized
       security:
         - authelia_auth: []
+  {{- if .Passkeys }}
+  /api/firstfactor/passkey:
+    get:
+      tags:
+        - First Factor
+      summary: First Factor Authentication - Passkey
+      description: >
+        The WebAuthn endpoint starts the first factor authentication process with the
+        FIDO2 WebAuthn credential.
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/webauthn.PublicKeyCredentialRequestOptions'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+      security:
+        - authelia_auth: []
+    post:
+      tags:
+        - First Factor
+      summary: First Factor Authentication - Passkey
+      description: >
+        The WebAuthn endpoint completes the first factor authentication process with the
+        FIDO2 WebAuthn credential.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/webauthn.PasskeyCredentialAssertionResponse"
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/handlers.redirectResponse'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+      security:
+        - authelia_auth: []
+  {{- end }}
   /api/checks/safe-redirection:
     post:
       tags:
@@ -509,6 +566,31 @@ paths:
                 $ref: '#/components/schemas/handlers.logoutResponseBody'
       security:
         - authelia_auth: []
+  {{- if .PasswordChange }}
+  /api/change-password:
+    post:
+      tags:
+        - Password Change
+      summary: Password Change
+      description: >
+        The password change endpoint validates the user session, validates, and changes the password.
+        The same session cookie must be used for all steps in this process.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.PasswordChangeRequestBody'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.OK'
+      security:
+        - authelia_auth: []
+  {{- end }}
   {{- if .PasswordReset }}
   /api/reset-password/identity/start:
     post:
@@ -535,6 +617,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.OK'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                format: http-date
+              description: The date time that the request can be retried.
       security:
         - authelia_auth: []
   /api/reset-password/identity/finish:
@@ -561,6 +655,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.OK'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                format: http-date
+              description: The date time that the request can be retried.
       security:
         - authelia_auth: []
   /api/reset-password:
@@ -586,6 +692,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.OK'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                format: http-date
+              description: The date time that the request can be retried.
       security:
         - authelia_auth: []
     delete:
@@ -608,6 +726,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.API'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                format: http-date
+              description: The date time that the request can be retried.
       security:
         - authelia_auth: []
   {{- end }}
@@ -931,6 +1061,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/middlewares.Response.KO'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                format: http-date
+              description: The date time that the request can be retried.
       security:
         - authelia_auth: []
     delete:
@@ -1201,6 +1343,18 @@ paths:
                 $ref: '#/components/schemas/handlers.redirectResponse'
         "401":
           description: Unauthorized
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.KO'
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                format: http-date
+              description: The date time that the request can be retried.
       security:
         - authelia_auth: []
   /api/secondfactor/duo_devices:
@@ -1243,6 +1397,31 @@ paths:
           description: Unauthorized
       security:
         - authelia_auth: []
+  {{- end }}
+  {{- if .Passkeys }}
+  /api/secondfactor/password:
+    post:
+      tags:
+        - Second Factor
+      summary: Second Factor Authentication - Password
+      description: This endpoint performs 2FA via the users password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.bodyPasswordRequest'
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/middlewares.Response.OK'
+        "401":
+          description: Unauthorized
+      security:
+        - authelia_auth: [ ]
   {{- end }}
   {{- if .OpenIDConnect }}
   /.well-known/openid-configuration:
@@ -1394,7 +1573,7 @@ paths:
             Authorization Server prompts the End-User for reauthentication and consent.
           required: false
           schema:
-            type: string
+            $ref: '#/components/schemas/openid.spec.Prompt'
         - in: query
           name: max_age
           description: >
@@ -1635,6 +1814,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/openid.spec.ErrorResponseGeneric'
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                format: http-date
+              description: The date time that the request can be retried.
         "500":
           description: Internal Server Error
           content:
@@ -2051,6 +2236,15 @@ components:
                   - 'webauthn'
                   - 'mobile_push'
               example: [totp, webauthn, mobile_push]
+            passkey_login:
+              type: boolean
+              description: Value which indicates if Passkey logins are enabled.
+            password_change_disabled:
+              type: boolean
+              description: Value which indicates if users are allowed to change their password from account settings.
+            password_reset_disabled:
+              type: boolean
+              description: Value which indicates if users are allowed to reset their password.
     handlers.configuration.PasswordPolicyConfigurationBody:
       type: object
       properties:
@@ -2128,6 +2322,25 @@ components:
                     items:
                       type: string
                       example: push
+    handlers.bodyPasswordRequest:
+      required:
+        - 'password'
+      type: object
+      properties:
+        password:
+          type: string
+          example: password
+        targetURL:
+          type: string
+          example: 'https://home.{{ .Domain | default "example.com" }}'
+        workflow:
+          type: string
+          example: openid_connect
+        workflowID:
+          type: string
+          format: uuid
+          pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
+          example: '3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c'
     handlers.bodyFirstFactorRequest:
       required:
         - 'username'
@@ -2187,6 +2400,24 @@ components:
             redirect:
               type: string
               example: 'https://home.{{ .Domain | default "example.com" }}'
+    {{- if .PasswordChange }}
+    handlers.PasswordChangeRequestBody:
+      required:
+        - 'username'
+        - 'old_password'
+        - 'new_password'
+      type: object
+      properties:
+        username:
+          type: string
+          example: john
+        old_password:
+          type: string
+          example: old_password123
+        new_password:
+          type: string
+          example: new_password456
+    {{- end }}
     {{- if .PasswordReset }}
     handlers.PasswordResetStep1RequestBody:
       required:
@@ -2245,6 +2476,10 @@ components:
             authentication_level:
               type: integer
               example: 1
+            factor_knowledge:
+              type: boolean
+              description: Indicates the knowledge factor has been satisfied.
+              example: true
             default_redirection_url:
               type: string
               example: 'https://home.{{ .Domain | default "example.com" }}'
@@ -2340,16 +2575,22 @@ components:
         data:
           type: object
           properties:
+            require_second_factor:
+              description: Indicates if the elevation requires a second factor.
+              type: boolean
+            skip_second_factor:
+              description: Indicates if the requirement for a One-Time Code can be skipped if satisfying the 2FA rule.
+              type: boolean
+            factor_knowledge:
+              description: Indicates if the knowledge factor of 2FA has been satisfied.
+              type: boolean
             elevated:
-              description: The indicator of if the session is elevated.
+              description: Indicates if the session is elevated.
               type: boolean
             expires:
               description: The number of seconds the elevation is still valid for.
               type: integer
               example: 300
-            delete_id:
-              description: The value required to delete the current elevation.
-              type: string
     handlers.ElevationStart.Response:
       type: object
       properties:
@@ -2552,6 +2793,17 @@ components:
                           format: byte
         description:
           type: string
+    webauthn.PasskeyCredentialAssertionResponse:
+      allOf:
+        - $ref: '#/components/schemas/webauthn.CredentialAssertionResponse'
+        - type: object
+          properties:
+            requestMethod:
+              type: string
+              example: GET
+            keepMeLoggedIn:
+              type: boolean
+              example: true
     webauthn.CredentialAssertionResponse:
       allOf:
         - $ref: '#/components/schemas/webauthn.PublicKeyCredential'
@@ -4084,19 +4336,7 @@ components:
         display:
           $ref: '#/components/schemas/openid.spec.DisplayType'
         prompt:
-          description: >
-            Not Supported: Space delimited, case sensitive list of ASCII string values that specifies whether
-            the Authorization Server prompts the End-User for reauthentication and consent.
-          enum:
-            - 'none'
-            - 'login'
-            - 'consent'
-            - 'select_account'
-            - 'login consent'
-            - 'login select_account'
-            - 'consent select_account'
-          example: 'consent'
-          type: string
+          $ref: '#/components/schemas/openid.spec.Prompt'
         max_age:
           description: >
             Maximum Authentication Age. Specifies the allowable elapsed time in seconds since the last time the
@@ -4196,6 +4436,20 @@ components:
         - 'touch'
         - 'wap'
       example: 'page'
+      type: string
+    openid.spec.Prompt:
+      description: >
+        Not Supported: Space delimited, case sensitive list of ASCII string values that specifies whether the
+        Authorization Server prompts the End-User for reauthentication and consent.
+      enum:
+        - 'none'
+        - 'login'
+        - 'consent'
+        - 'select_account'
+        - 'login consent'
+        - 'login select_account'
+        - 'consent select_account'
+      example: 'none'
       type: string
     openid.spec.ResponseType:
       description: The OAuth 2.0 / OpenID Connect 1.0 Response Type.

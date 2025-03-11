@@ -12,7 +12,7 @@ const (
 	fileWebI18NIndex       = "src/i18n/index.ts"
 	fileWebPackage         = "package.json"
 
-	fileDocsCommitMessageGuidelines = "docs/content/en/contributing/guidelines/commit-message.md"
+	fileDocsCommitMessageGuidelines = "docs/content/contributing/guidelines/commit-message.md"
 
 	fileCodeConfigKeys  = "internal/configuration/schema/keys.go"
 	fileServerGenerated = "internal/server/gen.go"
@@ -23,7 +23,8 @@ const (
 	dirDocsStatic            = "static"
 	dirDocsStaticJSONSchemas = "schemas"
 	dirDocsData              = "data"
-	dirDocsCLIReference      = "en/reference/cli"
+	dirDocsADR               = "reference/architecture-decision-log"
+	dirDocsCLIReference      = "reference/cli"
 
 	fileDocsDataLanguages  = "languages.json"
 	fileDocsDataMisc       = "misc.json"
@@ -50,14 +51,7 @@ const (
 )
 
 const (
-	prefixCLI = "cli-"
-)
-
-const (
 	delimiterLineFrontMatter = "---"
-
-	localeDefault          = "en"
-	localeNamespaceDefault = "portal"
 )
 
 const (
@@ -69,6 +63,7 @@ const (
 	cmdUseRoot                   = "authelia-gen"
 	cmdUseCompletion             = "completion"
 	cmdUseDocs                   = "docs"
+	cmdUseManage                 = "manage"
 	cmdUseDocsDate               = "date"
 	cmdUseDocsCLI                = "cli"
 	cmdUseDocsData               = "data"
@@ -99,6 +94,7 @@ const (
 	cmdFlagDocsStatic                             = "dir.docs.static"
 	cmdFlagDocsStaticJSONSchemas                  = "dir.docs.static.json-schemas"
 	cmdFlagDocsData                               = "dir.docs.data"
+	cmdFlagDocsADR                                = "dir.docs.adr"
 	cmdFlagDocsDataMisc                           = "file.docs.data.misc"
 	cmdFlagDocsDataKeys                           = "file.docs.data.keys"
 	cmdFlagDocsDataLanguages                      = "file.docs.data.languages"

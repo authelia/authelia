@@ -11,7 +11,7 @@ import {
     Divider,
     Typography,
 } from "@mui/material";
-import Grid from "@mui/material/Unstable_Grid2/Grid2";
+import Grid from "@mui/material/Grid2";
 import { useTranslation } from "react-i18next";
 
 import CopyButton from "@components/CopyButton";
@@ -48,16 +48,16 @@ const WebAuthnCredentialInformationDialog = function (props: Props) {
                             <DialogContentText sx={{ mb: 3 }}>
                                 <Alert severity={"warning"}>
                                     {translate(
-                                        "This is a legacy WebAuthn Credential. If it's not operating normally you may need to delete it and register it again.",
+                                        "This is a legacy WebAuthn Credential if it's not operating normally you may need to delete it and register it again",
                                     )}
                                 </Alert>
                             </DialogContentText>
                         ) : null}
                         <Grid container spacing={2}>
-                            <Grid md={3} sx={{ display: { xs: "none", md: "block" } }}>
+                            <Grid size={{ md: 3 }} sx={{ display: { xs: "none", md: "block" } }}>
                                 <Fragment />
                             </Grid>
-                            <Grid xs={12}>
+                            <Grid size={{ xs: 12 }}>
                                 <Divider />
                             </Grid>
                             <PropertyText name={translate("Description")} value={props.credential.description} />
@@ -173,7 +173,7 @@ interface PropertyTextProps {
 
 function PropertyText(props: PropertyTextProps) {
     return (
-        <Grid xs={props.xs !== undefined ? props.xs : 12}>
+        <Grid size={{ xs: props.xs !== undefined ? props.xs : 12 }}>
             <Typography display="inline" sx={{ fontWeight: "bold" }}>
                 {`${props.name}: `}
             </Typography>

@@ -22,6 +22,15 @@ func SecurityHeadersRelaxed(next fasthttp.RequestHandler) fasthttp.RequestHandle
 	}
 }
 
+// The SecurityHeadersBase middleware adds several modern recommended security headers with relaxed values.
+func SecurityHeadersBase(next fasthttp.RequestHandler) fasthttp.RequestHandler {
+	return func(ctx *fasthttp.RequestCtx) {
+		SetBaseSecurityHeaders(ctx)
+
+		next(ctx)
+	}
+}
+
 // The SetStandardSecurityHeaders function adds several modern recommended security headers with safe values.
 func SetStandardSecurityHeaders(ctx *fasthttp.RequestCtx) {
 	SetBaseSecurityHeaders(ctx)
@@ -71,6 +80,20 @@ func SecurityHeadersCSPNoneOpenIDConnect(next fasthttp.RequestHandler) fasthttp.
 			ctx.Response.Header.SetBytesKV(headerContentSecurityPolicy, headerValueCSPNone)
 		}
 	}
+}
+
+// SecurityHeadersCSPSelf middleware adds the Content-Security-Policy header with the value "default-src 'self';".
+func SecurityHeadersCSPSelf(next fasthttp.RequestHandler) fasthttp.RequestHandler {
+	return func(ctx *fasthttp.RequestCtx) {
+		ctx.Response.Header.SetBytesKV(headerContentSecurityPolicy, headerValueCSPSelf)
+
+		next(ctx)
+	}
+}
+
+// SetSecurityHeadersCSPNone function adds the Content-Security-Policy header with the value "default-src 'none';".
+func SetSecurityHeadersCSPNone(ctx *fasthttp.RequestCtx) {
+	ctx.Response.Header.SetBytesKV(headerContentSecurityPolicy, headerValueCSPNone)
 }
 
 // SecurityHeadersNoStore middleware adds the Pragma no-cache and Cache-Control no-store headers.

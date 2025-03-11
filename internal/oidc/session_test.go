@@ -2,10 +2,9 @@ package oidc_test
 
 import (
 	"testing"
-	"time"
 
-	"github.com/ory/fosite/handler/openid"
-	"github.com/ory/fosite/token/jwt"
+	"authelia.com/provider/oauth2/handler/openid"
+	"authelia.com/provider/oauth2/token/jwt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -48,7 +47,7 @@ func TestOpenIDSession_GetExtraClaims(t *testing.T) {
 			},
 		},
 		{
-			"ShouldReturnIDTokenClaimsExtra",
+			"ShouldNotReturnIDTokenClaimsExtra",
 			&oidc.Session{
 				DefaultSession: &openid.DefaultSession{
 					Claims: &jwt.IDTokenClaims{
@@ -62,7 +61,7 @@ func TestOpenIDSession_GetExtraClaims(t *testing.T) {
 				},
 			},
 			map[string]any{
-				"b": 2,
+				"a": 1,
 			},
 		},
 	}
@@ -119,7 +118,7 @@ func TestSession_GetJWTClaims(t *testing.T) {
 			"ShouldAllowTopLevelClaims",
 			&oidc.Session{DefaultSession: &openid.DefaultSession{
 				Claims: &jwt.IDTokenClaims{
-					RequestedAt: time.Now().UTC(),
+					RequestedAt: jwt.Now(),
 					Extra:       map[string]any{"test": 1},
 				},
 				Headers: &jwt.Headers{},
@@ -130,7 +129,7 @@ func TestSession_GetJWTClaims(t *testing.T) {
 			"ShouldAllowTopLevelClaims",
 			&oidc.Session{DefaultSession: &openid.DefaultSession{
 				Claims: &jwt.IDTokenClaims{
-					RequestedAt: time.Now().UTC(),
+					RequestedAt: jwt.Now(),
 					Extra:       map[string]any{"test": 1},
 				},
 				Headers: &jwt.Headers{},
@@ -141,7 +140,7 @@ func TestSession_GetJWTClaims(t *testing.T) {
 			"ShouldNotIncludeAMR",
 			&oidc.Session{DefaultSession: &openid.DefaultSession{
 				Claims: &jwt.IDTokenClaims{
-					RequestedAt: time.Now().UTC(),
+					RequestedAt: jwt.Now(),
 					Extra:       map[string]any{oidc.ClaimAuthenticationMethodsReference: []string{oidc.AMRMultiFactorAuthentication}},
 				},
 				Headers: &jwt.Headers{},
@@ -152,7 +151,7 @@ func TestSession_GetJWTClaims(t *testing.T) {
 			"ShouldNotIncludeAMRAbsent",
 			&oidc.Session{DefaultSession: &openid.DefaultSession{
 				Claims: &jwt.IDTokenClaims{
-					RequestedAt: time.Now().UTC(),
+					RequestedAt: jwt.Now(),
 					Extra:       map[string]any{},
 				},
 				Headers: &jwt.Headers{},
@@ -163,7 +162,7 @@ func TestSession_GetJWTClaims(t *testing.T) {
 			"ShouldIncludeAMR",
 			&oidc.Session{DefaultSession: &openid.DefaultSession{
 				Claims: &jwt.IDTokenClaims{
-					RequestedAt:                     time.Now().UTC(),
+					RequestedAt:                     jwt.Now(),
 					AuthenticationMethodsReferences: []string{oidc.AMRMultiFactorAuthentication},
 					Extra:                           map[string]any{},
 				},

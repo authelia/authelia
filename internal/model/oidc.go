@@ -10,19 +10,19 @@ import (
 	"strings"
 	"time"
 
+	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/google/uuid"
-	"github.com/ory/fosite"
 
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewOAuth2ConsentSession creates a new OAuth2ConsentSession.
-func NewOAuth2ConsentSession(subject uuid.UUID, r fosite.Requester) (consent *OAuth2ConsentSession, err error) {
+func NewOAuth2ConsentSession(subject uuid.UUID, r oauthelia2.Requester) (consent *OAuth2ConsentSession, err error) {
 	return NewOAuth2ConsentSessionWithForm(subject, r, r.GetRequestForm())
 }
 
-// NewOAuth2ConsentSessionWithForm creates a new OAuth2ConsentSession with a custom form parameter..
-func NewOAuth2ConsentSessionWithForm(subject uuid.UUID, r fosite.Requester, form url.Values) (consent *OAuth2ConsentSession, err error) {
+// NewOAuth2ConsentSessionWithForm creates a new OAuth2ConsentSession with a custom form parameter.
+func NewOAuth2ConsentSessionWithForm(subject uuid.UUID, r oauthelia2.Requester, form url.Values) (consent *OAuth2ConsentSession, err error) {
 	consent = &OAuth2ConsentSession{
 		ClientID:          r.GetClient().GetID(),
 		Subject:           NullUUID(subject),
@@ -49,10 +49,10 @@ func NewOAuth2BlacklistedJTI(jti string, exp time.Time) (jtiBlacklist OAuth2Blac
 	}
 }
 
-// NewOAuth2SessionFromRequest creates a new OAuth2Session from a signature and fosite.Requester.
-func NewOAuth2SessionFromRequest(signature string, r fosite.Requester) (session *OAuth2Session, err error) {
+// NewOAuth2SessionFromRequest creates a new OAuth2Session from a signature and oauthelia2.Requester.
+func NewOAuth2SessionFromRequest(signature string, r oauthelia2.Requester) (session *OAuth2Session, err error) {
 	if r == nil {
-		return nil, fmt.Errorf("failed to create new *model.OAuth2Session: the fosite.Requester was nil")
+		return nil, fmt.Errorf("failed to create new *model.OAuth2Session: the oauthelia2.Requester was nil")
 	}
 
 	var (
@@ -78,11 +78,11 @@ func NewOAuth2SessionFromRequest(signature string, r fosite.Requester) (session 
 	requested, granted := r.GetRequestedScopes(), r.GetGrantedScopes()
 
 	if requested == nil {
-		requested = fosite.Arguments{}
+		requested = oauthelia2.Arguments{}
 	}
 
 	if granted == nil {
-		granted = fosite.Arguments{}
+		granted = oauthelia2.Arguments{}
 	}
 
 	return &OAuth2Session{
@@ -103,12 +103,68 @@ func NewOAuth2SessionFromRequest(signature string, r fosite.Requester) (session 
 	}, nil
 }
 
+// NewOAuth2DeviceCodeSessionFromRequest creates a new OAuth2DeviceCodeSession from a signature and oauthelia2.Requester.
+func NewOAuth2DeviceCodeSessionFromRequest(r oauthelia2.DeviceAuthorizeRequester) (session *OAuth2DeviceCodeSession, err error) {
+	if r == nil {
+		return nil, fmt.Errorf("failed to create new *model.OAuth2Session: the oauthelia2.Requester was nil")
+	}
+
+	var (
+		subject     sql.NullString
+		s           OpenIDSession
+		ok          bool
+		sessionData []byte
+	)
+
+	s, ok = r.GetSession().(OpenIDSession)
+	if !ok {
+		return nil, fmt.Errorf("failed to create new *model.OAuth2DeviceCodeSession: the session type OpenIDSession was expected but the type '%T' was used", r.GetSession())
+	}
+
+	subject = sql.NullString{String: s.GetSubject()}
+
+	subject.Valid = len(subject.String) > 0
+
+	if sessionData, err = json.Marshal(s); err != nil {
+		return nil, fmt.Errorf("failed to create new *model.OAuth2DeviceCodeSession: an error was returned while attempting to marshal the session data to json: %w", err)
+	}
+
+	requested, granted := r.GetRequestedScopes(), r.GetGrantedScopes()
+
+	if requested == nil {
+		requested = oauthelia2.Arguments{}
+	}
+
+	if granted == nil {
+		granted = oauthelia2.Arguments{}
+	}
+
+	return &OAuth2DeviceCodeSession{
+		RequestID:         r.GetID(),
+		ClientID:          r.GetClient().GetID(),
+		Signature:         r.GetDeviceCodeSignature(),
+		UserCodeSignature: r.GetUserCodeSignature(),
+		Status:            int(r.GetStatus()),
+		Subject:           subject,
+		RequestedAt:       r.GetRequestedAt(),
+		CheckedAt:         r.GetLastChecked(),
+		RequestedScopes:   StringSlicePipeDelimited(requested),
+		GrantedScopes:     StringSlicePipeDelimited(granted),
+		RequestedAudience: StringSlicePipeDelimited(r.GetRequestedAudience()),
+		GrantedAudience:   StringSlicePipeDelimited(r.GetGrantedAudience()),
+		Active:            true,
+		Revoked:           false,
+		Form:              r.GetRequestForm().Encode(),
+		Session:           sessionData,
+	}, nil
+}
+
 // NewOAuth2PARContext creates a new Pushed Authorization Request Context as a OAuth2PARContext.
-func NewOAuth2PARContext(contextID string, r fosite.AuthorizeRequester) (context *OAuth2PARContext, err error) {
+func NewOAuth2PARContext(contextID string, r oauthelia2.AuthorizeRequester) (context *OAuth2PARContext, err error) {
 	var (
 		s       OpenIDSession
 		ok      bool
-		req     *fosite.AuthorizeRequest
+		req     *oauthelia2.AuthorizeRequest
 		session []byte
 	)
 
@@ -122,7 +178,7 @@ func NewOAuth2PARContext(contextID string, r fosite.AuthorizeRequester) (context
 
 	var handled StringSlicePipeDelimited
 
-	if req, ok = r.(*fosite.AuthorizeRequest); ok {
+	if req, ok = r.(*oauthelia2.AuthorizeRequest); ok {
 		handled = StringSlicePipeDelimited(req.HandledResponseTypes)
 	}
 
@@ -155,6 +211,10 @@ type OAuth2ConsentPreConfig struct {
 
 	Scopes   StringSlicePipeDelimited `db:"scopes"`
 	Audience StringSlicePipeDelimited `db:"audience"`
+
+	RequestedClaims sql.NullString           `db:"requested_claims"`
+	SignatureClaims sql.NullString           `db:"signature_claims"`
+	GrantedClaims   StringSlicePipeDelimited `db:"granted_claims"`
 }
 
 // HasExactGrants returns true if the granted audience and scopes of this consent pre-configuration matches exactly with
@@ -171,6 +231,11 @@ func (s *OAuth2ConsentPreConfig) HasExactGrantedAudience(audience []string) (has
 // HasExactGrantedScopes returns true if the granted scopes of this consent matches exactly with another set of scopes.
 func (s *OAuth2ConsentPreConfig) HasExactGrantedScopes(scopes []string) (has bool) {
 	return !utils.IsStringSlicesDifferent(s.Scopes, scopes)
+}
+
+// HasClaimsSignature returns true if the requested claims signature of this consent matches exactly with another request.
+func (s *OAuth2ConsentPreConfig) HasClaimsSignature(signature string) (has bool) {
+	return (s.SignatureClaims.Valid || len(signature) == 0) && strings.EqualFold(signature, s.SignatureClaims.String)
 }
 
 // CanConsent returns true if this pre-configuration can still provide consent.
@@ -197,6 +262,7 @@ type OAuth2ConsentSession struct {
 	GrantedScopes     StringSlicePipeDelimited `db:"granted_scopes"`
 	RequestedAudience StringSlicePipeDelimited `db:"requested_audience"`
 	GrantedAudience   StringSlicePipeDelimited `db:"granted_audience"`
+	GrantedClaims     StringSlicePipeDelimited `db:"granted_claims"`
 
 	PreConfiguration sql.NullInt64
 }
@@ -205,6 +271,12 @@ type OAuth2ConsentSession struct {
 func (s *OAuth2ConsentSession) Grant() {
 	s.GrantedScopes = s.RequestedScopes
 	s.GrantedAudience = s.RequestedAudience
+}
+
+func (s *OAuth2ConsentSession) GrantWithClaims(claims []string) {
+	s.Grant()
+
+	s.GrantedClaims = claims
 }
 
 // HasExactGrants returns true if the granted audience and scopes of this consent matches exactly with another
@@ -284,8 +356,8 @@ func (s *OAuth2Session) SetSubject(subject string) {
 	s.Subject = sql.NullString{String: subject, Valid: len(subject) > 0}
 }
 
-// ToRequest converts an OAuth2Session into a fosite.Request given a fosite.Session and fosite.Storage.
-func (s *OAuth2Session) ToRequest(ctx context.Context, session fosite.Session, store fosite.Storage) (request *fosite.Request, err error) {
+// ToRequest converts an OAuth2Session into a oauthelia2.Request given a oauthelia2.Session and oauthelia2.Storage.
+func (s *OAuth2Session) ToRequest(ctx context.Context, session oauthelia2.Session, store oauthelia2.Storage) (request *oauthelia2.Request, err error) {
 	sessionData := s.Session
 
 	if session != nil {
@@ -304,17 +376,80 @@ func (s *OAuth2Session) ToRequest(ctx context.Context, session fosite.Session, s
 		return nil, fmt.Errorf("error occurred while mapping OAuth 2.0 Session back to a Request while trying to parse the original form: %w", err)
 	}
 
-	return &fosite.Request{
+	return &oauthelia2.Request{
 		ID:                s.RequestID,
 		RequestedAt:       s.RequestedAt,
 		Client:            client,
-		RequestedScope:    fosite.Arguments(s.RequestedScopes),
-		GrantedScope:      fosite.Arguments(s.GrantedScopes),
-		RequestedAudience: fosite.Arguments(s.RequestedAudience),
-		GrantedAudience:   fosite.Arguments(s.GrantedAudience),
+		RequestedScope:    oauthelia2.Arguments(s.RequestedScopes),
+		GrantedScope:      oauthelia2.Arguments(s.GrantedScopes),
+		RequestedAudience: oauthelia2.Arguments(s.RequestedAudience),
+		GrantedAudience:   oauthelia2.Arguments(s.GrantedAudience),
 		Form:              values,
 		Session:           session,
 	}, nil
+}
+
+// OAuth2DeviceCodeSession stores the Device Code Grant information.
+type OAuth2DeviceCodeSession struct {
+	ID                int                      `db:"id"`
+	ChallengeID       uuid.NullUUID            `db:"challenge_id"`
+	RequestID         string                   `db:"request_id"`
+	ClientID          string                   `db:"client_id"`
+	Signature         string                   `db:"signature"`
+	UserCodeSignature string                   `db:"user_code_signature"`
+	Status            int                      `db:"status"`
+	Subject           sql.NullString           `db:"subject"`
+	RequestedAt       time.Time                `db:"requested_at"`
+	CheckedAt         time.Time                `db:"checked_at"`
+	RequestedScopes   StringSlicePipeDelimited `db:"requested_scopes"`
+	GrantedScopes     StringSlicePipeDelimited `db:"granted_scopes"`
+	RequestedAudience StringSlicePipeDelimited `db:"requested_audience"`
+	GrantedAudience   StringSlicePipeDelimited `db:"granted_audience"`
+	Active            bool                     `db:"active"`
+	Revoked           bool                     `db:"revoked"`
+	Form              string                   `db:"form_data"`
+	Session           []byte                   `db:"session_data"`
+}
+
+// ToRequest converts an OAuth2Session into a oauthelia2.Request given a oauthelia2.Session and oauthelia2.Storage.
+func (s *OAuth2DeviceCodeSession) ToRequest(ctx context.Context, session oauthelia2.Session, store oauthelia2.Storage) (request *oauthelia2.DeviceAuthorizeRequest, err error) {
+	sessionData := s.Session
+
+	if session != nil {
+		if err = json.Unmarshal(sessionData, session); err != nil {
+			return nil, fmt.Errorf("error occurred while mapping OAuth 2.0 Session back to a DeviceAuthorizeRequest while trying to unmarshal the JSON session data: %w", err)
+		}
+	}
+
+	client, err := store.GetClient(ctx, s.ClientID)
+	if err != nil {
+		return nil, fmt.Errorf("error occurred while mapping OAuth 2.0 Session back to a DeviceAuthorizeRequest while trying to lookup the registered client: %w", err)
+	}
+
+	values, err := url.ParseQuery(s.Form)
+	if err != nil {
+		return nil, fmt.Errorf("error occurred while mapping OAuth 2.0 Session back to a DeviceAuthorizeRequest while trying to parse the original form: %w", err)
+	}
+
+	request = &oauthelia2.DeviceAuthorizeRequest{
+		Request: oauthelia2.Request{
+			ID:                s.RequestID,
+			RequestedAt:       s.RequestedAt,
+			Client:            client,
+			RequestedScope:    oauthelia2.Arguments(s.RequestedScopes),
+			GrantedScope:      oauthelia2.Arguments(s.GrantedScopes),
+			RequestedAudience: oauthelia2.Arguments(s.RequestedAudience),
+			GrantedAudience:   oauthelia2.Arguments(s.GrantedAudience),
+			Form:              values,
+			Session:           session,
+		},
+		DeviceCodeSignature: s.Signature,
+		UserCodeSignature:   s.UserCodeSignature,
+		Status:              oauthelia2.DeviceAuthorizeStatus(s.Status),
+		LastChecked:         s.CheckedAt,
+	}
+
+	return request, nil
 }
 
 // OAuth2PARContext holds relevant information about a Pushed Authorization Request in order to process the authorization.
@@ -334,7 +469,7 @@ type OAuth2PARContext struct {
 	Session              []byte                   `db:"session_data"`
 }
 
-func (par *OAuth2PARContext) ToAuthorizeRequest(ctx context.Context, session fosite.Session, store fosite.Storage) (request *fosite.AuthorizeRequest, err error) {
+func (par *OAuth2PARContext) ToAuthorizeRequest(ctx context.Context, session oauthelia2.Session, store oauthelia2.Storage) (request *oauthelia2.AuthorizeRequest, err error) {
 	if session != nil {
 		if err = json.Unmarshal(par.Session, session); err != nil {
 			return nil, fmt.Errorf("error occurred while mapping PAR context back to an Authorize Request while trying to unmarshal the JSON session data: %w", err)
@@ -342,7 +477,7 @@ func (par *OAuth2PARContext) ToAuthorizeRequest(ctx context.Context, session fos
 	}
 
 	var (
-		client fosite.Client
+		client oauthelia2.Client
 		form   url.Values
 	)
 
@@ -354,14 +489,14 @@ func (par *OAuth2PARContext) ToAuthorizeRequest(ctx context.Context, session fos
 		return nil, fmt.Errorf("error occurred while mapping PAR context back to an Authorize Request while trying to parse the original form: %w", err)
 	}
 
-	request = fosite.NewAuthorizeRequest()
+	request = oauthelia2.NewAuthorizeRequest()
 
-	request.Request = fosite.Request{
+	request.Request = oauthelia2.Request{
 		ID:                par.RequestID,
 		RequestedAt:       par.RequestedAt,
 		Client:            client,
-		RequestedScope:    fosite.Arguments(par.Scopes),
-		RequestedAudience: fosite.Arguments(par.Audience),
+		RequestedScope:    oauthelia2.Arguments(par.Scopes),
+		RequestedAudience: oauthelia2.Arguments(par.Audience),
 		Form:              form,
 		Session:           session,
 	}
@@ -375,19 +510,19 @@ func (par *OAuth2PARContext) ToAuthorizeRequest(ctx context.Context, session fos
 	}
 
 	if form.Has("response_type") {
-		request.ResponseTypes = fosite.RemoveEmpty(strings.Split(form.Get("response_type"), " "))
+		request.ResponseTypes = oauthelia2.RemoveEmpty(strings.Split(form.Get("response_type"), " "))
 	}
 
 	if par.ResponseMode != "" {
-		request.ResponseMode = fosite.ResponseModeType(par.ResponseMode)
+		request.ResponseMode = oauthelia2.ResponseModeType(par.ResponseMode)
 	}
 
 	if par.DefaultResponseMode != "" {
-		request.DefaultResponseMode = fosite.ResponseModeType(par.DefaultResponseMode)
+		request.DefaultResponseMode = oauthelia2.ResponseModeType(par.DefaultResponseMode)
 	}
 
 	if len(par.HandledResponseTypes) != 0 {
-		request.HandledResponseTypes = fosite.Arguments(par.HandledResponseTypes)
+		request.HandledResponseTypes = oauthelia2.Arguments(par.HandledResponseTypes)
 	}
 
 	return request, nil
@@ -395,7 +530,7 @@ func (par *OAuth2PARContext) ToAuthorizeRequest(ctx context.Context, session fos
 
 // OpenIDSession represents the types available for an oidc.Session that are required in the models package.
 type OpenIDSession interface {
-	fosite.Session
+	oauthelia2.Session
 
 	GetChallengeID() uuid.NullUUID
 }

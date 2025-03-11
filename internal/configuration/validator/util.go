@@ -9,77 +9,60 @@ import (
 	"fmt"
 	"strings"
 
-	"golang.org/x/net/publicsuffix"
-	"gopkg.in/square/go-jose.v2"
+	"github.com/go-jose/go-jose/v4"
+	"github.com/weppos/publicsuffix-go/publicsuffix"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func isCookieDomainAPublicSuffix(domain string) (valid bool) {
-	var suffix string
-
-	suffix, _ = publicsuffix.PublicSuffix(domain)
-
-	return len(strings.TrimLeft(domain, ".")) == len(suffix)
-}
-
-func strJoinOr(items []string) string {
-	return strJoinComma("or", items)
-}
-
-func strJoinAnd(items []string) string {
-	return strJoinComma("and", items)
-}
-
-func strJoinComma(word string, items []string) string {
-	if word == "" {
-		return buildJoinedString(",", "", "'", items)
+func isUserAttributeDefinitionNameValid(attribute string, config *schema.Configuration) bool {
+	if expression.IsReservedAttribute(attribute) {
+		return false
 	}
 
-	return buildJoinedString(",", word, "'", items)
-}
-
-func buildJoinedString(sep, sepFinal, quote string, items []string) string {
-	n := len(items)
-
-	if n == 0 {
-		return ""
-	}
-
-	b := &strings.Builder{}
-
-	for i := 0; i < n; i++ {
-		if quote != "" {
-			b.WriteString(quote)
-		}
-
-		b.WriteString(items[i])
-
-		if quote != "" {
-			b.WriteString(quote)
-		}
-
-		if i == (n - 1) {
-			continue
-		}
-
-		if sep != "" {
-			if sepFinal == "" || n != 2 {
-				b.WriteString(sep)
+	if config.AuthenticationBackend.LDAP != nil {
+		for attrname, attr := range config.AuthenticationBackend.LDAP.Attributes.Extra {
+			if attr.Name != "" {
+				if attr.Name == attribute {
+					return false
+				}
+			} else if attrname == attribute {
+				return false
 			}
-
-			b.WriteString(" ")
-		}
-
-		if sepFinal != "" && i == (n-2) {
-			b.WriteString(strings.Trim(sepFinal, " "))
-			b.WriteString(" ")
 		}
 	}
 
-	return b.String()
+	if config.AuthenticationBackend.File != nil {
+		for attrname := range config.AuthenticationBackend.File.ExtraAttributes {
+			if attrname == attribute {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
+func boolApply(current, new bool) bool {
+	if current || new {
+		return true
+	}
+
+	return false
+}
+
+func isCookieDomainAPublicSuffix(domain string) (valid bool) {
+	domain = strings.TrimLeft(domain, ".")
+
+	_, err := publicsuffix.Domain(domain)
+	if err != nil {
+		return err.Error() == fmt.Sprintf(errFmtCookieDomainInPSL, domain)
+	}
+
+	return false
 }
 
 func validateListNotAllowed(values, filter []string) (invalid []string) {
@@ -134,10 +117,17 @@ type JWKProperties struct {
 	Curve     elliptic.Curve
 }
 
+//nolint:gocyclo
 func schemaJWKGetProperties(jwk schema.JWK) (properties *JWKProperties, err error) {
+	if jwk.Use == oidc.KeyUseEncryption {
+		return schemaJWKGetPropertiesEnc(jwk)
+	}
+
 	switch key := jwk.Key.(type) {
 	case nil:
 		return nil, nil
+	case []byte:
+		return nil, fmt.Errorf("symmetric keys are not permitted for signing")
 	case ed25519.PrivateKey, ed25519.PublicKey:
 		return &JWKProperties{}, nil
 	case *rsa.PrivateKey:
@@ -179,7 +169,49 @@ func schemaJWKGetProperties(jwk schema.JWK) (properties *JWKProperties, err erro
 	}
 }
 
-func jwkCalculateThumbprint(key schema.CryptographicKey) (thumbprintStr string, err error) {
+func schemaJWKGetPropertiesEnc(jwk schema.JWK) (properties *JWKProperties, err error) {
+	switch key := jwk.Key.(type) {
+	case nil:
+		return nil, nil
+	case []byte:
+		switch n := len(key); n {
+		case 256:
+			return &JWKProperties{oidc.KeyUseEncryption, oidc.EncryptionAlgA256GCMKW, n, nil}, nil
+		case 192:
+			return &JWKProperties{oidc.KeyUseEncryption, oidc.EncryptionAlgA192GCMKW, n, nil}, nil
+		case 128:
+			return &JWKProperties{oidc.KeyUseEncryption, oidc.EncryptionAlgA128GCMKW, n, nil}, nil
+		default:
+			if n > 32 {
+				return nil, fmt.Errorf("invalid symmetric key length of %d but the minimum is 32", n)
+			}
+
+			return &JWKProperties{oidc.KeyUseEncryption, oidc.EncryptionAlgDirect, n, nil}, nil
+		}
+	case ed25519.PrivateKey, ed25519.PublicKey:
+		return &JWKProperties{}, nil
+	case *rsa.PrivateKey:
+		if key.PublicKey.N == nil {
+			return &JWKProperties{oidc.KeyUseEncryption, oidc.EncryptionAlgRSAOAEP256, 0, nil}, nil
+		}
+
+		return &JWKProperties{oidc.KeyUseEncryption, oidc.EncryptionAlgRSAOAEP256, key.Size(), nil}, nil
+	case *rsa.PublicKey:
+		if key.N == nil {
+			return &JWKProperties{oidc.KeyUseEncryption, oidc.EncryptionAlgRSAOAEP256, 0, nil}, nil
+		}
+
+		return &JWKProperties{oidc.KeyUseEncryption, oidc.EncryptionAlgRSAOAEP256, key.Size(), nil}, nil
+	case *ecdsa.PublicKey:
+		return &JWKProperties{oidc.KeyUseEncryption, oidc.EncryptionAlgECDHESA256KW, -1, key.Curve}, nil
+	case *ecdsa.PrivateKey:
+		return &JWKProperties{oidc.KeyUseEncryption, oidc.EncryptionAlgECDHESA256KW, -1, key.Curve}, nil
+	default:
+		return nil, fmt.Errorf("the key type '%T' is unknown or not valid for the configuration", key)
+	}
+}
+
+func jwkCalculateKID(key schema.CryptographicKey, props *JWKProperties, alg string) (kid string, err error) {
 	j := jose.JSONWebKey{}
 
 	switch k := key.(type) {
@@ -191,13 +223,21 @@ func jwkCalculateThumbprint(key schema.CryptographicKey) (thumbprintStr string, 
 		return "", nil
 	}
 
+	if alg == "" {
+		alg = props.Algorithm
+	}
+
 	var thumbprint []byte
 
 	if thumbprint, err = j.Thumbprint(crypto.SHA256); err != nil {
 		return "", err
 	}
 
-	return fmt.Sprintf("%x", thumbprint)[:6], nil
+	if alg == "" {
+		return fmt.Sprintf("%x", thumbprint)[:6], nil
+	}
+
+	return fmt.Sprintf("%s-%s", fmt.Sprintf("%x", thumbprint)[:6], strings.ToLower(alg)), nil
 }
 
 func getResponseObjectAlgFromKID(config *schema.IdentityProvidersOpenIDConnect, kid, alg string) string {

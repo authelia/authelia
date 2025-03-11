@@ -1,0 +1,17 @@
+---
+services:
+  nginx-portal:
+    image: nginx:1.27.4-alpine
+    volumes:
+      - ./example/compose/nginx/portal/nginx.conf:/etc/nginx/nginx.conf
+      - ./common/pki:/pki
+    networks:
+      authelianet:
+        aliases:
+          - public.example.com
+          - secure.example.com
+          - login.example.com
+          - duo.example.com
+        # Set the IP to be able to query on port 443
+        ipv4_address: 192.168.240.100
+...

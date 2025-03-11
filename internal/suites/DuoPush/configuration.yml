@@ -1,111 +1,124 @@
 ---
-###############################################################
-#                Authelia minimal configuration               #
-###############################################################
+certificates_directory: '/certs/'
+
 server:
   address: 'tcp://:9091'
   tls:
-    certificate: /pki/public.backend.crt
-    key: /pki/private.backend.pem
+    certificate: '/pki/public.backend.crt'
+    key: '/pki/private.backend.pem'
+  endpoints:
+    rate_limits:
+      second_factor_duo:
+        buckets:
+          - period: '20 seconds'
+            requests: 20
+          - period: '30 seconds'
+            requests: 30
 
 log:
-  level: trace
+  level: 'trace'
 
-authentication_backend:
-  file:
-    path: /config/users.yml
-
-session:
-  secret: unsecure_session_secret
-  expiration: 3600  # 1 hour
-  inactivity: 300  # 5 minutes
-  remember_me: 1y
-  cookies:
-    - domain: 'example.com'
-      authelia_url: 'https://login.example.com:8080'
-      default_redirection_url: 'https://home.example.com:8080/'
-
-# Configuration of the storage backend used to store data and secrets. i.e. totp data
 storage:
-  encryption_key: a_not_so_secure_encryption_key
+  encryption_key: 'a_not_so_secure_encryption_key'
   local:
-    path: /tmp/db.sqlite3
+    path: '/tmp/db.sqlite3'
 
-# TOTP Issuer Name
-#
-# This will be the issuer name displayed in Google Authenticator
-# See: https://github.com/google/google-authenticator/wiki/Key-Uri-Format for more info on issuer names
-totp:
-  issuer: example.com
-  disable_reuse_security_policy: true
+notifier:
+  filesystem:
+    filename: '/tmp/notifier.html'
 
 identity_validation:
   reset_password:
     jwt_secret: 'a_very_important_secret'
 
-# The Duo Push Notification API configuration
+regulation:
+  max_retries: 3
+  find_time: '5 minutes'
+  ban_time: '15 minutes'
+
+session:
+  secret: 'unsecure_session_secret'
+  cookies:
+    - domain: 'example.com'
+      authelia_url: 'https://login.example.com:8080'
+      default_redirection_url: 'https://home.example.com:8080/'
+      expiration: '1 hour'
+      inactivity: '5 minutes'
+      remember_me: '1 year'
+
+authentication_backend:
+  file:
+    path: '/config/users.yml'
+
+totp:
+  issuer: 'example.com'
+  disable_reuse_security_policy: true
+
+webauthn:
+  disable: false
+  enable_passkey_login: true
+  display_name: 'Authelia'
+  attestation_conveyance_preference: 'indirect'
+  timeout: '60 seconds'
+  filtering:
+    permitted_aaguids: []
+    prohibited_aaguids: []
+    prohibit_backup_eligibility: false
+  selection_criteria:
+    attachment: ''
+    discoverability: 'required'
+    user_verification: 'preferred'
+  metadata:
+    enabled: false
+    validate_trust_anchor: true
+    validate_entry: false
+    validate_entry_permit_zero_aaguid: true
+    validate_status: true
+    validate_status_permitted: []
+    validate_status_prohibited: []
+
 duo_api:
-  hostname: duo.example.com
-  integration_key: ABCDEFGHIJKL
-  secret_key: abcdefghijklmnopqrstuvwxyz123456789
+  hostname: 'duo.example.com'
+  integration_key: 'ABCDEFGHIJKL'
+  secret_key: 'abcdefghijklmnopqrstuvwxyz123456789'
   enable_self_enrollment: true
 
-# Access Control
-#
-# Access control is a set of rules you can use to restrict user access to certain
-# resources.
 access_control:
-  # Default policy can either be `bypass`, `one_factor`, `two_factor` or `deny`.
-  default_policy: two_factor
+  default_policy: 'two_factor'
 
   rules:
-    - domain: singlefactor.example.com
-      policy: one_factor
+    - domain: 'singlefactor.example.com'
+      policy: 'one_factor'
 
-    - domain: public.example.com
-      policy: bypass
+    - domain: 'public.example.com'
+      policy: 'bypass'
 
-    - domain: secure.example.com
-      policy: two_factor
+    - domain: 'secure.example.com'
+      policy: 'two_factor'
 
-    - domain: "*.example.com"
-      subject: "group:admins"
-      policy: two_factor
+    - domain: '*.example.com'
+      subject: 'group:admins'
+      policy: 'two_factor'
 
-    - domain: dev.example.com
+    - domain: 'dev.example.com'
       resources:
-        - "^/users/john/.*$"
-      subject: "user:john"
-      policy: two_factor
+        - '^/users/john/.*$'
+      subject: 'user:john'
+      policy: 'two_factor'
 
-    - domain: dev.example.com
+    - domain: 'dev.example.com'
       resources:
-        - "^/users/harry/.*$"
-      subject: "user:harry"
-      policy: two_factor
+        - '^/users/harry/.*$'
+      subject: 'user:harry'
+      policy: 'two_factor'
 
-    - domain: "*.mail.example.com"
-      subject: "user:bob"
-      policy: two_factor
+    - domain: '*.mail.example.com'
+      subject: 'user:bob'
+      policy: 'two_factor'
 
-    - domain: dev.example.com
+    - domain: 'dev.example.com'
       resources:
-        - "^/users/bob/.*$"
-      subject: "user:bob"
-      policy: two_factor
-
-# Configuration of the authentication regulation mechanism.
-regulation:
-  # Set it to 0 to disable max_retries.
-  max_retries: 3
-
-  # The user is banned if the authentication failed `max_retries` times in a `find_time` seconds window.
-  find_time: 300
-
-  # The length of time before a banned user can login again.
-  ban_time: 900
-
-notifier:
-  filesystem:
-    filename: /tmp/notifier.html
+        - '^/users/bob/.*$'
+      subject: 'user:bob'
+      policy: 'two_factor'
 ...

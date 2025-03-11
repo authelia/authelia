@@ -1,9 +1,0 @@
----
-version: '3'
-services:
-  authelia-backend:
-    volumes:
-      - './Postgres/configuration.yml:/config/configuration.yml'
-      - './Postgres/users.yml:/config/users.yml'
-      - './common/pki:/pki'
-...

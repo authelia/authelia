@@ -2,11 +2,11 @@ import React from "react";
 
 import { Delete, Edit, InfoOutlined, ReportProblem } from "@mui/icons-material";
 import { Box, Paper, Stack, Tooltip, Typography } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import IconButton from "@mui/material/IconButton";
-import Grid from "@mui/material/Unstable_Grid2/Grid2";
 import { useTranslation } from "react-i18next";
 
-import { FormatDateHumanReadable } from "@i18n/formats";
+import { useRelativeTime } from "@hooks/RelativeTimeString";
 
 interface Props {
     id: string;
@@ -27,15 +27,17 @@ interface Props {
 
 const CredentialItem = function (props: Props) {
     const { t: translate } = useTranslation("settings");
+    const timeSinceAdded = useRelativeTime(props.created_at);
+    const timeSinceLastUsed = useRelativeTime(props.last_used_at || new Date(0));
 
     return (
-        <Paper variant="outlined" id={props.id}>
+        <Paper variant={"outlined"} id={props.id}>
             <Box sx={{ p: 3 }}>
-                <Grid container xs={12} alignItems={"center"} height={"100%"}>
-                    <Grid xs={2} sm={1} marginRight={{ xs: 1, md: 2, xl: 3 }}>
+                <Grid container size={{ xs: 12 }} alignItems={"center"} height={"100%"}>
+                    <Grid container size={{ xs: 2, sm: 1 }} marginRight={{ xs: 1, md: 2, xl: 3 }}>
                         {props.icon}
                     </Grid>
-                    <Grid xs={3} sm={6}>
+                    <Grid size={{ xs: 3, sm: 6 }}>
                         <Stack direction={"column"}>
                             <Stack direction={"row"}>
                                 <Typography
@@ -50,32 +52,32 @@ const CredentialItem = function (props: Props) {
                                 </Typography>
                             </Stack>
                             <Typography variant={"caption"} display={{ xs: "none", sm: "block" }}>
-                                {translate("Added when", {
-                                    when: props.created_at,
-                                    formatParams: { when: FormatDateHumanReadable },
-                                })}
+                                {`${translate("Added")} ${timeSinceAdded}`}
                             </Typography>
                             <Typography variant={"caption"} display={{ xs: "none", sm: "block" }}>
                                 {props.last_used_at === undefined
-                                    ? translate("Never used")
-                                    : translate("Last Used when", {
-                                          when: props.last_used_at,
-                                          formatParams: { when: FormatDateHumanReadable },
-                                      })}
+                                    ? translate("Never Used")
+                                    : `${translate("Last Used")} ${timeSinceLastUsed}`}
                             </Typography>
                         </Stack>
                     </Grid>
-                    <Grid xs={6} sm={4}>
-                        <Grid container xs={12} justifyContent={"flex-end"} alignItems={"center"} height={"100%"}>
+                    <Grid size={{ xs: 6, sm: 4 }}>
+                        <Grid
+                            container
+                            size={{ xs: 12 }}
+                            justifyContent={"flex-end"}
+                            alignItems={"center"}
+                            height={"100%"}
+                        >
                             {props.handleInformation ? (
-                                <Grid xs={2} sm={1}>
+                                <Grid size={{ xs: 3, lg: 4 }}>
                                     <TooltipElement
                                         tooltip={
                                             props.problem ? props.tooltipInformationProblem : props.tooltipInformation
                                         }
                                     >
                                         <IconButton
-                                            color="primary"
+                                            color={"primary"}
                                             onClick={props.handleInformation}
                                             id={`${props.id}-information`}
                                         >
@@ -85,17 +87,25 @@ const CredentialItem = function (props: Props) {
                                 </Grid>
                             ) : null}
                             {props.handleEdit ? (
-                                <Grid xs={2} sm={1}>
+                                <Grid size={{ xs: 3, lg: 4 }}>
                                     <TooltipElement tooltip={props.tooltipEdit}>
-                                        <IconButton color="primary" onClick={props.handleEdit} id={`${props.id}-edit`}>
+                                        <IconButton
+                                            color={"primary"}
+                                            onClick={props.handleEdit}
+                                            id={`${props.id}-edit`}
+                                        >
                                             <Edit />
                                         </IconButton>
                                     </TooltipElement>
                                 </Grid>
                             ) : null}
-                            <Grid xs={2} sm={1}>
+                            <Grid size={{ xs: 3, lg: 4 }}>
                                 <Tooltip title={props.tooltipDelete}>
-                                    <IconButton color="primary" onClick={props.handleDelete} id={`${props.id}-delete`}>
+                                    <IconButton
+                                        color={"primary"}
+                                        onClick={props.handleDelete}
+                                        id={`${props.id}-delete`}
+                                    >
                                         <Delete />
                                     </IconButton>
                                 </Tooltip>

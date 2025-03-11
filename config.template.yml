@@ -1,7 +1,7 @@
 # yamllint disable rule:comments-indentation
 ---
 ###############################################################################
-#                           Authelia Configuration                            #
+##                           Authelia Configuration                          ##
 ###############################################################################
 
 ##
@@ -36,7 +36,7 @@
   ## Formats:
   ##  - [<scheme>://]<hostname>[:<port>][/<path>]
   ##  - [<scheme>://][hostname]:<port>[/<path>]
-  ## Square brackets indicate optional portions of the format. Scheme must be 'tcp', 'tcp4', 'tcp6', or 'unix'.
+  ## Square brackets indicate optional portions of the format. Scheme must be 'tcp', 'tcp4', 'tcp6', 'unix', or 'fd'.
   ## The default scheme is 'unix' if the address is an absolute path otherwise it's 'tcp'. The default port is '9091'.
   ## If the path is specified this configures the router to handle both the `/` path and the configured path.
   # address: 'tcp://:9091/'
@@ -119,9 +119,9 @@
 ##
 ## Log Configuration
 ##
-log:
+# log:
   ## Level of verbosity for logs: info, debug, trace.
-  level: 'debug'
+  # level: 'debug'
 
   ## Format the logs are written as: json, text.
   # format: 'json'
@@ -135,20 +135,20 @@ log:
 ##
 ## Telemetry Configuration
 ##
-telemetry:
+# telemetry:
 
   ##
   ## Metrics Configuration
   ##
-  metrics:
+  # metrics:
     ## Enable Metrics.
-    enabled: false
+    # enabled: false
 
     ## The address for the Metrics server to listen on in the address common syntax.
     ## Formats:
     ##  - [<scheme>://]<hostname>[:<port>][/<path>]
     ##  - [<scheme>://][hostname]:<port>[/<path>]
-    ## Square brackets indicate optional portions of the format. Scheme must be 'tcp', 'tcp4', 'tcp6', or 'unix'.
+    ## Square brackets indicate optional portions of the format. Scheme must be 'tcp', 'tcp4', 'tcp6', 'unix', or 'fd'.
     ## The default scheme is 'unix' if the address is an absolute path otherwise it's 'tcp'. The default port is '9959'.
     ## If the path is not specified it defaults to `/metrics`.
     # address: 'tcp://:9959/metrics'
@@ -178,9 +178,9 @@ telemetry:
 ## TOTP Configuration
 ##
 ## Parameters used for TOTP generation.
-totp:
+# totp:
   ## Disable TOTP.
-  disable: false
+  # disable: false
 
   ## The issuer name displayed in the Authenticator application of your choice.
   # issuer: 'authelia.com'
@@ -228,12 +228,12 @@ totp:
 ## WebAuthn Configuration
 ##
 ## Parameters used for WebAuthn.
-webauthn:
+# webauthn:
   ## Disable WebAuthn.
-  disable: false
+  # disable: false
 
-  ## The interaction timeout for WebAuthn dialogues in the duration common syntax.
-  # timeout: '60 seconds'
+  ## Enables logins via a Passkey.
+  # enable_passkey_login: false
 
   ## The display name the browser should show the user for when using WebAuthn to login/register.
   # display_name: 'Authelia'
@@ -242,9 +242,65 @@ webauthn:
   ## Options are none, indirect, direct.
   # attestation_conveyance_preference: 'indirect'
 
-  ## User verification controls if the user must make a gesture or action to confirm they are present.
-  ## Options are required, preferred, discouraged.
-  # user_verification: 'preferred'
+  ## The interaction timeout for WebAuthn dialogues in the duration common syntax.
+  # timeout: '60 seconds'
+
+  ## Authenticator Filtering.
+  # filtering:
+    ## Prohibits registering Authenticators that claim they can export their credentials in some way.
+    # prohibit_backup_eligibility: false
+
+    ## Permitted AAGUID's. If configured specifically only allows the listed AAGUID's.
+    # permitted_aaguids: []
+
+    ## Prohibited AAGUID's. If configured prohibits the use of specific AAGUID's.
+    # prohibited_aaguids: []
+
+  ## Selection Criteria controls the preferences for registration.
+  # selection_criteria:
+    ## The attachment preference. Either 'cross-platform' for dedicated authenticators, or 'platform' for embedded
+    ## authenticators.
+    # attachment: 'cross-platform'
+
+    ## The discoverability preference. Options are 'discouraged', 'preferred', and 'required'.
+    # discoverability: 'discouraged'
+
+    ## User verification controls if the user must make a gesture or action to confirm they are present.
+    ## Options are required, preferred, discouraged.
+    # user_verification: 'preferred'
+
+  ## Metadata Service validation via MDS3.
+  # metadata:
+
+    ## Enable the metadata fetch behaviour.
+    # enabled: false
+
+    ## Enable Validation of the Trust Anchor. This generally should be enabled if you're using the metadata. It
+    ## ensures the attestation certificate presented by the authenticator is valid against the MDS3 certificate that
+    ## issued the attestation certificate.
+    # validate_trust_anchor: true
+
+    ## Enable Validation of the Entry. This ensures that the MDS3 actually contains the metadata entry. If not enabled
+    ## attestation certificates which are not formally registered will be skipped. This may potentially exclude some
+    ## virtual authenticators.
+    # validate_entry: true
+
+    ## Enabling this allows attestation certificates with a zero AAGUID to pass validation. This is important if you do
+    ## use non-conformant authenticators like Apple ID.
+    # validate_entry_permit_zero_aaguid: false
+
+    ## Enable Validation of the Authenticator Status.
+    # validate_status: true
+
+    ## List of statuses which are considered permitted when validating an authenticator's metadata. Generally it is
+    ## recommended that this is not configured as any other status the authenticator's metadata has will result in an
+    ## error. This option is ineffectual if validate_status is false.
+    # validate_status_permitted: ~
+
+    ## List of statuses that should be prohibited when validating an authenticator's metadata. Generally it is
+    ## recommended that this is not configured as there are safe defaults. This option is ineffectual if validate_status
+    ## is false, or validate_status_permitted has values.
+    # validate_status_prohibited: ~
 
 ##
 ## Duo Push API Configuration
@@ -268,7 +324,7 @@ identity_validation:
   ## Reset Password flow. Adjusts how the reset password flow operates.
   reset_password:
     ## Maximum allowed time before the JWT is generated and when the user uses it in the duration common syntax.
-    # expiration: '5 minutes'
+    # jwt_lifespan: '5 minutes'
 
     ## The algorithm used for the Reset Password JWT.
     # jwt_algorithm: 'HS256'
@@ -279,12 +335,12 @@ identity_validation:
   ## Elevated Session flows. Adjusts the flow which require elevated sessions for example managing credentials, adding,
   ## removing, etc.
   # elevated_session:
-    ## Maximum allowed time after the One-Time Code is generated that it is considered valid.
-    # expiration: '5 minutes'
+    ## Maximum allowed lifetime after the One-Time Code is generated that it is considered valid.
+    # code_lifespan: '5 minutes'
 
-    ## Maximum allowed time after the user uses the One-Time Code and the user must perform the validation again in the
-    ## duration common syntax.
-    # elevation_expiration: '10 minutes'
+    ## Maximum allowed lifetime after the user uses the One-Time Code and the user must perform the validation again in
+    ## the duration common syntax.
+    # elevation_lifespan: '10 minutes'
 
     ## Number of characters the one-time password contains.
     # characters: 8
@@ -323,17 +379,43 @@ identity_validation:
   # disable_failure: false
 
 ##
+## Definitions
+##
+## The definitions are used in other areas as reference points to reduce duplication.
+##
+# definitions:
+  ## The user attribute definitions.
+  # user_attributes:
+    ## The name of the definition.
+    # definition_name:
+      ## The common expression language expression for this definition.
+      # expression: ''
+
+  ## The network definitions.
+  # network:
+    ## The name of the definition followed by the list of CIDR network addresses in this definition.
+    # internal:
+      # - '10.10.0.0/16'
+      # - '172.16.0.0/12'
+      # - '192.168.2.0/24'
+    # VPN:
+      # - '10.9.0.0/16'
+
+##
 ## Authentication Backend Provider Configuration
 ##
 ## Used for verifying user passwords and retrieve information such as email address and groups users belong to.
 ##
 ## The available providers are: `file`, `ldap`. You must use only one of these providers.
-authentication_backend:
-
+# authentication_backend:
+  ## Password Change Options.
+  # password_change:
+    ## Disable both the HTML element and the API for password change functionality.
+    # disable: false
   ## Password Reset Options.
-  password_reset:
+  # password_reset:
     ## Disable both the HTML element and the API for reset password functionality.
-    disable: false
+    # disable: false
 
     ## External reset password url that redirects the user to an external reset portal. This disables the internal reset
     ## functionality.
@@ -375,11 +457,12 @@ authentication_backend:
     # implementation: 'custom'
 
     ## The dial timeout for LDAP in the duration common syntax.
-    # timeout: '5 seconds'
+    # timeout: '20 seconds'
 
     ## Use StartTLS with the LDAP connection.
     # start_tls: false
 
+    ## TLS configuration.
     # tls:
       ## The server subject name to check the servers certificate against during the validation process.
       ## This option is not required if the certificate has a SAN which matches the address options hostname.
@@ -403,38 +486,32 @@ authentication_backend:
       ## i.e. Mutual TLS.
       # certificate_chain: |
         # -----BEGIN CERTIFICATE-----
-        # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-        # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-        # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-        # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-        # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-        # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-        # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-        # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+        # ...
         # -----END CERTIFICATE-----
         # -----BEGIN CERTIFICATE-----
-        # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-        # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-        # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-        # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-        # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-        # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-        # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-        # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+        # ...
         # -----END CERTIFICATE-----
 
       ## The private key used with the certificate_chain if the server requests TLS Client Authentication
       ## i.e. Mutual TLS.
       # private_key: |
         # -----BEGIN RSA PRIVATE KEY-----
-        # MIIBPAIBAAJBAK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZF
-        # p7aTcToHMf00z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAQJBAJdpB0+RQ9ZFwy9Uk38P
-        # 5zZpUB8cL8ZFeEFluQeVbt0vyNa+cPLvDLouY87onduXtMz5AKIatLaTOjuG2thh
-        # SKECIQDY6G8gvsYJdXCE9UJ7ukoLrRHxt/frhAtmSY5lVAPuMwIhAMzuDrJo73LH
-        # ZyEaqIXc5pIiX3Sag43csPDHfuXdtT2NAiEAhyRKGJzDxiDlefFU+sGWYK/z/iYg
-        # 0Rvz/kbV8UvnJwECIQDAYN6VJ6NZmc27qv33JIejOfdoTEEhZMMKVg1PlxE0ZQIg
-        # HFpJiFxZES3QvVPr8deBXORPurqD5uU85NKsf61AdRs_DO_NOT_USE=
+        # ...
         # -----END RSA PRIVATE KEY-----
+
+    ## Connection Pooling configuration.
+    # pooling:
+      ## Enable Pooling.
+      # enable: false
+
+      ## Pool count.
+      # count: 5
+
+      ## Retries to obtain a connection during the timeout.
+      # retries: 2
+
+      ## Timeout before the attempt to obtain a connection fails.
+      # timeout: '10 seconds'
 
     ## The distinguished name of the container searched for objects in the directory information tree.
     ## See also: additional_users_dn, additional_groups_dn.
@@ -562,61 +639,61 @@ authentication_backend:
 ##
 ## Password Policy Configuration.
 ##
-password_policy:
+# password_policy:
 
   ## The standard policy allows you to tune individual settings manually.
-  standard:
-    enabled: false
+  # standard:
+    # enabled: false
 
     ## Require a minimum length for passwords.
-    min_length: 8
+    # min_length: 8
 
     ## Require a maximum length for passwords.
-    max_length: 0
+    # max_length: 0
 
     ## Require uppercase characters.
-    require_uppercase: true
+    # require_uppercase: true
 
     ## Require lowercase characters.
-    require_lowercase: true
+    # require_lowercase: true
 
     ## Require numeric characters.
-    require_number: true
+    # require_number: true
 
     ## Require special characters.
-    require_special: true
+    # require_special: true
 
   ## zxcvbn is a well known and used password strength algorithm. It does not have tunable settings.
-  zxcvbn:
-    enabled: false
+  # zxcvbn:
+    # enabled: false
 
     ## Configures the minimum score allowed.
-    min_score: 3
+    # min_score: 3
 
 ##
 ## Privacy Policy Configuration
 ##
 ## Parameters used for displaying the privacy policy link and drawer.
-privacy_policy:
+# privacy_policy:
 
   ## Enables the display of the privacy policy using the policy_url.
-  enabled: false
+  # enabled: false
 
   ## Enables the display of the privacy policy drawer which requires users accept the privacy policy
   ## on a per-browser basis.
-  require_user_acceptance: false
+  # require_user_acceptance: false
 
   ## The URL of the privacy policy document. Must be an absolute URL and must have the 'https://' scheme.
   ## If the privacy policy enabled option is true, this MUST be provided.
-  policy_url: ''
+  # policy_url: ''
 
 ##
 ## Access Control Configuration
 ##
 ## Access control is a list of rules defining the authorizations applied for one resource to users or group of users.
 ##
-## If 'access_control' is not defined, ACL rules are disabled and the 'bypass' rule is applied, i.e., access is allowed
-## to anyone. Otherwise restrictions follow the rules defined.
+## If 'access_control' is not defined, ACL rules are disabled and the 'deny' rule is applied, i.e., access is denied
+## to everyone. Otherwise restrictions follow the rules defined.
 ##
 ## Note: One can use the wildcard * to match any subdomain.
 ## It must stand at the beginning of the pattern. (example: *.example.com)
@@ -637,18 +714,10 @@ privacy_policy:
 ##   is optional and matches any resource if not provided.
 ##
 ## Note: the order of the rules is important. The first policy matching (domain, resource, subject) applies.
-access_control:
+# access_control:
   ## Default policy can either be 'bypass', 'one_factor', 'two_factor' or 'deny'. It is the policy applied to any
   ## resource if there is no policy to be applied to the user.
-  default_policy: 'deny'
-
-  # networks:
-    # - name: 'internal'
-    #   networks:
-        # - '10.10.0.0/16'
-        # - '192.168.2.0/24'
-    # - name: 'VPN'
-    #   networks: '10.9.0.0/16'
+  # default_policy: 'deny'
 
   # rules:
     ## Rules applied to everyone
@@ -792,19 +861,19 @@ session:
       # remember_me: '1 month'
 
   ## Cookie Session Domain default 'name' value.
-  name: 'authelia_session'
+  # name: 'authelia_session'
 
   ## Cookie Session Domain default 'same_site' value.
-  same_site: 'lax'
+  # same_site: 'lax'
 
   ## Cookie Session Domain default 'inactivity' value.
-  inactivity: '5m'
+  # inactivity: '5m'
 
   ## Cookie Session Domain default 'expiration' value.
-  expiration: '1h'
+  # expiration: '1h'
 
   ## Cookie Session Domain default 'remember_me' value.
-  remember_me: '1M'
+  # remember_me: '1M'
 
   ##
   ## Redis Provider
@@ -816,6 +885,12 @@ session:
     # port: 6379
     ## Use a unix socket instead
     # host: '/var/run/redis/redis.sock'
+
+    ## The connection timeout in the duration common syntax.
+    # timeout: '5 seconds'
+
+    ## The maximum number of retries on a failed command. Set it to 0 to disable retries.
+    # max_retries: 3
 
     ## Username used for redis authentication. This is optional and a new feature in redis 6.0.
     # username: 'authelia'
@@ -856,37 +931,17 @@ session:
       ## i.e. Mutual TLS.
       # certificate_chain: |
         # -----BEGIN CERTIFICATE-----
-        # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-        # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-        # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-        # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-        # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-        # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-        # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-        # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+        # ...
         # -----END CERTIFICATE-----
         # -----BEGIN CERTIFICATE-----
-        # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-        # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-        # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-        # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-        # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-        # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-        # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-        # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+        # ...
         # -----END CERTIFICATE-----
 
       ## The private key used with the certificate_chain if the server requests TLS Client Authentication
       ## i.e. Mutual TLS.
       # private_key: |
         # -----BEGIN RSA PRIVATE KEY-----
-        # MIIBPAIBAAJBAK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZF
-        # p7aTcToHMf00z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAQJBAJdpB0+RQ9ZFwy9Uk38P
-        # 5zZpUB8cL8ZFeEFluQeVbt0vyNa+cPLvDLouY87onduXtMz5AKIatLaTOjuG2thh
-        # SKECIQDY6G8gvsYJdXCE9UJ7ukoLrRHxt/frhAtmSY5lVAPuMwIhAMzuDrJo73LH
-        # ZyEaqIXc5pIiX3Sag43csPDHfuXdtT2NAiEAhyRKGJzDxiDlefFU+sGWYK/z/iYg
-        # 0Rvz/kbV8UvnJwECIQDAYN6VJ6NZmc27qv33JIejOfdoTEEhZMMKVg1PlxE0ZQIg
-        # HFpJiFxZES3QvVPr8deBXORPurqD5uU85NKsf61AdRs_DO_NOT_USE=
+        # ...
         # -----END RSA PRIVATE KEY-----
 
     ## The Redis HA configuration options.
@@ -922,6 +977,10 @@ session:
 ## This mechanism prevents attackers from brute forcing the first factor. It bans the user if too many attempts are made
 ## in a short period of time.
 # regulation:
+  ## Regulation Mode.
+  # modes:
+    # - 'user'
+
   ## The number of failed login attempts before user is banned. Set it to 0 to disable regulation.
   # max_retries: 3
 
@@ -1001,37 +1060,17 @@ session:
       ## i.e. Mutual TLS.
       # certificate_chain: |
         # -----BEGIN CERTIFICATE-----
-        # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-        # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-        # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-        # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-        # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-        # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-        # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-        # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+        # ...
         # -----END CERTIFICATE-----
         # -----BEGIN CERTIFICATE-----
-        # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-        # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-        # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-        # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-        # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-        # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-        # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-        # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+        # ...
         # -----END CERTIFICATE-----
 
       ## The private key used with the certificate_chain if the server requests TLS Client Authentication
       ## i.e. Mutual TLS.
       # private_key: |
         # -----BEGIN RSA PRIVATE KEY-----
-        # MIIBPAIBAAJBAK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZF
-        # p7aTcToHMf00z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAQJBAJdpB0+RQ9ZFwy9Uk38P
-        # 5zZpUB8cL8ZFeEFluQeVbt0vyNa+cPLvDLouY87onduXtMz5AKIatLaTOjuG2thh
-        # SKECIQDY6G8gvsYJdXCE9UJ7ukoLrRHxt/frhAtmSY5lVAPuMwIhAMzuDrJo73LH
-        # ZyEaqIXc5pIiX3Sag43csPDHfuXdtT2NAiEAhyRKGJzDxiDlefFU+sGWYK/z/iYg
-        # 0Rvz/kbV8UvnJwECIQDAYN6VJ6NZmc27qv33JIejOfdoTEEhZMMKVg1PlxE0ZQIg
-        # HFpJiFxZES3QvVPr8deBXORPurqD5uU85NKsf61AdRs_DO_NOT_USE=
+        # ...
         # -----END RSA PRIVATE KEY-----
 
   ##
@@ -1043,6 +1082,30 @@ session:
     ## Square brackets indicate optional portions of the format. Scheme must be 'tcp', 'tcp4', 'tcp6', or 'unix`.
     ## The default scheme is 'unix' if the address is an absolute path otherwise it's 'tcp'. The default port is '5432'.
     # address: 'tcp://127.0.0.1:5432'
+
+    ## List of additional server instance configurations to fallback to when the primary instance is not available.
+    # servers:
+      # -
+        ## The Address of this individual instance.
+        # address: 'tcp://127.0.0.1:5432'
+
+        ## The TLS configuration for this individual instance.
+        # tls:
+          # server_name: 'postgres.example.com'
+          # skip_verify: false
+          # minimum_version: 'TLS1.2'
+          # maximum_version: 'TLS1.3'
+          # certificate_chain: |
+            # -----BEGIN CERTIFICATE-----
+            # ...
+            # -----END CERTIFICATE-----
+            # -----BEGIN CERTIFICATE-----
+            # ...
+            # -----END CERTIFICATE-----
+          # private_key: |
+            # -----BEGIN RSA PRIVATE KEY-----
+            # ...
+            # -----END RSA PRIVATE KEY-----
 
     ## The database name to use.
     # database: 'authelia'
@@ -1084,37 +1147,17 @@ session:
       ## i.e. Mutual TLS.
       # certificate_chain: |
         # -----BEGIN CERTIFICATE-----
-        # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-        # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-        # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-        # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-        # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-        # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-        # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-        # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+        # ...
         # -----END CERTIFICATE-----
         # -----BEGIN CERTIFICATE-----
-        # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-        # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-        # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-        # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-        # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-        # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-        # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-        # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+        # ...
         # -----END CERTIFICATE-----
 
       ## The private key used with the certificate_chain if the server requests TLS Client Authentication
       ## i.e. Mutual TLS.
       # private_key: |
         # -----BEGIN RSA PRIVATE KEY-----
-        # MIIBPAIBAAJBAK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZF
-        # p7aTcToHMf00z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAQJBAJdpB0+RQ9ZFwy9Uk38P
-        # 5zZpUB8cL8ZFeEFluQeVbt0vyNa+cPLvDLouY87onduXtMz5AKIatLaTOjuG2thh
-        # SKECIQDY6G8gvsYJdXCE9UJ7ukoLrRHxt/frhAtmSY5lVAPuMwIhAMzuDrJo73LH
-        # ZyEaqIXc5pIiX3Sag43csPDHfuXdtT2NAiEAhyRKGJzDxiDlefFU+sGWYK/z/iYg
-        # 0Rvz/kbV8UvnJwECIQDAYN6VJ6NZmc27qv33JIejOfdoTEEhZMMKVg1PlxE0ZQIg
-        # HFpJiFxZES3QvVPr8deBXORPurqD5uU85NKsf61AdRs_DO_NOT_USE=
+        # ...
         # -----END RSA PRIVATE KEY-----
 
 ##
@@ -1122,9 +1165,9 @@ session:
 ##
 ## Notifications are sent to users when they require a password reset, a WebAuthn registration or a TOTP registration.
 ## The available providers are: filesystem, smtp. You must use only one of these providers.
-notifier:
+# notifier:
   ## You can disable the notifier startup check by setting this to true.
-  disable_startup_check: false
+  # disable_startup_check: false
 
   ##
   ## File System (Notification Provider)
@@ -1202,37 +1245,17 @@ notifier:
       ## i.e. Mutual TLS.
       # certificate_chain: |
         # -----BEGIN CERTIFICATE-----
-        # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-        # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-        # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-        # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-        # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-        # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-        # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-        # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+        # ...
         # -----END CERTIFICATE-----
         # -----BEGIN CERTIFICATE-----
-        # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-        # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-        # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-        # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-        # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-        # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-        # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-        # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+        # ...
         # -----END CERTIFICATE-----
 
       ## The private key used with the certificate_chain if the server requests TLS Client Authentication
       ## i.e. Mutual TLS.
       # private_key: |
         # -----BEGIN RSA PRIVATE KEY-----
-        # MIIBPAIBAAJBAK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZF
-        # p7aTcToHMf00z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAQJBAJdpB0+RQ9ZFwy9Uk38P
-        # 5zZpUB8cL8ZFeEFluQeVbt0vyNa+cPLvDLouY87onduXtMz5AKIatLaTOjuG2thh
-        # SKECIQDY6G8gvsYJdXCE9UJ7ukoLrRHxt/frhAtmSY5lVAPuMwIhAMzuDrJo73LH
-        # ZyEaqIXc5pIiX3Sag43csPDHfuXdtT2NAiEAhyRKGJzDxiDlefFU+sGWYK/z/iYg
-        # 0Rvz/kbV8UvnJwECIQDAYN6VJ6NZmc27qv33JIejOfdoTEEhZMMKVg1PlxE0ZQIg
-        # HFpJiFxZES3QvVPr8deBXORPurqD5uU85NKsf61AdRs_DO_NOT_USE=
+        # ...
         # -----END RSA PRIVATE KEY-----
 
 ##
@@ -1243,8 +1266,8 @@ notifier:
   ##
   ## OpenID Connect (Identity Provider)
   ##
-  ## It's recommended you read the documentation before configuration of this section:
-  ## https://www.authelia.com/c/oidc
+  ## It's recommended you read the documentation before configuration of this section.
+  ## See: https://www.authelia.com/c/oidc/provider
   # oidc:
     ## The hmac_secret is used to sign OAuth2 tokens (authorization code, access tokens and refresh tokens).
     ## HMAC Secret can also be set using a secret: https://www.authelia.com/c/secrets
@@ -1267,13 +1290,7 @@ notifier:
       ## Required Private Key in PEM DER form.
       # key: |
         # -----BEGIN RSA PRIVATE KEY-----
-        # MIIBPAIBAAJBAK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZF
-        # p7aTcToHMf00z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAQJBAJdpB0+RQ9ZFwy9Uk38P
-        # 5zZpUB8cL8ZFeEFluQeVbt0vyNa+cPLvDLouY87onduXtMz5AKIatLaTOjuG2thh
-        # SKECIQDY6G8gvsYJdXCE9UJ7ukoLrRHxt/frhAtmSY5lVAPuMwIhAMzuDrJo73LH
-        # ZyEaqIXc5pIiX3Sag43csPDHfuXdtT2NAiEAhyRKGJzDxiDlefFU+sGWYK/z/iYg
-        # 0Rvz/kbV8UvnJwECIQDAYN6VJ6NZmc27qv33JIejOfdoTEEhZMMKVg1PlxE0ZQIg
-        # HFpJiFxZES3QvVPr8deBXORPurqD5uU85NKsf61AdRs_DO_NOT_USE=
+        # ...
         # -----END RSA PRIVATE KEY-----
 
 
@@ -1281,14 +1298,10 @@ notifier:
       ## must be valid and current, and from top to bottom each certificate must be signed by the subsequent one.
       # certificate_chain: |
         # -----BEGIN CERTIFICATE-----
-        # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-        # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-        # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-        # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-        # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-        # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-        # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-        # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
+        # ...
+        # -----END CERTIFICATE-----
+        # -----BEGIN CERTIFICATE-----
+        # ...
         # -----END CERTIFICATE-----
 
     ## Enables additional debug messages.
@@ -1301,6 +1314,18 @@ notifier:
     ## for security reasons.
     # enforce_pkce: 'public_clients_only'
 
+    ## SECURITY NOTICE: It's not recommended changing this option. We encourage you to read the documentation and fully
+    ## understanding it before enabling this option.
+    # enable_jwt_access_token_stateless_introspection: false
+
+    ## The signing algorithm used for signing the discovery and metadata responses. An issuer JWK with a matching
+    ## algorithm must be available when configured. Most clients completely ignore this and it has a performance cost.
+    # discovery_signed_response_alg: 'none'
+
+    ## The signing key id used for signing the discovery and metadata responses. An issuer JWK with a matching key id
+    ## must be available when configured. Most clients completely ignore this and it has a performance cost.
+    # discovery_signed_response_key_id: ''
+
     ## Authorization Policies which can be utilized by clients. The 'policy_name' is an arbitrary value that you pick
     ## which is utilized as the value for the 'authorization_policy' on the client.
     # authorization_policies:
@@ -1309,6 +1334,8 @@ notifier:
         # rules:
           # - policy: 'one_factor'
           #   subject: 'group:services'
+          #   networks:
+              #  - '192.168.1.0/24'
 
     ## The lifespans configure the expiration for these token types in the duration common syntax. In addition to this
     ## syntax the lifespans can be customized per-client.
@@ -1341,7 +1368,9 @@ notifier:
       ## provided they have the scheme http or https and do not have the hostname of localhost.
       # allowed_origins_from_client_redirect_uris: false
 
-    ## Clients is a list of known clients and their configuration.
+    ## Clients is a list of registered clients and their configuration.
+    ## It's recommended you read the documentation before configuration of a registered client.
+    ## See: https://www.authelia.com/c/oidc/registered-clients
     # clients:
       # -
         ## The Client ID is the OAuth 2.0 and OpenID Connect 1.0 Client ID which is used to link an application to a
@@ -1356,9 +1385,7 @@ notifier:
         # client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
 
         ## Sector Identifiers are occasionally used to generate pairwise subject identifiers. In most cases this is not
-        ## necessary. Read the documentation for more information.
-        ## The subject identifier must be the host component of a URL, which is a domain name with an optional port. It
-        ## must return a JSON document which contains an array of every 'redirect_uris' value of each client using it.
+        ## necessary. It is critical to read the documentation for more information.
         # sector_identifier_uri: 'https://example.com/sector.json'
 
         ## Sets the client to public. This should typically not be set, please see the documentation for usage.
@@ -1367,6 +1394,11 @@ notifier:
         ## Redirect URI's specifies a list of valid case-sensitive callbacks for this client.
         # redirect_uris:
           # - 'https://oidc.example.com:8080/oauth2/callback'
+
+        ## Request URI's specifies a list of valid case-sensitive TLS-secured URIs for this client for use as
+        ## URIs to fetch Request Objects.
+        # request_uris:
+          # - 'https://oidc.example.com:8080/oidc/request-object.jwk'
 
         ## Audience this client is allowed to request.
         # audience: []
@@ -1414,13 +1446,148 @@ notifier:
         ## Enforces the use of PKCE for this client when set to true.
         # require_pkce: false
 
-        ## Enables stateless introspection for RFC9068 JWT Access Tokens. This should be false unless you have a
-        ## specific use case as it effectively prevents revocation of these access tokens.
-        # enable_jwt_access_token_stateless_introspection: false
-
         ## Enforces the use of PKCE for this client when configured, and enforces the specified challenge method.
         ## Options are 'plain' and 'S256'.
         # pkce_challenge_method: 'S256'
+
+        ## The signing algorithm used for signing the authorization responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#authorization_signed_response_alg
+        # authorization_signed_response_alg: 'none'
+
+        ## The signing key id used for signing the authorization responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#authorization_signed_response_key_id
+        # authorization_signed_response_key_id: ''
+
+        ## The content encryption algorithm used for encrypting the authorization responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#authorization_encrypted_response_alg
+        # authorization_encrypted_response_alg: 'none'
+
+        ## The encryption algorithm used for encrypting the authorization responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#authorization_encrypted_response_enc
+        # authorization_encrypted_response_enc: 'A128CBC-HS256'
+
+        ## The content encryption key id used for encrypting the authorization responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#authorization_encrypted_response_key_id
+        # authorization_encrypted_response_key_id: ''
+
+        ## The signing algorithm used for signing the ID Tokens in Access Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#id_token_signed_response_alg
+        # id_token_signed_response_alg: 'RS256'
+
+        ## The signing key id used for signing the ID Tokens in Access Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#id_token_signed_response_key_id
+        # id_token_signed_response_key_id: ''
+
+        ## The content encryption algorithm used for encrypting the ID Tokens in Access Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#id_token_encrypted_response_alg
+        # id_token_encrypted_response_alg: 'none'
+
+        ## The encryption algorithm used for encrypting the ID Tokens in Access Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#id_token_encrypted_response_enc
+        # id_token_encrypted_response_enc: 'A128CBC-HS256'
+
+        ## The content encryption key id used for encrypting the ID Tokens in Access Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#authorization_encrypted_response_key_id
+        # id_token_encrypted_response_key_id: ''
+
+        ## The signing algorithm used for signing the Access Tokens in Access Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#access_token_signed_response_alg
+        # access_token_signed_response_alg: 'none'
+
+        ## The signing key id used for signing the Access Tokens in Access Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#access_token_signed_response_key_id
+        # access_token_signed_response_key_id: ''
+
+        ## The content encryption algorithm used for encrypting the Access Tokens in Access Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#access_token_encrypted_response_alg
+        # access_token_encrypted_response_alg: 'none'
+
+        ## The encryption algorithm used for encrypting the Access Tokens in Access Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#access_token_encrypted_response_enc
+        # access_token_encrypted_response_enc: 'A128CBC-HS256'
+
+        ## The content encryption key id used for encrypting the Access Tokens in Access Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#access_token_encrypted_response_key_id
+        # access_token_encrypted_response_key_id: ''
+
+        ## The signing algorithm used for signing the User Info Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#userinfo_signed_response_alg
+        # userinfo_signed_response_alg: 'none'
+
+        ## The signing key id used for signing the User Info Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#userinfo_signed_response_key_id
+        # userinfo_signed_response_key_id: ''
+
+        ## The content encryption algorithm used for encrypting the User Info Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#userinfo_encrypted_response_alg
+        # userinfo_encrypted_response_alg: 'none'
+
+        ## The encryption algorithm used for encrypting the User Info Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#userinfo_encrypted_response_enc
+        # userinfo_encrypted_response_enc: 'A128CBC-HS256'
+
+        ## The content encryption key id used for encrypting the User Info Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#userinfo_encrypted_response_key_id
+        # userinfo_encrypted_response_key_id: ''
+
+        ## The signing algorithm used for signing the Introspection Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#introspection_signed_response_alg
+        # introspection_signed_response_alg: 'none'
+
+        ## The signing key id used for Introspection responses. An issuer JWK with a matching key id must be available
+        ## when configured.
+        # introspection_signed_response_key_id: ''
+
+        ## The content encryption algorithm used for encrypting the Introspection Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#introspection_encrypted_response_alg
+        # introspection_encrypted_response_alg: 'none'
+
+        ## The encryption algorithm used for encrypting the Introspection Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#introspection_encrypted_response_enc
+        # introspection_encrypted_response_enc: 'A128CBC-HS256'
+
+        ## The content encryption key id used for encrypting the Introspection Request responses.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#introspection_encrypted_response_key_id
+        # introspection_encrypted_response_key_id: ''
+
+        ## The signature algorithm which must be used for request objects.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#request_object_signing_alg
+        # request_object_signing_alg: 'RS256'
+
+        ## The content encryption algorithm which must be used for request objects.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#request_object_encryption_alg
+        # request_object_encryption_alg: ''
+
+        ## The encryption algorithm which must be used for request objects.
+        ## Please read the documentation before adjusting this option.
+        ## See: https://www.authelia.com/c/oidc/registered-clients#request_object_encryption_enc
+        # request_object_encryption_enc: ''
 
         ## The permitted client authentication method for the Token Endpoint for this client.
         ## For confidential client types this value defaults to 'client_secret_basic' and for the public client types it
@@ -1431,55 +1598,33 @@ notifier:
         ## the 'client_secret_jwt' or 'private_key_jwt' token_endpoint_auth_method.
         # token_endpoint_auth_signing_alg: 'RS256'
 
-        ## The signing algorithm which must be used for request objects. A client JWK with a matching algorithm must be
-        ## available if configured.
-        # request_object_signing_alg: 'RS256'
+        ## The permitted client authentication method for the Revocation Endpoint for this client.
+        ## For confidential client types this value defaults to 'client_secret_basic' and for the public client types it
+        ## defaults to 'none' per the specifications.
+        # revocation_endpoint_auth_method: 'client_secret_basic'
 
-        ## The signing algorithm used for signing the authorization response. An issuer JWK with a matching algorithm
-        ## must be available when configured. Configuring this value enables the  JWT Secured Authorization Response
-        ## Mode (JARM) for this client. JARM is not understood by a majority of clients so you should only configure
-        ## this when you know it's supported.
-        ## Has no effect if authorization_signed_response_key_id is configured.
-        # authorization_signed_response_alg: 'none'
+        ## The permitted client authentication signing algorithm for the Revocation Endpoint for this client when using
+        ## the 'client_secret_jwt' or 'private_key_jwt' revocation_endpoint_auth_method.
+        # revocation_endpoint_auth_signing_alg: 'RS256'
 
-        ## The signing key id used for signing the authorization response. An issuer JWK with a matching key id must be
-        ## available when configured. Configuring this value enables the JWT Secured Authorization Response Mode (JARM)
-        ## for this client. JARM is not understood by a majority of clients so you should only configure this when you
-        ## know it's supported.
-        # authorization_signed_response_key_id: ''
+        ## The permitted client authentication method for the Introspection Endpoint for this client.
+        ## For confidential client types this value defaults to 'client_secret_basic' and for the public client types it
+        ## defaults to 'none' per the specifications.
+        # introspection_endpoint_auth_method: 'client_secret_basic'
 
-        ## The signing algorithm used for ID Tokens. An issuer JWK with a matching algorithm must be available when
-        ## configured. Has no effect if id_token_signed_response_key_id is configured.
-        # id_token_signed_response_alg: 'RS256'
+        ## The permitted client authentication signing algorithm for the Introspection Endpoint for this client when
+        ## using the 'client_secret_jwt' or 'private_key_jwt' introspection_endpoint_auth_method.
+        # introspection_endpoint_auth_signing_alg: 'RS256'
 
-        ## The signing key id used for ID Tokens. An issuer JWK with a matching key id must be available when
-        ## configured.
-        # id_token_signed_response_key_id: ''
+        ## The permitted client authentication method for the Pushed Authorization Request Endpoint for this client.
+        ## For confidential client types this value defaults to 'client_secret_basic' and for the public client types it
+        ## defaults to 'none' per the specifications.
+        # pushed_authorization_request_endpoint_auth_method: 'client_secret_basic'
 
-        ## The signing algorithm used for Access Tokens. An issuer JWK with a matching algorithm must be available.
-        ## Has no effect if access_token_signed_response_key_id is configured. Values other than 'none' enable RFC9068
-        ## for this client.
-        # access_token_signed_response_alg: 'none'
-
-        ## The signing key id used for Access Tokens. An issuer JWK with a matching key id must be available when
-        ## configured. Values other than a blank value enable RFC9068 for this client.
-        # access_token_signed_response_key_id: ''
-
-        ## The signing algorithm used for User Info responses. An issuer JWK with a matching algorithm must be
-        ## available. Has no effect if userinfo_signing_key_id is configured.
-        # userinfo_signed_response_alg: 'none'
-
-        ## The signing key id used for User Info responses. An issuer JWK with a matching key id must be available when
-        ## configured.
-        # userinfo_signed_response_key_id: ''
-
-        ## The signing algorithm used for Introspection responses. An issuer JWK with a matching algorithm must be
-        ## available when configured. Has no effect if introspection_signed_response_key_id is configured.
-        # introspection_signed_response_alg: 'none'
-
-        ## The signing key id used for Introspection responses. An issuer JWK with a matching key id must be available
-        ## when configured.
-        # introspection_signed_response_key_id: ''
+        ## The permitted client authentication signing algorithm for the Pushed Authorization Request Endpoint for this
+        ## client when using the 'client_secret_jwt' or 'private_key_jwt'
+        ## pushed_authorization_request_endpoint_auth_method.
+        # pushed_authorization_request_endpoint_auth_signing_alg: 'RS256'
 
         ## Trusted public keys configuration for request object signing for things such as 'private_key_jwt'.
         ## URL of the HTTPS endpoint which serves the keys. Please note the 'jwks_uri' and the 'jwks' option below
@@ -1502,31 +1647,16 @@ notifier:
 
             ## Required Public Key in PEM DER form.
             # key: |
-            # -----BEGIN RSA PUBLIC KEY-----
-            # MEgCQQDAwV26ZA1lodtOQxNrJ491gWT+VzFum9IeZ+WTmMypYWyW1CzXKwsvTHDz
-            # 9ec+jserR3EMQ0Rr24lj13FL1ib5AgMBAAE_DO_NOT_USE=
-            # -----END RSA PUBLIC KEY----
+              # -----BEGIN RSA PUBLIC KEY-----
+              # ...
+              # -----END RSA PUBLIC KEY-----
 
             ## The matching certificate chain in PEM DER form that matches the key if available.
             # certificate_chain: |
-            # -----BEGIN CERTIFICATE-----
-            # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-            # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-            # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-            # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-            # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-            # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-            # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-            # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
-            # -----END CERTIFICATE-----
-            # -----BEGIN CERTIFICATE-----
-            # MIIBWzCCAQWgAwIBAgIQYAKsXhJOXKfyySlmpKicTzANBgkqhkiG9w0BAQsFADAT
-            # MREwDwYDVQQKEwhBdXRoZWxpYTAeFw0yMzA0MjEwMDA3NDRaFw0yNDA0MjAwMDA3
-            # NDRaMBMxETAPBgNVBAoTCEF1dGhlbGlhMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJB
-            # AK2i7RlJEYo/Xa6mQmv9zmT0XUj3DcEhRJGPVw2qMyadUFxNg/ZFp7aTcToHMf00
-            # z6T3b7mwdBkCFQOL3Kb7WRcCAwEAAaM1MDMwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
-            # JQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADQQB8
-            # Of2iM7fPadmtChCMna8lYWH+lEplj6BxOJlRuGRawxszLwi78bnq0sCR33LU6xMx
-            # 1oAPwIHNaJJwC4z6oG9E_DO_NOT_USE=
-            # -----END CERTIFICATE-----
+              # -----BEGIN CERTIFICATE-----
+              # ...
+              # -----END CERTIFICATE-----
+              # -----BEGIN CERTIFICATE-----
+              # ...
+              # -----END CERTIFICATE-----
 ...

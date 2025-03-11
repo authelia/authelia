@@ -5,6 +5,7 @@ import (
 	"crypto/ed25519"
 	"crypto/elliptic"
 	"crypto/rsa"
+	"crypto/tls"
 	"crypto/x509"
 	"runtime"
 	"strings"
@@ -342,7 +343,7 @@ func TestPublicKeyFromPrivateKey(t *testing.T) {
 	}{
 		{
 			Name:       "RSA2048",
-			PrivateKey: testMustBuildPrivateKey(RSAKeyBuilder{}.WithKeySize(512)),
+			PrivateKey: testMustBuildPrivateKey(RSAKeyBuilder{}.WithKeySize(2048)),
 			Expected:   &rsa.PublicKey{},
 		},
 		{
@@ -470,6 +471,78 @@ func TestX509ParseExtendedKeyUsage(t *testing.T) {
 
 					assert.Equal(t, tc.expected, actual)
 				})
+			}
+		})
+	}
+}
+
+func TestTLSVersionFromBytesString(t *testing.T) {
+	testCases := []struct {
+		name     string
+		have     string
+		expected int
+		err      string
+	}{
+		{
+			"ShouldDecodeSSL3.0",
+			"0300",
+			tls.VersionSSL30, //nolint:staticcheck
+			"",
+		},
+		{
+			"ShouldDecodeTLS1.0",
+			"0301",
+			tls.VersionTLS10,
+			"",
+		},
+		{
+			"ShouldDecodeTLS1.1",
+			"0302",
+			tls.VersionTLS11,
+			"",
+		},
+		{
+			"ShouldDecodeTLS1.2",
+			"0303",
+			tls.VersionTLS12,
+			"",
+		},
+		{
+			"ShouldDecodeTLS1.3",
+			"0304",
+			tls.VersionTLS13,
+			"",
+		},
+		{
+			"ShouldNotDecodeUnknownVersion",
+			"ffff",
+			-1,
+			"tls version 0xffff is unknown",
+		},
+		{
+			"ShouldNotDecodeUnknownLength",
+			"ff",
+			-1,
+			"the input size was incorrect: should be 4 but was 2",
+		},
+		{
+			"ShouldNotDecodeUnknownCharacters",
+			"zzzz",
+			-1,
+			"failed to decode hex: encoding/hex: invalid byte: U+007A 'z'",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, err := TLSVersionFromBytesString(tc.have)
+
+			assert.Equal(t, tc.expected, actual)
+
+			if tc.err == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, tc.err)
 			}
 		})
 	}

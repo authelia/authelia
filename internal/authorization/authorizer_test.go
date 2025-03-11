@@ -12,6 +12,7 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 type AuthorizerSuite struct {
@@ -416,8 +417,6 @@ func (s *AuthorizerSuite) TestShouldCheckDomainMatching() {
 
 	s.Require().Len(tester.rules[0].Domains, 1)
 
-	s.Assert().Equal("public.example.com", tester.config.AccessControl.Rules[0].Domains[0])
-
 	ruleMatcher0, ok := tester.rules[0].Domains[0].Matcher.(*AccessControlDomainMatcher)
 	s.Require().True(ok)
 	s.Assert().Equal("public.example.com", ruleMatcher0.Name)
@@ -426,8 +425,6 @@ func (s *AuthorizerSuite) TestShouldCheckDomainMatching() {
 	s.Assert().False(ruleMatcher0.GroupWildcard)
 
 	s.Require().Len(tester.rules[1].Domains, 1)
-
-	s.Assert().Equal("one-factor.example.com", tester.config.AccessControl.Rules[1].Domains[0])
 
 	ruleMatcher1, ok := tester.rules[1].Domains[0].Matcher.(*AccessControlDomainMatcher)
 	s.Require().True(ok)
@@ -438,8 +435,6 @@ func (s *AuthorizerSuite) TestShouldCheckDomainMatching() {
 
 	s.Require().Len(tester.rules[2].Domains, 1)
 
-	s.Assert().Equal("two-factor.example.com", tester.config.AccessControl.Rules[2].Domains[0])
-
 	ruleMatcher2, ok := tester.rules[2].Domains[0].Matcher.(*AccessControlDomainMatcher)
 	s.Require().True(ok)
 	s.Assert().Equal("two-factor.example.com", ruleMatcher2.Name)
@@ -449,8 +444,6 @@ func (s *AuthorizerSuite) TestShouldCheckDomainMatching() {
 
 	s.Require().Len(tester.rules[3].Domains, 1)
 
-	s.Assert().Equal("*.example.com", tester.config.AccessControl.Rules[3].Domains[0])
-
 	ruleMatcher3, ok := tester.rules[3].Domains[0].Matcher.(*AccessControlDomainMatcher)
 	s.Require().True(ok)
 	s.Assert().Equal(".example.com", ruleMatcher3.Name)
@@ -459,8 +452,6 @@ func (s *AuthorizerSuite) TestShouldCheckDomainMatching() {
 	s.Assert().False(ruleMatcher3.GroupWildcard)
 
 	s.Require().Len(tester.rules[4].Domains, 1)
-
-	s.Assert().Equal("*.example.com", tester.config.AccessControl.Rules[4].Domains[0])
 
 	ruleMatcher4, ok := tester.rules[4].Domains[0].Matcher.(*AccessControlDomainMatcher)
 	s.Require().True(ok)
@@ -513,15 +504,11 @@ func (s *AuthorizerSuite) TestShouldCheckDomainRegexMatching() {
 
 	s.Require().Len(tester.rules[0].Domains, 1)
 
-	s.Assert().Equal("^.*\\.example.com$", tester.config.AccessControl.Rules[0].DomainsRegex[0].String())
-
 	ruleMatcher0, ok := tester.rules[0].Domains[0].Matcher.(RegexpStringSubjectMatcher)
 	s.Require().True(ok)
 	s.Assert().Equal("^.*\\.example.com$", ruleMatcher0.String())
 
 	s.Require().Len(tester.rules[1].Domains, 1)
-
-	s.Assert().Equal("^.*\\.example2.com$", tester.config.AccessControl.Rules[1].DomainsRegex[0].String())
 
 	ruleMatcher1, ok := tester.rules[1].Domains[0].Matcher.(RegexpStringSubjectMatcher)
 	s.Require().True(ok)
@@ -529,23 +516,17 @@ func (s *AuthorizerSuite) TestShouldCheckDomainRegexMatching() {
 
 	s.Require().Len(tester.rules[2].Domains, 1)
 
-	s.Assert().Equal("^(?P<User>[a-zA-Z0-9]+)\\.regex.com$", tester.config.AccessControl.Rules[2].DomainsRegex[0].String())
-
 	ruleMatcher2, ok := tester.rules[2].Domains[0].Matcher.(RegexpGroupStringSubjectMatcher)
 	s.Require().True(ok)
 	s.Assert().Equal("^(?P<User>[a-zA-Z0-9]+)\\.regex.com$", ruleMatcher2.String())
 
 	s.Require().Len(tester.rules[3].Domains, 1)
 
-	s.Assert().Equal("^group-(?P<Group>[a-zA-Z0-9]+)\\.regex.com$", tester.config.AccessControl.Rules[3].DomainsRegex[0].String())
-
 	ruleMatcher3, ok := tester.rules[3].Domains[0].Matcher.(RegexpGroupStringSubjectMatcher)
 	s.Require().True(ok)
 	s.Assert().Equal("^group-(?P<Group>[a-zA-Z0-9]+)\\.regex.com$", ruleMatcher3.String())
 
 	s.Require().Len(tester.rules[4].Domains, 1)
-
-	s.Assert().Equal("^.*\\.(one|two).com$", tester.config.AccessControl.Rules[4].DomainsRegex[0].String())
 
 	ruleMatcher4, ok := tester.rules[4].Domains[0].Matcher.(RegexpStringSubjectMatcher)
 	s.Require().True(ok)
@@ -700,32 +681,46 @@ func (s *AuthorizerSuite) TestShouldCheckMultipleSubjectsMatching() {
 }
 
 func (s *AuthorizerSuite) TestShouldCheckIPMatching() {
+	must := func(in []string) []*net.IPNet {
+		out := make([]*net.IPNet, len(in))
+
+		var err error
+
+		for i := range in {
+			if out[i], err = utils.ParseHostCIDR(in[i]); err != nil {
+				panic(err)
+			}
+		}
+
+		return out
+	}
+
 	tester := NewAuthorizerBuilder().
 		WithDefaultPolicy(deny).
 		WithRule(schema.AccessControlRule{
 			Domains:  []string{"protected.example.com"},
 			Policy:   bypass,
-			Networks: []string{"192.168.1.8", "10.0.0.8"},
+			Networks: must([]string{"192.168.1.8", "10.0.0.8"}),
 		}).
 		WithRule(schema.AccessControlRule{
 			Domains:  []string{"protected.example.com"},
 			Policy:   oneFactor,
-			Networks: []string{"10.0.0.7"},
+			Networks: must([]string{"10.0.0.7"}),
 		}).
 		WithRule(schema.AccessControlRule{
 			Domains:  []string{"net.example.com"},
 			Policy:   twoFactor,
-			Networks: []string{"10.0.0.0/8"},
+			Networks: must([]string{"10.0.0.0/8"}),
 		}).
 		WithRule(schema.AccessControlRule{
 			Domains:  []string{"ipv6.example.com"},
 			Policy:   twoFactor,
-			Networks: []string{"fec0::1/64"},
+			Networks: must([]string{"fec0::1/64"}),
 		}).
 		WithRule(schema.AccessControlRule{
 			Domains:  []string{"ipv6-alt.example.com"},
 			Policy:   twoFactor,
-			Networks: []string{"fec0::1"},
+			Networks: must([]string{"fec0::1"}),
 		}).
 		Build()
 

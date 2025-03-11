@@ -925,7 +925,103 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "Crowley723",
+      "name": "Brynn Crowley",
+      "avatar_url": "https://avatars.githubusercontent.com/u/26265198?v=4",
+      "profile": "https://github.com/Crowley723",
+      "contributions": [
+        "doc",
+        "design"
+      ]
+    },
+    {
+      "login": "budimanjojo",
+      "name": "Budiman Jojo",
+      "avatar_url": "https://avatars.githubusercontent.com/u/13085918?v=4",
+      "profile": "https://budimanjojo.com",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "hendrik1120",
+      "name": "Hendrik Sievers",
+      "avatar_url": "https://avatars.githubusercontent.com/u/89412959?v=4",
+      "profile": "https://github.com/hendrik1120",
+      "contributions": [
+        "doc",
+        "design",
+        "ideas"
+      ]
+    },
+    {
+      "login": "m-georgi",
+      "name": "Marcus Georgi",
+      "avatar_url": "https://avatars.githubusercontent.com/u/20987691?v=4",
+      "profile": "https://github.com/m-georgi",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "samos667",
+      "name": "samos667",
+      "avatar_url": "https://avatars.githubusercontent.com/u/50653464?v=4",
+      "profile": "https://github.com/samos667",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "0xSysR3ll",
+      "name": "0xsysr3ll",
+      "avatar_url": "https://avatars.githubusercontent.com/u/31414959?v=4",
+      "profile": "https://github.com/0xSysR3ll",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "cromelex",
+      "name": "Dan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/96779452?v=4",
+      "profile": "https://github.com/cromelex",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "Shaamallow",
+      "name": "Eyal Benaroche",
+      "avatar_url": "https://avatars.githubusercontent.com/u/39766320?v=4",
+      "profile": "http://shaamallow.com",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "wangweixuan",
+      "name": "Wang Weixuan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/24620923?v=4",
+      "profile": "https://github.com/wangweixuan",
+      "contributions": [
+        "bug",
+        "code",
+        "test"
+      ]
+    },
+    {
+      "login": "DaniW42",
+      "name": "Dani",
+      "avatar_url": "https://avatars.githubusercontent.com/u/21097466?v=4",
+      "profile": "https://t.me/daniw1337",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
-  "contributorsPerLine": 7
+  "contributorsPerLine": 7,
+  "commitType": "docs"
 }

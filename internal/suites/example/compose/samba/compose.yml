@@ -1,0 +1,16 @@
+---
+services:
+  sambaldap:
+    image: 'authelia/integration-samba'
+    volumes:
+      - './example/compose/samba/init.sh:/init.sh'
+    cap_add:
+      - 'SYS_ADMIN'
+    hostname: 'ldap.example.com'
+    environment:
+      DOMAIN: 'example.com'
+      DOMAINPASS: 'Password1'
+      NOCOMPLEXITY: 'true'
+    networks:
+      authelianet: {}
+...

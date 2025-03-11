@@ -211,3 +211,28 @@ func TestSemanticVersionComparisons(t *testing.T) {
 		})
 	}
 }
+
+func TestSemanticVersion_Next(t *testing.T) {
+	v := SemanticVersion{Major: 1, Minor: 2, Patch: 3}
+
+	x := v.NextMajor()
+
+	assert.Equal(t, 2, x.Major)
+	assert.Equal(t, 0, x.Minor)
+	assert.Equal(t, 0, x.Patch)
+	assert.Equal(t, "2.0.0", x.String())
+
+	x = v.NextMinor()
+
+	assert.Equal(t, 1, x.Major)
+	assert.Equal(t, 3, x.Minor)
+	assert.Equal(t, 0, x.Patch)
+	assert.Equal(t, "1.3.0", x.String())
+
+	x = v.NextPatch()
+
+	assert.Equal(t, 1, x.Major)
+	assert.Equal(t, 2, x.Minor)
+	assert.Equal(t, 4, x.Patch)
+	assert.Equal(t, "1.2.4", x.String())
+}

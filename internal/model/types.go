@@ -42,6 +42,10 @@ type IP struct {
 	IP net.IP
 }
 
+func (ip IP) String() string {
+	return ip.IP.String()
+}
+
 // Value is the IP implementation of the databases/sql driver.Valuer.
 func (ip IP) Value() (value driver.Value, err error) {
 	if ip.IP == nil {
@@ -76,6 +80,14 @@ func (ip *IP) Scan(src any) (err error) {
 // NullIP is a type specific for storage of a net.IP in the database which can also be NULL.
 type NullIP struct {
 	IP net.IP
+}
+
+func (ip NullIP) String() string {
+	if ip.IP == nil {
+		return "nil"
+	}
+
+	return ip.IP.String()
 }
 
 // Value is the NullIP implementation of the databases/sql driver.Valuer.

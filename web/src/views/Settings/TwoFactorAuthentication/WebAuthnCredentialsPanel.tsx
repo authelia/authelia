@@ -1,7 +1,7 @@
 import React, { Fragment, useCallback, useState } from "react";
 
-import { Button, Paper, Tooltip, Typography } from "@mui/material";
-import Grid from "@mui/material/Unstable_Grid2/Grid2";
+import { Button, CircularProgress, Paper, Tooltip, Typography } from "@mui/material";
+import Grid from "@mui/material/Grid2";
 import { useTranslation } from "react-i18next";
 
 import { UserInfo } from "@models/UserInfo";
@@ -237,30 +237,32 @@ const WebAuthnCredentialsPanel = function (props: Props) {
             />
             <Paper variant={"outlined"}>
                 <Grid container spacing={2} padding={2}>
-                    <Grid xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <Typography variant="h5">{translate("WebAuthn Credentials")}</Typography>
                     </Grid>
-                    <Grid xs={4} md={2}>
+                    <Grid size={{ xs: 4, md: 2 }}>
                         <Tooltip
                             title={translate("Click to add a {{item}} to your account", {
                                 item: translate("WebAuthn Credential"),
                             })}
                         >
                             <Button
+                                id={"webauthn-credential-add"}
                                 variant="outlined"
                                 color="primary"
                                 onClick={handleRegister}
-                                id={"webauthn-credential-add"}
+                                disabled={dialogRegisterOpening || dialogRegisterOpen}
+                                endIcon={dialogRegisterOpening ? <CircularProgress color="inherit" size={20} /> : null}
                             >
                                 {translate("Add")}
                             </Button>
                         </Tooltip>
                     </Grid>
-                    <Grid xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         {props.credentials === undefined || props.credentials.length === 0 ? (
                             <Typography variant={"subtitle2"}>
                                 {translate(
-                                    "No WebAuthn Credentials have been registered. If you'd like to register one click add",
+                                    "No WebAuthn Credentials have been registered if you'd like to register one click add",
                                 )}
                             </Typography>
                         ) : (

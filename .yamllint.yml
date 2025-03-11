@@ -13,10 +13,12 @@ ignore: |
   docs/pnpm-lock.yaml
   docs/node_modules/
   internal/configuration/test_resources/config_bad_quoting.yml
+  internal/templates/src/pnpm-lock.yaml
   web/pnpm-lock.yaml
   web/node_modules/
   .github/ISSUE_TEMPLATE/feature-request.yml
   .github/ISSUE_TEMPLATE/bug-report.yml
+  internal/suites/
 rules:
   document-end:
     level: warning

@@ -15,7 +15,6 @@ import (
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
-	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -49,7 +48,7 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -86,7 +85,7 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 						Return([]model.WebAuthnCredential{credential}, nil),
 				)
 			},
-			regexp.MustCompile(`^\{"status":"OK","data":\{"publicKey":\{"challenge":"[a-zA-Z0-9/_-]+={0,2}","timeout":60000,"rpId":"login.example.com","allowCredentials":\[\{"type":"public-key","id":"rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","transports":\["usb"]}],"userVerification":"preferred"}}}$`),
+			regexp.MustCompile(`^\{"status":"OK","data":\{"publicKey":\{"challenge":"[a-zA-Z0-9/_-]+={0,2}","timeout":60000,"rpId":"login.example.com","allowCredentials":\[\{"type":"public-key","id":"rwOwV8WCh1hrE0M6mvaoRGpGHidqK6IlhkDJ2xERhPU","transports":\["usb"]}]}}}$`),
 			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
 				us, err := mock.Ctx.GetSession()
@@ -109,7 +108,7 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -167,7 +166,7 @@ func TestWebAuthnAssertionGET(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 
@@ -253,7 +252,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.WebAuthn = &session.WebAuthn{
 					SessionData: &webauthn.SessionData{
 						Challenge:        "in1cL-oWfSjSd7uuwUvv2ndOAmRXb0cOAbUoTtAqvGE",
@@ -326,7 +325,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.WebAuthn = &session.WebAuthn{
 					SessionData: &webauthn.SessionData{
 						Challenge:        "in1cL-oWfSjSd7uuwUvv2ndOAmRXb0cOAbUoTtAqvGE",
@@ -397,7 +396,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.WebAuthn = &session.WebAuthn{
 					SessionData: &webauthn.SessionData{
 						Challenge:        "in1cL-oWfSjSd7uuwUvv2ndOAmRXb0cOAbUoTtAqvGE",
@@ -468,7 +467,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.WebAuthn = &session.WebAuthn{
 					SessionData: &webauthn.SessionData{
 						Challenge:        "in1cL-oWfSjSd7uuwUvv2ndOAmRXb0cOAbUoTtAqvGE",
@@ -525,9 +524,9 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 			},
 			dataReqGood,
 			"",
-			fasthttp.StatusForbidden,
+			fasthttp.StatusOK,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Unable to mark WebAuthn authentication attempt by user 'john'", "bad record")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Failed to record WebAuthn authentication attempt", "bad record")
 			},
 		},
 		{
@@ -539,7 +538,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.WebAuthn = &session.WebAuthn{
 					SessionData: &webauthn.SessionData{
 						Challenge:        "in1cL-oWfSjSd7uuwUvv2ndOAmRXb0cOAbUoTtAqvGE",
@@ -606,7 +605,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.WebAuthn = &session.WebAuthn{
 					SessionData: &webauthn.SessionData{
 						Challenge:        "in1cL-oWfSjSd7uuwUvv2ndOAmRXb0cOAbUoTtAqvGE",
@@ -624,7 +623,8 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 			"",
 			fasthttp.StatusBadRequest,
 			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Error occurred validating a WebAuthn authentication challenge for user 'john': error parsing the request body", "Parse error for Assertion (invalid_request): json: cannot unmarshal bool into Go struct field CredentialAssertionResponse.id of type string")
+				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(),
+					"Error occurred validating a WebAuthn authentication challenge for user 'john': error parsing the request body", regexp.MustCompile(`^Parse error for Assertion \(invalid_request\): json: cannot unmarshal bool into Go struct field CredentialAssertionResponse(\.PublicKeyCredential\.Credential)?\.id of type string$`))
 			},
 		},
 		{
@@ -636,7 +636,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.WebAuthn = &session.WebAuthn{
 					SessionData: &webauthn.SessionData{
 						Challenge:        "in1cL-oWfSjSd7uuwUvv2ndOAmRXb0cOAbUoTtAqvGE",
@@ -666,7 +666,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.WebAuthn = &session.WebAuthn{
 					SessionData: &webauthn.SessionData{
 						Challenge:        "in1cL-oWfSjSd7uuwUvv2ndOAmRXb0cOAbUoTtAqvGE",
@@ -699,7 +699,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 
 				require.NoError(t, mock.Ctx.SaveSession(us))
 			},
@@ -743,7 +743,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.WebAuthn = &session.WebAuthn{
 					SessionData: &webauthn.SessionData{
 						Challenge:        "in1cL-oWfSjSd7uuwUvv2ndOAmRXb0cOAbUoTtAqvGE",
@@ -782,7 +782,7 @@ func TestWebAuthnAssertionPOST(t *testing.T) {
 				require.NoError(t, err)
 
 				us.Username = testUsername
-				us.AuthenticationLevel = authentication.OneFactor
+				us.AuthenticationMethodRefs.UsernameAndPassword = true
 				us.WebAuthn = &session.WebAuthn{
 					SessionData: &webauthn.SessionData{
 						Challenge:        "in1cL-oWfSjSd7uuwUvv2ndOAmRXb0cOAbUoTtAqvGE",

@@ -3,6 +3,7 @@ package validator
 import (
 	"crypto/tls"
 	"fmt"
+	"net"
 	"net/url"
 	"testing"
 	"time"
@@ -757,13 +758,26 @@ func TestShouldRaiseErrorWhenHaveNonAbsDefaultRedirectionURL(t *testing.T) {
 			AutheliaURL:           MustParseURL("https://login.example.com"),
 			DefaultRedirectionURL: MustParseURL("home.example.com"),
 		},
+		{
+			Domain:                "example2.com",
+			AutheliaURL:           MustParseURL("https://login.example2.com"),
+			DefaultRedirectionURL: MustParseURL("https://google.com"),
+		},
+		{
+			Legacy:                true,
+			Domain:                "example3.com",
+			AutheliaURL:           MustParseURL("https://login.example3.com"),
+			DefaultRedirectionURL: MustParseURL("https://google.com"),
+		},
 	}
 
 	ValidateSession(&config, validator)
-	assert.False(t, validator.HasWarnings())
-	require.Len(t, validator.Errors(), 2)
+	require.Len(t, validator.Warnings(), 1)
+	require.Len(t, validator.Errors(), 3)
 	assert.EqualError(t, validator.Errors()[0], "session: domain config #1 (domain 'example.com'): option 'default_redirection_url' is not absolute with a value of 'home.example.com'")
 	assert.EqualError(t, validator.Errors()[1], "session: domain config #1 (domain 'example.com'): option 'default_redirection_url' does not share a cookie scope with domain 'example.com' with a value of 'home.example.com'")
+	assert.EqualError(t, validator.Errors()[2], "session: domain config #2 (domain 'example2.com'): option 'default_redirection_url' does not share a cookie scope with domain 'example2.com' with a value of 'https://google.com'")
+	assert.EqualError(t, validator.Warnings()[0], "session: domain config #3 (domain 'example3.com'): option 'default_redirection_url' does not share a cookie scope with domain 'example3.com' with a value of 'https://google.com'")
 }
 
 func TestShouldRaiseErrorWhenHaveNonSecureDefaultRedirectionURL(t *testing.T) {
@@ -832,8 +846,12 @@ func TestShouldRaiseErrorWhenDomainIsInvalid(t *testing.T) {
 		{"ShouldNotRaiseErrorOnValidIPLocalHost1", "127.0.0.1", nil, nil},
 		{"ShouldNotRaiseErrorOnValidIPLocalHost30", "127.0.0.30", nil, nil},
 		{"ShouldNotRaiseErrorOnValidIPClassC40", "192.168.0.40", nil, nil},
+		{"ShouldNotRaiseErrorOnValidIPClassC40", "fe80::", nil, nil},
 		{"ShouldRaiseErrorOnMissingDomain", "", nil, []string{"session: domain config #1 (domain ''): option 'domain' is required"}},
 		{"ShouldRaiseErrorOnDomainWithInvalidChars", "example!.com", nil, []string{"session: domain config #1 (domain 'example!.com'): option 'domain' does not appear to be a valid cookie domain or an ip address"}},
+		{"ShouldNotRaiseErrorOnSingleLetterDomain", "a.b.c", nil, nil},
+		{"ShouldNotRaiseErrorOnDomainWithHyphen", "example-domain.com", nil, nil},
+		{"ShouldRaiseErrorOnDomainWithInvalidHyphen", "example-.com", nil, []string{"session: domain config #1 (domain 'example-.com'): option 'domain' does not appear to be a valid cookie domain or an ip address"}},
 		{"ShouldRaiseErrorOnDomainWithoutDots", "localhost", nil, []string{"session: domain config #1 (domain 'localhost'): option 'domain' is not a valid cookie domain: must have at least a single period or be an ip address"}},
 		{"ShouldRaiseErrorOnPublicDomainDuckDNS", "duckdns.org", nil, []string{"session: domain config #1 (domain 'duckdns.org'): option 'domain' is not a valid cookie domain: the domain is part of the special public suffix list"}},
 		{"ShouldNotRaiseErrorOnSuffixOfPublicDomainDuckDNS", "example.duckdns.org", nil, nil},
@@ -855,7 +873,15 @@ func TestShouldRaiseErrorWhenDomainIsInvalid(t *testing.T) {
 			}
 
 			if tc.have != "" {
-				config.Session.Cookies[0].AutheliaURL = &url.URL{Scheme: schemeHTTPS, Host: authdot + tc.have}
+				if ip := net.ParseIP(tc.have); ip == nil {
+					config.Session.Cookies[0].AutheliaURL = &url.URL{Scheme: schemeHTTPS, Host: authdot + tc.have}
+				} else {
+					if ip.To4() == nil {
+						config.Session.Cookies[0].AutheliaURL = &url.URL{Scheme: schemeHTTPS, Host: fmt.Sprintf("[%s]", tc.have)}
+					} else {
+						config.Session.Cookies[0].AutheliaURL = &url.URL{Scheme: schemeHTTPS, Host: tc.have}
+					}
+				}
 			}
 
 			ValidateSession(&config, validator)
@@ -880,8 +906,8 @@ func TestShouldRaiseErrorWhenPortalURLIsInvalid(t *testing.T) {
 		have     string
 		expected []string
 	}{
-		{"ShouldRaiseErrorOnInvalidScope", "https://example2.com/login", []string{"session: domain config #1 (domain 'example.com'): option 'authelia_url' does not share a cookie scope with domain 'example.com' with a value of 'https://example2.com/login'"}},
-		{"ShouldRaiseErrorOnInvalidScheme", "http://example.com/login", []string{"session: domain config #1 (domain 'example.com'): option 'authelia_url' does not have a secure scheme with a value of 'http://example.com/login'"}},
+		{"ShouldRaiseErrorOnInvalidScope", "https://example2.com/login", []string{"session: domain config #1 (domain 'example.com'): option 'authelia_url' does not share a cookie scope with domain 'example.com' with a value of 'https://example2.com/login/'"}},
+		{"ShouldRaiseErrorOnInvalidScheme", "http://example.com/login", []string{"session: domain config #1 (domain 'example.com'): option 'authelia_url' does not have a secure scheme with a value of 'http://example.com/login/'"}},
 	}
 
 	for _, tc := range testCases {

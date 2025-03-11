@@ -57,20 +57,7 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 		strategy AuthnStrategy
 	)
 
-	if authn, strategy, err = authz.authn(ctx, provider, &object); err != nil {
-		authn.Object = object
-
-		ctx.Logger.WithError(err).Error("Error occurred while attempting to authenticate a request")
-
-		switch strategy {
-		case nil:
-			ctx.ReplyUnauthorized()
-		default:
-			strategy.HandleUnauthorized(ctx, authn, authz.getRedirectionURL(&object, autheliaURL))
-		}
-
-		return
-	}
+	authn, strategy, err = authz.authn(ctx, provider, &object)
 
 	authn.Object = object
 	authn.Method = friendlyMethod(authn.Object.Method)
@@ -84,6 +71,25 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 		},
 		object,
 	)
+
+	if err != nil {
+		authn.Object = object
+
+		if !ruleHasSubject && required != authorization.Bypass {
+			switch {
+			case strategy == nil:
+				ctx.ReplyUnauthorized()
+			case strategy.HeaderStrategy():
+				ctx.Logger.WithError(err).Error("Error occurred while attempting to authenticate a request")
+
+				strategy.HandleUnauthorized(ctx, authn, authz.getRedirectionURL(&object, autheliaURL))
+
+				return
+			}
+		}
+
+		ctx.Logger.WithError(err).Debug("Error occurred while attempting to authenticate a request but the matched rule was a bypass rule")
+	}
 
 	switch isAuthzResult(authn.Level, required, ruleHasSubject) {
 	case AuthzResultForbidden:
