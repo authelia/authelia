@@ -8,7 +8,7 @@ else
   VERSION="pkgver=${BUILDKITE_TAG//v/}"
 fi
 
-wget https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=authelia-bin -qO PKGBUILD && \
+#wget https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=authelia-bin -qO PKGBUILD && \
 sed -i -e '/^pkgname=/c pkgname=authelia' -e "/pkgver=/c $VERSION" -e '10,14d' -e "s/'etc/'\/etc/g" \
 -e 's/source_x86_64.*/source_amd64=("authelia-linux-amd64.tar.gz")/' \
 -e 's/source_aarch64.*/source_arm64=("authelia-linux-arm64.tar.gz")/' \
