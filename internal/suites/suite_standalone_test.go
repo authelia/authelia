@@ -366,6 +366,10 @@ func (s *StandaloneSuite) TestRedirectionCheckScenario() {
 	suite.Run(s.T(), NewRedirectionCheckScenario())
 }
 
+func (s *StandaloneSuite) TestLanguageMenuScenario() {
+	suite.Run(s.T(), NewLanguageMenuScenario())
+}
+
 func TestStandaloneSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
