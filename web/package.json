@@ -42,7 +42,7 @@
     "@mui/material": "6.4.7",
     "@mui/styles": "6.4.7",
     "@simplewebauthn/browser": "13.1.0",
-    "axios": "1.8.2",
+    "axios": "1.8.3",
     "broadcast-channel": "7.0.0",
     "classnames": "2.5.1",
     "i18next": "24.2.2",
