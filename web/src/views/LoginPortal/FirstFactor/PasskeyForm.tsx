@@ -120,6 +120,7 @@ const PasskeyForm = function (props: Props) {
         redirectionURL,
         requestMethod,
         workflow,
+        workflowID,
         handleAuthenticationStop,
         onSignInErrorCallback,
         translate,
