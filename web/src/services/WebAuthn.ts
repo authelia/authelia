@@ -170,6 +170,7 @@ interface PostFirstFactorPasskeyBody {
     targetURL?: string;
     requestMethod?: string;
     workflow?: string;
+    workflowID?: string;
 }
 
 export async function postWebAuthnPasskeyResponse(
@@ -178,6 +179,7 @@ export async function postWebAuthnPasskeyResponse(
     targetURL?: string | undefined,
     requestMethod?: string,
     workflow?: string,
+    workflowID?: string,
 ) {
     const data: PostFirstFactorPasskeyBody = {
         response,
@@ -194,6 +196,9 @@ export async function postWebAuthnPasskeyResponse(
 
     if (workflow) {
         data.workflow = workflow;
+    }
+    if (workflowID) {
+        data.workflowID = workflowID;
     }
 
     return axios.post<ServiceResponse<SignInResponse>>(FirstFactorPasskeyPath, data);

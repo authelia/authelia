@@ -27,7 +27,7 @@ const PasskeyForm = function (props: Props) {
 
     const redirectionURL = useQueryParam(RedirectionURL);
     const requestMethod = useQueryParam(RequestMethod);
-    const [workflow] = useWorkflow();
+    const [workflow, workflowID] = useWorkflow();
     const mounted = useIsMountedRef();
 
     const [loading, setLoading] = useState(false);
@@ -90,6 +90,7 @@ const PasskeyForm = function (props: Props) {
                 redirectionURL,
                 requestMethod,
                 workflow,
+                workflowID,
             );
 
             handleAuthenticationStop();
