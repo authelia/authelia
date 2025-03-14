@@ -14,7 +14,7 @@ overrides:
   eslint-plugin-testing-library: 7.1.1
   path-to-regexp@<0.1.12: 8.2.0
   semver@<7.5.2: 7.7.1
-  vite@<3.2.11: 6.2.1
+  vite@<3.2.11: 6.2.2
 
 importers:
 
@@ -4458,7 +4458,7 @@ packages:
       optionator: ^0.9.1
       stylelint: '>=13'
       typescript: '*'
-      vite: 6.2.1
+      vite: 6.2.2
       vls: '*'
       vti: '*'
       vue-tsc: ~2.1.6
@@ -4490,54 +4490,14 @@ packages:
   vite-plugin-svgr@4.3.0:
     resolution: {integrity: sha512-Jy9qLB2/PyWklpYy0xk0UU3TlU0t2UMpJXZvf+hWII1lAmRHrOUKi11Uw8N3rxoNk7atZNYO3pR3vI1f7oi+6w==}
     peerDependencies:
-      vite: 6.2.1
+      vite: 6.2.2
 
   vite-tsconfig-paths@5.1.4:
     resolution: {integrity: sha512-cYj0LRuLV2c2sMqhqhGpaO3LretdtMn/BVX4cPLanIZuwwrkVl+lK84E/miEXkCHWXuq65rhNN4rXsBcOB3S4w==}
     peerDependencies:
-      vite: 6.2.1
+      vite: 6.2.2
     peerDependenciesMeta:
       vite:
-        optional: true
-
-  vite@6.2.1:
-    resolution: {integrity: sha512-n2GnqDb6XPhlt9B8olZPrgMD/es/Nd1RdChF6CBD/fHW6pUyUTt2sQW2fPRX5GiD9XEa6+8A6A4f2vT6pSsE7Q==}
-    engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
-    hasBin: true
-    peerDependencies:
-      '@types/node': ^18.0.0 || ^20.0.0 || >=22.0.0
-      jiti: '>=1.21.0'
-      less: '*'
-      lightningcss: ^1.21.0
-      sass: '*'
-      sass-embedded: '*'
-      stylus: '*'
-      sugarss: '*'
-      terser: ^5.16.0
-      tsx: ^4.8.1
-      yaml: ^2.4.2
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
-      jiti:
-        optional: true
-      less:
-        optional: true
-      lightningcss:
-        optional: true
-      sass:
-        optional: true
-      sass-embedded:
-        optional: true
-      stylus:
-        optional: true
-      sugarss:
-        optional: true
-      terser:
-        optional: true
-      tsx:
-        optional: true
-      yaml:
         optional: true
 
   vite@6.2.2:
@@ -9682,7 +9642,7 @@ snapshots:
       - supports-color
       - typescript
 
-  vite@6.2.1(@types/node@18.16.5)(jiti@2.4.1):
+  vite@6.2.2(@types/node@18.16.5)(jiti@2.4.1):
     dependencies:
       esbuild: 0.25.1
       postcss: 8.5.3
@@ -9708,7 +9668,7 @@ snapshots:
       '@types/node': 18.16.5
       '@vitest-preview/dev-utils': 0.0.1
       express: 4.21.1
-      vite: 6.2.1(@types/node@18.16.5)(jiti@2.4.1)
+      vite: 6.2.2(@types/node@18.16.5)(jiti@2.4.1)
     transitivePeerDependencies:
       - jiti
       - less
