@@ -18,7 +18,7 @@
       "eslint-plugin-testing-library": "7.1.1",
       "path-to-regexp@<0.1.12": "8.2.0",
       "semver@<7.5.2": "7.7.1",
-      "vite@<3.2.11": "6.2.1"
+      "vite@<3.2.11": "6.2.2"
     },
     "peerDependencyRules": {
       "allowedVersions": {
