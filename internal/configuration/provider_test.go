@@ -840,14 +840,14 @@ func TestShouldDisableOIDCModern(t *testing.T) {
 
 	val.Clear()
 
-	validator.ValidateIdentityProviders(validator.NewValidateCtx(), config, val)
+	validator.ValidateConfiguration(config, val)
 
-	require.Len(t, val.Warnings(), 1)
-	assert.EqualError(t, val.Warnings()[0], "identity_providers: oidc: clients: client 'abc': option 'client_secret' is plaintext but for clients not using any endpoint authentication method 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed in the near future")
+	assert.Len(t, val.Warnings(), 0)
 
-	require.Len(t, val.Errors(), 2)
-	assert.Regexp(t, regexp.MustCompile(`^identity_providers: oidc: jwks: key #1 with key id 'keya': option 'certificate_chain' produced an error during validation of the chain: certificate #1 in chain is invalid after 1713180174 but the time is \d+$`), val.Errors()[0].Error())
-	assert.Regexp(t, regexp.MustCompile(`^identity_providers: oidc: jwks: key #2 with key id 'ec521': option 'certificate_chain' produced an error during validation of the chain: certificate #1 in chain is invalid after 1713180101 but the time is \d+$`), val.Errors()[1].Error())
+	require.Len(t, val.Errors(), 3)
+	assert.EqualError(t, val.Errors()[0], "access_control: rule #14 (domain 'dev.example.com'): option 'subject' with value 'oauth2:client:not_a_client' is invalid: the client id 'not_a_client' does not belong to a registered client")
+	assert.Regexp(t, regexp.MustCompile(`^identity_providers: oidc: jwks: key #1 with key id 'keya': option 'certificate_chain' produced an error during validation of the chain: certificate #1 in chain is invalid after 1713180174 but the time is \d+$`), val.Errors()[1].Error())
+	assert.Regexp(t, regexp.MustCompile(`^identity_providers: oidc: jwks: key #2 with key id 'ec521': option 'certificate_chain' produced an error during validation of the chain: certificate #1 in chain is invalid after 1713180101 but the time is \d+$`), val.Errors()[2].Error())
 
 	require.Len(t, config.IdentityProviders.OIDC.JSONWebKeys, 3)
 	require.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[0].Key)
