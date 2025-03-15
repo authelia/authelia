@@ -89,7 +89,7 @@ oauth2_redirect_uri = 'https://flower.{{< sitevar name="domain" nojs="example.co
 #### Environment Variables
 
 Add the `FLOWER_OAUTH2_AUTHELIA_BASE_URL` environment variable and set it to Authelia Root URL:
-``` bash
+```bash
 export FLOWER_OAUTH2_AUTHELIA_BASE_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 ```
 
