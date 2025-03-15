@@ -5,6 +5,10 @@ figure.figure-blog {
   justify-content: center;
 }
 
+img[data-sizes="auto"] {
+  width: unset !important;
+}
+
 .text-orange {
   --bs-text-opacity: 1;
 
