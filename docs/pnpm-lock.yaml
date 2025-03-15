@@ -13,14 +13,14 @@ importers:
   .:
     dependencies:
       '@tabler/icons':
-        specifier: 3.26.0
-        version: 3.26.0
+        specifier: 3.31.0
+        version: 3.31.0
       '@thulite/doks-core':
-        specifier: 1.8.0
-        version: 1.8.0
+        specifier: 1.8.1
+        version: 1.8.1
       '@thulite/images':
-        specifier: 3.3.0
-        version: 3.3.0
+        specifier: 3.3.1
+        version: 3.3.1
       '@thulite/inline-svg':
         specifier: 1.2.0
         version: 1.2.0
@@ -644,8 +644,8 @@ packages:
     resolution: {integrity: sha512-+PmQX0PiAYPMeVYe237LJAYvOMYW1j2rH5YROyS3b4CTVJum34HfRvKvAzozHAQG0TnHNdUfY9nCeUyRAs//cw==}
     engines: {node: '>=14.16'}
 
-  '@tabler/icons@3.26.0':
-    resolution: {integrity: sha512-oO3D4ss+DxzxqU1aDy0f1HmToyrO0gcQWIMpzHAfV1quPUx0BZYvNm5xz1DQb4DxNm/+xNvbBGLJy4pzTLYWag==}
+  '@tabler/icons@3.31.0':
+    resolution: {integrity: sha512-dblAdeKY3+GA1U+Q9eziZ0ooVlZMHsE8dqP0RkwvRtEsAULoKOYaCUOcJ4oW1DjWegdxk++UAt2SlQVnmeHv+g==}
 
   '@thulite/bootstrap@1.2.0':
     resolution: {integrity: sha512-l/5KFUkoZuOiXy110felHgQgciBpGvpK2jqs0aQiUas4dJbgmc6oN1TgplIWLdWlXm70HxHAtvYJGNIVcOg0jQ==}
@@ -655,12 +655,12 @@ packages:
     resolution: {integrity: sha512-Z+DK+MoSCf+jvaTANEL2nnQlcaly2gkYEIb/FhnC9aEkrUbZztF9jlAc2xAvaUx3Ojxs5NkU4/kO+SHDE/hpQg==}
     engines: {node: '>=20.11.0'}
 
-  '@thulite/doks-core@1.8.0':
-    resolution: {integrity: sha512-aouKSFQdssEt4wIsVYiVvvz5ZHxqme45EbLo31BvmEz8MMvovakq+o8ymFUcg90fdcAGhTcYzLKz5jlRZsc3TQ==}
+  '@thulite/doks-core@1.8.1':
+    resolution: {integrity: sha512-ALMrZD+pJ3V4K0wqw1SH9cNdwP7oEHhjXE1eemDi9wqcrGeoEzpVldBnFglbF7QoaEp/6rw8y3YDg/y+iGjmIw==}
     engines: {node: '>=20.11.0'}
 
-  '@thulite/images@3.3.0':
-    resolution: {integrity: sha512-62RYN0HCewFLrG884DRlGhLypdP5VfQRlVGfI4RTS2r0tgZ5rD3/1neCFDEg7qyaYt7hH1n3ojLhyfOGRuR97w==}
+  '@thulite/images@3.3.1':
+    resolution: {integrity: sha512-PG+Qb11AgCIhbaYWsVZknMTOgQXD9IPxNDDg4DvSyIYivDjxwPVvZX9LdHdbiaL+4aKcibfuWY4rtrJAcG5n8Q==}
     engines: {node: '>=20.11.0'}
 
   '@thulite/inline-svg@1.2.0':
@@ -2587,7 +2587,7 @@ snapshots:
     dependencies:
       defer-to-connect: 2.0.1
 
-  '@tabler/icons@3.26.0': {}
+  '@tabler/icons@3.31.0': {}
 
   '@thulite/bootstrap@1.2.0':
     dependencies:
@@ -2614,13 +2614,13 @@ snapshots:
       - supports-color
       - tsx
 
-  '@thulite/doks-core@1.8.0':
+  '@thulite/doks-core@1.8.1':
     dependencies:
       '@thulite/bootstrap': 1.2.0
       clipboard: 2.0.11
       flexsearch: 0.7.43
 
-  '@thulite/images@3.3.0': {}
+  '@thulite/images@3.3.1': {}
 
   '@thulite/inline-svg@1.2.0': {}
 
