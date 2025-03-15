@@ -18,7 +18,7 @@ export interface ValueProps {
 }
 
 export default function LanguageContextProvider(props: Props) {
-    const [locale, setLocale] = useState<string>(props.i18n.language);
+    const [locale, setLocale] = useState<string>(props.i18n.resolvedLanguage || props.i18n.language);
 
     const setLanguagePreference = useCallback(
         (value: string) => {

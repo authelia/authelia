@@ -232,5 +232,41 @@ services:
 ...
 ```
 
+#### How do I debug a container startup issue when the logs don't indicate anything helpful?
+
+Generally the best way to debug this is to start Authelia interactively. While most of the time the logs will be helpful
+there are some specific conditions that prevent this. This example assumes the following are true:
+
+1. The container name for Authelia is `authelia`.
+2. The file you're using for compose is `compose.yml`.
+
+The following command will allow you to run your existing compose with the additional required composition of the
+example `compose.debug.yml`:
+
+```bash
+docker compose up -f compose.yml -f compose.debug.yml -d
+```
+
+The following command sequence will allow you to run Authelia interactively within the container:
+
+```bash
+$ docker exec -it authelia sh
+$ authelia
+```
+
+The following is the supporting `compose.debug.yml`:
+
+```yaml {title="compose.debug.yml"}
+---
+services:
+  authelia:
+    healthcheck:
+      disable: true
+    environment:
+      AUTHELIA_LOG_LEVEL: 'trace'
+    command: 'sleep 3300'
+...
+```
+
 [Docker]: https://docker.com
 [Docker Compose]: https://docs.docker.com/compose/

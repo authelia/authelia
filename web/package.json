@@ -9,7 +9,7 @@
   },
   "pnpm": {
     "overrides": {
-      "@babel/traverse": "7.26.9",
+      "@babel/traverse": "7.26.10",
       "@typescript-eslint/eslint-plugin": "8.26.1",
       "@typescript-eslint/parser": "8.26.1",
       "@typescript-eslint/typescript-estree": "8.26.1",
@@ -18,7 +18,7 @@
       "eslint-plugin-testing-library": "7.1.1",
       "path-to-regexp@<0.1.12": "8.2.0",
       "semver@<7.5.2": "7.7.1",
-      "vite@<3.2.11": "6.2.1"
+      "vite@<3.2.11": "6.2.2"
     },
     "peerDependencyRules": {
       "allowedVersions": {
@@ -42,10 +42,10 @@
     "@mui/material": "6.4.7",
     "@mui/styles": "6.4.7",
     "@simplewebauthn/browser": "13.1.0",
-    "axios": "1.8.2",
+    "axios": "1.8.3",
     "broadcast-channel": "7.0.0",
     "classnames": "2.5.1",
-    "i18next": "24.2.2",
+    "i18next": "24.2.3",
     "i18next-browser-languagedetector": "8.0.4",
     "i18next-http-backend": "3.0.2",
     "qrcode.react": "4.2.0",
@@ -105,18 +105,18 @@
     "eslint-config-prettier": "10.1.1",
     "eslint-config-react-app": "7.0.1",
     "eslint-formatter-rdjson": "1.0.6",
-    "eslint-import-resolver-typescript": "3.8.4",
+    "eslint-import-resolver-typescript": "3.9.0",
     "eslint-plugin-import": "2.31.0",
     "eslint-plugin-jsx-a11y": "6.10.2",
     "eslint-plugin-prettier": "5.2.3",
     "eslint-plugin-react": "7.37.4",
     "eslint-plugin-react-hooks": "5.2.0",
-    "happy-dom": "17.4.3",
+    "happy-dom": "17.4.4",
     "husky": "9.1.7",
     "prettier": "3.5.3",
     "react-test-renderer": "18.3.1",
     "typescript": "5.8.2",
-    "vite": "6.2.1",
+    "vite": "6.2.2",
     "vite-plugin-checker": "0.8.0",
     "vite-plugin-istanbul": "7.0.0",
     "vite-plugin-svgr": "4.3.0",

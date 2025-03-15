@@ -1,6 +1,6 @@
 #!/bin/sh
 
-source /app/.healthcheck.env
+. /app/.healthcheck.env
 
 if [ -z "${X_AUTHELIA_HEALTHCHECK}" ]; then
   exit 0
