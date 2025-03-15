@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://www.authelia.com/schemas/v4.38/json-schema/exports.identifiers.json",
+  "$id": "https://www.authelia.com/schemas/v4.39/json-schema/exports.identifiers.json",
   "$ref": "#/$defs/UserOpaqueIdentifiersExport",
   "$defs": {
     "UUID": {
