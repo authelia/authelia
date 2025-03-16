@@ -138,6 +138,9 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 					ctx.Logger.WithError(err).Debug("Error occurred resolving the actual form from the consent form")
 				} else if requests, err = oidc.NewClaimRequests(actualForm); err != nil {
 					ctx.Logger.WithError(err).Debug("Error occurred parsing claims parameter from request form for claims signature")
+				} else if requests == nil {
+					config.RequestedClaims = sql.NullString{Valid: false}
+					config.SignatureClaims = sql.NullString{Valid: false}
 				} else if config.RequestedClaims.String, config.SignatureClaims.String, err = requests.Serialized(); err != nil {
 					ctx.Logger.WithError(err).Debug("Error occurred calculating claims signature")
 				} else {
