@@ -21,17 +21,14 @@ sed -i -e '/^pkgname=/c pkgname=authelia' -e "/pkgver=/c $VERSION" -e '10,14d' -
 -e "s@package() {@package() {\n  sed -i -e 's/u\!/u /' \"\$srcdir/authelia.sysusers.conf\"@" PKGBUILD
 sed -i '10i postinst="authelia.postinst"' PKGBUILD
 
-# Remove the 'u!' modifier since it's only supported in systemd 257 and above.
-sed -i -e 's/u!/u /g' authelia.sysusers.conf
-
-tee -a authelia.postinst > /dev/null << AUTHELIAPLUSULTRA
+tee -a authelia.postinst > /dev/null << EOF
 #!/bin/sh
 
 # Trigger a reload of sysusers.d and tmpfiles.d to ensure the users and permissions are correct.
 systemd-sysusers
 systemd-tmpfiles --create
 
-AUTHELIAPLUSULTRA
+EOF
 
 chmod +x authelia.postinst
 
