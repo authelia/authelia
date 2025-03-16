@@ -18,32 +18,17 @@ sed -i -e '/^pkgname=/c pkgname=authelia' -e "/pkgver=/c $VERSION" -e '10,14d' -
 -e 's/sha256sums_armv7h.*/sha256sums_armhf=("SKIP")/' \
 -e 's/x86_64/amd64/g' -e 's/aarch64/arm64/g' -e 's/armv7h/armhf/g' \
 -e 's/CARCH/MAKEDEB_DPKG_ARCHITECTURE/g' \
--e "s/provides=('authelia')/postinst='authelia.postinst'\nprovides=('authelia')/g" PKGBUILD
+-e "s/provides=('authelia')/postinst='authelia.postinst'\nprovides=('authelia')/" PKGBUILD
+
+# Remove the 'u!' modifier since it's only supported in systemd 257 and above.
+sed -i -e 's/u!/u /g' authelia.sysusers.conf
 
 tee -a authelia.postinst > /dev/null << AUTHELIAPLUSULTRA
 #!/bin/sh
 
-# Trigger a reload of sysusers.
+# Trigger a reload of sysusers.d and tmpfiles.d to ensure the users and permissions are correct.
 systemd-sysusers
-
-ROOT="/etc/authelia"
-
-f=`stat -c "%g" ${ROOT}`
-c=`stat -c "%g" ${ROOT}/configuration.yml`
-
-# Check permissions of /etc/authelia and /etc/authelia/configuration.yml.
-#
-# The intent behind this is if either the /etc/authelia or /etc/authelia/configuration.yml file is currently owned
-# by root that we update it to be the authelia user which should have just been created.
-#
-# This effectively lets anyone update the permissions/mode as they see fit as long as they don't modify the grp.
-
-if [ "$f" = "0" ] || [ "$c" = "0" ]; then
-        chgrp -R authelia ${ROOT}
-        chmod -R 750 ${ROOT}
-        chmod 740 ${ROOT}/configuration.yml
-fi
-
+systemd-tmpfiles --create
 
 AUTHELIAPLUSULTRA
 
