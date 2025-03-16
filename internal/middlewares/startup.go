@@ -22,7 +22,7 @@ func (p *Providers) StartupChecks(ctx Context, log bool) (err error) {
 	provider, disable = ctx.GetProviders().UserProvider, false
 	doStartupCheck(ctx, ProviderNameUser, provider, disable, log, e.errors)
 
-	provider, disable = ctx.GetProviders().Notifier, false
+	provider, disable = ctx.GetProviders().Notifier, ctx.GetConfiguration().Notifier.DisableStartupCheck
 	doStartupCheck(ctx, ProviderNameNotification, provider, disable, log, e.errors)
 
 	provider, disable = ctx.GetProviders().NTP, ctx.GetConfiguration().NTP.DisableStartupCheck
