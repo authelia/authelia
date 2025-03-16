@@ -18,7 +18,8 @@ sed -i -e '/^pkgname=/c pkgname=authelia' -e "/pkgver=/c $VERSION" -e '10,14d' -
 -e 's/sha256sums_armv7h.*/sha256sums_armhf=("SKIP")/' \
 -e 's/x86_64/amd64/g' -e 's/aarch64/arm64/g' -e 's/armv7h/armhf/g' \
 -e 's/CARCH/MAKEDEB_DPKG_ARCHITECTURE/g' \
--e "s/provides=('authelia')/postinst='authelia.postinst'\nprovides=('authelia')/" PKGBUILD
+-e "s@package() {@package() {\n  sed -i -e 's/u\!/u /' \"\$srcdir/authelia.sysusers.conf\"@" PKGBUILD
+sed -i '10i postinst="authelia.postinst"' PKGBUILD
 
 # Remove the 'u!' modifier since it's only supported in systemd 257 and above.
 sed -i -e 's/u!/u /g' authelia.sysusers.conf
@@ -35,7 +36,7 @@ AUTHELIAPLUSULTRA
 chmod +x authelia.postinst
 
 if [[ "${PACKAGE}" == "amd64" ]]; then
-  docker run --rm -v $PWD:/build authelia/debpackager bash -c "cd /build && makedeb"
+  docker run --rm --platform linux/amd64 -v $PWD:/build authelia/debpackager bash -c "cd /build && makedeb"
 elif [[ "${PACKAGE}" == "armhf" ]]; then
   docker run --rm --platform linux/arm/v7 -v $PWD:/build authelia/debpackager bash -c "cd /build && makedeb"
 else
