@@ -565,6 +565,13 @@ func TestServerAuthzEndpointErrors(t *testing.T) {
 			},
 		},
 		{
+			"ShouldNotErrorOnValidSchemeCase",
+			map[string]schema.ServerEndpointsAuthz{
+				"example": {Implementation: "ForwardAuth", AuthnStrategies: []schema.ServerEndpointsAuthzAuthnStrategy{{Name: "HeaderAuthorization", SchemeBasicCacheLifespan: time.Minute, Schemes: []string{"BASIC"}}}},
+			},
+			[]string{},
+		},
+		{
 			"ShouldErrorOnInvalidChars",
 			map[string]schema.ServerEndpointsAuthz{
 				"/abc":  {Implementation: "ForwardAuth"},
