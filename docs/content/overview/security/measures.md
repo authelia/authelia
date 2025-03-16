@@ -253,7 +253,7 @@ infected websites leveraging legit links.
 
 ## SMTP Authentication  
 For notification delivery, Authelia can use either [authenticated](https://en.wikipedia.org/wiki/SMTP_Authentication) or unauthenticated SMTP.  
-It is **highly** recommended that in a production environment that you adhere to standard security practices for SMTP and use authenticated SMTP relays/servers, and not unauthenticated.  
+It is __highly__ recommended that in a production environment that you adhere to standard security practices for SMTP and use authenticated SMTP relays/servers, and not unauthenticated.  
 This prevents open relay issues and ensures that Authelia's security measures are not compromised through the mail server.  
 
 ## Mutual TLS
