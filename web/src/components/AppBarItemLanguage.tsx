@@ -197,7 +197,11 @@ const AppBarItemLanguage = function (props: Props) {
                 {items.map((language) => {
                     return (
                         <Fragment key={language.locale}>
-                            <MenuItem value={language.locale} selected={props.localeCurrent === language.locale}>
+                            <MenuItem
+                                id={`language-${language.locale}`}
+                                value={language.locale}
+                                selected={props.localeCurrent === language.locale}
+                            >
                                 <ListItemText
                                     onClick={
                                         language.children.length <= 1
@@ -222,6 +226,7 @@ const AppBarItemLanguage = function (props: Props) {
                                     {language.children.map((child) => {
                                         return (
                                             <MenuItem
+                                                id={`language-${language.locale}-child-${child.locale}`}
                                                 key={`${language.locale}-child-${child.locale}`}
                                                 onClick={() => handleChange(child)}
                                                 value={child.locale}

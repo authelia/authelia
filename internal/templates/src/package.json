@@ -18,7 +18,7 @@
 		"react-dom": "18.3.1",
 		"react-email": "3.0.7",
 		"tailwind-merge": "3.0.2",
-		"tailwindcss": "4.0.13",
+		"tailwindcss": "4.0.14",
 		"typescript": "5.8.2"
 	},
 	"devDependencies": {
@@ -32,7 +32,7 @@
 	},
 	"pnpm": {
 		"overrides": {
-			"nanoid@<3.3.8": "3.3.9"
+			"nanoid@<3.3.8": "3.3.10"
 		}
 	}
 }

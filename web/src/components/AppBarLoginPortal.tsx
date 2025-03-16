@@ -19,9 +19,6 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
     alignItems: "flex-start",
     paddingTop: theme.spacing(1),
     paddingBottom: theme.spacing(2),
-    "@media all": {
-        minHeight: 128,
-    },
 }));
 
 const AppBarLoginPortal = function (props: Props) {
