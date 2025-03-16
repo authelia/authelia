@@ -11,7 +11,7 @@ if [[ "${BUILDKITE_LABEL}" == ":hammer_and_wrench: Unit Test" ]]; then
     for OS in "${!BUILDS[@]}"; do
       for ARCH in ${BUILDS[$OS]}; do
         if [[ ${OS} == linux ]]; then
-          tar -czf "authelia-${OS}-${ARCH}.tar.gz" "authelia-${OS}-${ARCH}" authelia.service config.template.yml
+          tar -czf "authelia-${OS}-${ARCH}.tar.gz" "authelia-${OS}-${ARCH}" authelia.service authelia@.service authelia.sysusers.conf authelia.tmpfiles.conf authelia.tmpfiles.config.conf config.template.yml
         elif [[ ${OS} == freebsd ]]; then
           tar -czf "authelia-${OS}-${ARCH}.tar.gz" "authelia-${OS}-${ARCH}" authelia-fb-rc.d config.template.yml
         else

@@ -4,8 +4,11 @@ Documentation=https://www.authelia.com
 After=multi-user.target
 
 [Service]
+User=authelia
+Group=authelia
+UMask=027
 Environment=AUTHELIA_SERVER_DISABLE_HEALTHCHECK=true
-ExecStart=/usr/bin/authelia --config /etc/authelia/%i.yml
+ExecStart=/usr/bin/authelia --config /etc/authelia/configuration.%i.yml
 SyslogIdentifier=authelia-%i
 CapabilityBoundingSet=
 NoNewPrivileges=yes
