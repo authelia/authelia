@@ -2,7 +2,7 @@
 title: "Systemd"
 description: "A reference guide on systemd"
 summary: "This section contains reference documentation for Authelia's systemd units."
-date: 2022-06-15T17:51:47+10:00
+date: 2025-03-16T21:03:35+11:00
 draft: false
 images: []
 weight: 220
