@@ -154,9 +154,6 @@ Feature List:
 * [RFC8628: OAuth 2.0 Device Authorization Grant]
 * [JSON Web Encryption](https://datatracker.ietf.org/doc/html/rfc7516)
 
-Potential Features:
-* Injecting Bearer JSON Web Tokens into Requests (backend authentication)
-
 See [OpenID Connect Core 1.0 (Mandatory to Implement Features for All OpenID Providers)].
 
 ### Beta 8
@@ -176,6 +173,10 @@ Feature List:
       * Defaults to one time only
       * Can optionally override the database configuration
   * Salt (random) and/or Peppered (storage encryption) Client Credentials
+
+Potential Feature List:
+
+* Injecting Bearer JSON Web Tokens into Requests (backend authentication)
 
 ### General Availability
 

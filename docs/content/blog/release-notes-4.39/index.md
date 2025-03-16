@@ -349,3 +349,12 @@ See the [PostgreSQL Configuration](../../configuration/storage/postgres.md#serve
 ### SQL Peer Authentication
 
 This release supports peer authentication for both PostgreSQL and MySQL.
+
+### Systemd Unit Improvements
+
+The shipped and suggested Systemd units for Authelia now run the service as a dedicated system user. This is supported
+by both sysusers.d to create the user and give them appropriate groups, and tmpfiles.d to create the files and
+directories and ensure the permissions in a way that adheres to principle of least privilege.
+
+Should you find the file permissions either too restrictive or not restrictive enough you can override the tmpfiles.d
+configuration by looking at the [Systemd Reference Guide](../../reference/guides/systemd.md).
