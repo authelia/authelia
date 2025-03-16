@@ -47,7 +47,7 @@
 	"Password has been reset": "Sandi geus di-reset",
 	"Password": "Sandi",
 	"Passwords do not match": "Sandi teu cocog",
-	"Powered by {{authelia}}": "Dipaparin ku ¨qutheliq££s",
+	"Powered by {{authelia}}": "Dipaparin ku {{authelia}}",
 	"Privacy Policy": "Kabijakan Privasi",
 	"Push Notification": "Notifikasi Dorong",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "Redirection ditangtukeun ka teu aman sareng dibatalkeun pastikeun URL redirection bener",
