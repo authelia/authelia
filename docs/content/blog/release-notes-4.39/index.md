@@ -46,6 +46,7 @@ This blog article is rather large so this serves as an index for the section hea
 - Key Changes which all users should read carefully:
   - [ID Token Changes](#id-token-changes)
   - [Container Changes](#container-changes) (if you're using docker or equivalent)
+  - [Systemd Unit Improvements](#systemd-unit-improvements) (if you're running as a daemon via Systemd)
 - Key Sections:
   - [OpenID Connect 1.0](#openid-connect-10)
   - [WebAuthn](#webauthn)
