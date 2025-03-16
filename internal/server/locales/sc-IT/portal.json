@@ -47,7 +47,7 @@
 	"Password has been reset": "La parola d'ordine è stata reimpostata",
 	"Password": "Parola d'ordine",
 	"Passwords do not match": "Le parole d'ordine non corrispondono",
-	"Powered by": "Fornito da",
+	"Powered by {{authelia}}": "Fornito da {{authelia}}",
 	"Privacy Policy": "Politica sulla Privacy",
 	"Push Notification": "Notifica Push",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "Il reindirizzamento è stato ritenuto non sicuro e interrotto, assicurati che l'URL di reindirizzamento sia corretto",

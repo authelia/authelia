@@ -47,7 +47,7 @@
 	"Password has been reset": "تم إعادة تعيين كلمة المرور",
 	"Password": "كلمة المرور",
 	"Passwords do not match": "كلمتا المرور غير متطابقتين",
-	"Powered by": "مدعوم من قبل",
+	"Powered by {{authelia}}": "مدعوم من قبل {{authelia}}",
 	"Privacy Policy": "سياسة الخصوصية",
 	"Push Notification": "دفع الإشعار",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "تم تحديد إعادة التوجيه بأنها غير آمنة وتم إحباط التأكد من أن رابط إعادة التوجيه صحيح",

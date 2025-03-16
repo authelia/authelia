@@ -47,7 +47,7 @@
 	"Password has been reset": "Parool on lähtestatud",
 	"Password": "Parool",
 	"Passwords do not match": "Paroolid ei ühti",
-	"Powered by": "Toimib",
+	"Powered by {{authelia}}": "Toimib {{authelia}}",
 	"Privacy Policy": "Privaatsuspoliitika",
 	"Push Notification": "Push-teade",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "Suunamine määrati ohtlikuks ja katkestati, veenduge, et suunamise URL on õige",

@@ -47,7 +47,7 @@
 	"Password has been reset": "पासवर्ड रीसेट कर दिया गया है",
 	"Password": "पासवर्ड",
 	"Passwords do not match": "पासवर्ड मेल नहीं खाते",
-	"Powered by": "द्वारा प्रेरित",
+	"Powered by {{authelia}}": "द्वारा प्रेरित {{authelia}}",
 	"Privacy Policy": "गोपनीयता नीति",
 	"Push Notification": "पुश नोटिफिकेशन",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "पुनर्निर्देशन को असुरक्षित माना गया और इसे रोक दिया गया, सुनिश्चित करें कि पुनर्निर्देशन यूआरएल सही है",

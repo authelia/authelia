@@ -47,7 +47,7 @@
 	"Password has been reset": "Mật khẩu đã được đặt lại",
 	"Password": "Mật khẩu",
 	"Passwords do not match": "Các mật khẩu không giống nhau",
-	"Powered by": "Được cung cấp bởi",
+	"Powered by {{authelia}}": "Được cung cấp bởi {{authelia}}",
 	"Privacy Policy": "Chính sách bảo mật",
 	"Push Notification": "Đẩy thông báo",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "Sự chuyển hướng được xác định là không an toàn và bị hủy bỏ. Hãy đảm bảo sự chuyển hướng là chính xác.",
