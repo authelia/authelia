@@ -46,14 +46,14 @@ func (r *Prometheus) RecordAuthz(statusCode string) {
 }
 
 // RecordAuthn takes the success and regulated booleans and a method string to record the authentication metrics.
-func (r *Prometheus) RecordAuthn(success, banned bool, authType string) {
+func (r *Prometheus) RecordAuthn(success, banned bool, authType, username, remoteIP, requestURI string) {
 	switch authType {
 	case "1fa", "":
-		r.authnCounter.WithLabelValues(strconv.FormatBool(success), strconv.FormatBool(banned)).Inc()
+		r.authnCounter.WithLabelValues(strconv.FormatBool(success), strconv.FormatBool(banned), username, remoteIP, requestURI).Inc()
 	case "passkey":
-		r.authnPasskeyCounter.WithLabelValues(strconv.FormatBool(success)).Inc()
+		r.authnPasskeyCounter.WithLabelValues(strconv.FormatBool(success), username, remoteIP, requestURI).Inc()
 	default:
-		r.authn2FACounter.WithLabelValues(strconv.FormatBool(success), strconv.FormatBool(banned), authType).Inc()
+		r.authn2FACounter.WithLabelValues(strconv.FormatBool(success), strconv.FormatBool(banned), authType, username, remoteIP, requestURI).Inc()
 	}
 }
 
@@ -117,7 +117,7 @@ func (r *Prometheus) register() {
 			Name:      "authn",
 			Help:      "The number of 1FA authentications processed.",
 		},
-		[]string{"success", "banned"},
+		[]string{"success", "banned", "username", "remote_ip", "request_uri"},
 	)
 
 	r.authnPasskeyCounter = promauto.NewCounterVec(
@@ -126,7 +126,7 @@ func (r *Prometheus) register() {
 			Name:      "authn_passkey",
 			Help:      "The number of Passkey authentications processed.",
 		},
-		[]string{"success"},
+		[]string{"success", "username", "remote_ip", "request_uri"},
 	)
 
 	r.authn2FACounter = promauto.NewCounterVec(
@@ -135,6 +135,6 @@ func (r *Prometheus) register() {
 			Name:      "authn_second_factor",
 			Help:      "The number of 2FA authentications processed.",
 		},
-		[]string{"success", "banned", "type"},
+		[]string{"success", "banned", "type", "username", "remote_ip", "request_uri"},
 	)
 }

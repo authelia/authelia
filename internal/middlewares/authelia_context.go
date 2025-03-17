@@ -639,12 +639,12 @@ func (ctx *AutheliaCtx) setSpecialRedirect(uri string, statusCode int) ([]byte, 
 }
 
 // RecordAuthn records authentication metrics.
-func (ctx *AutheliaCtx) RecordAuthn(success, regulated bool, method string) {
+func (ctx *AutheliaCtx) RecordAuthn(success, regulated bool, method, username, remoteIP, requestURI string) {
 	if ctx.Providers.Metrics == nil {
 		return
 	}
 
-	ctx.Providers.Metrics.RecordAuthn(success, regulated, method)
+	ctx.Providers.Metrics.RecordAuthn(success, regulated, method, username, remoteIP, requestURI)
 }
 
 // GetClock returns the clock. For use with interface fulfillment.

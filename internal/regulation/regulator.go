@@ -24,7 +24,8 @@ func NewRegulator(config schema.Regulation, store storage.RegulatorProvider, clo
 }
 
 func (r *Regulator) HandleAttempt(ctx Context, successful, banned bool, username, requestURI, requestMethod, authType string) {
-	ctx.RecordAuthn(successful, banned, strings.ToLower(authType))
+	remoteIP := ctx.RemoteIP().String()
+	ctx.RecordAuthn(successful, banned, strings.ToLower(authType), username, remoteIP, requestURI)
 
 	attempt := model.AuthenticationAttempt{
 		Time:          r.clock.Now(),
