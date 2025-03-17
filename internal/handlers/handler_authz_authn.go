@@ -317,6 +317,8 @@ func (s *HeaderAuthnStrategy) handleGetBasic(ctx *middlewares.AutheliaCtx, authn
 
 	username = authn.Header.Authorization.BasicUsername()
 
+	ctx.Logger.WithFields(map[string]any{"username": username}).Trace("Attempting ban check for user performing Basic Authorization")
+
 	if ban, value, expires, err = ctx.Providers.Regulator.BanCheck(ctx, username); err != nil {
 		if errors.Is(err, regulation.ErrUserIsBanned) {
 			doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(ban, value, expires), regulation.AuthType1FA, object.String(), object.Method, nil)
@@ -329,21 +331,29 @@ func (s *HeaderAuthnStrategy) handleGetBasic(ctx *middlewares.AutheliaCtx, authn
 		return "", authentication.NotAuthenticated, fmt.Errorf("failed to check the regulation status of user '%s' during an attempt to authenticate using the %s header: %w", username, s.headerAuthorize, err)
 	}
 
+	ctx.Logger.WithFields(map[string]any{"username": username}).Trace("Ban check for user performing Basic Authorization was successful")
+
 	var valid, cached bool
 
 	if valid, cached, err = s.basic(ctx, authn.Header.Authorization); err != nil {
+		ctx.Logger.WithFields(map[string]any{"username": username}).Trace("Recording failed attempt user performing Basic Authorization")
+
 		doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, object.String(), object.Method, err)
 
 		return "", authentication.NotAuthenticated, fmt.Errorf("failed to validate the credentials of user '%s' parsed from the %s header: %w", username, s.headerAuthorize, err)
 	}
 
 	if !valid {
+		ctx.Logger.WithFields(map[string]any{"username": username}).Trace("Recording failed attempt user performing Basic Authorization")
+
 		doMarkAuthenticationAttemptWithRequest(ctx, false, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, object.String(), object.Method, nil)
 
 		return "", authentication.NotAuthenticated, fmt.Errorf("failed to validate parsed credentials of %s header valid for user '%s': the username and password do not match", s.headerAuthorize, username)
 	}
 
 	if !cached {
+		ctx.Logger.WithFields(map[string]any{"username": username}).Trace("Recording successful attempt user performing Basic Authorization")
+
 		doMarkAuthenticationAttemptWithRequest(ctx, true, regulation.NewBan(regulation.BanTypeNone, username, nil), regulation.AuthType1FA, object.String(), object.Method, nil)
 	}
 
