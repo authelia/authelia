@@ -385,6 +385,15 @@ func (ctx *AutheliaCtx) GetSession() (userSession session.UserSession, err error
 		}
 	}
 
+	ctx.Logger.WithFields(map[string]any{
+		"username":      userSession.Username,
+		"refresh_ttl":   userSession.RefreshTTL,
+		"last_activity": userSession.LastActivity,
+		"1fa_timestamp": userSession.FirstFactorAuthnTimestamp,
+		"2fa_timestamp": userSession.SecondFactorAuthnTimestamp,
+		"action":        "get_session",
+	}).Debugf("Get user session")
+
 	return userSession, nil
 }
 
@@ -417,6 +426,7 @@ func (ctx *AutheliaCtx) RegenerateSession() error {
 	ctx.Logger.WithFields(map[string]any{
 		"action": "regenerate_session",
 	}).Debugf("Regenerate user session")
+
 	return provider.RegenerateSession(ctx.RequestCtx)
 }
 
@@ -431,6 +441,7 @@ func (ctx *AutheliaCtx) DestroySession() error {
 	if err != nil {
 		return fmt.Errorf("unable to get user session: %s", err)
 	}
+
 	ctx.Logger.WithFields(map[string]any{
 		"username":      userSession.Username,
 		"refresh_ttl":   userSession.RefreshTTL,
@@ -439,6 +450,7 @@ func (ctx *AutheliaCtx) DestroySession() error {
 		"2fa_timestamp": userSession.SecondFactorAuthnTimestamp,
 		"action":        "destroy_session",
 	}).Debugf("Destroy user session")
+
 	return provider.DestroySession(ctx.RequestCtx)
 }
 
