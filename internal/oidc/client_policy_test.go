@@ -51,11 +51,6 @@ func TestNewClientAuthorizationPolicy(t *testing.T) {
 							{
 								Subjects: []authorization.SubjectMatcher{authorization.AccessControlUser{Name: "john"}},
 							},
-						},
-						Policy: authorization.OneFactor,
-					},
-					{
-						Subjects: []authorization.AccessControlSubjects{
 							{
 								Subjects: []authorization.SubjectMatcher{authorization.AccessControlUser{Name: "bob"}},
 							},
