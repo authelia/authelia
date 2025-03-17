@@ -3,6 +3,7 @@ package session
 import (
 	"crypto/x509"
 	"fmt"
+	"sync"
 
 	"github.com/fasthttp/session/v2"
 
@@ -12,6 +13,7 @@ import (
 
 // Provider contains a list of domain sessions.
 type Provider struct {
+	mu       *sync.Mutex
 	sessions map[string]*Session
 }
 
@@ -43,11 +45,17 @@ func NewProvider(config schema.Session, certPool *x509.CertPool) *Provider {
 		}
 	}
 
+	provider.mu = new(sync.Mutex)
+
 	return provider
 }
 
 // Get returns session information for specified domain.
 func (p *Provider) Get(domain string) (*Session, error) {
+	p.mu.Lock()
+
+	defer p.mu.Unlock()
+
 	if domain == "" {
 		return nil, fmt.Errorf("can not get session from an undefined domain")
 	}
