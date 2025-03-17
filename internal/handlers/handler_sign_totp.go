@@ -71,6 +71,7 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 	bodyJSON := bodySignTOTPRequest{}
 
 	var (
+		provider      *session.Session
 		userSession   session.UserSession
 		config        *model.TOTPConfiguration
 		valid, exists bool
@@ -78,7 +79,16 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		err           error
 	)
 
-	if userSession, err = ctx.GetSession(); err != nil {
+	if provider, err = ctx.GetSessionProvider(); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication: %s", errStrUserSessionData)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
+		return
+	}
+
+	if userSession, err = provider.GetSession(ctx.RequestCtx); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication: %s", errStrUserSessionData)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -174,7 +184,7 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 
 	doMarkAuthenticationAttempt(ctx, true, regulation.NewBan(regulation.BanTypeNone, userSession.Username, nil), regulation.AuthTypeTOTP, nil)
 
-	if err = ctx.RegenerateSession(); err != nil {
+	if err = provider.RegenerateSession(ctx.RequestCtx); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': error regenerating the user session", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -196,7 +206,7 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 
 	userSession.SetTwoFactorTOTP(ctx.Clock.Now())
 
-	if err = ctx.SaveSession(userSession); err != nil {
+	if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating a TOTP authentication for user '%s': %s", userSession.Username, errStrUserSessionDataSave)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)

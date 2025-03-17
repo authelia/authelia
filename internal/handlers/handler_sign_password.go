@@ -77,7 +77,7 @@ func SecondFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middl
 
 		userSession.SetTwoFactorPassword(ctx.Clock.Now())
 
-		if err = ctx.RegenerateSession(); err != nil {
+		if err = provider.RegenerateSession(ctx.RequestCtx); err != nil {
 			ctx.Logger.WithError(err).Errorf(logFmtErrSessionRegenerate, regulation.AuthTypePassword, userSession.Username)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
@@ -85,7 +85,7 @@ func SecondFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middl
 			return
 		}
 
-		if err = ctx.SaveSession(userSession); err != nil {
+		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
 			ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "updated profile", regulation.AuthTypePassword, logFmtActionAuthentication, userSession.Username)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)

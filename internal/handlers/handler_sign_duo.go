@@ -19,6 +19,7 @@ func DuoPOST(duoAPI duo.API) middlewares.RequestHandler {
 			bodyJSON       = &bodySignDuoRequest{}
 			device, method string
 
+			provider    *session.Session
 			userSession session.UserSession
 			err         error
 		)
@@ -31,7 +32,12 @@ func DuoPOST(duoAPI duo.API) middlewares.RequestHandler {
 			return
 		}
 
-		if userSession, err = ctx.GetSession(); err != nil {
+		if provider, err = ctx.GetSessionProvider(); err != nil {
+			ctx.Error(fmt.Errorf("error occurred retrieving user session: %w", err), messageMFAValidationFailed)
+			return
+		}
+
+		if userSession, err = provider.GetSession(ctx.RequestCtx); err != nil {
 			ctx.Error(fmt.Errorf("error occurred retrieving user session: %w", err), messageMFAValidationFailed)
 			return
 		}
@@ -42,10 +48,10 @@ func DuoPOST(duoAPI duo.API) middlewares.RequestHandler {
 		if err != nil {
 			ctx.Logger.Debugf("Error identifying preferred device for user %s: %s", userSession.Username, err)
 			ctx.Logger.Debugf("Starting Duo PreAuth for initial device selection of user: %s", userSession.Username)
-			device, method, err = HandleInitialDeviceSelection(ctx, &userSession, duoAPI, bodyJSON)
+			device, method, err = HandleInitialDeviceSelection(ctx, provider, &userSession, duoAPI, bodyJSON)
 		} else {
 			ctx.Logger.Debugf("Starting Duo PreAuth to check preferred device of user: %s", userSession.Username)
-			device, method, err = HandlePreferredDeviceCheck(ctx, &userSession, duoAPI, duoDevice.Device, duoDevice.Method, bodyJSON)
+			device, method, err = HandlePreferredDeviceCheck(ctx, provider, &userSession, duoAPI, duoDevice.Device, duoDevice.Method, bodyJSON)
 		}
 
 		if err != nil {
@@ -89,12 +95,12 @@ func DuoPOST(duoAPI duo.API) middlewares.RequestHandler {
 
 		doMarkAuthenticationAttempt(ctx, true, regulation.NewBan(regulation.BanTypeNone, userSession.Username, nil), regulation.AuthTypeDuo, nil)
 
-		HandleAllow(ctx, &userSession, bodyJSON)
+		HandleAllow(ctx, provider, &userSession, bodyJSON)
 	}
 }
 
 // HandleInitialDeviceSelection handler for retrieving all available devices.
-func HandleInitialDeviceSelection(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, duoAPI duo.API, bodyJSON *bodySignDuoRequest) (device string, method string, err error) {
+func HandleInitialDeviceSelection(ctx *middlewares.AutheliaCtx, provider *session.Session, userSession *session.UserSession, duoAPI duo.API, bodyJSON *bodySignDuoRequest) (device string, method string, err error) {
 	result, message, devices, enrollURL, err := DuoPreAuth(ctx, userSession, duoAPI)
 	if err != nil {
 		ctx.Logger.Errorf("Failed to perform Duo PreAuth for user '%s': %+v", userSession.Username, err)
@@ -123,7 +129,7 @@ func HandleInitialDeviceSelection(ctx *middlewares.AutheliaCtx, userSession *ses
 		return "", "", nil
 	case allow:
 		ctx.Logger.Debugf("Duo authentication was bypassed for user: %s", userSession.Username)
-		HandleAllow(ctx, userSession, bodyJSON)
+		HandleAllow(ctx, provider, userSession, bodyJSON)
 
 		return "", "", nil
 	case auth:
@@ -139,7 +145,7 @@ func HandleInitialDeviceSelection(ctx *middlewares.AutheliaCtx, userSession *ses
 }
 
 // HandlePreferredDeviceCheck handler to check if the saved device and method is still valid.
-func HandlePreferredDeviceCheck(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, duoAPI duo.API, device string, method string, bodyJSON *bodySignDuoRequest) (string, string, error) {
+func HandlePreferredDeviceCheck(ctx *middlewares.AutheliaCtx, provider *session.Session, userSession *session.UserSession, duoAPI duo.API, device string, method string, bodyJSON *bodySignDuoRequest) (string, string, error) {
 	result, message, devices, enrollURL, err := DuoPreAuth(ctx, userSession, duoAPI)
 	if err != nil {
 		ctx.Logger.Errorf("Failed to perform Duo PreAuth for user '%s': %+v", userSession.Username, err)
@@ -169,7 +175,7 @@ func HandlePreferredDeviceCheck(ctx *middlewares.AutheliaCtx, userSession *sessi
 		return "", "", nil
 	case allow:
 		ctx.Logger.Debugf("Duo authentication was bypassed for user: %s", userSession.Username)
-		HandleAllow(ctx, userSession, bodyJSON)
+		HandleAllow(ctx, provider, userSession, bodyJSON)
 
 		return "", "", nil
 	case auth:
@@ -247,12 +253,12 @@ func HandleAutoSelection(ctx *middlewares.AutheliaCtx, devices []DuoDevice, user
 }
 
 // HandleAllow handler for successful logins.
-func HandleAllow(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, bodyJSON *bodySignDuoRequest) {
+func HandleAllow(ctx *middlewares.AutheliaCtx, provider *session.Session, userSession *session.UserSession, bodyJSON *bodySignDuoRequest) {
 	var (
 		err error
 	)
 
-	if err = ctx.RegenerateSession(); err != nil {
+	if err = provider.RegenerateSession(ctx.RequestCtx); err != nil {
 		ctx.Logger.WithError(err).Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeDuo, userSession.Username)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)
@@ -262,7 +268,7 @@ func HandleAllow(ctx *middlewares.AutheliaCtx, userSession *session.UserSession,
 
 	userSession.SetTwoFactorDuo(ctx.Clock.Now())
 
-	if err = ctx.SaveSession(*userSession); err != nil {
+	if err = provider.SaveSession(ctx.RequestCtx, *userSession); err != nil {
 		ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "authentication time", regulation.AuthTypeTOTP, logFmtActionAuthentication, userSession.Username)
 
 		respondUnauthorized(ctx, messageMFAValidationFailed)

@@ -140,7 +140,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 	defer func() {
 		userSession.WebAuthn = nil
 
-		if err = ctx.SaveSession(userSession); err != nil {
+		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
 			ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, userSession.Username, errStrUserSessionDataSave)
 		}
 	}()
@@ -290,7 +290,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if err = ctx.RegenerateSession(); err != nil {
+	if err = provider.RegenerateSession(ctx.RequestCtx); err != nil {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 

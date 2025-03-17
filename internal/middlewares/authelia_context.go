@@ -398,16 +398,6 @@ func (ctx *AutheliaCtx) SaveSession(userSession session.UserSession) error {
 	return provider.SaveSession(ctx.RequestCtx, userSession)
 }
 
-// RegenerateSession regenerates a user session.
-func (ctx *AutheliaCtx) RegenerateSession() error {
-	provider, err := ctx.GetSessionProvider()
-	if err != nil {
-		return fmt.Errorf("unable to regenerate user session: %s", err)
-	}
-
-	return provider.RegenerateSession(ctx.RequestCtx)
-}
-
 // DestroySession destroys a user session.
 func (ctx *AutheliaCtx) DestroySession() error {
 	provider, err := ctx.GetSessionProvider()

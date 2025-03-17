@@ -129,6 +129,7 @@ func WebAuthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 //nolint:gocyclo
 func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 	var (
+		provider    *session.Session
 		userSession session.UserSession
 
 		err error
@@ -142,7 +143,16 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		response *protocol.ParsedCredentialAssertionData
 	)
 
-	if userSession, err = ctx.GetSession(); err != nil {
+	if provider, err = ctx.GetSessionProvider(); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn authentication challenge: %s", errStrUserSessionData)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
+		return
+	}
+
+	if userSession, err = provider.GetSession(ctx.RequestCtx); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn authentication challenge: %s", errStrUserSessionData)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -217,7 +227,7 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 	defer func() {
 		userSession.WebAuthn = nil
 
-		if err = ctx.SaveSession(userSession); err != nil {
+		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
 			ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn authentication challenge for user '%s': %s", userSession.Username, errStrUserSessionDataSave)
 		}
 	}()
@@ -261,7 +271,7 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if err = ctx.RegenerateSession(); err != nil {
+	if err = provider.RegenerateSession(ctx.RequestCtx); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn authentication challenge for user '%s': error regenerating the user session", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)

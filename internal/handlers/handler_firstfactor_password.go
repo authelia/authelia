@@ -242,7 +242,7 @@ func FirstFactorReauthenticatePOST(delayFunc middlewares.TimingAttackDelayFunc) 
 
 		doMarkAuthenticationAttempt(ctx, true, regulation.NewBan(regulation.BanTypeNone, userSession.Username, nil), regulation.AuthType1FA, nil)
 
-		if err = ctx.RegenerateSession(); err != nil {
+		if err = provider.RegenerateSession(ctx.RequestCtx); err != nil {
 			ctx.Logger.WithError(err).Errorf(logFmtErrSessionRegenerate, regulation.AuthType1FA, userSession.Username)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
@@ -270,7 +270,7 @@ func FirstFactorReauthenticatePOST(delayFunc middlewares.TimingAttackDelayFunc) 
 			userSession.RefreshTTL = ctx.Clock.Now().Add(ctx.Configuration.AuthenticationBackend.RefreshInterval.Value())
 		}
 
-		if err = ctx.SaveSession(userSession); err != nil {
+		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
 			ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "updated profile", regulation.AuthType1FA, logFmtActionAuthentication, userSession.Username)
 
 			respondUnauthorized(ctx, messageAuthenticationFailed)
