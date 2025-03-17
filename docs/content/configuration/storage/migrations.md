@@ -46,5 +46,11 @@ this instance if you wanted to downgrade to pre1 you would need to use an Authel
 |       13       |      4.38.0      |                   One-Time Password for Identity Verification via Email Changes                    |
 |       14       |      4.38.0      |                                    Revoke Reset Password Token                                     |
 |       15       |      4.38.0      |                         Time-based One-Time Password security enhancement                          |
+|       16       |      4.39.0      |                                OAuth 2.0 Allow Consent Subject NULL                                |
+|       17       |      4.39.0      |                                OpenID Connect 1.0 Claims Parameter                                 |
+|       18       |      4.39.0      |                                     OAuth 2.0 Device Code Flow                                     |
+|       19       |      4.39.0      |                                         WebAuthn Passkeys                                          |
+|       20       |      4.39.0      |                                         Regulation Rework                                          |
+|       21       |      4.39.1      |                                MySQL Specific Fix for WebAuthn MDS                                 |
 
 [RFC9068]: https://datatracker.ietf.org/doc/html/rfc9068
