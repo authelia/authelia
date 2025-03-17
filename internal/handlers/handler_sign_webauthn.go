@@ -21,11 +21,21 @@ func WebAuthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 	var (
 		w           *webauthn.WebAuthn
 		user        *model.WebAuthnUser
+		provider    *session.Session
 		userSession session.UserSession
 		err         error
 	)
 
-	if userSession, err = ctx.GetSession(); err != nil {
+	if provider, err = ctx.GetSessionProvider(); err != nil {
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
+		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn authentication challenge: %s", errStrUserSessionData)
+
+		return
+	}
+
+	if userSession, err = provider.GetSession(ctx.RequestCtx); err != nil {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
@@ -105,7 +115,7 @@ func WebAuthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 
 	userSession.WebAuthn = &data
 
-	if err = ctx.SaveSession(userSession); err != nil {
+	if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
@@ -129,6 +139,7 @@ func WebAuthnAssertionGET(ctx *middlewares.AutheliaCtx) {
 //nolint:gocyclo
 func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 	var (
+		provider    *session.Session
 		userSession session.UserSession
 
 		err error
@@ -142,7 +153,16 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		response *protocol.ParsedCredentialAssertionData
 	)
 
-	if userSession, err = ctx.GetSession(); err != nil {
+	if provider, err = ctx.GetSessionProvider(); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn authentication challenge: %s", errStrUserSessionData)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
+		return
+	}
+
+	if userSession, err = provider.GetSession(ctx.RequestCtx); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn authentication challenge: %s", errStrUserSessionData)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -187,6 +207,13 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	ws := *userSession.WebAuthn.SessionData
+	userSession.WebAuthn = nil
+
+	if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn authentication challenge for user '%s': %s", userSession.Username, errStrUserSessionDataSave)
+	}
+
 	if w, err = ctx.GetWebAuthnProvider(); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn authentication challenge for user '%s': error occurred provisioning the configuration", userSession.Username)
 
@@ -205,7 +232,7 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if c, err = w.ValidateLogin(user, *userSession.WebAuthn.SessionData, response); err != nil {
+	if c, err = w.ValidateLogin(user, ws, response); err != nil {
 		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, userSession.Username, nil), regulation.AuthTypeWebAuthn, iwebauthn.FormatError(err))
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -213,14 +240,6 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 
 		return
 	}
-
-	defer func() {
-		userSession.WebAuthn = nil
-
-		if err = ctx.SaveSession(userSession); err != nil {
-			ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn authentication challenge for user '%s': %s", userSession.Username, errStrUserSessionDataSave)
-		}
-	}()
 
 	var found bool
 
@@ -276,6 +295,10 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 		response.ParsedPublicKeyCredential.AuthenticatorAttachment == protocol.CrossPlatform,
 		response.Response.AuthenticatorData.Flags.HasUserPresent(),
 		response.Response.AuthenticatorData.Flags.HasUserVerified())
+
+	if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn authentication challenge for user '%s': %s", userSession.Username, errStrUserSessionDataSave)
+	}
 
 	if bodyJSON.Workflow == workflowOpenIDConnect {
 		handleOIDCWorkflowResponse(ctx, &userSession, bodyJSON.WorkflowID)

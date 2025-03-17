@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -20,12 +21,23 @@ import (
 // FirstFactorPasskeyGET handler starts the passkey assertion ceremony.
 func FirstFactorPasskeyGET(ctx *middlewares.AutheliaCtx) {
 	var (
-		w           *webauthn.WebAuthn
+		w *webauthn.WebAuthn
+
+		provider    *session.Session
 		userSession session.UserSession
 		err         error
 	)
 
-	if userSession, err = ctx.GetSession(); err != nil {
+	if provider, err = ctx.GetSessionProvider(); err != nil {
+		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, errStrUserSessionData)
+
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageMFAValidationFailed)
+
+		return
+	}
+
+	if userSession, err = provider.GetSession(ctx.RequestCtx); err != nil {
 		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, errStrUserSessionData)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -70,7 +82,7 @@ func FirstFactorPasskeyGET(ctx *middlewares.AutheliaCtx) {
 
 	userSession.WebAuthn = &data
 
-	if err = ctx.SaveSession(userSession); err != nil {
+	if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
 		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeGenerate, errStrUserSessionDataSave)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -137,14 +149,6 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	defer func() {
-		userSession.WebAuthn = nil
-
-		if err = ctx.SaveSession(userSession); err != nil {
-			ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, userSession.Username, errStrUserSessionDataSave)
-		}
-	}()
-
 	if err = ctx.ParseBody(&bodyJSON); err != nil {
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetJSONError(messageMFAValidationFailed)
@@ -152,6 +156,12 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidate, errStrReqBodyParse)
 
 		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, nil)
+
+		userSession.WebAuthn = nil
+
+		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
+			ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, userSession.Username, errStrUserSessionDataSave)
+		}
 
 		return
 	}
@@ -164,6 +174,12 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, nil)
 
+		userSession.WebAuthn = nil
+
+		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
+			ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, userSession.Username, errStrUserSessionDataSave)
+		}
+
 		return
 	}
 
@@ -175,8 +191,17 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, nil)
 
+		userSession.WebAuthn = nil
+
+		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
+			ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, userSession.Username, errStrUserSessionDataSave)
+		}
+
 		return
 	}
+
+	ws := *userSession.WebAuthn.SessionData
+	userSession.WebAuthn = nil
 
 	if w, err = ctx.GetWebAuthnProvider(); err != nil {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -186,16 +211,24 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, nil)
 
+		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
+			ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, userSession.Username, errStrUserSessionDataSave)
+		}
+
 		return
 	}
 
-	if u, c, err = w.ValidatePasskeyLogin(handlerWebAuthnDiscoverableLogin(ctx, w.Config.RPID), *userSession.WebAuthn.SessionData, response); err != nil {
+	if u, c, err = w.ValidatePasskeyLogin(handlerWebAuthnDiscoverableLogin(ctx, w.Config.RPID), ws, response); err != nil {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
 		ctx.Logger.WithError(iwebauthn.FormatError(err)).Errorf(logFmtErrPasskeyAuthenticationChallengeValidate, "error performing the login validation")
 
 		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, nil)
+
+		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
+			ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, userSession.Username, errStrUserSessionDataSave)
+		}
 
 		return
 	}
@@ -213,6 +246,10 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		ctx.Logger.Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, "the user object was not of the correct type", u.WebAuthnName())
 
 		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, nil)
+
+		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
+			ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, userSession.Username, errStrUserSessionDataSave)
+		}
 
 		return
 	}
@@ -233,6 +270,10 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 				doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, nil)
 
+				if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
+					ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, userSession.Username, errStrUserSessionDataSave)
+				}
+
 				return
 			}
 
@@ -250,6 +291,10 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, err)
 
+		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
+			ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, userSession.Username, errStrUserSessionDataSave)
+		}
+
 		return
 	}
 
@@ -263,6 +308,10 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, err)
 
+		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
+			ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, userSession.Username, errStrUserSessionDataSave)
+		}
+
 		return
 	}
 
@@ -274,10 +323,19 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, "", nil), regulation.AuthTypePasskey, nil)
 
+		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
+			ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, userSession.Username, errStrUserSessionDataSave)
+		}
+
 		return
 	}
 
-	if ban, _, expires, err := ctx.Providers.Regulator.BanCheck(ctx, details.Username); err != nil {
+	var (
+		ban     regulation.BanType
+		expires *time.Time
+	)
+
+	if ban, _, expires, err = ctx.Providers.Regulator.BanCheck(ctx, details.Username); err != nil {
 		ctx.SetStatusCode(fasthttp.StatusUnauthorized)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
@@ -287,16 +345,24 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 			ctx.Logger.WithError(err).Errorf(logFmtErrRegulationFail, regulation.AuthTypePasskey, details.Username)
 		}
 
+		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
+			ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, userSession.Username, errStrUserSessionDataSave)
+		}
+
 		return
 	}
 
-	if err = ctx.RegenerateSession(); err != nil {
+	if err = provider.RegenerateSession(ctx.RequestCtx); err != nil {
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageMFAValidationFailed)
 
 		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, details.Username, "error regenerating the user session")
 
 		doMarkAuthenticationAttempt(ctx, false, regulation.NewBan(regulation.BanTypeNone, details.Username, nil), regulation.AuthTypePasskey, nil)
+
+		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
+			ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, userSession.Username, errStrUserSessionDataSave)
+		}
 
 		return
 	}
@@ -318,6 +384,10 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 			ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "updated expiration", regulation.AuthTypePasskey, logFmtActionAuthentication, details.Username)
 
+			if err = ctx.SaveSession(userSession); err != nil {
+				ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, userSession.Username, errStrUserSessionDataSave)
+			}
+
 			return
 		}
 	}
@@ -338,6 +408,10 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 	if ctx.Configuration.AuthenticationBackend.RefreshInterval.Update() {
 		userSession.RefreshTTL = ctx.Clock.Now().Add(ctx.Configuration.AuthenticationBackend.RefreshInterval.Value())
+	}
+
+	if err = ctx.SaveSession(userSession); err != nil {
+		ctx.Logger.WithError(err).Errorf(logFmtErrPasskeyAuthenticationChallengeValidateUser, userSession.Username, errStrUserSessionDataSave)
 	}
 
 	if bodyJSON.Workflow == workflowOpenIDConnect {

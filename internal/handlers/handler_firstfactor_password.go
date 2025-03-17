@@ -120,8 +120,7 @@ func FirstFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middle
 
 		// Set the cookie to expire if remember me is enabled and the user has asked us to.
 		if keepMeLoggedIn {
-			err = provider.UpdateExpiration(ctx.RequestCtx, provider.Config.RememberMe)
-			if err != nil {
+			if err = provider.UpdateExpiration(ctx.RequestCtx, provider.Config.RememberMe); err != nil {
 				ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "updated expiration", regulation.AuthType1FA, logFmtActionAuthentication, details.Username)
 
 				respondUnauthorized(ctx, messageAuthenticationFailed)
