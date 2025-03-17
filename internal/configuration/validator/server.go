@@ -383,7 +383,7 @@ func validateServerEndpointsAuthzStrategies(name, implementation string, strateg
 
 		names = append(names, strategy.Name)
 
-		if strategy.SchemeBasicCacheLifespan > 0 && !utils.IsStringInSlice(schema.SchemeBasic, strategy.Schemes) {
+		if strategy.SchemeBasicCacheLifespan > 0 && !utils.IsStringInSliceFold(schema.SchemeBasic, strategy.Schemes) {
 			validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzStrategySchemeOnlyOption, name, i+1, "scheme_basic_cache_lifespan", schema.SchemeBasic, utils.StringJoinAnd(strategy.Schemes)))
 		}
 

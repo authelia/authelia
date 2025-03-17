@@ -12,7 +12,7 @@
 		"authelia.bearer.authz": "Zugriff auf geschützte Ressourcen, eingeloggt als Sie"
 	},
 	"claims": {
-		"sub": "Unique Identifier",
+		"sub": "Eindeutige Kennung",
 		"name": "Anzeigename",
 		"given_name": "Vorname",
 		"family_name": "Familienname",
@@ -26,8 +26,8 @@
 		"email_verified": "E-Mail-Adresse (überprüft)",
 		"gender": "Geschlecht",
 		"birthdate": "Geburtsdatum",
-		"zoneinfo": "Timezone",
-		"locale": "Sprache / Sprache",
+		"zoneinfo": "Zeitzone",
+		"locale": "Ort / Sprache",
 		"phone_number": "Telefonnummer",
 		"phone_number_verified": "Telefonnummer (überprüft)",
 		"address": "Postadresse",
