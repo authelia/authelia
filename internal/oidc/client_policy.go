@@ -91,7 +91,7 @@ func (p *ClientAuthorizationPolicyRule) MatchesSubjects(subject authorization.Su
 		}
 	}
 
-	if !matchesSubject {
+	if len(p.Subjects) != 0 && !matchesSubject {
 		return false
 	}
 
