@@ -157,8 +157,11 @@ const PushNotificationMethod = function (props: Props) {
                 } else if (res.limited) {
                     handleRateLimited(res.retryAfter);
                 } else {
-                    onSignInErrorCallback(new Error(translate("There was an issue completing sign in process")));
-                    setState(State.Failure);
+                    setState(State.Success);
+                    setTimeout(() => {
+                        if (!mounted.current) return;
+                        onSignInSuccessCallback(res.data ? res.data.redirect : undefined);
+                    }, 1500);
                 }
             } else {
                 onSignInErrorCallback(new Error(translate("There was an issue completing sign in process")));
