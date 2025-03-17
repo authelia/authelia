@@ -13,7 +13,7 @@ require (
 	github.com/deckarep/golang-set/v2 v2.8.0
 	github.com/duosecurity/duo_api_golang v0.0.0-20250128191753-8aff7fde9979
 	github.com/fasthttp/router v1.5.4
-	github.com/fasthttp/session/v2 v2.5.9
+	github.com/fasthttp/session/v2 v2.5.7
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/go-asn1-ber/asn1-ber v1.5.7
 	github.com/go-crypt/crypt v0.3.4
@@ -103,7 +103,7 @@ require (
 	github.com/savsgio/gotils v0.0.0-20240704082632-aef3928b8a38 // indirect
 	github.com/stoewer/go-strcase v1.2.0 // indirect
 	github.com/test-go/testify v1.1.4 // indirect
-	github.com/tinylib/msgp v1.2.5 // indirect
+	github.com/tinylib/msgp v1.2.4 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/ysmood/fetchup v0.2.3 // indirect
