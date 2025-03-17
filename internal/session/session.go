@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/authelia/authelia/v4/internal/logging"
+
 	"github.com/fasthttp/session/v2"
 	"github.com/valyala/fasthttp"
 
@@ -22,6 +24,15 @@ func (p *Session) NewDefaultUserSession() (userSession UserSession) {
 	userSession = NewDefaultUserSession()
 
 	userSession.CookieDomain = p.Config.Domain
+
+	logging.Logger().WithFields(map[string]any{
+		"username":      userSession.Username,
+		"refresh_ttl":   userSession.RefreshTTL,
+		"last_activity": userSession.LastActivity,
+		"1fa_timestamp": userSession.FirstFactorAuthnTimestamp,
+		"2fa_timestamp": userSession.SecondFactorAuthnTimestamp,
+		"action":        "new_default_session",
+	}).Debugf("New default user session")
 
 	return userSession
 }
