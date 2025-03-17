@@ -395,6 +395,15 @@ func (ctx *AutheliaCtx) SaveSession(userSession session.UserSession) error {
 		return fmt.Errorf("unable to save user session: %s", err)
 	}
 
+	ctx.Logger.WithFields(map[string]any{
+		"username":      userSession.Username,
+		"refresh_ttl":   userSession.RefreshTTL,
+		"last_activity": userSession.LastActivity,
+		"1fa_timestamp": userSession.FirstFactorAuthnTimestamp,
+		"2fa_timestamp": userSession.SecondFactorAuthnTimestamp,
+		"action":        "save_session",
+	}).Debugf("Saving user session")
+
 	return provider.SaveSession(ctx.RequestCtx, userSession)
 }
 
@@ -405,6 +414,9 @@ func (ctx *AutheliaCtx) RegenerateSession() error {
 		return fmt.Errorf("unable to regenerate user session: %s", err)
 	}
 
+	ctx.Logger.WithFields(map[string]any{
+		"action": "regenerate_session",
+	}).Debugf("Regenerate user session")
 	return provider.RegenerateSession(ctx.RequestCtx)
 }
 
@@ -415,6 +427,18 @@ func (ctx *AutheliaCtx) DestroySession() error {
 		return fmt.Errorf("unable to destroy user session: %s", err)
 	}
 
+	userSession, err := provider.GetSession(ctx.RequestCtx)
+	if err != nil {
+		return fmt.Errorf("unable to get user session: %s", err)
+	}
+	ctx.Logger.WithFields(map[string]any{
+		"username":      userSession.Username,
+		"refresh_ttl":   userSession.RefreshTTL,
+		"last_activity": userSession.LastActivity,
+		"1fa_timestamp": userSession.FirstFactorAuthnTimestamp,
+		"2fa_timestamp": userSession.SecondFactorAuthnTimestamp,
+		"action":        "destroy_session",
+	}).Debugf("Destroy user session")
 	return provider.DestroySession(ctx.RequestCtx)
 }
 
