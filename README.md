@@ -47,7 +47,7 @@ and ingress configurations.
 Here is what Authelia's portal looks like:
 
 <p align="center">
-  <img src="https://www.authelia.com/images/1FA.png" width="400" />
+  <img src="https://www.authelia.com/images/oled.png" width="400" />
   <img src="https://www.authelia.com/images/2FA-METHODS.png" width="400" />
 </p>
 

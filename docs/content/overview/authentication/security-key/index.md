@@ -22,7 +22,7 @@ __Authelia__ supports hardware-based second factors leveraging [FIDO2] [WebAuthn
 Security keys are among the most secure second factor. This method is already supported by many major applications and
 platforms like Google, Facebook, GitHub, some banks, and much more.
 
-{{< figure src="yubikey.jpg" caption="A YubiKey Security Key" alt="A YubiKey Security Key" width=150 >}}
+{{< figure src="yubikey.jpg" caption="A YubiKey Security Key" alt="A YubiKey Security Key" width=150 process="resize 150x" >}}
 
 Normally, the protocol requires your security key to be enrolled on each site before being able to authenticate with it.
 Since Authelia provides Single Sign-On, your users will need to enroll their device only once to get access to all your
@@ -56,6 +56,21 @@ Yes, as of v4.38.0 and above Authelia supports registering multiple WebAuthn cre
 
 Yes, as of v4.39.0 and above Authelia supports passwordless logins via Passkeys as per the
 [roadmap](../../../roadmap/active/webauthn.md#passwordless-login).
+
+{{< figure src="passkeys.png" caption="The Passkey Authentication Portal View" alt="The Passkey Authentication Portal View" width=400 process="resize 400x" >}}
+
+### Why does it ask me for my password after using a Passkey to login?
+
+This exists to ensure the `two_factor` policy is enforced. The Passkey itself is a single factor and we do have plans to
+offer very granular control policies and their requirements. For example it will likely be possible to create your own
+custom policy equal to `two_factor` today which also considers a single Passkey login as satisfactory for a particular
+access control policy.
+
+{{< figure src="password_2fa.png" caption="The Passkey MFA Password Authentication Portal View" alt="The Passkey MFA Password Authentication Portal View" width=400 process="resize 400x" >}}
+
+In the meantime the [configuration](../../../configuration/second-factor/webauthn.md) has an experimental option to
+allow Passkey authenticators which support user verification, that perform user verification, and that report they
+performed user verification; to count as satisfying `two_factor`.
 
 ### Why don't I have access to the *Security Key* option?
 
