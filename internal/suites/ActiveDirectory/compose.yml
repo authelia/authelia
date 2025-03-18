@@ -1,6 +1,9 @@
 ---
 services:
   authelia-backend:
+    depends_on:
+      sambaldap:
+        condition: service_healthy
     volumes:
       - './ActiveDirectory/configuration.yml:/config/configuration.yml'
       - './common/pki:/pki'
