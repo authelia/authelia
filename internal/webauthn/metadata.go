@@ -365,9 +365,14 @@ func (h *productionMDS3Provider) FetchMDS3(ctx context.Context, current int) (da
 
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusNotModified {
+	switch resp.StatusCode {
+	case http.StatusOK:
+		return io.ReadAll(resp.Body)
+	case http.StatusNotModified:
 		return nil, nil
+	case http.StatusTooManyRequests:
+		return nil, fmt.Errorf("error getting latest metadata from metadata service: too many requests")
+	default:
+		return nil, fmt.Errorf("error getting latest metadata from metadata service: unexpected status code: %d", resp.StatusCode)
 	}
-
-	return io.ReadAll(resp.Body)
 }
