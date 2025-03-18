@@ -62,6 +62,7 @@ This is a list of the key features of Authelia:
     with compatible authenticator applications.
   * **[Mobile Push Notifications](https://www.authelia.com/overview/authentication/push-notification/)**
     with [Duo](https://duo.com/).
+* Passwordless Authentication via WebAuthn (Passkeys)
 * Password reset with identity verification using email confirmation.
 * Access restriction after too many invalid authentication attempts.
 * Fine-grained access control using rules which match criteria like subdomain, user, user group membership, request uri,
@@ -381,7 +382,8 @@ which are both [Microsoft](https://www.microsoft.com/?from=Authelia) products.
 #### Backers
 
 Thank you to all our backers! 🙏 [Become a backer](https://opencollective.com/authelia-sponsors/contribute) and help us
-sustain our community. The money we currently receive is dedicated to bootstrap a bug bounty program to give us as many
+sustain our community. The money we currently receive is dedicated to fund a security audit, and potentially in the
+future introducing a bug bounty program to give us as many
 eyes as we can to detect potential vulnerabilities.
 <a href="https://opencollective.com/authelia-sponsors#backers"><img src="https://opencollective.com/authelia-sponsors/backers.svg?width=890"></a>
 
