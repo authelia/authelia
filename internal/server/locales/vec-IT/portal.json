@@ -47,7 +47,7 @@
 	"Password has been reset": "La password xe stà resetà",
 	"Password": "Password",
 	"Passwords do not match": "Le password no corespondi",
-	"Powered by": "Fornì da",
+	"Powered by {{authelia}}": "Fornì da {{authelia}}",
 	"Privacy Policy": "Politica de privacy",
 	"Push Notification": "Notifiche push",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "La redirezione xe stà determinada come insicura e xe stà abortita, assicura che l'URL de redirezione xe corretto",

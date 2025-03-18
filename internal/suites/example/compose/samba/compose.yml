@@ -7,6 +7,11 @@ services:
     cap_add:
       - 'SYS_ADMIN'
     hostname: 'ldap.example.com'
+    healthcheck:
+      test: ['CMD-SHELL', 'env LDAPTLS_REQCERT=never ldapsearch -x -LLL -D "CN=Administrator,CN=Users,DC=example,DC=com" -b "CN=john,OU=Users,DC=example,DC=com" -H ldap://localhost -ZZ -w password memberof | grep -q ^memberOf: || exit 1']
+      interval: 10s
+      timeout: 15s
+      retries: 5
     environment:
       DOMAIN: 'example.com'
       DOMAINPASS: 'Password1'

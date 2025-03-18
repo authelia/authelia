@@ -56,6 +56,10 @@ This blog article is rather large so this serves as an index for the section hea
   - [Password Change](#password-change)
   - [Log File Reopening](#log-file-reopening)
   - [Basic Authorization Caching](#basic-authorization-caching)
+  - [LDAP Connection Pooling](#ldap-connection-pooling)
+  - [PostgreSQL Failover](#postgresql-failover)
+  - [SQL Peer Authentication](#sql-peer-authentication)
+  - [Systemd Unit Improvements](#systemd-unit-improvements)
 
 ---
 

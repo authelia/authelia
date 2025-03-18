@@ -47,7 +47,7 @@
 	"Password has been reset": "Parole ir atiestatīta",
 	"Password": "Parole",
 	"Passwords do not match": "Paroles nesakrīt",
-	"Powered by": "Darbojas ar",
+	"Powered by {{authelia}}": "Darbojas ar {{authelia}}",
 	"Privacy Policy": "Privātuma politika",
 	"Push Notification": "Push paziņojums",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "Pāradresācija tika noteikta kā nedroša un tika pārtraukta, pārliecinieties, vai pāradresācijas URL ir pareizs",

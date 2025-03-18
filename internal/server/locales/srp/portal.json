@@ -47,7 +47,7 @@
 	"Password has been reset": "Lozinka je resetovana",
 	"Password": "Lozinka",
 	"Passwords do not match": "Lozinke se ne poklapaju",
-	"Powered by": "Pomenuto od",
+	"Powered by {{authelia}}": "Pomenuto od {{authelia}}",
 	"Privacy Policy": "Politika privatnosti",
 	"Push Notification": "Obaveštenje",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "Preusmeravanje je određeno kao nesigurno i prekinuto, proverite da li je URL za preusmeravanje tačan",

@@ -47,7 +47,7 @@
 	"Password has been reset": "Kata laluan telah ditetapkan semula",
 	"Password": "Kata laluan",
 	"Passwords do not match": "Kata laluan tidak sepadan",
-	"Powered by": "Dikuasakan oleh",
+	"Powered by {{authelia}}": "Dikuasakan oleh {{authelia}}",
 	"Privacy Policy": "Dasar Privasi",
 	"Push Notification": "Pemberitahuan Push",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "Pengalihan ditentukan tidak selamat dan dibatalkan. Pastikan URL pengalihan adalah betul",

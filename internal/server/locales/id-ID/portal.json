@@ -47,7 +47,7 @@
 	"Password has been reset": "Kata sandi telah diatur ulang",
 	"Password": "Kata Sandi",
 	"Passwords do not match": "Kata sandi tidak cocok",
-	"Powered by": "Ditenagai oleh",
+	"Powered by {{authelia}}": "Ditenagai oleh {{authelia}}",
 	"Privacy Policy": "Kebijakan Privasi",
 	"Push Notification": "Notifikasi Push",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "Pengalihan dianggap tidak aman dan dibatalkan, pastikan URL pengalihan benar",
