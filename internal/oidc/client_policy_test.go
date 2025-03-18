@@ -186,17 +186,17 @@ func TestMatchesSubjects(t *testing.T) {
 
 	require.NoError(t, err)
 
-	subjectAnonymous   := authorization.Subject{}
-	subjectNoGroup     := authorization.Subject{Username: "user-no-group"}
-	subjectGroupA      := authorization.Subject{Username: "user-group-a", Groups: []string{"a"}}
-	subjectGroupB      := authorization.Subject{Username: "user-group-b", Groups: []string{"b"}}
-	subjectGroupAB     := authorization.Subject{Username: "user-group-ab", Groups: []string{"a", "b"}}
-	subjectNoGroupNet  := authorization.Subject{Username: "user-no-group-net", IP: lanip}
-	subjectGroupANet   := authorization.Subject{Username: "user-group-a-net", Groups: []string{"a"}, IP: lanip}
-	subjectGroupBNet   := authorization.Subject{Username: "user-group-b-net", Groups: []string{"b"}, IP: lanip}
-	subjectGroupABNet  := authorization.Subject{Username: "user-group-ab-net", Groups: []string{"a", "b"}, IP: lanip}
+	subjectAnonymous := authorization.Subject{}
+	subjectNoGroup := authorization.Subject{Username: "user-no-group"}
+	subjectGroupA := authorization.Subject{Username: "user-group-a", Groups: []string{"a"}}
+	subjectGroupB := authorization.Subject{Username: "user-group-b", Groups: []string{"b"}}
+	subjectGroupAB := authorization.Subject{Username: "user-group-ab", Groups: []string{"a", "b"}}
+	subjectNoGroupNet := authorization.Subject{Username: "user-no-group-net", IP: lanip}
+	subjectGroupANet := authorization.Subject{Username: "user-group-a-net", Groups: []string{"a"}, IP: lanip}
+	subjectGroupBNet := authorization.Subject{Username: "user-group-b-net", Groups: []string{"b"}, IP: lanip}
+	subjectGroupABNet := authorization.Subject{Username: "user-group-ab-net", Groups: []string{"a", "b"}, IP: lanip}
 	subjectGroupABNet2 := authorization.Subject{Username: "user-group-ab-net2", Groups: []string{"a", "b"}, IP: lanip2}
-	allSubjects        := []authorization.Subject{
+	allSubjects := []authorization.Subject{
 		subjectAnonymous,
 		subjectNoGroup,
 		subjectGroupA,
@@ -290,11 +290,13 @@ func TestMatchesSubjects(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			matchingSubjects := []authorization.Subject{}
+
 			for _, subject := range allSubjects {
 				if tc.rule.MatchesSubjects(subject) {
 					matchingSubjects = append(matchingSubjects, subject)
 				}
 			}
+
 			assert.Equal(t, tc.subjects, matchingSubjects)
 		})
 	}
