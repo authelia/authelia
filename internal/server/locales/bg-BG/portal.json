@@ -47,7 +47,7 @@
 	"Password has been reset": "Паролата е нулирана",
 	"Password": "Парола",
 	"Passwords do not match": "Паролите не съвпадат",
-	"Powered by": "Снабдявано от",
+	"Powered by {{authelia}}": "Снабдявано от {{authelia}}",
 	"Privacy Policy": "Политика за поверителност",
 	"Push Notification": "Уведомление",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "Опитът за пренасочване е класифициран като небезопасен и е прекратен, уверете се, че URL адресът за пренасочване е коректен",

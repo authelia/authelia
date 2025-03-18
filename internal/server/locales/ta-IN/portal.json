@@ -47,7 +47,7 @@
 	"Password has been reset": "கடவுச்சொல் மறுசீரமைக்கப்பட்டுள்ளது",
 	"Password": "கடவுச்சொல்",
 	"Passwords do not match": "கடவுச்சொற்கள் பொருந்தவில்லை",
-	"Powered by": "ஊக்கமளிக்கிறது",
+	"Powered by {{authelia}}": "ஊக்கமளிக்கிறது {{authelia}}",
 	"Privacy Policy": "தனிப்பட்ட நண்டி",
 	"Push Notification": "உள்ளீடு அறிவிப்பு",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "மறுபக்கம் பாதுகாப்பானதாக நிரூபிக்கப்பட்டு விட்டது, மீளும் URL சரியானது என்பதை உறுதி செய்யவும்",

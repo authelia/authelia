@@ -47,7 +47,7 @@
 	"Password has been reset": "Nywila imewekwa upya",
 	"Password": "Nywila",
 	"Passwords do not match": "Nywila hazifanani",
-	"Powered by": "Iliyotolewa na",
+	"Powered by {{authelia}}": "Iliyotolewa na {{authelia}}",
 	"Privacy Policy": "Sera ya Faragha",
 	"Push Notification": "Arifa ya Kusukuma",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "Uelekeo umeamuliwa kuwa si salama na umeondolewa hakikisha URL ya uelekeo ni sahihi",

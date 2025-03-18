@@ -47,7 +47,7 @@
 	"Password has been reset": "Iphasiwedi ibiyaphindwa",
 	"Password": "Iphasiwedi",
 	"Passwords do not match": "Ama-password awahambisani",
-	"Powered by": "Iphakethe laye",
+	"Powered by {{authelia}}": "Iphakethe laye {{authelia}}",
 	"Privacy Policy": "Inqubomgomo Yobumfihlo",
 	"Push Notification": "Ukuphatha Okushayelayo",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "Ukwaphula kweleli kubonakala kungaphatheki kahle futhi kwaqedwa ukuqinisekisa ukuthi i-URL yokuphindisela ilungile",

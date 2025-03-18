@@ -47,7 +47,7 @@
 	"Password has been reset": "Slaptažodis buvo atstatytas",
 	"Password": "Slaptažodis",
 	"Passwords do not match": "Slaptažodžiai nesutampa",
-	"Powered by": "Teikia",
+	"Powered by {{authelia}}": "Teikia {{authelia}}",
 	"Privacy Policy": "Privatumo politika",
 	"Push Notification": "Pranešimas apie paslaugą",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "Peradresavimas buvo laikomas nesaugiu ir nutrauktas, įsitikinkite, kad peradresavimo URL yra teisingas",

@@ -33,6 +33,7 @@ func TestNewClientAuthorizationPolicy(t *testing.T) {
 						Policy: "one_factor",
 						Subjects: [][]string{
 							{"user:john"},
+							{"user:bob"},
 						},
 					},
 					{
@@ -50,6 +51,9 @@ func TestNewClientAuthorizationPolicy(t *testing.T) {
 							{
 								Subjects: []authorization.SubjectMatcher{authorization.AccessControlUser{Name: "john"}},
 							},
+							{
+								Subjects: []authorization.SubjectMatcher{authorization.AccessControlUser{Name: "bob"}},
+							},
 						},
 						Policy: authorization.OneFactor,
 					},
@@ -62,6 +66,7 @@ func TestNewClientAuthorizationPolicy(t *testing.T) {
 			func(t *testing.T, actual oidc.ClientAuthorizationPolicy) {
 				assert.Equal(t, authorization.TwoFactor, actual.GetRequiredLevel(authorization.Subject{}))
 				assert.Equal(t, authorization.OneFactor, actual.GetRequiredLevel(authorization.Subject{Username: "john"}))
+				assert.Equal(t, authorization.OneFactor, actual.GetRequiredLevel(authorization.Subject{Username: "bob"}))
 				assert.Equal(t, authorization.OneFactor, actual.GetRequiredLevel(authorization.Subject{Username: "fred", IP: lanip}))
 			},
 		},
@@ -170,4 +175,129 @@ func TestNewClientRequestedAudienceMode(t *testing.T) {
 	}
 
 	assert.Equal(t, "", oidc.ClientRequestedAudienceMode(-1).String())
+}
+
+func TestMatchesSubjects(t *testing.T) {
+	lanip, lan, err := net.ParseCIDR("192.168.2.1/24")
+
+	require.NoError(t, err)
+
+	lanip2, _, err := net.ParseCIDR("192.168.3.1/24")
+
+	require.NoError(t, err)
+
+	subjectAnonymous := authorization.Subject{}
+	subjectNoGroup := authorization.Subject{Username: "user-no-group"}
+	subjectGroupA := authorization.Subject{Username: "user-group-a", Groups: []string{"a"}}
+	subjectGroupB := authorization.Subject{Username: "user-group-b", Groups: []string{"b"}}
+	subjectGroupAB := authorization.Subject{Username: "user-group-ab", Groups: []string{"a", "b"}}
+	subjectNoGroupNet := authorization.Subject{Username: "user-no-group-net", IP: lanip}
+	subjectGroupANet := authorization.Subject{Username: "user-group-a-net", Groups: []string{"a"}, IP: lanip}
+	subjectGroupBNet := authorization.Subject{Username: "user-group-b-net", Groups: []string{"b"}, IP: lanip}
+	subjectGroupABNet := authorization.Subject{Username: "user-group-ab-net", Groups: []string{"a", "b"}, IP: lanip}
+	subjectGroupABNet2 := authorization.Subject{Username: "user-group-ab-net2", Groups: []string{"a", "b"}, IP: lanip2}
+	allSubjects := []authorization.Subject{
+		subjectAnonymous,
+		subjectNoGroup,
+		subjectGroupA,
+		subjectGroupB,
+		subjectGroupAB,
+		subjectNoGroupNet,
+		subjectGroupANet,
+		subjectGroupBNet,
+		subjectGroupABNet,
+		subjectGroupABNet2,
+	}
+
+	testCases := []struct {
+		name     string
+		rule     oidc.ClientAuthorizationPolicyRule
+		subjects []authorization.Subject
+	}{
+		{
+			"ShouldMatchEmptyRule",
+			oidc.ClientAuthorizationPolicyRule{
+				Policy: authorization.OneFactor,
+			},
+			allSubjects,
+		},
+		{
+			"ShouldMatchRuleWithGroupA",
+			oidc.ClientAuthorizationPolicyRule{
+				Subjects: []authorization.AccessControlSubjects{
+					{
+						Subjects: []authorization.SubjectMatcher{authorization.AccessControlGroup{Name: "a"}},
+					},
+				},
+				Policy: authorization.OneFactor,
+			},
+			[]authorization.Subject{subjectGroupA, subjectGroupAB, subjectGroupANet, subjectGroupABNet, subjectGroupABNet2},
+		},
+		{
+			"ShouldMatchRuleWithGroupsAB",
+			oidc.ClientAuthorizationPolicyRule{
+				Subjects: []authorization.AccessControlSubjects{
+					{
+						Subjects: []authorization.SubjectMatcher{authorization.AccessControlGroup{Name: "a"}},
+					},
+					{
+						Subjects: []authorization.SubjectMatcher{authorization.AccessControlGroup{Name: "b"}},
+					},
+				},
+				Policy: authorization.OneFactor,
+			},
+			[]authorization.Subject{subjectGroupA, subjectGroupB, subjectGroupAB, subjectGroupANet, subjectGroupBNet, subjectGroupABNet, subjectGroupABNet2},
+		},
+		{
+			"ShouldMatchRuleNet",
+			oidc.ClientAuthorizationPolicyRule{
+				Networks: []*net.IPNet{lan},
+				Policy:   authorization.OneFactor,
+			},
+			[]authorization.Subject{subjectNoGroupNet, subjectGroupANet, subjectGroupBNet, subjectGroupABNet},
+		},
+		{
+			"ShouldMatchRuleGroupANet",
+			oidc.ClientAuthorizationPolicyRule{
+				Subjects: []authorization.AccessControlSubjects{
+					{
+						Subjects: []authorization.SubjectMatcher{authorization.AccessControlGroup{Name: "a"}},
+					},
+				},
+				Networks: []*net.IPNet{lan},
+				Policy:   authorization.OneFactor,
+			},
+			[]authorization.Subject{subjectGroupANet, subjectGroupABNet},
+		},
+		{
+			"ShouldMatchRuleGroupsABNet",
+			oidc.ClientAuthorizationPolicyRule{
+				Subjects: []authorization.AccessControlSubjects{
+					{
+						Subjects: []authorization.SubjectMatcher{authorization.AccessControlGroup{Name: "a"}},
+					},
+					{
+						Subjects: []authorization.SubjectMatcher{authorization.AccessControlGroup{Name: "b"}},
+					},
+				},
+				Networks: []*net.IPNet{lan},
+				Policy:   authorization.OneFactor,
+			},
+			[]authorization.Subject{subjectGroupANet, subjectGroupBNet, subjectGroupABNet},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			matchingSubjects := []authorization.Subject{}
+
+			for _, subject := range allSubjects {
+				if tc.rule.MatchesSubjects(subject) {
+					matchingSubjects = append(matchingSubjects, subject)
+				}
+			}
+
+			assert.Equal(t, tc.subjects, matchingSubjects)
+		})
+	}
 }

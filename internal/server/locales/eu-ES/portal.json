@@ -47,7 +47,7 @@
 	"Password has been reset": "Pasahitza berrezarri da",
 	"Password": "Pasahitza",
 	"Passwords do not match": "Pasahitzak ez dira bat etorri",
-	"Powered by": "Martxan",
+	"Powered by {{authelia}}": "Martxan {{authelia}}",
 	"Privacy Policy": "Pribatutasun Politika",
 	"Push Notification": "Pushetako Notifikazioa",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "Biderazioa ez da segurua izan eta bertan behera utzi da: ziurtatu bideratze-URLa zuzena dela",

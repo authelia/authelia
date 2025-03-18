@@ -47,7 +47,7 @@
 	"Password has been reset": "Şifre sıfırlandı",
 	"Password": "Şifre",
 	"Passwords do not match": "Şifreler eşleşmiyor",
-	"Powered by": "Tarafından desteklenmektedir",
+	"Powered by {{authelia}}": "Tarafından desteklenmektedir {{authelia}}",
 	"Privacy Policy": "Gizlilik Politikası",
 	"Push Notification": "Push Bildirimi",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "Yönlendirme güvenli olmadığı belirlenerek iptal edildi, lütfen yönlendirme URL'sinin doğru olduğundan emin olun",
