@@ -123,7 +123,7 @@ identity_providers:
           - 'extra_claim_name'
     clients:
       - client_id: 'client_example_id'
-        ## Assigns the 'custom_claims_policy' to this client.
+        ## Assigns the 'custom_claims_policy' claims policy to this client.
         claims_policy: 'custom_claims_policy'
         ## Allows this client to request the scope with the extra claims or the individual claims themselves.
         scopes:
@@ -132,9 +132,13 @@ identity_providers:
 
 ### Restore Functionality Prior to Claims Parameter
 
-The introduction of the claims parameter has removed most claims from the [ID Token]. This may not work for some clients
-which do not make requests to the user information endpoint which contains all of these claims, and they may not support
-the claims parameter.
+The introduction of the claims parameter has removed most claims from the [ID Token] leaving it with only the claims
+required by the specification for additional privacy and performance. This may not work for some relying parties which
+do not make requests to the [UserInfo Endpoint] which must contain most or all claims, and they may additionally not
+support the claims parameter. While we recommend investigating if the relying party can support the [UserInfo Endpoint]
+for the purpose of obtaining claims this is not entirely possible in all situations due to projects that are no longer
+maintained or don't have developers with enough time to work on these things, for this reason we allow administrators
+to make adjustments to individual clients to work around this enhancement.
 
 The following example is a claims policy which restores that behaviour for those clients. Users may choose to expand
 on this on their own as they desire. This example also shows how to apply this policy to a client using the
@@ -149,10 +153,12 @@ break-glass measure and is only offered on a best-effort basis.
 identity_providers:
   oidc:
     claims_policies:
+      ## Creates the 'default' claims policy.
       default:
         id_token: ['groups', 'email', 'email_verified', 'alt_emails', 'preferred_username', 'name']
     clients:
       - client_id: 'client_example_id'
+        ## Assigns the 'default' claims policy to this client.
         claims_policy: 'default'
 ```
 
