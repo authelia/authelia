@@ -47,7 +47,7 @@
 	"Password has been reset": "Le mot de passe a été réinitialisé",
 	"Password": "Mot de passe",
 	"Passwords do not match": "Les mots de passe ne correspondent pas",
-	"Powered by": "Propulsé par",
+	"Powered by {{authelia}}": "Propulsé par {{authelia}}",
 	"Privacy Policy": "Politique de confidentialité",
 	"Push Notification": "Notification Push",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "La redirection a été déterminée comme dangereuse et abandonnée pour s'assurer que l'URL de redirection est correcte",

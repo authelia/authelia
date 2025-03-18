@@ -47,7 +47,7 @@
 	"Password has been reset": "Salasana on nollattu",
 	"Password": "Salasana",
 	"Passwords do not match": "Salasanat eivät täsmää",
-	"Powered by": "Palvelun tarjoaa",
+	"Powered by {{authelia}}": "Palvelun tarjoaa {{authelia}}",
 	"Privacy Policy": "Yksityisyyden Suoja",
 	"Push Notification": "Push-Ilmoitus",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "Uudelleenohjaus määritettiin vaaralliseksi ja keskeytettiin varmistaen, että uudelleenohjaus URL-osoite on oikea",

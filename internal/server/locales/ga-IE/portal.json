@@ -47,7 +47,7 @@
 	"Password has been reset": "Athshocraíodh an pasfhocal",
 	"Password": "Pasfhocal",
 	"Passwords do not match": "Níl an dá pasfhocal comhoiriúnach",
-	"Powered by": "Árthaíonn",
+	"Powered by {{authelia}}": "Árthaíonn {{authelia}}",
 	"Privacy Policy": "Polasaí Príobháideachta",
 	"Push Notification": "Fógra Barraíochta",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "Athróidh an atreorú a chinnfear deacrachta nach bhfuil sé sábháilte agus a athscriosfadh a chinntigh go bhfuil an URL atreoraithe ceart",

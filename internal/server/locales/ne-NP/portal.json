@@ -47,7 +47,7 @@
 	"Password has been reset": "पासवर्ड रिसेट गरियो",
 	"Password": "पासवर्ड",
 	"Passwords do not match": "पासवर्ड मिलेन",
-	"Powered by": "द्वारा संचालन गरिएको",
+	"Powered by {{authelia}}": "द्वारा संचालन गरिएको {{authelia}}",
 	"Privacy Policy": "गोपनियताका नीति",
 	"Push Notification": "पुश सूचनालाई",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "पुनः निर्देश घातक भनेर निर्धारण गर्न र रोकियो सुनिश्चित गर्नुहोस् कि पुनः निर्देश यूआरएल सही छ",

@@ -47,7 +47,7 @@
 	"Password has been reset": "Jelszó-visszaállítás megtörtént",
 	"Password": "Jelszó",
 	"Passwords do not match": "A jelszavak nem egyeznek",
-	"Powered by": "Powered by",
+	"Powered by {{authelia}}": "Powered by {{authelia}}",
 	"Privacy Policy": "Adatvédelmi nyilatkozat",
 	"Push Notification": "Push értesítés",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "A redirekció veszélyesnek bizonyult, és megszakították. Győződjön meg róla, hogy a redirekciós URL helyes",

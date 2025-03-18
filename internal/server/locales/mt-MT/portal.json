@@ -47,7 +47,7 @@
 	"Password has been reset": "Il-password ġiet irrisettjata",
 	"Password": "Password",
 	"Passwords do not match": "Il-passwords ma jikkonformawx",
-	"Powered by": "Ikombinati minn",
+	"Powered by {{authelia}}": "Ikombinati minn {{authelia}}",
 	"Privacy Policy": "Politika tal-Privat",
 	"Push Notification": "Notifika Push",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "Il-redirect huwa miċħud biex ma jkunx sigur u abbandunat, kun żgur li l-URL tat-redirect huwa korrett",

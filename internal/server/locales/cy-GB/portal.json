@@ -47,7 +47,7 @@
 	"Password has been reset": "Cafodd y cyfrinair ei ailgychwyn",
 	"Password": "Cyfrinair",
 	"Passwords do not match": "Nid yw'r cyfrinair yn cyd-fynd",
-	"Powered by": "Powered by",
+	"Powered by {{authelia}}": "Powered by {{authelia}}",
 	"Privacy Policy": "Polisi Preifatrwydd",
 	"Push Notification": "Hysbysiad Pwysleisio",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "Penderfynwyd bod y drafftiad yn ddiogel ac wedi'i leihau sicrhewch fod yr URL drafftiad yn gywir",

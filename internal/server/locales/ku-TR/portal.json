@@ -47,7 +47,7 @@
 	"Password has been reset": "پاسورد نوێ کرد",
 	"Password": "ت پاسورد",
 	"Passwords do not match": "پاسوردەکان ناتوانن پەسند بکرن",
-	"Powered by": "پەرلەگرتن",
+	"Powered by {{authelia}}": "پەرلەگرتن {{authelia}}",
 	"Privacy Policy": "پەیامە تایبەتی",
 	"Push Notification": "ئەوپشین",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "کاژێر فەرمی لە هەڵه بوده‌ی بایکێتەوە و پەیوەندیدانی تایبەتی فەرمی پەیامەکەی پەرکردنی بکرێت چەند کە کەر لە بیکرێن",

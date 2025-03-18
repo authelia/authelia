@@ -47,7 +47,7 @@
 	"Password has been reset": "Geslo je bilo ponastavljeno",
 	"Password": "Geslo",
 	"Passwords do not match": "Gesli se ne ujemata",
-	"Powered by": "Poganja ga",
+	"Powered by {{authelia}}": "Poganja ga {{authelia}}",
 	"Privacy Policy": "Politika zasebnostni",
 	"Push Notification": "Potisna sporočila",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "Preusmeritev je bila ocenjena kot nevarna in preklicana, poskrbite, da je URL za preusmeritev pravilen",

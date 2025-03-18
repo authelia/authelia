@@ -47,7 +47,7 @@
 	"Password has been reset": "รหัสผ่านถูกรีเซ็ตแล้ว",
 	"Password": "รหัสผ่าน",
 	"Passwords do not match": "รหัสผ่านไม่ตรงกัน",
-	"Powered by": "ขับเคลื่อนโดย",
+	"Powered by {{authelia}}": "ขับเคลื่อนโดย {{authelia}}",
 	"Privacy Policy": "นโยบายความเป็นส่วนตัว",
 	"Push Notification": "การแจ้งเตือนแบบดัน",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "การเปลี่ยนเส้นทางถูกกำหนดว่าไม่ปลอดภัยและถูกยกเลิก โปรดตรวจสอบว่า URL การเปลี่ยนเส้นทางถูกต้อง",
