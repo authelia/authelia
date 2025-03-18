@@ -67,6 +67,18 @@ This disables WebAuthn if set to true.
 Enables login via a Passkey instead of a username and password. This login only counts as a single factor. The user will
 be prompted for their password by default if the request requires multi-factor authentication.
 
+### experimental_enable_passkey_uv_two_factors
+
+{{< callout context="danger" title="Stability and Security Notice" icon="outline/alert-octagon" >}}
+This option is not considered supported. It is completely experimental and will be replaced by custom policies that can
+be defined in the access control section and allow deterministic results for authentication. This is in an effort to
+properly support Authentication Method Reference Values for authentication flows. It is likely in v4.40.0 or v4.41.0
+(specifically at the time we add the flow to replace this) that this option will cause a startup failure.
+{{< /callout >}}
+
+This option allows for authenticators that enforce user verification (PIN entry, biometric proof, etc) and reports they
+have performed user verification, to satisfy the `two_factor` policy for access control rules.
+
 ### display_name
 
 {{< confkey type="string" default="Authelia" required="no" >}}
