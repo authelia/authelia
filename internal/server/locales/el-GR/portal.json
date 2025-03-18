@@ -65,6 +65,7 @@
 	"Security Key": "Κλειδί Ασφαλείας",
 	"Select a Device": "Επιλέξτε μια συσκευή",
 	"Sign in": "Σύνδεση",
+	"Sign in with a passkey": "Συνδεθείτε με ένα κλειδί πρόσβασης",
 	"Sign out": "Αποσύνδεση",
 	"Successfully revoked the One-Time Code": "Επιτυχής ανάκληση του κωδικού μιας φοράς",
 	"Successfully revoked the Token": "Επιτυχής ανάκληση του Token",
@@ -99,7 +100,8 @@
 	"Username": "Όνομα Χρήστη",
 	"Username is required": "Το όνομα χρήστη είναι υποχρεωτικό",
 	"You cancelled the assertion request": "Ακυρώσατε την αίτηση ισχυρισμού",
-	"You must view and accept the Privacy Policy before using": "Πρέπει να δείτε και να αποδεχτείτε την <0>Πολιτική Απορρήτου</0> πριν χρησιμοποιήσετε",
+	"You have made too many requests": "Έχετε υποβάλει πάρα πολλά αιτήματα",
+	"You must view and accept the Privacy Policy before using {{authelia}}.": "Πρέπει να δείτε και να αποδεχτείτε την Πολιτική Απορρήτου <policy></policy> πριν χρησιμοποιήσετε {{authelia}}",
 	"You're being signed out and redirected": "Είστε αποσυνδεδεμένοι και ανακατευθύνονται",
 	"Your browser does not support the WebAuthn protocol": "Το πρόγραμμα περιήγησής σας δεν υποστηρίζει το πρωτόκολλο WebAuthn",
 	"Your supplied password does not meet the password policy requirements": "Ο παρεχόμενος κωδικός πρόσβασης δεν πληροί τις απαιτήσεις πολιτικής κωδικού πρόσβασης"
