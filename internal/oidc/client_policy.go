@@ -81,11 +81,19 @@ func (p *ClientAuthorizationPolicyRule) MatchesSubjects(subject authorization.Su
 		return false
 	}
 
-	// Iterate over the subjects until we find a match (return true) or until we exit the loop (return false).
+	// Iterate over the subjects until we find a match (set matchesSubject and break) or until we exit the loop.
+	matchesSubject := false
+
 	for _, rule := range p.Subjects {
-		if !rule.IsMatch(subject) {
-			return false
+		if rule.IsMatch(subject) {
+			matchesSubject = true
+			break
 		}
+	}
+
+	// Return false if there is at least one subject defined and none of the subjects match.
+	if len(p.Subjects) != 0 && !matchesSubject {
+		return false
 	}
 
 	return p.Networks.IsMatch(subject)
