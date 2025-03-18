@@ -47,7 +47,7 @@
 	"Password has been reset": "비밀번호가 재설정되었습니다",
 	"Password": "비밀번호",
 	"Passwords do not match": "비밀번호가 일치하지 않습니다",
-	"Powered by": "제공",
+	"Powered by {{authelia}}": "제공 {{authelia}}",
 	"Privacy Policy": "개인정보 보호정책",
 	"Push Notification": "푸시 알림",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "리다이렉션이 안전하지 않은 것으로 판단되어 중단되었습니다. 리다이렉션 URL이 올바른지 확인하세요",

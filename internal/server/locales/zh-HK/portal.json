@@ -47,7 +47,7 @@
 	"Password has been reset": "密碼已重置",
 	"Password": "密碼",
 	"Passwords do not match": "密碼不匹配",
-	"Powered by": "提供支持",
+	"Powered by {{authelia}}": "提供支持 {{authelia}}",
 	"Privacy Policy": "隱私政策",
 	"Push Notification": "推送通知",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "重定向被判定為不安全並中止，請確保重定向 URL 正確",

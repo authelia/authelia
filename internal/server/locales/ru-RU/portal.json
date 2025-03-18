@@ -47,7 +47,7 @@
 	"Password has been reset": "Пароль был сброшен",
 	"Password": "Пароль",
 	"Passwords do not match": "Пароли не совпадают",
-	"Powered by": "При поддержке",
+	"Powered by {{authelia}}": "При поддержке {{authelia}}",
 	"Privacy Policy": "Политика конфиденциальности",
 	"Push Notification": "Push-уведомление",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "Перенаправление было определено как небезопасное и прервано, убедитесь, что URL перенаправления правильный",

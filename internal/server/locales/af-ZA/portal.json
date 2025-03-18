@@ -47,7 +47,7 @@
 	"Password has been reset": "Wagwoord is hergestel",
 	"Password": "Wagwoord",
 	"Passwords do not match": "Wagwoorde stem nie ooreen nie",
-	"Powered by": "Aangedryf deur",
+	"Powered by {{authelia}}": "Aangedryf deur {{authelia}}",
 	"Privacy Policy": "Privaatheidsbeleid",
 	"Push Notification": "Stoot kennisgewing",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "Herleiding is bepaal as onveilig en is geaborteer, seker die herleiding URL is korrek",

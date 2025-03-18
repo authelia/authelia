@@ -47,7 +47,7 @@
 	"Password has been reset": "Heslo bolo obnovené",
 	"Password": "Heslo",
 	"Passwords do not match": "Heslá sa nezhodujú",
-	"Powered by": "Poháňa",
+	"Powered by {{authelia}}": "Poháňa {{authelia}}",
 	"Privacy Policy": "Zásady ochrany osobných údajov",
 	"Push Notification": "Push notifikácie",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "Pridelenie bolo označené ako nebezpečné a prerušené, skontrolujte, či je redirekčná URL správna",

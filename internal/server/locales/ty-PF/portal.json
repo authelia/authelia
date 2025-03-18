@@ -47,7 +47,7 @@
 	"Password has been reset": "Ua tāpuni te pōtehi",
 	"Password": "Pōtehi",
 	"Passwords do not match": "Aita e pātai i te mau pōtehi",
-	"Powered by": "E mau pū",
+	"Powered by {{authelia}}": "E mau pū {{authelia}}",
 	"Privacy Policy": "Tūmau i nā tūrangi",
 	"Push Notification": "Tākahi haereraa",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "Ua piti te tahuri i te pērāna mai i te pature",

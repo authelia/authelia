@@ -47,7 +47,7 @@
 	"Password has been reset": "Erayga sirta ayaa la dib u hagaajiyay",
 	"Password": "Erayga Sirta",
 	"Passwords do not match": "Erayada sirta isma helin",
-	"Powered by": "Hagid ka socota",
+	"Powered by {{authelia}}": "Hagid ka socota {{authelia}}",
 	"Privacy Policy": "Siyaasadda Asturnaanta",
 	"Push Notification": "Digniin Riix",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "Dib u gelaashadii waxaa lagu go'aamiyay inay tahay mid aan ammaan ahayn waxaana la joojiyay in la hubiyo URL-ka dib u habeynta inuu sax yahay",

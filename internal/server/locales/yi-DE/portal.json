@@ -47,7 +47,7 @@
 	"Password has been reset": "פּאַראָל איז געווען רעמראָן",
 	"Password": "פּאַראָל",
 	"Passwords do not match": "פּאַראָלען האָבן נישט געלעגעט",
-	"Powered by": "געזונטער גיוץ",
+	"Powered by {{authelia}}": "געזונטער גיוץ {{authelia}}",
 	"Privacy Policy": "פּריוואַט פּאָליטיק",
 	"Push Notification": "פּוש נאָכמער נישטיפיקאַציע",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "דער רידזשעקטיאָנ איז געווען געזעכעמען אלס דער וואָל פֿאַרבעסערן און געבורטן צו פאַרשטיין דער רידזשעקטופּיד URL איז גרייט",

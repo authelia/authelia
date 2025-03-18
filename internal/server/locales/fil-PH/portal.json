@@ -47,7 +47,7 @@
 	"Password has been reset": "Ang password ay na-reset na",
 	"Password": "Password",
 	"Passwords do not match": "Ang mga password ay hindi nag-tutugma",
-	"Powered by": "Pinaandar ng",
+	"Powered by {{authelia}}": "Pinaandar ng {{authelia}}",
 	"Privacy Policy": "Patakaran sa Privacy",
 	"Push Notification": "Push Notification",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "Ang redirection ay naitakdang hindi ligtas at na-abort siguruhing tama ang URL ng redirection",

@@ -47,7 +47,7 @@
 	"Password has been reset": "Έχει γίνει επαναφορά του κωδικού πρόσβασης",
 	"Password": "Κωδικός",
 	"Passwords do not match": "Οι κωδικοί πρόσβασης δεν ταιριάζουν",
-	"Powered by": "Τροφοδοτείται από",
+	"Powered by {{authelia}}": "Τροφοδοτείται από {{authelia}}",
 	"Privacy Policy": "Πολιτική Απορρήτου",
 	"Push Notification": "Ειδοποίηση Push",
 	"Redirection was determined to be unsafe and aborted ensure the redirection URL is correct": "Η εκτροπή καθορίστηκε ότι δεν είναι ασφαλής και ματαιώθηκε βεβαιωθείτε ότι το URL επανακατεύθυνσης είναι σωστό",
