@@ -15,17 +15,17 @@ import {
 import { Brand } from "../components/Brand";
 
 export interface Props {
-	title?: string;
-    bodyEvent?: string;
-    bodyPrefix?: string;
-    bodySuffix?: string;
-	displayName?: string;
-	remoteIP?: string;
-	detailsKey?: string;
-	detailsValue?: string;
-	detailsPrefix?: string;
-	detailsSuffix?: string;
-	hidePreview?: boolean;
+	title: string;
+    bodyEvent: string;
+    bodyPrefix: string;
+    bodySuffix: string;
+	displayName: string;
+	remoteIP: string;
+	detailsKey: string;
+	detailsValue: string;
+	detailsPrefix: string;
+	detailsSuffix: string;
+	hidePreview: boolean;
 }
 
 export const Event = ({

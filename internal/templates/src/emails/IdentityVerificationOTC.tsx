@@ -18,14 +18,14 @@ import {
 import { Brand } from "../components/Brand";
 
 interface Props {
-    title?: string;
-    displayName?: string;
-    domain?: string;
-    remoteIP?: string;
-    oneTimeCode?: string;
-    revocationLinkURL?: string;
-    revocationLinkText?: string;
-	hidePreview?: boolean;
+    title: string;
+    displayName: string;
+    domain: string;
+    remoteIP: string;
+    oneTimeCode: string;
+    revocationLinkURL: string;
+    revocationLinkText: string;
+	hidePreview: boolean;
 }
 
 export const IdentityVerificationOTC = ({

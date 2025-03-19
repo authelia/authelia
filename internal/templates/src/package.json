@@ -28,6 +28,7 @@
 		"@types/react": "19.0.11",
 		"@types/react-dom": "19.0.4",
 		"eslint": "9.22.0",
+		"prettier": "3.5.3",
 		"tsx": "4.19.3",
 		"vitest": "3.0.9"
 	},

@@ -6,3 +6,4 @@ yarn-error.log
 node_modules
 public
 resources
+hugo_stats.json

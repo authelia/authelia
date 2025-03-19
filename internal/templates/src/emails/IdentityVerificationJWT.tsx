@@ -18,15 +18,15 @@ import {
 import { Brand } from "../components/Brand";
 
 interface Props {
-    title?: string;
-    displayName?: string;
-    domain?: string;
-    remoteIP?: string;
-    link?: string;
-    linkText?: string;
-    revocationLinkURL?: string;
-    revocationLinkText?: string;
-    hidePreview?: boolean;
+    title: string;
+    displayName: string;
+    domain: string;
+    remoteIP: string;
+    link: string;
+    linkText: string;
+    revocationLinkURL: string;
+    revocationLinkText: string;
+    hidePreview: boolean;
 }
 
 export const IdentityVerificationJWT = ({

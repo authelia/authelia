@@ -16,6 +16,8 @@ const optsTXT = {
 	plainText: true,
 };
 
+const prettyExamples = false;
+
 async function doRender() {
 	const propsEvent = {
 		title: "{{ .Title }}",
@@ -28,6 +30,7 @@ async function doRender() {
 		detailsValue: "{{ index $.Details $key }}",
 		detailsPrefix: "{{- $keys := sortAlpha (keys .Details) }}{{- range $key := $keys }}",
 		detailsSuffix: "{{ end }}",
+		hidePreview: false,
 	};
 
 	fs.writeFileSync('../embed/notification/Event.html', await render(<Event {...propsEvent} />, optsHTML));
@@ -38,7 +41,7 @@ async function doRender() {
 		hidePreview: true,
 	};
 
-	fs.writeFileSync('../../../examples/templates/notifications/no-preview/Event.html', await render(<Event {...propsEventNoPreview} />, optsHTML));
+	fs.writeFileSync('../../../examples/templates/notifications/no-preview/Event.html', await render(<Event {...propsEventNoPreview} />, {...optsHTML, pretty: prettyExamples}));
 
 	const propsJWT = {
 		title: "{{ .Title }}",
@@ -49,6 +52,7 @@ async function doRender() {
 		linkText: "{{ .LinkText }}",
 		revocationLinkURL: "{{ .RevocationLinkURL }}",
 		revocationLinkText: "{{ .RevocationLinkText }}",
+		hidePreview: false,
 	};
 
 	fs.writeFileSync('../embed/notification/IdentityVerificationJWT.html', await render(<IdentityVerificationJWT {...propsJWT} />, optsHTML));
@@ -59,7 +63,7 @@ async function doRender() {
 		hidePreview: true,
 	};
 
-	fs.writeFileSync('../../../examples/templates/notifications/no-preview/IdentityVerificationJWT.html', await render(<IdentityVerificationJWT {...propsJWTNoPreview} />, optsHTML));
+	fs.writeFileSync('../../../examples/templates/notifications/no-preview/IdentityVerificationJWT.html', await render(<IdentityVerificationJWT {...propsJWTNoPreview} />, {...optsHTML, pretty: prettyExamples}));
 
 	const propsOTC = {
 		title: "{{ .Title }}",
@@ -69,6 +73,7 @@ async function doRender() {
 		oneTimeCode: "{{ .OneTimeCode }}",
 		revocationLinkURL: "{{ .RevocationLinkURL }}",
 		revocationLinkText: "{{ .RevocationLinkText }}",
+		hidePreview: false,
 	};
 
 	fs.writeFileSync('../embed/notification/IdentityVerificationOTC.html', await render(<IdentityVerificationOTC {...propsOTC} />, optsHTML));
@@ -79,7 +84,7 @@ async function doRender() {
 		hidePreview: true,
 	};
 
-	fs.writeFileSync('../../../examples/templates/notifications/no-preview/IdentityVerificationOTC.html', await render(<IdentityVerificationOTC {...propsOTCNoPreview} />, optsHTML));
+	fs.writeFileSync('../../../examples/templates/notifications/no-preview/IdentityVerificationOTC.html', await render(<IdentityVerificationOTC {...propsOTCNoPreview} />, {...optsHTML, pretty: prettyExamples}));
 }
 
 doRender().then();
