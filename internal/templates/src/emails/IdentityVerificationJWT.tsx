@@ -1,3 +1,5 @@
+import * as React from 'react';
+
 import {
     Body,
     Container,
@@ -12,9 +14,10 @@ import {
     Button,
     Link,
 } from '@react-email/components';
-import * as React from 'react';
 
-interface IdentityVerificationJWTProps {
+import { Brand } from "../components/Brand";
+
+interface Props {
     title?: string;
     displayName?: string;
     domain?: string;
@@ -36,7 +39,7 @@ export const IdentityVerificationJWT = ({
     revocationLinkURL,
     revocationLinkText,
 	hidePreview,
-}: IdentityVerificationJWTProps) => {
+}: Props) => {
     return (
         <Html lang="en" dir="ltr">
             <Head />
@@ -58,13 +61,13 @@ export const IdentityVerificationJWT = ({
                             <strong>requested action </strong>related to the{' '}
                             <strong>security of your account</strong> at{' '}
                             <i>{domain}</i>
-                            <Text className="text-black text-[14px] leading-[24px] text-center">
-                                <strong>
-                                    Do not share this notification or the
-                                    content of this notification with anyone.
-                                </strong>
-                            </Text>
-                        </Text>
+						</Text>
+						<Text className="text-black text-[14px] leading-[24px] text-center">
+							<strong>
+										Do not share this notification or the
+										content of this notification with anyone.
+							</strong>
+						</Text>
                         <Hr className="border border-solid border-[#eaeaea] my-[12px] mx-0 w-full" />
                         <Section className="text-center">
                             <Text className="text-black text-[14px] leading-[24px]">
@@ -81,7 +84,6 @@ export const IdentityVerificationJWT = ({
                                 {linkText}
                             </Button>
                         </Section>
-
                         <Text className="text-black text-[14px] leading-[24px] text-center">
                             Alternatively, copy and paste this URL into your
                             browser:
@@ -95,14 +97,12 @@ export const IdentityVerificationJWT = ({
                                 {link}
                             </Link>
                         </Section>
-
+						<Hr className="border border-solid border-[#eaeaea] my-[26px] mx-0 w-full" />
                         <Text>
-                            <Hr className="border border-solid border-[#eaeaea] my-[26px] mx-0 w-full" />
                             If you did NOT initiate this request, your
                             credentials may have been compromised and you
                             should:
                         </Text>
-
                         <Section className="text-black text-[14px] leading-[22px]">
                             <ol>
                                 <li>
@@ -151,16 +151,7 @@ export const IdentityVerificationJWT = ({
                             directions in this notification.
                         </Text>
                     </Container>
-                    <Text className="text-[#666666] text-[10px] leading-[24px] text-center text-muted">
-                        Powered by{' '}
-                        <Link
-                            href="https://www.authelia.com"
-                            target="_blank"
-                            className="text-[#666666]"
-                        >
-                            Authelia
-                        </Link>
-                    </Text>
+                    <Brand />
                 </Body>
             </Tailwind>
         </Html>
@@ -176,6 +167,7 @@ IdentityVerificationJWT.PreviewProps = {
     revocationLinkURL: 'https://auth.example.com/revoke/reset-password?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJBdXRoZWxpYSIsImV4cCI6MTcyNzY0MTYwNywiaWF0IjoxNzI3NjM4MDA3LCJqdGkiOiI2NTAwY2NhMy03ZDAzLTQ3NjEtOGFiOC0wN2IwNDcxMTgwMzkiLCJhY3Rpb24iOiJSZXNldFBhc3N3b3JkIiwidXNlcm5hbWUiOiJqb2huIn0.TZjqSAun9uNTIu8680cdGAxuiMC18xiAa80LslTMhqU',
     revocationLinkText: 'Revoke',
     remoteIP: '127.0.0.1',
-} as IdentityVerificationJWTProps;
+	hidePreview: false,
+} as Props;
 
 export default IdentityVerificationJWT;

@@ -36,7 +36,7 @@
     "thulite": "2.5.0"
   },
   "devDependencies": {
-    "shx": "^0.3.4"
+    "shx": "^0.4.0"
   },
   "otherDependencies": {
     "hugo": "0.145.0"
@@ -48,11 +48,12 @@
     "node": ">=22.14.0",
     "pnpm": "10"
   },
-  "packageManager": "pnpm@10.5.2",
+  "packageManager": "pnpm@10.6.4",
   "pnpm": {
     "overrides": {
       "semver@<7.5.2": "7.6.3",
-      "nanoid@<3.3.8": "3.3.8"
+      "nanoid@<3.3.8": "3.3.8",
+      "babel@<7.26.10": "7.26.10"
     }
   }
 }
