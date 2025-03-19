@@ -84,13 +84,13 @@ func (s *AuthzSuite) Builder() (builder *AuthzBuilder) {
 func (s *AuthzSuite) BuilderWithBearerScheme() (builder *AuthzBuilder) {
 	switch s.implementation {
 	case AuthzImplExtAuthz:
-		return NewAuthzBuilder().WithImplementationExtAuthz().WithStrategies(NewHeaderProxyAuthorizationAuthnStrategy(time.Duration(0), model.AuthorizationSchemeBasic.String(), model.AuthorizationSchemeBearer.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
+		return NewAuthzBuilder().WithImplementationExtAuthz().WithStrategies(NewHeaderProxyAuthorizationAuthnStrategy(time.Duration(0), model.AuthorizationSchemeBasic.String(), model.AuthorizationSchemeBearer.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways(), false))
 	case AuthzImplForwardAuth:
-		return NewAuthzBuilder().WithImplementationForwardAuth().WithStrategies(NewHeaderProxyAuthorizationAuthnStrategy(time.Duration(0), model.AuthorizationSchemeBasic.String(), model.AuthorizationSchemeBearer.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
+		return NewAuthzBuilder().WithImplementationForwardAuth().WithStrategies(NewHeaderProxyAuthorizationAuthnStrategy(time.Duration(0), model.AuthorizationSchemeBasic.String(), model.AuthorizationSchemeBearer.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways(), false))
 	case AuthzImplAuthRequest:
-		return NewAuthzBuilder().WithImplementationAuthRequest().WithStrategies(NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(time.Duration(0), model.AuthorizationSchemeBasic.String(), model.AuthorizationSchemeBearer.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
+		return NewAuthzBuilder().WithImplementationAuthRequest().WithStrategies(NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(time.Duration(0), model.AuthorizationSchemeBasic.String(), model.AuthorizationSchemeBearer.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways(), false))
 	case AuthzImplLegacy:
-		return NewAuthzBuilder().WithImplementationLegacy().WithStrategies(NewHeaderLegacyAuthnStrategy(), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
+		return NewAuthzBuilder().WithImplementationLegacy().WithStrategies(NewHeaderLegacyAuthnStrategy(), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways(), false))
 	default:
 		s.T().FailNow()
 	}
@@ -101,13 +101,13 @@ func (s *AuthzSuite) BuilderWithBearerScheme() (builder *AuthzBuilder) {
 func (s *AuthzSuite) BuilderWithProxyAuthorizationBasicSchemeCached() (builder *AuthzBuilder) {
 	switch s.implementation {
 	case AuthzImplExtAuthz:
-		return NewAuthzBuilder().WithImplementationExtAuthz().WithStrategies(NewHeaderProxyAuthorizationAuthnStrategy(time.Minute, model.AuthorizationSchemeBasic.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
+		return NewAuthzBuilder().WithImplementationExtAuthz().WithStrategies(NewHeaderProxyAuthorizationAuthnStrategy(time.Minute, model.AuthorizationSchemeBasic.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways(), false))
 	case AuthzImplForwardAuth:
-		return NewAuthzBuilder().WithImplementationForwardAuth().WithStrategies(NewHeaderProxyAuthorizationAuthnStrategy(time.Minute, model.AuthorizationSchemeBasic.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
+		return NewAuthzBuilder().WithImplementationForwardAuth().WithStrategies(NewHeaderProxyAuthorizationAuthnStrategy(time.Minute, model.AuthorizationSchemeBasic.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways(), false))
 	case AuthzImplAuthRequest:
-		return NewAuthzBuilder().WithImplementationAuthRequest().WithStrategies(NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(time.Minute, model.AuthorizationSchemeBasic.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
+		return NewAuthzBuilder().WithImplementationAuthRequest().WithStrategies(NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(time.Minute, model.AuthorizationSchemeBasic.String()), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways(), false))
 	case AuthzImplLegacy:
-		return NewAuthzBuilder().WithImplementationLegacy().WithStrategies(NewHeaderLegacyAuthnStrategy(), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways()))
+		return NewAuthzBuilder().WithImplementationLegacy().WithStrategies(NewHeaderLegacyAuthnStrategy(), NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationAlways(), false))
 	default:
 		s.T().FailNow()
 	}
@@ -1352,7 +1352,7 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainWithAuthorizationHead
 	builder = builder.WithStrategies(
 		NewHeaderAuthorizationAuthnStrategy(time.Duration(0), "basic"),
 		NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(time.Duration(0), "basic"),
-		NewCookieSessionAuthnStrategy(builder.config.RefreshInterval),
+		NewCookieSessionAuthnStrategy(builder.config.RefreshInterval, false),
 	)
 
 	authz := builder.Build()
@@ -1602,7 +1602,7 @@ func (s *AuthzSuite) TestShouldDestroySessionWhenInactiveForTooLong() {
 	builder := s.Builder()
 
 	builder = builder.WithStrategies(
-		NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDuration(testInactivity)),
+		NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDuration(testInactivity), false),
 	)
 
 	authz := builder.Build()
@@ -1651,7 +1651,7 @@ func (s *AuthzSuite) TestShouldNotDestroySessionWhenInactiveForTooLongRememberMe
 	builder := s.Builder()
 
 	builder = builder.WithStrategies(
-		NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDuration(testInactivity)),
+		NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDuration(testInactivity), false),
 	)
 
 	authz := builder.Build()
@@ -1700,7 +1700,7 @@ func (s *AuthzSuite) TestShouldNotDestroySessionWhenNotInactiveForTooLong() {
 	builder := s.Builder()
 
 	builder = builder.WithStrategies(
-		NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDuration(testInactivity)),
+		NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDuration(testInactivity), false),
 	)
 
 	authz := builder.Build()
@@ -1750,7 +1750,7 @@ func (s *AuthzSuite) TestShouldUpdateInactivityTimestampEvenWhenHittingForbidden
 	builder := s.Builder()
 
 	builder = builder.WithStrategies(
-		NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDuration(testInactivity)),
+		NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDuration(testInactivity), false),
 	)
 
 	authz := builder.Build()
@@ -1800,7 +1800,7 @@ func (s *AuthzSuite) TestShouldNotRefreshUserDetailsFromBackendWhenRefreshDisabl
 	builder := s.Builder()
 
 	builder = builder.WithStrategies(
-		NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationNever()),
+		NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDurationNever(), false),
 	)
 
 	authz := builder.Build()
@@ -1894,7 +1894,7 @@ func (s *AuthzSuite) TestShouldDestroySessionWhenUserDoesNotExist() {
 	builder := s.Builder()
 
 	builder = builder.WithStrategies(
-		NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDuration(5 * time.Minute)),
+		NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDuration(5*time.Minute), false),
 	)
 
 	authz := builder.Build()
@@ -1981,7 +1981,7 @@ func (s *AuthzSuite) TestShouldUpdateRemovedUserGroupsFromBackendAndDeny() {
 	builder := s.Builder()
 
 	builder = builder.WithStrategies(
-		NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDuration(5 * time.Minute)),
+		NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDuration(5*time.Minute), false),
 	)
 
 	authz := builder.Build()
@@ -2066,7 +2066,7 @@ func (s *AuthzSuite) TestShouldUpdateAddedUserGroupsFromBackendAndDeny() {
 	builder := s.Builder()
 
 	builder = builder.WithStrategies(
-		NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDuration(5 * time.Minute)),
+		NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDuration(5*time.Minute), false),
 	)
 
 	authz := builder.Build()
@@ -2150,7 +2150,7 @@ func (s *AuthzSuite) TestShouldCheckValidSessionUsernameHeaderAndReturn200() {
 	builder := s.Builder()
 
 	builder = builder.WithStrategies(
-		NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDuration(testInactivity)),
+		NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDuration(testInactivity), false),
 	)
 
 	authz := builder.Build()
@@ -2201,7 +2201,7 @@ func (s *AuthzSuite) TestShouldCheckInvalidSessionUsernameHeaderAndReturn401AndD
 	builder := s.Builder()
 
 	builder = builder.WithStrategies(
-		NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDuration(5 * time.Minute)),
+		NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDuration(5*time.Minute), false),
 	)
 
 	authz := builder.Build()
@@ -2270,7 +2270,7 @@ func (s *AuthzSuite) TestShouldNotRedirectRequestsForBypassACLWhenInactiveForToo
 	builder := s.Builder()
 
 	builder = builder.WithStrategies(
-		NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDuration(testInactivity)),
+		NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDuration(testInactivity), false),
 	)
 
 	authz := builder.Build()
@@ -2347,7 +2347,7 @@ func (s *AuthzSuite) TestShouldFailToParsePortalURL() {
 	builder := s.Builder()
 
 	builder = builder.WithStrategies(
-		NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDuration(testInactivity)),
+		NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDuration(testInactivity), false),
 	)
 
 	authz := builder.Build()
