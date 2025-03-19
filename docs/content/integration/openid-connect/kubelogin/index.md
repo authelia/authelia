@@ -2,7 +2,7 @@
 title: "Kube Login"
 description: "Integrating Kube Login with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2022-07-13T04:27:30+10:00
+date: 2025-07-11T12:25:57+00:00
 draft: false
 images: []
 weight: 620

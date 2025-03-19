@@ -29,6 +29,8 @@ server:
     authz:
       forward-auth:
         implementation: 'ForwardAuth'
+        headers:
+          cookie_session: false
         authn_strategies:
           - name: 'HeaderAuthorization'
             schemes:
@@ -37,6 +39,8 @@ server:
           - name: 'CookieSession'
       ext-authz:
         implementation: 'ExtAuthz'
+        headers:
+          cookie_session: false
         authn_strategies:
           - name: 'HeaderAuthorization'
             schemes:
@@ -45,6 +49,8 @@ server:
           - name: 'CookieSession'
       auth-request:
         implementation: 'AuthRequest'
+        headers:
+          cookie_session: false
         authn_strategies:
           - name: 'HeaderAuthorization'
             schemes:
@@ -75,6 +81,18 @@ alphanumeric character.
 The underlying implementation for the endpoint. Valid case-sensitive values are `ForwardAuth`, `ExtAuthz`,
 `AuthRequest`, and `Legacy`. Read more about the implementations in the
 [reference guide](../../reference/guides/proxy-authorization.md#implementations).
+
+### headers
+
+Configures various special header behaviors.
+
+#### cookie_session
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+This option when enabled makes the endpoint respond with a Cookie header which is absent the Authelia session cookie.
+This allows you to manually configure your proxy to copy this modified header and replace the existing one, omitting the
+Authelia session cookie from the request to the backend.
 
 ### authn_strategies
 
