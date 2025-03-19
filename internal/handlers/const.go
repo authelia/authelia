@@ -21,6 +21,7 @@ var (
 
 	headerProxyAuthorization = []byte(fasthttp.HeaderProxyAuthorization)
 	headerProxyAuthenticate  = []byte(fasthttp.HeaderProxyAuthenticate)
+	headerCookie             = []byte(fasthttp.HeaderCookie)
 
 	headerSessionUsername = []byte("Session-Username")
 	headerRemoteUser      = []byte("Remote-User")
