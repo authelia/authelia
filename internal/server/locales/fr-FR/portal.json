@@ -65,6 +65,7 @@
 	"Security Key": "Clé de sécurité",
 	"Select a Device": "Sélectionnez un appareil",
 	"Sign in": "Se connecter",
+	"Sign in with a passkey": "Se connecter avec une clé d'accès",
 	"Sign out": "Se déconnecter",
 	"Successfully revoked the One-Time Code": "Révocation du code à usage unique réussie",
 	"Successfully revoked the Token": "Révocation du jeton réussie",
@@ -99,7 +100,8 @@
 	"Username": "Nom d'utilisateur",
 	"Username is required": "Le nom d'utilisateur est requis",
 	"You cancelled the assertion request": "Vous avez annulé la demande d'assertion",
-	"You must view and accept the Privacy Policy before using": "Vous devez consulter et accepter la <0>Politique de confidentialité</0> avant d'accéder",
+	"You have made too many requests": "Vous avez fait trop de demandes",
+	"You must view and accept the Privacy Policy before using {{authelia}}.": "Vous devez consulter et accepter la <policy>Politique de confidentialité</policy> avant d'utiliser {{authelia}}",
 	"You're being signed out and redirected": "Vous êtes déconnecté et redirigé",
 	"Your browser does not support the WebAuthn protocol": "Votre navigateur ne supporte pas le protocole WebAuthn",
 	"Your supplied password does not meet the password policy requirements": "Le mot de passe que vous avez fourni ne répond pas aux exigences de la politique de mot de passe"
