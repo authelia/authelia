@@ -4,7 +4,8 @@
 	"description": "",
 	"scripts": {
 		"dev": "email dev",
-		"build": "email build",
+		"buildx": "email build",
+		"build": "tsc && node dist/index.js",
 		"render": "tsc && node dist/index.js"
 	},
 	"keywords": [],
@@ -14,8 +15,8 @@
 		"@react-email/components": "0.0.34",
 		"@react-email/render": "1.0.5",
 		"esbuild": "0.25.1",
-		"react": "18.3.1",
-		"react-dom": "18.3.1",
+		"react": "19.0.0",
+		"react-dom": "19.0.0",
 		"react-email": "3.0.7",
 		"tailwind-merge": "3.0.2",
 		"tailwindcss": "4.0.14",
@@ -24,15 +25,18 @@
 	"devDependencies": {
 		"@radix-ui/colors": "3.0.0",
 		"@types/node": "22.13.10",
-		"@types/react": "18.3.18",
-		"@types/react-dom": "18.3.5",
+		"@types/react": "19.0.4",
+		"@types/react-dom": "19.0.4",
 		"eslint": "9.22.0",
 		"tsx": "4.19.3",
 		"vitest": "3.0.9"
 	},
 	"pnpm": {
 		"overrides": {
-			"nanoid@<3.3.8": "3.3.11"
+			"babel@<7.26.10": "7.26.11",
+			"nanoid@<3.3.8": "3.3.10",
+			"prismjs@<1.30.0": "1.30.0",
+			"vite@<5.4.12": "5.4.12"
 		}
 	}
 }

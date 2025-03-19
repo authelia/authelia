@@ -1,3 +1,5 @@
+import * as React from 'react';
+
 import {
     Body,
     Container,
@@ -12,9 +14,10 @@ import {
     Button,
     Link,
 } from '@react-email/components';
-import * as React from 'react';
 
-interface IdentityVerificationOTCProps {
+import { Brand } from "../components/Brand";
+
+interface Props {
     title?: string;
     displayName?: string;
     domain?: string;
@@ -34,7 +37,7 @@ export const IdentityVerificationOTC = ({
     revocationLinkURL,
     revocationLinkText,
 	hidePreview,
-}: IdentityVerificationOTCProps) => {
+}: Props) => {
     return (
         <Html lang="en" dir="ltr">
             <Head />
@@ -133,16 +136,7 @@ export const IdentityVerificationOTC = ({
                             directions in this notification.
                         </Text>
                     </Container>
-                    <Text className="text-[#666666] text-[10px] leading-[24px] text-center text-muted">
-                        Powered by{' '}
-                        <Link
-                            href="https://www.authelia.com"
-                            target="_blank"
-                            className="text-[#666666]"
-                        >
-                            Authelia
-                        </Link>
-                    </Text>
+					<Brand />
                 </Body>
             </Tailwind>
         </Html>
@@ -157,6 +151,6 @@ IdentityVerificationOTC.PreviewProps = {
     revocationLinkURL: 'https://auth.example.com',
     revocationLinkText: 'Revoke',
     remoteIP: '127.0.0.1',
-} as IdentityVerificationOTCProps;
+} as Props;
 
 export default IdentityVerificationOTC;

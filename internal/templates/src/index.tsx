@@ -2,7 +2,7 @@ import { render } from '@react-email/render';
 import * as React from "react";
 import * as fs from "node:fs";
 
-import Event, {EventProps} from './emails/Event';
+import Event from './emails/Event';
 import IdentityVerificationJWT from "./emails/IdentityVerificationJWT";
 import IdentityVerificationOTC from "./emails/IdentityVerificationOTC";
 
@@ -17,7 +17,7 @@ const optsTXT = {
 };
 
 async function doRender() {
-	const propsEvent: EventProps = {
+	const propsEvent = {
 		title: "{{ .Title }}",
 		displayName: "{{ .DisplayName }}",
         bodyPrefix: "{{ .BodyPrefix }}",

@@ -7,8 +7,6 @@ account at {{ .Domain }}
 
 Do not share this notification or the content of this notification with anyone.
 
-
-
 --------------------------------------------------------------------------------
 
 If you made this request, click the validation link below.
@@ -19,14 +17,10 @@ Alternatively, copy and paste this URL into your browser:
 
 {{ .LinkURL }} {{ .LinkURL }}
 
-
-
 --------------------------------------------------------------------------------
 
 If you did NOT initiate this request, your credentials may have been compromised
 and you should:
-
-
 
  1. Revoke the validation link using the provided links below
  2. Reset your password or other login credentials
