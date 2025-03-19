@@ -8,6 +8,7 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -58,20 +59,38 @@ func handleAuthzPortalURLFromQueryLegacy(ctx *middlewares.AutheliaCtx) (portalUR
 	return portalURL, nil
 }
 
-func handleAuthzAuthorizedStandard(ctx *middlewares.AutheliaCtx, authn *Authn) {
-	ctx.ReplyStatusCode(fasthttp.StatusOK)
-
-	if authn.Details.Username != "" {
-		ctx.Response.Header.SetBytesK(headerRemoteUser, authn.Details.Username)
-		ctx.Response.Header.SetBytesK(headerRemoteGroups, strings.Join(authn.Details.Groups, ","))
-		ctx.Response.Header.SetBytesK(headerRemoteName, authn.Details.DisplayName)
-
-		switch len(authn.Details.Emails) {
-		case 0:
-			ctx.Response.Header.SetBytesK(headerRemoteEmail, "")
-		default:
-			ctx.Response.Header.SetBytesK(headerRemoteEmail, authn.Details.Emails[0])
+func handleAuthzAuthorizedChain(handlers ...HandlerAuthzAuthorized) HandlerAuthzAuthorized {
+	return func(ctx *middlewares.AutheliaCtx, provider *session.Session, authn *Authn) {
+		for _, handler := range handlers {
+			handler(ctx, provider, authn)
 		}
+	}
+}
+
+func handleAuthzAuthorizedReset(ctx *middlewares.AutheliaCtx, provider *session.Session, authn *Authn) {
+	ctx.ReplyStatusCode(fasthttp.StatusOK)
+}
+
+func handleAuthzAuthorizedResponseHeaderCookie(ctx *middlewares.AutheliaCtx, provider *session.Session, authn *Authn) {
+	if cookies := NewCookies(ctx.Request.Header.PeekBytes(headerCookie)); cookies != nil {
+		ctx.Response.Header.SetBytesK(headerCookie, cookies.Encode(provider.Config.Name))
+	}
+}
+
+func handleAuthzAuthorizedResponseHeaderRemote(ctx *middlewares.AutheliaCtx, provider *session.Session, authn *Authn) {
+	if authn.Details.Username == "" {
+		return
+	}
+
+	ctx.Response.Header.SetBytesK(headerRemoteUser, authn.Details.Username)
+	ctx.Response.Header.SetBytesK(headerRemoteGroups, strings.Join(authn.Details.Groups, ","))
+	ctx.Response.Header.SetBytesK(headerRemoteName, authn.Details.DisplayName)
+
+	switch len(authn.Details.Emails) {
+	case 0:
+		ctx.Response.Header.SetBytesK(headerRemoteEmail, "")
+	default:
+		ctx.Response.Header.SetBytesK(headerRemoteEmail, authn.Details.Emails[0])
 	}
 }
 

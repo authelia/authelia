@@ -69,6 +69,13 @@ func (b *AuthzBuilder) WithConfig(config *schema.Configuration) *AuthzBuilder {
 	return b
 }
 
+// WithAuthzConfig allows simple configuration of the AuthzConfig.
+func (b *AuthzBuilder) WithAuthzConfig(config AuthzConfig) *AuthzBuilder {
+	b.config = config
+
+	return b
+}
+
 // WithEndpointConfig configures the AuthzBuilder with a *schema.ServerAuthzEndpointConfig. Should be called AFTER
 // WithConfig or WithAuthzConfig.
 func (b *AuthzBuilder) WithEndpointConfig(config schema.ServerEndpointsAuthz) *AuthzBuilder {
@@ -81,6 +88,10 @@ func (b *AuthzBuilder) WithEndpointConfig(config schema.ServerEndpointsAuthz) *A
 		b.WithImplementationExtAuthz()
 	default:
 		b.WithImplementationLegacy()
+	}
+
+	if config.Headers.CookieSession {
+		b.config.CookieHeader = true
 	}
 
 	b.WithStrategies()
@@ -106,10 +117,9 @@ func (b *AuthzBuilder) WithEndpointConfig(config schema.ServerEndpointsAuthz) *A
 // Build returns a new Authz from the currently configured options in this builder.
 func (b *AuthzBuilder) Build() (authz *Authz) {
 	authz = &Authz{
-		config:           b.config,
-		strategies:       b.strategies,
-		handleAuthorized: handleAuthzAuthorizedStandard,
-		implementation:   b.implementation,
+		config:         b.config,
+		strategies:     b.strategies,
+		implementation: b.implementation,
 	}
 
 	authz.config.StatusCodeBadRequest = fasthttp.StatusBadRequest
@@ -131,6 +141,7 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 		authz.handleGetObject = handleAuthzGetObjectLegacy
 		authz.handleUnauthorized = handleAuthzUnauthorizedLegacy
 		authz.handleGetAutheliaURL = handleAuthzPortalURLLegacy
+		authz.handleAuthorized = handleAuthzAuthorizedChain(handleAuthzAuthorizedReset, handleAuthzAuthorizedResponseHeaderRemote)
 	case AuthzImplForwardAuth:
 		authz.handleGetObject = handleAuthzGetObjectForwardAuth
 		authz.handleUnauthorized = handleAuthzUnauthorizedForwardAuth
@@ -143,6 +154,14 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 		authz.handleGetObject = handleAuthzGetObjectExtAuthz
 		authz.handleUnauthorized = handleAuthzUnauthorizedExtAuthz
 		authz.handleGetAutheliaURL = handleAuthzPortalURLFromHeader
+	}
+
+	if authz.handleAuthorized == nil {
+		if authz.config.CookieHeader {
+			authz.handleAuthorized = handleAuthzAuthorizedChain(handleAuthzAuthorizedReset, handleAuthzAuthorizedResponseHeaderCookie, handleAuthzAuthorizedResponseHeaderRemote)
+		} else {
+			authz.handleAuthorized = handleAuthzAuthorizedChain(handleAuthzAuthorizedReset, handleAuthzAuthorizedResponseHeaderRemote)
+		}
 	}
 
 	return authz

@@ -339,6 +339,7 @@ var Keys = []string{
 	"server.endpoints.authz.*.authn_strategies[].name",
 	"server.endpoints.authz.*.authn_strategies[].scheme_basic_cache_lifespan",
 	"server.endpoints.authz.*.authn_strategies[].schemes",
+	"server.endpoints.authz.*.headers.cookie_session",
 	"server.endpoints.authz.*.implementation",
 	"server.endpoints.enable_expvars",
 	"server.endpoints.enable_pprof",

@@ -33,7 +33,12 @@ type ServerEndpoints struct {
 type ServerEndpointsAuthz struct {
 	Implementation string `koanf:"implementation" yaml:"implementation,omitempty" toml:"implementation,omitempty" json:"implementation,omitempty" jsonschema:"enum=ForwardAuth,enum=AuthRequest,enum=ExtAuthz,enum=Legacy,title=Implementation" jsonschema_description:"The specific Authorization implementation to use for this endpoint."`
 
+	Headers         ServerEndpointsAuthzHeaders         `koanf:"headers" yaml:"headers" toml:"headers" json:"headers" jsonschema:"title=Headers" jsonschema_description:"The Authorization headers configuration"`
 	AuthnStrategies []ServerEndpointsAuthzAuthnStrategy `koanf:"authn_strategies" yaml:"authn_strategies,omitempty" toml:"authn_strategies,omitempty" json:"authn_strategies,omitempty" jsonschema:"title=Authn Strategies" jsonschema_description:"The specific Authorization strategies to use for this endpoint."`
+}
+
+type ServerEndpointsAuthzHeaders struct {
+	CookieSession bool `koanf:"cookie_session" yaml:"cookie_session,omitempty" toml:"cookie_session,omitempty" json:"cookie_session,omitempty" jsonschema:"default=false,title=Cookie Session Response Cookie Header" jsonschema_description:"When enabled this option makes this endpoint respond with a Cookie header which is absent the configured Authelia cookie for the relevant domain."`
 }
 
 // ServerEndpointsAuthzAuthnStrategy is the Authz endpoints configuration for the HTTP server.
