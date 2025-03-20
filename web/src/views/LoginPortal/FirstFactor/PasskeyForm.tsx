@@ -130,7 +130,7 @@ const PasskeyForm = function (props: Props) {
         <Fragment>
             <Grid size={{ xs: 12 }}>
                 <Divider component="div" role="presentation">
-                    <Typography>OR</Typography>
+                    <Typography sx={{ textTransform: "uppercase" }}>{translate("or")}</Typography>
                 </Divider>
             </Grid>
             <Grid size={{ xs: 12 }}>
