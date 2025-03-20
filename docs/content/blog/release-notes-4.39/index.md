@@ -376,6 +376,6 @@ configuration by looking at the [Systemd Reference Guide](../../reference/guides
 
 ### OLED Theme
 
-{{< figure src="oled.png" caption="Login Portal OLED Theme" alt="OLED Theme" width=400 >}}
+{{< figure src="oled.png" caption="Login Portal OLED Theme" alt="OLED Theme" process="resize 1200x" >}}
 
 A new theme has been added optimized for OLED displays.
