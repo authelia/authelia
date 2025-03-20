@@ -1,11 +1,13 @@
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import checkerPlugin from "vite-plugin-checker";
 import istanbul from "vite-plugin-istanbul";
 import svgr from "vite-plugin-svgr";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig(({ mode }) => {
+    const env = loadEnv(mode, process.cwd());
+    const allowedHosts = env.VITE_ALLOWED_HOSTS ? env.VITE_ALLOWED_HOSTS.split(",") : [];
     const isCoverage = process.env.VITE_COVERAGE === "true";
     const sourcemap = isCoverage ? "inline" : undefined;
 
@@ -91,7 +93,7 @@ export default defineConfig(({ mode }) => {
         server: {
             open: false,
             port: 3000,
-            allowedHosts: ["login.example.com"],
+            allowedHosts: ["login.example.com", ...allowedHosts],
         },
         test: {
             coverage: {
