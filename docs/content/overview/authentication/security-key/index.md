@@ -28,7 +28,7 @@ Normally, the protocol requires your security key to be enrolled on each site be
 Since Authelia provides Single Sign-On, your users will need to enroll their device only once to get access to all your
 applications.
 
-{{< figure src="REGISTER-U2F.png" caption="The WebAuthn Registration View" alt="2FA WebAuthn Registration View" width=400 >}}
+{{< figure src="REGISTER-U2F.png" caption="The WebAuthn Registration View" alt="2FA WebAuthn Registration View" process="resize 400x" >}}
 
 After having successfully passed the first factor, select *Security Key* method and click on *Register device* link.
 This will send you an email to verify your identity.
@@ -41,7 +41,7 @@ complete the enrollment.
 Upon successful enrollment, you can authenticate using your security key by simply touching the token again when
 requested:
 
-{{< figure src="2FA-U2F.png" caption="The WebAuthn Authentication View" alt="2FA WebAuthn Authentication View" width=400 >}}
+{{< figure src="2FA-U2F.png" caption="The WebAuthn Authentication View" alt="2FA WebAuthn Authentication View" process="resize 400x" >}}
 
 Easy, right?!
 
