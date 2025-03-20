@@ -2,7 +2,9 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 	"os"
+	"syscall"
 )
 
 // FileExists returns true if the given path exists and is a file.
@@ -53,4 +55,18 @@ func PathExists(path string) (exists bool, err error) {
 	}
 
 	return true, err
+}
+
+func WithoutUmask(do func()) {
+	previous := syscall.Umask(0)
+
+	defer func() {
+		recover()
+
+		fmt.Println("recovered:", previous)
+
+		syscall.Umask(previous)
+	}()
+
+	do()
 }

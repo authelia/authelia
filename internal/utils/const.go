@@ -87,6 +87,7 @@ var (
 	reOnlyNumeric      = regexp.MustCompile(`^\d+$`)
 	reDurationStandard = regexp.MustCompile(`(?P<Duration>[1-9]\d*?)(?P<Unit>[^\d\s]+)`)
 	reNumeric          = regexp.MustCompile(`\d+`)
+	reIsOctalMode      = regexp.MustCompile(`^[0-7]{3,4}$`)
 )
 
 // Duration unit types.

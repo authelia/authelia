@@ -2,7 +2,6 @@ package session
 
 import (
 	"crypto/rand"
-	"crypto/tls"
 	"crypto/x509"
 	"fmt"
 	"strings"
@@ -99,11 +98,7 @@ func NewSessionProvider(config schema.Session, certPool *x509.CertPool) (name st
 	case config.Redis != nil:
 		serializer = NewEncryptingSerializer(config.Secret)
 
-		var tlsConfig *tls.Config
-
-		if config.Redis.TLS != nil {
-			tlsConfig = utils.NewTLSConfig(config.Redis.TLS, certPool)
-		}
+		tlsConfig := config.Redis.TLS.ToTLSConfig(certPool)
 
 		if config.Redis.HighAvailability != nil && config.Redis.HighAvailability.SentinelName != "" {
 			addrs := make([]string, 0)

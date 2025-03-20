@@ -257,7 +257,7 @@ func loadPostgreSQLTLSConfig(config *schema.StoragePostgreSQL, globalCACertPool 
 }
 
 func loadPostgreSQLModernTLSConfig(config *schema.TLS, globalCACertPool *x509.CertPool) (tlsConfig *tls.Config) {
-	return utils.NewTLSConfig(config, globalCACertPool)
+	return config.ToTLSConfig(globalCACertPool)
 }
 
 //nolint:staticcheck // Used for legacy purposes.

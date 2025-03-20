@@ -1,7 +1,7 @@
 package notification
 
 const (
-	fileNotifierMode   = 0600
+	fileNotifierMode   = 0666
 	fileNotifierHeader = "Date: %s\nRecipient: %s\nSubject: %s\n"
 )
 

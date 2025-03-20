@@ -50,6 +50,8 @@ type CmdCtx struct {
 	trusted   *x509.CertPool
 
 	cconfig *CmdCtxConfig
+
+	umask *int
 }
 
 // NewCmdCtxConfig returns a new CmdCtxConfig.
@@ -230,7 +232,7 @@ func (ctx *CmdCtx) LogConfigure(_ *cobra.Command, _ []string) (err error) {
 
 	config.KeepStdout = true
 
-	if err = logging.InitializeLogger(schema.Log{Level: ctx.config.Log.Level}, false); err != nil {
+	if err = logging.InitializeLogger(ctx.config.Log.Level, "", "", false, false); err != nil {
 		return fmt.Errorf("Cannot initialize logger: %w", err)
 	}
 
@@ -412,4 +414,56 @@ func (ctx *CmdCtx) HelperConfigLoadRunE(cmd *cobra.Command, _ []string) (err err
 	}
 
 	return nil
+}
+
+func (ctx *CmdCtx) UmaskPreRunE(cmd *cobra.Command, _ []string) (err error) {
+	umask, ok := getExpectedUmask()
+
+	if !ok {
+		return nil
+	}
+
+	umask = syscall.Umask(umask)
+
+	ctx.umask = &umask
+
+	return nil
+}
+
+func (ctx *CmdCtx) UmaskPostRunE(cmd *cobra.Command, _ []string) (err error) {
+	if ctx.umask == nil {
+		return nil
+	}
+
+	syscall.Umask(*ctx.umask)
+
+	return nil
+}
+
+func getExpectedUmask() (umask int, ok bool) {
+	var (
+		raw string
+	)
+
+	if raw, ok = syscall.Getenv("UMASK"); !ok {
+		return
+	}
+
+	if !utils.IsStringOctalMode(raw) {
+		return
+	}
+
+	var (
+		mode int64
+		err  error
+	)
+
+	if mode, err = strconv.ParseInt(raw, 8, 0); err != nil {
+		return
+	}
+
+	umask = int(mode)
+	ok = true
+
+	return
 }

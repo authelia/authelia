@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"time"
 )
 
@@ -14,6 +16,33 @@ type TLS struct {
 
 	PrivateKey       CryptographicPrivateKey `koanf:"private_key" json:"private_key" jsonschema:"title=Private Key" jsonschema_description:"The private key."`
 	CertificateChain X509CertificateChain    `koanf:"certificate_chain" json:"certificate_chain" jsonschema:"title=Certificate Chain" jsonschema_description:"The certificate chain."`
+}
+
+func (t *TLS) ToTLSConfig(rootCAs *x509.CertPool) *tls.Config {
+	if t == nil {
+		return nil
+	}
+
+	var certificates []tls.Certificate
+
+	if t.PrivateKey != nil && t.CertificateChain.HasCertificates() {
+		certificates = []tls.Certificate{
+			{
+				Certificate: t.CertificateChain.CertificatesRaw(),
+				Leaf:        t.CertificateChain.Leaf(),
+				PrivateKey:  t.PrivateKey,
+			},
+		}
+	}
+
+	return &tls.Config{
+		ServerName:         t.ServerName,
+		InsecureSkipVerify: t.SkipVerify, //nolint:gosec // Informed choice by user. Off by default.
+		MinVersion:         t.MinimumVersion.MinVersion(),
+		MaxVersion:         t.MaximumVersion.MaxVersion(),
+		Certificates:       certificates,
+		RootCAs:            rootCAs,
+	}
 }
 
 // ServerTimeouts represents server timeout configurations.

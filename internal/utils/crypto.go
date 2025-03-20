@@ -23,7 +23,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 )
 
@@ -312,34 +311,6 @@ func IsX509PrivateKey(i any) bool {
 	}
 }
 
-// NewTLSConfig generates a tls.Config from a schema.TLS and a x509.CertPool.
-func NewTLSConfig(config *schema.TLS, rootCAs *x509.CertPool) (tlsConfig *tls.Config) {
-	if config == nil {
-		return nil
-	}
-
-	var certificates []tls.Certificate
-
-	if config.PrivateKey != nil && config.CertificateChain.HasCertificates() {
-		certificates = []tls.Certificate{
-			{
-				Certificate: config.CertificateChain.CertificatesRaw(),
-				Leaf:        config.CertificateChain.Leaf(),
-				PrivateKey:  config.PrivateKey,
-			},
-		}
-	}
-
-	return &tls.Config{
-		ServerName:         config.ServerName,
-		InsecureSkipVerify: config.SkipVerify, //nolint:gosec // Informed choice by user. Off by default.
-		MinVersion:         config.MinimumVersion.MinVersion(),
-		MaxVersion:         config.MaximumVersion.MaxVersion(),
-		RootCAs:            rootCAs,
-		Certificates:       certificates,
-	}
-}
-
 // NewX509CertPool generates a x509.CertPool from the system PKI and the directory specified.
 func NewX509CertPool(directory string) (certPool *x509.CertPool, warnings []error, errors []error) {
 	var err error
@@ -392,7 +363,7 @@ func NewX509CertPool(directory string) (certPool *x509.CertPool, warnings []erro
 func WriteCertificateBytesAsPEMToPath(path string, csr bool, certs ...[]byte) (err error) {
 	var out *os.File
 
-	if out, err = os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
+	if out, err = os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666); err != nil {
 		return err
 	}
 
@@ -425,7 +396,7 @@ func WriteCertificateBytesAsPEMToWriter(wr io.Writer, csr bool, certs ...[]byte)
 func WritePEMBlocksToPath(path string, blocks ...*pem.Block) (err error) {
 	var out *os.File
 
-	if out, err = os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
+	if out, err = os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666); err != nil {
 		return err
 	}
 

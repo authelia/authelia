@@ -7,7 +7,6 @@ import (
 	"github.com/go-sql-driver/mysql"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // MySQLProvider is a MySQL provider.
@@ -37,7 +36,7 @@ func dsnMySQL(config *schema.StorageMySQL, caCertPool *x509.CertPool) (dataSourc
 	dsnConfig.Addr = config.Address.NetworkAddress()
 
 	if config.TLS != nil {
-		_ = mysql.RegisterTLSConfig("storage", utils.NewTLSConfig(config.TLS, caCertPool))
+		_ = mysql.RegisterTLSConfig("storage", config.TLS.ToTLSConfig(caCertPool))
 
 		dsnConfig.TLSConfig = "storage"
 	}

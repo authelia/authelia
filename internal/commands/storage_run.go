@@ -238,7 +238,7 @@ func (ctx *CmdCtx) StorageCacheMDS3DumpRunE(cmd *cobra.Command, args []string) (
 		return fmt.Errorf("error dumping metadata: no metadata is in the cache")
 	}
 
-	if file, err = os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
+	if file, err = os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666); err != nil {
 		return err
 	}
 

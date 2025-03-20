@@ -358,7 +358,7 @@ func cmdHelpTopic(cmd *cobra.Command, body, topic string) {
 func exportYAMLWithJSONSchema(name, filename string, v any) (err error) {
 	var f *os.File
 
-	if f, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
+	if f, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666); err != nil {
 		return err
 	}
 

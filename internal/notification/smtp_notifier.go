@@ -16,18 +16,13 @@ import (
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/templates"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewSMTPNotifier creates a SMTPNotifier using the notifier configuration.
 func NewSMTPNotifier(config *schema.NotifierSMTP, certPool *x509.CertPool) *SMTPNotifier {
 	log := logging.Logger().WithFields(map[string]any{"provider": "notifier"})
 
-	var tlsconfig *tls.Config
-
-	if config.TLS != nil {
-		tlsconfig = utils.NewTLSConfig(config.TLS, certPool)
-	}
+	tlsconfig := config.TLS.ToTLSConfig(certPool)
 
 	var opts []gomail.Option
 

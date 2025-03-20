@@ -308,3 +308,8 @@ func StringJoinBuild(sep, sepFinal, quote string, items []string) string {
 
 	return b.String()
 }
+
+// IsStringOctalMode returns true if the input is an octal mode.
+func IsStringOctalMode(input string) bool {
+	return reIsOctalMode.MatchString(input)
+}

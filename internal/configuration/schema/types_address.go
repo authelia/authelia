@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"github.com/authelia/jsonschema"
+
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewAddress returns an *Address and error depending on the ability to parse the string as an Address.
@@ -582,7 +584,7 @@ func (a *Address) validateUnixSocket() (err error) {
 	if a.url.Query().Has(addressQueryParamUmask) {
 		v := a.url.Query().Get(addressQueryParamUmask)
 
-		if !regexpIsUmask.MatchString(v) {
+		if !utils.IsStringOctalMode(v) {
 			return fmt.Errorf("error validating the unix socket address: could not parse address '%s': the address has a umask value of '%s' which does not appear to be a valid octal string", a.url.String(), v)
 		}
 
@@ -611,7 +613,7 @@ func (a *Address) validateFD() (err error) {
 	if a.url.Query().Has(addressQueryParamUmask) {
 		v := a.url.Query().Get(addressQueryParamUmask)
 
-		if !regexpIsUmask.MatchString(v) {
+		if !utils.IsStringOctalMode(v) {
 			return fmt.Errorf("error validating the file descriptor address: could not parse address '%s': the address has a umask value of '%s' which does not appear to be a valid octal string", a.url.String(), v)
 		}
 

@@ -194,8 +194,7 @@ func TestLogReopenFiles(t *testing.T) {
 		},
 	}
 
-	err := logging.InitializeLogger(config.Log, false)
-	require.NoError(t, err)
+	require.NoError(t, logging.InitializeLogger(config.Log.Level, config.Log.FilePath, config.Log.Format, config.Log.KeepStdout, false))
 
 	logging.Logger().Info("This is the first log file.")
 

@@ -13,7 +13,6 @@ import (
 	"github.com/go-ldap/ldap/v3"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // LDAPClientFactory an interface describing factories that produce LDAPConnection implementations.
@@ -30,7 +29,7 @@ func NewStandardLDAPClientFactory(config *schema.AuthenticationBackendLDAP, cert
 		dialer = &LDAPClientDialerStandard{}
 	}
 
-	tlsc := utils.NewTLSConfig(config.TLS, certs)
+	tlsc := config.TLS.ToTLSConfig(certs)
 
 	opts := []ldap.DialOpt{
 		ldap.DialWithDialer(&net.Dialer{Timeout: config.Timeout}),
@@ -79,7 +78,7 @@ func NewPooledLDAPClientFactory(config *schema.AuthenticationBackendLDAP, certs 
 		dialer = &LDAPClientDialerStandard{}
 	}
 
-	tlsc := utils.NewTLSConfig(config.TLS, certs)
+	tlsc := config.TLS.ToTLSConfig(certs)
 
 	opts := []ldap.DialOpt{
 		ldap.DialWithDialer(&net.Dialer{Timeout: config.Timeout}),

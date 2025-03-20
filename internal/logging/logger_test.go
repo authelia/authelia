@@ -10,16 +10,14 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 func TestShouldWriteLogsToFile(t *testing.T) {
 	dir := t.TempDir()
 
 	path := fmt.Sprintf("%s/authelia.log", dir)
-	err := InitializeLogger(schema.Log{Format: "text", FilePath: path, KeepStdout: false}, false)
-	require.NoError(t, err)
+
+	require.NoError(t, InitializeLogger("", path, "text", false, false))
 
 	Logger().Info("This is a test")
 
@@ -36,8 +34,8 @@ func TestShouldWriteLogsToFileAndStdout(t *testing.T) {
 	dir := t.TempDir()
 
 	path := fmt.Sprintf("%s/authelia.log", dir)
-	err := InitializeLogger(schema.Log{Format: "text", FilePath: path, KeepStdout: true}, false)
-	require.NoError(t, err)
+
+	require.NoError(t, InitializeLogger("", path, "text", true, false))
 
 	Logger().Info("This is a test")
 
@@ -54,8 +52,8 @@ func TestShouldFormatLogsAsJSON(t *testing.T) {
 	dir := t.TempDir()
 
 	path := fmt.Sprintf("%s/authelia.log", dir)
-	err := InitializeLogger(schema.Log{Format: "json", FilePath: path, KeepStdout: false}, false)
-	require.NoError(t, err)
+
+	require.NoError(t, InitializeLogger("", path, "json", false, false))
 
 	Logger().Info("This is a test")
 
@@ -69,7 +67,7 @@ func TestShouldFormatLogsAsJSON(t *testing.T) {
 }
 
 func TestShouldRaiseErrorOnInvalidFile(t *testing.T) {
-	err := InitializeLogger(schema.Log{FilePath: "/not/a/valid/path/to.log"}, false)
+	err := InitializeLogger("", "/not/a/valid/path/to.log", "", false, false)
 
 	switch runtime.GOOS {
 	case "windows":

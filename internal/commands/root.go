@@ -3,9 +3,8 @@ package commands
 import (
 	"errors"
 	"fmt"
-	"os"
-
 	"github.com/spf13/cobra"
+	"os"
 
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -35,7 +34,11 @@ func NewRootCmd() (cmd *cobra.Command) {
 			ctx.HelperConfigValidateRunE,
 			ctx.ConfigValidateLogRunE,
 		),
+
 		RunE: ctx.RootRunE,
+
+		PersistentPreRunE:  ctx.UmaskPreRunE,
+		PersistentPostRunE: ctx.UmaskPostRunE,
 
 		DisableAutoGenTag: true,
 	}

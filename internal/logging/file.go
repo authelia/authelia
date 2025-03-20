@@ -32,7 +32,7 @@ func (f *File) Open() (err error) {
 
 	var file *os.File
 
-	if file, err = os.OpenFile(FormatFilePath(f.name, time.Now()), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600); err != nil {
+	if file, err = os.OpenFile(FormatFilePath(f.name, time.Now().Local()), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666); err != nil {
 		return fmt.Errorf("error opening log file: %w", err)
 	}
 
@@ -58,7 +58,7 @@ func (f *File) Reopen() (err error) {
 
 	var file *os.File
 
-	if file, err = os.OpenFile(FormatFilePath(f.name, time.Now()), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
+	if file, err = os.OpenFile(FormatFilePath(f.name, time.Now().Local()), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666); err != nil {
 		return fmt.Errorf("error reopning log file: error opening new log file: %w", err)
 	}
 

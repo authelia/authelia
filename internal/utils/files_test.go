@@ -54,3 +54,11 @@ func TestShouldCheckIfPathExists(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, exists)
 }
+
+func TestWithoutUmask(t *testing.T) {
+	assert.NotPanics(t, func() {
+		WithoutUmask(func() {
+			panic("oops")
+		})
+	})
+}

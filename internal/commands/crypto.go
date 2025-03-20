@@ -54,8 +54,8 @@ func newCryptoRandCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd.Flags().String(cmdFlagNameCharacters, "", cmdFlagUsageCharacters)
 	cmd.Flags().IntP(cmdFlagNameLength, "n", 72, cmdFlagUsageLength)
 	cmd.Flags().StringSlice(cmdFlagNameFile, nil, "files to export the unique random values to instead of printing them")
-	cmd.Flags().String(cmdFlagNameModeFiles, "0600", "mode for the created files")
-	cmd.Flags().String(cmdFlagNameModeDirectories, "0700", "mode for the created directories")
+	cmd.Flags().String(cmdFlagNameModeFiles, "0666", "mode for the created files")
+	cmd.Flags().String(cmdFlagNameModeDirectories, "0777", "mode for the created directories")
 
 	return cmd
 }

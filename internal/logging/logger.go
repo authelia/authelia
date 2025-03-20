@@ -7,8 +7,6 @@ import (
 
 	logrus_stack "github.com/Gurpartap/logrus-stack"
 	"github.com/sirupsen/logrus"
-
-	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 // Logger returns the standard logrus logger.
@@ -17,20 +15,20 @@ func Logger() *logrus.Logger {
 }
 
 // InitializeLogger configures the default logger similar to ConfigureLogger but also configures the stack levels hook.
-func InitializeLogger(config schema.Log, log bool) (err error) {
-	initializeStackTracer(config)
+func InitializeLogger(level, filePath, format string, keepStdout, log bool) (err error) {
+	initializeStackTracer(level)
 
-	return ConfigureLogger(config, log)
+	return ConfigureLogger(level, filePath, format, keepStdout, log)
 }
 
-func initializeStackTracer(config schema.Log) {
+func initializeStackTracer(level string) {
 	// Ensure the stack trace hook is only initialized once.
 	stacktrace.Do(func() {
 		var (
 			callerLevels, stackLevels []logrus.Level
 		)
 
-		switch LogLevel(config.Level).Level() {
+		switch LogLevel(level).Level() {
 		case logrus.DebugLevel:
 			stackLevels = []logrus.Level{logrus.PanicLevel, logrus.FatalLevel, logrus.ErrorLevel}
 		case logrus.TraceLevel:
@@ -45,10 +43,10 @@ func initializeStackTracer(config schema.Log) {
 }
 
 // ConfigureLogger configures the default loggers level, formatting, and the output destinations.
-func ConfigureLogger(config schema.Log, log bool) (err error) {
-	setLevelStr(config.Level, log)
+func ConfigureLogger(level, filePath, format string, keepStdout, log bool) (err error) {
+	setLevelStr(level, log)
 
-	switch config.Format {
+	switch format {
 	case FormatJSON:
 		logrus.SetFormatter(&logrus.JSONFormatter{})
 	default:
@@ -58,14 +56,14 @@ func ConfigureLogger(config schema.Log, log bool) (err error) {
 	var writers []io.Writer
 
 	switch {
-	case config.FilePath != "":
-		lf = NewFile(config.FilePath)
+	case filePath != "":
+		lf = NewFile(filePath)
 
 		if err = lf.Open(); err != nil {
 			return err
 		}
 
-		if config.Format != FormatJSON {
+		if format != FormatJSON {
 			logrus.SetFormatter(&logrus.TextFormatter{
 				DisableColors: true,
 				FullTimestamp: true,
@@ -74,7 +72,7 @@ func ConfigureLogger(config schema.Log, log bool) (err error) {
 
 		writers = []io.Writer{lf}
 
-		if config.KeepStdout {
+		if keepStdout {
 			writers = append(writers, os.Stdout)
 		}
 	default:

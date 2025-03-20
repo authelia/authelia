@@ -112,8 +112,6 @@ var (
 	// regexpHasScheme checks if a string has a scheme. Valid characters for schemes include alphanumeric, hyphen,
 	// period, and plus characters.
 	regexpHasScheme = regexp.MustCompile(`^[-+.a-zA-Z\d]*(://|:$)`)
-
-	regexpIsUmask = regexp.MustCompile(`^[0-7]{3,4}$`)
 )
 
 const (
