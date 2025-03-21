@@ -1,8 +1,11 @@
 import React from "react";
 
-import { Delete, Edit, InfoOutlined, ReportProblem } from "@mui/icons-material";
+import Delete from "@mui/icons-material/Delete";
+import Edit from "@mui/icons-material/Edit";
+import InfoOutlined from "@mui/icons-material/InfoOutlined";
+import ReportProblem from "@mui/icons-material/ReportProblem";
 import { Box, Paper, Stack, Tooltip, Typography } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import IconButton from "@mui/material/IconButton";
 import { useTranslation } from "react-i18next";
 

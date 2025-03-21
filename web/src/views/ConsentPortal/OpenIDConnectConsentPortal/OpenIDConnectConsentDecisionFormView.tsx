@@ -1,6 +1,12 @@
 import React, { Fragment, ReactNode, useCallback, useEffect, useState } from "react";
 
-import { AccountBox, Autorenew, Contacts, Drafts, Group, LockOpen, Policy } from "@mui/icons-material";
+import AccountBox from "@mui/icons-material/AccountBox";
+import Autorenew from "@mui/icons-material/Autorenew";
+import Contacts from "@mui/icons-material/Contacts";
+import Drafts from "@mui/icons-material/Drafts";
+import Group from "@mui/icons-material/Group";
+import LockOpen from "@mui/icons-material/LockOpen";
+import Policy from "@mui/icons-material/Policy";
 import {
     Box,
     Button,
@@ -14,7 +20,7 @@ import {
     Tooltip,
     Typography,
 } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";

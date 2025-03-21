@@ -106,6 +106,9 @@ export default defineConfig(({ mode }) => {
             },
             setupFiles: ["src/setupTests.ts"],
         },
+        resolve: {
+            conditions: ["mui-modern", "module", "browser", "development|production"],
+        },
         plugins: [
             checkerPlugin({ eslint: { lintCommand: "eslint . --ext .js,.jsx,.ts,.tsx" }, typescript: true }),
             istanbulPlugin,

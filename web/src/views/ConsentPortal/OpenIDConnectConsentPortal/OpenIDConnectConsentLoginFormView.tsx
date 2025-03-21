@@ -1,7 +1,7 @@
-import React, { MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Alert, AlertTitle, Button, FormControl } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import { BroadcastChannel } from "broadcast-channel";
 import { useTranslation } from "react-i18next";
@@ -34,12 +34,18 @@ const OpenIDConnectConsentLoginFormView: React.FC<Props> = (props: Props) => {
     const { createErrorNotification } = useNotifications();
     const loginChannel = useMemo(() => new BroadcastChannel<boolean>("login"), []);
 
-    const passwordRef = useRef() as MutableRefObject<HTMLInputElement>;
+    const passwordRef = useRef<HTMLInputElement | null>(null);
+
+    const focusPassword = useCallback(() => {
+        if (passwordRef.current === null) return;
+
+        passwordRef.current.focus();
+    }, [passwordRef]);
 
     useEffect(() => {
-        const timeout = setTimeout(() => passwordRef.current.focus(), 10);
+        const timeout = setTimeout(() => focusPassword(), 10);
         return () => clearTimeout(timeout);
-    }, [passwordRef]);
+    }, [focusPassword]);
 
     const handleConfirm = useCallback(async () => {
         if (password === "") {
@@ -68,9 +74,9 @@ const OpenIDConnectConsentLoginFormView: React.FC<Props> = (props: Props) => {
             createErrorNotification(translate("Failed to confirm your identity"));
             setPassword("");
             setDisabled(false);
-            passwordRef.current.focus();
+            focusPassword();
         }
-    }, [createErrorNotification, loginChannel, password, redirector, translate, workflow, workflowID]);
+    }, [createErrorNotification, focusPassword, loginChannel, password, redirector, translate, workflow, workflowID]);
 
     const handlePasswordKeyDown = useCallback(
         (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -78,13 +84,13 @@ const OpenIDConnectConsentLoginFormView: React.FC<Props> = (props: Props) => {
                 event.preventDefault();
 
                 if (!password.length) {
-                    passwordRef.current.focus();
+                    focusPassword();
                 } else {
                     handleConfirm().catch(console.error);
                 }
             }
         },
-        [handleConfirm, password.length],
+        [focusPassword, handleConfirm, password.length],
     );
 
     const handlePasswordKeyUp = useCallback(

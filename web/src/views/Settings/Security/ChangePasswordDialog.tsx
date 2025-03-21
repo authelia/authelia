@@ -1,4 +1,4 @@
-import React, { MutableRefObject, useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import {
     Button,
@@ -8,9 +8,9 @@ import {
     DialogContent,
     DialogTitle,
     FormControl,
-    Grid2,
     TextField,
 } from "@mui/material";
+import Grid from "@mui/material/Grid";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
 
@@ -44,9 +44,9 @@ const ChangePasswordDialog = (props: Props) => {
     const [isCapsLockOnNewPW, setIsCapsLockOnNewPW] = useState(false);
     const [isCapsLockOnRepeatNewPW, setIsCapsLockOnRepeatNewPW] = useState(false);
 
-    const oldPasswordRef = useRef() as MutableRefObject<HTMLInputElement>;
-    const newPasswordRef = useRef() as MutableRefObject<HTMLInputElement>;
-    const repeatNewPasswordRef = useRef() as MutableRefObject<HTMLInputElement>;
+    const oldPasswordRef = useRef<HTMLInputElement | null>(null);
+    const newPasswordRef = useRef<HTMLInputElement | null>(null);
+    const repeatNewPasswordRef = useRef<HTMLInputElement | null>(null);
 
     const [pPolicy, setPPolicy] = useState<PasswordPolicyConfiguration>({
         max_length: 0,
@@ -180,7 +180,7 @@ const ChangePasswordDialog = (props: Props) => {
     const useHandleKeyDown = (
         passwordState: string,
         setError: React.Dispatch<React.SetStateAction<boolean>>,
-        nextRef?: React.MutableRefObject<HTMLInputElement>,
+        nextRef?: React.RefObject<HTMLInputElement | null>,
     ) => {
         return useCallback(
             (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -189,8 +189,8 @@ const ChangePasswordDialog = (props: Props) => {
                         setError(true);
                     } else if (!nextRef) {
                         handlePasswordChange().catch(console.error);
-                    } else {
-                        nextRef?.current.focus();
+                    } else if (nextRef.current) {
+                        nextRef.current.focus();
                     }
                 }
             },
@@ -209,8 +209,8 @@ const ChangePasswordDialog = (props: Props) => {
             <DialogTitle>{translate("Change {{item}}", { item: translate("Password") })}</DialogTitle>
             <DialogContent>
                 <FormControl id={"change-password-form"} disabled={loading}>
-                    <Grid2 container spacing={1} alignItems={"center"} justifyContent={"center"} textAlign={"center"}>
-                        <Grid2 size={{ xs: 12 }} sx={{ pt: 3 }}>
+                    <Grid container spacing={1} alignItems={"center"} justifyContent={"center"} textAlign={"center"}>
+                        <Grid size={{ xs: 12 }} sx={{ pt: 3 }}>
                             <TextField
                                 inputRef={oldPasswordRef}
                                 id="old-password"
@@ -232,8 +232,8 @@ const ChangePasswordDialog = (props: Props) => {
                                 color={isCapsLockOnOldPW ? "error" : "primary"}
                                 onBlur={() => setIsCapsLockOnOldPW(false)}
                             />
-                        </Grid2>
-                        <Grid2 size={{ xs: 12 }} sx={{ mt: 3 }}>
+                        </Grid>
+                        <Grid size={{ xs: 12 }} sx={{ mt: 3 }}>
                             <TextField
                                 inputRef={newPasswordRef}
                                 id="new-password"
@@ -258,8 +258,8 @@ const ChangePasswordDialog = (props: Props) => {
                             {pPolicy.mode === PasswordPolicyMode.Disabled ? null : (
                                 <PasswordMeter value={newPassword} policy={pPolicy} />
                             )}
-                        </Grid2>
-                        <Grid2 size={{ xs: 12 }}>
+                        </Grid>
+                        <Grid size={{ xs: 12 }}>
                             <TextField
                                 inputRef={repeatNewPasswordRef}
                                 id="repeat-new-password"
@@ -281,8 +281,8 @@ const ChangePasswordDialog = (props: Props) => {
                                 color={isCapsLockOnRepeatNewPW ? "error" : "primary"}
                                 onBlur={() => setIsCapsLockOnRepeatNewPW(false)}
                             />
-                        </Grid2>
-                    </Grid2>
+                        </Grid>
+                    </Grid>
                 </FormControl>
             </DialogContent>
             <DialogActions>

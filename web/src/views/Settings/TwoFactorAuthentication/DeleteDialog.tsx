@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Delete } from "@mui/icons-material";
+import Delete from "@mui/icons-material/Delete";
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
 import { useTranslation } from "react-i18next";
 

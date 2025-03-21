@@ -1,4 +1,4 @@
-import React, { MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
     Alert,
@@ -11,7 +11,7 @@ import {
     Link,
     Theme,
 } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import makeStyles from "@mui/styles/makeStyles";
 import { BroadcastChannel } from "broadcast-channel";
@@ -62,13 +62,25 @@ const FirstFactorForm = function (props: Props) {
     const [passwordError, setPasswordError] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    const usernameRef = useRef() as MutableRefObject<HTMLInputElement>;
-    const passwordRef = useRef() as MutableRefObject<HTMLInputElement>;
+    const usernameRef = useRef<HTMLInputElement | null>(null);
+    const passwordRef = useRef<HTMLInputElement | null>(null);
 
     const styles = useStyles();
 
+    const focusUsername = useCallback(() => {
+        if (usernameRef.current === null) return;
+
+        usernameRef.current.focus();
+    }, [usernameRef]);
+
+    const focusPassword = useCallback(() => {
+        if (passwordRef.current === null) return;
+
+        passwordRef.current.focus();
+    }, [passwordRef]);
+
     useEffect(() => {
-        const timeout = setTimeout(() => usernameRef.current.focus(), 10);
+        const timeout = setTimeout(() => focusPassword(), 10);
         return () => clearTimeout(timeout);
     }, [usernameRef]);
 
@@ -123,10 +135,11 @@ const FirstFactorForm = function (props: Props) {
             setLoading(false);
             props.onAuthenticationStop();
             setPassword("");
-            passwordRef.current.focus();
+            focusPassword();
         }
     }, [
         createErrorNotification,
+        focusPassword,
         loginChannel,
         password,
         props,
@@ -158,7 +171,7 @@ const FirstFactorForm = function (props: Props) {
                     handleSignIn().catch(console.error);
                 } else {
                     setUsernameError(false);
-                    passwordRef.current.focus();
+                    focusPassword();
                 }
             }
         },
@@ -169,9 +182,9 @@ const FirstFactorForm = function (props: Props) {
         (event: React.KeyboardEvent<HTMLDivElement>) => {
             if (event.key === "Enter") {
                 if (!username.length) {
-                    usernameRef.current.focus();
+                    focusUsername();
                 } else if (!password.length) {
-                    passwordRef.current.focus();
+                    focusPassword();
                 }
                 handleSignIn().catch(console.error);
                 event.preventDefault();
@@ -208,14 +221,14 @@ const FirstFactorForm = function (props: Props) {
         (event: React.KeyboardEvent<HTMLButtonElement>) => {
             if (event.key === "Enter") {
                 if (!username.length) {
-                    usernameRef.current.focus();
+                    focusUsername();
                 } else if (!password.length) {
-                    passwordRef.current.focus();
+                    focusPassword();
                 }
                 handleSignIn().catch(console.error);
             }
         },
-        [handleSignIn, password.length, username.length],
+        [focusPassword, focusUsername, handleSignIn, password.length, username.length],
     );
 
     return (

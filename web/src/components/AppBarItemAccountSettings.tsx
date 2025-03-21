@@ -1,6 +1,7 @@
 import React, { Fragment, useState } from "react";
 
-import { Logout, Settings } from "@mui/icons-material";
+import Logout from "@mui/icons-material/Logout";
+import Settings from "@mui/icons-material/Settings";
 import { Avatar, Box, Divider, IconButton, ListItemIcon, Menu, MenuItem, Tooltip } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";

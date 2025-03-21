@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Fingerprint } from "@mui/icons-material";
+import Fingerprint from "@mui/icons-material/Fingerprint";
 import { useTranslation } from "react-i18next";
 
 import { WebAuthnCredential } from "@models/WebAuthn";

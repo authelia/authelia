@@ -20,9 +20,6 @@ const WebAuthnRegisterIcon = function (props: Props) {
         icon: {
             display: "inline-block",
         },
-        progressBar: {
-            marginTop: theme.spacing(),
-        },
     }))();
 
     useEffect(() => {
@@ -32,7 +29,7 @@ const WebAuthnRegisterIcon = function (props: Props) {
     return (
         <Box className={styles.icon} sx={{ minHeight: 101 }}>
             <IconWithContext icon={<FingerTouchIcon size={64} animated strong />}>
-                <LinearProgressBar value={timerPercent} className={styles.progressBar} height={theme.spacing(2)} />
+                <LinearProgressBar value={timerPercent} height={theme.spacing(2)} />
             </IconWithContext>
         </Box>
     );

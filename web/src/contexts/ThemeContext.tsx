@@ -71,7 +71,7 @@ export default function ThemeContextProvider(props: Props) {
     }, []);
 
     return (
-        <ThemeContext.Provider
+        <ThemeContext
             value={{
                 theme,
                 themeName,
@@ -79,7 +79,7 @@ export default function ThemeContextProvider(props: Props) {
             }}
         >
             <ThemeWrapper>{props.children}</ThemeWrapper>
-        </ThemeContext.Provider>
+        </ThemeContext>
     );
 }
 

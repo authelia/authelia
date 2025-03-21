@@ -1,7 +1,7 @@
 import React, { ReactNode } from "react";
 
 import { Button, Dialog, DialogActions, DialogContent, Theme, Typography, useTheme } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 

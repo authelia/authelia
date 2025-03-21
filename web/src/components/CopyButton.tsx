@@ -1,6 +1,7 @@
 import React, { ReactNode, useState } from "react";
 
-import { Check, ContentCopy } from "@mui/icons-material";
+import Check from "@mui/icons-material/Check";
+import ContentCopy from "@mui/icons-material/Check";
 import { Button, CircularProgress, SxProps, Tooltip } from "@mui/material";
 
 export interface Props {

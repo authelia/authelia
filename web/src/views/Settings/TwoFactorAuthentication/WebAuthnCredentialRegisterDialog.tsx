@@ -1,4 +1,4 @@
-import React, { Fragment, MutableRefObject, useCallback, useEffect, useRef, useState } from "react";
+import React, { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
 import {
     Box,
@@ -15,7 +15,7 @@ import {
     Theme,
     Typography,
 } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import makeStyles from "@mui/styles/makeStyles";
 import { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/browser";
 import { useTranslation } from "react-i18next";
@@ -50,7 +50,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
     const [description, setDescription] = useState("");
     const [errorDescription, setErrorDescription] = useState(false);
 
-    const nameRef = useRef() as MutableRefObject<HTMLInputElement>;
+    const nameRef = useRef<HTMLInputElement | null>(null);
 
     const resetStates = () => {
         setState(WebAuthnTouchState.WaitTouch);

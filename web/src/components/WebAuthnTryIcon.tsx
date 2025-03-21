@@ -26,9 +26,6 @@ const WebAuthnTryIcon = function (props: Props) {
         icon: {
             display: "inline-block",
         },
-        progressBar: {
-            marginTop: theme.spacing(),
-        },
     }))();
 
     const handleRetryClick = () => {
@@ -46,7 +43,7 @@ const WebAuthnTryIcon = function (props: Props) {
             icon={<FingerTouchIcon size={64} animated strong />}
             className={props.webauthnTouchState === WebAuthnTouchState.WaitTouch ? undefined : "hidden"}
         >
-            <LinearProgressBar value={timerPercent} className={styles.progressBar} height={theme.spacing(2)} />
+            <LinearProgressBar value={timerPercent} height={theme.spacing(2)} />
         </IconWithContext>
     );
 

@@ -1,6 +1,6 @@
 import React, { Fragment, useState } from "react";
 
-import { QrCode2 } from "@mui/icons-material";
+import QrCode2 from "@mui/icons-material/QrCode2";
 import { useTranslation } from "react-i18next";
 
 import { UserInfoTOTPConfiguration } from "@models/TOTPConfiguration";

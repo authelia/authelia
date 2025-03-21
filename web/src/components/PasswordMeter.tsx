@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 
 import { Alert, AlertTitle, Box, Theme } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
-import classnames from "classnames";
 import { useTranslation } from "react-i18next";
 import zxcvbn from "zxcvbn";
 
@@ -104,40 +102,39 @@ const PasswordMeter = function (props: Props) {
         }
     }, [props, translate]);
 
-    const styles = makeStyles((theme: Theme) => ({
-        progressBar: {
-            height: "5px",
-            marginTop: "2px",
-            backgroundColor: progressColor[passwordScore],
-            width: `${(passwordScore + 1) * (100 / maxScores)}%`,
-            transition: "width .5s linear",
-        },
-        progressContainer: {
-            width: "100%",
-        },
-        feedbackTitle: {
-            whiteSpace: "break-spaces",
-            textAlign: "left",
-            fontSize: "0.85rem",
-        },
-        feedback: {
-            whiteSpace: "break-spaces",
-            textAlign: "left",
-            fontSize: "0.7rem",
-        },
-    }))();
-
     return (
-        <Box className={styles.progressContainer}>
-            <Box className={classnames(styles.progressBar)} />
+        <Box sx={{ width: "100%" }}>
+            <Box
+                sx={{
+                    width: `${(passwordScore + 1) * (100 / maxScores)}%`,
+                    height: "5px",
+                    marginTop: "2px",
+                    backgroundColor: progressColor[passwordScore],
+                    transition: "width .5s linear",
+                }}
+            />
             {(feedbackTitle !== "" || feedback !== "") && (
                 <Alert severity="warning">
                     {feedbackTitle !== "" && (
-                        <AlertTitle className={classnames(styles.feedbackTitle)}>
+                        <AlertTitle
+                            sx={{
+                                whiteSpace: "break-spaces",
+                                textAlign: "left",
+                                fontSize: "0.85rem",
+                            }}
+                        >
                             <p>{feedbackTitle}</p>
                         </AlertTitle>
                     )}
-                    <p className={classnames(styles.feedback)}>{feedback}</p>
+                    <Box
+                        sx={{
+                            whiteSpace: "break-spaces",
+                            textAlign: "left",
+                            fontSize: "0.7rem",
+                        }}
+                    >
+                        {feedback}
+                    </Box>
                 </Alert>
             )}
         </Box>

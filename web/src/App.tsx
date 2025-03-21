@@ -66,7 +66,7 @@ const App: React.FC<Props> = (props: Props) => {
                 <ThemeContextProvider>
                     <Suspense fallback={<LoadingPage />}>
                         <CssBaseline />
-                        <NotificationsContext.Provider value={{ notification, setNotification }}>
+                        <NotificationsContext value={{ notification, setNotification }}>
                             <LocalStorageMethodContextProvider>
                                 <Router basename={getBasePath()}>
                                     <NotificationBar onClose={() => setNotification(null)} />
@@ -96,7 +96,7 @@ const App: React.FC<Props> = (props: Props) => {
                                     </Routes>
                                 </Router>
                             </LocalStorageMethodContextProvider>
-                        </NotificationsContext.Provider>
+                        </NotificationsContext>
                     </Suspense>
                 </ThemeContextProvider>
             </LanguageContextProvider>

@@ -1,6 +1,10 @@
 import React, { ReactNode, SyntheticEvent, useCallback, useEffect, useState } from "react";
 
-import { Close, Dashboard, Menu, Security, SystemSecurityUpdateGood } from "@mui/icons-material";
+import Close from "@mui/icons-material/Close";
+import Dashboard from "@mui/icons-material/Dashboard";
+import Menu from "@mui/icons-material/Menu";
+import Security from "@mui/icons-material/Security";
+import SystemSecurityUpdateGood from "@mui/icons-material/SystemSecurityUpdateGood";
 import {
     AppBar,
     Box,

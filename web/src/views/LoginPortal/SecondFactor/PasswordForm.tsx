@@ -1,7 +1,7 @@
-import React, { MutableRefObject, useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { Alert, AlertTitle, Button, CircularProgress, FormControl } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import { useTranslation } from "react-i18next";
 
@@ -29,10 +29,16 @@ const PasswordForm = function (props: Props) {
     const [passwordCapsLockPartial, setPasswordCapsLockPartial] = useState(false);
     const [passwordError, setPasswordError] = useState(false);
 
-    const passwordRef = useRef() as MutableRefObject<HTMLInputElement>;
+    const passwordRef = useRef<HTMLInputElement | null>(null);
+
+    const focusPassword = useCallback(() => {
+        if (passwordRef.current === null) return;
+
+        passwordRef.current.focus();
+    }, [passwordRef]);
 
     useEffect(() => {
-        const timeout = setTimeout(() => passwordRef.current.focus(), 10);
+        const timeout = setTimeout(() => focusPassword(), 10);
         return () => clearTimeout(timeout);
     }, [passwordRef]);
 
@@ -53,21 +59,21 @@ const PasswordForm = function (props: Props) {
             createErrorNotification(translate("Incorrect password"));
             setPassword("");
             setLoading(false);
-            passwordRef.current.focus();
+            focusPassword();
         }
-    }, [createErrorNotification, password, props, redirectionURL, translate, workflow, workflowID]);
+    }, [createErrorNotification, focusPassword, password, props, redirectionURL, translate, workflow, workflowID]);
 
     const handlePasswordKeyDown = useCallback(
         (event: React.KeyboardEvent<HTMLDivElement>) => {
             if (event.key === "Enter") {
                 if (!password.length) {
-                    passwordRef.current.focus();
+                    focusPassword();
                 }
                 handleSignIn().catch(console.error);
                 event.preventDefault();
             }
         },
-        [handleSignIn, password.length],
+        [focusPassword, handleSignIn, password.length],
     );
 
     const handlePasswordKeyUp = useCallback(
