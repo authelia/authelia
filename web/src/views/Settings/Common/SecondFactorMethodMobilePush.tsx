@@ -42,9 +42,11 @@ const SecondFactorMethodMobilePush = function (props: Props) {
 
     const { createErrorNotification } = useNotifications();
 
-    const timeoutRateLimit = useRef<NodeJS.Timeout>();
+    const timeoutRateLimit = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
+        if (timeoutRateLimit.current === null) return;
+
         return clearTimeout(timeoutRateLimit.current);
     }, []);
 
@@ -60,7 +62,7 @@ const SecondFactorMethodMobilePush = function (props: Props) {
 
             timeoutRateLimit.current = setTimeout(() => {
                 setState(State.Failure);
-                timeoutRateLimit.current = undefined;
+                timeoutRateLimit.current = null;
             }, retryAfter * 1000);
         },
         [createErrorNotification, translate],
