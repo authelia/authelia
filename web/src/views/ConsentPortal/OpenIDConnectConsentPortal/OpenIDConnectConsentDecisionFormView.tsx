@@ -15,9 +15,9 @@ import {
     Typography,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
-import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { makeStyles } from "tss-react/mui";
 
 import { IndexRoute } from "@constants/Routes";
 import { Identifier } from "@constants/SearchParams";
@@ -63,6 +63,8 @@ function scopeNameToAvatar(id: string) {
 const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => {
     const { t: translate } = useTranslation(["portal", "consent"]);
 
+    const { classes } = useStyles();
+
     const { createErrorNotification, resetNotification } = useNotifications();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
@@ -73,8 +75,6 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
     const [error, setError] = useState<any>(undefined);
     const [claims, setClaims] = useState<string>("");
     const [preConfigure, setPreConfigure] = useState(false);
-
-    const styles = useStyles();
 
     const handlePreConfigureChanged = () => {
         setPreConfigure((preConfigure) => !preConfigure);
@@ -174,7 +174,7 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
                                     "Client ID: " + response?.client_id
                                 }
                             >
-                                <Typography className={styles.clientDescription}>
+                                <Typography className={classes.clientDescription}>
                                     {response !== undefined && response.client_description !== ""
                                         ? response.client_description
                                         : response?.client_id}
@@ -186,8 +186,8 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
                         <Box>{translate("The above application is requesting the following permissions")}:</Box>
                     </Grid>
                     <Grid size={{ xs: 12 }}>
-                        <Box className={styles.scopesListContainer}>
-                            <List className={styles.scopesList}>
+                        <Box className={classes.scopesListContainer}>
+                            <List className={classes.scopesList}>
                                 {response?.scopes.map((scope: string) => (
                                     <Tooltip title={translate("Scope", { name: scope, ns: "consent" })}>
                                         <ListItem id={"scope-" + scope} dense>
@@ -206,8 +206,8 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
                     </Grid>
                     {hasClaims ? (
                         <Grid size={{ xs: 12 }}>
-                            <Box className={styles.claimsListContainer}>
-                                <List className={styles.claimsList}>
+                            <Box className={classes.claimsListContainer}>
+                                <List className={classes.claimsList}>
                                     {response?.essential_claims?.map((claim: string) => (
                                         <Tooltip title={translate("Claim", { name: claim, ns: "consent" })}>
                                             <FormControlLabel
@@ -256,7 +256,7 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
                                             color="primary"
                                         />
                                     }
-                                    className={styles.preConfigure}
+                                    className={classes.preConfigure}
                                     label={translate("Remember Consent")}
                                 />
                             </Tooltip>
@@ -267,7 +267,7 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
                             <Grid size={{ xs: 6 }}>
                                 <Button
                                     id="accept-button"
-                                    className={styles.button}
+                                    className={classes.button}
                                     disabled={!response}
                                     onClick={handleAcceptConsent}
                                     color="primary"
@@ -279,7 +279,7 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
                             <Grid size={{ xs: 6 }}>
                                 <Button
                                     id="deny-button"
-                                    className={styles.button}
+                                    className={classes.button}
                                     disabled={!response}
                                     onClick={handleRejectConsent}
                                     color="secondary"
@@ -296,7 +296,24 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
     );
 };
 
-const useStyles = makeStyles((theme: Theme) => ({
+interface ComponentOrLoadingProps {
+    ready: boolean;
+
+    children: ReactNode;
+}
+
+function ComponentOrLoading(props: ComponentOrLoadingProps) {
+    return (
+        <Fragment>
+            <Box className={props.ready ? "hidden" : ""}>
+                <LoadingPage />
+            </Box>
+            {props.ready ? props.children : null}
+        </Fragment>
+    );
+}
+
+const useStyles = makeStyles()((theme: Theme) => ({
     container: {
         paddingTop: theme.spacing(4),
         paddingBottom: theme.spacing(4),
@@ -345,22 +362,5 @@ const useStyles = makeStyles((theme: Theme) => ({
     },
     preConfigure: {},
 }));
-
-interface ComponentOrLoadingProps {
-    ready: boolean;
-
-    children: ReactNode;
-}
-
-function ComponentOrLoading(props: ComponentOrLoadingProps) {
-    return (
-        <Fragment>
-            <div className={props.ready ? "hidden" : ""}>
-                <LoadingPage />
-            </div>
-            {props.ready ? props.children : null}
-        </Fragment>
-    );
-}
 
 export default OpenIDConnectConsentDecisionFormView;

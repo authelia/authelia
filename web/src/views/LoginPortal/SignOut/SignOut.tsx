@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 
 import { Theme, Typography } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
 import { Navigate } from "react-router-dom";
+import { makeStyles } from "tss-react/mui";
 
 import { IndexRoute } from "@constants/Routes";
 import { RedirectionURL } from "@constants/SearchParams";
@@ -14,17 +14,16 @@ import { useRedirector } from "@hooks/Redirector";
 import MinimalLayout from "@layouts/MinimalLayout";
 import { signOut } from "@services/SignOut";
 
-export interface Props {}
+const SignOut = function () {
+    const { t: translate } = useTranslation();
+    const { classes } = useStyles();
 
-const SignOut = function (props: Props) {
     const mounted = useIsMountedRef();
-    const styles = useStyles();
     const { createErrorNotification } = useNotifications();
     const redirectionURL = useQueryParam(RedirectionURL);
     const redirector = useRedirector();
     const [timedOut, setTimedOut] = useState(false);
     const [safeRedirect, setSafeRedirect] = useState(false);
-    const { t: translate } = useTranslation();
 
     const doSignOut = useCallback(async () => {
         try {
@@ -58,15 +57,15 @@ const SignOut = function (props: Props) {
 
     return (
         <MinimalLayout title={translate("Sign out")}>
-            <Typography className={styles.typo}>{translate("You're being signed out and redirected")}...</Typography>
+            <Typography className={classes.typo}>{translate("You're being signed out and redirected")}...</Typography>
         </MinimalLayout>
     );
 };
 
-export default SignOut;
-
-const useStyles = makeStyles((theme: Theme) => ({
+const useStyles = makeStyles()((theme: Theme) => ({
     typo: {
         padding: theme.spacing(),
     },
 }));
+
+export default SignOut;

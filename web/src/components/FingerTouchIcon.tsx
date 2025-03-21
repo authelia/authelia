@@ -1,6 +1,7 @@
 import React from "react";
 
-import classnames from "classnames";
+import { Theme } from "@mui/material";
+import { makeStyles } from "tss-react/mui";
 
 import style from "@components/FingerTouchIcon.module.css";
 
@@ -12,6 +13,8 @@ export interface Props {
 }
 
 const FingerTouchIcon = function (props: Props) {
+    const { cx } = useStyles();
+
     const shakingClass = props.animated ? style.shaking : undefined;
     const strong = props.strong ? style.strong : undefined;
 
@@ -22,7 +25,7 @@ const FingerTouchIcon = function (props: Props) {
             viewBox="0 0 500 500"
             width={props.size}
             height={props.size}
-            className={classnames(style.hand, strong)}
+            className={cx(style.hand, strong)}
         >
             <path
                 className={shakingClass}
@@ -45,7 +48,6 @@ const FingerTouchIcon = function (props: Props) {
 				C448,290.816,438.037,314.88,419.925,332.992z"
             />
             <path
-                className={style.wave}
                 d="M183.381,109.931C167.851,75.563,133.547,53.333,96,53.333c-52.928,0-96,43.072-96,96
 				c0,37.547,22.229,71.851,56.597,87.403c1.429,0.64,2.923,0.939,4.395,0.939c4.053,0,7.936-2.347,9.728-6.272
 				c2.411-5.376,0.021-11.691-5.333-14.123c-26.752-12.096-44.053-38.763-44.053-67.947c0-41.173,33.493-74.667,74.667-74.667
@@ -54,5 +56,7 @@ const FingerTouchIcon = function (props: Props) {
         </svg>
     );
 };
+
+const useStyles = makeStyles()((theme: Theme) => ({}));
 
 export default FingerTouchIcon;

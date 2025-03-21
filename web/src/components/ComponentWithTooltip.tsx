@@ -1,6 +1,6 @@
 import React, { Fragment } from "react";
 
-import { Tooltip } from "@mui/material";
+import { Box, Tooltip } from "@mui/material";
 import { TooltipProps } from "@mui/material/Tooltip";
 
 export interface Props extends TooltipProps {
@@ -16,7 +16,7 @@ const ComponentWithTooltip = function (props: Props): React.JSX.Element {
         <Fragment>
             {props.render ? (
                 <Tooltip {...tooltipProps}>
-                    <span>{props.children}</span>
+                    <Box component={"span"}>{props.children}</Box>
                 </Tooltip>
             ) : (
                 props.children

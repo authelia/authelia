@@ -1,9 +1,8 @@
 import React, { Fragment } from "react";
 
-import { Theme } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
-import classnames from "classnames";
+import { Box, Theme } from "@mui/material";
 import OtpInput from "react18-input-otp";
+import { makeStyles } from "tss-react/mui";
 
 import SuccessIcon from "@components/SuccessIcon";
 import TimerIcon from "@components/TimerIcon";
@@ -28,11 +27,11 @@ export enum State {
 }
 
 const OTPDial = function (props: Props) {
-    const styles = useStyles();
+    const { classes, cx } = useStyles();
 
     return (
         <IconWithContext icon={<Icon state={props.state} period={props.period} />}>
-            <span className={styles.otpInput} id="otp-input">
+            <Box component={"span"} className={classes.otpInput} id="otp-input">
                 <OtpInput
                     shouldAutoFocus
                     onChange={props.onChange}
@@ -46,17 +45,30 @@ const OTPDial = function (props: Props) {
                     isInputNum
                     hasErrored={props.state === State.Failure}
                     autoComplete="one-time-code"
-                    inputStyle={classnames(
-                        styles.otpDigitInput,
-                        props.state === State.Failure ? styles.inputError : "",
-                    )}
+                    inputStyle={cx(classes.otpDigitInput, props.state === State.Failure ? classes.inputError : "")}
                 />
-            </span>
+            </Box>
         </IconWithContext>
     );
 };
 
-const useStyles = makeStyles((theme: Theme) => ({
+interface IconProps {
+    state: State;
+    period: number;
+}
+
+function Icon(props: IconProps) {
+    return (
+        <Fragment>
+            {props.state !== State.Success ? (
+                <TimerIcon backgroundColor="#000" color="#FFFFFF" width={64} height={64} period={props.period} />
+            ) : null}
+            {props.state === State.Success ? <SuccessIcon /> : null}
+        </Fragment>
+    );
+}
+
+const useStyles = makeStyles()((theme: Theme) => ({
     timeProgress: {},
     register: {
         marginTop: theme.spacing(),
@@ -78,21 +90,5 @@ const useStyles = makeStyles((theme: Theme) => ({
         border: "1px solid rgba(255, 2, 2, 0.95)",
     },
 }));
-
-interface IconProps {
-    state: State;
-    period: number;
-}
-
-function Icon(props: IconProps) {
-    return (
-        <Fragment>
-            {props.state !== State.Success ? (
-                <TimerIcon backgroundColor="#000" color="#FFFFFF" width={64} height={64} period={props.period} />
-            ) : null}
-            {props.state === State.Success ? <SuccessIcon /> : null}
-        </Fragment>
-    );
-}
 
 export default OTPDial;

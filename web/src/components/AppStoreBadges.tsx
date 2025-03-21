@@ -20,10 +20,10 @@ const AppStoreBadges = function (props: Props) {
     return (
         <Box className={props.className}>
             <Link href={props.googlePlayLink} target={target} underline="hover">
-                <img src={GooglePlay} alt="google play" width={props.iconSize} />
+                <Box component={"img"} src={GooglePlay} alt="google play" width={props.iconSize} />
             </Link>
             <Link href={props.appleStoreLink} target={target} underline="hover">
-                <img src={AppleStore} alt="apple store" width={props.iconSize} />
+                <Box component={"img"} src={AppleStore} alt="apple store" width={props.iconSize} />
             </Link>
         </Box>
     );

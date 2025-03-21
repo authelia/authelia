@@ -44,11 +44,9 @@
     "@fortawesome/react-fontawesome": "0.2.2",
     "@mui/icons-material": "6.4.8",
     "@mui/material": "6.4.8",
-    "@mui/styles": "6.4.8",
     "@simplewebauthn/browser": "13.1.0",
     "axios": "1.8.4",
     "broadcast-channel": "7.0.0",
-    "classnames": "2.5.1",
     "i18next": "24.2.3",
     "i18next-browser-languagedetector": "8.0.4",
     "i18next-http-backend": "3.0.2",
@@ -59,6 +57,7 @@
     "react-router-dom": "7.4.0",
     "react-spinners": "0.15.0",
     "react18-input-otp": "1.1.4",
+    "tss-react": "4.9.15",
     "zxcvbn": "4.4.2"
   },
   "scripts": {

@@ -2,10 +2,10 @@ import React, { lazy, useEffect, useState } from "react";
 
 import { Box, Button, Theme } from "@mui/material";
 import Grid from "@mui/material/Grid2";
-import makeStyles from "@mui/styles/makeStyles";
 import { browserSupportsWebAuthn } from "@simplewebauthn/browser";
 import { useTranslation } from "react-i18next";
 import { Route, Routes, useNavigate } from "react-router-dom";
+import { makeStyles } from "tss-react/mui";
 
 import {
     SecondFactorPasswordSubRoute,
@@ -43,13 +43,14 @@ export interface Props {
 }
 
 const SecondFactorForm = function (props: Props) {
-    const styles = useStyles();
+    const { t: translate } = useTranslation();
+    const { classes } = useStyles();
+
     const navigate = useNavigate();
     const [methodSelectionOpen, setMethodSelectionOpen] = useState(false);
     const [stateWebAuthnSupported, setStateWebAuthnSupported] = useState(false);
     const { createErrorNotification } = useNotifications();
     const { setLocalStorageMethod, localStorageMethodAvailable } = useLocalStorageMethodContext();
-    const { t: translate } = useTranslation();
 
     useEffect(() => {
         setStateWebAuthnSupported(browserSupportsWebAuthn());
@@ -112,7 +113,7 @@ const SecondFactorForm = function (props: Props) {
                         </Button>
                     ) : null}
                 </Grid>
-                <Box className={styles.methodContainer}>
+                <Box className={classes.methodContainer}>
                     <Routes>
                         <Route
                             path={SecondFactorPasswordSubRoute}
@@ -178,9 +179,7 @@ const SecondFactorForm = function (props: Props) {
     );
 };
 
-export default SecondFactorForm;
-
-const useStyles = makeStyles((theme: Theme) => ({
+const useStyles = makeStyles()((theme: Theme) => ({
     methodContainer: {
         border: "1px solid #d6d6d6",
         borderRadius: "10px",
@@ -190,3 +189,5 @@ const useStyles = makeStyles((theme: Theme) => ({
         minWidth: "300px",
     },
 }));
+
+export default SecondFactorForm;

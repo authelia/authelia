@@ -1,8 +1,8 @@
 import React, { Fragment, ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
 import { Box, Button, Link, Theme } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
 import { useTranslation } from "react-i18next";
+import { makeStyles } from "tss-react/mui";
 
 import FailureIcon from "@components/FailureIcon";
 import PushNotificationIcon from "@components/PushNotificationIcon";
@@ -34,8 +34,8 @@ export interface Props {
 
 const SecondFactorMethodMobilePush = function (props: Props) {
     const { t: translate } = useTranslation("settings");
+    const { classes } = useStyles();
 
-    const styles = useStyles();
     const [state, setState] = useState(State.SignInInProgress);
     const mounted = useIsMountedRef();
     const [devices, setDevices] = useState([] as SelectableDevice[]);
@@ -199,8 +199,8 @@ const SecondFactorMethodMobilePush = function (props: Props) {
 
     return (
         <Fragment>
-            <Box className={styles.container}>
-                <Box className={styles.icon}>{icon}</Box>
+            <Box className={classes.container}>
+                <Box className={classes.icon}>{icon}</Box>
                 <Box className={state !== State.Failure ? "hidden" : ""}>
                     <Button color="secondary" onClick={handleDuoPush}>
                         Retry
@@ -218,9 +218,7 @@ const SecondFactorMethodMobilePush = function (props: Props) {
     );
 };
 
-export default SecondFactorMethodMobilePush;
-
-const useStyles = makeStyles((theme: Theme) => ({
+const useStyles = makeStyles()((theme: Theme) => ({
     container: {
         height: "120px",
     },
@@ -230,3 +228,5 @@ const useStyles = makeStyles((theme: Theme) => ({
         display: "inline-block",
     },
 }));
+
+export default SecondFactorMethodMobilePush;
