@@ -84,8 +84,8 @@ github.com/go-webauthn/webauthn v0.12.2 h1:yLaNPgBUEXDQtWnOjhsGhMMCEWbXwjg/aNkC8
 github.com/go-webauthn/webauthn v0.12.2/go.mod h1:Q8SZPPj4sZ469fNTcQXxRpzJOdb30jQrn/36FX8jilA=
 github.com/go-webauthn/x v0.1.19 h1:IUfdHiBRoTdujpBA/14qbrMXQ3LGzYe/PRGWdZcmudg=
 github.com/go-webauthn/x v0.1.19/go.mod h1:C5arLuTQ3pVHKPw89v7CDGnqAZSZJj+4Jnr40dsn7tk=
-github.com/golang-jwt/jwt/v5 v5.2.1 h1:OuVbFODueb089Lh128TAcimifWaLhJwVflnrgM17wHk=
-github.com/golang-jwt/jwt/v5 v5.2.1/go.mod h1:pqrtFR0X4osieyHYxtmOUWsAWrfe1Q5UVIyoH402zdk=
+github.com/golang-jwt/jwt/v5 v5.2.2 h1:Rl4B7itRWVtYIHFrSNd7vhTiz9UpLdi6gZhZ3wEeDy8=
+github.com/golang-jwt/jwt/v5 v5.2.2/go.mod h1:pqrtFR0X4osieyHYxtmOUWsAWrfe1Q5UVIyoH402zdk=
 github.com/google/cel-go v0.24.1 h1:jsBCtxG8mM5wiUJDSGUqU0K7Mtr3w7Eyv00rw4DiZxI=
 github.com/google/cel-go v0.24.1/go.mod h1:Hdf9TqOaTNSFQA1ybQaRqATVoK7m/zcf7IMhGXP5zI8=
 github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
