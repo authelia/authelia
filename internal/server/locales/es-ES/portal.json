@@ -44,6 +44,7 @@
 	"No compatible device found": "No se encontró ningún dispositivo compatible",
 	"No verification token provided": "No se ha recibido el token de verificación",
 	"One-Time Password": "Contraseña de un solo uso (OTP)",
+	"or": "o",
 	"Password has been reset": "La contraseña ha sido restablecida",
 	"Password": "Contraseña",
 	"Passwords do not match": "Las contraseñas no coinciden",
