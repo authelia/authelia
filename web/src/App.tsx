@@ -1,7 +1,5 @@
 import React, { Suspense, lazy, useState } from "react";
 
-import createCache from "@emotion/cache";
-import { CacheProvider } from "@emotion/react";
 import { config as faConfig } from "@fortawesome/fontawesome-svg-core";
 import { CssBaseline } from "@mui/material";
 import { useTranslation } from "react-i18next";
@@ -46,62 +44,47 @@ const RevokeResetPasswordTokenView = lazy(() => import("@views/Revoke/RevokeRese
 
 faConfig.autoAddCss = false;
 
-export interface Props {
-    nonce?: string;
-}
-
-const App: React.FC<Props> = (props: Props) => {
+function App() {
     const [notification, setNotification] = useState(null as Notification | null);
     const { i18n } = useTranslation();
 
-    const cache = createCache({
-        key: "authelia",
-        nonce: props.nonce,
-        prepend: true,
-    });
-
     return (
-        <CacheProvider value={cache}>
-            <LanguageContextProvider i18n={i18n}>
-                <ThemeContextProvider>
-                    <Suspense fallback={<LoadingPage />}>
-                        <CssBaseline />
-                        <NotificationsContext.Provider value={{ notification, setNotification }}>
-                            <LocalStorageMethodContextProvider>
-                                <Router basename={getBasePath()}>
-                                    <NotificationBar onClose={() => setNotification(null)} />
-                                    <Routes>
-                                        <Route path={ResetPasswordStep1Route} element={<ResetPasswordStep1 />} />
-                                        <Route path={ResetPasswordStep2Route} element={<ResetPasswordStep2 />} />
-                                        <Route path={LogoutRoute} element={<SignOut />} />
-                                        <Route path={RevokeOneTimeCodeRoute} element={<RevokeOneTimeCodeView />} />
-                                        <Route
-                                            path={RevokeResetPasswordRoute}
-                                            element={<RevokeResetPasswordTokenView />}
-                                        />
-                                        <Route path={`${SettingsRoute}/*`} element={<SettingsRouter />} />
-                                        <Route path={`${ConsentRoute}/*`} element={<ConsentPortal />} />
-                                        <Route
-                                            path={`${IndexRoute}*`}
-                                            element={
-                                                <LoginPortal
-                                                    duoSelfEnrollment={getDuoSelfEnrollment()}
-                                                    passkeyLogin={getPasskeyLogin()}
-                                                    rememberMe={getRememberMe()}
-                                                    resetPassword={getResetPassword()}
-                                                    resetPasswordCustomURL={getResetPasswordCustomURL()}
-                                                />
-                                            }
-                                        />
-                                    </Routes>
-                                </Router>
-                            </LocalStorageMethodContextProvider>
-                        </NotificationsContext.Provider>
-                    </Suspense>
-                </ThemeContextProvider>
-            </LanguageContextProvider>
-        </CacheProvider>
+        <LanguageContextProvider i18n={i18n}>
+            <ThemeContextProvider>
+                <Suspense fallback={<LoadingPage />}>
+                    <CssBaseline />
+                    <NotificationsContext.Provider value={{ notification, setNotification }}>
+                        <LocalStorageMethodContextProvider>
+                            <Router basename={getBasePath()}>
+                                <NotificationBar onClose={() => setNotification(null)} />
+                                <Routes>
+                                    <Route path={ResetPasswordStep1Route} element={<ResetPasswordStep1 />} />
+                                    <Route path={ResetPasswordStep2Route} element={<ResetPasswordStep2 />} />
+                                    <Route path={LogoutRoute} element={<SignOut />} />
+                                    <Route path={RevokeOneTimeCodeRoute} element={<RevokeOneTimeCodeView />} />
+                                    <Route path={RevokeResetPasswordRoute} element={<RevokeResetPasswordTokenView />} />
+                                    <Route path={`${SettingsRoute}/*`} element={<SettingsRouter />} />
+                                    <Route path={`${ConsentRoute}/*`} element={<ConsentPortal />} />
+                                    <Route
+                                        path={`${IndexRoute}*`}
+                                        element={
+                                            <LoginPortal
+                                                duoSelfEnrollment={getDuoSelfEnrollment()}
+                                                passkeyLogin={getPasskeyLogin()}
+                                                rememberMe={getRememberMe()}
+                                                resetPassword={getResetPassword()}
+                                                resetPasswordCustomURL={getResetPasswordCustomURL()}
+                                            />
+                                        }
+                                    />
+                                </Routes>
+                            </Router>
+                        </LocalStorageMethodContextProvider>
+                    </NotificationsContext.Provider>
+                </Suspense>
+            </ThemeContextProvider>
+        </LanguageContextProvider>
     );
-};
+}
 
 export default App;

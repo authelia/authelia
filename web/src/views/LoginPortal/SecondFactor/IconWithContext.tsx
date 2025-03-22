@@ -1,8 +1,7 @@
 import React, { ReactNode } from "react";
 
 import { Box, Theme } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
-import classnames from "classnames";
+import { makeStyles } from "tss-react/mui";
 
 interface IconWithContextProps {
     icon: ReactNode;
@@ -12,31 +11,32 @@ interface IconWithContextProps {
 }
 
 const IconWithContext = function (props: IconWithContextProps) {
-    const iconSize = 64;
-    const styles = makeStyles((theme: Theme) => ({
-        root: {},
-        iconContainer: {
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-        },
-        icon: {
-            width: iconSize,
-            height: iconSize,
-        },
-        context: {
-            display: "block",
-        },
-    }))();
+    const { classes, cx } = useStyles({ iconSize: 64 });
 
     return (
-        <Box className={classnames(props.className, styles.root)}>
-            <Box className={styles.iconContainer}>
-                <Box className={styles.icon}>{props.icon}</Box>
+        <Box className={cx(props.className, classes.root)}>
+            <Box className={classes.iconContainer}>
+                <Box className={classes.icon}>{props.icon}</Box>
             </Box>
-            <Box className={styles.context}>{props.children}</Box>
+            <Box className={classes.context}>{props.children}</Box>
         </Box>
     );
 };
+
+const useStyles = makeStyles<{ iconSize: number }>()((theme: Theme, { iconSize }) => ({
+    root: {},
+    iconContainer: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+    },
+    icon: {
+        width: iconSize,
+        height: iconSize,
+    },
+    context: {
+        display: "block",
+    },
+}));
 
 export default IconWithContext;

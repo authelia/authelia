@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 
-import { Alert, AlertTitle, Box } from "@mui/material";
+import { Alert, AlertTitle, Box, Theme } from "@mui/material";
 import { useTranslation } from "react-i18next";
+import { makeStyles } from "tss-react/mui";
 import zxcvbn from "zxcvbn";
 
 import { PasswordPolicyConfiguration, PasswordPolicyMode } from "@models/PasswordPolicy";
@@ -19,6 +20,8 @@ const PasswordMeter = function (props: Props) {
     const [maxScores, setMaxScores] = useState(0);
     const [feedback, setFeedback] = useState("");
     const [feedbackTitle, setFeedbackTitle] = useState("");
+
+    const { classes } = useStyles({ progressColor, passwordScore, maxScores });
 
     useEffect(() => {
         const password = props.value;
@@ -103,38 +106,16 @@ const PasswordMeter = function (props: Props) {
     }, [props, translate]);
 
     return (
-        <Box sx={{ width: "100%" }}>
-            <Box
-                sx={{
-                    width: `${(passwordScore + 1) * (100 / maxScores)}%`,
-                    height: "5px",
-                    marginTop: "2px",
-                    backgroundColor: progressColor[passwordScore],
-                    transition: "width .5s linear",
-                }}
-            />
+        <Box className={classes.progressContainer}>
+            <Box className={classes.progressBar} />
             {(feedbackTitle !== "" || feedback !== "") && (
                 <Alert severity="warning">
                     {feedbackTitle !== "" && (
-                        <AlertTitle
-                            sx={{
-                                whiteSpace: "break-spaces",
-                                textAlign: "left",
-                                fontSize: "0.85rem",
-                            }}
-                        >
+                        <AlertTitle className={classes.feedbackTitle}>
                             <p>{feedbackTitle}</p>
                         </AlertTitle>
                     )}
-                    <Box
-                        sx={{
-                            whiteSpace: "break-spaces",
-                            textAlign: "left",
-                            fontSize: "0.7rem",
-                        }}
-                    >
-                        {feedback}
-                    </Box>
+                    <Box className={classes.feedback}>{feedback}</Box>
                 </Alert>
             )}
         </Box>
@@ -144,5 +125,30 @@ const PasswordMeter = function (props: Props) {
 PasswordMeter.defaultProps = {
     minLength: 0,
 };
+
+const useStyles = makeStyles<{ progressColor: string[]; passwordScore: number; maxScores: number }>()(
+    (theme: Theme, { progressColor, passwordScore, maxScores }) => ({
+        progressBar: {
+            height: "5px",
+            marginTop: "2px",
+            backgroundColor: progressColor[passwordScore],
+            width: `${(passwordScore + 1) * (100 / maxScores)}%`,
+            transition: "width .5s linear",
+        },
+        progressContainer: {
+            width: "100%",
+        },
+        feedbackTitle: {
+            whiteSpace: "break-spaces",
+            textAlign: "left",
+            fontSize: "0.85rem",
+        },
+        feedback: {
+            whiteSpace: "break-spaces",
+            textAlign: "left",
+            fontSize: "0.7rem",
+        },
+    }),
+);
 
 export default PasswordMeter;

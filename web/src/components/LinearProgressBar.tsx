@@ -1,6 +1,7 @@
 import React from "react";
 
-import { LinearProgress, useTheme } from "@mui/material";
+import { LinearProgress, Theme } from "@mui/material";
+import { makeStyles } from "tss-react/mui";
 
 export interface Props {
     value: number;
@@ -8,23 +9,28 @@ export interface Props {
 }
 
 const LinearProgressBar = function (props: Props) {
-    const theme = useTheme();
+    const { classes } = useStyles({ props: props });
 
     return (
         <LinearProgress
             variant="determinate"
-            sx={{
-                marginTop: theme.spacing(),
-                "& .MuiLinearProgress-root": {
-                    height: props.height ? props.height : theme.spacing(),
-                },
-                "& .MuiLinearProgress-bar1Determinate": {
-                    transition: "transform .2s linear",
-                },
-            }}
+            classes={{ root: classes.root, determinate: classes.determinate }}
             value={props.value}
+            className={classes.default}
         />
     );
 };
+
+const useStyles = makeStyles<{ props: Props }>()((theme: Theme, { props }) => ({
+    root: {
+        height: props.height ? props.height : theme.spacing(),
+    },
+    determinate: {
+        transition: "transform .2s linear",
+    },
+    default: {
+        marginTop: theme.spacing(),
+    },
+}));
 
 export default LinearProgressBar;

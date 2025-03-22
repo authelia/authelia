@@ -1,7 +1,7 @@
 import React from "react";
 
 import { AppBar, Toolbar, Typography } from "@mui/material";
-import { styled } from "@mui/styles";
+import { styled } from "@mui/material/styles";
 
 import AppBarItemAccountSettings from "@components/AppBarItemAccountSettings";
 import AppBarItemLanguage from "@components/AppBarItemLanguage";

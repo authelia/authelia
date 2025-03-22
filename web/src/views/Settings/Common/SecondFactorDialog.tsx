@@ -16,9 +16,9 @@ import {
     Theme,
     Typography,
 } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
 import { browserSupportsWebAuthn } from "@simplewebauthn/browser";
 import { useTranslation } from "react-i18next";
+import { makeStyles } from "tss-react/mui";
 
 import SuccessIcon from "@components/SuccessIcon";
 import { SecondFactorMethod } from "@models/Methods";
@@ -43,7 +43,7 @@ type Props = {
 
 const SecondFactorDialog = function (props: Props) {
     const { t: translate } = useTranslation("settings");
-    const styles = useStyles();
+    const { classes } = useStyles();
 
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -154,7 +154,7 @@ const SecondFactorDialog = function (props: Props) {
                 {!props.elevation || !props.info ? (
                     activeStep === 2 ? (
                         <Box
-                            className={styles.success}
+                            className={classes.success}
                             sx={{
                                 display: "flex",
                                 flexDirection: "column",
@@ -213,7 +213,7 @@ const SecondFactorDialog = function (props: Props) {
                     </Stack>
                 ) : (
                     <Box
-                        className={styles.success}
+                        className={classes.success}
                         sx={{
                             display: "flex",
                             flexDirection: "column",
@@ -235,9 +235,7 @@ const SecondFactorDialog = function (props: Props) {
     );
 };
 
-export default SecondFactorDialog;
-
-const useStyles = makeStyles((theme: Theme) => ({
+const useStyles = makeStyles()((theme: Theme) => ({
     success: {
         marginBottom: theme.spacing(2),
         flex: "0 0 100%",
@@ -248,3 +246,5 @@ const useStyles = makeStyles((theme: Theme) => ({
         marginY: "2.5rem",
     },
 }));
+
+export default SecondFactorDialog;

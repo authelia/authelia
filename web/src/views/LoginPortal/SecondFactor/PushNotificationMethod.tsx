@@ -1,8 +1,8 @@
 import React, { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
-import { Button, Theme } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
+import { Box, Button, Theme } from "@mui/material";
 import { useTranslation } from "react-i18next";
+import { makeStyles } from "tss-react/mui";
 
 import FailureIcon from "@components/FailureIcon";
 import PushNotificationIcon from "@components/PushNotificationIcon";
@@ -45,14 +45,15 @@ export interface Props {
 }
 
 const PushNotificationMethod = function (props: Props) {
-    const styles = useStyles();
+    const { t: translate } = useTranslation();
+    const { classes } = useStyles();
+
     const [state, setState] = useState(State.SignInInProgress);
     const redirectionURL = useQueryParam(RedirectionURL);
     const [workflow, workflowID] = useWorkflow();
     const mounted = useIsMountedRef();
     const [enroll_url, setEnrollUrl] = useState("");
     const [devices, setDevices] = useState([] as SelectableDevice[]);
-    const { t: translate } = useTranslation();
 
     const { onSignInSuccess, onSignInError } = props;
     const onSignInErrorCallback = useRef(onSignInError).current;
@@ -267,22 +268,22 @@ const PushNotificationMethod = function (props: Props) {
             onSelectClick={handleFetchDuoDevices}
             onRegisterClick={() => window.open(enroll_url, "_blank")}
         >
-            <div className={styles.icon}>{icon}</div>
-            <div className={state !== State.Failure ? "hidden" : ""}>
+            <Box className={classes.icon}>{icon}</Box>
+            <Box className={state !== State.Failure ? "hidden" : ""}>
                 <Button color="secondary" onClick={handleSignIn}>
                     {translate("Retry")}
                 </Button>
-            </div>
+            </Box>
         </MethodContainer>
     );
 };
 
-export default PushNotificationMethod;
-
-const useStyles = makeStyles((theme: Theme) => ({
+const useStyles = makeStyles()((theme: Theme) => ({
     icon: {
         width: "64px",
         height: "64px",
         display: "inline-block",
     },
 }));
+
+export default PushNotificationMethod;

@@ -140,7 +140,7 @@ const SettingsView = function () {
 
         return configuration?.password_change_disabled ? (
             <Tooltip title={translate("This is disabled by your administrator.")}>
-                <span>{buttonContent}</span>
+                <Box component={"span"}>{buttonContent}</Box>
             </Tooltip>
         ) : (
             buttonContent
