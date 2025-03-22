@@ -2,7 +2,7 @@
 title: "audiobookshelf"
 description: "Integrating audiobookshelf with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2025-05-21T17:51:47+00:00
+date: 2025-03-22T03:16:02+00:00
 draft: false
 images: []
 weight: 620
