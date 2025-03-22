@@ -62,6 +62,7 @@ identity_providers:
         pkce_challenge_method: 'S256'
         redirect_uris:
           - 'https://jellyfin.{{< sitevar name="domain" nojs="example.com" >}}/sso/OID/redirect/authelia'
+          - 'https://jellyfin.{{< sitevar name="domain" nojs="example.com" >}}/sso/OID/r/authelia'
         scopes:
           - 'openid'
           - 'profile'
