@@ -58,9 +58,11 @@ const PushNotificationMethod = function (props: Props) {
     const onSignInErrorCallback = useRef(onSignInError).current;
     const onSignInSuccessCallback = useRef(onSignInSuccess).current;
 
-    const timeoutRateLimit = useRef<NodeJS.Timeout>();
+    const timeoutRateLimit = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
+        if (timeoutRateLimit.current === null) return;
+
         return clearTimeout(timeoutRateLimit.current);
     }, []);
 
@@ -76,7 +78,7 @@ const PushNotificationMethod = function (props: Props) {
 
             timeoutRateLimit.current = setTimeout(() => {
                 setState(State.Failure);
-                timeoutRateLimit.current = undefined;
+                timeoutRateLimit.current = null;
             }, retryAfter * 1000);
         },
         [onSignInErrorCallback, translate],
