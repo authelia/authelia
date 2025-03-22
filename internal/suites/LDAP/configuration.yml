@@ -58,6 +58,11 @@ session:
       inactivity: '5 minutes'
       remember_me: '1 year'
 
+administration:
+  enabled: true
+  admin_group: "authelia-admin"
+  enable_user_management: true
+
 authentication_backend:
   ldap:
     address: 'ldaps://openldap'

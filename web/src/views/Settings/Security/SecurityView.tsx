@@ -91,10 +91,9 @@ const SettingsView = function () {
     };
 
     const handleElevationRefresh = async () => {
-        try {
-            const result = await getUserSessionElevation();
-            setElevation(result);
-        } catch {
+        try {const result = await getUserSessionElevation();
+
+        setElevation(result);} catch {
             createErrorNotification(translate("Failed to get session elevation status"));
         }
     };
@@ -171,6 +170,7 @@ const SettingsView = function () {
             />
 
             <Container
+                maxWidth="md"
                 sx={{
                     display: "flex",
                     justifyContent: "center",
@@ -185,6 +185,7 @@ const SettingsView = function () {
                         display: "flex",
                         justifyContent: "center",
                         alignItems: "center",
+
                         height: "auto",
                     }}
                 >
