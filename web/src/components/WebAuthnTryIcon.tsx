@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 
-import { Box, Button, Theme, useTheme } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
+import { Box, Button, useTheme } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import FailureIcon from "@components/FailureIcon";
@@ -22,15 +21,6 @@ const WebAuthnTryIcon = function (props: Props) {
     const theme = useTheme();
     const [timerPercent, triggerTimer, clearTimer] = useTimer(touchTimeout * 1000 - 500);
 
-    const styles = makeStyles((theme: Theme) => ({
-        icon: {
-            display: "inline-block",
-        },
-        progressBar: {
-            marginTop: theme.spacing(),
-        },
-    }))();
-
     const handleRetryClick = () => {
         clearTimer();
         triggerTimer();
@@ -46,7 +36,7 @@ const WebAuthnTryIcon = function (props: Props) {
             icon={<FingerTouchIcon size={64} animated strong />}
             className={props.webauthnTouchState === WebAuthnTouchState.WaitTouch ? undefined : "hidden"}
         >
-            <LinearProgressBar value={timerPercent} className={styles.progressBar} height={theme.spacing(2)} />
+            <LinearProgressBar value={timerPercent} height={theme.spacing(2)} />
         </IconWithContext>
     );
 
@@ -62,7 +52,7 @@ const WebAuthnTryIcon = function (props: Props) {
     );
 
     return (
-        <Box className={styles.icon} sx={{ minHeight: 101 }}>
+        <Box sx={{ minHeight: 101, display: "inline-block" }}>
             {touch}
             {failure}
         </Box>
