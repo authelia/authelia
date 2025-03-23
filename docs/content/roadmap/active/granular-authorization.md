@@ -19,23 +19,29 @@ for administrators to customize this. We plan to do this leveraging
 [RFC8176: Authentication Method Reference Values] which is almost a universal standard implemented by major Identity
 Provider protocols like [OpenID Connect 1.0] and [Security Assertion Markup Language (SAML) 2.0].
 
-## Authentication Methods Reference Values Explainer
+## Authentication Method Reference Values Explainer
 
-Authentication Methods Reference Values are standardized identifiers that indicate which authentication methods were
+Authentication Method Reference Values are standardized identifiers that indicate which authentication methods were
 used during a user's authentication process.
 
-Examples include "pwd" for password authentication, "otp" for one-time password, "mfa" for multi-factor authentication,
-etc. By recording and leveraging these values, Authelia can make more sophisticated authorization
+Examples include `pwd` , `otp` , `mfa`, etc. A full list of meanings for each Authentication Method References Values
+as it pertains to Authelia can be found in the
+[Authentication Method References Values Reference Guide](../../reference/guides/authentication-method-references.md).
+By recording and leveraging these values, Authelia can make more sophisticated authorization
 decisions based on not just whether a user is authenticated, but specifically how they authenticated, enabling granular
 access control policies that are customizable by administrators.
 
 For example, an administrator could configure Authelia to:
-	- Require "hwk" (hardware-secured key) for accessing internal company applications
-	- Enforce "mfa" with specific combinations like "hwk" + "otp" for admin portals
-	- Allow "pwd" authentication for basic applications but require additional factors for sensitive resources
-	- Create rules that accept different authentication methods based on network location or user groups
 
-All at once.
+  - Require `hwk` or `swk` for accessing internal company applications
+  - Enforce `mfa` with specific combinations like `hwk` and `otp` for admin portals
+    - Please note that any Authelia administration portal will require an absolute minimum of `mfa`
+  - Allow `pwd` authentication for basic applications but require additional factors for sensitive resources
+
+All at the same time as leveraging the already first-class
+[Access Control Rules](../../configuration/security/access-control.md) or the emerging
+[OpenID Connect 1.0 Authorization Polices](../../configuration/identity-providers/openid-connect/provider.md#authorization_policies)
+to deliver an unparalleled authorization experience.
 
 ## Stages
 
