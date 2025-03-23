@@ -5,7 +5,7 @@ summary: "A dashboard or control panel for administrators to adjust system setti
 date: 2024-03-21T18:25:55+11:00
 draft: false
 images: []
-weight: 245
+weight: 345
 toc: true
 aliases:
   - /r/admin-dashboard

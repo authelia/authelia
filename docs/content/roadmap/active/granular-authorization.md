@@ -5,10 +5,8 @@ summary: "Implementation of a Granular Authorization framework will make the Aut
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-weight: 230
+weight: 325
 toc: true
-aliases:
-  - /r/i18n
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)

@@ -5,7 +5,7 @@ summary: "The OpenID Connect 1.0 Relying Party role is a great addition to the e
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-weight: 221
+weight: 220
 toc: true
   - /r/openid-connect-rp
 seo:
