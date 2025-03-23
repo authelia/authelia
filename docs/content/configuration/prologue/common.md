@@ -216,12 +216,12 @@ respective address type):
 |    `udp4`     |    Yes    |    Yes     |     N/A      |           Standard UDP Socket which allows only IPv4 addresses            |
 |    `udp6`     |    Yes    |    Yes     |     N/A      |           Standard UDP Socket which allows only IPv6 addresses            |
 |    `unix`     |    Yes    |    Yes     |     N/A      |       Standard Unix Domain Socket which allows only absolute paths        |
-|    `ldap`     |    No     |    Yes     |     389      |       Remote LDAP connection via TCP with implicit TLS via StartTLS       |
-|    `ldaps`    |    No     |    Yes     |     636      |             Remote LDAP connection via TCP with explicit TLS              |
+|    `ldap`     |    No     |    Yes     |     389      |       Remote LDAP connection via TCP with explicit TLS via StartTLS       |
+|    `ldaps`    |    No     |    Yes     |     636      |             Remote LDAP connection via TCP with implicit TLS              |
 |    `ldapi`    |    No     |    Yes     |     N/A      |                  LDAP connection via Unix Domain Socket                   |
-|    `smtp`     |    No     |    Yes     |      25      |      Remote SMTP connection via TCP using implicit TLS via StartTLS       |
-| `submission`  |    No     |    Yes     |     587      | Remote SMTP Submission connection via TCP using implicit TLS via StartTLS |
-| `submissions` |    No     |    Yes     |     465      |       Remote SMTP Submission connection via TCP using explicit TLS        |
+|    `smtp`     |    No     |    Yes     |      25      |      Remote SMTP connection via TCP using explicit TLS via StartTLS       |
+| `submission`  |    No     |    Yes     |     587      | Remote SMTP Submission connection via TCP using explicit TLS via StartTLS |
+| `submissions` |    No     |    Yes     |     465      |       Remote SMTP Submission connection via TCP using implicit TLS        |
 
 If the scheme is absent, the default scheme is assumed. If the address has a `/` prefix it's assumed to be `unix`,
 otherwise it's assumed to be`tcp`. If the scheme is `unix` it must be suffixed with an absolute path i.e.
