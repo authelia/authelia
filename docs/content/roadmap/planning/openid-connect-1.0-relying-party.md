@@ -51,3 +51,5 @@ customization provided as to how the layout occurs, i.e. either individually, in
 The Authentication Methods Reference Values could theoretically be used to derive the effective authentication level of
 the user in combination with [Granular Authorization](../active/granular-authorization.md). We will likely implement
 this with a opt-in setting to trust the Provider.
+
+[OpenID Connect 1.0]: https://openid.net/connect/
