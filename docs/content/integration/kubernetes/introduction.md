@@ -18,17 +18,6 @@ seo:
 
 {{< figure src="images/logos/kubernetes.png" alt="Kubernetes" width="100" style="padding-right: 10px" ignoreStaticImages="false" >}}
 
-## UNDER CONSTRUCTION
-
-The following areas are actively being worked on for Kubernetes:
-
-1. Detailed Documentation
-2. [Helm Chart](chart.md) for Helm v3
-3. Kustomize Deployment
-4. Manifest Examples
-
-Users are welcome to reach out directly by using any of our various [contact options](../../information/contact.md).
-
 ## Get started
 
 It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our

@@ -30,12 +30,30 @@ let us know via a GitHub Discussion or one of the Chat options.
 
 ## Summary
 
-This is a summary of the features which are currently on the roadmap with links to further details:
+This is a summary of the features which are currently on the roadmap with links to further details in each major stage.
 
-1. [WebAuthn](../active/webauthn.md)
-2. [OpenID Connect 1.0 Provider](../active/openid-connect.md)
+### Planning
+
+The planning items are intended to be implemented but we're still in the very early planning stages.
+
+1. [OpenID Connect 1.0 Relying Party](../planning/openid-connect-1.0-relying-party.md)
+2. [Security Assertion Markup Language (SAML) 2.0 Provider](../planning/security-assertion-markup-language-saml-2.0-identity-provider.md)
+
+### Active
+
+The active items are things we're actively working on and are priorities for development direction.
+
+1. [OpenID Connect 1.0 Provider](../active/openid-connect-1.0-provider.md)
+2. [Granular Authorization](../active/granular-authorization.md)
 3. [Internationalization or Multilingual Support](../active/internationalization.md)
 4. [Multiple Domain Protection](../active/multi-domain-protection.md)
 5. [Control Panel / Dashboard for User  Settings](../active/dashboard-control-panel-for-users.md)
 6. [Control Panel / Dashboard and CLI for Administration Settings](../active/dashboard-control-panel-and-cli-for-admins.md)
-7. [Kubernetes Documentation](../active/kubernetes-documentation.md)
+
+### Complete
+
+The complete items are things we previously actively worked on and have been finalized or otherwise removed from the
+roadmap.
+
+1. [WebAuthn](../complete/webauthn.md)
+2. [Kubernetes Documentation](../complete/kubernetes-documentation.md)

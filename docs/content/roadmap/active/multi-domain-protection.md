@@ -1,11 +1,11 @@
 ---
-title: "Multi Domain Protection"
-description: "Authelia Multi Domain Protection Implementation"
-summary: "Multi Domain Protection is one of the most requested Authelia features."
+title: "Multi-Domain Protection"
+description: "Authelia Multi-Domain Protection Implementation"
+summary: "Multi-Domain Protection is one of the most requested Authelia features."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-weight: 230
+weight: 335
 toc: true
 aliases:
   - /r/multi-domain-protection
@@ -38,20 +38,28 @@ root domains.
 
 ### Decide on a Session Library
 
-{{< roadmap-status stage="in-progress" >}}
+{{< roadmap-status stage="complete" >}}
 
-We need to make a choice going forward about what method we will use to manage cookies and sessions. The current library
-has many drawbacks that just are not satisfactory in order to easily facilitate this.
+We've decided on moving away from using the current session library and plan on entirely implementing session logic
+internally.
 
 ### Initial Implementation
 
 {{< roadmap-status stage="complete" version="v4.38.0" >}}
 
 This stage is waiting on the choice to handle sessions. Initial implementation will involve just a basic cookie
-implementation where users will be required to sign in to each root domain and no SSO functionality will exist.
+implementation where users will be required to sign in to each root domain and no inter-domain SSO functionality will
+exist.
+
+See the [SSO implementation](#sso-implementation) for how we plan to address the sign in limitation.
 
 ### SSO Implementation
 
 {{< roadmap-status >}}
 
-The SSO implementation will leverage [OpenID Connect](openid-connect.md) to perform Single-Sign On.
+While the initial implementation will require users to sign in to each root domain and no SSO functionality will exist
+as outlined in the [initial implementation](#initial-implementation), it's possible via Identity protocols / frameworks
+like [OpenID Connect 1.0](openid-connect-1.0-provider.md) to perform Single-Sign On transparently for users.
+
+This will very likely be implemented at the same time as
+[OpenID Connect 1.0 Relying Party](../planning/openid-connect-1.0-relying-party.md) support.

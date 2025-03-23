@@ -1,15 +1,16 @@
 ---
-title: "OpenID Connect 1.0"
+title: "OpenID Connect 1.0 Provider"
 description: "Authelia OpenID Connect 1.0 Provider Implementation"
-summary: "The OpenID Connect 1.0 Provider role is a very useful but complex feature to enhance interoperability of Authelia with other products. "
+summary: "The OpenID Connect 1.0 Provider role is a very useful but complex feature to enhance interoperability of Authelia with other products."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-weight: 221
+weight: 320
 toc: true
 aliases:
   - /r/openid-connect
   - /docs/roadmap/oidc.html
+  - /roadmap/active/openid-connect
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -136,27 +137,49 @@ Feature List:
   * `RS256`, `RS384`, `RS512`
   * `PS256`, `PS384`, `PS512`
   * `ES256`, `ES384`, `ES512`
-* [Custom Authorization Policies / RBAC](#client-rbac):
+* [Client RBAC: Users and Groups](#client-rbac-users-and-groups):
   * Policies can be mapped to individual clients and reused
   * Match criteria is only subjects as this is the only effective thing that is deterministic during the life of an
     authorization
 
 ### Beta 7
 
+{{< callout context="danger" title="Important Notes" icon="outline/alert-octagon" >}}
+This version will contain a breaking change per our
+[Versioning Policy](../../policies/versioning.md#experimental-features).
+{{< /callout >}}
+
 {{< roadmap-status stage="complete" version="v4.39.0" >}}
+
+Breaking Changes:
+
+* Default ID Token Claims (related to Claims Handling)
 
 Feature List:
 
 * Prompt Handling
 * Display Handling
 * Claims Handling
+  * Only include the required claims within the minted [ID Token]
+  * Allow clients to use the claims parameter to request the claims which are included in the minted [ID Token]
+  * Allow a user definable claims policy to allow access to custom claims and scopes
 * Attribute Mapping
+  * Custom Claims
+  * Claims Policies
+  * Expression Based Claims
+* Custom Scopes
 * [RFC8628: OAuth 2.0 Device Authorization Grant]
 * [JSON Web Encryption](https://datatracker.ietf.org/doc/html/rfc7516)
+* [Client RBAC: Networks](#client-rbac-networks)
 
 See [OpenID Connect Core 1.0 (Mandatory to Implement Features for All OpenID Providers)].
 
 ### Beta 8
+
+{{< callout context="danger" title="Important Notes" icon="outline/alert-octagon" >}}
+This version will contain a breaking change per our
+[Versioning Policy](../../policies/versioning.md#experimental-features).
+{{< /callout >}}
 
 {{< roadmap-status >}}
 
@@ -165,7 +188,7 @@ Feature List:
 * Revoke Tokens on User Logout or Expiration
 * [JSON Web Key Rotation](https://openid.net/specs/openid-connect-messages-1_0-20.html#rotate.sig.keys)
 * In-Storage Configuration:
-  * Multi-Issuer Configuration (require one per Issuer URL)
+  * [Multi-Issuer Configuration](#multi-issuer-configuration) (require one per Issuer URL)
   * Dynamically Configured via CLI
   * Import from YAML:
     * Manual method
@@ -190,6 +213,18 @@ Feature List:
 ### Miscellaneous
 
 This stage lists features which individually do not fit into a specific stage and may or may not be implemented.
+
+#### Multi-Issuer Configuration
+
+{{< callout context="danger" title="Important Notes" icon="outline/alert-octagon" >}}
+This will be a planned breaking-change as per our
+[Versioning Policy](../../policies/versioning.md#experimental-features).
+{{< /callout >}}
+
+The initial design of our [OpenID Connect 1.0] implementation was before
+[Multi-Domain Protection](multi-domain-protection.md) was considered. It's important for the future of Authelia that we
+carefully consider the implications of this and force users to configure a issuer per domain they wish to serve
+[OpenID Connect 1.0] from and each of these are completely separate logical units.
 
 #### OAuth 2.0 Authorization Server Metadata
 
@@ -237,11 +272,24 @@ See the [OpenID Connect 1.0] website for the [OpenID Connect RP-Initiated Logout
 
 Allow users to choose which scopes they grant.
 
-#### Client RBAC
+#### Client RBAC: Users and Groups
 
 {{< roadmap-status stage="complete" version="v4.38.0" >}}
 
-Allow clients to be configured with a list of users and groups who have access to them. See [Beta 6](#beta-6).
+See also [Beta 6](#beta-6) and [Client RBAC: Networks](#client-rbac-networks).
+
+Allow the creation of custom authorization policies for [OpenID Connect 1.0]. Allow the policies to contain either users
+or groups and an effective authorization policy applied to them from either `one_factor`, `two_factor`, or `deny`.
+
+Allow these policies to be configured on one or more clients.
+
+#### Client RBAC: Networks
+
+{{< roadmap-status stage="complete" version="v4.39.0" >}}
+
+See also [Beta 7](#beta-7) and [Client RBAC: Users and Groups](#client-rbac-users-and-groups).
+
+Allow enhancing the existing custom authorization policies to include networks.
 
 #### Preferred Username Claim
 
@@ -249,6 +297,7 @@ Allow clients to be configured with a list of users and groups who have access t
 
 The `preferred_username` claim was missing and was fixed.
 
+[ID Token]: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
 [Cross Origin Resource Sharing]: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
 
 [RFC8176]: https://datatracker.ietf.org/doc/html/rfc8176

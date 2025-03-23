@@ -1,12 +1,14 @@
-{{ $class := "rs-not-started" }}{{ $text := "not started" }}
+{{ $class := "rs-not-started" }}{{ $text := "not started" }}{{ $statusTooltip := "The not started stage effectively indicates no work has been completed on this particular roadmap item." }}
 {{ with .Get "stage" }}
-{{ if (eq . "in-progress") }}{{ $class = "rs-started" }}{{ $text = "in progress" }}
-{{ else if (eq . "waiting") }}{{ $class = "rs-waiting" }}{{ $text = "waiting" }}
-{{ else if (eq . "complete") }}{{ $class = "rs-complete" }}{{ $text = "complete" }}
+{{ if (eq . "in-progress") }}{{ $class = "rs-started" }}{{ $text = "in progress" }}{{ $statusTooltip = "The in progress stage effectively indicates the design stage has been completed and work is underway to produce either a proof of concept or the final implementation." }}
+{{ else if (eq . "needs-design") }}{{ $class = "rs-needs-design" }}{{ $text = "needs design" }}{{ $statusTooltip = "The needs design stage effectively indicates work needs to be done to decide on a design for this roadmap item and none of the details have been finalized." }}
+{{ else if (eq . "waiting") }}{{ $class = "rs-waiting" }}{{ $text = "waiting" }}{{ $statusTooltip = "The waiting stage effectively indicates this is held up by another roadmap item or other detail." }}
+{{ else if (eq . "complete") }}{{ $class = "rs-complete" }}{{ $text = "complete" }}{{ $statusTooltip = "The completed stage effectively indicates this roadmap item has been released." }}
+{{ else if (eq . "abandoned") }}{{ $class = "rs-abandoned" }}{{ $text = "abandoned" }}{{ $statusTooltip = "The abandoned stage effectively indicates this roadmap item has been abandoned." }}
 {{ end }}{{ end }}
 <div class="m-2">
-  <span class="badge {{ $class }}" data-bs-toggle="tooltip" data-bs-placement="top" title="The status of this roadmap item">{{ $text }}</span>
+  <span class="badge {{ $class }}" data-bs-toggle="tooltip" data-bs-placement="top" title="The status of this roadmap item. {{ $statusTooltip }}">{{ $text }}</span>
   {{ with .Get "version" }}
-  <span class="badge rs-version" data-bs-toggle="tooltip" data-bs-placement="top" title="The version this stage was implemented in">{{ . }}</span>
+  <span class="badge rs-version" data-bs-toggle="tooltip" data-bs-placement="top" title="The version this stage was implemented in.">{{ . }}</span>
   {{ end }}
 </div>

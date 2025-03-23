@@ -5,10 +5,11 @@ summary: "An introduction into the Authelia roadmap."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-weight: 220
+weight: 915
 toc: true
 aliases:
   - /r/webauthn
+  - /roadmap/active/webauthn
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)

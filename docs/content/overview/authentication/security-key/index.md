@@ -50,21 +50,21 @@ Easy, right?!
 ### Can I register multiple FIDO2 WebAuthn credentials?
 
 Yes, as of v4.38.0 and above Authelia supports registering multiple WebAuthn credentials as per the
-[roadmap](../../../roadmap/active/webauthn.md#multi-device-registration).
+[roadmap](../../../roadmap/complete/webauthn.md#multi-device-registration).
 
 ### Can I perform a passwordless login?
 
 Yes, as of v4.39.0 and above Authelia supports passwordless logins via Passkeys as per the
-[roadmap](../../../roadmap/active/webauthn.md#passwordless-login).
+[roadmap](../../../roadmap/complete/webauthn.md#passwordless-login).
 
 {{< figure src="passkeys.png" caption="The Passkey Authentication Portal View" alt="The Passkey Authentication Portal View" width=400 process="resize 400x" >}}
 
 ### Why does it ask me for my password after using a Passkey to login?
 
 This exists to ensure the `two_factor` policy is enforced. The Passkey itself is a single factor and we do have plans to
-offer very granular control policies and their requirements. For example it will likely be possible to create your own
-custom policy equal to `two_factor` today which also considers a single Passkey login as satisfactory for a particular
-access control policy.
+offer very [granular control policies and their requirements](../../../roadmap/active/granular-authorization.md). For
+example it will likely be possible to create your own custom policy equal to `two_factor` today which also considers a
+single Passkey login as satisfactory for a particular access control policy.
 
 {{< figure src="password_2fa.png" caption="The Passkey MFA Password Authentication Portal View" alt="The Passkey MFA Password Authentication Portal View" width=400 process="resize 400x" >}}
 

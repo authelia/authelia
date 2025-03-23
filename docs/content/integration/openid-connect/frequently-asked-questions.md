@@ -229,19 +229,20 @@ client configuration option.
 
 ### How should I link user accounts to Authelia OpenID Connect 1.0 responses in the application I'm designing?
 
-There are several in-use methodologies for linking user accounts ot OpenID Connect 1.0 Providers. The specification has
+There are several in-use methodologies for linking user accounts to [OpenID Connect 1.0] Providers. The specification has
 a fairly strong opinion about how this is done for various reasons and the supported method by Authelia is the same as
 what the specification supports.
 
-Specifically we support using the combination of the `iss` and `sub` claim as an anchor to local user accounts. This
-combination is a combination that must be unique for any given user identity. Claims such as `email` and
-`preferred_username` have no formal guarantees of stability by the OpenID Connect 1.0 specification.
+Specifically we support using the pairwise comparison of the `iss` and `sub` claim as an anchor to local user accounts.
+This combination is a combination that must be unique for any given user identity. Claims such as `email` and
+`preferred_username` have no formal guarantees of stability or uniqueness by the [OpenID Connect 1.0] specification or
+Authelia.
 
 Several in-use applications including ones that Authelia users frequently use utilize claims such as `email` and
 `preferred_username`. However these implementations are in contradiction with the specification. These attributes
-realistically should only be used as hints when a user who has not linked their account tries to login with OpenID
-Connect 1.0 and has not logged in yet. For example an application may prefill the username or email field of a login or
-registration form using these claims.
+realistically should only be used as hints when a user who has not linked their account tries to login or register
+their account with [OpenID Connect 1.0]. For example in either scenario an application may prefill the username or email
+field of a login or registration form using these claims.
 
 Utilization of these claims could potentially become problematic if we ever implement a feature to change usernames or
 email addresses. Therefore we only guarantee the stability of those specific claims and at such a time as we allow
@@ -313,3 +314,4 @@ docker run -d --name application --network proxy <other application arguments>
 
 [Endpoint]: ./introduction.md#discoverable-endpoints
 [RFC3986 Unreserved Characters]: https://datatracker.ietf.org/doc/html/rfc3986#section-2.3
+[OpenID Connect 1.0]: https://openid.net/specs/openid-connect-core-1_0.html
