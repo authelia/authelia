@@ -40,17 +40,26 @@ root domains.
 
 {{< roadmap-status stage="complete" >}}
 
-We've decided on moving away from as session library and implementing it ourselves.
+We've decided on moving away from using the current session library and plan on entirely implementing session logic
+internally.
 
 ### Initial Implementation
 
 {{< roadmap-status stage="complete" version="v4.38.0" >}}
 
 This stage is waiting on the choice to handle sessions. Initial implementation will involve just a basic cookie
-implementation where users will be required to sign in to each root domain and no SSO functionality will exist.
+implementation where users will be required to sign in to each root domain and no inter-domain SSO functionality will
+exist.
+
+See the [SSO implementation](#sso-implementation) for how we plan to address the sign in limitation.
 
 ### SSO Implementation
 
 {{< roadmap-status >}}
 
-The SSO implementation will leverage [OpenID Connect](openid-connect.md) to perform Single-Sign On.
+While the initial implementation will require users to sign in to each root domain and no SSO functionality will exist
+as outlined in the [initial implementation](#initial-implementation), it's possible via Identity protocols / frameworks
+like [OpenID Connect 1.0](openid-connect-1.0-provider.md) to perform Single-Sign On transparently for users.
+
+This will very likely be implemented at the same time as
+[OpenID Connect 1.0 Relying Party](../planning/openid-connect-1.0-relying-party.md) support.

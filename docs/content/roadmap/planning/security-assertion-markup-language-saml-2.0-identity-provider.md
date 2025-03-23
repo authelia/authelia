@@ -16,7 +16,7 @@ seo:
   noindex: false # false (default) or true
 ---
 
-The [Security Assertion Markup Language (SAML) 2.0] Provider implementation has manu of the same benefits of the
+The [Security Assertion Markup Language (SAML) 2.0] Provider implementation has many of the same benefits of the
 [OpenID Connect 1.0 Provider](../active/openid-connect-1.0-provider.md) implementation but obviously supports clients
 support it instead of [OpenID Connect 1.0].
 

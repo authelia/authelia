@@ -43,7 +43,7 @@ logic.
 
 ### Implement Custom Authentication Methods Reference Values Policies
 
-{{< roadmap-status stage="needs-design" >}}
+{{< roadmap-status stage="needs-design" version="v4.41.0" >}}
 
 This stage will allow administrators to develop their own custom policies based on
 [RFC8176: Authentication Method Reference Values]. This will enhance other features such as Passkeys allowing
@@ -52,7 +52,7 @@ careful planning.
 
 ### Custom Policy Flows
 
-{{< roadmap-status stage="needs-design" >}}
+{{< roadmap-status stage="needs-design" version="v4.41.0" >}}
 
 To facilitate the
 [Implement Custom Authentication Methods Reference Values Policies](#implement-custom-authentication-methods-reference-values-policies)

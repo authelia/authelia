@@ -62,9 +62,9 @@ Yes, as of v4.39.0 and above Authelia supports passwordless logins via Passkeys 
 ### Why does it ask me for my password after using a Passkey to login?
 
 This exists to ensure the `two_factor` policy is enforced. The Passkey itself is a single factor and we do have plans to
-offer very granular control policies and their requirements. For example it will likely be possible to create your own
-custom policy equal to `two_factor` today which also considers a single Passkey login as satisfactory for a particular
-access control policy.
+offer very [granular control policies and their requirements](../../../roadmap/active/granular-authorization.md). For
+example it will likely be possible to create your own custom policy equal to `two_factor` today which also considers a
+single Passkey login as satisfactory for a particular access control policy.
 
 {{< figure src="password_2fa.png" caption="The Passkey MFA Password Authentication Portal View" alt="The Passkey MFA Password Authentication Portal View" width=400 process="resize 400x" >}}
 
