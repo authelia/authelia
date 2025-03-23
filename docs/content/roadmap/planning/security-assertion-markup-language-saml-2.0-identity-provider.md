@@ -1,7 +1,7 @@
 ---
-title: "Security Assertion Markup Language (SAML) 2.0 Identity Provider"
-description: "Authelia OpenID Connect 1.0 Provider Implementation"
-summary: "The OpenID Connect 1.0 Provider role is a very useful but complex feature to enhance interoperability of Authelia with other products. "
+title: "Security Assertion Markup Language (SAML) 2.0 Provider"
+description: "Authelia Security Assertion Markup Language (SAML) 2.0 Provider Implementation"
+summary: "The Security Assertion Markup Language (SAML) 2.0 Provider role is a very useful but complex feature to enhance interoperability of Authelia with other products."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
