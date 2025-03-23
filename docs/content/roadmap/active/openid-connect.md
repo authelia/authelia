@@ -165,7 +165,7 @@ Feature List:
 * Revoke Tokens on User Logout or Expiration
 * [JSON Web Key Rotation](https://openid.net/specs/openid-connect-messages-1_0-20.html#rotate.sig.keys)
 * In-Storage Configuration:
-  * Multi-Issuer Configuration (require one per Issuer URL)
+  * [Multi-Issuer Configuration](#multi-issuer-configuration) (require one per Issuer URL)
   * Dynamically Configured via CLI
   * Import from YAML:
     * Manual method
@@ -190,6 +190,13 @@ Feature List:
 ### Miscellaneous
 
 This stage lists features which individually do not fit into a specific stage and may or may not be implemented.
+
+#### Multi-Issuer Configuration
+
+The initial design of our [OpenID Connect 1.0] implementation was before
+[Multi-Domain Protection](multi-domain-protection.md) was considered. It's important for the future of Authelia that we
+carefully consider the implications of this and force users to configure a issuer per domain they wish to serve
+[OpenID Connect 1.0] from and each of these are completely separate logical units.
 
 #### OAuth 2.0 Authorization Server Metadata
 

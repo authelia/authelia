@@ -1,7 +1,7 @@
 ---
-title: "Multi Domain Protection"
-description: "Authelia Multi Domain Protection Implementation"
-summary: "Multi Domain Protection is one of the most requested Authelia features."
+title: "Multi-Domain Protection"
+description: "Authelia Multi-Domain Protection Implementation"
+summary: "Multi-Domain Protection is one of the most requested Authelia features."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
