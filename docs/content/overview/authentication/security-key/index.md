@@ -50,12 +50,12 @@ Easy, right?!
 ### Can I register multiple FIDO2 WebAuthn credentials?
 
 Yes, as of v4.38.0 and above Authelia supports registering multiple WebAuthn credentials as per the
-[roadmap](../../../roadmap/active/webauthn.md#multi-device-registration).
+[roadmap](../../../roadmap/complete/webauthn.md#multi-device-registration).
 
 ### Can I perform a passwordless login?
 
 Yes, as of v4.39.0 and above Authelia supports passwordless logins via Passkeys as per the
-[roadmap](../../../roadmap/active/webauthn.md#passwordless-login).
+[roadmap](../../../roadmap/complete/webauthn.md#passwordless-login).
 
 {{< figure src="passkeys.png" caption="The Passkey Authentication Portal View" alt="The Passkey Authentication Portal View" width=400 process="resize 400x" >}}
 

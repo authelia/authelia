@@ -38,10 +38,9 @@ root domains.
 
 ### Decide on a Session Library
 
-{{< roadmap-status stage="in-progress" >}}
+{{< roadmap-status stage="complete" >}}
 
-We need to make a choice going forward about what method we will use to manage cookies and sessions. The current library
-has many drawbacks that just are not satisfactory in order to easily facilitate this.
+We've decided on moving away from as session library and implementing it ourselves.
 
 ### Initial Implementation
 

@@ -421,7 +421,7 @@ session:
 ## WebAuthn
 
 As part of our ongoing effort for comprehensive support for WebAuthn we'll be introducing several important
-features. Please see the [roadmap](../../roadmap/active/webauthn.md) for more information.
+features. Please see the [roadmap](../../roadmap/complete/webauthn.md) for more information.
 
 #### Multiple WebAuthn Credentials Per-User
 

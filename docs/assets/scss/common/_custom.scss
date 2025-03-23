@@ -121,8 +121,16 @@ a:hover.confkey-syntax {
   background-color: $dark-green;
 }
 
+.rs-abandoned {
+  background-color: $dark-red;
+}
+
 .rs-started {
   background-color: $blue;
+}
+
+.rs-needs-design {
+  background-color: $db-purple-200;
 }
 
 .rs-waiting {
