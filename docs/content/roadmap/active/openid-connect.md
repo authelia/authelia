@@ -136,7 +136,7 @@ Feature List:
   * `RS256`, `RS384`, `RS512`
   * `PS256`, `PS384`, `PS512`
   * `ES256`, `ES384`, `ES512`
-* [Custom Authorization Policies / RBAC](#client-rbac):
+* [Client RBAC: Users and Groups](#client-rbac-users-and-groups):
   * Policies can be mapped to individual clients and reused
   * Match criteria is only subjects as this is the only effective thing that is deterministic during the life of an
     authorization
@@ -169,6 +169,7 @@ Feature List:
 * Custom Scopes
 * [RFC8628: OAuth 2.0 Device Authorization Grant]
 * [JSON Web Encryption](https://datatracker.ietf.org/doc/html/rfc7516)
+* [Client RBAC: Networks](#client-rbac-networks)
 
 See [OpenID Connect Core 1.0 (Mandatory to Implement Features for All OpenID Providers)].
 
@@ -270,11 +271,24 @@ See the [OpenID Connect 1.0] website for the [OpenID Connect RP-Initiated Logout
 
 Allow users to choose which scopes they grant.
 
-#### Client RBAC
+#### Client RBAC: Users and Groups
 
 {{< roadmap-status stage="complete" version="v4.38.0" >}}
 
-Allow clients to be configured with a list of users and groups who have access to them. See [Beta 6](#beta-6).
+See also [Beta 6](#beta-6) and [Client RBAC: Networks](#client-rbac-networks).
+
+Allow the creation of custom authorization policies for [OpenID Connect 1.0]. Allow the policies to contain either users
+or groups and an effective authorization policy applied to them from either `one_factor`, `two_factor`, or `deny`.
+
+Allow these policies to be configured on one or more clients.
+
+#### Client RBAC: Networks
+
+{{< roadmap-status stage="complete" version="v4.39.0" >}}
+
+See also [Beta 7](#beta-7) and [Client RBAC: Users and Groups](#client-rbac-users-and-groups).
+
+Allow enhancing the existing custom authorization policies to include networks.
 
 #### Preferred Username Claim
 
@@ -282,6 +296,7 @@ Allow clients to be configured with a list of users and groups who have access t
 
 The `preferred_username` claim was missing and was fixed.
 
+[ID Token]: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
 [Cross Origin Resource Sharing]: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
 
 [RFC8176]: https://datatracker.ietf.org/doc/html/rfc8176
