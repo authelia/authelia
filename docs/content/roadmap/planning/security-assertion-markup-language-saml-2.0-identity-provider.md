@@ -29,3 +29,4 @@ many pitfalls with [Security Assertion Markup Language (SAML) 2.0] due to the ch
 need to be very mindful of these.
 
 [Security Assertion Markup Language (SAML) 2.0]: https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-tech-overview-2.0.html
+[OpenID Connect 1.0]: https://openid.net/connect/

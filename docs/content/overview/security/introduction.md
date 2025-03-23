@@ -36,3 +36,5 @@ diligent administrators simply via the act of disclosing the security issue.
 ## Policy
 
 Please view our [security policy](../../policies/security.md) for more information.
+
+[coordinated vulnerability disclosure]: https://en.wikipedia.org/wiki/Coordinated_vulnerability_disclosure
