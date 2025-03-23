@@ -462,6 +462,7 @@ The advantages of this approach are as follows:
 [UserInfo]: https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
 [UserInfo Endpoint]: https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
 
+[Device Authorization]: https://datatracker.ietf.org/doc/html/rfc8628
 [Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
 [Introspection]: https://datatracker.ietf.org/doc/html/rfc7662
 [Revocation]: https://datatracker.ietf.org/doc/html/rfc7009
