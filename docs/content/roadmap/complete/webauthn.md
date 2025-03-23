@@ -9,6 +9,7 @@ weight: 220
 toc: true
 aliases:
   - /r/webauthn
+  - /roadmap/active/webauthn
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)

@@ -9,6 +9,7 @@ weight: 250
 toc: true
 aliases:
   - /r/k8s-docs
+  - /roadmap/active/kubernetes-documentation
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)

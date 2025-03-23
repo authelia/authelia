@@ -68,3 +68,7 @@ careful planning.
 There will likely need to be some adjustments of how we handle credential registration. In particular we probably need
 to implement a more complex decision process on what to show and not show for registration, specifically for WebAuthn
 since it can be used as a login method. How we do this still requires a bit of careful planning.
+
+[OpenID Connect 1.0]: https://openid.net/specs/openid-connect-core-1_0.html
+[Security Assertion Markup Language (SAML) 2.0]: https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-tech-overview-2.0.html
+[RFC8176: Authentication Method Reference Values]: https://datatracker.ietf.org/doc/html/rfc8176
