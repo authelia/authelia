@@ -1,7 +1,7 @@
 {{ $class := "rs-not-started" }}{{ $text := "not started" }}
 {{ with .Get "stage" }}
 {{ if (eq . "in-progress") }}{{ $class = "rs-started" }}{{ $text = "in progress" }}
-{{ if (eq . "needs-design") }}{{ $class = "rs-needs-design" }}{{ $text = "needs design" }}
+{{ else if (eq . "needs-design") }}{{ $class = "rs-needs-design" }}{{ $text = "needs design" }}
 {{ else if (eq . "waiting") }}{{ $class = "rs-waiting" }}{{ $text = "waiting" }}
 {{ else if (eq . "complete") }}{{ $class = "rs-complete" }}{{ $text = "complete" }}
 {{ else if (eq . "abandoned") }}{{ $class = "rs-abandoned" }}{{ $text = "abandoned" }}

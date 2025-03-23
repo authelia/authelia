@@ -143,20 +143,41 @@ Feature List:
 
 ### Beta 7
 
+{{< callout context="danger" title="Important Notes" icon="outline/alert-octagon" >}}
+This version will contain a breaking change per our
+[Versioning Policy](../../policies/versioning.md#experimental-features).
+{{< /callout >}}
+
 {{< roadmap-status stage="complete" version="v4.39.0" >}}
+
+Breaking Changes:
+
+* Default ID Token Claims (related to Claims Handling)
 
 Feature List:
 
 * Prompt Handling
 * Display Handling
 * Claims Handling
+  * Only include the required claims within the minted [ID Token]
+  * Allow clients to use the claims parameter to request the claims which are included in the minted [ID Token]
+  * Allow a user definable claims policy to allow access to custom claims and scopes
 * Attribute Mapping
+  * Custom Claims
+  * Claims Policies
+  * Expression Based Claims
+* Custom Scopes
 * [RFC8628: OAuth 2.0 Device Authorization Grant]
 * [JSON Web Encryption](https://datatracker.ietf.org/doc/html/rfc7516)
 
 See [OpenID Connect Core 1.0 (Mandatory to Implement Features for All OpenID Providers)].
 
 ### Beta 8
+
+{{< callout context="danger" title="Important Notes" icon="outline/alert-octagon" >}}
+This version will contain a breaking change per our
+[Versioning Policy](../../policies/versioning.md#experimental-features).
+{{< /callout >}}
 
 {{< roadmap-status >}}
 
@@ -192,6 +213,11 @@ Feature List:
 This stage lists features which individually do not fit into a specific stage and may or may not be implemented.
 
 #### Multi-Issuer Configuration
+
+{{< callout context="danger" title="Important Notes" icon="outline/alert-octagon" >}}
+This will be a planned breaking-change as per our
+[Versioning Policy](../../policies/versioning.md#experimental-features).
+{{< /callout >}}
 
 The initial design of our [OpenID Connect 1.0] implementation was before
 [Multi-Domain Protection](multi-domain-protection.md) was considered. It's important for the future of Authelia that we
