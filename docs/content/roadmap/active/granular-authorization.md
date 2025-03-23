@@ -19,11 +19,15 @@ for administrators to customize this. We plan to do this leveraging
 [RFC8176: Authentication Method Reference Values] which is almost a universal standard implemented by major Identity
 Provider protocols like [OpenID Connect 1.0] and [Security Assertion Markup Language (SAML) 2.0].
 
-## What are Authentication Methods Reference Values?
+## Authentication Methods Reference Values Explainer
 
-Authentication Methods Reference Values (AMR) defined in RFC8176 are standardized identifiers that indicate which authentication methods were used during a user's authentication process. 
+Authentication Methods Reference Values are standardized identifiers that indicate which authentication methods were
+used during a user's authentication process.
 
-Examples include "pwd" for password authentication, "otp" for one-time password, "mfa" for multi-factor authentication, "fpt" for fingerprint, etc. By recording and leveraging these values, Authelia can make more sophisticated authorization decisions based on not just whether a user is authenticated, but specifically how they authenticated, enabling granular access control policies that are customizable by administrators.
+Examples include "pwd" for password authentication, "otp" for one-time password, "mfa" for multi-factor authentication,
+etc. By recording and leveraging these values, Authelia can make more sophisticated authorization
+decisions based on not just whether a user is authenticated, but specifically how they authenticated, enabling granular
+access control policies that are customizable by administrators.
 
 For example, an administrator could configure Authelia to:
 	- Require "hwk" (hardware-secured key) for accessing internal company applications
