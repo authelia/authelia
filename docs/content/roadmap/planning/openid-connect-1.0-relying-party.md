@@ -30,6 +30,10 @@ authenticated to a level that satisfies the `two_factor` policy and for them to 
 The accounts will then likely be linked using the pairwise `iss` and `sub` claims, i.e. issuer and subject identifier
 respectively.
 
+See the
+[FAW](../../integration/openid-connect/frequently-asked-questions.md#how-should-i-link-user-accounts-to-authelia-openid-connect-10-responses-in-the-application-im-designing)
+for an explainer on why we've chosen these claims.
+
 ### Authorization Implementation
 
 {{< roadmap-status stage="needs-design" >}}

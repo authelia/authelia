@@ -254,7 +254,8 @@ access requests unless specifically requested otherwise. The current behavior is
 the `audience` parameter are granted. This behavior can be tuned using the
 [requested_audience_mode](#requested_audience_mode).
 
-This value does not affect the issued ID Tokens as they are always issued with the client identifier being the audience.
+This value does not generally affect the minted ID Tokens as they are always issued with the client identifier being the
+audience unless the [claims policy](#claims_policy) changes this behaviour.
 
 ### scopes
 
