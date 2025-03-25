@@ -118,7 +118,7 @@
     "husky": "9.1.7",
     "prettier": "3.5.3",
     "typescript": "5.8.2",
-    "vite": "6.2.2",
+    "vite": "6.2.3",
     "vite-plugin-checker": "0.8.0",
     "vite-plugin-istanbul": "7.0.0",
     "vite-plugin-svgr": "4.3.0",
