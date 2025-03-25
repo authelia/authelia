@@ -108,7 +108,7 @@
     "eslint-config-prettier": "10.1.1",
     "eslint-config-react-app": "7.0.1",
     "eslint-formatter-rdjson": "1.0.6",
-    "eslint-import-resolver-typescript": "4.2.2",
+    "eslint-import-resolver-typescript": "4.2.3",
     "eslint-plugin-import": "2.31.0",
     "eslint-plugin-jsx-a11y": "6.10.2",
     "eslint-plugin-prettier": "5.2.4",
