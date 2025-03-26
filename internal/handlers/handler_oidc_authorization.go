@@ -117,6 +117,10 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		return
 	}
 
+	if requester.GetRequestedAt().Before(consent.RequestedAt) {
+		requester.SetRequestedAt(consent.RequestedAt)
+	}
+
 	var details *authentication.UserDetailsExtended
 
 	if details, err = ctx.Providers.UserProvider.GetDetailsExtended(userSession.Username); err != nil {
