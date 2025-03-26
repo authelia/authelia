@@ -139,7 +139,7 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 
 	session := oidc.NewSessionWithRequester(ctx, issuer, ctx.Providers.OpenIDConnect.Issuer.GetKeyID(ctx, client.GetIDTokenSignedResponseKeyID(), client.GetIDTokenSignedResponseAlg()), details.Username, userSession.AuthenticationMethodRefs.MarshalRFC8176(), extra, userSession.LastAuthenticatedTime(), consent, requester, requests)
 
-	if client.GetClaimsStrategy().MergeAccessTokenClaimsIntoIDToken() {
+	if client.GetClaimsStrategy().MergeAccessTokenAudienceWithIDTokenAudience() {
 		session.DefaultSession.Claims.Audience = append([]string{clientID}, requester.GetGrantedAudience()...)
 	}
 

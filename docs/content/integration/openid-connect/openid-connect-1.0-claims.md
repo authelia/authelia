@@ -198,10 +198,10 @@ the [OpenID Connect 1.0](https://openid.net/connect/) specification.
 |    exp    |    number     |       *N/A*        |    [ID Token]    |                           Expires                           |
 |    iat    |    number     |       *N/A*        |    [ID Token]    |             The time when the token was issued              |
 | auth_time |    number     |       *N/A*        |    [ID Token]    |        The time the user authenticated with Authelia        |
-|    rat    |    number     |       *N/A*        |    [ID Token]    |            The time when the token was requested            |
 |   nonce   |    string     |       *N/A*        |    [ID Token]    |        The time the user authenticated with Authelia        |
 |    amr    | array[string] |       *N/A*        |    [ID Token]    | An [RFC8176] list of authentication method reference values |
 |    azp    |    string     |    id (client)     |    [ID Token]    |                    The authorized party                     |
+|    rat    |    number     |       *N/A*        |    [UserInfo]    |        The time when the authorization was requested        |
 |   scope   |    string     |       scopes       |    [UserInfo]    |              Granted scopes (space delimited)               |
 |    scp    | array[string] |       scopes       |    [UserInfo]    |                       Granted scopes                        |
 | client_id |    string     |    id (client)     |    [UserInfo]    |                        The client id                        |

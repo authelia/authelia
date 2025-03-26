@@ -73,6 +73,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		original      map[string]any
 		requests      map[string]*oidc.ClaimRequest
 		claimsGranted oauthelia2.Arguments
+		requested     time.Time
 		userinfo      bool
 	)
 
@@ -80,6 +81,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	case *oidc.Session:
 		original = session.IDTokenClaims().ToMap()
 		requests = session.ClaimRequests.GetUserInfoRequests()
+		requested = time.UnixMicro(session.RequestedAt)
 		userinfo = !session.ClientCredentials
 		claimsGranted = session.GrantedClaims
 	default:
@@ -106,7 +108,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		if userinfo {
 			ctx.Logger.WithError(err).Errorf("User Info Request with id '%s' on client with id '%s' error occurred loading user information", requestID, client.GetID())
 		}
-	} else if err = client.GetClaimsStrategy().PopulateUserInfoClaims(ctx, ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx), client, requester.GetGrantedScopes(), claimsGranted, requests, detailer, ctx.Clock.Now(), original, claims); err != nil {
+	} else if err = client.GetClaimsStrategy().PopulateUserInfoClaims(ctx, ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx), client, requester.GetGrantedScopes(), claimsGranted, requests, detailer, requested, ctx.Clock.Now(), original, claims); err != nil {
 		ctx.Logger.WithError(err).Errorf("User Info Request with id '%s' on client with id '%s' failed due to an error populating claims for the standard flow", requestID, client.GetID())
 
 		errorsx.WriteJSONError(rw, r, oauthelia2.ErrServerError.WithDebugf("Error occurred populating claims for the standard flow: %v.", err))

@@ -42,7 +42,6 @@ func NewSessionWithRequester(ctx Context, issuer *url.URL, kid, username string,
 				Subject:                         consent.Subject.UUID.String(),
 				IssuedAt:                        jwt.NewNumericDate(ctx.GetClock().Now()),
 				AuthTime:                        jwt.NewNumericDate(authTime),
-				RequestedAt:                     jwt.NewNumericDate(consent.RequestedAt),
 				Nonce:                           requester.GetRequestForm().Get(ClaimNonce),
 				Extra:                           extra,
 				AuthenticationMethodsReferences: amr,
@@ -56,6 +55,7 @@ func NewSessionWithRequester(ctx Context, issuer *url.URL, kid, username string,
 			Subject:  consent.Subject.UUID.String(),
 			Username: username,
 		},
+		RequestedAt:           consent.RequestedAt.UnixMicro(),
 		ChallengeID:           model.NullUUID(consent.ChallengeID),
 		ClientID:              requester.GetClient().GetID(),
 		ExcludeNotBeforeClaim: false,
@@ -71,6 +71,9 @@ func NewSessionWithRequester(ctx Context, issuer *url.URL, kid, username string,
 // Session holds OpenID Connect 1.0 Session information.
 type Session struct {
 	*openid.DefaultSession `json:"id_token"`
+
+	// RequestedAt is the time since the unix epoch in microseconds.
+	RequestedAt int64 `json:"requested_at"`
 
 	ChallengeID           uuid.NullUUID   `json:"challenge_id"`
 	KID                   string          `json:"kid"`
