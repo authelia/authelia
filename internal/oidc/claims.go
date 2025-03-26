@@ -391,7 +391,7 @@ type ClaimResolver func(attribute string) (value any, ok bool)
 
 type ClaimsStrategy interface {
 	ValidateClaimsRequests(ctx Context, strategy oauthelia2.ScopeStrategy, client Client, requests *ClaimsRequests) (err error)
-	PopulateIDTokenClaims(ctx Context, strategy oauthelia2.ScopeStrategy, client Client, scopes, claims oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, requested, updated time.Time, original, extra map[string]any) (err error)
+	PopulateIDTokenClaims(ctx Context, strategy oauthelia2.ScopeStrategy, client Client, scopes, claims oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, requested, updated time.Time, original, extra map[string]any, implicit bool) (err error)
 	PopulateUserInfoClaims(ctx Context, strategy oauthelia2.ScopeStrategy, client Client, scopes, claims oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, requested, updated time.Time, original, extra map[string]any) (err error)
 	PopulateClientCredentialsUserInfoClaims(ctx Context, client Client, original, extra map[string]any) (err error)
 	MergeAccessTokenAudienceWithIDTokenAudience() (include bool)
@@ -589,7 +589,7 @@ claims:
 	return oauthelia2.ErrInvalidRequest.WithDebugf("The authorization request contained a claims request which is not permitted to make. The %s; but these scopes are absent from the client registration.", strings.Join(elements, ", "))
 }
 
-func (s *CustomClaimsStrategy) PopulateIDTokenClaims(ctx Context, strategy oauthelia2.ScopeStrategy, client Client, scopes, claims oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, requested, updated time.Time, original, extra map[string]any) (err error) {
+func (s *CustomClaimsStrategy) PopulateIDTokenClaims(ctx Context, strategy oauthelia2.ScopeStrategy, client Client, scopes, claims oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, requested, updated time.Time, original, extra map[string]any, implicit bool) (err error) {
 	resolver := ctx.GetProviderUserAttributeResolver()
 
 	if resolver == nil {
@@ -602,7 +602,13 @@ func (s *CustomClaimsStrategy) PopulateIDTokenClaims(ctx Context, strategy oauth
 
 	s.populateClaimsOriginal(original, extra)
 	s.populateClaimsAudience(client, original, extra)
-	s.populateClaimsScoped(ctx, strategy, client, scopes, resolve, s.claimsIDToken, extra)
+
+	if implicit {
+		s.populateClaimsScoped(ctx, strategy, client, scopes, resolve, nil, extra)
+	} else {
+		s.populateClaimsScoped(ctx, strategy, client, scopes, resolve, s.claimsIDToken, extra)
+	}
+
 	s.populateClaimsRequested(ctx, strategy, client, requests, claims, resolve, requested, extra)
 
 	return nil

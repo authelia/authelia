@@ -135,6 +135,8 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 
 	extra := map[string]any{}
 
+	requester.GetResponseTypes().ExactOne("id_token")
+
 	if requests, handled = handleOAuth2AuthorizationClaims(ctx, rw, r, "Authorization", userSession, details, client, requester, issuer, consent, extra); handled {
 		return
 	}
