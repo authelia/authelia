@@ -57,8 +57,8 @@ importers:
         specifier: 1.8.4
         version: 1.8.4
       broadcast-channel:
-        specifier: 7.0.0
-        version: 7.0.0
+        specifier: 7.1.0
+        version: 7.1.0
       i18next:
         specifier: 24.2.3
         version: 24.2.3(typescript@5.8.2)
@@ -2197,8 +2197,8 @@ packages:
     resolution: {integrity: sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==}
     engines: {node: '>=8'}
 
-  broadcast-channel@7.0.0:
-    resolution: {integrity: sha512-a2tW0Ia1pajcPBOGUF2jXlDnvE9d5/dg6BG9h60OmRUcZVr/veUrU8vEQFwwQIhwG3KVzYwSk3v2nRRGFgQDXQ==}
+  broadcast-channel@7.1.0:
+    resolution: {integrity: sha512-InJljddsYWbEL8LBnopnCg+qMQp9KcowvYWOt4YWrjD5HmxzDYKdVbDS1w/ji5rFZdRD58V5UxJPtBdpEbEJYw==}
 
   browserslist@4.23.0:
     resolution: {integrity: sha512-QW8HiM1shhT2GuzkvklfjcKDiWFXHOeFCIA/huJPwHsslwcydgk7X+z2zXpEijP98UCY7HbubZt5J2Zgvf0CaQ==}
@@ -7031,7 +7031,7 @@ snapshots:
     dependencies:
       fill-range: 7.1.1
 
-  broadcast-channel@7.0.0:
+  broadcast-channel@7.1.0:
     dependencies:
       '@babel/runtime': 7.27.0
       oblivious-set: 1.4.0
