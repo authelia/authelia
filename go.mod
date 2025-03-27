@@ -49,7 +49,7 @@ require (
 	github.com/weppos/publicsuffix-go v0.40.3-0.20250311103038-7794c8c0723b
 	github.com/wneessen/go-mail v0.6.2
 	go.uber.org/mock v0.5.0
-	golang.org/x/net v0.37.0
+	golang.org/x/net v0.38.0
 	golang.org/x/sync v0.12.0
 	golang.org/x/term v0.30.0
 	golang.org/x/text v0.23.0
