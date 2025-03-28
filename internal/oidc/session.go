@@ -15,7 +15,11 @@ import (
 
 // NewSession creates a new empty OpenIDSession struct.
 func NewSession() (session *Session) {
-	return &Session{
+	return NewSessionWithRequestedAt(time.Now())
+}
+
+func NewSessionWithRequestedAt(requestedAt time.Time) (session *Session) {
+	session = &Session{
 		DefaultSession: &openid.DefaultSession{
 			Claims: &jwt.IDTokenClaims{
 				Extra: map[string]any{},
@@ -26,6 +30,10 @@ func NewSession() (session *Session) {
 		},
 		Extra: map[string]any{},
 	}
+
+	session.SetRequestedAt(requestedAt.UTC())
+
+	return session
 }
 
 // NewSessionWithRequester uses details from a Requester to generate an OpenIDSession.
@@ -52,10 +60,10 @@ func NewSessionWithRequester(ctx Context, issuer *url.URL, kid, username string,
 					JWTHeaderKeyIdentifier: kid,
 				},
 			},
-			Subject:  consent.Subject.UUID.String(),
-			Username: username,
+			RequestedAt: consent.RequestedAt.UnixMicro(),
+			Subject:     consent.Subject.UUID.String(),
+			Username:    username,
 		},
-		RequestedAt:           consent.RequestedAt.UnixMicro(),
 		ChallengeID:           model.NullUUID(consent.ChallengeID),
 		ClientID:              requester.GetClient().GetID(),
 		ExcludeNotBeforeClaim: false,
@@ -71,9 +79,6 @@ func NewSessionWithRequester(ctx Context, issuer *url.URL, kid, username string,
 // Session holds OpenID Connect 1.0 Session information.
 type Session struct {
 	*openid.DefaultSession `json:"id_token"`
-
-	// RequestedAt is the time since the unix epoch in microseconds.
-	RequestedAt int64 `json:"requested_at"`
 
 	ChallengeID           uuid.NullUUID   `json:"challenge_id"`
 	KID                   string          `json:"kid"`

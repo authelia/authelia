@@ -35,11 +35,11 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		return
 	}
 
-	oidcSession := oidc.NewSession()
+	session := oidc.NewSessionWithRequestedAt(ctx.Clock.Now())
 
 	ctx.Logger.Debugf("User Info Request with id '%s' is being processed", requestID)
 
-	if tokenType, requester, err = ctx.Providers.OpenIDConnect.IntrospectToken(r.Context(), oauthelia2.AccessTokenFromRequest(r), oauthelia2.AccessToken, oidcSession); err != nil {
+	if tokenType, requester, err = ctx.Providers.OpenIDConnect.IntrospectToken(r.Context(), oauthelia2.AccessTokenFromRequest(r), oauthelia2.AccessToken, session); err != nil {
 		ctx.Logger.Errorf("User Info Request with id '%s' failed with error: %s", requestID, oauthelia2.ErrorToDebugRFC6749Error(err))
 
 		if rfc := oauthelia2.ErrorToRFC6749Error(err); rfc.StatusCode() == http.StatusUnauthorized {
@@ -81,7 +81,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	case *oidc.Session:
 		original = session.IDTokenClaims().ToMap()
 		requests = session.ClaimRequests.GetUserInfoRequests()
-		requested = time.UnixMicro(session.RequestedAt)
+		requested = session.GetRequestedAt()
 		userinfo = !session.ClientCredentials
 		claimsGranted = session.GrantedClaims
 	default:

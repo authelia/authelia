@@ -93,22 +93,12 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		return
 	}
 
-	if requester.GetRequestForm().Get(oidc.FormParameterPrompt) == oidc.PromptNone {
-		if userSession.IsAnonymous() {
-			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' could not be processed: the 'prompt' type of 'none' was requested but the user is not logged in", requester.GetID(), client.GetID(), policy.Name)
+	if requester.GetRequestForm().Get(oidc.FormParameterPrompt) == oidc.PromptNone && userSession.IsAnonymous() {
+		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' could not be processed: the 'prompt' type of 'none' was requested but the user is not logged in", requester.GetID(), client.GetID(), policy.Name)
 
-			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oauthelia2.ErrLoginRequired)
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oauthelia2.ErrLoginRequired)
 
-			return
-		}
-
-		if client.GetConsentPolicy().Mode == oidc.ClientConsentModeExplicit {
-			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' could not be processed: the 'prompt' type of 'none' was requested but client is configured to require explicit consent", requester.GetID(), client.GetID(), policy.Name)
-
-			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oauthelia2.ErrConsentRequired)
-
-			return
-		}
+		return
 	}
 
 	issuer = ctx.RootURL()
@@ -117,9 +107,7 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		return
 	}
 
-	if requester.GetRequestedAt().Before(consent.RequestedAt) {
-		requester.SetRequestedAt(consent.RequestedAt)
-	}
+	requester.SetRequestedAt(consent.RequestedAt)
 
 	var details *authentication.UserDetailsExtended
 
@@ -215,7 +203,11 @@ func OpenIDConnectPushedAuthorizationRequest(ctx *middlewares.AutheliaCtx, rw ht
 		return
 	}
 
-	if responder, err = ctx.Providers.OpenIDConnect.NewPushedAuthorizeResponse(ctx, requester, oidc.NewSession()); err != nil {
+	session := oidc.NewSession()
+
+	session.SetRequestedAt(ctx.Clock.Now().UTC())
+
+	if responder, err = ctx.Providers.OpenIDConnect.NewPushedAuthorizeResponse(ctx, requester, session); err != nil {
 		ctx.Logger.Errorf("Pushed Authorization Request failed with error: %s", oauthelia2.ErrorToDebugRFC6749Error(err))
 
 		ctx.Providers.OpenIDConnect.WritePushedAuthorizeError(ctx, rw, requester, err)

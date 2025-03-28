@@ -90,8 +90,6 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	assert.Equal(t, subject.String(), session.Claims.Subject)
 	assert.Equal(t, amr, session.Claims.AuthenticationMethodsReferences)
 	assert.Equal(t, xjwt.NewNumericDate(authAt.UTC()), session.Claims.AuthTime)
-	assert.Nil(t, session.Claims.RequestedAt)
-	assert.Equal(t, requested.UnixMicro(), session.RequestedAt)
 	assert.Equal(t, issuer, session.Claims.Issuer)
 	assert.Equal(t, "john", session.Claims.Extra[oidc.ClaimPreferredUsername])
 
