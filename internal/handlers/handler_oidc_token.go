@@ -19,7 +19,7 @@ func OpenIDConnectTokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 		err       error
 	)
 
-	session := oidc.NewSession()
+	session := oidc.NewSessionWithRequestedAt(ctx.Clock.Now())
 
 	if requester, err = ctx.Providers.OpenIDConnect.NewAccessRequest(ctx, req, session); err != nil {
 		ctx.Logger.Errorf("Access Request failed with error: %s", oauthelia2.ErrorToDebugRFC6749Error(err))

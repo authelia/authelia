@@ -26,11 +26,9 @@ func OAuthIntrospectionPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 		return
 	}
 
-	oidcSession := oidc.NewSession()
-
 	ctx.Logger.Debugf("Introspection Request with id '%s' is being processed", requestID)
 
-	if responder, err = ctx.Providers.OpenIDConnect.NewIntrospectionRequest(ctx, req, oidcSession); err != nil {
+	if responder, err = ctx.Providers.OpenIDConnect.NewIntrospectionRequest(ctx, req, oidc.NewSessionWithRequestedAt(ctx.Clock.Now())); err != nil {
 		ctx.Logger.Errorf("Introspection Request with id '%s' failed with error: %s", requestID, oauthelia2.ErrorToDebugRFC6749Error(err))
 
 		ctx.Providers.OpenIDConnect.WriteIntrospectionError(ctx, rw, err)
