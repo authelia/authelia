@@ -31,7 +31,7 @@ func OAuthDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.Response
 		return
 	}
 
-	if response, err = ctx.Providers.OpenIDConnect.NewRFC862DeviceAuthorizeResponse(ctx, request, oidc.NewSession()); err != nil {
+	if response, err = ctx.Providers.OpenIDConnect.NewRFC862DeviceAuthorizeResponse(ctx, request, oidc.NewSessionWithRequestedAt(ctx.Clock.Now())); err != nil {
 		ctx.Logger.Errorf("Device Authorization Request with id '%s' on client with id '%s'  failed with error: %s", request.GetID(), request.GetClient().GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
 
 		errorsx.WriteJSONError(rw, req, err)

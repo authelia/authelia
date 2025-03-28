@@ -289,7 +289,7 @@ func PopulateClientCredentialsFlowSessionWithAccessRequest(ctx Context, client o
 	session.ClientID = client.GetID()
 	session.DefaultSession.Claims.Issuer = issuer.String()
 	session.DefaultSession.Claims.IssuedAt = fjwt.NewNumericDate(ctx.GetClock().Now().UTC())
-	session.DefaultSession.Claims.RequestedAt = fjwt.NewNumericDate(ctx.GetClock().Now().UTC())
+	session.SetRequestedAt(ctx.GetClock().Now().UTC())
 	session.ClientCredentials = true
 
 	return nil
