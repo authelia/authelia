@@ -90,8 +90,8 @@ importers:
         specifier: 1.1.4
         version: 1.1.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       tss-react:
-        specifier: 4.9.15
-        version: 4.9.15(@emotion/react@11.14.0(@types/react@19.0.12)(react@19.0.0))(@mui/material@6.4.9(@emotion/react@11.14.0(@types/react@19.0.12)(react@19.0.0))(@emotion/styled@11.14.0(@emotion/react@11.14.0(@types/react@19.0.12)(react@19.0.0))(@types/react@19.0.12)(react@19.0.0))(@types/react@19.0.12)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(@types/react@19.0.12)(react@19.0.0)
+        specifier: 4.9.16
+        version: 4.9.16(@emotion/react@11.14.0(@types/react@19.0.12)(react@19.0.0))(@mui/material@6.4.9(@emotion/react@11.14.0(@types/react@19.0.12)(react@19.0.0))(@emotion/styled@11.14.0(@emotion/react@11.14.0(@types/react@19.0.12)(react@19.0.0))(@types/react@19.0.12)(react@19.0.0))(@types/react@19.0.12)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(@types/react@19.0.12)(react@19.0.0)
       zxcvbn:
         specifier: 4.4.2
         version: 4.4.2
@@ -4325,12 +4325,12 @@ packages:
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
 
-  tss-react@4.9.15:
-    resolution: {integrity: sha512-rLiEmDwUtln9RKTUR/ZPYBrufF0Tq/PFggO1M7P8M3/FAcodPQ746Ug9MCEFkURKDlntN17+Oja0DMMz5yBnsQ==}
+  tss-react@4.9.16:
+    resolution: {integrity: sha512-7g9B96gdmR7klrYcslLdw0maeyS+PnWsID28eBkKQEbEJNbMjlgvgTFlGUyURrfafmbpkfjRzE5+lDMRT91LEQ==}
     peerDependencies:
       '@emotion/react': ^11.4.1
       '@emotion/server': ^11.4.0
-      '@mui/material': ^5.0.0 || ^6.0.0
+      '@mui/material': ^5.0.0 || ^6.0.0 || ^7.0.0
       '@types/react': ^16.8.0 || ^17.0.2 || ^18.0.0 || ^19.0.0
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
     peerDependenciesMeta:
@@ -9396,7 +9396,7 @@ snapshots:
 
   tslib@2.8.1: {}
 
-  tss-react@4.9.15(@emotion/react@11.14.0(@types/react@19.0.12)(react@19.0.0))(@mui/material@6.4.9(@emotion/react@11.14.0(@types/react@19.0.12)(react@19.0.0))(@emotion/styled@11.14.0(@emotion/react@11.14.0(@types/react@19.0.12)(react@19.0.0))(@types/react@19.0.12)(react@19.0.0))(@types/react@19.0.12)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(@types/react@19.0.12)(react@19.0.0):
+  tss-react@4.9.16(@emotion/react@11.14.0(@types/react@19.0.12)(react@19.0.0))(@mui/material@6.4.9(@emotion/react@11.14.0(@types/react@19.0.12)(react@19.0.0))(@emotion/styled@11.14.0(@emotion/react@11.14.0(@types/react@19.0.12)(react@19.0.0))(@types/react@19.0.12)(react@19.0.0))(@types/react@19.0.12)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(@types/react@19.0.12)(react@19.0.0):
     dependencies:
       '@emotion/cache': 11.14.0
       '@emotion/react': 11.14.0(@types/react@19.0.12)(react@19.0.0)
