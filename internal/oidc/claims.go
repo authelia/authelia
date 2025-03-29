@@ -288,7 +288,7 @@ func (r *ClaimsRequests) ToSlices() (claims, essential []string) {
 
 // ClaimRequest is a request for a particular claim.
 type ClaimRequest struct {
-	Essential bool  `json:"essential,omitempty"`
+	Essential bool  `json:"essential"`
 	Value     any   `json:"value,omitempty"`
 	Values    []any `json:"values,omitempty"`
 }

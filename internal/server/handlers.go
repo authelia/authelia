@@ -425,16 +425,17 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 		WithEnabled(utils.IsStringInSlice(oidc.EndpointAuthorization, config.IdentityProviders.OIDC.CORS.Endpoints)).
 		Build()
 
-	authorization := middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointAuthorization), policyCORSAuthorization.Middleware(bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectAuthorization))))
+	authorizationGET := middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointAuthorization), policyCORSAuthorization.Middleware(bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectAuthorizationGET))))
+	authorizationPOST := policyCORSAuthorization.Middleware(bridgeOIDC(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectAuthorizationPOST)))
 
 	r.OPTIONS(oidc.EndpointPathAuthorization, policyCORSAuthorization.HandleOnlyOPTIONS)
-	r.GET(oidc.EndpointPathAuthorization, authorization)
-	r.POST(oidc.EndpointPathAuthorization, authorization)
+	r.GET(oidc.EndpointPathAuthorization, authorizationGET)
+	r.POST(oidc.EndpointPathAuthorization, authorizationPOST)
 
 	// TODO (james-d-elliott): Remove in GA. This is a legacy endpoint.
 	r.OPTIONS("/api/oidc/authorize", policyCORSAuthorization.HandleOnlyOPTIONS)
-	r.GET("/api/oidc/authorize", authorization)
-	r.POST("/api/oidc/authorize", authorization)
+	r.GET("/api/oidc/authorize", authorizationGET)
+	r.POST("/api/oidc/authorize", authorizationPOST)
 
 	policyCORSDeviceAuthorization := middlewares.NewCORSPolicyBuilder().
 		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodPost).
