@@ -41,6 +41,7 @@
   "include": [
     ".*.js",
     "vite.config.ts",
+    "eslint.config.ts",
     "src",
     "types"
   ],
