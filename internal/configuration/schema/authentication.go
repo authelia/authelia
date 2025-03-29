@@ -24,6 +24,11 @@ type AuthenticationBackendPasswordChange struct {
 }
 
 // AuthenticationBackendPasswordReset represents the configuration related to password reset functionality.
+type AuthenticationBackendPasswordChange struct {
+	Disable bool `koanf:"disable" json:"disable" jsonschema:"default=false,title=Disable" jsonschema_description:"Disables the Password Change option."`
+}
+
+// AuthenticationBackendPasswordReset represents the configuration related to password reset functionality.
 type AuthenticationBackendPasswordReset struct {
 	Disable   bool    `koanf:"disable" json:"disable" jsonschema:"default=false,title=Disable" jsonschema_description:"Disables the Password Reset option."`
 	CustomURL url.URL `koanf:"custom_url" json:"custom_url" jsonschema:"title=Custom URL" jsonschema_description:"Disables the internal Password Reset option and instead redirects users to this specified URL."`

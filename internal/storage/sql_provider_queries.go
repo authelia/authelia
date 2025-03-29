@@ -34,7 +34,20 @@ const (
 )
 
 const (
-	queryFmtSelectUserInfo = `
+	queryFmtSelectAllUserInfo = `
+	SELECT
+		u.username,
+		u.second_factor_method,
+		CASE WHEN t.username IS NOT NULL THEN 1 ELSE 0 END AS has_totp,
+		CASE WHEN w.username IS NOT NULL THEN 1 ELSE 0 END AS has_webauthn,
+		CASE WHEN d.username IS NOT NULL THEN 1 ELSE 0 END AS has_duo
+	FROM %s u
+	LEFT JOIN %s t ON u.username = t.username
+	LEFT JOIN %s w ON u.username = w.username
+	LEFT JOIN %s d ON u.username = d.username
+	GROUP BY u.username, u.second_factor_method;`
+
+	queryFmtSelectUserInfoByUsername = `
 		SELECT second_factor_method, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_totp, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_webauthn, (SELECT EXISTS (SELECT id FROM %s WHERE username = ?)) AS has_duo
 		FROM %s
 		WHERE username = ?;`
@@ -396,6 +409,71 @@ const (
 		UPDATE %s
 		SET value = ?
 		WHERE id = ?;`
+)
+
+//nolint:gosec // The following queries are not hard coded credentials.
+const (
+	queryFmtInsertUserMetadata = `
+	INSERT INTO %s (username)
+	VALUES (?);`
+
+	queryFmtInsertNewUserMetadata = `
+	INSERT INTO %s (username, user_created_at)
+	VALUES (?, ?);`
+
+	queryFmtInsertNewUserAtLoginMetadata = `
+	INSERT INTO %s (username, last_logged_in)
+	VALUES (?, ?);`
+
+	queryFmtInsertExistingUserAtPasswordChangeMetadata = `
+	INSERT INTO %s (username, last_password_change)
+	VALUES (?, ?);`
+
+	queryFmtSelectUserMetadata = `
+	SELECT username, last_logged_in, last_password_change, user_created_at
+	FROM %s
+	ORDER BY id ASC;`
+
+	queryFmtSelectMultipleUserMetadataByUsername = `
+	SELECT username, last_logged_in, last_password_change, user_created_at
+	FROM %s
+	WHERE username IN (?);`
+
+	queryFmtSelectUserByUsername = `
+	SELECT username, last_logged_in, last_password_change, user_created_at
+	FROM %s
+	WHERE username = ?;`
+
+	queryFmtSelectAllUserInfoAndMetadata = `
+	SELECT
+		COALESCE(preferences.username, metadata.username) as username,
+		COALESCE(preferences.second_factor_method, '') as second_factor_method,
+		metadata.last_logged_in AS last_logged_in,
+		metadata.last_password_change AS last_password_change,
+		metadata.user_created_at AS user_created_at,
+		CASE WHEN totp.username IS NOT NULL THEN 1 ELSE 0 END AS has_totp,
+		CASE WHEN webauthn.username IS NOT NULL THEN 1 ELSE 0 END AS has_webauthn,
+		CASE WHEN duo.username IS NOT NULL THEN 1 ELSE 0 END AS has_duo
+	FROM %s metadata
+	LEFT JOIN %s preferences ON metadata.username = preferences.username
+
+	LEFT JOIN %s totp ON metadata.username = totp.username
+	LEFT JOIN %s webauthn ON metadata.username = webauthn.username
+	LEFT JOIN %s duo ON metadata.username = duo.username;`
+
+	queryFmtUpdateUserRecordSignInByUsername = `
+	UPDATE %s
+	SET last_logged_in = ?
+	WHERE username = ?;`
+
+	queryFmtDeleteUserMetadataByUsername = `
+	DELETE FROM %s
+	WHERE username = ?;`
+
+	queryFmtUpdateUserRecordPasswordChangedAtByUsername = `
+	UPDATE %s
+	SET last_password_change = ?
+	WHERE username = ?`
 )
 
 const (
