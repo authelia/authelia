@@ -218,14 +218,14 @@ location = /authelia/api/authz/auth-request {
 
 #### Configure Authelia Site Configuration
 
-1. In the `/config/nginx/site-confs/` directory copy `authelia.subdomain.conf.sample` to `authelia.subdomain.conf`.
+1. In the `/config/nginx/proxy-confs/` directory copy `authelia.subdomain.conf.sample` to `authelia.subdomain.conf`.
 2. Edit `authelia.subdomain.conf` and adjust `server_name authelia.*;` to be `server_name auth.*;`.
 
 #### Configure Organizr Site Configuration
 
 We're using Organizr as an example application for this example.
 
-1. In the `/config/nginx/site-confs/` directory copy `organizr.subdomain.conf.sample` to `organizr.subdomain.conf`.
+1. In the `/config/nginx/proxy-confs/` directory copy `organizr.subdomain.conf.sample` to `organizr.subdomain.conf`.
 2. Edit `organizr.subdomain.conf` and remove the leading `#` (i.e. uncomment) the
 3. `#include /config/nginx/authelia-server.conf;` line and the `#include /config/nginx/authelia-location.conf;` line.
 

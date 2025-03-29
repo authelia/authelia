@@ -1,7 +1,7 @@
 import React from "react";
 
 import { Button, Theme } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
