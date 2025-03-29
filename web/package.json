@@ -71,9 +71,6 @@
     "test:preview": "vitest-preview",
     "report": "nyc report -r clover -r json -r lcov -r text"
   },
-  "eslintConfig": {
-    "extends": "react-app"
-  },
   "browserslist": {
     "production": [
       ">0.2%",
@@ -104,9 +101,8 @@
     "@vitejs/plugin-react": "4.3.4",
     "@vitest/coverage-istanbul": "3.0.9",
     "esbuild": "0.25.1",
-    "eslint": "8.57.1",
+    "eslint": "9.23.0",
     "eslint-config-prettier": "10.1.1",
-    "eslint-config-react-app": "7.0.1",
     "eslint-formatter-rdjson": "1.0.6",
     "eslint-import-resolver-typescript": "4.2.7",
     "eslint-plugin-import": "2.31.0",
@@ -116,8 +112,10 @@
     "eslint-plugin-react-hooks": "5.2.0",
     "happy-dom": "17.4.4",
     "husky": "9.1.7",
+    "jiti": "2.4.2",
     "prettier": "3.5.3",
     "typescript": "5.8.2",
+    "typescript-eslint": "8.28.0",
     "vite": "6.2.3",
     "vite-plugin-checker": "0.8.0",
     "vite-plugin-istanbul": "7.0.0",
