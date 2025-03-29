@@ -26,7 +26,7 @@ import {
     Typography,
 } from "@mui/material";
 import { red } from "@mui/material/colors";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import { QRCodeSVG } from "qrcode.react";
 import { useTranslation } from "react-i18next";
 import { makeStyles } from "tss-react/mui";

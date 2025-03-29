@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Alert, AlertTitle, Button, FormControl } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import { BroadcastChannel } from "broadcast-channel";
 import { useTranslation } from "react-i18next";
