@@ -1,7 +1,7 @@
 import React, { Fragment, useEffect, useState } from "react";
 
 import { Paper, Typography } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
 
 import { useLocalStorageMethodContext } from "@contexts/LocalStorageMethodContext";

@@ -1,7 +1,7 @@
 import React from "react";
 
 import { Box, Theme, Typography, useTheme } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import ScaleLoader from "react-spinners/ScaleLoader";
 import { makeStyles } from "tss-react/mui";
 

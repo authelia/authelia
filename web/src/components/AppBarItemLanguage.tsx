@@ -1,8 +1,6 @@
 import React, { Fragment, useCallback, useEffect, useState } from "react";
 
-import ExpandLess from "@mui/icons-material/ExpandLess";
-import ExpandMore from "@mui/icons-material/ExpandMore";
-import LanguageIcon from "@mui/icons-material/Language";
+import { ExpandLess, ExpandMore, Language as LanguageIcon } from "@mui/icons-material";
 import { Box, Collapse, IconButton, ListItemText, Menu, MenuItem, Tooltip, Typography, useTheme } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
