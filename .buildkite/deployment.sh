@@ -22,6 +22,9 @@ env:
   CI_BYPASS: ${CI_BYPASS}
 
 steps:
+EOF
+if [[ "${BUILDKITE_TAG}" != "" ]]; then
+cat << EOF
   - label: ":rocket: Trigger Pipeline [baseimage]"
     trigger: "baseimage"
     build:
@@ -35,6 +38,9 @@ steps:
     key: "baseimage"
     if: build.tag != null && build.env("CI_BYPASS") != "true"
 
+EOF
+fi
+cat << EOF
   - label: ":docker: Deploy Manifest"
     command: "authelia-scripts docker push-manifest"
     depends_on:
