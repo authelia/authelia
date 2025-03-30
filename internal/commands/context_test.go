@@ -206,6 +206,7 @@ func TestHelperConfigValidateKeysRunE(t *testing.T) {
 
 	cmd.Flags().StringSliceP(cmdFlagNameConfig, "c", []string{filepath.Join(dir, "file.yml")}, "configuration files or directories to load, for more information run 'authelia -h authelia config'")
 	cmd.Flags().StringSlice(cmdFlagNameConfigExpFilters, nil, "list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'")
+	cmd.Flags().StringSlice(cmdFlagNameConfigFiltersValues, nil, "file paths of values files to utilize with configuration file filters")
 
 	assert.NoError(t, ctx.HelperConfigLoadRunE(cmd, nil))
 	assert.NoError(t, ctx.HelperConfigValidateKeysRunE(cmd, nil))
@@ -324,6 +325,7 @@ func TestConfigEnsureExistsRunE(t *testing.T) {
 
 	cmd.Flags().StringSliceP(cmdFlagNameConfig, "c", []string{filepath.Join(dir, "dir", "file.yml")}, "configuration files or directories to load, for more information run 'authelia -h authelia config'")
 	cmd.Flags().StringSlice(cmdFlagNameConfigExpFilters, nil, "list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'")
+	cmd.Flags().StringSlice(cmdFlagNameConfigFiltersValues, nil, "file paths of values files to utilize with configuration file filters")
 
 	assert.Equal(t, 0, exitCode)
 
@@ -335,6 +337,7 @@ func TestConfigEnsureExistsRunE(t *testing.T) {
 
 	cmd.Flags().StringSliceP(cmdFlagNameConfig, "c", []string{filepath.Join(dir, "file.yml")}, "configuration files or directories to load, for more information run 'authelia -h authelia config'")
 	cmd.Flags().StringSlice(cmdFlagNameConfigExpFilters, nil, "list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'")
+	cmd.Flags().StringSlice(cmdFlagNameConfigFiltersValues, nil, "file paths of values files to utilize with configuration file filters")
 
 	assert.True(t, errors.Is(ctx.ConfigEnsureExistsRunE(cmd, nil), ErrConfigCreated))
 	assert.NoError(t, ctx.ConfigEnsureExistsRunE(cmd, nil))

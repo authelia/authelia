@@ -36,6 +36,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.44
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/otiai10/copy v1.14.1
+	github.com/pelletier/go-toml/v2 v2.3.1
 	github.com/prometheus/client_golang v1.23.2
 	github.com/rpadovani/sqlx-v2 v0.1.2
 	github.com/savsgio/gotils v0.0.0-20250924091648-bce9a52d7761
@@ -55,6 +56,7 @@ require (
 	golang.org/x/term v0.43.0
 	golang.org/x/text v0.37.0
 	golang.org/x/time v0.15.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -117,7 +119,6 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20260311181403-84a4fc48630c // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260311181403-84a4fc48630c // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 replace (
