@@ -7,17 +7,22 @@ package configuration
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
 
+	"github.com/pelletier/go-toml/v2"
 	"github.com/sirupsen/logrus"
+	"go.yaml.in/yaml/v4"
 
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/templates"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // FilteredFile implements a koanf.Provider.
@@ -92,10 +97,17 @@ func (f *ExpandEnvBytesFilter) Filter(in []byte) (out []byte, err error) {
 	return out, nil
 }
 
+// TemplateBytesFilterValues holds the values provided to the template filter.
+type TemplateBytesFilterValues struct {
+	Values   map[string]any
+	Authelia map[string]any
+}
+
 // TemplateBytesFilter is a BytesFilter which executes the content as a Go template.
 type TemplateBytesFilter struct {
-	t   *template.Template
-	log *logrus.Entry
+	t    *template.Template
+	log  *logrus.Entry
+	data TemplateBytesFilterValues
 }
 
 // Name returns the name of this filter.
@@ -115,7 +127,7 @@ func (f *TemplateBytesFilter) Filter(in []byte) (out []byte, err error) {
 
 	buf := &bytes.Buffer{}
 
-	if err = f.t.Execute(buf, nil); err != nil {
+	if err = f.t.Execute(buf, f.data); err != nil {
 		return nil, err
 	}
 
@@ -134,36 +146,230 @@ func (f *TemplateBytesFilter) Filter(in []byte) (out []byte, err error) {
 func NewFileFiltersDefault() []BytesFilter {
 	return []BytesFilter{
 		NewExpandEnvFileFilter(),
-		NewTemplateFileFilter(),
+		NewTemplateFileFilter(nil),
 	}
 }
 
-// NewFileFilters returns a list of BytesFilter provided they are valid.
-func NewFileFilters(names []string) (filters []BytesFilter, err error) {
+// NewFileFilters returns a list of BytesFilter provided they are valid. Each path in valuesFiles is loaded in order and
+// deep-merged over the previously-loaded values so that later files override earlier ones. The values files are only
+// loaded if one of the named filters utilizes them, otherwise a warning is logged and they're ignored. Errors which
+// occur loading the values files are wrapped in a *FilterValuesError.
+func NewFileFilters(valuesFiles []string, names ...string) (filters []BytesFilter, err error) {
 	filters = make([]BytesFilter, len(names))
 
+	var (
+		requiresValues bool
+		values         map[string]any
+	)
+
 	filterMap := map[string]int{}
+	filterNames := make([]string, len(names))
 
 	for i, name := range names {
 		name = strings.ToLower(name)
 
 		switch name {
 		case filterTemplate:
-			filters[i] = NewTemplateFileFilter()
+			requiresValues = true
 		case filterExpandEnv:
-			filters[i] = NewExpandEnvFileFilter()
 		default:
 			return nil, fmt.Errorf("invalid filter named '%s'", name)
 		}
 
 		if _, ok := filterMap[name]; ok {
 			return nil, fmt.Errorf("duplicate filter named '%s'", name)
-		} else {
-			filterMap[name] = 1
+		}
+
+		filterMap[name] = 1
+		filterNames[i] = name
+	}
+
+	switch {
+	case requiresValues:
+		if values, err = loadValuesFiles(valuesFiles); err != nil {
+			return nil, &FilterValuesError{err: err}
+		}
+	case len(valuesFiles) != 0:
+		logging.Logger().
+			WithField("files", valuesFiles).
+			Warnf("Configuration filter values files have been configured but none of the configured filters utilize them, the values files will be ignored: the '%s' filter must be enabled to utilize values files", filterTemplate)
+	}
+
+	for i, name := range filterNames {
+		switch name {
+		case filterTemplate:
+			filters[i] = NewTemplateFileFilter(values)
+		case filterExpandEnv:
+			filters[i] = NewExpandEnvFileFilter()
 		}
 	}
 
 	return filters, nil
+}
+
+// FilterValuesError is an error which occurred while loading the values files for the configuration file filters. It
+// exists to allow callers to distinguish these errors from errors with the filters themselves.
+type FilterValuesError struct {
+	err error
+}
+
+// Error returns the error string of the underlying error.
+func (e *FilterValuesError) Error() string {
+	return e.err.Error()
+}
+
+// Unwrap returns the underlying error.
+func (e *FilterValuesError) Unwrap() error {
+	return e.err
+}
+
+// loadValuesFiles loads each file in order and deep-merges them onto a single values map. Later files override earlier
+// ones at every level. An empty or nil slice returns nil values.
+func loadValuesFiles(paths []string) (values map[string]any, err error) {
+	if len(paths) == 0 {
+		return nil, nil
+	}
+
+	values = map[string]any{}
+
+	for _, path := range paths {
+		var loaded map[string]any
+
+		if loaded, err = loadValuesFile(path); err != nil {
+			return nil, err
+		}
+
+		mergeValues(values, loaded)
+	}
+
+	return values, nil
+}
+
+// loadValuesFile reads and parses a values file. The format is selected from the file extension: .yml/.yaml for YAML,
+// .json for JSON, .toml for TOML. The parsed values are normalized by normalizeValues. An empty path returns nil
+// values; an unsupported extension returns an error.
+func loadValuesFile(path string) (values map[string]any, err error) {
+	if path == "" {
+		return nil, nil
+	}
+
+	var data []byte
+
+	if data, err = os.ReadFile(path); err != nil {
+		return nil, fmt.Errorf("error reading values file: %w", err)
+	}
+
+	// Decoding into any rather than map[string]any ensures top-level keys are decoded the same way as nested keys, so
+	// that normalizeValues converts keys consistently at every level.
+	var raw any
+
+	ext := strings.ToLower(filepath.Ext(path))
+
+	switch ext {
+	case extYML, extYAML:
+		err = yaml.Unmarshal(data, &raw)
+	case extJSON:
+		decoder := json.NewDecoder(bytes.NewReader(data))
+		decoder.UseNumber()
+
+		if err = decoder.Decode(&raw); err == nil {
+			if _, terr := decoder.Token(); !errors.Is(terr, io.EOF) {
+				err = errors.New("invalid data after top-level value")
+			}
+		}
+	case extTOML:
+		err = toml.Unmarshal(data, &raw)
+	default:
+		return nil, fmt.Errorf("error parsing values file: unsupported extension '%s': must be one of '.yml', '.yaml', '.json', or '.toml'", ext)
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("error parsing values file: %w", err)
+	}
+
+	if raw, err = normalizeValues(raw); err != nil {
+		return nil, fmt.Errorf("error parsing values file: %w", err)
+	}
+
+	switch v := raw.(type) {
+	case nil:
+		return map[string]any{}, nil
+	case map[string]any:
+		return v, nil
+	default:
+		return nil, fmt.Errorf("error parsing values file: the top-level value must be a mapping but it's a %T", raw)
+	}
+}
+
+func normalizeValues(value any) (normalized any, err error) {
+	switch v := value.(type) {
+	case map[string]any:
+		for key, item := range v {
+			if v[key], err = normalizeValues(item); err != nil {
+				return nil, err
+			}
+		}
+
+		return v, nil
+	case map[any]any:
+		values := make(map[string]any, len(v))
+
+		for key, item := range v {
+			k := "null"
+
+			if key != nil {
+				k = fmt.Sprint(key)
+			}
+
+			if _, ok := values[k]; ok {
+				return nil, fmt.Errorf("duplicate key '%s' after normalizing keys to strings", k)
+			}
+
+			if values[k], err = normalizeValues(item); err != nil {
+				return nil, err
+			}
+		}
+
+		return values, nil
+	case []any:
+		for i, item := range v {
+			if v[i], err = normalizeValues(item); err != nil {
+				return nil, err
+			}
+		}
+
+		return v, nil
+	case json.Number:
+		if i, ierr := v.Int64(); ierr == nil {
+			return i, nil
+		}
+
+		return v.Float64()
+	default:
+		return value, nil
+	}
+}
+
+func mergeValues(dst, src map[string]any) {
+	for k, sv := range src {
+		dv, ok := dst[k]
+		if !ok {
+			dst[k] = sv
+
+			continue
+		}
+
+		dmap, dok := dv.(map[string]any)
+		smap, sok := sv.(map[string]any)
+
+		if dok && sok {
+			mergeValues(dmap, smap)
+
+			continue
+		}
+
+		dst[k] = sv
+	}
 }
 
 // NewExpandEnvFileFilter returns a new BytesFilter which passes the bytes through [os.Expand] using special env vars.
@@ -174,9 +380,30 @@ func NewExpandEnvFileFilter() BytesFilter {
 }
 
 // NewTemplateFileFilter returns a new BytesFilter which passes the bytes through text/template.
-func NewTemplateFileFilter() BytesFilter {
+func NewTemplateFileFilter(values map[string]any) BytesFilter {
+	data := TemplateBytesFilterValues{
+		Values:   values,
+		Authelia: map[string]any{},
+	}
+
+	if data.Values == nil {
+		data.Values = map[string]any{}
+	}
+
+	data.Authelia["Version"] = utils.Version()
+	data.Authelia["Build"] = map[string]any{
+		"Tag":    utils.BuildTag,
+		"State":  utils.BuildState,
+		"Extra":  utils.BuildExtra,
+		"Date":   utils.BuildDate,
+		"Commit": utils.BuildCommit,
+		"Branch": utils.BuildBranch,
+		"Number": utils.BuildNumber,
+	}
+
 	return &TemplateBytesFilter{
-		log: logging.Logger().WithFields(map[string]any{filterField: filterTemplate}),
-		t:   template.New("config.template").Funcs(templates.FuncMap()),
+		log:  logging.Logger().WithFields(map[string]any{filterField: filterTemplate}),
+		t:    template.New("config.template").Funcs(templates.FuncMap()),
+		data: data,
 	}
 }
