@@ -22,10 +22,11 @@ seo:
 
 There are several options which affect the loading of files:
 
-|           Name           |            Argument             |    Environment Variable     |                                    Description                                     |
-| :----------------------: | :-----------------------------: | :-------------------------: | :--------------------------------------------------------------------------------: |
-|   Configuration Paths    |        `--config`, `-c`         |     `X_AUTHELIA_CONFIG`     | A list of file or directory (non-recursive) paths to load configuration files from |
-| [Filters](#file-filters) | `--config.experimental.filters` | `X_AUTHELIA_CONFIG_FILTERS` |   A list of filters applied to every file from the Files or Directories options    |
+|               Name                |            Argument             |        Environment Variable        |                                           Description                                            |
+| :-------------------------------: | :-----------------------------: | :--------------------------------: | :----------------------------------------------------------------------------------------------: |
+|        Configuration Paths        |        `--config`, `-c`         |        `X_AUTHELIA_CONFIG`         |        A list of file or directory (non-recursive) paths to load configuration files from        |
+|     [Filters](#file-filters)      | `--config.experimental.filters` |    `X_AUTHELIA_CONFIG_FILTERS`     |          A list of filters applied to every file from the Files or Directories options           |
+| [Filters](#file-filters) (Values) |    `--config.filters.values`    | `X_AUTHELIA_CONFIG_FILTERS_VALUES` | The path or paths to YAML/TOML/JSON files which contain values to be interpreted by some filters |
 
 ### Configuration Paths
 
@@ -225,7 +226,7 @@ contains syntax for a subsequent filter it will be filtered. It is therefore sug
 filter and if it isn't that it's last.
 {{< /callout >}}
 
-Examples:
+### Examples
 
 {{< envTabs "Filters By Argument" >}}
 {{< envTab "Docker" >}}
@@ -261,7 +262,29 @@ X_AUTHELIA_CONFIG_FILTERS=template X_AUTHELIA_CONFIG=/config/configuration.yml a
 {{< /envTab >}}
 {{< /envTabs >}}
 
-### Go Template Filter
+### Values
+
+The values option allows injecting values into the configuration from an external source. If the filter supports it then
+the filter itself will detail the accessibility of the values and other data available.
+
+The values files must have one of the `.yml`, `.yaml`, `.json`, or `.toml` extensions which determines the format used to
+parse them. When multiple values files are specified they are loaded in the order specified and each one is deep-merged
+on top of the values loaded so far, i.e. where a key exists in both and both values are mappings they are recursively
+merged, otherwise the value from the later file replaces the value from the earlier file.
+
+The values files are only loaded when one of the configured filters utilizes them, which is currently only the
+[Go Template Filter](#go-template-filter). If none of the configured filters utilize the values then the values files
+are ignored and a warning is logged.
+
+Mapping keys are always strings regardless of the file format. The YAML format permits keys which are not strings, for
+example `1` or `true`, and these keys are converted to their string representation which means a key of `1` must be
+accessed as the string `1`.
+
+### Filters
+
+The following are the available filters.
+
+#### Go Template Filter
 
 The name used to enable this filter is `template`. This filter is considered stable.
 
@@ -272,13 +295,32 @@ Comprehensive examples are beyond what we support and people wishing to use this
 [Go template engine](https://pkg.go.dev/text/template) documentation for syntax instructions. We also log the generated
 output at each filter stage as a base64 string when trace logging is enabled.
 
-#### Functions
+##### Values
+
+The template filter allows access to both the values file data, and some various metadata. See the table below for more
+information.
+
+Multiple values files can be specified, see [Values](#values) for information on how they're merged.
+
+|         Field          |            Description             |
+| :--------------------: | :--------------------------------: |
+|        .Values         | The Values from the provided files |
+|   .Authelia.Version    |     The Authelia version value     |
+|  .Authelia.Build.Tag   |    The Authelia Build Tag value    |
+| .Authelia.Build.State  |   The Authelia Build State value   |
+| .Authelia.Build.Extra  |   The Authelia Build Extra value   |
+|  .Authelia.Build.Date  |   The Authelia Build Date value    |
+| .Authelia.Build.Commit |  The Authelia Build Commit value   |
+| .Authelia.Build.Branch |  The Authelia Build Branch value   |
+| .Authelia.Build.Number |  The Authelia Build Number value   |
+
+##### Functions
 
 In addition to the standard builtin functions we support several other functions which should operate similar.
 
 See the [Templating Reference Guide](../../reference/guides/templating.md) for more information.
 
-### Expand Environment Variable Filter
+#### Expand Environment Variable Filter
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 The Expand Environment Variable filter (i.e. `expand-env`) is officially deprecated. It will be removed in v4.40.0 and

@@ -710,6 +710,38 @@ func TestCmdHelpTopic(t *testing.T) {
 	assert.Contains(t, output, "This is help body text.")
 }
 
+func TestLoadXNormalizedValuesPaths(t *testing.T) {
+	t.Run("ShouldHandleNoPaths", func(t *testing.T) {
+		paths, err := loadXNormalizedValuesPaths(nil)
+
+		assert.NoError(t, err)
+		assert.Nil(t, paths)
+	})
+
+	t.Run("ShouldNormalizeRelativePaths", func(t *testing.T) {
+		paths, err := loadXNormalizedValuesPaths([]string{"./values.yml", filepath.Join("sub", "values.json")})
+
+		require.NoError(t, err)
+		require.Len(t, paths, 2)
+
+		for _, path := range paths {
+			assert.True(t, filepath.IsAbs(path), "expected '%s' to be an absolute path", path)
+		}
+
+		assert.Equal(t, "values.yml", filepath.Base(paths[0]))
+		assert.Equal(t, filepath.Join("sub", "values.json"), filepath.Join(filepath.Base(filepath.Dir(paths[1])), filepath.Base(paths[1])))
+	})
+
+	t.Run("ShouldNotModifyAbsolutePaths", func(t *testing.T) {
+		expected := filepath.Join(t.TempDir(), "values.yml")
+
+		paths, err := loadXNormalizedValuesPaths([]string{expected})
+
+		require.NoError(t, err)
+		assert.Equal(t, []string{expected}, paths)
+	})
+}
+
 func TestLoadXEnvCLIConfigValues(t *testing.T) {
 	testCases := []struct {
 		name string
@@ -726,6 +758,16 @@ func TestLoadXEnvCLIConfigValues(t *testing.T) {
 			map[string]string{cmdFlagEnvNameConfigFilters: "invalidfilter"},
 			"error occurred loading configuration: flag '--config.experimental.filters' is invalid:",
 		},
+		{
+			"ShouldErrInvalidValuesFile",
+			map[string]string{cmdFlagEnvNameConfigFilters: "template", cmdFlagEnvNameConfigFiltersValues: "./this-file-does-not-exist.yml"},
+			"error occurred loading configuration: flag '--config.filters.values' is invalid: error reading values file:",
+		},
+		{
+			"ShouldNotErrInvalidValuesFileWithoutFilterWhichUtilizesValues",
+			map[string]string{cmdFlagEnvNameConfigFilters: "expand-env", cmdFlagEnvNameConfigFiltersValues: "./this-file-does-not-exist.yml"},
+			"",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -733,6 +775,7 @@ func TestLoadXEnvCLIConfigValues(t *testing.T) {
 			cmd := &cobra.Command{}
 			cmd.Flags().StringSlice(cmdFlagNameConfig, []string{}, "")
 			cmd.Flags().StringSlice(cmdFlagNameConfigExpFilters, nil, "")
+			cmd.Flags().StringSlice(cmdFlagNameConfigFiltersValues, nil, "")
 
 			for k, v := range tc.env {
 				t.Setenv(k, v)
@@ -761,6 +804,7 @@ func TestLoadXEnvCLIConfigValues(t *testing.T) {
 		cmd := &cobra.Command{}
 		cmd.Flags().StringSlice(cmdFlagNameConfig, nil, "")
 		cmd.Flags().StringSlice(cmdFlagNameConfigExpFilters, nil, "")
+		cmd.Flags().StringSlice(cmdFlagNameConfigFiltersValues, nil, "")
 
 		require.NoError(t, cmd.Flags().Set(cmdFlagNameConfig, configFile))
 
