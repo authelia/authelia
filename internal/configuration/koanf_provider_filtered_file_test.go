@@ -66,7 +66,7 @@ func TestNewFileFilters(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			actual, theError := NewFileFilters(tc.have)
+			actual, theError := NewFileFilters("", tc.have...)
 
 			switch tc.expect {
 			case "":
