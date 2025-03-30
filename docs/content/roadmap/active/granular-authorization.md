@@ -2,7 +2,7 @@
 title: "Granular Authorization"
 description: "Authelia Granular Authorization Implementation"
 summary: "Implementation of a Granular Authorization framework will make the Authorization experience more tailored to complex requirements."
-date: 2022-06-15T17:51:47+10:00
+date: 2025-03-23T19:03:40+11:00
 draft: false
 images: []
 weight: 325

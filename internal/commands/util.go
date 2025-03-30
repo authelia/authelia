@@ -223,6 +223,7 @@ const (
 func loadXEnvCLIConfigValues(cmd *cobra.Command) (configs []string, filters []configuration.BytesFilter, err error) {
 	var (
 		filterNames []string
+		valuesFile  string
 		result      XEnvCLIResult
 	)
 
@@ -238,7 +239,11 @@ func loadXEnvCLIConfigValues(cmd *cobra.Command) (configs []string, filters []co
 		return nil, nil, err
 	}
 
-	if filters, err = configuration.NewFileFilters(filterNames); err != nil {
+	if valuesFile, _, err = loadXEnvCLIStringValue(cmd, cmdFlagEnvNameConfigFiltersValues, cmdFlagNameConfigFiltersValues); err != nil {
+		return nil, nil, err
+	}
+
+	if filters, err = configuration.NewFileFilters(valuesFile, filterNames...); err != nil {
 		return nil, nil, fmt.Errorf("error occurred loading configuration: flag '--%s' is invalid: %w", cmdFlagNameConfigExpFilters, err)
 	}
 
@@ -299,6 +304,32 @@ func loadXNormalizedPaths(paths []string, result XEnvCLIResult) ([]string, error
 	}
 
 	return configs, nil
+}
+
+func loadXEnvCLIStringValue(cmd *cobra.Command, envKey, flagName string) (value string, result XEnvCLIResult, err error) {
+	if cmd.Flags().Changed(flagName) {
+		value, err = cmd.Flags().GetString(flagName)
+
+		return value, XEnvCLIResultCLIExplicit, err
+	}
+
+	var (
+		env string
+		ok  bool
+	)
+
+	if envKey != "" {
+		env, ok = os.LookupEnv(envKey)
+	}
+
+	switch {
+	case ok && env != "":
+		return env, XEnvCLIResultEnvironment, nil
+	default:
+		value, err = cmd.Flags().GetString(flagName)
+
+		return value, XEnvCLIResultCLIImplicit, err
+	}
 }
 
 func loadXEnvCLIStringSliceValue(cmd *cobra.Command, envKey, flagName string) (value []string, result XEnvCLIResult, err error) {
