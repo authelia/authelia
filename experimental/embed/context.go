@@ -18,13 +18,14 @@ import (
 	"github.com/authelia/authelia/v4/internal/random"
 )
 
-// New creates a new instance of the embedded Authelia context. This can later be used with embed.ServiceRunAll.
-func New(paths []string, filterNames []string) (ctx Context, val *schema.StructValidator, err error) {
+// New creates a new instance of the embedded Authelia context. This can later be used with embed.ServiceRunAll. The
+// valuesFiles are passed to NewNamedConfigFileFilters and populate .Values in the 'template' filter.
+func New(paths []string, filterNames []string, valuesFiles []string) (ctx Context, val *schema.StructValidator, err error) {
 	if len(paths) == 0 {
 		return nil, nil, fmt.Errorf("no paths provided")
 	}
 
-	filters, err := NewNamedConfigFileFilters(filterNames...)
+	filters, err := NewNamedConfigFileFilters(valuesFiles, filterNames...)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -1,0 +1,4 @@
+# yamllint disable-file
+---
+theme: {{ .Values.Example.Value }}
+...
