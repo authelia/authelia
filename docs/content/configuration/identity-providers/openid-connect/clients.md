@@ -552,7 +552,9 @@ The content encryption algorithm used to encrypt the authorization responses.
 
 See the encryption algorithms section of the
 [integration guide](../../../integration/openid-connect/introduction.md#encryption-algorithms) for more information
-including the algorithm column for supported values.### id_token_signed_response_key_id
+including the algorithm column for supported values.
+
+### id_token_signed_response_key_id
 
 {{< confkey type="string" required="no" >}}
 
@@ -646,7 +648,9 @@ The content encryption algorithm used to encrypt the authorization responses.
 
 See the encryption algorithms section of the
 [integration guide](../../../integration/openid-connect/introduction.md#encryption-algorithms) for more information
-including the algorithm column for supported values.### access_token_signed_response_key_id
+including the algorithm column for supported values.
+
+### access_token_signed_response_key_id
 
 {{< confkey type="string" required="no" >}}
 
@@ -770,7 +774,9 @@ The content encryption algorithm used to encrypt the authorization responses.
 
 See the encryption algorithms section of the
 [integration guide](../../../integration/openid-connect/introduction.md#encryption-algorithms) for more information
-including the algorithm column for supported values.### userinfo_signed_response_key_id
+including the algorithm column for supported values.
+
+### userinfo_signed_response_key_id
 
 {{< confkey type="string" required="no" >}}
 
