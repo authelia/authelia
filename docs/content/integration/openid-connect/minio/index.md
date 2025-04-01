@@ -2,7 +2,7 @@
 title: "MinIO"
 description: "Integrating MinIO with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2023-03-21T11:21:23+11:00
+date: 2025-03-30T11:21:23+11:00
 draft: false
 images: []
 weight: 620
@@ -21,9 +21,9 @@ seo:
 ## Tested Versions
 
 * [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+  * [v4.39.1](https://github.com/authelia/authelia/releases/tag/v4.39.1)
 * [MinIO]
-  * [2024-01-05T22-17-24Z](https://github.com/minio/minio/releases/tag/RELEASE.2024-01-05T22-17-24Z)
+  * [2025-03-12T18-04-18Z](https://github.com/minio/minio/releases/tag/RELEASE.2025-03-12T18-04-18Z)
 
 {{% oidc-common %}}
 
@@ -50,6 +50,9 @@ operate with the application example:
 ```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
+    claims_policies:
+      minio:
+        id_token: ['groups', 'email', 'email_verified', 'alt_emails', 'preferred_username', 'name']
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
@@ -66,11 +69,13 @@ identity_providers:
           - 'email'
           - 'groups'
         userinfo_signed_response_alg: 'none'
+        ## This is required since minIO checks ID Token for claims at login process
+        claims_policy: 'minio'
 ```
 
 ### Application
 
-To configure [MinIO] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [MinIO] to utilize Authelia as an [OpenID Connect 1.0] Provider using GUI:
 
 1. Login to [MinIO]
 2. On the left hand menu, go to `Identity`, then `OpenID`
@@ -94,6 +99,21 @@ To configure [MinIO] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 7. Add a [default policy](https://min.io/docs/minio/linux/administration/identity-access-management/policy-based-access-control.html#built-in-policies) to your user groups in Authelia
 8. When the login screen appears again, click the `Other Authentication Methods` open, then select `Authelia` from the list.
 9. Login
+
+To configure [MinIO] to utilize Authelia as an [OpenID Connect 1.0] Provider using environment variables use the following:
+
+```yaml {title="configuration.yml"}
+environment:
+  - 'MINIO_IDENTITY_OPENID_CONFIG_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration'
+  - 'MINIO_IDENTITY_OPENID_CLIENT_ID=minio'
+  - 'MINIO_IDENTITY_OPENID_CLIENT_SECRET=insecure_secret'
+  - 'MINIO_IDENTITY_OPENID_DISPLAY_NAME=Authelia'
+  - 'MINIO_IDENTITY_OPENID_CLAIM_NAME=groups'
+  - 'MINIO_IDENTITY_OPENID_SCOPES=openid,profile,email,groups'
+  - 'MINIO_IDENTITY_OPENID_REDIRECT_URI=https://minio.{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/oauth_callback'
+```
+
+Add a [default policy](https://min.io/docs/minio/linux/administration/identity-access-management/policy-based-access-control.html#built-in-policies) to your user groups in Authelia
 
 ## See Also
 
