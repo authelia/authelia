@@ -1,7 +1,7 @@
 # ========================================
 # ===== Build image for the frontend =====
 # ========================================
-FROM node:23-alpine@sha256:6eae672406a2bc8ed93eab6f9f76a02eb247e06ba82b2f5032c0a4ae07e825ba AS builder-frontend
+FROM node:23-alpine@sha256:60c1ca4b3ec60fd9c983b54e5f9fbd46748fb07c9e14681d25765443ed30904c AS builder-frontend
 
 WORKDIR /node/src/app
 
