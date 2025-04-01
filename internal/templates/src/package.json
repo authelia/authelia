@@ -24,7 +24,7 @@
 	},
 	"devDependencies": {
 		"@radix-ui/colors": "3.0.0",
-		"@types/node": "22.13.16",
+		"@types/node": "22.13.17",
 		"@types/react": "19.0.12",
 		"@types/react-dom": "19.0.4",
 		"eslint": "9.23.0",
