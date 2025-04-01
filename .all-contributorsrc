@@ -1031,6 +1031,15 @@
         "bug",
         "test"
       ]
+    },
+    {
+      "login": "austonpramodh",
+      "name": "Auston Pramodh Barboza",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5049050?v=4",
+      "profile": "http://auston.dev",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
