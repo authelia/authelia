@@ -21,9 +21,9 @@ seo:
 ## Tested Versions
 
 * [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+  * [v4.39.1](https://github.com/authelia/authelia/releases/tag/v4.39.1)
 * [Synapse]
-  * [v1.60.0](https://github.com/matrix-org/synapse/releases/tag/v1.60.0)
+  * [v1.127.1](https://github.com/element-hq/synapse/releases/tag/v1.127.1)
 
 {{% oidc-common %}}
 
@@ -31,10 +31,11 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://matrix.{{< sitevar name="domain" nojs="example.com" >}}/`
+* __Application Root URL:__ `https://synapse.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `synapse`
 * __Client Secret:__ `insecure_secret`
+* __Groups:__ the `synapse-users` group exists and only members of this group are expected to be able to use Synapse.
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -64,6 +65,7 @@ identity_providers:
           - 'openid'
           - 'profile'
           - 'email'
+          - 'groups'
         userinfo_signed_response_alg: 'none'
 ```
 
@@ -76,20 +78,27 @@ To configure [Synapse] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 ```yaml {title="homeserver.yaml"}
 oidc_providers:
   - idp_id: authelia
-    idp_name: "Authelia"
-    idp_icon: "mxc://authelia.com/cKlrTPsGvlpKxAYeHWJsdVHI"
+    idp_name: 'Authelia'
+    idp_icon: 'mxc://authelia.com/cKlrTPsGvlpKxAYeHWJsdVHI'
     discover: true
-    issuer: "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}"
-    client_id: "synapse"
-    client_secret: "insecure_secret"
-    scopes: ["openid", "profile", "email"]
+    issuer: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
+    client_id: 'synapse'
+    client_secret: 'insecure_secret'
+    scopes:
+     - 'openid'
+     - 'profile'
+     - 'email'
+     - 'groups'
     allow_existing_users: true
     user_mapping_provider:
       config:
-        subject_claim: "sub"
-        localpart_template: "{{ user.preferred_username }}"
-        display_name_template: "{{ user.name }}"
-        email_template: "{{ user.email }}"
+        subject_claim: 'sub'
+        localpart_template: '{{ user.preferred_username }}'
+        display_name_template: '{{ user.name }}'
+        email_template: '{{ user.email }}'
+    attribute_requirements:
+     - attribute: 'groups'
+       value: 'synapse-users'
 ```
 
 ## See Also
