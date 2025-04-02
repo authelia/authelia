@@ -75,7 +75,14 @@ identity_providers:
 
 ### Application
 
-To configure [MinIO] to utilize Authelia as an [OpenID Connect 1.0] Provider using GUI:
+To configure [MinIO] to utilize Authelia as an [OpenID Connect 1.0] Provider you can either use the GUI or environment
+variables.
+
+You may also want to consider adding a
+[default policy](https://min.io/docs/minio/linux/administration/identity-access-management/policy-based-access-control.html#built-in-policies)
+to your user groups in Authelia.
+
+#### GUI
 
 1. Login to [MinIO]
 2. On the left hand menu, go to `Identity`, then `OpenID`
@@ -100,20 +107,20 @@ To configure [MinIO] to utilize Authelia as an [OpenID Connect 1.0] Provider usi
 8. When the login screen appears again, click the `Other Authentication Methods` open, then select `Authelia` from the list.
 9. Login
 
-To configure [MinIO] to utilize Authelia as an [OpenID Connect 1.0] Provider using environment variables use the following:
+#### Environment Variables (Docker Compose)
 
-```yaml {title="configuration.yml"}
-environment:
-  - 'MINIO_IDENTITY_OPENID_CONFIG_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration'
-  - 'MINIO_IDENTITY_OPENID_CLIENT_ID=minio'
-  - 'MINIO_IDENTITY_OPENID_CLIENT_SECRET=insecure_secret'
-  - 'MINIO_IDENTITY_OPENID_DISPLAY_NAME=Authelia'
-  - 'MINIO_IDENTITY_OPENID_CLAIM_NAME=groups'
-  - 'MINIO_IDENTITY_OPENID_SCOPES=openid,profile,email,groups'
-  - 'MINIO_IDENTITY_OPENID_REDIRECT_URI=https://minio.{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/oauth_callback'
+```yaml {title="compose.yml"}
+services:
+  minio:
+    environment:
+      MINIO_IDENTITY_OPENID_CONFIG_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration'
+      MINIO_IDENTITY_OPENID_CLIENT_ID: 'minio'
+      MINIO_IDENTITY_OPENID_CLIENT_SECRET: 'insecure_secret'
+      MINIO_IDENTITY_OPENID_DISPLAY_NAME: 'Authelia'
+      MINIO_IDENTITY_OPENID_CLAIM_NAME: 'groups'
+      MINIO_IDENTITY_OPENID_SCOPES: 'openid,profile,email,groups'
+      MINIO_IDENTITY_OPENID_REDIRECT_URI: 'https://minio.{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/oauth_callback'
 ```
-
-Add a [default policy](https://min.io/docs/minio/linux/administration/identity-access-management/policy-based-access-control.html#built-in-policies) to your user groups in Authelia
 
 ## See Also
 
