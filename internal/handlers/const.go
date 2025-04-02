@@ -73,6 +73,16 @@ const (
 	messageIncorrectPassword                     = "Incorrect Password"
 	messageMFAValidationFailed                   = "Authentication failed, please retry later."
 	messagePasswordWeak                          = "Your supplied password does not meet the password policy requirements."
+	messageUnableToModifyUser                    = "Unable to modify specified user"
+	messageUnableToAddUser                       = "Unable to add specified user"
+	messageUnableToDeleteUser                    = "Unable to delete specified user"
+	messageNewUserRequiredFields                 = "Username, DisplayName, and Password are required fields"
+)
+
+const (
+	messageFmtUsernameWrongFormat    = "Username must be either a valid email address or contain only: letters, numbers, hyphens(-), commas(,), and underscores(_)."
+	messageFmtGroupsWrongFormat      = "Groups must only contain: letters, numbers, hyphens(-), commas(,), and underscores(_)."
+	messageFmtDisplayNameWrongFormat = "Display Name must contain only printable unicode characters (no invisible or control characters)."
 )
 
 const (
@@ -90,6 +100,7 @@ const (
 	logFmtErrSessionSave          = "Could not save session with the %s during %s %s for user '%s'"
 	logFmtErrObtainProfileDetails = "Could not obtain profile details during %s authentication for user '%s'"
 	logFmtTraceProfileDetails     = "Profile details for user '%s' => groups: %s, emails %s"
+	logFmtErrUserNotAdmin         = "user '%s' is not an admin"
 )
 
 const (
@@ -156,6 +167,10 @@ const (
 	errStrRespBody            = "error occurred writing the response body"
 	errStrUserSessionData     = "error occurred retrieving the user session data"
 	errStrUserSessionDataSave = "error occurred saving the user session data"
+)
+const (
+	errNotValidEmail            = "error string is not a valid email"
+	errNotValidPrintableUnicode = "error string is not valid printable unicode"
 )
 
 var (

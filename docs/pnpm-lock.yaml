@@ -36,6 +36,9 @@ importers:
       exec-bin:
         specifier: ^1.0.0
         version: 1.0.0
+      frappe-gantt:
+        specifier: ^1.0.3
+        version: 1.0.3
       hugo-installer:
         specifier: 4.0.1
         version: 4.0.1
@@ -1034,6 +1037,9 @@ packages:
 
   fraction.js@4.3.7:
     resolution: {integrity: sha512-ZsDfxO51wGAXREY55a7la9LScWpwv9RxIrYABrlvOFBlH/ShPnrtsXeuUIfXKKOVicNxQ+o8JTbJvjS4M89yew==}
+
+  frappe-gantt@1.0.3:
+    resolution: {integrity: sha512-NkwO2MD4JoWJ82ZruK/rQVIAEpI3nXUoo5gG+wQHV18yKXhzZsTehVfCXJ92DLl/foTtut1RVL0dqj7fo6Cfpg==}
 
   fs-constants@1.0.0:
     resolution: {integrity: sha512-y6OAwoSIf7FyjMIv94u+b5rdheZEjzR63GTyZJm5qh4Bi+2YgwLCcI/fPFZkL5PSixOt6ZNKm+w+Hfp/Bciwow==}
@@ -3094,6 +3100,8 @@ snapshots:
   form-data-encoder@2.1.4: {}
 
   fraction.js@4.3.7: {}
+
+  frappe-gantt@1.0.3: {}
 
   fs-constants@1.0.0: {}
 

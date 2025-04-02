@@ -16,6 +16,36 @@ type UserDetails struct {
 	Groups      []string
 }
 
+type NewUserOptionalDetailsOpts struct {
+	Email    string
+	Disabled bool
+	Groups   []string
+}
+
+func WithEmail(email string) func(detailsOpts *NewUserOptionalDetailsOpts) {
+	return func(opts *NewUserOptionalDetailsOpts) {
+		opts.Email = email
+	}
+}
+
+func WithGroups(groups []string) func(detailsOpts *NewUserOptionalDetailsOpts) {
+	return func(opts *NewUserOptionalDetailsOpts) {
+		opts.Groups = groups
+	}
+}
+
+type ModifyUserDetailsOpts struct {
+	Password    *string
+	DisplayName *string
+	Email       *string
+	Disabled    *bool
+	Groups      []string
+}
+
+func (o *ModifyUserDetailsOpts) SetEmail(email *string)     { o.Email = email }
+func (o *ModifyUserDetailsOpts) SetDisabled(disabled *bool) { o.Disabled = disabled }
+func (o *ModifyUserDetailsOpts) SetGroups(groups []string)  { o.Groups = groups }
+
 // Addresses returns the Emails []string as []mail.Address formatted with DisplayName as the Name attribute.
 func (d *UserDetails) Addresses() (addresses []mail.Address) {
 	if len(d.Emails) == 0 {

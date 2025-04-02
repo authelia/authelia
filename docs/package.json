@@ -32,6 +32,7 @@
     "@thulite/seo": "2.4.1",
     "bootstrap-icons": "1.11.3",
     "exec-bin": "^1.0.0",
+    "frappe-gantt": "^1.0.3",
     "hugo-installer": "4.0.1",
     "thulite": "2.5.0"
   },

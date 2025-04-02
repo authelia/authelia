@@ -7,14 +7,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/go-ldap/ldap/v3"
-	"github.com/sirupsen/logrus"
-	"golang.org/x/text/language"
-
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/utils"
+	"github.com/go-ldap/ldap/v3"
+	"github.com/sirupsen/logrus"
+	"golang.org/x/text/language"
 )
 
 // LDAPUserProvider is a UserProvider that connects to LDAP servers like ActiveDirectory, OpenLDAP, OpenDJ, FreeIPA, etc.
@@ -116,7 +115,7 @@ func (p *LDAPUserProvider) CheckUserPassword(username string, password string) (
 	return true, nil
 }
 
-// GetDetails retrieve the groups a user belongs to.
+// GetDetails retrieve the users basic information.
 func (p *LDAPUserProvider) GetDetails(username string) (details *UserDetails, err error) {
 	var (
 		client  ldap.Client
@@ -151,6 +150,10 @@ func (p *LDAPUserProvider) GetDetails(username string) (details *UserDetails, er
 		Emails:      profile.Emails,
 		Groups:      groups,
 	}, nil
+}
+
+func (p *LDAPUserProvider) GetUser(username string) (details *UserDetails, err error) {
+	return p.GetDetails(username)
 }
 
 // GetDetailsExtended retrieves the UserDetailsExtended values.
@@ -240,6 +243,63 @@ func (p *LDAPUserProvider) GetDetailsExtended(username string) (details *UserDet
 	}
 
 	return details, nil
+}
+
+func (p *LDAPUserProvider) ListUsers() (users []UserDetails, err error) {
+	var client ldap.Client
+
+	if client, err = p.factory.GetClient(); err != nil {
+		return nil, fmt.Errorf("failed to connect to LDAP server: %w", err)
+	}
+
+	defer client.Close()
+
+	request := ldap.NewSearchRequest(
+		p.usersBaseDN,
+		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
+		0, 0, false,
+		"(objectClass=inetOrgPerson)",
+		p.usersAttributes,
+		nil,
+	)
+
+	p.log.
+		WithField("base_dn", request.BaseDN).
+		WithField("filter", request.Filter).
+		WithField("attr", request.Attributes).
+		WithField("scope", request.Scope).
+		WithField("deref", request.DerefAliases).
+		Trace("Performing search for all users")
+
+	var result *ldap.SearchResult
+
+	if result, err = p.search(client, request); err != nil {
+		return nil, fmt.Errorf("failed to search for users: %w", err)
+	}
+
+	users = make([]UserDetails, 0, len(result.Entries))
+
+	for _, entry := range result.Entries {
+		profile, err := p.getUserProfileResultToProfile(entry.GetAttributeValue(p.config.Attributes.Username), entry)
+		if err != nil {
+			p.log.WithError(err).Warnf("Failed to process user entry: %s", entry.DN)
+			continue
+		}
+
+		groups, err := p.getUserGroups(client, profile.Username, profile)
+		if err != nil {
+			p.log.WithError(err).Warnf("Failed to get groups for user: %s", profile.Username)
+		}
+
+		users = append(users, UserDetails{
+			Username:    profile.Username,
+			DisplayName: profile.DisplayName,
+			Emails:      profile.Emails,
+			Groups:      groups,
+		})
+	}
+
+	return users, nil
 }
 
 // UpdatePassword update the password of the given user.
@@ -404,6 +464,151 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 	}
 
 	return nil
+}
+
+// ChangeDisplayName changes the display name for a specific user.
+func (p *LDAPUserProvider) ChangeDisplayName(username, newDisplayName string) (err error) {
+	var (
+		client  ldap.Client
+		profile *ldapUserProfile
+	)
+
+	if client, err = p.factory.GetClient(); err != nil {
+		return fmt.Errorf("unable to change display name for user '%s': %w", username, err)
+	}
+
+	defer client.Close()
+
+	if profile, err = p.getUserProfile(client, username); err != nil {
+		return fmt.Errorf("unable to change display name for user '%s': %w", username, err)
+	}
+
+	modifyRequest := ldap.NewModifyRequest(profile.DN, nil)
+
+	modifyRequest.Replace(ldapAttrCommonName, []string{newDisplayName})
+
+	if err = p.modify(client, modifyRequest); err != nil {
+		return fmt.Errorf("unable to change display name for user '%s': %w", username, err)
+	}
+
+	return nil
+}
+
+// ChangeEmail changes the email for a specific user.
+func (p *LDAPUserProvider) ChangeEmail(username, newEmail string) (err error) {
+	var (
+		client  ldap.Client
+		profile *ldapUserProfile
+	)
+
+	if client, err = p.factory.GetClient(); err != nil {
+		return fmt.Errorf("unable to change email for user '%s': %w", username, err)
+	}
+
+	defer client.Close()
+
+	if profile, err = p.getUserProfile(client, username); err != nil {
+		return fmt.Errorf("unable to change email for user '%s': %w", username, err)
+	}
+
+	modifyRequest := ldap.NewModifyRequest(profile.DN, nil)
+
+	modifyRequest.Replace(ldapAttrMail, []string{newEmail})
+
+	if err = p.modify(client, modifyRequest); err != nil {
+		return fmt.Errorf("unable to change email for user '%s': %w", username, err)
+	}
+
+	return nil
+}
+
+// ChangeGroups changes the groups for a specific user.
+func (p *LDAPUserProvider) ChangeGroups(username string, newGroups []string) (err error) {
+	var (
+		client  ldap.Client
+		profile *ldapUserProfile
+	)
+
+	if client, err = p.factory.GetClient(); err != nil {
+		return fmt.Errorf("unable to change groups for user '%s': %w", username, err)
+	}
+
+	defer client.Close()
+
+	if profile, err = p.getUserProfile(client, username); err != nil {
+		return fmt.Errorf("unable to change groups for user '%s': %w", username, err)
+	}
+
+	// Get the current groups of the user.
+	currentGroups, err := p.getUserGroups(client, username, profile)
+	if err != nil {
+		return fmt.Errorf("unable to retrieve current groups for user '%s': %w", username, err)
+	}
+
+	// Prepare the modify request.
+	modifyRequest := ldap.NewModifyRequest(profile.DN, nil)
+
+	// Remove all current group memberships.
+	for _, group := range currentGroups {
+		groupDN, err := p.getGroupDN(client, group)
+		if err != nil {
+			return fmt.Errorf("unable to get DN for group '%s': %w", group, err)
+		}
+
+		modifyRequest.Delete(p.config.Attributes.MemberOf, []string{groupDN})
+	}
+
+	// Add new group memberships.
+	for _, group := range newGroups {
+		groupDN, err := p.getGroupDN(client, group)
+		if err != nil {
+			return fmt.Errorf("unable to get DN for group '%s': %w", group, err)
+		}
+
+		modifyRequest.Add(p.config.Attributes.MemberOf, []string{groupDN})
+	}
+
+	// Perform the modification.
+	if err = p.modify(client, modifyRequest); err != nil {
+		return fmt.Errorf("unable to change groups for user '%s': %w", username, err)
+	}
+
+	return nil
+}
+
+func (p *LDAPUserProvider) AddUser(username, displayName, password string, opts ...func(options *NewUserOptionalDetailsOpts)) (err error) {
+	return nil
+}
+
+func (p *LDAPUserProvider) DeleteUser(username string) (err error) {
+	return nil
+}
+
+func (p *LDAPUserProvider) UpdateUser(username string, opts ...func(options *ModifyUserDetailsOpts)) (err error) {
+	return nil
+}
+
+// getGroupDN is a helper function to get the DN of a group given its name.
+func (p *LDAPUserProvider) getGroupDN(client ldap.Client, groupName string) (string, error) {
+	searchRequest := ldap.NewSearchRequest(
+		p.groupsBaseDN,
+		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
+		0, 0, false,
+		fmt.Sprintf("(&(objectClass=group)(%s=%s))", p.config.Attributes.GroupName, ldap.EscapeFilter(groupName)),
+		[]string{"dn"},
+		nil,
+	)
+
+	result, err := p.search(client, searchRequest)
+	if err != nil {
+		return "", fmt.Errorf("error searching for group '%s': %w", groupName, err)
+	}
+
+	if len(result.Entries) == 0 {
+		return "", fmt.Errorf("group '%s' not found", groupName)
+	}
+
+	return result.Entries[0].DN, nil
 }
 
 func (p *LDAPUserProvider) search(client ldap.Client, request *ldap.SearchRequest) (result *ldap.SearchResult, err error) {
@@ -745,12 +950,26 @@ attributes:
 	return ""
 }
 
-func (p *LDAPUserProvider) resolveUsersFilter(input string) (filter string) {
+type resolveUsersFilterOpts struct {
+	escape bool
+}
+
+func (p *LDAPUserProvider) resolveUsersFilter(input string, opts ...func(options *resolveUsersFilterOpts)) (filter string) {
+	options := &resolveUsersFilterOpts{}
+
+	for _, opt := range opts {
+		opt(options)
+	}
+
 	filter = p.config.UsersFilter
 
 	if p.usersFilterReplacementInput {
-		// The {input} placeholder is replaced by the username input.
-		filter = strings.ReplaceAll(filter, ldapPlaceholderInput, ldapEscape(input))
+		if options.escape {
+			// The {input} placeholder is replaced by the username input.
+			filter = strings.ReplaceAll(filter, ldapPlaceholderInput, ldapEscape(input))
+		} else {
+			filter = strings.ReplaceAll(filter, ldapPlaceholderInput, input)
+		}
 	}
 
 	if p.usersFilterReplacementDateTimeGeneralized {
