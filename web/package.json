@@ -9,19 +9,19 @@
   },
   "pnpm": {
     "overrides": {
-      "@babel/traverse@<7.26.10": "7.27.0",
-      "@babel/helpers@<7.26.10": "7.27.0",
-      "@babel/runtime@<7.26.10": "7.27.0",
+      "@babel/traverse": "7.27.0",
+      "@babel/helpers": "7.27.0",
+      "@babel/runtime": "7.27.0",
       "@typescript-eslint/eslint-plugin": "8.28.0",
       "@typescript-eslint/parser": "8.28.0",
       "@typescript-eslint/typescript-estree": "8.28.0",
       "@typescript-eslint/utils": "8.28.0",
-      "babel@<7.26.10": "7.26.10",
+      "babel": "7.26.10",
       "eslint-plugin-jest": "28.11.0",
       "eslint-plugin-testing-library": "7.1.1",
-      "path-to-regexp@<0.1.12": "8.2.0",
-      "semver@<7.5.2": "7.7.1",
-      "vite@<3.2.11": "6.2.4"
+      "path-to-regexp": "8.2.0",
+      "semver": "7.7.1",
+      "vite": "6.2.4"
     },
     "peerDependencyRules": {
       "allowedVersions": {
