@@ -1,5 +1,5 @@
 ---
 services:
   traefik:
-    image: 'traefik:v2.11.21'
+    image: 'traefik:v2.11.22'
 ...

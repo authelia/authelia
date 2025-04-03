@@ -342,6 +342,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://t.me/daniw1337"><img src="https://avatars.githubusercontent.com/u/21097466?v=4?s=100" width="100px;" alt="Dani"/><br /><sub><b>Dani</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=DaniW42" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://lhns.de"><img src="https://avatars.githubusercontent.com/u/1524059?v=4?s=100" width="100px;" alt="Pierre Kisters"/><br /><sub><b>Pierre Kisters</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=lhns" title="Code">💻</a> <a href="https://github.com/authelia/authelia/issues?q=author%3Alhns" title="Bug reports">🐛</a> <a href="https://github.com/authelia/authelia/commits?author=lhns" title="Tests">⚠️</a></td>
     </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="http://auston.dev"><img src="https://avatars.githubusercontent.com/u/5049050?v=4?s=100" width="100px;" alt="Auston Pramodh Barboza"/><br /><sub><b>Auston Pramodh Barboza</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=austonpramodh" title="Documentation">📖</a></td>
+    </tr>
   </tbody>
 </table>
 

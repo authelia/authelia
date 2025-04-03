@@ -2,7 +2,7 @@ module github.com/authelia/authelia/v4
 
 go 1.24.0
 
-toolchain go1.24.1
+toolchain go1.24.2
 
 require (
 	authelia.com/provider/oauth2 v0.2.2
@@ -22,7 +22,7 @@ require (
 	github.com/go-rod/rod v0.116.2
 	github.com/go-sql-driver/mysql v1.9.1
 	github.com/go-viper/mapstructure/v2 v2.2.1
-	github.com/go-webauthn/webauthn v0.12.2
+	github.com/go-webauthn/webauthn v0.12.3
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/google/cel-go v0.24.1
 	github.com/google/uuid v1.6.0
@@ -35,7 +35,7 @@ require (
 	github.com/knadh/koanf/providers/posflag v0.1.0
 	github.com/knadh/koanf/providers/rawbytes v0.1.0
 	github.com/knadh/koanf/v2 v2.1.2
-	github.com/mattn/go-sqlite3 v1.14.24
+	github.com/mattn/go-sqlite3 v1.14.26
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/otiai10/copy v1.14.1
 	github.com/pkg/errors v0.9.1
@@ -73,10 +73,10 @@ require (
 	github.com/dlclark/regexp2 v1.4.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
-	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
+	github.com/fxamacker/cbor/v2 v2.8.0 // indirect
 	github.com/go-crypt/x v0.3.6 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
-	github.com/go-webauthn/x v0.1.19 // indirect
+	github.com/go-webauthn/x v0.1.20 // indirect
 	github.com/google/go-tpm v0.9.3 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/iancoleman/orderedmap v0.3.0 // indirect
