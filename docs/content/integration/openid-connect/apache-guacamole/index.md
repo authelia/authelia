@@ -50,6 +50,9 @@ will operate with the application example:
 ```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
+    claims_policies:
+      guacamole:
+        id_token: ['preferred_username']
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
@@ -65,6 +68,7 @@ identity_providers:
           - 'profile'
           - 'groups'
           - 'email'
+        claims_policy: 'guacamole'
         response_types:
           - 'id_token'
         grant_types:
