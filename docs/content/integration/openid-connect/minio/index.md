@@ -44,15 +44,14 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
+{{% oidc-conformance-claims %}}
+
 The following YAML configuration is an example __Authelia__ [client configuration] for use with [MinIO] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
-    claims_policies:
-      minio:
-        id_token: ['groups', 'email', 'email_verified', 'alt_emails', 'preferred_username', 'name']
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
@@ -69,8 +68,6 @@ identity_providers:
           - 'email'
           - 'groups'
         userinfo_signed_response_alg: 'none'
-        ## This is required since minIO checks ID Token for claims at login process
-        claims_policy: 'minio'
 ```
 
 ### Application

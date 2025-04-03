@@ -1,0 +1,44 @@
+<div class="callout callout-tip d-flex flex-row mt-4 mb-4 pt-4 pe-4 pb-2 ps-3">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="outline/rocket svg-inline callout-icon me-2 mb-3" id="svg-rocket" role="img"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 13a8 8 0 017 7 6 6 0 003-5 9 9 0 006-8 3 3 0 00-3-3 9 9 0 00-8 6 6 6 0 00-5 3"></path><path d="M7 14a6 6 0 00-3 6 6 6 0 006-3"></path><path d="M15 9m-1 0a1 1 0 102 0 1 1 0 10-2 0"></path></svg>
+  <div class="callout-content">
+    <div class="callout-title">
+      <p>Additional Configuration Required: Claims Conformance</p>
+    </div>
+    <div class="callout-body">
+      <p>For the reasons noted below; in addition to the configuration example you will likely have to configure a claims
+        policy and assign that policy to the client in order to get the expected claims into the ID Token which is
+        described and documented
+        <a href="/integration/openid-connect/openid-connect-1.0-claims/#restore-functionality-prior-to-claims-parameter">here</a>.
+      </p>
+      {{- with .Get "claims" }}
+      {{- $claims := split . "," }}
+      <p>
+        The known claims required in the ID Token for this client are
+        {{- range $i, $claim := $claims }}
+        {{- if eq $i 0 }}
+        <code>{{ $claim }}</code>
+        {{- else -}}
+        ,
+        {{- if eq (add 1 $i) (len $claims) }}
+        and
+        {{- end }}
+        <code>{{ $claim }}</code>
+        {{- end -}}
+        {{- end -}}
+        .
+      </p>
+      {{- end }}
+      <p>Authelia has adopted a claims architecture that is conformant with the specification. This expects the clients
+        to act inline with the
+        <a href="https://openid.net/specs/openid-connect-core-1_0.html">OpenID Connect 1.0</a> specification and either
+        obtain user information from the user information endpoint or explicitly request them via the claims parameter.
+      </p>
+      <p>
+        At the time of this writing this client did not support this, and very likely also ignores the
+        <a href="https://openid.net/specs/openid-connect-core-1_0.html#ClaimStability">claims stability warning</a>
+        which requires clients to anchor accounts via the <code>sub</code> and <code>iss</code> claims. Both of these
+        elements are clear indications the client does not properly support
+        <a href="https://openid.net/specs/openid-connect-core-1_0.html">OpenID Connect 1.0</a> and is not conformant.</p>
+    </div>
+  </div>
+</div>

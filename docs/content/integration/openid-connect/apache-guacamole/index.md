@@ -44,15 +44,14 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
+{{% oidc-conformance-claims claims="preferred_username" %}}
+
 The following YAML configuration is an example __Authelia__ [client configuration] for use with [Apache Guacamole] which
 will operate with the application example:
 
 ```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
-    claims_policies:
-      guacamole:
-        id_token: ['preferred_username']
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
@@ -68,7 +67,6 @@ identity_providers:
           - 'profile'
           - 'groups'
           - 'email'
-        claims_policy: 'guacamole'
         response_types:
           - 'id_token'
         grant_types:
