@@ -48,14 +48,13 @@ characters for the secret or URL encode the secret yourself.
 
 ### Authelia
 
+{{% oidc-conformance-claims %}}
+
 The following YAML configuration is an example __Authelia__ [client configuration] for use with [Cloudflare] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
 identity_providers:
-  claims_policies:
-    default:
-      id_token: ['groups', 'email', 'email_verified', 'alt_emails', 'preferred_username', 'name']
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
@@ -64,7 +63,6 @@ identity_providers:
         client_name: 'Cloudflare ZeroTrust'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
-        claims_policy: default
         authorization_policy: 'two_factor'
         redirect_uris:
           - 'https://example-team.cloudflareaccess.com/cdn-cgi/access/callback'
@@ -74,7 +72,6 @@ identity_providers:
           - 'email'
         userinfo_signed_response_alg: 'none'
 ```
-Important: the `claims_policy` section under OIDC, and `claims_policy` under the cloudflare config are important to specify to allow Cloudflare to request additional ID Token Claims. More information [here](https://www.authelia.com/integration/openid-connect/openid-connect-1.0-claims/#restore-functionality-prior-to-claims-parameter)
 
 ### Application
 
