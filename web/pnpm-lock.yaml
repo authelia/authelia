@@ -5,19 +5,19 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  '@babel/traverse@<7.26.10': 7.27.0
-  '@babel/helpers@<7.26.10': 7.27.0
-  '@babel/runtime@<7.26.10': 7.27.0
+  '@babel/traverse': 7.27.0
+  '@babel/helpers': 7.27.0
+  '@babel/runtime': 7.27.0
   '@typescript-eslint/eslint-plugin': 8.28.0
   '@typescript-eslint/parser': 8.28.0
   '@typescript-eslint/typescript-estree': 8.28.0
   '@typescript-eslint/utils': 8.28.0
-  babel@<7.26.10: 7.26.10
+  babel: 7.26.10
   eslint-plugin-jest: 28.11.0
   eslint-plugin-testing-library: 7.1.1
-  path-to-regexp@<0.1.12: 8.2.0
-  semver@<7.5.2: 7.7.1
-  vite@<3.2.11: 6.2.4
+  path-to-regexp: 8.2.0
+  semver: 7.7.1
+  vite: 6.2.4
 
 importers:
 
@@ -973,10 +973,6 @@ packages:
 
   '@babel/regjsgen@0.8.0':
     resolution: {integrity: sha512-x/rqGMdzj+fWZvCOYForTghzbtqPDZ5gPwaoNGHdgDfF2QA/XZbCBp4Moo5scrkAMPhB7z26XM/AaHuIJdgauA==}
-
-  '@babel/runtime@7.26.10':
-    resolution: {integrity: sha512-2WJMeRQPHKSPemqk/awGrAiuFfzBmOIPXKizAsVhWH9YJqLZ0H+HS4c8loHGgW6utJ3E/ejXQUsiGaQy2NZ9Fw==}
-    engines: {node: '>=6.9.0'}
 
   '@babel/runtime@7.27.0':
     resolution: {integrity: sha512-VtPOkrdPHZsKc/clNqyi9WUA8TINkZ4cGk63UUE3u4pmB2k+ZMQRDuIOagv8UVd6j7k0T3+RRIb7beKTebNbcw==}
@@ -1963,7 +1959,7 @@ packages:
     resolution: {integrity: sha512-SCCPBJtYLdE8PX/7ZQAs1QAZ8Jqwih+0VBLum1EGqmCCQal+MIUqLCzj3ZUy8ufbC0cAM4LRlSTm7IQJwWT4ug==}
     engines: {node: ^14.18.0 || >=16.0.0}
     peerDependencies:
-      vite: ^4.2.0 || ^5.0.0 || ^6.0.0
+      vite: 6.2.4
 
   '@vitest-preview/dev-utils@0.0.1':
     resolution: {integrity: sha512-KLr4IvFz73dMao1tCHWgwqNJfHEcGOqHaQ7SHYfumrMvs2BBD4PKMBtePO2AV7+gq4iEPuIJY8INR3Oq5EnTUw==}
@@ -1980,7 +1976,7 @@ packages:
     resolution: {integrity: sha512-bmpJJm7Y7i9BBELlLuuM1J1Q6EQ6K5Ye4wcyOpOMXMcePYKSIYlpcrCm4l/O6ja4VJA5G2aMJiuZkZdnxlC3SA==}
     peerDependencies:
       msw: ^2.4.9
-      vite: ^5.0.0 || ^6.0.0
+      vite: 6.2.4
     peerDependenciesMeta:
       msw:
         optional: true
@@ -4504,7 +4500,7 @@ packages:
   vite-plugin-istanbul@7.0.0:
     resolution: {integrity: sha512-UAXSyS0zslaSP1yCdO54YwrTkoY3VxCBH8y8MAy3I+E6uqT07LEsVOFEHueeDJ+vyyeaA9Rkqz/j6LACJTzTKw==}
     peerDependencies:
-      vite: '>=4 <=6'
+      vite: 6.2.4
 
   vite-plugin-svgr@4.3.0:
     resolution: {integrity: sha512-Jy9qLB2/PyWklpYy0xk0UU3TlU0t2UMpJXZvf+hWII1lAmRHrOUKi11Uw8N3rxoNk7atZNYO3pR3vI1f7oi+6w==}
@@ -5691,10 +5687,6 @@ snapshots:
       - supports-color
 
   '@babel/regjsgen@0.8.0': {}
-
-  '@babel/runtime@7.26.10':
-    dependencies:
-      regenerator-runtime: 0.14.0
 
   '@babel/runtime@7.27.0':
     dependencies:
@@ -8196,7 +8188,7 @@ snapshots:
 
   i18next@24.2.3(typescript@5.8.2):
     dependencies:
-      '@babel/runtime': 7.26.10
+      '@babel/runtime': 7.27.0
     optionalDependencies:
       typescript: 5.8.2
 
