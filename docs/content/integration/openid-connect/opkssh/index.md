@@ -42,6 +42,8 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
+{{% oidc-conformance-claims claims="email" %}}
+
 The following YAML configuration is an example __Authelia__ [client configuration] for use with [opkssh] which will
 operate with the application example:
 
@@ -50,25 +52,22 @@ identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
-    claims_policies:
-      default:
-        id_token: ['groups', 'email', 'email_verified', 'alt_emails', 'preferred_username', 'name']
     clients:
       - client_id: 'opkssh'
         client_name: 'opkssh'
-        claims_policy: 'default'
         public: true
         require_pkce: true
         pkce_challenge_method: 'S256'
         authorization_policy: 'two_factor'
         redirect_uris:
           - 'http://localhost:3000/login-callback'
+          - 'http://localhost:10001/login-callback'
+          - 'http://localhost:11110/login-callback'
         scopes:
           - 'openid'
           - 'profile'
           - 'email'
         userinfo_signed_response_alg: 'none'
-        token_endpoint_auth_method: 'none'
 ```
 
 ### Application
