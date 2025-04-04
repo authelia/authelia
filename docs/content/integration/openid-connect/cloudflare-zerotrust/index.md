@@ -48,6 +48,8 @@ characters for the secret or URL encode the secret yourself.
 
 ### Authelia
 
+{{% oidc-conformance-claims %}}
+
 The following YAML configuration is an example __Authelia__ [client configuration] for use with [Cloudflare] which will
 operate with the application example:
 

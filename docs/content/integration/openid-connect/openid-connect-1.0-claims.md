@@ -142,7 +142,9 @@ to make adjustments to individual clients to work around this enhancement.
 
 The following example is a claims policy which restores that behaviour for those clients. Users may choose to expand
 on this on their own as they desire. This example also shows how to apply this policy to a client using the
-`claims_policy` option.
+`claims_policy` option. This example restores all of the claims which were previously incorrectly present within
+ID Tokens, it's recommended that users ascertain the exact claims necessary and only include those, adapting the example
+as necessary.
 
 We strongly recommend implementers use the standard process for obtaining the extra claims not generally intended to be
 included in the [ID Token] by using the [Access Token] to obtain them from the [UserInfo Endpoint]. This process is
@@ -155,7 +157,7 @@ identity_providers:
     claims_policies:
       ## Creates the 'default' claims policy.
       default:
-        id_token: ['groups', 'email', 'email_verified', 'alt_emails', 'preferred_username', 'name']
+        id_token: ['rat', 'groups', 'email', 'email_verified', 'alt_emails', 'preferred_username', 'name']
     clients:
       - client_id: 'client_example_id'
         ## Assigns the 'default' claims policy to this client.

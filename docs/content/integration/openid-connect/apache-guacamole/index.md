@@ -44,6 +44,8 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
+{{% oidc-conformance-claims claims="preferred_username" %}}
+
 The following YAML configuration is an example __Authelia__ [client configuration] for use with [Apache Guacamole] which
 will operate with the application example:
 
