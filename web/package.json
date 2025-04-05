@@ -117,7 +117,7 @@
     "happy-dom": "17.4.4",
     "husky": "9.1.7",
     "prettier": "3.5.3",
-    "typescript": "5.8.2",
+    "typescript": "5.8.3",
     "vite": "6.2.5",
     "vite-plugin-checker": "0.8.0",
     "vite-plugin-istanbul": "7.0.0",
