@@ -166,7 +166,7 @@ func validateOIDCClaims(config *schema.Configuration, validator *schema.StructVa
 		}
 
 		for _, claim := range policy.IDToken {
-			if utils.IsStringInSlice(claim, validOIDCReservedClaims) {
+			if utils.IsStringInSlice(claim, validOIDCReservedIDTokenClaims) {
 				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: id_token: claim with name '%s' can't be used in a claims policy as it's a standard claim", name, claim))
 			} else if !utils.IsStringInSlice(claim, claims) && !utils.IsStringInSlice(claim, validOIDCClientClaims) {
 				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: id_token: claim with name '%s' is not known", name, claim))
