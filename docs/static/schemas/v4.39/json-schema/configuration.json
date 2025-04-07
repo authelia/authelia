@@ -1738,7 +1738,7 @@
         "authorization_encrypted_response_key_id": {
           "type": "string",
           "title": "Authorization Signing Key ID",
-          "description": "The Key ID of a JOSE encryption key (JWE) this client uses to encrypt the Authorization objects that it generates and responds with. This value overrides the 'authorization_encrypted_response_alg' and '%!s(MISSING)_encrypted_response_enc'. i.e. the JWE 'kid' value."
+          "description": "The Key ID of a JOSE encryption key (JWE) this client uses to encrypt the Authorization objects that it generates and responds with. This value overrides the 'authorization_encrypted_response_alg' and 'authorization_encrypted_response_enc'. i.e. the JWE 'kid' value."
         },
         "id_token_signed_response_alg": {
           "type": "string",
@@ -1802,7 +1802,7 @@
         "id_token_encrypted_response_key_id": {
           "type": "string",
           "title": "ID Token Signing Key ID",
-          "description": "The Key ID of a JOSE encryption key (JWE) this client uses to encrypt the ID Token objects that it generates and responds with. This value overrides the 'id_token_encrypted_response_alg' and '%!s(MISSING)_encrypted_response_enc'. i.e. the JWE 'kid' value."
+          "description": "The Key ID of a JOSE encryption key (JWE) this client uses to encrypt the ID Token objects that it generates and responds with. This value overrides the 'id_token_encrypted_response_alg' and 'id_token_encrypted_response_enc'. i.e. the JWE 'kid' value."
         },
         "access_token_signed_response_alg": {
           "type": "string",
@@ -1867,7 +1867,7 @@
         "access_token_encrypted_response_key_id": {
           "type": "string",
           "title": "Access Token Signing Key ID",
-          "description": "The Key ID of a JOSE encryption key (JWE) this client uses to encrypt the Access Token objects that it generates and responds with. This value overrides the 'access_token_encrypted_response_alg' and '%!s(MISSING)_encrypted_response_enc'. i.e. the JWE 'kid' value."
+          "description": "The Key ID of a JOSE encryption key (JWE) this client uses to encrypt the Access Token objects that it generates and responds with. This value overrides the 'access_token_encrypted_response_alg' and 'access_token_encrypted_response_enc'. i.e. the JWE 'kid' value."
         },
         "userinfo_signed_response_alg": {
           "type": "string",
@@ -1932,7 +1932,7 @@
         "userinfo_encrypted_response_key_id": {
           "type": "string",
           "title": "Userinfo Signing Key ID",
-          "description": "The Key ID of a JOSE encryption key (JWE) this client uses to encrypt the Userinfo objects that it generates and responds with. This value overrides the 'userinfo_encrypted_response_alg' and '%!s(MISSING)_encrypted_response_enc'. i.e. the JWE 'kid' value."
+          "description": "The Key ID of a JOSE encryption key (JWE) this client uses to encrypt the Userinfo objects that it generates and responds with. This value overrides the 'userinfo_encrypted_response_alg' and 'userinfo_encrypted_response_enc'. i.e. the JWE 'kid' value."
         },
         "introspection_signed_response_alg": {
           "type": "string",
@@ -1997,7 +1997,7 @@
         "introspection_encrypted_response_key_id": {
           "type": "string",
           "title": "Introspection Signing Key ID",
-          "description": "The Key ID of a JOSE encryption key (JWE) this client uses to encrypt the Introspection objects that it generates and responds with. This value overrides the 'introspection_encrypted_response_alg' and '%!s(MISSING)_encrypted_response_enc'. i.e. the JWE 'kid' value."
+          "description": "The Key ID of a JOSE encryption key (JWE) this client uses to encrypt the Introspection objects that it generates and responds with. This value overrides the 'introspection_encrypted_response_alg' and 'introspection_encrypted_response_enc'. i.e. the JWE 'kid' value."
         },
         "request_object_signing_alg": {
           "type": "string",

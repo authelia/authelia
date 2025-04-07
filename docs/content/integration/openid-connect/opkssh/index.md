@@ -2,7 +2,7 @@
 title: "opkssh"
 description: "Integrating OpenPubkey SSH with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2025-04-02T17:51:47+10:00
+date: 2025-04-04T10:36:34+00:00
 draft: false
 images: []
 weight: 620
