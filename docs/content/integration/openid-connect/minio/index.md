@@ -2,7 +2,7 @@
 title: "MinIO"
 description: "Integrating MinIO with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2025-03-30T11:21:23+11:00
+date: 2023-03-21T11:21:23+11:00
 draft: false
 images: []
 weight: 620
