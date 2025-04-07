@@ -34,7 +34,6 @@ This example makes the following assumptions:
 * __Application Root URL:__ `https://guacamole.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `guacamole`
-* __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -57,8 +56,7 @@ identity_providers:
     clients:
       - client_id: 'guacamole'
         client_name: 'Apache Guacamole'
-        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
-        public: false
+        public: true
         authorization_policy: 'two_factor'
         redirect_uris:
           - 'https://guacamole.{{< sitevar name="domain" nojs="example.com" >}}'
