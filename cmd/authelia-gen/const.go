@@ -41,6 +41,12 @@ const (
 )
 
 const (
+	suiteNameHybridFormPost   = "hybrid-form-post"
+	suiteNameImplicitFormPost = "implicit-form-post"
+	suiteConformanceBasic     = "conformance-basic"
+)
+
+const (
 	pathJSONSchema = "json-schema"
 	extJSON        = ".json"
 )
@@ -64,6 +70,7 @@ const (
 	cmdUseCompletion             = "completion"
 	cmdUseDocs                   = "docs"
 	cmdUseManage                 = "manage"
+	cmdUseMisc                   = "misc"
 	cmdUseDocsDate               = "date"
 	cmdUseDocsCLI                = "cli"
 	cmdUseDocsData               = "data"
