@@ -23,7 +23,7 @@ seo:
 * [Authelia]
   * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [Apache Guacamole]
-  * __UNKNOWN__
+  * [1.5.5](https://guacamole.apache.org/releases/1.5.5/)
 
 {{% oidc-common %}}
 
@@ -73,6 +73,10 @@ identity_providers:
 ```
 
 ### Application
+
+Before configuring or using [OpenID Connect 1.0] with [Apache Guacamole] you must ensure the
+[openid extension](https://guacamole.apache.org/doc/gug/openid-auth.html#installing-support-for-openid-connect) is
+installed.
 
 To configure [Apache Guacamole] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
 
