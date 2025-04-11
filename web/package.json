@@ -21,7 +21,7 @@
       "eslint-plugin-testing-library": "7.1.1",
       "path-to-regexp": "8.2.0",
       "semver": "7.7.1",
-      "vite": "6.2.5"
+      "vite": "6.2.6"
     },
     "peerDependencyRules": {
       "allowedVersions": {
@@ -118,7 +118,7 @@
     "husky": "9.1.7",
     "prettier": "3.5.3",
     "typescript": "5.8.3",
-    "vite": "6.2.5",
+    "vite": "6.2.6",
     "vite-plugin-checker": "0.8.0",
     "vite-plugin-istanbul": "7.0.0",
     "vite-plugin-svgr": "4.3.0",
