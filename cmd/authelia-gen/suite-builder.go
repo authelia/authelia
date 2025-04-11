@@ -42,7 +42,7 @@ func (p *OpenIDConnectConformanceSuiteBuilder) Build() OpenIDConnectConformanceS
 	name := fmt.Sprintf("%s%s", namePrefix, p.name)
 
 	switch name {
-	case suiteConformanceBasic, "conformance-basic-form-post", "conformance-hybrid", "conformance-hybrid-form-post", "conformance-implicit", "conformance-implicit-form-post":
+	case suiteConformanceBasic, suiteConformanceBasicFormPost, suiteConformanceHybrid, suiteConformanceHybridFormPost, suiteConformanceImplicit, suiteConformanceImplicitFormPost:
 		variant = &OpenIDConnectConformanceSuitePlanVariant{
 			ServerMetadata:     "discovery",
 			ClientRegistration: "static_client",
@@ -54,15 +54,15 @@ func (p *OpenIDConnectConformanceSuiteBuilder) Build() OpenIDConnectConformanceS
 		apiname = "oidcc-config-certification-test-plan"
 	case suiteConformanceBasic:
 		apiname = "oidcc-basic-certification-test-plan"
-	case "conformance-basic-form-post":
+	case suiteConformanceBasicFormPost:
 		apiname = "oidcc-formpost-basic-certification-test-plan"
-	case "conformance-hybrid":
+	case suiteConformanceHybrid:
 		apiname = "oidcc-hybrid-certification-test-plan"
-	case "conformance-hybrid-form-post":
+	case suiteConformanceHybridFormPost:
 		apiname = "oidcc-formpost-hybrid-certification-test-plan"
-	case "conformance-implicit":
+	case suiteConformanceImplicit:
 		apiname = "oidcc-implicit-certification-test-plan"
-	case "conformance-implicit-form-post":
+	case suiteConformanceImplicitFormPost:
 		apiname = "oidcc-formpost-implicit-certification-test-plan"
 	}
 

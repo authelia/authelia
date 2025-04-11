@@ -99,15 +99,14 @@ func miscOIDCConformanceRunE(cmd *cobra.Command, args []string) (err error) {
 }
 
 func miscOIDCConformance(version, apikey string, autheliaURL, suiteURL *url.URL, suiteNames ...string) (err error) {
-
 	builders := []*OpenIDConnectConformanceSuiteBuilder{
 		{"config", "Config", true, version, nil, autheliaURL},
 		{"basic", "Basic", true, version, suiteURL, autheliaURL},
 		{"basic-form-post", "Basic (Form Post)", true, version, suiteURL, autheliaURL},
 		{"hybrid", "Hybrid", true, version, suiteURL, autheliaURL},
-		{"hybrid-form-post", "Hybrid (Form Post)", true, version, suiteURL, autheliaURL},
+		{suiteNameHybridFormPost, "Hybrid (Form Post)", true, version, suiteURL, autheliaURL},
 		{"implicit", "Implicit", true, version, suiteURL, autheliaURL},
-		{"implicit-form-post", "Implicit (Form Post)", true, version, suiteURL, autheliaURL},
+		{suiteNameImplicitFormPost, "Implicit (Form Post)", true, version, suiteURL, autheliaURL},
 	}
 
 	n := len(suiteNames)
@@ -150,7 +149,7 @@ func miscOIDCConformance(version, apikey string, autheliaURL, suiteURL *url.URL,
 	)
 
 	for _, suite := range suites {
-		if f, err = os.OpenFile(fmt.Sprintf("%s.json", suite.Name), os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644); err != nil {
+		if f, err = os.OpenFile(fmt.Sprintf("%s%s", suite.Name, extJSON), os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644); err != nil {
 			return err
 		}
 
@@ -161,6 +160,7 @@ func miscOIDCConformance(version, apikey string, autheliaURL, suiteURL *url.URL,
 		encoder := json.NewEncoder(io.MultiWriter(f, buf))
 
 		encoder.SetIndent("", "  ")
+
 		if err = encoder.Encode(&suite.Plan); err != nil {
 			return err
 		}
@@ -172,7 +172,7 @@ func miscOIDCConformance(version, apikey string, autheliaURL, suiteURL *url.URL,
 		clients.IdentityProviders.OIDC.Clients = append(clients.IdentityProviders.OIDC.Clients, suite.Clients...)
 	}
 
-	if f, err = os.OpenFile("conformance-clients.yaml", os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644); err != nil {
+	if f, err = os.OpenFile(fmt.Sprintf("%s%s", "conformance-clients", extYAML), os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644); err != nil {
 		return err
 	}
 
