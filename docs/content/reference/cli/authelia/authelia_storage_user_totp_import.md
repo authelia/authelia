@@ -2,7 +2,7 @@
 title: "authelia storage user totp import"
 description: "Reference for the authelia storage user totp import command."
 lead: ""
-date: 2026-04-02T15:48:21+11:00
+date: 2026-09-12T16:42:01+10:00
 draft: false
 images: []
 weight: 905
@@ -22,7 +22,8 @@ Perform imports of the TOTP configurations
 
 Perform imports of the TOTP configurations.
 
-This subcommand allows importing TOTP configurations from the YAML format.
+This subcommand allows importing TOTP configurations. The format is determined by the extension of the file; '.toml'
+is read as TOML, '.json' as JSON, and anything else as YAML.
 
 ```
 authelia storage user totp import <filename> [flags]

@@ -2,7 +2,7 @@
 title: "authelia storage user webauthn export"
 description: "Reference for the authelia storage user webauthn export command."
 lead: ""
-date: 2026-04-02T15:48:21+11:00
+date: 2026-09-12T16:42:01+10:00
 draft: false
 images: []
 weight: 905
@@ -22,7 +22,8 @@ Perform exports of the WebAuthn credentials
 
 Perform exports of the WebAuthn credentials.
 
-This subcommand allows exporting WebAuthn credentials to various formats.
+This subcommand allows exporting WebAuthn credentials to various formats. The format is determined by the extension of
+the file; '.toml' is written as TOML, '.json' as JSON, and anything else as YAML.
 
 ```
 authelia storage user webauthn export [flags]
@@ -40,7 +41,7 @@ authelia storage user webauthn export--encryption-key b3453fde-ecc2-4a1f-9422-27
 ### Options
 
 ```
-  -f, --file string   The file name for the YAML export (default "authelia.export.webauthn.yml")
+  -f, --file string   The file name for the export, the extension determines the format (default "authelia.export.webauthn.yml")
   -h, --help          help for export
 ```
 
