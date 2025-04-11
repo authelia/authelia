@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/knadh/koanf/parsers/json"
+	"github.com/knadh/koanf/parsers/toml"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/confmap"
 	"github.com/knadh/koanf/providers/env"
@@ -87,10 +89,43 @@ func (s *FileSource) Load(val *schema.StructValidator) (err error) {
 		return s.loadDir(val)
 	}
 
-	return s.koanf.Load(s.provider, yaml.Parser())
+	var loaded bool
+
+	if loaded, err = s.loadFile(val, s.provider, s.path); err != nil {
+		return err
+	} else if !loaded {
+		return s.koanf.Load(s.provider, yaml.Parser())
+	}
+
+	return nil
 }
 
-func (s *FileSource) loadDir(_ *schema.StructValidator) (err error) {
+func (s *FileSource) loadFile(_ *schema.StructValidator, provider *FilteredFile, file string) (loaded bool, err error) {
+	switch filepath.Ext(file) {
+	case extYAML, extYML:
+		if err = s.koanf.Load(provider, yaml.Parser()); err != nil {
+			return false, err
+		}
+
+		return true, nil
+	case extTOML, extTML:
+		if err = s.koanf.Load(provider, toml.Parser()); err != nil {
+			return false, err
+		}
+
+		return true, nil
+	case extJSON:
+		if err = s.koanf.Load(provider, json.Parser()); err != nil {
+			return false, err
+		}
+
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func (s *FileSource) loadDir(val *schema.StructValidator) (err error) {
 	var entries []os.DirEntry
 
 	if entries, err = os.ReadDir(s.path); err != nil {
@@ -100,6 +135,7 @@ func (s *FileSource) loadDir(_ *schema.StructValidator) (err error) {
 	var (
 		provider *FilteredFile
 		ok       bool
+		loaded   bool
 	)
 
 	for _, entry := range entries {
@@ -111,17 +147,18 @@ func (s *FileSource) loadDir(_ *schema.StructValidator) (err error) {
 
 		file := filepath.Join(s.path, name)
 
-		switch ext := filepath.Ext(name); ext {
-		case extYML, extYAML:
-			if provider, ok = s.providers[file]; !ok {
-				provider = FilteredFileProvider(file, s.filters...)
+		if provider, ok = s.providers[file]; !ok {
+			provider = FilteredFileProvider(file, s.filters...)
+		}
 
-				s.providers[file] = provider
-			}
+		loaded, err = s.loadFile(val, provider, file)
 
-			if err = s.koanf.Load(provider, yaml.Parser()); err != nil {
-				return err
-			}
+		if !ok && (err != nil || loaded) {
+			s.providers[file] = provider
+		}
+
+		if err != nil {
+			return err
 		}
 	}
 

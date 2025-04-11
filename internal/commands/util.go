@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -10,6 +11,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/pelletier/go-toml/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"golang.org/x/term"
@@ -355,7 +357,24 @@ func cmdHelpTopic(cmd *cobra.Command, body, topic string) {
 	fmt.Print("\n\n")
 }
 
-func exportYAMLWithJSONSchema(name, filename string, v any) (err error) {
+type Encoder interface {
+	Encode(v any) (err error)
+}
+
+func unmarshal(filename string, data []byte, out any) (err error) {
+	switch filepath.Ext(filename) {
+	case ".yaml", ".yml":
+		return yaml.Unmarshal(data, out)
+	case ".json":
+		return json.Unmarshal(data, out)
+	case ".toml", ".tml":
+		return toml.Unmarshal(data, out)
+	default:
+		return yaml.Unmarshal(data, out)
+	}
+}
+
+func marshal(schemaname, filename string, v any) (err error) {
 	var f *os.File
 
 	if f, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
@@ -368,6 +387,40 @@ func exportYAMLWithJSONSchema(name, filename string, v any) (err error) {
 		}
 	}()
 
+	if len(schemaname) != 0 {
+		if err = writeJSONSchema(f, schemaname); err != nil {
+			return err
+		}
+	}
+
+	var (
+		encoder Encoder
+		format  string
+	)
+
+	switch filepath.Ext(filename) {
+	case ".yaml", ".yml":
+		format = "YAML"
+		encoder = yaml.NewEncoder(f)
+	case ".toml", ".tml":
+		format = "TOML"
+		encoder = toml.NewEncoder(f)
+	case ".json":
+		format = "JSON"
+		encoder = json.NewEncoder(f)
+	default:
+		format = "YAML"
+		encoder = yaml.NewEncoder(f)
+	}
+
+	if err = encoder.Encode(v); err != nil {
+		return fmt.Errorf("error occurred marshalling data to %s: %w", format, err)
+	}
+
+	return nil
+}
+
+func writeJSONSchema(w io.StringWriter, name string) (err error) {
 	var (
 		semver *model.SemanticVersion
 	)
@@ -378,18 +431,12 @@ func exportYAMLWithJSONSchema(name, filename string, v any) (err error) {
 		version = fmt.Sprintf("v%d.%d", semver.Major, semver.Minor+1)
 	}
 
-	if _, err = f.WriteString(fmt.Sprintf(model.FormatJSONSchemaYAMLLanguageServer, version, name)); err != nil {
+	if _, err = w.WriteString(fmt.Sprintf(model.FormatJSONSchemaYAMLLanguageServer, version, name)); err != nil {
 		return err
 	}
 
-	if _, err = f.WriteString("\n\n"); err != nil {
+	if _, err = w.WriteString("\n\n"); err != nil {
 		return err
-	}
-
-	encoder := yaml.NewEncoder(f)
-
-	if err = encoder.Encode(v); err != nil {
-		return fmt.Errorf("error occurred marshalling data to YAML: %w", err)
 	}
 
 	return nil
