@@ -11,7 +11,7 @@ overrides:
   esbuild: 0.25.2
   nanoid: 3.3.11
   prismjs: 1.30.0
-  vite: 5.4.17
+  vite: 5.4.18
 
 importers:
 
@@ -600,13 +600,6 @@ packages:
     peerDependencies:
       react: ^18.0 || ^19.0 || ^19.0.0-rc
 
-  '@react-email/render@1.0.5':
-    resolution: {integrity: sha512-CA69HYXPk21HhtAXATIr+9JJwpDNmAFCvdMUjWmeoD1+KhJ9NAxusMRxKNeibdZdslmq3edaeOKGbdQ9qjK8LQ==}
-    engines: {node: '>=18.0.0'}
-    peerDependencies:
-      react: ^18.0 || ^19.0 || ^19.0.0-rc
-      react-dom: ^18.0 || ^19.0 || ^19.0.0-rc
-
   '@react-email/render@1.0.6':
     resolution: {integrity: sha512-zNueW5Wn/4jNC1c5LFgXzbUdv5Lhms+FWjOvWAhal7gx5YVf0q6dPJ0dnR70+ifo59gcMLwCZEaTS9EEuUhKvQ==}
     engines: {node: '>=18.0.0'}
@@ -770,7 +763,7 @@ packages:
     resolution: {integrity: sha512-bmpJJm7Y7i9BBELlLuuM1J1Q6EQ6K5Ye4wcyOpOMXMcePYKSIYlpcrCm4l/O6ja4VJA5G2aMJiuZkZdnxlC3SA==}
     peerDependencies:
       msw: ^2.4.9
-      vite: 5.4.17
+      vite: 5.4.18
     peerDependenciesMeta:
       msw:
         optional: true
@@ -1388,11 +1381,6 @@ packages:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
 
-  prettier@3.4.2:
-    resolution: {integrity: sha512-e9MewbtFo+Fevyuxn/4rrcDAaq0IYxPGLvObpQjiZBMAzB9IGmzlnG9RZy3FFas+eBMu2vA0CszMeduow5dIuQ==}
-    engines: {node: '>=14'}
-    hasBin: true
-
   prettier@3.5.3:
     resolution: {integrity: sha512-QQtaxnoDJeAkDvDKWCLiwIXkTgRhwYDEQCghU9Z6q03iyek/rxRh/2lC3HB7P8sWT2xC/y5JDctPLBIGzHKbhw==}
     engines: {node: '>=14'}
@@ -1622,8 +1610,8 @@ packages:
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
     hasBin: true
 
-  vite@5.4.17:
-    resolution: {integrity: sha512-5+VqZryDj4wgCs55o9Lp+p8GE78TLVg0lasCH5xFZ4jacZjtqZa6JUw9/p0WeAojaOfncSM6v77InkFPGnvPvg==}
+  vite@5.4.18:
+    resolution: {integrity: sha512-1oDcnEp3lVyHCuQ2YFelM4Alm2o91xNoMncRm1U7S+JdYfYOvbiGZ3/CxGttrOu2M/KcGz7cRC2DoNUA6urmMA==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
     peerDependencies:
@@ -2136,14 +2124,6 @@ snapshots:
     dependencies:
       react: 19.1.0
 
-  '@react-email/render@1.0.5(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
-    dependencies:
-      html-to-text: 9.0.5
-      prettier: 3.4.2
-      react: 19.1.0
-      react-dom: 19.1.0(react@19.1.0)
-      react-promise-suspense: 0.3.4
-
   '@react-email/render@1.0.6(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
       html-to-text: 9.0.5
@@ -2264,13 +2244,13 @@ snapshots:
       chai: 5.2.0
       tinyrainbow: 2.0.0
 
-  '@vitest/mocker@3.1.1(vite@5.4.17(@types/node@22.14.0)(terser@5.31.5))':
+  '@vitest/mocker@3.1.1(vite@5.4.18(@types/node@22.14.0)(terser@5.31.5))':
     dependencies:
       '@vitest/spy': 3.1.1
       estree-walker: 3.0.3
       magic-string: 0.30.17
     optionalDependencies:
-      vite: 5.4.17(@types/node@22.14.0)(terser@5.31.5)
+      vite: 5.4.18(@types/node@22.14.0)(terser@5.31.5)
 
   '@vitest/pretty-format@3.1.1':
     dependencies:
@@ -2899,8 +2879,6 @@ snapshots:
 
   prelude-ls@1.2.1: {}
 
-  prettier@3.4.2: {}
-
   prettier@3.5.3: {}
 
   prismjs@1.30.0: {}
@@ -3178,7 +3156,7 @@ snapshots:
       debug: 4.4.0
       es-module-lexer: 1.6.0
       pathe: 2.0.3
-      vite: 5.4.17(@types/node@22.14.0)(terser@5.31.5)
+      vite: 5.4.18(@types/node@22.14.0)(terser@5.31.5)
     transitivePeerDependencies:
       - '@types/node'
       - less
@@ -3190,7 +3168,7 @@ snapshots:
       - supports-color
       - terser
 
-  vite@5.4.17(@types/node@22.14.0)(terser@5.31.5):
+  vite@5.4.18(@types/node@22.14.0)(terser@5.31.5):
     dependencies:
       esbuild: 0.25.2
       postcss: 8.4.47
@@ -3203,7 +3181,7 @@ snapshots:
   vitest@3.1.1(@types/node@22.14.0)(terser@5.31.5):
     dependencies:
       '@vitest/expect': 3.1.1
-      '@vitest/mocker': 3.1.1(vite@5.4.17(@types/node@22.14.0)(terser@5.31.5))
+      '@vitest/mocker': 3.1.1(vite@5.4.18(@types/node@22.14.0)(terser@5.31.5))
       '@vitest/pretty-format': 3.1.1
       '@vitest/runner': 3.1.1
       '@vitest/snapshot': 3.1.1
@@ -3219,7 +3197,7 @@ snapshots:
       tinyexec: 0.3.2
       tinypool: 1.0.2
       tinyrainbow: 2.0.0
-      vite: 5.4.17(@types/node@22.14.0)(terser@5.31.5)
+      vite: 5.4.18(@types/node@22.14.0)(terser@5.31.5)
       vite-node: 3.1.1(@types/node@22.14.0)(terser@5.31.5)
       why-is-node-running: 2.3.0
     optionalDependencies:
