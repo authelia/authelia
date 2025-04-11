@@ -211,7 +211,7 @@ func validateServerAssets(config *schema.Configuration, validator *schema.Struct
 		}
 
 		for _, namespaceEntry := range namespaceEntries {
-			if namespaceEntry.IsDir() || !strings.HasSuffix(namespaceEntry.Name(), ".json") {
+			if namespaceEntry.IsDir() || !strings.HasSuffix(namespaceEntry.Name(), utils.ExtJSON) {
 				continue
 			}
 

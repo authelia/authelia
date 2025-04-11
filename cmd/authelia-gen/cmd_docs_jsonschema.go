@@ -315,7 +315,7 @@ func writeJSONSchema(schema *jsonschema.Schema, dir, version, file string) (err 
 		}
 	}
 
-	if f, err = os.Create(filepath.Join(dir, version, pathJSONSchema, file+extJSON)); err != nil {
+	if f, err = os.Create(filepath.Join(dir, version, pathJSONSchema, file+utils.ExtJSON)); err != nil {
 		return err
 	}
 

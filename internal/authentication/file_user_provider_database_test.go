@@ -45,6 +45,118 @@ func TestDatabaseModel_Read(t *testing.T) {
 	assert.EqualError(t, model.Read(f), "could not parse the YAML database: yaml: while scanning for the next token at line 2: found character that cannot start any token")
 }
 
+func TestDatabaseModel_ReadFormats(t *testing.T) {
+	const validHash = "$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng"
+
+	yamlBody := "users:\n  john:\n    displayname: John\n    password: '" + validHash + "'\n    email: john@example.com\n"
+	jsonBody := `{"users":{"john":{"displayname":"John","password":"` + validHash + `","email":"john@example.com"}}}`
+	tomlBody := "[users.john]\ndisplayname = \"John\"\npassword = \"" + validHash + "\"\nemail = \"john@example.com\"\n"
+
+	testCases := []struct {
+		name         string
+		filename     string
+		body         string
+		expectedUser string
+		err          string
+	}{
+		{
+			"ShouldReadYAML",
+			"users.yml",
+			yamlBody,
+			"john",
+			"",
+		},
+		{
+			"ShouldReadYAMLLongExtension",
+			"users.yaml",
+			yamlBody,
+			"john",
+			"",
+		},
+		{
+			"ShouldReadJSON",
+			"users.json",
+			jsonBody,
+			"john",
+			"",
+		},
+		{
+			"ShouldReadTOML",
+			"users.toml",
+			tomlBody,
+			"john",
+			"",
+		},
+		{
+			"ShouldReadUnknownExtensionAsYAML",
+			"users.txt",
+			yamlBody,
+			"john",
+			"",
+		},
+		{
+			"ShouldErrorOnMalformedJSON",
+			"users.json",
+			`{"users":{`,
+			"",
+			"could not parse the JSON database: unexpected end of JSON input",
+		},
+		{
+			"ShouldErrorOnMalformedTOML",
+			"users.toml",
+			"[users.john\npassword=\"x\"",
+			"",
+			"could not parse the TOML database:",
+		},
+		{
+			"ShouldErrorOnUnknownExtensionWithMalformedYAML",
+			"users.txt",
+			"users:\n\tjohn: {}",
+			"",
+			"could not parse the YAML database: yaml: while scanning for the next token at line 2: found character that cannot start any token",
+		},
+		{
+			"ShouldErrorOnSchemaValidationWhenUsersMissing",
+			"users.yml",
+			"users:\n",
+			"",
+			"could not validate the schema: users: non zero value required",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			dir := t.TempDir()
+			path := filepath.Join(dir, tc.filename)
+
+			require.NoError(t, os.WriteFile(path, []byte(tc.body), 0600))
+
+			model := &FileDatabaseModel{}
+
+			err := model.Read(path)
+
+			if tc.err == "" {
+				require.NoError(t, err)
+				require.Contains(t, model.Users, tc.expectedUser)
+				assert.Equal(t, "john@example.com", model.Users[tc.expectedUser].Email)
+			} else {
+				assert.ErrorContains(t, err, tc.err)
+			}
+		})
+	}
+
+	t.Run("ShouldErrorOnMissingFile", func(t *testing.T) {
+		dir := t.TempDir()
+		path := filepath.Join(dir, "does-not-exist.yml")
+
+		model := &FileDatabaseModel{}
+
+		err := model.Read(path)
+
+		assert.EqualError(t, err, fmt.Sprintf("failed to read the '%s' file: open %s: no such file or directory", path, path))
+	})
+}
+
 //nolint:gosec // Test Credentials.
 func TestDatabaseModelExtended(t *testing.T) {
 	mustParseURI := func(in string) *url.URL {

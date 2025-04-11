@@ -50,9 +50,9 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 		middlewares.SetBaseSecurityHeaders(ctx.RequestCtx)
 
 		switch ext {
-		case extHTML:
+		case utils.ExtHTML:
 			ctx.SetContentTypeTextHTML()
-		case extJSON:
+		case utils.ExtJSON:
 			ctx.SetContentTypeApplicationJSON()
 		default:
 			ctx.SetContentTypeTextPlain()
@@ -121,7 +121,7 @@ func ServeTemplatedOpenAPI(t templates.Template, opts *TemplatedFileOptions) mid
 			ctx.Response.Header.Del(fasthttp.HeaderContentSecurityPolicy)
 			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(tmplCSPSwagger, nonce))
 			ctx.SetContentTypeTextHTML()
-		case extYML:
+		case utils.ExtYAML, utils.ExtYML:
 			ctx.SetContentTypeApplicationYAML()
 		default:
 			ctx.SetContentTypeTextPlain()

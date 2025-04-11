@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -10,6 +11,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/pelletier/go-toml/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"go.yaml.in/yaml/v4"
@@ -351,32 +353,128 @@ func cmdHelpTopic(cmd *cobra.Command, body, topic string) {
 	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\n\n")
 }
 
-func exportYAMLWithJSONSchema(w io.Writer, name string, v any) (err error) {
+type Encoder interface {
+	Encode(v any) (err error)
+}
+
+func importFile(filename string, data []byte, out any) (err error) {
+	switch filepath.Ext(filename) {
+	case utils.ExtYAML, utils.ExtYML:
+		return yaml.Unmarshal(data, out)
+	case utils.ExtTOML:
+		return toml.Unmarshal(data, out)
+	case utils.ExtJSON:
+		return json.Unmarshal(data, out)
+	default:
+		return yaml.Unmarshal(data, out)
+	}
+}
+
+func exportFile(filename string, v any, schemaName string) (err error) {
+	var f *os.File
+
+	if f, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
+		return err
+	}
+
+	defer func() {
+		if err := f.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
 	var (
-		semver *model.SemanticVersion
+		encoder Encoder
+		format  string
 	)
 
-	version := "latest"
+	switch filepath.Ext(filename) {
+	case utils.ExtYAML, utils.ExtYML:
+		format = "YAML"
 
-	if semver, err = model.NewSemanticVersion(utils.BuildTag); err == nil {
-		version = fmt.Sprintf("v%d.%d", semver.Major, semver.Minor+1)
+		if len(schemaName) != 0 {
+			if err = exportYAMLFileWriteJSONSchema(f, schemaName); err != nil {
+				return err
+			}
+		}
+
+		encoder = yaml.NewEncoder(f)
+	case utils.ExtTOML:
+		format = "TOML"
+
+		encoder = toml.NewEncoder(f)
+	case utils.ExtJSON:
+		format = "JSON"
+
+		if len(schemaName) != 0 {
+			if v, err = exportJSONFileInjectJSONSchema(schemaName, v); err != nil {
+				return fmt.Errorf("error occurred marshaling data to %s: %w", format, err)
+			}
+		}
+
+		encoder = json.NewEncoder(f)
+	default:
+		format = "YAML"
+
+		if len(schemaName) != 0 {
+			if err = exportYAMLFileWriteJSONSchema(f, schemaName); err != nil {
+				return err
+			}
+		}
+
+		encoder = yaml.NewEncoder(f)
 	}
-
-	if _, err = fmt.Fprintf(w, model.FormatJSONSchemaYAMLLanguageServer, version, name); err != nil {
-		return err
-	}
-
-	if _, err = fmt.Fprintf(w, "\n\n"); err != nil {
-		return err
-	}
-
-	encoder := yaml.NewEncoder(w)
 
 	if err = encoder.Encode(v); err != nil {
-		return fmt.Errorf("error occurred marshaling data to YAML: %w", err)
+		return fmt.Errorf("error occurred marshaling data to %s: %w", format, err)
 	}
 
 	return nil
+}
+
+func exportYAMLFileWriteJSONSchema(w io.StringWriter, name string) (err error) {
+	if _, err = w.WriteString(fmt.Sprintf(model.FormatJSONSchemaYAMLLanguageServer, jsonSchemaVersion(), name)); err != nil {
+		return err
+	}
+
+	if _, err = w.WriteString("\n\n"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// exportJSONFileInjectJSONSchema marshals v as JSON, decodes it into a map, and adds the $schema property so the resulting JSON file
+// is both valid JSON and self-describes its schema for tooling. Returns an error if v does not exportFile to a JSON
+// object (e.g. it's an array or scalar) since arrays cannot carry a $schema property.
+func exportJSONFileInjectJSONSchema(name string, v any) (out any, err error) {
+	var data []byte
+
+	if data, err = json.Marshal(v); err != nil {
+		return nil, fmt.Errorf("failed to marshal payload while injecting $schema: %w", err)
+	}
+
+	m := map[string]any{}
+
+	if err = json.Unmarshal(data, &m); err != nil {
+		return nil, fmt.Errorf("failed to inject $schema: payload is not a JSON object: %w", err)
+	}
+
+	m["$schema"] = fmt.Sprintf(model.FormatJSONSchemaIdentifier, jsonSchemaVersion(), name)
+
+	return m, nil
+}
+
+// jsonSchemaVersion derives the schema version segment used in the $schema URL. It is "vMAJOR.MINOR+1" derived from
+// utils.BuildTag when that parses as a SemVer, and "latest" otherwise.
+func jsonSchemaVersion() (version string) {
+	version = "latest"
+
+	if semver, err := model.NewSemanticVersion(utils.BuildTag); err == nil {
+		version = fmt.Sprintf("v%d.%d", semver.Major, semver.Minor+1)
+	}
+
+	return version
 }
 
 func getCryptoHashGenerateMapFlagsFromUse(use string) (flags map[string]string) {

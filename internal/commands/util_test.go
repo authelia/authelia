@@ -3,6 +3,7 @@ package commands
 import (
 	"bytes"
 	"crypto/x509"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -14,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/v4/internal/random"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 func TestLoadXEnvCLIStringSliceValue(t *testing.T) {
@@ -556,24 +558,26 @@ func TestTermReadPasswordWithPrompt(t *testing.T) {
 	})
 }
 
-func TestExportYAMLWithJSONSchema(t *testing.T) {
+func TestWriteJSONSchema(t *testing.T) {
 	testCases := []struct {
-		name     string
-		schemaID string
-		data     any
-		expected []string
+		name       string
+		schemaName string
+		expected   string
 	}{
 		{
-			"ShouldExportSimpleStruct",
-			"export.test",
-			map[string]string{"key": "value"},
-			[]string{"yaml-language-server", "export.test", "key: value"},
+			"ShouldWriteConfigurationSchemaHeader",
+			"configuration",
+			"# yaml-language-server: $schema=https://www.authelia.com/schemas/latest/json-schema/configuration.json\n\n",
 		},
 		{
-			"ShouldExportSlice",
-			"export.items",
-			[]string{"a", "b"},
-			[]string{"yaml-language-server", "export.items", "- a", "- b"},
+			"ShouldWriteUserDatabaseSchemaHeader",
+			"user-database",
+			"# yaml-language-server: $schema=https://www.authelia.com/schemas/latest/json-schema/user-database.json\n\n",
+		},
+		{
+			"ShouldWriteSchemaWithDotInName",
+			"export.test",
+			"# yaml-language-server: $schema=https://www.authelia.com/schemas/latest/json-schema/export.test.json\n\n",
 		},
 	}
 
@@ -581,15 +585,275 @@ func TestExportYAMLWithJSONSchema(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			buf := new(bytes.Buffer)
 
-			err := exportYAMLWithJSONSchema(buf, tc.schemaID, tc.data)
+			err := exportYAMLFileWriteJSONSchema(buf, tc.schemaName)
 
 			assert.NoError(t, err)
+			assert.Equal(t, tc.expected, buf.String())
+		})
+	}
 
-			for _, s := range tc.expected {
-				assert.Contains(t, buf.String(), s)
+	t.Run("ShouldReturnHeaderWriteError", func(t *testing.T) {
+		w := &failingStringWriter{failAt: 0}
+
+		err := exportYAMLFileWriteJSONSchema(w, "configuration")
+
+		assert.EqualError(t, err, "write failed")
+	})
+
+	t.Run("ShouldReturnTrailingWriteError", func(t *testing.T) {
+		w := &failingStringWriter{failAt: 1}
+
+		err := exportYAMLFileWriteJSONSchema(w, "configuration")
+
+		assert.EqualError(t, err, "write failed")
+	})
+}
+
+func TestImportFile(t *testing.T) {
+	type payload struct {
+		Theme string `yaml:"theme" toml:"theme" json:"theme"`
+	}
+
+	testCases := []struct {
+		name     string
+		filename string
+		body     string
+		expected string
+		err      string
+	}{
+		{
+			"ShouldParseYML",
+			"input.yml",
+			"theme: light\n",
+			"light",
+			"",
+		},
+		{
+			"ShouldParseYAML",
+			"input.yaml",
+			"theme: dark\n",
+			"dark",
+			"",
+		},
+		{
+			"ShouldParseTOML",
+			"input.toml",
+			`theme = "auto"` + "\n",
+			"auto",
+			"",
+		},
+		{
+			"ShouldParseJSON",
+			"input.json",
+			`{"theme":"grey"}`,
+			"grey",
+			"",
+		},
+		{
+			"ShouldFallBackToYAMLForUnknownExtension",
+			"input.cfg",
+			"theme: light\n",
+			"light",
+			"",
+		},
+		{
+			"ShouldFallBackToYAMLForNoExtension",
+			"input",
+			"theme: light\n",
+			"light",
+			"",
+		},
+		{
+			"ShouldErrorOnMalformedYML",
+			"input.yml",
+			"theme:\n\t- bad",
+			"",
+			"found character that cannot start any token",
+		},
+		{
+			"ShouldErrorOnMalformedYAML",
+			"input.yaml",
+			"theme:\n\t- bad",
+			"",
+			"found character that cannot start any token",
+		},
+		{
+			"ShouldErrorOnMalformedTOML",
+			"input.toml",
+			"theme = ",
+			"",
+			"toml:",
+		},
+		{
+			"ShouldErrorOnMalformedJSON",
+			"input.json",
+			"{not-json",
+			"",
+			"invalid character",
+		},
+		{
+			"ShouldErrorOnMalformedYAMLWithUnknownExtension",
+			"input.cfg",
+			"theme:\n\t- bad",
+			"",
+			"found character that cannot start any token",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var out payload
+
+			err := importFile(tc.filename, []byte(tc.body), &out)
+
+			if tc.err == "" {
+				require.NoError(t, err)
+				assert.Equal(t, tc.expected, out.Theme)
+			} else {
+				assert.ErrorContains(t, err, tc.err)
 			}
 		})
 	}
+}
+
+func TestInjectJSONSchema(t *testing.T) {
+	t.Run("ShouldInjectIntoStruct", func(t *testing.T) {
+		type payload struct {
+			Foo string `json:"foo"`
+		}
+
+		out, err := exportJSONFileInjectJSONSchema("export.test", payload{Foo: "bar"})
+
+		require.NoError(t, err)
+
+		m, ok := out.(map[string]any)
+		require.True(t, ok)
+
+		assert.Equal(t, "bar", m["foo"])
+		assert.Equal(t, "https://www.authelia.com/schemas/latest/json-schema/export.test.json", m["$schema"])
+	})
+
+	t.Run("ShouldInjectIntoMap", func(t *testing.T) {
+		out, err := exportJSONFileInjectJSONSchema("export.test", map[string]any{"a": 1, "b": "two"})
+
+		require.NoError(t, err)
+
+		m, ok := out.(map[string]any)
+		require.True(t, ok)
+
+		assert.Equal(t, "https://www.authelia.com/schemas/latest/json-schema/export.test.json", m["$schema"])
+		assert.Equal(t, "two", m["b"])
+	})
+
+	t.Run("ShouldErrorOnNonObjectPayload", func(t *testing.T) {
+		out, err := exportJSONFileInjectJSONSchema("export.test", []string{"a", "b"})
+
+		assert.Nil(t, out)
+		assert.ErrorContains(t, err, "payload is not a JSON object")
+	})
+
+	t.Run("ShouldErrorOnScalarPayload", func(t *testing.T) {
+		out, err := exportJSONFileInjectJSONSchema("export.test", "string")
+
+		assert.Nil(t, out)
+		assert.ErrorContains(t, err, "payload is not a JSON object")
+	})
+}
+
+func TestMarshal(t *testing.T) {
+	type payload struct {
+		WebAuthnCredentials []string `yaml:"webauthn_credentials" toml:"webauthn_credentials" json:"webauthn_credentials"`
+	}
+
+	v := payload{WebAuthnCredentials: []string{"alpha", "beta"}}
+
+	testCases := []struct {
+		name       string
+		extension  string
+		schemaName string
+		assertion  func(t *testing.T, contents string)
+	}{
+		{
+			"ShouldWriteYAMLWithSchemaHeader",
+			utils.ExtYML,
+			"export.test",
+			func(t *testing.T, contents string) {
+				assert.Contains(t, contents, "# yaml-language-server: $schema=https://www.authelia.com/schemas/latest/json-schema/export.test.json")
+				assert.Contains(t, contents, "webauthn_credentials:")
+				assert.Contains(t, contents, "- alpha")
+			},
+		},
+		{
+			"ShouldWriteYAMLWithoutSchemaWhenNameEmpty",
+			utils.ExtYML,
+			"",
+			func(t *testing.T, contents string) {
+				assert.NotContains(t, contents, "yaml-language-server")
+				assert.Contains(t, contents, "webauthn_credentials:")
+			},
+		},
+		{
+			"ShouldNotWriteTOMLWithSchemaHeader",
+			utils.ExtTOML,
+			"export.test",
+			func(t *testing.T, contents string) {
+				assert.NotContains(t, contents, "# yaml-language-server: $schema=https://www.authelia.com/schemas/latest/json-schema/export.test.json")
+				assert.Contains(t, contents, "webauthn_credentials")
+			},
+		},
+		{
+			"ShouldWriteJSONWithSchemaProperty",
+			utils.ExtJSON,
+			"export.test",
+			func(t *testing.T, contents string) {
+				assert.NotContains(t, contents, "yaml-language-server")
+
+				var m map[string]any
+
+				require.NoError(t, json.Unmarshal([]byte(contents), &m))
+
+				assert.Equal(t, "https://www.authelia.com/schemas/latest/json-schema/export.test.json", m["$schema"])
+				assert.Equal(t, []any{"alpha", "beta"}, m["webauthn_credentials"])
+			},
+		},
+		{
+			"ShouldWriteJSONWithoutSchemaWhenNameEmpty",
+			utils.ExtJSON,
+			"",
+			func(t *testing.T, contents string) {
+				var m map[string]any
+
+				require.NoError(t, json.Unmarshal([]byte(contents), &m))
+
+				_, has := m["$schema"]
+				assert.False(t, has)
+				assert.Equal(t, []any{"alpha", "beta"}, m["webauthn_credentials"])
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			dir := t.TempDir()
+			filename := filepath.Join(dir, "out"+tc.extension)
+
+			require.NoError(t, exportFile(filename, v, tc.schemaName))
+
+			data, err := os.ReadFile(filename)
+			require.NoError(t, err)
+
+			tc.assertion(t, string(data))
+		})
+	}
+
+	t.Run("ShouldErrorOnJSONWithNonObjectPayload", func(t *testing.T) {
+		dir := t.TempDir()
+		filename := filepath.Join(dir, "out.json")
+
+		err := exportFile(filename, []string{"a", "b"}, "export.test")
+
+		assert.ErrorContains(t, err, "payload is not a JSON object")
+	})
 }
 
 func TestGetCryptoHashGenerateMapFlagsFromUse(t *testing.T) {
@@ -776,4 +1040,19 @@ type TestX509SystemCertPoolFactory struct {
 
 func (f *TestX509SystemCertPoolFactory) SystemCertPool() (*x509.CertPool, error) {
 	return f.pool, f.err
+}
+
+type failingStringWriter struct {
+	failAt int
+	calls  int
+}
+
+func (w *failingStringWriter) WriteString(s string) (int, error) {
+	defer func() { w.calls++ }()
+
+	if w.calls == w.failAt {
+		return 0, fmt.Errorf("write failed")
+	}
+
+	return len(s), nil
 }

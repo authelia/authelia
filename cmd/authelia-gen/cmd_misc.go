@@ -144,7 +144,7 @@ func miscOIDCConformance(version, token, consent, policy, brand string, authelia
 	)
 
 	for _, suite := range suites {
-		if f, err = os.OpenFile(fmt.Sprintf("%s%s", suite.Name, extJSON), os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644); err != nil {
+		if f, err = os.OpenFile(fmt.Sprintf("%s%s", suite.Name, utils.ExtJSON), os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644); err != nil {
 			return err
 		}
 
@@ -167,7 +167,7 @@ func miscOIDCConformance(version, token, consent, policy, brand string, authelia
 		clients.IdentityProviders.OIDC.Clients = append(clients.IdentityProviders.OIDC.Clients, suite.Clients...)
 	}
 
-	if f, err = os.OpenFile(fmt.Sprintf("%s%s", "conformance-clients", extYAML), os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644); err != nil {
+	if f, err = os.OpenFile(fmt.Sprintf("%s%s", "conformance-clients", utils.ExtYAML), os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644); err != nil {
 		return err
 	}
 

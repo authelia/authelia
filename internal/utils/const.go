@@ -140,6 +140,13 @@ const (
 const (
 	localeDefault          = "en"
 	localeNamespaceDefault = "portal"
-	extJSON                = ".json"
 	undefinedLocaleTag     = "und"
+)
+
+const (
+	ExtHTML = ".html"
+	ExtJSON = ".json"
+	ExtYAML = ".yaml"
+	ExtYML  = ".yml"
+	ExtTOML = ".toml"
 )

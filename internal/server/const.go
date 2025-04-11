@@ -12,8 +12,6 @@ const (
 	fileLogo = "logo.png"
 
 	extHTML = ".html"
-	extJSON = ".json"
-	extYML  = ".yml"
 )
 
 const (
