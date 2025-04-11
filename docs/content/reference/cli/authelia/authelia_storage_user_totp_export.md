@@ -2,7 +2,7 @@
 title: "authelia storage user totp export"
 description: "Reference for the authelia storage user totp export command."
 lead: ""
-date: 2026-04-02T15:48:21+11:00
+date: 2026-09-12T16:42:01+10:00
 draft: false
 images: []
 weight: 905
@@ -22,7 +22,9 @@ Perform exports of the TOTP configurations
 
 Perform exports of the TOTP configurations.
 
-This subcommand allows exporting TOTP configurations to importable YAML files, or use the subcommands to export them to other non-importable formats.
+This subcommand allows exporting TOTP configurations to importable files, or use the subcommands to export them to other
+non-importable formats. The format is determined by the extension of the file; '.toml' is written as TOML, '.json' as
+JSON, and anything else as YAML.
 
 ```
 authelia storage user totp export [flags]
@@ -39,7 +41,7 @@ authelia storage user totp export --encryption-key b3453fde-ecc2-4a1f-9422-2707d
 ### Options
 
 ```
-  -f, --file string   The file name for the YAML export (default "authelia.export.totp.yml")
+  -f, --file string   The file name for the export, the extension determines the format (default "authelia.export.totp.yml")
   -h, --help          help for export
 ```
 

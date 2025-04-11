@@ -319,6 +319,118 @@ func TestFileUserDatabaseShouldNotDeadlockOnSave(t *testing.T) {
 	}
 }
 
+func TestDatabaseModel_ReadFormats(t *testing.T) {
+	const validHash = "$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng"
+
+	yamlBody := "users:\n  john:\n    displayname: John\n    password: '" + validHash + "'\n    email: john@example.com\n"
+	jsonBody := `{"users":{"john":{"displayname":"John","password":"` + validHash + `","email":"john@example.com"}}}`
+	tomlBody := "[users.john]\ndisplayname = \"John\"\npassword = \"" + validHash + "\"\nemail = \"john@example.com\"\n"
+
+	testCases := []struct {
+		name         string
+		filename     string
+		body         string
+		expectedUser string
+		err          string
+	}{
+		{
+			"ShouldReadYAML",
+			"users.yml",
+			yamlBody,
+			"john",
+			"",
+		},
+		{
+			"ShouldReadYAMLLongExtension",
+			"users.yaml",
+			yamlBody,
+			"john",
+			"",
+		},
+		{
+			"ShouldReadJSON",
+			"users.json",
+			jsonBody,
+			"john",
+			"",
+		},
+		{
+			"ShouldReadTOML",
+			"users.toml",
+			tomlBody,
+			"john",
+			"",
+		},
+		{
+			"ShouldReadUnknownExtensionAsYAML",
+			"users.txt",
+			yamlBody,
+			"john",
+			"",
+		},
+		{
+			"ShouldErrorOnMalformedJSON",
+			"users.json",
+			`{"users":{`,
+			"",
+			"could not parse the JSON database: unexpected end of JSON input",
+		},
+		{
+			"ShouldErrorOnMalformedTOML",
+			"users.toml",
+			"[users.john\npassword=\"x\"",
+			"",
+			"could not parse the TOML database:",
+		},
+		{
+			"ShouldErrorOnUnknownExtensionWithMalformedYAML",
+			"users.txt",
+			"users:\n\tjohn: {}",
+			"",
+			"could not parse the YAML database: go-yaml load error in scanner (while scanning for the next token) at L2.C1: found character that cannot start any token",
+		},
+		{
+			"ShouldErrorOnSchemaValidationWhenUsersMissing",
+			"users.yml",
+			"users:\n",
+			"",
+			"could not validate the schema: users: non zero value required",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			dir := t.TempDir()
+			path := filepath.Join(dir, tc.filename)
+
+			require.NoError(t, os.WriteFile(path, []byte(tc.body), 0600))
+
+			model := &FileDatabaseModel{}
+
+			err := model.Read(path)
+
+			if tc.err == "" {
+				require.NoError(t, err)
+				require.Contains(t, model.Users, tc.expectedUser)
+				assert.Equal(t, "john@example.com", model.Users[tc.expectedUser].Email)
+			} else {
+				assert.ErrorContains(t, err, tc.err)
+			}
+		})
+	}
+
+	t.Run("ShouldErrorOnMissingFile", func(t *testing.T) {
+		dir := t.TempDir()
+		path := filepath.Join(dir, "does-not-exist.yml")
+
+		model := &FileDatabaseModel{}
+
+		err := model.Read(path)
+
+		assert.EqualError(t, err, fmt.Sprintf("failed to read the '%s' file: open %s: no such file or directory", path, path))
+	})
+}
+
 //nolint:gosec // Test Credentials.
 func TestDatabaseModelExtended(t *testing.T) {
 	mustParseURI := func(in string) *url.URL {
@@ -1331,6 +1443,67 @@ func TestDatabaseModelExtended(t *testing.T) {
 					assert.EqualError(t, tc.have.ValidateExtra("example", tc.extra), tc.errExtra)
 				}
 			}
+		})
+	}
+}
+
+func TestDatabaseModel_WriteFormats(t *testing.T) {
+	const validHash = "$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng"
+
+	testCases := []struct {
+		name     string
+		filename string
+		contains string
+	}{
+		{"ShouldWriteYML", "users.yml", "password: " + validHash},
+		{"ShouldWriteYAML", "users.yaml", "password: " + validHash},
+		{"ShouldWriteJSON", "users.json", `"password": "` + validHash + `"`},
+		{"ShouldWriteTOML", "users.toml", "password = '" + validHash + "'"},
+		{"ShouldWriteUnknownExtensionAsYAML", "users.txt", "password: " + validHash},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), tc.filename)
+
+			model := &FileDatabaseModel{
+				Users: map[string]FileDatabaseUserDetailsModel{
+					"john": {
+						Password:    validHash,
+						DisplayName: "John",
+						Email:       "john@example.com",
+						Groups:      []string{"admins", "dev"},
+						Address:     &FileUserDatabaseUserDetailsAddressModel{StreetAddress: "1 Road", Country: "AU"},
+						Extra:       map[string]any{"example": "value"},
+					},
+				},
+			}
+
+			require.NoError(t, model.Write(path))
+
+			data, err := os.ReadFile(path)
+			require.NoError(t, err)
+
+			assert.Contains(t, string(data), tc.contains)
+
+			// The written format must be readable by Read for the same file name, otherwise persisting a change
+			// such as a password reset renders the database unreadable.
+			actual := &FileDatabaseModel{}
+
+			require.NoError(t, actual.Read(path))
+
+			require.Contains(t, actual.Users, "john")
+
+			assert.Equal(t, model.Users["john"].Password, actual.Users["john"].Password)
+			assert.Equal(t, model.Users["john"].DisplayName, actual.Users["john"].DisplayName)
+			assert.Equal(t, model.Users["john"].Email, actual.Users["john"].Email)
+			assert.Equal(t, model.Users["john"].Groups, actual.Users["john"].Groups)
+			assert.Equal(t, model.Users["john"].Extra, actual.Users["john"].Extra)
+
+			require.NotNil(t, actual.Users["john"].Address)
+
+			assert.Equal(t, model.Users["john"].Address.StreetAddress, actual.Users["john"].Address.StreetAddress)
+			assert.Equal(t, model.Users["john"].Address.Country, actual.Users["john"].Address.Country)
 		})
 	}
 }

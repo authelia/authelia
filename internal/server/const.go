@@ -14,10 +14,6 @@ const (
 	assetsRoot = "public_html"
 
 	fileLogo = "logo.png"
-
-	extHTML = ".html"
-	extJSON = ".json"
-	extYML  = ".yml"
 )
 
 const (

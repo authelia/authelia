@@ -10,6 +10,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/knadh/koanf/parsers/json"
+	"github.com/knadh/koanf/parsers/toml/v2"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/confmap"
 	"github.com/knadh/koanf/providers/env/v2"
@@ -18,6 +20,7 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // NewFileSource returns a configuration.Source configured to load from a specified path. If there is an issue
@@ -91,7 +94,9 @@ func (s *FileSource) Load(val *schema.StructValidator) (err error) {
 		return s.loadDir(val)
 	}
 
-	return s.koanf.Load(s.provider, yaml.Parser())
+	parser, _ := fileParser(s.path)
+
+	return s.koanf.Load(s.provider, parser)
 }
 
 func (s *FileSource) loadDir(_ *schema.StructValidator) (err error) {
@@ -111,25 +116,38 @@ func (s *FileSource) loadDir(_ *schema.StructValidator) (err error) {
 			continue
 		}
 
-		name := entry.Name()
+		file := filepath.Join(s.path, entry.Name())
 
-		file := filepath.Join(s.path, name)
+		parser, known := fileParser(file)
+		if !known {
+			continue
+		}
 
-		switch ext := filepath.Ext(name); ext {
-		case extYML, extYAML:
-			if provider, ok = s.providers[file]; !ok {
-				provider = FilteredFileProvider(file, s.filters...)
+		if provider, ok = s.providers[file]; !ok {
+			provider = FilteredFileProvider(file, s.filters...)
 
-				s.providers[file] = provider
-			}
+			s.providers[file] = provider
+		}
 
-			if err = s.koanf.Load(provider, yaml.Parser()); err != nil {
-				return err
-			}
+		if err = s.koanf.Load(provider, parser); err != nil {
+			return err
 		}
 	}
 
 	return nil
+}
+
+func fileParser(file string) (parser koanf.Parser, known bool) {
+	switch filepath.Ext(file) {
+	case utils.ExtYAML, utils.ExtYML:
+		return yaml.Parser(), true
+	case utils.ExtTOML:
+		return toml.Parser(), true
+	case utils.ExtJSON:
+		return json.Parser(), true
+	default:
+		return yaml.Parser(), false
+	}
 }
 
 // ReadFiles reads all the files associated with this FileSource.
@@ -189,9 +207,9 @@ func (s *FileSource) readFilesDirectory(path string) (files []*File, err error) 
 
 		name := entry.Name()
 
-		switch ext := filepath.Ext(name); ext {
-		case extYML, extYAML:
-			if file, err = s.readFile(filepath.Join(s.path, name)); err != nil {
+		switch filepath.Ext(name) {
+		case utils.ExtYAML, utils.ExtYML, utils.ExtTOML, utils.ExtJSON:
+			if file, err = s.readFile(filepath.Join(path, name)); err != nil {
 				return nil, err
 			}
 

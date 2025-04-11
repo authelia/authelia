@@ -65,8 +65,6 @@ const (
 
 const (
 	pathJSONSchema = "json-schema"
-	extJSON        = ".json"
-	extYAML        = ".yaml"
 )
 
 const (

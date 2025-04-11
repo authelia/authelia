@@ -5,6 +5,7 @@
 package commands
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -14,6 +15,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/pelletier/go-toml/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"go.yaml.in/yaml/v4"
@@ -357,32 +359,125 @@ func cmdHelpTopic(cmd *cobra.Command, body, topic string) {
 	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\n\n")
 }
 
-func exportYAMLWithJSONSchema(w io.Writer, name string, v any) (err error) {
-	var (
-		semver *model.SemanticVersion
-	)
+type fileFormat string
 
-	version := "latest"
+const (
+	fileFormatYAML fileFormat = "YAML"
+	fileFormatTOML fileFormat = "TOML"
+	fileFormatJSON fileFormat = "JSON"
+)
 
-	if semver, err = model.NewSemanticVersion(utils.BuildTag); err == nil {
-		version = fmt.Sprintf("v%d.%d", semver.Major, semver.Minor+1)
+func fileFormatFromName(filename string) (format fileFormat) {
+	switch filepath.Ext(filename) {
+	case utils.ExtTOML:
+		return fileFormatTOML
+	case utils.ExtJSON:
+		return fileFormatJSON
+	default:
+		return fileFormatYAML
+	}
+}
+
+type encoder interface {
+	Encode(v any) (err error)
+}
+
+func importFile(filename string, data []byte, out any) (err error) {
+	switch format := fileFormatFromName(filename); format {
+	case fileFormatTOML:
+		err = toml.Unmarshal(data, out)
+	case fileFormatJSON:
+		err = json.Unmarshal(data, out)
+	default:
+		err = yaml.Unmarshal(data, out)
 	}
 
-	if _, err = fmt.Fprintf(w, model.FormatJSONSchemaYAMLLanguageServer, version, name); err != nil {
+	return err
+}
+
+func exportFile(filename string, v any, schemaName string) (err error) {
+	var f *os.File
+
+	if f, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
 		return err
 	}
 
-	if _, err = fmt.Fprintf(w, "\n\n"); err != nil {
-		return err
+	defer func() {
+		if err := f.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	var enc encoder
+
+	format := fileFormatFromName(filename)
+
+	switch format {
+	case fileFormatTOML:
+		enc = toml.NewEncoder(f)
+	case fileFormatJSON:
+		if len(schemaName) != 0 {
+			if v, err = exportJSONFileInjectJSONSchema(schemaName, v); err != nil {
+				return fmt.Errorf("error occurred marshaling data to %s: %w", format, err)
+			}
+		}
+
+		enc = json.NewEncoder(f)
+	default:
+		if len(schemaName) != 0 {
+			if err = exportYAMLFileWriteJSONSchema(f, schemaName); err != nil {
+				return err
+			}
+		}
+
+		enc = yaml.NewEncoder(f)
 	}
 
-	encoder := yaml.NewEncoder(w)
-
-	if err = encoder.Encode(v); err != nil {
-		return fmt.Errorf("error occurred marshaling data to YAML: %w", err)
+	if err = enc.Encode(v); err != nil {
+		return fmt.Errorf("error occurred marshaling data to %s: %w", format, err)
 	}
 
 	return nil
+}
+
+func exportYAMLFileWriteJSONSchema(w io.StringWriter, name string) (err error) {
+	if _, err = w.WriteString(fmt.Sprintf(model.FormatJSONSchemaYAMLLanguageServer, jsonSchemaVersion(), name)); err != nil {
+		return err
+	}
+
+	if _, err = w.WriteString("\n\n"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func exportJSONFileInjectJSONSchema(name string, v any) (out any, err error) {
+	var data []byte
+
+	if data, err = json.Marshal(v); err != nil {
+		return nil, fmt.Errorf("failed to marshal payload while injecting $schema: %w", err)
+	}
+
+	m := map[string]any{}
+
+	if err = json.Unmarshal(data, &m); err != nil {
+		return nil, fmt.Errorf("failed to inject $schema: payload is not a JSON object: %w", err)
+	}
+
+	m["$schema"] = fmt.Sprintf(model.FormatJSONSchemaIdentifier, jsonSchemaVersion(), name)
+
+	return m, nil
+}
+
+func jsonSchemaVersion() (version string) {
+	version = "latest"
+
+	if semver, err := model.NewSemanticVersion(utils.BuildTag); err == nil {
+		version = fmt.Sprintf("v%d.%d", semver.Major, semver.Minor+1)
+	}
+
+	return version
 }
 
 func getCryptoHashGenerateMapFlagsFromUse(use string) (flags map[string]string) {
