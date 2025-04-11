@@ -14,7 +14,7 @@ require (
 	github.com/duosecurity/duo_api_golang v0.0.0-20250128191753-8aff7fde9979
 	github.com/fasthttp/router v1.5.4
 	github.com/fasthttp/session/v2 v2.5.9
-	github.com/fsnotify/fsnotify v1.8.0
+	github.com/fsnotify/fsnotify v1.9.0
 	github.com/go-asn1-ber/asn1-ber v1.5.7
 	github.com/go-crypt/crypt v0.3.5
 	github.com/go-jose/go-jose/v4 v4.0.5
