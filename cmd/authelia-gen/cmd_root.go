@@ -61,7 +61,15 @@ func newRootCmd() *cobra.Command {
 	cmd.PersistentFlags().Bool("latest", false, "Enables latest functionality with several generators like the JSON Schema generator")
 	cmd.PersistentFlags().Bool("next", false, "Enables next functionality with several generators like the JSON Schema generator")
 	cmd.PersistentFlags().StringSlice(cmdFlagVersions, []string{}, "The versions to run the generator for, the special versions current and next are mutually exclusive")
-	cmd.AddCommand(newCodeCmd(), newDocsCmd(), newGitHubCmd(), newLocalesCmd(), newCommitLintCmd())
+
+	cmd.AddCommand(
+		newCodeCmd(),
+		newDocsCmd(),
+		newGitHubCmd(),
+		newLocalesCmd(),
+		newCommitLintCmd(),
+		newMiscCmd(),
+	)
 
 	return cmd
 }
@@ -80,7 +88,7 @@ func rootSubCommandsRunE(cmd *cobra.Command, args []string) (err error) {
 			continue
 		}
 
-		if cmd.Use == cmdUseDocs && subCmd.Use == cmdUseManage {
+		if (cmd.Use == cmdUseDocs && subCmd.Use == cmdUseManage) || cmd.Use == cmdUseMisc {
 			continue
 		}
 
