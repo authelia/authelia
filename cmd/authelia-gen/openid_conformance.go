@@ -124,7 +124,7 @@ func (p *OpenIDConnectConformanceSuiteBuilder) Build() OpenIDConnectConformanceS
 	}
 
 	switch p.name {
-	case suiteNameHybridFormPost, suiteNameImplicitFormPost:
+	case suiteNameBasicFormPost, suiteNameHybridFormPost, suiteNameImplicitFormPost:
 		responseModes = []string{oidc.ResponseModeFormPost, oidc.ResponseModeFormPostJWT}
 	default:
 		responseModes = []string{oidc.ResponseModeQuery, oidc.ResponseModeQueryJWT}

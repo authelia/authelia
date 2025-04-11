@@ -99,31 +99,7 @@ func miscOIDCConformanceRunE(cmd *cobra.Command, args []string) (err error) {
 }
 
 func miscOIDCConformance(version, apikey string, autheliaURL, suiteURL *url.URL, suiteNames ...string) (err error) {
-	builders := []*OpenIDConnectConformanceSuiteBuilder{
-		{"config", "Config", true, version, nil, autheliaURL},
-		{"basic", "Basic", true, version, suiteURL, autheliaURL},
-		{"basic-form-post", "Basic (Form Post)", true, version, suiteURL, autheliaURL},
-		{"hybrid", "Hybrid", true, version, suiteURL, autheliaURL},
-		{suiteNameHybridFormPost, "Hybrid (Form Post)", true, version, suiteURL, autheliaURL},
-		{"implicit", "Implicit", true, version, suiteURL, autheliaURL},
-		{suiteNameImplicitFormPost, "Implicit (Form Post)", true, version, suiteURL, autheliaURL},
-	}
-
-	n := len(suiteNames)
-
-	if n == 0 {
-		n = len(builders)
-	}
-
-	suites := make([]OpenIDConnectConformanceSuite, n)
-
-	for i, builder := range builders {
-		if len(suiteNames) != 0 && !utils.IsStringInSlice(builder.name, suiteNames) {
-			continue
-		}
-
-		suites[i] = builder.Build()
-	}
+	suites := miscOIDCConformanceBuildSuites(version, suiteURL, autheliaURL, suiteNames...)
 
 	clients := &OpenIDConnectClients{}
 
@@ -187,6 +163,28 @@ func miscOIDCConformance(version, apikey string, autheliaURL, suiteURL *url.URL,
 	}
 
 	return nil
+}
+
+func miscOIDCConformanceBuildSuites(version string, suiteURL, autheliaURL *url.URL, suiteNames ...string) (suites []OpenIDConnectConformanceSuite) {
+	builders := []*OpenIDConnectConformanceSuiteBuilder{
+		{"config", "Config", true, version, nil, autheliaURL},
+		{"basic", "Basic", true, version, suiteURL, autheliaURL},
+		{suiteNameBasicFormPost, "Basic (Form Post)", true, version, suiteURL, autheliaURL},
+		{"hybrid", "Hybrid", true, version, suiteURL, autheliaURL},
+		{suiteNameHybridFormPost, "Hybrid (Form Post)", true, version, suiteURL, autheliaURL},
+		{"implicit", "Implicit", true, version, suiteURL, autheliaURL},
+		{suiteNameImplicitFormPost, "Implicit (Form Post)", true, version, suiteURL, autheliaURL},
+	}
+
+	for _, builder := range builders {
+		if len(suiteNames) != 0 && !utils.IsStringInSlice(builder.name, suiteNames) {
+			continue
+		}
+
+		suites = append(suites, builder.Build())
+	}
+
+	return suites
 }
 
 func doOIDCConformanceSuitePostPlan(client *http.Client, base *url.URL, plan string, variant *OpenIDConnectConformanceSuitePlanVariant, body *bytes.Buffer) (err error) {

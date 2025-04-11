@@ -41,6 +41,7 @@ const (
 )
 
 const (
+	suiteNameBasicFormPost           = "basic-form-post"
 	suiteNameHybridFormPost          = "hybrid-form-post"
 	suiteNameImplicitFormPost        = "implicit-form-post"
 	suiteConformanceBasic            = "conformance-basic"

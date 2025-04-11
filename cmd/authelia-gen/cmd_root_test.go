@@ -107,6 +107,16 @@ func TestSortCmds(t *testing.T) {
 			newDocsDataCmd(),
 			[]string{"keys", "misc"},
 		},
+		{
+			"ShouldSortMiscCmd",
+			newMiscCmd(),
+			[]string{"oidc"},
+		},
+		{
+			"ShouldSortMiscOIDCCmd",
+			newMiscOIDCCmd(),
+			[]string{"conformance"},
+		},
 	}
 
 	for _, tc := range testCases {
