@@ -19,7 +19,6 @@ import (
 	"github.com/go-webauthn/webauthn/metadata"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
@@ -956,7 +955,7 @@ func (ctx *CmdCtx) StorageUserWebAuthnExportRunE(cmd *cobra.Command, args []stri
 		return fmt.Errorf("no data to export")
 	}
 
-	if err = exportYAMLWithJSONSchema("export.webauthn", filename, export); err != nil {
+	if err = marshal("export.webauthn", filename, export); err != nil {
 		return fmt.Errorf("error occurred writing to file '%s': %w", filename, err)
 	}
 
@@ -993,7 +992,7 @@ func (ctx *CmdCtx) StorageUserWebAuthnImportRunE(cmd *cobra.Command, args []stri
 
 	export := &model.WebAuthnCredentialExport{}
 
-	if err = yaml.Unmarshal(data, export); err != nil {
+	if err = unmarshal(filename, data, export); err != nil {
 		return err
 	}
 
@@ -1364,7 +1363,7 @@ func (ctx *CmdCtx) StorageUserTOTPExportRunE(cmd *cobra.Command, _ []string) (er
 		return fmt.Errorf("no data to export")
 	}
 
-	if err = exportYAMLWithJSONSchema("export.totp", filename, export); err != nil {
+	if err = marshal("export.totp", filename, export); err != nil {
 		return fmt.Errorf("error occurred writing to file '%s': %w", filename, err)
 	}
 
@@ -1401,7 +1400,7 @@ func (ctx *CmdCtx) StorageUserTOTPImportRunE(_ *cobra.Command, args []string) (e
 
 	export := &model.TOTPConfigurationExport{}
 
-	if err = yaml.Unmarshal(data, export); err != nil {
+	if err = unmarshal(filename, data, export); err != nil {
 		return err
 	}
 
@@ -1633,7 +1632,7 @@ func (ctx *CmdCtx) StorageUserIdentifiersExportRunE(cmd *cobra.Command, _ []stri
 		return fmt.Errorf("no data to export")
 	}
 
-	if err = exportYAMLWithJSONSchema("export.identifiers", filename, export); err != nil {
+	if err = marshal("export.identifiers", filename, export); err != nil {
 		return fmt.Errorf("error occurred writing to file '%s': %w", filename, err)
 	}
 
@@ -1671,7 +1670,7 @@ func (ctx *CmdCtx) StorageUserIdentifiersImportRunE(cmd *cobra.Command, args []s
 
 	export := &model.UserOpaqueIdentifiersExport{}
 
-	if err = yaml.Unmarshal(data, export); err != nil {
+	if err = unmarshal(filename, data, export); err != nil {
 		return err
 	}
 
