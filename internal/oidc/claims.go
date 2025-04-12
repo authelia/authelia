@@ -708,7 +708,7 @@ func (s *CustomClaimsStrategy) populateClaimsScoped(_ Context, strategy oautheli
 	}
 }
 
-func (s *CustomClaimsStrategy) populateClaimsScopedUserInfo(_ Context, strategy oauthelia2.ScopeStrategy, client Client, scopes oauthelia2.Arguments, resolve ClaimResolver, requested time.Time, allowed []string, extra map[string]any) {
+func (s *CustomClaimsStrategy) populateClaimsScopedUserInfo(_ Context, strategy oauthelia2.ScopeStrategy, _ Client, scopes oauthelia2.Arguments, _ ClaimResolver, requested time.Time, _ []string, extra map[string]any) {
 	if strategy(scopes, ScopeOpenID) {
 		extra[ClaimRequestedAt] = requested.Unix()
 	}

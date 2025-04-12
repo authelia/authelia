@@ -64,8 +64,6 @@ func handleOIDCAuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.UR
 
 		return nil, true
 	default:
-		ctx.Logger.WithFields(map[string]any{"amr": fmt.Sprintf("%+v", userSession.AuthenticationMethodRefs), "client_id": client.GetID(), "policy": policy.Name}).Debug("Auth Insufficient")
-
 		if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifierURI(), userSession.Username); err != nil {
 			ctx.Logger.Errorf(logFmtErrConsentCantGetSubject, requester.GetID(), client.GetID(), client.GetConsentPolicy(), userSession.Username, client.GetSectorIdentifierURI(), err)
 

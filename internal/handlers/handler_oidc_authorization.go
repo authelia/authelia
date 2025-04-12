@@ -1,10 +1,11 @@
 package handlers
 
 import (
-	oauthelia2 "authelia.com/provider/oauth2"
 	"errors"
 	"net/http"
 	"net/url"
+
+	oauthelia2 "authelia.com/provider/oauth2"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -121,8 +122,6 @@ func OpenIDConnectAuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.Respons
 	var requests *oidc.ClaimsRequests
 
 	extra := map[string]any{}
-
-	requester.GetResponseTypes().ExactOne("id_token")
 
 	if requests, handled = handleOAuth2AuthorizationClaims(ctx, rw, r, "Authorization", userSession, details, client, requester, issuer, consent, extra); handled {
 		return
