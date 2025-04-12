@@ -18,17 +18,19 @@ type OpenIDConnectConformanceSuiteBuilder struct {
 	friendly      string
 	certification bool
 	version       string
+	consent       string
+	policy        string
 	suiteURL      *url.URL
 	autheliaURL   *url.URL
 }
 
-func (p *OpenIDConnectConformanceSuiteBuilder) Build() OpenIDConnectConformanceSuite {
+func (b *OpenIDConnectConformanceSuiteBuilder) Build() OpenIDConnectConformanceSuite {
 	var (
 		apiname, namePrefix, clientIDPrefix, descriptionSuffix string
 		variant                                                *OpenIDConnectConformanceSuitePlanVariant
 	)
 
-	if p.certification {
+	if b.certification {
 		namePrefix = "conformance-"
 		clientIDPrefix = "conformance-certification"
 		descriptionSuffix = "Certification Profile"
@@ -37,9 +39,10 @@ func (p *OpenIDConnectConformanceSuiteBuilder) Build() OpenIDConnectConformanceS
 		descriptionSuffix = "Test Profile"
 	}
 
-	aliasSuffix := fmt.Sprintf("%s-%s", strings.ReplaceAll(strings.ToLower(p.name), ".", "-"), strings.ReplaceAll(strings.ToLower(p.version), ".", ""))
+	aliasSuffix := fmt.Sprintf("%s-%s", strings.ReplaceAll(strings.ToLower(b.name), ".", "-"), strings.ReplaceAll(strings.ToLower(b.version), ".", ""))
 
-	name := fmt.Sprintf("%s%s", namePrefix, p.name)
+	name := fmt.Sprintf("%s%s", namePrefix, b.name)
+	description := fmt.Sprintf("Authelia %s %s %s", b.version, b.friendly, descriptionSuffix)
 
 	switch name {
 	case suiteConformanceBasic, suiteConformanceBasicFormPost, suiteConformanceHybrid, suiteConformanceHybridFormPost, suiteConformanceImplicit, suiteConformanceImplicitFormPost:
@@ -73,14 +76,14 @@ func (p *OpenIDConnectConformanceSuiteBuilder) Build() OpenIDConnectConformanceS
 			Variant:     variant,
 			Alias:       fmt.Sprintf("%s%s", namePrefix, aliasSuffix),
 			Publish:     "summary",
-			Description: fmt.Sprintf("Authelia %s %s %s", p.version, p.friendly, descriptionSuffix),
+			Description: description,
 			Server: OpenIDConnectConformanceSuitePlanServer{
-				DiscoveryURL: p.autheliaURL.JoinPath(".well-known/openid-configuration").String(),
+				DiscoveryURL: b.autheliaURL.JoinPath(".well-known/openid-configuration").String(),
 			},
 		},
 	}
 
-	if p.suiteURL == nil {
+	if b.suiteURL == nil {
 		return suite
 	}
 
@@ -111,7 +114,7 @@ func (p *OpenIDConnectConformanceSuiteBuilder) Build() OpenIDConnectConformanceS
 		responseModes []string
 	)
 
-	switch p.name {
+	switch b.name {
 	case "implicit", suiteNameImplicitFormPost:
 		grantTypes = []string{oidc.GrantTypeAuthorizationCode, oidc.GrantTypeImplicit, oidc.GrantTypeRefreshToken}
 		responseTypes = []string{oidc.ResponseTypeAuthorizationCodeFlow, oidc.ResponseTypeImplicitFlowIDToken, oidc.ResponseTypeImplicitFlowToken, oidc.ResponseTypeImplicitFlowBoth}
@@ -123,7 +126,7 @@ func (p *OpenIDConnectConformanceSuiteBuilder) Build() OpenIDConnectConformanceS
 		responseTypes = []string{oidc.ResponseTypeAuthorizationCodeFlow}
 	}
 
-	switch p.name {
+	switch b.name {
 	case suiteNameBasicFormPost, suiteNameHybridFormPost, suiteNameImplicitFormPost:
 		responseModes = []string{oidc.ResponseModeFormPost, oidc.ResponseModeFormPostJWT}
 	default:
@@ -133,10 +136,11 @@ func (p *OpenIDConnectConformanceSuiteBuilder) Build() OpenIDConnectConformanceS
 	suite.Clients = []schema.IdentityProvidersOpenIDConnectClient{
 		{
 			ID:                      suite.Plan.Client.ID,
+			Name:                    description,
 			Secret:                  MustHash(suite.Plan.Client.Secret),
-			RedirectURIs:            []string{p.suiteURL.JoinPath("test", "a", suite.Plan.Alias, "callback").String()},
-			AuthorizationPolicy:     "one_factor",
-			ConsentMode:             oidc.ClientConsentModeImplicit.String(),
+			RedirectURIs:            []string{b.suiteURL.JoinPath("test", "a", suite.Plan.Alias, "callback").String()},
+			AuthorizationPolicy:     b.policy,
+			ConsentMode:             b.consent,
 			Public:                  false,
 			Scopes:                  []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile, oidc.ScopeEmail, oidc.ScopePhone, oidc.ScopeAddress, "all"},
 			ResponseTypes:           responseTypes,
@@ -147,10 +151,11 @@ func (p *OpenIDConnectConformanceSuiteBuilder) Build() OpenIDConnectConformanceS
 		},
 		{
 			ID:                      suite.Plan.ClientAlternate.ID,
+			Name:                    fmt.Sprintf("%s (Alternate)", description),
 			Secret:                  MustHash(suite.Plan.ClientAlternate.Secret),
-			RedirectURIs:            []string{p.suiteURL.JoinPath("test", "a", suite.Plan.Alias, "callback").String()},
-			AuthorizationPolicy:     "one_factor",
-			ConsentMode:             oidc.ClientConsentModeImplicit.String(),
+			RedirectURIs:            []string{b.suiteURL.JoinPath("test", "a", suite.Plan.Alias, "callback").String()},
+			AuthorizationPolicy:     b.policy,
+			ConsentMode:             b.consent,
 			Public:                  false,
 			Scopes:                  []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile, oidc.ScopeEmail, oidc.ScopePhone, oidc.ScopeAddress, "all"},
 			ResponseTypes:           responseTypes,
@@ -161,10 +166,11 @@ func (p *OpenIDConnectConformanceSuiteBuilder) Build() OpenIDConnectConformanceS
 		},
 		{
 			ID:                      suite.Plan.ClientSecretPost.ID,
+			Name:                    fmt.Sprintf("%s (Secret Post)", description),
 			Secret:                  MustHash(suite.Plan.ClientSecretPost.Secret),
-			RedirectURIs:            []string{p.suiteURL.JoinPath("test", "a", suite.Plan.Alias, "callback").String()},
-			AuthorizationPolicy:     "one_factor",
-			ConsentMode:             oidc.ClientConsentModeImplicit.String(),
+			RedirectURIs:            []string{b.suiteURL.JoinPath("test", "a", suite.Plan.Alias, "callback").String()},
+			AuthorizationPolicy:     b.policy,
+			ConsentMode:             b.consent,
 			Public:                  false,
 			Scopes:                  []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile, oidc.ScopeEmail, oidc.ScopePhone, oidc.ScopeAddress, "all"},
 			ResponseTypes:           responseTypes,
