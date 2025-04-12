@@ -72,4 +72,5 @@ authelia-gen [flags]
 * [authelia-gen docs](authelia-gen_docs.md)	 - Generate docs
 * [authelia-gen github](authelia-gen_github.md)	 - Generate GitHub files
 * [authelia-gen locales](authelia-gen_locales.md)	 - Generate locales files
+* [authelia-gen misc](authelia-gen_misc.md)	 - Generate miscellaneous things
 
