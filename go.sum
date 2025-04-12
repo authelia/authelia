@@ -63,10 +63,10 @@ github.com/fxamacker/cbor/v2 v2.8.0 h1:fFtUGXUzXPHTIUdne5+zzMPTfffl3RD5qYnkY40vt
 github.com/fxamacker/cbor/v2 v2.8.0/go.mod h1:vM4b+DJCtHn+zz7h3FFp/hDAI9WNWCsZj23V5ytsSxQ=
 github.com/go-asn1-ber/asn1-ber v1.5.8-0.20250403174932-29230038a667 h1:BP4M0CvQ4S3TGls2FvczZtj5Re/2ZzkV9VwqPHH/3Bo=
 github.com/go-asn1-ber/asn1-ber v1.5.8-0.20250403174932-29230038a667/go.mod h1:hEBeB/ic+5LoWskz+yKT7vGhhPYkProFKoKdwZRWMe0=
-github.com/go-crypt/crypt v0.3.5 h1:c05tydnZ+alAAMChRxvrhLOR6az/H8CGBc1KjjGSpC4=
-github.com/go-crypt/crypt v0.3.5/go.mod h1:UyLFrc0lpoZUZUnwVbWDwsgtmrWKZUdE8V6Hdkrz6/8=
-github.com/go-crypt/x v0.3.6 h1:l0YyDQ6icMc8kw3jNTCrd8Zd+JCDOpGNPuNkYSynenc=
-github.com/go-crypt/x v0.3.6/go.mod h1:xJ8o/QRfrm+9oQl1SBIAwhsrF0Ap6T0gaB5Ei9TK7L0=
+github.com/go-crypt/crypt v0.4.0 h1:me0VFHAruzUXdFKDdf6CD880Notu9no+KLdzPXR0B4o=
+github.com/go-crypt/crypt v0.4.0/go.mod h1:nAai8xSlW4G/svM9cE8yYc9GG9/gt1aWdk+4eWITewA=
+github.com/go-crypt/x v0.4.1 h1:cU9zuf5MmmlB/4AEs2tNlYvtBsiSBS9Fs28v2eH7v9A=
+github.com/go-crypt/x v0.4.1/go.mod h1:w7Fk3vZNmMEy3McHYecNbbTisgvPKaho0Q2AxoaQETU=
 github.com/go-jose/go-jose/v4 v4.1.0 h1:cYSYxd3pw5zd2FSXk2vGdn9igQU2PS8MuxrCOCl0FdY=
 github.com/go-jose/go-jose/v4 v4.1.0/go.mod h1:GG/vqmYm3Von2nYiB2vGTXzdoNKE5tix5tuc6iAd+sw=
 github.com/go-ldap/ldap/v3 v3.4.11 h1:4k0Yxweg+a3OyBLjdYn5OKglv18JNvfDykSoI8bW0gU=

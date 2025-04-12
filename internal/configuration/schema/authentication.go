@@ -118,11 +118,12 @@ type AuthenticationBackendFilePasswordBCrypt struct {
 
 // AuthenticationBackendFilePasswordSCrypt represents the scrypt hashing settings.
 type AuthenticationBackendFilePasswordSCrypt struct {
-	Iterations  int `koanf:"iterations" yaml:"iterations" toml:"iterations" json:"iterations" jsonschema:"default=16,minimum=1,maximum=58,title=Iterations" jsonschema_description:"The SCrypt iterations to be used."`
-	BlockSize   int `koanf:"block_size" yaml:"block_size" toml:"block_size" json:"block_size" jsonschema:"default=8,minimum=1,maximum=36028797018963967,title=Key Length" jsonschema_description:"The SCrypt block size to be used."`
-	Parallelism int `koanf:"parallelism" yaml:"parallelism" toml:"parallelism" json:"parallelism" jsonschema:"default=1,minimum=1,maximum=1073741823,title=Key Length" jsonschema_description:"The SCrypt parallelism factor to be used."`
-	KeyLength   int `koanf:"key_length" yaml:"key_length" toml:"key_length" json:"key_length" jsonschema:"default=32,minimum=1,maximum=137438953440,title=Key Length" jsonschema_description:"The SCrypt key length to be used."`
-	SaltLength  int `koanf:"salt_length" yaml:"salt_length" toml:"salt_length" json:"salt_length" jsonschema:"default=16,minimum=8,maximum=1024,title=Salt Length" jsonschema_description:"The SCrypt salt length to be used."`
+	Variant     string `koanf:"variant" yaml:"variant,omitempty" toml:"variant,omitempty" json:"variant,omitempty" jsonschema:"default=scrypt,enum=scrypt,enum=yescrypt,titleVariant" jsonschema_description:"The SCrypt variant to be used."`
+	Iterations  int    `koanf:"iterations" yaml:"iterations" toml:"iterations" json:"iterations" jsonschema:"default=16,minimum=1,maximum=58,title=Iterations" jsonschema_description:"The SCrypt iterations to be used."`
+	BlockSize   int    `koanf:"block_size" yaml:"block_size" toml:"block_size" json:"block_size" jsonschema:"default=8,minimum=1,maximum=36028797018963967,title=Key Length" jsonschema_description:"The SCrypt block size to be used."`
+	Parallelism int    `koanf:"parallelism" yaml:"parallelism" toml:"parallelism" json:"parallelism" jsonschema:"default=1,minimum=1,maximum=1073741823,title=Key Length" jsonschema_description:"The SCrypt parallelism factor to be used."`
+	KeyLength   int    `koanf:"key_length" yaml:"key_length" toml:"key_length" json:"key_length" jsonschema:"default=32,minimum=1,maximum=137438953440,title=Key Length" jsonschema_description:"The SCrypt key length to be used."`
+	SaltLength  int    `koanf:"salt_length" yaml:"salt_length" toml:"salt_length" json:"salt_length" jsonschema:"default=16,minimum=8,maximum=1024,title=Salt Length" jsonschema_description:"The SCrypt salt length to be used."`
 }
 
 // AuthenticationBackendLDAP represents the configuration related to LDAP server.
@@ -223,6 +224,7 @@ var DefaultPasswordConfig = AuthenticationBackendFilePassword{
 		Cost:    12,
 	},
 	SCrypt: AuthenticationBackendFilePasswordSCrypt{
+		Variant:     "scrypt",
 		Iterations:  16,
 		BlockSize:   8,
 		Parallelism: 1,

@@ -265,6 +265,7 @@ func NewFileCryptoHashFromConfig(config schema.AuthenticationBackendFilePassword
 		)
 	case hashSCrypt:
 		hash, err = scrypt.New(
+			scrypt.WithVariantName(config.SCrypt.Variant),
 			scrypt.WithLN(config.SCrypt.Iterations),
 			scrypt.WithP(config.SCrypt.Parallelism),
 			scrypt.WithR(config.SCrypt.BlockSize),

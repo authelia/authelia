@@ -960,6 +960,7 @@ const (
 	suffixPBKDF2SaltLength    = ".pbkdf2.salt_length"
 	suffixBCryptVariant       = ".bcrypt.variant"
 	suffixBCryptCost          = ".bcrypt.cost"
+	suffixSCryptVariant       = ".scrypt.variant"
 	suffixSCryptIterations    = ".scrypt.iterations"
 	suffixSCryptBlockSize     = ".scrypt.block_size"
 	suffixSCryptParallelism   = ".scrypt.parallelism"

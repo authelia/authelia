@@ -111,6 +111,8 @@ const (
 	errFmtFileAuthBackendPassword               = "authentication_backend: file: password: %s: "
 	errFmtFileAuthBackendPasswordInvalidVariant = errFmtFileAuthBackendPassword +
 		"option 'variant' " + errSuffixMustBeOneOf
+	errFmtFileAuthBackendPasswordOptionInvalid = errFmtFileAuthBackendPassword +
+		"option '%s' is configured as '%d' but must be '%d' when '%s' is set to '%v'"
 	errFmtFileAuthBackendPasswordOptionTooLarge = errFmtFileAuthBackendPassword +
 		"option '%s' is configured as '%d' but must be less than or equal to '%d'"
 	errFmtFileAuthBackendPasswordOptionTooSmall = errFmtFileAuthBackendPassword +
@@ -522,6 +524,7 @@ var (
 	validSHA2CryptVariants = []string{digestSHA256, digestSHA512}
 	validPBKDF2Variants    = []string{digestSHA1, digestSHA224, digestSHA256, digestSHA384, digestSHA512}
 	validBCryptVariants    = []string{"standard", digestSHA256}
+	validSCryptVariants    = []string{"scrypt", "yescrypt"}
 	validHashAlgorithms    = []string{hashSHA2Crypt, hashPBKDF2, hashSCrypt, hashBCrypt, hashArgon2}
 )
 

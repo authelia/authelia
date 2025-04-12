@@ -596,6 +596,15 @@
     },
     "AuthenticationBackendFilePasswordSCrypt": {
       "properties": {
+        "variant": {
+          "type": "string",
+          "enum": [
+            "scrypt",
+            "yescrypt"
+          ],
+          "description": "The SCrypt variant to be used.",
+          "default": "scrypt"
+        },
         "iterations": {
           "type": "integer",
           "maximum": 58,

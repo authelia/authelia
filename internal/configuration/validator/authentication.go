@@ -237,6 +237,15 @@ func validateFileAuthenticationBackendPasswordConfigBCrypt(config *schema.Authen
 //nolint:gocyclo
 func validateFileAuthenticationBackendPasswordConfigSCrypt(config *schema.AuthenticationBackendFilePassword, validator *schema.StructValidator) {
 	switch {
+	case config.SCrypt.Variant == "":
+		config.SCrypt.Variant = schema.DefaultPasswordConfig.SCrypt.Variant
+	case utils.IsStringInSlice(config.SCrypt.Variant, validSCryptVariants):
+		break
+	default:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashSCrypt, utils.StringJoinOr(validSCryptVariants), config.SCrypt.Variant))
+	}
+
+	switch {
 	case config.SCrypt.Iterations == 0:
 		config.SCrypt.Iterations = schema.DefaultPasswordConfig.SCrypt.Iterations
 	case config.SCrypt.Iterations < scrypt.IterationsMin:
@@ -261,6 +270,8 @@ func validateFileAuthenticationBackendPasswordConfigSCrypt(config *schema.Authen
 		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashSCrypt, "parallelism", config.SCrypt.Parallelism, scrypt.ParallelismMin))
 	case config.SCrypt.Parallelism > scrypt.ParallelismMax:
 		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashSCrypt, "parallelism", config.SCrypt.Parallelism, scrypt.ParallelismMax))
+	case config.SCrypt.Variant == "yescrypt" && config.SCrypt.Parallelism != 1:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionInvalid, hashSCrypt, "parallelism", config.SCrypt.Parallelism, 1, "variant", config.SCrypt.Variant))
 	}
 
 	switch {

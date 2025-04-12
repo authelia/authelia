@@ -33,8 +33,8 @@ func newCryptoHashCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	return cmd
 }
 
-func newCryptoHashGenerateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
-	defaults := map[string]any{
+func newCryptoHashDefaults() (defaults map[string]any) {
+	return map[string]any{
 		prefixFilePassword + suffixAlgorithm:           schema.DefaultPasswordConfig.Algorithm,
 		prefixFilePassword + suffixArgon2Variant:       schema.DefaultPasswordConfig.Argon2.Variant,
 		prefixFilePassword + suffixArgon2Iterations:    schema.DefaultPasswordConfig.Argon2.Iterations,
@@ -50,13 +50,16 @@ func newCryptoHashGenerateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		prefixFilePassword + suffixPBKDF2SaltLength:    schema.DefaultPasswordConfig.PBKDF2.SaltLength,
 		prefixFilePassword + suffixBCryptVariant:       schema.DefaultPasswordConfig.BCrypt.Variant,
 		prefixFilePassword + suffixBCryptCost:          schema.DefaultPasswordConfig.BCrypt.Cost,
+		prefixFilePassword + suffixSCryptVariant:       schema.DefaultPasswordConfig.SCrypt.Variant,
 		prefixFilePassword + suffixSCryptIterations:    schema.DefaultPasswordConfig.SCrypt.Iterations,
 		prefixFilePassword + suffixSCryptBlockSize:     schema.DefaultPasswordConfig.SCrypt.BlockSize,
 		prefixFilePassword + suffixSCryptParallelism:   schema.DefaultPasswordConfig.SCrypt.Parallelism,
 		prefixFilePassword + suffixSCryptKeyLength:     schema.DefaultPasswordConfig.SCrypt.KeyLength,
 		prefixFilePassword + suffixSCryptSaltLength:    schema.DefaultPasswordConfig.SCrypt.SaltLength,
 	}
+}
 
+func newCryptoHashGenerateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
 		Use:     cmdUseGenerate,
 		Short:   cmdAutheliaCryptoHashGenerateShort,
@@ -64,7 +67,7 @@ func newCryptoHashGenerateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 		Example: cmdAutheliaCryptoHashGenerateExample,
 		Args:    cobra.NoArgs,
 		PreRunE: ctx.ChainRunE(
-			ctx.HelperConfigSetDefaultsRunE(defaults),
+			ctx.HelperConfigSetDefaultsRunE(newCryptoHashDefaults()),
 			ctx.CryptoHashGenerateMapFlagsRunE,
 			ctx.HelperConfigLoadRunE,
 			ctx.ConfigValidateSectionPasswordRunE,
@@ -85,29 +88,6 @@ func newCryptoHashGenerateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 }
 
 func newCryptoHashGenerateSubCmd(ctx *CmdCtx, use string) (cmd *cobra.Command) {
-	defaults := map[string]any{
-		prefixFilePassword + suffixAlgorithm:           schema.DefaultPasswordConfig.Algorithm,
-		prefixFilePassword + suffixArgon2Variant:       schema.DefaultPasswordConfig.Argon2.Variant,
-		prefixFilePassword + suffixArgon2Iterations:    schema.DefaultPasswordConfig.Argon2.Iterations,
-		prefixFilePassword + suffixArgon2Memory:        schema.DefaultPasswordConfig.Argon2.Memory,
-		prefixFilePassword + suffixArgon2Parallelism:   schema.DefaultPasswordConfig.Argon2.Parallelism,
-		prefixFilePassword + suffixArgon2KeyLength:     schema.DefaultPasswordConfig.Argon2.KeyLength,
-		prefixFilePassword + suffixArgon2SaltLength:    schema.DefaultPasswordConfig.Argon2.SaltLength,
-		prefixFilePassword + suffixSHA2CryptVariant:    schema.DefaultPasswordConfig.SHA2Crypt.Variant,
-		prefixFilePassword + suffixSHA2CryptIterations: schema.DefaultPasswordConfig.SHA2Crypt.Iterations,
-		prefixFilePassword + suffixSHA2CryptSaltLength: schema.DefaultPasswordConfig.SHA2Crypt.SaltLength,
-		prefixFilePassword + suffixPBKDF2Variant:       schema.DefaultPasswordConfig.PBKDF2.Variant,
-		prefixFilePassword + suffixPBKDF2Iterations:    schema.DefaultPasswordConfig.PBKDF2.Iterations,
-		prefixFilePassword + suffixPBKDF2SaltLength:    schema.DefaultPasswordConfig.PBKDF2.SaltLength,
-		prefixFilePassword + suffixBCryptVariant:       schema.DefaultPasswordConfig.BCrypt.Variant,
-		prefixFilePassword + suffixBCryptCost:          schema.DefaultPasswordConfig.BCrypt.Cost,
-		prefixFilePassword + suffixSCryptIterations:    schema.DefaultPasswordConfig.SCrypt.Iterations,
-		prefixFilePassword + suffixSCryptBlockSize:     schema.DefaultPasswordConfig.SCrypt.BlockSize,
-		prefixFilePassword + suffixSCryptParallelism:   schema.DefaultPasswordConfig.SCrypt.Parallelism,
-		prefixFilePassword + suffixSCryptKeyLength:     schema.DefaultPasswordConfig.SCrypt.KeyLength,
-		prefixFilePassword + suffixSCryptSaltLength:    schema.DefaultPasswordConfig.SCrypt.SaltLength,
-	}
-
 	useFmt := fmtCryptoHashUse(use)
 
 	cmd = &cobra.Command{
@@ -117,7 +97,7 @@ func newCryptoHashGenerateSubCmd(ctx *CmdCtx, use string) (cmd *cobra.Command) {
 		Example: fmt.Sprintf(fmtCmdAutheliaCryptoHashGenerateSubExample, use),
 		Args:    cobra.NoArgs,
 		PersistentPreRunE: ctx.ChainRunE(
-			ctx.HelperConfigSetDefaultsRunE(defaults),
+			ctx.HelperConfigSetDefaultsRunE(newCryptoHashDefaults()),
 			ctx.CryptoHashGenerateMapFlagsRunE,
 			ctx.HelperConfigLoadRunE,
 			ctx.ConfigValidateSectionPasswordRunE,
@@ -157,6 +137,7 @@ func newCryptoHashGenerateSubCmd(ctx *CmdCtx, use string) (cmd *cobra.Command) {
 		cmdFlagSaltSize(cmd, schema.DefaultPasswordConfig.SCrypt.SaltLength)
 		cmdFlagParallelism(cmd, schema.DefaultPasswordConfig.SCrypt.Parallelism)
 
+		cmd.Flags().StringP(cmdFlagNameVariant, "v", schema.DefaultPasswordConfig.SCrypt.Variant, "variant, options are 'scrypt', and 'yescrypt'")
 		cmd.Flags().IntP(cmdFlagNameBlockSize, "r", schema.DefaultPasswordConfig.SCrypt.BlockSize, "block size")
 	}
 
@@ -244,6 +225,7 @@ func (ctx *CmdCtx) CryptoHashGenerateMapFlagsRunE(cmd *cobra.Command, args []str
 		}
 	case cmdUseHashSCrypt:
 		flagsMap = map[string]string{
+			cmdFlagNameVariant:     prefixFilePassword + suffixSCryptVariant,
 			cmdFlagNameIterations:  prefixFilePassword + suffixSCryptIterations,
 			cmdFlagNameBlockSize:   prefixFilePassword + suffixSCryptBlockSize,
 			cmdFlagNameParallelism: prefixFilePassword + suffixSCryptParallelism,
