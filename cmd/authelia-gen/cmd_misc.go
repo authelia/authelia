@@ -58,17 +58,21 @@ func newMiscOIDCConformanceCmd() *cobra.Command {
 	cmd.Flags().String("authelia-url", "https://auth.example.com", "authelia url for conformance plans")
 	cmd.Flags().String("version", "", "version name")
 	cmd.Flags().String("url", "https://conformance.example.com", "conformance suite url for conformance plans")
-	cmd.Flags().String("api-key", "", "conformance api key")
+	cmd.Flags().String("token", "", "conformance api token")
 	cmd.Flags().StringSlice("suites", nil, "names of the plans to generate")
+	cmd.Flags().String("consent", "implicit", "name of the consent mode to use")
+	cmd.Flags().String("policy", "one_factor", "name of the authorization policy to use")
 
 	return cmd
 }
 
 func miscOIDCConformanceRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
-		rawURL, version, apikey string
-		autheliaURL, suiteURL   *url.URL
-		suiteNames              []string
+		rawURL, version, token, consent, policy string
+
+		autheliaURL, suiteURL *url.URL
+
+		suiteNames []string
 	)
 
 	if rawURL, err = cmd.Flags().GetString("authelia-url"); err != nil {
@@ -91,15 +95,23 @@ func miscOIDCConformanceRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	if apikey, err = cmd.Flags().GetString("api-key"); err != nil {
+	if token, err = cmd.Flags().GetString("token"); err != nil {
 		return err
 	}
 
-	return miscOIDCConformance(version, apikey, autheliaURL, suiteURL, suiteNames...)
+	if consent, err = cmd.Flags().GetString("consent"); err != nil {
+		return err
+	}
+
+	if policy, err = cmd.Flags().GetString("policy"); err != nil {
+		return err
+	}
+
+	return miscOIDCConformance(version, token, consent, policy, autheliaURL, suiteURL, suiteNames...)
 }
 
-func miscOIDCConformance(version, apikey string, autheliaURL, suiteURL *url.URL, suiteNames ...string) (err error) {
-	suites := miscOIDCConformanceBuildSuites(version, suiteURL, autheliaURL, suiteNames...)
+func miscOIDCConformance(version, token, consent, policy string, autheliaURL, suiteURL *url.URL, suiteNames ...string) (err error) {
+	suites := miscOIDCConformanceBuildSuites(version, consent, policy, suiteURL, autheliaURL, suiteNames...)
 
 	clients := &OpenIDConnectClients{}
 
@@ -107,13 +119,13 @@ func miscOIDCConformance(version, apikey string, autheliaURL, suiteURL *url.URL,
 
 	var client *http.Client
 
-	if suiteURL != nil && len(apikey) != 0 {
+	if suiteURL != nil && len(token) != 0 {
 		client = &http.Client{
 			Transport: &RequestHeaderTransport{
 				RoundTripper: http.DefaultTransport,
 				headers: map[string]string{
 					"Content-Type":  "application/json",
-					"Authorization": fmt.Sprintf("Bearer %s", apikey),
+					"Authorization": fmt.Sprintf("Bearer %s", token),
 				},
 			},
 		}
@@ -165,15 +177,15 @@ func miscOIDCConformance(version, apikey string, autheliaURL, suiteURL *url.URL,
 	return nil
 }
 
-func miscOIDCConformanceBuildSuites(version string, suiteURL, autheliaURL *url.URL, suiteNames ...string) (suites []OpenIDConnectConformanceSuite) {
+func miscOIDCConformanceBuildSuites(version, consent, policy string, suiteURL, autheliaURL *url.URL, suiteNames ...string) (suites []OpenIDConnectConformanceSuite) {
 	builders := []*OpenIDConnectConformanceSuiteBuilder{
-		{"config", "Config", true, version, nil, autheliaURL},
-		{"basic", "Basic", true, version, suiteURL, autheliaURL},
-		{suiteNameBasicFormPost, "Basic (Form Post)", true, version, suiteURL, autheliaURL},
-		{"hybrid", "Hybrid", true, version, suiteURL, autheliaURL},
-		{suiteNameHybridFormPost, "Hybrid (Form Post)", true, version, suiteURL, autheliaURL},
-		{"implicit", "Implicit", true, version, suiteURL, autheliaURL},
-		{suiteNameImplicitFormPost, "Implicit (Form Post)", true, version, suiteURL, autheliaURL},
+		{"config", "Config", true, version, consent, policy, nil, autheliaURL},
+		{"basic", "Basic", true, version, consent, policy, suiteURL, autheliaURL},
+		{suiteNameBasicFormPost, "Basic (Form Post)", true, version, consent, policy, suiteURL, autheliaURL},
+		{"hybrid", "Hybrid", true, version, consent, policy, suiteURL, autheliaURL},
+		{suiteNameHybridFormPost, "Hybrid (Form Post)", true, version, consent, policy, suiteURL, autheliaURL},
+		{"implicit", "Implicit", true, version, consent, policy, suiteURL, autheliaURL},
+		{suiteNameImplicitFormPost, "Implicit (Form Post)", true, version, consent, policy, suiteURL, autheliaURL},
 	}
 
 	for _, builder := range builders {

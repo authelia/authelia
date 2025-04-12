@@ -36,7 +36,7 @@ func TestMiscOIDCConformanceBuildSuites(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			actual := miscOIDCConformanceBuildSuites("4.00", suiteURL, autheliaURL, tc.have...)
+			actual := miscOIDCConformanceBuildSuites("4.00", "implicit", "one_factor", suiteURL, autheliaURL, tc.have...)
 
 			require.Len(t, actual, len(tc.expected))
 
