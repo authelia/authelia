@@ -13,12 +13,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/go-crypt/crypt"
-	"gopkg.in/yaml.v3"
-
 	"github.com/authelia/jsonschema"
+	"github.com/go-crypt/crypt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v3"
 )
 
 func TestPasswordDigest_MarshalYAML(t *testing.T) {

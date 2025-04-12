@@ -31,7 +31,7 @@ func OAuthDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.Response
 		return
 	}
 
-	if response, err = ctx.Providers.OpenIDConnect.NewRFC862DeviceAuthorizeResponse(ctx, request, oidc.NewSession()); err != nil {
+	if response, err = ctx.Providers.OpenIDConnect.NewRFC862DeviceAuthorizeResponse(ctx, request, oidc.NewSessionWithRequestedAt(ctx.Clock.Now())); err != nil {
 		ctx.Logger.Errorf("Device Authorization Request with id '%s' on client with id '%s'  failed with error: %s", request.GetID(), request.GetClient().GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
 
 		errorsx.WriteJSONError(rw, req, err)
@@ -118,7 +118,7 @@ func OAuthDeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.ResponseW
 
 	session := oidc.NewSessionWithRequester(ctx, issuer, ctx.Providers.OpenIDConnect.Issuer.GetKeyID(ctx, client.GetIDTokenSignedResponseKeyID(), client.GetIDTokenSignedResponseAlg()), details.Username, userSession.AuthenticationMethodRefs.MarshalRFC8176(), extra, userSession.LastAuthenticatedTime(), consent, requester, requests)
 
-	if client.GetClaimsStrategy().MergeAccessTokenClaimsIntoIDToken() {
+	if client.GetClaimsStrategy().MergeAccessTokenAudienceWithIDTokenAudience() {
 		session.DefaultSession.Claims.Audience = append([]string{clientID}, requester.GetGrantedAudience()...)
 	}
 

@@ -90,7 +90,6 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	assert.Equal(t, subject.String(), session.Claims.Subject)
 	assert.Equal(t, amr, session.Claims.AuthenticationMethodsReferences)
 	assert.Equal(t, xjwt.NewNumericDate(authAt.UTC()), session.Claims.AuthTime)
-	assert.Equal(t, xjwt.NewNumericDate(requested.UTC()), session.Claims.RequestedAt)
 	assert.Equal(t, issuer, session.Claims.Issuer)
 	assert.Equal(t, "john", session.Claims.Extra[oidc.ClaimPreferredUsername])
 
@@ -126,7 +125,6 @@ func TestNewSessionWithAuthorizeRequest(t *testing.T) {
 	assert.Equal(t, subject.String(), session.Claims.Subject)
 	assert.Equal(t, amr, session.Claims.AuthenticationMethodsReferences)
 	assert.Equal(t, authAt.UTC(), session.Claims.AuthTime.Time)
-	assert.Equal(t, requested.UTC(), session.Claims.RequestedAt.Time)
 	assert.Equal(t, issuer, session.Claims.Issuer)
 	assert.Equal(t, "john", session.Claims.Extra[oidc.ClaimPreferredUsername])
 

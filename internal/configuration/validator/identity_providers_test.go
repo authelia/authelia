@@ -4214,6 +4214,23 @@ func TestShouldValidateOpenIDConnectClaimsPolicies(t *testing.T) {
 			},
 		},
 		{
+			name: "ShouldAllowNonIDTokenClaims",
+			have: &schema.Configuration{
+				AuthenticationBackend: schema.AuthenticationBackend{
+					File: &schema.AuthenticationBackendFile{},
+				},
+				IdentityProviders: schema.IdentityProviders{
+					OIDC: &schema.IdentityProvidersOpenIDConnect{
+						ClaimsPolicies: map[string]schema.IdentityProvidersOpenIDConnectClaimsPolicy{
+							"example": {
+								IDToken: []string{"rat", "updated_at"},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
 			name: "ShouldAllowCustomClaimsManual",
 			have: &schema.Configuration{
 				AuthenticationBackend: schema.AuthenticationBackend{

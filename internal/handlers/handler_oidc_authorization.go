@@ -14,12 +14,12 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
-// OpenIDConnectAuthorization handles GET/POST requests to the OpenID Connect 1.0 Authorization endpoint.
+// OpenIDConnectAuthorizationGET handles GET/POST requests to the OpenID Connect 1.0 Authorization endpoint.
 //
 // https://openid.net/specs/openid-connect-core-1_0.html#AuthorizationEndpoint
 //
 //nolint:gocyclo
-func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
+func OpenIDConnectAuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	var (
 		requester oauthelia2.AuthorizeRequester
 		responder oauthelia2.AuthorizeResponder
@@ -93,22 +93,12 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 		return
 	}
 
-	if requester.GetRequestForm().Get(oidc.FormParameterPrompt) == oidc.PromptNone {
-		if userSession.IsAnonymous() {
-			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' could not be processed: the 'prompt' type of 'none' was requested but the user is not logged in", requester.GetID(), client.GetID(), policy.Name)
+	if requester.GetRequestForm().Get(oidc.FormParameterPrompt) == oidc.PromptNone && userSession.IsAnonymous() {
+		ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' could not be processed: the 'prompt' type of 'none' was requested but the user is not logged in", requester.GetID(), client.GetID(), policy.Name)
 
-			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oauthelia2.ErrLoginRequired)
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oauthelia2.ErrLoginRequired)
 
-			return
-		}
-
-		if client.GetConsentPolicy().Mode == oidc.ClientConsentModeExplicit {
-			ctx.Logger.Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' could not be processed: the 'prompt' type of 'none' was requested but client is configured to require explicit consent", requester.GetID(), client.GetID(), policy.Name)
-
-			ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, oauthelia2.ErrConsentRequired)
-
-			return
-		}
+		return
 	}
 
 	issuer = ctx.RootURL()
@@ -116,6 +106,8 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 	if consent, handled = handleOIDCAuthorizationConsent(ctx, issuer, client, userSession, rw, r, requester); handled {
 		return
 	}
+
+	requester.SetRequestedAt(consent.RequestedAt)
 
 	var details *authentication.UserDetailsExtended
 
@@ -139,7 +131,7 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 
 	session := oidc.NewSessionWithRequester(ctx, issuer, ctx.Providers.OpenIDConnect.Issuer.GetKeyID(ctx, client.GetIDTokenSignedResponseKeyID(), client.GetIDTokenSignedResponseAlg()), details.Username, userSession.AuthenticationMethodRefs.MarshalRFC8176(), extra, userSession.LastAuthenticatedTime(), consent, requester, requests)
 
-	if client.GetClaimsStrategy().MergeAccessTokenClaimsIntoIDToken() {
+	if client.GetClaimsStrategy().MergeAccessTokenAudienceWithIDTokenAudience() {
 		session.DefaultSession.Claims.Audience = append([]string{clientID}, requester.GetGrantedAudience()...)
 	}
 
@@ -165,6 +157,32 @@ func OpenIDConnectAuthorization(ctx *middlewares.AutheliaCtx, rw http.ResponseWr
 	}
 
 	ctx.Providers.OpenIDConnect.WriteAuthorizeResponse(ctx, rw, requester, responder)
+}
+
+// OpenIDConnectAuthorizationPOST handles redirecting users to use the GET request to ensure the session cookie is
+// included if available.
+func OpenIDConnectAuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
+	var err error
+
+	if err = r.ParseMultipartForm(1 << 20); err != nil && !errors.Is(err, http.ErrNotMultipart) {
+		requester := oauthelia2.NewAuthorizeRequest()
+
+		ctx.Logger.WithError(err).Errorf("Authorization Request with id '%s' had an error parsing a multipart form.", requester.GetID())
+
+		ctx.Providers.OpenIDConnect.WriteAuthorizeError(ctx, rw, requester, err)
+
+		return
+	}
+
+	query := r.Form
+
+	redirectURL := ctx.RootURL()
+
+	redirectURL = redirectURL.JoinPath(oidc.EndpointPathAuthorization)
+
+	redirectURL.RawQuery = query.Encode()
+
+	http.Redirect(rw, r, redirectURL.String(), http.StatusFound)
 }
 
 // OpenIDConnectPushedAuthorizationRequest handles POST requests to the OAuth 2.0 Pushed Authorization Requests endpoint.
@@ -209,7 +227,7 @@ func OpenIDConnectPushedAuthorizationRequest(ctx *middlewares.AutheliaCtx, rw ht
 		return
 	}
 
-	if responder, err = ctx.Providers.OpenIDConnect.NewPushedAuthorizeResponse(ctx, requester, oidc.NewSession()); err != nil {
+	if responder, err = ctx.Providers.OpenIDConnect.NewPushedAuthorizeResponse(ctx, requester, oidc.NewSessionWithRequestedAt(ctx.Clock.Now())); err != nil {
 		ctx.Logger.Errorf("Pushed Authorization Request failed with error: %s", oauthelia2.ErrorToDebugRFC6749Error(err))
 
 		ctx.Providers.OpenIDConnect.WritePushedAuthorizeError(ctx, rw, requester, err)

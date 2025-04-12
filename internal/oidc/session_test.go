@@ -2,6 +2,7 @@ package oidc_test
 
 import (
 	"testing"
+	"time"
 
 	"authelia.com/provider/oauth2/handler/openid"
 	"authelia.com/provider/oauth2/token/jwt"
@@ -118,10 +119,10 @@ func TestSession_GetJWTClaims(t *testing.T) {
 			"ShouldAllowTopLevelClaims",
 			&oidc.Session{DefaultSession: &openid.DefaultSession{
 				Claims: &jwt.IDTokenClaims{
-					RequestedAt: jwt.Now(),
-					Extra:       map[string]any{"test": 1},
+					Extra: map[string]any{"test": 1},
 				},
-				Headers: &jwt.Headers{},
+				RequestedAt: time.Now(),
+				Headers:     &jwt.Headers{},
 			}, Extra: map[string]any{oidc.ClaimClientIdentifier: "x", "test": 1}, ClientID: abc, AllowedTopLevelClaims: []string{oidc.ClaimClientIdentifier}},
 			&jwt.JWTClaims{Extra: map[string]any{oidc.ClaimClientIdentifier: abc, oidc.ClaimExtra: map[string]any{oidc.ClaimClientIdentifier: "x", "test": 1}}},
 		},
@@ -129,10 +130,10 @@ func TestSession_GetJWTClaims(t *testing.T) {
 			"ShouldAllowTopLevelClaims",
 			&oidc.Session{DefaultSession: &openid.DefaultSession{
 				Claims: &jwt.IDTokenClaims{
-					RequestedAt: jwt.Now(),
-					Extra:       map[string]any{"test": 1},
+					Extra: map[string]any{"test": 1},
 				},
-				Headers: &jwt.Headers{},
+				RequestedAt: time.Now(),
+				Headers:     &jwt.Headers{},
 			}, Extra: map[string]any{oidc.ClaimClientIdentifier: "x"}, ClientID: abc, AllowedTopLevelClaims: []string{oidc.ClaimClientIdentifier, "test"}},
 			&jwt.JWTClaims{Extra: map[string]any{oidc.ClaimClientIdentifier: abc, oidc.ClaimExtra: map[string]any{oidc.ClaimClientIdentifier: "x"}, "test": 1}},
 		},
@@ -140,10 +141,10 @@ func TestSession_GetJWTClaims(t *testing.T) {
 			"ShouldNotIncludeAMR",
 			&oidc.Session{DefaultSession: &openid.DefaultSession{
 				Claims: &jwt.IDTokenClaims{
-					RequestedAt: jwt.Now(),
-					Extra:       map[string]any{oidc.ClaimAuthenticationMethodsReference: []string{oidc.AMRMultiFactorAuthentication}},
+					Extra: map[string]any{oidc.ClaimAuthenticationMethodsReference: []string{oidc.AMRMultiFactorAuthentication}},
 				},
-				Headers: &jwt.Headers{},
+				RequestedAt: time.Now(),
+				Headers:     &jwt.Headers{},
 			}, Extra: map[string]any{}, ClientID: abc, AllowedTopLevelClaims: []string{oidc.ClaimClientIdentifier}},
 			&jwt.JWTClaims{Extra: map[string]any{oidc.ClaimClientIdentifier: abc}},
 		},
@@ -151,10 +152,10 @@ func TestSession_GetJWTClaims(t *testing.T) {
 			"ShouldNotIncludeAMRAbsent",
 			&oidc.Session{DefaultSession: &openid.DefaultSession{
 				Claims: &jwt.IDTokenClaims{
-					RequestedAt: jwt.Now(),
-					Extra:       map[string]any{},
+					Extra: map[string]any{},
 				},
-				Headers: &jwt.Headers{},
+				RequestedAt: time.Now(),
+				Headers:     &jwt.Headers{},
 			}, Extra: map[string]any{}, ClientID: abc, AllowedTopLevelClaims: []string{oidc.ClaimClientIdentifier, oidc.ClaimAuthenticationMethodsReference}},
 			&jwt.JWTClaims{Extra: map[string]any{oidc.ClaimClientIdentifier: abc}},
 		},
@@ -162,11 +163,11 @@ func TestSession_GetJWTClaims(t *testing.T) {
 			"ShouldIncludeAMR",
 			&oidc.Session{DefaultSession: &openid.DefaultSession{
 				Claims: &jwt.IDTokenClaims{
-					RequestedAt:                     jwt.Now(),
 					AuthenticationMethodsReferences: []string{oidc.AMRMultiFactorAuthentication},
 					Extra:                           map[string]any{},
 				},
-				Headers: &jwt.Headers{},
+				RequestedAt: time.Now(),
+				Headers:     &jwt.Headers{},
 			}, Extra: map[string]any{}, ClientID: abc, AllowedTopLevelClaims: []string{oidc.ClaimClientIdentifier, oidc.ClaimAuthenticationMethodsReference}},
 			&jwt.JWTClaims{Extra: map[string]any{oidc.ClaimAuthenticationMethodsReference: []string{oidc.AMRMultiFactorAuthentication}, oidc.ClaimClientIdentifier: abc}},
 		},

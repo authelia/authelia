@@ -54,7 +54,13 @@ func handleOAuth2AuthorizationClaims(ctx *middlewares.AutheliaCtx, rw http.Respo
 
 		oidc.GrantScopeAudienceConsent(requester, consent)
 
-		if err = claimsStrategy.PopulateIDTokenClaims(ctx, scopeStrategy, client, requester.GetGrantedScopes(), oauthelia2.Arguments(consent.GrantedClaims), requests.GetIDTokenRequests(), details, ctx.Clock.Now(), nil, extra); err != nil {
+		var implicit bool
+
+		if r, ok := requester.(oauthelia2.AuthorizeRequester); ok {
+			implicit = r.GetResponseTypes().ExactOne(oidc.ResponseTypeImplicitFlowIDToken)
+		}
+
+		if err = claimsStrategy.PopulateIDTokenClaims(ctx, scopeStrategy, client, requester.GetGrantedScopes(), oauthelia2.Arguments(consent.GrantedClaims), requests.GetIDTokenRequests(), details, consent.RequestedAt, ctx.Clock.Now(), nil, extra, implicit); err != nil {
 			ctx.Logger.Errorf("%s Response for Request with id '%s' on client with id '%s' could not be created: %s", flow, requester.GetID(), client.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
 
 			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, err)
