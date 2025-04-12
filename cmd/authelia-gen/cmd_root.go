@@ -88,7 +88,11 @@ func rootSubCommandsRunE(cmd *cobra.Command, args []string) (err error) {
 			continue
 		}
 
-		if (cmd.Use == cmdUseDocs && subCmd.Use == cmdUseManage) || cmd.Use == cmdUseMisc {
+		if cmd.Use == cmdUseDocs && subCmd.Use == cmdUseManage {
+			continue
+		}
+
+		if cmd.Use == cmdUseRoot && subCmd.Use == cmdUseMisc {
 			continue
 		}
 
