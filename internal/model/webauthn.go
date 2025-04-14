@@ -339,27 +339,27 @@ func (c *WebAuthnCredential) UnmarshalYAML(value *yaml.Node) (err error) {
 
 // WebAuthnCredentialData represents a WebAuthn Credential in a way which can be serialized.
 type WebAuthnCredentialData struct {
-	ID              int        `json:"id" yaml:"-"`
-	CreatedAt       time.Time  `yaml:"created_at" json:"created_at" jsonschema:"title=Created At" jsonschema_description:"The time this credential was created."`
-	LastUsedAt      *time.Time `yaml:"last_used_at,omitempty" json:"last_used_at,omitempty" jsonschema:"title=Last Used At" jsonschema_description:"The last time this credential was used."`
-	RPID            string     `yaml:"rpid" json:"rpid" jsonschema:"title=Relying Party ID" jsonschema_description:"The Relying Party ID used to register this credential."`
-	Username        string     `yaml:"username" json:"username" jsonschema:"title=Username" jsonschema_description:"The username of the user this credential belongs to."`
-	Description     string     `yaml:"description" json:"description" jsonschema:"title=Description" jsonschema_description:"The user description of this credential."`
-	KID             string     `yaml:"kid" json:"kid" jsonschema:"title=Public Key ID" jsonschema_description:"The Public Key ID of this credential."`
-	AAGUID          *string    `yaml:"aaguid,omitempty" json:"aaguid,omitempty" jsonschema:"title=AAGUID" jsonschema_description:"The Authenticator Attestation Global Unique Identifier of this credential."`
-	AttestationType string     `yaml:"attestation_type" json:"attestation_type" jsonschema:"title=Attestation Type" jsonschema_description:"The attestation format type this credential uses."`
-	Attachment      string     `yaml:"attachment" json:"attachment" jsonschema:"title=Attachment" jsonschema_description:"The last recorded credential attachment type."`
-	Transports      []string   `yaml:"transports" json:"transports" jsonschema:"title=Transports" jsonschema_description:"The last recorded credential transports."`
-	SignCount       uint32     `yaml:"sign_count" json:"sign_count" jsonschema:"title=Sign Count" jsonschema_description:"The last recorded credential sign count."`
-	CloneWarning    bool       `yaml:"clone_warning" json:"clone_warning" jsonschema:"title=Clone Warning" jsonschema_description:"The clone warning status of the credential."`
-	Legacy          bool       `yaml:"legacy" json:"legacy" jsonschema:"title=Legacy" jsonschema_description:"The legacy value indicates this credential may need to be registered again."`
-	Discoverable    bool       `yaml:"discoverable" json:"discoverable" jsonschema:"title=Discoverable" jsonschema_description:"The discoverable status of this credential."`
-	Present         bool       `yaml:"present" json:"present" jsonschema:"title=Present" jsonschema_description:"The user presence status of this credential."`
-	Verified        bool       `yaml:"verified" json:"verified" jsonschema:"title=Verified" jsonschema_description:"The verified status of this credential."`
-	BackupEligible  bool       `yaml:"backup_eligible" json:"backup_eligible" jsonschema:"title=Backup Eligible" jsonschema_description:"The backup eligible status of this credential."`
-	BackupState     bool       `yaml:"backup_state" json:"backup_state" jsonschema:"title=Backup Eligible" jsonschema_description:"The backup eligible status of this credential."`
-	PublicKey       string     `yaml:"public_key" json:"public_key" jsonschema:"title=Public Key" jsonschema_description:"The credential public key."`
-	Attestation     string     `yaml:"attestation" json:"attestation,omitempty" jsonschema:"title=Attestation" jsonschema_description:"The credential attestation information for auditing and validation."`
+	ID              int        `json:"id" yaml:"-" toml:"-"`
+	CreatedAt       time.Time  `yaml:"created_at" toml:"created_at" json:"created_at" jsonschema:"title=Created At" jsonschema_description:"The time this credential was created."`
+	LastUsedAt      *time.Time `yaml:"last_used_at,omitempty" toml:"last_used_at,omitempty" json:"last_used_at,omitempty" jsonschema:"title=Last Used At" jsonschema_description:"The last time this credential was used."`
+	RPID            string     `yaml:"rpid" toml:"rpid" json:"rpid" jsonschema:"title=Relying Party ID" jsonschema_description:"The Relying Party ID used to register this credential."`
+	Username        string     `yaml:"username" toml:"username" json:"username" jsonschema:"title=Username" jsonschema_description:"The username of the user this credential belongs to."`
+	Description     string     `yaml:"description" toml:"description" json:"description" jsonschema:"title=Description" jsonschema_description:"The user description of this credential."`
+	KID             string     `yaml:"kid" toml:"kid" json:"kid" jsonschema:"title=Public Key ID" jsonschema_description:"The Public Key ID of this credential."`
+	AAGUID          *string    `yaml:"aaguid,omitempty" toml:"aaguid,omitempty" json:"aaguid,omitempty" jsonschema:"title=AAGUID" jsonschema_description:"The Authenticator Attestation Global Unique Identifier of this credential."`
+	AttestationType string     `yaml:"attestation_type" toml:"attestation_type" json:"attestation_type" jsonschema:"title=Attestation Type" jsonschema_description:"The attestation format type this credential uses."`
+	Attachment      string     `yaml:"attachment" toml:"attachment" json:"attachment" jsonschema:"title=Attachment" jsonschema_description:"The last recorded credential attachment type."`
+	Transports      []string   `yaml:"transports" toml:"transports" json:"transports" jsonschema:"title=Transports" jsonschema_description:"The last recorded credential transports."`
+	SignCount       uint32     `yaml:"sign_count" toml:"sign_count" json:"sign_count" jsonschema:"title=Sign Count" jsonschema_description:"The last recorded credential sign count."`
+	CloneWarning    bool       `yaml:"clone_warning" toml:"clone_warning" json:"clone_warning" jsonschema:"title=Clone Warning" jsonschema_description:"The clone warning status of the credential."`
+	Legacy          bool       `yaml:"legacy" toml:"legacy" json:"legacy" jsonschema:"title=Legacy" jsonschema_description:"The legacy value indicates this credential may need to be registered again."`
+	Discoverable    bool       `yaml:"discoverable" toml:"discoverable" json:"discoverable" jsonschema:"title=Discoverable" jsonschema_description:"The discoverable status of this credential."`
+	Present         bool       `yaml:"present" toml:"present" json:"present" jsonschema:"title=Present" jsonschema_description:"The user presence status of this credential."`
+	Verified        bool       `yaml:"verified" toml:"verified" json:"verified" jsonschema:"title=Verified" jsonschema_description:"The verified status of this credential."`
+	BackupEligible  bool       `yaml:"backup_eligible" toml:"backup_eligible" json:"backup_eligible" jsonschema:"title=Backup Eligible" jsonschema_description:"The backup eligible status of this credential."`
+	BackupState     bool       `yaml:"backup_state" toml:"backup_state" json:"backup_state" jsonschema:"title=Backup Eligible" jsonschema_description:"The backup eligible status of this credential."`
+	PublicKey       string     `yaml:"public_key" toml:"public_key" json:"public_key" jsonschema:"title=Public Key" jsonschema_description:"The credential public key."`
+	Attestation     string     `yaml:"attestation" toml:"attestation" json:"attestation,omitempty" jsonschema:"title=Attestation" jsonschema_description:"The credential attestation information for auditing and validation."`
 }
 
 func (c *WebAuthnCredentialData) ToCredential() (credential *WebAuthnCredential, err error) {
@@ -422,12 +422,12 @@ func (c *WebAuthnCredentialData) ToCredential() (credential *WebAuthnCredential,
 
 // WebAuthnCredentialExport represents a WebAuthnCredential export file.
 type WebAuthnCredentialExport struct {
-	WebAuthnCredentials []WebAuthnCredential `yaml:"webauthn_credentials"`
+	WebAuthnCredentials []WebAuthnCredential `yaml:"webauthn_credentials" toml:"webauthn_credentials"`
 }
 
 // WebAuthnCredentialDataExport represents a WebAuthnCredential export file.
 type WebAuthnCredentialDataExport struct {
-	WebAuthnCredentials []WebAuthnCredentialData `yaml:"webauthn_credentials" json:"webauthn_credentials" jsonschema:"title=WebAuthn Credentials" jsonschema_description:"The list of WebAuthn credentials."`
+	WebAuthnCredentials []WebAuthnCredentialData `yaml:"webauthn_credentials" toml:"webauthn_credentials" json:"webauthn_credentials" jsonschema:"title=WebAuthn Credentials" jsonschema_description:"The list of WebAuthn credentials."`
 }
 
 // ToData converts this WebAuthnCredentialExport into a WebAuthnCredentialDataExport.

@@ -21,6 +21,9 @@ const (
 
 	extYML  = ".yml"
 	extYAML = ".yaml"
+	extTML  = ".tml"
+	extTOML = ".toml"
+	extJSON = ".json"
 )
 
 const (

@@ -177,24 +177,24 @@ func (c *TOTPConfiguration) UnmarshalYAML(value *yaml.Node) (err error) {
 
 // TOTPConfigurationData is used for marshalling/unmarshalling tasks.
 type TOTPConfigurationData struct {
-	CreatedAt  time.Time  `yaml:"created_at" json:"created_at" jsonschema:"title=Created At" jsonschema_description:"The time the configuration was created."`
-	LastUsedAt *time.Time `yaml:"last_used_at" json:"last_used_at" jsonschema:"title=Last Used At" jsonschema_description:"The time the configuration was last used at."`
-	Username   string     `yaml:"username" json:"username" jsonschema:"title=Username" jsonschema_description:"The username of the user this configuration belongs to."`
-	Issuer     string     `yaml:"issuer" json:"issuer" jsonschema:"title=Issuer" jsonschema_description:"The issuer name this was generated with."`
-	Algorithm  string     `yaml:"algorithm" json:"algorithm" jsonschema:"title=Algorithm" jsonschema_description:"The algorithm this configuration uses."`
-	Digits     uint32     `yaml:"digits" json:"digits" jsonschema:"title=Digits" jsonschema_description:"The number of digits this configuration uses."`
-	Period     uint       `yaml:"period" json:"period" jsonschema:"title=Period" jsonschema_description:"The period of time this configuration uses."`
-	Secret     string     `yaml:"secret" json:"secret" jsonschema:"title=Secret" jsonschema_description:"The secret shared key for this configuration."`
+	CreatedAt  time.Time  `yaml:"created_at" toml:"created_at" json:"created_at" jsonschema:"title=Created At" jsonschema_description:"The time the configuration was created."`
+	LastUsedAt *time.Time `yaml:"last_used_at" toml:"last_used_at" json:"last_used_at" jsonschema:"title=Last Used At" jsonschema_description:"The time the configuration was last used at."`
+	Username   string     `yaml:"username" toml:"username" json:"username" jsonschema:"title=Username" jsonschema_description:"The username of the user this configuration belongs to."`
+	Issuer     string     `yaml:"issuer" toml:"issuer" json:"issuer" jsonschema:"title=Issuer" jsonschema_description:"The issuer name this was generated with."`
+	Algorithm  string     `yaml:"algorithm" toml:"algorithm" json:"algorithm" jsonschema:"title=Algorithm" jsonschema_description:"The algorithm this configuration uses."`
+	Digits     uint32     `yaml:"digits" toml:"digits" json:"digits" jsonschema:"title=Digits" jsonschema_description:"The number of digits this configuration uses."`
+	Period     uint       `yaml:"period" toml:"period" json:"period" jsonschema:"title=Period" jsonschema_description:"The period of time this configuration uses."`
+	Secret     string     `yaml:"secret" toml:"secret" json:"secret" jsonschema:"title=Secret" jsonschema_description:"The secret shared key for this configuration."`
 }
 
 // TOTPConfigurationDataExport represents a TOTPConfiguration export file.
 type TOTPConfigurationDataExport struct {
-	TOTPConfigurations []TOTPConfigurationData `yaml:"totp_configurations" json:"totp_configurations" jsonschema:"title=TOTP Configurations" jsonschema_description:"The list of TOTP configurations."`
+	TOTPConfigurations []TOTPConfigurationData `yaml:"totp_configurations" toml:"totp_configurations" json:"totp_configurations" jsonschema:"title=TOTP Configurations" jsonschema_description:"The list of TOTP configurations."`
 }
 
 // TOTPConfigurationExport represents a TOTPConfiguration export file.
 type TOTPConfigurationExport struct {
-	TOTPConfigurations []TOTPConfiguration `yaml:"totp_configurations"`
+	TOTPConfigurations []TOTPConfiguration `yaml:"totp_configurations" toml:"totp_configurations"`
 }
 
 // ToData converts this TOTPConfigurationExport into a TOTPConfigurationDataExport.
