@@ -137,10 +137,10 @@ const PasswordForm = function (props: Props) {
                         id="sign-in-button"
                         variant="contained"
                         color="primary"
-                        fullWidth
+                        fullWidth={true}
+                        endIcon={loading ? <CircularProgress size={20} /> : null}
                         disabled={loading}
                         onClick={handleSignIn}
-                        endIcon={loading ? <CircularProgress size={20} /> : null}
                     >
                         {translate("Authenticate")}
                     </Button>

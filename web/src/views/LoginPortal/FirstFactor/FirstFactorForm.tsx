@@ -304,10 +304,10 @@ const FirstFactorForm = function (props: Props) {
                             id="sign-in-button"
                             variant="contained"
                             color="primary"
-                            fullWidth
+                            fullWidth={true}
+                            endIcon={loading ? <CircularProgress size={20} /> : null}
                             disabled={disabled}
                             onClick={handleSignIn}
-                            endIcon={loading ? <CircularProgress size={20} /> : null}
                         >
                             {translate("Sign in")}
                         </Button>
