@@ -95,12 +95,12 @@ to your user groups in Authelia.
     - Scopes: `openid,profile,email,groups`
     - Redirect URI: `https://minio.{{< sitevar name="domain" nojs="example.com" >}}/oauth_callback`
     - Role Policy: Leave Empty
-    - Claim User Info: Disabled
+    - Claim User Info: Enabled
     - Redirect URI Dynamic: Disabled
 5. Press `Save` at the bottom
 6. Accept the offer of a server restart at the top
     - Refresh the page and sign out if not done so automatically
-7. Add a [default policy](https://min.io/docs/minio/linux/administration/identity-access-management/policy-based-access-control.html#built-in-policies) to your user groups in Authelia
+7. Add your user to an authelia group that matches the policy name in MinIO. There are select [default policies](https://min.io/docs/minio/linux/administration/identity-access-management/policy-based-access-control.html#built-in-policies) that can be used. (The group name and policy name must match.)
 8. When the login screen appears again, click the `Other Authentication Methods` open, then select `Authelia` from the list.
 9. Login
 
