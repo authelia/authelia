@@ -21,7 +21,7 @@ seo:
 ## Tested Versions
 
 * [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+  * [v4.39.0](https://github.com/authelia/authelia/releases/tag/v4.39.0)
 * [Apache Guacamole]
   * [1.5.5](https://guacamole.apache.org/releases/1.5.5/)
 
@@ -53,6 +53,10 @@ identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
+    claims_policies:
+      ## As of version 4.39, the claims policy needs to be set.
+      default:
+        id_token: ['groups', 'email', 'email_verified', 'preferred_username', 'name']
     clients:
       - client_id: 'guacamole'
         client_name: 'Apache Guacamole'
@@ -70,6 +74,7 @@ identity_providers:
         grant_types:
           - 'implicit'
         userinfo_signed_response_alg: 'none'
+        claims_policies: 'default'
 ```
 
 ### Application
