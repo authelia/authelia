@@ -721,3 +721,13 @@ func TLSVersionFromBytesString(input string) (version int, err error) {
 		return -1, fmt.Errorf("tls version 0x%x is unknown", version)
 	}
 }
+
+func IsInsecureCipherSuite(cipherSuite uint16) bool {
+	for _, suite := range tls.InsecureCipherSuites() {
+		if suite.ID == cipherSuite {
+			return true
+		}
+	}
+
+	return false
+}
