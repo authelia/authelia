@@ -154,6 +154,7 @@ const (
 )
 
 const (
+	EncryptionAlgNone             = "none"
 	EncryptionAlgRSA15            = "RSA1_5"
 	EncryptionAlgRSAOAEP          = "RSA-OAEP"
 	EncryptionAlgRSAOAEP256       = "RSA-OAEP-256"

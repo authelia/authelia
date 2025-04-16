@@ -53,7 +53,7 @@ func TestShouldRaiseErrorWhenInvalidOIDCServerConfigurationBothKeyTypesSpecified
 				JSONWebKeys: []schema.JWK{
 					{
 						Use:       "sig",
-						Algorithm: "RS256",
+						Algorithm: oidc.SigningAlgRSAUsingSHA256,
 						Key:       keyRSA4096,
 					},
 				},
@@ -863,10 +863,11 @@ func TestValidateIdentityProvidersShouldRaiseErrorsOnInvalidClientTypes(t *testi
 	ValidateIdentityProviders(NewValidateCtx(), config, validator)
 
 	require.Len(t, validator.Errors(), 2)
-	assert.Len(t, validator.Warnings(), 0)
+	assert.Len(t, validator.Warnings(), 1)
 
 	assert.EqualError(t, validator.Errors()[0], "identity_providers: oidc: clients: client 'client-with-invalid-secret': option 'client_secret' is required to be empty when option 'public' is true")
 	assert.EqualError(t, validator.Errors()[1], "identity_providers: oidc: clients: client 'client-with-bad-redirect-uri': option 'redirect_uris' has the redirect uri 'urn:ietf:wg:oauth:2.0:oob' when option 'public' is false but this is invalid as this uri is not valid for the openid connect confidential client type")
+	assert.EqualError(t, validator.Warnings()[0], "identity_providers: oidc: clients: client 'client-with-invalid-secret': option 'client_secret' is plaintext but for clients not using any endpoint authentication method 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed in the near future")
 }
 
 func TestValidateIdentityProvidersShouldNotRaiseErrorsOnValidClientOptions(t *testing.T) {
@@ -2218,9 +2219,9 @@ func TestValidateOIDCClients(t *testing.T) {
 			nil,
 			[]string{
 				"identity_providers: oidc: option 'discovery_signed_response_alg' must be one of 'RS256' or 'none' but it's configured as 'rs256'",
-				"identity_providers: oidc: clients: client 'test': option 'authorization_signed_response_alg' must be one of 'RS256' but it's configured as 'rs256'",
+				"identity_providers: oidc: clients: client 'test': option 'authorization_signed_response_alg' must be one of 'RS256' or 'none' but it's configured as 'rs256'",
 				"identity_providers: oidc: clients: client 'test': option 'id_token_signed_response_alg' must be one of 'RS256' but it's configured as 'rs256'",
-				"identity_providers: oidc: clients: client 'test': option 'access_token_signed_response_alg' must be one of 'RS256' but it's configured as 'rs256'",
+				"identity_providers: oidc: clients: client 'test': option 'access_token_signed_response_alg' must be one of 'RS256' or 'none' but it's configured as 'rs256'",
 				"identity_providers: oidc: clients: client 'test': option 'userinfo_signed_response_alg' must be one of 'RS256' or 'none' but it's configured as 'rs256'",
 				"identity_providers: oidc: clients: client 'test': option 'introspection_signed_response_alg' must be one of 'RS256' or 'none' but it's configured as 'rs256'",
 			},
@@ -2902,6 +2903,273 @@ func TestValidateOIDCClients(t *testing.T) {
 			},
 		},
 		{
+			"ShouldRaiseErrorOnInvalidEncryptionAlgs",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].AuthorizationEncryptedResponseAlg = "01alg"
+				have.Clients[0].IDTokenEncryptedResponseAlg = "abalg"
+				have.Clients[0].UserinfoEncryptedResponseAlg = "cdalg"
+				have.Clients[0].IntrospectionEncryptedResponseAlg = "efalg"
+				have.Clients[0].AccessTokenEncryptedResponseAlg = "ghalg"
+
+				have.Clients[0].AuthorizationEncryptedResponseEnc = "01enc"
+				have.Clients[0].IDTokenEncryptedResponseEnc = "abenc"
+				have.Clients[0].UserinfoEncryptedResponseEnc = "cdenc"
+				have.Clients[0].IntrospectionEncryptedResponseEnc = "efenc"
+				have.Clients[0].AccessTokenEncryptedResponseEnc = "ghenc"
+			},
+			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
+				assert.Equal(t, "01alg", have.Clients[0].AuthorizationEncryptedResponseAlg)
+				assert.Equal(t, "abalg", have.Clients[0].IDTokenEncryptedResponseAlg)
+				assert.Equal(t, "cdalg", have.Clients[0].UserinfoEncryptedResponseAlg)
+				assert.Equal(t, "efalg", have.Clients[0].IntrospectionEncryptedResponseAlg)
+				assert.Equal(t, "ghalg", have.Clients[0].AccessTokenEncryptedResponseAlg)
+
+				assert.Equal(t, "01enc", have.Clients[0].AuthorizationEncryptedResponseEnc)
+				assert.Equal(t, "abenc", have.Clients[0].IDTokenEncryptedResponseEnc)
+				assert.Equal(t, "cdenc", have.Clients[0].UserinfoEncryptedResponseEnc)
+				assert.Equal(t, "efenc", have.Clients[0].IntrospectionEncryptedResponseEnc)
+				assert.Equal(t, "ghenc", have.Clients[0].AccessTokenEncryptedResponseEnc)
+			},
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'authorization_encrypted_response_alg' must be one of 'none', 'RSA1_5', 'RSA-OAEP', 'RSA-OAEP-256', 'ECDH-ES', 'ECDH-ES+A128KW', 'ECDH-ES+A192KW', 'ECDH-ES+A256KW', 'A128KW', 'A192KW', 'A256KW', 'A128GCMKW', 'A192GCMKW', 'A256GCMKW', 'PBES2-HS256+A128KW', 'PBES2-HS384+A192KW', or 'PBES2-HS512+A256KW' but it's configured as '01alg'",
+				"identity_providers: oidc: clients: client 'test': option 'authorization_encrypted_response_enc' must be one of 'A128GCM', 'A192GCM', 'A256GCM', 'A128CBC-HS256', 'A192CBC-HS384', or 'A256CBC-HS512' but it's configured as '01enc'",
+				"identity_providers: oidc: clients: client 'test': option 'id_token_encrypted_response_alg' must be one of 'none', 'RSA1_5', 'RSA-OAEP', 'RSA-OAEP-256', 'ECDH-ES', 'ECDH-ES+A128KW', 'ECDH-ES+A192KW', 'ECDH-ES+A256KW', 'A128KW', 'A192KW', 'A256KW', 'A128GCMKW', 'A192GCMKW', 'A256GCMKW', 'PBES2-HS256+A128KW', 'PBES2-HS384+A192KW', or 'PBES2-HS512+A256KW' but it's configured as 'abalg'",
+				"identity_providers: oidc: clients: client 'test': option 'id_token_encrypted_response_enc' must be one of 'A128GCM', 'A192GCM', 'A256GCM', 'A128CBC-HS256', 'A192CBC-HS384', or 'A256CBC-HS512' but it's configured as 'abenc'",
+				"identity_providers: oidc: clients: client 'test': option 'access_token_encrypted_response_alg' must be one of 'none', 'RSA1_5', 'RSA-OAEP', 'RSA-OAEP-256', 'ECDH-ES', 'ECDH-ES+A128KW', 'ECDH-ES+A192KW', 'ECDH-ES+A256KW', 'A128KW', 'A192KW', 'A256KW', 'A128GCMKW', 'A192GCMKW', 'A256GCMKW', 'PBES2-HS256+A128KW', 'PBES2-HS384+A192KW', or 'PBES2-HS512+A256KW' but it's configured as 'ghalg'",
+				"identity_providers: oidc: clients: client 'test': option 'access_token_encrypted_response_enc' must be one of 'A128GCM', 'A192GCM', 'A256GCM', 'A128CBC-HS256', 'A192CBC-HS384', or 'A256CBC-HS512' but it's configured as 'ghenc'",
+				"identity_providers: oidc: clients: client 'test': option 'userinfo_encrypted_response_alg' must be one of 'none', 'RSA1_5', 'RSA-OAEP', 'RSA-OAEP-256', 'ECDH-ES', 'ECDH-ES+A128KW', 'ECDH-ES+A192KW', 'ECDH-ES+A256KW', 'A128KW', 'A192KW', 'A256KW', 'A128GCMKW', 'A192GCMKW', 'A256GCMKW', 'PBES2-HS256+A128KW', 'PBES2-HS384+A192KW', or 'PBES2-HS512+A256KW' but it's configured as 'cdalg'",
+				"identity_providers: oidc: clients: client 'test': option 'userinfo_encrypted_response_enc' must be one of 'A128GCM', 'A192GCM', 'A256GCM', 'A128CBC-HS256', 'A192CBC-HS384', or 'A256CBC-HS512' but it's configured as 'cdenc'",
+				"identity_providers: oidc: clients: client 'test': option 'introspection_encrypted_response_alg' must be one of 'none', 'RSA1_5', 'RSA-OAEP', 'RSA-OAEP-256', 'ECDH-ES', 'ECDH-ES+A128KW', 'ECDH-ES+A192KW', 'ECDH-ES+A256KW', 'A128KW', 'A192KW', 'A256KW', 'A128GCMKW', 'A192GCMKW', 'A256GCMKW', 'PBES2-HS256+A128KW', 'PBES2-HS384+A192KW', or 'PBES2-HS512+A256KW' but it's configured as 'efalg'",
+				"identity_providers: oidc: clients: client 'test': option 'introspection_encrypted_response_enc' must be one of 'A128GCM', 'A192GCM', 'A256GCM', 'A128CBC-HS256', 'A192CBC-HS384', or 'A256CBC-HS512' but it's configured as 'efenc'",
+			},
+		},
+		{
+			"ShouldRaiseErrorsOnValidEncryptionAlgsSetWithoutSigningAlgs",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].AuthorizationEncryptedResponseAlg = oidc.EncryptionAlgECDHES
+				have.Clients[0].IDTokenEncryptedResponseAlg = oidc.EncryptionAlgECDHES
+				have.Clients[0].UserinfoEncryptedResponseAlg = oidc.EncryptionAlgECDHES
+				have.Clients[0].IntrospectionEncryptedResponseAlg = oidc.EncryptionAlgECDHES
+				have.Clients[0].AccessTokenEncryptedResponseAlg = oidc.EncryptionAlgECDHES
+
+				have.Clients[0].AuthorizationEncryptedResponseEnc = ""
+				have.Clients[0].IDTokenEncryptedResponseEnc = ""
+				have.Clients[0].UserinfoEncryptedResponseEnc = ""
+				have.Clients[0].IntrospectionEncryptedResponseEnc = ""
+				have.Clients[0].AccessTokenEncryptedResponseEnc = ""
+			},
+			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
+				assert.Equal(t, oidc.EncryptionAlgECDHES, have.Clients[0].AuthorizationEncryptedResponseAlg)
+				assert.Equal(t, oidc.EncryptionAlgECDHES, have.Clients[0].IDTokenEncryptedResponseAlg)
+				assert.Equal(t, oidc.EncryptionAlgECDHES, have.Clients[0].UserinfoEncryptedResponseAlg)
+				assert.Equal(t, oidc.EncryptionAlgECDHES, have.Clients[0].IntrospectionEncryptedResponseAlg)
+				assert.Equal(t, oidc.EncryptionAlgECDHES, have.Clients[0].AccessTokenEncryptedResponseAlg)
+
+				assert.Equal(t, oidc.EncryptionEncA128CBCHS256, have.Clients[0].AuthorizationEncryptedResponseEnc)
+				assert.Equal(t, oidc.EncryptionEncA128CBCHS256, have.Clients[0].IDTokenEncryptedResponseEnc)
+				assert.Equal(t, oidc.EncryptionEncA128CBCHS256, have.Clients[0].UserinfoEncryptedResponseEnc)
+				assert.Equal(t, oidc.EncryptionEncA128CBCHS256, have.Clients[0].IntrospectionEncryptedResponseEnc)
+				assert.Equal(t, oidc.EncryptionEncA128CBCHS256, have.Clients[0].AccessTokenEncryptedResponseEnc)
+			},
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'jwks_uri' or 'jwks' must be configured when 'authorization_encrypted_response_alg' is set to 'ECDH-ES'",
+				"identity_providers: oidc: clients: client 'test': option 'authorization_encrypted_response_alg' must either not be configured or set to 'none' if 'authorization_signed_response_alg' is set to 'none'",
+				"identity_providers: oidc: clients: client 'test': option 'jwks_uri' or 'jwks' must be configured when 'id_token_encrypted_response_alg' is set to 'ECDH-ES'",
+				"identity_providers: oidc: clients: client 'test': option 'jwks_uri' or 'jwks' must be configured when 'access_token_encrypted_response_alg' is set to 'ECDH-ES'",
+				"identity_providers: oidc: clients: client 'test': option 'access_token_encrypted_response_alg' must either not be configured or set to 'none' if 'access_token_signed_response_alg' is set to 'none'",
+				"identity_providers: oidc: clients: client 'test': option 'jwks_uri' or 'jwks' must be configured when 'userinfo_encrypted_response_alg' is set to 'ECDH-ES'",
+				"identity_providers: oidc: clients: client 'test': option 'userinfo_encrypted_response_alg' must either not be configured or set to 'none' if 'userinfo_signed_response_alg' is set to 'none'",
+				"identity_providers: oidc: clients: client 'test': option 'jwks_uri' or 'jwks' must be configured when 'introspection_encrypted_response_alg' is set to 'ECDH-ES'",
+				"identity_providers: oidc: clients: client 'test': option 'introspection_encrypted_response_alg' must either not be configured or set to 'none' if 'introspection_signed_response_alg' is set to 'none'",
+			},
+		},
+		{
+			"ShouldNotRaiseErrorsOnValidEncryptionAlgsSetWithSigningAlgs",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].JSONWebKeysURI = &url.URL{Scheme: "https", Host: "example.com", Path: "/jwks.json"}
+
+				have.Clients[0].AuthorizationEncryptedResponseAlg = oidc.EncryptionAlgECDHES
+				have.Clients[0].AuthorizationSignedResponseAlg = oidc.SigningAlgRSAUsingSHA256
+				have.Clients[0].IDTokenEncryptedResponseAlg = oidc.EncryptionAlgECDHES
+				have.Clients[0].UserinfoEncryptedResponseAlg = oidc.EncryptionAlgECDHES
+				have.Clients[0].UserinfoSignedResponseAlg = oidc.SigningAlgRSAUsingSHA256
+				have.Clients[0].IntrospectionEncryptedResponseAlg = oidc.EncryptionAlgECDHES
+				have.Clients[0].IntrospectionSignedResponseAlg = oidc.SigningAlgRSAUsingSHA256
+				have.Clients[0].AccessTokenEncryptedResponseAlg = oidc.EncryptionAlgECDHES
+				have.Clients[0].AccessTokenSignedResponseAlg = oidc.SigningAlgRSAUsingSHA256
+
+				have.Clients[0].AuthorizationEncryptedResponseEnc = ""
+				have.Clients[0].IDTokenEncryptedResponseEnc = ""
+				have.Clients[0].UserinfoEncryptedResponseEnc = ""
+				have.Clients[0].IntrospectionEncryptedResponseEnc = ""
+				have.Clients[0].AccessTokenEncryptedResponseEnc = ""
+			},
+			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
+				assert.Equal(t, oidc.EncryptionAlgECDHES, have.Clients[0].AuthorizationEncryptedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, have.Clients[0].AuthorizationSignedResponseAlg)
+				assert.Equal(t, oidc.EncryptionAlgECDHES, have.Clients[0].IDTokenEncryptedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, have.Clients[0].IDTokenSignedResponseAlg)
+				assert.Equal(t, oidc.EncryptionAlgECDHES, have.Clients[0].UserinfoEncryptedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, have.Clients[0].UserinfoSignedResponseAlg)
+				assert.Equal(t, oidc.EncryptionAlgECDHES, have.Clients[0].IntrospectionEncryptedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, have.Clients[0].IntrospectionSignedResponseAlg)
+				assert.Equal(t, oidc.EncryptionAlgECDHES, have.Clients[0].AccessTokenEncryptedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, have.Clients[0].AccessTokenSignedResponseAlg)
+
+				assert.Equal(t, oidc.EncryptionEncA128CBCHS256, have.Clients[0].AuthorizationEncryptedResponseEnc)
+				assert.Equal(t, oidc.EncryptionEncA128CBCHS256, have.Clients[0].IDTokenEncryptedResponseEnc)
+				assert.Equal(t, oidc.EncryptionEncA128CBCHS256, have.Clients[0].UserinfoEncryptedResponseEnc)
+				assert.Equal(t, oidc.EncryptionEncA128CBCHS256, have.Clients[0].IntrospectionEncryptedResponseEnc)
+				assert.Equal(t, oidc.EncryptionEncA128CBCHS256, have.Clients[0].AccessTokenEncryptedResponseEnc)
+			},
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			nil,
+		},
+		{
+			"ShouldRaiseErrorsClientSecretNotPlainText",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].AuthorizationEncryptedResponseAlg = oidc.EncryptionAlgA128KW
+				have.Clients[0].AuthorizationSignedResponseAlg = oidc.SigningAlgRSAUsingSHA256
+				have.Clients[0].IDTokenEncryptedResponseAlg = oidc.EncryptionAlgA128KW
+				have.Clients[0].UserinfoEncryptedResponseAlg = oidc.EncryptionAlgA128KW
+				have.Clients[0].UserinfoSignedResponseAlg = oidc.SigningAlgRSAUsingSHA256
+				have.Clients[0].IntrospectionEncryptedResponseAlg = oidc.EncryptionAlgA128KW
+				have.Clients[0].IntrospectionSignedResponseAlg = oidc.SigningAlgRSAUsingSHA256
+				have.Clients[0].AccessTokenEncryptedResponseAlg = oidc.EncryptionAlgA128KW
+				have.Clients[0].AccessTokenSignedResponseAlg = oidc.SigningAlgRSAUsingSHA256
+
+				have.Clients[0].AuthorizationEncryptedResponseEnc = ""
+				have.Clients[0].IDTokenEncryptedResponseEnc = ""
+				have.Clients[0].UserinfoEncryptedResponseEnc = ""
+				have.Clients[0].IntrospectionEncryptedResponseEnc = ""
+				have.Clients[0].AccessTokenEncryptedResponseEnc = ""
+			},
+			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
+				assert.Equal(t, oidc.EncryptionAlgA128KW, have.Clients[0].AuthorizationEncryptedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, have.Clients[0].AuthorizationSignedResponseAlg)
+				assert.Equal(t, oidc.EncryptionAlgA128KW, have.Clients[0].IDTokenEncryptedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, have.Clients[0].IDTokenSignedResponseAlg)
+				assert.Equal(t, oidc.EncryptionAlgA128KW, have.Clients[0].UserinfoEncryptedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, have.Clients[0].UserinfoSignedResponseAlg)
+				assert.Equal(t, oidc.EncryptionAlgA128KW, have.Clients[0].IntrospectionEncryptedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, have.Clients[0].IntrospectionSignedResponseAlg)
+				assert.Equal(t, oidc.EncryptionAlgA128KW, have.Clients[0].AccessTokenEncryptedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgRSAUsingSHA256, have.Clients[0].AccessTokenSignedResponseAlg)
+
+				assert.Equal(t, oidc.EncryptionEncA128CBCHS256, have.Clients[0].AuthorizationEncryptedResponseEnc)
+				assert.Equal(t, oidc.EncryptionEncA128CBCHS256, have.Clients[0].IDTokenEncryptedResponseEnc)
+				assert.Equal(t, oidc.EncryptionEncA128CBCHS256, have.Clients[0].UserinfoEncryptedResponseEnc)
+				assert.Equal(t, oidc.EncryptionEncA128CBCHS256, have.Clients[0].IntrospectionEncryptedResponseEnc)
+				assert.Equal(t, oidc.EncryptionEncA128CBCHS256, have.Clients[0].AccessTokenEncryptedResponseEnc)
+			},
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'client_secret' must be plaintext with option 'authorization_encrypted_response_alg' with a value of 'A128KW'",
+				"identity_providers: oidc: clients: client 'test': option 'client_secret' must be plaintext with option 'id_token_encrypted_response_alg' with a value of 'A128KW'",
+				"identity_providers: oidc: clients: client 'test': option 'client_secret' must be plaintext with option 'access_token_encrypted_response_alg' with a value of 'A128KW'",
+				"identity_providers: oidc: clients: client 'test': option 'client_secret' must be plaintext with option 'userinfo_encrypted_response_alg' with a value of 'A128KW'",
+				"identity_providers: oidc: clients: client 'test': option 'client_secret' must be plaintext with option 'introspection_encrypted_response_alg' with a value of 'A128KW'",
+			},
+		},
+		{
+			"ShouldRaiseErrorsClientSecretNotPlainTextSig",
+			func(have *schema.IdentityProvidersOpenIDConnect) {
+				have.Clients[0].AuthorizationSignedResponseAlg = oidc.SigningAlgHMACUsingSHA256
+				have.Clients[0].IDTokenSignedResponseAlg = oidc.SigningAlgHMACUsingSHA256
+				have.Clients[0].UserinfoSignedResponseAlg = oidc.SigningAlgHMACUsingSHA256
+				have.Clients[0].IntrospectionSignedResponseAlg = oidc.SigningAlgHMACUsingSHA256
+				have.Clients[0].AccessTokenSignedResponseAlg = oidc.SigningAlgHMACUsingSHA256
+			},
+			func(t *testing.T, have *schema.IdentityProvidersOpenIDConnect) {
+				assert.Equal(t, "", have.Clients[0].AuthorizationEncryptedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgHMACUsingSHA256, have.Clients[0].AuthorizationSignedResponseAlg)
+				assert.Equal(t, "", have.Clients[0].IDTokenEncryptedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgHMACUsingSHA256, have.Clients[0].IDTokenSignedResponseAlg)
+				assert.Equal(t, "", have.Clients[0].UserinfoEncryptedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgHMACUsingSHA256, have.Clients[0].UserinfoSignedResponseAlg)
+				assert.Equal(t, "", have.Clients[0].IntrospectionEncryptedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgHMACUsingSHA256, have.Clients[0].IntrospectionSignedResponseAlg)
+				assert.Equal(t, "", have.Clients[0].AccessTokenEncryptedResponseAlg)
+				assert.Equal(t, oidc.SigningAlgHMACUsingSHA256, have.Clients[0].AccessTokenSignedResponseAlg)
+
+				assert.Equal(t, "", have.Clients[0].AuthorizationEncryptedResponseEnc)
+				assert.Equal(t, "", have.Clients[0].IDTokenEncryptedResponseEnc)
+				assert.Equal(t, "", have.Clients[0].UserinfoEncryptedResponseEnc)
+				assert.Equal(t, "", have.Clients[0].IntrospectionEncryptedResponseEnc)
+				assert.Equal(t, "", have.Clients[0].AccessTokenEncryptedResponseEnc)
+			},
+			tcv{
+				nil,
+				nil,
+				nil,
+				nil,
+			},
+			tcv{
+				[]string{oidc.ScopeOpenID, oidc.ScopeGroups, oidc.ScopeProfile, oidc.ScopeEmail},
+				[]string{oidc.ResponseTypeAuthorizationCodeFlow},
+				[]string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery},
+				[]string{oidc.GrantTypeAuthorizationCode},
+			},
+			nil,
+			[]string{
+				"identity_providers: oidc: clients: client 'test': option 'client_secret' must be plaintext with option 'authorization_signed_response_alg' with a value of 'HS256'",
+				"identity_providers: oidc: clients: client 'test': option 'client_secret' must be plaintext with option 'id_token_signed_response_alg' with a value of 'HS256'",
+				"identity_providers: oidc: clients: client 'test': option 'client_secret' must be plaintext with option 'access_token_signed_response_alg' with a value of 'HS256'",
+				"identity_providers: oidc: clients: client 'test': option 'client_secret' must be plaintext with option 'userinfo_signed_response_alg' with a value of 'HS256'",
+				"identity_providers: oidc: clients: client 'test': option 'client_secret' must be plaintext with option 'introspection_signed_response_alg' with a value of 'HS256'",
+			},
+		},
+		{
 			"ShouldSetDefaultTokenEndpointAuthSigAlg",
 			func(have *schema.IdentityProvidersOpenIDConnect) {
 				have.Clients[0].TokenEndpointAuthMethod = oidc.ClientAuthMethodClientSecretJWT
@@ -3469,6 +3737,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultSigKeyIDs:          map[string]string{oidc.SigningAlgRSAUsingSHA256: "35db6c-rs256"},
+					DefaultEncKeyIDs:          map[string]string{},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
 			},
@@ -3498,6 +3767,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 						oidc.SigningAlgECDSAUsingP384AndSHA384: "45839a-es384",
 						oidc.SigningAlgECDSAUsingP521AndSHA512: "556238-es512",
 					},
+					DefaultEncKeyIDs:          map[string]string{},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgECDSAUsingP521AndSHA512},
 				},
 			},
@@ -3518,6 +3788,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultSigKeyIDs:          map[string]string{oidc.SigningAlgRSAUsingSHA256: "35db6c-rs256"},
+					DefaultEncKeyIDs:          map[string]string{},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
 			},
@@ -3536,6 +3807,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultSigKeyIDs:          map[string]string{oidc.SigningAlgRSAUsingSHA512: "c4c7ca-rs512"},
+					DefaultEncKeyIDs:          map[string]string{},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA512},
 				},
 			},
@@ -3558,6 +3830,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultSigKeyIDs:          map[string]string{oidc.SigningAlgRSAUsingSHA256: "c4c7ca-rs256"},
+					DefaultEncKeyIDs:          map[string]string{},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
 			},
@@ -3578,6 +3851,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultSigKeyIDs:          map[string]string{oidc.SigningAlgRSAUsingSHA256: "09920c-rs256"},
+					DefaultEncKeyIDs:          map[string]string{},
 					ResponseObjectSigningAlgs: []string{oidc.SigningAlgRSAUsingSHA256},
 				},
 			},
@@ -3598,6 +3872,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultSigKeyIDs:          map[string]string{},
+					DefaultEncKeyIDs:          map[string]string{},
 					ResponseObjectSigningAlgs: []string{"invalid"},
 				},
 			},
@@ -3619,6 +3894,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultSigKeyIDs: map[string]string{},
+					DefaultEncKeyIDs: map[string]string{},
 				},
 			},
 			[]string{
@@ -3638,6 +3914,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultSigKeyIDs: map[string]string{},
+					DefaultEncKeyIDs: map[string]string{},
 				},
 			},
 			[]string{
@@ -3657,6 +3934,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultSigKeyIDs:          map[string]string{},
+					DefaultEncKeyIDs:          map[string]string{},
 					ResponseObjectSigningAlgs: []string{},
 				},
 			},
@@ -3677,6 +3955,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultSigKeyIDs: map[string]string{oidc.SigningAlgRSAUsingSHA256: "thisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolongthisistoolong"},
+					DefaultEncKeyIDs: map[string]string{},
 				},
 			},
 			[]string{
@@ -3700,6 +3979,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultSigKeyIDs: map[string]string{oidc.SigningAlgRSAUsingSHA256: "x@x"},
+					DefaultEncKeyIDs: map[string]string{},
 				},
 			},
 			[]string{
@@ -3725,6 +4005,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultSigKeyIDs: map[string]string{oidc.SigningAlgRSAUsingSHA256: "x-x"},
+					DefaultEncKeyIDs: map[string]string{},
 				},
 			},
 			nil,
@@ -3744,10 +4025,35 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultSigKeyIDs: map[string]string{oidc.SigningAlgRSAUsingSHA256: "x", oidc.SigningAlgRSAPSSUsingSHA256: "x"},
+					DefaultEncKeyIDs: map[string]string{},
 				},
 			},
 			[]string{
 				"identity_providers: oidc: jwks: key #2 with key id 'x': option 'key_id' must be unique",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnBadKeyIDDuplicatesEnc",
+			&schema.IdentityProvidersOpenIDConnect{
+				JSONWebKeys: []schema.JWK{
+					{Key: keyRSA4096, CertificateChain: certRSA4096, KeyID: "x"},
+					{Key: keyRSA2048, CertificateChain: certRSA2048, Algorithm: oidc.EncryptionAlgRSAOAEP256, Use: oidc.KeyUseEncryption, KeyID: "x"},
+					{Key: keyRSA2048, CertificateChain: certRSA2048, Algorithm: oidc.EncryptionAlgRSAOAEP256, Use: oidc.KeyUseEncryption, KeyID: "x"},
+				},
+			},
+			schema.IdentityProvidersOpenIDConnect{
+				JSONWebKeys: []schema.JWK{
+					{Key: keyRSA4096, CertificateChain: certRSA4096, Algorithm: oidc.SigningAlgRSAUsingSHA256, Use: oidc.KeyUseSignature, KeyID: "x"},
+					{Key: keyRSA2048, CertificateChain: certRSA2048, Algorithm: oidc.EncryptionAlgRSAOAEP256, Use: oidc.KeyUseEncryption, KeyID: "x"},
+					{Key: keyRSA2048, CertificateChain: certRSA2048, Algorithm: oidc.EncryptionAlgRSAOAEP256, Use: oidc.KeyUseEncryption, KeyID: "x"},
+				},
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
+					DefaultSigKeyIDs: map[string]string{oidc.SigningAlgRSAUsingSHA256: "x"},
+					DefaultEncKeyIDs: map[string]string{oidc.EncryptionAlgRSAOAEP256: "x"},
+				},
+			},
+			[]string{
+				"identity_providers: oidc: jwks: key #3 with key id 'x': option 'key_id' must be unique",
 			},
 		},
 		{
@@ -3763,6 +4069,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultSigKeyIDs: map[string]string{},
+					DefaultEncKeyIDs: map[string]string{},
 				},
 			},
 			[]string{
@@ -3783,6 +4090,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultSigKeyIDs: map[string]string{oidc.SigningAlgRSAUsingSHA256: "35db6c-rs256"},
+					DefaultEncKeyIDs: map[string]string{},
 				},
 			},
 			[]string{
@@ -3802,6 +4110,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultSigKeyIDs: map[string]string{oidc.SigningAlgRSAUsingSHA256: "35db6c-rs256"},
+					DefaultEncKeyIDs: map[string]string{},
 				},
 			},
 			[]string{
@@ -3821,10 +4130,75 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultSigKeyIDs: map[string]string{},
+					DefaultEncKeyIDs: map[string]string{},
 				},
 			},
 			[]string{
 				"identity_providers: oidc: jwks: key #1: option 'key' must be a valid private key but the provided data is malformed as it's missing the public key bits",
+			},
+		},
+		{
+			"ShouldRaiseErrorOnInvalidEncPrivateKeyN",
+			&schema.IdentityProvidersOpenIDConnect{
+				JSONWebKeys: []schema.JWK{
+					{Key: frankenkey, Use: oidc.KeyUseEncryption},
+					{Key: keyRSA2048, Use: oidc.KeyUseSignature},
+				},
+			},
+			schema.IdentityProvidersOpenIDConnect{
+				JSONWebKeys: []schema.JWK{
+					{Key: frankenkey, Use: oidc.KeyUseEncryption},
+					{Key: keyRSA2048, Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgRSAUsingSHA256, KeyID: "35db6c-rs256"},
+				},
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
+					DefaultSigKeyIDs: map[string]string{"RS256": "35db6c-rs256"},
+					DefaultEncKeyIDs: map[string]string{},
+				},
+			},
+			[]string{
+				"identity_providers: oidc: jwks: key #1: option 'key' must be a valid private key but the provided data is malformed as it's missing the public key bits",
+			},
+		},
+		{
+			"ShouldHandleEncKey",
+			&schema.IdentityProvidersOpenIDConnect{
+				JSONWebKeys: []schema.JWK{
+					{Key: keyRSA2048, Use: oidc.KeyUseEncryption},
+					{Key: keyRSA2048, Use: oidc.KeyUseSignature},
+				},
+			},
+			schema.IdentityProvidersOpenIDConnect{
+				JSONWebKeys: []schema.JWK{
+					{Key: keyRSA2048, Use: oidc.KeyUseEncryption, Algorithm: oidc.EncryptionAlgRSAOAEP256, KeyID: "35db6c-rsa-oaep-256"},
+					{Key: keyRSA2048, Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgRSAUsingSHA256, KeyID: "35db6c-rs256"},
+				},
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
+					DefaultSigKeyIDs: map[string]string{"RS256": "35db6c-rs256"},
+					DefaultEncKeyIDs: map[string]string{"RSA-OAEP-256": "35db6c-rsa-oaep-256"},
+				},
+			},
+			nil,
+		},
+		{
+			"ShouldHandleEncKeyBadAlg",
+			&schema.IdentityProvidersOpenIDConnect{
+				JSONWebKeys: []schema.JWK{
+					{Key: keyRSA2048, Use: oidc.KeyUseEncryption, Algorithm: oidc.SigningAlgRSAUsingSHA256},
+					{Key: keyRSA2048, Use: oidc.KeyUseSignature},
+				},
+			},
+			schema.IdentityProvidersOpenIDConnect{
+				JSONWebKeys: []schema.JWK{
+					{Key: keyRSA2048, Use: oidc.KeyUseEncryption, Algorithm: oidc.SigningAlgRSAUsingSHA256, KeyID: "35db6c-rs256"},
+					{Key: keyRSA2048, Use: oidc.KeyUseSignature, Algorithm: oidc.SigningAlgRSAUsingSHA256, KeyID: "35db6c-rs256"},
+				},
+				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
+					DefaultSigKeyIDs: map[string]string{"RS256": "35db6c-rs256"},
+					DefaultEncKeyIDs: map[string]string{},
+				},
+			},
+			[]string{
+				"identity_providers: oidc: jwks: key #1 with key id '35db6c-rs256': option 'algorithm' must be one of 'RSA1_5', 'RSA-OAEP', 'RSA-OAEP-256', 'A128KW', 'A192KW', 'A256KW', 'dir', 'ECDH-ES', 'ECDH-ES+A128KW', 'ECDH-ES+A192KW', 'ECDH-ES+A256KW', 'A128GCMKW', 'A192GCMKW', 'A256GCMKW', 'PBES2-HS256+A128KW', 'PBES2-HS384+A192KW', or 'PBES2-HS512+A256KW' but it's configured as 'RS256'",
 			},
 		},
 		{
@@ -3840,6 +4214,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 				},
 				Discovery: schema.IdentityProvidersOpenIDConnectDiscovery{
 					DefaultSigKeyIDs: map[string]string{},
+					DefaultEncKeyIDs: map[string]string{},
 				},
 			},
 			[]string{
@@ -3857,6 +4232,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 			validateOIDCIssuer(tc.have, validator)
 
 			assert.Equal(t, tc.expected.Discovery.DefaultSigKeyIDs, tc.have.Discovery.DefaultSigKeyIDs)
+			assert.Equal(t, tc.expected.Discovery.DefaultEncKeyIDs, tc.have.Discovery.DefaultEncKeyIDs)
 			assert.Equal(t, tc.expected.IssuerPrivateKey, tc.have.IssuerPrivateKey)
 			assert.Equal(t, tc.expected.IssuerCertificateChain, tc.have.IssuerCertificateChain)
 

@@ -78,21 +78,23 @@ type IdentityProvidersOpenIDConnectPolicyRule struct {
 
 // IdentityProvidersOpenIDConnectDiscovery is information discovered during validation reused for the discovery handlers.
 type IdentityProvidersOpenIDConnectDiscovery struct {
-	Claims                       []string
-	Scopes                       []string
-	AuthorizationPolicies        []string
-	Lifespans                    []string
-	DefaultSigKeyIDs             map[string]string
-	DefaultEncKeyIDs             map[string]string
-	DefaultKeyID                 string
-	ResponseObjectSigningKeyIDs  []string
-	ResponseObjectSigningAlgs    []string
-	ResponseObjectEncryptionAlgs []string
-	RequestObjectSigningAlgs     []string
-	JWTResponseAccessTokens      bool
-	BearerAuthorization          bool
-	ClientSecretPlainText        bool
-	ClientAuthMethodSymmetric    bool
+	Claims                           []string
+	Scopes                           []string
+	AuthorizationPolicies            []string
+	Lifespans                        []string
+	DefaultSigKeyIDs                 map[string]string
+	DefaultEncKeyIDs                 map[string]string
+	DefaultKeyID                     string
+	ResponseObjectSigningKeyIDs      []string
+	ResponseObjectEncryptionKeyIDs   []string
+	ResponseObjectSigningAlgs        []string
+	ResponseObjectEncryptionAlgs     []string
+	RequestObjectSigningAlgs         []string
+	JWTResponseAccessTokens          bool
+	BearerAuthorization              bool
+	ClientSecretPlainText            bool
+	ResponseObjectSymmetricSigEncAlg bool
+	RequestObjectSymmetricSigEncAlg  bool
 }
 
 type IdentityProvidersOpenIDConnectLifespans struct {
