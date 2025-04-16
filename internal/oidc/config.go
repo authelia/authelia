@@ -14,6 +14,7 @@ import (
 	"authelia.com/provider/oauth2/handler/openid"
 	"authelia.com/provider/oauth2/handler/par"
 	"authelia.com/provider/oauth2/handler/pkce"
+	"authelia.com/provider/oauth2/handler/rfc8628"
 	"authelia.com/provider/oauth2/i18n"
 	"authelia.com/provider/oauth2/token/jwt"
 	"github.com/hashicorp/go-retryablehttp"
@@ -267,6 +268,17 @@ func (c *Config) LoadHandlers(store *Store) {
 			RefreshTokenStrategy:   c.Strategy.Core,
 			TokenRevocationStorage: store,
 			Config:                 c,
+		},
+
+		&rfc8628.DeviceAuthorizeHandler{
+			Storage:  store,
+			Strategy: c.Strategy.Core,
+			Config:   c,
+		},
+		&rfc8628.UserAuthorizeHandler{
+			Storage:  store,
+			Strategy: c.Strategy.Core,
+			Config:   c,
 		},
 
 		&openid.OpenIDConnectExplicitHandler{
