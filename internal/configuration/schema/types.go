@@ -186,15 +186,15 @@ func NewX509CertificateChainFromCerts(in []*x509.Certificate) (chain X509Certifi
 // NewTLSVersion returns a new TLSVersion given a string.
 func NewTLSVersion(input string) (version *TLSVersion, err error) {
 	switch strings.ReplaceAll(strings.ToUpper(input), " ", "") {
-	case TLSVersion13, Version13:
+	case TLSVersion13, Version13, tls.VersionName(tls.VersionTLS13):
 		return &TLSVersion{tls.VersionTLS13}, nil
-	case TLSVersion12, Version12:
+	case TLSVersion12, Version12, tls.VersionName(tls.VersionTLS12):
 		return &TLSVersion{tls.VersionTLS12}, nil
-	case TLSVersion11, Version11:
+	case TLSVersion11, Version11, tls.VersionName(tls.VersionTLS11):
 		return &TLSVersion{tls.VersionTLS11}, nil
-	case TLSVersion10, Version10:
+	case TLSVersion10, Version10, tls.VersionName(tls.VersionTLS10):
 		return &TLSVersion{tls.VersionTLS10}, nil
-	case SSLVersion30:
+	case SSLVersion30, strings.ToUpper(tls.VersionName(tls.VersionSSL30)): //nolint:staticcheck
 		return &TLSVersion{tls.VersionSSL30}, nil //nolint:staticcheck
 	}
 
@@ -211,9 +211,13 @@ func (TLSVersion) JSONSchema() *jsonschema.Schema {
 	return &jsonschema.Schema{
 		Type: jsonschema.TypeString,
 		Enum: []any{
+			"TLS 1.0",
 			"TLS1.0",
+			"TLS 1.1",
 			"TLS1.1",
+			"TLS 1.2",
 			"TLS1.2",
+			"TLS 1.3",
 			"TLS1.3",
 		},
 	}
@@ -239,20 +243,15 @@ func (v *TLSVersion) MinVersion() uint16 {
 
 // String provides the Stringer.
 func (v *TLSVersion) String() string {
-	switch v.Value {
-	case tls.VersionTLS10:
-		return TLSVersion10
-	case tls.VersionTLS11:
-		return TLSVersion11
-	case tls.VersionTLS12:
-		return TLSVersion12
-	case tls.VersionTLS13:
-		return TLSVersion13
-	case tls.VersionSSL30: //nolint:staticcheck
-		return SSLVersion30
-	default:
-		return ""
+	if name := tls.VersionName(v.Value); !strings.HasPrefix(name, "0x") {
+		return name
 	}
+
+	return ""
+}
+
+func (v TLSVersion) MarshalYAML() (any, error) {
+	return v.String(), nil
 }
 
 // CryptographicPrivateKey represents the actual crypto.PrivateKey interface.
