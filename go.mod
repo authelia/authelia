@@ -30,7 +30,7 @@ require (
 	github.com/jackc/pgx/v5 v5.7.4
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/knadh/koanf/parsers/yaml v0.1.0
-	github.com/knadh/koanf/providers/confmap v0.1.0
+	github.com/knadh/koanf/providers/confmap v1.0.0
 	github.com/knadh/koanf/providers/env v1.1.0
 	github.com/knadh/koanf/providers/posflag v1.0.0
 	github.com/knadh/koanf/providers/rawbytes v1.0.0
