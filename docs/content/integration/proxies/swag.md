@@ -121,7 +121,6 @@ services:
       URL: '{{< sitevar name="domain" nojs="example.com" >}}'
       SUBDOMAINS: 'www,whoami,auth,organizr'
       VALIDATION: 'http'
-      ONLY_SUBDOMAINS: 'false'
     cap_add:
       - 'NET_ADMIN'
   authelia:
