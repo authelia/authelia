@@ -5,7 +5,7 @@ summary: "A guide to using secrets when integrating Authelia with Kubernetes."
 date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
-weight: 630
+weight: 530
 toc: true
 seo:
   title: "" # custom title (optional)

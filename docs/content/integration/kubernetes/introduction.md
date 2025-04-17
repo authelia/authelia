@@ -5,7 +5,7 @@ summary: "An introduction into integrating Authelia with Kubernetes."
 date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
-weight: 610
+weight: 510
 toc: true
 aliases:
   - /i/k8s

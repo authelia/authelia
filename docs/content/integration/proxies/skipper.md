@@ -5,7 +5,7 @@ summary: "A guide on integrating Authelia with the Skipper reverse proxy."
 date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
-weight: 460
+weight: 660
 toc: true
 aliases:
   - /i/skipper

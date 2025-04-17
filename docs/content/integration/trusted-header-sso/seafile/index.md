@@ -8,7 +8,7 @@ images: []
 menu:
 integration:
 parent: "trusted-header-sso"
-weight: 520
+weight: 720
 toc: true
 support:
   level: community

@@ -54,7 +54,7 @@ separately.
 docker run --rm authelia/authelia:latest authelia crypto rand --length 72 --charset rfc3986
 ```
 {{< /envTab >}}
-{{< envTab "Bare-Metal" >}}
+{{< envTab "Bare Metal" >}}
 ```shell
 authelia crypto rand --length 72 --charset rfc3986
 ```
@@ -80,7 +80,7 @@ separately.
 docker run --rm authelia/authelia:latest authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986
 ```
 {{< /envTab >}}
-{{< envTab "Bare-Metal" >}}
+{{< envTab "Bare Metal" >}}
 ```shell
 authelia crypto hash generate pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986
 ```
@@ -264,7 +264,7 @@ check if the application with the issue can resolve the correct IP address for A
 process, and this check also can be used to clearly identity if this is the most likely underlying cause for an issue
 you're facing.
 
-##### Bare-Metal
+##### Bare Metal
 
 1. If you're running an internal DNS server ensure an A record exists for the FQDN of Authelia with the value being the
    IP of the server responsible for handling requests for Authelia.
