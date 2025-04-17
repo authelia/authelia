@@ -5,7 +5,7 @@ summary: "A guide on integrating Authelia with NGINX Proxy Manager."
 date: 2022-10-08T12:43:26+11:00
 draft: false
 images: []
-weight: 452
+weight: 652
 toc: true
 aliases:
   - /i/npm
@@ -218,7 +218,7 @@ location / {
 }
 ```
 {{< callout context="note" title="Websockets" icon="outline/info-circle" >}}
-Note that because we are using the advanced configuration tab, the switches on the `Details` tab will have no effect.  If websockets are required for a protected application, you must include the websocket.conf from the [NGINX Snippets](../nginx.md#supporting-configuration-snippets). 
+Note that because we are using the advanced configuration tab, the switches on the `Details` tab will have no effect.  If websockets are required for a protected application, you must include the websocket.conf from the [NGINX Snippets](../nginx.md#supporting-configuration-snippets).
 {{< /callout >}}
 
 #### Protected Application Screenshots

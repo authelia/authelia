@@ -51,7 +51,7 @@ following syntax:
 docker run authelia/authelia:latest authelia --config config.custom.yml
 ```
 {{< /envTab >}}
-{{< envTab "Bare-Metal" >}}
+{{< envTab "Bare Metal" >}}
 ```bash
 authelia --config config.custom.yml
 ```
@@ -83,7 +83,7 @@ docker run -d authelia/authelia:latest authelia --config configuration.yml --con
 docker run -d authelia/authelia:latest authelia --config configuration.yml,config-acl.yml,config-other.yml
 ```
 {{< /envTab >}}
-{{< envTab "Bare-Metal" >}}
+{{< envTab "Bare Metal" >}}
 ```bash
 authelia --config configuration.yml --config config-acl.yml --config config-other.yml
 ```
@@ -212,7 +212,7 @@ Examples:
 docker run -d authelia/authelia:latest authelia --config /config/configuration.yml --config.experimental.filters template
 ```
 {{< /envTab >}}
-{{< envTab "Bare-Metal" >}}
+{{< envTab "Bare Metal" >}}
 ```bash
 authelia --config /config/configuration.yml --config.experimental.filters template
 ```
@@ -225,7 +225,7 @@ authelia --config /config/configuration.yml --config.experimental.filters templa
 docker run -d -e X_AUTHELIA_CONFIG_FILTERS=template -e X_AUTHELIA_CONFIG=/config/configuration.yml authelia/authelia:latest authelia
 ```
 {{< /envTab >}}
-{{< envTab "Bare-Metal" >}}
+{{< envTab "Bare Metal" >}}
 ```bash
 X_AUTHELIA_CONFIG_FILTERS=template X_AUTHELIA_CONFIG=/config/configuration.yml authelia
 ```

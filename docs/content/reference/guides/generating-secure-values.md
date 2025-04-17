@@ -33,7 +33,7 @@ more information on all available options and algorithms.
 docker run --rm authelia/authelia:latest authelia crypto hash generate argon2 --random --random.length 64 --random.charset alphanumeric
 ```
 {{< /envTab >}}
-{{< envTab "Bare-Metal" >}}
+{{< envTab "Bare Metal" >}}
 ```bash
 authelia crypto hash generate argon2 --random --random.length 64 --random.charset alphanumeric
 ```
@@ -58,7 +58,7 @@ all available options.
 docker run --rm authelia/authelia:latest authelia crypto rand --length 64 --charset alphanumeric
 ```
 {{< /envTab >}}
-{{< envTab "Bare-Metal" >}}
+{{< envTab "Bare Metal" >}}
 ```bash
 authelia crypto rand --length 64 --charset alphanumeric
 ```
@@ -105,7 +105,7 @@ information on all available options.
 docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd)":/keys authelia/authelia:latest authelia crypto pair rsa generate --directory /keys
 ```
 {{< /envTab >}}
-{{< envTab "Bare-Metal" >}}
+{{< envTab "Bare Metal" >}}
 ```bash
 authelia crypto pair rsa generate
 ```
@@ -147,7 +147,7 @@ information on all available options.
 docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd)":/keys authelia/authelia:latest authelia crypto certificate rsa generate --common-name example.com --directory /keys
 ```
 {{< /envTab >}}
-{{< envTab "Bare-Metal" >}}
+{{< envTab "Bare Metal" >}}
 ```bash
 authelia crypto certificate rsa generate --common-name example.com
 ```

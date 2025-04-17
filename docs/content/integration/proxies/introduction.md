@@ -5,7 +5,7 @@ summary: "An introduction into integrating Authelia with a reverse proxy."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-weight: 410
+weight: 610
 toc: true
 aliases:
   - /i/proxies

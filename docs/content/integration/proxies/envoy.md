@@ -5,7 +5,7 @@ summary: "A guide on integrating Authelia with the Envoy reverse proxy."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-weight: 430
+weight: 630
 toc: true
 aliases:
   - /i/envoy
