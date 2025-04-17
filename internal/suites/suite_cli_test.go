@@ -203,7 +203,7 @@ func (s *CLISuite) TestShouldHashPasswordPBKDF2() {
 	s.Contains(output, "Digest: $pbkdf2-sha512$100000$")
 }
 
-func (s *CLISuite) TestShouldHashPasswordBCrypt() {
+func (s *CLISuite) TestShouldHashPasswordBcrypt() {
 	var (
 		output string
 		err    error
@@ -228,7 +228,7 @@ func (s *CLISuite) TestShouldHashPasswordBCrypt() {
 	s.Contains(output, "Digest: $bcrypt-sha256$v=2,t=2b,r=10$")
 }
 
-func (s *CLISuite) TestShouldHashPasswordSCrypt() {
+func (s *CLISuite) TestShouldHashPasswordScrypt() {
 	var (
 		output string
 		err    error

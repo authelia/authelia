@@ -90,6 +90,11 @@
         "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_SCRYPT_SALT_LENGTH"
     },
     {
+        "path": "authentication_backend.file.password.scrypt.variant",
+        "secret": false,
+        "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_SCRYPT_VARIANT"
+    },
+    {
         "path": "authentication_backend.file.password.sha2crypt.iterations",
         "secret": false,
         "env": "AUTHELIA_AUTHENTICATION_BACKEND_FILE_PASSWORD_SHA2CRYPT_ITERATIONS"

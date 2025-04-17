@@ -42,6 +42,7 @@ authentication_backend:
         key_length: 32
         salt_length: 16
       scrypt:
+        variant: 'scrypt'
         iterations: 16
         block_size: 8
         parallelism: 1
@@ -214,6 +215,12 @@ Controls the output salt length when hashing passwords using [Argon2].
 ### scrypt
 
 The [Scrypt] algorithm implementation.
+
+#### variant
+
+{{< confkey type="string" default="scrypt" required="no" >}}
+
+Controls the variant when hashing passwords using [Scrypt]. Permitted values `scrypt`, `yescrypt`.
 
 #### iterations
 
