@@ -48,7 +48,7 @@ syntax is valid.
 docker run authelia/authelia:latest authelia config validate --config /config/configuration.yml
 ```
 {{< /envTab >}}
-{{< envTab "Bare-Metal" >}}
+{{< envTab "Bare Metal" >}}
 ```bash
 authelia config validate --config configuration.yml
 ```

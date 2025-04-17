@@ -1,11 +1,11 @@
 ---
-title: "Bare-Metal"
-description: "Deploying Authelia on Bare-Metal."
-summary: "Authelia can be deployed on Bare-Metal as long as it sits behind a proxy."
+title: "Bare Metal"
+description: "Deploying Authelia on Bare Metal."
+summary: "Authelia can be deployed on Bare Metal as long as it sits behind a proxy."
 date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
-weight: 350
+weight: 340
 toc: true
 seo:
   title: "" # custom title (optional)

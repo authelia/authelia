@@ -16,9 +16,9 @@ seo:
 
 There are three main methods to deploy *Authelia*.
 
-1. [Docker](docker.md)
+1. [Docker](../docker/introduction.md)
 2. [Kubernetes](../kubernetes/introduction.md)
-3. [Bare-Metal](bare-metal.md)
+3. [Bare Metal](bare-metal.md)
 
 ## Get started
 
