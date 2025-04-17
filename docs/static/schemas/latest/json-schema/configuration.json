@@ -1314,6 +1314,7 @@
         "discovery_signed_response_alg": {
           "type": "string",
           "enum": [
+            "",
             "none",
             "RS256",
             "RS384",
@@ -1678,7 +1679,11 @@
         "authorization_signed_response_alg": {
           "type": "string",
           "enum": [
+            "",
             "none",
+            "HS256",
+            "HS384",
+            "HS512",
             "RS256",
             "RS384",
             "RS512",
@@ -1701,6 +1706,8 @@
         "authorization_encrypted_response_alg": {
           "type": "string",
           "enum": [
+            "",
+            "none",
             "RSA1_5",
             "RSA-OAEP",
             "RSA-OAEP-256",
@@ -1720,11 +1727,13 @@
             "PBES2-HS512+A256KW"
           ],
           "title": "Authorization Encryption Algorithm (CEK)",
-          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Authorization objects CEK that it generates and responds with. i.e. the JWE 'alg' value."
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Authorization objects CEK that it generates and responds with. i.e. the JWE 'alg' value.",
+          "default": "none"
         },
         "authorization_encrypted_response_enc": {
           "type": "string",
           "enum": [
+            "",
             "A128CBC-HS256",
             "A192CBC-HS384",
             "A256CBC-HS512",
@@ -1733,7 +1742,8 @@
             "A256GCM"
           ],
           "title": "Authorization Encryption Algorithm (Content)",
-          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Authorization objects content that it generates and responds with. i.e. the JWE 'enc' value."
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Authorization objects content that it generates and responds with. i.e. the JWE 'enc' value.",
+          "default": "A128CBC-HS256"
         },
         "authorization_encrypted_response_key_id": {
           "type": "string",
@@ -1743,6 +1753,10 @@
         "id_token_signed_response_alg": {
           "type": "string",
           "enum": [
+            "",
+            "HS256",
+            "HS384",
+            "HS512",
             "RS256",
             "RS384",
             "RS512",
@@ -1765,6 +1779,8 @@
         "id_token_encrypted_response_alg": {
           "type": "string",
           "enum": [
+            "",
+            "none",
             "RSA1_5",
             "RSA-OAEP",
             "RSA-OAEP-256",
@@ -1784,11 +1800,13 @@
             "PBES2-HS512+A256KW"
           ],
           "title": "ID Token Encryption Algorithm (CEK)",
-          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the ID Token objects CEK that it generates and responds with. i.e. the JWE 'alg' value."
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the ID Token objects CEK that it generates and responds with. i.e. the JWE 'alg' value.",
+          "default": "none"
         },
         "id_token_encrypted_response_enc": {
           "type": "string",
           "enum": [
+            "",
             "A128CBC-HS256",
             "A192CBC-HS384",
             "A256CBC-HS512",
@@ -1797,7 +1815,8 @@
             "A256GCM"
           ],
           "title": "ID Token Encryption Algorithm (Content)",
-          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the ID Token objects content that it generates and responds with. i.e. the JWE 'enc' value."
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the ID Token objects content that it generates and responds with. i.e. the JWE 'enc' value.",
+          "default": "A128CBC-HS256"
         },
         "id_token_encrypted_response_key_id": {
           "type": "string",
@@ -1807,7 +1826,11 @@
         "access_token_signed_response_alg": {
           "type": "string",
           "enum": [
+            "",
             "none",
+            "HS256",
+            "HS384",
+            "HS512",
             "RS256",
             "RS384",
             "RS512",
@@ -1830,6 +1853,8 @@
         "access_token_encrypted_response_alg": {
           "type": "string",
           "enum": [
+            "",
+            "none",
             "RSA1_5",
             "RSA-OAEP",
             "RSA-OAEP-256",
@@ -1849,11 +1874,13 @@
             "PBES2-HS512+A256KW"
           ],
           "title": "Access Token Encryption Algorithm (CEK)",
-          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Access Token objects CEK that it generates and responds with. i.e. the JWE 'alg' value."
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Access Token objects CEK that it generates and responds with. i.e. the JWE 'alg' value.",
+          "default": "none"
         },
         "access_token_encrypted_response_enc": {
           "type": "string",
           "enum": [
+            "",
             "A128CBC-HS256",
             "A192CBC-HS384",
             "A256CBC-HS512",
@@ -1862,7 +1889,8 @@
             "A256GCM"
           ],
           "title": "Access Token Encryption Algorithm (Content)",
-          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Access Token objects content that it generates and responds with. i.e. the JWE 'enc' value."
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Access Token objects content that it generates and responds with. i.e. the JWE 'enc' value.",
+          "default": "A128CBC-HS256"
         },
         "access_token_encrypted_response_key_id": {
           "type": "string",
@@ -1872,7 +1900,11 @@
         "userinfo_signed_response_alg": {
           "type": "string",
           "enum": [
+            "",
             "none",
+            "HS256",
+            "HS384",
+            "HS512",
             "RS256",
             "RS384",
             "RS512",
@@ -1895,6 +1927,8 @@
         "userinfo_encrypted_response_alg": {
           "type": "string",
           "enum": [
+            "",
+            "none",
             "RSA1_5",
             "RSA-OAEP",
             "RSA-OAEP-256",
@@ -1914,11 +1948,13 @@
             "PBES2-HS512+A256KW"
           ],
           "title": "Userinfo Encryption Algorithm (CEK)",
-          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Userinfo objects CEK that it generates and responds with. i.e. the JWE 'alg' value."
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Userinfo objects CEK that it generates and responds with. i.e. the JWE 'alg' value.",
+          "default": "none"
         },
         "userinfo_encrypted_response_enc": {
           "type": "string",
           "enum": [
+            "",
             "A128CBC-HS256",
             "A192CBC-HS384",
             "A256CBC-HS512",
@@ -1927,7 +1963,8 @@
             "A256GCM"
           ],
           "title": "Userinfo Encryption Algorithm (Content)",
-          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Userinfo objects content that it generates and responds with. i.e. the JWE 'enc' value."
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Userinfo objects content that it generates and responds with. i.e. the JWE 'enc' value.",
+          "default": "A128CBC-HS256"
         },
         "userinfo_encrypted_response_key_id": {
           "type": "string",
@@ -1937,7 +1974,11 @@
         "introspection_signed_response_alg": {
           "type": "string",
           "enum": [
+            "",
             "none",
+            "HS256",
+            "HS384",
+            "HS512",
             "RS256",
             "RS384",
             "RS512",
@@ -1960,6 +2001,8 @@
         "introspection_encrypted_response_alg": {
           "type": "string",
           "enum": [
+            "",
+            "none",
             "RSA1_5",
             "RSA-OAEP",
             "RSA-OAEP-256",
@@ -1979,11 +2022,13 @@
             "PBES2-HS512+A256KW"
           ],
           "title": "Introspection Encryption Algorithm (CEK)",
-          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Introspection objects CEK that it generates and responds with. i.e. the JWE 'alg' value."
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Introspection objects CEK that it generates and responds with. i.e. the JWE 'alg' value.",
+          "default": "none"
         },
         "introspection_encrypted_response_enc": {
           "type": "string",
           "enum": [
+            "",
             "A128CBC-HS256",
             "A192CBC-HS384",
             "A256CBC-HS512",
@@ -1992,7 +2037,8 @@
             "A256GCM"
           ],
           "title": "Introspection Encryption Algorithm (Content)",
-          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Introspection objects content that it generates and responds with. i.e. the JWE 'enc' value."
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Introspection objects content that it generates and responds with. i.e. the JWE 'enc' value.",
+          "default": "A128CBC-HS256"
         },
         "introspection_encrypted_response_key_id": {
           "type": "string",
@@ -2002,6 +2048,8 @@
         "request_object_signing_alg": {
           "type": "string",
           "enum": [
+            "",
+            "none",
             "RS256",
             "RS384",
             "RS512",
@@ -2018,6 +2066,8 @@
         "request_object_encryption_alg": {
           "type": "string",
           "enum": [
+            "",
+            "none",
             "RSA1_5",
             "RSA-OAEP",
             "RSA-OAEP-256",
@@ -2037,11 +2087,13 @@
             "PBES2-HS512+A256KW"
           ],
           "title": "Request Object Encryption Algorithm (CEK)",
-          "description": "The JOSE encryption algorithm (JWE) this client must use to encrypt the Request Object CEK. i.e. the JWE 'alg' value."
+          "description": "The JOSE encryption algorithm (JWE) this client must use to encrypt the Request Object CEK. i.e. the JWE 'alg' value.",
+          "default": "none"
         },
         "request_object_encryption_enc": {
           "type": "string",
           "enum": [
+            "",
             "A128CBC-HS256",
             "A192CBC-HS384",
             "A256CBC-HS512",
@@ -2050,11 +2102,13 @@
             "A256GCM"
           ],
           "title": "Request Object Encryption Algorithm (Content)",
-          "description": "The JOSE encryption algorithm (JWE) this client must use to encrypt the Request Object content. i.e. the JWE 'enc' value."
+          "description": "The JOSE encryption algorithm (JWE) this client must use to encrypt the Request Object content. i.e. the JWE 'enc' value.",
+          "default": "A128CBC-HS256"
         },
         "token_endpoint_auth_method": {
           "type": "string",
           "enum": [
+            "",
             "none",
             "client_secret_post",
             "client_secret_basic",
@@ -2062,11 +2116,13 @@
             "client_secret_jwt"
           ],
           "title": "Token Endpoint Auth Method",
-          "description": "The Token Endpoint Auth Method enforced by the provider for this client."
+          "description": "The Token Endpoint Auth Method enforced by the provider for this client.",
+          "default": "client_secret_basic"
         },
         "token_endpoint_auth_signing_alg": {
           "type": "string",
           "enum": [
+            "",
             "HS256",
             "HS384",
             "HS512",
@@ -2086,6 +2142,7 @@
         "revocation_endpoint_auth_method": {
           "type": "string",
           "enum": [
+            "",
             "none",
             "client_secret_post",
             "client_secret_basic",
@@ -2093,11 +2150,13 @@
             "client_secret_jwt"
           ],
           "title": "Revocation Endpoint Auth Method",
-          "description": "The Revocation Endpoint Auth Method enforced by the provider for this client."
+          "description": "The Revocation Endpoint Auth Method enforced by the provider for this client.",
+          "default": "client_secret_basic"
         },
         "revocation_endpoint_auth_signing_alg": {
           "type": "string",
           "enum": [
+            "",
             "HS256",
             "HS384",
             "HS512",
@@ -2117,6 +2176,7 @@
         "introspection_endpoint_auth_method": {
           "type": "string",
           "enum": [
+            "",
             "none",
             "client_secret_post",
             "client_secret_basic",
@@ -2124,11 +2184,13 @@
             "client_secret_jwt"
           ],
           "title": "Introspection Endpoint Auth Method",
-          "description": "The Introspection Endpoint Auth Method enforced by the provider for this client."
+          "description": "The Introspection Endpoint Auth Method enforced by the provider for this client.",
+          "default": "client_secret_basic"
         },
         "introspection_endpoint_auth_signing_alg": {
           "type": "string",
           "enum": [
+            "",
             "HS256",
             "HS384",
             "HS512",
@@ -2148,6 +2210,7 @@
         "pushed_authorization_request_endpoint_auth_method": {
           "type": "string",
           "enum": [
+            "",
             "none",
             "client_secret_post",
             "client_secret_basic",
@@ -2155,11 +2218,13 @@
             "client_secret_jwt"
           ],
           "title": "Pushed Authorization Request Endpoint Auth Method",
-          "description": "The Pushed Authorization Request Endpoint Auth Method enforced by the provider for this client."
+          "description": "The Pushed Authorization Request Endpoint Auth Method enforced by the provider for this client.",
+          "default": "client_secret_basic"
         },
         "pushed_authorization_request_endpoint_auth_signing_alg": {
           "type": "string",
           "enum": [
+            "",
             "HS256",
             "HS384",
             "HS512",
