@@ -363,7 +363,7 @@ func jsonschemaKoanfMapper(t reflect.Type) *jsonschema.Schema {
 			OneOf: []*jsonschema.Schema{
 				{
 					Type:    jsonschema.TypeString,
-					Pattern: `^\d+\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\s*\d+\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$`,
+					Pattern: `^\d+\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\s*(\s+and\s+)?\d+\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$`,
 				},
 				{
 					Type:        jsonschema.TypeInteger,
