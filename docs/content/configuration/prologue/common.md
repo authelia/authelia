@@ -207,21 +207,21 @@ The entire scheme is optional, but if the scheme host delimiter `://` is in the 
 scheme must be one of the following (the listeners and connectors columns indicate support for the scheme on the
 respective address type):
 
-|    Scheme     | Listeners | Connectors | Default Port |                                   Notes                                   |
-|:-------------:|:---------:|:----------:|:------------:|:-------------------------------------------------------------------------:|
-|     `tcp`     |    Yes    |    Yes     |     N/A      |        Standard TCP Socket which allows IPv4 and/or IPv6 addresses        |
-|    `tcp4`     |    Yes    |    Yes     |     N/A      |           Standard TCP Socket which allows only IPv4 addresses            |
-|    `tcp6`     |    Yes    |    Yes     |     N/A      |           Standard TCP Socket which allows only IPv6 addresses            |
-|     `udp`     |    Yes    |    Yes     |     N/A      |        Standard UDP Socket which allows IPv4 and/or IPv6 addresses        |
-|    `udp4`     |    Yes    |    Yes     |     N/A      |           Standard UDP Socket which allows only IPv4 addresses            |
-|    `udp6`     |    Yes    |    Yes     |     N/A      |           Standard UDP Socket which allows only IPv6 addresses            |
-|    `unix`     |    Yes    |    Yes     |     N/A      |       Standard Unix Domain Socket which allows only absolute paths        |
-|    `ldap`     |    No     |    Yes     |     389      |       Remote LDAP connection via TCP with explicit TLS via StartTLS       |
-|    `ldaps`    |    No     |    Yes     |     636      |             Remote LDAP connection via TCP with implicit TLS              |
-|    `ldapi`    |    No     |    Yes     |     N/A      |                  LDAP connection via Unix Domain Socket                   |
-|    `smtp`     |    No     |    Yes     |      25      |      Remote SMTP connection via TCP using explicit TLS via StartTLS       |
-| `submission`  |    No     |    Yes     |     587      | Remote SMTP Submission connection via TCP using explicit TLS via StartTLS |
-| `submissions` |    No     |    Yes     |     465      |       Remote SMTP Submission connection via TCP using implicit TLS        |
+|    Scheme     | Listeners | Connectors | Default Port |                                     Notes                                      |
+|:-------------:|:---------:|:----------:|:------------:|:------------------------------------------------------------------------------:|
+|     `tcp`     |    Yes    |    Yes     |     N/A      |          Standard TCP Socket which allows IPv4 and/or IPv6 addresses           |
+|    `tcp4`     |    Yes    |    Yes     |     N/A      |              Standard TCP Socket which allows only IPv4 addresses              |
+|    `tcp6`     |    Yes    |    Yes     |     N/A      |              Standard TCP Socket which allows only IPv6 addresses              |
+|     `udp`     |    Yes    |    Yes     |     N/A      |          Standard UDP Socket which allows IPv4 and/or IPv6 addresses           |
+|    `udp4`     |    Yes    |    Yes     |     N/A      |              Standard UDP Socket which allows only IPv4 addresses              |
+|    `udp6`     |    Yes    |    Yes     |     N/A      |              Standard UDP Socket which allows only IPv6 addresses              |
+|    `unix`     |    Yes    |    Yes     |     N/A      |          Standard Unix Domain Socket which allows only absolute paths          |
+|    `ldap`     |    No     |    Yes     |     389      |      Remote LDAP connection via a TCP socket using StartTLS if available       |
+|    `ldaps`    |    No     |    Yes     |     636      |                    Remote LDAP connection via a TLS socket                     |
+|    `ldapi`    |    No     |    Yes     |     N/A      |                     LDAP connection via Unix Domain Socket                     |
+|    `smtp`     |    No     |    Yes     |      25      |      Remote SMTP connection via a TCP socket using StartTLS if available       |
+| `submission`  |    No     |    Yes     |     587      | Remote SMTP Submission connection via a TCP socket using StartTLS if available |
+| `submissions` |    No     |    Yes     |     465      |               Remote SMTP Submission connection via a TLS socket               |
 
 If the scheme is absent, the default scheme is assumed. If the address has a `/` prefix it's assumed to be `unix`,
 otherwise it's assumed to be`tcp`. If the scheme is `unix` it must be suffixed with an absolute path i.e.
