@@ -619,6 +619,7 @@ identity_validation:
         # key_length: 32
         # salt_length: 16
       # scrypt:
+        # variant: 'scrypt'
         # iterations: 16
         # block_size: 8
         # parallelism: 1

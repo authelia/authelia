@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { Alert, AlertTitle, Button, FormControl } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import { Alert, AlertTitle, Button, CircularProgress, FormControl } from "@mui/material";
+import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import { BroadcastChannel } from "broadcast-channel";
 import { useTranslation } from "react-i18next";
@@ -27,7 +27,7 @@ const OpenIDConnectConsentLoginFormView: React.FC<Props> = (props: Props) => {
     const [error, setError] = useState(false);
     const [hasCapsLock, setHasCapsLock] = useState(false);
     const [isCapsLockPartial, setIsCapsLockPartial] = useState(false);
-    const [disabled, setDisabled] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [workflow, workflowID] = useWorkflow();
 
     const redirector = useRedirector();
@@ -60,7 +60,7 @@ const OpenIDConnectConsentLoginFormView: React.FC<Props> = (props: Props) => {
             return;
         }
 
-        setDisabled(true);
+        setLoading(true);
 
         try {
             const res = await postFirstFactorReauthenticate(password, undefined, undefined, workflow, workflowID);
@@ -73,7 +73,7 @@ const OpenIDConnectConsentLoginFormView: React.FC<Props> = (props: Props) => {
             console.error(err);
             createErrorNotification(translate("Failed to confirm your identity"));
             setPassword("");
-            setDisabled(false);
+            setLoading(false);
             focusPassword();
         }
     }, [createErrorNotification, focusPassword, loginChannel, password, redirector, translate, workflow, workflowID]);
@@ -130,7 +130,7 @@ const OpenIDConnectConsentLoginFormView: React.FC<Props> = (props: Props) => {
                             onKeyDown={handlePasswordKeyDown}
                             onKeyUp={handlePasswordKeyUp}
                             error={error}
-                            disabled={disabled}
+                            disabled={loading}
                             value={password}
                             onChange={(v) => setPassword(v.target.value)}
                             onFocus={() => setError(false)}
@@ -155,7 +155,9 @@ const OpenIDConnectConsentLoginFormView: React.FC<Props> = (props: Props) => {
                             id="confirm-button"
                             variant="contained"
                             color="primary"
-                            fullWidth
+                            fullWidth={true}
+                            endIcon={loading ? <CircularProgress size={20} /> : null}
+                            disabled={loading}
                             onClick={handleConfirm}
                         >
                             {translate("Confirm")}

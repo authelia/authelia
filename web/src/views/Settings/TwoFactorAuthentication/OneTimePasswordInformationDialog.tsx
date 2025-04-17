@@ -10,7 +10,7 @@ import {
     Divider,
     Typography,
 } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
 
 import { FormatDateHumanReadable } from "@i18n/formats";

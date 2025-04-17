@@ -2,7 +2,7 @@
 title: "Security Assertion Markup Language (SAML) 2.0 Provider"
 description: "Authelia Security Assertion Markup Language (SAML) 2.0 Provider Implementation"
 summary: "The Security Assertion Markup Language (SAML) 2.0 Provider role is a very useful but complex feature to enhance interoperability of Authelia with other products."
-date: 2022-06-15T17:51:47+10:00
+date: 2025-03-23T19:03:40+11:00
 draft: false
 images: []
 weight: 225
@@ -29,3 +29,4 @@ many pitfalls with [Security Assertion Markup Language (SAML) 2.0] due to the ch
 need to be very mindful of these.
 
 [Security Assertion Markup Language (SAML) 2.0]: https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-tech-overview-2.0.html
+[OpenID Connect 1.0]: https://openid.net/connect/

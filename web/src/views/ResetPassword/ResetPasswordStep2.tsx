@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { Button, FormControl, IconButton, InputAdornment, Theme } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";

@@ -21,9 +21,9 @@ seo:
 ## Tested Versions
 
 * [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+  * [v4.39.1](https://github.com/authelia/authelia/releases/tag/v4.39.1)
 * [MinIO]
-  * [2024-01-05T22-17-24Z](https://github.com/minio/minio/releases/tag/RELEASE.2024-01-05T22-17-24Z)
+  * [2025-03-12T18-04-18Z](https://github.com/minio/minio/releases/tag/RELEASE.2025-03-12T18-04-18Z)
 
 {{% oidc-common %}}
 
@@ -43,6 +43,8 @@ Some of the values presented in this guide can automatically be replaced with do
 ## Configuration
 
 ### Authelia
+
+{{% oidc-conformance-claims %}}
 
 The following YAML configuration is an example __Authelia__ [client configuration] for use with [MinIO] which will
 operate with the application example:
@@ -70,7 +72,14 @@ identity_providers:
 
 ### Application
 
-To configure [MinIO] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [MinIO] to utilize Authelia as an [OpenID Connect 1.0] Provider you can either use the GUI or environment
+variables.
+
+You may also want to consider adding a
+[default policy](https://min.io/docs/minio/linux/administration/identity-access-management/policy-based-access-control.html#built-in-policies)
+to your user groups in Authelia.
+
+#### GUI
 
 1. Login to [MinIO]
 2. On the left hand menu, go to `Identity`, then `OpenID`
@@ -86,14 +95,29 @@ To configure [MinIO] to utilize Authelia as an [OpenID Connect 1.0] Provider:
     - Scopes: `openid,profile,email,groups`
     - Redirect URI: `https://minio.{{< sitevar name="domain" nojs="example.com" >}}/oauth_callback`
     - Role Policy: Leave Empty
-    - Claim User Info: Disabled
+    - Claim User Info: Enabled
     - Redirect URI Dynamic: Disabled
 5. Press `Save` at the bottom
 6. Accept the offer of a server restart at the top
     - Refresh the page and sign out if not done so automatically
-7. Add a [default policy](https://min.io/docs/minio/linux/administration/identity-access-management/policy-based-access-control.html#built-in-policies) to your user groups in Authelia
+7. Add your user to an authelia group that matches the policy name in MinIO. There are select [default policies](https://min.io/docs/minio/linux/administration/identity-access-management/policy-based-access-control.html#built-in-policies) that can be used. (The group name and policy name must match.)
 8. When the login screen appears again, click the `Other Authentication Methods` open, then select `Authelia` from the list.
 9. Login
+
+#### Environment Variables (Docker Compose)
+
+```yaml {title="compose.yml"}
+services:
+  minio:
+    environment:
+      MINIO_IDENTITY_OPENID_CONFIG_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration'
+      MINIO_IDENTITY_OPENID_CLIENT_ID: 'minio'
+      MINIO_IDENTITY_OPENID_CLIENT_SECRET: 'insecure_secret'
+      MINIO_IDENTITY_OPENID_DISPLAY_NAME: 'Authelia'
+      MINIO_IDENTITY_OPENID_CLAIM_NAME: 'groups'
+      MINIO_IDENTITY_OPENID_SCOPES: 'openid,profile,email,groups'
+      MINIO_IDENTITY_OPENID_REDIRECT_URI: 'https://minio.{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/oauth_callback'
+```
 
 ## See Also
 

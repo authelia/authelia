@@ -14,9 +14,114 @@ import (
 	"testing"
 
 	"github.com/authelia/jsonschema"
+	"github.com/go-crypt/crypt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v3"
 )
+
+func TestPasswordDigest_MarshalYAML(t *testing.T) {
+	type Example struct {
+		Value    bool            `yaml:"value"`
+		Password *PasswordDigest `yaml:"password,omitempty"`
+	}
+
+	password, err := crypt.Decode("$pbkdf2-sha256$310000$C./EitMdCemqoluAK4Kapw$TTb4uTnL09mJsfbVnypCzJjGvICiiqO56i8VlU5zx6Q")
+	require.NoError(t, err)
+
+	testCases := []struct {
+		name     string
+		have     Example
+		expected string
+	}{
+		{
+			"ShouldMarshalValue",
+			Example{
+				Password: &PasswordDigest{
+					Digest: password,
+				},
+			},
+			"value: false\npassword: $pbkdf2-sha256$310000$C./EitMdCemqoluAK4Kapw$TTb4uTnL09mJsfbVnypCzJjGvICiiqO56i8VlU5zx6Q\n",
+		},
+		{
+			"ShouldOmitValue",
+			Example{
+				Password: nil,
+			},
+			"value: false\n",
+		},
+		{
+			"ShouldOmitValueNil",
+			Example{
+				Password: &PasswordDigest{},
+			},
+			"value: false\npassword: null\n",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			data, err := yaml.Marshal(tc.have)
+			require.NoError(t, err)
+
+			assert.Equal(t, tc.expected, string(data))
+		})
+	}
+}
+
+func TestPasswordDigest_UnmarshalYAML(t *testing.T) {
+	type Example struct {
+		Password *PasswordDigest `yaml:"password,omitempty"`
+	}
+
+	password, err := crypt.Decode("$pbkdf2-sha256$310000$C./EitMdCemqoluAK4Kapw$TTb4uTnL09mJsfbVnypCzJjGvICiiqO56i8VlU5zx6Q")
+	require.NoError(t, err)
+
+	testCases := []struct {
+		name     string
+		have     string
+		expected Example
+		err      string
+	}{
+		{
+			"ShouldUnmarshalValue",
+			"password: $pbkdf2-sha256$310000$C./EitMdCemqoluAK4Kapw$TTb4uTnL09mJsfbVnypCzJjGvICiiqO56i8VlU5zx6Q\n",
+			Example{
+				Password: &PasswordDigest{
+					Digest: password,
+				},
+			},
+			"",
+		},
+		{
+			"ShouldErrUnmarshalValue",
+			"password: $p-sha256$310000$C./EitMdCemqoluAK4Kapw$TTb4uTnL09mJsfbVnypCzJjGvICiiqO56i8VlU5zx6Q\n",
+			Example{},
+			"provided encoded hash has an invalid identifier: the identifier 'p-sha256' is unknown to the decoder",
+		},
+		{
+			"ShouldErrUnmarshalValueType",
+			"password: 1\n",
+			Example{},
+			"provided encoded hash has an invalid format: the digest doesn't begin with the delimiter '$' and is not one of the other understood formats",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := Example{}
+
+			err = yaml.Unmarshal([]byte(tc.have), &actual)
+
+			if tc.err == "" {
+				require.NoError(t, yaml.Unmarshal([]byte(tc.have), &actual))
+				assert.Equal(t, tc.expected, actual)
+			} else {
+				assert.EqualError(t, err, tc.err)
+			}
+		})
+	}
+}
 
 func TestNewTLSVersion(t *testing.T) {
 	testCases := []struct {
@@ -317,14 +422,26 @@ func TestPasswordDigest_IsPlainText(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, digest.IsPlainText())
 
+	value, err := digest.GetPlainTextValue()
+	assert.NoError(t, err)
+	assert.Equal(t, string(value), "exam")
+
 	digest = &PasswordDigest{}
 
 	assert.False(t, digest.IsPlainText())
+
+	value, err = digest.GetPlainTextValue()
+	assert.Nil(t, value)
+	assert.EqualError(t, err, "error: nil value")
 
 	digest, err = DecodePasswordDigest("$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng")
 	assert.NoError(t, err)
 
 	assert.False(t, digest.IsPlainText())
+
+	value, err = digest.GetPlainTextValue()
+	assert.Nil(t, value)
+	assert.EqualError(t, err, "error: digest isn't plaintext")
 }
 
 func TestPasswordDigest_PlainText(t *testing.T) {

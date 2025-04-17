@@ -93,8 +93,8 @@ func ValidatePasswordConfiguration(config *schema.AuthenticationBackendFilePassw
 	validateFileAuthenticationBackendPasswordConfigArgon2(config, validator)
 	validateFileAuthenticationBackendPasswordConfigSHA2Crypt(config, validator)
 	validateFileAuthenticationBackendPasswordConfigPBKDF2(config, validator)
-	validateFileAuthenticationBackendPasswordConfigBCrypt(config, validator)
-	validateFileAuthenticationBackendPasswordConfigSCrypt(config, validator)
+	validateFileAuthenticationBackendPasswordConfigBcrypt(config, validator)
+	validateFileAuthenticationBackendPasswordConfigScrypt(config, validator)
 }
 
 //nolint:gocyclo // Function is well formed.
@@ -214,71 +214,82 @@ func validateFileAuthenticationBackendPasswordConfigPBKDF2(config *schema.Authen
 	}
 }
 
-func validateFileAuthenticationBackendPasswordConfigBCrypt(config *schema.AuthenticationBackendFilePassword, validator *schema.StructValidator) {
+func validateFileAuthenticationBackendPasswordConfigBcrypt(config *schema.AuthenticationBackendFilePassword, validator *schema.StructValidator) {
 	switch {
-	case config.BCrypt.Variant == "":
-		config.BCrypt.Variant = schema.DefaultPasswordConfig.BCrypt.Variant
-	case utils.IsStringInSlice(config.BCrypt.Variant, validBCryptVariants):
+	case config.Bcrypt.Variant == "":
+		config.Bcrypt.Variant = schema.DefaultPasswordConfig.Bcrypt.Variant
+	case utils.IsStringInSlice(config.Bcrypt.Variant, validBcryptVariants):
 		break
 	default:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashBCrypt, utils.StringJoinOr(validBCryptVariants), config.BCrypt.Variant))
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashBcrypt, utils.StringJoinOr(validBcryptVariants), config.Bcrypt.Variant))
 	}
 
 	switch {
-	case config.BCrypt.Cost == 0:
-		config.BCrypt.Cost = schema.DefaultPasswordConfig.BCrypt.Cost
-	case config.BCrypt.Cost < bcrypt.IterationsMin:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashBCrypt, "cost", config.BCrypt.Cost, bcrypt.IterationsMin))
-	case config.BCrypt.Cost > bcrypt.IterationsMax:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashBCrypt, "cost", config.BCrypt.Cost, bcrypt.IterationsMax))
+	case config.Bcrypt.Cost == 0:
+		config.Bcrypt.Cost = schema.DefaultPasswordConfig.Bcrypt.Cost
+	case config.Bcrypt.Cost < bcrypt.IterationsMin:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashBcrypt, "cost", config.Bcrypt.Cost, bcrypt.IterationsMin))
+	case config.Bcrypt.Cost > bcrypt.IterationsMax:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashBcrypt, "cost", config.Bcrypt.Cost, bcrypt.IterationsMax))
 	}
 }
 
 //nolint:gocyclo
-func validateFileAuthenticationBackendPasswordConfigSCrypt(config *schema.AuthenticationBackendFilePassword, validator *schema.StructValidator) {
+func validateFileAuthenticationBackendPasswordConfigScrypt(config *schema.AuthenticationBackendFilePassword, validator *schema.StructValidator) {
 	switch {
-	case config.SCrypt.Iterations == 0:
-		config.SCrypt.Iterations = schema.DefaultPasswordConfig.SCrypt.Iterations
-	case config.SCrypt.Iterations < scrypt.IterationsMin:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashSCrypt, "iterations", config.SCrypt.Iterations, scrypt.IterationsMin))
-	case config.SCrypt.Iterations > scrypt.IterationsMax:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashSCrypt, "iterations", config.SCrypt.Iterations, scrypt.IterationsMax))
+	case config.Scrypt.Variant == "":
+		config.Scrypt.Variant = schema.DefaultPasswordConfig.Scrypt.Variant
+	case utils.IsStringInSlice(config.Scrypt.Variant, validScryptVariants):
+		break
+	default:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordInvalidVariant, hashScrypt, utils.StringJoinOr(validScryptVariants), config.Scrypt.Variant))
 	}
 
 	switch {
-	case config.SCrypt.BlockSize == 0:
-		config.SCrypt.BlockSize = schema.DefaultPasswordConfig.SCrypt.BlockSize
-	case config.SCrypt.BlockSize < scrypt.BlockSizeMin:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashSCrypt, "block_size", config.SCrypt.BlockSize, scrypt.BlockSizeMin))
-	case config.SCrypt.BlockSize > scrypt.BlockSizeMax:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashSCrypt, "block_size", config.SCrypt.BlockSize, scrypt.BlockSizeMax))
+	case config.Scrypt.Iterations == 0:
+		config.Scrypt.Iterations = schema.DefaultPasswordConfig.Scrypt.Iterations
+	case config.Scrypt.Iterations < scrypt.IterationsMin:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashScrypt, "iterations", config.Scrypt.Iterations, scrypt.IterationsMin))
+	case config.Scrypt.Iterations > scrypt.IterationsMax:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashScrypt, "iterations", config.Scrypt.Iterations, scrypt.IterationsMax))
 	}
 
 	switch {
-	case config.SCrypt.Parallelism == 0:
-		config.SCrypt.Parallelism = schema.DefaultPasswordConfig.SCrypt.Parallelism
-	case config.SCrypt.Parallelism < scrypt.ParallelismMin:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashSCrypt, "parallelism", config.SCrypt.Parallelism, scrypt.ParallelismMin))
-	case config.SCrypt.Parallelism > scrypt.ParallelismMax:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashSCrypt, "parallelism", config.SCrypt.Parallelism, scrypt.ParallelismMax))
+	case config.Scrypt.BlockSize == 0:
+		config.Scrypt.BlockSize = schema.DefaultPasswordConfig.Scrypt.BlockSize
+	case config.Scrypt.BlockSize < scrypt.BlockSizeMin:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashScrypt, "block_size", config.Scrypt.BlockSize, scrypt.BlockSizeMin))
+	case config.Scrypt.BlockSize > scrypt.BlockSizeMax:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashScrypt, "block_size", config.Scrypt.BlockSize, scrypt.BlockSizeMax))
 	}
 
 	switch {
-	case config.SCrypt.KeyLength == 0:
-		config.SCrypt.KeyLength = schema.DefaultPasswordConfig.SCrypt.KeyLength
-	case config.SCrypt.KeyLength < scrypt.KeyLengthMin:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashSCrypt, "key_length", config.SCrypt.KeyLength, scrypt.KeyLengthMin))
-	case config.SCrypt.KeyLength > scrypt.KeyLengthMax:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashSCrypt, "key_length", config.SCrypt.KeyLength, scrypt.KeyLengthMax))
+	case config.Scrypt.Parallelism == 0:
+		config.Scrypt.Parallelism = schema.DefaultPasswordConfig.Scrypt.Parallelism
+	case config.Scrypt.Parallelism < scrypt.ParallelismMin:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashScrypt, "parallelism", config.Scrypt.Parallelism, scrypt.ParallelismMin))
+	case config.Scrypt.Parallelism > scrypt.ParallelismMax:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashScrypt, "parallelism", config.Scrypt.Parallelism, scrypt.ParallelismMax))
+	case config.Scrypt.Variant == "yescrypt" && config.Scrypt.Parallelism != 1:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionInvalid, hashScrypt, "parallelism", config.Scrypt.Parallelism, 1, "variant", config.Scrypt.Variant))
 	}
 
 	switch {
-	case config.SCrypt.SaltLength == 0:
-		config.SCrypt.SaltLength = schema.DefaultPasswordConfig.SCrypt.SaltLength
-	case config.SCrypt.SaltLength < scrypt.SaltLengthMin:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashSCrypt, "salt_length", config.SCrypt.SaltLength, scrypt.SaltLengthMin))
-	case config.SCrypt.SaltLength > scrypt.SaltLengthMax:
-		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashSCrypt, "salt_length", config.SCrypt.SaltLength, scrypt.SaltLengthMax))
+	case config.Scrypt.KeyLength == 0:
+		config.Scrypt.KeyLength = schema.DefaultPasswordConfig.Scrypt.KeyLength
+	case config.Scrypt.KeyLength < scrypt.KeyLengthMin:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashScrypt, "key_length", config.Scrypt.KeyLength, scrypt.KeyLengthMin))
+	case config.Scrypt.KeyLength > scrypt.KeyLengthMax:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashScrypt, "key_length", config.Scrypt.KeyLength, scrypt.KeyLengthMax))
+	}
+
+	switch {
+	case config.Scrypt.SaltLength == 0:
+		config.Scrypt.SaltLength = schema.DefaultPasswordConfig.Scrypt.SaltLength
+	case config.Scrypt.SaltLength < scrypt.SaltLengthMin:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashScrypt, "salt_length", config.Scrypt.SaltLength, scrypt.SaltLengthMin))
+	case config.Scrypt.SaltLength > scrypt.SaltLengthMax:
+		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooLarge, hashScrypt, "salt_length", config.Scrypt.SaltLength, scrypt.SaltLengthMax))
 	}
 }
 

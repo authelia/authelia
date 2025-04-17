@@ -2,7 +2,7 @@ import React, { Fragment } from "react";
 
 import { Divider, Link, Theme } from "@mui/material";
 import { grey } from "@mui/material/colors";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
 import { makeStyles } from "tss-react/mui";
 

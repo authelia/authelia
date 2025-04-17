@@ -433,14 +433,14 @@
           "description": "Configure the PBKDF2 password hashing parameters."
         },
         "bcrypt": {
-          "$ref": "#/$defs/AuthenticationBackendFilePasswordBCrypt",
-          "title": "BCrypt",
-          "description": "Configure the BCrypt password hashing parameters."
+          "$ref": "#/$defs/AuthenticationBackendFilePasswordBcrypt",
+          "title": "Bcrypt",
+          "description": "Configure the Bcrypt password hashing parameters."
         },
         "scrypt": {
-          "$ref": "#/$defs/AuthenticationBackendFilePasswordSCrypt",
-          "title": "SCrypt",
-          "description": "Configure the SCrypt password hashing parameters."
+          "$ref": "#/$defs/AuthenticationBackendFilePasswordScrypt",
+          "title": "Scrypt",
+          "description": "Configure the Scrypt password hashing parameters."
         },
         "iterations": {
           "type": "integer",
@@ -533,7 +533,7 @@
       "type": "object",
       "description": "AuthenticationBackendFilePasswordArgon2 represents the argon2 hashing settings."
     },
-    "AuthenticationBackendFilePasswordBCrypt": {
+    "AuthenticationBackendFilePasswordBcrypt": {
       "properties": {
         "variant": {
           "type": "string",
@@ -542,7 +542,7 @@
             "sha256"
           ],
           "title": "Variant",
-          "description": "The BCrypt variant to be used.",
+          "description": "The Bcrypt variant to be used.",
           "default": "standard"
         },
         "cost": {
@@ -550,13 +550,13 @@
           "maximum": 31,
           "minimum": 10,
           "title": "Cost",
-          "description": "The BCrypt cost to be used.",
+          "description": "The Bcrypt cost to be used.",
           "default": 12
         }
       },
       "additionalProperties": false,
       "type": "object",
-      "description": "AuthenticationBackendFilePasswordBCrypt represents the bcrypt hashing settings."
+      "description": "AuthenticationBackendFilePasswordBcrypt represents the bcrypt hashing settings."
     },
     "AuthenticationBackendFilePasswordPBKDF2": {
       "properties": {
@@ -594,53 +594,6 @@
       "type": "object",
       "description": "AuthenticationBackendFilePasswordPBKDF2 represents the PBKDF2 hashing settings."
     },
-    "AuthenticationBackendFilePasswordSCrypt": {
-      "properties": {
-        "iterations": {
-          "type": "integer",
-          "maximum": 58,
-          "minimum": 1,
-          "title": "Iterations",
-          "description": "The SCrypt iterations to be used.",
-          "default": 16
-        },
-        "block_size": {
-          "type": "integer",
-          "maximum": 36028797018963967,
-          "minimum": 1,
-          "title": "Key Length",
-          "description": "The SCrypt block size to be used.",
-          "default": 8
-        },
-        "parallelism": {
-          "type": "integer",
-          "maximum": 1073741823,
-          "minimum": 1,
-          "title": "Key Length",
-          "description": "The SCrypt parallelism factor to be used.",
-          "default": 1
-        },
-        "key_length": {
-          "type": "integer",
-          "maximum": 137438953440,
-          "minimum": 1,
-          "title": "Key Length",
-          "description": "The SCrypt key length to be used.",
-          "default": 32
-        },
-        "salt_length": {
-          "type": "integer",
-          "maximum": 1024,
-          "minimum": 8,
-          "title": "Salt Length",
-          "description": "The SCrypt salt length to be used.",
-          "default": 16
-        }
-      },
-      "additionalProperties": false,
-      "type": "object",
-      "description": "AuthenticationBackendFilePasswordSCrypt represents the scrypt hashing settings."
-    },
     "AuthenticationBackendFilePasswordSHA2Crypt": {
       "properties": {
         "variant": {
@@ -673,6 +626,62 @@
       "additionalProperties": false,
       "type": "object",
       "description": "AuthenticationBackendFilePasswordSHA2Crypt represents the sha2crypt hashing settings."
+    },
+    "AuthenticationBackendFilePasswordScrypt": {
+      "properties": {
+        "variant": {
+          "type": "string",
+          "enum": [
+            "scrypt",
+            "yescrypt"
+          ],
+          "description": "The Scrypt variant to be used.",
+          "default": "scrypt"
+        },
+        "iterations": {
+          "type": "integer",
+          "maximum": 58,
+          "minimum": 1,
+          "title": "Iterations",
+          "description": "The Scrypt iterations to be used.",
+          "default": 16
+        },
+        "block_size": {
+          "type": "integer",
+          "maximum": 36028797018963967,
+          "minimum": 1,
+          "title": "Key Length",
+          "description": "The Scrypt block size to be used.",
+          "default": 8
+        },
+        "parallelism": {
+          "type": "integer",
+          "maximum": 1073741823,
+          "minimum": 1,
+          "title": "Key Length",
+          "description": "The Scrypt parallelism factor to be used.",
+          "default": 1
+        },
+        "key_length": {
+          "type": "integer",
+          "maximum": 137438953440,
+          "minimum": 1,
+          "title": "Key Length",
+          "description": "The Scrypt key length to be used.",
+          "default": 32
+        },
+        "salt_length": {
+          "type": "integer",
+          "maximum": 1024,
+          "minimum": 8,
+          "title": "Salt Length",
+          "description": "The Scrypt salt length to be used.",
+          "default": 16
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AuthenticationBackendFilePasswordScrypt represents the scrypt hashing settings."
     },
     "AuthenticationBackendFileSearch": {
       "properties": {
@@ -718,7 +727,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -927,7 +936,7 @@
           "title": "Attribute: User Mail",
           "description": "The directory server attribute which contains the mail address for all users and groups."
         },
-        "MemberOf": {
+        "member_of": {
           "type": "string",
           "title": "Attribute: Member Of",
           "description": "The directory server attribute which contains the objects that an object is a member of."
@@ -1002,7 +1011,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -1314,6 +1323,7 @@
         "discovery_signed_response_alg": {
           "type": "string",
           "enum": [
+            "",
             "none",
             "RS256",
             "RS384",
@@ -1644,7 +1654,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -1678,7 +1688,11 @@
         "authorization_signed_response_alg": {
           "type": "string",
           "enum": [
+            "",
             "none",
+            "HS256",
+            "HS384",
+            "HS512",
             "RS256",
             "RS384",
             "RS512",
@@ -1701,6 +1715,8 @@
         "authorization_encrypted_response_alg": {
           "type": "string",
           "enum": [
+            "",
+            "none",
             "RSA1_5",
             "RSA-OAEP",
             "RSA-OAEP-256",
@@ -1720,11 +1736,13 @@
             "PBES2-HS512+A256KW"
           ],
           "title": "Authorization Encryption Algorithm (CEK)",
-          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Authorization objects CEK that it generates and responds with. i.e. the JWE 'alg' value."
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Authorization objects CEK that it generates and responds with. i.e. the JWE 'alg' value.",
+          "default": "none"
         },
         "authorization_encrypted_response_enc": {
           "type": "string",
           "enum": [
+            "",
             "A128CBC-HS256",
             "A192CBC-HS384",
             "A256CBC-HS512",
@@ -1733,16 +1751,21 @@
             "A256GCM"
           ],
           "title": "Authorization Encryption Algorithm (Content)",
-          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Authorization objects content that it generates and responds with. i.e. the JWE 'enc' value."
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Authorization objects content that it generates and responds with. i.e. the JWE 'enc' value.",
+          "default": "A128CBC-HS256"
         },
         "authorization_encrypted_response_key_id": {
           "type": "string",
           "title": "Authorization Signing Key ID",
-          "description": "The Key ID of a JOSE encryption key (JWE) this client uses to encrypt the Authorization objects that it generates and responds with. This value overrides the 'authorization_encrypted_response_alg' and '%!s(MISSING)_encrypted_response_enc'. i.e. the JWE 'kid' value."
+          "description": "The Key ID of a JOSE encryption key (JWE) this client uses to encrypt the Authorization objects that it generates and responds with. This value overrides the 'authorization_encrypted_response_alg' and 'authorization_encrypted_response_enc'. i.e. the JWE 'kid' value."
         },
         "id_token_signed_response_alg": {
           "type": "string",
           "enum": [
+            "",
+            "HS256",
+            "HS384",
+            "HS512",
             "RS256",
             "RS384",
             "RS512",
@@ -1765,6 +1788,8 @@
         "id_token_encrypted_response_alg": {
           "type": "string",
           "enum": [
+            "",
+            "none",
             "RSA1_5",
             "RSA-OAEP",
             "RSA-OAEP-256",
@@ -1784,11 +1809,13 @@
             "PBES2-HS512+A256KW"
           ],
           "title": "ID Token Encryption Algorithm (CEK)",
-          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the ID Token objects CEK that it generates and responds with. i.e. the JWE 'alg' value."
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the ID Token objects CEK that it generates and responds with. i.e. the JWE 'alg' value.",
+          "default": "none"
         },
         "id_token_encrypted_response_enc": {
           "type": "string",
           "enum": [
+            "",
             "A128CBC-HS256",
             "A192CBC-HS384",
             "A256CBC-HS512",
@@ -1797,17 +1824,22 @@
             "A256GCM"
           ],
           "title": "ID Token Encryption Algorithm (Content)",
-          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the ID Token objects content that it generates and responds with. i.e. the JWE 'enc' value."
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the ID Token objects content that it generates and responds with. i.e. the JWE 'enc' value.",
+          "default": "A128CBC-HS256"
         },
         "id_token_encrypted_response_key_id": {
           "type": "string",
           "title": "ID Token Signing Key ID",
-          "description": "The Key ID of a JOSE encryption key (JWE) this client uses to encrypt the ID Token objects that it generates and responds with. This value overrides the 'id_token_encrypted_response_alg' and '%!s(MISSING)_encrypted_response_enc'. i.e. the JWE 'kid' value."
+          "description": "The Key ID of a JOSE encryption key (JWE) this client uses to encrypt the ID Token objects that it generates and responds with. This value overrides the 'id_token_encrypted_response_alg' and 'id_token_encrypted_response_enc'. i.e. the JWE 'kid' value."
         },
         "access_token_signed_response_alg": {
           "type": "string",
           "enum": [
+            "",
             "none",
+            "HS256",
+            "HS384",
+            "HS512",
             "RS256",
             "RS384",
             "RS512",
@@ -1830,6 +1862,8 @@
         "access_token_encrypted_response_alg": {
           "type": "string",
           "enum": [
+            "",
+            "none",
             "RSA1_5",
             "RSA-OAEP",
             "RSA-OAEP-256",
@@ -1849,11 +1883,13 @@
             "PBES2-HS512+A256KW"
           ],
           "title": "Access Token Encryption Algorithm (CEK)",
-          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Access Token objects CEK that it generates and responds with. i.e. the JWE 'alg' value."
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Access Token objects CEK that it generates and responds with. i.e. the JWE 'alg' value.",
+          "default": "none"
         },
         "access_token_encrypted_response_enc": {
           "type": "string",
           "enum": [
+            "",
             "A128CBC-HS256",
             "A192CBC-HS384",
             "A256CBC-HS512",
@@ -1862,17 +1898,22 @@
             "A256GCM"
           ],
           "title": "Access Token Encryption Algorithm (Content)",
-          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Access Token objects content that it generates and responds with. i.e. the JWE 'enc' value."
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Access Token objects content that it generates and responds with. i.e. the JWE 'enc' value.",
+          "default": "A128CBC-HS256"
         },
         "access_token_encrypted_response_key_id": {
           "type": "string",
           "title": "Access Token Signing Key ID",
-          "description": "The Key ID of a JOSE encryption key (JWE) this client uses to encrypt the Access Token objects that it generates and responds with. This value overrides the 'access_token_encrypted_response_alg' and '%!s(MISSING)_encrypted_response_enc'. i.e. the JWE 'kid' value."
+          "description": "The Key ID of a JOSE encryption key (JWE) this client uses to encrypt the Access Token objects that it generates and responds with. This value overrides the 'access_token_encrypted_response_alg' and 'access_token_encrypted_response_enc'. i.e. the JWE 'kid' value."
         },
         "userinfo_signed_response_alg": {
           "type": "string",
           "enum": [
+            "",
             "none",
+            "HS256",
+            "HS384",
+            "HS512",
             "RS256",
             "RS384",
             "RS512",
@@ -1895,6 +1936,8 @@
         "userinfo_encrypted_response_alg": {
           "type": "string",
           "enum": [
+            "",
+            "none",
             "RSA1_5",
             "RSA-OAEP",
             "RSA-OAEP-256",
@@ -1914,11 +1957,13 @@
             "PBES2-HS512+A256KW"
           ],
           "title": "Userinfo Encryption Algorithm (CEK)",
-          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Userinfo objects CEK that it generates and responds with. i.e. the JWE 'alg' value."
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Userinfo objects CEK that it generates and responds with. i.e. the JWE 'alg' value.",
+          "default": "none"
         },
         "userinfo_encrypted_response_enc": {
           "type": "string",
           "enum": [
+            "",
             "A128CBC-HS256",
             "A192CBC-HS384",
             "A256CBC-HS512",
@@ -1927,17 +1972,22 @@
             "A256GCM"
           ],
           "title": "Userinfo Encryption Algorithm (Content)",
-          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Userinfo objects content that it generates and responds with. i.e. the JWE 'enc' value."
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Userinfo objects content that it generates and responds with. i.e. the JWE 'enc' value.",
+          "default": "A128CBC-HS256"
         },
         "userinfo_encrypted_response_key_id": {
           "type": "string",
           "title": "Userinfo Signing Key ID",
-          "description": "The Key ID of a JOSE encryption key (JWE) this client uses to encrypt the Userinfo objects that it generates and responds with. This value overrides the 'userinfo_encrypted_response_alg' and '%!s(MISSING)_encrypted_response_enc'. i.e. the JWE 'kid' value."
+          "description": "The Key ID of a JOSE encryption key (JWE) this client uses to encrypt the Userinfo objects that it generates and responds with. This value overrides the 'userinfo_encrypted_response_alg' and 'userinfo_encrypted_response_enc'. i.e. the JWE 'kid' value."
         },
         "introspection_signed_response_alg": {
           "type": "string",
           "enum": [
+            "",
             "none",
+            "HS256",
+            "HS384",
+            "HS512",
             "RS256",
             "RS384",
             "RS512",
@@ -1960,6 +2010,8 @@
         "introspection_encrypted_response_alg": {
           "type": "string",
           "enum": [
+            "",
+            "none",
             "RSA1_5",
             "RSA-OAEP",
             "RSA-OAEP-256",
@@ -1979,11 +2031,13 @@
             "PBES2-HS512+A256KW"
           ],
           "title": "Introspection Encryption Algorithm (CEK)",
-          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Introspection objects CEK that it generates and responds with. i.e. the JWE 'alg' value."
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Introspection objects CEK that it generates and responds with. i.e. the JWE 'alg' value.",
+          "default": "none"
         },
         "introspection_encrypted_response_enc": {
           "type": "string",
           "enum": [
+            "",
             "A128CBC-HS256",
             "A192CBC-HS384",
             "A256CBC-HS512",
@@ -1992,16 +2046,19 @@
             "A256GCM"
           ],
           "title": "Introspection Encryption Algorithm (Content)",
-          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Introspection objects content that it generates and responds with. i.e. the JWE 'enc' value."
+          "description": "The JOSE encryption algorithm (JWE) this client uses to encrypt the Introspection objects content that it generates and responds with. i.e. the JWE 'enc' value.",
+          "default": "A128CBC-HS256"
         },
         "introspection_encrypted_response_key_id": {
           "type": "string",
           "title": "Introspection Signing Key ID",
-          "description": "The Key ID of a JOSE encryption key (JWE) this client uses to encrypt the Introspection objects that it generates and responds with. This value overrides the 'introspection_encrypted_response_alg' and '%!s(MISSING)_encrypted_response_enc'. i.e. the JWE 'kid' value."
+          "description": "The Key ID of a JOSE encryption key (JWE) this client uses to encrypt the Introspection objects that it generates and responds with. This value overrides the 'introspection_encrypted_response_alg' and 'introspection_encrypted_response_enc'. i.e. the JWE 'kid' value."
         },
         "request_object_signing_alg": {
           "type": "string",
           "enum": [
+            "",
+            "none",
             "RS256",
             "RS384",
             "RS512",
@@ -2018,6 +2075,8 @@
         "request_object_encryption_alg": {
           "type": "string",
           "enum": [
+            "",
+            "none",
             "RSA1_5",
             "RSA-OAEP",
             "RSA-OAEP-256",
@@ -2037,11 +2096,13 @@
             "PBES2-HS512+A256KW"
           ],
           "title": "Request Object Encryption Algorithm (CEK)",
-          "description": "The JOSE encryption algorithm (JWE) this client must use to encrypt the Request Object CEK. i.e. the JWE 'alg' value."
+          "description": "The JOSE encryption algorithm (JWE) this client must use to encrypt the Request Object CEK. i.e. the JWE 'alg' value.",
+          "default": "none"
         },
         "request_object_encryption_enc": {
           "type": "string",
           "enum": [
+            "",
             "A128CBC-HS256",
             "A192CBC-HS384",
             "A256CBC-HS512",
@@ -2050,11 +2111,13 @@
             "A256GCM"
           ],
           "title": "Request Object Encryption Algorithm (Content)",
-          "description": "The JOSE encryption algorithm (JWE) this client must use to encrypt the Request Object content. i.e. the JWE 'enc' value."
+          "description": "The JOSE encryption algorithm (JWE) this client must use to encrypt the Request Object content. i.e. the JWE 'enc' value.",
+          "default": "A128CBC-HS256"
         },
         "token_endpoint_auth_method": {
           "type": "string",
           "enum": [
+            "",
             "none",
             "client_secret_post",
             "client_secret_basic",
@@ -2062,11 +2125,13 @@
             "client_secret_jwt"
           ],
           "title": "Token Endpoint Auth Method",
-          "description": "The Token Endpoint Auth Method enforced by the provider for this client."
+          "description": "The Token Endpoint Auth Method enforced by the provider for this client.",
+          "default": "client_secret_basic"
         },
         "token_endpoint_auth_signing_alg": {
           "type": "string",
           "enum": [
+            "",
             "HS256",
             "HS384",
             "HS512",
@@ -2086,6 +2151,7 @@
         "revocation_endpoint_auth_method": {
           "type": "string",
           "enum": [
+            "",
             "none",
             "client_secret_post",
             "client_secret_basic",
@@ -2093,11 +2159,13 @@
             "client_secret_jwt"
           ],
           "title": "Revocation Endpoint Auth Method",
-          "description": "The Revocation Endpoint Auth Method enforced by the provider for this client."
+          "description": "The Revocation Endpoint Auth Method enforced by the provider for this client.",
+          "default": "client_secret_basic"
         },
         "revocation_endpoint_auth_signing_alg": {
           "type": "string",
           "enum": [
+            "",
             "HS256",
             "HS384",
             "HS512",
@@ -2117,6 +2185,7 @@
         "introspection_endpoint_auth_method": {
           "type": "string",
           "enum": [
+            "",
             "none",
             "client_secret_post",
             "client_secret_basic",
@@ -2124,11 +2193,13 @@
             "client_secret_jwt"
           ],
           "title": "Introspection Endpoint Auth Method",
-          "description": "The Introspection Endpoint Auth Method enforced by the provider for this client."
+          "description": "The Introspection Endpoint Auth Method enforced by the provider for this client.",
+          "default": "client_secret_basic"
         },
         "introspection_endpoint_auth_signing_alg": {
           "type": "string",
           "enum": [
+            "",
             "HS256",
             "HS384",
             "HS512",
@@ -2148,6 +2219,7 @@
         "pushed_authorization_request_endpoint_auth_method": {
           "type": "string",
           "enum": [
+            "",
             "none",
             "client_secret_post",
             "client_secret_basic",
@@ -2155,11 +2227,13 @@
             "client_secret_jwt"
           ],
           "title": "Pushed Authorization Request Endpoint Auth Method",
-          "description": "The Pushed Authorization Request Endpoint Auth Method enforced by the provider for this client."
+          "description": "The Pushed Authorization Request Endpoint Auth Method enforced by the provider for this client.",
+          "default": "client_secret_basic"
         },
         "pushed_authorization_request_endpoint_auth_signing_alg": {
           "type": "string",
           "enum": [
+            "",
             "HS256",
             "HS384",
             "HS512",
@@ -2237,7 +2311,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -2251,7 +2325,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -2265,7 +2339,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -2279,7 +2353,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -2337,7 +2411,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -2351,7 +2425,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -2365,7 +2439,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -2379,7 +2453,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -2400,7 +2474,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -2414,7 +2488,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -2428,7 +2502,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -2442,7 +2516,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -2456,7 +2530,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -2579,7 +2653,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -2593,7 +2667,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -2603,7 +2677,7 @@
           "title": "Elevation Lifespan",
           "description": "The lifespan of the elevation after initially validating the One-Time Code before it expires."
         },
-        "otp_characters": {
+        "characters": {
           "type": "integer",
           "maximum": 12,
           "minimum": 6,
@@ -2634,7 +2708,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -2775,7 +2849,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -2853,7 +2927,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -3075,7 +3149,7 @@
         },
         {
           "type": "string",
-          "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+          "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
         },
         {
           "type": "integer",
@@ -3111,7 +3185,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -3125,7 +3199,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -3228,7 +3302,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -3360,7 +3434,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -3420,7 +3494,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -3434,7 +3508,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -3448,7 +3522,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -3484,7 +3558,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -3497,7 +3571,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -3510,7 +3584,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -3569,7 +3643,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -3582,7 +3656,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -3595,7 +3669,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -3644,7 +3718,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -3823,7 +3897,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -3867,7 +3941,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",
@@ -4215,7 +4289,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
             },
             {
               "type": "integer",

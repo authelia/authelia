@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { Button, CircularProgress, FormControl, useTheme } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";

@@ -128,6 +128,14 @@ func (d *PasswordDigest) UnmarshalYAML(value *yaml.Node) (err error) {
 	return nil
 }
 
+func (d *PasswordDigest) MarshalYAML() (value any, err error) {
+	if !d.Valid() {
+		return nil, nil
+	}
+
+	return d.String(), nil
+}
+
 // NewX509CertificateChain creates a new *X509CertificateChain from a given string, parsing each PEM block one by one.
 func NewX509CertificateChain(in string) (chain *X509CertificateChain, err error) {
 	if in == "" {
@@ -483,7 +491,7 @@ func (RefreshIntervalDuration) JSONSchema() *jsonschema.Schema {
 			},
 			{
 				Type:    jsonschema.TypeString,
-				Pattern: `^\d+\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\s*\d+\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$`,
+				Pattern: `^\d+\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\s*(\s+and\s+)?\d+\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$`,
 			},
 			{
 				Type:        jsonschema.TypeInteger,

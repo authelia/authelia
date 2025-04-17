@@ -43,6 +43,7 @@ authelia crypto hash generate scrypt --help
   -k, --key-size int      key size in bytes (default 32)
   -p, --parallelism int   parallelism or threads (default 1)
   -s, --salt-size int     salt size in bytes (default 16)
+  -v, --variant string    variant, options are 'scrypt', and 'yescrypt' (default "scrypt")
 ```
 
 ### Options inherited from parent commands

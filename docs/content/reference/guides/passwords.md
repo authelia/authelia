@@ -215,7 +215,8 @@ The algorithm that a hash is utilizing is identifiable by its prefix:
 |   [Argon2]   | `argon2id` |   `$argon2id$`    |
 |   [Argon2]   | `argon2i`  |    `$argon2i$`    |
 |   [Argon2]   | `argon2d`  |    `$argon2d$`    |
-|   [Scrypt]   |    N/A     |    `$scrypt$`     |
+|   [Scrypt]   |  `scrypt`  |    `$scrypt$`     |
+|   [Scrypt]   | `yescrypt` |       `$y$`       |
 |   [PBKDF2]   |   `sha1`   |    `$pbkdf2$`     |
 |   [PBKDF2]   |  `sha224`  | `$pbkdf2-sha224$` |
 |   [PBKDF2]   |  `sha256`  | `$pbkdf2-sha256$` |

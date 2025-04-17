@@ -87,8 +87,8 @@ const (
 	hashArgon2    = "argon2"
 	hashSHA2Crypt = "sha2crypt"
 	hashPBKDF2    = "pbkdf2"
-	hashSCrypt    = "scrypt"
-	hashBCrypt    = "bcrypt"
+	hashScrypt    = "scrypt"
+	hashBcrypt    = "bcrypt"
 )
 
 var (

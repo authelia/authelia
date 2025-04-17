@@ -11,7 +11,7 @@ import {
     Link,
     Theme,
 } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import { BroadcastChannel } from "broadcast-channel";
 import { useTranslation } from "react-i18next";
@@ -304,10 +304,10 @@ const FirstFactorForm = function (props: Props) {
                             id="sign-in-button"
                             variant="contained"
                             color="primary"
-                            fullWidth
+                            fullWidth={true}
+                            endIcon={loading ? <CircularProgress size={20} /> : null}
                             disabled={disabled}
                             onClick={handleSignIn}
-                            endIcon={loading ? <CircularProgress size={20} /> : null}
                         >
                             {translate("Sign in")}
                         </Button>

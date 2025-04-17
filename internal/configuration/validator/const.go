@@ -48,8 +48,8 @@ const (
 	hashArgon2    = "argon2"
 	hashSHA2Crypt = "sha2crypt"
 	hashPBKDF2    = "pbkdf2"
-	hashSCrypt    = "scrypt"
-	hashBCrypt    = "bcrypt"
+	hashScrypt    = "scrypt"
+	hashBcrypt    = "bcrypt"
 )
 
 // Scheme constants.
@@ -111,6 +111,8 @@ const (
 	errFmtFileAuthBackendPassword               = "authentication_backend: file: password: %s: "
 	errFmtFileAuthBackendPasswordInvalidVariant = errFmtFileAuthBackendPassword +
 		"option 'variant' " + errSuffixMustBeOneOf
+	errFmtFileAuthBackendPasswordOptionInvalid = errFmtFileAuthBackendPassword +
+		"option '%s' is configured as '%d' but must be '%d' when '%s' is set to '%v'"
 	errFmtFileAuthBackendPasswordOptionTooLarge = errFmtFileAuthBackendPassword +
 		"option '%s' is configured as '%d' but must be less than or equal to '%d'"
 	errFmtFileAuthBackendPasswordOptionTooSmall = errFmtFileAuthBackendPassword +
@@ -229,8 +231,9 @@ const (
 	errFmtOIDCClientInvalidSecretIs           = errFmtOIDCClientOption + "'client_secret' is "
 	errFmtOIDCClientInvalidSecret             = errFmtOIDCClientInvalidSecretIs + "required"
 	errFmtOIDCClientInvalidSecretPlainText    = errFmtOIDCClientInvalidSecretIs + "plaintext but for clients not using any endpoint authentication method 'client_secret_jwt' it should be a hashed value as plaintext values are deprecated with the exception of 'client_secret_jwt' and will be removed in the near future"
-	errFmtOIDCClientInvalidSecretNotPlainText = errFmtOIDCClientOption + "'client_secret' must be plaintext with option '%s' with a value of 'client_secret_jwt'"
-	errFmtOIDCClientPublicInvalidSecret       = errFmtOIDCClientInvalidSecretIs +
+	errFmtOIDCClientInvalidSecretNotPlainText = errFmtOIDCClientOption + "'client_secret' must be plaintext with option '%s' with a value of '%s'"
+
+	errFmtOIDCClientPublicInvalidSecret = errFmtOIDCClientInvalidSecretIs +
 		"required to be empty when option 'public' is true"
 	errFmtOIDCClientPublicInvalidSecretClientAuthMethod = errFmtOIDCClientInvalidSecretIs +
 		"required to be empty when option '%s' is configured as '%s'"
@@ -520,8 +523,9 @@ var (
 	validArgon2Variants    = []string{"argon2id", "id", "argon2i", "i", "argon2d", "d"}
 	validSHA2CryptVariants = []string{digestSHA256, digestSHA512}
 	validPBKDF2Variants    = []string{digestSHA1, digestSHA224, digestSHA256, digestSHA384, digestSHA512}
-	validBCryptVariants    = []string{"standard", digestSHA256}
-	validHashAlgorithms    = []string{hashSHA2Crypt, hashPBKDF2, hashSCrypt, hashBCrypt, hashArgon2}
+	validBcryptVariants    = []string{"standard", digestSHA256}
+	validScryptVariants    = []string{"scrypt", "yescrypt"}
+	validHashAlgorithms    = []string{hashSHA2Crypt, hashPBKDF2, hashScrypt, hashBcrypt, hashArgon2}
 )
 
 var (
@@ -567,16 +571,11 @@ const (
 	attrOIDCPARAuthSigningAlg           = "pushed_authorization_request_endpoint_auth_signing_alg"
 	attrOIDCDiscoSigAlg                 = "discovery_signed_response_alg"
 	attrOIDCDiscoSigKID                 = "discovery_signed_response_key_id"
-	attrOIDCUsrSigAlg                   = "userinfo_signed_response_alg"
-	attrOIDCUsrSigKID                   = "userinfo_signed_response_key_id"
-	attrOIDCIntrospectionSigAlg         = "introspection_signed_response_alg"
-	attrOIDCIntrospectionSigKID         = "introspection_signed_response_key_id"
-	attrOIDCAuthorizationSigAlg         = "authorization_signed_response_alg"
-	attrOIDCAuthorizationSigKID         = "authorization_signed_response_key_id"
-	attrOIDCIDTokenSigAlg               = "id_token_signed_response_alg"
-	attrOIDCIDTokenSigKID               = "id_token_signed_response_key_id"
-	attrOIDCAccessTokenSigAlg           = "access_token_signed_response_alg"
-	attrOIDCAccessTokenSigKID           = "access_token_signed_response_key_id"
+	attrOIDCAuthorizationPrefix         = "authorization"
+	attrOIDCIDTokenPrefix               = "id_token"
+	attrOIDCAccessTokenPrefix           = "access_token"
+	attrOIDCUserinfoPrefix              = "userinfo"
+	attrOIDCIntrospectionPrefix         = "introspection"
 	attrOIDCPKCEChallengeMethod         = "pkce_challenge_method"
 	attrOIDCRequestedAudienceMode       = "requested_audience_mode"
 	attrSessionAutheliaURL              = "authelia_url"
@@ -591,8 +590,9 @@ var (
 var (
 	validOIDCCORSEndpoints = []string{oidc.EndpointAuthorization, oidc.EndpointDeviceAuthorization, oidc.EndpointPushedAuthorizationRequest, oidc.EndpointToken, oidc.EndpointIntrospection, oidc.EndpointRevocation, oidc.EndpointUserinfo}
 
-	validOIDCReservedClaims                  = []string{oidc.ClaimJWTID, oidc.ClaimSessionID, oidc.ClaimAuthorizedParty, oidc.ClaimClientIdentifier, oidc.ClaimScope, oidc.ClaimScopeNonStandard, oidc.ClaimIssuer, oidc.ClaimSubject, oidc.ClaimAudience, oidc.ClaimSessionID, oidc.ClaimStateHash, oidc.ClaimCodeHash, oidc.ClaimIssuedAt, oidc.ClaimUpdatedAt, oidc.ClaimRequestedAt, oidc.ClaimNotBefore, oidc.ClaimExpirationTime, oidc.ClaimAuthenticationTime, oidc.ClaimAuthenticationMethodsReference, oidc.ClaimAuthenticationContextClassReference, oidc.ClaimNonce}
-	validOIDCClientClaims                    = []string{oidc.ClaimFullName, oidc.ClaimGivenName, oidc.ClaimFamilyName, oidc.ClaimMiddleName, oidc.ClaimNickname, oidc.ClaimPreferredUsername, oidc.ClaimProfile, oidc.ClaimPicture, oidc.ClaimWebsite, oidc.ClaimEmail, oidc.ClaimEmailVerified, oidc.ClaimGender, oidc.ClaimBirthdate, oidc.ClaimZoneinfo, oidc.ClaimLocale, oidc.ClaimPhoneNumber, oidc.ClaimPhoneNumberVerified, oidc.ClaimAddress, oidc.ClaimGroups, oidc.ClaimEmailAlts}
+	validOIDCReservedClaims                  = []string{oidc.ClaimJWTID, oidc.ClaimAuthorizedParty, oidc.ClaimClientIdentifier, oidc.ClaimScope, oidc.ClaimScopeNonStandard, oidc.ClaimIssuer, oidc.ClaimSubject, oidc.ClaimAudience, oidc.ClaimSessionID, oidc.ClaimStateHash, oidc.ClaimCodeHash, oidc.ClaimIssuedAt, oidc.ClaimUpdatedAt, oidc.ClaimNotBefore, oidc.ClaimExpirationTime, oidc.ClaimAuthenticationTime, oidc.ClaimAuthenticationMethodsReference, oidc.ClaimAuthenticationContextClassReference, oidc.ClaimNonce}
+	validOIDCReservedIDTokenClaims           = []string{oidc.ClaimJWTID, oidc.ClaimAuthorizedParty, oidc.ClaimScope, oidc.ClaimIssuer, oidc.ClaimSubject, oidc.ClaimAudience, oidc.ClaimSessionID, oidc.ClaimStateHash, oidc.ClaimCodeHash, oidc.ClaimIssuedAt, oidc.ClaimNotBefore, oidc.ClaimExpirationTime, oidc.ClaimAuthenticationTime, oidc.ClaimAuthenticationMethodsReference, oidc.ClaimAuthenticationContextClassReference, oidc.ClaimNonce}
+	validOIDCClientClaims                    = []string{oidc.ClaimFullName, oidc.ClaimGivenName, oidc.ClaimFamilyName, oidc.ClaimMiddleName, oidc.ClaimNickname, oidc.ClaimPreferredUsername, oidc.ClaimProfile, oidc.ClaimPicture, oidc.ClaimWebsite, oidc.ClaimEmail, oidc.ClaimEmailVerified, oidc.ClaimGender, oidc.ClaimBirthdate, oidc.ClaimZoneinfo, oidc.ClaimLocale, oidc.ClaimPhoneNumber, oidc.ClaimPhoneNumberVerified, oidc.ClaimAddress, oidc.ClaimGroups, oidc.ClaimEmailAlts, oidc.ClaimRequestedAt, oidc.ClaimUpdatedAt}
 	validOIDCClientScopes                    = []string{oidc.ScopeOpenID, oidc.ScopeEmail, oidc.ScopeProfile, oidc.ScopeAddress, oidc.ScopePhone, oidc.ScopeGroups, oidc.ScopeOfflineAccess, oidc.ScopeOffline, oidc.ScopeAutheliaBearerAuthz}
 	validOIDCClientConsentModes              = []string{auto, oidc.ClientConsentModeImplicit.String(), oidc.ClientConsentModeExplicit.String(), oidc.ClientConsentModePreConfigured.String()}
 	validOIDCClientResponseModes             = []string{oidc.ResponseModeFormPost, oidc.ResponseModeQuery, oidc.ResponseModeFragment, oidc.ResponseModeJWT, oidc.ResponseModeFormPostJWT, oidc.ResponseModeQueryJWT, oidc.ResponseModeFragmentJWT}
@@ -606,7 +606,10 @@ var (
 	validOIDCClientTokenEndpointAuthMethodsConfidential    = []string{oidc.ClientAuthMethodClientSecretPost, oidc.ClientAuthMethodClientSecretBasic, oidc.ClientAuthMethodPrivateKeyJWT}
 	validOIDCClientTokenEndpointAuthSigAlgsClientSecretJWT = []string{oidc.SigningAlgHMACUsingSHA256, oidc.SigningAlgHMACUsingSHA384, oidc.SigningAlgHMACUsingSHA512}
 	validOIDCIssuerJWKSigningAlgs                          = []string{oidc.SigningAlgRSAUsingSHA256, oidc.SigningAlgRSAPSSUsingSHA256, oidc.SigningAlgECDSAUsingP256AndSHA256, oidc.SigningAlgRSAUsingSHA384, oidc.SigningAlgRSAPSSUsingSHA384, oidc.SigningAlgECDSAUsingP384AndSHA384, oidc.SigningAlgRSAUsingSHA512, oidc.SigningAlgRSAPSSUsingSHA512, oidc.SigningAlgECDSAUsingP521AndSHA512}
-	validOIDCJWKEncryptionAlgs                             = []string{oidc.EncryptionAlgRSA15, oidc.EncryptionAlgRSAOAEP, oidc.EncryptionAlgRSAOAEP256, oidc.EncryptionAlgA128KW, oidc.EncryptionAlgA192KW, oidc.EncryptionAlgA256KW, oidc.EncryptionAlgDirect, oidc.EncryptionAlgECDHES, oidc.EncryptionAlgECDHESA128KW, oidc.EncryptionAlgECDHESA192KW, oidc.EncryptionAlgECDHESA256KW, oidc.EncryptionAlgA128GCMKW, oidc.EncryptionAlgA192GCMKW, oidc.EncryptionAlgA256GCMKW, oidc.EncryptionAlgPBES2HS256A128KW, oidc.EncryptionAlgPBES2HS284A192KW, oidc.EncryptionAlgPBES2HS512A256KW}
+	validOIDCClientJWKEncryptionKeyAlgs                    = []string{oidc.EncryptionAlgNone, oidc.EncryptionAlgRSA15, oidc.EncryptionAlgRSAOAEP, oidc.EncryptionAlgRSAOAEP256, oidc.EncryptionAlgECDHES, oidc.EncryptionAlgECDHESA128KW, oidc.EncryptionAlgECDHESA192KW, oidc.EncryptionAlgECDHESA256KW, oidc.EncryptionAlgA128KW, oidc.EncryptionAlgA192KW, oidc.EncryptionAlgA256KW, oidc.EncryptionAlgA128GCMKW, oidc.EncryptionAlgA192GCMKW, oidc.EncryptionAlgA256GCMKW, oidc.EncryptionAlgPBES2HS256A128KW, oidc.EncryptionAlgPBES2HS284A192KW, oidc.EncryptionAlgPBES2HS512A256KW}
+	validOIDCClientJWKContentEncryptionAlgs                = []string{oidc.EncryptionEncA128GCM, oidc.EncryptionEncA192GCM, oidc.EncryptionEncA256GCM, oidc.EncryptionEncA128CBCHS256, oidc.EncryptionEncA192CBCHS384, oidc.EncryptionEncA256CBCHS512}
+
+	validOIDCJWKEncryptionAlgs = []string{oidc.EncryptionAlgRSA15, oidc.EncryptionAlgRSAOAEP, oidc.EncryptionAlgRSAOAEP256, oidc.EncryptionAlgA128KW, oidc.EncryptionAlgA192KW, oidc.EncryptionAlgA256KW, oidc.EncryptionAlgDirect, oidc.EncryptionAlgECDHES, oidc.EncryptionAlgECDHESA128KW, oidc.EncryptionAlgECDHESA192KW, oidc.EncryptionAlgECDHESA256KW, oidc.EncryptionAlgA128GCMKW, oidc.EncryptionAlgA192GCMKW, oidc.EncryptionAlgA256GCMKW, oidc.EncryptionAlgPBES2HS256A128KW, oidc.EncryptionAlgPBES2HS284A192KW, oidc.EncryptionAlgPBES2HS512A256KW}
 
 	validOIDCClientScopesBearerAuthz        = []string{oidc.ScopeOfflineAccess, oidc.ScopeOffline, oidc.ScopeAutheliaBearerAuthz}
 	validOIDCClientResponseModesBearerAuthz = []string{oidc.ResponseModeFormPost, oidc.ResponseModeFormPostJWT}

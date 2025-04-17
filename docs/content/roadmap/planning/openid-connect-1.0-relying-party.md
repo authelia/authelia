@@ -2,7 +2,7 @@
 title: "OpenID Connect 1.0 Relying Party"
 description: "Authelia OpenID Connect 1.0 Relying Party Implementation"
 summary: "The OpenID Connect 1.0 Relying Party role is a great addition to the existing authentication methods Authelia provides."
-date: 2022-06-15T17:51:47+10:00
+date: 2025-03-23T19:03:40+11:00
 draft: false
 images: []
 weight: 220
@@ -51,3 +51,5 @@ customization provided as to how the layout occurs, i.e. either individually, in
 The Authentication Methods Reference Values could theoretically be used to derive the effective authentication level of
 the user in combination with [Granular Authorization](../active/granular-authorization.md). We will likely implement
 this with a opt-in setting to trust the Provider.
+
+[OpenID Connect 1.0]: https://openid.net/connect/

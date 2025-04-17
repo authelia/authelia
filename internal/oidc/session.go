@@ -13,9 +13,14 @@ import (
 	"github.com/authelia/authelia/v4/internal/model"
 )
 
-// NewSession creates a new empty OpenIDSession struct.
+// NewSession creates a new empty OpenIDSession struct with the requested at value being time.Now().
 func NewSession() (session *Session) {
-	return &Session{
+	return NewSessionWithRequestedAt(time.Now())
+}
+
+// NewSessionWithRequestedAt creates a new empty OpenIDSession struct with a specific requested at value.
+func NewSessionWithRequestedAt(requestedAt time.Time) (session *Session) {
+	session = &Session{
 		DefaultSession: &openid.DefaultSession{
 			Claims: &jwt.IDTokenClaims{
 				Extra: map[string]any{},
@@ -26,6 +31,10 @@ func NewSession() (session *Session) {
 		},
 		Extra: map[string]any{},
 	}
+
+	session.SetRequestedAt(requestedAt.UTC())
+
+	return session
 }
 
 // NewSessionWithRequester uses details from a Requester to generate an OpenIDSession.
@@ -38,26 +47,34 @@ func NewSessionWithRequester(ctx Context, issuer *url.URL, kid, username string,
 	session = &Session{
 		DefaultSession: &openid.DefaultSession{
 			Claims: &jwt.IDTokenClaims{
-				Issuer:                          issuer.String(),
-				Subject:                         consent.Subject.UUID.String(),
-				IssuedAt:                        jwt.NewNumericDate(ctx.GetClock().Now()),
-				AuthTime:                        jwt.NewNumericDate(authTime),
-				RequestedAt:                     jwt.NewNumericDate(consent.RequestedAt),
-				Nonce:                           requester.GetRequestForm().Get(ClaimNonce),
-				Extra:                           extra,
-				AuthenticationMethodsReferences: amr,
-				AuthorizedParty:                 requester.GetClient().GetID(),
+				Issuer:                              issuer.String(),
+				Subject:                             consent.Subject.UUID.String(),
+				Audience:                            nil,
+				ExpirationTime:                      nil,
+				IssuedAt:                            jwt.NewNumericDate(ctx.GetClock().Now()),
+				AuthTime:                            jwt.NewNumericDate(authTime),
+				Nonce:                               requester.GetRequestForm().Get(ClaimNonce),
+				AuthenticationContextClassReference: "",
+				AuthenticationMethodsReferences:     amr,
+				AuthorizedParty:                     requester.GetClient().GetID(),
+				AccessTokenHash:                     "",
+				CodeHash:                            "",
+				StateHash:                           "",
+				Extra:                               extra,
 			},
 			Headers: &jwt.Headers{
 				Extra: map[string]any{
 					JWTHeaderKeyIdentifier: kid,
 				},
 			},
-			Subject:  consent.Subject.UUID.String(),
-			Username: username,
+			Username:    username,
+			Subject:     consent.Subject.UUID.String(),
+			RequestedAt: consent.RequestedAt.UTC(),
 		},
 		ChallengeID:           model.NullUUID(consent.ChallengeID),
+		KID:                   "",
 		ClientID:              requester.GetClient().GetID(),
+		ClientCredentials:     false,
 		ExcludeNotBeforeClaim: false,
 		AllowedTopLevelClaims: nil,
 		ClaimRequests:         claims,

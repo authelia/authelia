@@ -50,6 +50,7 @@ var Keys = []string{
 	"authentication_backend.file.password.scrypt.key_length",
 	"authentication_backend.file.password.scrypt.parallelism",
 	"authentication_backend.file.password.scrypt.salt_length",
+	"authentication_backend.file.password.scrypt.variant",
 	"authentication_backend.file.password.sha2crypt.iterations",
 	"authentication_backend.file.password.sha2crypt.salt_length",
 	"authentication_backend.file.password.sha2crypt.variant",

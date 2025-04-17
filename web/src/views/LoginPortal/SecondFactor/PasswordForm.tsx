@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { Alert, AlertTitle, Button, CircularProgress, FormControl } from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import { useTranslation } from "react-i18next";
 
@@ -137,10 +137,10 @@ const PasswordForm = function (props: Props) {
                         id="sign-in-button"
                         variant="contained"
                         color="primary"
-                        fullWidth
+                        fullWidth={true}
+                        endIcon={loading ? <CircularProgress size={20} /> : null}
                         disabled={loading}
                         onClick={handleSignIn}
-                        endIcon={loading ? <CircularProgress size={20} /> : null}
                     >
                         {translate("Authenticate")}
                     </Button>

@@ -263,18 +263,19 @@ func NewFileCryptoHashFromConfig(config schema.AuthenticationBackendFilePassword
 			pbkdf2.WithIterations(config.PBKDF2.Iterations),
 			pbkdf2.WithSaltLength(config.PBKDF2.SaltLength),
 		)
-	case hashSCrypt:
+	case hashScrypt:
 		hash, err = scrypt.New(
-			scrypt.WithLN(config.SCrypt.Iterations),
-			scrypt.WithP(config.SCrypt.Parallelism),
-			scrypt.WithR(config.SCrypt.BlockSize),
-			scrypt.WithKeyLength(config.SCrypt.KeyLength),
-			scrypt.WithSaltLength(config.SCrypt.SaltLength),
+			scrypt.WithVariantName(config.Scrypt.Variant),
+			scrypt.WithLN(config.Scrypt.Iterations),
+			scrypt.WithP(config.Scrypt.Parallelism),
+			scrypt.WithR(config.Scrypt.BlockSize),
+			scrypt.WithKeyLength(config.Scrypt.KeyLength),
+			scrypt.WithSaltLength(config.Scrypt.SaltLength),
 		)
-	case hashBCrypt:
+	case hashBcrypt:
 		hash, err = bcrypt.New(
-			bcrypt.WithVariantName(config.BCrypt.Variant),
-			bcrypt.WithIterations(config.BCrypt.Cost),
+			bcrypt.WithVariantName(config.Bcrypt.Variant),
+			bcrypt.WithIterations(config.Bcrypt.Cost),
 		)
 	default:
 		return nil, fmt.Errorf("algorithm '%s' is unknown", config.Algorithm)

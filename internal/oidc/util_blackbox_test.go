@@ -275,6 +275,8 @@ func TestRequesterRequiresLogin(t *testing.T) {
 type TestGetLangRequester struct {
 }
 
+func (t TestGetLangRequester) SetRequestedAt(rat time.Time) {}
+
 func (t TestGetLangRequester) SetID(id string) {}
 
 func (t TestGetLangRequester) GetID() string {

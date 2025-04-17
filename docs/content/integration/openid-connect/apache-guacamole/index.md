@@ -23,7 +23,7 @@ seo:
 * [Authelia]
   * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 * [Apache Guacamole]
-  * __UNKNOWN__
+  * [1.5.5](https://guacamole.apache.org/releases/1.5.5/)
 
 {{% oidc-common %}}
 
@@ -34,7 +34,6 @@ This example makes the following assumptions:
 * __Application Root URL:__ `https://guacamole.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 * __Client ID:__ `guacamole`
-* __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -43,6 +42,8 @@ Some of the values presented in this guide can automatically be replaced with do
 ## Configuration
 
 ### Authelia
+
+{{% oidc-conformance-claims claims="preferred_username" %}}
 
 The following YAML configuration is an example __Authelia__ [client configuration] for use with [Apache Guacamole] which
 will operate with the application example:
@@ -55,8 +56,7 @@ identity_providers:
     clients:
       - client_id: 'guacamole'
         client_name: 'Apache Guacamole'
-        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
-        public: false
+        public: true
         authorization_policy: 'two_factor'
         redirect_uris:
           - 'https://guacamole.{{< sitevar name="domain" nojs="example.com" >}}'
@@ -73,6 +73,10 @@ identity_providers:
 ```
 
 ### Application
+
+Before configuring or using [OpenID Connect 1.0] with [Apache Guacamole] you must ensure the
+[openid extension](https://guacamole.apache.org/doc/gug/openid-auth.html#installing-support-for-openid-connect) is
+installed.
 
 To configure [Apache Guacamole] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
 
