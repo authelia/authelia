@@ -48,8 +48,8 @@ const (
 	hashArgon2    = "argon2"
 	hashSHA2Crypt = "sha2crypt"
 	hashPBKDF2    = "pbkdf2"
-	hashSCrypt    = "scrypt"
-	hashBCrypt    = "bcrypt"
+	hashScrypt    = "scrypt"
+	hashBcrypt    = "bcrypt"
 )
 
 // Scheme constants.
@@ -523,9 +523,9 @@ var (
 	validArgon2Variants    = []string{"argon2id", "id", "argon2i", "i", "argon2d", "d"}
 	validSHA2CryptVariants = []string{digestSHA256, digestSHA512}
 	validPBKDF2Variants    = []string{digestSHA1, digestSHA224, digestSHA256, digestSHA384, digestSHA512}
-	validBCryptVariants    = []string{"standard", digestSHA256}
-	validSCryptVariants    = []string{"scrypt", "yescrypt"}
-	validHashAlgorithms    = []string{hashSHA2Crypt, hashPBKDF2, hashSCrypt, hashBCrypt, hashArgon2}
+	validBcryptVariants    = []string{"standard", digestSHA256}
+	validScryptVariants    = []string{"scrypt", "yescrypt"}
+	validHashAlgorithms    = []string{hashSHA2Crypt, hashPBKDF2, hashScrypt, hashBcrypt, hashArgon2}
 )
 
 var (

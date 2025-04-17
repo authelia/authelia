@@ -433,14 +433,14 @@
           "description": "Configure the PBKDF2 password hashing parameters."
         },
         "bcrypt": {
-          "$ref": "#/$defs/AuthenticationBackendFilePasswordBCrypt",
-          "title": "BCrypt",
-          "description": "Configure the BCrypt password hashing parameters."
+          "$ref": "#/$defs/AuthenticationBackendFilePasswordBcrypt",
+          "title": "Bcrypt",
+          "description": "Configure the Bcrypt password hashing parameters."
         },
         "scrypt": {
-          "$ref": "#/$defs/AuthenticationBackendFilePasswordSCrypt",
-          "title": "SCrypt",
-          "description": "Configure the SCrypt password hashing parameters."
+          "$ref": "#/$defs/AuthenticationBackendFilePasswordScrypt",
+          "title": "Scrypt",
+          "description": "Configure the Scrypt password hashing parameters."
         },
         "iterations": {
           "type": "integer",
@@ -533,7 +533,7 @@
       "type": "object",
       "description": "AuthenticationBackendFilePasswordArgon2 represents the argon2 hashing settings."
     },
-    "AuthenticationBackendFilePasswordBCrypt": {
+    "AuthenticationBackendFilePasswordBcrypt": {
       "properties": {
         "variant": {
           "type": "string",
@@ -542,7 +542,7 @@
             "sha256"
           ],
           "title": "Variant",
-          "description": "The BCrypt variant to be used.",
+          "description": "The Bcrypt variant to be used.",
           "default": "standard"
         },
         "cost": {
@@ -550,13 +550,13 @@
           "maximum": 31,
           "minimum": 10,
           "title": "Cost",
-          "description": "The BCrypt cost to be used.",
+          "description": "The Bcrypt cost to be used.",
           "default": 12
         }
       },
       "additionalProperties": false,
       "type": "object",
-      "description": "AuthenticationBackendFilePasswordBCrypt represents the bcrypt hashing settings."
+      "description": "AuthenticationBackendFilePasswordBcrypt represents the bcrypt hashing settings."
     },
     "AuthenticationBackendFilePasswordPBKDF2": {
       "properties": {
@@ -594,62 +594,6 @@
       "type": "object",
       "description": "AuthenticationBackendFilePasswordPBKDF2 represents the PBKDF2 hashing settings."
     },
-    "AuthenticationBackendFilePasswordSCrypt": {
-      "properties": {
-        "variant": {
-          "type": "string",
-          "enum": [
-            "scrypt",
-            "yescrypt"
-          ],
-          "description": "The SCrypt variant to be used.",
-          "default": "scrypt"
-        },
-        "iterations": {
-          "type": "integer",
-          "maximum": 58,
-          "minimum": 1,
-          "title": "Iterations",
-          "description": "The SCrypt iterations to be used.",
-          "default": 16
-        },
-        "block_size": {
-          "type": "integer",
-          "maximum": 36028797018963967,
-          "minimum": 1,
-          "title": "Key Length",
-          "description": "The SCrypt block size to be used.",
-          "default": 8
-        },
-        "parallelism": {
-          "type": "integer",
-          "maximum": 1073741823,
-          "minimum": 1,
-          "title": "Key Length",
-          "description": "The SCrypt parallelism factor to be used.",
-          "default": 1
-        },
-        "key_length": {
-          "type": "integer",
-          "maximum": 137438953440,
-          "minimum": 1,
-          "title": "Key Length",
-          "description": "The SCrypt key length to be used.",
-          "default": 32
-        },
-        "salt_length": {
-          "type": "integer",
-          "maximum": 1024,
-          "minimum": 8,
-          "title": "Salt Length",
-          "description": "The SCrypt salt length to be used.",
-          "default": 16
-        }
-      },
-      "additionalProperties": false,
-      "type": "object",
-      "description": "AuthenticationBackendFilePasswordSCrypt represents the scrypt hashing settings."
-    },
     "AuthenticationBackendFilePasswordSHA2Crypt": {
       "properties": {
         "variant": {
@@ -682,6 +626,62 @@
       "additionalProperties": false,
       "type": "object",
       "description": "AuthenticationBackendFilePasswordSHA2Crypt represents the sha2crypt hashing settings."
+    },
+    "AuthenticationBackendFilePasswordScrypt": {
+      "properties": {
+        "variant": {
+          "type": "string",
+          "enum": [
+            "scrypt",
+            "yescrypt"
+          ],
+          "description": "The Scrypt variant to be used.",
+          "default": "scrypt"
+        },
+        "iterations": {
+          "type": "integer",
+          "maximum": 58,
+          "minimum": 1,
+          "title": "Iterations",
+          "description": "The Scrypt iterations to be used.",
+          "default": 16
+        },
+        "block_size": {
+          "type": "integer",
+          "maximum": 36028797018963967,
+          "minimum": 1,
+          "title": "Key Length",
+          "description": "The Scrypt block size to be used.",
+          "default": 8
+        },
+        "parallelism": {
+          "type": "integer",
+          "maximum": 1073741823,
+          "minimum": 1,
+          "title": "Key Length",
+          "description": "The Scrypt parallelism factor to be used.",
+          "default": 1
+        },
+        "key_length": {
+          "type": "integer",
+          "maximum": 137438953440,
+          "minimum": 1,
+          "title": "Key Length",
+          "description": "The Scrypt key length to be used.",
+          "default": 32
+        },
+        "salt_length": {
+          "type": "integer",
+          "maximum": 1024,
+          "minimum": 8,
+          "title": "Salt Length",
+          "description": "The Scrypt salt length to be used.",
+          "default": 16
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AuthenticationBackendFilePasswordScrypt represents the scrypt hashing settings."
     },
     "AuthenticationBackendFileSearch": {
       "properties": {

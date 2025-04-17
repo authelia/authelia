@@ -45,7 +45,7 @@ release.
 ### Hashed Client Secrets
 
 We'll be supporting hashed OpenID Connect 1.0 client secrets in this release. People will still be able to use plaintext
-secrets if they wish however we'll be recommending people utilize PBKDF2, BCrypt or SHA512 SHA2CRYPT (see
+secrets if they wish however we'll be recommending people utilize PBKDF2, Bcrypt or SHA512 SHA2CRYPT (see
 [Password Algorithms](#password-algorithms) for a full compatibility list). This doesn't change anything for OpenID
 Connect Relying Parties, it only requires a change in the Authelia configuration.
 
@@ -92,8 +92,10 @@ Several new password hashing algorithms will be supported in this release. The l
   * SHA256
   * SHA384
   * SHA512
-* SCrypt
-* BCrypt
+* Scrypt:
+  * Scrypt (standard variation)
+  * Yescrypt
+* Bcrypt
 * SHA2 CRYPT:
   * SHA256
   * SHA512 (previously supported)

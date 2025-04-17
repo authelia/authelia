@@ -637,10 +637,10 @@ func TestNewFileCryptoHashFromConfig(t *testing.T) {
 			"",
 		},
 		{
-			"ShouldCreateSCrypt",
+			"ShouldCreateScrypt",
 			schema.AuthenticationBackendFilePassword{
 				Algorithm: "scrypt",
-				SCrypt: schema.AuthenticationBackendFilePasswordSCrypt{
+				Scrypt: schema.AuthenticationBackendFilePasswordScrypt{
 					Iterations:  12,
 					SaltLength:  16,
 					Parallelism: 1,
@@ -652,10 +652,10 @@ func TestNewFileCryptoHashFromConfig(t *testing.T) {
 			"",
 		},
 		{
-			"ShouldCreateBCrypt",
+			"ShouldCreateBcrypt",
 			schema.AuthenticationBackendFilePassword{
 				Algorithm: "bcrypt",
-				BCrypt: schema.AuthenticationBackendFilePasswordBCrypt{
+				Bcrypt: schema.AuthenticationBackendFilePasswordBcrypt{
 					Variant: "standard",
 					Cost:    12,
 				},
@@ -664,7 +664,7 @@ func TestNewFileCryptoHashFromConfig(t *testing.T) {
 			"",
 		},
 		{
-			"ShouldFailToCreateSCryptInvalidParameter",
+			"ShouldFailToCreateScryptInvalidParameter",
 			schema.AuthenticationBackendFilePassword{
 				Algorithm: "scrypt",
 			},
