@@ -4268,6 +4268,12 @@
           "description": "This option is experimental and WILL be removed. When true this will consider a Passkey login where the WebAuthn user verification requirement is met as being a single event 2FA login.",
           "default": false
         },
+        "experimental_enable_passkey_upgrade": {
+          "type": "boolean",
+          "title": "Experimental: Enable User Verified Passkey Second Factor",
+          "description": "When true this will attempt to automatically upgrade a WebAuthn credential to a Passkey when the browser or authenticator does not report a newly registered WebAuthn credential to be a Passkey.",
+          "default": false
+        },
         "display_name": {
           "type": "string",
           "title": "Display Name",

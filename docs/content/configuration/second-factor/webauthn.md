@@ -69,6 +69,8 @@ be prompted for their password by default if the request requires multi-factor a
 
 ### experimental_enable_passkey_uv_two_factors
 
+{{< confkey type="boolean" default="false" required="no" >}}
+
 {{< callout context="danger" title="Stability and Security Notice" icon="outline/alert-octagon" >}}
 This option is not considered supported. It is completely experimental and will be replaced by
 [custom policies](../../roadmap/active/granular-authorization.md#custom-policy-flows) that can be defined in the access
@@ -80,6 +82,22 @@ time we add the flow to replace this) that this option will cause a startup fail
 
 This option allows for authenticators that enforce user verification (PIN entry, biometric proof, etc) and reports they
 have performed user verification, to satisfy the `two_factor` policy for access control rules.
+
+### experimental_enable_passkey_upgrade
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+{{< callout context="danger" title="Stability Notice" icon="outline/alert-octagon" >}}
+This option is not considered supported. It is completely experimental and will be removed in the future. It will either
+become a deliberate flow within the UI, be automatic, or be entirely removed.
+{{< /callout >}}
+
+Some authenticators or browsers have issues with reporting if a WebAuthn credential is actually a Passkey or not. The
+relevant specifications instruct implementers to assume they are not a Passkey in this instance. However this presents
+some user frustration. This option attempts to alleviate some of that frustration.
+
+When true this will attempt to automatically upgrade a WebAuthn credential to a Passkey when the browser or
+authenticator does not report a newly registered WebAuthn credential to be a Passkey.
 
 ### display_name
 

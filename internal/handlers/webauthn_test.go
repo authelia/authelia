@@ -412,6 +412,8 @@ func TestWebAuthnGetUserWithErr(t *testing.T) {
 		Username: testUsername,
 	}
 
+	assert.False(t, ctx.Ctx.Configuration.WebAuthn.EnablePasskeyUpgrade)
+
 	ctx.StorageMock.EXPECT().
 		LoadWebAuthnUser(ctx.Ctx, exampleDotCom, testUsername).
 		Return(&model.WebAuthnUser{ID: 1, RPID: exampleDotCom, Username: testUsername, UserID: "john123"}, nil)
@@ -473,6 +475,23 @@ func TestWebAuthnHandlerDiscoverableLogin(t *testing.T) {
 						Return(&model.WebAuthnUser{ID: 1, Username: "john"}, nil),
 					mock.StorageMock.EXPECT().
 						LoadWebAuthnPasskeyCredentialsByUsername(mock.Ctx, "https://example.com", "john").
+						Return(nil, fmt.Errorf("bad credentials")),
+				)
+			},
+			nil,
+			"bad credentials",
+		},
+		{
+			"ShouldHandleCredentialsErrorUpgrade",
+			func(t *testing.T, mock *mocks.MockAutheliaCtx) {
+				mock.Ctx.Configuration.WebAuthn.EnablePasskeyUpgrade = true
+
+				gomock.InOrder(
+					mock.StorageMock.EXPECT().
+						LoadWebAuthnUserByUserID(mock.Ctx, "https://example.com", "example").
+						Return(&model.WebAuthnUser{ID: 1, Username: "john"}, nil),
+					mock.StorageMock.EXPECT().
+						LoadWebAuthnCredentialsByUsername(mock.Ctx, "https://example.com", "john").
 						Return(nil, fmt.Errorf("bad credentials")),
 				)
 			},

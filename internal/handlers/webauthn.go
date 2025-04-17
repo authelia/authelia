@@ -55,8 +55,14 @@ func handlerWebAuthnDiscoverableLogin(ctx *middlewares.AutheliaCtx, rpid string)
 			return nil, fmt.Errorf("user not found")
 		}
 
-		if u.Credentials, err = ctx.Providers.StorageProvider.LoadWebAuthnPasskeyCredentialsByUsername(ctx, rpid, u.Username); err != nil {
-			return nil, err
+		if ctx.Configuration.WebAuthn.EnablePasskeyUpgrade {
+			if u.Credentials, err = ctx.Providers.StorageProvider.LoadWebAuthnCredentialsByUsername(ctx, rpid, u.Username); err != nil {
+				return nil, err
+			}
+		} else {
+			if u.Credentials, err = ctx.Providers.StorageProvider.LoadWebAuthnPasskeyCredentialsByUsername(ctx, rpid, u.Username); err != nil {
+				return nil, err
+			}
 		}
 
 		return u, nil
