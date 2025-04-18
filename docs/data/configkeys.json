@@ -1255,6 +1255,11 @@
         "env": "AUTHELIA_WEBAUTHN_ENABLE_PASSKEY_LOGIN"
     },
     {
+        "path": "webauthn.experimental_enable_passkey_upgrade",
+        "secret": false,
+        "env": "AUTHELIA_WEBAUTHN_EXPERIMENTAL_ENABLE_PASSKEY_UPGRADE"
+    },
+    {
         "path": "webauthn.experimental_enable_passkey_uv_two_factors",
         "secret": false,
         "env": "AUTHELIA_WEBAUTHN_EXPERIMENTAL_ENABLE_PASSKEY_UV_TWO_FACTORS"

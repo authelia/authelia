@@ -29,6 +29,118 @@ func TestWebAuthnShouldSetDefaultValues(t *testing.T) {
 	assert.Equal(t, schema.DefaultWebAuthnConfiguration.SelectionCriteria.Attachment, config.WebAuthn.SelectionCriteria.Attachment)
 }
 
+func TestWebAuthnPasskeyBooleans(t *testing.T) {
+	testCases := []struct {
+		name     string
+		disable  bool
+		passkey  bool
+		mfa      bool
+		upgrade  bool
+		expected []string
+	}{
+		{
+			"ShouldNotErrorOnDefaultValues",
+			false,
+			false,
+			false,
+			false,
+			nil,
+		},
+		{
+			"ShouldNotErrorDisabled",
+			true,
+			false,
+			false,
+			false,
+			nil,
+		},
+		{
+			"ShouldNotErrorPasskeys",
+			false,
+			true,
+			false,
+			false,
+			nil,
+		},
+		{
+			"ShouldNotErrorPasskeysAllEnabled",
+			false,
+			true,
+			true,
+			true,
+			nil,
+		},
+		{
+			"ShouldErrorPasskeysWebAuthnDisabled",
+			true,
+			true,
+			false,
+			false,
+			[]string{
+				"webauthn: option 'enable_passkey_login' is true but it must be false when 'disable' is true",
+			},
+		},
+		{
+			"ShouldErrorNoPasskeysWithPasskeyOptionUpgrade",
+			false,
+			false,
+			false,
+			true,
+			[]string{
+				"webauthn: option 'experimental_enable_passkey_upgrade' is true but it must be false when 'enable_passkey_login' is false",
+			},
+		},
+		{
+			"ShouldErrorNoPasskeysWithPasskeyOptionMFA",
+			false,
+			false,
+			true,
+			false,
+			[]string{
+				"webauthn: option 'experimental_enable_passkey_uv_two_factors' is true but it must be false when 'enable_passkey_login' is false",
+			},
+		},
+		{
+			"ShouldErrorNoPasskeysWithPasskeyOptionMultiple",
+			false,
+			false,
+			true,
+			true,
+			[]string{
+				"webauthn: option 'experimental_enable_passkey_uv_two_factors' is true but it must be false when 'enable_passkey_login' is false",
+				"webauthn: option 'experimental_enable_passkey_upgrade' is true but it must be false when 'enable_passkey_login' is false",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &schema.Configuration{
+				WebAuthn: schema.WebAuthn{
+					Disable:              tc.disable,
+					EnablePasskeyLogin:   tc.passkey,
+					EnablePasskey2FA:     tc.mfa,
+					EnablePasskeyUpgrade: tc.upgrade,
+				},
+			}
+
+			val := schema.NewStructValidator()
+
+			ValidateWebAuthn(config, val)
+
+			assert.False(t, val.HasWarnings())
+
+			errs := val.Errors()
+
+			require.Len(t, errs, len(tc.expected))
+
+			for i, err := range errs {
+				assert.EqualError(t, err, tc.expected[i])
+			}
+		})
+	}
+}
+
 func TestWebAuthnShouldSetDefaultTimeoutWhenNegative(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := &schema.Configuration{
