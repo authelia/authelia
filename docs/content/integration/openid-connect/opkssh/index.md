@@ -56,9 +56,9 @@ identity_providers:
       - client_id: 'opkssh'
         client_name: 'opkssh'
         public: true
+        authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
-        authorization_policy: 'two_factor'
         redirect_uris:
           - 'http://localhost:3000/login-callback'
           - 'http://localhost:10001/login-callback'
