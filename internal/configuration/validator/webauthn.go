@@ -32,7 +32,7 @@ func ValidateWebAuthn(config *schema.Configuration, validator *schema.StructVali
 		}
 
 		if config.WebAuthn.EnablePasskeyUpgrade {
-			validator.Push(fmt.Errorf(errFmtWebAuthnBoolean, "experimental_enable_passkey_upgrade", config.WebAuthn.EnablePasskey2FA, false, "enable_passkey_login", config.WebAuthn.EnablePasskeyLogin))
+			validator.Push(fmt.Errorf(errFmtWebAuthnBoolean, "experimental_enable_passkey_upgrade", config.WebAuthn.EnablePasskeyUpgrade, false, "enable_passkey_login", config.WebAuthn.EnablePasskeyLogin))
 		}
 	}
 

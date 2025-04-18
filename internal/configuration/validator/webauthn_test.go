@@ -81,7 +81,27 @@ func TestWebAuthnPasskeyBooleans(t *testing.T) {
 			},
 		},
 		{
-			"ShouldErrorNoPasskeysWithPasskeyOptions",
+			"ShouldErrorNoPasskeysWithPasskeyOptionUpgrade",
+			false,
+			false,
+			false,
+			true,
+			[]string{
+				"webauthn: option 'experimental_enable_passkey_upgrade' is true but it must be false when 'enable_passkey_login' is false",
+			},
+		},
+		{
+			"ShouldErrorNoPasskeysWithPasskeyOptionMFA",
+			false,
+			false,
+			true,
+			false,
+			[]string{
+				"webauthn: option 'experimental_enable_passkey_uv_two_factors' is true but it must be false when 'enable_passkey_login' is false",
+			},
+		},
+		{
+			"ShouldErrorNoPasskeysWithPasskeyOptionMultiple",
 			false,
 			false,
 			true,
