@@ -45,8 +45,6 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-{{% oidc-conformance-claims %}}
-
 The following YAML configuration is an example __Authelia__ [client configuration] for use with [YouTrack] which will
 operate with the application example:
 
@@ -94,8 +92,10 @@ To configure [YouTrack] to utilize Authelia as an [OpenID Connect 1.0] Provider:
       4. Email: `email`
       5. Email Verification State: `email_verified`
    7. Scope: `openid profile email`
-6. Click the `Enable module` button
-7. Click the `Test login` button
+6. Verify the Redirect URI displayed on this page matches the one you configured in Authelia otherwise update Authelia's
+   configuration
+7. Click the `Enable module` button
+8. Click the `Test login` button
 
 ## See Also
 
