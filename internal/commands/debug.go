@@ -120,16 +120,22 @@ func (ctx *CmdCtx) DebugTLSRunE(cmd *cobra.Command, args []string) (err error) {
 
 	certs := conn.ConnectionState().PeerCertificates
 
-	for i, cert := range certs {
-		if _, err = cert.Verify(opts); err == nil {
-			if cert.IsCA {
-				opts.Intermediates.AddCert(cert)
-			}
+	n = len(certs) - 1
 
-			if i != 0 {
-				if certs[i-1].IsCA {
-					opts.Intermediates.AddCert(certs[i-1])
-				}
+	for i := n; i >= 0; i-- {
+		if _, err = certs[i].Verify(opts); err == nil {
+			continue
+		}
+
+		if i == n {
+			// No certs in the chain are valid.
+			break
+		}
+
+		// Intentionally only add the certificates within the trust chain.
+		if certs[i+1].IsCA {
+			if _, err = certs[i+1].Verify(opts); err == nil {
+				opts.Intermediates.AddCert(certs[i+1])
 			}
 		}
 	}
