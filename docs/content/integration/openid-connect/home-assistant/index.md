@@ -47,8 +47,6 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-{{% oidc-conformance-claims %}}
-
 The following YAML configuration is an example __Authelia__ [client configuration] for use with [Home Assistant] which will
 operate with the application example:
 
