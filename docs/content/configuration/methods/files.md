@@ -18,10 +18,11 @@ seo:
 
 There are several options which affect the loading of files:
 
-|           Name           |            Argument             |    Environment Variable     |                                    Description                                     |
-|:------------------------:|:-------------------------------:|:---------------------------:|:----------------------------------------------------------------------------------:|
-|    Files/Directories     |        `--config`, `-c`         |     `X_AUTHELIA_CONFIG`     | A list of file or directory (non-recursive) paths to load configuration files from |
-| [Filters](#file-filters) | `--config.experimental.filters` | `X_AUTHELIA_CONFIG_FILTERS` |   A list of filters applied to every file from the Files or Directories options    |
+|               Name                |            Argument             |        Environment Variable        |                                    Description                                     |
+|:---------------------------------:|:-------------------------------:|:----------------------------------:|:----------------------------------------------------------------------------------:|
+|         Files/Directories         |        `--config`, `-c`         |        `X_AUTHELIA_CONFIG`         | A list of file or directory (non-recursive) paths to load configuration files from |
+|     [Filters](#file-filters)      | `--config.experimental.filters` |    `X_AUTHELIA_CONFIG_FILTERS`     |   A list of filters applied to every file from the Files or Directories options    |
+| [Filters](#file-filters) (Values) |    `--config.filters.values`    | `X_AUTHELIA_CONFIG_FILTERS_VALUES` |  The path to a YAML file which contains values to be interpreted by some filters   |
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
 When specifying directories and files, the individual files specified must not be within any of the
@@ -204,7 +205,7 @@ contains syntax for a subsequent filter it will be filtered. It is therefore sug
 filter and if it isn't that it's last.
 {{< /callout >}}
 
-Examples:
+### Examples
 
 {{< envTabs "Filters By Argument" >}}
 {{< envTab "Docker" >}}
@@ -232,7 +233,16 @@ X_AUTHELIA_CONFIG_FILTERS=template X_AUTHELIA_CONFIG=/config/configuration.yml a
 {{< /envTab >}}
 {{< /envTabs >}}
 
-### Go Template Filter
+### Values
+
+The values option allows injecting values into the configuration from an external source. If the filter supports it then
+the filter itself will detail the accessibility of the values and other data available.
+
+### Filters
+
+The following are the available filters.
+
+#### Go Template Filter
 
 The name used to enable this filter is `template`. This filter is considered stable.
 
@@ -243,13 +253,30 @@ Comprehensive examples are beyond what we support and people wishing to use this
 [Go template engine](https://pkg.go.dev/text/template) documentation for syntax instructions. We also log the generated
 output at each filter stage as a base64 string when trace logging is enabled.
 
-#### Functions
+##### Values
+
+The template filter allows access to both the values file data, and some various metadata. See the table below for more
+information.
+
+|         Field          |            Description            |
+|:----------------------:|:---------------------------------:|
+|        .Values         | The Values from the provided file |
+|   .Authelia.Version    |    The Authelia version value     |
+|  .Authelia.Build.Tag   |   The Authelia Build Tag value    |
+| .Authelia.Build.State  |  The Authelia Build State value   |
+| .Authelia.Build.Extra  |  The Authelia Build Extra value   |
+|  .Authelia.Build.Date  |   The Authelia Build Date value   |
+| .Authelia.Build.Commit |  The Authelia Build Commit value  |
+| .Authelia.Build.Branch |  The Authelia Build Branch value  |
+| .Authelia.Build.Number |  The Authelia Build Number value  |
+
+##### Functions
 
 In addition to the standard builtin functions we support several other functions which should operate similar.
 
 See the [Templating Reference Guide](../../reference/guides/templating.md) for more information.
 
-### Expand Environment Variable Filter
+#### Expand Environment Variable Filter
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 The Expand Environment Variable filter (i.e. `expand-env`) is officially deprecated. It will be removed in v4.40.0 and

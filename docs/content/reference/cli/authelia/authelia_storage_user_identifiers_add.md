@@ -50,6 +50,7 @@ authelia storage user identifiers add john --identifier f0919359-9d15-4e15-bcba-
 ```
   -c, --config strings                         configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
       --config.experimental.filters strings    list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
+      --config.filters.values string           file path of a YAML values file to utilize with configuration file filters, for more information run 'authelia -h authelia filters'
       --encryption-key string                  the storage encryption key to use
       --mysql.database string                  the MySQL database name (default "authelia")
       --mysql.host string                      the MySQL hostname

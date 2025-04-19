@@ -11,9 +11,11 @@ import (
 	"text/template"
 
 	"github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v3"
 
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/templates"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // FilteredFile implements a koanf.Provider.
@@ -85,9 +87,15 @@ func (f *ExpandEnvBytesFilter) Filter(in []byte) (out []byte, err error) {
 	return out, nil
 }
 
+type TemplateBytesFilterValues struct {
+	Values   map[string]any
+	Authelia map[string]any
+}
+
 type TemplateBytesFilter struct {
-	t   *template.Template
-	log *logrus.Entry
+	t    *template.Template
+	log  *logrus.Entry
+	data TemplateBytesFilterValues
 }
 
 func (f *TemplateBytesFilter) Name() (name string) {
@@ -105,7 +113,7 @@ func (f *TemplateBytesFilter) Filter(in []byte) (out []byte, err error) {
 
 	buf := &bytes.Buffer{}
 
-	if err = f.t.Execute(buf, nil); err != nil {
+	if err = f.t.Execute(buf, f.data); err != nil {
 		return nil, err
 	}
 
@@ -124,22 +132,35 @@ func (f *TemplateBytesFilter) Filter(in []byte) (out []byte, err error) {
 func NewFileFiltersDefault() []BytesFilter {
 	return []BytesFilter{
 		NewExpandEnvFileFilter(),
-		NewTemplateFileFilter(),
+		NewTemplateFileFilter(nil),
 	}
 }
 
 // NewFileFilters returns a list of BytesFilter provided they are valid.
-func NewFileFilters(names []string) (filters []BytesFilter, err error) {
+func NewFileFilters(valuesFile string, names ...string) (filters []BytesFilter, err error) {
 	filters = make([]BytesFilter, len(names))
 
+	values := map[string]any{}
 	filterMap := map[string]int{}
+
+	if valuesFile != "" {
+		var data []byte
+
+		if data, err = os.ReadFile(valuesFile); err != nil {
+			return nil, fmt.Errorf("error reading values file: %w", err)
+		}
+
+		if err = yaml.Unmarshal(data, &values); err != nil {
+			return nil, fmt.Errorf("error parsing values file: %w", err)
+		}
+	}
 
 	for i, name := range names {
 		name = strings.ToLower(name)
 
 		switch name {
 		case filterTemplate:
-			filters[i] = NewTemplateFileFilter()
+			filters[i] = NewTemplateFileFilter(values)
 		case filterExpandEnv:
 			filters[i] = NewExpandEnvFileFilter()
 		default:
@@ -164,9 +185,30 @@ func NewExpandEnvFileFilter() BytesFilter {
 }
 
 // NewTemplateFileFilter returns a new BytesFilter which passes the bytes through text/template.
-func NewTemplateFileFilter() BytesFilter {
+func NewTemplateFileFilter(values map[string]any) BytesFilter {
+	data := TemplateBytesFilterValues{
+		Values:   values,
+		Authelia: map[string]any{},
+	}
+
+	if data.Values == nil {
+		data.Values = map[string]any{}
+	}
+
+	data.Authelia["Version"] = utils.Version()
+	data.Authelia["Build"] = map[string]any{
+		"Tag":    utils.BuildTag,
+		"State":  utils.BuildState,
+		"Extra":  utils.BuildExtra,
+		"Date":   utils.BuildDate,
+		"Commit": utils.BuildCommit,
+		"Branch": utils.BuildBranch,
+		"Number": utils.BuildNumber,
+	}
+
 	return &TemplateBytesFilter{
-		log: logging.Logger().WithFields(map[string]any{filterField: filterTemplate}),
-		t:   template.New("config.template").Funcs(templates.FuncMap()),
+		log:  logging.Logger().WithFields(map[string]any{filterField: filterTemplate}),
+		t:    template.New("config.template").Funcs(templates.FuncMap()),
+		data: data,
 	}
 }
