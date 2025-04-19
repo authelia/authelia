@@ -10,6 +10,7 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/mattn/go-sqlite3"
+	mssql "github.com/microsoft/go-mssqldb"
 )
 
 var (
@@ -96,6 +97,7 @@ func IsSerializationFailure(err error) (failure bool) {
 		errSQLite   sqlite3.Error
 		errMySQL    *mysql.MySQLError
 		errPostgres *pgconn.PgError
+		errMSSQL    mssql.Error
 	)
 
 	switch {
@@ -105,6 +107,8 @@ func IsSerializationFailure(err error) (failure bool) {
 		return errMySQL.Number == codeMySQLLockDeadlock || errMySQL.Number == codeMySQLLockWaitTimeout
 	case errors.As(err, &errPostgres):
 		return errPostgres.Code == codePostgresSerializationFailure || errPostgres.Code == codePostgresDeadlockDetected
+	case errors.As(err, &errMSSQL):
+		return errMSSQL.Number == codeMSSQLDeadlock || errMSSQL.Number == codeMSSQLSnapshotUpdateConflict
 	default:
 		return false
 	}
@@ -122,6 +126,7 @@ func IsUniqueConstraintViolation(err error) (violation bool) {
 		errSQLite   sqlite3.Error
 		errMySQL    *mysql.MySQLError
 		errPostgres *pgconn.PgError
+		errMSSQL    mssql.Error
 	)
 
 	switch {
@@ -131,6 +136,8 @@ func IsUniqueConstraintViolation(err error) (violation bool) {
 		return errMySQL.Number == codeMySQLDuplicateEntry
 	case errors.As(err, &errPostgres):
 		return errPostgres.Code == codePostgresUniqueViolation
+	case errors.As(err, &errMSSQL):
+		return errMSSQL.Number == codeMSSQLUniqueIndexViolation || errMSSQL.Number == codeMSSQLUniqueConstraintViolation
 	default:
 		return false
 	}
@@ -147,6 +154,7 @@ func IsUniqueViolation(err error) (violation bool) {
 		errSQLite   sqlite3.Error
 		errMySQL    *mysql.MySQLError
 		errPostgres *pgconn.PgError
+		errMSSQL    mssql.Error
 	)
 
 	switch {
@@ -156,6 +164,8 @@ func IsUniqueViolation(err error) (violation bool) {
 		return errMySQL.Number == codeMySQLDuplicateEntry
 	case errors.As(err, &errPostgres):
 		return errPostgres.Code == codePostgresUniqueViolation
+	case errors.As(err, &errMSSQL):
+		return errMSSQL.Number == codeMSSQLUniqueIndexViolation || errMSSQL.Number == codeMSSQLUniqueConstraintViolation
 	default:
 		return false
 	}

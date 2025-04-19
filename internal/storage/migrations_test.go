@@ -78,17 +78,9 @@ func TestShouldObtainCorrectMigrations(t *testing.T) {
 				assert.Equal(t, ver-i, migrations[i].Version)
 			}
 
-			target := providerMigrationStart[tc.provider]
-
-			if target != ver {
-				migrations, err = loadMigrations(tc.provider, "", ver, target)
-				require.NoError(t, err)
-				assert.Len(t, migrations, ver-1)
-			} else if target != 1 {
-				migrations, err = loadMigrations(tc.provider, "", ver, 1)
-				assert.EqualError(t, err, fmt.Sprintf("migrations between %d (current) and 1 (target) are invalid as the '%s' provider only has migrations starting at %d meaning the minimum target version when migrating down is %d with the exception of 0", ver, tc.provider, target, target))
-				assert.Len(t, migrations, 0)
-			}
+			migrations, err = loadMigrations(tc.provider, "", ver, 1)
+			require.NoError(t, err)
+			assert.Len(t, migrations, ver-1)
 		})
 	}
 }

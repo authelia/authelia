@@ -20,7 +20,7 @@ type MSSQLProvider struct {
 func NewMSSQLProvider(config *schema.Configuration, caCertPool *x509.CertPool) (provider *MSSQLProvider, err error) {
 	var p SQLProvider
 
-	if p, err = NewSQLProvider(config, providerMSSQL, "sqlserver", config.Storage.MSSQL.Schema, dsnMSSQL(config.Storage.MSSQL, caCertPool)); err != nil {
+	if p, err = NewSQLProvider(config, providerMSSQL, "sqlserver", "", dsnMSSQL(config.Storage.MSSQL, caCertPool)); err != nil {
 		return nil, err
 	}
 
@@ -31,6 +31,16 @@ func NewMSSQLProvider(config *schema.Configuration, caCertPool *x509.CertPool) (
 	// All providers have differing SELECT existing table statements.
 	provider.sqlSelectExistingTables = queryMSSQLSelectExistingTables
 
+	// Specific alterations to this provider.
+	// MSSQL doesn't have a UPSERT statement but has an ON DUPLICATE KEY operation instead.
+	provider.sqlUpsertDuoDevice = fmt.Sprintf(queryFmtUpsertDuoDevicePostgreSQL, tableDuoDevices)
+	provider.sqlUpsertTOTPConfig = fmt.Sprintf(queryFmtUpsertTOTPConfigurationPostgreSQL, tableTOTPConfigurations)
+	provider.sqlUpsertPreferred2FAMethod = fmt.Sprintf(queryFmtUpsertPreferred2FAMethodPostgreSQL, tableUserPreferences)
+	provider.sqlUpsertEncryptionValue = fmt.Sprintf(queryFmtUpsertEncryptionValueMSSQL, tableEncryption, tableEncryption)
+	provider.sqlUpsertOAuth2BlacklistedJTI = fmt.Sprintf(queryFmtUpsertOAuth2BlacklistedJTIPostgreSQL, tableOAuth2BlacklistedJTI)
+	provider.sqlInsertOAuth2ConsentPreConfiguration = fmt.Sprintf(queryFmtInsertOAuth2ConsentPreConfigurationPostgreSQL, tableOAuth2ConsentPreConfiguration)
+	provider.sqlUpsertCachedData = fmt.Sprintf(queryFmtUpsertCachedDataPostgreSQL, tableCachedData)
+
 	// Microsoft SQL requires rebinding of any query that contains a '?' placeholder.
 	provider.rebind()
 
@@ -38,17 +48,22 @@ func NewMSSQLProvider(config *schema.Configuration, caCertPool *x509.CertPool) (
 }
 
 func dsnMSSQL(config *schema.StorageMSSQL, caCertPool *x509.CertPool) (dataSourceName string) {
-	fmt.Printf("creating dsn for %s and %d of db %s\n", config.Address.Hostname(), config.Address.Port(), config.Database)
+	var encryption msdsn.Encryption
+
+	if config.TLS != nil {
+		encryption = msdsn.EncryptionStrict
+	}
 
 	dsnConfig := msdsn.Config{
-		Host:        config.Address.Hostname(),
 		Port:        uint64(config.Address.Port()),
+		Host:        config.Address.Hostname(),
 		Instance:    config.Instance,
 		Database:    config.Database,
 		User:        config.Username,
 		Password:    config.Password,
+		Encryption:  encryption,
 		TLSConfig:   utils.NewTLSConfig(config.TLS, caCertPool),
-		AppName:     driverParameterAppName,
+		AppName:     fmt.Sprintf(driverParameterFmtAppName, utils.Version()),
 		DialTimeout: config.Timeout,
 		ConnTimeout: config.Timeout,
 	}

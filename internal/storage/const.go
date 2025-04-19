@@ -76,7 +76,7 @@ var tablesPre1 = []string{
 	tableAuthenticationLogs,
 }
 
-var providerMigrationStart = map[string]int{
+var providerMigrationInitial = map[string]int{
 	providerPostgres: 1,
 	providerMSSQL:    32,
 	providerMySQL:    1,
@@ -84,8 +84,11 @@ var providerMigrationStart = map[string]int{
 }
 
 const (
-	driverParameterAppName = "authelia"
-	strStorage             = "storage"
+	migrationDirectionUp         = "up"
+	migrationDirectionDown       = "down"
+	migrationRegexGroupDirection = "Direction"
+	migrationRegexGroupVersion   = "Version"
+	migrationRegexGroupName      = "Name"
 )
 
 const (
@@ -120,6 +123,11 @@ const (
 	codePostgresUniqueViolation      = "23505"
 	codePostgresSerializationFailure = "40001"
 	codePostgresDeadlockDetected     = "40P01"
+
+	codeMSSQLDeadlock                  int32 = 1205
+	codeMSSQLUniqueConstraintViolation int32 = 2627
+	codeMSSQLUniqueIndexViolation      int32 = 2601
+	codeMSSQLSnapshotUpdateConflict    int32 = 3960
 )
 
 const (
