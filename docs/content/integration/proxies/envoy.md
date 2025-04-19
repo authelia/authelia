@@ -210,10 +210,10 @@ static_resources:
                   name: 'local_route'
                   virtual_hosts:
                     - name: 'whoami_service'
-                      domains: ["nextcloud.{{< sitevar name="domain" nojs="example.com" >}}"]
+                      domains: ["nextcloud.{{< sitevar name="domain" nojs="example.com" >}}']
                       routes:
                         - match:
-                            prefix: "/"
+                            prefix: '/'
                           route:
                             cluster: 'nextcloud'
                     - name: 'authelia_service'
@@ -234,10 +234,10 @@ static_resources:
                       transport_api_version: 'v3'
                       allowed_headers:
                         patterns:
-                          - exact: 'authorization'
-                          - exact: 'proxy-authorization'
-                          - exact: 'accept'
-                          - exact: 'cookie'
+                          - exact: 'Authorization'
+                          - exact: 'Proxy-Authorization'
+                          - exact: 'Accept'
+                          - exact: 'Cookie'
                       http_service:
                         path_prefix: '/api/authz/ext-authz/'
                         server_uri:
@@ -247,10 +247,10 @@ static_resources:
                         authorization_request:
                           allowed_headers:
                             patterns:
-                              - exact: 'authorization'
-                              - exact: 'proxy-authorization'
-                              - exact: 'accept'
-                              - exact: 'cookie'
+                              - exact: 'Authorization'
+                              - exact: 'Proxy-Authorization'
+                              - exact: 'Accept'
+                              - exact: 'Cookie'
                           headers_to_add:
                             - key: 'X-Forwarded-Proto'
                               value: '%REQ(:SCHEME)%'
@@ -320,83 +320,83 @@ layered_runtime:
 ### Secure route
 
 ```yaml
-apiVersion: gateway.envoyproxy.io/v1alpha1
-kind: SecurityPolicy
+apiVersion: 'gateway.envoyproxy.io/v1alpha1'
+kind: 'SecurityPolicy'
 metadata:
-  name: authelia-example
-  namespace: example
+  name: 'authelia-example'
+  namespace: 'example'
 spec:
   extAuth:
     failOpen: false
     headersToExtAuth:
-    - X-Forwarded-Proto
-    - authorization
-    - proxy-authorization
-    - accept
-    - cookie
+      - 'X-Forwarded-Proto'
+      - 'Authorization'
+      - 'Proxy-Authorization'
+      - 'Accept'
+      - 'Cookie'
     http:
+      path: '/api/authz/ext-authz/'
       backendRefs:
-      - group: ""
-        kind: Service
-        name: authelia
-        namespace: authelia
-        port: 80
-      path: /api/authz/ext-authz/
+        - group: ''
+          kind: 'Service'
+          name: 'authelia'
+          namespace: 'authelia'
+          port: 80
   targetRefs:
-  - group: gateway.networking.k8s.io
-    kind: HTTPRoute
-    name: example
+    - group: 'gateway.networking.k8s.io'
+      kind: 'HTTPRoute'
+      name: 'example'
 ```
 
 If the route namespace differs from the authelia service namespace, there is a need to declare a ReferenceGrant:
 
 ```yaml
-apiVersion: gateway.networking.k8s.io/v1beta1
-kind: ReferenceGrant
+apiVersion: 'gateway.networking.k8s.io/v1beta1'
+kind: 'ReferenceGrant'
 metadata:
-  name: example-ref-authelia-svc
-  namespace: authelia
+  name: 'example-ref-authelia-svc'
+  namespace: 'authelia'
 spec:
   from:
-  - group: gateway.envoyproxy.io
-    kind: SecurityPolicy
-    namespace: example
-    name: authelia-example
+    - group: 'gateway.envoyproxy.io'
+      kind: 'SecurityPolicy'
+      namespace: 'example'
+      name: 'authelia-example'
   to:
-  - group: ""
-    kind: Service
-    name: authelia
+    - group: ''
+      kind: 'Service'
+      name: 'authelia'
 ```
 
 ### Secure gateway
 
 ```yaml
-apiVersion: gateway.envoyproxy.io/v1alpha1
-kind: SecurityPolicy
+apiVersion: 'gateway.envoyproxy.io/v1alpha1'
+kind: 'SecurityPolicy'
 metadata:
-  name: authelia-example
-  namespace: example
+  name: 'authelia-example'
+  namespace: 'example'
 spec:
   extAuth:
     failOpen: false
     headersToExtAuth:
-    - X-Forwarded-Proto
-    - authorization
-    - proxy-authorization
-    - accept
-    - cookie
+      - 'X-Forwarded-Proto'
+      - 'Authorization'
+      - 'Proxy-Authorization'
+      - 'Accept'
+      - 'Cookie'
     http:
+      path: '/api/authz/ext-authz/'
       backendRefs:
-      - group: ""
-        kind: Service
-        name: authelia
-        namespace: authelia
-        port: 80
-      path: /api/authz/ext-authz/
+        - group: ''
+          kind: 'Service'
+          name: 'authelia'
+          namespace: 'authelia'
+          port: 80
   targetRefs:
-  - group: gateway.networking.k8s.io
-    kind: Gateway
-    name: example
+    - group: 'gateway.networking.k8s.io'
+      kind: 'Gateway'
+      name: 'example'
 ```
 
 If the gateway namespace differs from the authelia service namespace, there is a need to declare a ReferenceGrant:
@@ -405,18 +405,18 @@ If the gateway namespace differs from the authelia service namespace, there is a
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: ReferenceGrant
 metadata:
-  name: example-ref-authelia-svc
-  namespace: authelia
+  name: 'example-ref-authelia-svc'
+  namespace: 'authelia'
 spec:
   from:
-  - group: gateway.envoyproxy.io
-    kind: SecurityPolicy
-    namespace: example
-    name: authelia-example
+    - group: 'gateway.envoyproxy.io'
+      kind: 'SecurityPolicy'
+      namespace: 'example'
+      name: 'authelia-example'
   to:
-  - group: ""
-    kind: Service
-    name: authelia
+    - group: ''
+      kind: 'Service'
+      name: 'authelia'
 ```
 
 ## See Also

@@ -61,7 +61,7 @@ authentication_backend:
     additional_groups_dn: 'OU=groups'
     groups_filter: '(&(member=UID={input},OU=users,DC=example,DC=com)(objectClass=groupOfNames))'
     user: 'UID=authelia,OU=service accounts,DC=example,DC=com'
-    password: "SUPER_COMPLEX_PASSWORD"
+    password: 'SUPER_COMPLEX_PASSWORD'
     attributes:
       distinguished_name: 'distinguishedName'
       username: 'uid'
