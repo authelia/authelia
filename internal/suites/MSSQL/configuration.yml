@@ -20,7 +20,7 @@ storage:
     address: 'tcp://mssql:1433'
     database: 'authelia'
     username: 'authelia'
-    password: 'authelia'
+    password: 'Yo7TFKSVGog7nhkR28do'
 
 notifier:
   smtp:
