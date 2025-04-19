@@ -2557,7 +2557,7 @@ func TestNewSQLProviderShouldReturnOpenError(t *testing.T) {
 			},
 		}
 
-		_, err := storage.NewSQLProvider(config, "test", "not-a-real-driver", "dsn")
+		_, err := storage.NewSQLProvider(config, "test", "not-a-real-driver", "", "dsn")
 
 		assert.EqualError(t, err, `error opening database: sql: unknown driver "not-a-real-driver" (forgotten import?)`)
 	})

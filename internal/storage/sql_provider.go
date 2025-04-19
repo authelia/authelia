@@ -30,6 +30,8 @@ func NewProvider(config *schema.Configuration, caCertPool *x509.CertPool) (provi
 	switch {
 	case config.Storage.PostgreSQL != nil:
 		return NewPostgreSQLProvider(config, caCertPool)
+	case config.Storage.MSSQL != nil:
+		return NewMSSQLProvider(config, caCertPool)
 	case config.Storage.MySQL != nil:
 		return NewMySQLProvider(config, caCertPool)
 	case config.Storage.Local != nil:
@@ -40,7 +42,7 @@ func NewProvider(config *schema.Configuration, caCertPool *x509.CertPool) (provi
 }
 
 // NewSQLProvider generates a generic SQLProvider to be used with other SQL provider NewUp's.
-func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceName string) (provider SQLProvider, err error) {
+func NewSQLProvider(config *schema.Configuration, name, driverName, schemaName, dataSourceName string) (provider SQLProvider, err error) {
 	var (
 		db         *sqlx.DB
 		encryption []byte
@@ -58,6 +60,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		db:         &SQLXWrapDB{db},
 		name:       name,
 		driverName: driverName,
+		schema:     schemaName,
 		config:     config,
 		keys: SQLProviderKeys{
 			encryption: encryption,

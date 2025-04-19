@@ -74,7 +74,7 @@ func TestCmdCtx_ConfigValidateStorageRunE(t *testing.T) {
 
 	ctx.cconfig = NewCmdCtxConfig()
 
-	assert.EqualError(t, ctx.ConfigValidateStorageRunE(nil, nil), "storage: option 'encryption_key' is required, storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided")
+	assert.EqualError(t, ctx.ConfigValidateStorageRunE(nil, nil), "storage: option 'encryption_key' is required, storage: configuration for a 'postgres', 'mssql', 'mysql', or 'local' database must be provided")
 
 	ctx.cconfig = NewCmdCtxConfig()
 

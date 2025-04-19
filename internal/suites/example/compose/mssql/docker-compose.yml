@@ -1,0 +1,11 @@
+---
+version: '3'
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=y
+      - MSSQL_SA_PASSWORD=F5vBTaMQJKxW8T6BbkNh
+    networks:
+      - authelianet
+...

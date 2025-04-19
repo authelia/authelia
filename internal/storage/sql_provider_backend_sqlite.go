@@ -23,7 +23,7 @@ type SQLiteProvider struct {
 func NewSQLiteProvider(config *schema.Configuration) (provider *SQLiteProvider, err error) {
 	var p SQLProvider
 
-	if p, err = NewSQLProvider(config, providerSQLite, "sqlite3e", fmt.Sprintf(dsnFmtSQLite, config.Storage.Local.Path)); err != nil {
+	if p, err = NewSQLProvider(config, providerSQLite, "sqlite3e", "", fmt.Sprintf(dsnFmtSQLite, config.Storage.Local.Path)); err != nil {
 		return nil, err
 	}
 
