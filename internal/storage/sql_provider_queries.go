@@ -25,7 +25,7 @@ const (
 	queryMSSQLSelectExistingTables = `
 		SELECT TABLE_NAME
 		FROM INFORMATION_SCHEMA.TABLES
-		WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = @p1;`
+		WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = SCHEMA_NAME();`
 
 	queryPostgreSelectExistingTables = `
 		SELECT table_name
@@ -418,6 +418,18 @@ const (
 		VALUES ($1, $2)
 			ON CONFLICT (name)
 			DO UPDATE SET value = $2;`
+
+	queryFmtUpsertEncryptionValueMSSQL = `
+		BEGIN TRY
+		  INSERT INTO %s ([name], [value]) VALUES (@p1, @p2);
+		END TRY
+		BEGIN CATCH
+		  -- ignore duplicate key errors, throw the rest.
+		  IF ERROR_NUMBER() IN (2601, 2627)
+			UPDATE %s
+			   SET [value] = @p2
+			 WHERE [name] = @p1;
+		END CATCH;`
 
 	queryFmtSelectEncryptionEncryptedData = `
 		SELECT id, value

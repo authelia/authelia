@@ -791,7 +791,6 @@ const (
 	cmdFlagNameMSSQLDatabase      = "mssql.database"
 	cmdFlagNameMSSQLUsername      = "mssql.username"
 	cmdFlagNameMSSQLPassword      = "mssql.password"
-	cmdFlagNameMSSQLSchema        = "mssql.schema"
 	cmdFlagNameMSSQLInstance      = "mssql.instance"
 	cmdFlagNamePostgreSQLAddress  = "postgres.address"
 	cmdFlagNamePostgreSQLDatabase = "postgres.database"

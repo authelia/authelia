@@ -55,7 +55,6 @@ authelia storage migrate down --target 20 --encryption-key b3453fde-ecc2-4a1f-94
       --mssql.database string                 the MSSQL database name (default "authelia")
       --mssql.instance string                 the MSSQL instance name
       --mssql.password string                 the MSSQL password
-      --mssql.schema string                   the MSSQL schema
       --mssql.username string                 the MSSQL username (default "authelia")
       --mysql.address string                  the MySQL server address (default "tcp://127.0.0.1:3306")
       --mysql.database string                 the MySQL database name (default "authelia")

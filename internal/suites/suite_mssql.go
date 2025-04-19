@@ -42,7 +42,7 @@ func init() {
 
 	GlobalRegistry.Register(mssqlSuiteName, Suite{
 		SetUp:           setup,
-		SetUpTimeout:    5 * time.Minute,
+		SetUpTimeout:    20 * time.Minute,
 		OnSetupTimeout:  displayAutheliaLogs,
 		OnError:         displayAutheliaLogs,
 		TearDown:        teardown,

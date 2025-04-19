@@ -413,7 +413,6 @@ var Keys = []string{
 	"storage.mssql.database",
 	"storage.mssql.instance",
 	"storage.mssql.password",
-	"storage.mssql.schema",
 	"storage.mssql.timeout",
 	"storage.mssql.tls.certificate_chain",
 	"storage.mssql.tls.maximum_version",

@@ -2,12 +2,12 @@ package storage
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/jmoiron/sqlx"
 	"strconv"
 	"time"
-
-	"github.com/jmoiron/sqlx"
 
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/utils"
@@ -15,13 +15,17 @@ import (
 
 // SchemaTables returns a list of tables from the storage provider.
 func (p *SQLProvider) SchemaTables(ctx context.Context) (tables []string, err error) {
+	return p.SchemaTablesWithConn(ctx, p.db)
+}
+
+func (p *SQLProvider) SchemaTablesWithConn(ctx context.Context, conn SQLXConnection) (tables []string, err error) {
 	var rows *sqlx.Rows
 
 	switch p.schema {
 	case "":
-		rows, err = p.db.QueryxContext(ctx, p.sqlSelectExistingTables)
+		rows, err = conn.QueryxContext(ctx, p.sqlSelectExistingTables)
 	default:
-		rows, err = p.db.QueryxContext(ctx, p.sqlSelectExistingTables, p.schema)
+		rows, err = conn.QueryxContext(ctx, p.sqlSelectExistingTables, p.schema)
 	}
 
 	if err != nil {
@@ -155,7 +159,7 @@ func (p *SQLProvider) SchemaMigrate(ctx context.Context, up bool, version int) (
 	)
 
 	if p.name != providerMySQL {
-		if tx, err = p.db.BeginTxx(ctx, nil); err != nil {
+		if tx, err = p.db.BeginTxx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable}); err != nil {
 			return fmt.Errorf("failed to begin transaction: %w", err)
 		}
 
@@ -216,6 +220,8 @@ func (p *SQLProvider) schemaMigrate(ctx context.Context, conn SQLXConnection, pr
 
 	p.log.Infof(logFmtMigrationFromTo, strconv.Itoa(prior), strconv.Itoa(migrations[len(migrations)-1].After()))
 
+	initial := providerMigrationInitial[p.name]
+
 	for i, migration := range migrations {
 		if migration.Up && prior == 0 && i == 1 {
 			if err = p.schemaMigrateLock(ctx, conn); err != nil {
@@ -223,7 +229,7 @@ func (p *SQLProvider) schemaMigrate(ctx context.Context, conn SQLXConnection, pr
 			}
 		}
 
-		if err = p.schemaMigrateApply(ctx, conn, migration); err != nil {
+		if err = p.schemaMigrateApply(ctx, conn, initial, prior, migration); err != nil {
 			return p.schemaMigrateRollback(ctx, conn, prior, migration.After(), err)
 		}
 	}
@@ -245,30 +251,50 @@ func (p *SQLProvider) schemaMigrateLock(ctx context.Context, conn SQLXConnection
 	return nil
 }
 
-func (p *SQLProvider) schemaMigrateApply(ctx context.Context, conn SQLXConnection, migration model.SchemaMigration) (err error) {
+func (p *SQLProvider) schemaMigrateApply(ctx context.Context, conn SQLXConnection, initial, prior int, migration model.SchemaMigration) (err error) {
 	if migration.NotEmpty() {
 		if _, err = conn.ExecContext(ctx, migration.Query); err != nil {
 			return fmt.Errorf(errFmtFailedMigration, migration.Version, migration.Name, err)
 		}
+	}
 
-		if migration.Version == 1 && migration.Up {
-			// Add the schema encryption value if upgrading to v1.
-			if err = p.setNewEncryptionCheckValue(ctx, conn, &p.keys.encryption); err != nil {
-				return err
-			}
+	if migration.Up && initial != -1 && migration.Version == initial {
+		// Add the schema encryption value if upgrading to v1.
+		if err = p.setNewEncryptionCheckValue(ctx, conn, &p.keys.encryption); err != nil {
+			return err
 		}
 	}
 
-	if err = p.schemaMigrateFinalize(ctx, conn, migration); err != nil {
+	if err = p.schemaMigrateFinalize(ctx, conn, initial, prior, migration); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (p *SQLProvider) schemaMigrateFinalize(ctx context.Context, conn SQLXConnection, migration model.SchemaMigration) (err error) {
+func (p *SQLProvider) schemaMigrateFinalize(ctx context.Context, conn SQLXConnection, initial, prior int, migration model.SchemaMigration) (err error) {
 	if migration.Version == 1 && !migration.Up {
 		return nil
+	}
+
+	if migration.Up {
+		if initial > migration.After() {
+			p.log.Debugf("Storage schema migrated from version %d to %d", migration.Before(), migration.After())
+
+			return nil
+		}
+
+		if initial != 1 && initial != -1 && initial == migration.Version {
+			for i := prior; i <= migration.After(); i++ {
+				if _, err = conn.ExecContext(ctx, p.sqlInsertMigration, time.Now(), i, i+1, utils.Version()); err != nil {
+					return fmt.Errorf("failed inserting migration record: %w", err)
+				}
+			}
+
+			p.log.Debugf("Storage schema migrated from version %d to %d", migration.Before(), migration.After())
+
+			return nil
+		}
 	}
 
 	if _, err = conn.ExecContext(ctx, p.sqlInsertMigration, time.Now(), migration.Before(), migration.After(), utils.Version()); err != nil {
@@ -304,7 +330,7 @@ func (p *SQLProvider) schemaMigrateRollbackWithoutTx(ctx context.Context, prior,
 	}
 
 	for _, migration := range migrations {
-		if err = p.schemaMigrateApply(ctx, p.db, migration); err != nil {
+		if err = p.schemaMigrateApply(ctx, p.db, -1, prior, migration); err != nil {
 			return fmt.Errorf("error applying migration version %d to version %d for rollback: %+v. rollback caused by: %w", migration.Before(), migration.After(), err, merr)
 		}
 	}
