@@ -65,22 +65,16 @@ func (ctx *CmdCtx) ConfigStorageCommandLineConfigRunE(cmd *cobra.Command, _ []st
 
 		cmdFlagNameSQLite3Path: "storage.local.path",
 
-		cmdFlagNameMySQLHost:     "storage.mysql.host",
-		cmdFlagNameMySQLPort:     "storage.mysql.port",
+		cmdFlagNameMySQLAddress:  "storage.mysql.address",
 		cmdFlagNameMySQLDatabase: "storage.mysql.database",
 		cmdFlagNameMySQLUsername: "storage.mysql.username",
 		cmdFlagNameMySQLPassword: "storage.mysql.password",
 
-		cmdFlagNamePostgreSQLHost:       "storage.postgres.host",
-		cmdFlagNamePostgreSQLPort:       "storage.postgres.port",
-		cmdFlagNamePostgreSQLDatabase:   "storage.postgres.database",
-		cmdFlagNamePostgreSQLSchema:     "storage.postgres.schema",
-		cmdFlagNamePostgreSQLUsername:   "storage.postgres.username",
-		cmdFlagNamePostgreSQLPassword:   "storage.postgres.password",
-		"postgres.ssl.mode":             "storage.postgres.ssl.mode",
-		"postgres.ssl.root_certificate": "storage.postgres.ssl.root_certificate",
-		"postgres.ssl.certificate":      "storage.postgres.ssl.certificate",
-		"postgres.ssl.key":              "storage.postgres.ssl.key",
+		cmdFlagNamePostgreSQLAddress:  "storage.postgres.address",
+		cmdFlagNamePostgreSQLDatabase: "storage.postgres.database",
+		cmdFlagNamePostgreSQLSchema:   "storage.postgres.schema",
+		cmdFlagNamePostgreSQLUsername: "storage.postgres.username",
+		cmdFlagNamePostgreSQLPassword: "storage.postgres.password",
 
 		cmdFlagNamePeriod:     "totp.period",
 		cmdFlagNameDigits:     "totp.digits",
