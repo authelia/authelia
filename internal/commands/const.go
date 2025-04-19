@@ -159,7 +159,7 @@ This is useful for validating all data that can be encrypted is intact.`
 	cmdAutheliaStorageEncryptionCheckExample = `authelia storage encryption check
 authelia storage encryption check --verbose
 authelia storage encryption check --verbose --config config.yml
-authelia storage encryption check --verbose --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+authelia storage encryption check --verbose --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
 	cmdAutheliaStorageEncryptionChangeKeyShort = "Changes the encryption key"
 
@@ -168,7 +168,7 @@ authelia storage encryption check --verbose --encryption-key b3453fde-ecc2-4a1f-
 This subcommand allows you to change the encryption key of an Authelia SQL database.`
 
 	cmdAutheliaStorageEncryptionChangeKeyExample = `authelia storage encryption change-key --config config.yml --new-encryption-key 0e95cb49-5804-4ad9-be82-bb04a9ddecd8
-authelia storage encryption change-key --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --new-encryption-key 0e95cb49-5804-4ad9-be82-bb04a9ddecd8 --postgres.host postgres --postgres.password autheliapw`
+authelia storage encryption change-key --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --new-encryption-key 0e95cb49-5804-4ad9-be82-bb04a9ddecd8 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
 	cmdAutheliaStorageBansShort = "Manages user and ip bans"
 
@@ -243,7 +243,7 @@ This subcommand allows exporting the opaque identifiers for users in order to ba
 	cmdAutheliaStorageUserIdentifiersExportExample = `authelia storage user identifiers export
 authelia storage user identifiers export --file export.yml
 authelia storage user identifiers export --file export.yml --config config.yml
-authelia storage user identifiers export --file export.yml --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+authelia storage user identifiers export --file export.yml --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
 	cmdAutheliaStorageUserIdentifiersImportShort = "Import the identifiers from a YAML file"
 
@@ -257,7 +257,7 @@ manually provided the file is in the same format.`
 	cmdAutheliaStorageUserIdentifiersImportExample = `authelia storage user identifiers import
 authelia storage user identifiers import authelia.export.opaque-identifiers.yml
 authelia storage user identifiers import --config config.yml export.yml
-authelia storage user identifiers import --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw export.yml`
+authelia storage user identifiers import --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw export.yml`
 
 	cmdAutheliaStorageUserIdentifiersGenerateShort = "Generate opaque identifiers in bulk"
 
@@ -269,7 +269,7 @@ This subcommand allows various options for generating the opaque identifies for 
 authelia storage user identifiers generate --users john,mary --services openid
 authelia storage user identifiers generate --users john,mary --services openid --sectors=",example.com,test.com"
 authelia storage user identifiers generate --users john,mary --services openid --sectors=",example.com,test.com" --config config.yml
-authelia storage user identifiers generate --users john,mary --services openid --sectors=",example.com,test.com" --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+authelia storage user identifiers generate --users john,mary --services openid --sectors=",example.com,test.com" --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
 	cmdAutheliaStorageUserIdentifiersAddShort = "Add an opaque identifier for a user to the database"
 
@@ -279,7 +279,7 @@ This subcommand allows manually adding an opaque identifier for a user to the da
 
 	cmdAutheliaStorageUserIdentifiersAddExample = `authelia storage user identifiers add john --identifier f0919359-9d15-4e15-bcba-83b41620a073
 authelia storage user identifiers add john --identifier f0919359-9d15-4e15-bcba-83b41620a073 --config config.yml
-authelia storage user identifiers add john --identifier f0919359-9d15-4e15-bcba-83b41620a073 --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+authelia storage user identifiers add john --identifier f0919359-9d15-4e15-bcba-83b41620a073 --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
 	cmdAutheliaStorageUserWebAuthnShort = "Manage WebAuthn credentials"
 
@@ -298,7 +298,7 @@ This subcommand allows importing WebAuthn credentials from the YAML format.`
 	cmdAutheliaStorageUserWebAuthnImportExample = `authelia storage user webauthn export
 authelia storage user webauthn import --file authelia.export.webauthn.yml
 authelia storage user webauthn import --file authelia.export.webauthn.yml --config config.yml
-authelia storage user webauthn import --file authelia.export.webauthn.yml --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+authelia storage user webauthn import --file authelia.export.webauthn.yml --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
 	cmdAutheliaStorageUserWebAuthnExportShort = "Perform exports of the WebAuthn credentials"
 
@@ -309,7 +309,7 @@ This subcommand allows exporting WebAuthn credentials to various formats.`
 	cmdAutheliaStorageUserWebAuthnExportExample = `authelia storage user webauthn export
 authelia storage user webauthn export --file authelia.export.webauthn.yml
 authelia storage user webauthn export --config config.yml
-authelia storage user webauthn export--encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+authelia storage user webauthn export--encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
 	cmdAutheliaStorageUserWebAuthnListShort = "List WebAuthn credentials"
 
@@ -321,8 +321,8 @@ This subcommand allows listing WebAuthn credentials.`
 authelia storage user webauthn list john
 authelia storage user webauthn list --config config.yml
 authelia storage user webauthn list john --config config.yml
-authelia storage user webauthn list --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
-authelia storage user webauthn list john --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+authelia storage user webauthn list --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw
+authelia storage user webauthn list john --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
 	cmdAutheliaStorageUserWebAuthnVerifyShort = "Verify WebAuthn credentials"
 
@@ -340,13 +340,13 @@ This subcommand allows deleting a WebAuthn credential directly from the database
 
 	cmdAutheliaStorageUserWebAuthnDeleteExample = `authelia storage user webauthn delete john --all
 authelia storage user webauthn delete john --all --config config.yml
-authelia storage user webauthn delete john --all --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
+authelia storage user webauthn delete john --all --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw
 authelia storage user webauthn delete john --description Primary
 authelia storage user webauthn delete john --description Primary --config config.yml
-authelia storage user webauthn delete john --description Primary --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
+authelia storage user webauthn delete john --description Primary --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw
 authelia storage user webauthn delete --kid abc123
 authelia storage user webauthn delete --kid abc123 --config config.yml
-authelia storage user webauthn delete --kid abc123 --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+authelia storage user webauthn delete --kid abc123 --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
 	cmdAutheliaStorageUserTOTPShort = "Manage TOTP configurations"
 
@@ -378,7 +378,7 @@ This subcommand allows deleting a TOTP configuration directly from the database 
 
 	cmdAutheliaStorageUserTOTPDeleteExample = `authelia storage user totp delete john
 authelia storage user totp delete john --config config.yml
-authelia storage user totp delete john --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+authelia storage user totp delete john --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
 	cmdAutheliaStorageUserTOTPImportShort = "Perform imports of the TOTP configurations"
 
@@ -388,7 +388,7 @@ This subcommand allows importing TOTP configurations from the YAML format.`
 
 	cmdAutheliaStorageUserTOTPImportExample = `authelia storage user totp import authelia.export.totp.yml
 authelia storage user totp import --config config.yml authelia.export.totp.yml
-authelia storage user totp import --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw authelia.export.totp.yml`
+authelia storage user totp import --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw authelia.export.totp.yml`
 
 	cmdAutheliaStorageUserTOTPExportShort = "Perform exports of the TOTP configurations"
 
@@ -398,7 +398,7 @@ This subcommand allows exporting TOTP configurations to importable YAML files, o
 
 	cmdAutheliaStorageUserTOTPExportExample = `authelia storage user totp export --file example.yml
 authelia storage user totp export --config config.yml
-authelia storage user totp export --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+authelia storage user totp export --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
 	cmdAutheliaStorageUserTOTPExportCSVShort = "Perform exports of the TOTP configurations to a CSV"
 
@@ -408,7 +408,7 @@ This subcommand allows exporting TOTP configurations to a CSV.`
 
 	cmdAutheliaStorageUserTOTPExportCSVExample = `authelia storage user totp export csv --file users.csv
 authelia storage user totp export csv --config config.yml
-authelia storage user totp export csv --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+authelia storage user totp export csv --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
 	cmdAutheliaStorageUserTOTPExportURIShort = "Perform exports of the TOTP configurations to URIs"
 
@@ -418,7 +418,7 @@ This subcommand allows exporting TOTP configurations to TOTP URIs.`
 
 	cmdAutheliaStorageUserTOTPExportURIExample = `authelia storage user totp export uri
 authelia storage user totp export uri --config config.yml
-authelia storage user totp export uri --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+authelia storage user totp export uri --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
 	cmdAutheliaStorageUserTOTPExportPNGShort = "Perform exports of the TOTP configurations to QR code PNG images"
 
@@ -429,7 +429,7 @@ This subcommand allows exporting TOTP configurations to PNG images with QR codes
 	cmdAutheliaStorageUserTOTPExportPNGExample = `authelia storage user totp export png
 authelia storage user totp export png --directory example/dir
 authelia storage user totp export png --config config.yml
-authelia storage user totp export png --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+authelia storage user totp export png --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
 	cmdAutheliaStorageSchemaInfoShort = "Show the storage information"
 
@@ -439,7 +439,7 @@ This subcommand shows advanced information about the storage schema useful in so
 
 	cmdAutheliaStorageSchemaInfoExample = `authelia storage schema-info
 authelia storage schema-info --config config.yml
-authelia storage schema-info --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+authelia storage schema-info --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
 	cmdAutheliaStorageMigrateShort = "Perform or list migrations"
 
@@ -457,7 +457,7 @@ This subcommand allows users to list previous migrations.`
 
 	cmdAutheliaStorageMigrateHistoryExample = `authelia storage migrate history
 authelia storage migrate history --config config.yml
-authelia storage migrate history --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+authelia storage migrate history --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
 	cmdAutheliaStorageMigrateListUpShort = "List the up migrations available"
 
@@ -468,7 +468,7 @@ schema version of the database.`
 
 	cmdAutheliaStorageMigrateListUpExample = `authelia storage migrate list-up
 authelia storage migrate list-up --config config.yml
-authelia storage migrate list-up --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+authelia storage migrate list-up --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
 	cmdAutheliaStorageMigrateListDownShort = "List the down migrations available"
 
@@ -479,7 +479,7 @@ schema version of the database.`
 
 	cmdAutheliaStorageMigrateListDownExample = `authelia storage migrate list-down
 authelia storage migrate list-down --config config.yml
-authelia storage migrate list-down --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+authelia storage migrate list-down --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
 	cmdAutheliaStorageMigrateUpShort = "Perform a migration up"
 
@@ -491,7 +491,7 @@ schema version of the database. By default this will migrate up to the latest av
 	cmdAutheliaStorageMigrateUpExample = `authelia storage migrate up
 authelia storage migrate up --config config.yml
 authelia storage migrate up --target 20 --config config.yml
-authelia storage migrate up --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+authelia storage migrate up --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
 	cmdAutheliaStorageMigrateDownShort = "Perform a migration down"
 
@@ -502,7 +502,7 @@ schema version of the database.`
 
 	cmdAutheliaStorageMigrateDownExample = `authelia storage migrate down --target 20
 authelia storage migrate down --target 20 --config config.yml
-authelia storage migrate down --target 20 --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw`
+authelia storage migrate down --target 20 --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw`
 
 	cmdAutheliaConfigShort = "Perform config related actions"
 
@@ -767,13 +767,11 @@ const (
 
 	cmdFlagNameEncryptionKey      = "encryption-key"
 	cmdFlagNameSQLite3Path        = "sqlite.path"
-	cmdFlagNameMySQLHost          = "mysql.host"
-	cmdFlagNameMySQLPort          = "mysql.port"
+	cmdFlagNameMySQLAddress       = "mysql.address"
 	cmdFlagNameMySQLDatabase      = "mysql.database"
 	cmdFlagNameMySQLUsername      = "mysql.username"
 	cmdFlagNameMySQLPassword      = "mysql.password"
-	cmdFlagNamePostgreSQLHost     = "postgres.host"
-	cmdFlagNamePostgreSQLPort     = "postgres.port"
+	cmdFlagNamePostgreSQLAddress  = "postgres.address"
 	cmdFlagNamePostgreSQLDatabase = "postgres.database"
 	cmdFlagNamePostgreSQLSchema   = "postgres.schema"
 	cmdFlagNamePostgreSQLUsername = "postgres.username"
