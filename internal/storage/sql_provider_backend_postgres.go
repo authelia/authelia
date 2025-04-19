@@ -45,8 +45,6 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	// PostgreSQL requires rebinding of any query that contains a '?' placeholder to use the '$#' notation placeholders.
 	provider.rebind()
 
-	provider.schema = config.Storage.PostgreSQL.Schema
-
 	return provider
 }
 

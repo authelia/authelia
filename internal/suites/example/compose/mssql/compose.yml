@@ -7,7 +7,7 @@ services:
       MSSQL_SA_PASSWORD: 'F5vBTaMQJKxW8T6BbkNh'
       MSSQL_DB: 'authelia'
       MSSQL_USER: 'authelia'
-      MSSQL_PASSWORD: 'authelia'
+      MSSQL_PASSWORD: 'Yo7TFKSVGog7nhkR28do'
     networks:
       - 'authelianet'
 ...
