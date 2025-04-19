@@ -55,7 +55,7 @@ var tablesPre1 = []string{
 	tableAuthenticationLogs,
 }
 
-var providerMigrationStart = map[string]int{
+var providerMigrationInitial = map[string]int{
 	providerPostgres: 1,
 	providerMSSQL:    22,
 	providerMySQL:    1,
@@ -63,8 +63,15 @@ var providerMigrationStart = map[string]int{
 }
 
 const (
-	driverParameterAppName = "authelia"
-	strStorage             = "storage"
+	driverParameterFmtAppName = "authelia %s"
+)
+
+const (
+	migrationDirectionUp         = "up"
+	migrationDirectionDown       = "down"
+	migrationRegexGroupDirection = "Direction"
+	migrationRegexGroupVersion   = "Version"
+	migrationRegexGroupName      = "Name"
 )
 
 const (

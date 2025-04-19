@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"bytes"
 	"embed"
 	"errors"
 	"fmt"
@@ -56,7 +55,7 @@ func loadMigrations(provider, schema string, prior, target int) (migrations []mo
 		return nil, ErrMigrateCurrentVersionSameAsTarget
 	}
 
-	start := providerMigrationStart[provider]
+	start := providerMigrationInitial[provider]
 
 	if start != 1 {
 		switch {
@@ -78,28 +77,16 @@ func loadMigrations(provider, schema string, prior, target int) (migrations []mo
 
 	up := prior < target
 
-	var filters []migrationFilter
-
-	switch provider {
-	case providerMSSQL:
-		switch schema {
-		case "", "dbo":
-			break
-		default:
-			filters = append(filters, migrationFilterReplace([]byte("[dbo]"), []byte(fmt.Sprintf("[%s]", schema))))
-		}
-	}
-
 	for _, entry := range entries {
 		if entry.IsDir() {
 			continue
 		}
 
-		if migration, err = scanMigration(provider, entry.Name(), filters...); err != nil {
+		if migration, err = scanMigration(provider, entry.Name()); err != nil {
 			return nil, err
 		}
 
-		if skipMigration(up, start, target, prior, &migration) {
+		if skipMigration(up, target, prior, &migration) {
 			continue
 		}
 
@@ -119,7 +106,7 @@ func loadMigrations(provider, schema string, prior, target int) (migrations []mo
 	return migrations, nil
 }
 
-func skipMigration(up bool, start, target, prior int, migration *model.SchemaMigration) (skip bool) {
+func skipMigration(up bool, target, prior int, migration *model.SchemaMigration) (skip bool) {
 	if up {
 		if !migration.Up {
 			// Skip if we wanted an Up migration but it isn't an Up migration.
@@ -150,7 +137,7 @@ func skipMigration(up bool, start, target, prior int, migration *model.SchemaMig
 	return false
 }
 
-func scanMigration(providerName, m string, filters ...migrationFilter) (migration model.SchemaMigration, err error) {
+func scanMigration(providerName, m string) (migration model.SchemaMigration, err error) {
 	if !reMigration.MatchString(m) {
 		return model.SchemaMigration{}, errors.New("invalid migration: could not parse the format")
 	}
@@ -158,7 +145,7 @@ func scanMigration(providerName, m string, filters ...migrationFilter) (migratio
 	result := reMigration.FindStringSubmatch(m)
 
 	migration = model.SchemaMigration{
-		Name:     strings.ReplaceAll(result[reMigration.SubexpIndex("Name")], "_", " "),
+		Name:     strings.ReplaceAll(result[reMigration.SubexpIndex(migrationRegexGroupName)], "_", " "),
 		Provider: providerName,
 	}
 
@@ -168,30 +155,18 @@ func scanMigration(providerName, m string, filters ...migrationFilter) (migratio
 		return model.SchemaMigration{}, err
 	}
 
-	for _, filter := range filters {
-		data = filter(data)
-	}
-
 	migration.Query = string(data)
 
-	switch direction := result[reMigration.SubexpIndex("Direction")]; direction {
-	case "up":
+	switch direction := result[reMigration.SubexpIndex(migrationRegexGroupDirection)]; direction {
+	case migrationDirectionUp:
 		migration.Up = true
-	case "down":
+	case migrationDirectionDown:
 		migration.Up = false
 	default:
 		return model.SchemaMigration{}, fmt.Errorf("invalid migration: value in Direction group '%s' must be up or down", direction)
 	}
 
-	migration.Version, _ = strconv.Atoi(result[reMigration.SubexpIndex("Version")])
+	migration.Version, _ = strconv.Atoi(result[reMigration.SubexpIndex(migrationRegexGroupVersion)])
 
 	return migration, nil
-}
-
-type migrationFilter func(s []byte) []byte
-
-func migrationFilterReplace(old, new []byte) migrationFilter {
-	return func(s []byte) []byte {
-		return bytes.ReplaceAll(s, old, new)
-	}
 }

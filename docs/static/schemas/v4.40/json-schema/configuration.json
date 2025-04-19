@@ -3918,14 +3918,7 @@
         "instance": {
           "type": "string",
           "title": "Instance",
-          "description": "The instance name to use",
-          "default": "public"
-        },
-        "schema": {
-          "type": "string",
-          "title": "Schema",
-          "description": "The default schema name to use",
-          "default": "public"
+          "description": "The instance name to use"
         }
       },
       "additionalProperties": false,

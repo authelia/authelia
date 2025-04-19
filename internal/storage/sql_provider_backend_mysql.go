@@ -2,6 +2,7 @@ package storage
 
 import (
 	"crypto/x509"
+	"fmt"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
@@ -34,9 +35,9 @@ func dsnMySQL(config *schema.StorageMySQL, caCertPool *x509.CertPool) (dataSourc
 	dsnConfig.Addr = config.Address.NetworkAddress()
 
 	if config.TLS != nil {
-		_ = mysql.RegisterTLSConfig(strStorage, utils.NewTLSConfig(config.TLS, caCertPool))
+		dsnConfig.TLSConfig = fmt.Sprintf("authelia-%s-storage", utils.Version())
 
-		dsnConfig.TLSConfig = strStorage
+		_ = mysql.RegisterTLSConfig(dsnConfig.TLSConfig, utils.NewTLSConfig(config.TLS, caCertPool))
 	}
 
 	dsnConfig.DBName = config.Database
@@ -45,7 +46,12 @@ func dsnMySQL(config *schema.StorageMySQL, caCertPool *x509.CertPool) (dataSourc
 	dsnConfig.Timeout = config.Timeout
 	dsnConfig.MultiStatements = true
 	dsnConfig.ParseTime = true
+	dsnConfig.RejectReadOnly = true
 	dsnConfig.Loc = time.Local
+	dsnConfig.Collation = "utf8mb4_unicode_520_ci"
+	dsnConfig.Params = map[string]string{
+		"application_name": fmt.Sprintf(driverParameterFmtAppName, utils.Version()),
+	}
 
 	return dsnConfig.FormatDSN()
 }
