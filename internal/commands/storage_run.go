@@ -78,10 +78,10 @@ func (ctx *CmdCtx) ConfigStorageCommandLineConfigRunE(cmd *cobra.Command, _ []st
 		cmdFlagNameMSSQLInstance: "storage.mssql.instance",
 
 		cmdFlagNamePostgreSQLAddress:  "storage.postgres.address",
-		cmdFlagNamePostgreSQLDatabase:   "storage.postgres.database",
-		cmdFlagNamePostgreSQLSchema:     "storage.postgres.schema",
-		cmdFlagNamePostgreSQLUsername:   "storage.postgres.username",
-		cmdFlagNamePostgreSQLPassword:   "storage.postgres.password",
+		cmdFlagNamePostgreSQLDatabase: "storage.postgres.database",
+		cmdFlagNamePostgreSQLSchema:   "storage.postgres.schema",
+		cmdFlagNamePostgreSQLUsername: "storage.postgres.username",
+		cmdFlagNamePostgreSQLPassword: "storage.postgres.password",
 
 		cmdFlagNamePeriod:     "totp.period",
 		cmdFlagNameDigits:     "totp.digits",

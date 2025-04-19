@@ -120,7 +120,7 @@ See the [encryption_key docs](introduction.md#encryption_key).
 
 ### address
 
-{{< confkey type="string" syntax="address" required="yes" >}}
+{{< confkey type="string" syntax="address" required="yes" default="tcp://127.0.0.1:1433" >}}
 
 Configures the address for the Microsoft SQL Server. The address itself is a connector and the scheme must either be
 the `unix` scheme or one of the `tcp` schemes.
