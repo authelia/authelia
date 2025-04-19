@@ -91,8 +91,7 @@ var DefaultMSSQLStorageConfiguration = StorageMSSQL{
 	StorageSQL: StorageSQL{
 		Address: &AddressTCP{Address{true, false, -1, 1433, nil, &url.URL{Scheme: AddressSchemeTCP, Host: "localhost:1433"}}},
 	},
-	Instance: "MSSQLSERVER",
-	Schema:   "dbo",
+	Schema: "",
 	TLS: &TLS{
 		MinimumVersion: TLSVersion{tls.VersionTLS12},
 	},
