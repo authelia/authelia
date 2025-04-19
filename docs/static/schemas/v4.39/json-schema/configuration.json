@@ -3844,6 +3844,11 @@
           "title": "MySQL",
           "description": "The MySQL/MariaDB Storage configuration settings."
         },
+        "mssql": {
+          "$ref": "#/$defs/StorageMSSQL",
+          "title": "Microsoft SQL",
+          "description": "The Microsoft SQL Storage configuration settings"
+        },
         "postgres": {
           "$ref": "#/$defs/StoragePostgreSQL",
           "title": "PostgreSQL",
@@ -3870,6 +3875,62 @@
       "additionalProperties": false,
       "type": "object",
       "description": "StorageLocal represents the configuration when using local storage."
+    },
+    "StorageMSSQL": {
+      "properties": {
+        "address": {
+          "$ref": "#/$defs/AddressTCP",
+          "title": "Address",
+          "description": "The address of the SQL Server."
+        },
+        "database": {
+          "type": "string",
+          "title": "Database",
+          "description": "The database name to use upon a successful connection."
+        },
+        "username": {
+          "type": "string",
+          "title": "Username",
+          "description": "The username to use to authenticate."
+        },
+        "password": {
+          "type": "string",
+          "title": "Password",
+          "description": "The password to use to authenticate."
+        },
+        "timeout": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Timeout",
+          "description": "The timeout for the database connection."
+        },
+        "tls": {
+          "$ref": "#/$defs/TLS"
+        },
+        "instance": {
+          "type": "string",
+          "title": "Instance",
+          "description": "The instance name to use",
+          "default": "public"
+        },
+        "schema": {
+          "type": "string",
+          "title": "Schema",
+          "description": "The default schema name to use",
+          "default": "public"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "StorageMSSQL represents the configuration of a Microsoft SQL database."
     },
     "StorageMySQL": {
       "properties": {

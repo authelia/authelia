@@ -13,7 +13,7 @@ log:
 storage:
   encryption_key: 'a_not_so_secure_encryption_key'
   mssql:
-    address: 'tcp://mssql:1443'
+    address: 'tcp://mssql:1433'
     database: 'authelia'
     username: 'authelia'
     password: 'authelia'

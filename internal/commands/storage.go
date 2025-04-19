@@ -30,29 +30,23 @@ func newStorageCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 
 	cmd.PersistentFlags().String(cmdFlagNameSQLite3Path, "", "the SQLite database path")
 
-	cmd.PersistentFlags().String(cmdFlagNameMySQLHost, "", "the MySQL hostname")
-	cmd.PersistentFlags().Int(cmdFlagNameMySQLPort, 3306, "the MySQL port")
+	cmd.PersistentFlags().String(cmdFlagNameMySQLAddress, "tcp://127.0.0.1:3306", "the MySQL server address")
 	cmd.PersistentFlags().String(cmdFlagNameMySQLDatabase, "authelia", "the MySQL database name")
 	cmd.PersistentFlags().String(cmdFlagNameMySQLUsername, "authelia", "the MySQL username")
 	cmd.PersistentFlags().String(cmdFlagNameMySQLPassword, "", "the MySQL password")
 
-	cmd.PersistentFlags().String(cmdFlagNameMSSQLAddress, "tcp://127.0.0.1:1443", "the MSSQL address")
+	cmd.PersistentFlags().String(cmdFlagNameMSSQLAddress, "tcp://127.0.0.1:1433", "the MSSQL address")
 	cmd.PersistentFlags().String(cmdFlagNameMSSQLDatabase, "authelia", "the MSSQL database name")
 	cmd.PersistentFlags().String(cmdFlagNameMSSQLUsername, "authelia", "the MSSQL username")
 	cmd.PersistentFlags().String(cmdFlagNameMSSQLPassword, "", "the MSSQL password")
 	cmd.PersistentFlags().String(cmdFlagNameMSSQLSchema, "", "the MSSQL schema")
 	cmd.PersistentFlags().String(cmdFlagNameMSSQLInstance, "", "the MSSQL instance name")
 
-	cmd.PersistentFlags().String(cmdFlagNamePostgreSQLHost, "", "the PostgreSQL hostname")
-	cmd.PersistentFlags().Int(cmdFlagNamePostgreSQLPort, 5432, "the PostgreSQL port")
+	cmd.PersistentFlags().String(cmdFlagNamePostgreSQLAddress, "tcp://127.0.0.1:5432", "the PostgreSQL server address")
 	cmd.PersistentFlags().String(cmdFlagNamePostgreSQLDatabase, "authelia", "the PostgreSQL database name")
 	cmd.PersistentFlags().String(cmdFlagNamePostgreSQLSchema, "public", "the PostgreSQL schema name")
 	cmd.PersistentFlags().String(cmdFlagNamePostgreSQLUsername, "authelia", "the PostgreSQL username")
 	cmd.PersistentFlags().String(cmdFlagNamePostgreSQLPassword, "", "the PostgreSQL password")
-	cmd.PersistentFlags().String("postgres.ssl.mode", "disable", "the PostgreSQL ssl mode")
-	cmd.PersistentFlags().String("postgres.ssl.root_certificate", "", "the PostgreSQL ssl root certificate file location")
-	cmd.PersistentFlags().String("postgres.ssl.certificate", "", "the PostgreSQL ssl certificate file location")
-	cmd.PersistentFlags().String("postgres.ssl.key", "", "the PostgreSQL ssl key file location")
 
 	cmd.AddCommand(
 		newStorageCacheCmd(ctx),
