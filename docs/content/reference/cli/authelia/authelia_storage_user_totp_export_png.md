@@ -34,7 +34,7 @@ authelia storage user totp export png [flags]
 authelia storage user totp export png
 authelia storage user totp export png --directory example/dir
 authelia storage user totp export png --config config.yml
-authelia storage user totp export png --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw
+authelia storage user totp export png --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
 ```
 
 ### Options
@@ -47,19 +47,31 @@ authelia storage user totp export png --encryption-key b3453fde-ecc2-4a1f-9422-2
 ### Options inherited from parent commands
 
 ```
-  -c, --config strings                        configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
-      --config.experimental.filters strings   list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
-      --encryption-key string                 the storage encryption key to use
-      --mysql.address string                  the MySQL server address (default "tcp://127.0.0.1:3306")
-      --mysql.database string                 the MySQL database name (default "authelia")
-      --mysql.password string                 the MySQL password
-      --mysql.username string                 the MySQL username (default "authelia")
-      --postgres.address string               the PostgreSQL server address (default "tcp://127.0.0.1:5432")
-      --postgres.database string              the PostgreSQL database name (default "authelia")
-      --postgres.password string              the PostgreSQL password
-      --postgres.schema string                the PostgreSQL schema name (default "public")
-      --postgres.username string              the PostgreSQL username (default "authelia")
-      --sqlite.path string                    the SQLite database path
+  -c, --config strings                         configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
+      --config.experimental.filters strings    list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
+      --encryption-key string                  the storage encryption key to use
+      --mssql.address string                   the MSSQL address (default "tcp://127.0.0.1:1443")
+      --mssql.database string                  the MSSQL database name (default "authelia")
+      --mssql.instance string                  the MSSQL instance name
+      --mssql.password string                  the MSSQL password
+      --mssql.schema string                    the MSSQL schema
+      --mssql.username string                  the MSSQL username (default "authelia")
+      --mysql.database string                  the MySQL database name (default "authelia")
+      --mysql.host string                      the MySQL hostname
+      --mysql.password string                  the MySQL password
+      --mysql.port int                         the MySQL port (default 3306)
+      --mysql.username string                  the MySQL username (default "authelia")
+      --postgres.database string               the PostgreSQL database name (default "authelia")
+      --postgres.host string                   the PostgreSQL hostname
+      --postgres.password string               the PostgreSQL password
+      --postgres.port int                      the PostgreSQL port (default 5432)
+      --postgres.schema string                 the PostgreSQL schema name (default "public")
+      --postgres.ssl.certificate string        the PostgreSQL ssl certificate file location
+      --postgres.ssl.key string                the PostgreSQL ssl key file location
+      --postgres.ssl.mode string               the PostgreSQL ssl mode (default "disable")
+      --postgres.ssl.root_certificate string   the PostgreSQL ssl root certificate file location
+      --postgres.username string               the PostgreSQL username (default "authelia")
+      --sqlite.path string                     the SQLite database path
 ```
 
 ### SEE ALSO

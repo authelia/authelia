@@ -3,7 +3,7 @@
 title: "Microsoft SQL"
 description: "Microsoft SQL Configuration"
 summary: "The Microsoft SQL storage provider which supports Microsoft SQL Server."
-date: 2021-11-23T20:45:38+11:00
+date: 2025-04-19T13:20:35+10:00
 draft: false
 images: []
 weight: 107600
@@ -33,8 +33,8 @@ storage:
     database: 'authelia'
     username: 'authelia'
     password: 'mypassword'
-    instance: 'MSSQLSERVER'
-    schema: 'dbo'
+    instance: ''
+    schema: ''
     timeout: '5s'
     tls:
       server_name: 'mssql.example.com'
@@ -173,13 +173,13 @@ characters and the user password is changed to this value.
 
 ### instance
 
-{{< confkey type="string" default="MSSQLSERVER" >}}
+{{< confkey type="string" default="" >}}
 
 The instance name to connect to.
 
 ### schema
 
-{{< confkey type="string" default="dbo" >}}
+{{< confkey type="string" default="" >}}
 
 The schema name to utilize.
 

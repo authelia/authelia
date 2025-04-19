@@ -2,6 +2,7 @@ package storage
 
 import (
 	"crypto/x509"
+	"fmt"
 
 	_ "github.com/microsoft/go-mssqldb"
 	"github.com/microsoft/go-mssqldb/msdsn"
@@ -31,8 +32,10 @@ func NewMSSQLProvider(config *schema.Configuration, caCertPool *x509.CertPool) (
 }
 
 func dsnMSSQL(config *schema.StorageMSSQL, caCertPool *x509.CertPool) (dataSourceName string) {
+	fmt.Printf("creating dsn for %s and %d of db %s\n", config.Address.Hostname(), config.Address.Port(), config.Database)
+
 	dsnConfig := msdsn.Config{
-		Host:        config.Address.Host(),
+		Host:        config.Address.Hostname(),
 		Port:        uint64(config.Address.Port()),
 		Instance:    config.Instance,
 		Database:    config.Database,
