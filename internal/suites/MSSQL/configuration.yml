@@ -32,8 +32,8 @@ storage:
   mssql:
     address: 'tcp://mssql:1443'
     database: 'authelia'
-    username: 'sa'
-    password: 'F5vBTaMQJKxW8T6BbkNh'
+    username: 'authelia'
+    password: 'authelia'
 
 # TOTP Issuer Name
 #

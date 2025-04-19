@@ -36,6 +36,11 @@ func newStorageCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd.PersistentFlags().String(cmdFlagNameMySQLPassword, "", "the MySQL password")
 
 	cmd.PersistentFlags().String(cmdFlagNamePostgreSQLAddress, "tcp://127.0.0.1:5432", "the PostgreSQL server address")
+	cmd.PersistentFlags().String(cmdFlagNameMSSQLAddress, "tcp://127.0.0.1:1443", "the MSSQL address")
+	cmd.PersistentFlags().String(cmdFlagNameMSSQLDatabase, "authelia", "the MSSQL database name")
+	cmd.PersistentFlags().String(cmdFlagNameMSSQLUsername, "authelia", "the MSSQL username")
+	cmd.PersistentFlags().String(cmdFlagNameMSSQLPassword, "", "the MSSQL password")
+
 	cmd.PersistentFlags().String(cmdFlagNamePostgreSQLDatabase, "authelia", "the PostgreSQL database name")
 	cmd.PersistentFlags().String(cmdFlagNamePostgreSQLSchema, "public", "the PostgreSQL schema name")
 	cmd.PersistentFlags().String(cmdFlagNamePostgreSQLUsername, "authelia", "the PostgreSQL username")
