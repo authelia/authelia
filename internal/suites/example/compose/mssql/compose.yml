@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 ---
-version: '3'
 services:
   mssql:
     image: 'mcr.microsoft.com/mssql/server:2022-latest'
