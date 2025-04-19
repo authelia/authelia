@@ -18,14 +18,11 @@ type MySQLProvider struct {
 // NewMySQLProvider a MySQL provider.
 func NewMySQLProvider(config *schema.Configuration, caCertPool *x509.CertPool) (provider *MySQLProvider) {
 	provider = &MySQLProvider{
-		SQLProvider: NewSQLProvider(config, providerMySQL, providerMySQL, dsnMySQL(config.Storage.MySQL, caCertPool)),
+		SQLProvider: NewSQLProvider(config, providerMySQL, providerMySQL, "", dsnMySQL(config.Storage.MySQL, caCertPool)),
 	}
 
 	// All providers have differing SELECT existing table statements.
 	provider.sqlSelectExistingTables = queryMySQLSelectExistingTables
-
-	// Specific alterations to this provider.
-	provider.sqlFmtRenameTable = queryFmtMySQLRenameTable
 
 	return provider
 }
@@ -37,9 +34,9 @@ func dsnMySQL(config *schema.StorageMySQL, caCertPool *x509.CertPool) (dataSourc
 	dsnConfig.Addr = config.Address.NetworkAddress()
 
 	if config.TLS != nil {
-		_ = mysql.RegisterTLSConfig("storage", utils.NewTLSConfig(config.TLS, caCertPool))
+		_ = mysql.RegisterTLSConfig(strStorage, utils.NewTLSConfig(config.TLS, caCertPool))
 
-		dsnConfig.TLSConfig = "storage"
+		dsnConfig.TLSConfig = strStorage
 	}
 
 	dsnConfig.DBName = config.Database

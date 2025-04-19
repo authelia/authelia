@@ -157,8 +157,8 @@ const (
 
 // Storage Error constants.
 const (
-	errStrStorage                                  = "storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided"
-	errStrStorageMultiple                          = "storage: option 'local', 'mysql' and 'postgres' are mutually exclusive but %s have been configured"
+	errStrStorage                                  = "storage: configuration for a 'postgres', 'mssql', 'mysql', or 'local' database must be provided"
+	errStrStorageMultiple                          = "storage: option 'postgres', 'mssql', 'mysql', or 'local' are mutually exclusive but %s have been configured"
 	errStrStorageEncryptionKeyMustBeProvided       = "storage: option 'encryption_key' is required"
 	errStrStorageEncryptionKeyTooShort             = "storage: option 'encryption_key' must be 20 characters or longer"
 	errFmtStorageAddressValidate                   = "storage: %s: option 'address' with value '%s' is invalid: %w"

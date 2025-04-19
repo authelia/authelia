@@ -1025,6 +1025,71 @@
         "env": "AUTHELIA_STORAGE_LOCAL_PATH"
     },
     {
+        "path": "storage.mssql.address",
+        "secret": false,
+        "env": "AUTHELIA_STORAGE_MSSQL_ADDRESS"
+    },
+    {
+        "path": "storage.mssql.database",
+        "secret": false,
+        "env": "AUTHELIA_STORAGE_MSSQL_DATABASE"
+    },
+    {
+        "path": "storage.mssql.instance",
+        "secret": false,
+        "env": "AUTHELIA_STORAGE_MSSQL_INSTANCE"
+    },
+    {
+        "path": "storage.mssql.password",
+        "secret": true,
+        "env": "AUTHELIA_STORAGE_MSSQL_PASSWORD_FILE"
+    },
+    {
+        "path": "storage.mssql.schema",
+        "secret": false,
+        "env": "AUTHELIA_STORAGE_MSSQL_SCHEMA"
+    },
+    {
+        "path": "storage.mssql.timeout",
+        "secret": false,
+        "env": "AUTHELIA_STORAGE_MSSQL_TIMEOUT"
+    },
+    {
+        "path": "storage.mssql.tls.certificate_chain",
+        "secret": true,
+        "env": "AUTHELIA_STORAGE_MSSQL_TLS_CERTIFICATE_CHAIN_FILE"
+    },
+    {
+        "path": "storage.mssql.tls.maximum_version",
+        "secret": false,
+        "env": "AUTHELIA_STORAGE_MSSQL_TLS_MAXIMUM_VERSION"
+    },
+    {
+        "path": "storage.mssql.tls.minimum_version",
+        "secret": false,
+        "env": "AUTHELIA_STORAGE_MSSQL_TLS_MINIMUM_VERSION"
+    },
+    {
+        "path": "storage.mssql.tls.private_key",
+        "secret": true,
+        "env": "AUTHELIA_STORAGE_MSSQL_TLS_PRIVATE_KEY_FILE"
+    },
+    {
+        "path": "storage.mssql.tls.server_name",
+        "secret": false,
+        "env": "AUTHELIA_STORAGE_MSSQL_TLS_SERVER_NAME"
+    },
+    {
+        "path": "storage.mssql.tls.skip_verify",
+        "secret": false,
+        "env": "AUTHELIA_STORAGE_MSSQL_TLS_SKIP_VERIFY"
+    },
+    {
+        "path": "storage.mssql.username",
+        "secret": false,
+        "env": "AUTHELIA_STORAGE_MSSQL_USERNAME"
+    },
+    {
         "path": "storage.mysql.address",
         "secret": false,
         "env": "AUTHELIA_STORAGE_MYSQL_ADDRESS"

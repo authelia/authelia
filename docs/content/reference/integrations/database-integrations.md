@@ -40,6 +40,10 @@ recommended version for new installations.
 See the [PostgreSQL Versioning Policy](https://www.postgresql.org/support/versioning/) for information on the versions
 and platforms that are currently supported by this vendor.
 
+## Microsoft SQL Server
+
+TODO.
+
 ## MySQL
 
 [MySQL] and [MariaDB] are both supported as part of the [MySQL] implementation. This is generally discouraged as

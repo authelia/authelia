@@ -17,7 +17,7 @@ type SQLiteProvider struct {
 // NewSQLiteProvider constructs a SQLite provider.
 func NewSQLiteProvider(config *schema.Configuration) (provider *SQLiteProvider) {
 	provider = &SQLiteProvider{
-		SQLProvider: NewSQLProvider(config, providerSQLite, "sqlite3e", config.Storage.Local.Path),
+		SQLProvider: NewSQLProvider(config, providerSQLite, "sqlite3e", "", config.Storage.Local.Path),
 	}
 
 	// All providers have differing SELECT existing table statements.
