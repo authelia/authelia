@@ -22,6 +22,11 @@ const (
 		FROM information_schema.tables
 		WHERE table_type = 'BASE TABLE' AND table_schema = database();`
 
+	queryMSSQLSelectExistingTables = `
+		SELECT TABLE_NAME
+		FROM @p1.INFORMATION_SCHEMA.TABLES
+		WHERE TABLE_TYPE = 'BASE TABLE';`
+
 	queryPostgreSelectExistingTables = `
 		SELECT table_name
 		FROM information_schema.tables

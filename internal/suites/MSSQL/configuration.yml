@@ -1,0 +1,81 @@
+---
+###############################################################
+#                Authelia minimal configuration               #
+###############################################################
+
+server:
+  address: 'tcp://:9091'
+  tls:
+    certificate: /pki/public.backend.crt
+    key: /pki/private.backend.pem
+
+log:
+  level: debug
+
+authentication_backend:
+  file:
+    path: /config/users.yml
+
+session:
+  secret: unsecure_session_secret
+  expiration: 3600  # 1 hour
+  inactivity: 300  # 5 minutes
+  remember_me: 1y
+  cookies:
+    - domain: 'example.com'
+      authelia_url: 'https://login.example.com:8080'
+      default_redirection_url: 'https://home.example.com:8080/'
+
+# Configuration of the storage backend used to store data and secrets. i.e. totp data
+storage:
+  encryption_key: a_not_so_secure_encryption_key
+  mssql:
+    address: 'tcp://mssql:1443'
+    database: 'authelia'
+    username: 'sa'
+    password: 'F5vBTaMQJKxW8T6BbkNh'
+
+# TOTP Issuer Name
+#
+# This will be the issuer name displayed in Google Authenticator
+# See: https://github.com/google/google-authenticator/wiki/Key-Uri-Format for more info on issuer names
+totp:
+  issuer: example.com
+  disable_reuse_security_policy: true
+
+identity_validation:
+  reset_password:
+    jwt_secret: 'a_very_important_secret'
+
+access_control:
+  default_policy: deny
+  rules:
+    - domain: ["home.example.com", "public.example.com"]
+      policy: bypass
+    - domain: "deny.example.com"
+      policy: deny
+    - domain: "admin.example.com"
+      policy: two_factor
+    - domain: "secure.example.com"
+      policy: two_factor
+    - domain: "singlefactor.example.com"
+      policy: one_factor
+
+# Configuration of the authentication regulation mechanism.
+regulation:
+  # Set it to 0 to disable max_retries.
+  max_retries: 3
+
+  # The user is banned if the authentication failed `max_retries` times in a `find_time` seconds window.
+  find_time: 8
+
+  # The length of time before a banned user can login again.
+  ban_time: 10
+
+notifier:
+  # Use a SMTP server for sending notifications
+  smtp:
+    address: 'smtp://smtp:1025'
+    sender: admin@example.com
+    disable_require_tls: true
+...

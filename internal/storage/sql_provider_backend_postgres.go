@@ -26,7 +26,7 @@ type PostgreSQLProvider struct {
 // NewPostgreSQLProvider a PostgreSQL provider.
 func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPool) (provider *PostgreSQLProvider) {
 	provider = &PostgreSQLProvider{
-		SQLProvider: NewSQLProvider(config, providerPostgres, "pgx", dsnPostgreSQL(config.Storage.PostgreSQL, caCertPool)),
+		SQLProvider: NewSQLProvider(config, providerPostgres, "pgx", config.Storage.PostgreSQL.Schema, dsnPostgreSQL(config.Storage.PostgreSQL, caCertPool)),
 	}
 
 	// All providers have differing SELECT existing table statements.
@@ -43,137 +43,7 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlUpsertCachedData = fmt.Sprintf(queryFmtUpsertCachedDataPostgreSQL, tableCachedData)
 
 	// PostgreSQL requires rebinding of any query that contains a '?' placeholder to use the '$#' notation placeholders.
-	provider.sqlFmtRenameTable = provider.db.Rebind(provider.sqlFmtRenameTable)
-
-	provider.sqlSelectPreferred2FAMethod = provider.db.Rebind(provider.sqlSelectPreferred2FAMethod)
-	provider.sqlSelectUserInfo = provider.db.Rebind(provider.sqlSelectUserInfo)
-
-	provider.sqlInsertUserOpaqueIdentifier = provider.db.Rebind(provider.sqlInsertUserOpaqueIdentifier)
-	provider.sqlSelectUserOpaqueIdentifier = provider.db.Rebind(provider.sqlSelectUserOpaqueIdentifier)
-	provider.sqlSelectUserOpaqueIdentifierBySignature = provider.db.Rebind(provider.sqlSelectUserOpaqueIdentifierBySignature)
-
-	provider.sqlInsertIdentityVerification = provider.db.Rebind(provider.sqlInsertIdentityVerification)
-	provider.sqlConsumeIdentityVerification = provider.db.Rebind(provider.sqlConsumeIdentityVerification)
-	provider.sqlRevokeIdentityVerification = provider.db.Rebind(provider.sqlRevokeIdentityVerification)
-	provider.sqlSelectIdentityVerification = provider.db.Rebind(provider.sqlSelectIdentityVerification)
-
-	provider.sqlInsertOneTimeCode = provider.db.Rebind(provider.sqlInsertOneTimeCode)
-	provider.sqlConsumeOneTimeCode = provider.db.Rebind(provider.sqlConsumeOneTimeCode)
-	provider.sqlRevokeOneTimeCode = provider.db.Rebind(provider.sqlRevokeOneTimeCode)
-	provider.sqlSelectOneTimeCode = provider.db.Rebind(provider.sqlSelectOneTimeCode)
-	provider.sqlSelectOneTimeCodeBySignature = provider.db.Rebind(provider.sqlSelectOneTimeCodeBySignature)
-	provider.sqlSelectOneTimeCodeByID = provider.db.Rebind(provider.sqlSelectOneTimeCodeByID)
-	provider.sqlSelectOneTimeCodeByPublicID = provider.db.Rebind(provider.sqlSelectOneTimeCodeByPublicID)
-
-	provider.sqlSelectTOTPConfig = provider.db.Rebind(provider.sqlSelectTOTPConfig)
-	provider.sqlUpdateTOTPConfigRecordSignIn = provider.db.Rebind(provider.sqlUpdateTOTPConfigRecordSignIn)
-	provider.sqlUpdateTOTPConfigRecordSignInByUsername = provider.db.Rebind(provider.sqlUpdateTOTPConfigRecordSignInByUsername)
-	provider.sqlDeleteTOTPConfig = provider.db.Rebind(provider.sqlDeleteTOTPConfig)
-	provider.sqlSelectTOTPConfigs = provider.db.Rebind(provider.sqlSelectTOTPConfigs)
-
-	provider.sqlInsertTOTPHistory = provider.db.Rebind(provider.sqlInsertTOTPHistory)
-	provider.sqlSelectTOTPHistory = provider.db.Rebind(provider.sqlSelectTOTPHistory)
-
-	provider.sqlInsertWebAuthnUser = provider.db.Rebind(provider.sqlInsertWebAuthnUser)
-	provider.sqlSelectWebAuthnUser = provider.db.Rebind(provider.sqlSelectWebAuthnUser)
-	provider.sqlSelectWebAuthnUserByUserID = provider.db.Rebind(provider.sqlSelectWebAuthnUserByUserID)
-
-	provider.sqlInsertWebAuthnCredential = provider.db.Rebind(provider.sqlInsertWebAuthnCredential)
-	provider.sqlSelectWebAuthnCredentials = provider.db.Rebind(provider.sqlSelectWebAuthnCredentials)
-	provider.sqlSelectWebAuthnCredentialsByUsername = provider.db.Rebind(provider.sqlSelectWebAuthnCredentialsByUsername)
-	provider.sqlSelectWebAuthnCredentialsByRPIDByUsername = provider.db.Rebind(provider.sqlSelectWebAuthnCredentialsByRPIDByUsername)
-	provider.sqlSelectWebAuthnCredentialByID = provider.db.Rebind(provider.sqlSelectWebAuthnCredentialByID)
-	provider.sqlUpdateWebAuthnCredentialDescriptionByUsernameAndID = provider.db.Rebind(provider.sqlUpdateWebAuthnCredentialDescriptionByUsernameAndID)
-	provider.sqlUpdateWebAuthnCredentialRecordSignIn = provider.db.Rebind(provider.sqlUpdateWebAuthnCredentialRecordSignIn)
-	provider.sqlDeleteWebAuthnCredential = provider.db.Rebind(provider.sqlDeleteWebAuthnCredential)
-	provider.sqlDeleteWebAuthnCredentialByUsername = provider.db.Rebind(provider.sqlDeleteWebAuthnCredentialByUsername)
-	provider.sqlDeleteWebAuthnCredentialByUsernameAndDisplayName = provider.db.Rebind(provider.sqlDeleteWebAuthnCredentialByUsernameAndDisplayName)
-
-	provider.sqlSelectDuoDevice = provider.db.Rebind(provider.sqlSelectDuoDevice)
-	provider.sqlDeleteDuoDevice = provider.db.Rebind(provider.sqlDeleteDuoDevice)
-
-	provider.sqlInsertAuthenticationAttempt = provider.db.Rebind(provider.sqlInsertAuthenticationAttempt)
-	provider.sqlSelectAuthenticationLogsRegulationRecordsByUsername = provider.db.Rebind(provider.sqlSelectAuthenticationLogsRegulationRecordsByUsername)
-	provider.sqlSelectAuthenticationLogsRegulationRecordsByRemoteIP = provider.db.Rebind(provider.sqlSelectAuthenticationLogsRegulationRecordsByRemoteIP)
-
-	provider.sqlInsertBannedUser = provider.db.Rebind(provider.sqlInsertBannedUser)
-	provider.sqlSelectBannedUser = provider.db.Rebind(provider.sqlSelectBannedUser)
-	provider.sqlSelectBannedUserByID = provider.db.Rebind(provider.sqlSelectBannedUserByID)
-	provider.sqlSelectBannedUsers = provider.db.Rebind(provider.sqlSelectBannedUsers)
-	provider.sqlSelectBannedUserLastTime = provider.db.Rebind(provider.sqlSelectBannedUserLastTime)
-	provider.sqlRevokeBannedUser = provider.db.Rebind(provider.sqlRevokeBannedUser)
-
-	provider.sqlInsertBannedIP = provider.db.Rebind(provider.sqlInsertBannedIP)
-	provider.sqlSelectBannedIP = provider.db.Rebind(provider.sqlSelectBannedIP)
-	provider.sqlSelectBannedIPByID = provider.db.Rebind(provider.sqlSelectBannedIPByID)
-	provider.sqlSelectBannedIPs = provider.db.Rebind(provider.sqlSelectBannedIPs)
-	provider.sqlSelectBannedIPLastTime = provider.db.Rebind(provider.sqlSelectBannedIPLastTime)
-	provider.sqlRevokeBannedIP = provider.db.Rebind(provider.sqlRevokeBannedIP)
-
-	provider.sqlSelectCachedData = provider.db.Rebind(provider.sqlSelectCachedData)
-	provider.sqlDeleteCachedData = provider.db.Rebind(provider.sqlDeleteCachedData)
-
-	provider.sqlInsertMigration = provider.db.Rebind(provider.sqlInsertMigration)
-	provider.sqlSelectMigrations = provider.db.Rebind(provider.sqlSelectMigrations)
-	provider.sqlSelectLatestMigration = provider.db.Rebind(provider.sqlSelectLatestMigration)
-
-	provider.sqlSelectEncryptionValue = provider.db.Rebind(provider.sqlSelectEncryptionValue)
-
-	provider.sqlSelectOAuth2ConsentPreConfigurations = provider.db.Rebind(provider.sqlSelectOAuth2ConsentPreConfigurations)
-
-	provider.sqlInsertOAuth2ConsentSession = provider.db.Rebind(provider.sqlInsertOAuth2ConsentSession)
-	provider.sqlUpdateOAuth2ConsentSessionSubject = provider.db.Rebind(provider.sqlUpdateOAuth2ConsentSessionSubject)
-	provider.sqlUpdateOAuth2ConsentSessionResponse = provider.db.Rebind(provider.sqlUpdateOAuth2ConsentSessionResponse)
-	provider.sqlUpdateOAuth2ConsentSessionGranted = provider.db.Rebind(provider.sqlUpdateOAuth2ConsentSessionGranted)
-	provider.sqlSelectOAuth2ConsentSessionByChallengeID = provider.db.Rebind(provider.sqlSelectOAuth2ConsentSessionByChallengeID)
-
-	provider.sqlInsertOAuth2AccessTokenSession = provider.db.Rebind(provider.sqlInsertOAuth2AccessTokenSession)
-	provider.sqlRevokeOAuth2AccessTokenSession = provider.db.Rebind(provider.sqlRevokeOAuth2AccessTokenSession)
-	provider.sqlRevokeOAuth2AccessTokenSessionByRequestID = provider.db.Rebind(provider.sqlRevokeOAuth2AccessTokenSessionByRequestID)
-	provider.sqlDeactivateOAuth2AccessTokenSession = provider.db.Rebind(provider.sqlDeactivateOAuth2AccessTokenSession)
-	provider.sqlDeactivateOAuth2AccessTokenSessionByRequestID = provider.db.Rebind(provider.sqlDeactivateOAuth2AccessTokenSessionByRequestID)
-	provider.sqlSelectOAuth2AccessTokenSession = provider.db.Rebind(provider.sqlSelectOAuth2AccessTokenSession)
-
-	provider.sqlInsertOAuth2AuthorizeCodeSession = provider.db.Rebind(provider.sqlInsertOAuth2AuthorizeCodeSession)
-	provider.sqlRevokeOAuth2AuthorizeCodeSession = provider.db.Rebind(provider.sqlRevokeOAuth2AuthorizeCodeSession)
-	provider.sqlRevokeOAuth2AuthorizeCodeSessionByRequestID = provider.db.Rebind(provider.sqlRevokeOAuth2AuthorizeCodeSessionByRequestID)
-	provider.sqlDeactivateOAuth2AuthorizeCodeSession = provider.db.Rebind(provider.sqlDeactivateOAuth2AuthorizeCodeSession)
-	provider.sqlDeactivateOAuth2AuthorizeCodeSessionByRequestID = provider.db.Rebind(provider.sqlDeactivateOAuth2AuthorizeCodeSessionByRequestID)
-	provider.sqlSelectOAuth2AuthorizeCodeSession = provider.db.Rebind(provider.sqlSelectOAuth2AuthorizeCodeSession)
-
-	provider.sqlInsertOAuth2DeviceCodeSession = provider.db.Rebind(provider.sqlInsertOAuth2DeviceCodeSession)
-	provider.sqlSelectOAuth2DeviceCodeSession = provider.db.Rebind(provider.sqlSelectOAuth2DeviceCodeSession)
-	provider.sqlUpdateOAuth2DeviceCodeSession = provider.db.Rebind(provider.sqlUpdateOAuth2DeviceCodeSession)
-	provider.sqlDeactivateOAuth2DeviceCodeSession = provider.db.Rebind(provider.sqlDeactivateOAuth2DeviceCodeSession)
-	provider.sqlSelectOAuth2DeviceCodeSessionByUserCode = provider.db.Rebind(provider.sqlSelectOAuth2DeviceCodeSessionByUserCode)
-
-	provider.sqlInsertOAuth2OpenIDConnectSession = provider.db.Rebind(provider.sqlInsertOAuth2OpenIDConnectSession)
-	provider.sqlRevokeOAuth2OpenIDConnectSession = provider.db.Rebind(provider.sqlRevokeOAuth2OpenIDConnectSession)
-	provider.sqlRevokeOAuth2OpenIDConnectSessionByRequestID = provider.db.Rebind(provider.sqlRevokeOAuth2OpenIDConnectSessionByRequestID)
-	provider.sqlDeactivateOAuth2OpenIDConnectSession = provider.db.Rebind(provider.sqlDeactivateOAuth2OpenIDConnectSession)
-	provider.sqlDeactivateOAuth2OpenIDConnectSessionByRequestID = provider.db.Rebind(provider.sqlDeactivateOAuth2OpenIDConnectSessionByRequestID)
-	provider.sqlSelectOAuth2OpenIDConnectSession = provider.db.Rebind(provider.sqlSelectOAuth2OpenIDConnectSession)
-
-	provider.sqlInsertOAuth2PARContext = provider.db.Rebind(provider.sqlInsertOAuth2PARContext)
-	provider.sqlUpdateOAuth2PARContext = provider.db.Rebind(provider.sqlUpdateOAuth2PARContext)
-	provider.sqlRevokeOAuth2PARContext = provider.db.Rebind(provider.sqlRevokeOAuth2PARContext)
-	provider.sqlSelectOAuth2PARContext = provider.db.Rebind(provider.sqlSelectOAuth2PARContext)
-
-	provider.sqlInsertOAuth2PKCERequestSession = provider.db.Rebind(provider.sqlInsertOAuth2PKCERequestSession)
-	provider.sqlRevokeOAuth2PKCERequestSession = provider.db.Rebind(provider.sqlRevokeOAuth2PKCERequestSession)
-	provider.sqlRevokeOAuth2PKCERequestSessionByRequestID = provider.db.Rebind(provider.sqlRevokeOAuth2PKCERequestSessionByRequestID)
-	provider.sqlDeactivateOAuth2PKCERequestSession = provider.db.Rebind(provider.sqlDeactivateOAuth2PKCERequestSession)
-	provider.sqlDeactivateOAuth2PKCERequestSessionByRequestID = provider.db.Rebind(provider.sqlDeactivateOAuth2PKCERequestSessionByRequestID)
-	provider.sqlSelectOAuth2PKCERequestSession = provider.db.Rebind(provider.sqlSelectOAuth2PKCERequestSession)
-
-	provider.sqlInsertOAuth2RefreshTokenSession = provider.db.Rebind(provider.sqlInsertOAuth2RefreshTokenSession)
-	provider.sqlRevokeOAuth2RefreshTokenSession = provider.db.Rebind(provider.sqlRevokeOAuth2RefreshTokenSession)
-	provider.sqlRevokeOAuth2RefreshTokenSessionByRequestID = provider.db.Rebind(provider.sqlRevokeOAuth2RefreshTokenSessionByRequestID)
-	provider.sqlDeactivateOAuth2RefreshTokenSession = provider.db.Rebind(provider.sqlDeactivateOAuth2RefreshTokenSession)
-	provider.sqlDeactivateOAuth2RefreshTokenSessionByRequestID = provider.db.Rebind(provider.sqlDeactivateOAuth2RefreshTokenSessionByRequestID)
-	provider.sqlSelectOAuth2RefreshTokenSession = provider.db.Rebind(provider.sqlSelectOAuth2RefreshTokenSession)
-
-	provider.sqlSelectOAuth2BlacklistedJTI = provider.db.Rebind(provider.sqlSelectOAuth2BlacklistedJTI)
+	provider.rebind()
 
 	provider.schema = config.Storage.PostgreSQL.Schema
 

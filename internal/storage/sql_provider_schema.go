@@ -129,7 +129,7 @@ func (p *SQLProvider) SchemaMigrationsUp(ctx context.Context, version int) (migr
 		return migrations, ErrNoAvailableMigrations
 	}
 
-	return loadMigrations(p.name, current, version)
+	return loadMigrations(p.name, p.schema, current, version)
 }
 
 // SchemaMigrationsDown returns a list of storage provider down migrations available between the current version
@@ -144,7 +144,7 @@ func (p *SQLProvider) SchemaMigrationsDown(ctx context.Context, version int) (mi
 		return migrations, ErrNoAvailableMigrations
 	}
 
-	return loadMigrations(p.name, current, version)
+	return loadMigrations(p.name, p.schema, current, version)
 }
 
 // SchemaMigrate migrates from the storage provider's current schema version to the provided schema version.
@@ -205,7 +205,7 @@ func (p *SQLProvider) SchemaMigrate(ctx context.Context, up bool, version int) (
 }
 
 func (p *SQLProvider) schemaMigrate(ctx context.Context, conn SQLXConnection, prior, target int) (err error) {
-	migrations, err := loadMigrations(p.name, prior, target)
+	migrations, err := loadMigrations(p.name, p.schema, prior, target)
 	if err != nil {
 		return err
 	}
@@ -298,7 +298,7 @@ func (p *SQLProvider) schemaMigrateRollbackWithTx(_ context.Context, tx *sqlx.Tx
 }
 
 func (p *SQLProvider) schemaMigrateRollbackWithoutTx(ctx context.Context, prior, after int, merr error) (err error) {
-	migrations, err := loadMigrations(p.name, after, prior)
+	migrations, err := loadMigrations(p.name, p.schema, after, prior)
 	if err != nil {
 		return fmt.Errorf("error loading migrations from version %d to version %d for rollback: %+v. rollback caused by: %w", prior, after, err, merr)
 	}

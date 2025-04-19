@@ -16,42 +16,22 @@ func ValidateStorage(config schema.Storage, validator *schema.StructValidator) {
 		validator.Push(errors.New(errStrStorageEncryptionKeyTooShort))
 	}
 
-	if config.Local == nil && config.MySQL == nil && config.PostgreSQL == nil {
+	switch names, n := countNotNilWithNames([]string{"postgres", "mssql", "mysql", "local"}, config.PostgreSQL, config.MSSQL, config.MySQL, config.Local); n {
+	case 0:
 		validator.Push(errors.New(errStrStorage))
-
-		return
-	}
-
-	var configured []string
-
-	if config.Local != nil {
-		configured = append(configured, "local")
-	}
-
-	if config.MySQL != nil {
-		configured = append(configured, "mysql")
-	}
-
-	if config.PostgreSQL != nil {
-		configured = append(configured, "postgres")
-	}
-
-	if len(configured) > 1 {
-		validator.Push(fmt.Errorf(errStrStorageMultiple, utils.StringJoinAnd(configured)))
-
-		return
-	}
-
-	if config.Local != nil {
-		validateLocalStorageConfiguration(config.Local, validator)
-	}
-
-	if config.MySQL != nil {
-		validateMySQLConfiguration(config.MySQL, validator)
-	}
-
-	if config.PostgreSQL != nil {
-		validatePostgreSQLConfiguration(config.PostgreSQL, validator)
+	case 1:
+		switch {
+		case config.MySQL != nil:
+			validateMySQLConfiguration(config.MySQL, validator)
+		case config.MSSQL != nil:
+			validateMSSQLConfiguration(config.MSSQL, validator)
+		case config.PostgreSQL != nil:
+			validatePostgreSQLConfiguration(config.PostgreSQL, validator)
+		case config.Local != nil:
+			validateLocalStorageConfiguration(config.Local, validator)
+		}
+	default:
+		validator.Push(fmt.Errorf(errStrStorageMultiple, utils.StringJoinAnd(names)))
 	}
 }
 
@@ -98,6 +78,33 @@ func validateMySQLConfiguration(config *schema.StorageMySQL, validator *schema.S
 
 		if err := ValidateTLSConfig(config.TLS, configDefaultTLS); err != nil {
 			validator.Push(fmt.Errorf(errFmtStorageTLSConfigInvalid, "mysql", err))
+		}
+	}
+}
+
+func validateMSSQLConfiguration(config *schema.StorageMSSQL, validator *schema.StructValidator) {
+	validateSQLConfiguration(&config.StorageSQL, &schema.DefaultMSSQLStorageConfiguration.StorageSQL, validator, "mssql")
+
+	if config.Schema == "" {
+		config.Schema = schema.DefaultMSSQLStorageConfiguration.Schema
+	}
+
+	if config.Instance == "" {
+		config.Instance = schema.DefaultMSSQLStorageConfiguration.Instance
+	}
+
+	if config.TLS != nil {
+		configDefaultTLS := &schema.TLS{
+			MinimumVersion: schema.DefaultMSSQLStorageConfiguration.TLS.MinimumVersion,
+			MaximumVersion: schema.DefaultMSSQLStorageConfiguration.TLS.MaximumVersion,
+		}
+
+		if config.Address != nil {
+			configDefaultTLS.ServerName = config.Address.Hostname()
+		}
+
+		if err := ValidateTLSConfig(config.TLS, configDefaultTLS); err != nil {
+			validator.Push(fmt.Errorf(errFmtStorageTLSConfigInvalid, "mssql", err))
 		}
 	}
 }

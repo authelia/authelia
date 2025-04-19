@@ -10,6 +10,7 @@ import (
 type Storage struct {
 	Local      *StorageLocal      `koanf:"local" yaml:"local,omitempty" toml:"local,omitempty" json:"local,omitempty" jsonschema:"title=Local" jsonschema_description:"The Local SQLite3 Storage configuration settings."`
 	MySQL      *StorageMySQL      `koanf:"mysql" yaml:"mysql,omitempty" toml:"mysql,omitempty" json:"mysql,omitempty" jsonschema:"title=MySQL" jsonschema_description:"The MySQL/MariaDB Storage configuration settings."`
+	MSSQL      *StorageMSSQL      `koanf:"mssql" yaml:"mssql,omitempty" toml:"mssql,omitempty" json:"mssql,omitempty" jsonschema:"title=Microsoft SQL" jsonschema_description:"The Microsoft SQL Storage configuration settings"`
 	PostgreSQL *StoragePostgreSQL `koanf:"postgres" yaml:"postgres,omitempty" toml:"postgres,omitempty" json:"postgres,omitempty" jsonschema:"title=PostgreSQL" jsonschema_description:"The PostgreSQL Storage configuration settings."`
 
 	EncryptionKey string `koanf:"encryption_key" yaml:"encryption_key,omitempty" toml:"encryption_key,omitempty" json:"encryption_key,omitempty" jsonschema:"title=Encryption Key" jsonschema_description:"The Storage Encryption Key used to secure security sensitive values in the storage engine."`
@@ -33,6 +34,16 @@ type StorageSQL struct {
 // StorageMySQL represents the configuration of a MySQL database.
 type StorageMySQL struct {
 	StorageSQL `koanf:",squash"`
+}
+
+// StorageMSSQL represents the configuration of a Microsoft SQL database.
+type StorageMSSQL struct {
+	StorageSQL `koanf:",squash"`
+
+	Instance string `koanf:"instance" yaml:"instance,omitempty" toml:"instance,omitempty" json:"instance,omitempty" jsonschema:"default=public,title=Instance" jsonschema_description:"The instance name to use"`
+	Schema   string `koanf:"schema" yaml:"schema,omitempty" toml:"schema,omitempty" json:"schema,omitempty" jsonschema:"default=public,title=Schema" jsonschema_description:"The default schema name to use"`
+
+	TLS *TLS `koanf:"tls" json:"tls"`
 }
 
 // StoragePostgreSQL represents the configuration of a PostgreSQL database.
@@ -72,6 +83,18 @@ var DefaultMySQLStorageConfiguration = StorageMySQL{
 		TLS: &TLS{
 			MinimumVersion: TLSVersion{tls.VersionTLS12},
 		},
+	},
+}
+
+// DefaultMSSQLStorageConfiguration represents the default Microsoft SQL configuration.
+var DefaultMSSQLStorageConfiguration = StorageMSSQL{
+	StorageSQL: StorageSQL{
+		Address: &AddressTCP{Address{true, false, -1, 1433, nil, &url.URL{Scheme: AddressSchemeTCP, Host: "localhost:1433"}}},
+	},
+	Instance: "MSSQLSERVER",
+	Schema:   "dbo",
+	TLS: &TLS{
+		MinimumVersion: TLSVersion{tls.VersionTLS12},
 	},
 }
 
