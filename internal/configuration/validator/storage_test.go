@@ -178,7 +178,7 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidMySQLTLSMinVersionGreate
 	suite.Len(suite.val.Warnings(), 0)
 	suite.Require().Len(suite.val.Errors(), 1)
 
-	suite.EqualError(suite.val.Errors()[0], "storage: mysql: tls: option combination of 'minimum_version' and 'maximum_version' is invalid: minimum version TLS1.3 is greater than the maximum version TLS1.1")
+	suite.EqualError(suite.val.Errors()[0], "storage: mysql: tls: option combination of 'minimum_version' and 'maximum_version' is invalid: minimum version TLS 1.3 is greater than the maximum version TLS 1.1")
 }
 
 func (suite *StorageSuite) TestShouldValidatePostgreSQLHostUsernamePasswordAndDatabaseAreProvided() {
@@ -330,7 +330,7 @@ func (suite *StorageSuite) TestShouldValidatePostgresServers() {
 	suite.Require().Len(errors, 3)
 	suite.EqualError(errors[0], "storage: postgres: servers: #1: option 'address' with value 'udp://server1:4321' is invalid: scheme must be one of 'tcp', 'tcp4', 'tcp6', 'unix', or 'fd' but is configured as 'udp'")
 	suite.EqualError(errors[1], "storage: postgres: servers: #2: option 'address' is required")
-	suite.EqualError(errors[2], "storage: postgres: servers: #5: tls: option combination of 'minimum_version' and 'maximum_version' is invalid: minimum version TLS1.3 is greater than the maximum version TLS1.0")
+	suite.EqualError(errors[2], "storage: postgres: servers: #5: tls: option combination of 'minimum_version' and 'maximum_version' is invalid: minimum version TLS 1.3 is greater than the maximum version TLS 1.0")
 }
 
 func (suite *StorageSuite) TestShouldValidatePostgresServersTLSMinMaxFromPrimary() {
@@ -479,7 +479,7 @@ func (suite *StorageSuite) TestShouldRaiseErrorOnInvalidPostgreSQLMinVersionGrea
 	suite.Len(suite.val.Warnings(), 0)
 	suite.Require().Len(suite.val.Errors(), 1)
 
-	suite.EqualError(suite.val.Errors()[0], "storage: postgres: tls: option combination of 'minimum_version' and 'maximum_version' is invalid: minimum version TLS1.3 is greater than the maximum version TLS1.1")
+	suite.EqualError(suite.val.Errors()[0], "storage: postgres: tls: option combination of 'minimum_version' and 'maximum_version' is invalid: minimum version TLS 1.3 is greater than the maximum version TLS 1.1")
 }
 
 func (suite *StorageSuite) TestShouldValidatePostgresSSLDefaults() {

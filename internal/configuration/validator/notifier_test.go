@@ -185,7 +185,7 @@ func (suite *NotifierSuite) TestSMTPShouldErrorOnTLSMinVerGreaterThanMaxVer() {
 	suite.Len(suite.validator.Warnings(), 0)
 	suite.Require().Len(suite.validator.Errors(), 1)
 
-	suite.EqualError(suite.validator.Errors()[0], "notifier: smtp: tls: option combination of 'minimum_version' and 'maximum_version' is invalid: minimum version TLS1.3 is greater than the maximum version TLS1.0")
+	suite.EqualError(suite.validator.Errors()[0], "notifier: smtp: tls: option combination of 'minimum_version' and 'maximum_version' is invalid: minimum version TLS 1.3 is greater than the maximum version TLS 1.0")
 }
 
 func (suite *NotifierSuite) TestSMTPShouldWarnOnDisabledSTARTTLS() {

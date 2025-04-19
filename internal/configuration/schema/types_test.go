@@ -137,6 +137,12 @@ func TestNewTLSVersion(t *testing.T) {
 			"",
 		},
 		{
+			"ShouldParseTLS_1.3",
+			"TLS 1.3",
+			&TLSVersion{Value: tls.VersionTLS13},
+			"",
+		},
+		{
 			"ShouldParse1.3",
 			"1.3",
 			&TLSVersion{Value: tls.VersionTLS13},
@@ -145,6 +151,12 @@ func TestNewTLSVersion(t *testing.T) {
 		{
 			"ShouldParseTLS1.2",
 			"TLS1.2",
+			&TLSVersion{Value: tls.VersionTLS12},
+			"",
+		},
+		{
+			"ShouldParseTLS_1.2",
+			"TLS 1.2",
 			&TLSVersion{Value: tls.VersionTLS12},
 			"",
 		},
@@ -161,6 +173,12 @@ func TestNewTLSVersion(t *testing.T) {
 			"",
 		},
 		{
+			"ShouldParseTLS_1.1",
+			"TLS 1.1",
+			&TLSVersion{Value: tls.VersionTLS11},
+			"",
+		},
+		{
 			"ShouldParse1.1",
 			"1.1",
 			&TLSVersion{Value: tls.VersionTLS11},
@@ -173,6 +191,12 @@ func TestNewTLSVersion(t *testing.T) {
 			"",
 		},
 		{
+			"ShouldParseTLS_1.0",
+			"TLS 1.0",
+			&TLSVersion{Value: tls.VersionTLS10},
+			"",
+		},
+		{
 			"ShouldParse1.0",
 			"1.0",
 			&TLSVersion{Value: tls.VersionTLS10},
@@ -181,6 +205,12 @@ func TestNewTLSVersion(t *testing.T) {
 		{
 			"ShouldParseSSL3.0",
 			"SSL3.0",
+			&TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
+			"",
+		},
+		{
+			"ShouldParseSSLv3",
+			"SSLv3",
 			&TLSVersion{Value: tls.VersionSSL30}, //nolint:staticcheck
 			"",
 		},
@@ -233,7 +263,7 @@ func TestTLSVersion_Functions(t *testing.T) {
 			expected{
 				tls.VersionTLS13,
 				tls.VersionTLS13,
-				"TLS1.3",
+				"TLS 1.3",
 			},
 		},
 		{
@@ -242,7 +272,7 @@ func TestTLSVersion_Functions(t *testing.T) {
 			expected{
 				tls.VersionTLS12,
 				tls.VersionTLS12,
-				"TLS1.2",
+				"TLS 1.2",
 			},
 		},
 		{
@@ -251,7 +281,7 @@ func TestTLSVersion_Functions(t *testing.T) {
 			expected{
 				tls.VersionTLS11,
 				tls.VersionTLS11,
-				"TLS1.1",
+				"TLS 1.1",
 			},
 		},
 		{
@@ -260,7 +290,7 @@ func TestTLSVersion_Functions(t *testing.T) {
 			expected{
 				tls.VersionTLS10,
 				tls.VersionTLS10,
-				"TLS1.0",
+				"TLS 1.0",
 			},
 		},
 		{
@@ -269,7 +299,7 @@ func TestTLSVersion_Functions(t *testing.T) {
 			expected{
 				tls.VersionSSL30, //nolint:staticcheck
 				tls.VersionSSL30, //nolint:staticcheck
-				"SSL3.0",
+				"SSLv3",
 			},
 		},
 	}
