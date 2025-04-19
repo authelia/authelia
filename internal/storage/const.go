@@ -63,6 +63,10 @@ const (
 )
 
 const (
+	driverParameterFmtAppName = "authelia %s"
+)
+
+const (
 	// SchemaLatest represents the value expected for a "migrate to latest" migration. It's the maximum 32bit signed integer.
 	SchemaLatest = 2147483647
 )
