@@ -14,7 +14,7 @@ func TestNewPrometheus(t *testing.T) {
 
 	p.RecordRequest("400", "GET", time.Second)
 	p.RecordAuthz("400")
-	p.RecordAuthn(true, false, "WebAuthn")
-	p.RecordAuthn(true, false, "1fa")
+	p.RecordAuthn(true, false, "WebAuthn", "testuser", "127.0.0.1", "")
+	p.RecordAuthn(true, false, "1fa", "testuser", "127.0.0.1", "")
 	p.RecordAuthenticationDuration(true, time.Second)
 }
