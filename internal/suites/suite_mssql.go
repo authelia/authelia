@@ -8,15 +8,15 @@ var mssqlSuiteName = "MSSQL"
 
 func init() {
 	dockerEnvironment := NewDockerEnvironment([]string{
-		"internal/suites/docker-compose.yml",
-		"internal/suites/MSSQL/docker-compose.yml",
-		"internal/suites/example/compose/authelia/docker-compose.backend.{}.yml",
-		"internal/suites/example/compose/authelia/docker-compose.frontend.{}.yml",
-		"internal/suites/example/compose/nginx/backend/docker-compose.yml",
-		"internal/suites/example/compose/nginx/portal/docker-compose.yml",
-		"internal/suites/example/compose/smtp/docker-compose.yml",
-		"internal/suites/example/compose/mssql/docker-compose.yml",
-		"internal/suites/example/compose/ldap/docker-compose.yml",
+		"internal/suites/compose.yml",
+		"internal/suites/MSSQL/compose.yml",
+		"internal/suites/example/compose/authelia/compose.backend.{}.yml",
+		"internal/suites/example/compose/authelia/compose.frontend.{}.yml",
+		"internal/suites/example/compose/nginx/backend/compose.yml",
+		"internal/suites/example/compose/nginx/portal/compose.yml",
+		"internal/suites/example/compose/smtp/compose.yml",
+		"internal/suites/example/compose/mssql/compose.yml",
+		"internal/suites/example/compose/ldap/compose.yml",
 	})
 
 	setup := func(suitePath string) (err error) {

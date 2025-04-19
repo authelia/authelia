@@ -20,6 +20,10 @@ func (s *MSSQLSuite) Test1FAScenario() {
 	suite.Run(s.T(), New1FAScenario())
 }
 
+func (s *MSSQLSuite) Test2FATOTPScenario() {
+	suite.Run(s.T(), New2FATOTPScenario())
+}
+
 func TestMSSQLSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping suite test in short mode")
