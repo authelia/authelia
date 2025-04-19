@@ -85,6 +85,10 @@ func validateMySQLConfiguration(config *schema.StorageMySQL, validator *schema.S
 func validateMSSQLConfiguration(config *schema.StorageMSSQL, validator *schema.StructValidator) {
 	validateSQLConfiguration(&config.StorageSQL, &schema.DefaultMSSQLStorageConfiguration.StorageSQL, validator, "mssql")
 
+	if config.Schema == "" {
+		config.Schema = schema.DefaultMSSQLStorageConfiguration.Schema
+	}
+
 	if config.TLS != nil {
 		configDefaultTLS := &schema.TLS{
 			MinimumVersion: schema.DefaultMSSQLStorageConfiguration.TLS.MinimumVersion,

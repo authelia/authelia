@@ -14,6 +14,48 @@ CREATE TABLE [dbo].[authentication_logs] (
 CREATE INDEX [authentication_logs_username_idx] ON [dbo].[authentication_logs] ([time], [username], [auth_type]);
 CREATE INDEX [authentication_logs_remote_ip_idx] ON [dbo].[authentication_logs] ([time], [remote_ip], [auth_type]);
 
+IF OBJECT_ID(N'dbo.banned_user', N'U') IS NULL
+CREATE TABLE [dbo].[banned_user] (
+    [id] INT NOT NULL IDENTITY(1,1) PRIMARY KEY,
+    [time] DATETIME2(7) NOT NULL DEFAULT GETDATE(),
+    [expires] DATETIME2(7) NULL DEFAULT NULL,
+    [expired] DATETIME2(7) NULL DEFAULT NULL,
+    [username] VARCHAR(100) NOT NULL,
+    [source] VARCHAR(10) NOT NULL,
+    [reason] VARCHAR(100) NULL DEFAULT NULL
+);
+
+CREATE INDEX [banned_user_username_idx] ON [dbo].[banned_user] ([username]);
+CREATE INDEX [banned_user_lookup_idx] ON [dbo].[banned_user] ([username], [revoked], [expires], [expired]);
+CREATE INDEX [banned_user_list_idx] ON [dbo].[banned_user] ([revoked], [expires], [expired]);
+
+IF OBJECT_ID(N'dbo.banned_ip', N'U') IS NULL
+CREATE TABLE [dbo].[banned_ip] (
+    [id] INT NOT NULL IDENTITY(1,1) PRIMARY KEY,
+    [time] DATETIME2(7) NOT NULL DEFAULT GETDATE(),
+    [expires] DATETIME2(7) NULL DEFAULT NULL,
+    [expired] DATETIME2(7) NULL DEFAULT NULL,
+    [ip] VARCHAR(39) NOT NULL,
+    [source] VARCHAR(10) NOT NULL,
+    [reason] VARCHAR(100) NULL DEFAULT NULL
+);
+
+CREATE INDEX [banned_ip_ip_idx] ON [dbo].[banned_ip] ([ip]);
+CREATE INDEX [banned_ip_lookup_idx] ON [dbo].[banned_ip] ([ip], [revoked], [expires], [expired]);
+CREATE INDEX [banned_ip_list_idx] ON [dbo].[banned_ip] ([revoked], [expires], [expired]);
+
+IF OBJECT_ID(N'dbo.cached_data', N'U') IS NULL
+CREATE TABLE [dbo].[cached_data] (
+    [id] INT NOT NULL IDENTITY(1,1) PRIMARY KEY,
+    [created_at] DATETIME2(7) NOT NULL DEFAULT GETDATE(),
+    [updated_at] DATETIME2(7) NOT NULL,
+    [name] VARCHAR(20) NOT NULL,
+    [encrypted] BIT NOT NULL DEFAULT FALSE,
+    [value] VARBINARY(MAX) NOT NULL
+);
+
+CREATE UNIQUE INDEX [cached_data_name_key] ON [dbo].[cached_data] ([name]);
+
 IF OBJECT_ID(N'dbo.totp_configurations', N'U') IS NULL
 CREATE TABLE [dbo].[totp_configurations] (
     [id] INT NOT NULL IDENTITY(1,1) PRIMARY KEY,
@@ -111,6 +153,7 @@ CREATE TABLE [dbo].[webauthn_credentials] (
     [description] VARCHAR(30) NOT NULL,
     [kid] VARCHAR(512) NOT NULL,
     [aaguid] CHAR(36) NULL,
+    [attestation] VARBINARY(MAX) NULL DEFAULT NULL,
     [attestation_type] VARCHAR(32),
     [attachment] VARCHAR(64) NOT NULL,
     [transport] VARCHAR(64) DEFAULT '',
@@ -168,7 +211,10 @@ CREATE TABLE [dbo].[oauth2_consent_preconfiguration] (
     [expires_at] DATETIME2(7) NULL DEFAULT NULL,
     [revoked] BIT NOT NULL DEFAULT FALSE,
     [scopes] VARCHAR(MAX) NOT NULL,
-    [audience] VARCHAR(MAX) NULL
+    [audience] VARCHAR(MAX) NULL,
+    [requested_claims] VARCHAR(MAX) NULL,
+    [granted_claims] VARCHAR(MAX) DEFAULT '',
+    [signature_claims] CHAR(64) NULL
 );
 
 ALTER TABLE [dbo].[oauth2_consent_preconfiguration]
@@ -191,7 +237,9 @@ CREATE TABLE [dbo].[oauth2_consent_session] (
     [granted_scopes] VARCHAR(MAX) NOT NULL,
     [requested_audience] VARCHAR(MAX) NULL,
     [granted_audience] VARCHAR(MAX) NULL,
-    [preconfiguration] INT NULL DEFAULT NULL
+    [preconfiguration] INT NULL DEFAULT NULL,
+    [requested_claims] VARCHAR(MAX) NULL,
+    [granted_claims] VARCHAR(MAX) DEFAULT ''
 );
 
 CREATE UNIQUE INDEX [oauth2_consent_session_challenge_id_key] ON [dbo].[oauth2_consent_session] ([challenge_id]);
@@ -265,6 +313,41 @@ ALTER TABLE [dbo].[oauth2_authorization_code_session]
     ADD CONSTRAINT [oauth2_authorization_code_session_subject_fkey]
         FOREIGN KEY ([subject])
             REFERENCES [dbo].[user_opaque_identifier] ([identifier]) ON UPDATE CASCADE;
+
+
+IF OBJECT_ID(N'dbo.oauth2_device_code_session', N'U') IS NULL
+CREATE TABLE [dbo].[oauth2_device_code_session] (
+    [id] INT NOT NULL IDENTITY(1,1) PRIMARY KEY,
+    [challenge_id] CHAR(36) NOT NULL,
+    [request_id] VARCHAR(40) NOT NULL,
+    [client_id] VARCHAR(255) NOT NULL,
+    [signature] VARCHAR(255) NOT NULL,
+    [user_code_signature] VARCHAR(255) NOT NULL,
+    [status] INT NOT NULL,
+    [subject] CHAR(36) NOT NULL,
+    [requested_at] DATETIME2(7) NOT NULL DEFAULT GETDATE(),
+    [requested_scopes] VARCHAR(MAX) NOT NULL,
+    [granted_scopes] VARCHAR(MAX) NOT NULL,
+    [requested_audience] VARCHAR(MAX) NULL,
+    [granted_audience] VARCHAR(MAX) NULL,
+    [active] BIT NOT NULL DEFAULT FALSE,
+    [revoked] BIT NOT NULL DEFAULT FALSE,
+    [form_data] VARCHAR(MAX) NOT NULL,
+    [session_data] VARBINARY(MAX) NOT NULL
+);
+
+CREATE INDEX [oauth2_authorization_code_session_request_id_idx] ON [dbo].[oauth2_device_code_session] ([request_id]);
+CREATE INDEX [oauth2_authorization_code_session_client_id_idx] ON [dbo].[oauth2_device_code_session] ([client_id]);
+CREATE INDEX [oauth2_authorization_code_session_client_id_subject_idx] ON [dbo].[oauth2_device_code_session] ([client_id], [subject]);
+
+ALTER TABLE [dbo].[oauth2_device_code_session]
+    ADD CONSTRAINT [oauth2_device_code_session_challenge_id_fkey]
+        FOREIGN KEY ([challenge_id])
+            REFERENCES [dbo].[oauth2_consent_session] ([challenge_id]) ON DELETE CASCADE ON UPDATE CASCADE,
+    ADD CONSTRAINT [oauth2_device_code_session_subject_fkey]
+        FOREIGN KEY ([subject])
+            REFERENCES [dbo].[user_opaque_identifier] ([identifier]) ON UPDATE CASCADE;
+
 
 IF OBJECT_ID(N'dbo.oauth2_openid_connect_session', N'U') IS NULL
 CREATE TABLE [dbo].[oauth2_openid_connect_session] (

@@ -40,8 +40,8 @@ type StorageMySQL struct {
 type StorageMSSQL struct {
 	StorageSQL `koanf:",squash"`
 
-	Instance string `koanf:"instance" yaml:"instance,omitempty" toml:"instance,omitempty" json:"instance,omitempty" jsonschema:"default=public,title=Instance" jsonschema_description:"The instance name to use"`
-	Schema   string `koanf:"schema" yaml:"schema,omitempty" toml:"schema,omitempty" json:"schema,omitempty" jsonschema:"default=public,title=Schema" jsonschema_description:"The default schema name to use"`
+	Instance string `koanf:"instance" yaml:"instance,omitempty" toml:"instance,omitempty" json:"instance,omitempty" jsonschema:"title=Instance" jsonschema_description:"The instance name to use"`
+	Schema   string `koanf:"schema" yaml:"schema,omitempty" toml:"schema,omitempty" json:"schema,omitempty" jsonschema:"default=dbo,title=Schema" jsonschema_description:"The default schema name to use"`
 
 	TLS *TLS `koanf:"tls" json:"tls"`
 }
@@ -91,7 +91,7 @@ var DefaultMSSQLStorageConfiguration = StorageMSSQL{
 	StorageSQL: StorageSQL{
 		Address: &AddressTCP{Address{true, false, -1, 1433, nil, &url.URL{Scheme: AddressSchemeTCP, Host: "localhost:1433"}}},
 	},
-	Schema: "",
+	Schema: "dbo",
 	TLS: &TLS{
 		MinimumVersion: TLSVersion{tls.VersionTLS12},
 	},
