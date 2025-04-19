@@ -2,7 +2,7 @@
 title: "YouTrack"
 description: "Integrating YouTrack with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2025-04-19T09:33:58+10:00
+date: 2025-04-18T23:36:08+00:00
 draft: false
 images: []
 weight: 620

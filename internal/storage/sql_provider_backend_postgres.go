@@ -190,7 +190,7 @@ func dsnPostgreSQL(config *schema.StoragePostgreSQL, globalCACertPool *x509.Cert
 	dsnConfig.TLSConfig = loadPostgreSQLTLSConfig(config, globalCACertPool)
 	dsnConfig.ConnectTimeout = config.Timeout
 	dsnConfig.RuntimeParams = map[string]string{
-		"application_name": fmt.Sprintf("Authelia %s", utils.Version()),
+		"application_name": fmt.Sprintf(driverParameterFmtAppName, utils.Version()),
 		"search_path":      config.Schema,
 	}
 
