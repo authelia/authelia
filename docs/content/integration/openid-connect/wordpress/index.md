@@ -64,7 +64,10 @@ identity_providers:
           - 'openid'
           - 'profile'
           - 'email'
-          - 'groups'
+          - 'offline_access'
+        grant_types:
+          - 'authorization_code'
+          - 'refresh_token'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_post'
 ```
@@ -79,12 +82,22 @@ identity_providers:
    1. Visit `Settings`.
    2. Visit `OpenID Connect Client`.
    3. Select the `OpenID Connect button on login form` option from `Login Type`.
-   4. Enter `wordpress` in the `Client ID` field.
-   5. Enter `insecure_secret` in the `Client Secret` field.
-   6. Enter `openid profile email` in the `OpenID Scope` field.
-   7. Enter `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization` in the `Login Endpoint URL` field.
-   8. Enter `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token` in the `Token Validation Endpoint URL` field.
-   9. Enter `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo` in the `Userinfo Endpoint URL` field.
+   4. Enter the following values into the corresponding fields:
+      1. Client ID: `wordpress`
+      2. Client Secret Key: `insecure_secret`
+      3. OpenID Scope: `openid profile email offline_access`
+      4. Login Endpoint URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
+      5. Userinfo Endpoint URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
+      6. Token Validation Endpoint URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
+      7. Identity Key: `sub`
+      8. Disable SSL Verify: Not Checked
+      9. Nickname Key: `preferred_username`
+      10. Email Formatting: `{email}`
+      11. Display Name Formatting: `{name}`
+      12. Identify with User Name: Not Checked
+      13. Enable Refresh Token: Checked
+      14. Link Existing Users: Checked if you want to automatically link existing users, or Unchecked if you want to
+          create new ones.
 
 ## See Also
 
