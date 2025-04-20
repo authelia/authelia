@@ -121,6 +121,7 @@ services:
       URL: '{{< sitevar name="domain" nojs="example.com" >}}'
       SUBDOMAINS: 'www,whoami,auth,organizr'
       VALIDATION: 'http'
+      STAGING: 'true'
     cap_add:
       - 'NET_ADMIN'
   authelia:
@@ -150,8 +151,7 @@ services:
     image: 'docker.io/traefik/whoami'
     restart: 'unless-stopped'
     networks:
-      net:
-        aliases: []
+      net: {}
     environment:
       TZ: 'Australia/Melbourne'
 ...
