@@ -10,10 +10,10 @@ import (
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
-// OAuthIntrospectionPOST handles POST requests to the OAuth 2.0 Introspection endpoint.
+// OAuth2IntrospectionPOST handles POST requests to the OAuth 2.0 Introspection endpoint.
 //
 // https://datatracker.ietf.org/doc/html/rfc7662
-func OAuthIntrospectionPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
+func OAuth2IntrospectionPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
 	var (
 		requestID uuid.UUID
 		responder oauthelia2.IntrospectionResponder

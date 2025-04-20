@@ -22,7 +22,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
-func TestHandleOIDCAuthorizationConsentGenerate(t *testing.T) {
+func TestHandleOAuth2AuthorizationConsentGenerate(t *testing.T) {
 	mustParseURI := func(t *testing.T, in string) *url.URL {
 		result, err := url.Parse(in)
 		require.NoError(t, err)
@@ -237,7 +237,7 @@ func TestHandleOIDCAuthorizationConsentGenerate(t *testing.T) {
 				tc.setup(t, mock)
 			}
 
-			consent, handled := handleOIDCAuthorizationConsentGenerate(mock.Ctx, tc.issuer, tc.client, tc.userSession, tc.subject, rw, httptest.NewRequest("GET", "https://example.com", nil), tc.requester)
+			consent, handled := handleOAuth2AuthorizationConsentGenerate(mock.Ctx, tc.issuer, tc.client, tc.userSession, tc.subject, rw, httptest.NewRequest("GET", "https://example.com", nil), tc.requester)
 
 			assert.Equal(t, tc.handled, handled)
 
@@ -399,7 +399,7 @@ func TestHandleOIDCAuthorizationConsentNotAuthenticated(t *testing.T) {
 				tc.setup(t, mock)
 			}
 
-			consent, handled := handleOIDCAuthorizationConsentNotAuthenticated(mock.Ctx, tc.issuer, tc.client, tc.userSession, tc.subject, rw, httptest.NewRequest("GET", "https://example.com", nil), tc.requester)
+			consent, handled := handleOAuth2AuthorizationConsentNotAuthenticated(mock.Ctx, tc.issuer, tc.client, tc.userSession, tc.subject, rw, httptest.NewRequest("GET", "https://example.com", nil), tc.requester)
 
 			assert.Equal(t, tc.handled, handled)
 
@@ -428,7 +428,7 @@ func TestHandleOIDCAuthorizationConsentNotAuthenticated(t *testing.T) {
 	}
 }
 
-func TestHandleOIDCAuthorizationConsentModeImplicitWithoutID(t *testing.T) {
+func TestHandleOAuth2AuthorizationConsentModeImplicitWithoutID(t *testing.T) {
 	mustParseURI := func(t *testing.T, in string) *url.URL {
 		result, err := url.Parse(in)
 		require.NoError(t, err)
@@ -736,7 +736,7 @@ func TestHandleOIDCAuthorizationConsentModeImplicitWithoutID(t *testing.T) {
 				tc.setup(t, mock)
 			}
 
-			consent, handled := handleOIDCAuthorizationConsentModeImplicitWithoutID(mock.Ctx, tc.issuer, tc.client, tc.userSession, tc.subject, rw, httptest.NewRequest("GET", "https://example.com", nil), tc.requester)
+			consent, handled := handleOAuth2AuthorizationConsentModeImplicitWithoutID(mock.Ctx, tc.issuer, tc.client, tc.userSession, tc.subject, rw, httptest.NewRequest("GET", "https://example.com", nil), tc.requester)
 
 			assert.Equal(t, tc.handled, handled)
 
@@ -770,7 +770,7 @@ func TestHandleOIDCAuthorizationConsentModeImplicitWithoutID(t *testing.T) {
 	}
 }
 
-func TestHandleOIDCAuthorizationConsentModeImplicitWithID(t *testing.T) {
+func TestHandleOAuth2AuthorizationConsentModeImplicitWithID(t *testing.T) {
 	mustParseURI := func(t *testing.T, in string) *url.URL {
 		result, err := url.Parse(in)
 		require.NoError(t, err)
@@ -1033,7 +1033,7 @@ func TestHandleOIDCAuthorizationConsentModeImplicitWithID(t *testing.T) {
 				tc.setup(t, mock)
 			}
 
-			consent, handled := handleOIDCAuthorizationConsentModeImplicitWithID(mock.Ctx, tc.issuer, tc.client, tc.userSession, tc.subject, challenge, rw, httptest.NewRequest("GET", "https://example.com", nil), tc.requester)
+			consent, handled := handleOAuth2AuthorizationConsentModeImplicitWithID(mock.Ctx, tc.issuer, tc.client, tc.userSession, tc.subject, challenge, rw, httptest.NewRequest("GET", "https://example.com", nil), tc.requester)
 
 			assert.Equal(t, tc.handled, handled)
 
@@ -1369,7 +1369,7 @@ func TestHandleOIDCAuthorizationConsentModeExplicitWithID(t *testing.T) {
 				tc.setup(t, mock)
 			}
 
-			consent, handled := handleOIDCAuthorizationConsentModeExplicitWithID(mock.Ctx, tc.issuer, tc.client, tc.userSession, tc.subject, tc.challenge, rw, httptest.NewRequest("GET", "https://example.com", nil), tc.requester)
+			consent, handled := handleOAuth2AuthorizationConsentModeExplicitWithID(mock.Ctx, tc.issuer, tc.client, tc.userSession, tc.subject, tc.challenge, rw, httptest.NewRequest("GET", "https://example.com", nil), tc.requester)
 
 			assert.Equal(t, tc.handled, handled)
 

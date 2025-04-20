@@ -15,7 +15,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
-func OAuthDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
+func OAuth2DeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
 	var (
 		request  oauthelia2.DeviceAuthorizeRequester
 		response oauthelia2.DeviceAuthorizeResponder
@@ -42,7 +42,7 @@ func OAuthDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.Response
 	ctx.Providers.OpenIDConnect.WriteRFC862DeviceAuthorizeResponse(ctx, rw, request, response)
 }
 
-func OAuthDeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
+func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	var (
 		requester oauthelia2.DeviceAuthorizeRequester
 		responder oauthelia2.DeviceUserAuthorizeResponder
@@ -92,7 +92,7 @@ func OAuthDeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.ResponseW
 
 	issuer = ctx.RootURL()
 
-	if consent, handled = handleOIDCAuthorizationConsent(ctx, issuer, client, userSession, rw, r, requester); handled {
+	if consent, handled = handleOAuth2AuthorizationConsent(ctx, issuer, client, userSession, rw, r, requester); handled {
 		return
 	}
 

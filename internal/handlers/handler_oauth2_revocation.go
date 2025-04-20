@@ -9,10 +9,10 @@ import (
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
 
-// OAuthRevocationPOST handles POST requests to the OAuth 2.0 Revocation endpoint.
+// OAuth2RevocationPOST handles POST requests to the OAuth 2.0 Revocation endpoint.
 //
 // https://datatracker.ietf.org/doc/html/rfc7009
-func OAuthRevocationPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
+func OAuth2RevocationPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
 	var (
 		requestID uuid.UUID
 		err       error

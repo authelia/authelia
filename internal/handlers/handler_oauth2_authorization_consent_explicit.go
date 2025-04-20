@@ -13,7 +13,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
-func handleOIDCAuthorizationConsentModeExplicit(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
+func handleOAuth2AuthorizationConsentModeExplicit(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
 	userSession session.UserSession, subject uuid.UUID,
 	rw http.ResponseWriter, r *http.Request, requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
@@ -25,7 +25,7 @@ func handleOIDCAuthorizationConsentModeExplicit(ctx *middlewares.AutheliaCtx, is
 
 	switch len(bytesConsentID) {
 	case 0:
-		return handleOIDCAuthorizationConsentGenerate(ctx, issuer, client, userSession, subject, rw, r, requester)
+		return handleOAuth2AuthorizationConsentGenerate(ctx, issuer, client, userSession, subject, rw, r, requester)
 	default:
 		if consentID, err = uuid.ParseBytes(bytesConsentID); err != nil {
 			ctx.Logger.Errorf(logFmtErrConsentParseChallengeID, requester.GetID(), client.GetID(), client.GetConsentPolicy(), bytesConsentID, err)
@@ -35,11 +35,11 @@ func handleOIDCAuthorizationConsentModeExplicit(ctx *middlewares.AutheliaCtx, is
 			return nil, true
 		}
 
-		return handleOIDCAuthorizationConsentModeExplicitWithID(ctx, issuer, client, userSession, subject, consentID, rw, r, requester)
+		return handleOAuth2AuthorizationConsentModeExplicitWithID(ctx, issuer, client, userSession, subject, consentID, rw, r, requester)
 	}
 }
 
-func handleOIDCAuthorizationConsentModeExplicitWithID(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
+func handleOAuth2AuthorizationConsentModeExplicitWithID(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
 	userSession session.UserSession, subject uuid.UUID, consentID uuid.UUID,
 	rw http.ResponseWriter, r *http.Request, requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
@@ -71,7 +71,7 @@ func handleOIDCAuthorizationConsentModeExplicitWithID(ctx *middlewares.AutheliaC
 	}
 
 	if oidc.RequesterRequiresLogin(requester, consent.RequestedAt, userSession.LastAuthenticatedTime()) {
-		handleOIDCAuthorizationConsentPromptLoginRedirect(ctx, issuer, client, userSession, rw, r, requester, consent)
+		handleOAuth2AuthorizationConsentPromptLoginRedirect(ctx, issuer, client, userSession, rw, r, requester, consent)
 
 		return nil, true
 	}
@@ -93,7 +93,7 @@ func handleOIDCAuthorizationConsentModeExplicitWithID(ctx *middlewares.AutheliaC
 			return nil, true
 		}
 
-		handleOIDCAuthorizationConsentRedirect(ctx, issuer, consent, client, userSession, rw, r, requester)
+		handleOAuth2AuthorizationConsentRedirect(ctx, issuer, consent, client, userSession, rw, r, requester)
 
 		return nil, true
 	}
