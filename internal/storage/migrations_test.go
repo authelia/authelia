@@ -53,8 +53,7 @@ func TestShouldObtainCorrectMigrations(t *testing.T) {
 				migrations []model.SchemaMigration
 			)
 
-			// UP.
-			migrations, err = loadMigrations(tc.provider, "", 0, ver)
+			migrations, err = loadMigrations(tc.provider, 0, ver)
 			require.NoError(t, err)
 
 			assert.Len(t, migrations, ver)
@@ -63,13 +62,12 @@ func TestShouldObtainCorrectMigrations(t *testing.T) {
 				assert.Equal(t, i+1, migrations[i].Version)
 			}
 
-			migrations, err = loadMigrations(tc.provider, "", 1, ver)
+			migrations, err = loadMigrations(tc.provider, 1, ver)
 			require.NoError(t, err)
 
 			assert.Len(t, migrations, ver-1)
 
-			// DOWN.
-			migrations, err = loadMigrations(tc.provider, "", ver, 0)
+			migrations, err = loadMigrations(tc.provider, ver, 0)
 			assert.NoError(t, err)
 
 			assert.Len(t, migrations, ver)
@@ -78,7 +76,7 @@ func TestShouldObtainCorrectMigrations(t *testing.T) {
 				assert.Equal(t, ver-i, migrations[i].Version)
 			}
 
-			migrations, err = loadMigrations(tc.provider, "", ver, 1)
+			migrations, err = loadMigrations(tc.provider, ver, 1)
 			require.NoError(t, err)
 			assert.Len(t, migrations, ver-1)
 		})
@@ -288,14 +286,14 @@ func TestMigrationSpecialUp24(t *testing.T) {
 }
 
 func TestMigrationShouldReturnErrorOnSame(t *testing.T) {
-	migrations, err := loadMigrations(providerPostgres, "", 1, 1)
+	migrations, err := loadMigrations(providerPostgres, 1, 1)
 
 	assert.EqualError(t, err, "current version is same as migration target, no action being taken")
 	assert.Nil(t, migrations)
 }
 
 func TestMigrationsShouldNotBeDuplicatedPostgres(t *testing.T) {
-	migrations, err := loadMigrations(providerPostgres, "", 0, SchemaLatest)
+	migrations, err := loadMigrations(providerPostgres, 0, SchemaLatest)
 	require.NoError(t, err)
 	require.NotEqual(t, 0, len(migrations))
 
@@ -313,7 +311,7 @@ func TestMigrationsShouldNotBeDuplicatedPostgres(t *testing.T) {
 		previousUp = append(previousUp, migration.Version)
 	}
 
-	migrations, err = loadMigrations(providerPostgres, "", SchemaLatest, 0)
+	migrations, err = loadMigrations(providerPostgres, SchemaLatest, 0)
 	require.NoError(t, err)
 	require.NotEqual(t, 0, len(migrations))
 
@@ -333,7 +331,7 @@ func TestMigrationsShouldNotBeDuplicatedPostgres(t *testing.T) {
 }
 
 func TestMigrationsShouldNotBeDuplicatedMySQL(t *testing.T) {
-	migrations, err := loadMigrations(providerMySQL, "", 0, SchemaLatest)
+	migrations, err := loadMigrations(providerMySQL, 0, SchemaLatest)
 	require.NoError(t, err)
 	require.NotEqual(t, 0, len(migrations))
 
@@ -351,7 +349,7 @@ func TestMigrationsShouldNotBeDuplicatedMySQL(t *testing.T) {
 		previousUp = append(previousUp, migration.Version)
 	}
 
-	migrations, err = loadMigrations(providerMySQL, "", SchemaLatest, 0)
+	migrations, err = loadMigrations(providerMySQL, SchemaLatest, 0)
 	require.NoError(t, err)
 	require.NotEqual(t, 0, len(migrations))
 
@@ -371,7 +369,7 @@ func TestMigrationsShouldNotBeDuplicatedMySQL(t *testing.T) {
 }
 
 func TestMigrationsShouldNotBeDuplicatedSQLite(t *testing.T) {
-	migrations, err := loadMigrations(providerSQLite, "", 0, SchemaLatest)
+	migrations, err := loadMigrations(providerSQLite, 0, SchemaLatest)
 	require.NoError(t, err)
 	require.NotEqual(t, 0, len(migrations))
 
@@ -389,7 +387,7 @@ func TestMigrationsShouldNotBeDuplicatedSQLite(t *testing.T) {
 		previousUp = append(previousUp, migration.Version)
 	}
 
-	migrations, err = loadMigrations(providerSQLite, "", SchemaLatest, 0)
+	migrations, err = loadMigrations(providerSQLite, SchemaLatest, 0)
 	require.NoError(t, err)
 	require.NotEqual(t, 0, len(migrations))
 
