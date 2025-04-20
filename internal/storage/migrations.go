@@ -114,7 +114,6 @@ func skipMigration(up bool, target, prior int, migration *model.SchemaMigration)
 		}
 
 		if migration.Version > target || migration.Version <= prior {
-
 			// Skip the migration if:
 			//  - the version is greater than the target.
 			//  - the version less than or equal to the previous version.

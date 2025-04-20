@@ -1,16 +1,5 @@
 package storage
 
-import "fmt"
-
-func fmtQuery(query, table, provider, schema string) string {
-	switch provider {
-	case providerMSSQL:
-		return fmt.Sprintf(query, fmt.Sprintf("%s.%s", schema, table))
-	default:
-		return fmt.Sprintf(query, table)
-	}
-}
-
 func (p *SQLProvider) rebind() {
 	p.sqlFmtRenameTable = p.db.Rebind(p.sqlFmtRenameTable)
 

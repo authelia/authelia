@@ -37,18 +37,6 @@ func countNotNilWithNames(names []string, values ...any) (present []string, coun
 	return present, count
 }
 
-func countNotNil(values ...any) (count int) {
-	for _, value := range values {
-		if value == nil || reflect.ValueOf(value).IsNil() {
-			continue
-		}
-
-		count++
-	}
-
-	return count
-}
-
 func isUserAttributeDefinitionNameValid(attribute string, config *schema.Configuration) bool {
 	if expression.IsReservedAttribute(attribute) {
 		return false
