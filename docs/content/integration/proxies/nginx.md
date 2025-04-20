@@ -150,7 +150,7 @@ services:
     networks:
       net:
         aliases:
-          - 'https://{{</* sitevar name="subdomain-authelia" nojs="auth" */>}}.{{</* sitevar name="domain" nojs="example.com" */>}}'
+          - '{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
     ports:
       - '80:80/tcp'
       - '443:443/tcp'
