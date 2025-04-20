@@ -257,6 +257,7 @@ const (
 
 // Endpoints.
 const (
+	EndpointConsent                    = "consent"
 	EndpointAuthorization              = "authorization"
 	EndpointDeviceAuthorization        = "device-authorization"
 	EndpointToken                      = "token"
@@ -268,11 +269,11 @@ const (
 
 // Paths.
 const (
-	EndpointPathConsent         = "/consent/openid"
-	EndpointPathConsentDecision = EndpointPathConsent + "/decision"
-	EndpointPathConsentLogin    = EndpointPathConsent + "/login"
+	FrontendEndpointPathConsent         = "/consent/openid"
+	FrontendEndpointPathConsentDecision = FrontendEndpointPathConsent + "/decision"
+	FrontendEndpointPathConsentLogin    = FrontendEndpointPathConsent + "/login"
 
-	EndpointPathRFC8628UserVerificationURL = EndpointPathConsent + "/" + EndpointDeviceAuthorization
+	EndpointPathRFC8628UserVerificationURL = FrontendEndpointPathConsent + "/" + EndpointDeviceAuthorization
 
 	EndpointPathWellKnownOpenIDConfiguration      = "/.well-known/openid-configuration"
 	EndpointPathWellKnownOAuthAuthorizationServer = "/.well-known/oauth-authorization-server"
@@ -280,6 +281,7 @@ const (
 
 	EndpointPathRoot = "/api/oidc"
 
+	EndpointPathConsent                    = EndpointPathRoot + "/" + EndpointConsent
 	EndpointPathAuthorization              = EndpointPathRoot + "/" + EndpointAuthorization
 	EndpointPathToken                      = EndpointPathRoot + "/" + EndpointToken
 	EndpointPathUserinfo                   = EndpointPathRoot + "/" + EndpointUserinfo

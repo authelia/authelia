@@ -17,7 +17,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/storage"
 )
 
-func handleOIDCAuthorizationConsentModePreConfigured(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
+func handleOAuth2AuthorizationConsentModePreConfigured(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
 	userSession session.UserSession, subject uuid.UUID,
 	rw http.ResponseWriter, r *http.Request, requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
@@ -29,7 +29,7 @@ func handleOIDCAuthorizationConsentModePreConfigured(ctx *middlewares.AutheliaCt
 
 	switch len(bytesConsentID) {
 	case 0:
-		return handleOIDCAuthorizationConsentModePreConfiguredWithoutID(ctx, issuer, client, userSession, subject, rw, r, requester)
+		return handleOAuth2AuthorizationConsentModePreConfiguredWithoutID(ctx, issuer, client, userSession, subject, rw, r, requester)
 	default:
 		if consentID, err = uuid.ParseBytes(bytesConsentID); err != nil {
 			ctx.Logger.Errorf(logFmtErrConsentParseChallengeID, requester.GetID(), client.GetID(), client.GetConsentPolicy(), bytesConsentID, err)
@@ -39,11 +39,11 @@ func handleOIDCAuthorizationConsentModePreConfigured(ctx *middlewares.AutheliaCt
 			return nil, true
 		}
 
-		return handleOIDCAuthorizationConsentModePreConfiguredWithID(ctx, issuer, client, userSession, subject, consentID, rw, r, requester)
+		return handleOAuth2AuthorizationConsentModePreConfiguredWithID(ctx, issuer, client, userSession, subject, consentID, rw, r, requester)
 	}
 }
 
-func handleOIDCAuthorizationConsentModePreConfiguredWithID(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
+func handleOAuth2AuthorizationConsentModePreConfiguredWithID(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
 	userSession session.UserSession, subject uuid.UUID, consentID uuid.UUID,
 	rw http.ResponseWriter, r *http.Request, requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
@@ -76,7 +76,7 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Auth
 	}
 
 	if oidc.RequesterRequiresLogin(requester, consent.RequestedAt, userSession.LastAuthenticatedTime()) {
-		handleOIDCAuthorizationConsentPromptLoginRedirect(ctx, issuer, client, userSession, rw, r, requester, consent)
+		handleOAuth2AuthorizationConsentPromptLoginRedirect(ctx, issuer, client, userSession, rw, r, requester, consent)
 
 		return nil, true
 	}
@@ -89,7 +89,7 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Auth
 		return nil, true
 	}
 
-	if config, err = handleOIDCAuthorizationConsentModePreConfiguredGetPreConfig(ctx, client, subject, requester); err != nil {
+	if config, err = handleOAuth2AuthorizationConsentModePreConfiguredGetPreConfig(ctx, client, subject, requester); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentPreConfLookup, requester.GetID(), client.GetID(), client.GetConsentPolicy(), err)
 
 		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotLookup)
@@ -122,7 +122,7 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Auth
 			return nil, true
 		}
 
-		handleOIDCAuthorizationConsentRedirect(ctx, issuer, consent, client, userSession, rw, r, requester)
+		handleOAuth2AuthorizationConsentRedirect(ctx, issuer, consent, client, userSession, rw, r, requester)
 
 		return nil, true
 	}
@@ -138,7 +138,7 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Auth
 	return consent, false
 }
 
-func handleOIDCAuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
+func handleOAuth2AuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
 	userSession session.UserSession, subject uuid.UUID,
 	rw http.ResponseWriter, r *http.Request, requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
@@ -146,7 +146,7 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares.A
 		err    error
 	)
 
-	if config, err = handleOIDCAuthorizationConsentModePreConfiguredGetPreConfig(ctx, client, subject, requester); err != nil {
+	if config, err = handleOAuth2AuthorizationConsentModePreConfiguredGetPreConfig(ctx, client, subject, requester); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentPreConfLookup, requester.GetID(), client.GetID(), client.GetConsentPolicy(), err)
 
 		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotLookup)
@@ -163,10 +163,10 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares.A
 			return nil, true
 		}
 
-		return handleOIDCAuthorizationConsentGenerate(ctx, issuer, client, userSession, subject, rw, r, requester)
+		return handleOAuth2AuthorizationConsentGenerate(ctx, issuer, client, userSession, subject, rw, r, requester)
 	}
 
-	if consent, err = handleOpenIDConnectNewConsentSession(subject, requester, ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)); err != nil {
+	if consent, err = handleOAuth2NewConsentSession(subject, requester, ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentGenerateError, requester.GetID(), client.GetID(), client.GetConsentPolicy(), "generating", err)
 
 		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotGenerate)
@@ -191,7 +191,7 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares.A
 	}
 
 	if oidc.RequesterRequiresLogin(requester, consent.RequestedAt, userSession.LastAuthenticatedTime()) {
-		handleOIDCAuthorizationConsentPromptLoginRedirect(ctx, issuer, client, userSession, rw, r, requester, consent)
+		handleOAuth2AuthorizationConsentPromptLoginRedirect(ctx, issuer, client, userSession, rw, r, requester, consent)
 
 		return nil, true
 	} else {
@@ -213,7 +213,7 @@ func handleOIDCAuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares.A
 	return consent, false
 }
 
-func handleOIDCAuthorizationConsentModePreConfiguredGetPreConfig(ctx *middlewares.AutheliaCtx, client oidc.Client, subject uuid.UUID, requester oauthelia2.Requester) (config *model.OAuth2ConsentPreConfig, err error) {
+func handleOAuth2AuthorizationConsentModePreConfiguredGetPreConfig(ctx *middlewares.AutheliaCtx, client oidc.Client, subject uuid.UUID, requester oauthelia2.Requester) (config *model.OAuth2ConsentPreConfig, err error) {
 	var (
 		rows *storage.ConsentPreConfigRows
 	)

@@ -9,10 +9,10 @@ import (
 	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
-// OpenIDConnectTokenPOST handles POST requests to the OpenID Connect 1.0 Token endpoint.
+// OAuth2TokenPOST handles POST requests to the OpenID Connect 1.0 Token endpoint.
 //
 // https://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
-func OpenIDConnectTokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
+func OAuth2TokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
 	var (
 		requester oauthelia2.AccessRequester
 		responder oauthelia2.AccessResponder

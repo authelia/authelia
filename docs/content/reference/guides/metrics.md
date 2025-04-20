@@ -87,6 +87,7 @@ The endpoint name.
 
 OpenID Connect 1.0 Endpoint Names:
 
+- consent
 - authorization
 - pushed_authorization_request
 - token

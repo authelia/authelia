@@ -401,19 +401,19 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 		middlewares.SecurityHeadersBase, middlewares.SecurityHeadersCSPNoneOpenIDConnect, middlewares.SecurityHeadersNoStore,
 	).Build()
 
-	r.GET("/api/oidc/consent", bridge(handlers.OpenIDConnectConsentGET))
-	r.POST("/api/oidc/consent", bridge(handlers.OpenIDConnectConsentPOST))
+	r.GET(oidc.EndpointPathConsent, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointConsent), bridge(handlers.OAuth2ConsentGET)))
+	r.POST(oidc.EndpointPathConsent, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointConsent), bridge(handlers.OAuth2ConsentPOST)))
 
 	allowedOrigins := utils.StringSliceFromURLs(config.IdentityProviders.OIDC.CORS.AllowedOrigins)
 
-	r.OPTIONS(oidc.EndpointPathWellKnownOpenIDConfiguration, policyCORSPublicGET.HandleOPTIONS)
-	r.GET(oidc.EndpointPathWellKnownOpenIDConfiguration, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, "openid_configuration"), policyCORSPublicGET.Middleware(bridge(handlers.OpenIDConnectConfigurationWellKnownGET))))
-
 	r.OPTIONS(oidc.EndpointPathWellKnownOAuthAuthorizationServer, policyCORSPublicGET.HandleOPTIONS)
-	r.GET(oidc.EndpointPathWellKnownOAuthAuthorizationServer, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, "oauth_configuration"), policyCORSPublicGET.Middleware(bridge(handlers.OAuthAuthorizationServerWellKnownGET))))
+	r.GET(oidc.EndpointPathWellKnownOAuthAuthorizationServer, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, "oauth_configuration"), policyCORSPublicGET.Middleware(bridge(handlers.WellKnownOAuthAuthorizationServerGET))))
+
+	r.OPTIONS(oidc.EndpointPathWellKnownOpenIDConfiguration, policyCORSPublicGET.HandleOPTIONS)
+	r.GET(oidc.EndpointPathWellKnownOpenIDConfiguration, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, "openid_configuration"), policyCORSPublicGET.Middleware(bridge(handlers.WellKnownOpenIDConfigurationGET))))
 
 	r.OPTIONS(oidc.EndpointPathJWKs, policyCORSPublicGET.HandleOPTIONS)
-	r.GET(oidc.EndpointPathJWKs, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, "jwks"), policyCORSPublicGET.Middleware(middlewareAPI(handlers.JSONWebKeySetGET))))
+	r.GET(oidc.EndpointPathJWKs, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, "jwks"), policyCORSPublicGET.Middleware(middlewareAPI(handlers.OAuth2JSONWebKeySetGET))))
 
 	policyCORSAuthorization := middlewares.NewCORSPolicyBuilder().
 		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodGet, fasthttp.MethodPost).
@@ -421,8 +421,8 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 		WithEnabled(utils.IsStringInSlice(oidc.EndpointAuthorization, config.IdentityProviders.OIDC.CORS.Endpoints)).
 		Build()
 
-	authorizationGET := middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointAuthorization), policyCORSAuthorization.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectAuthorizationGET))))
-	authorizationPOST := policyCORSAuthorization.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectAuthorizationPOST)))
+	authorizationGET := middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointAuthorization), policyCORSAuthorization.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2AuthorizationGET))))
+	authorizationPOST := policyCORSAuthorization.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2AuthorizationPOST)))
 
 	r.OPTIONS(oidc.EndpointPathAuthorization, policyCORSAuthorization.HandleOnlyOPTIONS)
 	r.GET(oidc.EndpointPathAuthorization, authorizationGET)
@@ -435,8 +435,8 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 		Build()
 
 	r.OPTIONS(oidc.EndpointPathDeviceAuthorization, policyCORSDeviceAuthorization.HandleOnlyOPTIONS)
-	r.POST(oidc.EndpointPathDeviceAuthorization, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointDeviceAuthorization), policyCORSDeviceAuthorization.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthDeviceAuthorizationPOST)))))
-	r.PUT(oidc.EndpointPathDeviceAuthorization, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointDeviceAuthorization), bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthDeviceAuthorizationPUT))))
+	r.POST(oidc.EndpointPathDeviceAuthorization, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointDeviceAuthorization), policyCORSDeviceAuthorization.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2DeviceAuthorizationPOST)))))
+	r.PUT(oidc.EndpointPathDeviceAuthorization, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointDeviceAuthorization), bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2DeviceAuthorizationPUT))))
 
 	policyCORSPAR := middlewares.NewCORSPolicyBuilder().
 		WithAllowedMethods(fasthttp.MethodOptions, fasthttp.MethodPost).
@@ -445,7 +445,7 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 		Build()
 
 	r.OPTIONS(oidc.EndpointPathPushedAuthorizationRequest, policyCORSPAR.HandleOnlyOPTIONS)
-	r.POST(oidc.EndpointPathPushedAuthorizationRequest, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointPushedAuthorizationRequest), policyCORSPAR.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectPushedAuthorizationRequest)))))
+	r.POST(oidc.EndpointPathPushedAuthorizationRequest, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointPushedAuthorizationRequest), policyCORSPAR.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2PushedAuthorizationRequest)))))
 
 	policyCORSToken := middlewares.NewCORSPolicyBuilder().
 		WithAllowCredentials(true).
@@ -455,7 +455,7 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 		Build()
 
 	r.OPTIONS(oidc.EndpointPathToken, policyCORSToken.HandleOPTIONS)
-	r.POST(oidc.EndpointPathToken, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointToken), policyCORSToken.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OpenIDConnectTokenPOST)))))
+	r.POST(oidc.EndpointPathToken, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointToken), policyCORSToken.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2TokenPOST)))))
 
 	policyCORSUserinfo := middlewares.NewCORSPolicyBuilder().
 		WithAllowCredentials(true).
@@ -476,7 +476,7 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 		Build()
 
 	r.OPTIONS(oidc.EndpointPathIntrospection, policyCORSIntrospection.HandleOPTIONS)
-	r.POST(oidc.EndpointPathIntrospection, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointIntrospection), policyCORSIntrospection.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthIntrospectionPOST)))))
+	r.POST(oidc.EndpointPathIntrospection, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointIntrospection), policyCORSIntrospection.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2IntrospectionPOST)))))
 
 	policyCORSRevocation := middlewares.NewCORSPolicyBuilder().
 		WithAllowCredentials(true).
@@ -486,7 +486,7 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 		Build()
 
 	r.OPTIONS(oidc.EndpointPathRevocation, policyCORSRevocation.HandleOPTIONS)
-	r.POST(oidc.EndpointPathRevocation, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointRevocation), policyCORSRevocation.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuthRevocationPOST)))))
+	r.POST(oidc.EndpointPathRevocation, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointRevocation), policyCORSRevocation.Middleware(bridge(middlewares.NewHTTPToAutheliaHandlerAdaptor(handlers.OAuth2RevocationPOST)))))
 }
 
 func handlerMetrics(path string) fasthttp.RequestHandler {
