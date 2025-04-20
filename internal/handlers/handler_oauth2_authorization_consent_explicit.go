@@ -76,7 +76,7 @@ func handleOAuth2AuthorizationConsentModeExplicitWithID(ctx *middlewares.Autheli
 		return nil, true
 	}
 
-	if !consent.CanGrant() {
+	if !consent.CanGrant(ctx.Clock.Now()) {
 		ctx.Logger.Errorf(logFmtErrConsentCantGrant, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, "explicit")
 
 		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotPerform)

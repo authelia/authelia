@@ -514,15 +514,20 @@ func TestOAuth2ConsentPreConfig(t *testing.T) {
 
 func TestOAuth2ConsentSession(t *testing.T) {
 	session := &model.OAuth2ConsentSession{
-		ID:       0,
-		ClientID: "a-client",
+		ID:        0,
+		ClientID:  "a-client",
+		ExpiresAt: time.Unix(10000000, 0),
 	}
 
-	assert.True(t, session.CanGrant())
+	before := time.Unix(9999999, 0)
+	after := time.Unix(10000001, 0)
+
+	assert.True(t, session.CanGrant(before))
+	assert.False(t, session.CanGrant(after))
 
 	session.Subject = uuid.NullUUID{Valid: true}
 
-	assert.True(t, session.CanGrant())
+	assert.True(t, session.CanGrant(before))
 	assert.False(t, session.IsDenied())
 	assert.False(t, session.Responded())
 	assert.False(t, session.IsAuthorized())
@@ -539,7 +544,7 @@ func TestOAuth2ConsentSession(t *testing.T) {
 
 	session.Granted = true
 
-	assert.False(t, session.CanGrant())
+	assert.False(t, session.CanGrant(before))
 
 	assert.False(t, session.HasExactGrants([]string{oidc.ScopeOpenID}, []string{"abc"}))
 
@@ -595,7 +600,7 @@ func TestMisc(t *testing.T) {
 
 	sub := uuid.MustParse("b9423f3a-65da-4ea8-8f6b-1dafb141f3a8")
 
-	session, err := model.NewOAuth2ConsentSession(sub, &oauthelia2.Request{Client: &oidc.RegisteredClient{ID: "abc"}})
+	session, err := model.NewOAuth2ConsentSession(time.Now().UTC(), sub, &oauthelia2.Request{Client: &oidc.RegisteredClient{ID: "abc"}})
 
 	assert.NoError(t, err)
 	assert.NotNil(t, session)

@@ -248,7 +248,7 @@ func handleOAuth2ConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, conse
 			ctx.ReplyForbidden()
 
 			return userSession, nil, nil, true
-		case !consent.CanGrant():
+		case !consent.CanGrant(ctx.Clock.Now()):
 			ctx.Logger.Errorf("Unable to perform OpenID Connect Consent for user '%s' and client id '%s': the specified consent session cannot be granted", userSession.Username, consent.ClientID)
 			ctx.ReplyForbidden()
 
