@@ -106,7 +106,9 @@ services:
     image: 'lscr.io/linuxserver/swag'
     restart: 'unless-stopped'
     networks:
-      net: {}
+      net:
+        aliases:
+          - '{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
     ports:
       - '80:80'
       - '443:443'
