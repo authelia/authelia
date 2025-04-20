@@ -12,6 +12,7 @@ func init() {
 		"internal/suites/compose.yml",
 		"internal/suites/CLI/compose.yml",
 		"internal/suites/example/compose/authelia/compose.backend.{}.yml",
+		"internal/suites/example/compose/nginx/cli/compose.yml",
 	})
 
 	setup := func(suitePath string) (err error) {

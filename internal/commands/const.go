@@ -661,6 +661,22 @@ This subcommand allows generating an %s key pair.`
 	cmdAutheliaCryptoPairECDSAGenerateExample = `authelia crypto pair ecdsa generate --help`
 
 	cmdAutheliaCryptoPairEd25519GenerateExample = `authelia crypto pair ed25519 generate --help`
+
+	cmdAutheliaDebugShort = "Perform debug functions"
+
+	cmdAutheliaDebugLong = `Perform debug related functions.
+
+This subcommand contains other subcommands related to debugging.`
+
+	cmdAutheliaDebugExample = `authelia debug --help`
+
+	cmdAutheliaDebugTLSShort = "Perform a TLS debug operation"
+
+	cmdAutheliaDebugTLSLong = `Perform a TLS debug operation.
+
+This subcommand allows checking a remote server's TLS configuration and the ability to validate the certificate.`
+
+	cmdAutheliaDebugTLSExample = `authelia debug tls tcp://smtp.example.com:465`
 )
 
 const (

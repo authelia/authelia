@@ -1,0 +1,15 @@
+---
+services:
+  nginx-cli:
+    image: nginx:1.27.5-alpine
+    volumes:
+      - ./example/compose/nginx/cli/nginx.conf:/etc/nginx/nginx.conf
+      - ./common/pki:/pki
+    networks:
+      authelianet:
+        aliases:
+          - public.example.com
+          - secure.example.com
+        # Set the IP to be able to query on port 443
+        ipv4_address: 192.168.240.100
+...
