@@ -46,6 +46,7 @@ func newDebugTLSCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 			ctx.HelperConfigLoadRunE,
 			ctx.HelperConfigValidateKeysRunE,
 			ctx.HelperConfigValidateRunE,
+			ctx.LoadTrustedCertificatesRunE,
 		),
 		DisableAutoGenTag: true,
 	}
@@ -102,6 +103,7 @@ func (ctx *CmdCtx) DebugTLSRunE(cmd *cobra.Command, args []string) (err error) {
 
 	_, _ = fmt.Fprintf(os.Stdout, "General Information:\n")
 	_, _ = fmt.Fprintf(os.Stdout, "\tServer Name: %s\n", conn.ConnectionState().ServerName)
+	_, _ = fmt.Fprintf(os.Stdout, "\tRemote Address: %s\n", conn.RemoteAddr().String())
 	_, _ = fmt.Fprintf(os.Stdout, "\tNegotiated Protocol: %s\n", conn.ConnectionState().NegotiatedProtocol)
 	_, _ = fmt.Fprintf(os.Stdout, "\tTLS Version: %s\n", tls.VersionName(conn.ConnectionState().Version))
 
@@ -113,6 +115,16 @@ func (ctx *CmdCtx) DebugTLSRunE(cmd *cobra.Command, args []string) (err error) {
 
 	_, _ = fmt.Fprintf(os.Stdout, "\nCertificate Information:\n")
 
+	system, err := x509.SystemCertPool()
+	if err != nil {
+		system = x509.NewCertPool()
+	}
+
+	optsSystem := x509.VerifyOptions{
+		Roots:         system,
+		Intermediates: x509.NewCertPool(),
+	}
+
 	opts := x509.VerifyOptions{
 		Roots:         ctx.trusted,
 		Intermediates: x509.NewCertPool(),
@@ -120,30 +132,16 @@ func (ctx *CmdCtx) DebugTLSRunE(cmd *cobra.Command, args []string) (err error) {
 
 	certs := conn.ConnectionState().PeerCertificates
 
-	n = len(certs) - 1
+	opts.Intermediates = utils.UnsafeGetIntermediatesFromPeerCertificates(conn.ConnectionState().PeerCertificates, opts.Roots, opts.Intermediates)
+	optsSystem.Intermediates = utils.UnsafeGetIntermediatesFromPeerCertificates(conn.ConnectionState().PeerCertificates, optsSystem.Roots, optsSystem.Intermediates)
 
-	for i := n; i >= 0; i-- {
-		if _, err = certs[i].Verify(opts); err == nil {
-			continue
-		}
-
-		if i == n {
-			// No certs in the chain are valid.
-			break
-		}
-
-		// Intentionally only add the certificates within the trust chain.
-		if certs[i+1].IsCA {
-			if _, err = certs[i+1].Verify(opts); err == nil {
-				opts.Intermediates.AddCert(certs[i+1])
-			}
-		}
-	}
-
-	valid := true
-	validHostname := true
+	valid, validSystem, validHostname := true, true, true
 
 	for i, cert := range conn.ConnectionState().PeerCertificates {
+		if _, err = cert.Verify(optsSystem); err != nil {
+			validSystem = false
+		}
+
 		if _, err = cert.Verify(opts); err != nil {
 			valid = false
 		}
@@ -172,6 +170,7 @@ func (ctx *CmdCtx) DebugTLSRunE(cmd *cobra.Command, args []string) (err error) {
 		_, _ = fmt.Fprintf(os.Stdout, "\t\tNot After: %s\n", cert.NotAfter)
 		_, _ = fmt.Fprintf(os.Stdout, "\t\tSerial Number: %s\n", cert.SerialNumber)
 		_, _ = fmt.Fprintf(os.Stdout, "\t\tValid: %t\n", valid)
+		_, _ = fmt.Fprintf(os.Stdout, "\t\tValid (System): %t\n", validSystem)
 
 		if err != nil {
 			var (
