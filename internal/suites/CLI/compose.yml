@@ -3,11 +3,13 @@ services:
   authelia-backend:
     volumes:
       - './CLI/configuration.yml:/config/configuration.yml'
+      - './CLI/configuration.nocerts.yml:/config/configuration.nocerts.yml'
       - './CLI/storage.yml:/config/configuration.storage.yml'
       - './CLI/users.yml:/config/users.yml'
       - './CLI/exports:/exports'
       - './common/pki:/pki'
       - './common/pki/public.crt:/certs/public.crt'
+      - './common/pki/ca/ca.public.crt:/certs/ca.public.crt'
       - '/tmp:/tmp'
     user: '${USER_ID}:${GROUP_ID}'
 ...

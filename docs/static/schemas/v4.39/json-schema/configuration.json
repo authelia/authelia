@@ -4073,9 +4073,13 @@
     "TLSVersion": {
       "type": "string",
       "enum": [
+        "TLS 1.0",
         "TLS1.0",
+        "TLS 1.1",
         "TLS1.1",
+        "TLS 1.2",
         "TLS1.2",
+        "TLS 1.3",
         "TLS1.3"
       ]
     },

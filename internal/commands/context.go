@@ -150,6 +150,38 @@ func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
 	return warns, errs
 }
 
+func (ctx *CmdCtx) LoadTrustedCertificatesRunE(cmd *cobra.Command, args []string) (err error) {
+	var warns, errs []error
+
+	ctx.trusted, warns, errs = utils.NewX509CertPool(ctx.config.CertificatesDirectory)
+
+	if len(warns) != 0 || len(errs) != 0 {
+		for _, e := range warns {
+			if err == nil {
+				err = e
+
+				continue
+			}
+
+			err = fmt.Errorf("%v, %w", err, e)
+		}
+
+		for _, e := range errs {
+			if err == nil {
+				err = e
+
+				continue
+			}
+
+			err = fmt.Errorf("%v, %w", err, e)
+		}
+
+		return fmt.Errorf("failed to load trusted certificates: %w", err)
+	}
+
+	return nil
+}
+
 // ChainRunE runs multiple CobraRunECmd funcs one after the other returning errors.
 func (ctx *CmdCtx) ChainRunE(cmdRunEs ...CobraRunECmd) CobraRunECmd {
 	return func(cmd *cobra.Command, args []string) (err error) {
