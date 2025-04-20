@@ -205,7 +205,7 @@ func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx, userSession *sessi
 	}
 
 	if oidc.RequestFormRequiresLogin(form, consent.RequestedAt, userSession.LastAuthenticatedTime()) {
-		targetURL := issuer.JoinPath(oidc.EndpointPathConsentLogin)
+		targetURL := issuer.JoinPath(oidc.FrontendEndpointPathConsentLogin)
 
 		query := targetURL.Query()
 		query.Set(queryArgWorkflow, workflowOpenIDConnect)

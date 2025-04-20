@@ -17,8 +17,8 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
-// OpenIDConnectConsentGET handles requests to provide consent for OpenID Connect.
-func OpenIDConnectConsentGET(ctx *middlewares.AutheliaCtx) {
+// OAuth2ConsentGET handles requests to provide consent for OpenID Connect.
+func OAuth2ConsentGET(ctx *middlewares.AutheliaCtx) {
 	var (
 		consentID uuid.UUID
 		err       error
@@ -38,11 +38,11 @@ func OpenIDConnectConsentGET(ctx *middlewares.AutheliaCtx) {
 		handled bool
 	)
 
-	if _, consent, client, handled = handleOpenIDConnectConsentGetSessionsAndClient(ctx, consentID); handled {
+	if _, consent, client, handled = handleOAuth2ConsentGetSessionsAndClient(ctx, consentID); handled {
 		return
 	}
 
-	if form, err = handleGetFormFromConsent(ctx, consent); err != nil {
+	if form, err = handleGetConsentFormFromConsentSession(ctx, consent); err != nil {
 		ctx.Logger.WithError(err).Errorf("Unable to get form from consent session with id '%s': %+v", consent.ChallengeID, err)
 		ctx.SetJSONError(messageOperationFailed)
 
@@ -54,10 +54,10 @@ func OpenIDConnectConsentGET(ctx *middlewares.AutheliaCtx) {
 	}
 }
 
-// OpenIDConnectConsentPOST handles consent responses for OpenID Connect.
+// OAuth2ConsentPOST handles consent responses for OpenID Connect.
 //
 //nolint:gocyclo
-func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
+func OAuth2ConsentPOST(ctx *middlewares.AutheliaCtx) {
 	var (
 		consentID uuid.UUID
 		bodyJSON  oidc.ConsentPostRequestBody
@@ -85,7 +85,7 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 		handled     bool
 	)
 
-	if userSession, consent, client, handled = handleOpenIDConnectConsentGetSessionsAndClient(ctx, consentID); handled {
+	if userSession, consent, client, handled = handleOAuth2ConsentGetSessionsAndClient(ctx, consentID); handled {
 		return
 	}
 
@@ -134,7 +134,7 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 					actualForm url.Values
 				)
 
-				if actualForm, err = handleGetFormFromConsentForm(ctx, form); err != nil {
+				if actualForm, err = handleGetConsentForm(ctx, form); err != nil {
 					ctx.Logger.WithError(err).Debug("Error occurred resolving the actual form from the consent form")
 				} else if requests, err = oidc.NewClaimRequests(actualForm); err != nil {
 					ctx.Logger.WithError(err).Debug("Error occurred parsing claims parameter from request form for claims signature")
@@ -199,7 +199,7 @@ func OpenIDConnectConsentPOST(ctx *middlewares.AutheliaCtx) {
 	}
 }
 
-func handleOpenIDConnectConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, consentID uuid.UUID) (userSession session.UserSession, consent *model.OAuth2ConsentSession, client oidc.Client, handled bool) {
+func handleOAuth2ConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, consentID uuid.UUID) (userSession session.UserSession, consent *model.OAuth2ConsentSession, client oidc.Client, handled bool) {
 	var (
 		err error
 	)
@@ -225,7 +225,7 @@ func handleOpenIDConnectConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx
 		return userSession, nil, nil, true
 	}
 
-	if err = verifyOIDCUserAuthorizedForConsent(ctx, client, userSession, consent, uuid.UUID{}); err != nil {
+	if err = verifyOAuth2UserAuthorizedForConsent(ctx, client, userSession, consent, uuid.UUID{}); err != nil {
 		ctx.Logger.Errorf("Could not authorize the user '%s' for the consent session with challenge id '%s' on client with id '%s': %v", userSession.Username, consent.ChallengeID, client.GetID(), err)
 
 		ctx.ReplyForbidden()
@@ -264,18 +264,18 @@ func handleOpenIDConnectConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx
 	return userSession, consent, client, false
 }
 
-func handleGetFormFromConsent(ctx *middlewares.AutheliaCtx, consent *model.OAuth2ConsentSession) (form url.Values, err error) {
+func handleGetConsentFormFromConsentSession(ctx *middlewares.AutheliaCtx, consent *model.OAuth2ConsentSession) (form url.Values, err error) {
 	if form, err = consent.GetForm(); err != nil {
 		return nil, err
 	}
 
-	return handleGetFormFromConsentForm(ctx, form)
+	return handleGetConsentForm(ctx, form)
 }
 
-func handleGetFormFromConsentForm(ctx *middlewares.AutheliaCtx, original url.Values) (form url.Values, err error) {
+func handleGetConsentForm(ctx *middlewares.AutheliaCtx, original url.Values) (form url.Values, err error) {
 	var requester oauth2.AuthorizeRequester
 
-	if requester, err = handleGetPushedAuthorizationRequesterFromForm(ctx, original); err != nil {
+	if requester, err = handleGetConsentFormFromPushedAuthorizeRequestRedirectURI(ctx, original); err != nil {
 		return nil, err
 	} else if requester != nil {
 		return requester.GetRequestForm(), nil
@@ -284,7 +284,7 @@ func handleGetFormFromConsentForm(ctx *middlewares.AutheliaCtx, original url.Val
 	return form, err
 }
 
-func handleGetPushedAuthorizationRequesterFromForm(ctx *middlewares.AutheliaCtx, form url.Values) (requester oauth2.AuthorizeRequester, err error) {
+func handleGetConsentFormFromPushedAuthorizeRequestRedirectURI(ctx *middlewares.AutheliaCtx, form url.Values) (requester oauth2.AuthorizeRequester, err error) {
 	if oidc.IsPushedAuthorizedRequestForm(form, ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)) {
 		if requester, err = ctx.Providers.OpenIDConnect.GetPARSession(ctx, form.Get(oidc.FormParameterRequestURI)); err != nil {
 			return nil, err

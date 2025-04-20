@@ -14,12 +14,12 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
-// OpenIDConnectAuthorizationGET handles GET/POST requests to the OpenID Connect 1.0 Authorization endpoint.
+// OAuth2AuthorizationGET handles GET/POST requests to the OpenID Connect 1.0 Authorization endpoint.
 //
 // https://openid.net/specs/openid-connect-core-1_0.html#AuthorizationEndpoint
 //
 //nolint:gocyclo
-func OpenIDConnectAuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
+func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	var (
 		requester oauthelia2.AuthorizeRequester
 		responder oauthelia2.AuthorizeResponder
@@ -103,7 +103,7 @@ func OpenIDConnectAuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.Respons
 
 	issuer = ctx.RootURL()
 
-	if consent, handled = handleOIDCAuthorizationConsent(ctx, issuer, client, userSession, rw, r, requester); handled {
+	if consent, handled = handleOAuth2AuthorizationConsent(ctx, issuer, client, userSession, rw, r, requester); handled {
 		return
 	}
 
@@ -159,9 +159,9 @@ func OpenIDConnectAuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.Respons
 	ctx.Providers.OpenIDConnect.WriteAuthorizeResponse(ctx, rw, requester, responder)
 }
 
-// OpenIDConnectAuthorizationPOST handles redirecting users to use the GET request to ensure the session cookie is
+// OAuth2AuthorizationPOST handles redirecting users to use the GET request to ensure the session cookie is
 // included if available.
-func OpenIDConnectAuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
+func OAuth2AuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	var err error
 
 	if err = r.ParseMultipartForm(1 << 20); err != nil && !errors.Is(err, http.ErrNotMultipart) {
@@ -185,10 +185,10 @@ func OpenIDConnectAuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.Respon
 	http.Redirect(rw, r, redirectURL.String(), http.StatusFound)
 }
 
-// OpenIDConnectPushedAuthorizationRequest handles POST requests to the OAuth 2.0 Pushed Authorization Requests endpoint.
+// OAuth2PushedAuthorizationRequest handles POST requests to the OAuth 2.0 Pushed Authorization Requests endpoint.
 //
 // RFC9126 https://www.rfc-editor.org/rfc/rfc9126.html
-func OpenIDConnectPushedAuthorizationRequest(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
+func OAuth2PushedAuthorizationRequest(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	var (
 		requester oauthelia2.AuthorizeRequester
 		responder oauthelia2.PushedAuthorizeResponder
