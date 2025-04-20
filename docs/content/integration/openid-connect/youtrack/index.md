@@ -72,7 +72,7 @@ identity_providers:
 
 To configure [YouTrack] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
-1. Visit the [YouTrack] Hub At [https://youtrack.{{< sitevar name="domain" nojs="example.com" >}}/hub](https://youtrack.{{< sitevar name="domain" nojs="example.com" >}}/hub)
+1. Visit the [YouTrack] Hub at `https://youtrack.{{< sitevar name="domain" nojs="example.com" >}}/hub`
 2. Login as an admin
 3. Navigate to Administration > Auth Modules > New Auth Module
 4. For the identity provider select `OAuth 2.0` from the list of authentication protocols at the bottom
@@ -81,17 +81,21 @@ To configure [YouTrack] to utilize Authelia as an [OpenID Connect 1.0] Provider:
    2. Button image: feel free to upload one from the [branding](../../../reference/guides/branding.md) page
    3. Client ID: `youtrack`
    4. Client Secret: `insecure_secret`
+   {{< figure src="youtrack_overview.png" process="resize 800x" >}}
    5. Authorization Service Endpoints:
       1. Authorization: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
       2. Token: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
       3. User Data: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
+      {{< figure src="youtrack_authz_endpoints.png" process="resize 800x" >}}
    6. Field Mapping:
       1. User ID: `sub`
       2. Username: `preferred_username`
       3. Full Name: `name`
       4. Email: `email`
       5. Email Verification State: `email_verified`
+      {{< figure src="youtrack_field_mapping.png" process="resize 800x" >}}
    7. Scope: `openid profile email`
+   {{< figure src="youtrack_additional_settings.png" process="resize 800x" >}}
 6. Verify the Redirect URI displayed on this page matches the one you configured in Authelia otherwise update Authelia's
    configuration
 7. Click the `Enable module` button
@@ -101,7 +105,7 @@ To configure [YouTrack] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
 - [YouTrack OAuth 2.0 Auth Module Documentation](https://www.jetbrains.com/help/youtrack/cloud/oauth2-authentication-module.html)
 
-[YouTrack]: https://min.io/
+[YouTrack]: https://www.jetbrains.com/youtrack/
 [Authelia]: https://www.authelia.com
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
