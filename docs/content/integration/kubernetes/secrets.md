@@ -69,8 +69,8 @@ stringData:
     d4ypk2UQXxuo86s7vJ2rYWPa5KoxDfU9JQWgEqtANiBaJVQSG8PJbD9U24eiVuPC
   OIDC_HMAC_SECRET: >-
     eSopMjbiuCMhEbXGFsm5B8KWKszxV3CJWSLYrWnBJja4rFNvDxti388WyBjdrsHb
-  OIDC_ISSUER_PRIVATE_KEY:
-    -----BEGIN RSA PRIVATE KEY-----
+  OIDC_ISSUER_PRIVATE_KEY: |
+    -----BEGIN PRIVATE KEY-----
     MXIEogIB$AKCAQEAxZVJP3WF//PG2fLQoEC9DtdiFG/+00vqlbVzz47nyxKONIPI
     lmL3UdmqpGTKMe/5Brqse4ZAKlQHiDbwzK9ypnfigtHuvh/JO0S7ChP70RC67ed1
     HV1nyfz5eW3llbtGJPrlYLqITNgctHp6zmRUFtSzPj9qFvozI93LJi492yL1+vu8
@@ -96,7 +96,7 @@ stringData:
     P1dZAoGASGcGnTMkmeSXP8ux+dvQJAiJskn/sJIgBZ5uq5GRCeLBUosRSVxM75UK
     vAh/c/RBj+pYXVKuPuHGZCQJxsdcRXzXNGouUtgbaYML5Me/Hagt20QzDRBfuGBg
     qeZBJaXhjElvw6PUWtg4x+LYRCBpq/bS3LK3ozZrSTukVkKDegw=
-    -----END RSA PRIVATE KEY-----
+    -----END PRIVATE KEY-----
 ...
 ```
 
