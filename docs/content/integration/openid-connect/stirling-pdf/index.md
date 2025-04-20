@@ -72,7 +72,7 @@ identity_providers:
 ### Application
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-Stirling-PDF OIDC Login requires you to login with a user which isn't already registered with Stirling-PDF. You can rename your current ('web') user via [https://stirlingpdf.{{< sitevar name="domain" nojs="example.com" >}}/account](https://stirlingpdf.{{< sitevar name="domain" nojs="example.com" >}}/account)
+Stirling-PDF OIDC Login requires you to login with a user which isn't already registered with Stirling-PDF. You can rename your current ('web') user via `https://stirlingpdf.{{</* sitevar name="domain" nojs="example.com" */>}}/account`
 {{< /callout >}}
 
 To configure [Stirling-PDF] to utilize Authelia as an [OpenID Connect 1.0] Provider:
