@@ -49,9 +49,9 @@ session:
         ...
         -----END CERTIFICATE-----
       private_key: |
-        -----BEGIN RSA PRIVATE KEY-----
+        -----BEGIN PRIVATE KEY-----
         ...
-        -----END RSA PRIVATE KEY-----
+        -----END PRIVATE KEY-----
     high_availability:
       sentinel_name: 'mysentinel'
       # If `sentinel_username` is supplied, Authelia will connect using ACL-based

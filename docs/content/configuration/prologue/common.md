@@ -308,9 +308,9 @@ tls:
     ...
     -----END CERTIFICATE-----
   private_key: |
-    -----BEGIN RSA PRIVATE KEY-----
+    -----BEGIN PRIVATE KEY-----
     ...
-    -----END RSA PRIVATE KEY-----
+    -----END PRIVATE KEY-----
 ```
 
 #### server_name

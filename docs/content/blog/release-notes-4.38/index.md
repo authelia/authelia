@@ -254,9 +254,9 @@ template filter example. To use this example you'll need to enable the `template
 identity_providers:
   oidc:
     issuer_private_key: |
-      -----BEGIN RSA PRIVATE KEY-----
+      -----BEGIN PRIVATE KEY-----
       ...
-      -----END RSA PRIVATE KEY-----
+      -----END PRIVATE KEY-----
     issuer_certificate_chain: |
       -----BEGIN CERTIFICATE-----
       ...
@@ -270,9 +270,9 @@ identity_providers:
   oidc:
     jwks:
       - key: |
-          -----BEGIN RSA PRIVATE KEY-----
+          -----BEGIN PRIVATE KEY-----
           ...
-          -----END RSA PRIVATE KEY-----
+          -----END PRIVATE KEY-----
         certificate_chain: |
           -----BEGIN CERTIFICATE-----
           ...

@@ -52,9 +52,9 @@ identity_providers:
         algorithm: 'RS256'
         use: 'sig'
         key: |
-          -----BEGIN RSA PRIVATE KEY-----
+          -----BEGIN PRIVATE KEY-----
           ...
-          -----END RSA PRIVATE KEY-----
+          -----END PRIVATE KEY-----
         certificate_chain: |
           -----BEGIN CERTIFICATE-----
           ...
@@ -143,9 +143,9 @@ identity_providers:
         algorithm: 'RS256'
         use: 'sig'
         key: |
-          -----BEGIN RSA PRIVATE KEY-----
+          -----BEGIN PRIVATE KEY-----
           ...
-          -----END RSA PRIVATE KEY-----
+          -----END PRIVATE KEY-----
         certificate_chain: |
           -----BEGIN CERTIFICATE-----
           ...
