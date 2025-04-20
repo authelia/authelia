@@ -518,7 +518,7 @@ func TestOAuth2ConsentSession(t *testing.T) {
 		ClientID: "a-client",
 	}
 
-	assert.False(t, session.CanGrant())
+	assert.True(t, session.CanGrant())
 
 	session.Subject = uuid.NullUUID{Valid: true}
 

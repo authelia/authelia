@@ -437,7 +437,8 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithoutID(t *testing.T) {
 	}
 
 	clientTest := &oidc.RegisteredClient{
-		ID: testValue,
+		ID:            testValue,
+		ConsentPolicy: oidc.ClientConsentPolicy{Mode: oidc.ClientConsentModeImplicit},
 	}
 
 	sub := uuid.MustParse("e79b6494-8852-4439-860c-159f2cba83dc")
@@ -475,7 +476,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithoutID(t *testing.T) {
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				mock.AssertLastLogMessageRegexp(t, regexp.MustCompile(`^Authorization Request with id '[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}' on client with id 'test' using consent mode 'explicit' could not be processed: error occurred performing consent for consent session with id '[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}': error occurred saving consent session: invalid$`), nil)
+				mock.AssertLastLogMessageRegexp(t, regexp.MustCompile(`^Authorization Request with id '[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}' on client with id 'test' using consent mode 'implicit' could not be processed: error occurred performing consent for consent session with id '[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}': error occurred saving consent session: invalid$`), nil)
 			},
 		},
 		{
@@ -506,7 +507,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithoutID(t *testing.T) {
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				mock.AssertLastLogMessageRegexp(t, regexp.MustCompile(`^Authorization Request with id '[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}' on client with id 'test' using consent mode 'explicit' could not be processed: error occurred performing consent for consent session with id '[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}': error occurred saving consent session: bad$`), nil)
+				mock.AssertLastLogMessageRegexp(t, regexp.MustCompile(`^Authorization Request with id '[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}' on client with id 'test' using consent mode 'implicit' could not be processed: error occurred performing consent for consent session with id '[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}': error occurred saving consent session: bad$`), nil)
 			},
 		},
 		{
@@ -546,7 +547,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithoutID(t *testing.T) {
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				mock.AssertLastLogMessageRegexp(t, regexp.MustCompile(`^Authorization Request with id '[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}' on client with id 'test' using consent mode 'explicit' could not be processed: error occurred performing consent for consent session with id '[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}': error occurred saving consent session response: bad conn$`), nil)
+				mock.AssertLastLogMessageRegexp(t, regexp.MustCompile(`^Authorization Request with id '[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}' on client with id 'test' using consent mode 'implicit' could not be processed: error occurred performing consent for consent session with id '[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}': error occurred saving consent session response: bad conn$`), nil)
 			},
 		},
 		{
@@ -779,7 +780,8 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithID(t *testing.T) {
 	}
 
 	clientTest := &oidc.RegisteredClient{
-		ID: testValue,
+		ID:            testValue,
+		ConsentPolicy: oidc.ClientConsentPolicy{Mode: oidc.ClientConsentModeImplicit},
 	}
 
 	challenge := uuid.MustParse("11303e1f-f8af-436a-9a72-c7361bfc9f37")
@@ -818,7 +820,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithID(t *testing.T) {
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				mock.AssertLastLogMessageRegexp(t, regexp.MustCompile(`^Authorization Request with id '[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}' on client with id 'test' using consent mode 'explicit' could not be processed: error occurred performing consent for consent session with id '11303e1f-f8af-436a-9a72-c7361bfc9f37': error occurred while loading session: error in db$`), nil)
+				mock.AssertLastLogMessageRegexp(t, regexp.MustCompile(`^Authorization Request with id '[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}' on client with id 'test' using consent mode 'implicit' could not be processed: error occurred performing consent for consent session with id '11303e1f-f8af-436a-9a72-c7361bfc9f37': error occurred while loading session: error in db$`), nil)
 			},
 		},
 		{
@@ -846,7 +848,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithID(t *testing.T) {
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				mock.AssertLastLogMessageRegexp(t, regexp.MustCompile(`^Authorization Request with id '[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}' on client with id 'test' using consent mode 'explicit' could not be processed: error occurred performing consent for consent session with id '11303e1f-f8af-436a-9a72-c7361bfc9f37': user 'test' with subject 'e79b6494-8852-4439-860c-159f2cba83dc' is not authorized to consent for subject '11303e1f-f8af-436a-9a72-c7361bfc9f37'$`), nil)
+				mock.AssertLastLogMessageRegexp(t, regexp.MustCompile(`^Authorization Request with id '[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}' on client with id 'test' using consent mode 'implicit' could not be processed: error occurred performing consent for consent session with id '11303e1f-f8af-436a-9a72-c7361bfc9f37': user 'test' with subject 'e79b6494-8852-4439-860c-159f2cba83dc' is not authorized to consent for subject '11303e1f-f8af-436a-9a72-c7361bfc9f37'$`), nil)
 			},
 		},
 		{
@@ -877,7 +879,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithID(t *testing.T) {
 				)
 			},
 			expect: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
-				mock.AssertLastLogMessageRegexp(t, regexp.MustCompile(`^Authorization Request with id '[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}' on client with id 'test' using consent mode 'explicit' could not be processed: error occurred performing consent for consent session with id '[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}': error occurred saving consent session response: bad conn$`), nil)
+				mock.AssertLastLogMessageRegexp(t, regexp.MustCompile(`^Authorization Request with id '[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}' on client with id 'test' using consent mode 'implicit' could not be processed: error occurred performing consent for consent session with id '[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}': error occurred saving consent session response: bad conn$`), nil)
 			},
 		},
 		{
@@ -1067,7 +1069,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithID(t *testing.T) {
 	}
 }
 
-func TestHandleOIDCAuthorizationConsentModeExplicitWithID(t *testing.T) {
+func TestHandleOAuth2AuthorizationConsentModeExplicitWithID(t *testing.T) {
 	mustParseURI := func(t *testing.T, in string) *url.URL {
 		result, err := url.Parse(in)
 		require.NoError(t, err)
@@ -1076,7 +1078,8 @@ func TestHandleOIDCAuthorizationConsentModeExplicitWithID(t *testing.T) {
 	}
 
 	clientTest := &oidc.RegisteredClient{
-		ID: testValue,
+		ID:            testValue,
+		ConsentPolicy: oidc.ClientConsentPolicy{Mode: oidc.ClientConsentModeExplicit},
 	}
 
 	challenge := uuid.MustParse("11303e1f-f8af-436a-9a72-c7361bfc9f37")

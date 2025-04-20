@@ -313,7 +313,7 @@ func (s *OAuth2ConsentSession) IsDenied() bool {
 // CanGrant returns true if the session can still grant a token. This is NOT indicative of if there is a user response
 // to this consent request or if the user rejected the consent request.
 func (s *OAuth2ConsentSession) CanGrant() bool {
-	if !s.Subject.Valid || s.Granted {
+	if s.Granted {
 		return false
 	}
 

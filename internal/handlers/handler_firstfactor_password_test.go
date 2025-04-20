@@ -897,198 +897,6 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectCantGetClient(
 	s.mock.AssertLastLogMessage(s.T(), "unable to get client for client with id 'd1ba0ad8-9107-4067-8d31-407ca59eb69c' with consent challenge id '00000000-0000-0000-0000-000000000000': invalid_client", "")
 }
 
-func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectNoOpaqueID() {
-	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&schema.Configuration{
-		AccessControl: schema.AccessControl{
-			DefaultPolicy: "one_factor",
-			Rules: []schema.AccessControlRule{
-				{
-					Domains: []string{"test.example.com"},
-					Policy:  "one_factor",
-				},
-				{
-					Domains: []string{"two-factor.example.com"},
-					Policy:  "two_factor",
-				},
-			},
-		}})
-
-	config := &schema.Configuration{
-		IdentityProviders: schema.IdentityProviders{
-			OIDC: &schema.IdentityProvidersOpenIDConnect{
-				Clients: []schema.IdentityProvidersOpenIDConnectClient{
-					{
-						ID: "abc",
-					},
-				},
-			},
-		},
-	}
-
-	s.mock.Ctx.Providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, s.mock.StorageMock, s.mock.Ctx.Providers.Templates)
-
-	s.mock.Ctx.Request.SetBodyString(`{
-		"username": "test",
-		"password": "hello",
-		"requestMethod": "GET",
-		"keepMeLoggedIn": false,
-		"workflow": "openid_connect",
-		"workflowID": "d1ba0ad8-9107-4067-8d31-407ca59eb69c"
-	}`)
-
-	gomock.InOrder(
-		s.mock.StorageMock.
-			EXPECT().
-			LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, nil),
-		s.mock.StorageMock.
-			EXPECT().
-			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
-		s.mock.StorageMock.EXPECT().
-			LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(s.mock.Ctx), gomock.Eq(uuid.Must(uuid.Parse("d1ba0ad8-9107-4067-8d31-407ca59eb69c")))).
-			Return(&model.OAuth2ConsentSession{ClientID: "abc"}, nil),
-		s.mock.StorageMock.EXPECT().
-			LoadUserOpaqueIdentifierBySignature(gomock.Eq(s.mock.Ctx), gomock.Eq("openid"), gomock.Eq(""), gomock.Eq("test")).
-			Return(nil, fmt.Errorf("bad identifier")),
-	)
-
-	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
-
-	// Respond with 200.
-	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
-	s.mock.AssertLastLogMessage(s.T(), "unable to determine consent subject for client with id 'abc' with consent challenge id '00000000-0000-0000-0000-000000000000': bad identifier", "")
-}
-
-func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectNoOpaqueIDCreateError() {
-	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&schema.Configuration{
-		AccessControl: schema.AccessControl{
-			DefaultPolicy: "one_factor",
-			Rules: []schema.AccessControlRule{
-				{
-					Domains: []string{"test.example.com"},
-					Policy:  "one_factor",
-				},
-				{
-					Domains: []string{"two-factor.example.com"},
-					Policy:  "two_factor",
-				},
-			},
-		}})
-
-	config := &schema.Configuration{
-		IdentityProviders: schema.IdentityProviders{
-			OIDC: &schema.IdentityProvidersOpenIDConnect{
-				Clients: []schema.IdentityProvidersOpenIDConnectClient{
-					{
-						ID: "abc",
-					},
-				},
-			},
-		},
-	}
-
-	s.mock.Ctx.Providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, s.mock.StorageMock, s.mock.Ctx.Providers.Templates)
-
-	s.mock.Ctx.Request.SetBodyString(`{
-		"username": "test",
-		"password": "hello",
-		"requestMethod": "GET",
-		"keepMeLoggedIn": false,
-		"workflow": "openid_connect",
-		"workflowID": "d1ba0ad8-9107-4067-8d31-407ca59eb69c"
-	}`)
-
-	gomock.InOrder(
-		s.mock.StorageMock.
-			EXPECT().
-			LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, nil),
-		s.mock.StorageMock.
-			EXPECT().
-			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
-		s.mock.StorageMock.EXPECT().
-			LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(s.mock.Ctx), gomock.Eq(uuid.Must(uuid.Parse("d1ba0ad8-9107-4067-8d31-407ca59eb69c")))).
-			Return(&model.OAuth2ConsentSession{ClientID: "abc"}, nil),
-		s.mock.StorageMock.EXPECT().
-			LoadUserOpaqueIdentifierBySignature(gomock.Eq(s.mock.Ctx), gomock.Eq("openid"), gomock.Eq(""), gomock.Eq("test")).
-			Return(nil, nil),
-		s.mock.StorageMock.EXPECT().
-			SaveUserOpaqueIdentifier(gomock.Eq(s.mock.Ctx), gomock.Any()).
-			Return(fmt.Errorf("oops")),
-	)
-
-	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
-
-	// Respond with 200.
-	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
-	s.mock.AssertLastLogMessage(s.T(), "unable to determine consent subject for client with id 'abc' with consent challenge id '00000000-0000-0000-0000-000000000000': oops", "")
-}
-
-func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectNoOpaqueIDCreateSaveConsentError() {
-	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&schema.Configuration{
-		AccessControl: schema.AccessControl{
-			DefaultPolicy: "one_factor",
-			Rules: []schema.AccessControlRule{
-				{
-					Domains: []string{"test.example.com"},
-					Policy:  "one_factor",
-				},
-				{
-					Domains: []string{"two-factor.example.com"},
-					Policy:  "two_factor",
-				},
-			},
-		}})
-
-	config := &schema.Configuration{
-		IdentityProviders: schema.IdentityProviders{
-			OIDC: &schema.IdentityProvidersOpenIDConnect{
-				Clients: []schema.IdentityProvidersOpenIDConnectClient{
-					{
-						ID: "abc",
-					},
-				},
-			},
-		},
-	}
-
-	s.mock.Ctx.Providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(config, s.mock.StorageMock, s.mock.Ctx.Providers.Templates)
-
-	s.mock.Ctx.Request.SetBodyString(`{
-		"username": "test",
-		"password": "hello",
-		"requestMethod": "GET",
-		"keepMeLoggedIn": false,
-		"workflow": "openid_connect",
-		"workflowID": "d1ba0ad8-9107-4067-8d31-407ca59eb69c"
-	}`)
-
-	gomock.InOrder(
-		s.mock.StorageMock.
-			EXPECT().
-			LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, nil),
-		s.mock.StorageMock.
-			EXPECT().
-			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
-		s.mock.StorageMock.EXPECT().
-			LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(s.mock.Ctx), gomock.Eq(uuid.Must(uuid.Parse("d1ba0ad8-9107-4067-8d31-407ca59eb69c")))).
-			Return(&model.OAuth2ConsentSession{ClientID: "abc"}, nil),
-		s.mock.StorageMock.EXPECT().
-			LoadUserOpaqueIdentifierBySignature(gomock.Eq(s.mock.Ctx), gomock.Eq("openid"), gomock.Eq(""), gomock.Eq("test")).
-			Return(nil, nil),
-		s.mock.StorageMock.EXPECT().
-			SaveUserOpaqueIdentifier(gomock.Eq(s.mock.Ctx), gomock.Any()).
-			Return(nil),
-		s.mock.StorageMock.EXPECT().
-			SaveOAuth2ConsentSessionSubject(gomock.Eq(s.mock.Ctx), gomock.Any()).
-			Return(fmt.Errorf("bad id")),
-	)
-
-	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
-
-	// Respond with 200.
-	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
-	s.mock.AssertLastLogMessage(s.T(), "unable to update consent subject for client with id 'abc' with consent challenge id '00000000-0000-0000-0000-000000000000': bad id", "")
-}
-
 func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectFormRequiresLogin() {
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&schema.Configuration{
 		AccessControl: schema.AccessControl{
@@ -1142,15 +950,6 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectFormRequiresLo
 		s.mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(s.mock.Ctx), gomock.Eq(uuid.Must(uuid.Parse("d1ba0ad8-9107-4067-8d31-407ca59eb69c")))).
 			Return(&model.OAuth2ConsentSession{ClientID: "abc", Form: form.Encode()}, nil),
-		s.mock.StorageMock.EXPECT().
-			LoadUserOpaqueIdentifierBySignature(gomock.Eq(s.mock.Ctx), gomock.Eq("openid"), gomock.Eq(""), gomock.Eq("test")).
-			Return(nil, nil),
-		s.mock.StorageMock.EXPECT().
-			SaveUserOpaqueIdentifier(gomock.Eq(s.mock.Ctx), gomock.Any()).
-			Return(nil),
-		s.mock.StorageMock.EXPECT().
-			SaveOAuth2ConsentSessionSubject(gomock.Eq(s.mock.Ctx), gomock.Any()).
-			Return(nil),
 	)
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
@@ -1208,15 +1007,6 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectFormRequiresLo
 		s.mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(s.mock.Ctx), gomock.Eq(uuid.Must(uuid.Parse("d1ba0ad8-9107-4067-8d31-407ca59eb69c")))).
 			Return(&model.OAuth2ConsentSession{ClientID: "abc", Form: "1238y12978y189gb128g1287g12807g128702g38172%1"}, nil),
-		s.mock.StorageMock.EXPECT().
-			LoadUserOpaqueIdentifierBySignature(gomock.Eq(s.mock.Ctx), gomock.Eq("openid"), gomock.Eq(""), gomock.Eq("test")).
-			Return(nil, nil),
-		s.mock.StorageMock.EXPECT().
-			SaveUserOpaqueIdentifier(gomock.Eq(s.mock.Ctx), gomock.Any()).
-			Return(nil),
-		s.mock.StorageMock.EXPECT().
-			SaveOAuth2ConsentSessionSubject(gomock.Eq(s.mock.Ctx), gomock.Any()).
-			Return(nil),
 	)
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
@@ -1276,15 +1066,6 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectNeeds2FA() {
 		s.mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(s.mock.Ctx), gomock.Eq(uuid.Must(uuid.Parse("d1ba0ad8-9107-4067-8d31-407ca59eb69c")))).
 			Return(&model.OAuth2ConsentSession{ClientID: "abc", Form: ""}, nil),
-		s.mock.StorageMock.EXPECT().
-			LoadUserOpaqueIdentifierBySignature(gomock.Eq(s.mock.Ctx), gomock.Eq("openid"), gomock.Eq(""), gomock.Eq("test")).
-			Return(nil, nil),
-		s.mock.StorageMock.EXPECT().
-			SaveUserOpaqueIdentifier(gomock.Eq(s.mock.Ctx), gomock.Any()).
-			Return(nil),
-		s.mock.StorageMock.EXPECT().
-			SaveOAuth2ConsentSessionSubject(gomock.Eq(s.mock.Ctx), gomock.Any()).
-			Return(nil),
 	)
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
@@ -1344,15 +1125,6 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectNeeds1FA() {
 		s.mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(s.mock.Ctx), gomock.Eq(uuid.Must(uuid.Parse("d1ba0ad8-9107-4067-8d31-407ca59eb69c")))).
 			Return(&model.OAuth2ConsentSession{ClientID: "abc", Form: "grant_type=authorization_code"}, nil),
-		s.mock.StorageMock.EXPECT().
-			LoadUserOpaqueIdentifierBySignature(gomock.Eq(s.mock.Ctx), gomock.Eq("openid"), gomock.Eq(""), gomock.Eq("test")).
-			Return(nil, nil),
-		s.mock.StorageMock.EXPECT().
-			SaveUserOpaqueIdentifier(gomock.Eq(s.mock.Ctx), gomock.Any()).
-			Return(nil),
-		s.mock.StorageMock.EXPECT().
-			SaveOAuth2ConsentSessionSubject(gomock.Eq(s.mock.Ctx), gomock.Any()).
-			Return(nil),
 	)
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)

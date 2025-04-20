@@ -166,6 +166,16 @@ func OAuth2ConsentPOST(ctx *middlewares.AutheliaCtx) {
 		}
 	}
 
+	if !consent.Subject.Valid {
+		if consent.Subject.UUID, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifierURI(), userSession.Username); err != nil {
+			ctx.Error(fmt.Errorf("unable to determine consent subject for client with id '%s' with consent challenge id '%s': %w", client.GetID(), consent.ChallengeID, err), messageAuthenticationFailed)
+
+			return
+		}
+
+		consent.Subject.Valid = true
+	}
+
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, bodyJSON.Consent); err != nil {
 		ctx.Logger.Errorf("Failed to save the consent session response to the database: %+v", err)
 		ctx.SetJSONError(messageOperationFailed)
@@ -220,14 +230,6 @@ func handleOAuth2ConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, conse
 
 	if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, consent.ClientID); err != nil {
 		ctx.Logger.Errorf("Unable to find related client configuration with name '%s': %v", consent.ClientID, err)
-		ctx.ReplyForbidden()
-
-		return userSession, nil, nil, true
-	}
-
-	if err = verifyOAuth2UserAuthorizedForConsent(ctx, client, userSession, consent, uuid.UUID{}); err != nil {
-		ctx.Logger.Errorf("Could not authorize the user '%s' for the consent session with challenge id '%s' on client with id '%s': %v", userSession.Username, consent.ChallengeID, client.GetID(), err)
-
 		ctx.ReplyForbidden()
 
 		return userSession, nil, nil, true

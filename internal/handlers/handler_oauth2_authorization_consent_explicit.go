@@ -25,7 +25,7 @@ func handleOAuth2AuthorizationConsentModeExplicit(ctx *middlewares.AutheliaCtx, 
 
 	switch len(bytesConsentID) {
 	case 0:
-		return handleOAuth2AuthorizationConsentGenerate(ctx, issuer, client, userSession, subject, rw, r, requester)
+		return handleOAuth2AuthorizationConsentGenerate(ctx, issuer, client, userSession, uuid.Nil, rw, r, requester)
 	default:
 		if consentID, err = uuid.ParseBytes(bytesConsentID); err != nil {
 			ctx.Logger.Errorf(logFmtErrConsentParseChallengeID, requester.GetID(), client.GetID(), client.GetConsentPolicy(), bytesConsentID, err)

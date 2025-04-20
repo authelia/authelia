@@ -458,7 +458,14 @@ const (
 
 	queryFmtUpdateOAuth2ConsentSessionResponse = `
 		UPDATE %s
-		SET authorized = ?, responded_at = CURRENT_TIMESTAMP, granted_scopes = ?, granted_audience = ?, granted_claims = ?, preconfiguration = ?
+		SET
+			subject = ?,
+			authorized = ?,
+			responded_at = CURRENT_TIMESTAMP,
+			granted_scopes = ?,
+			granted_audience = ?,
+			granted_claims = ?,
+			preconfiguration = ?
 		WHERE id = ? AND responded_at IS NULL;`
 
 	queryFmtUpdateOAuth2ConsentSessionGranted = `

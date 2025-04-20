@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"path"
@@ -72,7 +71,7 @@ func handleOAuth2AuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.
 			return nil, true
 		}
 
-		handler = handleOAuth2AuthorizationConsentGenerate
+		return handleOAuth2AuthorizationConsentGenerate(ctx, issuer, client, userSession, uuid.Nil, rw, r, requester)
 	}
 
 	return handler(ctx, issuer, client, userSession, subject, rw, r, requester)
@@ -250,36 +249,4 @@ func handleOAuth2NewConsentSession(subject uuid.UUID, requester oauthelia2.Reque
 	}
 
 	return model.NewOAuth2ConsentSession(subject, requester)
-}
-
-func verifyOAuth2UserAuthorizedForConsent(ctx *middlewares.AutheliaCtx, client oidc.Client, userSession session.UserSession, consent *model.OAuth2ConsentSession, subject uuid.UUID) (err error) {
-	if client == nil {
-		if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, consent.ClientID); err != nil {
-			return fmt.Errorf("failed to retrieve client: %w", err)
-		}
-	}
-
-	if subject == uuid.Nil {
-		if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifierURI(), userSession.Username); err != nil {
-			return fmt.Errorf("failed to lookup subject: %w", err)
-		}
-	}
-
-	if !consent.Subject.Valid {
-		if subject == uuid.Nil {
-			return fmt.Errorf("the consent subject is null for consent session with id '%d' for anonymous user", consent.ID)
-		}
-
-		consent.Subject = model.NullUUID(subject)
-
-		if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionSubject(ctx, consent); err != nil {
-			return fmt.Errorf("failed to update the consent subject: %w", err)
-		}
-	}
-
-	if consent.Subject.UUID != subject {
-		return fmt.Errorf("the consent subject identifier '%s' isn't owned by user '%s' who has a subject identifier of '%s' with sector identifier '%s'", consent.Subject.UUID, userSession.Username, subject, client.GetSectorIdentifierURI())
-	}
-
-	return nil
 }
