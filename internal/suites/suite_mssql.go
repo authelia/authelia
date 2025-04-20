@@ -28,7 +28,7 @@ func init() {
 			return err
 		}
 
-		if err = waitUntilAutheliaIsReady(dockerEnvironment, mysqlSuiteName); err != nil {
+		if err = waitUntilAutheliaIsReady(dockerEnvironment, mssqlSuiteName); err != nil {
 			return err
 		}
 

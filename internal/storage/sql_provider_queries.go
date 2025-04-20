@@ -65,15 +65,15 @@ const (
 
 	queryFmtUpsertPreferred2FAMethodMSSQL = `
 		BEGIN TRY
-		  INSERT INTO %s ([username], [second_factor_method])
-		  VALUES (@p1, @p2);
+			INSERT INTO %s ([username], [second_factor_method])
+			VALUES (@p1, @p2);
 		END TRY
 		BEGIN CATCH
-		  IF ERROR_NUMBER() IN (2601, 2627)
-		    UPDATE %s
-            SET
-              [second_factor_method] = @p2
-            WHERE [username] = @p1;
+			IF ERROR_NUMBER() IN (2601, 2627)
+				UPDATE %s
+				SET
+					[second_factor_method] = @p2
+				WHERE [username] = @p1;
 		END CATCH;`
 )
 
@@ -167,21 +167,21 @@ const (
 
 	queryFmtUpsertTOTPConfigurationMSSQL = `
 		BEGIN TRY
-		  INSERT INTO %s ([created_at], [last_used_at], [username], [issuer], [algorithm], [digits], [period], [secret])
-		  VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8);
+			INSERT INTO %s ([created_at], [last_used_at], [username], [issuer], [algorithm], [digits], [period], [secret])
+			VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8);
 		END TRY
 		BEGIN CATCH
-		  IF ERROR_NUMBER() IN (2601, 2627)
-		    UPDATE %s
-		    SET
-              [created_at] = @p1,
-              [last_used_at] = @p2,
-              [issuer] = @p4,
-              [algorithm] = @p5,
-              [digits] = @p6,
-              [period] = @p7,
-              [secret] = @p8
-            WHERE [username] = @p3;
+			IF ERROR_NUMBER() IN (2601, 2627)
+				UPDATE %s
+				SET
+					[created_at] = @p1,
+					[last_used_at] = @p2,
+					[issuer] = @p4,
+					[algorithm] = @p5,
+					[digits] = @p6,
+					[period] = @p7,
+					[secret] = @p8
+				WHERE [username] = @p3;
 		END CATCH;`
 
 	queryFmtUpdateTOTPConfigRecordSignIn = `
@@ -310,16 +310,16 @@ const (
 
 	queryFmtUpsertDuoDeviceMSSQL = `
 		BEGIN TRY
-		  INSERT INTO %s ([username], [device], [method])
-		  VALUES (@p1, @p2, @p3);
+			INSERT INTO %s ([username], [device], [method])
+			VALUES (@p1, @p2, @p3);
 		END TRY
 		BEGIN CATCH
-		  IF ERROR_NUMBER() IN (2601, 2627)
-		    UPDATE %s
-		    SET
-              [device] = @p2,
-              [method] = @p3
-            WHERE [username] = @p1;
+			IF ERROR_NUMBER() IN (2601, 2627)
+				UPDATE %s
+				SET
+					[device] = @p2,
+					[method] = @p3
+				WHERE [username] = @p1;
 		END CATCH;`
 
 	queryFmtDeleteDuoDevice = `
@@ -500,17 +500,17 @@ const (
 
 	queryFmtUpsertCachedDataMSSQL = `
 		BEGIN TRY
-		  INSERT INTO %s ([name], [updated_at], [encrypted], [value])
-          VALUES (@p1, @p2, @p3, @p4);
+			INSERT INTO %s ([name], [updated_at], [encrypted], [value])
+			VALUES (@p1, @p2, @p3, @p4);
 		END TRY
 		BEGIN CATCH
-		  IF ERROR_NUMBER() IN (2601, 2627)
-		    UPDATE %s
-            SET
-              [updated_at] = @p2,
-              [encrypted] = @p3,
-              [value] = @p4,
-			WHERE [name] = @p1;
+			IF ERROR_NUMBER() IN (2601, 2627)
+				UPDATE %s
+				SET
+					[updated_at] = @p2,
+					[encrypted] = @p3,
+					[value] = @p4
+				WHERE [name] = @p1;
 		END CATCH;`
 
 	queryFmtSelectCachedData = `
@@ -555,15 +555,15 @@ const (
 
 	queryFmtUpsertEncryptionValueMSSQL = `
 		BEGIN TRY
-		  INSERT INTO %s ([name], [value])
-          VALUES (@p1, @p2);
+			INSERT INTO %s ([name], [value])
+			VALUES (@p1, @p2);
 		END TRY
 		BEGIN CATCH
-		  IF ERROR_NUMBER() IN (2601, 2627)
-		    UPDATE %s
-            SET
-              [value] = @p2
-			WHERE [name] = @p1;
+			IF ERROR_NUMBER() IN (2601, 2627)
+				UPDATE %s
+				SET
+					[value] = @p2
+				WHERE [name] = @p1;
 		END CATCH;`
 
 	queryFmtSelectEncryptionEncryptedData = `
@@ -781,15 +781,15 @@ const (
 
 	queryFmtUpsertOAuth2BlacklistedJTIMSSQL = `
 		BEGIN TRY
-		  INSERT INTO %s ([signature], [expires_at])
-          VALUES (@p1, @p2);
+			INSERT INTO %s ([signature], [expires_at])
+			VALUES (@p1, @p2);
 		END TRY
 		BEGIN CATCH
-		  IF ERROR_NUMBER() IN (2601, 2627)
-		    UPDATE %s
-            SET
-              [expires_at] = @p2
-			WHERE [signature] = @p1;
+			IF ERROR_NUMBER() IN (2601, 2627)
+				UPDATE %s
+				SET
+					[expires_at] = @p2
+				WHERE [signature] = @p1;
 		END CATCH;`
 
 	queryFmtSelectOAuth2SessionEncryptedData = `
