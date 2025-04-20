@@ -1,5 +1,5 @@
 ---
-certificates_directory: '/certs/'
+certificates_directory: ''
 
 server:
   address: 'tcp://:9091'

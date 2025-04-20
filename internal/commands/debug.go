@@ -98,7 +98,15 @@ func (ctx *CmdCtx) DebugTLSRunE(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	if conn, err = tls.Dial(address.Network(), address.NetworkAddress(), config); err != nil {
-		return fmt.Errorf("failed to connect to %s: %w", address.NetworkAddress(), err)
+		switch errStr := err.Error(); {
+		case strings.Contains(errStr, "first record does not look like a TLS handshake"):
+			_, _ = fmt.Fprintf(os.Stdout, "General Information:\n")
+			_, _ = fmt.Fprintf(os.Stdout, "\tFailure: Did not receive a TLS handshake from %s\n", address.NetworkAddress())
+
+			return nil
+		default:
+			return fmt.Errorf("failed to connect to '%s' with unknown error: %w", address.NetworkAddress(), err)
+		}
 	}
 
 	_, _ = fmt.Fprintf(os.Stdout, "General Information:\n")
@@ -174,9 +182,9 @@ func (ctx *CmdCtx) DebugTLSRunE(cmd *cobra.Command, args []string) (err error) {
 
 		if err != nil {
 			var (
-				errUA *x509.UnknownAuthorityError
-				errH  *x509.HostnameError
-				errCI *x509.CertificateInvalidError
+				errUA x509.UnknownAuthorityError
+				errH  x509.HostnameError
+				errCI x509.CertificateInvalidError
 			)
 
 			switch {
@@ -197,14 +205,14 @@ func (ctx *CmdCtx) DebugTLSRunE(cmd *cobra.Command, args []string) (err error) {
 			if err = cert.VerifyHostname(hostname); err != nil {
 				validHostname = false
 
-				_, _ = fmt.Fprintf(os.Stdout, "\t\tHostname Verification Error: %v\n", err)
+				_, _ = fmt.Fprintf(os.Stdout, "\t\tHostname Verification: fail\n\t\tHostname Verification Error: %v\n", err)
 			} else {
 				_, _ = fmt.Fprintf(os.Stdout, "\t\tHostname Verification: pass\n")
 			}
 		}
 	}
 
-	_, _ = fmt.Fprintf(os.Stdout, "\n\tTrusted: %t\n", valid)
+	_, _ = fmt.Fprintf(os.Stdout, "\n\tCertificate Trusted: %t\n\tCertificate Matches Hostname: %t\n", valid, validHostname)
 
 	c := struct {
 		TLS schema.TLS `yaml:"tls"`

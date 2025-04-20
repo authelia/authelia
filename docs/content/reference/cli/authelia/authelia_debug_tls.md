@@ -37,7 +37,8 @@ authelia debug tls tcp://smtp.example.com:465
 ### Options
 
 ```
-  -h, --help   help for tls
+  -h, --help              help for tls
+      --hostname string   overrides the hostname to use for the TLS connection which is usually extracted from the address
 ```
 
 ### Options inherited from parent commands
