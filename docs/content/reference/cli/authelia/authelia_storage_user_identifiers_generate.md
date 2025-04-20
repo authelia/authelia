@@ -35,7 +35,7 @@ authelia storage user identifiers generate --users john,mary
 authelia storage user identifiers generate --users john,mary --services openid
 authelia storage user identifiers generate --users john,mary --services openid --sectors=",example.com,test.com"
 authelia storage user identifiers generate --users john,mary --services openid --sectors=",example.com,test.com" --config config.yml
-authelia storage user identifiers generate --users john,mary --services openid --sectors=",example.com,test.com" --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
+authelia storage user identifiers generate --users john,mary --services openid --sectors=",example.com,test.com" --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw
 ```
 
 ### Options

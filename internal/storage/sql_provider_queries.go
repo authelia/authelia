@@ -30,7 +30,7 @@ const (
 	queryPostgreSelectExistingTables = `
 		SELECT table_name
 		FROM information_schema.tables
-		WHERE table_type = 'BASE TABLE' AND table_schema = $1;`
+		WHERE table_type = 'BASE TABLE' AND table_schema = '%s';`
 
 	querySQLiteSelectExistingTables = `
 		SELECT name
@@ -58,6 +58,19 @@ const (
 		VALUES ($1, $2)
 			ON CONFLICT (username)
 			DO UPDATE SET second_factor_method = $2;`
+
+	queryFmtUpsertPreferred2FAMethodMSSQL = `
+		BEGIN TRY
+		  INSERT INTO %s ([username], [second_factor_method])
+		  VALUES (@p1, @p2);
+		END TRY
+		BEGIN CATCH
+		  IF ERROR_NUMBER() IN (2601, 2627)
+		    UPDATE %s
+            SET
+              [second_factor_method] = @p2
+            WHERE [username] = @p1;
+		END CATCH;`
 )
 
 const (
@@ -147,6 +160,25 @@ const (
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 			ON CONFLICT (username)
 			DO UPDATE SET created_at = $1, last_used_at = $2, issuer = $4, algorithm = $5, digits = $6, period = $7, secret = $8;`
+
+	queryFmtUpsertTOTPConfigurationMSSQL = `
+		BEGIN TRY
+		  INSERT INTO %s ([created_at], [last_used_at], [username], [issuer], [algorithm], [digits], [period], [secret])
+		  VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8);
+		END TRY
+		BEGIN CATCH
+		  IF ERROR_NUMBER() IN (2601, 2627)
+		    UPDATE %s
+		    SET
+              [created_at] = @p1,
+              [last_used_at] = @p2,
+              [issuer] = @p4,
+              [algorithm] = @p5,
+              [digits] = @p6,
+              [period] = @p7,
+              [secret] = @p8
+            WHERE [username] = @p3;
+		END CATCH;`
 
 	queryFmtUpdateTOTPConfigRecordSignIn = `
 		UPDATE %s
@@ -271,6 +303,20 @@ const (
 			ON CONFLICT (username)
 			DO UPDATE SET device = $2, method = $3;`
 
+	queryFmtUpsertDuoDeviceMSSQL = `
+		BEGIN TRY
+		  INSERT INTO %s ([username], [device], [method])
+		  VALUES (@p1, @p2, @p3);
+		END TRY
+		BEGIN CATCH
+		  IF ERROR_NUMBER() IN (2601, 2627)
+		    UPDATE %s
+		    SET
+              [device] = @p2,
+              [method] = @p3
+            WHERE [username] = @p1;
+		END CATCH;`
+
 	queryFmtDeleteDuoDevice = `
 		DELETE
 		FROM %s
@@ -381,7 +427,22 @@ const (
 		INSERT INTO %s (updated_at, name, encrypted, value)
 		VALUES (CURRENT_TIMESTAMP, $1, $2, $3)
 			ON CONFLICT (name)
-			DO UPDATE SET encrypted = $2, value = $3;`
+			DO UPDATE SET updated_at = CURRENT_TIMESTAMP, encrypted = $2, value = $3;`
+
+	queryFmtUpsertCachedDataMSSQL = `
+		BEGIN TRY
+		  INSERT INTO %s ([updated_at], [name], [encrypted], [value])
+          VALUES (CURRENT_TIMESTAMP, @p1, @p2, @p3);
+		END TRY
+		BEGIN CATCH
+		  IF ERROR_NUMBER() IN (2601, 2627)
+		    UPDATE %s
+            SET
+              [updated_at] = CURRENT_TIMESTAMP,
+              [encrypted] = @p2,
+              [value] = @p3,
+			WHERE [name] = @p1;
+		END CATCH;`
 
 	queryFmtSelectCachedData = `
 		SELECT id, created_at, updated_at, name, encrypted, value
@@ -421,14 +482,15 @@ const (
 
 	queryFmtUpsertEncryptionValueMSSQL = `
 		BEGIN TRY
-		  INSERT INTO %s ([name], [value]) VALUES (@p1, @p2);
+		  INSERT INTO %s ([name], [value])
+          VALUES (@p1, @p2);
 		END TRY
 		BEGIN CATCH
-		  -- ignore duplicate key errors, throw the rest.
 		  IF ERROR_NUMBER() IN (2601, 2627)
-			UPDATE %s
-			   SET [value] = @p2
-			 WHERE [name] = @p1;
+		    UPDATE %s
+            SET
+              [value] = @p2
+			WHERE [name] = @p1;
 		END CATCH;`
 
 	queryFmtSelectEncryptionEncryptedData = `
@@ -575,6 +637,19 @@ const (
 		VALUES ($1, $2)
 			ON CONFLICT (signature)
 			DO UPDATE SET expires_at = $2;`
+
+	queryFmtUpsertOAuth2BlacklistedJTIMSSQL = `
+		BEGIN TRY
+		  INSERT INTO %s ([signature], [expires_at])
+          VALUES (@p1, @p2);
+		END TRY
+		BEGIN CATCH
+		  IF ERROR_NUMBER() IN (2601, 2627)
+		    UPDATE %s
+            SET
+              [expires_at] = @p2
+			WHERE [signature] = @p1;
+		END CATCH;`
 
 	queryFmtSelectOAuth2SessionEncryptedData = `
 		SELECT id, session_data

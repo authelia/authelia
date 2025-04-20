@@ -34,7 +34,7 @@ authelia storage user identifiers export [flags]
 authelia storage user identifiers export
 authelia storage user identifiers export --file export.yml
 authelia storage user identifiers export --file export.yml --config config.yml
-authelia storage user identifiers export --file export.yml --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
+authelia storage user identifiers export --file export.yml --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw
 ```
 
 ### Options

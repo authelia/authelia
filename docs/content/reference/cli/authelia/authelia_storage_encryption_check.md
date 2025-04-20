@@ -34,7 +34,7 @@ authelia storage encryption check [flags]
 authelia storage encryption check
 authelia storage encryption check --verbose
 authelia storage encryption check --verbose --config config.yml
-authelia storage encryption check --verbose --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
+authelia storage encryption check --verbose --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw
 ```
 
 ### Options

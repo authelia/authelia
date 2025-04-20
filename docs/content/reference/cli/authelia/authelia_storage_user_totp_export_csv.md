@@ -33,7 +33,7 @@ authelia storage user totp export csv [flags]
 ```
 authelia storage user totp export csv --file users.csv
 authelia storage user totp export csv --config config.yml
-authelia storage user totp export csv --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
+authelia storage user totp export csv --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw
 ```
 
 ### Options

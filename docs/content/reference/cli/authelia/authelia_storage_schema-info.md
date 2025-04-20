@@ -33,7 +33,7 @@ authelia storage schema-info [flags]
 ```
 authelia storage schema-info
 authelia storage schema-info --config config.yml
-authelia storage schema-info --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
+authelia storage schema-info --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw
 ```
 
 ### Options

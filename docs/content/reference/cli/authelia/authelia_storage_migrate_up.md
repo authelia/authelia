@@ -35,7 +35,7 @@ authelia storage migrate up [flags]
 authelia storage migrate up
 authelia storage migrate up --config config.yml
 authelia storage migrate up --target 20 --config config.yml
-authelia storage migrate up --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw
+authelia storage migrate up --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw
 ```
 
 ### Options

@@ -33,7 +33,7 @@ authelia storage user totp import <filename> [flags]
 ```
 authelia storage user totp import authelia.export.totp.yml
 authelia storage user totp import --config config.yml authelia.export.totp.yml
-authelia storage user totp import --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.host postgres --postgres.password autheliapw authelia.export.totp.yml
+authelia storage user totp import --encryption-key b3453fde-ecc2-4a1f-9422-2707ddbed495 --postgres.address tcp://postgres:5432 --postgres.password autheliapw authelia.export.totp.yml
 ```
 
 ### Options

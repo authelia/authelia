@@ -50,7 +50,7 @@ func latestMigrationVersion(provider string) (version int, err error) {
 // loadMigrations scans the migrations fs and loads the appropriate migrations for a given providerName, prior and
 // target versions. If the target version is -1 this indicates the latest version. If the target version is 0
 // this indicates the database zero state.
-func loadMigrations(provider, schema string, prior, target int) (migrations []model.SchemaMigration, err error) {
+func loadMigrations(provider string, prior, target int) (migrations []model.SchemaMigration, err error) {
 	if prior == target {
 		return nil, ErrMigrateCurrentVersionSameAsTarget
 	}

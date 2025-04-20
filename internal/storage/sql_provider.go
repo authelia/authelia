@@ -37,14 +37,13 @@ func NewProvider(config *schema.Configuration, caCertPool *x509.CertPool) (provi
 }
 
 // NewSQLProvider generates a generic SQLProvider to be used with other SQL provider NewUp's.
-func NewSQLProvider(config *schema.Configuration, name, driverName, schemaName, dataSourceName string) (provider SQLProvider) {
+func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceName string) (provider SQLProvider) {
 	db, err := sqlx.Open(driverName, dataSourceName)
 
 	provider = SQLProvider{
 		db:         db,
 		name:       name,
 		driverName: driverName,
-		schema:     schemaName,
 		config:     config,
 		errOpen:    err,
 
@@ -205,7 +204,6 @@ type SQLProvider struct {
 
 	name       string
 	driverName string
-	schema     string
 	config     *schema.Configuration
 	errOpen    error
 

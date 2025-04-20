@@ -20,13 +20,17 @@ type MySQLProvider struct {
 // NewMySQLProvider a MySQL provider.
 func NewMySQLProvider(config *schema.Configuration, caCertPool *x509.CertPool) (provider *MySQLProvider) {
 	provider = &MySQLProvider{
-		SQLProvider: NewSQLProvider(config, providerMySQL, providerMySQL, "", dsnMySQL(config.Storage.MySQL, caCertPool)),
+		SQLProvider: NewSQLProvider(config, providerMySQL, providerMySQL, dsnMySQL(config.Storage.MySQL, caCertPool)),
 	}
 
 	// All providers have differing SELECT existing table statements.
 	provider.sqlSelectExistingTables = queryMySQLSelectExistingTables
 
-	// Specific alterations to this provider.
+	/*
+		Specific query adjustments for this provider.
+	*/
+
+	// MySQL uses unique syntax for renaming tables.
 	provider.sqlFmtRenameTable = queryFmtMySQLRenameTable
 
 	return provider

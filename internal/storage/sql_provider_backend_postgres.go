@@ -26,24 +26,29 @@ type PostgreSQLProvider struct {
 // NewPostgreSQLProvider a PostgreSQL provider.
 func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPool) (provider *PostgreSQLProvider) {
 	provider = &PostgreSQLProvider{
-		SQLProvider: NewSQLProvider(config, providerPostgres, "pgx", config.Storage.PostgreSQL.Schema, dsnPostgreSQL(config.Storage.PostgreSQL, caCertPool)),
+		SQLProvider: NewSQLProvider(config, providerPostgres, "pgx", dsnPostgreSQL(config.Storage.PostgreSQL, caCertPool)),
 	}
 
 	// All providers have differing SELECT existing table statements.
-	provider.sqlSelectExistingTables = queryPostgreSelectExistingTables
+	provider.sqlSelectExistingTables = fmt.Sprintf(queryPostgreSelectExistingTables, config.Storage.PostgreSQL.Schema)
 
-	// Specific alterations to this provider.
+	// PostgreSQL requires rebinding of any query that contains a '?' placeholder to use the '$#' notation placeholders.
+	provider.rebind()
+
+	/*
+		Specific query adjustments for this provider.
+	*/
+
 	// PostgreSQL doesn't have a UPSERT statement but has an ON CONFLICT operation instead.
 	provider.sqlUpsertDuoDevice = fmt.Sprintf(queryFmtUpsertDuoDevicePostgreSQL, tableDuoDevices)
 	provider.sqlUpsertTOTPConfig = fmt.Sprintf(queryFmtUpsertTOTPConfigurationPostgreSQL, tableTOTPConfigurations)
 	provider.sqlUpsertPreferred2FAMethod = fmt.Sprintf(queryFmtUpsertPreferred2FAMethodPostgreSQL, tableUserPreferences)
 	provider.sqlUpsertEncryptionValue = fmt.Sprintf(queryFmtUpsertEncryptionValuePostgreSQL, tableEncryption)
 	provider.sqlUpsertOAuth2BlacklistedJTI = fmt.Sprintf(queryFmtUpsertOAuth2BlacklistedJTIPostgreSQL, tableOAuth2BlacklistedJTI)
-	provider.sqlInsertOAuth2ConsentPreConfiguration = fmt.Sprintf(queryFmtInsertOAuth2ConsentPreConfigurationPostgreSQL, tableOAuth2ConsentPreConfiguration)
 	provider.sqlUpsertCachedData = fmt.Sprintf(queryFmtUpsertCachedDataPostgreSQL, tableCachedData)
 
-	// PostgreSQL requires rebinding of any query that contains a '?' placeholder to use the '$#' notation placeholders.
-	provider.rebind()
+	// PostgreSQL doesn't natively return the inserted record id.
+	provider.sqlInsertOAuth2ConsentPreConfiguration = fmt.Sprintf(queryFmtInsertOAuth2ConsentPreConfigurationPostgreSQL, tableOAuth2ConsentPreConfiguration)
 
 	return provider
 }

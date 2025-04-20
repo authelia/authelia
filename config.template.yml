@@ -995,7 +995,8 @@ session:
 ##
 ## Storage Provider Configuration
 ##
-## The available providers are: `local`, `mysql`, `postgres`. You must use one and only one of these providers.
+## The available providers are: `local`, `mysql`, `postgres`, and 'mssql'.
+## You must use one and only one of these providers.
 # storage:
   ## The encryption key that is used to encrypt sensitive information in the database. Must be a string with a minimum
   ## length of 20. Please see the docs if you configure this with an undesirable key and need to change it, you MUST use
@@ -1129,6 +1130,69 @@ session:
       ## The server subject name to check the servers certificate against during the validation process.
       ## This option is not required if the certificate has a SAN which matches the address options hostname.
       # server_name: 'postgres.example.com'
+
+      ## Skip verifying the server certificate entirely. In preference to setting this we strongly recommend you add the
+      ## certificate or the certificate of the authority signing the certificate to the certificates directory which is
+      ## defined by the `certificates_directory` option at the top of the configuration.
+      ## It's important to note the public key should be added to the directory, not the private key.
+      ## This option is strongly discouraged but may be useful in some self-signed situations where validation is not
+      ## important to the administrator.
+      # skip_verify: false
+
+      ## Minimum TLS version for the connection.
+      # minimum_version: 'TLS1.2'
+
+      ## Maximum TLS version for the connection.
+      # maximum_version: 'TLS1.3'
+
+      ## The certificate chain used with the private_key if the server requests TLS Client Authentication
+      ## i.e. Mutual TLS.
+      # certificate_chain: |
+        # -----BEGIN CERTIFICATE-----
+        # ...
+        # -----END CERTIFICATE-----
+        # -----BEGIN CERTIFICATE-----
+        # ...
+        # -----END CERTIFICATE-----
+
+      ## The private key used with the certificate_chain if the server requests TLS Client Authentication
+      ## i.e. Mutual TLS.
+      # private_key: |
+        # -----BEGIN PRIVATE KEY-----
+        # ...
+        # -----END PRIVATE KEY-----
+
+  ##
+  ## Microsoft SQL (Storage Provider)
+  ##
+  # mssql:
+    ## The address of the Microsoft SQL server to connect to in the address common syntax.
+    ## Format: [<scheme>://]<hostname>[:<port>].
+    ## Square brackets indicate optional portions of the format. Scheme must be 'tcp', 'tcp4', 'tcp6', or 'unix`.
+    ## The default scheme is 'unix' if the address is an absolute path otherwise it's 'tcp'. The default port is '1433'.
+    # address: 'tcp://127.0.0.1:1433'
+
+    ## The database name to use.
+    # database: 'authelia'
+
+    ## The instance name to use.
+    # instance: ''
+
+    ## The username used for SQL authentication.
+    # username: 'authelia'
+
+    ## The password used for SQL authentication.
+    ## Can also be set using a secret: https://www.authelia.com/c/secrets
+    # password: 'mypassword'
+
+    ## The connection timeout in the duration common syntax.
+    # timeout: '5 seconds'
+
+    ## Microsoft SQL TLS settings. Configuring this requires TLS.
+    # tls:
+      ## The server subject name to check the servers certificate against during the validation process.
+      ## This option is not required if the certificate has a SAN which matches the address options hostname.
+      # server_name: 'mssql.example.com'
 
       ## Skip verifying the server certificate entirely. In preference to setting this we strongly recommend you add the
       ## certificate or the certificate of the authority signing the certificate to the certificates directory which is

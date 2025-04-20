@@ -19,24 +19,26 @@ type MSSQLProvider struct {
 // NewMSSQLProvider a MySQL provider.
 func NewMSSQLProvider(config *schema.Configuration, caCertPool *x509.CertPool) (provider *MSSQLProvider) {
 	provider = &MSSQLProvider{
-		SQLProvider: NewSQLProvider(config, providerMSSQL, "sqlserver", "", dsnMSSQL(config.Storage.MSSQL, caCertPool)),
+		SQLProvider: NewSQLProvider(config, providerMSSQL, "sqlserver", dsnMSSQL(config.Storage.MSSQL, caCertPool)),
 	}
 
 	// All providers have differing SELECT existing table statements.
 	provider.sqlSelectExistingTables = queryMSSQLSelectExistingTables
 
-	// Specific alterations to this provider.
-	// MSSQL doesn't have a UPSERT statement but has an ON DUPLICATE KEY operation instead.
-	provider.sqlUpsertDuoDevice = fmt.Sprintf(queryFmtUpsertDuoDevicePostgreSQL, tableDuoDevices)
-	provider.sqlUpsertTOTPConfig = fmt.Sprintf(queryFmtUpsertTOTPConfigurationPostgreSQL, tableTOTPConfigurations)
-	provider.sqlUpsertPreferred2FAMethod = fmt.Sprintf(queryFmtUpsertPreferred2FAMethodPostgreSQL, tableUserPreferences)
-	provider.sqlUpsertEncryptionValue = fmt.Sprintf(queryFmtUpsertEncryptionValueMSSQL, tableEncryption, tableEncryption)
-	provider.sqlUpsertOAuth2BlacklistedJTI = fmt.Sprintf(queryFmtUpsertOAuth2BlacklistedJTIPostgreSQL, tableOAuth2BlacklistedJTI)
-	provider.sqlInsertOAuth2ConsentPreConfiguration = fmt.Sprintf(queryFmtInsertOAuth2ConsentPreConfigurationPostgreSQL, tableOAuth2ConsentPreConfiguration)
-	provider.sqlUpsertCachedData = fmt.Sprintf(queryFmtUpsertCachedDataPostgreSQL, tableCachedData)
-
-	// Microsoft SQL requires rebinding of any query that contains a '?' placeholder.
+	// Microsoft SQL requires rebinding of any query that contains a '?' placeholder to use the '@p#' notation placeholders.
 	provider.rebind()
+
+	/*
+		Specific query adjustments for this provider.
+	*/
+
+	// Microsoft SQL doesn't have a UPSERT statement but has TRY/CATCH logic instead.
+	provider.sqlUpsertDuoDevice = fmt.Sprintf(queryFmtUpsertDuoDeviceMSSQL, tableDuoDevices, tableDuoDevices)
+	provider.sqlUpsertTOTPConfig = fmt.Sprintf(queryFmtUpsertTOTPConfigurationMSSQL, tableTOTPConfigurations, tableTOTPConfigurations)
+	provider.sqlUpsertPreferred2FAMethod = fmt.Sprintf(queryFmtUpsertPreferred2FAMethodMSSQL, tableUserPreferences, tableUserPreferences)
+	provider.sqlUpsertEncryptionValue = fmt.Sprintf(queryFmtUpsertEncryptionValueMSSQL, tableEncryption, tableEncryption)
+	provider.sqlUpsertOAuth2BlacklistedJTI = fmt.Sprintf(queryFmtUpsertOAuth2BlacklistedJTIMSSQL, tableOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI)
+	provider.sqlUpsertCachedData = fmt.Sprintf(queryFmtUpsertCachedDataMSSQL, tableCachedData, tableCachedData)
 
 	return provider
 }
