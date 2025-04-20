@@ -1,8 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Authelia
+//
+// SPDX-License-Identifier: Apache-2.0
+
 package storage
 
 import (
 	"crypto/x509"
 	"fmt"
+	"regexp"
 
 	_ "github.com/microsoft/go-mssqldb"
 	"github.com/microsoft/go-mssqldb/msdsn"
@@ -11,12 +16,26 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-// MSSQLProvider is a MySQL provider.
+var (
+	reMSSQLBooleanTrue  = regexp.MustCompile(`\bTRUE\b`)
+	reMSSQLBooleanFalse = regexp.MustCompile(`\bFALSE\b`)
+	reMSSQLLength       = regexp.MustCompile(`\bLENGTH\(`)
+)
+
+func queryTransformMSSQLBitValues(query string) string {
+	return reMSSQLBooleanFalse.ReplaceAllString(reMSSQLBooleanTrue.ReplaceAllString(query, "1"), "0")
+}
+
+func queryTransformMSSQLLength(query string) string {
+	return reMSSQLLength.ReplaceAllString(query, "DATALENGTH(")
+}
+
+// MSSQLProvider is a Microsoft SQL provider.
 type MSSQLProvider struct {
 	SQLProvider
 }
 
-// NewMSSQLProvider a MySQL provider.
+// NewMSSQLProvider a Microsoft SQL provider.
 func NewMSSQLProvider(config *schema.Configuration, caCertPool *x509.CertPool) (provider *MSSQLProvider, err error) {
 	var p SQLProvider
 
@@ -32,7 +51,7 @@ func NewMSSQLProvider(config *schema.Configuration, caCertPool *x509.CertPool) (
 	provider.sqlSelectExistingTables = queryMSSQLSelectExistingTables
 
 	// Microsoft SQL requires rebinding of any query that contains a '?' placeholder to use the '@p#' notation placeholders.
-	provider.rebind()
+	provider.rebind(queryTransformMSSQLBitValues, queryTransformMSSQLLength)
 
 	/*
 		Specific query adjustments for this provider.
@@ -45,6 +64,7 @@ func NewMSSQLProvider(config *schema.Configuration, caCertPool *x509.CertPool) (
 	provider.sqlUpsertEncryptionValue = fmt.Sprintf(queryFmtUpsertEncryptionValueMSSQL, tableEncryption, tableEncryption)
 	provider.sqlUpsertOAuth2BlacklistedJTI = fmt.Sprintf(queryFmtUpsertOAuth2BlacklistedJTIMSSQL, tableOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI)
 	provider.sqlUpsertCachedData = fmt.Sprintf(queryFmtUpsertCachedDataMSSQL, tableCachedData, tableCachedData)
+	provider.sqlUpsertSession = fmt.Sprintf(queryFmtUpsertSessionMSSQL, tableSession)
 
 	return provider, nil
 }

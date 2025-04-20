@@ -447,6 +447,24 @@ const (
 			DO UPDATE SET public_id = $3, username = $4, expiration = $5, data = $6
 			WHERE LENGTH(%[1]s.data) > 0;`
 
+	queryFmtUpsertSessionMSSQL = `
+		BEGIN TRY
+			INSERT INTO %[1]s ([issuer], [signature], [public_id], [username], [expiration], [data])
+			VALUES (@p1, @p2, @p3, @p4, @p5, @p6);
+		END TRY
+		BEGIN CATCH
+			IF ERROR_NUMBER() IN (2601, 2627) AND EXISTS (SELECT 1 FROM %[1]s WHERE [issuer] = @p1 AND [signature] = @p2)
+				UPDATE %[1]s
+				SET
+					[public_id] = @p3,
+					[username] = @p4,
+					[expiration] = @p5,
+					[data] = @p6
+				WHERE [issuer] = @p1 AND [signature] = @p2 AND DATALENGTH([data]) > 0;
+			ELSE
+				THROW;
+		END CATCH;`
+
 	queryFmtSelectSession = `
 		SELECT signature, data
 		FROM %s
