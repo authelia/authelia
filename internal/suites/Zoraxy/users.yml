@@ -1,0 +1,28 @@
+users:
+    bob:
+        password: $6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
+        displayname: Bob Dylan
+        email: bob.dylan@authelia.com
+        groups:
+            - dev
+        disabled: false
+    harry:
+        password: $6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
+        displayname: Harry Potter
+        email: harry.potter@authelia.com
+        groups: []
+        disabled: false
+    james:
+        password: $6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
+        displayname: James Dean
+        email: james.dean@authelia.com
+        groups: []
+        disabled: false
+    john:
+        password: $argon2id$v=19$m=65536,t=3,p=4$iXZMAhHdjgNaOEZYErSQNA$tDz6aVwWp80xfuTEFOaAOnnpKdu1qn3MR99zP86cyCo
+        displayname: John Doe
+        email: john.doe@authelia.com
+        groups:
+            - admins
+            - dev
+        disabled: false

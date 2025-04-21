@@ -1,0 +1,9 @@
+---
+services:
+  authelia-backend:
+    volumes:
+      - './Zoraxy/configuration.yml:/config/configuration.yml'
+      - './Zoraxy/users.yml:/config/users.yml'
+      - './common/pki:/pki'
+      - './common/pki/public.crt:/certs/public.crt'
+...
