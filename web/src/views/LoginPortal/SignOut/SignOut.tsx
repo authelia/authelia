@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from "react";
 
 import { Theme, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import { Navigate } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
 
 import { IndexRoute } from "@constants/Routes";
@@ -11,6 +10,7 @@ import { useIsMountedRef } from "@hooks/Mounted";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useQueryParam } from "@hooks/QueryParam";
 import { useRedirector } from "@hooks/Redirector";
+import { useRouterNavigate } from "@hooks/RouterNavigate";
 import MinimalLayout from "@layouts/MinimalLayout";
 import { signOut } from "@services/SignOut";
 
@@ -22,6 +22,7 @@ const SignOut = function () {
     const { createErrorNotification } = useNotifications();
     const redirectionURL = useQueryParam(RedirectionURL);
     const redirector = useRedirector();
+    const navigate = useRouterNavigate();
     const [timedOut, setTimedOut] = useState(false);
     const [safeRedirect, setSafeRedirect] = useState(false);
 
@@ -49,9 +50,11 @@ const SignOut = function () {
 
     if (timedOut) {
         if (redirectionURL && safeRedirect) {
+            console.log("Redirecting to safe target URL: " + redirectionURL);
             redirector(redirectionURL);
         } else {
-            return <Navigate to={IndexRoute} />;
+            console.log("Redirecting to index route");
+            navigate(IndexRoute);
         }
     }
 

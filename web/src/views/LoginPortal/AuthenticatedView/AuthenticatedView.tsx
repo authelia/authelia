@@ -3,10 +3,10 @@ import React from "react";
 import { Button, Theme } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
 
 import { LogoutRoute as SignOutRoute } from "@constants/Routes";
+import { useRouterNavigate } from "@hooks/RouterNavigate";
 import MinimalLayout from "@layouts/MinimalLayout";
 import { UserInfo } from "@models/UserInfo";
 import Authenticated from "@views/LoginPortal/Authenticated";
@@ -18,7 +18,7 @@ export interface Props {
 const AuthenticatedView = function (props: Props) {
     const { t: translate } = useTranslation();
 
-    const navigate = useNavigate();
+    const navigate = useRouterNavigate();
 
     const { classes } = useStyles();
 

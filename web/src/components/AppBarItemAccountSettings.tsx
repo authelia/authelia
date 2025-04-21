@@ -3,9 +3,9 @@ import React, { Fragment, useState } from "react";
 import { Logout, Settings } from "@mui/icons-material";
 import { Avatar, Box, Divider, IconButton, ListItemIcon, Menu, MenuItem, Tooltip } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 
 import { LogoutRoute, SettingsRoute } from "@constants/Routes";
+import { useRouterNavigate } from "@hooks/RouterNavigate";
 import { UserInfo } from "@models/UserInfo";
 
 export interface Props {
@@ -17,18 +17,18 @@ const AppBarItemAccountSettings = function (props: Props) {
 
     const [elementAccountSettings, setElementAccountSettings] = useState<null | HTMLElement>(null);
 
-    const navigate = useNavigate();
+    const navigate = useRouterNavigate();
 
     const handleSettingsClick = () => {
         handleAccountSettingsClose();
 
-        navigate({ pathname: SettingsRoute });
+        navigate(SettingsRoute);
     };
 
     const handleLogoutClick = () => {
         handleAccountSettingsClose();
 
-        navigate({ pathname: LogoutRoute });
+        navigate(LogoutRoute);
     };
 
     const open = Boolean(elementAccountSettings);

@@ -4,7 +4,7 @@ import { Box, Button, Theme } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { browserSupportsWebAuthn } from "@simplewebauthn/browser";
 import { useTranslation } from "react-i18next";
-import { Route, Routes, useNavigate } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
 
 import {
@@ -18,6 +18,7 @@ import {
 } from "@constants/Routes";
 import { useLocalStorageMethodContext } from "@contexts/LocalStorageMethodContext";
 import { useNotifications } from "@hooks/NotificationsContext";
+import { useRouterNavigate } from "@hooks/RouterNavigate";
 import LoginLayout from "@layouts/LoginLayout";
 import { Configuration } from "@models/Configuration";
 import { SecondFactorMethod } from "@models/Methods";
@@ -46,7 +47,7 @@ const SecondFactorForm = function (props: Props) {
     const { t: translate } = useTranslation();
     const { classes } = useStyles();
 
-    const navigate = useNavigate();
+    const navigate = useRouterNavigate();
     const [methodSelectionOpen, setMethodSelectionOpen] = useState(false);
     const [stateWebAuthnSupported, setStateWebAuthnSupported] = useState(false);
     const { createErrorNotification } = useNotifications();
