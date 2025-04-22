@@ -49,6 +49,11 @@ authelia storage user totp export csv --encryption-key b3453fde-ecc2-4a1f-9422-2
   -c, --config strings                        configuration files or directories to load, for more information run 'authelia -h authelia config' (default [configuration.yml])
       --config.experimental.filters strings   list of filters to apply to all configuration files, for more information run 'authelia -h authelia filters'
       --encryption-key string                 the storage encryption key to use
+      --mssql.address string                  the MSSQL address (default "tcp://127.0.0.1:1433")
+      --mssql.database string                 the MSSQL database name (default "authelia")
+      --mssql.instance string                 the MSSQL instance name
+      --mssql.password string                 the MSSQL password
+      --mssql.username string                 the MSSQL username (default "authelia")
       --mysql.address string                  the MySQL server address (default "tcp://127.0.0.1:3306")
       --mysql.database string                 the MySQL database name (default "authelia")
       --mysql.password string                 the MySQL password

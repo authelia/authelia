@@ -22,10 +22,15 @@ const (
 		FROM information_schema.tables
 		WHERE table_type = 'BASE TABLE' AND table_schema = database();`
 
+	queryMSSQLSelectExistingTables = `
+		SELECT TABLE_NAME
+		FROM INFORMATION_SCHEMA.TABLES
+		WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = SCHEMA_NAME();`
+
 	queryPostgreSelectExistingTables = `
 		SELECT table_name
 		FROM information_schema.tables
-		WHERE table_type = 'BASE TABLE' AND table_schema = $1;`
+		WHERE table_type = 'BASE TABLE' AND table_schema = '%s';`
 
 	querySQLiteSelectExistingTables = `
 		SELECT name
@@ -53,6 +58,19 @@ const (
 		VALUES ($1, $2)
 			ON CONFLICT (username)
 			DO UPDATE SET second_factor_method = $2;`
+
+	queryFmtUpsertPreferred2FAMethodMSSQL = `
+		BEGIN TRY
+			INSERT INTO %s ([username], [second_factor_method])
+			VALUES (@p1, @p2);
+		END TRY
+		BEGIN CATCH
+			IF ERROR_NUMBER() IN (2601, 2627)
+				UPDATE %s
+				SET
+					[second_factor_method] = @p2
+				WHERE [username] = @p1;
+		END CATCH;`
 )
 
 const (
@@ -143,6 +161,25 @@ const (
 			ON CONFLICT (username)
 			DO UPDATE SET created_at = $1, last_used_at = $2, issuer = $4, algorithm = $5, digits = $6, period = $7, secret = $8;`
 
+	queryFmtUpsertTOTPConfigurationMSSQL = `
+		BEGIN TRY
+			INSERT INTO %s ([created_at], [last_used_at], [username], [issuer], [algorithm], [digits], [period], [secret])
+			VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8);
+		END TRY
+		BEGIN CATCH
+			IF ERROR_NUMBER() IN (2601, 2627)
+				UPDATE %s
+				SET
+					[created_at] = @p1,
+					[last_used_at] = @p2,
+					[issuer] = @p4,
+					[algorithm] = @p5,
+					[digits] = @p6,
+					[period] = @p7,
+					[secret] = @p8
+				WHERE [username] = @p3;
+		END CATCH;`
+
 	queryFmtUpdateTOTPConfigRecordSignIn = `
 		UPDATE %s
 		SET last_used_at = ?
@@ -189,12 +226,12 @@ const (
 	queryFmtSelectWebAuthnCredentialsByUsername = `
 		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, legacy, discoverable, present, verified, backup_eligible, backup_state, public_key, attestation
 		FROM %s
-		WHERE username = ? AND (? = FALSE OR discoverable = TRUE);`
+		WHERE username = ? AND (? = 0 OR discoverable = 1);`
 
 	queryFmtSelectWebAuthnCredentialsByRPIDByUsername = `
 		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, legacy, discoverable, present, verified, backup_eligible, backup_state, public_key, attestation
 		FROM %s
-		WHERE rpid = ? AND username = ? AND (? = FALSE OR discoverable = TRUE);`
+		WHERE rpid = ? AND username = ? AND (? = 0 OR discoverable = 1);`
 
 	queryFmtSelectWebAuthnCredentialByID = `
 		SELECT id, created_at, last_used_at, rpid, username, description, kid, aaguid, attestation_type, attachment, transport, sign_count, clone_warning, legacy, discoverable, present, verified, backup_eligible, backup_state, public_key, attestation
@@ -210,7 +247,7 @@ const (
 		UPDATE %s
 		SET
 			rpid = ?, last_used_at = ?, sign_count = ?, discoverable = ?, present = ?, verified = ?, backup_eligible = ?, backup_state = ?,
-			clone_warning = CASE clone_warning WHEN TRUE THEN TRUE ELSE ? END
+			clone_warning = CASE clone_warning WHEN 1 THEN 1 ELSE ? END
 		WHERE id = ?;`
 
 	queryFmtInsertWebAuthnCredential = `
@@ -266,6 +303,20 @@ const (
 			ON CONFLICT (username)
 			DO UPDATE SET device = $2, method = $3;`
 
+	queryFmtUpsertDuoDeviceMSSQL = `
+		BEGIN TRY
+			INSERT INTO %s ([username], [device], [method])
+			VALUES (@p1, @p2, @p3);
+		END TRY
+		BEGIN CATCH
+			IF ERROR_NUMBER() IN (2601, 2627)
+				UPDATE %s
+				SET
+					[device] = @p2,
+					[method] = @p3
+				WHERE [username] = @p1;
+		END CATCH;`
+
 	queryFmtDeleteDuoDevice = `
 		DELETE
 		FROM %s
@@ -306,7 +357,7 @@ const (
 	queryFmtSelectBannedUser = `
 		SELECT id, time, expires, expired, revoked, username, source, reason
 		FROM %s
-		WHERE username = ? AND revoked = FALSE AND (expires IS NULL OR expires > ?) AND expired IS NULL
+		WHERE username = ? AND revoked = 0 AND (expires IS NULL OR expires > ?) AND expired IS NULL
 		ORDER BY time DESC;`
 
 	queryFmtSelectBannedUserByID = `
@@ -348,7 +399,7 @@ const (
 	queryFmtSelectBannedIPs = `
 		SELECT id, time, expires, expired, revoked, ip, source, reason
 		FROM %s
-		WHERE revoked = FALSE AND (expires IS NULL OR expires > ?)
+		WHERE revoked = 0 AND (expires IS NULL OR expires > ?)
 		LIMIT ?
 		OFFSET ?;`
 
@@ -363,7 +414,7 @@ const (
 const (
 	queryFmtRevokeBannedEntry = `
 		UPDATE %s
-		SET expired = ?, revoked = TRUE
+		SET expired = ?, revoked = 1
 		WHERE id = ?;`
 )
 
@@ -376,7 +427,22 @@ const (
 		INSERT INTO %s (updated_at, name, encrypted, value)
 		VALUES (CURRENT_TIMESTAMP, $1, $2, $3)
 			ON CONFLICT (name)
-			DO UPDATE SET encrypted = $2, value = $3;`
+			DO UPDATE SET updated_at = CURRENT_TIMESTAMP, encrypted = $2, value = $3;`
+
+	queryFmtUpsertCachedDataMSSQL = `
+		BEGIN TRY
+			INSERT INTO %s ([updated_at], [name], [encrypted], [value])
+			VALUES (CURRENT_TIMESTAMP, @p1, @p2, @p3);
+		END TRY
+		BEGIN CATCH
+			IF ERROR_NUMBER() IN (2601, 2627)
+				UPDATE %s
+				SET
+					[updated_at] = CURRENT_TIMESTAMP,
+					[encrypted] = @p2,
+					[value] = @p3
+				WHERE [name] = @p1;
+		END CATCH;`
 
 	queryFmtSelectCachedData = `
 		SELECT id, created_at, updated_at, name, encrypted, value
@@ -414,6 +480,19 @@ const (
 			ON CONFLICT (name)
 			DO UPDATE SET value = $2;`
 
+	queryFmtUpsertEncryptionValueMSSQL = `
+		BEGIN TRY
+			INSERT INTO %s ([name], [value])
+			VALUES (@p1, @p2);
+		END TRY
+		BEGIN CATCH
+			IF ERROR_NUMBER() IN (2601, 2627)
+				UPDATE %s
+				SET
+					[value] = @p2
+				WHERE [name] = @p1;
+		END CATCH;`
+
 	queryFmtSelectEncryptionEncryptedData = `
 		SELECT id, value
 		FROM %s;`
@@ -429,7 +508,7 @@ const (
 		SELECT id, client_id, subject, created_at, expires_at, revoked, scopes, audience, requested_claims, signature_claims, granted_claims
 		FROM %s
 		WHERE client_id = ? AND subject = ? AND
-			  revoked = FALSE AND (expires_at IS NULL OR expires_at >= CURRENT_TIMESTAMP);`
+			  revoked = 0 AND (expires_at IS NULL OR expires_at >= CURRENT_TIMESTAMP);`
 
 	queryFmtInsertOAuth2ConsentPreConfiguration = `
 		INSERT INTO %s (client_id, subject, created_at, expires_at, revoked, scopes, audience, requested_claims, signature_claims, granted_claims)
@@ -463,7 +542,7 @@ const (
 
 	queryFmtUpdateOAuth2ConsentSessionGranted = `
 		UPDATE %s
-		SET granted = TRUE
+		SET granted = 1
 		WHERE id = ? AND responded_at IS NOT NULL;`
 
 	queryFmtSelectOAuth2Session = `
@@ -471,7 +550,7 @@ const (
 		requested_scopes, granted_scopes, requested_audience, granted_audience,
 		active, revoked, form_data, session_data
 		FROM %s
-		WHERE signature = ? AND revoked = FALSE;`
+		WHERE signature = ? AND revoked = 0;`
 
 	queryFmtInsertOAuth2Session = `
 		INSERT INTO %s (challenge_id, request_id, client_id, signature, subject, requested_at,
@@ -481,22 +560,22 @@ const (
 
 	queryFmtRevokeOAuth2Session = `
 		UPDATE %s
-		SET revoked = TRUE
+		SET revoked = 1
 		WHERE signature = ?;`
 
 	queryFmtRevokeOAuth2SessionByRequestID = `
 		UPDATE %s
-		SET revoked = TRUE
+		SET revoked = 1
 		WHERE request_id = ?;`
 
 	queryFmtDeactivateOAuth2Session = `
 		UPDATE %s
-		SET active = FALSE
+		SET active = 0
 		WHERE signature = ?;`
 
 	queryFmtDeactivateOAuth2SessionByRequestID = `
 		UPDATE %s
-		SET active = FALSE
+		SET active = 0
 		WHERE request_id = ?;`
 
 	queryFmtSelectOAuth2DeviceCodeSession = `
@@ -504,14 +583,14 @@ const (
 		requested_at, checked_at, requested_scopes, granted_scopes, requested_audience, granted_audience,
 		active, revoked, form_data, session_data
 		FROM %s
-		WHERE signature = ? AND revoked = FALSE;`
+		WHERE signature = ? AND revoked = 0;`
 
 	queryFmtSelectOAuth2DeviceCodeSessionByUserCode = `
 		SELECT id, challenge_id, request_id, client_id, signature, user_code_signature, status, subject,
 		requested_at, checked_at, requested_scopes, granted_scopes, requested_audience, granted_audience,
 		active, revoked, form_data, session_data
 		FROM %s
-		WHERE user_code_signature = ? AND revoked = FALSE;`
+		WHERE user_code_signature = ? AND revoked = 0;`
 
 	queryFmtInsertOAuth2DeviceCodeSession = `
 		INSERT INTO %s (challenge_id, request_id, client_id, signature, user_code_signature, status, subject,
@@ -558,6 +637,19 @@ const (
 		VALUES ($1, $2)
 			ON CONFLICT (signature)
 			DO UPDATE SET expires_at = $2;`
+
+	queryFmtUpsertOAuth2BlacklistedJTIMSSQL = `
+		BEGIN TRY
+			INSERT INTO %s ([signature], [expires_at])
+			VALUES (@p1, @p2);
+		END TRY
+		BEGIN CATCH
+			IF ERROR_NUMBER() IN (2601, 2627)
+				UPDATE %s
+				SET
+					[expires_at] = @p2
+				WHERE [signature] = @p1;
+		END CATCH;`
 
 	queryFmtSelectOAuth2SessionEncryptedData = `
 		SELECT id, session_data

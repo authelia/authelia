@@ -70,6 +70,12 @@ func (ctx *CmdCtx) ConfigStorageCommandLineConfigRunE(cmd *cobra.Command, _ []st
 		cmdFlagNameMySQLUsername: "storage.mysql.username",
 		cmdFlagNameMySQLPassword: "storage.mysql.password",
 
+		cmdFlagNameMSSQLAddress:  "storage.mssql.address",
+		cmdFlagNameMSSQLDatabase: "storage.mssql.database",
+		cmdFlagNameMSSQLUsername: "storage.mssql.username",
+		cmdFlagNameMSSQLPassword: "storage.mssql.password",
+		cmdFlagNameMSSQLInstance: "storage.mssql.instance",
+
 		cmdFlagNamePostgreSQLAddress:  "storage.postgres.address",
 		cmdFlagNamePostgreSQLDatabase: "storage.postgres.database",
 		cmdFlagNamePostgreSQLSchema:   "storage.postgres.schema",

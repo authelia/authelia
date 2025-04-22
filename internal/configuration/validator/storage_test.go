@@ -18,33 +18,31 @@ type StorageSuite struct {
 func (suite *StorageSuite) SetupTest() {
 	suite.val = schema.NewStructValidator()
 	suite.config.EncryptionKey = testEncryptionKey
-	suite.config.Local = nil
 	suite.config.PostgreSQL = nil
+	suite.config.MSSQL = nil
 	suite.config.MySQL = nil
+	suite.config.Local = nil
 }
 
 func (suite *StorageSuite) TestShouldValidateOneStorageIsConfigured() {
-	suite.config.Local = nil
-	suite.config.PostgreSQL = nil
-	suite.config.MySQL = nil
-
 	ValidateStorage(suite.config, suite.val)
 
 	suite.Require().Len(suite.val.Warnings(), 0)
 	suite.Require().Len(suite.val.Errors(), 1)
-	suite.EqualError(suite.val.Errors()[0], "storage: configuration for a 'local', 'mysql' or 'postgres' database must be provided")
+	suite.EqualError(suite.val.Errors()[0], "storage: configuration for a 'postgres', 'mssql', 'mysql', or 'local' database must be provided")
 }
 
 func (suite *StorageSuite) TestShouldValidateMultipleStorageIsConfigured() {
-	suite.config.Local = &schema.StorageLocal{}
 	suite.config.PostgreSQL = &schema.StoragePostgreSQL{}
+	suite.config.MSSQL = &schema.StorageMSSQL{}
 	suite.config.MySQL = &schema.StorageMySQL{}
+	suite.config.Local = &schema.StorageLocal{}
 
 	ValidateStorage(suite.config, suite.val)
 
 	suite.Require().Len(suite.val.Warnings(), 0)
 	suite.Require().Len(suite.val.Errors(), 1)
-	suite.EqualError(suite.val.Errors()[0], "storage: option 'local', 'mysql' and 'postgres' are mutually exclusive but 'local', 'mysql', and 'postgres' have been configured")
+	suite.EqualError(suite.val.Errors()[0], "storage: option 'postgres', 'mssql', 'mysql', or 'local' are mutually exclusive but 'postgres', 'mssql', 'mysql', and 'local' have been configured")
 }
 
 func (suite *StorageSuite) TestShouldValidateLocalPathIsProvided() {

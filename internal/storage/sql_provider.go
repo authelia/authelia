@@ -25,6 +25,8 @@ func NewProvider(config *schema.Configuration, caCertPool *x509.CertPool) (provi
 	switch {
 	case config.Storage.PostgreSQL != nil:
 		return NewPostgreSQLProvider(config, caCertPool)
+	case config.Storage.MSSQL != nil:
+		return NewMSSQLProvider(config, caCertPool)
 	case config.Storage.MySQL != nil:
 		return NewMySQLProvider(config, caCertPool)
 	case config.Storage.Local != nil:
@@ -202,7 +204,6 @@ type SQLProvider struct {
 
 	name       string
 	driverName string
-	schema     string
 	config     *schema.Configuration
 	errOpen    error
 

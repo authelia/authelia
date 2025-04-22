@@ -7,6 +7,7 @@ import (
 	"crypto/elliptic"
 	"crypto/rsa"
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/go-jose/go-jose/v4"
@@ -17,6 +18,24 @@ import (
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
+
+func countNotNilWithNames(names []string, values ...any) (present []string, count int) {
+	if len(names) != len(values) {
+		panic("mismatched names and values")
+	}
+
+	for i, value := range values {
+		if value == nil || reflect.ValueOf(value).IsNil() {
+			continue
+		}
+
+		present = append(present, names[i])
+
+		count++
+	}
+
+	return present, count
+}
 
 func isUserAttributeDefinitionNameValid(attribute string, config *schema.Configuration) bool {
 	if expression.IsReservedAttribute(attribute) {

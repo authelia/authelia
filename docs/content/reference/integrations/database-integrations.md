@@ -40,11 +40,28 @@ recommended version for new installations.
 See the [PostgreSQL Versioning Policy](https://www.postgresql.org/support/versioning/) for information on the versions
 and platforms that are currently supported by this vendor.
 
+## Microsoft SQL Server
+
+We have yet determined the specific support criteria for this provider at this time. However at this time we believe the
+only criteria will be based on the versions supported by the vendor.
+
+We generally perform integration testing against the latest supported version of [Microsoft SQL] and that is generally
+the recommended version for new installations.
+
+### Vendor Supported Versions
+
+See the [Microsoft SQL Server Lifecycle Dates](https://learn.microsoft.com/en-us/sql/sql-server/end-of-support/sql-server-end-of-support-overview?view=sql-server-ver16#lifecycle-dates)
+for information on the versions and platforms that are currently supported by this vendor.
+
+Please note we only support the versions that are part of their mainstream support cycle. If the vendor decides to
+cease supoprt for it mid way through the year and still provide extended support, we will however support it until the
+end of the year. For example if the year support ends is in 2024 we will no longer support on or after January 1st 2025.
+
 ## MySQL
 
 [MySQL] and [MariaDB] are both supported as part of the [MySQL] implementation. This is generally discouraged as
-[PostgreSQL] is widely considered as a significantly better database engine. If you choose to go with [MySQL], we
-recommend specifically using the [MariaDB] backend.
+[PostgreSQL] and [Microsoft SQL Server] are widely considered as significantly better database engines. If you choose to
+go with [MySQL], we recommend specifically using the [MariaDB] backend.
 
 [MySQL] comes with some rigid support requirements in addition to the standard requirements for us supporting a third
 party.
@@ -127,6 +144,7 @@ See the [MySQL Supported Platforms](https://www.mysql.com/support/supportedplatf
 the versions and platforms that are currently supported by this vendor.
 
 [PostgreSQL]: https://www.postgresql.org/
+[Microsoft SQL]: https://www.microsoft.com/sql-server
 [MySQL]: https://www.mysql.com/
 [MariaDB]: https://mariadb.org/
 [SQLite3]: https://www.sqlite.org/index.html

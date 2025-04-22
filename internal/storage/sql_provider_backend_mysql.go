@@ -26,7 +26,11 @@ func NewMySQLProvider(config *schema.Configuration, caCertPool *x509.CertPool) (
 	// All providers have differing SELECT existing table statements.
 	provider.sqlSelectExistingTables = queryMySQLSelectExistingTables
 
-	// Specific alterations to this provider.
+	/*
+		Specific query adjustments for this provider.
+	*/
+
+	// MySQL uses unique syntax for renaming tables.
 	provider.sqlFmtRenameTable = queryFmtMySQLRenameTable
 
 	return provider

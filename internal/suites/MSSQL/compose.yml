@@ -1,0 +1,9 @@
+---
+services:
+  authelia-backend:
+    volumes:
+      - './MSSQL/configuration.yml:/config/configuration.yml:ro'
+      - './MSSQL/users.yml:/config/users.yml'
+      - './common/pki:/pki:ro'
+      - './common/pki/public.crt:/certs/public.crt'
+...

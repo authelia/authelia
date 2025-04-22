@@ -1,7 +1,7 @@
 ---
 title: "Migrations"
 description: "Storage Migrations"
-summary: "A migration ."
+summary: "A SQL Storage migration list and guide."
 date: 2021-11-23T20:45:38+11:00
 draft: false
 images: []
@@ -52,5 +52,6 @@ this instance if you wanted to downgrade to pre1 you would need to use an Authel
 |       19       |      4.39.0      |                                         WebAuthn Passkeys                                          |
 |       20       |      4.39.0      |                                         Regulation Rework                                          |
 |       21       |      4.39.1      |                                MySQL Specific Fix for WebAuthn MDS                                 |
+|       22       |      4.40.0      |                                Microsoft SQL Server provider added                                 |
 
 [RFC9068]: https://datatracker.ietf.org/doc/html/rfc9068
