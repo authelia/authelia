@@ -1,16 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import {
-    Alert,
-    AlertTitle,
-    Button,
-    Checkbox,
-    CircularProgress,
-    FormControl,
-    FormControlLabel,
-    Link,
-    Theme,
-} from "@mui/material";
+import { Button, Checkbox, CircularProgress, FormControl, FormControlLabel, Link, Theme } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import { BroadcastChannel } from "broadcast-channel";
@@ -20,11 +10,11 @@ import { makeStyles } from "tss-react/mui";
 
 import { ResetPasswordStep1Route } from "@constants/Routes";
 import { RedirectionURL, RequestMethod } from "@constants/SearchParams";
+import useCheckCapsLock from "@hooks/CapsLock";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useQueryParam } from "@hooks/QueryParam";
 import { useWorkflow } from "@hooks/Workflow";
 import LoginLayout from "@layouts/LoginLayout";
-import { IsCapsLockModified } from "@services/CapsLock";
 import { postFirstFactor } from "@services/Password";
 import PasskeyForm from "@views/LoginPortal/FirstFactor/PasskeyForm";
 
@@ -58,7 +48,6 @@ const FirstFactorForm = function (props: Props) {
     const [usernameError, setUsernameError] = useState(false);
     const [password, setPassword] = useState("");
     const [passwordCapsLock, setPasswordCapsLock] = useState(false);
-    const [passwordCapsLockPartial, setPasswordCapsLockPartial] = useState(false);
     const [passwordError, setPasswordError] = useState(false);
     const [loading, setLoading] = useState(false);
 
@@ -191,30 +180,6 @@ const FirstFactorForm = function (props: Props) {
         [focusPassword, focusUsername, handleSignIn, password.length, username.length],
     );
 
-    const handlePasswordKeyUp = useCallback(
-        (event: React.KeyboardEvent<HTMLDivElement>) => {
-            if (password.length <= 1) {
-                setPasswordCapsLock(false);
-                setPasswordCapsLockPartial(false);
-
-                if (password.length === 0) {
-                    return;
-                }
-            }
-
-            const modified = IsCapsLockModified(event);
-
-            if (modified === null) return;
-
-            if (modified) {
-                setPasswordCapsLock(true);
-            } else {
-                setPasswordCapsLockPartial(true);
-            }
-        },
-        [password.length],
-    );
-
     const handleRememberMeKeyDown = useCallback(
         (event: React.KeyboardEvent<HTMLButtonElement>) => {
             if (event.key === "Enter") {
@@ -267,19 +232,12 @@ const FirstFactorForm = function (props: Props) {
                             type="password"
                             autoComplete="current-password"
                             onKeyDown={handlePasswordKeyDown}
-                            onKeyUp={handlePasswordKeyUp}
+                            onKeyUp={useCheckCapsLock(setPasswordCapsLock)}
+                            onBlur={() => setPasswordCapsLock(false)}
+                            helperText={passwordCapsLock ? translate("Caps Lock is on") : ""}
+                            color={passwordCapsLock ? "warning" : "primary"}
                         />
                     </Grid>
-                    {passwordCapsLock ? (
-                        <Grid size={{ xs: 12 }} marginX={2}>
-                            <Alert severity={"warning"}>
-                                <AlertTitle>{translate("Warning")}</AlertTitle>
-                                {passwordCapsLockPartial
-                                    ? translate("The password was partially entered with Caps Lock")
-                                    : translate("The password was entered with Caps Lock")}
-                            </Alert>
-                        </Grid>
-                    ) : null}
                     {props.rememberMe ? (
                         <Grid size={{ xs: 12 }} className={cx(classes.actionRow)}>
                             <FormControlLabel

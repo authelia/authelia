@@ -1,17 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { Alert, AlertTitle, Button, CircularProgress, FormControl } from "@mui/material";
+import { Button, CircularProgress, FormControl } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import { BroadcastChannel } from "broadcast-channel";
 import { useTranslation } from "react-i18next";
 
+import useCheckCapsLock from "@hooks/CapsLock";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useRedirector } from "@hooks/Redirector";
 import { useWorkflow } from "@hooks/Workflow";
 import LoginLayout from "@layouts/LoginLayout";
 import { UserInfo } from "@models/UserInfo";
-import { IsCapsLockModified } from "@services/CapsLock";
 import { postFirstFactorReauthenticate } from "@services/Password";
 import { AutheliaState } from "@services/State";
 
@@ -25,8 +25,7 @@ const OpenIDConnectConsentLoginFormView: React.FC<Props> = (props: Props) => {
 
     const [password, setPassword] = useState("");
     const [error, setError] = useState(false);
-    const [hasCapsLock, setHasCapsLock] = useState(false);
-    const [isCapsLockPartial, setIsCapsLockPartial] = useState(false);
+    const [passwordCapsLock, setPasswordCapsLock] = useState(false);
     const [loading, setLoading] = useState(false);
     const [workflow, workflowID] = useWorkflow();
 
@@ -93,30 +92,6 @@ const OpenIDConnectConsentLoginFormView: React.FC<Props> = (props: Props) => {
         [focusPassword, handleConfirm, password.length],
     );
 
-    const handlePasswordKeyUp = useCallback(
-        (event: React.KeyboardEvent<HTMLDivElement>) => {
-            if (password.length <= 1) {
-                setHasCapsLock(false);
-                setIsCapsLockPartial(false);
-
-                if (password.length === 0) {
-                    return;
-                }
-            }
-
-            const modified = IsCapsLockModified(event);
-
-            if (modified === null) return;
-
-            if (modified) {
-                setHasCapsLock(true);
-            } else {
-                setIsCapsLockPartial(true);
-            }
-        },
-        [password.length],
-    );
-
     return (
         <LoginLayout id="consent-stage" title={translate("Confirm Access")}>
             <FormControl id={"form-consent-openid-device-code-authorization"}>
@@ -128,7 +103,7 @@ const OpenIDConnectConsentLoginFormView: React.FC<Props> = (props: Props) => {
                             variant="outlined"
                             inputRef={passwordRef}
                             onKeyDown={handlePasswordKeyDown}
-                            onKeyUp={handlePasswordKeyUp}
+                            onKeyUp={useCheckCapsLock(setPasswordCapsLock)}
                             error={error}
                             disabled={loading}
                             value={password}
@@ -138,18 +113,11 @@ const OpenIDConnectConsentLoginFormView: React.FC<Props> = (props: Props) => {
                             autoComplete="current-password"
                             required
                             fullWidth
+                            helperText={passwordCapsLock ? translate("Caps Lock is on") : ""}
+                            onBlur={() => setPasswordCapsLock(false)}
+                            color={passwordCapsLock ? "warning" : "primary"}
                         />
                     </Grid>
-                    {hasCapsLock ? (
-                        <Grid size={{ xs: 12 }} marginX={2}>
-                            <Alert severity={"warning"}>
-                                <AlertTitle>{translate("Warning")}</AlertTitle>
-                                {isCapsLockPartial
-                                    ? translate("The password was partially entered with Caps Lock")
-                                    : translate("The password was entered with Caps Lock")}
-                            </Alert>
-                        </Grid>
-                    ) : null}
                     <Grid size={{ xs: 12 }}>
                         <Button
                             id="confirm-button"

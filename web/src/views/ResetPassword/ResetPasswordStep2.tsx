@@ -11,6 +11,7 @@ import { makeStyles } from "tss-react/mui";
 import PasswordMeter from "@components/PasswordMeter";
 import { IndexRoute } from "@constants/Routes";
 import { IdentityToken } from "@constants/SearchParams";
+import useCheckCapsLock from "@hooks/CapsLock";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useQueryParam } from "@hooks/QueryParam";
 import MinimalLayout from "@layouts/MinimalLayout";
@@ -25,6 +26,7 @@ const ResetPasswordStep2 = function () {
     const [formDisabled, setFormDisabled] = useState(true);
     const [password1, setPassword1] = useState("");
     const [password2, setPassword2] = useState("");
+    const [passwordCapsLock, setPasswordCapsLock] = useState(false);
     const [errorPassword1, setErrorPassword1] = useState(false);
     const [errorPassword2, setErrorPassword2] = useState(false);
     const { createSuccessNotification, createErrorNotification } = useNotifications();
@@ -151,6 +153,10 @@ const ResetPasswordStep2 = function () {
                             error={errorPassword1}
                             className={cx(classes.fullWidth)}
                             autoComplete="new-password"
+                            onKeyUp={useCheckCapsLock(setPasswordCapsLock)}
+                            onBlur={() => setPasswordCapsLock(false)}
+                            helperText={passwordCapsLock ? translate("Caps Lock is on") : ""}
+                            color={passwordCapsLock ? "warning" : "primary"}
                             InputProps={{
                                 endAdornment: (
                                     <InputAdornment position="end">
