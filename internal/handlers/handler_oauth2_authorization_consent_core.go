@@ -163,7 +163,8 @@ func handleOAuth2AuthorizationConsentRedirect(ctx *middlewares.AutheliaCtx, issu
 		location.Path = path.Join(location.Path, oidc.FrontendEndpointPathConsentDecision)
 
 		query := location.Query()
-		query.Set(queryArgID, consent.ChallengeID.String())
+		query.Set(queryArgWorkflow, workflowOpenIDConnect)
+		query.Set(queryArgWorkflowID, consent.ChallengeID.String())
 
 		location.RawQuery = query.Encode()
 

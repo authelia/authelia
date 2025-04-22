@@ -29,7 +29,7 @@ const OneTimePasswordMethod = function (props: Props) {
         props.authenticationLevel === AuthenticationLevel.TwoFactor ? State.Success : State.Idle,
     );
     const redirectionURL = useQueryParam(RedirectionURL);
-    const [workflow, workflowID] = useWorkflow();
+    const { workflow, id: workflowID } = useWorkflow();
     const { t: translate } = useTranslation();
 
     const { onSignInSuccess, onSignInError } = props;

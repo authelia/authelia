@@ -16,13 +16,13 @@ import {
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
 
 import { IndexRoute } from "@constants/Routes";
-import { Identifier } from "@constants/SearchParams";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useRedirector } from "@hooks/Redirector";
+import { useWorkflow } from "@hooks/Workflow";
 import LoginLayout from "@layouts/LoginLayout";
 import { UserInfo } from "@models/UserInfo";
 import {
@@ -67,9 +67,8 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
 
     const { createErrorNotification, resetNotification } = useNotifications();
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
     const redirect = useRedirector();
-    const consentID = searchParams.get(Identifier);
+    const { id: consentID } = useWorkflow();
 
     const [response, setResponse] = useState<ConsentGetResponseBody>();
     const [error, setError] = useState<any>(undefined);
@@ -81,7 +80,7 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
     };
 
     useEffect(() => {
-        if (consentID !== null) {
+        if (consentID !== undefined) {
             getConsentResponse(consentID)
                 .then((r) => {
                     setResponse(r);
@@ -105,7 +104,7 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
         if (!response) {
             return;
         }
-        const res = await acceptConsent(preConfigure, response.client_id, consentID, JSON.parse(claims));
+        const res = await acceptConsent(preConfigure, response.client_id, JSON.parse(claims), consentID);
         if (res.redirect_uri) {
             redirect(res.redirect_uri);
         } else {

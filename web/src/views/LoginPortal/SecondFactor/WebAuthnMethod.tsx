@@ -25,7 +25,7 @@ export interface Props {
 const WebAuthnMethod = function (props: Props) {
     const [state, setState] = useState(WebAuthnTouchState.WaitTouch);
     const redirectionURL = useQueryParam(RedirectionURL);
-    const [workflow, workflowID] = useWorkflow();
+    const { workflow, id: workflowID } = useWorkflow();
     const mounted = useIsMountedRef();
     const { t: translate } = useTranslation();
 

@@ -28,7 +28,7 @@ const OpenIDConnectConsentLoginFormView: React.FC<Props> = (props: Props) => {
     const [hasCapsLock, setHasCapsLock] = useState(false);
     const [isCapsLockPartial, setIsCapsLockPartial] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [workflow, workflowID] = useWorkflow();
+    const { workflow, id: workflowID } = useWorkflow();
 
     const redirector = useRedirector();
     const { createErrorNotification } = useNotifications();

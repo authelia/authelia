@@ -50,7 +50,7 @@ const PushNotificationMethod = function (props: Props) {
 
     const [state, setState] = useState(State.SignInInProgress);
     const redirectionURL = useQueryParam(RedirectionURL);
-    const [workflow, workflowID] = useWorkflow();
+    const { workflow, id: workflowID } = useWorkflow();
     const mounted = useIsMountedRef();
     const [enroll_url, setEnrollUrl] = useState("");
     const [devices, setDevices] = useState([] as SelectableDevice[]);

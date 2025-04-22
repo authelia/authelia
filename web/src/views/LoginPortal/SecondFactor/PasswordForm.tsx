@@ -21,7 +21,7 @@ const PasswordForm = function (props: Props) {
     const { t: translate } = useTranslation();
 
     const redirectionURL = useQueryParam(RedirectionURL);
-    const [workflow, workflowID] = useWorkflow();
+    const { workflow, id: workflowID } = useWorkflow();
 
     const [loading, setLoading] = useState(false);
     const [password, setPassword] = useState("");

@@ -1,10 +1,10 @@
 import { useSearchParams } from "react-router-dom";
 
-export function useWorkflow(): [string | undefined, string | undefined] {
+export function useWorkflow(): { id?: string; workflow?: string } {
     const [searchParams] = useSearchParams();
 
     const workflow = searchParams.get("workflow");
     const id = searchParams.get("workflow_id");
 
-    return [workflow === null ? undefined : workflow, id === null ? undefined : id];
+    return { id: id === null ? undefined : id, workflow: workflow === null ? undefined : workflow };
 }
