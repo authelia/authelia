@@ -1574,7 +1574,7 @@ func (p *SQLProvider) SaveBannedUser(ctx context.Context, ban *model.BannedUser)
 func (p *SQLProvider) LoadBannedUser(ctx context.Context, username string) (bans []model.BannedUser, err error) {
 	bans = []model.BannedUser{}
 
-	if err = p.db.SelectContext(ctx, &bans, p.sqlSelectBannedUser, username, time.Now().UTC()); err != nil {
+	if err = p.db.SelectContext(ctx, &bans, p.sqlSelectBannedUser, username, time.Now()); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
@@ -1596,7 +1596,7 @@ func (p *SQLProvider) LoadBannedUserByID(ctx context.Context, id int) (ban model
 func (p *SQLProvider) LoadBannedUsers(ctx context.Context, limit, page int) (bans []model.BannedUser, err error) {
 	bans = []model.BannedUser{}
 
-	if err = p.db.SelectContext(ctx, &bans, p.sqlSelectBannedUsers, false, time.Now().UTC(), limit, limit*page); err != nil {
+	if err = p.db.SelectContext(ctx, &bans, p.sqlSelectBannedUsers, false, time.Now(), limit, limit*page); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
@@ -1652,7 +1652,7 @@ func (p *SQLProvider) SaveBannedIP(ctx context.Context, ban *model.BannedIP) (er
 func (p *SQLProvider) LoadBannedIP(ctx context.Context, ip model.IP) (bans []model.BannedIP, err error) {
 	bans = []model.BannedIP{}
 
-	if err = p.db.SelectContext(ctx, &bans, p.sqlSelectBannedIP, ip, false, time.Now().UTC()); err != nil {
+	if err = p.db.SelectContext(ctx, &bans, p.sqlSelectBannedIP, ip, false, time.Now()); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
@@ -1674,7 +1674,7 @@ func (p *SQLProvider) LoadBannedIPByID(ctx context.Context, id int) (ban model.B
 func (p *SQLProvider) LoadBannedIPs(ctx context.Context, limit, page int) (bans []model.BannedIP, err error) {
 	bans = []model.BannedIP{}
 
-	if err = p.db.SelectContext(ctx, &bans, p.sqlSelectBannedIPs, time.Now().UTC(), limit, limit*page); err != nil {
+	if err = p.db.SelectContext(ctx, &bans, p.sqlSelectBannedIPs, time.Now(), limit, limit*page); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
