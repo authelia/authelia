@@ -1,13 +1,10 @@
 import React, { Fragment, lazy, useEffect } from "react";
 
-import { Button } from "@mui/material";
-import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
 import { Route, Routes } from "react-router-dom";
 
-import { ConsentOpenIDSubRoute, LogoutRoute as SignOutRoute } from "@constants/Routes";
+import { ConsentOpenIDSubRoute } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
-import { useRouterNavigate } from "@hooks/RouterNavigate";
 import { useAutheliaState } from "@hooks/State";
 import { useUserInfoGET } from "@hooks/UserInfo";
 import { UserInfo } from "@models/UserInfo";
@@ -22,7 +19,6 @@ export interface Props {}
 
 const ConsentPortal: React.FC<Props> = (props: Props) => {
     const { t: translate } = useTranslation();
-    const navigate = useRouterNavigate();
 
     const [userInfo, fetchUserInfo, , fetchUserInfoError] = useUserInfoGET();
     const [state, fetchState, , fetchStateError] = useAutheliaState();
@@ -46,31 +42,12 @@ const ConsentPortal: React.FC<Props> = (props: Props) => {
         }
     }, [fetchStateError, createErrorNotification, translate]);
 
-    const handleLogoutClick = () => {
-        navigate(SignOutRoute);
-    };
-
     return (
         <Fragment>
             {state === undefined || userInfo === undefined ? (
                 <LoadingPage />
             ) : (
-                <Fragment>
-                    <Grid container direction={"row"}>
-                        <Grid size={{ xs: 12 }}>
-                            <Grid container direction={"column"} justifyContent={"center"} alignItems={"center"}>
-                                <Grid size={{ xs: 12 }}>
-                                    <Button id={"logout-button"} color={"secondary"} onClick={handleLogoutClick}>
-                                        {translate("Logout")}
-                                    </Button>
-                                </Grid>
-                            </Grid>
-                        </Grid>
-                        <Grid size={{ xs: 12 }}>
-                            <ConsentPortalRouter userInfo={userInfo} state={state} />
-                        </Grid>
-                    </Grid>
-                </Fragment>
+                <ConsentPortalRouter userInfo={userInfo} state={state} />
             )}
         </Fragment>
     );

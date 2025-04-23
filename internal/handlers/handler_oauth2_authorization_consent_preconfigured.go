@@ -67,6 +67,12 @@ func handleOAuth2AuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Au
 		return nil, true
 	}
 
+	if !consent.Subject.Valid && consent.Subject.UUID == uuid.Nil {
+		handleOAuth2AuthorizationConsentRedirect(ctx, issuer, consent, client, userSession, rw, r, requester)
+
+		return nil, true
+	}
+
 	if subject != consent.Subject.UUID {
 		ctx.Logger.Errorf(logFmtErrConsentSessionSubjectNotAuthorized, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, userSession.Username, subject, consent.Subject.UUID)
 

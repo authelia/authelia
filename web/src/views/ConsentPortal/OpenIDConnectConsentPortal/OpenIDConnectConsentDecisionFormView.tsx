@@ -13,12 +13,14 @@ import {
     Theme,
     Tooltip,
     Typography,
+    useTheme,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
 
+import LogoutButton from "@components/LogoutButton.js";
 import { IndexRoute } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useRedirector } from "@hooks/Redirector";
@@ -62,6 +64,7 @@ function scopeNameToAvatar(id: string) {
 
 const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => {
     const { t: translate } = useTranslation(["portal", "consent"]);
+    const theme = useTheme();
 
     const { classes } = useStyles();
 
@@ -164,128 +167,143 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
                 title={`${translate("Hi")} ${props.userInfo.display_name}`}
                 subtitle={translate("Consent Request")}
             >
-                <Grid container alignItems={"center"} justifyContent="center">
-                    <Grid size={{ xs: 12 }}>
-                        <Box>
-                            <Tooltip
-                                title={
-                                    translate("Client ID", { client_id: response?.client_id }) ||
-                                    "Client ID: " + response?.client_id
-                                }
-                            >
-                                <Typography className={classes.clientDescription}>
-                                    {response !== undefined && response.client_description !== ""
-                                        ? response.client_description
-                                        : response?.client_id}
-                                </Typography>
-                            </Tooltip>
-                        </Box>
+                <Grid container direction={"column"} justifyContent={"center"} alignItems={"center"}>
+                    <Grid size={{ xs: 12 }} sx={{ paddingBottom: theme.spacing(2) }}>
+                        <LogoutButton />
                     </Grid>
                     <Grid size={{ xs: 12 }}>
-                        <Box>{translate("The above application is requesting the following permissions")}:</Box>
-                    </Grid>
-                    <Grid size={{ xs: 12 }}>
-                        <Box className={classes.scopesListContainer}>
-                            <List className={classes.scopesList}>
-                                {response?.scopes.map((scope: string) => (
-                                    <Tooltip title={translate("Scope", { name: scope, ns: "consent" })}>
-                                        <ListItem id={"scope-" + scope} dense>
-                                            <ListItemIcon>{scopeNameToAvatar(scope)}</ListItemIcon>
-                                            <ListItemText
-                                                primary={formatScope(
-                                                    translate(`scopes.${scope}`, { ns: "consent" }),
-                                                    scope,
-                                                )}
-                                            />
-                                        </ListItem>
+                        <Grid container alignItems={"center"} justifyContent="center">
+                            <Grid size={{ xs: 12 }}>
+                                <Box>
+                                    <Tooltip
+                                        title={
+                                            translate("Client ID", { client_id: response?.client_id }) ||
+                                            "Client ID: " + response?.client_id
+                                        }
+                                    >
+                                        <Typography className={classes.clientDescription}>
+                                            {response !== undefined && response.client_description !== ""
+                                                ? response.client_description
+                                                : response?.client_id}
+                                        </Typography>
                                     </Tooltip>
-                                ))}
-                            </List>
-                        </Box>
-                    </Grid>
-                    {hasClaims ? (
-                        <Grid size={{ xs: 12 }}>
-                            <Box className={classes.claimsListContainer}>
-                                <List className={classes.claimsList}>
-                                    {response?.essential_claims?.map((claim: string) => (
-                                        <Tooltip title={translate("Claim", { name: claim, ns: "consent" })}>
-                                            <FormControlLabel
-                                                control={<Checkbox id={`claim-${claim}-essential`} disabled checked />}
-                                                label={formatClaim(
-                                                    translate(`claims.${claim}`, { ns: "consent" }),
-                                                    claim,
-                                                )}
-                                            />
-                                        </Tooltip>
-                                    ))}
-                                    {response?.claims?.map((claim: string) => (
-                                        <Tooltip title={translate("Claim", { name: claim, ns: "consent" })}>
-                                            <FormControlLabel
-                                                control={
-                                                    <Checkbox
-                                                        id={"claim-" + claim}
-                                                        value={claim}
-                                                        checked={claimChecked(claim)}
-                                                        onChange={handleClaimCheckboxOnChange}
-                                                    />
-                                                }
-                                                label={formatClaim(
-                                                    translate(`claims.${claim}`, { ns: "consent" }),
-                                                    claim,
-                                                )}
-                                            />
-                                        </Tooltip>
-                                    ))}
-                                </List>
-                            </Box>
-                        </Grid>
-                    ) : null}
-                    {response?.pre_configuration ? (
-                        <Grid size={{ xs: 12 }}>
-                            <Tooltip
-                                title={translate("This saves this consent as a pre-configured consent for future use")}
-                            >
-                                <FormControlLabel
-                                    control={
-                                        <Checkbox
-                                            id="pre-configure"
-                                            checked={preConfigure}
-                                            onChange={handlePreConfigureChanged}
-                                            value="preConfigure"
-                                            color="primary"
-                                        />
-                                    }
-                                    className={classes.preConfigure}
-                                    label={translate("Remember Consent")}
-                                />
-                            </Tooltip>
-                        </Grid>
-                    ) : null}
-                    <Grid size={{ xs: 12 }}>
-                        <Grid container spacing={1}>
-                            <Grid size={{ xs: 6 }}>
-                                <Button
-                                    id="accept-button"
-                                    className={classes.button}
-                                    disabled={!response}
-                                    onClick={handleAcceptConsent}
-                                    color="primary"
-                                    variant="contained"
-                                >
-                                    {translate("Accept")}
-                                </Button>
+                                </Box>
                             </Grid>
-                            <Grid size={{ xs: 6 }}>
-                                <Button
-                                    id="deny-button"
-                                    className={classes.button}
-                                    disabled={!response}
-                                    onClick={handleRejectConsent}
-                                    color="secondary"
-                                    variant="contained"
-                                >
-                                    {translate("Deny")}
-                                </Button>
+                            <Grid size={{ xs: 12 }}>
+                                <Box>{translate("The above application is requesting the following permissions")}:</Box>
+                            </Grid>
+                            <Grid size={{ xs: 12 }}>
+                                <Box className={classes.scopesListContainer}>
+                                    <List className={classes.scopesList}>
+                                        {response?.scopes.map((scope: string) => (
+                                            <Tooltip title={translate("Scope", { name: scope, ns: "consent" })}>
+                                                <ListItem id={"scope-" + scope} dense>
+                                                    <ListItemIcon>{scopeNameToAvatar(scope)}</ListItemIcon>
+                                                    <ListItemText
+                                                        primary={formatScope(
+                                                            translate(`scopes.${scope}`, { ns: "consent" }),
+                                                            scope,
+                                                        )}
+                                                    />
+                                                </ListItem>
+                                            </Tooltip>
+                                        ))}
+                                    </List>
+                                </Box>
+                            </Grid>
+                            {hasClaims ? (
+                                <Grid size={{ xs: 12 }}>
+                                    <Box className={classes.claimsListContainer}>
+                                        <List className={classes.claimsList}>
+                                            {response?.essential_claims?.map((claim: string) => (
+                                                <Tooltip title={translate("Claim", { name: claim, ns: "consent" })}>
+                                                    <FormControlLabel
+                                                        control={
+                                                            <Checkbox
+                                                                id={`claim-${claim}-essential`}
+                                                                disabled
+                                                                checked
+                                                            />
+                                                        }
+                                                        label={formatClaim(
+                                                            translate(`claims.${claim}`, { ns: "consent" }),
+                                                            claim,
+                                                        )}
+                                                    />
+                                                </Tooltip>
+                                            ))}
+                                            {response?.claims?.map((claim: string) => (
+                                                <Tooltip title={translate("Claim", { name: claim, ns: "consent" })}>
+                                                    <FormControlLabel
+                                                        control={
+                                                            <Checkbox
+                                                                id={"claim-" + claim}
+                                                                value={claim}
+                                                                checked={claimChecked(claim)}
+                                                                onChange={handleClaimCheckboxOnChange}
+                                                            />
+                                                        }
+                                                        label={formatClaim(
+                                                            translate(`claims.${claim}`, { ns: "consent" }),
+                                                            claim,
+                                                        )}
+                                                    />
+                                                </Tooltip>
+                                            ))}
+                                        </List>
+                                    </Box>
+                                </Grid>
+                            ) : null}
+                            {response?.pre_configuration ? (
+                                <Grid size={{ xs: 12 }}>
+                                    <Tooltip
+                                        title={translate(
+                                            "This saves this consent as a pre-configured consent for future use",
+                                        )}
+                                    >
+                                        <FormControlLabel
+                                            control={
+                                                <Checkbox
+                                                    id="pre-configure"
+                                                    checked={preConfigure}
+                                                    onChange={handlePreConfigureChanged}
+                                                    value="preConfigure"
+                                                    color="primary"
+                                                />
+                                            }
+                                            className={classes.preConfigure}
+                                            label={translate("Remember Consent")}
+                                        />
+                                    </Tooltip>
+                                </Grid>
+                            ) : null}
+                            <Grid size={{ xs: 12 }}>
+                                <Grid container spacing={1}>
+                                    <Grid size={{ xs: 6 }}>
+                                        <Button
+                                            id="accept-button"
+                                            className={classes.button}
+                                            disabled={!response}
+                                            onClick={handleAcceptConsent}
+                                            color="primary"
+                                            variant="contained"
+                                        >
+                                            {translate("Accept")}
+                                        </Button>
+                                    </Grid>
+                                    <Grid size={{ xs: 6 }}>
+                                        <Button
+                                            id="deny-button"
+                                            className={classes.button}
+                                            disabled={!response}
+                                            onClick={handleRejectConsent}
+                                            color="secondary"
+                                            variant="contained"
+                                        >
+                                            {translate("Deny")}
+                                        </Button>
+                                    </Grid>
+                                </Grid>
                             </Grid>
                         </Grid>
                     </Grid>
