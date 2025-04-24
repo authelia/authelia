@@ -14,12 +14,15 @@ seo:
   noindex: false # false (default) or true
 ---
 
-## Tested Versions
+[FreeIPA] is supported by __Authelia__.
 
-* [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-* [FreeIPA]
-  * [4.9.9](https://www.freeipa.org/page/Releases/4.9.9)
+*__Important:__ When using these guides, it's important to recognize that we cannot provide a guide for every possible
+method of deploying an LDAP server. These guides show a suggested setup only, and you need to understand the LDAP
+configuration and customize it to your needs. To-that-end, we include links to the official documentation specific to
+the LDAP implementation throughout this documentation and in the [See Also](#see-also) section.*
+
+*__Important:__ This guide makes use of a default configuration. Check the [Defaults](#defaults) section
+and make adjustments according to your needs.*
 
 ## Assumptions and Adaptation
 
@@ -29,6 +32,7 @@ automatically be replaced with documentation variables.
 
 The following are the assumptions we make:
 
+* The LDAP implementation to be used with authelia is fully setup and reachable by authelia.
 * All services are part of the `example.com` domain:
   * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
     just testing or you want to use that specific domain
@@ -43,15 +47,15 @@ The following YAML configuration is an example __Authelia__ [authentication back
 authentication_backend:
   ldap:
     implementation: 'freeipa'
-    address: 'ldaps://ldap.example'
+    address: 'ldaps://ldap.example.com'
     base_dn: 'dc=example,dc=com'
     user: 'uid=authelia,ou=people,dc=example,dc=com'
     password: 'insecure_secret'
 ```
 
 ### Application
-Create within [FreeIPA], either via CLI or within its GUI management application `https://ldap.{{< sitevar name="domain" nojs="example.com" >}}` a basic user with a
-complex password.
+
+Create within [FreeIPA], either via CLI or within a GUI management application a basic user with a complex password.
 
 *Make note of its CN.* You can also create a group to use within Authelia if you would like granular control of who can
 login, and reference it within the filters below.
@@ -85,14 +89,21 @@ the following conditions:
   - `(|(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized}))`
 
 ##### Users Filter
+
 ```text
 (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(!(nsAccountLock=TRUE))(krbPasswordExpiration>={date-time:generalized})(&#124;(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized})))
 ```
 
 ##### Groups Filter
+
 ```text
 (&(member={dn})(objectClass=groupOfNames))
 ```
+
+## See Also
+
+* [FreeIPA Directory Server](https://www.freeipa.org/page/Directory_Server)
+* [FreeIPA Deployment Recommendations](https://www.freeipa.org/page/Deployment_Recommendations)
 
 [Authelia]: https://www.authelia.com
 [FreeIPA]: https://www.freeipa.org/

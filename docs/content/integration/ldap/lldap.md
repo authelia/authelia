@@ -14,12 +14,15 @@ seo:
   noindex: false # false (default) or true
 ---
 
-## Tested Versions
+[LLDAP] is supported by __Authelia__.
 
-* [Authelia]
-  * [v4.39.1](https://github.com/authelia/authelia/releases/tag/v4.39.1)
-* [LLDAP]
-  * [v0.6.1](https://github.com/lldap/lldap/releases/tag/v0.6.1)
+*__Important:__ When using these guides, it's important to recognize that we cannot provide a guide for every possible
+method of deploying an LDAP server. These guides show a suggested setup only, and you need to understand the LDAP
+configuration and customize it to your needs. To-that-end, we include links to the official documentation specific to
+the LDAP implementation throughout this documentation and in the [See Also](#see-also) section.*
+
+*__Important:__ This guide makes use of a default configuration. Check the [Defaults](#defaults) section
+and make adjustments according to your needs.*
 
 ## Assumptions and Adaptation
 
@@ -29,6 +32,7 @@ automatically be replaced with documentation variables.
 
 The following are the assumptions we make:
 
+* The LDAP implementation to be used with authelia is fully setup and reachable by authelia.
 * All services are part of the `example.com` domain:
   * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
     just testing or you want to use that specific domain
@@ -51,7 +55,10 @@ authentication_backend:
 
 ### Application
 
-Create within lldap, a basic user with a complex password, and add to the group "lldap_password_manager"
+Create within [lldap], a basic user with a complex password, and add it to the group `lldap_password_manager`.
+
+Using the `lldap_password_manager` group will prevent authelia from changing passwords of users in the `lldap_admin` group.
+
 You can also create a group to use within Authelia if you would like granular control of who can login, and reference it
 within the filters below.
 
@@ -97,6 +104,9 @@ the following conditions:
 ```text
 (&(member={dn})(objectClass=groupOfNames))
 ```
+
+## See Also
+* [LLDAP Client Configuration](https://github.com/lldap/lldap?tab=readme-ov-file#client-configuration)
 
 [Authelia]: https://www.authelia.com
 [lldap]: https://github.com/lldap/lldap

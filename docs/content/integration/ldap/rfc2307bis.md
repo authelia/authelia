@@ -14,10 +14,15 @@ seo:
   noindex: false # false (default) or true
 ---
 
-## Tested Versions
+[RFC2307bis] is supported by __Authelia__.
 
-* [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+*__Important:__ When using these guides, it's important to recognize that we cannot provide a guide for every possible
+method of deploying an LDAP server. These guides show a suggested setup only, and you need to understand the LDAP
+configuration and customize it to your needs. To-that-end, we include links to the official documentation specific to
+the LDAP implementation throughout this documentation and in the [See Also](#see-also) section.*
+
+*__Important:__ This guide makes use of a default configuration. Check the [Defaults](#defaults) section
+and make adjustments according to your needs.*
 
 ## Assumptions and Adaptation
 
@@ -27,6 +32,7 @@ automatically be replaced with documentation variables.
 
 The following are the assumptions we make:
 
+* The LDAP implementation to be used with authelia is fully setup and reachable by authelia.
 * All services are part of the `example.com` domain:
   * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
     just testing or you want to use that specific domain
@@ -49,7 +55,7 @@ authentication_backend:
 
 ### Application
 
-This integration guide is application agnostic, refer to the documentation of your LDAP server.
+This integration guide is application agnostic, refer to the documentation of your LDAP implementation.
 
 ### Defaults
 
@@ -88,6 +94,8 @@ the following conditions:
 ```text
 (&(&#124;(member={dn})(uniqueMember={dn}))(&#124;(objectClass=groupOfNames)(objectClass=groupOfUniqueNames)(objectClass=groupOfMembers)))
 ```
+
+## See Also
 
 [Authelia]: https://www.authelia.com
 [RFC2307bis]: https://datatracker.ietf.org/doc/html/draft-howard-rfc2307bis-02

@@ -14,11 +14,15 @@ seo:
   noindex: false # false (default) or true
 ---
 
-## Tested Versions
+[Active Directory] is supported by __Authelia__.
 
-* [Authelia]
-  * [v4.39.1](https://github.com/authelia/authelia/releases/tag/v4.39.1)
-* [Active Directory]
+*__Important:__ When using these guides, it's important to recognize that we cannot provide a guide for every possible
+method of deploying an LDAP server. These guides show a suggested setup only, and you need to understand the LDAP
+configuration and customize it to your needs. To-that-end, we include links to the official documentation specific to
+the LDAP implementation throughout this documentation and in the [See Also](#see-also) section.*
+
+*__Important:__ This guide makes use of a default configuration. Check the [Defaults](#defaults) section
+and make adjustments according to your needs.*
 
 ## Assumptions and Adaptation
 
@@ -28,6 +32,7 @@ automatically be replaced with documentation variables.
 
 The following are the assumptions we make:
 
+* The LDAP implementation to be used with authelia is fully setup and reachable by authelia.
 * All services are part of the `example.com` domain:
   * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
     just testing or you want to use that specific domain
@@ -50,7 +55,12 @@ authentication_backend:
 
 ### Application
 
-See the Microsoft [Active Directory] help article.
+Create within [Active Directory], either via CLI or within a GUI management application a basic user with a complex password.
+
+*Make note of its CN.* You can also create a group to use within Authelia if you would like granular control of who can
+login, and reference it within the filters below.
+
+See the Microsoft [Active Directory] help article on how to configure permissions for the authelia user.
 
 ### Defaults
 
@@ -80,11 +90,13 @@ the following conditions:
   - `(|(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:microsoft-nt}))`
 
 ##### Users Filter
+
 ```text
 (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(sAMAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(pwdLastSet=0))(&#124;(!(accountExpires=*))(accountExpires=0)(accountExpires>={date-time:microsoft-nt})))
 ```
 
 ##### Groups Filter
+
 ```text
 (&(member={dn})(&#124;(sAMAccountType=268435456)(sAMAccountType=536870912)))
 ```
@@ -97,9 +109,10 @@ the following conditions:
 |     536870912      |   Domain Local Security Group Objects   |                      N/A                       |
 |     805306368      |          Normal User Accounts           | `(&(objectCategory=person)(objectClass=user))` |
 
-*__References:__*
-- Account Type Values: [Microsoft Learn](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-samr/e742be45-665d-4576-b872-0bc99d1e1fbe).
-- LDAP Syntax Filters: [Microsoft TechNet Wiki](https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx)
+## See Also
+
+* Account Type Values: [Microsoft Learn](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-samr/e742be45-665d-4576-b872-0bc99d1e1fbe)
+* LDAP Syntax Filters: [Microsoft TechNet Wiki](https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx)
 
 [Authelia]: https://www.authelia.com
 [Active Directory]: https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/active-directory-domain-services
