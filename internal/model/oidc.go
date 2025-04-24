@@ -283,16 +283,28 @@ func (s *OAuth2ConsentSession) SetRespondedAt(t time.Time, preconf int64) {
 	}
 }
 
-// Grant grants the requested scopes and audience.
-func (s *OAuth2ConsentSession) Grant() {
+// GrantScopes grants all of the requested scopes.
+func (s *OAuth2ConsentSession) GrantScopes() {
 	s.GrantedScopes = s.RequestedScopes
-	s.GrantedAudience = s.RequestedAudience
 }
 
-func (s *OAuth2ConsentSession) GrantWithClaims(claims []string) {
-	s.Grant()
+// GrantScope grants the specified scope.
+func (s *OAuth2ConsentSession) GrantScope(scope string) {
+	s.GrantedScopes = append(s.GrantedScopes, scope)
+}
+
+// GrantClaims grants the specified claims.
+func (s *OAuth2ConsentSession) GrantClaims(claims []string) {
+	if len(claims) == 0 {
+		return
+	}
 
 	s.GrantedClaims = claims
+}
+
+// GrantAudience grants all of the requested audiences.
+func (s *OAuth2ConsentSession) GrantAudience() {
+	s.GrantedAudience = s.RequestedAudience
 }
 
 // HasExactGrants returns true if the granted audience and scopes of this consent matches exactly with another
