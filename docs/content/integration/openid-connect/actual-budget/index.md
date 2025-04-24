@@ -78,7 +78,7 @@ Add the following [Actual Budget] `config.json` or adapt the existing one:
 ```json
 {
   "openId": {
-    "issuer": "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}",
+    "discoveryURL": "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}",
     "client_id": "actual-budget",
     "client_secret": "insecure_secret",
     "server_hostname": "https://actual-budget.{{< sitevar name="domain" nojs="example.com" >}}",
