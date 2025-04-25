@@ -69,7 +69,7 @@ identity_providers:
           - 'openid'
           - 'profile'
           - 'groups'
-        userinfo_signed_response_alg: 'none'
+        id_token_signed_response_alg: 'none'
 ```
 
 ### Application
