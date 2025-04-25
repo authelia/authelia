@@ -2333,14 +2333,17 @@ components:
         targetURL:
           type: string
           example: 'https://home.{{ .Domain | default "example.com" }}'
-        workflow:
-          type: string
-          example: openid_connect
-        workflowID:
+        flowID:
           type: string
           format: uuid
           pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
           example: '3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c'
+        flow:
+          type: string
+          example: openid_connect
+        subflow:
+          type: string
+          example: device_code
     handlers.bodyFirstFactorRequest:
       required:
         - 'username'
@@ -2356,14 +2359,17 @@ components:
         targetURL:
           type: string
           example: 'https://home.{{ .Domain | default "example.com" }}'
-        workflow:
-          type: string
-          example: openid_connect
-        workflowID:
+        flowID:
           type: string
           format: uuid
           pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
           example: '3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c'
+        flow:
+          type: string
+          example: openid_connect
+        subflow:
+          type: string
+          example: device_code
         requestMethod:
           type: string
           example: GET
@@ -2452,14 +2458,17 @@ components:
           example: 'https://secure.{{ .Domain | default "example.com" }}'
         passcode:
           type: string
-        workflow:
-          type: string
-          example: openid_connect
-        workflowID:
+        flowID:
           type: string
           format: uuid
           pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
           example: '3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c'
+        flow:
+          type: string
+          example: openid_connect
+        subflow:
+          type: string
+          example: device_code
     {{- end }}
     handlers.StateResponse:
       type: object
@@ -2729,14 +2738,17 @@ components:
         targetURL:
           type: string
           example: 'https://secure.{{ .Domain | default "example.com" }}'
-        workflow:
-          type: string
-          example: openid_connect
-        workflowID:
+        flowID:
           type: string
           format: uuid
           pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
           example: '3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c'
+        flow:
+          type: string
+          example: openid_connect
+        subflow:
+          type: string
+          example: device_code
     handlers.TOTPKeyResponse:
       type: object
       properties:
@@ -2836,14 +2848,17 @@ components:
                     userHandle:
                       type: string
                       format: byte
-                    workflow:
-                      type: string
-                      example: openid_connect
-                    workflowID:
+                    flowID:
                       type: string
                       format: uuid
                       pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
                       example: '3ebcfbc5-b0fd-4ee0-9d3c-080ae1e7298c'
+                    flow:
+                      type: string
+                      example: openid_connect
+                    subflow:
+                      type: string
+                      example: device_code
     webauthn.CredentialUpdateRequest:
       type: object
       properties:

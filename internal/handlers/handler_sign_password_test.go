@@ -104,9 +104,9 @@ func (s *HandlerSignPasswordSuite) TestShouldHandleOpenIDConnect() {
 	s.mock.Ctx.Configuration.Session.Cookies[0].DefaultRedirectionURL = testRedirectionURL
 
 	bodyBytes, err := json.Marshal(bodySecondFactorPasswordRequest{
-		Password:   "123456",
-		Workflow:   workflowOpenIDConnect,
-		WorkflowID: "abc",
+		Password: "123456",
+		Flow:     workflowOpenIDConnect,
+		FlowID:   "abc",
 	})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)

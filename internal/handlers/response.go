@@ -192,8 +192,8 @@ func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx, userSession *sessi
 		targetURL := issuer.JoinPath(oidc.FrontendEndpointPathConsentLogin)
 
 		query := targetURL.Query()
-		query.Set(queryArgWorkflow, workflowOpenIDConnect)
-		query.Set(queryArgWorkflowID, workflowID.String())
+		query.Set(queryArgFlow, workflowOpenIDConnect)
+		query.Set(queryArgFlowID, workflowID.String())
 
 		targetURL.RawQuery = query.Encode()
 

@@ -6,10 +6,10 @@ import TextField from "@mui/material/TextField";
 import { BroadcastChannel } from "broadcast-channel";
 import { useTranslation } from "react-i18next";
 
-import LogoutButton from "@components/LogoutButton.js";
+import LogoutButton from "@components/LogoutButton";
+import { useFlow } from "@hooks/Flow";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useRedirector } from "@hooks/Redirector";
-import { useWorkflow } from "@hooks/Workflow";
 import LoginLayout from "@layouts/LoginLayout";
 import { UserInfo } from "@models/UserInfo";
 import { IsCapsLockModified } from "@services/CapsLock";
@@ -30,7 +30,7 @@ const OpenIDConnectConsentLoginFormView: React.FC<Props> = (props: Props) => {
     const [hasCapsLock, setHasCapsLock] = useState(false);
     const [isCapsLockPartial, setIsCapsLockPartial] = useState(false);
     const [loading, setLoading] = useState(false);
-    const { workflow, id: workflowID } = useWorkflow();
+    const { id: flowID, flow, subflow } = useFlow();
 
     const redirector = useRedirector();
     const { createErrorNotification } = useNotifications();
@@ -58,14 +58,14 @@ const OpenIDConnectConsentLoginFormView: React.FC<Props> = (props: Props) => {
             return;
         }
 
-        if (workflow === undefined || workflowID === undefined) {
+        if (flow === undefined || flowID === undefined) {
             return;
         }
 
         setLoading(true);
 
         try {
-            const res = await postFirstFactorReauthenticate(password, undefined, undefined, workflow, workflowID);
+            const res = await postFirstFactorReauthenticate(password, undefined, undefined, flowID, flow, subflow);
             await loginChannel.postMessage(true);
 
             if (res) {
@@ -78,7 +78,7 @@ const OpenIDConnectConsentLoginFormView: React.FC<Props> = (props: Props) => {
             setLoading(false);
             focusPassword();
         }
-    }, [createErrorNotification, focusPassword, loginChannel, password, redirector, translate, workflow, workflowID]);
+    }, [password, flow, flowID, subflow, loginChannel, redirector, createErrorNotification, translate, focusPassword]);
 
     const handlePasswordKeyDown = useCallback(
         (event: React.KeyboardEvent<HTMLDivElement>) => {

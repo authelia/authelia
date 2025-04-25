@@ -20,11 +20,11 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
 
-import LogoutButton from "@components/LogoutButton.js";
+import LogoutButton from "@components/LogoutButton";
 import { IndexRoute } from "@constants/Routes";
+import { useFlow } from "@hooks/Flow";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useRedirector } from "@hooks/Redirector";
-import { useWorkflow } from "@hooks/Workflow";
 import LoginLayout from "@layouts/LoginLayout";
 import { UserInfo } from "@models/UserInfo";
 import {
@@ -71,7 +71,7 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
     const { createErrorNotification, resetNotification } = useNotifications();
     const navigate = useNavigate();
     const redirect = useRedirector();
-    const { id: consentID } = useWorkflow();
+    const { id: consentID } = useFlow();
 
     const [response, setResponse] = useState<ConsentGetResponseBody>();
     const [error, setError] = useState<any>(undefined);

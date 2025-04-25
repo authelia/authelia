@@ -745,8 +745,8 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectCantParseUUID(
 		"password": "hello",
 		"requestMethod": "GET",
 		"keepMeLoggedIn": false,
-		"workflow": "openid_connect",
-		"workflowID": "aaaaaaaaaaaaaaaaaaaaaaaaaaa-9107-4067-8d31-407ca59eb69c"
+		"flow": "openid_connect",
+		"flowID": "aaaaaaaaaaaaaaaaaaaaaaaaaaa-9107-4067-8d31-407ca59eb69c"
 	}`)
 
 	gomock.InOrder(
@@ -785,8 +785,8 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectCantGetConsent
 		"password": "hello",
 		"requestMethod": "GET",
 		"keepMeLoggedIn": false,
-		"workflow": "openid_connect",
-		"workflowID": "d1ba0ad8-9107-4067-8d31-407ca59eb69c"
+		"flow": "openid_connect",
+		"flowID": "d1ba0ad8-9107-4067-8d31-407ca59eb69c"
 	}`)
 
 	gomock.InOrder(
@@ -828,8 +828,8 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectConsentSession
 		"password": "hello",
 		"requestMethod": "GET",
 		"keepMeLoggedIn": false,
-		"workflow": "openid_connect",
-		"workflowID": "d1ba0ad8-9107-4067-8d31-407ca59eb69c"
+		"flow": "openid_connect",
+		"flowID": "d1ba0ad8-9107-4067-8d31-407ca59eb69c"
 	}`)
 
 	gomock.InOrder(
@@ -874,8 +874,8 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectCantGetClient(
 		"password": "hello",
 		"requestMethod": "GET",
 		"keepMeLoggedIn": false,
-		"workflow": "openid_connect",
-		"workflowID": "d1ba0ad8-9107-4067-8d31-407ca59eb69c"
+		"flow": "openid_connect",
+		"flowID": "d1ba0ad8-9107-4067-8d31-407ca59eb69c"
 	}`)
 
 	gomock.InOrder(
@@ -932,8 +932,8 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectFormRequiresLo
 		"password": "hello",
 		"requestMethod": "GET",
 		"keepMeLoggedIn": false,
-		"workflow": "openid_connect",
-		"workflowID": "d1ba0ad8-9107-4067-8d31-407ca59eb69c"
+		"flow": "openid_connect",
+		"flowID": "d1ba0ad8-9107-4067-8d31-407ca59eb69c"
 	}`)
 
 	form := url.Values{
@@ -955,7 +955,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectFormRequiresLo
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
 	// Respond with 200.
-	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "http://example.com/consent/openid/login?workflow=openid_connect&workflow_id=d1ba0ad8-9107-4067-8d31-407ca59eb69c"})
+	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "http://example.com/consent/openid/login?flow=openid_connect&flow_id=d1ba0ad8-9107-4067-8d31-407ca59eb69c"})
 }
 
 func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectFormRequiresLoginBadForm() {
@@ -993,8 +993,8 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectFormRequiresLo
 		"password": "hello",
 		"requestMethod": "GET",
 		"keepMeLoggedIn": false,
-		"workflow": "openid_connect",
-		"workflowID": "d1ba0ad8-9107-4067-8d31-407ca59eb69c"
+		"flow": "openid_connect",
+		"flowID": "d1ba0ad8-9107-4067-8d31-407ca59eb69c"
 	}`)
 
 	gomock.InOrder(
@@ -1052,8 +1052,8 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectNeeds2FA() {
 		"password": "hello",
 		"requestMethod": "GET",
 		"keepMeLoggedIn": false,
-		"workflow": "openid_connect",
-		"workflowID": "d1ba0ad8-9107-4067-8d31-407ca59eb69c"
+		"flow": "openid_connect",
+		"flowID": "d1ba0ad8-9107-4067-8d31-407ca59eb69c"
 	}`)
 
 	gomock.InOrder(
@@ -1111,8 +1111,8 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectNeeds1FA() {
 		"password": "hello",
 		"requestMethod": "GET",
 		"keepMeLoggedIn": false,
-		"workflow": "openid_connect",
-		"workflowID": "d1ba0ad8-9107-4067-8d31-407ca59eb69c"
+		"flow": "openid_connect",
+		"flowID": "d1ba0ad8-9107-4067-8d31-407ca59eb69c"
 	}`)
 
 	gomock.InOrder(

@@ -5,7 +5,7 @@ import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
 import { makeStyles } from "tss-react/mui";
 
-import LogoutButton from "@components/LogoutButton.js";
+import LogoutButton from "@components/LogoutButton";
 import MinimalLayout from "@layouts/MinimalLayout";
 import { UserInfo } from "@models/UserInfo";
 import Authenticated from "@views/LoginPortal/Authenticated";

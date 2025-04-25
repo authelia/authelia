@@ -5,7 +5,7 @@ import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import { useTranslation } from "react-i18next";
 
-import LogoutButton from "@components/LogoutButton.js";
+import LogoutButton from "@components/LogoutButton";
 import { useUserCode } from "@hooks/OpenIDConnect";
 import LoginLayout from "@layouts/LoginLayout";
 import { UserInfo } from "@models/UserInfo";

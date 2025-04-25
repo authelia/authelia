@@ -64,14 +64,6 @@ func handleOAuth2AuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.
 
 		return nil, true
 	default:
-		if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifierURI(), userSession.Username); err != nil {
-			ctx.Logger.Errorf(logFmtErrConsentCantGetSubject, requester.GetID(), client.GetID(), client.GetConsentPolicy(), userSession.Username, client.GetSectorIdentifierURI(), err)
-
-			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrSubjectCouldNotLookup)
-
-			return nil, true
-		}
-
 		return handleOAuth2AuthorizationConsentGenerate(ctx, issuer, client, userSession, uuid.Nil, rw, r, requester)
 	}
 
@@ -163,8 +155,8 @@ func handleOAuth2AuthorizationConsentRedirect(ctx *middlewares.AutheliaCtx, issu
 		location.Path = path.Join(location.Path, oidc.FrontendEndpointPathConsentDecision)
 
 		query := location.Query()
-		query.Set(queryArgWorkflow, workflowOpenIDConnect)
-		query.Set(queryArgWorkflowID, consent.ChallengeID.String())
+		query.Set(queryArgFlow, workflowOpenIDConnect)
+		query.Set(queryArgFlowID, consent.ChallengeID.String())
 
 		location.RawQuery = query.Encode()
 
@@ -211,8 +203,8 @@ func handleOAuth2AuthorizationConsentPromptLoginRedirect(ctx *middlewares.Authel
 	redirectionURL := issuer.JoinPath(oidc.FrontendEndpointPathConsentLogin)
 
 	query := redirectionURL.Query()
-	query.Set(queryArgWorkflow, workflowOpenIDConnect)
-	query.Set(queryArgWorkflowID, consent.ChallengeID.String())
+	query.Set(queryArgFlow, workflowOpenIDConnect)
+	query.Set(queryArgFlowID, consent.ChallengeID.String())
 
 	redirectionURL.RawQuery = query.Encode()
 
@@ -229,8 +221,8 @@ func handleOIDCAuthorizationConsentGetRedirectionURL(_ *middlewares.AutheliaCtx,
 	redirectURL, _ = url.ParseRequestURI(iss)
 
 	query := redirectURL.Query()
-	query.Set(queryArgWorkflow, workflowOpenIDConnect)
-	query.Set(queryArgWorkflowID, consent.ChallengeID.String())
+	query.Set(queryArgFlow, workflowOpenIDConnect)
+	query.Set(queryArgFlowID, consent.ChallengeID.String())
 
 	redirectURL.RawQuery = query.Encode()
 
