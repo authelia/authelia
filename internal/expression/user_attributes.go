@@ -11,11 +11,7 @@ import (
 )
 
 func NewUserAttributes(config *schema.Configuration) (ua UserAttributeResolver) {
-	if config == nil {
-		return &UserAttributes{}
-	}
-
-	if len(config.Definitions.UserAttributes) == 0 {
+	if config == nil || len(config.Definitions.UserAttributes) == 0 {
 		return &UserAttributes{}
 	}
 
