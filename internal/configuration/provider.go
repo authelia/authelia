@@ -61,10 +61,7 @@ func LoadDefinitions(val *schema.StructValidator, sources ...Source) (definition
 
 	c := koanf.UnmarshalConf{
 		DecoderConfig: &mapstructure.DecoderConfig{
-			DecodeHook: mapstructure.ComposeDecodeHookFunc(
-				mapstructure.StringToSliceHookFunc(","),
-				StringToIPNetworksHookFunc(nil),
-			),
+			DecodeHook:       DecodeHooksComposeDefinitions(),
 			Metadata:         nil,
 			Result:           legacy,
 			WeaklyTypedInput: true,
@@ -138,24 +135,7 @@ func unmarshal(ko *koanf.Koanf, val *schema.StructValidator, path string, o any,
 
 	c := koanf.UnmarshalConf{
 		DecoderConfig: &mapstructure.DecoderConfig{
-			DecodeHook: mapstructure.ComposeDecodeHookFunc(
-				mapstructure.StringToSliceHookFunc(","),
-				StringToMailAddressHookFunc(),
-				StringToURLHookFunc(),
-				StringToRegexpHookFunc(),
-				StringToAddressHookFunc(),
-				StringToX509CertificateHookFunc(),
-				StringToX509CertificateChainHookFunc(),
-				StringToPrivateKeyHookFunc(),
-				StringToCryptoPrivateKeyHookFunc(),
-				StringToCryptographicKeyHookFunc(),
-				StringToTLSVersionHookFunc(),
-				StringToPasswordDigestHookFunc(),
-				StringToIPNetworksHookFunc(definitions.Network),
-				StringToUUIDHookFunc(),
-				ToTimeDurationHookFunc(),
-				ToRefreshIntervalDurationHookFunc(),
-			),
+			DecodeHook:       DecodeHooksComposeAll(definitions),
 			Metadata:         nil,
 			Result:           o,
 			WeaklyTypedInput: true,
