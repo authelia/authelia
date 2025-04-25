@@ -8,11 +8,15 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
+	goyaml "gopkg.in/yaml.v3"
 
+	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/expression"
+	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -29,6 +33,7 @@ func newDebugCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 
 	cmd.AddCommand(
 		newDebugTLSCmd(ctx),
+		newDebugExpressionCmd(ctx),
 	)
 
 	return cmd
@@ -54,6 +59,73 @@ func newDebugTLSCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd.Flags().String("hostname", "", "overrides the hostname to use for the TLS connection which is usually extracted from the address")
 
 	return cmd
+}
+
+func newDebugExpressionCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "expression [username] [expression]",
+		Short:   cmdAutheliaDebugExpressionShort,
+		Long:    cmdAutheliaDebugExpressionLong,
+		Example: cmdAutheliaDebugExpressionExample,
+		Args:    cobra.MinimumNArgs(2),
+		RunE:    ctx.DebugExpressionRunE,
+		PreRunE: ctx.ChainRunE(
+			ctx.HelperConfigLoadRunE,
+			ctx.HelperConfigValidateKeysRunE,
+			ctx.HelperConfigValidateRunE,
+			ctx.LoadTrustedCertificatesRunE,
+		),
+		DisableAutoGenTag: true,
+	}
+
+	return cmd
+}
+
+func (ctx *CmdCtx) DebugExpressionRunE(_ *cobra.Command, args []string) (err error) {
+	provider := middlewares.NewAuthenticationProvider(ctx.config, ctx.trusted)
+
+	if provider == nil {
+		return fmt.Errorf("error occurred initializing user authentication provider: a provider is not configured")
+	}
+
+	if err = provider.StartupCheck(); err != nil {
+		return fmt.Errorf("error occurred initializing user authentication provider: %w", err)
+	}
+
+	exp := strings.Join(args[1:], " ")
+
+	e := expression.NewUserAttributes(&schema.Configuration{
+		AuthenticationBackend: schema.AuthenticationBackend{File: &schema.AuthenticationBackendFile{}},
+		Definitions: schema.Definitions{
+			UserAttributes: map[string]schema.UserAttribute{
+				"example": {
+					Expression: exp,
+				},
+			},
+		},
+	})
+
+	if err = e.StartupCheck(); err != nil {
+		return fmt.Errorf("error occurred initializing user attributes expression provider: %w", err)
+	}
+
+	username := args[0]
+
+	var details *authentication.UserDetailsExtended
+
+	if details, err = provider.GetDetailsExtended(username); err != nil {
+		return err
+	}
+
+	resolved, found := e.Resolve("example", details, time.Now())
+
+	_, _ = fmt.Fprintf(os.Stdout, "Resolved: %t\n", found)
+
+	if found {
+		_, _ = fmt.Fprintf(os.Stdout, "Resolved Value: %v\n", resolved)
+	}
+
+	return nil
 }
 
 //nolint:gocyclo
@@ -231,7 +303,7 @@ func (ctx *CmdCtx) DebugTLSRunE(cmd *cobra.Command, args []string) (err error) {
 		c.TLS.ServerName = hostnameOverride
 	}
 
-	data, err := yaml.Marshal(&c)
+	data, err := goyaml.Marshal(&c)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stdout, "\nError marshaling suggested config: %v\n", err)
 	} else {

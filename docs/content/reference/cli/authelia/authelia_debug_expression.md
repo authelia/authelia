@@ -1,8 +1,8 @@
 ---
-title: "authelia debug"
-description: "Reference for the authelia debug command."
+title: "authelia debug expression"
+description: "Reference for the authelia debug expression command."
 lead: ""
-date: 2022-06-15T17:51:47+10:00
+date: 2025-05-10T13:16:45+10:00
 draft: false
 images: []
 weight: 905
@@ -14,26 +14,30 @@ seo:
   noindex: false # false (default) or true
 ---
 
-## authelia debug
+## authelia debug expression
 
-Perform debug functions
+Perform a user attribute expression debug operation
 
 ### Synopsis
 
-Perform debug related functions.
+Perform a user attribute expression debug operation.
 
-This subcommand contains other subcommands related to debugging.
+This subcommand allows checking a user attribute expression against a specific user.
+
+```
+authelia debug expression [username] [expression] [flags]
+```
 
 ### Examples
 
 ```
-authelia debug --help
+authelia debug expression username "'abc' in groups"
 ```
 
 ### Options
 
 ```
-  -h, --help   help for debug
+  -h, --help   help for expression
 ```
 
 ### Options inherited from parent commands
@@ -45,7 +49,5 @@ authelia debug --help
 
 ### SEE ALSO
 
-* [authelia](authelia.md)	 - authelia untagged-unknown-dirty (master, unknown)
-* [authelia debug expression](authelia_debug_expression.md)	 - Perform a user attribute expression debug operation
-* [authelia debug tls](authelia_debug_tls.md)	 - Perform a TLS debug operation
+* [authelia debug](authelia_debug.md)	 - Perform debug functions
 
