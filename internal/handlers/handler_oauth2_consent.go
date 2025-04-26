@@ -114,6 +114,16 @@ func OAuth2ConsentPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	if !consent.Subject.Valid {
+		if consent.Subject.UUID, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifierURI(), userSession.Username); err != nil {
+			ctx.Error(fmt.Errorf("unable to determine consent subject for client with id '%s' with consent challenge id '%s': %w", client.GetID(), consent.ChallengeID, err), messageAuthenticationFailed)
+
+			return
+		}
+
+		consent.Subject.Valid = true
+	}
+
 	if bodyJSON.Consent {
 		consent.GrantWithClaims(bodyJSON.Claims)
 
@@ -164,16 +174,6 @@ func OAuth2ConsentPOST(ctx *middlewares.AutheliaCtx) {
 				ctx.Logger.Warnf("Consent session with id '%s' for user '%s': consent pre-configuration was requested and was ignored because it is not permitted on this client", consent.ChallengeID, userSession.Username)
 			}
 		}
-	}
-
-	if !consent.Subject.Valid {
-		if consent.Subject.UUID, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifierURI(), userSession.Username); err != nil {
-			ctx.Error(fmt.Errorf("unable to determine consent subject for client with id '%s' with consent challenge id '%s': %w", client.GetID(), consent.ChallengeID, err), messageAuthenticationFailed)
-
-			return
-		}
-
-		consent.Subject.Valid = true
 	}
 
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, bodyJSON.Consent); err != nil {
