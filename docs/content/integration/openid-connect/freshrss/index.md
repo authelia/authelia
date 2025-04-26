@@ -119,7 +119,7 @@ services:
       OIDC_X_FORWARDED_HEADERS: 'X-Forwarded-Host X-Forwarded-Port X-Forwarded-Proto'
 ```
 
-In addition the following steps may be required:
+In addition, the following steps may be required:
 
 1. Open the newly created [FreshRSS] instance.
 2. During initial config, select "HTTP" during the user creation.

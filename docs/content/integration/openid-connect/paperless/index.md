@@ -75,9 +75,9 @@ identity_providers:
 
 To configure [Paperless] there is one method, using the [Environment Variables](#environment-variables).
 
-#### Environment Variable
+#### Environment Variables
 
-For reference purposes the below `PAPERLESS_SOCIALACCOUNT_PROVIDERS` environment variable examples are the minified
+For reference purposes, the below `PAPERLESS_SOCIALACCOUNT_PROVIDERS` environment variable examples are the minified
 format of the following:
 
 ```json
