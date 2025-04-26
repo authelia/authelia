@@ -53,7 +53,6 @@ To install the [OpenId Connect Authentication Plugin] for [Jenkins] via the Web 
 4. Search for `oic-auth`.
 5. Install.
 6. Restart [Jenkins].
-7. Proceed to the [Configuration](#configuration-1) step.
 
 To install the [OpenId Connect Authentication Plugin] for [Jenkins] using the CLI:
 
