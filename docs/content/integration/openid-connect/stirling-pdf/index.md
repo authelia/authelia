@@ -72,7 +72,7 @@ identity_providers:
 ### Application
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-Stirling-PDF OIDC Login requires you to login with a user which isn't already registered with Stirling-PDF. You can
+Stirling-PDF OIDC Login requires you to log in with a user who isn't already registered with Stirling-PDF. You can
 rename your current ('web') user via `https://stirlingpdf.{{</* sitevar name="domain" nojs="example.com" */>}}/account`
 {{< /callout >}}
 
