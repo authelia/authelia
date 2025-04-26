@@ -451,11 +451,6 @@ const (
 		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience, granted_claims, preconfiguration)
 		VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
-	queryFmtUpdateOAuth2ConsentSessionSubject = `
-		UPDATE %s
-		SET subject = ?
-		WHERE id = ?;`
-
 	queryFmtUpdateOAuth2ConsentSessionResponse = `
 		UPDATE %s
 		SET
