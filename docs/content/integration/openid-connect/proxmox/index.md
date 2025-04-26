@@ -85,7 +85,7 @@ To configure [Proxmox] there is one method, using the [Web GUI](#web-gui).
 
 #### Web GUI
 
-To configure [Proxmox] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
+To configure [Proxmox] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Visit Datacenter.
 2. Visit Permission.

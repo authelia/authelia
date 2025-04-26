@@ -74,7 +74,7 @@ To configure [Kasm Workspaces] there is one method, using the [Web GUI](#web-gui
 
 #### Web GUI
 
-To configure [Kasm Workspaces] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
+To configure [Kasm Workspaces] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Visit Authentication
 2. Visit OpenID

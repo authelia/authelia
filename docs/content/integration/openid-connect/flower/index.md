@@ -80,7 +80,7 @@ To configure [Flower] there is one method, using the [Configuration File](#confi
 Generally the configuration file is named `flowerconfig.py`.
 {{< /callout >}}
 
-To configure [Flower] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+To configure [Flower] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
 ```python {title="flowerconfig.py"}
 auth = '.*@{{< sitevar name="domain" nojs="example.com" >}}'

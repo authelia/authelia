@@ -190,7 +190,7 @@ To configure [Nextcloud] and the [Nextcloud OpenID Connect Login app] there is o
 ##### Configuration File
 
 To configure [Nextcloud] and the [Nextcloud OpenID Connect user backend app] to utilize Authelia as an
-[OpenID Connect 1.0] Provider use the following instructions:
+[OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Edit the `OpenID Connect` configuration:
    - Identifier: `Authelia`

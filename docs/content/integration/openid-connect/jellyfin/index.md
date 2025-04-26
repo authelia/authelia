@@ -111,7 +111,7 @@ However the following steps must be compelted via the UI first regardless of whi
 Generally the configuration file is named `SSO-Auth.xml`.
 {{< /callout >}}
 
-To configure [Jellyfin] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+To configure [Jellyfin] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
 ```xml {title="SSO-Auth.xml"}
 <?xml version="1.0" encoding="utf-8"?>
@@ -161,7 +161,7 @@ To configure [Jellyfin] to utilize Authelia as an [OpenID Connect 1.0] Provider 
 
 #### Web GUI
 
-To configure [Jellyfin] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
+To configure [Jellyfin] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Visit the [Jellyfin] Administration Dashboard.
 2. Visit the `Plugins` section.

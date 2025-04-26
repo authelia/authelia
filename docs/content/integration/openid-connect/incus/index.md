@@ -74,7 +74,7 @@ To configure [Incus] there is one method, using the [CLI](#cli).
 
 #### CLI
 
-To configure [Incus] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
+To configure [Incus] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Make sure Web Interface is configured and accessible from `https://incus.{{< sitevar name="domain" nojs="example.com" >}}/`.
 2. Set the following configuration options, either via individual commands as shown below or via the `incus config edit` command:

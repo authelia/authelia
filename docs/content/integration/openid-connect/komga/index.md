@@ -79,7 +79,7 @@ To configure [Komga] there is one method, using the [Configuration File](#config
 Generally the configuration file is named `application.yml`.
 {{< /callout >}}
 
-To configure [Komga] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+To configure [Komga] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
 ```yaml {title="application.yml"}
 komga:

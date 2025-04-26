@@ -83,7 +83,7 @@ To configure [Mealie] there is one method, using [Environment Variables](#enviro
 
 #### Environment Variables
 
-To configure [Mealie] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following environment variables:
+To configure [Mealie] to utilize Authelia as an [OpenID Connect 1.0] Provider. use the following environment variables:
 
 ##### Standard
 

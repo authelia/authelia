@@ -85,7 +85,7 @@ To configure [Home Assistant] there is one method, using the [Configuration File
 Generally the configuration file is named `configuration.yaml`.
 {{< /callout >}}
 
-To configure [Home Assistant] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+To configure [Home Assistant] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
 ```yaml {title="configuration.yaml"}
 auth_oidc:

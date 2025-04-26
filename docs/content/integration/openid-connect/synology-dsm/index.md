@@ -85,7 +85,7 @@ To configure [Synology DSM] there is one method, using the [Web GUI](#web-gui).
 
 #### Web GUI
 
-To configure [Synology DSM] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
+To configure [Synology DSM] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Go to DSM.
 2. Go to `Control Panel`.

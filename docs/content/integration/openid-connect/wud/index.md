@@ -74,7 +74,7 @@ To configure [WUD] there is one method, using the [Environment Variables](#envir
 
 #### Environment Variables
 
-To configure [WUD] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following environment variables:
+To configure [WUD] to utilize Authelia as an [OpenID Connect 1.0] Provider. use the following environment variables:
 
 ##### Standard
 

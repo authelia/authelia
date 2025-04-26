@@ -82,7 +82,7 @@ To configure [HedgeDoc] there is one method, using the [Environment Variables](#
 
 #### Environment Variables
 
-To configure [HedgeDoc] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following environment variables:
+To configure [HedgeDoc] to utilize Authelia as an [OpenID Connect 1.0] Provider. use the following environment variables:
 
 ##### Standard
 

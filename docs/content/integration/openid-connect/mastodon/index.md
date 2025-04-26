@@ -73,7 +73,7 @@ To configure [Mastodon] there is one method, using [Environment Variables](#envi
 
 #### Environment Variables
 
-To configure [Mastodon] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following environment variables:
+To configure [Mastodon] to utilize Authelia as an [OpenID Connect 1.0] Provider. use the following environment variables:
 
 ##### Standard
 

@@ -78,7 +78,7 @@ To configure [pgAdmin] there is one method, using the [Configuration File](#conf
 Generally the configuration file is named `config_local.py`.
 {{< /callout >}}
 
-To configure [pgAdmin] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+To configure [pgAdmin] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
 ```python {title="config_local.py"}
 AUTHENTICATION_SOURCES = ['oauth2', 'internal']

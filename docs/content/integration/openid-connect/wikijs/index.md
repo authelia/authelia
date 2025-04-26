@@ -74,7 +74,7 @@ To configure [Wiki.js] there is one method, using the [Web GUI](#web-gui).
 
 #### Web GUI
 
-To configure [Wiki.js] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
+To configure [Wiki.js] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Login to [Wiki.js] as an Administrator.
 2. Visit Administration.

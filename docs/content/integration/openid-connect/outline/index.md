@@ -80,7 +80,7 @@ To configure [Outline] there is one method, using the [Environment Variables](#e
 
 #### Environment Variables
 
-To configure [Outline] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following environment variables:
+To configure [Outline] to utilize Authelia as an [OpenID Connect 1.0] Provider. use the following environment variables:
 
 ##### Standard
 

@@ -72,7 +72,7 @@ To configure [Odoo] there is one method, using the [Web GUI](#web-gui).
 
 #### Web GUI
 
-To configure [Odoo] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
+To configure [Odoo] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Enable OAuth in General Settings/Integrations, save and reload.
 2. Create a new OAuth Provider in General Settings/Integrations/OAuth Providers.

@@ -87,7 +87,7 @@ To configure [GitLab] there is one method, using the [Configuration File](#confi
 Generally the configuration file is named `gitlab.rb`.
 {{< /callout >}}
 
-To configure [GitLab] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+To configure [GitLab] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
 ```ruby {title="gitlab.rb"}
 gitlab_rails['omniauth_providers'] = [

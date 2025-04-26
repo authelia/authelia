@@ -75,7 +75,7 @@ To configure [MinIO] there are two methods, using [Environment Variables](#envir
 
 #### Environment Variables
 
-To configure [MinIO] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following environment variables:
+To configure [MinIO] to utilize Authelia as an [OpenID Connect 1.0] Provider. use the following environment variables:
 
 ##### Standard
 
@@ -110,7 +110,7 @@ services:
 
 #### Web GUI
 
-To configure [MinIO] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
+To configure [MinIO] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Login to [MinIO]
 2. On the left hand menu, go to `Identity`, then `OpenID`

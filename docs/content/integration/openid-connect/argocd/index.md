@@ -97,7 +97,7 @@ To configure [Argo CD] there is one method, using the [Configuration File](#conf
 Generally the configuration file is named `argocd-cm.yaml`.
 {{< /callout >}}
 
-To configure [Argo CD] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+To configure [Argo CD] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
 ```yaml {title="argocd-cm.yaml"}
 oidc.config: |

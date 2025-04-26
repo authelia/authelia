@@ -87,7 +87,7 @@ To configure [Matomo] there is one method, using the [Web GUI](#web-gui).
 
 #### Web GUI
 
-To configure [Matomo] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
+To configure [Matomo] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Click `System`.
 2. Click `General settings`.
@@ -96,7 +96,7 @@ To configure [Matomo] to utilize Authelia as an [OpenID Connect 1.0] Provider us
    - Authorize URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
    - Token URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
    - Userinfo URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
-   - Userinfo ID: `sub'
+   - Userinfo ID: `sub`
    - Client ID: `matomo`
    - Client Secret: `insecure_secret`
    - OAuth Scope: `openid email`

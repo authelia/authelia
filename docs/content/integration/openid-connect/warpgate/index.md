@@ -63,7 +63,7 @@ identity_providers:
         userinfo_signed_response_alg: 'none'
 ```
 
-## Application
+### Application
 
 To configure [Warpgate] there is one method, using the [Configuration File](#configuration-file).
 
@@ -73,7 +73,7 @@ To configure [Warpgate] there is one method, using the [Configuration File](#con
 Generally the configuration file is named `warpgate.yaml`.
 {{< /callout >}}
 
-To configure [Warpgate] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+To configure [Warpgate] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
 ```yaml {title="warpgate.yaml"}
 external_host: warpgate.{{< sitevar name="domain" nojs="example.com" >}}

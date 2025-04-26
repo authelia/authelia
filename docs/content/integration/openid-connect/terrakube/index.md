@@ -80,7 +80,7 @@ To configure [Terrakube] there is one method, using the [Configuration File](#co
 The configuration file below is the Dex configuration for Terrakube.
 {{< /callout >}}
 
-To configure [Terrakube] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+To configure [Terrakube] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
 ```yaml
 connectors:

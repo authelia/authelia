@@ -88,7 +88,7 @@ The below example uses `insecure_crypto_key` for one of the values. It's recomme
 according to the FreshRSS recommendations. At minimum this should be a reasonably long random string.
 {{< /callout >}}
 
-To configure [FreshRSS] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following environment variables:
+To configure [FreshRSS] to utilize Authelia as an [OpenID Connect 1.0] Provider. use the following environment variables:
 
 ##### Standard
 

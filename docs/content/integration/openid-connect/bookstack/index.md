@@ -79,7 +79,7 @@ To configure [BookStack] there is one method, using the [Environment Variables](
 
 #### Environment Variables
 
-To configure [BookStack] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following environment
+To configure [BookStack] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following environment
 variables:
 
 ##### Standard
@@ -104,6 +104,7 @@ services:
       OIDC_ISSUER: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
       OIDC_ISSUER_DISCOVER: 'true'
       OIDC_CLIENT_ID: 'bookstack'
+      OIDC_CLIENT_SECRET: 'insecure_secret'
       OIDC_NAME: 'Authelia'
       OIDC_DISPLAY_NAME_CLAIMS: 'name'
 ```

@@ -76,7 +76,7 @@ To configure [PocketBase] there is one method, using the [Web GUI](#web-gui).
 
 #### Web GUI
 
-To configure [PocketBase] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
+To configure [PocketBase] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Connect to PocketBase admin view.
 2. On the left menu, go to `Settings`.

@@ -87,7 +87,7 @@ does not [support OAuth Bearer](https://github.com/haiwen/seafdav/issues/76) at 
 Generally the configuration file is named `seahub_settings.py`.
 {{< /callout >}}
 
-To configure [Seafile] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+To configure [Seafile] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
 ```python {title="seahub_settings.py"}
 ENABLE_OAUTH = True

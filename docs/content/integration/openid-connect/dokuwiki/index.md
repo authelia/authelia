@@ -83,7 +83,7 @@ To configure [DokuWiki] there is one method, using the [Web GUI](#web-gui).
 
 #### Web GUI
 
-To configure [DokuWiki] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following
+To configure [DokuWiki] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following
 instructions:
 
 1. Within [DokuWiki] visit the Administration section and then the Extension Manager. Install the following Extensions:

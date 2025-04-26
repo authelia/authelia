@@ -82,7 +82,7 @@ To configure [Grafana] there are two methods, using the [Configuration File](#co
 Generally the configuration file is named `grafana.ini`.
 {{< /callout >}}
 
-To configure [Grafana] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+To configure [Grafana] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
 ```ini {title="grafana.ini"}
 [server]
@@ -108,7 +108,7 @@ role_attribute_path =
 
 #### Environment Variables
 
-To configure [Grafana] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+To configure [Grafana] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
 ##### Standard
 

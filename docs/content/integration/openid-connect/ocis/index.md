@@ -130,7 +130,7 @@ To configure [ownCloud Infinite Scale] there is one method, using the [Environme
 
 #### Environment Variables
 
-To configure [ownCloud Infinite Scale] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following environment
+To configure [ownCloud Infinite Scale] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following environment
 variables:
 
 ##### Standard

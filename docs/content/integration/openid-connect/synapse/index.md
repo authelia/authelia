@@ -79,7 +79,7 @@ To configure [Synapse] there is one method, using the [Configuration File](#conf
 Generally the configuration file is named `homeserver.yaml`.
 {{< /callout >}}
 
-To configure [Synapse] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+To configure [Synapse] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
 ```yaml {title="homeserver.yaml"}
 oidc_providers:

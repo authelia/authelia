@@ -78,7 +78,7 @@ To configure [Gitea] there are two methods, using the [Web GUI](#web-gui), or us
 
 #### Web GUI
 
-To configure [Gitea] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
+To configure [Gitea] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Expand User Options
 2. Visit Site Administration
@@ -97,7 +97,7 @@ To configure [Gitea] to utilize Authelia as an [OpenID Connect 1.0] Provider use
 
 _**Important Note:** Please refer to the [Gitea CLI Guide](https://docs.gitea.com/administration/command-line) regarding the correct usage of the CLI._
 
-To configure [Gitea] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
+To configure [Gitea] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Run `gitea migrate`.
 2. Run `gitea admin auth add-oauth --provider=openidConnect --name=authelia --key=gitea --secret=insecure_secret --auto-discover-url=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration --scopes='openid email profile'`

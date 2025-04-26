@@ -80,7 +80,7 @@ To configure [Stirling-PDF] there is one method, using the [Environment Variable
 
 #### Environment Variables
 
-To configure [Stirling-PDF] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following environment variables:
+To configure [Stirling-PDF] to utilize Authelia as an [OpenID Connect 1.0] Provider. use the following environment variables:
 
 ##### Standard
 

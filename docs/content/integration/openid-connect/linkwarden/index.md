@@ -75,7 +75,7 @@ To configure [Linkwarden] there is one method, using [Environment Variables](#en
 
 #### Environment Variables
 
-To configure [Linkwarden] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following environment variables:
+To configure [Linkwarden] to utilize Authelia as an [OpenID Connect 1.0] Provider. use the following environment variables:
 
 ##### Standard
 

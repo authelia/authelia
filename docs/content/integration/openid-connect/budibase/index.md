@@ -72,7 +72,7 @@ To configure [Budibase] there is one method, using the [Web GUI](#web-gui).
 
 #### Web GUI
 
-To configure [Budibase] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
+To configure [Budibase] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 You may be able to skip steps 1 to 3 by visiting the following URL: https://budibase.{{< sitevar name="domain" nojs="example.com" >}}/builder/portal/settings/organisation
 

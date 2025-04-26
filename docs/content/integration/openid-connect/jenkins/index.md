@@ -97,7 +97,7 @@ To configure [Jenkins] there are two methods, using the [Configuration File](#co
 
 #### Configuration File
 
-To configure [Jenkins] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+To configure [Jenkins] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
 ```yaml
 jenkins:
@@ -123,7 +123,7 @@ jenkins:
 
 #### Web GUI
 
-To configure [Jenkins] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
+To configure [Jenkins] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Visit `Manage Jenkins`.
 2. Visit `Security`.

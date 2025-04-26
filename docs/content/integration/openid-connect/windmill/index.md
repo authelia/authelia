@@ -71,7 +71,7 @@ To configure [Windmill] there is one method, using the [Web GUI](#web-gui).
 
 #### Web GUI
 
-To configure [Windmill] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
+To configure [Windmill] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Navigate to Superadmin settings.
 2. Navigate to Core.

@@ -81,7 +81,7 @@ To configure [HumHub] there is one method, using the [Configuration File](#confi
 Generally the configuration file is named `config/common.php`.
 {{< /callout >}}
 
-To configure [HumHub] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+To configure [HumHub] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
 ```php {title="config/common.php"}
 return [

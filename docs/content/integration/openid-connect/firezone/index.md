@@ -79,7 +79,7 @@ To configure [Firezone] there is one method, using the [Web GUI](#web-gui).
 
 #### Web GUI
 
-To configure [Firezone] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following
+To configure [Firezone] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following
 instructions:
 
 1. Visit your [Firezone] site

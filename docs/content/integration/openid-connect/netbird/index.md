@@ -87,7 +87,7 @@ configure it for Authelia.
 
 #### NetBird Dashboard
 
-To configure [NetBird] Dashboard to utilize Authelia as an [OpenID Connect 1.0] Provider use the following environment
+To configure [NetBird] Dashboard to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following environment
 variables:
 
 ##### Standard
@@ -131,7 +131,7 @@ services:
 Generally the configuration file is named `management.json`.
 {{< /callout >}}
 
-To configure [NetBird] Management to utilize Authelia as an [OpenID Connect 1.0] Provider use the following
+To configure [NetBird] Management to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following
 configuration:
 
 ```json {title="management.json"}

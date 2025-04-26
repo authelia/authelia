@@ -74,7 +74,7 @@ To configure [YouTrack] there is one method, using the [Web GUI](#web-gui).
 
 #### Web GUI
 
-To configure [YouTrack] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
+To configure [YouTrack] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Visit the [YouTrack] Hub at `https://youtrack.{{< sitevar name="domain" nojs="example.com" >}}/hub`
 2. Login as an admin

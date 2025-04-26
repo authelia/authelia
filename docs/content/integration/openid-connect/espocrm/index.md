@@ -76,7 +76,7 @@ To configure [EspoCRM] there is one method, using the [Web GUI](#web-gui).
 
 #### Web GUI
 
-To configure [EspoCRM] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following
+To configure [EspoCRM] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following
 instructions:
 
 1. Visit [EspoCRM].

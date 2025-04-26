@@ -80,7 +80,7 @@ To configure [Node-RED] there is one method, using the [Configuration File](#con
 Generally the configuration file is named `settings.js`.
 {{< /callout >}}
 
-To configure [Node-RED] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+To configure [Node-RED] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
 ```js {title="settings.js"}
 adminAuth: {

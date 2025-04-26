@@ -87,7 +87,7 @@ To configure [Cloudflare Zero Trust] there is one method, using the [Web GUI](#w
 
 #### Web GUI
 
-To configure [Cloudflare Zero Trust] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following
+To configure [Cloudflare Zero Trust] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following
 instructions:
 
 1. Visit the [Cloudflare Zero Trust Dashboard](https://dash.teams.cloudflare.com)

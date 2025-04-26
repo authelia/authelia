@@ -21,9 +21,9 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-    - [v4.38.10](https://github.com/authelia/authelia/releases/tag/v4.38.10)
+  - [v4.38.10](https://github.com/authelia/authelia/releases/tag/v4.38.10)
 - [LibreChat]
-    - [v0.7.5](https://www.librechat.ai/changelog)
+  - [v0.7.5](https://www.librechat.ai/changelog)
 
 {{% oidc-common %}}
 
@@ -77,7 +77,7 @@ To configure [LibreChat] there is one method, using [Environment Variables](#env
 
 #### Environment Variables
 
-To configure [LibreChat] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following environment variables:
+To configure [LibreChat] to utilize Authelia as an [OpenID Connect 1.0] Provider. use the following environment variables:
 
 ##### Standard
 

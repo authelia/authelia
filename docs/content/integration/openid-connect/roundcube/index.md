@@ -84,7 +84,7 @@ To configure [Roundcube OAuth2] there is one method, using the [Configuration Fi
 Generally the configuration file is named `/etc/roundcube/config.inc.php`.
 {{< /callout >}}
 
-To configure [Roundcube OAuth2] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+To configure [Roundcube OAuth2] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
 ```php {title="/etc/roundcube/config.inc.php"}
 $config['use_https'] = true;

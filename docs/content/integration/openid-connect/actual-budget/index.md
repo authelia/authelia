@@ -79,7 +79,7 @@ To configure [Actual Budget] there are three methods, using the [Configuration F
 
 #### Configuration File
 
-To configure [Actual Budget] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+To configure [Actual Budget] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
 ```json
 {
@@ -95,17 +95,17 @@ To configure [Actual Budget] to utilize Authelia as an [OpenID Connect 1.0] Prov
 
 #### Environment Variables
 
-To configure [Actual Budget] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following environment
+To configure [Actual Budget] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following environment
 variables:
 
 ##### Standard
 
 ```shell {title=".env"}
-ACTUAL_OPENID_DISCOVERY_URL="https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}"
-ACTUAL_OPENID_CLIENT_ID="actual-budget"
-ACTUAL_OPENID_CLIENT_SECRET="insecure_secret"
-ACTUAL_OPENID_SERVER_HOSTNAME="https://actual-budget.{{< sitevar name="domain" nojs="example.com" >}}"
-ACTUAL_OPENID_AUTH_METHOD="oauth2"
+ACTUAL_OPENID_DISCOVERY_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
+ACTUAL_OPENID_CLIENT_ID=actual-budget
+ACTUAL_OPENID_CLIENT_SECRET=insecure_secret
+ACTUAL_OPENID_SERVER_HOSTNAME=https://actual-budget.{{< sitevar name="domain" nojs="example.com" >}}
+ACTUAL_OPENID_AUTH_METHOD=oauth2
 ```
 
 ##### Docker Compose
@@ -115,7 +115,7 @@ services:
   actual-budget:
     environment:
       ACTUAL_OPENID_DISCOVERY_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration'
-      ACTUAL_OPENID_CLIENT_ID: 'linkwarden'
+      ACTUAL_OPENID_CLIENT_ID: 'actual-budget'
       ACTUAL_OPENID_CLIENT_SECRET: 'insecure_secret'
       ACTUAL_OPENID_SERVER_HOSTNAME: 'https://actual-budget.{{< sitevar name="domain" nojs="example.com" >}}'
       ACTUAL_OPENID_AUTH_METHOD: 'oauth2'
@@ -123,7 +123,7 @@ services:
 
 #### Web GUI
 
-To configure [Actual Budget] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
+To configure [Actual Budget] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Navigate to any Budget file.
 2. Navigate to Settings.

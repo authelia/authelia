@@ -84,7 +84,7 @@ To configure [opkssh] there is one method, using the [Configuration File](#confi
 Generally the configuration file is named `/etc/opk/providers`.
 {{< /callout >}}
 
-To configure [opkssh] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+To configure [opkssh] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
 ```txt {title="/etc/opk/providers"}
 https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/ opkssh 24h

@@ -76,7 +76,7 @@ To configure [Memos] there is one method, using the [Web GUI](#web-gui).
 
 #### Web GUI
 
-To configure [Memos] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
+To configure [Memos] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Go to the settings menu, choose `SSO`, `create` and `OAuth2`
 2. Choose template `custom`

@@ -161,7 +161,7 @@ function toBoolean(value, defaultValue) {
 
 ##### #nvironment Variables
 
-To configure [Express.js] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following environment
+To configure [Express.js] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following environment
 variables:
 
 ###### Standard

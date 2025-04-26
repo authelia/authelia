@@ -32,7 +32,7 @@ seo:
 This example makes the following assumptions:
 
 - __Application Root URL:__ `https://uptime-kuma.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 - __Client ID:__ `uptime-kuma`
 - __Client Secret:__ `insecure_secret`
 - __Secured Resource URL:__ `https://application.{{< sitevar name="domain" nojs="example.com" >}}/`
@@ -122,7 +122,7 @@ To configure [Uptime Kuma] there is one method, using the [Web GUI](#web-gui).
 
 #### Web GUI
 
-To configure [Uptime Kuma] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
+To configure [Uptime Kuma] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Create a new status monitor or configure an existing one
 2. Choose monitor type e.g. HTTP(s) Keyword and set a keyword you want to find

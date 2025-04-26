@@ -92,7 +92,7 @@ To configure [PeerTube] there is one method, using the [Web GUI](#web-gui).
 
 #### Web GUI
 
-To configure [PeerTube] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
+To configure [PeerTube] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Visit `Settings` under `Administration`.
 2. Visit `Plugins/Themes`.

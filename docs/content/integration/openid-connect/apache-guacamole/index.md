@@ -82,7 +82,7 @@ To configure [Apache Guacamole]  there is one method, using the [Configuration F
 
 #### Configuration File
 
-To configure [Apache Guacamole] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+To configure [Apache Guacamole] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
 ```yaml
 openid-client-id: guacamole

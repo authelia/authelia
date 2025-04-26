@@ -78,7 +78,7 @@ To configure [PowerDNS Admin] there is one method, using the [Web GUI](#web-gui)
 
 #### Web GUI
 
-To configure [PowerDNS Admin] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
+To configure [PowerDNS Admin] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Visit Settings
 2. Visit Authentication
@@ -94,10 +94,10 @@ To configure [PowerDNS Admin] to utilize Authelia as an [OpenID Connect 1.0] Pro
    - Logout URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/logout`
    - Username: `preferred_username`
    - Email: `email`
-   - First Mame: `given_name`
+   - First Name: `given_name`
    - Last Name: `family_name`
    - Autoprovision Account Name property: `preferred_username`
-   - Autoprovision Account Description property : `name`
+   - Autoprovision Account Description property: `name`
 
 {{< figure src="powerdns.png" alt="PowerDNS Admin" width="736" style="padding-right: 10px" >}}
 

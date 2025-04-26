@@ -101,7 +101,7 @@ format of the following:
 }
 ```
 
-To configure [Paperless] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following environment variables:
+To configure [Paperless] to utilize Authelia as an [OpenID Connect 1.0] Provider. use the following environment variables:
 
 ##### Standard
 

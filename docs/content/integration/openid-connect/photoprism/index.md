@@ -74,7 +74,7 @@ To configure [PhotoPrism] there is one method, using the [Environment Variables]
 
 #### Environment Variables
 
-To configure [PhotoPrism] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following environment variables:
+To configure [PhotoPrism] to utilize Authelia as an [OpenID Connect 1.0] Provider. use the following environment variables:
 
 ##### Standard
 

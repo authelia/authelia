@@ -74,7 +74,7 @@ To configure [Zipline] there is one method, using the [Web GUI](#web-gui).
 
 #### Web GUI
 
-To configure [Zipline] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
+To configure [Zipline] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Go to Server Settings.
 2. Activate the **OAuth Registration** feature toggle.

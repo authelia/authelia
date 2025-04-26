@@ -80,7 +80,7 @@ To configure [Writefreely] there is one method, using the [Configuration File](#
 Generally the configuration file is named `config.ini`.
 {{< /callout >}}
 
-To configure [Writefreely] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+To configure [Writefreely] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
 ```ini {title="config.ini"}
 [app]

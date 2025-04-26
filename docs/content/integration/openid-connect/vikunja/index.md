@@ -78,7 +78,7 @@ To configure [Vikunja] there is one method, using the [Configuration File](#conf
 Generally the configuration file is named `config.yml`.
 {{< /callout >}}
 
-To configure [Vikunja] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+To configure [Vikunja] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
 ```yaml {title="config.yml"}
 auth:
