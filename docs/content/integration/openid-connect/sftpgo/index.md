@@ -79,7 +79,8 @@ identity_providers:
         authorization_policy: 'two_factor'
         claims_policy: 'sftpgo'
         redirect_uris:
-          - 'https://sftpgo.{{< sitevar name="domain" nojs="example.com" >}}/openid/callback'
+          - 'https://sftpgo.{{< sitevar name="domain" nojs="example.com" >}}/web/oidc/redirect'
+          - 'https://sftpgo.{{< sitevar name="domain" nojs="example.com" >}}/web/oauth2/redirect'
         scopes:
           - 'openid'
           - 'profile'
