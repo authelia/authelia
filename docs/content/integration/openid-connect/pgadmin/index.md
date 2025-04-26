@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-* [pgAdmin]
-  * [v8.5](https://www.pgadmin.org/docs/pgadmin4/8.5/index.html)
+- [Authelia]
+  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+- [pgAdmin]
+  - [v8.5](https://www.pgadmin.org/docs/pgadmin4/8.5/index.html)
 
 {{% oidc-common %}}
 
@@ -31,10 +31,10 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://pgadmin.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `pgadmin`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://pgadmin.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `pgadmin`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -70,9 +70,15 @@ identity_providers:
 
 ### Application
 
-To configure [pgAdmin] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [pgAdmin] there is one method, using the [Configuration File](#configuration-file).
 
-1. Add the following YAML to your configuration:
+#### Configuration File
+
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+Generally the configuration file is named `config_local.py`.
+{{< /callout >}}
+
+To configure [pgAdmin] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
 
 ```python {title="config_local.py"}
 AUTHENTICATION_SOURCES = ['oauth2', 'internal']
@@ -89,7 +95,7 @@ OAUTH2_CONFIG = [{
 	'OAUTH2_SERVER_METADATA_URL': 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration',
 	'OAUTH2_SCOPE': 'openid email profile',
 	'OAUTH2_USERNAME_CLAIM': 'email',
-	'OAUTH2_ICON': 'fa-key',
+	'OAUTH2_ICON': 'fa-openid',
 	'OAUTH2_BUTTON_COLOR': '<button-color>'
 }]
 ```

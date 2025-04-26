@@ -22,10 +22,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-* [Portainer] CE and EE
-  * 2.21.4
+- [Authelia]
+  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+- [Portainer] CE and EE
+  - 2.21.4
 
 {{% oidc-common %}}
 
@@ -33,10 +33,10 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://portainer.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `portainer`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://portainer.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `portainer`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -73,29 +73,33 @@ identity_providers:
 
 ### Application
 
-To configure [Portainer] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [Portainer] there is one method, using the [Web GUI](#web-gui).
+
+#### Web GUI
+
+To configure [Portainer] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
 
 1. Visit Settings
 2. Visit Authentication
-3. Set the following values:
-   1. Authentication Method: OAuth
-   2. Provider: Custom
-   3. Enable *Automatic User Provision* if you want users to automatically be created in [Portainer].
-   4. Client ID: `portainer`
-   5. Client Secret: `insecure_secret`
-   6. Authorization URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
-   7. Access Token URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
-   8. Resource URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
-   9. Redirect URL: `https://portainer.{{< sitevar name="domain" nojs="example.com" >}}`
-   10. User Identifier: `preferred_username`
-   11. Scopes: `openid profile groups email`
-   12. Auth Style: `In Params`
+3. Configure the following options:
+   - Authentication Method: `OAuth`
+   - Provider: `Custom`
+   - Automatic User Provision: Enable if you want users to automatically be created in [Portainer].
+   - Client ID: `portainer`
+   - Client Secret: `insecure_secret`
+   - Authorization URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
+   - Access Token URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
+   - Resource URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
+   - Redirect URL: `https://portainer.{{< sitevar name="domain" nojs="example.com" >}}`
+   - User Identifier: `preferred_username`
+   - Scopes: `openid profile groups email`
+   - Auth Style: `In Params`
 
 {{< figure src="portainer.png" alt="Portainer" width="736" style="padding-right: 10px" >}}
 
 ## See Also
 
-* [Portainer OAuth Documentation](https://docs.portainer.io/admin/settings/authentication/oauth)
+- [Portainer OAuth Documentation](https://docs.portainer.io/admin/settings/authentication/oauth)
 
 [Authelia]: https://www.authelia.com
 [Portainer]: https://www.portainer.io/

@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.15](https://github.com/authelia/authelia/releases/tag/v4.38.15)
-* [Harbor]
-  * 2.11.2
+- [Authelia]
+  - [v4.38.15](https://github.com/authelia/authelia/releases/tag/v4.38.15)
+- [Harbor]
+  - 2.11.2
 
 {{% oidc-common %}}
 
@@ -31,10 +31,10 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://harbor.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `harbor`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://harbor.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `harbor`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -74,29 +74,33 @@ identity_providers:
 
 ### Application
 
-To configure [Harbor] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [Harbor] there is one method, using the [Web GUI](#web-gui).
+
+#### Web GUI
+
+To configure [Harbor] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
 
 1. Visit Administration
 2. Visit Configuration
 3. Visit Authentication
 4. Select `OIDC` from the `Auth Mode` drop down
-5. Set the following values:
-   1. OIDC Provider Name: `Authelia`
-   2. OIDC Provider Endpoint: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
-   3. OIDC Client ID: `harbor`
-   4. OIDC Client Secret: `insecure_secret`
-   5. Group Claim Name: `groups`
-   6. For OIDC Admin Group you can specify a group name that matches your authentication backend.
-   7. OIDC Scope: `openid,profile,email,groups,offline_access`
-   8. Ensure `Verify Certificate` is checked.
-   9. Ensure `Automatic onboarding` is checked if you want users to be created by default.
-   10. Username Claim: `preferred_username`
+5. Configure the following options:
+   - OIDC Provider Name: `Authelia`
+   - OIDC Provider Endpoint: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
+   - OIDC Client ID: `harbor`
+   - OIDC Client Secret: `insecure_secret`
+   - Group Claim Name: `groups`
+   - For OIDC Admin Group you can specify a group name that matches your authentication backend.
+   - OIDC Scope: `openid,profile,email,groups,offline_access`
+   - Verify Certificate: Enabled.
+   - Automatic onboarding: Enabled if you want users to be created by default.
+   - Username Claim: `preferred_username`
 6. Click `Test OIDC Server`
 7. Click `Save`
 
 ## See Also
 
-* [Harbor OpenID Connect Provider Documentation](https://goharbor.io/docs/2.11.0/administration/configure-authentication/oidc-auth/)
+- [Harbor OpenID Connect Provider Documentation](https://goharbor.io/docs/2.11.0/administration/configure-authentication/oidc-auth/)
 
 [Authelia]: https://www.authelia.com
 [Harbor]: https://goharbor.io/

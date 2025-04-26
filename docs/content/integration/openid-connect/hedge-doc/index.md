@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.16](https://github.com/authelia/authelia/releases/tag/v4.38.16)
-* [HedgeDoc]
-  * [v1.10.0](https://github.com/hedgedoc/hedgedoc/releases/tag/1.10.0)
+- [Authelia]
+  - [v4.38.16](https://github.com/authelia/authelia/releases/tag/v4.38.16)
+- [HedgeDoc]
+  - [v1.10.0](https://github.com/hedgedoc/hedgedoc/releases/tag/1.10.0)
 
 {{% oidc-common %}}
 
@@ -31,10 +31,10 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://hedgedoc.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `hedgedoc`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://hedgedoc.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `hedgedoc`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -78,11 +78,15 @@ elect to create a new authorization policy in [provider authorization policies](
 [client authorization policy](../../../configuration/identity-providers/openid-connect/clients.md#authorization_policy).
 {{< /callout >}}
 
-To configure [HedgeDoc] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [HedgeDoc] there is one method, using the [Environment Variables](#environment-variables).
 
-1. Add the following configuration variables:
+#### Environment Variables
 
-```env
+To configure [HedgeDoc] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following environment variables:
+
+##### Standard
+
+```shell
 CMD_OAUTH2_PROVIDERNAME=Authelia
 CMD_OAUTH2_AUTHORIZATION_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization
 CMD_OAUTH2_TOKEN_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token
@@ -97,6 +101,25 @@ CMD_OAUTH2_ROLES_CLAIM=groups
 CMD_OAUTH2_ACCESS_ROLE=hedgedoc-users
 ```
 
+##### Docker Compose
+
+```yaml
+services:
+  hedgedoc:
+    environment:
+      CMD_OAUTH2_PROVIDERNAME: 'Authelia'
+      CMD_OAUTH2_AUTHORIZATION_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization'
+      CMD_OAUTH2_TOKEN_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token'
+      CMD_OAUTH2_USER_PROFILE_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo'
+      CMD_OAUTH2_CLIENT_ID: 'hedgedoc'
+      CMD_OAUTH2_CLIENT_SECRET: 'insecure_secret'
+      CMD_OAUTH2_SCOPE: 'openid email profile groups'
+      CMD_OAUTH2_USER_PROFILE_USERNAME_ATTR: 'preferred_username'
+      CMD_OAUTH2_USER_PROFILE_DISPLAY_NAME_ATTR: 'name'
+      CMD_OAUTH2_USER_PROFILE_EMAIL_ATTR: 'email'
+      CMD_OAUTH2_ROLES_CLAIM: 'groups'
+      CMD_OAUTH2_ACCESS_ROLE: 'hedgedoc-users'
+```
 ## See Also
 
 - [HedgeDoc OAuth2 Login Documentation](https://docs.hedgedoc.org/configuration/#oauth2-login)

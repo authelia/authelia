@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-* [ownCloud Infinite Scale]
-  * 4.0.5
+- [Authelia]
+  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+- [ownCloud Infinite Scale]
+  - 4.0.5
 
 {{% oidc-common %}}
 
@@ -31,12 +31,14 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://owncloud.{{< sitevar name="domain" nojs="example.com" >}}`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
-* __Client ID:__
-  * Web Application: `ownCloud`
-  * Other Clients: the values
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://owncloud.{{< sitevar name="domain" nojs="example.com" >}}`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
+- __Client ID:__
+  - Web Application: `ocis`
+  - Other Clients: the values of the other clients are static for compatibility with the native app
+- __Client Secret:__
+  - Web Application: `insecure_secret`
+  - Other Clients: the values of the other clients are static for compatibility with the native app
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -46,9 +48,8 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__
-[client configuration] for use with [Nextcloud]
-which will operate with the application example:
+The following YAML configuration is an example __Authelia__ [client configuration] for use with
+[ownCloud Infinite Scale] which will operate with the application example:
 
 ```yaml {title="configuration.yml"}
 identity_providers:
@@ -67,7 +68,7 @@ identity_providers:
         - 'introspection'
         - 'userinfo'
     clients:
-      - client_id: 'ownCloud'
+      - client_id: 'ocis'
         client_name: 'ownCloud Infinite Scale'
         public: true
         redirect_uris:
@@ -77,6 +78,10 @@ identity_providers:
       - client_id: 'xdXOt13JKxym1B1QcEncf2XDkLAexMBFwiT9j6EfhhHFJhs2KM9jbjTmf8JBXE69'
         client_name: 'ownCloud desktop client'
         client_secret: 'UBntmLjC2yYCeHwsyj73Uwo9TAaecAetRwMw0xYcvNL9yRdLSUi0hUAHfvCHFeFh'
+        public: false
+        authorization_policy: 'two_factor'
+        require_pkce: true
+        pkce_challenge_method: 'S256'
         scopes:
           - 'openid'
           - 'groups'
@@ -89,6 +94,10 @@ identity_providers:
       - client_id: 'e4rAsNUSIUs0lF4nbv9FmCeUkTlV9GdgTLDH1b5uie7syb90SzEVrbN7HIpmWJeD'
         client_name: 'ownCloud Android app'
         client_secret: 'dInFYGV33xKzhbRmpqQltYNdfLdJIfJ9L5ISoKhNoT9qZftpdWSP71VrpGR9pmoD'
+        public: false
+        authorization_policy: 'two_factor'
+        require_pkce: true
+        pkce_challenge_method: 'S256'
         scopes:
           - 'openid'
           - 'groups'
@@ -100,6 +109,10 @@ identity_providers:
       - client_id: 'mxd5OQDk6es5LzOzRvidJNfXLUZS2oN3oUFeXPP8LpPrhx3UroJFduGEYIBOxkY1'
         client_name: 'ownCloud iOS app'
         client_secret: 'KFeFWWEZO9TkisIQzR3fo7hfiMXlOpaqP8CFuTbSHzV1TUuGECglPxpiVKJfOXIx'
+        public: false
+        authorization_policy: 'two_factor'
+        require_pkce: true
+        pkce_challenge_method: 'S256'
         scopes:
           - 'openid'
           - 'groups'
@@ -113,23 +126,53 @@ identity_providers:
 
 ### Application
 
-To configure [Nextcloud] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [ownCloud Infinite Scale] there is one method, using the [Environment Variables](#environment-variables).
 
-1. Install the [Nextcloud OpenID Connect Login app]
-2. Add the following to the [Nextcloud] `config.php` configuration:
+#### Environment Variables
 
-```php
-WEB_OIDC_CLIENT_ID=ownCloud
+To configure [ownCloud Infinite Scale] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following environment
+variables:
 
+##### Standard
+
+```shell
+WEB_OIDC_CLIENT_ID=ocis
+PROXY_OIDC_ISSUER=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
+PROXY_OIDC_REWRITE_WELLKNOWN=true
+PROXY_OIDC_ACCESS_TOKEN_VERIFY_METHOD=none
+PROXY_OIDC_SKIP_USER_INFO=false
+PROXY_AUTOPROVISION_ACCOUNTS=false
+PROXY_AUTOPROVISION_CLAIM_USERNAME=preferred_username
+PROXY_AUTOPROVISION_CLAIM_EMAIL=email
+PROXY_AUTOPROVISION_CLAIM_DISPLAYNAME=name
+PROXY_AUTOPROVISION_CLAIM_GROUPS=groups
+```
+
+##### Docker Compose
+
+```yaml {title="compose.yml"}
+services:
+  oics:
+    environment:
+      WEB_OIDC_CLIENT_ID: 'ocis'
+      PROXY_OIDC_ISSUER: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
+      PROXY_OIDC_REWRITE_WELLKNOWN: 'true'
+      PROXY_OIDC_ACCESS_TOKEN_VERIFY_METHOD: 'none'
+      PROXY_OIDC_SKIP_USER_INFO: 'false'
+      PROXY_AUTOPROVISION_ACCOUNTS: 'false'
+      PROXY_AUTOPROVISION_CLAIM_USERNAME: 'preferred_username'
+      PROXY_AUTOPROVISION_CLAIM_EMAIL: 'email'
+      PROXY_AUTOPROVISION_CLAIM_DISPLAYNAME: 'name'
+      PROXY_AUTOPROVISION_CLAIM_GROUPS: 'groups'
 ```
 
 ## See Also
 
-* [Nextcloud OpenID Connect Login app]
-* [Nextcloud OpenID Connect Login Documentation](https://github.com/pulsejet/nextcloud-oidc-login)
+- [Nextcloud OpenID Connect Login app]
+- [Nextcloud OpenID Connect Login Documentation](https://github.com/pulsejet/nextcloud-oidc-login)
 
 [Authelia]: https://www.authelia.com
-[Nextcloud]: https://nextcloud.com/
+[ownCloud Infinite Scale]: https://nextcloud.com/
 [Nextcloud OpenID Connect Login app]: https://apps.nextcloud.com/apps/oidc_login
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

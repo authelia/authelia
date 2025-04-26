@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.8](https://github.com/authelia/authelia/releases/tag/v4.38.8)
-* [Writefreely]
-  * [0.15.1](https://github.com/writefreely/writefreely/releases/tag/v0.15.1)
+- [Authelia]
+  - [v4.38.8](https://github.com/authelia/authelia/releases/tag/v4.38.8)
+- [Writefreely]
+  - [0.15.1](https://github.com/writefreely/writefreely/releases/tag/v0.15.1)
 
 {{% oidc-common %}}
 
@@ -31,13 +31,13 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://writefreely.{{< sitevar name="domain" nojs="example.com" >}}/`
-  * This option determines the redirect URI in the format of
+- __Application Root URL:__ `https://writefreely.{{< sitevar name="domain" nojs="example.com" >}}/`
+  - This option determines the redirect URI in the format of
         `https://writefreely.{{< sitevar name="domain" nojs="example.com" >}}/login`.
         This means if you change this value, you need to update the redirect URI.
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `writefreely`
-* __Client Secret:__ `insecure_secret`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `writefreely`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -72,17 +72,23 @@ identity_providers:
 
 ### Application
 
+To configure [Writefreely] there is one method, using the [Configuration File](#configuration-file).
 
-To configure [Writefreely] to utilize Authelia as an [OpenID Connect 1.0] Provider you have to update the `config.ini`
-similar to the following example:
+#### Configuration File
 
-```ini
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+Generally the configuration file is named `config.ini`.
+{{< /callout >}}
+
+To configure [Writefreely] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+
+```ini {title="config.ini"}
 [app]
 disable_password_auth = true
 
 [oauth.generic]
-client_id          = <Client ID>
-client_secret      = <Client Secret>
+client_id          = writefreely
+client_secret      = insecure_secret
 host               = https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 display_name       = Authelia
 token_endpoint     = /api/oidc/token

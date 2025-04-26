@@ -1,6 +1,6 @@
 ---
-title: "immich"
-description: "Integrating immich with the Authelia OpenID Connect 1.0 Provider."
+title: "Immich"
+description: "Integrating Immich with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
 date: 2022-06-15T17:51:47+10:00
 draft: false
@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.17](https://github.com/authelia/authelia/releases/tag/v4.38.17)
-* [immich]
-  * [v1.123.0](https://github.com/immich-app/immich/releases/tag/v1.123.0)
+- [Authelia]
+  - [v4.38.17](https://github.com/authelia/authelia/releases/tag/v4.38.17)
+- [Immich]
+  - [v1.123.0](https://github.com/immich-app/immich/releases/tag/v1.123.0)
 
 {{% oidc-common %}}
 
@@ -31,10 +31,10 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://immich.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `immich`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://immich.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `immich`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -44,7 +44,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [immich] which will
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Immich] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -71,23 +71,28 @@ identity_providers:
 
 ### Application
 
-To configure [immich] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [Immich] there is one method, using the [Web GUI](#web-gui).
 
-1. Login to [immich] and visit the OAuth Settings.
-2. On the screen that appears, enter the following information:
+#### Web GUI
+
+To configure [Immich] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
+
+1. Login to [Immich].
+2. Navigate to OAuth Settings.
+3. Configure the following options:
     - Issuer URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`.
     - Client ID: `immich`.
     - Client Secret: `insecure_secret`.
     - Scope: `openid profile email`.
     - Button Text: `Login with Authelia`.
     - Auto Register: Enable if desired.
-3. Press `Save` at the bottom
+4. Press `Save` at the bottom
 
 ## See Also
 
-- [immich OAuth Authentication Guide](https://immich.app/docs/administration/oauth)
+- [Immich OAuth Authentication Guide](https://immich.app/docs/administration/oauth)
 
-[immich]: https://immich.app/
+[Immich]: https://immich.app/
 [Authelia]: https://www.authelia.com
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

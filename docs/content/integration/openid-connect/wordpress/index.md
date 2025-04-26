@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.18](https://github.com/authelia/authelia/releases/tag/v4.38.18)
-* [Wordpress]
-  * [v6.7.1](https://core.svn.wordpress.org/tags/6.7.1/)
+- [Authelia]
+  - [v4.38.18](https://github.com/authelia/authelia/releases/tag/v4.38.18)
+- [Wordpress]
+  - [v6.7.1](https://core.svn.wordpress.org/tags/6.7.1/)
 
 {{% oidc-common %}}
 
@@ -31,16 +31,25 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://wordpress.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `wordpress`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://wordpress.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `wordpress`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
 {{< sitevar-preferences >}}
 
 ## Configuration
+
+The following example uses the [OpenID Connect Generic Client Plugin] which is assumed to be installed when following
+this section of the guide.
+
+To install the [OpenID Connect Generic Client Plugin] for [WordPress] via the Web GUI:
+
+1. Visit `Plugins`.
+2. Visit `Add New`.
+3. Install `OpenID Connect Generic Client` by `daggerhart`.
 
 ### Authelia
 
@@ -104,6 +113,7 @@ identity_providers:
 - [WordPress OpenID Connect Generic Client Documentation](https://wordpress.org/plugins/daggerhart-openid-connect-generic/)
 
 [WordPress]: https://en-au.wordpress.org/
+[OpenID Connect Generic Client Plugin]: https://wordpress.com/plugins/daggerhart-openid-connect-generic
 [Authelia]: https://www.authelia.com
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

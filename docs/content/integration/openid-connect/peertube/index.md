@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.18](https://github.com/authelia/authelia/releases/tag/v4.38.18)
-* [PeerTube]
-  * [v7.0.1](https://github.com/Chocobozzz/PeerTube/releases/tag/v7.0.1)
+- [Authelia]
+  - [v4.38.18](https://github.com/authelia/authelia/releases/tag/v4.38.18)
+- [PeerTube]
+  - [v7.0.1](https://github.com/Chocobozzz/PeerTube/releases/tag/v7.0.1)
 
 {{% oidc-common %}}
 
@@ -31,16 +31,26 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://peertube.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `peertube`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://peertube.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `peertube`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
 {{< sitevar-preferences >}}
 
 ## Configuration
+
+The following example uses the [OpenID Connect Plugin] which is assumed to be installed when following this
+section of the guide.
+
+To install the [OpenID Connect Plugin] for [PaperTube] via the Web GUI:
+
+1. Visit `Settings` under `Administration`.
+2. Visit `Plugins/Themes`.
+3. Visit `Search plugins`.
+4. Install the official `auth-openid-connect` plugin.
 
 ### Authelia
 
@@ -74,31 +84,33 @@ identity_providers:
 ### Application
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-Users will not be able to log in using this provider if you do not set the `Allowed group` parameter.
+The following example assumes the `peertube-users` group was setup for users who should be able to access this app. The
+configuration of a group is not optional, but it can be any group of users you wish.
 {{< /callout >}}
 
-1. Install the Plugin:
-   1. Visit `Settings` under `Administration`.
-   2. Visit `Plugins/Themes`.
-   3. Visit `Search plugins`.
-   4. Install the official `auth-openid-connect` plugin.
-2. Configure the Plugin:
-   1. Visit `Settings` under `Administration`.
-   2. Visit `Plugins/Themes`.
-   3. Visit `Installed plugins`.
-   4. Click the `Settings` button of the installed plugin.
-   5. Enter the following configuration:
-    - Auth display name: `Authelia`
-    - Discover URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
-    - Client ID: `peertube`
-    - Client secret: `insecure_secret`
-    - Scope: `openid email profile groups`
-    - Username property: `preferred_username`
-    - Email property: `email`
-    - Display name property: `name`
-    - Group property: `groups`
-    - Allowed group: Authelia's group allowed to log in using this provider.
-    - Token signature algorithm: `RS256`
+To configure [PeerTube] there is one method, using the [Web GUI](#web-gui).
+
+#### Web GUI
+
+To configure [PeerTube] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
+
+1. Visit `Settings` under `Administration`.
+2. Visit `Plugins/Themes`.
+3. Visit `Installed plugins`.
+4. Click the `Settings` button of the installed [OpenID Connect Plugin].
+5. Configure the following options:
+   - Auth display name: `Authelia`
+   - Discover URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
+   - Client ID: `peertube`
+   - Client secret: `insecure_secret`
+   - Scope: `openid email profile groups`
+   - Username property: `preferred_username`
+   - Email property: `email`
+   - Display name property: `name`
+   - Group property: `groups`
+   - Allowed group: `peertube-users`
+   - Token signature algorithm: `RS256`
+6. Save.
 
 {{< figure src="peertube.png" alt="Peertube" width="736" style="padding-right: 10px" >}}
 
@@ -107,6 +119,7 @@ Users will not be able to log in using this provider if you do not set the `Allo
 - [PeerTube Auth OpenID Connect Documentation](https://framagit.org/framasoft/peertube/official-plugins/tree/master/peertube-plugin-auth-openid-connect)
 
 [PeerTube]: https://joinpeertube.org
+[OpenID Connect Plugin]: https://framagit.org/framasoft/peertube/official-plugins/-/tree/master/peertube-plugin-auth-openid-connect
 [Authelia]: https://www.authelia.com
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

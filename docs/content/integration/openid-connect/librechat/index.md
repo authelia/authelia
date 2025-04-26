@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-    * [v4.38.10](https://github.com/authelia/authelia/releases/tag/v4.38.10)
-* [LibreChat]
-    * [v0.7.5](https://www.librechat.ai/changelog)
+- [Authelia]
+    - [v4.38.10](https://github.com/authelia/authelia/releases/tag/v4.38.10)
+- [LibreChat]
+    - [v0.7.5](https://www.librechat.ai/changelog)
 
 {{% oidc-common %}}
 
@@ -31,11 +31,11 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://librechat.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Application Session Secret:__ `insecure_session_secret`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `librechat`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://librechat.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Application Session Secret:__ `insecure_session_secret`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `librechat`
+- __Client Secret:__ `insecure_secret`
 
 _**Note:** The application session secret should be randomly generated in a similar fashion to the client secret, but should
 not be the same value as the session secret. Users should refer to LibreChat support for more information._
@@ -73,11 +73,15 @@ identity_providers:
 
 ### Application
 
-To configure [LibreChat] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [LibreChat] there is one method, using [Environment Variables](#environment-variables).
 
-1. Add the following configuration variables:
+#### Environment Variables
 
-```env
+To configure [LibreChat] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following environment variables:
+
+##### Standard
+
+```shell
 ALLOW_SOCIAL_LOGIN=true
 OPENID_BUTTON_LABEL=Log in with Authelia
 OPENID_ISSUER=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration
@@ -87,6 +91,23 @@ OPENID_SESSION_SECRET=insecure_session_secret
 OPENID_CALLBACK_URL=/oauth/openid/callback
 OPENID_SCOPE=openid profile email
 OPENID_IMAGE_URL=https://www.authelia.com/images/branding/logo-cropped.png
+```
+
+##### Docker Compose
+
+```yaml
+services:
+  librechat:
+    environment:
+      ALLOW_SOCIAL_LOGIN: 'true'
+      OPENID_BUTTON_LABEL: 'Log in with Authelia'
+      OPENID_ISSUER: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration'
+      OPENID_CLIENT_ID: 'librechat'
+      OPENID_CLIENT_SECRET: 'insecure_secret'
+      OPENID_SESSION_SECRET: 'insecure_session_secret'
+      OPENID_CALLBACK_URL: '/oauth/openid/callback'
+      OPENID_SCOPE: 'openid profile email'
+      OPENID_IMAGE_URL: 'https://www.authelia.com/images/branding/logo-cropped.png'
 ```
 
 [LibreChat]: https://www.librechat.ai/

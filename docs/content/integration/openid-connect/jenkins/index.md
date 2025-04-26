@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-* [Jenkins]
-  * [v2.453](https://www.jenkins.io/changelog/2.453/)
+- [Authelia]
+  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+- [Jenkins]
+  - [v2.453](https://www.jenkins.io/changelog/2.453/)
 
 {{% oidc-common %}}
 
@@ -31,16 +31,35 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://jenkins.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `jenkins`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://jenkins.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `jenkins`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
 {{< sitevar-preferences >}}
 
 ## Configuration
+
+The following example uses the [OpenId Connect Authentication Plugin] which is assumed to be installed when following
+this section of the guide.
+
+To install the [OpenId Connect Authentication Plugin] for [Jenkins] via the Web GUI:
+
+1. Visit `Manage Jenkins`.
+2. Visit `Plugins`.
+3. Visit `Available Plugins`.
+4. Search for `oic-auth`.
+5. Install.
+6. Restart [Jenkins].
+7. Proceed to the [Configuration](#configuration-1) step.
+
+To install the [OpenId Connect Authentication Plugin] for [Jenkins] using the CLI:
+
+```bash
+jenkins-plugin-cli --plugins oic-auth
+```
 
 ### Authelia
 
@@ -73,38 +92,12 @@ identity_providers:
 
 ### Application
 
-#### Installation
+To configure [Jenkins] there are two methods, using the [Configuration File](#configuration-file), or using the
+[Web GUI](#web-gui).
 
-The plugin required to use [OpenID Connect 1.0] can either be installed and configured via the GUI or via [Jenkins]
-Configuration as Code.
+#### Configuration File
 
-##### Via the UI
-
-To install the [Jenkins] plugin for [OpenID Connect 1.0] via the UI:
-
-1. Visit `Manage Jenkins`.
-
-2. Visit `Plugins`.
-
-3. Visit `Available Plugins`.
-
-4. Search for `oic-auth`.
-
-5. Install.
-
-6. Restart [Jenkins].
-
-7. Proceed to the [Configuration](#configuration-1) step.
-
-##### Via Jenkins Configuration as Code
-
-Ensure the plugin is installed before running the Jenkins Configuration as Code:
-
-```bash
-jenkins-plugin-cli --plugins oic-auth
-```
-
-Add this to your Jenkins Configuration as Code:
+To configure [Jenkins] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
 
 ```yaml
 jenkins:
@@ -128,26 +121,27 @@ jenkins:
       # escapeHatchGroup: <string>
 ```
 
-#### Configuration
+#### Web GUI
 
-To configure [Jenkins] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [Jenkins] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
 
 1. Visit `Manage Jenkins`.
 2. Visit `Security`.
 3. Select `Login with Openid Connect` in the Security Realm.
-4. Enter `jenkins` in the `Client id` field.
-5. Enter `insecure_secret` in the `Client secret` field.
-6. Select `Automatic configuration` from the configuration mode.
-7. Enter `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration` in the `Well-known configuration endpoint` field.
-8. Select `Override scopes`.
-9. Enter `openid profile email groups` in the `Scopes` field.
-10. Expand `Advanced`.
-11. Enter `preferred_username` into the `User name field name` field.
-12. Enter `name` into the `Full name field name` field.
-13. Enter `email` into the `Email field name` field.
-14. Enter `groups` into the `Groups field name` field.
-15. Select `Enable Proof Key for Code Exchange`.
-16. Consider using the `Configure 'escape hatch' for when the OpenID Provider is unavailable` to prevent login issues.
+4. Configure the following options:
+   - Client id: `jenkins`
+   - Client secret: `insecure_secret`
+   - Configuration mode: `Automatic configuration`
+   - Well-known configuration endpoint: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
+   - Override scopes: Enabled
+   - Scopes: `openid profile email groups`
+   - Under `Advanced`:
+     - User name field name: `preferred_username`
+     - Full name field name: `name`
+     - Email field name: `email`
+     - Groups field name: `groups`
+     - Enable Proof Key for Code Exchange: Enabled
+     - Configure 'escape hatch' for when the OpenID Provider is unavailable: Consider using this setting
 
 ## See Also
 
@@ -155,6 +149,7 @@ To configure [Jenkins] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 - [Jenkins OpenID JCasC Documentation](https://github.com/jenkinsci/oic-auth-plugin/blob/master/docs/configuration/README.md)
 
 [Jenkins]: https://www.jenkins.io/
+[OpenId Connect Authentication Plugin]: https://plugins.jenkins.io/oic-auth/
 [Authelia]: https://www.authelia.com
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

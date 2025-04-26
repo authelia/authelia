@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-* [FreshRSS]
-  * [1.23.1](https://github.com/FreshRSS/FreshRSS/releases/tag/1.23.1)
+- [Authelia]
+  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+- [FreshRSS]
+  - [1.23.1](https://github.com/FreshRSS/FreshRSS/releases/tag/1.23.1)
 
 {{% oidc-common %}}
 
@@ -31,12 +31,12 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://freshrss.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `freshrss`
-* __Client Secret:__ `insecure_secret`
-* __Port:__ '443'
-  * This is the port [FreshRSS] is served over (usually 80 for http and 443 for https) NOT the port of the container.
+- __Application Root URL:__ `https://freshrss.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `freshrss`
+- __Client Secret:__ `insecure_secret`
+- __Port:__ '443'
+  - This is the port [FreshRSS] is served over (usually 80 for http and 443 for https) NOT the port of the container.
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -79,22 +79,47 @@ identity_providers:
 
 ### Application
 
-1. To configure [FreshRSS] to utilize Authelia as an [OpenID Connect 1.0](https://www.authelia.com/integration/openid-connect/introduction/) Provider, specify the below environment
-   variables.
-2. Open the newly created [FreshRSS] instance.
-3. During initial config, select "HTTP" during the user creation
+To configure [FreshRSS] there is one method, using the [Environment Variables](#environment-variables).
+
+#### Environment Variables
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+The below example uses `insecure_crypto_key` for one of the values. It's recommended that this value is configured
+according to the FreshRSS recommendations. At minimum this should be a reasonably long random string.
+{{< /callout >}}
+
+To configure [FreshRSS] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following environment variables:
+
+##### Standard
 
 ```yaml
-environment:
-  OIDC_ENABLED: 1
-  OIDC_PROVIDER_METADATA_URL: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration
-  OIDC_CLIENT_ID: freshrss
-  OIDC_CLIENT_SECRET: insecure_secret
-  OIDC_CLIENT_CRYPTO_KEY: XXXXXXXXXX
-  OIDC_REMOTE_USER_CLAIM: preferred_username
-  OIDC_SCOPES: openid groups email profile
-  OIDC_X_FORWARDED_HEADERS: X-Forwarded-Host X-Forwarded-Port X-Forwarded-Proto
+OIDC_ENABLED=1
+OIDC_PROVIDER_METADATA_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration
+OIDC_CLIENT_ID=freshrss
+OIDC_CLIENT_SECRET=insecure_secret
+OIDC_CLIENT_CRYPTO_KEY=insecure_crypto_key
+OIDC_REMOTE_USER_CLAIM=preferred_username
+OIDC_SCOPES=openid groups email profile
+OIDC_X_FORWARDED_HEADERS=X-Forwarded-Host X-Forwarded-Port X-Forwarded-Proto
 ```
+
+##### Docker Compose
+
+```shell
+OIDC_ENABLED=1
+OIDC_PROVIDER_METADATA_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration
+OIDC_CLIENT_ID=freshrss
+OIDC_CLIENT_SECRET=insecure_secret
+OIDC_CLIENT_CRYPTO_KEY=insecure_crypto_key
+OIDC_REMOTE_USER_CLAIM=preferred_username
+OIDC_SCOPES=openid groups email profile
+OIDC_X_FORWARDED_HEADERS=X-Forwarded-Host X-Forwarded-Port X-Forwarded-Proto
+```
+
+In addition the following steps may be required:
+
+1. Open the newly created [FreshRSS] instance.
+2. During initial config, select "HTTP" during the user creation.
 
 ## See Also
 

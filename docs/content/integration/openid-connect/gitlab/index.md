@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-* [GitLab] CE
-  * 16.9.0
+- [Authelia]
+  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+- [GitLab] CE
+  - 16.9.0
 
 {{% oidc-common %}}
 
@@ -31,10 +31,10 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://gitlab.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `gitlab`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://gitlab.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `gitlab`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -64,6 +64,8 @@ identity_providers:
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
         authorization_policy: 'two_factor'
+        require_pkce: true
+        pkce_challenge_method: 'S256'
         redirect_uris:
           - 'https://gitlab.{{< sitevar name="domain" nojs="example.com" >}}/users/auth/openid_connect/callback'
         scopes:
@@ -77,11 +79,17 @@ identity_providers:
 
 ### Application
 
-To configure [GitLab] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [GitLab] there is one method, using the [Configuration File](#configuration-file).
 
-1. Add the Omnibus [OpenID Connect 1.0] OmniAuth configuration to `gitlab.rb`:
+#### Configuration File
 
-```ruby
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+Generally the configuration file is named `gitlab.rb`.
+{{< /callout >}}
+
+To configure [GitLab] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+
+```ruby {title="gitlab.rb"}
 gitlab_rails['omniauth_providers'] = [
   {
     name: "openid_connect",
@@ -109,7 +117,7 @@ gitlab_rails['omniauth_providers'] = [
 ]
 ```
 
-#### Groups
+### Groups
 
 [GitLab] offers group mapping options with OpenID Connect 1.0, shamefully it's only for paid plans. However see
 [the guide](https://docs.gitlab.com/ee/administration/auth/oidc.html#configure-users-based-on-oidc-group-membership) on
@@ -121,7 +129,7 @@ value.
 
 ## See Also
 
-* [GitLab OpenID Connect OmniAuth Documentation](https://docs.gitlab.com/ee/administration/auth/oidc.html)
+- [GitLab OpenID Connect OmniAuth Documentation](https://docs.gitlab.com/ee/administration/auth/oidc.html)
 
 [Authelia]: https://www.authelia.com
 [GitLab]: https://about.gitlab.com/

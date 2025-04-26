@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.18](https://github.com/authelia/authelia/releases/tag/v4.38.18)
-* [Terrakube]
-  * [2.24.1](https://github.com/AzBuilder/terrakube/releases/tag/2.24.1)
+- [Authelia]
+  - [v4.38.18](https://github.com/authelia/authelia/releases/tag/v4.38.18)
+- [Terrakube]
+  - [2.24.1](https://github.com/AzBuilder/terrakube/releases/tag/2.24.1)
 
 {{% oidc-common %}}
 
@@ -31,13 +31,13 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://terrakube.{{< sitevar name="domain" nojs="example.com" >}}/`
-  * This option determines the redirect URI in the format of
+- __Application Root URL:__ `https://terrakube.{{< sitevar name="domain" nojs="example.com" >}}/`
+  - This option determines the redirect URI in the format of
         `https://terrakube.{{< sitevar name="domain" nojs="example.com" >}}/login`.
         This means if you change this value, you need to update the redirect URI.
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `terrakube`
-* __Client Secret:__ `insecure_secret`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `terrakube`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -72,7 +72,15 @@ identity_providers:
 
 ### Application
 
-Add a new connector in the [Terrakube] Dex configuration that looks like this:
+To configure [Terrakube] there is one method, using the [Configuration File](#configuration-file).
+
+#### Configuration File
+
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+The configuration file below is the Dex configuration for Terrakube.
+{{< /callout >}}
+
+To configure [Terrakube] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
 
 ```yaml
 connectors:

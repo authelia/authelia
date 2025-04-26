@@ -20,8 +20,8 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+- [Authelia]
+  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 
 {{% oidc-common %}}
 
@@ -29,10 +29,10 @@ seo:
 
 This example makes the following assumptions:
 
-* __Cloudflare Team Name:__ `example-team`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `cloudflare`
-* __Client Secret:__ `insecure_secret`
+- __Cloudflare Team Name:__ `example-team`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `cloudflare`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -64,6 +64,8 @@ identity_providers:
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
         authorization_policy: 'two_factor'
+        require_pkce: true
+        pkce_challenge_method: 'S256'
         redirect_uris:
           - 'https://example-team.cloudflareaccess.com/cdn-cgi/access/callback'
         scopes:
@@ -81,27 +83,32 @@ means that the URLs are accessible to foreign clients on the internet. There may
 accessibility to foreign clients on the internet on Cloudflare's end, but this is beyond the scope of this document.
 {{< /callout >}}
 
-To configure [Cloudflare Zero Trust] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [Cloudflare Zero Trust] there is one method, using the [Web GUI](#web-gui).
+
+#### Web GUI
+
+To configure [Cloudflare Zero Trust] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following
+instructions:
 
 1. Visit the [Cloudflare Zero Trust Dashboard](https://dash.teams.cloudflare.com)
 2. Visit `Settings`
 3. Visit `Authentication`
 4. Under `Login methods` select `Add new`
 5. Select `OpenID Connect`
-6. Set the following values:
-   1. Name: `Authelia`
-   2. App ID: `cloudflare`
-   3. Client Secret: `insecure_secret`
-   4. Auth URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
-   5. Token URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
-   6. Certificate URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/jwks.json`
-   7. Enable `Proof Key for Code Exchange (PKCE)`
-   8. Add the following OIDC Claims: `preferred_username`, `mail`
+6. Configure the following options:
+   - Name: `Authelia`
+   - App ID: `cloudflare`
+   - Client Secret: `insecure_secret`
+   - Auth URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
+   - Token URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
+   - Certificate URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/jwks.json`
+   - Enable `Proof Key for Code Exchange (PKCE)`
+   - Add the following OIDC Claims: `preferred_username`, `mail`
 7. Click Save
 
 ## See Also
 
-* [Cloudflare Zero Trust Generic OIDC Documentation](https://developers.cloudflare.com/cloudflare-one/identity/idp-integration/generic-oidc/)
+- [Cloudflare Zero Trust Generic OIDC Documentation](https://developers.cloudflare.com/cloudflare-one/identity/idp-integration/generic-oidc/)
 
 [Authelia]: https://www.authelia.com
 [Cloudflare]: https://www.cloudflare.com/

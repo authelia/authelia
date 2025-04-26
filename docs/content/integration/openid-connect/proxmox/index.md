@@ -22,10 +22,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.17](https://github.com/authelia/authelia/releases/tag/v4.38.17)
-* [Proxmox]
-  * [8.3.0](https://pve.proxmox.com/wiki/Roadmap#Proxmox_VE_8.3)
+- [Authelia]
+  - [v4.38.17](https://github.com/authelia/authelia/releases/tag/v4.38.17)
+- [Proxmox]
+  - [8.3.0](https://pve.proxmox.com/wiki/Roadmap#Proxmox_VE_8.3)
 
 {{% oidc-common %}}
 
@@ -40,11 +40,11 @@ guide.
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://proxmox.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `proxmox`
-* __Client Secret:__ `insecure_secret`
-* __Realm__ `authelia`
+- __Application Root URL:__ `https://proxmox.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `proxmox`
+- __Client Secret:__ `insecure_secret`
+- __Realm__ `authelia`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -81,26 +81,30 @@ identity_providers:
 
 ### Application
 
-To configure [Proxmox] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [Proxmox] there is one method, using the [Web GUI](#web-gui).
 
-1. Visit Datacenter
-2. Visit Permission
-3. Visit Realms
-4. Add an OpenID Connect Server
-5. Set the following values:
-   1. Issuer URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
-   2. Realm: `authelia`
-   3. Client ID: `proxmox`
-   4. Client Key: `insecure_secret`
-   5. Username Claim `preferred_username`
-   6. Scopes: `openid profile email`
-   7. Enable *Autocreate Users* if you want users to automatically be created in [Proxmox].
+#### Web GUI
+
+To configure [Proxmox] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
+
+1. Visit Datacenter.
+2. Visit Permission.
+3. Visit Realms.
+4. Add an OpenID Connect Server.
+5. Configure the following options:
+   - Issuer URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
+   - Realm: `authelia`
+   - Client ID: `proxmox`
+   - Client Key: `insecure_secret`
+   - Username Claim `preferred_username`
+   - Scopes: `openid profile email`
+   - Autocreate Users: Enable if you want users to automatically be created in [Proxmox].
 
 {{< figure src="proxmox.png" alt="Proxmox" width="736" style="padding-right: 10px" >}}
 
 ## See Also
 
-* [Proxmox User Management Documentation](https://pve.proxmox.com/wiki/User_Management)
+- [Proxmox User Management Documentation](https://pve.proxmox.com/wiki/User_Management)
 
 [Authelia]: https://www.authelia.com
 [Proxmox]: https://www.proxmox.com/

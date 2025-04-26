@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-* [Argo CD]
-  * v2.4.5
+- [Authelia]
+  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+- [Argo CD]
+  - v2.4.5
 
 {{% oidc-common %}}
 
@@ -31,11 +31,11 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://argocd.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `argocd`
-* __Client Secret:__ `insecure_secret`
-* __CLI Client ID:__ `argocd-cli`
+- __Application Root URL:__ `https://argocd.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `argocd`
+- __Client Secret:__ `insecure_secret`
+- __CLI Client ID:__ `argocd-cli`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -84,6 +84,10 @@ identity_providers:
 
 ### Application
 
+To configure [Argo CD] there is one method, using the [Configuration File](#configuration-file).
+
+#### Configuration File
+
 To configure [Argo CD] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
 
 ```yaml
@@ -101,7 +105,7 @@ requestedScopes:
 
 ## See Also
 
-* [Argo CD OpenID Connect Documentation](https://argo-cd.readthedocs.io/en/stable/operator-manual/user-management/#existing-oidc-provider)
+- [Argo CD OpenID Connect Documentation](https://argo-cd.readthedocs.io/en/stable/operator-manual/user-management/#existing-oidc-provider)
 
 [Authelia]: https://www.authelia.com
 [Argo CD]: https://argo-cd.readthedocs.io/en/stable/

@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-* [Komga]
-  * [v0.157.1](https://github.com/gotson/komga/releases/tag/v0.157.1)
+- [Authelia]
+  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+- [Komga]
+  - [v0.157.1](https://github.com/gotson/komga/releases/tag/v0.157.1)
 
 {{% oidc-common %}}
 
@@ -31,10 +31,10 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://komga.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `komga`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://komga.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `komga`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -71,10 +71,17 @@ identity_providers:
 
 ### Application
 
-To configure [Komga] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [Komga] there is one method, using the [Configuration File](#configuration-file).
 
-1. Configure the security section of the [Komga] configuration:
-```yaml
+#### Configuration File
+
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+Generally the configuration file is named `application.yml`.
+{{< /callout >}}
+
+To configure [Komga] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+
+```yaml {title="application.yml"}
 komga:
   ## Comment if you don't want automatic account creation.
   oauth2-account-creation: true
@@ -98,8 +105,8 @@ spring:
 
 ## See Also
 
-* [Komga Configuration options Documentation](https://komga.org/installation/configuration.html)
-* [Komga Social login Documentation](https://komga.org/installation/oauth2.html)
+- [Komga Configuration options Documentation](https://komga.org/installation/configuration.html)
+- [Komga Social login Documentation](https://komga.org/installation/oauth2.html)
 
 [Authelia]: https://www.authelia.com
 [Komga]: https://www.komga.org

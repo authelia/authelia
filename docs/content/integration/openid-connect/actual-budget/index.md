@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.18](https://github.com/authelia/authelia/releases/tag/v4.38.18)
-* [Actual Budget]
-  * [v25.1.0](https://github.com/actualbudget/actual/releases/tag/v25.1.0)
+- [Authelia]
+  - [v4.38.18](https://github.com/authelia/authelia/releases/tag/v4.38.18)
+- [Actual Budget]
+  - [v25.1.0](https://github.com/actualbudget/actual/releases/tag/v25.1.0)
 
 {{% oidc-common %}}
 
@@ -31,13 +31,13 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://actual-budget.{{< sitevar name="domain" nojs="example.com" >}}/`
-  * This option determines the redirect URI in the format of
+- __Application Root URL:__ `https://actual-budget.{{< sitevar name="domain" nojs="example.com" >}}/`
+  - This option determines the redirect URI in the format of
         `https://actual-budget.{{< sitevar name="domain" nojs="example.com" >}}/login`.
         This means if you change this value, you need to update the redirect URI.
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `actual-budget`
-* __Client Secret:__ `insecure_secret`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `actual-budget`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -47,7 +47,8 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Actual Budget] which will operate with the application example:
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Actual Budget] which
+will operate with the application example:
 
 ```yaml {title="configuration.yml"}
 identity_providers:
@@ -73,7 +74,12 @@ identity_providers:
 
 ### Application
 
-Add the following [Actual Budget] `config.json` or adapt the existing one:
+To configure [Actual Budget] there are three methods, using the [Configuration File](#configuration-file), using
+[Environment Variables](#environment-variables), or using the [Web GUI](#web-gui).
+
+#### Configuration File
+
+To configure [Actual Budget] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
 
 ```json
 {
@@ -87,14 +93,47 @@ Add the following [Actual Budget] `config.json` or adapt the existing one:
 }
 ```
 
-Can also use env variables:
-```sh
+#### Environment Variables
+
+To configure [Actual Budget] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following environment
+variables:
+
+##### Standard
+
+```shell
 ACTUAL_OPENID_DISCOVERY_URL="https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}"
 ACTUAL_OPENID_CLIENT_ID="actual-budget"
 ACTUAL_OPENID_CLIENT_SECRET="insecure_secret"
 ACTUAL_OPENID_SERVER_HOSTNAME="https://actual-budget.{{< sitevar name="domain" nojs="example.com" >}}"
 ACTUAL_OPENID_AUTH_METHOD="oauth2"
 ```
+
+##### Docker Compose
+
+```yaml
+services:
+  actual-budget:
+    environment:
+      ACTUAL_OPENID_DISCOVERY_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration'
+      ACTUAL_OPENID_CLIENT_ID: 'linkwarden'
+      ACTUAL_OPENID_CLIENT_SECRET: 'insecure_secret'
+      ACTUAL_OPENID_SERVER_HOSTNAME: 'https://actual-budget.{{< sitevar name="domain" nojs="example.com" >}}'
+      ACTUAL_OPENID_AUTH_METHOD: 'oauth2'
+```
+
+#### Web GUI
+
+To configure [Actual Budget] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
+
+1. Navigate to any Budget file.
+2. Navigate to Settings.
+3. Click on Start Using OpenID.
+4. Configure the following options:
+   - OpenID Provider: `Other`
+   - OpenID Provider URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
+   - Client ID: `actual-budget`
+   - Client Secret: `insecure_secret`
+5. Click OK.
 
 ## See Also
 

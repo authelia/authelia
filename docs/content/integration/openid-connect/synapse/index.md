@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.39.1](https://github.com/authelia/authelia/releases/tag/v4.39.1)
-* [Synapse]
-  * [v1.127.1](https://github.com/element-hq/synapse/releases/tag/v1.127.1)
+- [Authelia]
+  - [v4.39.1](https://github.com/authelia/authelia/releases/tag/v4.39.1)
+- [Synapse]
+  - [v1.127.1](https://github.com/element-hq/synapse/releases/tag/v1.127.1)
 
 {{% oidc-common %}}
 
@@ -31,11 +31,11 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://synapse.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `synapse`
-* __Client Secret:__ `insecure_secret`
-* __Groups:__ the `synapse-users` group exists and only members of this group are expected to be able to use Synapse.
+- __Application Root URL:__ `https://synapse.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `synapse`
+- __Client Secret:__ `insecure_secret`
+- __Groups:__ the `synapse-users` group exists and only members of this group are expected to be able to use Synapse.
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -71,9 +71,15 @@ identity_providers:
 
 ### Application
 
-To configure [Synapse] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [Synapse] there is one method, using the [Configuration File](#configuration-file).
 
-1. Edit your [Synapse] `homeserver.yaml` configuration file and add configure the following:
+#### Configuration File
+
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+Generally the configuration file is named `homeserver.yaml`.
+{{< /callout >}}
+
+To configure [Synapse] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
 
 ```yaml {title="homeserver.yaml"}
 oidc_providers:
@@ -103,7 +109,7 @@ oidc_providers:
 
 ## See Also
 
-* [Synapse OpenID Connect Authentication Documentation](https://matrix-org.github.io/synapse/latest/openid.html)
+- [Synapse OpenID Connect Authentication Documentation](https://matrix-org.github.io/synapse/latest/openid.html)
 
 [Authelia]: https://www.authelia.com
 [Synapse]: https://github.com/matrix-org/synapse

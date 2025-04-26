@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-* [Outline]
-  * 0.65.2
+- [Authelia]
+  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+- [Outline]
+  - 0.65.2
 
 {{% oidc-common %}}
 
@@ -31,10 +31,10 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://outline.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `outline`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://outline.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `outline`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -76,13 +76,17 @@ identity_providers:
 
 ### Application
 
-To configure [Outline] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [Outline] there is one method, using the [Environment Variables](#environment-variables).
 
-1. Configure the following environment options:
-```text
+#### Environment Variables
+
+To configure [Outline] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following environment variables:
+
+##### Standard
+
+```shell
 URL=https://outline.{{< sitevar name="domain" nojs="example.com" >}}
 FORCE_HTTPS=true
-
 OIDC_CLIENT_ID=outline
 OIDC_CLIENT_SECRET=insecure_secret
 OIDC_AUTH_URI=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization
@@ -91,11 +95,31 @@ OIDC_USERINFO_URI=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.
 OIDC_USERNAME_CLAIM=preferred_username
 OIDC_DISPLAY_NAME=Authelia
 OIDC_SCOPES=openid offline_access profile email
+OIDC_LOGOUT_URI=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/logout
+```
+
+##### Docker Compose
+
+```yaml {title="compose.yml"}
+services:
+  outline:
+    environment:
+      URL: 'https://outline.{{< sitevar name="domain" nojs="example.com" >}}'
+      FORCE_HTTPS: 'true'
+      OIDC_CLIENT_ID: 'outline'
+      OIDC_CLIENT_SECRET: 'insecure_secret'
+      OIDC_AUTH_URI: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization'
+      OIDC_TOKEN_URI: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token'
+      OIDC_USERINFO_URI: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo'
+      OIDC_USERNAME_CLAIM: 'preferred_username'
+      OIDC_DISPLAY_NAME: 'Authelia'
+      OIDC_SCOPES: 'openid offline_access profile email'
+      OIDC_LOGOUT_URI: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/logout'
 ```
 
 ## See Also
 
-* [Outline OpenID Connect Documentation](https://app.getoutline.com/share/770a97da-13e5-401e-9f8a-37949c19f97e/doc/oidc-8CPBm6uC0I)
+- [Outline OpenID Connect Documentation](https://app.getoutline.com/share/770a97da-13e5-401e-9f8a-37949c19f97e/doc/oidc-8CPBm6uC0I)
 
 [Authelia]: https://www.authelia.com
 [Outline]: https://www.getoutline.com/

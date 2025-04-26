@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.6](https://github.com/authelia/authelia/releases/tag/v4.38.6)
-* [Odoo]
-  * [17.0](https://github.com/odoo/odoo/tree/17.0)
+- [Authelia]
+  - [v4.38.6](https://github.com/authelia/authelia/releases/tag/v4.38.6)
+- [Odoo]
+  - [17.0](https://github.com/odoo/odoo/tree/17.0)
 
 {{% oidc-common %}}
 
@@ -31,9 +31,9 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://odoo.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `odoo`
+- __Application Root URL:__ `https://odoo.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `odoo`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -43,9 +43,8 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__
-[client configuration] for use with [Odoo]
-which will operate with the application example:
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Odoo] which will
+operate with the application example:
 
 ```yaml {title="configuration.yml"}
 identity_providers:
@@ -69,25 +68,30 @@ identity_providers:
 
 ### Application
 
-To configure [Odoo] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [Odoo] there is one method, using the [Web GUI](#web-gui).
+
+#### Web GUI
+
+To configure [Odoo] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
 
 1. Enable OAuth in General Settings/Integrations, save and reload.
-2. Create a new OAuth Provider in General Settings/Integrations/OAuth Providers, with the following settings:
- * Provider name: `Authelia`
- * Client ID: `odoo`
- * Allowed: checked
- * Login button label: `Authelia`
- * Authorization URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
- * Scope: openid profile email
- * UserInfo URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
- * Data Endpoint: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/jwks.json`
-3. If you want your Authelia user to have a guest access on Odoo, you need to enable it in General Settings/Permissions/Customer Account/Free sign up
-4. If you want to allow an already existing user in [Odoo] to use its Authelia login:
- * Ask the user to reset its password
- * When Odoo prompt for the new password, select the "Connect with Authelia" button
+2. Create a new OAuth Provider in General Settings/Integrations/OAuth Providers.
+3. Configure the following options:
+   - Provider name: `Authelia`
+   - Client ID: `odoo`
+   - Allowed: checked
+   - Login button label: `Authelia`
+   - Authorization URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
+   - Scope: openid profile email
+   - UserInfo URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
+   - Data Endpoint: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/jwks.json`
+4. If you want your Authelia user to have a guest access on Odoo, you need to enable it in General Settings/Permissions/Customer Account/Free sign up
+5. If you want to allow an already existing user in [Odoo] to use its Authelia login:
+   - Ask the user to reset its password
+   - When Odoo prompt for the new password, select the "Connect with Authelia" button
 
 ## See Also
- * [Odoo Authentication OpenID Connect]
+ - [Odoo Authentication OpenID Connect]
 
 [Authelia]: https://www.authelia.com
 [Odoo]: https://www.odoo.com

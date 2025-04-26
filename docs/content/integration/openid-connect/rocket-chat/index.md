@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.12](https://github.com/authelia/authelia/releases/tag/v4.38.12)
-* [Rocket.Chat]
-  * [v6.11.1](https://github.com/RocketChat/Rocket.Chat/releases/tag/6.11.1)
+- [Authelia]
+  - [v4.38.12](https://github.com/authelia/authelia/releases/tag/v4.38.12)
+- [Rocket.Chat]
+  - [v6.11.1](https://github.com/RocketChat/Rocket.Chat/releases/tag/6.11.1)
 
 {{% oidc-common %}}
 
@@ -31,10 +31,10 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://rocket-chat.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `rocket-chat`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://rocket-chat.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `rocket-chat`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -73,14 +73,18 @@ identity_providers:
 
 ### Application
 
-To configure [Rocket.Chat] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [Rocket.Chat] there is one method, using the [Web GUI](#web-gui).
+
+#### Web GUI
+
+To configure [Rocket.Chat] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
 
 1. Visit the [Rocket.Chat] `Administration` page.
 2. Click `OAuth`.
 3. Click `Add`.
 4. Enter `authelia` as the unique name.
 5. Click `Enable`.
-6. Enter the following values:
+6. Configure the following options:
    - URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
    - Token Path: `/api/oidc/token`
    - Token sent via: `Payload`
@@ -102,7 +106,7 @@ To configure [Rocket.Chat] to utilize Authelia as an [OpenID Connect 1.0] Provid
    - Merge users: On
    - Show Button on Login Page: On
 
-#### Group Mapping
+### Group Mapping
 
 [Rocket.Chat] has a means of mapping identity provider groups or roles to internal roles. For this option to take effect
 you must enable the `Map Roles/Groups to channels` option and fill in the `OAuth Group Channel Map` field with a JSON
@@ -121,7 +125,7 @@ the `users` group to the `community` room.
 
 ## See Also
 
-* [Rocket.Chat OpenID Connect Documentation](https://docs.rocket.chat/docs/openid-connect)
+- [Rocket.Chat OpenID Connect Documentation](https://docs.rocket.chat/docs/openid-connect)
 
 [Authelia]: https://www.authelia.com
 [Rocket.Chat]: https://www.rocket.chat

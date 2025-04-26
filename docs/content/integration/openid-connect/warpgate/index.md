@@ -31,10 +31,10 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://warpgate.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `warpgate`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://warpgate.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `warpgate`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -65,7 +65,17 @@ identity_providers:
 
 ## Application
 
-```toml
+To configure [Warpgate] there is one method, using the [Configuration File](#configuration-file).
+
+#### Configuration File
+
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+Generally the configuration file is named `warpgate.yaml`.
+{{< /callout >}}
+
+To configure [Warpgate] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+
+```yaml {title="warpgate.yaml"}
 external_host: warpgate.{{< sitevar name="domain" nojs="example.com" >}}
 sso_providers:
 - name: authelia

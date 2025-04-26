@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.16](https://github.com/authelia/authelia/releases/tag/v4.38.16)
-* [PhotoPrism]
-  * [v240915](https://github.com/photoprism/photoprism/releases/tag/240915-e1280b2fb)
+- [Authelia]
+  - [v4.38.16](https://github.com/authelia/authelia/releases/tag/v4.38.16)
+- [PhotoPrism]
+  - [v240915](https://github.com/photoprism/photoprism/releases/tag/240915-e1280b2fb)
 
 {{% oidc-common %}}
 
@@ -31,10 +31,10 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://photoprism.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `photoprism`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://photoprism.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `photoprism`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -70,15 +70,33 @@ identity_providers:
 
 ### Application
 
-To configure [PhotoPrism] to utilize Authelia as an [OpenID Connect 1.0] Provider, specify the below environment variables:
+To configure [PhotoPrism] there is one method, using the [Environment Variables](#environment-variables).
 
-```yaml
-environment:
-  PHOTOPRISM_OIDC_URI: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
-  PHOTOPRISM_OIDC_CLIENT: photoprism
-  PHOTOPRISM_OIDC_SECRET: insecure_secret
-  PHOTOPRISM_OIDC_PROVIDER: authelia
-  PHOTOPRISM_OIDC_REGISTER: true
+#### Environment Variables
+
+To configure [PhotoPrism] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following environment variables:
+
+##### Standard
+
+```shell
+PHOTOPRISM_OIDC_URI=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
+PHOTOPRISM_OIDC_CLIENT=photoprism
+PHOTOPRISM_OIDC_SECRET=insecure_secret
+PHOTOPRISM_OIDC_PROVIDER=authelia
+PHOTOPRISM_OIDC_REGISTER=true
+```
+
+##### Docker Compose
+
+```yaml {title="compose.yml"}
+services:
+  photoprism:
+    environment:
+      PHOTOPRISM_OIDC_URI: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
+      PHOTOPRISM_OIDC_CLIENT: 'photoprism'
+      PHOTOPRISM_OIDC_SECRET: 'insecure_secret'
+      PHOTOPRISM_OIDC_PROVIDER: 'authelia'
+      PHOTOPRISM_OIDC_REGISTER: 'true'
 ```
 
 ## See Also

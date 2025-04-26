@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-* [Tailscale]
-  * [1.38.4](https://github.com/tailscale/tailscale/releases/tag/v1.38.4)
+- [Authelia]
+  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+- [Tailscale]
+  - [1.38.4](https://github.com/tailscale/tailscale/releases/tag/v1.38.4)
 
 {{% oidc-common %}}
 
@@ -31,11 +31,11 @@ seo:
 
 This example makes the following assumptions:
 
-* __Domain Root URL:__ `https://{{< sitevar name="domain" nojs="example.com" >}}`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Account:__ `user@{{< sitevar name="domain" nojs="example.com" >}}`
-* __Client ID:__ `tailscale`
-* __Client Secret:__ `insecure_secret`
+- __Domain Root URL:__ `https://{{< sitevar name="domain" nojs="example.com" >}}`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Account:__ `user@{{< sitevar name="domain" nojs="example.com" >}}`
+- __Client ID:__ `tailscale`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 

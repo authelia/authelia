@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.39.0](https://github.com/authelia/authelia/releases/tag/v4.39.0)
-* [audiobookshelf]
-  * [v2.20.0](https://github.com/advplyr/audiobookshelf/releases/tag/v2.20.0)
+- [Authelia]
+  - [v4.39.0](https://github.com/authelia/authelia/releases/tag/v4.39.0)
+- [audiobookshelf]
+  - [v2.20.0](https://github.com/advplyr/audiobookshelf/releases/tag/v2.20.0)
 
 {{% oidc-common %}}
 
@@ -31,13 +31,13 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://audiobookshelf.{{< sitevar name="domain" nojs="example.com" >}}/`
-  * This option determines the redirect URI in the format of
+- __Application Root URL:__ `https://audiobookshelf.{{< sitevar name="domain" nojs="example.com" >}}/`
+  - This option determines the redirect URI in the format of
         `https://audiobookshelf.{{< sitevar name="domain" nojs="example.com" >}}/login`.
         This means if you change this value, you need to update the redirect URI.
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `audiobookshelf`
-* __Client Secret:__ `insecure_secret`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `audiobookshelf`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -47,13 +47,14 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [audiobookshelf] which will operate with the application example:
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [audiobookshelf] which
+will operate with the application example:
 
 ```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
     clients:
-      - client_id: 'audiobookshelf-client-id'
+      - client_id: 'audiobookshelf'
         client_name: 'audiobookshelf'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
@@ -63,6 +64,7 @@ identity_providers:
         redirect_uris:
           - 'https://audiobookshelf.{{< sitevar name="domain" nojs="example.com" >}}/auth/openid/callback'
           - 'https://audiobookshelf.{{< sitevar name="domain" nojs="example.com" >}}/auth/openid/mobile-redirect'
+          - 'audiobookshelf://oauth'
         scopes:
           - 'openid'
           - 'profile'
@@ -70,31 +72,39 @@ identity_providers:
           - 'email'
 ```
 
-```yaml {title="users_database.yml"}
----
-users:
-  administrator:
-    displayname: "administrator"
-    groups:
-      # for audiobookshelf group claim
-      - admin
-  non_administrator:
-    displayname: "non_administrator"
-    groups:
-      # for audiobookshelf group claim
-      - user
-```
-
 ### Application
 
-Add the following [audiobookshelf] "settings" -> "authentication" or adapt the existing one:
+To configure [audiobookshelf] there is one method, using the [Web GUI](#web-gui).
+
+#### Web GUI
+
+To configure [audiobookshelf] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following instructions:
+
+1. Navigate to Settings.
+2. Navigate to Authentication.
+3. Configure the following options:
+   - OpenID Connect Authentication: Enabled
+   - Issuer URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
+   - Authorize URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
+   - Token URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
+   - Userinfo URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
+   - JWKS URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/jwks.json`
+   - Client ID: `audiobookshelf`
+   - Client Secret: `insecure_secret`
+   - Signing Algorithm: `RS256`
+   - Allowed Mobile Redirect URIs: `audiobookshelf://oauth`
+   - Subfolder for Redirect URLs: `None`
+   - Button Text: `Login with Authelia`
+   - Match existing users by: `Match by username`
+   - Auto Launch: Enabled
+   - Group Claim: `groups`
 
 {{< figure src="audiobookshelf_1.png" alt="audiobookshelf_1" width="300" >}}
 {{< figure src="audiobookshelf_2.png" alt="audiobookshelf_2" width="300" >}}
 
 ## See Also
 
-* [audiobookshelf Authenticating With an OpenID Provider Documentation](https://www.audiobookshelf.org/guides/oidc_authentication/)
+- [audiobookshelf Authenticating With an OpenID Provider Documentation](https://www.audiobookshelf.org/guides/oidc_authentication/)
 
 [Authelia]: https://www.authelia.com
 [audiobookshelf]: https://www.audiobookshelf.org/
