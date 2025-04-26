@@ -63,9 +63,14 @@ identity_providers:
           - 'openid'
           - 'email'
           - 'profile'
-          - offline_access
-        response_types: 'code'
-        token_endpoint_auth_method: 'client_secret_post'
+          - 'offline_access'
+        response_types:
+          - 'code'
+        grant_types:
+          - 'refresh_token'
+          - 'authorization_code'
+        userinfo_signed_response_alg: 'none'
+        token_endpoint_auth_method: 'client_secret_basic'
 ```
 
 ### Application

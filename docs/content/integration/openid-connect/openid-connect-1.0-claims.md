@@ -130,6 +130,12 @@ identity_providers:
           - 'scope_name'
 ```
 
+#### Example Integrations
+
+The following integrations leverage all or part of the custom claims functionality:
+
+- [SFTPGo](sftpgo/index.md)
+
 ### Restore Functionality Prior to Claims Parameter
 
 The introduction of the claims parameter has removed most claims from the [ID Token] leaving it with only the claims

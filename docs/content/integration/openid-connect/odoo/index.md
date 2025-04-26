@@ -54,6 +54,8 @@ identity_providers:
         client_name: 'Odoo'
         public: true
         authorization_policy: 'two_factor'
+        require_pkce: true
+        pkce_challenge_method: 'S256'
         redirect_uris:
           - 'https://odoo.{{< sitevar name="domain" nojs="example.com" >}}/auth_oauth/signin'
         scopes:

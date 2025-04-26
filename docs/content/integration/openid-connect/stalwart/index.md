@@ -2,7 +2,7 @@
 title: "Stalwart"
 description: "Integrating Stalwart with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2022-06-15T17:51:47+10:00
+date: 2025-04-26T18:35:57+10:00
 draft: false
 images: []
 weight: 620
@@ -74,6 +74,7 @@ identity_providers:
           - 'profile'
           - 'email'
         userinfo_signed_response_alg: 'none'
+        token_endpoint_auth_method: 'client_secret_basic'
 ```
 
 ### Application
@@ -82,10 +83,14 @@ To configure [Stalwart] there are two methods, using the [Configuration File](#c
 
 #### Configuration File
 
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+Generally the configuration file is named `config.toml`.
+{{< /callout >}}
+
 To configure [Stalwart] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
-```toml
-[directory."oidc-userinfo"]
+```toml {title="config.toml"}
+[directory."authelia"]
 type = "oidc"
 timeout = "15s"
 endpoint.url = "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo"
@@ -105,6 +110,7 @@ To configure [Stalwart] to utilize Authelia as an [OpenID Connect 1.0] Provider,
 4. Navigate to Directories.
 5. Click Create Directory.
 6. Configure the following options:
+   - Directory Id: `authelia`
    - Type: `OpenID Connect`
    - URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
    - Type: `OpenID Connect Userinfo`
