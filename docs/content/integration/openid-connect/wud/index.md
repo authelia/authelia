@@ -78,7 +78,7 @@ To configure [WUD] to utilize Authelia as an [OpenID Connect 1.0] Provider use t
 
 ##### Standard
 
-```shell
+```shell {title=".env"}
 WUD_AUTH_OIDC_AUTHELIA_DISCOVERY=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration
 WUD_AUTH_OIDC_AUTHELIA_CLIENTID=wud
 WUD_AUTH_OIDC_AUTHELIA_CLIENTSECRET=insecure_secret

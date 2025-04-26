@@ -135,7 +135,7 @@ variables:
 
 ##### Standard
 
-```shell
+```shell {title=".env"}
 WEB_OIDC_CLIENT_ID=ocis
 PROXY_OIDC_ISSUER=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 PROXY_OIDC_REWRITE_WELLKNOWN=true

@@ -84,7 +84,7 @@ variables:
 
 ##### Standard
 
-```shell
+```shell {title=".env"}
 AUTH_METHOD=oidc
 OIDC_ISSUER=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 OIDC_ISSUER_DISCOVER=true
@@ -96,7 +96,7 @@ OIDC_DISPLAY_NAME_CLAIMS=name
 
 ##### Docker Compose
 
-```yaml
+```yaml {title="compose.yml"}
 services:
   bookstack:
     environment:

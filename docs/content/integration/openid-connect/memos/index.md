@@ -82,7 +82,6 @@ To configure [Memos] to utilize Authelia as an [OpenID Connect 1.0] Provider use
 2. Choose template `custom`
 3. Configure the following options:
    - Name: `Authelia`
-   - Identifier Filter:
    - Client ID: `memos`
    - Client secret: `insecure_secret`
    - Authorization endpoint: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`

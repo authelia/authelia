@@ -86,7 +86,7 @@ To configure [HedgeDoc] to utilize Authelia as an [OpenID Connect 1.0] Provider 
 
 ##### Standard
 
-```shell
+```shell {title=".env"}
 CMD_OAUTH2_PROVIDERNAME=Authelia
 CMD_OAUTH2_AUTHORIZATION_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization
 CMD_OAUTH2_TOKEN_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token
@@ -103,7 +103,7 @@ CMD_OAUTH2_ACCESS_ROLE=hedgedoc-users
 
 ##### Docker Compose
 
-```yaml
+```yaml {title="compose.yml"}
 services:
   hedgedoc:
     environment:

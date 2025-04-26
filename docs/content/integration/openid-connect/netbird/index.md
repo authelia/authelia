@@ -92,7 +92,7 @@ variables:
 
 ##### Standard
 
-```shell
+```shell {title=".env"}
 NETBIRD_MGMT_API_ENDPOINT=https://netbird.{{< sitevar name="domain" nojs="example.com" >}}
 NETBIRD_MGMT_GRPC_API=https://netbird.{{< sitevar name="domain" nojs="example.com" >}}
 AUTH_AUDIENCE=none

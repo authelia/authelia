@@ -79,7 +79,7 @@ To configure [Linkwarden] to utilize Authelia as an [OpenID Connect 1.0] Provide
 
 ##### Standard
 
-```shell
+```shell {title=".env"}
 NEXT_PUBLIC_AUTHELIA_ENABLED=true
 AUTHELIA_WELLKNOWN_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration
 AUTHELIA_CLIENT_ID=linkwarden
@@ -88,7 +88,7 @@ AUTHELIA_CLIENT_SECRET=insecure_secret
 
 ##### Docker Compose
 
-```yaml
+```yaml {title="compose.yml"}
 services:
   linkwarden:
     environment:

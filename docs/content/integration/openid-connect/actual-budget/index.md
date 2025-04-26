@@ -100,7 +100,7 @@ variables:
 
 ##### Standard
 
-```shell
+```shell {title=".env"}
 ACTUAL_OPENID_DISCOVERY_URL="https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}"
 ACTUAL_OPENID_CLIENT_ID="actual-budget"
 ACTUAL_OPENID_CLIENT_SECRET="insecure_secret"
@@ -110,7 +110,7 @@ ACTUAL_OPENID_AUTH_METHOD="oauth2"
 
 ##### Docker Compose
 
-```yaml
+```yaml {title="compose.yml"}
 services:
   actual-budget:
     environment:

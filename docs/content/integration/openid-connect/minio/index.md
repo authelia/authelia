@@ -79,7 +79,7 @@ To configure [MinIO] to utilize Authelia as an [OpenID Connect 1.0] Provider use
 
 ##### Standard
 
-```shell
+```shell {title=".env"}
 MINIO_IDENTITY_OPENID_CONFIG_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration
 MINIO_IDENTITY_OPENID_CLIENT_ID=minio
 MINIO_IDENTITY_OPENID_CLIENT_SECRET=insecure_secret

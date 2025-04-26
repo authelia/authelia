@@ -78,7 +78,7 @@ To configure [PhotoPrism] to utilize Authelia as an [OpenID Connect 1.0] Provide
 
 ##### Standard
 
-```shell
+```shell {title=".env"}
 PHOTOPRISM_OIDC_URI=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 PHOTOPRISM_OIDC_CLIENT=photoprism
 PHOTOPRISM_OIDC_SECRET=insecure_secret

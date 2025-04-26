@@ -86,7 +86,7 @@ Generally the configuration file is named `/etc/opk/providers`.
 
 To configure [opkssh] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
 
-```txt {title=etc/opk/providers}
+```txt {title="/etc/opk/providers"}
 https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/ opkssh 24h
 ```
 
@@ -94,7 +94,7 @@ In addition to above, the CLI will need to be used to map users manually.
 
 For example allow the user `john@example.com` to login as `root` :
 
-```bash
+```shell
 opkssh add root john@example.com https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/
 ```
 
@@ -102,7 +102,7 @@ opkssh add root john@example.com https://{{< sitevar name="subdomain-authelia" n
 
 To log in using Authelia run:
 
-```bash
+```shell
 opkssh login --provider=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/,opkssh
 ```
 

@@ -79,7 +79,7 @@ To configure [karakeep] to utilize Authelia as an [OpenID Connect 1.0] Provider 
 
 ##### Standard
 
-```shell
+```shell {title=".env"}
 OAUTH_WELLKNOWN_URL=https://auth.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration
 OAUTH_CLIENT_ID=karakeep
 OAUTH_CLIENT_SECRET=insecure_secret
@@ -88,7 +88,7 @@ OAUTH_PROVIDER_NAME=Authelia
 
 ##### Docker Compose
 
-```yaml
+```yaml {title="compose.yml"}
 services:
   karakeep:
     environment:

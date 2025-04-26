@@ -78,7 +78,7 @@ To configure [WeKan] to utilize Authelia as an [OpenID Connect 1.0] Provider use
 
 ##### Standard
 
-```shell
+```shell {title=".env"}
 OAUTH2_ENABLED=true
 OAUTH2_LOGIN_STYLE=redirect
 OAUTH2_CLIENT_ID=wekan

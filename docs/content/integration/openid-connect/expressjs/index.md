@@ -86,7 +86,7 @@ Because each project is different this guide just demonstrates how this is possi
 
 ##### Project Initialization
 
-```bash
+```shell
 mkdir authelia-example && cd authelia-example && npm init -y && npm install express express-openid-connect
 ```
 
@@ -166,7 +166,7 @@ variables:
 
 ###### Standard
 
-```bash
+```shell {title=".env"}
 APP_BASE_URL=https://express.{{< sitevar name="domain" nojs="example.com" >}}
 # SESSION_ENCRYPTION_SECRET=
 OIDC_ISSUER=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
@@ -179,7 +179,7 @@ OIDC_SCOPE=openid profile email groups
 
 ###### Docker Compose
 
-```yaml
+```yaml {title="compose.yml"}
 services:
   expressjs-example:
     environment:

@@ -77,7 +77,7 @@ To configure [Mastodon] to utilize Authelia as an [OpenID Connect 1.0] Provider 
 
 ##### Standard
 
-```shell
+```shell {title=".env"}
 OIDC_ENABLED=true
 OIDC_DISPLAY_NAME=Authelia
 OIDC_DISCOVERY=true
@@ -92,7 +92,7 @@ OIDC_SECURITY_ASSUME_EMAIL_IS_VERIFIED=true
 
 ##### Docker Compose
 
-```yaml
+```yaml {title="compose.yml"}
 services:
   mastodon:
     environment:

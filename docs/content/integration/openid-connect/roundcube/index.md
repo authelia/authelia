@@ -173,7 +173,7 @@ Even though no authentication would be required when your Postfix instance is on
 SMTP + SSL/TLS handshaking as no auth options would be offered from Postfix. Thus, Postfix must be configured with
 (Dovecot-type) [SASL](https://www.postfix.org/SASL_README.html) on port 25 (smtpd) or 587 (submission), with the following minimum set of options:
 
-```cf title={"/etc/postfix/main.cf"}
+```cf {title="/etc/postfix/main.cf"}
 smtpd_sasl_auth_enable = yes
 smtpd_sasl_path = private/auth
 smtpd_sasl_security_options = noanonymous, noplaintext

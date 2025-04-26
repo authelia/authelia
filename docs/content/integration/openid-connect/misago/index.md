@@ -124,4 +124,5 @@ To configure [Misago] to utilize Authelia as an [OpenID Connect 1.0] Provider us
 - [Misago] [OAuth 2 Client Configuration guide](https://misago-project.org/t/oauth-2-client-configuration-guide/1147/)
 
 [Misago]: https://misago-project.org/
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

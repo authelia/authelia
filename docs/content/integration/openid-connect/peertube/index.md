@@ -45,7 +45,7 @@ Some of the values presented in this guide can automatically be replaced with do
 The following example uses the [OpenID Connect Plugin] which is assumed to be installed when following this
 section of the guide.
 
-To install the [OpenID Connect Plugin] for [PaperTube] via the Web GUI:
+To install the [OpenID Connect Plugin] for [PeerTube] via the Web GUI:
 
 1. Visit `Settings` under `Administration`.
 2. Visit `Plugins/Themes`.

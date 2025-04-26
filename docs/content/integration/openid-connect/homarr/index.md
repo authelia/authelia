@@ -79,7 +79,7 @@ To configure [Homarr] to utilize Authelia as an [OpenID Connect 1.0] Provider us
 
 ##### Standard
 
-```shell
+```shell {title=".env"}
 AUTH_PROVIDERS=oidc
 AUTH_OIDC_ISSUER=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 AUTH_OIDC_CLIENT_ID=homarr
@@ -92,7 +92,7 @@ AUTH_LOGOUT_REDIRECT_URL=https://{{< sitevar name="subdomain-authelia" nojs="aut
 
 ##### Docker Compose
 
-```yaml
+```yaml {title="compose.yml"}
 services:
   homarr:
     environment:

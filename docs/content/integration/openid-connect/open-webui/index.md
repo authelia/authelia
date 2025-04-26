@@ -72,7 +72,7 @@ identity_providers:
 
 ### Application
 
-To configure [Odoo] there is one method, using the [Environment Variables](#environment-variables).
+To configure [Open WebUI] there is one method, using the [Environment Variables](#environment-variables).
 
 #### Environment Variables
 
@@ -82,11 +82,11 @@ via the `OAUTH_ALLOWED_ROLES` environment variable. Anyone with the `openwebui-a
 application. This is configured via the `OAUTH_ADMIN_ROLES` environment variable.
 {{< /callout >}}
 
-To configure [Odoo] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following environment variables:
+To configure [Open WebUI] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following environment variables:
 
 ##### Standard
 
-```shell
+```shell {title=".env"}
 ENABLE_OAUTH_SIGNUP=true
 OAUTH_MERGE_ACCOUNTS_BY_EMAIL=true
 OAUTH_CLIENT_ID=open-webui

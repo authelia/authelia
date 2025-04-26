@@ -44,7 +44,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Grafana] which will
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [PocketBase] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}

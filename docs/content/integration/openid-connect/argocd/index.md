@@ -59,8 +59,11 @@ identity_providers:
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
         authorization_policy: 'two_factor'
+        require_pkce: true
+        pkce_challenge_method: 'S256'
         redirect_uris:
           - 'https://argocd.{{< sitevar name="domain" nojs="example.com" >}}/auth/callback'
+          - 'https://argocd.{{< sitevar name="domain" nojs="example.com" >}}/pkce/verify'
         scopes:
           - 'openid'
           - 'groups'
@@ -71,6 +74,8 @@ identity_providers:
         client_name: 'Argo CD (CLI)'
         public: true
         authorization_policy: 'two_factor'
+        require_pkce: true
+        pkce_challenge_method: 'S256'
         redirect_uris:
           - 'http://localhost:8085/auth/callback'
         scopes:
@@ -88,19 +93,24 @@ To configure [Argo CD] there is one method, using the [Configuration File](#conf
 
 #### Configuration File
 
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+Generally the configuration file is named `argocd-cm.yaml`.
+{{< /callout >}}
+
 To configure [Argo CD] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
 
-```yaml
-name: 'Authelia'
-issuer: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
-clientID: 'argocd'
-clientSecret: 'insecure_secret'
-cliClientID: 'argocd-cli'
-requestedScopes:
-  - 'openid'
-  - 'profile'
-  - 'email'
-  - 'groups'
+```yaml {title="argocd-cm.yaml"}
+oidc.config: |
+  name: 'Authelia'
+  issuer: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
+  clientID: 'argocd'
+  clientSecret: 'insecure_secret'
+  cliClientID: 'argocd-cli'
+  requestedScopes:
+    - 'openid'
+    - 'profile'
+    - 'email'
+    - 'groups'
 ```
 
 ## See Also

@@ -94,13 +94,13 @@ In addition to the configuration change you must also set the following environm
 
 ##### Standard
 
-```shell
+```shell {title=".env"}
 FLOWER_OAUTH2_AUTHELIA_BASE_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 ```
 
 ##### Docker Compose
 
-```yaml
+```yaml {title="compose.yml"}
 services:
   expressjs-example:
     environment:

@@ -57,7 +57,7 @@ To install the [OpenId Connect Authentication Plugin] for [Jenkins] via the Web 
 
 To install the [OpenId Connect Authentication Plugin] for [Jenkins] using the CLI:
 
-```bash
+```shell
 jenkins-plugin-cli --plugins oic-auth
 ```
 

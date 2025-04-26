@@ -87,7 +87,7 @@ To configure [Mealie] to utilize Authelia as an [OpenID Connect 1.0] Provider us
 
 ##### Standard
 
-```shell
+```shell {title=".env"}
 OIDC_AUTH_ENABLED=true
 OIDC_SIGNUP_ENABLED=true
 OIDC_CONFIGURATION_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration
@@ -100,7 +100,7 @@ OIDC_USER_GROUP=mealie-users
 
 ##### Docker Compose
 
-```yaml
+```yaml {title="compose.yml"}
 services:
   mealie:
     environment:

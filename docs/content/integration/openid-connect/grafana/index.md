@@ -87,6 +87,7 @@ To configure [Grafana] to utilize Authelia as an [OpenID Connect 1.0] Provider u
 ```ini {title="grafana.ini"}
 [server]
 root_url = https://grafana.{{< sitevar name="domain" nojs="example.com" >}}
+
 [auth.generic_oauth]
 enabled = true
 name = Authelia
@@ -111,7 +112,7 @@ To configure [Grafana] to utilize Authelia as an [OpenID Connect 1.0] Provider u
 
 ##### Standard
 
-```shell
+```shell {title=".env"}
 GF_SERVER_ROOT_URL=https://grafana.{{< sitevar name="domain" nojs="example.com" >}}
 GF_AUTH_GENERIC_OAUTH_ENABLED=true
 GF_AUTH_GENERIC_OAUTH_NAME=Authelia
@@ -132,7 +133,7 @@ GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH=
 
 ##### Docker Compose
 
-```yaml
+```yaml {title="compose.yml"}
 services:
   grafana:
     environment:

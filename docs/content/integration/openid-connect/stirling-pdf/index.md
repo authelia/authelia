@@ -84,7 +84,7 @@ To configure [Stirling-PDF] to utilize Authelia as an [OpenID Connect 1.0] Provi
 
 ##### Standard
 
-```shell
+```shell {title=".env"}
 DOCKER_ENABLE_SECURITY=true
 SECURITY_ENABLE_LOGIN=true
 SECURITY_LOGINMETHOD=oauth2

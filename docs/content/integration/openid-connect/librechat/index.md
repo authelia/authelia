@@ -81,7 +81,7 @@ To configure [LibreChat] to utilize Authelia as an [OpenID Connect 1.0] Provider
 
 ##### Standard
 
-```shell
+```shell {title=".env"}
 ALLOW_SOCIAL_LOGIN=true
 OPENID_BUTTON_LABEL=Log in with Authelia
 OPENID_ISSUER=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration
@@ -95,7 +95,7 @@ OPENID_IMAGE_URL=https://www.authelia.com/images/branding/logo-cropped.png
 
 ##### Docker Compose
 
-```yaml
+```yaml {title="compose.yml"}
 services:
   librechat:
     environment:

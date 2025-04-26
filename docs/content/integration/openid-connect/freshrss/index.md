@@ -92,7 +92,7 @@ To configure [FreshRSS] to utilize Authelia as an [OpenID Connect 1.0] Provider 
 
 ##### Standard
 
-```yaml
+```shell {title=".env"}
 OIDC_ENABLED=1
 OIDC_PROVIDER_METADATA_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration
 OIDC_CLIENT_ID=freshrss
@@ -105,15 +105,18 @@ OIDC_X_FORWARDED_HEADERS=X-Forwarded-Host X-Forwarded-Port X-Forwarded-Proto
 
 ##### Docker Compose
 
-```shell
-OIDC_ENABLED=1
-OIDC_PROVIDER_METADATA_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration
-OIDC_CLIENT_ID=freshrss
-OIDC_CLIENT_SECRET=insecure_secret
-OIDC_CLIENT_CRYPTO_KEY=insecure_crypto_key
-OIDC_REMOTE_USER_CLAIM=preferred_username
-OIDC_SCOPES=openid groups email profile
-OIDC_X_FORWARDED_HEADERS=X-Forwarded-Host X-Forwarded-Port X-Forwarded-Proto
+```yaml {title="compose.yml"}
+services:
+  freshrss:
+    environment:
+      OIDC_ENABLED: '1'
+      OIDC_PROVIDER_METADATA_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration'
+      OIDC_CLIENT_ID: 'freshrss'
+      OIDC_CLIENT_SECRET: 'insecure_secret'
+      OIDC_CLIENT_CRYPTO_KEY: 'insecure_crypto_key'
+      OIDC_REMOTE_USER_CLAIM: 'preferred_username'
+      OIDC_SCOPES: 'openid groups email profile'
+      OIDC_X_FORWARDED_HEADERS: 'X-Forwarded-Host X-Forwarded-Port X-Forwarded-Proto'
 ```
 
 In addition the following steps may be required:

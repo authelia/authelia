@@ -105,7 +105,7 @@ To configure [Paperless] to utilize Authelia as an [OpenID Connect 1.0] Provider
 
 ##### Standard
 
-```shell
+```shell {title=".env"}
 PAPERLESS_APPS=allauth.socialaccount.providers.openid_connect
 PAPERLESS_SOCIALACCOUNT_PROVIDERS={"openid_connect":{"SCOPE":["openid","profile","email"],"OAUTH_PKCE_ENABLED":true,"APPS":[{"provider_id":"authelia","name":"Authelia","client_id":"paperless","secret":"insecure_secret","settings":{"server_url":"https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}","token_auth_method":"client_secret_basic"}}]}}
 ```

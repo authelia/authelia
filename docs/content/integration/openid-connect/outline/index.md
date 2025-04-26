@@ -84,7 +84,7 @@ To configure [Outline] to utilize Authelia as an [OpenID Connect 1.0] Provider u
 
 ##### Standard
 
-```shell
+```shell {title=".env"}
 URL=https://outline.{{< sitevar name="domain" nojs="example.com" >}}
 FORCE_HTTPS=true
 OIDC_CLIENT_ID=outline
