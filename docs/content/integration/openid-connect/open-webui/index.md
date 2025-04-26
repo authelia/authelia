@@ -68,6 +68,7 @@ identity_providers:
           - 'groups'
           - 'email'
         userinfo_signed_response_alg: 'RS256'
+        token_endpoint_auth_method: 'client_secret_basic'
 ```
 
 ### Application

@@ -70,6 +70,7 @@ identity_providers:
           - 'email'
           - 'profile'
         userinfo_signed_response_alg: 'none'
+        token_endpoint_auth_method: 'client_secret_basic'
       - client_id: 'argocd-cli'
         client_name: 'Argo CD (CLI)'
         public: true

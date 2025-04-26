@@ -2,7 +2,7 @@
 title: "OpenProject"
 description: "Integrating OpenProject with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2022-06-15T17:51:47+10:00
+date: 2025-04-26T18:35:57+10:00
 draft: false
 images: []
 weight: 620
@@ -65,6 +65,7 @@ identity_providers:
           - 'profile'
           - 'email'
         userinfo_signed_response_alg: 'none'
+        token_endpoint_auth_method: 'client_secret_basic'
 ```
 
 ### Application

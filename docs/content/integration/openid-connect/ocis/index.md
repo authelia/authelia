@@ -91,6 +91,8 @@ identity_providers:
         grant_types:
           - 'refresh_token'
           - 'authorization_code'
+        userinfo_signed_response_alg: 'none'
+        token_endpoint_auth_method: 'none'
       - client_id: 'xdXOt13JKxym1B1QcEncf2XDkLAexMBFwiT9j6EfhhHFJhs2KM9jbjTmf8JBXE69'
         client_name: 'ownCloud Infinite Scale (Desktop Client)'
         client_secret: 'UBntmLjC2yYCeHwsyj73Uwo9TAaecAetRwMw0xYcvNL9yRdLSUi0hUAHfvCHFeFh'
@@ -110,6 +112,8 @@ identity_providers:
         grant_types:
           - 'refresh_token'
           - 'authorization_code'
+        userinfo_signed_response_alg: 'none'
+        token_endpoint_auth_method: 'client_secret_basic'
       - client_id: 'e4rAsNUSIUs0lF4nbv9FmCeUkTlV9GdgTLDH1b5uie7syb90SzEVrbN7HIpmWJeD'
         client_name: 'ownCloud Infinite Scale (Android)'
         client_secret: 'dInFYGV33xKzhbRmpqQltYNdfLdJIfJ9L5ISoKhNoT9qZftpdWSP71VrpGR9pmoD'
@@ -128,6 +132,8 @@ identity_providers:
         grant_types:
           - 'refresh_token'
           - 'authorization_code'
+        userinfo_signed_response_alg: 'none'
+        token_endpoint_auth_method: 'client_secret_basic'
       - client_id: 'mxd5OQDk6es5LzOzRvidJNfXLUZS2oN3oUFeXPP8LpPrhx3UroJFduGEYIBOxkY1'
         client_name: 'ownCloud Infinite Scale (iOS)'
         client_secret: 'KFeFWWEZO9TkisIQzR3fo7hfiMXlOpaqP8CFuTbSHzV1TUuGECglPxpiVKJfOXIx'
@@ -147,6 +153,8 @@ identity_providers:
         grant_types:
           - 'refresh_token'
           - 'authorization_code'
+        userinfo_signed_response_alg: 'none'
+        token_endpoint_auth_method: 'client_secret_basic'
 ```
 
 ### Application
