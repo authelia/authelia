@@ -57,9 +57,11 @@ identity_providers:
     # Extend the access and refresh token lifespan from the default 30m to work around ownCloud client re-authentication prompts every few hours.
     # It should be possible to remove this once Authelia supports dynamic client registration (DCR).
     # Note: ownCloud's built-in IDP uses a value of 30d.
-    access_token_lifespan: '2d'
-    refresh_token_lifespan: '3d'
-
+    lifespans:
+      custom:
+        ocis:
+          access_token: '2 days'
+          refresh_token: '3 days'
     cors:
       endpoints:
         - 'authorization'
@@ -70,13 +72,27 @@ identity_providers:
     clients:
       - client_id: 'ocis'
         client_name: 'ownCloud Infinite Scale'
+        lifespan: 'ocis'
         public: true
+        authorization_policy: 'two_factor'
+        require_pkce: true
+        pkce_challenge_method: 'S256'
+        scopes:
+          - 'openid'
+          - 'groups'
+          - 'profile'
+          - 'email'
+          - 'offline_access'
         redirect_uris:
-          - 'https://owncloud.home.yourdomain.com/'
-          - 'https://owncloud.home.yourdomain.com/oidc-callback.html'
-          - 'https://owncloud.home.yourdomain.com/oidc-silent-redirect.html'
+          - 'https://owncloud.{{< sitevar name="domain" nojs="example.com" >}}/'
+          - 'https://owncloud.{{< sitevar name="domain" nojs="example.com" >}}/oidc-callback.html'
+          - 'https://owncloud.{{< sitevar name="domain" nojs="example.com" >}}/oidc-silent-redirect.html'
+          - 'https://owncloud.{{< sitevar name="domain" nojs="example.com" >}}/apps/openidconnect/redirect'
+        grant_types:
+          - 'refresh_token'
+          - 'authorization_code'
       - client_id: 'xdXOt13JKxym1B1QcEncf2XDkLAexMBFwiT9j6EfhhHFJhs2KM9jbjTmf8JBXE69'
-        client_name: 'ownCloud desktop client'
+        client_name: 'ownCloud Infinite Scale (Desktop Client)'
         client_secret: 'UBntmLjC2yYCeHwsyj73Uwo9TAaecAetRwMw0xYcvNL9yRdLSUi0hUAHfvCHFeFh'
         public: false
         authorization_policy: 'two_factor'
@@ -91,8 +107,11 @@ identity_providers:
         redirect_uris:
           - 'http://127.0.0.1'
           - 'http://localhost'
+        grant_types:
+          - 'refresh_token'
+          - 'authorization_code'
       - client_id: 'e4rAsNUSIUs0lF4nbv9FmCeUkTlV9GdgTLDH1b5uie7syb90SzEVrbN7HIpmWJeD'
-        client_name: 'ownCloud Android app'
+        client_name: 'ownCloud Infinite Scale (Android)'
         client_secret: 'dInFYGV33xKzhbRmpqQltYNdfLdJIfJ9L5ISoKhNoT9qZftpdWSP71VrpGR9pmoD'
         public: false
         authorization_policy: 'two_factor'
@@ -106,8 +125,11 @@ identity_providers:
           - 'offline_access'
         redirect_uris:
           - 'oc://android.owncloud.com'
+        grant_types:
+          - 'refresh_token'
+          - 'authorization_code'
       - client_id: 'mxd5OQDk6es5LzOzRvidJNfXLUZS2oN3oUFeXPP8LpPrhx3UroJFduGEYIBOxkY1'
-        client_name: 'ownCloud iOS app'
+        client_name: 'ownCloud Infinite Scale (iOS)'
         client_secret: 'KFeFWWEZO9TkisIQzR3fo7hfiMXlOpaqP8CFuTbSHzV1TUuGECglPxpiVKJfOXIx'
         public: false
         authorization_policy: 'two_factor'
@@ -122,6 +144,9 @@ identity_providers:
         redirect_uris:
           - 'oc://ios.owncloud.com'
           - 'oc.ios://ios.owncloud.com'
+        grant_types:
+          - 'refresh_token'
+          - 'authorization_code'
 ```
 
 ### Application
@@ -168,11 +193,10 @@ services:
 
 ## See Also
 
-- [Nextcloud OpenID Connect Login app]
-- [Nextcloud OpenID Connect Login Documentation](https://github.com/pulsejet/nextcloud-oidc-login)
+- [ownCloud Infinite Scale]
+- [ownCloud Infinite Scale IDP Service Configuration Documentation](https://doc.owncloud.com/ocis/next/deployment/services/s-list/idp.html)
 
 [Authelia]: https://www.authelia.com
-[ownCloud Infinite Scale]: https://nextcloud.com/
-[Nextcloud OpenID Connect Login app]: https://apps.nextcloud.com/apps/oidc_login
+[ownCloud Infinite Scale]: https://owncloud.com/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
