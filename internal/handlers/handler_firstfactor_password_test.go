@@ -3,12 +3,12 @@ package handlers
 import (
 	"database/sql"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"net/url"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
