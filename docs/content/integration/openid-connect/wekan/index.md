@@ -74,7 +74,7 @@ To configure [WeKan] there is one method, using the [Environment Variables](#env
 
 #### Environment Variables
 
-To configure [WeKan] to utilize Authelia as an [OpenID Connect 1.0] Provider. use the following environment variables:
+To configure [WeKan] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following environment variables:
 
 ##### Standard
 

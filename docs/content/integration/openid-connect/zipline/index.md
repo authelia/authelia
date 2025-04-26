@@ -79,7 +79,7 @@ To configure [Zipline] to utilize Authelia as an [OpenID Connect 1.0] Provider, 
 1. Go to Server Settings.
 2. Activate the **OAuth Registration** feature toggle.
 3. Configure the following options:
-   - OIDC Client ID: `ziplinea`
+   - OIDC Client ID: `zipline`
    - OIDC Client Secret: `insecure_secret`
    - OIDC Authorize URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
    - OIDC Token URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`

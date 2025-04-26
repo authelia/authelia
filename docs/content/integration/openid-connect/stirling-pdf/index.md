@@ -80,7 +80,7 @@ To configure [Stirling-PDF] there is one method, using the [Environment Variable
 
 #### Environment Variables
 
-To configure [Stirling-PDF] to utilize Authelia as an [OpenID Connect 1.0] Provider. use the following environment variables:
+To configure [Stirling-PDF] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following environment variables:
 
 ##### Standard
 
@@ -103,7 +103,7 @@ SECURITY_OAUTH2_PROVIDER=Authelia
 
 ```yaml {title="compose.yml"}
 services:
-  photoprism:
+  stirling-pdf:
     environment:
       DOCKER_ENABLE_SECURITY: 'true'
       SECURITY_ENABLE_LOGIN: 'true'

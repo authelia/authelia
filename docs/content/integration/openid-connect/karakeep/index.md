@@ -75,7 +75,7 @@ To configure [karakeep] there is one method, using [Environment Variables](#envi
 
 #### Environment Variables
 
-To configure [karakeep] to utilize Authelia as an [OpenID Connect 1.0] Provider. use the following environment variables:
+To configure [karakeep] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following environment variables:
 
 ##### Standard
 

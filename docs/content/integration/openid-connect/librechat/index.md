@@ -77,7 +77,7 @@ To configure [LibreChat] there is one method, using [Environment Variables](#env
 
 #### Environment Variables
 
-To configure [LibreChat] to utilize Authelia as an [OpenID Connect 1.0] Provider. use the following environment variables:
+To configure [LibreChat] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following environment variables:
 
 ##### Standard
 

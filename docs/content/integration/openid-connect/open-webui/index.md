@@ -82,7 +82,7 @@ via the `OAUTH_ALLOWED_ROLES` environment variable. Anyone with the `openwebui-a
 application. This is configured via the `OAUTH_ADMIN_ROLES` environment variable.
 {{< /callout >}}
 
-To configure [Open WebUI] to utilize Authelia as an [OpenID Connect 1.0] Provider. use the following environment variables:
+To configure [Open WebUI] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following environment variables:
 
 ##### Standard
 
