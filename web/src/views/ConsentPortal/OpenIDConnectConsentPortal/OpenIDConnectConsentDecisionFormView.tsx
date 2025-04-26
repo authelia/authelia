@@ -83,7 +83,7 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
     };
 
     useEffect(() => {
-        if (consentID !== undefined) {
+        if (consentID) {
             getConsentResponse(consentID)
                 .then((r) => {
                     setResponse(r);

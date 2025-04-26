@@ -76,7 +76,7 @@ const (
 )
 
 const (
-	workflowOpenIDConnect = "openid_connect"
+	flowNameOpenIDConnect = "openid_connect"
 )
 
 const (

@@ -270,8 +270,8 @@ func HandleAllow(ctx *middlewares.AutheliaCtx, userSession *session.UserSession,
 		return
 	}
 
-	if bodyJSON.Flow == workflowOpenIDConnect {
-		handleOIDCWorkflowResponse(ctx, userSession, bodyJSON.FlowID)
+	if len(bodyJSON.Flow) > 0 {
+		handleFlowResponse(ctx, userSession, bodyJSON.FlowID, bodyJSON.Flow, bodyJSON.SubFlow)
 	} else {
 		Handle2FAResponse(ctx, bodyJSON.TargetURL)
 	}
