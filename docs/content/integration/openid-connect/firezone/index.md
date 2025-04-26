@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-* [Firezone]
-  * [0.7.25](https://github.com/firezone/firezone/releases/tag/0.7.25)
+- [Authelia]
+  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+- [Firezone]
+  - [0.7.25](https://github.com/firezone/firezone/releases/tag/0.7.25)
 
 {{% oidc-common %}}
 
@@ -31,12 +31,12 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://firezone.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `firezone`
-* __Client Secret:__ `insecure_secret`
-* __Config ID (Firezone):__ `authelia`:
-    * This option determines the redirect URI in the format of
+- __Application Root URL:__ `https://firezone.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `firezone`
+- __Client Secret:__ `insecure_secret`
+- __Config ID (Firezone):__ `authelia`:
+    - This option determines the redirect URI in the format of
       `https://firezone.{{< sitevar name="domain" nojs="example.com" >}}/auth/oidc/<Config ID>/callback`.
       This means if you change this value you need to update the redirect URI.
 
@@ -75,7 +75,12 @@ identity_providers:
 
 ### Application
 
-To configure [Firezone] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [Firezone] there is one method, using the [Web GUI](#web-gui).
+
+#### Web GUI
+
+To configure [Firezone] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following
+instructions:
 
 1. Visit your [Firezone] site
 2. Sign in as an admin
@@ -83,20 +88,17 @@ To configure [Firezone] to utilize Authelia as an [OpenID Connect 1.0] Provider:
     1. Settings
     2. Security
 4. In the `Single Sign-On` section, click on the `Add OpenID Connect Provider` button
-5. Configure:
-   1. Config ID: `authelia`
-   2. Label: `Authelia`
-   3. Scope: `openid email profile`
-   4. Client ID: `firezone`
-   5. Client secret: `insecure_secret`
-   6. Discovery Document URI: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
-   7. Redirect URI (optional): `https://firezone.{{< sitevar name="domain" nojs="example.com" >}}/auth/oidc/authelia/callback`
-   8. Auto-create users (checkbox): `true`
+5. Configure the following options:
+   - Config ID: `authelia`
+   - Label: `Authelia`
+   - Scope: `openid email profile`
+   - Client ID: `firezone`
+   - Client secret: `insecure_secret`
+   - Discovery Document URI: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
+   - Redirect URI (optional): `https://firezone.{{< sitevar name="domain" nojs="example.com" >}}/auth/oidc/authelia/callback`
+   - Auto-create users (checkbox): `true`
 
 {{< figure src="firezone.png" alt="Firezone" width="500" >}}
-
-Take a look at the [See Also](#see-also) section for the cheatsheets corresponding to the sections above for their
-descriptions.
 
 ## See Also
 

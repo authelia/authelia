@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.8](https://github.com/authelia/authelia/releases/tag/v4.38.8)
-* [NetBird]
-  * [v0.36.3](https://github.com/netbirdio/netbird/releases/tag/v0.36.3)
+- [Authelia]
+  - [v4.38.8](https://github.com/authelia/authelia/releases/tag/v4.38.8)
+- [NetBird]
+  - [v0.36.3](https://github.com/netbirdio/netbird/releases/tag/v0.36.3)
 
 {{% oidc-common %}}
 
@@ -31,13 +31,13 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://netbird.{{< sitevar name="domain" nojs="example.com" >}}/`
-  * This option determines the redirect URI in the format of
+- __Application Root URL:__ `https://netbird.{{< sitevar name="domain" nojs="example.com" >}}/`
+  - This option determines the redirect URI in the format of
         `https://netbird.{{< sitevar name="domain" nojs="example.com" >}}/login`.
         This means if you change this value, you need to update the redirect URI.
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `netbird`
-* __Client Secret:__ `insecure_secret`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `netbird`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -82,33 +82,59 @@ identity_providers:
 
 ### Application
 
-
 To configure [NetBird] to utilize Authelia as an [OpenID Connect 1.0] Provider you have to update a number of areas to
 configure it for Authelia.
 
 #### NetBird Dashboard
 
-Configure the following environment variables:
+To configure [NetBird] Dashboard to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following environment
+variables:
 
-```env
-NETBIRD_MGMT_API_ENDPOINT: "https://netbird.{{< sitevar name="domain" nojs="example.com" >}}"
-NETBIRD_MGMT_GRPC_API: "https://netbird.{{< sitevar name="domain" nojs="example.com" >}}"
-AUTH_AUDIENCE: "none"
-AUTH_CLIENT_ID: "netbird"
-AUTH_CLIENT_SECRET: "insecure_secret"
-AUTH_AUTHORITY: "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}"
-USE_AUTH0: "false"
-AUTH_SUPPORTED_SCOPES: "openid email profile"
-AUTH_REDIRECT_URI: "/peers"
-AUTH_SILENT_REDIRECT_URI: "/add-peers"
-NETBIRD_TOKEN_SOURCE: "idToken"
+##### Standard
+
+```shell {title=".env"}
+NETBIRD_MGMT_API_ENDPOINT=https://netbird.{{< sitevar name="domain" nojs="example.com" >}}
+NETBIRD_MGMT_GRPC_API=https://netbird.{{< sitevar name="domain" nojs="example.com" >}}
+AUTH_AUDIENCE=none
+AUTH_CLIENT_ID=netbird
+AUTH_CLIENT_SECRET=insecure_secret
+AUTH_AUTHORITY=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
+USE_AUTH0=false
+AUTH_SUPPORTED_SCOPES=openid email profile
+AUTH_REDIRECT_URI=/peers
+AUTH_SILENT_REDIRECT_URI=/add-peers
+NETBIRD_TOKEN_SOURCE=idToken
+```
+
+##### Docker Compose
+
+```yaml {title="compose.yml"}
+services:
+  netbird-dashboard:
+    environment:
+      NETBIRD_MGMT_API_ENDPOINT: 'https://netbird.{{< sitevar name="domain" nojs="example.com" >}}'
+      NETBIRD_MGMT_GRPC_API: 'https://netbird.{{< sitevar name="domain" nojs="example.com" >}}'
+      AUTH_AUDIENCE: 'none'
+      AUTH_CLIENT_ID: 'netbird'
+      AUTH_CLIENT_SECRET: 'insecure_secret'
+      AUTH_AUTHORITY: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
+      USE_AUTH0: 'false'
+      AUTH_SUPPORTED_SCOPES: 'openid email profile'
+      AUTH_REDIRECT_URI: '/peers'
+      AUTH_SILENT_REDIRECT_URI: '/add-peers'
+      NETBIRD_TOKEN_SOURCE: 'idToken'
 ```
 
 #### NetBird Management
 
-Configure or merge the following elements of the `management.json` configuration file:
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+Generally the configuration file is named `management.json`.
+{{< /callout >}}
 
-```json
+To configure [NetBird] Management to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following
+configuration:
+
+```json {title="management.json"}
 {
   "HttpConfig": {
     "AuthIssuer": "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}",
@@ -139,26 +165,6 @@ Configure or merge the following elements of the `management.json` configuration
   }
 }
 ```
-
-#### Configuration File
-
-Add the following values to [NetBird] `netbirdconfig.py`:
-```python
-auth = '.*@{{< sitevar name="domain" nojs="example.com" >}}'
-auth_provider = 'netbird.views.auth.AutheliaLoginHandler'
-oauth2_key = 'netbird'
-oauth2_secret = 'insecure_secret'
-oauth2_redirect_uri = 'https://netbird.{{< sitevar name="domain" nojs="example.com" >}}/login'
-```
-
-#### Environment Variables
-
-Add the `FLOWER_OAUTH2_AUTHELIA_BASE_URL` environment variable and set it to Authelia Root URL:
-```bash
-export FLOWER_OAUTH2_AUTHELIA_BASE_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
-```
-
-Take a look at the [See Also](#see-also) section for the cheatsheets corresponding to the sections above for their descriptions.
 
 ## See Also
 

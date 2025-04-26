@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.19](https://github.com/authelia/authelia/releases/tag/v4.38.19)
-* [Stirling-PDF]
-  * [0.42.0](https://github.com/Stirling-Tools/Stirling-PDF/releases/tag/v0.42.0)
+- [Authelia]
+  - [v4.38.19](https://github.com/authelia/authelia/releases/tag/v4.38.19)
+- [Stirling-PDF]
+  - [0.42.0](https://github.com/Stirling-Tools/Stirling-PDF/releases/tag/v0.42.0)
 
 {{% oidc-common %}}
 
@@ -31,10 +31,10 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://stirlingpdf.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `stirlingpdf`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://stirlingpdf.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `stirlingpdf`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -72,38 +72,57 @@ identity_providers:
 ### Application
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-Stirling-PDF OIDC Login requires you to login with a user which isn't already registered with Stirling-PDF. You can rename your current ('web') user via `https://stirlingpdf.{{</* sitevar name="domain" nojs="example.com" */>}}/account`
+Stirling-PDF OIDC Login requires you to log in with a user who isn't already registered with Stirling-PDF. You can
+rename your current ('web') user via `https://stirlingpdf.{{</* sitevar name="domain" nojs="example.com" */>}}/account`
 {{< /callout >}}
 
-To configure [Stirling-PDF] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [Stirling-PDF] there is one method, using the [Environment Variables](#environment-variables).
 
-1. Include the [Stirling-PDF] environment variables for [OpenID Connect 1.0] configuration:
+#### Environment Variables
 
-```env
+To configure [Stirling-PDF] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following environment variables:
+
+##### Standard
+
+```shell {title=".env"}
 DOCKER_ENABLE_SECURITY=true
 SECURITY_ENABLE_LOGIN=true
+SECURITY_LOGINMETHOD=oauth2
 SECURITY_OAUTH2_ENABLED=true
 SECURITY_OAUTH2_AUTOCREATEUSER=true
 SECURITY_OAUTH2_ISSUER=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 SECURITY_OAUTH2_CLIENTID=stirlingpdf
 SECURITY_OAUTH2_CLIENTSECRET=insecure_secret
 SECURITY_OAUTH2_BLOCKREGISTRATION=false
-SECURITY_OAUTH2_SCOPES="openid, profile, email"
+SECURITY_OAUTH2_SCOPES=openid, profile, email
 SECURITY_OAUTH2_USEASUSERNAME=preferred_username
 SECURITY_OAUTH2_PROVIDER=Authelia
 ```
 
-2. Once you successfully enabled Single Sign-on, you might want to disable the form login (and eventually block registration/auto user creation). This can be done by changing the following [Stirling-PDF] environment variables:
+##### Docker Compose
 
-```env
-SECURITY_LOGINMETHOD=oauth2 # Change this to all if you need to login with the web user which might be your Stirling-PDF administrator.
-SECURITY_OAUTH2_AUTOCREATEUSER=false
-SECURITY_OAUTH2_BLOCKREGISTRATION=true
+```yaml {title="compose.yml"}
+services:
+  stirling-pdf:
+    environment:
+      DOCKER_ENABLE_SECURITY: 'true'
+      SECURITY_ENABLE_LOGIN: 'true'
+      SECURITY_LOGINMETHOD: 'oauth2'
+      SECURITY_OAUTH2_ENABLED: 'true'
+      SECURITY_OAUTH2_AUTOCREATEUSER: 'true'
+      SECURITY_OAUTH2_ISSUER: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
+      SECURITY_OAUTH2_CLIENTID: 'stirlingpdf'
+      SECURITY_OAUTH2_CLIENTSECRET: 'insecure_secret'
+      SECURITY_OAUTH2_BLOCKREGISTRATION: 'false'
+      SECURITY_OAUTH2_SCOPES: 'openid, profile, email'
+      SECURITY_OAUTH2_USEASUSERNAME: 'preferred_username'
+      SECURITY_OAUTH2_PROVIDER: 'Authelia'
 ```
+
 
 ## See Also
 
-* [Stirling-PDF SSO Documentation](https://docs.stirlingpdf.com/Advanced%20Configuration/Single%20Sign-On%20Configuration)
+- [Stirling-PDF SSO Documentation](https://docs.stirlingpdf.com/Advanced%20Configuration/Single%20Sign-On%20Configuration)
 
 [Authelia]: https://www.authelia.com
 [Stirling-PDF]: https://www.stirlingpdf.com

@@ -22,10 +22,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.18](https://github.com/authelia/authelia/releases/tag/v4.38.18)
-* [Open WebUI]
-  * [0.5.4](https://github.com/open-webui/open-webui/releases/tag/v0.5.4)
+- [Authelia]
+  - [v4.38.18](https://github.com/authelia/authelia/releases/tag/v4.38.18)
+- [Open WebUI]
+  - [0.5.4](https://github.com/open-webui/open-webui/releases/tag/v0.5.4)
 
 {{% oidc-common %}}
 
@@ -33,10 +33,10 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://ai.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `open-webui`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://ai.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `open-webui`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -72,29 +72,57 @@ identity_providers:
 
 ### Application
 
-To configure [Open WebUI] to utilize Authelia as an [OpenID Connect 1.0] Provider, specify the below environment variables.
+To configure [Open WebUI] there is one method, using the [Environment Variables](#environment-variables).
 
-```yaml {title="configuration.yml"}
-environment:
-  - 'ENABLE_OAUTH_SIGNUP=true'
-  - 'OAUTH_MERGE_ACCOUNTS_BY_EMAIL=true'
-  - 'OAUTH_CLIENT_ID=open-webui'
-  - 'OAUTH_CLIENT_SECRET=insecure_secret'
-  - 'OPENID_PROVIDER_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration'
-  - 'OAUTH_PROVIDER_NAME=Authelia'
-  - 'OAUTH_SCOPES=openid email profile groups'
-  - 'ENABLE_OAUTH_ROLE_MANAGEMENT=true'
-  - 'OAUTH_ALLOWED_ROLES=openwebui,openwebui-admin'
-  - 'OAUTH_ADMIN_ROLES=openwebui-admin'
-  - 'OAUTH_ROLES_CLAIM=groups'
+#### Environment Variables
+
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+This configuration limits who can log in to those with the `openwebui` or `openwebui-admin` groups. This is configured
+via the `OAUTH_ALLOWED_ROLES` environment variable. Anyone with the `openwebui-admin` group will be an admin for the
+application. This is configured via the `OAUTH_ADMIN_ROLES` environment variable.
+{{< /callout >}}
+
+To configure [Open WebUI] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following environment variables:
+
+##### Standard
+
+```shell {title=".env"}
+ENABLE_OAUTH_SIGNUP=true
+OAUTH_MERGE_ACCOUNTS_BY_EMAIL=true
+OAUTH_CLIENT_ID=open-webui
+OAUTH_CLIENT_SECRET=insecure_secret
+OPENID_PROVIDER_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration
+OAUTH_PROVIDER_NAME=Authelia
+OAUTH_SCOPES=openid email profile groups
+ENABLE_OAUTH_ROLE_MANAGEMENT=true
+OAUTH_ALLOWED_ROLES=openwebui,openwebui-admin
+OAUTH_ADMIN_ROLES=openwebui-admin
+OAUTH_ROLES_CLAIM=groups
 ```
 
-This configuration limits who can log in to [Open WebUI] to those with either the `openwebui` or `openwebui-admin` groups. Anyone with the `openwebui-admin` group, will be an admin in [Open WebUI].
+###### Docker Compose
+
+```yaml {title="comppse.yml"}
+services:
+  open-webui:
+    environment:
+      ENABLE_OAUTH_SIGNUP: 'true'
+      OAUTH_MERGE_ACCOUNTS_BY_EMAIL: 'true'
+      OAUTH_CLIENT_ID: 'open-webui'
+      OAUTH_CLIENT_SECRET: 'insecure_secret'
+      OPENID_PROVIDER_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration'
+      OAUTH_PROVIDER_NAME: 'Authelia'
+      OAUTH_SCOPES: 'openid email profile groups'
+      ENABLE_OAUTH_ROLE_MANAGEMENT: 'true'
+      OAUTH_ALLOWED_ROLES: 'openwebui,openwebui-admin'
+      OAUTH_ADMIN_ROLES: 'openwebui-admin'
+      OAUTH_ROLES_CLAIM: 'groups'
+```
 
 ## See Also
 
-* [Open WebUI OAuth Documentation](https://docs.openwebui.com/features/sso)
-* [Open WebUI OAuth Role Management](https://docs.openwebui.com/features/sso#oauth-role-management)
+- [Open WebUI OAuth Documentation](https://docs.openwebui.com/features/sso)
+- [Open WebUI OAuth Role Management](https://docs.openwebui.com/features/sso#oauth-role-management)
 
 [Authelia]: https://www.authelia.com
 [Open WebUI]: https://docs.openwebui.com/

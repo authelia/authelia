@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-* [Kasm Workspaces]
-  * [1.13.0](https://kasmweb.com/docs/latest/release_notes/1.13.0.html)
+- [Authelia]
+  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+- [Kasm Workspaces]
+  - [1.13.0](https://kasmweb.com/docs/latest/release_notes/1.13.0.html)
 
 {{% oidc-common %}}
 
@@ -31,10 +31,10 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://kasm.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `kasm`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://kasm.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `kasm`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -70,27 +70,31 @@ identity_providers:
 
 ### Application
 
-To configure [Kasm Workspaces] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+To configure [Kasm Workspaces] there is one method, using the [Web GUI](#web-gui).
+
+#### Web GUI
+
+To configure [Kasm Workspaces] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Visit Authentication
 2. Visit OpenID
-3. Set the following values:
-   1. Enable *Automatic User Provision* if you want users to automatically be created in [Kasm Workspaces].
-   2. Enable *Auto Login* if you want automatic user login.
-   3. Enable *Default* if you want Authelia to be the default sign-in method.
-   4. Client ID: `kasm`
-   5. Client Secret: `insecure_secret`
-   6. Authorization URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
-   7. Token URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
-   8. User Info URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
-   9. Scope (One Per Line): `openid profile groups email`
-   10. User Identifier: `preferred_username`
+3. Configure the following options:
+   - Automatic User Provision: Enable if you want users to automatically be created in [Kasm Workspaces].
+   - Auto Login: Enable if you want automatic user login.
+   - Default: Enable if you want Authelia to be the default sign-in method.
+   - Client ID: `kasm`
+   - Client Secret: `insecure_secret`
+   - Authorization URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
+   - Token URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
+   - User Info URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
+   - Scope (One Per Line): `openid profile groups email`
+   - User Identifier: `preferred_username`
 
 {{< figure src="kasm.png" alt="Kasam Workspaces" width="736" style="padding-right: 10px" >}}
 
 ## See Also
 
-* [Kasm Workspaces OpenID Connect Authentication Documentation](https://kasmweb.com/docs/latest/guide/oidc.html)
+- [Kasm Workspaces OpenID Connect Authentication Documentation](https://kasmweb.com/docs/latest/guide/oidc.html)
 
 [Authelia]: https://www.authelia.com
 [Kasm Workspaces]: https://kasmweb.com/

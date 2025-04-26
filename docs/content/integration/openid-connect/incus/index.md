@@ -31,9 +31,9 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://incus.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `incus`
+- __Application Root URL:__ `https://incus.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `incus`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -70,7 +70,11 @@ identity_providers:
 
 ## Application
 
-To configure [Incus] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [Incus] there is one method, using the [CLI](#cli).
+
+#### CLI
+
+To configure [Incus] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Make sure Web Interface is configured and accessible from `https://incus.{{< sitevar name="domain" nojs="example.com" >}}/`.
 2. Set the following configuration options, either via individual commands as shown below or via the `incus config edit` command:

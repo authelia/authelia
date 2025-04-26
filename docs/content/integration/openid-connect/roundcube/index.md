@@ -20,14 +20,14 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-* [Roundcube]
-  * [1.6.5](https://github.com/roundcube/roundcubemail/releases/tag/1.6.4)
-* [Dovecot]
-  * [2.3.20](https://dovecot.org/doc/NEWS)
-* [Postfix]
-  * [3.7.6](https://www.postfix.org/announcements/postfix-3.8.1.html)
+- [Authelia]
+  - [4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+- [Roundcube]
+  - [1.6.5](https://github.com/roundcube/roundcubemail/releases/tag/1.6.4)
+- [Dovecot]
+  - [2.3.20](https://dovecot.org/doc/NEWS)
+- [Postfix]
+  - [3.7.6](https://www.postfix.org/announcements/postfix-3.8.1.html)
 
 {{% oidc-common %}}
 
@@ -35,10 +35,10 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://roundcube.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `roundcube`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://roundcube.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `roundcube`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -74,11 +74,19 @@ identity_providers:
 
 ### Application
 
-Configure [Roundcube OAuth2] to use Authelia as an [OpenID Connect 1.0] Provider. Edit your [Roundcube]
-`/etc/roundcube/config.inc.php` configuration file and add the following:
+To configure [Roundcube OAuth2] there is one method, using the [Configuration File](#configuration-file).
 
-```php
-// Most probably you need this
+##### Configuration File
+
+##### Roundcube
+
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+Generally the configuration file is named `/etc/roundcube/config.inc.php`.
+{{< /callout >}}
+
+To configure [Roundcube OAuth2] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
+
+```php {title="/etc/roundcube/config.inc.php"}
 $config['use_https'] = true;
 
 $config['oauth_provider'] = 'generic';
@@ -111,16 +119,14 @@ IMAP and SMTP backend configuration:
   credentials, thus you *must* use TLS or SSL via `smtp_host` and `smtp_conn_options`!
 
 
-### Dovecot
+##### Dovecot Common
 
-[Dovecot OAuth2] configuration goes into two files.
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+Generally the configuration file is named `/etc/dovecot/dovecot.conf` or is one of the ancillary files in
+`/etc/dovecot/conf.d/`.
+{{< /callout >}}
 
-#### Common configuration
-
-Normally in file `/etc/dovecot/dovecot.conf` or one of its ancillary files in
-`/etc/dovecot/conf.d/`:
-
-```bash
+```ext {title="/etc/dovecot/dovecot.conf"}
 auth_mechanisms = $auth_mechanisms oauthbearer xoauth2
 
 passdb {
@@ -139,11 +145,13 @@ service auth {
 }
 ```
 
-#### Backend configuration
+##### Dovecot Backend
 
-As defined above, in file,  `/etc/dovecot/dovecot-oauth2.conf.ext`:
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+Generally the configuration file is named `/etc/dovecot/dovecot-oauth2.conf.ext`.
+{{< /callout >}}
 
-```bash
+```ext {title="/etc/dovecot/dovecot-oauth2.conf.ext"}
 introspection_mode = post
 introspection_url = https://roundcube:insecure_secret@{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/introspection
 username_attribute = username
@@ -154,14 +162,18 @@ The client ID and secret must figure as credentials in
 the `introspection_url`.
 {{< /callout >}}
 
-### Postfix
+##### Postfix
+
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+Generally the configuration file is named `/etc/postfix/main.cf`.
+{{< /callout >}}
 
 Even though no authentication would be required when your Postfix instance is on the same host, Roundcube OAuth2
-[enforces 'XOAUTH2' auth type plus credentials](https://github.com/roundcube/roundcubemail/issues/9183) and gives up the SMTP + SSL/TLS handshaking as no auth options
-would be offered from Postfix. Thus, Postfix must be configured with (Dovecot-type) [SASL](https://www.postfix.org/SASL_README.html) on port 25 (smtpd) or
-587 (submission), with the following minimum set of options:
+[enforces 'XOAUTH2' auth type plus credentials](https://github.com/roundcube/roundcubemail/issues/9183) and gives up the
+SMTP + SSL/TLS handshaking as no auth options would be offered from Postfix. Thus, Postfix must be configured with
+(Dovecot-type) [SASL](https://www.postfix.org/SASL_README.html) on port 25 (smtpd) or 587 (submission), with the following minimum set of options:
 
-```bash
+```cf {title="/etc/postfix/main.cf"}
 smtpd_sasl_auth_enable = yes
 smtpd_sasl_path = private/auth
 smtpd_sasl_security_options = noanonymous, noplaintext
@@ -171,9 +183,9 @@ smtpd_sasl_type = dovecot
 
 ## See Also
 
-* [Roundcube OAuth2]
-* [Dovecot OAuth2]
-* [Postfix SASL]
+- [Roundcube OAuth2]
+- [Dovecot OAuth2]
+- [Postfix SASL]
 
 [Authelia]: https://www.authelia.com
 [Roundcube]: https://roundcube.net/

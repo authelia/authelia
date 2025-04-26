@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.8](https://github.com/authelia/authelia/releases/tag/v4.38.8)
-* [EspoCRM]
-  * [2.0.1 3b9ed2f](https://github.com/m4rc3l-h3/espocrm)
+- [Authelia]
+  - [v4.38.8](https://github.com/authelia/authelia/releases/tag/v4.38.8)
+- [EspoCRM]
+  - [2.0.1 3b9ed2f](https://github.com/m4rc3l-h3/espocrm)
 
 {{% oidc-common %}}
 
@@ -31,13 +31,13 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://espocrm.{{< sitevar name="domain" nojs="example.com" >}}/`
-  * This option determines the redirect URI in the format of
+- __Application Root URL:__ `https://espocrm.{{< sitevar name="domain" nojs="example.com" >}}/`
+  - This option determines the redirect URI in the format of
         `https://espocrm.{{< sitevar name="domain" nojs="example.com" >}}/login`.
         This means if you change this value, you need to update the redirect URI.
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `espocrm`
-* __Client Secret:__ `insecure_secret`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `espocrm`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -72,7 +72,12 @@ identity_providers:
 
 ### Application
 
-To configure [EspoCRM] to utilize Authelia as an [OpenID Connect 1.0] Provider you must use the GUI to configure it.
+To configure [EspoCRM] there is one method, using the [Web GUI](#web-gui).
+
+#### Web GUI
+
+To configure [EspoCRM] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following
+instructions:
 
 1. Visit [EspoCRM].
 2. Login as an Administration user.
@@ -92,7 +97,7 @@ To configure [EspoCRM] to utilize Authelia as an [OpenID Connect 1.0] Provider y
 ## See Also
 
 - [EspoCRM]
-  - [OpenID Connect (OIDC) Authentication Documentation](https://docs.espocrm.com/administration/oidc/)
+- [OpenID Connect (OIDC) Authentication Documentation](https://docs.espocrm.com/administration/oidc/)
 
 [Authelia]: https://www.authelia.com
 [EspoCRM]: https://www.espocrm.com/

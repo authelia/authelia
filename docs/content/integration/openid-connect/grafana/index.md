@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.17](https://github.com/authelia/authelia/releases/tag/v4.38.17)
-* [Grafana]
-  * [11.4.0](https://github.com/grafana/grafana/releases/tag/v11.4.0)
+- [Authelia]
+  - [v4.38.17](https://github.com/authelia/authelia/releases/tag/v4.38.17)
+- [Grafana]
+  - [11.4.0](https://github.com/grafana/grafana/releases/tag/v11.4.0)
 
 {{% oidc-common %}}
 
@@ -31,10 +31,10 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://grafana.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `grafana`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://grafana.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `grafana`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -73,15 +73,21 @@ identity_providers:
 
 ### Application
 
-To configure [Grafana] to utilize Authelia as an [OpenID Connect 1.0] Provider, you have two effective options:
+To configure [Grafana] there are two methods, using the [Configuration File](#configuration-file), or using
+[Environment Variables](#environment-variables).
 
 #### Configuration File
 
-Add the following Generic OAuth configuration to the [Grafana] configuration:
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+Generally the configuration file is named `grafana.ini`.
+{{< /callout >}}
 
-```ini
+To configure [Grafana] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
+
+```ini {title="grafana.ini"}
 [server]
 root_url = https://grafana.{{< sitevar name="domain" nojs="example.com" >}}
+
 [auth.generic_oauth]
 enabled = true
 name = Authelia
@@ -97,36 +103,63 @@ login_attribute_path = preferred_username
 groups_attribute_path = groups
 name_attribute_path = name
 use_pkce = true
+role_attribute_path =
 ```
 
 #### Environment Variables
 
-Configure the following environment variables:
+To configure [Grafana] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
-|                  Variable                   |                                            Value                                             |
-|:-------------------------------------------:|:--------------------------------------------------------------------------------------------:|
-|             GF_SERVER_ROOT_URL              |                           https://grafana.{{< sitevar name="domain" nojs="example.com" >}}                           |
-|        GF_AUTH_GENERIC_OAUTH_ENABLED        |                                             true                                             |
-|         GF_AUTH_GENERIC_OAUTH_NAME          |                                           Authelia                                           |
-|       GF_AUTH_GENERIC_OAUTH_CLIENT_ID       |                                           grafana                                            |
-|     GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET     |                                       insecure_secret                                        |
-|        GF_AUTH_GENERIC_OAUTH_SCOPES         |                                 openid profile email groups                                  |
-|     GF_AUTH_GENERIC_OAUTH_EMPTY_SCOPES      |                                            false                                             |
-|       GF_AUTH_GENERIC_OAUTH_AUTH_URL        | https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization |
-|       GF_AUTH_GENERIC_OAUTH_TOKEN_URL       |     https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token     |
-|        GF_AUTH_GENERIC_OAUTH_API_URL        |    https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo     |
-| GF_AUTH_GENERIC_OAUTH_LOGIN_ATTRIBUTE_PATH  |                                      preferred_username                                      |
-| GF_AUTH_GENERIC_OAUTH_GROUPS_ATTRIBUTE_PATH |                                            groups                                            |
-|  GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH  |                                             name                                             |
-|       GF_AUTH_GENERIC_OAUTH_USE_PKCE        |                                             true                                             |
-|  GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH  |                                  See [Role Attribute Path]                                   |
+##### Standard
 
-[Role Attribute Path]: #role-attribute-path
+```shell {title=".env"}
+GF_SERVER_ROOT_URL=https://grafana.{{< sitevar name="domain" nojs="example.com" >}}
+GF_AUTH_GENERIC_OAUTH_ENABLED=true
+GF_AUTH_GENERIC_OAUTH_NAME=Authelia
+GF_AUTH_GENERIC_OAUTH_ICON=signin
+GF_AUTH_GENERIC_OAUTH_CLIENT_ID=grafana
+GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET=insecure_secret
+GF_AUTH_GENERIC_OAUTH_SCOPES=openid profile email groups
+GF_AUTH_GENERIC_OAUTH_EMPTY_SCOPES=false
+GF_AUTH_GENERIC_OAUTH_AUTH_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization
+GF_AUTH_GENERIC_OAUTH_TOKEN_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token
+GF_AUTH_GENERIC_OAUTH_API_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo
+GF_AUTH_GENERIC_OAUTH_LOGIN_ATTRIBUTE_PATH=preferred_username
+GF_AUTH_GENERIC_OAUTH_GROUPS_ATTRIBUTE_PATH=groups
+GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH=name
+GF_AUTH_GENERIC_OAUTH_USE_PKCE=true
+GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH=
+```
 
-#### Role Attribute Path
+##### Docker Compose
+
+```yaml {title="compose.yml"}
+services:
+  grafana:
+    environment:
+      GF_SERVER_ROOT_URL: 'https://grafana.{{< sitevar name="domain" nojs="example.com" >}}'
+      GF_AUTH_GENERIC_OAUTH_ENABLED: 'true'
+      GF_AUTH_GENERIC_OAUTH_NAME: 'Authelia'
+      GF_AUTH_GENERIC_OAUTH_ICON: 'signin'
+      GF_AUTH_GENERIC_OAUTH_CLIENT_ID: 'grafana'
+      GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: 'insecure_secret'
+      GF_AUTH_GENERIC_OAUTH_SCOPES: 'openid profile email groups'
+      GF_AUTH_GENERIC_OAUTH_EMPTY_SCOPES: 'false'
+      GF_AUTH_GENERIC_OAUTH_AUTH_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization'
+      GF_AUTH_GENERIC_OAUTH_TOKEN_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token'
+      GF_AUTH_GENERIC_OAUTH_API_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo'
+      GF_AUTH_GENERIC_OAUTH_LOGIN_ATTRIBUTE_PATH: 'preferred_username'
+      GF_AUTH_GENERIC_OAUTH_GROUPS_ATTRIBUTE_PATH: 'groups'
+      GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH: 'name'
+      GF_AUTH_GENERIC_OAUTH_USE_PKCE: 'true'
+      GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: ''
+```
+
+### Role Attribute Path
 
 The role attribute path configuration is optional but allows mapping Authelia group membership with Grafana roles. If
-you do not wish to automatically do this you can just omit the environment variable.
+you do not wish to automatically do this you can just omit the `role_attribute_path` configuration option or
+`GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH` environment variable.
 
 The ways you can configure this rule value is vast as an examle if you wanted a default role of `Viewer`, but also
 wanted everyone in the `admin` Authelia group to be in the `Admin` role, and everyone in the `editor` Authelia group to
@@ -137,8 +170,8 @@ See [Grafana Generic OAuth2 Documentation: Configure role mapping] for more info
 
 ## See Also
 
-* [Grafana OAuth Documentation](https://grafana.com/docs/grafana/latest/auth/generic-oauth/)
-* [Grafana Generic OAuth2 Documentation: Configure role mapping]
+- [Grafana OAuth Documentation](https://grafana.com/docs/grafana/latest/auth/generic-oauth/)
+- [Grafana Generic OAuth2 Documentation: Configure role mapping]
 
 [Authelia]: https://www.authelia.com
 [Grafana]: https://grafana.com/

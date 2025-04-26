@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-* [WeKan]
-  * [v7.42](https://github.com/wekan/wekan/releases/tag/v7.42)
+- [Authelia]
+  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+- [WeKan]
+  - [v7.42](https://github.com/wekan/wekan/releases/tag/v7.42)
 
 {{% oidc-common %}}
 
@@ -31,10 +31,10 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://wekan.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `wekan`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://wekan.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `wekan`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -70,11 +70,15 @@ identity_providers:
 
 ### Application
 
-To configure [WeKan] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [WeKan] there is one method, using the [Environment Variables](#environment-variables).
 
-1. Add the following YAML to your configuration:
+#### Environment Variables
 
-```env
+To configure [WeKan] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following environment variables:
+
+##### Standard
+
+```shell {title=".env"}
 OAUTH2_ENABLED=true
 OAUTH2_LOGIN_STYLE=redirect
 OAUTH2_CLIENT_ID=wekan
@@ -87,6 +91,26 @@ OAUTH2_ID_MAP=sub
 OAUTH2_USERNAME_MAP=email
 OAUTH2_FULLNAME_MAP=name
 OAUTH2_EMAIL_MAP=email
+```
+
+##### Docker Compose
+
+```yaml {title="compose.yml"}
+services:
+  wekan:
+    environment:
+      OAUTH2_ENABLED: 'true'
+      OAUTH2_LOGIN_STYLE: 'redirect'
+      OAUTH2_CLIENT_ID: 'wekan'
+      OAUTH2_SECRET: 'insecure_secret'
+      OAUTH2_SERVER_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
+      OAUTH2_AUTH_ENDPOINT: '/api/oidc/authorization'
+      OAUTH2_TOKEN_ENDPOINT: '/api/oidc/token'
+      OAUTH2_USERINFO_ENDPOINT: '/api/oidc/userinfo'
+      OAUTH2_ID_MAP: 'sub'
+      OAUTH2_USERNAME_MAP: 'email'
+      OAUTH2_FULLNAME_MAP: 'name'
+      OAUTH2_EMAIL_MAP: 'email'
 ```
 
 ## See Also

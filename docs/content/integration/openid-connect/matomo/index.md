@@ -20,12 +20,12 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.14](https://github.com/authelia/authelia/releases/tag/v4.38.14)
-* [Matomo]
-  * [v5.1.2](https://github.com/matomo-org/matomo/releases/tag/5.1.2)
-* [LoginOIDC]
-  * [v5.0.0](https://github.com/dominik-th/matomo-plugin-LoginOIDC/releases/tag/5.0.0)
+- [Authelia]
+  - [v4.38.14](https://github.com/authelia/authelia/releases/tag/v4.38.14)
+- [Matomo]
+  - [v5.1.2](https://github.com/matomo-org/matomo/releases/tag/5.1.2)
+- [Login OIDC Plugin]:
+  - [v5.0.0](https://github.com/dominik-th/matomo-plugin-LoginOIDC/releases/tag/5.0.0)
 
 {{% oidc-common %}}
 
@@ -33,16 +33,27 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://matomo.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `matomo`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://matomo.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `matomo`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
 {{< sitevar-preferences >}}
 
 ## Configuration
+
+The following example uses the [Login OIDC Plugin] which is assumed to be installed when following this
+section of the guide.
+
+To install the [Login OIDC Plugin] for [Matomo] via the Web GUI:
+
+1. Visit the [Matomo] `Administration` page.
+2. Click `Plugins`.
+3. Click `Manage Plugins`.
+4. Click `installing plugins from the Marketplace`.
+5. Install `Login OIDC` by `dominik-th`.
 
 ### Authelia
 
@@ -72,25 +83,23 @@ identity_providers:
 
 ### Application
 
-To configure [Matomo] to utilize [Authelia] as an [OpenID Connect 1.0] Provider:
+To configure [Matomo] there is one method, using the [Web GUI](#web-gui).
 
-1. Install the Plugin:
-   1. Visit the [Matomo] `Administration` page.
-   2. Click `Plugins`.
-   3. Click `Manage Plugins`.
-   4. Click `installing plugins from the Marketplace`.
-   5. Install `Login OIDC` by `dominik-th`.
-2. Configure the Plugin:
-   1. Click `System`.
-   2. Click `General settings`.
-   3. Click `Login OIDC`.
-   4. Enter `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization` in the `Authorize URL` field.
-   5. Enter `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token` in the `Token URL` field.
-   6. Enter `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo` in the `Userinfo URL` field.
-   7. Enter `sub` in the `Userinfo ID` field.
-   8. Enter `matomo` in the `Client ID` field.
-   9. Enter `insecure_secret` in the `Client Secret` field.
-   10. Enter `openid email` in the `OAuth Scope` field.
+#### Web GUI
+
+To configure [Matomo] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
+
+1. Click `System`.
+2. Click `General settings`.
+3. Click `Login OIDC`.
+4. Configure the following options:
+   - Authorize URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
+   - Token URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
+   - Userinfo URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
+   - Userinfo ID: `sub`
+   - Client ID: `matomo`
+   - Client Secret: `insecure_secret`
+   - OAuth Scope: `openid email`
 
 ## See Also
 
@@ -98,6 +107,6 @@ To configure [Matomo] to utilize [Authelia] as an [OpenID Connect 1.0] Provider:
 
 [Matomo]: https://matomo.org/
 [Authelia]: https://www.authelia.com
-[LoginOIDC]: https://plugins.matomo.org/LoginOIDC/
+[Login OIDC Plugin]: https://plugins.matomo.org/LoginOIDC/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

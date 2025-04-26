@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.6](https://github.com/authelia/authelia/releases/tag/v4.38.6)
-* [HumHub]
-  * [1.15.4](https://github.com/humhub/humhub/releases/tag/v1.15.4)
+- [Authelia]
+  - [v4.38.6](https://github.com/authelia/authelia/releases/tag/v4.38.6)
+- [HumHub]
+  - [1.15.4](https://github.com/humhub/humhub/releases/tag/v1.15.4)
 
 {{% oidc-common %}}
 
@@ -31,10 +31,11 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://humhub.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `humhub`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://humhub.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `humhub`
+- __Client Secret:__ `insecure_secret`
+- The [HumHub] instance you're using was built using the [OIDC Connector](https://github.com/Worteks/humhub-auth-oidc).
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -72,11 +73,17 @@ identity_providers:
 
 ### Application
 
-To configure [HumHub] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [HumHub] there is one method, using the [Configuration File](#configuration-file).
 
-1. Build your own [HumHub] with the [OIDC Connector](https://github.com/Worteks/humhub-auth-oidc)
-2. Configure a new oidc provider in config/common.php:
-```php
+#### Configuration File
+
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+Generally the configuration file is named `config/common.php`.
+{{< /callout >}}
+
+To configure [HumHub] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
+
+```php {title="config/common.php"}
 return [
     'components' => [
         'urlManager' => [
@@ -106,7 +113,7 @@ return [
 
 ## See Also
 
- * [HumHub OpenID Connect Repository](https://github.com/Worteks/humhub-auth-oidc?tab=readme-ov-file)
+ - [HumHub OpenID Connect Repository](https://github.com/Worteks/humhub-auth-oidc?tab=readme-ov-file)
 
 [Authelia]: https://www.authelia.com
 [HumHub]: https://www.humhub.com

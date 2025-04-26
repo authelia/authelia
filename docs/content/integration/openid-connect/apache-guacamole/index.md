@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-* [Apache Guacamole]
-  * [1.5.5](https://guacamole.apache.org/releases/1.5.5/)
+- [Authelia]
+  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+- [Apache Guacamole]
+  - [1.5.5](https://guacamole.apache.org/releases/1.5.5/)
 
 {{% oidc-common %}}
 
@@ -31,9 +31,9 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://guacamole.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `guacamole`
+- __Application Root URL:__ `https://guacamole.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `guacamole`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -78,7 +78,11 @@ Before configuring or using [OpenID Connect 1.0] with [Apache Guacamole] you mus
 [openid extension](https://guacamole.apache.org/doc/gug/openid-auth.html#installing-support-for-openid-connect) is
 installed.
 
-To configure [Apache Guacamole] to utilize Authelia as an [OpenID Connect 1.0] Provider use the following configuration:
+To configure [Apache Guacamole]  there is one method, using the [Configuration File](#configuration-file).
+
+#### Configuration File
+
+To configure [Apache Guacamole] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
 ```yaml
 openid-client-id: guacamole
@@ -93,7 +97,7 @@ openid-groups-claim-type: groups
 
 ## See Also
 
-* [Apache Guacamole OpenID Connect Authentication Documentation](https://guacamole.apache.org/doc/gug/openid-auth.html)
+- [Apache Guacamole OpenID Connect Authentication Documentation](https://guacamole.apache.org/doc/gug/openid-auth.html)
 
 [Authelia]: https://www.authelia.com
 [Apache Guacamole]: https://guacamole.apache.org/

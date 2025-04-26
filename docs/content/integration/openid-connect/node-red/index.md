@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.10](https://github.com/authelia/authelia/releases/tag/v4.38.10)
-* [Node-RED]
-  * [v4.0.2](https://github.com/node-red/node-red/releases/tag/4.0.2)
+- [Authelia]
+  - [v4.38.10](https://github.com/authelia/authelia/releases/tag/v4.38.10)
+- [Node-RED]
+  - [v4.0.2](https://github.com/node-red/node-red/releases/tag/4.0.2)
 
 {{% oidc-common %}}
 
@@ -31,15 +31,18 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://node-red.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `node-red`
+- __Application Root URL:__ `https://node-red.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `node-red`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
 {{< sitevar-preferences >}}
 
 ## Configuration
+
+The following example uses the [passport-openidconnect] package which is assumed to be installed when following this
+section of the guide.
 
 ### Authelia
 
@@ -69,12 +72,17 @@ identity_providers:
 
 ### Application
 
-To configure [Node-RED] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [Node-RED] there is one method, using the [Configuration File](#configuration-file).
 
-1. Install the `passport-openidconnect` npm package.
-2. Use the following `settings.js` configuration:
+#### Configuration File
 
-```js
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+Generally the configuration file is named `settings.js`.
+{{< /callout >}}
+
+To configure [Node-RED] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
+
+```js {title="settings.js"}
 adminAuth: {
     type: 'strategy',
     strategy: {
@@ -108,6 +116,7 @@ adminAuth: {
 - [Node-RED OAuth/OpenID based authentication Documentation](https://nodered.org/docs/user-guide/runtime/securing-node-red#oauthopenid-based-authentication)
 
 [Node-RED]: https://nodered.org/
+[passport-openidconnect]: https://www.passportjs.org/packages/passport-openidconnect/
 [Authelia]: https://www.authelia.com
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

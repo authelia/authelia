@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-* [Memos](https://github.com/usememos/memos)
-  * [0.16.1](https://github.com/usememos/memos/tree/v0.16.1)
+- [Authelia]
+  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+- [Memos](https://github.com/usememos/memos)
+  - [0.16.1](https://github.com/usememos/memos/tree/v0.16.1)
 
 {{% oidc-common %}}
 
@@ -31,10 +31,10 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://memos.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `memos`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://memos.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `memos`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -72,22 +72,25 @@ identity_providers:
 
 ### Application
 
-To configure [Memos](https://github.com/usememos/memos) to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [Memos] there is one method, using the [Web GUI](#web-gui).
+
+#### Web GUI
+
+To configure [Memos] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Go to the settings menu, choose `SSO`, `create` and `OAuth2`
 2. Choose template `custom`
-3. Set the following values:
-   1. Name: `Authelia`
-   2. Identifier Filter:
-   3. Client ID: `memos`
-   4. Client secret: `insecure_secret`
-   5. Authorization endpoint: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
-   6. Token endpoint: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
-   7. User endpoint: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
-   8. Scopes: `openid profile email`
-   9. Identifier: `preferred_username`
-   10. Display Name: `given_name`
-   11. Email: `email`
+3. Configure the following options:
+   - Name: `Authelia`
+   - Client ID: `memos`
+   - Client secret: `insecure_secret`
+   - Authorization endpoint: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
+   - Token endpoint: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
+   - User endpoint: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
+   - Scopes: `openid profile email`
+   - Identifier: `preferred_username`
+   - Display Name: `given_name`
+   - Email: `email`
 
 [Authelia]: https://www.authelia.com
 [Memos]: https://github.com/usememos/memos

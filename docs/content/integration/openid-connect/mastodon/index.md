@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-* [Mastodon]
-  * [v4.2.8](https://github.com/mastodon/mastodon/releases/tag/v4.2.8)
+- [Authelia]
+  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+- [Mastodon]
+  - [v4.2.8](https://github.com/mastodon/mastodon/releases/tag/v4.2.8)
 
 {{% oidc-common %}}
 
@@ -31,10 +31,10 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://mastodon.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `mastodon`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://mastodon.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `mastodon`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -69,11 +69,15 @@ identity_providers:
 
 ### Application
 
-To configure [Mastodon] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [Mastodon] there is one method, using [Environment Variables](#environment-variables).
 
-1. Add the following configuration variables:
+#### Environment Variables
 
-```env
+To configure [Mastodon] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following environment variables:
+
+##### Standard
+
+```shell {title=".env"}
 OIDC_ENABLED=true
 OIDC_DISPLAY_NAME=Authelia
 OIDC_DISCOVERY=true
@@ -84,6 +88,24 @@ OIDC_CLIENT_ID=mastodon
 OIDC_CLIENT_SECRET=insecure_secret
 OIDC_REDIRECT_URI=https://mastodon.{{< sitevar name="domain" nojs="example.com" >}}/auth/auth/openid_connect/callback
 OIDC_SECURITY_ASSUME_EMAIL_IS_VERIFIED=true
+```
+
+##### Docker Compose
+
+```yaml {title="compose.yml"}
+services:
+  mastodon:
+    environment:
+      OIDC_ENABLED: 'true'
+      OIDC_DISPLAY_NAME: 'Authelia'
+      OIDC_DISCOVERY: 'true'
+      OIDC_ISSUER: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
+      OIDC_SCOPE: 'openid,profile,email'
+      OIDC_UID_FIELD: 'preferred_username'
+      OIDC_CLIENT_ID: 'mastodon'
+      OIDC_CLIENT_SECRET: 'insecure_secret'
+      OIDC_REDIRECT_URI: 'https://mastodon.{{< sitevar name="domain" nojs="example.com" >}}/auth/auth/openid_connect/callback'
+      OIDC_SECURITY_ASSUME_EMAIL_IS_VERIFIED: 'true'
 ```
 
 ## See Also

@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-* [BookStack]
-  * 23.02.2
+- [Authelia]
+  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+- [BookStack]
+  - 23.02.2
 
 {{% oidc-common %}}
 
@@ -31,10 +31,10 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://bookstack.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `bookstack`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://bookstack.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `bookstack`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -75,21 +75,43 @@ identity_providers:
 
 ### Application
 
-To configure [BookStack] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [BookStack] there is one method, using the [Environment Variables](#environment-variables).
 
-1. Edit your .env file
-2. Set the following values:
-   1. AUTH_METHOD: `oidc`
-   2. OIDC_NAME: `Authelia`
-   3. OIDC_DISPLAY_NAME_CLAIMS: `name`
-   4. OIDC_CLIENT_ID: `bookstack`
-   5. OIDC_CLIENT_SECRET: `insecure_secret`
-   6. OIDC_ISSUER: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
-   7. OIDC_ISSUER_DISCOVER: `true`
+#### Environment Variables
+
+To configure [BookStack] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following environment
+variables:
+
+##### Standard
+
+```shell {title=".env"}
+AUTH_METHOD=oidc
+OIDC_ISSUER=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
+OIDC_ISSUER_DISCOVER=true
+OIDC_CLIENT_ID=bookstack
+OIDC_CLIENT_SECRET=insecure_secret
+OIDC_NAME=Authelia
+OIDC_DISPLAY_NAME_CLAIMS=name
+```
+
+##### Docker Compose
+
+```yaml {title="compose.yml"}
+services:
+  bookstack:
+    environment:
+      AUTH_METHOD: 'oidc'
+      OIDC_ISSUER: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
+      OIDC_ISSUER_DISCOVER: 'true'
+      OIDC_CLIENT_ID: 'bookstack'
+      OIDC_CLIENT_SECRET: 'insecure_secret'
+      OIDC_NAME: 'Authelia'
+      OIDC_DISPLAY_NAME_CLAIMS: 'name'
+```
 
 ## See Also
 
-* [BookStack OpenID Connect Documentation](https://www.bookstackapp.com/docs/admin/oidc-auth/)
+- [BookStack OpenID Connect Documentation](https://www.bookstackapp.com/docs/admin/oidc-auth/)
 
 [Authelia]: https://www.authelia.com
 [BookStack]: https://www.bookstackapp.com/

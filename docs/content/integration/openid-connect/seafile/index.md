@@ -20,11 +20,11 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+- [Authelia]
+  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 
-* [Seafile] Server
-  * [10.0.1](https://manual.seafile.com/changelog/server-changelog/#1001-2023-04-11)
+- [Seafile] Server
+  - [10.0.1](https://manual.seafile.com/changelog/server-changelog/#1001-2023-04-11)
 
 {{% oidc-common %}}
 
@@ -32,16 +32,19 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://seafile.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `seafile`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://seafile.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `seafile`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
 {{< sitevar-preferences >}}
 
 ## Configuration
+
+1. [Seafile] may require some dependencies such as `requests_oauthlib` to be manually installed. See the [Seafile]
+   documentation in the [see also](#see-also) section for more information.
 
 ### Authelia
 
@@ -71,19 +74,22 @@ identity_providers:
 
 ### Application
 
+To configure [Seafile] there is one method, using the [Configuration File](#configuration-file).
+
+#### Configuration File
+
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 The [Seafile's WebDAV extension](https://manual.seafile.com/extension/webdav/)
 does not [support OAuth Bearer](https://github.com/haiwen/seafdav/issues/76) at the time of this writing.
 {{< /callout >}}
 
-Configure [Seafile] to use Authelia as an [OpenID Connect 1.0] Provider.
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+Generally the configuration file is named `seahub_settings.py`.
+{{< /callout >}}
 
-1. [Seafile] may require some dependencies such as `requests_oauthlib` to be manually installed. See the [Seafile]
-   documentation in the [see also](#see-also) section for more information.
+To configure [Seafile] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
-2. Edit your [Seafile] `seahub_settings.py` configuration file and add the following:
-
-```python
+```python {title="seahub_settings.py"}
 ENABLE_OAUTH = True
 OAUTH_ENABLE_INSECURE_TRANSPORT = False
 OAUTH_CLIENT_ID = "seafile"
@@ -108,14 +114,16 @@ OAUTH_ATTRIBUTE_MAP = {
 #ENABLE_WEBDAV_SECRET = True
 ```
 
-Optionally, [enable webdav secrets](https://manual.seafile.com/config/seahub_settings_py/#user-management-options) so
+## Additional Steps
+
+Optionally [enable webdav secrets](https://manual.seafile.com/config/seahub_settings_py/#user-management-options) so
 that clients that do not support OAuth 2.0 (e.g., [davfs2](https://savannah.nongnu.org/bugs/?57589)) can login via
 basic auth.
 
 ## See Also
 
-* [Seafile OAuth Authentication Documentation](https://manual.seafile.com/deploy/oauth/)
-* [Seafile's WebDAV extension](https://manual.seafile.com/extension/webdav/)
+- [Seafile OAuth Authentication Documentation](https://manual.seafile.com/deploy/oauth/)
+- [Seafile's WebDAV extension](https://manual.seafile.com/extension/webdav/)
 
 [Authelia]: https://www.authelia.com
 [Seafile]: https://www.seafile.com/

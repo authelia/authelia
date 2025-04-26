@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.39.1](https://github.com/authelia/authelia/releases/tag/v4.39.1)
-* [opkssh]
-  * [0.4.0](https://github.com/openpubkey/opkssh/releases/tag/v0.4.0)
+- [Authelia]
+  - [v4.39.1](https://github.com/authelia/authelia/releases/tag/v4.39.1)
+- [opkssh]
+  - [0.4.0](https://github.com/openpubkey/opkssh/releases/tag/v0.4.0)
 
 {{% oidc-common %}}
 
@@ -31,8 +31,8 @@ seo:
 
 This example makes the following assumptions:
 
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `opkssh`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `opkssh`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -74,29 +74,41 @@ identity_providers:
 
 To configure [opkssh] to utilize Authelia as an [OpenID Connect 1.0] Provider:
 
-#### Client configuration
-To log in using Authelia run:
+#### Server
 
-```bash
-opkssh login --provider=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/,opkssh
-```
+To configure [opkssh] there is one method, using the [Configuration File](#configuration-file).
 
-#### Server configuration
-In the `/etc/opk/providers` file, add Authelia as an OpenID Provider:
+##### Configuration File
 
-```txt
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+Generally the configuration file is named `/etc/opk/providers`.
+{{< /callout >}}
+
+To configure [opkssh] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
+
+```txt {title="/etc/opk/providers"}
 https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/ opkssh 24h
 ```
 
+In addition to above, the CLI will need to be used to map users manually.
+
 For example allow the user `john@example.com` to login as `root` :
 
-```bash
+```shell
 opkssh add root john@example.com https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/
+```
+
+#### Client
+
+To log in using Authelia run:
+
+```shell
+opkssh login --provider=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/,opkssh
 ```
 
 ## See Also
 
-* [opkssh Custom OpenID Providers](https://github.com/openpubkey/opkssh?tab=readme-ov-file#custom-openid-providers-authentik-authelia-keycloak-zitadel)
+- [opkssh Custom OpenID Providers](https://github.com/openpubkey/opkssh?tab=readme-ov-file#custom-openid-providers-authentik-authelia-keycloak-zitadel)
 
 [Authelia]: https://www.authelia.com
 [opkssh]: https://github.com/openpubkey/opkssh

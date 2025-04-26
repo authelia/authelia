@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-* [Vikunja]
-  * [v0.23.0](https://kolaente.dev/vikunja/vikunja/releases/tag/v0.23.0)
+- [Authelia]
+  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+- [Vikunja]
+  - [v0.23.0](https://kolaente.dev/vikunja/vikunja/releases/tag/v0.23.0)
 
 {{% oidc-common %}}
 
@@ -31,10 +31,10 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://vikunja.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `vikunja`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://vikunja.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `vikunja`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -70,9 +70,15 @@ identity_providers:
 
 ### Application
 
-To configure [Vikunja] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [Vikunja] there is one method, using the [Configuration File](#configuration-file).
 
-1. Add the following YAML to your configuration:
+#### Configuration File
+
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+Generally the configuration file is named `config.yml`.
+{{< /callout >}}
+
+To configure [Vikunja] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
 ```yaml {title="config.yml"}
 auth:

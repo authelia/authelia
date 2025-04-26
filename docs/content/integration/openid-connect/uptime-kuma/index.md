@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-* [Uptime Kuma]
-  * [v1.23.11](https://github.com/louislam/uptime-kuma/releases/tag/1.23.11)
+- [Authelia]
+  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+- [Uptime Kuma]
+  - [v1.23.11](https://github.com/louislam/uptime-kuma/releases/tag/1.23.11)
 
 {{% oidc-common %}}
 
@@ -31,11 +31,11 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://uptime-kuma.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `uptime-kuma`
-* __Client Secret:__ `insecure_secret`
-* __Secured Resource URL:__ `https://application.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Application Root URL:__ `https://uptime-kuma.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `uptime-kuma`
+- __Client Secret:__ `insecure_secret`
+- __Secured Resource URL:__ `https://application.{{< sitevar name="domain" nojs="example.com" >}}/`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -118,14 +118,18 @@ Notes:
 
 ### Application
 
-To configure [Uptime Kuma] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [Uptime Kuma] there is one method, using the [Web GUI](#web-gui).
+
+#### Web GUI
+
+To configure [Uptime Kuma] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Create a new status monitor or configure an existing one
 2. Choose monitor type e.g. HTTP(s) Keyword and set a keyword you want to find
 3. Set the URL to be monitored (this corresponds to the `audience` parameter in Authelia)
-4. Configure Authentication as follows:
-   - Method: OAuth2: Client Credentials
-   - Authentication Method: Authorization Header
+4. Configure the following options:
+   - Method: `OAuth2: Client Credentials`
+   - Authentication Method: `Authorization Header`
    - OAuth Token URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
    - Client ID: `uptime-kuma`
    - Client Secret: `insecure_secret`

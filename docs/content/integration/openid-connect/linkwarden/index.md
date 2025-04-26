@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.18](https://github.com/authelia/authelia/releases/tag/v4.38.18)
-* [Linkwarden]
-  * [2.9.2](https://github.com/linkwarden/linkwarden/releases/tag/v2.9.2)
+- [Authelia]
+  - [v4.38.18](https://github.com/authelia/authelia/releases/tag/v4.38.18)
+- [Linkwarden]
+  - [2.9.2](https://github.com/linkwarden/linkwarden/releases/tag/v2.9.2)
 
 {{% oidc-common %}}
 
@@ -31,10 +31,10 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://linkwarden.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `linkwarden`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://linkwarden.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `linkwarden`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -71,13 +71,26 @@ identity_providers:
 
 ### Application
 
-1. To configure [Linkwarden] to utilize Authelia as an [OpenID Connect 1.0](https://www.authelia.com/integration/openid-connect/introduction/) Provider, specify the below environment
-   variables.
+To configure [Linkwarden] there is one method, using [Environment Variables](#environment-variables).
 
-```yaml
+#### Environment Variables
+
+To configure [Linkwarden] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following environment variables:
+
+##### Standard
+
+```shell {title=".env"}
+NEXT_PUBLIC_AUTHELIA_ENABLED=true
+AUTHELIA_WELLKNOWN_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration
+AUTHELIA_CLIENT_ID=linkwarden
+AUTHELIA_CLIENT_SECRET=insecure_secret
+```
+
+##### Docker Compose
+
+```yaml {title="compose.yml"}
 services:
   linkwarden:
-    image: 'ghcr.io/linkwarden/linkwarden:latest'
     environment:
       NEXT_PUBLIC_AUTHELIA_ENABLED: 'true'
       AUTHELIA_WELLKNOWN_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration'

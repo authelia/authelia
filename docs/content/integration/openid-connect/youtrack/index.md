@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.39.1](https://github.com/authelia/authelia/releases/tag/v4.39.1)
-* [YouTrack]
-  * 2025.1
+- [Authelia]
+  - [v4.39.1](https://github.com/authelia/authelia/releases/tag/v4.39.1)
+- [YouTrack]
+  - 2025.1
 
 {{% oidc-common %}}
 
@@ -31,11 +31,11 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://youtrack.{{< sitevar name="domain" nojs="example.com" >}}/`
-  * Also assumes that the [YouTrack] server is utilizing the inbuilt hub.
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `youtrack`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://youtrack.{{< sitevar name="domain" nojs="example.com" >}}/`
+  - Also assumes that the [YouTrack] server is utilizing the inbuilt hub.
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `youtrack`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -70,36 +70,45 @@ identity_providers:
 
 ### Application
 
-To configure [YouTrack] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [YouTrack] there is one method, using the [Web GUI](#web-gui).
+
+#### Web GUI
+
+To configure [YouTrack] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Visit the [YouTrack] Hub at `https://youtrack.{{< sitevar name="domain" nojs="example.com" >}}/hub`
 2. Login as an admin
 3. Navigate to Administration > Auth Modules > New Auth Module
 4. For the identity provider select `OAuth 2.0` from the list of authentication protocols at the bottom
-5. Fill in the following fields:
-   1. Name: `Authelia`
-   2. Button image: feel free to upload one from the [branding](../../../reference/guides/branding.md) page
-   3. Client ID: `youtrack`
-   4. Client Secret: `insecure_secret`
-   {{< figure src="youtrack_overview.png" process="resize 800x" >}}
-   5. Authorization Service Endpoints:
-      1. Authorization: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
-      2. Token: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
-      3. User Data: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
-      {{< figure src="youtrack_authz_endpoints.png" process="resize 800x" >}}
-   6. Field Mapping:
-      1. User ID: `sub`
-      2. Username: `preferred_username`
-      3. Full Name: `name`
-      4. Email: `email`
-      5. Email Verification State: `email_verified`
-      {{< figure src="youtrack_field_mapping.png" process="resize 800x" >}}
-   7. Scope: `openid profile email`
-   {{< figure src="youtrack_additional_settings.png" process="resize 800x" >}}
+5. Configure the following options:
+   1. General Settings:
+      - Name: `Authelia`
+      - Button image: feel free to upload one from the [branding](../../../reference/guides/branding.md) page
+      - Client ID: `youtrack`
+      - Client Secret: `insecure_secret`
+      - Scope: `openid profile email`
+   2. Authorization Service Endpoints:
+      - Authorization: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
+      - Token: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
+      - User Data: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
+   3. Field Mapping:
+      - User ID: `sub`
+      - Username: `preferred_username`
+      - Full Name: `name`
+      - Email: `email`
+      - Email Verification State: `email_verified`
 6. Verify the Redirect URI displayed on this page matches the one you configured in Authelia otherwise update Authelia's
    configuration
 7. Click the `Enable module` button
 8. Click the `Test login` button
+
+{{< figure src="youtrack_overview.png" process="resize 800x" >}}
+
+{{< figure src="youtrack_authz_endpoints.png" process="resize 800x" >}}
+
+{{< figure src="youtrack_field_mapping.png" process="resize 800x" >}}
+
+{{< figure src="youtrack_additional_settings.png" process="resize 800x" >}}
 
 ## See Also
 

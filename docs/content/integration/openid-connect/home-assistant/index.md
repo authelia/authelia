@@ -20,13 +20,13 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.39.1](https://github.com/authelia/authelia/releases/tag/v4.39.1)
-* [Home Assistant]
-  * Application:
-    * [2025-4-2](https://github.com/home-assistant/core/releases/tag/2025.4.2)
-  * Integration:
-    * [v0.6.2-alpha](https://github.com/christiaangoossens/hass-oidc-auth/releases/tag/v0.6.2-alpha)
+- [Authelia]
+  - [v4.39.1](https://github.com/authelia/authelia/releases/tag/v4.39.1)
+- [Home Assistant]
+  - Application:
+    - [2025-4-2](https://github.com/home-assistant/core/releases/tag/2025.4.2)
+  - Integration `hass-oidc-auth`:
+    - [v0.6.2-alpha](https://github.com/christiaangoossens/hass-oidc-auth/releases/tag/v0.6.2-alpha)
 
 {{% oidc-common %}}
 
@@ -34,16 +34,19 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://home-assistant.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `home-assistant`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://home-assistant.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `home-assistant`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
 {{< sitevar-preferences >}}
 
 ## Configuration
+
+The following example uses the [OpenID Connect for Home Assistant HACS Plugin] which is assumed to be installed with
+[HACS](https://hacs.xyz/) when following this section of the guide.
 
 ### Authelia
 
@@ -74,13 +77,17 @@ identity_providers:
 
 ### Application
 
-To configure [Home Assistant] to utilize Authelia as an [OpenID Connect 1.0] Provider it must be done via a third party
-integration.
+To configure [Home Assistant] there is one method, using the [Configuration File](#configuration-file).
 
-1. Add the [https://github.com/christiaangoossens/hass-oidc-auth](https://github.com/christiaangoossens/hass-oidc-auth) repository via [HACS](https://hacs.xyz/)
-2. Add the following to your [Home Assistant] `configuration.yml`:
+#### Configuration File
 
-```yaml
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+Generally the configuration file is named `configuration.yaml`.
+{{< /callout >}}
+
+To configure [Home Assistant] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
+
+```yaml {title="configuration.yaml"}
 auth_oidc:
   client_id: 'home-assistant'
   client_secret: 'insecure_secret'
@@ -95,6 +102,7 @@ auth_oidc:
 - [Home Assistant OpenID Connect Auth Integration Docs](https://github.com/christiaangoossens/hass-oidc-auth)
 
 [Home Assistant]: https://www.home-assistant.io/
+[OpenID Connect for Home Assistant HACS Plugin]: https://github.com/christiaangoossens/hass-oidc-auth
 [Authelia]: https://www.authelia.com
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

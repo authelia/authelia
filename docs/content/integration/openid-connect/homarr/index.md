@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.19](https://github.com/authelia/authelia/releases/tag/v4.38.19)
-* [Homarr]
-  * [1.7.0](https://github.com/homarr-labs/homarr/releases/tag/v1.7.0)
+- [Authelia]
+  - [v4.38.19](https://github.com/authelia/authelia/releases/tag/v4.38.19)
+- [Homarr]
+  - [1.7.0](https://github.com/homarr-labs/homarr/releases/tag/v1.7.0)
 
 {{% oidc-common %}}
 
@@ -31,10 +31,10 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://homarr.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `homarr`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://homarr.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `homarr`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -71,25 +71,48 @@ identity_providers:
 
 ### Application
 
-To configure [Homarr] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [Homarr] there is one method, using the [Environment Variables](#environment-variables).
 
-1. Include the [Homarr] environment variables for [OpenID Connect 1.0] configuration:
+#### Environment Variables
 
-```env
+To configure [Homarr] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following environment variables:
+
+##### Standard
+
+```shell {title=".env"}
 AUTH_PROVIDERS=oidc
 AUTH_OIDC_ISSUER=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
-AUTH_OIDC_CLIENT_SECRET=insecure_secret
 AUTH_OIDC_CLIENT_ID=homarr
+AUTH_OIDC_CLIENT_SECRET=insecure_secret
 AUTH_OIDC_CLIENT_NAME=Authelia
 AUTH_OIDC_SCOPE_OVERWRITE=openid email profile groups
 AUTH_OIDC_GROUPS_ATTRIBUTE=groups
-AUTH_LOGOUT_REDIRECT_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/logout # Optional but recommended.
+AUTH_LOGOUT_REDIRECT_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/logout
 ```
-2. To assign users to Homarr groups, refer to the Homarr SSO Documentation on their [permission system](https://homarr.dev/docs/advanced/single-sign-on/#permission-system).
+
+##### Docker Compose
+
+```yaml {title="compose.yml"}
+services:
+  homarr:
+    environment:
+      AUTH_PROVIDERS: 'oidc'
+      AUTH_OIDC_ISSUER: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
+      AUTH_OIDC_CLIENT_ID: 'homarr'
+      AUTH_OIDC_CLIENT_SECRET: 'insecure_secret'
+      AUTH_OIDC_CLIENT_NAME: 'Authelia'
+      AUTH_OIDC_SCOPE_OVERWRITE: 'openid email profile groups'
+      AUTH_OIDC_GROUPS_ATTRIBUTE: 'groups'
+      AUTH_LOGOUT_REDIRECT_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/logout'
+```
+
+### Groups
+
+To assign users to Homarr groups, refer to the [Homarr] SSO Documentation on their [permission system](https://homarr.dev/docs/advanced/single-sign-on/#permission-system).
 
 ## See Also
 
-* [Homarr SSO Documentation](https://homarr.dev/docs/advanced/single-sign-on/)
+- [Homarr SSO Documentation](https://homarr.dev/docs/advanced/single-sign-on/)
 
 [Authelia]: https://www.authelia.com
 [Homarr]: https://homarr.dev

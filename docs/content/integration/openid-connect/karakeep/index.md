@@ -71,13 +71,31 @@ identity_providers:
 
 ### Application
 
-To configure [karakeep] to utilize Authelia as an [OpenID Connect 1.0] Provider, specify the below environment variables in karakeep provided `.env` file:
+To configure [karakeep] there is one method, using [Environment Variables](#environment-variables).
 
-```.env
+#### Environment Variables
+
+To configure [karakeep] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following environment variables:
+
+##### Standard
+
+```shell {title=".env"}
 OAUTH_WELLKNOWN_URL=https://auth.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration
 OAUTH_CLIENT_ID=karakeep
 OAUTH_CLIENT_SECRET=insecure_secret
 OAUTH_PROVIDER_NAME=Authelia
+```
+
+##### Docker Compose
+
+```yaml {title="compose.yml"}
+services:
+  karakeep:
+    environment:
+      OAUTH_WELLKNOWN_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration'
+      OAUTH_CLIENT_ID: 'karakeep'
+      OAUTH_CLIENT_SECRET: 'insecure_secret'
+      OAUTH_PROVIDER_NAME: 'Authelia'
 ```
 
 ## See Also

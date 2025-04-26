@@ -20,11 +20,11 @@ seo:
 
 ## Tested Versions
 
-* [Authelia]
-  * [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-* [Synology DSM]
-  * v7.1
-  * v7.2
+- [Authelia]
+  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+- [Synology DSM]
+  - v7.1
+  - v7.2
 
 {{% oidc-common %}}
 
@@ -41,10 +41,10 @@ up a shared LDAP.
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://dsm.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `synology-dsm`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://dsm.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `synology-dsm`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -81,30 +81,34 @@ identity_providers:
 
 ### Application
 
-To configure [Synology DSM] to utilize Authelia as an [OpenID Connect 1.0] Provider:
+To configure [Synology DSM] there is one method, using the [Web GUI](#web-gui).
+
+#### Web GUI
+
+To configure [Synology DSM] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Go to DSM.
 2. Go to `Control Panel`.
 3. Go To `Domain/LDAP`.
 4. Go to `SSO Client`.
 5. Check the `Enable OpenID Connect SSO service` checkbox in the `OpenID Connect SSO Service` section.
-6. Configure the following values:
-  * Profile: `OIDC`
-  * Account type: `Domain/LDAP/local` (Note: Account type is supported DSM v7.2+)
-  * Name: `Authelia`
-  * Well Known URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
-  * Application ID: `synology-dsm`
-  * Application Key: `insecure_secret`
-  * Redirect URL: `https://dsm.{{< sitevar name="domain" nojs="example.com" >}}`
-  * Authorisation Scope: `openid profile groups email`
-  * Username Claim: `preferred_username`
+6. Configure the following options:
+  - Profile: `OIDC`
+  - Account type: `Domain/LDAP/local`
+  - Name: `Authelia`
+  - Well Known URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
+  - Application ID: `synology-dsm`
+  - Application Key: `insecure_secret`
+  - Redirect URL: `https://dsm.{{< sitevar name="domain" nojs="example.com" >}}`
+  - Authorisation Scope: `openid profile groups email`
+  - Username Claim: `preferred_username`
 7. Save the settings.
 
 {{< figure src="client.png" alt="Synology" width="736" >}}
 
 ## See Also
 
-* [Synology DSM SSO Client Documentation](https://kb.synology.com/en-af/DSM/help/DSM/AdminCenter/file_directory_service_sso?version=7)
+- [Synology DSM SSO Client Documentation](https://kb.synology.com/en-af/DSM/help/DSM/AdminCenter/file_directory_service_sso?version=7)
 
 [Authelia]: https://www.authelia.com
 [Synology DSM]: https://www.synology.com/en-global/dsm

@@ -31,10 +31,10 @@ seo:
 
 This example makes the following assumptions:
 
-* __Application Root URL:__ `https://windmill.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-* __Client ID:__ `windmill`
-* __Client Secret:__ `insecure_secret`
+- __Application Root URL:__ `https://windmill.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `windmill`
+- __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -67,27 +67,23 @@ identity_providers:
 
 ## Application
 
-### Core configuration
+To configure [Windmill] there is one method, using the [Web GUI](#web-gui).
 
-**Superadmin settings > Core**
+#### Web GUI
 
-- Base Url: `https://windmill.{{< sitevar name="domain" nojs="example.com" >}}`
+To configure [Windmill] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
-{{< figure src="windmill_core.png" alt="Windmill" >}}
-
-> ⚠️ **Don't forget to press save.**
-
-### Auth configuration
-
-**Superadmin settings > SSO/OAuth**
-
-- Config URL: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
-- Client Id: Windmill
-- Client Secret: insecure_secret
-
-{{< figure src="windmill_sso.png" alt="Windmill" >}}
-
-> ⚠️ **Don't forget to press save.**
+1. Navigate to Superadmin settings.
+2. Navigate to Core.
+3. Configure the following options:
+   - Base Url: `https://windmill.{{< sitevar name="domain" nojs="example.com" >}}`
+4. Click Save.
+5. Navigate to Superadmin settings.
+6. Navigate to SSO/OAuth.
+7. Configure the following options:
+   - Config URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
+   - Client ID: `windmill`
+   - Client Secret: `insecure_secret`
 
 ## See Also
 
