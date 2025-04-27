@@ -67,12 +67,12 @@ const (
 
 	queryFmtConsumeIdentityVerification = `
 		UPDATE %s
-		SET consumed = CURRENT_TIMESTAMP, consumed_ip = ?
+		SET consumed = ?, consumed_ip = ?
 		WHERE jti = ?;`
 
 	queryFmtRevokeIdentityVerification = `
 		UPDATE %s
-		SET revoked = CURRENT_TIMESTAMP, revoked_ip = ?
+		SET revoked = ?, revoked_ip = ?
 		WHERE jti = ?;`
 )
 
@@ -108,7 +108,7 @@ const (
 
 	queryFmtRevokeOTC = `
 		UPDATE %s
-		SET revoked = CURRENT_TIMESTAMP, revoked_ip = ?
+		SET revoked = ?, revoked_ip = ?
 		WHERE public_id = ?;`
 
 	queryFmtSelectOTCEncryptedData = `
@@ -369,14 +369,14 @@ const (
 
 const (
 	queryFmtUpsertCachedData = `
-		REPLACE INTO %s (updated_at, name, encrypted, value)
-		VALUES (CURRENT_TIMESTAMP, ?, ?, ?);`
+		REPLACE INTO %s (name, updated_at, encrypted, value)
+		VALUES (?, ?, ?, ?);`
 
 	queryFmtUpsertCachedDataPostgreSQL = `
-		INSERT INTO %s (updated_at, name, encrypted, value)
-		VALUES (CURRENT_TIMESTAMP, $1, $2, $3)
+		INSERT INTO %s (name, updated_at, encrypted, value)
+		VALUES ($1, $2, $3, $4)
 			ON CONFLICT (name)
-			DO UPDATE SET encrypted = $2, value = $3;`
+			DO UPDATE SET updated_at = $2, encrypted = $3, value = $4;`
 
 	queryFmtSelectCachedData = `
 		SELECT id, created_at, updated_at, name, encrypted, value
@@ -455,8 +455,8 @@ const (
 		UPDATE %s
 		SET
 			subject = ?,
+			responded_at = ?,
 			authorized = ?,
-			responded_at = CURRENT_TIMESTAMP,
 			granted_scopes = ?,
 			granted_audience = ?,
 			granted_claims = ?,

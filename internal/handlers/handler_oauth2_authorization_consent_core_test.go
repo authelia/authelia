@@ -570,6 +570,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithoutID(t *testing.T) {
 				Subject:     uuid.NullUUID{UUID: sub, Valid: true},
 				Form:        "prompt=login",
 				RequestedAt: time.Unix(1000000, 0),
+				RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true},
 			},
 			handled: false,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -613,6 +614,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithoutID(t *testing.T) {
 				Subject:     uuid.NullUUID{UUID: sub, Valid: true},
 				Form:        "max_age=10",
 				RequestedAt: time.Unix(1000000, 0),
+				RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true},
 			},
 			handled: false,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -904,6 +906,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithID(t *testing.T) {
 				Form:        "prompt=login",
 				RequestedAt: time.Unix(1000000, 0),
 				ExpiresAt:   time.Unix(1000000, 0).Add(time.Second * 10),
+				RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true},
 			},
 			handled: false,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {
@@ -992,6 +995,7 @@ func TestHandleOAuth2AuthorizationConsentModeImplicitWithID(t *testing.T) {
 				Form:        "max_age=10",
 				RequestedAt: time.Unix(1000000, 0),
 				ExpiresAt:   time.Unix(1000000, 0).Add(time.Second * 10),
+				RespondedAt: sql.NullTime{Time: time.Unix(1000000, 0), Valid: true},
 			},
 			handled: false,
 			setup: func(t *testing.T, mock *mocks.MockAutheliaCtx) {

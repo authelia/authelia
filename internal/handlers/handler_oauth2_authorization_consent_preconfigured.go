@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"database/sql"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -106,7 +105,7 @@ func handleOAuth2AuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Au
 	if config != nil {
 		consent.GrantWithClaims(config.GrantedClaims)
 
-		consent.PreConfiguration = sql.NullInt64{Int64: config.ID, Valid: true}
+		consent.SetRespondedAt(ctx.Clock.Now(), config.ID)
 
 		if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, false); err != nil {
 			ctx.Logger.Errorf(logFmtErrConsentSaveSessionResponse, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, err)
@@ -206,7 +205,7 @@ func handleOAuth2AuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares
 
 	consent.Grant()
 
-	consent.PreConfiguration = sql.NullInt64{Int64: config.ID, Valid: true}
+	consent.SetRespondedAt(ctx.Clock.Now(), config.ID)
 
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, false); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentSaveSessionResponse, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, err)

@@ -176,6 +176,8 @@ func OAuth2ConsentPOST(ctx *middlewares.AutheliaCtx) {
 		}
 	}
 
+	consent.SetRespondedAt(ctx.Clock.Now(), 0)
+
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, bodyJSON.Consent); err != nil {
 		ctx.Logger.Errorf("Failed to save the consent session response to the database: %+v", err)
 		ctx.SetJSONError(messageOperationFailed)

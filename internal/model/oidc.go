@@ -274,6 +274,15 @@ type OAuth2ConsentSession struct {
 	PreConfiguration sql.NullInt64
 }
 
+// SetRespondedAt sets the responded at value.
+func (s *OAuth2ConsentSession) SetRespondedAt(t time.Time, preconf int64) {
+	s.RespondedAt = sql.NullTime{Time: t, Valid: true}
+
+	if preconf > 0 {
+		s.PreConfiguration = sql.NullInt64{Int64: preconf, Valid: true}
+	}
+}
+
 // Grant grants the requested scopes and audience.
 func (s *OAuth2ConsentSession) Grant() {
 	s.GrantedScopes = s.RequestedScopes
