@@ -18,6 +18,10 @@ type UserDetails struct {
 
 // Addresses returns the Emails []string as []mail.Address formatted with DisplayName as the Name attribute.
 func (d *UserDetails) Addresses() (addresses []mail.Address) {
+	if d == nil {
+		return nil
+	}
+
 	if len(d.Emails) == 0 {
 		return nil
 	}
@@ -35,18 +39,34 @@ func (d *UserDetails) Addresses() (addresses []mail.Address) {
 }
 
 func (d *UserDetails) GetUsername() (username string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.Username
 }
 
 func (d *UserDetails) GetGroups() (groups []string) {
+	if d == nil {
+		return nil
+	}
+
 	return d.Groups
 }
 
 func (d *UserDetails) GetDisplayName() (name string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.DisplayName
 }
 
 func (d *UserDetails) GetEmails() (emails []string) {
+	if d == nil {
+		return nil
+	}
+
 	return d.Emails
 }
 
@@ -72,47 +92,132 @@ type UserDetailsExtended struct {
 	*UserDetails
 }
 
+// Addresses returns the Emails []string as []mail.Address formatted with DisplayName as the Name attribute.
+func (d *UserDetailsExtended) Addresses() (addresses []mail.Address) {
+	if d == nil {
+		return nil
+	}
+
+	return d.UserDetails.Addresses()
+}
+
+func (d *UserDetailsExtended) GetUsername() (username string) {
+	if d == nil {
+		return ""
+	}
+
+	return d.UserDetails.GetUsername()
+}
+
+func (d *UserDetailsExtended) GetGroups() (groups []string) {
+	if d == nil {
+		return nil
+	}
+
+	return d.UserDetails.GetGroups()
+}
+
+func (d *UserDetailsExtended) GetDisplayName() (name string) {
+	if d == nil {
+		return ""
+	}
+
+	return d.UserDetails.GetDisplayName()
+}
+
+func (d *UserDetailsExtended) GetEmails() (emails []string) {
+	if d == nil {
+		return nil
+	}
+
+	return d.UserDetails.GetEmails()
+}
+
 func (d *UserDetailsExtended) GetGivenName() (given string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.GivenName
 }
 
 func (d *UserDetailsExtended) GetFamilyName() (family string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.FamilyName
 }
 
 func (d *UserDetailsExtended) GetMiddleName() (middle string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.MiddleName
 }
 
 func (d *UserDetailsExtended) GetNickname() (nickname string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.Nickname
 }
 
 func (d *UserDetailsExtended) GetProfile() (profile string) {
+	if d == nil {
+		return ""
+	}
+
 	return stringURL(d.Profile)
 }
 
 func (d *UserDetailsExtended) GetPicture() (picture string) {
+	if d == nil {
+		return ""
+	}
+
 	return stringURL(d.Picture)
 }
 
 func (d *UserDetailsExtended) GetWebsite() (website string) {
+	if d == nil {
+		return ""
+	}
+
 	return stringURL(d.Website)
 }
 
 func (d *UserDetailsExtended) GetGender() (gender string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.Gender
 }
 
 func (d *UserDetailsExtended) GetBirthdate() (birthdate string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.Birthdate
 }
 
 func (d *UserDetailsExtended) GetZoneInfo() (info string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.ZoneInfo
 }
 
 func (d *UserDetailsExtended) GetLocale() (locale string) {
+	if d == nil {
+		return ""
+	}
+
 	if d.Locale == nil {
 		return ""
 	}
@@ -121,14 +226,26 @@ func (d *UserDetailsExtended) GetLocale() (locale string) {
 }
 
 func (d *UserDetailsExtended) GetPhoneNumber() (number string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.PhoneNumber
 }
 
 func (d *UserDetailsExtended) GetPhoneExtension() (extension string) {
+	if d == nil {
+		return ""
+	}
+
 	return d.PhoneExtension
 }
 
 func (d *UserDetailsExtended) GetPhoneNumberRFC3966() (number string) {
+	if d == nil {
+		return ""
+	}
+
 	if d.PhoneNumber == "" {
 		return ""
 	}
@@ -141,6 +258,10 @@ func (d *UserDetailsExtended) GetPhoneNumberRFC3966() (number string) {
 }
 
 func (d *UserDetailsExtended) GetStreetAddress() (address string) {
+	if d == nil {
+		return ""
+	}
+
 	if d.Address == nil {
 		return ""
 	}
@@ -149,6 +270,10 @@ func (d *UserDetailsExtended) GetStreetAddress() (address string) {
 }
 
 func (d *UserDetailsExtended) GetLocality() (locality string) {
+	if d == nil {
+		return ""
+	}
+
 	if d.Address == nil {
 		return ""
 	}
@@ -157,6 +282,10 @@ func (d *UserDetailsExtended) GetLocality() (locality string) {
 }
 
 func (d *UserDetailsExtended) GetRegion() (region string) {
+	if d == nil {
+		return ""
+	}
+
 	if d.Address == nil {
 		return ""
 	}
@@ -165,6 +294,10 @@ func (d *UserDetailsExtended) GetRegion() (region string) {
 }
 
 func (d *UserDetailsExtended) GetPostalCode() (postcode string) {
+	if d == nil {
+		return ""
+	}
+
 	if d.Address == nil {
 		return ""
 	}
@@ -173,6 +306,10 @@ func (d *UserDetailsExtended) GetPostalCode() (postcode string) {
 }
 
 func (d *UserDetailsExtended) GetCountry() (country string) {
+	if d == nil {
+		return ""
+	}
+
 	if d.Address == nil {
 		return ""
 	}
@@ -181,6 +318,10 @@ func (d *UserDetailsExtended) GetCountry() (country string) {
 }
 
 func (d *UserDetailsExtended) GetExtra() (extra map[string]any) {
+	if d == nil {
+		return nil
+	}
+
 	return d.Extra
 }
 

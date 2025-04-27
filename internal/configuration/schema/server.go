@@ -33,7 +33,13 @@ type ServerEndpoints struct {
 type ServerEndpointsAuthz struct {
 	Implementation string `koanf:"implementation" yaml:"implementation,omitempty" toml:"implementation,omitempty" json:"implementation,omitempty" jsonschema:"enum=ForwardAuth,enum=AuthRequest,enum=ExtAuthz,enum=Legacy,title=Implementation" jsonschema_description:"The specific Authorization implementation to use for this endpoint."`
 
+	Headers map[string]ServerEndpointsAuthzHeader `koanf:"headers" yaml:"headers,omitempty" toml:"headers,omitempty" json:"headers,omitempty" jsonschema:"title=Headers" jsonschema_description:"The specific Authorization headers to use for this endpoint."`
+
 	AuthnStrategies []ServerEndpointsAuthzAuthnStrategy `koanf:"authn_strategies" yaml:"authn_strategies,omitempty" toml:"authn_strategies,omitempty" json:"authn_strategies,omitempty" jsonschema:"title=Authn Strategies" jsonschema_description:"The specific Authorization strategies to use for this endpoint."`
+}
+
+type ServerEndpointsAuthzHeader struct {
+	UserAttribute string `koanf:"user_attribute" yaml:"user_attribute,omitempty" toml:"user_attribute,omitempty" json:"user_attribute,omitempty" jsonschema:"title=User Attribute" jsonschema_description:"The user attribute to use for the header."`
 }
 
 // ServerEndpointsAuthzAuthnStrategy is the Authz endpoints configuration for the HTTP server.
@@ -90,6 +96,20 @@ var DefaultServerConfiguration = Server{
 		Authz: map[string]ServerEndpointsAuthz{
 			AuthzEndpointNameLegacy: {
 				Implementation: AuthzImplementationLegacy,
+				Headers: map[string]ServerEndpointsAuthzHeader{
+					"Remote-User": {
+						UserAttribute: "username",
+					},
+					"Remote-Groups": {
+						UserAttribute: "groups",
+					},
+					"Remote-Name": {
+						UserAttribute: "name",
+					},
+					"Remote-Email": {
+						UserAttribute: "email",
+					},
+				},
 				AuthnStrategies: []ServerEndpointsAuthzAuthnStrategy{
 					{
 						Name: AuthzStrategyHeaderLegacy,
@@ -101,6 +121,20 @@ var DefaultServerConfiguration = Server{
 			},
 			AuthzEndpointNameAuthRequest: {
 				Implementation: AuthzImplementationAuthRequest,
+				Headers: map[string]ServerEndpointsAuthzHeader{
+					"Remote-User": {
+						UserAttribute: "username",
+					},
+					"Remote-Groups": {
+						UserAttribute: "groups",
+					},
+					"Remote-Name": {
+						UserAttribute: "name",
+					},
+					"Remote-Email": {
+						UserAttribute: "email",
+					},
+				},
 				AuthnStrategies: []ServerEndpointsAuthzAuthnStrategy{
 					{
 						Name:    AuthzStrategyHeaderAuthorization,
@@ -113,6 +147,20 @@ var DefaultServerConfiguration = Server{
 			},
 			AuthzEndpointNameExtAuthz: {
 				Implementation: AuthzImplementationExtAuthz,
+				Headers: map[string]ServerEndpointsAuthzHeader{
+					"Remote-User": {
+						UserAttribute: "username",
+					},
+					"Remote-Groups": {
+						UserAttribute: "groups",
+					},
+					"Remote-Name": {
+						UserAttribute: "name",
+					},
+					"Remote-Email": {
+						UserAttribute: "email",
+					},
+				},
 				AuthnStrategies: []ServerEndpointsAuthzAuthnStrategy{
 					{
 						Name:    AuthzStrategyHeaderAuthorization,
@@ -125,6 +173,20 @@ var DefaultServerConfiguration = Server{
 			},
 			AuthzEndpointNameForwardAuth: {
 				Implementation: AuthzImplementationForwardAuth,
+				Headers: map[string]ServerEndpointsAuthzHeader{
+					"Remote-User": {
+						UserAttribute: "username",
+					},
+					"Remote-Groups": {
+						UserAttribute: "groups",
+					},
+					"Remote-Name": {
+						UserAttribute: "name",
+					},
+					"Remote-Email": {
+						UserAttribute: "email",
+					},
+				},
 				AuthnStrategies: []ServerEndpointsAuthzAuthnStrategy{
 					{
 						Name:    AuthzStrategyHeaderAuthorization,
