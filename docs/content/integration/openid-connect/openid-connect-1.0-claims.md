@@ -235,10 +235,10 @@ true:
 Generally unless an application supports this and actively requests this scope they should not be granted this scope via
 the client configuration.
 
-It is also important to note that we treat a [Refresh Token] as single use and we mint and grant a new [Refresh Token]
-during the [Refresh Flow] i.e. [Refresh Token] Rotation. This is in accordance with the
+It is also important to note that we treat a [Refresh Token] as single-use, and we mint and grant a new [Refresh Token]
+during the [Refresh Flow] (i.e., [Refresh Token] Rotation). This aligns with the
 [Refresh Token Protection](https://datatracker.ietf.org/doc/html/rfc9700#refresh_token_protection) recommendations
-from [RFC9700](https://datatracker.ietf.org/doc/html/rfc9700).
+from [RFC9700].
 
 ### profile
 
