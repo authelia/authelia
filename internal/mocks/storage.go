@@ -408,18 +408,18 @@ func (mr *MockStorageMockRecorder) LoadOAuth2BlacklistedJTI(ctx, signature any) 
 }
 
 // LoadOAuth2ConsentPreConfigurations mocks base method.
-func (m *MockStorage) LoadOAuth2ConsentPreConfigurations(ctx context.Context, clientID string, subject uuid.UUID) (*storage.ConsentPreConfigRows, error) {
+func (m *MockStorage) LoadOAuth2ConsentPreConfigurations(ctx context.Context, clientID string, subject uuid.UUID, now time.Time) (*storage.ConsentPreConfigRows, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadOAuth2ConsentPreConfigurations", ctx, clientID, subject)
+	ret := m.ctrl.Call(m, "LoadOAuth2ConsentPreConfigurations", ctx, clientID, subject, now)
 	ret0, _ := ret[0].(*storage.ConsentPreConfigRows)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // LoadOAuth2ConsentPreConfigurations indicates an expected call of LoadOAuth2ConsentPreConfigurations.
-func (mr *MockStorageMockRecorder) LoadOAuth2ConsentPreConfigurations(ctx, clientID, subject any) *gomock.Call {
+func (mr *MockStorageMockRecorder) LoadOAuth2ConsentPreConfigurations(ctx, clientID, subject, now any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2ConsentPreConfigurations", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2ConsentPreConfigurations), ctx, clientID, subject)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadOAuth2ConsentPreConfigurations", reflect.TypeOf((*MockStorage)(nil).LoadOAuth2ConsentPreConfigurations), ctx, clientID, subject, now)
 }
 
 // LoadOAuth2ConsentSessionByChallengeID mocks base method.
@@ -909,20 +909,6 @@ func (mr *MockStorageMockRecorder) Rollback(ctx any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Rollback", reflect.TypeOf((*MockStorage)(nil).Rollback), ctx)
 }
 
-// SaveCachedData mocks base method.
-func (m *MockStorage) SaveCachedData(ctx context.Context, data model.CachedData) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveCachedData", ctx, data)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SaveCachedData indicates an expected call of SaveCachedData.
-func (mr *MockStorageMockRecorder) SaveCachedData(ctx, data any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveCachedData", reflect.TypeOf((*MockStorage)(nil).SaveCachedData), ctx, data)
-}
-
 // SaveBannedIP mocks base method.
 func (m *MockStorage) SaveBannedIP(ctx context.Context, ban *model.BannedIP) error {
 	m.ctrl.T.Helper()
@@ -949,6 +935,20 @@ func (m *MockStorage) SaveBannedUser(ctx context.Context, ban *model.BannedUser)
 func (mr *MockStorageMockRecorder) SaveBannedUser(ctx, ban any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveBannedUser", reflect.TypeOf((*MockStorage)(nil).SaveBannedUser), ctx, ban)
+}
+
+// SaveCachedData mocks base method.
+func (m *MockStorage) SaveCachedData(ctx context.Context, data model.CachedData) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveCachedData", ctx, data)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveCachedData indicates an expected call of SaveCachedData.
+func (mr *MockStorageMockRecorder) SaveCachedData(ctx, data any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveCachedData", reflect.TypeOf((*MockStorage)(nil).SaveCachedData), ctx, data)
 }
 
 // SaveIdentityVerification mocks base method.
@@ -1034,20 +1034,6 @@ func (m *MockStorage) SaveOAuth2ConsentSessionResponse(ctx context.Context, cons
 func (mr *MockStorageMockRecorder) SaveOAuth2ConsentSessionResponse(ctx, consent, rejection any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOAuth2ConsentSessionResponse", reflect.TypeOf((*MockStorage)(nil).SaveOAuth2ConsentSessionResponse), ctx, consent, rejection)
-}
-
-// SaveOAuth2ConsentSessionSubject mocks base method.
-func (m *MockStorage) SaveOAuth2ConsentSessionSubject(ctx context.Context, consent *model.OAuth2ConsentSession) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveOAuth2ConsentSessionSubject", ctx, consent)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SaveOAuth2ConsentSessionSubject indicates an expected call of SaveOAuth2ConsentSessionSubject.
-func (mr *MockStorageMockRecorder) SaveOAuth2ConsentSessionSubject(ctx, consent any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveOAuth2ConsentSessionSubject", reflect.TypeOf((*MockStorage)(nil).SaveOAuth2ConsentSessionSubject), ctx, consent)
 }
 
 // SaveOAuth2DeviceCodeSession mocks base method.

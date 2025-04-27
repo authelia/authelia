@@ -241,7 +241,12 @@ func (s *OAuth2ConsentPreConfig) HasClaimsSignature(signature string) (has bool)
 
 // CanConsent returns true if this pre-configuration can still provide consent.
 func (s *OAuth2ConsentPreConfig) CanConsent() bool {
-	return !s.Revoked && (!s.ExpiresAt.Valid || s.ExpiresAt.Time.After(time.Now()))
+	return s.CanConsentAt(time.Now())
+}
+
+// CanConsentAt returns true if this pre-configuration can still provide consent at a particular time.
+func (s *OAuth2ConsentPreConfig) CanConsentAt(now time.Time) bool {
+	return !s.Revoked && (!s.ExpiresAt.Valid || s.ExpiresAt.Time.After(now))
 }
 
 // OAuth2ConsentSession stores information about an OAuth2.0 Consent.

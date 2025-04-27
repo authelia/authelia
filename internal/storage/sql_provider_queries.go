@@ -429,7 +429,7 @@ const (
 		SELECT id, client_id, subject, created_at, expires_at, revoked, scopes, audience, requested_claims, signature_claims, granted_claims
 		FROM %s
 		WHERE client_id = ? AND subject = ? AND
-			  revoked = FALSE AND (expires_at IS NULL OR expires_at >= CURRENT_TIMESTAMP);`
+			  revoked = FALSE AND (expires_at IS NULL OR expires_at >= ?);`
 
 	queryFmtInsertOAuth2ConsentPreConfiguration = `
 		INSERT INTO %s (client_id, subject, created_at, expires_at, revoked, scopes, audience, requested_claims, signature_claims, granted_claims)
