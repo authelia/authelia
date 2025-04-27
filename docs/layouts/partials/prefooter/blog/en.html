@@ -4,7 +4,7 @@
       <div class="col-md-12 col-xl-10">
         <h2 class="h3 mt-3 text-center">Latest from the Authelia blog</h2>
         <div class="card-list">
-          {{- range first 3 (where .Site.RegularPages.ByDate.Reverse "Section" "blog") }}
+          {{- range first 3 (where (where (where .Site.RegularPages.ByDate.Reverse "Section" "blog") "Params.draft" "ne" true) "Params.homepage" "ne" false) }}
           <div class="card">
             <div class="card-body">
               <article>

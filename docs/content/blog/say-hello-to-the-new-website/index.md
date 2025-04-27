@@ -9,7 +9,7 @@ categories: ["News"]
 tags: ["website"]
 contributors: ["James Elliott"]
 pinned: false
-homepage: false
+homepage: true
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
