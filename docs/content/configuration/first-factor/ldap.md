@@ -64,7 +64,7 @@ authentication_backend:
     permit_referrals: false
     permit_unauthenticated_bind: false
     permit_feature_detection_failure: false
-    user: 'CN=admin,{{< sitevar name="domain" format="dn" nojs="DC=example,DC=com" >}}'
+    user: 'UID=admin,OU=users,{{< sitevar name="domain" format="dn" nojs="DC=example,DC=com" >}}'
     password: 'password'
     attributes:
       distinguished_name: 'distinguishedName'
