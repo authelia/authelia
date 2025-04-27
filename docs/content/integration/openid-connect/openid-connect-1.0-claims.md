@@ -220,9 +220,9 @@ issued token credentials via the [Refresh FLow], effectively it allows the Relyi
 periodically minted and granted.
 
 As per [OpenID Connect 1.0] Section 11 [Offline Access] can only be granted during the [Authorization Code Flow] or a
-[Hybrid Flow]. The [Refresh Token] will only ever be returned at the [Token Endpoint] when all the following are
+As per [OpenID Connect 1.0] Section 11, [Offline Access] can only be granted during the [Authorization Code Flow] or a
+[Hybrid Flow]. The [Refresh Token] will only ever be returned by the [Token Endpoint] when all the following are
 true:
-
 1. The client is exchanging a [OAuth 2.0 Authorization Code].
 2. The client is permitted to request [Offline Access], i.e., it is explicitly configured with the `offline_access` scope.
 3. The client is permitted to use [Refresh Tokens] i.e. it is explicitly configured with the `refresh_token`
