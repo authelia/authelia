@@ -224,7 +224,7 @@ As per [OpenID Connect 1.0] Section 11 [Offline Access] can only be granted duri
 true:
 
 1. The client is exchanging a [OAuth 2.0 Authorization Code].
-2. The client is permitted to request [Offline Access] i.e. it is explicitly configured with the `offiline_access` scope.
+2. The client is permitted to request [Offline Access], i.e., it is explicitly configured with the `offline_access` scope.
 3. The client is permitted to use [Refresh Tokens] i.e. it is explicitly configured with the `refresh_token`
    [Grant Type](introduction.md#grant-types).
 4. The resource owner has explicitly provided consent in one of the following scenarios:
