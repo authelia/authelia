@@ -27,10 +27,11 @@ type configurationBody struct {
 
 // bodySignTOTPRequest is the  model of the request body of TOTP 2FA authentication endpoint.
 type bodySignTOTPRequest struct {
-	Token      string `json:"token" valid:"required"`
-	TargetURL  string `json:"targetURL"`
-	Workflow   string `json:"workflow"`
-	WorkflowID string `json:"workflowID"`
+	Token     string `json:"token" valid:"required"`
+	TargetURL string `json:"targetURL"`
+	FlowID    string `json:"flowID"`
+	Flow      string `json:"flow"`
+	SubFlow   string `json:"subflow"`
 }
 
 type bodyRegisterTOTP struct {
@@ -45,9 +46,10 @@ type bodyRegisterFinishTOTP struct {
 
 // bodySignWebAuthnRequest is the  model of the request body of WebAuthn 2FA authentication endpoint.
 type bodySignWebAuthnRequest struct {
-	TargetURL  string `json:"targetURL"`
-	Workflow   string `json:"workflow"`
-	WorkflowID string `json:"workflowID"`
+	TargetURL string `json:"targetURL"`
+	FlowID    string `json:"flowID"`
+	Flow      string `json:"flow"`
+	SubFlow   string `json:"subflow"`
 
 	Response json.RawMessage `json:"response"`
 }
@@ -55,10 +57,11 @@ type bodySignWebAuthnRequest struct {
 // bodySignPasskeyRequest is the  model of the request body of WebAuthn 2FA authentication endpoint.
 type bodySignPasskeyRequest struct {
 	TargetURL      string `json:"targetURL"`
-	Workflow       string `json:"workflow"`
-	WorkflowID     string `json:"workflowID"`
 	RequestMethod  string `json:"requestMethod"`
 	KeepMeLoggedIn *bool  `json:"keepMeLoggedIn"`
+	FlowID         string `json:"flowID"`
+	Flow           string `json:"flow"`
+	SubFlow        string `json:"subflow"`
 
 	Response json.RawMessage `json:"response"`
 }
@@ -93,10 +96,11 @@ type bodyEditWebAuthnCredentialRequest struct {
 
 // bodySignDuoRequest is the  model of the request body of Duo 2FA authentication endpoint.
 type bodySignDuoRequest struct {
-	TargetURL  string `json:"targetURL"`
-	Passcode   string `json:"passcode"`
-	Workflow   string `json:"workflow"`
-	WorkflowID string `json:"workflowID"`
+	TargetURL string `json:"targetURL"`
+	Passcode  string `json:"passcode"`
+	FlowID    string `json:"flowID"`
+	Flow      string `json:"flow"`
+	SubFlow   string `json:"subflow"`
 }
 
 // bodyPreferred2FAMethod the selected 2FA method.
@@ -108,30 +112,31 @@ type bodyPreferred2FAMethod struct {
 type bodyFirstFactorRequest struct {
 	Username       string `json:"username" valid:"required"`
 	Password       string `json:"password" valid:"required"`
-	Workflow       string `json:"workflow"`
-	WorkflowID     string `json:"workflowID"`
 	TargetURL      string `json:"targetURL"`
 	RequestMethod  string `json:"requestMethod"`
 	KeepMeLoggedIn *bool  `json:"keepMeLoggedIn"`
-	// KeepMeLoggedIn: Cannot require this field because of https://github.com/asaskevich/govalidator/pull/329
-	// TODO(c.michaud): add required validation once the above PR is merged.
+	FlowID         string `json:"flowID"`
+	Flow           string `json:"flow"`
+	SubFlow        string `json:"subflow"`
 }
 
 // bodyFirstFactorRequest represents the JSON body received by the endpoint.
 type bodySecondFactorPasswordRequest struct {
-	Password   string `json:"password" valid:"required"`
-	TargetURL  string `json:"targetURL"`
-	Workflow   string `json:"workflow"`
-	WorkflowID string `json:"workflowID"`
+	Password  string `json:"password" valid:"required"`
+	TargetURL string `json:"targetURL"`
+	FlowID    string `json:"flowID"`
+	Flow      string `json:"flow"`
+	SubFlow   string `json:"subflow"`
 }
 
 // bodyFirstFactorRequest represents the JSON body received by the endpoint.
 type bodyFirstFactorReauthenticateRequest struct {
 	Password      string `json:"password" valid:"required"`
-	Workflow      string `json:"workflow"`
-	WorkflowID    string `json:"workflowID"`
 	TargetURL     string `json:"targetURL"`
 	RequestMethod string `json:"requestMethod"`
+	FlowID        string `json:"flowID"`
+	Flow          string `json:"flow"`
+	SubFlow       string `json:"subflow"`
 }
 
 // checkURIWithinDomainRequestBody represents the JSON body received by the endpoint checking if an URI is within

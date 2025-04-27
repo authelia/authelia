@@ -38,13 +38,13 @@ var (
 )
 
 const (
-	queryArgRD         = "rd"
-	queryArgRM         = "rm"
-	queryArgID         = "id"
-	queryArgAuth       = "auth"
-	queryArgConsentID  = "consent_id"
-	queryArgWorkflow   = "workflow"
-	queryArgWorkflowID = "workflow_id"
+	queryArgRD        = "rd"
+	queryArgRM        = "rm"
+	queryArgID        = "id"
+	queryArgAuth      = "auth"
+	queryArgConsentID = "consent_id"
+	queryArgFlow      = "flow"
+	queryArgFlowID    = "flow_id"
 )
 
 var (
@@ -76,7 +76,7 @@ const (
 )
 
 const (
-	workflowOpenIDConnect = "openid_connect"
+	flowNameOpenIDConnect = "openid_connect"
 )
 
 const (

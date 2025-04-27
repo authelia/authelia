@@ -20,9 +20,9 @@ import { makeStyles } from "tss-react/mui";
 
 import { ResetPasswordStep1Route } from "@constants/Routes";
 import { RedirectionURL, RequestMethod } from "@constants/SearchParams";
+import { useFlow } from "@hooks/Flow";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useQueryParam } from "@hooks/QueryParam";
-import { useWorkflow } from "@hooks/Workflow";
 import LoginLayout from "@layouts/LoginLayout";
 import { IsCapsLockModified } from "@services/CapsLock";
 import { postFirstFactor } from "@services/Password";
@@ -48,7 +48,7 @@ const FirstFactorForm = function (props: Props) {
     const navigate = useNavigate();
     const redirectionURL = useQueryParam(RedirectionURL);
     const requestMethod = useQueryParam(RequestMethod);
-    const [workflow, workflowID] = useWorkflow();
+    const { id: flowID, flow, subflow } = useFlow();
     const { createErrorNotification } = useNotifications();
 
     const loginChannel = useMemo(() => new BroadcastChannel<boolean>("login"), []);
@@ -119,8 +119,9 @@ const FirstFactorForm = function (props: Props) {
                 rememberMe,
                 redirectionURL,
                 requestMethod,
-                workflow,
-                workflowID,
+                flowID,
+                flow,
+                subflow,
             );
 
             setLoading(false);
@@ -136,18 +137,19 @@ const FirstFactorForm = function (props: Props) {
             focusPassword();
         }
     }, [
-        createErrorNotification,
-        focusPassword,
-        loginChannel,
+        username,
         password,
         props,
-        redirectionURL,
         rememberMe,
+        redirectionURL,
         requestMethod,
+        flowID,
+        flow,
+        subflow,
+        loginChannel,
+        createErrorNotification,
         translate,
-        username,
-        workflow,
-        workflowID,
+        focusPassword,
     ]);
 
     const handleResetPasswordClick = () => {

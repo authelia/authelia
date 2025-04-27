@@ -2,11 +2,11 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"path"
 	"strings"
+	"time"
 
 	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/google/uuid"
@@ -64,15 +64,7 @@ func handleOAuth2AuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.
 
 		return nil, true
 	default:
-		if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifierURI(), userSession.Username); err != nil {
-			ctx.Logger.Errorf(logFmtErrConsentCantGetSubject, requester.GetID(), client.GetID(), client.GetConsentPolicy(), userSession.Username, client.GetSectorIdentifierURI(), err)
-
-			ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrSubjectCouldNotLookup)
-
-			return nil, true
-		}
-
-		handler = handleOAuth2AuthorizationConsentGenerate
+		return handleOAuth2AuthorizationConsentGenerate(ctx, issuer, client, userSession, uuid.Nil, rw, r, requester)
 	}
 
 	return handler(ctx, issuer, client, userSession, subject, rw, r, requester)
@@ -83,7 +75,7 @@ func handleOAuth2AuthorizationConsentNotAuthenticated(ctx *middlewares.AutheliaC
 	rw http.ResponseWriter, r *http.Request, requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var err error
 
-	if consent, err = handleOAuth2NewConsentSession(uuid.UUID{}, requester, ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)); err != nil {
+	if consent, err = handleOAuth2NewConsentSession(ctx, uuid.UUID{}, requester, ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentGenerateError, requester.GetID(), client.GetID(), client.GetConsentPolicy(), "generating", err)
 
 		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotGenerate)
@@ -125,7 +117,7 @@ func handleOAuth2AuthorizationConsentGenerate(ctx *middlewares.AutheliaCtx, issu
 		return nil, true
 	}
 
-	if consent, err = handleOAuth2NewConsentSession(subject, requester, ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)); err != nil {
+	if consent, err = handleOAuth2NewConsentSession(ctx, subject, requester, ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentGenerateError, requester.GetID(), client.GetID(), client.GetConsentPolicy(), "generating", err)
 
 		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotGenerate)
@@ -163,7 +155,8 @@ func handleOAuth2AuthorizationConsentRedirect(ctx *middlewares.AutheliaCtx, issu
 		location.Path = path.Join(location.Path, oidc.FrontendEndpointPathConsentDecision)
 
 		query := location.Query()
-		query.Set(queryArgID, consent.ChallengeID.String())
+		query.Set(queryArgFlow, flowNameOpenIDConnect)
+		query.Set(queryArgFlowID, consent.ChallengeID.String())
 
 		location.RawQuery = query.Encode()
 
@@ -210,8 +203,8 @@ func handleOAuth2AuthorizationConsentPromptLoginRedirect(ctx *middlewares.Authel
 	redirectionURL := issuer.JoinPath(oidc.FrontendEndpointPathConsentLogin)
 
 	query := redirectionURL.Query()
-	query.Set(queryArgWorkflow, workflowOpenIDConnect)
-	query.Set(queryArgWorkflowID, consent.ChallengeID.String())
+	query.Set(queryArgFlow, flowNameOpenIDConnect)
+	query.Set(queryArgFlowID, consent.ChallengeID.String())
 
 	redirectionURL.RawQuery = query.Encode()
 
@@ -228,15 +221,15 @@ func handleOIDCAuthorizationConsentGetRedirectionURL(_ *middlewares.AutheliaCtx,
 	redirectURL, _ = url.ParseRequestURI(iss)
 
 	query := redirectURL.Query()
-	query.Set(queryArgWorkflow, workflowOpenIDConnect)
-	query.Set(queryArgWorkflowID, consent.ChallengeID.String())
+	query.Set(queryArgFlow, flowNameOpenIDConnect)
+	query.Set(queryArgFlowID, consent.ChallengeID.String())
 
 	redirectURL.RawQuery = query.Encode()
 
 	return redirectURL
 }
 
-func handleOAuth2NewConsentSession(subject uuid.UUID, requester oauthelia2.Requester, prefixPAR string) (consent *model.OAuth2ConsentSession, err error) {
+func handleOAuth2NewConsentSession(ctx oidc.Context, subject uuid.UUID, requester oauthelia2.Requester, prefixPAR string) (consent *model.OAuth2ConsentSession, err error) {
 	if oidc.IsPushedAuthorizedRequest(requester, prefixPAR) {
 		form := url.Values{}
 
@@ -246,40 +239,8 @@ func handleOAuth2NewConsentSession(subject uuid.UUID, requester oauthelia2.Reque
 			form.Set(oidc.FormParameterClientID, requester.GetRequestForm().Get(oidc.FormParameterClientID))
 		}
 
-		return model.NewOAuth2ConsentSessionWithForm(subject, requester, form)
+		return model.NewOAuth2ConsentSessionWithForm(ctx.GetClock().Now().UTC().Add(time.Minute*10), subject, requester, form)
 	}
 
-	return model.NewOAuth2ConsentSession(subject, requester)
-}
-
-func verifyOAuth2UserAuthorizedForConsent(ctx *middlewares.AutheliaCtx, client oidc.Client, userSession session.UserSession, consent *model.OAuth2ConsentSession, subject uuid.UUID) (err error) {
-	if client == nil {
-		if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, consent.ClientID); err != nil {
-			return fmt.Errorf("failed to retrieve client: %w", err)
-		}
-	}
-
-	if subject == uuid.Nil {
-		if subject, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifierURI(), userSession.Username); err != nil {
-			return fmt.Errorf("failed to lookup subject: %w", err)
-		}
-	}
-
-	if !consent.Subject.Valid {
-		if subject == uuid.Nil {
-			return fmt.Errorf("the consent subject is null for consent session with id '%d' for anonymous user", consent.ID)
-		}
-
-		consent.Subject = model.NullUUID(subject)
-
-		if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionSubject(ctx, consent); err != nil {
-			return fmt.Errorf("failed to update the consent subject: %w", err)
-		}
-	}
-
-	if consent.Subject.UUID != subject {
-		return fmt.Errorf("the consent subject identifier '%s' isn't owned by user '%s' who has a subject identifier of '%s' with sector identifier '%s'", consent.Subject.UUID, userSession.Username, subject, client.GetSectorIdentifierURI())
-	}
-
-	return nil
+	return model.NewOAuth2ConsentSession(ctx.GetClock().Now().UTC().Add(time.Minute*10), subject, requester)
 }

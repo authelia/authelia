@@ -137,58 +137,77 @@ func HandlePasskeyResponse(ctx *middlewares.AutheliaCtx, targetURI, requestMetho
 	Handle1FAResponse(ctx, targetURI, requestMethod, username, groups)
 }
 
-func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, id string) {
+func handleFlowResponse(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, id, flow, subflow string) {
+	switch flow {
+	case flowNameOpenIDConnect:
+		handleFlowResponseOpenIDConnect(ctx, userSession, id, subflow)
+	default:
+		ctx.SetJSONError(messageAuthenticationFailed)
+
+		ctx.Logger.WithFields(map[string]any{"flow_id": id, "flow": flow, "subflow": subflow}).Error("Failed to find flow handler for the given flow parameters.")
+	}
+}
+
+func handleFlowResponseOpenIDConnect(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, id, subflow string) {
 	var (
-		workflowID uuid.UUID
-		client     oidc.Client
-		consent    *model.OAuth2ConsentSession
-		err        error
+		flowID  uuid.UUID
+		client  oidc.Client
+		consent *model.OAuth2ConsentSession
+		err     error
 	)
 
-	if workflowID, err = uuid.Parse(id); err != nil {
-		ctx.Error(fmt.Errorf("unable to parse consent session challenge id '%s': %w", id, err), messageAuthenticationFailed)
+	if flowID, err = uuid.Parse(id); err != nil {
+		ctx.SetJSONError(messageAuthenticationFailed)
+
+		ctx.Logger.
+			WithError(err).
+			WithFields(map[string]any{"flow_id": id, "flow": flowNameOpenIDConnect, "subflow": subflow}).
+			Error("Failed to parse flow id for consent session.")
 
 		return
 	}
 
-	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, workflowID); err != nil {
-		ctx.Error(fmt.Errorf("unable to load consent session by challenge id '%s': %w", id, err), messageAuthenticationFailed)
+	if consent, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, flowID); err != nil {
+		ctx.SetJSONError(messageAuthenticationFailed)
+
+		ctx.Logger.
+			WithError(err).
+			WithFields(map[string]any{"flow_id": flowID.String(), "flow": flowNameOpenIDConnect, "subflow": subflow}).
+			Error("Failed load consent session with the provided flow id.")
 
 		return
 	}
 
 	if consent.Responded() {
-		ctx.Error(fmt.Errorf("consent has already been responded to '%s'", id), messageAuthenticationFailed)
+		ctx.SetJSONError(messageAuthenticationFailed)
+
+		ctx.Logger.
+			WithFields(map[string]any{"flow_id": flowID.String(), "flow": flowNameOpenIDConnect, "subflow": subflow}).
+			Error("Consent session has already been responded to.")
 
 		return
 	}
 
 	if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, consent.ClientID); err != nil {
-		ctx.Error(fmt.Errorf("unable to get client for client with id '%s' with consent challenge id '%s': %w", id, consent.ChallengeID, err), messageAuthenticationFailed)
+		ctx.SetJSONError(messageAuthenticationFailed)
+
+		ctx.Logger.
+			WithError(err).
+			WithFields(map[string]any{"flow_id": flowID.String(), "flow": flowNameOpenIDConnect, "subflow": subflow, "client_id": consent.ClientID}).
+			Error("Failed to get client by 'client_id' for consent session.")
 
 		return
 	}
 
 	if userSession.IsAnonymous() {
-		ctx.Error(fmt.Errorf("unable to redirect for authorization/consent for client with id '%s' with consent challenge id '%s': user is anonymous", client.GetID(), consent.ChallengeID), messageAuthenticationFailed)
+		ctx.SetJSONError(messageAuthenticationFailed)
+
+		ctx.Logger.
+			WithError(err).
+			WithFields(map[string]any{"flow_id": flowID.String(), "flow": flowNameOpenIDConnect, "subflow": subflow, "client_id": client.GetID()}).
+			Error("Failed to redirect for consent as the user is anonymous.")
 
 		return
-	}
-
-	if !consent.Subject.Valid {
-		if consent.Subject.UUID, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifierURI(), userSession.Username); err != nil {
-			ctx.Error(fmt.Errorf("unable to determine consent subject for client with id '%s' with consent challenge id '%s': %w", client.GetID(), consent.ChallengeID, err), messageAuthenticationFailed)
-
-			return
-		}
-
-		consent.Subject.Valid = true
-
-		if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionSubject(ctx, consent); err != nil {
-			ctx.Error(fmt.Errorf("unable to update consent subject for client with id '%s' with consent challenge id '%s': %w", client.GetID(), consent.ChallengeID, err), messageAuthenticationFailed)
-
-			return
-		}
 	}
 
 	var (
@@ -199,7 +218,12 @@ func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx, userSession *sessi
 	issuer = ctx.RootURL()
 
 	if form, err = consent.GetForm(); err != nil {
-		ctx.Error(fmt.Errorf("unable to get authorization form values from consent session with challenge id '%s': %w", consent.ChallengeID, err), messageAuthenticationFailed)
+		ctx.SetJSONError(messageAuthenticationFailed)
+
+		ctx.Logger.
+			WithError(err).
+			WithFields(map[string]any{"flow_id": flowID.String(), "flow": flowNameOpenIDConnect, "subflow": subflow, "client_id": client.GetID(), "username": userSession.Username}).
+			Error("Failed to get authorization form values from consent session.")
 
 		return
 	}
@@ -208,13 +232,16 @@ func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx, userSession *sessi
 		targetURL := issuer.JoinPath(oidc.FrontendEndpointPathConsentLogin)
 
 		query := targetURL.Query()
-		query.Set(queryArgWorkflow, workflowOpenIDConnect)
-		query.Set(queryArgWorkflowID, workflowID.String())
+		query.Set(queryArgFlow, flowNameOpenIDConnect)
+		query.Set(queryArgFlowID, flowID.String())
 
 		targetURL.RawQuery = query.Encode()
 
 		if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURL.String()}); err != nil {
-			ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
+			ctx.Logger.
+				WithError(err).
+				WithFields(map[string]any{"flow_id": flowID.String(), "flow": flowNameOpenIDConnect, "subflow": subflow, "client_id": client.GetID(), "username": userSession.Username}).
+				Error("Failed to marshal JSON response body for consent redirection.")
 		}
 
 		return
@@ -226,14 +253,22 @@ func handleOIDCWorkflowResponse(ctx *middlewares.AutheliaCtx, userSession *sessi
 	case authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA), level), level == authorization.Denied:
 		targetURL := issuer.JoinPath(oidc.EndpointPathAuthorization)
 
-		form.Set(queryArgConsentID, workflowID.String())
+		form.Set(queryArgConsentID, flowID.String())
 		targetURL.RawQuery = form.Encode()
 
 		if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURL.String()}); err != nil {
-			ctx.Logger.Errorf("Unable to set default redirection URL in body: %s", err)
+			ctx.Logger.
+				WithError(err).
+				WithFields(map[string]any{"flow_id": flowID.String(), "flow": flowNameOpenIDConnect, "subflow": subflow, "client_id": client.GetID(), "username": userSession.Username}).
+				Error("Failed to marshal JSON response body for authorization redirection.")
 		}
 	default:
 		ctx.Logger.Warnf("OpenID Connect client '%s' requires 2FA, cannot be redirected yet", client.GetID())
+
+		ctx.Logger.
+			WithFields(map[string]any{"flow_id": flowID.String(), "flow": flowNameOpenIDConnect, "subflow": subflow, "client_id": client.GetID(), "username": userSession.Username}).
+			Info("OpenID Connect 1.0 client requires 2FA.")
+
 		ctx.ReplyOK()
 
 		return

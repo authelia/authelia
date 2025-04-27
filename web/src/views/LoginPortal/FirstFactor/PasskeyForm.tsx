@@ -6,9 +6,9 @@ import { useTranslation } from "react-i18next";
 
 import PasskeyIcon from "@components/PasskeyIcon";
 import { RedirectionURL, RequestMethod } from "@constants/SearchParams";
+import { useFlow } from "@hooks/Flow";
 import { useIsMountedRef } from "@hooks/Mounted";
 import { useQueryParam } from "@hooks/QueryParam";
-import { useWorkflow } from "@hooks/Workflow";
 import { AssertionResult, AssertionResultFailureString } from "@models/WebAuthn";
 import { getWebAuthnPasskeyOptions, getWebAuthnResult, postWebAuthnPasskeyResponse } from "@services/WebAuthn";
 
@@ -27,7 +27,7 @@ const PasskeyForm = function (props: Props) {
 
     const redirectionURL = useQueryParam(RedirectionURL);
     const requestMethod = useQueryParam(RequestMethod);
-    const [workflow, workflowID] = useWorkflow();
+    const { id: flowID, flow, subflow } = useFlow();
     const mounted = useIsMountedRef();
 
     const [loading, setLoading] = useState(false);
@@ -89,8 +89,9 @@ const PasskeyForm = function (props: Props) {
                 props.rememberMe,
                 redirectionURL,
                 requestMethod,
-                workflow,
-                workflowID,
+                flowID,
+                flow,
+                subflow,
             );
 
             handleAuthenticationStop();
@@ -119,8 +120,9 @@ const PasskeyForm = function (props: Props) {
         props,
         redirectionURL,
         requestMethod,
-        workflow,
-        workflowID,
+        flowID,
+        flow,
+        subflow,
         handleAuthenticationStop,
         onSignInErrorCallback,
         translate,

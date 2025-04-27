@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"database/sql"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -67,6 +66,12 @@ func handleOAuth2AuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Au
 		return nil, true
 	}
 
+	if !consent.Subject.Valid && consent.Subject.UUID == uuid.Nil {
+		handleOAuth2AuthorizationConsentRedirect(ctx, issuer, consent, client, userSession, rw, r, requester)
+
+		return nil, true
+	}
+
 	if subject != consent.Subject.UUID {
 		ctx.Logger.Errorf(logFmtErrConsentSessionSubjectNotAuthorized, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, userSession.Username, subject, consent.Subject.UUID)
 
@@ -81,7 +86,7 @@ func handleOAuth2AuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Au
 		return nil, true
 	}
 
-	if !consent.CanGrant() {
+	if !consent.CanGrant(ctx.Clock.Now()) {
 		ctx.Logger.Errorf(logFmtErrConsentCantGrantPreConf, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID)
 
 		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotPerform)
@@ -100,7 +105,7 @@ func handleOAuth2AuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Au
 	if config != nil {
 		consent.GrantWithClaims(config.GrantedClaims)
 
-		consent.PreConfiguration = sql.NullInt64{Int64: config.ID, Valid: true}
+		consent.SetRespondedAt(ctx.Clock.Now(), config.ID)
 
 		if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, false); err != nil {
 			ctx.Logger.Errorf(logFmtErrConsentSaveSessionResponse, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, err)
@@ -163,10 +168,10 @@ func handleOAuth2AuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares
 			return nil, true
 		}
 
-		return handleOAuth2AuthorizationConsentGenerate(ctx, issuer, client, userSession, subject, rw, r, requester)
+		return handleOAuth2AuthorizationConsentGenerate(ctx, issuer, client, userSession, uuid.Nil, rw, r, requester)
 	}
 
-	if consent, err = handleOAuth2NewConsentSession(subject, requester, ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)); err != nil {
+	if consent, err = handleOAuth2NewConsentSession(ctx, subject, requester, ctx.Providers.OpenIDConnect.GetPushedAuthorizeRequestURIPrefix(ctx)); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentGenerateError, requester.GetID(), client.GetID(), client.GetConsentPolicy(), "generating", err)
 
 		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotGenerate)
@@ -200,7 +205,7 @@ func handleOAuth2AuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares
 
 	consent.Grant()
 
-	consent.PreConfiguration = sql.NullInt64{Int64: config.ID, Valid: true}
+	consent.SetRespondedAt(ctx.Clock.Now(), config.ID)
 
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, false); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentSaveSessionResponse, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, err)
@@ -220,7 +225,7 @@ func handleOAuth2AuthorizationConsentModePreConfiguredGetPreConfig(ctx *middlewa
 
 	ctx.Logger.Debugf(logFmtDbgConsentPreConfTryingLookup, requester.GetID(), client.GetID(), client.GetConsentPolicy(), client.GetID(), subject, strings.Join(requester.GetRequestedScopes(), " "))
 
-	if rows, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentPreConfigurations(ctx, client.GetID(), subject); err != nil {
+	if rows, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentPreConfigurations(ctx, client.GetID(), subject, ctx.Clock.Now()); err != nil {
 		return nil, fmt.Errorf("error loading rows: %w", err)
 	}
 
@@ -253,7 +258,7 @@ func handleOAuth2AuthorizationConsentModePreConfiguredGetPreConfig(ctx *middlewa
 			return nil, fmt.Errorf("error iterating rows: %w", err)
 		}
 
-		if !config.CanConsent() {
+		if !config.CanConsentAt(ctx.Clock.Now()) {
 			log.Debugf("Authorization Request with id '%s' on client with id '%s' using consent mode '%s' found a matching pre-configuration with id '%d' but it is revoked, expired, or otherwise can no longer provide consent", requester.GetID(), client.GetID(), client.GetConsentPolicy(), config.ID)
 
 			continue

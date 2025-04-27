@@ -4,9 +4,9 @@ import { useTranslation } from "react-i18next";
 
 import WebAuthnTryIcon from "@components/WebAuthnTryIcon";
 import { RedirectionURL } from "@constants/SearchParams";
+import { useFlow } from "@hooks/Flow";
 import { useIsMountedRef } from "@hooks/Mounted";
 import { useQueryParam } from "@hooks/QueryParam";
-import { useWorkflow } from "@hooks/Workflow";
 import { AssertionResult, AssertionResultFailureString, WebAuthnTouchState } from "@models/WebAuthn";
 import { AuthenticationLevel } from "@services/State";
 import { getWebAuthnOptions, getWebAuthnResult, postWebAuthnResponse } from "@services/WebAuthn";
@@ -25,7 +25,7 @@ export interface Props {
 const WebAuthnMethod = function (props: Props) {
     const [state, setState] = useState(WebAuthnTouchState.WaitTouch);
     const redirectionURL = useQueryParam(RedirectionURL);
-    const [workflow, workflowID] = useWorkflow();
+    const { id: flowID, flow, subflow } = useFlow();
     const mounted = useIsMountedRef();
     const { t: translate } = useTranslation();
 
@@ -75,7 +75,7 @@ const WebAuthnMethod = function (props: Props) {
 
             setState(WebAuthnTouchState.InProgress);
 
-            const response = await postWebAuthnResponse(result.response, redirectionURL, workflow, workflowID);
+            const response = await postWebAuthnResponse(result.response, redirectionURL, flowID, flow, subflow);
 
             if (response.data.status === "OK" && response.status === 200) {
                 onSignInSuccessCallback(response.data.data ? response.data.data.redirect : undefined);
@@ -98,8 +98,9 @@ const WebAuthnMethod = function (props: Props) {
         onSignInErrorCallback,
         onSignInSuccessCallback,
         redirectionURL,
-        workflow,
-        workflowID,
+        flowID,
+        flow,
+        subflow,
         mounted,
         props.authenticationLevel,
         props.registered,

@@ -25,7 +25,7 @@ func handleOAuth2AuthorizationConsentModeExplicit(ctx *middlewares.AutheliaCtx, 
 
 	switch len(bytesConsentID) {
 	case 0:
-		return handleOAuth2AuthorizationConsentGenerate(ctx, issuer, client, userSession, subject, rw, r, requester)
+		return handleOAuth2AuthorizationConsentGenerate(ctx, issuer, client, userSession, uuid.Nil, rw, r, requester)
 	default:
 		if consentID, err = uuid.ParseBytes(bytesConsentID); err != nil {
 			ctx.Logger.Errorf(logFmtErrConsentParseChallengeID, requester.GetID(), client.GetID(), client.GetConsentPolicy(), bytesConsentID, err)
@@ -62,6 +62,12 @@ func handleOAuth2AuthorizationConsentModeExplicitWithID(ctx *middlewares.Autheli
 		return nil, true
 	}
 
+	if !consent.Subject.Valid && consent.Subject.UUID == uuid.Nil {
+		handleOAuth2AuthorizationConsentRedirect(ctx, issuer, consent, client, userSession, rw, r, requester)
+
+		return nil, true
+	}
+
 	if subject != consent.Subject.UUID {
 		ctx.Logger.Errorf(logFmtErrConsentSessionSubjectNotAuthorized, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, userSession.Username, subject, consent.Subject.UUID)
 
@@ -76,7 +82,7 @@ func handleOAuth2AuthorizationConsentModeExplicitWithID(ctx *middlewares.Autheli
 		return nil, true
 	}
 
-	if !consent.CanGrant() {
+	if !consent.CanGrant(ctx.Clock.Now()) {
 		ctx.Logger.Errorf(logFmtErrConsentCantGrant, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, "explicit")
 
 		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotPerform)

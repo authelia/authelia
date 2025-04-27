@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
 
@@ -104,9 +105,9 @@ func (s *HandlerSignPasswordSuite) TestShouldHandleOpenIDConnect() {
 	s.mock.Ctx.Configuration.Session.Cookies[0].DefaultRedirectionURL = testRedirectionURL
 
 	bodyBytes, err := json.Marshal(bodySecondFactorPasswordRequest{
-		Password:   "123456",
-		Workflow:   workflowOpenIDConnect,
-		WorkflowID: "abc",
+		Password: "123456",
+		Flow:     flowNameOpenIDConnect,
+		FlowID:   "abc",
 	})
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
@@ -114,7 +115,7 @@ func (s *HandlerSignPasswordSuite) TestShouldHandleOpenIDConnect() {
 	SecondFactorPasswordPOST(nil)(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
-	s.AssertLastLogMessage("unable to parse consent session challenge id 'abc': invalid UUID length: 3", "")
+	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Failed to parse flow id for consent session.", map[string]any{"error": "invalid UUID length: 3", "flow": "openid_connect", "flow_id": "abc", "subflow": ""})
 }
 
 func (s *HandlerSignPasswordSuite) TestShouldRedirectUserToDefaultURLDelayFunc() {

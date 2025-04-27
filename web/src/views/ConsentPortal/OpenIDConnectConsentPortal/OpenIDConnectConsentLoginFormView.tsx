@@ -1,14 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { Alert, AlertTitle, Button, CircularProgress, FormControl } from "@mui/material";
+import { Alert, AlertTitle, Button, CircularProgress, FormControl, useTheme } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import { BroadcastChannel } from "broadcast-channel";
 import { useTranslation } from "react-i18next";
 
+import LogoutButton from "@components/LogoutButton";
+import { useFlow } from "@hooks/Flow";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useRedirector } from "@hooks/Redirector";
-import { useWorkflow } from "@hooks/Workflow";
 import LoginLayout from "@layouts/LoginLayout";
 import { UserInfo } from "@models/UserInfo";
 import { IsCapsLockModified } from "@services/CapsLock";
@@ -22,13 +23,14 @@ export interface Props {
 
 const OpenIDConnectConsentLoginFormView: React.FC<Props> = (props: Props) => {
     const { t: translate } = useTranslation();
+    const theme = useTheme();
 
     const [password, setPassword] = useState("");
     const [error, setError] = useState(false);
     const [hasCapsLock, setHasCapsLock] = useState(false);
     const [isCapsLockPartial, setIsCapsLockPartial] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [workflow, workflowID] = useWorkflow();
+    const { id: flowID, flow, subflow } = useFlow();
 
     const redirector = useRedirector();
     const { createErrorNotification } = useNotifications();
@@ -56,14 +58,14 @@ const OpenIDConnectConsentLoginFormView: React.FC<Props> = (props: Props) => {
             return;
         }
 
-        if (workflow === undefined || workflowID === undefined) {
+        if (flow === undefined || flowID === undefined) {
             return;
         }
 
         setLoading(true);
 
         try {
-            const res = await postFirstFactorReauthenticate(password, undefined, undefined, workflow, workflowID);
+            const res = await postFirstFactorReauthenticate(password, undefined, undefined, flowID, flow, subflow);
             await loginChannel.postMessage(true);
 
             if (res) {
@@ -76,7 +78,7 @@ const OpenIDConnectConsentLoginFormView: React.FC<Props> = (props: Props) => {
             setLoading(false);
             focusPassword();
         }
-    }, [createErrorNotification, focusPassword, loginChannel, password, redirector, translate, workflow, workflowID]);
+    }, [password, flow, flowID, subflow, loginChannel, redirector, createErrorNotification, translate, focusPassword]);
 
     const handlePasswordKeyDown = useCallback(
         (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -119,52 +121,59 @@ const OpenIDConnectConsentLoginFormView: React.FC<Props> = (props: Props) => {
 
     return (
         <LoginLayout id="consent-stage" title={translate("Confirm Access")}>
-            <FormControl id={"form-consent-openid-device-code-authorization"}>
-                <Grid container spacing={2}>
-                    <Grid size={{ xs: 12 }}>
-                        <TextField
-                            id="password-textfield"
-                            label={translate("Password")}
-                            variant="outlined"
-                            inputRef={passwordRef}
-                            onKeyDown={handlePasswordKeyDown}
-                            onKeyUp={handlePasswordKeyUp}
-                            error={error}
-                            disabled={loading}
-                            value={password}
-                            onChange={(v) => setPassword(v.target.value)}
-                            onFocus={() => setError(false)}
-                            type="password"
-                            autoComplete="current-password"
-                            required
-                            fullWidth
-                        />
-                    </Grid>
-                    {hasCapsLock ? (
-                        <Grid size={{ xs: 12 }} marginX={2}>
-                            <Alert severity={"warning"}>
-                                <AlertTitle>{translate("Warning")}</AlertTitle>
-                                {isCapsLockPartial
-                                    ? translate("The password was partially entered with Caps Lock")
-                                    : translate("The password was entered with Caps Lock")}
-                            </Alert>
-                        </Grid>
-                    ) : null}
-                    <Grid size={{ xs: 12 }}>
-                        <Button
-                            id="confirm-button"
-                            variant="contained"
-                            color="primary"
-                            fullWidth={true}
-                            endIcon={loading ? <CircularProgress size={20} /> : null}
-                            disabled={loading}
-                            onClick={handleConfirm}
-                        >
-                            {translate("Confirm")}
-                        </Button>
-                    </Grid>
+            <Grid container direction={"column"} justifyContent={"center"} alignItems={"center"}>
+                <Grid size={{ xs: 12 }} sx={{ paddingBottom: theme.spacing(2) }}>
+                    <LogoutButton />
                 </Grid>
-            </FormControl>
+                <Grid size={{ xs: 12 }}>
+                    <FormControl id={"form-consent-openid-device-code-authorization"}>
+                        <Grid container spacing={2}>
+                            <Grid size={{ xs: 12 }}>
+                                <TextField
+                                    id="password-textfield"
+                                    label={translate("Password")}
+                                    variant="outlined"
+                                    inputRef={passwordRef}
+                                    onKeyDown={handlePasswordKeyDown}
+                                    onKeyUp={handlePasswordKeyUp}
+                                    error={error}
+                                    disabled={loading}
+                                    value={password}
+                                    onChange={(v) => setPassword(v.target.value)}
+                                    onFocus={() => setError(false)}
+                                    type="password"
+                                    autoComplete="current-password"
+                                    required
+                                    fullWidth
+                                />
+                            </Grid>
+                            {hasCapsLock ? (
+                                <Grid size={{ xs: 12 }} marginX={2}>
+                                    <Alert severity={"warning"}>
+                                        <AlertTitle>{translate("Warning")}</AlertTitle>
+                                        {isCapsLockPartial
+                                            ? translate("The password was partially entered with Caps Lock")
+                                            : translate("The password was entered with Caps Lock")}
+                                    </Alert>
+                                </Grid>
+                            ) : null}
+                            <Grid size={{ xs: 12 }}>
+                                <Button
+                                    id="confirm-button"
+                                    variant="contained"
+                                    color="primary"
+                                    fullWidth={true}
+                                    endIcon={loading ? <CircularProgress size={20} /> : null}
+                                    disabled={loading}
+                                    onClick={handleConfirm}
+                                >
+                                    {translate("Confirm")}
+                                </Button>
+                            </Grid>
+                        </Grid>
+                    </FormControl>
+                </Grid>
+            </Grid>
         </LoginLayout>
     );
 };

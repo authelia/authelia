@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 
-import { Button, FormControl } from "@mui/material";
+import { Button, FormControl, useTheme } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import { useTranslation } from "react-i18next";
 
+import LogoutButton from "@components/LogoutButton";
 import { useUserCode } from "@hooks/OpenIDConnect";
 import LoginLayout from "@layouts/LoginLayout";
 import { UserInfo } from "@models/UserInfo";
@@ -17,6 +18,7 @@ export interface Props {
 
 const OpenIDConnectConsentDeviceAuthorizationFormView: React.FC<Props> = (props: Props) => {
     const { t: translate } = useTranslation();
+    const theme = useTheme();
 
     const [code, setCode] = useState("");
 
@@ -32,27 +34,34 @@ const OpenIDConnectConsentDeviceAuthorizationFormView: React.FC<Props> = (props:
 
     return (
         <LoginLayout id="consent-stage" title={translate("Confirm the Code")}>
-            <FormControl id={"form-consent-openid-device-code-authorization"}>
-                <Grid container spacing={2}>
-                    <Grid size={{ xs: 12 }}>
-                        <TextField
-                            id="user-code"
-                            label={translate("Code")}
-                            variant="outlined"
-                            required
-                            value={code}
-                            fullWidth
-                            onChange={(v) => setCode(v.target.value)}
-                            autoCapitalize="none"
-                        />
-                    </Grid>
-                    <Grid size={{ xs: 12 }}>
-                        <Button id="confirm-button" variant="contained" color="primary" fullWidth>
-                            {translate("Confirm")}
-                        </Button>
-                    </Grid>
+            <Grid container direction={"column"} justifyContent={"center"} alignItems={"center"}>
+                <Grid size={{ xs: 12 }} sx={{ paddingBottom: theme.spacing(2) }}>
+                    <LogoutButton />
                 </Grid>
-            </FormControl>
+                <Grid size={{ xs: 12 }}>
+                    <FormControl id={"form-consent-openid-device-code-authorization"}>
+                        <Grid container spacing={2}>
+                            <Grid size={{ xs: 12 }}>
+                                <TextField
+                                    id="user-code"
+                                    label={translate("Code")}
+                                    variant="outlined"
+                                    required
+                                    value={code}
+                                    fullWidth
+                                    onChange={(v) => setCode(v.target.value)}
+                                    autoCapitalize="none"
+                                />
+                            </Grid>
+                            <Grid size={{ xs: 12 }}>
+                                <Button id="confirm-button" variant="contained" color="primary" fullWidth>
+                                    {translate("Confirm")}
+                                </Button>
+                            </Grid>
+                        </Grid>
+                    </FormControl>
+                </Grid>
+            </Grid>
         </LoginLayout>
     );
 };

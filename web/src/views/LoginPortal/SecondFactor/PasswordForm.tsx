@@ -6,9 +6,9 @@ import TextField from "@mui/material/TextField";
 import { useTranslation } from "react-i18next";
 
 import { RedirectionURL } from "@constants/SearchParams";
+import { useFlow } from "@hooks/Flow";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useQueryParam } from "@hooks/QueryParam";
-import { useWorkflow } from "@hooks/Workflow";
 import { IsCapsLockModified } from "@services/CapsLock";
 import { postSecondFactor } from "@services/Password";
 
@@ -21,7 +21,7 @@ const PasswordForm = function (props: Props) {
     const { t: translate } = useTranslation();
 
     const redirectionURL = useQueryParam(RedirectionURL);
-    const [workflow, workflowID] = useWorkflow();
+    const { id: flowID, flow, subflow } = useFlow();
 
     const [loading, setLoading] = useState(false);
     const [password, setPassword] = useState("");
@@ -52,7 +52,7 @@ const PasswordForm = function (props: Props) {
         setLoading(true);
 
         try {
-            const res = await postSecondFactor(password, redirectionURL, workflow, workflowID);
+            const res = await postSecondFactor(password, redirectionURL, flowID, flow, subflow);
             props.onAuthenticationSuccess(res ? res.redirect : undefined);
         } catch (err) {
             console.error(err);
@@ -61,7 +61,7 @@ const PasswordForm = function (props: Props) {
             setLoading(false);
             focusPassword();
         }
-    }, [createErrorNotification, focusPassword, password, props, redirectionURL, translate, workflow, workflowID]);
+    }, [createErrorNotification, focusPassword, password, props, redirectionURL, translate, flowID, flow, subflow]);
 
     const handlePasswordKeyDown = useCallback(
         (event: React.KeyboardEvent<HTMLDivElement>) => {

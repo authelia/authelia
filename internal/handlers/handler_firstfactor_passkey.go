@@ -346,8 +346,8 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		userSession.RefreshTTL = ctx.Clock.Now().Add(ctx.Configuration.AuthenticationBackend.RefreshInterval.Value())
 	}
 
-	if bodyJSON.Workflow == workflowOpenIDConnect {
-		handleOIDCWorkflowResponse(ctx, &userSession, bodyJSON.WorkflowID)
+	if len(bodyJSON.Flow) > 0 {
+		handleFlowResponse(ctx, &userSession, bodyJSON.FlowID, bodyJSON.Flow, bodyJSON.SubFlow)
 	} else {
 		HandlePasskeyResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, userSession.Groups, userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA) == authentication.TwoFactor)
 	}

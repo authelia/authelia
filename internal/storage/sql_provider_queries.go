@@ -67,12 +67,12 @@ const (
 
 	queryFmtConsumeIdentityVerification = `
 		UPDATE %s
-		SET consumed = CURRENT_TIMESTAMP, consumed_ip = ?
+		SET consumed = ?, consumed_ip = ?
 		WHERE jti = ?;`
 
 	queryFmtRevokeIdentityVerification = `
 		UPDATE %s
-		SET revoked = CURRENT_TIMESTAMP, revoked_ip = ?
+		SET revoked = ?, revoked_ip = ?
 		WHERE jti = ?;`
 )
 
@@ -108,7 +108,7 @@ const (
 
 	queryFmtRevokeOTC = `
 		UPDATE %s
-		SET revoked = CURRENT_TIMESTAMP, revoked_ip = ?
+		SET revoked = ?, revoked_ip = ?
 		WHERE public_id = ?;`
 
 	queryFmtSelectOTCEncryptedData = `
@@ -369,14 +369,14 @@ const (
 
 const (
 	queryFmtUpsertCachedData = `
-		REPLACE INTO %s (updated_at, name, encrypted, value)
-		VALUES (CURRENT_TIMESTAMP, ?, ?, ?);`
+		REPLACE INTO %s (name, updated_at, encrypted, value)
+		VALUES (?, ?, ?, ?);`
 
 	queryFmtUpsertCachedDataPostgreSQL = `
-		INSERT INTO %s (updated_at, name, encrypted, value)
-		VALUES (CURRENT_TIMESTAMP, $1, $2, $3)
+		INSERT INTO %s (name, updated_at, encrypted, value)
+		VALUES ($1, $2, $3, $4)
 			ON CONFLICT (name)
-			DO UPDATE SET encrypted = $2, value = $3;`
+			DO UPDATE SET updated_at = $2, encrypted = $3, value = $4;`
 
 	queryFmtSelectCachedData = `
 		SELECT id, created_at, updated_at, name, encrypted, value
@@ -429,7 +429,7 @@ const (
 		SELECT id, client_id, subject, created_at, expires_at, revoked, scopes, audience, requested_claims, signature_claims, granted_claims
 		FROM %s
 		WHERE client_id = ? AND subject = ? AND
-			  revoked = FALSE AND (expires_at IS NULL OR expires_at >= CURRENT_TIMESTAMP);`
+			  revoked = FALSE AND (expires_at IS NULL OR expires_at >= ?);`
 
 	queryFmtInsertOAuth2ConsentPreConfiguration = `
 		INSERT INTO %s (client_id, subject, created_at, expires_at, revoked, scopes, audience, requested_claims, signature_claims, granted_claims)
@@ -441,24 +441,26 @@ const (
 		RETURNING id;`
 
 	queryFmtSelectOAuth2ConsentSessionByChallengeID = `
-		SELECT id, challenge_id, client_id, subject, authorized, granted, requested_at, responded_at,
+		SELECT id, challenge_id, client_id, subject, authorized, granted, requested_at, expires_at, responded_at,
 		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience, granted_claims, preconfiguration
 		FROM %s
 		WHERE challenge_id = ?;`
 
 	queryFmtInsertOAuth2ConsentSession = `
-		INSERT INTO %s (challenge_id, client_id, subject, authorized, granted, requested_at, responded_at,
+		INSERT INTO %s (challenge_id, client_id, subject, authorized, granted, requested_at, expires_at, responded_at,
 		form_data, requested_scopes, granted_scopes, requested_audience, granted_audience, granted_claims, preconfiguration)
-		VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
-
-	queryFmtUpdateOAuth2ConsentSessionSubject = `
-		UPDATE %s
-		SET subject = ?
-		WHERE id = ?;`
+		VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
 	queryFmtUpdateOAuth2ConsentSessionResponse = `
 		UPDATE %s
-		SET authorized = ?, responded_at = CURRENT_TIMESTAMP, granted_scopes = ?, granted_audience = ?, granted_claims = ?, preconfiguration = ?
+		SET
+			subject = ?,
+			responded_at = ?,
+			authorized = ?,
+			granted_scopes = ?,
+			granted_audience = ?,
+			granted_claims = ?,
+			preconfiguration = ?
 		WHERE id = ? AND responded_at IS NULL;`
 
 	queryFmtUpdateOAuth2ConsentSessionGranted = `

@@ -197,7 +197,7 @@ type Provider interface {
 	SaveOAuth2ConsentPreConfiguration(ctx context.Context, config model.OAuth2ConsentPreConfig) (insertedID int64, err error)
 
 	// LoadOAuth2ConsentPreConfigurations returns an OAuth2.0 consents pre-configurations from the storage provider given the consent signature.
-	LoadOAuth2ConsentPreConfigurations(ctx context.Context, clientID string, subject uuid.UUID) (rows *ConsentPreConfigRows, err error)
+	LoadOAuth2ConsentPreConfigurations(ctx context.Context, clientID string, subject uuid.UUID, now time.Time) (rows *ConsentPreConfigRows, err error)
 
 	/*
 		Implementation for OAuth2.0 Consent Sessions.
@@ -205,9 +205,6 @@ type Provider interface {
 
 	// SaveOAuth2ConsentSession inserts an OAuth2.0 consent session to the storage provider.
 	SaveOAuth2ConsentSession(ctx context.Context, consent *model.OAuth2ConsentSession) (err error)
-
-	// SaveOAuth2ConsentSessionSubject updates an OAuth2.0 consent session in the storage provider with the subject.
-	SaveOAuth2ConsentSessionSubject(ctx context.Context, consent *model.OAuth2ConsentSession) (err error)
 
 	// SaveOAuth2ConsentSessionResponse updates an OAuth2.0 consent session in the storage provider with the response.
 	SaveOAuth2ConsentSessionResponse(ctx context.Context, consent *model.OAuth2ConsentSession, rejection bool) (err error)

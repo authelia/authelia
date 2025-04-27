@@ -4,9 +4,9 @@ import { Box } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import { RedirectionURL } from "@constants/SearchParams";
+import { useFlow } from "@hooks/Flow";
 import { useQueryParam } from "@hooks/QueryParam";
 import { useUserInfoTOTPConfiguration } from "@hooks/UserInfoTOTPConfiguration";
-import { useWorkflow } from "@hooks/Workflow";
 import { completeTOTPSignIn } from "@services/OneTimePassword";
 import { AuthenticationLevel } from "@services/State";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
@@ -29,7 +29,7 @@ const OneTimePasswordMethod = function (props: Props) {
         props.authenticationLevel === AuthenticationLevel.TwoFactor ? State.Success : State.Idle,
     );
     const redirectionURL = useQueryParam(RedirectionURL);
-    const [workflow, workflowID] = useWorkflow();
+    const { id: flowID, flow, subflow } = useFlow();
     const { t: translate } = useTranslation();
 
     const { onSignInSuccess, onSignInError } = props;
@@ -90,7 +90,7 @@ const OneTimePasswordMethod = function (props: Props) {
 
         try {
             setState(State.InProgress);
-            const res = await completeTOTPSignIn(passcodeStr, redirectionURL, workflow, workflowID);
+            const res = await completeTOTPSignIn(passcodeStr, redirectionURL, flowID, flow, subflow);
 
             if (!res) {
                 onSignInErrorCallback(new Error(translate("The One-Time Password might be wrong")));
@@ -113,8 +113,9 @@ const OneTimePasswordMethod = function (props: Props) {
         passcode,
         resp?.digits,
         redirectionURL,
-        workflow,
-        workflowID,
+        flowID,
+        flow,
+        subflow,
         onSignInErrorCallback,
         translate,
         onSignInSuccessCallback,

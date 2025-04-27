@@ -114,6 +114,16 @@ func OAuth2ConsentPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
+	if !consent.Subject.Valid {
+		if consent.Subject.UUID, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifierURI(), userSession.Username); err != nil {
+			ctx.Error(fmt.Errorf("unable to determine consent subject for client with id '%s' with consent challenge id '%s': %w", client.GetID(), consent.ChallengeID, err), messageAuthenticationFailed)
+
+			return
+		}
+
+		consent.Subject.Valid = true
+	}
+
 	if bodyJSON.Consent {
 		consent.GrantWithClaims(bodyJSON.Claims)
 
@@ -165,6 +175,8 @@ func OAuth2ConsentPOST(ctx *middlewares.AutheliaCtx) {
 			}
 		}
 	}
+
+	consent.SetRespondedAt(ctx.Clock.Now(), 0)
 
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, bodyJSON.Consent); err != nil {
 		ctx.Logger.Errorf("Failed to save the consent session response to the database: %+v", err)
@@ -225,14 +237,6 @@ func handleOAuth2ConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, conse
 		return userSession, nil, nil, true
 	}
 
-	if err = verifyOAuth2UserAuthorizedForConsent(ctx, client, userSession, consent, uuid.UUID{}); err != nil {
-		ctx.Logger.Errorf("Could not authorize the user '%s' for the consent session with challenge id '%s' on client with id '%s': %v", userSession.Username, consent.ChallengeID, client.GetID(), err)
-
-		ctx.ReplyForbidden()
-
-		return userSession, nil, nil, true
-	}
-
 	switch client.GetConsentPolicy().Mode {
 	case oidc.ClientConsentModeImplicit:
 		ctx.Logger.Errorf("Unable to perform OpenID Connect Consent for user '%s' and client id '%s': the client is using the implicit consent mode", userSession.Username, consent.ClientID)
@@ -246,7 +250,7 @@ func handleOAuth2ConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, conse
 			ctx.ReplyForbidden()
 
 			return userSession, nil, nil, true
-		case !consent.CanGrant():
+		case !consent.CanGrant(ctx.Clock.Now()):
 			ctx.Logger.Errorf("Unable to perform OpenID Connect Consent for user '%s' and client id '%s': the specified consent session cannot be granted", userSession.Username, consent.ClientID)
 			ctx.ReplyForbidden()
 

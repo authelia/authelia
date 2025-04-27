@@ -205,8 +205,8 @@ func TimeBasedOneTimePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if bodyJSON.Workflow == workflowOpenIDConnect {
-		handleOIDCWorkflowResponse(ctx, &userSession, bodyJSON.WorkflowID)
+	if len(bodyJSON.Flow) > 0 {
+		handleFlowResponse(ctx, &userSession, bodyJSON.FlowID, bodyJSON.Flow, bodyJSON.SubFlow)
 	} else {
 		Handle2FAResponse(ctx, bodyJSON.TargetURL)
 	}

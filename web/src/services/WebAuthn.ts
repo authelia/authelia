@@ -136,14 +136,16 @@ export async function getWebAuthnResult(options: PublicKeyCredentialRequestOptio
 export async function postWebAuthnResponse(
     response: AuthenticationResponseJSON,
     targetURL?: string | undefined,
-    workflow?: string,
-    workflowID?: string,
+    flowID?: string,
+    flow?: string,
+    subflow?: string,
 ) {
     return axios.post<ServiceResponse<SignInResponse>>(WebAuthnAssertionPath, {
-        response: response,
-        targetURL: targetURL,
-        workflow: workflow,
-        workflowID: workflowID,
+        response,
+        targetURL,
+        flowID,
+        flow,
+        subflow,
     });
 }
 
@@ -169,8 +171,9 @@ interface PostFirstFactorPasskeyBody {
     keepMeLoggedIn: boolean;
     targetURL?: string;
     requestMethod?: string;
-    workflow?: string;
-    workflowID?: string;
+    flowID?: string;
+    flow?: string;
+    subflow?: string;
 }
 
 export async function postWebAuthnPasskeyResponse(
@@ -178,28 +181,19 @@ export async function postWebAuthnPasskeyResponse(
     keepMeLoggedIn: boolean,
     targetURL?: string | undefined,
     requestMethod?: string,
-    workflow?: string,
-    workflowID?: string,
+    flowID?: string,
+    flow?: string,
+    subflow?: string,
 ) {
     const data: PostFirstFactorPasskeyBody = {
         response,
         keepMeLoggedIn,
+        targetURL,
+        requestMethod,
+        flowID,
+        flow,
+        subflow,
     };
-
-    if (targetURL) {
-        data.targetURL = targetURL;
-    }
-
-    if (requestMethod) {
-        data.requestMethod = requestMethod;
-    }
-
-    if (workflow) {
-        data.workflow = workflow;
-    }
-    if (workflowID) {
-        data.workflowID = workflowID;
-    }
 
     return axios.post<ServiceResponse<SignInResponse>>(FirstFactorPasskeyPath, data);
 }

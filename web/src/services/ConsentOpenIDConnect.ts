@@ -27,9 +27,9 @@ export function getConsentResponse(consentID: string) {
     return Get<ConsentGetResponseBody>(ConsentPath + "?id=" + consentID);
 }
 
-export function acceptConsent(preConfigure: boolean, clientID: string, consentID: string | null, claims: string[]) {
+export function acceptConsent(preConfigure: boolean, clientID: string, claims: string[], consentID?: string) {
     const body: ConsentPostRequestBody = {
-        id: consentID === null ? undefined : consentID,
+        id: consentID,
         client_id: clientID,
         consent: true,
         pre_configure: preConfigure,
@@ -38,9 +38,9 @@ export function acceptConsent(preConfigure: boolean, clientID: string, consentID
     return Post<ConsentPostResponseBody>(ConsentPath, body);
 }
 
-export function rejectConsent(clientID: string, consentID: string | null) {
+export function rejectConsent(clientID: string, consentID?: string) {
     const body: ConsentPostRequestBody = {
-        id: consentID === null ? undefined : consentID,
+        id: consentID,
         client_id: clientID,
         consent: false,
         pre_configure: false,

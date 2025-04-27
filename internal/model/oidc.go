@@ -17,17 +17,18 @@ import (
 )
 
 // NewOAuth2ConsentSession creates a new OAuth2ConsentSession.
-func NewOAuth2ConsentSession(subject uuid.UUID, r oauthelia2.Requester) (consent *OAuth2ConsentSession, err error) {
-	return NewOAuth2ConsentSessionWithForm(subject, r, r.GetRequestForm())
+func NewOAuth2ConsentSession(expires time.Time, subject uuid.UUID, r oauthelia2.Requester) (consent *OAuth2ConsentSession, err error) {
+	return NewOAuth2ConsentSessionWithForm(expires, subject, r, r.GetRequestForm())
 }
 
 // NewOAuth2ConsentSessionWithForm creates a new OAuth2ConsentSession with a custom form parameter.
-func NewOAuth2ConsentSessionWithForm(subject uuid.UUID, r oauthelia2.Requester, form url.Values) (consent *OAuth2ConsentSession, err error) {
+func NewOAuth2ConsentSessionWithForm(expires time.Time, subject uuid.UUID, r oauthelia2.Requester, form url.Values) (consent *OAuth2ConsentSession, err error) {
 	consent = &OAuth2ConsentSession{
 		ClientID:          r.GetClient().GetID(),
 		Subject:           NullUUID(subject),
 		Form:              form.Encode(),
 		RequestedAt:       r.GetRequestedAt(),
+		ExpiresAt:         expires,
 		RequestedScopes:   StringSlicePipeDelimited(r.GetRequestedScopes()),
 		RequestedAudience: StringSlicePipeDelimited(r.GetRequestedAudience()),
 		GrantedScopes:     StringSlicePipeDelimited(r.GetGrantedScopes()),
@@ -240,7 +241,12 @@ func (s *OAuth2ConsentPreConfig) HasClaimsSignature(signature string) (has bool)
 
 // CanConsent returns true if this pre-configuration can still provide consent.
 func (s *OAuth2ConsentPreConfig) CanConsent() bool {
-	return !s.Revoked && (!s.ExpiresAt.Valid || s.ExpiresAt.Time.After(time.Now()))
+	return s.CanConsentAt(time.Now())
+}
+
+// CanConsentAt returns true if this pre-configuration can still provide consent at a particular time.
+func (s *OAuth2ConsentPreConfig) CanConsentAt(now time.Time) bool {
+	return !s.Revoked && (!s.ExpiresAt.Valid || s.ExpiresAt.Time.After(now))
 }
 
 // OAuth2ConsentSession stores information about an OAuth2.0 Consent.
@@ -254,6 +260,7 @@ type OAuth2ConsentSession struct {
 	Granted    bool `db:"granted"`
 
 	RequestedAt time.Time    `db:"requested_at"`
+	ExpiresAt   time.Time    `db:"expires_at"`
 	RespondedAt sql.NullTime `db:"responded_at"`
 
 	Form string `db:"form_data"`
@@ -265,6 +272,15 @@ type OAuth2ConsentSession struct {
 	GrantedClaims     StringSlicePipeDelimited `db:"granted_claims"`
 
 	PreConfiguration sql.NullInt64
+}
+
+// SetRespondedAt sets the responded at value.
+func (s *OAuth2ConsentSession) SetRespondedAt(t time.Time, preconf int64) {
+	s.RespondedAt = sql.NullTime{Time: t, Valid: true}
+
+	if preconf > 0 {
+		s.PreConfiguration = sql.NullInt64{Int64: preconf, Valid: true}
+	}
 }
 
 // Grant grants the requested scopes and audience.
@@ -312,12 +328,8 @@ func (s *OAuth2ConsentSession) IsDenied() bool {
 
 // CanGrant returns true if the session can still grant a token. This is NOT indicative of if there is a user response
 // to this consent request or if the user rejected the consent request.
-func (s *OAuth2ConsentSession) CanGrant() bool {
-	if !s.Subject.Valid || s.Granted {
-		return false
-	}
-
-	return true
+func (s *OAuth2ConsentSession) CanGrant(now time.Time) bool {
+	return !s.Granted && now.Before(s.ExpiresAt)
 }
 
 // GetForm returns the form.
