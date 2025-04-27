@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 - [Kasm Workspaces]
-  - [1.13.0](https://kasmweb.com/docs/latest/release_notes/1.13.0.html)
+  - [v1.13.0](https://kasmweb.com/docs/latest/release_notes/1.13.0.html)
 
 {{% oidc-common %}}
 

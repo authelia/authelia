@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 - [Zipline]
-  - [4.0.0](https://github.com/diced/zipline/releases/tag/v4.0.0)
+  - [v4.0.0](https://github.com/diced/zipline/releases/tag/v4.0.0)
 
 {{% oidc-common %}}
 

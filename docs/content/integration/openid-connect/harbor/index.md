@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.15](https://github.com/authelia/authelia/releases/tag/v4.38.15)
 - [Harbor]
-  - 2.11.2
+  - [v2.11.2](https://github.com/goharbor/harbor/releases/tag/v2.11.2)
 
 {{% oidc-common %}}
 

@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.18](https://github.com/authelia/authelia/releases/tag/v4.38.18)
 - [WUD]
-  - [8.0.0](https://github.com/getwud/wud/releases/tag/8.0.0)
+  - [v8.0.0](https://github.com/getwud/wud/releases/tag/8.0.0)
 
 {{% oidc-common %}}
 

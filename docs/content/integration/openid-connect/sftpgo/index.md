@@ -2,7 +2,7 @@
 title: "SFTPGo"
 description: "Integrating SFTPGo with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2022-06-15T17:51:47+10:00
+date: 2025-04-26T11:03:16+00:00
 draft: false
 images: []
 weight: 620

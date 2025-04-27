@@ -24,7 +24,7 @@ seo:
   - [v4.39.1](https://github.com/authelia/authelia/releases/tag/v4.39.1)
 - [Home Assistant]
   - Application:
-    - [2025-4-2](https://github.com/home-assistant/core/releases/tag/2025.4.2)
+    - [v2025.4.2](https://github.com/home-assistant/core/releases/tag/2025.4.2)
   - Integration `hass-oidc-auth`:
     - [v0.6.2-alpha](https://github.com/christiaangoossens/hass-oidc-auth/releases/tag/v0.6.2-alpha)
 

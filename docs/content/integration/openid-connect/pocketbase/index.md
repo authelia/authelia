@@ -22,8 +22,8 @@ seo:
 
 - [Authelia]
   - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-- [PocketBase](https://pocketbase.io/docs/authentication/#oauth2-integration)
-  - 4.2.3
+- [PocketBase]
+  - [v0.27.1](https://github.com/pocketbase/pocketbase/releases/tag/v0.27.1)
 
 {{% oidc-common %}}
 

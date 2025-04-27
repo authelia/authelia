@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 - [Warpgate]
-  - [0.9.1](https://github.com/warp-tech/warpgate/releases/tag/v0.9.1)
+  - [v0.9.1](https://github.com/warp-tech/warpgate/releases/tag/v0.9.1)
 
 {{% oidc-common %}}
 

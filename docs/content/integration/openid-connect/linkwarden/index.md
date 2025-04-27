@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.18](https://github.com/authelia/authelia/releases/tag/v4.38.18)
 - [Linkwarden]
-  - [2.9.2](https://github.com/linkwarden/linkwarden/releases/tag/v2.9.2)
+  - [v2.9.2](https://github.com/linkwarden/linkwarden/releases/tag/v2.9.2)
 
 {{% oidc-common %}}
 

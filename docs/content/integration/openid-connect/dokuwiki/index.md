@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.18](https://github.com/authelia/authelia/releases/tag/v4.38.18)
 - [DokuWiki]
-  - [55.2](https://github.com/dokuwiki/dokuwiki/releases/tag/release-2024-02-06b)
+  - [v55.2](https://github.com/dokuwiki/dokuwiki/releases/tag/release-2024-02-06b)
 
 {{% oidc-common %}}
 

@@ -25,7 +25,7 @@ seo:
 - [Authelia]
   - [v4.38.18](https://github.com/authelia/authelia/releases/tag/v4.38.18)
 - [Open WebUI]
-  - [0.5.4](https://github.com/open-webui/open-webui/releases/tag/v0.5.4)
+  - [v0.5.4](https://github.com/open-webui/open-webui/releases/tag/v0.5.4)
 
 {{% oidc-common %}}
 

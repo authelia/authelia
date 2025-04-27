@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.10](https://github.com/authelia/authelia/releases/tag/v4.38.10)
 - [LibreChat]
-  - [v0.7.5](https://www.librechat.ai/changelog)
+  - [v0.7.5](https://www.librechat.ai/changelog/v0.7.5)
 
 {{% oidc-common %}}
 

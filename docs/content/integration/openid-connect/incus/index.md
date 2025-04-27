@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.10](https://github.com/authelia/authelia/releases/tag/v4.38.10)
 - [Incus]
-  - [6.0.1](https://github.com/lxc/incus/releases/tag/v6.0.1)
+  - [v6.0.1](https://github.com/lxc/incus/releases/tag/v6.0.1)
 
 {{% oidc-common %}}
 

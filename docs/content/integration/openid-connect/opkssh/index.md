@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.39.1](https://github.com/authelia/authelia/releases/tag/v4.39.1)
 - [opkssh]
-  - [0.4.0](https://github.com/openpubkey/opkssh/releases/tag/v0.4.0)
+  - [v0.4.0](https://github.com/openpubkey/opkssh/releases/tag/v0.4.0)
 
 {{% oidc-common %}}
 

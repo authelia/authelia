@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.8](https://github.com/authelia/authelia/releases/tag/v4.38.8)
 - [EspoCRM]
-  - [2.0.1 3b9ed2f](https://github.com/m4rc3l-h3/espocrm)
+  - [v2.0.1](https://github.com/espocrm/espocrm/releases/tag/2.0.1)
 
 {{% oidc-common %}}
 

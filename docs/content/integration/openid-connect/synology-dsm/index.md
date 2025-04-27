@@ -23,8 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 - [Synology DSM]
-  - v7.1
-  - v7.2
+  - [v7.2](https://www.synology.com/en-global/releaseNote/DSM?os=DSM&version=7.2)
 
 {{% oidc-common %}}
 

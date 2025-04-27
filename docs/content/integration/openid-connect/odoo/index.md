@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.6](https://github.com/authelia/authelia/releases/tag/v4.38.6)
 - [Odoo]
-  - [17.0](https://github.com/odoo/odoo/tree/17.0)
+  - [v17.0](https://www.odoo.com/odoo-17-release-notes)
 
 {{% oidc-common %}}
 

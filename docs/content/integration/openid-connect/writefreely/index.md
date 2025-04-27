@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.8](https://github.com/authelia/authelia/releases/tag/v4.38.8)
 - [Writefreely]
-  - [0.15.1](https://github.com/writefreely/writefreely/releases/tag/v0.15.1)
+  - [v0.15.1](https://github.com/writefreely/writefreely/releases/tag/v0.15.1)
 
 {{% oidc-common %}}
 

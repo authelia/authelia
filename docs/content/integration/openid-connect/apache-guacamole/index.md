@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 - [Apache Guacamole]
-  - [1.5.5](https://guacamole.apache.org/releases/1.5.5/)
+  - [v1.5.5](https://guacamole.apache.org/releases/1.5.5/)
 
 {{% oidc-common %}}
 

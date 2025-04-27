@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 - [Budibase]
-  - 2.13.9
+  - [v2.13.9](https://github.com/Budibase/budibase/releases/tag/2.13.9)
 
 {{% oidc-common %}}
 

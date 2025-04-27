@@ -22,8 +22,8 @@ seo:
 
 - [Authelia]
   - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-- [Memos](https://github.com/usememos/memos)
-  - [0.16.1](https://github.com/usememos/memos/tree/v0.16.1)
+- [Memos]
+  - [v0.16.1](https://github.com/usememos/memos/releases/tag/v0.16.1)
 
 {{% oidc-common %}}
 

@@ -23,11 +23,11 @@ seo:
 - [Authelia]
   - [4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 - [Roundcube]
-  - [1.6.5](https://github.com/roundcube/roundcubemail/releases/tag/1.6.4)
+  - [v1.6.5](https://github.com/roundcube/roundcubemail/releases/tag/1.6.4)
 - [Dovecot]
-  - [2.3.20](https://dovecot.org/doc/NEWS)
+  - [v2.3.20](https://dovecot.org/doc/NEWS)
 - [Postfix]
-  - [3.7.6](https://www.postfix.org/announcements/postfix-3.8.1.html)
+  - [v3.7.6](https://www.postfix.org/announcements/postfix-3.8.1.html)
 
 {{% oidc-common %}}
 

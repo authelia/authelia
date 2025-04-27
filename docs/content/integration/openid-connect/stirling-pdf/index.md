@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.19](https://github.com/authelia/authelia/releases/tag/v4.38.19)
 - [Stirling-PDF]
-  - [0.42.0](https://github.com/Stirling-Tools/Stirling-PDF/releases/tag/v0.42.0)
+  - [v0.42.0](https://github.com/Stirling-Tools/Stirling-PDF/releases/tag/v0.42.0)
 
 {{% oidc-common %}}
 

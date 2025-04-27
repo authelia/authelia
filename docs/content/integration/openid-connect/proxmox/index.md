@@ -25,7 +25,7 @@ seo:
 - [Authelia]
   - [v4.38.17](https://github.com/authelia/authelia/releases/tag/v4.38.17)
 - [Proxmox]
-  - [8.3.0](https://pve.proxmox.com/wiki/Roadmap#Proxmox_VE_8.3)
+  - [v8.3.0](https://pve.proxmox.com/wiki/Roadmap#Proxmox_VE_8.3)
 
 {{% oidc-common %}}
 
