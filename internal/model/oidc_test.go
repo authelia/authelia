@@ -559,7 +559,7 @@ func TestOAuth2ConsentSession(t *testing.T) {
 	session.GrantedScopes = nil
 	session.GrantedAudience = nil
 
-	session.Grant()
+	oidc.ConsentGrant(session, true, nil)
 
 	assert.Nil(t, session.GrantedScopes)
 	session.HasExactGrantedAudience([]string{"a-client"})
@@ -567,7 +567,7 @@ func TestOAuth2ConsentSession(t *testing.T) {
 	session.RequestedScopes = []string{oidc.ScopeOpenID}
 	session.RequestedAudience = []string{"abc"}
 
-	session.Grant()
+	oidc.ConsentGrant(session, true, nil)
 
 	session.HasExactGrantedScopes([]string{oidc.ScopeOpenID})
 	session.HasExactGrantedAudience([]string{"abc", "a-client"})

@@ -202,7 +202,7 @@ the [OpenID Connect 1.0](https://openid.net/connect/) specification.
 |    sub    | string(uuid)  |     opaque id      |    [ID Token]    |    A [RFC4122] UUID V4 linked to the user who logged in     |
 |    aud    | array[string] |       *N/A*        |    [ID Token]    |                          Audience                           |
 |    exp    |    number     |       *N/A*        |    [ID Token]    |                           Expires                           |
-|    iat    |    number     |       *N/A*        |    [ID Token]    |             The time when the token was issued              |
+|    iat    |    number     |       *N/A*        |    [ID Token]    |             The time when the token was minted              |
 | auth_time |    number     |       *N/A*        |    [ID Token]    |        The time the user authenticated with Authelia        |
 |   nonce   |    string     |       *N/A*        |    [ID Token]    |        The time the user authenticated with Authelia        |
 |    amr    | array[string] |       *N/A*        |    [ID Token]    | An [RFC8176] list of authentication method reference values |
@@ -216,17 +216,29 @@ the [OpenID Connect 1.0](https://openid.net/connect/) specification.
 
 This scope is a special scope designed to allow applications to obtain a [Refresh Token] which allows extended access to
 an application on behalf of a user. A [Refresh Token] is a special [Access Token] that allows refreshing previously
-issued token credentials, effectively it allows the Relying Party to obtain new tokens periodically.
+issued token credentials via the [Refresh Flow], effectively allowing the relying party to request that new tokens be
+periodically minted and granted.
 
 As per [OpenID Connect 1.0] Section 11 [Offline Access] can only be granted during the [Authorization Code Flow] or a
-[Hybrid Flow]. The [Refresh Token] will only ever be returned at the [Token Endpoint] when the client is exchanging
-their [OAuth 2.0 Authorization Code].
+As per [OpenID Connect 1.0] Section 11, [Offline Access] can only be granted during the [Authorization Code Flow] or a
+[Hybrid Flow]. The [Refresh Token] will only ever be returned by the [Token Endpoint] when all the following are
+true:
+1. The client is exchanging a [OAuth 2.0 Authorization Code].
+2. The client is permitted to request [Offline Access], i.e., it is explicitly configured with the `offline_access` scope.
+3. The client is permitted to use [Refresh Tokens] i.e. it is explicitly configured with the `refresh_token`
+   [Grant Type](introduction.md#grant-types).
+4. The resource owner has explicitly provided consent in one of the following scenarios:
+   1. During the process of completing the current flow.
+   2. During the process of completing a previous flow and requested that this decision is remembered, and the decision
+      is still relevant (i.e. not expired and matches the access level requested).
 
 Generally unless an application supports this and actively requests this scope they should not be granted this scope via
 the client configuration.
 
-It is also important to note that we treat a [Refresh Token] as single use and reissue a new [Refresh Token] during the
-refresh flow.
+It is also important to note that we treat a [Refresh Token] as single-use, and we mint and grant a new [Refresh Token]
+during the [Refresh Flow] (i.e., [Refresh Token] Rotation). This aligns with the
+[Refresh Token Protection](https://datatracker.ietf.org/doc/html/rfc9700#refresh_token_protection) recommendations
+from [RFC9700].
 
 ### profile
 
@@ -237,7 +249,7 @@ This scope allows the client to access the profile information the authenticatio
 |        name        |  string  |    display_name    |    [UserInfo]    |          The users display name          |
 |    family_name     |  string  |    family_name     |    [UserInfo]    |          The users family name           |
 |     given_name     |  string  |     given_name     |    [UserInfo]    |           The users given name           |
-|    	middle_name    |  string  |    	middle_name    |    [UserInfo]    |          The users middle name           |
+|    middle_name     |  string  |    middle_name     |    [UserInfo]    |          The users middle name           |
 |      nickname      |  string  |      nickname      |    [UserInfo]    |            The users nickname            |
 | preferred_username |  string  |      username      |    [UserInfo]    | The username the user used to login with |
 |      profile       |  string  |      profile       |    [UserInfo]    |          The users profile URL           |
@@ -327,6 +339,7 @@ guide.
 
 [Authorization Code Flow]: https://openid.net/specs/openid-connect-core-1_0.html#CodeFlowAuth
 [Hybrid Flow]: https://openid.net/specs/openid-connect-core-1_0.html#HybridFlowAuth
+[Refresh Flow]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.5
 
 [Token Endpoint]: https://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
 [UserInfo]: https://openid.net/specs/openid-connect-core-1_0.html#UserInfo

@@ -60,7 +60,7 @@ func handleOAuth2AuthorizationConsentModeImplicitWithID(ctx *middlewares.Autheli
 		return nil, true
 	}
 
-	if subject != consent.Subject.UUID {
+	if (consent.Subject.UUID != uuid.Nil && subject != consent.Subject.UUID) || subject == uuid.Nil {
 		ctx.Logger.Errorf(logFmtErrConsentSessionSubjectNotAuthorized, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, userSession.Username, subject, consent.Subject.UUID)
 
 		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotLookup)
@@ -87,12 +87,10 @@ func handleOAuth2AuthorizationConsentModeImplicitWithID(ctx *middlewares.Autheli
 	var requests *oidc.ClaimsRequests
 
 	if requests, err = oidc.NewClaimRequests(requester.GetRequestForm()); err == nil && requests != nil {
-		consent.GrantWithClaims(requests.ToSlice())
+		oidc.ConsentGrantImplicit(consent, requests.ToSlice(), subject, ctx.Clock.Now())
 	} else {
-		consent.Grant()
+		oidc.ConsentGrantImplicit(consent, nil, subject, ctx.Clock.Now())
 	}
-
-	consent.SetRespondedAt(ctx.Clock.Now(), 0)
 
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, false); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentSaveSessionResponse, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, err)
@@ -149,12 +147,10 @@ func handleOAuth2AuthorizationConsentModeImplicitWithoutID(ctx *middlewares.Auth
 	var requests *oidc.ClaimsRequests
 
 	if requests, err = oidc.NewClaimRequests(requester.GetRequestForm()); err == nil && requests != nil {
-		consent.GrantWithClaims(requests.ToSlice())
+		oidc.ConsentGrantImplicit(consent, requests.ToSlice(), subject, ctx.Clock.Now())
 	} else {
-		consent.Grant()
+		oidc.ConsentGrantImplicit(consent, nil, subject, ctx.Clock.Now())
 	}
-
-	consent.SetRespondedAt(ctx.Clock.Now(), 0)
 
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, false); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentSaveSessionResponse, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, err)

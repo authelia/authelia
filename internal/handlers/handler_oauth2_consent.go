@@ -125,7 +125,7 @@ func OAuth2ConsentPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if bodyJSON.Consent {
-		consent.GrantWithClaims(bodyJSON.Claims)
+		oidc.ConsentGrant(consent, true, bodyJSON.Claims)
 
 		if bodyJSON.PreConfigure {
 			if client.GetConsentPolicy().Mode == oidc.ClientConsentModePreConfigured {

@@ -103,7 +103,7 @@ func handleOAuth2AuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Au
 	}
 
 	if config != nil {
-		consent.GrantWithClaims(config.GrantedClaims)
+		oidc.ConsentGrant(consent, true, config.GrantedClaims)
 
 		consent.SetRespondedAt(ctx.Clock.Now(), config.ID)
 
@@ -203,7 +203,7 @@ func handleOAuth2AuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares
 		ctx.Logger.WithFields(map[string]any{"requested_at": consent.RequestedAt, "authenticated_at": userSession.LastAuthenticatedTime(), "prompt": requester.GetRequestForm().Get("prompt")}).Debugf("Authorization Request with id '%s' on client with id '%s' is not being redirected for reauthentication", requester.GetID(), client.GetID())
 	}
 
-	consent.Grant()
+	oidc.ConsentGrant(consent, true, config.GrantedClaims)
 
 	consent.SetRespondedAt(ctx.Clock.Now(), config.ID)
 

@@ -390,10 +390,25 @@ Configures the consent mode. The following table describes the different modes:
 |:--------------:|:----------------------------------------------------------------------------------------------------------------------------------------------:|
 |      auto      | Automatically determined (default). Uses `explicit` unless [pre_configured_consent_duration] is specified in which case uses `pre-configured`. |
 |    explicit    |                                   Requires the user provide unique explicit consent for every authorization.                                   |
-|    implicit    |                   Automatically assumes consent for every authorization, never asking the user if they wish to give consent.                   |
+|    implicit    |    Automatically assumes consent for every authorization, never asking the user if they wish to give consent. See the specific notes below.    |
 | pre-configured |                            Allows the end-user to remember their consent for the [pre_configured_consent_duration].                            |
 
 [pre_configured_consent_duration]: #pre_configured_consent_duration
+
+#### implicit
+
+The `implicit` consent mode is largely unsupported and in various cases either revert to `explicit`, silently not
+perform certain expected actions, or outright fail. This mode is intended for development and testing, and should
+not be used in production.
+
+The following specific and intentional limitations exist:
+
+1. The Authorization Code Flow will not mint and grant a Refresh Token unless the user either provides explicit consent
+   or has previously provided explicit consent and requested their consent is remembered.
+2. If the client requests the user is prompted to provide consent the mode will automatically be `explicit` regardless
+   of client configuration.
+3. If the client requests the `offline_access` or `offline` scope the mode will automatically be `explicit` regardless
+   of client configuration.
 
 ### pre_configured_consent_duration
 
