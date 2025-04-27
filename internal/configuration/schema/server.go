@@ -96,20 +96,6 @@ var DefaultServerConfiguration = Server{
 		Authz: map[string]ServerEndpointsAuthz{
 			AuthzEndpointNameLegacy: {
 				Implementation: AuthzImplementationLegacy,
-				Headers: map[string]ServerEndpointsAuthzHeader{
-					"Remote-User": {
-						UserAttribute: "username",
-					},
-					"Remote-Groups": {
-						UserAttribute: "groups",
-					},
-					"Remote-Name": {
-						UserAttribute: "name",
-					},
-					"Remote-Email": {
-						UserAttribute: "email",
-					},
-				},
 				AuthnStrategies: []ServerEndpointsAuthzAuthnStrategy{
 					{
 						Name: AuthzStrategyHeaderLegacy,
@@ -122,16 +108,16 @@ var DefaultServerConfiguration = Server{
 			AuthzEndpointNameAuthRequest: {
 				Implementation: AuthzImplementationAuthRequest,
 				Headers: map[string]ServerEndpointsAuthzHeader{
-					"Remote-User": {
+					HeaderRemoteUser: {
 						UserAttribute: "username",
 					},
-					"Remote-Groups": {
+					HeaderRemoteGroups: {
 						UserAttribute: "groups",
 					},
-					"Remote-Name": {
-						UserAttribute: "name",
+					HeaderRemoteName: {
+						UserAttribute: "display_name",
 					},
-					"Remote-Email": {
+					HeaderRemoteEmail: {
 						UserAttribute: "email",
 					},
 				},
@@ -148,16 +134,16 @@ var DefaultServerConfiguration = Server{
 			AuthzEndpointNameExtAuthz: {
 				Implementation: AuthzImplementationExtAuthz,
 				Headers: map[string]ServerEndpointsAuthzHeader{
-					"Remote-User": {
+					HeaderRemoteUser: {
 						UserAttribute: "username",
 					},
-					"Remote-Groups": {
+					HeaderRemoteGroups: {
 						UserAttribute: "groups",
 					},
-					"Remote-Name": {
-						UserAttribute: "name",
+					HeaderRemoteName: {
+						UserAttribute: "display_name",
 					},
-					"Remote-Email": {
+					HeaderRemoteEmail: {
 						UserAttribute: "email",
 					},
 				},
@@ -174,16 +160,16 @@ var DefaultServerConfiguration = Server{
 			AuthzEndpointNameForwardAuth: {
 				Implementation: AuthzImplementationForwardAuth,
 				Headers: map[string]ServerEndpointsAuthzHeader{
-					"Remote-User": {
+					HeaderRemoteUser: {
 						UserAttribute: "username",
 					},
-					"Remote-Groups": {
+					HeaderRemoteGroups: {
 						UserAttribute: "groups",
 					},
-					"Remote-Name": {
-						UserAttribute: "name",
+					HeaderRemoteName: {
+						UserAttribute: "display_name",
 					},
-					"Remote-Email": {
+					HeaderRemoteEmail: {
 						UserAttribute: "email",
 					},
 				},

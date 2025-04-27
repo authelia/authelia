@@ -362,7 +362,16 @@ func validateServerEndpointsAuthzEndpoint(config *schema.Configuration, name str
 	}
 
 	if endpoint.Headers == nil {
-		endpoint.Headers = schema.DefaultServerConfiguration.Endpoints.Authz[name].Headers
+		switch endpoint.Implementation {
+		case schema.AuthzImplementationLegacy:
+			break
+		case schema.AuthzImplementationAuthRequest:
+			endpoint.Headers = schema.DefaultServerConfiguration.Endpoints.Authz[schema.AuthzEndpointNameAuthRequest].Headers
+		case schema.AuthzImplementationExtAuthz:
+			endpoint.Headers = schema.DefaultServerConfiguration.Endpoints.Authz[schema.AuthzEndpointNameExtAuthz].Headers
+		case schema.AuthzImplementationForwardAuth:
+			endpoint.Headers = schema.DefaultServerConfiguration.Endpoints.Authz[schema.AuthzEndpointNameForwardAuth].Headers
+		}
 	}
 	// TODO: Else validate the header attributes.
 
