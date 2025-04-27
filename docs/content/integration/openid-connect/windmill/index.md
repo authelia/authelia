@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 - [Windmill]
-  - [1.224.0](https://github.com/windmill-labs/windmill/releases/tag/v1.224.0)
+  - [v1.224.0](https://github.com/windmill-labs/windmill/releases/tag/v1.224.0)
 
 {{% oidc-common %}}
 

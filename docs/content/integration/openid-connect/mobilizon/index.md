@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.18](https://github.com/authelia/authelia/releases/tag/v4.38.18)
 - [Mobilizon]
-  - [5.1.0](https://framagit.org/framasoft/mobilizon/-/releases/5.1.0)
+  - [v5.1.0](https://framagit.org/framasoft/mobilizon/-/releases/5.1.0)
 
 {{% oidc-common %}}
 

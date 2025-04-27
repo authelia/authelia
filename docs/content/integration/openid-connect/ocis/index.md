@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 - [ownCloud Infinite Scale]
-  - 4.0.5
+  - [v4.0.5](https://github.com/owncloud/ocis/releases/tag/v4.0.5)
 
 {{% oidc-common %}}
 

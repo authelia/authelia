@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 - [Outline]
-  - 0.65.2
+  - [v0.65.2](https://github.com/outline/outline/releases/tag/v0.65.2)
 
 {{% oidc-common %}}
 

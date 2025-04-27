@@ -23,7 +23,6 @@ seo:
 - [Authelia]
   - [v4.38.8](https://github.com/authelia/authelia/releases/tag/v4.38.8)
 - [Flower]
-  - [2.0.1 3b9ed2f](https://github.com/m4rc3l-h3/flower)
 
 {{% oidc-common %}}
 

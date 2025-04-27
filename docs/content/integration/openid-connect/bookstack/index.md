@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 - [BookStack]
-  - 23.02.2
+  - [v23.02.2](https://github.com/BookStackApp/BookStack/releases/tag/v23.02.2)
 
 {{% oidc-common %}}
 

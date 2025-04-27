@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.6](https://github.com/authelia/authelia/releases/tag/v4.38.6)
 - [HumHub]
-  - [1.15.4](https://github.com/humhub/humhub/releases/tag/v1.15.4)
+  - [v1.15.4](https://github.com/humhub/humhub/releases/tag/v1.15.4)
 
 {{% oidc-common %}}
 

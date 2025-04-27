@@ -22,9 +22,8 @@ seo:
 
 - [Authelia]
   - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-
 - [Seafile] Server
-  - [10.0.1](https://manual.seafile.com/changelog/server-changelog/#1001-2023-04-11)
+  - [v10.0.1](https://manual.seafile.com/changelog/server-changelog/#1001-2023-04-11)
 
 {{% oidc-common %}}
 

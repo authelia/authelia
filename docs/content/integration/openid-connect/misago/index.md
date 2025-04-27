@@ -20,10 +20,10 @@ seo:
 
 ## Tested Versions
 
-- [Authelia](https://www.authelia.com)
+- [Authelia]
   - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
-- [Misago](https://github.com/rafalp/Misago)
-  - [misago-image v0.29.1](https://github.com/tetricky/misago-image/releases/tag/v0.29.1)
+- [Misago]
+  - [v0.29.1](https://github.com/tetricky/misago-image/releases/tag/v0.29.1)
 
 {{% oidc-common %}}
 
@@ -125,5 +125,6 @@ To configure [Misago] to utilize Authelia as an [OpenID Connect 1.0] Provider, u
 - [Misago] [OAuth 2 Client Configuration guide](https://misago-project.org/t/oauth-2-client-configuration-guide/1147/)
 
 [Misago]: https://misago-project.org/
+[Authelia]: https://www.authelia.com
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

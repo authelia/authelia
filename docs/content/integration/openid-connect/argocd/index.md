@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 - [Argo CD]
-  - v2.4.5
+  - [v2.4.5](https://github.com/argoproj/argo-cd/releases/tag/v2.4.5)
 
 {{% oidc-common %}}
 

@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 - [GitLab] CE
-  - 16.9.0
+  - [v16.9.0](https://about.gitlab.com/releases/2024/02/15/gitlab-16-9-released/)
 
 {{% oidc-common %}}
 

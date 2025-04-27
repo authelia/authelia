@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 - [pgAdmin]
-  - [v8.5](https://www.pgadmin.org/docs/pgadmin4/8.5/index.html)
+  - [v8.5](https://www.pgadmin.org/docs/pgadmin4/latest/release_notes_8_5.html)
 
 {{% oidc-common %}}
 

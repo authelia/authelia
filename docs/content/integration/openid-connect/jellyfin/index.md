@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.17](https://github.com/authelia/authelia/releases/tag/v4.38.17)
 - [Jellyfin]
-  - [10.10.6](https://github.com/jellyfin/jellyfin/releases/tag/v10.10.6)
+  - [v10.10.6](https://github.com/jellyfin/jellyfin/releases/tag/v10.10.6)
 
 {{% oidc-common %}}
 

@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 - [HashiCorp Vault]
-  - 1.8.1
+  - [v1.8.1](https://developer.hashicorp.com/vault/docs/release-notes/1.8.0)
 
 {{% oidc-common %}}
 
