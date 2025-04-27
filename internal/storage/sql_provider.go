@@ -1118,26 +1118,26 @@ func (p *SQLProvider) LoadOneTimeCodeByPublicID(ctx context.Context, id uuid.UUI
 func (p *SQLProvider) SaveOAuth2ConsentPreConfiguration(ctx context.Context, config model.OAuth2ConsentPreConfig) (insertedID int64, err error) {
 	switch p.name {
 	case providerPostgres:
-		if err = p.db.GetContext(ctx, &insertedID, p.sqlInsertOAuth2ConsentPreConfiguration,
+		err = p.db.GetContext(ctx, &insertedID, p.sqlInsertOAuth2ConsentPreConfiguration,
 			config.ClientID, config.Subject, config.CreatedAt, config.ExpiresAt,
 			config.Revoked, config.Scopes, config.Audience,
-			config.RequestedClaims, config.SignatureClaims, config.GrantedClaims); err != nil {
-			return -1, fmt.Errorf("error inserting oauth2 consent pre-configuration for subject '%s' with client id '%s' and scopes '%s': %w", config.Subject.String(), config.ClientID, strings.Join(config.Scopes, " "), err)
-		}
-
-		return insertedID, nil
+			config.RequestedClaims, config.SignatureClaims, config.GrantedClaims)
 	default:
 		var result sql.Result
 
 		if result, err = p.db.ExecContext(ctx, p.sqlInsertOAuth2ConsentPreConfiguration,
 			config.ClientID, config.Subject, config.CreatedAt, config.ExpiresAt,
 			config.Revoked, config.Scopes, config.Audience,
-			config.RequestedClaims, config.SignatureClaims, config.GrantedClaims); err != nil {
-			return -1, fmt.Errorf("error inserting oauth2 consent pre-configuration for subject '%s' with client id '%s' and scopes '%s': %w", config.Subject.String(), config.ClientID, strings.Join(config.Scopes, " "), err)
+			config.RequestedClaims, config.SignatureClaims, config.GrantedClaims); err == nil {
+			insertedID, err = result.LastInsertId()
 		}
-
-		return result.LastInsertId()
 	}
+
+	if err != nil {
+		return -1, fmt.Errorf("error inserting oauth2 consent pre-configuration for subject '%s' with client id '%s' and scopes '%s': %w", config.Subject.String(), config.ClientID, strings.Join(config.Scopes, " "), err)
+	}
+
+	return insertedID, nil
 }
 
 // LoadOAuth2ConsentPreConfigurations returns an OAuth2.0 consents pre-configurations from the storage provider given the consent signature.
