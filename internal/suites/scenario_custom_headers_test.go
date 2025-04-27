@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -88,7 +87,7 @@ func (s *CustomHeadersScenario) TestShouldForwardCustomHeaderForAuthenticatedUse
 		s.collectScreenshot(ctx.Err(), s.Page)
 	}()
 
-	expectedGroups := mapset.NewSet("dev", "admins")
+	expectedGroups := []string{"dev", "admins"}
 
 	targetURL := fmt.Sprintf("%s/headers", PublicBaseURL)
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, targetURL)
@@ -103,25 +102,17 @@ func (s *CustomHeadersScenario) TestShouldForwardCustomHeaderForAuthenticatedUse
 	s.Assert().NotNil(content)
 
 	payload := HeadersPayload{}
-	if err := json.Unmarshal([]byte(content), &payload); err != nil {
-		log.Panic(err)
-	}
+	s.Require().NoError(json.Unmarshal([]byte(content), &payload))
 
 	groups := strings.Split(payload.Headers.ForwardedGroups, ",")
-	actualGroups := mapset.NewSet[string]()
 
-	for _, group := range groups {
-		actualGroups.Add(group)
+	s.Assert().Equal("john", payload.Headers.ForwardedUser)
+	s.Assert().Equal("John Doe", payload.Headers.ForwardedName)
+	s.Assert().Equal("john.doe@authelia.com", payload.Headers.ForwardedEmail)
+
+	for _, group := range expectedGroups {
+		s.Assert().Contains(groups, group)
 	}
-
-	if strings.Contains(payload.Headers.ForwardedUser, "john") && expectedGroups.Equal(actualGroups) &&
-		strings.Contains(payload.Headers.ForwardedName, "John Doe") && strings.Contains(payload.Headers.ForwardedEmail, "john.doe@authelia.com") {
-		err = nil
-	} else {
-		err = fmt.Errorf("headers do not include user information")
-	}
-
-	s.Require().NoError(err)
 }
 
 func TestCustomHeadersScenario(t *testing.T) {
