@@ -216,7 +216,7 @@ the [OpenID Connect 1.0](https://openid.net/connect/) specification.
 
 This scope is a special scope designed to allow applications to obtain a [Refresh Token] which allows extended access to
 an application on behalf of a user. A [Refresh Token] is a special [Access Token] that allows refreshing previously
-issued token credentials via the [Refresh FLow], effectively it allows the Relying Party to request new tokens are
+issued token credentials via the [Refresh Flow], effectively allowing the relying party to request that new tokens be
 periodically minted and granted.
 
 As per [OpenID Connect 1.0] Section 11 [Offline Access] can only be granted during the [Authorization Code Flow] or a
