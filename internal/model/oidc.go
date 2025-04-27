@@ -274,6 +274,11 @@ type OAuth2ConsentSession struct {
 	PreConfiguration sql.NullInt64
 }
 
+// SetSubject sets the subject value.
+func (s *OAuth2ConsentSession) SetSubject(subject uuid.UUID) {
+	s.Subject = uuid.NullUUID{UUID: subject, Valid: subject != uuid.Nil}
+}
+
 // SetRespondedAt sets the responded at value.
 func (s *OAuth2ConsentSession) SetRespondedAt(t time.Time, preconf int64) {
 	s.RespondedAt = sql.NullTime{Time: t, Valid: true}
