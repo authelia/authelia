@@ -56,6 +56,13 @@ const (
 )
 
 const (
+	HeaderRemoteUser   = "Remote-User"
+	HeaderRemoteGroups = "Remote-Groups"
+	HeaderRemoteName   = "Remote-Name"
+	HeaderRemoteEmail  = "Remote-Email"
+)
+
+const (
 	// LDAPImplementationCustom is the string for the custom LDAP implementation.
 	LDAPImplementationCustom = "custom"
 

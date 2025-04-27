@@ -467,7 +467,7 @@ func (s *HeaderLegacyAuthnStrategy) HandleUnauthorized(ctx *middlewares.Authelia
 
 func handleAuthnCookieValidate(ctx *middlewares.AutheliaCtx, provider *session.Session, userSession *session.UserSession, refresh schema.RefreshIntervalDuration) (invalid bool) {
 	// TODO: Remove this check as it's no longer possible i.e. ineffectual.
-	isAnonymous := userSession.Username == ""
+	isAnonymous := userSession.IsAnonymous()
 
 	if isAnonymous && userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA) != authentication.NotAuthenticated {
 		ctx.Logger.WithFields(map[string]any{"username": anonymous, "level": userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA).String()}).Errorf("Session for user has an invalid authentication level: this may be a sign of a compromise")
