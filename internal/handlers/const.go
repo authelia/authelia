@@ -45,13 +45,15 @@ const (
 	queryArgConsentID = "consent_id"
 	queryArgFlow      = "flow"
 	queryArgFlowID    = "flow_id"
+	queryArgUserCode  = "user_code"
 )
 
 var (
-	qryArgID        = []byte(queryArgID)
 	qryArgRD        = []byte(queryArgRD)
+	qryArgID        = []byte(queryArgID)
 	qryArgAuth      = []byte(queryArgAuth)
 	qryArgConsentID = []byte(queryArgConsentID)
+	qryArgUserCode  = []byte(queryArgUserCode)
 )
 
 var (

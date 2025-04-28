@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import { Button, FormControl, useTheme } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -6,7 +6,15 @@ import TextField from "@mui/material/TextField";
 import { useTranslation } from "react-i18next";
 
 import LogoutButton from "@components/LogoutButton";
-import { useUserCode } from "@hooks/OpenIDConnect";
+import {
+    FlowNameOpenIDConnect,
+    QueryParamFlow,
+    QueryParamSubFlow,
+    SubFlowNameDeviceCode,
+} from "@constants/constants.js";
+import { ConsentDecisionSubRoute, ConsentOpenIDSubRoute, ConsentRoute } from "@constants/Routes";
+import { QueryParamUserCode, useUserCode } from "@hooks/OpenIDConnect";
+import { useRouterNavigate } from "@hooks/RouterNavigate";
 import LoginLayout from "@layouts/LoginLayout";
 import { UserInfo } from "@models/UserInfo";
 import { AutheliaState } from "@services/State";
@@ -24,13 +32,33 @@ const OpenIDConnectConsentDeviceAuthorizationFormView: React.FC<Props> = (props:
 
     const userCode = useUserCode();
 
+    const navigate = useRouterNavigate();
+
+    const handleCode = useCallback(
+        (code: string) => {
+            if (code === "") {
+                return;
+            }
+
+            const params = new URLSearchParams();
+
+            params.set(QueryParamUserCode, code);
+            params.set(QueryParamFlow, FlowNameOpenIDConnect);
+            params.set(QueryParamSubFlow, SubFlowNameDeviceCode);
+
+            navigate(`${ConsentRoute}${ConsentOpenIDSubRoute}${ConsentDecisionSubRoute}`, true, true, true, params);
+        },
+        [navigate],
+    );
+
     useEffect(() => {
         if (userCode === null || userCode === "") {
             return;
         }
 
         setCode(userCode);
-    }, [userCode]);
+        handleCode(userCode);
+    }, [handleCode, userCode]);
 
     return (
         <LoginLayout id="consent-stage" title={translate("Confirm the Code")}>
@@ -54,7 +82,14 @@ const OpenIDConnectConsentDeviceAuthorizationFormView: React.FC<Props> = (props:
                                 />
                             </Grid>
                             <Grid size={{ xs: 12 }}>
-                                <Button id="confirm-button" variant="contained" color="primary" fullWidth>
+                                <Button
+                                    id="confirm-button"
+                                    variant="contained"
+                                    color="primary"
+                                    fullWidth
+                                    onClick={() => handleCode(code)}
+                                    disabled={code === ""}
+                                >
                                     {translate("Confirm")}
                                 </Button>
                             </Grid>

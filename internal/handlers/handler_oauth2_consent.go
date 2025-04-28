@@ -54,6 +54,37 @@ func OAuth2ConsentGET(ctx *middlewares.AutheliaCtx) {
 	}
 }
 
+// OAuth2ConsentDeviceAuthorizationGET handles requests to provide consent for OpenID Connect.
+func OAuth2ConsentDeviceAuthorizationGET(ctx *middlewares.AutheliaCtx) {
+	var (
+		err error
+	)
+
+	userCode := string(ctx.RequestCtx.QueryArgs().PeekBytes(qryArgUserCode))
+
+	var (
+		deviceCodeSession *model.OAuth2DeviceCodeSession
+		form              url.Values
+		client            oidc.Client
+		handled           bool
+	)
+
+	if _, deviceCodeSession, client, handled = handleOAuth2ConsentDeviceAuthorizationGetSessionsAndClient(ctx, userCode); handled {
+		return
+	}
+
+	if form, err = handleGetConsentFormFromConsentSession(ctx, consent); err != nil {
+		ctx.Logger.WithError(err).Errorf("Unable to get form from consent session with id '%s': %+v", consent.ChallengeID, err)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	if err = ctx.SetJSONBody(client.GetConsentResponseBody(consent, form)); err != nil {
+		ctx.Error(fmt.Errorf("unable to set JSON body: %w", err), "Operation failed")
+	}
+}
+
 // OAuth2ConsentPOST handles consent responses for OpenID Connect.
 //
 //nolint:gocyclo
@@ -266,6 +297,42 @@ func handleOAuth2ConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, conse
 	}
 
 	return userSession, consent, client, false
+}
+
+func handleOAuth2ConsentDeviceAuthorizationGetSessionsAndClient(ctx *middlewares.AutheliaCtx, userCode string) (userSession session.UserSession, deviceCodeSession *model.OAuth2DeviceCodeSession, client oidc.Client, handled bool) {
+	var (
+		err error
+	)
+
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Logger.Errorf("Unable to load user session for challenge id '%s': %v", consentID, err)
+		ctx.ReplyForbidden()
+
+		return userSession, nil, nil, true
+	}
+
+	if deviceCodeSession, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, consentID); err != nil {
+		ctx.Logger.Errorf("Unable to load consent session with challenge id '%s': %v", consentID, err)
+		ctx.ReplyForbidden()
+
+		return userSession, nil, nil, true
+	}
+
+	if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, deviceCodeSession.ClientID); err != nil {
+		ctx.Logger.Errorf("Unable to find related client configuration with name '%s': %v", deviceCodeSession.ClientID, err)
+		ctx.ReplyForbidden()
+
+		return userSession, nil, nil, true
+	}
+
+	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA), authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
+		ctx.Logger.Errorf("Unable to perform OpenID Connect Consent for user '%s' and client id '%s': the user is not sufficiently authenticated", userSession.Username, deviceCodeSession.ClientID)
+		ctx.ReplyForbidden()
+
+		return userSession, nil, nil, true
+	}
+
+	return userSession, deviceCodeSession, client, false
 }
 
 func handleGetConsentFormFromConsentSession(ctx *middlewares.AutheliaCtx, consent *model.OAuth2ConsentSession) (form url.Values, err error) {

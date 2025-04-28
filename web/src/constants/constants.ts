@@ -13,3 +13,6 @@ export const QueryParamFlow = "flow";
 export const QueryParamFlowID = "flow_id";
 export const QueryParamSubFlow = "subflow";
 export const QueryParamRedirection = "rd";
+
+export const FlowNameOpenIDConnect = "openid_connect";
+export const SubFlowNameDeviceCode = "device_code";

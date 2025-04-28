@@ -1,15 +1,9 @@
-import { useLocation } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
 export function useUserCode() {
-    const { hash } = useLocation();
+    const [searchParams] = useSearchParams();
 
-    let raw = hash;
-
-    if (raw.startsWith("#")) {
-        raw = raw.slice(1);
-    }
-
-    const parameters = new URLSearchParams(raw);
-
-    return parameters.get("user_code");
+    return searchParams.get(QueryParamUserCode);
 }
+
+export const QueryParamUserCode = "user_code";
