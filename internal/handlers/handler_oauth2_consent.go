@@ -42,7 +42,7 @@ func OAuth2ConsentGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if form, err = handleGetConsentFormFromConsentSession(ctx, consent); err != nil {
+	if form, err = handleGetFormFromFormSession(ctx, consent); err != nil {
 		ctx.Logger.WithError(err).Errorf("Unable to get form from consent session with id '%s': %+v", consent.ChallengeID, err)
 		ctx.SetJSONError(messageOperationFailed)
 
@@ -63,25 +63,35 @@ func OAuth2ConsentDeviceAuthorizationGET(ctx *middlewares.AutheliaCtx) {
 	userCode := string(ctx.RequestCtx.QueryArgs().PeekBytes(qryArgUserCode))
 
 	var (
+		userSession       session.UserSession
 		deviceCodeSession *model.OAuth2DeviceCodeSession
 		form              url.Values
 		client            oidc.Client
 		handled           bool
 	)
 
-	if _, deviceCodeSession, client, handled = handleOAuth2ConsentDeviceAuthorizationGetSessionsAndClient(ctx, userCode); handled {
+	if userSession, deviceCodeSession, client, handled = handleOAuth2ConsentDeviceAuthorizationGetSessionsAndClient(ctx, userCode); handled {
 		return
 	}
 
-	if form, err = handleGetConsentFormFromConsentSession(ctx, consent); err != nil {
-		ctx.Logger.WithError(err).Errorf("Unable to get form from consent session with id '%s': %+v", consent.ChallengeID, err)
+	if form, err = handleGetFormFromFormSession(ctx, deviceCodeSession); err != nil {
+		ctx.Logger.
+			WithError(err).
+			WithFields(map[string]any{"client_id": deviceCodeSession.ClientID, "session_id": deviceCodeSession.ID, "request_id": deviceCodeSession.RequestID, "username": userSession.Username}).
+			Error("Failed to get form from device code session")
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
-	if err = ctx.SetJSONBody(client.GetConsentResponseBody(consent, form)); err != nil {
-		ctx.Error(fmt.Errorf("unable to set JSON body: %w", err), "Operation failed")
+	if err = ctx.SetJSONBody(client.GetConsentResponseBody(deviceCodeSession, form)); err != nil {
+		ctx.Logger.
+			WithError(err).
+			WithFields(map[string]any{"client_id": deviceCodeSession.ClientID, "session_id": deviceCodeSession.ID, "request_id": deviceCodeSession.RequestID, "username": userSession.Username}).
+			Error("Error occurred trying to set JSON body in response")
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
 	}
 }
 
@@ -301,33 +311,54 @@ func handleOAuth2ConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, conse
 
 func handleOAuth2ConsentDeviceAuthorizationGetSessionsAndClient(ctx *middlewares.AutheliaCtx, userCode string) (userSession session.UserSession, deviceCodeSession *model.OAuth2DeviceCodeSession, client oidc.Client, handled bool) {
 	var (
-		err error
+		signature string
+		err       error
 	)
 
 	if userSession, err = ctx.GetSession(); err != nil {
-		ctx.Logger.Errorf("Unable to load user session for challenge id '%s': %v", consentID, err)
-		ctx.ReplyForbidden()
+		ctx.Logger.
+			WithError(err).
+			Error("Error occurred loading user session during the Consent Flow stage of the Device Authorization Flow")
+		ctx.SetJSONError(messageOperationFailed)
 
 		return userSession, nil, nil, true
 	}
 
-	if deviceCodeSession, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentSessionByChallengeID(ctx, consentID); err != nil {
-		ctx.Logger.Errorf("Unable to load consent session with challenge id '%s': %v", consentID, err)
-		ctx.ReplyForbidden()
+	if signature, err = ctx.Providers.OpenIDConnect.Strategy.Core.RFC8628UserCodeSignature(ctx, userCode); err != nil {
+		ctx.Logger.
+			WithError(err).
+			WithFields(map[string]any{"username": userSession.Username}).
+			Error("Error occurred deriving device code session signature using user code during the Consent Flow stage of the Device Authorization Flow")
+		ctx.SetJSONError(messageOperationFailed)
+
+		return userSession, nil, nil, true
+	}
+
+	if deviceCodeSession, err = ctx.Providers.StorageProvider.LoadOAuth2DeviceCodeSessionByUserCode(ctx, signature); err != nil {
+		ctx.Logger.
+			WithError(err).
+			WithFields(map[string]any{"username": userSession.Username}).
+			Error("Error occurred loading device code session using user code signature during the Consent Flow stage of the Device Authorization Flow")
+		ctx.SetJSONError(messageOperationFailed)
 
 		return userSession, nil, nil, true
 	}
 
 	if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, deviceCodeSession.ClientID); err != nil {
-		ctx.Logger.Errorf("Unable to find related client configuration with name '%s': %v", deviceCodeSession.ClientID, err)
-		ctx.ReplyForbidden()
+		ctx.Logger.
+			WithError(err).
+			WithFields(map[string]any{"client_id": deviceCodeSession.ClientID, "session_id": deviceCodeSession.ID, "request_id": deviceCodeSession.RequestID, "username": userSession.Username}).
+			Error("Error occurred loading registered client using client id during the Consent Flow stage of the Device Authorization Flow")
+		ctx.SetJSONError(messageOperationFailed)
 
-		return userSession, nil, nil, true
+		return userSession, deviceCodeSession, nil, true
 	}
 
 	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA), authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
-		ctx.Logger.Errorf("Unable to perform OpenID Connect Consent for user '%s' and client id '%s': the user is not sufficiently authenticated", userSession.Username, deviceCodeSession.ClientID)
-		ctx.ReplyForbidden()
+		ctx.Logger.
+			WithFields(map[string]any{"client_id": deviceCodeSession.ClientID, "session_id": deviceCodeSession.ID, "request_id": deviceCodeSession.RequestID, "username": userSession.Username, "groups": userSession.Groups, "ip": ctx.RemoteIP()}).
+			Error("Device Authorization Flow failed to retrieve Consent Flow data as the user is not sufficiently authenticated")
+		ctx.SetJSONError(messageOperationFailed)
 
 		return userSession, nil, nil, true
 	}
@@ -335,8 +366,8 @@ func handleOAuth2ConsentDeviceAuthorizationGetSessionsAndClient(ctx *middlewares
 	return userSession, deviceCodeSession, client, false
 }
 
-func handleGetConsentFormFromConsentSession(ctx *middlewares.AutheliaCtx, consent *model.OAuth2ConsentSession) (form url.Values, err error) {
-	if form, err = consent.GetForm(); err != nil {
+func handleGetFormFromFormSession(ctx *middlewares.AutheliaCtx, session oidc.FormSession) (form url.Values, err error) {
+	if form, err = session.GetForm(); err != nil {
 		return nil, err
 	}
 

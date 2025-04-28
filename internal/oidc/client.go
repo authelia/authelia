@@ -13,7 +13,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/model"
 )
 
 // NewClient creates a new Client.
@@ -537,7 +536,7 @@ func (c *RegisteredClient) GetPKCEChallengeMethod() (method string) {
 }
 
 // GetConsentResponseBody returns the proper consent response body for this session.OIDCWorkflowSession.
-func (c *RegisteredClient) GetConsentResponseBody(consent *model.OAuth2ConsentSession, form url.Values) ConsentGetResponseBody {
+func (c *RegisteredClient) GetConsentResponseBody(session RequesterFormSession, form url.Values) ConsentGetResponseBody {
 	body := ConsentGetResponseBody{
 		ClientID:          c.ID,
 		ClientDescription: c.Name,
@@ -546,9 +545,9 @@ func (c *RegisteredClient) GetConsentResponseBody(consent *model.OAuth2ConsentSe
 		EssentialClaims:   []string{},
 	}
 
-	if consent != nil {
-		body.Scopes = consent.RequestedScopes
-		body.Audience = consent.RequestedAudience
+	if session != nil {
+		body.Scopes = session.GetRequestedScopes()
+		body.Audience = session.GetRequestedAudience()
 
 		var (
 			claims *ClaimsRequests
@@ -556,7 +555,7 @@ func (c *RegisteredClient) GetConsentResponseBody(consent *model.OAuth2ConsentSe
 		)
 
 		if form == nil {
-			form, _ = consent.GetForm()
+			form, _ = session.GetForm()
 		}
 
 		if form != nil {

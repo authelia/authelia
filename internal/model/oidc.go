@@ -354,6 +354,22 @@ func (s *OAuth2ConsentSession) GetForm() (form url.Values, err error) {
 	return url.ParseQuery(s.Form)
 }
 
+func (s *OAuth2ConsentSession) GetRequestedScopes() []string {
+	return s.RequestedScopes
+}
+
+func (s *OAuth2ConsentSession) GetGrantedScopes() []string {
+	return s.GrantedScopes
+}
+
+func (s *OAuth2ConsentSession) GetRequestedAudience() []string {
+	return s.RequestedAudience
+}
+
+func (s *OAuth2ConsentSession) GetGrantedAudience() []string {
+	return s.GrantedAudience
+}
+
 // OAuth2BlacklistedJTI represents a blacklisted JTI used with OAuth2.0.
 type OAuth2BlacklistedJTI struct {
 	ID        int       `db:"id"`
@@ -438,6 +454,27 @@ type OAuth2DeviceCodeSession struct {
 	Revoked           bool                     `db:"revoked"`
 	Form              string                   `db:"form_data"`
 	Session           []byte                   `db:"session_data"`
+}
+
+// GetForm returns the form.
+func (s *OAuth2DeviceCodeSession) GetForm() (form url.Values, err error) {
+	return url.ParseQuery(s.Form)
+}
+
+func (s *OAuth2DeviceCodeSession) GetRequestedScopes() []string {
+	return s.RequestedScopes
+}
+
+func (s *OAuth2DeviceCodeSession) GetGrantedScopes() []string {
+	return s.GrantedScopes
+}
+
+func (s *OAuth2DeviceCodeSession) GetRequestedAudience() []string {
+	return s.RequestedAudience
+}
+
+func (s *OAuth2DeviceCodeSession) GetGrantedAudience() []string {
+	return s.GrantedAudience
 }
 
 // ToRequest converts an OAuth2Session into a oauthelia2.Request given a oauthelia2.Session and oauthelia2.Storage.

@@ -2,6 +2,7 @@ package oidc
 
 import (
 	"context"
+	"github.com/authelia/authelia/v4/internal/model"
 	"net/http"
 	"net/url"
 	"time"
@@ -16,7 +17,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
-	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/storage"
 )
@@ -193,7 +193,7 @@ type Client interface {
 
 	ValidateResponseModePolicy(r oauthelia2.AuthorizeRequester) (err error)
 
-	GetConsentResponseBody(consent *model.OAuth2ConsentSession, form url.Values) (body ConsentGetResponseBody)
+	GetConsentResponseBody(session RequesterFormSession, form url.Values) (body ConsentGetResponseBody)
 	GetConsentPolicy() ClientConsentPolicy
 	IsAuthenticationLevelSufficient(level authentication.Level, subject authorization.Subject) (sufficient bool)
 	GetAuthorizationPolicyRequiredLevel(subject authorization.Subject) (level authorization.Level)
@@ -1040,6 +1040,20 @@ func (claims *OpenIDConnectWellKnownSignedConfiguration) ToMap() (result fjwt.Ma
 	return fjwt.NewMapClaims(claims)
 }
 
+type FormSession interface {
+	GetForm() (form url.Values, err error)
+}
+
+type RequesterFormSession interface {
+	FormSession
+
+	GetRequestedScopes() []string
+	GetRequestedAudience() []string
+
+	GetGrantedScopes() []string
+	GetGrantedAudience() []string
+}
+
 type Number interface {
 	~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~float32 | ~float64
 }
@@ -1062,4 +1076,7 @@ var (
 	_ oauthelia2.RequestedAudienceImplicitClient                   = (*RegisteredClient)(nil)
 	_ oauthelia2.JWTProfileClient                                  = (*RegisteredClient)(nil)
 	_ oauthelia2.IntrospectionJWTResponseClient                    = (*RegisteredClient)(nil)
+
+	_ RequesterFormSession = (*model.OAuth2ConsentSession)(nil)
+	_ RequesterFormSession = (*model.OAuth2DeviceCodeSession)(nil)
 )
