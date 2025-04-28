@@ -102,7 +102,7 @@ OAUTH2_CONFIG = [{
 
 ## See Also
 
-- [pgAdmin OAuth2 Documentation](https://www.pgadmin.org/docs/pgadmin4/8.4/oauth2.html)
+- [pgAdmin OAuth2 Documentation](https://www.pgadmin.org/docs/pgadmin4/9.2/oauth2.html)
 
 [pgAdmin]: https://www.pgadmin.org/
 [Authelia]: https://www.authelia.com
