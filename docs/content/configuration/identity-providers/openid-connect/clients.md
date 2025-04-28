@@ -407,9 +407,11 @@ The following specific and intentional limitations exist:
    or has previously provided explicit consent and requested their consent is remembered.
 2. If the client requests the user is prompted to provide consent the mode will automatically be `explicit` regardless
    of client configuration.
-3. If the client requests the `offline_access` or `offline` scope the mode will automatically be `explicit` regardless
+3. If the client requests the user is prompted to login again then either the mode will either automatically be
+   `explicit` or the flow may also result in a failure that returns an error to the client.
+4. If the client requests the `offline_access` or `offline` scope the mode will automatically be `explicit` regardless
    of client configuration.
-4. If the current flow is not compatible with implicit consent for any reason; for example:
+5. If the current flow is not compatible with implicit consent for any reason; for example:
    1. Device Authorization Flow
 
 ### pre_configured_consent_duration
