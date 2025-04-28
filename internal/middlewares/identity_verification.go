@@ -97,6 +97,7 @@ func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc Tim
 
 		data := templates.EmailIdentityVerificationJWTValues{
 			Title:              args.MailTitle,
+			Token:              signedToken,
 			LinkURL:            linkURL.String(),
 			LinkText:           args.MailButtonContent,
 			RevocationLinkURL:  revocationLinkURL.String(),

@@ -72,6 +72,7 @@ type EmailIdentityVerificationJWTValues struct {
 	DisplayName        string
 	Domain             string
 	RemoteIP           string
+	Token              string
 	LinkURL            string
 	LinkText           string
 	RevocationLinkURL  string
