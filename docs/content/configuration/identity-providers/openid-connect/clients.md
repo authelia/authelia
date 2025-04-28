@@ -409,6 +409,8 @@ The following specific and intentional limitations exist:
    of client configuration.
 3. If the client requests the `offline_access` or `offline` scope the mode will automatically be `explicit` regardless
    of client configuration.
+4. If the current flow is not compatible with implicit consent for any reason; for example:
+   1. Device Authorization Flow
 
 ### pre_configured_consent_duration
 
