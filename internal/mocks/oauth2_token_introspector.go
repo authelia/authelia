@@ -42,10 +42,10 @@ func (m *MockTokenIntrospector) EXPECT() *MockTokenIntrospectorMockRecorder {
 }
 
 // IntrospectToken mocks base method.
-func (m *MockTokenIntrospector) IntrospectToken(ctx context.Context, token string, tokenUse oauth2.TokenType, accessRequest oauth2.AccessRequester, scopes []string) (oauth2.TokenType, error) {
+func (m *MockTokenIntrospector) IntrospectToken(ctx context.Context, token string, tokenUse oauth2.TokenUse, accessRequest oauth2.AccessRequester, scopes []string) (oauth2.TokenUse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IntrospectToken", ctx, token, tokenUse, accessRequest, scopes)
-	ret0, _ := ret[0].(oauth2.TokenType)
+	ret0, _ := ret[0].(oauth2.TokenUse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
