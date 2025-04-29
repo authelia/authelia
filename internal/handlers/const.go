@@ -40,7 +40,6 @@ var (
 const (
 	queryArgRD        = "rd"
 	queryArgRM        = "rm"
-	queryArgID        = "id"
 	queryArgAuth      = "auth"
 	queryArgConsentID = "consent_id"
 	queryArgFlow      = "flow"
@@ -50,7 +49,7 @@ const (
 
 var (
 	qryArgRD        = []byte(queryArgRD)
-	qryArgID        = []byte(queryArgID)
+	qryArgFlowID    = []byte(queryArgFlowID)
 	qryArgAuth      = []byte(queryArgAuth)
 	qryArgConsentID = []byte(queryArgConsentID)
 	qryArgUserCode  = []byte(queryArgUserCode)

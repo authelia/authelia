@@ -20,26 +20,21 @@ const OpenIDConnectConsentLoginFormView = lazy(
 );
 
 export interface Props {
-    userInfo: UserInfo;
+    userInfo?: UserInfo;
     state: AutheliaState;
 }
 
 const OpenIDConnectConsentPortal: React.FC<Props> = (props: Props) => {
     return (
         <Routes>
-            <Route
-                path={ConsentLoginSubRoute}
-                element={<OpenIDConnectConsentLoginFormView userInfo={props.userInfo} state={props.state} />}
-            />
+            <Route path={ConsentLoginSubRoute} element={<OpenIDConnectConsentLoginFormView state={props.state} />} />
             <Route
                 path={ConsentDecisionSubRoute}
                 element={<OpenIDConnectConsentDecisionFormView userInfo={props.userInfo} state={props.state} />}
             />
             <Route
                 path={ConsentOpenIDDeviceAuthorizationSubRoute}
-                element={
-                    <OpenIDConnectConsentDeviceAuthorizationFormView userInfo={props.userInfo} state={props.state} />
-                }
+                element={<OpenIDConnectConsentDeviceAuthorizationFormView state={props.state} />}
             />
         </Routes>
     );

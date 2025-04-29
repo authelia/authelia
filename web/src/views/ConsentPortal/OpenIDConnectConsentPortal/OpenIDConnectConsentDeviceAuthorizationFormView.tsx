@@ -10,17 +10,15 @@ import {
     FlowNameOpenIDConnect,
     QueryParamFlow,
     QueryParamSubFlow,
-    SubFlowNameDeviceCode,
-} from "@constants/constants.js";
-import { ConsentDecisionSubRoute, ConsentOpenIDSubRoute, ConsentRoute } from "@constants/Routes";
+    SubFlowNameDeviceAuthorization,
+} from "@constants/constants";
+import { ConsentDecisionSubRoute, ConsentOpenIDSubRoute, ConsentRoute, IndexRoute } from "@constants/Routes";
 import { QueryParamUserCode, useUserCode } from "@hooks/OpenIDConnect";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 import LoginLayout from "@layouts/LoginLayout";
-import { UserInfo } from "@models/UserInfo";
-import { AutheliaState } from "@services/State";
+import { AutheliaState, AuthenticationLevel } from "@services/State";
 
 export interface Props {
-    userInfo: UserInfo;
     state: AutheliaState;
 }
 
@@ -44,7 +42,7 @@ const OpenIDConnectConsentDeviceAuthorizationFormView: React.FC<Props> = (props:
 
             params.set(QueryParamUserCode, code);
             params.set(QueryParamFlow, FlowNameOpenIDConnect);
-            params.set(QueryParamSubFlow, SubFlowNameDeviceCode);
+            params.set(QueryParamSubFlow, SubFlowNameDeviceAuthorization);
 
             navigate(`${ConsentRoute}${ConsentOpenIDSubRoute}${ConsentDecisionSubRoute}`, true, true, true, params);
         },
@@ -52,13 +50,28 @@ const OpenIDConnectConsentDeviceAuthorizationFormView: React.FC<Props> = (props:
     );
 
     useEffect(() => {
-        if (userCode === null || userCode === "") {
+        if (props.state.authentication_level === AuthenticationLevel.Unauthenticated) {
+            const params = new URLSearchParams();
+
+            if (code) {
+                params.set(QueryParamUserCode, code);
+            }
+
+            params.set(QueryParamFlow, FlowNameOpenIDConnect);
+            params.set(QueryParamSubFlow, SubFlowNameDeviceAuthorization);
+
+            navigate(IndexRoute, true, true, true, params);
+        }
+    }, [code, navigate, props.state.authentication_level]);
+
+    useEffect(() => {
+        if (!userCode || props.state.authentication_level === AuthenticationLevel.Unauthenticated) {
             return;
         }
 
         setCode(userCode);
         handleCode(userCode);
-    }, [handleCode, userCode]);
+    }, [handleCode, props.state.authentication_level, userCode]);
 
     return (
         <LoginLayout id="consent-stage" title={translate("Confirm the Code")}>

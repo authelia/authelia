@@ -303,11 +303,13 @@ type ConsentGetResponseBody struct {
 
 // ConsentPostRequestBody schema of the request body of the consent POST endpoint.
 type ConsentPostRequestBody struct {
-	ConsentID    string   `json:"id"`
+	FlowID       string   `json:"flow_id"`
 	ClientID     string   `json:"client_id"`
 	Consent      bool     `json:"consent"`
 	PreConfigure bool     `json:"pre_configure"`
 	Claims       []string `json:"claims"`
+	SubFlow      *string  `json:"subflow"`
+	UserCode     *string  `json:"user_code"`
 }
 
 // ConsentPostResponseBody schema of the response body of the consent POST endpoint.

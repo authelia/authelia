@@ -3,7 +3,9 @@ import { useSearchParams } from "react-router-dom";
 export function useUserCode() {
     const [searchParams] = useSearchParams();
 
-    return searchParams.get(QueryParamUserCode);
+    const userCode = searchParams.get(QueryParamUserCode);
+
+    return userCode === null ? undefined : userCode;
 }
 
 export const QueryParamUserCode = "user_code";

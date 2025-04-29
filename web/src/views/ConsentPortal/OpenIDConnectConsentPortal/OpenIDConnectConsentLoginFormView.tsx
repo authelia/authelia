@@ -22,13 +22,11 @@ import { useFlow } from "@hooks/Flow";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useRedirector } from "@hooks/Redirector";
 import LoginLayout from "@layouts/LoginLayout";
-import { UserInfo } from "@models/UserInfo";
 import { IsCapsLockModified } from "@services/CapsLock";
 import { postFirstFactorReauthenticate } from "@services/Password";
 import { AutheliaState } from "@services/State";
 
 export interface Props {
-    userInfo: UserInfo;
     state: AutheliaState;
 }
 

@@ -2039,7 +2039,7 @@ paths:
       description: >
         This endpoint retrieves the consent information about a specific consent ID during the consent workflow.
       parameters:
-        - $ref: '#/components/parameters/idRequiredParam'
+        - $ref: '#/components/parameters/flowIDRequiredParam'
       responses:
         "200":
           description: OK
@@ -2197,10 +2197,10 @@ components:
       schema:
         type: string
         enum: ["basic"]
-    idRequiredParam:
-      name: id
+    flowIDRequiredParam:
+      name: flow_id
       in: query
-      description: The ID of what is being requested
+      description: The Flow ID that's being requested
       required: true
       schema:
         type: string
@@ -3145,9 +3145,13 @@ components:
           example: OK
         data:
           type: object
+          required:
+            - flow_id
+            - client_id
+            - consent
           properties:
-            id:
-              description: The identifier of the consent session.
+            flow_id:
+              description: The identifier of the consent flow session.
               type: string
               format: uuid
               pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
@@ -3164,6 +3168,13 @@ components:
               description: Indicates if the user consented to pre-configuration.
               type: boolean
               example: true
+            subflow:
+              description: The name of the subflow if applicable.
+              type: string
+              example: 'device_authorization'
+            user_code:
+              description: The user code for the Device Authorization Flow if applicable
+              type: string
     openid.spec.Metadata.OAuth2AuthorizationServer:
       type: object
       required:
