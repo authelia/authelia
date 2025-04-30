@@ -114,7 +114,7 @@
     "eslint-plugin-prettier": "5.2.6",
     "eslint-plugin-react": "7.37.5",
     "eslint-plugin-react-hooks": "5.2.0",
-    "happy-dom": "17.4.4",
+    "happy-dom": "17.4.6",
     "husky": "9.1.7",
     "prettier": "3.5.3",
     "typescript": "5.8.3",
