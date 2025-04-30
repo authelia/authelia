@@ -1,20 +1,6 @@
-import React, { Fragment, useCallback, useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 
-import { AccountBox, Autorenew, Contacts, Drafts, Group, LockOpen, Policy } from "@mui/icons-material";
-import {
-    Box,
-    Button,
-    Checkbox,
-    FormControlLabel,
-    List,
-    ListItem,
-    ListItemIcon,
-    ListItemText,
-    Theme,
-    Tooltip,
-    Typography,
-    useTheme,
-} from "@mui/material";
+import { Box, Button, Theme, Tooltip, Typography, useTheme } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
 import { makeStyles } from "tss-react/mui";
@@ -30,37 +16,19 @@ import LoginLayout from "@layouts/LoginLayout";
 import { UserInfo } from "@models/UserInfo";
 import {
     ConsentGetResponseBody,
-    formatClaim,
-    formatScope,
     getConsentResponse,
     postConsentResponseAccept,
     postConsentResponseReject,
 } from "@services/ConsentOpenIDConnect";
 import { AutheliaState, AuthenticationLevel } from "@services/State";
+import OpenIDConnectConsentDecisionFormClaims from "@views/ConsentPortal/OpenIDConnectConsentPortal/OpenIDConnectConsentDecisionFormClaims.js";
+import OpenIDConnectConsentDecisionFormPreConfiguration from "@views/ConsentPortal/OpenIDConnectConsentPortal/OpenIDConnectConsentDecisionFormPreConfiguration.js";
+import OpenIDConnectConsentDecisionFormScopes from "@views/ConsentPortal/OpenIDConnectConsentPortal/OpenIDConnectConsentDecisionFormScopes.js";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 
 export interface Props {
     userInfo?: UserInfo;
     state: AutheliaState;
-}
-
-function scopeNameToAvatar(id: string) {
-    switch (id) {
-        case "openid":
-            return <AccountBox />;
-        case "offline_access":
-            return <Autorenew />;
-        case "profile":
-            return <Contacts />;
-        case "groups":
-            return <Group />;
-        case "email":
-            return <Drafts />;
-        case "authelia.bearer.authz":
-            return <LockOpen />;
-        default:
-            return <Policy />;
-    }
 }
 
 const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => {
@@ -77,11 +45,11 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
 
     const [response, setResponse] = useState<ConsentGetResponseBody>();
     const [error, setError] = useState<any>(undefined);
-    const [claims, setClaims] = useState<string>("");
+    const [claims, setClaims] = useState<string[]>([]);
     const [preConfigure, setPreConfigure] = useState(false);
 
-    const handlePreConfigureChanged = () => {
-        setPreConfigure((preConfigure) => !preConfigure);
+    const handlePreConfigureChanged = (value: boolean) => {
+        setPreConfigure(value);
     };
 
     useEffect(() => {
@@ -91,7 +59,6 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
             getConsentResponse(flowID, userCode)
                 .then((r) => {
                     setResponse(r);
-                    setClaims(JSON.stringify(r.claims));
                 })
                 .catch((error) => {
                     setError(error);
@@ -113,14 +80,16 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
         if (!response) {
             return;
         }
+
         const res = await postConsentResponseAccept(
             preConfigure,
             response.client_id,
-            JSON.parse(claims),
+            claims,
             flowID,
             subflow,
             userCode,
         );
+
         if (res.redirect_uri) {
             redirect(res.redirect_uri);
         } else {
@@ -139,39 +108,6 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
             throw new Error("Unable to redirect the user");
         }
     };
-
-    const handleClaimCheckboxOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setClaims((prevState) => {
-            const value = event.target.value;
-            const arrClaims: string[] = JSON.parse(prevState);
-            const checking = !arrClaims.includes(event.target.value);
-
-            if (checking) {
-                if (!arrClaims.includes(value)) {
-                    arrClaims.push(value);
-                }
-            } else {
-                const i = arrClaims.indexOf(value);
-
-                if (i > -1) {
-                    arrClaims.splice(i, 1);
-                }
-            }
-
-            return JSON.stringify(arrClaims);
-        });
-    };
-
-    const claimChecked = useCallback(
-        (claim: string) => {
-            const arrClaims: string[] = JSON.parse(claims);
-
-            return arrClaims.includes(claim);
-        },
-        [claims],
-    );
-
-    const hasClaims = response?.essential_claims || response?.claims;
 
     return (
         <Fragment>
@@ -208,91 +144,16 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
                                         {translate("The above application is requesting the following permissions")}:
                                     </Box>
                                 </Grid>
-                                <Grid size={{ xs: 12 }}>
-                                    <Box className={classes.scopesListContainer}>
-                                        <List className={classes.scopesList}>
-                                            {response.scopes.map((scope: string) => (
-                                                <Tooltip title={translate("Scope", { name: scope, ns: "consent" })}>
-                                                    <ListItem id={"scope-" + scope} dense>
-                                                        <ListItemIcon>{scopeNameToAvatar(scope)}</ListItemIcon>
-                                                        <ListItemText
-                                                            primary={formatScope(
-                                                                translate(`scopes.${scope}`, { ns: "consent" }),
-                                                                scope,
-                                                            )}
-                                                        />
-                                                    </ListItem>
-                                                </Tooltip>
-                                            ))}
-                                        </List>
-                                    </Box>
-                                </Grid>
-                                {hasClaims ? (
-                                    <Grid size={{ xs: 12 }}>
-                                        <Box className={classes.claimsListContainer}>
-                                            <List className={classes.claimsList}>
-                                                {response.essential_claims?.map((claim: string) => (
-                                                    <Tooltip title={translate("Claim", { name: claim, ns: "consent" })}>
-                                                        <FormControlLabel
-                                                            control={
-                                                                <Checkbox
-                                                                    id={`claim-${claim}-essential`}
-                                                                    disabled
-                                                                    checked
-                                                                />
-                                                            }
-                                                            label={formatClaim(
-                                                                translate(`claims.${claim}`, { ns: "consent" }),
-                                                                claim,
-                                                            )}
-                                                        />
-                                                    </Tooltip>
-                                                ))}
-                                                {response.claims?.map((claim: string) => (
-                                                    <Tooltip title={translate("Claim", { name: claim, ns: "consent" })}>
-                                                        <FormControlLabel
-                                                            control={
-                                                                <Checkbox
-                                                                    id={"claim-" + claim}
-                                                                    value={claim}
-                                                                    checked={claimChecked(claim)}
-                                                                    onChange={handleClaimCheckboxOnChange}
-                                                                />
-                                                            }
-                                                            label={formatClaim(
-                                                                translate(`claims.${claim}`, { ns: "consent" }),
-                                                                claim,
-                                                            )}
-                                                        />
-                                                    </Tooltip>
-                                                ))}
-                                            </List>
-                                        </Box>
-                                    </Grid>
-                                ) : null}
-                                {response.pre_configuration ? (
-                                    <Grid size={{ xs: 12 }}>
-                                        <Tooltip
-                                            title={translate(
-                                                "This saves this consent as a pre-configured consent for future use",
-                                            )}
-                                        >
-                                            <FormControlLabel
-                                                control={
-                                                    <Checkbox
-                                                        id="pre-configure"
-                                                        checked={preConfigure}
-                                                        onChange={handlePreConfigureChanged}
-                                                        value="preConfigure"
-                                                        color="primary"
-                                                    />
-                                                }
-                                                className={classes.preConfigure}
-                                                label={translate("Remember Consent")}
-                                            />
-                                        </Tooltip>
-                                    </Grid>
-                                ) : null}
+                                <OpenIDConnectConsentDecisionFormScopes scopes={response.scopes} />
+                                <OpenIDConnectConsentDecisionFormClaims
+                                    claims={response.claims}
+                                    essential_claims={response.essential_claims}
+                                    onChangeChecked={(claims) => setClaims(claims)}
+                                />
+                                <OpenIDConnectConsentDecisionFormPreConfiguration
+                                    pre_configuration={response.pre_configuration}
+                                    onChangePreConfiguration={handlePreConfigureChanged}
+                                />
                                 <Grid size={{ xs: 12 }}>
                                     <Grid container spacing={1}>
                                         <Grid size={{ xs: 6 }}>
@@ -335,53 +196,14 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
 };
 
 const useStyles = makeStyles()((theme: Theme) => ({
-    container: {
-        paddingTop: theme.spacing(4),
-        paddingBottom: theme.spacing(4),
-        display: "block",
-        justifyContent: "center",
-    },
     clientDescription: {
         fontWeight: 600,
-    },
-    scopesListContainer: {
-        textAlign: "center",
-    },
-    scopesList: {
-        display: "inline-block",
-        backgroundColor: theme.palette.background.paper,
-        marginTop: theme.spacing(2),
-        marginBottom: theme.spacing(2),
-    },
-    claimsListContainer: {
-        textAlign: "center",
-    },
-    claimsList: {
-        display: "inline-block",
-        backgroundColor: theme.palette.background.paper,
-        marginTop: theme.spacing(2),
-        marginBottom: theme.spacing(2),
-    },
-    clientID: {
-        fontWeight: "bold",
     },
     button: {
         marginLeft: theme.spacing(),
         marginRight: theme.spacing(),
         width: "100%",
     },
-    bulletIcon: {
-        display: "inline-block",
-    },
-    permissionsContainer: {
-        border: "1px solid #dedede",
-        margin: theme.spacing(4),
-    },
-    listItem: {
-        textAlign: "center",
-        marginRight: theme.spacing(2),
-    },
-    preConfigure: {},
 }));
 
 export default OpenIDConnectConsentDecisionFormView;
