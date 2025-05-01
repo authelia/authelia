@@ -32,9 +32,9 @@ automatically be replaced with documentation variables.
 
 The following are the assumptions we make:
 
-* The LDAP implementation to be used with authelia is fully setup and reachable by authelia.
-* All services are part of the `example.com` domain:
-  * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
+- The LDAP implementation to be used with authelia is fully setup and reachable by authelia.
+- All services are part of the `example.com` domain:
+  - This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
     just testing or you want to use that specific domain
 
 ## Configuration
@@ -102,8 +102,8 @@ the following conditions:
 
 ## See Also
 
-* [FreeIPA Directory Server](https://www.freeipa.org/page/Directory_Server)
-* [FreeIPA Deployment Recommendations](https://www.freeipa.org/page/Deployment_Recommendations)
+- [FreeIPA Directory Server](https://www.freeipa.org/page/Directory_Server)
+- [FreeIPA Deployment Recommendations](https://www.freeipa.org/page/Deployment_Recommendations)
 
 [Authelia]: https://www.authelia.com
 [FreeIPA]: https://www.freeipa.org/

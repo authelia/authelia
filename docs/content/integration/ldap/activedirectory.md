@@ -32,9 +32,9 @@ automatically be replaced with documentation variables.
 
 The following are the assumptions we make:
 
-* The LDAP implementation to be used with authelia is fully setup and reachable by authelia.
-* All services are part of the `example.com` domain:
-  * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
+- The LDAP implementation to be used with authelia is fully setup and reachable by authelia.
+- All services are part of the `example.com` domain:
+  - This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
     just testing or you want to use that specific domain
 
 ## Configuration
@@ -111,8 +111,8 @@ the following conditions:
 
 ## See Also
 
-* Account Type Values: [Microsoft Learn](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-samr/e742be45-665d-4576-b872-0bc99d1e1fbe)
-* LDAP Syntax Filters: [Microsoft TechNet Wiki](https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx)
+- Account Type Values: [Microsoft Learn](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-samr/e742be45-665d-4576-b872-0bc99d1e1fbe)
+- LDAP Syntax Filters: [Microsoft TechNet Wiki](https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx)
 
 [Authelia]: https://www.authelia.com
 [Active Directory]: https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/active-directory-domain-services

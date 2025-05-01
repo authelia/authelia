@@ -32,9 +32,9 @@ automatically be replaced with documentation variables.
 
 The following are the assumptions we make:
 
-* The LDAP implementation to be used with authelia is fully setup and reachable by authelia.
-* All services are part of the `example.com` domain:
-  * This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
+- The LDAP implementation to be used with authelia is fully setup and reachable by authelia.
+- All services are part of the `example.com` domain:
+  - This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
     just testing or you want to use that specific domain
 
 ## Configuration
@@ -106,7 +106,7 @@ the following conditions:
 ```
 
 ## See Also
-* [LLDAP Client Configuration](https://github.com/lldap/lldap?tab=readme-ov-file#client-configuration)
+- [LLDAP Client Configuration](https://github.com/lldap/lldap?tab=readme-ov-file#client-configuration)
 
 [Authelia]: https://www.authelia.com
 [lldap]: https://github.com/lldap/lldap
