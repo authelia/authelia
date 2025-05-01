@@ -3137,6 +3137,20 @@ components:
               description: Indicates if this client supports pre-configuration.
               type: boolean
               example: true
+            claims:
+              description: List of requested optional claims.
+              type: array
+              items:
+                type: string
+            essential_claims:
+              description: List of requested essential claims.
+              type: array
+              items:
+                type: string
+            require_login:
+              description: If the user must perform a login event before proceeding to provide consent.
+              type: boolean
+              example: true
     openid.response.consent:
       type: object
       properties:

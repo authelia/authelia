@@ -49,7 +49,15 @@ func OAuth2ConsentGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if err = ctx.SetJSONBody(client.GetConsentResponseBody(consent, form)); err != nil {
+	var userSession session.UserSession
+
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Logger.
+			WithError(err).
+			Error("Error occurred loading user session")
+	}
+
+	if err = ctx.SetJSONBody(client.GetConsentResponseBody(consent, form, userSession.LastAuthenticatedTime())); err != nil {
 		ctx.Error(fmt.Errorf("unable to set JSON body: %w", err), "Operation failed")
 	}
 }
@@ -84,7 +92,7 @@ func OAuth2ConsentDeviceAuthorizationGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if err = ctx.SetJSONBody(client.GetConsentResponseBody(deviceCodeSession, form)); err != nil {
+	if err = ctx.SetJSONBody(client.GetConsentResponseBody(deviceCodeSession, form, userSession.LastAuthenticatedTime())); err != nil {
 		ctx.Logger.
 			WithError(err).
 			WithFields(map[string]any{"client_id": deviceCodeSession.ClientID, "session_id": deviceCodeSession.ID, "request_id": deviceCodeSession.RequestID, "username": userSession.Username}).

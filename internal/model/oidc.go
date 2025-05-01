@@ -274,6 +274,11 @@ type OAuth2ConsentSession struct {
 	PreConfiguration sql.NullInt64
 }
 
+// GetRequestedAt returns the requested at value.
+func (s *OAuth2ConsentSession) GetRequestedAt() time.Time {
+	return s.RequestedAt
+}
+
 // SetSubject sets the subject value.
 func (s *OAuth2ConsentSession) SetSubject(subject uuid.UUID) {
 	s.Subject = uuid.NullUUID{UUID: subject, Valid: subject != uuid.Nil}
@@ -454,6 +459,11 @@ type OAuth2DeviceCodeSession struct {
 	Revoked           bool                     `db:"revoked"`
 	Form              string                   `db:"form_data"`
 	Session           []byte                   `db:"session_data"`
+}
+
+// GetRequestedAt returns the requested at value.
+func (s *OAuth2DeviceCodeSession) GetRequestedAt() time.Time {
+	return s.RequestedAt
 }
 
 // GetForm returns the form.

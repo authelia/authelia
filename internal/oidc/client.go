@@ -536,13 +536,11 @@ func (c *RegisteredClient) GetPKCEChallengeMethod() (method string) {
 }
 
 // GetConsentResponseBody returns the proper consent response body for this session.OIDCWorkflowSession.
-func (c *RegisteredClient) GetConsentResponseBody(session RequesterFormSession, form url.Values) ConsentGetResponseBody {
+func (c *RegisteredClient) GetConsentResponseBody(session RequesterFormSession, form url.Values, authTime time.Time) ConsentGetResponseBody {
 	body := ConsentGetResponseBody{
 		ClientID:          c.ID,
 		ClientDescription: c.Name,
 		PreConfiguration:  c.ConsentPolicy.Mode == ClientConsentModePreConfigured,
-		Claims:            []string{},
-		EssentialClaims:   []string{},
 	}
 
 	if session != nil {
@@ -555,13 +553,17 @@ func (c *RegisteredClient) GetConsentResponseBody(session RequesterFormSession, 
 		)
 
 		if form == nil {
-			form, _ = session.GetForm()
+			if form, err = session.GetForm(); err != nil {
+				return body
+			}
 		}
 
 		if form != nil {
 			if claims, err = NewClaimRequests(form); err == nil {
 				body.Claims, body.EssentialClaims = claims.ToSlices()
 			}
+
+			body.RequireLogin = RequestFormRequiresLogin(form, session.GetRequestedAt(), authTime)
 		}
 	}
 

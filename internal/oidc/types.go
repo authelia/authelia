@@ -193,7 +193,7 @@ type Client interface {
 
 	ValidateResponseModePolicy(r oauthelia2.AuthorizeRequester) (err error)
 
-	GetConsentResponseBody(session RequesterFormSession, form url.Values) (body ConsentGetResponseBody)
+	GetConsentResponseBody(session RequesterFormSession, form url.Values, authTime time.Time) (body ConsentGetResponseBody)
 	GetConsentPolicy() ClientConsentPolicy
 	IsAuthenticationLevelSufficient(level authentication.Level, subject authorization.Subject) (sufficient bool)
 	GetAuthorizationPolicyRequiredLevel(subject authorization.Subject) (level authorization.Level)
@@ -299,6 +299,7 @@ type ConsentGetResponseBody struct {
 	PreConfiguration  bool     `json:"pre_configuration"`
 	Claims            []string `json:"claims"`
 	EssentialClaims   []string `json:"essential_claims"`
+	RequireLogin      bool     `json:"require_login"`
 }
 
 // ConsentPostRequestBody schema of the request body of the consent POST endpoint.
@@ -1049,6 +1050,8 @@ type FormSession interface {
 
 type RequesterFormSession interface {
 	FormSession
+
+	GetRequestedAt() time.Time
 
 	GetRequestedScopes() []string
 	GetRequestedAudience() []string

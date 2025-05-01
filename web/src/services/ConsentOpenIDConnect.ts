@@ -23,6 +23,7 @@ export interface ConsentGetResponseBody {
     pre_configuration: boolean;
     claims: string[] | null;
     essential_claims: string[] | null;
+    require_login: boolean;
 }
 
 export function getConsentResponse(flowID?: string, userCode?: string) {

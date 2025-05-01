@@ -220,7 +220,6 @@ const (
 	FormParameterResponseMode = "response_mode"
 	FormParameterResponseType = "response_type"
 	FormParameterScope        = valueScope
-	FormParameterIssuer       = valueIss
 	FormParameterPrompt       = "prompt"
 	FormParameterMaximumAge   = "max_age"
 	FormParameterClaims       = "claims"
