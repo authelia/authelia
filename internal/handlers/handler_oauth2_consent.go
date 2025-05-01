@@ -100,20 +100,42 @@ func OAuth2ConsentDeviceAuthorizationGET(ctx *middlewares.AutheliaCtx) {
 //nolint:gocyclo
 func OAuth2ConsentPOST(ctx *middlewares.AutheliaCtx) {
 	var (
-		flowID   uuid.UUID
 		bodyJSON oidc.ConsentPostRequestBody
 		err      error
 	)
 
 	if err = json.Unmarshal(ctx.Request.Body(), &bodyJSON); err != nil {
-		ctx.Logger.Errorf("Failed to parse JSON bodyJSON in consent POST: %+v", err)
+		ctx.Logger.WithError(err).Error("Error occurred unmarshalling consent request body")
+
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
-	if flowID, err = uuid.Parse(bodyJSON.FlowID); err != nil {
-		ctx.Logger.Errorf("Unable to convert '%s' into a UUID: %+v", bodyJSON.FlowID, err)
+	// TODO: Handle password submission here.
+	if bodyJSON.Password != nil {
+
+	}
+
+	switch {
+	case bodyJSON.FlowID != nil:
+		handleOAuth2ConsentPOSTWithFlowID(ctx, bodyJSON)
+	case bodyJSON.UserCode != nil:
+		handleOAuth2ConsentPOSTWithUserCode(ctx, bodyJSON)
+	default:
+		ctx.Logger.Error("Invalid request body")
+		ctx.SetJSONError(messageOperationFailed)
+	}
+}
+
+func handleOAuth2ConsentPOSTWithFlowID(ctx *middlewares.AutheliaCtx, bodyJSON oidc.ConsentPostRequestBody) {
+	var (
+		flowID uuid.UUID
+		err    error
+	)
+
+	if flowID, err = uuid.Parse(*bodyJSON.FlowID); err != nil {
+		ctx.Logger.WithError(err).WithFields(map[string]any{"flow_id": *bodyJSON.FlowID}).Error("Error occurred parsing flow ID as a UUID")
 		ctx.ReplyForbidden()
 
 		return
@@ -131,25 +153,38 @@ func OAuth2ConsentPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if consent.ClientID != bodyJSON.ClientID {
-		ctx.Logger.Errorf("User '%s' consented to scopes of another client (%s) than expected (%s). Beware this can be a sign of attack",
-			userSession.Username, bodyJSON.ClientID, consent.ClientID)
+		ctx.Logger.
+			WithFields(map[string]any{"username": userSession.Username, "client_id": bodyJSON.ClientID, "consent_client_id": consent.ClientID, "consent_id": consent.ID, "flow_id": flowID.String()}).
+			Error("The client id of the form and the client id of the consent session do not match")
+
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
-	if !client.IsAuthenticationLevelSufficient(userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA), authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
-		ctx.Logger.Errorf("User '%s' can't consent to authorization request for client with id '%s' as they are not sufficiently authenticated",
-			userSession.Username, consent.ClientID)
+	level := userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA)
+
+	if !client.IsAuthenticationLevelSufficient(level, authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
+		ctx.Logger.
+			WithFields(map[string]any{"username": userSession.Username, "groups": userSession.Groups, "authentication_level": level.String(), "client_id": consent.ClientID, "consent_id": consent.ID, "flow_id": flowID.String(), "authorization_policy": client.GetAuthorizationPolicy().Name}).
+			Error("User is not sufficiently authenticated to provide consent given the client authorization policy")
+
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
-	var form url.Values
+	var (
+		query url.Values
+		form  url.Values
+	)
 
-	if form, err = consent.GetForm(); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred getting request form from consent session for user '%s' and client with id '%s'", userSession.Username, consent.ClientID)
+	if query, err = consent.GetForm(); err != nil {
+		ctx.Logger.
+			WithError(err).
+			WithFields(map[string]any{"username": userSession.Username, "client_id": consent.ClientID, "consent_id": consent.ID, "flow_id": flowID.String()}).
+			Error("Error occurred trying to obtain the request form from the consent session")
+
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
@@ -157,7 +192,12 @@ func OAuth2ConsentPOST(ctx *middlewares.AutheliaCtx) {
 
 	if !consent.Subject.Valid {
 		if consent.Subject.UUID, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifierURI(), userSession.Username); err != nil {
-			ctx.Error(fmt.Errorf("unable to determine consent subject for client with id '%s' with consent challenge id '%s': %w", client.GetID(), consent.ChallengeID, err), messageAuthenticationFailed)
+			ctx.Logger.
+				WithError(err).
+				WithFields(map[string]any{"username": userSession.Username, "client_id": consent.ClientID, "consent_id": consent.ID, "flow_id": flowID.String()}).
+				Error("Error occurred trying to determine the subject for the consent session")
+
+			ctx.SetJSONError(messageOperationFailed)
 
 			return
 		}
@@ -181,19 +221,27 @@ func OAuth2ConsentPOST(ctx *middlewares.AutheliaCtx) {
 				}
 
 				var (
-					requests   *oidc.ClaimsRequests
-					actualForm url.Values
+					requests *oidc.ClaimsRequests
 				)
 
-				if actualForm, err = handleGetConsentForm(ctx, form); err != nil {
-					ctx.Logger.WithError(err).Debug("Error occurred resolving the actual form from the consent form")
-				} else if requests, err = oidc.NewClaimRequests(actualForm); err != nil {
-					ctx.Logger.WithError(err).Debug("Error occurred parsing claims parameter from request form for claims signature")
+				if form, err = handleGetConsentForm(ctx, query); err != nil {
+					ctx.Logger.
+						WithError(err).
+						WithFields(map[string]any{"username": userSession.Username, "client_id": consent.ClientID, "consent_id": consent.ID, "flow_id": flowID.String()}).
+						Error("Error occurred trying to obtain the actual authorization parameters from the request form")
+				} else if requests, err = oidc.NewClaimRequests(form); err != nil {
+					ctx.Logger.
+						WithError(err).
+						WithFields(map[string]any{"username": userSession.Username, "client_id": consent.ClientID, "consent_id": consent.ID, "flow_id": flowID.String()}).
+						Error("Error occurred parsing request form claims parameter")
 				} else if requests == nil {
 					config.RequestedClaims = sql.NullString{Valid: false}
 					config.SignatureClaims = sql.NullString{Valid: false}
 				} else if config.RequestedClaims.String, config.SignatureClaims.String, err = requests.Serialized(); err != nil {
-					ctx.Logger.WithError(err).Debug("Error occurred calculating claims signature")
+					ctx.Logger.
+						WithError(err).
+						WithFields(map[string]any{"username": userSession.Username, "client_id": consent.ClientID, "consent_id": consent.ID, "flow_id": flowID.String()}).
+						Error("Error occurred calculating claims signature for consent")
 				} else {
 					config.RequestedClaims.Valid = true
 					config.SignatureClaims.Valid = true
@@ -202,7 +250,11 @@ func OAuth2ConsentPOST(ctx *middlewares.AutheliaCtx) {
 				var id int64
 
 				if id, err = ctx.Providers.StorageProvider.SaveOAuth2ConsentPreConfiguration(ctx, config); err != nil {
-					ctx.Logger.Errorf("Failed to save the consent pre-configuration to the database: %+v", err)
+					ctx.Logger.
+						WithError(err).
+						WithFields(map[string]any{"username": userSession.Username, "client_id": consent.ClientID, "consent_id": consent.ID, "flow_id": flowID.String()}).
+						Error("Error occurred saving consent pre-configuration to the database")
+
 					ctx.SetJSONError(messageOperationFailed)
 
 					return
@@ -210,9 +262,13 @@ func OAuth2ConsentPOST(ctx *middlewares.AutheliaCtx) {
 
 				consent.PreConfiguration = sql.NullInt64{Int64: id, Valid: true}
 
-				ctx.Logger.Debugf("Consent session with id '%s' for user '%s': pre-configured and set to expire at %v", consent.ChallengeID, userSession.Username, config.ExpiresAt.Time)
+				ctx.Logger.
+					WithFields(map[string]any{"username": userSession.Username, "client_id": consent.ClientID, "consent_id": consent.ID, "flow_id": flowID.String(), "expiration": config.ExpiresAt.Time.Unix()}).
+					Debug("Saved consent pre-configuration with expiration")
 			} else {
-				ctx.Logger.Warnf("Consent session with id '%s' for user '%s': consent pre-configuration was requested and was ignored because it is not permitted on this client", consent.ChallengeID, userSession.Username)
+				ctx.Logger.
+					WithFields(map[string]any{"username": userSession.Username, "client_id": consent.ClientID, "consent_id": consent.ID, "flow_id": flowID.String()}).
+					Warn("Ignored saving pre-configuration as it is not permitted by the client configuration")
 			}
 		}
 	}
@@ -220,7 +276,11 @@ func OAuth2ConsentPOST(ctx *middlewares.AutheliaCtx) {
 	consent.SetRespondedAt(ctx.Clock.Now(), 0)
 
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, bodyJSON.Consent); err != nil {
-		ctx.Logger.Errorf("Failed to save the consent session response to the database: %+v", err)
+		ctx.Logger.
+			WithError(err).
+			WithFields(map[string]any{"username": userSession.Username, "client_id": consent.ClientID, "consent_id": consent.ID, "flow_id": flowID.String()}).
+			Error("Error occurred saving the consent session response to the database")
+
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
@@ -228,17 +288,9 @@ func OAuth2ConsentPOST(ctx *middlewares.AutheliaCtx) {
 
 	var (
 		redirectURI *url.URL
-		query       url.Values
 	)
 
 	redirectURI = ctx.RootURL()
-
-	if query, err = url.ParseQuery(consent.Form); err != nil {
-		ctx.Logger.Errorf("Failed to parse the consent form values: %+v", err)
-		ctx.SetJSONError(messageOperationFailed)
-
-		return
-	}
 
 	query.Set(queryArgConsentID, consent.ChallengeID.String())
 
@@ -248,7 +300,197 @@ func OAuth2ConsentPOST(ctx *middlewares.AutheliaCtx) {
 	response := oidc.ConsentPostResponseBody{RedirectURI: redirectURI.String()}
 
 	if err = ctx.SetJSONBody(response); err != nil {
-		ctx.Error(fmt.Errorf("unable to set JSON bodyJSON in response"), "Operation failed")
+		ctx.Logger.
+			WithError(err).
+			WithFields(map[string]any{"username": userSession.Username, "client_id": consent.ClientID, "consent_id": consent.ID, "flow_id": flowID.String()}).
+			Error("Error occurred marshalling JSON response body")
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+}
+
+func handleOAuth2ConsentPOSTWithUserCode(ctx *middlewares.AutheliaCtx, bodyJSON oidc.ConsentPostRequestBody) {
+	var (
+		flowID uuid.UUID
+		err    error
+	)
+
+	if flowID, err = uuid.Parse(*bodyJSON.FlowID); err != nil {
+		ctx.Logger.WithError(err).WithFields(map[string]any{"flow_id": *bodyJSON.FlowID}).Error("Error occurred parsing flow ID as a UUID")
+		ctx.ReplyForbidden()
+
+		return
+	}
+
+	var (
+		userSession session.UserSession
+		consent     *model.OAuth2ConsentSession
+		client      oidc.Client
+		handled     bool
+	)
+
+	if userSession, consent, client, handled = handleOAuth2ConsentGetSessionsAndClient(ctx, flowID); handled {
+		return
+	}
+
+	if consent.ClientID != bodyJSON.ClientID {
+		ctx.Logger.
+			WithFields(map[string]any{"username": userSession.Username, "client_id": bodyJSON.ClientID, "consent_client_id": consent.ClientID, "consent_id": consent.ID, "flow_id": flowID.String()}).
+			Error("The client id of the form and the client id of the consent session do not match")
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	level := userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA)
+
+	if !client.IsAuthenticationLevelSufficient(level, authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()}) {
+		ctx.Logger.
+			WithFields(map[string]any{"username": userSession.Username, "groups": userSession.Groups, "authentication_level": level.String(), "client_id": consent.ClientID, "consent_id": consent.ID, "flow_id": flowID.String(), "authorization_policy": client.GetAuthorizationPolicy().Name}).
+			Error("User is not sufficiently authenticated to provide consent given the client authorization policy")
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	var (
+		query url.Values
+		form  url.Values
+	)
+
+	if query, err = consent.GetForm(); err != nil {
+		ctx.Logger.
+			WithError(err).
+			WithFields(map[string]any{"username": userSession.Username, "client_id": consent.ClientID, "consent_id": consent.ID, "flow_id": flowID.String()}).
+			Error("Error occurred trying to obtain the request form from the consent session")
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	if !consent.Subject.Valid {
+		if consent.Subject.UUID, err = ctx.Providers.OpenIDConnect.GetSubject(ctx, client.GetSectorIdentifierURI(), userSession.Username); err != nil {
+			ctx.Logger.
+				WithError(err).
+				WithFields(map[string]any{"username": userSession.Username, "client_id": consent.ClientID, "consent_id": consent.ID, "flow_id": flowID.String()}).
+				Error("Error occurred trying to determine the subject for the consent session")
+
+			ctx.SetJSONError(messageOperationFailed)
+
+			return
+		}
+
+		consent.Subject.Valid = true
+	}
+
+	if bodyJSON.Consent {
+		oidc.ConsentGrant(consent, true, bodyJSON.Claims)
+
+		if bodyJSON.PreConfigure {
+			if client.GetConsentPolicy().Mode == oidc.ClientConsentModePreConfigured {
+				config := model.OAuth2ConsentPreConfig{
+					ClientID:      consent.ClientID,
+					Subject:       consent.Subject.UUID,
+					CreatedAt:     ctx.Clock.Now(),
+					ExpiresAt:     sql.NullTime{Time: ctx.Clock.Now().Add(client.GetConsentPolicy().Duration), Valid: true},
+					Scopes:        consent.GrantedScopes,
+					Audience:      consent.GrantedAudience,
+					GrantedClaims: bodyJSON.Claims,
+				}
+
+				var (
+					requests *oidc.ClaimsRequests
+				)
+
+				if form, err = handleGetConsentForm(ctx, query); err != nil {
+					ctx.Logger.
+						WithError(err).
+						WithFields(map[string]any{"username": userSession.Username, "client_id": consent.ClientID, "consent_id": consent.ID, "flow_id": flowID.String()}).
+						Error("Error occurred trying to obtain the actual authorization parameters from the request form")
+				} else if requests, err = oidc.NewClaimRequests(form); err != nil {
+					ctx.Logger.
+						WithError(err).
+						WithFields(map[string]any{"username": userSession.Username, "client_id": consent.ClientID, "consent_id": consent.ID, "flow_id": flowID.String()}).
+						Error("Error occurred parsing request form claims parameter")
+				} else if requests == nil {
+					config.RequestedClaims = sql.NullString{Valid: false}
+					config.SignatureClaims = sql.NullString{Valid: false}
+				} else if config.RequestedClaims.String, config.SignatureClaims.String, err = requests.Serialized(); err != nil {
+					ctx.Logger.
+						WithError(err).
+						WithFields(map[string]any{"username": userSession.Username, "client_id": consent.ClientID, "consent_id": consent.ID, "flow_id": flowID.String()}).
+						Error("Error occurred calculating claims signature for consent")
+				} else {
+					config.RequestedClaims.Valid = true
+					config.SignatureClaims.Valid = true
+				}
+
+				var id int64
+
+				if id, err = ctx.Providers.StorageProvider.SaveOAuth2ConsentPreConfiguration(ctx, config); err != nil {
+					ctx.Logger.
+						WithError(err).
+						WithFields(map[string]any{"username": userSession.Username, "client_id": consent.ClientID, "consent_id": consent.ID, "flow_id": flowID.String()}).
+						Error("Error occurred saving consent pre-configuration to the database")
+
+					ctx.SetJSONError(messageOperationFailed)
+
+					return
+				}
+
+				consent.PreConfiguration = sql.NullInt64{Int64: id, Valid: true}
+
+				ctx.Logger.
+					WithFields(map[string]any{"username": userSession.Username, "client_id": consent.ClientID, "consent_id": consent.ID, "flow_id": flowID.String(), "expiration": config.ExpiresAt.Time.Unix()}).
+					Debug("Saved consent pre-configuration with expiration")
+			} else {
+				ctx.Logger.
+					WithFields(map[string]any{"username": userSession.Username, "client_id": consent.ClientID, "consent_id": consent.ID, "flow_id": flowID.String()}).
+					Warn("Ignored saving pre-configuration as it is not permitted by the client configuration")
+			}
+		}
+	}
+
+	consent.SetRespondedAt(ctx.Clock.Now(), 0)
+
+	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, bodyJSON.Consent); err != nil {
+		ctx.Logger.
+			WithError(err).
+			WithFields(map[string]any{"username": userSession.Username, "client_id": consent.ClientID, "consent_id": consent.ID, "flow_id": flowID.String()}).
+			Error("Error occurred saving the consent session response to the database")
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	var (
+		redirectURI *url.URL
+	)
+
+	redirectURI = ctx.RootURL()
+
+	query.Set(queryArgConsentID, consent.ChallengeID.String())
+
+	redirectURI.Path = path.Join(redirectURI.Path, oidc.EndpointPathAuthorization)
+	redirectURI.RawQuery = query.Encode()
+
+	response := oidc.ConsentPostResponseBody{RedirectURI: redirectURI.String()}
+
+	if err = ctx.SetJSONBody(response); err != nil {
+		ctx.Logger.
+			WithError(err).
+			WithFields(map[string]any{"username": userSession.Username, "client_id": consent.ClientID, "consent_id": consent.ID, "flow_id": flowID.String()}).
+			Error("Error occurred marshalling JSON response body")
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
 	}
 }
 

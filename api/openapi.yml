@@ -3172,6 +3172,9 @@ components:
               description: The name of the subflow if applicable.
               type: string
               example: 'device_authorization'
+            password:
+              description: The password of the user if the flow requires login.
+              type: string
             user_code:
               description: The user code for the Device Authorization Flow if applicable
               type: string
