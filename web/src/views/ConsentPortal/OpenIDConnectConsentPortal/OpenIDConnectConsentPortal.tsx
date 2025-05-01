@@ -2,11 +2,7 @@ import React, { lazy } from "react";
 
 import { Route, Routes } from "react-router-dom";
 
-import {
-    ConsentDecisionSubRoute,
-    ConsentLoginSubRoute,
-    ConsentOpenIDDeviceAuthorizationSubRoute,
-} from "@constants/Routes";
+import { ConsentDecisionSubRoute, ConsentOpenIDDeviceAuthorizationSubRoute } from "@constants/Routes";
 import { UserInfo } from "@models/UserInfo";
 import { AutheliaState } from "@services/State";
 const OpenIDConnectConsentDecisionFormView = lazy(
@@ -14,9 +10,6 @@ const OpenIDConnectConsentDecisionFormView = lazy(
 );
 const OpenIDConnectConsentDeviceAuthorizationFormView = lazy(
     () => import("@views/ConsentPortal/OpenIDConnectConsentPortal/OpenIDConnectConsentDeviceAuthorizationFormView"),
-);
-const OpenIDConnectConsentLoginFormView = lazy(
-    () => import("@views/ConsentPortal/OpenIDConnectConsentPortal/OpenIDConnectConsentLoginFormView"),
 );
 
 export interface Props {
@@ -27,7 +20,6 @@ export interface Props {
 const OpenIDConnectConsentPortal: React.FC<Props> = (props: Props) => {
     return (
         <Routes>
-            <Route path={ConsentLoginSubRoute} element={<OpenIDConnectConsentLoginFormView state={props.state} />} />
             <Route
                 path={ConsentDecisionSubRoute}
                 element={<OpenIDConnectConsentDecisionFormView userInfo={props.userInfo} state={props.state} />}

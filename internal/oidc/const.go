@@ -270,7 +270,6 @@ const (
 const (
 	FrontendEndpointPathConsent         = "/consent/openid"
 	FrontendEndpointPathConsentDecision = FrontendEndpointPathConsent + "/decision"
-	FrontendEndpointPathConsentLogin    = FrontendEndpointPathConsent + "/login"
 
 	EndpointPathRFC8628UserVerificationURL = FrontendEndpointPathConsent + "/" + EndpointDeviceAuthorization
 

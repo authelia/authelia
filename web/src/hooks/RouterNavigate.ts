@@ -22,7 +22,6 @@ export function useRouterNavigate() {
                 if (preserveSearchParams) {
                     navigate({ pathname: pathname, search: `?${searchParams.toString()}` });
                 } else if (preserveFlow || preserveRedirection) {
-
                     const params = new URLSearchParams();
 
                     if (preserveRedirection) {

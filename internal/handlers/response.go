@@ -229,7 +229,7 @@ func handleFlowResponseOpenIDConnect(ctx *middlewares.AutheliaCtx, userSession *
 	}
 
 	if oidc.RequestFormRequiresLogin(form, consent.RequestedAt, userSession.LastAuthenticatedTime()) {
-		targetURL := issuer.JoinPath(oidc.FrontendEndpointPathConsentLogin)
+		targetURL := issuer.JoinPath(oidc.FrontendEndpointPathConsentDecision)
 
 		query := targetURL.Query()
 		query.Set(queryArgFlow, flowNameOpenIDConnect)

@@ -19,6 +19,5 @@ export const SecuritySubRoute: string = "/security";
 
 export const ConsentRoute: string = "/consent";
 export const ConsentOpenIDSubRoute: string = "/openid";
-export const ConsentLoginSubRoute: string = "/login";
 export const ConsentDecisionSubRoute: string = "/decision";
 export const ConsentOpenIDDeviceAuthorizationSubRoute: string = "/device-authorization";
