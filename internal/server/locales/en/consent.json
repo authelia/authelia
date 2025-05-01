@@ -1,6 +1,11 @@
 {
+	"Accept this consent request": "Accept this consent request",
 	"Claim": "Claim {{name}}",
+	"Code": "Code",
+	"Confirm the Code": "Confirm the Code",
+	"Deny this consent request": "Deny this consent request",
 	"Scope": "Scope {{name}}",
+	"You must reauthenticate by to be able to give consent": "You must reauthenticate by to be able to give consent",
 	"scopes": {
 		"openid": "Use OpenID to verify your identity",
 		"offline_access": "Automatically refresh these permissions without user interaction",

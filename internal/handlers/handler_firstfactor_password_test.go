@@ -956,7 +956,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectFormRequiresLo
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
 	// Respond with 200.
-	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "http://example.com/consent/openid/login?flow=openid_connect&flow_id=d1ba0ad8-9107-4067-8d31-407ca59eb69c"})
+	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "http://example.com/consent/openid/decision?flow=openid_connect&flow_id=d1ba0ad8-9107-4067-8d31-407ca59eb69c"})
 }
 
 func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectFormRequiresLoginBadForm() {

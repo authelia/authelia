@@ -7,5 +7,5 @@ import (
 )
 
 func (rs *RodSession) verifyIsConsentPage(t *testing.T, page *rod.Page) {
-	rs.WaitElementLocatedByID(t, page, "consent-stage")
+	rs.WaitElementLocatedByID(t, page, "openid-consent-stage")
 }

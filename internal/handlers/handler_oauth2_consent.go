@@ -3,7 +3,6 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"net/url"
 	"path"
 
@@ -24,41 +23,72 @@ func OAuth2ConsentGET(ctx *middlewares.AutheliaCtx) {
 		err    error
 	)
 
-	if flowID, err = uuid.ParseBytes(ctx.RequestCtx.QueryArgs().PeekBytes(qryArgFlowID)); err != nil {
-		ctx.Logger.Errorf("Unable to convert '%s' into a UUID: %+v", ctx.RequestCtx.QueryArgs().PeekBytes(qryArgFlowID), err)
-		ctx.ReplyForbidden()
+	raw := ctx.RequestCtx.QueryArgs().PeekBytes(qryArgFlowID)
 
-		return
-	}
+	if flowID, err = uuid.ParseBytes(raw); err != nil {
+		ctx.Logger.
+			WithError(err).
+			WithFields(map[string]any{"flow_id": string(raw)}).
+			Error("Error occurred parsing flow ID")
 
-	var (
-		consent *model.OAuth2ConsentSession
-		form    url.Values
-		client  oidc.Client
-		handled bool
-	)
-
-	if _, consent, client, handled = handleOAuth2ConsentGetSessionsAndClient(ctx, flowID); handled {
-		return
-	}
-
-	if form, err = handleGetFormFromFormSession(ctx, consent); err != nil {
-		ctx.Logger.WithError(err).Errorf("Unable to get form from consent session with id '%s': %+v", consent.ChallengeID, err)
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
-	var userSession session.UserSession
+	var (
+		userSession session.UserSession
+		consent     *model.OAuth2ConsentSession
+		form        url.Values
+		client      oidc.Client
+		handled     bool
+	)
 
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.
 			WithError(err).
+			WithFields(map[string]any{"flow_id": flowID.String()}).
 			Error("Error occurred loading user session")
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	if _, consent, client, handled = handleOAuth2ConsentGetSessionsAndClient(ctx, flowID); handled {
+		return
+	}
+
+	if consent.ExpiresAt.Before(ctx.Clock.Now()) {
+		ctx.Logger.
+			WithFields(map[string]any{"client_id": consent.ClientID, "session_id": consent.ID, "flow_id": consent.ChallengeID.String(), "username": userSession.Username, "expiration": consent.ExpiresAt.Unix()}).
+			Error("Failed providing consent flow information as the consent session is expired")
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	if form, err = handleGetFormFromFormSession(ctx, consent); err != nil {
+		ctx.Logger.
+			WithError(err).
+			WithFields(map[string]any{"client_id": consent.ClientID, "session_id": consent.ID, "flow_id": consent.ChallengeID.String(), "username": userSession.Username, "expiration": consent.ExpiresAt.Unix()}).
+			Error("Error occurred getting form from consent session")
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
 	}
 
 	if err = ctx.SetJSONBody(client.GetConsentResponseBody(consent, form, userSession.LastAuthenticatedTime())); err != nil {
-		ctx.Error(fmt.Errorf("unable to set JSON body: %w", err), "Operation failed")
+		ctx.Logger.
+			WithError(err).
+			WithFields(map[string]any{"client_id": consent.ClientID, "session_id": consent.ID, "flow_id": consent.ChallengeID.String(), "username": userSession.Username, "expiration": consent.ExpiresAt.Unix()}).
+			Error("Error occurred trying to set JSON body in response")
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
 	}
 }
 
@@ -86,7 +116,8 @@ func OAuth2ConsentDeviceAuthorizationGET(ctx *middlewares.AutheliaCtx) {
 		ctx.Logger.
 			WithError(err).
 			WithFields(map[string]any{"client_id": deviceCodeSession.ClientID, "session_id": deviceCodeSession.ID, "request_id": deviceCodeSession.RequestID, "username": userSession.Username}).
-			Error("Failed to get form from device code session")
+			Error("Error occurred getting form from device code session")
+
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
@@ -97,6 +128,7 @@ func OAuth2ConsentDeviceAuthorizationGET(ctx *middlewares.AutheliaCtx) {
 			WithError(err).
 			WithFields(map[string]any{"client_id": deviceCodeSession.ClientID, "session_id": deviceCodeSession.ID, "request_id": deviceCodeSession.RequestID, "username": userSession.Username}).
 			Error("Error occurred trying to set JSON body in response")
+
 		ctx.SetJSONError(messageOperationFailed)
 
 		return

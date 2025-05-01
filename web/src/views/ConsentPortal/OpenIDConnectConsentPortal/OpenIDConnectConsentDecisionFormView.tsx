@@ -251,11 +251,13 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
         [password.length],
     );
 
+    const passwordMissing = response?.require_login && password.length === 0;
+
     return (
         <Fragment>
             {props.userInfo && response !== undefined ? (
                 <LoginLayout
-                    id="consent-stage"
+                    id={"openid-consent-stage"}
                     title={`${translate("Hi")} ${props.userInfo.display_name}`}
                     subtitle={translate("Consent Request")}
                 >
@@ -264,7 +266,7 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
                             <LogoutButton />
                         </Grid>
                         <Grid size={{ xs: 12 }}>
-                            <Grid container alignItems={"center"} justifyContent="center">
+                            <Grid container alignItems={"center"} justifyContent={"center"}>
                                 <Grid size={{ xs: 12 }}>
                                     <Box>
                                         <Tooltip
@@ -294,13 +296,13 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
                                 />
                                 {response?.require_login ? (
                                     <Grid size={{ xs: 12 }}>
-                                        <FormControl id={"form-consent-openid-device-code-authorization"}>
+                                        <FormControl id={"openid-consent-prompt-login"}>
                                             <Grid container spacing={2}>
                                                 <Grid size={{ xs: 12 }}>
                                                     <TextField
-                                                        id="password-textfield"
+                                                        id={"password-textfield"}
                                                         label={translate("Password")}
-                                                        variant="outlined"
+                                                        variant={"outlined"}
                                                         inputRef={passwordRef}
                                                         onKeyDown={handlePasswordKeyDown}
                                                         onKeyUp={handlePasswordKeyUp}
@@ -309,8 +311,8 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
                                                         value={password}
                                                         onChange={(v) => setPassword(v.target.value)}
                                                         onFocus={() => setErrorPassword(false)}
-                                                        type="password"
-                                                        autoComplete="current-password"
+                                                        type={"password"}
+                                                        autoComplete={"current-password"}
                                                         required
                                                         fullWidth
                                                     />
@@ -338,34 +340,42 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
                                 <Grid size={{ xs: 12 }}>
                                     <Grid container spacing={1}>
                                         <Grid size={{ xs: 6 }}>
-                                            <Button
-                                                id="accept-button"
-                                                className={classes.button}
-                                                disabled={
-                                                    !response ||
-                                                    (response.require_login && password.length === 0) ||
-                                                    loading
+                                            <Tooltip
+                                                title={
+                                                    passwordMissing
+                                                        ? translate(
+                                                              "You must reauthenticate by to be able to give consent",
+                                                          )
+                                                        : translate("Accept this consent request")
                                                 }
-                                                onClick={handleAcceptConsent}
-                                                color="primary"
-                                                variant="contained"
-                                                endIcon={loadingAccept ? <CircularProgress size={20} /> : null}
                                             >
-                                                {translate("Accept")}
-                                            </Button>
+                                                <Button
+                                                    id={"openid-consent-accept"}
+                                                    className={classes.button}
+                                                    disabled={!response || passwordMissing || loading}
+                                                    onClick={handleAcceptConsent}
+                                                    color={"primary"}
+                                                    variant={"contained"}
+                                                    endIcon={loadingAccept ? <CircularProgress size={20} /> : null}
+                                                >
+                                                    {translate("Accept")}
+                                                </Button>
+                                            </Tooltip>
                                         </Grid>
                                         <Grid size={{ xs: 6 }}>
-                                            <Button
-                                                id="deny-button"
-                                                className={classes.button}
-                                                disabled={!response || loading}
-                                                onClick={handleRejectConsent}
-                                                color="secondary"
-                                                variant="contained"
-                                                endIcon={loadingReject ? <CircularProgress size={20} /> : null}
-                                            >
-                                                {translate("Deny")}
-                                            </Button>
+                                            <Tooltip title={translate("Deny this consent request")}>
+                                                <Button
+                                                    id={"openid-consent-deny"}
+                                                    className={classes.button}
+                                                    disabled={!response || loading}
+                                                    onClick={handleRejectConsent}
+                                                    color={"secondary"}
+                                                    variant={"contained"}
+                                                    endIcon={loadingReject ? <CircularProgress size={20} /> : null}
+                                                >
+                                                    {translate("Deny")}
+                                                </Button>
+                                            </Tooltip>
                                         </Grid>
                                     </Grid>
                                 </Grid>

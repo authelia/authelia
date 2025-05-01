@@ -75,7 +75,7 @@ const OpenIDConnectConsentDeviceAuthorizationFormView: React.FC<Props> = (props:
     }, [handleCode, props.state.authentication_level, userCode]);
 
     return (
-        <LoginLayout id="consent-stage" title={translate("Confirm the Code")}>
+        <LoginLayout id={"consent-stage"} title={translate("Confirm the Code")}>
             <Grid container direction={"column"} justifyContent={"center"} alignItems={"center"}>
                 <Grid size={{ xs: 12 }} sx={{ paddingBottom: theme.spacing(2) }}>
                     <LogoutButton />
@@ -85,21 +85,21 @@ const OpenIDConnectConsentDeviceAuthorizationFormView: React.FC<Props> = (props:
                         <Grid container spacing={2}>
                             <Grid size={{ xs: 12 }}>
                                 <TextField
-                                    id="user-code"
+                                    id={"user-code"}
                                     label={translate("Code")}
-                                    variant="outlined"
+                                    variant={"outlined"}
                                     required
                                     value={code}
                                     fullWidth
                                     onChange={(v) => setCode(v.target.value)}
-                                    autoCapitalize="none"
+                                    autoCapitalize={"none"}
                                 />
                             </Grid>
                             <Grid size={{ xs: 12 }}>
                                 <Button
-                                    id="confirm-button"
-                                    variant="contained"
-                                    color="primary"
+                                    id={"confirm-button"}
+                                    variant={"contained"}
+                                    color={"primary"}
                                     fullWidth
                                     onClick={() => handleCode(code)}
                                     disabled={code === ""}
