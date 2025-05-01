@@ -120,31 +120,41 @@ func OAuth2ConsentPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	// TODO: Handle password submission here.
-	if bodyJSON.Password != nil {
+	if bodyJSON.SubFlow == nil {
+		handleOAuth2ConsentFlowIDPOST(ctx, bodyJSON)
 
+		return
 	}
 
-	switch {
-	case bodyJSON.FlowID != nil:
-		handleOAuth2ConsentPOSTWithFlowID(ctx, bodyJSON)
-	case bodyJSON.UserCode != nil:
-		handleOAuth2ConsentPOSTWithUserCode(ctx, bodyJSON)
+	switch *bodyJSON.SubFlow {
+	case flowOpenIDConnectSubFlowNameDeviceAuthorization:
+		handleOAuth2ConsentDeviceAuthorizationPOST(ctx, bodyJSON)
 	default:
-		ctx.Logger.Error("Invalid request body")
-		ctx.SetJSONError(messageOperationFailed)
+		handleOAuth2ConsentFlowIDPOST(ctx, bodyJSON)
 	}
 }
 
-func handleOAuth2ConsentPOSTWithFlowID(ctx *middlewares.AutheliaCtx, bodyJSON oidc.ConsentPostRequestBody) {
+func handleOAuth2ConsentFlowIDPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.ConsentPostRequestBody) {
 	var (
 		flowID uuid.UUID
 		err    error
 	)
 
+	if bodyJSON.FlowID == nil {
+		ctx.Logger.Error("Request is missing the required field 'flow_id' from the JSON body")
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
 	if flowID, err = uuid.Parse(*bodyJSON.FlowID); err != nil {
-		ctx.Logger.WithError(err).WithFields(map[string]any{"flow_id": *bodyJSON.FlowID}).Error("Error occurred parsing flow ID as a UUID")
-		ctx.ReplyForbidden()
+		ctx.Logger.
+			WithError(err).
+			WithFields(map[string]any{"flow_id": *bodyJSON.FlowID}).
+			Error("Error occurred parsing flow ID as a UUID")
+
+		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
@@ -213,6 +223,27 @@ func handleOAuth2ConsentPOSTWithFlowID(ctx *middlewares.AutheliaCtx, bodyJSON oi
 		consent.Subject.Valid = true
 	}
 
+	if form, err = handleGetConsentForm(ctx, query); err != nil {
+		ctx.Logger.
+			WithError(err).
+			WithFields(map[string]any{"username": userSession.Username, "client_id": consent.ClientID, "consent_id": consent.ID, "flow_id": flowID.String()}).
+			Error("Error occurred trying to obtain the actual authorization parameters from the request form")
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	if oidc.RequestFormRequiresLogin(form, consent.RequestedAt, userSession.LastAuthenticatedTime()) {
+		ctx.Logger.
+			WithFields(map[string]any{"username": userSession.Username, "client_id": consent.ClientID, "consent_id": consent.ID, "flow_id": flowID.String()}).
+			Error("The authorization request requires the user performs a login even prior to providing consent")
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
 	if bodyJSON.Consent {
 		oidc.ConsentGrant(consent, true, bodyJSON.Claims)
 
@@ -232,12 +263,7 @@ func handleOAuth2ConsentPOSTWithFlowID(ctx *middlewares.AutheliaCtx, bodyJSON oi
 					requests *oidc.ClaimsRequests
 				)
 
-				if form, err = handleGetConsentForm(ctx, query); err != nil {
-					ctx.Logger.
-						WithError(err).
-						WithFields(map[string]any{"username": userSession.Username, "client_id": consent.ClientID, "consent_id": consent.ID, "flow_id": flowID.String()}).
-						Error("Error occurred trying to obtain the actual authorization parameters from the request form")
-				} else if requests, err = oidc.NewClaimRequests(form); err != nil {
+				if requests, err = oidc.NewClaimRequests(form); err != nil {
 					ctx.Logger.
 						WithError(err).
 						WithFields(map[string]any{"username": userSession.Username, "client_id": consent.ClientID, "consent_id": consent.ID, "flow_id": flowID.String()}).
@@ -319,11 +345,19 @@ func handleOAuth2ConsentPOSTWithFlowID(ctx *middlewares.AutheliaCtx, bodyJSON oi
 	}
 }
 
-func handleOAuth2ConsentPOSTWithUserCode(ctx *middlewares.AutheliaCtx, bodyJSON oidc.ConsentPostRequestBody) {
+func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.ConsentPostRequestBody) {
 	var (
 		flowID uuid.UUID
 		err    error
 	)
+
+	if bodyJSON.UserCode == nil {
+		ctx.Logger.Error("Request is missing the required field 'user_code' from the JSON body")
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
 
 	if flowID, err = uuid.Parse(*bodyJSON.FlowID); err != nil {
 		ctx.Logger.WithError(err).WithFields(map[string]any{"flow_id": *bodyJSON.FlowID}).Error("Error occurred parsing flow ID as a UUID")

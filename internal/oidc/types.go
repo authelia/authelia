@@ -311,7 +311,6 @@ type ConsentPostRequestBody struct {
 	Claims       []string `json:"claims"`
 	SubFlow      *string  `json:"subflow"`
 	UserCode     *string  `json:"user_code"`
-	Password     *string  `json:"password"`
 }
 
 // ConsentPostResponseBody schema of the response body of the consent POST endpoint.

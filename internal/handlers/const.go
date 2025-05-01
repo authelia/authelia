@@ -78,6 +78,8 @@ const (
 
 const (
 	flowNameOpenIDConnect = "openid_connect"
+
+	flowOpenIDConnectSubFlowNameDeviceAuthorization = "device_authorization"
 )
 
 const (

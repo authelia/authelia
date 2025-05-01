@@ -380,10 +380,6 @@ func RequesterRequiresLogin(requester oauthelia2.Requester, requested, authentic
 		return false
 	}
 
-	if _, ok := requester.(oauthelia2.DeviceAuthorizeRequester); ok {
-		return false
-	}
-
 	return RequestFormRequiresLogin(requester.GetRequestForm(), requested, authenticated)
 }
 
