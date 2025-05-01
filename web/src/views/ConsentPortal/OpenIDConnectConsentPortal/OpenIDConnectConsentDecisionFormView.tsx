@@ -21,9 +21,9 @@ import {
     postConsentResponseReject,
 } from "@services/ConsentOpenIDConnect";
 import { AutheliaState, AuthenticationLevel } from "@services/State";
-import OpenIDConnectConsentDecisionFormClaims from "@views/ConsentPortal/OpenIDConnectConsentPortal/OpenIDConnectConsentDecisionFormClaims.js";
-import OpenIDConnectConsentDecisionFormPreConfiguration from "@views/ConsentPortal/OpenIDConnectConsentPortal/OpenIDConnectConsentDecisionFormPreConfiguration.js";
-import OpenIDConnectConsentDecisionFormScopes from "@views/ConsentPortal/OpenIDConnectConsentPortal/OpenIDConnectConsentDecisionFormScopes.js";
+import OpenIDConnectConsentDecisionFormClaims from "@views/ConsentPortal/OpenIDConnectConsentPortal/OpenIDConnectConsentDecisionFormClaims";
+import OpenIDConnectConsentDecisionFormPreConfiguration from "@views/ConsentPortal/OpenIDConnectConsentPortal/OpenIDConnectConsentDecisionFormPreConfiguration";
+import OpenIDConnectConsentDecisionFormScopes from "@views/ConsentPortal/OpenIDConnectConsentPortal/OpenIDConnectConsentDecisionFormScopes";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 
 export interface Props {

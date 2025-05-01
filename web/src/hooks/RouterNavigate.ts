@@ -2,7 +2,7 @@ import { useCallback } from "react";
 
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-import { QueryParamFlow, QueryParamFlowID, QueryParamRedirection, QueryParamSubFlow } from "@constants/constants";
+import { Flow, FlowID, RedirectionURL, SubFlow } from "@constants/SearchParams";
 
 export function useRouterNavigate() {
     const navigate = useNavigate();
@@ -22,19 +22,23 @@ export function useRouterNavigate() {
                 if (preserveSearchParams) {
                     navigate({ pathname: pathname, search: `?${searchParams.toString()}` });
                 } else if (preserveFlow || preserveRedirection) {
-                    const redirection = searchParams?.get(QueryParamRedirection);
-                    const flow = searchParams?.get(QueryParamFlow);
-                    const flowID = searchParams?.get(QueryParamFlowID);
-                    const subflow = searchParams?.get(QueryParamSubFlow);
 
                     const params = new URLSearchParams();
 
-                    if (preserveRedirection && redirection) params.set(QueryParamRedirection, redirection);
+                    if (preserveRedirection) {
+                        const redirection = searchParams?.get(RedirectionURL);
+
+                        if (redirection) params.set(RedirectionURL, redirection);
+                    }
 
                     if (preserveFlow) {
-                        if (flow) params.set(QueryParamFlow, flow);
-                        if (flowID) params.set(QueryParamFlowID, flowID);
-                        if (subflow) params.set(QueryParamSubFlow, subflow);
+                        const flow = searchParams?.get(Flow);
+                        const subflow = searchParams?.get(SubFlow);
+                        const flowID = searchParams?.get(FlowID);
+
+                        if (flow) params.set(Flow, flow);
+                        if (subflow) params.set(SubFlow, subflow);
+                        if (flowID) params.set(FlowID, flowID);
                     }
 
                     navigate({ pathname: pathname, search: `?${params.toString()}` });

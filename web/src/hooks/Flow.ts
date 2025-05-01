@@ -1,13 +1,13 @@
 import { useSearchParams } from "react-router-dom";
 
-import { QueryParamFlow, QueryParamFlowID, QueryParamSubFlow } from "@constants/constants";
+import { Flow, FlowID, SubFlow } from "@constants/SearchParams";
 
 export function useFlow(): { id?: string; flow?: string; subflow?: string } {
     const [searchParams] = useSearchParams();
 
-    const id = searchParams.get(QueryParamFlowID);
-    const flow = searchParams.get(QueryParamFlow);
-    const subflow = searchParams.get(QueryParamSubFlow);
+    const id = searchParams.get(FlowID);
+    const flow = searchParams.get(Flow);
+    const subflow = searchParams.get(SubFlow);
 
     return {
         id: id === null ? undefined : id,

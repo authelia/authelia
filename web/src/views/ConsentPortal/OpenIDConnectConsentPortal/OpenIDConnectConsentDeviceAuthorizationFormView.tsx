@@ -6,14 +6,15 @@ import TextField from "@mui/material/TextField";
 import { useTranslation } from "react-i18next";
 
 import LogoutButton from "@components/LogoutButton";
-import {
-    FlowNameOpenIDConnect,
-    QueryParamFlow,
-    QueryParamSubFlow,
-    SubFlowNameDeviceAuthorization,
-} from "@constants/constants";
 import { ConsentDecisionSubRoute, ConsentOpenIDSubRoute, ConsentRoute, IndexRoute } from "@constants/Routes";
-import { QueryParamUserCode, useUserCode } from "@hooks/OpenIDConnect";
+import {
+    Flow,
+    FlowNameOpenIDConnect,
+    SubFlow,
+    SubFlowNameDeviceAuthorization,
+    UserCode,
+} from "@constants/SearchParams";
+import { useUserCode } from "@hooks/OpenIDConnect";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 import LoginLayout from "@layouts/LoginLayout";
 import { AutheliaState, AuthenticationLevel } from "@services/State";
@@ -40,9 +41,9 @@ const OpenIDConnectConsentDeviceAuthorizationFormView: React.FC<Props> = (props:
 
             const params = new URLSearchParams();
 
-            params.set(QueryParamUserCode, code);
-            params.set(QueryParamFlow, FlowNameOpenIDConnect);
-            params.set(QueryParamSubFlow, SubFlowNameDeviceAuthorization);
+            params.set(UserCode, code);
+            params.set(Flow, FlowNameOpenIDConnect);
+            params.set(SubFlow, SubFlowNameDeviceAuthorization);
 
             navigate(`${ConsentRoute}${ConsentOpenIDSubRoute}${ConsentDecisionSubRoute}`, true, true, true, params);
         },
@@ -54,11 +55,11 @@ const OpenIDConnectConsentDeviceAuthorizationFormView: React.FC<Props> = (props:
             const params = new URLSearchParams();
 
             if (code) {
-                params.set(QueryParamUserCode, code);
+                params.set(UserCode, code);
             }
 
-            params.set(QueryParamFlow, FlowNameOpenIDConnect);
-            params.set(QueryParamSubFlow, SubFlowNameDeviceAuthorization);
+            params.set(Flow, FlowNameOpenIDConnect);
+            params.set(SubFlow, SubFlowNameDeviceAuthorization);
 
             navigate(IndexRoute, true, true, true, params);
         }

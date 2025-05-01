@@ -1,3 +1,4 @@
+import { FlowID, UserCode } from "@constants/SearchParams";
 import { ConsentPath } from "@services/Api";
 import { Get, Post } from "@services/Client";
 
@@ -30,11 +31,11 @@ export function getConsentResponse(flowID?: string, userCode?: string) {
     const params = new URLSearchParams();
 
     if (flowID) {
-        params.append("flow_id", flowID);
+        params.append(FlowID, flowID);
     }
 
     if (userCode) {
-        params.append("user_code", userCode);
+        params.append(UserCode, userCode);
     }
 
     return Get<ConsentGetResponseBody>(`${ConsentPath}?${params.toString()}`);
