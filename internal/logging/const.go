@@ -43,11 +43,23 @@ func (l LogLevel) Level() logrus.Level {
 
 // Field names.
 const (
-	FieldRemoteIP   = "remote_ip"
-	FieldMethod     = "method"
-	FieldPath       = "path"
-	FieldPathRaw    = "path_raw"
-	FieldStatusCode = "status_code"
+	FieldRemoteIP            = "remote_ip"
+	FieldMethod              = "method"
+	FieldPath                = "path"
+	FieldPathRaw             = "path_raw"
+	FieldStatusCode          = "status_code"
+	FieldFlowID              = "flow_id"
+	FieldUsername            = "username"
+	FieldClientID            = "client_id"
+	FieldGroups              = "groups"
+	FieldExpiration          = "expiration"
+	FieldSessionID           = "session_id"
+	FieldRequestID           = "request_id"
+	FieldAuthenticationLevel = "authentication_level"
+	FieldAuthorizationPolicy = "authorization_policy"
+	FieldSubject             = "subject"
+	FieldResponded           = "responded"
+	FieldGranted             = "granted"
 )
 
 var (
