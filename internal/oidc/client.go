@@ -536,11 +536,11 @@ func (c *RegisteredClient) GetPKCEChallengeMethod() (method string) {
 }
 
 // GetConsentResponseBody returns the proper consent response body for this session.OIDCWorkflowSession.
-func (c *RegisteredClient) GetConsentResponseBody(session RequesterFormSession, form url.Values, authTime time.Time) ConsentGetResponseBody {
+func (c *RegisteredClient) GetConsentResponseBody(session RequesterFormSession, form url.Values, authTime time.Time, disablePreConf bool) ConsentGetResponseBody {
 	body := ConsentGetResponseBody{
 		ClientID:          c.ID,
 		ClientDescription: c.Name,
-		PreConfiguration:  c.ConsentPolicy.Mode == ClientConsentModePreConfigured,
+		PreConfiguration:  c.ConsentPolicy.Mode == ClientConsentModePreConfigured && !disablePreConf,
 	}
 
 	if session != nil {

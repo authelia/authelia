@@ -193,7 +193,7 @@ type Client interface {
 
 	ValidateResponseModePolicy(r oauthelia2.AuthorizeRequester) (err error)
 
-	GetConsentResponseBody(session RequesterFormSession, form url.Values, authTime time.Time) (body ConsentGetResponseBody)
+	GetConsentResponseBody(session RequesterFormSession, form url.Values, authTime time.Time, disablePreConf bool) (body ConsentGetResponseBody)
 	GetConsentPolicy() ClientConsentPolicy
 	IsAuthenticationLevelSufficient(level authentication.Level, subject authorization.Subject) (sufficient bool)
 	GetAuthorizationPolicyRequiredLevel(subject authorization.Subject) (level authorization.Level)

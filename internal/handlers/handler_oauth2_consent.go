@@ -81,7 +81,7 @@ func OAuth2ConsentGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if err = ctx.SetJSONBody(client.GetConsentResponseBody(consent, form, userSession.LastAuthenticatedTime())); err != nil {
+	if err = ctx.SetJSONBody(client.GetConsentResponseBody(consent, form, userSession.LastAuthenticatedTime(), false)); err != nil {
 		ctx.Logger.
 			WithError(err).
 			WithFields(map[string]any{logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID, logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldExpiration: consent.ExpiresAt.Unix()}).
@@ -124,7 +124,7 @@ func OAuth2ConsentDeviceAuthorizationGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if err = ctx.SetJSONBody(client.GetConsentResponseBody(deviceCodeSession, form, userSession.LastAuthenticatedTime())); err != nil {
+	if err = ctx.SetJSONBody(client.GetConsentResponseBody(deviceCodeSession, form, userSession.LastAuthenticatedTime(), true)); err != nil {
 		ctx.Logger.
 			WithError(err).
 			WithFields(map[string]any{logging.FieldClientID: deviceCodeSession.ClientID, logging.FieldSessionID: deviceCodeSession.ID, logging.FieldRequestID: deviceCodeSession.RequestID, logging.FieldUsername: userSession.Username}).

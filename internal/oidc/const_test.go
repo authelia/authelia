@@ -17,7 +17,7 @@ import (
 const (
 	pathCrypto     = "../configuration/test_resources/crypto/%s.%s"
 	myclient       = "myclient"
-	myclientdesc   = "My Client"
+	myclientname   = "My Client"
 	onefactor      = "one_factor"
 	twofactor      = "two_factor"
 	examplecom     = "https://example.com"
