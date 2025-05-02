@@ -295,7 +295,7 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
                                     onChangeChecked={(claims) => setClaims(claims)}
                                 />
                                 {response?.require_login ? (
-                                    <Grid size={{ xs: 12 }}>
+                                    <Grid size={{ xs: 12 }} marginY={theme.spacing(2)}>
                                         <FormControl id={"openid-consent-prompt-login"}>
                                             <Grid container spacing={2}>
                                                 <Grid size={{ xs: 12 }}>
