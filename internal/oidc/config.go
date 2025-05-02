@@ -228,6 +228,11 @@ type ProofKeyCodeExchangeConfig struct {
 	AllowPlainChallengeMethod bool
 }
 
+type StatelessJWTStrategy struct {
+	jwt.Strategy
+	oauth2.CoreStrategy
+}
+
 // LoadHandlers reloads the handlers based on the current configuration.
 func (c *Config) LoadHandlers(store *Store) {
 	validator := openid.NewOpenIDConnectRequestValidator(c.Strategy.JWT, c)
@@ -236,8 +241,11 @@ func (c *Config) LoadHandlers(store *Store) {
 
 	if c.JWTAccessToken.Enable && c.JWTAccessToken.EnableStatelessIntrospection {
 		statelessJWT = &oauth2.StatelessJWTValidator{
-			Strategy: c.Strategy.JWT,
-			Config:   c,
+			StatelessJWTStrategy: &StatelessJWTStrategy{
+				Strategy:     c.Strategy.JWT,
+				CoreStrategy: c.Strategy.Core,
+			},
+			Config: c,
 		}
 	}
 
