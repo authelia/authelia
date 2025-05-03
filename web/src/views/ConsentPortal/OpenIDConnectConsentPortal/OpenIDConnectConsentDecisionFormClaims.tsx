@@ -33,6 +33,12 @@ const OpenIDConnectConsentDecisionFormClaims: React.FC<Props> = (props: Props) =
     };
 
     useEffect(() => {
+        if (props.claims) {
+            setChecked(props.claims);
+        }
+    }, [props.claims]);
+
+    useEffect(() => {
         props.onChangeChecked(checked);
     }, [checked, props]);
 
