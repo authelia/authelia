@@ -158,6 +158,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlInsertOAuth2DeviceCodeSession:           fmt.Sprintf(queryFmtInsertOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
 		sqlSelectOAuth2DeviceCodeSession:           fmt.Sprintf(queryFmtSelectOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
 		sqlUpdateOAuth2DeviceCodeSession:           fmt.Sprintf(queryFmtUpdateOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
+		sqlUpdateOAuth2DeviceCodeSessionStatus:     fmt.Sprintf(queryFmtUpdateOAuth2DeviceCodeSessionStatus, tableOAuth2DeviceCodeSession),
 		sqlDeactivateOAuth2DeviceCodeSession:       fmt.Sprintf(queryFmtDeactivateOAuth2Session, tableOAuth2DeviceCodeSession),
 		sqlSelectOAuth2DeviceCodeSessionByUserCode: fmt.Sprintf(queryFmtSelectOAuth2DeviceCodeSessionByUserCode, tableOAuth2DeviceCodeSession),
 
@@ -329,6 +330,7 @@ type SQLProvider struct {
 	sqlInsertOAuth2DeviceCodeSession           string
 	sqlSelectOAuth2DeviceCodeSession           string
 	sqlUpdateOAuth2DeviceCodeSession           string
+	sqlUpdateOAuth2DeviceCodeSessionStatus     string
 	sqlDeactivateOAuth2DeviceCodeSession       string
 	sqlSelectOAuth2DeviceCodeSessionByUserCode string
 
@@ -1392,9 +1394,20 @@ func (p *SQLProvider) SaveOAuth2DeviceCodeSession(ctx context.Context, session *
 	return nil
 }
 
-func (p *SQLProvider) UpdateOAuth2DeviceCodeSession(ctx context.Context, signature string, status int, checked time.Time) (err error) {
+func (p *SQLProvider) UpdateOAuth2DeviceCodeSession(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error) {
 	_, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2DeviceCodeSession,
-		checked, status, signature)
+		session.ChallengeID, session.Subject, session.GrantedScopes, session.GrantedAudience,
+		session.Session, session.Signature, session.UserCodeSignature)
+
+	if err != nil {
+		return fmt.Errorf("error updating oauth2 device code session with device code signature '%s': %w", session.Signature, err)
+	}
+
+	return nil
+}
+
+func (p *SQLProvider) UpdateOAuth2DeviceCodeSessionStatus(ctx context.Context, signature string, status int, checked time.Time) (err error) {
+	_, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2DeviceCodeSessionStatus, status, checked, signature)
 
 	if err != nil {
 		return fmt.Errorf("error updating oauth2 device code session data with device code signature '%s': %w", signature, err)

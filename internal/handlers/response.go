@@ -8,6 +8,7 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
@@ -144,7 +145,9 @@ func handleFlowResponse(ctx *middlewares.AutheliaCtx, userSession *session.UserS
 	default:
 		ctx.SetJSONError(messageAuthenticationFailed)
 
-		ctx.Logger.WithFields(map[string]any{"flow_id": id, "flow": flow, "subflow": subflow}).Error("Failed to find flow handler for the given flow parameters.")
+		ctx.Logger.
+			WithFields(map[string]any{logging.FieldFlowID: id, logging.FieldFlow: flow, logging.FieldSubflow: subflow}).
+			Error("Failed to find flow handler for the given flow parameters")
 	}
 }
 
@@ -161,8 +164,8 @@ func handleFlowResponseOpenIDConnect(ctx *middlewares.AutheliaCtx, userSession *
 
 		ctx.Logger.
 			WithError(err).
-			WithFields(map[string]any{"flow_id": id, "flow": flowNameOpenIDConnect, "subflow": subflow}).
-			Error("Failed to parse flow id for consent session.")
+			WithFields(map[string]any{logging.FieldFlowID: id, logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow}).
+			Error("Failed to parse flow id for consent session")
 
 		return
 	}
@@ -172,8 +175,8 @@ func handleFlowResponseOpenIDConnect(ctx *middlewares.AutheliaCtx, userSession *
 
 		ctx.Logger.
 			WithError(err).
-			WithFields(map[string]any{"flow_id": flowID.String(), "flow": flowNameOpenIDConnect, "subflow": subflow}).
-			Error("Failed load consent session with the provided flow id.")
+			WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow}).
+			Error("Failed load consent session with the provided flow id")
 
 		return
 	}
@@ -182,8 +185,8 @@ func handleFlowResponseOpenIDConnect(ctx *middlewares.AutheliaCtx, userSession *
 		ctx.SetJSONError(messageAuthenticationFailed)
 
 		ctx.Logger.
-			WithFields(map[string]any{"flow_id": flowID.String(), "flow": flowNameOpenIDConnect, "subflow": subflow}).
-			Error("Consent session has already been responded to.")
+			WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow}).
+			Error("Consent session has already been responded to")
 
 		return
 	}
@@ -193,8 +196,8 @@ func handleFlowResponseOpenIDConnect(ctx *middlewares.AutheliaCtx, userSession *
 
 		ctx.Logger.
 			WithError(err).
-			WithFields(map[string]any{"flow_id": flowID.String(), "flow": flowNameOpenIDConnect, "subflow": subflow, "client_id": consent.ClientID}).
-			Error("Failed to get client by 'client_id' for consent session.")
+			WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldClientID: consent.ClientID}).
+			Error("Failed to get client by 'client_id' for consent session")
 
 		return
 	}
@@ -204,8 +207,8 @@ func handleFlowResponseOpenIDConnect(ctx *middlewares.AutheliaCtx, userSession *
 
 		ctx.Logger.
 			WithError(err).
-			WithFields(map[string]any{"flow_id": flowID.String(), "flow": flowNameOpenIDConnect, "subflow": subflow, "client_id": client.GetID()}).
-			Error("Failed to redirect for consent as the user is anonymous.")
+			WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldClientID: client.GetID()}).
+			Error("Failed to redirect for consent as the user is anonymous")
 
 		return
 	}
@@ -222,8 +225,8 @@ func handleFlowResponseOpenIDConnect(ctx *middlewares.AutheliaCtx, userSession *
 
 		ctx.Logger.
 			WithError(err).
-			WithFields(map[string]any{"flow_id": flowID.String(), "flow": flowNameOpenIDConnect, "subflow": subflow, "client_id": client.GetID(), "username": userSession.Username}).
-			Error("Failed to get authorization form values from consent session.")
+			WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldClientID: client.GetID(), logging.FieldUsername: userSession.Username}).
+			Error("Failed to get authorization form values from consent session")
 
 		return
 	}
@@ -240,8 +243,8 @@ func handleFlowResponseOpenIDConnect(ctx *middlewares.AutheliaCtx, userSession *
 		if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURL.String()}); err != nil {
 			ctx.Logger.
 				WithError(err).
-				WithFields(map[string]any{"flow_id": flowID.String(), "flow": flowNameOpenIDConnect, "subflow": subflow, "client_id": client.GetID(), "username": userSession.Username}).
-				Error("Failed to marshal JSON response body for consent redirection.")
+				WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldClientID: client.GetID(), logging.FieldUsername: userSession.Username}).
+				Error("Failed to marshal JSON response body for consent redirection")
 		}
 
 		return
@@ -259,15 +262,13 @@ func handleFlowResponseOpenIDConnect(ctx *middlewares.AutheliaCtx, userSession *
 		if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURL.String()}); err != nil {
 			ctx.Logger.
 				WithError(err).
-				WithFields(map[string]any{"flow_id": flowID.String(), "flow": flowNameOpenIDConnect, "subflow": subflow, "client_id": client.GetID(), "username": userSession.Username}).
-				Error("Failed to marshal JSON response body for authorization redirection.")
+				WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldClientID: client.GetID(), logging.FieldUsername: userSession.Username}).
+				Error("Failed to marshal JSON response body for authorization redirection")
 		}
 	default:
-		ctx.Logger.Warnf("OpenID Connect client '%s' requires 2FA, cannot be redirected yet", client.GetID())
-
 		ctx.Logger.
-			WithFields(map[string]any{"flow_id": flowID.String(), "flow": flowNameOpenIDConnect, "subflow": subflow, "client_id": client.GetID(), "username": userSession.Username}).
-			Info("OpenID Connect 1.0 client requires 2FA.")
+			WithFields(map[string]any{logging.FieldFlowID: flowID.String(), logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldClientID: client.GetID(), logging.FieldUsername: userSession.Username}).
+			Info("OpenID Connect 1.0 client requires 2FA")
 
 		ctx.ReplyOK()
 

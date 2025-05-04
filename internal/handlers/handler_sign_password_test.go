@@ -115,7 +115,7 @@ func (s *HandlerSignPasswordSuite) TestShouldHandleOpenIDConnect() {
 	SecondFactorPasswordPOST(nil)(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
-	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Failed to parse flow id for consent session.", map[string]any{"error": "invalid UUID length: 3", "flow": "openid_connect", "flow_id": "abc", "subflow": ""})
+	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Failed to parse flow id for consent session", map[string]any{"error": "invalid UUID length: 3", "flow": "openid_connect", "flow_id": "abc", "subflow": ""})
 }
 
 func (s *HandlerSignPasswordSuite) TestShouldRedirectUserToDefaultURLDelayFunc() {

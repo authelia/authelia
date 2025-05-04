@@ -763,7 +763,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectCantParseUUID(
 
 	// Respond with 200.
 	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
-	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Failed to parse flow id for consent session.", map[string]any{"error": "invalid UUID length: 55", "flow": "openid_connect", "flow_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaa-9107-4067-8d31-407ca59eb69c", "subflow": ""})
+	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Failed to parse flow id for consent session", map[string]any{"error": "invalid UUID length: 55", "flow": "openid_connect", "flow_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaa-9107-4067-8d31-407ca59eb69c", "subflow": ""})
 }
 
 func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectCantGetConsentSession() {
@@ -806,7 +806,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectCantGetConsent
 
 	// Respond with 200.
 	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
-	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Failed load consent session with the provided flow id.", map[string]any{"error": "failed to obtain", "flow": "openid_connect", "flow_id": "d1ba0ad8-9107-4067-8d31-407ca59eb69c", "subflow": ""})
+	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Failed load consent session with the provided flow id", map[string]any{"error": "failed to obtain", "flow": "openid_connect", "flow_id": "d1ba0ad8-9107-4067-8d31-407ca59eb69c", "subflow": ""})
 }
 
 func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectConsentSessionAlreadyResponded() {
@@ -849,7 +849,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectConsentSession
 
 	// Respond with 200.
 	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
-	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Consent session has already been responded to.", map[string]any{"flow": "openid_connect", "flow_id": "d1ba0ad8-9107-4067-8d31-407ca59eb69c", "subflow": ""})
+	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Consent session has already been responded to", map[string]any{"flow": "openid_connect", "flow_id": "d1ba0ad8-9107-4067-8d31-407ca59eb69c", "subflow": ""})
 }
 
 func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectCantGetClient() {
@@ -895,7 +895,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectCantGetClient(
 
 	// Respond with 200.
 	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
-	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Failed to get client by 'client_id' for consent session.", map[string]any{"error": "invalid_client", "client_id": "abc", "flow": "openid_connect", "flow_id": "d1ba0ad8-9107-4067-8d31-407ca59eb69c", "subflow": ""})
+	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Failed to get client by 'client_id' for consent session", map[string]any{"error": "invalid_client", "client_id": "abc", "flow": "openid_connect", "flow_id": "d1ba0ad8-9107-4067-8d31-407ca59eb69c", "subflow": ""})
 }
 
 func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectFormRequiresLogin() {
@@ -1014,7 +1014,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectFormRequiresLo
 
 	// Respond with 200.
 	s.mock.Assert200KO(s.T(), "Authentication failed. Check your credentials.")
-	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Failed to get authorization form values from consent session.", map[string]any{"error": "invalid URL escape \"%1\"", "client_id": "abc", "flow": "openid_connect", "flow_id": "d1ba0ad8-9107-4067-8d31-407ca59eb69c", "subflow": "", "username": "test"})
+	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.ErrorLevel, "Failed to get authorization form values from consent session", map[string]any{"error": "invalid URL escape \"%1\"", "client_id": "abc", "flow": "openid_connect", "flow_id": "d1ba0ad8-9107-4067-8d31-407ca59eb69c", "subflow": "", "username": "test"})
 }
 
 func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectNeeds2FA() {
@@ -1073,7 +1073,7 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectNeeds2FA() {
 
 	// Respond with 200.
 	s.mock.Assert200OK(s.T(), nil)
-	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.InfoLevel, "OpenID Connect 1.0 client requires 2FA.", map[string]any{"client_id": "abc", "flow": "openid_connect", "flow_id": "d1ba0ad8-9107-4067-8d31-407ca59eb69c", "subflow": ""})
+	s.mock.AssertLogEntryAdvanced(s.T(), 0, logrus.InfoLevel, "OpenID Connect 1.0 client requires 2FA", map[string]any{"client_id": "abc", "flow": "openid_connect", "flow_id": "d1ba0ad8-9107-4067-8d31-407ca59eb69c", "subflow": ""})
 }
 
 func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectNeeds1FA() {

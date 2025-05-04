@@ -1772,7 +1772,7 @@ paths:
       description: >
         This endpoint performs the client interaction for the Device Authorization Flow.
       requestBody:
-        description: Device Authorize Request Parameters.
+        description: Device Authorize Request (Device Code Flow) Parameters.
         required: true
         content:
           application/x-www-form-urlencoded:
@@ -1806,6 +1806,35 @@ paths:
                   interval:
                     type: integer
                     example: 10
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      security:
+        - authelia_auth: []
+    put:
+      tags:
+        - OAuth 2.0
+        - OpenID Connect 1.0
+      summary: RFC8628 OAuth 2.0 Device Authorization Grant Endpoint
+      description: >
+        This endpoint performs the user interaction for the Device Authorization Flow.
+      requestBody:
+        description: Device Authorize Request (User Code Flow) Parameters.
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                flow_id:
+                  type: string
+                  description: This is the field of the same name returned by the
+                user_code:
+                  type: string
+      responses:
+        "200":
+          description: OK
         "400":
           description: Bad Request
         "500":
@@ -3250,10 +3279,6 @@ components:
           example: OK
         data:
           type: object
-          required:
-            - flow_id
-            - client_id
-            - consent
           properties:
             flow_id:
               description: The identifier of the consent flow session.
@@ -3261,33 +3286,10 @@ components:
               format: uuid
               pattern: '^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'
               example: '713ef767-81bc-4a27-9b83-5fe2e101b2b4'
-            client_id:
-              description: The identifier of the client for the user to provide consent for.
+            redirect_uri:
+              description: The URI the user should be redirected to.
               type: string
-              example: 'app'
-            consent:
-              description: Indicates if the user consented to the consent request.
-              type: boolean
-              example: true
-            pre_configure:
-              description: Indicates if the user consented to pre-configuration.
-              type: boolean
-              example: true
-            flow:
-              type: string
-              example: 'openid_connect'
-              enum:
-                - 'openid_connect'
-            subflow:
-              description: The name of the subflow if applicable.
-              type: string
-              example: 'device_authorization'
-              enum:
-                - 'device_authorization'
-            user_code:
-              description: The user code for the Device Authorization Flow if applicable
-              type: string
-              example: 'XGQWWFMM'
+              format: uri
     openid.spec.Metadata.OAuth2AuthorizationServer:
       type: object
       required:

@@ -10,7 +10,7 @@ export interface Props {
     onChangePreConfiguration: (value: boolean) => void;
 }
 
-const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => {
+const DecisionFormPreConfiguration: React.FC<Props> = (props: Props) => {
     const { t: translate } = useTranslation(["portal", "consent"]);
 
     const { classes } = useStyles();
@@ -54,4 +54,4 @@ const useStyles = makeStyles()((theme: Theme) => ({
     preConfigure: {},
 }));
 
-export default OpenIDConnectConsentDecisionFormView;
+export default DecisionFormPreConfiguration;

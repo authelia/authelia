@@ -27,18 +27,19 @@ import { useRedirector } from "@hooks/Redirector";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 import LoginLayout from "@layouts/LoginLayout";
 import { UserInfo } from "@models/UserInfo";
-import { IsCapsLockModified } from "@services/CapsLock.js";
+import { IsCapsLockModified } from "@services/CapsLock";
 import {
     ConsentGetResponseBody,
     getConsentResponse,
     postConsentResponseAccept,
     postConsentResponseReject,
+    putDeviceCodeFlowUserCode,
 } from "@services/ConsentOpenIDConnect";
-import { postFirstFactorReauthenticate } from "@services/Password.js";
+import { postFirstFactorReauthenticate } from "@services/Password";
 import { AutheliaState, AuthenticationLevel } from "@services/State";
-import OpenIDConnectConsentDecisionFormClaims from "@views/ConsentPortal/OpenIDConnectConsentPortal/OpenIDConnectConsentDecisionFormClaims";
-import OpenIDConnectConsentDecisionFormPreConfiguration from "@views/ConsentPortal/OpenIDConnectConsentPortal/OpenIDConnectConsentDecisionFormPreConfiguration";
-import OpenIDConnectConsentDecisionFormScopes from "@views/ConsentPortal/OpenIDConnectConsentPortal/OpenIDConnectConsentDecisionFormScopes";
+import DecisionFormClaims from "@views/ConsentPortal/OpenIDConnect/DecisionFormClaims";
+import OpenIDConnectConsentDecisionFormPreConfiguration from "@views/ConsentPortal/OpenIDConnect/DecisionFormPreConfiguration";
+import DecisionFormScopes from "@views/ConsentPortal/OpenIDConnect/DecisionFormScopes";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 
 export interface Props {
@@ -46,7 +47,7 @@ export interface Props {
     state: AutheliaState;
 }
 
-const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => {
+const DecisionFormView: React.FC<Props> = (props: Props) => {
     const { t: translate } = useTranslation(["portal", "consent"]);
     const theme = useTheme();
 
@@ -167,6 +168,10 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
 
         if (res.redirect_uri) {
             redirect(res.redirect_uri);
+        } else if (res.flow_id && userCode) {
+            await putDeviceCodeFlowUserCode(res.flow_id, userCode);
+
+            // TODO: Redirect to a complete/close me page.
         } else {
             createErrorNotification(translate("Failed to redirect you"));
             throw new Error("Unable to redirect the user");
@@ -288,8 +293,8 @@ const OpenIDConnectConsentDecisionFormView: React.FC<Props> = (props: Props) => 
                                         {translate("The above application is requesting the following permissions")}:
                                     </Box>
                                 </Grid>
-                                <OpenIDConnectConsentDecisionFormScopes scopes={response.scopes} />
-                                <OpenIDConnectConsentDecisionFormClaims
+                                <DecisionFormScopes scopes={response.scopes} />
+                                <DecisionFormClaims
                                     claims={response.claims}
                                     essential_claims={response.essential_claims}
                                     onChangeChecked={(claims) => setClaims(claims)}
@@ -403,4 +408,4 @@ const useStyles = makeStyles()((theme: Theme) => ({
     },
 }));
 
-export default OpenIDConnectConsentDecisionFormView;
+export default DecisionFormView;

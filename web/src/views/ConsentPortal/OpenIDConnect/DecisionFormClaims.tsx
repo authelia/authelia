@@ -13,7 +13,7 @@ export interface Props {
     essential_claims: string[] | null;
 }
 
-const OpenIDConnectConsentDecisionFormClaims: React.FC<Props> = (props: Props) => {
+const DecisionFormClaims: React.FC<Props> = (props: Props) => {
     const { t: translate } = useTranslation(["portal", "consent"]);
 
     const { classes } = useStyles();
@@ -100,4 +100,4 @@ const useStyles = makeStyles()((theme: Theme) => ({
     },
 }));
 
-export default OpenIDConnectConsentDecisionFormClaims;
+export default DecisionFormClaims;

@@ -11,9 +11,7 @@ import { UserInfo } from "@models/UserInfo";
 import { AutheliaState, AuthenticationLevel } from "@services/State";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 
-const OpenIDConnectConsentPortal = lazy(
-    () => import("@views/ConsentPortal/OpenIDConnectConsentPortal/OpenIDConnectConsentPortal"),
-);
+const OpenIDConnect = lazy(() => import("@views/ConsentPortal/OpenIDConnect/ConsentPortal"));
 
 export interface Props {}
 
@@ -75,7 +73,7 @@ const ConsentPortalRouter: React.FC<RouterProps> = (props: RouterProps) => {
         <Routes>
             <Route
                 path={`${ConsentOpenIDSubRoute}/*`}
-                element={<OpenIDConnectConsentPortal userInfo={props.userInfo} state={props.state} />}
+                element={<OpenIDConnect userInfo={props.userInfo} state={props.state} />}
             />
         </Routes>
     );

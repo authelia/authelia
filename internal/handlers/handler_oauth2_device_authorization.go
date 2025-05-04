@@ -3,45 +3,56 @@ package handlers
 import (
 	"errors"
 	"net/http"
-	"net/url"
+	"strings"
 
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/x/errorsx"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
-func OAuth2DeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *http.Request) {
+// OAuth2DeviceAuthorizationPOST handles the Device Code Flow of the the Device Authorization Flow.
+func OAuth2DeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	var (
-		request  oauthelia2.DeviceAuthorizeRequester
-		response oauthelia2.DeviceAuthorizeResponder
+		requester oauthelia2.DeviceAuthorizeRequester
+		response  oauthelia2.DeviceAuthorizeResponder
 
 		err error
 	)
 
-	if request, err = ctx.Providers.OpenIDConnect.NewRFC862DeviceAuthorizeRequest(ctx, req); err != nil {
-		ctx.Logger.Errorf("Device Authorization Request failed with error: %s", oauthelia2.ErrorToDebugRFC6749Error(err))
+	if requester, err = ctx.Providers.OpenIDConnect.NewRFC862DeviceAuthorizeRequest(ctx, r); err != nil {
+		ctx.Logger.
+			WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
+			Errorf("Device Authorization Request failed with error during the Device Authorization Flow")
 
-		errorsx.WriteJSONError(rw, req, err)
-
-		return
-	}
-
-	if response, err = ctx.Providers.OpenIDConnect.NewRFC862DeviceAuthorizeResponse(ctx, request, oidc.NewSessionWithRequestedAt(ctx.Clock.Now())); err != nil {
-		ctx.Logger.Errorf("Device Authorization Request with id '%s' on client with id '%s'  failed with error: %s", request.GetID(), request.GetClient().GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
-
-		errorsx.WriteJSONError(rw, req, err)
+		errorsx.WriteJSONError(rw, r, err)
 
 		return
 	}
 
-	ctx.Providers.OpenIDConnect.WriteRFC862DeviceAuthorizeResponse(ctx, rw, request, response)
+	log := ctx.Logger.WithFields(map[string]any{logging.FieldRequestID: requester.GetID(), logging.FieldClientID: requester.GetClient().GetID(), logging.FieldScope: strings.Join(requester.GetRequestedScopes(), " ")})
+
+	log.Debug("Device Authorization Request is processing the Device Authorization Flow")
+
+	if response, err = ctx.Providers.OpenIDConnect.NewRFC862DeviceAuthorizeResponse(ctx, requester, oidc.NewSessionWithRequestedAt(ctx.Clock.Now())); err != nil {
+		log.WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).Error("Device Authorization Request had an error while trying to create a response during the Device Authorization Flow")
+
+		errorsx.WriteJSONError(rw, r, err)
+
+		return
+	}
+
+	log.Debug("Device Authorization Request has successfully processed the Device Authorization Flow")
+
+	ctx.Providers.OpenIDConnect.WriteRFC862DeviceAuthorizeResponse(ctx, rw, requester, response)
 }
 
+// OAuth2DeviceAuthorizationPUT handles the User Code Flow of the the Device Authorization Flow.
 func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, r *http.Request) {
 	var (
 		requester oauthelia2.DeviceAuthorizeRequester

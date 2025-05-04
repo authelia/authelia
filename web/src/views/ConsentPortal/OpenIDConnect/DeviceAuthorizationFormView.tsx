@@ -23,7 +23,7 @@ export interface Props {
     state: AutheliaState;
 }
 
-const OpenIDConnectConsentDeviceAuthorizationFormView: React.FC<Props> = (props: Props) => {
+const DeviceAuthorizationFormView: React.FC<Props> = (props: Props) => {
     const { t: translate } = useTranslation();
     const theme = useTheme();
 
@@ -115,4 +115,4 @@ const OpenIDConnectConsentDeviceAuthorizationFormView: React.FC<Props> = (props:
     );
 };
 
-export default OpenIDConnectConsentDeviceAuthorizationFormView;
+export default DeviceAuthorizationFormView;

@@ -478,18 +478,6 @@ utilize refresh tokens. For more information read this documentation about the [
 
 The default maximum lifetime of an access token.
 
-#### authorize_code
-
-{{< confkey type="string,integer" syntax="duration" default="1 minute" required="no" >}}
-
-The default maximum lifetime of an authorize code.
-
-#### id_token
-
-{{< confkey type="string,integer" syntax="duration" default="1 hour" required="no" >}}
-
-The default maximum lifetime of an ID token.
-
 #### refresh_token
 
 {{< confkey type="string,integer" syntax="duration" default="1 hour 30 minutes" required="no" >}}
@@ -500,6 +488,24 @@ access tokens or id tokens with an up-to-date expiration.
 A good starting point is 50% more or 30 minutes more (which ever is less) time than the highest lifespan out of the
 [access token](#access_token) lifespan and the [id token](#id_token) lifespan. For instance the default for all of these
 is 60 minutes, so the default refresh token lifespan is 90 minutes.
+
+#### id_token
+
+{{< confkey type="string,integer" syntax="duration" default="1 hour" required="no" >}}
+
+The default maximum lifetime of an ID token.
+
+#### authorize_code
+
+{{< confkey type="string,integer" syntax="duration" default="1 minute" required="no" >}}
+
+The default maximum lifetime of an authorize code.
+
+#### device_code
+
+{{< confkey type="string,integer" syntax="duration" default="10 minutes" required="no" >}}
+
+The default maximum lifetime of an device code.
 
 #### custom
 
@@ -528,41 +534,42 @@ identity_providers:
   oidc:
     lifespans:
       access_token: '1h'
-      authorize_code: '1m'
-      id_token: '1h'
       refresh_token: '90m'
+      id_token: '1h'
+      authorize_code: '1m'
+      device_code: '1m'
       custom:
         lifespan_name:
           access_token: '1h'
-          authorize_code: '1m'
-          id_token: '1h'
           refresh_token: '90m'
+          id_token: '1h'
+          authorize_code: '1m'
+          device_code: '1m'
           grants:
             authorize_code:
               access_token: '1h'
-              authorize_code: '1m'
-              id_token: '1h'
               refresh_token: '90m'
+              id_token: '1h'
+            device_code:
+              access_token: '1h'
+              refresh_token: '90m'
+              id_token: '1h'
             implicit:
               access_token: '1h'
-              authorize_code: '1m'
-              id_token: '1h'
               refresh_token: '90m'
+              id_token: '1h'
             client_credentials:
               access_token: '1h'
-              authorize_code: '1m'
-              id_token: '1h'
               refresh_token: '90m'
+              id_token: '1h'
             refresh_token:
               access_token: '1h'
-              authorize_code: '1m'
-              id_token: '1h'
               refresh_token: '90m'
+              id_token: '1h'
             jwt_bearer:
               access_token: '1h'
-              authorize_code: '1m'
-              id_token: '1h'
               refresh_token: '90m'
+              id_token: '1h'
 ```
 
 ### claims_policies

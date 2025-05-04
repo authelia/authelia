@@ -31,7 +31,7 @@ const (
 	ClaimExpirationTime                      = "exp"
 	ClaimAuthenticationTime                  = "auth_time"
 	ClaimIssuer                              = valueIss
-	ClaimNonce                               = "nonce"
+	ClaimNonce                               = valueNonce
 	ClaimAudience                            = "aud"
 	ClaimGroups                              = "groups"
 	ClaimAuthorizedParty                     = "azp"
@@ -223,6 +223,9 @@ const (
 	FormParameterPrompt       = "prompt"
 	FormParameterMaximumAge   = "max_age"
 	FormParameterClaims       = "claims"
+	FormParameterUserCode     = "user_code"
+	FormParameterFlowID       = "flow_id"
+	FormParameterNonce        = valueNonce
 )
 
 const (
@@ -406,6 +409,7 @@ const (
 	valueNone          = "none"
 	valueRefreshToken  = "refresh_token"
 	valueIss           = "iss"
+	valueNonce         = "nonce"
 )
 
 const (

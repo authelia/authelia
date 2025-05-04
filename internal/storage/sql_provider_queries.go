@@ -523,7 +523,19 @@ const (
 
 	queryFmtUpdateOAuth2DeviceCodeSession = `
 		UPDATE %s
-		SET checked_at = ?, status = ?
+		SET
+			challenge_id = ?,
+			subject = ?,
+			granted_scopes = ?,
+			granted_audience = ?,
+			session_data = ?
+		WHERE signature = ? AND user_code_signature = ?;`
+
+	queryFmtUpdateOAuth2DeviceCodeSessionStatus = `
+		UPDATE %s
+		SET
+			status = ?,
+			checked_at = ?
 		WHERE signature = ?;`
 
 	queryFmtSelectOAuth2PARContext = `

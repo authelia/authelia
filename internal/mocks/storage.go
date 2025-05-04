@@ -1339,17 +1339,31 @@ func (mr *MockStorageMockRecorder) StartupCheck() *gomock.Call {
 }
 
 // UpdateOAuth2DeviceCodeSession mocks base method.
-func (m *MockStorage) UpdateOAuth2DeviceCodeSession(ctx context.Context, signature string, status int, checked time.Time) error {
+func (m *MockStorage) UpdateOAuth2DeviceCodeSession(ctx context.Context, session *model.OAuth2DeviceCodeSession) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateOAuth2DeviceCodeSession", ctx, signature, status, checked)
+	ret := m.ctrl.Call(m, "UpdateOAuth2DeviceCodeSession", ctx, session)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateOAuth2DeviceCodeSession indicates an expected call of UpdateOAuth2DeviceCodeSession.
-func (mr *MockStorageMockRecorder) UpdateOAuth2DeviceCodeSession(ctx, signature, status, checked any) *gomock.Call {
+func (mr *MockStorageMockRecorder) UpdateOAuth2DeviceCodeSession(ctx, session any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOAuth2DeviceCodeSession", reflect.TypeOf((*MockStorage)(nil).UpdateOAuth2DeviceCodeSession), ctx, signature, status, checked)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOAuth2DeviceCodeSession", reflect.TypeOf((*MockStorage)(nil).UpdateOAuth2DeviceCodeSession), ctx, session)
+}
+
+// UpdateOAuth2DeviceCodeSessionStatus mocks base method.
+func (m *MockStorage) UpdateOAuth2DeviceCodeSessionStatus(ctx context.Context, signature string, status int, checked time.Time) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateOAuth2DeviceCodeSessionStatus", ctx, signature, status, checked)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateOAuth2DeviceCodeSessionStatus indicates an expected call of UpdateOAuth2DeviceCodeSessionStatus.
+func (mr *MockStorageMockRecorder) UpdateOAuth2DeviceCodeSessionStatus(ctx, signature, status, checked any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOAuth2DeviceCodeSessionStatus", reflect.TypeOf((*MockStorage)(nil).UpdateOAuth2DeviceCodeSessionStatus), ctx, signature, status, checked)
 }
 
 // UpdateOAuth2PARContext mocks base method.

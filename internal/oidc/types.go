@@ -315,7 +315,8 @@ type ConsentPostRequestBody struct {
 
 // ConsentPostResponseBody schema of the response body of the consent POST endpoint.
 type ConsentPostResponseBody struct {
-	RedirectURI string `json:"redirect_uri"`
+	RedirectURI string `json:"redirect_uri,omitempty"`
+	FlowID      string `json:"flow_id,omitempty"`
 }
 
 /*

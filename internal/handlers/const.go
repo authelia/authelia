@@ -4,6 +4,8 @@ import (
 	"errors"
 
 	"github.com/valyala/fasthttp"
+
+	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
 const (
@@ -43,16 +45,15 @@ const (
 	queryArgAuth      = "auth"
 	queryArgConsentID = "consent_id"
 	queryArgFlow      = "flow"
-	queryArgFlowID    = "flow_id"
-	queryArgUserCode  = "user_code"
+	queryArgFlowID    = oidc.FormParameterFlowID
 )
 
 var (
 	qryArgRD        = []byte(queryArgRD)
-	qryArgFlowID    = []byte(queryArgFlowID)
+	qryArgFlowID    = []byte(oidc.FormParameterFlowID)
 	qryArgAuth      = []byte(queryArgAuth)
 	qryArgConsentID = []byte(queryArgConsentID)
-	qryArgUserCode  = []byte(queryArgUserCode)
+	qryArgUserCode  = []byte(oidc.FormParameterUserCode)
 )
 
 var (

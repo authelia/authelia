@@ -31,7 +31,7 @@ function scopeNameToAvatar(id: string) {
     }
 }
 
-const OpenIDConnectConsentDecisionFormScopes: React.FC<Props> = (props: Props) => {
+const DecisionFormScopes: React.FC<Props> = (props: Props) => {
     const { t: translate } = useTranslation(["portal", "consent"]);
 
     const { classes } = useStyles();
@@ -68,4 +68,4 @@ const useStyles = makeStyles()((theme: Theme) => ({
     },
 }));
 
-export default OpenIDConnectConsentDecisionFormScopes;
+export default DecisionFormScopes;

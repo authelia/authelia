@@ -5,11 +5,9 @@ import { Route, Routes } from "react-router-dom";
 import { ConsentDecisionSubRoute, ConsentOpenIDDeviceAuthorizationSubRoute } from "@constants/Routes";
 import { UserInfo } from "@models/UserInfo";
 import { AutheliaState } from "@services/State";
-const OpenIDConnectConsentDecisionFormView = lazy(
-    () => import("@views/ConsentPortal/OpenIDConnectConsentPortal/OpenIDConnectConsentDecisionFormView"),
-);
+const OpenIDConnectConsentDecisionFormView = lazy(() => import("@views/ConsentPortal/OpenIDConnect/DecisionFormView"));
 const OpenIDConnectConsentDeviceAuthorizationFormView = lazy(
-    () => import("@views/ConsentPortal/OpenIDConnectConsentPortal/OpenIDConnectConsentDeviceAuthorizationFormView"),
+    () => import("@views/ConsentPortal/OpenIDConnect/DeviceAuthorizationFormView"),
 );
 
 export interface Props {
@@ -17,7 +15,7 @@ export interface Props {
     state: AutheliaState;
 }
 
-const OpenIDConnectConsentPortal: React.FC<Props> = (props: Props) => {
+const ConsentPortal: React.FC<Props> = (props: Props) => {
     return (
         <Routes>
             <Route
@@ -32,4 +30,4 @@ const OpenIDConnectConsentPortal: React.FC<Props> = (props: Props) => {
     );
 };
 
-export default OpenIDConnectConsentPortal;
+export default ConsentPortal;

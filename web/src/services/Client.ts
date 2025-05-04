@@ -71,6 +71,7 @@ export async function Put<T>(path: string, body?: any) {
     if (!res) {
         throw new Error("unexpected type of response");
     }
+
     return res;
 }
 

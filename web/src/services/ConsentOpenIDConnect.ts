@@ -1,5 +1,7 @@
+import axios from "axios";
+
 import { FlowID, UserCode } from "@constants/SearchParams";
-import { ConsentPath } from "@services/Api";
+import { OpenIDConnectConsentPath, OpenIDConnectDeviceAuthorizationPath } from "@services/Api";
 import { Get, Post } from "@services/Client";
 
 interface ConsentPostRequestBody {
@@ -13,7 +15,8 @@ interface ConsentPostRequestBody {
 }
 
 interface ConsentPostResponseBody {
-    redirect_uri: string;
+    redirect_uri?: string;
+    flow_id?: string;
 }
 
 export interface ConsentGetResponseBody {
@@ -38,7 +41,7 @@ export function getConsentResponse(flowID?: string, userCode?: string) {
         params.append(UserCode, userCode);
     }
 
-    return Get<ConsentGetResponseBody>(`${ConsentPath}?${params.toString()}`);
+    return Get<ConsentGetResponseBody>(`${OpenIDConnectConsentPath}?${params.toString()}`);
 }
 
 export function postConsentResponseAccept(
@@ -59,7 +62,16 @@ export function postConsentResponseAccept(
         user_code: userCode,
     };
 
-    return Post<ConsentPostResponseBody>(ConsentPath, body);
+    return Post<ConsentPostResponseBody>(OpenIDConnectConsentPath, body);
+}
+
+export function putDeviceCodeFlowUserCode(flowID: string, userCode: string) {
+    const params = new URLSearchParams();
+
+    params.append(FlowID, flowID);
+    params.append(UserCode, userCode);
+
+    return axios.put(OpenIDConnectDeviceAuthorizationPath, params);
 }
 
 export function postConsentResponseReject(clientID: string, flowID?: string, subflow?: string, userCode?: string) {
@@ -72,7 +84,7 @@ export function postConsentResponseReject(clientID: string, flowID?: string, sub
         user_code: userCode,
     };
 
-    return Post<ConsentPostResponseBody>(ConsentPath, body);
+    return Post<ConsentPostResponseBody>(OpenIDConnectConsentPath, body);
 }
 
 export function formatScope(scope: string, fallback: string): string {

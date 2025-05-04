@@ -738,12 +738,12 @@ func (c *RegisteredClient) GetEffectiveLifespan(gt oauthelia2.GrantType, tt oaut
 		default:
 			return fallback
 		}
-	case oauthelia2.AuthorizeCode:
+	case oauthelia2.RefreshToken:
 		switch {
-		case gtl.AuthorizeCode > durationZero:
-			return gtl.AuthorizeCode
-		case c.Lifespans.AuthorizeCode > durationZero:
-			return c.Lifespans.AuthorizeCode
+		case gtl.RefreshToken > durationZero:
+			return gtl.RefreshToken
+		case c.Lifespans.RefreshToken > durationZero:
+			return c.Lifespans.RefreshToken
 		default:
 			return fallback
 		}
@@ -756,12 +756,12 @@ func (c *RegisteredClient) GetEffectiveLifespan(gt oauthelia2.GrantType, tt oaut
 		default:
 			return fallback
 		}
-	case oauthelia2.RefreshToken:
+	case oauthelia2.AuthorizeCode:
 		switch {
-		case gtl.RefreshToken > durationZero:
-			return gtl.RefreshToken
-		case c.Lifespans.RefreshToken > durationZero:
-			return c.Lifespans.RefreshToken
+		case gtl.AuthorizeCode > durationZero:
+			return gtl.AuthorizeCode
+		case c.Lifespans.AuthorizeCode > durationZero:
+			return c.Lifespans.AuthorizeCode
 		default:
 			return fallback
 		}
@@ -774,6 +774,8 @@ func (c *RegisteredClient) getGrantTypeLifespan(gt oauthelia2.GrantType) (gtl sc
 	switch gt {
 	case oauthelia2.GrantTypeAuthorizationCode:
 		return c.Lifespans.Grants.AuthorizeCode
+	case oauthelia2.GrantTypeDeviceCode:
+		return c.Lifespans.Grants.DeviceCode
 	case oauthelia2.GrantTypeImplicit:
 		return c.Lifespans.Grants.Implicit
 	case oauthelia2.GrantTypeClientCredentials:
