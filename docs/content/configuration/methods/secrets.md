@@ -70,7 +70,7 @@ configuration in a logically secure way.
 ## Environment variables
 
 A secret value can be loaded by *Authelia* when the configuration key ends with one of the following words: `key`,
-`secret`, `password`, or `token`.
+`secret`, `password`, `token` or `certificate_chain`.
 
 If you take the expected environment variable for the configuration option with the `_FILE` suffix at the end. The value
 of these environment variables must be the path of a file that is readable by the Authelia process, if they are not,
