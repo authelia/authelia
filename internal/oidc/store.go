@@ -285,7 +285,12 @@ func (s *Store) CreateDeviceCodeSession(ctx context.Context, signature string, r
 }
 
 func (s *Store) UpdateDeviceCodeSession(ctx context.Context, signature string, request oauthelia2.DeviceAuthorizeRequester) (err error) {
-	return s.provider.UpdateOAuth2DeviceCodeSessionStatus(ctx, signature, int(request.GetStatus()), request.GetLastChecked())
+	session, err := model.NewOAuth2DeviceCodeSessionFromRequest(request)
+	if err != nil {
+		return err
+	}
+
+	return s.provider.UpdateOAuth2DeviceCodeSessionData(ctx, session)
 }
 
 func (s *Store) GetDeviceCodeSession(ctx context.Context, signature string, session oauthelia2.Session) (request oauthelia2.DeviceAuthorizeRequester, err error) {

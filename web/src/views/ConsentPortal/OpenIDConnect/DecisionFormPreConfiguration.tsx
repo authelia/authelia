@@ -11,7 +11,7 @@ export interface Props {
 }
 
 const DecisionFormPreConfiguration: React.FC<Props> = (props: Props) => {
-    const { t: translate } = useTranslation(["portal", "consent"]);
+    const { t: translate } = useTranslation(["consent"]);
 
     const { classes } = useStyles();
 

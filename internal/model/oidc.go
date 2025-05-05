@@ -107,7 +107,7 @@ func NewOAuth2SessionFromRequest(signature string, r oauthelia2.Requester) (sess
 // NewOAuth2DeviceCodeSessionFromRequest creates a new OAuth2DeviceCodeSession from a signature and oauthelia2.Requester.
 func NewOAuth2DeviceCodeSessionFromRequest(r oauthelia2.DeviceAuthorizeRequester) (session *OAuth2DeviceCodeSession, err error) {
 	if r == nil {
-		return nil, fmt.Errorf("failed to create new *model.OAuth2Session: the oauthelia2.Requester was nil")
+		return nil, fmt.Errorf("failed to create new *model.OAuth2DeviceCodeSession: the oauthelia2.DeviceAuthorizeRequester was nil")
 	}
 
 	var (
@@ -141,6 +141,7 @@ func NewOAuth2DeviceCodeSessionFromRequest(r oauthelia2.DeviceAuthorizeRequester
 	}
 
 	return &OAuth2DeviceCodeSession{
+		ChallengeID:       s.GetChallengeID(),
 		RequestID:         r.GetID(),
 		ClientID:          r.GetClient().GetID(),
 		Signature:         r.GetDeviceCodeSignature(),

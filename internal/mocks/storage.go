@@ -1352,18 +1352,18 @@ func (mr *MockStorageMockRecorder) UpdateOAuth2DeviceCodeSession(ctx, session an
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOAuth2DeviceCodeSession", reflect.TypeOf((*MockStorage)(nil).UpdateOAuth2DeviceCodeSession), ctx, session)
 }
 
-// UpdateOAuth2DeviceCodeSessionStatus mocks base method.
-func (m *MockStorage) UpdateOAuth2DeviceCodeSessionStatus(ctx context.Context, signature string, status int, checked time.Time) error {
+// UpdateOAuth2DeviceCodeSessionData mocks base method.
+func (m *MockStorage) UpdateOAuth2DeviceCodeSessionData(ctx context.Context, session *model.OAuth2DeviceCodeSession) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateOAuth2DeviceCodeSessionStatus", ctx, signature, status, checked)
+	ret := m.ctrl.Call(m, "UpdateOAuth2DeviceCodeSessionData", ctx, session)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// UpdateOAuth2DeviceCodeSessionStatus indicates an expected call of UpdateOAuth2DeviceCodeSessionStatus.
-func (mr *MockStorageMockRecorder) UpdateOAuth2DeviceCodeSessionStatus(ctx, signature, status, checked any) *gomock.Call {
+// UpdateOAuth2DeviceCodeSessionData indicates an expected call of UpdateOAuth2DeviceCodeSessionData.
+func (mr *MockStorageMockRecorder) UpdateOAuth2DeviceCodeSessionData(ctx, session any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOAuth2DeviceCodeSessionStatus", reflect.TypeOf((*MockStorage)(nil).UpdateOAuth2DeviceCodeSessionStatus), ctx, signature, status, checked)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOAuth2DeviceCodeSessionData", reflect.TypeOf((*MockStorage)(nil).UpdateOAuth2DeviceCodeSessionData), ctx, session)
 }
 
 // UpdateOAuth2PARContext mocks base method.

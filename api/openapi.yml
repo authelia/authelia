@@ -1829,9 +1829,10 @@ paths:
               properties:
                 flow_id:
                   type: string
-                  description: This is the field of the same name returned by the
+                  description: This is the field of the same name returned by the consent endpoint.
                 user_code:
                   type: string
+                  description: This is the user code submitted by the user during the Device Authorization Flow.
       responses:
         "200":
           description: OK

@@ -14,7 +14,7 @@ export interface Props {
 }
 
 const DecisionFormClaims: React.FC<Props> = (props: Props) => {
-    const { t: translate } = useTranslation(["portal", "consent"]);
+    const { t: translate } = useTranslation(["consent"]);
 
     const { classes } = useStyles();
 
@@ -58,15 +58,15 @@ const DecisionFormClaims: React.FC<Props> = (props: Props) => {
                     <Box className={classes.container}>
                         <List className={classes.list}>
                             {props.essential_claims?.map((claim: string) => (
-                                <Tooltip title={translate("Claim", { name: claim, ns: "consent" })}>
+                                <Tooltip title={translate("Claim", { name: claim })}>
                                     <FormControlLabel
                                         control={<Checkbox id={`claim-${claim}-essential`} disabled checked />}
-                                        label={formatClaim(translate(`claims.${claim}`, { ns: "consent" }), claim)}
+                                        label={formatClaim(translate(`claims.${claim}`), claim)}
                                     />
                                 </Tooltip>
                             ))}
                             {props.claims?.map((claim: string) => (
-                                <Tooltip title={translate("Claim", { name: claim, ns: "consent" })}>
+                                <Tooltip title={translate("Claim", { name: claim })}>
                                     <FormControlLabel
                                         control={
                                             <Checkbox
@@ -76,7 +76,7 @@ const DecisionFormClaims: React.FC<Props> = (props: Props) => {
                                                 onChange={handleClaimCheckboxOnChange}
                                             />
                                         }
-                                        label={formatClaim(translate(`claims.${claim}`, { ns: "consent" }), claim)}
+                                        label={formatClaim(translate(`claims.${claim}`), claim)}
                                     />
                                 </Tooltip>
                             ))}

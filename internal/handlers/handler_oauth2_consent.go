@@ -445,6 +445,26 @@ func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bo
 		ctx.SetJSONError(messageOperationFailed)
 	}
 
+	if !device.Active || device.Revoked {
+		ctx.Logger.
+			WithFields(map[string]any{logging.FieldUsername: userSession.Username, logging.FieldClientID: bodyJSON.ClientID, logging.FieldSessionID: device.ID}).
+			Error("Error occurred trying to determine if the device code session is active during the Consent Flow stage of the Device Authorization Flow")
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	if device.ChallengeID.Valid {
+		ctx.Logger.
+			WithFields(map[string]any{logging.FieldUsername: userSession.Username, logging.FieldClientID: bodyJSON.ClientID, logging.FieldSessionID: device.ID}).
+			Error("Error occurred trying to advance the Consent Flow stage of the Device Authorization Flow as the device code session already has a challenge id")
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
 	if device.ClientID != bodyJSON.ClientID {
 		ctx.Logger.
 			WithFields(map[string]any{logging.FieldUsername: userSession.Username, "body_client_id": bodyJSON.ClientID, logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID}).
@@ -494,6 +514,16 @@ func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bo
 		return
 	}
 
+	if device.Subject.Valid && device.Subject.String != subject.String() {
+		ctx.Logger.
+			WithFields(map[string]any{logging.FieldUsername: userSession.Username, logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID}).
+			Error("Error occurred trying to determine the subject during the Consent Flow stage of the Device Authorization Flow as the subject of the device code session does not match the subject of the user session")
+
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
 	if r, err = device.ToRequest(ctx, oidc.NewSession(), ctx.Providers.OpenIDConnect.Store); err != nil {
 		ctx.Logger.
 			WithError(err).
@@ -518,11 +548,10 @@ func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bo
 
 	device.ChallengeID = uuid.NullUUID{UUID: consent.ChallengeID, Valid: true}
 
-	device.RequestedAudience = device.GrantedAudience
-	device.RequestedScopes = device.GrantedScopes
-
 	if bodyJSON.Consent {
 		oidc.ConsentGrant(consent, true, bodyJSON.Claims)
+	} else {
+		device.Active = false
 	}
 
 	consent.SetRespondedAt(ctx.Clock.Now(), 0)

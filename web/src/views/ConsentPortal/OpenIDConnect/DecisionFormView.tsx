@@ -48,7 +48,7 @@ export interface Props {
 }
 
 const DecisionFormView: React.FC<Props> = (props: Props) => {
-    const { t: translate } = useTranslation(["portal", "consent"]);
+    const { t: translate } = useTranslation(["consent", "portal"]);
     const theme = useTheme();
 
     const { classes } = useStyles();
@@ -131,7 +131,7 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
                 await loginChannel.postMessage(true);
             } catch (err) {
                 console.error(err);
-                createErrorNotification(translate("Failed to confirm your identity"));
+                createErrorNotification(translate("Failed to confirm your identity", { ns: "portal" }));
                 setPassword("");
                 setLoading(false);
                 setLoadingAccept(false);
@@ -145,7 +145,7 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
             setResponse(r);
 
             if (r.require_login) {
-                createErrorNotification(translate("Failed to confirm your identity"));
+                createErrorNotification(translate("Failed to confirm your identity", { ns: "portal" }));
 
                 return;
             }
@@ -173,7 +173,7 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
 
             // TODO: Redirect to a complete/close me page.
         } else {
-            createErrorNotification(translate("Failed to redirect you"));
+            createErrorNotification(translate("Failed to redirect you", { ns: "portal" }));
             throw new Error("Unable to redirect the user");
         }
     }, [
@@ -263,7 +263,7 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
             {props.userInfo && response !== undefined ? (
                 <LoginLayout
                     id={"openid-consent-stage"}
-                    title={`${translate("Hi")} ${props.userInfo.display_name}`}
+                    title={`${translate("Hi", { ns: "portal" })} ${props.userInfo.display_name}`}
                     subtitle={translate("Consent Request")}
                 >
                     <Grid container direction={"column"} justifyContent={"center"} alignItems={"center"}>
@@ -306,7 +306,7 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
                                                 <Grid size={{ xs: 12 }}>
                                                     <TextField
                                                         id={"password-textfield"}
-                                                        label={translate("Password")}
+                                                        label={translate("Password", { ns: "portal" })}
                                                         variant={"outlined"}
                                                         inputRef={passwordRef}
                                                         onKeyDown={handlePasswordKeyDown}
@@ -325,10 +325,13 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
                                                 {hasCapsLock ? (
                                                     <Grid size={{ xs: 12 }} marginX={2}>
                                                         <Alert severity={"warning"}>
-                                                            <AlertTitle>{translate("Warning")}</AlertTitle>
+                                                            <AlertTitle>
+                                                                {translate("Warning", { ns: "portal" })}
+                                                            </AlertTitle>
                                                             {isCapsLockPartial
                                                                 ? translate(
                                                                       "The password was partially entered with Caps Lock",
+                                                                      { ns: "portal" },
                                                                   )
                                                                 : translate("The password was entered with Caps Lock")}
                                                         </Alert>
@@ -349,7 +352,7 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
                                                 title={
                                                     passwordMissing
                                                         ? translate(
-                                                              "You must reauthenticate by to be able to give consent",
+                                                              "You must reauthenticate to be able to give consent",
                                                           )
                                                         : translate("Accept this consent request")
                                                 }
@@ -363,7 +366,7 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
                                                     variant={"contained"}
                                                     endIcon={loadingAccept ? <CircularProgress size={20} /> : null}
                                                 >
-                                                    {translate("Accept")}
+                                                    {translate("Accept", { ns: "portal" })}
                                                 </Button>
                                             </Tooltip>
                                         </Grid>
@@ -378,7 +381,7 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
                                                     variant={"contained"}
                                                     endIcon={loadingReject ? <CircularProgress size={20} /> : null}
                                                 >
-                                                    {translate("Deny")}
+                                                    {translate("Deny", { ns: "portal" })}
                                                 </Button>
                                             </Tooltip>
                                         </Grid>

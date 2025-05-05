@@ -525,17 +525,35 @@ const (
 		UPDATE %s
 		SET
 			challenge_id = ?,
+			request_id = ?,
+			client_id = ?,
+			status = ?,
 			subject = ?,
+			requested_at = ?,
+			checked_at = ?,
+			requested_scopes = ?,
+			requested_audience = ?,
 			granted_scopes = ?,
 			granted_audience = ?,
+			active = ?,
+			revoked = ?,
+			form_data = ?,
 			session_data = ?
-		WHERE signature = ? AND user_code_signature = ?;`
+		WHERE signature = ?;`
 
-	queryFmtUpdateOAuth2DeviceCodeSessionStatus = `
+	queryFmtUpdateOAuth2DeviceCodeSessionData = `
 		UPDATE %s
 		SET
+			challenge_id = ?,
+			client_id = ?,
 			status = ?,
-			checked_at = ?
+			subject = ?,
+			requested_scopes = ?,
+			requested_audience = ?,
+			granted_scopes = ?,
+			granted_audience = ?,
+			form_data = ?,
+			session_data = ?
 		WHERE signature = ?;`
 
 	queryFmtSelectOAuth2PARContext = `

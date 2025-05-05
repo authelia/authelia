@@ -24,7 +24,7 @@ export interface Props {
 }
 
 const DeviceAuthorizationFormView: React.FC<Props> = (props: Props) => {
-    const { t: translate } = useTranslation();
+    const { t: translate } = useTranslation(["consent", "settings"]);
     const theme = useTheme();
 
     const [code, setCode] = useState("");
@@ -104,7 +104,7 @@ const DeviceAuthorizationFormView: React.FC<Props> = (props: Props) => {
                                     onClick={() => handleCode(code)}
                                     disabled={code === ""}
                                 >
-                                    {translate("Confirm")}
+                                    {translate("Confirm", { ns: "settings" })}
                                 </Button>
                             </Grid>
                         </Grid>

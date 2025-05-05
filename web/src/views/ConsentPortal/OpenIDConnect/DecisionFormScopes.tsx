@@ -1,6 +1,16 @@
 import React from "react";
 
-import { AccountBox, Autorenew, Contacts, Drafts, Group, LockOpen, Policy } from "@mui/icons-material";
+import {
+    AccountBox,
+    Autorenew,
+    Contacts,
+    Drafts,
+    Group,
+    Home,
+    LockOpen,
+    PhoneAndroid,
+    Policy,
+} from "@mui/icons-material";
 import { Box, List, ListItem, ListItemIcon, ListItemText, Theme, Tooltip } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
@@ -24,6 +34,10 @@ function scopeNameToAvatar(id: string) {
             return <Group />;
         case "email":
             return <Drafts />;
+        case "phone":
+            return <PhoneAndroid />;
+        case "address":
+            return <Home />;
         case "authelia.bearer.authz":
             return <LockOpen />;
         default:
@@ -32,7 +46,7 @@ function scopeNameToAvatar(id: string) {
 }
 
 const DecisionFormScopes: React.FC<Props> = (props: Props) => {
-    const { t: translate } = useTranslation(["portal", "consent"]);
+    const { t: translate } = useTranslation(["consent"]);
 
     const { classes } = useStyles();
 
@@ -41,12 +55,10 @@ const DecisionFormScopes: React.FC<Props> = (props: Props) => {
             <Box className={classes.scopesListContainer}>
                 <List className={classes.scopesList}>
                     {props.scopes.map((scope: string) => (
-                        <Tooltip title={translate("Scope", { name: scope, ns: "consent" })}>
+                        <Tooltip title={translate("Scope", { name: scope })}>
                             <ListItem id={"scope-" + scope} dense>
                                 <ListItemIcon>{scopeNameToAvatar(scope)}</ListItemIcon>
-                                <ListItemText
-                                    primary={formatScope(translate(`scopes.${scope}`, { ns: "consent" }), scope)}
-                                />
+                                <ListItemText primary={formatScope(translate(`scopes.${scope}`), scope)} />
                             </ListItem>
                         </Tooltip>
                     ))}
