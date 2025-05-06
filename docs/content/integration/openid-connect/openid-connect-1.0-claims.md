@@ -327,6 +327,7 @@ guide.
 [ID Token]: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
 [Access Token]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.4
 [Refresh Token]: https://openid.net/specs/openid-connect-core-1_0.html#RefreshTokens
+[Refresh Tokens]: https://openid.net/specs/openid-connect-core-1_0.html#RefreshTokens
 
 [Claims]: https://openid.net/specs/openid-connect-core-1_0.html#Claims
 [Standard Claims]: https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
