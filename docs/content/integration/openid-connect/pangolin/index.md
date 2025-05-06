@@ -113,7 +113,7 @@ Unless you have a Pangolin licence, you will need to manually create the user in
 
 ## See Also
 
-- [Pangolin OIDC Documentation]([https://docs.fossorial.io/Pangolin/Identity%20Providers/configuring-identity-providers)
+- [Pangolin OIDC Documentation](https://docs.fossorial.io/Pangolin/Identity%20Providers/configuring-identity-providers)
 
 [Authelia]: https://www.authelia.com
 [Pangolin]: https://fossorial.io/
