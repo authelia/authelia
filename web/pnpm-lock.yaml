@@ -103,8 +103,8 @@ importers:
         specifier: 19.8.0
         version: 19.8.0
       '@limegrass/eslint-plugin-import-alias':
-        specifier: 1.5.0
-        version: 1.5.0(eslint@8.57.1)
+        specifier: 1.5.1
+        version: 1.5.1(eslint@8.57.1)
       '@testing-library/jest-dom':
         specifier: 6.6.3
         version: 6.6.3
@@ -1286,15 +1286,6 @@ packages:
     resolution: {integrity: sha512-G/M/tIiMrTAxEWRfLfQJMmGNX28IxBg4PBz8XqQhqUHLFI6TL2htpIB1iQCj144V5ee/JaKyT9/WZ0MGZWfA7A==}
     engines: {node: ^12.0.0 || ^14.0.0 || >=16.0.0}
 
-  '@eslint/compat@1.2.3':
-    resolution: {integrity: sha512-wlZhwlDFxkxIZ571aH0FoK4h4Vwx7P3HJx62Gp8hTc10bfpwT2x0nULuAHmQSJBOWPgPeVf+9YtnD4j50zVHmA==}
-    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
-    peerDependencies:
-      eslint: ^9.10.0
-    peerDependenciesMeta:
-      eslint:
-        optional: true
-
   '@eslint/eslintrc@2.1.4':
     resolution: {integrity: sha512-269Z39MS6wVJtsoUl10L60WdkhJVdPG24Q4eZTH3nnF6lpvSShEK3wQjDX9JRWAUPvPh7COouPpU9IrqaZFvtQ==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
@@ -1376,10 +1367,10 @@ packages:
   '@jridgewell/trace-mapping@0.3.25':
     resolution: {integrity: sha512-vNk6aEwybGtawWmy/PzwnGDOjCkLWSD2wqvjGGAgOAwCGWySYXfYoxt00IJkTF+8Lb57DwOb3Aa0o9CApepiYQ==}
 
-  '@limegrass/eslint-plugin-import-alias@1.5.0':
-    resolution: {integrity: sha512-DI37bf+YrzhceiPX/UZiM3fKXYAwqdvr3pbU5sS5JuM79BHrTuI+ueTWC69KJ4gkClSQUk6x1LK/T+SPBkGHfA==}
+  '@limegrass/eslint-plugin-import-alias@1.5.1':
+    resolution: {integrity: sha512-W5PNfHhnj1CzlSAm5jMB7ITwiuQnIuRwwdwy8f/DBkYhwd5LOhY4ABHwpVeqqAiKC9nhfPQSANtoqpP3sxcESA==}
     peerDependencies:
-      eslint: ^2 || ^3 || ^4 || ^5 || ^6 || ^7.2.0 || ^8 || ^9
+      eslint: ^2 || ^3 || ^4 || ^5 || ^6 || ^7.2.0 || ^8.40.0 || ^9
 
   '@mui/core-downloads-tracker@7.0.2':
     resolution: {integrity: sha512-TfeFU9TgN1N06hyb/pV/63FfO34nijZRMqgHk0TJ3gkl4Fbd+wZ73+ZtOd7jag6hMmzO9HSrBc6Vdn591nhkAg==}
@@ -6028,10 +6019,6 @@ snapshots:
 
   '@eslint-community/regexpp@4.11.0': {}
 
-  '@eslint/compat@1.2.3(eslint@8.57.1)':
-    optionalDependencies:
-      eslint: 8.57.1
-
   '@eslint/eslintrc@2.1.4':
     dependencies:
       ajv: 6.12.6
@@ -6124,9 +6111,8 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.0
       '@jridgewell/sourcemap-codec': 1.5.0
 
-  '@limegrass/eslint-plugin-import-alias@1.5.0(eslint@8.57.1)':
+  '@limegrass/eslint-plugin-import-alias@1.5.1(eslint@8.57.1)':
     dependencies:
-      '@eslint/compat': 1.2.3(eslint@8.57.1)
       eslint: 8.57.1
       fs-extra: 10.1.0
       micromatch: 4.0.8
