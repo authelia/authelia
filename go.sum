@@ -1,5 +1,5 @@
-authelia.com/provider/oauth2 v0.2.6 h1:93fQ0uPO+ZyuTeNgSWB0bwwd9oiFwxpoRGJQhTSIALQ=
-authelia.com/provider/oauth2 v0.2.6/go.mod h1:fntoRMJONoUzQxby7/84FCST8SDDeprSFuMrtiUdyXM=
+authelia.com/provider/oauth2 v0.2.8 h1:p4rYak+0JhvdLyE5tNw6YoF4onz+guKP3sgK/3aC2ds=
+authelia.com/provider/oauth2 v0.2.8/go.mod h1:fntoRMJONoUzQxby7/84FCST8SDDeprSFuMrtiUdyXM=
 cel.dev/expr v0.23.1 h1:K4KOtPCJQjVggkARsjG9RWXP6O4R73aHeJMa/dmCQQg=
 cel.dev/expr v0.23.1/go.mod h1:hLPLo1W4QUmuYdA72RBX06QTs6MXw941piREPl3Yfiw=
 filippo.io/edwards25519 v1.1.0 h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=
@@ -224,8 +224,8 @@ github.com/valyala/bytebufferpool v1.0.0 h1:GqA5TC/0021Y/b9FG4Oi9Mr3q7XYx6Kllzaw
 github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyCJ6HpOuEn7z0Csc=
 github.com/valyala/fasthttp v1.61.0 h1:VV08V0AfoRaFurP1EWKvQQdPTZHiUzaVoulX1aBDgzU=
 github.com/valyala/fasthttp v1.61.0/go.mod h1:wRIV/4cMwUPWnRcDno9hGnYZGh78QzODFfo1LTUhBog=
-github.com/weppos/publicsuffix-go v0.40.3-0.20250502074036-58e01ef5b800 h1:Sl6UesJXJq01NJKM2jGtLe8KR2IOi8JETuXCBHqEWP4=
-github.com/weppos/publicsuffix-go v0.40.3-0.20250502074036-58e01ef5b800/go.mod h1:2oFzEwGYI7lhiqG0YkkcKa6VcpjVinQbWxaPzytDmLA=
+github.com/weppos/publicsuffix-go v0.40.3-0.20250503104530-877d25338289 h1:3E8DWn4BLRhIniOm9TnLk0DVRfJcPaDNnGfceueq83I=
+github.com/weppos/publicsuffix-go v0.40.3-0.20250503104530-877d25338289/go.mod h1:2oFzEwGYI7lhiqG0YkkcKa6VcpjVinQbWxaPzytDmLA=
 github.com/wneessen/go-mail v0.6.2 h1:c6V7c8D2mz868z9WJ+8zDKtUyLfZ1++uAZmo2GRFji8=
 github.com/wneessen/go-mail v0.6.2/go.mod h1:L/PYjPK3/2ZlNb2/FjEBIn9n1rUWjW+Toy531oVmeb4=
 github.com/x448/float16 v0.8.4 h1:qLwI1I70+NjRFUR3zs1JPUCgaCXSh3SW62uAKT1mSBM=

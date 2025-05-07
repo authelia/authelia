@@ -5,7 +5,7 @@ go 1.24.0
 toolchain go1.24.2
 
 require (
-	authelia.com/provider/oauth2 v0.2.6
+	authelia.com/provider/oauth2 v0.2.8
 	github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
 	github.com/authelia/jsonschema v0.1.7
@@ -45,7 +45,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/trustelem/zxcvbn v1.0.1
 	github.com/valyala/fasthttp v1.61.0
-	github.com/weppos/publicsuffix-go v0.40.3-0.20250502074036-58e01ef5b800
+	github.com/weppos/publicsuffix-go v0.40.3-0.20250503104530-877d25338289
 	github.com/wneessen/go-mail v0.6.2
 	go.uber.org/mock v0.5.2
 	golang.org/x/net v0.39.0
