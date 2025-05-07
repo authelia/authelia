@@ -62,7 +62,7 @@ identity_providers:
         require_pkce: true
         pkce_challenge_method: 'S256'
         redirect_uris:
-          - 'get from Pangolin
+          - '<provided by pangolin>'
         scopes:
           - 'openid'
           - 'profile'
@@ -73,17 +73,13 @@ identity_providers:
 
 ### Application
 
-{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-Since Pangolin does not use the implicit flow solely returning an ID Token the ID Token, 
-and Pangolin is not requesting the claims be present in the ID Token, these claims shouldn't 
-be present in the ID Token and should instead be retrieved using the Access Token from the UserInfo Endpoint.
-{{< /callout >}}
-
-{{% oidc-conformance-claims claims="email,name" %}}
-
 To configure [Pangolin] there is one method, using the [Web GUI](#web-gui).
 
 #### Web GUI
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+Unless you have a Pangolin licence, you will need to manually create the user in Access Control > Users before attempting login.
+{{< /callout >}}
 
 To configure [Pangolin] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following
 instructions:
@@ -106,10 +102,6 @@ instructions:
    - Scopes: `openid profile email`
 7. Click `Create Identity Provider`.
 8. On page refresh, note the Redirection URL, and enter it into your Authelia config under `redirect_uris`.
-
-{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-Unless you have a Pangolin licence, you will need to manually create the user in Access Control > Users before attempting login.
-{{< /callout >}}
 
 ## See Also
 
