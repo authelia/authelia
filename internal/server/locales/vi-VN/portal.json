@@ -94,7 +94,7 @@
 	"Username": "Tài khoản",
 	"Username is required": "Tên đăng nhập là bắt buộc",
 	"You cancelled the assertion request": "Bạn đã hủy yêu cầu xác nhận",
-	"You must view and accept the Privacy Policy before using": "Bạn phải xem và đồng ý với \u003c0\u003eChính sách bảo mật\u003c/0\u003e trước khi sử dụng",
+	"You must view and accept the Privacy Policy before using": "Bạn phải xem và đồng ý với <0>Chính sách bảo mật</0> trước khi sử dụng",
 	"You're being signed out and redirected": "Bạn đã được đăng xuất và chuyển hướng",
 	"Your browser does not support the WebAuthn protocol": "Trình duyệt của bạn không hỗ trợ giao thức WebAuthn",
 	"Your supplied password does not meet the password policy requirements": "Mật khẩu bạn đã nhập không đạt yêu cầu của chính sách mật khẩu"

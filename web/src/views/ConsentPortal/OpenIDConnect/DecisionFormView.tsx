@@ -1,5 +1,6 @@
 import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import {
     Alert,
     AlertTitle,
@@ -7,6 +8,8 @@ import {
     Button,
     CircularProgress,
     FormControl,
+    IconButton,
+    InputAdornment,
     Theme,
     Tooltip,
     Typography,
@@ -65,6 +68,7 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
     const [loadingAccept, setLoadingAccept] = useState(false);
     const [loadingReject, setLoadingReject] = useState(false);
     const [errorPassword, setErrorPassword] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const [response, setResponse] = useState<ConsentGetResponseBody>();
     const [error, setError] = useState<any>(undefined);
@@ -304,23 +308,76 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
                                         <FormControl id={"openid-consent-prompt-login"}>
                                             <Grid container spacing={2}>
                                                 <Grid size={{ xs: 12 }}>
-                                                    <TextField
-                                                        id={"password-textfield"}
-                                                        label={translate("Password", { ns: "portal" })}
-                                                        variant={"outlined"}
-                                                        inputRef={passwordRef}
-                                                        onKeyDown={handlePasswordKeyDown}
-                                                        onKeyUp={handlePasswordKeyUp}
-                                                        error={errorPassword}
-                                                        disabled={loading}
-                                                        value={password}
-                                                        onChange={(v) => setPassword(v.target.value)}
-                                                        onFocus={() => setErrorPassword(false)}
-                                                        type={"password"}
-                                                        autoComplete={"current-password"}
-                                                        required
-                                                        fullWidth
-                                                    />
+                                                    <Tooltip
+                                                        title={translate(
+                                                            "You must reauthenticate to be able to give consent",
+                                                        )}
+                                                    >
+                                                        <TextField
+                                                            id={"password-textfield"}
+                                                            label={translate("Password", { ns: "portal" })}
+                                                            variant={"outlined"}
+                                                            inputRef={passwordRef}
+                                                            onKeyDown={handlePasswordKeyDown}
+                                                            onKeyUp={handlePasswordKeyUp}
+                                                            error={errorPassword}
+                                                            disabled={loading}
+                                                            value={password}
+                                                            onChange={(v) => setPassword(v.target.value)}
+                                                            onFocus={() => setErrorPassword(false)}
+                                                            type={showPassword ? "text" : "password"}
+                                                            autoComplete={"current-password"}
+                                                            required
+                                                            fullWidth
+                                                            slotProps={{
+                                                                input: {
+                                                                    endAdornment: (
+                                                                        <InputAdornment position="end">
+                                                                            <IconButton
+                                                                                aria-label="toggle password visibility"
+                                                                                edge="end"
+                                                                                size="large"
+                                                                                onMouseDown={() =>
+                                                                                    setShowPassword(true)
+                                                                                }
+                                                                                onMouseUp={() => setShowPassword(false)}
+                                                                                onMouseLeave={() =>
+                                                                                    setShowPassword(false)
+                                                                                }
+                                                                                onTouchStart={() =>
+                                                                                    setShowPassword(true)
+                                                                                }
+                                                                                onTouchEnd={() =>
+                                                                                    setShowPassword(false)
+                                                                                }
+                                                                                onTouchCancel={() =>
+                                                                                    setShowPassword(false)
+                                                                                }
+                                                                                onKeyDown={(e) => {
+                                                                                    if (e.key === " ") {
+                                                                                        setShowPassword(true);
+                                                                                        e.preventDefault();
+                                                                                    }
+                                                                                }}
+                                                                                onKeyUp={(e) => {
+                                                                                    if (e.key === " ") {
+                                                                                        setShowPassword(false);
+                                                                                        e.preventDefault();
+                                                                                    }
+                                                                                }}
+                                                                            >
+                                                                                {showPassword ? (
+                                                                                    <Visibility />
+                                                                                ) : (
+                                                                                    <VisibilityOff />
+                                                                                )}
+                                                                            </IconButton>
+                                                                        </InputAdornment>
+                                                                    ),
+                                                                },
+                                                            }}
+                                                        />
+                                                    </Tooltip>
                                                 </Grid>
                                                 {hasCapsLock ? (
                                                     <Grid size={{ xs: 12 }} marginX={2}>

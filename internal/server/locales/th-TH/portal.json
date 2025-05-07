@@ -94,7 +94,7 @@
 	"Username": "ชื่อผู้ใช้",
 	"Username is required": "ชื่อผู้ใช้เป็นสิ่งจำเป็น",
 	"You cancelled the assertion request": "คุณยกเลิกคำขอการยืนยัน",
-	"You must view and accept the Privacy Policy before using": "คุณต้องดูและยอมรับ \u003c0\u003eนโยบายความเป็นส่วนตัว\u003c/0\u003e ก่อนใช้งาน",
+	"You must view and accept the Privacy Policy before using": "คุณต้องดูและยอมรับ <0>นโยบายความเป็นส่วนตัว</0> ก่อนใช้งาน",
 	"You're being signed out and redirected": "คุณกำลังออกจากระบบและถูกเปลี่ยนเส้นทาง",
 	"Your browser does not support the WebAuthn protocol": "เบราว์เซอร์ของคุณไม่สนับสนุนโปรโตคอล WebAuthn",
 	"Your supplied password does not meet the password policy requirements": "รหัสผ่านที่คุณป้อนไม่ตรงตามข้อกำหนดนโยบายรหัสผ่าน"

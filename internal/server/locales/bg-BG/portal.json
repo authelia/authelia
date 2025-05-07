@@ -94,7 +94,7 @@
 	"Username": "Потребителско име",
 	"Username is required": "Потребителското име е задължително",
 	"You cancelled the assertion request": "Вие отменихте заявката за удостоверение",
-	"You must view and accept the Privacy Policy before using": "Трябва да разгледате и приемете \u003c0\u003eПолитиката за поверителност\u003c/0\u003e преди да използвате",
+	"You must view and accept the Privacy Policy before using": "Трябва да разгледате и приемете <0>Политиката за поверителност</0> преди да използвате",
 	"You're being signed out and redirected": "Излизате и ще бъдете пренасочени",
 	"Your browser does not support the WebAuthn protocol": "Вашият браузър не поддържа протокола WebAuthn",
 	"Your supplied password does not meet the password policy requirements": "Предоставената от вас парола не отговаря на изискванията за паролата"

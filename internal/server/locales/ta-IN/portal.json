@@ -94,7 +94,7 @@
 	"Username": "பயனர் பெயர்",
 	"Username is required": "பயனர் பெயர் தேவையானது",
 	"You cancelled the assertion request": "நீங்கள் சான்றிதழ் கோரிக்கையை ரத்து செய்தீர்கள்",
-	"You must view and accept the Privacy Policy before using": "பயன்பாடுகளைப் பயன்படுத்துவதற்குமுன், \u003c0\u003eதனிப்பட்ட ஏற்கை\u003c/0\u003e ஐப் பார்க்கவும் மற்றும் ஏற்கவும்",
+	"You must view and accept the Privacy Policy before using": "பயன்பாடுகளைப் பயன்படுத்துவதற்குமுன், <0>தனிப்பட்ட ஏற்கை</0> ஐப் பார்க்கவும் மற்றும் ஏற்கவும்",
 	"You're being signed out and redirected": "உங்களை வெளியேற்றப்பட்டு, மறுவைப்கள் செய்யப்பட்டு கொண்டிருக்கிறீர்கள்",
 	"Your browser does not support the WebAuthn protocol": "உங்கள் உலாவி WebAuthn நெறிமுறையை ஆதரிக்கவில்லை",
 	"Your supplied password does not meet the password policy requirements": "நீங்கள் வழங்கிய கடவுச்சொல் கடவுச்சொல் கொள்கை தேவைகளை பூர்த்தி செய்யவில்லை"

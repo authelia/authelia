@@ -94,7 +94,7 @@
 	"Username": "Nama Pengguna",
 	"Username is required": "Nama pengguna diperlukan",
 	"You cancelled the assertion request": "Anda membatalkan permintaan pengesahan",
-	"You must view and accept the Privacy Policy before using": "Anda mesti melihat dan menerima \u003c0\u003eDasar Privasi\u003c/0\u003e sebelum menggunakan",
+	"You must view and accept the Privacy Policy before using": "Anda mesti melihat dan menerima <0>Dasar Privasi</0> sebelum menggunakan",
 	"You're being signed out and redirected": "Anda sedang log keluar dan dihalakan",
 	"Your browser does not support the WebAuthn protocol": "Penyemak imbas anda tidak menyokong protokol WebAuthn",
 	"Your supplied password does not meet the password policy requirements": "Kata laluan yang anda berikan tidak memenuhi syarat polisi kata laluan"

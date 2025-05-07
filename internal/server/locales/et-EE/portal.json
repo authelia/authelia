@@ -94,7 +94,7 @@
 	"Username": "Kasutajanimi",
 	"Username is required": "Kasutajanimi on vajalik",
 	"You cancelled the assertion request": "Tühistasite kinnituse taotluse",
-	"You must view and accept the Privacy Policy before using": "Peate vaata ja aktsepteeri \u003c0\u003ePrivaatsuspoliitikat\u003c/0\u003e enne kasutamist",
+	"You must view and accept the Privacy Policy before using": "Peate vaata ja aktsepteeri <0>Privaatsuspoliitikat</0> enne kasutamist",
 	"You're being signed out and redirected": "Teid logitakse välja ja suunatakse ümber",
 	"Your browser does not support the WebAuthn protocol": "Teie brauser ei toeta WebAuthn protokolli",
 	"Your supplied password does not meet the password policy requirements": "Teie esitatud parool ei vasta parooli eeskirja nõuetele"

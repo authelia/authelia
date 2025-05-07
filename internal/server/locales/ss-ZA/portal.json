@@ -94,7 +94,7 @@
 	"Username": "Igama lomsebenzisi",
 	"Username is required": "Igama lomsebenzisi liyadingeka",
 	"You cancelled the assertion request": "Uphumile isicelo sokuhlola",
-	"You must view and accept the Privacy Policy before using": "Kufanele ubone futhi uvume i \u003c0\u003eInqubomgomo Yobumfihlo\u003c/0\u003e ngaphambi kokusebenzisa",
+	"You must view and accept the Privacy Policy before using": "Kufanele ubone futhi uvume i <0>Inqubomgomo Yobumfihlo</0> ngaphambi kokusebenzisa",
 	"You're being signed out and redirected": "Uphumelelwe phuma futhi udlule",
 	"Your browser does not support the WebAuthn protocol": "Umkhangisi wakho awusekeli i-WebAuthn protocol",
 	"Your supplied password does not meet the password policy requirements": "Iphasiwedi oyinikezile ayihlangabezani nezidingo zephasiwedi"

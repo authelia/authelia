@@ -94,7 +94,7 @@
 	"Username": "ناوی بەکارهێنەر",
 	"Username is required": "ناوی بەکارهێنەر پێویستە",
 	"You cancelled the assertion request": "ت هەڵوەشاندنی بیانی تاقی تاقی",
-	"You must view and accept the Privacy Policy before using": "ت پێویستە بگەڕیت بۆ بینین و پەسەندکردنی \u003c0\u003eپەیامە تایبەتی\u003c/0\u003e پێش بەکاربردن",
+	"You must view and accept the Privacy Policy before using": "ت پێویستە بگەڕیت بۆ بینین و پەسەندکردنی <0>پەیامە تایبەتی</0> پێش بەکاربردن",
 	"You're being signed out and redirected": "تۆ چۆنی تا ڕووت بکرێتەوە و پەیوەندیت پەیوەندیدا بکه‌",
 	"Your browser does not support the WebAuthn protocol": "بەرزت نیشانی فەرمی WebAuthn نییە",
 	"Your supplied password does not meet the password policy requirements": "پاسوردەی نیشانی پاراستن پێویست لە هەوڵ,"

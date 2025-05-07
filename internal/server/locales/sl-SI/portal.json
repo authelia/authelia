@@ -94,7 +94,7 @@
 	"Username": "Uporabniško ime",
 	"Username is required": "Uporabniško ime je obvezno",
 	"You cancelled the assertion request": "Zahtevo za potrditev ste preklicali",
-	"You must view and accept the Privacy Policy before using": "Pred uporabo si morate ogledati in sprejeti \u003c0\u003ePolitiko zasebnosti\u003c/0\u003e",
+	"You must view and accept the Privacy Policy before using": "Pred uporabo si morate ogledati in sprejeti <0>Politiko zasebnosti</0>",
 	"You're being signed out and redirected": "Odjavljeni boste in preusmerjeni",
 	"Your browser does not support the WebAuthn protocol": "Vaš brskalnik ne podpira protokola WebAuthn",
 	"Your supplied password does not meet the password policy requirements": "Vaše posredovano geslo ne izpolnjuje zahtev pravilnika o geslu"

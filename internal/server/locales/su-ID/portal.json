@@ -94,7 +94,7 @@
 	"Username": "Nami pangguna",
 	"Username is required": "Nami pangguna diperyogikeun",
 	"You cancelled the assertion request": "Anjeun ngabatalkeun pamundut asertsi",
-	"You must view and accept the Privacy Policy before using": "Anjeun kedah ningali sareng nampa \u003c0\u003eKabijakan Privasi\u003c/0\u003e sateuacan dianggo",
+	"You must view and accept the Privacy Policy before using": "Anjeun kedah ningali sareng nampa <0>Kabijakan Privasi</0> sateuacan dianggo",
 	"You're being signed out and redirected": "Anjeun ayeuna kaluar sareng dialihkeun",
 	"Your browser does not support the WebAuthn protocol": "Panyungsi anjeun henteu ngadukung prokol WebAuthn",
 	"Your supplied password does not meet the password policy requirements": "Sandi anu anjeun pasihkeun henteu nyumponan syarat kabijakan sandi"

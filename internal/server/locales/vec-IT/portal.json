@@ -94,7 +94,7 @@
 	"Username": "Nome utente",
 	"Username is required": "El nome utente xe obbligatorio",
 	"You cancelled the assertion request": "Te ga annullà la richiesta de verifica",
-	"You must view and accept the Privacy Policy before using": "Te deve veder e accettar la \u003c0\u003ePolitica de privacy\u003c/0\u003e prima de usar",
+	"You must view and accept the Privacy Policy before using": "Te deve veder e accettar la <0>Politica de privacy</0> prima de usar",
 	"You're being signed out and redirected": "Te stai per disconnettere e sarai redirectà",
 	"Your browser does not support the WebAuthn protocol": "El to browser no supporta el protocol WebAuthn",
 	"Your supplied password does not meet the password policy requirements": "La password che te gà fornì no rispetta i requisiti de la politica de password"

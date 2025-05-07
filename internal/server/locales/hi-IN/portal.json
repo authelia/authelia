@@ -94,7 +94,7 @@
 	"Username": "उपयोगकर्ता नाम",
 	"Username is required": "उपयोगकर्ता नाम आवश्यक है",
 	"You cancelled the assertion request": "आपने दावे अनुरोध को रद्द कर दिया",
-	"You must view and accept the Privacy Policy before using": "आपको उपयोग करने से पहले \u003c0\u003eगोपनीयता नीति\u003c/0\u003e को देखना और स्वीकार करना होगा",
+	"You must view and accept the Privacy Policy before using": "आपको उपयोग करने से पहले <0>गोपनीयता नीति</0> को देखना और स्वीकार करना होगा",
 	"You're being signed out and redirected": "आपका साइन आउट होना हो रहा है और पुनर्निर्देशित किया जा रहा है",
 	"Your browser does not support the WebAuthn protocol": "आपका ब्राउज़र वेबऑथ्न प्रोटोकॉल का समर्थन नहीं करता है",
 	"Your supplied password does not meet the password policy requirements": "आपका प्रदान किया गया पासवर्ड पासवर्ड नीति आवश्यकताओं को पूरा नहीं करता है"

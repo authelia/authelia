@@ -94,7 +94,7 @@
 	"Username": "Isem tal-utent",
 	"Username is required": "Isem tal-utent huwa mandat",
 	"You cancelled the assertion request": "Int annullajt it-talba tal-asserzjoni",
-	"You must view and accept the Privacy Policy before using": "Trid tara u taċċetta l \u003c0\u003ePolitika tal-Privat\u003c/0\u003e qabel ma tuża",
+	"You must view and accept the Privacy Policy before using": "Trid tara u taċċetta l <0>Politika tal-Privat</0> qabel ma tuża",
 	"You're being signed out and redirected": "Qed toħroġ u qed terġa' tiġi weġib",
 	"Your browser does not support the WebAuthn protocol": "Il-browser tiegħek ma jappoġġjax il-protokoll WebAuthn",
 	"Your supplied password does not meet the password policy requirements": "Il-password li pprovdajt ma taqax il-ħtiġijiet tal-politika tal-password"

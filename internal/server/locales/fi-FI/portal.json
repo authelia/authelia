@@ -94,7 +94,7 @@
 	"Username": "Käyttäjätunnus",
 	"Username is required": "Käyttäjänimi on pakollinen",
 	"You cancelled the assertion request": "Sinä peruutit väittämäpyynnön",
-	"You must view and accept the Privacy Policy before using": "Sinun täytyy tarkastella ja hyväksyä \u003c0\u003eTietosuojakäytäntö\u003c/0\u003e ennen käyttöä",
+	"You must view and accept the Privacy Policy before using": "Sinun täytyy tarkastella ja hyväksyä <0>Tietosuojakäytäntö</0> ennen käyttöä",
 	"You're being signed out and redirected": "Sinut kirjataan ulos ja ohjataan uudelleen",
 	"Your browser does not support the WebAuthn protocol": "Selaimesi ei tue WebAuthn-protokollaa",
 	"Your supplied password does not meet the password policy requirements": "Syötetty salasana ei täytä salasanakäytännön vaatimuksia"

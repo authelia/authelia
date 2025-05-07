@@ -94,7 +94,7 @@
 	"Username": "사용자 이름",
 	"Username is required": "사용자 이름은 필수입니다",
 	"You cancelled the assertion request": "주장 요청을 취소했습니다",
-	"You must view and accept the Privacy Policy before using": "\u003c0\u003e개인정보 보호정책\u003c/0\u003e을 보기 및 수락한 후 사용해야 합니다",
+	"You must view and accept the Privacy Policy before using": "<0>개인정보 보호정책</0>을 보기 및 수락한 후 사용해야 합니다",
 	"You're being signed out and redirected": "로그아웃되고 리다이렉트되고 있습니다",
 	"Your browser does not support the WebAuthn protocol": "브라우저가 WebAuthn 프로토콜을 지원하지 않습니다",
 	"Your supplied password does not meet the password policy requirements": "제공한 비밀번호가 비밀번호 정책 요구 사항을 충족하지 않습니다"

@@ -94,7 +94,7 @@
 	"Username": "Inasā",
 	"Username is required": "E ti'a te inā",
 	"You cancelled the assertion request": "Ua pā ānō te patupātū i te to'o",
-	"You must view and accept the Privacy Policy before using": "Me haapū na e mau i te \u003c0\u003eTūmau i nā tūrangi\u003c/0\u003e i mua i te whakamahi",
+	"You must view and accept the Privacy Policy before using": "Me haapū na e mau i te <0>Tūmau i nā tūrangi</0> i mua i te whakamahi",
 	"You're being signed out and redirected": "E tāpuni i te takitahi e hāngai i te hāngai",
 	"Your browser does not support the WebAuthn protocol": "Aita te pū i te mau wharangi me avai lā",
 	"Your supplied password does not meet the password policy requirements": "Aita e aua e pā ana i te mau hāngai he hō'ia"

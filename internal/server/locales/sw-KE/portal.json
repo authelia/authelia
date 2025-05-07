@@ -94,7 +94,7 @@
 	"Username": "Jina la mtumiaji",
 	"Username is required": "Jina la mtumiaji linahitajika",
 	"You cancelled the assertion request": "Umekataa ombi la uthibitisho",
-	"You must view and accept the Privacy Policy before using": "Lazima uone na kukubali \u003c0\u003eSera ya Faragha\u003c/0\u003e kabla ya kutumia",
+	"You must view and accept the Privacy Policy before using": "Lazima uone na kukubali <0>Sera ya Faragha</0> kabla ya kutumia",
 	"You're being signed out and redirected": "Unatolewa na kutoka na kuhamasishwa",
 	"Your browser does not support the WebAuthn protocol": "Kivinjari chako hakikubali itifaki ya WebAuthn",
 	"Your supplied password does not meet the password policy requirements": "Nywila uliyotoa haikukidhi mahitaji ya sera ya nywila"

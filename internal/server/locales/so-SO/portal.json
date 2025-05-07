@@ -94,7 +94,7 @@
 	"Username": "Magaca Isticmaalaha",
 	"Username is required": "Magaca isticmaalaha waa lagama maarmaan",
 	"You cancelled the assertion request": "Waxaad joojisay codsiga sheegashada",
-	"You must view and accept the Privacy Policy before using": "Waa inaad aragtaa oo aqbashaa \u003c0\u003eSiyaasadda Asturnaanta\u003c/0\u003e ka hor intaadan isticmaalin",
+	"You must view and accept the Privacy Policy before using": "Waa inaad aragtaa oo aqbashaa <0>Siyaasadda Asturnaanta</0> ka hor intaadan isticmaalin",
 	"You're being signed out and redirected": "Waxaad ka baxaysaa oo dib loogaga duceynayaa",
 	"Your browser does not support the WebAuthn protocol": "Browserkaaga ma taageero nidaamka WebAuthn",
 	"Your supplied password does not meet the password policy requirements": "Erayga sirta ee aad bixisay ma buuxinayso shuruudaha siyaasadda erayga sirta"

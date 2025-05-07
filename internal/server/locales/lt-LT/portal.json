@@ -94,7 +94,7 @@
 	"Username": "Vartotojo vardas",
 	"Username is required": "Vartotojo vardas yra privalomas",
 	"You cancelled the assertion request": "Nutraukėte užklausos patvirtinimą",
-	"You must view and accept the Privacy Policy before using": "Prieš naudodami turite peržiūrėti ir priimti \u003c0\u003ePrivatumo politiką\u003c/0\u003e",
+	"You must view and accept the Privacy Policy before using": "Prieš naudodami turite peržiūrėti ir priimti <0>Privatumo politiką</0>",
 	"You're being signed out and redirected": "Būsite atsijungtas ir nukreiptas",
 	"Your browser does not support the WebAuthn protocol": "Jūsų naršyklė nepalaiko WebAuthn protokolo",
 	"Your supplied password does not meet the password policy requirements": "Jūsų pateiktas slaptažodis neatitinka slaptažodžio politikos reikalavimų"

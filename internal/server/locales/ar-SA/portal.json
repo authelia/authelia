@@ -94,7 +94,7 @@
 	"Username": "اسم المستخدم",
 	"Username is required": "يجب إدخال اسم المستخدم",
 	"You cancelled the assertion request": "قمت بإلغاء طلب التأكيد",
-	"You must view and accept the Privacy Policy before using": "يجب عليك عرض وقبول \u003c0\u003eسياسة الخصوصية\u003c/0\u003e قبل استخدام",
+	"You must view and accept the Privacy Policy before using": "يجب عليك عرض وقبول <0>سياسة الخصوصية</0> قبل استخدام",
 	"You're being signed out and redirected": "يتم تسجيل الخروج وإعادة التوجيه",
 	"Your browser does not support the WebAuthn protocol": "المتصفح الخاص بك لا يدعم بروتوكول WebAuthn",
 	"Your supplied password does not meet the password policy requirements": "كلمة المرور المقدمة الخاصة بك لا تفي بمتطلبات سياسة كلمة المرور"

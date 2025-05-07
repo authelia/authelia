@@ -94,7 +94,7 @@
 	"Username": "Erabiltzaile izena",
 	"Username is required": "Erabiltzaile izena derrigorrezkoa da",
 	"You cancelled the assertion request": "Ziurtagiri-eskaera bertan behera utzi duzu",
-	"You must view and accept the Privacy Policy before using": "Pribatutasun Politika ikusi eta onartzen duzu \u003c0\u003ePribatutasun Politika\u003c/0\u003e erabiltzearren",
+	"You must view and accept the Privacy Policy before using": "Pribatutasun Politika ikusi eta onartzen duzu <0>Pribatutasun Politika</0> erabiltzearren",
 	"You're being signed out and redirected": "Saioa itxi eta bideratu zaituzte",
 	"Your browser does not support the WebAuthn protocol": "Zure nabigatzaileak ez du onartzen WebAuthn protokoloa",
 	"Your supplied password does not meet the password policy requirements": "Zure emandako pasahitzak ez ditu pasahitz-politikaren baldintzak betetzen"

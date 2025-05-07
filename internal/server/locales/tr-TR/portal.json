@@ -94,7 +94,7 @@
 	"Username": "Kullanıcı adı",
 	"Username is required": "Kullanıcı adı gereklidir",
 	"You cancelled the assertion request": "Onay talebini iptal ettiniz",
-	"You must view and accept the Privacy Policy before using": "Kullanımdan önce \u003c0\u003eGizlilik Politikasını\u003c/0\u003e görüntülemeniz ve kabul etmeniz gerekir",
+	"You must view and accept the Privacy Policy before using": "Kullanımdan önce <0>Gizlilik Politikasını</0> görüntülemeniz ve kabul etmeniz gerekir",
 	"You're being signed out and redirected": "Oturumunuz kapatılıyor ve yönlendiriliyorsunuz",
 	"Your browser does not support the WebAuthn protocol": "Tarayıcınız WebAuthn protokolünü desteklemiyor",
 	"Your supplied password does not meet the password policy requirements": "Sağladığınız şifre, şifre politikasının gerekliliklerini karşılamıyor"

@@ -94,7 +94,7 @@
 	"Username": "Ainm úsáideora",
 	"Username is required": "Teastaíonn ainm úsáideora",
 	"You cancelled the assertion request": "D'athraigh tú an t-iarratas éileamh",
-	"You must view and accept the Privacy Policy before using": "Caithfidh tú an \u003c0\u003ePolasaí Príobháideachta\u003c/0\u003e a fheiceáil agus a ghlacadh sula n-úsáideann tú",
+	"You must view and accept the Privacy Policy before using": "Caithfidh tú an <0>Polasaí Príobháideachta</0> a fheiceáil agus a ghlacadh sula n-úsáideann tú",
 	"You're being signed out and redirected": "Tá tú á logáil amach agus á atreorú",
 	"Your browser does not support the WebAuthn protocol": "Ní tacaíonn do bhrabhsálaí leis an gconradh WebAuthn",
 	"Your supplied password does not meet the password policy requirements": "Ní comhoiriúnach le hioncam na polasaí pasfhocal na pasfhocail a sholáthair"

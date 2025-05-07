@@ -94,7 +94,7 @@
 	"Username": "Gebruikersnaam",
 	"Username is required": "Gebruikersnaam is vereis",
 	"You cancelled the assertion request": "Jy het die aanspraak versoek gekanselleer",
-	"You must view and accept the Privacy Policy before using": "Jy moet die \u003c0\u003ePrivaatheidsbeleid\u003c/0\u003e sien en aanvaar voordat jy dit gebruik",
+	"You must view and accept the Privacy Policy before using": "Jy moet die <0>Privaatheidsbeleid</0> sien en aanvaar voordat jy dit gebruik",
 	"You're being signed out and redirected": "Jy word uitgeteken en herlei",
 	"Your browser does not support the WebAuthn protocol": "Jou blaasklerk ondersteun nie die WebAuthn-protokol nie",
 	"Your supplied password does not meet the password policy requirements": "Jou verskaf wagwoord voldoen nie aan die vereistes van die wagwoordbeleid nie"

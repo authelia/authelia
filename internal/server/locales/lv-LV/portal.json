@@ -94,7 +94,7 @@
 	"Username": "Lietotājvārds",
 	"Username is required": "Lietotājvārds ir obligāts",
 	"You cancelled the assertion request": "Jūs atteicāties no apgalvojuma pieprasījuma",
-	"You must view and accept the Privacy Policy before using": "Jums jāapskata un jāpiekrīt \u003c0\u003ePrivātuma politikai\u003c/0\u003e, pirms to izmantojat",
+	"You must view and accept the Privacy Policy before using": "Jums jāapskata un jāpiekrīt <0>Privātuma politikai</0>, pirms to izmantojat",
 	"You're being signed out and redirected": "Jūs tiekat izrakstīts un pāradresēts",
 	"Your browser does not support the WebAuthn protocol": "Jūsu pārlūkprogramma neatbalsta WebAuthn protokolu",
 	"Your supplied password does not meet the password policy requirements": "Jūsu sniegtā parole neatbilst paroles politikas prasībām"

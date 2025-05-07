@@ -94,7 +94,7 @@
 	"Username": "帳號",
 	"Username is required": "使用者名稱必填",
 	"You cancelled the assertion request": "您取消了確認請求",
-	"You must view and accept the Privacy Policy before using": "您必須在使用前查看並接受\u003c0\u003e隱私政策\u003c/0\u003e",
+	"You must view and accept the Privacy Policy before using": "您必須在使用前查看並接受<0>隱私政策</0>",
 	"You're being signed out and redirected": "您即將登出並重新導向",
 	"Your browser does not support the WebAuthn protocol": "您的瀏覽器不支援 WebAuthn 協議",
 	"Your supplied password does not meet the password policy requirements": "密碼不符合規範"

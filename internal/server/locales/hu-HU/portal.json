@@ -94,7 +94,7 @@
 	"Username": "Felhasználónév",
 	"Username is required": "Felhasználónév megadása kötelező",
 	"You cancelled the assertion request": "Ön lemondta az azonosítási kérelmet",
-	"You must view and accept the Privacy Policy before using": "Használat előtt az \u003c0\u003eAdatvédelmi nyilatkozat\u003c/0\u003e megtekintése és elfogadása kötelező",
+	"You must view and accept the Privacy Policy before using": "Használat előtt az <0>Adatvédelmi nyilatkozat</0> megtekintése és elfogadása kötelező",
 	"You're being signed out and redirected": "Kijelentkezés és átirányítás folyamatban",
 	"Your browser does not support the WebAuthn protocol": "A böngészője nem támogatja a WebAuthn protokollt",
 	"Your supplied password does not meet the password policy requirements": "A beírt jelszó nem felel meg a jelszókövetelményeknek"

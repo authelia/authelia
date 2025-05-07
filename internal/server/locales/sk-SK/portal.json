@@ -94,7 +94,7 @@
 	"Username": "Používateľské meno",
 	"Username is required": "Používateľské meno je povinné",
 	"You cancelled the assertion request": "Zrušili ste požiadavku na overenie",
-	"You must view and accept the Privacy Policy before using": "Musíte si prečítať a akceptovať \u003c0\u003ezásady ochrany osobných údajov\u003c/0\u003e pred použitím",
+	"You must view and accept the Privacy Policy before using": "Musíte si prečítať a akceptovať <0>zásady ochrany osobných údajov</0> pred použitím",
 	"You're being signed out and redirected": "Prebieha odhlasovanie a presmerovanie",
 	"Your browser does not support the WebAuthn protocol": "Váš prehliadač nepodporuje protokol WebAuthn",
 	"Your supplied password does not meet the password policy requirements": "Zadané heslo nespĺňa požiadavky zásad hesla"

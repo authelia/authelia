@@ -94,7 +94,7 @@
 	"Username": "Nome utente",
 	"Username is required": "Nome utente richiesto",
 	"You cancelled the assertion request": "Hai annullato la richiesta di asserzione",
-	"You must view and accept the Privacy Policy before using": "Devi visualizzare e accettare la \u003c0\u003ePolitica sulla Privacy\u003c/0\u003e prima di utilizzare",
+	"You must view and accept the Privacy Policy before using": "Devi visualizzare e accettare la <0>Politica sulla Privacy</0> prima di utilizzare",
 	"You're being signed out and redirected": "Ti stai disconnettendo e reindirizzando",
 	"Your browser does not support the WebAuthn protocol": "Il tuo browser non supporta il protocollo WebAuthn",
 	"Your supplied password does not meet the password policy requirements": "La parola d'ordine fornita non soddisfa i requisiti della politica sulle parole d'ordine"

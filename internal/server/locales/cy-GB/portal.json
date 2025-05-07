@@ -94,7 +94,7 @@
 	"Username": "Enw defnyddiwr",
 	"Username is required": "Mae enw defnyddiwr yn ofynnol",
 	"You cancelled the assertion request": "Rydych chi wedi canslo'r cais cydnabyddedig",
-	"You must view and accept the Privacy Policy before using": "Rhaid ichi weld a derbyn y \u003c0\u003ePolisi Preifatrwydd\u003c/0\u003e cyn defnyddio",
+	"You must view and accept the Privacy Policy before using": "Rhaid ichi weld a derbyn y <0>Polisi Preifatrwydd</0> cyn defnyddio",
 	"You're being signed out and redirected": "Rydych chi'n cael eich allgofnodi a'ch gyfeirio",
 	"Your browser does not support the WebAuthn protocol": "Nid yw'ch porwr yn cefnogi'r protocol WebAuthn",
 	"Your supplied password does not meet the password policy requirements": "Nid yw'ch cyfrinair a ddarparwyd yn cwrdd â gofynion polisi cyfrinair"

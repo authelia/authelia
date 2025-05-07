@@ -309,7 +309,6 @@ func miscLocaleMoveRunE(cmd *cobra.Command, args []string) (err error) {
 	return nil
 }
 
-//nolint:gocyclo
 func miscLocaleMoveSingle(key, source, destination string, locale os.DirEntry) (err error) {
 	var (
 		src, dst *os.File

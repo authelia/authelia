@@ -94,7 +94,7 @@
 	"Username": "Username",
 	"Username is required": "Kinakailangan ang username",
 	"You cancelled the assertion request": "Ikaw ay nag-cancel ng assertion request",
-	"You must view and accept the Privacy Policy before using": "Dapat mong tingnan at tanggapin ang \u003c0\u003ePatakaran sa Privacy\u003c/0\u003e bago gamitin",
+	"You must view and accept the Privacy Policy before using": "Dapat mong tingnan at tanggapin ang <0>Patakaran sa Privacy</0> bago gamitin",
 	"You're being signed out and redirected": "Ikaw ay nilalabas at nire-redirect",
 	"Your browser does not support the WebAuthn protocol": "Ang iyong browser ay hindi sumusuporta sa WebAuthn protocol",
 	"Your supplied password does not meet the password policy requirements": "Ang iyong ibinigay na password ay hindi nakakatugon sa mga kinakailangan ng patakaran ng password"
