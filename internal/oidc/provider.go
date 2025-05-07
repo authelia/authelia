@@ -1,12 +1,14 @@
 package oidc
 
 import (
-	oauthelia2 "authelia.com/provider/oauth2"
 	"fmt"
+	"net/http"
+
+	oauthelia2 "authelia.com/provider/oauth2"
+
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/storage"
 	"github.com/authelia/authelia/v4/internal/templates"
-	"net/http"
 )
 
 // NewOpenIDConnectProvider new-ups a OpenIDConnectProvider.

@@ -404,8 +404,6 @@ func RegisterOpenIDConnectRoutes(r *router.Router, config *schema.Configuration,
 	r.GET(oidc.EndpointPathConsent, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointConsent), bridge(handlers.OAuth2ConsentGET)))
 	r.POST(oidc.EndpointPathConsent, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, oidc.EndpointConsent), bridge(handlers.OAuth2ConsentPOST)))
 
-	r.GET(oidc.EndpointPathConsentDeviceAuthorization, middlewares.Wrap(middlewares.NewMetricsRequestOpenIDConnect(providers.Metrics, fmt.Sprintf("%s-%s", oidc.EndpointConsent, oidc.EndpointDeviceAuthorization)), bridge(handlers.OAuth2ConsentDeviceAuthorizationGET)))
-
 	allowedOrigins := utils.StringSliceFromURLs(config.IdentityProviders.OIDC.CORS.AllowedOrigins)
 
 	r.OPTIONS(oidc.EndpointPathWellKnownOAuthAuthorizationServer, policyCORSPublicGET.HandleOPTIONS)

@@ -301,71 +301,89 @@ func miscLocaleMoveRunE(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	for _, locale := range locales {
-		src, err := os.OpenFile(filepath.Join("./internal/server/locales", locale.Name(), fmt.Sprintf("%s.json", source)), os.O_RDWR, 0644)
-		if err != nil {
+		if err = miscLocaleMoveSingle(args[0], source, destination, locale); err != nil {
 			return err
 		}
+	}
 
-		srcDecoder := json.NewDecoder(src)
+	return nil
+}
 
-		srcValues := map[string]any{}
+//nolint:gocyclo
+func miscLocaleMoveSingle(key, source, destination string, locale os.DirEntry) (err error) {
+	var (
+		src, dst *os.File
+	)
 
-		if err = srcDecoder.Decode(&srcValues); err != nil {
-			return err
-		}
+	if src, err = os.OpenFile(filepath.Join("./internal/server/locales", locale.Name(), fmt.Sprintf("%s.json", source)), os.O_RDWR, 0644); err != nil {
+		return err
+	}
 
-		dst, err := os.OpenFile(filepath.Join("./internal/server/locales", locale.Name(), fmt.Sprintf("%s.json", destination)), os.O_RDWR, 0644)
-		if err != nil {
-			return err
-		}
+	defer src.Close()
 
-		dstDecoder := json.NewDecoder(dst)
+	srcDecoder := json.NewDecoder(src)
 
-		dstValues := map[string]any{}
+	srcValues := map[string]any{}
 
-		if err = dstDecoder.Decode(&dstValues); err != nil {
-			return err
-		}
+	if err = srcDecoder.Decode(&srcValues); err != nil {
+		return err
+	}
 
-		var (
-			value any
-			ok    bool
-		)
+	if dst, err = os.OpenFile(filepath.Join("./internal/server/locales", locale.Name(), fmt.Sprintf("%s.json", destination)), os.O_RDWR, 0644); err != nil {
+		return err
+	}
 
-		if value, ok = srcValues[args[0]]; !ok {
-			return fmt.Errorf("locale key not found")
-		}
+	defer dst.Close()
 
-		delete(srcValues, args[0])
-		dstValues[args[0]] = value
+	dstDecoder := json.NewDecoder(dst)
 
-		if err = src.Truncate(0); err != nil {
-			return err
-		}
+	dstValues := map[string]any{}
 
-		if _, err = src.Seek(0, 0); err != nil {
-			return err
-		}
+	if err = dstDecoder.Decode(&dstValues); err != nil {
+		return err
+	}
 
-		srcEncoder := json.NewEncoder(src)
-		srcEncoder.SetIndent("", "\t")
-		if err = srcEncoder.Encode(srcValues); err != nil {
-			return err
-		}
+	var (
+		value any
+		ok    bool
+	)
 
-		if err = dst.Truncate(0); err != nil {
-			return err
-		}
+	if value, ok = srcValues[key]; !ok {
+		return fmt.Errorf("locale key '%s' not found in source namespace '%s'", key, source)
+	}
 
-		if _, err = dst.Seek(0, 0); err != nil {
-			return err
-		}
+	delete(srcValues, key)
 
-		dstEncoder := json.NewEncoder(dst)
-		dstEncoder.SetIndent("", "\t")
-		if err = dstEncoder.Encode(dstValues); err != nil {
-			return err
-		}
+	dstValues[key] = value
+
+	if err = src.Truncate(0); err != nil {
+		return err
+	}
+
+	if _, err = src.Seek(0, 0); err != nil {
+		return err
+	}
+
+	srcEncoder := json.NewEncoder(src)
+	srcEncoder.SetIndent("", "\t")
+
+	if err = srcEncoder.Encode(srcValues); err != nil {
+		return err
+	}
+
+	if err = dst.Truncate(0); err != nil {
+		return err
+	}
+
+	if _, err = dst.Seek(0, 0); err != nil {
+		return err
+	}
+
+	dstEncoder := json.NewEncoder(dst)
+	dstEncoder.SetIndent("", "\t")
+
+	if err = dstEncoder.Encode(dstValues); err != nil {
+		return err
 	}
 
 	return nil

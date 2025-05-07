@@ -58,7 +58,7 @@ const DecisionFormClaims: React.FC<Props> = (props: Props) => {
                     <Box className={classes.container}>
                         <List className={classes.list}>
                             {props.essential_claims?.map((claim: string) => (
-                                <Tooltip title={translate("Claim", { name: claim })}>
+                                <Tooltip key={`${claim}-essential`} title={translate("Claim", { name: claim })}>
                                     <FormControlLabel
                                         control={<Checkbox id={`claim-${claim}-essential`} disabled checked />}
                                         label={formatClaim(translate(`claims.${claim}`), claim)}
@@ -66,7 +66,7 @@ const DecisionFormClaims: React.FC<Props> = (props: Props) => {
                                 </Tooltip>
                             ))}
                             {props.claims?.map((claim: string) => (
-                                <Tooltip title={translate("Claim", { name: claim })}>
+                                <Tooltip key={claim} title={translate("Claim", { name: claim })}>
                                     <FormControlLabel
                                         control={
                                             <Checkbox

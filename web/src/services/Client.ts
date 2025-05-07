@@ -60,14 +60,17 @@ export async function DeleteWithOptionalResponse<T = undefined>(path: string, bo
 
 export async function Post<T>(path: string, body?: any) {
     const res = await PostWithOptionalResponse<T>(path, body);
+
     if (!res) {
         throw new Error("unexpected type of response");
     }
+
     return res;
 }
 
 export async function Put<T>(path: string, body?: any) {
     const res = await PutWithOptionalResponse<T>(path, body);
+
     if (!res) {
         throw new Error("unexpected type of response");
     }
@@ -83,9 +86,11 @@ export async function Get<T = undefined>(path: string): Promise<T> {
     }
 
     const d = toData<T>(res);
+
     if (!d) {
         throw new Error("unexpected type of response");
     }
+
     return d;
 }
 
@@ -97,6 +102,7 @@ export async function GetWithOptionalData<T = undefined>(path: string): Promise<
     }
 
     const d = toData<T>(res);
+
     if (d === null) {
         return null;
     }
@@ -104,5 +110,6 @@ export async function GetWithOptionalData<T = undefined>(path: string): Promise<
     if (!d) {
         throw new Error("unexpected type of response");
     }
+
     return d;
 }

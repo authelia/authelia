@@ -357,17 +357,19 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
                                                         : translate("Accept this consent request")
                                                 }
                                             >
-                                                <Button
-                                                    id={"openid-consent-accept"}
-                                                    className={classes.button}
-                                                    disabled={!response || passwordMissing || loading}
-                                                    onClick={handleAcceptConsent}
-                                                    color={"primary"}
-                                                    variant={"contained"}
-                                                    endIcon={loadingAccept ? <CircularProgress size={20} /> : null}
-                                                >
-                                                    {translate("Accept", { ns: "portal" })}
-                                                </Button>
+                                                <span>
+                                                    <Button
+                                                        id={"openid-consent-accept"}
+                                                        className={classes.button}
+                                                        disabled={!response || passwordMissing || loading}
+                                                        onClick={handleAcceptConsent}
+                                                        color={"primary"}
+                                                        variant={"contained"}
+                                                        endIcon={loadingAccept ? <CircularProgress size={20} /> : null}
+                                                    >
+                                                        {translate("Accept", { ns: "portal" })}
+                                                    </Button>
+                                                </span>
                                             </Tooltip>
                                         </Grid>
                                         <Grid size={{ xs: 6 }}>

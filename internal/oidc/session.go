@@ -40,7 +40,6 @@ func NewSessionWithRequestedAt(requestedAt time.Time) (session *Session) {
 // NewSessionWithRequester uses details from a Requester to generate an OpenIDSession.
 func NewSessionWithRequester(ctx Context, issuer *url.URL, kid, username string, amr []string, extra map[string]any,
 	authTime time.Time, consent *model.OAuth2ConsentSession, requester oauthelia2.Requester, claims *ClaimsRequests) (session *Session) {
-
 	session = NewSessionWithRequestedAt(ctx.GetClock().Now())
 
 	session.SetValuesFromRequester(requester)

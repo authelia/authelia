@@ -303,6 +303,10 @@ func (s *Store) GetDeviceCodeSession(ctx context.Context, signature string, sess
 		return nil, oauthelia2.ErrInvalidatedDeviceCode
 	}
 
+	if session == nil {
+		session = NewSession()
+	}
+
 	r, err := data.ToRequest(ctx, session, s)
 	if err != nil {
 		return nil, err
@@ -323,6 +327,10 @@ func (s *Store) GetDeviceCodeSessionByUserCode(ctx context.Context, signature st
 
 	if !data.Active {
 		return nil, oauthelia2.ErrInvalidatedUserCode
+	}
+
+	if session == nil {
+		session = NewSession()
 	}
 
 	r, err := data.ToRequest(ctx, session, s)

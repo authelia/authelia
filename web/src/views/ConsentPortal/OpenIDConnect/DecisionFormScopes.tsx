@@ -55,8 +55,8 @@ const DecisionFormScopes: React.FC<Props> = (props: Props) => {
             <Box className={classes.scopesListContainer}>
                 <List className={classes.scopesList}>
                     {props.scopes.map((scope: string) => (
-                        <Tooltip title={translate("Scope", { name: scope })}>
-                            <ListItem id={"scope-" + scope} dense>
+                        <Tooltip key={scope} title={translate("Scope", { name: scope })}>
+                            <ListItem id={"scope-" + scope} key={scope} dense>
                                 <ListItemIcon>{scopeNameToAvatar(scope)}</ListItemIcon>
                                 <ListItemText primary={formatScope(translate(`scopes.${scope}`), scope)} />
                             </ListItem>

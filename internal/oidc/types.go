@@ -2,7 +2,6 @@ package oidc
 
 import (
 	"context"
-	"github.com/authelia/authelia/v4/internal/model"
 	"net/http"
 	"net/url"
 	"time"
@@ -17,6 +16,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/storage"
 )

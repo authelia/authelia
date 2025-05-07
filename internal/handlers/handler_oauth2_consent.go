@@ -20,12 +20,24 @@ import (
 
 // OAuth2ConsentGET handles requests to provide consent for OpenID Connect.
 func OAuth2ConsentGET(ctx *middlewares.AutheliaCtx) {
+	var raw []byte
+
+	if raw = ctx.RequestCtx.QueryArgs().PeekBytes(qryArgFlowID); len(raw) != 0 {
+		handleOAuth2ConsentFlowIDGET(ctx, raw)
+	} else if raw = ctx.RequestCtx.QueryArgs().PeekBytes(qryArgUserCode); len(raw) != 0 {
+		handleOAuth2ConsentUseCodeGET(ctx, raw)
+	} else {
+		ctx.Logger.Error("Error determining the type of consent request to handle")
+
+		ctx.SetJSONError(messageOperationFailed)
+	}
+}
+
+func handleOAuth2ConsentFlowIDGET(ctx *middlewares.AutheliaCtx, raw []byte) {
 	var (
 		flowID uuid.UUID
 		err    error
 	)
-
-	raw := ctx.RequestCtx.QueryArgs().PeekBytes(qryArgFlowID)
 
 	if flowID, err = uuid.ParseBytes(raw); err != nil {
 		ctx.Logger.
@@ -94,13 +106,12 @@ func OAuth2ConsentGET(ctx *middlewares.AutheliaCtx) {
 	}
 }
 
-// OAuth2ConsentDeviceAuthorizationGET handles requests to provide consent for OpenID Connect.
-func OAuth2ConsentDeviceAuthorizationGET(ctx *middlewares.AutheliaCtx) {
+func handleOAuth2ConsentUseCodeGET(ctx *middlewares.AutheliaCtx, raw []byte) {
 	var (
 		err error
 	)
 
-	userCode := string(ctx.RequestCtx.QueryArgs().PeekBytes(qryArgUserCode))
+	userCode := string(raw)
 
 	var (
 		userSession       session.UserSession
@@ -138,8 +149,6 @@ func OAuth2ConsentDeviceAuthorizationGET(ctx *middlewares.AutheliaCtx) {
 }
 
 // OAuth2ConsentPOST handles consent responses for OpenID Connect.
-//
-//nolint:gocyclo
 func OAuth2ConsentPOST(ctx *middlewares.AutheliaCtx) {
 	var (
 		bodyJSON oidc.ConsentPostRequestBody
@@ -170,6 +179,7 @@ func OAuth2ConsentPOST(ctx *middlewares.AutheliaCtx) {
 	}
 }
 
+//nolint:gocyclo
 func handleOAuth2ConsentFlowIDPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.ConsentPostRequestBody) {
 	var (
 		flowID uuid.UUID
@@ -357,11 +367,7 @@ func handleOAuth2ConsentFlowIDPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.C
 		return
 	}
 
-	var (
-		redirectURI *url.URL
-	)
-
-	redirectURI = ctx.RootURL()
+	redirectURI := ctx.RootURL()
 
 	query.Set(queryArgConsentID, consent.ChallengeID.String())
 
@@ -382,6 +388,7 @@ func handleOAuth2ConsentFlowIDPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.C
 	}
 }
 
+//nolint:gocyclo
 func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.ConsentPostRequestBody) {
 	var (
 		err error
@@ -552,6 +559,7 @@ func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bo
 		oidc.ConsentGrant(consent, true, bodyJSON.Claims)
 	} else {
 		device.Active = false
+		device.Status = int(oauth2.DeviceAuthorizeStatusDenied)
 	}
 
 	consent.SetRespondedAt(ctx.Clock.Now(), 0)
