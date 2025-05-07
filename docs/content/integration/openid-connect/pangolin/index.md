@@ -108,7 +108,7 @@ instructions:
 8. On page refresh, note the Redirection URL, and enter it into your Authelia config under `redirect_uris`.
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-Unless you have a Pangolin licence, you will need to manually create the user in Access Control->Users before attempting login.
+Unless you have a Pangolin licence, you will need to manually create the user in Access Control > Users before attempting login.
 {{< /callout >}}
 
 ## See Also
