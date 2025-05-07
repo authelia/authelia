@@ -44,6 +44,8 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
+{{% oidc-conformance-claims claims="email,name,groups,preferred_username" %}}
+
 The following YAML configuration is an example __Authelia__ [client configuration] for use with [Grafana] which will
 operate with the application example:
 
