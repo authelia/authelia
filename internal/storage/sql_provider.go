@@ -125,6 +125,12 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectUserOpaqueIdentifiers:           fmt.Sprintf(queryFmtSelectUserOpaqueIdentifiers, tableUserOpaqueIdentifier),
 		sqlSelectUserOpaqueIdentifierBySignature: fmt.Sprintf(queryFmtSelectUserOpaqueIdentifierBySignature, tableUserOpaqueIdentifier),
 
+		sqlInsertNewKnownIp:      fmt.Sprintf(queryFmtInsertNewIpAddress, tableKnownIpAddresses),
+		sqlIsIPKnownForUser:      fmt.Sprintf(queryFmtIPIsKnownForUser, tableKnownIpAddresses),
+		sqlSelectKnownIPsForUser: fmt.Sprintf(queryFmtSelectKnownIPsByUsername, tableKnownIpAddresses),
+		sqlUpdateKnownIPForUser:  fmt.Sprintf(queryFmtUpdateKnownIpByUsername, tableKnownIpAddresses),
+		sqlDeleteExpiredKnownIPs: fmt.Sprintf(queryFmtDeleteExpiredIPs, tableKnownIpAddresses),
+
 		sqlUpsertOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtUpsertOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
 		sqlSelectOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtSelectOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
 
@@ -241,6 +247,13 @@ type SQLProvider struct {
 	sqlConsumeIdentityVerification string
 	sqlRevokeIdentityVerification  string
 	sqlSelectIdentityVerification  string
+
+	// Table: known_ip_addresses.
+	sqlInsertNewKnownIp      string
+	sqlIsIPKnownForUser      string
+	sqlSelectKnownIPsForUser string
+	sqlUpdateKnownIPForUser  string
+	sqlDeleteExpiredKnownIPs string
 
 	// Table: one_time_code.
 	sqlInsertOneTimeCode            string
@@ -1003,6 +1016,37 @@ func (p *SQLProvider) LoadIdentityVerification(ctx context.Context, jti string) 
 	}
 
 	return verification, nil
+}
+
+func (p *SQLProvider) IsIPKnownForUser(ctx context.Context, username string, ip model.IP) (isIPKnown bool, err error) {
+	// TODO implement me.
+	panic("implement me")
+}
+
+func (p *SQLProvider) SaveNewIPForUser(ctx context.Context, username string, ip model.IP, userAgent string) (err error) {
+	var expiryTime = p.config.Session.Expiration
+	// TODO: need to make sure this is properly stored as a date by storage backend.
+
+	if _, err = p.db.ExecContext(ctx, p.sqlInsertNewKnownIp, username, ip, userAgent, expiryTime); err != nil {
+		return fmt.Errorf("error selecting identity verification: %w", err)
+	}
+
+	return nil
+}
+
+func (p *SQLProvider) UpdateKnownIP(ctx context.Context, username string, ip model.IP) (err error) {
+	// TODO implement me.
+	panic("implement me")
+}
+
+func (p *SQLProvider) LoadKnownIPsByUser(ctx context.Context, username string) (ips []model.IP, err error) {
+	// TODO implement me.
+	panic("implement me")
+}
+
+func (p *SQLProvider) CleanupExpiredKnownIPs(ctx context.Context) error {
+	// TODO implement me.
+	panic("implement me")
 }
 
 // SaveOneTimeCode saves a One-Time Code to the storage provider after generating the signature which is returned

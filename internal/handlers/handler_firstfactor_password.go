@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"github.com/authelia/authelia/v4/internal/model"
 	"time"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -145,6 +146,17 @@ func FirstFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middle
 			return
 		}
 
+		var ipExists bool
+		if ipExists, err = ctx.Providers.StorageProvider.IsIPKnownForUser(ctx, userSession.Username, model.NewIP(ctx.RequestCtx.RemoteIP())); err != nil {
+			ctx.Logger.WithError(err).Errorf(logFmtErrCheckKnownIP, model.NewIP(ctx.RequestCtx.RemoteIP()), userSession.Username)
+		}
+
+		if !ipExists {
+			//TODO: Add New IP with Additional connection info
+			if err = ctx.Providers.StorageProvider.SaveNewIPForUser(ctx, userSession.Username, model.NewIP(ctx.RequestCtx.RemoteIP())); err != nil {
+			}
+			//TODO: Send Login From New IP Email!!
+		}
 		successful = true
 
 		if len(bodyJSON.Flow) > 0 {

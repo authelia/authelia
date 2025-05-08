@@ -399,6 +399,38 @@ const (
 )
 
 const (
+	queryFmtIPIsKnownForUser = `
+		SELECT id, expires_at
+		FROM known_ip_addresses
+		WHERE username = ? AND ip_address = ?
+		  AND (expires_at IS NULL OR expires_at > NOW());`
+
+	queryFmtInsertNewIpAddress = `
+		INSERT INTO known_ip_addresses
+		  (username, ip_address, user_agent, location_info, expires_at)
+		VALUES
+		  (?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 30 DAY));`
+
+	queryFmtSelectKnownIPsByUsername = `
+		SELECT ip_address, first_seen, last_seen, is_trusted,
+			   user_agent, location_info, expires_at
+		FROM known_ip_addresses
+		WHERE username = ?
+		  AND (expires_at IS NULL OR expires_at > NOW())
+		ORDER BY last_seen DESC;`
+
+	queryFmtDeleteExpiredIPs = `
+		DELETE FROM known_ip_addresses
+		WHERE expires_at IS NOT NULL AND expires_at <= NOW();`
+
+	queryFmtUpdateKnownIpByUsername = `
+		UPDATE known_ip_addresses
+		SET last_seen = NOW(),
+			expires_at = DATE_ADD(NOW(), INTERVAL ? DAY)
+		WHERE username = ? AND ip_address = ?;`
+)
+
+const (
 	queryFmtSelectEncryptionValue = `
 		SELECT (value)
         FROM %s
