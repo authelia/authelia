@@ -432,17 +432,19 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
                                         </Grid>
                                         <Grid size={{ xs: 6 }}>
                                             <Tooltip title={translate("Deny this consent request")}>
-                                                <Button
-                                                    id={"openid-consent-deny"}
-                                                    className={classes.button}
-                                                    disabled={!response || loading}
-                                                    onClick={handleRejectConsent}
-                                                    color={"secondary"}
-                                                    variant={"contained"}
-                                                    endIcon={loadingReject ? <CircularProgress size={20} /> : null}
-                                                >
-                                                    {translate("Deny", { ns: "portal" })}
-                                                </Button>
+                                                <span>
+                                                    <Button
+                                                        id={"openid-consent-deny"}
+                                                        className={classes.button}
+                                                        disabled={!response || loading}
+                                                        onClick={handleRejectConsent}
+                                                        color={"secondary"}
+                                                        variant={"contained"}
+                                                        endIcon={loadingReject ? <CircularProgress size={20} /> : null}
+                                                    >
+                                                        {translate("Deny", { ns: "portal" })}
+                                                    </Button>
+                                                </span>
                                             </Tooltip>
                                         </Grid>
                                     </Grid>

@@ -54,8 +54,8 @@ const DeviceAuthorizationFormView: React.FC<Props> = (props: Props) => {
         if (props.state.authentication_level === AuthenticationLevel.Unauthenticated) {
             const params = new URLSearchParams();
 
-            if (code) {
-                params.set(UserCode, code);
+            if (userCode) {
+                params.set(UserCode, userCode);
             }
 
             params.set(Flow, FlowNameOpenIDConnect);
@@ -63,7 +63,7 @@ const DeviceAuthorizationFormView: React.FC<Props> = (props: Props) => {
 
             navigate(IndexRoute, true, true, true, params);
         }
-    }, [code, navigate, props.state.authentication_level]);
+    }, [userCode, navigate, props.state.authentication_level]);
 
     useEffect(() => {
         if (!userCode || props.state.authentication_level === AuthenticationLevel.Unauthenticated) {

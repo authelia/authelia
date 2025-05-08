@@ -157,7 +157,7 @@ func handleFlowResponseOpenIDConnect(ctx *middlewares.AutheliaCtx, userSession *
 	switch subflow {
 	case "":
 		handleFlowResponseOpenIDConnectNoSubflow(ctx, userSession, id, subflow)
-	case flowNameOpenIDConnect:
+	case flowOpenIDConnectSubFlowNameDeviceAuthorization:
 		handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx, userSession, id, subflow, userCode)
 	default:
 		ctx.SetJSONError(messageAuthenticationFailed)
@@ -315,30 +315,7 @@ func handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx *middlewares.AutheliaC
 	level := userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA)
 
 	if n := len(userCode); n == 0 {
-		switch {
-		case level == authentication.TwoFactor, level == authentication.OneFactor && !ctx.Providers.Authorizer.IsSecondFactorEnabled():
-			targetURL := issuer.JoinPath(oidc.FrontendEndpointPathConsentDeviceAuthorization)
-
-			query := targetURL.Query()
-
-			query.Set(queryArgFlow, flowNameOpenIDConnect)
-			query.Set(queryArgSubflow, flowOpenIDConnectSubFlowNameDeviceAuthorization)
-
-			if len(id) != 0 {
-				query.Set(queryArgFlowID, id)
-			}
-
-			targetURL.RawQuery = query.Encode()
-
-			if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURL.String()}); err != nil {
-				ctx.Logger.
-					WithError(err).
-					WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldUsername: userSession.Username}).
-					Error("Failed to marshal JSON response body for flow response redirection")
-			}
-		default:
-			ctx.ReplyOK()
-		}
+		handleFlowResponseOpenIDConnectDeviceAuthSubflowResponseNoUserCode(ctx, userSession, id, subflow, level, issuer)
 
 		return
 	} else if n > 32 {
@@ -394,10 +371,16 @@ func handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx *middlewares.AutheliaC
 		return
 	}
 
+	handleFlowResponseOpenIDConnectDeviceAuthSubflowResponse(ctx, userSession, subflow, userCode, level, client, issuer)
+}
+
+func handleFlowResponseOpenIDConnectDeviceAuthSubflowResponse(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, subflow, userCode string, level authentication.Level, client oidc.Client, issuer *url.URL) {
+	var err error
+
 	required := client.GetAuthorizationPolicyRequiredLevel(authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()})
 
 	switch {
-	case authorization.IsAuthLevelSufficient(userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA), required), required == authorization.Denied:
+	case authorization.IsAuthLevelSufficient(level, required), required == authorization.Denied:
 		targetURL := issuer.JoinPath(oidc.FrontendEndpointPathConsentDecision)
 
 		query := targetURL.Query()
@@ -422,6 +405,35 @@ func handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx *middlewares.AutheliaC
 		ctx.ReplyOK()
 
 		return
+	}
+}
+
+func handleFlowResponseOpenIDConnectDeviceAuthSubflowResponseNoUserCode(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, id, subflow string, level authentication.Level, issuer *url.URL) {
+	var err error
+
+	switch {
+	case level == authentication.TwoFactor, level == authentication.OneFactor && !ctx.Providers.Authorizer.IsSecondFactorEnabled():
+		targetURL := issuer.JoinPath(oidc.FrontendEndpointPathConsentDeviceAuthorization)
+
+		query := targetURL.Query()
+
+		query.Set(queryArgFlow, flowNameOpenIDConnect)
+		query.Set(queryArgSubflow, flowOpenIDConnectSubFlowNameDeviceAuthorization)
+
+		if len(id) != 0 {
+			query.Set(queryArgFlowID, id)
+		}
+
+		targetURL.RawQuery = query.Encode()
+
+		if err = ctx.SetJSONBody(redirectResponse{Redirect: targetURL.String()}); err != nil {
+			ctx.Logger.
+				WithError(err).
+				WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldUsername: userSession.Username}).
+				Error("Failed to marshal JSON response body for flow response redirection")
+		}
+	default:
+		ctx.ReplyOK()
 	}
 }
 

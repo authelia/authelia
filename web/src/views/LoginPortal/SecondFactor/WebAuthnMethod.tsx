@@ -79,7 +79,14 @@ const WebAuthnMethod = function (props: Props) {
 
             setState(WebAuthnTouchState.InProgress);
 
-            const response = await postWebAuthnResponse(result.response, redirectionURL, flowID, flow, subflow);
+            const response = await postWebAuthnResponse(
+                result.response,
+                redirectionURL,
+                flowID,
+                flow,
+                subflow,
+                userCode,
+            );
 
             if (response.data.status === "OK" && response.status === 200) {
                 onSignInSuccessCallback(response.data.data ? response.data.data.redirect : undefined);
@@ -99,16 +106,17 @@ const WebAuthnMethod = function (props: Props) {
             setState(WebAuthnTouchState.Failure);
         }
     }, [
-        onSignInErrorCallback,
-        onSignInSuccessCallback,
+        props.registered,
+        props.authenticationLevel,
+        mounted,
         redirectionURL,
         flowID,
         flow,
         subflow,
-        mounted,
-        props.authenticationLevel,
-        props.registered,
+        userCode,
+        onSignInErrorCallback,
         translate,
+        onSignInSuccessCallback,
     ]);
 
     useEffect(() => {

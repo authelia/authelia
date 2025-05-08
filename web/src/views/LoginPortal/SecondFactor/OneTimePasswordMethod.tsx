@@ -119,6 +119,7 @@ const OneTimePasswordMethod = function (props: Props) {
         flowID,
         flow,
         subflow,
+        userCode,
         onSignInErrorCallback,
         translate,
         onSignInSuccessCallback,

@@ -154,6 +154,7 @@ const FirstFactorForm = function (props: Props) {
         flowID,
         flow,
         subflow,
+        userCode,
         loginChannel,
         createErrorNotification,
         translate,

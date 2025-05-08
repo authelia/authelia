@@ -189,6 +189,7 @@ const PushNotificationMethod = function (props: Props) {
         flowID,
         flow,
         subflow,
+        userCode,
         mounted,
         onSignInErrorCallback,
         translate,
