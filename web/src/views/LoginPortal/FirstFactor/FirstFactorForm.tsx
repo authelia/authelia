@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import {
     Alert,
     AlertTitle,
@@ -8,6 +10,8 @@ import {
     CircularProgress,
     FormControl,
     FormControlLabel,
+    IconButton,
+    InputAdornment,
     Link,
     Theme,
 } from "@mui/material";
@@ -57,6 +61,7 @@ const FirstFactorForm = function (props: Props) {
     const [username, setUsername] = useState("");
     const [usernameError, setUsernameError] = useState(false);
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [passwordCapsLock, setPasswordCapsLock] = useState(false);
     const [passwordCapsLockPartial, setPasswordCapsLockPartial] = useState(false);
     const [passwordError, setPasswordError] = useState(false);
@@ -266,10 +271,43 @@ const FirstFactorForm = function (props: Props) {
                             error={passwordError}
                             onChange={(v) => setPassword(v.target.value)}
                             onFocus={() => setPasswordError(false)}
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             autoComplete="current-password"
                             onKeyDown={handlePasswordKeyDown}
                             onKeyUp={handlePasswordKeyUp}
+                            slotProps={{
+                                input: {
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton
+                                                aria-label="toggle password visibility"
+                                                edge="end"
+                                                size="large"
+                                                onMouseDown={() => setShowPassword(true)}
+                                                onMouseUp={() => setShowPassword(false)}
+                                                onMouseLeave={() => setShowPassword(false)}
+                                                onTouchStart={() => setShowPassword(true)}
+                                                onTouchEnd={() => setShowPassword(false)}
+                                                onTouchCancel={() => setShowPassword(false)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === " ") {
+                                                        setShowPassword(true);
+                                                        e.preventDefault();
+                                                    }
+                                                }}
+                                                onKeyUp={(e) => {
+                                                    if (e.key === " ") {
+                                                        setShowPassword(false);
+                                                        e.preventDefault();
+                                                    }
+                                                }}
+                                            >
+                                                {showPassword ? <Visibility /> : <VisibilityOff />}
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ),
+                                },
+                            }}
                         />
                     </Grid>
                     {passwordCapsLock ? (
