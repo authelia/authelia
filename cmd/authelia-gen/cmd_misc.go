@@ -281,13 +281,21 @@ func newMiscLocaleMoveCmd() *cobra.Command {
 }
 
 func miscLocaleMoveRunE(cmd *cobra.Command, args []string) (err error) {
-	source, err := cmd.Flags().GetString("source")
-	if err != nil {
+	var (
+		source      string
+		destination string
+		pathLocales string
+	)
+
+	if source, err = cmd.Flags().GetString("source"); err != nil {
 		return err
 	}
 
-	destination, err := cmd.Flags().GetString("destination")
-	if err != nil {
+	if destination, err = cmd.Flags().GetString("destination"); err != nil {
+		return err
+	}
+
+	if pathLocales, err = cmd.Flags().GetString(cmdFlagDirLocales); err != nil {
 		return err
 	}
 
@@ -295,13 +303,13 @@ func miscLocaleMoveRunE(cmd *cobra.Command, args []string) (err error) {
 		return fmt.Errorf("--source and --destination are required")
 	}
 
-	locales, err := os.ReadDir("./internal/server/locales")
+	locales, err := os.ReadDir(pathLocales)
 	if err != nil {
 		return err
 	}
 
 	for _, locale := range locales {
-		if err = miscLocaleMoveSingle(args[0], source, destination, locale); err != nil {
+		if err = miscLocaleMoveSingle(args[0], pathLocales, source, destination, locale); err != nil {
 			return err
 		}
 	}
@@ -309,12 +317,12 @@ func miscLocaleMoveRunE(cmd *cobra.Command, args []string) (err error) {
 	return nil
 }
 
-func miscLocaleMoveSingle(key, source, destination string, locale os.DirEntry) (err error) {
+func miscLocaleMoveSingle(key, pathLocales, source, destination string, locale os.DirEntry) (err error) {
 	var (
 		src, dst *os.File
 	)
 
-	if src, err = os.OpenFile(filepath.Join("./internal/server/locales", locale.Name(), fmt.Sprintf("%s.json", source)), os.O_RDWR, 0644); err != nil {
+	if src, err = os.OpenFile(filepath.Join(pathLocales, locale.Name(), fmt.Sprintf("%s.json", source)), os.O_RDWR, 0644); err != nil {
 		return err
 	}
 
@@ -328,7 +336,7 @@ func miscLocaleMoveSingle(key, source, destination string, locale os.DirEntry) (
 		return err
 	}
 
-	if dst, err = os.OpenFile(filepath.Join("./internal/server/locales", locale.Name(), fmt.Sprintf("%s.json", destination)), os.O_RDWR, 0644); err != nil {
+	if dst, err = os.OpenFile(filepath.Join(pathLocales, locale.Name(), fmt.Sprintf("%s.json", destination)), os.O_RDWR, 0644); err != nil {
 		return err
 	}
 
@@ -365,6 +373,7 @@ func miscLocaleMoveSingle(key, source, destination string, locale os.DirEntry) (
 
 	srcEncoder := json.NewEncoder(src)
 	srcEncoder.SetIndent("", "\t")
+	srcEncoder.SetEscapeHTML(false)
 
 	if err = srcEncoder.Encode(srcValues); err != nil {
 		return err
@@ -380,6 +389,7 @@ func miscLocaleMoveSingle(key, source, destination string, locale os.DirEntry) (
 
 	dstEncoder := json.NewEncoder(dst)
 	dstEncoder.SetIndent("", "\t")
+	dstEncoder.SetEscapeHTML(false)
 
 	if err = dstEncoder.Encode(dstValues); err != nil {
 		return err

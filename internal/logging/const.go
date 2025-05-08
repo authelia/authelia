@@ -52,6 +52,7 @@ const (
 	FieldFlow                = "flow"
 	FieldSubflow             = "subflow"
 	FieldUsername            = "username"
+	FieldSignature           = "signature"
 	FieldClientID            = "client_id"
 	FieldScope               = "scope"
 	FieldGroups              = "groups"
@@ -63,6 +64,7 @@ const (
 	FieldSubject             = "subject"
 	FieldResponded           = "responded"
 	FieldGranted             = "granted"
+	FieldStatus              = "status"
 )
 
 var (

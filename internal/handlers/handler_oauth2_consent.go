@@ -450,6 +450,8 @@ func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bo
 			Error("Error occurred using the signature of the user code session to retrieve the device code session during the Consent Flow stage of the Device Authorization Flow")
 
 		ctx.SetJSONError(messageOperationFailed)
+
+		return
 	}
 
 	if !device.Active || device.Revoked {

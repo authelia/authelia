@@ -862,7 +862,7 @@ func (c *Config) GetAllowedJWTAssertionAudiences(ctx context.Context) (audiences
 }
 
 func (c *Config) GetRFC8628UserVerificationURL(ctx context.Context) string {
-	return c.getEndpointURL(ctx, EndpointPathRFC8628UserVerificationURL, c.RFC8628UserVerificationURL)
+	return c.getEndpointURL(ctx, FrontendEndpointPathConsentDeviceAuthorization, c.RFC8628UserVerificationURL)
 }
 
 func (c *Config) GetRFC8628TokenPollingInterval(ctx context.Context) (interval time.Duration) {

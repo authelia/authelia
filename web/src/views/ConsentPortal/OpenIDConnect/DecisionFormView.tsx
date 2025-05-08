@@ -61,6 +61,7 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
     const redirect = useRedirector();
     const { id: flowID, flow, subflow } = useFlow();
     const userCode = useUserCode();
+
     const [password, setPassword] = useState("");
     const [hasCapsLock, setHasCapsLock] = useState(false);
     const [isCapsLockPartial, setIsCapsLockPartial] = useState(false);
@@ -131,7 +132,7 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
             setLoadingAccept(true);
 
             try {
-                await postFirstFactorReauthenticate(password, undefined, undefined, flowID, flow, subflow);
+                await postFirstFactorReauthenticate(password, undefined, undefined, flowID, flow, subflow, userCode);
                 await loginChannel.postMessage(true);
             } catch (err) {
                 console.error(err);

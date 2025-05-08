@@ -271,10 +271,9 @@ const (
 
 // Paths.
 const (
-	FrontendEndpointPathConsent         = "/consent/openid"
-	FrontendEndpointPathConsentDecision = FrontendEndpointPathConsent + "/decision"
-
-	EndpointPathRFC8628UserVerificationURL = FrontendEndpointPathConsent + "/" + EndpointDeviceAuthorization
+	FrontendEndpointPathConsent                    = "/consent/openid"
+	FrontendEndpointPathConsentDecision            = FrontendEndpointPathConsent + "/decision"
+	FrontendEndpointPathConsentDeviceAuthorization = FrontendEndpointPathConsent + "/" + EndpointDeviceAuthorization
 
 	EndpointPathWellKnownOpenIDConfiguration      = "/.well-known/openid-configuration"
 	EndpointPathWellKnownOAuthAuthorizationServer = "/.well-known/oauth-authorization-server"

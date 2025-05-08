@@ -45,6 +45,8 @@ const (
 	queryArgAuth      = "auth"
 	queryArgConsentID = "consent_id"
 	queryArgFlow      = "flow"
+	queryArgSubflow   = "subflow"
+	queryArgUserCode  = oidc.FormParameterUserCode
 	queryArgFlowID    = oidc.FormParameterFlowID
 )
 

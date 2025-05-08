@@ -2,7 +2,7 @@ import { useCallback } from "react";
 
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-import { Flow, FlowID, RedirectionURL, SubFlow } from "@constants/SearchParams";
+import { Flow, FlowID, RedirectionURL, SubFlow, UserCode } from "@constants/SearchParams";
 
 export function useRouterNavigate() {
     const navigate = useNavigate();
@@ -34,10 +34,12 @@ export function useRouterNavigate() {
                         const flow = searchParams?.get(Flow);
                         const subflow = searchParams?.get(SubFlow);
                         const flowID = searchParams?.get(FlowID);
+                        const userCode = searchParams?.get(UserCode);
 
                         if (flow) params.set(Flow, flow);
                         if (subflow) params.set(SubFlow, subflow);
                         if (flowID) params.set(FlowID, flowID);
+                        if (userCode) params.set(UserCode, userCode);
                     }
 
                     navigate({ pathname: pathname, search: `?${params.toString()}` });
