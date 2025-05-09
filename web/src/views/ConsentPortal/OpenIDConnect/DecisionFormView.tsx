@@ -23,6 +23,7 @@ import { makeStyles } from "tss-react/mui";
 
 import LogoutButton from "@components/LogoutButton";
 import { IndexRoute } from "@constants/Routes";
+import { SubFlowNameDeviceAuthorization } from "@constants/SearchParams";
 import { useFlow } from "@hooks/Flow";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useUserCode } from "@hooks/OpenIDConnect";
@@ -171,12 +172,16 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
         setLoading(false);
         setLoadingAccept(false);
 
-        if (res.redirect_uri) {
+        if ((!subflow || subflow === "") && res.redirect_uri) {
             redirect(res.redirect_uri);
-        } else if (res.flow_id && userCode) {
-            await putDeviceCodeFlowUserCode(res.flow_id, userCode);
-
-            // TODO: Redirect to a complete/close me page.
+        } else if (subflow && subflow === SubFlowNameDeviceAuthorization) {
+            if (res.flow_id && userCode) {
+                await putDeviceCodeFlowUserCode(res.flow_id, userCode);
+                // TODO: Redirect to a complete/close me page.
+            } else {
+                createErrorNotification(translate("Failed to submit the user code"));
+                throw new Error("Failed to perform user code submission");
+            }
         } else {
             createErrorNotification(translate("Failed to redirect you", { ns: "portal" }));
             throw new Error("Unable to redirect the user");
@@ -210,8 +215,10 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
         setLoading(false);
         setLoadingReject(false);
 
-        if (res.redirect_uri) {
+        if ((!subflow || subflow === "") && res.redirect_uri) {
             redirect(res.redirect_uri);
+        } else if (subflow && subflow === SubFlowNameDeviceAuthorization) {
+            // TODO: Redirect to a complete/close me page.
         } else {
             throw new Error("Unable to redirect the user");
         }

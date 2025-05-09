@@ -6,6 +6,7 @@
 	"Confirm the Code": "Confirm the Code",
 	"Consent Request": "Consent Request",
 	"Deny this consent request": "Deny this consent request",
+	"Failed to submit the user code": "Failed to submit the user code",
 	"Remember Consent": "Remember Consent",
 	"Scope": "Scope {{name}}",
 	"The above application is requesting the following permissions": "The above application is requesting the following permissions",
