@@ -178,8 +178,9 @@ administrators semi-granular control over which claims the client is entitled to
 
 ### openid
 
-This is the default scope for [OpenID Connect 1.0]. This field is forced on every client by the configuration validation
-that Authelia does.
+This scope implements specific functionality. Specifically it is the scope which enables [OpenID Connect 1.0] and
+the [OpenID Connect 1.0] specific semantics like returning an [ID Token], specific parameters that are only available
+in [OpenID Connect 1.0], etc.
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 The combination of the issuer (i.e. `iss`) [Claim](https://openid.net/specs/openid-connect-core-1_0.html#Claims) and

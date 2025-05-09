@@ -110,7 +110,7 @@ func TestSortCmds(t *testing.T) {
 		{
 			"ShouldSortMiscCmd",
 			newMiscCmd(),
-			[]string{"oidc"},
+			[]string{"locale-move [key]", "oidc"},
 		},
 		{
 			"ShouldSortMiscOIDCCmd",

@@ -10,6 +10,7 @@ import SuccessIcon from "@components/SuccessIcon";
 import { RedirectionURL } from "@constants/SearchParams";
 import { useFlow } from "@hooks/Flow";
 import { useIsMountedRef } from "@hooks/Mounted";
+import { useUserCode } from "@hooks/OpenIDConnect";
 import { useQueryParam } from "@hooks/QueryParam";
 import {
     DuoDevicePostRequest,
@@ -48,9 +49,11 @@ const PushNotificationMethod = function (props: Props) {
     const { t: translate } = useTranslation();
     const { classes } = useStyles();
 
+    const { id: flowID, flow, subflow } = useFlow();
+    const userCode = useUserCode();
+
     const [state, setState] = useState(State.SignInInProgress);
     const redirectionURL = useQueryParam(RedirectionURL);
-    const { id: flowID, flow, subflow } = useFlow();
     const mounted = useIsMountedRef();
     const [enroll_url, setEnrollUrl] = useState("");
     const [devices, setDevices] = useState([] as SelectableDevice[]);
@@ -126,7 +129,7 @@ const PushNotificationMethod = function (props: Props) {
 
         try {
             setState(State.SignInInProgress);
-            const res = await completePushNotificationSignIn(redirectionURL, flowID, flow, subflow);
+            const res = await completePushNotificationSignIn(redirectionURL, flowID, flow, subflow, userCode);
             // If the request was initiated and the user changed 2FA method in the meantime,
             // the process is interrupted to avoid updating state of unmounted component.
             if (!mounted.current) return;
@@ -186,6 +189,7 @@ const PushNotificationMethod = function (props: Props) {
         flowID,
         flow,
         subflow,
+        userCode,
         mounted,
         onSignInErrorCallback,
         translate,

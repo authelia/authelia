@@ -2,10 +2,11 @@ import React, { useCallback, useEffect, useState } from "react";
 
 import { Theme, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
 
 import { IndexRoute } from "@constants/Routes";
-import { RedirectionURL } from "@constants/SearchParams";
+import { RedirectionRestoreURL, RedirectionURL } from "@constants/SearchParams";
 import { useIsMountedRef } from "@hooks/Mounted";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useQueryParam } from "@hooks/QueryParam";
@@ -25,6 +26,7 @@ const SignOut = function () {
     const navigate = useRouterNavigate();
     const [timedOut, setTimedOut] = useState(false);
     const [safeRedirect, setSafeRedirect] = useState(false);
+    const [query] = useSearchParams();
 
     const doSignOut = useCallback(async () => {
         try {
@@ -54,7 +56,22 @@ const SignOut = function () {
             redirector(redirectionURL);
         } else {
             console.log("Redirecting to index route");
-            navigate(IndexRoute);
+
+            if (query.has(RedirectionRestoreURL)) {
+                const search = new URLSearchParams();
+
+                query.forEach((value, key) => {
+                    if (key !== RedirectionRestoreURL) {
+                        search.set(key, value);
+                    } else {
+                        search.set(RedirectionURL, value);
+                    }
+                });
+
+                navigate(IndexRoute, false, false, false, search);
+            } else {
+                navigate(IndexRoute);
+            }
         }
     }
 

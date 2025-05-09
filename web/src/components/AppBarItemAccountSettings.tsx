@@ -4,8 +4,10 @@ import { Logout, Settings } from "@mui/icons-material";
 import { Avatar, Box, Divider, IconButton, ListItemIcon, Menu, MenuItem, Tooltip } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import { LogoutRoute, SettingsRoute } from "@constants/Routes";
+import { SettingsRoute } from "@constants/Routes";
+import { useFlowPresent } from "@hooks/Flow";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
+import { useSignOut } from "@hooks/SignOut";
 import { UserInfo } from "@models/UserInfo";
 
 export interface Props {
@@ -18,6 +20,8 @@ const AppBarItemAccountSettings = function (props: Props) {
     const [elementAccountSettings, setElementAccountSettings] = useState<null | HTMLElement>(null);
 
     const navigate = useRouterNavigate();
+    const doSignOut = useSignOut();
+    const flowPresent = useFlowPresent();
 
     const handleSettingsClick = () => {
         handleAccountSettingsClose();
@@ -25,10 +29,16 @@ const AppBarItemAccountSettings = function (props: Props) {
         navigate(SettingsRoute);
     };
 
+    const handleSwitchUserClick = () => {
+        handleAccountSettingsClose();
+
+        doSignOut(true);
+    };
+
     const handleLogoutClick = () => {
         handleAccountSettingsClose();
 
-        navigate(LogoutRoute);
+        doSignOut(false);
     };
 
     const open = Boolean(elementAccountSettings);
@@ -104,6 +114,14 @@ const AppBarItemAccountSettings = function (props: Props) {
                     {translate("Settings")}
                 </MenuItem>
                 <Divider />
+                {flowPresent ? (
+                    <MenuItem onClick={handleSwitchUserClick} id={"account-menu-switch-user"}>
+                        <ListItemIcon>
+                            <Logout fontSize="small" />
+                        </ListItemIcon>
+                        {translate("Switch User")}
+                    </MenuItem>
+                ) : null}
                 <MenuItem onClick={handleLogoutClick} id={"account-menu-logout"}>
                     <ListItemIcon>
                         <Logout fontSize="small" />

@@ -1,16 +1,23 @@
-import { ConsentPath } from "@services/Api";
+import axios from "axios";
+
+import { ScopeDescription } from "@components/OpenIDConnect";
+import { FlowID, UserCode } from "@constants/SearchParams";
+import { OpenIDConnectConsentPath, OpenIDConnectDeviceAuthorizationPath } from "@services/Api";
 import { Get, Post } from "@services/Client";
 
 interface ConsentPostRequestBody {
-    id?: string;
+    flow_id?: string;
     client_id: string;
     consent: boolean;
     pre_configure: boolean;
     claims?: string[];
+    subflow?: string;
+    user_code?: string;
 }
 
 interface ConsentPostResponseBody {
-    redirect_uri: string;
+    redirect_uri?: string;
+    flow_id?: string;
 }
 
 export interface ConsentGetResponseBody {
@@ -21,38 +28,71 @@ export interface ConsentGetResponseBody {
     pre_configuration: boolean;
     claims: string[] | null;
     essential_claims: string[] | null;
+    require_login: boolean;
 }
 
-export function getConsentResponse(consentID: string) {
-    return Get<ConsentGetResponseBody>(ConsentPath + "?id=" + consentID);
+export function getConsentResponse(flowID?: string, userCode?: string) {
+    const params = new URLSearchParams();
+
+    if (flowID) {
+        params.append(FlowID, flowID);
+    }
+
+    if (userCode) {
+        params.append(UserCode, userCode);
+    }
+
+    return Get<ConsentGetResponseBody>(`${OpenIDConnectConsentPath}?${params.toString()}`);
 }
 
-export function acceptConsent(preConfigure: boolean, clientID: string, claims: string[], consentID?: string) {
+export function postConsentResponseAccept(
+    preConfigure: boolean,
+    clientID: string,
+    claims: string[],
+    flowID?: string,
+    subflow?: string,
+    userCode?: string,
+) {
     const body: ConsentPostRequestBody = {
-        id: consentID,
+        flow_id: flowID,
         client_id: clientID,
         consent: true,
         pre_configure: preConfigure,
         claims: claims,
+        subflow: subflow,
+        user_code: userCode,
     };
-    return Post<ConsentPostResponseBody>(ConsentPath, body);
+
+    return Post<ConsentPostResponseBody>(OpenIDConnectConsentPath, body);
 }
 
-export function rejectConsent(clientID: string, consentID?: string) {
+export function putDeviceCodeFlowUserCode(flowID: string, userCode: string) {
+    const params = new URLSearchParams();
+
+    params.append(FlowID, flowID);
+    params.append(UserCode, userCode);
+
+    return axios.put(OpenIDConnectDeviceAuthorizationPath, params);
+}
+
+export function postConsentResponseReject(clientID: string, flowID?: string, subflow?: string, userCode?: string) {
     const body: ConsentPostRequestBody = {
-        id: consentID,
+        flow_id: flowID,
         client_id: clientID,
         consent: false,
         pre_configure: false,
+        subflow: subflow,
+        user_code: userCode,
     };
-    return Post<ConsentPostResponseBody>(ConsentPath, body);
+
+    return Post<ConsentPostResponseBody>(OpenIDConnectConsentPath, body);
 }
 
 export function formatScope(scope: string, fallback: string): string {
     if (!scope.startsWith("scopes.") && scope !== "") {
         return scope;
     } else {
-        return getScopeDescription(fallback);
+        return ScopeDescription(fallback);
     }
 }
 
@@ -61,25 +101,6 @@ export function formatClaim(claim: string, fallback: string): string {
         return claim;
     } else {
         return getClaimDescription(fallback);
-    }
-}
-
-export function getScopeDescription(scope: string): string {
-    switch (scope) {
-        case "openid":
-            return "Use OpenID to verify your identity";
-        case "offline_access":
-            return "Automatically refresh these permissions without user interaction";
-        case "profile":
-            return "Access your profile information";
-        case "groups":
-            return "Access your group membership";
-        case "email":
-            return "Access your email addresses";
-        case "authelia.bearer.authz":
-            return "Access protected resources logged in as you";
-        default:
-            return scope;
     }
 }
 

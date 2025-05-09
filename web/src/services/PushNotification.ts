@@ -10,14 +10,22 @@ interface CompletePushSignInBody {
     flowID?: string;
     flow?: string;
     subflow?: string;
+    userCode?: string;
 }
 
-export function completePushNotificationSignIn(targetURL?: string, flowID?: string, flow?: string, subflow?: string) {
+export function completePushNotificationSignIn(
+    targetURL?: string,
+    flowID?: string,
+    flow?: string,
+    subflow?: string,
+    userCode?: string,
+) {
     const body: CompletePushSignInBody = {
         targetURL,
         flowID,
         flow,
         subflow,
+        userCode,
     };
 
     return PostWithOptionalResponseRateLimited<DuoSignInResponse>(CompletePushNotificationSignInPath, body);

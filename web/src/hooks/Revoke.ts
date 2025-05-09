@@ -1,17 +1,19 @@
 import { useSearchParams } from "react-router-dom";
 
-export function useID(): string | undefined {
-    const [searchParams] = useSearchParams();
+import { Identifier, IdentityToken } from "@constants/SearchParams";
 
-    const id = searchParams.get("id");
+export function useID(): string | undefined {
+    const [query] = useSearchParams();
+
+    const id = query.get(Identifier);
 
     return id === null ? undefined : id;
 }
 
 export function useToken(): string | undefined {
-    const [searchParams] = useSearchParams();
+    const [query] = useSearchParams();
 
-    const token = searchParams.get("token");
+    const token = query.get(IdentityToken);
 
     return token === null ? undefined : token;
 }

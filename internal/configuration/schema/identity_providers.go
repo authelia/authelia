@@ -99,7 +99,9 @@ type IdentityProvidersOpenIDConnectDiscovery struct {
 
 type IdentityProvidersOpenIDConnectLifespans struct {
 	IdentityProvidersOpenIDConnectLifespanToken `koanf:",squash"`
-	JWTSecuredAuthorization                     time.Duration `koanf:"jwt_secured_authorization" yaml:"jwt_secured_authorization,omitempty" toml:"jwt_secured_authorization,omitempty" json:"jwt_secured_authorization,omitempty" jsonschema:"default=5 minutes,title=JARM" jsonschema_description:"Allows tuning the token lifespan for the JWT Secured Authorization Response Modes (JARM)."`
+
+	DeviceCode              time.Duration `koanf:"device_code" yaml:"device_code,omitempty" toml:"device_code,omitempty" json:"device_code,omitempty" jsonschema:"default=10 minutes,title=Device Code Lifespan" jsonschema_description:"The duration an Device Code is valid for."`
+	JWTSecuredAuthorization time.Duration `koanf:"jwt_secured_authorization" yaml:"jwt_secured_authorization,omitempty" toml:"jwt_secured_authorization,omitempty" json:"jwt_secured_authorization,omitempty" jsonschema:"default=5 minutes,title=JARM" jsonschema_description:"Allows tuning the token lifespan for the JWT Secured Authorization Response Modes (JARM)."`
 
 	Custom map[string]IdentityProvidersOpenIDConnectLifespan `koanf:"custom" yaml:"custom,omitempty" toml:"custom,omitempty" json:"custom,omitempty" jsonschema:"title=Custom Lifespans" jsonschema_description:"Allows creating custom lifespans to be used by individual clients."`
 }
@@ -108,12 +110,15 @@ type IdentityProvidersOpenIDConnectLifespans struct {
 type IdentityProvidersOpenIDConnectLifespan struct {
 	IdentityProvidersOpenIDConnectLifespanToken `koanf:",squash"`
 
+	DeviceCode time.Duration `koanf:"device_code" yaml:"device_code,omitempty" toml:"device_code,omitempty" json:"device_code,omitempty" jsonschema:"default=10 minutes,title=Device Code Lifespan" jsonschema_description:"The duration an Device Code is valid for."`
+
 	Grants IdentityProvidersOpenIDConnectLifespanGrants `koanf:"grants" yaml:"grants,omitempty" toml:"grants,omitempty" json:"grants,omitempty" jsonschema:"title=Grant Types" jsonschema_description:"Allows tuning the token lifespans for individual grant types."`
 }
 
 // IdentityProvidersOpenIDConnectLifespanGrants allows tuning the lifespans for each grant type.
 type IdentityProvidersOpenIDConnectLifespanGrants struct {
 	AuthorizeCode     IdentityProvidersOpenIDConnectLifespanToken `koanf:"authorize_code" yaml:"authorize_code,omitempty" toml:"authorize_code,omitempty" json:"authorize_code,omitempty" jsonschema:"title=Authorize Code Grant" jsonschema_description:"Allows tuning the token lifespans for the authorize code grant."`
+	DeviceCode        IdentityProvidersOpenIDConnectLifespanToken `koanf:"device_code" yaml:"device_code,omitempty" toml:"device_code,omitempty" json:"device_code,omitempty" jsonschema:"title=Device Code Grant" jsonschema_description:"Allows tuning the token lifespans for the device code grant."`
 	Implicit          IdentityProvidersOpenIDConnectLifespanToken `koanf:"implicit" yaml:"implicit,omitempty" toml:"implicit,omitempty" json:"implicit,omitempty" jsonschema:"title=Implicit Grant" jsonschema_description:"Allows tuning the token lifespans for the implicit flow and grant."`
 	ClientCredentials IdentityProvidersOpenIDConnectLifespanToken `koanf:"client_credentials" yaml:"client_credentials,omitempty" toml:"client_credentials,omitempty" json:"client_credentials,omitempty" jsonschema:"title=Client Credentials Grant" jsonschema_description:"Allows tuning the token lifespans for the client credentials grant."`
 	RefreshToken      IdentityProvidersOpenIDConnectLifespanToken `koanf:"refresh_token" yaml:"refresh_token,omitempty" toml:"refresh_token,omitempty" json:"refresh_token,omitempty" jsonschema:"title=Refresh Token Grant" jsonschema_description:"Allows tuning the token lifespans for the refresh token grant."`
@@ -123,9 +128,9 @@ type IdentityProvidersOpenIDConnectLifespanGrants struct {
 // IdentityProvidersOpenIDConnectLifespanToken allows tuning the lifespans for each token type.
 type IdentityProvidersOpenIDConnectLifespanToken struct {
 	AccessToken   time.Duration `koanf:"access_token" yaml:"access_token,omitempty" toml:"access_token,omitempty" json:"access_token,omitempty" jsonschema:"default=60 minutes,title=Access Token Lifespan" jsonschema_description:"The duration an Access Token is valid for."`
-	AuthorizeCode time.Duration `koanf:"authorize_code" yaml:"authorize_code,omitempty" toml:"authorize_code,omitempty" json:"authorize_code,omitempty" jsonschema:"default=1 minute,title=Authorize Code Lifespan" jsonschema_description:"The duration an Authorization Code is valid for."`
-	IDToken       time.Duration `koanf:"id_token" yaml:"id_token,omitempty" toml:"id_token,omitempty" json:"id_token,omitempty" jsonschema:"default=60 minutes,title=ID Token Lifespan" jsonschema_description:"The duration an ID Token is valid for."`
 	RefreshToken  time.Duration `koanf:"refresh_token" yaml:"refresh_token,omitempty" toml:"refresh_token,omitempty" json:"refresh_token,omitempty" jsonschema:"default=90 minutes,title=Refresh Token Lifespan" jsonschema_description:"The duration a Refresh Token is valid for."`
+	IDToken       time.Duration `koanf:"id_token" yaml:"id_token,omitempty" toml:"id_token,omitempty" json:"id_token,omitempty" jsonschema:"default=60 minutes,title=ID Token Lifespan" jsonschema_description:"The duration an ID Token is valid for."`
+	AuthorizeCode time.Duration `koanf:"authorize_code" yaml:"authorize_code,omitempty" toml:"authorize_code,omitempty" json:"authorize_code,omitempty" jsonschema:"default=1 minute,title=Authorize Code Lifespan" jsonschema_description:"The duration an Authorization Code is valid for."`
 }
 
 // IdentityProvidersOpenIDConnectCORS represents an OpenID Connect 1.0 CORS config.
@@ -229,6 +234,7 @@ var DefaultOpenIDConnectConfiguration = IdentityProvidersOpenIDConnect{
 			IDToken:       time.Hour,
 			RefreshToken:  time.Minute * 90,
 		},
+		DeviceCode: time.Minute * 10,
 	},
 	EnforcePKCE: "public_clients_only",
 }

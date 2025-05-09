@@ -11,6 +11,7 @@ interface PostFirstFactorBody {
     flowID?: string;
     flow?: string;
     subflow?: string;
+    userCode?: string;
 }
 
 interface PostFirstFactorReauthenticateBody {
@@ -20,6 +21,7 @@ interface PostFirstFactorReauthenticateBody {
     flowID?: string;
     flow?: string;
     subflow?: string;
+    userCode?: string;
 }
 
 export async function postFirstFactor(
@@ -31,6 +33,7 @@ export async function postFirstFactor(
     flowID?: string,
     flow?: string,
     subflow?: string,
+    userCode?: string,
 ) {
     const data: PostFirstFactorBody = {
         username,
@@ -41,6 +44,7 @@ export async function postFirstFactor(
         flowID,
         flow,
         subflow,
+        userCode,
     };
 
     const res = await PostWithOptionalResponse<SignInResponse>(FirstFactorPath, data);
@@ -54,6 +58,7 @@ export async function postFirstFactorReauthenticate(
     flowID?: string,
     flow?: string,
     subflow?: string,
+    userCode?: string,
 ) {
     const data: PostFirstFactorReauthenticateBody = {
         password,
@@ -62,6 +67,7 @@ export async function postFirstFactorReauthenticate(
         flowID,
         flow,
         subflow,
+        userCode,
     };
 
     const res = await PostWithOptionalResponse<SignInResponse>(FirstFactorReauthenticatePath, data);

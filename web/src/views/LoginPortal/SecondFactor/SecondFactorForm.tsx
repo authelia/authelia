@@ -8,6 +8,7 @@ import { Route, Routes } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
 
 import LogoutButton from "@components/LogoutButton";
+import SwitchUserButton from "@components/SwitchUserButton";
 import {
     SecondFactorPasswordSubRoute,
     SecondFactorPushSubRoute,
@@ -17,6 +18,7 @@ import {
     SettingsTwoFactorAuthenticationSubRoute,
 } from "@constants/Routes";
 import { useLocalStorageMethodContext } from "@contexts/LocalStorageMethodContext";
+import { useFlowPresent } from "@hooks/Flow";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 import LoginLayout from "@layouts/LoginLayout";
@@ -48,10 +50,12 @@ const SecondFactorForm = function (props: Props) {
     const { classes } = useStyles();
 
     const navigate = useRouterNavigate();
+    const flowPresent = useFlowPresent();
+    const { setLocalStorageMethod, localStorageMethodAvailable } = useLocalStorageMethodContext();
+    const { createErrorNotification } = useNotifications();
+
     const [methodSelectionOpen, setMethodSelectionOpen] = useState(false);
     const [stateWebAuthnSupported, setStateWebAuthnSupported] = useState(false);
-    const { createErrorNotification } = useNotifications();
-    const { setLocalStorageMethod, localStorageMethodAvailable } = useLocalStorageMethodContext();
 
     useEffect(() => {
         setStateWebAuthnSupported(browserSupportsWebAuthn());
@@ -101,6 +105,8 @@ const SecondFactorForm = function (props: Props) {
             <Grid container direction={"column"} justifyContent={"center"} alignItems={"center"}>
                 <Grid size={{ xs: 12 }}>
                     <LogoutButton />
+                    {flowPresent ? " | " : null}
+                    {flowPresent ? <SwitchUserButton /> : null}
                     {showMethods ? " | " : null}
                     {showMethods ? (
                         <Button id={"methods-button"} color="secondary" onClick={handleMethodSelectionClick}>

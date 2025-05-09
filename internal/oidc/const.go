@@ -31,7 +31,7 @@ const (
 	ClaimExpirationTime                      = "exp"
 	ClaimAuthenticationTime                  = "auth_time"
 	ClaimIssuer                              = valueIss
-	ClaimNonce                               = "nonce"
+	ClaimNonce                               = valueNonce
 	ClaimAudience                            = "aud"
 	ClaimGroups                              = "groups"
 	ClaimAuthorizedParty                     = "azp"
@@ -220,10 +220,12 @@ const (
 	FormParameterResponseMode = "response_mode"
 	FormParameterResponseType = "response_type"
 	FormParameterScope        = valueScope
-	FormParameterIssuer       = valueIss
 	FormParameterPrompt       = "prompt"
 	FormParameterMaximumAge   = "max_age"
 	FormParameterClaims       = "claims"
+	FormParameterUserCode     = "user_code"
+	FormParameterFlowID       = "flow_id"
+	FormParameterNonce        = valueNonce
 )
 
 const (
@@ -269,11 +271,9 @@ const (
 
 // Paths.
 const (
-	FrontendEndpointPathConsent         = "/consent/openid"
-	FrontendEndpointPathConsentDecision = FrontendEndpointPathConsent + "/decision"
-	FrontendEndpointPathConsentLogin    = FrontendEndpointPathConsent + "/login"
-
-	EndpointPathRFC8628UserVerificationURL = FrontendEndpointPathConsent + "/" + EndpointDeviceAuthorization
+	FrontendEndpointPathConsent                    = "/consent/openid"
+	FrontendEndpointPathConsentDecision            = FrontendEndpointPathConsent + "/decision"
+	FrontendEndpointPathConsentDeviceAuthorization = FrontendEndpointPathConsent + "/" + EndpointDeviceAuthorization
 
 	EndpointPathWellKnownOpenIDConfiguration      = "/.well-known/openid-configuration"
 	EndpointPathWellKnownOAuthAuthorizationServer = "/.well-known/oauth-authorization-server"
@@ -407,6 +407,7 @@ const (
 	valueNone          = "none"
 	valueRefreshToken  = "refresh_token"
 	valueIss           = "iss"
+	valueNonce         = "nonce"
 )
 
 const (

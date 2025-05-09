@@ -778,17 +778,17 @@ func (s *CustomClaimsStrategy) populateClaim(_ Client, claim, attribute string, 
 }
 
 // GrantScopeAudienceConsent grants all scopes and audience values that have received consent.
-func GrantScopeAudienceConsent(ar oauthelia2.Requester, consent *model.OAuth2ConsentSession) {
-	if ar == nil || consent == nil {
+func GrantScopeAudienceConsent(r oauthelia2.Requester, consent *model.OAuth2ConsentSession) {
+	if r == nil || consent == nil {
 		return
 	}
 
 	for _, scope := range consent.GrantedScopes {
-		ar.GrantScope(scope)
+		r.GrantScope(scope)
 	}
 
 	for _, audience := range consent.GrantedAudience {
-		ar.GrantAudience(audience)
+		r.GrantAudience(audience)
 	}
 }
 

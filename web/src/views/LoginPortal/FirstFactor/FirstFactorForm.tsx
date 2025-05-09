@@ -26,6 +26,7 @@ import { ResetPasswordStep1Route } from "@constants/Routes";
 import { RedirectionURL, RequestMethod } from "@constants/SearchParams";
 import { useFlow } from "@hooks/Flow";
 import { useNotifications } from "@hooks/NotificationsContext";
+import { useUserCode } from "@hooks/OpenIDConnect";
 import { useQueryParam } from "@hooks/QueryParam";
 import LoginLayout from "@layouts/LoginLayout";
 import { IsCapsLockModified } from "@services/CapsLock";
@@ -53,6 +54,7 @@ const FirstFactorForm = function (props: Props) {
     const redirectionURL = useQueryParam(RedirectionURL);
     const requestMethod = useQueryParam(RequestMethod);
     const { id: flowID, flow, subflow } = useFlow();
+    const userCode = useUserCode();
     const { createErrorNotification } = useNotifications();
 
     const loginChannel = useMemo(() => new BroadcastChannel<boolean>("login"), []);
@@ -127,6 +129,7 @@ const FirstFactorForm = function (props: Props) {
                 flowID,
                 flow,
                 subflow,
+                userCode,
             );
 
             setLoading(false);
@@ -151,6 +154,7 @@ const FirstFactorForm = function (props: Props) {
         flowID,
         flow,
         subflow,
+        userCode,
         loginChannel,
         createErrorNotification,
         translate,

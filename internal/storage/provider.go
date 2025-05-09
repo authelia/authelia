@@ -247,7 +247,10 @@ type Provider interface {
 	SaveOAuth2DeviceCodeSession(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error)
 
 	// UpdateOAuth2DeviceCodeSession updates an OAuth2.0 device code session in the storage provider.
-	UpdateOAuth2DeviceCodeSession(ctx context.Context, signature string, status int, checked time.Time) (err error)
+	UpdateOAuth2DeviceCodeSession(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error)
+
+	// UpdateOAuth2DeviceCodeSessionData updates an OAuth2.0 device code session data in the storage provider.
+	UpdateOAuth2DeviceCodeSessionData(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error)
 
 	// DeactivateOAuth2DeviceCodeSession marks an OAuth2.0 device code session as inactive in the storage provider.
 	DeactivateOAuth2DeviceCodeSession(ctx context.Context, signature string) (err error)
