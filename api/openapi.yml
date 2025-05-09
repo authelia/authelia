@@ -2445,6 +2445,10 @@ components:
           example: 'device_authorization'
           enum:
             - 'device_authorization'
+        userCode:
+          description: The user code from the Device Authorization Flow if applicable.
+          type: string
+          example: 'XGQWWFMM'
     handlers.bodyFirstFactorRequest:
       required:
         - 'username'
@@ -2476,6 +2480,10 @@ components:
           example: 'device_authorization'
           enum:
             - 'device_authorization'
+        userCode:
+          description: The user code from the Device Authorization Flow if applicable.
+          type: string
+          example: 'XGQWWFMM'
         requestMethod:
           type: string
           example: GET
@@ -2580,6 +2588,10 @@ components:
           example: 'device_authorization'
           enum:
             - 'device_authorization'
+        userCode:
+          description: The user code from the Device Authorization Flow if applicable.
+          type: string
+          example: 'XGQWWFMM'
     {{- end }}
     handlers.StateResponse:
       type: object
@@ -2865,6 +2877,10 @@ components:
           example: 'device_authorization'
           enum:
             - 'device_authorization'
+        userCode:
+          description: The user code from the Device Authorization Flow if applicable.
+          type: string
+          example: 'XGQWWFMM'
     handlers.TOTPKeyResponse:
       type: object
       properties:
@@ -2980,6 +2996,10 @@ components:
                       example: 'device_authorization'
                       enum:
                         - 'device_authorization'
+                    userCode:
+                      description: The user code from the Device Authorization Flow if applicable.
+                      type: string
+                      example: 'XGQWWFMM'
     webauthn.CredentialUpdateRequest:
       type: object
       properties:

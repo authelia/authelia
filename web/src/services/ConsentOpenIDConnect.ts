@@ -1,5 +1,6 @@
 import axios from "axios";
 
+import { ScopeDescription } from "@components/OpenIDConnect";
 import { FlowID, UserCode } from "@constants/SearchParams";
 import { OpenIDConnectConsentPath, OpenIDConnectDeviceAuthorizationPath } from "@services/Api";
 import { Get, Post } from "@services/Client";
@@ -91,7 +92,7 @@ export function formatScope(scope: string, fallback: string): string {
     if (!scope.startsWith("scopes.") && scope !== "") {
         return scope;
     } else {
-        return getScopeDescription(fallback);
+        return ScopeDescription(fallback);
     }
 }
 
@@ -100,25 +101,6 @@ export function formatClaim(claim: string, fallback: string): string {
         return claim;
     } else {
         return getClaimDescription(fallback);
-    }
-}
-
-export function getScopeDescription(scope: string): string {
-    switch (scope) {
-        case "openid":
-            return "Use OpenID to verify your identity";
-        case "offline_access":
-            return "Automatically refresh these permissions without user interaction";
-        case "profile":
-            return "Access your profile information";
-        case "groups":
-            return "Access your group membership";
-        case "email":
-            return "Access your email addresses";
-        case "authelia.bearer.authz":
-            return "Access protected resources logged in as you";
-        default:
-            return scope;
     }
 }
 

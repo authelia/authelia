@@ -22,6 +22,7 @@ import { useTranslation } from "react-i18next";
 import { makeStyles } from "tss-react/mui";
 
 import LogoutButton from "@components/LogoutButton";
+import SwitchUserButton from "@components/SwitchUserButton";
 import { ConsentCompletionSubRoute, ConsentRoute, IndexRoute } from "@constants/Routes";
 import { Decision, Flow, SubFlow, SubFlowNameDeviceAuthorization } from "@constants/SearchParams";
 import { useFlow } from "@hooks/Flow";
@@ -300,13 +301,13 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
         <Fragment>
             {props.userInfo && response !== undefined ? (
                 <LoginLayout
-                    id={"openid-consent-stage"}
+                    id={"openid-consent-decision-stage"}
                     title={`${translate("Hi", { ns: "portal" })} ${props.userInfo.display_name}`}
                     subtitle={translate("Consent Request")}
                 >
                     <Grid container direction={"column"} justifyContent={"center"} alignItems={"center"}>
                         <Grid size={{ xs: 12 }} sx={{ paddingBottom: theme.spacing(2) }}>
-                            <LogoutButton />
+                            <LogoutButton /> {" | "} <SwitchUserButton />
                         </Grid>
                         <Grid size={{ xs: 12 }}>
                             <Grid container alignItems={"center"} justifyContent={"center"}>

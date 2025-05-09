@@ -1,48 +1,15 @@
 import React from "react";
 
-import {
-    AccountBox,
-    Autorenew,
-    Contacts,
-    Drafts,
-    Group,
-    Home,
-    LockOpen,
-    PhoneAndroid,
-    Policy,
-} from "@mui/icons-material";
 import { Box, List, ListItem, ListItemIcon, ListItemText, Theme, Tooltip } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
 import { makeStyles } from "tss-react/mui";
 
+import { ScopeAvatar } from "@components/OpenIDConnect";
 import { formatScope } from "@services/ConsentOpenIDConnect";
 
 export interface Props {
     scopes: string[];
-}
-
-function scopeNameToAvatar(id: string) {
-    switch (id) {
-        case "openid":
-            return <AccountBox />;
-        case "offline_access":
-            return <Autorenew />;
-        case "profile":
-            return <Contacts />;
-        case "groups":
-            return <Group />;
-        case "email":
-            return <Drafts />;
-        case "phone":
-            return <PhoneAndroid />;
-        case "address":
-            return <Home />;
-        case "authelia.bearer.authz":
-            return <LockOpen />;
-        default:
-            return <Policy />;
-    }
 }
 
 const DecisionFormScopes: React.FC<Props> = (props: Props) => {
@@ -57,7 +24,7 @@ const DecisionFormScopes: React.FC<Props> = (props: Props) => {
                     {props.scopes.map((scope: string) => (
                         <Tooltip key={scope} title={translate("Scope", { name: scope })}>
                             <ListItem id={"scope-" + scope} key={scope} dense>
-                                <ListItemIcon>{scopeNameToAvatar(scope)}</ListItemIcon>
+                                <ListItemIcon>{ScopeAvatar(scope)}</ListItemIcon>
                                 <ListItemText primary={formatScope(translate(`scopes.${scope}`), scope)} />
                             </ListItem>
                         </Tooltip>

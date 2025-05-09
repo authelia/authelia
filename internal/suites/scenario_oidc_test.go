@@ -89,7 +89,7 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 	err := s.Page.MustSearch("Log in").Click("left", 1)
 	assert.NoError(s.T(), err)
 
-	s.verifyIsConsentPage(s.T(), s.Context(ctx))
+	s.verifyIsOpenIDConsentDecisionStage(s.T(), s.Context(ctx))
 	err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "openid-consent-accept").Click("left", 1)
 	assert.NoError(s.T(), err)
 
@@ -166,7 +166,7 @@ func (s *OIDCScenario) TestShouldDenyConsent() {
 	err := s.Page.MustSearch("Log in").Click("left", 1)
 	assert.NoError(s.T(), err)
 
-	s.verifyIsConsentPage(s.T(), s.Context(ctx))
+	s.verifyIsOpenIDConsentDecisionStage(s.T(), s.Context(ctx))
 
 	err = s.WaitElementLocatedByID(s.T(), s.Context(ctx), "openid-consent-deny").Click("left", 1)
 	assert.NoError(s.T(), err)

@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useState } from "react";
 
-import { Button, FormControl, useTheme } from "@mui/material";
+import { Box, Button, FormControl, useTheme } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import { useTranslation } from "react-i18next";
 
 import LogoutButton from "@components/LogoutButton";
+import SwitchUserButton from "@components/SwitchUserButton";
 import { ConsentDecisionSubRoute, ConsentOpenIDSubRoute, ConsentRoute, IndexRoute } from "@constants/Routes";
 import {
     Flow,
@@ -18,6 +19,7 @@ import { useUserCode } from "@hooks/OpenIDConnect";
 import { useRouterNavigate } from "@hooks/RouterNavigate";
 import LoginLayout from "@layouts/LoginLayout";
 import { AutheliaState, AuthenticationLevel } from "@services/State";
+import LoadingPage from "@views/LoadingPage/LoadingPage";
 
 export interface Props {
     state: AutheliaState;
@@ -74,11 +76,15 @@ const DeviceAuthorizationFormView: React.FC<Props> = (props: Props) => {
         handleCode(userCode);
     }, [handleCode, props.state.authentication_level, userCode]);
 
-    return (
-        <LoginLayout id={"consent-stage"} title={translate("Confirm the Code")}>
+    return props.state.authentication_level === AuthenticationLevel.Unauthenticated ? (
+        <Box>
+            <LoadingPage />
+        </Box>
+    ) : (
+        <LoginLayout id={"openid-consent-device-auth-stage"} title={translate("Confirm the Code")}>
             <Grid container direction={"column"} justifyContent={"center"} alignItems={"center"}>
                 <Grid size={{ xs: 12 }} sx={{ paddingBottom: theme.spacing(2) }}>
-                    <LogoutButton />
+                    <LogoutButton /> {" | "} <SwitchUserButton />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
                     <FormControl id={"form-consent-openid-device-code-authorization"}>

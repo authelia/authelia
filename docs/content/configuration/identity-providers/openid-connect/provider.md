@@ -537,14 +537,14 @@ identity_providers:
       refresh_token: '90m'
       id_token: '1h'
       authorize_code: '1m'
-      device_code: '1m'
+      device_code: '10m'
       custom:
         lifespan_name:
           access_token: '1h'
           refresh_token: '90m'
           id_token: '1h'
           authorize_code: '1m'
-          device_code: '1m'
+          device_code: '10m'
           grants:
             authorize_code:
               access_token: '1h'

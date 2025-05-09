@@ -6,7 +6,7 @@ import { Flow, FlowID, RedirectionURL, SubFlow, UserCode } from "@constants/Sear
 
 export function useRouterNavigate() {
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
+    const [query] = useSearchParams();
 
     return useCallback(
         (
@@ -18,23 +18,23 @@ export function useRouterNavigate() {
         ) => {
             if (searchParamsOverride && URLSearchParamsHasValues(searchParamsOverride)) {
                 navigate({ pathname: pathname, search: `?${searchParamsOverride.toString()}` });
-            } else if (URLSearchParamsHasValues(searchParams)) {
+            } else if (URLSearchParamsHasValues(query)) {
                 if (preserveSearchParams) {
-                    navigate({ pathname: pathname, search: `?${searchParams.toString()}` });
+                    navigate({ pathname: pathname, search: `?${query.toString()}` });
                 } else if (preserveFlow || preserveRedirection) {
                     const params = new URLSearchParams();
 
                     if (preserveRedirection) {
-                        const redirection = searchParams?.get(RedirectionURL);
+                        const redirection = query?.get(RedirectionURL);
 
                         if (redirection) params.set(RedirectionURL, redirection);
                     }
 
                     if (preserveFlow) {
-                        const flow = searchParams?.get(Flow);
-                        const subflow = searchParams?.get(SubFlow);
-                        const flowID = searchParams?.get(FlowID);
-                        const userCode = searchParams?.get(UserCode);
+                        const flow = query?.get(Flow);
+                        const subflow = query?.get(SubFlow);
+                        const flowID = query?.get(FlowID);
+                        const userCode = query?.get(UserCode);
 
                         if (flow) params.set(Flow, flow);
                         if (subflow) params.set(SubFlow, subflow);
@@ -50,7 +50,7 @@ export function useRouterNavigate() {
                 navigate({ pathname: pathname });
             }
         },
-        [navigate, searchParams],
+        [navigate, query],
     );
 }
 
