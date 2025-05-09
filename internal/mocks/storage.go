@@ -74,6 +74,20 @@ func (mr *MockStorageMockRecorder) BeginTX(ctx any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BeginTX", reflect.TypeOf((*MockStorage)(nil).BeginTX), ctx)
 }
 
+// CleanupExpiredKnownIPs mocks base method.
+func (m *MockStorage) CleanupExpiredKnownIPs(ctx context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CleanupExpiredKnownIPs", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CleanupExpiredKnownIPs indicates an expected call of CleanupExpiredKnownIPs.
+func (mr *MockStorageMockRecorder) CleanupExpiredKnownIPs(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CleanupExpiredKnownIPs", reflect.TypeOf((*MockStorage)(nil).CleanupExpiredKnownIPs), ctx)
+}
+
 // Close mocks base method.
 func (m *MockStorage) Close() error {
 	m.ctrl.T.Helper()
@@ -272,6 +286,21 @@ func (mr *MockStorageMockRecorder) FindIdentityVerification(ctx, jti any) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindIdentityVerification", reflect.TypeOf((*MockStorage)(nil).FindIdentityVerification), ctx, jti)
 }
 
+// IsIPKnownForUser mocks base method.
+func (m *MockStorage) IsIPKnownForUser(ctx context.Context, username string, ip model.IP) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsIPKnownForUser", ctx, username, ip)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IsIPKnownForUser indicates an expected call of IsIPKnownForUser.
+func (mr *MockStorageMockRecorder) IsIPKnownForUser(ctx, username, ip any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsIPKnownForUser", reflect.TypeOf((*MockStorage)(nil).IsIPKnownForUser), ctx, username, ip)
+}
+
 // LoadBannedIP mocks base method.
 func (m *MockStorage) LoadBannedIP(ctx context.Context, remoteIP model.IP) ([]model.BannedIP, error) {
 	m.ctrl.T.Helper()
@@ -390,6 +419,21 @@ func (m *MockStorage) LoadIdentityVerification(ctx context.Context, jti string) 
 func (mr *MockStorageMockRecorder) LoadIdentityVerification(ctx, jti any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadIdentityVerification", reflect.TypeOf((*MockStorage)(nil).LoadIdentityVerification), ctx, jti)
+}
+
+// LoadKnownIPsByUser mocks base method.
+func (m *MockStorage) LoadKnownIPsByUser(ctx context.Context, username string) ([]model.IP, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadKnownIPsByUser", ctx, username)
+	ret0, _ := ret[0].([]model.IP)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadKnownIPsByUser indicates an expected call of LoadKnownIPsByUser.
+func (mr *MockStorageMockRecorder) LoadKnownIPsByUser(ctx, username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadKnownIPsByUser", reflect.TypeOf((*MockStorage)(nil).LoadKnownIPsByUser), ctx, username)
 }
 
 // LoadOAuth2BlacklistedJTI mocks base method.
@@ -965,6 +1009,20 @@ func (mr *MockStorageMockRecorder) SaveIdentityVerification(ctx, verification an
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveIdentityVerification", reflect.TypeOf((*MockStorage)(nil).SaveIdentityVerification), ctx, verification)
 }
 
+// SaveNewIPForUser mocks base method.
+func (m *MockStorage) SaveNewIPForUser(ctx context.Context, username string, ip model.IP, userAgent string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveNewIPForUser", ctx, username, ip, userAgent)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveNewIPForUser indicates an expected call of SaveNewIPForUser.
+func (mr *MockStorageMockRecorder) SaveNewIPForUser(ctx, username, ip, userAgent any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveNewIPForUser", reflect.TypeOf((*MockStorage)(nil).SaveNewIPForUser), ctx, username, ip, userAgent)
+}
+
 // SaveOAuth2BlacklistedJTI mocks base method.
 func (m *MockStorage) SaveOAuth2BlacklistedJTI(ctx context.Context, blacklistedJTI model.OAuth2BlacklistedJTI) error {
 	m.ctrl.T.Helper()
@@ -1336,6 +1394,20 @@ func (m *MockStorage) StartupCheck() error {
 func (mr *MockStorageMockRecorder) StartupCheck() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartupCheck", reflect.TypeOf((*MockStorage)(nil).StartupCheck))
+}
+
+// UpdateKnownIP mocks base method.
+func (m *MockStorage) UpdateKnownIP(ctx context.Context, username string, ip model.IP) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateKnownIP", ctx, username, ip)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateKnownIP indicates an expected call of UpdateKnownIP.
+func (mr *MockStorageMockRecorder) UpdateKnownIP(ctx, username, ip any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateKnownIP", reflect.TypeOf((*MockStorage)(nil).UpdateKnownIP), ctx, username, ip)
 }
 
 // UpdateOAuth2DeviceCodeSession mocks base method.
