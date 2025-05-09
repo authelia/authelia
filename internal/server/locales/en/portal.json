@@ -27,6 +27,7 @@
 	"Failed to revoke the One-Time Code": "Failed to revoke the One-Time Code",
 	"Failed to revoke the Token": "Failed to revoke the Token",
 	"Hi": "Hi",
+	"Home": "Home",
 	"Incorrect password": "Incorrect password",
 	"Incorrect username or password": "Incorrect username or password",
 	"Login - {{authelia}}": "Login - {{authelia}}",

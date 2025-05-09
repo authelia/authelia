@@ -3,7 +3,7 @@ import React, { Fragment, lazy, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Route, Routes } from "react-router-dom";
 
-import { ConsentOpenIDSubRoute } from "@constants/Routes";
+import { ConsentCompletionSubRoute, ConsentOpenIDSubRoute } from "@constants/Routes";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useAutheliaState } from "@hooks/State";
 import { useUserInfoGET } from "@hooks/UserInfo";
@@ -12,6 +12,7 @@ import { AutheliaState, AuthenticationLevel } from "@services/State";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 
 const OpenIDConnect = lazy(() => import("@views/ConsentPortal/OpenIDConnect/ConsentPortal"));
+const CompletionView = lazy(() => import("@views/ConsentPortal/CompletionView"));
 
 export interface Props {}
 
@@ -74,6 +75,10 @@ const ConsentPortalRouter: React.FC<RouterProps> = (props: RouterProps) => {
             <Route
                 path={`${ConsentOpenIDSubRoute}/*`}
                 element={<OpenIDConnect userInfo={props.userInfo} state={props.state} />}
+            />
+            <Route
+                path={ConsentCompletionSubRoute}
+                element={<CompletionView userInfo={props.userInfo} state={props.state} />}
             />
         </Routes>
     );

@@ -22,8 +22,8 @@ import { useTranslation } from "react-i18next";
 import { makeStyles } from "tss-react/mui";
 
 import LogoutButton from "@components/LogoutButton";
-import { IndexRoute } from "@constants/Routes";
-import { SubFlowNameDeviceAuthorization } from "@constants/SearchParams";
+import { ConsentCompletionSubRoute, ConsentRoute, IndexRoute } from "@constants/Routes";
+import { Decision, Flow, SubFlow, SubFlowNameDeviceAuthorization } from "@constants/SearchParams";
 import { useFlow } from "@hooks/Flow";
 import { useNotifications } from "@hooks/NotificationsContext";
 import { useUserCode } from "@hooks/OpenIDConnect";
@@ -177,7 +177,20 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
         } else if (subflow && subflow === SubFlowNameDeviceAuthorization) {
             if (res.flow_id && userCode) {
                 await putDeviceCodeFlowUserCode(res.flow_id, userCode);
-                // TODO: Redirect to a complete/close me page.
+
+                const query = new URLSearchParams();
+
+                if (flow) {
+                    query.set(Flow, flow);
+                }
+
+                if (subflow) {
+                    query.set(SubFlow, subflow);
+                }
+
+                query.set(Decision, "accepted");
+
+                navigate(ConsentRoute + ConsentCompletionSubRoute, false, false, false, query);
             } else {
                 createErrorNotification(translate("Failed to submit the user code"));
                 throw new Error("Failed to perform user code submission");
@@ -193,6 +206,7 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
         flowID,
         focusPassword,
         loginChannel,
+        navigate,
         password,
         preConfigure,
         redirect,
@@ -218,7 +232,19 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
         if ((!subflow || subflow === "") && res.redirect_uri) {
             redirect(res.redirect_uri);
         } else if (subflow && subflow === SubFlowNameDeviceAuthorization) {
-            // TODO: Redirect to a complete/close me page.
+            const query = new URLSearchParams();
+
+            if (flow) {
+                query.set(Flow, flow);
+            }
+
+            if (subflow) {
+                query.set(SubFlow, subflow);
+            }
+
+            query.set(Decision, "rejected");
+
+            navigate(ConsentRoute + ConsentCompletionSubRoute, false, false, false, query);
         } else {
             throw new Error("Unable to redirect the user");
         }
