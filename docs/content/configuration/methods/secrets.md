@@ -127,7 +127,7 @@ and instead use the file-based secrets above.
 Prior to implementing file secrets the only way you were able to define secret values was either via configuration or
 via environment variables in plain text.
 
-See [this article](https://diogomonica.com/2017/03/27/why-you-shouldnt-use-env-variables-for-secret-data/) for reasons
+See [this article](https://blog.diogomonica.com/2017/03/27/why-you-shouldnt-use-env-variables-for-secret-data/) for reasons
 why setting them via the file counterparts is highly encouraged.
 
 ## Examples
