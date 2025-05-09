@@ -151,19 +151,38 @@ const ResetPasswordStep2 = function () {
                             error={errorPassword1}
                             className={cx(classes.fullWidth)}
                             autoComplete="new-password"
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton
-                                            aria-label="toggle password visibility"
-                                            onClick={(e) => setShowPassword(!showPassword)}
-                                            edge="end"
-                                            size="large"
-                                        >
-                                            {showPassword ? <VisibilityOff></VisibilityOff> : <Visibility></Visibility>}
-                                        </IconButton>
-                                    </InputAdornment>
-                                ),
+                            slotProps={{
+                                input: {
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton
+                                                aria-label="toggle password visibility"
+                                                edge="end"
+                                                size="large"
+                                                onMouseDown={() => setShowPassword(true)}
+                                                onMouseUp={() => setShowPassword(false)}
+                                                onMouseLeave={() => setShowPassword(false)}
+                                                onTouchStart={() => setShowPassword(true)}
+                                                onTouchEnd={() => setShowPassword(false)}
+                                                onTouchCancel={() => setShowPassword(false)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === " ") {
+                                                        setShowPassword(true);
+                                                        e.preventDefault();
+                                                    }
+                                                }}
+                                                onKeyUp={(e) => {
+                                                    if (e.key === " ") {
+                                                        setShowPassword(false);
+                                                        e.preventDefault();
+                                                    }
+                                                }}
+                                            >
+                                                {showPassword ? <Visibility /> : <VisibilityOff />}
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ),
+                                },
                             }}
                         />
                         {pPolicy.mode === PasswordPolicyMode.Disabled ? null : (

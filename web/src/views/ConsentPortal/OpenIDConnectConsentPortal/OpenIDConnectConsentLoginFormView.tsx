@@ -1,6 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { Alert, AlertTitle, Button, CircularProgress, FormControl, useTheme } from "@mui/material";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import {
+    Alert,
+    AlertTitle,
+    Button,
+    CircularProgress,
+    FormControl,
+    IconButton,
+    InputAdornment,
+    useTheme,
+} from "@mui/material";
 import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import { BroadcastChannel } from "broadcast-channel";
@@ -26,6 +37,7 @@ const OpenIDConnectConsentLoginFormView: React.FC<Props> = (props: Props) => {
     const theme = useTheme();
 
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState(false);
     const [hasCapsLock, setHasCapsLock] = useState(false);
     const [isCapsLockPartial, setIsCapsLockPartial] = useState(false);
@@ -141,10 +153,43 @@ const OpenIDConnectConsentLoginFormView: React.FC<Props> = (props: Props) => {
                                     value={password}
                                     onChange={(v) => setPassword(v.target.value)}
                                     onFocus={() => setError(false)}
-                                    type="password"
+                                    type={showPassword ? "text" : "password"}
                                     autoComplete="current-password"
                                     required
                                     fullWidth
+                                    slotProps={{
+                                        input: {
+                                            endAdornment: (
+                                                <InputAdornment position="end">
+                                                    <IconButton
+                                                        aria-label="toggle password visibility"
+                                                        edge="end"
+                                                        size="large"
+                                                        onMouseDown={() => setShowPassword(true)}
+                                                        onMouseUp={() => setShowPassword(false)}
+                                                        onMouseLeave={() => setShowPassword(false)}
+                                                        onTouchStart={() => setShowPassword(true)}
+                                                        onTouchEnd={() => setShowPassword(false)}
+                                                        onTouchCancel={() => setShowPassword(false)}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === " ") {
+                                                                setShowPassword(true);
+                                                                e.preventDefault();
+                                                            }
+                                                        }}
+                                                        onKeyUp={(e) => {
+                                                            if (e.key === " ") {
+                                                                setShowPassword(false);
+                                                                e.preventDefault();
+                                                            }
+                                                        }}
+                                                    >
+                                                        {showPassword ? <Visibility /> : <VisibilityOff />}
+                                                    </IconButton>
+                                                </InputAdornment>
+                                            ),
+                                        },
+                                    }}
                                 />
                             </Grid>
                             {hasCapsLock ? (
