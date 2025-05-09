@@ -144,7 +144,7 @@ type Provider interface {
 
 	IsIPKnownForUser(ctx context.Context, username string, ip model.IP) (isIPKnown bool, err error)
 
-	SaveNewIPForUser(ctx context.Context, username string, ip model.IP) (err error)
+	SaveNewIPForUser(ctx context.Context, username string, ip model.IP, userAgent string) (err error)
 
 	UpdateKnownIP(ctx context.Context, username string, ip model.IP) (err error)
 

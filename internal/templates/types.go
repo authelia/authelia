@@ -34,6 +34,7 @@ type NotificationTemplates struct {
 	jwtIdentityVerification *EmailTemplate
 	otcIdentityVerification *EmailTemplate
 	event                   *EmailTemplate
+	newLogin                *EmailTemplate
 }
 
 // Template covers shared implementations between the text and html template.Template.
@@ -63,6 +64,16 @@ type EmailEventValues struct {
 	BodyEvent   string
 	DisplayName string
 	Details     map[string]any
+	RemoteIP    string
+}
+
+// EmailNewLoginValues are the values used for new login templates.
+type EmailNewLoginValues struct {
+	Title       string
+	Date        string
+	Domain      string
+	UserAgent   string
+	DisplayName string
 	RemoteIP    string
 }
 

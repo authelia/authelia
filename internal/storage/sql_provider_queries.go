@@ -401,32 +401,31 @@ const (
 const (
 	queryFmtIPIsKnownForUser = `
 		SELECT id, expires_at
-		FROM known_ip_addresses
+		FROM %s
 		WHERE username = ? AND ip_address = ?
-		  AND (expires_at IS NULL OR expires_at > NOW());`
+		  AND (expires_at IS NULL OR expires_at > datetime('now', 'localtime'));`
 
 	queryFmtInsertNewIpAddress = `
-		INSERT INTO known_ip_addresses
-		  (username, ip_address, user_agent, location_info, expires_at)
+		INSERT INTO %s
+		  (username, ip_address, user_agent, expires_at)
 		VALUES
-		  (?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 30 DAY));`
+		  (?, ?, ?, datetime('now', 'localtime', '+30 days'));`
 
 	queryFmtSelectKnownIPsByUsername = `
-		SELECT ip_address, first_seen, last_seen, is_trusted,
-			   user_agent, location_info, expires_at
-		FROM known_ip_addresses
+		SELECT ip_address, first_seen, last_seen, user_agent, expires_at
+		FROM %s
 		WHERE username = ?
-		  AND (expires_at IS NULL OR expires_at > NOW())
+		  AND (expires_at IS NULL OR expires_at > datetime('now', 'localtime'))
 		ORDER BY last_seen DESC;`
 
 	queryFmtDeleteExpiredIPs = `
-		DELETE FROM known_ip_addresses
-		WHERE expires_at IS NOT NULL AND expires_at <= NOW();`
+		DELETE FROM %s
+		WHERE expires_at IS NOT NULL AND expires_at <= datetime('now', 'localtime');`
 
 	queryFmtUpdateKnownIpByUsername = `
-		UPDATE known_ip_addresses
-		SET last_seen = NOW(),
-			expires_at = DATE_ADD(NOW(), INTERVAL ? DAY)
+		UPDATE %s
+		SET last_seen = datetime('now', 'localtime'),
+			expires_at = datetime('now', 'localtime', '+' || ? || ' days')
 		WHERE username = ? AND ip_address = ?;`
 )
 

@@ -2,13 +2,16 @@ package handlers
 
 import (
 	"errors"
-	"github.com/authelia/authelia/v4/internal/model"
+	"fmt"
+	"net/mail"
 	"time"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/regulation"
 	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/templates"
 )
 
 // FirstFactorPasswordPOST is the handler performing the first factor authn with a password.
@@ -146,17 +149,6 @@ func FirstFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middle
 			return
 		}
 
-		var ipExists bool
-		if ipExists, err = ctx.Providers.StorageProvider.IsIPKnownForUser(ctx, userSession.Username, model.NewIP(ctx.RequestCtx.RemoteIP())); err != nil {
-			ctx.Logger.WithError(err).Errorf(logFmtErrCheckKnownIP, model.NewIP(ctx.RequestCtx.RemoteIP()), userSession.Username)
-		}
-
-		if !ipExists {
-			//TODO: Add New IP with Additional connection info
-			if err = ctx.Providers.StorageProvider.SaveNewIPForUser(ctx, userSession.Username, model.NewIP(ctx.RequestCtx.RemoteIP())); err != nil {
-			}
-			//TODO: Send Login From New IP Email!!
-		}
 		successful = true
 
 		if len(bodyJSON.Flow) > 0 {
@@ -164,10 +156,63 @@ func FirstFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middle
 		} else {
 			Handle1FAResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, userSession.Groups)
 		}
+
+		/*
+			Send New IP Email
+		*/
+
+		// TODO: SECURITY: How does the addition of this logic affect the authentication delay? Does the email logic modify that timing?
+		ipAddr := model.NewIP(ctx.RequestCtx.RemoteIP())
+		ipExists, err := ctx.Providers.StorageProvider.IsIPKnownForUser(ctx, userSession.Username, ipAddr)
+
+		if err != nil {
+			ctx.Logger.WithError(err).Errorf(logFmtErrCheckKnownIP, ipAddr, userSession.Username)
+		}
+
+		if ipExists {
+			if err = ctx.Providers.StorageProvider.UpdateKnownIP(ctx, userSession.Username, ipAddr); err != nil {
+				ctx.Logger.WithError(err).Errorf(logFmtErrUpdateKnownIP, ipAddr, userSession.Username)
+			}
+		} else {
+			userAgent := string(ctx.RequestCtx.Request.Header.Peek("User-Agent"))
+			if err = ctx.Providers.StorageProvider.SaveNewIPForUser(ctx, userSession.Username, model.NewIP(ctx.RequestCtx.RemoteIP()), userAgent); err != nil {
+				ctx.Logger.WithError(err).Errorf(logFmtErrSaveNewKnownIP, ipAddr, userSession.Username)
+			}
+
+			if len(userSession.Emails) == 0 {
+				ctx.Logger.Error(fmt.Errorf("user %s has no email address configured", userSession.Username))
+				ctx.ReplyOK()
+
+				return
+			}
+
+			domain, _ := ctx.GetCookieDomain()
+
+			data := templates.EmailNewLoginValues{
+				Title:       "Login From New IP",
+				Date:        time.Now().Format("Monday, January 2, 2006 at 03:04:05 PM -07:00"),
+				UserAgent:   userAgent,
+				DisplayName: userSession.DisplayName,
+				Domain:      domain,
+				RemoteIP:    ctx.RemoteIP().String(),
+			}
+
+			address, _ := mail.ParseAddress(userSession.Emails[0])
+
+			ctx.Logger.Debugf("Sending an email to user %s (%s) to inform that there is a login from a new ip.",
+				userSession.Username, address.Address)
+
+			if err = ctx.Providers.Notifier.Send(ctx, *address, "Login From New IP", ctx.Providers.Templates.GetNewLoginEmailTemplate(), data); err != nil {
+				ctx.Logger.Error(err)
+				ctx.ReplyOK()
+
+				return
+			}
+		}
 	}
 }
 
-// FirstFactorReauthenticatePOST is a specialized handler which checks the currently logged in users current password
+// FirstFactorReauthenticatePOST is a specialized handler which checks the currently logged-in users current password
 // and updates their last authenticated time.
 func FirstFactorReauthenticatePOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.RequestHandler {
 	return func(ctx *middlewares.AutheliaCtx) {
