@@ -69,7 +69,7 @@ func newDebugTLSCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 
 func newDebugExpressionCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "expression [username] [expression]",
+		Use:     "expression <username> <expression>",
 		Short:   cmdAutheliaDebugExpressionShort,
 		Long:    cmdAutheliaDebugExpressionLong,
 		Example: cmdAutheliaDebugExpressionExample,
@@ -110,7 +110,7 @@ func newDebugOIDCCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 
 func newDebugOIDCClaimsCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:     "claims [username]",
+		Use:     "claims <username>",
 		Args:    cobra.ExactArgs(1),
 		Short:   cmdAutheliaDebugOIDCClaimsShort,
 		Long:    cmdAutheliaDebugOIDCClaimsLong,

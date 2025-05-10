@@ -21,7 +21,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.1](https://github.com/authelia/authelia/releases/tag/v4.39.1)
+  - [v4.39.2](https://github.com/authelia/authelia/releases/tag/v4.39.2)
 - [Plesk]
   - [v18.0.69](https://docs.plesk.com/release-notes/obsidian/change-log/#plesk-18069)
 

@@ -2,7 +2,7 @@
 title: "authelia debug oidc claims"
 description: "Reference for the authelia debug oidc claims command."
 lead: ""
-date: 2025-05-10T14:27:29+10:00
+date: 2025-05-10T14:52:22+10:00
 draft: false
 images: []
 weight: 905
@@ -25,7 +25,7 @@ Perform a OpenID Connect 1.0 claims hydration debug operation.
 This subcommand allows checking an OpenID Connect 1.0 claims hydration scenario by providing certain information about a request.
 
 ```
-authelia debug oidc claims [username] [flags]
+authelia debug oidc claims <username> [flags]
 ```
 
 ### Examples

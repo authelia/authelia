@@ -21,7 +21,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.1](https://github.com/authelia/authelia/releases/tag/v4.39.1)
+  - [v4.39.2](https://github.com/authelia/authelia/releases/tag/v4.39.2)
 - [MinIO]
   - [2025-03-12T18-04-18Z](https://github.com/minio/minio/releases/tag/RELEASE.2025-03-12T18-04-18Z)
 

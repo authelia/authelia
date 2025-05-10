@@ -21,7 +21,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.1](https://github.com/authelia/authelia/releases/tag/v4.39.1)
+  - [v4.39.2](https://github.com/authelia/authelia/releases/tag/v4.39.2)
 - [opkssh]
   - [v0.4.0](https://github.com/openpubkey/opkssh/releases/tag/v0.4.0)
 
