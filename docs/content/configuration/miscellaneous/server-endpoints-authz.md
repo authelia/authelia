@@ -35,6 +35,7 @@ server:
               - 'Basic'
             scheme_basic_cache_lifespan: 0
           - name: 'CookieSession'
+            cookie_session_response_cookie_header: false
       ext-authz:
         implementation: 'ExtAuthz'
         authn_strategies:
@@ -43,6 +44,7 @@ server:
               - 'Basic'
             scheme_basic_cache_lifespan: 0
           - name: 'CookieSession'
+            cookie_session_response_cookie_header: false
       auth-request:
         implementation: 'AuthRequest'
         authn_strategies:
@@ -51,6 +53,7 @@ server:
               - 'Basic'
             scheme_basic_cache_lifespan: 0
           - name: 'CookieSession'
+            cookie_session_response_cookie_header: false
       legacy:
         implementation: 'Legacy'
 ```
@@ -107,3 +110,13 @@ with the `legacy` endpoint which only uses `Basic`.
 The lifespan to cache username and password combinations when using the `Basic` scheme. This option enables the use
 of the caching which is completely disabled by default. This option must only be used when the `Basic` scheme is
 configured, and like all new options may not be used with the `Legacy` implementation.
+
+#### cookie_session_response_cookie_header
+
+{{< confkey type="boolean" default="false" required="no" >}}
+
+This option when enabled makes the endpoint respond with a Cookie header which is absent the Authelia session cookie.
+This allows your proxy to copy this modified header and replace the existing one, omitting the Authelia session cookie
+from the request to the backend.
+
+This option is only relevant for the `CookieSession` authentication strategy.
