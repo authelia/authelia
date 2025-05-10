@@ -233,21 +233,25 @@ func prepareHostsFile() {
 		domainInHostFile := false
 
 		for i, line := range lines {
+			trimmedLine := strings.TrimSpace(line)
+			if trimmedLine == "" {
+				continue
+			}
+
 			domainFound := strings.Contains(line, entry.Domain)
-			ipFound := strings.Contains(line, entry.IP)
 
 			if domainFound {
 				domainInHostFile = true
 
-				// The IP is not up to date.
-				if ipFound {
-					break
-				} else {
-					lines[i] = entry.IP + " " + entry.Domain
-					modified = true
+				expectedEntry := entry.IP + " " + entry.Domain
+				isCommented := trimmedLine[0] == '#'
 
-					break
+				if isCommented || !strings.Contains(line, expectedEntry) {
+					lines[i] = expectedEntry
+					modified = true
 				}
+
+				break
 			}
 		}
 
