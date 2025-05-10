@@ -43,7 +43,7 @@ Most of the suites are using docker compose to bootstrap the environment. Theref
 application by running the following command on the component you want to monitor.
 
 ```bash
-docker logs authelia_authelia-backend_1 -f
+docker logs authelia-authelia-backend-1 -f
 ```
 
 Then, edit the code and observe how __Authelia__ is automatically reloaded.
