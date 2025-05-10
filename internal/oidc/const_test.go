@@ -23,7 +23,6 @@ const (
 	examplecom     = "https://example.com"
 	examplecomsid  = "example.com"
 	badhmac        = "asbdhaaskmdlkamdklasmdlkams"
-	badTokenString = "badTokenString"
 )
 
 const (
