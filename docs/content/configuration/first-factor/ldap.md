@@ -134,7 +134,7 @@ authentication_backend:
 
 Configures the LDAP implementation used by Authelia.
 
-See the [Implementation Guide](../../reference/guides/ldap.md#implementation-guide) for information.
+See the [Implementation Guide](../../integration/ldap/introduction.md#implementation-guide) for information.
 
 ### timeout
 
@@ -217,13 +217,13 @@ occur in `OU=users,OU=people,{{< sitevar name="domain" format="dn" nojs="DC=exam
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
 This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [filter defaults](../../reference/guides/ldap.md#filter-defaults) for
+default negating this requirement. Refer to the [filter defaults](../../integration/ldap) of your implementation for
 more information.
 {{< /callout >}}
 
 The LDAP filter to narrow down which users are valid. This is important to set correctly as to exclude disabled users.
 The default value is dependent on the [implementation](#implementation), refer to the
-[attribute defaults](../../reference/guides/ldap.md#attribute-defaults) for more information.
+[attribute defaults](../../integration/ldap) for more information.
 
 ### additional_groups_dn
 
@@ -237,7 +237,7 @@ Similar to [additional_users_dn](#additional_users_dn) but it applies to group s
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
 This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [filter defaults](../../reference/guides/ldap.md#filter-defaults) for
+default negating this requirement. Refer to the [filter defaults](../../integration/ldap) of your implementation for
 more information.
 {{< /callout >}}
 
@@ -253,7 +253,7 @@ using the following filter which is currently only tested against Microsoft Acti
 
 The group search mode controls how user groups are discovered. The default of `filter` directly uses the filter to
 determine the result. The `memberof` experimental mode does another special filtered search. See the
-[Reference Documentation](../../reference/guides/ldap.md#group-search-modes) for more information.
+[Integration Documentation](../../integration/ldap/introduction.md#group-search-modes) for more information.
 
 ### permit_referrals
 
@@ -321,7 +321,7 @@ The only known support at this time is with Active Directory.
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
 This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults](../../reference/guides/ldap.md#attribute-defaults) for more information.
+default negating this requirement. Refer to the [attribute defaults](../../integration/ldap) of your implementation for more information.
 {{< /callout >}}
 
 The directory server attribute that maps to the username in *Authelia*. This must contain the `{username_attribute}` [placeholder].
@@ -332,7 +332,7 @@ The directory server attribute that maps to the username in *Authelia*. This mus
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
 This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults](../../reference/guides/ldap.md#attribute-defaults) for more information.
+default negating this requirement. Refer to the [attribute defaults](../../integration/ldap) of your implementation for more information.
 {{< /callout >}}
 
 The directory server attribute to retrieve which is shown on the Web UI to the user when they log in.
@@ -453,7 +453,7 @@ The directory server attribute which contains the users country.
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
 This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults](../../reference/guides/ldap.md#attribute-defaults) for more information.
+default negating this requirement. Refer to the [attribute defaults](../../integration/ldap) of your implementation for more information.
 {{< /callout >}}
 
 The directory server attribute to retrieve which contains the users email addresses. This is important for the device
@@ -466,7 +466,7 @@ identity verification when a user attempts to reset their password or register a
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
 This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults](../../reference/guides/ldap.md#attribute-defaults) for more information.
+default negating this requirement. Refer to the [attribute defaults](../../integration/ldap) of your implementation for more information.
 {{< /callout >}}
 
 The directory server attribute which contains the groups a user is a member of. This is currently only used for the
@@ -478,7 +478,7 @@ The directory server attribute which contains the groups a user is a member of. 
 
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
 This option is technically required however the [implementation](#implementation) option can implicitly set a
-default negating this requirement. Refer to the [attribute defaults](../../reference/guides/ldap.md#attribute-defaults) for more information.
+default negating this requirement. Refer to the [attribute defaults](../../integration/ldap) of your implementation for more information.
 {{< /callout >}}
 
 The directory server attribute that is used by Authelia to determine the group name.
@@ -548,10 +548,10 @@ for your users.
 
 ## See Also
 
-- [LDAP Reference Guide](../../reference/guides/ldap.md)
+- [LDAP Integration Guide](../../integration/ldap/introduction.md)
 
 [username attribute]: #username
 [TechNet wiki]: https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx
 [RFC2307]: https://datatracker.ietf.org/doc/html/rfc2307
-[attribute defaults]: ../../reference/guides/ldap.md#attribute-defaults
-[placeholder]: ../../reference/guides/ldap.md#users-filter-replacements
+[attribute defaults]: ../../integration/ldap
+[placeholder]: ../../integration/ldap/introduction.md#users-filter-replacements

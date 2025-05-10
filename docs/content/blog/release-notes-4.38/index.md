@@ -554,7 +554,7 @@ Authelia.
 
 This release adds several LDAP implementations into our existing set. See the LDAP configuration option
 [implementation](../../configuration/first-factor/ldap.md#implementation) and the
-[LDAP Reference Guide](../../reference/guides/ldap.md) for more information.
+[LDAP Reference Guide](../../integration/ldap/introduction.md) for more information.
 
 #### Server Listener
 
