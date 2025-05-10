@@ -25,7 +25,7 @@ Perform a user attribute expression debug operation.
 This subcommand allows checking a user attribute expression against a specific user.
 
 ```
-authelia debug expression [username] [expression] [flags]
+authelia debug expression <username> <expression> [flags]
 ```
 
 ### Examples
