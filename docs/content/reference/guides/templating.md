@@ -198,6 +198,11 @@ Similar to the `squote` function except it skips quoting for strings with multip
 
 See the [mindent example](#mindent-example) for an example usage.
 
+#### urlqueryarg
+
+This function takes two parameters; a URL and key. The function parses the URL and returns the given value of the key in
+the query string provided it exists.
+
 #### glob
 
 The `glob` function takes a single glob pattern argument and returns a list of files that match that pattern.
