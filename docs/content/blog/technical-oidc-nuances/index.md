@@ -2,7 +2,7 @@
 title: "Technical: OpenID Connect 1.0 Nuances"
 description: "This is a commentary on several troubling trends in the security world, as well as an explainer on some fundamental OpenID Connect 1.0 concepts."
 summary: "This is a commentary on several troubling trends in the security world, as well as an explainer on some fundamental OpenID Connect 1.0 concepts."
-date: 2025-04-27T23:34:23+10:00
+date: 2025-05-10T17:45:53+10:00
 draft: false
 weight: 50
 categories: ["Technical", "OpenID Connect 1.0"]
