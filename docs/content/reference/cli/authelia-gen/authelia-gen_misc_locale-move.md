@@ -1,8 +1,8 @@
 ---
-title: "authelia-gen misc"
-description: "Reference for the authelia-gen misc command."
+title: "authelia-gen misc locale-move"
+description: "Reference for the authelia-gen misc locale-move command."
 lead: ""
-date: 2022-09-16T14:21:05+10:00
+date: 2025-05-10T10:52:50+10:00
 draft: false
 images: []
 weight: 915
@@ -14,14 +14,20 @@ seo:
   noindex: false # false (default) or true
 ---
 
-## authelia-gen misc
+## authelia-gen misc locale-move
 
-Generate miscellaneous things
+Move locales between namespaces
+
+```
+authelia-gen misc locale-move [key] [flags]
+```
 
 ### Options
 
 ```
-  -h, --help   help for misc
+  -D, --destination string   locale destination namespace
+  -h, --help                 help for locale-move
+  -s, --source string        locale source namespace
 ```
 
 ### Options inherited from parent commands
@@ -68,7 +74,5 @@ Generate miscellaneous things
 
 ### SEE ALSO
 
-* [authelia-gen](authelia-gen.md)	 - Authelia's generator tooling
-* [authelia-gen misc locale-move](authelia-gen_misc_locale-move.md)	 - Move locales between namespaces
-* [authelia-gen misc oidc](authelia-gen_misc_oidc.md)	 - Generate OpenID Connect 1.0 configurations
+* [authelia-gen misc](authelia-gen_misc.md)	 - Generate miscellaneous things
 

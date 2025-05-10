@@ -41,9 +41,21 @@ const (
 	cmdRootShort = "A utility used in the Authelia development process."
 
 	cmdRootLong = `The authelia-scripts utility is utilized by developers and the CI/CD pipeline for configuring
-testing suites and various other aspects of the environment.
+doing various development and testing tasks.
 
-It can be used to automate or manually run unit testing, integration testing, etc.`
+It can be used to automate or manually run unit testing, integration testing, etc. It allows setting up a concept of
+suites which include various applications which replicate a functional Authelia environment using docker compose with
+the ability for Authelia to perform hot reload for the purpose of development.
+
+This can either be ran directly via go or you can leverage the development environment context by executing
+'source bootstrap.sh' from the root of the repository.
+
+Commonly used commands are as follows:
+
+authelia-scripts build - builds the authelia go binary and react frontend
+authelia-scripts docker build - builds the authelia docker image
+authelia-scripts suites setup Standalone - sets up the Standalone suite (there are many other suites)
+`
 
 	cmdRootExample = `authelia-scripts help`
 
