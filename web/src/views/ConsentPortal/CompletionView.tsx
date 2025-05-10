@@ -1,11 +1,19 @@
 import React from "react";
 
-import { Grid, Typography, useTheme } from "@mui/material";
+import { Divider, Paper, Stack, Typography, useTheme } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 
 import HomeButton from "@components/HomeButton";
-import { Decision, ErrorDescription, ErrorHint, Error as ErrorParam, ErrorURI } from "@constants/SearchParams";
+import {
+    Decision,
+    ErrorDebug,
+    ErrorDescription,
+    ErrorHint,
+    Error as ErrorParam,
+    ErrorStatusCode,
+    ErrorURI,
+} from "@constants/SearchParams";
 import LoginLayout from "@layouts/LoginLayout";
 import { UserInfo } from "@models/UserInfo";
 import { AutheliaState } from "@services/State";
@@ -25,6 +33,8 @@ const CompletionView: React.FC<Props> = (props: Props) => {
     const error = query.get(ErrorParam);
     const error_description = query.get(ErrorDescription);
     const error_hint = query.get(ErrorHint);
+    const error_debug = query.get(ErrorDebug);
+    const error_status_code = query.get(ErrorStatusCode);
     const error_uri = query.get(ErrorURI);
 
     const title = error
@@ -34,43 +44,72 @@ const CompletionView: React.FC<Props> = (props: Props) => {
           : "Consent has been rejected and processed";
 
     return (
-        <LoginLayout id={"openid-completion-stage"} title={translate(title)}>
-            <Grid container direction={"column"} justifyContent={"center"} alignItems={"center"}>
-                <Grid size={{ xs: 12 }} sx={{ paddingBottom: theme.spacing(2) }}>
-                    <HomeButton />
-                </Grid>
+        <LoginLayout id={"openid-completion-stage"} title={translate(title)} maxWidth={"sm"}>
+            <Stack justifyContent={"center"} alignItems={"center"} spacing={theme.spacing(2)}>
+                <HomeButton />
                 {error ? (
-                    <Grid size={{ xs: 12 }}>
-                        <Typography variant={"h4"}>{`${translate("Error Code")}: ${translate(error)}`}</Typography>
-                    </Grid>
+                    <CompletionErrorView
+                        error={error}
+                        error_description={error_description}
+                        error_hint={error_hint}
+                        error_debug={error_debug}
+                        error_status_code={error_status_code}
+                        error_uri={error_uri}
+                    />
                 ) : null}
-                {error && error_description ? (
-                    <Grid size={{ xs: 12 }}>
-                        <Typography
-                            variant={"body1"}
-                        >{`${translate("Description")}: ${translate(error_description)}`}</Typography>
-                    </Grid>
-                ) : null}
-                {error && error_hint ? (
-                    <Grid size={{ xs: 12 }}>
-                        <Typography variant={"body1"}>{`${translate("Hint")}: ${translate(error_hint)}`}</Typography>
-                    </Grid>
-                ) : null}
-                {error && error_uri ? (
-                    <Grid size={{ xs: 12 }}>
-                        <Typography
-                            variant={"body1"}
-                        >{`${translate("Documentation")}: ${translate(error_uri)}`}</Typography>
-                    </Grid>
-                ) : null}
-                <Grid size={{ xs: 12 }}>
-                    <Typography variant={"body1"}>
-                        {translate("You may close this tab or return home by clicking the home button")}
-                    </Typography>
-                </Grid>
-            </Grid>
+
+                <Typography variant={"subtitle2"} margin={theme.spacing(2)}>
+                    {translate("You may close this tab or return home by clicking the home button")}.
+                </Typography>
+            </Stack>
         </LoginLayout>
     );
 };
 
 export default CompletionView;
+
+interface ErrorProps {
+    error: string;
+    error_description: string | null;
+    error_hint: string | null;
+    error_debug: string | null;
+    error_status_code: string | null;
+    error_uri: string | null;
+}
+const CompletionErrorView: React.FC<ErrorProps> = (props: ErrorProps) => {
+    const { t: translate } = useTranslation(["consent"]);
+    const theme = useTheme();
+
+    return (
+        <Paper sx={{ padding: theme.spacing(2) }} elevation={24}>
+            <Stack spacing={theme.spacing(2)}>
+                <Typography variant={"h6"}>
+                    <strong>{translate("Error")}:</strong> {translate(props.error)}
+                </Typography>
+                {props.error_description || props.error_hint || props.error_debug || props.error_uri ? (
+                    <Divider />
+                ) : null}
+                {props.error_description ? (
+                    <Typography>
+                        <strong>{translate("Description")}:</strong> {translate(props.error_description)}
+                    </Typography>
+                ) : null}
+                {props.error_hint ? (
+                    <Typography>
+                        <strong>{translate("Hint")}:</strong> {translate(props.error_hint)}
+                    </Typography>
+                ) : null}
+                {props.error_debug ? (
+                    <Typography>
+                        <strong>{translate("Debug Information")}:</strong> {translate(props.error_debug)}
+                    </Typography>
+                ) : null}
+                {props.error_uri ? (
+                    <Typography>
+                        <strong>{translate("Documentation")}:</strong> {translate(props.error_uri)}
+                    </Typography>
+                ) : null}
+            </Stack>
+        </Paper>
+    );
+};

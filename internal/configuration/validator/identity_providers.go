@@ -1409,7 +1409,10 @@ func validateOIDDClientSigningAlg(c int, config *schema.IdentityProvidersOpenIDC
 	key := fmt.Sprintf("%s_signed_response_alg", attribute)
 
 	if !config.Discovery.JWTResponseAccessTokens && attribute == attrOIDCAccessTokenPrefix {
-		if utils.IsStringInSlice(outAlg, validOIDCIssuerJWKSigningAlgs) {
+		switch outAlg {
+		case "", oidc.SigningAlgNone:
+			break
+		default:
 			config.Discovery.JWTResponseAccessTokens = true
 		}
 	}

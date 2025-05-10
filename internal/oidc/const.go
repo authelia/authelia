@@ -271,6 +271,8 @@ const (
 
 // Paths.
 const (
+	FrontendEndpointPathConsentCompletion = "/consent/completion"
+
 	FrontendEndpointPathConsent                    = "/consent/openid"
 	FrontendEndpointPathConsentDecision            = FrontendEndpointPathConsent + "/decision"
 	FrontendEndpointPathConsentDeviceAuthorization = FrontendEndpointPathConsent + "/" + EndpointDeviceAuthorization
