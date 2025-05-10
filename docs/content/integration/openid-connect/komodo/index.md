@@ -33,7 +33,7 @@ This example makes the following assumptions:
 
 - __Application Root URL:__ `https://komodo.{{< sitevar name="domain" nojs="example.com" >}}/`
   - This option determines the redirect URI in the format of
-    `https://komodo.{{< sitevar name="domain" nojs="example.com" >}}/login`.
+    `https://komodo.{{< sitevar name="domain" nojs="example.com" >}}/auth/oidc/callback`.
     This means if you change this value, you need to update the redirect URI.
 - __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 - __Client ID:__ `komodo`
@@ -123,6 +123,6 @@ services:
 - [Komodo Advanced Configuration OIDC/OAuth2.0 Documentation](https://komo.do/docs/setup/advanced#oidc--oauth2)
 
 [Authelia]: https://www.authelia.com
-[Komodo]: https://komo.do//
+[Komodo]: https://komo.do/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
