@@ -39,6 +39,7 @@ In order to build and contribute to __Authelia__, you need to make sure the foll
   * [Docker] *(v27.5.0 or greater)*.
   * [Docker Compose] *(v2.32.4 or greater)*
   * [chromium]
+  * [delve]
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 We only support docker being installed as a system package. It must not be installed via Snappy or other similar tools.
@@ -138,4 +139,5 @@ listed subdomains from your browser, and they will be served by the reverse prox
 [git]: https://git-scm.com/
 [gcc]: https://gcc.gnu.org/
 [bash]: https://www.gnu.org/software/bash/
+[delve]: https://github.com/go-delve/delve
 [core team]: https://www.authelia.com/information/about/#core-team

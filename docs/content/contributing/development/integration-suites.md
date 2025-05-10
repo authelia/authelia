@@ -78,6 +78,17 @@ contains the `dockerEnvironment` var for a given suite is located in the
   - [https://admin.exmaple.com:8080](https://admin.exmaple.com:8080)
   - [https://deny.exmaple.com:8080](https://deny.exmaple.com:8080)
 
+## Remote Debugging
+
+The Authelia Suites run via [delve] and can be remotely debugged. You can connect to the debugger on the address
+`192.168.240.50:2345`.
+
+Example connect command:
+
+```bash
+dlv connect 192.168.240.50:2345
+```
+
 ## Run tests of a suite
 
 ### Run tests of running suite
@@ -130,3 +141,5 @@ Creating a suite is as easy. Let's take the example of the __Standalone__ suite:
 
 A suite can also be much more complex like setting up a complete Kubernetes ecosystem. You can check the Kubernetes
 suite as example.
+
+[delve]: https://github.com/go-delve/delve
