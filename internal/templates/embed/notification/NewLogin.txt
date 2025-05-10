@@ -17,21 +17,23 @@ Login from New IP
 
 Hi {{ .DisplayName }},
 
-Your account at {{ .Domain }} was just logged into from a new ip.
+Your account at {{ .Domain }} was just logged into from a new IP address.
 
 --------------------------------------------------------------------------------
 
 Date: {{ .Date }}
 
-IP: {{ .RemoteIP }}
+IP Address: {{ .RemoteIP }}
 
-User Agent: {{ .UserAgent}}
+Device: {{ .DeviceInfo }}
+
+User Agent: {{ .RawUserAgent }}
 
 --------------------------------------------------------------------------------
 
 This notification was intended for {{ .DisplayName }}. This event notification
-was generated due to an action from {{ .RemoteIP }}. If you do not believe that
-your actions could have triggered this event or if you are concerned about your
-account's safety, please change your password and reach out to an administrator.
+was generated due to an action from {{ .RemoteIP }}. If you do not recognize
+this device or location, please change your password immediately and contact an
+administrator.
 
 Powered by Authelia https://www.authelia.com

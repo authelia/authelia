@@ -52,11 +52,12 @@ async function doRender() {
 
 	const propsNewLogin = {
 		title: "{{ .Title }}",
-		domain: "{{ .Domain }}",
 		date: "{{ .Date }}",
-		userAgent: "{{ .UserAgent}}",
+		domain: "{{ .Domain }}",
 		displayName: "{{ .DisplayName }}",
 		remoteIP: "{{ .RemoteIP }}",
+		rawUserAgent: "{{ .RawUserAgent }}",
+		deviceInfo: "{{ .DeviceInfo }}",
 	};
 
 	fs.writeFileSync('../embed/notification/NewLogin.html', await render(<NewLogin {...propsNewLogin} />, optsHTML));

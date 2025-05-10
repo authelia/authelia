@@ -407,12 +407,12 @@ const (
 
 	queryFmtInsertNewIpAddress = `
 		INSERT INTO %s
-		  (username, ip_address, user_agent, expires_at)
+		  (username, ip_address, browser_name, browser_version, os_name, os_version, device_type, expires_at)
 		VALUES
-		  (?, ?, ?, datetime('now', 'localtime', '+30 days'));`
+		  (?, ?, ?, ?, ?, ?, ?, datetime('now', 'localtime', '+30 days'));`
 
 	queryFmtSelectKnownIPsByUsername = `
-		SELECT ip_address, first_seen, last_seen, user_agent, expires_at
+		SELECT ip_address, first_seen, last_seen, browser_name, browser_version, os_name, os_version, device_type, expires_at
 		FROM %s
 		WHERE username = ?
 		  AND (expires_at IS NULL OR expires_at > datetime('now', 'localtime'))
