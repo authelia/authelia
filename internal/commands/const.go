@@ -685,6 +685,22 @@ This subcommand allows checking a remote server's TLS configuration and the abil
 This subcommand allows checking a user attribute expression against a specific user.`
 
 	cmdAutheliaDebugExpressionExample = `authelia debug expression username "'abc' in groups"`
+
+	cmdAutheliaDebugOIDCShort = "Perform a OpenID Connect 1.0 debug operation"
+
+	cmdAutheliaDebugOIDCLong = `Perform a OpenID Connect 1.0 debug operation.
+
+This subcommand allows checking certain OpenID Connect 1.0 scenarios.`
+
+	cmdAutheliaDebugOIDCExample = `authelia debug oidc --help`
+
+	cmdAutheliaDebugOIDCClaimsShort = "Perform a OpenID Connect 1.0 claims hydration debug operation"
+
+	cmdAutheliaDebugOIDCClaimsLong = `Perform a OpenID Connect 1.0 claims hydration debug operation.
+
+This subcommand allows checking an OpenID Connect 1.0 claims hydration scenario by providing certain information about a request.`
+
+	cmdAutheliaDebugOIDCClaimsExample = `authelia debug oidc claims --help`
 )
 
 const (

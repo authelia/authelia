@@ -222,6 +222,13 @@ type Context interface {
 	context.Context
 }
 
+// ClaimsStrategyContext is a context used for the CustomClaimsStrategy implementation.
+type ClaimsStrategyContext interface {
+	GetProviderUserAttributeResolver() expression.UserAttributeResolver
+
+	context.Context
+}
+
 type ClientContext interface {
 	GetHTTPClient() *http.Client
 
