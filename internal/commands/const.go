@@ -677,6 +677,14 @@ This subcommand contains other subcommands related to debugging.`
 This subcommand allows checking a remote server's TLS configuration and the ability to validate the certificate.`
 
 	cmdAutheliaDebugTLSExample = `authelia debug tls tcp://smtp.example.com:465`
+
+	cmdAutheliaDebugExpressionShort = "Perform a user attribute expression debug operation"
+
+	cmdAutheliaDebugExpressionLong = `Perform a user attribute expression debug operation.
+
+This subcommand allows checking a user attribute expression against a specific user.`
+
+	cmdAutheliaDebugExpressionExample = `authelia debug expression username "'abc' in groups"`
 )
 
 const (
