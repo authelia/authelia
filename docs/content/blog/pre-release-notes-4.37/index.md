@@ -9,7 +9,7 @@ categories: ["News", "Release Notes"]
 tags: ["releases", "pre-release-notes"]
 contributors: ["James Elliott"]
 pinned: false
-homepage: false
+homepage: true
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)

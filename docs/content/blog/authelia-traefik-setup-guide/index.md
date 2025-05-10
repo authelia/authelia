@@ -9,7 +9,7 @@ categories: ["Guides"]
 tags: ["guides"]
 contributors: ["Brynn Crowley"]
 pinned: false
-homepage: false
+homepage: true
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
