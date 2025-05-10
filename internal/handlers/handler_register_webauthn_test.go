@@ -397,6 +397,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 						UserID:           decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
 						Expires:          time.Now().Add(time.Minute),
 						UserVerification: "preferred",
+						CredParams:       webauthn.CredentialParametersExtendedL3(),
 					},
 				}
 
@@ -453,6 +454,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 						UserID:           decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
 						Expires:          time.Now().Add(time.Minute),
 						UserVerification: "preferred",
+						CredParams:       webauthn.CredentialParametersExtendedL3(),
 					},
 				}
 
@@ -511,6 +513,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 						UserID:           decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
 						Expires:          time.Now().Add(time.Minute),
 						UserVerification: "preferred",
+						CredParams:       webauthn.CredentialParametersExtendedL3(),
 					},
 				}
 
@@ -565,6 +568,7 @@ func TestWebAuthnRegistrationPOST(t *testing.T) {
 						UserID:           decode("OiRQc3wmemUzdHlkVjhVSk5Pe35YMCRCOklLYzVzIkMpaEglNkF5dnVKRSlTPCJbRDZDP102WXpiYXdNekRiTA=="),
 						Expires:          time.Now().Add(time.Minute),
 						UserVerification: "preferred",
+						CredParams:       webauthn.CredentialParametersExtendedL3(),
 					},
 				}
 
