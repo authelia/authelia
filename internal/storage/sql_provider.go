@@ -12,9 +12,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/avct/uasurfer"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
+
+	"github.com/authelia/authelia/v4/internal/utils"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
@@ -1032,7 +1035,7 @@ func (p *SQLProvider) IsIPKnownForUser(ctx context.Context, username string, ip 
 	return rows.Next(), nil
 }
 
-func (p *SQLProvider) SaveNewIPForUser(ctx context.Context, username string, ip model.IP, userAgent string) (err error) {
+func (p *SQLProvider) SaveNewIPForUser(ctx context.Context, username string, ip model.IP, userAgent uasurfer.UserAgent) (err error) {
 	// TODO: Reevaluate ttl for known ip records. Likely, session expiry is way, way too short.
 	var expiryTime = time.Now().Add(p.config.Session.Expiration)
 
@@ -1041,7 +1044,7 @@ func (p *SQLProvider) SaveNewIPForUser(ctx context.Context, username string, ip 
 		return fmt.Errorf("error converting IP to database value: %w", err)
 	}
 
-	if _, err = p.db.ExecContext(ctx, p.sqlInsertNewKnownIp, username, ipValue, userAgent, expiryTime); err != nil {
+	if _, err = p.db.ExecContext(ctx, p.sqlInsertNewKnownIp, username, ipValue, userAgent.Browser.Name.StringTrimPrefix(), utils.FormatVersion(userAgent.Browser.Version), userAgent.OS.Name.StringTrimPrefix(), utils.FormatVersion(userAgent.OS.Version), userAgent.DeviceType.StringTrimPrefix(), expiryTime); err != nil {
 		return fmt.Errorf("error saving known ip for user: %w", err)
 	}
 
