@@ -4,7 +4,8 @@ import { getBasePath } from "@utils/BasePath";
 
 const basePath = getBasePath();
 
-export const ConsentPath = basePath + "/api/oidc/consent";
+export const OpenIDConnectConsentPath = basePath + "/api/oidc/consent";
+export const OpenIDConnectDeviceAuthorizationPath = basePath + "/api/oidc/device-authorization";
 
 export const FirstFactorPath = basePath + "/api/firstfactor";
 export const FirstFactorPasskeyPath = basePath + "/api/firstfactor/passkey";

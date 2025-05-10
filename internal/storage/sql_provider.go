@@ -158,6 +158,7 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlInsertOAuth2DeviceCodeSession:           fmt.Sprintf(queryFmtInsertOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
 		sqlSelectOAuth2DeviceCodeSession:           fmt.Sprintf(queryFmtSelectOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
 		sqlUpdateOAuth2DeviceCodeSession:           fmt.Sprintf(queryFmtUpdateOAuth2DeviceCodeSession, tableOAuth2DeviceCodeSession),
+		sqlUpdateOAuth2DeviceCodeSessionData:       fmt.Sprintf(queryFmtUpdateOAuth2DeviceCodeSessionData, tableOAuth2DeviceCodeSession),
 		sqlDeactivateOAuth2DeviceCodeSession:       fmt.Sprintf(queryFmtDeactivateOAuth2Session, tableOAuth2DeviceCodeSession),
 		sqlSelectOAuth2DeviceCodeSessionByUserCode: fmt.Sprintf(queryFmtSelectOAuth2DeviceCodeSessionByUserCode, tableOAuth2DeviceCodeSession),
 
@@ -329,6 +330,7 @@ type SQLProvider struct {
 	sqlInsertOAuth2DeviceCodeSession           string
 	sqlSelectOAuth2DeviceCodeSession           string
 	sqlUpdateOAuth2DeviceCodeSession           string
+	sqlUpdateOAuth2DeviceCodeSessionData       string
 	sqlDeactivateOAuth2DeviceCodeSession       string
 	sqlSelectOAuth2DeviceCodeSessionByUserCode string
 
@@ -1392,12 +1394,35 @@ func (p *SQLProvider) SaveOAuth2DeviceCodeSession(ctx context.Context, session *
 	return nil
 }
 
-func (p *SQLProvider) UpdateOAuth2DeviceCodeSession(ctx context.Context, signature string, status int, checked time.Time) (err error) {
+func (p *SQLProvider) UpdateOAuth2DeviceCodeSession(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error) {
+	if session.Session, err = p.encrypt(session.Session); err != nil {
+		return fmt.Errorf("error encrypting oauth2 device code session data for session with signature '%s' for subject '%s' and request id '%s': %w", session.Subject.String, session.Signature, session.RequestID, err)
+	}
+
 	_, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2DeviceCodeSession,
-		checked, status, signature)
+		session.ChallengeID, session.RequestID, session.ClientID, session.Status, session.Subject, session.RequestedAt,
+		session.CheckedAt, session.RequestedScopes, session.RequestedAudience, session.GrantedScopes, session.GrantedAudience,
+		session.Active, session.Revoked, session.Form, session.Session, session.Signature)
 
 	if err != nil {
-		return fmt.Errorf("error updating oauth2 device code session data with device code signature '%s': %w", signature, err)
+		return fmt.Errorf("error updating oauth2 device code session with device code signature '%s': %w", session.Signature, err)
+	}
+
+	return nil
+}
+
+func (p *SQLProvider) UpdateOAuth2DeviceCodeSessionData(ctx context.Context, session *model.OAuth2DeviceCodeSession) (err error) {
+	if session.Session, err = p.encrypt(session.Session); err != nil {
+		return fmt.Errorf("error encrypting oauth2 device code session data for session with signature '%s' for subject '%s' and request id '%s': %w", session.Subject.String, session.Signature, session.RequestID, err)
+	}
+
+	_, err = p.db.ExecContext(ctx, p.sqlUpdateOAuth2DeviceCodeSessionData,
+		session.ChallengeID, session.ClientID, session.Status, session.Subject,
+		session.RequestedScopes, session.RequestedAudience, session.GrantedScopes, session.GrantedAudience,
+		session.Form, session.Session, session.Signature)
+
+	if err != nil {
+		return fmt.Errorf("error updating oauth2 device code session data with device code signature '%s': %w", session.Signature, err)
 	}
 
 	return nil

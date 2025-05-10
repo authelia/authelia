@@ -6,6 +6,7 @@ import WebAuthnTryIcon from "@components/WebAuthnTryIcon";
 import { RedirectionURL } from "@constants/SearchParams";
 import { useFlow } from "@hooks/Flow";
 import { useIsMountedRef } from "@hooks/Mounted";
+import { useUserCode } from "@hooks/OpenIDConnect";
 import { useQueryParam } from "@hooks/QueryParam";
 import { AssertionResult, AssertionResultFailureString, WebAuthnTouchState } from "@models/WebAuthn";
 import { AuthenticationLevel } from "@services/State";
@@ -23,11 +24,14 @@ export interface Props {
 }
 
 const WebAuthnMethod = function (props: Props) {
-    const [state, setState] = useState(WebAuthnTouchState.WaitTouch);
+    const { t: translate } = useTranslation();
+
     const redirectionURL = useQueryParam(RedirectionURL);
     const { id: flowID, flow, subflow } = useFlow();
+    const userCode = useUserCode();
     const mounted = useIsMountedRef();
-    const { t: translate } = useTranslation();
+
+    const [state, setState] = useState(WebAuthnTouchState.WaitTouch);
 
     const { onSignInSuccess, onSignInError } = props;
     const onSignInErrorCallback = useRef(onSignInError).current;
@@ -75,7 +79,14 @@ const WebAuthnMethod = function (props: Props) {
 
             setState(WebAuthnTouchState.InProgress);
 
-            const response = await postWebAuthnResponse(result.response, redirectionURL, flowID, flow, subflow);
+            const response = await postWebAuthnResponse(
+                result.response,
+                redirectionURL,
+                flowID,
+                flow,
+                subflow,
+                userCode,
+            );
 
             if (response.data.status === "OK" && response.status === 200) {
                 onSignInSuccessCallback(response.data.data ? response.data.data.redirect : undefined);
@@ -95,16 +106,17 @@ const WebAuthnMethod = function (props: Props) {
             setState(WebAuthnTouchState.Failure);
         }
     }, [
-        onSignInErrorCallback,
-        onSignInSuccessCallback,
+        props.registered,
+        props.authenticationLevel,
+        mounted,
         redirectionURL,
         flowID,
         flow,
         subflow,
-        mounted,
-        props.authenticationLevel,
-        props.registered,
+        userCode,
+        onSignInErrorCallback,
         translate,
+        onSignInSuccessCallback,
     ]);
 
     useEffect(() => {

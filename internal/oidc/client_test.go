@@ -2,6 +2,7 @@ package oidc_test
 
 import (
 	"context"
+	"net/url"
 	"testing"
 	"time"
 
@@ -40,7 +41,7 @@ func TestNewClient(t *testing.T) {
 
 	config = schema.IdentityProvidersOpenIDConnectClient{
 		ID:                  myclient,
-		Name:                myclientdesc,
+		Name:                myclientname,
 		AuthorizationPolicy: twofactor,
 		Secret:              tOpenIDConnectPlainTextClientSecret,
 		RedirectURIs:        []string{examplecom},
@@ -253,30 +254,243 @@ func TestIsAuthenticationLevelSufficient(t *testing.T) {
 }
 
 func TestClient_GetConsentResponseBody(t *testing.T) {
-	c := &oidc.RegisteredClient{}
+	consentPCD := time.Hour * 10
 
-	consentRequestBody := c.GetConsentResponseBody(nil, nil)
-	assert.Equal(t, "", consentRequestBody.ClientID)
-	assert.Equal(t, "", consentRequestBody.ClientDescription)
-	assert.Equal(t, []string(nil), consentRequestBody.Scopes)
-	assert.Equal(t, []string(nil), consentRequestBody.Audience)
-
-	c.ID = myclient
-	c.Name = myclientdesc
-
-	consent := &model.OAuth2ConsentSession{
-		RequestedAudience: []string{examplecom},
-		RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeGroups},
+	testCases := []struct {
+		name           string
+		client         *oidc.RegisteredClient
+		session        oidc.RequesterFormSession
+		form           url.Values
+		authTime       time.Time
+		disablePreConf bool
+		expected       oidc.ConsentGetResponseBody
+	}{
+		{
+			"ShouldHandleNils",
+			nil,
+			nil,
+			nil,
+			time.Unix(19000000000, 0),
+			false,
+			oidc.ConsentGetResponseBody{
+				ClientID:          myclient,
+				ClientDescription: myclientname,
+			},
+		},
+		{
+			"ShouldHandleStandard",
+			nil,
+			&model.OAuth2ConsentSession{
+				RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
+				RequestedAudience: []string{"https://example.com"},
+			},
+			url.Values{
+				oidc.FormParameterState: []string{"123"},
+			},
+			time.Unix(19000000000, 0),
+			false,
+			oidc.ConsentGetResponseBody{
+				ClientID:          myclient,
+				ClientDescription: myclientname,
+				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
+				Audience:          []string{"https://example.com"},
+			},
+		},
+		{
+			"ShouldHandleStandardPreConfiguration",
+			&oidc.RegisteredClient{
+				ID:            myclient,
+				Name:          myclientname,
+				ConsentPolicy: oidc.NewClientConsentPolicy(oidc.ClientConsentModePreConfigured.String(), &consentPCD),
+			},
+			&model.OAuth2ConsentSession{
+				RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
+				RequestedAudience: []string{"https://example.com"},
+			},
+			url.Values{
+				oidc.FormParameterState: []string{"123"},
+			},
+			time.Unix(19000000000, 0),
+			false,
+			oidc.ConsentGetResponseBody{
+				ClientID:          myclient,
+				ClientDescription: myclientname,
+				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
+				Audience:          []string{"https://example.com"},
+				PreConfiguration:  true,
+			},
+		},
+		{
+			"ShouldHandleStandardPreConfigurationDisabled",
+			&oidc.RegisteredClient{
+				ID:            myclient,
+				Name:          myclientname,
+				ConsentPolicy: oidc.NewClientConsentPolicy(oidc.ClientConsentModePreConfigured.String(), &consentPCD),
+			},
+			&model.OAuth2ConsentSession{
+				RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
+				RequestedAudience: []string{"https://example.com"},
+			},
+			url.Values{
+				oidc.FormParameterState: []string{"123"},
+			},
+			time.Unix(19000000000, 0),
+			true,
+			oidc.ConsentGetResponseBody{
+				ClientID:          myclient,
+				ClientDescription: myclientname,
+				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
+				Audience:          []string{"https://example.com"},
+				PreConfiguration:  false,
+			},
+		},
+		{
+			"ShouldHandleFormFromSession",
+			nil,
+			&model.OAuth2ConsentSession{
+				RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
+				RequestedAudience: []string{"https://example.com"},
+				Form: url.Values{
+					oidc.FormParameterState: []string{"123"},
+				}.Encode(),
+			},
+			nil,
+			time.Unix(19000000000, 0),
+			false,
+			oidc.ConsentGetResponseBody{
+				ClientID:          myclient,
+				ClientDescription: myclientname,
+				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
+				Audience:          []string{"https://example.com"},
+			},
+		},
+		{
+			"ShouldHandleRequireLogin",
+			nil,
+			&model.OAuth2ConsentSession{
+				RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
+				RequestedAudience: []string{"https://example.com"},
+				RequestedAt:       time.Unix(19000000020, 0),
+			},
+			url.Values{
+				oidc.FormParameterState:  []string{"123"},
+				oidc.FormParameterPrompt: []string{oidc.PromptLogin},
+			},
+			time.Unix(19000000000, 0),
+			false,
+			oidc.ConsentGetResponseBody{
+				ClientID:          myclient,
+				ClientDescription: myclientname,
+				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
+				Audience:          []string{"https://example.com"},
+				RequireLogin:      true,
+			},
+		},
+		{
+			"ShouldHandleRequireLoginSession",
+			nil,
+			&model.OAuth2ConsentSession{
+				RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
+				RequestedAudience: []string{"https://example.com"},
+				RequestedAt:       time.Unix(19000000020, 0),
+				Form: url.Values{
+					oidc.FormParameterState:  []string{"123"},
+					oidc.FormParameterPrompt: []string{oidc.PromptLogin},
+				}.Encode(),
+			},
+			nil,
+			time.Unix(19000000000, 0),
+			false,
+			oidc.ConsentGetResponseBody{
+				ClientID:          myclient,
+				ClientDescription: myclientname,
+				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
+				Audience:          []string{"https://example.com"},
+				RequireLogin:      true,
+			},
+		},
+		{
+			"ShouldHandleRequireLoginMaxAge",
+			nil,
+			&model.OAuth2ConsentSession{
+				RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
+				RequestedAudience: []string{"https://example.com"},
+				RequestedAt:       time.Unix(19000000020, 0),
+			},
+			url.Values{
+				oidc.FormParameterState:      []string{"123"},
+				oidc.FormParameterMaximumAge: []string{"1"},
+			},
+			time.Unix(19000000000, 0),
+			false,
+			oidc.ConsentGetResponseBody{
+				ClientID:          myclient,
+				ClientDescription: myclientname,
+				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
+				Audience:          []string{"https://example.com"},
+				RequireLogin:      true,
+			},
+		},
+		{
+			"ShouldHandleRequireLoginMaxAgeSession",
+			nil,
+			&model.OAuth2ConsentSession{
+				RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
+				RequestedAudience: []string{"https://example.com"},
+				RequestedAt:       time.Unix(19000000020, 0),
+				Form: url.Values{
+					oidc.FormParameterState:      []string{"123"},
+					oidc.FormParameterMaximumAge: []string{"1"},
+				}.Encode(),
+			},
+			nil,
+			time.Unix(19000000000, 0),
+			false,
+			oidc.ConsentGetResponseBody{
+				ClientID:          myclient,
+				ClientDescription: myclientname,
+				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
+				Audience:          []string{"https://example.com"},
+				RequireLogin:      true,
+			},
+		},
+		{
+			"ShouldHandleFormParseError",
+			nil,
+			&model.OAuth2ConsentSession{
+				RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
+				RequestedAudience: []string{"https://example.com"},
+				RequestedAt:       time.Unix(19000000020, 0),
+				Form:              ";=1",
+			},
+			nil,
+			time.Unix(19000000000, 0),
+			false,
+			oidc.ConsentGetResponseBody{
+				ClientID:          myclient,
+				ClientDescription: myclientname,
+				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
+				Audience:          []string{"https://example.com"},
+			},
+		},
 	}
 
-	expectedScopes := []string{oidc.ScopeOpenID, oidc.ScopeGroups}
-	expectedAudiences := []string{examplecom}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			client := tc.client
 
-	consentRequestBody = c.GetConsentResponseBody(consent, nil)
-	assert.Equal(t, myclient, consentRequestBody.ClientID)
-	assert.Equal(t, myclientdesc, consentRequestBody.ClientDescription)
-	assert.Equal(t, expectedScopes, consentRequestBody.Scopes)
-	assert.Equal(t, expectedAudiences, consentRequestBody.Audience)
+			if client == nil {
+				client = &oidc.RegisteredClient{
+					ID:   myclient,
+					Name: myclientname,
+				}
+			}
+
+			actual := client.GetConsentResponseBody(tc.session, tc.form, tc.authTime, tc.disablePreConf)
+
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
 }
 
 func TestClient_GetAudience(t *testing.T) {
@@ -312,11 +526,11 @@ func TestClient_GetGrantTypes(t *testing.T) {
 	require.Len(t, grantTypes, 1)
 	assert.Equal(t, oidc.GrantTypeAuthorizationCode, grantTypes[0])
 
-	c.GrantTypes = []string{"device_code"}
+	c.GrantTypes = []string{oidc.GrantTypeDeviceCode}
 
 	grantTypes = c.GetGrantTypes()
 	require.Len(t, grantTypes, 1)
-	assert.Equal(t, "device_code", grantTypes[0])
+	assert.Equal(t, oidc.GrantTypeDeviceCode, grantTypes[0])
 }
 
 func TestClient_Hashing(t *testing.T) {

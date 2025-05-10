@@ -107,7 +107,7 @@ func NewOAuth2SessionFromRequest(signature string, r oauthelia2.Requester) (sess
 // NewOAuth2DeviceCodeSessionFromRequest creates a new OAuth2DeviceCodeSession from a signature and oauthelia2.Requester.
 func NewOAuth2DeviceCodeSessionFromRequest(r oauthelia2.DeviceAuthorizeRequester) (session *OAuth2DeviceCodeSession, err error) {
 	if r == nil {
-		return nil, fmt.Errorf("failed to create new *model.OAuth2Session: the oauthelia2.Requester was nil")
+		return nil, fmt.Errorf("failed to create new *model.OAuth2DeviceCodeSession: the oauthelia2.DeviceAuthorizeRequester was nil")
 	}
 
 	var (
@@ -141,6 +141,7 @@ func NewOAuth2DeviceCodeSessionFromRequest(r oauthelia2.DeviceAuthorizeRequester
 	}
 
 	return &OAuth2DeviceCodeSession{
+		ChallengeID:       s.GetChallengeID(),
 		RequestID:         r.GetID(),
 		ClientID:          r.GetClient().GetID(),
 		Signature:         r.GetDeviceCodeSignature(),
@@ -274,6 +275,11 @@ type OAuth2ConsentSession struct {
 	PreConfiguration sql.NullInt64
 }
 
+// GetRequestedAt returns the requested at value.
+func (s *OAuth2ConsentSession) GetRequestedAt() time.Time {
+	return s.RequestedAt
+}
+
 // SetSubject sets the subject value.
 func (s *OAuth2ConsentSession) SetSubject(subject uuid.UUID) {
 	s.Subject = uuid.NullUUID{UUID: subject, Valid: subject != uuid.Nil}
@@ -352,6 +358,22 @@ func (s *OAuth2ConsentSession) CanGrant(now time.Time) bool {
 // GetForm returns the form.
 func (s *OAuth2ConsentSession) GetForm() (form url.Values, err error) {
 	return url.ParseQuery(s.Form)
+}
+
+func (s *OAuth2ConsentSession) GetRequestedScopes() []string {
+	return s.RequestedScopes
+}
+
+func (s *OAuth2ConsentSession) GetGrantedScopes() []string {
+	return s.GrantedScopes
+}
+
+func (s *OAuth2ConsentSession) GetRequestedAudience() []string {
+	return s.RequestedAudience
+}
+
+func (s *OAuth2ConsentSession) GetGrantedAudience() []string {
+	return s.GrantedAudience
 }
 
 // OAuth2BlacklistedJTI represents a blacklisted JTI used with OAuth2.0.
@@ -438,6 +460,32 @@ type OAuth2DeviceCodeSession struct {
 	Revoked           bool                     `db:"revoked"`
 	Form              string                   `db:"form_data"`
 	Session           []byte                   `db:"session_data"`
+}
+
+// GetRequestedAt returns the requested at value.
+func (s *OAuth2DeviceCodeSession) GetRequestedAt() time.Time {
+	return s.RequestedAt
+}
+
+// GetForm returns the form.
+func (s *OAuth2DeviceCodeSession) GetForm() (form url.Values, err error) {
+	return url.ParseQuery(s.Form)
+}
+
+func (s *OAuth2DeviceCodeSession) GetRequestedScopes() []string {
+	return s.RequestedScopes
+}
+
+func (s *OAuth2DeviceCodeSession) GetGrantedScopes() []string {
+	return s.GrantedScopes
+}
+
+func (s *OAuth2DeviceCodeSession) GetRequestedAudience() []string {
+	return s.RequestedAudience
+}
+
+func (s *OAuth2DeviceCodeSession) GetGrantedAudience() []string {
+	return s.GrantedAudience
 }
 
 // ToRequest converts an OAuth2Session into a oauthelia2.Request given a oauthelia2.Session and oauthelia2.Storage.

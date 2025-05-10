@@ -214,7 +214,7 @@ func handleOAuth2AuthorizationConsentPromptLoginRedirect(ctx *middlewares.Authel
 
 	handleOAuth2PushedAuthorizeConsent(ctx, requester, r.Form)
 
-	redirectionURL := issuer.JoinPath(oidc.FrontendEndpointPathConsentLogin)
+	redirectionURL := issuer.JoinPath(oidc.FrontendEndpointPathConsentDecision)
 
 	query := redirectionURL.Query()
 	query.Set(queryArgFlow, flowNameOpenIDConnect)

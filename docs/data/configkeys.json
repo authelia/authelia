@@ -490,6 +490,11 @@
         "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_LIFESPANS_AUTHORIZE_CODE"
     },
     {
+        "path": "identity_providers.oidc.lifespans.device_code",
+        "secret": false,
+        "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_LIFESPANS_DEVICE_CODE"
+    },
+    {
         "path": "identity_providers.oidc.lifespans.id_token",
         "secret": false,
         "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC_LIFESPANS_ID_TOKEN"

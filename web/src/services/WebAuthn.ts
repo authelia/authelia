@@ -139,6 +139,7 @@ export async function postWebAuthnResponse(
     flowID?: string,
     flow?: string,
     subflow?: string,
+    userCode?: string,
 ) {
     return axios.post<ServiceResponse<SignInResponse>>(WebAuthnAssertionPath, {
         response,
@@ -146,6 +147,7 @@ export async function postWebAuthnResponse(
         flowID,
         flow,
         subflow,
+        userCode,
     });
 }
 

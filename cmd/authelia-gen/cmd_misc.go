@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -26,6 +27,7 @@ func newMiscCmd() *cobra.Command {
 
 	cmd.AddCommand(
 		newMiscOIDCCmd(),
+		newMiscLocaleMoveCmd(),
 	)
 
 	return cmd
@@ -260,4 +262,138 @@ type OpenIDConnectClients struct {
 			Clients []schema.IdentityProvidersOpenIDConnectClient `yaml:"clients"`
 		} `yaml:"oidc"`
 	} `yaml:"identity_providers"`
+}
+
+func newMiscLocaleMoveCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "locale-move [key]",
+		Short: "Move locales between namespaces",
+		Args:  cobra.ExactArgs(1),
+		RunE:  miscLocaleMoveRunE,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().StringP("source", "s", "", "locale source namespace")
+	cmd.Flags().StringP("destination", "D", "", "locale destination namespace")
+
+	return cmd
+}
+
+func miscLocaleMoveRunE(cmd *cobra.Command, args []string) (err error) {
+	var (
+		source      string
+		destination string
+		pathLocales string
+	)
+
+	if source, err = cmd.Flags().GetString("source"); err != nil {
+		return err
+	}
+
+	if destination, err = cmd.Flags().GetString("destination"); err != nil {
+		return err
+	}
+
+	if pathLocales, err = cmd.Flags().GetString(cmdFlagDirLocales); err != nil {
+		return err
+	}
+
+	if source == "" || destination == "" {
+		return fmt.Errorf("--source and --destination are required")
+	}
+
+	locales, err := os.ReadDir(pathLocales)
+	if err != nil {
+		return err
+	}
+
+	for _, locale := range locales {
+		if err = miscLocaleMoveSingle(args[0], pathLocales, source, destination, locale); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func miscLocaleMoveSingle(key, pathLocales, source, destination string, locale os.DirEntry) (err error) {
+	var (
+		src, dst *os.File
+	)
+
+	if src, err = os.OpenFile(filepath.Join(pathLocales, locale.Name(), fmt.Sprintf("%s.json", source)), os.O_RDWR, 0644); err != nil {
+		return err
+	}
+
+	defer src.Close()
+
+	srcDecoder := json.NewDecoder(src)
+
+	srcValues := map[string]any{}
+
+	if err = srcDecoder.Decode(&srcValues); err != nil {
+		return err
+	}
+
+	if dst, err = os.OpenFile(filepath.Join(pathLocales, locale.Name(), fmt.Sprintf("%s.json", destination)), os.O_RDWR, 0644); err != nil {
+		return err
+	}
+
+	defer dst.Close()
+
+	dstDecoder := json.NewDecoder(dst)
+
+	dstValues := map[string]any{}
+
+	if err = dstDecoder.Decode(&dstValues); err != nil {
+		return err
+	}
+
+	var (
+		value any
+		ok    bool
+	)
+
+	if value, ok = srcValues[key]; !ok {
+		return fmt.Errorf("locale key '%s' not found in source namespace '%s'", key, source)
+	}
+
+	delete(srcValues, key)
+
+	dstValues[key] = value
+
+	if err = src.Truncate(0); err != nil {
+		return err
+	}
+
+	if _, err = src.Seek(0, 0); err != nil {
+		return err
+	}
+
+	srcEncoder := json.NewEncoder(src)
+	srcEncoder.SetIndent("", "\t")
+	srcEncoder.SetEscapeHTML(false)
+
+	if err = srcEncoder.Encode(srcValues); err != nil {
+		return err
+	}
+
+	if err = dst.Truncate(0); err != nil {
+		return err
+	}
+
+	if _, err = dst.Seek(0, 0); err != nil {
+		return err
+	}
+
+	dstEncoder := json.NewEncoder(dst)
+	dstEncoder.SetIndent("", "\t")
+	dstEncoder.SetEscapeHTML(false)
+
+	if err = dstEncoder.Encode(dstValues); err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -149,7 +149,7 @@ func FirstFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middle
 		successful = true
 
 		if len(bodyJSON.Flow) > 0 {
-			handleFlowResponse(ctx, &userSession, bodyJSON.FlowID, bodyJSON.Flow, bodyJSON.SubFlow)
+			handleFlowResponse(ctx, &userSession, bodyJSON.FlowID, bodyJSON.Flow, bodyJSON.SubFlow, bodyJSON.UserCode)
 		} else {
 			Handle1FAResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, userSession.Groups)
 		}
@@ -281,7 +281,7 @@ func FirstFactorReauthenticatePOST(delayFunc middlewares.TimingAttackDelayFunc) 
 		successful = true
 
 		if len(bodyJSON.Flow) > 0 {
-			handleFlowResponse(ctx, &userSession, bodyJSON.FlowID, bodyJSON.Flow, bodyJSON.SubFlow)
+			handleFlowResponse(ctx, &userSession, bodyJSON.FlowID, bodyJSON.Flow, bodyJSON.SubFlow, bodyJSON.UserCode)
 		} else {
 			Handle1FAResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, userSession.Groups)
 		}

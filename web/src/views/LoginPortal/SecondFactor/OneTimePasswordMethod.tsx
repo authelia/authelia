@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { RedirectionURL } from "@constants/SearchParams";
 import { useFlow } from "@hooks/Flow";
+import { useUserCode } from "@hooks/OpenIDConnect";
 import { useQueryParam } from "@hooks/QueryParam";
 import { useUserInfoTOTPConfiguration } from "@hooks/UserInfoTOTPConfiguration";
 import { completeTOTPSignIn } from "@services/OneTimePassword";
@@ -24,19 +25,21 @@ export interface Props {
 }
 
 const OneTimePasswordMethod = function (props: Props) {
+    const { t: translate } = useTranslation();
+
+    const redirectionURL = useQueryParam(RedirectionURL);
+    const { id: flowID, flow, subflow } = useFlow();
+    const userCode = useUserCode();
+    const [resp, fetch, , err] = useUserInfoTOTPConfiguration();
+
     const [passcode, setPasscode] = useState("");
     const [state, setState] = useState(
         props.authenticationLevel === AuthenticationLevel.TwoFactor ? State.Success : State.Idle,
     );
-    const redirectionURL = useQueryParam(RedirectionURL);
-    const { id: flowID, flow, subflow } = useFlow();
-    const { t: translate } = useTranslation();
 
     const { onSignInSuccess, onSignInError } = props;
     const onSignInErrorCallback = useRef(onSignInError).current;
     const onSignInSuccessCallback = useRef(onSignInSuccess).current;
-    const [resp, fetch, , err] = useUserInfoTOTPConfiguration();
-
     const timeoutRateLimit = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
@@ -90,7 +93,7 @@ const OneTimePasswordMethod = function (props: Props) {
 
         try {
             setState(State.InProgress);
-            const res = await completeTOTPSignIn(passcodeStr, redirectionURL, flowID, flow, subflow);
+            const res = await completeTOTPSignIn(passcodeStr, redirectionURL, flowID, flow, subflow, userCode);
 
             if (!res) {
                 onSignInErrorCallback(new Error(translate("The One-Time Password might be wrong")));
@@ -116,6 +119,7 @@ const OneTimePasswordMethod = function (props: Props) {
         flowID,
         flow,
         subflow,
+        userCode,
         onSignInErrorCallback,
         translate,
         onSignInSuccessCallback,
