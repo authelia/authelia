@@ -1,15 +1,19 @@
 package commands
 
 import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"encoding/pem"
 	"errors"
 	"fmt"
+
 	"os"
 	"strings"
 	"time"
 
+	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/spf13/cobra"
 	goyaml "gopkg.in/yaml.v3"
 
@@ -17,6 +21,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -34,6 +39,7 @@ func newDebugCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd.AddCommand(
 		newDebugTLSCmd(ctx),
 		newDebugExpressionCmd(ctx),
+		newDebugOIDCCmd(ctx),
 	)
 
 	return cmd
@@ -81,6 +87,154 @@ func newDebugExpressionCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	return cmd
 }
 
+func newDebugOIDCCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "oidc",
+		Short:   cmdAutheliaDebugOIDCShort,
+		Long:    cmdAutheliaDebugOIDCLong,
+		Example: cmdAutheliaDebugOIDCExample,
+		PersistentPreRunE: ctx.ChainRunE(
+			ctx.HelperConfigLoadRunE,
+			ctx.HelperConfigValidateKeysRunE,
+			ctx.HelperConfigValidateRunE,
+		),
+		DisableAutoGenTag: true,
+	}
+
+	cmd.AddCommand(
+		newDebugOIDCClaimsCmd(ctx),
+	)
+
+	return cmd
+}
+
+func newDebugOIDCClaimsCmd(ctx *CmdCtx) (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use:     "claims [username]",
+		Args:    cobra.ExactArgs(1),
+		Short:   cmdAutheliaDebugOIDCClaimsShort,
+		Long:    cmdAutheliaDebugOIDCClaimsLong,
+		Example: cmdAutheliaDebugOIDCClaimsExample,
+		RunE:    ctx.DebugOIDCClaimsRunE,
+
+		DisableAutoGenTag: true,
+	}
+
+	cmd.Flags().String("policy", "", "claims policy name to use")
+	cmd.Flags().String("client-id", "example", "arbitrary client id for the client")
+	cmd.Flags().StringSlice("scopes", []string{oidc.ScopeOpenID, oidc.ScopeProfile, oidc.ScopeEmail, oidc.ScopePhone, oidc.ScopeAddress, oidc.ScopeGroups}, "granted scopes to use for this request")
+	cmd.Flags().StringSlice("claims", nil, "granted claims to use for this request")
+	cmd.Flags().String("response-type", oidc.ResponseTypeAuthorizationCodeFlow, "response type to use for this request")
+	cmd.Flags().String("grant-type", oidc.GrantTypeAuthorizationCode, "grant type to use for this request")
+
+	return cmd
+}
+
+//nolint:gocyclo
+func (ctx *CmdCtx) DebugOIDCClaimsRunE(cmd *cobra.Command, args []string) (err error) {
+	provider := middlewares.NewAuthenticationProvider(ctx.config, ctx.trusted)
+
+	if provider == nil {
+		return fmt.Errorf("error occurred initializing user authentication provider: a provider is not configured")
+	}
+
+	if err = provider.StartupCheck(); err != nil {
+		return fmt.Errorf("error occurred initializing user authentication provider: %w", err)
+	}
+
+	resolver := expression.NewUserAttributes(ctx.config)
+
+	if err = resolver.StartupCheck(); err != nil {
+		return fmt.Errorf("error occurred initializing user attributes expression provider: %w", err)
+	}
+
+	if ctx.config.IdentityProviders.OIDC == nil {
+		return fmt.Errorf("error occurred initializing oidc provider: a provider is not configured")
+	}
+
+	var (
+		id, policy, responseType, grantType string
+
+		scopes, claims []string
+
+		detailer *authentication.UserDetailsExtended
+	)
+
+	username := args[0]
+
+	if id, err = cmd.Flags().GetString("client-id"); err != nil {
+		return err
+	}
+
+	if policy, err = cmd.Flags().GetString("policy"); err != nil {
+		return err
+	}
+
+	if responseType, err = cmd.Flags().GetString("response-type"); err != nil {
+		return err
+	}
+
+	if grantType, err = cmd.Flags().GetString("grant-type"); err != nil {
+		return err
+	}
+
+	if scopes, err = cmd.Flags().GetStringSlice("scopes"); err != nil {
+		return err
+	}
+
+	if claims, err = cmd.Flags().GetStringSlice("claims"); err != nil {
+		return err
+	}
+
+	if detailer, err = provider.GetDetailsExtended(username); err != nil {
+		return fmt.Errorf("error occurred getting extended user details from the user authentication provider: %w", err)
+	}
+
+	strategy := oidc.NewCustomClaimsStrategy(policy, scopes, ctx.config.IdentityProviders.OIDC.Scopes, ctx.config.IdentityProviders.OIDC.ClaimsPolicies)
+
+	resolverctx := &debugClaimsStrategyContext{Context: ctx.Context, resolver: resolver}
+
+	idtoken := map[string]any{}
+	userinfo := map[string]any{}
+
+	client := &oidc.RegisteredClient{
+		ID: id,
+	}
+
+	implicit := responseType == oidc.ResponseTypeImplicitFlowIDToken
+
+	if err = strategy.PopulateIDTokenClaims(resolverctx, oauthelia2.ExactScopeStrategy, client, scopes, claims, nil, detailer, time.Now(), time.Now().Add(time.Second*-10), nil, idtoken, implicit); err != nil {
+		return fmt.Errorf("error occurred populating user ID token claims: %w", err)
+	}
+
+	if grantType == oidc.GrantTypeClientCredentials {
+		if err = strategy.PopulateClientCredentialsUserInfoClaims(resolverctx, client, nil, userinfo); err != nil {
+			return fmt.Errorf("error occurred populating user info claims: %w", err)
+		}
+	} else if err = strategy.PopulateUserInfoClaims(resolverctx, oauthelia2.ExactScopeStrategy, client, scopes, claims, nil, detailer, time.Now(), time.Now().Add(time.Second*-10), nil, userinfo); err != nil {
+		return fmt.Errorf("error occurred populating user info claims: %w", err)
+	}
+
+	_, _ = fmt.Fprintf(os.Stdout, "Results:\n\n")
+	_, _ = fmt.Fprintf(os.Stdout, "\tID Token:\n\t\t")
+
+	encoder := json.NewEncoder(os.Stdout)
+	encoder.SetIndent("\t\t", "  ")
+	encoder.SetEscapeHTML(false)
+
+	if err = encoder.Encode(idtoken); err != nil {
+		return fmt.Errorf("error occurred encoding ID Token claims: %w", err)
+	}
+
+	_, _ = fmt.Fprintf(os.Stdout, "\n\tUser Information:\n\t\t")
+
+	if err = encoder.Encode(userinfo); err != nil {
+		return fmt.Errorf("error occurred encoding User Information claims: %w", err)
+	}
+
+	return nil
+}
+
 func (ctx *CmdCtx) DebugExpressionRunE(_ *cobra.Command, args []string) (err error) {
 	provider := middlewares.NewAuthenticationProvider(ctx.config, ctx.trusted)
 
@@ -114,7 +268,7 @@ func (ctx *CmdCtx) DebugExpressionRunE(_ *cobra.Command, args []string) (err err
 	var details *authentication.UserDetailsExtended
 
 	if details, err = provider.GetDetailsExtended(username); err != nil {
-		return err
+		return fmt.Errorf("error occurred getting extended user details from the user authentication provider: %w", err)
 	}
 
 	resolved, found := e.Resolve("example", details, time.Now())
@@ -325,4 +479,14 @@ func (ctx *CmdCtx) DebugTLSRunE(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	return conn.Close()
+}
+
+type debugClaimsStrategyContext struct {
+	resolver expression.UserAttributeResolver
+
+	context.Context
+}
+
+func (ctx *debugClaimsStrategyContext) GetProviderUserAttributeResolver() expression.UserAttributeResolver {
+	return ctx.resolver
 }

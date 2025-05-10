@@ -390,10 +390,10 @@ func (r *ClaimRequest) Matches(value any) (match bool) {
 type ClaimResolver func(attribute string) (value any, ok bool)
 
 type ClaimsStrategy interface {
-	ValidateClaimsRequests(ctx Context, strategy oauthelia2.ScopeStrategy, client Client, requests *ClaimsRequests) (err error)
-	PopulateIDTokenClaims(ctx Context, strategy oauthelia2.ScopeStrategy, client Client, scopes, claims oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, requested, updated time.Time, original, extra map[string]any, implicit bool) (err error)
-	PopulateUserInfoClaims(ctx Context, strategy oauthelia2.ScopeStrategy, client Client, scopes, claims oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, requested, updated time.Time, original, extra map[string]any) (err error)
-	PopulateClientCredentialsUserInfoClaims(ctx Context, client Client, original, extra map[string]any) (err error)
+	ValidateClaimsRequests(ctx ClaimsStrategyContext, strategy oauthelia2.ScopeStrategy, client Client, requests *ClaimsRequests) (err error)
+	PopulateIDTokenClaims(ctx ClaimsStrategyContext, strategy oauthelia2.ScopeStrategy, client Client, scopes, claims oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, requested, updated time.Time, original, extra map[string]any, implicit bool) (err error)
+	PopulateUserInfoClaims(ctx ClaimsStrategyContext, strategy oauthelia2.ScopeStrategy, client Client, scopes, claims oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, requested, updated time.Time, original, extra map[string]any) (err error)
+	PopulateClientCredentialsUserInfoClaims(ctx ClaimsStrategyContext, client Client, original, extra map[string]any) (err error)
 	MergeAccessTokenAudienceWithIDTokenAudience() (include bool)
 }
 
@@ -437,10 +437,12 @@ func NewDefaultCustomClaimsStrategy() (strategy *CustomClaimsStrategy) {
 	}
 }
 
-func NewCustomClaimsStrategy(client schema.IdentityProvidersOpenIDConnectClient, scopes map[string]schema.IdentityProvidersOpenIDConnectScope, policies map[string]schema.IdentityProvidersOpenIDConnectClaimsPolicy) (strategy *CustomClaimsStrategy) {
+// NewCustomClaimsStrategy creates a *CustomClaimsStrategy given a policy name, list of allowed scopes, the scope map,
+// and the policy map.
+func NewCustomClaimsStrategy(policyName string, scopes []string, scopeMap map[string]schema.IdentityProvidersOpenIDConnectScope, policyMap map[string]schema.IdentityProvidersOpenIDConnectClaimsPolicy) (strategy *CustomClaimsStrategy) {
 	strategy = NewDefaultCustomClaimsStrategy()
 
-	if client.ClaimsPolicy == "" {
+	if policyName == "" {
 		return strategy
 	}
 
@@ -453,7 +455,7 @@ func NewCustomClaimsStrategy(client schema.IdentityProvidersOpenIDConnectClient,
 		name string
 	)
 
-	if policy, ok = policies[client.ClaimsPolicy]; !ok {
+	if policy, ok = policyMap[policyName]; !ok {
 		return strategy
 	}
 
@@ -469,8 +471,8 @@ func NewCustomClaimsStrategy(client schema.IdentityProvidersOpenIDConnectClient,
 		strategy.claimsAccessToken = policy.AccessToken
 	}
 
-	for _, scope := range client.Scopes {
-		if mapping, ok = scopes[scope]; !ok {
+	for _, scope := range scopes {
+		if mapping, ok = scopeMap[scope]; !ok {
 			continue
 		}
 
@@ -503,6 +505,12 @@ func NewCustomClaimsStrategy(client schema.IdentityProvidersOpenIDConnectClient,
 	return strategy
 }
 
+// NewCustomClaimsStrategyFromClient is a helper function to create a NewCustomClaimsStrategy from a client.
+func NewCustomClaimsStrategyFromClient(client schema.IdentityProvidersOpenIDConnectClient, scopes map[string]schema.IdentityProvidersOpenIDConnectScope, policies map[string]schema.IdentityProvidersOpenIDConnectClaimsPolicy) (strategy *CustomClaimsStrategy) {
+	return NewCustomClaimsStrategy(client.ClaimsPolicy, client.Scopes, scopes, policies)
+}
+
+// A CustomClaimsStrategy is a strategy that performs claims hydration.
 type CustomClaimsStrategy struct {
 	claimsIDToken     []string
 	claimsAccessToken []string
@@ -511,8 +519,10 @@ type CustomClaimsStrategy struct {
 	mergeAccessTokenAudienceWithIDTokenAudience bool
 }
 
+// ValidateClaimsRequests validates the claims requests for the client.
+//
 //nolint:gocyclo
-func (s *CustomClaimsStrategy) ValidateClaimsRequests(ctx Context, strategy oauthelia2.ScopeStrategy, client Client, requests *ClaimsRequests) (err error) {
+func (s *CustomClaimsStrategy) ValidateClaimsRequests(_ ClaimsStrategyContext, strategy oauthelia2.ScopeStrategy, client Client, requests *ClaimsRequests) (err error) {
 	if requests == nil {
 		return nil
 	}
@@ -589,7 +599,8 @@ claims:
 	return oauthelia2.ErrInvalidRequest.WithDebugf("The authorization request contained a claims request which is not permitted to make. The %s; but these scopes are absent from the client registration.", strings.Join(elements, ", "))
 }
 
-func (s *CustomClaimsStrategy) PopulateIDTokenClaims(ctx Context, strategy oauthelia2.ScopeStrategy, client Client, scopes, claims oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, requested, updated time.Time, original, extra map[string]any, implicit bool) (err error) {
+// PopulateIDTokenClaims hydrates an ID Token's extra claims.
+func (s *CustomClaimsStrategy) PopulateIDTokenClaims(ctx ClaimsStrategyContext, strategy oauthelia2.ScopeStrategy, client Client, scopes, claims oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, requested, updated time.Time, original, extra map[string]any, implicit bool) (err error) {
 	resolver := ctx.GetProviderUserAttributeResolver()
 
 	if resolver == nil {
@@ -614,7 +625,8 @@ func (s *CustomClaimsStrategy) PopulateIDTokenClaims(ctx Context, strategy oauth
 	return nil
 }
 
-func (s *CustomClaimsStrategy) PopulateUserInfoClaims(ctx Context, strategy oauthelia2.ScopeStrategy, client Client, scopes, claims oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, requested, updated time.Time, original, extra map[string]any) (err error) {
+// PopulateUserInfoClaims hydrates the UserInfo endpoint claims for an Access Token.
+func (s *CustomClaimsStrategy) PopulateUserInfoClaims(ctx ClaimsStrategyContext, strategy oauthelia2.ScopeStrategy, client Client, scopes, claims oauthelia2.Arguments, requests map[string]*ClaimRequest, detailer UserDetailer, requested, updated time.Time, original, extra map[string]any) (err error) {
 	resolver := ctx.GetProviderUserAttributeResolver()
 
 	if resolver == nil {
@@ -633,13 +645,15 @@ func (s *CustomClaimsStrategy) PopulateUserInfoClaims(ctx Context, strategy oaut
 	return nil
 }
 
-func (s *CustomClaimsStrategy) PopulateClientCredentialsUserInfoClaims(ctx Context, client Client, original, extra map[string]any) (err error) {
+// PopulateClientCredentialsUserInfoClaims hydrates the UserInfo endpoint claims for a Client Credentials Grant based Access Token.
+func (s *CustomClaimsStrategy) PopulateClientCredentialsUserInfoClaims(_ ClaimsStrategyContext, client Client, original, extra map[string]any) (err error) {
 	s.populateClaimsOriginal(original, extra)
 	s.populateClaimsAudience(client, original, extra)
 
 	return nil
 }
 
+// MergeAccessTokenAudienceWithIDTokenAudience returns true if the Access Token should contain a merged audience.
 func (s *CustomClaimsStrategy) MergeAccessTokenAudienceWithIDTokenAudience() (include bool) {
 	return s.mergeAccessTokenAudienceWithIDTokenAudience
 }
@@ -692,7 +706,7 @@ func (s *CustomClaimsStrategy) populateClaimsAudience(client Client, original, e
 	}
 }
 
-func (s *CustomClaimsStrategy) populateClaimsScoped(_ Context, strategy oauthelia2.ScopeStrategy, client Client, scopes oauthelia2.Arguments, resolve ClaimResolver, allowed []string, extra map[string]any) {
+func (s *CustomClaimsStrategy) populateClaimsScoped(_ ClaimsStrategyContext, strategy oauthelia2.ScopeStrategy, client Client, scopes oauthelia2.Arguments, resolve ClaimResolver, allowed []string, extra map[string]any) {
 	if resolve == nil {
 		return
 	}
@@ -708,13 +722,13 @@ func (s *CustomClaimsStrategy) populateClaimsScoped(_ Context, strategy oautheli
 	}
 }
 
-func (s *CustomClaimsStrategy) populateClaimsScopedUserInfo(_ Context, strategy oauthelia2.ScopeStrategy, _ Client, scopes oauthelia2.Arguments, _ ClaimResolver, requested time.Time, _ []string, extra map[string]any) {
+func (s *CustomClaimsStrategy) populateClaimsScopedUserInfo(_ ClaimsStrategyContext, strategy oauthelia2.ScopeStrategy, _ Client, scopes oauthelia2.Arguments, _ ClaimResolver, requested time.Time, _ []string, extra map[string]any) {
 	if strategy(scopes, ScopeOpenID) {
 		extra[ClaimRequestedAt] = requested.Unix()
 	}
 }
 
-func (s *CustomClaimsStrategy) populateClaimsRequested(_ Context, strategy oauthelia2.ScopeStrategy, client Client, requests map[string]*ClaimRequest, claims oauthelia2.Arguments, resolve ClaimResolver, requested time.Time, extra map[string]any) {
+func (s *CustomClaimsStrategy) populateClaimsRequested(_ ClaimsStrategyContext, strategy oauthelia2.ScopeStrategy, client Client, requests map[string]*ClaimRequest, claims oauthelia2.Arguments, resolve ClaimResolver, requested time.Time, extra map[string]any) {
 	if requests == nil || resolve == nil {
 		return
 	}

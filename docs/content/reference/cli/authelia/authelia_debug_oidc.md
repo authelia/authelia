@@ -1,8 +1,8 @@
 ---
-title: "authelia debug"
-description: "Reference for the authelia debug command."
+title: "authelia debug oidc"
+description: "Reference for the authelia debug oidc command."
 lead: ""
-date: 2022-06-15T17:51:47+10:00
+date: 2025-05-10T14:27:29+10:00
 draft: false
 images: []
 weight: 905
@@ -14,26 +14,26 @@ seo:
   noindex: false # false (default) or true
 ---
 
-## authelia debug
+## authelia debug oidc
 
-Perform debug functions
+Perform a OpenID Connect 1.0 debug operation
 
 ### Synopsis
 
-Perform debug related functions.
+Perform a OpenID Connect 1.0 debug operation.
 
-This subcommand contains other subcommands related to debugging.
+This subcommand allows checking certain OpenID Connect 1.0 scenarios.
 
 ### Examples
 
 ```
-authelia debug --help
+authelia debug oidc --help
 ```
 
 ### Options
 
 ```
-  -h, --help   help for debug
+  -h, --help   help for oidc
 ```
 
 ### Options inherited from parent commands
@@ -45,8 +45,6 @@ authelia debug --help
 
 ### SEE ALSO
 
-* [authelia](authelia.md)	 - authelia untagged-unknown-dirty (master, unknown)
-* [authelia debug expression](authelia_debug_expression.md)	 - Perform a user attribute expression debug operation
-* [authelia debug oidc](authelia_debug_oidc.md)	 - Perform a OpenID Connect 1.0 debug operation
-* [authelia debug tls](authelia_debug_tls.md)	 - Perform a TLS debug operation
+* [authelia debug](authelia_debug.md)	 - Perform debug functions
+* [authelia debug oidc claims](authelia_debug_oidc_claims.md)	 - Perform a OpenID Connect 1.0 claims hydration debug operation
 
