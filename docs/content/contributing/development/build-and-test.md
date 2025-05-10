@@ -20,8 +20,8 @@ __Authelia__ is built a [React] frontend user portal bundled in a [Go] applicati
 the [React] assets and a dedicated API.
 
 The GitHub repository comes with a CLI dedicated to developers called
-[authelia-scripts](reference-authelia-scripts.md) which can be setup by looking at
-[Reference: authelia-scripts](reference-authelia-scripts.md).
+[authelia-scripts](../../reference/cli/authelia-scripts/authelia-scripts.md) which can be setup by looking at
+the [authelia-scripts reference guide](../../reference/cli/authelia-scripts/authelia-scripts.md).
 
 In order to build and contribute to __Authelia__, you need to make sure that you have looked at the
 [Environment](environment.md) guide to configure your development environment.

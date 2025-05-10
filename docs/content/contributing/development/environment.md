@@ -16,12 +16,14 @@ seo:
 
 __Authelia__ and its development workflow can be tested with [Docker] and [Docker Compose] on Linux.
 
-## Setup
+## Prerequisites
 
 In order to build and contribute to __Authelia__, you need to make sure the following are installed in your environment:
 
 * General:
   * [git]
+  * [bash]
+  * A modern Linux distribution, Windows and macOS are not officially supported.
 * Backend Development:
   * [go]:
     * Minimum is *v1.24 or greater*.
@@ -38,7 +40,13 @@ In order to build and contribute to __Authelia__, you need to make sure the foll
   * [Docker Compose] *(v2.32.4 or greater)*
   * [chromium]
 
-The additional tools are recommended:
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+We only support docker being installed as a system package. It must not be installed via Snappy or other similar tools.
+If you wish to use these other tools we will not be able to provide support.
+{{< /callout >}}
+
+
+These additional tools are recommended:
 
 * [golangci-lint]
 * [goimports-reviser]
@@ -62,11 +70,23 @@ means if you decide to do so.
 If you'd still like to trust the Root CA Certificate it's located (encoded as a PEM) in the main git repository at
  [/internal/suites/common/pki/ca/ca.public.crt](https://github.com/authelia/authelia/blob/master/internal/suites/common/pki/ca/ca.public.crt).
 
-## Scripts
+## Context
 
-There is a scripting context provided with __Authelia__ which can easily be configured. It allows running integration
-[suites] and various other tasks. Read more about it in the [authelia-scripts](reference-authelia-scripts.md) reference
-guide.
+There is a development context that can be loaded using `bootstrap.sh`. All that you need to do is satisfy the
+prerequisites and run the below command (or an equivalent of):
+
+```bash
+source bootstrap.sh
+```
+
+This context gives you access to the following commands:
+
+- [authelia-scripts](../../reference/cli/authelia-scripts/authelia-scripts.md) - used to perform various development
+  focused tasks such as building the binary, building a docker image, setting up
+  [integration suites](integration-suites.md), or performing tests
+- [authelia-gen](../../reference/cli/authelia-gen/authelia-gen.md) - used to perform code generation, we recommend
+  running this command just before you commit whenever you make changes
+- authelia-scripts - used to manage suites, generally we recommend using `authelia-scripts` instead
 
 ## Frequently Asked Questions
 
@@ -117,3 +137,5 @@ listed subdomains from your browser, and they will be served by the reverse prox
 [chromium]: https://www.chromium.org/
 [git]: https://git-scm.com/
 [gcc]: https://gcc.gnu.org/
+[bash]: https://www.gnu.org/software/bash/
+[core team]: https://www.authelia.com/information/about/#core-team
