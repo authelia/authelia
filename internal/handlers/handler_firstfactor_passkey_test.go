@@ -415,6 +415,12 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 							RemoteIP:   model.NullIP{IP: net.ParseIP("0.0.0.0")},
 						})).
 						Return(nil),
+					mock.StorageMock.EXPECT().
+						IsIPKnownForUser(mock.Ctx, gomock.Any(), gomock.Any()).
+						Return(false, nil),
+					mock.StorageMock.EXPECT().
+						SaveNewIPForUser(mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(nil),
 				)
 			},
 			have:           dataReqGood,
@@ -519,6 +525,12 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 							Type:       regulation.AuthTypePasskey,
 							RemoteIP:   model.NullIP{IP: net.ParseIP("0.0.0.0")},
 						})).
+						Return(nil),
+					mock.StorageMock.EXPECT().
+						IsIPKnownForUser(mock.Ctx, gomock.Any(), gomock.Any()).
+						Return(false, nil),
+					mock.StorageMock.EXPECT().
+						SaveNewIPForUser(mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any()).
 						Return(nil),
 				)
 			},
@@ -924,6 +936,12 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 							RemoteIP:   model.NullIP{IP: net.ParseIP("0.0.0.0")},
 						})).
 						Return(nil),
+					mock.StorageMock.EXPECT().
+						IsIPKnownForUser(mock.Ctx, gomock.Any(), gomock.Any()).
+						Return(false, nil),
+					mock.StorageMock.EXPECT().
+						SaveNewIPForUser(mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(nil),
 				)
 			},
 			have:           dataReqGoodKLI,
@@ -1028,6 +1046,12 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 							RemoteIP:   model.NullIP{IP: net.ParseIP("0.0.0.0")},
 						})).
 						Return(fmt.Errorf("error marking auth")),
+					mock.StorageMock.EXPECT().
+						IsIPKnownForUser(mock.Ctx, gomock.Any(), gomock.Any()).
+						Return(false, nil),
+					mock.StorageMock.EXPECT().
+						SaveNewIPForUser(mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+						Return(nil),
 				)
 			},
 			have:           dataReqGood,
@@ -1039,7 +1063,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 
 				assert.Nil(t, us.WebAuthn)
 
-				AssertLogEntryMessageAndError(t, mock.Hook.LastEntry(), "Failed to record Passkey authentication attempt", "error marking auth")
+				AssertLogEntryMessageAndError(t, MustGetLogLastSeq(t, mock.Hook, 1), "Failed to record Passkey authentication attempt", "error marking auth")
 			},
 		},
 		{
