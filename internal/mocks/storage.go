@@ -17,6 +17,7 @@ import (
 
 	model "github.com/authelia/authelia/v4/internal/model"
 	storage "github.com/authelia/authelia/v4/internal/storage"
+	uasurfer "github.com/avct/uasurfer"
 	uuid "github.com/google/uuid"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -1010,7 +1011,7 @@ func (mr *MockStorageMockRecorder) SaveIdentityVerification(ctx, verification an
 }
 
 // SaveNewIPForUser mocks base method.
-func (m *MockStorage) SaveNewIPForUser(ctx context.Context, username string, ip model.IP, userAgent string) error {
+func (m *MockStorage) SaveNewIPForUser(ctx context.Context, username string, ip model.IP, userAgent uasurfer.UserAgent) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveNewIPForUser", ctx, username, ip, userAgent)
 	ret0, _ := ret[0].(error)

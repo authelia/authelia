@@ -5,7 +5,12 @@ CREATE TABLE known_ip_addresses (
     first_seen TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_seen TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP NULL,
-    user_agent VARCHAR(255) NULL
+
+    browser_name VARCHAR(50),
+    browser_version VARCHAR(20),
+    os_name VARCHAR(50),
+    os_version VARCHAR(20),
+    device_type VARCHAR(20)
 );
 
 CREATE UNIQUE INDEX known_ip_addresses_lookup_key ON known_ip_addresses (username, ip_address);

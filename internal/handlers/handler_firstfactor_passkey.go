@@ -11,6 +11,8 @@ import (
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/valyala/fasthttp"
 
+	"github.com/authelia/authelia/v4/internal/utils"
+
 	"github.com/authelia/authelia/v4/internal/templates"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -370,8 +372,10 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 			ctx.Logger.WithError(err).Errorf(logFmtErrUpdateKnownIP, ipAddr, userSession.Username)
 		}
 	} else {
-		userAgent := string(ctx.RequestCtx.Request.Header.Peek("User-Agent"))
-		if err = ctx.Providers.StorageProvider.SaveNewIPForUser(ctx, userSession.Username, model.NewIP(ctx.RequestCtx.RemoteIP()), userAgent); err != nil {
+		rawUserAgent := string(ctx.RequestCtx.Request.Header.Peek("User-Agent"))
+
+		userAgent := utils.ParseUserAgent(rawUserAgent)
+		if err = ctx.Providers.StorageProvider.SaveNewIPForUser(ctx, userSession.Username, model.NewIP(ctx.RequestCtx.RemoteIP()), *userAgent); err != nil {
 			ctx.Logger.WithError(err).Errorf(logFmtErrSaveNewKnownIP, ipAddr, userSession.Username)
 		}
 
@@ -384,14 +388,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 		domain, _ := ctx.GetCookieDomain()
 
-		data := templates.EmailNewLoginValues{
-			Title:       "Login From New IP",
-			Date:        time.Now().Format("Monday, January 2, 2006 at 03:04:05 PM -07:00"),
-			Domain:      domain,
-			UserAgent:   userAgent,
-			DisplayName: userSession.DisplayName,
-			RemoteIP:    ctx.RemoteIP().String(),
-		}
+		data := templates.NewEmailNewLoginValues(userSession.DisplayName, domain, ctx.RemoteIP().String(), userAgent, rawUserAgent, time.Now())
 
 		address, _ := mail.ParseAddress(userSession.Emails[0])
 
