@@ -26,18 +26,18 @@ In order to build and contribute to __Authelia__, you need to make sure the foll
   * A modern Linux distribution, Windows and macOS are not officially supported.
 * Backend Development:
   * [go]:
-    * Minimum is *v1.24 or greater*.
+    * Minimum is *v1.24.3*.
     * The toolchain version noted in [go.mod](https://github.com/authelia/authelia/blob/master/go.mod#L5) is the
       officially supported version.
     * We will not officially support old versions of go generally without a very good reason.
   * [gcc]
   * [gomock]
-* Frontend Development
-  * [Node.js] *(v22.14.0 or greater)*.
-  * [pnpm] *(v10.5.2 or greater)*.
+* Frontend Development:
+  * [Node.js] *(v22.15.0 or greater)*.
+  * [pnpm] *(v10.10.0 or greater)*.
 * Integration Suites:
-  * [Docker] *(v27.5.0 or greater)*.
-  * [Docker Compose] *(v2.32.4 or greater)*
+  * [Docker] *(v28.1.1 or greater)*.
+  * [Docker Compose] *(v2.36.0 or greater)*
   * [chromium]
   * [delve]
 
@@ -45,7 +45,6 @@ In order to build and contribute to __Authelia__, you need to make sure the foll
 We only support docker being installed as a system package. It must not be installed via Snappy or other similar tools.
 If you wish to use these other tools we will not be able to provide support.
 {{< /callout >}}
-
 
 These additional tools are recommended:
 
@@ -69,11 +68,11 @@ means if you decide to do so.
 4. Trusting additional Root CA's for prolonged periods is not generally a good idea.
 
 If you'd still like to trust the Root CA Certificate it's located (encoded as a PEM) in the main git repository at
- [/internal/suites/common/pki/ca/ca.public.crt](https://github.com/authelia/authelia/blob/master/internal/suites/common/pki/ca/ca.public.crt).
+ [internal/suites/common/pki/ca/ca.public.crt](https://github.com/authelia/authelia/blob/master/internal/suites/common/pki/ca/ca.public.crt).
 
 ## Context
 
-There is a development context that can be loaded using `bootstrap.sh`. All that you need to do is satisfy the
+There is a development context that can be loaded using [bootstrap.sh]. All that you need to do is satisfy the
 prerequisites and run the below command (or an equivalent of):
 
 ```bash
@@ -87,39 +86,25 @@ This context gives you access to the following commands:
   [integration suites](integration-suites.md), or performing tests
 - [authelia-gen](../../reference/cli/authelia-gen/authelia-gen.md) - used to perform code generation, we recommend
   running this command just before you commit whenever you make changes
-- authelia-scripts - used to manage suites, generally we recommend using `authelia-scripts` instead
+- authelia-suites - used to manage suites, generally we recommend using `authelia-scripts` instead
 
 ## Frequently Asked Questions
 
-### Do you support development under Windows or OSX?
+### Do you support development under Windows or macOS?
 
-At the present time this is not officially supported. Some of the maintainers utilize Windows however running suites
-under Windows or OSX is not something that is currently possible to do easily. As such we recommend utilizing Linux.
+At the present time this is not officially supported. Some of the maintainers utilize Windows and/or macOS however
+running suites under Windows or macOS is not something that is currently possible to do easily. As such we recommend
+utilizing Linux.
 
-### What version of Docker and docker compose should I use?
+### Why can't I use old versions of docker and docker compose?
 
-We have no firm recommendations on the version to use with the exception that we no longer support v1 and instead only
-support the newer v2 plugin. We do however actively use the latest versions available to us in the distributions of our
-choice and we recommend the same for our users. As long as it's a modern version it should be sufficient for the
-development environment.
+We have geared all of our examples and suites based on modern versions of these products. If you decide to use an older
+version then you're on your own.
 
-### How can I serve my application under example.com?
+### How can I run the suite test applications when they're hosted on arbitrary domains?
 
-Don't worry, you don't need to own the domain `example.com` to test Authelia. Copy the following lines in
-your `/etc/hosts`:
-
-```text
-192.168.240.100 home.example.com
-192.168.240.100 login.example.com
-192.168.240.100 singlefactor.example.com
-192.168.240.100 public.example.com
-192.168.240.100 secure.example.com
-192.168.240.100 mail.example.com
-192.168.240.100 mx1.mail.example.com
-```
-
-The IP address `192.168.240.100` is the IP attributed by [Docker] to the reverse proxy. Once added you can access the
-listed subdomains from your browser, and they will be served by the reverse proxy.
+The [authelia-scripts bootstrap](../../reference/cli/authelia-scripts/authelia-scripts_bootstrap.md) subcommand handles
+this for you and creates the relevant hosts entries. This is automatically executed when using [bootstrap.sh].
 
 [suites]: ./integration-suites.md
 [Buildkite]: https://buildkite.com/
@@ -141,3 +126,4 @@ listed subdomains from your browser, and they will be served by the reverse prox
 [bash]: https://www.gnu.org/software/bash/
 [delve]: https://github.com/go-delve/delve
 [core team]: https://www.authelia.com/information/about/#core-team
+[bootstrap.sh]: https://github.com/authelia/authelia/blob/master/bootstrap.sh
