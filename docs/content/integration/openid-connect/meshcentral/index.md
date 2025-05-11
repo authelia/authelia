@@ -21,7 +21,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.2](https://github.com/authelia/authelia/releases/tag/v4.39.2)
+  - [v4.39.3](https://github.com/authelia/authelia/releases/tag/v4.39.3)
 - [MeshCentral]
   - [v1.1.44](https://github.com/Ylianst/MeshCentral/releases/tag/1.1.44)
 

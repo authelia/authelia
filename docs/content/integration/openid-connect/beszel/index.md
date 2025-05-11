@@ -21,7 +21,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.2](https://github.com/authelia/authelia/releases/tag/v4.39.2)
+  - [v4.39.3](https://github.com/authelia/authelia/releases/tag/v4.39.3)
 - [Beszel]
   - [v0.10.2](https://github.com/henrygd/beszel/releases/tag/v0.10.2)
 

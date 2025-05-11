@@ -2,7 +2,7 @@
 title: "Komodo"
 description: "Integrating Komodo with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2025-05-10T17:51:47+10:00
+date: 2025-05-10T10:01:23+00:00
 draft: false
 images: []
 weight: 620
@@ -21,7 +21,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.2](https://github.com/authelia/authelia/releases/tag/v4.39.2)
+  - [v4.39.3](https://github.com/authelia/authelia/releases/tag/v4.39.3)
 - [Komodo]
   - [v1.17.5](https://github.com/moghtech/komodo/releases/tag/v1.17.5)
 
