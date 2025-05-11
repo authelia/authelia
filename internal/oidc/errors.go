@@ -1,9 +1,13 @@
 package oidc
 
 import (
+	"context"
 	"errors"
+	"net/http"
+	"net/url"
 
 	oauthelia2 "authelia.com/provider/oauth2"
+	"github.com/valyala/fasthttp"
 )
 
 var (
@@ -31,3 +35,51 @@ var (
 
 	ErrClientAuthorizationUserAccessDenied = oauthelia2.ErrAccessDenied.WithHint("The user was denied access to this client.")
 )
+
+type RedirectAuthorizeErrorFieldResponseStrategyConfig interface {
+	oauthelia2.SendDebugMessagesToClientsProvider
+	GetContext(ctx context.Context) (octx Context)
+}
+
+type RedirectAuthorizeErrorFieldResponseStrategy struct {
+	Config RedirectAuthorizeErrorFieldResponseStrategyConfig
+}
+
+func (s *RedirectAuthorizeErrorFieldResponseStrategy) WriteErrorFieldResponse(ctx context.Context, rw http.ResponseWriter, requester oauthelia2.AuthorizeRequester, rfc *oauthelia2.RFC6749Error) {
+	if rfc == nil {
+		rfc = oauthelia2.ErrServerError
+	}
+
+	query := url.Values{}
+
+	if len(rfc.ErrorField) != 0 {
+		query.Set("error", rfc.ErrorField)
+	}
+
+	if len(rfc.DescriptionField) != 0 {
+		query.Set("error_description", rfc.DescriptionField)
+	}
+
+	if rfc.CodeField != 0 {
+		query.Set("error_status_code", string(rune(rfc.CodeField)))
+	}
+
+	if len(rfc.HintField) != 0 {
+		query.Set("error_hint", rfc.HintField)
+	}
+
+	if s.Config.GetSendDebugMessagesToClients(ctx) && len(rfc.DebugField) != 0 {
+		query.Set("error_debug", rfc.DebugField)
+	}
+
+	ctxx := s.Config.GetContext(ctx)
+
+	location := ctxx.RootURL().JoinPath(FrontendEndpointPathConsentCompletion)
+
+	location.RawQuery = query.Encode()
+
+	rw.Header().Set(fasthttp.HeaderCacheControl, "no-store")
+	rw.Header().Set(fasthttp.HeaderPragma, "no-cache")
+	rw.Header().Set(fasthttp.HeaderLocation, location.String())
+	rw.WriteHeader(http.StatusFound)
+}

@@ -24,6 +24,10 @@ export const ErrorDescription: string = "error_description";
 
 export const ErrorHint: string = "error_hint";
 
+export const ErrorDebug: string = "error_debug";
+
+export const ErrorStatusCode: string = "error_status_code";
+
 export const ErrorURI: string = "error_uri";
 
 export const FlowNameOpenIDConnect: string = "openid_connect";

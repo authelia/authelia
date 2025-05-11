@@ -154,13 +154,14 @@ type HashConfig struct {
 
 // StrategyConfig holds specific oauthelia2.Configurator information for various strategies.
 type StrategyConfig struct {
-	Core                 oauth2.CoreStrategy
-	OpenID               openid.OpenIDConnectTokenStrategy
-	Audience             oauthelia2.AudienceMatchingStrategy
-	Scope                oauthelia2.ScopeStrategy
-	JWT                  jwt.Strategy
-	JWKSFetcher          jwt.JWKSFetcherStrategy
-	ClientAuthentication oauthelia2.ClientAuthenticationStrategy
+	Core                        oauth2.CoreStrategy
+	OpenID                      openid.OpenIDConnectTokenStrategy
+	Audience                    oauthelia2.AudienceMatchingStrategy
+	Scope                       oauthelia2.ScopeStrategy
+	JWT                         jwt.Strategy
+	JWKSFetcher                 jwt.JWKSFetcherStrategy
+	ClientAuthentication        oauthelia2.ClientAuthenticationStrategy
+	AuthorizeErrorFieldResponse oauthelia2.AuthorizeErrorFieldResponseStrategy
 }
 
 // JWTAccessTokenConfig represents the JWT Access Token config.
@@ -891,6 +892,14 @@ func (c *Config) GetDefaultRFC8693RequestedTokenType(ctx context.Context) string
 
 func (c *Config) GetEnforceJWTProfileAccessTokens(ctx context.Context) (enforce bool) {
 	return c.EnforceJWTProfileAccessTokens
+}
+
+func (c *Config) GetAuthorizeErrorFieldResponseStrategy(ctx context.Context) (strategy oauthelia2.AuthorizeErrorFieldResponseStrategy) {
+	if c.Strategy.AuthorizeErrorFieldResponse == nil {
+		c.Strategy.AuthorizeErrorFieldResponse = &RedirectAuthorizeErrorFieldResponseStrategy{Config: c}
+	}
+
+	return c.Strategy.AuthorizeErrorFieldResponse
 }
 
 func (c *Config) GetContext(ctx context.Context) (octx Context) {

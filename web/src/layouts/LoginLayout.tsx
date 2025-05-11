@@ -1,6 +1,6 @@
 import React, { ReactNode, useCallback, useEffect, useState } from "react";
 
-import { Box, Container, Theme } from "@mui/material";
+import { Box, Breakpoint, Container, Theme } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
 import { makeStyles } from "tss-react/mui";
@@ -25,6 +25,7 @@ export interface Props {
     subtitle?: string | null;
     subtitleTooltip?: string | null;
     userInfo?: UserInfo;
+    maxWidth?: false | Breakpoint;
 }
 
 const LoginLayout = function (props: Props) {
@@ -81,11 +82,14 @@ const LoginLayout = function (props: Props) {
                 alignItems="center"
                 justifyContent="center"
             >
-                <Container maxWidth="xs" className={classes.rootContainer}>
+                <Container
+                    maxWidth={props.maxWidth === undefined ? "xs" : props.maxWidth}
+                    className={classes.rootContainer}
+                >
                     <Grid container>
                         <Grid size={{ xs: 12 }}>{logo}</Grid>
                         {props.title ? (
-                            <Grid size={{ xs: 12 }}>
+                            <Grid size={{ xs: 12 }} maxWidth={"xs"}>
                                 <TypographyWithTooltip
                                     variant={"h5"}
                                     value={props.title}
