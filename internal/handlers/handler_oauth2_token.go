@@ -31,6 +31,18 @@ func OAuth2TokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *
 
 	client := requester.GetClient()
 
+	if c, ok := client.(oidc.Client); ok {
+		ctx.Logger.WithFields(map[string]any{
+			"client_id":                               c.GetID(),
+			"access_token_signed_response_kid":        c.GetAccessTokenSignedResponseKeyID(),
+			"access_token_signed_response_alg":        c.GetAccessTokenSignedResponseAlg(),
+			"access_token_encrypted_response_kid":     c.GetAccessTokenEncryptedResponseKeyID(),
+			"access_token_encrypted_response_alg":     c.GetAccessTokenEncryptedResponseAlg(),
+			"access_token_encrypted_response_enc":     c.GetAccessTokenEncryptedResponseEnc(),
+			"enable_jwt_profile_oauth2_access_tokens": c.GetEnableJWTProfileOAuthAccessTokens(),
+		}).Tracef("Access Request with id '%s' is being handled by a client", requester.GetID())
+	}
+
 	ctx.Logger.Debugf("Access Request with id '%s' on client with id '%s' is being processed", requester.GetID(), client.GetID())
 
 	if requester.GetGrantTypes().ExactOne(oidc.GrantTypeClientCredentials) {
