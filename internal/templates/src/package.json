@@ -18,7 +18,7 @@
 		"react": "19.1.0",
 		"react-dom": "19.1.0",
 		"react-email": "4.0.13",
-		"tailwind-merge": "3.2.0",
+		"tailwind-merge": "3.3.0",
 		"tailwindcss": "4.1.6",
 		"typescript": "5.8.3"
 	},
