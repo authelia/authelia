@@ -3047,6 +3047,8 @@ func TestValidateOIDCClients(t *testing.T) {
 				assert.Equal(t, oidc.EncryptionEncA128CBCHS256, have.Clients[0].UserinfoEncryptedResponseEnc)
 				assert.Equal(t, oidc.EncryptionEncA128CBCHS256, have.Clients[0].IntrospectionEncryptedResponseEnc)
 				assert.Equal(t, oidc.EncryptionEncA128CBCHS256, have.Clients[0].AccessTokenEncryptedResponseEnc)
+
+				assert.True(t, have.Discovery.JWTResponseAccessTokens)
 			},
 			tcv{
 				nil,
