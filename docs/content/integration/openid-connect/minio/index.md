@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.39.2](https://github.com/authelia/authelia/releases/tag/v4.39.2)
 - [MinIO]
-  - [2025-03-12T18-04-18Z](https://github.com/minio/minio/releases/tag/RELEASE.2025-03-12T18-04-18Z)
+  - [2025-04-22T22-12-26Z](https://github.com/minio/minio/releases/tag/RELEASE.2025-04-22T22-12-26Z)
 
 {{% oidc-common %}}
 
@@ -85,7 +85,7 @@ MINIO_IDENTITY_OPENID_CONFIG_URL=https://{{< sitevar name="subdomain-authelia" n
 MINIO_IDENTITY_OPENID_CLIENT_ID=minio
 MINIO_IDENTITY_OPENID_CLIENT_SECRET=insecure_secret
 MINIO_IDENTITY_OPENID_SCOPES=openid,profile,email,groups
-MINIO_IDENTITY_OPENID_REDIRECT_URI=https://minio.{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/oauth_callback
+MINIO_IDENTITY_OPENID_REDIRECT_URI=https://minio.{{< sitevar name="domain" nojs="example.com" >}}/oauth_callback
 MINIO_IDENTITY_OPENID_REDIRECT_URI_DYNAMIC=off
 MINIO_IDENTITY_OPENID_DISPLAY_NAME=Authelia
 MINIO_IDENTITY_OPENID_CLAIM_NAME=groups
@@ -102,7 +102,7 @@ services:
       MINIO_IDENTITY_OPENID_CLIENT_ID: 'minio'
       MINIO_IDENTITY_OPENID_CLIENT_SECRET: 'insecure_secret'
       MINIO_IDENTITY_OPENID_SCOPES: 'openid,profile,email,groups'
-      MINIO_IDENTITY_OPENID_REDIRECT_URI: 'https://minio.{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/oauth_callback'
+      MINIO_IDENTITY_OPENID_REDIRECT_URI: 'https://minio.{{< sitevar name="domain" nojs="example.com" >}}/oauth_callback'
       MINIO_IDENTITY_OPENID_REDIRECT_URI_DYNAMIC: 'off'
       MINIO_IDENTITY_OPENID_DISPLAY_NAME: 'Authelia'
       MINIO_IDENTITY_OPENID_CLAIM_NAME: 'groups'
