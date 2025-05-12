@@ -14,7 +14,7 @@ export interface Props {
 }
 
 const SecondFactorMethodOneTimePassword = function (props: Props) {
-    const { t: translate } = useTranslation("settings");
+    const { t: translate } = useTranslation(["settings", "portal"]);
 
     const [passcode, setPasscode] = useState("");
     const [state, setState] = useState(State.Idle);
@@ -49,7 +49,7 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
 
             setState(State.RateLimited);
 
-            createErrorNotification(translate("You have made too many requests"));
+            createErrorNotification(translate("You have made too many requests", { ns: "portal" }));
 
             timeoutRateLimit.current = setTimeout(() => {
                 setState(State.Idle);
@@ -80,7 +80,7 @@ const SecondFactorMethodOneTimePassword = function (props: Props) {
                     handleRateLimited(res.retryAfter);
                 }
             } else {
-                createErrorNotification(translate("The One-Time Password might be wrong"));
+                createErrorNotification(translate("The One-Time Password might be wrong", { ns: "portal" }));
                 setState(State.Failure);
             }
         } catch (err) {

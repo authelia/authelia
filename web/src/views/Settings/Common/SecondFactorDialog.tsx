@@ -42,7 +42,7 @@ type Props = {
 };
 
 const SecondFactorDialog = function (props: Props) {
-    const { t: translate } = useTranslation("settings");
+    const { t: translate } = useTranslation(["settings", "portal"]);
     const { classes } = useStyles();
 
     const [open, setOpen] = useState(false);
@@ -137,7 +137,7 @@ const SecondFactorDialog = function (props: Props) {
             <DialogContent>
                 <DialogContentText gutterBottom>
                     {translate(
-                        "In order to perform this action policy enforcement requires two faction authentication is performed",
+                        "In order to perform this action, policy enforcement requires that two-factor authentication is performed",
                     )}
                 </DialogContentText>
                 <Stepper activeStep={activeStep}>
@@ -176,7 +176,7 @@ const SecondFactorDialog = function (props: Props) {
                                     {translate("Email One-Time Code")}
                                 </Button>
                                 <Divider />
-                                <Typography variant={"h5"}>{translate("OR")}</Typography>
+                                <Typography variant={"h5"}>{translate("or", { ns: "portal" })}</Typography>
                                 <Divider />
                             </Fragment>
                         ) : null}

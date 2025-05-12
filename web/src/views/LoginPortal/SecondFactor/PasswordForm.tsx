@@ -20,7 +20,7 @@ export interface Props {
 
 const PasswordForm = function (props: Props) {
     const { createErrorNotification } = useNotifications();
-    const { t: translate } = useTranslation();
+    const { t: translate } = useTranslation(["portal", "settings"]);
 
     const redirectionURL = useQueryParam(RedirectionURL);
     const { id: flowID, flow, subflow } = useFlow();
@@ -128,7 +128,7 @@ const PasswordForm = function (props: Props) {
                                 endAdornment: (
                                     <InputAdornment position="end">
                                         <IconButton
-                                            aria-label="toggle password visibility"
+                                            aria-label={translate("Toggle password visibility")}
                                             edge="end"
                                             size="large"
                                             onMouseDown={() => setShowPassword(true)}
@@ -178,7 +178,7 @@ const PasswordForm = function (props: Props) {
                         disabled={loading}
                         onClick={handleSignIn}
                     >
-                        {translate("Authenticate")}
+                        {translate("Authenticate", { ns: "settings" })}
                     </Button>
                 </Grid>
             </Grid>

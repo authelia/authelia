@@ -33,7 +33,7 @@ export interface Props {
 }
 
 const SecondFactorMethodMobilePush = function (props: Props) {
-    const { t: translate } = useTranslation("settings");
+    const { t: translate } = useTranslation("portal");
     const { classes } = useStyles();
 
     const [state, setState] = useState(State.SignInInProgress);
