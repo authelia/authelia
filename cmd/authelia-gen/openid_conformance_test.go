@@ -36,12 +36,12 @@ func TestOpenIDConnectConformanceSuiteBuilder_Build(t *testing.T) {
 	}{
 		{
 			"ShouldHandleConfig",
-			&OpenIDConnectConformanceSuiteBuilder{"config", "Config", true, "4.40", "implicit", "one_factor", nil, autheliaURL},
+			&OpenIDConnectConformanceSuiteBuilder{"authelia", "config", "Config", true, "4.40", "implicit", "one_factor", nil, autheliaURL},
 			OpenIDConnectConformanceSuite{
 				Name: "conformance-config",
 				Plan: OpenIDConnectConformanceSuitePlan{
 					Name:        "oidcc-config-certification-test-plan",
-					Alias:       "conformance-config-440",
+					Alias:       "conformance-config-authelia440",
 					Description: "Authelia 4.40 Config Certification Profile",
 					Publish:     "summary",
 					Server: OpenIDConnectConformanceSuitePlanServer{
@@ -52,12 +52,12 @@ func TestOpenIDConnectConformanceSuiteBuilder_Build(t *testing.T) {
 		},
 		{
 			"ShouldHandleBasic",
-			&OpenIDConnectConformanceSuiteBuilder{"basic", "Basic", true, "4.40", "implicit", "one_factor", suiteURL, autheliaURL},
+			&OpenIDConnectConformanceSuiteBuilder{"authelia", "basic", "Basic", true, "4.40", "implicit", "one_factor", suiteURL, autheliaURL},
 			OpenIDConnectConformanceSuite{
 				Name: "conformance-basic",
 				Plan: OpenIDConnectConformanceSuitePlan{
 					Name:        "oidcc-basic-certification-test-plan",
-					Alias:       "conformance-basic-440",
+					Alias:       "conformance-basic-authelia440",
 					Description: "Authelia 4.40 Basic Certification Profile",
 					Publish:     "summary",
 					Variant: &OpenIDConnectConformanceSuitePlanVariant{
@@ -68,25 +68,25 @@ func TestOpenIDConnectConformanceSuiteBuilder_Build(t *testing.T) {
 						DiscoveryURL: "https://auth.example.com/.well-known/openid-configuration",
 					},
 					Client: &OpenIDConnectConformanceSuitePlanClient{
-						ID:     "conformance-certification-basic-440",
+						ID:     "conformance-certification-basic-authelia440",
 						Secret: "present",
 					},
 					ClientAlternate: &OpenIDConnectConformanceSuitePlanClient{
-						ID:     "conformance-certification-basic-440-alt",
+						ID:     "conformance-certification-basic-authelia440-alt",
 						Secret: "present",
 					},
 					ClientSecretPost: &OpenIDConnectConformanceSuitePlanClient{
-						ID:     "conformance-certification-basic-440-post",
+						ID:     "conformance-certification-basic-authelia440-post",
 						Secret: "present",
 					},
 				},
 				Clients: []schema.IdentityProvidersOpenIDConnectClient{
 					{
-						ID:     "conformance-certification-basic-440",
+						ID:     "conformance-certification-basic-authelia440",
 						Name:   "Authelia 4.40 Basic Certification Profile",
 						Secret: secret,
 						RedirectURIs: []string{
-							"https://conformance.example.com/test/a/conformance-basic-440/callback",
+							"https://conformance.example.com/test/a/conformance-basic-authelia440/callback",
 						},
 						ResponseModes:           []string{"query", "query.jwt"},
 						ResponseTypes:           []string{"code"},
@@ -94,11 +94,11 @@ func TestOpenIDConnectConformanceSuiteBuilder_Build(t *testing.T) {
 						TokenEndpointAuthMethod: "client_secret_basic",
 					},
 					{
-						ID:     "conformance-certification-basic-440-alt",
+						ID:     "conformance-certification-basic-authelia440-alt",
 						Name:   "Authelia 4.40 Basic Certification Profile (Alternate)",
 						Secret: secret,
 						RedirectURIs: []string{
-							"https://conformance.example.com/test/a/conformance-basic-440/callback",
+							"https://conformance.example.com/test/a/conformance-basic-authelia440/callback",
 						},
 						ResponseModes:           []string{"query", "query.jwt"},
 						ResponseTypes:           []string{"code"},
@@ -106,11 +106,11 @@ func TestOpenIDConnectConformanceSuiteBuilder_Build(t *testing.T) {
 						TokenEndpointAuthMethod: "client_secret_basic",
 					},
 					{
-						ID:     "conformance-certification-basic-440-post",
+						ID:     "conformance-certification-basic-authelia440-post",
 						Name:   "Authelia 4.40 Basic Certification Profile (Secret Post)",
 						Secret: secret,
 						RedirectURIs: []string{
-							"https://conformance.example.com/test/a/conformance-basic-440/callback",
+							"https://conformance.example.com/test/a/conformance-basic-authelia440/callback",
 						},
 						ResponseModes:           []string{"query", "query.jwt"},
 						ResponseTypes:           []string{"code"},
@@ -122,12 +122,12 @@ func TestOpenIDConnectConformanceSuiteBuilder_Build(t *testing.T) {
 		},
 		{
 			"ShouldHandleBasicFormPost",
-			&OpenIDConnectConformanceSuiteBuilder{"basic-form-post", "Basic (Form Post)", true, "4.40", "implicit", "one_factor", suiteURL, autheliaURL},
+			&OpenIDConnectConformanceSuiteBuilder{"authelia", "basic-form-post", "Basic (Form Post)", true, "4.40", "implicit", "one_factor", suiteURL, autheliaURL},
 			OpenIDConnectConformanceSuite{
 				Name: "conformance-basic-form-post",
 				Plan: OpenIDConnectConformanceSuitePlan{
 					Name:        "oidcc-basic-form-post-certification-test-plan",
-					Alias:       "conformance-basic-form-post-440",
+					Alias:       "conformance-basic-form-post-authelia440",
 					Description: "Authelia 4.40 Basic (Form Post) Certification Profile",
 					Publish:     "summary",
 					Variant: &OpenIDConnectConformanceSuitePlanVariant{
@@ -138,25 +138,25 @@ func TestOpenIDConnectConformanceSuiteBuilder_Build(t *testing.T) {
 						DiscoveryURL: "https://auth.example.com/.well-known/openid-configuration",
 					},
 					Client: &OpenIDConnectConformanceSuitePlanClient{
-						ID:     "conformance-certification-basic-form-post-440",
+						ID:     "conformance-certification-basic-form-post-authelia440",
 						Secret: "present",
 					},
 					ClientAlternate: &OpenIDConnectConformanceSuitePlanClient{
-						ID:     "conformance-certification-basic-form-post-440-alt",
+						ID:     "conformance-certification-basic-form-post-authelia440-alt",
 						Secret: "present",
 					},
 					ClientSecretPost: &OpenIDConnectConformanceSuitePlanClient{
-						ID:     "conformance-certification-basic-form-post-440-post",
+						ID:     "conformance-certification-basic-form-post-authelia440-post",
 						Secret: "present",
 					},
 				},
 				Clients: []schema.IdentityProvidersOpenIDConnectClient{
 					{
-						ID:     "conformance-certification-basic-form-post-440",
+						ID:     "conformance-certification-basic-form-post-authelia440",
 						Name:   "Authelia 4.40 Basic (Form Post) Certification Profile",
 						Secret: secret,
 						RedirectURIs: []string{
-							"https://conformance.example.com/test/a/conformance-basic-form-post-440/callback",
+							"https://conformance.example.com/test/a/conformance-basic-form-post-authelia440/callback",
 						},
 						ResponseModes:           []string{"form_post", "form_post.jwt"},
 						ResponseTypes:           []string{"code"},
@@ -164,11 +164,11 @@ func TestOpenIDConnectConformanceSuiteBuilder_Build(t *testing.T) {
 						TokenEndpointAuthMethod: "client_secret_basic",
 					},
 					{
-						ID:     "conformance-certification-basic-form-post-440-alt",
+						ID:     "conformance-certification-basic-form-post-authelia440-alt",
 						Name:   "Authelia 4.40 Basic (Form Post) Certification Profile (Alternate)",
 						Secret: secret,
 						RedirectURIs: []string{
-							"https://conformance.example.com/test/a/conformance-basic-form-post-440/callback",
+							"https://conformance.example.com/test/a/conformance-basic-form-post-authelia440/callback",
 						},
 						ResponseModes:           []string{"form_post", "form_post.jwt"},
 						ResponseTypes:           []string{"code"},
@@ -176,11 +176,11 @@ func TestOpenIDConnectConformanceSuiteBuilder_Build(t *testing.T) {
 						TokenEndpointAuthMethod: "client_secret_basic",
 					},
 					{
-						ID:     "conformance-certification-basic-form-post-440-post",
+						ID:     "conformance-certification-basic-form-post-authelia440-post",
 						Name:   "Authelia 4.40 Basic (Form Post) Certification Profile (Secret Post)",
 						Secret: secret,
 						RedirectURIs: []string{
-							"https://conformance.example.com/test/a/conformance-basic-form-post-440/callback",
+							"https://conformance.example.com/test/a/conformance-basic-form-post-authelia440/callback",
 						},
 						ResponseModes:           []string{"form_post", "form_post.jwt"},
 						ResponseTypes:           []string{"code"},
@@ -192,12 +192,12 @@ func TestOpenIDConnectConformanceSuiteBuilder_Build(t *testing.T) {
 		},
 		{
 			"ShouldHandleImplicit",
-			&OpenIDConnectConformanceSuiteBuilder{"implicit", "Implicit", true, "4.40", "implicit", "one_factor", suiteURL, autheliaURL},
+			&OpenIDConnectConformanceSuiteBuilder{"authelia", "implicit", "Implicit", true, "4.40", "implicit", "one_factor", suiteURL, autheliaURL},
 			OpenIDConnectConformanceSuite{
 				Name: "conformance-implicit",
 				Plan: OpenIDConnectConformanceSuitePlan{
 					Name:        "oidcc-implicit-certification-test-plan",
-					Alias:       "conformance-implicit-440",
+					Alias:       "conformance-implicit-authelia440",
 					Description: "Authelia 4.40 Implicit Certification Profile",
 					Publish:     "summary",
 					Variant: &OpenIDConnectConformanceSuitePlanVariant{
@@ -208,25 +208,25 @@ func TestOpenIDConnectConformanceSuiteBuilder_Build(t *testing.T) {
 						DiscoveryURL: "https://auth.example.com/.well-known/openid-configuration",
 					},
 					Client: &OpenIDConnectConformanceSuitePlanClient{
-						ID:     "conformance-certification-implicit-440",
+						ID:     "conformance-certification-implicit-authelia440",
 						Secret: "present",
 					},
 					ClientAlternate: &OpenIDConnectConformanceSuitePlanClient{
-						ID:     "conformance-certification-implicit-440-alt",
+						ID:     "conformance-certification-implicit-authelia440-alt",
 						Secret: "present",
 					},
 					ClientSecretPost: &OpenIDConnectConformanceSuitePlanClient{
-						ID:     "conformance-certification-implicit-440-post",
+						ID:     "conformance-certification-implicit-authelia440-post",
 						Secret: "present",
 					},
 				},
 				Clients: []schema.IdentityProvidersOpenIDConnectClient{
 					{
-						ID:     "conformance-certification-implicit-440",
+						ID:     "conformance-certification-implicit-authelia440",
 						Name:   "Authelia 4.40 Implicit Certification Profile",
 						Secret: secret,
 						RedirectURIs: []string{
-							"https://conformance.example.com/test/a/conformance-implicit-440/callback",
+							"https://conformance.example.com/test/a/conformance-implicit-authelia440/callback",
 						},
 						ResponseModes:           []string{"query", "query.jwt"},
 						ResponseTypes:           []string{"code", "id_token", "token", "id_token token"},
@@ -234,11 +234,11 @@ func TestOpenIDConnectConformanceSuiteBuilder_Build(t *testing.T) {
 						TokenEndpointAuthMethod: "client_secret_basic",
 					},
 					{
-						ID:     "conformance-certification-implicit-440-alt",
+						ID:     "conformance-certification-implicit-authelia440-alt",
 						Name:   "Authelia 4.40 Implicit Certification Profile (Alternate)",
 						Secret: secret,
 						RedirectURIs: []string{
-							"https://conformance.example.com/test/a/conformance-implicit-440/callback",
+							"https://conformance.example.com/test/a/conformance-implicit-authelia440/callback",
 						},
 						ResponseModes:           []string{"query", "query.jwt"},
 						ResponseTypes:           []string{"code", "id_token", "token", "id_token token"},
@@ -246,11 +246,11 @@ func TestOpenIDConnectConformanceSuiteBuilder_Build(t *testing.T) {
 						TokenEndpointAuthMethod: "client_secret_basic",
 					},
 					{
-						ID:     "conformance-certification-implicit-440-post",
+						ID:     "conformance-certification-implicit-authelia440-post",
 						Name:   "Authelia 4.40 Implicit Certification Profile (Secret Post)",
 						Secret: secret,
 						RedirectURIs: []string{
-							"https://conformance.example.com/test/a/conformance-implicit-440/callback",
+							"https://conformance.example.com/test/a/conformance-implicit-authelia440/callback",
 						},
 						ResponseModes:           []string{"query", "query.jwt"},
 						ResponseTypes:           []string{"code", "id_token", "token", "id_token token"},
@@ -262,12 +262,12 @@ func TestOpenIDConnectConformanceSuiteBuilder_Build(t *testing.T) {
 		},
 		{
 			"ShouldHandleImplicitFormPost",
-			&OpenIDConnectConformanceSuiteBuilder{"implicit-form-post", "Implicit (Form Post)", true, "4.40", "implicit", "one_factor", suiteURL, autheliaURL},
+			&OpenIDConnectConformanceSuiteBuilder{"authelia", "implicit-form-post", "Implicit (Form Post)", true, "4.40", "implicit", "one_factor", suiteURL, autheliaURL},
 			OpenIDConnectConformanceSuite{
 				Name: "conformance-implicit-form-post",
 				Plan: OpenIDConnectConformanceSuitePlan{
 					Name:        "oidcc-implicit-form-post-certification-test-plan",
-					Alias:       "conformance-implicit-form-post-440",
+					Alias:       "conformance-implicit-form-post-authelia440",
 					Description: "Authelia 4.40 Implicit (Form Post) Certification Profile",
 					Publish:     "summary",
 					Variant: &OpenIDConnectConformanceSuitePlanVariant{
@@ -278,25 +278,25 @@ func TestOpenIDConnectConformanceSuiteBuilder_Build(t *testing.T) {
 						DiscoveryURL: "https://auth.example.com/.well-known/openid-configuration",
 					},
 					Client: &OpenIDConnectConformanceSuitePlanClient{
-						ID:     "conformance-certification-implicit-form-post-440",
+						ID:     "conformance-certification-implicit-form-post-authelia440",
 						Secret: "present",
 					},
 					ClientAlternate: &OpenIDConnectConformanceSuitePlanClient{
-						ID:     "conformance-certification-implicit-form-post-440-alt",
+						ID:     "conformance-certification-implicit-form-post-authelia440-alt",
 						Secret: "present",
 					},
 					ClientSecretPost: &OpenIDConnectConformanceSuitePlanClient{
-						ID:     "conformance-certification-implicit-form-post-440-post",
+						ID:     "conformance-certification-implicit-form-post-authelia440-post",
 						Secret: "present",
 					},
 				},
 				Clients: []schema.IdentityProvidersOpenIDConnectClient{
 					{
-						ID:     "conformance-certification-implicit-form-post-440",
+						ID:     "conformance-certification-implicit-form-post-authelia440",
 						Name:   "Authelia 4.40 Implicit (Form Post) Certification Profile",
 						Secret: secret,
 						RedirectURIs: []string{
-							"https://conformance.example.com/test/a/conformance-implicit-form-post-440/callback",
+							"https://conformance.example.com/test/a/conformance-implicit-form-post-authelia440/callback",
 						},
 						ResponseModes:           []string{"form_post", "form_post.jwt"},
 						ResponseTypes:           []string{"code", "id_token", "token", "id_token token"},
@@ -304,11 +304,11 @@ func TestOpenIDConnectConformanceSuiteBuilder_Build(t *testing.T) {
 						TokenEndpointAuthMethod: "client_secret_basic",
 					},
 					{
-						ID:     "conformance-certification-implicit-form-post-440-alt",
+						ID:     "conformance-certification-implicit-form-post-authelia440-alt",
 						Name:   "Authelia 4.40 Implicit (Form Post) Certification Profile (Alternate)",
 						Secret: secret,
 						RedirectURIs: []string{
-							"https://conformance.example.com/test/a/conformance-implicit-form-post-440/callback",
+							"https://conformance.example.com/test/a/conformance-implicit-form-post-authelia440/callback",
 						},
 						ResponseModes:           []string{"form_post", "form_post.jwt"},
 						ResponseTypes:           []string{"code", "id_token", "token", "id_token token"},
@@ -316,11 +316,11 @@ func TestOpenIDConnectConformanceSuiteBuilder_Build(t *testing.T) {
 						TokenEndpointAuthMethod: "client_secret_basic",
 					},
 					{
-						ID:     "conformance-certification-implicit-form-post-440-post",
+						ID:     "conformance-certification-implicit-form-post-authelia440-post",
 						Name:   "Authelia 4.40 Implicit (Form Post) Certification Profile (Secret Post)",
 						Secret: secret,
 						RedirectURIs: []string{
-							"https://conformance.example.com/test/a/conformance-implicit-form-post-440/callback",
+							"https://conformance.example.com/test/a/conformance-implicit-form-post-authelia440/callback",
 						},
 						ResponseModes:           []string{"form_post", "form_post.jwt"},
 						ResponseTypes:           []string{"code", "id_token", "token", "id_token token"},
@@ -332,12 +332,12 @@ func TestOpenIDConnectConformanceSuiteBuilder_Build(t *testing.T) {
 		},
 		{
 			"ShouldHandleHybrid",
-			&OpenIDConnectConformanceSuiteBuilder{"hybrid", "Hybrid", true, "4.40", "implicit", "one_factor", suiteURL, autheliaURL},
+			&OpenIDConnectConformanceSuiteBuilder{"authelia", "hybrid", "Hybrid", true, "4.40", "implicit", "one_factor", suiteURL, autheliaURL},
 			OpenIDConnectConformanceSuite{
 				Name: "conformance-hybrid",
 				Plan: OpenIDConnectConformanceSuitePlan{
 					Name:        "oidcc-hybrid-certification-test-plan",
-					Alias:       "conformance-hybrid-440",
+					Alias:       "conformance-hybrid-authelia440",
 					Description: "Authelia 4.40 Hybrid Certification Profile",
 					Publish:     "summary",
 					Variant: &OpenIDConnectConformanceSuitePlanVariant{
@@ -348,25 +348,25 @@ func TestOpenIDConnectConformanceSuiteBuilder_Build(t *testing.T) {
 						DiscoveryURL: "https://auth.example.com/.well-known/openid-configuration",
 					},
 					Client: &OpenIDConnectConformanceSuitePlanClient{
-						ID:     "conformance-certification-hybrid-440",
+						ID:     "conformance-certification-hybrid-authelia440",
 						Secret: "present",
 					},
 					ClientAlternate: &OpenIDConnectConformanceSuitePlanClient{
-						ID:     "conformance-certification-hybrid-440-alt",
+						ID:     "conformance-certification-hybrid-authelia440-alt",
 						Secret: "present",
 					},
 					ClientSecretPost: &OpenIDConnectConformanceSuitePlanClient{
-						ID:     "conformance-certification-hybrid-440-post",
+						ID:     "conformance-certification-hybrid-authelia440-post",
 						Secret: "present",
 					},
 				},
 				Clients: []schema.IdentityProvidersOpenIDConnectClient{
 					{
-						ID:     "conformance-certification-hybrid-440",
+						ID:     "conformance-certification-hybrid-authelia440",
 						Name:   "Authelia 4.40 Hybrid Certification Profile",
 						Secret: secret,
 						RedirectURIs: []string{
-							"https://conformance.example.com/test/a/conformance-hybrid-440/callback",
+							"https://conformance.example.com/test/a/conformance-hybrid-authelia440/callback",
 						},
 						ResponseModes:           []string{"query", "query.jwt"},
 						ResponseTypes:           []string{"code", "code id_token", "code token", "code id_token token"},
@@ -374,11 +374,11 @@ func TestOpenIDConnectConformanceSuiteBuilder_Build(t *testing.T) {
 						TokenEndpointAuthMethod: "client_secret_basic",
 					},
 					{
-						ID:     "conformance-certification-hybrid-440-alt",
+						ID:     "conformance-certification-hybrid-authelia440-alt",
 						Name:   "Authelia 4.40 Hybrid Certification Profile (Alternate)",
 						Secret: secret,
 						RedirectURIs: []string{
-							"https://conformance.example.com/test/a/conformance-hybrid-440/callback",
+							"https://conformance.example.com/test/a/conformance-hybrid-authelia440/callback",
 						},
 						ResponseModes:           []string{"query", "query.jwt"},
 						ResponseTypes:           []string{"code", "code id_token", "code token", "code id_token token"},
@@ -386,11 +386,11 @@ func TestOpenIDConnectConformanceSuiteBuilder_Build(t *testing.T) {
 						TokenEndpointAuthMethod: "client_secret_basic",
 					},
 					{
-						ID:     "conformance-certification-hybrid-440-post",
+						ID:     "conformance-certification-hybrid-authelia440-post",
 						Name:   "Authelia 4.40 Hybrid Certification Profile (Secret Post)",
 						Secret: secret,
 						RedirectURIs: []string{
-							"https://conformance.example.com/test/a/conformance-hybrid-440/callback",
+							"https://conformance.example.com/test/a/conformance-hybrid-authelia440/callback",
 						},
 						ResponseModes:           []string{"query", "query.jwt"},
 						ResponseTypes:           []string{"code", "code id_token", "code token", "code id_token token"},
@@ -402,12 +402,12 @@ func TestOpenIDConnectConformanceSuiteBuilder_Build(t *testing.T) {
 		},
 		{
 			"ShouldHandleHybridFormPost",
-			&OpenIDConnectConformanceSuiteBuilder{"hybrid-form-post", "Hybrid (Form Post)", true, "4.40", "implicit", "one_factor", suiteURL, autheliaURL},
+			&OpenIDConnectConformanceSuiteBuilder{"authelia", "hybrid-form-post", "Hybrid (Form Post)", true, "4.40", "implicit", "one_factor", suiteURL, autheliaURL},
 			OpenIDConnectConformanceSuite{
 				Name: "conformance-hybrid-form-post",
 				Plan: OpenIDConnectConformanceSuitePlan{
 					Name:        "oidcc-hybrid-form-post-certification-test-plan",
-					Alias:       "conformance-hybrid-form-post-440",
+					Alias:       "conformance-hybrid-form-post-authelia440",
 					Description: "Authelia 4.40 Hybrid (Form Post) Certification Profile",
 					Publish:     "summary",
 					Variant: &OpenIDConnectConformanceSuitePlanVariant{
@@ -418,25 +418,25 @@ func TestOpenIDConnectConformanceSuiteBuilder_Build(t *testing.T) {
 						DiscoveryURL: "https://auth.example.com/.well-known/openid-configuration",
 					},
 					Client: &OpenIDConnectConformanceSuitePlanClient{
-						ID:     "conformance-certification-hybrid-form-post-440",
+						ID:     "conformance-certification-hybrid-form-post-authelia440",
 						Secret: "present",
 					},
 					ClientAlternate: &OpenIDConnectConformanceSuitePlanClient{
-						ID:     "conformance-certification-hybrid-form-post-440-alt",
+						ID:     "conformance-certification-hybrid-form-post-authelia440-alt",
 						Secret: "present",
 					},
 					ClientSecretPost: &OpenIDConnectConformanceSuitePlanClient{
-						ID:     "conformance-certification-hybrid-form-post-440-post",
+						ID:     "conformance-certification-hybrid-form-post-authelia440-post",
 						Secret: "present",
 					},
 				},
 				Clients: []schema.IdentityProvidersOpenIDConnectClient{
 					{
-						ID:     "conformance-certification-hybrid-form-post-440",
+						ID:     "conformance-certification-hybrid-form-post-authelia440",
 						Name:   "Authelia 4.40 Hybrid (Form Post) Certification Profile",
 						Secret: secret,
 						RedirectURIs: []string{
-							"https://conformance.example.com/test/a/conformance-hybrid-form-post-440/callback",
+							"https://conformance.example.com/test/a/conformance-hybrid-form-post-authelia440/callback",
 						},
 						ResponseModes:           []string{"form_post", "form_post.jwt"},
 						ResponseTypes:           []string{"code", "code id_token", "code token", "code id_token token"},
@@ -444,11 +444,11 @@ func TestOpenIDConnectConformanceSuiteBuilder_Build(t *testing.T) {
 						TokenEndpointAuthMethod: "client_secret_basic",
 					},
 					{
-						ID:     "conformance-certification-hybrid-form-post-440-alt",
+						ID:     "conformance-certification-hybrid-form-post-authelia440-alt",
 						Name:   "Authelia 4.40 Hybrid (Form Post) Certification Profile (Alternate)",
 						Secret: secret,
 						RedirectURIs: []string{
-							"https://conformance.example.com/test/a/conformance-hybrid-form-post-440/callback",
+							"https://conformance.example.com/test/a/conformance-hybrid-form-post-authelia440/callback",
 						},
 						ResponseModes:           []string{"form_post", "form_post.jwt"},
 						ResponseTypes:           []string{"code", "code id_token", "code token", "code id_token token"},
@@ -456,11 +456,11 @@ func TestOpenIDConnectConformanceSuiteBuilder_Build(t *testing.T) {
 						TokenEndpointAuthMethod: "client_secret_basic",
 					},
 					{
-						ID:     "conformance-certification-hybrid-form-post-440-post",
+						ID:     "conformance-certification-hybrid-form-post-authelia440-post",
 						Name:   "Authelia 4.40 Hybrid (Form Post) Certification Profile (Secret Post)",
 						Secret: secret,
 						RedirectURIs: []string{
-							"https://conformance.example.com/test/a/conformance-hybrid-form-post-440/callback",
+							"https://conformance.example.com/test/a/conformance-hybrid-form-post-authelia440/callback",
 						},
 						ResponseModes:           []string{"form_post", "form_post.jwt"},
 						ResponseTypes:           []string{"code", "code id_token", "code token", "code id_token token"},

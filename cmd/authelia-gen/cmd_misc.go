@@ -64,13 +64,14 @@ func newMiscOIDCConformanceCmd() *cobra.Command {
 	cmd.Flags().StringSlice("suites", nil, "names of the plans to generate")
 	cmd.Flags().String("consent", "implicit", "name of the consent mode to use")
 	cmd.Flags().String("policy", "one_factor", "name of the authorization policy to use")
+	cmd.Flags().String("brand", "authelia", "brand name to use")
 
 	return cmd
 }
 
 func miscOIDCConformanceRunE(cmd *cobra.Command, args []string) (err error) {
 	var (
-		rawURL, version, token, consent, policy string
+		rawURL, version, token, consent, policy, brand string
 
 		autheliaURL, suiteURL *url.URL
 
@@ -109,11 +110,15 @@ func miscOIDCConformanceRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	return miscOIDCConformance(version, token, consent, policy, autheliaURL, suiteURL, suiteNames...)
+	if brand, err = cmd.Flags().GetString("brand"); err != nil {
+		return err
+	}
+
+	return miscOIDCConformance(version, token, consent, policy, brand, autheliaURL, suiteURL, suiteNames...)
 }
 
-func miscOIDCConformance(version, token, consent, policy string, autheliaURL, suiteURL *url.URL, suiteNames ...string) (err error) {
-	suites := miscOIDCConformanceBuildSuites(version, consent, policy, suiteURL, autheliaURL, suiteNames...)
+func miscOIDCConformance(version, token, consent, policy, brand string, autheliaURL, suiteURL *url.URL, suiteNames ...string) (err error) {
+	suites := miscOIDCConformanceBuildSuites(version, consent, policy, brand, suiteURL, autheliaURL, suiteNames...)
 
 	clients := &OpenIDConnectClients{}
 
@@ -179,15 +184,15 @@ func miscOIDCConformance(version, token, consent, policy string, autheliaURL, su
 	return nil
 }
 
-func miscOIDCConformanceBuildSuites(version, consent, policy string, suiteURL, autheliaURL *url.URL, suiteNames ...string) (suites []OpenIDConnectConformanceSuite) {
+func miscOIDCConformanceBuildSuites(version, consent, policy, brand string, suiteURL, autheliaURL *url.URL, suiteNames ...string) (suites []OpenIDConnectConformanceSuite) {
 	builders := []*OpenIDConnectConformanceSuiteBuilder{
-		{"config", "Config", true, version, consent, policy, nil, autheliaURL},
-		{"basic", "Basic", true, version, consent, policy, suiteURL, autheliaURL},
-		{suiteNameBasicFormPost, "Basic (Form Post)", true, version, consent, policy, suiteURL, autheliaURL},
-		{"hybrid", "Hybrid", true, version, consent, policy, suiteURL, autheliaURL},
-		{suiteNameHybridFormPost, "Hybrid (Form Post)", true, version, consent, policy, suiteURL, autheliaURL},
-		{"implicit", "Implicit", true, version, consent, policy, suiteURL, autheliaURL},
-		{suiteNameImplicitFormPost, "Implicit (Form Post)", true, version, consent, policy, suiteURL, autheliaURL},
+		{brand, "config", "Config", true, version, consent, policy, nil, autheliaURL},
+		{brand, "basic", "Basic", true, version, consent, policy, suiteURL, autheliaURL},
+		{brand, suiteNameBasicFormPost, "Basic (Form Post)", true, version, consent, policy, suiteURL, autheliaURL},
+		{brand, "hybrid", "Hybrid", true, version, consent, policy, suiteURL, autheliaURL},
+		{brand, suiteNameHybridFormPost, "Hybrid (Form Post)", true, version, consent, policy, suiteURL, autheliaURL},
+		{brand, "implicit", "Implicit", true, version, consent, policy, suiteURL, autheliaURL},
+		{brand, suiteNameImplicitFormPost, "Implicit (Form Post)", true, version, consent, policy, suiteURL, autheliaURL},
 	}
 
 	for _, builder := range builders {

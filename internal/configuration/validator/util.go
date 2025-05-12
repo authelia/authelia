@@ -227,6 +227,8 @@ func jwkCalculateKID(key schema.CryptographicKey, props *JWKProperties, alg stri
 		alg = props.Algorithm
 	}
 
+	alg = strings.ReplaceAll(alg, "+", ".")
+
 	var thumbprint []byte
 
 	if thumbprint, err = j.Thumbprint(crypto.SHA256); err != nil {
