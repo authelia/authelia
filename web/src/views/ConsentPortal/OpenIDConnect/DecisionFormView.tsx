@@ -425,7 +425,9 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
                                                                       "The password was partially entered with Caps Lock",
                                                                       { ns: "portal" },
                                                                   )
-                                                                : translate("The password was entered with Caps Lock")}
+                                                                : translate("The password was entered with Caps Lock", {
+                                                                      ns: "portal",
+                                                                  })}
                                                         </Alert>
                                                     </Grid>
                                                 ) : null}

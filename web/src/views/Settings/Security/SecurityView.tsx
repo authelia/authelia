@@ -12,7 +12,7 @@ import SecondFactorDialog from "@views/Settings/Common/SecondFactorDialog";
 import ChangePasswordDialog from "@views/Settings/Security/ChangePasswordDialog";
 
 const SettingsView = function () {
-    const { t: translate } = useTranslation("settings");
+    const { t: translate } = useTranslation(["settings", "portal"]);
     const theme = useTheme();
     const { createErrorNotification } = useNotifications();
 
@@ -113,7 +113,7 @@ const SettingsView = function () {
 
     useEffect(() => {
         if (fetchUserInfoError) {
-            createErrorNotification(translate("There was an issue retrieving user preferences"));
+            createErrorNotification(translate("There was an issue retrieving user preferences", { ns: "portal" }));
         }
         if (fetchConfigurationError) {
             createErrorNotification(translate("There was an issue retrieving configuration"));
@@ -139,7 +139,7 @@ const SettingsView = function () {
         );
 
         return configuration?.password_change_disabled ? (
-            <Tooltip title={translate("This is disabled by your administrator.")}>
+            <Tooltip title={translate("This is disabled by your administrator")}>
                 <Box component={"span"}>{buttonContent}</Box>
             </Tooltip>
         ) : (
