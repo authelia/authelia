@@ -107,10 +107,7 @@ const ResetPasswordStep1 = function () {
                         />
                     </Grid>
                     <Grid size={{ xs: 6 }}>
-                        <ComponentWithTooltip
-                            render={rateLimited}
-                            title={translate(translate("You have made too many requests"))}
-                        >
+                        <ComponentWithTooltip render={rateLimited} title={translate("You have made too many requests")}>
                             <Button
                                 id="reset-button"
                                 variant="contained"

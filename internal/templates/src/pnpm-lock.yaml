@@ -21,8 +21,8 @@ importers:
         specifier: 0.0.40
         version: 0.0.40(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@react-email/render':
-        specifier: 1.1.0
-        version: 1.1.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+        specifier: 1.1.2
+        version: 1.1.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       esbuild:
         specifier: 0.25.4
         version: 0.25.4
@@ -600,15 +600,15 @@ packages:
     peerDependencies:
       react: ^18.0 || ^19.0 || ^19.0.0-rc
 
-  '@react-email/render@1.1.0':
-    resolution: {integrity: sha512-X4CsHvXi5X7kTn5NgXNGg8Y5U1VtVJmlpNLlTc2E8RVHKFS3bpr+o/ZXhEPN4yRkdY+ZYN5eqVTV922Hujqsxw==}
+  '@react-email/render@1.1.1':
+    resolution: {integrity: sha512-YB7GtmfNbCqq/Jm+wYg+LD85OvPtoBFW5qOI55ap3BWw1UUggGLTqUgU0hy0qP5NrfRM//L2owBU/4DENfgnvg==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       react: ^18.0 || ^19.0 || ^19.0.0-rc
       react-dom: ^18.0 || ^19.0 || ^19.0.0-rc
 
-  '@react-email/render@1.1.1':
-    resolution: {integrity: sha512-YB7GtmfNbCqq/Jm+wYg+LD85OvPtoBFW5qOI55ap3BWw1UUggGLTqUgU0hy0qP5NrfRM//L2owBU/4DENfgnvg==}
+  '@react-email/render@1.1.2':
+    resolution: {integrity: sha512-RnRehYN3v9gVlNMehHPHhyp2RQo7+pSkHDtXPvg3s0GbzM9SQMW4Qrf8GRNvtpLC4gsI+Wt0VatNRUFqjvevbw==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       react: ^18.0 || ^19.0 || ^19.0.0-rc
@@ -2435,7 +2435,7 @@ snapshots:
     dependencies:
       react: 19.1.0
 
-  '@react-email/render@1.1.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
+  '@react-email/render@1.1.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
       html-to-text: 9.0.5
       prettier: 3.5.3
@@ -2443,7 +2443,7 @@ snapshots:
       react-dom: 19.1.0(react@19.1.0)
       react-promise-suspense: 0.3.4
 
-  '@react-email/render@1.1.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
+  '@react-email/render@1.1.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
       html-to-text: 9.0.5
       prettier: 3.5.3

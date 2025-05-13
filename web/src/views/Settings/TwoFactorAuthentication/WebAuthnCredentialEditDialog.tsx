@@ -93,7 +93,7 @@ const WebAuthnCredentialEditDialog = function (props: Props) {
 
     return (
         <Dialog open={props.open} onClose={handleCancel}>
-            <DialogTitle>{translate("Edit {{item}}", { item: translate("WebAuthn Credential") })}</DialogTitle>
+            <DialogTitle>{translate("Edit WebAuthn Credential")}</DialogTitle>
             <DialogContent>
                 <DialogContentText>
                     {translate("Enter a new description for this WebAuthn Credential")}
