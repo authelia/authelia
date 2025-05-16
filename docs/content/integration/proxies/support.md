@@ -21,6 +21,7 @@ seo:
 |:---------------------------------------:|:----------------:|:-----------------------------------------------------:|:-------------------------------------------------------------------------------------:|:---------------------------------:|:---------------------------------:|
 |     [Traefik] ([guide](/i/traefik))     |  [ForwardAuth]   |   {{% support support="full" link="/i/traefik" %}}    | {{% support support="full" link="../../integration/kubernetes/traefik-ingress.md" %}} |  {{% support support="full" %}}   |  {{% support support="full" %}}   |
 |       [Caddy] ([guide](/i/caddy))       |  [ForwardAuth]   |    {{% support support="full" link="/i/caddy" %}}     |                           {{% support support="unknown" %}}                           |  {{% support support="full" %}}   |  {{% support support="full" %}}   |
+|      [Zoraxy] ([guide](/i/zoraxy))      |  [ForwardAuth]   |    {{% support support="full" link="/i/zoraxy" %}}    |                           {{% support support="unknown" %}}                           | {{% support support="unknown" %}} |  {{% support support="full" %}}   |
 |       [Envoy] ([guide](/i/envoy))       |    [ExtAuthz]    |    {{% support support="full" link="/i/envoy" %}}     |      {{% support support="full" link="../../integration/kubernetes/istio.md" %}}      | {{% support support="unknown" %}} |  {{% support support="full" %}}   |
 |       [NGINX] ([guide](/i/nginx))       |  [AuthRequest]   |    {{% support support="full" link="/i/nginx" %}}     |  {{% support support="full" link="../../integration/kubernetes/nginx-ingress.md" %}}  |          {{% support %}}          |  {{% support support="full" %}}   |
 | [NGINX Proxy Manager] ([guide](/i/npm)) |  [AuthRequest]   |     {{% support support="full" link="/i/npm" %}}      |                           {{% support support="unknown" %}}                           |          {{% support %}}          |  {{% support support="full" %}}   |
@@ -90,6 +91,11 @@ some require you to configure this manually. At the present time all proxies tha
 
 ## Specific Proxy Notes
 
+### Zoraxy
+
+The [Zoraxy] implementation is still in the early stages. We're currently documentating and testing against a
+development build of [Zoraxy].
+
 ### HAProxy
 
 [HAProxy] is only supported via a lua [module](https://github.com/haproxytech/haproxy-lua-http). Lua is typically not
@@ -121,6 +127,7 @@ contribution.
 [SWAG]: https://docs.linuxserver.io/general/swag
 [Traefik]: https://traefik.io/
 [Caddy]: https://caddyserver.com/
+[Zoraxy]: https://zoraxy.aroz.org/
 [HAProxy]: https://www.haproxy.com/
 [Envoy]: https://www.envoyproxy.io/
 [Skipper]: https://opensource.zalando.com/skipper/
