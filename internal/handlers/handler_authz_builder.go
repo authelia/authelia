@@ -88,7 +88,7 @@ func (b *AuthzBuilder) WithEndpointConfig(config schema.ServerEndpointsAuthz) *A
 	for _, strategy := range config.AuthnStrategies {
 		switch strategy.Name {
 		case AuthnStrategyCookieSession:
-			b.strategies = append(b.strategies, NewCookieSessionAuthnStrategy(b.config.RefreshInterval))
+			b.strategies = append(b.strategies, NewCookieSessionAuthnStrategy(b.config.RefreshInterval, strategy.CookieSessionResponseCookieHeader))
 		case AuthnStrategyHeaderAuthorization:
 			b.strategies = append(b.strategies, NewHeaderAuthorizationAuthnStrategy(strategy.SchemeBasicCacheLifespan, strategy.Schemes...))
 		case AuthnStrategyHeaderProxyAuthorization:
@@ -117,11 +117,11 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 	if len(authz.strategies) == 0 {
 		switch b.implementation {
 		case AuthzImplLegacy:
-			authz.strategies = []AuthnStrategy{NewHeaderLegacyAuthnStrategy(), NewCookieSessionAuthnStrategy(b.config.RefreshInterval)}
+			authz.strategies = []AuthnStrategy{NewHeaderLegacyAuthnStrategy(), NewCookieSessionAuthnStrategy(b.config.RefreshInterval, false)}
 		case AuthzImplAuthRequest:
-			authz.strategies = []AuthnStrategy{NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(time.Duration(0), model.AuthorizationSchemeBasic.String()), NewCookieSessionAuthnStrategy(b.config.RefreshInterval)}
+			authz.strategies = []AuthnStrategy{NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(time.Duration(0), model.AuthorizationSchemeBasic.String()), NewCookieSessionAuthnStrategy(b.config.RefreshInterval, false)}
 		default:
-			authz.strategies = []AuthnStrategy{NewHeaderProxyAuthorizationAuthnStrategy(time.Duration(0), model.AuthorizationSchemeBasic.String()), NewCookieSessionAuthnStrategy(b.config.RefreshInterval)}
+			authz.strategies = []AuthnStrategy{NewHeaderProxyAuthorizationAuthnStrategy(time.Duration(0), model.AuthorizationSchemeBasic.String()), NewCookieSessionAuthnStrategy(b.config.RefreshInterval, false)}
 		}
 	}
 
