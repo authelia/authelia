@@ -224,6 +224,7 @@ Feature List:
 * [OpenID Connect Back-Channel Logout 1.0](#openid-connect-back-channel-logout-10)
 * [OpenID Connect Front-Channel Logout 1.0](#openid-connect-front-channel-logout-10)
 * [OpenID Connect RP-Initiated Logout 1.0](#openid-connect-rp-initiated-logout-10)
+* [OpenID Connect Client-Initiated Backchannel Authentication Flow 1.0 (CIBA)](#openid-connect-client-initiated-backchannel-authentication-flow-10-ciba)
 
 Potential Feature List:
 
@@ -336,6 +337,15 @@ See the [OpenID Connect 1.0] website for the [OpenID Connect RP-Initiated Logout
 
 See also [Beta 9](#beta-9).
 
+#### OpenID Connect Client-Initiated Backchannel Authentication Flow 1.0 (CIBA)
+
+{{< roadmap-status >}}
+
+See the [OpenID Connect 1.0] website for the [OpenID Connect Client-Initiated Backchannel Authentication Flow 1.0]
+(CIBA) specification.
+
+See also [Beta 9](#beta-9).
+
 #### OpenID Connect 1.0 FAPI 2.0 Security Profile
 
 {{< roadmap-status stage="in-progress" >}}
@@ -396,7 +406,7 @@ The `preferred_username` claim was missing and was fixed.
 [OpenID Connect Back-Channel Logout 1.0]: https://openid.net/specs/openid-connect-backchannel-1_0.html
 [OpenID Connect Front-Channel Logout 1.0]: https://openid.net/specs/openid-connect-frontchannel-1_0.html
 [OpenID Connect RP-Initiated Logout 1.0]: https://openid.net/specs/openid-connect-rpinitiated-1_0.html
-
+[OpenID Connect Client-Initiated Backchannel Authentication Flow 1.0]: https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html
 [OpenID Connect Core 1.0 (ID Token)]: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
 [OpenID Connect Core 1.0 (Subject Identifier Types)]: https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes
 [OpenID Connect Core 1.0 (Pairwise Identifier Algorithm)]: https://openid.net/specs/openid-connect-core-1_0.html#PairwiseAlg
