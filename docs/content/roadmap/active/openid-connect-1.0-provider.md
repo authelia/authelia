@@ -144,16 +144,17 @@ Feature List:
 
 ### Beta 7
 
+{{< roadmap-status stage="complete" version="v4.39.0" >}}
+
 {{< callout context="danger" title="Important Notes" icon="outline/alert-octagon" >}}
-This version will contain a breaking change per our
+This version will contain one or more breaking changes per our
 [Versioning Policy](../../policies/versioning.md#experimental-features).
 {{< /callout >}}
-
-{{< roadmap-status stage="complete" version="v4.39.0" >}}
 
 Breaking Changes:
 
 * Default ID Token Claims (related to Claims Handling)
+* Removal of Legacy Endpoints
 
 Feature List:
 
@@ -176,39 +177,64 @@ See [OpenID Connect Core 1.0 (Mandatory to Implement Features for All OpenID Pro
 
 ### Beta 8
 
+{{< roadmap-status stage="in-progress" version="v4.40.0" >}}
+
 {{< callout context="danger" title="Important Notes" icon="outline/alert-octagon" >}}
-This version will contain a breaking change per our
+This version will contain one or more breaking changes per our
 [Versioning Policy](../../policies/versioning.md#experimental-features).
 {{< /callout >}}
+
+Breaking Changes:
+
+* Removal of plaintext passwords except in cases that explicitly require them (HMAC-based client auth methods)
+* Rework of Consent Policy
+
+Feature List:
+
+* In-Storage Configuration:
+  * [JSON Web Key Rotation](https://openid.net/specs/openid-connect-messages-1_0-20.html#rotate.sig.keys)
+  * [Multi-Issuer Configuration](#multi-issuer-configuration) (require one per Issuer URL)
+  * Dynamic Client Registration:
+    * Specification Based with Special Opaque Tokens (authelia_dcrt_*) as per
+      [OpenID Connect Dynamic Client Registration 1.0], [RFC7591: OAuth 2.0 Dynamic Client Registration Protocol], and
+      [RFC7592: OAuth 2.0 Dynamic Client Registration Management Protocol]
+    * Via the CLI
+    * Import from YAML:
+      * Manual method
+      * Bootstrap method:
+        * Defaults to one time only
+        * Can optionally override the database configuration
+    * Salt (random) and/or Peppered (storage encryption) Client Credentials
+* Subject Sectoring:
+  * Pairwise Pseudonymous Identifier (PPID)
+  * Sector Identifier validation.
+
+Potential Feature List:
+
+* Injecting Bearer JSON Web Tokens into Requests (backend authentication)
+* Revoke Tokens on User Logout or Expiration
+
+### Beta 9
 
 {{< roadmap-status >}}
 
 Feature List:
 
-* Revoke Tokens on User Logout or Expiration
-* [JSON Web Key Rotation](https://openid.net/specs/openid-connect-messages-1_0-20.html#rotate.sig.keys)
-* In-Storage Configuration:
-  * [Multi-Issuer Configuration](#multi-issuer-configuration) (require one per Issuer URL)
-  * Dynamically Configured via CLI
-  * Import from YAML:
-    * Manual method
-    * Bootstrap method:
-      * Defaults to one time only
-      * Can optionally override the database configuration
-  * Salt (random) and/or Peppered (storage encryption) Client Credentials
+* [OpenID Connect Session Management 1.0](#openid-connect-session-management-10)
+* [OpenID Connect Back-Channel Logout 1.0](#openid-connect-back-channel-logout-10)
+* [OpenID Connect Front-Channel Logout 1.0](#openid-connect-front-channel-logout-10)
+* [OpenID Connect RP-Initiated Logout 1.0](#openid-connect-rp-initiated-logout-10)
 
 Potential Feature List:
 
 * Injecting Bearer JSON Web Tokens into Requests (backend authentication)
+* Revoke Tokens on User Logout or Expiration
 
 ### General Availability
 
 {{< roadmap-status >}}
 
-Feature List:
-
-* ~~Enable by Default~~
-* Only after all previous stages are checked for bugs
+This stage will signify official stability guarantees surrounding this implemented feature.
 
 ### Miscellaneous
 
@@ -230,35 +256,77 @@ carefully consider the implications of this and force users to configure a issue
 
 {{< roadmap-status stage="complete" version="v4.34.0" >}}
 
-See the [RFC8414: OAuth 2.0 Authorization Server Metadata] specification for more information.
+For more information see the [RFC8414: OAuth 2.0 Authorization Server Metadata] specification.
+
+#### OAuth 2.0 Token Exchange
+
+{{< roadmap-status >}}
+
+For more information see the [RFC8693: OAuth 2.0 Token Exchange] specification.
+
+#### OAuth 2.0 Dynamic Client Registration Protocol
+
+{{< roadmap-status >}}
+
+For more information see the [OAuth 2.0] website for the [RFC7591: OAuth 2.0 Dynamic Client Registration Protocol]
+specification; and see both
+[OAuth 2.0 Client Registration Management Protocol](#oauth-20-dynamic-client-registration-management-protocol) and
+[OpenID Connect Dynamic Client Registration 1.0](#openid-connect-dynamic-client-registration-10).
+
+See also [Beta 8](#beta-8).
+
+#### OAuth 2.0 Dynamic Client Registration Management Protocol
+
+{{< roadmap-status >}}
+
+For more information see the [OAuth 2.0] website for the
+[RFC7592: OAuth 2.0 Dynamic Client Registration Management Protocol] specification; and see both
+[OAuth 2.0 Client Registration Protocol](#oauth-20-dynamic-client-registration-protocol) and
+[OpenID Connect Dynamic Client Registration 1.0](#openid-connect-dynamic-client-registration-10).
+
+See also [Beta 8](#beta-8).
 
 #### OpenID Connect Dynamic Client Registration 1.0
 
 {{< roadmap-status >}}
 
-See the [OpenID Connect 1.0] website for the [OpenID Connect Dynamic Client Registration 1.0] specification.
+For more information see the [OpenID Connect 1.0] website for the [OpenID Connect Dynamic Client Registration 1.0]
+specification; and see both
+[OAuth 2.0 Client Registration Protocol](#oauth-20-dynamic-client-registration-protocol) and
+[OAuth 2.0 Client Registration Management Protocol](#oauth-20-dynamic-client-registration-management-protocol).
+
+See also [Beta 8](#beta-8).
 
 #### OpenID Connect Session Management 1.0
 
 {{< roadmap-status >}}
 
-See the [OpenID Connect 1.0] website for the [OpenID Connect Session Management 1.0] specification.
+For more information see the [OpenID Connect 1.0] website for the [OpenID Connect Session Management 1.0] specification.
+
+See also [Beta 9](#beta-9).
 
 #### OpenID Connect Back-Channel Logout 1.0
 
 {{< roadmap-status >}}
 
-See the [OpenID Connect 1.0] website for the [OpenID Connect Back-Channel Logout 1.0] specification.
+For more information see the [OpenID Connect 1.0] website for the [OpenID Connect Back-Channel Logout 1.0]
+specification.
 
-Should be implemented alongside [Dynamic Client Registration](#openid-connect-dynamic-client-registration-10).
+Should be implemented at a similar time to [Dynamic Client Registration](#openid-connect-dynamic-client-registration-10).
+
+See also [Beta 9](#beta-9).
 
 #### OpenID Connect Front-Channel Logout 1.0
 
 {{< roadmap-status >}}
 
-See the [OpenID Connect 1.0] website for the [OpenID Connect Front-Channel Logout 1.0] specification.
+For more information see the [OpenID Connect 1.0] website for the [OpenID Connect Front-Channel Logout 1.0]
+specification.
 
-Should be implemented alongside [Dynamic Client Registration](#openid-connect-dynamic-client-registration-10).
+Should be implemented at the same time, or just after
+[OpenID Connect Dynamic Client Registration 1.0](#openid-connect-dynamic-client-registration-10).
+
+See also [Beta 9](#beta-9).
 
 #### OpenID Connect RP-Initiated Logout 1.0
 
@@ -266,11 +334,25 @@ Should be implemented alongside [Dynamic Client Registration](#openid-connect-dy
 
 See the [OpenID Connect 1.0] website for the [OpenID Connect RP-Initiated Logout 1.0] specification.
 
+See also [Beta 9](#beta-9).
+
+#### OpenID Connect 1.0 FAPI 2.0 Security Profile
+
+{{< roadmap-status stage="in-progress" >}}
+
+This profile is a suite of security focused features and settings which comply with several financial requirements in
+various jurisdictions. While we're not expressly targeting these financial institutions the security profile itself
+has many security-enhancing measures which everyone can benefit from.
+
+See the [OpenID Connect 1.0] website for the [FAPI 2.0 Security Profile] specification, and the
+[FAPI 2.0 Attacker Model].
+
 #### End-User Scope Grants
 
 {{< roadmap-status >}}
 
-Allow users to choose which scopes they grant.
+Allow users to choose which scopes they grant. It may be better to just allow optional claims and to avoid implementing
+this feature all together.
 
 #### Client RBAC: Users and Groups
 
@@ -320,6 +402,9 @@ The `preferred_username` claim was missing and was fixed.
 [OpenID Connect Core 1.0 (Pairwise Identifier Algorithm)]: https://openid.net/specs/openid-connect-core-1_0.html#PairwiseAlg
 [OpenID Connect Core 1.0 (Mandatory to Implement Features for All OpenID Providers)]: https://openid.net/specs/openid-connect-core-1_0.html#ServerMTI
 
+[FAPI 2.0 Security Profile]: https://openid.net/specs/fapi-2_0-security-02.html
+[FAPI 2.0 Attacker Model]: https://openid.net/specs/fapi-attacker-model-2_0-final.html
+
 [RFC7636: Proof Key for Code Exchange (PKCE)]: https://datatracker.ietf.org/doc/html/rfc7636
 [RFC7523: JSON Web Token (JWT) Profile for OAuth 2.0 Client Authentication and Authorization Grants]: https://datatracker.ietf.org/doc/html/rfc7523
 [RFC9126: OAuth 2.0 Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
@@ -328,5 +413,8 @@ The `preferred_username` claim was missing and was fixed.
 [RFC6750: OAuth 2.0 Bearer Token Usage]: https://datatracker.ietf.org/doc/html/rfc6750
 [RFC9068: JSON Web Token (JWT) Profile for OAuth 2.0 Access Tokens]: https://datatracker.ietf.org/doc/html/rfc9068
 [RFC8628: OAuth 2.0 Device Authorization Grant]: https://datatracker.ietf.org/doc/html/rfc8628
+[RFC7591: OAuth 2.0 Dynamic Client Registration Protocol]: https://datatracker.ietf.org/doc/html/rfc7591
+[RFC7592: OAuth 2.0 Dynamic Client Registration Management Protocol]: https://datatracker.ietf.org/doc/html/rfc7592
+[RFC8693: OAuth 2.0 Token Exchange]: https://datatracker.ietf.org/doc/html/rfc8693
 [JWT Secured Authorization Response Mode for OAuth 2.0 (JARM)]: https://openid.net/specs/oauth-v2-jarm.html
 [JWT Response for OAuth Token Inspection]: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-jwt-introspection-response
