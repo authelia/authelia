@@ -90,8 +90,8 @@ To configure [AdventureLog] to utilize Authelia as an [OpenID Connect 1.0] Provi
    - Client ID: `adventurelog`
    - Secret Key: `insecure_secret`
    - Settings:
-     - server_url: `https://adventurelog.{{< sitevar name="domain" nojs="example.com" >}}`
-     - Sites: Select the sites you want to enable OpenID Connect for.
+     `{"server_url": "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}"}`
+   - Sites: Select the sites you want to enable OpenID Connect for.
 6. Press `Save` at the bottom.
 
 
