@@ -58,23 +58,53 @@ func handleAuthzPortalURLFromQueryLegacy(ctx *middlewares.AutheliaCtx) (portalUR
 	return portalURL, nil
 }
 
-func handleAuthzAuthorizedStandard(ctx *middlewares.AutheliaCtx, authn *Authn) {
+func handleAuthzAuthorizedStandard(ctx *middlewares.AutheliaCtx, headers []AuthzHeader, authn *Authn) {
 	ctx.ReplyStatusCode(fasthttp.StatusOK)
 
-	if authn.Details.Username != "" {
-		ctx.Response.Header.SetBytesK(headerRemoteUser, authn.Details.Username)
-		ctx.Response.Header.SetBytesK(headerRemoteGroups, strings.Join(authn.Details.Groups, ","))
-		ctx.Response.Header.SetBytesK(headerRemoteName, authn.Details.DisplayName)
+	updated := ctx.Clock.Now()
 
-		switch len(authn.Details.Emails) {
-		case 0:
-			ctx.Response.Header.SetBytesK(headerRemoteEmail, "")
-		default:
-			ctx.Response.Header.SetBytesK(headerRemoteEmail, authn.Details.Emails[0])
+	if authn.Details.GetUsername() != "" {
+		for _, header := range headers {
+			raw, ok := ctx.Providers.UserAttributeResolver.Resolve(header.Attribute, authn.Details, updated)
+
+			if !ok {
+				ctx.Response.Header.SetBytesK(header.Key, "")
+
+				continue
+			}
+
+			switch value := raw.(type) {
+			case string:
+				ctx.Response.Header.SetBytesK(header.Key, value)
+			case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
+				ctx.Response.Header.SetBytesK(header.Key, fmt.Sprintf("%d", value))
+			case bool:
+				ctx.Response.Header.SetBytesK(header.Key, fmt.Sprintf("%t", value))
+			case []string:
+				ctx.Response.Header.SetBytesK(header.Key, strings.Join(value, ","))
+			default:
+				ctx.Response.Header.SetBytesK(header.Key, fmt.Sprintf("%v", value))
+			}
 		}
 	}
 }
 
+func handleAuthzAuthorizedLegacy(ctx *middlewares.AutheliaCtx, _ []AuthzHeader, authn *Authn) {
+	ctx.ReplyStatusCode(fasthttp.StatusOK)
+
+	if authn.Details.GetUsername() != "" {
+		ctx.Response.Header.SetBytesK(headerRemoteUser, authn.Details.GetUsername())
+		ctx.Response.Header.SetBytesK(headerRemoteGroups, strings.Join(authn.Details.GetGroups(), ","))
+		ctx.Response.Header.SetBytesK(headerRemoteName, authn.Details.GetDisplayName())
+
+		switch emails := authn.Details.GetEmails(); len(emails) {
+		case 0:
+			ctx.Response.Header.SetBytesK(headerRemoteEmail, "")
+		default:
+			ctx.Response.Header.SetBytesK(headerRemoteEmail, emails[0])
+		}
+	}
+}
 func handleAuthzUnauthorizedAuthorizationBasic(ctx *middlewares.AutheliaCtx, authn *Authn) {
 	ctx.Logger.Infof("Access to '%s' is not authorized to user '%s', sending 401 response with WWW-Authenticate header requesting Basic scheme", authn.Object.URL.String(), authn.Username)
 

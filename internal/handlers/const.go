@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 
 	"github.com/valyala/fasthttp"
 
@@ -25,10 +26,10 @@ var (
 	headerProxyAuthenticate  = []byte(fasthttp.HeaderProxyAuthenticate)
 
 	headerSessionUsername = []byte("Session-Username")
-	headerRemoteUser      = []byte("Remote-User")
-	headerRemoteGroups    = []byte("Remote-Groups")
-	headerRemoteName      = []byte("Remote-Name")
-	headerRemoteEmail     = []byte("Remote-Email")
+	headerRemoteUser      = []byte(schema.HeaderRemoteUser)
+	headerRemoteGroups    = []byte(schema.HeaderRemoteGroups)
+	headerRemoteName      = []byte(schema.HeaderRemoteName)
+	headerRemoteEmail     = []byte(schema.HeaderRemoteEmail)
 )
 
 const (
