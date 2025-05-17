@@ -216,6 +216,8 @@ Potential Feature List:
 
 ### Beta 9
 
+{{< roadmap-status >}}
+
 Feature List:
 
 * [OpenID Connect Session Management 1.0](#openid-connect-session-management-10)
