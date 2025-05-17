@@ -33,7 +33,7 @@ This example makes the following assumptions:
 
 - __Application Root URL:__ `https://adventurelog.{{< sitevar name="domain" nojs="example.com" >}}/`
 - __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `adventurelog`
+- __Client ID:__ `adventurelog-authelia`
 - __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
@@ -53,13 +53,13 @@ identity_providers:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
-      - client_id: 'adventurelog'
+      - client_id: 'adventurelog-authelia'
         client_name: 'Adventure Log'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://adventurelog.{{< sitevar name="domain" nojs="example.com" >}}/accounts/oidc/login/callback/'
+          - 'https://adventurelog.{{< sitevar name="domain" nojs="example.com" >}}/accounts/oidc/adventurelog-authelia/login/callback/'
         scopes:
           - 'openid'
           - 'email'
@@ -85,14 +85,17 @@ To configure [AdventureLog] to utilize Authelia as an [OpenID Connect 1.0] Provi
 4. Click Add.
 5. Configure the following options:
    - Provider: `OpenID Connect`
-   - Provider ID: `authelia`
+   - Provider ID: `adventurelog-authelia`
    - Name: `Authelia`
-   - Client ID: `adventurelog`
+   - Client ID: `adventurelog-authelia`
    - Secret Key: `insecure_secret`
    - Settings:
      `{"server_url": "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}"}`
    - Sites: Select the sites you want to enable OpenID Connect for.
 6. Press `Save` at the bottom.
+
+Note: the `Provider ID` and `Client ID` configured in step 5 must be identical.
+This is a known bug in the Adventurelog frontend, see [Issue 544](https://github.com/seanmorley15/AdventureLog/issues/544) and [PR 556](https://github.com/seanmorley15/AdventureLog/pull/556).
 
 
 ## Linking Existing Accounts
