@@ -3,8 +3,10 @@ openapi: 3.1.0
 info:
   title: Authelia API
   description: >
-    Authelia is an open-source authentication and authorization server providing 2-factor authentication and single
-    sign-on (SSO) for your applications via a web portal.
+    Authelia is an open-source authentication and authorization server and portal fulfilling the identity and access
+    management (IAM) role of information security in providing multi-factor authentication and single sign-on (SSO) for
+    your applications via a web portal. Authelia is an OpenID Connect 1.0 Provider which is OpenID Certified™ allowing
+    comprehensive integrations, and acts as a companion for common reverse proxies.
   contact:
     name: Support
     url: https://www.authelia.com/contact/
