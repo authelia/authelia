@@ -454,57 +454,59 @@ The advantages of this approach are as follows:
 The following support chart is a list of various specifications in the OpenID Connect 1.0 and OAuth 2.0 space that we've
 either implemented, have our eye on, or are refusing to implement.
 
-|                                                        Name                                                        |  Support  |                                       Additional Documentation                                       |
-|:------------------------------------------------------------------------------------------------------------------:|:---------:|:----------------------------------------------------------------------------------------------------:|
-|                                             [OpenID Connect Core 1.0]                                              | Certified |                                                 N/A                                                  |
-|                                           [OpenID Connect Discovery 1.0]                                           | Certified |                                                 N/A                                                  |
-|                                        [OAuth 2.0 Multiple Response Types]                                         | Certified |                                                 N/A                                                  |
-|                                        [OAuth 2.0 Form Post Response Mode]                                         | Certified |                                                 N/A                                                  |
-|                                  [OpenID Connect Dynamic Client Registration 1.0]                                  |   None    |                                                 N/A                                                  |
-|                                      [OpenID Connect RP-Initiated Logout 1.0]                                      |   None    |                                                 N/A                                                  |
-|                                      [OpenID Connect Session Management 1.0]                                       |   None    |                                                 N/A                                                  |
-|                                     [OpenID Connect Front-Channel Logout 1.0]                                      |   None    |                                                 N/A                                                  |
-|                                      [OpenID Connect Back-Channel Logout 1.0]                                      |   None    |                                                 N/A                                                  |
-|                                       [OpenID Connect 1.0 User Registration]                                       |   None    |                                                 N/A                                                  |
-|                [OpenID Connect Client-Initiated Backchannel Authentication Flow - Core 1.0] (CIBA)                 |   None    |                                                 N/A                                                  |
-|                                    [OpenID Shared Signals Framework 1.0] (SSF)                                     |   None    |                                                 N/A                                                  |
-|                                             [Proof Key Code Exchange]                                              | Certified |            [RFC7636], [OAuth 2.0 Simplified](https://www.oauth.com/oauth2-servers/pkce/)             |
-|                                                  [OAuth 2.0 Core]                                                  | Certified |                                              [RFC6749]                                               |
-|                                            [OAuth 2.0 Token Revocation]                                            | Complete  |                                              [RFC7009]                                               |
-|                                          [OAuth 2.0 Token Introspection]                                           | Complete  |                                              [RFC7662]                                               |
-|                                   JWT Response for OAuth 2.0 Token Introspection                                   | Complete  |                                              [RFC9701]                                               |
-|                                             [OAuth 2.0 Token Exchange]                                             |   None    |                                              [RFC8693]                                               |
-|                                      [OAuth 2.0 Dynamic Client Registration]                                       |   None    |                                              [RFC7591]                                               |
-|                                 [OAuth 2.0 Dynamic Client Registration Management]                                 |   None    |                                              [RFC7592]                                               |
-|                                   OAuth 2.0 Resource Owner Password Credentials                                    | None[^3]  |         [RFC6749 Section 1.3.3](https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.3)         |
-|                                     [OAuth 2.0 Authorization Server Metadata]                                      | Complete  |                                              [RFC8414]                                               |
-|                                     [OAuth 2.0 Pushed Authorization Requests]                                      | Complete  |                                              [RFC9126]                                               |
-|                                  [OAuth 2.0 Demonstrating of Proof of Possession]                                  |   None    |                                              [RFC9449]                                               |
-|                  [OAuth 2.0 Mutual-TLS Client Authentication and Certificate-Bound Access Tokens]                  |   None    |                                              [RFC8705]                                               |
-|                                            [OAuth 2.0 for Native Apps]                                             | Complete  |                                              [RFC8252]                                               |
-|                           [OAuth 2.0 Device Flow / OAuth 2.0 Device Authorization Grant]                           | Complete  |                                              [RFC8628]                                               |
-|                                     [OAuth 2.0 JWT Profile for Access Tokens]                                      | Complete  |                                              [RFC9068]                                               |
-|                                      [OAuth 2.0 Rich Authorization Requests]                                       |   None    |                                              [RFC9396]                                               |
-|                      OAuth 2.0 JWT Profile for Client Authentication and Authorization Grants                      | Complete  |                                              [RFC7523]                                               |
-|                                OAuth 2.0 Step-up Authentication Challenge Protocol                                 |   None    |                                              [RFC9470]                                               |
-|                                          OAuth 2.0 for Browser-Based Apps                                          | Complete  |       [IETF Draft](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps)        |
-|                                  SD-JWT-based Verifiable Credentials (SD-JWT VC)                                   |   None    |            [IETF Draft](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-sd-jwt-vc)            |
-|                                       Selective Disclosure for JWTs (SD-JWT)                                       |   None    |    [IETF Draft](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-selective-disclosure-jwt)     |
-|                                         Resource Indicators for OAuth 2.0                                          |   None    |                                              [RFC8707]                                               |
-|                                             [OAuth 2.0 Bearer Tokens]                                              | Complete  |                                              [RFC6750]                                               |
-|                 [OAuth 2.0 Assertion Framework for Client Authentication and Authorization Grants]                 | Complete  |                                              [RFC7521]                                               |
-|                                            [OAuth 2.0 Private Key JWT]                                             | Complete  |                                              [RFC7521]                                               |
-|                                    OAuth 2.0 JWT-Secured Authorization Request                                     |   None    |                                              [RFC9101]                                               |
-|                                OAuth 2.0 Authorization Server Issuer Identification                                | Complete  |                                              [RFC9207]                                               |
-|                                       OAuth 2.0 Protected Resource Metadata                                        |   None    |                                              [RFC9728]                                               |
-|                                           OAuth 2.0 Resource Indicators                                            |   None    |                                              [RFC8707]                                               |
-|                                 OAuth 2.0 JWT Secured Authorization Response Mode                                  | Complete  |                                          [OpenID 1.0 JARM]                                           |
-|                                            [FAPI 2.0] Security Profile                                             |  Partial  |                                [OpenID 1.0 FAPI 2.0 Security Profile]                                |
-|                                             [FAPI 2.0] Message Signing                                             |  Partial  |                                [OpenID 1.0 FAPI 2.0 Message Signing]                                 |
-|                                             [FAPI 2.0] Attacker Model                                              |  Partial  |                                 [OpenID 1.0 FAPI 2.0 Attacker Model]                                 |
-|                                       Authentication Method Reference Values                                       | Complete  |                                              [RFC8176]                                               |
-| Security Assertion Markup Language (SAML) 2.0 Profile for OAuth 2.0 Client Authentication and Authorization Grants |   None    |                                              [RFC7522]                                               |
-|                                                JSON Web Token (JWT)                                                | Complete  |                                              [RFC7519]                                               |
+|                                                        Name                                                        |    Support    |                                   Additional Documentation                                    |
+|:------------------------------------------------------------------------------------------------------------------:|:-------------:|:---------------------------------------------------------------------------------------------:|
+|                                             [OpenID Connect Core 1.0]                                              |   Certified   |                                              N/A                                              |
+|                                           [OpenID Connect Discovery 1.0]                                           |   Certified   |                                              N/A                                              |
+|                                        [OAuth 2.0 Multiple Response Types]                                         |   Certified   |                                              N/A                                              |
+|                                        [OAuth 2.0 Form Post Response Mode]                                         |   Certified   |                                              N/A                                              |
+|                                  [OpenID Connect Dynamic Client Registration 1.0]                                  |     None      |                                              N/A                                              |
+|                                      [OpenID Connect RP-Initiated Logout 1.0]                                      |     None      |                                              N/A                                              |
+|                                      [OpenID Connect Session Management 1.0]                                       |     None      |                                              N/A                                              |
+|                                     [OpenID Connect Front-Channel Logout 1.0]                                      |     None      |                                              N/A                                              |
+|                                      [OpenID Connect Back-Channel Logout 1.0]                                      |     None      |                                              N/A                                              |
+|                                       [OpenID Connect 1.0 User Registration]                                       |     None      |                                              N/A                                              |
+|                [OpenID Connect Client-Initiated Backchannel Authentication Flow - Core 1.0] (CIBA)                 |     None      |                                              N/A                                              |
+|                                    [OpenID Shared Signals Framework 1.0] (SSF)                                     |     None      |                                              N/A                                              |
+|                           [OpenID Continuous Access Evaluation Profile 1.0] (CAEP - SSF)                           |     None      |                                              N/A                                              |
+|                                     [CAEP Interoperability Profile 1.0] (SSF)                                      |     None      |                                              N/A                                              |
+|                                             [Proof Key Code Exchange]                                              | Certified[^3] |         [RFC7636], [OAuth 2.0 Simplified](https://www.oauth.com/oauth2-servers/pkce/)         |
+|                                                  [OAuth 2.0 Core]                                                  | Certified[^3] |                                           [RFC6749]                                           |
+|                                            [OAuth 2.0 Token Revocation]                                            |   Complete    |                                           [RFC7009]                                           |
+|                                          [OAuth 2.0 Token Introspection]                                           |   Complete    |                                           [RFC7662]                                           |
+|                                   JWT Response for OAuth 2.0 Token Introspection                                   |   Complete    |                                           [RFC9701]                                           |
+|                                             [OAuth 2.0 Token Exchange]                                             |     None      |                                           [RFC8693]                                           |
+|                                      [OAuth 2.0 Dynamic Client Registration]                                       |     None      |                                           [RFC7591]                                           |
+|                                 [OAuth 2.0 Dynamic Client Registration Management]                                 |     None      |                                           [RFC7592]                                           |
+|                                   OAuth 2.0 Resource Owner Password Credentials                                    |   None[^4]    |     [RFC6749 Section 1.3.3](https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.3)      |
+|                                     [OAuth 2.0 Authorization Server Metadata]                                      |   Complete    |                                           [RFC8414]                                           |
+|                                     [OAuth 2.0 Pushed Authorization Requests]                                      |   Complete    |                                           [RFC9126]                                           |
+|                                  [OAuth 2.0 Demonstrating of Proof of Possession]                                  |     None      |                                           [RFC9449]                                           |
+|                  [OAuth 2.0 Mutual-TLS Client Authentication and Certificate-Bound Access Tokens]                  |     None      |                                           [RFC8705]                                           |
+|                                            [OAuth 2.0 for Native Apps]                                             |   Complete    |                                           [RFC8252]                                           |
+|                           [OAuth 2.0 Device Flow / OAuth 2.0 Device Authorization Grant]                           |   Complete    |                                           [RFC8628]                                           |
+|                                     [OAuth 2.0 JWT Profile for Access Tokens]                                      |   Complete    |                                           [RFC9068]                                           |
+|                                      [OAuth 2.0 Rich Authorization Requests]                                       |     None      |                                           [RFC9396]                                           |
+|                      OAuth 2.0 JWT Profile for Client Authentication and Authorization Grants                      |   Complete    |                                           [RFC7523]                                           |
+|                                OAuth 2.0 Step-up Authentication Challenge Protocol                                 |     None      |                                           [RFC9470]                                           |
+|                                          OAuth 2.0 for Browser-Based Apps                                          |   Complete    |    [IETF Draft](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps)    |
+|                                  SD-JWT-based Verifiable Credentials (SD-JWT VC)                                   |     None      |        [IETF Draft](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-sd-jwt-vc)         |
+|                                       Selective Disclosure for JWTs (SD-JWT)                                       |     None      | [IETF Draft](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-selective-disclosure-jwt) |
+|                                         Resource Indicators for OAuth 2.0                                          |     None      |                                           [RFC8707]                                           |
+|                                             [OAuth 2.0 Bearer Tokens]                                              |   Complete    |                                           [RFC6750]                                           |
+|                 [OAuth 2.0 Assertion Framework for Client Authentication and Authorization Grants]                 |   Complete    |                                           [RFC7521]                                           |
+|                                            [OAuth 2.0 Private Key JWT]                                             |   Complete    |                                           [RFC7521]                                           |
+|                                    OAuth 2.0 JWT-Secured Authorization Request                                     |     None      |                                           [RFC9101]                                           |
+|                                OAuth 2.0 Authorization Server Issuer Identification                                |   Complete    |                                           [RFC9207]                                           |
+|                                       OAuth 2.0 Protected Resource Metadata                                        |     None      |                                           [RFC9728]                                           |
+|                                           OAuth 2.0 Resource Indicators                                            |     None      |                                           [RFC8707]                                           |
+|                                 OAuth 2.0 JWT Secured Authorization Response Mode                                  |   Complete    |                                       [OpenID 1.0 JARM]                                       |
+|                                            [FAPI 2.0] Security Profile                                             |    Partial    |                            [OpenID 1.0 FAPI 2.0 Security Profile]                             |
+|                                             [FAPI 2.0] Message Signing                                             |    Partial    |                             [OpenID 1.0 FAPI 2.0 Message Signing]                             |
+|                                             [FAPI 2.0] Attacker Model                                              |    Partial    |                             [OpenID 1.0 FAPI 2.0 Attacker Model]                              |
+|                                       Authentication Method Reference Values                                       |   Complete    |                                           [RFC8176]                                           |
+| Security Assertion Markup Language (SAML) 2.0 Profile for OAuth 2.0 Client Authentication and Authorization Grants |     None      |                                           [RFC7522]                                           |
+|                                                JSON Web Token (JWT)                                                |   Complete    |                                           [RFC7519]                                           |
 
 ## Footnotes
 
@@ -512,7 +514,10 @@ either implemented, have our eye on, or are refusing to implement.
       secret, which means the client secret itself must be stored using a plaintext format.
 [^2]: This algorithm is strongly discouraged due to concerns about its security and it is only supported for the purpose
       of compatibility.
-[^3]: The Resource Owner Password Grant is currently
+[^3]: This is [OpenID Certified™] by it being used within one or more conformance suites which have been
+      [OpenID Certified™]. This specification may not have a direct certification process but reasonable should be
+      assumed to be certified by the requirements of another certification process.
+[^4]: The Resource Owner Password Grant is currently
       [heavily discouraged and deprecated](https://oauth.net/2/grant-types/password/) by the OAuth 2.0 specifications
       body, disallowed by
       [OAuth 2.0 Security Best Current Practice](https://datatracker.ietf.org/doc/html/rfc9700#name-resource-owner-password-cre),
@@ -581,7 +586,9 @@ either implemented, have our eye on, or are refusing to implement.
 [OpenID Connect Front-Channel Logout 1.0]: https://openid.net/specs/openid-connect-frontchannel-1_0.html
 [OpenID Connect Back-Channel Logout 1.0]: https://openid.net/specs/openid-connect-backchannel-1_0.html
 [OpenID Connect Client-Initiated Backchannel Authentication Flow - Core 1.0]: https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html
-[OpenID Shared Signals Framework 1.0]: https://openid.net/specs/openid-sharedsignals-framework-1_0-ID3.html#name-management-api-for-set-even
+[OpenID Shared Signals Framework 1.0]: https://openid.net/specs/openid-sharedsignals-framework-1_0-ID3.html
+[OpenID Continuous Access Evaluation Profile 1.0]: https://openid.net/specs/openid-caep-1_0-ID2.html
+[CAEP Interoperability Profile 1.0]: https://openid.net/specs/openid-caep-interoperability-profile-1_0-ID1.html
 [OAuth 2.0 Multiple Response Types]: https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html
 [OAuth 2.0 Form Post Response Mode]: https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html
 [OAuth 2.0 Core]: https://oauth.net/2/
