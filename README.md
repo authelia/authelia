@@ -100,15 +100,19 @@ If you want to know more about the roadmap, follow [Roadmap](https://www.autheli
 
 ### OpenID Connect 1.0 / OAuth 2.0
 
-Authelia is OpenID Certified™ to the Basic OP / Implicit OP / Hybrid OP / Form Post OP / Config OP profiles of the
-OpenID Connect™ protocol. While this offering is still effectively
+Authelia is [OpenID Certified™] to the Basic OP / Implicit OP / Hybrid OP / Form Post OP / Config OP profiles of the
+[OpenID Connect™ protocol]. While this offering is still effectively
 [on the roadmap as a beta](https://www.authelia.com/roadmap/active/openid-connect/) it's very comprehensive and well
-implemented already, also allowing us comprehensive certification.
+implemented already, also allowing us comprehensive certification. Read more about the
+[OpenID Certified™] status of Authelia in the
+[OpenID Connect 1.0 Integration Guide](https://www.authelia.com/integration/openid-connect/introduction/#openid-certified).
 
 <p align="center">
-    <picture>
-    	<img src="https://www.authelia.com/images/oid-certification.jpg" width="400" title="OpenID Certified™ by Authelia to the Basic OP / Implicit OP / Hybrid OP / Form Post OP / Config OP of the OpenID Connect™ protocol">
-	</picture>
+	<a href="https://www.authelia.com/integration/openid-connect/introduction/#openid-certified" target="_blank">
+		<picture>
+			<img src="https://www.authelia.com/images/oid-certification.jpg" width="400" title="OpenID Certified™ by Authelia to the Basic OP / Implicit OP / Hybrid OP / Form Post OP / Config OP of the OpenID Connect™ protocol">
+		</picture>
+	</a>
 </p>
 
 ## Proxy support
@@ -454,3 +458,5 @@ Companies contributing to Authelia via Open Collective will have a special menti
 [security]: https://github.com/authelia/authelia/security/policy
 [#support]: https://discord.com/channels/707844280412012608/707844280412012612
 [#contributing]: https://discord.com/channels/707844280412012608/804943261265297408
+[OpenID Certified™]: https://openid.net/certification/
+[OpenID Connect™ protocol]: https://openid.net/developers/how-connect-works/
