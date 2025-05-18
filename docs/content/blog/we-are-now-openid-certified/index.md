@@ -1,7 +1,6 @@
 ---
-title: "Important Announcement: The Future of Authelia"
-description: "A very important announcement about the future of the Authelia project."
-summary: "This is a very important announcement about the future of the Authelia project."
+title: "We are now OpenID Certified™"
+summary: "This is a very important and exiting milestone for the Authelia project."
 date: 2025-05-18T11:24:22+10:00
 draft: false
 weight: 50
@@ -9,7 +8,7 @@ categories: ["News", "Announcements"]
 tags: ["announcements"]
 contributors: ["James Elliott"]
 aliases:
-  - '/blog/we-are-now-openid-certified/'
+  - '/blog/important-announcement-the-future-of-authelia/'
 pinned: true
 homepage: true
 seo:
@@ -18,31 +17,6 @@ seo:
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
 ---
-
-I have been actively involved with the Authelia project for over 5 years now; in that time I've made over 2,200
-commits, with those contributions modifying over 900,000 lines of code. This is something that has only recently dawned
-on me now that I have more time to do the things I am passionate about.
-
-I have had the privilege of working closely with many talented individuals who have taught me a lot, as well as
-collaborating with major outside parties in integrating Authelia and other projects that offer similar functionalities
-into their products. I’ve met so many incredible people through Authelia, and I couldn’t be more grateful for their
-involvement and support. I’ve also made some great friends along the way; some of whom, I suspect, are for life.
-
-What I’m about to announce may not excite everyone, and I doubt anyone is as thrilled as I have been
-(and continue to be). But I am sure most people will be able to see why I am excited about it.
-
-That said, every project like Authelia eventually reaches a point where decisions must be made about its future
-direction. I believe we’re at one of those inflection points now, with a number of factors aligning that prompt deeper
-reflection.
-
-These decisions have to be weighed against what's best for the project, what's best for the individual's directly
-involved in the project, and what's best for the users. So while sometimes they can be easy to decide sometimes they are
-more challenging unfortunately.
-
-# The Announcement
-
-Well I suppose it's crystal clear to everyone right now what I've been talking about, so I may as well just lay it all
-out for you.
 
 Authelia is now [OpenID Certified™] for the Basic OP, Implicit OP, Hybrid OP, Form Post OP, and Config OP profiles of the
 [OpenID Connect™ protocol]. This means our OpenID Connect 1.0 Provider implementation has officially passed the
@@ -63,9 +37,8 @@ features.
 
 # The Future
 
-Now, I must admit: I intentionally subverted expectations. Certification has long been a goal of the team and myself.
-There are several areas of OpenID Connect 1.0 that we support (and all of those are certified) but there are a number we
-do not yet support.
+Certification has long been a goal of the team and myself. There are several areas of OpenID Connect 1.0 that we support
+(and all of those are certified) but there are a number we do not yet support.
 
 <a href="https://openid.net/developers/how-connect-works/">
 {{< figure src="https://openid.net/wp-content/uploads/2023/06/OpenIDConnect-Map-December2023.png" class="center" process="resize 400x" caption="The OpenID Connect 1.0 Protocol Suite, image is a trademark of the OpenID Foundation, click the image for the source." >}}
