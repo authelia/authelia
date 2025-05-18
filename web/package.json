@@ -20,7 +20,7 @@
       "eslint-plugin-jest": "28.11.0",
       "eslint-plugin-testing-library": "7.1.1",
       "path-to-regexp": "8.2.0",
-      "semver": "7.7.1",
+      "semver": "7.7.2",
       "vite": "6.3.5"
     },
     "peerDependencyRules": {
