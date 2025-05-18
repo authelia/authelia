@@ -97,7 +97,7 @@
     "@testing-library/react": "16.3.0",
     "@types/node": "22.15.18",
     "@types/react": "19.1.4",
-    "@types/react-dom": "19.1.4",
+    "@types/react-dom": "19.1.5",
     "@types/zxcvbn": "4.4.5",
     "@typescript-eslint/eslint-plugin": "8.32.1",
     "@typescript-eslint/parser": "8.32.1",
