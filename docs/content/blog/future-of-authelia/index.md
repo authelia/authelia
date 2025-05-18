@@ -53,7 +53,7 @@ certification process; and for promptly fixing an issue with the conformance sui
 completely flawed seeing the time between the issue being reported, a pull request being drafted, the fix being
 released, and the new release being published; was no more than 24 hours.
 
-{{< figure src="/images/oid-certification.jpg" class="center" process="resize 400x" >}}
+{{< figure src="/images/oid-certification.jpg" class="center" process="resize 300x" >}}
 
 I fully intend to pursue conformance for the remaining outstanding profiles; 3rd Party-Init OP, Dynamic OP,
 Session OP, Front-Channel OP, Back-Channel OP, and RP-Initiated OP; as soon as we implement the necessary underlying
@@ -126,3 +126,8 @@ for our future developments within OpenID Connect 1.0.
 
 This should give you a decent comparison for any other project that wishes to be transparent about its support level by
 including a similar chart.
+
+# Join the Discussion
+
+Feel free to discuss this awesome news in our [Discussion Forum](https://github.com/authelia/authelia/discussions/9525),
+or in one of our many [Chat Methods](../../information/contact.md#chat).

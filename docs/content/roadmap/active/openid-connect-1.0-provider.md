@@ -30,6 +30,15 @@ obvious as required (i.e. bug fixes or spec features), will likely be discussed 
 before being added to the list. We want to implement this feature in a very thoughtful way in order to avoid security
 issues.
 
+## OpenID Certified™
+
+Authelia is OpenID Certified™ to conform to the OpenID Connect™ protocol.
+
+{{< figure src="/images/oid-certification.jpg" class="center" process="resize 200x" >}}
+
+For more information read the
+[Integration Documentation](../../integration/openid-connect/introduction.md#openid-certified).
+
 ## Stages
 
 This section represents the stages involved in implementation of this feature. The stages are either in order of

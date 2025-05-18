@@ -63,6 +63,7 @@ Here is what Authelia's portal looks like:
 
 This is a list of the key features of Authelia:
 
+* [OpenID Connect 1.0 / OAuth 2.0](#openid-connect-10--oauth-20)
 * Several second factor methods:
   * **[Security Keys](https://www.authelia.com/overview/authentication/security-key/)** that support
     [FIDO2]&nbsp;[WebAuthn] with devices like a [YubiKey].
@@ -106,7 +107,7 @@ implemented already, also allowing us comprehensive certification.
 
 <p align="center">
     <picture>
-    	<img src="https://www.authelia.com/images/oid-ceritification.jpg" width="400" title="OpenID Certified™ by Authelia to the Basic OP / Implicit OP / Hybrid OP / Form Post OP / Config OP of the OpenID Connect™ protocol">
+    	<img src="https://www.authelia.com/images/oid-certification.jpg" width="400" title="OpenID Certified™ by Authelia to the Basic OP / Implicit OP / Hybrid OP / Form Post OP / Config OP of the OpenID Connect™ protocol">
 	</picture>
 </p>
 
