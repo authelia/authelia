@@ -8,6 +8,8 @@ weight: 50
 categories: ["News", "Announcements"]
 tags: ["announcements"]
 contributors: ["James Elliott"]
+aliases:
+  - '/blog/we-are-now-openid-certified/'
 pinned: true
 homepage: true
 seo:
