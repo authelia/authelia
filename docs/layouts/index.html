@@ -31,7 +31,9 @@
 {{ partial "prefooter/support/en.html" . -}}
 {{ end }}
 {{ end -}}
+
 {{ if eq $.Site.Language.LanguageName "English" }}
 {{ partial "prefooter/blog/en.html" . -}}
+{{ partial "prefooter/certified/en.html" . -}}
 {{ end }}
 {{ end }}
