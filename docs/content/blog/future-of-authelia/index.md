@@ -42,8 +42,8 @@ more challenging unfortunately.
 Well I suppose it's crystal clear to everyone right now what I've been talking about, so I may as well just lay it all
 out for you.
 
-Authelia is now OpenID Certified™ for the Basic OP, Implicit OP, Hybrid OP, Form Post OP, and Config OP profiles of the
-OpenID Connect™ protocol. This means our OpenID Connect 1.0 Provider implementation has officially passed the
+Authelia is now [OpenID Certified™] for the Basic OP, Implicit OP, Hybrid OP, Form Post OP, and Config OP profiles of the
+[OpenID Connect™ protocol]. This means our OpenID Connect 1.0 Provider implementation has officially passed the
 certification process and is verified to conform to the specification in all areas that we've implemented and those
 that have conformance testing. Many providers don’t reach this level of validation, so I’m especially proud and excited
 about this milestone.
@@ -127,7 +127,12 @@ for our future developments within OpenID Connect 1.0.
 This should give you a decent comparison for any other project that wishes to be transparent about its support level by
 including a similar chart.
 
-# Join the Discussion
+# Join the Discussion and Show Your Support
 
 Feel free to discuss this awesome news in our [Discussion Forum](https://github.com/authelia/authelia/discussions/9525),
 or in one of our many [Chat Methods](../../information/contact.md#chat).
+
+You can show your support for the Authelia project by giving us a star on [GitHub](https://www.github.com/authelia/authelia).
+
+[OpenID Certified™]: https://openid.net/certification/
+[OpenID Connect™ protocol]: https://openid.net/developers/how-connect-works/
