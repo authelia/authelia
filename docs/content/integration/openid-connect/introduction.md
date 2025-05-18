@@ -30,15 +30,17 @@ This page is intended as an integration reference point for any implementers who
 
 ## OpenID Certified™
 
-Authelia is OpenID Certified™ to the Basic OP / Implicit OP / Hybrid OP / Form Post OP / Config OP profiles of the
-OpenID Connect™ protocol.
+Authelia is [OpenID Certified™] to the Basic OP / Implicit OP / Hybrid OP / Form Post OP / Config OP profiles of the
+[OpenID Connect™ protocol].
 
 {{< figure src="/images/oid-certification.jpg" class="center" process="resize 300x" >}}
 
 For more information on certified implementations please see the [OpenID Foundations](https://openid.net/foundation/)
-publicized [Certified OpenID Providers & Profiles](https://openid.net/certification/#OPENID-OP-P) and
-[Certified OpenID Providers for Logout Profiles](https://openid.net/certification/#OPENID-OP-LP) lists. We will actively
-perform the tests on each version of Authelia to maintain the latest conformance standard.
+publicized [Certified OpenID Providers & Profiles] and [Certified OpenID Providers for Logout Profiles] tables. We will
+actively perform the tests on each version of Authelia to maintain the latest conformance standard.
+
+You can view our published conformance tests at [Certified OpenID Providers & Profiles] and
+[Certified OpenID Providers for Logout Profiles].
 
 ## Audiences
 
@@ -628,3 +630,8 @@ either implemented, have our eye on, or are refusing to implement.
 [RFC7519]: https://datatracker.ietf.org/doc/html/rfc7519
 [RFC9470]: https://datatracker.ietf.org/doc/html/rfc9470
 [RFC9728]: https://datatracker.ietf.org/doc/html/rfc9728
+
+[Certified OpenID Providers & Profiles]: https://openid.net/certification/#OPENID-OP-P
+[Certified OpenID Providers for Logout Profiles]: https://openid.net/certification/#OPENID-OP-LP
+[OpenID Certified™]: https://openid.net/certification/
+[OpenID Connect™ protocol]: https://openid.net/developers/how-connect-works/

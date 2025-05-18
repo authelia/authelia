@@ -29,9 +29,12 @@ Connect 1.0 specifications and protocols we support.
 
 ## OpenID Certified™
 
-Authelia is OpenID Certified™.
+Authelia is [OpenID Certified™] to conform to the [OpenID Connect™ protocol].
 
-{{< figure src="/images/oid-certification.jpg" class="center" process="resize 400x" >}}
+{{< figure src="/images/oid-certification.jpg" class="center" process="resize 200x" >}}
 
 For more information please see the
-[relevant documentation](../../integration/openid-connect/introduction.md#openid-certified).
+[OpenID Connect 1.0 Integration Documentation](../../integration/openid-connect/introduction.md#openid-certified).
+
+[OpenID Certified™]: https://openid.net/certification/
+[OpenID Connect™ protocol]: https://openid.net/developers/how-connect-works/

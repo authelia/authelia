@@ -33,6 +33,15 @@ registered clients see the [OpenID Connect 1.0 Clients](clients.md) documentatio
 More information about the beta can be found in the [roadmap](../../../roadmap/active/openid-connect.md) and in the
 [integration](../../../integration/openid-connect/introduction.md) documentation.
 
+## OpenID Certified™
+
+Authelia is [OpenID Certified™] to conform to the [OpenID Connect™ protocol].
+
+{{< figure src="/images/oid-certification.jpg" class="center" process="resize 200x" >}}
+
+For more information please see the
+[OpenID Connect 1.0 Integration Documentation](../../../integration/openid-connect/introduction.md#openid-certified).
+
 ## Variables
 
 Some of the values within this page can automatically be replaced with documentation variables.
@@ -735,3 +744,5 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 [Subject Identifier Type]: https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes
 [Pairwise Identifier Algorithm]: https://openid.net/specs/openid-connect-core-1_0.html#PairwiseAlg
 [Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
+[OpenID Certified™]: https://openid.net/certification/
+[OpenID Connect™ protocol]: https://openid.net/developers/how-connect-works/
