@@ -145,24 +145,17 @@ img.center {
   display: block;
   margin: 0.7rem auto;
 }
+
 img.floatleft {
   float:left;
   margin: 0.7rem;
 }
+
 img.floatright {
   float:right;
   margin: 0.7rem;
 }
 
-img.center {
-  display: block;
-  margin: 0.7rem auto;
-}
-img.floatleft {
-  float:left;
-  margin: 0.7rem;
-}
-img.floatright {
-  float:right;
-  margin: 0.7rem;
+figcaption.center {
+  text-align: center;
 }
