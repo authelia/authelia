@@ -182,15 +182,15 @@ So some astute readers may be thinking. Why do these _Claims_[^1] exist in the f
 primary functions. Obviously these functions are not an exhaustive list, but it should be enough to explain the
 principles.
 
-The first function of these _Claims_[^1] is to provide helpful information or hints to the Relying Party during a
+The first function of these _Claims_[^1] is to provide helpful information or hints to the _Relying Party_[^13] during a
 Registration Flow, or in some instances an Identity Binding Flow (i.e. binding the `sub` and `iss` _Claims_[^1] to an
 identity that already exists) when they're not already logged in. For example they may prefill a form.
 
-The second function of these _Claims_[^1] is to provide the Relying Party with information about a _Resource Owner_[^8]
+The second function of these _Claims_[^1] is to provide the _Relying Party_[^13] with information about a _Resource Owner_[^8]
 with an already bound identity that they may not want to store themselves; such as they may perform a Authorization Flow
 to temporarily obtain the _Resource Owners_[^8] address information for a purchase.
 
-The third function of these _Claims_[^1] is to provide the Relying Party a way to obtain updated details about a
+The third function of these _Claims_[^1] is to provide the _Relying Party_[^13] a way to obtain updated details about a
 _Resource Owner_[^8] who already has a bound identity. For example updating their contact details. This leads naturally
 into the next concept.
 
@@ -199,12 +199,22 @@ into the next concept.
 ## Claims Availability
 
 There are various ways to request and grant _Claims_[^1] in the [OpenID Connect 1.0] specification. Many assume that the
-_Claims_[^1] are either exclusively available in the _ID Token_[^3], will always be in the _ID Token_[^3], or even worse as we've
-previously found out in the _Access Token_[^2]. The assumption stems from the fact certain scopes grant the Relying Party
-access to certain sets of _Claims_[^1]. But what does the specification really intend?
+_Claims_[^1] are either exclusively available in the _ID Token_[^3], will always be in the _ID Token_[^3], or even worse
+as we've previously found out in the _Access Token_[^2]. The assumption stems from the fact certain scopes grant the
+_Relying Party_[^13] access to certain sets of _Claims_[^1]. But what does the specification really intend?
 
-Well if we dive into the _Claims_[^1] that are standard in the _ID Token_[^3], it has a very minimal set of _Claims_[^1]
-by default. It can contain more, and in some scenarios it should contain a lot of _Claims_[^1].
+> An identity token represents the outcome of an authentication process. It contains at a bare minimum an identifier for
+> the user (called the sub aka subject claim) and information about how and when the user authenticated. It can contain
+> additional identity data.
+
+This comes directly from the
+[OpenID Foundations "How OpenID Connect Works" article](https://openid.net/developers/how-connect-works/). This clearly
+indicates the _ID Token_[^3] contains a bare minimum information to identify a user as well as information about _how_
+and _when_ the user authenticated, and that it **_can_** contain additional identity data.
+
+If we dive into the _Claims_[^1] that are standard in the _ID Token_[^3], it has a very minimal set of _Claims_[^1]
+by default, and it's clear the ways in which a _Relying Party_[^13] may request additional _Claims_[^1] and in which
+scenarios it must contain additional _Claims_[^1].
 
 ### Scope Parameter
 
@@ -240,7 +250,7 @@ surrounding Claim Stability and Uniqueness, and then extrapolate that the reques
 _User Information Endpoint_[^10] could realistically have the most up-to-date information about the user; I feel like
 it all just makes complete sense.
 
-The question is if a Relying Party is not intending on using the _Access Token_[^2] to access the
+The question is if a _Relying Party_[^13] is not intending on using the _Access Token_[^2] to access the
 _User Information Endpoint_[^10] why are they not using the _Implicit Flow_[^16] with the _Response Mode_[^17] `form_post`
 since this flow is intended specifically to identify the user. Since they will not be issued an _Access Token_[^2], and
 only the _ID Token_[^3], and it's performed over `form_post`, and the _ID Token_[^3] is signed and potentially encrypted
@@ -264,11 +274,11 @@ _Implicit Flow_[^16] which only returns an _ID Token_[^3] can obtain additional 
 
 This is done via the [Claims Parameter]. The [Claims Parameter] allows requesting specific _Claims_[^1] be present in the
 _ID Token_[^3]. In addition it has the added benefit of allowing granular requests for specific _Claims_[^1] rather than
-granting an entire _Scope_[^14] which may have many useless _Claims_[^1] to the Relying Party.
+granting an entire _Scope_[^14] which may have many useless _Claims_[^1] to the _Relying Party_[^13].
 
 This clearly has several impactful elements to security, privacy, and usability. This is also the parameter that is used
 to indicate elements which are optional to consent to. I suspect most users have seen these dialogs which ask the user
-what properties they want to allow the Relying Party to be able to access, even if they were not fully conscious of it.
+what properties they want to allow the _Relying Party_[^13] to be able to access, even if they were not fully conscious of it.
 
 The advantages of using the _Claims_[^1] parameter makes it quite a desirable feature. You can specifically request the
 `openid` scope, and request the specific _Claims_[^1] you need access to, and you can request that these _Claims_[^1] are made
@@ -286,7 +296,7 @@ _Resource Owner_[^8]. This is also specifically defined in the [OpenID Connect 1
 which is either completely proprietary or described in [RFC9068](https://datatracker.ietf.org/doc/html/rfc9068). The
 Access Token is used to access resources.
 
-[^3]: An ID Token is a _JSON Web Token_[^4] which is described ing
+[^3]: An ID Token otherwise known as an Identity Token is a _JSON Web Token_[^4] which is described in
 [ID Token Section of OpenID Connect 1.0 Core](https://openid.net/specs/openid-connect-core-1_0.html). The ID Token is
 intentionally designed to identify a unique user and has a strictly defined format and contents.
 This is also specifically defined in the [OpenID Connect 1.0 Core Terminology].
