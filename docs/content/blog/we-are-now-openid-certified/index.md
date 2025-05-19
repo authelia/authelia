@@ -1,6 +1,6 @@
 ---
 title: "We are now OpenID Certified™"
-summary: "This is a very important and exiting milestone for the Authelia project."
+summary: "This is a very important and exciting milestone for the Authelia project."
 date: 2025-05-18T11:24:22+10:00
 draft: false
 weight: 50
@@ -24,14 +24,19 @@ certification process and is verified to conform to the specification in all are
 that have conformance testing. Many providers don’t reach this level of validation, so I’m especially proud and excited
 about this milestone.
 
+Certification helps assure users of the software that the implementation is very interoperable with other systems which
+implement the [OpenID Connect™ protocol], and also helps prove security and privacy practices of our OpenID Connect 1.0
+implementation. While the certification itself doesn't outright prove a secure implementation it certainly helps
+especially considering other OpenID Connect 1.0 Providers have had CVE's which would have failed conformance testing.
+
 I’d like to sincerely thank the OpenID Foundation and its members for being so helpful and welcoming during the
 certification process; and for promptly fixing an issue with the conformance suite when it was reported. I was
-completely flawed seeing the time between the issue being reported, a pull request being drafted, the fix being
+completely floored seeing the time between the issue being reported, a pull request being drafted, the fix being
 released, and the new release being published; was no more than 24 hours.
 
 {{< figure src="/images/oid-certification.jpg" class="center" process="resize 300x" >}}
 
-I fully intend to pursue conformance for the remaining outstanding profiles; 3rd Party-Init OP, Dynamic OP,
+We fully intend to pursue conformance for the remaining outstanding profiles; 3rd Party-Init OP, Dynamic OP,
 Session OP, Front-Channel OP, Back-Channel OP, and RP-Initiated OP; as soon as we implement the necessary underlying
 features.
 
@@ -39,6 +44,18 @@ features.
 
 Certification has long been a goal of the team and myself. There are several areas of OpenID Connect 1.0 that we support
 (and all of those are certified) but there are a number we do not yet support.
+
+_The maintainers all remain fully and fiercely dedicated to maintaining Authelia as a Free and Open Source Software
+(FOSS) solution, and are passionate about remaining a part of the projects future; we're in it for the long haul._ This
+blog post originally had a comedy and satire introduction which while intended in good fun has understandably not funny
+to some people. I feel that is partially because of how common other projects are moving to a non-FOSS licensing model
+and either hiding it behind a source-available license or via a license where "only some" of the software is licensed
+differently, and partially because of the extended nature of the introduction.
+
+I apologize for the excitement getting the better of me; which I believe is the cause for me overlooking the way this
+may make some people feel. This project is one of the things I feel most passionately about, and obtaining the
+[OpenID Certified™] status is so intensely exciting as it's a goal that's been in my mind with each change we've made
+to the
 
 <figure>
   <map name="GraffleExport">
@@ -63,7 +80,8 @@ Certification has long been a goal of the team and myself. There are several are
   <figcaption class="center"><a href="https://openid.net/developers/how-connect-works/" target="_blank">The OpenID Connect 1.0 Protocol Suite, image is a trademark of the OpenID Foundation, click here for the source of this image, click the individual specifications to view them.</a></figcaption>
 </figure>
 
-The elements we support are Core, Discovery, and the Form Post Response Mode. The two major remaining elements
+The elements we support are Core, Discovery, and the Form Post Response Mode, and every element that is listed in the
+protocol underpinnings with the exception of WebFinger. The two major remaining elements
 Dynamic Client Registration and Session Management are obvious goals. While they're not required they are certainly
 useful. We're making steps towards both of these in the next release.
 
