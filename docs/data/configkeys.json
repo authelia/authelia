@@ -430,6 +430,36 @@
         "env": "AUTHELIA_DUO_API_SECRET_KEY_FILE"
     },
     {
+        "path": "duo_api.tls.certificate_chain",
+        "secret": true,
+        "env": "AUTHELIA_DUO_API_TLS_CERTIFICATE_CHAIN_FILE"
+    },
+    {
+        "path": "duo_api.tls.maximum_version",
+        "secret": false,
+        "env": "AUTHELIA_DUO_API_TLS_MAXIMUM_VERSION"
+    },
+    {
+        "path": "duo_api.tls.minimum_version",
+        "secret": false,
+        "env": "AUTHELIA_DUO_API_TLS_MINIMUM_VERSION"
+    },
+    {
+        "path": "duo_api.tls.private_key",
+        "secret": true,
+        "env": "AUTHELIA_DUO_API_TLS_PRIVATE_KEY_FILE"
+    },
+    {
+        "path": "duo_api.tls.server_name",
+        "secret": false,
+        "env": "AUTHELIA_DUO_API_TLS_SERVER_NAME"
+    },
+    {
+        "path": "duo_api.tls.skip_verify",
+        "secret": false,
+        "env": "AUTHELIA_DUO_API_TLS_SKIP_VERIFY"
+    },
+    {
         "path": "identity_providers.oidc",
         "secret": false,
         "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC"

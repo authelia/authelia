@@ -2,6 +2,7 @@ package provider
 
 import (
 	"crypto/x509"
+	"github.com/authelia/authelia/v4/internal/duo"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/authelia/authelia/v4/internal/clock"
@@ -110,4 +111,11 @@ func NewUserAttributeResolver(config *schema.Configuration) expression.UserAttri
 // Warning: This method may panic if the provided configuration isn't validated.
 func NewMetaDataService(config *schema.Configuration, store storage.CachedDataProvider) (provider webauthn.MetaDataProvider, err error) {
 	return webauthn.NewMetaDataProvider(config, store)
+}
+
+// NewDuo creates a new duo.Provider given a valid configuration.
+//
+// Warning: This method may panic if the provided configuration isn't validated.
+func NewDuo(config *schema.Configuration, caCertPool *x509.CertPool) (provider duo.Provider) {
+	return middlewares.NewDuoProvider(config, caCertPool)
 }

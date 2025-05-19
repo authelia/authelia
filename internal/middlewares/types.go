@@ -2,7 +2,7 @@ package middlewares
 
 import (
 	"context"
-
+	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
@@ -54,6 +54,7 @@ type Providers struct {
 	Random                random.Provider
 	UserAttributeResolver expression.UserAttributeResolver
 	MetaDataService       webauthn.MetaDataProvider
+	Duo                   duo.Provider
 }
 
 type Context interface {

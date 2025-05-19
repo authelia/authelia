@@ -1,24 +1,33 @@
 package duo
 
 import (
+	"context"
 	"encoding/json"
+	"net"
 	"net/url"
 
 	duoapi "github.com/duosecurity/duo_api_golang"
+	"github.com/sirupsen/logrus"
 
-	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
-// API interface wrapping duo api library for testing purpose.
-type API interface {
-	Call(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values, method string, path string) (response *Response, err error)
-	PreAuthCall(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values) (response *PreAuthResponse, err error)
-	AuthCall(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values) (response *AuthResponse, err error)
+type Context interface {
+	context.Context
+
+	GetLogger() *logrus.Entry
+	RemoteIP() net.IP
 }
 
-// APIImpl implementation of DuoAPI interface.
-type APIImpl struct {
+// Provider interface wrapping duoapi library for testing purpose.
+type Provider interface {
+	Call(ctx Context, userSession *session.UserSession, values url.Values, method string, path string) (response *Response, err error)
+	PreAuthCall(ctx Context, userSession *session.UserSession, values url.Values) (response *PreAuthResponse, err error)
+	AuthCall(ctx Context, userSession *session.UserSession, values url.Values) (response *AuthResponse, err error)
+}
+
+// ProductionProvider implementation of Provider interface.
+type ProductionProvider struct {
 	*duoapi.DuoApi
 }
 

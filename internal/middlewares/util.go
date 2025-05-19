@@ -2,6 +2,11 @@ package middlewares
 
 import (
 	"crypto/x509"
+	"github.com/authelia/authelia/v4/internal/duo"
+	"github.com/authelia/authelia/v4/internal/utils"
+	duoapi "github.com/duosecurity/duo_api_golang"
+	"net/http"
+	"os"
 
 	"github.com/valyala/fasthttp"
 
@@ -45,6 +50,7 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 	providers.TOTP = totp.NewTimeBasedProvider(config.TOTP)
 	providers.UserAttributeResolver = expression.NewUserAttributes(config)
 	providers.UserProvider = NewAuthenticationProvider(config, caCertPool)
+	providers.Duo = NewDuoProvider(config, caCertPool)
 
 	var err error
 
@@ -81,5 +87,39 @@ func NewAuthenticationProvider(config *schema.Configuration, caCertPool *x509.Ce
 		return authentication.NewLDAPUserProvider(config.AuthenticationBackend, caCertPool)
 	default:
 		return nil
+	}
+}
+
+const (
+	environment = "ENVIRONMENT"
+	dev         = "dev"
+)
+
+// NewDuoProvider returns a new duo.API.
+func NewDuoProvider(config *schema.Configuration, caCertPool *x509.CertPool) (provider duo.Provider) {
+	if config.DuoAPI.Disable {
+		return
+	}
+
+	if os.Getenv(environment) == dev {
+		return duo.NewDuoAPI(duoapi.NewDuoApi(
+			config.DuoAPI.IntegrationKey,
+			config.DuoAPI.SecretKey,
+			config.DuoAPI.Hostname, "", duoapi.SetInsecure()))
+	} else {
+		return duo.NewDuoAPI(duoapi.NewDuoApi(
+			config.DuoAPI.IntegrationKey,
+			config.DuoAPI.SecretKey,
+			config.DuoAPI.Hostname, "", duoapi.SetTransport(transportDuoAPI(config.DuoAPI.Disable, config.DuoAPI.TLS, caCertPool))))
+	}
+}
+
+func transportDuoAPI(disable bool, tls *schema.TLS, caCertPool *x509.CertPool) func(transport *http.Transport) {
+	return func(transport *http.Transport) {
+		if disable || tls == nil {
+			return
+		}
+
+		transport.TLSClientConfig = utils.NewTLSConfig(tls, caCertPool)
 	}
 }

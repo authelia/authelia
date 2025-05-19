@@ -42,7 +42,9 @@ func (s *SecondFactorDuoPostSuite) TearDownTest() {
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldEnroll() {
-	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+	duoMock := mocks.NewMockDuo(s.mock.Ctrl)
+
+	s.mock.Ctx.Providers.Duo = duoMock
 
 	s.mock.StorageMock.EXPECT().
 		LoadPreferredDuoDevice(s.mock.Ctx, "john").
@@ -63,7 +65,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldEnroll() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	DuoPOST(duoMock)(s.mock.Ctx)
+	DuoPOST(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), DuoSignResponse{
 		Result:    enroll,
@@ -72,7 +74,9 @@ func (s *SecondFactorDuoPostSuite) TestShouldEnroll() {
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldAutoSelect() {
-	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+	duoMock := mocks.NewMockDuo(s.mock.Ctrl)
+
+	s.mock.Ctx.Providers.Duo = duoMock
 
 	s.mock.StorageMock.EXPECT().LoadPreferredDuoDevice(s.mock.Ctx, "john").Return(nil, errors.New("no Duo device and method saved"))
 
@@ -122,12 +126,14 @@ func (s *SecondFactorDuoPostSuite) TestShouldAutoSelect() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	DuoPOST(duoMock)(s.mock.Ctx)
+	DuoPOST(s.mock.Ctx)
 	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldDenyAutoSelect() {
-	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+	duoMock := mocks.NewMockDuo(s.mock.Ctrl)
+
+	s.mock.Ctx.Providers.Duo = duoMock
 
 	s.mock.StorageMock.EXPECT().
 		LoadPreferredDuoDevice(s.mock.Ctx, "john").
@@ -151,7 +157,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldDenyAutoSelect() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	DuoPOST(duoMock)(s.mock.Ctx)
+	DuoPOST(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), DuoSignResponse{
 		Result: deny,
@@ -159,7 +165,9 @@ func (s *SecondFactorDuoPostSuite) TestShouldDenyAutoSelect() {
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldFailAutoSelect() {
-	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+	duoMock := mocks.NewMockDuo(s.mock.Ctrl)
+
+	s.mock.Ctx.Providers.Duo = duoMock
 
 	s.mock.StorageMock.EXPECT().
 		LoadPreferredDuoDevice(s.mock.Ctx, "john").
@@ -171,13 +179,15 @@ func (s *SecondFactorDuoPostSuite) TestShouldFailAutoSelect() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	DuoPOST(duoMock)(s.mock.Ctx)
+	DuoPOST(s.mock.Ctx)
 
 	s.mock.Assert401KO(s.T(), "Authentication failed, please retry later.")
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldDeleteOldDeviceAndEnroll() {
-	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+	duoMock := mocks.NewMockDuo(s.mock.Ctrl)
+
+	s.mock.Ctx.Providers.Duo = duoMock
 
 	s.mock.StorageMock.EXPECT().
 		LoadPreferredDuoDevice(s.mock.Ctx, "john").
@@ -200,7 +210,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldDeleteOldDeviceAndEnroll() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	DuoPOST(duoMock)(s.mock.Ctx)
+	DuoPOST(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), DuoSignResponse{
 		Result:    enroll,
@@ -209,7 +219,9 @@ func (s *SecondFactorDuoPostSuite) TestShouldDeleteOldDeviceAndEnroll() {
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldDeleteOldDeviceAndCallPreauthAPIWithInvalidDevicesAndEnroll() {
-	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+	duoMock := mocks.NewMockDuo(s.mock.Ctrl)
+
+	s.mock.Ctx.Providers.Duo = duoMock
 
 	s.mock.StorageMock.EXPECT().
 		LoadPreferredDuoDevice(s.mock.Ctx, "john").
@@ -234,7 +246,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldDeleteOldDeviceAndCallPreauthAPIWit
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	DuoPOST(duoMock)(s.mock.Ctx)
+	DuoPOST(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), DuoSignResponse{
 		Result: enroll,
@@ -242,7 +254,9 @@ func (s *SecondFactorDuoPostSuite) TestShouldDeleteOldDeviceAndCallPreauthAPIWit
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldUseOldDeviceAndSelect() {
-	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+	duoMock := mocks.NewMockDuo(s.mock.Ctrl)
+
+	s.mock.Ctx.Providers.Duo = duoMock
 
 	s.mock.StorageMock.EXPECT().
 		LoadPreferredDuoDevice(s.mock.Ctx, "john").
@@ -272,12 +286,14 @@ func (s *SecondFactorDuoPostSuite) TestShouldUseOldDeviceAndSelect() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	DuoPOST(duoMock)(s.mock.Ctx)
+	DuoPOST(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), DuoDevicesResponse{Result: auth, Devices: apiDevices})
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldUseInvalidMethodAndAutoSelect() {
-	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+	duoMock := mocks.NewMockDuo(s.mock.Ctrl)
+
+	s.mock.Ctx.Providers.Duo = duoMock
 
 	s.mock.StorageMock.EXPECT().
 		LoadPreferredDuoDevice(s.mock.Ctx, "john").
@@ -328,12 +344,14 @@ func (s *SecondFactorDuoPostSuite) TestShouldUseInvalidMethodAndAutoSelect() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	DuoPOST(duoMock)(s.mock.Ctx)
+	DuoPOST(s.mock.Ctx)
 	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndAllowAccess() {
-	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+	duoMock := mocks.NewMockDuo(s.mock.Ctrl)
+
+	s.mock.Ctx.Providers.Duo = duoMock
 
 	s.mock.StorageMock.EXPECT().
 		LoadPreferredDuoDevice(s.mock.Ctx, "john").
@@ -351,13 +369,15 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndAllowAccess() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	DuoPOST(duoMock)(s.mock.Ctx)
+	DuoPOST(s.mock.Ctx)
 
 	assert.Equal(s.T(), fasthttp.StatusOK, s.mock.Ctx.Response.StatusCode())
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndDenyAccess() {
-	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+	duoMock := mocks.NewMockDuo(s.mock.Ctrl)
+
+	s.mock.Ctx.Providers.Duo = duoMock
 
 	s.mock.StorageMock.EXPECT().
 		LoadPreferredDuoDevice(s.mock.Ctx, "john").
@@ -381,13 +401,15 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndDenyAccess() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	DuoPOST(duoMock)(s.mock.Ctx)
+	DuoPOST(s.mock.Ctx)
 
 	assert.Equal(s.T(), fasthttp.StatusUnauthorized, s.mock.Ctx.Response.StatusCode())
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndFail() {
-	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+	duoMock := mocks.NewMockDuo(s.mock.Ctrl)
+
+	s.mock.Ctx.Providers.Duo = duoMock
 
 	s.mock.StorageMock.EXPECT().
 		LoadPreferredDuoDevice(s.mock.Ctx, "john").
@@ -399,13 +421,15 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoPreauthAPIAndFail() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	DuoPOST(duoMock)(s.mock.Ctx)
+	DuoPOST(s.mock.Ctx)
 
 	s.mock.Assert401KO(s.T(), "Authentication failed, please retry later.")
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndDenyAccess() {
-	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+	duoMock := mocks.NewMockDuo(s.mock.Ctrl)
+
+	s.mock.Ctx.Providers.Duo = duoMock
 
 	s.mock.StorageMock.EXPECT().
 		LoadPreferredDuoDevice(s.mock.Ctx, "john").
@@ -451,13 +475,15 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndDenyAccess() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	DuoPOST(duoMock)(s.mock.Ctx)
+	DuoPOST(s.mock.Ctx)
 
 	assert.Equal(s.T(), fasthttp.StatusUnauthorized, s.mock.Ctx.Response.StatusCode())
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndFail() {
-	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+	duoMock := mocks.NewMockDuo(s.mock.Ctrl)
+
+	s.mock.Ctx.Providers.Duo = duoMock
 
 	s.mock.StorageMock.EXPECT().
 		LoadPreferredDuoDevice(s.mock.Ctx, "john").
@@ -482,13 +508,15 @@ func (s *SecondFactorDuoPostSuite) TestShouldCallDuoAPIAndFail() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	DuoPOST(duoMock)(s.mock.Ctx)
+	DuoPOST(s.mock.Ctx)
 
 	s.mock.Assert401KO(s.T(), "Authentication failed, please retry later.")
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToDefaultURL() {
-	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+	duoMock := mocks.NewMockDuo(s.mock.Ctrl)
+
+	s.mock.Ctx.Providers.Duo = duoMock
 
 	s.mock.StorageMock.EXPECT().
 		LoadPreferredDuoDevice(s.mock.Ctx, "john").
@@ -530,14 +558,16 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToDefaultURL() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	DuoPOST(duoMock)(s.mock.Ctx)
+	DuoPOST(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), redirectResponse{
 		Redirect: testRedirectionURLString,
 	})
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldNotReturnRedirectURL() {
-	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+	duoMock := mocks.NewMockDuo(s.mock.Ctrl)
+
+	s.mock.Ctx.Providers.Duo = duoMock
 
 	s.mock.StorageMock.EXPECT().
 		LoadPreferredDuoDevice(s.mock.Ctx, "john").
@@ -577,12 +607,14 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotReturnRedirectURL() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	DuoPOST(duoMock)(s.mock.Ctx)
+	DuoPOST(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), &redirectResponse{Redirect: "https://www.example.com"})
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToSafeTargetURL() {
-	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+	duoMock := mocks.NewMockDuo(s.mock.Ctrl)
+
+	s.mock.Ctx.Providers.Duo = duoMock
 
 	s.mock.Ctx.Configuration.Session.Cookies = []schema.SessionCookie{
 		{
@@ -632,14 +664,16 @@ func (s *SecondFactorDuoPostSuite) TestShouldRedirectUserToSafeTargetURL() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	DuoPOST(duoMock)(s.mock.Ctx)
+	DuoPOST(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), redirectResponse{
 		Redirect: "https://example.com",
 	})
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldNotRedirectToUnsafeURL() {
-	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+	duoMock := mocks.NewMockDuo(s.mock.Ctrl)
+
+	s.mock.Ctx.Providers.Duo = duoMock
 
 	s.mock.StorageMock.EXPECT().
 		LoadPreferredDuoDevice(s.mock.Ctx, "john").
@@ -681,12 +715,14 @@ func (s *SecondFactorDuoPostSuite) TestShouldNotRedirectToUnsafeURL() {
 	s.Require().NoError(err)
 	s.mock.Ctx.Request.SetBody(bodyBytes)
 
-	DuoPOST(duoMock)(s.mock.Ctx)
+	DuoPOST(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), nil)
 }
 
 func (s *SecondFactorDuoPostSuite) TestShouldRegenerateSessionForPreventingSessionFixation() {
-	duoMock := mocks.NewMockAPI(s.mock.Ctrl)
+	duoMock := mocks.NewMockDuo(s.mock.Ctrl)
+
+	s.mock.Ctx.Providers.Duo = duoMock
 
 	s.mock.StorageMock.EXPECT().
 		LoadPreferredDuoDevice(s.mock.Ctx, "john").
@@ -731,7 +767,7 @@ func (s *SecondFactorDuoPostSuite) TestShouldRegenerateSessionForPreventingSessi
 	r := regexp.MustCompile("^authelia_session=(.*); path=")
 	res := r.FindAllStringSubmatch(string(s.mock.Ctx.Response.Header.PeekCookie("authelia_session")), -1)
 
-	DuoPOST(duoMock)(s.mock.Ctx)
+	DuoPOST(s.mock.Ctx)
 	s.mock.Assert200OK(s.T(), nil)
 
 	s.NotEqual(

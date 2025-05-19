@@ -5,12 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"os"
 	"path"
 	"strings"
 	"time"
 
-	duoapi "github.com/duosecurity/duo_api_golang"
 	"github.com/fasthttp/router"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
@@ -20,7 +18,6 @@ import (
 	"github.com/valyala/fasthttp/pprofhandler"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
-	"github.com/authelia/authelia/v4/internal/duo"
 	"github.com/authelia/authelia/v4/internal/handlers"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -334,28 +331,14 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 	}
 
 	// Configure DUO api endpoint only if configuration exists.
-	if !config.DuoAPI.Disable {
-		var duoAPI duo.API
-
-		if os.Getenv("ENVIRONMENT") == dev {
-			duoAPI = duo.NewDuoAPI(duoapi.NewDuoApi(
-				config.DuoAPI.IntegrationKey,
-				config.DuoAPI.SecretKey,
-				config.DuoAPI.Hostname, "", duoapi.SetInsecure()))
-		} else {
-			duoAPI = duo.NewDuoAPI(duoapi.NewDuoApi(
-				config.DuoAPI.IntegrationKey,
-				config.DuoAPI.SecretKey,
-				config.DuoAPI.Hostname, ""))
-		}
-
+	if !config.DuoAPI.Disable && providers.Duo != nil {
 		middlewareRateLimitDuo := middlewares.NewBridgeBuilder(*config, providers).
 			WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
 			WithPostMiddlewares(middlewares.NewRateLimit(config.Server.Endpoints.RateLimits.SecondFactorDuo), middlewares.Require1FA).
 			Build()
 
-		r.GET("/api/secondfactor/duo_devices", middleware1FA(handlers.DuoDevicesGET(duoAPI)))
-		r.POST("/api/secondfactor/duo", middlewareRateLimitDuo(handlers.DuoPOST(duoAPI)))
+		r.GET("/api/secondfactor/duo_devices", middleware1FA(handlers.DuoDevicesGET))
+		r.POST("/api/secondfactor/duo", middlewareRateLimitDuo(handlers.DuoPOST))
 		r.POST("/api/secondfactor/duo_device", middleware1FA(handlers.DuoDevicePOST))
 	}
 
