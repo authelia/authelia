@@ -439,8 +439,8 @@ changes to take effect.
 Authelia will run as the root user and group by default, there are two options available to run as a non-root user and
 group.
 
-It is recommended which ever approach you take that to secure the sensitive files Authelia requires access to that you
-make sure the chmod of the files does not inadvertently allow read access to the files by users who do not need access
+It is recommended, which ever approach you take, in order to secure the sensitive files Authelia requires access to, that you
+make sure that the chmod of the files does not inadvertently allow read access to the files by users who do not need access
 to them.
 
 Examples:
