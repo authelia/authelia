@@ -440,7 +440,7 @@ Authelia will run as the root user and group by default, there are two options a
 group.
 
 It is recommended, which ever approach you take, in order to secure the sensitive files Authelia requires access to, that you
-make sure that the chmod of the files does not inadvertently allow read access to the files by users who do not need access
+make sure that the mode (chmod) of the files does not inadvertently allow read access to the files by users who do not need access
 to them.
 
 Examples:
