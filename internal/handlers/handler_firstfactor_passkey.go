@@ -359,6 +359,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 	/*
 		Send New IP Email
 	*/
+	// TODO: SECURITY: How does the addition of this logic affect the authentication delay? Does the email logic modify that timing in such a way to break the timing attack mitigation?
 
 	ipAddr := model.NewIP(ctx.RequestCtx.RemoteIP())
 	ipExists, err := ctx.Providers.StorageProvider.IsIPKnownForUser(ctx, userSession.Username, ipAddr)

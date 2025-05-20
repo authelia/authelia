@@ -409,7 +409,7 @@ const (
 		INSERT INTO %s
 		  (username, ip_address, browser_name, browser_version, os_name, os_version, device_type, expires_at)
 		VALUES
-		  (?, ?, ?, ?, ?, ?, ?, datetime('now', 'localtime', '+30 days'));`
+		  (?, ?, ?, ?, ?, ?, ?, ?);`
 
 	queryFmtSelectKnownIPsByUsername = `
 		SELECT ip_address, first_seen, last_seen, browser_name, browser_version, os_name, os_version, device_type, expires_at
