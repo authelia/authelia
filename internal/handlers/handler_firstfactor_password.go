@@ -162,7 +162,12 @@ func FirstFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middle
 			Send New IP Email
 		*/
 
-		// TODO: SECURITY: How does the addition of this logic affect the authentication delay? Does the email logic modify that timing?
+		// TODO: SECURITY: How does the addition of this logic affect the authentication delay? Does the email logic modify that timing in such a way to break the timing attack mitigation?
+
+		if !ctx.Configuration.AuthenticationBackend.KnownIP.Enable {
+			return
+		}
+
 		ipAddr := model.NewIP(ctx.RequestCtx.RemoteIP())
 		ipExists, err := ctx.Providers.StorageProvider.IsIPKnownForUser(ctx, userSession.Username, ipAddr)
 

@@ -134,6 +134,17 @@ const (
 		"must contain one of the %s placeholders when using a group_search_mode of '%s' but they're absent"
 	errFmtLDAPAuthBackendFilterMissingAttribute = "authentication_backend: ldap: attributes: option '%s' " +
 		"must be provided when using the %s placeholder but it's absent"
+
+	errFmtKnownIPDefaultLifespanTooSmall       = "authentication_backend.known_ip.default_lifespan must be greater than 0"
+	errFmtKnownIPDefaultLifespanVeryLong       = "authentication_backend.known_ip.default_lifespan is very long (%s), this may lead to excessive database growth"
+	errFmtKnownIPExtensionPeriodTooSmall       = "authentication_backend.known_ip.extension_period must be at least 0"
+	errFmtKnownIPExtensionPeriodVeryLong       = "authentication_backend.known_ip.extension_period is very long (%s), this may lead to excessive database growth"
+	errFmtKnownIPMaxLifespanTooSmall           = "authentication_backend.known_ip.max_lifespan must be greater than 0"
+	errFmtKnownIPMaxLifespanSmallerThanDefault = "authentication_backend.known_ip.max_lifespan (%s) must be greater than or equal to default_lifespan (%s)"
+	errFmtKnownIPMaxLifespanVeryLong           = "authentication_backend.known_ip.max_lifespan is very long (%s), this may lead to excessive database growth"
+	errFmtKnownIPCleanupIntervalTooSmall       = "authentication_backend.known_ip.cleanup_interval must be at least 1 hour"
+	errFmtKnownIPCleanupIntervalVeryLong       = "authentication_backend.known_ip.cleanup_interval is very long (%s), expired IPs may remain in the database for extended periods"
+	errFmtKnownIPExtensionPeriodLargerThanMax  = "authentication_backend.known_ip.extension_period (%s) is greater than max_lifespan (%s), extensions will be capped at max_lifespan"
 )
 
 // TOTP Error constants.

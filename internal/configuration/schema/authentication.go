@@ -13,6 +13,8 @@ type AuthenticationBackend struct {
 
 	RefreshInterval RefreshIntervalDuration `koanf:"refresh_interval" yaml:"refresh_interval,omitempty" toml:"refresh_interval,omitempty" json:"refresh_interval,omitempty" jsonschema:"default=5 minutes,title=Refresh Interval" jsonschema_description:"How frequently the user details are refreshed from the backend."`
 
+	KnownIP KnownIPConfig `koanf:"known_ip" yaml:"known_ip,omitempty" toml:"known_ip,omitempty" json:"known_ip,omitempty" jsonschema:"title=Known IP" jsonschema_description:"Configuration for tracking known IP addresses and notification behavior for logins from new IP addresses."`
+
 	// The file authentication backend configuration.
 	File *AuthenticationBackendFile `koanf:"file" yaml:"file,omitempty" toml:"file,omitempty" json:"file,omitempty" jsonschema:"title=File Backend" jsonschema_description:"The file authentication backend configuration."`
 	LDAP *AuthenticationBackendLDAP `koanf:"ldap" yaml:"ldap,omitempty" toml:"ldap,omitempty" json:"ldap,omitempty" jsonschema:"title=LDAP Backend" jsonschema_description:"The LDAP authentication backend configuration."`
@@ -196,6 +198,21 @@ type AuthenticationBackendLDAPAttributesAttribute struct {
 	Name string `koanf:"name" yaml:"name,omitempty" toml:"name,omitempty" json:"name,omitempty" jsonschema:"title=Name" jsonschema_description:"The name of the attribute within Authelia. This does not adjust the attribute queried from the LDAP server."`
 
 	AuthenticationBackendExtraAttribute `koanf:",squash"`
+}
+
+type KnownIPConfig struct {
+	Enable          bool          `koanf:"enable" yaml:"enable" toml:"enable" json:"enable" jsonschema:"title=Enable,default=false" jsonschema_description:"Enable known ip tracking and emails."`
+	DefaultLifeSpan time.Duration `koanf:"default_lifespan" yaml:"default_lifespan,omitempty" toml:"default_lifespan,omitempty" json:"default_lifespan,omitempty" jsonschema:"title=Default Lifespan,default=30 days" jsonschema_description:"The duration that an IP address is considered known and doesn't generate emails."`
+	ExtensionPeriod time.Duration `koanf:"extension_period" yaml:"extension_period,omitempty" toml:"extension_period,omitempty" json:"extension_period,omitempty" jsonschema:"title=Extension Period,default=30 days" jsonschema_description:"The duration that a login extends the known status of an IP address."`
+	MaxLifespan     time.Duration `koanf:"max_lifespan" yaml:"max_lifespan,omitempty" toml:"max_lifespan,omitempty" json:"max_lifespan,omitempty" jsonschema:"title=Maximum Lifespan,default=90 days" jsonschema_description:"The maximum duration an IP address can remain known regardless of login frequency."`
+	CleanupInterval time.Duration `koanf:"cleanup_interval" yaml:"cleanup_interval,omitempty" toml:"cleanup_interval,omitempty" json:"cleanup_interval,omitempty" jsonschema:"title=Cleanup Interval,default=24 hours" jsonschema_description:"The frequency at which expired known IP addresses are removed from the database."`
+}
+
+var DefaultKnownIPConfig = KnownIPConfig{
+	DefaultLifeSpan: time.Hour * 24 * 30, // 30 days.
+	ExtensionPeriod: time.Hour * 24 * 30, // 30 days.
+	MaxLifespan:     time.Hour * 24 * 90, // 90 days.
+	CleanupInterval: time.Hour * 24,      // 24 hours.
 }
 
 // DefaultPasswordConfig represents the default configuration related to Argon2id hashing.
