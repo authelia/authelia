@@ -1,5 +1,7 @@
 package authorization
 
+import "github.com/authelia/authelia/v4/internal/utils"
+
 func NewAuthenticationMethodsReferencesFromClaim(claim []string) (amr AuthenticationMethodsReferences) {
 	for _, ref := range claim {
 		switch ref {
@@ -21,6 +23,8 @@ func NewAuthenticationMethodsReferencesFromClaim(claim []string) (amr Authentica
 			amr.WebAuthnSoftware = true
 		case AMRUserPresence:
 			amr.WebAuthnUserVerified = true
+		default:
+			amr.Extra = append(amr.Extra, ref)
 		}
 	}
 
@@ -38,6 +42,7 @@ type AuthenticationMethodsReferences struct {
 	WebAuthnSoftware             bool
 	WebAuthnUserPresence         bool
 	WebAuthnUserVerified         bool
+	Extra                        []string
 }
 
 // FactorKnowledge returns true if a "something you know" factor of authentication was used.
@@ -117,6 +122,12 @@ func (r AuthenticationMethodsReferences) MarshalRFC8176() []string {
 
 	if r.MultiChannelAuthentication() {
 		amr = append(amr, AMRMultiChannelAuthentication)
+	}
+
+	for _, extra := range r.Extra {
+		if !utils.IsStringInSlice(extra, amr) {
+			amr = append(amr, extra)
+		}
 	}
 
 	return amr

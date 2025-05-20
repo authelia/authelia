@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/fasthttp/session/v2"
-	"github.com/go-webauthn/webauthn/webauthn"
 
 	"github.com/authelia/authelia/v4/internal/authorization"
+	"github.com/go-webauthn/webauthn/webauthn"
 )
 
 // ProviderConfig is the configuration used to create the session provider.
@@ -16,7 +16,17 @@ type ProviderConfig struct {
 	providerName string
 }
 
+// Identity of the user who is being verified.
+type Identity struct {
+	Username    string
+	Email       string
+	DisplayName string
+}
+
 // UserSession is the structure representing the session of a user.
+//
+// IMPORTANT NOTE: Updating this struct requires an update to the UserSessionMessagePack struct as well as the
+// ToMessagePack and ToUserSession functions.
 type UserSession struct {
 	CookieDomain string
 
@@ -47,27 +57,11 @@ type UserSession struct {
 	Elevations Elevations
 }
 
-// TOTP holds the TOTP registration session data.
-type TOTP struct {
-	Issuer    string
-	Algorithm string
-	Digits    uint32
-	Period    uint
-	Secret    string
-	Expires   time.Time
-}
-
 // WebAuthn holds the standard WebAuthn session data plus some extra.
 type WebAuthn struct {
 	*webauthn.SessionData
-	Description string `json:"description"`
-}
 
-// Identity of the user who is being verified.
-type Identity struct {
-	Username    string
-	Email       string
-	DisplayName string
+	Description string `json:"description,omitempty"`
 }
 
 // Elevations describes various session elevations.
@@ -80,4 +74,14 @@ type Elevation struct {
 	ID       int
 	RemoteIP net.IP
 	Expires  time.Time
+}
+
+// TOTP holds the TOTP registration session data.
+type TOTP struct {
+	Issuer    string
+	Algorithm string
+	Digits    uint32
+	Period    uint
+	Secret    string
+	Expires   time.Time
 }

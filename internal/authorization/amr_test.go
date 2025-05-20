@@ -18,17 +18,17 @@ func TestNewAuthenticationMethodsReferencesFromClaim(t *testing.T) {
 		{
 			"ShouldHandleWebAuthnSoftware",
 			[]string{"pop", "swk", "mca", "mfa", "pwd", "otp"},
-			authorization.AuthenticationMethodsReferences{WebAuthn: true, WebAuthnSoftware: true, UsernameAndPassword: true, TOTP: true},
+			authorization.AuthenticationMethodsReferences{WebAuthn: true, WebAuthnSoftware: true, UsernameAndPassword: true, TOTP: true, Extra: []string{"mca", "mfa"}},
 		},
 		{
 			"ShouldHandleWebAuthnHardware",
 			[]string{"pop", "hwk", "mca", "mfa", "pwd", "sms", "user"},
-			authorization.AuthenticationMethodsReferences{WebAuthn: true, WebAuthnHardware: true, UsernameAndPassword: true, Duo: true, WebAuthnUserVerified: true},
+			authorization.AuthenticationMethodsReferences{WebAuthn: true, WebAuthnHardware: true, UsernameAndPassword: true, Duo: true, WebAuthnUserVerified: true, Extra: []string{"mca", "mfa"}},
 		},
 		{
 			"ShouldHandleWebAuthnHardware",
 			[]string{"kba", "pop", "hwk", "mca", "mfa", "pwd", "sms", "user"},
-			authorization.AuthenticationMethodsReferences{WebAuthn: true, WebAuthnHardware: true, UsernameAndPassword: true, Duo: true, WebAuthnUserVerified: true, KnowledgeBasedAuthentication: true},
+			authorization.AuthenticationMethodsReferences{WebAuthn: true, WebAuthnHardware: true, UsernameAndPassword: true, Duo: true, WebAuthnUserVerified: true, KnowledgeBasedAuthentication: true, Extra: []string{"mca", "mfa"}},
 		},
 	}
 
