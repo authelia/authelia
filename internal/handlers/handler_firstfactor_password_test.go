@@ -31,6 +31,8 @@ type FirstFactorSuite struct {
 
 func (s *FirstFactorSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
+
+	s.mock.Ctx.Configuration.AuthenticationBackend.KnownIP.Enable = true
 }
 
 func (s *FirstFactorSuite) TearDownTest() {
@@ -467,6 +469,9 @@ func (s *FirstFactorRedirectionSuite) SetupTest() {
 			Policy:  "one_factor",
 		},
 	}
+
+	s.mock.Ctx.Configuration.AuthenticationBackend.KnownIP.Enable = true
+
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
 
 	s.mock.UserProviderMock.
