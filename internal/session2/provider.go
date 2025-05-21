@@ -1,13 +1,11 @@
 package session2
 
 import (
-	"bytes"
 	"context"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/random"
-	"github.com/hashicorp/go-msgpack/v2/codec"
 	"github.com/valyala/fasthttp"
 	"strings"
 	"sync"
@@ -32,7 +30,9 @@ type StorageProvider interface {
 type Provider interface {
 }
 
-func New(config *schema.SessionCookie, store StorageProvider) (provider Provider) {
+func New(config *schema.Session, cookie *schema.SessionCookie, store StorageProvider, rand random.Provider) (provider Provider) {
+	encoder, err := NewEncoder(rand, []byte(config.Secret), nil)
+
 	p := &ProductionProvider{
 		store: store,
 		config: struct {
@@ -41,12 +41,12 @@ func New(config *schema.SessionCookie, store StorageProvider) (provider Provider
 			SameSite fasthttp.CookieSameSite
 			MaxAge   time.Duration
 		}{
-			Name:   config.Name,
-			Domain: config.Domain,
+			Name:   cookie.Name,
+			Domain: cookie.Domain,
 		},
 	}
 
-	switch strings.ToLower(config.SameSite) {
+	switch strings.ToLower(cookie.SameSite) {
 	case "strict":
 		p.config.SameSite = fasthttp.CookieSameSiteStrictMode
 	case "none":
@@ -75,6 +75,7 @@ type ProductionProvider struct {
 	store      StorageProvider
 	random     random.Provider
 	pool       sync.Pool
+	encoder    *Encoder
 	stopGCChan chan struct{}
 	config     struct {
 		Name     string
@@ -110,31 +111,28 @@ func (p *ProductionProvider) stopGC() {
 }
 
 func (p *ProductionProvider) Save(ctx *middlewares.AutheliaCtx, session Session) (err error) {
+	return p.SaveWithExpiration(ctx, session, p.config.MaxAge)
+}
+
+func (p *ProductionProvider) SaveWithExpiration(ctx *middlewares.AutheliaCtx, session Session, expiration time.Duration) (err error) {
 	id := p.httpGet(ctx)
 
 	if len(id) == 0 {
 		id = genSessionID(p.random)
 	}
 
-	buf := bytes.NewBuffer(nil)
-
-	encoder := codec.NewEncoder(buf, &codec.MsgpackHandle{})
-
-	if err = encoder.Encode(session); err != nil {
+	sid, encoded, err := p.encoder.Encode(id, session)
+	if err != nil {
 		return err
 	}
 
-	if err = p.store.SaveSession(ctx, id, buf.Bytes(), session.PublicID, session.InternalID, p.config.MaxAge); err != nil {
+	if err = p.store.SaveSession(ctx, sid, encoded, session.PublicID, session.InternalID, storeExp(expiration)); err != nil {
 		return err
 	}
 
-	p.httpSet(ctx, id, p.config.MaxAge)
+	p.httpSet(ctx, id, expiration)
 
 	return nil
-}
-
-func (p *ProductionProvider) SaveWithExpiration(ctx *middlewares.AutheliaCtx, session Session, expiration time.Duration) (err error) {
-
 }
 
 func (p *ProductionProvider) httpSet(ctx *middlewares.AutheliaCtx, id []byte, expiration time.Duration) {
