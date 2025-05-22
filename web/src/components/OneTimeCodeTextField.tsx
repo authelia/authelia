@@ -6,14 +6,17 @@ const OneTimeCodeTextField = function (props: TextFieldProps) {
     return (
         <TextField
             {...props}
-            inputProps={{
-                style: {
-                    textTransform: "uppercase",
-                    textAlign: "center",
-                    letterSpacing: ".5rem",
+            slotProps={{
+                htmlInput: {
+                    style: {
+                        textTransform: "uppercase",
+                        textAlign: "center",
+                        letterSpacing: ".5rem",
+                    },
                 },
             }}
             variant={"outlined"}
+            color={"info"}
             spellCheck={false}
         />
     );

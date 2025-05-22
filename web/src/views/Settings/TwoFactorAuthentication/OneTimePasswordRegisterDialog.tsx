@@ -477,8 +477,10 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                         className={classes.secret}
                                         value={secretURL === null ? "" : secretURL}
                                         multiline={true}
-                                        InputProps={{
-                                            readOnly: true,
+                                        slotProps={{
+                                            input: {
+                                                readOnly: true,
+                                            },
                                         }}
                                     />
                                 </Grid>
