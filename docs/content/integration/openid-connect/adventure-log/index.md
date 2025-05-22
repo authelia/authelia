@@ -59,7 +59,8 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://adventurelog.{{< sitevar name="domain" nojs="example.com" >}}/accounts/oidc/login/callback/'
+          - 'https://adventurelog.{{< sitevar name="domain" nojs="example.com" >}}/accounts/oidc/authelia/login/callback/'
+          - 'https://adventurelog.{{< sitevar name="domain" nojs="example.com" >}}/accounts/oidc/adventurelog/login/callback/'  # Note: this is the workaround redirect_uri.
         scopes:
           - 'openid'
           - 'email'
@@ -82,16 +83,17 @@ To configure [AdventureLog] to utilize Authelia as an [OpenID Connect 1.0] Provi
    2. Select Settings.
    3. Click Launch Admin Panel.
 3. Scroll down to Social Accounts.
-4. Click Add.
+4. Under Social Applications, click Add.
 5. Configure the following options:
    - Provider: `OpenID Connect`
-   - Provider ID: `authelia`
+   - Provider ID: `authelia`  (_**Note**: this will need to be `adventurelog` until the bug is fixed_)
    - Name: `Authelia`
    - Client ID: `adventurelog`
    - Secret Key: `insecure_secret`
    - Settings:
-     - server_url: `https://adventurelog.{{< sitevar name="domain" nojs="example.com" >}}`
-     - Sites: Select the sites you want to enable OpenID Connect for.
+     `{"server_url": "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}"}`
+   - Sites: Select the sites you want to enable OpenID Connect for.  
+      (By default, you should add the pre-created `example.com` site.)
 6. Press `Save` at the bottom.
 
 
