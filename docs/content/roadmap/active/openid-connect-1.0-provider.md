@@ -30,6 +30,15 @@ obvious as required (i.e. bug fixes or spec features), will likely be discussed 
 before being added to the list. We want to implement this feature in a very thoughtful way in order to avoid security
 issues.
 
+## OpenID Certified™
+
+Authelia is [OpenID Certified™] to conform to the [OpenID Connect™ protocol].
+
+{{< figure src="/images/oid-certification.jpg" class="center" process="resize 200x" >}}
+
+For more information read the
+[Integration Documentation](../../integration/openid-connect/introduction.md#openid-certified).
+
 ## Stages
 
 This section represents the stages involved in implementation of this feature. The stages are either in order of
@@ -428,3 +437,5 @@ The `preferred_username` claim was missing and was fixed.
 [RFC8693: OAuth 2.0 Token Exchange]: https://datatracker.ietf.org/doc/html/rfc8693
 [JWT Secured Authorization Response Mode for OAuth 2.0 (JARM)]: https://openid.net/specs/oauth-v2-jarm.html
 [JWT Response for OAuth Token Inspection]: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-jwt-introspection-response
+[OpenID Certified™]: https://openid.net/certification/
+[OpenID Connect™ protocol]: https://openid.net/developers/how-connect-works/

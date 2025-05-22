@@ -26,6 +26,7 @@ authelia-gen misc oidc conformance [flags]
 
 ```
       --authelia-url string   authelia url for conformance plans (default "https://auth.example.com")
+      --brand string          brand name to use (default "authelia")
       --consent string        name of the consent mode to use (default "implicit")
   -h, --help                  help for conformance
       --policy string         name of the authorization policy to use (default "one_factor")

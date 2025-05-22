@@ -22,3 +22,19 @@ technologies requires support by the protected application.
 See the [OpenID Connect 1.0 Provider Configuration Guide](../../configuration/identity-providers/openid-connect/provider.md),  and the
 [OpenID Connect 1.0 Integration Guide](../../integration/openid-connect/introduction.md) for more information.
 
+## Protocol Support
+
+The [Support Chart](../../integration/openid-connect/introduction.md#support-chart) lists the OAuth 2.0 and OpenID
+Connect 1.0 specifications and protocols we support.
+
+## OpenID Certified™
+
+Authelia is [OpenID Certified™] to conform to the [OpenID Connect™ protocol].
+
+{{< figure src="/images/oid-certification.jpg" class="center" process="resize 200x" >}}
+
+For more information please see the
+[OpenID Connect 1.0 Integration Documentation](../../integration/openid-connect/introduction.md#openid-certified).
+
+[OpenID Certified™]: https://openid.net/certification/
+[OpenID Connect™ protocol]: https://openid.net/developers/how-connect-works/

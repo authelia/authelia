@@ -1,5 +1,5 @@
-authelia.com/provider/oauth2 v0.2.11 h1:MZZBSspV6CtNyT/KCGPVTQY5oF2V/q+aEOKjIwbxALg=
-authelia.com/provider/oauth2 v0.2.11/go.mod h1:LFe+UQvI80vs/PBPa8uh31PYcjwjt4Z7FCkejXadIdY=
+authelia.com/provider/oauth2 v0.2.13 h1:w5VlAuPvysg1hWkzEQQq62Rpdt5QkF82t3m7318FliQ=
+authelia.com/provider/oauth2 v0.2.13/go.mod h1:LFe+UQvI80vs/PBPa8uh31PYcjwjt4Z7FCkejXadIdY=
 cel.dev/expr v0.23.1 h1:K4KOtPCJQjVggkARsjG9RWXP6O4R73aHeJMa/dmCQQg=
 cel.dev/expr v0.23.1/go.mod h1:hLPLo1W4QUmuYdA72RBX06QTs6MXw941piREPl3Yfiw=
 filippo.io/edwards25519 v1.1.0 h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=
@@ -110,8 +110,8 @@ github.com/jackc/pgpassfile v1.0.0 h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsI
 github.com/jackc/pgpassfile v1.0.0/go.mod h1:CEx0iS5ambNFdcRtxPj5JhEz+xB6uRky5eyVu/W2HEg=
 github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 h1:iCEnooe7UlwOQYpKFhBabPMi4aNAfoODPEFNiAnClxo=
 github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761/go.mod h1:5TJZWKEWniPve33vlWYSoGYefn3gLQRzjfDlhSJ9ZKM=
-github.com/jackc/pgx/v5 v5.7.4 h1:9wKznZrhWa2QiHL+NjTSPP6yjl3451BX3imWDnokYlg=
-github.com/jackc/pgx/v5 v5.7.4/go.mod h1:ncY89UGWxg82EykZUwSpUKEfccBGGYq1xjrOpsbsfGQ=
+github.com/jackc/pgx/v5 v5.7.5 h1:JHGfMnQY+IEtGM63d+NGMjoRpysB2JBwDr5fsngwmJs=
+github.com/jackc/pgx/v5 v5.7.5/go.mod h1:aruU7o91Tc2q2cFp5h4uP3f6ztExVpyVv88Xl/8Vl8M=
 github.com/jackc/puddle/v2 v2.2.2 h1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo=
 github.com/jackc/puddle/v2 v2.2.2/go.mod h1:vriiEXHvEE654aYKXXjOvZM39qJ0q+azkZFrfEOc3H4=
 github.com/jcmturner/aescts/v2 v2.0.0 h1:9YKLH6ey7H4eDBXW8khjYslgyqG2xZikXP0EQFKrle8=
@@ -229,8 +229,8 @@ github.com/valyala/bytebufferpool v1.0.0 h1:GqA5TC/0021Y/b9FG4Oi9Mr3q7XYx6Kllzaw
 github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyCJ6HpOuEn7z0Csc=
 github.com/valyala/fasthttp v1.62.0 h1:8dKRBX/y2rCzyc6903Zu1+3qN0H/d2MsxPPmVNamiH0=
 github.com/valyala/fasthttp v1.62.0/go.mod h1:FCINgr4GKdKqV8Q0xv8b+UxPV+H/O5nNFo3D+r54Htg=
-github.com/weppos/publicsuffix-go v0.40.3-0.20250509131707-26b1fda9f5f9 h1:JrhYYnnWXPHAnG5Xge7AKJQV+V6hbR2xDcHs+/Dvc8s=
-github.com/weppos/publicsuffix-go v0.40.3-0.20250509131707-26b1fda9f5f9/go.mod h1:2oFzEwGYI7lhiqG0YkkcKa6VcpjVinQbWxaPzytDmLA=
+github.com/weppos/publicsuffix-go v0.40.3-0.20250521072956-45ce12c50555 h1:oP3l87fMeb7zTVxUK8NQ6MOVQxkqxmm+9fq+Z4klCpA=
+github.com/weppos/publicsuffix-go v0.40.3-0.20250521072956-45ce12c50555/go.mod h1:2oFzEwGYI7lhiqG0YkkcKa6VcpjVinQbWxaPzytDmLA=
 github.com/wneessen/go-mail v0.6.2 h1:c6V7c8D2mz868z9WJ+8zDKtUyLfZ1++uAZmo2GRFji8=
 github.com/wneessen/go-mail v0.6.2/go.mod h1:L/PYjPK3/2ZlNb2/FjEBIn9n1rUWjW+Toy531oVmeb4=
 github.com/x448/float16 v0.8.4 h1:qLwI1I70+NjRFUR3zs1JPUCgaCXSh3SW62uAKT1mSBM=
