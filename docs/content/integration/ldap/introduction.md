@@ -5,7 +5,7 @@ summary: "An introduction into integrating Authelia with LDAP."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-weight: 710
+weight: 751
 toc: true
 seo:
   title: "" # custom title (optional)
@@ -14,162 +14,160 @@ seo:
   noindex: false # false (default) or true
 ---
 
-## UNDER CONSTRUCTION
 
-This section is still a work in progress.
+## Binding
 
-## Configuration
+When it comes to LDAP there are several considerations for deciding how to bind to the LDAP server.
 
-### OpenLDAP
+### Unauthenticated Binding
 
-**Tested:**
-* Version: [v2.5.13](https://www.openldap.org/software/release/announce_lts.html)
-* Container `bitnami/openldap:2.5.13-debian-11-r7`
+The most insecure method is unauthenticated binds. They are generally considered insecure due to the fact allowing them
+at all ensures anyone with any level of network access can easily obtain objects and their attributes.
 
-Create within OpenLDAP, either via CLI or with a GUI management application like
-[phpLDAPadmin](http://phpldapadmin.sourceforge.net/wiki/index.php/Main_Page) or [LDAP Admin](http://www.ldapadmin.org/)
-a basic user with a complex password.
+Authelia does support unauthenticated binds but it is not by default, you must configure the
+[permit_unauthenticated_bind](../../configuration/first-factor/ldap.md#permit_unauthenticated_bind) configuration
+option.
 
-*Make note of its CN.* You can also create a group to use within Authelia if you would like granular control of who can
-login, and reference it within the filters below.
+### End-User Binding
 
-### Authelia
+One method to bind to the server that is favored by a lot of people is binding to the LDAP server as the end user. While
+this is more secure than methods such as [Unauthenticated Binding](#unauthenticated-binding) the drawback is that it can
+only be used securely at the time the user enters their credentials. Storing a password in memory in general is not very
+secure and prone to breakage due to outside influences (i.e. the user changes their password).
 
-In your Authelia configuration you will need to enter and update the following variables -
-* url `ldap://OpenLDAP:1389` - servers dns name & port.
-  *tip: if you have Authelia on a container network that is routable, you can just use the container name*
-* server_name `ldap01.example.com` - servers name
-* base_dn `DC=example,DC=com` - common name of domain root.
-* groups_filter `DC=example,DC=com` - replace relevant section with your own domain in common name format, same as base_dn.
-* user `authelia` - username for Authelia service account
-* password `SUPER_COMPLEX_PASSWORD` - password for Authelia service account
+In addition, this method is not compatible with the password reset / forgot password flow at all (not to be confused
+with a change password flow).
 
-```yaml {title="configuration.yml"}
-authentication_backend:
-  ldap:
-    address: 'ldap://openldap:1389'
-    implementation: 'custom'
-    timeout: '5s'
-    start_tls: false
-    tls:
-      server_name: 'ldap01.example.com'
-      skip_verify: true
-      minimum_version: 'TLS1.2'
-    base_dn: 'DC=example,DC=com'
-    additional_users_dn: 'OU=users'
-    users_filter: '(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))'
-    additional_groups_dn: 'OU=groups'
-    groups_filter: '(&(member=UID={input},OU=users,DC=example,DC=com)(objectClass=groupOfNames))'
-    user: 'UID=authelia,OU=service accounts,DC=example,DC=com'
-    password: 'SUPER_COMPLEX_PASSWORD'
-    attributes:
-      distinguished_name: 'distinguishedName'
-      username: 'uid'
-      mail: 'mail'
-      member_of: 'memberOf'
-      group_name: 'cn'
+Authelia doesn't currently support such a binding method excluding for checking user passwords.
+
+### Service-User Binding
+
+This is the most common method of binding to LDAP. This involves setting up a special service user with a complex
+password which has the minimum permissions required to do the tasks required.
+
+Authelia primarily supports this method.
+
+## Implementation Guide
+
+The following implementations exist:
+
+- `custom`:
+  - Not specific to any particular LDAP provider
+- `activedirectory`:
+  - Specific configuration defaults for [Active Directory]
+  - Special implementation details:
+    - Includes a special encoding format required for changing passwords with [Active Directory]
+- `rfc2307bis`:
+  - Specific configuration defaults for [RFC2307bis]
+  - No special implementation details
+- `freeipa`:
+  - Specific configuration defaults for [FreeIPA]
+  - No special implementation details
+- `lldap`:
+  - Specific configuration defaults for [lldap]
+  - No special implementation details
+- `glauth`:
+  - Specific configuration defaults for [GLAuth]
+  - No special implementation details
+
+### Group Search Modes
+
+There are currently two group search modes that exist.
+
+#### Search Mode: filter
+
+The `filter` search mode is the default search mode. Generally this is recommended.
+
+#### Search Mode: memberof
+
+The `memberof` search mode is a special search mode. Generally this is discouraged and is currently experimental.
+
+Some systems provide a `memberOf` attribute which may include additional groups that the user is a member of. This
+search mode allows using this attribute as a method to determine their groups. How it works is the search is performed
+against the base with the subtree scope and the groups filter must include one of the `{memberof:*}` replacements, and
+the distinguished names of the results from the search are compared (case-insensitive) against the users `memberOf`
+attribute to determine if they are members.
+
+This means:
+
+1. The groups still must be in the search base that you have configured.
+2. The `memberOf` attribute *__MUST__* include the distinguished name of the group.
+3. If the `{memberof:dn}` replacement is used:
+    1. The distinguished name *__MUST__* be searchable by your directory server.
+4. The first relative distinguished name of the distinguished name *__MUST__* be search
+
+### Filter replacements
+
+Various replacements occur in the user and groups filter. The replacements either occur at startup or upon an LDAP
+search which is indicated by the phase column.
+
+The phases exist to optimize performance. The replacements in the startup phase are replaced once before the connection
+is ever established. In addition to this, during the startup phase we purposefully check the filters for which search
+phase replacements exist so we only have to check if the replacement is necessary once, and we don't needlessly perform
+every possible replacement on every search regardless of if it's needed or not.
+
+#### General filter replacements
+
+|          Placeholder           |  Phase  |                 Replacement                 |
+|:------------------------------:|:-------:|:-------------------------------------------:|
+| {distinguished_name_attribute} | startup | The configured distinguished name attribute |
+|      {username_attribute}      | startup |      The configured username attribute      |
+|        {mail_attribute}        | startup |        The configured mail attribute        |
+|    {display_name_attribute}    | startup |    The configured display name attribute    |
+|     {member_of_attribute}      | startup |     The configured member of attribute      |
+|            {input}             | search  |      The input into the username field      |
+
+#### Users filter replacements
+
+|          Placeholder           |  Phase  |                                                   Replacement                                                    |
+|:------------------------------:|:-------:|:----------------------------------------------------------------------------------------------------------------:|
+|    {date-time:generalized}     | search  |          The current UTC time formatted as a LDAP generalized time in the format of `20060102150405.0Z`          |
+|        {date-time:unix}        | search  |                                    The current time formatted as a Unix epoch                                    |
+|    {date-time:microsoft-nt}    | search  | The current time formatted as a Microsoft NT epoch which is used by some Microsoft [Active Directory] attributes |
+
+#### Groups filter replacements
+
+|  Placeholder   | Phase  |                                                                     Replacement                                                                      |
+|:--------------:|:------:|:----------------------------------------------------------------------------------------------------------------------------------------------------:|
+|   {username}   | search |                                      The username from the profile lookup obtained from the username attribute                                       |
+|      {dn}      | search |                                                    The distinguished name from the profile lookup                                                    |
+| {memberof:dn}  | search |                                                            See the detailed section below                                                            |
+| {memberof:rdn} | search | Only allowed with the `memberof` search method and contains the first relative distinguished name of every `memberOf` entry a use has in parenthesis |
+
+##### memberof:dn
+
+Requirements:
+
+1. Must be using the `memberof` search mode.
+2. Must have the distinguished name attribute configured in Authelia.
+3. Directory server must support searching by the distinguished name attribute (many directory services *__DO NOT__*
+   have a distinguished name attribute).
+
+##### memberof:rdn
+
+Requirements:
+
+1. Must be using the `memberof` search mode.
+2. Directory server must support searching by the first relative distinguished name as an attribute.
+
+Splits every `memberOf` value to obtain the first relative distinguished name and joins all of those after surrounding
+them in parentheses. This makes the general suggested filter pattern for this particular replacement
+`(|{memberof:rdn})`. The format of this value is as follows:
+
+```text
+(<RDN>)
 ```
-Following this, restart Authelia, and you should be able to begin using LDAP integration for your user logins, with
-Authelia taking the email attribute for users straight from the 'mail' attribute within the LDAP object.
 
-### FreeIPA
+For example if the user has the following distinguished names in their object:
 
-**Tested:**
-* Version: [v4.9.9](https://www.freeipa.org/page/Releases/4.9.9)
-* Container: `freeipa/freeipa-server:fedora-36-4.9.9`
+- `CN=abc,OU=groups,DC=example,DC=com`
+- `CN=xyz,OU=groups,DC=example,DC=com`
 
-Create within FreeIPA, either via CLI or within its GUI management application `https://server_ip` a basic user with a
-complex password.
+The value will be replaced with `(CN=abc)(CN=xyz)` which using the suggested pattern for the filter becomes
+`(|(CN=abc)(CN=xyz))` which will then return any user that as a `CN` of `abc` or `xyz`.
 
-*Make note of its CN.* You can also create a group to use within Authelia if you would like granular control of who can
-login, and reference it within the filters below.
-
-### Authelia
-
-In your Authelia configuration you will need to enter and update the following variables -
-* url `ldap://ldap` - servers dns name. Port will assume 389 as standard. Specify custom port with `:port` if needed.
-* server_name `ldap01.example.com` - servers name
-* base_dn `DC=example,DC=com` - common name of domain root.
-* groups_filter `DC=example,DC=com` - replace relevant section with your own domain in common name format, same as base_dn.
-* user `authelia` - username for Authelia service account
-* password `SUPER_COMPLEX_PASSWORD` - password for Authelia service account
-
-```yaml {title="configuration.yml"}
-authentication_backend:
- ldap:
-    address: 'ldaps://ldap.example.com'
-    implementation: 'custom'
-    timeout: '5s'
-    start_tls: false
-    tls:
-      server_name: 'ldap.example.com'
-      skip_verify: true
-      minimum_version: 'TLS1.2'
-    base_dn: 'dc=example,DC=com'
-    additional_users_dn: 'CN=users,CN=accounts'
-    users_filter: '(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))'
-    additional_groups_dn: cn=groups,cn=accounts
-    groups_filter: '(&(member=UID={input},CN=users,CN=accounts,DC=example,DC=com)(objectClass=groupOfNames))'
-    user: 'UID=authelia,CN=users,CN=accounts,DC=example,DC=com'
-    password: 'SUPER_COMPLEX_PASSWORD'
-    attributes:
-      distinguished_name: 'distinguishedName'
-      username: 'uid'
-      mail: 'mail'
-      member_of: 'memberOf'
-      group_name: 'cn'
-```
-Following this, restart Authelia, and you should be able to begin using LDAP integration for your user logins, with
-Authelia taking the email attribute for users straight from the 'mail' attribute within the LDAP object.
-
-### lldap
-
-**Tested:**
-* Version: [v0.6.1](https://github.com/lldap/lldap/releases/tag/v0.6.1)
-
-Create within lldap, a basic user with a complex password, and add to the group "lldap_password_manager"
-You can also create a group to use within Authelia if you would like granular control of who can login, and reference it
-within the filters below.
-
-### Authelia
-
-In your Authelia configuration you will need to enter and update the following variables -
-* url `ldap://OpenLDAP:1389` - servers dns name & port.
-  *tip: if you have Authelia on a container network that is routable, you can just use the container name*
-* base_dn `DC=example,DC=com` - common name of domain root.
-* user `authelia` - username for Authelia service account.
-* password `SUPER_COMPLEX_PASSWORD` - password for Authelia service account,
-
-```yaml {title="configuration.yml"}
-authentication_backend:
-  ldap:
-    address: 'ldap://lldap:3890'
-    implementation: 'custom'
-    timeout: '5s'
-    start_tls: false
-    base_dn: 'dc=example,DC=com'
-    additional_users_dn: 'OU=people'
-    # To allow sign in both with username and email, one can use a filter like
-    # (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
-    users_filter: '(&({username_attribute}={input})(objectClass=person))'
-    additional_groups_dn: 'OU=groups'
-    groups_filter: '(member={dn})'
-    # The username and password of the admin or service user.
-    user: 'UID=authelia,OU=people,DC=example,DC=com'
-    password: 'SUPER_COMPLEX_PASSWORD'
-    attributes:
-      distinguished_name: 'distinguishedName'
-      username: 'uid'
-      mail: 'mail'
-      member_of: 'memberOf'
-      group_name: 'cn'
-```
-Following this, restart Authelia, and you should be able to begin using lldap integration for your user logins, with
-Authelia taking the email attribute for users straight from the 'mail' attribute within the LDAP object.
-
-## See Also
-
-[Authelia]: https://www.authelia.com
-[Bitnami OpenLDAP]: https://hub.docker.com/r/bitnami/openldap/
-[FreeIPA]: https://www.freeipa.org/page/Main_Page
-[lldap]: https://github.com/nitnelave/lldap
+[Active Directory]: https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/active-directory-domain-services
+[FreeIPA]: https://www.freeipa.org/
+[lldap]: https://github.com/lldap/lldap
+[GLAuth]: https://glauth.github.io/
+[RFC2307bis]: https://datatracker.ietf.org/doc/html/draft-howard-rfc2307bis-02

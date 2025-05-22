@@ -215,7 +215,7 @@ const IdentityVerificationDialog = function (props: Props) {
                 <DialogActions>
                     <Button
                         id={"dialog-cancel"}
-                        variant={"outlined"}
+                        variant={"contained"}
                         color={"error"}
                         disabled={loading}
                         onClick={handleCancelled}
@@ -224,8 +224,8 @@ const IdentityVerificationDialog = function (props: Props) {
                     </Button>
                     <Button
                         id={"dialog-verify"}
-                        variant={"outlined"}
-                        color={"primary"}
+                        variant={"contained"}
+                        color={"info"}
                         disabled={loading}
                         startIcon={loading ? <CircularProgress color="inherit" size={20} /> : undefined}
                         onClick={handleSubmit}
