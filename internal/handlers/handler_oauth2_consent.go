@@ -651,34 +651,23 @@ func handleOAuth2ConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, flowI
 		return userSession, nil, nil, true
 	}
 
-	switch client.GetConsentPolicy().Mode {
-	case oidc.ClientConsentModeImplicit:
+	switch {
+	case consent.Responded():
 		ctx.Logger.
-			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID}).
-			Error("Error occurred performing consent during the Consent FLow stage of the Authorization Flow as the client is configured to use implicit consent")
+			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID, logging.FieldSubject: consent.Subject.UUID.String(), logging.FieldResponded: consent.RespondedAt.Time.Unix()}).
+			Error("Error occurred performing consent during the Consent FLow stage of the Authorization Flow as the consent session has already been responded to")
 
 		ctx.SetJSONError(messageOperationFailed)
 
-		return
-	default:
-		switch {
-		case consent.Responded():
-			ctx.Logger.
-				WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID, logging.FieldSubject: consent.Subject.UUID.String(), logging.FieldResponded: consent.RespondedAt.Time.Unix()}).
-				Error("Error occurred performing consent during the Consent FLow stage of the Authorization Flow as the consent session has already been responded to")
+		return userSession, nil, nil, true
+	case !consent.CanGrant(ctx.Clock.Now()):
+		ctx.Logger.
+			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID, logging.FieldGranted: consent.Granted, logging.FieldExpiration: consent.ExpiresAt.Unix()}).
+			Error("Error occurred performing consent during the Consent FLow stage of the Authorization Flow as the consent session has already been granted or is expired")
 
-			ctx.SetJSONError(messageOperationFailed)
+		ctx.SetJSONError(messageOperationFailed)
 
-			return userSession, nil, nil, true
-		case !consent.CanGrant(ctx.Clock.Now()):
-			ctx.Logger.
-				WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID, logging.FieldGranted: consent.Granted, logging.FieldExpiration: consent.ExpiresAt.Unix()}).
-				Error("Error occurred performing consent during the Consent FLow stage of the Authorization Flow as the consent session has already been granted or is expired")
-
-			ctx.SetJSONError(messageOperationFailed)
-
-			return userSession, nil, nil, true
-		}
+		return userSession, nil, nil, true
 	}
 
 	level := userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA)
