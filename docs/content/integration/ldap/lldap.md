@@ -5,7 +5,7 @@ summary: ""
 date: 2022-10-20T15:27:09+11:00
 draft: false
 images: []
-weight: 352
+weight: 752
 toc: true
 seo:
   title: "" # custom title (optional)
@@ -32,35 +32,37 @@ automatically be replaced with documentation variables.
 
 The following are the assumptions we make:
 
-- The LDAP implementation to be used with authelia is fully setup and reachable by authelia.
+- The LDAP implementation to be used with Authelia is fully setup and reachable by Authelia.
 - All services are part of the `example.com` domain:
   - This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
-    just testing or you want to use that specific domain
+    just testing or you want to use that specific domain.
 
 ## Configuration
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [authentication backend configuration] for use with [lldap] which will operate with the application example:
+The following YAML configuration is an example __Authelia__ [authentication backend configuration] for use with
+[lldap] which will operate with the application example:
 
 ```yaml {title="configuration.yml"}
 authentication_backend:
   ldap:
     implementation: 'lldap'
     address: 'ldap://lldap:3890'
-    base_dn: 'dc=example,dc=com'
-    user: 'uid=authelia,ou=people,dc=example,dc=com'
+    base_dn: 'DC=example,DC=com'
+    user: 'UID=authelia,OU=people,DC=example,DC=com'
     password: 'insecure_secret'
 ```
 
 ### Application
 
-Create within [lldap], a basic user with a complex password, and add it to the group `lldap_password_manager`.
+Create a service user within the application with a complex password. Use the users Distinguished Name as a username,
+and make sure the user has the appropriate permissions to perform the following actions:
 
-Using the `lldap_password_manager` group will prevent authelia from changing passwords of users in the `lldap_admin` group.
+- Read the attributes of users and groups that are meant to be able to use Authelia.
+- Change the password of users provided the functionality to reset passwords is desired.
 
-You can also create a group to use within Authelia if you would like granular control of who can login, and reference it
-within the filters below.
+See the [lldap] documentation on how to configure permissions for the newly created user.
 
 ### Defaults
 
@@ -70,14 +72,14 @@ The below tables describes the current attribute defaults for the [lldap] implem
 
 The following set defaults for the `additional_users_dn` and `additional_groups_dn` values.
 
-|   Users   |  Groups   |
-|:---------:|:---------:|
-| OU=people | OU=groups |
+|    Users    |   Groups    |
+|:-----------:|:-----------:|
+| `OU=people` | `OU=groups` |
 
 #### Attribute defaults
 
-This table describes the attribute defaults for the [lldap] implementation. i.e. the username_attribute is described by the
-Username column.
+This table describes the attribute defaults for the [lldap] implementation. i.e. the `username_attribute` is described by
+the Username column.
 
 |    Username    | Display Name | Mail | Group Name | Distinguished Name | Member Of |
 |:--------------:|:------------:|:----:|:----------:|:------------------:|:---------:|
@@ -96,11 +98,13 @@ the following conditions:
   - The [lldap] implementation has no suitable attribute for this as far as we're aware.
 
 ##### Users Filter
+
 ```text
 (&(&#124;({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
 ```
 
 ##### Groups Filter
+
 ```text
 (&(member={dn})(objectClass=groupOfNames))
 ```

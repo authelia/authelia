@@ -5,7 +5,7 @@ summary: "An introduction into integrating Authelia with LDAP."
 date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
-weight: 351
+weight: 751
 toc: true
 seo:
   title: "" # custom title (optional)
@@ -93,7 +93,7 @@ This means:
 1. The groups still must be in the search base that you have configured.
 2. The `memberOf` attribute *__MUST__* include the distinguished name of the group.
 3. If the `{memberof:dn}` replacement is used:
-  1. The distinguished name *__MUST__* be searchable by your directory server.
+    1. The distinguished name *__MUST__* be searchable by your directory server.
 4. The first relative distinguished name of the distinguished name *__MUST__* be search
 
 ### Filter replacements
@@ -160,8 +160,8 @@ them in parentheses. This makes the general suggested filter pattern for this pa
 
 For example if the user has the following distinguished names in their object:
 
-- CN=abc,OU=groups,DC=example,DC=com
-- CN=xyz,OU=groups,DC=example,DC=com
+- `CN=abc,OU=groups,DC=example,DC=com`
+- `CN=xyz,OU=groups,DC=example,DC=com`
 
 The value will be replaced with `(CN=abc)(CN=xyz)` which using the suggested pattern for the filter becomes
 `(|(CN=abc)(CN=xyz))` which will then return any user that as a `CN` of `abc` or `xyz`.
