@@ -25,6 +25,11 @@ seo:
 - [AdventureLog]
   - [v0.9.0](https://github.com/seanmorley15/AdventureLog/releases/tag/v0.9.0)
 
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+A bug with Adventure Log requires manual adjustments to this guide and those adjustments are noted. See
+[#544](https://github.com/seanmorley15/AdventureLog/issues/544) for more detail.
+{{< /callout >}}
+
 {{% oidc-common %}}
 
 ### Assumptions
@@ -92,7 +97,7 @@ To configure [AdventureLog] to utilize Authelia as an [OpenID Connect 1.0] Provi
    - Secret Key: `insecure_secret`
    - Settings:
      `{"server_url": "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}"}`
-   - Sites: Select the sites you want to enable OpenID Connect for.  
+   - Sites: Select the sites you want to enable OpenID Connect for.
       (By default, you should add the pre-created `example.com` site.)
 6. Press `Save` at the bottom.
 
