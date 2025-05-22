@@ -7,10 +7,10 @@ import (
 	"time"
 
 	oauthelia2 "authelia.com/provider/oauth2"
+	"authelia.com/provider/oauth2/handler/oauth2"
 	"authelia.com/provider/oauth2/token/jwt"
 	"authelia.com/provider/oauth2/x/errorsx"
 	"github.com/google/uuid"
-	"github.com/pkg/errors"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -35,11 +35,9 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		return
 	}
 
-	session := oidc.NewSessionWithRequestedAt(ctx.Clock.Now())
-
 	ctx.Logger.Debugf("User Info Request with id '%s' is being processed", requestID)
 
-	if tokenType, requester, err = ctx.Providers.OpenIDConnect.IntrospectToken(r.Context(), oauthelia2.AccessTokenFromRequest(r), oauthelia2.AccessToken, session); err != nil {
+	if tokenType, requester, err = ctx.Providers.OpenIDConnect.IntrospectToken(oauth2.SetSkipStatelessIntrospection(r.Context()), oauthelia2.AccessTokenFromRequest(r), oauthelia2.AccessToken, oidc.NewSessionWithRequestedAt(ctx.Clock.Now())); err != nil {
 		ctx.Logger.Errorf("User Info Request with id '%s' failed with error: %s", requestID, oauthelia2.ErrorToDebugRFC6749Error(err))
 
 		if rfc := oauthelia2.ErrorToRFC6749Error(err); rfc.StatusCode() == http.StatusUnauthorized {
@@ -52,11 +50,13 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	}
 
 	if tokenType != oauthelia2.AccessToken {
-		ctx.Logger.Errorf("User Info Request with id '%s' on client with id '%s' failed with error: bearer authorization failed as the token is not an access token", requestID, client.GetID())
+		ctx.Logger.Errorf("User Info Request with id '%s' on client with id '%s' failed with error: bearer authorization failed as the token is not an Access Token", requestID, client.GetID())
 
-		errStr := "Only access tokens are allowed in the authorization header."
-		rw.Header().Set(fasthttp.HeaderWWWAuthenticate, fmt.Sprintf(`Bearer error="invalid_token",error_description="%s"`, errStr))
-		errorsx.WriteJSONErrorCode(rw, r, http.StatusUnauthorized, errors.New(errStr))
+		errorsx.WriteRFC6750Error(
+			rw,
+			oauthelia2.ErrInvalidTokenFormat.WithDescription("Only OpenID Connect 1.0 Access Tokens are allowed in the authorization header."),
+			nil,
+		)
 
 		return
 	}
@@ -64,7 +64,25 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	if client, err = ctx.Providers.OpenIDConnect.GetRegisteredClient(ctx, requester.GetClient().GetID()); err != nil {
 		ctx.Logger.Errorf("User Info Request with id '%s' on client with id '%s' failed to retrieve client configuration with error: %s", requestID, client.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
 
+		errorsx.WriteRFC6750Error(
+			rw,
+			oauthelia2.ErrInvalidRequest.WithHint("The client the access token was issued to is no longer registered with the authorization server."),
+			nil,
+		)
+
 		errorsx.WriteJSONError(rw, r, err)
+
+		return
+	}
+
+	if !requester.GetGrantedScopes().Has(oidc.ScopeOpenID) {
+		ctx.Logger.Errorf("User Info Request with id '%s' on client with id '%s' failed with error: bearer authorization failed as the Access Token was not granted the appropriate scope", requestID, client.GetID())
+
+		errorsx.WriteRFC6750Error(
+			rw,
+			oauthelia2.ErrInsufficientScope.WithHint("The granted scope was missing the 'openid' scope."),
+			map[string]string{oidc.FormParameterScope: oidc.ScopeOpenID},
+		)
 
 		return
 	}
@@ -116,26 +134,24 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		return
 	}
 
-	var token string
-
 	ctx.Logger.Tracef("User Info Response with id '%s' on client with id '%s' is being sent with the following claims: %+v", requestID, requester.GetClient().GetID(), claims)
 
 	switch alg := client.GetUserinfoSignedResponseAlg(); alg {
 	case oidc.SigningAlgNone:
 		ctx.Logger.Debugf("User Info Request with id '%s' on client with id '%s' is being returned unsigned as per the registered client configuration", requestID, client.GetID())
 
-		rw.Header().Set(fasthttp.HeaderContentType, "application/json; charset=utf-8")
-		rw.Header().Set(fasthttp.HeaderCacheControl, "no-store")
-		rw.Header().Set(fasthttp.HeaderPragma, "no-cache")
-		rw.WriteHeader(http.StatusOK)
+		rw.Header().Set(fasthttp.HeaderContentType, middlewares.ContentTypeApplicationJSON)
 
 		_ = json.NewEncoder(rw).Encode(claims)
 	default:
+		var (
+			jti   uuid.UUID
+			token string
+		)
+
 		jwtClient := oidc.NewUserinfoClient(client)
 
 		ctx.Logger.Debugf("User Info Request with id '%s' on client with id '%s' is being returned signed as per the registered client configuration with key id '%s' using the '%s' algorithm", requestID, client.GetID(), jwtClient.GetSigningKeyID(), jwtClient.GetSigningAlg())
-
-		var jti uuid.UUID
 
 		if jti, err = uuid.NewRandom(); err != nil {
 			ctx.Logger.WithError(err).Errorf("User Info Request with id '%s' on client with id '%s' failed due to an error generating a JTI for the JWT response", requestID, client.GetID())
@@ -156,13 +172,13 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 			return
 		}
 
-		rw.Header().Set(fasthttp.HeaderContentType, "application/jwt; charset=utf-8")
-		rw.Header().Set(fasthttp.HeaderCacheControl, "no-store")
-		rw.Header().Set(fasthttp.HeaderPragma, "no-cache")
-		rw.WriteHeader(http.StatusOK)
+		rw.Header().Set(fasthttp.HeaderContentType, middlewares.ContentTypeApplicationJWT)
 
 		_, _ = rw.Write([]byte(token))
 	}
+
+	rw.Header().Set(fasthttp.HeaderCacheControl, middlewares.HeaderCacheControlNotStore)
+	rw.Header().Set(fasthttp.HeaderPragma, middlewares.HeaderPragmaNoCache)
 
 	ctx.Logger.Debugf("User Info Request with id '%s' on client with id '%s' was successfully processed", requestID, client.GetID())
 }

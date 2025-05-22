@@ -56,7 +56,7 @@ const CredentialItem = function (props: Props) {
                             </Typography>
                             <Typography variant={"caption"} display={{ xs: "none", sm: "block" }}>
                                 {props.last_used_at === undefined
-                                    ? translate("Never Used")
+                                    ? translate("Never used")
                                     : `${translate("Last Used")} ${timeSinceLastUsed}`}
                             </Typography>
                         </Stack>

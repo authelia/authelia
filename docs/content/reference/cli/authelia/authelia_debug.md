@@ -46,5 +46,7 @@ authelia debug --help
 ### SEE ALSO
 
 * [authelia](authelia.md)	 - authelia untagged-unknown-dirty (master, unknown)
+* [authelia debug expression](authelia_debug_expression.md)	 - Perform a user attribute expression debug operation
+* [authelia debug oidc](authelia_debug_oidc.md)	 - Perform a OpenID Connect 1.0 debug operation
 * [authelia debug tls](authelia_debug_tls.md)	 - Perform a TLS debug operation
 

@@ -13,6 +13,7 @@ import { useUserWebAuthnCredentials } from "@hooks/WebAuthnCredentials";
 import { SecondFactorMethod } from "@models/Methods";
 import OneTimePasswordPanel from "@views/Settings/TwoFactorAuthentication/OneTimePasswordPanel";
 import TwoFactorAuthenticationOptionsPanel from "@views/Settings/TwoFactorAuthentication/TwoFactorAuthenticationOptionsPanel";
+import WebAuthnCredentialsDisabledPanel from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialsDisabledPanel";
 import WebAuthnCredentialsPanel from "@views/Settings/TwoFactorAuthentication/WebAuthnCredentialsPanel";
 
 interface Props {}
@@ -44,6 +45,9 @@ const TwoFactorAuthenticationView = function (props: Props) {
         setRefreshTOTPState((refreshTOTPState) => refreshTOTPState + 1);
     };
 
+    const enabledWebAuthn = configuration?.available_methods.has(SecondFactorMethod.WebAuthn);
+    const enabledTOTP = configuration?.available_methods.has(SecondFactorMethod.TOTP);
+
     useEffect(() => {
         fetchConfiguration();
         fetchUserInfo();
@@ -70,12 +74,20 @@ const TwoFactorAuthenticationView = function (props: Props) {
     }, [hasTOTP, hasWebAuthn, userInfo]);
 
     useEffect(() => {
+        if (!enabledTOTP) {
+            return;
+        }
+
         fetchUserTOTPConfig();
-    }, [fetchUserTOTPConfig, hasTOTP, refreshTOTPState]);
+    }, [enabledTOTP, fetchUserTOTPConfig, hasTOTP, refreshTOTPState]);
 
     useEffect(() => {
+        if (!enabledWebAuthn) {
+            return;
+        }
+
         fetchUserWebAuthnCredentials();
-    }, [fetchUserWebAuthnCredentials, hasWebAuthn, refreshWebAuthnState]);
+    }, [enabledWebAuthn, fetchUserWebAuthnCredentials, hasWebAuthn, refreshWebAuthnState]);
 
     useEffect(() => {
         if (fetchConfigurationError) {
@@ -124,9 +136,7 @@ const TwoFactorAuthenticationView = function (props: Props) {
             return false;
         }
 
-        const hasAvailableMethods =
-            configuration.available_methods.has(SecondFactorMethod.TOTP) ||
-            configuration.available_methods.has(SecondFactorMethod.WebAuthn);
+        const hasAvailableMethods = enabledTOTP || enabledWebAuthn;
 
         return !hasAvailableMethods;
     };
@@ -143,7 +153,7 @@ const TwoFactorAuthenticationView = function (props: Props) {
                         </Paper>
                     </Grid>
                 ) : null}
-                {configuration?.available_methods.has(SecondFactorMethod.TOTP) ? (
+                {!renderSecondFactorDisabled() && enabledTOTP ? (
                     <Grid size={{ xs: 12 }}>
                         <OneTimePasswordPanel
                             info={userInfo}
@@ -152,13 +162,17 @@ const TwoFactorAuthenticationView = function (props: Props) {
                         />
                     </Grid>
                 ) : null}
-                {configuration?.available_methods.has(SecondFactorMethod.WebAuthn) ? (
+                {!renderSecondFactorDisabled() || enabledWebAuthn ? (
                     <Grid size={{ xs: 12 }}>
-                        <WebAuthnCredentialsPanel
-                            info={userInfo}
-                            credentials={userWebAuthnCredentials}
-                            handleRefreshState={handleRefreshWebAuthnState}
-                        />
+                        {enabledWebAuthn ? (
+                            <WebAuthnCredentialsPanel
+                                info={userInfo}
+                                credentials={userWebAuthnCredentials}
+                                handleRefreshState={handleRefreshWebAuthnState}
+                            />
+                        ) : (
+                            <WebAuthnCredentialsDisabledPanel />
+                        )}
                     </Grid>
                 ) : null}
                 {configuration && userInfo ? (

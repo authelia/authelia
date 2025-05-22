@@ -33,6 +33,15 @@ registered clients see the [OpenID Connect 1.0 Clients](clients.md) documentatio
 More information about the beta can be found in the [roadmap](../../../roadmap/active/openid-connect.md) and in the
 [integration](../../../integration/openid-connect/introduction.md) documentation.
 
+## OpenID Certified™
+
+Authelia is [OpenID Certified™] to conform to the [OpenID Connect™ protocol].
+
+{{< figure src="/images/oid-certification.jpg" class="center" process="resize 200x" >}}
+
+For more information please see the
+[OpenID Connect 1.0 Integration Documentation](../../../integration/openid-connect/introduction.md#openid-certified).
+
 ## Variables
 
 Some of the values within this page can automatically be replaced with documentation variables.
@@ -478,18 +487,6 @@ utilize refresh tokens. For more information read this documentation about the [
 
 The default maximum lifetime of an access token.
 
-#### authorize_code
-
-{{< confkey type="string,integer" syntax="duration" default="1 minute" required="no" >}}
-
-The default maximum lifetime of an authorize code.
-
-#### id_token
-
-{{< confkey type="string,integer" syntax="duration" default="1 hour" required="no" >}}
-
-The default maximum lifetime of an ID token.
-
 #### refresh_token
 
 {{< confkey type="string,integer" syntax="duration" default="1 hour 30 minutes" required="no" >}}
@@ -500,6 +497,24 @@ access tokens or id tokens with an up-to-date expiration.
 A good starting point is 50% more or 30 minutes more (which ever is less) time than the highest lifespan out of the
 [access token](#access_token) lifespan and the [id token](#id_token) lifespan. For instance the default for all of these
 is 60 minutes, so the default refresh token lifespan is 90 minutes.
+
+#### id_token
+
+{{< confkey type="string,integer" syntax="duration" default="1 hour" required="no" >}}
+
+The default maximum lifetime of an ID token.
+
+#### authorize_code
+
+{{< confkey type="string,integer" syntax="duration" default="1 minute" required="no" >}}
+
+The default maximum lifetime of an authorize code.
+
+#### device_code
+
+{{< confkey type="string,integer" syntax="duration" default="10 minutes" required="no" >}}
+
+The default maximum lifetime of an device code.
 
 #### custom
 
@@ -528,41 +543,42 @@ identity_providers:
   oidc:
     lifespans:
       access_token: '1h'
-      authorize_code: '1m'
-      id_token: '1h'
       refresh_token: '90m'
+      id_token: '1h'
+      authorize_code: '1m'
+      device_code: '10m'
       custom:
         lifespan_name:
           access_token: '1h'
-          authorize_code: '1m'
-          id_token: '1h'
           refresh_token: '90m'
+          id_token: '1h'
+          authorize_code: '1m'
+          device_code: '10m'
           grants:
             authorize_code:
               access_token: '1h'
-              authorize_code: '1m'
-              id_token: '1h'
               refresh_token: '90m'
+              id_token: '1h'
+            device_code:
+              access_token: '1h'
+              refresh_token: '90m'
+              id_token: '1h'
             implicit:
               access_token: '1h'
-              authorize_code: '1m'
-              id_token: '1h'
               refresh_token: '90m'
+              id_token: '1h'
             client_credentials:
               access_token: '1h'
-              authorize_code: '1m'
-              id_token: '1h'
               refresh_token: '90m'
+              id_token: '1h'
             refresh_token:
               access_token: '1h'
-              authorize_code: '1m'
-              id_token: '1h'
               refresh_token: '90m'
+              id_token: '1h'
             jwt_bearer:
               access_token: '1h'
-              authorize_code: '1m'
-              id_token: '1h'
               refresh_token: '90m'
+              id_token: '1h'
 ```
 
 ### claims_policies
@@ -728,3 +744,5 @@ To integrate Authelia's [OpenID Connect 1.0] implementation with a relying party
 [Subject Identifier Type]: https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes
 [Pairwise Identifier Algorithm]: https://openid.net/specs/openid-connect-core-1_0.html#PairwiseAlg
 [Pushed Authorization Requests]: https://datatracker.ietf.org/doc/html/rfc9126
+[OpenID Certified™]: https://openid.net/certification/
+[OpenID Connect™ protocol]: https://openid.net/developers/how-connect-works/

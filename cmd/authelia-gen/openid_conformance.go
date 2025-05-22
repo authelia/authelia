@@ -14,6 +14,7 @@ import (
 )
 
 type OpenIDConnectConformanceSuiteBuilder struct {
+	brand         string
 	name          string
 	friendly      string
 	certification bool
@@ -39,7 +40,7 @@ func (b *OpenIDConnectConformanceSuiteBuilder) Build() OpenIDConnectConformanceS
 		descriptionSuffix = "Test Profile"
 	}
 
-	aliasSuffix := fmt.Sprintf("%s-%s", strings.ReplaceAll(strings.ToLower(b.name), ".", "-"), strings.ReplaceAll(strings.ToLower(b.version), ".", ""))
+	aliasSuffix := fmt.Sprintf("%s-%s", strings.ReplaceAll(strings.ToLower(b.name), ".", "-"), b.brand+strings.ReplaceAll(strings.ToLower(b.version), ".", ""))
 
 	name := fmt.Sprintf("%s%s", namePrefix, b.name)
 	description := fmt.Sprintf("Authelia %s %s %s", b.version, b.friendly, descriptionSuffix)

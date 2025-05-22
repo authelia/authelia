@@ -63,6 +63,7 @@ Here is what Authelia's portal looks like:
 
 This is a list of the key features of Authelia:
 
+* [OpenID Connect 1.0 / OAuth 2.0](#openid-connect-10--oauth-20)
 * Several second factor methods:
   * **[Security Keys](https://www.authelia.com/overview/authentication/security-key/)** that support
     [FIDO2]&nbsp;[WebAuthn] with devices like a [YubiKey].
@@ -92,11 +93,27 @@ This is a list of the key features of Authelia:
     * [Traefik Kubernetes Ingress](https://www.authelia.com/integration/kubernetes/traefik-ingress/#ingress)
     * [Istio](https://www.authelia.com/integration/kubernetes/istio/)
   * Beta support for installing via Helm using our [Charts](https://charts.authelia.com).
-* Beta support for [OAuth 2.0 and OpenID Connect 1.0](https://www.authelia.com/roadmap/active/openid-connect/).
 
 For more details take a look at the [Overview](https://www.authelia.com/overview/prologue/introduction/).
 
 If you want to know more about the roadmap, follow [Roadmap](https://www.authelia.com/roadmap).
+
+### OpenID Connect 1.0 / OAuth 2.0
+
+Authelia is [OpenID Certified™] to the Basic OP / Implicit OP / Hybrid OP / Form Post OP / Config OP profiles of the
+[OpenID Connect™ protocol]. While this offering is still effectively
+[on the roadmap as a beta](https://www.authelia.com/roadmap/active/openid-connect/) it's very comprehensive and well
+implemented already, also allowing us comprehensive certification. Read more about the
+[OpenID Certified™] status of Authelia in the
+[OpenID Connect 1.0 Integration Guide](https://www.authelia.com/integration/openid-connect/introduction/#openid-certified).
+
+<p align="center">
+	<a href="https://www.authelia.com/integration/openid-connect/introduction/#openid-certified" target="_blank">
+		<picture>
+			<img src="https://www.authelia.com/images/oid-certification.jpg" width="400" title="OpenID Certified™ by Authelia to the Basic OP / Implicit OP / Hybrid OP / Form Post OP / Config OP of the OpenID Connect™ protocol">
+		</picture>
+	</a>
+</p>
 
 ## Proxy support
 
@@ -344,6 +361,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="http://auston.dev"><img src="https://avatars.githubusercontent.com/u/5049050?v=4?s=100" width="100px;" alt="Auston Pramodh Barboza"/><br /><sub><b>Auston Pramodh Barboza</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=austonpramodh" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ThomasSteinbach"><img src="https://avatars.githubusercontent.com/u/1683246?v=4?s=100" width="100px;" alt="Thomas Steinbach"/><br /><sub><b>Thomas Steinbach</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=ThomasSteinbach" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>
@@ -440,3 +458,5 @@ Companies contributing to Authelia via Open Collective will have a special menti
 [security]: https://github.com/authelia/authelia/security/policy
 [#support]: https://discord.com/channels/707844280412012608/707844280412012612
 [#contributing]: https://discord.com/channels/707844280412012608/804943261265297408
+[OpenID Certified™]: https://openid.net/certification/
+[OpenID Connect™ protocol]: https://openid.net/developers/how-connect-works/

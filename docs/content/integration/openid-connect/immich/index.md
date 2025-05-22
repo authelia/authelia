@@ -21,9 +21,9 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.38.17](https://github.com/authelia/authelia/releases/tag/v4.38.17)
+  - [v4.39.0](https://github.com/authelia/authelia/releases/tag/v4.39.0)
 - [Immich]
-  - [v1.123.0](https://github.com/immich-app/immich/releases/tag/v1.123.0)
+  - [v1.132.3](https://github.com/immich-app/immich/releases/tag/v1.132.3)
 
 {{% oidc-common %}}
 
@@ -67,7 +67,7 @@ identity_providers:
           - 'profile'
           - 'email'
         userinfo_signed_response_alg: 'none'
-        token_endpoint_auth_method: 'client_secret_basic'
+        token_endpoint_auth_method: 'client_secret_post'
 ```
 
 ### Application

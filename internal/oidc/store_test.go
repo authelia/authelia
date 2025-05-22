@@ -32,7 +32,7 @@ func TestOpenIDConnectStore_GetInternalClient(t *testing.T) {
 				Clients: []schema.IdentityProvidersOpenIDConnectClient{
 					{
 						ID:                  myclient,
-						Name:                myclientdesc,
+						Name:                myclientname,
 						AuthorizationPolicy: onefactor,
 						Scopes:              []string{oidc.ScopeOpenID, oidc.ScopeProfile},
 						Secret:              tOpenIDConnectPlainTextClientSecret,
@@ -59,7 +59,7 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 
 	c1 := schema.IdentityProvidersOpenIDConnectClient{
 		ID:                  id,
-		Name:                myclientdesc,
+		Name:                myclientname,
 		AuthorizationPolicy: onefactor,
 		Scopes:              []string{oidc.ScopeOpenID, oidc.ScopeProfile},
 		Secret:              tOpenIDConnectPlainTextClientSecret,
@@ -79,7 +79,7 @@ func TestOpenIDConnectStore_GetInternalClient_ValidClient(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, client)
 	assert.Equal(t, id, client.GetID())
-	assert.Equal(t, myclientdesc, client.GetName())
+	assert.Equal(t, myclientname, client.GetName())
 	assert.Equal(t, oauthelia2.Arguments(c1.Scopes), client.GetScopes())
 	assert.Equal(t, oauthelia2.Arguments([]string{oidc.GrantTypeAuthorizationCode}), client.GetGrantTypes())
 	assert.Equal(t, oauthelia2.Arguments([]string{oidc.ResponseTypeAuthorizationCodeFlow}), client.GetResponseTypes())
@@ -93,7 +93,7 @@ func TestOpenIDConnectStore_GetInternalClient_InvalidClient(t *testing.T) {
 
 	c1 := schema.IdentityProvidersOpenIDConnectClient{
 		ID:                  myclient,
-		Name:                myclientdesc,
+		Name:                myclientname,
 		AuthorizationPolicy: onefactor,
 		Scopes:              []string{oidc.ScopeOpenID, oidc.ScopeProfile},
 		Secret:              tOpenIDConnectPlainTextClientSecret,
@@ -125,7 +125,7 @@ func TestOpenIDConnectStore_IsValidClientID(t *testing.T) {
 				Clients: []schema.IdentityProvidersOpenIDConnectClient{
 					{
 						ID:                  myclient,
-						Name:                myclientdesc,
+						Name:                myclientname,
 						AuthorizationPolicy: onefactor,
 						Scopes:              []string{oidc.ScopeOpenID, oidc.ScopeProfile},
 						Secret:              tOpenIDConnectPlainTextClientSecret,

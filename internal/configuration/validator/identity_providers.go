@@ -516,16 +516,20 @@ func setOIDCDefaults(config *schema.Configuration) {
 		config.IdentityProviders.OIDC.Lifespans.AccessToken = schema.DefaultOpenIDConnectConfiguration.Lifespans.AccessToken
 	}
 
-	if config.IdentityProviders.OIDC.Lifespans.AuthorizeCode == durationZero {
-		config.IdentityProviders.OIDC.Lifespans.AuthorizeCode = schema.DefaultOpenIDConnectConfiguration.Lifespans.AuthorizeCode
+	if config.IdentityProviders.OIDC.Lifespans.RefreshToken == durationZero {
+		config.IdentityProviders.OIDC.Lifespans.RefreshToken = schema.DefaultOpenIDConnectConfiguration.Lifespans.RefreshToken
 	}
 
 	if config.IdentityProviders.OIDC.Lifespans.IDToken == durationZero {
 		config.IdentityProviders.OIDC.Lifespans.IDToken = schema.DefaultOpenIDConnectConfiguration.Lifespans.IDToken
 	}
 
-	if config.IdentityProviders.OIDC.Lifespans.RefreshToken == durationZero {
-		config.IdentityProviders.OIDC.Lifespans.RefreshToken = schema.DefaultOpenIDConnectConfiguration.Lifespans.RefreshToken
+	if config.IdentityProviders.OIDC.Lifespans.AuthorizeCode == durationZero {
+		config.IdentityProviders.OIDC.Lifespans.AuthorizeCode = schema.DefaultOpenIDConnectConfiguration.Lifespans.AuthorizeCode
+	}
+
+	if config.IdentityProviders.OIDC.Lifespans.DeviceCode == durationZero {
+		config.IdentityProviders.OIDC.Lifespans.DeviceCode = schema.DefaultOpenIDConnectConfiguration.Lifespans.DeviceCode
 	}
 
 	if config.IdentityProviders.OIDC.EnforcePKCE == "" {
@@ -1403,6 +1407,15 @@ func validateOIDDClientSigningAlg(c int, config *schema.IdentityProvidersOpenIDC
 	outAlg, outKID = validateOIDCAlgKIDDefault(config, alg, kid, defaultAlg)
 
 	key := fmt.Sprintf("%s_signed_response_alg", attribute)
+
+	if !config.Discovery.JWTResponseAccessTokens && attribute == attrOIDCAccessTokenPrefix {
+		switch outAlg {
+		case "", oidc.SigningAlgNone:
+			break
+		default:
+			config.Discovery.JWTResponseAccessTokens = true
+		}
+	}
 
 	switch outKID {
 	case "":

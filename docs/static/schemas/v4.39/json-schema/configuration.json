@@ -2321,7 +2321,7 @@
           "title": "Access Token Lifespan",
           "description": "The duration an Access Token is valid for."
         },
-        "authorize_code": {
+        "refresh_token": {
           "oneOf": [
             {
               "type": "string",
@@ -2332,8 +2332,8 @@
               "description": "The duration in seconds"
             }
           ],
-          "title": "Authorize Code Lifespan",
-          "description": "The duration an Authorization Code is valid for."
+          "title": "Refresh Token Lifespan",
+          "description": "The duration a Refresh Token is valid for."
         },
         "id_token": {
           "oneOf": [
@@ -2349,7 +2349,7 @@
           "title": "ID Token Lifespan",
           "description": "The duration an ID Token is valid for."
         },
-        "refresh_token": {
+        "authorize_code": {
           "oneOf": [
             {
               "type": "string",
@@ -2360,8 +2360,22 @@
               "description": "The duration in seconds"
             }
           ],
-          "title": "Refresh Token Lifespan",
-          "description": "The duration a Refresh Token is valid for."
+          "title": "Authorize Code Lifespan",
+          "description": "The duration an Authorization Code is valid for."
+        },
+        "device_code": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Device Code Lifespan",
+          "description": "The duration an Device Code is valid for."
         },
         "grants": {
           "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespanGrants",
@@ -2379,6 +2393,11 @@
           "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespanToken",
           "title": "Authorize Code Grant",
           "description": "Allows tuning the token lifespans for the authorize code grant."
+        },
+        "device_code": {
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespanToken",
+          "title": "Device Code Grant",
+          "description": "Allows tuning the token lifespans for the device code grant."
         },
         "implicit": {
           "$ref": "#/$defs/IdentityProvidersOpenIDConnectLifespanToken",
@@ -2421,7 +2440,7 @@
           "title": "Access Token Lifespan",
           "description": "The duration an Access Token is valid for."
         },
-        "authorize_code": {
+        "refresh_token": {
           "oneOf": [
             {
               "type": "string",
@@ -2432,8 +2451,8 @@
               "description": "The duration in seconds"
             }
           ],
-          "title": "Authorize Code Lifespan",
-          "description": "The duration an Authorization Code is valid for."
+          "title": "Refresh Token Lifespan",
+          "description": "The duration a Refresh Token is valid for."
         },
         "id_token": {
           "oneOf": [
@@ -2449,7 +2468,7 @@
           "title": "ID Token Lifespan",
           "description": "The duration an ID Token is valid for."
         },
-        "refresh_token": {
+        "authorize_code": {
           "oneOf": [
             {
               "type": "string",
@@ -2460,8 +2479,8 @@
               "description": "The duration in seconds"
             }
           ],
-          "title": "Refresh Token Lifespan",
-          "description": "The duration a Refresh Token is valid for."
+          "title": "Authorize Code Lifespan",
+          "description": "The duration an Authorization Code is valid for."
         }
       },
       "additionalProperties": false,
@@ -2484,7 +2503,7 @@
           "title": "Access Token Lifespan",
           "description": "The duration an Access Token is valid for."
         },
-        "authorize_code": {
+        "refresh_token": {
           "oneOf": [
             {
               "type": "string",
@@ -2495,8 +2514,8 @@
               "description": "The duration in seconds"
             }
           ],
-          "title": "Authorize Code Lifespan",
-          "description": "The duration an Authorization Code is valid for."
+          "title": "Refresh Token Lifespan",
+          "description": "The duration a Refresh Token is valid for."
         },
         "id_token": {
           "oneOf": [
@@ -2512,7 +2531,7 @@
           "title": "ID Token Lifespan",
           "description": "The duration an ID Token is valid for."
         },
-        "refresh_token": {
+        "authorize_code": {
           "oneOf": [
             {
               "type": "string",
@@ -2523,8 +2542,22 @@
               "description": "The duration in seconds"
             }
           ],
-          "title": "Refresh Token Lifespan",
-          "description": "The duration a Refresh Token is valid for."
+          "title": "Authorize Code Lifespan",
+          "description": "The duration an Authorization Code is valid for."
+        },
+        "device_code": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Device Code Lifespan",
+          "description": "The duration an Device Code is valid for."
         },
         "jwt_secured_authorization": {
           "oneOf": [

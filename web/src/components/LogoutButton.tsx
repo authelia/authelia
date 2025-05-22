@@ -1,27 +1,11 @@
 import React from "react";
 
-import { Button } from "@mui/material";
-import { useTranslation } from "react-i18next";
-
-import { LogoutRoute as SignOutRoute } from "@constants/Routes";
-import { useRouterNavigate } from "@hooks/RouterNavigate";
+import SignOutButton from "@components/SignOutButton";
 
 export interface Props {}
 
 const LogoutButton = function (props: Props) {
-    const { t: translate } = useTranslation();
-
-    const navigate = useRouterNavigate();
-
-    const handleLogoutClick = () => {
-        navigate(SignOutRoute);
-    };
-
-    return (
-        <Button id={"logout-button"} color={"secondary"} onClick={handleLogoutClick}>
-            {translate("Logout")}
-        </Button>
-    );
+    return <SignOutButton id={"logout-button"} text={"Logout"} tooltip={"Logout and clear any current flow"} />;
 };
 
 export default LogoutButton;

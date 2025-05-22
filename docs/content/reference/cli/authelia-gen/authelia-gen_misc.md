@@ -69,5 +69,6 @@ Generate miscellaneous things
 ### SEE ALSO
 
 * [authelia-gen](authelia-gen.md)	 - Authelia's generator tooling
+* [authelia-gen misc locale-move](authelia-gen_misc_locale-move.md)	 - Move locales between namespaces
 * [authelia-gen misc oidc](authelia-gen_misc_oidc.md)	 - Generate OpenID Connect 1.0 configurations
 

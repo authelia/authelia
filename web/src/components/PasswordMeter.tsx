@@ -93,7 +93,7 @@ const PasswordMeter = function (props: Props) {
             if (warning !== "") {
                 setFeedbackTitle(translate("The password does not meet the password policy"));
             }
-            setFeedback(translate(warning));
+            setFeedback(warning);
 
             setPasswordScore(score);
         } else if (props.policy.mode === PasswordPolicyMode.ZXCVBN) {

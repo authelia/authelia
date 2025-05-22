@@ -29,7 +29,7 @@ interface Props {
 }
 
 const ChangePasswordDialog = (props: Props) => {
-    const { t: translate } = useTranslation("settings");
+    const { t: translate } = useTranslation(["settings", "portal"]);
 
     const { createSuccessNotification, createErrorNotification } = useNotifications();
 
@@ -95,7 +95,9 @@ const ChangePasswordDialog = (props: Props) => {
             setLoading(false);
         } catch {
             createErrorNotification(
-                translate("There was an issue completing the process the verification token might have expired"),
+                translate("There was an issue completing the process the verification token might have expired", {
+                    ns: "portal",
+                }),
             );
             setLoading(true);
         }
@@ -152,16 +154,12 @@ const ChangePasswordDialog = (props: Props) => {
 
                     case 500: // Internal Server Error
                     default:
-                        createErrorNotification(
-                            translate("There was an issue changing the {{item}}", { item: translate("password") }),
-                        );
+                        createErrorNotification(translate("There was an issue changing the password"));
                         break;
                 }
             } else {
                 // Handle non-axios errors
-                createErrorNotification(
-                    translate("There was an issue changing the {{item}}", { item: translate("password") }),
-                );
+                createErrorNotification(translate("There was an issue changing the password"));
             }
             return;
         }
@@ -206,7 +204,7 @@ const ChangePasswordDialog = (props: Props) => {
 
     return (
         <Dialog open={props.open} maxWidth="xs">
-            <DialogTitle>{translate("Change {{item}}", { item: translate("Password") })}</DialogTitle>
+            <DialogTitle>{translate("Change Password")}</DialogTitle>
             <DialogContent>
                 <FormControl id={"change-password-form"} disabled={loading}>
                     <Grid container spacing={1} alignItems={"center"} justifyContent={"center"} textAlign={"center"}>

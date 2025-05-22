@@ -1040,6 +1040,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "ThomasSteinbach",
+      "name": "Thomas Steinbach",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1683246?v=4",
+      "profile": "https://github.com/ThomasSteinbach",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,

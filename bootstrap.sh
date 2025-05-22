@@ -5,7 +5,7 @@ if [[ $(uname) == "Darwin" ]]; then
   exit
 fi
 
-export PATH=$PATH:./cmd/authelia-scripts/:./.buildkite/steps/:$GOPATH/bin:./web/node_modules/.bin:/tmp \
+export PATH=$PATH:$PWD/cmd/dev/:$PWD/.buildkite/steps/:$GOPATH/bin:$PWD/web/node_modules/.bin:/tmp \
 DOCKER_BUILDKIT=1
 
 if [[ -z "$OLD_PS1" ]]; then

@@ -32,6 +32,7 @@ type bodySignTOTPRequest struct {
 	FlowID    string `json:"flowID"`
 	Flow      string `json:"flow"`
 	SubFlow   string `json:"subflow"`
+	UserCode  string `json:"userCode"`
 }
 
 type bodyRegisterTOTP struct {
@@ -50,6 +51,7 @@ type bodySignWebAuthnRequest struct {
 	FlowID    string `json:"flowID"`
 	Flow      string `json:"flow"`
 	SubFlow   string `json:"subflow"`
+	UserCode  string `json:"userCode"`
 
 	Response json.RawMessage `json:"response"`
 }
@@ -62,6 +64,7 @@ type bodySignPasskeyRequest struct {
 	FlowID         string `json:"flowID"`
 	Flow           string `json:"flow"`
 	SubFlow        string `json:"subflow"`
+	UserCode       string `json:"userCode"`
 
 	Response json.RawMessage `json:"response"`
 }
@@ -101,6 +104,7 @@ type bodySignDuoRequest struct {
 	FlowID    string `json:"flowID"`
 	Flow      string `json:"flow"`
 	SubFlow   string `json:"subflow"`
+	UserCode  string `json:"userCode"`
 }
 
 // bodyPreferred2FAMethod the selected 2FA method.
@@ -118,6 +122,7 @@ type bodyFirstFactorRequest struct {
 	FlowID         string `json:"flowID"`
 	Flow           string `json:"flow"`
 	SubFlow        string `json:"subflow"`
+	UserCode       string `json:"userCode"`
 }
 
 // bodyFirstFactorRequest represents the JSON body received by the endpoint.
@@ -127,6 +132,7 @@ type bodySecondFactorPasswordRequest struct {
 	FlowID    string `json:"flowID"`
 	Flow      string `json:"flow"`
 	SubFlow   string `json:"subflow"`
+	UserCode  string `json:"userCode"`
 }
 
 // bodyFirstFactorRequest represents the JSON body received by the endpoint.
@@ -137,6 +143,7 @@ type bodyFirstFactorReauthenticateRequest struct {
 	FlowID        string `json:"flowID"`
 	Flow          string `json:"flow"`
 	SubFlow       string `json:"subflow"`
+	UserCode      string `json:"userCode"`
 }
 
 // checkURIWithinDomainRequestBody represents the JSON body received by the endpoint checking if an URI is within

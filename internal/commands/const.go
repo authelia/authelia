@@ -677,6 +677,30 @@ This subcommand contains other subcommands related to debugging.`
 This subcommand allows checking a remote server's TLS configuration and the ability to validate the certificate.`
 
 	cmdAutheliaDebugTLSExample = `authelia debug tls tcp://smtp.example.com:465`
+
+	cmdAutheliaDebugExpressionShort = "Perform a user attribute expression debug operation"
+
+	cmdAutheliaDebugExpressionLong = `Perform a user attribute expression debug operation.
+
+This subcommand allows checking a user attribute expression against a specific user.`
+
+	cmdAutheliaDebugExpressionExample = `authelia debug expression username "'abc' in groups"`
+
+	cmdAutheliaDebugOIDCShort = "Perform a OpenID Connect 1.0 debug operation"
+
+	cmdAutheliaDebugOIDCLong = `Perform a OpenID Connect 1.0 debug operation.
+
+This subcommand allows checking certain OpenID Connect 1.0 scenarios.`
+
+	cmdAutheliaDebugOIDCExample = `authelia debug oidc --help`
+
+	cmdAutheliaDebugOIDCClaimsShort = "Perform a OpenID Connect 1.0 claims hydration debug operation"
+
+	cmdAutheliaDebugOIDCClaimsLong = `Perform a OpenID Connect 1.0 claims hydration debug operation.
+
+This subcommand allows checking an OpenID Connect 1.0 claims hydration scenario by providing certain information about a request.`
+
+	cmdAutheliaDebugOIDCClaimsExample = `authelia debug oidc claims --help`
 )
 
 const (

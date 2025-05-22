@@ -12,6 +12,7 @@ interface CompleteTOTPSignInBody {
     flowID?: string;
     flow?: string;
     subflow?: string;
+    userCode?: string;
 }
 
 export function completeTOTPSignIn(
@@ -20,6 +21,7 @@ export function completeTOTPSignIn(
     flowID?: string,
     flow?: string,
     subflow?: string,
+    userCode?: string,
 ) {
     const body: CompleteTOTPSignInBody = {
         token: `${passcode}`,
@@ -27,6 +29,7 @@ export function completeTOTPSignIn(
         flowID,
         flow,
         subflow,
+        userCode,
     };
 
     return PostWithOptionalResponseRateLimited<SignInResponse>(CompleteTOTPSignInPath, body);
