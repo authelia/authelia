@@ -5,7 +5,7 @@ summary: ""
 date: 2022-10-20T15:27:09+11:00
 draft: false
 images: []
-weight: 352
+weight: 752
 toc: true
 seo:
   title: "" # custom title (optional)
@@ -32,10 +32,10 @@ automatically be replaced with documentation variables.
 
 The following are the assumptions we make:
 
-- The LDAP implementation to be used with authelia is fully setup and reachable by authelia.
+- The LDAP implementation to be used with Authelia is fully setup and reachable by Authelia.
 - All services are part of the `example.com` domain:
   - This domain and the subdomains will have to be adapted in all examples to match your specific domains unless you're
-    just testing or you want to use that specific domain
+    just testing or you want to use that specific domain.
 
 ## Configuration
 
@@ -48,17 +48,20 @@ authentication_backend:
   ldap:
     implementation: 'freeipa'
     address: 'ldaps://ldap.example.com'
-    base_dn: 'dc=example,dc=com'
-    user: 'uid=authelia,ou=people,dc=example,dc=com'
+    base_dn: 'DC=example,DC=com'
+    user: 'UID=authelia,OU=people,DC=example,DC=com'
     password: 'insecure_secret'
 ```
 
 ### Application
 
-Create within [FreeIPA], either via CLI or within a GUI management application a basic user with a complex password.
+Create a service user within the application with a complex password. Use the users Distinguished Name as a username,
+and make sure the user has the appropriate permissions to perform the following actions:
 
-*Make note of its CN.* You can also create a group to use within Authelia if you would like granular control of who can
-login, and reference it within the filters below.
+- Read the attributes of users and groups that are meant to be able to use Authelia.
+- Change the password of users provided the functionality to reset passwords is desired.
+
+See the [FreeIPA] documentation on how to configure permissions for the newly created user.
 
 ### Defaults
 
@@ -66,8 +69,8 @@ The below tables describes the current attribute defaults for the [FreeIPA] impl
 
 #### Attribute defaults
 
-This table describes the attribute defaults for the [FreeIPA] implementation. i.e. the username_attribute is described by the
-Username column.
+This table describes the attribute defaults for the [FreeIPA] implementation. i.e. the username_attribute is described
+by the Username column.
 
 |    Username    | Display Name | Mail | Group Name | Distinguished Name | Member Of |
 |:--------------:|:------------:|:----:|:----------:|:------------------:|:---------:|
@@ -81,10 +84,8 @@ the following conditions:
 
 - The account is disabled or locked:
   - `(!(nsAccountLock=TRUE))`
-
 - Their password is expired:
   - `(krbPasswordExpiration>={date-time:generalized})`
-
 - Their account is expired:
   - `(|(!(krbPrincipalExpiration=*))(krbPrincipalExpiration>={date-time:generalized}))`
 
