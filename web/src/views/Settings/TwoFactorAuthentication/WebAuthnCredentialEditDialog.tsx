@@ -109,7 +109,11 @@ const WebAuthnCredentialEditDialog = function (props: Props) {
                     error={errorDescription}
                     fullWidth
                     disabled={false}
-                    inputProps={{ maxLength: 30 }}
+                    slotProps={{
+                        htmlInput: {
+                            maxLength: 30,
+                        },
+                    }}
                     onChange={(v) => {
                         setCredentialDescription(v.target.value.substring(0, 30));
                         setErrorDescription(false);
