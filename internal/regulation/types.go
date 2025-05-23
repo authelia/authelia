@@ -35,7 +35,7 @@ type Context interface {
 
 // MetricsRecorder represents the methods used to record regulation.
 type MetricsRecorder interface {
-	RecordAuthn(success, banned bool, authType string)
+	RecordAuthn(success, banned bool, authType, username, remoteIP, requestURI string)
 }
 
 // NewBan constructs a friendly version of ban information for easy formatting.
