@@ -82,6 +82,9 @@ session:
 authentication_backend:
   file:
     path: '/config/users.yml'
+  known_ip:
+    enable: true
+
 
 totp:
   issuer: 'example.com'
