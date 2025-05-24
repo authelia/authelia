@@ -105,12 +105,15 @@
     # authz:
       # forward-auth:
         # implementation: 'ForwardAuth'
+        # headers: ~
         # authn_strategies: []
       # ext-authz:
         # implementation: 'ExtAuthz'
+        # headers: ~
         # authn_strategies: []
       # auth-request:
         # implementation: 'AuthRequest'
+        # headers: ~
         # authn_strategies: []
       # legacy:
         # implementation: 'Legacy'
