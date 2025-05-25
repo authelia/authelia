@@ -22,7 +22,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.3](https://github.com/authelia/authelia/releases/tag/v4.39.3)
+  - [v4.39.4](https://github.com/authelia/authelia/releases/tag/v4.39.4)
 - [OpenID Connect Playground]
   - Not Applicable
 
