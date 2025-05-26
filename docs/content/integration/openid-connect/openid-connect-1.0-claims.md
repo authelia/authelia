@@ -5,7 +5,7 @@ summary: "An introduction into utilizing the Authelia OpenID Connect 1.0 Claims 
 date: 2025-02-22T08:20:34+00:00
 draft: false
 images: []
-weight: 611
+weight: 711
 toc: true
 seo:
   title: "" # custom title (optional)

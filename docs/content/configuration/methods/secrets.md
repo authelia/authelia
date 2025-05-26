@@ -133,4 +133,4 @@ why setting them via the file counterparts is highly encouraged.
 ## Examples
 
 See the [Docker Integration](../../integration/deployment/docker.md) and
-[Kubernetes Integration](../../integration/kubernetes/secrets.md) guides for examples of secrets.
+[Kubernetes Integration](../../integration/deployment/kubernetes/secrets.md) guides for examples of secrets.

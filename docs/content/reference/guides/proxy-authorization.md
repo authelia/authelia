@@ -5,9 +5,6 @@ summary: "This section contains reference guide on Proxy Authorization implement
 date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
-menu:
-reference:
-parent: "guides"
 weight: 220
 toc: true
 aliases:

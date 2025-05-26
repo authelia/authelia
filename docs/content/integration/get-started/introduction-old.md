@@ -112,8 +112,8 @@ The default method of utilizing *Authelia* is via the [Proxy Integrations](../pr
 recommended that you read the relevant [Proxy Integration Documentation](../proxies/introduction.md).
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-When your [Deployment](#deployment) is on [Kubernetes](../kubernetes/introduction.md) we
-recommend viewing the dedicated [Kubernetes Documentation](../kubernetes/introduction.md) prior to viewing the
+When your [Deployment](#deployment) is on [Kubernetes](../deployment/kubernetes/introduction.md) we
+recommend viewing the dedicated [Kubernetes Documentation](../deployment/kubernetes/introduction.md) prior to viewing the
 [Proxy Integration Documentation](../proxies/introduction.md).
 {{< /callout >}}
 

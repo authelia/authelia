@@ -83,7 +83,7 @@ environment variable or other environment variables set. This also applies to ot
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
 If you're using Authelia with Kubernetes and are not using the provided
 [helm chart](https://charts.authelia.com) you will be required to
-[configure the enableServiceLinks](../../integration/kubernetes/introduction.md#enable-service-links) option.
+[configure the enableServiceLinks](../../integration/deployment/kubernetes/introduction.md#enable-service-links) option.
 {{< /callout >}}
 
 ### 4.25.0

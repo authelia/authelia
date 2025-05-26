@@ -29,7 +29,7 @@ While this is generally complete we intend to invest effort to improve this as n
 
 {{< roadmap-status stage="complete" >}}
 
-Provide some generalized [integration documentation](../../integration/kubernetes/introduction.md) for [Kubernetes].
+Provide some generalized [integration documentation](../../integration/deployment/kubernetes/introduction.md) for [Kubernetes].
 
 ### Helm Chart
 

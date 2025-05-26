@@ -16,12 +16,12 @@ seo:
 
 There are three main methods to deploy *Authelia*.
 
-1. [Docker](../docker/introduction.md)
-2. [Kubernetes](../kubernetes/introduction.md)
+1. [Docker](docker/introduction.md)
+2. [Kubernetes](kubernetes/introduction.md)
 3. [Bare Metal](bare-metal.md)
 
-## Get started
+## Get Started
 
 It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
-[Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+[Get Started](../get-started/introduction.md) guide. This takes you through various steps which are essential to
 bootstrapping *Authelia*.

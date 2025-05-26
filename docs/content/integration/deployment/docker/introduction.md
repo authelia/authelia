@@ -2,10 +2,10 @@
 title: "Docker"
 description: "A guide on installing Authelia in Docker."
 summary: "This is one of the primary ways we deliver Authelia to users and the recommended path."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
-weight: 410
+weight: 351
 toc: true
 seo:
   title: "" # custom title (optional)
@@ -20,10 +20,10 @@ The [Docker] container is deployed with the following image names:
 * [docker.io/authelia/authelia](https://hub.docker.com/r/authelia/authelia)
 * [ghcr.io/authelia/authelia](https://github.com/authelia/authelia/pkgs/container/authelia)
 
-## Get started
+## Get Started
 
 It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
-[Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+[Get Started](../../get-started/introduction.md) guide. This takes you through various steps which are essential to
 bootstrapping *Authelia*.
 
 ## Container
@@ -197,7 +197,7 @@ The following command will allow you to run your existing compose with the addit
 example `compose.debug.yml`:
 
 ```bash
-docker compose up -f compose.yml -f compose.debug.yml -d
+docker compose -f compose.yml -f compose.debug.yml up -d
 ```
 
 The following command sequence will allow you to run Authelia interactively within the container:

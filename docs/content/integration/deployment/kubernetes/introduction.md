@@ -5,7 +5,7 @@ summary: "An introduction into integrating Authelia with Kubernetes."
 date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
-weight: 510
+weight: 361
 toc: true
 aliases:
   - /i/k8s
@@ -18,10 +18,10 @@ seo:
 
 {{< figure src="images/logos/kubernetes.png" alt="Kubernetes" width="100" style="padding-right: 10px" ignoreStaticImages="false" >}}
 
-## Get started
+## Get Started
 
 It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
-[Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+[Get Started](../../get-started/introduction.md) guide. This takes you through various steps which are essential to
 bootstrapping *Authelia*.
 
 ## Important Notes
@@ -61,7 +61,7 @@ spec:
 If using file-based authentication, the argon2id provider will by default use 1GB of RAM for password generation. This
 means you should allow for at least this amount in your deployment/daemonset spec and have this much available on your
 node, alternatively you can
-[tweak the providers settings](../../configuration/first-factor/file.md#memory). Otherwise,
+[tweak the providers settings](../../../configuration/first-factor/file.md#memory). Otherwise,
 your Authelia may OOM during login. See [here](https://github.com/authelia/authelia/issues/1234#issuecomment-663910799)
 for more info.
 

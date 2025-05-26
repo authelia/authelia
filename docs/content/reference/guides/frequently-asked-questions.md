@@ -30,7 +30,7 @@ seo:
 
 ## Kubernetes
 
-- [General](../../integration/kubernetes/introduction.md#frequently-asked-questions)
+- [General](../../integration/deployment/kubernetes/introduction.md#frequently-asked-questions)
 
 ## Identity Providers
 

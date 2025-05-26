@@ -5,7 +5,7 @@ summary: "A guide to using secrets when integrating Authelia with Kubernetes."
 date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
-weight: 530
+weight: 363
 toc: true
 seo:
   title: "" # custom title (optional)
@@ -16,17 +16,17 @@ seo:
 
 The following serve as examples of how to inject secrets into the Authelia container on [Kubernetes].
 
-## Get started
+## Get Started
 
 It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
-[Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+[Get Started](../../get-started/introduction.md) guide. This takes you through various steps which are essential to
 bootstrapping *Authelia*.
 
 ## Creation
 
 The following section covers creating example secrets. See [Secret Usage](#usage) for usage details. These examples are
 not intended to be used as is, you should only include secrets that you're actively using and some secrets may be
-missing from these examples. You need to see the [secrets documentation](../../configuration/methods/secrets.md) and
+missing from these examples. You need to see the [secrets documentation](../../../configuration/methods/secrets.md) and
 appropriately adapt these examples to your use case.
 
 ### Helm Chart
