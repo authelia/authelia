@@ -17,10 +17,10 @@ seo:
 1. The [configuration](../../configuration/prologue/introduction.md) can be defined statically by YAML.
 2. Most areas of the configuration can be defined by [environment variables](../../configuration/methods/environment.md).
 
-## Get started
+## Get Started
 
 It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
-[Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+[Get Started](../get-started/introduction.md) guide. This takes you through various steps which are essential to
 bootstrapping *Authelia*.
 
 ## Ansible

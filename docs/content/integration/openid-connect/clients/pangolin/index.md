@@ -5,7 +5,7 @@ summary: ""
 date: 2025-05-07T10:26:55+10:00
 draft: false
 images: []
-weight: 620
+weight: 720
 toc: true
 aliases:
   - '/integration/openid-connect/pangolin/'

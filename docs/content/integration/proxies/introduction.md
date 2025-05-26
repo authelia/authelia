@@ -20,10 +20,10 @@ __Authelia__ works in collaboration with several reverse proxies. In this sectio
 various tested proxies with examples of how you may configure them. We are eager for users to help us provide better
 examples of already documented proxies, as well as provide us examples of undocumented proxies.
 
-## Get started
+## Get Started
 
 It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
-[Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+[Get Started](../get-started/introduction.md) guide. This takes you through various steps which are essential to
 bootstrapping *Authelia*.
 
 ## Support

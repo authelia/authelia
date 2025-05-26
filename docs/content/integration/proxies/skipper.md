@@ -30,10 +30,10 @@ and thus if anyone has this working please let us know.
 
 We will aim to perform documentation for this on our own but there is no current timeframe.
 
-## Get started
+## Get Started
 
 It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
-[Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+[Get Started](../get-started/introduction.md) guide. This takes you through various steps which are essential to
 bootstrapping *Authelia*.
 
 ## Trusted Proxies

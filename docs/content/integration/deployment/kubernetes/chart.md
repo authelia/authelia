@@ -5,7 +5,7 @@ summary: "A guide to using the Authelia helm chart to integrate Authelia with Ku
 date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
-weight: 520
+weight: 362
 toc: true
 seo:
   title: "" # custom title (optional)
@@ -17,10 +17,10 @@ seo:
 Authelia offers a [Helm Chart] which can make integration with [Kubernetes] much easier. It's currently considered beta
 status, and as such is subject to breaking changes.
 
-## Get started
+## Get Started
 
 It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
-[Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+[Get Started](../../get-started/introduction.md) guide. This takes you through various steps which are essential to
 bootstrapping *Authelia*.
 
 ## Repository
@@ -44,7 +44,7 @@ The [https://charts.authelia.com/](https://charts.authelia.com/) URL also serves
 ## Source
 
 The source for the [Helm Chart] is hosted on [GitHub](https://github.com/authelia/chartrepo). Please feel free to
-[contribute](../../contributing/prologue/introduction.md).
+[contribute](../../../contributing/prologue/introduction.md).
 
 [Kubernetes]: https://kubernetes.io/
 [Helm]: https://helm.sh/

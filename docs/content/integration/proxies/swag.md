@@ -34,10 +34,10 @@ All paths in this guide are the locations inside the container. You will have to
 the container or adapt the path to the path you have mounted the relevant container path to.
 {{< /callout >}}
 
-## Get started
+## Get Started
 
 It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
-[Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+[Get Started](../get-started/introduction.md) guide. This takes you through various steps which are essential to
 bootstrapping *Authelia*.
 
 ## Requirements
@@ -62,7 +62,7 @@ automatically be replaced with documentation variables.
 
 The following are the assumptions we make:
 
-* You have followed the [Get Started](../prologue/get-started.md) guide and configured
+* You have followed the [Get Started](../get-started/introduction.md) guide and configured
 * Deployment Scenario:
   * Single Host
   * Authelia is deployed as a Container with the container name `{{< sitevar name="host" nojs="authelia" >}}` on port `{{< sitevar name="port" nojs="9091" >}}`

@@ -5,7 +5,7 @@ summary: ""
 date: 2025-05-07T09:48:38+10:00
 draft: false
 images: []
-weight: 620
+weight: 720
 toc: true
 aliases:
   - '/integration/openid-connect/openid-connect-playground/'
