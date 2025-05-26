@@ -70,7 +70,7 @@
 	"Select a Device": "Välj en enhet",
 	"Settings": "Inställningar",
 	"Sign in": "Logga in",
-	"Sign in with a passkey": "Logga in med ett lösenord",
+	"Sign in with a passkey": "Logga in med säkerhetsnyckel",
 	"Sign out": "Logga ut",
 	"Successfully revoked the One-Time Code": "Framgångsrikt återkallat engångskoden",
 	"Successfully revoked the Token": "Lyckades återkalla token",
