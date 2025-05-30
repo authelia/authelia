@@ -25,7 +25,7 @@ seo:
 - [Authelia]
   - [v4.38.18](https://github.com/authelia/authelia/releases/tag/v4.38.18)
 - [Open WebUI]
-  - [v0.5.4](https://github.com/open-webui/open-webui/releases/tag/v0.5.4)
+  - [v0.6.13](https://github.com/open-webui/open-webui/releases/tag/v0.6.13)
 
 {{% oidc-common %}}
 
@@ -88,6 +88,7 @@ To configure [Open WebUI] to utilize Authelia as an [OpenID Connect 1.0] Provide
 ##### Standard
 
 ```shell {title=".env"}
+WEBUI_URL=https://ai.{{< sitevar name="domain" nojs="example.com" >}}
 ENABLE_OAUTH_SIGNUP=true
 OAUTH_MERGE_ACCOUNTS_BY_EMAIL=true
 OAUTH_CLIENT_ID=open-webui
@@ -107,6 +108,7 @@ OAUTH_ROLES_CLAIM=groups
 services:
   open-webui:
     environment:
+      WEBUI_URL: 'https://ai.{{< sitevar name="domain" nojs="example.com" >}}'
       ENABLE_OAUTH_SIGNUP: 'true'
       OAUTH_MERGE_ACCOUNTS_BY_EMAIL: 'true'
       OAUTH_CLIENT_ID: 'open-webui'
