@@ -160,8 +160,8 @@ importers:
         specifier: 6.10.2
         version: 6.10.2(eslint@8.57.1)
       eslint-plugin-prettier:
-        specifier: 5.4.0
-        version: 5.4.0(eslint-config-prettier@10.1.5(eslint@8.57.1))(eslint@8.57.1)(prettier@3.5.3)
+        specifier: 5.4.1
+        version: 5.4.1(eslint-config-prettier@10.1.5(eslint@8.57.1))(eslint@8.57.1)(prettier@3.5.3)
       eslint-plugin-react:
         specifier: 7.37.5
         version: 7.37.5(eslint@8.57.1)
@@ -1471,8 +1471,8 @@ packages:
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
 
-  '@pkgr/core@0.2.0':
-    resolution: {integrity: sha512-vsJDAkYR6qCPu+ioGScGiMYR7LvZYIXh/dlQeviqoTWNCVfKTLYD/LkNWH4Mxsv2a5vpIRc77FN5DnmK1eBggQ==}
+  '@pkgr/core@0.2.4':
+    resolution: {integrity: sha512-ROFF39F6ZrnzSUEmQQZUar0Jt4xVoP9WnDRdWwF4NNcXs3xBTLgBUDoOwW141y1jP+S8nahIbdxbFC7IShw9Iw==}
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
 
   '@popperjs/core@2.11.8':
@@ -2732,8 +2732,8 @@ packages:
     peerDependencies:
       eslint: ^3 || ^4 || ^5 || ^6 || ^7 || ^8 || ^9
 
-  eslint-plugin-prettier@5.4.0:
-    resolution: {integrity: sha512-BvQOvUhkVQM1i63iMETK9Hjud9QhqBnbtT1Zc642p9ynzBuCe5pybkOnvqZIBypXmMlsGcnU4HZ8sCTPfpAexA==}
+  eslint-plugin-prettier@5.4.1:
+    resolution: {integrity: sha512-9dF+KuU/Ilkq27A8idRP7N2DH8iUR6qXcjF3FR2wETY21PZdBrIjwCau8oboyGj9b7etWmTGEeM8e7oOed6ZWg==}
     engines: {node: ^14.18.0 || >=16.0.0}
     peerDependencies:
       '@types/eslint': '>=8.0.0'
@@ -4262,8 +4262,8 @@ packages:
   svg-parser@2.0.4:
     resolution: {integrity: sha512-e4hG1hRwoOdRb37cIMSgzNsxyzKfayW6VOflrwvR+/bzrkyxY/31WkbgnQpgtrNp1SdpJvpUAGTa/ZoiPNDuRQ==}
 
-  synckit@0.11.1:
-    resolution: {integrity: sha512-fWZqNBZNNFp/7mTUy1fSsydhKsAKJ+u90Nk7kOK5Gcq9vObaqLBLjWFDBkyVU9Vvc6Y71VbOevMuGhqv02bT+Q==}
+  synckit@0.11.7:
+    resolution: {integrity: sha512-/5aUeiRPqmY0CRTJ+iVWfOOMHWTDh8JAIuNF1A6nZ2/RdCNWwKaUrO5Qw5ephLK6dYa7NclYBI0ahdgUECvdhA==}
     engines: {node: ^14.18.0 || >=16.0.0}
 
   test-exclude@7.0.1:
@@ -6218,7 +6218,7 @@ snapshots:
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
-  '@pkgr/core@0.2.0': {}
+  '@pkgr/core@0.2.4': {}
 
   '@popperjs/core@2.11.8': {}
 
@@ -7706,12 +7706,12 @@ snapshots:
       safe-regex-test: 1.0.3
       string.prototype.includes: 2.0.1
 
-  eslint-plugin-prettier@5.4.0(eslint-config-prettier@10.1.5(eslint@8.57.1))(eslint@8.57.1)(prettier@3.5.3):
+  eslint-plugin-prettier@5.4.1(eslint-config-prettier@10.1.5(eslint@8.57.1))(eslint@8.57.1)(prettier@3.5.3):
     dependencies:
       eslint: 8.57.1
       prettier: 3.5.3
       prettier-linter-helpers: 1.0.0
-      synckit: 0.11.1
+      synckit: 0.11.7
     optionalDependencies:
       eslint-config-prettier: 10.1.5(eslint@8.57.1)
 
@@ -9352,10 +9352,9 @@ snapshots:
 
   svg-parser@2.0.4: {}
 
-  synckit@0.11.1:
+  synckit@0.11.7:
     dependencies:
-      '@pkgr/core': 0.2.0
-      tslib: 2.8.1
+      '@pkgr/core': 0.2.4
 
   test-exclude@7.0.1:
     dependencies:
