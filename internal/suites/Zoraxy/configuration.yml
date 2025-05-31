@@ -1,0 +1,101 @@
+---
+certificates_directory: '/certs/'
+
+identity_validation:
+  reset_password:
+    jwt_secret: 'a_very_important_secret'
+
+server:
+  address: 'tcp://:9091'
+  tls:
+    certificate: '/pki/public.backend.crt'
+    key: '/pki/private.backend.pem'
+  endpoints:
+    authz:
+      caddy:
+        implementation: 'ForwardAuth'
+        authn_strategies: []
+    rate_limits:
+      reset_password_start:
+        buckets:
+          - period: '2 minutes'
+            requests: 20
+      reset_password_finish:
+        buckets:
+          - period: '2 minutes'
+            requests: 20
+      session_elevation_start:
+        buckets:
+          - period: '2 minutes'
+            requests: 20
+      session_elevation_finish:
+        buckets:
+          - period: '2 minutes'
+            requests: 20
+
+log:
+  level: 'debug'
+
+authentication_backend:
+  file:
+    path: '/config/users.yml'
+
+session:
+  secret: 'unsecure_session_secret'
+  cookies:
+    - domain: 'example.com'
+      authelia_url: 'https://login.example.com:8080'
+      expiration: '1 hour'
+      inactivity: '5 minutes'
+      remember_me: '1 year'
+
+storage:
+  encryption_key: 'a_not_so_secure_encryption_key'
+  local:
+    path: '/config/db.sqlite'
+
+totp:
+  disable_reuse_security_policy: true
+
+webauthn:
+  disable: false
+  enable_passkey_login: true
+  display_name: 'Authelia'
+  attestation_conveyance_preference: 'indirect'
+  timeout: '60 seconds'
+  filtering:
+    permitted_aaguids: []
+    prohibited_aaguids: []
+    prohibit_backup_eligibility: false
+  selection_criteria:
+    attachment: ''
+    discoverability: 'required'
+    user_verification: 'preferred'
+  metadata:
+    enabled: false
+    validate_trust_anchor: true
+    validate_entry: false
+    validate_entry_permit_zero_aaguid: true
+    validate_status: true
+    validate_status_permitted: []
+    validate_status_prohibited: []
+
+access_control:
+  default_policy: deny
+  rules:
+    - domain: ['home.example.com', 'public.example.com']
+      policy: 'bypass'
+    - domain: 'deny.example.com'
+      policy: 'deny'
+    - domain: 'admin.example.com'
+      policy: 'two_factor'
+    - domain: 'secure.example.com'
+      policy: 'two_factor'
+    - domain: 'singlefactor.example.com'
+      policy: 'one_factor'
+
+notifier:
+  smtp:
+    address: 'smtp://mail.example.com:1025'
+    sender: 'admin@example.com'
+...
