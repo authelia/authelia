@@ -42,12 +42,6 @@ Some of the values presented in this guide can automatically be replaced with do
 
 {{< sitevar-preferences >}}
 
-### Special Notes
-
-1. The [FreshRSS] implementation seems to always include the port in the requested `redirect_uri`. As Authelia strictly
-   conforms to the specifications this means the client registration **_MUST_** include the port for the requested
-   `redirect_uri` to match.
-
 ## Configuration
 
 ### Authelia
@@ -67,7 +61,7 @@ identity_providers:
         public: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://freshrss.{{< sitevar name="domain" nojs="example.com" >}}:443/i/oidc/'
+          - 'https://freshrss.{{< sitevar name="domain" nojs="example.com" >}}/i/oidc/'
         scopes:
           - 'openid'
           - 'groups'
