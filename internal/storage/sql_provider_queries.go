@@ -399,6 +399,37 @@ const (
 )
 
 const (
+	queryFmtIPIsKnownForUser = `
+		SELECT id, expires_at
+		FROM %s
+		WHERE username = ? AND ip_address = ?
+		  AND (expires_at IS NULL OR expires_at > datetime('now', 'localtime'));`
+
+	queryFmtInsertNewIpAddress = `
+		INSERT INTO %s
+		  (username, ip_address, browser_name, browser_version, os_name, os_version, device_type, expires_at)
+		VALUES
+		  (?, ?, ?, ?, ?, ?, ?, ?);`
+
+	queryFmtSelectKnownIPsByUsername = `
+		SELECT ip_address, first_seen, last_seen, browser_name, browser_version, os_name, os_version, device_type, expires_at
+		FROM %s
+		WHERE username = ?
+		  AND (expires_at IS NULL OR expires_at > datetime('now', 'localtime'))
+		ORDER BY last_seen DESC;`
+
+	queryFmtDeleteExpiredIPs = `
+		DELETE FROM %s
+		WHERE expires_at IS NOT NULL AND expires_at <= datetime('now', 'localtime');`
+
+	queryFmtUpdateKnownIpByUsername = `
+		UPDATE %s
+		SET last_seen = datetime('now', 'localtime'),
+			expires_at = datetime('now', 'localtime', '+' || ? || ' days')
+		WHERE username = ? AND ip_address = ?;`
+)
+
+const (
 	queryFmtSelectEncryptionValue = `
 		SELECT (value)
         FROM %s
