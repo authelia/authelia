@@ -19,23 +19,23 @@
 		"react-dom": "19.1.0",
 		"react-email": "4.0.15",
 		"tailwind-merge": "3.3.0",
-		"tailwindcss": "4.1.7",
+		"tailwindcss": "4.1.8",
 		"typescript": "5.8.3"
 	},
 	"devDependencies": {
 		"@radix-ui/colors": "3.0.0",
-		"@types/node": "22.15.21",
-		"@types/react": "19.1.5",
+		"@types/node": "22.15.28",
+		"@types/react": "19.1.6",
 		"@types/react-dom": "19.1.5",
-		"eslint": "9.27.0",
+		"eslint": "9.28.0",
 		"tsx": "4.19.4",
 		"vitest": "3.1.4"
 	},
 	"pnpm": {
 		"overrides": {
-			"@babel/traverse": "7.27.1",
-			"@babel/helpers": "7.27.1",
-			"@babel/runtime": "7.27.1",
+			"@babel/traverse": "7.27.4",
+			"@babel/helpers": "7.27.4",
+			"@babel/runtime": "7.27.4",
 			"esbuild": "0.25.5",
 			"nanoid": "5.1.5",
 			"prismjs": "1.30.0",
