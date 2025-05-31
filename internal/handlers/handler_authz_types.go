@@ -96,6 +96,8 @@ type AuthzConfig struct {
 	// StatusCodeBadRequest is sent for configuration issues prior to performing authorization checks. It's set by the
 	// builder.
 	StatusCodeBadRequest int
+
+	CookieHeader bool
 }
 
 // AuthzBuilder is a builder pattern for the Authz type.
