@@ -335,8 +335,6 @@ func validateServerEndpointsAuthzEndpoint(config *schema.Configuration, name str
 			break
 		case "":
 			endpoint.Implementation = schema.AuthzImplementationLegacy
-
-			config.Server.Endpoints.Authz[name] = endpoint
 		default:
 			if !utils.IsStringInSlice(endpoint.Implementation, validAuthzImplementations) {
 				validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzImplementation, name, utils.StringJoinOr(validAuthzImplementations), endpoint.Implementation))
@@ -351,6 +349,33 @@ func validateServerEndpointsAuthzEndpoint(config *schema.Configuration, name str
 	if !reAuthzEndpointName.MatchString(name) {
 		validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzInvalidName, name))
 	}
+
+	// NOTE: With exclusion of the implementation set any options below this line.
+	if endpoint.Implementation == schema.AuthzImplementationLegacy {
+		if endpoint.Headers != nil {
+			validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzOptionLegacy, name, "headers"))
+		}
+
+		if len(endpoint.AuthnStrategies) > 0 {
+			validator.Push(fmt.Errorf(errFmtServerEndpointsAuthzOptionLegacy, name, "authn_strategies"))
+		}
+	}
+
+	if endpoint.Headers == nil {
+		switch endpoint.Implementation {
+		case schema.AuthzImplementationLegacy:
+			break
+		case schema.AuthzImplementationAuthRequest:
+			endpoint.Headers = schema.DefaultServerConfiguration.Endpoints.Authz[schema.AuthzEndpointNameAuthRequest].Headers
+		case schema.AuthzImplementationExtAuthz:
+			endpoint.Headers = schema.DefaultServerConfiguration.Endpoints.Authz[schema.AuthzEndpointNameExtAuthz].Headers
+		case schema.AuthzImplementationForwardAuth:
+			endpoint.Headers = schema.DefaultServerConfiguration.Endpoints.Authz[schema.AuthzEndpointNameForwardAuth].Headers
+		}
+	}
+	// TODO: Else validate the header attributes.
+
+	config.Server.Endpoints.Authz[name] = endpoint
 }
 
 //nolint:gocyclo
