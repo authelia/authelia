@@ -224,7 +224,7 @@ access_control:
 access_control:
   rules:
   - domain: 'protected.{{< sitevar name="domain" nojs="example.com" >}}'
-  - domain_regex: '^(img|data)-private\.{{< sitevar name="domain" format="regex" nojs="example\.com" >}}'
+    domain_regex: '^(img|data)-private\.{{< sitevar name="domain" format="regex" nojs="example\.com" >}}'
     policy: 'one_factor'
 ```
 

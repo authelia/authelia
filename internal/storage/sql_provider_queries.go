@@ -390,7 +390,7 @@ const (
 	queryFmtSelectCachedDataEncryptedData = `
 		SELECT id, value
 		FROM %s
-		WHERE encrypted = 1;`
+		WHERE encrypted = TRUE;`
 
 	queryFmtUpdateCachedDataEncryptedData = `
 		UPDATE %s
