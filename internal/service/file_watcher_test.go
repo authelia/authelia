@@ -109,7 +109,7 @@ func TestNewFileWatcher(t *testing.T) {
 	f, err := os.Create(filepath.Join(dir, "test.log"))
 	require.NoError(t, err)
 
-	service, err := NewFileWatcher("example", filepath.Join(dir, "test.log"), reloader, logrus.NewEntry(logging.Logger()))
+	service, err := NewFileWatcher("example", reloader, nil, logrus.NewEntry(logging.Logger()), filepath.Join(dir, "test.log"))
 
 	require.NoError(t, err)
 
@@ -141,7 +141,7 @@ func TestNewFileWatcherDirectory(t *testing.T) {
 
 	reloader := &testReloader{reload: true}
 
-	service, err := NewFileWatcher("example", dir, reloader, logrus.NewEntry(logging.Logger()))
+	service, err := NewFileWatcher("example", reloader, nil, logrus.NewEntry(logging.Logger()), dir)
 
 	require.NoError(t, err)
 
@@ -176,7 +176,7 @@ func TestNewFileWatcherBadPath(t *testing.T) {
 
 	reloader := &testReloader{reload: true}
 
-	service, err := NewFileWatcher("example", filepath.Join(dir, "test.log"), reloader, logrus.NewEntry(logging.Logger()))
+	service, err := NewFileWatcher("example", reloader, nil, logrus.NewEntry(logging.Logger()), filepath.Join(dir, "test.log"))
 
 	require.Error(t, err)
 	assert.Regexp(t, regexp.MustCompile(fmt.Sprintf(`^error initializing file watcher: error stating file '%s/test.log': file does not exist$`, dir)), err.Error())
@@ -198,7 +198,7 @@ func TestNewFileWatcherBadPermission(t *testing.T) {
 
 	require.NoError(t, os.Chmod(filepath.Join(dir, "tmp"), 0o000))
 
-	service, err := NewFileWatcher("example", filepath.Join(dir, "tmp", "test.log"), reloader, logrus.NewEntry(logging.Logger()))
+	service, err := NewFileWatcher("example", reloader, nil, logrus.NewEntry(logging.Logger()), filepath.Join(dir, "tmp", "test.log"))
 
 	require.Error(t, err)
 	assert.Regexp(t, regexp.MustCompile(fmt.Sprintf(`^error initializing file watcher: error stating file '%s/tmp/test.log': permission denied trying to read the file$`, dir)), err.Error())
@@ -258,7 +258,7 @@ func TestFileWatcherRunShouldHandleReloadOutcomes(t *testing.T) {
 			logger, hook := test.NewNullLogger()
 			logger.SetLevel(logrus.TraceLevel)
 
-			service, err := NewFileWatcher("example", path, tc.reloader, logrus.NewEntry(logger))
+			service, err := NewFileWatcher("example", tc.reloader, nil, logrus.NewEntry(logger), path)
 			require.NoError(t, err)
 
 			errCh := make(chan error, 1)
@@ -292,19 +292,25 @@ func TestFileWatcherHandleEventShouldIgnoreIrrelevantEvents(t *testing.T) {
 	}{
 		{
 			name:     "ShouldIgnoreEventsForOtherFiles",
-			event:    fsnotify.Event{Name: "other.log", Op: fsnotify.Write},
+			event:    fsnotify.Event{Name: "/tmp/other.log", Op: fsnotify.Write},
+			level:    logrus.TraceLevel,
+			expected: "File modification detected to irrelevant file",
+		},
+		{
+			name:     "ShouldIgnoreEventsForOtherDirectories",
+			event:    fsnotify.Event{Name: "/var/tmp/test.log", Op: fsnotify.Write},
 			level:    logrus.TraceLevel,
 			expected: "File modification detected to irrelevant file",
 		},
 		{
 			name:     "ShouldIgnoreRemovalOfTheWatchedFile",
-			event:    fsnotify.Event{Name: "test.log", Op: fsnotify.Remove},
+			event:    fsnotify.Event{Name: "/tmp/test.log", Op: fsnotify.Remove},
 			level:    logrus.DebugLevel,
 			expected: "File remove was detected",
 		},
 		{
 			name:  "ShouldIgnoreChmodOfTheWatchedFile",
-			event: fsnotify.Event{Name: "test.log", Op: fsnotify.Chmod},
+			event: fsnotify.Event{Name: "/tmp/test.log", Op: fsnotify.Chmod},
 		},
 	}
 
@@ -316,14 +322,15 @@ func TestFileWatcherHandleEventShouldIgnoreIrrelevantEvents(t *testing.T) {
 			reloader := &testReloader{reload: true}
 
 			service := &FileWatcher{
-				name:      "example",
-				reload:    reloader,
-				log:       logrus.NewEntry(logger),
-				directory: "/tmp",
-				file:      "test.log",
+				name:   "example",
+				reload: reloader,
+				log:    logrus.NewEntry(logger),
+				paths: FileWatcherPaths{
+					{File: "test.log", Directory: "/tmp", Info: testFileInfo{}},
+				},
 			}
 
-			service.handleEvent(tc.event)
+			require.NoError(t, service.handleEvent(tc.event))
 
 			assert.Equal(t, int32(0), reloader.count.Load())
 
@@ -339,11 +346,12 @@ func TestFileWatcherHandleErrorShouldLogTheError(t *testing.T) {
 	logger.SetLevel(logrus.TraceLevel)
 
 	service := &FileWatcher{
-		name:      "example",
-		reload:    &testReloader{reload: true},
-		log:       logrus.NewEntry(logger),
-		directory: "/tmp",
-		file:      "test.log",
+		name:   "example",
+		reload: &testReloader{reload: true},
+		log:    logrus.NewEntry(logger),
+		paths: FileWatcherPaths{
+			{File: "test.log", Directory: "/tmp", Info: testFileInfo{}},
+		},
 	}
 
 	service.handleError(errors.New("failed to watch"))
@@ -363,7 +371,7 @@ func TestFileWatcherRunShouldNotReturnStaleReloadErrors(t *testing.T) {
 
 	reloader := &testReloader{err: errors.New("failed to reload"), panic: true, panicAfter: 1}
 
-	service, err := NewFileWatcher("example", path, reloader, logrus.NewEntry(logger))
+	service, err := NewFileWatcher("example", reloader, nil, logrus.NewEntry(logger), path)
 	require.NoError(t, err)
 
 	errCh := make(chan error, 1)
@@ -402,7 +410,7 @@ func TestFileWatcherRunShouldRecoverFromPanics(t *testing.T) {
 	logger, hook := test.NewNullLogger()
 	logger.SetLevel(logrus.TraceLevel)
 
-	service, err := NewFileWatcher("example", path, &testReloader{panic: true}, logrus.NewEntry(logger))
+	service, err := NewFileWatcher("example", &testReloader{panic: true}, nil, logrus.NewEntry(logger), path)
 	require.NoError(t, err)
 
 	errCh := make(chan error, 1)
@@ -462,7 +470,7 @@ func TestNewFileWatcherShouldNotLeakTheWatcherOnFailureToAddPath(t *testing.T) {
 	reloader := &testReloader{reload: true}
 	log := logrus.NewEntry(logging.Logger())
 
-	service, err := NewFileWatcher("example", path, reloader, log)
+	service, err := NewFileWatcher("example", reloader, nil, log, path)
 	if err == nil {
 		service.Shutdown()
 
@@ -475,13 +483,183 @@ func TestNewFileWatcherShouldNotLeakTheWatcherOnFailureToAddPath(t *testing.T) {
 	before := testCountOpenFileDescriptors(t)
 
 	for i := 0; i < 20; i++ {
-		service, err = NewFileWatcher("example", path, reloader, log)
+		service, err = NewFileWatcher("example", reloader, nil, log, path)
 
 		require.Error(t, err)
 		require.Nil(t, service)
 	}
 
 	assert.Less(t, testCountOpenFileDescriptors(t)-before, 20)
+}
+
+func TestProvisionConfigFileWatcher(t *testing.T) {
+	dir := t.TempDir()
+
+	file := filepath.Join(dir, "configuration.yml")
+
+	require.NoError(t, os.WriteFile(file, []byte("theme: 'dark'"), 0600))
+
+	newCtx := func(paths []string) *testCtx {
+		return &testCtx{
+			Context:            context.Background(),
+			Configuration:      &schema.Configuration{},
+			ConfigurationPaths: paths,
+			Providers:          middlewares.NewProvidersBasic(),
+			Logger:             logrus.NewEntry(logging.Logger()),
+		}
+	}
+
+	t.Run("ShouldNotProvisionWhenDisabled", func(t *testing.T) {
+		service, err := ProvisionConfigFileWatcher(newCtx([]string{file}))
+
+		assert.NoError(t, err)
+		assert.Nil(t, service)
+	})
+
+	t.Run("ShouldNotProvisionWithoutPaths", func(t *testing.T) {
+		t.Setenv(environmentVariableConfigReload, "true")
+
+		service, err := ProvisionConfigFileWatcher(newCtx(nil))
+
+		assert.NoError(t, err)
+		assert.Nil(t, service)
+	})
+
+	t.Run("ShouldProvisionWhenEnabled", func(t *testing.T) {
+		t.Setenv(environmentVariableConfigReload, "true")
+
+		service, err := ProvisionConfigFileWatcher(newCtx([]string{file}))
+
+		require.NoError(t, err)
+		require.NotNil(t, service)
+
+		assert.Equal(t, "configuration", service.ServiceName())
+		assert.Equal(t, "watcher", service.ServiceType())
+
+		service.Shutdown()
+	})
+
+	t.Run("ShouldIncludeAdditionalPaths", func(t *testing.T) {
+		other := t.TempDir()
+
+		t.Setenv(environmentVariableConfigReload, "true")
+		t.Setenv(environmentVariableConfigReloadPaths, fmt.Sprintf(" %s , ", other))
+
+		service, err := ProvisionConfigFileWatcher(newCtx([]string{file}))
+
+		require.NoError(t, err)
+		require.NotNil(t, service)
+
+		watcher, ok := service.(*FileWatcher)
+		require.True(t, ok)
+
+		assert.Len(t, watcher.paths, 2)
+
+		service.Shutdown()
+	})
+
+	t.Run("ShouldErrorOnInvalidAdditionalPaths", func(t *testing.T) {
+		t.Setenv(environmentVariableConfigReload, "true")
+		t.Setenv(environmentVariableConfigReloadPaths, filepath.Join(dir, "missing.yml"))
+
+		service, err := ProvisionConfigFileWatcher(newCtx([]string{file}))
+
+		assert.Error(t, err)
+		assert.Nil(t, service)
+	})
+}
+
+func TestFileWatcherShouldReturnApplicationReloadOnConfigurationChange(t *testing.T) {
+	dir := t.TempDir()
+
+	path := filepath.Join(dir, "configuration.yml")
+
+	require.NoError(t, os.WriteFile(path, []byte("theme: 'dark'"), 0600))
+
+	t.Setenv(environmentVariableConfigReload, "true")
+
+	ctx := &testCtx{
+		Context:            context.Background(),
+		Configuration:      &schema.Configuration{},
+		ConfigurationPaths: []string{path},
+		Providers:          middlewares.NewProvidersBasic(),
+		Logger:             logrus.NewEntry(logging.Logger()),
+	}
+
+	service, err := ProvisionConfigFileWatcher(ctx)
+	require.NoError(t, err)
+	require.NotNil(t, service)
+
+	errCh := make(chan error, 1)
+
+	go func() {
+		errCh <- service.Run()
+	}()
+
+	require.NoError(t, os.WriteFile(path, []byte("theme: 'light'"), 0600))
+
+	select {
+	case err = <-errCh:
+		assert.ErrorIs(t, err, ErrApplicationReload)
+	case <-time.After(time.Second * 5):
+		t.Fatal("service did not return the reload error within timeout")
+	}
+
+	service.Shutdown()
+}
+
+func TestFileWatcherPathsIsMatch(t *testing.T) {
+	paths := FileWatcherPaths{
+		{File: "configuration.yml", Directory: "/etc/authelia", Info: testFileInfo{}},
+		{Directory: "/etc/authelia.d", Info: testFileInfo{dir: true}},
+	}
+
+	testCases := []struct {
+		name     string
+		event    string
+		expected bool
+	}{
+		{"ShouldMatchTheWatchedFile", "/etc/authelia/configuration.yml", true},
+		{"ShouldNotMatchAnotherFileInTheSameDirectory", "/etc/authelia/users.yml", false},
+		{"ShouldNotMatchTheSameFileInAnotherDirectory", "/etc/other/configuration.yml", false},
+		{"ShouldMatchAnyFileInTheWatchedDirectory", "/etc/authelia.d/anything.yml", true},
+		{"ShouldNotMatchASubdirectoryOfTheWatchedDirectory", "/etc/authelia.d/nested/anything.yml", false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, paths.IsMatch(fsnotify.Event{Name: tc.event, Op: fsnotify.Write}))
+		})
+	}
+}
+
+type testFileInfo struct {
+	dir bool
+}
+
+func (i testFileInfo) Name() string       { return "" }
+func (i testFileInfo) Size() int64        { return 0 }
+func (i testFileInfo) Mode() os.FileMode  { return 0 }
+func (i testFileInfo) ModTime() time.Time { return time.Time{} }
+func (i testFileInfo) IsDir() bool        { return i.dir }
+func (i testFileInfo) Sys() any           { return nil }
+
+type testReloader struct {
+	count      atomic.Int32
+	reload     bool
+	panic      bool
+	panicAfter int32
+	err        error
+}
+
+func (r *testReloader) Reload() (bool, error) {
+	count := r.count.Add(1)
+
+	if r.panic && count > r.panicAfter {
+		panic("failed to reload")
+	}
+
+	return r.reload, r.err
 }
 
 func testCountOpenFileDescriptors(t *testing.T) int {
@@ -506,22 +684,4 @@ func testCountOpenFileDescriptors(t *testing.T) int {
 	}
 
 	return len(names)
-}
-
-type testReloader struct {
-	count      atomic.Int32
-	reload     bool
-	panic      bool
-	panicAfter int32
-	err        error
-}
-
-func (r *testReloader) Reload() (bool, error) {
-	count := r.count.Add(1)
-
-	if r.panic && count > r.panicAfter {
-		panic("failed to reload")
-	}
-
-	return r.reload, r.err
 }

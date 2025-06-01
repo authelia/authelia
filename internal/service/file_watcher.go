@@ -9,12 +9,52 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/sirupsen/logrus"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
+
+// ProvisionConfigFileWatcher returns a Provider which watches the configuration for changes and reloads the
+// application when a change occurs. It's only provisioned when the relevant environment variable is enabled.
+func ProvisionConfigFileWatcher(ctx Context) (service Provider, err error) {
+	if !IsConfigFileWatcherEnabled() {
+		return nil, nil
+	}
+
+	// The context paths are copied as they must not be mutated by the append below.
+	paths := slices.Clone(ctx.GetConfigurationPaths())
+
+	if additional := utils.StringSplitClean(os.Getenv(environmentVariableConfigReloadPaths), ","); len(additional) != 0 {
+		paths = append(paths, additional...)
+	}
+
+	if len(paths) == 0 {
+		ctx.GetLogger().WithFields(map[string]any{logFieldService: serviceTypeWatcher, serviceTypeWatcher: "configuration"}).
+			Warn("Configuration reloading was enabled but no configuration paths are available to watch")
+
+		return nil, nil
+	}
+
+	action := func(log *logrus.Entry, event fsnotify.Event) (bubble bool, err error) {
+		if event.Has(fsnotify.Create) || event.Has(fsnotify.Remove) || event.Has(fsnotify.Rename) || event.Has(fsnotify.Write) {
+			log.Info("Configuration change detected, reloading the application")
+
+			return true, ErrApplicationReload
+		}
+
+		return false, nil
+	}
+
+	if service, err = NewFileWatcher("configuration", nil, action, ctx.GetLogger(), paths...); err != nil {
+		return nil, err
+	}
+
+	return service, nil
+}
 
 // ProvisionUsersFileWatcher returns a Provider which watches the file based user database for changes.
 func ProvisionUsersFileWatcher(ctx Context) (service Provider, err error) {
@@ -28,7 +68,7 @@ func ProvisionUsersFileWatcher(ctx Context) (service Provider, err error) {
 			return nil, errors.New("error occurred asserting user provider")
 		}
 
-		if service, err = NewFileWatcher("users", config.AuthenticationBackend.File.Path, provider, ctx.GetLogger()); err != nil {
+		if service, err = NewFileWatcher("users", provider, nil, ctx.GetLogger(), config.AuthenticationBackend.File.Path); err != nil {
 			return nil, err
 		}
 	}
@@ -36,27 +76,17 @@ func ProvisionUsersFileWatcher(ctx Context) (service Provider, err error) {
 	return service, nil
 }
 
-// NewFileWatcher creates a new FileWatcher with the appropriate logger etc.
-func NewFileWatcher(name, path string, reload ReloadableProvider, log *logrus.Entry) (service *FileWatcher, err error) {
-	if path == "" {
+// NewFileWatcher creates a new FileWatcher with the appropriate logger etc. Either a ReloadableProvider or a
+// FileWatcherAction must be provided to handle the relevant events.
+func NewFileWatcher(name string, reload ReloadableProvider, action FileWatcherAction, log *logrus.Entry, paths ...string) (service *FileWatcher, err error) {
+	if len(paths) == 0 {
 		return nil, fmt.Errorf("error initializing file watcher: path must be specified")
 	}
 
-	if path, err = filepath.Abs(path); err != nil {
-		return nil, fmt.Errorf("error initializing file watcher: could not determine the absolute path of file '%s': %w", path, err)
-	}
+	var fwp FileWatcherPaths
 
-	var info os.FileInfo
-
-	if info, err = os.Stat(path); err != nil {
-		switch {
-		case os.IsNotExist(err):
-			return nil, fmt.Errorf("error initializing file watcher: error stating file '%s': file does not exist", path)
-		case os.IsPermission(err):
-			return nil, fmt.Errorf("error initializing file watcher: error stating file '%s': permission denied trying to read the file", path)
-		default:
-			return nil, fmt.Errorf("error initializing file watcher: error stating file '%s': %w", path, err)
-		}
+	if fwp, err = newFileWatcherPaths(paths); err != nil {
+		return nil, fmt.Errorf("error initializing file watcher: %w", err)
 	}
 
 	var watcher *fsnotify.Watcher
@@ -67,31 +97,23 @@ func NewFileWatcher(name, path string, reload ReloadableProvider, log *logrus.En
 
 	entry := log.WithFields(map[string]any{logFieldService: serviceTypeWatcher, serviceTypeWatcher: name})
 
-	if info.IsDir() {
-		service = &FileWatcher{
-			name:      name,
-			watcher:   watcher,
-			reload:    reload,
-			log:       entry,
-			directory: filepath.Clean(path),
-		}
-	} else {
-		service = &FileWatcher{
-			name:      name,
-			watcher:   watcher,
-			reload:    reload,
-			log:       entry,
-			directory: filepath.Dir(path),
-			file:      filepath.Base(path),
-		}
+	service = &FileWatcher{
+		name:    name,
+		watcher: watcher,
+		reload:  reload,
+		action:  action,
+		log:     entry,
+		paths:   fwp,
 	}
 
-	if err = service.watcher.Add(service.directory); err != nil {
-		if errClose := service.watcher.Close(); errClose != nil {
-			entry.WithError(errClose).Error("Error occurred closing the file watcher")
-		}
+	for _, path := range fwp {
+		if err = service.watcher.Add(path.Directory); err != nil {
+			if errClose := service.watcher.Close(); errClose != nil {
+				entry.WithError(errClose).Error("Error occurred closing the file watcher")
+			}
 
-		return nil, fmt.Errorf("failed to add path '%s' to watch list: %w", path, err)
+			return nil, fmt.Errorf("failed to add path '%s' to watch list: %w", path.Directory, err)
+		}
 	}
 
 	return service, nil
@@ -102,11 +124,39 @@ type FileWatcher struct {
 	name string
 
 	watcher *fsnotify.Watcher
-	reload  ReloadableProvider
 
-	log       *logrus.Entry
-	file      string
-	directory string
+	reload ReloadableProvider
+	action FileWatcherAction
+
+	log   *logrus.Entry
+	paths FileWatcherPaths
+}
+
+// FileWatcherPath describes a path being checked by a FileWatcher.
+type FileWatcherPath struct {
+	File      string
+	Directory string
+	Info      os.FileInfo
+}
+
+// FileWatcherPaths is a composite type that describes a slice of FileWatcherPath.
+type FileWatcherPaths []FileWatcherPath
+
+// IsMatch returns true if a fsnotify.Event matches any FileWatcherPath.
+func (fwp FileWatcherPaths) IsMatch(event fsnotify.Event) (match bool) {
+	directory, file := filepath.Dir(event.Name), filepath.Base(event.Name)
+
+	for _, path := range fwp {
+		if directory != path.Directory {
+			continue
+		}
+
+		if path.Info.IsDir() || file == path.File {
+			return true
+		}
+	}
+
+	return false
 }
 
 // ServiceType returns the service type for this service, which is always 'watcher'.
@@ -127,7 +177,9 @@ func (service *FileWatcher) Run() (err error) {
 		}
 	}()
 
-	service.log.WithField(logFieldFile, filepath.Join(service.directory, service.file)).Info("Watching file for changes")
+	for _, path := range service.paths {
+		service.log.WithField(logFieldFile, filepath.Join(path.Directory, path.File)).Info("Watching file for changes")
+	}
 
 	for {
 		select {
@@ -136,7 +188,9 @@ func (service *FileWatcher) Run() (err error) {
 				return nil
 			}
 
-			service.handleEvent(event)
+			if err = service.handleEvent(event); err != nil {
+				return err
+			}
 		case errWatch, ok := <-service.watcher.Errors:
 			if !ok {
 				return nil
@@ -147,15 +201,39 @@ func (service *FileWatcher) Run() (err error) {
 	}
 }
 
-func (service *FileWatcher) handleEvent(event fsnotify.Event) {
+// handleEvent handles a single fsnotify.Event. A non-nil error indicates the FileWatcher should terminate and the
+// error should be returned to the caller.
+func (service *FileWatcher) handleEvent(event fsnotify.Event) (err error) {
 	log := service.log.WithFields(map[string]any{logFieldFile: event.Name, logFieldOP: event.Op})
 
-	if service.file != "" && service.file != filepath.Base(event.Name) {
+	if !service.paths.IsMatch(event) {
 		log.Trace("File modification detected to irrelevant file")
 
-		return
+		return nil
 	}
 
+	switch {
+	case service.reload != nil:
+		service.handleEventReload(log, event)
+	case service.action != nil:
+		var bubble bool
+
+		switch bubble, err = service.action(log, event); {
+		case err != nil && bubble:
+			return err
+		case err != nil:
+			log.WithError(err).Error("Error occurred during action")
+		default:
+			log.Debug("Action triggered successfully")
+		}
+	default:
+		log.Debug("File event was detected")
+	}
+
+	return nil
+}
+
+func (service *FileWatcher) handleEventReload(log *logrus.Entry, event fsnotify.Event) {
 	switch {
 	case event.Op&fsnotify.Write == fsnotify.Write, event.Op&fsnotify.Create == fsnotify.Create:
 		log.Debug("File modification was detected")
