@@ -28,17 +28,22 @@
         .
       </p>
       {{- end }}
-      <p>Authelia has adopted a claims architecture that is conformant with the specification. This expects the clients
-        to act inline with the
-        <a href="https://openid.net/specs/openid-connect-core-1_0.html">OpenID Connect 1.0</a> specification and either
-        obtain user information from the user information endpoint or explicitly request them via the claims parameter.
+      <p>Authelia has adopted a claims hydration architecture that is conformant with the
+        <a href="https://openid.net/specs/openid-connect-core-1_0.html" target="_blank">OpenID Connect 1.0</a>
+        specification. Clients are required to operate under the assumption that claims requested by scope values are
+        available by using the Access Token (the scope is granted and issued to the Access Token) at the UserInfo
+        Endpoint as described by
+        <a href="https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims" target="_blank">5.4. Requesting Claims using Scope Values</a>
+        with the exception of an Implicit Flow that does not return an Access Token, or explicitly request them via the
+        claims parameter as described by
+        <a href="https://openid.net/specs/openid-connect-core-1_0.html#ClaimsParameter" target="_blank">5.5. Requesting Claims using the "claims" Request Parameter</a> .
       </p>
       <p>
         At the time of this writing this client did not support this, and very likely also ignores the
-        <a href="https://openid.net/specs/openid-connect-core-1_0.html#ClaimStability">claims stability warning</a>
+        <a href="https://openid.net/specs/openid-connect-core-1_0.html#ClaimStability" target="_blank">claims stability warning</a>
         which requires clients to anchor accounts via the <code>sub</code> and <code>iss</code> claims. Both of these
         elements are clear indications the client does not properly support
-        <a href="https://openid.net/specs/openid-connect-core-1_0.html">OpenID Connect 1.0</a> and is not conformant.</p>
+        <a href="https://openid.net/specs/openid-connect-core-1_0.html" target="_blank">OpenID Connect 1.0</a> and is not conformant.</p>
     </div>
   </div>
 </div>

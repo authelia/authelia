@@ -139,15 +139,25 @@ The following integrations leverage all or part of the custom claims functionali
 ### Restore Functionality Prior to Claims Parameter
 
 The introduction of the claims parameter has removed most claims from the [ID Token] leaving it with only the claims
-required by the specification for additional privacy and performance. This may not work for some relying parties which
-do not make requests to the [UserInfo Endpoint] which must contain most or all claims, and they may additionally not
-support the claims parameter. While we recommend investigating if the relying party can support the [UserInfo Endpoint]
-for the purpose of obtaining claims this is not entirely possible in all situations due to projects that are no longer
-maintained or don't have developers with enough time to work on these things, for this reason we allow administrators
-to make adjustments to individual clients to work around this enhancement.
+required by the specification for additional privacy and performance. It should also be noted that
+[Requesting Claims using Scope Values](https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims) is expressly
+expected to only make the claims available at the [UserInfo Endpoint]. This is because the Scope Values directly apply
+to the [Access Token] when the flow would result in one. At the time of this writing the only time an [Access Token]
+should not be returned while an [ID Token] is, is when using the Implicit Flow using the `response_type` value of
+`id_token`.
 
-The following example is a claims policy which restores that behaviour for those clients. Users may choose to expand
-on this on their own as they desire. This example also shows how to apply this policy to a client using the
+This may not work for some relying parties which do not make requests to the [UserInfo Endpoint] which must contain most
+or all claims, and they may additionally not support the claims parameter. We strongly recommend investigating if the
+relying party can fix this bug on their end and add support the [UserInfo Endpoint] for the purpose of obtaining claims;
+as this is very clearly a bug on their end. If you're more interested in why this is a bug or would like to pass it on
+to the developers of the application you can see the [blog post](../../blog/technical-oidc-nuances) about it.
+
+However we acknowledge this is not entirely possible in all situations due to projects that are no longer maintained or
+don't have developers with enough time to work on these things, for this reason we allow administrators to make
+adjustments to individual clients to work around this enhancement.
+
+The following example is a claims policy which restores that behaviour for those broken clients. Users may choose to
+expand on this on their own as they desire. This example also shows how to apply this policy to a client using the
 `claims_policy` option. This example restores all of the claims which were previously incorrectly present within
 ID Tokens, it's recommended that users ascertain the exact claims necessary and only include those, adapting the example
 as necessary.
