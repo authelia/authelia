@@ -2,7 +2,7 @@
 title: "FreeIPA"
 description: ""
 summary: ""
-date: 2022-10-20T15:27:09+11:00
+date: 2025-05-22T10:12:47+00:00
 draft: false
 images: []
 weight: 752
