@@ -426,3 +426,24 @@ func TestStringJoinBuild(t *testing.T) {
 		})
 	}
 }
+
+func TestStringSplitClean(t *testing.T) {
+	testCases := []struct {
+		name     string
+		input    string
+		expected []string
+	}{
+		{"ShouldSplitStandardScenario", "apple,banana,cherry", []string{"apple", "banana", "cherry"}},
+		{"ShouldSplitLeadingTrailingScenario", " apple,banana,cherry ", []string{"apple", "banana", "cherry"}},
+		{"ShouldTrimEmptyItems", "apple,,banana", []string{"apple", "banana"}},
+		{"ShouldHandleOnlyWhiteSpace", "   ", nil},
+		{"ShouldHandleEmptyString", "", nil},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := StringSplitClean(tc.input, ",")
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}

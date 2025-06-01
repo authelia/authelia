@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -17,56 +16,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 )
-
-// mockServiceCtx implements ServiceCtx for testing.
-type mockServiceCtx struct {
-	ctx       context.Context
-	config    *schema.Configuration
-	logger    *logrus.Entry
-	providers middlewares.Providers
-}
-
-func (m *mockServiceCtx) GetLogger() *logrus.Entry {
-	return m.logger
-}
-
-func (m *mockServiceCtx) GetProviders() middlewares.Providers {
-	return m.providers
-}
-
-func (m *mockServiceCtx) GetConfiguration() *schema.Configuration {
-	return m.config
-}
-
-func (m *mockServiceCtx) Deadline() (deadline time.Time, ok bool) {
-	return m.ctx.Deadline()
-}
-
-func (m *mockServiceCtx) Done() <-chan struct{} {
-	return m.ctx.Done()
-}
-
-func (m *mockServiceCtx) Err() error {
-	return m.ctx.Err()
-}
-
-func (m *mockServiceCtx) Value(key interface{}) interface{} {
-	return m.ctx.Value(key)
-}
-
-func newMockServiceCtx() *mockServiceCtx {
-	logger := logrus.New()
-	logger.SetLevel(logrus.TraceLevel)
-
-	config := &schema.Configuration{}
-
-	return &mockServiceCtx{
-		ctx:       context.Background(),
-		config:    config,
-		logger:    logrus.NewEntry(logger),
-		providers: middlewares.Providers{},
-	}
-}
 
 func TestSignalService_Run(t *testing.T) {
 	testCases := []struct {
@@ -92,9 +41,9 @@ func TestSignalService_Run(t *testing.T) {
 			logger.SetLevel(logrus.TraceLevel)
 
 			actionCalled := false
-			action := func() error {
+			action := func() (bubble bool, err error) {
 				actionCalled = true
-				return tc.actionError
+				return false, tc.actionError
 			}
 
 			service := &Signal{
@@ -168,7 +117,7 @@ func TestSvcSignalLogReOpenFunc(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			mockCtx := newMockServiceCtx()
+			mockCtx := newMockServiceCtx(t)
 			mockCtx.config.Log.FilePath = tc.logFilePath
 
 			service, _ := ProvisionLoggingSignal(mockCtx)
@@ -202,8 +151,8 @@ func TestLogReopenFiles(t *testing.T) {
 
 	logging.Logger().Info("This is the first log file.")
 
-	ctx := &mockServiceCtx{
-		ctx:       context.Background(),
+	ctx := &testContext{
+		Context:   t.Context(),
 		config:    config,
 		logger:    logrus.NewEntry(logging.Logger()),
 		providers: middlewares.Providers{},
@@ -245,7 +194,7 @@ func TestLogReopenFiles(t *testing.T) {
 
 func TestSignalService_Shutdown(t *testing.T) {
 	logger := logrus.New()
-	action := func() error { return nil }
+	action := func() (bubble bool, err error) { return }
 	service := &Signal{
 		name:    "test",
 		signals: []os.Signal{syscall.SIGHUP},
