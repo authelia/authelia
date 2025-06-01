@@ -70,6 +70,7 @@ type Context interface {
 	GetLogger() *logrus.Entry
 	GetProviders() middlewares.Providers
 	GetConfiguration() *schema.Configuration
+	GetConfigurationPaths() (paths []string)
 	GetClock() (clock clock.Provider)
 	GetRandom() (random random.Provider)
 	RemoteIP() net.IP
