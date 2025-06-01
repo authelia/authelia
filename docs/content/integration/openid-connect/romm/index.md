@@ -81,22 +81,12 @@ To configure [ROM Manager] to utilize Authelia as an [OpenID Connect 1.0] Provid
 ##### Standard
 
 ```shell {title=".env"}
-GF_SERVER_ROOT_URL=https://romm.{{< sitevar name="domain" nojs="example.com" >}}
-GF_AUTH_GENERIC_OAUTH_ENABLED=true
-GF_AUTH_GENERIC_OAUTH_NAME=Authelia
-GF_AUTH_GENERIC_OAUTH_ICON=signin
-GF_AUTH_GENERIC_OAUTH_CLIENT_ID=romm
-GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET=insecure_secret
-GF_AUTH_GENERIC_OAUTH_SCOPES=openid profile email groups
-GF_AUTH_GENERIC_OAUTH_EMPTY_SCOPES=false
-GF_AUTH_GENERIC_OAUTH_AUTH_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization
-GF_AUTH_GENERIC_OAUTH_TOKEN_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token
-GF_AUTH_GENERIC_OAUTH_API_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo
-GF_AUTH_GENERIC_OAUTH_LOGIN_ATTRIBUTE_PATH=preferred_username
-GF_AUTH_GENERIC_OAUTH_GROUPS_ATTRIBUTE_PATH=groups
-GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH=name
-GF_AUTH_GENERIC_OAUTH_USE_PKCE=true
-GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH=
+OIDC_ENABLED=true
+OIDC_PROVIDER=authelia
+OIDC_CLIENT_ID=romm
+OIDC_CLIENT_SECRET=insecure_secret
+OIDC_REDIRECT_URI=https://romm.{{< sitevar name="domain" nojs="example.com" >}}/api/oauth/openid
+OIDC_SERVER_APPLICATION_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 ```
 
 ##### Docker Compose
@@ -105,22 +95,12 @@ GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH=
 services:
   romm:
     environment:
-      GF_SERVER_ROOT_URL: 'https://romm.{{< sitevar name="domain" nojs="example.com" >}}'
-      GF_AUTH_GENERIC_OAUTH_ENABLED: 'true'
-      GF_AUTH_GENERIC_OAUTH_NAME: 'Authelia'
-      GF_AUTH_GENERIC_OAUTH_ICON: 'signin'
-      GF_AUTH_GENERIC_OAUTH_CLIENT_ID: 'romm'
-      GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: 'insecure_secret'
-      GF_AUTH_GENERIC_OAUTH_SCOPES: 'openid profile email groups'
-      GF_AUTH_GENERIC_OAUTH_EMPTY_SCOPES: 'false'
-      GF_AUTH_GENERIC_OAUTH_AUTH_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization'
-      GF_AUTH_GENERIC_OAUTH_TOKEN_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token'
-      GF_AUTH_GENERIC_OAUTH_API_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo'
-      GF_AUTH_GENERIC_OAUTH_LOGIN_ATTRIBUTE_PATH: 'preferred_username'
-      GF_AUTH_GENERIC_OAUTH_GROUPS_ATTRIBUTE_PATH: 'groups'
-      GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH: 'name'
-      GF_AUTH_GENERIC_OAUTH_USE_PKCE: 'true'
-      GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: ''
+      OIDC_ENABLED: 'true'
+      OIDC_PROVIDER: 'authelia'
+      OIDC_CLIENT_ID: 'romm'
+      OIDC_CLIENT_SECRET: 'insecure_secret'
+      OIDC_REDIRECT_URI: 'https://romm.{{< sitevar name="domain" nojs="example.com" >}}/api/oauth/openid'
+      OIDC_SERVER_APPLICATION_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
 ```
 
 ## See Also
