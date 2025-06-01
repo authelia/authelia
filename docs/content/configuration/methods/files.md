@@ -20,12 +20,21 @@ There are several options which affect the loading of files:
 
 |           Name           |            Argument             |    Environment Variable     |                                    Description                                     |
 |:------------------------:|:-------------------------------:|:---------------------------:|:----------------------------------------------------------------------------------:|
-|    Files/Directories     |        `--config`, `-c`         |     `X_AUTHELIA_CONFIG`     | A list of file or directory (non-recursive) paths to load configuration files from |
+|   Configuration Paths    |        `--config`, `-c`         |     `X_AUTHELIA_CONFIG`     | A list of file or directory (non-recursive) paths to load configuration files from |
 | [Filters](#file-filters) | `--config.experimental.filters` | `X_AUTHELIA_CONFIG_FILTERS` |   A list of filters applied to every file from the Files or Directories options    |
 
+### Configuration Paths
+
 {{< callout context="note" title="Note" icon="outline/info-circle" >}}
-When specifying directories and files, the individual files specified must not be within any of the
-directories specified.
+When specifying directories and files, the individual files specified **_must not_** be within any of the directories
+specified.
+{{< /callout >}}
+
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+If any directory is specified all files in that directory (non-recursive) should be considered part of the effective
+Authelia configuration regardless if they handled by a specific configuration parser or not. Storing files not loaded
+by Authelia in this directory **_is not supported_** and should it cause an error in the future this
+**_is expected behaviour_**. This allows us to add additional file parsers in the future as well as configuration logic.
 {{< /callout >}}
 
 Configuration options can be discovered via either the Argument or Environment Variable, but not both at the same time.
