@@ -249,7 +249,7 @@ func schemaEncryptionChangeKeyWebAuthn(ctx context.Context, provider *SQLProvide
 func schemaEncryptionChangeKeyCachedData(ctx context.Context, provider *SQLProvider, tx *sqlx.Tx, key [32]byte) (err error) {
 	var caches []encCachedData
 
-	if err = tx.SelectContext(ctx, &caches, fmt.Sprintf(queryFmtSelectCachedDataEncryptedData, tableCachedData)); err != nil {
+	if err = tx.SelectContext(ctx, &caches, tx.Rebind(fmt.Sprintf(queryFmtSelectCachedDataValueEncrypted, tableCachedData)), true); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil
 		}
@@ -461,7 +461,7 @@ func schemaEncryptionCheckKeyCachedData(ctx context.Context, provider *SQLProvid
 		err  error
 	)
 
-	if rows, err = provider.db.QueryxContext(ctx, fmt.Sprintf(queryFmtSelectCachedDataEncryptedData, tableCachedData)); err != nil {
+	if rows, err = provider.db.QueryxContext(ctx, provider.db.Rebind(fmt.Sprintf(queryFmtSelectCachedDataValueEncrypted, tableCachedData)), true); err != nil {
 		return tableCachedData, EncryptionValidationTableResult{Error: fmt.Errorf("error selecting cached data: %w", err)}
 	}
 

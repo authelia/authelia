@@ -387,10 +387,10 @@ const (
 		DELETE FROM %s
 		WHERE name = ?;`
 
-	queryFmtSelectCachedDataEncryptedData = `
+	queryFmtSelectCachedDataValueEncrypted = `
 		SELECT id, value
 		FROM %s
-		WHERE encrypted = TRUE;`
+		WHERE encrypted = ?;`
 
 	queryFmtUpdateCachedDataEncryptedData = `
 		UPDATE %s
