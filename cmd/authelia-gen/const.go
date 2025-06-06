@@ -158,7 +158,7 @@ var (
 		{Name: "default-src", Value: ""},
 		{Name: "frame-src", Value: "'none'"},
 		{Name: "object-src", Value: "'none'"},
-		{Name: "style-src", Value: "'self' 'nonce-%s'"},
+		{Name: "style-src", Value: "'self' 'nonce-%s' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='"},
 		{Name: "frame-ancestors", Value: "'none'"},
 		{Name: "base-uri", Value: "'self'"},
 	}

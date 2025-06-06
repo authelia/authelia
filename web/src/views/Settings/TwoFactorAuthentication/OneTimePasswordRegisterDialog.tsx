@@ -336,7 +336,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                                     row
                                                     aria-labelledby={"lbl-adv-algorithms"}
                                                     value={selected.algorithm}
-                                                    style={{
+                                                    sx={{
                                                         justifyContent: "center",
                                                     }}
                                                     onChange={handleChangeAlgorithm}
@@ -363,7 +363,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                                     row
                                                     aria-labelledby={"lbl-adv-lengths"}
                                                     value={selected.length.toString()}
-                                                    style={{
+                                                    sx={{
                                                         justifyContent: "center",
                                                     }}
                                                     onChange={handleChangeLength}
@@ -390,7 +390,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                                     row
                                                     aria-labelledby={"lbl-adv-periods"}
                                                     value={selected.period.toString()}
-                                                    style={{
+                                                    sx={{
                                                         justifyContent: "center",
                                                     }}
                                                     onChange={handleChangePeriod}

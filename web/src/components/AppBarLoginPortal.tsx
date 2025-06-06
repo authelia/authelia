@@ -25,9 +25,9 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 const AppBarLoginPortal = function (props: Props) {
     return (
         <AppBar position="static" color="transparent" elevation={0}>
-            <Typography style={{ flexGrow: 1 }} />
+            <Typography sx={{ flexGrow: 1 }} />
             <StyledToolbar variant={"regular"}>
-                <Typography style={{ flexGrow: 1 }} />
+                <Typography sx={{ flexGrow: 1 }} />
                 <AppBarItemLanguage
                     localeCurrent={props.localeCurrent}
                     localeList={props.localeList}
