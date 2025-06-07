@@ -244,7 +244,7 @@ The following command will allow you to run your existing compose with the addit
 example `compose.debug.yml`:
 
 ```bash
-docker compose up -f compose.yml -f compose.debug.yml -d
+docker compose -f compose.yml -f compose.debug.yml up -d
 ```
 
 The following command sequence will allow you to run Authelia interactively within the container:
