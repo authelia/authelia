@@ -2,7 +2,7 @@
 title: "Zammad"
 description: "Integrating Zammad with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2022-07-01T13:07:02+10:00
+date: 2025-06-07T03:50:17+00:00
 draft: false
 images: []
 weight: 620
@@ -69,7 +69,7 @@ identity_providers:
           - 'email'
           - 'profile'
         userinfo_signed_response_alg: 'none'
-        token_endpoint_auth_method: 'client_secret_basic'
+        token_endpoint_auth_method: 'none'
 ```
 
 ### Application
