@@ -1,0 +1,119 @@
+---
+title: "Jellyseerr"
+description: "Integrating Jellyseerr with the Authelia OpenID Connect 1.0 Provider."
+summary: ""
+date: 2025-06-08T00:04:43+00:00
+draft: false
+images: []
+weight: 620
+toc: true
+support:
+  level: community
+  versions: true
+  integration: true
+seo:
+  title: "" # custom title (optional)
+  description: "" # custom description (recommended)
+  canonical: "" # custom canonical URL (optional)
+  noindex: false # false (default) or true
+---
+
+## Tested Versions
+
+- [Authelia]
+  - [v4.39.4](https://github.com/authelia/authelia/releases/tag/v4.39.4)
+- [Jellyseerr]
+  - [tag:preview-OIDC](https://github.com/fallenbagel/jellyseerr/releases/tag/preview-OIDC)
+
+{{% oidc-common %}}
+
+### Assumptions
+
+This example makes the following assumptions:
+
+- __Application Root URL:__ `https://jellyseerr.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Client ID:__ `jellyseerr`
+- __Client Secret:__ `insecure_secret`
+
+Some of the values presented in this guide can automatically be replaced with documentation variables.
+
+{{< sitevar-preferences >}}
+
+## Configuration
+
+The following documentation requires that you use the [Jellyseerr OIDC Tag] (a develop branch) as there isn't yet any
+support for [OpenID Connect 1.0] in the main branches of Jellyseerr.
+
+To install the [Jellyseerr OIDC Tag] version, use the tag when pulling your Jellyseerr Docker image, for example:
+```yaml {title="compose.yml"}
+jellyseerr:
+  image: fallenbagel/jellyseerr:preview-OIDC
+  container_name: jellyseerr
+  environment:
+    - TZ=Europe/London
+    - PORT=5055
+  ports:
+    - 5055:5055
+  volumes:
+    - /path/to/jellyseerr/config:/app/config
+  restart: unless-stopped
+```
+
+### Authelia
+
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Jellyseerr] which will
+operate with the application example:
+
+```yaml {title="configuration.yml"}
+identity_providers:
+  oidc:
+    ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
+    ## See: https://www.authelia.com/c/oidc
+    clients:
+      - client_id: 'jellyseerr'
+        client_name: 'Jellyseerr'
+        client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+        public: false
+        authorization_policy: 'two_factor'
+        redirect_uris:
+          - 'https://jellyseerr.{{< sitevar name="domain" nojs="example.com" >}}/login/oidc/callback/authelia'
+        scopes:
+          - 'openid'
+          - 'email'
+          - 'profile'
+          - 'groups'
+        token_endpoint_auth_method: 'client_secret_post'
+```
+
+### Application
+
+The following instructions will guide you through the UI based configuration of [Jellyseerr] to utilize Authelia as an OpenID Connect 1.0 Provider.
+
+1. Go to the `Settings page` from the left hand navigation in [Jellyseerr].
+2. Under the `Users` tab you should see "Enable OpenID Connect Sign-In" if you are on the correct branch.
+3. Click the Cog icon next to "Enable OpenID Connect Sign-In" then select `Add OpenID Connect Provider`.
+5. Configure the following options:
+  - Provider Name: `authelia`
+  - Logo: `https://www.authelia.com/images/branding/logo-cropped.png`
+  - Issuer URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
+  - Client ID: `jellyseerr`
+  - Client Secret: `insecure_secret`
+  - Scopes: `openid,profile,email,groups`
+  - Allow New Users: Checked
+6. All other options may remain unchecked or unconfigured.
+7. Click `Save Changes`.
+8. Click `Close` to return to the Settings page.
+9. Ensure the `Enable OpenID Connect Sign-In` option is checked
+10. Scroll down to the bottom of the page and click `Save Changes`.
+11. To log in visit `https://jellyseerr.{{< sitevar name="domain" nojs="example.com" >}}/api/v1/auth/oidc/login/authelia`.
+
+## See Also
+
+- [OIDC Feature Discussion on GitHub](https://github.com/fallenbagel/jellyseerr/discussions/1529)
+
+[Authelia]: https://www.authelia.com
+[Jellyseerr]: https://github.com/fallenbagel/jellyseerr
+[Jellyseerr OIDC Tag]: https://github.com/fallenbagel/jellyseerr/releases/tag/preview-OIDC
+[OpenID Connect 1.0]: ../../openid-connect/introduction.md
+[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
