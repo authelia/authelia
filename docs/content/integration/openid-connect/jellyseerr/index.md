@@ -93,7 +93,7 @@ The following instructions will guide you through the UI based configuration of 
 1. Go to the `Settings page` from the left hand navigation in [Jellyseerr].
 2. Under the `Users` tab you should see "Enable OpenID Connect Sign-In" if you are on the correct branch.
 3. Click the Cog icon next to "Enable OpenID Connect Sign-In" then select `Add OpenID Connect Provider`.
-5. Configure the following options:
+4. Configure the following options:
   - Provider Name: `authelia`
   - Logo: `https://www.authelia.com/images/branding/logo-cropped.png`
   - Issuer URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
@@ -101,12 +101,12 @@ The following instructions will guide you through the UI based configuration of 
   - Client Secret: `insecure_secret`
   - Scopes: `openid,profile,email,groups`
   - Allow New Users: Checked
-6. All other options may remain unchecked or unconfigured.
-7. Click `Save Changes`.
-8. Click `Close` to return to the Settings page.
-9. Ensure the `Enable OpenID Connect Sign-In` option is checked
-10. Scroll down to the bottom of the page and click `Save Changes`.
-11. To log in visit `https://jellyseerr.{{< sitevar name="domain" nojs="example.com" >}}/api/v1/auth/oidc/login/authelia`.
+5. All other options may remain unchecked or unconfigured.
+6. Click `Save Changes`.
+7. Click `Close` to return to the Settings page.
+8. Ensure the `Enable OpenID Connect Sign-In` option is checked
+9. Scroll down to the bottom of the page and click `Save Changes`.
+10. To log in visit `https://jellyseerr.{{< sitevar name="domain" nojs="example.com" >}}/api/v1/auth/oidc/login/authelia`.
 
 ## See Also
 
