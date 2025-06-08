@@ -2,7 +2,7 @@
 title: "Home Assistant"
 description: "Integrating Home Assistant with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2022-06-15T17:51:47+10:00
+date: 2025-06-08T14:03:01+00:00
 draft: false
 images: []
 weight: 620
@@ -24,9 +24,9 @@ seo:
   - [v4.39.4](https://github.com/authelia/authelia/releases/tag/v4.39.4)
 - [Home Assistant]
   - Application:
-    - [v2025.4.2](https://github.com/home-assistant/core/releases/tag/2025.4.2)
-  - Integration `hass-oidc-auth`:
-    - [v0.6.2-alpha](https://github.com/christiaangoossens/hass-oidc-auth/releases/tag/v0.6.2-alpha)
+    - [v2025.5.3](https://github.com/home-assistant/core/releases/tag/2025.5.3)
+  - Integration `hass-openid`:
+    - [1.1.4](https://github.com/cavefire/hass-openid/releases/tag/1.1.4)
 
 {{% oidc-common %}}
 
@@ -45,7 +45,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ## Configuration
 
-The following example uses the [OpenID Connect for Home Assistant HACS Plugin] which is assumed to be installed with
+The following example uses the [OIDC Integration for Home Assistant] which is assumed to be installed with
 [HACS](https://hacs.xyz/) when following this section of the guide.
 
 ### Authelia
@@ -63,12 +63,12 @@ identity_providers:
         client_name: 'Home Assistant'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
-        require_pkce: true
-        pkce_challenge_method: 'S256'
+        require_pkce: false
         authorization_policy: 'two_factor'
         redirect_uris:
-          - 'https://home-assistant.{{< sitevar name="domain" nojs="example.com" >}}/auth/oidc/callback'
+          - 'https://home-assistant.{{< sitevar name="domain" nojs="example.com" >}}/auth/openid/callback'
         scopes:
+          - 'email'
           - 'openid'
           - 'profile'
           - 'groups'
@@ -80,6 +80,8 @@ identity_providers:
 
 To configure [Home Assistant] there is one method, using the [Configuration File](#configuration-file).
 
+Users must already exist in Home Assistant before they can log in, as the integration does not support user registration.
+
 #### Configuration File
 
 {{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
@@ -89,21 +91,26 @@ Generally the configuration file is named `configuration.yaml`.
 To configure [Home Assistant] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
 ```yaml {title="configuration.yaml"}
-auth_oidc:
+openid:
   client_id: 'home-assistant'
   client_secret: 'insecure_secret'
-  discovery_url: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration'
-  display_name: 'Authelia'
-  roles:
-    admin: 'admins'
+  configure_url: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration'
+  username_field: "email"
+  scope: "email openid profile groups"
+  block_login: false
 ```
+
+Once you have configured Home Assistant and have tested your configuration, you can change the `block_login` value to
+`true` to prevent users from logging in via username and password, instead they will be automatically redirected to Authelia.
+
+![Login page showing the OpenID Connect login button](./login-page.png)
 
 ## See Also
 
-- [Home Assistant OpenID Connect Auth Integration Docs](https://github.com/christiaangoossens/hass-oidc-auth)
+- [OIDC Integration for Home Assistant Docs](https://github.com/cavefire/hass-openid)
 
 [Home Assistant]: https://www.home-assistant.io/
-[OpenID Connect for Home Assistant HACS Plugin]: https://github.com/christiaangoossens/hass-oidc-auth
+[OIDC Integration for Home Assistant]: https://github.com/cavefire/hass-openid
 [Authelia]: https://www.authelia.com
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
