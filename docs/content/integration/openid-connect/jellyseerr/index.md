@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.39.4](https://github.com/authelia/authelia/releases/tag/v4.39.4)
 - [Jellyseerr]
-  - [tag:preview-OIDC](https://github.com/fallenbagel/jellyseerr/releases/tag/preview-OIDC)
+  - [development version tag:preview-OIDC](https://github.com/fallenbagel/jellyseerr/releases/tag/preview-OIDC)
 
 {{% oidc-common %}}
 
@@ -39,26 +39,6 @@ This example makes the following assumptions:
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
 {{< sitevar-preferences >}}
-
-## Configuration
-
-The following documentation requires that you use the [Jellyseerr OIDC Tag] (a develop branch) as there isn't yet any
-support for [OpenID Connect 1.0] in the main branches of Jellyseerr.
-
-To install the [Jellyseerr OIDC Tag] version, use the tag when pulling your Jellyseerr Docker image, for example:
-```yaml {title="compose.yml"}
-jellyseerr:
-  image: fallenbagel/jellyseerr:preview-OIDC
-  container_name: jellyseerr
-  environment:
-    - TZ=Europe/London
-    - PORT=5055
-  ports:
-    - 5055:5055
-  volumes:
-    - /path/to/jellyseerr/config:/app/config
-  restart: unless-stopped
-```
 
 ### Authelia
 
@@ -95,7 +75,7 @@ The following instructions will guide you through the UI-based configuration of 
    ![Add OpenID Connect Provider](./settings.png)
 3. Click the Cog icon next to "Enable OpenID Connect Sign-In" then select `Add OpenID Connect Provider`.
 4. Configure the following options:
-   - Provider Name: `authelia`
+   - Provider Name: `Authelia`
    - Logo: `https://www.authelia.com/images/branding/logo-cropped.png`
    - Issuer URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
    - Client ID: `jellyseerr`
@@ -120,6 +100,5 @@ A login button is also added to the Jellyseerr login page which will redirect to
 
 [Authelia]: https://www.authelia.com
 [Jellyseerr]: https://github.com/fallenbagel/jellyseerr
-[Jellyseerr OIDC Tag]: https://github.com/fallenbagel/jellyseerr/releases/tag/preview-OIDC
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
