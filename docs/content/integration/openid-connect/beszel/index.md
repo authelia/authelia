@@ -42,17 +42,6 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ## Configuration
 
-The following example uses the [OAuth login Extension] which is assumed to be installed when following
-this section of the guide.
-
-To install the [OAuth login Extension] for [Beszel] via the Web GUI:
-
-1. Login to [Beszel].
-2. Navigate to `Extensions`.
-3. Navigate to `Extensions Catalog`.
-4. Search for `OAuth login`.
-5. Click Install.
-
 ### Authelia
 
 The following YAML configuration is an example __Authelia__ [client configuration] for use with [Beszel] which will
