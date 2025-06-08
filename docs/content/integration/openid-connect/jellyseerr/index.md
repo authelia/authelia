@@ -71,7 +71,7 @@ identity_providers:
 The following instructions will guide you through the UI-based configuration of [Jellyseerr] to utilize Authelia as an OpenID Connect 1.0 Provider.
 
 1. Go to the `Settings page` from the left-hand navigation in [Jellyseerr].
-2. Under the `Users` tab you should see "Enable OpenID Connect Sign-In", if you are on the correct branch.
+2. Under the `Users` tab, you should see "Enable OpenID Connect Sign-In", if you are on the correct branch.
    ![Add OpenID Connect Provider](./settings.png)
 3. Click the Cog icon next to "Enable OpenID Connect Sign-In" then select `Add OpenID Connect Provider`.
 4. Configure the following options:
@@ -90,7 +90,7 @@ The following instructions will guide you through the UI-based configuration of 
 9. Scroll down to the bottom of the page and click `Save Changes`.
 10. To log in visit `https://jellyseerr.{{< sitevar name="domain" nojs="example.com" >}}/api/v1/auth/oidc/login/authelia`.
 
-A login button is also added to the Jellyseerr login page which will redirect to Authelia for authentication.
+A login button is also added to the Jellyseerr login page, which will redirect to Authelia for authentication.
 
 ![Login Page](./login.png)
 
@@ -100,5 +100,4 @@ A login button is also added to the Jellyseerr login page which will redirect to
 
 [Authelia]: https://www.authelia.com
 [Jellyseerr]: https://github.com/fallenbagel/jellyseerr
-[OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
