@@ -20,6 +20,7 @@ The following table is a support matrix for Authelia features and specific rever
 |:---------------------------------------:|:-----------------------------------------------------:|:-------------------------------------------------------------------------------------:|:---------------------------------:|:---------------------------------:|
 |     [Traefik] ([guide](/i/traefik))     |   {{% support support="full" link="/i/traefik" %}}    | {{% support support="full" link="../../integration/kubernetes/traefik-ingress.md" %}} |  {{% support support="full" %}}   |  {{% support support="full" %}}   |
 |       [Caddy] ([guide](/i/caddy))       |    {{% support support="full" link="/i/caddy" %}}     |                           {{% support support="unknown" %}}                           |  {{% support support="full" %}}   |  {{% support support="full" %}}   |
+|      [Zoraxy] ([guide](/i/zoraxy))      |    {{% support support="full" link="/i/zoraxy" %}}    |                           {{% support support="unknown" %}}                           | {{% support support="unknown" %}} |  {{% support support="full" %}}   |
 |       [Envoy] ([guide](/i/envoy))       |    {{% support support="full" link="/i/envoy" %}}     |      {{% support support="full" link="../../integration/kubernetes/istio.md" %}}      | {{% support support="unknown" %}} |  {{% support support="full" %}}   |
 |       [NGINX] ([guide](/i/nginx))       |    {{% support support="full" link="/i/nginx" %}}     |  {{% support support="full" link="../../integration/kubernetes/nginx-ingress.md" %}}  |          {{% support %}}          |  {{% support support="full" %}}   |
 | [NGINX Proxy Manager] ([guide](/i/npm)) |     {{% support support="full" link="/i/npm" %}}      |                           {{% support support="unknown" %}}                           |          {{% support %}}          |  {{% support support="full" %}}   |
@@ -50,6 +51,7 @@ For more comprehensive support information please see the
 [SWAG]: https://docs.linuxserver.io/general/swag
 [Traefik]: https://traefik.io/
 [Caddy]: https://caddyserver.com/
+[Zoraxy]: https://zoraxy.aroz.org/
 [HAProxy]: https://www.haproxy.com/
 [Envoy]: https://www.envoyproxy.io/
 [Skipper]: https://opensource.zalando.com/skipper/
