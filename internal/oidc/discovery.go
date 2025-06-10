@@ -471,5 +471,10 @@ func (opts OpenIDConnectWellKnownConfiguration) Copy() (optsCopy OpenIDConnectWe
 		*optsCopy.OpenIDFederationDiscoveryOptions = *opts.OpenIDFederationDiscoveryOptions
 	}
 
+	if opts.OpenIDConnectIdentityAssurance != nil {
+		optsCopy.OpenIDConnectIdentityAssurance = &OpenIDConnectIdentityAssurance{}
+		*optsCopy.OpenIDConnectIdentityAssurance = *opts.OpenIDConnectIdentityAssurance
+	}
+
 	return optsCopy
 }
