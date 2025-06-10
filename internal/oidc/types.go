@@ -996,6 +996,50 @@ type OpenIDFederationDiscoveryOptions struct {
 	RequestAuthenticationSigningAlgValuesSupported []string `json:"request_authentication_signing_alg_values_supported,omitempty"`
 }
 
+type OpenIDConnectIdentityAssurance struct {
+	/*
+		Required. JSON array containing all supported trust frameworks. This array shall have at least one member.
+	*/
+	TrustFrameworksSupported []string `json:"trust_frameworks_supported"`
+
+	/*
+			Required. JSON array containing all claims supported within verified_claims. claims that are not present in
+		    this array shall not be returned within the verified_claims object. This array shall have at least one member.
+	*/
+	ClaimsInVerifiedClaimsSupported []string `json:"claims_in_verified_claims_supported"`
+
+	/*
+			Required when one or more type of evidence is supported. JSON array containing all types of identity evidence
+		    the OP uses. This array shall have at least one member. Members of this array should only be the types of
+		    evidence supported by the OP in the evidence element (see section 5.4.4 of [IDA-verified-claims]).
+	*/
+	EvidenceSupported []string `json:"evidence_supported,omitempty"`
+
+	/*
+		Required when evidence_supported contains "document". JSON array containing all identity document types
+		utilized by the OP for identity verification. This array shall have at least one member.
+	*/
+	DocumentsSupported []string `json:"documents_supported,omitempty"`
+
+	/*
+		Optional. JSON array containing the verification methods the OP supports for evidences of type "document" (see
+		[predefined_values_page]). When present this array shall have at least one member.
+	*/
+	DocumentsMethodsSupported []string `json:"documents_methods_supported,omitempty"`
+
+	/*
+		Optional. JSON array containing the check methods the OP supports for evidences of type "document" (see
+		[predefined_values_page]). When present this array shall have at least one member.
+	*/
+	DocumentsCheckMethodsSupported []string `json:"documents_check_methods_supported,omitempty"`
+
+	/*
+		Required when evidence_supported contains "electronic_record". JSON array containing all electronic record types
+		the OP supports (see [predefined_values_page]). When present this array shall have at least one member.
+	*/
+	ElectronicRecordsSupported []string `json:"electronic_records_supported,omitempty"`
+}
+
 // OAuth2WellKnownConfiguration represents the well known discovery document specific to OAuth 2.0.
 type OAuth2WellKnownConfiguration struct {
 	CommonDiscoveryOptions
@@ -1035,6 +1079,7 @@ type OpenIDConnectWellKnownConfiguration struct {
 	*OpenIDConnectClientInitiatedBackChannelAuthFlowDiscoveryOptions
 	*OpenIDConnectJWTSecuredAuthorizationResponseModeDiscoveryOptions
 	*OpenIDFederationDiscoveryOptions
+	*OpenIDConnectIdentityAssurance
 }
 
 type OpenIDConnectWellKnownSignedConfiguration struct {
