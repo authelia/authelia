@@ -48,6 +48,8 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
+{{% oidc-conformance-claims claims="email_verified" %}}
+
 The following YAML configuration is an example __Authelia__ [client configuration] for use with [Oidcwarden] which
 will operate with the application example:
 
