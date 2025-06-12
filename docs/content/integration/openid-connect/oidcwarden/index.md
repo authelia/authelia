@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.39.4](https://github.com/authelia/authelia/releases/tag/v4.39.4)
 - [Oidcwarden]
-  - [v2025.5.1-4](https://github.com/Timshel/OIDCWarden/releases/tag/v2025.5.1-4)
+  - [v2025.5.1-5](https://github.com/Timshel/OIDCWarden/releases/tag/v2025.5.1-5)
 
 {{% oidc-common %}}
 
@@ -47,8 +47,6 @@ Some of the values presented in this guide can automatically be replaced with do
 ## Configuration
 
 ### Authelia
-
-{{% oidc-conformance-claims claims="email_verified" %}}
 
 The following YAML configuration is an example __Authelia__ [client configuration] for use with [Oidcwarden] which
 will operate with the application example:
