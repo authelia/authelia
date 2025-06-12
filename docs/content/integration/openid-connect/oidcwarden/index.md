@@ -66,7 +66,7 @@ identity_providers:
       vaultwarden:
         id_token: ['oidcwarden_roles']
         custom_claims:
-          vault_roles: {}
+          oidcwarden_roles: {}
     scopes:
       oidcwarden:
         claims: ['oidcwarden_roles']
