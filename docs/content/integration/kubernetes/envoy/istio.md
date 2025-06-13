@@ -8,8 +8,10 @@ images: []
 menu:
 integration:
 parent: "kubernetes"
-weight: 551
+weight: 553
 toc: true
+aliases:
+  - '/kubernetes/istio/'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
@@ -76,14 +78,13 @@ spec:
 
 ### Authorization Policy
 
-The following [Authorization Policy] applies the above filter extension provider to the `nextcloud.{{< sitevar name="domain" nojs="example.com" >}}` domain:
+The following [Authorization Policy] applies the above filter extension provider to the `app.{{< sitevar name="domain" nojs="example.com" >}}` domain:
 
 ```yaml {title="authoriztion-policy.yml"}
 apiVersion: 'security.istio.io/v1beta1'
 kind: 'AuthorizationPolicy'
 metadata:
-  name: 'nextcloud'
-  namespace: 'apps'
+  name: 'example'
 spec:
   action: 'CUSTOM'
   provider:
@@ -92,7 +93,7 @@ spec:
     - to:
         - operation:
             hosts:
-              - 'nextcloud.{{< sitevar name="domain" nojs="example.com" >}}'
+              - 'app.{{< sitevar name="domain" nojs="example.com" >}}'
 ```
 
 ## See Also
