@@ -87,11 +87,12 @@ This is a list of the key features of Authelia:
 * Compatible with [Caddy] using the [forward_auth](https://caddyserver.com/docs/caddyfile/directives/forward_auth)
   directive.
 * Kubernetes Support:
-  * Compatible with several Kubernetes ingress controllers:
+  * Compatible with several Kubernetes Ingress Controllers and Gateways:
     * [ingress-nginx](https://www.authelia.com/integration/kubernetes/nginx-ingress/)
     * [Traefik Kubernetes CRD](https://www.authelia.com/integration/kubernetes/traefik-ingress/#ingressroute)
     * [Traefik Kubernetes Ingress](https://www.authelia.com/integration/kubernetes/traefik-ingress/#ingress)
-    * [Istio](https://www.authelia.com/integration/kubernetes/istio/)
+    * [Istio](https://www.authelia.com/integration/kubernetes/envoy/introduction/)
+    * [Envoy Gateway](https://www.authelia.com/integration/kubernetes/envoy/gateway/)
   * Beta support for installing via Helm using our [Charts](https://charts.authelia.com).
 
 For more details take a look at the [Overview](https://www.authelia.com/overview/prologue/introduction/).

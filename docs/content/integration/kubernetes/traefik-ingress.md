@@ -114,8 +114,9 @@ spec:
 ## IngressRoute
 
 This is an example [IngressRoute] manifest which uses the above [Middleware](#middleware). This example assumes you have
-an application you wish to serve on `https://app.{{< sitevar name="domain" nojs="example.com" >}}` and there is a Kubernetes [Service] with the name `app` in
-the `default` [Namespace] with TCP port `80` configured to route to the application [Pod]'s HTTP port.
+an application you wish to serve on `https://app.{{< sitevar name="domain" nojs="example.com" >}}` and there is a
+Kubernetes [Service] with the name `app` in the `default` [Namespace] with TCP port `80` configured to route to the
+application [Pod]'s HTTP port.
 
 ```yaml {title="ingressRoute.yml"}
 ---
@@ -141,6 +142,41 @@ spec:
           scheme: 'http'
           strategy: 'RoundRobin'
           weight: 10
+...
+```
+
+### HTTPRoute
+
+This is an example [HTTPRoute] manifest which uses the above [Middleware](#middleware). This example assumes you have
+an application you wish to serve on `https://app.{{< sitevar name="domain" nojs="example.com" >}}` and there is a
+Kubernetes [Service] with the name `app` in the `default` [Namespace] with TCP port `80` configured to route to the
+application [Pod]'s HTTP port.
+
+```yaml {title="httproute.yaml"}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: 'app'
+  namespace: 'default'
+spec:
+  parentRefs:
+    - name: 'traefik'
+      sectionName: 'http'
+      kind: 'Gateway'
+  hostnames:
+    - 'app.{{< sitevar name="domain" nojs="example.com" >}}'
+  rules:
+    - backendRefs:
+        - name: 'app'
+          namespace: 'default'
+          port: 80
+      filters:
+        - type: 'ExtensionRef'
+          extensionRef:
+            group: 'traefik.io'
+            kind: 'Middleware'
+            name: 'forwardauth-authelia'
 ...
 ```
 
