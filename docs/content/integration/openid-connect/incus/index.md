@@ -54,6 +54,8 @@ identity_providers:
         client_name: 'Incus'
         public: true
         authorization_policy: 'two_factor'
+        require_pkce: false
+        pkce_challenge_method: ''
         redirect_uris:
           - 'https://incus.{{< sitevar name="domain" nojs="example.com" >}}/iodc/callback'
         audience:
@@ -61,9 +63,11 @@ identity_providers:
         scopes:
           - 'openid'
           - 'offline_access'
+        response_types:
+            - 'code'
         grant_types:
-          - 'refresh_token'
           - 'authorization_code'
+          - 'refresh_token'
         access_token_signed_response_alg: 'RS256'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'none'

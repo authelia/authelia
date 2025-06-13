@@ -360,3 +360,4 @@ guide.
 [RFC8176]: https://datatracker.ietf.org/doc/html/rfc8176
 
 [OAuth 2.0 Authorization Code]: https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.1
+[RFC9700]: https://datatracker.ietf.org/doc/html/rfc9700/

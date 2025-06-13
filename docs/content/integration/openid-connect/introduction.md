@@ -497,6 +497,7 @@ either implemented, have our eye on, or are refusing to implement.
 |                [OpenID Connect Client-Initiated Backchannel Authentication Flow - Core 1.0] (CIBA)                 |     None      |                                              N/A                                              |
 |                                    [OpenID Shared Signals Framework 1.0] (SSF)                                     |     None      |                                              N/A                                              |
 |                           [OpenID Continuous Access Evaluation Profile 1.0] (CAEP - SSF)                           |     None      |                                              N/A                                              |
+|                                    [OpenID Connect for Identity Assurance 1.0]                                     |     None      |                                              N/A                                              |
 |                                     [CAEP Interoperability Profile 1.0] (SSF)                                      |     None      |                                              N/A                                              |
 |                                             [Proof Key Code Exchange]                                              | Certified[^3] |         [RFC7636], [OAuth 2.0 Simplified](https://www.oauth.com/oauth2-servers/pkce/)         |
 |                                                  [OAuth 2.0 Core]                                                  | Certified[^3] |                                           [RFC6749]                                           |
@@ -616,6 +617,7 @@ either implemented, have our eye on, or are refusing to implement.
 [OpenID Connect Client-Initiated Backchannel Authentication Flow - Core 1.0]: https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html
 [OpenID Shared Signals Framework 1.0]: https://openid.net/specs/openid-sharedsignals-framework-1_0-ID3.html
 [OpenID Continuous Access Evaluation Profile 1.0]: https://openid.net/specs/openid-caep-1_0-ID2.html
+[OpenID Connect for Identity Assurance 1.0]: https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html
 [CAEP Interoperability Profile 1.0]: https://openid.net/specs/openid-caep-interoperability-profile-1_0-ID1.html
 [OAuth 2.0 Multiple Response Types]: https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html
 [OAuth 2.0 Form Post Response Mode]: https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html
