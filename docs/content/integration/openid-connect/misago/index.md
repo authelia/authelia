@@ -64,12 +64,13 @@ identity_providers:
           - 'email'
         redirect_uris:
           - 'https://misago.{{< sitevar name="domain" nojs="example.com" >}}/oauth2/complete/'
-        grant_types:
-          - 'authorization_code'
-        response_types:
-          - 'code'
         response_modes:
           - 'query'
+        response_types:
+          - 'code'
+        grant_types:
+          - 'authorization_code'
+        access_token_signed_response_alg: 'none'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_basic'
 ```

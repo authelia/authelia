@@ -56,14 +56,20 @@ identity_providers:
         client_name: 'Unreal Engine'
         public: true
         authorization_policy: 'two_factor'
+        require_pkce: false
+        pkce_challenge_method: ''
         redirect_uris:
           - 'https://unreal-engine.{{< sitevar name="domain" nojs="example.com" >}}/auth/openid_connect'
         scopes:
           - 'openid'
           - 'groups'
         response_types:
-          - 'id_token'
+          - 'code'
+        grant_types:
+          - 'authorization_code'
+        access_token_signed_response_alg: 'none'
         userinfo_signed_response_alg: 'none'
+        token_endpoint_auth_method: 'client_secret_basic'
 ```
 
 ### Application

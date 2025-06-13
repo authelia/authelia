@@ -79,18 +79,21 @@ identity_providers:
         pkce_challenge_method: 'S256'
         scopes:
           - 'openid'
+          - 'offline_access'
           - 'groups'
           - 'profile'
           - 'email'
-          - 'offline_access'
         redirect_uris:
           - 'https://owncloud.{{< sitevar name="domain" nojs="example.com" >}}/'
           - 'https://owncloud.{{< sitevar name="domain" nojs="example.com" >}}/oidc-callback.html'
           - 'https://owncloud.{{< sitevar name="domain" nojs="example.com" >}}/oidc-silent-redirect.html'
           - 'https://owncloud.{{< sitevar name="domain" nojs="example.com" >}}/apps/openidconnect/redirect'
+        response_types:
+          - 'code'
         grant_types:
-          - 'refresh_token'
           - 'authorization_code'
+          - 'refresh_token'
+        access_token_signed_response_alg: 'none'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'none'
       - client_id: 'xdXOt13JKxym1B1QcEncf2XDkLAexMBFwiT9j6EfhhHFJhs2KM9jbjTmf8JBXE69'
@@ -102,16 +105,19 @@ identity_providers:
         pkce_challenge_method: 'S256'
         scopes:
           - 'openid'
+          - 'offline_access'
           - 'groups'
           - 'profile'
           - 'email'
-          - 'offline_access'
         redirect_uris:
           - 'http://127.0.0.1'
           - 'http://localhost'
+        response_types:
+          - 'code'
         grant_types:
-          - 'refresh_token'
           - 'authorization_code'
+          - 'refresh_token'
+        access_token_signed_response_alg: 'none'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_basic'
       - client_id: 'e4rAsNUSIUs0lF4nbv9FmCeUkTlV9GdgTLDH1b5uie7syb90SzEVrbN7HIpmWJeD'
@@ -121,17 +127,20 @@ identity_providers:
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
+        redirect_uris:
+          - 'oc://android.owncloud.com'
         scopes:
           - 'openid'
+          - 'offline_access'
           - 'groups'
           - 'profile'
           - 'email'
-          - 'offline_access'
-        redirect_uris:
-          - 'oc://android.owncloud.com'
+        response_types:
+          - 'code'
         grant_types:
-          - 'refresh_token'
           - 'authorization_code'
+          - 'refresh_token'
+        access_token_signed_response_alg: 'none'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_basic'
       - client_id: 'mxd5OQDk6es5LzOzRvidJNfXLUZS2oN3oUFeXPP8LpPrhx3UroJFduGEYIBOxkY1'
@@ -141,18 +150,19 @@ identity_providers:
         authorization_policy: 'two_factor'
         require_pkce: true
         pkce_challenge_method: 'S256'
-        scopes:
-          - 'openid'
-          - 'groups'
-          - 'profile'
-          - 'email'
-          - 'offline_access'
         redirect_uris:
           - 'oc://ios.owncloud.com'
           - 'oc.ios://ios.owncloud.com'
+        scopes:
+          - 'openid'
+          - 'offline_access'
+          - 'groups'
+          - 'profile'
+          - 'email'
         grant_types:
-          - 'refresh_token'
           - 'authorization_code'
+          - 'refresh_token'
+        access_token_signed_response_alg: 'none'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_basic'
 ```
