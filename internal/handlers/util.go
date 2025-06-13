@@ -97,3 +97,28 @@ func redactEmail(email string) string {
 
 	return first + middle + last + "@" + domain
 }
+
+func decodeHeaderCookie(raw []byte) (cookies Cookies) {
+	if len(raw) == 0 {
+		return nil
+	}
+
+	values := strings.Split(string(raw), ";")
+
+	cookies = make(map[string]string)
+
+	for _, value := range values {
+		kv := strings.SplitN(value, "=", 2)
+
+		switch len(kv) {
+		case 1:
+			cookies[kv[0]] = ""
+		case 2:
+			cookies[kv[0]] = kv[1]
+		default:
+			continue
+		}
+	}
+
+	return cookies
+}
