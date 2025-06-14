@@ -87,12 +87,17 @@ following are true:
   - Each Security Policy has a specific domain configured that is a complete match for the protected application.
 {{< /callout >}}
 
-To configure [Envoy Gateway] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following
-instructions:
+##### Apply to a HTTPRoute
+
+To configure [Envoy Gateway] to utilize Authelia as an [OpenID Connect 1.0] Provider for a single [HTTPRoute], use the
+following instructions:
 
 1. Use `kubectl` to create the secret:
    - `kubectl create secret generic envoy-app-oidc-client-secret --from-literal=client-secret=insecure_secret`
 2. Apply the below manifests for the example application.
+
+The following example [HTTPRoute] is a example real application just for the purposes of showcasing this. The important
+factors are the `name` value being `envoy-app`.
 
 ```yaml {title="httproute.yaml
 ---
@@ -102,19 +107,22 @@ metadata:
   name: 'envoy-app'
 spec:
   parentRefs:
-  - name: 'eg'
+    - name: 'eg'
   hostnames:
     - 'envoy-app.{{< sitevar name="domain" nojs="example.com" >}}'
   rules:
-  - matches:
-    - path:
-        type: 'PathPrefix'
-        value: '/'
-    backendRefs:
-    - name: 'envoy-app-service-backend'
-      port: 80
+    - matches:
+        - path:
+            type: 'PathPrefix'
+            value: '/'
+      backendRefs:
+        - name: 'envoy-app-service-backend'
+          port: 80
 ...
 ```
+
+The following [SecurityPolicy] requires [OpenID Connect 1.0] authorization for just the `envoy-app` [HTTPRoute] as
+described above, the important factors are the `targetRefs` which indicates what resource to apply this to.
 
 ```yaml
 ---
@@ -148,12 +156,81 @@ spec:
     passThroughAuthHeader: false
 ```
 
+##### Apply to an entire Gateway
+
+To configure [Envoy Gateway] to utilize Authelia as an [OpenID Connect 1.0] Provider for an entire [Gateway], use the
+following instructions:
+
+1. Use `kubectl` to create the secret:
+  - `kubectl create secret generic envoy-app-oidc-client-secret --from-literal=client-secret=insecure_secret`
+2. Apply the below manifests for the `eg` [Gateway].
+
+The following example [HTTPRoute] is a fake application just for the redirection behaviour.
+
+```yaml {title="httproute.yaml
+---
+apiVersion: 'gateway.networking.k8s.io/v1'
+kind: 'HTTPRoute'
+metadata:
+  name: 'envoy-oidc'
+spec:
+  parentRefs:
+    - name: 'eg'
+  hostnames:
+    - 'envoy-oidc.{{< sitevar name="domain" nojs="example.com" >}}'
+  rules:
+    - matches:
+        - path:
+            type: 'PathPrefix'
+            value: '/'
+...
+```
+
+The following [SecurityPolicy] requires [OpenID Connect 1.0] authorization for every [HTTPRoute] on the `eg` [Gateway],
+the important factors are the `targetRefs` which indicates what resource to apply this to.
+
+```yaml
+---
+apiVersion: 'gateway.envoyproxy.io/v1alpha1'
+kind: 'SecurityPolicy'
+metadata:
+  name: 'envoy-app-oidc'
+spec:
+  targetRefs:
+    - group: 'gateway.networking.k8s.io'
+      kind: 'Gateway'
+      name: 'eg'
+  oidc:
+    provider:
+      issuer: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
+      authorizationEndpoint: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization'
+      tokenEndpoint: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token'
+    clientID: 'app'
+    clientSecret:
+      name: 'envoy-app-oidc-client-secret'
+    cookieDomain: 'envoy-app.{{< sitevar name="domain" nojs="example.com" >}}'
+    cookieNames:
+      idToken: ''
+      accessToken: ''
+    scopes:
+      - 'openid'
+      - 'offline_access'
+    redirectURL: 'https://envoy-oidc.{{< sitevar name="domain" nojs="example.com" >}}/authelia/openid_connect/callback'
+    forwardAccessToken: false
+    refreshToken: true
+    passThroughAuthHeader: false
+```
+
 ## See Also
 
 - [Envoy Gateway]
-- [OpenID Connect (OIDC) Authentication Documentation](https://docs.espocrm.com/administration/oidc/)
+- [OIDC Authentication Security Tasks](https://gateway.envoyproxy.io/latest/tasks/security/oidc/)
 
 [Authelia]: https://www.authelia.com
-[Envoy Gateway]: https://www.espocrm.com/
+[Envoy Gateway]: https://gateway.envoyproxy.io/
+[Gateway API]: https://gateway-api.sigs.k8s.io/
+[SecurityPolicy]: https://gateway.envoyproxy.io/contributions/design/security-policy/
+[HTTPRoute]: https://gateway-api.sigs.k8s.io/api-types/httproute/
+[Gateway]: https://gateway-api.sigs.k8s.io/api-types/gateway/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
