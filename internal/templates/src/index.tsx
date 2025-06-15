@@ -5,6 +5,7 @@ import * as fs from "node:fs";
 import Event from './emails/Event';
 import IdentityVerificationJWT from "./emails/IdentityVerificationJWT";
 import IdentityVerificationOTC from "./emails/IdentityVerificationOTC";
+import NewLogin from "./emails/NewLogin";
 
 const optsHTML = {
 	pretty: false,
@@ -15,6 +16,10 @@ const optsTXT = {
 	pretty: false,
 	plainText: true,
 };
+
+	/*
+		Generate Event Email
+	*/
 
 async function doRender() {
 	const propsEvent = {
@@ -40,6 +45,35 @@ async function doRender() {
 
 	fs.writeFileSync('../../../examples/templates/notifications/no-preview/Event.html', await render(<Event {...propsEventNoPreview} />, optsHTML));
 
+
+	/*
+		Generate New Login Email
+ 	*/
+
+	const propsNewLogin = {
+		title: "{{ .Title }}",
+		date: "{{ .Date }}",
+		domain: "{{ .Domain }}",
+		displayName: "{{ .DisplayName }}",
+		remoteIP: "{{ .RemoteIP }}",
+		rawUserAgent: "{{ .RawUserAgent }}",
+		deviceInfo: "{{ .DeviceInfo }}",
+	};
+
+	fs.writeFileSync('../embed/notification/NewLogin.html', await render(<NewLogin {...propsNewLogin} />, optsHTML));
+	fs.writeFileSync('../embed/notification/NewLogin.txt', await render(<NewLogin {...propsNewLogin} />, optsTXT));
+
+	const propsNewLoginNoPreview = {
+		...propsNewLogin,
+		hidePreview: true,
+	};
+
+	fs.writeFileSync('../../../examples/templates/notifications/no-preview/NewLogin.html', await render(<NewLogin {...propsNewLoginNoPreview} />, optsHTML));
+
+	/*
+		Generate Identity Verification JWT Email
+	*/
+
 	const propsJWT = {
 		title: "{{ .Title }}",
 		displayName: "{{ .DisplayName }}",
@@ -61,6 +95,9 @@ async function doRender() {
 
 	fs.writeFileSync('../../../examples/templates/notifications/no-preview/IdentityVerificationJWT.html', await render(<IdentityVerificationJWT {...propsJWTNoPreview} />, optsHTML));
 
+	/*
+		Generate Identity Verification OTP Email
+	*/
 	const propsOTC = {
 		title: "{{ .Title }}",
 		displayName: "{{ .DisplayName }}",
