@@ -112,7 +112,7 @@ func OAuth2AuthorizationGET(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter
 
 	issuer = ctx.RootURL()
 
-	if consent, handled = handleOAuth2AuthorizationConsent(ctx, issuer, client, provider, userSession, rw, r, requester); handled {
+	if consent, handled = handleOAuth2AuthorizationConsent(ctx, issuer, client, policy, provider, userSession, rw, r, requester); handled {
 		return
 	}
 
