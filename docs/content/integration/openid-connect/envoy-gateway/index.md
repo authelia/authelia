@@ -2,7 +2,7 @@
 title: "Envoy Gateway"
 description: "Integrating Envoy Gateway with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2025-01-25T10:04:53+11:00
+date: 2025-06-13T14:12:09+00:00
 draft: false
 images: []
 weight: 620
