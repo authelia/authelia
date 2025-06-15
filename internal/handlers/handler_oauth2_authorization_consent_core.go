@@ -19,7 +19,7 @@ import (
 )
 
 func handleOAuth2AuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.URL, client oidc.Client,
-	userSession session.UserSession,
+	provider *session.Session, userSession session.UserSession,
 	rw http.ResponseWriter, r *http.Request, requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool) {
 	var (
 		subject uuid.UUID
@@ -27,6 +27,23 @@ func handleOAuth2AuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.
 	)
 
 	var handler handlerAuthorizationConsent
+
+	if modified, invalid := handleSessionValidateRefresh(ctx, &userSession, ctx.Configuration.AuthenticationBackend.RefreshInterval); invalid {
+		if err = ctx.DestroySession(); err != nil {
+			ctx.Logger.WithError(err).Errorf("Unable to destroy user session")
+		}
+
+		userSession = provider.NewDefaultUserSession()
+		userSession.LastActivity = ctx.Clock.Now().Unix()
+
+		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
+			ctx.Logger.WithError(err).Error("Unable to save updated user session")
+		}
+	} else if modified {
+		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
+			ctx.Logger.WithError(err).Error("Unable to save updated user session")
+		}
+	}
 
 	policy := client.GetAuthorizationPolicy()
 	level := policy.GetRequiredLevel(authorization.Subject{Username: userSession.Username, Groups: userSession.Groups, IP: ctx.RemoteIP()})
