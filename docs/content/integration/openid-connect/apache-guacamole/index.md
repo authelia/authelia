@@ -56,6 +56,8 @@ identity_providers:
         client_name: 'Apache Guacamole'
         public: true
         authorization_policy: 'two_factor'
+        require_pkce: false
+        pkce_challenge_method: ''
         redirect_uris:
           - 'https://guacamole.{{< sitevar name="domain" nojs="example.com" >}}'
         scopes:
@@ -67,7 +69,9 @@ identity_providers:
           - 'id_token'
         grant_types:
           - 'implicit'
+        access_token_signed_response_alg: 'none'
         userinfo_signed_response_alg: 'none'
+        token_endpoint_auth_method: 'client_secret_basic'
 ```
 
 ### Application

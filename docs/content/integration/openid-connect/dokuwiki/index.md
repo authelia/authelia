@@ -64,15 +64,15 @@ identity_providers:
           - 'https://dokuwiki.{{< sitevar name="domain" nojs="example.com" >}}/doku.php'
         scopes:
           - 'openid'
+          - 'offline_access'
           - 'email'
           - 'profile'
           - 'groups'
-          - 'offline_access'
+        response_types:
+          - 'code'
         grant_types:
           - 'authorization_code'
           - 'refresh_token'
-        response_types:
-          - 'code'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_post'
 ```

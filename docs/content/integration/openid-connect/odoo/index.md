@@ -64,6 +64,9 @@ identity_providers:
           - 'profile'
         response_types:
           - 'token'
+        grant_types:
+          - 'implicit'
+        access_token_signed_response_alg: 'none'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'none'
 ```

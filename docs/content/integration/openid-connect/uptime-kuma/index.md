@@ -99,13 +99,16 @@ identity_providers:
         client_name: 'Uptime Kuma'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
+        require_pkce: false
+        pkce_challenge_method: ''
+        requested_audience_mode: 'implicit'
         scopes:
           - 'authelia.bearer.authz'
         audience:
           - 'https://application.{{< sitevar name="domain" nojs="example.com" >}}/'
         grant_types:
           - 'client_credentials'
-        requested_audience_mode: 'implicit'
+        access_token_signed_response_alg: 'none'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_basic'
 ```
