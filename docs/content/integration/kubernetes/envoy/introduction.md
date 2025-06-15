@@ -2,7 +2,7 @@
 title: "Envoy"
 description: "A guide to integrating Authelia with Envoy in Kubernetes."
 summary: "A guide to integrating Authelia with Envoy in Kubernetes."
-date: 2022-10-02T13:59:09+11:00
+date: 2025-06-13T14:12:09+00:00
 draft: false
 images: []
 menu:

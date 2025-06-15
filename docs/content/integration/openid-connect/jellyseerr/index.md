@@ -2,7 +2,7 @@
 title: "Jellyseerr"
 description: "Integrating Jellyseerr with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2025-06-08T00:04:43+00:00
+date: 2025-06-08T10:42:30+00:00
 draft: false
 images: []
 weight: 620
