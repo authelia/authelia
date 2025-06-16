@@ -29,13 +29,13 @@ func TestNewMainServer(t *testing.T) {
 		},
 	}
 
-	ctx := &testCtx{
-		Context:       context.Background(),
-		Configuration: config,
-		Providers: middlewares.Providers{
+	ctx := &testContext{
+		Context: t.Context(),
+		config:  config,
+		providers: middlewares.Providers{
 			Templates: tx,
 		},
-		Logger: logrus.NewEntry(logging.Logger()),
+		logger: logrus.NewEntry(logging.Logger()),
 	}
 
 	server, err := ProvisionServer(ctx)
@@ -72,14 +72,14 @@ func TestNewMetricsServer(t *testing.T) {
 		},
 	}
 
-	ctx := &testCtx{
-		Context:       context.Background(),
-		Configuration: config,
-		Providers: middlewares.Providers{
+	ctx := &testContext{
+		Context: context.Background(),
+		config:  config,
+		providers: middlewares.Providers{
 			Templates: tx,
 			Metrics:   metrics.NewPrometheus(),
 		},
-		Logger: logrus.NewEntry(logging.Logger()),
+		logger: logrus.NewEntry(logging.Logger()),
 	}
 
 	server, err := ProvisionServerMetrics(ctx)
@@ -98,24 +98,4 @@ func TestNewMetricsServer(t *testing.T) {
 	assert.NotNil(t, server.Log())
 
 	server.Shutdown()
-}
-
-type testCtx struct {
-	Configuration *schema.Configuration
-	Providers     middlewares.Providers
-	Logger        *logrus.Entry
-
-	context.Context
-}
-
-func (c *testCtx) GetConfiguration() *schema.Configuration {
-	return c.Configuration
-}
-
-func (c *testCtx) GetProviders() middlewares.Providers {
-	return c.Providers
-}
-
-func (c *testCtx) GetLogger() *logrus.Entry {
-	return c.Logger
 }
