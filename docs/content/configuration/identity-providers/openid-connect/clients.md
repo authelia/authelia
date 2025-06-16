@@ -325,6 +325,17 @@ type, but when it is supported it will include the `query` response mode.
 
 {{< confkey type="string" default="two_factor" required="no" >}}
 
+{{< callout context="note" title="Note" icon="outline/info-circle" >}}
+This option is aimed at providing authorization customization for this particular client. This option should not be
+confused with the [Access Control Rules](../../security/access-control.md#rules) section and this option is distinctly
+and intentionally different. The reasons for the differences are clearly explained in the
+[OpenID Connect 1.0 FAQ](../../../integration/openid-connect/frequently-asked-questions.md#why-doesnt-the-access-control-configuration-work-with-openid-connect-10)
+and [ADR1](../../../reference/architecture-decision-log/1.md). This policy specifically applies solely to Authorization Requests and
+should not be used as a crutch for applications which do not implement the most basic
+level of access control on their end.
+{{< /callout >}}
+
+
 The authorization policy for this client: either `one_factor`, `two_factor`, or one of the ones configured in the
 provider [authorization_policies](./provider.md#authorization_policies) section.
 

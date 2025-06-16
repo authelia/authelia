@@ -393,7 +393,9 @@ available are distinctly and intentionally different to those of the
 [Access Control Rules](../../security/access-control.md#rules) unless explicitly specified in this section. The reasons
 for the differences are clearly explained in the
 [OpenID Connect 1.0 FAQ](../../../integration/openid-connect/frequently-asked-questions.md#why-doesnt-the-access-control-configuration-work-with-openid-connect-10)
-and [ADR1](../../../reference/architecture-decision-log/1.md).
+and [ADR1](../../../reference/architecture-decision-log/1.md). These policies specifically apply solely to Authorization Requests and
+should not be used as a crutch for applications which do not implement the most basic
+level of access control on their end.
 {{< /callout >}}
 
 The authorization policies section allows creating custom authorization policies which can be applied to clients. This
