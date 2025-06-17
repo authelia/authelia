@@ -96,6 +96,10 @@ const (
 	logFmtErrSessionSave          = "Could not save session with the %s during %s %s for user '%s'"
 	logFmtErrObtainProfileDetails = "Could not obtain profile details during %s authentication for user '%s'"
 	logFmtTraceProfileDetails     = "Profile details for user '%s' => groups: %s, emails %s"
+
+	logFmtErrCheckKnownIP   = "Unable to check known ip '%s' for user '%s"
+	logFmtErrUpdateKnownIP  = "Unable to update known ip '%s' for user '%s'"
+	logFmtErrSaveNewKnownIP = "Unable to save new known ip '%s' for user '%s'"
 )
 
 const (
