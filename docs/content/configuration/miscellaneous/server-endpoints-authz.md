@@ -29,6 +29,15 @@ server:
     authz:
       forward-auth:
         implementation: 'ForwardAuth'
+        headers:
+          Remote-User:
+            user_attribute: 'username'
+          Remote-Groups:
+            user_attribute: 'groups'
+          Remote-Name:
+            user_attribute: 'display_name'
+          Remote-Email:
+            user_attribute: 'email'
         authn_strategies:
           - name: 'HeaderAuthorization'
             schemes:
@@ -37,6 +46,15 @@ server:
           - name: 'CookieSession'
       ext-authz:
         implementation: 'ExtAuthz'
+        headers:
+          Remote-User:
+            user_attribute: 'username'
+          Remote-Groups:
+            user_attribute: 'groups'
+          Remote-Name:
+            user_attribute: 'display_name'
+          Remote-Email:
+            user_attribute: 'email'
         authn_strategies:
           - name: 'HeaderAuthorization'
             schemes:
@@ -45,6 +63,15 @@ server:
           - name: 'CookieSession'
       auth-request:
         implementation: 'AuthRequest'
+        headers:
+          Remote-User:
+            user_attribute: 'username'
+          Remote-Groups:
+            user_attribute: 'groups'
+          Remote-Name:
+            user_attribute: 'display_name'
+          Remote-Email:
+            user_attribute: 'email'
         authn_strategies:
           - name: 'HeaderAuthorization'
             schemes:
@@ -75,6 +102,20 @@ alphanumeric character.
 The underlying implementation for the endpoint. Valid case-sensitive values are `ForwardAuth`, `ExtAuthz`,
 `AuthRequest`, and `Legacy`. Read more about the implementations in the
 [reference guide](../../reference/guides/proxy-authorization.md#implementations).
+
+### headers
+
+{{< confkey type="dictionary(object)" required="no" >}}
+
+The headers value contains a dictionary where the dictionary key is the header name and the dictionary value is an
+object which determines the header value.
+
+#### user_attribute
+
+{{< confkey type="string" required="no" >}}
+
+The user attribute to derive the header value from. This attribute can be one available from the authentication backend
+or one determined via the [User Attribute Definitions](../definitions/user-attributes.md).
 
 ### authn_strategies
 

@@ -72,6 +72,8 @@ func (b *AuthzBuilder) WithConfig(config *schema.Configuration) *AuthzBuilder {
 // WithEndpointConfig configures the AuthzBuilder with a *schema.ServerAuthzEndpointConfig. Should be called AFTER
 // WithConfig or WithAuthzConfig.
 func (b *AuthzBuilder) WithEndpointConfig(config schema.ServerEndpointsAuthz) *AuthzBuilder {
+	b.headers = config.Headers
+
 	switch config.Implementation {
 	case AuthzImplForwardAuth.String():
 		b.WithImplementationForwardAuth()
@@ -117,12 +119,17 @@ func (b *AuthzBuilder) Build() (authz *Authz) {
 	if len(authz.strategies) == 0 {
 		switch b.implementation {
 		case AuthzImplLegacy:
+			authz.handleAuthorized = handleAuthzAuthorizedLegacy
 			authz.strategies = []AuthnStrategy{NewHeaderLegacyAuthnStrategy(), NewCookieSessionAuthnStrategy(b.config.RefreshInterval)}
 		case AuthzImplAuthRequest:
 			authz.strategies = []AuthnStrategy{NewHeaderProxyAuthorizationAuthRequestAuthnStrategy(time.Duration(0), model.AuthorizationSchemeBasic.String()), NewCookieSessionAuthnStrategy(b.config.RefreshInterval)}
 		default:
 			authz.strategies = []AuthnStrategy{NewHeaderProxyAuthorizationAuthnStrategy(time.Duration(0), model.AuthorizationSchemeBasic.String()), NewCookieSessionAuthnStrategy(b.config.RefreshInterval)}
 		}
+	}
+
+	for header, config := range b.headers {
+		authz.headers = append(authz.headers, AuthzHeader{Key: []byte(header), Attribute: config.UserAttribute})
 	}
 
 	switch b.implementation {
