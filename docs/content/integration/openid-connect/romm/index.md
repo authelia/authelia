@@ -21,9 +21,9 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.38.17](https://github.com/authelia/authelia/releases/tag/v4.38.17)
+  - [v4.39.4](https://github.com/authelia/authelia/releases/tag/v4.39.4)
 - [ROM Manager]
-  - [v3.9.0](https://github.com/rommapp/romm/releases/tag/3.9.0)
+  - [v3.10.2](https://github.com/rommapp/romm/releases/tag/3.10.2)
 
 {{% oidc-common %}}
 
@@ -52,12 +52,17 @@ operate with the application example:
 ```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
+    claims_policies:
+      ## Creates the 'romm_claim_policy' claims policy.
+      romm_claim_policy:
+        id_token: ['email', 'email_verified', 'alt_emails', 'preferred_username', 'name']
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
       - client_id: 'romm'
         client_name: 'ROM Manager'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
+        claims_policy: 'romm_claim_policy' # please read the previous hint on "Claims Conformance"
         public: false
         authorization_policy: 'two_factor'
         require_pkce: false
