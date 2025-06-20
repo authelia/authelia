@@ -108,7 +108,7 @@
 	"You cancelled the assertion request": "Вы отменили запрос на утверждение",
 	"You have made too many requests": "Вы сделали слишком много запросов",
 	"You must view and accept the Privacy Policy before using {{authelia}}.": "Вы должны просмотреть и принять <policy>Политику Конфиденциальности</policy> перед использованием {{authelia}}",
-	"You're being signed out and redirected": "Вы выходите из системы и будете перенаправлянны",
+	"You're being signed out and redirected": "Вы выходите из системы и будете перенаправленны",
 	"Your browser does not support the WebAuthn protocol": "Ваш браузер не поддерживает протокол WebAuthn",
 	"Your supplied password does not meet the password policy requirements": "Ваш пароль не соответствует требованиям политики паролей",
 	"or": "или"
