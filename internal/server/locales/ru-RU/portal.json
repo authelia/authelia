@@ -75,7 +75,7 @@
 	"Successfully revoked the One-Time Code": "Одноразовый код успешно отозван",
 	"Successfully revoked the Token": "Токен успешно отозван",
 	"Switch User": "Переключить пользователя",
-	"The One-Time Code identifier was not provided": "Одноразовый идентификатор кода не указан",
+	"The One-Time Code identifier was not provided": "Одноразовый код кода не указан",
 	"The One-Time Password might be wrong": "Одноразовый пароль может быть неправильным",
 	"The Token was not provided": "Токен не предоставлен",
 	"The assertion challenge was rejected as malformed or incompatible by your browser": "Вызов на утверждение отклонен как искажённый или несовместимый с вашим браузером",
