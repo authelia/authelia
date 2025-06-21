@@ -22,6 +22,7 @@ seo:
 
 - [Authelia]
   - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+  - [v4.39.4](https://github.com/authelia/authelia/releases/tag/v4.39.4)
 - [BookStack]
   - [v23.02.2](https://github.com/BookStackApp/BookStack/releases/tag/v23.02.2)
 
@@ -56,8 +57,16 @@ operate with the application example:
 ```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
+    # The claims_policies section is only needed starting with Authelia v4.39.
+    # Remove when using Authelia v4.38.
+    # See "Considerations for Authelia v4.39" section below
+    claims_policies:
+      bookstack_workaround:
+        id_token: email # Include the email claim in the ID Token response
+
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
+
     clients:
       - client_id: 'bookstack'
         client_name: 'BookStack'
@@ -79,7 +88,22 @@ identity_providers:
         access_token_signed_response_alg: 'none'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_basic'
+
+        # This line is only needed starting with Authelia v4.39.
+        # Remove when using Authelia v4.38.
+        # See "Considerations for Authelia v4.39" section below
+        claims_policy: bookstack_workaround
 ```
+
+#### Considerations for Authelia v4.39
+Starting with v4.39, Authelia changed its default behavior in accordance with recommendations from the [OpenID Connect 1.0] specification.
+The ID Token no longer contains claims such as email by default. However, [Bookstack] as of v23.02.2 needs the email claim to be present in the ID Token.
+
+Authelia v4.39 allows granular adjustment of the ID token to accomodate incompatible applications via the [claims_policies] configuration. The above example configuration does this by first defining a "bookstack_workaround" entry in the global [claims_policies] oidc configuration. This policy configures ID Tokens to contain the email claim. This policy is then added to the [BookStack] OIDC client configuration.
+
+See also:
+- [Restoring Authelia v4.38 behavior using the claims policy](https://www.authelia.com/integration/openid-connect/openid-connect-1.0-claims/#restore-functionality-prior-to-claims-parameter)
+- [Technical dive into the motivation behind Authelia's behavior change](https://www.authelia.com/blog/technical-openid-connect-1.0-nuances/)
 
 ### Application
 
@@ -124,4 +148,5 @@ services:
 [Authelia]: https://www.authelia.com
 [BookStack]: https://www.bookstackapp.com/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
+[claims_policies]: ../../../configuration/identity-providers/openid-connect/provider/#claims_policies
 [client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
