@@ -101,7 +101,6 @@ const (
 )
 
 const (
-	LogFieldProvider                 = "provider"
 	LogMessageStartupCheckError      = "Error occurred running a startup check"
 	LogMessageStartupCheckPerforming = "Performing Startup Check"
 
