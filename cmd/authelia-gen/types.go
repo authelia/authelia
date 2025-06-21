@@ -74,9 +74,23 @@ type GitHubAuthorJSON struct {
 
 // DocsDataMisc represents the docs misc data schema.
 type DocsDataMisc struct {
-	CSP     TemplateCSP         `json:"csp"`
-	Latest  string              `json:"latest"`
-	Support DocsDataMiscSupport `json:"support"`
+	CSP               TemplateCSP                   `json:"csp"`
+	Latest            string                        `json:"latest"`
+	Support           DocsDataMiscSupport           `json:"support"`
+	HashingAlgorithms DocsDataMiscHashingAlgorithms `json:"hashing_algorithms"`
+}
+
+type DocsDataMiscHashingAlgorithms struct {
+	PBKDF2 DocsDataMiscHashingAlgorithmsPBKDF2 `json:"pbkdf2"`
+}
+
+type DocsDataMiscHashingAlgorithmsPBKDF2 struct {
+	Variants map[string]DocsDataMiscHashingAlgorithmsVariant `json:"variants"`
+}
+
+type DocsDataMiscHashingAlgorithmsVariant struct {
+	FIPS              string `json:"fips"`
+	DefaultIterations string `json:"default_iterations"`
 }
 
 type DocsDataMiscSupport struct {

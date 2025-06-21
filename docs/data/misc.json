@@ -10,5 +10,31 @@
             "v3.4.1",
             "v2.11.25"
         ]
+    },
+    "hashing_algorithms": {
+        "pbkdf2": {
+            "variants": {
+                "sha1": {
+                    "fips": "Approved only for Legacy Systems",
+                    "default_iterations": "1600000"
+                },
+                "sha224": {
+                    "fips": "Approved",
+                    "default_iterations": "900000"
+                },
+                "sha256": {
+                    "fips": "Approved",
+                    "default_iterations": "700000"
+                },
+                "sha384": {
+                    "fips": "Approved (Recommended)",
+                    "default_iterations": "280000"
+                },
+                "sha512": {
+                    "fips": "Approved",
+                    "default_iterations": "310000"
+                }
+            }
+        }
     }
 }
