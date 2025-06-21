@@ -210,13 +210,13 @@ var DefaultPasswordConfig = AuthenticationBackendFilePassword{
 		SaltLength:  16,
 	},
 	SHA2Crypt: AuthenticationBackendFilePasswordSHA2Crypt{
-		Variant:    sha512,
+		Variant:    SHA512Lower,
 		Iterations: 50000,
 		SaltLength: 16,
 	},
 	PBKDF2: AuthenticationBackendFilePasswordPBKDF2{
-		Variant:    sha512,
-		Iterations: 310000,
+		Variant:    SHA512Lower,
+		Iterations: defaultIterationsPBKDF2SHA512,
 		SaltLength: 16,
 	},
 	Bcrypt: AuthenticationBackendFilePasswordBcrypt{
@@ -233,6 +233,14 @@ var DefaultPasswordConfig = AuthenticationBackendFilePassword{
 	},
 }
 
+const (
+	defaultIterationsPBKDF2SHA512 = 310000
+	defaultIterationsPBKDF2SHA384 = 280000
+	defaultIterationsPBKDF2SHA256 = 700000
+	defaultIterationsPBKDF2SHA224 = 900000
+	defaultIterationsPBKDF2SHA1   = 1600000
+)
+
 // DefaultCIPasswordConfig represents the default configuration related to Argon2id hashing for CI.
 var DefaultCIPasswordConfig = AuthenticationBackendFilePassword{
 	Algorithm: argon2,
@@ -244,7 +252,7 @@ var DefaultCIPasswordConfig = AuthenticationBackendFilePassword{
 		SaltLength:  16,
 	},
 	SHA2Crypt: AuthenticationBackendFilePasswordSHA2Crypt{
-		Variant:    sha512,
+		Variant:    SHA512Lower,
 		Iterations: 50000,
 		SaltLength: 16,
 	},

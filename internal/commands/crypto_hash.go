@@ -124,7 +124,7 @@ func newCryptoHashGenerateSubCmd(ctx *CmdCtx, use string) (cmd *cobra.Command) {
 		cmd.Flags().StringP(cmdFlagNameVariant, "v", schema.DefaultPasswordConfig.SHA2Crypt.Variant, "variant, options are sha256 and sha512")
 		cmd.PreRunE = ctx.ChainRunE()
 	case cmdUseHashPBKDF2:
-		cmdFlagIterations(cmd, schema.DefaultPasswordConfig.PBKDF2.Iterations)
+		cmdFlagIterationsWithUsage(cmd, 0, "number of iterations (default is determined by the variant)")
 		cmdFlagSaltSize(cmd, schema.DefaultPasswordConfig.PBKDF2.SaltLength)
 
 		cmd.Flags().StringP(cmdFlagNameVariant, "v", schema.DefaultPasswordConfig.PBKDF2.Variant, "variant, options are 'sha1', 'sha224', 'sha256', 'sha384', and 'sha512'")
@@ -361,7 +361,11 @@ func cmdFlagRandomPassword(cmd *cobra.Command) {
 }
 
 func cmdFlagIterations(cmd *cobra.Command, value int) {
-	cmd.Flags().IntP(cmdFlagNameIterations, "i", value, "number of iterations")
+	cmdFlagIterationsWithUsage(cmd, value, "number of iterations")
+}
+
+func cmdFlagIterationsWithUsage(cmd *cobra.Command, value int, usage string) {
+	cmd.Flags().IntP(cmdFlagNameIterations, "i", value, usage)
 }
 
 func cmdFlagKeySize(cmd *cobra.Command, value int) {
