@@ -70,8 +70,8 @@ section of the guide.
 
 {{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
 The `is_nextcloud_admin` user attribute renders the value `true` if the user is in the `nextcloud-admins` group within
-Authelia, otherwise it renders `false`. You can adjust this to your preference to assign a role to the appropriate user
-groups.
+Authelia, otherwise it renders `false`. You can adjust this to your preference to assign the admin role to the
+appropriate user groups.
 {{< /callout >}}
 
 The following YAML configuration is an example __Authelia__
