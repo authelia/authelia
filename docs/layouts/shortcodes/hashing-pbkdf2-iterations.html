@@ -1,0 +1,5 @@
+|      Variant     |        Default Iterations        |
+|:----------------:|:--------------------------------:|
+{{- range $variant, $values := .Site.Data.misc.hashing_algorithms.pbkdf2.variants }}
+| `{{ $variant }}` | {{ $values.default_iterations }} |
+{{- end }}

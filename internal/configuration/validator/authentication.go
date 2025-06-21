@@ -197,7 +197,7 @@ func validateFileAuthenticationBackendPasswordConfigPBKDF2(config *schema.Authen
 
 	switch {
 	case config.PBKDF2.Iterations == 0:
-		config.PBKDF2.Iterations = schema.DefaultPasswordConfig.PBKDF2.Iterations
+		config.PBKDF2.Iterations = schema.PBKDF2VariantDefaultIterations(config.PBKDF2.Variant)
 	case config.PBKDF2.Iterations < pbkdf2.IterationsMin:
 		validator.Push(fmt.Errorf(errFmtFileAuthBackendPasswordOptionTooSmall, hashPBKDF2, "iterations", config.PBKDF2.Iterations, pbkdf2.IterationsMin))
 	case config.PBKDF2.Iterations > pbkdf2.IterationsMax:

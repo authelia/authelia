@@ -9,7 +9,14 @@ import (
 const (
 	argon2   = "argon2"
 	argon2id = "argon2id"
-	sha512   = "sha512"
+)
+
+const (
+	SHA1Lower   = "sha1"
+	SHA224Lower = "sha224"
+	SHA256Lower = "sha256"
+	SHA384Lower = "sha384"
+	SHA512Lower = "sha512"
 )
 
 const (

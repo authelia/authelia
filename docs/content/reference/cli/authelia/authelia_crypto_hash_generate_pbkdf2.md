@@ -38,7 +38,7 @@ authelia crypto hash generate pbkdf2 --help
 
 ```
   -h, --help             help for pbkdf2
-  -i, --iterations int   number of iterations (default 310000)
+  -i, --iterations int   number of iterations (default is determined by the variant)
   -s, --salt-size int    salt size in bytes (default 16)
   -v, --variant string   variant, options are 'sha1', 'sha224', 'sha256', 'sha384', and 'sha512' (default "sha512")
 ```

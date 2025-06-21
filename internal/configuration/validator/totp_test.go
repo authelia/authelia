@@ -30,7 +30,7 @@ func TestValidateTOTP(t *testing.T) {
 		{
 			desc: "ShouldNormalizeTOTPAlgorithm",
 			have: schema.TOTP{
-				DefaultAlgorithm: digestSHA1,
+				DefaultAlgorithm: schema.SHA1Lower,
 				DefaultDigits:    6,
 				DefaultPeriod:    30,
 				SecretSize:       32,
