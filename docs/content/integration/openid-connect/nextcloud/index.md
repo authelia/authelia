@@ -68,6 +68,12 @@ section of the guide.
 
 #### Authelia
 
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+The `is_nextcloud_admin` user attribute renders the value `true` if the user is in the `nextcloud-admins` group within
+Authelia, otherwise it renders `false`. You can adjust this to your preference to assign a role to the appropriate user
+groups.
+{{< /callout >}}
+
 The following YAML configuration is an example __Authelia__
 [client configuration] for use with [Nextcloud]
 which will operate with the application example:
@@ -202,6 +208,11 @@ identity_providers:
           - 'profile'
           - 'email'
           - 'groups'
+        response_types:
+          - 'code'
+        grant_types:
+          - 'authorization_code'
+        access_token_signed_response_alg: 'none'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_post'
 ```
