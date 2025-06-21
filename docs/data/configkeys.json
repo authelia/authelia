@@ -1275,6 +1275,11 @@
         "env": "AUTHELIA_WEBAUTHN_FILTERING_PROHIBIT_BACKUP_ELIGIBILITY"
     },
     {
+        "path": "webauthn.metadata.cache_policy",
+        "secret": false,
+        "env": "AUTHELIA_WEBAUTHN_METADATA_CACHE_POLICY"
+    },
+    {
         "path": "webauthn.metadata.enabled",
         "secret": false,
         "env": "AUTHELIA_WEBAUTHN_METADATA_ENABLED"

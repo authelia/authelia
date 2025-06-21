@@ -4399,6 +4399,16 @@
           "description": "Enables the use of the WebAuthn Metadata Service.",
           "default": false
         },
+        "cache_policy": {
+          "type": "string",
+          "enum": [
+            "compliant",
+            "relaxed"
+          ],
+          "title": "Cache Policy",
+          "description": "WebAuthn Authenticator metadata cache policy.",
+          "default": "compliant"
+        },
         "validate_trust_anchor": {
           "type": "boolean",
           "title": "Validate Trust Anchor",
