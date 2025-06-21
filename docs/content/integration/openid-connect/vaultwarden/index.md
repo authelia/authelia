@@ -38,7 +38,6 @@ This example makes the following assumptions:
 - __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 - __Client ID:__ `vaultwarden`
 - __Client Secret:__ `insecure_secret`
-- __Groups:__ `vaultwarden_users` for users and `vaultwarden_admins` for admins
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
 
@@ -47,6 +46,12 @@ Some of the values presented in this guide can automatically be replaced with do
 ## Configuration
 
 ### Authelia
+
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+The `vaultwarden_roles` user attribute renders the value `["admin"]` if the user is in the `vaultwarden_admins` group
+within Authelia, renders the value `["user"]` if they are in the `vaultwarden_users` group, otherwise it renders `""`.
+You can adjust this to your preference to assign a role to the appropriate user groups.
+{{< /callout >}}
 
 The following YAML configuration is an example __Authelia__ [client configuration] for use with [Vaultwarden] which
 will operate with the application example:
