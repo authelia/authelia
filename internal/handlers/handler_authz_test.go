@@ -2193,6 +2193,73 @@ func (s *AuthzSuite) TestShouldCheckValidSessionUsernameHeaderAndReturn200() {
 	s.Equal(mock.Clock.Now().Unix(), userSession.LastActivity)
 }
 
+func (s *AuthzSuite) TestShouldCheckNoSessionAndPerformStepUp() {
+	if s.setRequest == nil {
+		s.T().Skip()
+	}
+
+	builder := s.Builder()
+
+	builder = builder.WithStrategies(
+		NewCookieSessionAuthnStrategy(schema.NewRefreshIntervalDuration(testInactivity)),
+	)
+
+	authz := builder.Build()
+
+	mock := mocks.NewMockAutheliaCtx(s.T())
+
+	defer mock.Close()
+
+	setUpMockClock(mock)
+
+	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
+
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
+
+	targetURI := s.RequireParseRequestURI("https://grafana-1fa.example.com")
+
+	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+	mock.Ctx.Request.Header.SetBytesK(headerSessionUsername, testUsername)
+
+	userSession := session.NewDefaultUserSession()
+
+	s.Require().NoError(mock.Ctx.SaveSession(userSession))
+
+	if s.implementation == AuthzImplLegacy {
+		mock.Ctx.RequestCtx.QueryArgs().Set(queryArgRD, mock.Ctx.Configuration.Session.Cookies[0].AutheliaURL.String())
+	}
+
+	authz.Handler(mock.Ctx)
+
+	switch s.implementation {
+	case AuthzImplExtAuthz, AuthzImplForwardAuth, AuthzImplLegacy:
+		s.Equal(fasthttp.StatusFound, mock.Ctx.Response.StatusCode())
+	case AuthzImplAuthRequest:
+		s.Equal(fasthttp.StatusUnauthorized, mock.Ctx.Response.StatusCode())
+	}
+
+	location := s.RequireParseRequestURI(mock.Ctx.Configuration.Session.Cookies[0].AutheliaURL.String())
+
+	if location.Path == "" {
+		location.Path = "/"
+	}
+
+	query := location.Query()
+	query.Set(queryArgRD, targetURI.String())
+	query.Set(queryArgRM, fasthttp.MethodGet)
+
+	location.RawQuery = query.Encode()
+
+	s.Equal(location.String(), string(mock.Ctx.Response.Header.Peek(fasthttp.HeaderLocation)))
+
+	userSession, err := mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
+	s.Equal("", userSession.Username)
+	s.Equal(authentication.NotAuthenticated, userSession.AuthenticationLevel(false))
+}
+
 func (s *AuthzSuite) TestShouldCheckInvalidSessionUsernameHeaderAndReturn401AndDestroySession() {
 	if s.setRequest == nil {
 		s.T().Skip()

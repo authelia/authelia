@@ -158,6 +158,11 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 				Subjects: [][]string{{"group:grafana"}},
 			},
 			{
+				Domains:  []string{"grafana-1fa.example.com"},
+				Policy:   "one_factor",
+				Subjects: [][]string{{"group:grafana"}},
+			},
+			{
 				Domains: []string{"bypass.example2.com"},
 				Policy:  "bypass",
 			},

@@ -34,11 +34,19 @@ func NewAuthorizerTester(config schema.AccessControl) *AuthorizerTester {
 }
 
 func (s *AuthorizerTester) CheckAuthorizations(t *testing.T, subject Subject, requestURI, method string, expectedLevel Level) {
+	s.CheckAuthorizationsWithHasSubjects(t, subject, requestURI, method, expectedLevel, false, false)
+}
+
+func (s *AuthorizerTester) CheckAuthorizationsWithHasSubjects(t *testing.T, subject Subject, requestURI, method string, expectedLevel Level, checkHasSubjects, expectedHasSubjects bool) {
 	targetURL, _ := url.ParseRequestURI(requestURI)
 
 	object := NewObject(targetURL, method)
 
-	_, level := s.GetRequiredLevel(subject, object)
+	hasSubjects, level := s.GetRequiredLevel(subject, object)
+
+	if checkHasSubjects {
+		assert.Equal(t, expectedHasSubjects, hasSubjects)
+	}
 
 	assert.Equal(t, expectedLevel, level)
 }
@@ -939,9 +947,9 @@ func (s *AuthorizerSuite) TestShouldMatchResourceWithSubjectRules() {
 	// This test returns this result since we validate the schema instead of validating it in code.
 	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://public2.example.com/admin/index.html", fasthttp.MethodGet, Bypass)
 
-	tester.CheckAuthorizations(s.T(), John, "https://private.example.com", fasthttp.MethodGet, TwoFactor)
-	tester.CheckAuthorizations(s.T(), Bob, "https://private.example.com", fasthttp.MethodGet, Denied)
-	tester.CheckAuthorizations(s.T(), AnonymousUser, "https://private.example.com", fasthttp.MethodGet, TwoFactor)
+	tester.CheckAuthorizationsWithHasSubjects(s.T(), John, "https://private.example.com", fasthttp.MethodGet, TwoFactor, true, true)
+	tester.CheckAuthorizationsWithHasSubjects(s.T(), Bob, "https://private.example.com", fasthttp.MethodGet, Denied, true, false)
+	tester.CheckAuthorizationsWithHasSubjects(s.T(), AnonymousUser, "https://private.example.com", fasthttp.MethodGet, TwoFactor, true, true)
 
 	results := tester.GetRuleMatchResults(John, "https://private.example.com", fasthttp.MethodGet)
 
