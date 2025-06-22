@@ -116,15 +116,17 @@ opkssh login --provider=https://{{< sitevar name="subdomain-authelia" nojs="auth
 
 ##### Configuration File
 
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+Generally the configuration file is named `~/.opk/config.yml` on Linux and `C:\Users\{USER}\.opk\config.yml` on Windows.
+{{< /callout >}}
+
 To create a persistent configuration, generate a new configuration file by running the following command:
 
 ```shell
 opkssh login --create-config
 ```
 
-{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
-Generally the configuration file is named `~/.opk/config.yml` on Linux and `C:\Users\{USER}\.opk\config.yml` on Windows.
-{{< /callout >}}
+Then add Authelia to the existing providers:
 
 ```yaml{title="~/.opk/config.yml"}
 providers:
@@ -139,6 +141,8 @@ providers:
       - http://localhost:10001/login-callback
       - http://localhost:11110/login-callback
 ```
+
+You can now run `opkssh login` to login.
 
 ## See Also
 
