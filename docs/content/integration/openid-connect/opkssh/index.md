@@ -116,6 +116,12 @@ opkssh login --provider=https://{{< sitevar name="subdomain-authelia" nojs="auth
 
 ##### Configuration File
 
+To create a persistent configuration, generate a new configuration file by running the following command:
+
+```shell
+opkssh login --create-config
+```
+
 {{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
 Generally the configuration file is named `~/.opk/config.yml` on Linux and `C:\Users\{USER}\.opk\config.yml` on Windows.
 {{< /callout >}}
