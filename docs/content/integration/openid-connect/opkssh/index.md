@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.39.4](https://github.com/authelia/authelia/releases/tag/v4.39.4)
 - [opkssh]
-  - [v0.4.0](https://github.com/openpubkey/opkssh/releases/tag/v0.4.0)
+  - [v0.7.0](https://github.com/openpubkey/opkssh/releases/tag/v0.7.0)
 
 {{% oidc-common %}}
 
@@ -67,13 +67,15 @@ identity_providers:
           - 'openid'
           - 'profile'
           - 'email'
+          - 'offline_access'
         response_types:
           - 'code'
         grant_types:
           - 'authorization_code'
+          - 'refresh_token'
         access_token_signed_response_alg: 'none'
         userinfo_signed_response_alg: 'none'
-        token_endpoint_auth_method: 'client_secret_basic'
+        token_endpoint_auth_method: 'none'
 ```
 
 ### Application
@@ -110,6 +112,26 @@ To log in using Authelia run:
 
 ```shell
 opkssh login --provider=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/,opkssh
+```
+
+##### Configuration File
+
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+Generally the configuration file is named `~/.opk/config.yml` on Linux and `C:\Users\{USER}\.opk\config.yml` on Windows.
+{{< /callout >}}
+
+```yaml{title="~/.opk/config.yml"}
+providers:
+  - alias: authelia
+    issuer: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
+    client_id: opkssh
+    scopes: openid offline_access profile email
+    access_type: offline
+    prompt: consent
+    redirect_uris:
+      - http://localhost:3000/login-callback
+      - http://localhost:10001/login-callback
+      - http://localhost:11110/login-callback
 ```
 
 ## See Also
