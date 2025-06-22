@@ -46,7 +46,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 {{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
 The `sftpgo_role` user attribute renders the value `admin` if the user is in the `sftpgo_admins` group within Authelia,
-renders the value `manager` if they are in the "sftpgo_managers" group, otherwise it renders `user`. You can adjust this
+renders the value `manager` if they are in the `sftpgo_managers` group, otherwise it renders `user`. You can adjust this
 to your preference to assign a role to the appropriate user groups.
 {{< /callout >}}
 
