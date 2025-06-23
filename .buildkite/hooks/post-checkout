@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 FILE="/buildkite/hooks/environment"
-FILE="/tmp/aa"
 
 KEY=$(openssl rand -hex 32)
 
