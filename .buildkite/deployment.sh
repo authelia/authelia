@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -u
 
+echo "hahahahah"
 DIVERGED=$(git merge-base --fork-point origin/master > /dev/null; echo $?)
 
 if [[ "${DIVERGED}" == 0 ]]; then
