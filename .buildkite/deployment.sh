@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -u
-
-echo "hahahahah"
+env | cut -d= -f1 | sed 's/^\(.\).*/\1***/' | sort
 DIVERGED=$(git merge-base --fork-point origin/master > /dev/null; echo $?)
 
 if [[ "${DIVERGED}" == 0 ]]; then

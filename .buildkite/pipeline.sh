@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 DIVERGED=$(git merge-base --fork-point origin/master > /dev/null; echo $?)
 
+
 if [[ ${DIVERGED} == 0 ]]; then
   if [[ ${BUILDKITE_TAG} == "" ]]; then
     if [[ ${BUILDKITE_BRANCH} == "master" ]]; then
