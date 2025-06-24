@@ -41,7 +41,7 @@
 	"Must be at least {{len}} characters in length": "Длина должна быть не менее {{len}} символов",
 	"Must have at least one UPPERCASE letter": "Должно содержать хотя бы одну заглавную букву",
 	"Must have at least one lowercase letter": "Должно содержать хотя бы одну строчную букву",
-	"Must have at least one number": "Должен иметь хотя бы одину цифру",
+	"Must have at least one number": "Должен иметь хотя бы одну цифру",
 	"Must have at least one special character": "Должен содержать хотя бы один специальный символ",
 	"Must not be more than {{len}} characters in length": "Длина не должна превышать {{len}} символов",
 	"Need Google Authenticator?": "Нужен Google Authenticator?",
