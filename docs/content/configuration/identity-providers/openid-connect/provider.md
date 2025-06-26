@@ -100,6 +100,7 @@ identity_providers:
         id_token_audience_mode: 'specification'
         custom_claims:
           claim_name:
+            name: 'claim_name'
             attribute: 'attribute_name'
     scopes:
       scope_name:
@@ -647,13 +648,19 @@ The list of claims available in this policy in addition to the standard claims. 
 which can either be concrete attributes from the [first factor](../../first-factor/introduction.md) backend or can be
 those defined via [definitions](../../definitions/user-attributes.md).
 
-The keys under `custom_claims` are arbitrary values which are the names of the claims.
+The keys under `custom_claims` are arbitrary values, and by default are the claim name and attribute values.
+
+##### name
+
+{{< confkey type="string" required="no" >}}
+
+The claim name for this claim. By default it's the same as the dictionary key.
 
 ##### attribute
 
 {{< confkey type="string" required="no" >}}
 
-The attribute name that this claim returns. By default it's the same as the claim name.
+The attribute name that this claim returns. By default it's the same as the dictionary key.
 
 ### scopes
 
