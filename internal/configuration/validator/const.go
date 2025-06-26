@@ -419,6 +419,7 @@ const (
 	errFmtServerPathNotEndForwardSlash = "server: option 'address' must not have a path with a forward slash but it's configured as '%s'"
 	errFmtServerPathAlphaNumeric       = "server: option 'address' must have a path with only alphanumeric characters but it's configured as '%s'"
 
+	errFmtServerEndpointsAuthzOptionLegacy              = "server: endpoints: authz: %s: option '%s' must not be configured for the 'Legacy' implementation"
 	errFmtServerEndpointsAuthzImplementation            = "server: endpoints: authz: %s: option 'implementation' must be one of %s but it's configured as '%s'"
 	errFmtServerEndpointsAuthzStrategy                  = "server: endpoints: authz: %s: authn_strategies: option 'name' must be one of %s but it's configured as '%s'"
 	errFmtServerEndpointsAuthzSchemes                   = "server: endpoints: authz: %s: authn_strategies: strategy #%d (%s): option 'schemes' must only include the values %s but has '%s'"

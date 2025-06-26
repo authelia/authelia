@@ -203,7 +203,7 @@ func (s *AuthzSuite) TestShouldApplyDefaultPolicy() {
 
 	mock.UserProviderMock.
 		EXPECT().
-		GetDetails(gomock.Eq("john")).Return(&authentication.UserDetails{Emails: []string{"john@example.com"}, Groups: []string{"dev", "admins"}}, nil)
+		GetDetailsExtended(gomock.Eq("john")).Return(&authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{Emails: []string{"john@example.com"}, Groups: []string{"dev", "admins"}}}, nil)
 
 	authz.Handler(mock.Ctx)
 
@@ -310,12 +310,9 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfBypassDomain() {
 		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 		Return(true, nil)
 
-	mock.UserProviderMock.EXPECT().
-		GetDetails(gomock.Eq("john")).
-		Return(&authentication.UserDetails{
-			Emails: []string{"john@example.com"},
-			Groups: []string{"dev", "admins"},
-		}, nil)
+	mock.UserProviderMock.
+		EXPECT().
+		GetDetailsExtended(gomock.Eq("john")).Return(&authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{Emails: []string{"john@example.com"}, Groups: []string{"dev", "admins"}}}, nil)
 
 	authz.Handler(mock.Ctx)
 
@@ -378,7 +375,7 @@ func (s *AuthzSuite) TestShouldVerifyFailureToGetDetailsUsingBasicScheme() {
 		Return(true, nil)
 
 	mock.UserProviderMock.EXPECT().
-		GetDetails(gomock.Eq("john")).
+		GetDetailsExtended(gomock.Eq("john")).
 		Return(nil, fmt.Errorf("generic failure"))
 
 	authz.Handler(mock.Ctx)
@@ -433,7 +430,7 @@ func (s *AuthzSuite) TestShouldVerifyFailureToGetDetailsUsingBasicSchemeCached()
 				CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 				Return(true, nil),
 			mock.UserProviderMock.EXPECT().
-				GetDetails(gomock.Eq("john")).
+				GetDetailsExtended(gomock.Eq("john")).
 				Return(nil, fmt.Errorf("generic failure")),
 		)
 	} else {
@@ -451,7 +448,7 @@ func (s *AuthzSuite) TestShouldVerifyFailureToGetDetailsUsingBasicSchemeCached()
 				EXPECT().
 				AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attempt)).Return(nil),
 			mock.UserProviderMock.EXPECT().
-				GetDetails(gomock.Eq("john")).
+				GetDetailsExtended(gomock.Eq("john")).
 				Return(nil, fmt.Errorf("generic failure")),
 		)
 	}
@@ -482,7 +479,7 @@ func (s *AuthzSuite) TestShouldVerifyFailureToGetDetailsUsingBasicSchemeCached()
 				CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 				Return(true, nil),
 			mock.UserProviderMock.EXPECT().
-				GetDetails(gomock.Eq("john")).
+				GetDetailsExtended(gomock.Eq("john")).
 				Return(nil, fmt.Errorf("generic failure")),
 		)
 	} else {
@@ -494,7 +491,7 @@ func (s *AuthzSuite) TestShouldVerifyFailureToGetDetailsUsingBasicSchemeCached()
 				EXPECT().
 				LoadBannedUser(gomock.Eq(mock.Ctx), gomock.Eq("john")).Return(nil, nil),
 			mock.UserProviderMock.EXPECT().
-				GetDetails(gomock.Eq("john")).
+				GetDetailsExtended(gomock.Eq("john")).
 				Return(nil, fmt.Errorf("generic failure")),
 		)
 	}
@@ -792,7 +789,7 @@ func (s *AuthzSuite) TestShouldVerifyBypassWithErrorToGetDetailsUsingBasicScheme
 			Return(true, nil),
 
 		mock.UserProviderMock.EXPECT().
-			GetDetails(gomock.Eq("john")).
+			GetDetailsExtended(gomock.Eq("john")).
 			Return(nil, fmt.Errorf("generic failure")),
 	)
 
@@ -999,12 +996,9 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomain() {
 		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 		Return(true, nil)
 
-	mock.UserProviderMock.EXPECT().
-		GetDetails(gomock.Eq("john")).
-		Return(&authentication.UserDetails{
-			Emails: []string{"john@example.com"},
-			Groups: []string{"dev", "admins"},
-		}, nil)
+	mock.UserProviderMock.
+		EXPECT().
+		GetDetailsExtended(gomock.Eq("john")).Return(&authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{Emails: []string{"john@example.com"}, Groups: []string{"dev", "admins"}}}, nil)
 
 	authz.Handler(mock.Ctx)
 
@@ -1039,21 +1033,15 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainCached() {
 			mock.UserProviderMock.EXPECT().
 				CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 				Return(true, nil),
-			mock.UserProviderMock.EXPECT().
-				GetDetails(gomock.Eq("john")).
-				Return(&authentication.UserDetails{
-					Emails: []string{"john@example.com"},
-					Groups: []string{"dev", "admins"},
-				}, nil),
+			mock.UserProviderMock.
+				EXPECT().
+				GetDetailsExtended(gomock.Eq("john")).Return(&authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{Emails: []string{"john@example.com"}, Groups: []string{"dev", "admins"}}}, nil),
 			mock.UserProviderMock.EXPECT().
 				CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 				Return(true, nil),
-			mock.UserProviderMock.EXPECT().
-				GetDetails(gomock.Eq("john")).
-				Return(&authentication.UserDetails{
-					Emails: []string{"john@example.com"},
-					Groups: []string{"dev", "admins"},
-				}, nil),
+			mock.UserProviderMock.
+				EXPECT().
+				GetDetailsExtended(gomock.Eq("john")).Return(&authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{Emails: []string{"john@example.com"}, Groups: []string{"dev", "admins"}}}, nil),
 		)
 	} else {
 		attempt := model.AuthenticationAttempt{
@@ -1080,24 +1068,18 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainCached() {
 			mock.StorageMock.
 				EXPECT().
 				AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(attempt)).Return(nil),
-			mock.UserProviderMock.EXPECT().
-				GetDetails(gomock.Eq("john")).
-				Return(&authentication.UserDetails{
-					Emails: []string{"john@example.com"},
-					Groups: []string{"dev", "admins"},
-				}, nil),
+			mock.UserProviderMock.
+				EXPECT().
+				GetDetailsExtended(gomock.Eq("john")).Return(&authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{Emails: []string{"john@example.com"}, Groups: []string{"dev", "admins"}}}, nil),
 			mock.StorageMock.
 				EXPECT().
 				LoadBannedIP(gomock.Eq(mock.Ctx), gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).Return(nil, nil),
 			mock.StorageMock.
 				EXPECT().
 				LoadBannedUser(gomock.Eq(mock.Ctx), gomock.Eq("john")).Return(nil, nil),
-			mock.UserProviderMock.EXPECT().
-				GetDetails(gomock.Eq("john")).
-				Return(&authentication.UserDetails{
-					Emails: []string{"john@example.com"},
-					Groups: []string{"dev", "admins"},
-				}, nil),
+			mock.UserProviderMock.
+				EXPECT().
+				GetDetailsExtended(gomock.Eq("john")).Return(&authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{Emails: []string{"john@example.com"}, Groups: []string{"dev", "admins"}}}, nil),
 		)
 	}
 
@@ -1185,12 +1167,9 @@ func (s *AuthzSuite) TestShouldHandleAnyCaseSchemeParameter() {
 				CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 				Return(true, nil)
 
-			mock.UserProviderMock.EXPECT().
-				GetDetails(gomock.Eq("john")).
-				Return(&authentication.UserDetails{
-					Emails: []string{"john@example.com"},
-					Groups: []string{"dev", "admins"},
-				}, nil)
+			mock.UserProviderMock.
+				EXPECT().
+				GetDetailsExtended(gomock.Eq("john")).Return(&authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{Emails: []string{"john@example.com"}, Groups: []string{"dev", "admins"}}}, nil)
 
 			authz.Handler(mock.Ctx)
 
@@ -1254,12 +1233,9 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfTwoFactorDomain() {
 		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 		Return(true, nil)
 
-	mock.UserProviderMock.EXPECT().
-		GetDetails(gomock.Eq("john")).
-		Return(&authentication.UserDetails{
-			Emails: []string{"john@example.com"},
-			Groups: []string{"dev", "admins"},
-		}, nil)
+	mock.UserProviderMock.
+		EXPECT().
+		GetDetailsExtended(gomock.Eq("john")).Return(&authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{Emails: []string{"john@example.com"}, Groups: []string{"dev", "admins"}}}, nil)
 
 	authz.Handler(mock.Ctx)
 
@@ -1328,12 +1304,9 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfDenyDomain() {
 		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 		Return(true, nil)
 
-	mock.UserProviderMock.EXPECT().
-		GetDetails(gomock.Eq("john")).
-		Return(&authentication.UserDetails{
-			Emails: []string{"john@example.com"},
-			Groups: []string{"dev", "admins"},
-		}, nil)
+	mock.UserProviderMock.
+		EXPECT().
+		GetDetailsExtended(gomock.Eq("john")).Return(&authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{Emails: []string{"john@example.com"}, Groups: []string{"dev", "admins"}}}, nil)
 
 	authz.Handler(mock.Ctx)
 
@@ -1408,12 +1381,9 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainWithAuthorizationHead
 		CheckUserPassword(gomock.Eq("john"), gomock.Eq("password")).
 		Return(true, nil)
 
-	mock.UserProviderMock.EXPECT().
-		GetDetails(gomock.Eq("john")).
-		Return(&authentication.UserDetails{
-			Emails: []string{"john@example.com"},
-			Groups: []string{"dev", "admins"},
-		}, nil)
+	mock.UserProviderMock.
+		EXPECT().
+		GetDetailsExtended(gomock.Eq("john")).Return(&authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{Emails: []string{"john@example.com"}, Groups: []string{"dev", "admins"}}}, nil)
 
 	authz.Handler(mock.Ctx)
 
@@ -1805,14 +1775,16 @@ func (s *AuthzSuite) TestShouldNotRefreshUserDetailsFromBackendWhenRefreshDisabl
 
 	authz := builder.Build()
 
-	user := &authentication.UserDetails{
-		Username: "john",
-		Groups: []string{
-			"admin",
-			"users",
-		},
-		Emails: []string{
-			"john@example.com",
+	user := &authentication.UserDetailsExtended{
+		UserDetails: &authentication.UserDetails{
+			Username: "john",
+			Groups: []string{
+				"admin",
+				"users",
+			},
+			Emails: []string{
+				"john@example.com",
+			},
 		},
 	}
 
@@ -1845,7 +1817,7 @@ func (s *AuthzSuite) TestShouldNotRefreshUserDetailsFromBackendWhenRefreshDisabl
 
 	s.Require().NoError(mock.Ctx.SaveSession(userSession))
 
-	mock.UserProviderMock.EXPECT().GetDetails("john").Times(0)
+	mock.UserProviderMock.EXPECT().GetDetailsExtended("john").Times(0)
 
 	authz.Handler(mock.Ctx)
 
@@ -1913,14 +1885,16 @@ func (s *AuthzSuite) TestShouldDestroySessionWhenUserDoesNotExist() {
 
 	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
 
-	user := &authentication.UserDetails{
-		Username: "john",
-		Groups: []string{
-			"admin",
-			"users",
-		},
-		Emails: []string{
-			"john@example.com",
+	user := &authentication.UserDetailsExtended{
+		UserDetails: &authentication.UserDetails{
+			Username: "john",
+			Groups: []string{
+				"admin",
+				"users",
+			},
+			Emails: []string{
+				"john@example.com",
+			},
 		},
 	}
 
@@ -1939,8 +1913,8 @@ func (s *AuthzSuite) TestShouldDestroySessionWhenUserDoesNotExist() {
 	s.Require().NoError(mock.Ctx.SaveSession(userSession))
 
 	gomock.InOrder(
-		mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1),
-		mock.UserProviderMock.EXPECT().GetDetails("john").Return(nil, authentication.ErrUserNotFound).Times(1),
+		mock.UserProviderMock.EXPECT().GetDetailsExtended("john").Return(user, nil).Times(1),
+		mock.UserProviderMock.EXPECT().GetDetailsExtended("john").Return(nil, authentication.ErrUserNotFound).Times(1),
 	)
 
 	authz.Handler(mock.Ctx)
@@ -2000,14 +1974,16 @@ func (s *AuthzSuite) TestShouldUpdateRemovedUserGroupsFromBackendAndDeny() {
 
 	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
 
-	user := &authentication.UserDetails{
-		Username: "john",
-		Groups: []string{
-			"admin",
-			"users",
-		},
-		Emails: []string{
-			"john@example.com",
+	user := &authentication.UserDetailsExtended{
+		UserDetails: &authentication.UserDetails{
+			Username: "john",
+			Groups: []string{
+				"admin",
+				"users",
+			},
+			Emails: []string{
+				"john@example.com",
+			},
 		},
 	}
 
@@ -2026,8 +2002,8 @@ func (s *AuthzSuite) TestShouldUpdateRemovedUserGroupsFromBackendAndDeny() {
 	s.Require().NoError(mock.Ctx.SaveSession(userSession))
 
 	gomock.InOrder(
-		mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1),
-		mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1),
+		mock.UserProviderMock.EXPECT().GetDetailsExtended("john").Return(user, nil).Times(1),
+		mock.UserProviderMock.EXPECT().GetDetailsExtended("john").Return(user, nil).Times(1),
 	)
 
 	authz.Handler(mock.Ctx)
@@ -2085,13 +2061,15 @@ func (s *AuthzSuite) TestShouldUpdateAddedUserGroupsFromBackendAndDeny() {
 
 	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
 
-	user := &authentication.UserDetails{
-		Username: "john",
-		Groups: []string{
-			"users",
-		},
-		Emails: []string{
-			"john@example.com",
+	user := &authentication.UserDetailsExtended{
+		UserDetails: &authentication.UserDetails{
+			Username: "john",
+			Groups: []string{
+				"users",
+			},
+			Emails: []string{
+				"john@example.com",
+			},
 		},
 	}
 
@@ -2110,8 +2088,8 @@ func (s *AuthzSuite) TestShouldUpdateAddedUserGroupsFromBackendAndDeny() {
 	s.Require().NoError(mock.Ctx.SaveSession(userSession))
 
 	gomock.InOrder(
-		mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1),
-		mock.UserProviderMock.EXPECT().GetDetails("john").Return(user, nil).Times(1),
+		mock.UserProviderMock.EXPECT().GetDetailsExtended("john").Return(user, nil).Times(1),
+		mock.UserProviderMock.EXPECT().GetDetailsExtended("john").Return(user, nil).Times(1),
 	)
 
 	authz.Handler(mock.Ctx)

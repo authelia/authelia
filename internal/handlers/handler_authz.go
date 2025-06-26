@@ -64,8 +64,8 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 
 	ruleHasSubject, required := ctx.Providers.Authorizer.GetRequiredLevel(
 		authorization.Subject{
-			Username: authn.Details.Username,
-			Groups:   authn.Details.Groups,
+			Username: authn.Details.GetUsername(),
+			Groups:   authn.Details.GetGroups(),
 			ClientID: authn.ClientID,
 			IP:       ctx.RemoteIP(),
 		},
@@ -106,7 +106,7 @@ func (authz *Authz) Handler(ctx *middlewares.AutheliaCtx) {
 
 		handler(ctx, authn, authz.getRedirectionURL(&object, autheliaURL))
 	case AuthzResultAuthorized:
-		authz.handleAuthorized(ctx, authn)
+		authz.handleAuthorized(ctx, authz.headers, authn)
 	}
 }
 
@@ -165,7 +165,7 @@ func (authz *Authz) authn(ctx *middlewares.AutheliaCtx, provider *session.Sessio
 			authn.Level = authentication.NotAuthenticated
 			authn.Username = anonymous
 			authn.ClientID = ""
-			authn.Details = authentication.UserDetails{}
+			authn.Details = &authentication.UserDetailsExtended{UserDetails: &authentication.UserDetails{}}
 
 			if strategy.CanHandleUnauthorized() {
 				return authn, strategy, err
@@ -179,7 +179,7 @@ func (authz *Authz) authn(ctx *middlewares.AutheliaCtx, provider *session.Sessio
 		}
 	}
 
-	if strategy.CanHandleUnauthorized() {
+	if strategy != nil && strategy.CanHandleUnauthorized() {
 		return authn, strategy, err
 	}
 

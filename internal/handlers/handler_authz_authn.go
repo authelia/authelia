@@ -133,16 +133,23 @@ func (s *CookieSessionAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, provider 
 		}
 	}
 
+	var details *authentication.UserDetailsExtended
+
+	if details, err = ctx.Providers.UserProvider.GetDetailsExtended(userSession.Username); err != nil {
+		if errors.Is(err, authentication.ErrUserNotFound) {
+			ctx.Logger.WithField("username", userSession.Username).Error("Error occurred while attempting to get user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
+
+			return authn, err
+		}
+
+		return authn, fmt.Errorf("unable to retrieve details for user '%s': %w", userSession.Username, err)
+	}
+
 	return &Authn{
 		Username: friendlyUsername(userSession.Username),
-		Details: authentication.UserDetails{
-			Username:    userSession.Username,
-			DisplayName: userSession.DisplayName,
-			Emails:      userSession.Emails,
-			Groups:      userSession.Groups,
-		},
-		Level: userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA),
-		Type:  AuthnTypeCookie,
+		Details:  details,
+		Level:    userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA),
+		Type:     AuthnTypeCookie,
 	}, nil
 }
 
@@ -287,9 +294,9 @@ func (s *HeaderAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session.Sessi
 	case len(username) == 0:
 		return authn, fmt.Errorf("failed to determine username from the %s header", s.headerAuthorize)
 	default:
-		var details *authentication.UserDetails
+		var details *authentication.UserDetailsExtended
 
-		if details, err = ctx.Providers.UserProvider.GetDetails(username); err != nil {
+		if details, err = ctx.Providers.UserProvider.GetDetailsExtended(username); err != nil {
 			if errors.Is(err, authentication.ErrUserNotFound) {
 				ctx.Logger.WithField("username", username).Error("Error occurred while attempting to get user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
 
@@ -300,7 +307,7 @@ func (s *HeaderAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session.Sessi
 		}
 
 		authn.Username = friendlyUsername(details.Username)
-		authn.Details = *details
+		authn.Details = details
 	}
 
 	authn.Level = level
@@ -415,7 +422,7 @@ func (s *HeaderLegacyAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session
 
 	var (
 		valid   bool
-		details *authentication.UserDetails
+		details *authentication.UserDetailsExtended
 	)
 
 	if valid, err = ctx.Providers.UserProvider.CheckUserPassword(username, password); err != nil {
@@ -426,7 +433,7 @@ func (s *HeaderLegacyAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session
 		return authn, fmt.Errorf("validated parsed credentials of %s header but they are not valid for user '%s': %w", header, username, err)
 	}
 
-	if details, err = ctx.Providers.UserProvider.GetDetails(username); err != nil {
+	if details, err = ctx.Providers.UserProvider.GetDetailsExtended(username); err != nil {
 		if errors.Is(err, authentication.ErrUserNotFound) {
 			ctx.Logger.WithField("username", username).Error("Error occurred while attempting to get user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
 
@@ -437,7 +444,7 @@ func (s *HeaderLegacyAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, _ *session
 	}
 
 	authn.Username = friendlyUsername(details.Username)
-	authn.Details = *details
+	authn.Details = details
 	authn.Level = authentication.OneFactor
 
 	return authn, nil
@@ -460,7 +467,7 @@ func (s *HeaderLegacyAuthnStrategy) HandleUnauthorized(ctx *middlewares.Authelia
 
 func handleAuthnCookieValidate(ctx *middlewares.AutheliaCtx, provider *session.Session, userSession *session.UserSession, refresh schema.RefreshIntervalDuration) (modified, invalid bool) {
 	// TODO: Remove this check as it's no longer possible i.e. ineffectual.
-	isAnonymous := userSession.Username == ""
+	isAnonymous := userSession.IsAnonymous()
 
 	if isAnonymous && userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA) != authentication.NotAuthenticated {
 		ctx.Logger.WithFields(map[string]any{"username": anonymous, "level": userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA).String()}).Errorf("Session for user has an invalid authentication level: this may be a sign of a compromise")

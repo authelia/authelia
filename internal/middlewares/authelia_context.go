@@ -608,7 +608,7 @@ func (ctx *AutheliaCtx) SpecialRedirect(uri string, statusCode int) {
 	u, statusCode = ctx.setSpecialRedirect(uri, statusCode)
 
 	ctx.SetContentTypeTextHTML()
-	ctx.SetBodyString(fmt.Sprintf("<a href=\"%s\">%d %s</a>", utils.StringHTMLEscape(string(u)), statusCode, fasthttp.StatusMessage(statusCode)))
+	ctx.SetBodyString(fmt.Sprintf(`<a href="%s">%d %s</a>`, utils.StringHTMLEscape(string(u)), statusCode, fasthttp.StatusMessage(statusCode)))
 }
 
 // SpecialRedirectNoBody performs a redirect similar to fasthttp.RequestCtx except it allows statusCode 401 and includes
