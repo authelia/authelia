@@ -44,6 +44,8 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
+{{% oidc-conformance-claims %}}
+
 The following YAML configuration is an example __Authelia__ [client configuration] for use with [Headscale] which will
 operate with the application example:
 
@@ -52,9 +54,6 @@ identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
-    claims_policies:
-      headscale:
-        id_token: ['groups', 'email', 'email_verified', 'alt_emails', 'preferred_username', 'name']
     clients:
       - client_id: 'headscale'
         client_name: 'Headscale'
@@ -65,7 +64,6 @@ identity_providers:
         pkce_challenge_method: 'S256'
         redirect_uris:
           - 'https://headscale.{{< sitevar name="domain" nojs="example.com" >}}/oidc/callback'
-        claims_policy: 'headscale'
         scopes:
           - 'openid'
           - 'email'
