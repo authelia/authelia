@@ -597,6 +597,18 @@ The keys under `claims_policies` is an arbitrary value that can be used in the
 
 {{< confkey type="list(string)" required="no" >}}
 
+{{< callout context="danger" title="Security Notice" icon="outline/alert-octagon" >}}
+This option is a escape hatch which should not normally be used. It allows confidential personally identifiable
+information to be hydrated into the ID Token which is not normally encrypted. In addition this behaviour is only
+necessary for clients which do not actually support OpenID Connect 1.0 and indicates a significant bug with the client.
+
+This also is a common indicator that the client uses claims other than `iss` and `sub` to link users with the provider,
+which is a fairly significant security issue.
+
+For these reasons this option is highly discouraged and it's recommended the client in question fixes this significant
+bug instead. This option is provided only on a best effort basis
+{{< /callout >}}
+
 The list of claims automatically copied to the ID Token in addition to the standard ID Token claims provided the
 relevant scope was granted.
 

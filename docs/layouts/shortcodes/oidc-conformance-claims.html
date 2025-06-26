@@ -23,10 +23,15 @@
         <a href="https://openid.net/specs/openid-connect-core-1_0.html#ClaimsParameter" target="_blank">5.5. Requesting Claims using the "claims" Request Parameter</a> .
       </p>
       <p>
-        This client also very likely also ignores the
+        The requirement to use this option is also often a clear indication the client also ignores the
         <a href="https://openid.net/specs/openid-connect-core-1_0.html#ClaimStability" target="_blank">claims stability requirements</a>
-        which only allows clients to anchor accounts via the <code>sub</code> and <code>iss</code> claims. Both of these
-        elements are clear indications the client does not properly support
+        which only allows clients to anchor accounts via the <code>sub</code> and <code>iss</code> claims. Ignoring this
+        requirement is likely a <span class="security-issue">significant security issue</span> as any provider that allows changing the claims
+        they use instead of <code>sub</code> and <code>iss</code> may inadvertently provide full administration access
+        to unprivileged users.
+      </p>
+      <p>
+        Both of these elements are clear indications the client does not properly support
         <a href="https://openid.net/specs/openid-connect-core-1_0.html" target="_blank">OpenID Connect 1.0</a> and is not conformant.
       </p>
     </div>
