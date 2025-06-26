@@ -78,14 +78,11 @@ identity_providers:
         token_endpoint_auth_method: 'client_secret_basic'
 ```
 
-Note that the `claims_policy` is only necessary if you are authorizing users based on
-domain, groups or email (`oidc.allowed_domains`, `oidc.allowed_groups` and
-`oidc.allowed_users` in the Headscale configuration file). This is because currently
-Headscale doesn't query the userinfo endpoint for these claims if they are missing from the
-id token
-(see [Headscale#2655](https://github.com/juanfont/headscale/issues/2655) and
-[Restore functionality prior to claims parameter](../openid-connect-1.0-claims.md#restore-functionality-prior-to-claims-parameter)
-for details).
+Note that additional configuration of a `claims_policy`, as hinted to above, is only
+necessary if you are authorizing users based on domain, groups or email
+(`oidc.allowed_domains`, `oidc.allowed_groups` and `oidc.allowed_users` in the Headscale
+configuration file). See [Headscale#2655](https://github.com/juanfont/headscale/issues/2655)
+for details.
 
 ### Application
 
