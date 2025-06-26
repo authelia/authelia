@@ -141,6 +141,12 @@ a:hover.confkey-syntax {
   background-color: $cyan-800;
 }
 
+.security-issue {
+  color: $orange;
+  font-style: italic;
+  font-weight: bold;
+}
+
 img.center {
   display: block;
   margin: 0.7rem auto;

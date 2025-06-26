@@ -44,7 +44,11 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-{{% oidc-conformance-claims %}}
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+At the time of this writing this third party client has a bug and does not support [OpenID Connect 1.0](openid.net/specs/openid-connect-core-1_0.html). This
+configuration will likely require configuration of an escape hatch to work around the bug on their end. See
+[Configuration Escape Hatch](#configuration-escape-hatch) for details.
+{{< /callout >}}
 
 The following YAML configuration is an example __Authelia__ [client configuration] for use with [Headscale] which will
 operate with the application example:
@@ -78,11 +82,13 @@ identity_providers:
         token_endpoint_auth_method: 'client_secret_basic'
 ```
 
-Note that additional configuration of a `claims_policy`, as hinted to above, is only
-necessary if you are authorizing users based on domain, groups or email
-(`oidc.allowed_domains`, `oidc.allowed_groups` and `oidc.allowed_users` in the Headscale
-configuration file). See [Headscale#2655](https://github.com/juanfont/headscale/issues/2655)
-for details.
+#### Configuration Escape Hatch
+
+{{% oidc-conformance-claims client_id="opkssh" claims="email" %}}
+
+Note this additional configuration of a `claims_policy` is only necessary if you are authorizing users based on domain,
+groups or email (`oidc.allowed_domains`, `oidc.allowed_groups` and `oidc.allowed_users` in the [Headscale] configuration
+file). See [Headscale#2655](https://github.com/juanfont/headscale/issues/2655) for details.
 
 ### Application
 
