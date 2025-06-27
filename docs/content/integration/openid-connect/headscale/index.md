@@ -84,7 +84,7 @@ identity_providers:
 
 #### Configuration Escape Hatch
 
-{{% oidc-conformance-claims client_id="opkssh" claims="email" %}}
+{{% oidc-conformance-claims client_id="headscale" claims="email,groups" %}}
 
 Note this additional configuration of a `claims_policy` is only necessary if you are authorizing users based on domain,
 groups or email (`oidc.allowed_domains`, `oidc.allowed_groups` and `oidc.allowed_users` in the [Headscale] configuration
