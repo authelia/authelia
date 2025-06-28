@@ -19,7 +19,7 @@ require (
 	github.com/go-jose/go-jose/v4 v4.1.0
 	github.com/go-ldap/ldap/v3 v3.4.11
 	github.com/go-rod/rod v0.116.2
-	github.com/go-sql-driver/mysql v1.9.2
+	github.com/go-sql-driver/mysql v1.9.3
 	github.com/go-viper/mapstructure/v2 v2.3.0
 	github.com/go-webauthn/webauthn v0.13.0
 	github.com/golang-jwt/jwt/v5 v5.2.2
