@@ -21,9 +21,9 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+  - [v4.39.4](https://github.com/authelia/authelia/releases/tag/v4.38.4)
 
-{{% oidc-common %}}
+{{% oidc-common bugs="client-credentials-encoding,claims-hydration" %}}
 
 ### Assumptions
 
@@ -38,18 +38,12 @@ Some of the values presented in this guide can automatically be replaced with do
 
 {{< sitevar-preferences >}}
 
-{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-[Cloudflare Zero Trust](https://www.cloudflare.com/products/zero-trust/) does not properly URL encode the secret per [RFC6749 Appendix B](https://datatracker.ietf.org/doc/html/rfc6749#appendix-B) at the
-time this article was last modified (noted at the bottom). This means you'll either have to use only alphanumeric
-characters for the secret or URL encode the secret yourself.
-{{< /callout >}}
-
 ## Configuration
 
 ### Authelia
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-At the time of this writing this third party client has a bug and does not support [OpenID Connect 1.0](openid.net/specs/openid-connect-core-1_0.html). This
+At the time of this writing this third party client has a bug and does not support [OpenID Connect 1.0](https://openid.net/specs/openid-connect-core-1_0.html). This
 configuration will likely require configuration of an escape hatch to work around the bug on their end. See
 [Configuration Escape Hatch](#configuration-escape-hatch) for details.
 {{< /callout >}}
@@ -87,7 +81,7 @@ identity_providers:
 
 #### Configuration Escape Hatch
 
-{{% oidc-conformance-claims client_id="cloudflare" %}}
+{{% oidc-escape-hatch-claims-hydration client_id="cloudflare" %}}
 
 ### Application
 

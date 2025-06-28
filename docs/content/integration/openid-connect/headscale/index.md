@@ -25,7 +25,7 @@ seo:
 - [Headscale]
   - [v0.26.1](https://github.com/juanfont/headscale/releases/tag/v0.26.1)
 
-{{% oidc-common %}}
+{{% oidc-common bugs="claims-hydration" %}}
 
 ### Assumptions
 
@@ -45,7 +45,7 @@ Some of the values presented in this guide can automatically be replaced with do
 ### Authelia
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-At the time of this writing this third party client has a bug and does not support [OpenID Connect 1.0](openid.net/specs/openid-connect-core-1_0.html). This
+At the time of this writing this third party client has a bug and does not support [OpenID Connect 1.0](https://openid.net/specs/openid-connect-core-1_0.html). This
 configuration will likely require configuration of an escape hatch to work around the bug on their end. See
 [Configuration Escape Hatch](#configuration-escape-hatch) for details.
 {{< /callout >}}
@@ -84,7 +84,7 @@ identity_providers:
 
 #### Configuration Escape Hatch
 
-{{% oidc-conformance-claims client_id="headscale" claims="email,groups" %}}
+{{% oidc-escape-hatch-claims-hydration client_id="headscale" claims="email,groups" %}}
 
 Note this additional configuration of a `claims_policy` is only necessary if you are authorizing users based on domain,
 groups or email (`oidc.allowed_domains`, `oidc.allowed_groups` and `oidc.allowed_users` in the [Headscale] configuration
