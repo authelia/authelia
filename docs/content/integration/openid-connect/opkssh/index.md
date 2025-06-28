@@ -25,6 +25,7 @@ seo:
 - [opkssh]
   - [v0.7.0](https://github.com/openpubkey/opkssh/releases/tag/v0.7.0)
 
+{{% oidc-common bugs="claims-hydration" %}}
 
 ### Assumptions
 
