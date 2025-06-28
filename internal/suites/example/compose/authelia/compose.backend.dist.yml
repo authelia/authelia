@@ -12,8 +12,6 @@ services:
       disable: true
     volumes:
       - '../..:/authelia'
-    environment:
-      ENVIRONMENT: 'dev'
     restart: 'always'
     networks:
       authelianet:
