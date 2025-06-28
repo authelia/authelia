@@ -3,8 +3,8 @@
 {{- with .Get "config" }}{{ $config = . }}{{ end }}
 ## Before You Begin
 
-<div class="callout callout-danger d-flex flex-row mt-4 mb-4 pt-4 pe-4 pb-2 ps-3">
-  <svg class="alert-octagon svg-inline callout-icon me-2 mb-3" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12.802 2.165l5.575 2.389c.48.206.863.589 1.07 1.07l2.388 5.574c.22.512.22 1.092.0 1.604l-2.389 5.575c-.206.48-.589.863-1.07 1.07l-5.574 2.388c-.512.22-1.092.22-1.604.0l-5.575-2.389a2.036 2.036.0 01-1.07-1.07l-2.388-5.574a2.036 2.036.0 010-1.604l2.389-5.575c.206-.48.589-.863 1.07-1.07l5.574-2.388a2.036 2.036.0 011.604.0z"></path><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>
+<div class="callout callout-caution d-flex flex-row mt-4 mb-4 pt-4 pe-4 pb-2 ps-3">
+  <svg class="outline/alert-triangle svg-inline callout-icon me-2 mb-3" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 9v4"></path><path d="M10.363 3.591 2.257 17.125a1.914 1.914.0 001.636 2.871h16.214a1.914 1.914.0 001.636-2.87L13.637 3.59a1.914 1.914.0 00-3.274.0z"></path><path d="M12 16h.01"></path></svg>
   <div class="callout-content">
     <div class="callout-title">
       <p>Important Reading</p>
@@ -14,6 +14,62 @@
     </div>
   </div>
 </div>
+
+{{- with .Get "bugs" }}
+{{- $bugs := split . "," }}
+
+### Known Bugs
+
+<div class="callout callout-danger d-flex flex-row mt-4 mb-4 pt-4 pe-4 pb-2 ps-3">
+  <svg class="alert-octagon svg-inline callout-icon me-2 mb-3" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12.802 2.165l5.575 2.389c.48.206.863.589 1.07 1.07l2.388 5.574c.22.512.22 1.092.0 1.604l-2.389 5.575c-.206.48-.589.863-1.07 1.07l-5.574 2.388c-.512.22-1.092.22-1.604.0l-5.575-2.389a2.036 2.036.0 01-1.07-1.07l-2.388-5.574a2.036 2.036.0 010-1.604l2.389-5.575c.206-.48.589-.863 1.07-1.07l5.574-2.388a2.036 2.036.0 011.604.0z"></path><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>
+  <div class="callout-content">
+    <div class="callout-title">
+      <p>Client Has Known Significant Bugs</p>
+    </div>
+    <div class="callout-body">
+      <p>
+        Unfortunately at the time this guide was last modified (noted at the bottom of the guide) this third-party
+        application has bugs which are significant and indicate either a fairly low level of support for
+        <a href="https://openid.net/specs/openid-connect-core-1_0.html" target="_blank">OpenID Connect 1.0</a> or no
+        effective support at all. This guide may have workarounds to adapt to this but this is done solely on a best
+        effort basis. The developers of the application should be encouraged to fix these bugs.
+      </p>
+      {{- if in $bugs "claims-hydration" }}
+      <p>
+        <b><i>Claims Hydration:</i></b> this client outright does not support
+        <a href="https://openid.net/specs/openid-connect-core-1_0.html" target="_blank">OpenID Connect 1.0</a> as it
+        does not honor the expected process to retrieve the claims it needs to access. The workaround is documented in
+        <a href="#configuration-escape-hatch">Configuration Escape Hatch</a>.
+      </p>
+      {{- end }}
+      {{- if in $bugs "client-credentials-encoding" }}
+      <p>
+        <b><i>Client Credentials Encoding:</i></b> this client does not properly encode the client credentials before
+        using them for authentication as per
+        <a href="https://datatracker.ietf.org/doc/html/rfc6749#appendix-B" target="_blank">RFC6749 Appendix B</a>. It is
+        required that the Client ID and Client Secret are both URL Escaped before being used for both the
+        <code>client_secret_post</code> and <code>client_secret_basic</code> authentication mechanisms. Avoiding special
+        characters in both the Client ID and Client Secret or URL Escaping them before adding them to the clients
+        configuration are the only workarounds. Authelia's random password generator will automatically output both
+        a normal version and a pre-encoded version which you could utilize.
+      </p>
+      {{- end }}
+      {{- if in $bugs "claim-binding" }}
+      <p>
+        <b><i>Claim Binding:</i></b> this client outright does not support
+        <a href="https://openid.net/specs/openid-connect-core-1_0.html" target="_blank">OpenID Connect 1.0</a> as it
+        does not bind the identity provider identity (the <code>sub</code> and <code>iss</code> claims which are
+        guaranteed not to change) to local accounts, instead it uses claims like <code>email</code> and
+        <code>preferred_username</code> which is a vulnerability that could result in a simple privilege escalation. The
+        developer has been made aware of this vulnerability but has decided not to fix it. See
+        <a href="https://openid.net/specs/openid-connect-core-1_0.html#ClaimStability" target="_blank">Connect 1.0 Section 5.7 Claim Stability and Uniqueness</a>
+        for more information.
+      </p>
+      {{- end }}
+    </div>
+  </div>
+</div>
+{{- end }}
 
 ### Common Notes
 
