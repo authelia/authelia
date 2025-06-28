@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.39.4](https://github.com/authelia/authelia/releases/tag/v4.39.4)
 - [opkssh]
-  - [v0.4.0](https://github.com/openpubkey/opkssh/releases/tag/v0.4.0)
+  - [v0.7.0](https://github.com/openpubkey/opkssh/releases/tag/v0.7.0)
 
 {{% oidc-common %}}
 
@@ -42,7 +42,11 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-{{% oidc-conformance-claims claims="email" %}}
+{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
+At the time of this writing this third party client has a bug and does not support [OpenID Connect 1.0](openid.net/specs/openid-connect-core-1_0.html). This
+configuration will likely require configuration of an escape hatch to work around the bug on their end. See
+[Configuration Escape Hatch](#configuration-escape-hatch) for details.
+{{< /callout >}}
 
 The following YAML configuration is an example __Authelia__ [client configuration] for use with [opkssh] which will
 operate with the application example:
@@ -67,14 +71,20 @@ identity_providers:
           - 'openid'
           - 'profile'
           - 'email'
+          - 'offline_access'
         response_types:
           - 'code'
         grant_types:
           - 'authorization_code'
+          - 'refresh_token'
         access_token_signed_response_alg: 'none'
         userinfo_signed_response_alg: 'none'
-        token_endpoint_auth_method: 'client_secret_basic'
+        token_endpoint_auth_method: 'none'
 ```
+
+#### Configuration Escape Hatch
+
+{{% oidc-conformance-claims client_id="opkssh" claims="email" %}}
 
 ### Application
 
@@ -111,6 +121,36 @@ To log in using Authelia run:
 ```shell
 opkssh login --provider=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/,opkssh
 ```
+
+##### Configuration File
+
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+Generally the configuration file is named `~/.opk/config.yml` on Linux and `C:\Users\{USER}\.opk\config.yml` on Windows.
+{{< /callout >}}
+
+To create a persistent configuration, generate a new configuration file by running the following command:
+
+```shell
+opkssh login --create-config
+```
+
+Then add Authelia to the existing providers:
+
+```yaml{title="~/.opk/config.yml"}
+providers:
+  - alias: authelia
+    issuer: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
+    client_id: opkssh
+    scopes: openid offline_access profile email
+    access_type: offline
+    prompt: consent
+    redirect_uris:
+      - http://localhost:3000/login-callback
+      - http://localhost:10001/login-callback
+      - http://localhost:11110/login-callback
+```
+
+You can now run `opkssh login` to login.
 
 ## See Also
 
