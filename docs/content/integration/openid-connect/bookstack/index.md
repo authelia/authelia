@@ -22,6 +22,7 @@ seo:
 
 - [Authelia]
   - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
+  - [v4.39.4](https://github.com/authelia/authelia/releases/tag/v4.39.4)
 - [BookStack]
   - [v23.02.2](https://github.com/BookStackApp/BookStack/releases/tag/v23.02.2)
 
@@ -50,14 +51,24 @@ the secret or URL encode the secret yourself.
 
 ### Authelia
 
+{{% oidc-conformance-claims claims="email" %}}
+
 The following YAML configuration is an example __Authelia__ [client configuration] for use with [BookStack] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
 identity_providers:
   oidc:
+    # The claims_policies section is only needed starting with Authelia v4.39.
+    # Remove when using Authelia v4.38.
+    # See "Claims Conformance" section above
+    claims_policies:
+      bookstack_workaround:
+        id_token: email # Include the email claim in the ID Token response
+
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
+
     clients:
       - client_id: 'bookstack'
         client_name: 'BookStack'
@@ -79,6 +90,11 @@ identity_providers:
         access_token_signed_response_alg: 'none'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_basic'
+
+        # This line is only needed starting with Authelia v4.39.
+        # Remove when using Authelia v4.38.
+        # See "Claims Conformance" section above
+        claims_policy: bookstack_workaround
 ```
 
 ### Application
