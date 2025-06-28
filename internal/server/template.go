@@ -5,6 +5,7 @@ import (
 	"crypto/sha1" //nolint:gosec
 	"encoding/hex"
 	"fmt"
+	"github.com/authelia/authelia/v4/internal/utils"
 	"os"
 	"path"
 	"path/filepath"
@@ -25,7 +26,6 @@ import (
 // this is utilised to pass information between the backend and frontend
 // and generate a nonce to support a restrictive CSP while using material-ui.
 func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middlewares.RequestHandler {
-	isDevEnvironment := os.Getenv(environment) == dev
 	ext := path.Ext(t.Name())
 
 	return func(ctx *middlewares.AutheliaCtx) {
@@ -55,7 +55,7 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 		switch {
 		case ctx.Configuration.Server.Headers.CSPTemplate != "":
 			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, strings.ReplaceAll(string(ctx.Configuration.Server.Headers.CSPTemplate), placeholderCSPNonce, nonce))
-		case isDevEnvironment:
+		case utils.Dev:
 			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(tmplCSPDevelopment, nonce))
 		default:
 			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(tmplCSPDefault, nonce))

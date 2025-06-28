@@ -42,7 +42,7 @@ func (ctx *CmdCtx) BuildInfoRunE(cmd *cobra.Command, _ []string) (err error) {
 	b := &strings.Builder{}
 
 	fmt.Fprintf(b, fmtAutheliaBuild, utils.BuildTag, utils.BuildState, utils.BuildBranch, utils.BuildCommit,
-		utils.BuildNumber, runtime.GOOS, runtime.GOARCH, runtime.Compiler, utils.BuildDate, utils.BuildExtra)
+		utils.BuildNumber, runtime.GOOS, runtime.GOARCH, runtime.Compiler, utils.BuildDate, utils.Dev, utils.BuildExtra)
 
 	var verbose bool
 
