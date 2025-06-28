@@ -42,12 +42,6 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-At the time of this writing this third party client has a bug and does not support [OpenID Connect 1.0](https://openid.net/specs/openid-connect-core-1_0.html). This
-configuration will likely require configuration of an escape hatch to work around the bug on their end. See
-[Configuration Escape Hatch](#configuration-escape-hatch) for details.
-{{< /callout >}}
-
 The following YAML configuration is an example __Authelia__ [client configuration] for use with [opkssh] which will
 operate with the application example:
 
@@ -69,8 +63,6 @@ identity_providers:
           - 'http://localhost:11110/login-callback'
         scopes:
           - 'openid'
-          - 'profile'
-          - 'email'
           - 'offline_access'
         response_types:
           - 'code'
@@ -82,37 +74,9 @@ identity_providers:
         token_endpoint_auth_method: 'none'
 ```
 
-#### Configuration Escape Hatch
-
-{{% oidc-escape-hatch-claims-hydration client_id="opkssh" claims="email" %}}
-
 ### Application
 
 To configure [opkssh] to utilize Authelia as an [OpenID Connect 1.0] Provider:
-
-#### Server
-
-To configure [opkssh] there is one method, using the [Configuration File](#configuration-file).
-
-##### Configuration File
-
-{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
-Generally the configuration file is named `/etc/opk/providers`.
-{{< /callout >}}
-
-To configure [opkssh] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
-
-```txt {title="/etc/opk/providers"}
-https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/ opkssh 24h
-```
-
-In addition to above, the CLI will need to be used to map users manually.
-
-For example allow the user `john@example.com` to login as `root` :
-
-```shell
-opkssh add root john@example.com https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/
-```
 
 #### Client
 
@@ -121,6 +85,8 @@ To log in using Authelia run:
 ```shell
 opkssh login --provider=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/,opkssh
 ```
+
+You will now see your unique user identifier `sub` in the CLI, copy it to set up the access control on the server.
 
 ##### Configuration File
 
@@ -141,7 +107,7 @@ providers:
   - alias: authelia
     issuer: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
     client_id: opkssh
-    scopes: openid offline_access profile email
+    scopes: openid offline_access
     access_type: offline
     prompt: consent
     redirect_uris:
@@ -151,6 +117,33 @@ providers:
 ```
 
 You can now run `opkssh login` to login.
+
+#### Server
+
+To configure [opkssh] there is one method, using the [Configuration File](#configuration-file).
+
+##### Configuration File
+
+{{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
+Generally the configuration file is named `/etc/opk/providers`.
+{{< /callout >}}
+
+To configure [opkssh] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
+
+```txt {title="/etc/opk/providers"}
+https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/ opkssh 24h
+```
+
+In addition to above, the CLI will need to be used to map users manually.
+
+For example allow the user `john` with the user identifier of `f0919359-9d15-4e15-bcba-83b41620a073` to login as `root` :
+
+```shell
+opkssh add root f0919359-9d15-4e15-bcba-83b41620a073 https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/
+```
+
+To set up access control not just for yourself but other users as well, use the [authelia storage user identifiers export](https://www.authelia.com/reference/cli/authelia/authelia_storage_user_identifiers_export/)
+command to get all user identifiers.
 
 ## See Also
 
