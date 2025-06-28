@@ -101,8 +101,8 @@
     "@types/zxcvbn": "4.4.5",
     "@typescript-eslint/eslint-plugin": "8.33.1",
     "@typescript-eslint/parser": "8.33.1",
-    "@vitejs/plugin-react": "4.5.1",
-    "@vitest/coverage-istanbul": "3.2.3",
+    "@vitejs/plugin-react": "4.5.2",
+    "@vitest/coverage-istanbul": "3.2.4",
     "esbuild": "0.25.5",
     "eslint": "8.57.1",
     "eslint-config-prettier": "10.1.5",
@@ -123,7 +123,7 @@
     "vite-plugin-istanbul": "7.0.0",
     "vite-plugin-svgr": "4.3.0",
     "vite-tsconfig-paths": "5.1.4",
-    "vitest": "3.2.3",
+    "vitest": "3.2.4",
     "vitest-preview": "0.0.1"
   }
 }
