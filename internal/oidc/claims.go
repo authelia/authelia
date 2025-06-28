@@ -439,6 +439,8 @@ func NewDefaultCustomClaimsStrategy() (strategy *CustomClaimsStrategy) {
 
 // NewCustomClaimsStrategy creates a *CustomClaimsStrategy given a policy name, list of allowed scopes, the scope map,
 // and the policy map.
+//
+//nolint:gocyclo
 func NewCustomClaimsStrategy(policyName string, scopes []string, scopeMap map[string]schema.IdentityProvidersOpenIDConnectScope, policyMap map[string]schema.IdentityProvidersOpenIDConnectClaimsPolicy) (strategy *CustomClaimsStrategy) {
 	strategy = NewDefaultCustomClaimsStrategy()
 
@@ -448,8 +450,8 @@ func NewCustomClaimsStrategy(policyName string, scopes []string, scopeMap map[st
 
 	var (
 		policy  schema.IdentityProvidersOpenIDConnectClaimsPolicy
-		mapping schema.IdentityProvidersOpenIDConnectScope
 		claim   schema.IdentityProvidersOpenIDConnectCustomClaim
+		mapping schema.IdentityProvidersOpenIDConnectScope
 
 		ok   bool
 		name string
@@ -491,12 +493,10 @@ func NewCustomClaimsStrategy(policyName string, scopes []string, scopeMap map[st
 			case ClaimPhoneNumber:
 				strategy.scopes[scope][name] = expression.AttributeUserPhoneNumberRFC3966
 			default:
-				claim = policy.CustomClaims[name]
-
-				if claim.Attribute == "" {
-					strategy.scopes[scope][name] = name
-				} else {
+				if claim = policy.CustomClaims.GetCustomClaimByName(name); claim.Name != "" || claim.Attribute != "" {
 					strategy.scopes[scope][name] = claim.Attribute
+				} else {
+					strategy.scopes[scope][name] = name
 				}
 			}
 		}

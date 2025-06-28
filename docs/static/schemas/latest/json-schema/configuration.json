@@ -1484,12 +1484,7 @@
           "default": "specification"
         },
         "custom_claims": {
-          "patternProperties": {
-            ".*": {
-              "$ref": "#/$defs/IdentityProvidersOpenIDConnectCustomClaim"
-            }
-          },
-          "type": "object",
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectCustomClaims",
           "title": "Custom Claims",
           "description": "The custom claims available in this policy in addition to the Standard Claims."
         }
@@ -2299,6 +2294,11 @@
     },
     "IdentityProvidersOpenIDConnectCustomClaim": {
       "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name",
+          "description": "The name of claim."
+        },
         "attribute": {
           "type": "string",
           "title": "Attribute",
@@ -2306,6 +2306,14 @@
         }
       },
       "additionalProperties": false,
+      "type": "object"
+    },
+    "IdentityProvidersOpenIDConnectCustomClaims": {
+      "patternProperties": {
+        ".*": {
+          "$ref": "#/$defs/IdentityProvidersOpenIDConnectCustomClaim"
+        }
+      },
       "type": "object"
     },
     "IdentityProvidersOpenIDConnectLifespan": {

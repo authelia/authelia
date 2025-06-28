@@ -51,10 +51,23 @@ type IdentityProvidersOpenIDConnectClaimsPolicy struct {
 
 	IDTokenAudienceMode string `koanf:"id_token_audience_mode" yaml:"id_token_audience_mode,omitempty" toml:"id_token_audience_mode,omitempty" json:"id_token_audience_mode,omitempty" jsonschema:"default=specification,title=ID Token Audience Mode,enum=specification,enum=experimental-merged" jsonschema_description:"Sets the mode for ID Token audience derivation for clients that use this policy."`
 
-	CustomClaims map[string]IdentityProvidersOpenIDConnectCustomClaim `koanf:"custom_claims" yaml:"custom_claims,omitempty" toml:"custom_claims,omitempty" json:"custom_claims,omitempty" jsonschema:"title=Custom Claims" jsonschema_description:"The custom claims available in this policy in addition to the Standard Claims."`
+	CustomClaims IdentityProvidersOpenIDConnectCustomClaims `koanf:"custom_claims" yaml:"custom_claims,omitempty" toml:"custom_claims,omitempty" json:"custom_claims,omitempty" jsonschema:"title=Custom Claims" jsonschema_description:"The custom claims available in this policy in addition to the Standard Claims."`
+}
+
+type IdentityProvidersOpenIDConnectCustomClaims map[string]IdentityProvidersOpenIDConnectCustomClaim
+
+func (c IdentityProvidersOpenIDConnectCustomClaims) GetCustomClaimByName(name string) IdentityProvidersOpenIDConnectCustomClaim {
+	for _, properties := range c {
+		if properties.Name == name {
+			return properties
+		}
+	}
+
+	return IdentityProvidersOpenIDConnectCustomClaim{}
 }
 
 type IdentityProvidersOpenIDConnectCustomClaim struct {
+	Name      string `koanf:"name" yaml:"name" toml:"name,omitempty" json:"name,omitempty" jsonschema:"title=Name" jsonschema_description:"The name of claim."`
 	Attribute string `koanf:"attribute" yaml:"attribute,omitempty" toml:"attribute,omitempty" json:"attribute,omitempty" jsonschema:"title=Attribute" jsonschema_description:"The attribute that populates this claim."`
 }
 

@@ -143,26 +143,39 @@ func validateOIDCClaims(config *schema.Configuration, validator *schema.StructVa
 	for name, policy := range config.IdentityProviders.OIDC.ClaimsPolicies {
 		var claims []string
 
-		for claim, properties := range policy.CustomClaims {
-			if utils.IsStringInSlice(claim, validOIDCReservedClaims) {
-				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: custom_claims: claim with name '%s' can't be used in a claims policy as it's a standard claim", name, claim))
-			}
+		seen := make(map[string]string, len(policy.CustomClaims))
 
-			if !utils.IsStringInSlice(claim, claims) {
-				claims = append(claims, claim)
-			}
-
-			if !utils.IsStringInSlice(claim, config.IdentityProviders.OIDC.Discovery.Claims) {
-				config.IdentityProviders.OIDC.Discovery.Claims = append(config.IdentityProviders.OIDC.Discovery.Claims, claim)
+		for key, properties := range policy.CustomClaims {
+			if properties.Name == "" {
+				properties.Name = key
+				policy.CustomClaims[key] = properties
 			}
 
 			if properties.Attribute == "" {
-				properties.Attribute = claim
-				policy.CustomClaims[claim] = properties
+				properties.Attribute = key
+				policy.CustomClaims[key] = properties
+			}
+
+			if utils.IsStringInSlice(properties.Name, validOIDCReservedClaims) {
+				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: custom_claims: claim with name '%s' can't be used in a claims policy as it's a standard claim", name, properties.Name))
+			}
+
+			if !utils.IsStringInSlice(properties.Name, claims) {
+				claims = append(claims, properties.Name)
+			}
+
+			if !utils.IsStringInSlice(properties.Name, config.IdentityProviders.OIDC.Discovery.Claims) {
+				config.IdentityProviders.OIDC.Discovery.Claims = append(config.IdentityProviders.OIDC.Discovery.Claims, properties.Name)
+			}
+
+			if k, ok := seen[properties.Name]; ok {
+				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: custom_claims: claim with name '%s' is mapped in both '%s' and the '%s' claim configurations", name, properties.Name, key, k))
+			} else {
+				seen[properties.Name] = key
 			}
 
 			if !isUserAttributeValid(properties.Attribute, config) {
-				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: claim with name '%s' has an attribute name '%s' which is not a known attribute", name, claim, properties.Attribute))
+				validator.Push(fmt.Errorf("identity_providers: oidc: claims_policies: %s: claim with name '%s' has an attribute name '%s' which is not a known attribute", name, properties.Name, properties.Attribute))
 			}
 		}
 
@@ -991,7 +1004,7 @@ func validateOIDCClientScopes(c int, config *schema.IdentityProvidersOpenIDConne
 				continue
 			}
 
-			if _, ok = claims.CustomClaims[claim]; !ok {
+			if mapping := claims.CustomClaims.GetCustomClaimByName(claim); mapping.Name == "" {
 				validator.Push(fmt.Errorf("identity_providers: oidc: clients: client '%s': option 'scopes' contains value '%s' which requires claim '%s' but the claim is not a claim provided by 'claims_policy' with the name '%s' or a standard claim", config.Clients[c].ID, scope, claim, config.Clients[c].ClaimsPolicy))
 			}
 		}
