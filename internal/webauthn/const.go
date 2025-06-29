@@ -6,3 +6,8 @@ const (
 	LogFieldDiscoverable          = "discoverable"
 	cacheMDS3                     = "mds3"
 )
+
+const (
+	CachePolicyStrict  = "strict"
+	CachePolicyRelaxed = "relaxed"
+)
