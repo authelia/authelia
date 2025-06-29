@@ -25,7 +25,7 @@ seo:
 - [Leantime]
   - [v3.5.8](https://github.com/Leantime/leantime/releases/tag/v3.5.8)
 
-{{% oidc-common bugs="client-credentials-encoding,claims-hydration" %}}
+{{% oidc-common bugs="claims-hydration" %}}
 
 ### Assumptions
 
@@ -93,7 +93,7 @@ variables:
 ```shell {title=".env"}
 LEAN_OIDC_ENABLE=true
 LEAN_OIDC_CLIENT_ID=leantime
-LEAN_OIDC_CLIENT_SECRET=`insecure_secret`
+LEAN_OIDC_CLIENT_SECRET=insecure_secret
 LEAN_OIDC_PROVIDER_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 LEAN_OIDC_CREATE_USER=true
 LEAN_OIDC_DEFAULT_ROLE=20
@@ -108,7 +108,7 @@ services:
     environment:
       LEAN_OIDC_ENABLE: 'true'
       LEAN_OIDC_CLIENT_ID: leantime
-      LEAN_OIDC_CLIENT_SECRET: `insecure_secret`
+      LEAN_OIDC_CLIENT_SECRET: insecure_secret
       LEAN_OIDC_PROVIDER_URL: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
       LEAN_OIDC_CREATE_USER: true
       LEAN_OIDC_DEFAULT_ROLE: 20
