@@ -50,4 +50,5 @@ authelia-scripts docker
 * [authelia-scripts](authelia-scripts.md)	 - A utility used in the Authelia development process.
 * [authelia-scripts docker build](authelia-scripts_docker_build.md)	 - Build the docker image of Authelia
 * [authelia-scripts docker push-manifest](authelia-scripts_docker_push-manifest.md)	 - Push Authelia docker manifest to the Docker registries
+* [authelia-scripts docker push-readme](authelia-scripts_docker_push-readme.md)	 - 
 

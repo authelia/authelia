@@ -2,7 +2,7 @@
 title: "Leantime"
 description: "Integrating Leantime with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2025-06-29T17:51:47+10:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 weight: 620
@@ -59,20 +59,27 @@ identity_providers:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
-      - client_id: leantime
-        client_name: leantime
+      - client_id: 'leantime'
+        client_name: 'Leantime'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
         authorization_policy: 'two_factor'
-        consent_mode: implicit
-        scopes:
-          - openid
-          - groups
-          - email
-          - profile
+        require_pkce: true
+        pkce_challenge_method: 'S256'
         redirect_uris:
           - 'https://leantime.{{< sitevar name="domain" nojs="example.com" >}}/oidc/callback'
-        token_endpoint_auth_method: client_secret_post
+        scopes:
+          - 'openid'
+          - 'groups'
+          - 'email'
+          - 'profile'
+        response_types:
+          - 'code'
+        grant_types:
+          - 'authorization_code'
+        access_token_signed_response_alg: 'none'
+        userinfo_signed_response_alg: 'none'
+        token_endpoint_auth_method: 'client_secret_post'
 ```
 
 #### Configuration Escape Hatch
@@ -97,7 +104,6 @@ LEAN_OIDC_CLIENT_SECRET=insecure_secret
 LEAN_OIDC_PROVIDER_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 LEAN_OIDC_CREATE_USER=true
 LEAN_OIDC_DEFAULT_ROLE=20
-
 ```
 
 ##### Docker Compose
@@ -107,11 +113,11 @@ services:
   leantime:
     environment:
       LEAN_OIDC_ENABLE: 'true'
-      LEAN_OIDC_CLIENT_ID: leantime
-      LEAN_OIDC_CLIENT_SECRET: insecure_secret
-      LEAN_OIDC_PROVIDER_URL: https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
-      LEAN_OIDC_CREATE_USER: true
-      LEAN_OIDC_DEFAULT_ROLE: 20
+      LEAN_OIDC_CLIENT_ID: 'leantime'
+      LEAN_OIDC_CLIENT_SECRET: 'insecure_secret'
+      LEAN_OIDC_PROVIDER_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
+      LEAN_OIDC_CREATE_USER: 'true'
+      LEAN_OIDC_DEFAULT_ROLE: '20'
 ```
 
 ## See Also
