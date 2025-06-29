@@ -80,6 +80,10 @@ func VersionAdv(tag, state, commit, branch, extra string) (version string) {
 		b.WriteString(extra)
 	}
 
+	if Dev {
+		b.WriteString("-dev")
+	}
+
 	b.WriteString(fmt.Sprintf(" (%s, %s)", branch, commitShort(commit)))
 
 	return b.String()

@@ -47,8 +47,6 @@ var (
 )
 
 const (
-	environment = "ENVIRONMENT"
-	dev         = "dev"
 	strFalse    = "false"
 	strTrue     = "true"
 	localhost   = "localhost"

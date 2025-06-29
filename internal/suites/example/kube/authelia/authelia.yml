@@ -56,8 +56,6 @@ spec:
               value: /config/secrets/sql_password
             - name: AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE
               value: /config/secrets/encryption_key
-            - name: ENVIRONMENT
-              value: dev
       volumes:
         - name: authelia-config
           hostPath:
