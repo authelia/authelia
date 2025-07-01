@@ -36,7 +36,7 @@
 			"@babel/traverse": "7.27.7",
 			"@babel/helpers": "7.27.6",
 			"@babel/runtime": "7.27.6",
-			"brace-expansion": "2.0.2",
+			"brace-expansion": "4.0.1",
 			"esbuild": "0.25.5",
 			"nanoid": "5.1.5",
 			"prismjs": "1.30.0",
