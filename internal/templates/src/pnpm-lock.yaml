@@ -8,7 +8,7 @@ overrides:
   '@babel/traverse': 7.27.7
   '@babel/helpers': 7.27.6
   '@babel/runtime': 7.27.6
-  brace-expansion: 2.0.2
+  brace-expansion: 4.0.1
   esbuild: 0.25.5
   nanoid: 5.1.5
   prismjs: 1.30.0
@@ -850,15 +850,17 @@ packages:
     resolution: {integrity: sha512-Izi8RQcffqCeNVgFigKli1ssklIbpHnCYc6AknXGYoB6grJqyeby7jv12JUQgmTAnIDnbck1uxksT4dzN3PWBA==}
     engines: {node: '>=12'}
 
-  balanced-match@1.0.2:
-    resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
+  balanced-match@3.0.1:
+    resolution: {integrity: sha512-vjtV3hiLqYDNRoiAv0zC4QaGAMPomEoq83PRmYIofPswwZurCeWR5LByXm7SyoL0Zh5+2z0+HC7jG8gSZJUh0w==}
+    engines: {node: '>= 16'}
 
   base64id@2.0.0:
     resolution: {integrity: sha512-lGe34o6EHj9y3Kts9R4ZYs/Gr+6N7MCaMlIFA3F1R2O5/m7K06AxfSeO5530PEERE6/WyEg3lsuyw4GHlPZHog==}
     engines: {node: ^4.5.0 || >= 5.9}
 
-  brace-expansion@2.0.2:
-    resolution: {integrity: sha512-Jt0vHyM+jmUBqojB7E1NIYadt0vI0Qxjxd2TErW94wDz+E2LAm5vKMXXwg6ZZBTHPuUlDgQHKXvjGBdfcF1ZDQ==}
+  brace-expansion@4.0.1:
+    resolution: {integrity: sha512-YClrbvTCXGe70pU2JiEiPLYXO9gQkyxYeKpJIQHVS/gOs6EWMQP2RYBwjFLNT322Ji8TOC3IMPfsYCedNpzKfA==}
+    engines: {node: '>= 18'}
 
   buffer-from@1.1.2:
     resolution: {integrity: sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==}
@@ -2409,13 +2411,13 @@ snapshots:
 
   assertion-error@2.0.1: {}
 
-  balanced-match@1.0.2: {}
+  balanced-match@3.0.1: {}
 
   base64id@2.0.0: {}
 
-  brace-expansion@2.0.2:
+  brace-expansion@4.0.1:
     dependencies:
-      balanced-match: 1.0.2
+      balanced-match: 3.0.1
 
   buffer-from@1.1.2:
     optional: true
@@ -2863,11 +2865,11 @@ snapshots:
 
   minimatch@10.0.1:
     dependencies:
-      brace-expansion: 2.0.2
+      brace-expansion: 4.0.1
 
   minimatch@3.1.2:
     dependencies:
-      brace-expansion: 2.0.2
+      brace-expansion: 4.0.1
 
   minimist@1.2.8: {}
 
