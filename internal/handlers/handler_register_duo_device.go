@@ -19,7 +19,6 @@ func DuoDevicesGET(duoAPI duo.API) middlewares.RequestHandler {
 			userSession session.UserSession
 			err         error
 		)
-
 		if userSession, err = ctx.GetSession(); err != nil {
 			ctx.Error(fmt.Errorf("failed to get session data: %w", err), messageMFAValidationFailed)
 			return
@@ -96,7 +95,6 @@ func DuoDevicePOST(ctx *middlewares.AutheliaCtx) {
 		userSession session.UserSession
 		err         error
 	)
-
 	if err = ctx.ParseBody(&bodyJSON); err != nil {
 		ctx.Error(err, messageMFAValidationFailed)
 		return
@@ -113,8 +111,8 @@ func DuoDevicePOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	ctx.Logger.Debugf("Save new preferred Duo device and method of user %s to %s using %s", userSession.Username, bodyJSON.Device, bodyJSON.Method)
-	err = ctx.Providers.StorageProvider.SavePreferredDuoDevice(ctx, model.DuoDevice{Username: userSession.Username, Device: bodyJSON.Device, Method: bodyJSON.Method})
 
+	err = ctx.Providers.StorageProvider.SavePreferredDuoDevice(ctx, model.DuoDevice{Username: userSession.Username, Device: bodyJSON.Device, Method: bodyJSON.Method})
 	if err != nil {
 		ctx.Error(fmt.Errorf("unable to save new preferred Duo device and method: %w", err), messageMFAValidationFailed)
 		return
@@ -129,7 +127,6 @@ func DuoDeviceDELETE(ctx *middlewares.AutheliaCtx) {
 		userSession session.UserSession
 		err         error
 	)
-
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Error(fmt.Errorf("unable to get session to delete preferred Duo device and method: %w", err), messageMFAValidationFailed)
 		return

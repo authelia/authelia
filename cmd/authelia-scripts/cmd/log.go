@@ -7,9 +7,10 @@ import (
 var logLevel string
 
 func levelStringToLevel(level string) log.Level {
-	if level == "debug" {
+	switch level {
+	case "debug":
 		return log.DebugLevel
-	} else if level == "warning" {
+	case "warning":
 		return log.WarnLevel
 	}
 

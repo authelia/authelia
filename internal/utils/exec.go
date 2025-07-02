@@ -80,7 +80,6 @@ func RunCommandUntilCtrlC(cmd *exec.Cmd) {
 		fmt.Println("Hit Ctrl+C to shutdown...") //nolint:forbidigo
 
 		err := cmd.Run()
-
 		if err != nil {
 			fmt.Println(err) //nolint:forbidigo
 			cond.Broadcast()
@@ -116,9 +115,9 @@ func RunFuncUntilCtrlC(fn func() error) error {
 		fmt.Println("Hit Ctrl+C to shutdown...") //nolint:forbidigo
 
 		err := fn()
-
 		if err != nil {
 			errorChannel <- err
+
 			fmt.Println(err) //nolint:forbidigo
 			cond.Broadcast()
 			mutex.Unlock()

@@ -32,8 +32,7 @@ func (s *SigninEmailScenario) SetupSuite() {
 }
 
 func (s *SigninEmailScenario) TearDownSuite() {
-	err := s.RodSession.Stop()
-
+	err := s.Stop()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -51,6 +50,7 @@ func (s *SigninEmailScenario) TearDownTest() {
 
 func (s *SigninEmailScenario) TestShouldSignInWithUserEmail() {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)

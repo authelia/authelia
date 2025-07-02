@@ -116,7 +116,6 @@ func loadDockerImages() error {
 
 	for _, image := range images {
 		err := k3d.LoadImage(image)
-
 		if err != nil {
 			return err
 		}

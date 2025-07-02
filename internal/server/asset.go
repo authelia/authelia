@@ -54,7 +54,6 @@ func newPublicHTMLEmbeddedHandler() fasthttp.RequestHandler {
 			data []byte
 			err  error
 		)
-
 		if data, err = assets.ReadFile(p); err != nil {
 			hfsHandleErr(ctx, err)
 
@@ -252,7 +251,6 @@ func getEmbedETags(embedFS embed.FS, root string, etags map[string][]byte) {
 		err     error
 		entries []fs.DirEntry
 	)
-
 	if entries, err = embedFS.ReadDir(root); err != nil {
 		return
 	}
@@ -301,7 +299,6 @@ func newLocalesListHandler() (handler func(ctx *middlewares.AutheliaCtx), err er
 
 	// parse embedded locales.
 	data, err = json.Marshal(middlewares.OKResponse{Status: "OK", Data: localeInfo})
-
 	if err != nil {
 		return nil, fmt.Errorf("error occurred initializing the locale list handler: error occurred marshalling the locale list: %w", err)
 	}

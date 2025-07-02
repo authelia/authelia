@@ -513,7 +513,7 @@ func (ctx *CmdCtx) CryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string,
 
 	b.WriteString("Generating Certificate\n\n")
 
-	b.WriteString(fmt.Sprintf("\tSerial: %x\n\n", template.SerialNumber))
+	fmt.Fprintf(b, "\tSerial: %x\n\n", template.SerialNumber)
 
 	switch caCertificate {
 	case nil:
@@ -523,30 +523,30 @@ func (ctx *CmdCtx) CryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string,
 	default:
 		parent = caCertificate
 
-		b.WriteString(fmt.Sprintf("Signed By:\n\t%s\n", caCertificate.Subject.CommonName))
-		b.WriteString(fmt.Sprintf("\tSerial: %x, Expires: %s\n", caCertificate.SerialNumber, caCertificate.NotAfter.Format(time.RFC3339)))
+		fmt.Fprintf(b, "Signed By:\n\t%s\n", caCertificate.Subject.CommonName)
+		fmt.Fprintf(b, "\tSerial: %x, Expires: %s\n", caCertificate.SerialNumber, caCertificate.NotAfter.Format(time.RFC3339))
 	}
 
 	b.WriteString("\nSubject:\n")
-	b.WriteString(fmt.Sprintf("\tCommon Name: %s, Organization: %s, Organizational Unit: %s\n", template.Subject.CommonName, template.Subject.Organization, template.Subject.OrganizationalUnit))
-	b.WriteString(fmt.Sprintf("\tCountry: %v, Province: %v, Street Address: %v, Postal Code: %v, Locality: %v\n\n", template.Subject.Country, template.Subject.Province, template.Subject.StreetAddress, template.Subject.PostalCode, template.Subject.Locality))
+	fmt.Fprintf(b, "\tCommon Name: %s, Organization: %s, Organizational Unit: %s\n", template.Subject.CommonName, template.Subject.Organization, template.Subject.OrganizationalUnit)
+	fmt.Fprintf(b, "\tCountry: %v, Province: %v, Street Address: %v, Postal Code: %v, Locality: %v\n\n", template.Subject.Country, template.Subject.Province, template.Subject.StreetAddress, template.Subject.PostalCode, template.Subject.Locality)
 
 	b.WriteString("Properties:\n")
-	b.WriteString(fmt.Sprintf("\tNot Before: %s, Not After: %s\n", template.NotBefore.Format(time.RFC3339), template.NotAfter.Format(time.RFC3339)))
+	fmt.Fprintf(b, "\tNot Before: %s, Not After: %s\n", template.NotBefore.Format(time.RFC3339), template.NotAfter.Format(time.RFC3339))
 
-	b.WriteString(fmt.Sprintf("\tCA: %v, CSR: %v, Signature Algorithm: %s, Public Key Algorithm: %s", template.IsCA, false, template.SignatureAlgorithm, template.PublicKeyAlgorithm))
+	fmt.Fprintf(b, "\tCA: %v, CSR: %v, Signature Algorithm: %s, Public Key Algorithm: %s", template.IsCA, false, template.SignatureAlgorithm, template.PublicKeyAlgorithm)
 
 	switch k := privateKey.(type) {
 	case *rsa.PrivateKey:
-		b.WriteString(fmt.Sprintf(", Bits: %d", k.N.BitLen()))
+		fmt.Fprintf(b, ", Bits: %d", k.N.BitLen())
 	case *ecdsa.PrivateKey:
-		b.WriteString(fmt.Sprintf(", Elliptic Curve: %s", k.Curve.Params().Name))
+		fmt.Fprintf(b, ", Elliptic Curve: %s", k.Curve.Params().Name)
 	case ed25519.PrivateKey:
 		// Legacy format is not available for Ed25519.
 		legacy = false
 	}
 
-	b.WriteString(fmt.Sprintf("\n\tSubject Alternative Names: %s\n\n", strings.Join(cryptoSANsToString(template.DNSNames, template.IPAddresses), ", ")))
+	fmt.Fprintf(b, "\n\tSubject Alternative Names: %s\n\n", strings.Join(cryptoSANsToString(template.DNSNames, template.IPAddresses), ", "))
 
 	var (
 		dir, privateKeyPath, privateKeyLegacyPath, certificatePath string
@@ -573,11 +573,11 @@ func (ctx *CmdCtx) CryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string,
 	b.WriteString("Output Paths:\n")
 
 	if cdir := filepath.Clean(dir); len(cdir) != 0 {
-		b.WriteString(fmt.Sprintf("\tDirectory: %s\n", cdir))
+		fmt.Fprintf(b, "\tDirectory: %s\n", cdir)
 	}
 
-	b.WriteString(fmt.Sprintf("\tPrivate Key: %s\n", strings.Join(privateKeyPaths, ", ")))
-	b.WriteString(fmt.Sprintf("\tCertificate: %s\n", filepath.Base(certificatePath)))
+	fmt.Fprintf(b, "\tPrivate Key: %s\n", strings.Join(privateKeyPaths, ", "))
+	fmt.Fprintf(b, "\tCertificate: %s\n", filepath.Base(certificatePath))
 
 	if certificate, err = x509.CreateCertificate(ctx.providers.Random, template, parent, publicKey, signatureKey); err != nil {
 		return fmt.Errorf("failed to create certificate: %w", err)

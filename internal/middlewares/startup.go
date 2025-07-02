@@ -81,7 +81,6 @@ func doStartupCheck(ctx Context, name string, provider model.StartupCheck, requi
 	}
 
 	var err error
-
 	if err = provider.StartupCheck(); err != nil {
 		if log {
 			ctx.GetLogger().WithError(err).WithField(logging.FieldProvider, name).Error(LogMessageStartupCheckError)

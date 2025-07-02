@@ -849,7 +849,6 @@ func (c *Config) GetAllowedJWTAssertionAudiences(ctx context.Context) (audiences
 		issuer *url.URL
 		err    error
 	)
-
 	if issuer, err = octx.IssuerURL(); err != nil {
 		logging.Logger().WithError(err).Error("Error retrieving issuer")
 		return nil

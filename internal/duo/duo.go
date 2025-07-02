@@ -22,7 +22,7 @@ func NewDuoAPI(duoAPI *duoapi.DuoApi) *APIImpl {
 func (d *APIImpl) Call(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values, method string, path string) (*Response, error) {
 	var response Response
 
-	_, responseBytes, err := d.DuoApi.SignedCall(method, path, values)
+	_, responseBytes, err := d.SignedCall(method, path, values)
 	if err != nil {
 		return nil, err
 	}

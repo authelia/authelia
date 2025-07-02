@@ -141,13 +141,13 @@ func (ctx *CmdCtx) ConfigTemplateRunE(_ *cobra.Command, _ []string) (err error) 
 			return err
 		}
 
-		buf.WriteString(fmt.Sprintf(fmtYAMLConfigTemplateHeader, strings.Join(source.GetBytesFilterNames(), ", ")))
+		fmt.Fprintf(buf, fmtYAMLConfigTemplateHeader, strings.Join(source.GetBytesFilterNames(), ", "))
 
 		for _, file := range files {
 			if reYAMLComment.Match(file.Data) {
 				buf.Write(reYAMLComment.ReplaceAll(file.Data, []byte(fmt.Sprintf(fmtYAMLConfigTemplateFileHeader+"$1", file.Path))))
 			} else {
-				buf.WriteString(fmt.Sprintf(fmtYAMLConfigTemplateFileHeader, file.Path))
+				fmt.Fprintf(buf, fmtYAMLConfigTemplateFileHeader, file.Path)
 				buf.Write(file.Data)
 			}
 		}

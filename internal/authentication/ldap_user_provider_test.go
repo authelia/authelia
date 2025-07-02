@@ -6976,7 +6976,6 @@ func TestLDAPUserProviderChangePasswordErrors(t *testing.T) {
 			provider := NewLDAPUserProviderWithFactory(config, false, NewStandardLDAPClientFactory(config, nil, mockDialer))
 
 			err := provider.ChangePassword(tc.username, tc.oldPassword, tc.newPassword)
-
 			if tc.expectedError != nil {
 				assert.Error(t, err)
 				assert.Equal(t, tc.expectedError.Error(), err.Error())

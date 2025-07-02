@@ -608,7 +608,6 @@ func TestMisc(t *testing.T) {
 
 func MustParseRequestURI(uri string) (parsed *url.URL) {
 	var err error
-
 	if parsed, err = url.ParseRequestURI(uri); err != nil {
 		panic(err)
 	}

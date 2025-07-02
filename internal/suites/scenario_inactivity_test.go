@@ -30,6 +30,7 @@ func (s *InactivityScenario) SetupSuite() {
 	s.RodSession = browser
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -45,8 +46,7 @@ func (s *InactivityScenario) SetupSuite() {
 }
 
 func (s *InactivityScenario) TearDownSuite() {
-	err := s.RodSession.Stop()
-
+	err := s.Stop()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -64,6 +64,7 @@ func (s *InactivityScenario) TearDownTest() {
 
 func (s *InactivityScenario) TestShouldRequireReauthenticationAfterInactivityPeriod() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -83,6 +84,7 @@ func (s *InactivityScenario) TestShouldRequireReauthenticationAfterInactivityPer
 
 func (s *InactivityScenario) TestShouldRequireReauthenticationAfterCookieExpiration() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -110,6 +112,7 @@ func (s *InactivityScenario) TestShouldRequireReauthenticationAfterCookieExpirat
 
 func (s *InactivityScenario) TestShouldDisableCookieExpirationAndInactivity() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)

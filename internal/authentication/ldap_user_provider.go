@@ -336,7 +336,6 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 	}
 
 	userPasswordOk, err := p.CheckUserPassword(username, oldPassword)
-
 	if err != nil {
 		errorCode := getLDAPResultCode(err)
 		if errorCode == ldap.LDAPResultInvalidCredentials {
@@ -831,7 +830,6 @@ func (p *LDAPUserProvider) modify(client ldap.Client, modifyRequest *ldap.Modify
 			clientRef ldap.Client
 			errRef    error
 		)
-
 		if clientRef, errRef = p.factory.GetClient(WithAddress(referral)); errRef != nil {
 			return fmt.Errorf("error occurred connecting to referred LDAP server '%s': %+v. Original Error: %w", referral, errRef, err)
 		}
@@ -869,7 +867,6 @@ func (p *LDAPUserProvider) pwdModify(client ldap.Client, pwdModifyRequest *ldap.
 			clientRef ldap.Client
 			errRef    error
 		)
-
 		if clientRef, errRef = p.factory.GetClient(WithAddress(referral)); errRef != nil {
 			return fmt.Errorf("error occurred connecting to referred LDAP server '%s': %+v. Original Error: %w", referral, errRef, err)
 		}

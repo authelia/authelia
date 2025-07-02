@@ -243,7 +243,7 @@ func writeHealthCheckEnv(disabled bool, scheme, host, path string, port uint16) 
 		path = ""
 	}
 
-	_, err = file.WriteString(fmt.Sprintf(healthCheckEnv, scheme, host, port, path))
+	_, err = fmt.Fprintf(file, healthCheckEnv, scheme, host, port, path)
 
 	return err
 }
@@ -262,13 +262,13 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 		PrivacyPolicyAccept:     strFalse,
 		Session:                 "",
 		Theme:                   config.Theme,
-		EndpointsPasswordReset:  !(config.AuthenticationBackend.PasswordReset.Disable || config.AuthenticationBackend.PasswordReset.CustomURL.String() != ""),
+		EndpointsPasswordReset:  !config.AuthenticationBackend.PasswordReset.Disable && config.AuthenticationBackend.PasswordReset.CustomURL.String() == "",
 		EndpointsPasswordChange: !config.AuthenticationBackend.PasswordChange.Disable,
 		EndpointsWebAuthn:       !config.WebAuthn.Disable,
 		EndpointsPasskeys:       !config.WebAuthn.Disable && config.WebAuthn.EnablePasskeyLogin,
 		EndpointsTOTP:           !config.TOTP.Disable,
 		EndpointsDuo:            !config.DuoAPI.Disable,
-		EndpointsOpenIDConnect:  !(config.IdentityProviders.OIDC == nil),
+		EndpointsOpenIDConnect:  config.IdentityProviders.OIDC != nil,
 		EndpointsAuthz:          config.Server.Endpoints.Authz,
 	}
 

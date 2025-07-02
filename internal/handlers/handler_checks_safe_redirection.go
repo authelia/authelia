@@ -14,7 +14,6 @@ func CheckSafeRedirectionPOST(ctx *middlewares.AutheliaCtx) {
 		s   session.UserSession
 		err error
 	)
-
 	if s, err = ctx.GetSession(); err != nil {
 		ctx.ReplyUnauthorized()
 		return

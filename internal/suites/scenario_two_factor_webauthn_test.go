@@ -29,6 +29,7 @@ func (s *TwoFactorWebAuthnScenario) SetupSuite() {
 	s.RodSession = browser
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -46,8 +47,7 @@ func (s *TwoFactorWebAuthnScenario) SetupSuite() {
 }
 
 func (s *TwoFactorWebAuthnScenario) TearDownSuite() {
-	err := s.RodSession.Stop()
-
+	err := s.Stop()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -68,6 +68,7 @@ func (s *TwoFactorWebAuthnScenario) TearDownTest() {
 
 func (s *TwoFactorWebAuthnScenario) TestShouldAuthorizeSecretAfterTwoFactor() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -95,6 +96,7 @@ func (s *TwoFactorWebAuthnScenario) TestShouldAuthorizeSecretAfterTwoFactor() {
 
 func (s *TwoFactorWebAuthnScenario) TestShouldRenameCredential() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -120,6 +122,7 @@ func (s *TwoFactorWebAuthnScenario) TestShouldRenameCredential() {
 
 func (s *TwoFactorWebAuthnScenario) TestShouldShowCredentialInformation() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -138,6 +141,7 @@ func (s *TwoFactorWebAuthnScenario) TestShouldShowCredentialInformation() {
 
 func (s *TwoFactorWebAuthnScenario) TestShouldDeleteAndRegisterCredential() {
 	ctx, cancel := context.WithTimeout(context.Background(), 40*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
