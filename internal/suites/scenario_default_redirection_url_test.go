@@ -29,6 +29,7 @@ func (s *DefaultRedirectionURLScenario) SetupSuite() {
 	s.RodSession = browser
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -42,8 +43,7 @@ func (s *DefaultRedirectionURLScenario) SetupSuite() {
 }
 
 func (s *DefaultRedirectionURLScenario) TearDownSuite() {
-	err := s.RodSession.Stop()
-
+	err := s.Stop()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -61,6 +61,7 @@ func (s *DefaultRedirectionURLScenario) TearDownTest() {
 
 func (s *DefaultRedirectionURLScenario) TestUserIsRedirectedToDefaultURL() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)

@@ -378,7 +378,7 @@ func exportYAMLWithJSONSchema(name, filename string, v any) (err error) {
 		version = fmt.Sprintf("v%d.%d", semver.Major, semver.Minor+1)
 	}
 
-	if _, err = f.WriteString(fmt.Sprintf(model.FormatJSONSchemaYAMLLanguageServer, version, name)); err != nil {
+	if _, err = fmt.Fprintf(f, model.FormatJSONSchemaYAMLLanguageServer, version, name); err != nil {
 		return err
 	}
 

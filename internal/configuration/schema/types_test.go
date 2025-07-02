@@ -867,7 +867,6 @@ func MustLoadCryptoRaw(ca bool, alg, ext string, extra ...string) string {
 		data []byte
 		err  error
 	)
-
 	if data, err = os.ReadFile(fmt.Sprintf(pathCrypto, strings.Join(fparts, "."), ext)); err != nil {
 		panic(err)
 	}

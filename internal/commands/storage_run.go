@@ -1442,7 +1442,7 @@ func (ctx *CmdCtx) StorageUserTOTPExportURIRunE(_ *cobra.Command, _ []string) (e
 		}
 
 		for _, c := range configs {
-			buf.WriteString(fmt.Sprintf("%s\n", c.URI()))
+			fmt.Fprintf(buf, "%s\n", c.URI())
 		}
 
 		l := len(configs)
@@ -1493,7 +1493,7 @@ func (ctx *CmdCtx) StorageUserTOTPExportCSVRunE(cmd *cobra.Command, _ []string) 
 		}
 
 		for _, c := range configs {
-			buf.WriteString(fmt.Sprintf("%s,%s,%s,%d,%d,%s\n", c.Issuer, c.Username, c.Algorithm, c.Digits, c.Period, string(c.Secret)))
+			fmt.Fprintf(buf, "%s,%s,%s,%d,%d,%s\n", c.Issuer, c.Username, c.Algorithm, c.Digits, c.Period, string(c.Secret))
 		}
 
 		l := len(configs)

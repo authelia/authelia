@@ -22,7 +22,6 @@ func DuoPOST(duoAPI duo.API) middlewares.RequestHandler {
 			userSession session.UserSession
 			err         error
 		)
-
 		if err = ctx.ParseBody(bodyJSON); err != nil {
 			ctx.Logger.WithError(err).Errorf(logFmtErrParseRequestBody, regulation.AuthTypeDuo)
 
@@ -251,7 +250,6 @@ func HandleAllow(ctx *middlewares.AutheliaCtx, userSession *session.UserSession,
 	var (
 		err error
 	)
-
 	if err = ctx.RegenerateSession(); err != nil {
 		ctx.Logger.WithError(err).Errorf(logFmtErrSessionRegenerate, regulation.AuthTypeDuo, userSession.Username)
 

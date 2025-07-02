@@ -26,7 +26,6 @@ func OAuth2DeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, rw http.Respons
 
 		err error
 	)
-
 	if requester, err = ctx.Providers.OpenIDConnect.NewRFC862DeviceAuthorizeRequest(ctx, r); err != nil {
 		ctx.Logger.
 			WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
@@ -65,7 +64,6 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 
 		err error
 	)
-
 	if requester, err = ctx.Providers.OpenIDConnect.NewRFC8628UserAuthorizeRequest(ctx, r); err != nil {
 		ctx.Logger.
 			WithError(oauthelia2.ErrorToDebugRFC6749Error(err)).
@@ -194,7 +192,7 @@ func OAuth2DeviceAuthorizationPUT(ctx *middlewares.AutheliaCtx, rw http.Response
 	session := oidc.NewSessionWithRequester(ctx, issuer, ctx.Providers.OpenIDConnect.Issuer.GetKeyID(ctx, client.GetIDTokenSignedResponseKeyID(), client.GetIDTokenSignedResponseAlg()), details.Username, userSession.AuthenticationMethodRefs.MarshalRFC8176(), extra, userSession.LastAuthenticatedTime(), consent, requester, requests)
 
 	if client.GetClaimsStrategy().MergeAccessTokenAudienceWithIDTokenAudience() {
-		session.DefaultSession.Claims.Audience = append([]string{client.GetID()}, requester.GetGrantedAudience()...)
+		session.Claims.Audience = append([]string{client.GetID()}, requester.GetGrantedAudience()...)
 	}
 
 	requester.SetStatus(oauthelia2.DeviceAuthorizeStatusApproved)

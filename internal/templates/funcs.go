@@ -616,7 +616,6 @@ func FuncDateInZone(format string, date any, zone string) string {
 		location *time.Location
 		err      error
 	)
-
 	if location, err = time.LoadLocation(zone); err != nil {
 		location = time.UTC
 	}

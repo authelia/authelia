@@ -25,8 +25,7 @@ func (s *ChangePasswordScenario) SetupSuite() {
 }
 
 func (s *ChangePasswordScenario) TearDownSuite() {
-	err := s.RodSession.Stop()
-
+	err := s.Stop()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -56,10 +55,12 @@ func (s *ChangePasswordScenario) TestShouldChangePassword() {
 	for _, tc := range testCases {
 		s.T().Run(tc.name, func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+
 			defer func() {
 				cancel()
 				s.collectScreenshot(ctx.Err(), s.Page)
 			}()
+
 			s.doLoginOneFactor(s.T(), s.Context(ctx), tc.username, tc.oldPassword, false, BaseDomain, "")
 			s.doOpenSettings(s.T(), s.Context(ctx))
 			s.doOpenSettingsMenuClickSecurity(s.T(), s.Context(ctx))
@@ -82,10 +83,12 @@ func (s *ChangePasswordScenario) TestCannotChangePasswordToExistingPassword() {
 	for _, tc := range testCases {
 		s.T().Run(tc.testName, func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+
 			defer func() {
 				cancel()
 				s.collectScreenshot(ctx.Err(), s.Page)
 			}()
+
 			s.doLoginOneFactor(s.T(), s.Context(ctx), tc.username, tc.oldPassword, false, BaseDomain, "")
 			s.doOpenSettings(s.T(), s.Context(ctx))
 			s.doOpenSettingsMenuClickSecurity(s.T(), s.Context(ctx))
@@ -111,10 +114,12 @@ func (s *ChangePasswordScenario) TestCannotChangePasswordWithIncorrectOldPasswor
 	for _, tc := range testCases {
 		s.T().Run(tc.testName, func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+
 			defer func() {
 				cancel()
 				s.collectScreenshot(ctx.Err(), s.Page)
 			}()
+
 			s.doLoginOneFactor(s.T(), s.Context(ctx), tc.username, tc.oldPassword, false, BaseDomain, "")
 
 			s.doOpenSettings(s.T(), s.Context(ctx))
@@ -142,10 +147,12 @@ func (s *ChangePasswordScenario) TestNewPasswordsMustMatch() {
 	for _, tc := range testCases {
 		s.T().Run(tc.testName, func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+
 			defer func() {
 				cancel()
 				s.collectScreenshot(ctx.Err(), s.Page)
 			}()
+
 			s.doLoginOneFactor(s.T(), s.Context(ctx), tc.username, tc.oldPassword, false, BaseDomain, "")
 
 			s.doOpenSettings(s.T(), s.Context(ctx))

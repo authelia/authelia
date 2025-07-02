@@ -143,8 +143,8 @@ var hostEntries = []HostEntry{
 
 func runCommand(cmd string, args ...string) {
 	command := utils.CommandWithStdout(cmd, args...)
-	err := command.Run()
 
+	err := command.Run()
 	if err != nil {
 		panic(err)
 	}
@@ -168,7 +168,6 @@ func checkCommandExist(cmd string, resolutionHint string) {
 
 func createTemporaryDirectory() {
 	err := os.MkdirAll("/tmp/authelia", 0755)
-
 	if err != nil {
 		panic(err)
 	}
@@ -220,7 +219,6 @@ func shell(cmd string) {
 
 func prepareHostsFile() {
 	contentBytes, err := readHostsFile()
-
 	if err != nil {
 		panic(err)
 	}
@@ -294,8 +292,8 @@ func readHostsFile() ([]byte, error) {
 
 func readVersion(cmd string, args ...string) {
 	command := exec.Command(cmd, args...)
-	b, err := command.Output()
 
+	b, err := command.Output()
 	if err != nil {
 		panic(err)
 	}

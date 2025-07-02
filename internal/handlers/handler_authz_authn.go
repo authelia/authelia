@@ -520,7 +520,6 @@ func handleSessionValidateRefresh(ctx *middlewares.AutheliaCtx, userSession *ses
 		details *authentication.UserDetails
 		err     error
 	)
-
 	if details, err = ctx.Providers.UserProvider.GetDetails(userSession.Username); err != nil {
 		if errors.Is(err, authentication.ErrUserNotFound) {
 			ctx.Logger.WithField("username", userSession.Username).Error("Error occurred while attempting to update user details for user: the user was not found indicating they were deleted, disabled, or otherwise no longer authorized to login")
@@ -589,7 +588,6 @@ func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provid
 		ErrorField:       "invalid_token",
 		DescriptionField: "The access token is expired, revoked, malformed, or invalid for other reasons. The client can obtain a new access token and try again.",
 	}
-
 	if use, requester, err = provider.IntrospectToken(ctx, authn.Header.Authorization.Value(), oauthelia2.AccessToken, oidc.NewSession(), oidc.ScopeAutheliaBearerAuthz); err != nil {
 		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("error performing token introspection: %w", oauthelia2.ErrorToDebugRFC6749Error(err))
 	}
@@ -631,7 +629,7 @@ func handleVerifyGETAuthorizationBearerIntrospection(ctx context.Context, provid
 		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("client id '%s' is registered but does not permit an audience for the url '%s' with the error: %w", osession.ClientID, audience[0], err)
 	}
 
-	if osession.DefaultSession == nil || osession.DefaultSession.Claims == nil {
+	if osession.DefaultSession == nil || osession.Claims == nil {
 		return "", "", false, authentication.NotAuthenticated, fmt.Errorf("introspection returned a session missing required values")
 	}
 

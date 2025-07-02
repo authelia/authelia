@@ -16,7 +16,6 @@ func ChangePasswordPOST(ctx *middlewares.AutheliaCtx) {
 		provider    *session.Session
 		err         error
 	)
-
 	if provider, err = ctx.GetSessionProvider(); err != nil {
 		ctx.Logger.WithError(err).
 			Error("Unable to change password for user: error occurred retrieving session provider")

@@ -123,7 +123,6 @@ func UserSessionElevationPOST(ctx *middlewares.AutheliaCtx) {
 		userSession session.UserSession
 		err         error
 	)
-
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred creating user session elevation One-Time Code challenge: %s", errStrUserSessionData)
 
@@ -224,7 +223,6 @@ func UserSessionElevationPUT(ctx *middlewares.AutheliaCtx) {
 		code        *model.OneTimeCode
 		err         error
 	)
-
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating user session elevation One-Time Code challenge: %s", errStrUserSessionData)
 
@@ -366,7 +364,6 @@ func UserSessionElevateDELETE(ctx *middlewares.AutheliaCtx) {
 		code *model.OneTimeCode
 		err  error
 	)
-
 	if _, err = base64.RawURLEncoding.Decode(decoded, []byte(value)); err != nil {
 		ctx.Logger.WithError(err).
 			Error("Error occurred revoking user session elevation One-Time Code challenge: error occurred decoding the identifier")
