@@ -19,7 +19,6 @@ func OAuth2IntrospectionPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWrite
 		responder oauthelia2.IntrospectionResponder
 		err       error
 	)
-
 	if requestID, err = uuid.NewRandom(); err != nil {
 		ctx.Providers.OpenIDConnect.WriteIntrospectionError(ctx, rw, oauthelia2.ErrServerError)
 

@@ -17,7 +17,7 @@ import (
 // IdentityVerificationStart the handler for initiating the identity validation process.
 func IdentityVerificationStart(args IdentityVerificationStartArgs, delayFunc TimingAttackDelayFunc) RequestHandler {
 	if args.IdentityRetrieverFunc == nil {
-		panic(fmt.Errorf("Identity verification requires an identity retriever"))
+		panic(fmt.Errorf("identity verification requires an identity retriever"))
 	}
 
 	return func(ctx *AutheliaCtx) {
@@ -130,14 +130,13 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 		b := ctx.PostBody()
 
 		err := json.Unmarshal(b, &finishBody)
-
 		if err != nil {
 			ctx.Error(err, messageOperationFailed)
 			return
 		}
 
 		if finishBody.Token == "" {
-			ctx.Error(fmt.Errorf("No token provided"), messageOperationFailed)
+			ctx.Error(fmt.Errorf("no token provided"), messageOperationFailed)
 			return
 		}
 

@@ -25,7 +25,6 @@ func WebAuthnRegistrationPUT(ctx *middlewares.AutheliaCtx) {
 		bodyJSON    bodyRegisterWebAuthnPUTRequest
 		err         error
 	)
-
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred generating a WebAuthn registration challenge: %s", errStrUserSessionData)
 
@@ -147,7 +146,6 @@ func WebAuthnRegistrationPOST(ctx *middlewares.AutheliaCtx) {
 
 		c *webauthn.Credential
 	)
-
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred validating a WebAuthn registration challenge: %s", errStrUserSessionData)
 
@@ -259,7 +257,6 @@ func WebAuthnRegistrationDELETE(ctx *middlewares.AutheliaCtx) {
 		err         error
 		userSession session.UserSession
 	)
-
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred deleting a WebAuthn registration challenge: %s", errStrUserSessionData)
 

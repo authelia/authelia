@@ -12,7 +12,6 @@ func VerifyCredential(config *schema.WebAuthn, credential *model.WebAuthnCredent
 		c   *webauthn.Credential
 		err error
 	)
-
 	if c, err = credential.ToCredential(); err != nil {
 		result.Malformed = true
 	}

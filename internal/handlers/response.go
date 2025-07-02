@@ -175,7 +175,6 @@ func handleFlowResponseOpenIDConnectNoSubflow(ctx *middlewares.AutheliaCtx, user
 		consent *model.OAuth2ConsentSession
 		err     error
 	)
-
 	if flowID, err = uuid.Parse(id); err != nil {
 		ctx.SetJSONError(messageAuthenticationFailed)
 
@@ -328,7 +327,7 @@ func handleFlowResponseOpenIDConnectDeviceAuthSubflow(ctx *middlewares.AutheliaC
 		return
 	}
 
-	if signature, err = ctx.Providers.OpenIDConnect.Config.Strategy.Core.RFC8628UserCodeSignature(ctx, userCode); err != nil {
+	if signature, err = ctx.Providers.OpenIDConnect.Strategy.Core.RFC8628UserCodeSignature(ctx, userCode); err != nil {
 		ctx.Logger.
 			WithError(err).
 			WithFields(map[string]any{logging.FieldFlow: flowNameOpenIDConnect, logging.FieldSubflow: subflow, logging.FieldUsername: userSession.Username}).

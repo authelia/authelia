@@ -31,6 +31,7 @@ func (s *TwoFactorTOTPScenario) SetupSuite() {
 	s.RodSession = browser
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -44,8 +45,7 @@ func (s *TwoFactorTOTPScenario) SetupSuite() {
 }
 
 func (s *TwoFactorTOTPScenario) TearDownSuite() {
-	err := s.RodSession.Stop()
-
+	err := s.Stop()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -63,6 +63,7 @@ func (s *TwoFactorTOTPScenario) TearDownTest() {
 
 func (s *TwoFactorTOTPScenario) TestShouldNotAuthorizeSecretBeforeTwoFactor() {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -93,6 +94,7 @@ func (s *TwoFactorTOTPScenario) TestShouldNotAuthorizeSecretBeforeTwoFactor() {
 
 func (s *TwoFactorTOTPScenario) TestShouldAuthorizeSecretAfterTwoFactor() {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -119,6 +121,7 @@ func (s *TwoFactorTOTPScenario) TestShouldAuthorizeSecretAfterTwoFactor() {
 
 func (s *TwoFactorTOTPScenario) TestShouldFailTwoFactor() {
 	ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)

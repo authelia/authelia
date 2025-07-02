@@ -287,8 +287,8 @@ func PopulateClientCredentialsFlowSessionWithAccessRequest(ctx Context, client o
 	session.Subject = ""
 	session.Claims.Subject = client.GetID()
 	session.ClientID = client.GetID()
-	session.DefaultSession.Claims.Issuer = issuer.String()
-	session.DefaultSession.Claims.IssuedAt = fjwt.NewNumericDate(ctx.GetClock().Now().UTC())
+	session.Claims.Issuer = issuer.String()
+	session.Claims.IssuedAt = fjwt.NewNumericDate(ctx.GetClock().Now().UTC())
 	session.SetRequestedAt(ctx.GetClock().Now().UTC())
 	session.ClientCredentials = true
 
@@ -398,7 +398,6 @@ func RequestFormRequiresLogin(form url.Values, requested, authenticated time.Tim
 			age int64
 			err error
 		)
-
 		if age, err = strconv.ParseInt(value, 10, 64); err != nil {
 			age = 0
 		}

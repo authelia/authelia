@@ -3395,7 +3395,7 @@ func TestValidateOIDCClientJWKS(t *testing.T) {
 
 	*frankenkey = *keyRSA2048
 
-	frankenkey.PublicKey.N = nil
+	frankenkey.N = nil
 
 	testCases := []struct {
 		name     string
@@ -3719,7 +3719,7 @@ func TestValidateOIDCIssuer(t *testing.T) {
 
 	*frankenkey = *keyRSA2048
 
-	frankenkey.PublicKey.N = nil
+	frankenkey.N = nil
 
 	testCases := []struct {
 		name     string
@@ -5125,7 +5125,6 @@ func MustLoadCrypto(alg, mod, ext string, extra ...string) any {
 		decoded any
 		err     error
 	)
-
 	if data, err = os.ReadFile(fmt.Sprintf(pathCrypto, strings.Join(fparts, "."), ext)); err != nil {
 		panic(err)
 	}

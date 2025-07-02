@@ -213,7 +213,7 @@ func (rs *RodSession) collectScreenshot(err error, page *rod.Page) {
 }
 
 func (s *RodSuite) GetCookieNames() (names []string) {
-	cookies, err := s.Page.Cookies(nil)
+	cookies, err := s.Cookies(nil)
 	s.Require().NoError(err)
 
 	for _, cookie := range cookies {
@@ -252,7 +252,6 @@ func fixCoveragePath(path string, file os.FileInfo, err error) error {
 	}
 
 	coverage, err := filepath.Match("*.json", file.Name())
-
 	if err != nil {
 		return err
 	}

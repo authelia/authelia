@@ -32,8 +32,7 @@ func (s *OneFactorScenario) SetupSuite() {
 }
 
 func (s *OneFactorScenario) TearDownSuite() {
-	err := s.RodSession.Stop()
-
+	err := s.Stop()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -51,6 +50,7 @@ func (s *OneFactorScenario) TearDownTest() {
 
 func (s *OneFactorScenario) TestShouldNotAuthorizeSecretBeforeOneFactor() {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -81,6 +81,7 @@ func (s *OneFactorScenario) TestShouldNotAuthorizeSecretBeforeOneFactor() {
 
 func (s *OneFactorScenario) TestShouldAuthorizeSecretAfterOneFactor() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -93,6 +94,7 @@ func (s *OneFactorScenario) TestShouldAuthorizeSecretAfterOneFactor() {
 
 func (s *OneFactorScenario) TestShouldRedirectToSecondFactor() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -105,6 +107,7 @@ func (s *OneFactorScenario) TestShouldRedirectToSecondFactor() {
 
 func (s *OneFactorScenario) TestShouldDenyAccessOnBadPassword() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -118,6 +121,7 @@ func (s *OneFactorScenario) TestShouldDenyAccessOnBadPassword() {
 
 func (s *OneFactorScenario) TestShouldDenyAccessOnForbidden() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)

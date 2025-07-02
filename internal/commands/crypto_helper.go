@@ -197,7 +197,7 @@ func cryptoGenerateCertificateBundlesFromCmd(cmd *cobra.Command, b *strings.Buil
 
 		pathPEM := filepath.Join(dir, name)
 
-		b.WriteString(fmt.Sprintf("\tCertificate (chain): %s\n", pathPEM))
+		fmt.Fprintf(b, "\tCertificate (chain): %s\n", pathPEM)
 
 		if err = utils.WritePEMBlocksToPath(pathPEM, blocks...); err != nil {
 			return err
@@ -219,7 +219,7 @@ func cryptoGenerateCertificateBundlesFromCmd(cmd *cobra.Command, b *strings.Buil
 
 		pathPEM := filepath.Join(dir, name)
 
-		b.WriteString(fmt.Sprintf("\tCertificate (priv-chain): %s\n", pathPEM))
+		fmt.Fprintf(b, "\tCertificate (priv-chain): %s\n", pathPEM)
 
 		if err = utils.WritePEMBlocksToPath(pathPEM, blocks...); err != nil {
 			return err

@@ -251,6 +251,7 @@ func TestSignalService_Shutdown(t *testing.T) {
 	}
 
 	done := make(chan struct{})
+
 	go func() {
 		err := service.Run()
 		assert.NoError(t, err)

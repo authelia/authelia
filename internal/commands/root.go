@@ -90,7 +90,6 @@ func (ctx *CmdCtx) RootRunE(_ *cobra.Command, _ []string) (err error) {
 
 	if err = ctx.providers.StartupChecks(ctx, true); err != nil {
 		var scerr *middlewares.ErrProviderStartupCheck
-
 		if errors.As(err, &scerr) {
 			ctx.GetLogger().WithField("providers", scerr.Failed()).Fatalf("One or more providers had fatal failures performing startup checks, for more details check the error level logs")
 		} else {

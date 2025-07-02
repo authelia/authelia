@@ -488,7 +488,6 @@ func validateLDAPAuthenticationAddress(config *schema.AuthenticationBackendLDAP,
 	var (
 		err error
 	)
-
 	if err = config.Address.ValidateLDAP(); err != nil {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendAddress, config.Address.String(), err))
 	}

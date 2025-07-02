@@ -134,7 +134,6 @@ func getTimeFromGitCmd(cmd *exec.Cmd) *time.Time {
 		err    error
 		t      time.Time
 	)
-
 	if output, err = cmd.Output(); err != nil {
 		return nil
 	}

@@ -40,8 +40,7 @@ func (s *StandaloneWebDriverSuite) SetupSuite() {
 }
 
 func (s *StandaloneWebDriverSuite) TearDownSuite() {
-	err := s.RodSession.Stop()
-
+	err := s.Stop()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -59,6 +58,7 @@ func (s *StandaloneWebDriverSuite) TearDownTest() {
 
 func (s *StandaloneWebDriverSuite) TestShouldLetUserKnowHeIsAlreadyAuthenticated() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -88,10 +88,11 @@ func (s *StandaloneWebDriverSuite) TestShouldRedirectAfterOneFactorOnAnotherTab(
 	}()
 
 	// Open second tab with secret page.
-	page2.MustWaitLoad()
+	page2.MustWaitStable()
 
 	// Switch to first, visit the login page and wait for redirection to secret page with secret displayed.
-	s.Page.MustActivate()
+	s.MustActivate()
+	s.verifyIsHome(s.T(), s.Context(ctx))
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, targetURL)
 	s.verifySecretAuthorized(s.T(), s.Page)
 
@@ -102,6 +103,7 @@ func (s *StandaloneWebDriverSuite) TestShouldRedirectAfterOneFactorOnAnotherTab(
 
 func (s *StandaloneWebDriverSuite) TestShouldRedirectAlreadyAuthenticatedUser() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -116,13 +118,14 @@ func (s *StandaloneWebDriverSuite) TestShouldRedirectAlreadyAuthenticatedUser() 
 	// Visit the login page and wait for redirection to 2FA page with success icon displayed.
 	s.doVisit(s.T(), s.Context(ctx), fmt.Sprintf("%s?rd=https://secure.example.com:8080", GetLoginBaseURL(BaseDomain)))
 
-	_, err := s.Page.ElementR("h1", "Public resource")
+	_, err := s.ElementR("h1", "Public resource")
 	require.NoError(s.T(), err)
 	s.verifyURLIs(s.T(), s.Context(ctx), "https://secure.example.com:8080/")
 }
 
 func (s *StandaloneWebDriverSuite) TestShouldNotRedirectAlreadyAuthenticatedUserToUnsafeURL() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -141,6 +144,7 @@ func (s *StandaloneWebDriverSuite) TestShouldNotRedirectAlreadyAuthenticatedUser
 
 func (s *StandaloneWebDriverSuite) TestShouldCheckUserIsAskedToRegisterDevice() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)

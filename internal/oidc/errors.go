@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	errClientSecretMismatch = errors.New("The provided client secret did not match the registered client secret.")
+	errClientSecretMismatch = errors.New("The provided client secret did not match the registered client secret.") //nolint:staticcheck // Log error message.
 )
 
 var (

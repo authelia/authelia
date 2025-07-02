@@ -29,6 +29,7 @@ func (s *PasskeyScenario) SetupSuite() {
 	s.RodSession = browser
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -46,8 +47,7 @@ func (s *PasskeyScenario) SetupSuite() {
 }
 
 func (s *PasskeyScenario) TearDownSuite() {
-	err := s.RodSession.Stop()
-
+	err := s.Stop()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -68,6 +68,7 @@ func (s *PasskeyScenario) TearDownTest() {
 
 func (s *PasskeyScenario) TestShouldAuthorizeAfterPasskeyLogin() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)

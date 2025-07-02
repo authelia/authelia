@@ -38,7 +38,6 @@ func handleOAuth2ConsentFlowIDGET(ctx *middlewares.AutheliaCtx, raw []byte) {
 		flowID uuid.UUID
 		err    error
 	)
-
 	if flowID, err = uuid.ParseBytes(raw); err != nil {
 		ctx.Logger.
 			WithError(err).
@@ -154,7 +153,6 @@ func OAuth2ConsentPOST(ctx *middlewares.AutheliaCtx) {
 		bodyJSON oidc.ConsentPostRequestBody
 		err      error
 	)
-
 	if err = json.Unmarshal(ctx.Request.Body(), &bodyJSON); err != nil {
 		ctx.Logger.
 			WithError(err).
@@ -432,7 +430,7 @@ func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bo
 
 	code := *bodyJSON.UserCode
 
-	if signature, err = ctx.Providers.OpenIDConnect.Config.Strategy.Core.RFC8628UserCodeSignature(ctx, code); err != nil {
+	if signature, err = ctx.Providers.OpenIDConnect.Strategy.Core.RFC8628UserCodeSignature(ctx, code); err != nil {
 		ctx.Logger.
 			WithError(err).
 			WithFields(map[string]any{logging.FieldUsername: userSession.Username, logging.FieldClientID: bodyJSON.ClientID}).
@@ -617,7 +615,6 @@ func handleOAuth2ConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, flowI
 	var (
 		err error
 	)
-
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.
 			WithError(err).
@@ -690,7 +687,6 @@ func handleOAuth2ConsentDeviceAuthorizationGetSessionsAndClient(ctx *middlewares
 		signature string
 		err       error
 	)
-
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.
 			WithError(err).

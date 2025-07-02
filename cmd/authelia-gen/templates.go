@@ -36,7 +36,6 @@ func mustLoadTmplFS(tmpl string) string {
 		content []byte
 		err     error
 	)
-
 	if content, err = templatesFS.ReadFile(fmt.Sprintf("templates/%s.tmpl", tmpl)); err != nil {
 		panic(err)
 	}

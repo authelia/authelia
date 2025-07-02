@@ -803,7 +803,7 @@ func TestShouldHandleOIDCClaims(t *testing.T) {
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[0].Key.(*rsa.PrivateKey).D)
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[0].Key.(*rsa.PrivateKey).N)
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[0].Key.(*rsa.PrivateKey).E)
-	assert.Equal(t, 256, config.IdentityProviders.OIDC.JSONWebKeys[0].Key.(*rsa.PrivateKey).PublicKey.Size())
+	assert.Equal(t, 256, config.IdentityProviders.OIDC.JSONWebKeys[0].Key.(*rsa.PrivateKey).Size())
 	require.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[0].CertificateChain)
 	assert.True(t, config.IdentityProviders.OIDC.JSONWebKeys[0].CertificateChain.HasCertificates())
 
@@ -825,7 +825,7 @@ func TestShouldHandleOIDCClaims(t *testing.T) {
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[2].Key.(*rsa.PrivateKey).D)
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[2].Key.(*rsa.PrivateKey).N)
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[2].Key.(*rsa.PrivateKey).E)
-	assert.Equal(t, 512, config.IdentityProviders.OIDC.JSONWebKeys[2].Key.(*rsa.PrivateKey).PublicKey.Size())
+	assert.Equal(t, 512, config.IdentityProviders.OIDC.JSONWebKeys[2].Key.(*rsa.PrivateKey).Size())
 }
 
 func TestShouldDisableOIDCModern(t *testing.T) {
@@ -857,7 +857,7 @@ func TestShouldDisableOIDCModern(t *testing.T) {
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[0].Key.(*rsa.PrivateKey).D)
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[0].Key.(*rsa.PrivateKey).N)
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[0].Key.(*rsa.PrivateKey).E)
-	assert.Equal(t, 256, config.IdentityProviders.OIDC.JSONWebKeys[0].Key.(*rsa.PrivateKey).PublicKey.Size())
+	assert.Equal(t, 256, config.IdentityProviders.OIDC.JSONWebKeys[0].Key.(*rsa.PrivateKey).Size())
 	require.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[0].CertificateChain)
 	assert.True(t, config.IdentityProviders.OIDC.JSONWebKeys[0].CertificateChain.HasCertificates())
 
@@ -879,7 +879,7 @@ func TestShouldDisableOIDCModern(t *testing.T) {
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[2].Key.(*rsa.PrivateKey).D)
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[2].Key.(*rsa.PrivateKey).N)
 	assert.NotNil(t, config.IdentityProviders.OIDC.JSONWebKeys[2].Key.(*rsa.PrivateKey).E)
-	assert.Equal(t, 512, config.IdentityProviders.OIDC.JSONWebKeys[2].Key.(*rsa.PrivateKey).PublicKey.Size())
+	assert.Equal(t, 512, config.IdentityProviders.OIDC.JSONWebKeys[2].Key.(*rsa.PrivateKey).Size())
 }
 
 func TestShouldConfigureConsent(t *testing.T) {
@@ -1437,7 +1437,6 @@ func MustLoadCryptoRaw(ca bool, alg, ext string, extra ...string) string {
 		data []byte
 		err  error
 	)
-
 	if data, err = os.ReadFile(fmt.Sprintf(pathCrypto, strings.Join(fparts, "."), ext)); err != nil {
 		panic(err)
 	}
