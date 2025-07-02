@@ -88,10 +88,11 @@ func (s *StandaloneWebDriverSuite) TestShouldRedirectAfterOneFactorOnAnotherTab(
 	}()
 
 	// Open second tab with secret page.
-	page2.MustWaitLoad()
+	page2.MustWaitStable()
 
 	// Switch to first, visit the login page and wait for redirection to secret page with secret displayed.
 	s.MustActivate()
+	s.verifyIsHome(s.T(), s.Context(ctx))
 	s.doLoginOneFactor(s.T(), s.Context(ctx), "john", "password", false, BaseDomain, targetURL)
 	s.verifySecretAuthorized(s.T(), s.Page)
 
