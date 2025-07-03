@@ -57,7 +57,7 @@ if [[ "${BUILDKITE_LABEL}" =~ ":selenium:" ]]; then
   fi
 fi
 
-if [[ "${BUILDKITE_LABEL}" == ":docker: Build and Deploy" ]]; then
+if [[ "${BUILDKITE_LABEL}" == ":docker: Build and Deploy" ]] || [[ "${BUILDKITE_LABEL}" =~ ":selenium:" ]]; then
   echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
 fi
 
