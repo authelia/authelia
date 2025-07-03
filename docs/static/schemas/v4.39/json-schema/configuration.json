@@ -4500,6 +4500,7 @@
         "attachment": {
           "type": "string",
           "enum": [
+            "",
             "platform",
             "cross-platform"
           ],
