@@ -33,7 +33,7 @@
 	},
 	"pnpm": {
 		"overrides": {
-			"@babel/traverse": "7.27.7",
+			"@babel/traverse": "7.28.0",
 			"@babel/helpers": "7.27.6",
 			"@babel/runtime": "7.27.6",
 			"brace-expansion": "4.0.1",
