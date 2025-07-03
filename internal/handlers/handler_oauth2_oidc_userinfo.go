@@ -28,7 +28,6 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		client    oidc.Client
 		err       error
 	)
-
 	if requestID, err = uuid.NewRandom(); err != nil {
 		errorsx.WriteJSONError(rw, r, oauthelia2.ErrServerError)
 

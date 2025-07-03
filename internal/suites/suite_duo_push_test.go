@@ -35,8 +35,7 @@ func (s *DuoPushWebDriverSuite) SetupSuite() {
 }
 
 func (s *DuoPushWebDriverSuite) TearDownSuite() {
-	err := s.RodSession.Stop()
-
+	err := s.Stop()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -49,6 +48,7 @@ func (s *DuoPushWebDriverSuite) SetupTest() {
 
 func (s *DuoPushWebDriverSuite) TearDownTest() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -110,7 +110,7 @@ func (s *DuoPushWebDriverSuite) TestShouldAskUserToRegister() {
 	s.doChangeMethod(s.T(), s.Context(ctx), "push-notification")
 	s.WaitElementLocatedByClassName(s.T(), s.Context(ctx), "state-not-registered")
 	s.verifyNotificationDisplayed(s.T(), s.Context(ctx), "No compatible device found")
-	enrollPage := s.Page.MustWaitOpen()
+	enrollPage := s.MustWaitOpen()
 	s.WaitElementLocatedByID(s.T(), s.Context(ctx), "register-link").MustClick()
 	s.Page = enrollPage()
 
@@ -330,6 +330,7 @@ func (s *DuoPushWebDriverSuite) TestShouldFailAuthenticationBecausePreauthDenied
 
 func (s *DuoPushWebDriverSuite) TestShouldSucceedAuthentication() {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -357,6 +358,7 @@ func (s *DuoPushWebDriverSuite) TestShouldSucceedAuthentication() {
 
 func (s *DuoPushWebDriverSuite) TestShouldFailAuthentication() {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -402,8 +404,7 @@ func (s *DuoPushDefaultRedirectionSuite) SetupSuite() {
 }
 
 func (s *DuoPushDefaultRedirectionSuite) TearDownSuite() {
-	err := s.RodSession.Stop()
-
+	err := s.Stop()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -421,6 +422,7 @@ func (s *DuoPushDefaultRedirectionSuite) TearDownTest() {
 
 func (s *DuoPushDefaultRedirectionSuite) TestUserIsRedirectedToDefaultURL() {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)

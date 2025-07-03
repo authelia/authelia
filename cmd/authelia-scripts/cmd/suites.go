@@ -110,8 +110,8 @@ func cmdSuitesListRun(_ *cobra.Command, _ []string) {
 
 func cmdSuitesSetupRun(_ *cobra.Command, args []string) {
 	providedSuite := args[0]
-	runningSuite, err := getRunningSuite()
 
+	runningSuite, err := getRunningSuite()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -131,7 +131,6 @@ func cmdSuitesTeardownRun(_ *cobra.Command, args []string) {
 		suiteName = args[0]
 	} else {
 		runningSuite, err := getRunningSuite()
-
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -204,8 +203,8 @@ func checkSuiteAvailable(suite string) error {
 
 func runSuiteSetupTeardown(command string, suite string) error {
 	selectedSuite := suite
-	err := checkSuiteAvailable(selectedSuite)
 
+	err := checkSuiteAvailable(selectedSuite)
 	if err != nil {
 		if err == ErrNotAvailableSuite {
 			log.Fatal(errors.New("Suite named " + selectedSuite + " does not exist"))
@@ -297,7 +296,6 @@ func teardownSuite(suiteName string) error {
 
 func getRunningSuite() (string, error) {
 	exist, err := utils.FileExists(runningSuiteFile)
-
 	if err != nil {
 		return "", err
 	}

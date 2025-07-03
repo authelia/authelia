@@ -27,7 +27,6 @@ func RequireElevated(next RequestHandler) RequestHandler {
 			userSession session.UserSession
 			err         error
 		)
-
 		if userSession, err = ctx.GetSession(); err != nil {
 			ctx.Logger.WithError(err).Error("Error occurred attempting to lookup user session during an elevation check.")
 

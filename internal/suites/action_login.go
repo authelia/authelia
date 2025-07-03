@@ -15,6 +15,7 @@ func (rs *RodSession) doFillLoginPageAndClick(t *testing.T, page *rod.Page, user
 
 username:
 	err := usernameElement.MustSelectAllText().Input(username)
+
 	require.NoError(t, err)
 
 	if usernameElement.MustText() != username {
@@ -23,6 +24,7 @@ username:
 
 password:
 	err = passwordElement.MustSelectAllText().Input(password)
+
 	require.NoError(t, err)
 
 	if passwordElement.MustText() != password {
@@ -37,6 +39,7 @@ password:
 
 click:
 	err = buttonElement.Click("left", 1)
+
 	require.NoError(t, err)
 
 	if buttonElement.MustInteractable() {
@@ -52,6 +55,7 @@ func (rs *RodSession) doFillPasswordAndClick(t *testing.T, page *rod.Page, passw
 
 password:
 	err = element.MustSelectAllText().Input(password)
+
 	require.NoError(t, err)
 
 	if element.MustText() != password {
@@ -60,6 +64,7 @@ password:
 
 click:
 	err = button.Click("left", 1)
+
 	require.NoError(t, err)
 
 	if button.MustInteractable() {

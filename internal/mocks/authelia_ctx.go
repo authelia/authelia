@@ -214,7 +214,6 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	providers.Random = random.NewMathematical()
 
 	var err error
-
 	if providers.Templates, err = templates.New(templates.Config{}); err != nil {
 		panic(err)
 	}

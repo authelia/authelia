@@ -38,7 +38,6 @@ func (r *Regulator) HandleAttempt(ctx Context, successful, banned bool, username
 	}
 
 	var err error
-
 	if err = r.store.AppendAuthenticationLog(ctx, attempt); err != nil {
 		ctx.GetLogger().WithFields(map[string]any{fieldUsername: username, "successful": successful}).WithError(err).Errorf("Failed to record %s authentication attempt", authType)
 	}

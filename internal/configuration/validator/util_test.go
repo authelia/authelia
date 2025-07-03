@@ -71,7 +71,7 @@ func TestSchemaJWKGetPropertiesMissingTests(t *testing.T) {
 	rsa := &rsa.PrivateKey{}
 
 	*rsa = *keyRSA2048
-	rsa.PublicKey.N = nil
+	rsa.N = nil
 
 	props, err = schemaJWKGetProperties(schema.JWK{Key: rsa})
 

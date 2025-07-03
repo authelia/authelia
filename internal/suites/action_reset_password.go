@@ -31,6 +31,7 @@ func (rs *RodSession) doCompletePasswordReset(t *testing.T, page *rod.Page, newP
 
 password1:
 	err := password1.MustSelectAllText().Input(newPassword1)
+
 	require.NoError(t, err)
 
 	if password1.MustText() != newPassword1 {
@@ -39,6 +40,7 @@ password1:
 
 password2:
 	err = password2.MustSelectAllText().Input(newPassword2)
+
 	require.NoError(t, err)
 
 	if password2.MustText() != newPassword2 {

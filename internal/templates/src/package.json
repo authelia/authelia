@@ -24,7 +24,7 @@
 	},
 	"devDependencies": {
 		"@radix-ui/colors": "3.0.0",
-		"@types/node": "24.0.7",
+		"@types/node": "24.0.10",
 		"@types/react": "19.1.8",
 		"@types/react-dom": "19.1.6",
 		"eslint": "9.30.0",
@@ -33,10 +33,10 @@
 	},
 	"pnpm": {
 		"overrides": {
-			"@babel/traverse": "7.27.7",
+			"@babel/traverse": "7.28.0",
 			"@babel/helpers": "7.27.6",
 			"@babel/runtime": "7.27.6",
-			"brace-expansion": "2.0.2",
+			"brace-expansion": "4.0.1",
 			"esbuild": "0.25.5",
 			"nanoid": "5.1.5",
 			"prismjs": "1.30.0",

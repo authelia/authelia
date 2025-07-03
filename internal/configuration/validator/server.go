@@ -93,7 +93,6 @@ func ValidateServerAddress(config *schema.Configuration, validator *schema.Struc
 		config.Server.Address = schema.DefaultServerConfiguration.Address
 	} else {
 		var err error
-
 		if err = config.Server.Address.ValidateHTTP(); err != nil {
 			validator.Push(fmt.Errorf(errFmtServerAddress, config.Server.Address.String(), err))
 		}
@@ -185,7 +184,6 @@ func validateServerAssets(config *schema.Configuration, validator *schema.Struct
 		entries []fs.DirEntry
 		err     error
 	)
-
 	if entries, err = os.ReadDir(filepath.Join(config.Server.AssetPath, "locales")); err != nil {
 		if !os.IsNotExist(err) {
 			validator.Push(fmt.Errorf("server: asset_path: error occurred reading the '%s' directory: %w", filepath.Join(config.Server.AssetPath, "locales"), err))

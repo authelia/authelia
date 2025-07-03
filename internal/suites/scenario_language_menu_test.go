@@ -26,8 +26,7 @@ func (s *LanguageMenuScenario) SetupSuite() {
 }
 
 func (s *LanguageMenuScenario) TearDownSuite() {
-	err := s.RodSession.Stop()
-
+	err := s.Stop()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -45,6 +44,7 @@ func (s *LanguageMenuScenario) TearDownTest() {
 
 func (s *LanguageMenuScenario) TestShouldChangePreferredLanguage() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)

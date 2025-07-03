@@ -33,6 +33,7 @@ func (s *OIDCScenario) SetupSuite() {
 	s.RodSession = browser
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -46,8 +47,7 @@ func (s *OIDCScenario) SetupSuite() {
 }
 
 func (s *OIDCScenario) TearDownSuite() {
-	err := s.RodSession.Stop()
-
+	err := s.Stop()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -55,6 +55,7 @@ func (s *OIDCScenario) TearDownSuite() {
 
 func (s *OIDCScenario) SetupTest() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -72,6 +73,7 @@ func (s *OIDCScenario) TearDownTest() {
 
 func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -149,6 +151,7 @@ func (s *OIDCScenario) TestShouldAuthorizeAccessToOIDCApp() {
 
 func (s *OIDCScenario) TestShouldDenyConsent() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)

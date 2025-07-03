@@ -99,7 +99,6 @@ func (ctx *AutheliaCtx) SetAuthenticationErrorJSON(status int, message string, a
 // ReplyError reply with an error but does not display any stack trace in the logs.
 func (ctx *AutheliaCtx) ReplyError(err error, message string) {
 	b, marshalErr := json.Marshal(ErrorResponse{Status: "KO", Message: message})
-
 	if marshalErr != nil {
 		ctx.Logger.Error(marshalErr)
 	}
@@ -182,7 +181,7 @@ func (ctx *AutheliaCtx) GetXForwardedHost() (host []byte) {
 	host = ctx.XForwardedHost()
 
 	if host == nil {
-		return ctx.RequestCtx.Host()
+		return ctx.Host()
 	}
 
 	return host
@@ -436,19 +435,17 @@ func (ctx *AutheliaCtx) ReplyOK() {
 // ParseBody parse the request body into the type of value.
 func (ctx *AutheliaCtx) ParseBody(value any) error {
 	err := json.Unmarshal(ctx.PostBody(), &value)
-
 	if err != nil {
 		return fmt.Errorf("unable to parse body: %w", err)
 	}
 
 	valid, err := govalidator.ValidateStruct(value)
-
 	if err != nil {
 		return fmt.Errorf("unable to validate body: %w", err)
 	}
 
 	if !valid {
-		return fmt.Errorf("Body is not valid")
+		return fmt.Errorf("body is not valid")
 	}
 
 	return nil

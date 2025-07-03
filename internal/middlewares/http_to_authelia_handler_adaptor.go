@@ -84,7 +84,8 @@ func NewHTTPToAutheliaHandlerAdaptor(h AutheliaHandlerFunc) RequestHandler {
 		r.RemoteAddr = ctx.RemoteAddr().String()
 
 		hdr := make(http.Header)
-		ctx.Request.Header.VisitAll(func(k, v []byte) {
+
+		for k, v := range ctx.Request.Header.All() {
 			sk := string(k)
 			sv := string(v)
 
@@ -94,12 +95,12 @@ func NewHTTPToAutheliaHandlerAdaptor(h AutheliaHandlerFunc) RequestHandler {
 			default:
 				hdr.Set(sk, sv)
 			}
-		})
+		}
 
 		r.Header = hdr
 		r.Body = &netHTTPBody{body}
-		rURL, err := url.ParseRequestURI(r.RequestURI)
 
+		rURL, err := url.ParseRequestURI(r.RequestURI)
 		if err != nil {
 			ctx.Logger.Errorf("Cannot parse requestURI %q: %s", r.RequestURI, err)
 			ctx.RequestCtx.Error("Internal Server Error", fasthttp.StatusInternalServerError)

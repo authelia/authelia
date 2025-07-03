@@ -1028,7 +1028,6 @@ func TestShouldNotAllowLegacyAndModernCookiesConfig(t *testing.T) {
 
 func MustParseURL(uri string) *url.URL {
 	u, err := url.Parse(uri)
-
 	if err != nil {
 		panic(err)
 	}

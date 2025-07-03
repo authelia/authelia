@@ -43,12 +43,13 @@ func (s *PathPrefixSuite) TestChangePasswordScenario() {
 
 func (s *PathPrefixSuite) TestShouldRenderFrontendWithTrailingSlash() {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectCoverage(s.Page)
 		s.collectScreenshot(ctx.Err(), s.Page)
 		s.MustClose()
-		err := s.RodSession.Stop()
+		err := s.Stop()
 		s.Require().NoError(err)
 	}()
 
@@ -65,12 +66,13 @@ func (s *PathPrefixSuite) TestShouldRenderFrontendWithTrailingSlash() {
 
 func (s *PathPrefixSuite) TestShouldRenderFrontendWithoutTrailingSlash() {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectCoverage(s.Page)
 		s.collectScreenshot(ctx.Err(), s.Page)
 		s.MustClose()
-		err := s.RodSession.Stop()
+		err := s.Stop()
 		s.Require().NoError(err)
 	}()
 

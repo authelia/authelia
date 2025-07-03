@@ -150,11 +150,7 @@ func resolveCmdName(cmd *cobra.Command) string {
 }
 
 func rootCmdGetArgs(cmd *cobra.Command, args []string) []string {
-	for {
-		if cmd == nil || cmd == rootCmd {
-			break
-		}
-
+	for cmd != nil && cmd != rootCmd {
 		args = append([]string{cmd.Use}, args...)
 
 		cmd = cmd.Parent()
