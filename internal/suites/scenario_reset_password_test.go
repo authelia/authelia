@@ -107,7 +107,7 @@ func (s *ResetPasswordScenario) TestShouldNotifyUserOnBlankUsername() {
 	s.VerifyPageElementAttributeValueBoolean(s.T(), s.Context(ctx), "username-textfield", "aria-invalid", true, true)
 }
 
-func (s *ResetPasswordScenario) TestShouldLetUserNoticeThereIsAPasswordMismatch() {
+func (s *ResetPasswordScenario) TestShouldNotifyUserThereIsAPasswordMismatch() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 
 	defer func() {
