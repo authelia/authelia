@@ -22,6 +22,7 @@ func NewOpportunisticSMTPAuth(config *schema.NotifierSMTP, preference ...mail.SM
 		password:      config.Password,
 		host:          config.Address.Hostname(),
 		satPreference: preference,
+		allowUnenc:    config.DisableRequireTLS,
 	}
 }
 
@@ -31,6 +32,7 @@ type OpportunisticSMTPAuth struct {
 
 	satPreference []mail.SMTPAuthType
 	sa            smtp.Auth
+	allowUnenc    bool
 }
 
 // Start begins an authentication with a server.
@@ -64,9 +66,9 @@ func (a *OpportunisticSMTPAuth) setPreferred(server *smtp.ServerInfo) {
 			case mail.SMTPAuthCramMD5:
 				a.sa = smtp.CRAMMD5Auth(a.username, a.password)
 			case mail.SMTPAuthPlain:
-				a.sa = smtp.PlainAuth("", a.username, a.password, a.host, false)
+				a.sa = smtp.PlainAuth("", a.username, a.password, a.host, a.allowUnenc)
 			case mail.SMTPAuthLogin:
-				a.sa = smtp.LoginAuth(a.username, a.password, a.host, false)
+				a.sa = smtp.LoginAuth(a.username, a.password, a.host, a.allowUnenc)
 			}
 
 			if a.sa != nil {
@@ -86,9 +88,9 @@ func (a *OpportunisticSMTPAuth) set(server *smtp.ServerInfo) {
 		case mail.SMTPAuthCramMD5:
 			a.sa = smtp.CRAMMD5Auth(a.username, a.password)
 		case mail.SMTPAuthPlain:
-			a.sa = smtp.PlainAuth("", a.username, a.password, a.host, false)
+			a.sa = smtp.PlainAuth("", a.username, a.password, a.host, a.allowUnenc)
 		case mail.SMTPAuthLogin:
-			a.sa = smtp.LoginAuth(a.username, a.password, a.host, false)
+			a.sa = smtp.LoginAuth(a.username, a.password, a.host, a.allowUnenc)
 		}
 
 		if a.sa != nil {
