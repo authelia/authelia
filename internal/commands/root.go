@@ -3,6 +3,7 @@ package commands
 import (
 	"errors"
 	"fmt"
+
 	"github.com/spf13/cobra"
 
 	"github.com/authelia/authelia/v4/internal/logging"
