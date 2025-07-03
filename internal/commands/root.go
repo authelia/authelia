@@ -3,7 +3,6 @@ package commands
 import (
 	"errors"
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 
@@ -64,7 +63,7 @@ func NewRootCmd() (cmd *cobra.Command) {
 func (ctx *CmdCtx) RootRunE(_ *cobra.Command, _ []string) (err error) {
 	ctx.log.Infof("Authelia %s is starting", utils.Version())
 
-	if os.Getenv("ENVIRONMENT") == "dev" {
+	if utils.Dev {
 		ctx.log.Info("===> Authelia is running in development mode. <===")
 	}
 
