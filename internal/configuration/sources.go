@@ -8,7 +8,7 @@ import (
 
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/confmap"
-	"github.com/knadh/koanf/providers/env"
+	"github.com/knadh/koanf/providers/env/v2"
 	"github.com/knadh/koanf/providers/posflag"
 	"github.com/knadh/koanf/v2"
 	"github.com/spf13/pflag"
@@ -282,7 +282,7 @@ func (s *EnvironmentSource) Merge(ko *koanf.Koanf, _ *schema.StructValidator) (e
 func (s *EnvironmentSource) Load(_ *schema.StructValidator) (err error) {
 	keyMap, ignoredKeys := getEnvConfigMap(schema.Keys, s.prefix, s.delimiter, deprecations, deprecationsMKM)
 
-	return s.koanf.Load(env.ProviderWithValue(s.prefix, constDelimiter, koanfEnvironmentCallback(keyMap, ignoredKeys, s.prefix, s.delimiter)), nil)
+	return s.koanf.Load(env.Provider(constDelimiter, env.Opt{Prefix: s.prefix, TransformFunc: koanfEnvironmentCallback(keyMap, ignoredKeys, s.prefix, s.delimiter)}), nil)
 }
 
 // NewSecretsSource returns a Source configured to load from secrets.
@@ -316,7 +316,7 @@ func (s *SecretsSource) Merge(ko *koanf.Koanf, val *schema.StructValidator) (err
 func (s *SecretsSource) Load(val *schema.StructValidator) (err error) {
 	keyMap := getSecretConfigMap(schema.Keys, s.prefix, s.delimiter, deprecations)
 
-	return s.koanf.Load(env.ProviderWithValue(s.prefix, constDelimiter, koanfEnvironmentSecretsCallback(keyMap, val)), nil)
+	return s.koanf.Load(env.Provider(constDelimiter, env.Opt{Prefix: s.prefix, TransformFunc: koanfEnvironmentSecretsCallback(keyMap, val)}), nil)
 }
 
 // NewCommandLineSourceWithMapping creates a new command line configuration source with a map[string]string which converts
