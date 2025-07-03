@@ -43,13 +43,14 @@ func (s *ChangePasswordScenario) TearDownTest() {
 
 func (s *ChangePasswordScenario) TestShouldChangePassword() {
 	testCases := []struct {
-		name        string
-		username    string
-		oldPassword string
-		newPassword string
+		name         string
+		username     string
+		oldPassword  string
+		newPassword  string
+		notification string
 	}{
-		{"case1", "john", "password", "password1"},
-		{"case2", "john", "password1", "password"},
+		{"NewPassword", testUsername, testPassword, "password1", "Password changed successfully"},
+		{"OriginalPassword", testUsername, "password1", testPassword, "Password changed successfully"},
 	}
 
 	for _, tc := range testCases {
@@ -65,103 +66,63 @@ func (s *ChangePasswordScenario) TestShouldChangePassword() {
 			s.doOpenSettings(s.T(), s.Context(ctx))
 			s.doOpenSettingsMenuClickSecurity(s.T(), s.Context(ctx))
 
-			s.doChangePassword(s.T(), s.Context(ctx), tc.oldPassword, tc.newPassword, tc.newPassword)
+			s.doChangePassword(s.T(), s.Context(ctx), tc.oldPassword, tc.newPassword, tc.newPassword, tc.notification)
 			s.doLogout(s.T(), s.Context(ctx))
 		})
 	}
 }
 
-func (s *ChangePasswordScenario) TestCannotChangePasswordToExistingPassword() {
-	testCases := []struct {
-		testName    string
-		username    string
-		oldPassword string
-	}{
-		{"case1", "john", "password"},
-	}
+func (s *ChangePasswordScenario) TestShouldNotChangePasswordToExistingPassword() {
+	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
 
-	for _, tc := range testCases {
-		s.T().Run(tc.testName, func(t *testing.T) {
-			ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
-			defer func() {
-				cancel()
-				s.collectScreenshot(ctx.Err(), s.Page)
-			}()
+	s.doLoginOneFactor(s.T(), s.Context(ctx), testUsername, testPassword, false, BaseDomain, "")
+	s.doOpenSettings(s.T(), s.Context(ctx))
+	s.doOpenSettingsMenuClickSecurity(s.T(), s.Context(ctx))
 
-			s.doLoginOneFactor(s.T(), s.Context(ctx), tc.username, tc.oldPassword, false, BaseDomain, "")
-			s.doOpenSettings(s.T(), s.Context(ctx))
-			s.doOpenSettingsMenuClickSecurity(s.T(), s.Context(ctx))
+	s.doChangePassword(s.T(), s.Context(ctx), testPassword, testPassword, testPassword, "Your supplied password does not meet the password policy requirements")
 
-			s.doMustChangePasswordExistingPassword(s.T(), s.Context(ctx), tc.oldPassword)
-
-			s.doLogout(s.T(), s.Context(ctx))
-		})
-	}
+	s.doLogout(s.T(), s.Context(ctx))
 }
 
-func (s *ChangePasswordScenario) TestCannotChangePasswordWithIncorrectOldPassword() {
-	testCases := []struct {
-		testName         string
-		username         string
-		oldPassword      string
-		wrongOldPassword string
-		newPassword      string
-	}{
-		{"case1", "john", "password", "wrong_password", "new_password"},
-	}
+func (s *ChangePasswordScenario) TestShouldNotChangePasswordWithIncorrectOldPassword() {
+	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
 
-	for _, tc := range testCases {
-		s.T().Run(tc.testName, func(t *testing.T) {
-			ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
-			defer func() {
-				cancel()
-				s.collectScreenshot(ctx.Err(), s.Page)
-			}()
+	s.doLoginOneFactor(s.T(), s.Context(ctx), testUsername, testPassword, false, BaseDomain, "")
 
-			s.doLoginOneFactor(s.T(), s.Context(ctx), tc.username, tc.oldPassword, false, BaseDomain, "")
+	s.doOpenSettings(s.T(), s.Context(ctx))
 
-			s.doOpenSettings(s.T(), s.Context(ctx))
+	s.doOpenSettingsMenuClickSecurity(s.T(), s.Context(ctx))
 
-			s.doOpenSettingsMenuClickSecurity(s.T(), s.Context(ctx))
+	s.doChangePassword(s.T(), s.Context(ctx), "wrong_password", "new_password", "new_password", "Incorrect password")
 
-			s.doMustChangePasswordWrongExistingPassword(s.T(), s.Context(ctx), tc.wrongOldPassword, tc.newPassword)
-
-			s.doLogout(s.T(), s.Context(ctx))
-		})
-	}
+	s.doLogout(s.T(), s.Context(ctx))
 }
 
-func (s *ChangePasswordScenario) TestNewPasswordsMustMatch() {
-	testCases := []struct {
-		testName     string
-		username     string
-		oldPassword  string
-		newPassword1 string
-		newPassword2 string
-	}{
-		{"case1", "john", "password", "my_new_password", "new_password"},
-	}
+func (s *ChangePasswordScenario) TestShouldNotChangePasswordNewPasswordsMustMatch() {
+	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
 
-	for _, tc := range testCases {
-		s.T().Run(tc.testName, func(t *testing.T) {
-			ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+	defer func() {
+		cancel()
+		s.collectScreenshot(ctx.Err(), s.Page)
+	}()
 
-			defer func() {
-				cancel()
-				s.collectScreenshot(ctx.Err(), s.Page)
-			}()
+	s.doLoginOneFactor(s.T(), s.Context(ctx), testUsername, testPassword, false, BaseDomain, "")
 
-			s.doLoginOneFactor(s.T(), s.Context(ctx), tc.username, tc.oldPassword, false, BaseDomain, "")
+	s.doOpenSettings(s.T(), s.Context(ctx))
 
-			s.doOpenSettings(s.T(), s.Context(ctx))
+	s.doOpenSettingsMenuClickSecurity(s.T(), s.Context(ctx))
 
-			s.doOpenSettingsMenuClickSecurity(s.T(), s.Context(ctx))
+	s.doChangePassword(s.T(), s.Context(ctx), testPassword, "my_new_password", "new_password", "Passwords do not match")
 
-			s.doMustChangePasswordMustMatch(s.T(), s.Context(ctx), tc.oldPassword, tc.newPassword1, tc.newPassword2)
-
-			s.doLogout(s.T(), s.Context(ctx))
-		})
-	}
+	s.doLogout(s.T(), s.Context(ctx))
 }
