@@ -1943,7 +1943,7 @@ func (s *FirstFactorSuite) TestShouldHandleErrorCheckingKnownIP() {
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	AssertLogEntryMessageAndError(s.T(), MustGetLogLastSeq(s.T(), s.mock.Hook, 0), "Unable to check known ip '0.0.0.0' for user 'test", "database connection failed")
+	AssertLogEntryMessageAndError(s.T(), MustGetLogLastSeq(s.T(), s.mock.Hook, 0), "Unable to check known ip for user", "database connection failed")
 
 	s.mock.Assert200OK(s.T(), nil)
 }
@@ -2043,7 +2043,7 @@ func (s *FirstFactorSuite) TestShouldHandleErrorSavingNewIP() {
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
-	AssertLogEntryMessageAndError(s.T(), MustGetLogLastSeq(s.T(), s.mock.Hook, 0), "Unable to save new known ip '0.0.0.0' for user 'test'", "failed to save new IP")
+	AssertLogEntryMessageAndError(s.T(), MustGetLogLastSeq(s.T(), s.mock.Hook, 0), "UUnable to check known ip for user", "failed to save new IP")
 
 	s.mock.Assert200OK(s.T(), nil)
 }

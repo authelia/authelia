@@ -141,14 +141,7 @@ func HandleKnownIPTracking(ctx *middlewares.AutheliaCtx, userSession *session.Us
 		return
 	}
 
-	remoteIP := ctx.RequestCtx.RemoteIP()
-
-	if len(remoteIP) == 0 {
-		ctx.Logger.Errorf("Remote IP is invalid, skipping known ip notification for user '%s'", userSession.Username)
-		return
-	}
-
-	ip := model.NewIP(remoteIP)
+	ip := model.NewIP(ctx.RequestCtx.RemoteIP())
 
 	logger := ctx.Logger.WithFields(logrus.Fields{
 		"username":   userSession.Username,
@@ -177,7 +170,7 @@ func HandleKnownIPTracking(ctx *middlewares.AutheliaCtx, userSession *session.Us
 
 // handleNewIP processes a new IP address by saving it to storage and sending notification email.
 func handleNewIP(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, ip model.IP) {
-	rawUserAgent := string(ctx.RequestCtx.Request.Header.Peek("User-Agent"))
+	rawUserAgent := string(ctx.Request.Header.Peek("User-Agent"))
 	userAgent := utils.ParseUserAgent(rawUserAgent)
 
 	logger := ctx.Logger.WithFields(logrus.Fields{
