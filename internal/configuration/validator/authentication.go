@@ -595,6 +595,21 @@ func validateLDAPGroupFilter(config *schema.AuthenticationBackend, validator *sc
 }
 
 func validateKnownIP(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
+	switch config.KnownIP.ExpirationMode {
+	case "":
+		config.KnownIP.ExpirationMode = schema.DefaultKnownIPConfig.ExpirationMode
+	//nolint:goconst
+	case "absolute", "rolling", "never":
+		break
+	default:
+		validator.Push(fmt.Errorf(errFmtKnownIPInvalidExpiryMode, config.KnownIP.ExpirationMode))
+	}
+
+	// Generate warning when using "never":.
+	if config.KnownIP.ExpirationMode == "never" {
+		validator.PushWarning(errors.New("authentication_backend.known_ip.expiration_mode is set to 'never', which may lead to unbounded database growth"))
+	}
+
 	// DefaultLifespan.
 	if config.KnownIP.DefaultLifeSpan == 0 {
 		config.KnownIP.DefaultLifeSpan = schema.DefaultKnownIPConfig.DefaultLifeSpan

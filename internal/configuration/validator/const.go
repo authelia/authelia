@@ -135,11 +135,9 @@ const (
 	errFmtLDAPAuthBackendFilterMissingAttribute = "authentication_backend: ldap: attributes: option '%s' " +
 		"must be provided when using the %s placeholder but it's absent"
 
-	errFmtKnownIPDefaultLifespanTooSmall       = "authentication_backend.known_ip.default_lifespan must be greater than 0"
+	errFmtKnownIPInvalidExpiryMode             = "authentication_backend.known_ip.expiration_mode must be one of 'absolute', 'rolling', or 'never' but got '%s'"
 	errFmtKnownIPDefaultLifespanVeryLong       = "authentication_backend.known_ip.default_lifespan is very long (%s), this may lead to excessive database growth"
-	errFmtKnownIPExtensionPeriodTooSmall       = "authentication_backend.known_ip.extension_period must be at least 0"
 	errFmtKnownIPExtensionPeriodVeryLong       = "authentication_backend.known_ip.extension_period is very long (%s), this may lead to excessive database growth"
-	errFmtKnownIPMaxLifespanTooSmall           = "authentication_backend.known_ip.max_lifespan must be greater than 0"
 	errFmtKnownIPMaxLifespanSmallerThanDefault = "authentication_backend.known_ip.max_lifespan (%s) must be greater than or equal to default_lifespan (%s)"
 	errFmtKnownIPMaxLifespanVeryLong           = "authentication_backend.known_ip.max_lifespan is very long (%s), this may lead to excessive database growth"
 	errFmtKnownIPCleanupIntervalTooSmall       = "authentication_backend.known_ip.cleanup_interval must be at least 1 hour"

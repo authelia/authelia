@@ -428,6 +428,8 @@ identity_validation:
   # known_ip:
     ## Disable all ip tracking, checking, and notifications.
     # enable: false
+    ## Controls how IP expiration is calculated.
+    # expiration_mode: 'absolute'
     ## The period of time that a new ip address does not generate "login from new ip" emails.
     # default_lifespan: '30 days'
     ## The period of time that an IP's lifespan is extended when another login is detected.
@@ -438,6 +440,7 @@ identity_validation:
     # cleanup_interval: '24 hours'
     ## Enable new ip emails for private ip ranges.
     # notify_private_ranges: 'false'
+    ## List of networks that don't generate notifications.~
     # trusted_networks:
     #  - 'internal'
     #  - '123.123.234.234'

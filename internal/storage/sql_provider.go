@@ -129,11 +129,14 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlSelectUserOpaqueIdentifiers:           fmt.Sprintf(queryFmtSelectUserOpaqueIdentifiers, tableUserOpaqueIdentifier),
 		sqlSelectUserOpaqueIdentifierBySignature: fmt.Sprintf(queryFmtSelectUserOpaqueIdentifierBySignature, tableUserOpaqueIdentifier),
 
-		sqlInsertNewKnownIp:         fmt.Sprintf(queryFmtInsertNewIpAddress, tableKnownIpAddresses),
-		sqlIsIPKnownForUser:         fmt.Sprintf(queryFmtIPIsKnownForUser, tableKnownIpAddresses),
-		sqlSelectKnownIPsByUsername: fmt.Sprintf(queryFmtSelectKnownIPsByUsername, tableKnownIpAddresses),
-		sqlUpdateKnownIpByUsername:  fmt.Sprintf(queryFmtUpdateKnownIpByUsername, tableKnownIpAddresses),
-		sqlDeleteExpiredIPs:         fmt.Sprintf(queryFmtDeleteExpiredIPs, tableKnownIpAddresses),
+		sqlInsertNewKnownIp:                fmt.Sprintf(queryFmtInsertNewIpAddress, tableKnownIpAddresses),
+		sqlSelectKnownIPForUpdate:          fmt.Sprintf(queryFmtSelectKnownIPForUpdate, tableKnownIpAddresses),
+		sqlIsIPKnownForUser:                fmt.Sprintf(queryFmtIPIsKnownForUser, tableKnownIpAddresses),
+		sqlSelectKnownIPsByUsername:        fmt.Sprintf(queryFmtSelectKnownIPsByUsername, tableKnownIpAddresses),
+		sqlUpdateKnownIpByUsername:         fmt.Sprintf(queryFmtUpdateKnownIpByUsername, tableKnownIpAddresses),
+		sqlUpdateKnownIpByUsernameWithTime: fmt.Sprintf(queryFmtUpdateKnownIpByUsernameWithTime, tableKnownIpAddresses),
+		sqlUpdateKnownIpByUsernameNullDate: fmt.Sprintf(queryFmtUpdateKnownIpByUsernameNullDate, tableKnownIpAddresses),
+		sqlDeleteExpiredIPs:                fmt.Sprintf(queryFmtDeleteExpiredIPs, tableKnownIpAddresses),
 
 		sqlUpsertOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtUpsertOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
 		sqlSelectOAuth2BlacklistedJTI: fmt.Sprintf(queryFmtSelectOAuth2BlacklistedJTI, tableOAuth2BlacklistedJTI),
@@ -253,11 +256,14 @@ type SQLProvider struct {
 	sqlSelectIdentityVerification  string
 
 	// Table: known_ip_addresses.
-	sqlInsertNewKnownIp         string
-	sqlIsIPKnownForUser         string
-	sqlSelectKnownIPsByUsername string
-	sqlUpdateKnownIpByUsername  string
-	sqlDeleteExpiredIPs         string
+	sqlInsertNewKnownIp                string
+	sqlIsIPKnownForUser                string
+	sqlSelectKnownIPForUpdate          string
+	sqlSelectKnownIPsByUsername        string
+	sqlUpdateKnownIpByUsername         string
+	sqlUpdateKnownIpByUsernameWithTime string
+	sqlUpdateKnownIpByUsernameNullDate string
+	sqlDeleteExpiredIPs                string
 
 	// Table: one_time_code.
 	sqlInsertOneTimeCode            string
@@ -1036,8 +1042,7 @@ func (p *SQLProvider) IsIPKnownForUser(ctx context.Context, username string, ip 
 }
 
 func (p *SQLProvider) SaveNewIPForUser(ctx context.Context, username string, ip model.IP, userAgent uasurfer.UserAgent) (err error) {
-	// TODO: Reevaluate ttl for known ip records. Likely, session expiry is way, way too short.
-	var expiryTime = time.Now().Add(p.config.Session.Expiration)
+	var expiryTime = time.Now().Add(p.config.AuthenticationBackend.KnownIP.DefaultLifeSpan)
 
 	ipValue, err := ip.Value()
 	if err != nil {
@@ -1052,15 +1057,46 @@ func (p *SQLProvider) SaveNewIPForUser(ctx context.Context, username string, ip 
 }
 
 func (p *SQLProvider) UpdateKnownIP(ctx context.Context, username string, ip model.IP) (err error) {
-	//TODO: what is a good default value for this?
-	expiryDays := 30
-
 	ipValue, err := ip.Value()
 	if err != nil {
 		return fmt.Errorf("error converting IP to database value: %w", err)
 	}
 
-	result, err := p.db.ExecContext(ctx, p.sqlUpdateKnownIpByUsername, expiryDays, username, ipValue)
+	var result sql.Result
+
+	switch p.config.AuthenticationBackend.KnownIP.ExpirationMode {
+	case "never":
+		result, err = p.db.ExecContext(ctx, p.sqlUpdateKnownIpByUsernameNullDate, username, ipValue)
+	case "rolling":
+		days := int(p.config.AuthenticationBackend.KnownIP.DefaultLifeSpan.Hours() / 24)
+		result, err = p.db.ExecContext(ctx, p.sqlUpdateKnownIpByUsername, days, username, ipValue)
+	case "absolute":
+		// Fetch the current record to get first_seen.
+		var (
+			firstSeen        time.Time
+			currentExpiresAt *time.Time
+		)
+
+		err = p.db.QueryRowContext(ctx, p.sqlSelectKnownIPForUpdate, username, ipValue).Scan(&firstSeen, &currentExpiresAt)
+		if err != nil {
+			return fmt.Errorf("error fetching known IP record for absolute mode: %w", err)
+		}
+
+		// Calculate new expiration time.
+		proposedExpiry := time.Now().Add(p.config.AuthenticationBackend.KnownIP.ExtensionPeriod)
+		maxAllowedExpiry := firstSeen.Add(p.config.AuthenticationBackend.KnownIP.MaxLifespan)
+
+		// Use the earlier of the two times.
+		var newExpiry time.Time
+		if proposedExpiry.Before(maxAllowedExpiry) {
+			newExpiry = proposedExpiry
+		} else {
+			newExpiry = maxAllowedExpiry
+		}
+
+		result, err = p.db.ExecContext(ctx, p.sqlUpdateKnownIpByUsernameWithTime, newExpiry, username, ipValue)
+	}
+
 	if err != nil {
 		return fmt.Errorf("error updating known ip for user: %w", err)
 	}
