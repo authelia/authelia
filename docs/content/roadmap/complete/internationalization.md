@@ -16,7 +16,7 @@ seo:
   noindex: false # false (default) or true
 ---
 
-This can easily be done in the web interface and automatically adapt to the users browser.
+This can easily be done in the web interface and automatically adapt to user's browsers.
 
 ## Stages
 
@@ -34,14 +34,14 @@ This stage will add the ability to easily translate the web interface in all vie
 
 {{< roadmap-status stage="complete" >}}
 
-This stage will configure the Authelia repository to be easily translatable via a crowd sourced translation platform.
+This stage will configure the Authelia repository to be easily translatable via a crowdsourced translation platform.
 
 *__Implemented:__ You can now help translate __Authelia__ by checking out the
 [Translations Contributing Guide](../../contributing/prologue/translations.md).*
 
 ### Picker
 
-{{< roadmap-status stage="in-progress" version="v4.39.0" >}}
+{{< roadmap-status stage="complete" version="v4.39.0" >}}
 
 Add a language picker to the web interface. The picker will be a per-browser choice which overrides the browser
 language advertisement as the language of choice for that browser. The information will be stored in the browser
