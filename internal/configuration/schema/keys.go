@@ -63,6 +63,8 @@ var Keys = []string{
 	"authentication_backend.known_ip.enable",
 	"authentication_backend.known_ip.extension_period",
 	"authentication_backend.known_ip.max_lifespan",
+	"authentication_backend.known_ip.notify_private_ranges",
+	"authentication_backend.known_ip.trusted_networks",
 	"authentication_backend.ldap.additional_groups_dn",
 	"authentication_backend.ldap.additional_users_dn",
 	"authentication_backend.ldap.address",

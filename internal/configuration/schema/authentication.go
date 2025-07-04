@@ -2,6 +2,7 @@ package schema
 
 import (
 	"crypto/tls"
+	"net"
 	"net/url"
 	"time"
 )
@@ -201,18 +202,21 @@ type AuthenticationBackendLDAPAttributesAttribute struct {
 }
 
 type KnownIPConfig struct {
-	Enable          bool          `koanf:"enable" yaml:"enable" toml:"enable" json:"enable" jsonschema:"title=Enable,default=false" jsonschema_description:"Enable known ip tracking and emails."`
-	DefaultLifeSpan time.Duration `koanf:"default_lifespan" yaml:"default_lifespan,omitempty" toml:"default_lifespan,omitempty" json:"default_lifespan,omitempty" jsonschema:"title=Default Lifespan,default=30 days" jsonschema_description:"The duration that an IP address is considered known and doesn't generate emails."`
-	ExtensionPeriod time.Duration `koanf:"extension_period" yaml:"extension_period,omitempty" toml:"extension_period,omitempty" json:"extension_period,omitempty" jsonschema:"title=Extension Period,default=30 days" jsonschema_description:"The duration that a login extends the known status of an IP address."`
-	MaxLifespan     time.Duration `koanf:"max_lifespan" yaml:"max_lifespan,omitempty" toml:"max_lifespan,omitempty" json:"max_lifespan,omitempty" jsonschema:"title=Maximum Lifespan,default=90 days" jsonschema_description:"The maximum duration an IP address can remain known regardless of login frequency."`
-	CleanupInterval time.Duration `koanf:"cleanup_interval" yaml:"cleanup_interval,omitempty" toml:"cleanup_interval,omitempty" json:"cleanup_interval,omitempty" jsonschema:"title=Cleanup Interval,default=24 hours" jsonschema_description:"The frequency at which expired known IP addresses are removed from the database."`
+	Enable              bool          `koanf:"enable" yaml:"enable" toml:"enable" json:"enable" jsonschema:"title=Enable,default=false" jsonschema_description:"Enable known ip tracking and emails."`
+	DefaultLifeSpan     time.Duration `koanf:"default_lifespan" yaml:"default_lifespan,omitempty" toml:"default_lifespan,omitempty" json:"default_lifespan,omitempty" jsonschema:"title=Default Lifespan,default=30 days" jsonschema_description:"The duration that an IP address is considered known and doesn't generate emails."`
+	ExtensionPeriod     time.Duration `koanf:"extension_period" yaml:"extension_period,omitempty" toml:"extension_period,omitempty" json:"extension_period,omitempty" jsonschema:"title=Extension Period,default=30 days" jsonschema_description:"The duration that a login extends the known status of an IP address."`
+	MaxLifespan         time.Duration `koanf:"max_lifespan" yaml:"max_lifespan,omitempty" toml:"max_lifespan,omitempty" json:"max_lifespan,omitempty" jsonschema:"title=Maximum Lifespan,default=90 days" jsonschema_description:"The maximum duration an IP address can remain known regardless of login frequency."`
+	CleanupInterval     time.Duration `koanf:"cleanup_interval" yaml:"cleanup_interval,omitempty" toml:"cleanup_interval,omitempty" json:"cleanup_interval,omitempty" jsonschema:"title=Cleanup Interval,default=24 hours" jsonschema_description:"The frequency at which expired known IP addresses are removed from the database."`
+	NotifyPrivateRanges bool          `koanf:"notify_private_ranges" yaml:"notify_private_ranges,omitempty" toml:"notify_private_ranges,omitempty" json:"notify_private_ranges,omitempty" jsonschema:"default=false,title=Notify for Private IPs" jsonschema_description:"Send new ip notifications for clients connecting from a private ip."`
+	TrustedNetworks     []*net.IPNet  `koanf:"trusted_networks" yaml:"trusted_networks,omitempty" toml:"trusted_networks,omitempty" json:"trusted_networks,omitempty" jsonschema:"title=Trusted Networks" jsonschema_description:"Address ranges that will not generate new ip notifications."`
 }
 
 var DefaultKnownIPConfig = KnownIPConfig{
-	DefaultLifeSpan: time.Hour * 24 * 30, // 30 days.
-	ExtensionPeriod: time.Hour * 24 * 30, // 30 days.
-	MaxLifespan:     time.Hour * 24 * 90, // 90 days.
-	CleanupInterval: time.Hour * 24,      // 24 hours.
+	DefaultLifeSpan:     time.Hour * 24 * 30, // 30 days.
+	ExtensionPeriod:     time.Hour * 24 * 30, // 30 days.
+	MaxLifespan:         time.Hour * 24 * 90, // 90 days.
+	CleanupInterval:     time.Hour * 24,      // 24 hours.
+	NotifyPrivateRanges: false,
 }
 
 // DefaultPasswordConfig represents the default configuration related to Argon2id hashing.

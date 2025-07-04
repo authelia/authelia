@@ -2,11 +2,20 @@ package handlers
 
 import (
 	"fmt"
+	"net"
+	"net/mail"
 	"strings"
+	"time"
+
+	"github.com/avct/uasurfer"
+	"github.com/sirupsen/logrus"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/templates"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 const (
@@ -78,6 +87,7 @@ func ctxLogEvent(ctx *middlewares.AutheliaCtx, username, description string, bod
 	}
 }
 
+// redactEmail masks the local part of an email address for privacy, showing only first and last characters.
 func redactEmail(email string) string {
 	parts := strings.Split(email, "@")
 	if len(parts) != 2 {
@@ -96,4 +106,115 @@ func redactEmail(email string) string {
 	middle := strings.Repeat("*", len(localPart)-2)
 
 	return first + middle + last + "@" + domain
+}
+
+// IsIPTrusted checks if an IP address should be trusted based on private ranges and configured trusted networks.
+func IsIPTrusted(ctx *middlewares.AutheliaCtx, ip net.IP) bool {
+	if ip == nil {
+		return false
+	}
+
+	ctx.Logger.Debugf("IP %s - IgnorePrivateRanges: %t, IsPrivate: %t, IsLoopback: %t",
+		ip.String(), ctx.Configuration.AuthenticationBackend.KnownIP.NotifyPrivateRanges, ip.IsPrivate(), ip.IsLoopback())
+
+	if !ctx.Configuration.AuthenticationBackend.KnownIP.NotifyPrivateRanges && (ip.IsPrivate() || ip.IsLoopback()) {
+		return true
+	}
+
+	for i, network := range ctx.Configuration.AuthenticationBackend.KnownIP.TrustedNetworks {
+		if network.Contains(ip) {
+			ctx.Logger.Debugf("IP %s is trusted (matches configured network %s)", ip.String(), network.String())
+			return true
+		}
+
+		ctx.Logger.Debugf("IP %s does not match trusted network %d: %s", ip.String(), i, network.String())
+	}
+
+	ctx.Logger.Debugf("IP %s is not trusted", ip.String())
+
+	return false
+}
+
+// HandleKnownIPTracking manages IP tracking for user sessions, updating existing IPs or handling new ones.
+func HandleKnownIPTracking(ctx *middlewares.AutheliaCtx, userSession *session.UserSession) {
+	if !ctx.Configuration.AuthenticationBackend.KnownIP.Enable {
+		return
+	}
+
+	remoteIP := ctx.RequestCtx.RemoteIP()
+
+	if len(remoteIP) == 0 {
+		ctx.Logger.Errorf("Remote IP is invalid, skipping known ip notification for user '%s'", userSession.Username)
+		return
+	}
+
+	ip := model.NewIP(remoteIP)
+
+	logger := ctx.Logger.WithFields(logrus.Fields{
+		"username":   userSession.Username,
+		"ip_address": ip.IP.String(),
+	})
+
+	if IsIPTrusted(ctx, ip.IP) {
+		logger.Debug(logErrSkipTrustedIP)
+		return
+	}
+
+	ipExists, err := ctx.Providers.StorageProvider.IsIPKnownForUser(ctx, userSession.Username, ip)
+	if err != nil {
+		logger.WithError(err).Error(logErrCheckKnownIP)
+		return
+	}
+
+	if ipExists {
+		if err = ctx.Providers.StorageProvider.UpdateKnownIP(ctx, userSession.Username, ip); err != nil {
+			logger.WithError(err).Error(logErrUpdateKnownIP)
+		}
+	} else {
+		handleNewIP(ctx, userSession, ip)
+	}
+}
+
+// handleNewIP processes a new IP address by saving it to storage and sending notification email.
+func handleNewIP(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, ip model.IP) {
+	rawUserAgent := string(ctx.RequestCtx.Request.Header.Peek("User-Agent"))
+	userAgent := utils.ParseUserAgent(rawUserAgent)
+
+	logger := ctx.Logger.WithFields(logrus.Fields{
+		"username":   userSession.Username,
+		"ip_address": ip.IP.String(),
+	})
+
+	if err := ctx.Providers.StorageProvider.SaveNewIPForUser(ctx, userSession.Username, ip, *userAgent); err != nil {
+		logger.WithError(err).Error(logErrSaveNewKnownIP)
+		return
+	}
+
+	sendNewIPEmail(ctx, userSession, ip, userAgent, rawUserAgent)
+}
+
+// sendNewIPEmail sends an email notification to the user about a login from a new IP address.
+func sendNewIPEmail(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, ip model.IP, userAgent *uasurfer.UserAgent, rawUserAgent string) {
+	if len(userSession.Emails) == 0 {
+		ctx.Logger.Error(fmt.Errorf("user %s has no email address configured", userSession.Username))
+		ctx.ReplyOK()
+
+		return
+	}
+
+	domain, _ := ctx.GetCookieDomain()
+
+	data := templates.NewEmailNewLoginValues(userSession.DisplayName, domain, ip.String(), userAgent, rawUserAgent, time.Now())
+
+	address, _ := mail.ParseAddress(userSession.Emails[0])
+
+	ctx.Logger.Debugf("Sending an email to user %s (%s) to inform that there is a login from a new ip '%s'.",
+		userSession.Username, address.Address, ip.String())
+
+	if err := ctx.Providers.Notifier.Send(ctx, *address, "Login From New IP", ctx.Providers.Templates.GetNewLoginEmailTemplate(), data); err != nil {
+		ctx.Logger.Error(err)
+		ctx.ReplyOK()
+
+		return
+	}
 }

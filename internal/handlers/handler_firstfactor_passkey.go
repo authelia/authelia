@@ -4,16 +4,10 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"net/mail"
-	"time"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/valyala/fasthttp"
-
-	"github.com/authelia/authelia/v4/internal/utils"
-
-	"github.com/authelia/authelia/v4/internal/templates"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -356,51 +350,6 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 		HandlePasskeyResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, userSession.Groups, userSession.AuthenticationLevel(ctx.Configuration.WebAuthn.EnablePasskey2FA) == authentication.TwoFactor)
 	}
 
-	/*
-		Send New IP Email
-	*/
 	// TODO: SECURITY: How does the addition of this logic affect the authentication delay? Does the email logic modify that timing in such a way to break the timing attack mitigation?
-
-	ipAddr := model.NewIP(ctx.RequestCtx.RemoteIP())
-	ipExists, err := ctx.Providers.StorageProvider.IsIPKnownForUser(ctx, userSession.Username, ipAddr)
-
-	if err != nil {
-		ctx.Logger.WithError(err).Errorf(logFmtErrCheckKnownIP, ipAddr, userSession.Username)
-	}
-
-	if ipExists {
-		if err = ctx.Providers.StorageProvider.UpdateKnownIP(ctx, userSession.Username, ipAddr); err != nil {
-			ctx.Logger.WithError(err).Errorf(logFmtErrUpdateKnownIP, ipAddr, userSession.Username)
-		}
-	} else {
-		rawUserAgent := string(ctx.RequestCtx.Request.Header.Peek("User-Agent"))
-
-		userAgent := utils.ParseUserAgent(rawUserAgent)
-		if err = ctx.Providers.StorageProvider.SaveNewIPForUser(ctx, userSession.Username, model.NewIP(ctx.RequestCtx.RemoteIP()), *userAgent); err != nil {
-			ctx.Logger.WithError(err).Errorf(logFmtErrSaveNewKnownIP, ipAddr, userSession.Username)
-		}
-
-		if len(userSession.Emails) == 0 {
-			ctx.Logger.Error(fmt.Errorf("user %s has no email address configured", userSession.Username))
-			ctx.ReplyOK()
-
-			return
-		}
-
-		domain, _ := ctx.GetCookieDomain()
-
-		data := templates.NewEmailNewLoginValues(userSession.DisplayName, domain, ctx.RemoteIP().String(), userAgent, rawUserAgent, time.Now())
-
-		address, _ := mail.ParseAddress(userSession.Emails[0])
-
-		ctx.Logger.Debugf("Sending an email to user %s (%s) to inform that there is a login from a new ip.",
-			userSession.Username, address.Address)
-
-		if err = ctx.Providers.Notifier.Send(ctx, *address, "Login From New IP", ctx.Providers.Templates.GetNewLoginEmailTemplate(), data); err != nil {
-			ctx.Logger.Error(err)
-			ctx.ReplyOK()
-
-			return
-		}
-	}
+	HandleKnownIPTracking(ctx, &userSession)
 }

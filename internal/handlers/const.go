@@ -97,9 +97,10 @@ const (
 	logFmtErrObtainProfileDetails = "Could not obtain profile details during %s authentication for user '%s'"
 	logFmtTraceProfileDetails     = "Profile details for user '%s' => groups: %s, emails %s"
 
-	logFmtErrCheckKnownIP   = "Unable to check known ip '%s' for user '%s"
-	logFmtErrUpdateKnownIP  = "Unable to update known ip '%s' for user '%s'"
-	logFmtErrSaveNewKnownIP = "Unable to save new known ip '%s' for user '%s'"
+	logErrSkipTrustedIP  = "IP is a trusted ip, skipping email notification"
+	logErrCheckKnownIP   = "Unable to check known ip for user"
+	logErrUpdateKnownIP  = "Unable to update known ip for user"
+	logErrSaveNewKnownIP = "Unable to save new known ip for user"
 )
 
 const (

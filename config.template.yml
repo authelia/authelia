@@ -436,6 +436,11 @@ identity_validation:
     # max_lifespan: '90 days'
     ## How often expired ips are cleaned up from the database.
     # cleanup_interval: '24 hours'
+    ## Enable new ip emails for private ip ranges.
+    # notify_private_ranges: 'false'
+    # trusted_networks:
+    #  - 'internal'
+    #  - '123.123.234.234'
 
   ## The amount of time to wait before we refresh data from the authentication backend in the duration common syntax.
   ## To disable this feature set it to 'disable', this will slightly reduce security because for Authelia, users will
