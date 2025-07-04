@@ -27,9 +27,10 @@ import (
 )
 
 // NewCookieSessionAuthnStrategy creates a new CookieSessionAuthnStrategy.
-func NewCookieSessionAuthnStrategy(refresh schema.RefreshIntervalDuration) *CookieSessionAuthnStrategy {
+func NewCookieSessionAuthnStrategy(refresh schema.RefreshIntervalDuration, header bool) *CookieSessionAuthnStrategy {
 	return &CookieSessionAuthnStrategy{
 		refresh: refresh,
+		header:  header,
 	}
 }
 
@@ -83,6 +84,7 @@ func NewHeaderLegacyAuthnStrategy() *HeaderLegacyAuthnStrategy {
 
 // CookieSessionAuthnStrategy is a session cookie AuthnStrategy.
 type CookieSessionAuthnStrategy struct {
+	header  bool
 	refresh schema.RefreshIntervalDuration
 }
 
@@ -94,6 +96,12 @@ func (s *CookieSessionAuthnStrategy) Get(ctx *middlewares.AutheliaCtx, provider 
 		Type:     AuthnTypeCookie,
 		Level:    authentication.NotAuthenticated,
 		Username: anonymous,
+	}
+
+	if s.header {
+		if cookies := NewCookies(ctx.Request.Header.PeekBytes(headerCookie)); cookies != nil {
+			ctx.Response.Header.SetBytesK(headerCookie, cookies.Encode(provider.Config.Name))
+		}
 	}
 
 	if userSession, err = provider.GetSession(ctx.RequestCtx); err != nil {
