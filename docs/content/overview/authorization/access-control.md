@@ -40,7 +40,7 @@ access_control:
 ```
 
 This rule matches when the request targets the domain `dev.example.com`, the path matches the regular expression
-`^/groups/dev/.*$`, the user is a member of the `dev` group, the request comes from a client on the 192.168.2.0/24
+`^/groups/dev/.*$`, the user is a member of the `dev` group, the request comes from a client on the 192.168.1.0/24
 subnet, and the HTTP method verb is GET or POST. In that case, a two-factor policy is applied requiring the user to
 authenticate with two factors.
 
