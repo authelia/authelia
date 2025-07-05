@@ -3034,7 +3034,7 @@
         "disable_require_tls": {
           "type": "boolean",
           "title": "Disable Require TLS",
-          "description": "Disables the requirement to use TLS.",
+          "description": "Disables the requirement to use TLS. This means security critical information and SMTP auth credentials will be sent in the clear due to an unencrypted connection. While this option exists, we heavily discourage it and do not support it.",
           "default": false
         },
         "disable_html_emails": {
