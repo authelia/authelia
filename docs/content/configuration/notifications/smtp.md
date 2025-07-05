@@ -149,8 +149,15 @@ to leave this as is, but you can customize it if you have issues or you desire t
 
 {{< confkey type="boolean" default="false" required="no" >}}
 
+{{< callout context="danger" title="Security Note" icon="outline/alert-octagon" >}}
+Enabling this value will result in all emails being sent in the clear and will leak values which have a critical
+security impact. This is almost certainly an indication attackers would be able to easily perform a phishing attack
+using your SMTP server and Authelia SMTP credentials.
+{{< /callout >}}
+
 For security reasons the default settings for Authelia require the SMTP connection is encrypted by TLS. See [security]
-for more information. This option disables this measure (not recommended).
+for more information. This option disables this measure but this is highly discouraged and not a supported
+configuration.
 
 ### disable_starttls
 
