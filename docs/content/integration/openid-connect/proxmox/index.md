@@ -106,7 +106,7 @@ To configure [Proxmox] to utilize Authelia as an [OpenID Connect 1.0] Provider, 
    - Client ID: `proxmox`
    - Client Key: `insecure_secret`
    - Username Claim: `Default (subject)`
-   - Scopes: `Default (openid email profile)`
+   - Scopes: `openid email profile groups`
    - Autocreate Users: Enable if you want users to automatically be created in [Proxmox].
    - Autocreate Groups: Enable if you want groups to automatically be created in [Proxmox].
    - Groups Claim: Set to `groups` to add users to existing proxmox groups.
