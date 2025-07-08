@@ -111,7 +111,7 @@ To configure [Proxmox] to utilize Authelia as an [OpenID Connect 1.0] Provider, 
    - Autocreate Groups: Enable if you want groups to automatically be created in [Proxmox].
    - Groups Claim: Set to `groups` to add users to existing proxmox groups.
 
-{{< figure src="proxmox.png" alt="Proxmox" width="736" style="padding-right: 10px" >}}
+{{< figure src="proxmox.png" alt="Proxmox" process="resize 700x" >}}
 
 ## See Also
 
