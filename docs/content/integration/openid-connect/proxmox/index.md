@@ -118,6 +118,7 @@ To configure [Proxmox] to utilize Authelia as an [OpenID Connect 1.0] Provider, 
 - [Proxmox User Management Documentation](https://pve.proxmox.com/wiki/User_Management)
 
 [Authelia]: https://www.authelia.com
-[Proxmox]: https://www.proxmox.com/
+[Proxmox Virtual Environment]: https://pve.proxmox.com
+[Proxmox Backup Server]: https://pbs.proxmox.com
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
