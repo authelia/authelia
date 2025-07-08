@@ -23,20 +23,13 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.4](https://github.com/authelia/authelia/releases/tag/v4.38.17)
+  - [v4.39.4](https://github.com/authelia/authelia/releases/tag/v4.39.4)
 - [Proxmox Virtual Environment]
   - [v8.4.1](https://pve.proxmox.com/wiki/Roadmap#Proxmox_VE_8.4)
 - [Proxmox Backup Server]
   - [v3.4.2](https://pbs.proxmox.com/wiki/index.php/Roadmap#Proxmox_Backup_Server_3.4)
 
 {{% oidc-common %}}
-
-### Specific Notes
-
-{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-[Proxmox](https://www.proxmox.com/) requires you create the Realm before adding the provider. This is not covered in this
-guide.
-{{< /callout >}}
 
 ### Assumptions
 
@@ -56,7 +49,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Proxmox] which will
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Proxmox Virtual Environment] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -90,11 +83,11 @@ identity_providers:
 
 ### Application
 
-To configure [Proxmox] there is one method, using the [Web GUI](#web-gui).
+To configure [Proxmox Virtual Environment] there is one method, using the [Web GUI](#web-gui).
 
 #### Web GUI
 
-To configure [Proxmox] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
+To configure [Proxmox Virtual Environment] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Visit Datacenter.
 2. Visit Permission.
