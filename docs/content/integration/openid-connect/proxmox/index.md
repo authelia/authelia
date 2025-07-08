@@ -23,9 +23,11 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.38.17](https://github.com/authelia/authelia/releases/tag/v4.38.17)
-- [Proxmox]
-  - [v8.3.0](https://pve.proxmox.com/wiki/Roadmap#Proxmox_VE_8.3)
+  - [v4.39.4](https://github.com/authelia/authelia/releases/tag/v4.38.17)
+- [Proxmox Virtual Environment]
+  - [v8.4.1](https://pve.proxmox.com/wiki/Roadmap#Proxmox_VE_8.4)
+- [Proxmox Backup Server]
+  - [v3.4.2](https://pbs.proxmox.com/wiki/index.php/Roadmap#Proxmox_Backup_Server_3.4)
 
 {{% oidc-common %}}
 
@@ -76,6 +78,7 @@ identity_providers:
           - 'openid'
           - 'profile'
           - 'email'
+          - 'groups'
         response_types:
           - 'code'
         grant_types:
@@ -102,9 +105,11 @@ To configure [Proxmox] to utilize Authelia as an [OpenID Connect 1.0] Provider, 
    - Realm: `authelia`
    - Client ID: `proxmox`
    - Client Key: `insecure_secret`
-   - Username Claim `preferred_username`
-   - Scopes: `openid profile email`
+   - Username Claim: `Default (subject)`
+   - Scopes: `Default (openid email profile)`
    - Autocreate Users: Enable if you want users to automatically be created in [Proxmox].
+   - Autocreate Groups: Enable if you want groups to automatically be created in [Proxmox].
+   - Groups Claim: Set to `groups` to add users to existing proxmox groups.
 
 {{< figure src="proxmox.png" alt="Proxmox" width="736" style="padding-right: 10px" >}}
 
