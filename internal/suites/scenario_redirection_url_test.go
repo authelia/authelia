@@ -30,8 +30,7 @@ func (s *RedirectionURLScenario) SetupSuite() {
 }
 
 func (s *RedirectionURLScenario) TearDownSuite() {
-	err := s.RodSession.Stop()
-
+	err := s.Stop()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -49,6 +48,7 @@ func (s *RedirectionURLScenario) TearDownTest() {
 
 func (s *RedirectionURLScenario) TestShouldVerifyCustomURLParametersArePropagatedAfterRedirection() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)

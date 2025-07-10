@@ -19,13 +19,13 @@ import (
 	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/session"
 	"github.com/authelia/authelia/v4/internal/templates"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // ServeTemplatedFile serves a templated version of a specified file,
 // this is utilised to pass information between the backend and frontend
 // and generate a nonce to support a restrictive CSP while using material-ui.
 func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middlewares.RequestHandler {
-	isDevEnvironment := os.Getenv(environment) == dev
 	ext := path.Ext(t.Name())
 
 	return func(ctx *middlewares.AutheliaCtx) {
@@ -55,7 +55,7 @@ func ServeTemplatedFile(t templates.Template, opts *TemplatedFileOptions) middle
 		switch {
 		case ctx.Configuration.Server.Headers.CSPTemplate != "":
 			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, strings.ReplaceAll(string(ctx.Configuration.Server.Headers.CSPTemplate), placeholderCSPNonce, nonce))
-		case isDevEnvironment:
+		case utils.Dev:
 			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(tmplCSPDevelopment, nonce))
 		default:
 			ctx.Response.Header.Add(fasthttp.HeaderContentSecurityPolicy, fmt.Sprintf(tmplCSPDefault, nonce))
@@ -243,7 +243,7 @@ func writeHealthCheckEnv(disabled bool, scheme, host, path string, port uint16) 
 		path = ""
 	}
 
-	_, err = file.WriteString(fmt.Sprintf(healthCheckEnv, scheme, host, port, path))
+	_, err = fmt.Fprintf(file, healthCheckEnv, scheme, host, port, path)
 
 	return err
 }
@@ -262,13 +262,13 @@ func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileO
 		PrivacyPolicyAccept:     strFalse,
 		Session:                 "",
 		Theme:                   config.Theme,
-		EndpointsPasswordReset:  !(config.AuthenticationBackend.PasswordReset.Disable || config.AuthenticationBackend.PasswordReset.CustomURL.String() != ""),
+		EndpointsPasswordReset:  !config.AuthenticationBackend.PasswordReset.Disable && config.AuthenticationBackend.PasswordReset.CustomURL.String() == "",
 		EndpointsPasswordChange: !config.AuthenticationBackend.PasswordChange.Disable,
 		EndpointsWebAuthn:       !config.WebAuthn.Disable,
 		EndpointsPasskeys:       !config.WebAuthn.Disable && config.WebAuthn.EnablePasskeyLogin,
 		EndpointsTOTP:           !config.TOTP.Disable,
 		EndpointsDuo:            !config.DuoAPI.Disable,
-		EndpointsOpenIDConnect:  !(config.IdentityProviders.OIDC == nil),
+		EndpointsOpenIDConnect:  config.IdentityProviders.OIDC != nil,
 		EndpointsAuthz:          config.Server.Endpoints.Authz,
 	}
 

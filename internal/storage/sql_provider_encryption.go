@@ -363,7 +363,6 @@ func schemaEncryptionCheckKeyOneTimeCode(ctx context.Context, provider *SQLProvi
 		rows *sqlx.Rows
 		err  error
 	)
-
 	if rows, err = provider.db.QueryxContext(ctx, fmt.Sprintf(queryFmtSelectOTCEncryptedData, tableOneTimeCode)); err != nil {
 		return tableOneTimeCode, EncryptionValidationTableResult{Error: fmt.Errorf("error selecting one time-codes: %w", err)}
 	}
@@ -394,7 +393,6 @@ func schemaEncryptionCheckKeyTOTP(ctx context.Context, provider *SQLProvider) (t
 		rows *sqlx.Rows
 		err  error
 	)
-
 	if rows, err = provider.db.QueryxContext(ctx, fmt.Sprintf(queryFmtSelectTOTPConfigurationsEncryptedData, tableTOTPConfigurations)); err != nil {
 		return tableTOTPConfigurations, EncryptionValidationTableResult{Error: fmt.Errorf("error selecting TOTP configurations: %w", err)}
 	}
@@ -425,7 +423,6 @@ func schemaEncryptionCheckKeyWebAuthn(ctx context.Context, provider *SQLProvider
 		rows *sqlx.Rows
 		err  error
 	)
-
 	if rows, err = provider.db.QueryxContext(ctx, fmt.Sprintf(queryFmtSelectWebAuthnCredentialsEncryptedData, tableWebAuthnCredentials)); err != nil {
 		return tableWebAuthnCredentials, EncryptionValidationTableResult{Error: fmt.Errorf("error selecting WebAuthn credentials: %w", err)}
 	}
@@ -460,7 +457,6 @@ func schemaEncryptionCheckKeyCachedData(ctx context.Context, provider *SQLProvid
 		rows *sqlx.Rows
 		err  error
 	)
-
 	if rows, err = provider.db.QueryxContext(ctx, provider.db.Rebind(fmt.Sprintf(queryFmtSelectCachedDataValueEncrypted, tableCachedData)), true); err != nil {
 		return tableCachedData, EncryptionValidationTableResult{Error: fmt.Errorf("error selecting cached data: %w", err)}
 	}
@@ -492,7 +488,6 @@ func schemaEncryptionCheckKeyOpenIDConnect(typeOAuth2Session OAuth2SessionType) 
 			rows *sqlx.Rows
 			err  error
 		)
-
 		if rows, err = provider.db.QueryxContext(ctx, fmt.Sprintf(queryFmtSelectOAuth2SessionEncryptedData, typeOAuth2Session.Table())); err != nil {
 			return typeOAuth2Session.Table(), EncryptionValidationTableResult{Error: fmt.Errorf("error selecting oauth2 %s sessions: %w", typeOAuth2Session.String(), err)}
 		}
@@ -524,7 +519,6 @@ func schemaEncryptionCheckKeyEncryption(ctx context.Context, provider *SQLProvid
 		rows *sqlx.Rows
 		err  error
 	)
-
 	if rows, err = provider.db.QueryxContext(ctx, fmt.Sprintf(queryFmtSelectEncryptionEncryptedData, tableEncryption)); err != nil {
 		return tableEncryption, EncryptionValidationTableResult{Error: fmt.Errorf("error selecting encryption values: %w", err)}
 	}
@@ -592,7 +586,6 @@ func (p *SQLProvider) getHMACKey(ctx context.Context, name string, size int) (ke
 			key = make([]byte, size)
 
 			_, err = rand.Read(key)
-
 			if err != nil {
 				return nil, fmt.Errorf("failed to generate hmac key: %w", err)
 			}

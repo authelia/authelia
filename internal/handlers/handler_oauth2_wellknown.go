@@ -23,7 +23,6 @@ func WellKnownOAuthAuthorizationServerGET(ctx *middlewares.AutheliaCtx) {
 		issuer *url.URL
 		err    error
 	)
-
 	if issuer, err = ctx.IssuerURL(); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred determining issuer")
 

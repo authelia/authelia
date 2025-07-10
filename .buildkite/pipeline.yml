@@ -3,6 +3,10 @@
 # It is used to ensure that insecure code from external PR cannot be executed before a maintainers approval, to avoid
 # secret leaks.
 steps:
+  # Manual intervention by team required to deploy for forked PRs (prevent secret leakage).
+  - block: "Public fork needs approval"
+    if: build.pull_request.repository.fork == true
+
   # Blocking pipeline for master branch deployments (concurrency_group).
   - label: ":pipeline: Setup Pipeline"
     command: ".buildkite/pipeline.sh | buildkite-agent pipeline upload"
@@ -16,11 +20,7 @@ steps:
     if: build.branch != "master"
 
   - wait:  # yamllint disable-line rule:empty-values
-    if: build.pull_request.repository.fork != true && build.branch !~ /^(dependabot|renovate)\/.*/ && build.message !~ /^docs/  # yamllint disable-line rule:line-length
-
-  # Manual intervention by team required to deploy for forked PRs (prevent secret leakage).
-  - block: "Public fork needs approval"
-    if: build.pull_request.repository.fork == true
+    if: build.branch !~ /^(dependabot|renovate)\/.*/ && build.message !~ /^docs/  # yamllint disable-line rule:line-length
 
   # Blocking deployment for master branch deployments (concurrency_group).
   - label: ":rocket: Setup Deployment"

@@ -21,7 +21,6 @@ func UserInfoPOST(ctx *middlewares.AutheliaCtx) {
 		userInfo    model.UserInfo
 		err         error
 	)
-
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.WithError(err).Error("Error occurred retrieving user session")
 
@@ -83,7 +82,6 @@ func UserInfoGET(ctx *middlewares.AutheliaCtx) {
 		userSession session.UserSession
 		err         error
 	)
-
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.WithError(err).Error("Error occurred retrieving user session")
 
@@ -120,7 +118,6 @@ func MethodPreferencePOST(ctx *middlewares.AutheliaCtx) {
 		userSession session.UserSession
 		err         error
 	)
-
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.WithError(err).Error("Error occurred retrieving user session")
 

@@ -27,8 +27,7 @@ func (s *PasswordComplexityScenario) SetupSuite() {
 }
 
 func (s *PasswordComplexityScenario) TearDownSuite() {
-	err := s.RodSession.Stop()
-
+	err := s.Stop()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -46,6 +45,7 @@ func (s *PasswordComplexityScenario) TearDownTest() {
 
 func (s *PasswordComplexityScenario) TestShouldRejectPasswordReset() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)

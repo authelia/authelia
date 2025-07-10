@@ -3,7 +3,6 @@ package commands
 import (
 	"errors"
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 
@@ -64,7 +63,7 @@ func NewRootCmd() (cmd *cobra.Command) {
 func (ctx *CmdCtx) RootRunE(_ *cobra.Command, _ []string) (err error) {
 	ctx.log.Infof("Authelia %s is starting", utils.Version())
 
-	if os.Getenv("ENVIRONMENT") == "dev" {
+	if utils.Dev {
 		ctx.log.Info("===> Authelia is running in development mode. <===")
 	}
 
@@ -90,7 +89,6 @@ func (ctx *CmdCtx) RootRunE(_ *cobra.Command, _ []string) (err error) {
 
 	if err = ctx.providers.StartupChecks(ctx, true); err != nil {
 		var scerr *middlewares.ErrProviderStartupCheck
-
 		if errors.As(err, &scerr) {
 			ctx.GetLogger().WithField("providers", scerr.Failed()).Fatalf("One or more providers had fatal failures performing startup checks, for more details check the error level logs")
 		} else {

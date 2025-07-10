@@ -275,6 +275,9 @@
     ## Enable the metadata fetch behaviour.
     # enabled: false
 
+    ## Configure the Cache Policy for the Metadata Service.
+    # cache_policy: 'strict'
+
     ## Enable Validation of the Trust Anchor. This generally should be enabled if you're using the metadata. It
     ## ensures the attestation certificate presented by the authenticator is valid against the MDS3 certificate that
     ## issued the attestation certificate.

@@ -29,8 +29,7 @@ func (s *UserPreferencesScenario) SetupSuite() {
 }
 
 func (s *UserPreferencesScenario) TearDownSuite() {
-	err := s.RodSession.Stop()
-
+	err := s.Stop()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -48,6 +47,7 @@ func (s *UserPreferencesScenario) TearDownTest() {
 
 func (s *UserPreferencesScenario) TestShouldRememberLastUsed2FAMethod() {
 	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)

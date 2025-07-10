@@ -12,9 +12,9 @@
 	"author": "Authelia",
 	"license": "Apache-2.0",
 	"dependencies": {
-		"@react-email/components": "0.0.42",
+		"@react-email/components": "0.2.0",
 		"@react-email/render": "1.1.3",
-		"esbuild": "0.25.5",
+		"esbuild": "0.25.6",
 		"react": "19.1.0",
 		"react-dom": "19.1.0",
 		"react-email": "4.0.17",
@@ -24,22 +24,23 @@
 	},
 	"devDependencies": {
 		"@radix-ui/colors": "3.0.0",
-		"@types/node": "22.15.34",
+		"@types/node": "24.0.11",
 		"@types/react": "19.1.8",
 		"@types/react-dom": "19.1.6",
-		"eslint": "9.28.0",
-		"tsx": "4.19.4",
+		"eslint": "9.30.1",
+		"tsx": "4.20.3",
 		"vitest": "3.2.4"
 	},
 	"pnpm": {
 		"overrides": {
-			"@babel/traverse": "7.27.7",
+			"@babel/traverse": "7.28.0",
 			"@babel/helpers": "7.27.6",
 			"@babel/runtime": "7.27.6",
-			"esbuild": "0.25.5",
+			"brace-expansion": "4.0.1",
+			"esbuild": "0.25.6",
 			"nanoid": "5.1.5",
 			"prismjs": "1.30.0",
-			"vite": "6.3.5"
+			"vite": "7.0.3"
 		}
 	}
 }

@@ -480,6 +480,7 @@ var Keys = []string{
 	"webauthn.filtering.permitted_aaguids",
 	"webauthn.filtering.prohibit_backup_eligibility",
 	"webauthn.filtering.prohibited_aaguids",
+	"webauthn.metadata.cache_policy",
 	"webauthn.metadata.enabled",
 	"webauthn.metadata.validate_entry",
 	"webauthn.metadata.validate_entry_permit_zero_aaguid",

@@ -232,7 +232,6 @@ func (e *UserAttributesExpressions) Resolve(name string, detailer UserDetailer, 
 			val ref.Val
 			err error
 		)
-
 		if val, _, err = program.Eval(activation); err != nil {
 			return nil, false
 		}

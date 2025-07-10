@@ -37,7 +37,7 @@ func newDockerCmd() (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.AddCommand(newDockerBuildCmd(), newDockerPushManifestCmd())
+	cmd.AddCommand(newDockerBuildCmd(), newDockerPushManifestCmd(), newDockerPushReadmeCmd())
 
 	return cmd
 }
@@ -74,18 +74,43 @@ func newDockerPushManifestCmd() (cmd *cobra.Command) {
 	return cmd
 }
 
+func newDockerPushReadmeCmd() (cmd *cobra.Command) {
+	cmd = &cobra.Command{
+		Use: "push-readme",
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			var token string
+
+			if cmd.Flags().Changed("token") {
+				if token, err = cmd.Flags().GetString("token"); err != nil {
+					return err
+				}
+			} else {
+				token = os.Getenv("DOCKER_TOKEN")
+			}
+
+			docker := &Docker{}
+
+			return docker.PublishReadmeWithToken(token)
+		},
+	}
+
+	cmd.Flags().String("token", "", "docker auth token")
+
+	return cmd
+}
+
 func cmdDockerBuildRun(_ *cobra.Command, _ []string) {
 	log.Infof("Building Docker image %s...", DockerImageName)
 	checkContainerIsSupported(container)
-	err := dockerBuildOfficialImage(container)
 
+	err := dockerBuildOfficialImage(container)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	docker := &Docker{}
-	err = docker.Tag(IntermediateDockerImageName, DockerImageName)
 
+	err = docker.Tag(IntermediateDockerImageName, DockerImageName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -174,8 +199,8 @@ func login(docker *Docker, registry string) {
 	}
 
 	log.Infof("Login to %s as %s", registry, username)
-	err := docker.Login(username, password, registry)
 
+	err := docker.Login(username, password, registry)
 	if err != nil {
 		log.Fatalf("Login to %s failed: %s", registry, err)
 	}

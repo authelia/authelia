@@ -35,8 +35,7 @@ func (s *HighAvailabilityWebDriverSuite) SetupSuite() {
 }
 
 func (s *HighAvailabilityWebDriverSuite) TearDownSuite() {
-	err := s.RodSession.Stop()
-
+	err := s.Stop()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -54,6 +53,7 @@ func (s *HighAvailabilityWebDriverSuite) TearDownTest() {
 
 func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActive() {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -70,6 +70,7 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActive() {
 
 func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrimaryRedisNodeFailure() {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -107,6 +108,7 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 
 func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrimaryRedisSentinelFailureAndSecondaryRedisNodeFailure() {
 	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -146,6 +148,7 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserSessionActiveWithPrim
 
 func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserDataInDB() {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -165,6 +168,7 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldKeepUserDataInDB() {
 
 func (s *HighAvailabilityWebDriverSuite) TestShouldKeepSessionAfterAutheliaRestart() {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)
@@ -254,6 +258,7 @@ func (s *HighAvailabilityWebDriverSuite) TestShouldVerifyAccessControl() {
 	verifyAuthorization := func(username string) func(t *testing.T) {
 		return func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
 			defer func() {
 				s.collectScreenshot(ctx.Err(), s.Page)
 				cancel()

@@ -23,18 +23,13 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.38.17](https://github.com/authelia/authelia/releases/tag/v4.38.17)
-- [Proxmox]
-  - [v8.3.0](https://pve.proxmox.com/wiki/Roadmap#Proxmox_VE_8.3)
+  - [v4.39.4](https://github.com/authelia/authelia/releases/tag/v4.39.4)
+- [Proxmox Virtual Environment]
+  - [v8.4.1](https://pve.proxmox.com/wiki/Roadmap#Proxmox_VE_8.4)
+- [Proxmox Backup Server]
+  - [v3.4.2](https://pbs.proxmox.com/wiki/index.php/Roadmap#Proxmox_Backup_Server_3.4)
 
 {{% oidc-common %}}
-
-### Specific Notes
-
-{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-[Proxmox](https://www.proxmox.com/) requires you create the Realm before adding the provider. This is not covered in this
-guide.
-{{< /callout >}}
 
 ### Assumptions
 
@@ -54,7 +49,7 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Proxmox] which will
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Proxmox Virtual Environment] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -76,6 +71,7 @@ identity_providers:
           - 'openid'
           - 'profile'
           - 'email'
+          - 'groups'
         response_types:
           - 'code'
         grant_types:
@@ -87,11 +83,11 @@ identity_providers:
 
 ### Application
 
-To configure [Proxmox] there is one method, using the [Web GUI](#web-gui).
+To configure [Proxmox Virtual Environment] there is one method, using the [Web GUI](#web-gui).
 
 #### Web GUI
 
-To configure [Proxmox] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
+To configure [Proxmox Virtual Environment] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Visit Datacenter.
 2. Visit Permission.
@@ -102,17 +98,20 @@ To configure [Proxmox] to utilize Authelia as an [OpenID Connect 1.0] Provider, 
    - Realm: `authelia`
    - Client ID: `proxmox`
    - Client Key: `insecure_secret`
-   - Username Claim `preferred_username`
-   - Scopes: `openid profile email`
+   - Username Claim: `Default (subject)`
+   - Scopes: `openid email profile groups`
    - Autocreate Users: Enable if you want users to automatically be created in [Proxmox].
+   - Autocreate Groups: Enable if you want groups to automatically be created in [Proxmox].
+   - Groups Claim: Set to `groups` to add users to existing proxmox groups.
 
-{{< figure src="proxmox.png" alt="Proxmox" width="736" style="padding-right: 10px" >}}
+{{< figure src="proxmox.png" alt="Proxmox" process="resize 600x" >}}
 
 ## See Also
 
 - [Proxmox User Management Documentation](https://pve.proxmox.com/wiki/User_Management)
 
 [Authelia]: https://www.authelia.com
-[Proxmox]: https://www.proxmox.com/
+[Proxmox Virtual Environment]: https://pve.proxmox.com
+[Proxmox Backup Server]: https://pbs.proxmox.com
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

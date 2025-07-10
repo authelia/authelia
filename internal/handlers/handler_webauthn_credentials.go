@@ -39,7 +39,6 @@ func WebAuthnCredentialsGET(ctx *middlewares.AutheliaCtx) {
 		origin      *url.URL
 		err         error
 	)
-
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred loading WebAuthn credentials: %s", errStrUserSessionData)
 
@@ -94,7 +93,6 @@ func WebAuthnCredentialPUT(ctx *middlewares.AutheliaCtx) {
 
 		err error
 	)
-
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred modifying WebAuthn credential: %s", errStrUserSessionData)
 
@@ -211,7 +209,6 @@ func WebAuthnCredentialDELETE(ctx *middlewares.AutheliaCtx) {
 		userSession session.UserSession
 		err         error
 	)
-
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred deleting WebAuthn credential: %s", errStrUserSessionData)
 

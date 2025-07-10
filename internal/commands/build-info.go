@@ -41,19 +41,19 @@ func (ctx *CmdCtx) BuildInfoRunE(cmd *cobra.Command, _ []string) (err error) {
 
 	b := &strings.Builder{}
 
-	b.WriteString(fmt.Sprintf(fmtAutheliaBuild, utils.BuildTag, utils.BuildState, utils.BuildBranch, utils.BuildCommit,
-		utils.BuildNumber, runtime.GOOS, runtime.GOARCH, runtime.Compiler, utils.BuildDate, utils.BuildExtra))
+	fmt.Fprintf(b, fmtAutheliaBuild, utils.BuildTag, utils.BuildState, utils.BuildBranch, utils.BuildCommit,
+		utils.BuildNumber, runtime.GOOS, runtime.GOARCH, runtime.Compiler, utils.BuildDate, utils.Dev, utils.BuildExtra)
 
 	var verbose bool
 
-	b.WriteString(fmt.Sprintf("\n"+fmtAutheliaBuildGo, info.GoVersion, info.Main.Path, info.Path))
+	fmt.Fprintf(b, "\n"+fmtAutheliaBuildGo, info.GoVersion, info.Main.Path, info.Path)
 
 	if verbose, err = cmd.Flags().GetBool("verbose"); err == nil && verbose {
 		if len(info.Settings) != 0 {
 			b.WriteString("    Settings:\n")
 
 			for _, setting := range info.Settings {
-				b.WriteString(fmt.Sprintf("        %s: %s\n", setting.Key, setting.Value))
+				fmt.Fprintf(b, "        %s: %s\n", setting.Key, setting.Value)
 			}
 		}
 
@@ -61,7 +61,7 @@ func (ctx *CmdCtx) BuildInfoRunE(cmd *cobra.Command, _ []string) (err error) {
 			b.WriteString("    Dependencies:\n")
 
 			for _, dep := range info.Deps {
-				b.WriteString(fmt.Sprintf("        %s@%s (%s)\n", dep.Path, dep.Version, dep.Sum))
+				fmt.Fprintf(b, "        %s@%s (%s)\n", dep.Path, dep.Version, dep.Sum)
 			}
 		}
 	}

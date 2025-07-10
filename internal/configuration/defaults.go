@@ -3,6 +3,7 @@ package configuration
 var defaults = map[string]any{
 	"webauthn.selection_criteria.discoverability":                  "preferred",
 	"webauthn.selection_criteria.user_verification":                "preferred",
+	"webauthn.metadata.cache_policy":                               "strict",
 	"server.endpoints.rate_limits.reset_password_start.enable":     true,
 	"server.endpoints.rate_limits.reset_password_finish.enable":    true,
 	"server.endpoints.rate_limits.second_factor_totp.enable":       true,

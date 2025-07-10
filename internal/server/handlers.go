@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"os"
 	"path"
 	"strings"
 	"time"
@@ -337,7 +336,7 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 	if !config.DuoAPI.Disable {
 		var duoAPI duo.API
 
-		if os.Getenv("ENVIRONMENT") == dev {
+		if utils.Dev {
 			duoAPI = duo.NewDuoAPI(duoapi.NewDuoApi(
 				config.DuoAPI.IntegrationKey,
 				config.DuoAPI.SecretKey,

@@ -30,8 +30,7 @@ func (s *RegulationScenario) SetupSuite() {
 }
 
 func (s *RegulationScenario) TearDownSuite() {
-	err := s.RodSession.Stop()
-
+	err := s.Stop()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -49,6 +48,7 @@ func (s *RegulationScenario) TearDownTest() {
 
 func (s *RegulationScenario) TestShouldBanUserAfterTooManyAttempt() {
 	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectScreenshot(ctx.Err(), s.Page)

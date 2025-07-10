@@ -36,12 +36,13 @@ func (s *TraefikSuite) TestResetPasswordScenario() {
 
 func (s *TraefikSuite) TestShouldKeepSessionAfterRedisRestart() {
 	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+
 	defer func() {
 		cancel()
 		s.collectCoverage(s.Page)
 		s.collectScreenshot(ctx.Err(), s.Page)
 		s.MustClose()
-		err := s.RodSession.Stop()
+		err := s.Stop()
 		s.Require().NoError(err)
 	}()
 

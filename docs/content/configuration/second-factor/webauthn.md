@@ -221,6 +221,16 @@ service blob which will utilize about 5MB of data in your configured [storage](.
 By default to prevent breaking changes this value is false. It's recommended however users take the time to configure
 it now that it's available.
 
+#### cache_policy
+
+{{< confkey type="string" default="strict" required="no" >}}
+
+Changes the mode by which the metadata service cache operates. The options are `strict` and `relaxed`. The `strict`
+policy will try to download a fresh copy at startup and will error if this is not possible. The `relaxed` policy
+will still try to download a fresh copy at startup, however provided there is a cached version of the metadata service
+data and it's not expired, it will just log an error if the metadata service returns a `429 Too Many Requests` status
+code.
+
 #### validate_trust_anchor
 
 {{< confkey type="boolean" default="true" required="no" >}}

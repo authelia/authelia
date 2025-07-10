@@ -67,7 +67,7 @@ func (n *FileNotifier) Send(_ context.Context, recipient mail.Address, subject s
 
 	w := bufio.NewWriter(f)
 
-	if _, err = w.WriteString(fmt.Sprintf(fileNotifierHeader, time.Now(), recipient, subject)); err != nil {
+	if _, err = fmt.Fprintf(w, fileNotifierHeader, time.Now(), recipient, subject); err != nil {
 		return fmt.Errorf("failed to write to the buffer: %w", err)
 	}
 

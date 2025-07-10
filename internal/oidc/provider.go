@@ -27,7 +27,7 @@ func NewOpenIDConnectProvider(config *schema.Configuration, store storage.Provid
 
 	provider.Provider = oauthelia2.New(provider.Store, provider.Config)
 
-	provider.Config.LoadHandlers(provider.Store)
+	provider.LoadHandlers(provider.Store)
 
 	provider.discovery = NewOpenIDConnectWellKnownConfiguration(config.IdentityProviders.OIDC)
 

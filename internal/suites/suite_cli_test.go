@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -57,8 +58,9 @@ func (s *CLISuite) TestShouldPrintBuildInformation() {
 	s.Contains(output, "Build OS: ")
 	s.Contains(output, "Build Arch: ")
 	s.Contains(output, "Build Date: ")
+	s.Contains(output, "Development: ")
 
-	r := regexp.MustCompile(`^Last Tag: v\d+\.\d+\.\d+\nState: (tagged|untagged) (clean|dirty)\nBranch: [^\s\n]+\nCommit: [0-9a-f]{40}\nBuild Number: \d+\nBuild OS: (linux|darwin|windows|freebsd)\nBuild Arch: (amd64|arm|arm64)\nBuild Compiler: gc\nBuild Date: (Sun|Mon|Tue|Wed|Thu|Fri|Sat), \d{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} [+-]\d{4}\nExtra: \n\nGo:\n\s+Version: go\d+\.\d+\.\d+ X:nosynchashtriemap\n\s+Module Path: github.com/authelia/authelia/v4\n\s+Executable Path: github.com/authelia/authelia/v4/cmd/authelia`)
+	r := regexp.MustCompile(`^Last Tag: v\d+\.\d+\.\d+\nState: (tagged|untagged) (clean|dirty)\nBranch: [^\s\n]+\nCommit: [0-9a-f]{40}\nBuild Number: \d+\nBuild OS: (linux|darwin|windows|freebsd)\nBuild Arch: (amd64|arm|arm64)\nBuild Compiler: gc\nBuild Date: (Sun|Mon|Tue|Wed|Thu|Fri|Sat), \d{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} [+-]\d{4}\nDevelopment: (true|false)\nExtra: \n\nGo:\n\s+Version: go\d+\.\d+\.\d+ X:nosynchashtriemap\n\s+Module Path: github.com/authelia/authelia/v4\n\s+Executable Path: github.com/authelia/authelia/v4/cmd/authelia`)
 	s.Regexp(r, output)
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", "build-info", "-v"})
@@ -70,6 +72,7 @@ func (s *CLISuite) TestShouldPrintBuildInformation() {
 	s.Contains(output, "Build OS: ")
 	s.Contains(output, "Build Arch: ")
 	s.Contains(output, "Build Date: ")
+	s.Contains(output, "Development: ")
 
 	s.Regexp(r, output)
 }
@@ -1293,6 +1296,15 @@ func (s *CLISuite) TestStorage07CacheMDS3() {
 	reUpdated := regexp.MustCompile(`^WebAuthn MDS3 cache data updated to version (\d+) and is due for update on ([A-Za-z]+ \d{1,2}, \d{4}).`)
 	reAlreadyUpToDate := regexp.MustCompile(`^WebAuthn MDS3 cache data with version (\d+) due for update on ([A-Za-z]+ \d{1,2}, \d{4}) does not require an update.`)
 
+	var updateArgs []string
+
+	mds3 := filepath.Join("/buildkite/.cache/fido/", "mds.jwt")
+
+	_, err = os.Stat(mds3)
+	if err == nil {
+		updateArgs = append(updateArgs, "--path="+strings.Replace(mds3, "/buildkite/.cache/fido/", "/tmp/", 1))
+	}
+
 	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "update"}, env)
 	s.NoError(err)
 	s.Regexp(reUpdated, output)
@@ -1302,13 +1314,13 @@ func (s *CLISuite) TestStorage07CacheMDS3() {
 	version := matches[1]
 	date := matches[2]
 
-	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "update"}, env)
+	output, err = s.ExecWithEnv("authelia-backend", append([]string{"authelia", "storage", "cache", "mds3", "update"}, updateArgs...), env)
 	s.NoError(err)
 	s.Regexp(reAlreadyUpToDate, output)
 	s.Contains(output, version)
 	s.Contains(output, date)
 
-	output, err = s.ExecWithEnv("authelia-backend", []string{"authelia", "storage", "cache", "mds3", "update", "-f"}, env)
+	output, err = s.ExecWithEnv("authelia-backend", append([]string{"authelia", "storage", "cache", "mds3", "update", "-f"}, updateArgs...), env)
 	s.NoError(err)
 	s.Regexp(reUpdated, output)
 

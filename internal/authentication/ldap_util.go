@@ -113,7 +113,6 @@ func ldapGetReferral(err error) (referral string, ok bool) {
 
 func getLDAPResultCode(err error) int {
 	var e *ldap.Error
-
 	if errors.As(err, &e) {
 		return int(e.ResultCode)
 	}
