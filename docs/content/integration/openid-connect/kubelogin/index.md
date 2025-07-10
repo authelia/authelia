@@ -93,6 +93,63 @@ The method for configuring API server arguments varies by Kubernetes distributio
 - kubeadm: Edit `/etc/kubernetes/manifests/kube-apiserver.yaml`
 - Managed services: Use provider-specific tools (AWS CLI, gcloud, az cli)
 
+### RBAC Configuration
+
+After configuring OIDC authentication, create RBAC rules to authorize your users. Choose the approach that fits your needs:
+
+#### Group-Based Access
+
+```yaml {title="group-rbac.yaml"}
+# Admins group - full cluster access
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: authelia-admins
+subjects:
+- kind: Group
+  name: admins
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin # NOTE this role gives COMPLETE access to the kubernetes api
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Developers group - namespace-specific access
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: authelia-developers
+  namespace: development
+subjects:
+- kind: Group
+  name: developers
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: edit
+  apiGroup: rbac.authorization.k8s.io
+```
+
+#### Per User Access
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: authelia-user-admin
+subjects:
+- kind: User
+  name: "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}#your-user-sub-claim"
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin # NOTE this role gives COMPLETE access to the kubernetes api
+  apiGroup: rbac.authorization.k8s.io
+```
+
+**Note:** You can obtain all user `sub` identifiers using the following command: `authelia storage user identifiers export`
+
 ### Client Configuration (kubectl + kubelogin)
 
 #### Install Required Tools
@@ -129,64 +186,12 @@ kubectl config set-context authelia \
 kubectl config use-context authelia
 ```
 
-### RBAC Configuration
-
-After configuring OIDC authentication, create RBAC rules to authorize your users. Choose the approach that fits your needs:
-
-#### Group-Based Access
-
-For organizations with multiple users, use Authelia groups:
-
-```yaml {title="group-rbac.yaml"}
-# Admins group - full cluster access
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: authelia-admins
-subjects:
-- kind: Group
-  name: admins
-  apiGroup: rbac.authorization.k8s.io
-roleRef:
-  kind: ClusterRole
-  name: cluster-admin
-  apiGroup: rbac.authorization.k8s.io
-
----
-# Developers group - namespace-specific access
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: authelia-developers
-  namespace: development
-subjects:
-- kind: Group
-  name: developers
-  apiGroup: rbac.authorization.k8s.io
-roleRef:
-  kind: ClusterRole
-  name: edit
-  apiGroup: rbac.authorization.k8s.io
+#### Testing the Configuration
+```bash
+# This should start the OIDC authentication flow in your browser.
+kubectl get nodes
 ```
 
-#### Individual User Access
-
-For single users or testing:
-
-```yaml
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: authelia-user-admin
-subjects:
-- kind: User
-  name: "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}#your-user-sub-claim"
-  apiGroup: rbac.authorization.k8s.io
-roleRef:
-  kind: ClusterRole
-  name: cluster-admin
-  apiGroup: rbac.authorization.k8s.io
-```
 
 ## See Also
 
