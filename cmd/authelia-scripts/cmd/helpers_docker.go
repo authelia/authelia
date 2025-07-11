@@ -104,21 +104,16 @@ func (d *Docker) Manifest(tags []string) error {
 
 // PublishReadme push README.md to dockerhub.
 func (d *Docker) PublishReadme() error {
-	token, hasToken := os.LookupEnv("DOCKER_TOKEN")
+	_, hasToken := os.LookupEnv("DOCKER_TOKEN")
+	username := "$DOCKER_USERNAME"
+	password := "$DOCKER_PASSWORD"
 
 	if hasToken {
-		return d.PublishReadmeWithToken(token)
+		username = "$DOCKER_TOKEN_USERNAME"
+		password = "$DOCKER_TOKEN" //nolint:gosec // Variable exposed in CI/CD.
 	}
 
-	return utils.CommandWithStdout("bash", "-c", `token=$(curl -fs --retry 3 -H "Content-Type: application/json" -X "POST" -d '{"username": "'$DOCKER_USERNAME'", "password": "'$DOCKER_PASSWORD'"}' https://hub.docker.com/v2/users/login/ | jq -r .token) && jq -n --arg msg "$(cat README.md | sed -r 's/(\<img\ src\=\")(\.\/)/\1https:\/\/github.com\/authelia\/authelia\/raw\/master\//' | sed 's/\.\//https:\/\/github.com\/authelia\/authelia\/blob\/master\//g' | sed '/start \[contributing\]/ a <a href="https://github.com/authelia/authelia/graphs/contributors"><img src="https://opencollective.com/authelia-sponsors/contributors.svg?width=890" /></a>' | sed '/Thanks goes to/,/### Backers/{/### Backers/!d}')" '{"registry":"registry-1.docker.io","full_description": $msg }' | curl -fs --retry 3 -o /dev/null -L -X "PATCH" -H "Content-Type: application/json" -H "Authorization: JWT $token" -d @- https://hub.docker.com/v2/repositories/authelia/authelia/`).Run()
-}
-
-func (d *Docker) PublishReadmeWithToken(token string) error {
-	if len(token) == 0 {
-		return fmt.Errorf("no token supplied")
-	}
-
-	return utils.CommandWithStdout("bash", "-c", fmt.Sprintf(`jq -n --arg msg "$(cat README.md | sed -r 's/(\<img\ src\=\")(\.\/)/\1https:\/\/github.com\/authelia\/authelia\/raw\/master\//' | sed 's/\.\//https:\/\/github.com\/authelia\/authelia\/blob\/master\//g' | sed '/start \[contributing\]/ a <a href="https://github.com/authelia/authelia/graphs/contributors"><img src="https://opencollective.com/authelia-sponsors/contributors.svg?width=890" /></a>' | sed '/Thanks goes to/,/### Backers/{/### Backers/!d}')" '{"registry":"registry-1.docker.io","full_description": $msg }' | curl -fs --retry 3 -o /dev/null -L -X "PATCH" -H "Content-Type: application/json" -H "Authorization: Bearer %s" -d @- https://hub.docker.com/v2/repositories/authelia/authelia/`, token)).Run()
+	return utils.CommandWithStdout("bash", "-c", fmt.Sprintf(`token=$(curl -fs --retry 3 -H "Content-Type: application/json" -X "POST" -d '{"username": "'%s'", "password": "'%s'"}' https://hub.docker.com/v2/users/login/ | jq -r .token) && jq -n --arg msg "$(cat README.md | sed -r 's/(\<img\ src\=\")(\.\/)/\1https:\/\/github.com\/authelia\/authelia\/raw\/master\//' | sed 's/\.\//https:\/\/github.com\/authelia\/authelia\/blob\/master\//g' | sed '/start \[contributing\]/ a <a href="https://github.com/authelia/authelia/graphs/contributors"><img src="https://opencollective.com/authelia-sponsors/contributors.svg?width=890" /></a>' | sed '/Thanks goes to/,/### Backers/{/### Backers/!d}')" '{"registry":"registry-1.docker.io","full_description": $msg }' | curl -fs --retry 3 -o /dev/null -L -X "PATCH" -H "Content-Type: application/json" -H "Authorization: JWT $token" -d @- https://hub.docker.com/v2/repositories/authelia/authelia/`, username, password)).Run()
 }
 
 func getBaseImageDigests(tag string) (amd64, arm, arm64 string, err error) {
