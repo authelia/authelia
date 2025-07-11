@@ -37,7 +37,7 @@ func newDockerCmd() (cmd *cobra.Command) {
 		DisableAutoGenTag: true,
 	}
 
-	cmd.AddCommand(newDockerBuildCmd(), newDockerPushManifestCmd(), newDockerPushReadmeCmd())
+	cmd.AddCommand(newDockerBuildCmd(), newDockerPushManifestCmd())
 
 	return cmd
 }
@@ -70,31 +70,6 @@ func newDockerPushManifestCmd() (cmd *cobra.Command) {
 
 		DisableAutoGenTag: true,
 	}
-
-	return cmd
-}
-
-func newDockerPushReadmeCmd() (cmd *cobra.Command) {
-	cmd = &cobra.Command{
-		Use: "push-readme",
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			var token string
-
-			if cmd.Flags().Changed("token") {
-				if token, err = cmd.Flags().GetString("token"); err != nil {
-					return err
-				}
-			} else {
-				token = os.Getenv("DOCKER_TOKEN")
-			}
-
-			docker := &Docker{}
-
-			return docker.PublishReadmeWithToken(token)
-		},
-	}
-
-	cmd.Flags().String("token", "", "docker auth token")
 
 	return cmd
 }

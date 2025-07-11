@@ -137,10 +137,11 @@ To configure [Jellyfin] to utilize Authelia as an [OpenID Connect 1.0] Provider,
           <EnableAllFolders>true</EnableAllFolders>
           <EnabledFolders />
           <AdminRoles>
-            <string>admins</string>
+            <string>jellyfin-admins</string>
           </AdminRoles>
           <Roles>
-            <string>users</string>
+            <string>jellyfin-users</string>
+            <string>jellyfin-admins</string>
           </Roles>
           <EnableFolderRoles>false</EnableFolderRoles>
           <EnableLiveTvRoles>false</EnableLiveTvRoles>
@@ -180,7 +181,7 @@ To configure [Jellyfin] to utilize Authelia as an [OpenID Connect 1.0] Provider,
     - Enabled: Checked
     - Enable Authorization by Plugin: Checked
     - Enable All Folders: Checked
-    - Roles: `jellyfin-users`
+    - Roles: `jellyfin-users`, `jellyfin-admins`
     - Admin Roles: `jellyfin-admins`
     - Role Claim: `groups`
     - Request Additional Scopes: `groups`
