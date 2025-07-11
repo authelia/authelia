@@ -34,8 +34,8 @@ importers:
         specifier: 19.1.0
         version: 19.1.0(react@19.1.0)
       react-email:
-        specifier: 4.1.2
-        version: 4.1.2
+        specifier: 4.1.3
+        version: 4.1.3
       tailwind-merge:
         specifier: 3.3.1
         version: 3.3.1
@@ -1262,8 +1262,8 @@ packages:
     peerDependencies:
       react: ^19.1.0
 
-  react-email@4.1.2:
-    resolution: {integrity: sha512-PVHcCETJcmouNSfpz+6wJSj6r0k6y7s+0SzmKefAfq4EwI5yIhN1Bula+kuinXAdqa1XdQWyo6jOBGsGBeSjPw==}
+  react-email@4.1.3:
+    resolution: {integrity: sha512-bLiJm20NvgFgOz03o6nCW/4wvJQTnhIY1fI2/qyPCa6V7MGe1RuvSGyrMtaEMJm8yyOu0ylJDX5Dlrcv6xihSQ==}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
@@ -2618,7 +2618,7 @@ snapshots:
       react: 19.1.0
       scheduler: 0.26.0
 
-  react-email@4.1.2:
+  react-email@4.1.3:
     dependencies:
       '@babel/parser': 7.28.0
       '@babel/traverse': 7.28.0
