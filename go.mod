@@ -47,7 +47,7 @@ require (
 	github.com/weppos/publicsuffix-go v0.40.3-0.20250710122833-cbec4cbedf45
 	github.com/wneessen/go-mail v0.6.2
 	go.uber.org/mock v0.5.2
-	golang.org/x/net v0.41.0
+	golang.org/x/net v0.42.0
 	golang.org/x/sync v0.16.0
 	golang.org/x/term v0.33.0
 	golang.org/x/text v0.27.0
@@ -110,7 +110,7 @@ require (
 	github.com/ysmood/gson v0.7.3 // indirect
 	github.com/ysmood/leakless v0.9.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.3 // indirect
-	golang.org/x/crypto v0.39.0 // indirect
+	golang.org/x/crypto v0.40.0 // indirect
 	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6 // indirect
 	golang.org/x/oauth2 v0.30.0 // indirect
 	golang.org/x/sys v0.34.0 // indirect
