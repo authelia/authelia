@@ -12,6 +12,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/server"
 )
 
+// ProvisionServer initializes the main listener.
 func ProvisionServer(ctx Context) (service Provider, err error) {
 	var (
 		s        *fasthttp.Server
@@ -32,6 +33,7 @@ func ProvisionServer(ctx Context) (service Provider, err error) {
 	return service, nil
 }
 
+// ProvisionServerMetrics initializes the metrics listener.
 func ProvisionServerMetrics(ctx Context) (service Provider, err error) {
 	var (
 		s        *fasthttp.Server

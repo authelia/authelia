@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -40,13 +39,13 @@ func TestProvisionUsersFileWatcher(t *testing.T) {
 
 	provision := ProvisionUsersFileWatcher
 
-	ctx := &testCtx{
-		Context:       context.Background(),
-		Configuration: config,
-		Providers: middlewares.Providers{
+	ctx := &testContext{
+		Context: t.Context(),
+		config:  config,
+		providers: middlewares.Providers{
 			Templates: tx,
 		},
-		Logger: logrus.NewEntry(logging.Logger()),
+		logger: logrus.NewEntry(logging.Logger()),
 	}
 
 	watcher, err := provision(ctx)
@@ -66,14 +65,14 @@ func TestProvisionUsersFileWatcher(t *testing.T) {
 	assert.EqualError(t, err, "error occurred asserting user provider")
 	assert.Nil(t, watcher)
 
-	ctx.Providers.UserProvider = authentication.NewFileUserProvider(config.AuthenticationBackend.File)
+	ctx.providers.UserProvider = authentication.NewFileUserProvider(config.AuthenticationBackend.File)
 
 	config.AuthenticationBackend.File = &schema.AuthenticationBackendFile{
 		Watch: true,
 	}
 
 	watcher, err = provision(ctx)
-	assert.EqualError(t, err, "error initializing file watcher: path must be specified")
+	assert.EqualError(t, err, "error initializing file watcher: path must not be empty")
 	assert.Nil(t, watcher)
 
 	config.AuthenticationBackend.File = &schema.AuthenticationBackendFile{
@@ -99,7 +98,7 @@ func TestNewFileWatcher(t *testing.T) {
 	f, err := os.Create(filepath.Join(dir, "test.log"))
 	require.NoError(t, err)
 
-	service, err := NewFileWatcher("example", filepath.Join(dir, "test.log"), reloader, logrus.NewEntry(logging.Logger()))
+	service, err := NewFileWatcher("example", reloader, nil, logrus.NewEntry(logging.Logger()), filepath.Join(dir, "test.log"))
 
 	assert.NoError(t, err)
 
@@ -135,9 +134,9 @@ func TestNewFileWatcherDirectory(t *testing.T) {
 
 	reloader := &testReloader{reload: true}
 
-	service, err := NewFileWatcher("example", dir, reloader, logrus.NewEntry(logging.Logger()))
+	service, err := NewFileWatcher("example", reloader, nil, logrus.NewEntry(logging.Logger()), dir)
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	go func() {
 		require.NoError(t, service.Run())
@@ -166,8 +165,7 @@ func TestNewFileWatcherBadPath(t *testing.T) {
 
 	reloader := &testReloader{reload: true}
 
-	service, err := NewFileWatcher("example", filepath.Join(dir, "test.log"), reloader, logrus.NewEntry(logging.Logger()))
-
+	service, err := NewFileWatcher("example", reloader, nil, logrus.NewEntry(logging.Logger()), filepath.Join(dir, "test.log"))
 	require.Error(t, err)
 	assert.Regexp(t, regexp.MustCompile(`^error initializing file watcher: error stating file '/tmp/[^/]+/\d+/test.log': file does not exist$`), err.Error())
 
@@ -188,7 +186,7 @@ func TestNewFileWatcherBadPermission(t *testing.T) {
 
 	require.NoError(t, os.Chmod(filepath.Join(dir, "tmp"), 0o000))
 
-	service, err := NewFileWatcher("example", filepath.Join(dir, "tmp", "test.log"), reloader, logrus.NewEntry(logging.Logger()))
+	service, err := NewFileWatcher("example", reloader, nil, logrus.NewEntry(logging.Logger()), filepath.Join(dir, "tmp", "test.log"))
 
 	require.Error(t, err)
 	assert.Regexp(t, regexp.MustCompile(`^error initializing file watcher: error stating file '/tmp/[^/]+/\d+/tmp/test.log': permission denied trying to read the file$`), err.Error())
