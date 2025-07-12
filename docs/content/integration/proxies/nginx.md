@@ -695,6 +695,11 @@ proxy_set_header Remote-Email $email;
 error_page 401 =302 /internal/authelia/authz/detect?rd=$target_url;
 ```
 
+## Kubernetes
+
+Authelia supports some of the [NGINX] based Kubernetes Ingress. See the
+[Kubernetes Integration Guide](../kubernetes/nginx-ingress.md) for more information.
+
 ## See Also
 
 * [NGINX ngx_http_auth_request_module Module Documentation](https://nginx.org/en/docs/http/ngx_http_auth_request_module.html)
