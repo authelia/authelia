@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/go-crypt/crypt/algorithm/argon2"
 	"github.com/go-crypt/crypt/algorithm/bcrypt"
@@ -38,6 +39,10 @@ func ValidateAuthenticationBackend(config *schema.AuthenticationBackend, validat
 		default:
 			validator.Push(fmt.Errorf(errFmtAuthBackendPasswordResetCustomURLScheme, config.PasswordReset.CustomURL.String(), config.PasswordReset.CustomURL.Scheme))
 		}
+	}
+
+	if config.KnownIP.Enable {
+		validateKnownIP(config, validator)
 	}
 
 	if config.LDAP != nil && config.File != nil {
@@ -586,5 +591,62 @@ func validateLDAPGroupFilter(config *schema.AuthenticationBackend, validator *sc
 
 	if (pMemberOfDN || pMemberOfRDN) && config.LDAP.Attributes.MemberOf == "" {
 		validator.Push(fmt.Errorf(errFmtLDAPAuthBackendFilterMissingAttribute, "member_of", utils.StringJoinOr([]string{"{memberof:rdn}", "{memberof:dn}"})))
+	}
+}
+
+func validateKnownIP(config *schema.AuthenticationBackend, validator *schema.StructValidator) {
+	switch config.KnownIP.ExpirationMode {
+	case "":
+		config.KnownIP.ExpirationMode = schema.DefaultKnownIPConfig.ExpirationMode
+	//nolint:goconst
+	case "absolute", "rolling", "never":
+		break
+	default:
+		validator.Push(fmt.Errorf(errFmtKnownIPInvalidExpiryMode, config.KnownIP.ExpirationMode))
+	}
+
+	// Generate warning when using "never":.
+	if config.KnownIP.ExpirationMode == "never" {
+		validator.PushWarning(errors.New("authentication_backend.known_ip.expiration_mode is set to 'never', which may lead to unbounded database growth"))
+	}
+
+	// DefaultLifespan.
+	if config.KnownIP.DefaultLifeSpan == 0 {
+		config.KnownIP.DefaultLifeSpan = schema.DefaultKnownIPConfig.DefaultLifeSpan
+	} else if config.KnownIP.DefaultLifeSpan > time.Hour*24*365*2 { // 2 years as upper limit.
+		validator.PushWarning(fmt.Errorf(errFmtKnownIPDefaultLifespanVeryLong, config.KnownIP.DefaultLifeSpan))
+	}
+
+	// ExtensionPeriod.
+	if config.KnownIP.ExtensionPeriod < 0 {
+		config.KnownIP.ExtensionPeriod = schema.DefaultKnownIPConfig.ExtensionPeriod
+	} else if config.KnownIP.ExtensionPeriod > time.Hour*24*365*2 { // 2 years as upper limit.
+		validator.PushWarning(fmt.Errorf(errFmtKnownIPExtensionPeriodVeryLong, config.KnownIP.ExtensionPeriod))
+	}
+
+	// MaxLifespan.
+	switch {
+	case config.KnownIP.MaxLifespan <= 0:
+		config.KnownIP.MaxLifespan = schema.DefaultKnownIPConfig.MaxLifespan
+	case config.KnownIP.MaxLifespan < config.KnownIP.DefaultLifeSpan:
+		validator.Push(fmt.Errorf(errFmtKnownIPMaxLifespanSmallerThanDefault, config.KnownIP.MaxLifespan, config.KnownIP.DefaultLifeSpan))
+	case config.KnownIP.MaxLifespan > time.Hour*24*365*5:
+		validator.PushWarning(fmt.Errorf(errFmtKnownIPMaxLifespanVeryLong, config.KnownIP.MaxLifespan))
+	}
+
+	// CleanupInterval.
+	if config.KnownIP.CleanupInterval < time.Hour { // Minimum 1 hour.
+		if config.KnownIP.CleanupInterval < 0 {
+			validator.Push(errors.New(errFmtKnownIPCleanupIntervalTooSmall))
+		}
+
+		config.KnownIP.CleanupInterval = time.Hour * 24
+	} else if config.KnownIP.CleanupInterval > time.Hour*24*7 { // Maximum 7 days.
+		validator.PushWarning(fmt.Errorf(errFmtKnownIPCleanupIntervalVeryLong, config.KnownIP.CleanupInterval))
+	}
+
+	if config.KnownIP.ExtensionPeriod > config.KnownIP.MaxLifespan {
+		validator.PushWarning(fmt.Errorf(errFmtKnownIPExtensionPeriodLargerThanMax,
+			config.KnownIP.ExtensionPeriod, config.KnownIP.MaxLifespan))
 	}
 }
