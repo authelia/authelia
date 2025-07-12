@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 
 	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/google/uuid"
@@ -13,6 +15,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/authelia/authelia/v4/internal/session"
+	"github.com/authelia/authelia/v4/internal/utils"
 )
 
 // MethodList is the list of available methods.
@@ -242,3 +245,47 @@ type handlerAuthorizationConsent func(
 	userSession session.UserSession, subject uuid.UUID,
 	rw http.ResponseWriter, r *http.Request,
 	requester oauthelia2.Requester) (consent *model.OAuth2ConsentSession, handled bool)
+
+// NewCookies creates a new Cookies from a raw byte array.
+func NewCookies(raw []byte) (cookies Cookies) {
+	if len(raw) == 0 {
+		return nil
+	}
+
+	values := strings.Split(string(raw), ";")
+
+	cookies = make(map[string]string)
+
+	for _, value := range values {
+		kv := strings.SplitN(strings.TrimSpace(value), "=", 2)
+
+		switch len(kv) {
+		case 1:
+			cookies[kv[0]] = ""
+		case 2:
+			cookies[kv[0]] = kv[1]
+		default:
+			continue
+		}
+	}
+
+	return cookies
+}
+
+// Cookies is a map representation of provided Cookies that can be encoded using standard semantics.
+type Cookies map[string]string
+
+// Encode the Cookies in the format relevant for a Cookie header.
+func (c Cookies) Encode(skip ...string) string {
+	var parts []string //nolint:prealloc // Can't safely pre-allocate this as it requires looking ahead.
+
+	for key, value := range c {
+		if utils.IsStringInSlice(key, skip) {
+			continue
+		}
+
+		parts = append(parts, fmt.Sprintf("%s=%s", key, value))
+	}
+
+	return strings.Join(parts, ";")
+}

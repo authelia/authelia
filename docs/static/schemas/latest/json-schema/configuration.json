@@ -3432,6 +3432,11 @@
           "title": "Implementation",
           "description": "The specific Authorization implementation to use for this endpoint."
         },
+        "headers": {
+          "$ref": "#/$defs/ServerEndpointsAuthzHeaders",
+          "title": "Headers",
+          "description": "The Authorization headers configuration"
+        },
         "authn_strategies": {
           "items": {
             "$ref": "#/$defs/ServerEndpointsAuthzAuthnStrategy"
@@ -3492,6 +3497,18 @@
       "additionalProperties": false,
       "type": "object",
       "description": "ServerEndpointsAuthzAuthnStrategy is the Authz endpoints configuration for the HTTP server."
+    },
+    "ServerEndpointsAuthzHeaders": {
+      "properties": {
+        "cookie_session": {
+          "type": "boolean",
+          "title": "Cookie Session Response Cookie Header",
+          "description": "When enabled this option makes this endpoint respond with a Cookie header which is absent the configured Authelia cookie for the relevant domain.",
+          "default": false
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "ServerHeaders": {
       "properties": {
