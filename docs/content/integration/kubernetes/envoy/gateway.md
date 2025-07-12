@@ -50,6 +50,11 @@ to the Authelia pod's HTTP port and that your cluster is configured with the def
 
 ### Security Policy
 
+The following Security Policy examples assume the following:
+
+1. Authelia is deployed to the `default` namespace.
+2. AUthelia is deployed with a service named `authelia` which translates port `:80` to the Authelia server port.
+
 #### Scoped to Gateway
 
 This is an example [SecurityPolicy] manifest adjusted to authenticate with Authelia which is scoped to a single
@@ -60,7 +65,7 @@ This is an example [SecurityPolicy] manifest adjusted to authenticate with Authe
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
 metadata:
-  name: 'authelia-extauth'
+  name: 'authelia-extauthz-by-gateway'
 spec:
   targetRefs:
     - group: 'gateway.networking.k8s.io'
@@ -73,15 +78,16 @@ spec:
           namespace: 'default'
           port: 80
       path: '/api/authz/ext-authz/'
+      failOpen: false
+      headersToExtAuth:
+        - 'accept'
+        - 'cookie'
+        - 'authorization'
+        - 'header-authorization'
+        - 'x-forwarded-proto'
       headersToBackend:
         - 'remote-*'
         - 'authelia-*'
-    failOpen: false
-    headersToExtAuth:
-      - 'accept'
-      - 'cookie'
-      - 'authorization'
-      - 'header-authorization'
 ```
 
 #### Scoped to HTTP Route
@@ -94,7 +100,7 @@ This is an example [SecurityPolicy] manifest adjusted to authenticate with Authe
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
 metadata:
-  name: 'authelia-extauth'
+  name: 'authelia-extauthz-by-route'
 spec:
   targetRefs:
     - group: 'gateway.networking.k8s.io'
@@ -107,15 +113,16 @@ spec:
           namespace: 'default'
           port: 80
       path: '/api/authz/ext-authz/'
+      failOpen: false
+      headersToExtAuth:
+        - 'accept'
+        - 'cookie'
+        - 'authorization'
+        - 'header-authorization'
+        - 'x-forwarded-proto'
       headersToBackend:
         - 'remote-*'
         - 'authelia-*'
-    failOpen: false
-    headersToExtAuth:
-      - 'accept'
-      - 'cookie'
-      - 'authorization'
-      - 'header-authorization'
 ```
 
 ##### HTTP Route
@@ -124,6 +131,7 @@ The following [HTTPRoute] has the above [SecurityPolicy] applied to it for the
 `app.{{< sitevar name="domain" nojs="example.com" >}}` domain:
 
 ```yaml {title="authoriztion-policy.yml"}
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -141,6 +149,33 @@ spec:
       backendRefs:
         - name: app
           port: 80
+```
+
+### Reference Grant
+
+If the Gateway is deployed to a namespace different to Authelia you may need to apply a Reference grant to permit this
+communication. The following example assumes the following:
+
+1. Authelia is deployed to the `default` namespace.
+2. You have deployed the [Scoped to Gateway](#scoped-to-gateway) Security Policy to the `eg` namespace.
+
+```yaml
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: 'example-ref-authelia-svc'
+  namespace: 'default'
+spec:
+  from:
+    - group: 'gateway.envoyproxy.io'
+      kind: 'SecurityPolicy'
+      namespace: 'eg'
+      name: 'authelia-extauthz-by-gateway'
+  to:
+    - group: ''
+      kind: 'Service'
+      name: 'authelia'
 ```
 
 ## See Also

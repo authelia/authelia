@@ -315,109 +315,11 @@ layered_runtime:
           global_downstream_max_connections: 50000
 ```
 
-## Gateway API (Kubernetes)
+## Kubernetes
 
-### Secure route
-
-```yaml
-apiVersion: 'gateway.envoyproxy.io/v1alpha1'
-kind: 'SecurityPolicy'
-metadata:
-  name: 'authelia-example'
-  namespace: 'example'
-spec:
-  extAuth:
-    failOpen: false
-    headersToExtAuth:
-      - 'X-Forwarded-Proto'
-      - 'Authorization'
-      - 'Proxy-Authorization'
-      - 'Accept'
-      - 'Cookie'
-    http:
-      path: '/api/authz/ext-authz/'
-      backendRefs:
-        - group: ''
-          kind: 'Service'
-          name: 'authelia'
-          namespace: 'authelia'
-          port: 80
-  targetRefs:
-    - group: 'gateway.networking.k8s.io'
-      kind: 'HTTPRoute'
-      name: 'example'
-```
-
-If the route namespace differs from the authelia service namespace, there is a need to declare a ReferenceGrant:
-
-```yaml
-apiVersion: 'gateway.networking.k8s.io/v1beta1'
-kind: 'ReferenceGrant'
-metadata:
-  name: 'example-ref-authelia-svc'
-  namespace: 'authelia'
-spec:
-  from:
-    - group: 'gateway.envoyproxy.io'
-      kind: 'SecurityPolicy'
-      namespace: 'example'
-      name: 'authelia-example'
-  to:
-    - group: ''
-      kind: 'Service'
-      name: 'authelia'
-```
-
-### Secure gateway
-
-```yaml
-apiVersion: 'gateway.envoyproxy.io/v1alpha1'
-kind: 'SecurityPolicy'
-metadata:
-  name: 'authelia-example'
-  namespace: 'example'
-spec:
-  extAuth:
-    failOpen: false
-    headersToExtAuth:
-      - 'X-Forwarded-Proto'
-      - 'Authorization'
-      - 'Proxy-Authorization'
-      - 'Accept'
-      - 'Cookie'
-    http:
-      path: '/api/authz/ext-authz/'
-      backendRefs:
-        - group: ''
-          kind: 'Service'
-          name: 'authelia'
-          namespace: 'authelia'
-          port: 80
-  targetRefs:
-    - group: 'gateway.networking.k8s.io'
-      kind: 'Gateway'
-      name: 'example'
-```
-
-If the gateway namespace differs from the authelia service namespace, there is a need to declare a ReferenceGrant:
-
-```yaml
-apiVersion: gateway.networking.k8s.io/v1beta1
-kind: ReferenceGrant
-metadata:
-  name: 'example-ref-authelia-svc'
-  namespace: 'authelia'
-spec:
-  from:
-    - group: 'gateway.envoyproxy.io'
-      kind: 'SecurityPolicy'
-      namespace: 'example'
-      name: 'authelia-example'
-  to:
-    - group: ''
-      kind: 'Service'
-      name: 'authelia'
-```
+Authelia supports some of the [Envoy] based Kubernetes Ingresses such as [Envoy Gateway](../kubernetes/envoy/gateway.md)
+and [Istio](../kubernetes/envoy/istio.md). To see the full list see the
+[Kubernetes Integration Guide](../kubernetes/envoy/introduction.md).
 
 ## See Also
 

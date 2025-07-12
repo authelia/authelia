@@ -526,6 +526,11 @@ http:
 ...
 ```
 
+## Kubernetes
+
+Authelia supports some of the [Traefik] based Kubernetes Ingress. See the
+[Kubernetes Integration Guide](../kubernetes/traefik-ingress.md) for more information.
+
 ## Frequently Asked Questions
 
 ### Basic Authentication
