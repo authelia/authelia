@@ -21,7 +21,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.4](https://github.com/authelia/authelia/releases/tag/v4.39.4)
+  - [v4.39.5](https://github.com/authelia/authelia/releases/tag/v4.39.5)
 - [Glitchtip]
   - [v4.2](https://glitchtip.com/blog/2024-11-01-glitchtip-4-2-release)
 
