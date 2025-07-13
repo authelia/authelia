@@ -2,7 +2,7 @@
 title: "Forgejo"
 description: "Integrating Forgejo with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2025-07-10T08:45:39+02:00
+date: 2022-07-01T13:07:02+10:00
 draft: false
 images: []
 weight: 620
@@ -21,7 +21,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.4](https://github.com/authelia/authelia/releases/tag/v4.39.4)
+  - [v4.39.5](https://github.com/authelia/authelia/releases/tag/v4.39.5)
 - [Forgejo]
   - [v11.0.2](https://codeberg.org/forgejo/forgejo/releases/tag/v11.0.2)
 

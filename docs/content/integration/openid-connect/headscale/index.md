@@ -21,7 +21,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.4](https://github.com/authelia/authelia/releases/tag/v4.39.4)
+  - [v4.39.5](https://github.com/authelia/authelia/releases/tag/v4.39.5)
 - [Headscale]
   - [v0.26.1](https://github.com/juanfont/headscale/releases/tag/v0.26.1)
 
