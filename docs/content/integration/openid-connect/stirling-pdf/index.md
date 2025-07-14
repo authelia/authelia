@@ -25,7 +25,7 @@ seo:
 - [Stirling-PDF]
   - [v0.42.0](https://github.com/Stirling-Tools/Stirling-PDF/releases/tag/v0.42.0)
 
-{{% oidc-common %}}
+{{% oidc-common bugs="claims-hydration" %}}
 
 ### Assumptions
 
@@ -76,6 +76,10 @@ identity_providers:
         token_endpoint_auth_method: 'client_secret_basic'
 ```
 
+#### Configuration Escape Hatch
+
+{{% oidc-escape-hatch-claims-hydration client_id="stirlingpdf" claims="preferred_username" %}}
+
 ### Application
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
@@ -101,7 +105,7 @@ SECURITY_OAUTH2_ISSUER=https://{{< sitevar name="subdomain-authelia" nojs="auth"
 SECURITY_OAUTH2_CLIENTID=stirlingpdf
 SECURITY_OAUTH2_CLIENTSECRET=insecure_secret
 SECURITY_OAUTH2_BLOCKREGISTRATION=false
-SECURITY_OAUTH2_SCOPES=openid, profile, email
+SECURITY_OAUTH2_SCOPES=openid,profile
 SECURITY_OAUTH2_USEASUSERNAME=preferred_username
 SECURITY_OAUTH2_PROVIDER=Authelia
 ```

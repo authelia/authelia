@@ -25,7 +25,7 @@ seo:
 - [Synapse]
   - [v1.127.1](https://github.com/element-hq/synapse/releases/tag/v1.127.1)
 
-{{% oidc-common %}}
+{{% oidc-common bugs="claims-hydration" %}}
 
 ### Assumptions
 
@@ -113,6 +113,15 @@ oidc_providers:
     attribute_requirements:
      - attribute: 'groups'
        value: 'synapse-users'
+```
+
+#### Configuration Escape Hatch
+
+{{% oidc-escape-hatch-claims-hydration example="disable" %}}
+
+```yaml
+oidc_providers:
+  - user_profile_method: 'userinfo_endpoint'
 ```
 
 ## See Also

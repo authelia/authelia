@@ -25,7 +25,7 @@ seo:
 - [Apache Guacamole]
   - [v1.5.5](https://guacamole.apache.org/releases/1.5.5/)
 
-{{% oidc-common bugs="claims-hydration" %}}
+{{% oidc-common %}}
 
 ### Assumptions
 
@@ -79,10 +79,6 @@ identity_providers:
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_basic'
 ```
-
-#### Configuration Escape Hatch
-
-{{% oidc-escape-hatch-claims-hydration client_id="bookstack" claims="email" %}}
 
 ### Application
 
