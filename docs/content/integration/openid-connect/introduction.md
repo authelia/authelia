@@ -278,8 +278,8 @@ field is both the required value for the `grant_type` parameter in the access / 
 ### Client Authentication Method
 
 The following describes the supported client authentication methods. See the [OpenID Connect 1.0 Client Authentication]
-specification and the [OAuth 2.0 - Client Types] specification for more information. The value
-field is the valid values for the
+[OAuth 2.0 Client Authentication](https://datatracker.ietf.org/doc/html/rfc6749#section-2.3) documentation for more
+information. The value field is the valid values for the
 [token_endpoint_auth_method](../../configuration/identity-providers/openid-connect/clients.md#token_endpoint_auth_method)
 client configuration option.
 
