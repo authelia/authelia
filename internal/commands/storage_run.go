@@ -1832,31 +1832,18 @@ func (ctx *CmdCtx) StorageUserIdentifiersAddRunE(cmd *cobra.Command, args []stri
 }
 
 func (ctx *CmdCtx) StorageLogsAuthPruneRunE(cmd *cobra.Command, args []string) error {
-	flags := []string{cmdFlagLogsOlderThan, cmdFlagLogsBatchSize, cmdFlagLogsDryRun}
-	setFlags := make([]string, 0)
-
-	for _, flag := range flags {
-		if cmd.Flags().Changed(flag) {
-			setFlags = append(setFlags, flag)
-		}
-	}
-
-	if len(setFlags) == 0 {
-		return fmt.Errorf("must specify --%s", cmdFlagLogsOlderThan)
-	}
-
 	defer func() {
 		_ = ctx.providers.StorageProvider.Close()
 	}()
 
 	olderThanStr, _ := cmd.Flags().GetString(cmdFlagLogsOlderThan)
 	olderThan, err := utils.ParseDurationString(olderThanStr)
-	batchSize, _ := cmd.Flags().GetInt(cmdFlagLogsBatchSize)
-	dryRun, _ := cmd.Flags().GetBool(cmdFlagLogsDryRun)
-
 	if err != nil {
 		return fmt.Errorf("invalid duration: %w", err)
 	}
+
+	batchSize, _ := cmd.Flags().GetInt(cmdFlagLogsBatchSize)
+	dryRun, _ := cmd.Flags().GetBool(cmdFlagLogsDryRun)
 
 	if olderThan <= 0 {
 		return fmt.Errorf("duration must be positive, got: %v", olderThan)

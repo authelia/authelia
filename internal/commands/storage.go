@@ -849,6 +849,12 @@ func newStorageLogsAuthPruneCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 	cmd.Flags().Int(cmdFlagLogsBatchSize, 20000, "Number of records to delete per batch (prevents long-running commands)")
 	cmd.Flags().Bool(cmdFlagLogsDryRun, false, "Show what would be deleted without actually deleting")
 
+	err := cmd.MarkFlagRequired(cmdFlagLogsOlderThan)
+	if err != nil {
+		fmt.Printf("Error marking flag as required: %v\n", err)
+		return nil
+	}
+
 	return cmd
 }
 
