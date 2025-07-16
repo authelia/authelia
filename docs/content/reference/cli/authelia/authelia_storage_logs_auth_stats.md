@@ -2,7 +2,7 @@
 title: "authelia storage logs auth stats"
 description: "Reference for the authelia storage logs auth stats command."
 lead: ""
-date: 2025-07-15T16:04:46-07:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 weight: 905

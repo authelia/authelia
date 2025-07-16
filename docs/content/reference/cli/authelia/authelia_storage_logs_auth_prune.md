@@ -2,7 +2,7 @@
 title: "authelia storage logs auth prune"
 description: "Reference for the authelia storage logs auth prune command."
 lead: ""
-date: 2025-07-15T16:04:46-07:00
+date: 2022-06-15T17:51:47+10:00
 draft: false
 images: []
 weight: 905
@@ -23,7 +23,7 @@ Prune old authentication logs
 Prune authentication logs based on age criteria.
 
 This command helps manage the authentication_logs table which grows indefinitely.
-Use this to remove old authentication records older than a specified period to
+Use this to remove authentication records older than a specified period to
 prevent excessive database growth and improve performance.
 
 ```
