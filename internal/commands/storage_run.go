@@ -1837,6 +1837,7 @@ func (ctx *CmdCtx) StorageLogsAuthPruneRunE(cmd *cobra.Command, args []string) e
 	}()
 
 	olderThanStr, _ := cmd.Flags().GetString(cmdFlagLogsOlderThan)
+
 	olderThan, err := utils.ParseDurationString(olderThanStr)
 	if err != nil {
 		return fmt.Errorf("invalid duration: %w", err)
