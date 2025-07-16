@@ -86,7 +86,7 @@ To configure [Immich] there is one method, using the [Web GUI](#web-gui).
 To configure [Immich] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Login to [Immich].
-2. Navigate to [OAuth Settings](https://immich.{{< sitevar name="domain" nojs="example.com" >}}/admin/system-settings?isOpen=authentication+oauth).
+2. Navigate to OAuth Settings.
 3. Configure the following options:
     - Issuer URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`.
     - Client ID: `immich`.
