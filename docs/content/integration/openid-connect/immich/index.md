@@ -91,7 +91,6 @@ To configure [Immich] to utilize Authelia as an [OpenID Connect 1.0] Provider, u
     - ISSUER_URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`.
     - CLIENT_ID: `immich`.
     - CLIENT_SECRET: `insecure_secret`.
-    - TOKEN_ENDPOINT_AUTH_METHOD: `client_secret_basic`
     - SCOPE: `openid profile email`.
     - BUTTON TEXT: `Login with Authelia`.
     - AUTO REGISTER: `Enable` (if desired).
