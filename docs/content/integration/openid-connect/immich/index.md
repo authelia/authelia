@@ -88,13 +88,13 @@ To configure [Immich] to utilize Authelia as an [OpenID Connect 1.0] Provider, u
 1. Login to [Immich].
 2. Navigate to OAuth Settings.
 3. Configure the following options:
-    - Issuer URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`.
-    - Client ID: `immich`.
-    - Client Secret: `insecure_secret`.
+    - ISSUER_URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`.
+    - CLIENT_ID: `immich`.
+    - CLIENT_SECRET: `insecure_secret`.
     - TOKEN_ENDPOINT_AUTH_METHOD: `client_secret_basic`
-    - Scope: `openid profile email`.
-    - Button Text: `Login with Authelia`.
-    - Auto Register: Enable if desired.
+    - SCOPE: `openid profile email`.
+    - BUTTON TEXT: `Login with Authelia`.
+    - AUTO REGISTER: `Enable` (if desired).
 4. Press `Save` at the bottom
 
 ## See Also
