@@ -1830,3 +1830,119 @@ func (ctx *CmdCtx) StorageUserIdentifiersAddRunE(cmd *cobra.Command, args []stri
 
 	return nil
 }
+
+func (ctx *CmdCtx) StorageLogsAuthPruneRunE(cmd *cobra.Command, args []string) error {
+	flags := []string{cmdFlagLogsOlderThan, cmdFlagLogsBatchSize, cmdFlagLogsDryRun}
+	setFlags := make([]string, 0)
+
+	for _, flag := range flags {
+		if cmd.Flags().Changed(flag) {
+			setFlags = append(setFlags, flag)
+		}
+	}
+
+	if len(setFlags) == 0 {
+		return fmt.Errorf("must specify --%s", cmdFlagLogsOlderThan)
+	}
+
+	defer func() {
+		_ = ctx.providers.StorageProvider.Close()
+	}()
+
+	olderThanStr, _ := cmd.Flags().GetString(cmdFlagLogsOlderThan)
+	olderThan, err := utils.ParseDurationString(olderThanStr)
+	batchSize, _ := cmd.Flags().GetInt(cmdFlagLogsBatchSize)
+	dryRun, _ := cmd.Flags().GetBool(cmdFlagLogsDryRun)
+
+	if err != nil {
+		return fmt.Errorf("invalid duration: %w", err)
+	}
+
+	if olderThan <= 0 {
+		return fmt.Errorf("duration must be positive, got: %v", olderThan)
+	}
+
+	if batchSize <= 0 {
+		return fmt.Errorf("batch size must be positive, got: %d", batchSize)
+	}
+
+	if dryRun {
+		fmt.Printf("DRY RUN: Would delete logs older than %v...\n", olderThan)
+
+		// Get stats for what would be deleted.
+		stats, err := ctx.providers.StorageProvider.GetAuthenticationLogsPrunePreview(cmd.Context(), olderThan)
+		if err != nil {
+			return fmt.Errorf("failed to get preview: %w", err)
+		}
+
+		if stats.TotalCount == 0 || !stats.MinID.Valid || !stats.MaxID.Valid {
+			fmt.Println("No records found to delete.")
+			return nil
+		}
+
+		estimatedBatches := int((stats.TotalCount + int64(batchSize) - 1) / int64(batchSize))
+
+		fmt.Printf("Would delete %d records in approximately %d batches\n", stats.TotalCount, estimatedBatches)
+		fmt.Printf("Record ID range: %d to %d\n", stats.MinID.Int64, stats.MaxID.Int64)
+		fmt.Printf("Batch size: %d\n", batchSize)
+
+		return nil
+	}
+
+	fmt.Printf("Deleting logs older than %v...\n", olderThan)
+
+	results, err := ctx.providers.StorageProvider.PruneAuthenticationLogs(cmd.Context(), olderThan, batchSize)
+	if err != nil {
+		if results != nil {
+			fmt.Printf("Partially completed: deleted %d records in %d batches before error\n",
+				results.TotalDeleted, results.TotalBatches)
+		}
+
+		return fmt.Errorf("pruning failed: %w", err)
+	}
+
+	if results.TotalDeleted == 0 {
+		fmt.Println("No records found to delete.")
+		return nil
+	}
+
+	fmt.Printf("Successfully deleted %d records in %d batches.\n", results.TotalDeleted, results.TotalBatches)
+	fmt.Printf("Total duration: %.2fs\n", results.TotalTime.Seconds())
+	fmt.Printf("Average time per batch: %.2fs\n", results.AverageTime.Seconds())
+	fmt.Printf("Records per second: %d\n", results.RecordsPerSecond)
+
+	return nil
+}
+
+func (ctx *CmdCtx) StorageLogsAuthStatsRunE(cmd *cobra.Command, args []string) error {
+	defer func() {
+		_ = ctx.providers.StorageProvider.Close()
+	}()
+
+	stats, err := ctx.providers.StorageProvider.GetAuthenticationLogsStats(cmd.Context())
+	if err != nil {
+		return fmt.Errorf("failed to get authentication log statistics: %w", err)
+	}
+
+	fmt.Printf("Authentication Log Statistics:\n")
+	fmt.Printf("Total records: %d\n", stats.Total)
+
+	if stats.Total > 0 {
+		successPct := float64(stats.SuccessCount) / float64(stats.Total) * 100
+		failurePct := float64(stats.FailureCount) / float64(stats.Total) * 100
+		bannedPct := float64(stats.BannedCount) / float64(stats.Total) * 100
+
+		fmt.Printf("Successful logins: %d (%.1f%%)\n", stats.SuccessCount, successPct)
+		fmt.Printf("Failed logins: %d (%.1f%%)\n", stats.FailureCount, failurePct)
+		fmt.Printf("Banned attempts: %d (%.1f%%)\n", stats.BannedCount, bannedPct)
+	} else {
+		fmt.Printf("Successful logins: %d\n", stats.SuccessCount)
+		fmt.Printf("Failed logins: %d\n", stats.FailureCount)
+		fmt.Printf("Banned attempts: %d\n", stats.BannedCount)
+	}
+
+	fmt.Printf("Oldest record: %v\n", stats.Oldest)
+	fmt.Printf("Newest record: %v\n", stats.Newest)
+
+	return nil
+}
