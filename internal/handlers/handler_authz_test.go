@@ -946,6 +946,94 @@ func (s *AuthzSuite) TestShouldNotFailOnMissingEmail() {
 	s.Equal("abc,123", string(mock.Ctx.Response.Header.PeekBytes(headerRemoteGroups)))
 }
 
+func (s *AuthzSuite) TestShouldHandleCookieSessionHeader() {
+	if s.setRequest == nil || s.implementation == AuthzImplLegacy {
+		s.T().Skip()
+	}
+
+	mock := mocks.NewMockAutheliaCtx(s.T())
+
+	defer mock.Close()
+
+	setUpMockClock(mock)
+
+	authz := s.Builder().WithConfig(&mock.Ctx.Configuration).WithAuthzConfig(AuthzConfig{RefreshInterval: schema.NewRefreshIntervalDurationNever(), CookieHeader: true}).Build()
+
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
+
+	targetURI := s.RequireParseRequestURI("https://bypass.example.com")
+
+	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+	mock.Ctx.Request.Header.DisableSpecialHeader()
+	mock.Ctx.Request.Header.SetBytesK(headerCookie, "authelia_session=abc; another=value")
+	mock.Ctx.Request.Header.EnableSpecialHeader()
+
+	userSession, err := mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
+	userSession.Username = testUsername
+	userSession.DisplayName = "John Smith"
+	userSession.Groups = []string{"abc,123"}
+	userSession.Emails = nil
+	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
+	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
+
+	s.Require().NoError(mock.Ctx.SaveSession(userSession))
+
+	authz.Handler(mock.Ctx)
+
+	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	s.Equal(testUsername, string(mock.Ctx.Response.Header.PeekBytes(headerRemoteUser)))
+	s.Equal("John Smith", string(mock.Ctx.Response.Header.PeekBytes(headerRemoteName)))
+	s.Equal("abc,123", string(mock.Ctx.Response.Header.PeekBytes(headerRemoteGroups)))
+	s.Equal("another=value", string(mock.Ctx.Response.Header.PeekBytes(headerCookie)))
+}
+
+func (s *AuthzSuite) TestShouldHandleCookieSessionHeaderEmpty() {
+	if s.setRequest == nil || s.implementation == AuthzImplLegacy {
+		s.T().Skip()
+	}
+
+	mock := mocks.NewMockAutheliaCtx(s.T())
+
+	defer mock.Close()
+
+	setUpMockClock(mock)
+
+	authz := s.Builder().WithConfig(&mock.Ctx.Configuration).WithAuthzConfig(AuthzConfig{RefreshInterval: schema.NewRefreshIntervalDurationNever(), CookieHeader: true}).Build()
+
+	s.ConfigureMockSessionProviderWithAutomaticAutheliaURLs(mock)
+
+	targetURI := s.RequireParseRequestURI("https://bypass.example.com")
+
+	s.setRequest(mock.Ctx, fasthttp.MethodGet, targetURI, true, false)
+
+	mock.Ctx.Request.Header.DisableSpecialHeader()
+	mock.Ctx.Request.Header.SetBytesK(headerCookie, "authelia_session=abc")
+	mock.Ctx.Request.Header.EnableSpecialHeader()
+
+	userSession, err := mock.Ctx.GetSession()
+	s.Require().NoError(err)
+
+	userSession.Username = testUsername
+	userSession.DisplayName = "John Smith"
+	userSession.Groups = []string{"abc,123"}
+	userSession.Emails = nil
+	userSession.AuthenticationMethodRefs.UsernameAndPassword = true
+	userSession.RefreshTTL = mock.Clock.Now().Add(5 * time.Minute)
+
+	s.Require().NoError(mock.Ctx.SaveSession(userSession))
+
+	authz.Handler(mock.Ctx)
+
+	s.Equal(fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+	s.Equal(testUsername, string(mock.Ctx.Response.Header.PeekBytes(headerRemoteUser)))
+	s.Equal("John Smith", string(mock.Ctx.Response.Header.PeekBytes(headerRemoteName)))
+	s.Equal("abc,123", string(mock.Ctx.Response.Header.PeekBytes(headerRemoteGroups)))
+	s.Equal("", string(mock.Ctx.Response.Header.PeekBytes(headerCookie)))
+}
+
 func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomain() {
 	if s.setRequest == nil {
 		s.T().Skip()
