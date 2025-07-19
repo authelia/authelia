@@ -2,7 +2,7 @@
 title: "Architecture Decision Log"
 description: "The Authelia Architecture Decision Log"
 summary: "This section contains Architecture Decision Records for Authelia."
-date: 2022-11-19T16:47:09+11:00
+date: 2024-06-16T09:32:59+10:00
 draft: false
 images: []
 weight: 1000

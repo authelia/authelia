@@ -2,7 +2,7 @@
 title: "Support"
 description: "An support matrix for Authelia and several supported reverse proxies"
 summary: "This documentation details a support matrix for Authelia features and specific reverse proxies as well as several caveats etc."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 311

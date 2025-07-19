@@ -2,7 +2,7 @@
 title: "Server Authz Endpoints"
 description: "Configuring the Server Authz Endpoint Settings."
 summary: "Authelia supports several authorization endpoints on the internal web server. This section describes how to configure and tune them."
-date: 2023-01-25T20:36:40+11:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 menu:

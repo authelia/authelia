@@ -2,7 +2,7 @@
 title: "WebAuthn"
 description: "Configuring the WebAuthn Second Factor Method."
 summary: "WebAuthn is the modern browser security key specification that Authelia supports. This section describes configuring it."
-date: 2022-03-03T22:20:43+11:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 103400

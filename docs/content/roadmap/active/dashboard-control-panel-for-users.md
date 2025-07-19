@@ -2,7 +2,7 @@
 title: "Dashboard / Control Panel for Users"
 description: "Authelia User Dashboard."
 summary: "A dashboard or control panel for users to adjust their settings is easily one of the most impactful features we can implement."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 340

@@ -2,7 +2,7 @@
 title: "Bare-Metal"
 description: "Deploying Authelia on Bare-Metal."
 summary: "Authelia can be deployed on Bare-Metal as long as it sits behind a proxy."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 250

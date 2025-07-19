@@ -2,7 +2,7 @@
 title: "Secrets"
 description: "Using the Secrets Configuration Method."
 summary: "Authelia allows providing configuration via secrets method. This section describes how to implement this."
-date: 2020-02-29T01:43:59+01:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 101400

@@ -2,7 +2,7 @@
 title: "Integration Suites"
 description: "Integration Suites."
 summary: "This section covers the build process and how to perform tests in development."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 240

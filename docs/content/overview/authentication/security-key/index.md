@@ -2,7 +2,7 @@
 title: "Security Key"
 description: "Authelia utilizes WebAuthn security keys as one of it's second factor authentication methods."
 summary: "Authelia utilizes WebAuthn security keys as one of it's second factor authentication methods."
-date: 2020-02-29T01:43:59+01:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 240
