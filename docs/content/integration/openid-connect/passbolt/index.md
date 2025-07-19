@@ -31,6 +31,7 @@ seo:
 
 This example makes the following assumptions:
 
+- __Application Root URL:__ `https://passbolt.{{< sitevar name="domain" nojs="example.com" >}}/`
 - __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
 - __Client ID:__ `passbolt`
 - __Client Secret:__ `insecure_secret`
