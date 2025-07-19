@@ -6,7 +6,7 @@ date: 2024-03-14T06:00:14+11:00
 draft: false
 seo:
  title: "" # custom title (optional)
- description: "" # custom description (recommended)
+ description: "Authelia is a free and open-source IAM platform and OpenID Certified™ OpenID Connect 1.0 provider; providing modern, flexible authentication and authorization." # custom description (recommended)
  canonical: "" # custom canonical URL (optional)
  noindex: false # false (default) or true
 ---
