@@ -1049,6 +1049,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "Steve-Brule",
+      "name": "Steve-Brule",
+      "avatar_url": "https://avatars.githubusercontent.com/u/83868338?v=4",
+      "profile": "https://github.com/Steve-Brule",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
