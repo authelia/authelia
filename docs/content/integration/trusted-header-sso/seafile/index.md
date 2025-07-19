@@ -2,7 +2,7 @@
 title: "Seafile"
 description: "Trusted Header SSO Integration for Seafile"
 summary: ""
-date: 2022-08-26T11:34:56+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 menu:

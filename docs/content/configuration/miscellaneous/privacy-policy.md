@@ -2,7 +2,7 @@
 title: "Privacy Policy"
 description: "Privacy Policy Configuration."
 summary: "This describes a section of the configuration for enabling a Privacy Policy link display."
-date: 2023-01-22T19:58:07+11:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 199100

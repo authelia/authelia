@@ -2,7 +2,7 @@
 title: "Branding"
 description: "This guide highlights information about Authelia's branding assets"
 summary: "This guide highlights information about Authelia's branding assets."
-date: 2022-06-20T10:05:55+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 220

@@ -2,7 +2,7 @@
 title: "Threat Model"
 description: "An overview of the Authelia threat model."
 summary: "An overview of the Authelia threat model."
-date: 2020-04-16T18:12:41+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 430

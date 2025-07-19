@@ -2,7 +2,7 @@
 title: "Istio"
 description: "A guide to integrating Authelia with the Istio Kubernetes Ingress."
 summary: "A guide to integrating Authelia with the Istio Kubernetes Ingress."
-date: 2022-10-02T13:59:09+11:00
+date: 2025-06-13T14:12:09+00:00
 draft: false
 images: []
 menu:
