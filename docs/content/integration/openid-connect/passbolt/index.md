@@ -1,8 +1,8 @@
 ---
-title: "Headscale"
-description: "Integrating Headscale with the Authelia OpenID Connect 1.0 Provider."
+title: "Passbolt"
+description: "Integrating Passbolt with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2025-06-26T09:01:31+00:00
+date: 2025-07-19T10:42:35+10:00
 draft: false
 images: []
 weight: 620
@@ -13,7 +13,7 @@ support:
   integration: true
 seo:
   title: "" # custom title (optional)
-  description: "Step-by-step guide to configuring Headscale with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
+  description: "Step-by-step guide to configuring Passbolt with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
 ---
@@ -22,8 +22,8 @@ seo:
 
 - [Authelia]
   - [v4.39.5](https://github.com/authelia/authelia/releases/tag/v4.39.5)
-- [Headscale]
-  - [v0.26.1](https://github.com/juanfont/headscale/releases/tag/v0.26.1)
+- [Passbolt]
+  - [v5.3.2](https://www.passbolt.com/changelog/api-bext/somebody-to-love-browser-extension-api)
 
 {{% oidc-common bugs="claims-hydration" %}}
 
@@ -31,9 +31,8 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://headscale.{{< sitevar name="domain" nojs="example.com" >}}/`
 - __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `headscale`
+- __Client ID:__ `passbolt`
 - __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
@@ -50,7 +49,7 @@ configuration will likely require configuration of an escape hatch to work aroun
 [Configuration Escape Hatch](#configuration-escape-hatch) for details.
 {{< /callout >}}
 
-The following YAML configuration is an example __Authelia__ [client configuration] for use with [Headscale] which will
+The following YAML configuration is an example __Authelia__ [client configuration] for use with [Passbolt] which will
 operate with the application example:
 
 ```yaml {title="configuration.yml"}
@@ -59,59 +58,58 @@ identity_providers:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
-      - client_id: 'headscale'
-        client_name: 'Headscale'
+      - client_id: 'passbolt'
+        client_name: 'Passbolt'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
         authorization_policy: 'two_factor'
-        require_pkce: true
-        pkce_challenge_method: 'S256'
+        require_pkce: false
+        pkce_challenge_method: ''
         redirect_uris:
-          - 'https://headscale.{{< sitevar name="domain" nojs="example.com" >}}/oidc/callback'
+          - '<copy from the passbolt setup>'
         scopes:
           - 'openid'
-          - 'email'
           - 'profile'
-          - 'groups'
+          - 'email'
         response_types:
           - 'code'
         grant_types:
           - 'authorization_code'
         access_token_signed_response_alg: 'none'
         userinfo_signed_response_alg: 'none'
-        token_endpoint_auth_method: 'client_secret_basic'
+        token_endpoint_auth_method: 'client_secret_post'
 ```
 
 #### Configuration Escape Hatch
 
-{{% oidc-escape-hatch-claims-hydration client_id="headscale" claims="email,groups" %}}
-
-Note this additional configuration of a `claims_policy` is only necessary if you are authorizing users based on domain,
-groups or email (`oidc.allowed_domains`, `oidc.allowed_groups` and `oidc.allowed_users` in the [Headscale] configuration
-file). See [Headscale#2655](https://github.com/juanfont/headscale/issues/2655) for details.
+{{% oidc-escape-hatch-claims-hydration client_id="passbolt" claims="email,email_verified,alt_emails,preferred_username,name" %}}
 
 ### Application
 
-To configure [Headscale] to utilize Authelia as an [OpenID Connect 1.0] provider, configure the `oidc:` section in the `config.yaml`
+To configure [Passbolt] there is one method, using the [Web GUI](#web-gui).
 
-```yaml {title="config.yaml"}
-oidc:
-  only_start_if_oidc_is_available: true
-  issuer: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
-  client_id: 'headscale'
-  client_secret: 'insecure_secret'
-  # client_secret_path: '/path/to/client_secret.txt' # Alternative to client_secret
-  scope: ['openid', 'profile', 'email', 'groups']
-  pkce:
-    enabled: true
-    method: 'S256'
-```
+#### Web GUI
+
+To configure [Passbolt] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following
+instructions:
+
+1. Visit the [Passbolt] admin panel
+2. Visit `Org Settings`
+3. Visit `Auth`
+4. Visit `SSO`
+5. Configure the following values:
+   1. Login URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
+   2. OpenID configuration URI: `/.well-known/openid-configuration`
+   3. Scope: `openid email profile`
+   4. Client Login: `passbolt`
+   5. Client Secret: `insecure_secret`
+6. Copy the callback URL into the `redirect_uris` of the Authelia configuration
 
 ## See Also
 
-- [Configuring headscale to use OIDC authentication](https://headscale.net/stable/ref/oidc/)
+- [Passbolt OpenID Blog Post](https://www.passbolt.com/blog/openid-for-sso)
 
 [Authelia]: https://www.authelia.com
-[Headscale]: https://headscale.net
+[Passbolt]: https://www.passbolt.com/
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

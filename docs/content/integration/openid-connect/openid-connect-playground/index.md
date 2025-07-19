@@ -2,7 +2,7 @@
 title: "OpenID Connect Playground"
 description: "Integrating OpenID Connect Playground with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2023-11-12T21:18:09+11:00
+date: 2025-05-07T09:48:38+10:00
 draft: false
 images: []
 weight: 620
@@ -14,7 +14,7 @@ support:
 aliases: []
 seo:
   title: "" # custom title (optional)
-  description: "" # custom description (recommended)
+  description: "Step-by-step guide to configuring OpenID Connect Playground with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
 ---

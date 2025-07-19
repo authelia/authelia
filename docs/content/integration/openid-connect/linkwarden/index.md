@@ -2,7 +2,7 @@
 title: "Linkwarden"
 description: "Integrating Linkwarden with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2022-06-15T17:51:47+10:00
+date: 2025-01-13T08:35:59+11:00
 draft: false
 images: []
 weight: 620
@@ -13,7 +13,7 @@ support:
   integration: true
 seo:
   title: "" # custom title (optional)
-  description: "" # custom description (recommended)
+  description: "Step-by-step guide to configuring Linkwarden with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
 ---

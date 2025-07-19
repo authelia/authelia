@@ -13,7 +13,7 @@ support:
   integration: true
 seo:
   title: "" # custom title (optional)
-  description: "" # custom description (recommended)
+  description: "Step-by-step guide to configuring Stirling-PDF with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management." # custom description (recommended)
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
 ---
@@ -129,7 +129,6 @@ services:
       SECURITY_OAUTH2_USEASUSERNAME: 'preferred_username'
       SECURITY_OAUTH2_PROVIDER: 'Authelia'
 ```
-
 
 ## See Also
 

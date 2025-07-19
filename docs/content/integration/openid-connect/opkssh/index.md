@@ -13,7 +13,7 @@ support:
   integration: true
 seo:
   title: "" # custom title (optional)
-  description: "" # custom description (recommended)
+  description: "Step-by-step guide to configuring opkssh with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
 ---
@@ -25,7 +25,7 @@ seo:
 - [opkssh]
   - [v0.7.0](https://github.com/openpubkey/opkssh/releases/tag/v0.7.0)
 
-{{% oidc-common bugs="claims-hydration" %}}
+{{% oidc-common %}}
 
 ### Assumptions
 

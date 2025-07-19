@@ -2,7 +2,7 @@
 title: "Drupal"
 description: "Integrating Drupal with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
-date: 2023-11-12T21:18:09+11:00
+date: 2025-04-26T11:03:16+00:00
 draft: false
 images: []
 weight: 620
@@ -13,7 +13,7 @@ support:
   integration: true
 seo:
   title: "" # custom title (optional)
-  description: "" # custom description (recommended)
+  description: "Step-by-step guide to configuring Drupal with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
 ---
