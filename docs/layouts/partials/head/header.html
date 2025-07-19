@@ -1,0 +1,297 @@
+{{ if site.Params.doks.alert -}}
+{{ partial "header/alert.html" . }}
+{{ end -}}
+
+{{ if site.Params.doks.navbarSticky -}}
+<div class="sticky-top">
+  {{ end -}}
+
+  {{ if site.Params.doks.headerBar -}}
+  <div class="header-bar"></div>
+  {{ end -}}
+
+  <header class="navbar navbar-expand-lg">
+    {{ with site.Params.doks.containerBreakpoint -}}
+    <div class="container-{{ . }}">
+      {{ else -}}
+      <div class="container">
+        {{ end -}}
+
+        <!-- Site title -->
+        <a class="navbar-brand me-auto me-lg-3" href="{{ relLangURL "" }}">{{ .Site.Title }}</a>
+
+        <!-- FlexSearch mobile -->
+        {{ partial "main/showFlexSearch" . }}
+        {{ $showFlexSearch := .Scratch.Get "showFlexSearch" -}}
+        {{ if $showFlexSearch -}}
+        <button type="button" id="searchToggleMobile" class="btn btn-link nav-link mx-2 d-lg-none" aria-label="Search website">
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+            <circle cx="10" cy="10" r="7"></circle>
+            <line x1="21" y1="21" x2="15" y2="15"></line>
+          </svg>
+        </button>
+        {{ end -}}
+
+        <!-- DocSearch mobile -->
+        {{ if site.Params.add_ons.docSearch -}}
+        <div id="docsearch" class="d-none" tabindex="-1" aria-disabled="true"></div>
+        <button type="button" id="searchToggleMobile" class="btn btn-link nav-link mx-2 d-lg-none" aria-label="Search website">
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+            <circle cx="10" cy="10" r="7"></circle>
+            <line x1="21" y1="21" x2="15" y2="15"></line>
+          </svg>
+        </button>
+        {{ end -}}
+
+        <!-- Section navigation -->
+        {{ if (in site.Params.doks.sectionNav .Section) -}}
+        <button class="btn btn-link d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavSection" aria-controls="offcanvasNavSection" aria-label="Open section navigation menu">
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-dots-vertical" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+            <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path>
+            <path d="M12 19m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path>
+            <path d="M12 5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path>
+          </svg>
+        </button>
+        <div class="offcanvas offcanvas-start d-lg-none" tabindex="-1" id="offcanvasNavSection" aria-labelledby="offcanvasNavSectionLabel">
+          {{ if site.Params.doks.headerBar -}}
+          <div class="header-bar"></div>
+          {{ end -}}
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasNavSectionLabel">{{ .Section | humanize }}</h5>
+            <button type="button" class="btn btn-link nav-link p-0 ms-auto" data-bs-dismiss="offcanvas" aria-label="Close">
+              <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                <path d="M18 6l-12 12"></path>
+                <path d="M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          <div class="offcanvas-body">
+            <aside class="doks-sidebar mt-n3">
+              <nav id="doks-docs-nav" aria-label="Tertiary navigation">
+                {{ partial "sidebar/section-menu.html" . }}
+              </nav>
+            </aside>
+          </div>
+        </div>
+        {{ end -}}
+
+        <!-- Main navigation button -->
+        <button class="btn btn-link nav-link mx-2 order-3 d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavMain" aria-controls="offcanvasNavMain" aria-label="Open main navigation menu">
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-menu" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+            <line x1="4" y1="8" x2="20" y2="8"></line>
+            <line x1="4" y1="16" x2="20" y2="16"></line>
+          </svg>
+        </button>
+
+        <!-- Main navigation -->
+        <div class="offcanvas offcanvas-end h-auto" tabindex="-1" id="offcanvasNavMain" aria-labelledby="offcanvasNavMainLabel">
+          {{ if site.Params.doks.headerBar -}}
+          <div class="header-bar d-lg-none"></div>
+          {{ end -}}
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasNavMainLabel">{{ site.Title }}</h5>
+            <button type="button" class="btn btn-link nav-link p-0 ms-auto" data-bs-dismiss="offcanvas" aria-label="Close">
+              <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                <path d="M18 6l-12 12"></path>
+                <path d="M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          <!--
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title fw-bold" id="offcanvasNavMainLabel">{{ .Site.Params.Title }}</h5>
+            <button class="btn btn-link nav-link ms-auto" type="button" data-bs-dismiss="offcanvas" aria-label="Close menu">
+              <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                <path d="M18 6l-12 12"></path>
+                <path d="M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          -->
+          <div class="offcanvas-body d-flex flex-column flex-lg-row justify-content-between">
+            <ul class="navbar-nav flex-grow-1">
+              {{- $current := . -}}
+              {{- $section := $current.Section -}}
+              {{ range .Site.Menus.main -}}
+              {{- $active := or ($current.IsMenuCurrent "main" .) ($current.HasMenuCurrent "main" .) -}}
+              {{- $active = or $active (eq .Name $current.Title) -}}
+              {{- $active = or $active (eq .Name ($section | humanize)) -}}
+              {{- $active = or $active (and (eq .Name "Blog") (eq $current.Section "blog" "authors")) -}}
+              {{ if .HasChildren -}}
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  {{ .Name -}}
+                  <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chevron-down" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                    <path d="M6 9l6 6l6 -6"></path>
+                  </svg>
+                </a>
+                <ul class="dropdown-menu shadow rounded border-0">
+                  {{ range .Children -}}
+                  {{- $active = eq .Name $current.Title -}}
+                  <li><a class="dropdown-item{{ if $active }} active{{ end }}" href="{{ .URL | absURL }}"{{ if $active }} aria-current="true"{{ end }}>{{ .Name }}</a></li>
+                  {{ end -}}
+                </ul>
+              </li>
+              {{ else -}}
+              <li class="nav-item">
+                <a class="nav-link{{ if $active }} active{{ end }}" href="{{ .URL | absURL }}"{{ if $active }} aria-current="true"{{ end }}>{{ .Name }}</a>
+              </li>
+              {{ end -}}
+              {{ end -}}
+            </ul>
+
+            <!-- FlexSearch desktop -->
+            {{ partial "main/showFlexSearch" . }}
+            {{ $showFlexSearch := .Scratch.Get "showFlexSearch" -}}
+            {{ if $showFlexSearch -}}
+            <button type="button" id="searchToggleDesktop" class="btn btn-link nav-link p-2 d-none d-lg-block" aria-label="Search website">
+              <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                <circle cx="10" cy="10" r="7"></circle>
+                <line x1="21" y1="21" x2="15" y2="15"></line>
+              </svg>
+            </button>
+            {{ end -}}
+
+            <!-- DocSearch desktop -->
+            {{ if site.Params.add_ons.docSearch -}}
+            <button type="button" id="searchToggleDesktop" class="btn btn-link nav-link mx-2 d-none d-lg-block" aria-label="Search website">
+              <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                <circle cx="10" cy="10" r="7"></circle>
+                <line x1="21" y1="21" x2="15" y2="15"></line>
+              </svg>
+            </button>
+            {{ end -}}
+
+            <!-- Language dropdown -->
+            {{ if eq site.Params.doks.multilingualMode true -}}
+
+            <div class="dropdown mt-1 order-lg-2">
+              <button class="btn btn-dropdown dropdown-toggle" id="doks-languages" data-bs-toggle="dropdown" aria-expanded="false" data-bs-display="static">
+            <span class="dropdown-caret">
+              <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-language" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                <path d="M4 5h7"></path>
+                <path d="M9 3v2c0 4.418 -2.239 8 -5 8"></path>
+                <path d="M5 9c0 2.144 2.952 3.908 6.7 4"></path>
+                <path d="M12 20l4 -9l4 9"></path>
+                <path d="M19.1 18h-6.2"></path>
+              </svg>
+              <span id="doks-language-current">{{ .Site.Language.LanguageName }}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chevron-down" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                <path d="M6 9l6 6l6 -6"></path>
+              </svg>
+            </span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-lg-end me-lg-2 shadow rounded border-0" aria-labelledby="doks-languages">
+
+                <li><span class="dropdown-item current" aria-current="true">{{ .Site.Language.LanguageName }}</span></li>
+
+                <li><hr class="dropdown-divider"></li>
+
+                {{ if site.Params.doks.showMissingLanguages -}}
+                {{ $translatedLangs := slice -}}
+                {{ range .Translations -}}
+                {{ $translatedLangs = $translatedLangs | append .Lang }}
+                {{- end }}
+                {{ range site.Languages -}}
+                {{ if and (ne $.Lang .Lang) (not (in $.Params.skipTranslations .Lang)) -}}
+                {{ $isTranslated := in $translatedLangs .Lang -}}
+                <li><a class="dropdown-item {{ if not $isTranslated }}untranslated{{ end }}" rel="alternate" href="{{ if $isTranslated }}{{ (index (where $.Translations "Lang" .Lang) 0).RelPermalink }}{{ else }}{{ .Lang | relURL }}{{ end }}" hreflang="{{ .Lang }}" lang="{{ .Lang }}">{{ .LanguageName }}</a></li>
+                {{- end }}
+                {{- end }}
+                {{ else -}}
+                {{ range .Translations -}}
+                <li><a class="dropdown-item" rel="alternate" href="{{ .RelPermalink }}" hreflang="{{ .Lang }}" lang="{{ .Lang }}">{{ .Language.LanguageName }}</a></li>
+                {{- end }}
+                {{- end }}
+                <!--
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="/docs/contributing/how-to-contribute/">Help Translate</a></li>
+                -->
+              </ul>
+            </div>
+            {{ end -}}
+
+            <!-- Versioning dropdown  -->
+            {{ if eq site.Params.doks.docsVersioning true -}}
+
+            <div class="dropdown mt-1 order-lg-3">
+              <button class="btn btn-dropdown dropdown-toggle" id="doks-versions" data-bs-toggle="dropdown" aria-expanded="false" data-bs-display="static" aria-label="Toggle version menu">
+                <span class="d-none">Doks</span> v{{ site.Params.doks.docsVersion }}
+                <span class="dropdown-caret">
+              <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chevron-down" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                <path d="M6 9l6 6l6 -6"></path>
+              </svg>
+            </span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-lg-end me-lg-2 shadow rounded border-0" aria-labelledby="doks-versions">
+                <li><a class="dropdown-item current" aria-current="true" href="/docs/{{ site.Params.doks.docsVersion }}/prologue/introduction/">Latest ({{ site.Params.doks.docsVersion }}.x)</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="/docs/0.2/prologue/introduction/">v0.2.x</a></li>
+                <li><a class="dropdown-item" href="/docs/0.1/prologue/introduction/">v0.1.x</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="/docs/versions/">All versions</a></li>
+              </ul>
+            </div>
+            {{ end -}}
+
+            <!-- Color mode toggler -->
+            {{ if and (eq site.Params.doks.colorMode "auto") site.Params.doks.colorModeToggler -}}
+            <button id="buttonColorMode" class="btn btn-link mx-auto nav-link p-0 ms-lg-2 me-lg-1" type="button" aria-label="Toggle theme">
+              <svg data-bs-theme-value="dark" xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-moon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"></path>
+              </svg>
+              <svg data-bs-theme-value="light" xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-sun" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0m-5 0h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path>
+              </svg>
+            </button>
+            {{ end -}}
+
+            <!-- Social menu -->
+            {{ if .Site.Menus.social -}}
+            <ul id="socialMenu" class="nav mx-auto flex-row order-lg-4">
+              {{ range .Site.Menus.social -}}
+              <li class="nav-item">
+                <a class="nav-link social-link" href="{{ .URL | relURL }}">{{ .Pre | safeHTML }}<small class="ms-2 visually-hidden">{{ .Name | safeHTML }}</small></a>
+              </li>
+              {{ end -}}
+            </ul>
+            {{ end -}}
+
+
+            <!-- Navbar button mobile -->
+            {{ if site.Params.doks.navBarButton -}}
+            <a class="btn btn-primary rounded-pill mt-2 btn-block d-lg-none" href="{{ site.Params.doks.navBarButtonUrl | absURL }}" role="button">{{ site.Params.doks.navBarButtonText }}</a>
+            {{ end -}}
+          </div>
+        </div>
+
+        <!-- Navbar button desktop -->
+        {{ if site.Params.doks.navBarButton -}}
+        <a class="btn btn-primary rounded-pill ms-3 me-2 px-4 order-lg-3 d-none d-lg-block" href="{{ site.Params.doks.navBarButtonUrl | absURL }}" role="button">{{ site.Params.doks.navBarButtonText }}</a>
+        {{ end -}}
+
+      </div>
+  </header>
+  {{ if site.Params.doks.navbarSticky -}}
+</div>
+{{ end -}}
+
+<!-- Search modal -->
+{{ if site.Params.doks.flexSearch -}}
+{{ partial "header/search-modal" . }}
+{{ end -}}
