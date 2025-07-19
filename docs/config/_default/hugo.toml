@@ -1,5 +1,5 @@
 title = "Authelia"
-baseurl = "/"
+baseurl = "http://localhost/"
 canonifyURLs = false
 disableAliases = false
 disableHugoGeneratorInject = true

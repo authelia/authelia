@@ -1,1 +1,2 @@
 # Overrides for production environment
+baseurl = "https://www.authelia.com/"
