@@ -82,6 +82,6 @@ REMOTE_USER_ATTRIBUTE_MAP = {
 
 ## See Also
 
-* [Seafile Remote User Docs](https://manual.seafile.com/deploy/remote_user/)
+* [Seafile Remote User Docs](https://manual.seafile.com/latest/config/remote_user/)
 
 [Seafile]: https://www.seafile.com/

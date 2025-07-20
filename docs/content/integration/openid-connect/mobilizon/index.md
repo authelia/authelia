@@ -113,7 +113,7 @@ config :ueberauth, Ueberauth.Strategy.Keycloak.OAuth,
 
 ## See Also
 
-- [Mobilizon OAuth Authentication Documentation](https://docs.joinmobilizon.org/administration/configure/auth/#oauth)
+- [Mobilizon OAuth Authentication Documentation](https://docs.mobilizon.org/3.%20System%20administration/configure/auth/#oauth)
 
 [Authelia]: https://www.authelia.com
 [Mobilizon]: https://joinmobilizon.org/en/

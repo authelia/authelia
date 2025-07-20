@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.39.5](https://github.com/authelia/authelia/releases/tag/v4.39.5)
 - [Gravitee]
-  - [v4.7](https://documentation.gravitee.io/apim/overview/release-notes/apim-4.7)
+  - [v4.7](https://documentation.gravitee.io/apim/release-information/release-notes/apim-4.7)
 
 {{% oidc-common %}}
 

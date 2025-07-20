@@ -80,7 +80,7 @@ This blog article is rather large so this serves as an index for all of the area
 ## OpenID Connect 1.0
 
 As part of our ongoing effort for comprehensive support for [OpenID Connect 1.0] we'll be introducing several important
-features. Please see the [roadmap](../../roadmap/active/openid-connect.md) for more information.
+features. Please see the [roadmap](../../roadmap/active/openid-connect-1.0-provider.md) for more information.
 
 Those of you familiar with the various specifications are going to notice a few features which are very large steps
 towards the Financial-grade API Security Profile and OAuth 2.0 Security Best Current Practice, this is because we are

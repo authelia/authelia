@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 - [HashiCorp Vault]
-  - [v1.8.1](https://developer.hashicorp.com/vault/docs/release-notes/1.8.0)
+  - [v1.8.1](https://developer.hashicorp.com/vault/docs/updates/release-notes)
 
 {{% oidc-common %}}
 
@@ -85,7 +85,7 @@ To configure [HashiCorp Vault] to utilize Authelia as an [OpenID Connect 1.0] Pr
 ## See Also
 
 - [HashiCorp Vault JWT/OIDC Auth Documentation](https://www.vaultproject.io/docs/auth/jwt)
-- [HashiCorp Vault OpenID Connect Providers Documentation](https://www.vaultproject.io/docs/auth/jwt/oidc_providers)
+- [HashiCorp Vault OpenID Connect Providers Documentation](https://www.vaultproject.io/docs/auth/jwt/oidc-providers)
 
 [Authelia]: https://www.authelia.com
 [HashiCorp Vault]: https://www.vaultproject.io/

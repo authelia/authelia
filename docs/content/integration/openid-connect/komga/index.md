@@ -111,8 +111,8 @@ spring:
 
 ## See Also
 
-- [Komga Configuration options Documentation](https://komga.org/installation/configuration.html)
-- [Komga Social login Documentation](https://komga.org/installation/oauth2.html)
+- [Komga Configuration options Documentation](https://komga.org/docs/installation/configuration.html)
+- [Komga Social login Documentation](https://komga.org/docs/installation/oauth2/)
 
 [Authelia]: https://www.authelia.com
 [Komga]: https://www.komga.org
