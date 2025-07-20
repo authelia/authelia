@@ -19,8 +19,8 @@ We officially support the Traefik 2.x Kubernetes ingress controllers. These come
 * [Traefik Kubernetes Ingress](https://doc.traefik.io/traefik/providers/kubernetes-ingress/)
 * [Traefik Kubernetes CRD](https://doc.traefik.io/traefik/providers/kubernetes-crd/)
 
-The [Traefik documentation](../proxies/traefik.md) may also be useful for crafting advanced annotations to use with
-this ingress even though it's not specific to Kubernetes.
+The [Traefik Proxy documentation](../proxies/traefik.md) may also be useful with this ingress even though it's not
+specific to Kubernetes.
 
 ## Get started
 
