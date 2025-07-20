@@ -26,13 +26,13 @@ In addition to this configuration, it's possible to configure the integration vi
 desirable when you wish to share an ID Token or Access Token with a backend. See that guide
 [here](../../openid-connect/envoy-gateway/index.md).
 
-[Envoy]: ../proxies/envoy.md
+[Envoy]: ../../proxies/envoy.md
 [external authorization]: https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto.html#extensions-filters-http-ext-authz-v3-extauthz
 
 ## Get started
 
 It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
-[Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+[Get started](../../prologue/get-started.md) guide. This takes you through various steps which are essential to
 bootstrapping *Authelia*.
 
 ## Variables

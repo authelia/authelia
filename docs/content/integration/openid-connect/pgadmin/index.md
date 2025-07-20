@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 - [pgAdmin]
-  - [v8.5](https://www.pgadmin.org/docs/pgadmin4/latest/release_notes_8_5.html)
+  - [v9.5](https://www.pgadmin.org/docs/pgadmin4/latest/release_notes_9_5.html)
 
 {{% oidc-common %}}
 
@@ -109,7 +109,7 @@ OAUTH2_CONFIG = [{
 
 ## See Also
 
-- [pgAdmin OAuth2 Documentation](https://www.pgadmin.org/docs/pgadmin4/9.2/oauth2.html)
+- [pgAdmin OAuth2 Documentation](https://www.pgadmin.org/docs/pgadmin4/9.5/oauth2.html)
 
 [pgAdmin]: https://www.pgadmin.org/
 [Authelia]: https://www.authelia.com

@@ -202,7 +202,7 @@ services:
 
 - [express-openid-connect] API Reference Guide
 
-[Express.js]: https://Express.js.com/
+[Express.js]: https://expressjs.com/
 [express-openid-connect]: https://auth0.github.io/express-openid-connect/interfaces/ConfigParams.html
 [Authelia]: https://www.authelia.com
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md

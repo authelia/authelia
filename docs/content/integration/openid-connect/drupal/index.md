@@ -93,6 +93,6 @@ To configure [Drupal] to utilize Authelia as an [OpenID Connect 1.0] Provider, u
 - [Drupal OpenID Connect Generic Client Documentation](https://www.drupal.org/node/2274339#toc-5)
 
 [Authelia]: https://www.authelia.com
-[Drupal]: https://drupal.org/
+[Drupal]: https://new.drupal.org/home
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

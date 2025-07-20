@@ -144,7 +144,7 @@ To configure [Actual Budget] to utilize Authelia as an [OpenID Connect 1.0] Prov
 
 ## See Also
 
-- [Actual Budget Authenticating With an OpenID Provider Documentation](https://actualbudget.org/docs/experimental/oauth-auth)
+- [Actual Budget Authenticating With an OpenID Provider Documentation](https://actualbudget.org/docs/config/oauth-auth)
 
 [Authelia]: https://www.authelia.com
 [Actual Budget]: https://actualbudget.org/

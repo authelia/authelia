@@ -199,7 +199,7 @@ smtpd_sasl_type = dovecot
 [Roundcube OAuth2]: https://github.com/roundcube/roundcubemail/wiki/Configuration:-OAuth2
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [Dovecot]: https://dovecot.org/
-[Dovecot OAuth2]: https://doc.dovecot.org/configuration_manual/authentication/oauth2/
+[Dovecot OAuth2]: https://doc.dovecot.org/main/core/config/auth/databases/oauth2.html
 [Postfix]: https://www.postfix.org/
 [Postfix SASL]: https://www.postfix.org/SASL_README.html
 [client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

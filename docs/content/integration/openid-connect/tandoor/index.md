@@ -128,7 +128,7 @@ services:
 
 - [Tandoor Authentication Allauth Documentation](https://docs.tandoor.dev/features/authentication/#allauth)
 
-[Tandoor]: https://tandoor.app/index.html
+[Tandoor]: https://tandoor.dev/
 [Authelia]: https://www.authelia.com
 [OpenID Connect 1.0]: ../../openid-connect/introduction.md
 [client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md

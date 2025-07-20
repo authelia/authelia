@@ -19,7 +19,7 @@ seo:
 ---
 
 __Authelia__ currently supports the [OpenID Connect 1.0] Provider role as an open
-[__beta__](../../../roadmap/active/openid-connect.md) feature. We currently do not support the [OpenID Connect 1.0] Relying
+[__beta__](../../../roadmap/active/openid-connect-1.0-provider.md) feature. We currently do not support the [OpenID Connect 1.0] Relying
 Party role. This means other applications that implement the [OpenID Connect 1.0] Relying Party role can use Authelia as
 an [OpenID Connect 1.0] Provider similar to how you may use social media or development platforms for login.
 

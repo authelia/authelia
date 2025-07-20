@@ -23,7 +23,7 @@ seo:
 - [Authelia]
   - [v4.38.0](https://github.com/authelia/authelia/releases/tag/v4.38.0)
 - [Seafile] Server
-  - [v10.0.1](https://manual.seafile.com/changelog/server-changelog/#1001-2023-04-11)
+  - [v10.0.1](https://manual.seafile.com/latest/changelog/server-changelog/#1001-2023-04-11)
 
 {{% oidc-common %}}
 
@@ -122,14 +122,14 @@ OAUTH_ATTRIBUTE_MAP = {
 
 ## Additional Steps
 
-Optionally [enable webdav secrets](https://manual.seafile.com/config/seahub_settings_py/#user-management-options) so
+Optionally [enable webdav secrets](https://manual.seafile.com/latest/config/seahub_settings_py/#user-management-options) so
 that clients that do not support OAuth 2.0 (e.g., [davfs2](https://savannah.nongnu.org/bugs/?57589)) can login via
 basic auth.
 
 ## See Also
 
-- [Seafile OAuth Authentication Documentation](https://manual.seafile.com/deploy/oauth/)
-- [Seafile's WebDAV extension](https://manual.seafile.com/extension/webdav/)
+- [Seafile OAuth Authentication Documentation](https://manual.seafile.com/latest/config/oauth/)
+- [Seafile's WebDAV extension](https://manual.seafile.com/latest/extension/webdav/)
 
 [Authelia]: https://www.authelia.com
 [Seafile]: https://www.seafile.com/
