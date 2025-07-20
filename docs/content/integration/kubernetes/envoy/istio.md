@@ -22,13 +22,15 @@ seo:
 Istio uses [Envoy] as an Ingress. This means it has a relatively comprehensive integration option.
 Istio is supported with Authelia v4.37.0 and higher via the [Envoy] proxy [external authorization] filter.
 
-[Envoy]: ../proxies/envoy.md
+The [Envoy Proxy documentation](../../proxies/envoy.md) may also be useful with this ingress even though it's not
+specific to Kubernetes.
+
 [external authorization]: https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto.html#extensions-filters-http-ext-authz-v3-extauthz
 
 ## Get started
 
 It's __*strongly recommended*__ that users setting up *Authelia* for the first time take a look at our
-[Get started](../prologue/get-started.md) guide. This takes you through various steps which are essential to
+[Get started](../../prologue/get-started.md) guide. This takes you through various steps which are essential to
 bootstrapping *Authelia*.
 
 ## Variables
@@ -104,3 +106,4 @@ spec:
 - Istio [MeshConfig Extension Provider EnvoyExtAuthz HTTP Provider](https://istio.io/latest/docs/reference/config/istio.mesh.v1alpha1/#MeshConfig-ExtensionProvider-EnvoyExternalAuthorizationHttpProvider) Documentation
 
 [Authorization Policy]: https://istio.io/latest/docs/reference/config/security/authorization-policy/
+[Envoy]: https://www.envoyproxy.io/

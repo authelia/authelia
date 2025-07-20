@@ -33,6 +33,10 @@ helm repo add authelia https://charts.authelia.com
 helm repo update
 ```
 
+## Authenticity Signature
+
+The chart is signed using the [Authelia PGP Keys](https://keybase.io/authelia/pgp_keys.asc).
+
 ## Website
 
 The [https://charts.authelia.com/](https://charts.authelia.com/) URL also serves a website with basic chart information.
