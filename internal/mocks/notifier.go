@@ -42,6 +42,20 @@ func (m *MockNotifier) EXPECT() *MockNotifierMockRecorder {
 	return m.recorder
 }
 
+// Queue mocks base method.
+func (m *MockNotifier) Queue(ctx context.Context, recipient mail.Address, subject string, et *templates.EmailTemplate, data any) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Queue", ctx, recipient, subject, et, data)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Queue indicates an expected call of Queue.
+func (mr *MockNotifierMockRecorder) Queue(ctx, recipient, subject, et, data any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Queue", reflect.TypeOf((*MockNotifier)(nil).Queue), ctx, recipient, subject, et, data)
+}
+
 // Send mocks base method.
 func (m *MockNotifier) Send(ctx context.Context, recipient mail.Address, subject string, et *templates.EmailTemplate, data any) error {
 	m.ctrl.T.Helper()

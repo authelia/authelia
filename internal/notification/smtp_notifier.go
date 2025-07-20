@@ -8,6 +8,8 @@ import (
 	"net/mail"
 	"os"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	gomail "github.com/wneessen/go-mail"
@@ -103,6 +105,8 @@ type SMTPNotifier struct {
 	tls    *tls.Config
 	log    *logrus.Entry
 	opts   []gomail.Option
+
+	queue SMTPNotifierQueue
 }
 
 // StartupCheck implements model.StartupCheck to perform startup check operations.
@@ -126,6 +130,10 @@ func (n *SMTPNotifier) StartupCheck() (err error) {
 	if err = client.Close(); err != nil {
 		return fmt.Errorf("failed to close connection: %w", err)
 	}
+
+	go func() {
+		n.run()
+	}()
 
 	return nil
 }
@@ -156,6 +164,29 @@ func (n *SMTPNotifier) Send(ctx context.Context, recipient mail.Address, subject
 	if err = client.Close(); err != nil {
 		return fmt.Errorf("notifier: smtp: failed to close connection: %w", err)
 	}
+
+	return nil
+}
+
+// Queue a notification via the SMTPNotifier.
+func (n *SMTPNotifier) Queue(ctx context.Context, recipient mail.Address, subject string, et *templates.EmailTemplate, data any) (err error) {
+	if n.queue.frequency.Seconds() == 0 {
+		return n.Send(ctx, recipient, subject, et, data)
+	}
+
+	var (
+		msg *gomail.Msg
+	)
+
+	if msg, err = n.msg(recipient, subject, et, data); err != nil {
+		return fmt.Errorf("notifier: smtp: failed to create envelope: %w", err)
+	}
+
+	n.queue.Lock()
+
+	defer n.queue.Unlock()
+
+	n.queue.messages = append(n.queue.messages, msg)
 
 	return nil
 }
@@ -218,4 +249,50 @@ func (n *SMTPNotifier) setMessageID(msg *gomail.Msg) {
 	pid := os.Getpid() + rm
 
 	msg.SetMessageIDWithValue(fmt.Sprintf("%d.%d%d.%s@%s", pid, rn, rm, rs, n.domain))
+}
+
+func (n *SMTPNotifier) run() {
+	if n.queue.frequency.Seconds() == 0 {
+		return
+	}
+
+	ticker := time.NewTicker(n.queue.frequency)
+
+	for {
+		select {
+		case <-ticker.C:
+			client, err := n.client()
+
+			if err == nil {
+				n.log.WithError(err).Error("failed to establish connection for queued messages")
+
+				continue
+			}
+
+			n.queue.Lock()
+
+			messages := make([]*gomail.Msg, len(n.queue.messages))
+
+			copy(messages, n.queue.messages)
+
+			if err = client.Send(messages...); err != nil {
+				n.log.WithError(err).Error("failed to send queued messages")
+
+				n.queue.Unlock()
+
+				continue
+			}
+
+			n.queue.messages = []*gomail.Msg{}
+
+			n.queue.Unlock()
+		}
+	}
+}
+
+type SMTPNotifierQueue struct {
+	sync.Mutex
+
+	frequency time.Duration
+	messages  []*gomail.Msg
 }

@@ -89,3 +89,7 @@ func (n *FileNotifier) Send(_ context.Context, recipient mail.Address, subject s
 
 	return nil
 }
+
+func (n *FileNotifier) Queue(ctx context.Context, recipient mail.Address, subject string, et *templates.EmailTemplate, data any) (err error) {
+	return n.Send(ctx, recipient, subject, et, data)
+}
