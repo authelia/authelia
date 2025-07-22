@@ -59,16 +59,14 @@ identity_providers:
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
         authorization_policy: 'two_factor'
-        require_pkce: true
-        pkce_challenge_method: 'S256'
+        require_pkce: false
+        pkce_challenge_method: ''
         redirect_uris:
           - 'https://argocd.{{< sitevar name="domain" nojs="example.com" >}}/auth/callback'
-          - 'https://argocd.{{< sitevar name="domain" nojs="example.com" >}}/pkce/verify'
         scopes:
           - 'openid'
           - 'groups'
           - 'email'
-          - 'profile'
         response_types:
           - 'code'
         grant_types:
@@ -89,7 +87,6 @@ identity_providers:
           - 'offline_access'
           - 'groups'
           - 'email'
-          - 'profile'
         response_types:
           - 'code'
         grant_types:
@@ -121,9 +118,18 @@ oidc.config: |
   cliClientID: 'argocd-cli'
   requestedScopes:
     - 'openid'
-    - 'profile'
     - 'email'
     - 'groups'
+  enableUserInfoGroups: true
+  userInfoPath: '/api/oidc/userinfo'
+```
+
+##### Group Mapping
+
+You can use the following example to map the `argocd-admins` Authelia group to the `admin` role.
+
+```csv {title="policy.csv"}
+g, argocd-admins, role:admin
 ```
 
 ## See Also
