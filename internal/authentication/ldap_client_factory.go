@@ -11,8 +11,10 @@ import (
 	"time"
 
 	"github.com/go-ldap/ldap/v3"
+	"github.com/sirupsen/logrus"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -101,6 +103,7 @@ func NewPooledLDAPClientFactory(config *schema.AuthenticationBackendLDAP, certs 
 	sleep := config.Pooling.Timeout / time.Duration(config.Pooling.Retries)
 
 	return &PooledLDAPClientFactory{
+		log:    logging.Logger().WithFields(map[string]any{"provider": "pooled ldap factory"}),
 		config: config,
 		tls:    tlsc,
 		opts:   opts,
@@ -110,8 +113,10 @@ func NewPooledLDAPClientFactory(config *schema.AuthenticationBackendLDAP, certs 
 }
 
 // PooledLDAPClientFactory is a LDAPClientFactory that takes another LDAPClientFactory and pools the
-// factory generated connections using a channel for thread safety.
+// factory generated connections using a buffered channel for thread safety.
 type PooledLDAPClientFactory struct {
+	log *logrus.Entry
+
 	config *schema.AuthenticationBackendLDAP
 	tls    *tls.Config
 	opts   []ldap.DialOpt
@@ -121,6 +126,8 @@ type PooledLDAPClientFactory struct {
 	mu   sync.Mutex
 
 	sleep time.Duration
+
+	next int
 
 	closing bool
 }
@@ -161,6 +168,8 @@ func (f *PooledLDAPClientFactory) Initialize() (err error) {
 // GetClient opens new client using the pool.
 func (f *PooledLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (conn ldap.Client, err error) {
 	if len(opts) != 0 {
+		f.log.Trace("Creating new unpooled client")
+
 		return getLDAPClient(f.config.Address.String(), f.config.User, f.config.Password, f.config.Timeout, f.dialer, f.tls, f.config.StartTLS, f.opts, opts...)
 	}
 
@@ -171,34 +180,63 @@ func (f *PooledLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (co
 func (f *PooledLDAPClientFactory) new() (pooled *LDAPClientPooled, err error) {
 	var client ldap.Client
 
+	f.log.Trace("Creating new pooled client")
+
 	if client, err = getLDAPClient(f.config.Address.String(), f.config.User, f.config.Password, f.config.Timeout, f.dialer, f.tls, f.config.StartTLS, f.opts); err != nil {
 		return nil, fmt.Errorf("error occurred establishing new client for the pool: %w", err)
 	}
 
-	return &LDAPClientPooled{Client: client}, nil
+	pooled = &LDAPClientPooled{Client: client, log: f.log.WithField("client", f.next)}
+
+	f.next++
+
+	pooled.log.Trace("New pooled client created")
+
+	return pooled, nil
 }
 
 // ReleaseClient returns a client using the pool or closes it.
 func (f *PooledLDAPClientFactory) ReleaseClient(client ldap.Client) (err error) {
+	f.log.Trace("Releasing Client")
+
 	f.mu.Lock()
 
 	defer f.mu.Unlock()
 
 	if f.closing {
+		f.log.Trace("Pool is closing, closing the released client")
+
 		return client.Close()
 	}
 
-	if pool, ok := client.(*LDAPClientPooled); !ok || cap(f.pool) == len(f.pool) {
+	var (
+		pool *LDAPClientPooled
+		ok   bool
+	)
+	if pool, ok = client.(*LDAPClientPooled); !ok {
+		f.log.Trace("Unpooled client is being closed")
+
 		// Prevent extra or non-pool connections from being returned into the pool.
 		return client.Close()
-	} else {
-		f.pool <- pool
 	}
 
-	return nil
+	pool.log.Trace("Releasing pooled client")
+
+	select {
+	case f.pool <- pool:
+		pool.log.Trace("Returning pooled client to the pool")
+
+		return nil
+	default:
+		pool.log.Trace("Closing extra pooled client")
+
+		return client.Close()
+	}
 }
 
 func (f *PooledLDAPClientFactory) acquire(ctx context.Context) (client *LDAPClientPooled, err error) {
+	f.log.Trace("Acquiring Client")
+
 	f.mu.Lock()
 
 	defer f.mu.Unlock()
@@ -209,35 +247,36 @@ func (f *PooledLDAPClientFactory) acquire(ctx context.Context) (client *LDAPClie
 
 	if cap(f.pool) != f.config.Pooling.Count {
 		if err = f.Initialize(); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error acquiring client: error initializing buffer: %w", err)
 		}
 	}
+
+	f.log.Trace("Timeout Started")
 
 	ctx, cancel := context.WithTimeout(ctx, f.config.Pooling.Timeout)
 	defer cancel()
 
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	case client = <-f.pool:
-		if client.IsClosing() || client.Client == nil {
-			for {
-				select {
-				case <-ctx.Done():
-					return nil, ctx.Err()
-				default:
-					if client, err = f.new(); err != nil {
-						time.Sleep(f.sleep)
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, fmt.Errorf("error acquiring client: %w", err)
+		case client = <-f.pool:
+			if client.IsClosing() || client.Client == nil {
+				client.log.Trace("Client is closing or invalid")
 
-						continue
-					}
+				if client, err = f.new(); err != nil {
+					f.log.WithError(err).Trace("Error acquiring new client")
 
-					return client, nil
+					time.Sleep(f.sleep)
+
+					continue
 				}
-			}
-		}
 
-		return client, nil
+				client.log.Trace("New client acquired")
+			}
+
+			return client, nil
+		}
 	}
 }
 
@@ -273,6 +312,8 @@ func (f *PooledLDAPClientFactory) Close() (err error) {
 // from being closed and instead relinquishes the connection back to the pool.
 type LDAPClientPooled struct {
 	ldap.Client
+
+	log *logrus.Entry
 }
 
 func getLDAPClient(address, username, password string, timeout time.Duration, dialer LDAPClientDialer, tls *tls.Config, startTLS bool, dialerOpts []ldap.DialOpt, opts ...LDAPClientFactoryOption) (client ldap.Client, err error) {
