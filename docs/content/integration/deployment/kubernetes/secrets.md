@@ -7,6 +7,8 @@ draft: false
 images: []
 weight: 363
 toc: true
+aliases:
+  - '/integration/kubernetes/secrets/'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)

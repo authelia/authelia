@@ -10,6 +10,9 @@ integration:
 parent: "kubernetes"
 weight: 551
 toc: true
+aliases:
+  - '/integration/kubernetes/envoy/'
+  - '/integration/kubernetes/envoy/introduction/'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)

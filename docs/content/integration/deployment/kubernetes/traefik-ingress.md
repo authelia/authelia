@@ -7,6 +7,8 @@ draft: false
 images: []
 weight: 365
 toc: true
+aliases:
+  - '/integration/kubernetes/traefik-ingress/'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
