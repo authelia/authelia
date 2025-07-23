@@ -7,6 +7,9 @@ draft: false
 images: []
 weight: 362
 toc: true
+aliases:
+  - '/i/chart'
+  - '/integration/kubernetes/chart/'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)

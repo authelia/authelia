@@ -11,7 +11,7 @@ parent: "kubernetes"
 weight: 552
 toc: true
 aliases:
-  - '/kubernetes/istio/'
+  - '/integration/kubernetes/envoy/gateway/'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)

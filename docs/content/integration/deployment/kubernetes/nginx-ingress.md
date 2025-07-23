@@ -7,6 +7,8 @@ draft: false
 images: []
 weight: 367
 toc: true
+aliases:
+  - '/integration/kubernetes/nginx-ingress/'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)

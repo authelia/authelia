@@ -8,7 +8,8 @@ images: []
 weight: 361
 toc: true
 aliases:
-  - /i/k8s
+  - '/i/k8s'
+  - '/integration/kubernetes/introduction/'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
