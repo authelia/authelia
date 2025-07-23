@@ -8,8 +8,8 @@ images: []
 weight: 350
 toc: true
 aliases:
-  - /i/nginx
-  - /docs/deployment/supported-proxies/nginx.html
+  - '/i/nginx'
+  - '/docs/deployment/supported-proxies/nginx.html'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)

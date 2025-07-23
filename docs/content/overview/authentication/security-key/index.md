@@ -8,7 +8,8 @@ images: []
 weight: 240
 toc: true
 aliases:
-  - /docs/features/2fa/security-key
+  - '/docs/features/2fa/security-key'
+  - '/overview/authentication/webauthn-security-key'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
