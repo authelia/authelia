@@ -7,6 +7,9 @@ draft: false
 images: []
 weight: 751
 toc: true
+aliases:
+  - '/reference/guides/ldap/'
+  - '/r/ldap'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)

@@ -8,7 +8,8 @@ images: []
 weight: 108200
 toc: true
 aliases:
-  - /docs/configuration/notifier/smtp.html
+  - '/docs/configuration/notifier/smtp.html'
+  - '/configuration/authentication/smtp/'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)

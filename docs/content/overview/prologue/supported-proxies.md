@@ -7,6 +7,8 @@ draft: false
 images: []
 weight: 130
 toc: true
+aliases:
+  - '/docs/deployment/supported-proxies/'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)

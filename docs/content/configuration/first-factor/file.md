@@ -8,7 +8,8 @@ images: []
 weight: 102300
 toc: true
 aliases:
-  - /docs/configuration/authentication/file.html
+  - '/docs/configuration/authentication/file.html'
+  - '/docs/configuration/authentication/file.html%E2%80%8B'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
