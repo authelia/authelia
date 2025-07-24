@@ -16,4 +16,8 @@ runner:
     errorformat:
       - '%f:%l:%c: %m'
     level: warning
+  gitleaks:
+    cmd: .buildkite/lint.sh gitleaks
+    format: rdjson
+    level: error
 ...

@@ -17,6 +17,10 @@ if [ $# -eq 0 ]; then
   else
     echo "Linting was successful"
   fi
+elif [ $1 = "gitleaks" ]; then
+  TEMP_FILE="$(mktemp)"
+  gitleaks dir --no-banner --no-color -r ${TEMP_FILE} -f json -b .gitleaks-baseline.json > /dev/null 2>&1
+  jq -f <(curl -sSL https://raw.githubusercontent.com/reviewdog/action-gitleaks/refs/heads/master/gitleaks-to-rdjson.jq) -c ${TEMP_FILE}
 else
   reviewdog "$@"
 fi

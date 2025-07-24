@@ -1,0 +1,56 @@
+pre-commit:
+  piped: true
+  jobs:
+    - name: check tools
+      run: |
+        MISSING=()
+
+        if ! command -v golangci-lint > /dev/null 2>&1; then
+          MISSING+=("golangci-lint")
+        fi
+
+        if ! command -v pnpm > /dev/null 2>&1; then
+          MISSING+=("pnpm")
+        fi
+
+        if ! command -v gitleaks > /dev/null 2>&1; then
+          MISSING+=("gitleaks")
+        fi
+
+        if [ ${#MISSING[@]} -gt 0 ]; then
+          COUNT=${#MISSING[@]}
+          if [ $COUNT -eq 1 ]; then
+            LIST="${MISSING[0]}"
+          elif [ $COUNT -eq 2 ]; then
+            LIST="${MISSING[0]} and ${MISSING[1]}"
+          else
+            LIST="$(IFS=, ; echo "${MISSING[*]:0:$COUNT-1}" | sed 's/,/, /g') and ${MISSING[$COUNT-1]}"
+          fi
+
+          echo "❌ You must install $LIST"
+          exit 1
+        fi
+
+    - name: linters
+      group:
+        parallel: true
+        jobs:
+          - name: golangci-lint
+            run: golangci-lint run --fix
+            glob: "*.go"
+            stage_fixed: true
+
+          - name: eslint
+            run: pnpm lint
+            root: "web/"
+            glob: "*.{js,jsx,ts,tsx}"
+            stage_fixed: true
+
+          - name: gitleaks
+            run: gitleaks dir --no-banner --no-color -b .gitleaks-baseline.json
+
+commit-msg:
+  jobs:
+    - name: commitlint
+      run: pnpm commitlint --edit
+      root: "web/"
