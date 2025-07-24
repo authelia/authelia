@@ -1,7 +1,9 @@
+---
 pre-commit:
   piped: true
   jobs:
     - name: check tools
+      # yamllint disable rule:indentation
       run: |
         MISSING=()
 
@@ -30,6 +32,7 @@ pre-commit:
           echo "❌ You must install ${LIST}"
           exit 1
         fi
+      # yamllint enable rule:indentation
 
     - name: linters
       group:
@@ -54,3 +57,4 @@ commit-msg:
     - name: commitlint
       run: pnpm commitlint --edit
       root: "web/"
+...
