@@ -27,7 +27,7 @@ pre-commit:
             LIST="$(IFS=, ; echo "${MISSING[*]:0:$COUNT-1}" | sed 's/,/, /g') and ${MISSING[$COUNT-1]}"
           fi
 
-          echo "❌ You must install $LIST"
+          echo "❌ You must install ${LIST}"
           exit 1
         fi
 
@@ -47,7 +47,7 @@ pre-commit:
             stage_fixed: true
 
           - name: gitleaks
-            run: gitleaks dir --no-banner --no-color -b .gitleaks-baseline.json
+            run: gitleaks detect --no-banner --no-color -b .gitleaks-baseline.json
 
 commit-msg:
   jobs:
