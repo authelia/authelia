@@ -46,7 +46,7 @@ pre-commit:
             stage_fixed: true
 
           - name: yamllint
-            run: yamllint -f parsable .
+            run: yamllint -f parsable . && echo "0 issues."
             glob: "*.{yml,yaml}"
 
 commit-msg:
