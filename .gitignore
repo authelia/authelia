@@ -1,6 +1,7 @@
 # IDE user configuration
 .idea/
 .vscode/
+.github/_/
 
 # Nodejs modules
 .pnpm-store/

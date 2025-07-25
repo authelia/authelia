@@ -7,17 +7,11 @@ pre-commit:
       run: |
         MISSING=()
 
-        if ! command -v golangci-lint > /dev/null 2>&1; then
-          MISSING+=("golangci-lint")
-        fi
-
-        if ! command -v pnpm > /dev/null 2>&1; then
-          MISSING+=("pnpm")
-        fi
-
-        if ! command -v gitleaks > /dev/null 2>&1; then
-          MISSING+=("gitleaks")
-        fi
+        for TOOL in gitleaks golangci-lint pnpm yamllint; do
+          if ! command -v ${TOOL} > /dev/null 2>&1; then
+          MISSING+=("${TOOL}")
+          fi
+        done
 
         if [ ${#MISSING[@]} -gt 0 ]; then
           COUNT=${#MISSING[@]}
@@ -38,11 +32,6 @@ pre-commit:
       group:
         parallel: true
         jobs:
-          - name: golangci-lint
-            run: golangci-lint run --fix
-            glob: "*.go"
-            stage_fixed: true
-
           - name: eslint
             run: pnpm lint
             root: "web/"
@@ -51,6 +40,15 @@ pre-commit:
 
           - name: gitleaks
             run: gitleaks detect --no-banner --no-color -b .gitleaks-baseline.json
+
+          - name: golangci-lint
+            run: golangci-lint run --fix
+            glob: "*.go"
+            stage_fixed: true
+
+          - name: yamllint
+            run: yamllint -f parsable .
+            glob: "*.{yml,yaml}"
 
 commit-msg:
   jobs:

@@ -1,5 +1,15 @@
 ---
 runner:
+  eslint:
+    cmd: cd web && eslint -f rdjson '*/**/*.{js,jsx,ts,tsx}'
+    format: rdjson
+    level: error
+
+  gitleaks:
+    cmd: .buildkite/lint.sh gitleaks
+    format: rdjson
+    level: error
+
   golangci:
     cmd: golangci-lint run
     errorformat:
@@ -7,17 +17,10 @@ runner:
       - '%E%f:%l: %m'
       - '%C%.%#'
     level: error
-  eslint:
-    cmd: cd web && eslint -f rdjson '*/**/*.{js,ts,tsx}'
-    format: rdjson
-    level: error
+
   yamllint:
-    cmd: yamllint --format parsable .
+    cmd: yamllint -f parsable .
     errorformat:
       - '%f:%l:%c: %m'
-    level: warning
-  gitleaks:
-    cmd: .buildkite/lint.sh gitleaks
-    format: rdjson
     level: error
 ...
