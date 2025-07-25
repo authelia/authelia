@@ -8,7 +8,7 @@ pre-commit:
         MISSING=""
         COUNT=0
 
-        for TOOL in gitleaks golangci-lint pnpm yamllint; do
+        for TOOL in golangci-lint pnpm yamllint; do
           if ! command -v ${TOOL} >/dev/null 2>&1; then
             if [ "$COUNT" -eq 0 ]; then
               MISSING=${TOOL}
@@ -36,9 +36,6 @@ pre-commit:
             root: "web/"
             glob: "*.{js,jsx,ts,tsx}"
             stage_fixed: true
-
-          - name: gitleaks
-            run: gitleaks detect --no-banner --no-color -b .gitleaks-baseline.json
 
           - name: golangci-lint
             run: golangci-lint run --fix

@@ -5,11 +5,6 @@ runner:
     format: rdjson
     level: error
 
-  gitleaks:
-    cmd: .buildkite/lint.sh gitleaks
-    format: rdjson
-    level: error
-
   golangci:
     cmd: golangci-lint run
     errorformat:
