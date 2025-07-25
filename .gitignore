@@ -2,6 +2,7 @@
 .idea/
 .vscode/
 .github/_/
+.lefthook-local.yml
 
 # Nodejs modules
 .pnpm-store/
