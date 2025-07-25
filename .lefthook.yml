@@ -32,7 +32,7 @@ pre-commit:
         parallel: true
         jobs:
           - name: eslint
-            run: pnpm lint
+            run: pnpm lint && echo "0 issues."
             root: "web/"
             glob: "*.{js,jsx,ts,tsx}"
             stage_fixed: true
