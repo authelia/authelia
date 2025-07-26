@@ -1066,7 +1066,7 @@ func (ctx *CmdCtx) StorageUserWebAuthnListAllRunE(_ *cobra.Command, _ []string) 
 
 	w := tabwriter.NewWriter(os.Stdout, 1, 1, 4, ' ', 0)
 
-	_, _ = fmt.Fprintln(w, "ID\tKID\tDescription\tUsername")
+	_, _ = fmt.Fprintln(w, "ID\tRPID\tKID\tDescription\tUsername")
 
 	for page := 0; true; page++ {
 		if credentials, err = ctx.providers.StorageProvider.LoadWebAuthnCredentials(ctx, limit, page); err != nil {
