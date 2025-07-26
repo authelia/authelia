@@ -1,8 +1,8 @@
 ---
-title: "authelia-gen docs"
-description: "Reference for the authelia-gen docs command."
+title: "authelia-gen docs seo"
+description: "Reference for the authelia-gen docs seo command."
 lead: ""
-date: 2024-03-14T06:00:14+11:00
+date: 2025-07-26T19:42:14+10:00
 draft: false
 images: []
 weight: 915
@@ -14,18 +14,18 @@ seo:
   noindex: false # false (default) or true
 ---
 
-## authelia-gen docs
+## authelia-gen docs seo
 
-Generate docs
+Generate doc seo tags
 
 ```
-authelia-gen docs [flags]
+authelia-gen docs seo [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for docs
+  -h, --help   help for seo
 ```
 
 ### Options inherited from parent commands
@@ -72,11 +72,6 @@ authelia-gen docs [flags]
 
 ### SEE ALSO
 
-* [authelia-gen](authelia-gen.md)	 - Authelia's generator tooling
-* [authelia-gen docs cli](authelia-gen_docs_cli.md)	 - Generate CLI docs
-* [authelia-gen docs data](authelia-gen_docs_data.md)	 - Generate docs data files
-* [authelia-gen docs date](authelia-gen_docs_date.md)	 - Generate doc dates
-* [authelia-gen docs json-schema](authelia-gen_docs_json-schema.md)	 - Generate docs JSON schema
-* [authelia-gen docs manage](authelia-gen_docs_manage.md)	 - Generate Managed docs
-* [authelia-gen docs seo](authelia-gen_docs_seo.md)	 - Generate doc seo tags
+* [authelia-gen docs](authelia-gen_docs.md)	 - Generate docs
+* [authelia-gen docs seo openid-connect](authelia-gen_docs_seo_openid-connect.md)	 - Generate doc openid connect integration guide seo tags
 
