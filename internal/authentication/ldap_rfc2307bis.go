@@ -90,7 +90,7 @@ func (p *LDAPUserProvider) getRFC2307bisFieldMetadata() map[string]FieldMetadata
 	}
 }
 
-func (p *LDAPUserProvider) validateRFC2307bisUserData(userData *NewUserData) error {
+func (p *LDAPUserProvider) validateRFC2307bisUserData(userData *UserDetailsExtended) error {
 	if userData.Username == "" {
 		return fmt.Errorf("username required")
 	}
@@ -113,14 +113,15 @@ func (p *LDAPUserProvider) validateRFC2307bisUserData(userData *NewUserData) err
 	return nil
 }
 
-func (p *LDAPUserProvider) createRFC2307bisAddRequest(userData *NewUserData) (*ldap.AddRequest, error) {
-	userDN := fmt.Sprintf("uid=%s,%s", userData.Username, p.usersBaseDN)
+func (p *LDAPUserProvider) createRFC2307bisAddRequest(userData *UserDetailsExtended) (*ldap.AddRequest, error) {
+	userDN := fmt.Sprintf("%s=%s,%s", p.config.Attributes.Username, ldap.EscapeFilter(userData.Username), p.usersBaseDN)
+
 	addRequest := ldap.NewAddRequest(userDN, nil)
 
 	// RFC2307bis requires these object classes
 	addRequest.Attribute("objectClass", []string{"top", "person", "organizationalPerson", "inetOrgPerson"})
-	
-	addRequest.Attribute("uid", []string{userData.Username})
+
+	addRequest.Attribute("uid", []string{userData.UserDetails.Username})
 	addRequest.Attribute("cn", []string{userData.CommonName})
 	addRequest.Attribute("sn", []string{userData.FamilyName})
 	addRequest.Attribute("userPassword", []string{userData.Password})
@@ -129,8 +130,8 @@ func (p *LDAPUserProvider) createRFC2307bisAddRequest(userData *NewUserData) (*l
 	if userData.GivenName != "" {
 		addRequest.Attribute("givenName", []string{userData.GivenName})
 	}
-	if userData.Email != "" {
-		addRequest.Attribute("mail", []string{userData.Email})
+	if len(userData.UserDetails.Emails) > 0 {
+		addRequest.Attribute("mail", []string{userData.UserDetails.Emails[0]})
 	}
 
 	return addRequest, nil

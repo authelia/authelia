@@ -16,35 +16,6 @@ type UserDetails struct {
 	Groups      []string
 }
 
-// NewUserData is used to standardize the various attributes used among the various ldap backends.
-type NewUserData struct {
-	// Core required fields (common across backends)
-	Username string
-	Password string
-
-	// Display name variations
-	DisplayName string // File backend uses this
-	CommonName  string // LDAP cn attribute
-	GivenName   string // LDAP givenName
-	FamilyName  string // LDAP sn (surname)
-
-	Email  string
-	Emails []string
-
-	Groups []string
-
-	Extended *UserDetailsExtended
-
-	// For cases where backends need attributes not covered above
-	//TODO: evaluate if this is actually needed.
-	BackendAttributes map[string]interface{}
-
-	DN          string // Distinguished Name
-	ObjectClass []string
-
-	Disabled bool
-}
-
 type FieldMetadata struct {
 	Required    bool   `json:"required"`
 	DisplayName string `json:"displayName"`
@@ -52,23 +23,6 @@ type FieldMetadata struct {
 	Type        string `json:"type"` // "string", "email", "password", "array"
 	MaxLength   int    `json:"maxLength,omitempty"`
 	Pattern     string `json:"pattern,omitempty"`
-}
-
-func (u *NewUserData) HasDisplayNameInfo() bool {
-	return u.DisplayName != "" || u.CommonName != "" || (u.GivenName != "" && u.FamilyName != "")
-}
-
-func (u *NewUserData) GetEffectiveDisplayName() string {
-	if u.DisplayName != "" {
-		return u.DisplayName
-	}
-	if u.CommonName != "" {
-		return u.CommonName
-	}
-	if u.GivenName != "" && u.FamilyName != "" {
-		return fmt.Sprintf("%s %s", u.GivenName, u.FamilyName)
-	}
-	return u.Username
 }
 
 // Addresses returns the Emails []string as []mail.Address formatted with DisplayName as the Name attribute.
@@ -125,6 +79,36 @@ type UserDetailsExtended struct {
 	Extra map[string]any
 
 	*UserDetails
+
+	Password          string `json:"-"`
+	CommonName        string
+	DN                string
+	ObjectClass       []string
+	Disabled          bool
+	BackendAttributes map[string]interface{} `json:"backendAttributes,omitempty"`
+}
+
+func (d *UserDetailsExtended) HasDisplayNameInfo() bool {
+	if d.UserDetails != nil && d.UserDetails.DisplayName != "" {
+		return true
+	}
+	return d.CommonName != "" || (d.GivenName != "" && d.FamilyName != "")
+}
+
+func (d *UserDetailsExtended) GetEffectiveDisplayName() string {
+	if d.UserDetails != nil && d.UserDetails.DisplayName != "" {
+		return d.UserDetails.DisplayName
+	}
+	if d.CommonName != "" {
+		return d.CommonName
+	}
+	if d.GivenName != "" && d.FamilyName != "" {
+		return fmt.Sprintf("%s %s", d.GivenName, d.FamilyName)
+	}
+	if d.UserDetails != nil {
+		return d.UserDetails.Username
+	}
+	return ""
 }
 
 func (d *UserDetailsExtended) GetGivenName() (given string) {
@@ -237,6 +221,177 @@ func (d *UserDetailsExtended) GetCountry() (country string) {
 
 func (d *UserDetailsExtended) GetExtra() (extra map[string]any) {
 	return d.Extra
+}
+
+type UserDetailsExtendedBuilder struct {
+	data *UserDetailsExtended
+}
+
+// NewUser creates a new user builder with username and password
+func NewUser(username, password string) *UserDetailsExtendedBuilder {
+	return &UserDetailsExtendedBuilder{
+		data: &UserDetailsExtended{
+			Password: password,
+			UserDetails: &UserDetails{
+				Username: username,
+				Emails:   []string{},
+				Groups:   []string{},
+			},
+			BackendAttributes: make(map[string]interface{}),
+			ObjectClass:       []string{},
+		},
+	}
+}
+
+func (b *UserDetailsExtendedBuilder) WithDisplayName(name string) *UserDetailsExtendedBuilder {
+	b.data.UserDetails.DisplayName = name
+	return b
+}
+
+func (b *UserDetailsExtendedBuilder) WithEmail(email string) *UserDetailsExtendedBuilder {
+	b.data.UserDetails.Emails = []string{email}
+	return b
+}
+
+func (b *UserDetailsExtendedBuilder) WithEmails(emails []string) *UserDetailsExtendedBuilder {
+	b.data.UserDetails.Emails = emails
+	return b
+}
+
+func (b *UserDetailsExtendedBuilder) WithGroups(groups []string) *UserDetailsExtendedBuilder {
+	b.data.UserDetails.Groups = groups
+	return b
+}
+
+func (b *UserDetailsExtendedBuilder) WithDisabled(disabled bool) *UserDetailsExtendedBuilder {
+	b.data.Disabled = disabled
+	return b
+}
+
+// ============================================================================
+// NAME FIELDS (LDAP-specific)
+// ============================================================================
+
+func (b *UserDetailsExtendedBuilder) WithCommonName(cn string) *UserDetailsExtendedBuilder {
+	b.data.CommonName = cn
+	return b
+}
+
+func (b *UserDetailsExtendedBuilder) WithGivenName(given string) *UserDetailsExtendedBuilder {
+	b.data.GivenName = given
+	return b
+}
+
+func (b *UserDetailsExtendedBuilder) WithFamilyName(family string) *UserDetailsExtendedBuilder {
+	b.data.FamilyName = family
+	return b
+}
+
+func (b *UserDetailsExtendedBuilder) WithMiddleName(middle string) *UserDetailsExtendedBuilder {
+	b.data.MiddleName = middle
+	return b
+}
+
+func (b *UserDetailsExtendedBuilder) WithNickname(nickname string) *UserDetailsExtendedBuilder {
+	b.data.Nickname = nickname
+	return b
+}
+
+func (b *UserDetailsExtendedBuilder) WithDN(dn string) *UserDetailsExtendedBuilder {
+	b.data.DN = dn
+	return b
+}
+
+func (b *UserDetailsExtendedBuilder) WithObjectClasses(classes []string) *UserDetailsExtendedBuilder {
+	b.data.ObjectClass = classes
+	return b
+}
+
+func (b *UserDetailsExtendedBuilder) WithBackendAttribute(key string, value interface{}) *UserDetailsExtendedBuilder {
+	if b.data.BackendAttributes == nil {
+		b.data.BackendAttributes = make(map[string]interface{})
+	}
+	b.data.BackendAttributes[key] = value
+	return b
+}
+
+func (b *UserDetailsExtendedBuilder) WithGender(gender string) *UserDetailsExtendedBuilder {
+	b.data.Gender = gender
+	return b
+}
+
+func (b *UserDetailsExtendedBuilder) WithBirthdate(birthdate string) *UserDetailsExtendedBuilder {
+	b.data.Birthdate = birthdate
+	return b
+}
+
+func (b *UserDetailsExtendedBuilder) WithPhoneNumber(phone string) *UserDetailsExtendedBuilder {
+	b.data.PhoneNumber = phone
+	return b
+}
+
+func (b *UserDetailsExtendedBuilder) WithProfile(profileURL string) *UserDetailsExtendedBuilder {
+	if profileURL != "" {
+		if uri, err := url.Parse(profileURL); err == nil {
+			b.data.Profile = uri
+		}
+	}
+	return b
+}
+
+func (b *UserDetailsExtendedBuilder) WithPicture(pictureURL string) *UserDetailsExtendedBuilder {
+	if pictureURL != "" {
+		if uri, err := url.Parse(pictureURL); err == nil {
+			b.data.Picture = uri
+		}
+	}
+	return b
+}
+
+func (b *UserDetailsExtendedBuilder) WithWebsite(websiteURL string) *UserDetailsExtendedBuilder {
+	if websiteURL != "" {
+		if uri, err := url.Parse(websiteURL); err == nil {
+			b.data.Website = uri
+		}
+	}
+	return b
+}
+
+func (b *UserDetailsExtendedBuilder) WithLocale(locale string) *UserDetailsExtendedBuilder {
+	if locale != "" {
+		if tag, err := language.Parse(locale); err == nil {
+			b.data.Locale = &tag
+		}
+	}
+	return b
+}
+
+func (b *UserDetailsExtendedBuilder) WithAddress(street, locality, region, postal, country string) *UserDetailsExtendedBuilder {
+	b.data.Address = &UserDetailsAddress{
+		StreetAddress: street,
+		Locality:      locality,
+		Region:        region,
+		PostalCode:    postal,
+		Country:       country,
+	}
+	return b
+}
+
+func (b *UserDetailsExtendedBuilder) WithExtra(key string, value any) *UserDetailsExtendedBuilder {
+	if b.data.Extra == nil {
+		b.data.Extra = make(map[string]any)
+	}
+	b.data.Extra[key] = value
+	return b
+}
+
+func (b *UserDetailsExtendedBuilder) WithDefaultLDAPObjectClasses() *UserDetailsExtendedBuilder {
+	b.data.ObjectClass = []string{"top", "person", "organizationalPerson", "inetOrgPerson"}
+	return b
+}
+
+func (b *UserDetailsExtendedBuilder) Build() *UserDetailsExtended {
+	return b.data
 }
 
 func stringURL(uri *url.URL) string {

@@ -507,121 +507,29 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 	return nil
 }
 
-// ChangeDisplayName changes the display name for a specific user.
-func (p *LDAPUserProvider) ChangeDisplayName(username, newDisplayName string) (err error) {
-	var (
-		client  ldap.Client
-		profile *ldapUserProfile
-	)
-
-	if client, err = p.factory.GetClient(); err != nil {
-		return fmt.Errorf("unable to change display name for user '%s': %w", username, err)
+func (p *LDAPUserProvider) ValidateUserData(userData *UserDetailsExtended) (err error) {
+	switch p.config.Implementation {
+	case "activedirectory":
+		return p.validateADUserData(userData)
+	case "rfc2307bis":
+		return p.validateRFC2307bisUserData(userData)
+	default:
+		return fmt.Errorf("unsupported LDAP implementation")
 	}
-
-	defer client.Close()
-
-	if profile, err = p.getUserProfile(client, username); err != nil {
-		return fmt.Errorf("unable to change display name for user '%s': %w", username, err)
-	}
-
-	modifyRequest := ldap.NewModifyRequest(profile.DN, nil)
-
-	modifyRequest.Replace(ldapAttrCommonName, []string{newDisplayName})
-
-	if err = p.modify(client, modifyRequest); err != nil {
-		return fmt.Errorf("unable to change display name for user '%s': %w", username, err)
-	}
-
-	return nil
 }
 
-// ChangeEmail changes the email for a specific user.
-func (p *LDAPUserProvider) ChangeEmail(username, newEmail string) (err error) {
-	var (
-		client  ldap.Client
-		profile *ldapUserProfile
-	)
-
-	if client, err = p.factory.GetClient(); err != nil {
-		return fmt.Errorf("unable to change email for user '%s': %w", username, err)
+func (p *LDAPUserProvider) AddUser(userData *UserDetailsExtended) (err error) {
+	if userData == nil || userData.UserDetails == nil {
+		return fmt.Errorf("userData and userData.UserDetails cannot be nil")
 	}
 
-	defer client.Close()
-
-	if profile, err = p.getUserProfile(client, username); err != nil {
-		return fmt.Errorf("unable to change email for user '%s': %w", username, err)
+	if err = p.ValidateUserData(userData); err != nil {
+		return fmt.Errorf("validation failed for user '%s': %w", userData.Username, err)
 	}
 
-	modifyRequest := ldap.NewModifyRequest(profile.DN, nil)
-
-	modifyRequest.Replace(ldapAttrMail, []string{newEmail})
-
-	if err = p.modify(client, modifyRequest); err != nil {
-		return fmt.Errorf("unable to change email for user '%s': %w", username, err)
-	}
-
-	return nil
-}
-
-// ChangeGroups changes the groups for a specific user.
-func (p *LDAPUserProvider) ChangeGroups(username string, newGroups []string) (err error) {
-	var (
-		client  ldap.Client
-		profile *ldapUserProfile
-	)
-
-	if client, err = p.factory.GetClient(); err != nil {
-		return fmt.Errorf("unable to change groups for user '%s': %w", username, err)
-	}
-
-	defer client.Close()
-
-	if profile, err = p.getUserProfile(client, username); err != nil {
-		return fmt.Errorf("unable to change groups for user '%s': %w", username, err)
-	}
-
-	// Get the current groups of the user.
-	currentGroups, err := p.getUserGroups(client, username, profile)
-	if err != nil {
-		return fmt.Errorf("unable to retrieve current groups for user '%s': %w", username, err)
-	}
-
-	// Prepare the modify request.
-	modifyRequest := ldap.NewModifyRequest(profile.DN, nil)
-
-	// Remove all current group memberships.
-	for _, group := range currentGroups {
-		groupDN, err := p.getGroupDN(client, group)
-		if err != nil {
-			return fmt.Errorf("unable to get DN for group '%s': %w", group, err)
-		}
-
-		modifyRequest.Delete(p.config.Attributes.MemberOf, []string{groupDN})
-	}
-
-	// Add new group memberships.
-	for _, group := range newGroups {
-		groupDN, err := p.getGroupDN(client, group)
-		if err != nil {
-			return fmt.Errorf("unable to get DN for group '%s': %w", group, err)
-		}
-
-		modifyRequest.Add(p.config.Attributes.MemberOf, []string{groupDN})
-	}
-
-	// Perform the modification.
-	if err = p.modify(client, modifyRequest); err != nil {
-		return fmt.Errorf("unable to change groups for user '%s': %w", username, err)
-	}
-
-	return nil
-}
-
-func (p *LDAPUserProvider) AddUser(username, displayName, password string, opts ...func(options *NewUserAdditionalAttributesOpts)) (err error) {
 	var client ldap.Client
-
 	if client, err = p.factory.GetClient(); err != nil {
-		return fmt.Errorf("unable to create user '%s': %w", username, err)
+		return fmt.Errorf("unable to create user '%s': %w", userData.Username, err)
 	}
 
 	defer func() {
@@ -630,32 +538,20 @@ func (p *LDAPUserProvider) AddUser(username, displayName, password string, opts 
 		}
 	}()
 
-	options := NewUserAdditionalAttributesOpts{}
-	for _, opt := range opts {
-		opt(&options)
-	}
-
-	userDN := fmt.Sprintf("%s=%s,%s", p.config.Attributes.Username, ldap.EscapeFilter(username), p.usersBaseDN)
-
-	addRequest := ldap.NewAddRequest(userDN, nil)
+	var addRequest *ldap.AddRequest
 
 	switch p.config.Implementation {
 	case "activedirectory":
-		// Do the thing.
-	case "lldap":
-		// since lldap doesn't fully support object creation via LDIF, it is likely that special handling will have to be implemented using the supported api (graphql) via the web api.
-	default: // this includes rfc2307bis, and likely openldap.
-		// required attributes for rfc2307bis: dn, uid, cn, sn, objectClass.
-		addRequest.Attribute("objectClass", []string{"top", "person", "organizationalPerson", "inetOrgPerson"})
-		// addRequest.Attribute(p.config.Attributes.FamilyName, []string{options.FamilyName}).
-		addRequest.Attribute("sn", []string{})
-		addRequest.Attribute(ldapAttrCommonName, []string{displayName})
-		addRequest.Attribute(p.config.Attributes.Username, []string{username})
+		addRequest, err = p.createADAddRequest(userData)
+	case "rfc2307bis":
+		addRequest, err = p.createRFC2307bisAddRequest(userData)
+	default:
+		err = fmt.Errorf("unsupported LDAP implementation")
 	}
 
-	addRequest.Attribute(p.config.Attributes.DisplayName, []string{displayName})
-
-	// }.
+	if err != nil {
+		return fmt.Errorf("failed to create add request for user '%s': %w", userData.UserDetails.Username, err)
+	}
 
 	var controls []ldap.Control
 
@@ -671,10 +567,8 @@ func (p *LDAPUserProvider) AddUser(username, displayName, password string, opts 
 		addRequest.Controls = controls
 	}
 
-	addRequest.Attribute(ldapAttributeUserPassword, []string{password})
-
 	if err = client.Add(addRequest); err != nil {
-		return fmt.Errorf("unable to add user '%s': %w", username, err)
+		return fmt.Errorf("unable to add user '%s': %w", userData.Username, err)
 	}
 
 	return nil
@@ -750,7 +644,7 @@ func (p *LDAPUserProvider) DeleteUser(username string) (err error) {
 	return nil
 }
 
-func (p *LDAPUserProvider) UpdateUser(username string, opts ...func(options *ModifyUserDetailsOpts)) (err error) {
+func (p *LDAPUserProvider) UpdateUser(username string, userData *UserDetailsExtended) (err error) {
 	return nil
 }
 

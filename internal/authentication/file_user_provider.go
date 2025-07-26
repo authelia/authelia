@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/authelia/authelia/v4/internal/utils"
 	"github.com/go-crypt/crypt/algorithm"
 	"github.com/go-crypt/crypt/algorithm/argon2"
 	"github.com/go-crypt/crypt/algorithm/bcrypt"
@@ -286,170 +287,87 @@ func (p *FileUserProvider) ChangePassword(username string, oldPassword string, n
 	return nil
 }
 
-// ChangeDisplayName changes the display name for a specific user.
-func (p *FileUserProvider) ChangeDisplayName(username string, newDisplayName string) (err error) {
-	var details FileUserDatabaseUserDetails
-
-	p.mutex.Lock()
-	p.setTimeoutReload(time.Now())
-	p.mutex.Unlock()
-
-	if details, err = p.database.GetUserDetails(username); err != nil {
-		return err
-	}
-
-	if details.Disabled {
-		return ErrUserDisabled
-	}
-
-	if newDisplayName == "" {
-		return ErrEmptyInput
-	}
-
-	details.DisplayName = newDisplayName
-
-	p.database.SetUserDetails(details.Username, &details)
-
-	return p.database.Save()
-}
-
-// ChangeEmail changes the groups for a specific user.
-func (p *FileUserProvider) ChangeEmail(username string, newEmail string) (err error) {
-	var details FileUserDatabaseUserDetails
-
-	if details, err = p.database.GetUserDetails(username); err != nil {
-		return err
-	}
-
-	if details.Disabled {
-		return ErrUserDisabled
-	}
-
-	if newEmail == "" {
-		return ErrEmptyInput
-	}
-
-	details.Email = newEmail
-
-	p.database.SetUserDetails(details.Username, &details)
-
-	p.mutex.Lock()
-	p.setTimeoutReload(time.Now())
-	p.mutex.Unlock()
-
-	return p.database.Save()
-}
-
-// ChangeGroups changes the groups for a specific user.
-func (p *FileUserProvider) ChangeGroups(username string, newGroups []string) (err error) {
-	var details FileUserDatabaseUserDetails
-
-	if details, err = p.database.GetUserDetails(username); err != nil {
-		return err
-	}
-
-	if details.Disabled {
-		return ErrUserDisabled
-	}
-
-	details.Groups = newGroups
-
-	p.database.SetUserDetails(details.Username, &details)
-
-	p.mutex.Lock()
-	p.setTimeoutReload(time.Now())
-	p.mutex.Unlock()
-
-	return p.database.Save()
-}
-
-// SetDisabled enables or disables a user.
-func (p *FileUserProvider) SetDisabled(username string, disabled bool) (err error) {
-	var details FileUserDatabaseUserDetails
-
-	if details, err = p.database.GetUserDetails(username); err != nil {
-		return err
-	}
-
-	details.Disabled = disabled
-
-	p.database.SetUserDetails(details.Username, &details)
-
-	p.mutex.Lock()
-
-	p.setTimeoutReload(time.Now())
-
-	p.mutex.Unlock()
-
-	return p.database.Save()
-}
-
 // AddUser creates a new user in the file database. Takes additional, optional values via opts.
-func (p *FileUserProvider) AddUser(username, displayName, password string, opts ...func(options *NewUserAdditionalAttributesOpts)) (err error) {
+func (p *FileUserProvider) AddUser(userData *UserDetailsExtended) (err error) {
+	if err = p.ValidateUserData(userData); err != nil {
+		return fmt.Errorf("validation of user data failed: %w", err)
+	}
+
 	var digest algorithm.Digest
 
-	if digest, err = p.hash.Hash(password); err != nil {
+	if digest, err = p.hash.Hash(userData.Password); err != nil {
 		return err
 	}
 
-	options := &NewUserAdditionalAttributesOpts{}
+	var email string
+	if userData.UserDetails != nil && len(userData.Emails) > 0 {
+		email = userData.UserDetails.Emails[0]
+	}
 
-	for _, opt := range opts {
-		opt(options)
+	var groups []string
+	if userData.UserDetails != nil && len(userData.Groups) > 0 {
+		groups = userData.UserDetails.Groups
 	}
 
 	details := FileUserDatabaseUserDetails{
-		Username:    username,
-		DisplayName: displayName,
+		Username:    userData.Username,
+		DisplayName: userData.DisplayName,
 		Password:    schema.NewPasswordDigest(digest),
-		Email:       *options.Email,
-		Groups:      options.Groups,
+		Email:       email,
+		Groups:      groups,
 		Disabled:    false,
 	}
 
 	p.database.SetUserDetails(details.Username, &details)
 
 	p.mutex.Lock()
-
 	p.setTimeoutReload(time.Now())
-
 	p.mutex.Unlock()
 
 	return p.database.Save()
 }
 
 // UpdateUser modifies an existing user in the file database. Takes new values via opts.
-func (p *FileUserProvider) UpdateUser(username string, opts ...func(options *ModifyUserDetailsOpts)) (err error) {
-	var details FileUserDatabaseUserDetails
+func (p *FileUserProvider) UpdateUser(username string, userData *UserDetailsExtended) (err error) {
+	var existingDetails FileUserDatabaseUserDetails
 
-	if details, err = p.database.GetUserDetails(username); err != nil {
+	if existingDetails, err = p.database.GetUserDetails(username); err != nil {
 		return err
 	}
 
-	options := &ModifyUserDetailsOpts{}
-
-	for _, opt := range opts {
-		opt(options)
+	updatedDetails := FileUserDatabaseUserDetails{
+		Username:    username,
+		DisplayName: existingDetails.DisplayName,
+		Password:    existingDetails.Password,
+		Email:       existingDetails.Email,
+		Groups:      existingDetails.Groups,
+		Disabled:    existingDetails.Disabled,
 	}
 
-	var digest algorithm.Digest = details.Password
+	if userData.UserDetails != nil {
+		if userData.DisplayName != "" {
+			updatedDetails.DisplayName = userData.DisplayName
+		}
 
-	if *options.Password != "" {
-		if digest, err = p.hash.Hash(*options.Password); err != nil {
-			return err
+		if len(userData.UserDetails.Emails) > 0 {
+			updatedDetails.Email = userData.Emails[0]
+		}
+
+		if len(userData.UserDetails.Groups) > 0 {
+			updatedDetails.Groups = userData.Groups
 		}
 	}
 
-	details = FileUserDatabaseUserDetails{
-		Username:    username,
-		DisplayName: *options.DisplayName,
-		Password:    schema.NewPasswordDigest(digest),
-		Email:       *options.Email,
-		Groups:      options.Groups,
-		Disabled:    *options.Disabled,
+	if userData.Password != "" {
+		var digest algorithm.Digest
+		if digest, err = p.hash.Hash(userData.Password); err != nil {
+			return err
+		}
+
+		updatedDetails.Password = schema.NewPasswordDigest(digest)
 	}
 
-	p.database.SetUserDetails(username, &details)
+	p.database.SetUserDetails(username, &updatedDetails)
 
 	p.mutex.Lock()
 	p.setTimeoutReload(time.Now())
@@ -488,6 +406,49 @@ func (p *FileUserProvider) StartupCheck() (err error) {
 	}
 
 	return p.database.Load()
+}
+
+func (p *FileUserProvider) ValidateUserData(userData *UserDetailsExtended) error {
+	if userData == nil {
+		return fmt.Errorf("userData cannot be nil")
+	}
+
+	if userData.UserDetails == nil {
+		return fmt.Errorf("userDetails cannot be nil")
+	}
+
+	if userData.UserDetails.Username == "" {
+		return fmt.Errorf("username is required")
+	}
+
+	if userData.Password == "" {
+		return fmt.Errorf("password is required")
+	}
+
+	if userData.UserDetails.DisplayName == "" {
+		return fmt.Errorf("displayName is required for file backend")
+	}
+
+	// Validate username format (use your existing validation)
+	if !utils.ValidateUsername(userData.UserDetails.Username) {
+		return fmt.Errorf("invalid username format")
+	}
+
+	// Validate email if provided
+	if len(userData.UserDetails.Emails) > 0 {
+		if !utils.ValidateEmailString(userData.UserDetails.Emails[0]) {
+			return fmt.Errorf("invalid email format")
+		}
+	}
+
+	// Validate groups if provided
+	if len(userData.UserDetails.Groups) > 0 {
+		if valid, invalidGroup := utils.ValidateGroups(userData.UserDetails.Groups); !valid {
+			return fmt.Errorf("invalid group name: %s", invalidGroup)
+		}
+	}
+
+	return nil
 }
 
 func (p *FileUserProvider) setTimeoutReload(now time.Time) {

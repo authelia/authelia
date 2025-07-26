@@ -5,7 +5,6 @@ import (
 )
 
 // UserProvider is the interface for interacting with the authentication backends.
-// UserProvider is the interface for interacting with the authentication backends.
 type UserProvider interface {
 	model.StartupCheck
 
@@ -15,27 +14,24 @@ type UserProvider interface {
 	// GetDetails is used to get a user's information.
 	GetDetails(username string) (details *UserDetails, err error)
 
-	GetDetailsExtended(username string) (details *UserDetailsExtended, err error)
-
 	// UpdatePassword is used to change a user's password without verifying their old password.
 	UpdatePassword(username string, newPassword string) (err error)
 
 	// ChangePassword is used to change a user's password but requires their old password to be successfully verified.
 	ChangePassword(username string, oldPassword string, newPassword string) (err error)
 
-	GetUser(username string) (details *UserDetails, err error)
+	GetUser(username string) (details *UserDetailsExtended, err error)
 
 	ListUsers() (userList []UserDetails, err error)
 
-	UpdateUser(username string, opts ...func(options *ModifyUserDetailsOpts)) (err error)
-
-	AddUser(userData *NewUserData) (err error)
-
+	AddUser(userData *UserDetailsExtended) (err error)
+	UpdateUser(username string, userData *UserDetailsExtended) (err error)
+	GetDetailsExtended(username string) (details *UserDetailsExtended, err error)
 	DeleteUser(username string) (err error)
 
 	GetRequiredFields() []string
 	GetSupportedFields() []string
-	ValidateUserData(userData *NewUserData) error
+	ValidateUserData(userData *UserDetailsExtended) error
 
 	Close() (err error)
 }

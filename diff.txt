@@ -1,0 +1,1080 @@
+diff --git a/internal/authentication/file_user_provider.go b/internal/authentication/file_user_provider.go
+index 3311b3017..cfe5e2e0a 100644
+--- a/internal/authentication/file_user_provider.go
++++ b/internal/authentication/file_user_provider.go
+@@ -9,6 +9,7 @@ import (
+ 	"sync"
+ 	"time"
+ 
++	"github.com/authelia/authelia/v4/internal/utils"
+ 	"github.com/go-crypt/crypt/algorithm"
+ 	"github.com/go-crypt/crypt/algorithm/argon2"
+ 	"github.com/go-crypt/crypt/algorithm/bcrypt"
+@@ -286,170 +287,87 @@ func (p *FileUserProvider) ChangePassword(username string, oldPassword string, n
+ 	return nil
+ }
+ 
+-// ChangeDisplayName changes the display name for a specific user.
+-func (p *FileUserProvider) ChangeDisplayName(username string, newDisplayName string) (err error) {
+-	var details FileUserDatabaseUserDetails
+-
+-	p.mutex.Lock()
+-	p.setTimeoutReload(time.Now())
+-	p.mutex.Unlock()
+-
+-	if details, err = p.database.GetUserDetails(username); err != nil {
+-		return err
+-	}
+-
+-	if details.Disabled {
+-		return ErrUserDisabled
+-	}
+-
+-	if newDisplayName == "" {
+-		return ErrEmptyInput
+-	}
+-
+-	details.DisplayName = newDisplayName
+-
+-	p.database.SetUserDetails(details.Username, &details)
+-
+-	return p.database.Save()
+-}
+-
+-// ChangeEmail changes the groups for a specific user.
+-func (p *FileUserProvider) ChangeEmail(username string, newEmail string) (err error) {
+-	var details FileUserDatabaseUserDetails
+-
+-	if details, err = p.database.GetUserDetails(username); err != nil {
+-		return err
+-	}
+-
+-	if details.Disabled {
+-		return ErrUserDisabled
+-	}
+-
+-	if newEmail == "" {
+-		return ErrEmptyInput
+-	}
+-
+-	details.Email = newEmail
+-
+-	p.database.SetUserDetails(details.Username, &details)
+-
+-	p.mutex.Lock()
+-	p.setTimeoutReload(time.Now())
+-	p.mutex.Unlock()
+-
+-	return p.database.Save()
+-}
+-
+-// ChangeGroups changes the groups for a specific user.
+-func (p *FileUserProvider) ChangeGroups(username string, newGroups []string) (err error) {
+-	var details FileUserDatabaseUserDetails
+-
+-	if details, err = p.database.GetUserDetails(username); err != nil {
+-		return err
+-	}
+-
+-	if details.Disabled {
+-		return ErrUserDisabled
+-	}
+-
+-	details.Groups = newGroups
+-
+-	p.database.SetUserDetails(details.Username, &details)
+-
+-	p.mutex.Lock()
+-	p.setTimeoutReload(time.Now())
+-	p.mutex.Unlock()
+-
+-	return p.database.Save()
+-}
+-
+-// SetDisabled enables or disables a user.
+-func (p *FileUserProvider) SetDisabled(username string, disabled bool) (err error) {
+-	var details FileUserDatabaseUserDetails
+-
+-	if details, err = p.database.GetUserDetails(username); err != nil {
+-		return err
++// AddUser creates a new user in the file database. Takes additional, optional values via opts.
++func (p *FileUserProvider) AddUser(userData *UserDetailsExtended) (err error) {
++	if err = p.ValidateUserData(userData); err != nil {
++		return fmt.Errorf("validation of user data failed: %w", err)
+ 	}
+ 
+-	details.Disabled = disabled
+-
+-	p.database.SetUserDetails(details.Username, &details)
+-
+-	p.mutex.Lock()
+-
+-	p.setTimeoutReload(time.Now())
+-
+-	p.mutex.Unlock()
+-
+-	return p.database.Save()
+-}
+-
+-// AddUser creates a new user in the file database. Takes additional, optional values via opts.
+-func (p *FileUserProvider) AddUser(username, displayName, password string, opts ...func(options *NewUserAdditionalAttributesOpts)) (err error) {
+ 	var digest algorithm.Digest
+ 
+-	if digest, err = p.hash.Hash(password); err != nil {
++	if digest, err = p.hash.Hash(userData.Password); err != nil {
+ 		return err
+ 	}
+ 
+-	options := &NewUserAdditionalAttributesOpts{}
++	var email string
++	if userData.UserDetails != nil && len(userData.Emails) > 0 {
++		email = userData.UserDetails.Emails[0]
++	}
+ 
+-	for _, opt := range opts {
+-		opt(options)
++	var groups []string
++	if userData.UserDetails != nil && len(userData.Groups) > 0 {
++		groups = userData.UserDetails.Groups
+ 	}
+ 
+ 	details := FileUserDatabaseUserDetails{
+-		Username:    username,
+-		DisplayName: displayName,
++		Username:    userData.Username,
++		DisplayName: userData.DisplayName,
+ 		Password:    schema.NewPasswordDigest(digest),
+-		Email:       *options.Email,
+-		Groups:      options.Groups,
++		Email:       email,
++		Groups:      groups,
+ 		Disabled:    false,
+ 	}
+ 
+ 	p.database.SetUserDetails(details.Username, &details)
+ 
+ 	p.mutex.Lock()
+-
+ 	p.setTimeoutReload(time.Now())
+-
+ 	p.mutex.Unlock()
+ 
+ 	return p.database.Save()
+ }
+ 
+ // UpdateUser modifies an existing user in the file database. Takes new values via opts.
+-func (p *FileUserProvider) UpdateUser(username string, opts ...func(options *ModifyUserDetailsOpts)) (err error) {
+-	var details FileUserDatabaseUserDetails
++func (p *FileUserProvider) UpdateUser(username string, userData *UserDetailsExtended) (err error) {
++	var existingDetails FileUserDatabaseUserDetails
+ 
+-	if details, err = p.database.GetUserDetails(username); err != nil {
++	if existingDetails, err = p.database.GetUserDetails(username); err != nil {
+ 		return err
+ 	}
+ 
+-	options := &ModifyUserDetailsOpts{}
+-
+-	for _, opt := range opts {
+-		opt(options)
++	updatedDetails := FileUserDatabaseUserDetails{
++		Username:    username,
++		DisplayName: existingDetails.DisplayName,
++		Password:    existingDetails.Password,
++		Email:       existingDetails.Email,
++		Groups:      existingDetails.Groups,
++		Disabled:    existingDetails.Disabled,
+ 	}
+ 
+-	var digest algorithm.Digest = details.Password
++	if userData.UserDetails != nil {
++		if userData.DisplayName != "" {
++			updatedDetails.DisplayName = userData.DisplayName
++		}
+ 
+-	if *options.Password != "" {
+-		if digest, err = p.hash.Hash(*options.Password); err != nil {
+-			return err
++		if len(userData.UserDetails.Emails) > 0 {
++			updatedDetails.Email = userData.Emails[0]
++		}
++
++		if len(userData.UserDetails.Groups) > 0 {
++			updatedDetails.Groups = userData.Groups
+ 		}
+ 	}
+ 
+-	details = FileUserDatabaseUserDetails{
+-		Username:    username,
+-		DisplayName: *options.DisplayName,
+-		Password:    schema.NewPasswordDigest(digest),
+-		Email:       *options.Email,
+-		Groups:      options.Groups,
+-		Disabled:    *options.Disabled,
++	if userData.Password != "" {
++		var digest algorithm.Digest
++		if digest, err = p.hash.Hash(userData.Password); err != nil {
++			return err
++		}
++
++		updatedDetails.Password = schema.NewPasswordDigest(digest)
+ 	}
+ 
+-	p.database.SetUserDetails(username, &details)
++	p.database.SetUserDetails(username, &updatedDetails)
+ 
+ 	p.mutex.Lock()
+ 	p.setTimeoutReload(time.Now())
+@@ -490,6 +408,49 @@ func (p *FileUserProvider) StartupCheck() (err error) {
+ 	return p.database.Load()
+ }
+ 
++func (p *FileUserProvider) ValidateUserData(userData *UserDetailsExtended) error {
++	if userData == nil {
++		return fmt.Errorf("userData cannot be nil")
++	}
++
++	if userData.UserDetails == nil {
++		return fmt.Errorf("userDetails cannot be nil")
++	}
++
++	if userData.UserDetails.Username == "" {
++		return fmt.Errorf("username is required")
++	}
++
++	if userData.Password == "" {
++		return fmt.Errorf("password is required")
++	}
++
++	if userData.UserDetails.DisplayName == "" {
++		return fmt.Errorf("displayName is required for file backend")
++	}
++
++	// Validate username format (use your existing validation)
++	if !utils.ValidateUsername(userData.UserDetails.Username) {
++		return fmt.Errorf("invalid username format")
++	}
++
++	// Validate email if provided
++	if len(userData.UserDetails.Emails) > 0 {
++		if !utils.ValidateEmailString(userData.UserDetails.Emails[0]) {
++			return fmt.Errorf("invalid email format")
++		}
++	}
++
++	// Validate groups if provided
++	if len(userData.UserDetails.Groups) > 0 {
++		if valid, invalidGroup := utils.ValidateGroups(userData.UserDetails.Groups); !valid {
++			return fmt.Errorf("invalid group name: %s", invalidGroup)
++		}
++	}
++
++	return nil
++}
++
+ func (p *FileUserProvider) setTimeoutReload(now time.Time) {
+ 	p.timeoutReload = now.Add(time.Second / 2)
+ }
+diff --git a/internal/authentication/ldap_rfc2307bis.go b/internal/authentication/ldap_rfc2307bis.go
+index 6087455b5..8d7ef881e 100644
+--- a/internal/authentication/ldap_rfc2307bis.go
++++ b/internal/authentication/ldap_rfc2307bis.go
+@@ -90,7 +90,7 @@ func (p *LDAPUserProvider) getRFC2307bisFieldMetadata() map[string]FieldMetadata
+ 	}
+ }
+ 
+-func (p *LDAPUserProvider) validateRFC2307bisUserData(userData *NewUserData) error {
++func (p *LDAPUserProvider) validateRFC2307bisUserData(userData *UserDetailsExtended) error {
+ 	if userData.Username == "" {
+ 		return fmt.Errorf("username required")
+ 	}
+@@ -113,14 +113,15 @@ func (p *LDAPUserProvider) validateRFC2307bisUserData(userData *NewUserData) err
+ 	return nil
+ }
+ 
+-func (p *LDAPUserProvider) createRFC2307bisAddRequest(userData *NewUserData) (*ldap.AddRequest, error) {
+-	userDN := fmt.Sprintf("uid=%s,%s", userData.Username, p.usersBaseDN)
++func (p *LDAPUserProvider) createRFC2307bisAddRequest(userData *UserDetailsExtended) (*ldap.AddRequest, error) {
++	userDN := fmt.Sprintf("%s=%s,%s", p.config.Attributes.Username, ldap.EscapeFilter(userData.Username), p.usersBaseDN)
++
+ 	addRequest := ldap.NewAddRequest(userDN, nil)
+ 
+ 	// RFC2307bis requires these object classes
+ 	addRequest.Attribute("objectClass", []string{"top", "person", "organizationalPerson", "inetOrgPerson"})
+-	
+-	addRequest.Attribute("uid", []string{userData.Username})
++
++	addRequest.Attribute("uid", []string{userData.UserDetails.Username})
+ 	addRequest.Attribute("cn", []string{userData.CommonName})
+ 	addRequest.Attribute("sn", []string{userData.FamilyName})
+ 	addRequest.Attribute("userPassword", []string{userData.Password})
+@@ -129,8 +130,8 @@ func (p *LDAPUserProvider) createRFC2307bisAddRequest(userData *NewUserData) (*l
+ 	if userData.GivenName != "" {
+ 		addRequest.Attribute("givenName", []string{userData.GivenName})
+ 	}
+-	if userData.Email != "" {
+-		addRequest.Attribute("mail", []string{userData.Email})
++	if len(userData.UserDetails.Emails) > 0 {
++		addRequest.Attribute("mail", []string{userData.UserDetails.Emails[0]})
+ 	}
+ 
+ 	return addRequest, nil
+diff --git a/internal/authentication/ldap_user_provider.go b/internal/authentication/ldap_user_provider.go
+index 565599f3f..874786c85 100644
+--- a/internal/authentication/ldap_user_provider.go
++++ b/internal/authentication/ldap_user_provider.go
+@@ -507,121 +507,29 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
+ 	return nil
+ }
+ 
+-// ChangeDisplayName changes the display name for a specific user.
+-func (p *LDAPUserProvider) ChangeDisplayName(username, newDisplayName string) (err error) {
+-	var (
+-		client  ldap.Client
+-		profile *ldapUserProfile
+-	)
+-
+-	if client, err = p.factory.GetClient(); err != nil {
+-		return fmt.Errorf("unable to change display name for user '%s': %w", username, err)
+-	}
+-
+-	defer client.Close()
+-
+-	if profile, err = p.getUserProfile(client, username); err != nil {
+-		return fmt.Errorf("unable to change display name for user '%s': %w", username, err)
+-	}
+-
+-	modifyRequest := ldap.NewModifyRequest(profile.DN, nil)
+-
+-	modifyRequest.Replace(ldapAttrCommonName, []string{newDisplayName})
+-
+-	if err = p.modify(client, modifyRequest); err != nil {
+-		return fmt.Errorf("unable to change display name for user '%s': %w", username, err)
+-	}
+-
+-	return nil
+-}
+-
+-// ChangeEmail changes the email for a specific user.
+-func (p *LDAPUserProvider) ChangeEmail(username, newEmail string) (err error) {
+-	var (
+-		client  ldap.Client
+-		profile *ldapUserProfile
+-	)
+-
+-	if client, err = p.factory.GetClient(); err != nil {
+-		return fmt.Errorf("unable to change email for user '%s': %w", username, err)
+-	}
+-
+-	defer client.Close()
+-
+-	if profile, err = p.getUserProfile(client, username); err != nil {
+-		return fmt.Errorf("unable to change email for user '%s': %w", username, err)
+-	}
+-
+-	modifyRequest := ldap.NewModifyRequest(profile.DN, nil)
+-
+-	modifyRequest.Replace(ldapAttrMail, []string{newEmail})
+-
+-	if err = p.modify(client, modifyRequest); err != nil {
+-		return fmt.Errorf("unable to change email for user '%s': %w", username, err)
++func (p *LDAPUserProvider) ValidateUserData(userData *UserDetailsExtended) (err error) {
++	switch p.config.Implementation {
++	case "activedirectory":
++		return p.validateADUserData(userData)
++	case "rfc2307bis":
++		return p.validateRFC2307bisUserData(userData)
++	default:
++		return fmt.Errorf("unsupported LDAP implementation")
+ 	}
+-
+-	return nil
+ }
+ 
+-// ChangeGroups changes the groups for a specific user.
+-func (p *LDAPUserProvider) ChangeGroups(username string, newGroups []string) (err error) {
+-	var (
+-		client  ldap.Client
+-		profile *ldapUserProfile
+-	)
+-
+-	if client, err = p.factory.GetClient(); err != nil {
+-		return fmt.Errorf("unable to change groups for user '%s': %w", username, err)
+-	}
+-
+-	defer client.Close()
+-
+-	if profile, err = p.getUserProfile(client, username); err != nil {
+-		return fmt.Errorf("unable to change groups for user '%s': %w", username, err)
+-	}
+-
+-	// Get the current groups of the user.
+-	currentGroups, err := p.getUserGroups(client, username, profile)
+-	if err != nil {
+-		return fmt.Errorf("unable to retrieve current groups for user '%s': %w", username, err)
+-	}
+-
+-	// Prepare the modify request.
+-	modifyRequest := ldap.NewModifyRequest(profile.DN, nil)
+-
+-	// Remove all current group memberships.
+-	for _, group := range currentGroups {
+-		groupDN, err := p.getGroupDN(client, group)
+-		if err != nil {
+-			return fmt.Errorf("unable to get DN for group '%s': %w", group, err)
+-		}
+-
+-		modifyRequest.Delete(p.config.Attributes.MemberOf, []string{groupDN})
+-	}
+-
+-	// Add new group memberships.
+-	for _, group := range newGroups {
+-		groupDN, err := p.getGroupDN(client, group)
+-		if err != nil {
+-			return fmt.Errorf("unable to get DN for group '%s': %w", group, err)
+-		}
+-
+-		modifyRequest.Add(p.config.Attributes.MemberOf, []string{groupDN})
++func (p *LDAPUserProvider) AddUser(userData *UserDetailsExtended) (err error) {
++	if userData == nil || userData.UserDetails == nil {
++		return fmt.Errorf("userData and userData.UserDetails cannot be nil")
+ 	}
+ 
+-	// Perform the modification.
+-	if err = p.modify(client, modifyRequest); err != nil {
+-		return fmt.Errorf("unable to change groups for user '%s': %w", username, err)
++	if err = p.ValidateUserData(userData); err != nil {
++		return fmt.Errorf("validation failed for user '%s': %w", userData.Username, err)
+ 	}
+ 
+-	return nil
+-}
+-
+-func (p *LDAPUserProvider) AddUser(username, displayName, password string, opts ...func(options *NewUserAdditionalAttributesOpts)) (err error) {
+ 	var client ldap.Client
+-
+ 	if client, err = p.factory.GetClient(); err != nil {
+-		return fmt.Errorf("unable to create user '%s': %w", username, err)
++		return fmt.Errorf("unable to create user '%s': %w", userData.Username, err)
+ 	}
+ 
+ 	defer func() {
+@@ -630,32 +538,20 @@ func (p *LDAPUserProvider) AddUser(username, displayName, password string, opts
+ 		}
+ 	}()
+ 
+-	options := NewUserAdditionalAttributesOpts{}
+-	for _, opt := range opts {
+-		opt(&options)
+-	}
+-
+-	userDN := fmt.Sprintf("%s=%s,%s", p.config.Attributes.Username, ldap.EscapeFilter(username), p.usersBaseDN)
+-
+-	addRequest := ldap.NewAddRequest(userDN, nil)
++	var addRequest *ldap.AddRequest
+ 
+ 	switch p.config.Implementation {
+ 	case "activedirectory":
+-		// Do the thing.
+-	case "lldap":
+-		// since lldap doesn't fully support object creation via LDIF, it is likely that special handling will have to be implemented using the supported api (graphql) via the web api.
+-	default: // this includes rfc2307bis, and likely openldap.
+-		// required attributes for rfc2307bis: dn, uid, cn, sn, objectClass.
+-		addRequest.Attribute("objectClass", []string{"top", "person", "organizationalPerson", "inetOrgPerson"})
+-		// addRequest.Attribute(p.config.Attributes.FamilyName, []string{options.FamilyName}).
+-		addRequest.Attribute("sn", []string{})
+-		addRequest.Attribute(ldapAttrCommonName, []string{displayName})
+-		addRequest.Attribute(p.config.Attributes.Username, []string{username})
++		addRequest, err = p.createADAddRequest(userData)
++	case "rfc2307bis":
++		addRequest, err = p.createRFC2307bisAddRequest(userData)
++	default:
++		err = fmt.Errorf("unsupported LDAP implementation")
+ 	}
+ 
+-	addRequest.Attribute(p.config.Attributes.DisplayName, []string{displayName})
+-
+-	// }.
++	if err != nil {
++		return fmt.Errorf("failed to create add request for user '%s': %w", userData.UserDetails.Username, err)
++	}
+ 
+ 	var controls []ldap.Control
+ 
+@@ -671,10 +567,8 @@ func (p *LDAPUserProvider) AddUser(username, displayName, password string, opts
+ 		addRequest.Controls = controls
+ 	}
+ 
+-	addRequest.Attribute(ldapAttributeUserPassword, []string{password})
+-
+ 	if err = client.Add(addRequest); err != nil {
+-		return fmt.Errorf("unable to add user '%s': %w", username, err)
++		return fmt.Errorf("unable to add user '%s': %w", userData.Username, err)
+ 	}
+ 
+ 	return nil
+@@ -750,7 +644,7 @@ func (p *LDAPUserProvider) DeleteUser(username string) (err error) {
+ 	return nil
+ }
+ 
+-func (p *LDAPUserProvider) UpdateUser(username string, opts ...func(options *ModifyUserDetailsOpts)) (err error) {
++func (p *LDAPUserProvider) UpdateUser(username string, userData *UserDetailsExtended) (err error) {
+ 	return nil
+ }
+ 
+diff --git a/internal/authentication/types.go b/internal/authentication/types.go
+index f1749f89e..f780ef114 100644
+--- a/internal/authentication/types.go
++++ b/internal/authentication/types.go
+@@ -16,35 +16,6 @@ type UserDetails struct {
+ 	Groups      []string
+ }
+ 
+-// NewUserData is used to standardize the various attributes used among the various ldap backends.
+-type NewUserData struct {
+-	// Core required fields (common across backends)
+-	Username string
+-	Password string
+-
+-	// Display name variations
+-	DisplayName string // File backend uses this
+-	CommonName  string // LDAP cn attribute
+-	GivenName   string // LDAP givenName
+-	FamilyName  string // LDAP sn (surname)
+-
+-	Email  string
+-	Emails []string
+-
+-	Groups []string
+-
+-	Extended *UserDetailsExtended
+-
+-	// For cases where backends need attributes not covered above
+-	//TODO: evaluate if this is actually needed.
+-	BackendAttributes map[string]interface{}
+-
+-	DN          string // Distinguished Name
+-	ObjectClass []string
+-
+-	Disabled bool
+-}
+-
+ type FieldMetadata struct {
+ 	Required    bool   `json:"required"`
+ 	DisplayName string `json:"displayName"`
+@@ -54,23 +25,6 @@ type FieldMetadata struct {
+ 	Pattern     string `json:"pattern,omitempty"`
+ }
+ 
+-func (u *NewUserData) HasDisplayNameInfo() bool {
+-	return u.DisplayName != "" || u.CommonName != "" || (u.GivenName != "" && u.FamilyName != "")
+-}
+-
+-func (u *NewUserData) GetEffectiveDisplayName() string {
+-	if u.DisplayName != "" {
+-		return u.DisplayName
+-	}
+-	if u.CommonName != "" {
+-		return u.CommonName
+-	}
+-	if u.GivenName != "" && u.FamilyName != "" {
+-		return fmt.Sprintf("%s %s", u.GivenName, u.FamilyName)
+-	}
+-	return u.Username
+-}
+-
+ // Addresses returns the Emails []string as []mail.Address formatted with DisplayName as the Name attribute.
+ func (d *UserDetails) Addresses() (addresses []mail.Address) {
+ 	if len(d.Emails) == 0 {
+@@ -125,6 +79,36 @@ type UserDetailsExtended struct {
+ 	Extra map[string]any
+ 
+ 	*UserDetails
++
++	Password          string `json:"-"`
++	CommonName        string
++	DN                string
++	ObjectClass       []string
++	Disabled          bool
++	BackendAttributes map[string]interface{} `json:"backendAttributes,omitempty"`
++}
++
++func (d *UserDetailsExtended) HasDisplayNameInfo() bool {
++	if d.UserDetails != nil && d.UserDetails.DisplayName != "" {
++		return true
++	}
++	return d.CommonName != "" || (d.GivenName != "" && d.FamilyName != "")
++}
++
++func (d *UserDetailsExtended) GetEffectiveDisplayName() string {
++	if d.UserDetails != nil && d.UserDetails.DisplayName != "" {
++		return d.UserDetails.DisplayName
++	}
++	if d.CommonName != "" {
++		return d.CommonName
++	}
++	if d.GivenName != "" && d.FamilyName != "" {
++		return fmt.Sprintf("%s %s", d.GivenName, d.FamilyName)
++	}
++	if d.UserDetails != nil {
++		return d.UserDetails.Username
++	}
++	return ""
+ }
+ 
+ func (d *UserDetailsExtended) GetGivenName() (given string) {
+@@ -239,6 +223,177 @@ func (d *UserDetailsExtended) GetExtra() (extra map[string]any) {
+ 	return d.Extra
+ }
+ 
++type UserDetailsExtendedBuilder struct {
++	data *UserDetailsExtended
++}
++
++// NewUser creates a new user builder with username and password
++func NewUser(username, password string) *UserDetailsExtendedBuilder {
++	return &UserDetailsExtendedBuilder{
++		data: &UserDetailsExtended{
++			Password: password,
++			UserDetails: &UserDetails{
++				Username: username,
++				Emails:   []string{},
++				Groups:   []string{},
++			},
++			BackendAttributes: make(map[string]interface{}),
++			ObjectClass:       []string{},
++		},
++	}
++}
++
++func (b *UserDetailsExtendedBuilder) WithDisplayName(name string) *UserDetailsExtendedBuilder {
++	b.data.UserDetails.DisplayName = name
++	return b
++}
++
++func (b *UserDetailsExtendedBuilder) WithEmail(email string) *UserDetailsExtendedBuilder {
++	b.data.UserDetails.Emails = []string{email}
++	return b
++}
++
++func (b *UserDetailsExtendedBuilder) WithEmails(emails []string) *UserDetailsExtendedBuilder {
++	b.data.UserDetails.Emails = emails
++	return b
++}
++
++func (b *UserDetailsExtendedBuilder) WithGroups(groups []string) *UserDetailsExtendedBuilder {
++	b.data.UserDetails.Groups = groups
++	return b
++}
++
++func (b *UserDetailsExtendedBuilder) WithDisabled(disabled bool) *UserDetailsExtendedBuilder {
++	b.data.Disabled = disabled
++	return b
++}
++
++// ============================================================================
++// NAME FIELDS (LDAP-specific)
++// ============================================================================
++
++func (b *UserDetailsExtendedBuilder) WithCommonName(cn string) *UserDetailsExtendedBuilder {
++	b.data.CommonName = cn
++	return b
++}
++
++func (b *UserDetailsExtendedBuilder) WithGivenName(given string) *UserDetailsExtendedBuilder {
++	b.data.GivenName = given
++	return b
++}
++
++func (b *UserDetailsExtendedBuilder) WithFamilyName(family string) *UserDetailsExtendedBuilder {
++	b.data.FamilyName = family
++	return b
++}
++
++func (b *UserDetailsExtendedBuilder) WithMiddleName(middle string) *UserDetailsExtendedBuilder {
++	b.data.MiddleName = middle
++	return b
++}
++
++func (b *UserDetailsExtendedBuilder) WithNickname(nickname string) *UserDetailsExtendedBuilder {
++	b.data.Nickname = nickname
++	return b
++}
++
++func (b *UserDetailsExtendedBuilder) WithDN(dn string) *UserDetailsExtendedBuilder {
++	b.data.DN = dn
++	return b
++}
++
++func (b *UserDetailsExtendedBuilder) WithObjectClasses(classes []string) *UserDetailsExtendedBuilder {
++	b.data.ObjectClass = classes
++	return b
++}
++
++func (b *UserDetailsExtendedBuilder) WithBackendAttribute(key string, value interface{}) *UserDetailsExtendedBuilder {
++	if b.data.BackendAttributes == nil {
++		b.data.BackendAttributes = make(map[string]interface{})
++	}
++	b.data.BackendAttributes[key] = value
++	return b
++}
++
++func (b *UserDetailsExtendedBuilder) WithGender(gender string) *UserDetailsExtendedBuilder {
++	b.data.Gender = gender
++	return b
++}
++
++func (b *UserDetailsExtendedBuilder) WithBirthdate(birthdate string) *UserDetailsExtendedBuilder {
++	b.data.Birthdate = birthdate
++	return b
++}
++
++func (b *UserDetailsExtendedBuilder) WithPhoneNumber(phone string) *UserDetailsExtendedBuilder {
++	b.data.PhoneNumber = phone
++	return b
++}
++
++func (b *UserDetailsExtendedBuilder) WithProfile(profileURL string) *UserDetailsExtendedBuilder {
++	if profileURL != "" {
++		if uri, err := url.Parse(profileURL); err == nil {
++			b.data.Profile = uri
++		}
++	}
++	return b
++}
++
++func (b *UserDetailsExtendedBuilder) WithPicture(pictureURL string) *UserDetailsExtendedBuilder {
++	if pictureURL != "" {
++		if uri, err := url.Parse(pictureURL); err == nil {
++			b.data.Picture = uri
++		}
++	}
++	return b
++}
++
++func (b *UserDetailsExtendedBuilder) WithWebsite(websiteURL string) *UserDetailsExtendedBuilder {
++	if websiteURL != "" {
++		if uri, err := url.Parse(websiteURL); err == nil {
++			b.data.Website = uri
++		}
++	}
++	return b
++}
++
++func (b *UserDetailsExtendedBuilder) WithLocale(locale string) *UserDetailsExtendedBuilder {
++	if locale != "" {
++		if tag, err := language.Parse(locale); err == nil {
++			b.data.Locale = &tag
++		}
++	}
++	return b
++}
++
++func (b *UserDetailsExtendedBuilder) WithAddress(street, locality, region, postal, country string) *UserDetailsExtendedBuilder {
++	b.data.Address = &UserDetailsAddress{
++		StreetAddress: street,
++		Locality:      locality,
++		Region:        region,
++		PostalCode:    postal,
++		Country:       country,
++	}
++	return b
++}
++
++func (b *UserDetailsExtendedBuilder) WithExtra(key string, value any) *UserDetailsExtendedBuilder {
++	if b.data.Extra == nil {
++		b.data.Extra = make(map[string]any)
++	}
++	b.data.Extra[key] = value
++	return b
++}
++
++func (b *UserDetailsExtendedBuilder) WithDefaultLDAPObjectClasses() *UserDetailsExtendedBuilder {
++	b.data.ObjectClass = []string{"top", "person", "organizationalPerson", "inetOrgPerson"}
++	return b
++}
++
++func (b *UserDetailsExtendedBuilder) Build() *UserDetailsExtended {
++	return b.data
++}
++
+ func stringURL(uri *url.URL) string {
+ 	if uri == nil {
+ 		return ""
+diff --git a/internal/authentication/user_provider.go b/internal/authentication/user_provider.go
+index d82b89da6..4de935d2c 100644
+--- a/internal/authentication/user_provider.go
++++ b/internal/authentication/user_provider.go
+@@ -4,7 +4,6 @@ import (
+ 	"github.com/authelia/authelia/v4/internal/model"
+ )
+ 
+-// UserProvider is the interface for interacting with the authentication backends.
+ // UserProvider is the interface for interacting with the authentication backends.
+ type UserProvider interface {
+ 	model.StartupCheck
+@@ -15,27 +14,24 @@ type UserProvider interface {
+ 	// GetDetails is used to get a user's information.
+ 	GetDetails(username string) (details *UserDetails, err error)
+ 
+-	GetDetailsExtended(username string) (details *UserDetailsExtended, err error)
+-
+ 	// UpdatePassword is used to change a user's password without verifying their old password.
+ 	UpdatePassword(username string, newPassword string) (err error)
+ 
+ 	// ChangePassword is used to change a user's password but requires their old password to be successfully verified.
+ 	ChangePassword(username string, oldPassword string, newPassword string) (err error)
+ 
+-	GetUser(username string) (details *UserDetails, err error)
++	GetUser(username string) (details *UserDetailsExtended, err error)
+ 
+ 	ListUsers() (userList []UserDetails, err error)
+ 
+-	UpdateUser(username string, opts ...func(options *ModifyUserDetailsOpts)) (err error)
+-
+-	AddUser(userData *NewUserData) (err error)
+-
++	AddUser(userData *UserDetailsExtended) (err error)
++	UpdateUser(username string, userData *UserDetailsExtended) (err error)
++	GetDetailsExtended(username string) (details *UserDetailsExtended, err error)
+ 	DeleteUser(username string) (err error)
+ 
+ 	GetRequiredFields() []string
+ 	GetSupportedFields() []string
+-	ValidateUserData(userData *NewUserData) error
++	ValidateUserData(userData *UserDetailsExtended) error
+ 
+ 	Close() (err error)
+ }
+diff --git a/internal/handlers/handler_user_management.go b/internal/handlers/handler_user_management.go
+index 8b0c4074c..2ad9f24d1 100644
+--- a/internal/handlers/handler_user_management.go
++++ b/internal/handlers/handler_user_management.go
+@@ -5,6 +5,7 @@ import (
+ 	"reflect"
+ 	"strings"
+ 
++	"github.com/authelia/authelia/v4/internal/utils"
+ 	log "github.com/sirupsen/logrus"
+ 	"github.com/valyala/fasthttp"
+ 
+@@ -47,7 +48,7 @@ func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
+ 	var (
+ 		err         error
+ 		requestBody changeUserRequestBody
+-		userDetails *authentication.UserDetails
++		userDetails *authentication.UserDetailsExtended
+ 		adminUser   session.UserSession
+ 	)
+ 
+@@ -100,7 +101,7 @@ func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
+ 		return
+ 	}
+ 
+-	if userDetails.DisplayName != requestBody.DisplayName && !ValidatePrintableUnicodeString(requestBody.DisplayName) {
++	if userDetails.DisplayName != requestBody.DisplayName && !utils.ValidatePrintableUnicodeString(requestBody.DisplayName) {
+ 		ctx.Logger.WithFields(log.Fields{
+ 			"user":         requestBody.Username,
+ 			"display_name": requestBody.DisplayName,
+@@ -108,14 +109,14 @@ func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
+ 
+ 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
+ 		ctx.SetJSONError(fmt.Sprintf(
+-			"Display name '%s' is invalid. Must be 1-100 characters and contain only letters, numbers, symbols, spaces and punctuation. No control characters or invisible unicode allowed. User not modified.",
++			"User not modified: Display name '%s' is invalid. Must be 1-100 characters and contain only letters, numbers, symbols, spaces and punctuation. No control characters or invisible unicode allowed.",
+ 			requestBody.DisplayName,
+ 		))
+ 
+ 		return
+ 	}
+ 
+-	if userDetails.Emails[0] != requestBody.Email && !ValidateEmailString(requestBody.Email) {
++	if userDetails.Emails[0] != requestBody.Email && !utils.ValidateEmailString(requestBody.Email) {
+ 		ctx.Logger.WithFields(log.Fields{
+ 			"user":  requestBody.Username,
+ 			"email": requestBody.Email,
+@@ -123,7 +124,7 @@ func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
+ 
+ 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
+ 		ctx.SetJSONError(fmt.Sprintf(
+-			"Email '%s' is invalid. Must be a valid email. User not modified.",
++			"User not modified: Email '%s' is invalid. Must be a valid email.",
+ 			requestBody.Email,
+ 		))
+ 
+@@ -131,15 +132,15 @@ func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
+ 	}
+ 
+ 	if !reflect.DeepEqual(SortedCopy(userDetails.Groups), SortedCopy(requestBody.Groups)) {
+-		if valid, badGroup := ValidateGroups(requestBody.Groups); !valid {
++		if valid, badGroup := utils.ValidateGroups(requestBody.Groups); !valid {
+ 			ctx.Logger.WithFields(log.Fields{
+ 				"user":          requestBody.Username,
+ 				"invalid_group": badGroup,
+-			}).Debugf("%v: Invalid group name format rejected during user modification", messageUnableToModifyUser)
++			}).Debugf("%v: Invalid group name rejected during user modification", messageUnableToModifyUser)
+ 
+ 			ctx.SetStatusCode(fasthttp.StatusBadRequest)
+ 			ctx.SetJSONError(fmt.Sprintf(
+-				"Group '%s' is invalid. Must be 1-100 characters and contain only letters, numbers, and punctuation. User not modified.",
++				"User not modified: Group '%s' is invalid. Must be 1-100 characters and contain only letters, numbers, and punctuation.",
+ 				badGroup,
+ 			))
+ 
+@@ -153,20 +154,43 @@ func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
+ 		}).Debugf("%v: Password does not meet the password policy", messageUnableToModifyUser)
+ 
+ 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
+-		ctx.SetJSONError("New password does not meet the password policy. User not modified.")
++		ctx.SetJSONError("User not modified: New password does not meet the password policy.")
+ 
+ 		return
+ 	}
+ 
+-	//TODO: Properly handle disabled users and enabling/disabling users.
+-	if err = ctx.Providers.UserProvider.UpdateUser(requestBody.Username, func(o *authentication.ModifyUserDetailsOpts) {
+-		o.Password = &requestBody.Password
+-		o.DisplayName = &requestBody.DisplayName
+-		o.SetEmail(&requestBody.Email)
+-		o.SetGroups(requestBody.Groups)
+-		b := false
+-		o.SetDisabled(&b)
+-	}); err != nil {
++	userDataBuilder := authentication.NewUser(requestBody.Username, requestBody.Password).
++		WithDisplayName(requestBody.DisplayName).
++		WithEmail(requestBody.Email).
++		WithGroups(requestBody.Groups).
++		WithDisabled(false)
++
++	if userDetails.GivenName != "" {
++		userDataBuilder = userDataBuilder.WithGivenName(userDetails.GivenName)
++	}
++
++	if userDetails.FamilyName != "" {
++		userDataBuilder = userDataBuilder.WithFamilyName(userDetails.FamilyName)
++	}
++
++	if userDetails.CommonName != "" {
++		userDataBuilder = userDataBuilder.WithCommonName(userDetails.CommonName)
++	}
++
++	if userDetails.DN != "" {
++		userDataBuilder = userDataBuilder.WithDN(userDetails.DN)
++	}
++
++	if len(userDetails.ObjectClass) > 0 {
++		userDataBuilder = userDataBuilder.WithObjectClasses(userDetails.ObjectClass)
++	}
++
++	for key, value := range userDetails.BackendAttributes {
++		userDataBuilder = userDataBuilder.WithBackendAttribute(key, value)
++	}
++
++	userData := userDataBuilder.Build()
++	if err = ctx.Providers.UserProvider.UpdateUser(requestBody.Username, userData); err != nil {
+ 		ctx.Logger.WithError(err).Errorf("Error occurred updating user '%s'", requestBody.Username)
+ 	}
+ 
+@@ -247,7 +271,7 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
+ 		return
+ 	}
+ 
+-	if !ValidateUsername(newUser.Username) {
++	if !utils.ValidateUsername(newUser.Username) {
+ 		ctx.Logger.WithError(err).Errorf("Username '%s' is formatted incorrectly.", newUser.Username)
+ 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+ 		ctx.SetJSONError(messageUsernameWrongFormat)
+@@ -255,7 +279,7 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
+ 		return
+ 	}
+ 
+-	if !ValidatePrintableUnicodeString(newUser.DisplayName) {
++	if !utils.ValidatePrintableUnicodeString(newUser.DisplayName) {
+ 		ctx.Logger.WithError(err).Errorf("Display Name '%s' is formatted incorrectly.", newUser.DisplayName)
+ 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+ 		ctx.SetJSONError(messageDisplayNameWrongFormat)
+@@ -275,7 +299,7 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
+ 		var errorGroups []string
+ 
+ 		for _, group := range newUser.Groups {
+-			if !ValidateGroup(group) {
++			if !utils.ValidateGroup(group) {
+ 				errorGroups = append(errorGroups, group)
+ 			}
+ 		}
+@@ -292,7 +316,7 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
+ 	}
+ 
+ 	if newUser.Email != "" {
+-		if !ValidateEmailString(newUser.Email) {
++		if !utils.ValidateEmailString(newUser.Email) {
+ 			ctx.Logger.WithError(err).Errorf("Email '%s' is not a valid email", newUser.Email)
+ 			ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+ 			ctx.SetJSONError(messageEmailWrongFormat)
+diff --git a/internal/handlers/util.go b/internal/handlers/util.go
+index 868c899f3..1555dcd5d 100644
+--- a/internal/handlers/util.go
++++ b/internal/handlers/util.go
+@@ -3,7 +3,6 @@ package handlers
+ import (
+ 	"fmt"
+ 	"reflect"
+-	"regexp"
+ 	"slices"
+ 	"sort"
+ 	"strings"
+@@ -135,53 +134,11 @@ func MergeUserInfoAndDetails(userInfo []model.UserInfo, users []authentication.U
+ 	return userInfo
+ }
+ 
+-const (
+-	printableUnicodeRegexp = `^[\pL\pM\pN\pP\pS\s]{1,100}$`
+-	emailRegex             = `^[a-zA-Z0-9+._~!#$%&'*/=?^{|}-]+@[a-zA-Z0-9-.]+\.[a-zA-Z0-9-]+$`
+-	usernameAndGroupRegex  = `^[a-zA-Z0-9+._\-]{1,100}$`
+-)
+-
+-func ValidatePrintableUnicodeString(input string) bool {
+-	var regex = regexp.MustCompile(printableUnicodeRegexp) //nolint:forbidigo
+-
+-	return regex.MatchString(input)
+-}
+-
+-func ValidateEmailString(input string) bool {
+-	var regex = regexp.MustCompile(emailRegex)
+-
+-	return regex.MatchString(input)
+-}
+-
+-func ValidateGroups(input []string) (bool, string) {
+-	for _, group := range input {
+-		if !ValidateGroup(group) {
+-			return false, group
+-		}
+-	}
+-
+-	return true, ""
+-}
+-
+-func ValidateGroup(input string) bool {
+-	var regex = regexp.MustCompile(usernameAndGroupRegex)
+-
+-	return regex.MatchString(input)
+-}
+-
+-func ValidateUsername(input string) bool {
+-	if strings.Contains(input, `@`) {
+-		return ValidateEmailString(input)
+-	}
+-
+-	return ValidatePrintableUnicodeString(input)
+-}
+-
+ func UserIsAdmin(ctx *middlewares.AutheliaCtx, userGroups []string) bool {
+ 	return slices.Contains(userGroups, ctx.Configuration.Administration.AdminGroup)
+ }
+ 
+-func GenerateUserChangeLog(original *authentication.UserDetails, changes *changeUserRequestBody) []string {
++func GenerateUserChangeLog(original *authentication.UserDetailsExtended, changes *changeUserRequestBody) []string {
+ 	var modifications []string
+ 
+ 	if original.DisplayName != changes.DisplayName {

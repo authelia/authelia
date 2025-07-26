@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/authelia/authelia/v4/internal/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
@@ -47,7 +48,7 @@ func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
 	var (
 		err         error
 		requestBody changeUserRequestBody
-		userDetails *authentication.UserDetails
+		userDetails *authentication.UserDetailsExtended
 		adminUser   session.UserSession
 	)
 
@@ -100,7 +101,7 @@ func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if userDetails.DisplayName != requestBody.DisplayName && !ValidatePrintableUnicodeString(requestBody.DisplayName) {
+	if userDetails.DisplayName != requestBody.DisplayName && !utils.ValidatePrintableUnicodeString(requestBody.DisplayName) {
 		ctx.Logger.WithFields(log.Fields{
 			"user":         requestBody.Username,
 			"display_name": requestBody.DisplayName,
@@ -108,14 +109,14 @@ func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
 
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetJSONError(fmt.Sprintf(
-			"Display name '%s' is invalid. Must be 1-100 characters and contain only letters, numbers, symbols, spaces and punctuation. No control characters or invisible unicode allowed. User not modified.",
+			"User not modified: Display name '%s' is invalid. Must be 1-100 characters and contain only letters, numbers, symbols, spaces and punctuation. No control characters or invisible unicode allowed.",
 			requestBody.DisplayName,
 		))
 
 		return
 	}
 
-	if userDetails.Emails[0] != requestBody.Email && !ValidateEmailString(requestBody.Email) {
+	if userDetails.Emails[0] != requestBody.Email && !utils.ValidateEmailString(requestBody.Email) {
 		ctx.Logger.WithFields(log.Fields{
 			"user":  requestBody.Username,
 			"email": requestBody.Email,
@@ -123,7 +124,7 @@ func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
 
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetJSONError(fmt.Sprintf(
-			"Email '%s' is invalid. Must be a valid email. User not modified.",
+			"User not modified: Email '%s' is invalid. Must be a valid email.",
 			requestBody.Email,
 		))
 
@@ -131,15 +132,15 @@ func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if !reflect.DeepEqual(SortedCopy(userDetails.Groups), SortedCopy(requestBody.Groups)) {
-		if valid, badGroup := ValidateGroups(requestBody.Groups); !valid {
+		if valid, badGroup := utils.ValidateGroups(requestBody.Groups); !valid {
 			ctx.Logger.WithFields(log.Fields{
 				"user":          requestBody.Username,
 				"invalid_group": badGroup,
-			}).Debugf("%v: Invalid group name format rejected during user modification", messageUnableToModifyUser)
+			}).Debugf("%v: Invalid group name rejected during user modification", messageUnableToModifyUser)
 
 			ctx.SetStatusCode(fasthttp.StatusBadRequest)
 			ctx.SetJSONError(fmt.Sprintf(
-				"Group '%s' is invalid. Must be 1-100 characters and contain only letters, numbers, and punctuation. User not modified.",
+				"User not modified: Group '%s' is invalid. Must be 1-100 characters and contain only letters, numbers, and punctuation.",
 				badGroup,
 			))
 
@@ -153,20 +154,43 @@ func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
 		}).Debugf("%v: Password does not meet the password policy", messageUnableToModifyUser)
 
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
-		ctx.SetJSONError("New password does not meet the password policy. User not modified.")
+		ctx.SetJSONError("User not modified: New password does not meet the password policy.")
 
 		return
 	}
 
-	//TODO: Properly handle disabled users and enabling/disabling users.
-	if err = ctx.Providers.UserProvider.UpdateUser(requestBody.Username, func(o *authentication.ModifyUserDetailsOpts) {
-		o.Password = &requestBody.Password
-		o.DisplayName = &requestBody.DisplayName
-		o.SetEmail(&requestBody.Email)
-		o.SetGroups(requestBody.Groups)
-		b := false
-		o.SetDisabled(&b)
-	}); err != nil {
+	userDataBuilder := authentication.NewUser(requestBody.Username, requestBody.Password).
+		WithDisplayName(requestBody.DisplayName).
+		WithEmail(requestBody.Email).
+		WithGroups(requestBody.Groups).
+		WithDisabled(false)
+
+	if userDetails.GivenName != "" {
+		userDataBuilder = userDataBuilder.WithGivenName(userDetails.GivenName)
+	}
+
+	if userDetails.FamilyName != "" {
+		userDataBuilder = userDataBuilder.WithFamilyName(userDetails.FamilyName)
+	}
+
+	if userDetails.CommonName != "" {
+		userDataBuilder = userDataBuilder.WithCommonName(userDetails.CommonName)
+	}
+
+	if userDetails.DN != "" {
+		userDataBuilder = userDataBuilder.WithDN(userDetails.DN)
+	}
+
+	if len(userDetails.ObjectClass) > 0 {
+		userDataBuilder = userDataBuilder.WithObjectClasses(userDetails.ObjectClass)
+	}
+
+	for key, value := range userDetails.BackendAttributes {
+		userDataBuilder = userDataBuilder.WithBackendAttribute(key, value)
+	}
+
+	userData := userDataBuilder.Build()
+	if err = ctx.Providers.UserProvider.UpdateUser(requestBody.Username, userData); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred updating user '%s'", requestBody.Username)
 	}
 
@@ -247,7 +271,7 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if !ValidateUsername(newUser.Username) {
+	if !utils.ValidateUsername(newUser.Username) {
 		ctx.Logger.WithError(err).Errorf("Username '%s' is formatted incorrectly.", newUser.Username)
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetJSONError(messageUsernameWrongFormat)
@@ -255,7 +279,7 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if !ValidatePrintableUnicodeString(newUser.DisplayName) {
+	if !utils.ValidatePrintableUnicodeString(newUser.DisplayName) {
 		ctx.Logger.WithError(err).Errorf("Display Name '%s' is formatted incorrectly.", newUser.DisplayName)
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetJSONError(messageDisplayNameWrongFormat)
@@ -275,7 +299,7 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 		var errorGroups []string
 
 		for _, group := range newUser.Groups {
-			if !ValidateGroup(group) {
+			if !utils.ValidateGroup(group) {
 				errorGroups = append(errorGroups, group)
 			}
 		}
@@ -292,7 +316,7 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	if newUser.Email != "" {
-		if !ValidateEmailString(newUser.Email) {
+		if !utils.ValidateEmailString(newUser.Email) {
 			ctx.Logger.WithError(err).Errorf("Email '%s' is not a valid email", newUser.Email)
 			ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
 			ctx.SetJSONError(messageEmailWrongFormat)
