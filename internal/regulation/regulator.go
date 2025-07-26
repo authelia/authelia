@@ -95,7 +95,7 @@ func (r *Regulator) handleAttemptPossibleBannedIP(ctx Context, since time.Time) 
 }
 
 func (r *Regulator) handleAttemptPossibleBannedUser(ctx Context, since time.Time, username string) {
-	if !r.users {
+	if !r.users || username == "" {
 		return
 	}
 

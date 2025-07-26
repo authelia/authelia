@@ -184,16 +184,24 @@ func (s *FirstFactorSuite) TestShouldCheckAuthenticationIsMarkedWhenInvalidCrede
 }
 
 func (s *FirstFactorSuite) TestShouldFailIfUserProviderGetDetailsFail() {
+	attempt := model.AuthenticationAttempt{Time: s.mock.Clock.Now(), Type: regulation.AuthType1FA, RemoteIP: model.NewNullIPFromString("0.0.0.0")}
+
 	s.mock.UserProviderMock.
 		EXPECT().
 		GetDetails(gomock.Eq(testValue)).
 		Return(nil, fmt.Errorf("failed"))
+
+	s.mock.StorageMock.
+		EXPECT().
+		AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(attempt)).
+		Return(nil)
 
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
 		"password": "hello",
 		"keepMeLoggedIn": true
 	}`)
+
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
 	s.mock.AssertLastLogMessage(s.T(), "Error occurred getting details for user with username input 'test' which usually indicates they do not exist", "failed")
