@@ -348,7 +348,8 @@ const FirstFactorForm = function (props: Props) {
                             id="sign-in-button"
                             variant="contained"
                             color="primary"
-                            fullWidth={true}
+                            fullWidth
+                            data-1p-ignore
                             endIcon={loading ? <CircularProgress size={20} /> : null}
                             disabled={disabled}
                             onClick={handleSignIn}

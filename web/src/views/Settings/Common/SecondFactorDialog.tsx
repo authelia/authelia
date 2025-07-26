@@ -172,7 +172,7 @@ const SecondFactorDialog = function (props: Props) {
                     <Stack alignContent={"center"} justifyContent={"center"} alignItems={"center"} spacing={2} my={8}>
                         {props.elevation.can_skip_second_factor ? (
                             <Fragment>
-                                <Button variant={"outlined"} onClick={handleOneTimeCode}>
+                                <Button variant={"outlined"} onClick={handleOneTimeCode} data-1p-ignore>
                                     {translate("Email One-Time Code")}
                                 </Button>
                                 <Divider />
@@ -181,17 +181,17 @@ const SecondFactorDialog = function (props: Props) {
                             </Fragment>
                         ) : null}
                         {props.info.has_totp ? (
-                            <Button variant={"outlined"} onClick={handleClickOneTimePassword}>
+                            <Button variant={"outlined"} onClick={handleClickOneTimePassword} data-1p-ignore>
                                 {translate("One-Time Password")}
                             </Button>
                         ) : null}
                         {props.info.has_webauthn && browserSupportsWebAuthn() ? (
-                            <Button variant={"outlined"} onClick={handleClickWebAuthn}>
+                            <Button variant={"outlined"} onClick={handleClickWebAuthn} data-1p-ignore>
                                 {translate("WebAuthn")}
                             </Button>
                         ) : null}
                         {props.info.has_duo ? (
-                            <Button variant={"outlined"} onClick={handleClickMobilePush}>
+                            <Button variant={"outlined"} onClick={handleClickMobilePush} data-1p-ignore>
                                 {translate("Mobile Push")}
                             </Button>
                         ) : null}
@@ -227,7 +227,13 @@ const SecondFactorDialog = function (props: Props) {
                 )}
             </DialogContent>
             <DialogActions>
-                <Button variant={"outlined"} color={"error"} disabled={loading} onClick={handleCancelled}>
+                <Button
+                    variant={"outlined"}
+                    color={"error"}
+                    disabled={loading}
+                    onClick={handleCancelled}
+                    data-1p-ignore
+                >
                     {translate("Cancel")}
                 </Button>
             </DialogActions>

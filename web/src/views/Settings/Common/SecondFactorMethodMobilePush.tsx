@@ -202,7 +202,7 @@ const SecondFactorMethodMobilePush = function (props: Props) {
             <Box className={classes.container}>
                 <Box className={classes.icon}>{icon}</Box>
                 <Box className={state !== State.Failure ? "hidden" : ""}>
-                    <Button color="secondary" onClick={handleDuoPush}>
+                    <Button color="secondary" onClick={handleDuoPush} data-1p-ignore>
                         Retry
                     </Button>
                 </Box>

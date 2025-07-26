@@ -253,7 +253,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
     };
 
     return (
-        <Dialog open={props.open} onClose={handleOnClose} maxWidth={"xs"} fullWidth={true}>
+        <Dialog open={props.open} onClose={handleOnClose} maxWidth={"xs"} fullWidth>
             <DialogTitle>{translate("Register {{item}}", { item: translate("WebAuthn Credential") })}</DialogTitle>
             <DialogContent>
                 <DialogContentText sx={{ mb: 3 }}>
@@ -286,6 +286,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                     color={activeStep === 1 && state !== WebAuthnTouchState.Failure ? "primary" : "error"}
                     disabled={activeStep === 1 && state !== WebAuthnTouchState.Failure}
                     onClick={handleClose}
+                    data-1p-ignore
                 >
                     {translate("Cancel")}
                 </Button>
@@ -297,6 +298,7 @@ const WebAuthnCredentialRegisterDialog = function (props: Props) {
                         onClick={async () => {
                             handleNext();
                         }}
+                        data-1p-ignore
                     >
                         {translate("Next")}
                     </Button>
