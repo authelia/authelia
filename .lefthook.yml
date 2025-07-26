@@ -1,0 +1,57 @@
+---
+pre-commit:
+  piped: true
+  jobs:
+    - name: check tools
+      # yamllint disable rule:indentation
+      run: |
+        MISSING=""
+        COUNT=0
+
+        for TOOL in golangci-lint pnpm trufflehog yamllint; do
+          if ! command -v ${TOOL} >/dev/null 2>&1; then
+            if [ "$COUNT" -eq 0 ]; then
+              MISSING=${TOOL}
+            elif [ "$COUNT" -eq 1 ]; then
+              MISSING="${MISSING} and ${TOOL}"
+            else
+              MISSING="$(echo "${MISSING}" | sed 's/ and /, /') and ${TOOL}"
+            fi
+            COUNT=$((COUNT + 1))
+          fi
+        done
+
+        if [ ${COUNT} -gt 0 ]; then
+          echo "❌ You must install ${MISSING}"
+          exit 1
+        fi
+      # yamllint enable rule:indentation
+
+    - name: linters
+      group:
+        parallel: true
+        jobs:
+          - name: eslint
+            run: pnpm lint && echo "0 issues."
+            root: "web/"
+            glob: "*.{js,jsx,ts,tsx}"
+            stage_fixed: true
+
+          - name: golangci-lint
+            run: golangci-lint run --fix
+            glob: "*.go"
+            stage_fixed: true
+
+          - name: trufflehog
+            run: trufflehog --fail --log-level=-1 filesystem -x .trufflehog . && echo "0 issues."
+
+          - name: yamllint
+            run: yamllint -f parsable . && echo "0 issues."
+            glob: "*.{yml,yaml}"
+
+commit-msg:
+  jobs:
+    - name: commitlint
+      run: pnpm commitlint --edit
+      root: "web/"
+...

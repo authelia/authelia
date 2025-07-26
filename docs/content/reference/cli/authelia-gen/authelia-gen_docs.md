@@ -78,4 +78,5 @@ authelia-gen docs [flags]
 * [authelia-gen docs date](authelia-gen_docs_date.md)	 - Generate doc dates
 * [authelia-gen docs json-schema](authelia-gen_docs_json-schema.md)	 - Generate docs JSON schema
 * [authelia-gen docs manage](authelia-gen_docs_manage.md)	 - Generate Managed docs
+* [authelia-gen docs seo](authelia-gen_docs_seo.md)	 - Generate doc seo tags
 
