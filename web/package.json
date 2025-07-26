@@ -10,8 +10,8 @@
   "pnpm": {
     "overrides": {
       "@babel/traverse": "7.28.0",
-      "@babel/helpers": "7.27.6",
-      "@babel/runtime": "7.27.6",
+      "@babel/helpers": "7.28.2",
+      "@babel/runtime": "7.28.2",
       "@typescript-eslint/eslint-plugin": "8.38.0",
       "@typescript-eslint/parser": "8.38.0",
       "@typescript-eslint/typescript-estree": "8.38.0",
