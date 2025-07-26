@@ -219,6 +219,7 @@ const IdentityVerificationDialog = function (props: Props) {
                         color={"error"}
                         disabled={loading}
                         onClick={handleCancelled}
+                        data-1p-ignore
                     >
                         {translate("Cancel")}
                     </Button>
@@ -229,6 +230,7 @@ const IdentityVerificationDialog = function (props: Props) {
                         disabled={loading}
                         startIcon={loading ? <CircularProgress color="inherit" size={20} /> : undefined}
                         onClick={handleSubmit}
+                        data-1p-ignore
                     >
                         {translate("Verify")}
                     </Button>

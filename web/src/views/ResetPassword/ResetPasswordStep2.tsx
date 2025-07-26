@@ -218,6 +218,7 @@ const ResetPasswordStep2 = function () {
                             disabled={formDisabled}
                             onClick={handleResetClick}
                             className={classes.fullWidth}
+                            data-1p-ignore
                         >
                             {translate("Reset")}
                         </Button>
@@ -230,6 +231,7 @@ const ResetPasswordStep2 = function () {
                             name="password2"
                             onClick={handleCancelClick}
                             className={classes.fullWidth}
+                            data-1p-ignore
                         >
                             {translate("Cancel")}
                         </Button>

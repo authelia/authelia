@@ -253,6 +253,7 @@ const WebAuthnCredentialsPanel = function (props: Props) {
                                 onClick={handleRegister}
                                 disabled={dialogRegisterOpening || dialogRegisterOpen}
                                 endIcon={dialogRegisterOpening ? <CircularProgress color="inherit" size={20} /> : null}
+                                data-1p-ignore
                             >
                                 {translate("Add")}
                             </Button>

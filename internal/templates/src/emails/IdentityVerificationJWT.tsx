@@ -80,6 +80,7 @@ export const IdentityVerificationJWT = ({
                                 id="link"
                                 href={link}
                                 className="bg-[#1976d2] rounded text-white text-[12px] font-semibold no-underline text-center px-5 py-3"
+								data-1p-ignore
                             >
                                 {linkText}
                             </Button>
@@ -121,6 +122,7 @@ export const IdentityVerificationJWT = ({
                                 id="link-revoke"
                                 href={revocationLinkURL}
                                 className="bg-[#f50057] rounded text-white text-[12px] font-semibold no-underline text-center px-5 py-3"
+								data-1p-ignore
                             >
                                 {revocationLinkText}
                             </Button>

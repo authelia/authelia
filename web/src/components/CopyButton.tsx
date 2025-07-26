@@ -56,6 +56,7 @@ const CopyButton = function (props: Props) {
             startIcon={
                 isCopying ? <CircularProgress color="inherit" size={20} /> : isCopied ? <Check /> : <ContentCopy />
             }
+            data-1p-ignore
         >
             {isCopied && props.childrenCopied ? props.childrenCopied : props.children}
         </Button>
@@ -67,6 +68,7 @@ const CopyButton = function (props: Props) {
                 onClick={isCopying ? undefined : handleCopyToClipboard}
                 sx={props.sx}
                 fullWidth={props.fullWidth}
+                data-1p-ignore
                 startIcon={
                     isCopying ? <CircularProgress color="inherit" size={20} /> : isCopied ? <Check /> : <ContentCopy />
                 }

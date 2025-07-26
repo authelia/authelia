@@ -109,6 +109,7 @@ const DeviceAuthorizationFormView: React.FC<Props> = (props: Props) => {
                                     fullWidth
                                     onClick={() => handleCode(code)}
                                     disabled={code === ""}
+                                    data-1p-ignore
                                 >
                                     {translate("Confirm", { ns: "settings" })}
                                 </Button>

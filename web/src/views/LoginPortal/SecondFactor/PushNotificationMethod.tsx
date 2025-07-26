@@ -275,7 +275,7 @@ const PushNotificationMethod = function (props: Props) {
         >
             <Box className={classes.icon}>{icon}</Box>
             <Box className={state !== State.Failure ? "hidden" : ""}>
-                <Button color="secondary" onClick={handleSignIn}>
+                <Button color="secondary" onClick={handleSignIn} data-1p-ignore>
                     {translate("Retry")}
                 </Button>
             </Box>

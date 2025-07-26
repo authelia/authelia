@@ -85,7 +85,7 @@ const DefaultDeviceSelectionContainer = function (props: Props) {
     return (
         <Container>
             {container}
-            <Button color="primary" onClick={props.onBack} id="device-selection-back">
+            <Button color="primary" onClick={props.onBack} id="device-selection-back" data-1p-ignore>
                 back
             </Button>
         </Container>
@@ -112,6 +112,7 @@ const DeviceItem = function (props: DeviceItemProps) {
                 classes={{ root: classes.buttonRoot }}
                 variant="contained"
                 onClick={props.onSelect}
+                data-1p-ignore
             >
                 <Box className={classes.icon}>
                     <PushNotificationIcon width={32} height={32} />
@@ -144,6 +145,7 @@ const MethodItem = function (props: MethodItemProps) {
                 classes={{ root: classes.buttonRoot }}
                 variant="contained"
                 onClick={props.onSelect}
+                data-1p-ignore
             >
                 <Box className={classes.icon}>
                     <PushNotificationIcon width={32} height={32} />

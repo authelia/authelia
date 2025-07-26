@@ -48,6 +48,7 @@ const PrivacyPolicyDrawer = function (props: DrawerProps) {
                         onClick={() => {
                             setAccepted(true);
                         }}
+                        data-1p-ignore
                     >
                         {translate("Accept")}
                     </Button>

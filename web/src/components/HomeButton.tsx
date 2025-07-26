@@ -18,7 +18,7 @@ const HomeButton = function (props: Props) {
     };
 
     return (
-        <Button id={"home-button"} color={"secondary"} onClick={handleHomeClick}>
+        <Button id={"home-button"} color={"secondary"} onClick={handleHomeClick} data-1p-ignore>
             {translate("Home")}
         </Button>
     );

@@ -173,10 +173,11 @@ const PasswordForm = function (props: Props) {
                         id="sign-in-button"
                         variant="contained"
                         color="primary"
-                        fullWidth={true}
+                        fullWidth
                         endIcon={loading ? <CircularProgress size={20} /> : null}
                         disabled={loading}
                         onClick={handleSignIn}
+                        data-1p-ignore
                     >
                         {translate("Authenticate", { ns: "settings" })}
                     </Button>

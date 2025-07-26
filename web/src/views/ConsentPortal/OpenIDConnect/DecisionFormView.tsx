@@ -459,6 +459,7 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
                                                         onClick={handleAcceptConsent}
                                                         color={"primary"}
                                                         variant={"contained"}
+                                                        data-1p-ignore
                                                         endIcon={loadingAccept ? <CircularProgress size={20} /> : null}
                                                     >
                                                         {translate("Accept", { ns: "portal" })}
@@ -476,6 +477,7 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
                                                         onClick={handleRejectConsent}
                                                         color={"secondary"}
                                                         variant={"contained"}
+                                                        data-1p-ignore
                                                         endIcon={loadingReject ? <CircularProgress size={20} /> : null}
                                                     >
                                                         {translate("Deny", { ns: "portal" })}

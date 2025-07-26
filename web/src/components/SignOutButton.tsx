@@ -23,12 +23,12 @@ const SignOutButton = function (props: Props) {
 
     return props.tooltip ? (
         <Tooltip title={props.tooltip}>
-            <Button id={props.id} color={"secondary"} onClick={handleSignOutClick}>
+            <Button id={props.id} color={"secondary"} onClick={handleSignOutClick} data-1p-ignore>
                 {translate(props.text)}
             </Button>
         </Tooltip>
     ) : (
-        <Button id={props.id} color={"secondary"} onClick={handleSignOutClick}>
+        <Button id={props.id} color={"secondary"} onClick={handleSignOutClick} data-1p-ignore>
             {translate(props.text)}
         </Button>
     );

@@ -284,7 +284,7 @@ const ChangePasswordDialog = (props: Props) => {
                 </FormControl>
             </DialogContent>
             <DialogActions>
-                <Button id={"password-change-dialog-cancel"} color={"error"} onClick={handleClose}>
+                <Button id={"password-change-dialog-cancel"} color={"error"} onClick={handleClose} data-1p-ignore>
                     {translate("Cancel")}
                 </Button>
                 <Button
@@ -293,6 +293,7 @@ const ChangePasswordDialog = (props: Props) => {
                     onClick={handlePasswordChange}
                     disabled={!(oldPassword.length && newPassword.length && repeatNewPassword.length) || loading}
                     startIcon={loading ? <CircularProgress color="inherit" size={20} /> : <></>}
+                    data-1p-ignore
                 >
                     {translate("Submit")}
                 </Button>

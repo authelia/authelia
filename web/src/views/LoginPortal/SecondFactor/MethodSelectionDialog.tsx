@@ -59,7 +59,7 @@ const MethodSelectionDialog = function (props: Props) {
                 </Grid>
             </DialogContent>
             <DialogActions>
-                <Button color="primary" onClick={props.onClose}>
+                <Button color="primary" onClick={props.onClose} data-1p-ignore>
                     {translate("Close")}
                 </Button>
             </DialogActions>
@@ -86,6 +86,7 @@ function MethodItem(props: MethodItemProps) {
                 classes={{ root: classes.buttonRoot }}
                 variant="contained"
                 onClick={props.onClick}
+                data-1p-ignore
             >
                 <Box className={classes.icon}>{props.icon}</Box>
                 <Box>

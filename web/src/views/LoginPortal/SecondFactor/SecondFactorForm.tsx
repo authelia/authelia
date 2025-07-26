@@ -109,7 +109,12 @@ const SecondFactorForm = function (props: Props) {
                     {flowPresent ? <SwitchUserButton /> : null}
                     {showMethods ? " | " : null}
                     {showMethods ? (
-                        <Button id={"methods-button"} color="secondary" onClick={handleMethodSelectionClick}>
+                        <Button
+                            id={"methods-button"}
+                            color="secondary"
+                            onClick={handleMethodSelectionClick}
+                            data-1p-ignore
+                        >
                             {translate("Methods")}
                         </Button>
                     ) : null}
