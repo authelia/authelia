@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Box } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
+import NullForm from "@components/NullForm";
 import { RedirectionURL } from "@constants/SearchParams";
 import { useFlow } from "@hooks/Flow";
 import { useUserCode } from "@hooks/OpenIDConnect";
@@ -156,13 +157,15 @@ const OneTimePasswordMethod = function (props: Props) {
         >
             <Box>
                 {resp !== undefined || err !== undefined ? (
-                    <OTPDial
-                        passcode={passcode}
-                        period={resp?.period || 30}
-                        digits={resp?.digits || 6}
-                        onChange={setPasscode}
-                        state={state}
-                    />
+                    <NullForm>
+                        <OTPDial
+                            passcode={passcode}
+                            period={resp?.period || 30}
+                            digits={resp?.digits || 6}
+                            onChange={setPasscode}
+                            state={state}
+                        />
+                    </NullForm>
                 ) : (
                     <LoadingPage />
                 )}

@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { makeStyles } from "tss-react/mui";
 
 import LogoutButton from "@components/LogoutButton";
+import NullForm from "@components/NullForm";
 import MinimalLayout from "@layouts/MinimalLayout";
 import { UserInfo } from "@models/UserInfo";
 import Authenticated from "@views/LoginPortal/Authenticated";
@@ -27,7 +28,9 @@ const AuthenticatedView = function (props: Props) {
         >
             <Grid container direction={"column"} justifyContent={"center"} alignItems={"center"}>
                 <Grid size={{ xs: 12 }}>
-                    <LogoutButton />
+                    <NullForm>
+                        <LogoutButton />
+                    </NullForm>
                 </Grid>
                 <Grid size={{ xs: 12 }} className={classes.mainContainer}>
                     <Authenticated />

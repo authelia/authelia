@@ -6,6 +6,7 @@ import TextField from "@mui/material/TextField";
 import { useTranslation } from "react-i18next";
 
 import LogoutButton from "@components/LogoutButton";
+import NullForm from "@components/NullForm";
 import SwitchUserButton from "@components/SwitchUserButton";
 import { ConsentDecisionSubRoute, ConsentOpenIDSubRoute, ConsentRoute, IndexRoute } from "@constants/Routes";
 import {
@@ -84,7 +85,9 @@ const DeviceAuthorizationFormView: React.FC<Props> = (props: Props) => {
         <LoginLayout id={"openid-consent-device-auth-stage"} title={translate("Confirm the Code")}>
             <Grid container direction={"column"} justifyContent={"center"} alignItems={"center"}>
                 <Grid size={{ xs: 12 }} sx={{ paddingBottom: theme.spacing(2) }}>
-                    <LogoutButton /> {" | "} <SwitchUserButton />
+                    <NullForm>
+                        <LogoutButton /> {" | "} <SwitchUserButton />
+                    </NullForm>
                 </Grid>
                 <Grid size={{ xs: 12 }}>
                     <FormControl id={"form-consent-openid-device-code-authorization"}>

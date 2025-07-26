@@ -8,6 +8,7 @@ import { Route, Routes } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
 
 import LogoutButton from "@components/LogoutButton";
+import NullForm from "@components/NullForm";
 import SwitchUserButton from "@components/SwitchUserButton";
 import {
     SecondFactorPasswordSubRoute,
@@ -104,15 +105,17 @@ const SecondFactorForm = function (props: Props) {
             ) : null}
             <Grid container direction={"column"} justifyContent={"center"} alignItems={"center"}>
                 <Grid size={{ xs: 12 }}>
-                    <LogoutButton />
-                    {flowPresent ? " | " : null}
-                    {flowPresent ? <SwitchUserButton /> : null}
-                    {showMethods ? " | " : null}
-                    {showMethods ? (
-                        <Button id={"methods-button"} color="secondary" onClick={handleMethodSelectionClick}>
-                            {translate("Methods")}
-                        </Button>
-                    ) : null}
+                    <NullForm>
+                        <LogoutButton />
+                        {flowPresent ? " | " : null}
+                        {flowPresent ? <SwitchUserButton /> : null}
+                        {showMethods ? " | " : null}
+                        {showMethods ? (
+                            <Button id={"methods-button"} color="secondary" onClick={handleMethodSelectionClick}>
+                                {translate("Methods")}
+                            </Button>
+                        ) : null}
+                    </NullForm>
                 </Grid>
                 <Box className={classes.methodContainer}>
                     <Routes>

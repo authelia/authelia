@@ -22,6 +22,7 @@ import { useTranslation } from "react-i18next";
 import { makeStyles } from "tss-react/mui";
 
 import LogoutButton from "@components/LogoutButton";
+import NullForm from "@components/NullForm";
 import SwitchUserButton from "@components/SwitchUserButton";
 import { ConsentCompletionSubRoute, ConsentRoute, IndexRoute } from "@constants/Routes";
 import { Decision, Flow, SubFlow, SubFlowNameDeviceAuthorization } from "@constants/SearchParams";
@@ -307,7 +308,9 @@ const DecisionFormView: React.FC<Props> = (props: Props) => {
                 >
                     <Grid container direction={"column"} justifyContent={"center"} alignItems={"center"}>
                         <Grid size={{ xs: 12 }} sx={{ paddingBottom: theme.spacing(2) }}>
-                            <LogoutButton /> {" | "} <SwitchUserButton />
+                            <NullForm>
+                                <LogoutButton /> {" | "} <SwitchUserButton />
+                            </NullForm>
                         </Grid>
                         <Grid size={{ xs: 12 }}>
                             <Grid container alignItems={"center"} justifyContent={"center"}>
