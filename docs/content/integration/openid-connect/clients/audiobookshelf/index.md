@@ -25,7 +25,7 @@ seo:
 - [Authelia]
   - [v4.39.0](https://github.com/authelia/authelia/releases/tag/v4.39.0)
 - [audiobookshelf]
-  - [v2.20.0](https://github.com/advplyr/audiobookshelf/releases/tag/v2.20.0)
+  - [v2.26.3](https://github.com/advplyr/audiobookshelf/releases/tag/v2.26.3)
 
 {{% oidc-common %}}
 
@@ -91,13 +91,15 @@ To configure [audiobookshelf] to utilize Authelia as an [OpenID Connect 1.0] Pro
 
 1. Navigate to Settings.
 2. Navigate to Authentication.
-3. Configure the following options:
+3. Configure the following options (some of these options can be automated by filling the `Issuer URL` and clicking
+   `Auto-populate` and just verifying the value is correct):
    - OpenID Connect Authentication: Enabled
    - Issuer URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}`
-   - Authorize URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
-   - Token URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
-   - Userinfo URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
-   - JWKS URL: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/jwks.json`
+   - Authorize URL (Auto-populate): `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization`
+   - Token URL (Auto-populate): `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token`
+   - Userinfo URL (Auto-populate): `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo`
+   - JWKS URL (Auto-populate): `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/jwks.json`
+   - Logout URL (Auto-populate): empty
    - Client ID: `audiobookshelf`
    - Client Secret: `insecure_secret`
    - Signing Algorithm: `RS256`
@@ -105,11 +107,21 @@ To configure [audiobookshelf] to utilize Authelia as an [OpenID Connect 1.0] Pro
    - Subfolder for Redirect URLs: `None`
    - Button Text: `Login with Authelia`
    - Match existing users by: `Match by username`
-   - Auto Launch: Enabled
-   - Group Claim: `groups`
+   - Auto Launch: Disabled
+   - Auto Register: Disabled
+
+In addition to the configuration above you may want to consider enabling the Auto Launch and Auto Register features. It's
+important to note that if you enable Auto Launch you will automatically be redirected to Authelia for consent regardless
+if you have an account or not, and [audiobookshelf] does not seem to provide errors to the user when this happens.
+
+Auto Registration is probably fine but if you only want some users to have access to [audiobookshelf] we suggest leaving
+it off.
+
+The groups claim can be configured as `groups` but you must make sure the groups expected by [audiobookshelf] exist for
+the users you want to have access. This will also mean the group management will occur in Authelia, not [audiobookshelf]
+presumably.
 
 {{< figure src="audiobookshelf_1.png" alt="audiobookshelf_1" width="300" >}}
-{{< figure src="audiobookshelf_2.png" alt="audiobookshelf_2" width="300" >}}
 
 ## See Also
 
