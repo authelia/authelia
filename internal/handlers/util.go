@@ -9,7 +9,6 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
-	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/templates"
 )
 
@@ -103,42 +102,105 @@ func redactEmail(email string) string {
 }
 
 // MergeUserInfoAndDetails combines the list of attributes in userInfo with the list of users in users.
-func MergeUserInfoAndDetails(userInfo []model.UserInfo, users []authentication.UserDetails) []model.UserInfo {
-	userDetailsMap := make(map[string]authentication.UserDetails)
-	userInfoMap := make(map[string]bool)
-
-	for _, user := range users {
-		userDetailsMap[user.Username] = user
+func mergeUserData(existing, updates *authentication.UserDetailsExtended) *authentication.UserDetailsExtended {
+	merged := &authentication.UserDetailsExtended{
+		GivenName:         existing.GivenName,
+		FamilyName:        existing.FamilyName,
+		MiddleName:        existing.MiddleName,
+		Nickname:          existing.Nickname,
+		CommonName:        existing.CommonName,
+		Profile:           existing.Profile,
+		Picture:           existing.Picture,
+		Website:           existing.Website,
+		Gender:            existing.Gender,
+		Birthdate:         existing.Birthdate,
+		ZoneInfo:          existing.ZoneInfo,
+		Locale:            existing.Locale,
+		PhoneNumber:       existing.PhoneNumber,
+		PhoneExtension:    existing.PhoneExtension,
+		Address:           existing.Address,
+		DN:                existing.DN,
+		ObjectClass:       make([]string, len(existing.ObjectClass)),
+		BackendAttributes: make(map[string]interface{}),
+		Disabled:          existing.Disabled,
+		Extra:             make(map[string]any),
+		UserDetails: &authentication.UserDetails{
+			Username:    existing.UserDetails.Username,
+			DisplayName: existing.UserDetails.DisplayName,
+			Emails:      make([]string, len(existing.UserDetails.Emails)),
+			Groups:      make([]string, len(existing.UserDetails.Groups)),
+		},
 	}
 
-	for i, info := range userInfo {
-		if details, ok := userDetailsMap[info.Username]; ok {
-			userInfo[i].DisplayName = details.DisplayName
-			userInfo[i].Emails = details.Emails
-			userInfo[i].Groups = details.Groups
-			userInfoMap[info.Username] = true
+	copy(merged.ObjectClass, existing.ObjectClass)
+	copy(merged.UserDetails.Emails, existing.UserDetails.Emails)
+	copy(merged.UserDetails.Groups, existing.UserDetails.Groups)
+
+	for k, v := range existing.BackendAttributes {
+		merged.BackendAttributes[k] = v
+	}
+
+	for k, v := range existing.Extra {
+		merged.Extra[k] = v
+	}
+
+	if updates.UserDetails != nil {
+		if updates.UserDetails.DisplayName != "" {
+			merged.UserDetails.DisplayName = updates.UserDetails.DisplayName
+		}
+
+		if len(updates.UserDetails.Emails) > 0 {
+			merged.UserDetails.Emails = make([]string, len(updates.UserDetails.Emails))
+			copy(merged.UserDetails.Emails, updates.UserDetails.Emails)
+		}
+
+		if len(updates.UserDetails.Groups) > 0 {
+			merged.UserDetails.Groups = make([]string, len(updates.UserDetails.Groups))
+			copy(merged.UserDetails.Groups, updates.UserDetails.Groups)
 		}
 	}
 
-	for _, user := range users {
-		if _, exists := userInfoMap[user.Username]; !exists {
-			userInfo = append(userInfo, model.UserInfo{
-				Username:    user.Username,
-				DisplayName: user.DisplayName,
-				Emails:      user.Emails,
-				Groups:      user.Groups,
-			})
+	if updates.Password != "" {
+		merged.Password = updates.Password
+	}
+
+	if updates.GivenName != "" {
+		merged.GivenName = updates.GivenName
+	}
+
+	if updates.FamilyName != "" {
+		merged.FamilyName = updates.FamilyName
+	}
+
+	if updates.CommonName != "" {
+		merged.CommonName = updates.CommonName
+	}
+
+	if updates.DN != "" {
+		merged.DN = updates.DN
+	}
+
+	if len(updates.ObjectClass) > 0 {
+		merged.ObjectClass = make([]string, len(updates.ObjectClass))
+		copy(merged.ObjectClass, updates.ObjectClass)
+	}
+
+	if len(updates.BackendAttributes) > 0 {
+		for k, v := range updates.BackendAttributes {
+			merged.BackendAttributes[k] = v
 		}
 	}
 
-	return userInfo
+	merged.Disabled = updates.Disabled
+
+	return merged
 }
 
 func UserIsAdmin(ctx *middlewares.AutheliaCtx, userGroups []string) bool {
 	return slices.Contains(userGroups, ctx.Configuration.Administration.AdminGroup)
 }
 
-func GenerateUserChangeLog(original *authentication.UserDetailsExtended, changes *changeUserRequestBody) []string {
+func GenerateUserChangeLog(original *authentication.UserDetailsExtended, changes *authentication.UserDetailsExtended) []string {
 	var modifications []string
 
 	if original.DisplayName != changes.DisplayName {
@@ -146,9 +208,9 @@ func GenerateUserChangeLog(original *authentication.UserDetailsExtended, changes
 			fmt.Sprintf("display name from '%s' to '%s'", original.DisplayName, changes.DisplayName))
 	}
 
-	if original.Emails[0] != changes.Email {
+	if original.Emails[0] != changes.Emails[0] {
 		modifications = append(modifications,
-			fmt.Sprintf("email from '%s' to '%s'", original.Emails[0], changes.Email))
+			fmt.Sprintf("email from '%s' to '%s'", original.Emails[0], changes.Emails[0]))
 	}
 
 	if !reflect.DeepEqual(original.Groups, changes.Groups) {

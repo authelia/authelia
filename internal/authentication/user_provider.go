@@ -26,7 +26,6 @@ type UserProvider interface {
 
 	AddUser(userData *UserDetailsExtended) (err error)
 	UpdateUser(username string, userData *UserDetailsExtended) (err error)
-	GetDetailsExtended(username string) (details *UserDetailsExtended, err error)
 	DeleteUser(username string) (err error)
 
 	GetRequiredFields() []string

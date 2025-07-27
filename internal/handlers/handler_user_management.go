@@ -2,11 +2,8 @@ package handlers
 
 import (
 	"fmt"
-	"reflect"
 	"strings"
 
-	"github.com/authelia/authelia/v4/internal/utils"
-	log "github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
@@ -14,23 +11,6 @@ import (
 	"github.com/authelia/authelia/v4/internal/session"
 )
 
-type changeUserRequestBody struct {
-	Username    string   `json:"username"`
-	DisplayName string   `json:"display_name"`
-	Email       string   `json:"email"`
-	Groups      []string `json:"groups"`
-	Disabled    bool     `json:"disabled"`
-	Password    string   `json:"password"`
-}
-
-type newUserRequestBody struct {
-	Username    string   `json:"username"`
-	DisplayName string   `json:"display_name"`
-	Password    string   `json:"password"`
-	Email       string   `json:"email"`
-	Groups      []string `json:"groups"`
-	Disabled    *bool    `json:"disabled"`
-}
 type deleteUserRequestBody struct {
 	Username string `json:"username"`
 }
@@ -47,168 +27,105 @@ type AdminConfigRequestBody struct {
 func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
 	var (
 		err         error
-		requestBody changeUserRequestBody
+		requestBody *authentication.UserDetailsExtended
 		userDetails *authentication.UserDetailsExtended
 		adminUser   session.UserSession
 	)
 
 	if adminUser, err = ctx.GetSession(); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred adding new user: %s", errStrUserSessionData)
-
+		ctx.Logger.WithError(err).Errorf("Error occurred modifying user: %s", errStrUserSessionData)
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
-
 		return
 	}
 
 	if adminUser.IsAnonymous() {
-		ctx.Logger.WithError(errUserAnonymous).Error("Error occurred adding new user")
-
+		ctx.Logger.WithError(errUserAnonymous).Error("Error occurred modifying user")
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
-
 		return
 	}
 
 	if !UserIsAdmin(ctx, adminUser.Groups) {
-		ctx.Logger.Errorf("Error occurred adding new user: %s", fmt.Sprintf(logFmtErrUserNotAdmin, adminUser.Username))
-
+		ctx.Logger.Errorf("Error occurred modifying user: %s", fmt.Sprintf(logFmtErrUserNotAdmin, adminUser.Username))
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
-
 		return
 	}
 
 	if err = ctx.ParseBody(&requestBody); err != nil {
 		ctx.Logger.Error(err, messageUnableToModifyUser)
-		ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)
-
-		return
-	}
-
-	if len(requestBody.Username) == 0 {
-		ctx.Logger.Debugf("username is required, user not changed")
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-		ctx.SetJSONError("Username is required.")
-
+		ctx.SetJSONError("Invalid JSON format")
 		return
 	}
 
-	if userDetails, err = ctx.Providers.UserProvider.GetUser(requestBody.Username); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error retrieving details for user '%s'", requestBody.Username)
-		ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)
-
+	if requestBody == nil || requestBody.UserDetails == nil {
+		ctx.Logger.Debug("Invalid request body structure")
+		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetJSONError("Invalid request structure")
 		return
 	}
 
-	if userDetails.DisplayName != requestBody.DisplayName && !utils.ValidatePrintableUnicodeString(requestBody.DisplayName) {
-		ctx.Logger.WithFields(log.Fields{
-			"user":         requestBody.Username,
-			"display_name": requestBody.DisplayName,
-		}).Debugf("%v: Invalid display name format", messageUnableToModifyUser)
-
-		ctx.SetStatusCode(fasthttp.StatusBadRequest)
-		ctx.SetJSONError(fmt.Sprintf(
-			"User not modified: Display name '%s' is invalid. Must be 1-100 characters and contain only letters, numbers, symbols, spaces and punctuation. No control characters or invisible unicode allowed.",
-			requestBody.DisplayName,
-		))
-
+	if requestBody.UserDetails.Username == "" {
+		ctx.Logger.Debug("Username is required")
+		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetJSONError("Username is required")
 		return
 	}
 
-	if userDetails.Emails[0] != requestBody.Email && !utils.ValidateEmailString(requestBody.Email) {
-		ctx.Logger.WithFields(log.Fields{
-			"user":  requestBody.Username,
-			"email": requestBody.Email,
-		}).Debugf("%v: Email is invalid", messageUnableToModifyUser)
-
-		ctx.SetStatusCode(fasthttp.StatusBadRequest)
-		ctx.SetJSONError(fmt.Sprintf(
-			"User not modified: Email '%s' is invalid. Must be a valid email.",
-			requestBody.Email,
-		))
-
+	// Get existing user details
+	if userDetails, err = ctx.Providers.UserProvider.GetUser(requestBody.UserDetails.Username); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error retrieving details for user '%s'", requestBody.UserDetails.Username)
+		ctx.Response.SetStatusCode(fasthttp.StatusNotFound)
+		ctx.SetJSONError("User not found")
 		return
 	}
 
-	if !reflect.DeepEqual(SortedCopy(userDetails.Groups), SortedCopy(requestBody.Groups)) {
-		if valid, badGroup := utils.ValidateGroups(requestBody.Groups); !valid {
-			ctx.Logger.WithFields(log.Fields{
-				"user":          requestBody.Username,
-				"invalid_group": badGroup,
-			}).Debugf("%v: Invalid group name rejected during user modification", messageUnableToModifyUser)
+	// Merge existing data with updates
+	updatedUser := mergeUserData(userDetails, requestBody)
 
-			ctx.SetStatusCode(fasthttp.StatusBadRequest)
-			ctx.SetJSONError(fmt.Sprintf(
-				"User not modified: Group '%s' is invalid. Must be 1-100 characters and contain only letters, numbers, and punctuation.",
-				badGroup,
-			))
+	// Provider validation (handles all backend-specific validation)
+	if err = ctx.Providers.UserProvider.ValidateUserData(updatedUser); err != nil {
+		ctx.Logger.WithError(err).Errorf("Validation failed for user '%s'", requestBody.UserDetails.Username)
+		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetJSONError(fmt.Sprintf("User modification failed: %s", err.Error()))
+		return
+	}
 
+	// Password policy check (only if password is being changed)
+	if requestBody.Password != "" {
+		if err = ctx.Providers.PasswordPolicy.Check(requestBody.Password); err != nil {
+			ctx.Logger.WithError(err).Errorf("Password policy check failed for user '%s'", requestBody.UserDetails.Username)
+			ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+			ctx.SetJSONError("Password does not meet policy requirements")
 			return
 		}
 	}
 
-	if requestBody.Password != "" && ctx.Providers.PasswordPolicy.Check(requestBody.Password) != nil {
-		ctx.Logger.WithFields(log.Fields{
-			"user": requestBody.Username,
-		}).Debugf("%v: Password does not meet the password policy", messageUnableToModifyUser)
-
-		ctx.SetStatusCode(fasthttp.StatusBadRequest)
-		ctx.SetJSONError("User not modified: New password does not meet the password policy.")
-
+	// Update the user
+	if err = ctx.Providers.UserProvider.UpdateUser(requestBody.UserDetails.Username, updatedUser); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred updating user '%s'", requestBody.UserDetails.Username)
+		ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)
+		ctx.SetJSONError("Failed to update user")
 		return
 	}
 
-	userDataBuilder := authentication.NewUser(requestBody.Username, requestBody.Password).
-		WithDisplayName(requestBody.DisplayName).
-		WithEmail(requestBody.Email).
-		WithGroups(requestBody.Groups).
-		WithDisabled(false)
-
-	if userDetails.GivenName != "" {
-		userDataBuilder = userDataBuilder.WithGivenName(userDetails.GivenName)
+	// Generate change log
+	if changes := GenerateUserChangeLog(userDetails, requestBody); len(changes) > 0 {
+		ctx.Logger.Infof("User '%s' modified by administrator '%s'. Changes: %s",
+			requestBody.UserDetails.Username, adminUser.Username, strings.Join(changes, ", "))
 	}
 
-	if userDetails.FamilyName != "" {
-		userDataBuilder = userDataBuilder.WithFamilyName(userDetails.FamilyName)
-	}
-
-	if userDetails.CommonName != "" {
-		userDataBuilder = userDataBuilder.WithCommonName(userDetails.CommonName)
-	}
-
-	if userDetails.DN != "" {
-		userDataBuilder = userDataBuilder.WithDN(userDetails.DN)
-	}
-
-	if len(userDetails.ObjectClass) > 0 {
-		userDataBuilder = userDataBuilder.WithObjectClasses(userDetails.ObjectClass)
-	}
-
-	for key, value := range userDetails.BackendAttributes {
-		userDataBuilder = userDataBuilder.WithBackendAttribute(key, value)
-	}
-
-	userData := userDataBuilder.Build()
-	if err = ctx.Providers.UserProvider.UpdateUser(requestBody.Username, userData); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred updating user '%s'", requestBody.Username)
-	}
-
-	if changes := GenerateUserChangeLog(userDetails, &requestBody); len(changes) > 0 {
-		ctx.Logger.Debugf("User '%s' modified by administrator '%s'. Changes: %s",
-			requestBody.Username, adminUser.Username, strings.Join(changes, ", "))
-	}
-
-	ctx.SetStatusCode(fasthttp.StatusOK)
+	ctx.Response.SetStatusCode(fasthttp.StatusOK)
 }
 
 //nolint:gocyclo
 func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 	var (
-		err         error
-		userSession session.UserSession
-		newUser     newUserRequestBody
-		options     []func(*authentication.NewUserAdditionalAttributesOpts)
+		err            error
+		userSession    session.UserSession
+		newUserRequest *authentication.UserDetailsExtended
 	)
 
 	if userSession, err = ctx.GetSession(); err != nil {
@@ -238,7 +155,7 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if err = ctx.ParseBody(&newUser); err != nil {
+	if err = ctx.ParseBody(&newUserRequest); err != nil {
 		ctx.Logger.Error(err, messageUnableToAddUser)
 
 		ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)
@@ -247,47 +164,49 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if len(newUser.Username) == 0 {
-		ctx.Logger.Debugf("User not created, username is required")
-		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-		ctx.SetJSONError("user not created: 'username' is required.")
+	userDataBuilder := authentication.NewUser(newUserRequest.Username, newUserRequest.Password)
 
-		return
+	if newUserRequest.DisplayName != "" {
+		userDataBuilder = userDataBuilder.WithDisplayName(newUserRequest.DisplayName)
 	}
 
-	if len(newUser.DisplayName) == 0 {
-		ctx.Logger.Debugf("user not created: display_name is required")
-		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-		ctx.SetJSONError("user not created, 'display_name' is required")
-
-		return
+	if len(newUserRequest.Emails) > 0 {
+		userDataBuilder = userDataBuilder.WithEmail(newUserRequest.Emails[0])
 	}
 
-	if len(newUser.Password) == 0 {
-		ctx.Logger.Debugf("user not created, username is required")
-		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-		ctx.SetJSONError("user not created: 'password' is required.")
-
-		return
+	if len(newUserRequest.Groups) > 0 {
+		userDataBuilder = userDataBuilder.WithGroups(newUserRequest.Groups)
 	}
 
-	if !utils.ValidateUsername(newUser.Username) {
-		ctx.Logger.WithError(err).Errorf("Username '%s' is formatted incorrectly.", newUser.Username)
-		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-		ctx.SetJSONError(messageUsernameWrongFormat)
-
-		return
+	if newUserRequest.CommonName != "" {
+		userDataBuilder = userDataBuilder.WithCommonName(newUserRequest.CommonName)
 	}
 
-	if !utils.ValidatePrintableUnicodeString(newUser.DisplayName) {
-		ctx.Logger.WithError(err).Errorf("Display Name '%s' is formatted incorrectly.", newUser.DisplayName)
-		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-		ctx.SetJSONError(messageDisplayNameWrongFormat)
-
-		return
+	if newUserRequest.GivenName != "" {
+		userDataBuilder = userDataBuilder.WithGivenName(newUserRequest.GivenName)
 	}
 
-	if err = ctx.Providers.PasswordPolicy.Check(newUser.Password); err != nil {
+	if newUserRequest.FamilyName != "" {
+		userDataBuilder = userDataBuilder.WithFamilyName(newUserRequest.FamilyName)
+	}
+
+	if len(newUserRequest.ObjectClass) > 0 {
+		userDataBuilder = userDataBuilder.WithObjectClasses(newUserRequest.ObjectClass)
+	}
+
+	for key, value := range newUserRequest.BackendAttributes {
+		userDataBuilder = userDataBuilder.WithBackendAttribute(key, value)
+	}
+
+	userData := userDataBuilder.Build()
+
+	if err = ctx.Providers.UserProvider.ValidateUserData(userData); err != nil {
+		ctx.Logger.WithError(err).Errorf("Validation failed for new user '%s'", newUserRequest.Username)
+		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetJSONError(messageOperationFailed)
+	}
+
+	if err = ctx.Providers.PasswordPolicy.Check(newUserRequest.Password); err != nil {
 		ctx.Error(err, messagePasswordWeak)
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetJSONError(messagePasswordWeak)
@@ -295,48 +214,16 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if len(newUser.Groups) > 0 {
-		var errorGroups []string
-
-		for _, group := range newUser.Groups {
-			if !utils.ValidateGroup(group) {
-				errorGroups = append(errorGroups, group)
-			}
-		}
-
-		if len(errorGroups) > 0 {
-			ctx.Logger.Errorf("user not created: group(s) [%s] are formatted incorrectly", strings.Join(errorGroups, ","))
-			ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-			ctx.SetJSONError(messageGroupsWrongFormat)
-
-			return
-		}
-
-		options = append(options, authentication.WithGroups(newUser.Groups))
-	}
-
-	if newUser.Email != "" {
-		if !utils.ValidateEmailString(newUser.Email) {
-			ctx.Logger.WithError(err).Errorf("Email '%s' is not a valid email", newUser.Email)
-			ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
-			ctx.SetJSONError(messageEmailWrongFormat)
-
-			return
-		}
-
-		options = append(options, authentication.WithEmail(newUser.Email))
-	}
-
-	if err = ctx.Providers.UserProvider.AddUser(newUser.Username, newUser.DisplayName, newUser.Password, options...); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred creating user '%s'", newUser.Username)
+	if err = ctx.Providers.UserProvider.AddUser(userData); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred creating user '%s'", newUserRequest.Username)
 		ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)
 		ctx.SetJSONError(messageOperationFailed)
 
 		return
 	}
 
-	if err = ctx.Providers.StorageProvider.CreateNewUserMetadata(ctx, newUser.Username); err != nil {
-		ctx.Logger.WithError(err).Errorf("Error occurred creating metadata for user '%s'", newUser.Username)
+	if err = ctx.Providers.StorageProvider.CreateNewUserMetadata(ctx, newUserRequest.Username); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred creating metadata for user '%s'", newUserRequest.Username)
 		ctx.Response.SetStatusCode(fasthttp.StatusMultiStatus)
 		ctx.SetJSONError(messageIncompleteUserCreation)
 
@@ -344,7 +231,7 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	//TODO: Add user email to notify new user of their new account. Configurable.
-	ctx.Logger.Debugf("User '%s' was added.", newUser.Username)
+	ctx.Logger.Debugf("User '%s' was added.", newUserRequest.Username)
 	ctx.Response.SetStatusCode(fasthttp.StatusOK)
 }
 
