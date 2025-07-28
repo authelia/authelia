@@ -60,8 +60,8 @@ identity_providers:
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
         authorization_policy: 'two_factor'
-        require_pkce: false
-        pkce_challenge_method: ''
+        require_pkce: true
+        pkce_challenge_method: 'S256'
         redirect_uris:
           - 'https://pgadmin.{{< sitevar name="domain" nojs="example.com" >}}/oauth2/authorize'
         scopes:
@@ -84,7 +84,7 @@ To configure [pgAdmin] there is one method, using the [Configuration File](#conf
 #### Configuration File
 
 {{< callout context="tip" title="Did you know?" icon="outline/rocket" >}}
-Generally the configuration file is named `config_local.py`.
+Generally the configuration file is named `config_local.py` and in the official container is mounted at `/pgadmin4/`.
 {{< /callout >}}
 
 To configure [pgAdmin] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
@@ -105,7 +105,9 @@ OAUTH2_CONFIG = [{
 	'OAUTH2_SCOPE': 'openid email profile',
 	'OAUTH2_USERNAME_CLAIM': 'email',
 	'OAUTH2_ICON': 'fa-openid',
-	'OAUTH2_BUTTON_COLOR': '<button-color>'
+	'OAUTH2_BUTTON_COLOR': '<button-color>',
+	'OAUTH2_CHALLENGE_METHOD': 'S256',
+	'OAUTH2_RESPONSE_TYPE': 'code'
 }]
 ```
 
