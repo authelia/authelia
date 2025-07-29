@@ -74,6 +74,8 @@ func New(config *schema.Configuration, providers middlewares.Providers) (server 
 		}
 
 		listener = tls.NewListener(listener, server.TLSConfig.Clone())
+	} else if config.Server.Address.IsUnixDomainSocket() || config.Server.Address.IsFileDescriptor() {
+		config.Server.DisableHealthcheck = true
 	}
 
 	if err = writeHealthCheckEnv(config.Server.DisableHealthcheck, connectionScheme, config.Server.Address.Hostname(),
