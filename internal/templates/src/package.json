@@ -12,7 +12,7 @@
 	"author": "Authelia",
 	"license": "Apache-2.0",
 	"dependencies": {
-		"@react-email/components": "0.3.2",
+		"@react-email/components": "0.3.3",
 		"@react-email/render": "1.1.4",
 		"esbuild": "0.25.8",
 		"react": "19.1.1",
