@@ -17,7 +17,7 @@
 		"esbuild": "0.25.8",
 		"react": "19.1.1",
 		"react-dom": "19.1.1",
-		"react-email": "4.2.6",
+		"react-email": "4.2.7",
 		"tailwind-merge": "3.3.1",
 		"tailwindcss": "4.1.11",
 		"typescript": "5.9.2"
