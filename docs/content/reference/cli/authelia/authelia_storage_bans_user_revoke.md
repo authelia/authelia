@@ -2,7 +2,7 @@
 title: "authelia storage bans user revoke"
 description: "Reference for the authelia storage bans user revoke command."
 lead: ""
-date: 2025-02-23T22:10:30+11:00
+date: 2025-08-01T16:23:47+10:00
 draft: false
 images: []
 weight: 905

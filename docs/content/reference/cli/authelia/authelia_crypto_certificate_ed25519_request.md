@@ -2,7 +2,7 @@
 title: "authelia crypto certificate ed25519 request"
 description: "Reference for the authelia crypto certificate ed25519 request command."
 lead: ""
-date: 2024-03-14T06:00:14+11:00
+date: 2025-08-01T16:23:47+10:00
 draft: false
 images: []
 weight: 905

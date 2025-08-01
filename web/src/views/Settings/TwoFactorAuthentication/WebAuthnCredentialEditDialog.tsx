@@ -99,7 +99,7 @@ const WebAuthnCredentialEditDialog = function (props: Props) {
                     {translate("Enter a new description for this WebAuthn Credential")}
                 </DialogContentText>
                 <TextField
-                    autoFocus
+                    autoFocus // TODO: error jsx-a11y/no-autofocus : The autoFocus prop should not be used, as it can reduce usability and accessibility for users.
                     inputRef={descriptionRef}
                     id="webauthn-credential-description"
                     label={translate("Description")}
