@@ -1,51 +1,39 @@
 {
-  "compilerOptions": {
-    "baseUrl": "./src",
-    "paths": {
-      "@root/*": ["./*"],
-      "@assets/*": ["assets/*"],
-      "@components/*": ["components/*"],
-      "@constants/*": ["constants/*"],
-      "@contexts/*": ["contexts/*"],
-      "@hooks/*": ["hooks/*"],
-      "@i18n/*": ["i18n/*"],
-      "@layouts/*": ["layouts/*"],
-      "@models/*": ["models/*"],
-      "@services/*": ["services/*"],
-      "@themes/*": ["themes/*"],
-      "@utils/*": ["utils/*"],
-      "@views/*": ["views/*"]
+    "compilerOptions": {
+        "baseUrl": "./src",
+        "paths": {
+            "@root/*": ["./*"],
+            "@assets/*": ["assets/*"],
+            "@components/*": ["components/*"],
+            "@constants/*": ["constants/*"],
+            "@contexts/*": ["contexts/*"],
+            "@hooks/*": ["hooks/*"],
+            "@i18n/*": ["i18n/*"],
+            "@layouts/*": ["layouts/*"],
+            "@models/*": ["models/*"],
+            "@services/*": ["services/*"],
+            "@themes/*": ["themes/*"],
+            "@utils/*": ["utils/*"],
+            "@views/*": ["views/*"]
+        },
+        "target": "es2022",
+        "lib": ["dom", "dom.iterable", "esnext"],
+        "types": ["vite/client", "vite-plugin-svgr/client", "vitest/globals"],
+        "allowJs": true,
+        "skipLibCheck": true,
+        "esModuleInterop": true,
+        "allowImportingTsExtensions": true,
+        "allowSyntheticDefaultImports": true,
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "noFallthroughCasesInSwitch": true,
+        "module": "esnext",
+        "moduleResolution": "bundler",
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "noEmit": true,
+        "jsx": "react-jsx"
     },
-    "target": "es2022",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
-    "types": ["vite/client", "vite-plugin-svgr/client", "vitest/globals"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowImportingTsExtensions": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx"
-  },
-  "include": [
-    ".*.js",
-    "vite.config.ts",
-    "src",
-    "types"
-  ],
-  "exclude": [
-    "node_modules",
-    "coverage"
-  ]
+    "include": ["*.mjs", "vite.config.ts", "src", "types"],
+    "exclude": ["coverage", "node_modules"]
 }
