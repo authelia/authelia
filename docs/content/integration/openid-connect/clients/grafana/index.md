@@ -3,6 +3,7 @@ title: "Grafana"
 description: "Integrating Grafana with the Authelia OpenID Connect 1.0 Provider."
 summary: ""
 date: 2024-03-14T06:00:14+11:00
+lastmod: 2025-07-28T23:00:00+02:00
 draft: false
 images: []
 weight: 620
@@ -23,11 +24,11 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.38.17](https://github.com/authelia/authelia/releases/tag/v4.38.17)
+  - [v4.39.5](https://github.com/authelia/authelia/releases/tag/v4.39.5)
 - [Grafana]
-  - [v11.4.0](https://github.com/grafana/grafana/releases/tag/v11.4.0)
+  - [v12.0.2](https://github.com/grafana/grafana/releases/tag/v12.0.2)
 
-{{% oidc-common bugs="claims-hydration" %}}
+{{% oidc-common %}}
 
 ### Assumptions
 
@@ -45,12 +46,6 @@ Some of the values presented in this guide can automatically be replaced with do
 ## Configuration
 
 ### Authelia
-
-{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-At the time of this writing this third party client has a bug and does not support [OpenID Connect 1.0](https://openid.net/specs/openid-connect-core-1_0.html). This
-configuration will likely require configuration of an escape hatch to work around the bug on their end. See
-[Configuration Escape Hatch](#configuration-escape-hatch) for details.
-{{< /callout >}}
 
 The following YAML configuration is an example __Authelia__ [client configuration] for use with [Grafana] which will
 operate with the application example:
@@ -79,18 +74,13 @@ identity_providers:
           - 'code'
         grant_types:
           - 'authorization_code'
-        access_token_signed_response_alg: 'none'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_basic'
 ```
 
-#### Configuration Escape Hatch
-
-{{% oidc-escape-hatch-claims-hydration client_id="grafana" claims="email,name,groups,preferred_username" %}}
-
 ### Application
 
-To configure [Grafana] there are two methods, using the [Configuration File](#configuration-file), or using
+To configure [Grafana], there are two methods, using the [Configuration File](#configuration-file), or using
 [Environment Variables](#environment-variables).
 
 #### Configuration File
@@ -120,6 +110,7 @@ login_attribute_path = preferred_username
 groups_attribute_path = groups
 name_attribute_path = name
 use_pkce = true
+auth_style = InHeader
 role_attribute_path =
 ```
 
@@ -145,6 +136,7 @@ GF_AUTH_GENERIC_OAUTH_LOGIN_ATTRIBUTE_PATH=preferred_username
 GF_AUTH_GENERIC_OAUTH_GROUPS_ATTRIBUTE_PATH=groups
 GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH=name
 GF_AUTH_GENERIC_OAUTH_USE_PKCE=true
+GF_AUTH_GENERIC_OAUTH_AUTH_STYLE=InHeader
 GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH=
 ```
 
@@ -169,6 +161,7 @@ services:
       GF_AUTH_GENERIC_OAUTH_GROUPS_ATTRIBUTE_PATH: 'groups'
       GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH: 'name'
       GF_AUTH_GENERIC_OAUTH_USE_PKCE: 'true'
+      GF_AUTH_GENERIC_OAUTH_AUTH_STYLE: 'InHeader'
       GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: ''
 ```
 
