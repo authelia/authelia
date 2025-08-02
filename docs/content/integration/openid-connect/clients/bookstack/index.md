@@ -25,9 +25,9 @@ seo:
 - [Authelia]
   - [v4.39.5](https://github.com/authelia/authelia/releases/tag/v4.39.5)
 - [BookStack]
-  - [v23.02.2](https://github.com/BookStackApp/BookStack/releases/tag/v23.02.2)
+  - [v25.07](https://github.com/BookStackApp/BookStack/releases/tag/v25.07)
 
-{{% oidc-common bugs="client-credentials-encoding,claims-hydration" %}}
+{{% oidc-common bugs="client-credentials-encoding" %}}
 
 ### Assumptions
 
@@ -66,8 +66,8 @@ identity_providers:
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
         authorization_policy: 'two_factor'
-        require_pkce: false
-        pkce_challenge_method: ''
+        require_pkce: true
+        pkce_challenge_method: 'S256'
         redirect_uris:
           - 'https://bookstack.{{< sitevar name="domain" nojs="example.com" >}}/oidc/callback'
         scopes:
@@ -83,10 +83,6 @@ identity_providers:
         token_endpoint_auth_method: 'client_secret_basic'
 ```
 
-#### Configuration Escape Hatch
-
-{{% oidc-escape-hatch-claims-hydration client_id="bookstack" claims="email" %}}
-
 ### Application
 
 To configure [BookStack] there is one method, using the [Environment Variables](#environment-variables).
@@ -100,12 +96,18 @@ variables:
 
 ```shell {title=".env"}
 AUTH_METHOD=oidc
+AUTH_AUTO_INITIATE=false
+OIDC_NAME=Authelia
 OIDC_ISSUER=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 OIDC_ISSUER_DISCOVER=true
 OIDC_CLIENT_ID=bookstack
 OIDC_CLIENT_SECRET=insecure_secret
-OIDC_NAME=Authelia
+OIDC_ADDITIONAL_SCOPES=groups
 OIDC_DISPLAY_NAME_CLAIMS=name
+OIDC_GROUPS_CLAIM=groups
+OIDC_USER_TO_GROUPS=true
+OIDC_REMOVE_FROM_GROUPS=true
+OIDC_END_SESSION_ENDPOINT=false
 ```
 
 ##### Docker Compose
@@ -115,12 +117,18 @@ services:
   bookstack:
     environment:
       AUTH_METHOD: 'oidc'
+      AUTH_AUTO_INITIATE: 'false'
+      OIDC_NAME: 'Authelia'
       OIDC_ISSUER: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
       OIDC_ISSUER_DISCOVER: 'true'
       OIDC_CLIENT_ID: 'bookstack'
       OIDC_CLIENT_SECRET: 'insecure_secret'
-      OIDC_NAME: 'Authelia'
+      OIDC_ADDITIONAL_SCOPES: 'groups'
       OIDC_DISPLAY_NAME_CLAIMS: 'name'
+      OIDC_GROUPS_CLAIM: 'groups'
+      OIDC_USER_TO_GROUPS: 'true'
+      OIDC_REMOVE_FROM_GROUPS: 'true'
+      OIDC_END_SESSION_ENDPOINT: 'false'
 ```
 
 ## See Also
