@@ -200,7 +200,7 @@ const IdentityVerificationDialog = function (props: Props) {
                         <OneTimeCodeTextField
                             id={"one-time-code"}
                             label={"One-Time Code"}
-                            autoFocus={true}
+                            autoFocus={true} // TODO: error jsx-a11y/no-autofocus : The autoFocus prop should not be used, as it can reduce usability and accessibility for users.
                             value={codeInput}
                             onChange={handleChange}
                             error={codeError}

@@ -2,7 +2,7 @@
 title: "authelia debug tls"
 description: "Reference for the authelia debug tls command."
 lead: ""
-date: 2025-04-20T03:35:43+00:00
+date: 2025-08-01T16:23:47+10:00
 draft: false
 images: []
 weight: 905

@@ -8,7 +8,7 @@ const (
 	subPathCmd      = "cmd"
 	subPathInternal = "internal"
 
-	fileCICommitLintConfig = ".commitlintrc.cjs"
+	fileCICommitLintConfig = "commitlint.config.mjs"
 	fileWebI18NIndex       = "src/i18n/index.ts"
 	fileWebPackage         = "package.json"
 
