@@ -7,8 +7,6 @@ draft: false
 images: []
 weight: 620
 toc: true
-aliases:
-  - '/integration/openid-connect/trillium/'
 support:
   level: community
   versions: true
