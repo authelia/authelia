@@ -133,7 +133,7 @@ select * from social_auth_usersocialauth;
 ```
 
 Example output:
-```
+```sql
 +----+---------------------+-------------------+--------------------------------------+------------+
 | id | username            | provider          | uid                                  | extra_data |
 +----+---------------------+-------------------+--------------------------------------+------------+
@@ -146,8 +146,8 @@ use ccnet-db;
 select email,passwd from EmailUser;
 ```
 
-If the output looks like this example, the user is still using password login instead of OAtuh.
-```
+If the output looks like this example, the user is still using password login instead of OAuth.
+```sql
 +-----------------------------+-------------------------------------------------------------------------------------------------------------------+
 | email                | passwd                                                                                                                   |
 +-----------------------------+-------------------------------------------------------------------------------------------------------------------+
@@ -162,8 +162,8 @@ update EmailUser set passwd = '!' where email = 'email@{{< sitevar name="domain"
 select email,passwd from EmailUser;
 ```
 
-If you get this result, the user has sucessfully migrated to OAuth.
-```
+If you get this result, the user has successfully migrated to OAuth.
+```sql
 +-----------------------------+-----------------------------------------+
 | email                       | passwd                                  |
 +-------------+---------------------------------------------------------+
@@ -172,8 +172,8 @@ If you get this result, the user has sucessfully migrated to OAuth.
 ```
 
 How it works:
- - If the user logs in with OAuth, the id attribute "sub" from authelia is mapped to "uid" via the setting in `seahub_settings.py`.
- - Seafile now looks up the social_auth_usersocialauth.username for the uid from the request and maps it to EmailUser.email.
+- If the user logs in with OAuth, the id attribute "sub" from authelia is mapped to "uid" via the setting in `seahub_settings.py`.
+- Seafile now looks up the social_auth_usersocialauth.username for the uid from the request and maps it to EmailUser.email.
 
 
 
