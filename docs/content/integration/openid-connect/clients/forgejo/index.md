@@ -136,7 +136,7 @@ SHOW_REGISTRATION_BUTTON                      = false
 ## Optional Configuration
 
 ### Authelia
-To configure Forgejo to sync ssh public keys from Authelia you can define `sshpubkey` as an [Extra Attribute](../../../../reference/guides/attributes.md#extra-attributes) and **combine** the following configuration with the configuration.yml above.
+To configure Forgejo to sync ssh public keys from Authelia you can define `sshpubkey` as a multi-valued [Extra Attribute](../../../../reference/guides/attributes.md#extra-attributes) and __combine__ the following configuration with the configuration.yml above.
 ``` yaml {title="configuration.yml"}
 identity_providers:
   oidc:
