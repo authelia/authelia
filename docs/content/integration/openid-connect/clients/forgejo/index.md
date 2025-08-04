@@ -139,6 +139,7 @@ SHOW_REGISTRATION_BUTTON                      = false
 To configure Forgejo to sync ssh public keys from Authelia you can define `sshpubkey` as an [Extra Attribute](../../../../reference/guides/attributes.md#extra-attributes) and **combine** the following configuration with the configuration.yml above.
 ``` yaml {title="configuration.yml"}
 identity_providers:
+  oidc:
     claims_policies:
       forgejo:
         custom_claims:
@@ -147,7 +148,6 @@ identity_providers:
       forgejo:
         claims:
           - sshpubkey
-  oidc:
     clients:
       - client_id: 'forgejo'
         claims_policy: 'forgejo'
@@ -169,7 +169,7 @@ Follow the instructions in [Web GUI](#web-gui) with the following additions
 {{< figure src="forgejo-sshpubkey.png" alt="Forgejo" width="300" >}}
 
 #### CLI
-As of `forgejo version 12.0.1+gitea-1.22.0` there doesn't appear to be a CLI flag to specify the Public SSH key attribute and from testing this does not work if left empty. The custom `forgejo` scope can be added to the orginal command but it is still necessary to set the attribute using the web ui or api.
+As of `forgejo version 12.0.1+gitea-1.22.0` there doesn't appear to be a CLI flag to specify the Public SSH key attribute and from testing this does not work if left empty. The custom `forgejo` scope can be added to the original command but it is still necessary to set the attribute using the Web UI or API.
 
 ## See Also
 
