@@ -122,58 +122,11 @@ OAUTH_ATTRIBUTE_MAP = {
 #ENABLE_WEBDAV_SECRET = True
 ```
 
-#### Check the configuration in the database (Optional)
+### Existing Users
 
-This is only necessary for existing users. If the users are created at the first login with OAuth this is set up automatically.
+When using [Seafile] with external authentication you may have to perform manual steps to achieve this. 
 
-Depending on the setup, open the database (e.g. `docker exec -it seafile-mysql-container mysql -uroot -p`):
-```sql
-use seahub-db;
-select * from social_auth_usersocialauth;
-```
-
-Example output:
-```sql
-+----+---------------------+-------------------+--------------------------------------+------------+
-| id | username            | provider          | uid                                  | extra_data |
-+----+---------------------+-------------------+--------------------------------------+------------+
-|  1 | email@{{< sitevar name="domain" nojs="example.com" >}}   | {{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}} | 11111111-2222-3333-4444-555555555555 |            |
-+----+---------------------+-------------------+--------------------------------------+------------+
-```
-
-```sql
-use ccnet-db;
-select email,passwd from EmailUser;
-```
-
-If the output looks like this example, the user is still using password login instead of OAuth.
-```sql
-+-----------------------------+-------------------------------------------------------------------------------------------------------------------+
-| email                | passwd                                                                                                                   |
-+-----------------------------+-------------------------------------------------------------------------------------------------------------------+
-| email@{{< sitevar name="domain" nojs="example.com" >}}  | PBKDF2SHA256$10000$12345....67890                                                                                        |
-+-----------------------------+-------------------------------------------------------------------------------------------------------------------+
-```
-
-Execute this:
-
-```sql
-update EmailUser set passwd = '!' where email = 'email@{{< sitevar name="domain" nojs="example.com" >}}'
-select email,passwd from EmailUser;
-```
-
-If you get this result, the user has successfully migrated to OAuth.
-```sql
-+-----------------------------+-----------------------------------------+
-| email                       | passwd                                  |
-+-------------+---------------------------------------------------------+
-| email@{{< sitevar name="domain" nojs="example.com" >}}        | !                                       |
-+-----------------------------+-----------------------------------------+
-```
-
-How it works:
-- If the user logs in with OAuth, the id attribute "sub" from authelia is mapped to "uid" via the setting in `seahub_settings.py`.
-- Seafile now looks up the social_auth_usersocialauth.username for the uid from the request and maps it to EmailUser.email.
+The [See Also](#see-also) has a link to the [Seafile] `migrating from local user database to external authentication` guide which has been verified to work.  
 
 
 
