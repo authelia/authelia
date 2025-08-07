@@ -14,7 +14,7 @@ support:
   versions: true
   integration: true
 seo:
-  title: "" # custom title (optional)
+  title: "Synapse | OpenID Connect 1.0 | Integration"
   description: "Step-by-step guide to configuring Synapse with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
@@ -132,5 +132,5 @@ oidc_providers:
 
 [Authelia]: https://www.authelia.com
 [Synapse]: https://github.com/matrix-org/synapse
-[OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
+[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

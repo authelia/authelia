@@ -14,7 +14,7 @@ support:
   versions: true
   integration: true
 seo:
-  title: "" # custom title (optional)
+  title: "ROM Manager (RomM) | OpenID Connect 1.0 | Integration"
   description: "Step-by-step guide to configuring ROM Manager (RomM) with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
@@ -126,5 +126,5 @@ services:
 
 [Authelia]: https://www.authelia.com
 [ROM Manager]: https://romm.app/
-[OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
+[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

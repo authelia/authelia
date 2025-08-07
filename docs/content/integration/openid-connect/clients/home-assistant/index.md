@@ -14,7 +14,7 @@ support:
   versions: true
   integration: true
 seo:
-  title: "" # custom title (optional)
+  title: "Home Assistant | OpenID Connect 1.0 | Integration"
   description: "Step-by-step guide to configuring Home Assistant with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
@@ -112,5 +112,5 @@ auth_oidc:
 [Home Assistant]: https://www.home-assistant.io/
 [OpenID Connect for Home Assistant HACS Plugin]: https://github.com/christiaangoossens/hass-oidc-auth
 [Authelia]: https://www.authelia.com
-[OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
+[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md
