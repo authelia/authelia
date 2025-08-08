@@ -19,7 +19,7 @@ overrides:
   import-meta-resolve: 4.1.0
   path-to-regexp: 8.2.0
   semver: 7.7.2
-  vite: 7.1.0
+  vite: 7.1.1
 
 importers:
 
@@ -133,7 +133,7 @@ importers:
         version: 8.39.0(eslint@8.57.1)(typescript@5.9.2)
       '@vitejs/plugin-react':
         specifier: 4.7.0
-        version: 4.7.0(vite@7.1.0(@types/node@24.2.0)(jiti@2.4.1))
+        version: 4.7.0(vite@7.1.1(@types/node@24.2.0)(jiti@2.4.1))
       '@vitest/coverage-istanbul':
         specifier: 3.2.4
         version: 3.2.4(vitest@3.2.4(@types/node@24.2.0)(happy-dom@18.0.1)(jiti@2.4.1))
@@ -183,20 +183,20 @@ importers:
         specifier: 5.9.2
         version: 5.9.2
       vite:
-        specifier: 7.1.0
-        version: 7.1.0(@types/node@24.2.0)(jiti@2.4.1)
+        specifier: 7.1.1
+        version: 7.1.1(@types/node@24.2.0)(jiti@2.4.1)
       vite-plugin-checker:
         specifier: 0.8.0
-        version: 0.8.0(eslint@8.57.1)(optionator@0.9.3)(typescript@5.9.2)(vite@7.1.0(@types/node@24.2.0)(jiti@2.4.1))
+        version: 0.8.0(eslint@8.57.1)(optionator@0.9.3)(typescript@5.9.2)(vite@7.1.1(@types/node@24.2.0)(jiti@2.4.1))
       vite-plugin-istanbul:
         specifier: 7.1.0
-        version: 7.1.0(vite@7.1.0(@types/node@24.2.0)(jiti@2.4.1))
+        version: 7.1.0(vite@7.1.1(@types/node@24.2.0)(jiti@2.4.1))
       vite-plugin-svgr:
         specifier: 4.3.0
-        version: 4.3.0(rollup@4.46.2)(typescript@5.9.2)(vite@7.1.0(@types/node@24.2.0)(jiti@2.4.1))
+        version: 4.3.0(rollup@4.46.2)(typescript@5.9.2)(vite@7.1.1(@types/node@24.2.0)(jiti@2.4.1))
       vite-tsconfig-paths:
         specifier: 5.1.4
-        version: 5.1.4(typescript@5.9.2)(vite@7.1.0(@types/node@24.2.0)(jiti@2.4.1))
+        version: 5.1.4(typescript@5.9.2)(vite@7.1.1(@types/node@24.2.0)(jiti@2.4.1))
       vitest:
         specifier: 3.2.4
         version: 3.2.4(@types/node@24.2.0)(happy-dom@18.0.1)(jiti@2.4.1)
@@ -1752,9 +1752,6 @@ packages:
   '@types/estree@1.0.5':
     resolution: {integrity: sha512-/kYRxGDLWzHOB7q+wtSUQlFrtcdUccpfy+X+9iMBpHK8QLLhx2wIPYuS5DYtR9Wa/YlZAbIovy7qVdB1Aq6Lyw==}
 
-  '@types/estree@1.0.7':
-    resolution: {integrity: sha512-w28IoSUCJpidD/TGviZwwMJckNESJZXFu7NBZ5YJ4mEUnNraUn9Pm8HSZm/jDF1pDWYKspWE7oVphigUPRakIQ==}
-
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
 
@@ -1986,7 +1983,7 @@ packages:
     resolution: {integrity: sha512-gUu9hwfWvvEDBBmgtAowQCojwZmJ5mcLn3aufeCsitijs3+f2NsrPtlAWIR6OPiqljl96GVCUbLe0HyqIpVaoA==}
     engines: {node: ^14.18.0 || >=16.0.0}
     peerDependencies:
-      vite: 7.1.0
+      vite: 7.1.1
 
   '@vitest-preview/dev-utils@0.0.1':
     resolution: {integrity: sha512-KLr4IvFz73dMao1tCHWgwqNJfHEcGOqHaQ7SHYfumrMvs2BBD4PKMBtePO2AV7+gq4iEPuIJY8INR3Oq5EnTUw==}
@@ -2003,7 +2000,7 @@ packages:
     resolution: {integrity: sha512-46ryTE9RZO/rfDd7pEqFl7etuyzekzEhUbTW3BvmeO/BcCMEgq59BKhek3dXDWgAj4oMK6OZi+vRr1wPW6qjEQ==}
     peerDependencies:
       msw: ^2.4.9
-      vite: 7.1.0
+      vite: 7.1.1
     peerDependenciesMeta:
       msw:
         optional: true
@@ -4661,7 +4658,7 @@ packages:
       optionator: ^0.9.1
       stylelint: '>=13'
       typescript: '*'
-      vite: 7.1.0
+      vite: 7.1.1
       vls: '*'
       vti: '*'
       vue-tsc: ~2.1.6
@@ -4688,23 +4685,23 @@ packages:
   vite-plugin-istanbul@7.1.0:
     resolution: {integrity: sha512-md0774bPYfSrMbAMMy3Xui2+xqmEVwulCGN2ImGm4E4s+0VfO7TjFyJ4ITFIFyEmBhWoMM0sOOX0Yg0I1SsncQ==}
     peerDependencies:
-      vite: 7.1.0
+      vite: 7.1.1
 
   vite-plugin-svgr@4.3.0:
     resolution: {integrity: sha512-Jy9qLB2/PyWklpYy0xk0UU3TlU0t2UMpJXZvf+hWII1lAmRHrOUKi11Uw8N3rxoNk7atZNYO3pR3vI1f7oi+6w==}
     peerDependencies:
-      vite: 7.1.0
+      vite: 7.1.1
 
   vite-tsconfig-paths@5.1.4:
     resolution: {integrity: sha512-cYj0LRuLV2c2sMqhqhGpaO3LretdtMn/BVX4cPLanIZuwwrkVl+lK84E/miEXkCHWXuq65rhNN4rXsBcOB3S4w==}
     peerDependencies:
-      vite: 7.1.0
+      vite: 7.1.1
     peerDependenciesMeta:
       vite:
         optional: true
 
-  vite@7.1.0:
-    resolution: {integrity: sha512-3jdAy3NhBJYsa/lCFcnRfbK4kNkO/bhijFCnv5ByUQk/eekYagoV2yQSISUrhpV+5JiY5hmwOh7jNnQ68dFMuQ==}
+  vite@7.1.1:
+    resolution: {integrity: sha512-yJ+Mp7OyV+4S+afWo+QyoL9jFWD11QFH0i5i7JypnfTcA1rmgxCbiA8WwAICDEtZ1Z1hzrVhN8R8rGTqkTY8ZQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
     peerDependencies:
@@ -6657,8 +6654,6 @@ snapshots:
 
   '@types/estree@1.0.5': {}
 
-  '@types/estree@1.0.7': {}
-
   '@types/estree@1.0.8': {}
 
   '@types/express-serve-static-core@4.17.33':
@@ -6883,7 +6878,7 @@ snapshots:
   '@unrs/resolver-binding-win32-x64-msvc@1.9.2':
     optional: true
 
-  '@vitejs/plugin-react@4.7.0(vite@7.1.0(@types/node@24.2.0)(jiti@2.4.1))':
+  '@vitejs/plugin-react@4.7.0(vite@7.1.1(@types/node@24.2.0)(jiti@2.4.1))':
     dependencies:
       '@babel/core': 7.28.0
       '@babel/plugin-transform-react-jsx-self': 7.27.1(@babel/core@7.28.0)
@@ -6891,7 +6886,7 @@ snapshots:
       '@rolldown/pluginutils': 1.0.0-beta.27
       '@types/babel__core': 7.20.5
       react-refresh: 0.17.0
-      vite: 7.1.0(@types/node@24.2.0)(jiti@2.4.1)
+      vite: 7.1.1(@types/node@24.2.0)(jiti@2.4.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -6923,13 +6918,13 @@ snapshots:
       chai: 5.2.0
       tinyrainbow: 2.0.0
 
-  '@vitest/mocker@3.2.4(vite@7.1.0(@types/node@24.2.0)(jiti@2.4.1))':
+  '@vitest/mocker@3.2.4(vite@7.1.1(@types/node@24.2.0)(jiti@2.4.1))':
     dependencies:
       '@vitest/spy': 3.2.4
       estree-walker: 3.0.3
       magic-string: 0.30.17
     optionalDependencies:
-      vite: 7.1.0(@types/node@24.2.0)(jiti@2.4.1)
+      vite: 7.1.1(@types/node@24.2.0)(jiti@2.4.1)
 
   '@vitest/pretty-format@3.2.4':
     dependencies:
@@ -8147,7 +8142,7 @@ snapshots:
 
   estree-walker@3.0.3:
     dependencies:
-      '@types/estree': 1.0.7
+      '@types/estree': 1.0.8
 
   esutils@2.0.3: {}
 
@@ -9995,7 +9990,7 @@ snapshots:
       debug: 4.4.1
       es-module-lexer: 1.7.0
       pathe: 2.0.3
-      vite: 7.1.0(@types/node@24.2.0)(jiti@2.4.1)
+      vite: 7.1.1(@types/node@24.2.0)(jiti@2.4.1)
     transitivePeerDependencies:
       - '@types/node'
       - jiti
@@ -10010,7 +10005,7 @@ snapshots:
       - tsx
       - yaml
 
-  vite-plugin-checker@0.8.0(eslint@8.57.1)(optionator@0.9.3)(typescript@5.9.2)(vite@7.1.0(@types/node@24.2.0)(jiti@2.4.1)):
+  vite-plugin-checker@0.8.0(eslint@8.57.1)(optionator@0.9.3)(typescript@5.9.2)(vite@7.1.1(@types/node@24.2.0)(jiti@2.4.1)):
     dependencies:
       '@babel/code-frame': 7.26.2
       ansi-escapes: 4.3.2
@@ -10022,7 +10017,7 @@ snapshots:
       npm-run-path: 4.0.1
       strip-ansi: 6.0.1
       tiny-invariant: 1.3.3
-      vite: 7.1.0(@types/node@24.2.0)(jiti@2.4.1)
+      vite: 7.1.1(@types/node@24.2.0)(jiti@2.4.1)
       vscode-languageclient: 7.0.0
       vscode-languageserver: 7.0.0
       vscode-languageserver-textdocument: 1.0.12
@@ -10032,7 +10027,7 @@ snapshots:
       optionator: 0.9.3
       typescript: 5.9.2
 
-  vite-plugin-istanbul@7.1.0(vite@7.1.0(@types/node@24.2.0)(jiti@2.4.1)):
+  vite-plugin-istanbul@7.1.0(vite@7.1.1(@types/node@24.2.0)(jiti@2.4.1)):
     dependencies:
       '@istanbuljs/load-nyc-config': 1.1.0
       espree: 10.3.0
@@ -10040,33 +10035,33 @@ snapshots:
       picocolors: 1.1.1
       source-map: 0.7.4
       test-exclude: 7.0.1
-      vite: 7.1.0(@types/node@24.2.0)(jiti@2.4.1)
+      vite: 7.1.1(@types/node@24.2.0)(jiti@2.4.1)
     transitivePeerDependencies:
       - supports-color
 
-  vite-plugin-svgr@4.3.0(rollup@4.46.2)(typescript@5.9.2)(vite@7.1.0(@types/node@24.2.0)(jiti@2.4.1)):
+  vite-plugin-svgr@4.3.0(rollup@4.46.2)(typescript@5.9.2)(vite@7.1.1(@types/node@24.2.0)(jiti@2.4.1)):
     dependencies:
       '@rollup/pluginutils': 5.1.3(rollup@4.46.2)
       '@svgr/core': 8.1.0(typescript@5.9.2)
       '@svgr/plugin-jsx': 8.1.0(@svgr/core@8.1.0(typescript@5.9.2))
-      vite: 7.1.0(@types/node@24.2.0)(jiti@2.4.1)
+      vite: 7.1.1(@types/node@24.2.0)(jiti@2.4.1)
     transitivePeerDependencies:
       - rollup
       - supports-color
       - typescript
 
-  vite-tsconfig-paths@5.1.4(typescript@5.9.2)(vite@7.1.0(@types/node@24.2.0)(jiti@2.4.1)):
+  vite-tsconfig-paths@5.1.4(typescript@5.9.2)(vite@7.1.1(@types/node@24.2.0)(jiti@2.4.1)):
     dependencies:
       debug: 4.3.7
       globrex: 0.1.2
       tsconfck: 3.0.3(typescript@5.9.2)
     optionalDependencies:
-      vite: 7.1.0(@types/node@24.2.0)(jiti@2.4.1)
+      vite: 7.1.1(@types/node@24.2.0)(jiti@2.4.1)
     transitivePeerDependencies:
       - supports-color
       - typescript
 
-  vite@7.1.0(@types/node@18.16.5)(jiti@2.4.1):
+  vite@7.1.1(@types/node@18.16.5)(jiti@2.4.1):
     dependencies:
       esbuild: 0.25.8
       fdir: 6.4.6(picomatch@4.0.3)
@@ -10079,7 +10074,7 @@ snapshots:
       fsevents: 2.3.3
       jiti: 2.4.1
 
-  vite@7.1.0(@types/node@24.2.0)(jiti@2.4.1):
+  vite@7.1.1(@types/node@24.2.0)(jiti@2.4.1):
     dependencies:
       esbuild: 0.25.8
       fdir: 6.4.6(picomatch@4.0.3)
@@ -10098,7 +10093,7 @@ snapshots:
       '@types/node': 18.16.5
       '@vitest-preview/dev-utils': 0.0.1
       express: 4.21.1
-      vite: 7.1.0(@types/node@18.16.5)(jiti@2.4.1)
+      vite: 7.1.1(@types/node@18.16.5)(jiti@2.4.1)
     transitivePeerDependencies:
       - jiti
       - less
@@ -10116,7 +10111,7 @@ snapshots:
     dependencies:
       '@types/chai': 5.2.2
       '@vitest/expect': 3.2.4
-      '@vitest/mocker': 3.2.4(vite@7.1.0(@types/node@24.2.0)(jiti@2.4.1))
+      '@vitest/mocker': 3.2.4(vite@7.1.1(@types/node@24.2.0)(jiti@2.4.1))
       '@vitest/pretty-format': 3.2.4
       '@vitest/runner': 3.2.4
       '@vitest/snapshot': 3.2.4
@@ -10134,7 +10129,7 @@ snapshots:
       tinyglobby: 0.2.14
       tinypool: 1.1.1
       tinyrainbow: 2.0.0
-      vite: 7.1.0(@types/node@24.2.0)(jiti@2.4.1)
+      vite: 7.1.1(@types/node@24.2.0)(jiti@2.4.1)
       vite-node: 3.2.4(@types/node@24.2.0)(jiti@2.4.1)
       why-is-node-running: 2.3.0
     optionalDependencies:
