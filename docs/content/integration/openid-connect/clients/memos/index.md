@@ -101,5 +101,5 @@ To configure [Memos] to utilize Authelia as an [OpenID Connect 1.0] Provider, us
 
 [Authelia]: https://www.authelia.com
 [Memos]: https://github.com/usememos/memos
-[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

@@ -128,5 +128,5 @@ To configure [PeerTube] to utilize Authelia as an [OpenID Connect 1.0] Provider,
 [PeerTube]: https://joinpeertube.org
 [OpenID Connect Plugin]: https://framagit.org/framasoft/peertube/official-plugins/-/tree/master/peertube-plugin-auth-openid-connect
 [Authelia]: https://www.authelia.com
-[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

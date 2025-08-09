@@ -136,5 +136,5 @@ basic auth.
 [Authelia]: https://www.authelia.com
 [Seafile]: https://www.seafile.com/
 [Seafile's WebDAV extension]: https://manual.seafile.com/extension/webdav/
-[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

@@ -113,5 +113,5 @@ To configure [PowerDNS Admin] to utilize Authelia as an [OpenID Connect 1.0] Pro
 
 [Authelia]: https://www.authelia.com
 [PowerDNS Admin]: https://github.com/PowerDNS/
-[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

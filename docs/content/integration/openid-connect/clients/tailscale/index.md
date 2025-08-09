@@ -119,5 +119,5 @@ implementations). The following steps are necessary to get Tailscale working wit
 [Tailscale]: https://tailscale.com
 [Custom OIDC providers KB article]: https://tailscale.com/kb/1240/sso-custom-oidc/
 [RFC7033 Section 3.1]: https://datatracker.ietf.org/doc/html/rfc7033#section-3.1
-[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

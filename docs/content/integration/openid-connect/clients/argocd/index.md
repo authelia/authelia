@@ -140,5 +140,5 @@ g, argocd-admins, role:admin
 
 [Authelia]: https://www.authelia.com
 [Argo CD]: https://argo-cd.readthedocs.io/en/stable/
-[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

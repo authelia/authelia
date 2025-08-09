@@ -124,5 +124,5 @@ services:
 
 [Mastodon]: https://joinmastodon.org/
 [Authelia]: https://www.authelia.com
-[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

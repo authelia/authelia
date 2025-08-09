@@ -234,5 +234,5 @@ spec:
 [SecurityPolicy]: https://gateway.envoyproxy.io/contributions/design/security-policy/
 [HTTPRoute]: https://gateway-api.sigs.k8s.io/api-types/httproute/
 [Gateway]: https://gateway-api.sigs.k8s.io/api-types/gateway/
-[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

@@ -121,5 +121,5 @@ You may be able to skip steps 1 to 3 by visiting the following URL: https://budi
 
 [Authelia]: https://www.authelia.com
 [Budibase]: https://budibase.com
-[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

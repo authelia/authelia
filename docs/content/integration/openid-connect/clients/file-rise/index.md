@@ -97,5 +97,5 @@ To configure [FileRise] to utilize Authelia as an [OpenID Connect 1.0] Provider,
 
 [Authelia]: https://www.authelia.com
 [FileRise]: https://github.com/error311/FileRise
-[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

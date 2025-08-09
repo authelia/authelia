@@ -123,5 +123,5 @@ To configure [WordPress] to utilize Authelia as an [OpenID Connect 1.0] Provider
 [WordPress]: https://en-au.wordpress.org/
 [OpenID Connect Generic Client Plugin]: https://wordpress.com/plugins/daggerhart-openid-connect-generic
 [Authelia]: https://www.authelia.com
-[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

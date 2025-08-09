@@ -110,5 +110,5 @@ connectors:
 
 [Authelia]: https://www.authelia.com
 [Terrakube]: https://terrakube.io/
-[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

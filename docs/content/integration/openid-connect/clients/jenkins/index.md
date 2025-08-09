@@ -157,5 +157,5 @@ To configure [Jenkins] to utilize Authelia as an [OpenID Connect 1.0] Provider, 
 [Jenkins]: https://www.jenkins.io/
 [OpenId Connect Authentication Plugin]: https://plugins.jenkins.io/oic-auth/
 [Authelia]: https://www.authelia.com
-[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md
