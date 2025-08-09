@@ -8,7 +8,8 @@ images: []
 weight: 103400
 toc: true
 aliases:
-  - /docs/configuration/webauthn.html
+  - '/docs/configuration/webauthn.html'
+  - '/configuration/webauthn.html'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)

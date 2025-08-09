@@ -7,6 +7,8 @@ draft: false
 images: []
 weight: 210
 toc: true
+aliases:
+  - '/docs/deployment/'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)

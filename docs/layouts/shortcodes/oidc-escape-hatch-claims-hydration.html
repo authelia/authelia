@@ -46,7 +46,7 @@ identity_providers:
   oidc:
     claims_policies:
       {{ $policy }}:
-        id_token: ['{{ delimit (split $claims ",") ", " }}']
+        id_token: ['{{ delimit (split $claims ",") "', '" | safeHTML }}']
     clients:
       - client_id: '{{ $clientID }}'
         claims_policy: '{{ $policy }}'

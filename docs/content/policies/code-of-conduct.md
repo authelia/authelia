@@ -9,12 +9,13 @@ weight: 100
 toc: true
 type: legal
 aliases:
-  - /code-of-conduct
-  - /code-of-conduct.html
-  - /conduct
-  - /conduct.html
-  - /coc
-  - /coc.html
+  - '/code-of-conduct'
+  - '/code-of-conduct.html'
+  - '/conduct'
+  - '/conduct.html'
+  - '/coc'
+  - '/coc.html'
+  - '/information/code-of-conduct/'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)

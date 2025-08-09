@@ -8,8 +8,9 @@ images: []
 toc: true
 type: legal
 aliases:
-  - /contact
-  - /contact.html
+  - '/contact'
+  - '/contact.html'
+  - '/docs/community/'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)

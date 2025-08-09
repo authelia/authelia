@@ -8,8 +8,9 @@ images: []
 weight: 101400
 toc: true
 aliases:
-  - /c/secrets
-  - /docs/configuration/secrets.html
+  - '/c/secrets'
+  - '/docs/configuration/secrets.html'
+  - '/configuration/secrets/'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)
