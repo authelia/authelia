@@ -50,8 +50,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0
       '@types/node':
-        specifier: 24.2.0
-        version: 24.2.0
+        specifier: 24.2.1
+        version: 24.2.1
       '@types/react':
         specifier: 19.1.9
         version: 19.1.9
@@ -66,7 +66,7 @@ importers:
         version: 4.20.3
       vitest:
         specifier: 3.2.4
-        version: 3.2.4(@types/node@24.2.0)(jiti@2.4.2)(terser@5.31.5)(tsx@4.20.3)
+        version: 3.2.4(@types/node@24.2.1)(jiti@2.4.2)(terser@5.31.5)(tsx@4.20.3)
 
 packages:
 
@@ -593,8 +593,8 @@ packages:
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
 
-  '@types/node@24.2.0':
-    resolution: {integrity: sha512-3xyG3pMCq3oYCNg7/ZP+E1ooTaGB4cG8JWRsqqOYQdbWNY4zbaV0Ennrd7stjiJEFZCaybcIgpTjJWHRfBSIDw==}
+  '@types/node@24.2.1':
+    resolution: {integrity: sha512-DRh5K+ka5eJic8CjH7td8QpYEV6Zo10gfRkjHCO3weqZHWDtAaSTFtl4+VMqOJ4N5jcuhZ9/l+yy8rVgw7BQeQ==}
 
   '@types/react-dom@19.1.7':
     resolution: {integrity: sha512-i5ZzwYpqjmrKenzkoLM2Ibzt6mAsM7pxB6BCIouEVVmgiqaMj1TjaK7hnA36hbW5aZv20kx7Lw6hWzPWg0Rurw==}
@@ -1967,7 +1967,7 @@ snapshots:
 
   '@types/cors@2.8.17':
     dependencies:
-      '@types/node': 24.2.0
+      '@types/node': 24.2.1
 
   '@types/deep-eql@4.0.2': {}
 
@@ -1975,7 +1975,7 @@ snapshots:
 
   '@types/json-schema@7.0.15': {}
 
-  '@types/node@24.2.0':
+  '@types/node@24.2.1':
     dependencies:
       undici-types: 7.10.0
 
@@ -1995,13 +1995,13 @@ snapshots:
       chai: 5.2.0
       tinyrainbow: 2.0.0
 
-  '@vitest/mocker@3.2.4(vite@7.1.1(@types/node@24.2.0)(jiti@2.4.2)(terser@5.31.5)(tsx@4.20.3))':
+  '@vitest/mocker@3.2.4(vite@7.1.1(@types/node@24.2.1)(jiti@2.4.2)(terser@5.31.5)(tsx@4.20.3))':
     dependencies:
       '@vitest/spy': 3.2.4
       estree-walker: 3.0.3
       magic-string: 0.30.17
     optionalDependencies:
-      vite: 7.1.1(@types/node@24.2.0)(jiti@2.4.2)(terser@5.31.5)(tsx@4.20.3)
+      vite: 7.1.1(@types/node@24.2.1)(jiti@2.4.2)(terser@5.31.5)(tsx@4.20.3)
 
   '@vitest/pretty-format@3.2.4':
     dependencies:
@@ -2185,7 +2185,7 @@ snapshots:
     dependencies:
       '@types/cookie': 0.4.1
       '@types/cors': 2.8.17
-      '@types/node': 24.2.0
+      '@types/node': 24.2.1
       accepts: 1.3.8
       base64id: 2.0.0
       cookie: 0.7.2
@@ -2848,13 +2848,13 @@ snapshots:
 
   vary@1.1.2: {}
 
-  vite-node@3.2.4(@types/node@24.2.0)(jiti@2.4.2)(terser@5.31.5)(tsx@4.20.3):
+  vite-node@3.2.4(@types/node@24.2.1)(jiti@2.4.2)(terser@5.31.5)(tsx@4.20.3):
     dependencies:
       cac: 6.7.14
       debug: 4.4.1
       es-module-lexer: 1.7.0
       pathe: 2.0.3
-      vite: 7.1.1(@types/node@24.2.0)(jiti@2.4.2)(terser@5.31.5)(tsx@4.20.3)
+      vite: 7.1.1(@types/node@24.2.1)(jiti@2.4.2)(terser@5.31.5)(tsx@4.20.3)
     transitivePeerDependencies:
       - '@types/node'
       - jiti
@@ -2869,7 +2869,7 @@ snapshots:
       - tsx
       - yaml
 
-  vite@7.1.1(@types/node@24.2.0)(jiti@2.4.2)(terser@5.31.5)(tsx@4.20.3):
+  vite@7.1.1(@types/node@24.2.1)(jiti@2.4.2)(terser@5.31.5)(tsx@4.20.3):
     dependencies:
       esbuild: 0.25.8
       fdir: 6.4.6(picomatch@4.0.3)
@@ -2878,17 +2878,17 @@ snapshots:
       rollup: 4.44.1
       tinyglobby: 0.2.14
     optionalDependencies:
-      '@types/node': 24.2.0
+      '@types/node': 24.2.1
       fsevents: 2.3.3
       jiti: 2.4.2
       terser: 5.31.5
       tsx: 4.20.3
 
-  vitest@3.2.4(@types/node@24.2.0)(jiti@2.4.2)(terser@5.31.5)(tsx@4.20.3):
+  vitest@3.2.4(@types/node@24.2.1)(jiti@2.4.2)(terser@5.31.5)(tsx@4.20.3):
     dependencies:
       '@types/chai': 5.2.2
       '@vitest/expect': 3.2.4
-      '@vitest/mocker': 3.2.4(vite@7.1.1(@types/node@24.2.0)(jiti@2.4.2)(terser@5.31.5)(tsx@4.20.3))
+      '@vitest/mocker': 3.2.4(vite@7.1.1(@types/node@24.2.1)(jiti@2.4.2)(terser@5.31.5)(tsx@4.20.3))
       '@vitest/pretty-format': 3.2.4
       '@vitest/runner': 3.2.4
       '@vitest/snapshot': 3.2.4
@@ -2906,11 +2906,11 @@ snapshots:
       tinyglobby: 0.2.14
       tinypool: 1.1.1
       tinyrainbow: 2.0.0
-      vite: 7.1.1(@types/node@24.2.0)(jiti@2.4.2)(terser@5.31.5)(tsx@4.20.3)
-      vite-node: 3.2.4(@types/node@24.2.0)(jiti@2.4.2)(terser@5.31.5)(tsx@4.20.3)
+      vite: 7.1.1(@types/node@24.2.1)(jiti@2.4.2)(terser@5.31.5)(tsx@4.20.3)
+      vite-node: 3.2.4(@types/node@24.2.1)(jiti@2.4.2)(terser@5.31.5)(tsx@4.20.3)
       why-is-node-running: 2.3.0
     optionalDependencies:
-      '@types/node': 24.2.0
+      '@types/node': 24.2.1
     transitivePeerDependencies:
       - jiti
       - less
