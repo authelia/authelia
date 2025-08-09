@@ -46,12 +46,6 @@ Some of the values presented in this guide can automatically be replaced with do
 
 ### Authelia
 
-{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-At the time of this writing this third party client has a bug and does not support [OpenID Connect 1.0](https://openid.net/specs/openid-connect-core-1_0.html). This
-configuration will likely require configuration of an escape hatch to work around the bug on their end. See
-[Configuration Escape Hatch](#configuration-escape-hatch) for details.
-{{< /callout >}}
-
 The following YAML configuration is an example __Authelia__ [client configuration] for use with [ROM Manager] which will
 operate with the application example:
 
