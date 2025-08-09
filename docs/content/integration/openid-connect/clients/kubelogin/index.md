@@ -14,7 +14,7 @@ support:
   versions: true
   integration: true
 seo:
-  title: "" # custom title (optional)
+  title: "Kube Login | OpenID Connect 1.0 | Integration"
   description: "Step-by-step guide to configuring Kube Login with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
@@ -54,21 +54,21 @@ identity_providers:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
-      - client_id: "kube_login"
-        client_name: "Kubernetes Cluster Access"
+      - client_id: 'kube_login'
+        client_name: 'Kubernetes Cluster Access'
         client_secret: 'insecure_secret'
         public: false
-        authorization_policy: "two_factor"
+        authorization_policy: 'two_factor'
         redirect_uris:
-          - "http://localhost:8000"
-          - "http://localhost:18000"
+          - 'http://localhost:8000'
+          - 'http://localhost:18000'
         scopes:
-          - "openid"
-          - "groups"
-          - "email"
-          - "profile"
-        userinfo_signed_response_alg: "none"
-        token_endpoint_auth_method: "client_secret_basic"
+          - 'openid'
+          - 'groups'
+          - 'email'
+          - 'profile'
+        userinfo_signed_response_alg: 'none'
+        token_endpoint_auth_method: 'client_secret_basic'
 ```
 
 {{< callout context="note" title="Token Authentication" icon="outline/info-circle" >}}
@@ -106,14 +106,14 @@ After configuring OIDC authentication, create RBAC rules to authorize your users
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: authelia-admins
+  name: 'authelia-admins'
 subjects:
 - kind: Group
-  name: admins
+  name: 'admins'
   apiGroup: rbac.authorization.k8s.io
 roleRef:
   kind: ClusterRole
-  name: cluster-admin # NOTE this role gives COMPLETE access to the kubernetes api
+  name: 'cluster-admin' # NOTE this role gives COMPLETE access to the kubernetes api
   apiGroup: rbac.authorization.k8s.io
 
 ---
@@ -121,15 +121,15 @@ roleRef:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: authelia-developers
+  name: 'authelia-developers'
   namespace: development
 subjects:
 - kind: Group
-  name: developers
+  name: 'developers'
   apiGroup: rbac.authorization.k8s.io
 roleRef:
   kind: ClusterRole
-  name: edit
+  name: 'edit'
   apiGroup: rbac.authorization.k8s.io
 ```
 
@@ -139,14 +139,14 @@ roleRef:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: authelia-user-admin
+  name: 'authelia-user-admin'
 subjects:
 - kind: User
-  name: "https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}#your-user-sub-claim"
+  name: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}#your-user-sub-claim'
   apiGroup: rbac.authorization.k8s.io
 roleRef:
   kind: ClusterRole
-  name: cluster-admin # NOTE this role gives COMPLETE access to the kubernetes api
+  name: 'cluster-admin' # NOTE this role gives COMPLETE access to the kubernetes api
   apiGroup: rbac.authorization.k8s.io
 ```
 
@@ -203,5 +203,5 @@ kubectl get nodes
 [Kube Login]: https://github.com/int128/kubelogin
 [Kubernetes]: https://kubernetes.io/
 [Kubernetes OIDC]: https://kubernetes.io/docs/reference/access-authn-authz/authentication/#openid-connect-tokens
-[OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
+[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

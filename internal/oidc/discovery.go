@@ -345,7 +345,6 @@ func NewOpenIDConnectWellKnownConfiguration(c *schema.IdentityProvidersOpenIDCon
 				SigningAlgRSAPSSUsingSHA256,
 				SigningAlgRSAPSSUsingSHA384,
 				SigningAlgRSAPSSUsingSHA512,
-				SigningAlgNone,
 			},
 			AuthorizationEncryptionAlgValuesSupported: []string{
 				EncryptionAlgRSA15,
