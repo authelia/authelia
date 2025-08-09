@@ -1,5 +1,5 @@
-authelia.com/provider/oauth2 v0.2.15 h1:I/JyvZ9oH6n/UFZUyC6oniwGTtzcnq0s96AzMr3iTOA=
-authelia.com/provider/oauth2 v0.2.15/go.mod h1:wOGj9/gAvW6aKKwBxKp5Ui2Hs6lLx61Ge2vOTYYMqX0=
+authelia.com/provider/oauth2 v0.2.16 h1:FCbCtzOFQRMF+1UFlqzbS7LT+8bYtjVEyuYwplG2DyY=
+authelia.com/provider/oauth2 v0.2.16/go.mod h1:syDAVh+06gaAZAQxoH4mPAHhuVwMbMnzfYFXjDtKAsM=
 cel.dev/expr v0.24.0 h1:56OvJKSH3hDGL0ml5uSxZmz3/3Pq4tJ+fb1unVLAFcY=
 cel.dev/expr v0.24.0/go.mod h1:hLPLo1W4QUmuYdA72RBX06QTs6MXw941piREPl3Yfiw=
 filippo.io/edwards25519 v1.1.0 h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=
