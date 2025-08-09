@@ -14,7 +14,7 @@ support:
   versions: true
   integration: true
 seo:
-  title: "" # custom title (optional)
+  title: "Vaultwarden | OpenID Connect 1.0 | Integration"
   description: "Step-by-step guide to configuring Vaultwarden with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
@@ -151,5 +151,5 @@ services:
 
 [Authelia]: https://www.authelia.com
 [Vaultwarden]: https://github.com/Timshel/OIDCWarden/
-[OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
+[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md
