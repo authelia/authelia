@@ -109,5 +109,5 @@ To configure [Semaphore] there is one method, using the [Configuration File](#co
 
 [Semaphore]: https://semaphoreui.com/
 [Authelia]: https://www.authelia.com
-[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

@@ -150,5 +150,5 @@ To configure [Actual Budget] to utilize Authelia as an [OpenID Connect 1.0] Prov
 
 [Authelia]: https://www.authelia.com
 [Actual Budget]: https://actualbudget.org/
-[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

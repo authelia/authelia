@@ -247,5 +247,5 @@ To configure [Nextcloud] and the [Nextcloud OpenID Connect user backend app] to 
 [Nextcloud]: https://nextcloud.com/
 [Nextcloud OpenID Connect Login app]: https://apps.nextcloud.com/apps/oidc_login
 [Nextcloud OpenID Connect user backend app]: https://apps.nextcloud.com/apps/user_oidc
-[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

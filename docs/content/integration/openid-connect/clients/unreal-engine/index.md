@@ -105,5 +105,5 @@ To configure [Unreal Engine] to utilize Authelia as an [OpenID Connect 1.0] Prov
 
 [Authelia]: https://www.authelia.com
 [Unreal Engine]: https://www.unrealengine.com/
-[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

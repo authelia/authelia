@@ -106,5 +106,5 @@ To configure [Zipline] to utilize Authelia as an [OpenID Connect 1.0] Provider, 
 
 [Authelia]: https://www.authelia.com
 [Zipline]: https://zipline.diced.sh/
-[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

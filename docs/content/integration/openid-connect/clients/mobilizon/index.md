@@ -119,5 +119,5 @@ config :ueberauth, Ueberauth.Strategy.Keycloak.OAuth,
 
 [Authelia]: https://www.authelia.com
 [Mobilizon]: https://joinmobilizon.org/en/
-[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

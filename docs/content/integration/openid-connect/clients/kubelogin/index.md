@@ -203,5 +203,5 @@ kubectl get nodes
 [Kube Login]: https://github.com/int128/kubelogin
 [Kubernetes]: https://kubernetes.io/
 [Kubernetes OIDC]: https://kubernetes.io/docs/reference/access-authn-authz/authentication/#openid-connect-tokens
-[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

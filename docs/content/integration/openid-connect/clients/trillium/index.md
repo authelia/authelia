@@ -129,5 +129,5 @@ services:
 
 [Authelia]: https://www.authelia.com
 [Trillium Notes]: https://github.com/TriliumNext/Trilium
-[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

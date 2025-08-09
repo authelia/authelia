@@ -107,5 +107,5 @@ To configure [RustDesk Server Pro] to utilize Authelia as an [OpenID Connect 1.0
 [Authelia]: https://www.authelia.com
 [RustDesk Server Pro]: https://rustdesk.com
 [OAuth login Extension]: https://www.rustdesk.com/extensions/oauth/
-[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

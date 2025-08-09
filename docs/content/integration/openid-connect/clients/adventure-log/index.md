@@ -126,5 +126,5 @@ Users can manually link their accounts by:
 
 [Authelia]: https://www.authelia.com
 [AdventureLog]: https://adventurelog.app/
-[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

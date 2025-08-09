@@ -117,5 +117,5 @@ map_email          = email
 
 [Authelia]: https://www.authelia.com
 [Writefreely]: https://writefreely.org/
-[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

@@ -104,5 +104,5 @@ To configure [Cloud Identity Engine] to utilize Authelia as an [OpenID Connect 1
 
 [Authelia]: https://www.authelia.com
 [Cloud Identity Engine]: https://docs.paloaltonetworks.com/pan-os/10-1/pan-os-new-features/identity-features/cloud-identity-engine
-[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

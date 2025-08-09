@@ -207,5 +207,5 @@ services:
 [Express.js]: https://expressjs.com/
 [express-openid-connect]: https://auth0.github.io/express-openid-connect/interfaces/ConfigParams.html
 [Authelia]: https://www.authelia.com
-[OpenID Connect 1.0]: ../../../openid-connect/introduction.md
+[OpenID Connect 1.0]: ../../introduction.md
 [client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md
