@@ -14,7 +14,7 @@ support:
   versions: true
   integration: true
 seo:
-  title: "" # custom title (optional)
+  title: "Writefreely | OpenID Connect 1.0 | Integration"
   description: "Step-by-step guide to configuring Writefreely with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
@@ -117,5 +117,5 @@ map_email          = email
 
 [Authelia]: https://www.authelia.com
 [Writefreely]: https://writefreely.org/
-[OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
+[OpenID Connect 1.0]: ../../introduction.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

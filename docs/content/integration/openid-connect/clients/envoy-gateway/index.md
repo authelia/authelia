@@ -14,7 +14,7 @@ support:
   versions: true
   integration: true
 seo:
-  title: "" # custom title (optional)
+  title: "Envoy Gateway | OpenID Connect 1.0 | Integration"
   description: "Step-by-step guide to configuring Envoy Gateway with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.5](https://github.com/authelia/authelia/releases/tag/v4.39.5)
+  - [v4.39.6](https://github.com/authelia/authelia/releases/tag/v4.39.6)
 - [Envoy Gateway]
   - [v1.4.1](https://github.com/envoyproxy/gateway/releases/tag/v1.4.1)
 
@@ -33,9 +33,9 @@ seo:
 
 This example makes the following assumptions:
 
-- __Application Root URL:__ `https://envoy-app.{{< sitevar name="domain" nojs="example.com" >}}/`
+- __Application Root URL:__ `https://envoy.{{< sitevar name="domain" nojs="example.com" >}}/`
 - __Authelia Root URL:__ `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/`
-- __Client ID:__ `envoy-app`
+- __Client ID:__ `envoy`
 - __Client Secret:__ `insecure_secret`
 
 Some of the values presented in this guide can automatically be replaced with documentation variables.
@@ -54,7 +54,7 @@ identity_providers:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
     clients:
-      - client_id: 'envoy-app'
+      - client_id: 'envoy'
         client_name: 'Envoy Gateway'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
@@ -62,7 +62,7 @@ identity_providers:
         require_pkce: false
         pkce_challenge_method: ''
         redirect_uris:
-          - 'https://envoy-app.{{< sitevar name="domain" nojs="example.com" >}}/authelia/openid_connect/callback'
+          - 'https://envoy.{{< sitevar name="domain" nojs="example.com" >}}/authelia/openid_connect/callback'
         scopes:
           - 'openid'
           - 'offline_access'
@@ -95,35 +95,35 @@ To configure [Envoy Gateway] to utilize Authelia as an [OpenID Connect 1.0] Prov
 following instructions:
 
 1. Use `kubectl` to create the secret:
-   - `kubectl create secret generic envoy-app-oidc-client-secret --from-literal=client-secret=insecure_secret`
+   - `kubectl create secret generic envoy-oidc-client-secret --from-literal=client-secret=insecure_secret`
 2. Apply the below manifests for the example application.
 
 The following example [HTTPRoute] is a example real application just for the purposes of showcasing this. The important
-factors are the `name` value being `envoy-app`.
+factors are the `name` value being `envoy`.
 
 ```yaml {title="httproute.yaml
 ---
 apiVersion: 'gateway.networking.k8s.io/v1'
 kind: 'HTTPRoute'
 metadata:
-  name: 'envoy-app'
+  name: 'envoy'
 spec:
   parentRefs:
     - name: 'eg'
   hostnames:
-    - 'envoy-app.{{< sitevar name="domain" nojs="example.com" >}}'
+    - 'envoy.{{< sitevar name="domain" nojs="example.com" >}}'
   rules:
     - matches:
         - path:
             type: 'PathPrefix'
             value: '/'
       backendRefs:
-        - name: 'envoy-app-service-backend'
+        - name: 'envoy-service-backend'
           port: 80
 ...
 ```
 
-The following [SecurityPolicy] requires [OpenID Connect 1.0] authorization for just the `envoy-app` [HTTPRoute] as
+The following [SecurityPolicy] requires [OpenID Connect 1.0] authorization for just the `envoy` [HTTPRoute] as
 described above, the important factors are the `targetRefs` which indicates what resource to apply this to.
 
 ```yaml
@@ -131,28 +131,28 @@ described above, the important factors are the `targetRefs` which indicates what
 apiVersion: 'gateway.envoyproxy.io/v1alpha1'
 kind: 'SecurityPolicy'
 metadata:
-  name: 'envoy-app-oidc'
+  name: 'envoy-oidc'
 spec:
   targetRefs:
     - group: 'gateway.networking.k8s.io'
       kind: 'HTTPRoute'
-      name: 'envoy-app'
+      name: 'envoy'
   oidc:
     provider:
       issuer: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
       authorizationEndpoint: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization'
       tokenEndpoint: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token'
-    clientID: 'app'
+    clientID: 'envoy'
     clientSecret:
-      name: 'envoy-app-oidc-client-secret'
-    cookieDomain: 'envoy-app.{{< sitevar name="domain" nojs="example.com" >}}'
+      name: 'envoy-oidc-client-secret'
+    cookieDomain: 'envoy.{{< sitevar name="domain" nojs="example.com" >}}'
     cookieNames:
       idToken: ''
       accessToken: ''
     scopes:
       - 'openid'
       - 'offline_access'
-    redirectURL: 'https://envoy-app.{{< sitevar name="domain" nojs="example.com" >}}/authelia/openid_connect/callback'
+    redirectURL: 'https://envoy.{{< sitevar name="domain" nojs="example.com" >}}/authelia/openid_connect/callback'
     forwardAccessToken: false
     refreshToken: true
     passThroughAuthHeader: false
@@ -164,7 +164,7 @@ To configure [Envoy Gateway] to utilize Authelia as an [OpenID Connect 1.0] Prov
 following instructions:
 
 1. Use `kubectl` to create the secret:
-  - `kubectl create secret generic envoy-app-oidc-client-secret --from-literal=client-secret=insecure_secret`
+  - `kubectl create secret generic envoy-oidc-client-secret --from-literal=client-secret=insecure_secret`
 2. Apply the below manifests for the `eg` [Gateway].
 
 The following example [HTTPRoute] is a fake application just for the redirection behaviour.
@@ -196,7 +196,7 @@ the important factors are the `targetRefs` which indicates what resource to appl
 apiVersion: 'gateway.envoyproxy.io/v1alpha1'
 kind: 'SecurityPolicy'
 metadata:
-  name: 'envoy-app-oidc'
+  name: 'envoy-oidc'
 spec:
   targetRefs:
     - group: 'gateway.networking.k8s.io'
@@ -207,10 +207,10 @@ spec:
       issuer: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
       authorizationEndpoint: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization'
       tokenEndpoint: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token'
-    clientID: 'app'
+    clientID: 'envoy'
     clientSecret:
-      name: 'envoy-app-oidc-client-secret'
-    cookieDomain: 'envoy-app.{{< sitevar name="domain" nojs="example.com" >}}'
+      name: 'envoy-oidc-client-secret'
+    cookieDomain: 'envoy-oidc.{{< sitevar name="domain" nojs="example.com" >}}'
     cookieNames:
       idToken: ''
       accessToken: ''
@@ -234,5 +234,5 @@ spec:
 [SecurityPolicy]: https://gateway.envoyproxy.io/contributions/design/security-policy/
 [HTTPRoute]: https://gateway-api.sigs.k8s.io/api-types/httproute/
 [Gateway]: https://gateway-api.sigs.k8s.io/api-types/gateway/
-[OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
+[OpenID Connect 1.0]: ../../introduction.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

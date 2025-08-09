@@ -1687,7 +1687,6 @@
           "type": "string",
           "enum": [
             "",
-            "none",
             "HS256",
             "HS384",
             "HS512",
@@ -1703,7 +1702,7 @@
           ],
           "title": "Authorization Signing Algorithm",
           "description": "The JOSE signing algorithm (JWS) this client uses to sign the Authorization objects that it generates and responds with. i.e. the JWS 'alg' value.",
-          "default": "none"
+          "default": "RS256"
         },
         "authorization_signed_response_key_id": {
           "type": "string",

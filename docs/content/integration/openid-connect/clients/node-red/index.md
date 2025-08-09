@@ -14,7 +14,7 @@ support:
   versions: true
   integration: true
 seo:
-  title: "" # custom title (optional)
+  title: "Node-RED | OpenID Connect 1.0 | Integration"
   description: "Step-by-step guide to configuring Node-RED with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
@@ -127,5 +127,5 @@ adminAuth: {
 [Node-RED]: https://nodered.org/
 [passport-openidconnect]: https://www.passportjs.org/packages/passport-openidconnect/
 [Authelia]: https://www.authelia.com
-[OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
+[OpenID Connect 1.0]: ../../introduction.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

@@ -14,7 +14,7 @@ support:
   versions: true
   integration: true
 seo:
-  title: "" # custom title (optional)
+  title: "MeshCentral | OpenID Connect 1.0 | Integration"
   description: "Step-by-step guide to configuring MeshCentral with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.5](https://github.com/authelia/authelia/releases/tag/v4.39.5)
+  - [v4.39.6](https://github.com/authelia/authelia/releases/tag/v4.39.6)
 - [MeshCentral]
   - [v1.1.44](https://github.com/Ylianst/MeshCentral/releases/tag/1.1.44)
 
@@ -101,5 +101,5 @@ To configure [MeshCentral] there is one method, using the [Configuration File](#
 
 [MeshCentral]: https://meshcentral.com/
 [Authelia]: https://www.authelia.com
-[OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
+[OpenID Connect 1.0]: ../../introduction.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

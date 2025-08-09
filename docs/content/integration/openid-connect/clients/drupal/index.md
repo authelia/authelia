@@ -14,7 +14,7 @@ support:
   versions: true
   integration: true
 seo:
-  title: "" # custom title (optional)
+  title: "Drupal | OpenID Connect 1.0 | Integration"
   description: "Step-by-step guide to configuring Drupal with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.5](https://github.com/authelia/authelia/releases/tag/v4.39.5)
+  - [v4.39.6](https://github.com/authelia/authelia/releases/tag/v4.39.6)
 - [Drupal]
   - [v10.4.0](https://www.drupal.org/project/drupal/releases/10.4.0)
 
@@ -96,5 +96,5 @@ To configure [Drupal] to utilize Authelia as an [OpenID Connect 1.0] Provider, u
 
 [Authelia]: https://www.authelia.com
 [Drupal]: https://new.drupal.org/home
-[OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
+[OpenID Connect 1.0]: ../../introduction.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

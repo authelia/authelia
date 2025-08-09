@@ -14,7 +14,7 @@ support:
   versions: true
   integration: true
 seo:
-  title: "" # custom title (optional)
+  title: "Plesk | OpenID Connect 1.0 | Integration"
   description: "Step-by-step guide to configuring Plesk with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.5](https://github.com/authelia/authelia/releases/tag/v4.39.5)
+  - [v4.39.6](https://github.com/authelia/authelia/releases/tag/v4.39.6)
 - [Plesk]
   - [v18.0.69](https://docs.plesk.com/release-notes/obsidian/change-log/#plesk-18069)
 
@@ -119,5 +119,5 @@ To configure [Plesk] to utilize Authelia as an [OpenID Connect 1.0] Provider, us
 [Authelia]: https://www.authelia.com
 [Plesk]: https://www.plesk.com
 [OAuth login Extension]: https://www.plesk.com/extensions/oauth/
-[OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
+[OpenID Connect 1.0]: ../../introduction.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

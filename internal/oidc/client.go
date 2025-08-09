@@ -227,7 +227,7 @@ func (c *RegisteredClient) GetAuthorizationSignedResponseKeyID() (kid string) {
 // GetAuthorizationSignedResponseAlg returns the AuthorizationSignedResponseAlg.
 func (c *RegisteredClient) GetAuthorizationSignedResponseAlg() (alg string) {
 	if c.AuthorizationSignedResponseAlg == "" {
-		c.AuthorizationSignedResponseAlg = SigningAlgNone
+		c.AuthorizationSignedResponseAlg = SigningAlgRSAUsingSHA256
 	}
 
 	return c.AuthorizationSignedResponseAlg
@@ -506,7 +506,7 @@ func (c *RegisteredClient) GetPushedAuthorizationRequestEndpointAuthSigningAlg()
 // GetEnableJWTProfileOAuthAccessTokens returns true if this client is configured to return the
 // RFC9068 JWT Profile for OAuth 2.0 Access Tokens.
 func (c *RegisteredClient) GetEnableJWTProfileOAuthAccessTokens() (enable bool) {
-	return c.GetAccessTokenSignedResponseAlg() != SigningAlgNone || len(c.GetAccessTokenSignedResponseKeyID()) > 0
+	return c.GetAccessTokenSignedResponseAlg() != SigningAlgNone && len(c.GetAccessTokenSignedResponseKeyID()) > 0
 }
 
 // GetRequirePushedAuthorizationRequests should return true if this client MUST use a Pushed Authorization Request.

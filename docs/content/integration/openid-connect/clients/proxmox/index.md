@@ -13,10 +13,8 @@ support:
   level: community
   versions: true
   integration: true
-aliases:
-  - /docs/community/oidc-integrations/proxmox.html
 seo:
-  title: "" # custom title (optional)
+  title: "Proxmox | OpenID Connect 1.0 | Integration"
   description: "Step-by-step guide to configuring Proxmox with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
@@ -25,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.5](https://github.com/authelia/authelia/releases/tag/v4.39.5)
+  - [v4.39.6](https://github.com/authelia/authelia/releases/tag/v4.39.6)
 - [Proxmox Virtual Environment]
   - [v8.4.1](https://pve.proxmox.com/wiki/Roadmap#Proxmox_VE_8.4)
 - [Proxmox Backup Server]
@@ -115,5 +113,5 @@ To configure [Proxmox Virtual Environment] to utilize Authelia as an [OpenID Con
 [Authelia]: https://www.authelia.com
 [Proxmox Virtual Environment]: https://pve.proxmox.com
 [Proxmox Backup Server]: https://pbs.proxmox.com
-[OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
+[OpenID Connect 1.0]: ../../introduction.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

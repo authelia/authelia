@@ -14,7 +14,7 @@ support:
   versions: true
   integration: true
 seo:
-  title: "" # custom title (optional)
+  title: "FreshRSS | OpenID Connect 1.0 | Integration"
   description: "Step-by-step guide to configuring FreshRSS with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
@@ -139,5 +139,5 @@ In addition, the following steps may be required:
 
 [Authelia]: https://www.authelia.com
 [FreshRSS]: https://freshrss.github.io/FreshRSS/
-[OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
+[OpenID Connect 1.0]: ../../introduction.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

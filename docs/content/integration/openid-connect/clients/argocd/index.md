@@ -14,7 +14,7 @@ support:
   versions: true
   integration: true
 seo:
-  title: "" # custom title (optional)
+  title: "Argo CD | OpenID Connect 1.0 | Integration"
   description: "Step-by-step guide to configuring Argo CD with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
@@ -140,5 +140,5 @@ g, argocd-admins, role:admin
 
 [Authelia]: https://www.authelia.com
 [Argo CD]: https://argo-cd.readthedocs.io/en/stable/
-[OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
+[OpenID Connect 1.0]: ../../introduction.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md
