@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.5](https://github.com/authelia/authelia/releases/tag/v4.39.5)
+  - [v4.39.6](https://github.com/authelia/authelia/releases/tag/v4.39.6)
 - [Synapse]
   - [v1.127.1](https://github.com/element-hq/synapse/releases/tag/v1.127.1)
 
