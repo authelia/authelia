@@ -334,7 +334,7 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 
 	// Configure DUO api endpoint only if configuration exists.
 	if !config.DuoAPI.Disable {
-		var duoAPI duo.API
+		var duoAPI duo.Provider
 
 		if utils.Dev {
 			duoAPI = duo.NewDuoAPI(duoapi.NewDuoApi(

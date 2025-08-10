@@ -13,7 +13,7 @@ import (
 )
 
 // DuoDevicesGET handler for retrieving available devices and capabilities from duo api.
-func DuoDevicesGET(duoAPI duo.API) middlewares.RequestHandler {
+func DuoDevicesGET(duoAPI duo.Provider) middlewares.RequestHandler {
 	return func(ctx *middlewares.AutheliaCtx) {
 		var (
 			userSession session.UserSession

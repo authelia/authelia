@@ -13,7 +13,7 @@ import (
 )
 
 // DuoPOST handler for sending a push notification via duo api.
-func DuoPOST(duoAPI duo.API) middlewares.RequestHandler {
+func DuoPOST(duoAPI duo.Provider) middlewares.RequestHandler {
 	return func(ctx *middlewares.AutheliaCtx) {
 		var (
 			bodyJSON       = &bodySignDuoRequest{}
@@ -93,7 +93,7 @@ func DuoPOST(duoAPI duo.API) middlewares.RequestHandler {
 }
 
 // HandleInitialDeviceSelection handler for retrieving all available devices.
-func HandleInitialDeviceSelection(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, duoAPI duo.API, bodyJSON *bodySignDuoRequest) (device string, method string, err error) {
+func HandleInitialDeviceSelection(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, duoAPI duo.Provider, bodyJSON *bodySignDuoRequest) (device string, method string, err error) {
 	result, message, devices, enrollURL, err := DuoPreAuth(ctx, userSession, duoAPI)
 	if err != nil {
 		ctx.Logger.Errorf("Failed to perform Duo PreAuth for user '%s': %+v", userSession.Username, err)
@@ -138,7 +138,7 @@ func HandleInitialDeviceSelection(ctx *middlewares.AutheliaCtx, userSession *ses
 }
 
 // HandlePreferredDeviceCheck handler to check if the saved device and method is still valid.
-func HandlePreferredDeviceCheck(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, duoAPI duo.API, device string, method string, bodyJSON *bodySignDuoRequest) (string, string, error) {
+func HandlePreferredDeviceCheck(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, duoAPI duo.Provider, device string, method string, bodyJSON *bodySignDuoRequest) (string, string, error) {
 	result, message, devices, enrollURL, err := DuoPreAuth(ctx, userSession, duoAPI)
 	if err != nil {
 		ctx.Logger.Errorf("Failed to perform Duo PreAuth for user '%s': %+v", userSession.Username, err)
