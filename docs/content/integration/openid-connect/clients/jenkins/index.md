@@ -14,7 +14,7 @@ support:
   versions: true
   integration: true
 seo:
-  title: "" # custom title (optional)
+  title: "Jenkins | OpenID Connect 1.0 | Integration"
   description: "Step-by-step guide to configuring Jenkins with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
@@ -157,5 +157,5 @@ To configure [Jenkins] to utilize Authelia as an [OpenID Connect 1.0] Provider, 
 [Jenkins]: https://www.jenkins.io/
 [OpenId Connect Authentication Plugin]: https://plugins.jenkins.io/oic-auth/
 [Authelia]: https://www.authelia.com
-[OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
+[OpenID Connect 1.0]: ../../introduction.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

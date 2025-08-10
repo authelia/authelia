@@ -14,7 +14,7 @@ support:
   versions: true
   integration: true
 seo:
-  title: "" # custom title (optional)
+  title: "Outline | OpenID Connect 1.0 | Integration"
   description: "Step-by-step guide to configuring Outline with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
@@ -96,7 +96,6 @@ To configure [Outline] to utilize Authelia as an [OpenID Connect 1.0] Provider, 
 
 ```shell {title=".env"}
 URL=https://outline.{{< sitevar name="domain" nojs="example.com" >}}
-FORCE_HTTPS=true
 OIDC_CLIENT_ID=outline
 OIDC_CLIENT_SECRET=insecure_secret
 OIDC_AUTH_URI=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization
@@ -105,7 +104,6 @@ OIDC_USERINFO_URI=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.
 OIDC_USERNAME_CLAIM=preferred_username
 OIDC_DISPLAY_NAME=Authelia
 OIDC_SCOPES=openid offline_access profile email
-OIDC_LOGOUT_URI=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/logout
 ```
 
 ##### Docker Compose
@@ -115,7 +113,6 @@ services:
   outline:
     environment:
       URL: 'https://outline.{{< sitevar name="domain" nojs="example.com" >}}'
-      FORCE_HTTPS: 'true'
       OIDC_CLIENT_ID: 'outline'
       OIDC_CLIENT_SECRET: 'insecure_secret'
       OIDC_AUTH_URI: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization'
@@ -124,7 +121,6 @@ services:
       OIDC_USERNAME_CLAIM: 'preferred_username'
       OIDC_DISPLAY_NAME: 'Authelia'
       OIDC_SCOPES: 'openid offline_access profile email'
-      OIDC_LOGOUT_URI: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/logout'
 ```
 
 ## See Also
@@ -133,5 +129,5 @@ services:
 
 [Authelia]: https://www.authelia.com
 [Outline]: https://www.getoutline.com/
-[OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
+[OpenID Connect 1.0]: ../../introduction.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

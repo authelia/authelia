@@ -317,6 +317,57 @@ func TestShouldValidateAndUpdateAddress(t *testing.T) {
 	assert.Equal(t, "tcp://:9091/", config.Server.Address.String())
 }
 
+func TestShouldDisableHealthcheckForUnixSocketAndFileDescriptor(t *testing.T) {
+	testCases := []struct {
+		name     string
+		address  *schema.AddressTCP
+		expected bool
+	}{
+		{
+			name:     "ShouldDisableHealthcheckForUnixSocket",
+			address:  &schema.AddressTCP{Address: schema.NewAddressUnix("/path/to/authelia.sock")},
+			expected: true,
+		},
+		{
+			name:     "ShouldDisableHealthcheckForFileDescriptor",
+			address:  &schema.AddressTCP{Address: MustParseAddress("fd://3")},
+			expected: true,
+		},
+		{
+			name:     "ShouldNotDisableHealthcheckForTCP",
+			address:  &schema.AddressTCP{Address: schema.NewAddressFromNetworkValues("tcp", "127.0.0.1", 9091)},
+			expected: false,
+		},
+		{
+			name:     "ShouldNotDisableHealthcheckForTCP4",
+			address:  &schema.AddressTCP{Address: schema.NewAddressFromNetworkValues("tcp4", "127.0.0.1", 9091)},
+			expected: false,
+		},
+		{
+			name:     "ShouldNotDisableHealthcheckForTCP6",
+			address:  &schema.AddressTCP{Address: schema.NewAddressFromNetworkValues("tcp6", "::1", 9091)},
+			expected: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			validator := schema.NewStructValidator()
+			config := &schema.Configuration{
+				Server: schema.Server{
+					Address:            tc.address,
+					DisableHealthcheck: false,
+				},
+			}
+
+			ValidateServerAddress(config, validator)
+
+			assert.Len(t, validator.Errors(), 0)
+			assert.Equal(t, tc.expected, config.Server.DisableHealthcheck)
+		})
+	}
+}
+
 func TestShouldRaiseErrorWhenTLSCertWithoutKeyIsProvided(t *testing.T) {
 	validator := schema.NewStructValidator()
 	config := newDefaultConfig()

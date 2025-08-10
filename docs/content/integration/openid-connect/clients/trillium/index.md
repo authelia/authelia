@@ -12,7 +12,7 @@ support:
   versions: true
   integration: true
 seo:
-  title: "" # custom title (optional)
+  title: "Trillium Notes | OpenID Connect 1.0 | Integration"
   description: "Step-by-step guide to configuring Trillium Notes with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
@@ -21,7 +21,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.5](https://github.com/authelia/authelia/releases/tag/v4.39.5)
+  - [v4.39.6](https://github.com/authelia/authelia/releases/tag/v4.39.6)
 - [Trillium Notes]
   - [v0.97.1](https://github.com/TriliumNext/Trilium/releases/tag/v0.97.1)
 
@@ -41,12 +41,6 @@ Some of the values presented in this guide can automatically be replaced with do
 ## Configuration
 
 ### Authelia
-
-{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-At the time of this writing this third party client has a bug and does not support [OpenID Connect 1.0](https://openid.net/specs/openid-connect-core-1_0.html). This
-configuration will likely require configuration of an escape hatch to work around the bug on their end. See
-[Configuration Escape Hatch](#configuration-escape-hatch) for details.
-{{< /callout >}}
 
 The following YAML configuration is an example __Authelia__ [client configuration] for use with [Trillium Notes] which will
 operate with the application example:
@@ -135,5 +129,5 @@ services:
 
 [Authelia]: https://www.authelia.com
 [Trillium Notes]: https://github.com/TriliumNext/Trilium
-[OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
+[OpenID Connect 1.0]: ../../introduction.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

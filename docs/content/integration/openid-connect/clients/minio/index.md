@@ -14,7 +14,7 @@ support:
   versions: true
   integration: true
 seo:
-  title: "" # custom title (optional)
+  title: "MinIO | OpenID Connect 1.0 | Integration"
   description: "Step-by-step guide to configuring MinIO with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.5](https://github.com/authelia/authelia/releases/tag/v4.39.5)
+  - [v4.39.6](https://github.com/authelia/authelia/releases/tag/v4.39.6)
 - [MinIO]
   - [2025-04-22T22-12-26Z](https://github.com/minio/minio/releases/tag/RELEASE.2025-04-22T22-12-26Z)
 
@@ -45,12 +45,6 @@ Some of the values presented in this guide can automatically be replaced with do
 ## Configuration
 
 ### Authelia
-
-{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-At the time of this writing this third party client has a bug and does not support [OpenID Connect 1.0](https://openid.net/specs/openid-connect-core-1_0.html). This
-configuration will likely require configuration of an escape hatch to work around the bug on their end. See
-[Configuration Escape Hatch](#configuration-escape-hatch) for details.
-{{< /callout >}}
 
 The following YAML configuration is an example __Authelia__ [client configuration] for use with [MinIO] which will
 operate with the application example:
@@ -167,5 +161,5 @@ to your user groups in Authelia.
 
 [MinIO]: https://min.io/
 [Authelia]: https://www.authelia.com
-[OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
+[OpenID Connect 1.0]: ../../introduction.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md

@@ -1,6 +1,6 @@
 {
   "name": "authelia",
-  "version": "4.39.5",
+  "version": "4.39.6",
   "private": true,
   "type": "module",
   "engines": {
@@ -23,7 +23,7 @@
       "import-meta-resolve": "4.1.0",
       "path-to-regexp": "8.2.0",
       "semver": "7.7.2",
-      "vite": "7.0.6"
+      "vite": "7.1.1"
     },
     "peerDependencyRules": {
       "allowedVersions": {
@@ -58,7 +58,7 @@
     "react": "19.1.1",
     "react-dom": "19.1.1",
     "react-i18next": "15.6.1",
-    "react-router-dom": "7.7.1",
+    "react-router-dom": "7.8.0",
     "react-spinners": "0.17.0",
     "react18-input-otp": "1.1.4",
     "tss-react": "4.9.19",
@@ -99,7 +99,7 @@
     "@limegrass/eslint-plugin-import-alias": "1.5.1",
     "@testing-library/jest-dom": "6.6.4",
     "@testing-library/react": "16.3.0",
-    "@types/node": "24.2.0",
+    "@types/node": "24.2.1",
     "@types/react": "19.1.9",
     "@types/react-dom": "19.1.7",
     "@types/zxcvbn": "4.4.5",
@@ -115,14 +115,14 @@
     "eslint-import-resolver-typescript": "4.4.4",
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-jsx-a11y": "6.10.2",
-    "eslint-plugin-prettier": "5.5.3",
+    "eslint-plugin-prettier": "5.5.4",
     "eslint-plugin-react": "7.37.5",
     "eslint-plugin-react-hooks": "5.2.0",
     "happy-dom": "18.0.1",
     "lefthook": "1.12.2",
     "prettier": "3.6.2",
     "typescript": "5.9.2",
-    "vite": "7.0.6",
+    "vite": "7.1.1",
     "vite-plugin-checker": "0.8.0",
     "vite-plugin-istanbul": "7.1.0",
     "vite-plugin-svgr": "4.3.0",

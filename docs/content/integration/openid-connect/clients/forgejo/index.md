@@ -14,7 +14,7 @@ support:
   versions: true
   integration: true
 seo:
-  title: "" # custom title (optional)
+  title: "Forgejo | OpenID Connect 1.0 | Integration"
   description: "Step-by-step guide to configuring Forgejo with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management."
   canonical: "" # custom canonical URL (optional)
   noindex: false # false (default) or true
@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.5](https://github.com/authelia/authelia/releases/tag/v4.39.5)
+  - [v4.39.6](https://github.com/authelia/authelia/releases/tag/v4.39.6)
 - [Forgejo]
   - [v11.0.2](https://codeberg.org/forgejo/forgejo/releases/tag/v11.0.2)
 
@@ -133,6 +133,43 @@ DISABLE_REGISTRATION                          = false
 ALLOW_ONLY_EXTERNAL_REGISTRATION              = true
 SHOW_REGISTRATION_BUTTON                      = false
 ```
+## Optional Configuration
+
+### Authelia
+To configure Forgejo to sync ssh public keys from Authelia you can define `sshpubkey` as a multi-valued [Extra Attribute](../../../../reference/guides/attributes.md#extra-attributes) and __combine__ the following configuration with the configuration.yml above.
+``` yaml {title="configuration.yml"}
+identity_providers:
+  oidc:
+    claims_policies:
+      forgejo:
+        custom_claims:
+          sshpubkey: {}
+    scopes:
+      forgejo:
+        claims:
+          - sshpubkey
+    clients:
+      - client_id: 'forgejo'
+        claims_policy: 'forgejo'
+        scopes:
+          - 'forgejo'
+```
+### Application
+
+Forgejo configuration largely follows the instructions from [Web GUI](#web-gui) and [CLI](#cli)
+
+#### Web GUI
+Follow the instructions in [Web GUI](#web-gui) with the following additions
+
+5. Configure the following options:
+   - Additional scopes: `email profile groups forgejo`
+   - Public SSH key attribute: `sshpubkey`
+
+
+{{< figure src="forgejo-sshpubkey.png" alt="Forgejo" width="300" >}}
+
+#### CLI
+As of `forgejo version 12.0.1+gitea-1.22.0` there doesn't appear to be a CLI flag to specify the Public SSH key attribute and from testing this does not work if left empty. The custom `forgejo` scope can be added to the original command but it is still necessary to set the attribute using the Web UI or API.
 
 ## See Also
 
@@ -143,5 +180,5 @@ SHOW_REGISTRATION_BUTTON                      = false
 
 [Authelia]: https://www.authelia.com
 [Forgejo]: https://forgejo.org/
-[OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
+[OpenID Connect 1.0]: ../../introduction.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md
