@@ -7,6 +7,9 @@ import (
 	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/pem"
+	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
@@ -14,6 +17,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
 func TestShouldReturnErrWhenX509DirectoryNotExist(t *testing.T) {
@@ -122,6 +127,13 @@ func TestShouldParseKeySigAlgorithm(t *testing.T) {
 			InputKey:       "DDD",
 			InputSig:       "SHA1",
 			ExpectedKeyAlg: x509.UnknownPublicKeyAlgorithm,
+			ExpectedSigAlg: x509.UnknownSignatureAlgorithm,
+		},
+		{
+			Name:           "ShouldNotParseKeyRSAInvalidSig",
+			InputKey:       "RSA",
+			InputSig:       "invalid",
+			ExpectedKeyAlg: x509.RSA,
 			ExpectedSigAlg: x509.UnknownSignatureAlgorithm,
 		},
 		{
@@ -544,6 +556,264 @@ func TestTLSVersionFromBytesString(t *testing.T) {
 			} else {
 				assert.EqualError(t, err, tc.err)
 			}
+		})
+	}
+}
+
+func TestParsePEM(t *testing.T) {
+	testCases := []struct {
+		name string
+		path string
+		err  string
+	}{
+		{
+			"ShouldHandleRSAKey",
+			filepath.Join("..", "configuration", "test_resources", "crypto", "rsa.2048.pem"),
+			"",
+		},
+		{
+			"ShouldHandleRSAPublicKey",
+			filepath.Join("..", "configuration", "test_resources", "crypto", "rsa.pair.2048.public.pem"),
+			"",
+		},
+		{
+			"ShouldHandleECDSAKey",
+			filepath.Join("..", "configuration", "test_resources", "crypto", "ecdsa.P521.pem"),
+			"",
+		},
+		{
+			"ShouldHandleEd25519Key",
+			filepath.Join("..", "configuration", "test_resources", "crypto", "ed25519.pem"),
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			raw, err := os.ReadFile(tc.path)
+			require.NoError(t, err)
+
+			block, rest := pem.Decode(raw)
+
+			require.NotNil(t, block)
+			require.Len(t, rest, 0)
+
+			key, err := ParsePEMBlock(block)
+			require.NoError(t, err)
+
+			newblock, err := PEMBlockFromX509Key(key, false)
+			require.NoError(t, err)
+
+			assert.Equal(t, block, newblock)
+
+			_, err = PEMBlockFromX509Key(key, true)
+			assert.NoError(t, err)
+		})
+	}
+}
+
+func TestParseX509FromPEM(t *testing.T) {
+	testCases := []struct {
+		name string
+		path string
+		err  string
+	}{
+		{
+			"ShouldHandleStandard",
+			filepath.Join("..", "configuration", "test_resources", "crypto", "rsa.2048.crt"),
+			"",
+		},
+		{
+			"ShouldHandleStandardKey",
+			filepath.Join("..", "configuration", "test_resources", "crypto", "rsa.2048.pem"),
+			"",
+		},
+		{
+			"ShouldHandleChainError",
+			filepath.Join("..", "configuration", "test_resources", "crypto", "rsa.2048.chain.crt"),
+			"error occurred attempting to parse PEM block: the block either had trailing data or was otherwise malformed",
+		},
+		{
+			"ShouldHandleNotPEM",
+			filepath.Join("..", "configuration", "test_resources", "config_glob.yml"),
+			"error occurred attempting to parse PEM block: either no PEM block was supplied or it was malformed",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			raw, err := os.ReadFile(tc.path)
+			require.NoError(t, err)
+
+			key, err := ParseX509FromPEM(raw)
+
+			if tc.err == "" {
+				assert.NoError(t, err)
+				assert.NotNil(t, key)
+			} else {
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, key)
+			}
+		})
+	}
+}
+
+func TestNewTLSConfig(t *testing.T) {
+	sys, err := x509.SystemCertPool()
+	require.NoError(t, err)
+
+	rawKey, err := os.ReadFile(filepath.Join("..", "configuration", "test_resources", "crypto", "rsa.2048.pem"))
+	require.NoError(t, err)
+
+	keyAny, err := ParseX509FromPEM(rawKey)
+	require.NoError(t, err)
+
+	key, ok := keyAny.(*rsa.PrivateKey)
+	require.True(t, ok)
+
+	rawCert, err := os.ReadFile(filepath.Join("..", "configuration", "test_resources", "crypto", "rsa.2048.crt"))
+	require.NoError(t, err)
+
+	chain, err := schema.NewX509CertificateChain(string(rawCert))
+	require.NoError(t, err)
+
+	testCases := []struct {
+		name   string
+		have   *schema.TLS
+		pool   *x509.CertPool
+		expect bool
+	}{
+		{
+			"ShouldHandleNil",
+			nil,
+			nil,
+			false,
+		},
+		{
+			"ShouldHandleStandard",
+			&schema.TLS{},
+			sys,
+			true,
+		},
+		{
+			"ShouldHandleKeySolo",
+			&schema.TLS{
+				PrivateKey: key,
+			},
+			sys,
+			true,
+		},
+		{
+			"ShouldHandleKey",
+			&schema.TLS{
+				PrivateKey:       key,
+				CertificateChain: *chain,
+			},
+			sys,
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := NewTLSConfig(tc.have, tc.pool)
+
+			if tc.expect {
+				assert.NotNil(t, actual)
+			} else {
+				assert.Nil(t, actual)
+			}
+		})
+	}
+}
+
+func TestIsInsecureCipherSuite(t *testing.T) {
+	testCases := []struct {
+		name   string
+		have   tls.CipherSuite
+		expect bool
+	}{
+		{
+			"ShouldHandleSecure",
+			*tls.CipherSuites()[0],
+			false,
+		},
+		{
+			"ShouldHandleInsecure",
+			*tls.InsecureCipherSuites()[0],
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expect, IsInsecureCipherSuite(tc.have.ID))
+		})
+	}
+}
+
+func TestUnsafeGetIntermediatesFromPeerCertificates(t *testing.T) {
+	sys, err := x509.SystemCertPool()
+	require.NoError(t, err)
+
+	data1, err := os.ReadFile(filepath.Join("..", "configuration", "test_resources", "crypto", "rsa.2048.crt"))
+	require.NoError(t, err)
+
+	data2, err := os.ReadFile(filepath.Join("..", "configuration", "test_resources", "crypto", "rsa.4096.crt"))
+	require.NoError(t, err)
+
+	data3, err := os.ReadFile(filepath.Join("..", "configuration", "test_resources", "crypto", "ca.rsa.4096.crt"))
+	require.NoError(t, err)
+
+	key1, err := ParseX509FromPEM(data1)
+	require.NoError(t, err)
+
+	key2, err := ParseX509FromPEM(data2)
+	require.NoError(t, err)
+
+	key3, err := ParseX509FromPEM(data3)
+	require.NoError(t, err)
+
+	cert1, ok := key1.(*x509.Certificate)
+	require.True(t, ok)
+
+	cert2, ok := key2.(*x509.Certificate)
+	require.True(t, ok)
+
+	cert3, ok := key3.(*x509.Certificate)
+	require.True(t, ok)
+
+	testCases := []struct {
+		name          string
+		have          []*x509.Certificate
+		roots         *x509.CertPool
+		intermediates *x509.CertPool
+	}{
+		{
+			"ShouldHandleNils",
+			nil,
+			nil,
+			&x509.CertPool{},
+		},
+		{
+			"ShouldHandleSys",
+			nil,
+			sys,
+			sys,
+		},
+		{
+			"ShouldHandleSysWithCerts",
+			[]*x509.Certificate{cert1, cert2, cert3},
+			sys,
+			sys,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := UnsafeGetIntermediatesFromPeerCertificates(tc.have, tc.roots, tc.intermediates)
+
+			assert.NotNil(t, result)
 		})
 	}
 }

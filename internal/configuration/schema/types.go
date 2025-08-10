@@ -225,7 +225,7 @@ func (TLSVersion) JSONSchema() *jsonschema.Schema {
 
 // MaxVersion returns the value of this as a MaxVersion value.
 func (v *TLSVersion) MaxVersion() uint16 {
-	if v.Value == 0 {
+	if v == nil || v.Value == 0 {
 		return tls.VersionTLS13
 	}
 
@@ -234,7 +234,7 @@ func (v *TLSVersion) MaxVersion() uint16 {
 
 // MinVersion returns the value of this as a MinVersion value.
 func (v *TLSVersion) MinVersion() uint16 {
-	if v.Value == 0 {
+	if v == nil || v.Value == 0 {
 		return tls.VersionTLS12
 	}
 
