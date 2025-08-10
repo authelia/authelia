@@ -15,23 +15,23 @@ func TestGetDirectoryLanguages(t *testing.T) {
 	haveA := t.TempDir()
 	haveB := t.TempDir()
 
-	_ = os.MkdirAll(filepath.Join(haveB, "en"), 0700)
-	_ = os.MkdirAll(filepath.Join(haveB, "fr"), 0700)
-	_ = os.MkdirAll(filepath.Join(haveB, "em-US"), 0700)
-	_ = os.MkdirAll(filepath.Join(haveB, "es"), 0700)
-	_ = os.MkdirAll(filepath.Join(haveB, "es-AR"), 0700)
+	mustMkdirAll(t, filepath.Join(haveB, "en"))
+	mustMkdirAll(t, filepath.Join(haveB, "fr"))
+	mustMkdirAll(t, filepath.Join(haveB, "en-US"))
+	mustMkdirAll(t, filepath.Join(haveB, "es"))
+	mustMkdirAll(t, filepath.Join(haveB, "es-AR"))
 
-	_ = os.WriteFile(filepath.Join(haveB, "en", "portal.json"), []byte("package a"), 0600)
-	_ = os.WriteFile(filepath.Join(haveB, "en", "settings.json"), []byte("package a"), 0600)
-	_ = os.WriteFile(filepath.Join(haveB, "fr", "portal.json"), []byte("package a"), 0600)
-	_ = os.WriteFile(filepath.Join(haveB, "fr", "settings.json"), []byte("package a"), 0600)
-	_ = os.WriteFile(filepath.Join(haveB, "en-US", "portal.json"), []byte("package a"), 0600)
-	_ = os.WriteFile(filepath.Join(haveB, "en-US", "settings.json"), []byte("package a"), 0600)
+	mustWriteFile(t, filepath.Join(haveB, "en", "portal.json"), []byte("package a"))
+	mustWriteFile(t, filepath.Join(haveB, "en", "settings.json"), []byte("package a"))
+	mustWriteFile(t, filepath.Join(haveB, "fr", "portal.json"), []byte("package a"))
+	mustWriteFile(t, filepath.Join(haveB, "fr", "settings.json"), []byte("package a"))
+	mustWriteFile(t, filepath.Join(haveB, "en-US", "portal.json"), []byte("package a"))
+	mustWriteFile(t, filepath.Join(haveB, "en-US", "settings.json"), []byte("package a"))
 
-	_ = os.WriteFile(filepath.Join(haveB, "es", "portal.json"), []byte("package a"), 0600)
-	_ = os.WriteFile(filepath.Join(haveB, "es", "settings.json"), []byte("package a"), 0600)
-	_ = os.WriteFile(filepath.Join(haveB, "es-AR", "portal.json"), []byte("package a"), 0600)
-	_ = os.WriteFile(filepath.Join(haveB, "es-AR", "settings.json"), []byte("package a"), 0600)
+	mustWriteFile(t, filepath.Join(haveB, "es", "portal.json"), []byte("package a"))
+	mustWriteFile(t, filepath.Join(haveB, "es", "settings.json"), []byte("package a"))
+	mustWriteFile(t, filepath.Join(haveB, "es-AR", "portal.json"), []byte("package a"))
+	mustWriteFile(t, filepath.Join(haveB, "es-AR", "settings.json"), []byte("package a"))
 
 	testCases := []struct {
 		name     string
@@ -78,6 +78,14 @@ func TestGetDirectoryLanguages(t *testing.T) {
 						Namespaces: []string{"portal", "settings"},
 						Fallbacks:  []string{"en"},
 						Tag:        language.MustParse("en"),
+					},
+					{
+						Display:    "American English",
+						Locale:     "en-US",
+						Namespaces: []string{"portal", "settings"},
+						Fallbacks:  []string{"en", "en"},
+						Parent:     "en",
+						Tag:        language.MustParse("en-US"),
 					},
 					{
 						Display:    "Español",
@@ -194,4 +202,14 @@ func TestGetLocaleParentOrBaseString(t *testing.T) {
 			}
 		})
 	}
+}
+
+func mustMkdirAll(t *testing.T, p string) {
+	t.Helper()
+	require.NoError(t, os.MkdirAll(p, 0o700))
+}
+
+func mustWriteFile(t *testing.T, p string, data []byte) {
+	t.Helper()
+	require.NoError(t, os.WriteFile(p, data, 0o600))
 }
