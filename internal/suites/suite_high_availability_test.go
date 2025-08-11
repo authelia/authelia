@@ -294,6 +294,8 @@ func NewHighAvailabilitySuite() *HighAvailabilitySuite {
 }
 
 func DoGetWithAuth(t *testing.T, username, password string) int {
+	t.Helper()
+
 	client := NewHTTPClient()
 	req, err := http.NewRequest(fasthttp.MethodGet, fmt.Sprintf("%s/secret.html", SingleFactorBaseURL), nil)
 	assert.NoError(t, err)

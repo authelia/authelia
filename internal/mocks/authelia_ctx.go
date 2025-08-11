@@ -238,6 +238,8 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 
 // NewMockAutheliaCtxWithUserSession create an instance of AutheliaCtx mock with predefined user session.
 func NewMockAutheliaCtxWithUserSession(t *testing.T, userSession session.UserSession) *MockAutheliaCtx {
+	t.Helper()
+
 	mock := NewMockAutheliaCtx(t)
 	err := mock.Ctx.SaveSession(userSession)
 	require.NoError(t, err)
@@ -406,6 +408,8 @@ func (m *MockAutheliaCtx) GetResponseError(t *testing.T) (errResponse middleware
 }
 
 func AssertIsStringEqualOrRegexp(t *testing.T, expected any, actual any) {
+	t.Helper()
+
 	switch v := expected.(type) {
 	case string:
 		switch a := actual.(type) {
