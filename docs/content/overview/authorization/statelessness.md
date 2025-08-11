@@ -58,8 +58,18 @@ their own. The file system provider is not supported for high availability.
 
 __Severity:__ *MEDIUM (limiting)*.
 
-__Solution:__ Use an authentication provider other than file (LDAP), or distribute the file and disable password reset.
+__Solution:__ Use a stateless provider, i.e. other than file (LDAP).
 
-Use of the file authentication provider (YAML) is only partially supported with high availability setups. It's
-recommended if you don't use a stateless provider that you disable password reset and make sure the file is distributed
-to all instances. We do not support using the file type in these scenarios.
+__Potential Workaround:__ You may be able to use the file provider in a highly available setup provided all features
+which perform stateful actions related to the YAML file (like writing to it) are disabled and a solution to ensure the
+file is properly distributed to all instances.
+
+This features which perform stateful actions includes but is not limited to:
+
+1. Changing Passwords.
+2. Resetting Passwords.
+3. Watching.
+
+While this is theoretically supported in as much as it should work if you do everything correctly we do not officially
+endorse or support for this architecture. We are also unlikely to provide direct tooling for this footgun in our
+deployment technologies such as the helm chart due to the complications it may introduce.
