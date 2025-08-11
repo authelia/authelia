@@ -346,7 +346,7 @@ func TestBuildStringFuncsMissingTests(t *testing.T) {
 }
 
 func TestStringJoinOr(t *testing.T) {
-	tests := []struct {
+	testCases := []struct {
 		name     string
 		items    []string
 		expected string
@@ -356,7 +356,7 @@ func TestStringJoinOr(t *testing.T) {
 		{"Empty slice", []string{}, ""},
 	}
 
-	for _, test := range tests {
+	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
 			result := StringJoinOr(test.items)
 			assert.Equal(t, test.expected, result)

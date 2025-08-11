@@ -188,6 +188,7 @@ func TestShouldConvertKnownUnixNanoTimeToKnownWin32Epoch(t *testing.T) {
 
 	assert.Equal(t, win32Epoch, UnixNanoTimeToMicrosoftNTEpoch(exampleNanoTime))
 	assert.Equal(t, timeUnixEpochAsMicrosoftNTEpoch, UnixNanoTimeToMicrosoftNTEpoch(0))
+	assert.Equal(t, timeUnixEpochAsMicrosoftNTEpoch, UnixNanoTimeToMicrosoftNTEpoch(-1))
 }
 
 func TestParseTimeString(t *testing.T) {

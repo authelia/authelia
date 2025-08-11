@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/trustelem/zxcvbn"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
@@ -140,6 +141,41 @@ func TestPasswordPolicyProvider_Validate(t *testing.T) {
 				t.Run(tc.have[i], func(t *testing.T) {
 					assert.Equal(t, tc.expected[i], provider.Check(tc.have[i]))
 				})
+			}
+		})
+	}
+}
+
+func TestZXCVBNPasswordPolicyProvider_Check(t *testing.T) {
+	weak := "a"
+	strong := "A1!a2@B3#c4$D5%E6^f7&G8*h9"
+
+	sWeak := zxcvbn.PasswordStrength(weak, nil).Score
+	sStrong := zxcvbn.PasswordStrength(strong, nil).Score
+
+	testCases := []struct {
+		name     string
+		password string
+		minScore int
+		wantErr  bool
+	}{
+		{name: "ShouldAllowWhenScoreMeetsMinimumWeak", password: weak, minScore: sWeak, wantErr: false},
+		{name: "ShouldRejectWhenScoreBelowMinimumWeak", password: weak, minScore: sWeak + 1, wantErr: true},
+		{name: "ShouldAllowWhenScoreMeetsMinimumStrong", password: strong, minScore: sStrong, wantErr: false},
+		{name: "ShouldRejectWhenScoreBelowMinimumStrong", password: strong, minScore: sStrong + 1, wantErr: true},
+		{name: "ShouldAllowWhenMinimumIsZero", password: weak, minScore: 0, wantErr: false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			p := ZXCVBNPasswordPolicyProvider{minScore: tc.minScore}
+
+			err := p.Check(tc.password)
+
+			if tc.wantErr {
+				require.ErrorIs(t, err, errPasswordPolicyNoMet)
+			} else {
+				require.NoError(t, err)
 			}
 		})
 	}

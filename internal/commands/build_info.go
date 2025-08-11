@@ -2,9 +2,9 @@ package commands
 
 import (
 	"fmt"
+	"io"
 	"runtime"
 	"runtime/debug"
-	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -30,6 +30,15 @@ func newBuildInfoCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 
 // BuildInfoRunE is the RunE for the authelia build-info command.
 func (ctx *CmdCtx) BuildInfoRunE(cmd *cobra.Command, _ []string) (err error) {
+	var verbose bool
+	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
+		return err
+	}
+
+	return runBuildInfo(cmd.OutOrStdout(), verbose)
+}
+
+func runBuildInfo(w io.Writer, verbose bool) (err error) {
 	var (
 		info *debug.BuildInfo
 		ok   bool
@@ -39,34 +48,28 @@ func (ctx *CmdCtx) BuildInfoRunE(cmd *cobra.Command, _ []string) (err error) {
 		return fmt.Errorf("failed to read build info")
 	}
 
-	b := &strings.Builder{}
-
-	fmt.Fprintf(b, fmtAutheliaBuild, utils.BuildTag, utils.BuildState, utils.BuildBranch, utils.BuildCommit,
+	_, _ = fmt.Fprintf(w, fmtAutheliaBuild, utils.BuildTag, utils.BuildState, utils.BuildBranch, utils.BuildCommit,
 		utils.BuildNumber, runtime.GOOS, runtime.GOARCH, runtime.Compiler, utils.BuildDate, utils.Dev, utils.BuildExtra)
 
-	var verbose bool
+	_, _ = fmt.Fprintf(w, "\n"+fmtAutheliaBuildGo, info.GoVersion, info.Main.Path, info.Path)
 
-	fmt.Fprintf(b, "\n"+fmtAutheliaBuildGo, info.GoVersion, info.Main.Path, info.Path)
-
-	if verbose, err = cmd.Flags().GetBool("verbose"); err == nil && verbose {
+	if verbose {
 		if len(info.Settings) != 0 {
-			b.WriteString("    Settings:\n")
+			_, _ = fmt.Fprintf(w, "    Settings:\n")
 
 			for _, setting := range info.Settings {
-				fmt.Fprintf(b, "        %s: %s\n", setting.Key, setting.Value)
+				_, _ = fmt.Fprintf(w, "        %s: %s\n", setting.Key, setting.Value)
 			}
 		}
 
 		if len(info.Deps) != 0 {
-			b.WriteString("    Dependencies:\n")
+			_, _ = fmt.Fprintf(w, "    Dependencies:\n")
 
 			for _, dep := range info.Deps {
-				fmt.Fprintf(b, "        %s@%s (%s)\n", dep.Path, dep.Version, dep.Sum)
+				_, _ = fmt.Fprintf(w, "        %s@%s (%s)\n", dep.Path, dep.Version, dep.Sum)
 			}
 		}
 	}
 
-	fmt.Print(b.String())
-
-	return err
+	return nil
 }

@@ -1513,3 +1513,455 @@ func TestNewClient_JSONWebKeySetURI(t *testing.T) {
 
 	assert.Equal(t, "", registered.GetJSONWebKeysURI())
 }
+
+func TestGetClientSecretPlainText(t *testing.T) {
+	testCases := []struct {
+		name   string
+		client *oidc.RegisteredClient
+		secret []byte
+		ok     bool
+		err    string
+	}{
+		{
+			name:   "ShouldReturnNotOkAndNilErrorWhenSecretNil",
+			client: &oidc.RegisteredClient{ClientSecret: nil},
+			secret: nil,
+			ok:     false,
+			err:    "",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			secret, ok, err := tc.client.GetClientSecretPlainText()
+			assert.Equal(t, tc.secret, secret)
+			assert.Equal(t, tc.ok, ok)
+
+			if tc.err != "" {
+				assert.EqualError(t, err, tc.err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestGetRotatedClientSecrets(t *testing.T) {
+	testCases := []struct {
+		name    string
+		secrets []*oidc.ClientSecretDigest
+	}{
+		{
+			name:    "ShouldReturnCopyOfRotatedSecrets",
+			secrets: []*oidc.ClientSecretDigest{{}, {}},
+		},
+		{
+			name:    "ShouldReturnEmptyWhenNoneConfigured",
+			secrets: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{RotatedClientSecrets: tc.secrets}
+			actual := c.GetRotatedClientSecrets()
+
+			if tc.secrets == nil {
+				assert.Len(t, actual, 0)
+				return
+			}
+
+			assert.Equal(t, len(tc.secrets), len(actual))
+
+			for i := range tc.secrets {
+				assert.Equal(t, tc.secrets[i], actual[i])
+			}
+
+			if len(tc.secrets) > 0 {
+				tc.secrets[0] = &oidc.ClientSecretDigest{PasswordDigest: schema.NewPasswordDigest(nil)}
+				assert.NotEqual(t, tc.secrets[0], actual[0])
+			}
+		})
+	}
+}
+
+func TestGetSectorIdentifierURI(t *testing.T) {
+	u := &url.URL{Scheme: "https", Host: "example.com", Path: "/sector.json"}
+	testCases := []struct {
+		name string
+		u    *url.URL
+		want string
+	}{
+		{
+			name: "ShouldReturnEmptyWhenNil",
+			u:    nil,
+			want: "",
+		},
+		{
+			name: "ShouldReturnStringWhenSet",
+			u:    u,
+			want: u.String(),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{SectorIdentifierURI: tc.u}
+			assert.Equal(t, tc.want, c.GetSectorIdentifierURI())
+		})
+	}
+}
+
+func TestGetClaimsStrategy(t *testing.T) {
+	testCases := []struct {
+		name string
+		cs   oidc.ClaimsStrategy
+	}{
+		{
+			name: "ShouldReturnNilWhenUnset",
+			cs:   nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{ClaimsStrategy: tc.cs}
+			assert.Equal(t, tc.cs, c.GetClaimsStrategy())
+		})
+	}
+}
+
+func TestGetRevocationEndpointAuthMethod(t *testing.T) {
+	testCases := []struct {
+		name   string
+		public bool
+		method string
+		want   string
+	}{
+		{
+			name:   "ShouldReturnNoneWhenPublicAndEmpty",
+			public: true,
+			method: "",
+			want:   oidc.ClientAuthMethodNone,
+		},
+		{
+			name:   "ShouldReturnEmptyWhenPrivateAndEmpty",
+			public: false,
+			method: "",
+			want:   "",
+		},
+		{
+			name:   "ShouldReturnConfiguredWhenSet",
+			public: true,
+			method: "private_key_jwt",
+			want:   "private_key_jwt",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{Public: tc.public, RevocationEndpointAuthMethod: tc.method}
+			assert.Equal(t, tc.want, c.GetRevocationEndpointAuthMethod())
+		})
+	}
+}
+
+func TestGetPushedAuthorizeContextLifespan(t *testing.T) {
+	testCases := []struct {
+		name string
+	}{
+		{
+			name: "ShouldReturnZero",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{}
+			assert.Equal(t, time.Duration(0), c.GetPushedAuthorizeContextLifespan())
+		})
+	}
+}
+
+func TestGetRevokeRefreshTokensExplicit(t *testing.T) {
+	testCases := []struct {
+		name string
+	}{
+		{
+			name: "ShouldReturnFalse",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{}
+			assert.False(t, c.GetRevokeRefreshTokensExplicit(context.Background()))
+		})
+	}
+}
+
+func TestSetJSONWebKeys(t *testing.T) {
+	jwks := &jose.JSONWebKeySet{Keys: []jose.JSONWebKey{{KeyID: "kid1", Algorithm: "RS256"}}}
+	testCases := []struct {
+		name string
+		jwks *jose.JSONWebKeySet
+	}{
+		{
+			name: "ShouldSetAndGetJWKS",
+			jwks: jwks,
+		},
+		{
+			name: "ShouldSetNilJWKS",
+			jwks: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{}
+			c.SetJSONWebKeys(tc.jwks)
+			assert.Equal(t, tc.jwks, c.GetJSONWebKeys())
+		})
+	}
+}
+
+func TestGetRequestObjectSigningKeyID(t *testing.T) {
+	testCases := []struct {
+		name string
+	}{
+		{
+			name: "ShouldReturnEmpty",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, "", (&oidc.RegisteredClient{}).GetRequestObjectSigningKeyID())
+		})
+	}
+}
+
+func TestGetRequestObjectEncryptionKeyID(t *testing.T) {
+	testCases := []struct {
+		name string
+	}{
+		{
+			name: "ShouldReturnEmpty",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, "", (&oidc.RegisteredClient{}).GetRequestObjectEncryptionKeyID())
+		})
+	}
+}
+
+func TestGetRequestObjectEncryptionAlg(t *testing.T) {
+	testCases := []struct {
+		name string
+		alg  string
+	}{
+		{
+			name: "ShouldReturnConfiguredAlg",
+			alg:  "RSA-OAEP",
+		},
+		{
+			name: "ShouldReturnEmptyWhenUnset",
+			alg:  "",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{RequestObjectEncryptionAlg: tc.alg}
+			assert.Equal(t, tc.alg, c.GetRequestObjectEncryptionAlg())
+		})
+	}
+}
+
+func TestGetRequestObjectEncryptionEnc(t *testing.T) {
+	testCases := []struct {
+		name string
+		enc  string
+	}{
+		{
+			name: "ShouldReturnConfiguredEnc",
+			enc:  "A128GCM",
+		},
+		{
+			name: "ShouldReturnEmptyWhenUnset",
+			enc:  "",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{RequestObjectEncryptionEnc: tc.enc}
+			assert.Equal(t, tc.enc, c.GetRequestObjectEncryptionEnc())
+		})
+	}
+}
+
+func TestGetAllowMultipleAuthenticationMethods(t *testing.T) {
+	testCases := []struct {
+		name  string
+		allow bool
+	}{
+		{
+			name:  "ShouldReturnTrueWhenAllowed",
+			allow: true,
+		},
+		{
+			name:  "ShouldReturnFalseWhenNotAllowed",
+			allow: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{AllowMultipleAuthenticationMethods: tc.allow}
+			assert.Equal(t, tc.allow, c.GetAllowMultipleAuthenticationMethods())
+		})
+	}
+}
+
+func TestGetClientCredentialsFlowRequestedScopeImplicit(t *testing.T) {
+	testCases := []struct {
+		name  string
+		allow bool
+	}{
+		{
+			name:  "ShouldReturnTrueWhenEnabled",
+			allow: true,
+		},
+		{
+			name:  "ShouldReturnFalseWhenDisabled",
+			allow: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{ClientCredentialsFlowAllowImplicitScope: tc.allow}
+			assert.Equal(t, tc.allow, c.GetClientCredentialsFlowRequestedScopeImplicit())
+		})
+	}
+}
+
+func TestGetRequestedAudienceImplicit(t *testing.T) {
+	testCases := []struct {
+		name string
+		mode oidc.ClientRequestedAudienceMode
+		want bool
+	}{
+		{
+			name: "ShouldReturnTrueWhenImplicit",
+			mode: oidc.ClientRequestedAudienceModeImplicit,
+			want: true,
+		},
+		{
+			name: "ShouldReturnFalseWhenDefault",
+			mode: 0,
+			want: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &oidc.RegisteredClient{RequestedAudienceMode: tc.mode}
+			assert.Equal(t, tc.want, c.GetRequestedAudienceImplicit())
+		})
+	}
+}
+
+func TestDecoratedUserinfoClient(t *testing.T) {
+	jwks := &jose.JSONWebKeySet{Keys: []jose.JSONWebKey{{KeyID: "kid-userinfo", Algorithm: "RS256"}}}
+	u := &url.URL{Scheme: "https", Host: "client.example.com", Path: "/jwks.json"}
+	base := &oidc.RegisteredClient{
+		ID:                             "client-1",
+		UserinfoSignedResponseKeyID:    "kid-sign",
+		UserinfoSignedResponseAlg:      "RS256",
+		UserinfoEncryptedResponseKeyID: "kid-enc",
+		UserinfoEncryptedResponseAlg:   "RSA-OAEP",
+		UserinfoEncryptedResponseEnc:   "A128GCM",
+		JSONWebKeys:                    jwks,
+		JSONWebKeysURI:                 u,
+		ClientSecret:                   nil,
+	}
+
+	var d = oidc.NewUserinfoClient(base)
+
+	testCases := []struct {
+		name string
+		test func(t *testing.T)
+	}{
+		{
+			name: "ShouldReturnSigningKeyID",
+			test: func(t *testing.T) {
+				assert.Equal(t, base.UserinfoSignedResponseKeyID, d.GetSigningKeyID())
+			},
+		},
+		{
+			name: "ShouldReturnSigningAlg",
+			test: func(t *testing.T) {
+				assert.Equal(t, base.UserinfoSignedResponseAlg, d.GetSigningAlg())
+			},
+		},
+		{
+			name: "ShouldReturnEncryptionKeyID",
+			test: func(t *testing.T) {
+				assert.Equal(t, base.UserinfoEncryptedResponseKeyID, d.GetEncryptionKeyID())
+			},
+		},
+		{
+			name: "ShouldReturnEncryptionAlg",
+			test: func(t *testing.T) {
+				assert.Equal(t, base.UserinfoEncryptedResponseAlg, d.GetEncryptionAlg())
+			},
+		},
+		{
+			name: "ShouldReturnEncryptionEnc",
+			test: func(t *testing.T) {
+				assert.Equal(t, base.UserinfoEncryptedResponseEnc, d.GetEncryptionEnc())
+			},
+		},
+		{
+			name: "ShouldReturnFalseForIsClientSigned",
+			test: func(t *testing.T) {
+				assert.False(t, d.IsClientSigned())
+			},
+		},
+		{
+			name: "ShouldReturnID",
+			test: func(t *testing.T) {
+				assert.Equal(t, base.ID, d.GetID())
+			},
+		},
+		{
+			name: "ShouldReturnClientSecretPlainTextWhenNil",
+			test: func(t *testing.T) {
+				secret, ok, err := d.GetClientSecretPlainText()
+				assert.Nil(t, secret)
+				assert.False(t, ok)
+				assert.NoError(t, err)
+			},
+		},
+		{
+			name: "ShouldReturnJWKS",
+			test: func(t *testing.T) {
+				assert.Equal(t, jwks, d.GetJSONWebKeys())
+			},
+		},
+		{
+			name: "ShouldReturnJWKSURI",
+			test: func(t *testing.T) {
+				assert.Equal(t, u.String(), d.GetJSONWebKeysURI())
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, tc.test)
+	}
+}
