@@ -82,7 +82,7 @@ func (p TimeBased) GenerateCustom(ctx Context, username, algorithm, secret strin
 	}
 
 	if key, err = totp.Generate(opts); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error generating totp: %w", err)
 	}
 
 	config = &model.TOTPConfiguration{

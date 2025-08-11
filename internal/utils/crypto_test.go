@@ -586,6 +586,16 @@ func TestParsePEM(t *testing.T) {
 			filepath.Join("..", "configuration", "test_resources", "crypto", "ed25519.pem"),
 			"",
 		},
+		{
+			"ShouldHandleRSAKeyLegacy",
+			filepath.Join("..", "configuration", "test_resources", "crypto", "rsa.2048.legacy.pem"),
+			"",
+		},
+		{
+			"ShouldHandleECDSAKeyLegacy",
+			filepath.Join("..", "configuration", "test_resources", "crypto", "ecdsa.P521.legacy.pem"),
+			"",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -604,10 +614,14 @@ func TestParsePEM(t *testing.T) {
 			newblock, err := PEMBlockFromX509Key(key, false)
 			require.NoError(t, err)
 
-			assert.Equal(t, block, newblock)
-
-			_, err = PEMBlockFromX509Key(key, true)
+			newlegacyblock, err := PEMBlockFromX509Key(key, true)
 			assert.NoError(t, err)
+
+			if strings.HasSuffix(tc.name, "Legacy") {
+				assert.Equal(t, block, newlegacyblock)
+			} else {
+				assert.Equal(t, block, newblock)
+			}
 		})
 	}
 }
@@ -646,6 +660,52 @@ func TestParseX509FromPEM(t *testing.T) {
 			require.NoError(t, err)
 
 			key, err := ParseX509FromPEM(raw)
+
+			if tc.err == "" {
+				assert.NoError(t, err)
+				assert.NotNil(t, key)
+			} else {
+				assert.EqualError(t, err, tc.err)
+				assert.Nil(t, key)
+			}
+		})
+	}
+}
+
+func TestParseX509FromPEMRecursive(t *testing.T) {
+	testCases := []struct {
+		name string
+		path string
+		err  string
+	}{
+		{
+			"ShouldHandleStandard",
+			filepath.Join("..", "configuration", "test_resources", "crypto", "rsa.2048.crt"),
+			"",
+		},
+		{
+			"ShouldHandleStandardKey",
+			filepath.Join("..", "configuration", "test_resources", "crypto", "rsa.2048.pem"),
+			"",
+		},
+		{
+			"ShouldHandleChainError",
+			filepath.Join("..", "configuration", "test_resources", "crypto", "rsa.2048.chain.crt"),
+			"",
+		},
+		{
+			"ShouldHandleNotPEM",
+			filepath.Join("..", "configuration", "test_resources", "config_glob.yml"),
+			"error occurred attempting to parse PEM block: either no PEM block was supplied or it was malformed",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			raw, err := os.ReadFile(tc.path)
+			require.NoError(t, err)
+
+			key, err := ParseX509FromPEMRecursive(raw)
 
 			if tc.err == "" {
 				assert.NoError(t, err)

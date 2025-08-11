@@ -220,19 +220,19 @@ func ParseX509FromPEMRecursive(data []byte) (decoded any, err error) {
 
 		switch {
 		case block == nil:
-			return nil, fmt.Errorf("failed to parse PEM blocks: data does not appear to be PEM encoded")
+			return nil, fmt.Errorf("error occurred attempting to parse PEM block: either no PEM block was supplied or it was malformed")
 		case multi || n != 0:
 			switch block.Type {
 			case BlockTypeCertificate:
 				var certificate *x509.Certificate
 
 				if certificate, err = x509.ParseCertificate(block.Bytes); err != nil {
-					return nil, fmt.Errorf("failed to parse PEM blocks: data contains multiple blocks but #%d had an error during parsing: %w", i, err)
+					return nil, fmt.Errorf("error occurred attempting to parse PEM block: data contains multiple blocks but #%d had an error during parsing: %w", i, err)
 				}
 
 				certificates = append(certificates, certificate)
 			default:
-				return nil, fmt.Errorf("failed to parse PEM blocks: data contains multiple blocks but #%d has a '%s' block type and should have a '%s' block type", i, block.Type, BlockTypeCertificate)
+				return nil, fmt.Errorf("error occurred attempting to parse PEM block: data contains multiple blocks but #%d has a '%s' block type and should have a '%s' block type", i, block.Type, BlockTypeCertificate)
 			}
 
 			multi = true
