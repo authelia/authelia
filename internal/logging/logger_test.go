@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"runtime"
 	"testing"
 
@@ -13,6 +14,46 @@ import (
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
+
+func TestInitializeStackTracer(t *testing.T) {
+	testCases := []struct {
+		name  string
+		level string
+	}{
+		{
+			"Info",
+			"info",
+		},
+		{
+			"Debug",
+			"debug",
+		},
+		{
+			"Trace",
+			"trace",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			initializeStackTracer(schema.Log{Level: tc.level})
+		})
+	}
+}
+
+func TestConfigureLogger(t *testing.T) {
+	assert.NoError(t, ConfigureLogger(schema.Log{}, false))
+}
+
+func TestReopen(t *testing.T) {
+	assert.EqualError(t, Reopen(), "error reopening log file: file is not configured or open")
+
+	dir := t.TempDir()
+
+	assert.NoError(t, ConfigureLogger(schema.Log{FilePath: filepath.Join(dir, "authelia.log")}, true))
+
+	assert.NoError(t, Reopen())
+}
 
 func TestShouldWriteLogsToFile(t *testing.T) {
 	dir := t.TempDir()

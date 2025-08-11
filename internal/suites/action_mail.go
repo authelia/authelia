@@ -112,6 +112,8 @@ func getHTMLNodeWithID(n *html.Node, id string) (found *html.Node) {
 }
 
 func doGetEmailNodeID(t *testing.T, subject, id string) (node *html.Node) {
+	t.Helper()
+
 	msg := doGetLastEmailMessageWithSubject(t, subject)
 
 	reader, err := msg.GetContentReader()
@@ -126,6 +128,8 @@ func doGetEmailNodeID(t *testing.T, subject, id string) (node *html.Node) {
 }
 
 func doGetOneTimeCodeFromLastMail(t *testing.T) string {
+	t.Helper()
+
 	element := doGetEmailNodeID(t, "[Authelia] Confirm your identity", "one-time-code")
 
 	require.NotNil(t, element)
@@ -138,6 +142,8 @@ func doGetOneTimeCodeFromLastMail(t *testing.T) string {
 
 //nolint:unused
 func doGetOneTimeCodeLinkRevokeFromLastMail(t *testing.T) string {
+	t.Helper()
+
 	element := doGetEmailNodeID(t, "[Authelia] Confirm your identity", "link-revoke")
 
 	require.NotNil(t, element)
@@ -146,6 +152,8 @@ func doGetOneTimeCodeLinkRevokeFromLastMail(t *testing.T) string {
 }
 
 func doGetResetPasswordJWTLinkFromLastEmail(t *testing.T) string {
+	t.Helper()
+
 	element := doGetEmailNodeID(t, "[Authelia] Reset your password", "link")
 
 	require.NotNil(t, element)
@@ -155,6 +163,8 @@ func doGetResetPasswordJWTLinkFromLastEmail(t *testing.T) string {
 
 //nolint:unused
 func doGetResetPasswordJWTLinkRevokeFromLastEmail(t *testing.T) string {
+	t.Helper()
+
 	element := doGetEmailNodeID(t, "[Authelia] Reset your password", "link-revoke")
 
 	require.NotNil(t, element)
@@ -163,6 +173,8 @@ func doGetResetPasswordJWTLinkRevokeFromLastEmail(t *testing.T) string {
 }
 
 func doGetNodeAttribute(t *testing.T, node *html.Node, key string) string {
+	t.Helper()
+
 	for _, attr := range node.Attr {
 		if attr.Key != key {
 			continue
@@ -177,6 +189,8 @@ func doGetNodeAttribute(t *testing.T, node *html.Node, key string) string {
 }
 
 func doGetLastEmailMessageWithSubject(t *testing.T, subject string) (message EmailMessage) {
+	t.Helper()
+
 	messages := doGetEmailMessages(t)
 
 	for i := len(messages) - 1; i >= 0; i-- {
@@ -191,6 +205,8 @@ func doGetLastEmailMessageWithSubject(t *testing.T, subject string) (message Ema
 }
 
 func doGetEmailMessages(t *testing.T) []EmailMessage {
+	t.Helper()
+
 	var emr EmailMessagesResponse
 
 	res := doHTTPGetQuery(t, fmt.Sprintf("%s/api/v1/messages", MailBaseURL))

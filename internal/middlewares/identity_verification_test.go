@@ -38,6 +38,12 @@ func defaultRetriever(ctx *middlewares.AutheliaCtx) (*session.Identity, error) {
 	}, nil
 }
 
+func TestIdentityVerificationStart_ShouldPanic(t *testing.T) {
+	assert.PanicsWithError(t, "identity verification requires an identity retriever", func() {
+		middlewares.IdentityVerificationStart(newArgs(nil), nil)
+	})
+}
+
 func TestShouldFailStartingProcessIfUserHasNoEmailAddress(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 	defer mock.Close()
@@ -57,13 +63,16 @@ func TestShouldFailIfJWTCannotBeSaved(t *testing.T) {
 	defer mock.Close()
 
 	mock.Ctx.Configuration.IdentityValidation.ResetPassword.JWTSecret = testJWTSecret
+	mock.Ctx.Configuration.IdentityValidation.ResetPassword.JWTAlgorithm = ""
 
 	mock.StorageMock.EXPECT().
 		SaveIdentityVerification(mock.Ctx, gomock.Any()).
 		Return(fmt.Errorf("cannot save"))
 
 	args := newArgs(defaultRetriever)
-	middlewares.IdentityVerificationStart(args, nil)(mock.Ctx)
+	middlewares.IdentityVerificationStart(args, func(ctx *middlewares.AutheliaCtx, requestTime time.Time, successful *bool) {
+		time.Sleep(time.Millisecond * 10)
+	})(mock.Ctx)
 
 	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
 	assert.Equal(t, "cannot save", mock.Hook.LastEntry().Message)
@@ -74,6 +83,7 @@ func TestShouldFailSendingAnEmail(t *testing.T) {
 	defer mock.Close()
 
 	mock.Ctx.Configuration.IdentityValidation.ResetPassword.JWTSecret = testJWTSecret
+	mock.Ctx.Configuration.IdentityValidation.ResetPassword.JWTAlgorithm = "HS512"
 	mock.Ctx.Request.Header.Add(fasthttp.HeaderXForwardedProto, "http")
 	mock.Ctx.Request.Header.Add(fasthttp.HeaderXForwardedHost, "host")
 
@@ -96,6 +106,31 @@ func TestShouldSucceedIdentityVerificationStartProcess(t *testing.T) {
 	mock := mocks.NewMockAutheliaCtx(t)
 
 	mock.Ctx.Configuration.IdentityValidation.ResetPassword.JWTSecret = testJWTSecret
+	mock.Ctx.Configuration.IdentityValidation.ResetPassword.JWTAlgorithm = "HS384"
+	mock.Ctx.Request.Header.Add(fasthttp.HeaderXForwardedProto, "http")
+	mock.Ctx.Request.Header.Add(fasthttp.HeaderXForwardedHost, "host")
+
+	mock.StorageMock.EXPECT().
+		SaveIdentityVerification(mock.Ctx, gomock.Any()).
+		Return(nil)
+
+	mock.NotifierMock.EXPECT().
+		Send(gomock.Eq(mock.Ctx), gomock.Eq(mail.Address{Address: "john@example.com"}), gomock.Eq("Title"), gomock.Any(), gomock.Any()).
+		Return(nil)
+
+	args := newArgs(defaultRetriever)
+	middlewares.IdentityVerificationStart(args, nil)(mock.Ctx)
+
+	assert.Equal(t, fasthttp.StatusOK, mock.Ctx.Response.StatusCode())
+
+	defer mock.Close()
+}
+
+func TestShouldSucceedIdentityVerificationStartProcessHS256(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+
+	mock.Ctx.Configuration.IdentityValidation.ResetPassword.JWTSecret = testJWTSecret
+	mock.Ctx.Configuration.IdentityValidation.ResetPassword.JWTAlgorithm = "HS256"
 	mock.Ctx.Request.Header.Add(fasthttp.HeaderXForwardedProto, "http")
 	mock.Ctx.Request.Header.Add(fasthttp.HeaderXForwardedHost, "host")
 

@@ -1173,6 +1173,8 @@ func TestShouldLoadDirectoryConfiguration(t *testing.T) {
 }
 
 func testSetEnv(t *testing.T, key, value string) {
+	t.Helper()
+
 	t.Setenv(DefaultEnvPrefix+key, value)
 }
 
