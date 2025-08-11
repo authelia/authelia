@@ -41,7 +41,7 @@ func TestShouldNotParseInvalidSubjects(t *testing.T) {
 
 	assert.True(t, subjectsACL[0].IsMatch(Subject{Username: "a", Groups: []string{"z"}}))
 
-	assert.Equal(t, subjectsSchema, NewSubjects(subjectsSchema))
+	assert.Equal(t, subjectsACL, NewSubjects(subjectsSchema))
 }
 
 func TestShouldSplitDomainCorrectly(t *testing.T) {

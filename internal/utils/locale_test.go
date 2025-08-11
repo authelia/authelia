@@ -124,8 +124,11 @@ func TestGetDirectoryLanguages(t *testing.T) {
 				assert.Nil(t, langs)
 			} else {
 				require.NoError(t, err)
+				require.NotNil(t, langs)
 
-				assert.Equal(t, tc.expected, langs)
+				assert.ElementsMatch(t, tc.expected.Namespaces, langs.Namespaces)
+				assert.ElementsMatch(t, tc.expected.Languages, langs.Languages)
+				assert.Equal(t, tc.expected.Defaults, langs.Defaults)
 			}
 		})
 	}
