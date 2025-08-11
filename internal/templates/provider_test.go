@@ -17,7 +17,7 @@ func TestNew(t *testing.T) {
 
 	dir := t.TempDir()
 
-	provider, err = New(Config{EmailTemplatesPath: filepath.Join(dir)})
+	provider, err = New(Config{EmailTemplatesPath: dir})
 	require.NoError(t, err)
 	assert.NotNil(t, provider)
 
@@ -112,7 +112,7 @@ func TestLoadTemplatedAssets(t *testing.T) {
 				assert.NoError(t, os.WriteFile(filepath.Join(dir, "public_html", "api", "openapi.yml"), []byte("not yml"), 0600))
 			}
 
-			provider, err := New(Config{EmailTemplatesPath: filepath.Join(dir)})
+			provider, err := New(Config{EmailTemplatesPath: dir})
 			require.NoError(t, err)
 			require.NotNil(t, provider)
 

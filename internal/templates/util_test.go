@@ -105,12 +105,6 @@ func TestParseMiscTemplates(t *testing.T) {
 }
 
 func TestLoadEmailTemplate(t *testing.T) {
-	/*
-		TemplateNameEmailIdentityVerificationJWT
-		TemplateNameEmailIdentityVerificationOTC
-		TemplateNameEmailEvent
-	*/
-
 	testCases := []struct {
 		name  string
 		tname string
@@ -341,12 +335,13 @@ func TestLoadEmailTemplate(t *testing.T) {
 
 			tmpl, err := loadEmailTemplate(tc.tname, dir)
 
-			if tc.err != "" {
+			switch {
+			case tc.err != "":
 				assert.EqualError(t, err, tc.err)
 				assert.Nil(t, tmpl)
-			} else if tc.errf != nil {
+			case tc.errf != nil:
 				tc.errf(t, tc.tname, dir, tmpl, err)
-			} else {
+			default:
 				require.NoError(t, err)
 				assert.NotNil(t, tmpl)
 			}
