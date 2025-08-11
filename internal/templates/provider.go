@@ -34,36 +34,36 @@ func (p *Provider) LoadTemplatedAssets(fs fs.ReadFileFS) (err error) {
 	)
 
 	if data, err = fs.ReadFile("public_html/index.html"); err != nil {
-		return err
+		return fmt.Errorf("error occurred loading template 'assets/public_html/index.html': %w", err)
 	}
 
 	if p.templates.asset.index, err = tt.
 		New("assets/public_html/index.html").
 		Funcs(FuncMap()).
 		Parse(string(data)); err != nil {
-		return err
+		return fmt.Errorf("error occurred loading template 'assets/public_html/index.html': %w", err)
 	}
 
 	if data, err = fs.ReadFile("public_html/api/index.html"); err != nil {
-		return err
+		return fmt.Errorf("error occurred loading template 'assets/public_html/api/index.html': %w", err)
 	}
 
 	if p.templates.asset.api.index, err = tt.
 		New("assets/public_html/api/index.html").
 		Funcs(FuncMap()).
 		Parse(string(data)); err != nil {
-		return err
+		return fmt.Errorf("error occurred loading template 'assets/public_html/api/index.html': %w", err)
 	}
 
 	if data, err = fs.ReadFile("public_html/api/openapi.yml"); err != nil {
-		return err
+		return fmt.Errorf("error occurred loading template 'assets/public_html/api/openapi.yml': %w", err)
 	}
 
 	if p.templates.asset.api.spec, err = tt.
 		New("assets/public_html/api/openapi.yml").
 		Funcs(FuncMap()).
 		Parse(string(data)); err != nil {
-		return err
+		return fmt.Errorf("error occurred loading template 'assets/public_html/api/openapi.yml': %w", err)
 	}
 
 	return nil
@@ -108,15 +108,15 @@ func (p *Provider) load() (err error) {
 	var errs []error
 
 	if p.templates.notification.jwtIdentityVerification, err = loadEmailTemplate(TemplateNameEmailIdentityVerificationJWT, p.config.EmailTemplatesPath); err != nil {
-		errs = append(errs, err)
+		errs = append(errs, fmt.Errorf("error occurred loading '%s' email template: %w", TemplateNameEmailIdentityVerificationJWT, err))
 	}
 
 	if p.templates.notification.otcIdentityVerification, err = loadEmailTemplate(TemplateNameEmailIdentityVerificationOTC, p.config.EmailTemplatesPath); err != nil {
-		errs = append(errs, err)
+		errs = append(errs, fmt.Errorf("error occurred loading '%s' email template: %w", TemplateNameEmailIdentityVerificationOTC, err))
 	}
 
 	if p.templates.notification.event, err = loadEmailTemplate(TemplateNameEmailEvent, p.config.EmailTemplatesPath); err != nil {
-		errs = append(errs, err)
+		errs = append(errs, fmt.Errorf("error occurred loading '%s' email template: %w", TemplateNameEmailEvent, err))
 	}
 
 	var data []byte

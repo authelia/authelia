@@ -103,19 +103,19 @@ func loadEmailTemplate(name, overridePath string) (t *EmailTemplate, err error) 
 	t = &EmailTemplate{}
 
 	if tpath, embed, data, err = readTemplate(name, extText, TemplateCategoryNotifications, overridePath); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error occurred reading text template: %w", err)
 	}
 
 	if t.Text, err = parseTextTemplate(name, tpath, embed, data); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error occurred parsing text template: %w", err)
 	}
 
 	if tpath, embed, data, err = readTemplate(name, extHTML, TemplateCategoryNotifications, overridePath); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error occurred reading html template: %w", err)
 	}
 
 	if t.HTML, err = parseHTMLTemplate(name, tpath, embed, data); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error occurred parsing html template: %w", err)
 	}
 
 	return t, nil
