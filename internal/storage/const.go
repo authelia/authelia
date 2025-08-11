@@ -10,6 +10,7 @@ const (
 	tableBannedIP             = "banned_ip"
 	tableCachedData           = "cached_data"
 	tableDuoDevices           = "duo_devices"
+	tableKnownIpAddresses     = "known_ip_addresses"
 	tableIdentityVerification = "identity_verification"
 	tableOneTimeCode          = "one_time_code"
 	tableTOTPConfigurations   = "totp_configurations"

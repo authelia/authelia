@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"authelia.com/provider/oauth2/storage"
+	"github.com/avct/uasurfer"
 	"github.com/google/uuid"
 
 	"github.com/authelia/authelia/v4/internal/model"
@@ -137,6 +138,20 @@ type Provider interface {
 
 	// LoadPreferredDuoDevice loads a Duo device from the storage provider for a given username.
 	LoadPreferredDuoDevice(ctx context.Context, username string) (device *model.DuoDevice, err error)
+
+	/*
+		Implementation for Known/New IP Tracking
+	*/
+
+	IsIPKnownForUser(ctx context.Context, username string, ip model.IP) (isIPKnown bool, err error)
+
+	SaveNewIPForUser(ctx context.Context, username string, ip model.IP, userAgent uasurfer.UserAgent) (err error)
+
+	UpdateKnownIP(ctx context.Context, username string, ip model.IP) (err error)
+
+	LoadKnownIPsByUser(ctx context.Context, username string) (ips []model.IP, err error)
+
+	CleanupExpiredKnownIPs(ctx context.Context) error
 
 	/*
 		Implementation for Identity Verification (JWT).

@@ -96,6 +96,12 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlSelectAuthenticationLogsRegulationRecordsByUsername = provider.db.Rebind(provider.sqlSelectAuthenticationLogsRegulationRecordsByUsername)
 	provider.sqlSelectAuthenticationLogsRegulationRecordsByRemoteIP = provider.db.Rebind(provider.sqlSelectAuthenticationLogsRegulationRecordsByRemoteIP)
 
+	provider.sqlInsertNewKnownIp = provider.db.Rebind(provider.sqlInsertNewKnownIp)
+	provider.sqlIsIPKnownForUser = provider.db.Rebind(provider.sqlIsIPKnownForUser)
+	provider.sqlSelectKnownIPsByUsername = provider.db.Rebind(provider.sqlSelectKnownIPsByUsername)
+	provider.sqlUpdateKnownIpByUsername = provider.db.Rebind(provider.sqlUpdateKnownIpByUsername)
+	provider.sqlDeleteExpiredIPs = provider.db.Rebind(provider.sqlDeleteExpiredIPs)
+
 	provider.sqlInsertBannedUser = provider.db.Rebind(provider.sqlInsertBannedUser)
 	provider.sqlSelectBannedUser = provider.db.Rebind(provider.sqlSelectBannedUser)
 	provider.sqlSelectBannedUserByID = provider.db.Rebind(provider.sqlSelectBannedUserByID)

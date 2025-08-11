@@ -31,6 +31,8 @@ type FirstFactorSuite struct {
 
 func (s *FirstFactorSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
+
+	s.mock.Ctx.Configuration.AuthenticationBackend.KnownIP.Enable = true
 }
 
 func (s *FirstFactorSuite) TearDownTest() {
@@ -232,6 +234,19 @@ func (s *FirstFactorSuite) TestShouldNotFailIfAuthenticationMarkFail() {
 			EXPECT().
 			AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
 			Return(fmt.Errorf("failed")),
+		s.mock.StorageMock.
+			EXPECT().
+			IsIPKnownForUser(s.mock.Ctx, gomock.Any(), gomock.Any()).
+			Return(false, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			SaveNewIPForUser(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil).
+			AnyTimes(),
+		s.mock.NotifierMock.
+			EXPECT().
+			Send(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil),
 	)
 
 	s.mock.Ctx.Request.SetBodyString(`{
@@ -271,6 +286,22 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeChecked() {
 	s.mock.StorageMock.
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
+		Return(nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		IsIPKnownForUser(s.mock.Ctx, gomock.Any(), gomock.Any()).
+		Return(false, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		SaveNewIPForUser(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil).
+		AnyTimes()
+
+	s.mock.NotifierMock.
+		EXPECT().
+		Send(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil)
 
 	s.mock.Ctx.Request.SetBodyString(`{
@@ -320,6 +351,22 @@ func (s *FirstFactorSuite) TestShouldAuthenticateUserWithRememberMeUnchecked() {
 	s.mock.StorageMock.
 		EXPECT().
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
+		Return(nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		IsIPKnownForUser(s.mock.Ctx, gomock.Any(), gomock.Any()).
+		Return(false, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		SaveNewIPForUser(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil).
+		AnyTimes()
+
+	s.mock.NotifierMock.
+		EXPECT().
+		Send(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil)
 
 	s.mock.Ctx.Request.SetBodyString(`{
@@ -375,6 +422,22 @@ func (s *FirstFactorSuite) TestShouldSaveUsernameFromAuthenticationBackendInSess
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
 		Return(nil)
 
+	s.mock.StorageMock.
+		EXPECT().
+		IsIPKnownForUser(s.mock.Ctx, gomock.Any(), gomock.Any()).
+		Return(false, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		SaveNewIPForUser(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil).
+		AnyTimes()
+
+	s.mock.NotifierMock.
+		EXPECT().
+		Send(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil)
+
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
 		"password": "hello",
@@ -414,6 +477,9 @@ func (s *FirstFactorRedirectionSuite) SetupTest() {
 			Policy:  "one_factor",
 		},
 	}
+
+	s.mock.Ctx.Configuration.AuthenticationBackend.KnownIP.Enable = true
+
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&s.mock.Ctx.Configuration)
 
 	s.mock.UserProviderMock.
@@ -458,6 +524,22 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenNoTarget
 		EXPECT().
 		LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil)
 
+	s.mock.StorageMock.
+		EXPECT().
+		IsIPKnownForUser(s.mock.Ctx, gomock.Any(), gomock.Any()).
+		Return(false, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		SaveNewIPForUser(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil).
+		AnyTimes()
+
+	s.mock.NotifierMock.
+		EXPECT().
+		Send(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil)
+
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
 		"password": "hello",
@@ -488,6 +570,22 @@ func (s *FirstFactorRedirectionSuite) TestShouldRedirectToDefaultURLWhenURLIsUns
 		EXPECT().
 		LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil)
 
+	s.mock.StorageMock.
+		EXPECT().
+		IsIPKnownForUser(s.mock.Ctx, gomock.Any(), gomock.Any()).
+		Return(false, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		SaveNewIPForUser(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil).
+		AnyTimes()
+
+	s.mock.NotifierMock.
+		EXPECT().
+		Send(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil)
+
 	s.mock.Ctx.Request.SetBodyString(`{
 		"username": "test",
 		"password": "hello",
@@ -517,6 +615,22 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenNoTargetURLProvidedA
 	s.mock.StorageMock.
 		EXPECT().
 		LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		IsIPKnownForUser(s.mock.Ctx, gomock.Any(), gomock.Any()).
+		Return(false, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		SaveNewIPForUser(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil).
+		AnyTimes()
+
+	s.mock.NotifierMock.
+		EXPECT().
+		Send(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil)
 
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&schema.Configuration{
 		AccessControl: schema.AccessControl{
@@ -551,6 +665,22 @@ func (s *FirstFactorRedirectionSuite) TestShouldReply200WhenUnsafeTargetURLProvi
 	s.mock.StorageMock.
 		EXPECT().
 		LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		IsIPKnownForUser(s.mock.Ctx, gomock.Any(), gomock.Any()).
+		Return(false, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		SaveNewIPForUser(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil).
+		AnyTimes()
+
+	s.mock.NotifierMock.
+		EXPECT().
+		Send(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil)
 
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&schema.Configuration{
 		AccessControl: schema.AccessControl{
@@ -610,6 +740,21 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyWhenBadTargetURL() {
 		EXPECT().
 		LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil)
 
+	s.mock.StorageMock.
+		EXPECT().
+		IsIPKnownForUser(s.mock.Ctx, gomock.Any(), gomock.Any()).
+		Return(false, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		SaveNewIPForUser(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil)
+
+	s.mock.NotifierMock.
+		EXPECT().
+		Send(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil)
+
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
 
 	// Respond with 200.
@@ -647,6 +792,18 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyTwoFactorOK() {
 		s.mock.StorageMock.
 			EXPECT().
 			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			IsIPKnownForUser(s.mock.Ctx, gomock.Any(), gomock.Any()).
+			Return(false, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			SaveNewIPForUser(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil),
+		s.mock.NotifierMock.
+			EXPECT().
+			Send(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil),
 	)
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
@@ -686,6 +843,18 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyTwoTwoFactorUnsafe() {
 		s.mock.StorageMock.
 			EXPECT().
 			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			IsIPKnownForUser(s.mock.Ctx, gomock.Any(), gomock.Any()).
+			Return(false, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			SaveNewIPForUser(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil),
+		s.mock.NotifierMock.
+			EXPECT().
+			Send(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil),
 	)
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
@@ -725,6 +894,18 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyTwoTwoFactorSafe() {
 		s.mock.StorageMock.
 			EXPECT().
 			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			IsIPKnownForUser(s.mock.Ctx, gomock.Any(), gomock.Any()).
+			Return(false, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			SaveNewIPForUser(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil),
+		s.mock.NotifierMock.
+			EXPECT().
+			Send(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil),
 	)
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
@@ -765,6 +946,18 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectCantParseUUID(
 		s.mock.StorageMock.
 			EXPECT().
 			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			IsIPKnownForUser(s.mock.Ctx, gomock.Any(), gomock.Any()).
+			Return(false, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			SaveNewIPForUser(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil),
+		s.mock.NotifierMock.
+			EXPECT().
+			Send(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil),
 	)
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
@@ -808,6 +1001,18 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectCantGetConsent
 		s.mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(s.mock.Ctx), gomock.Eq(uuid.Must(uuid.Parse("d1ba0ad8-9107-4067-8d31-407ca59eb69c")))).
 			Return(nil, fmt.Errorf("failed to obtain")),
+		s.mock.StorageMock.
+			EXPECT().
+			IsIPKnownForUser(s.mock.Ctx, gomock.Any(), gomock.Any()).
+			Return(false, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			SaveNewIPForUser(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil),
+		s.mock.NotifierMock.
+			EXPECT().
+			Send(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil),
 	)
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
@@ -851,6 +1056,18 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectConsentSession
 		s.mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(s.mock.Ctx), gomock.Eq(uuid.Must(uuid.Parse("d1ba0ad8-9107-4067-8d31-407ca59eb69c")))).
 			Return(&model.OAuth2ConsentSession{RespondedAt: sql.NullTime{Valid: true, Time: time.Now().Add(-time.Minute)}}, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			IsIPKnownForUser(s.mock.Ctx, gomock.Any(), gomock.Any()).
+			Return(false, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			SaveNewIPForUser(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil),
+		s.mock.NotifierMock.
+			EXPECT().
+			Send(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil),
 	)
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
@@ -875,6 +1092,22 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectCantGetClient(
 				},
 			},
 		}})
+
+	s.mock.StorageMock.
+		EXPECT().
+		IsIPKnownForUser(s.mock.Ctx, gomock.Any(), gomock.Any()).
+		Return(false, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		SaveNewIPForUser(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil).
+		AnyTimes()
+
+	s.mock.NotifierMock.
+		EXPECT().
+		Send(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil)
 
 	s.mock.Ctx.Providers.OpenIDConnect = oidc.NewOpenIDConnectProvider(&schema.Configuration{IdentityProviders: schema.IdentityProviders{OIDC: &schema.IdentityProvidersOpenIDConnect{}}}, s.mock.StorageMock, s.mock.Ctx.Providers.Templates)
 
@@ -959,6 +1192,18 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectFormRequiresLo
 		s.mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(s.mock.Ctx), gomock.Eq(uuid.Must(uuid.Parse("d1ba0ad8-9107-4067-8d31-407ca59eb69c")))).
 			Return(&model.OAuth2ConsentSession{ClientID: "abc", Form: form.Encode()}, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			IsIPKnownForUser(s.mock.Ctx, gomock.Any(), gomock.Any()).
+			Return(false, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			SaveNewIPForUser(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil),
+		s.mock.NotifierMock.
+			EXPECT().
+			Send(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil),
 	)
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
@@ -1016,6 +1261,18 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectFormRequiresLo
 		s.mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(s.mock.Ctx), gomock.Eq(uuid.Must(uuid.Parse("d1ba0ad8-9107-4067-8d31-407ca59eb69c")))).
 			Return(&model.OAuth2ConsentSession{ClientID: "abc", Form: "1238y12978y189gb128g1287g12807g128702g38172%1"}, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			IsIPKnownForUser(s.mock.Ctx, gomock.Any(), gomock.Any()).
+			Return(false, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			SaveNewIPForUser(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil),
+		s.mock.NotifierMock.
+			EXPECT().
+			Send(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil),
 	)
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
@@ -1075,6 +1332,18 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectNeeds2FA() {
 		s.mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(s.mock.Ctx), gomock.Eq(uuid.Must(uuid.Parse("d1ba0ad8-9107-4067-8d31-407ca59eb69c")))).
 			Return(&model.OAuth2ConsentSession{ClientID: "abc", Form: ""}, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			IsIPKnownForUser(s.mock.Ctx, gomock.Any(), gomock.Any()).
+			Return(false, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			SaveNewIPForUser(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil),
+		s.mock.NotifierMock.
+			EXPECT().
+			Send(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil),
 	)
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
@@ -1134,6 +1403,18 @@ func (s *FirstFactorRedirectionSuite) TestShouldReplyOpenIDConnectNeeds1FA() {
 		s.mock.StorageMock.EXPECT().
 			LoadOAuth2ConsentSessionByChallengeID(gomock.Eq(s.mock.Ctx), gomock.Eq(uuid.Must(uuid.Parse("d1ba0ad8-9107-4067-8d31-407ca59eb69c")))).
 			Return(&model.OAuth2ConsentSession{ClientID: "abc", Form: "grant_type=authorization_code"}, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			IsIPKnownForUser(s.mock.Ctx, gomock.Any(), gomock.Any()).
+			Return(false, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			SaveNewIPForUser(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil),
+		s.mock.NotifierMock.
+			EXPECT().
+			Send(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil),
 	)
 
 	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
@@ -1361,6 +1642,22 @@ func (s *FirstFactorReauthenticateSuite) TestShouldFailIfAuthenticationMarkFail(
 		AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
 		Return(fmt.Errorf("failed"))
 
+	s.mock.StorageMock.
+		EXPECT().
+		IsIPKnownForUser(s.mock.Ctx, gomock.Any(), gomock.Any()).
+		Return(false, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		SaveNewIPForUser(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil).
+		AnyTimes()
+
+	s.mock.NotifierMock.
+		EXPECT().
+		Send(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil)
+
 	s.mock.Ctx.Request.SetBodyString(`{
 		"password": "hello"
 	}`)
@@ -1473,6 +1770,22 @@ func (s *FirstFactorReauthenticateRedirectionSuite) TearDownTest() {
 //
 //	the user should be redirected to the default url.
 func (s *FirstFactorReauthenticateRedirectionSuite) TestShouldRedirectToDefaultURLWhenNoTargetURLProvidedAndTwoFactorDisabled() {
+	s.mock.StorageMock.
+		EXPECT().
+		IsIPKnownForUser(s.mock.Ctx, gomock.Any(), gomock.Any()).
+		Return(false, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		SaveNewIPForUser(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil).
+		AnyTimes()
+
+	s.mock.NotifierMock.
+		EXPECT().
+		Send(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil)
+
 	s.mock.Ctx.Request.SetBodyString(`{
 		"password": "hello"
 	}`)
@@ -1511,6 +1824,22 @@ func (s *FirstFactorReauthenticateRedirectionSuite) TestShouldRedirectToDefaultU
 //
 //	the user should receive 200 without redirection URL.
 func (s *FirstFactorReauthenticateRedirectionSuite) TestShouldReply200WhenNoTargetURLProvidedAndTwoFactorEnabled() {
+	s.mock.StorageMock.
+		EXPECT().
+		IsIPKnownForUser(s.mock.Ctx, gomock.Any(), gomock.Any()).
+		Return(false, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		SaveNewIPForUser(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil).
+		AnyTimes()
+
+	s.mock.NotifierMock.
+		EXPECT().
+		Send(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil)
+
 	s.mock.Ctx.Providers.Authorizer = authorization.NewAuthorizer(&schema.Configuration{
 		AccessControl: schema.AccessControl{
 			DefaultPolicy: "two_factor",
@@ -1548,6 +1877,23 @@ func (s *FirstFactorReauthenticateRedirectionSuite) TestShouldReply200WhenUnsafe
 				},
 			},
 		}})
+
+	s.mock.StorageMock.
+		EXPECT().
+		IsIPKnownForUser(s.mock.Ctx, gomock.Any(), gomock.Any()).
+		Return(false, nil)
+
+	s.mock.StorageMock.
+		EXPECT().
+		SaveNewIPForUser(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil).
+		AnyTimes()
+
+	s.mock.NotifierMock.
+		EXPECT().
+		Send(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil)
+
 	s.mock.Ctx.Request.SetBodyString(`{
 		"password": "hello"
 	}`)
@@ -1556,6 +1902,322 @@ func (s *FirstFactorReauthenticateRedirectionSuite) TestShouldReply200WhenUnsafe
 
 	// Respond with 200.
 	s.mock.Assert200OK(s.T(), nil)
+}
+
+func (s *FirstFactorSuite) TestShouldHandleErrorCheckingKnownIP() {
+	gomock.InOrder(
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testValue)).
+			Return(&authentication.UserDetails{
+				Username: testValue,
+				Emails:   []string{"test@example.com"},
+				Groups:   []string{"dev", "admins"},
+			}, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			CheckUserPassword(gomock.Eq(testValue), gomock.Eq("hello")).
+			Return(true, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
+			Return(nil),
+		s.mock.StorageMock.
+			EXPECT().
+			IsIPKnownForUser(s.mock.Ctx, gomock.Eq(testValue), gomock.Any()).
+			Return(false, fmt.Errorf("database connection failed")),
+		s.mock.StorageMock.
+			EXPECT().
+			SaveNewIPForUser(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil).
+			AnyTimes(),
+		s.mock.NotifierMock.
+			EXPECT().
+			Send(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil),
+	)
+
+	s.mock.Ctx.Request.SetBodyString(`{
+		"username": "test",
+		"password": "hello",
+		"keepMeLoggedIn": true
+	}`)
+
+	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
+
+	AssertLogEntryMessageAndError(s.T(), MustGetLogLastSeq(s.T(), s.mock.Hook, 0), "Unable to check known ip for user", "database connection failed")
+
+	s.mock.Assert200OK(s.T(), nil)
+}
+
+func (s *FirstFactorSuite) TestShouldHandleErrorUpdatingKnownIP() {
+	gomock.InOrder(
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testValue)).
+			Return(&authentication.UserDetails{
+				Username: testValue,
+				Emails:   []string{"test@example.com"},
+				Groups:   []string{"dev", "admins"},
+			}, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			CheckUserPassword(gomock.Eq(testValue), gomock.Eq("hello")).
+			Return(true, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
+			Return(nil),
+		s.mock.StorageMock.
+			EXPECT().
+			IsIPKnownForUser(s.mock.Ctx, gomock.Eq(testValue), gomock.Any()).
+			Return(true, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			UpdateKnownIP(s.mock.Ctx, gomock.Eq(testValue), gomock.Any()).
+			Return(fmt.Errorf("failed to update timestamp")),
+	)
+
+	s.mock.Ctx.Request.SetBodyString(`{
+		"username": "test",
+		"password": "hello",
+		"keepMeLoggedIn": true
+	}`)
+
+	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
+
+	AssertLogEntryMessageAndError(s.T(), MustGetLogLastSeq(s.T(), s.mock.Hook, 0), "Unable to update known ip '0.0.0.0' for user 'test'", "failed to update timestamp")
+
+	s.mock.Assert200OK(s.T(), nil)
+}
+
+func (s *FirstFactorSuite) TestShouldHandleErrorSavingNewIP() {
+	gomock.InOrder(
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testValue)).
+			Return(&authentication.UserDetails{
+				Username: testValue,
+				Emails:   []string{"test@example.com"},
+				Groups:   []string{"dev", "admins"},
+			}, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			CheckUserPassword(gomock.Eq(testValue), gomock.Eq("hello")).
+			Return(true, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
+			Return(nil),
+		s.mock.StorageMock.
+			EXPECT().
+			IsIPKnownForUser(s.mock.Ctx, gomock.Eq(testValue), gomock.Any()).
+			Return(false, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			SaveNewIPForUser(s.mock.Ctx, gomock.Eq(testValue), gomock.Any(), gomock.Any()).
+			Return(fmt.Errorf("failed to save new IP")),
+		s.mock.NotifierMock.
+			EXPECT().
+			Send(s.mock.Ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil),
+	)
+
+	s.mock.Ctx.Request.Header.Set("User-Agent", "Mozilla/5.0 Test")
+
+	s.mock.Ctx.Request.SetBodyString(`{
+		"username": "test",
+		"password": "hello",
+		"keepMeLoggedIn": true
+	}`)
+
+	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
+
+	AssertLogEntryMessageAndError(s.T(), MustGetLogLastSeq(s.T(), s.mock.Hook, 0), "UUnable to check known ip for user", "failed to save new IP")
+
+	s.mock.Assert200OK(s.T(), nil)
+}
+
+func (s *FirstFactorSuite) TestShouldHandleUserWithNoEmailAddress() {
+	gomock.InOrder(
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testValue)).
+			Return(&authentication.UserDetails{
+				Username: testValue,
+				Emails:   []string{},
+				Groups:   []string{"dev", "admins"},
+			}, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			CheckUserPassword(gomock.Eq(testValue), gomock.Eq("hello")).
+			Return(true, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
+			Return(nil),
+		s.mock.StorageMock.
+			EXPECT().
+			IsIPKnownForUser(s.mock.Ctx, gomock.Eq(testValue), gomock.Any()).
+			Return(false, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			SaveNewIPForUser(s.mock.Ctx, gomock.Eq(testValue), gomock.Any(), gomock.Any()).
+			Return(nil),
+	)
+
+	s.mock.Ctx.Request.SetBodyString(`{
+		"username": "test",
+		"password": "hello",
+		"keepMeLoggedIn": true
+	}`)
+
+	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
+
+	AssertLogEntryMessageAndError(s.T(), MustGetLogLastSeq(s.T(), s.mock.Hook, 0), "user test has no email address configured", "")
+
+	s.mock.Assert200OK(s.T(), nil)
+}
+
+func (s *FirstFactorSuite) TestShouldHandleErrorSendingEmail() {
+	gomock.InOrder(
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testValue)).
+			Return(&authentication.UserDetails{
+				Username: testValue,
+				Emails:   []string{"test@example.com"},
+				Groups:   []string{"dev", "admins"},
+			}, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			CheckUserPassword(gomock.Eq(testValue), gomock.Eq("hello")).
+			Return(true, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
+			Return(nil),
+		s.mock.StorageMock.
+			EXPECT().
+			IsIPKnownForUser(s.mock.Ctx, gomock.Eq(testValue), gomock.Any()).
+			Return(false, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			SaveNewIPForUser(s.mock.Ctx, gomock.Eq(testValue), gomock.Any(), gomock.Any()).
+			Return(nil),
+		s.mock.NotifierMock.
+			EXPECT().
+			Send(s.mock.Ctx, gomock.Any(), gomock.Eq("Login From New IP"), gomock.Any(), gomock.Any()).
+			Return(fmt.Errorf("failed to send email")),
+	)
+
+	s.mock.Ctx.Request.Header.Set("User-Agent", "Mozilla/5.0 Test")
+
+	s.mock.Ctx.Request.SetBodyString(`{
+		"username": "test",
+		"password": "hello",
+		"keepMeLoggedIn": true
+	}`)
+
+	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
+
+	AssertLogEntryMessageAndError(s.T(), MustGetLogLastSeq(s.T(), s.mock.Hook, 0), "failed to send email", "")
+
+	s.mock.Assert200OK(s.T(), nil)
+}
+
+func (s *FirstFactorSuite) TestShouldSuccessfullyHandleNewIPAndSendEmail() {
+	gomock.InOrder(
+		s.mock.UserProviderMock.
+			EXPECT().
+			GetDetails(gomock.Eq(testValue)).
+			Return(&authentication.UserDetails{
+				Username: testValue,
+				Emails:   []string{"test@example.com"},
+				Groups:   []string{"dev", "admins"},
+			}, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			LoadBannedIP(gomock.Eq(s.mock.Ctx), gomock.Eq(model.NewIP(s.mock.Ctx.RemoteIP()))).Return(nil, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			LoadBannedUser(gomock.Eq(s.mock.Ctx), gomock.Eq(testValue)).Return(nil, nil),
+		s.mock.UserProviderMock.
+			EXPECT().
+			CheckUserPassword(gomock.Eq(testValue), gomock.Eq("hello")).
+			Return(true, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			AppendAuthenticationLog(s.mock.Ctx, gomock.Any()).
+			Return(nil),
+		s.mock.StorageMock.
+			EXPECT().
+			IsIPKnownForUser(s.mock.Ctx, gomock.Eq(testValue), gomock.Any()).
+			Return(false, nil),
+		s.mock.StorageMock.
+			EXPECT().
+			SaveNewIPForUser(s.mock.Ctx, gomock.Eq(testValue), gomock.Any(), gomock.Any()).
+			Return(nil),
+		s.mock.NotifierMock.
+			EXPECT().
+			Send(s.mock.Ctx, gomock.Any(), gomock.Eq("Login From New IP"), gomock.Any(), gomock.Any()).
+			Return(nil),
+	)
+
+	s.mock.Ctx.Request.Header.Set("User-Agent", "Mozilla/5.0 Test")
+
+	s.mock.Ctx.Request.SetBodyString(`{
+		"username": "test",
+		"password": "hello",
+		"keepMeLoggedIn": true
+	}`)
+
+	// Reset the log entries before the test to ensure a clean state.
+	s.mock.Hook.Reset()
+	s.mock.Ctx.Logger.Level = logrus.DebugLevel
+
+	FirstFactorPasswordPOST(nil)(s.mock.Ctx)
+
+	s.mock.Assert200OK(s.T(), nil)
+
+	userSession, err := s.mock.Ctx.GetSession()
+	s.Assert().NoError(err)
+
+	assert.Equal(s.T(), testValue, userSession.Username)
+	assert.Equal(s.T(), true, userSession.KeepMeLoggedIn)
+	assert.Equal(s.T(), authentication.OneFactor, userSession.AuthenticationLevel(s.mock.Ctx.Configuration.WebAuthn.EnablePasskey2FA))
+	assert.Equal(s.T(), []string{"test@example.com"}, userSession.Emails)
+	assert.Equal(s.T(), []string{"dev", "admins"}, userSession.Groups)
 }
 
 func TestFirstFactorSuite(t *testing.T) {

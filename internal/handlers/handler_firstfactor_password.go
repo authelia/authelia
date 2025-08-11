@@ -154,10 +154,13 @@ func FirstFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middle
 		} else {
 			Handle1FAResponse(ctx, bodyJSON.TargetURL, bodyJSON.RequestMethod, userSession.Username, userSession.Groups)
 		}
+
+		// TODO: SECURITY: How does the addition of this logic affect the authentication delay? Does the email logic modify that timing in such a way to break the timing attack mitigation?
+		HandleKnownIPTracking(ctx, &userSession)
 	}
 }
 
-// FirstFactorReauthenticatePOST is a specialized handler which checks the currently logged in users current password
+// FirstFactorReauthenticatePOST is a specialized handler which checks the currently logged-in users current password
 // and updates their last authenticated time.
 func FirstFactorReauthenticatePOST(delayFunc middlewares.TimingAttackDelayFunc) middlewares.RequestHandler {
 	return func(ctx *middlewares.AutheliaCtx) {
