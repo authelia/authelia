@@ -11,13 +11,14 @@ import (
 
 	oauthelia2 "authelia.com/provider/oauth2"
 	"authelia.com/provider/oauth2/handler/openid"
-	"github.com/authelia/authelia/v4/internal/mocks"
-	"github.com/authelia/authelia/v4/internal/model"
-	"github.com/authelia/authelia/v4/internal/oidc"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
+
+	"github.com/authelia/authelia/v4/internal/mocks"
+	"github.com/authelia/authelia/v4/internal/model"
+	"github.com/authelia/authelia/v4/internal/oidc"
 )
 
 func TestNewOAuth2SessionFromRequest(t *testing.T) {
@@ -498,7 +499,7 @@ func TestNewOAuth2DeviceCodeSessionFromRequest(t *testing.T) {
 			"failed to create new *model.OAuth2DeviceCodeSession: the oauthelia2.DeviceAuthorizeRequester was nil",
 		},
 		{
-			"ShouldErrorNil",
+			"ShouldHandleValueTypes",
 			&oauthelia2.DeviceAuthorizeRequest{
 				Request: oauthelia2.Request{
 					ID:          "1",
