@@ -76,6 +76,7 @@ func TestUser_URLGetters(t *testing.T) {
 		parse := func(raw string) *url.URL {
 			u, err := url.Parse(raw)
 			require.NoError(t, err)
+
 			return u
 		}
 
