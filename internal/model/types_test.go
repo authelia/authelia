@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/random"
@@ -20,6 +21,7 @@ func TestDatabaseModelTypeIP(t *testing.T) {
 
 	err = ip.Scan("192.168.2.0")
 	assert.NoError(t, err)
+	assert.Equal(t, "192.168.2.0", ip.String())
 
 	assert.True(t, ip.IP.IsPrivate())
 	assert.False(t, ip.IP.IsLoopback())
@@ -42,6 +44,93 @@ func TestDatabaseModelTypeIP(t *testing.T) {
 
 	err = ip.Scan(nil)
 	assert.EqualError(t, err, "cannot scan model type '*model.IP' from value nil: type doesn't support nil values")
+}
+
+func TestNewNullIPFromString(t *testing.T) {
+	testCases := []struct {
+		name      string
+		value     string
+		expected  NullIP
+		expectstr string
+	}{
+		{
+			"ShouldParseEmptyString",
+			"",
+			NullIP{},
+			"nil",
+		},
+		{
+			"ShouldParseIP",
+			"127.0.0.1",
+			NullIP{IP: net.ParseIP("127.0.0.1")},
+			"127.0.0.1",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ip := NewNullIPFromString(tc.value)
+
+			assert.Equal(t, tc.expected, ip)
+
+			assert.Equal(t, tc.expectstr, ip.String())
+		})
+	}
+}
+
+func TestStringSlicePipeDelimited_Scan(t *testing.T) {
+	var value *any
+
+	testCases := []struct {
+		name     string
+		value    any
+		expected StringSlicePipeDelimited
+		err      string
+	}{
+		{
+			"ShouldParseEmptyString",
+			"",
+			StringSlicePipeDelimited{},
+			"",
+		},
+		{
+			"ShouldParseSingleString",
+			"example",
+			StringSlicePipeDelimited{"example"},
+			"",
+		},
+		{
+			"ShouldParseDoubleString",
+			"example|two",
+			StringSlicePipeDelimited{"example", "two"},
+			"",
+		},
+		{
+			"ShouldErrorOnNil",
+			value,
+			StringSlicePipeDelimited{},
+			"unsupported Scan, storing driver.Value type *interface {} into type *string",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := StringSlicePipeDelimited{}
+
+			err := actual.Scan(tc.value)
+
+			if tc.err != "" {
+				assert.EqualError(t, err, tc.err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expected, actual)
+
+				value, err := actual.Value()
+				require.NoError(t, err)
+				assert.Equal(t, tc.value, value)
+			}
+		})
+	}
 }
 
 func TestDatabaseModelTypeNullIP(t *testing.T) {
