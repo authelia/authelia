@@ -1,8 +1,10 @@
 package storage
 
 import (
+	"database/sql"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -82,6 +84,64 @@ func TestOAuth2SessionType(t *testing.T) {
 	assert.Equal(t, "refresh token", OAuth2SessionTypeRefreshToken.String())
 	assert.Equal(t, tableOAuth2RefreshTokenSession, OAuth2SessionTypeRefreshToken.Table())
 
+	assert.Equal(t, "device code", OAuth2SessionTypeDeviceAuthorizeCode.String())
+	assert.Equal(t, tableOAuth2DeviceCodeSession, OAuth2SessionTypeDeviceAuthorizeCode.Table())
+
 	assert.Equal(t, "invalid", OAuth2SessionType(-1).String())
 	assert.Equal(t, "", OAuth2SessionType(-1).Table())
+}
+
+func TestBanExpiresExpiredExpiration(t *testing.T) {
+	expiredAt := time.Date(2024, 7, 4, 12, 0, 0, 0, time.UTC)
+	expiresAt := time.Date(2024, 8, 4, 12, 0, 0, 0, time.UTC)
+	zeroTime := time.Unix(0, 0)
+
+	testCases := []struct {
+		name     string
+		have     banExpiresExpired
+		expected time.Time
+	}{
+		{
+			name: "ShouldReturnExpiredWhenRevokedAndExpiredValid",
+			have: banExpiresExpired{
+				Revoked: true,
+				Expired: sql.NullTime{Time: expiredAt, Valid: true},
+				Expires: sql.NullTime{Time: expiresAt, Valid: true},
+			},
+			expected: expiredAt,
+		},
+		{
+			name: "ShouldReturnExpiresWhenRevokedButExpiredInvalid",
+			have: banExpiresExpired{
+				Revoked: true,
+				Expired: sql.NullTime{Valid: false},
+				Expires: sql.NullTime{Time: expiresAt, Valid: true},
+			},
+			expected: expiresAt,
+		},
+		{
+			name: "ShouldReturnExpiresWhenNotRevokedAndExpiresValid",
+			have: banExpiresExpired{
+				Revoked: false,
+				Expired: sql.NullTime{Time: expiredAt, Valid: true},
+				Expires: sql.NullTime{Time: expiresAt, Valid: true},
+			},
+			expected: expiresAt,
+		},
+		{
+			name: "ShouldReturnZeroWhenNoTimesValid",
+			have: banExpiresExpired{
+				Revoked: false,
+				Expired: sql.NullTime{Valid: false},
+				Expires: sql.NullTime{Valid: false},
+			},
+			expected: zeroTime,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, tc.have.Expiration())
+		})
+	}
 }
