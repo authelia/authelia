@@ -1,14 +1,16 @@
 package model
 
 import (
+	"context"
 	"database/sql"
 	"net"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/random"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestNewOneTimeCode(t *testing.T) {
@@ -39,9 +41,10 @@ func TestNewOneTimeCode(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := &TestContext{
-				ip:     net.ParseIP("127.0.0.1"),
-				clock:  clock.NewFixed(time.Unix(1000000000, 0)),
-				random: random.NewMathematical(),
+				Context: context.Background(),
+				ip:      net.ParseIP("127.0.0.1"),
+				clock:   clock.NewFixed(time.Unix(1000000000, 0)),
+				random:  random.NewMathematical(),
 			}
 
 			actual, err := NewOneTimeCode(ctx, tc.username, tc.characters, tc.duration)
@@ -62,6 +65,8 @@ func TestNewOneTimeCode(t *testing.T) {
 				assert.Equal(t, tc.expected.RevokedAt, actual.RevokedAt)
 				assert.Equal(t, tc.expected.RevokedIP, actual.RevokedIP)
 
+				assert.Len(t, actual.Code, tc.characters)
+
 				actual.Consume(ctx)
 
 				assert.Equal(t, sql.NullTime{Time: ctx.clock.Now(), Valid: true}, actual.ConsumedAt)
@@ -70,18 +75,3 @@ func TestNewOneTimeCode(t *testing.T) {
 		})
 	}
 }
-
-/*
-	ID         int          `db:"id"`
-	PublicID   uuid.UUID    `db:"public_id"`
-	Signature  string       `db:"signature"`
-	IssuedAt   time.Time    `db:"issued"`
-	IssuedIP   IP           `db:"issued_ip"`
-	ExpiresAt  time.Time    `db:"expires"`
-	Username   string       `db:"username"`
-	Intent     string       `db:"intent"`
-	ConsumedAt sql.NullTime `db:"consumed"`
-	ConsumedIP NullIP       `db:"consumed_ip"`
-	RevokedAt  sql.NullTime `db:"revoked"`
-	RevokedIP  NullIP       `db:"revoked_ip"`
-*/

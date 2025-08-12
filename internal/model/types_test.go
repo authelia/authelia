@@ -5,9 +5,10 @@ import (
 	"net"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/random"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestDatabaseModelTypeIP(t *testing.T) {
