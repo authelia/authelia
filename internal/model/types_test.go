@@ -1,8 +1,12 @@
 package model
 
 import (
+	"context"
+	"net"
 	"testing"
 
+	"github.com/authelia/authelia/v4/internal/clock"
+	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -106,4 +110,24 @@ func TestDatabaseModelTypeBase64(t *testing.T) {
 
 	assert.Equal(t, []byte("###"), b64.Bytes())
 	assert.Equal(t, "IyMj", b64.String())
+}
+
+type TestContext struct {
+	context.Context
+
+	clock  clock.Provider
+	ip     net.IP
+	random random.Provider
+}
+
+func (ctx *TestContext) GetClock() clock.Provider {
+	return ctx.clock
+}
+
+func (ctx *TestContext) RemoteIP() net.IP {
+	return ctx.ip
+}
+
+func (ctx *TestContext) GetRandom() random.Provider {
+	return ctx.random
 }
