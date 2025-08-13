@@ -3,6 +3,7 @@ package commands
 import (
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/url"
 	"os"
@@ -84,41 +85,17 @@ func (ctx *CmdCtx) AccessControlCheckRunE(cmd *cobra.Command, _ []string) (err e
 		return err
 	}
 
-	accessControlCheckWriteOutput(object, subject, results, ctx.config.AccessControl.DefaultPolicy, verbose)
+	w := tabwriter.NewWriter(os.Stdout, 1, 1, 4, ' ', 0)
+
+	accessControlCheckWriteOutput(w, object, subject, results, ctx.config.AccessControl.DefaultPolicy, verbose)
+
+	_ = w.Flush()
 
 	return nil
 }
 
-func accessControlCheckWriteObjectSubject(object authorization.Object, subject authorization.Subject) {
-	output := strings.Builder{}
-
-	output.WriteString(fmt.Sprintf("Performing policy check for request to '%s'", object.String()))
-
-	if object.Method != "" {
-		output.WriteString(fmt.Sprintf(" method '%s'", object.Method))
-	}
-
-	if subject.Username != "" {
-		output.WriteString(fmt.Sprintf(" username '%s'", subject.Username))
-	}
-
-	if len(subject.Groups) != 0 {
-		output.WriteString(fmt.Sprintf(" groups '%s'", strings.Join(subject.Groups, ",")))
-	}
-
-	if subject.IP != nil {
-		output.WriteString(fmt.Sprintf(" from IP '%s'", subject.IP.String()))
-	}
-
-	output.WriteString(".\n")
-
-	fmt.Println(output.String())
-}
-
-func accessControlCheckWriteOutput(object authorization.Object, subject authorization.Subject, results []authorization.RuleMatchResult, defaultPolicy string, verbose bool) {
-	accessControlCheckWriteObjectSubject(object, subject)
-
-	w := tabwriter.NewWriter(os.Stdout, 1, 1, 4, ' ', 0)
+func accessControlCheckWriteOutput(w io.Writer, object authorization.Object, subject authorization.Subject, results []authorization.RuleMatchResult, defaultPolicy string, verbose bool) {
+	accessControlCheckWriteObjectSubject(w, object, subject)
 
 	_, _ = fmt.Fprintln(w, "  #\tDomain\tResource\tQuery\tMethod\tNetwork\tSubject")
 
@@ -150,18 +127,38 @@ func accessControlCheckWriteOutput(object authorization.Object, subject authoriz
 		}
 	}
 
-	_ = w.Flush()
-
 	switch {
 	case appliedPos != 0 && (potentialPos == 0 || (potentialPos > appliedPos)):
-		fmt.Printf("\nThe policy '%s' from rule #%d will be applied to this request.\n\n", applied.Rule.Policy, appliedPos)
+		_, _ = fmt.Fprintf(w, "\nThe policy '%s' from rule #%d will be applied to this request.\n\n", applied.Rule.Policy, appliedPos)
 	case potentialPos != 0 && appliedPos != 0:
-		fmt.Printf("\nThe policy '%s' from rule #%d will potentially be applied to this request. If not policy '%s' from rule #%d will be.\n\n", potential.Rule.Policy, potentialPos, applied.Rule.Policy, appliedPos)
+		_, _ = fmt.Fprintf(w, "\nThe policy '%s' from rule #%d will potentially be applied to this request. If not policy '%s' from rule #%d will be.\n\n", potential.Rule.Policy, potentialPos, applied.Rule.Policy, appliedPos)
 	case potentialPos != 0:
-		fmt.Printf("\nThe policy '%s' from rule #%d will potentially be applied to this request. Otherwise the policy '%s' from the default policy will be.\n\n", potential.Rule.Policy, potentialPos, defaultPolicy)
+		_, _ = fmt.Fprintf(w, "\nThe policy '%s' from rule #%d will potentially be applied to this request. Otherwise the policy '%s' from the default policy will be.\n\n", potential.Rule.Policy, potentialPos, defaultPolicy)
 	default:
-		fmt.Printf("\nThe policy '%s' from the default policy will be applied to this request as no rules matched the request.\n\n", defaultPolicy)
+		_, _ = fmt.Fprintf(w, "\nThe policy '%s' from the default policy will be applied to this request as no rules matched the request.\n\n", defaultPolicy)
 	}
+}
+
+func accessControlCheckWriteObjectSubject(w io.Writer, object authorization.Object, subject authorization.Subject) {
+	_, _ = fmt.Fprintf(w, "Performing policy check for request to '%s'", object.String())
+
+	if object.Method != "" {
+		_, _ = fmt.Fprintf(w, " method '%s'", object.Method)
+	}
+
+	if subject.Username != "" {
+		_, _ = fmt.Fprintf(w, " username '%s'", subject.Username)
+	}
+
+	if len(subject.Groups) != 0 {
+		_, _ = fmt.Fprintf(w, " groups '%s'", strings.Join(subject.Groups, ","))
+	}
+
+	if subject.IP != nil {
+		_, _ = fmt.Fprintf(w, " from IP '%s'", subject.IP.String())
+	}
+
+	_, _ = fmt.Fprintf(w, ".\n")
 }
 
 func hitMissMay(in ...bool) (out string) {
