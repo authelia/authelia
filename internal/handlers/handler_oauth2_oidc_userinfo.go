@@ -114,7 +114,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 	var detailer oidc.UserDetailer
 
 	if detailer, err = oidcDetailerFromClaims(ctx, original); err != nil {
-		if err = client.GetClaimsStrategy().PopulateClientCredentialsUserInfoClaims(ctx, client, original, claims); err != nil {
+		if err = client.GetClaimsStrategy().HydrateClientCredentialsUserInfoClaims(ctx, client, original, claims); err != nil {
 			ctx.Logger.WithError(err).Errorf("User Info Request with id '%s' on client with id '%s' failed due to an error populating claims for the client credentials flow", requestID, client.GetID())
 
 			errorsx.WriteJSONError(rw, r, oauthelia2.ErrServerError.WithDebugf("Error occurred populating claims for the client credentials flow: %v.", err))
@@ -125,7 +125,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		if userinfo {
 			ctx.Logger.WithError(err).Errorf("User Info Request with id '%s' on client with id '%s' error occurred loading user information", requestID, client.GetID())
 		}
-	} else if err = client.GetClaimsStrategy().PopulateUserInfoClaims(ctx, ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx), client, requester.GetGrantedScopes(), claimsGranted, requests, detailer, requested, ctx.Clock.Now(), original, claims); err != nil {
+	} else if err = client.GetClaimsStrategy().HydrateUserInfoClaims(ctx, ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx), client, requester.GetGrantedScopes(), claimsGranted, requests, detailer, requested, ctx.Clock.Now(), original, claims); err != nil {
 		ctx.Logger.WithError(err).Errorf("User Info Request with id '%s' on client with id '%s' failed due to an error populating claims for the standard flow", requestID, client.GetID())
 
 		errorsx.WriteJSONError(rw, r, oauthelia2.ErrServerError.WithDebugf("Error occurred populating claims for the standard flow: %v.", err))
