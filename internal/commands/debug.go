@@ -202,15 +202,15 @@ func (ctx *CmdCtx) DebugOIDCClaimsRunE(cmd *cobra.Command, args []string) (err e
 
 	implicit := responseType == oidc.ResponseTypeImplicitFlowIDToken
 
-	if err = strategy.PopulateIDTokenClaims(resolverctx, oauthelia2.ExactScopeStrategy, client, scopes, claims, nil, detailer, time.Now(), time.Now().Add(time.Second*-10), nil, idtoken, implicit); err != nil {
+	if err = strategy.HydrateIDTokenClaims(resolverctx, oauthelia2.ExactScopeStrategy, client, scopes, claims, nil, detailer, time.Now(), time.Now().Add(time.Second*-10), nil, idtoken, implicit); err != nil {
 		return fmt.Errorf("error occurred populating user ID token claims: %w", err)
 	}
 
 	if grantType == oidc.GrantTypeClientCredentials {
-		if err = strategy.PopulateClientCredentialsUserInfoClaims(resolverctx, client, nil, userinfo); err != nil {
+		if err = strategy.HydrateClientCredentialsUserInfoClaims(resolverctx, client, nil, userinfo); err != nil {
 			return fmt.Errorf("error occurred populating user info claims: %w", err)
 		}
-	} else if err = strategy.PopulateUserInfoClaims(resolverctx, oauthelia2.ExactScopeStrategy, client, scopes, claims, nil, detailer, time.Now(), time.Now().Add(time.Second*-10), nil, userinfo); err != nil {
+	} else if err = strategy.HydrateUserInfoClaims(resolverctx, oauthelia2.ExactScopeStrategy, client, scopes, claims, nil, detailer, time.Now(), time.Now().Add(time.Second*-10), nil, userinfo); err != nil {
 		return fmt.Errorf("error occurred populating user info claims: %w", err)
 	}
 

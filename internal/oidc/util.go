@@ -270,8 +270,8 @@ func AccessResponderToClearMap(responder oauthelia2.AccessResponder) map[string]
 	return data
 }
 
-// PopulateClientCredentialsFlowSessionWithAccessRequest is used to configure a session when performing a client credentials grant.
-func PopulateClientCredentialsFlowSessionWithAccessRequest(ctx Context, client oauthelia2.Client, session *Session) (err error) {
+// HydrateClientCredentialsFlowSessionWithAccessRequest is used to configure a session when performing a client credentials grant.
+func HydrateClientCredentialsFlowSessionWithAccessRequest(ctx Context, client oauthelia2.Client, session *Session) (err error) {
 	var (
 		issuer *url.URL
 	)
