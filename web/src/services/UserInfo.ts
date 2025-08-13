@@ -7,7 +7,15 @@ export type Method2FA = "mobile_push" | "totp" | "webauthn";
 
 export interface UserInfoPayload {
     display_name: string;
+    username: string;
     emails: string[];
+    groups: string[];
+    disabled?: boolean;
+    last_logged_in?: Date;
+    password_change_required?: boolean;
+    last_password_change?: Date;
+    logout_required?: boolean;
+    user_created_at?: Date;
     method: Method2FA;
     has_webauthn: boolean;
     has_totp: boolean;
@@ -41,6 +49,17 @@ export function toMethod2FA(method: SecondFactorMethod): Method2FA {
             return "webauthn";
         case SecondFactorMethod.MobilePush:
             return "mobile_push";
+    }
+}
+
+export function to2FAString(method: SecondFactorMethod): string {
+    switch (method) {
+        case SecondFactorMethod.TOTP:
+            return "TOTP";
+        case SecondFactorMethod.WebAuthn:
+            return "WebAuthn";
+        case SecondFactorMethod.MobilePush:
+            return "Mobile Push";
     }
 }
 

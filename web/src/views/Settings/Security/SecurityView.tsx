@@ -197,6 +197,7 @@ const SettingsView = function () {
             />
 
             <Container
+                maxWidth="md"
                 sx={{
                     alignItems: "flex-start",
                     display: "flex",
@@ -238,6 +239,12 @@ const SettingsView = function () {
                                     width: "100%",
                                 }}
                             >
+                                <Typography>
+                                    {translate("Username")}: {userInfo?.username || ""}
+                                </Typography>
+                                <Typography>
+                                    {translate("Display Name")}: {userInfo?.display_name || ""}
+                                </Typography>
                                 <Box display="flex" alignItems="center">
                                     <Typography sx={{ mr: 1 }}>{translate("Email")}:</Typography>
                                     <Typography>{userInfo?.emails?.[0] || ""}</Typography>

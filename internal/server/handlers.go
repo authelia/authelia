@@ -213,6 +213,11 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 		WithPostMiddlewares(middlewares.RequireElevated).
 		Build()
 
+	RequireAdminUser1FA := middlewares.NewBridgeBuilder(*config, providers).
+		WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+		WithPostMiddlewares(middlewares.RequireAdminUser, middlewares.Require1FA).
+		Build()
+
 	r.HEAD("/api/health", middlewareAPI(handlers.HealthGET))
 	r.GET("/api/health", middlewareAPI(handlers.HealthGET))
 
@@ -276,6 +281,17 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 	r.GET("/api/user/info", middleware1FA(handlers.UserInfoGET))
 	r.POST("/api/user/info", middleware1FA(handlers.UserInfoPOST))
 	r.POST("/api/user/info/2fa_method", middleware1FA(handlers.MethodPreferencePOST))
+
+	if config.Administration.Enabled {
+		r.GET("/api/admin/config", RequireAdminUser1FA(handlers.AdminConfigGET))
+
+		if config.Administration.EnableUserManagement {
+			r.GET("/api/admin/users", RequireAdminUser1FA(handlers.AllUsersInfoGET))
+			r.POST("/api/admin/user", RequireAdminUser1FA(handlers.NewUserPOST))
+			r.PUT("/api/admin/user", RequireAdminUser1FA(handlers.ChangeUserPUT))
+			r.DELETE("/api/admin/user", RequireAdminUser1FA(handlers.DeleteUserDELETE))
+		}
+	}
 
 	// User Session Elevation.
 	middlewareElevatePOST := middlewares.NewBridgeBuilder(*config, providers).

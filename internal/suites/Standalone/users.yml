@@ -1,28 +1,29 @@
----
 users:
-  john:
-    displayname: "John Doe"
-    password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"  # yamllint disable-line rule:line-length
-    email: john.doe@authelia.com
-    groups:
-      - admins
-      - dev
-
-  harry:
-    displayname: "Harry Potter"
-    password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"  # yamllint disable-line rule:line-length
-    email: harry.potter@authelia.com
-    groups: []
-
-  bob:
-    displayname: "Bob Dylan"
-    password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"  # yamllint disable-line rule:line-length
-    email: bob.dylan@authelia.com
-    groups:
-      - dev
-
-  james:
-    displayname: "James Dean"
-    password: "$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/"  # yamllint disable-line rule:line-length
-    email: james.dean@authelia.com
-...
+    bob:
+        password: $argon2id$v=19$m=65536,t=3,p=4$1CRisux3/JfmRB1c+fNtVA$xQ1krw4K88n0Q+spasc28PDtsKS6jhfhO3UaSKDUYpE
+        displayname: Bob Dylann
+        email: bob.dylan@authelia.com
+        groups:
+            - abc
+        disabled: false
+    harry:
+        password: $6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
+        displayname: Harry Potter
+        email: harry.potter@authelia.com
+        groups: []
+        disabled: false
+    james:
+        password: $6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
+        displayname: James Dean
+        email: james.dean@authelia.com
+        groups: []
+        disabled: false
+    john:
+        password: $6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
+        displayname: John Doe
+        email: john.doe@authelia.com
+        groups:
+            - admins
+            - dev
+            - authelia-admin
+        disabled: false

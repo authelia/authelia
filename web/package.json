@@ -54,6 +54,7 @@
     "@fortawesome/react-fontawesome": "3.1.1",
     "@mui/icons-material": "7.3.7",
     "@mui/material": "7.3.7",
+    "@mui/x-data-grid": "^8.9.1",
     "@simplewebauthn/browser": "13.2.2",
     "axios": "1.13.2",
     "broadcast-channel": "7.2.0",

@@ -3,10 +3,15 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"net/url"
+	"reflect"
+	"slices"
+	"sort"
 	"strings"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/templates"
 )
 
@@ -107,4 +112,155 @@ func isRegulatorSkippedErr(err error) bool {
 	}
 
 	return false
+}
+
+
+
+// MergeUserInfoAndDetails combines the list of attributes in userInfo with the list of users in users.
+func MergeUserInfoAndDetails(userInfo []model.UserInfo, users []authentication.UserDetailsExtended) []model.UserInfo {
+	// Map of username -> UserDetailsExtended for quick lookup
+	userDetailsMap := make(map[string]authentication.UserDetailsExtended)
+	userInfoMap := make(map[string]bool)
+
+	// Build the lookup map
+	for _, user := range users {
+		if user.UserDetails != nil {
+			userDetailsMap[user.UserDetails.Username] = user
+		}
+	}
+
+	// Update existing userInfo entries with details from UserDetailsExtended
+	for i, info := range userInfo {
+		if details, ok := userDetailsMap[info.Username]; ok && details.UserDetails != nil {
+			userInfo[i].DisplayName = details.UserDetails.DisplayName
+			userInfo[i].Emails = details.UserDetails.Emails
+			userInfo[i].Groups = details.UserDetails.Groups
+			userInfoMap[info.Username] = true
+		}
+	}
+
+	// Add any users from UserDetailsExtended that weren't in the original userInfo
+	for _, user := range users {
+		if user.UserDetails != nil {
+			if _, exists := userInfoMap[user.UserDetails.Username]; !exists {
+				userInfo = append(userInfo, model.UserInfo{
+					Username:    user.UserDetails.Username,
+					DisplayName: user.UserDetails.DisplayName,
+					Emails:      user.UserDetails.Emails,
+					Groups:      user.UserDetails.Groups,
+				})
+			}
+		}
+	}
+
+	return userInfo
+}
+
+func UserIsAdmin(ctx *middlewares.AutheliaCtx, userGroups []string) bool {
+	return slices.Contains(userGroups, ctx.Configuration.Administration.AdminGroup)
+}
+
+func GenerateUserChangeLog(original *authentication.UserDetailsExtended, changes *authentication.UserDetailsExtended) map[string]interface{} {
+	changeLog := make(map[string]interface{})
+
+	if original.UserDetails != nil && changes.UserDetails != nil {
+		if original.UserDetails.DisplayName != changes.UserDetails.DisplayName {
+			changeLog["display_name"] = map[string]interface{}{
+				"from": original.UserDetails.DisplayName,
+				"to":   changes.UserDetails.DisplayName,
+			}
+		}
+		if !reflect.DeepEqual(original.UserDetails.Emails, changes.UserDetails.Emails) {
+			changeLog["emails"] = map[string]interface{}{
+				"from": original.UserDetails.Emails,
+				"to":   changes.UserDetails.Emails,
+			}
+		}
+		if !reflect.DeepEqual(original.UserDetails.Groups, changes.UserDetails.Groups) {
+			changeLog["groups"] = map[string]interface{}{
+				"from": original.UserDetails.Groups,
+				"to":   changes.UserDetails.Groups,
+			}
+		}
+	}
+
+	if original.GivenName != changes.GivenName {
+		changeLog["given_name"] = map[string]interface{}{
+			"from": original.GivenName,
+			"to":   changes.GivenName,
+		}
+	}
+	if original.FamilyName != changes.FamilyName {
+		changeLog["family_name"] = map[string]interface{}{
+			"from": original.FamilyName,
+			"to":   changes.FamilyName,
+		}
+	}
+	if original.MiddleName != changes.MiddleName {
+		changeLog["middle_name"] = map[string]interface{}{
+			"from": original.MiddleName,
+			"to":   changes.MiddleName,
+		}
+	}
+	if original.Nickname != changes.Nickname {
+		changeLog["nickname"] = map[string]interface{}{
+			"from": original.Nickname,
+			"to":   changes.Nickname,
+		}
+	}
+	if original.CommonName != changes.CommonName {
+		changeLog["common_name"] = map[string]interface{}{
+			"from": original.CommonName,
+			"to":   changes.CommonName,
+		}
+	}
+
+	checkURL := func(fieldName string, oldVal, newVal *url.URL) {
+		oldStr := ""
+		newStr := ""
+		if oldVal != nil {
+			oldStr = oldVal.String()
+		}
+		if newVal != nil {
+			newStr = newVal.String()
+		}
+		if oldStr != newStr {
+			changeLog[fieldName] = map[string]interface{}{
+				"from": oldStr,
+				"to":   newStr,
+			}
+		}
+	}
+	//TODO: we probably shouldnt log entire urls -- they could be *really* long.
+	checkURL("profile", original.Profile, changes.Profile)
+	checkURL("picture", original.Picture, changes.Picture)
+	checkURL("website", original.Website, changes.Website)
+
+	if !reflect.DeepEqual(original.ObjectClasses, changes.ObjectClasses) {
+		changeLog["object_classes"] = map[string]interface{}{
+			"from": original.ObjectClasses,
+			"to":   changes.ObjectClasses,
+		}
+	}
+
+	if !reflect.DeepEqual(original.Extra, changes.Extra) {
+		changeLog["extra"] = map[string]interface{}{
+			"from": original.Extra,
+			"to":   changes.Extra,
+		}
+	}
+
+	if changes.Password != "" {
+		changeLog["password"] = "changed"
+	}
+
+	return changeLog
+}
+
+func SortedCopy(s []string) []string {
+	c := make([]string, len(s))
+	c = append(c, s...)
+	sort.Strings(c)
+
+	return c
 }

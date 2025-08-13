@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/authelia/authelia/v4/internal/utils"
 	"github.com/go-crypt/crypt/algorithm"
 	"github.com/go-crypt/crypt/algorithm/argon2"
 	"github.com/go-crypt/crypt/algorithm/bcrypt"
@@ -96,7 +97,7 @@ func (p *FileUserProvider) CheckUserPassword(username string, password string) (
 	return details.Password.MatchAdvanced(password)
 }
 
-// GetDetails retrieve the groups a user belongs to.
+// GetDetails retrieves a user's information, excluding disabled users.
 func (p *FileUserProvider) GetDetails(username string) (details *UserDetails, err error) {
 	var d FileUserDatabaseUserDetails
 
@@ -109,6 +110,42 @@ func (p *FileUserProvider) GetDetails(username string) (details *UserDetails, er
 	}
 
 	return d.ToUserDetails(), nil
+}
+
+// GetUser retrieves a user's information, including disabled users.
+func (p *FileUserProvider) GetUser(username string) (details *UserDetailsExtended, err error) {
+	var d FileUserDatabaseUserDetails
+
+	if d, err = p.database.GetUserDetails(username); err != nil {
+		return nil, err
+	}
+
+	return d.ToExtendedUserDetails(), nil
+}
+
+// ListUsers returns a list of all users and their attributes.
+// TODO: Properly add extra attributes to list.
+func (p *FileUserProvider) ListUsers() (userList []UserDetailsExtended, err error) {
+	if _, err := p.Reload(); err != nil {
+		return nil, fmt.Errorf("failed to reload user database: %w", err)
+	}
+
+	allUsers := p.database.GetAllUsers()
+	userList = make([]UserDetailsExtended, 0, len(allUsers))
+
+	for username, details := range allUsers {
+		user := UserDetailsExtended{
+			UserDetails: &UserDetails{
+				Username:    username,
+				DisplayName: details.DisplayName,
+				Emails:      []string{details.Email},
+				Groups:      details.Groups,
+			},
+		}
+		userList = append(userList, user)
+	}
+
+	return userList, nil
 }
 
 func (p *FileUserProvider) GetDetailsExtended(username string) (details *UserDetailsExtended, err error) {
@@ -125,7 +162,7 @@ func (p *FileUserProvider) GetDetailsExtended(username string) (details *UserDet
 	return d.ToExtendedUserDetails(), nil
 }
 
-// UpdatePassword update the password of the given user.
+// UpdatePassword updates the password of the given user.
 func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (err error) {
 	var details FileUserDatabaseUserDetails
 
@@ -134,7 +171,7 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (
 	}
 
 	if details.Disabled {
-		return ErrUserNotFound
+		return ErrUserDisabled
 	}
 
 	var digest algorithm.Digest
@@ -148,9 +185,7 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (
 	p.database.SetUserDetails(details.Username, &details)
 
 	p.mutex.Lock()
-
 	p.setTimeoutReload(time.Now())
-
 	p.mutex.Unlock()
 
 	if err = p.database.Save(); err != nil {
@@ -160,6 +195,7 @@ func (p *FileUserProvider) UpdatePassword(username string, newPassword string) (
 	return nil
 }
 
+// ChangePassword validates the old password then changes the password of the given user.
 func (p *FileUserProvider) ChangePassword(username string, oldPassword string, newPassword string) (err error) {
 	var details FileUserDatabaseUserDetails
 
@@ -168,7 +204,7 @@ func (p *FileUserProvider) ChangePassword(username string, oldPassword string, n
 	}
 
 	if details.Disabled {
-		return ErrUserNotFound
+		return ErrUserDisabled
 	}
 
 	if strings.TrimSpace(newPassword) == "" {
@@ -199,9 +235,7 @@ func (p *FileUserProvider) ChangePassword(username string, oldPassword string, n
 	p.database.SetUserDetails(details.Username, &details)
 
 	p.mutex.Lock()
-
 	p.setTimeoutReload(time.Now())
-
 	p.mutex.Unlock()
 
 	if err = p.database.Save(); err != nil {
@@ -209,6 +243,129 @@ func (p *FileUserProvider) ChangePassword(username string, oldPassword string, n
 	}
 
 	return nil
+}
+
+// AddUser creates a new user in the file database. Takes additional, optional values via opts.
+func (p *FileUserProvider) AddUser(userData *UserDetailsExtended) (err error) {
+	if err = p.ValidateUserData(userData); err != nil {
+		return fmt.Errorf("validation of user data failed: %w", err)
+	}
+
+	var digest algorithm.Digest
+
+	if digest, err = p.hash.Hash(userData.Password); err != nil {
+		return err
+	}
+
+	var email string
+	if userData.UserDetails != nil && len(userData.Emails) > 0 {
+		email = userData.UserDetails.Emails[0]
+	}
+
+	var groups []string
+	if userData.UserDetails != nil && len(userData.Groups) > 0 {
+		groups = userData.UserDetails.Groups
+	}
+
+	details := FileUserDatabaseUserDetails{
+		Username:    userData.Username,
+		DisplayName: userData.DisplayName,
+		Password:    schema.NewPasswordDigest(digest),
+		Email:       email,
+		Groups:      groups,
+		Disabled:    false,
+	}
+
+	p.database.SetUserDetails(details.Username, &details)
+
+	p.mutex.Lock()
+	p.setTimeoutReload(time.Now())
+	p.mutex.Unlock()
+
+	return p.database.Save()
+}
+
+// UpdateUser modifies an existing user in the file database. Takes new values via opts.
+func (p *FileUserProvider) UpdateUser(username string, userData *UserDetailsExtended) (err error) {
+	var existingDetails FileUserDatabaseUserDetails
+
+	if existingDetails, err = p.database.GetUserDetails(username); err != nil {
+		return err
+	}
+
+	updatedDetails := FileUserDatabaseUserDetails{
+		Username:    username,
+		DisplayName: existingDetails.DisplayName,
+		Password:    existingDetails.Password,
+		Email:       existingDetails.Email,
+		Groups:      existingDetails.Groups,
+		Disabled:    existingDetails.Disabled,
+	}
+
+	if userData.UserDetails != nil {
+		if userData.DisplayName != "" {
+			updatedDetails.DisplayName = userData.DisplayName
+		}
+
+		if len(userData.UserDetails.Emails) > 0 {
+			updatedDetails.Email = userData.Emails[0]
+		}
+
+		if len(userData.UserDetails.Groups) > 0 {
+			updatedDetails.Groups = userData.Groups
+		}
+	}
+
+	if userData.Password != "" {
+		var digest algorithm.Digest
+		if digest, err = p.hash.Hash(userData.Password); err != nil {
+			return err
+		}
+
+		updatedDetails.Password = schema.NewPasswordDigest(digest)
+	}
+
+	p.database.SetUserDetails(username, &updatedDetails)
+
+	p.mutex.Lock()
+	p.setTimeoutReload(time.Now())
+	p.mutex.Unlock()
+
+	return p.database.Save()
+}
+
+func (p *FileUserProvider) GetRequiredFields() []string {
+	return []string{
+		"Username",
+		"Password",
+		"DisplayName",
+	}
+}
+
+func (p *FileUserProvider) GetSupportedFields() []string {
+	return []string{
+		"Username",
+		"Password",
+		"DisplayName",
+		"Password",
+		"Email",
+		"Groups",
+		"GivenName",
+		"FamilyName",
+	}
+}
+
+// DeleteUser deletes a user from the file database.
+func (p *FileUserProvider) DeleteUser(username string) (err error) {
+	p.database.DeleteUserDetails(username)
+
+	p.mutex.Lock()
+
+	p.setTimeoutReload(time.Now())
+
+	p.mutex.Unlock()
+
+	return p.database.Save()
 }
 
 // StartupCheck implements the startup check provider interface.
@@ -227,8 +384,44 @@ func (p *FileUserProvider) StartupCheck() (err error) {
 		p.database = NewFileUserDatabase(p.config.Path, p.config.Search.Email, p.config.Search.CaseInsensitive, getExtra(p.config))
 	}
 
-	if err = p.database.Load(); err != nil {
-		return err
+	return p.database.Load()
+}
+
+func (p *FileUserProvider) ValidateUserData(userData *UserDetailsExtended) error {
+	if userData == nil {
+		return fmt.Errorf("userData cannot be nil")
+	}
+
+	if userData.UserDetails == nil {
+		return fmt.Errorf("userDetails cannot be nil")
+	}
+
+	if userData.Username == "" {
+		return fmt.Errorf("username is required")
+	}
+
+	if userData.Password == "" {
+		return fmt.Errorf("password is required")
+	}
+
+	if userData.DisplayName == "" {
+		return fmt.Errorf("displayName is required")
+	}
+
+	if !utils.ValidateUsername(userData.Username) {
+		return fmt.Errorf("invalid username format")
+	}
+
+	if len(userData.Emails) > 0 {
+		if !utils.ValidateEmailString(userData.Emails[0]) {
+			return fmt.Errorf("invalid email format")
+		}
+	}
+
+	if len(userData.Groups) > 0 {
+		if valid, invalidGroup := utils.ValidateGroups(userData.Groups); !valid {
+			return fmt.Errorf("invalid group name: %s", invalidGroup)
+		}
 	}
 
 	return nil
