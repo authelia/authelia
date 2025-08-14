@@ -95,7 +95,7 @@ func TestTOTPGenerateCustom(t *testing.T) {
 			setup: func(t *testing.T, totp *TimeBased) {
 				totp.issuer = ""
 			},
-			err: "error generating totp: Issuer must be set",
+			err: "error generating totp: issuer must be set",
 		},
 	}
 

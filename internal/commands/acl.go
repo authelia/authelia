@@ -6,7 +6,6 @@ import (
 	"io"
 	"net"
 	"net/url"
-	"os"
 	"strings"
 	"text/tabwriter"
 
@@ -75,7 +74,7 @@ func (ctx *CmdCtx) AccessControlCheckRunE(cmd *cobra.Command, _ []string) (err e
 	results := authorizer.GetRuleMatchResults(subject, object)
 
 	if len(results) == 0 {
-		fmt.Printf("\nThe default policy '%s' will be applied to ALL requests as no rules are configured.\n\n", ctx.config.AccessControl.DefaultPolicy)
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\nThe default policy '%s' will be applied to ALL requests as no rules are configured.\n\n", ctx.config.AccessControl.DefaultPolicy)
 
 		return nil
 	}
@@ -85,7 +84,7 @@ func (ctx *CmdCtx) AccessControlCheckRunE(cmd *cobra.Command, _ []string) (err e
 		return err
 	}
 
-	w := tabwriter.NewWriter(os.Stdout, 1, 1, 4, ' ', 0)
+	w := tabwriter.NewWriter(cmd.OutOrStdout(), 1, 1, 4, ' ', 0)
 
 	accessControlCheckWriteOutput(w, object, subject, results, ctx.config.AccessControl.DefaultPolicy, verbose)
 
