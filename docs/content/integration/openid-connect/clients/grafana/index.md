@@ -23,9 +23,9 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.38.17](https://github.com/authelia/authelia/releases/tag/v4.38.17)
+  - [v4.39.6](https://github.com/authelia/authelia/releases/tag/v4.39.6)
 - [Grafana]
-  - [v11.4.0](https://github.com/grafana/grafana/releases/tag/v11.4.0)
+  - [v12.0.2](https://github.com/grafana/grafana/releases/tag/v12.0.2)
 
 {{% oidc-common bugs="claims-hydration" %}}
 
