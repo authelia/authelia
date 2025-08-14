@@ -1,9 +1,11 @@
-dn: cn=pwmanager,{{ LDAP_BASE_DN }}
+dn: uid=pwmanager,{{ LDAP_BASE_DN }}
 cn: Password Manager
 displayName: Password Manager
 givenName: Password
-objectClass: inetOrgPerson
 objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
 mail: password.manager@authelia.com
 sn: Manager
 uid: pwmanager
@@ -21,61 +23,69 @@ ou: users
 
 dn: cn=dev,ou=groups,{{ LDAP_BASE_DN }}
 cn: dev
-member: cn=John Doe (external),ou=users,{{ LDAP_BASE_DN }}
-member: cn=Bob Dylan,ou=users,{{ LDAP_BASE_DN }}
+member: uid=john,ou=users,{{ LDAP_BASE_DN }}
+member: uid=bob,ou=users,{{ LDAP_BASE_DN }}
 objectClass: groupOfNames
 objectClass: top
 
 dn: cn=admins,ou=groups,{{ LDAP_BASE_DN }}
 cn: admins
-member: cn=John Doe (external),ou=users,{{ LDAP_BASE_DN }}
+member: uid=john,ou=users,{{ LDAP_BASE_DN }}
 objectClass: groupOfNames
 objectClass: top
 
 dn: cn=authelia-admin,ou=groups,{{ LDAP_BASE_DN }}
 cn: authelia-admin
-member: cn=John Doe (external),ou=users,{{ LDAP_BASE_DN }}
+member: uid=john,ou=users,{{ LDAP_BASE_DN }}
 objectClass: groupOfNames
 objectClass: top
 
-dn: cn=John Doe (external),ou=users,{{ LDAP_BASE_DN }}
+dn: uid=john,ou=users,{{ LDAP_BASE_DN }}
 cn: John Doe (external)
 displayName: John Doe
 givenName: John
 objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: person
 objectClass: top
 mail: john.doe@authelia.com
 sn: Doe
 uid: john
 userPassword: {CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
 
-dn: cn=Harry Potter,ou=users,{{ LDAP_BASE_DN }}
+dn: uid=harry,ou=users,{{ LDAP_BASE_DN }}
 cn: Harry Potter
 displayName: Harry Potter
 givenName: Harry
 objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: person
 objectClass: top
 mail: harry.potter@authelia.com
 sn: Potter
 uid: harry
 userPassword: {CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
 
-dn: cn=Bob Dylan,ou=users,{{ LDAP_BASE_DN }}
+dn: uid=bob,ou=users,{{ LDAP_BASE_DN }}
 cn: Bob Dylan
 displayName: Bob Dylan
 givenName: Bob
 objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: person
 objectClass: top
 mail: bob.dylan@authelia.com
 sn: Dylan
 uid: bob
 userPassword: {CRYPT}$6$rounds=500000$jgiCMRyGXzoqpxS3$w2pJeZnnH8bwW3zzvoMWtTRfQYsHbWbD/hquuQ5vUeIyl9gdwBIt6RWk2S6afBA0DPakbeWgD/4SZPiS0hYtU/
 
-dn: cn=James Dean,ou=users,{{ LDAP_BASE_DN }}
+dn: uid=james,ou=users,{{ LDAP_BASE_DN }}
 cn: James Dean
 displayName: James Dean
 givenName: James
 objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: person
 objectClass: top
 mail: james.dean@authelia.com
 sn: Dean

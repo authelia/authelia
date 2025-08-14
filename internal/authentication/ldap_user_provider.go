@@ -111,7 +111,10 @@ func (p *LDAPUserProvider) GetSupportedFields() []string {
 }
 
 func (p *LDAPUserProvider) GetRequiredFields() []string {
-	return p.Management.GetSupportedFields()
+	return p.Management.GetRequiredFields()
+}
+func (p *LDAPUserProvider) GetFieldMetadata() map[string]FieldMetadata {
+	return p.Management.GetFieldMetadata()
 }
 
 func (p *LDAPUserProvider) ValidateUserData(userData *UserDetailsExtended) error {
@@ -332,7 +335,7 @@ func (p *LDAPUserProvider) ListUsers() (users []UserDetailsExtended, err error) 
 			p.log.WithError(err).Warnf("Failed to get groups for user: %s", profile.Username)
 		}
 
-		// Build UserDetailsExtended similar to GetDetailsExtended method
+		// Build UserDetailsExtended similar to GetDetailsExtended method.
 		userDetails := &UserDetailsExtended{
 			GivenName:      profile.GivenName,
 			FamilyName:     profile.FamilyName,
@@ -486,6 +489,9 @@ func (p *LDAPUserProvider) ChangePassword(username, oldPassword string, newPassw
 }
 
 // getGroupDN is a helper function to get the DN of a group given its name.
+// TODO: Use this method :)
+//
+//nolint:unused
 func (p *LDAPUserProvider) getGroupDN(client ldap.Client, groupName string) (string, error) {
 	searchRequest := ldap.NewSearchRequest(
 		p.groupsBaseDN,

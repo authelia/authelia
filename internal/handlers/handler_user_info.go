@@ -114,15 +114,51 @@ func UserInfoGET(ctx *middlewares.AutheliaCtx) {
 	}
 }
 
+func GetUserGET(ctx *middlewares.AutheliaCtx) {
+	usernameRaw := ctx.UserValue("username")
+	if usernameRaw == nil {
+		ctx.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetJSONError(messageUsernameRequired)
+
+		return
+	}
+
+	username := usernameRaw.(string)
+
+	var (
+		err         error
+		userInfo    model.UserInfo
+		userDetails *authentication.UserDetailsExtended
+	)
+	if userDetails, err = ctx.Providers.UserProvider.GetDetailsExtended(username); err != nil {
+		ctx.Logger.WithError(err).Error("Error occurred retrieving users")
+		return
+	}
+
+	userInfo, err = ctx.Providers.StorageProvider.LoadUserMetadataByUsername(ctx, username)
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			ctx.Error(fmt.Errorf("unable to load user attributes: %w", err), messageOperationFailed)
+			return
+		}
+	}
+
+	userDetails = MergeUserDetailsWithInfo(userDetails, userInfo)
+
+	err = ctx.SetJSONBody(userDetails)
+	if err != nil {
+		ctx.Logger.Errorf("Unable to set user info response in body: %+v", err)
+	}
+}
+
 // AllUsersInfoGET gets the info related to all users.
 func AllUsersInfoGET(ctx *middlewares.AutheliaCtx) {
 	var (
-		err      error
-		userInfo []model.UserInfo
-		users    []authentication.UserDetailsExtended
+		err          error
+		userInfo     []model.UserInfo
+		usersDetails []authentication.UserDetailsExtended
 	)
-
-	if users, err = ctx.Providers.UserProvider.ListUsers(); err != nil {
+	if usersDetails, err = ctx.Providers.UserProvider.ListUsers(); err != nil {
 		ctx.Logger.WithError(err).Error("Error occurred retrieving users")
 		return
 	}
@@ -132,9 +168,9 @@ func AllUsersInfoGET(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	userInfo = MergeUserInfoAndDetails(userInfo, users)
+	usersDetails = MergeUserDetailsWithInfoMany(usersDetails, userInfo)
 
-	err = ctx.SetJSONBody(userInfo)
+	err = ctx.SetJSONBody(usersDetails)
 	if err != nil {
 		ctx.Logger.Errorf("Unable to set user info response in body: %+v", err)
 	}

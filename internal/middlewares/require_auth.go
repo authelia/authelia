@@ -28,7 +28,6 @@ func RequireAdminUser(next RequestHandler) RequestHandler {
 		adminGroup := ctx.Configuration.Administration.AdminGroup
 
 		s, err := ctx.GetSession()
-
 		if err != nil {
 			ctx.ReplyForbidden()
 			return

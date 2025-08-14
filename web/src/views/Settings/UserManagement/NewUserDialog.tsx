@@ -1,15 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import {
-    Autocomplete,
-    Button,
-    Dialog,
-    DialogContent,
-    DialogTitle,
-    FormControl,
-    Grid2 as Grid,
-    TextField,
-} from "@mui/material";
+import { Autocomplete, Button, Dialog, DialogContent, DialogTitle, FormControl, Grid, TextField } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import PasswordMeter from "@components/PasswordMeter.tsx";

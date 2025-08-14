@@ -82,13 +82,19 @@ const (
 	messageUnableToDeleteUser                    = "Unable to delete specified user"
 	messageNewUserRequiredFields                 = "Username, DisplayName, and Password are required fields"
 	messageIncompleteUserCreation                = "The user has been created but metadata creation failed"
+	messageUnableToDeleteUserMetadata            = "Unable to delete specified user metadata"
+	messageUsernameRequired                      = "username parameter required"
 )
 
 const (
-	messageUsernameWrongFormat    = "Username must be either a valid email address or contain only: letters, numbers, hyphens(-), commas(,), and underscores(_)."
-	messageGroupsWrongFormat      = "Groups must only contain: letters, numbers, hyphens(-), commas(,), and underscores(_)."
+	//nolint:unused
+	messageUsernameWrongFormat = "Username must be either a valid email address or contain only: letters, numbers, hyphens(-), commas(,), and underscores(_)."
+	//nolint:unused
+	messageGroupsWrongFormat = "Groups must only contain: letters, numbers, hyphens(-), commas(,), and underscores(_)."
+	//nolint:unused
 	messageDisplayNameWrongFormat = "Display Name must contain only printable unicode characters (no invisible or control characters)."
-	messageEmailWrongFormat       = "Username must be a valid email address."
+	//nolint:unused
+	messageEmailWrongFormat = "Username must be a valid email address."
 )
 
 const (

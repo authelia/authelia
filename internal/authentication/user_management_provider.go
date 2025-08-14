@@ -7,5 +7,6 @@ type UserManagementProvider interface {
 
 	GetRequiredFields() []string
 	GetSupportedFields() []string
+	GetFieldMetadata() map[string]FieldMetadata
 	ValidateUserData(userData *UserDetailsExtended) error
 }

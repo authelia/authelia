@@ -32,7 +32,7 @@ log:
 storage:
   encryption_key: 'a_not_so_secure_encryption_key'
   local:
-    path: '/config/db.sqlite3'
+    path: '/tmp/db.sqlite3'
 
 notifier:
   smtp:
@@ -78,7 +78,7 @@ authentication_backend:
     users_filter: '(&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person)(objectClass=inetOrgPerson))'  # yamllint disable-line rule:line-length
     additional_groups_dn: 'ou=groups'
     groups_filter: '(&(member={dn})(objectClass=groupOfNames))'
-    user: 'cn=pwmanager,dc=example,dc=com'
+    user: 'uid=pwmanager,dc=example,dc=com'
     password: 'password'
     attributes:
       distinguished_name: ''

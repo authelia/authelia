@@ -20,9 +20,16 @@ type AdminConfigRequestBody struct {
 	AllowAdminsToAddAdmins bool   `json:"allow_admins_to_add_admins"`
 }
 
-// ChangeUserPUT takes a changeUserRequestBody object and saves any changes.
+// UserManagementFieldsResponse represents the response structure for user management field metadata.
+type UserManagementFieldsResponse struct {
+	RequiredFields  []string                                `json:"required_fields"`
+	SupportedFields []string                                `json:"supported_fields"`
+	FieldMetadata   map[string]authentication.FieldMetadata `json:"field_metadata"`
+}
+
+// ChangeUserPUT takes authentication.UserDetailsExtended and updates the object to match the provided struct.
 //
-//nolint:gocyclo
+
 func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
 	var (
 		err         error
@@ -30,11 +37,11 @@ func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
 		userDetails *authentication.UserDetailsExtended
 		adminUser   session.UserSession
 	)
-
 	if adminUser, err = ctx.GetSession(); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred modifying user: %s", errStrUserSessionData)
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
+
 		return
 	}
 
@@ -42,6 +49,7 @@ func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
 		ctx.Logger.WithError(errUserAnonymous).Error("Error occurred modifying user")
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
+
 		return
 	}
 
@@ -49,6 +57,7 @@ func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
 		ctx.Logger.Errorf("Error occurred modifying user: %s", fmt.Sprintf(logFmtErrUserNotAdmin, adminUser.Username))
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
 		ctx.SetJSONError(messageOperationFailed)
+
 		return
 	}
 
@@ -57,6 +66,7 @@ func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
 		ctx.Logger.Error(err, messageUnableToModifyUser)
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetJSONError("Invalid JSON format")
+
 		return
 	}
 
@@ -64,13 +74,15 @@ func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
 		ctx.Logger.Debug("Invalid request body structure")
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetJSONError("Invalid request structure")
+
 		return
 	}
 
-	if requestBody.UserDetails.Username == "" {
+	if requestBody.Username == "" {
 		ctx.Logger.Debug("Username is required")
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetJSONError("Username is required")
+
 		return
 	}
 
@@ -78,6 +90,7 @@ func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
 		ctx.Logger.Debug("Password modification not allowed via this endpoint")
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetJSONError("Password modification not supported. Use the password change endpoint.")
+
 		return
 	}
 
@@ -85,6 +98,7 @@ func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
 		ctx.Logger.WithError(err).Errorf("Error retrieving details for user '%s'", requestBody.Username)
 		ctx.Response.SetStatusCode(fasthttp.StatusNotFound)
 		ctx.SetJSONError("User not found")
+
 		return
 	}
 
@@ -94,6 +108,7 @@ func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
 		ctx.Logger.WithError(err).Errorf("Validation failed for user '%s'", requestBody.Username)
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.SetJSONError(fmt.Sprintf("User modification failed: %s", err.Error()))
+
 		return
 	}
 
@@ -101,12 +116,13 @@ func ChangeUserPUT(ctx *middlewares.AutheliaCtx) {
 		ctx.Logger.WithError(err).Errorf("Error occurred updating user '%s'", requestBody.Username)
 		ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)
 		ctx.SetJSONError("Failed to update user")
+
 		return
 	}
 
 	if changes := GenerateUserChangeLog(userDetails, requestBody); len(changes) > 0 {
 		ctx.Logger.WithFields(changes).Infof("User '%s' modified by administrator '%s'",
-			requestBody.UserDetails.Username, adminUser.Username)
+			requestBody.Username, adminUser.Username)
 	}
 
 	ctx.Response.SetStatusCode(fasthttp.StatusOK)
@@ -119,7 +135,6 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 		userSession    session.UserSession
 		newUserRequest *authentication.UserDetailsExtended
 	)
-
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred adding new user: %s", errStrUserSessionData)
 
@@ -147,8 +162,9 @@ func NewUserPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if err = ctx.ParseBody(&newUserRequest); err != nil {
-		ctx.Logger.Error(err, messageUnableToAddUser)
+	newUserRequest = &authentication.UserDetailsExtended{}
+	if err = ctx.ParseBody(newUserRequest); err != nil {
+		ctx.Logger.Error(err, messageUnableToModifyUser)
 
 		ctx.Response.SetStatusCode(fasthttp.StatusInternalServerError)
 		ctx.SetJSONError(messageOperationFailed)
@@ -229,7 +245,6 @@ func DeleteUserDELETE(ctx *middlewares.AutheliaCtx) {
 		userSession session.UserSession
 		requestBody deleteUserRequestBody
 	)
-
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred deleting specified user: %s", errStrUserSessionData)
 
@@ -255,10 +270,14 @@ func DeleteUserDELETE(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	// Delete Opaque User Identifiers, User Preferences, 2FA Devices, Oauth Sessions related to Opaque Ids, Remove User from Backend.
+	//TODO: Delete Opaque User Identifiers, User Preferences, 2FA Devices, Oauth Sessions related to Opaque Ids, Remove User from Backend.
 
 	if err = ctx.Providers.UserProvider.DeleteUser(requestBody.Username); err != nil {
 		ctx.Logger.Error(err, messageUnableToDeleteUser)
+	}
+
+	if err = ctx.Providers.StorageProvider.DeleteUserByUsername(ctx, requestBody.Username); err != nil {
+		ctx.Logger.WithError(err).Error(messageUnableToDeleteUserMetadata)
 	}
 
 	ctx.Response.SetStatusCode(fasthttp.StatusOK)
@@ -270,7 +289,6 @@ func AdminConfigGET(ctx *middlewares.AutheliaCtx) {
 		userSession session.UserSession
 		adminConfig AdminConfigRequestBody
 	)
-
 	if userSession, err = ctx.GetSession(); err != nil {
 		ctx.Logger.WithError(err).Errorf("Error occurred retrieving admin config: %s", errStrUserSessionData)
 
@@ -299,4 +317,51 @@ func AdminConfigGET(ctx *middlewares.AutheliaCtx) {
 	if err != nil {
 		ctx.Logger.Errorf("Unable to set admin config response in body: %+v", err)
 	}
+}
+
+// UserManagementFieldsGet returns the field metadata for user management operations.
+func UserManagementFieldsGet(ctx *middlewares.AutheliaCtx) {
+	var (
+		err         error
+		userSession session.UserSession
+	)
+	if userSession, err = ctx.GetSession(); err != nil {
+		ctx.Logger.WithError(err).Errorf("Error occurred retrieving user management fields: %s", errStrUserSessionData)
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	if userSession.IsAnonymous() {
+		ctx.Logger.WithError(errUserAnonymous).Error("Error occurred retrieving user management fields")
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	if !UserIsAdmin(ctx, userSession.Groups) {
+		ctx.Logger.Warnf("problem retrieving user management fields: user '%s' is not an admin", userSession.Username)
+		ctx.SetStatusCode(fasthttp.StatusForbidden)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	response := UserManagementFieldsResponse{
+		RequiredFields:  ctx.Providers.UserProvider.GetRequiredFields(),
+		SupportedFields: ctx.Providers.UserProvider.GetSupportedFields(),
+		FieldMetadata:   ctx.Providers.UserProvider.GetFieldMetadata(),
+	}
+
+	if err = ctx.SetJSONBody(response); err != nil {
+		ctx.Logger.WithError(err).Error("Unable to set user management fields response")
+		ctx.SetStatusCode(fasthttp.StatusInternalServerError)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	ctx.SetStatusCode(fasthttp.StatusOK)
 }

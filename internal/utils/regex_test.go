@@ -13,7 +13,7 @@ func TestValidatePrintableUnicodeString(t *testing.T) {
 		input      string
 		shouldPass bool
 	}{
-		// Valid cases
+		// Valid cases.
 		{"ValidAlphanumeric", "abc123", true},
 		{"ValidWithSpaces", "hello world", true},
 		{"ValidUnicode", "café🌟", true},
@@ -23,11 +23,11 @@ func TestValidatePrintableUnicodeString(t *testing.T) {
 		{"SingleCharacter", "a", true},
 		{"Exactly100Chars", strings.Repeat("a", 100), true},
 
-		// Invalid cases
+		// Invalid cases.
 		{"EmptyString", "", false},
 		{"Over100Chars", strings.Repeat("a", 101), false},
 		{"ControlCharacter", "hello\x00world", false},
-		{"ControlCharacterTab", "hello\x08world", false}, // backspace
+		{"ControlCharacterTab", "hello\x08world", false}, {"ControlCharacterTab", "hello\x08world", false}, // backspace.
 		{"OnlyControlChar", "\x00", false},
 	}
 
@@ -84,7 +84,7 @@ func TestValidateGroup(t *testing.T) {
 		input      string
 		shouldPass bool
 	}{
-		// Valid groups
+		// Valid groups.
 		{"SimpleGroup", "mygroup", true},
 		{"GroupWithNumbers", "group123", true},
 		{"GroupWithDash", "my-group", true},
@@ -95,7 +95,7 @@ func TestValidateGroup(t *testing.T) {
 		{"NumbersOnly", "123", true},
 		{"Exactly100Chars", strings.Repeat("a", 100), true},
 
-		// Invalid groups
+		// Invalid groups.
 		{"EmptyString", "", false},
 		{"Over100Chars", strings.Repeat("a", 101), false},
 		{"WithSpace", "my group", false},
@@ -122,18 +122,18 @@ func TestValidateGroups(t *testing.T) {
 		shouldPass      bool
 		expectedInvalid string
 	}{
-		// Valid cases
+		// Valid cases.
 		{"EmptySlice", []string{}, true, ""},
 		{"SingleValidGroup", []string{"group1"}, true, ""},
 		{"MultipleValidGroups", []string{"group1", "group2", "test123"}, true, ""},
 		{"ValidGroupsWithSpecialChars", []string{"group-1", "group_2", "group.3"}, true, ""},
 
-		// Invalid cases
+		// Invalid cases.
 		{"SingleInvalidGroup", []string{"invalid group"}, false, "invalid group"},
 		{"FirstGroupInvalid", []string{"invalid@group", "validgroup"}, false, "invalid@group"},
 		{"LastGroupInvalid", []string{"validgroup", "invalid group"}, false, "invalid group"},
 		{"MiddleGroupInvalid", []string{"valid1", "invalid@group", "valid2"}, false, "invalid@group"},
-		{"MultipleInvalidGroups", []string{"invalid@1", "invalid 2"}, false, "invalid@1"}, // Returns first invalid
+		{"MultipleInvalidGroups", []string{"invalid@1", "invalid 2"}, false, "invalid@1"}, {"MultipleInvalidGroups", []string{"invalid@1", "invalid 2"}, false, "invalid@1"}, // Returns first invalid.
 		{"EmptyStringInGroup", []string{"valid", "", "alsovalid"}, false, ""},
 		{"TooLongGroup", []string{"valid", strings.Repeat("a", 101)}, false, strings.Repeat("a", 101)},
 	}
@@ -153,7 +153,7 @@ func TestValidateUsername(t *testing.T) {
 		input      string
 		shouldPass bool
 	}{
-		// Valid usernames (non-email format)
+		// Valid usernames (non-email format).
 		{"SimpleUsername", "john", true},
 		{"UsernameWithNumbers", "user123", true},
 		{"UnicodeUsername", "café", true},
@@ -161,26 +161,26 @@ func TestValidateUsername(t *testing.T) {
 		{"UsernameWithPunctuation", "user-name_test.123", true},
 		{"EmojiUsername", "user🌟", true},
 
-		// Valid usernames (email format)
+		// Valid usernames (email format).
 		{"ValidEmail", "user@example.com", true},
 		{"EmailWithPlus", "user+tag@example.com", true},
 		{"ComplexEmail", "test.user+label@sub.example.com", true},
 
-		// Invalid usernames (non-email format - violates printable unicode rules)
+		// Invalid usernames (non-email format - violates printable unicode rules).
 		{"EmptyUsername", "", false},
 		{"TooLongUsername", strings.Repeat("a", 101), false},
 		{"ControlCharacter", "user\x00name", false},
 
-		// Invalid usernames (email format - violates email rules)
+		// Invalid usernames (email format - violates email rules).
 		{"InvalidEmailNoTLD", "user@example", false},
 		{"InvalidEmailMultipleAt", "user@@example.com", false},
 		{"InvalidEmailNoLocal", "@example.com", false},
 		{"InvalidEmailSpaceInDomain", "user@exam ple.com", false},
 
-		// Edge case: @ sign handling
-		{"AtSignAlone", "@", false},                          // Treated as email, but invalid
-		{"AtSignInMiddle", "user@middle@example.com", false}, // Invalid email
-		{"ValidAtInNonEmail", "user@company", false},         // Contains @, so treated as email, but invalid
+		// Edge case: @ sign handling.
+		{"AtSignAlone", "@", false}, {"AtSignAlone", "@", false}, // Treated as email, but invalid.
+		{"AtSignInMiddle", "user@middle@example.com", false}, {"AtSignInMiddle", "user@middle@example.com", false}, // Invalid email.
+		{"ValidAtInNonEmail", "user@company", false}, {"ValidAtInNonEmail", "user@company", false}, // Contains @, so treated as email, but invalid.
 	}
 
 	for _, tc := range testCases {

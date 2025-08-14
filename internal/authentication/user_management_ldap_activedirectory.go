@@ -11,12 +11,12 @@ type ActiveDirectoryUserManagement struct {
 }
 
 func (a *ActiveDirectoryUserManagement) UpdateUser(username string, userData *UserDetailsExtended) (err error) {
-	//TODO implement me
+	// TODO: implement me.
 	panic("implement me")
 }
 
 func (a *ActiveDirectoryUserManagement) DeleteUser(username string) (err error) {
-	//TODO implement me
+	// TODO implement me.
 	panic("implement me")
 }
 
@@ -57,44 +57,37 @@ func (a *ActiveDirectoryUserManagement) GetDefaultObjectClasses() []string {
 func (a *ActiveDirectoryUserManagement) GetFieldMetadata() map[string]FieldMetadata {
 	return map[string]FieldMetadata{
 		"Username": {
-			Required:    true,
 			DisplayName: "Username",
 			Description: "Unique identifier for the user (maps to uid attribute)",
 			Type:        "string",
 			MaxLength:   100,
 		},
 		"Password": {
-			Required:    true,
 			DisplayName: "Password",
 			Description: "User's password",
 			Type:        "password",
 		},
 		"CommonName": {
-			Required:    true,
 			DisplayName: "Common Name",
 			Description: "Full name or display name (maps to cn attribute)",
 			Type:        "string",
 		},
 		"GivenName": {
-			Required:    false,
 			DisplayName: "First Name",
 			Description: "User's first/given name",
 			Type:        "string",
 		},
 		"FamilyName": {
-			Required:    true,
 			DisplayName: "Last Name",
 			Description: "User's last/family name (maps to sn attribute)",
 			Type:        "string",
 		},
 		"Email": {
-			Required:    false,
 			DisplayName: "Email Address",
 			Description: "Primary email address",
 			Type:        "email",
 		},
 		"Groups": {
-			Required:    false,
 			DisplayName: "Groups",
 			Description: "Groups the user should be added to",
 			Type:        "array",
@@ -106,8 +99,10 @@ func (a *ActiveDirectoryUserManagement) ValidateUserData(userData *UserDetailsEx
 	if userData.Username == "" {
 		return fmt.Errorf("username required")
 	}
+
 	if userData.CommonName == "" {
-		// Try to build it from other fields
+		// Try to build it from other fields.
+		//nolint:gocritic
 		if userData.DisplayName != "" {
 			userData.CommonName = userData.DisplayName
 		} else if userData.GivenName != "" && userData.FamilyName != "" {
@@ -116,9 +111,11 @@ func (a *ActiveDirectoryUserManagement) ValidateUserData(userData *UserDetailsEx
 			return fmt.Errorf("commonName (cn) required for RFC2307bis")
 		}
 	}
+
 	if userData.FamilyName == "" {
 		return fmt.Errorf("familyName (sn) required for RFC2307bis")
 	}
+
 	return nil
 }
 
@@ -154,20 +151,21 @@ func (a *ActiveDirectoryUserManagement) AddUser(userData *UserDetailsExtended) (
 
 	addRequest := ldap.NewAddRequest(userDN, nil)
 
-	// RFC2307bis requires these object classes
+	// RFC2307bis requires these object classes.
 	addRequest.Attribute("objectClass", []string{"top", "person", "organizationalPerson", "inetOrgPerson"})
 
-	addRequest.Attribute("uid", []string{userData.UserDetails.Username})
+	addRequest.Attribute("uid", []string{userData.Username})
 	addRequest.Attribute("cn", []string{userData.CommonName})
 	addRequest.Attribute("sn", []string{userData.FamilyName})
 	addRequest.Attribute("userPassword", []string{userData.Password})
 
-	// Optional attributes
+	// Optional attributes.
 	if userData.GivenName != "" {
 		addRequest.Attribute("givenName", []string{userData.GivenName})
 	}
-	if len(userData.UserDetails.Emails) > 0 {
-		addRequest.Attribute("mail", []string{userData.UserDetails.Emails[0]})
+
+	if len(userData.Emails) > 0 {
+		addRequest.Attribute("mail", []string{userData.Emails[0]})
 	}
 
 	var controls []ldap.Control

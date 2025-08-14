@@ -9,13 +9,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/authelia/authelia/v4/internal/utils"
 	"github.com/go-crypt/crypt/algorithm"
 	"github.com/go-crypt/crypt/algorithm/argon2"
 	"github.com/go-crypt/crypt/algorithm/bcrypt"
 	"github.com/go-crypt/crypt/algorithm/pbkdf2"
 	"github.com/go-crypt/crypt/algorithm/scrypt"
 	"github.com/go-crypt/crypt/algorithm/shacrypt"
+
+	"github.com/authelia/authelia/v4/internal/utils"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"
@@ -259,12 +260,12 @@ func (p *FileUserProvider) AddUser(userData *UserDetailsExtended) (err error) {
 
 	var email string
 	if userData.UserDetails != nil && len(userData.Emails) > 0 {
-		email = userData.UserDetails.Emails[0]
+		email = userData.Emails[0]
 	}
 
 	var groups []string
 	if userData.UserDetails != nil && len(userData.Groups) > 0 {
-		groups = userData.UserDetails.Groups
+		groups = userData.Groups
 	}
 
 	details := FileUserDatabaseUserDetails{
@@ -307,11 +308,11 @@ func (p *FileUserProvider) UpdateUser(username string, userData *UserDetailsExte
 			updatedDetails.DisplayName = userData.DisplayName
 		}
 
-		if len(userData.UserDetails.Emails) > 0 {
+		if len(userData.Emails) > 0 {
 			updatedDetails.Email = userData.Emails[0]
 		}
 
-		if len(userData.UserDetails.Groups) > 0 {
+		if len(userData.Groups) > 0 {
 			updatedDetails.Groups = userData.Groups
 		}
 	}
@@ -353,6 +354,11 @@ func (p *FileUserProvider) GetSupportedFields() []string {
 		"GivenName",
 		"FamilyName",
 	}
+}
+
+func (p *FileUserProvider) GetFieldMetadata() map[string]FieldMetadata {
+	//TODO: implement me!!
+	return nil
 }
 
 // DeleteUser deletes a user from the file database.

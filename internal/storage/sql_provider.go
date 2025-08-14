@@ -562,7 +562,6 @@ func (p *SQLProvider) LoadAllUsersMetadata(ctx context.Context) (allUserMetadata
 			&lastPasswordChange,
 			&userCreatedAt,
 		)
-
 		if err != nil {
 			return nil, fmt.Errorf("error scanning user Metadata: %w", err)
 		}
@@ -610,7 +609,6 @@ func (p *SQLProvider) LoadMultipleUsersMetadataByUsername(ctx context.Context, u
 			&lastPasswordChange,
 			&userCreatedAt,
 		)
-
 		if err != nil {
 			return nil, fmt.Errorf("error scanning user Metadata: %w", err)
 		}
@@ -673,7 +671,6 @@ func (p *SQLProvider) LoadUserMetadataByUsername(ctx context.Context, username s
 // UpdateUserSignInDateByUsername save the current time as the last time a user logged in successfully.
 func (p *SQLProvider) UpdateUserSignInDateByUsername(ctx context.Context, username string) (err error) {
 	result, err := p.db.ExecContext(ctx, p.sqlUpdateUserRecordSignInByUsername, time.Now(), username)
-
 	if err != nil {
 		return fmt.Errorf("error updating latest sign in time for user '%s: %w", username, err)
 	}
@@ -762,7 +759,6 @@ func (p *SQLProvider) LoadUserInfo(ctx context.Context, username string) (info m
 // LoadAllUserInfo loads the model.UserInfo from the storage provider for all users.
 func (p *SQLProvider) LoadAllUserInfo(ctx context.Context) (info []model.UserInfo, err error) {
 	rows, err := p.db.QueryContext(ctx, p.sqlSelectAllUserInfo)
-
 	if err != nil {
 		return nil, fmt.Errorf("error selecting user info for all users: %w", err)
 	}
@@ -781,7 +777,6 @@ func (p *SQLProvider) LoadAllUserInfo(ctx context.Context) (info []model.UserInf
 			&user.HasWebAuthn,
 			&user.HasDuo,
 		)
-
 		if err != nil {
 			return nil, fmt.Errorf("error scanning all user info: %w", err)
 		}
@@ -799,7 +794,6 @@ func (p *SQLProvider) LoadAllUserInfo(ctx context.Context) (info []model.UserInf
 // LoadAllUserInfoAndMetadata loads the model.UserInfo from the storage provider for all users.
 func (p *SQLProvider) LoadAllUserInfoAndMetadata(ctx context.Context) (info []model.UserInfo, err error) {
 	rows, err := p.db.QueryContext(ctx, p.sqlSelectAllUserInfoAndMetadata)
-
 	if err != nil {
 		return nil, fmt.Errorf("error selecting user info and Metadata for all users: %w", err)
 	}
@@ -821,7 +815,6 @@ func (p *SQLProvider) LoadAllUserInfoAndMetadata(ctx context.Context) (info []mo
 			&user.HasWebAuthn,
 			&user.HasDuo,
 		)
-
 		if err != nil {
 			return nil, fmt.Errorf("error scanning all user info and metadata : %w", err)
 		}

@@ -153,6 +153,11 @@ func FirstFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middle
 
 		successful = true
 
+		err = ctx.Providers.StorageProvider.UpdateUserSignInDateByUsername(ctx, userSession.Username)
+		if err != nil {
+			ctx.Logger.WithError(err).Errorf("failed to update user sign in date for user '%s'", userSession.Username)
+		}
+
 		if len(bodyJSON.Flow) > 0 {
 			handleFlowResponse(ctx, &userSession, bodyJSON.FlowID, bodyJSON.Flow, bodyJSON.SubFlow, bodyJSON.UserCode)
 		} else {

@@ -63,9 +63,10 @@ const (
 	ldapAttributeUnicodePwd   = "unicodePwd"
 	ldapAttributeUserPassword = "userPassword"
 
-	ldapAttrMail       = "mail"
-	ldapAttrCommonName = "cn"
-	ldapAttrMemberOf   = "memberOf"
+	ldapAttrMail        = "mail"
+	ldapAttrCommonName  = "cn"
+	ldapAttrMemberOf    = "memberOf"
+	ldapAttrObjectClass = "objectClass"
 )
 
 const (

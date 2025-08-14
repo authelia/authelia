@@ -141,6 +141,20 @@ func (mr *MockUserProviderMockRecorder) GetDetailsExtended(username any) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDetailsExtended", reflect.TypeOf((*MockUserProvider)(nil).GetDetailsExtended), username)
 }
 
+// GetFieldMetadata mocks base method.
+func (m *MockUserProvider) GetFieldMetadata() map[string]authentication.FieldMetadata {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFieldMetadata")
+	ret0, _ := ret[0].(map[string]authentication.FieldMetadata)
+	return ret0
+}
+
+// GetFieldMetadata indicates an expected call of GetFieldMetadata.
+func (mr *MockUserProviderMockRecorder) GetFieldMetadata() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFieldMetadata", reflect.TypeOf((*MockUserProvider)(nil).GetFieldMetadata))
+}
+
 // GetRequiredFields mocks base method.
 func (m *MockUserProvider) GetRequiredFields() []string {
 	m.ctrl.T.Helper()

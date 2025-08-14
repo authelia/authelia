@@ -8,7 +8,7 @@ import {
     DialogContent,
     DialogTitle,
     FormControl,
-    Grid2 as Grid,
+    Grid,
     TextField,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";

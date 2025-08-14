@@ -286,10 +286,14 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 		r.GET("/api/admin/config", RequireAdminUser1FA(handlers.AdminConfigGET))
 
 		if config.Administration.EnableUserManagement {
+			r.GET("/api/admin/users/fields", RequireAdminUser1FA(handlers.UserManagementFieldsGet))
+
 			r.GET("/api/admin/users", RequireAdminUser1FA(handlers.AllUsersInfoGET))
-			r.POST("/api/admin/user", RequireAdminUser1FA(handlers.NewUserPOST))
-			r.PUT("/api/admin/user", RequireAdminUser1FA(handlers.ChangeUserPUT))
-			r.DELETE("/api/admin/user", RequireAdminUser1FA(handlers.DeleteUserDELETE))
+			r.POST("/api/admin/users", RequireAdminUser1FA(handlers.NewUserPOST))
+
+			r.GET("/api/admin/users/{username}", RequireAdminUser1FA(handlers.GetUserGET))
+			r.PUT("/api/admin/users/{username}", RequireAdminUser1FA(handlers.ChangeUserPUT))
+			r.DELETE("/api/admin/users/{username}", RequireAdminUser1FA(handlers.DeleteUserDELETE))
 		}
 	}
 

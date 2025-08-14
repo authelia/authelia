@@ -32,6 +32,7 @@ type UserProvider interface {
 
 	GetRequiredFields() []string
 	GetSupportedFields() []string
+	GetFieldMetadata() map[string]FieldMetadata
 	ValidateUserData(userData *UserDetailsExtended) error
 
 	Close() (err error)

@@ -190,7 +190,6 @@ type AuthenticationBackendLDAPAttributes struct {
 	GroupName         string `koanf:"group_name" yaml:"group_name,omitempty" toml:"group_name,omitempty" json:"group_name,omitempty" jsonschema:"title=Attribute: Group Name" jsonschema_description:"The directory server attribute which contains the group name for all groups."`
 	GroupMember       string `koanf:"group_member" yaml:"group_member,omitempty" toml:"group_member,omitempty" json:"group_member,omitempty" jsonschema:"title=Attribute: Group Member" jsonschema_description:"The directory server attribute which contains the members of a group."`
 
-
 	Extra map[string]AuthenticationBackendLDAPAttributesAttribute `koanf:"extra" yaml:"extra,omitempty" toml:"extra,omitempty" json:"extra,omitempty" jsonschema:"title=Extra Attributes" jsonschema_description:"Configures the extra attributes available in expressions and other areas of Authelia."`
 }
 
