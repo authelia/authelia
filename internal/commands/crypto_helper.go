@@ -173,7 +173,7 @@ func (ctx *CmdCtx) cryptoGenPrivateKeyFromCmd(cmd *cobra.Command) (privateKey an
 	return privateKey, nil
 }
 
-func cryptoGenerateCertificateBundlesFromCmd(cmd *cobra.Command, b *strings.Builder, dir string, ca *x509.Certificate, certificate []byte, privkey any) (err error) {
+func cryptoGenerateCertificateBundlesFromCmd(cmd *cobra.Command, dir string, ca *x509.Certificate, certificate []byte, privkey any) (err error) {
 	var bundles []string
 
 	if bundles, err = cmd.Flags().GetStringSlice(cmdFlagNameBundles); err != nil {
@@ -197,7 +197,7 @@ func cryptoGenerateCertificateBundlesFromCmd(cmd *cobra.Command, b *strings.Buil
 
 		pathPEM := filepath.Join(dir, name)
 
-		fmt.Fprintf(b, "\tCertificate (chain): %s\n", pathPEM)
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\tCertificate (chain): %s\n", pathPEM)
 
 		if err = utils.WritePEMBlocksToPath(pathPEM, blocks...); err != nil {
 			return err
@@ -219,7 +219,7 @@ func cryptoGenerateCertificateBundlesFromCmd(cmd *cobra.Command, b *strings.Buil
 
 		pathPEM := filepath.Join(dir, name)
 
-		fmt.Fprintf(b, "\tCertificate (priv-chain): %s\n", pathPEM)
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\tCertificate (priv-chain): %s\n", pathPEM)
 
 		if err = utils.WritePEMBlocksToPath(pathPEM, blocks...); err != nil {
 			return err

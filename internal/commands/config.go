@@ -1,9 +1,7 @@
 package commands
 
 import (
-	"bytes"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -74,22 +72,20 @@ func newConfigValidateCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 }
 
 // ConfigValidateRunE is the RunE for the authelia validate-config command.
-func (ctx *CmdCtx) ConfigValidateRunE(_ *cobra.Command, _ []string) (err error) {
+func (ctx *CmdCtx) ConfigValidateRunE(cmd *cobra.Command, _ []string) (err error) {
 	var isError bool
-
-	buf := &bytes.Buffer{}
 
 	switch {
 	case ctx.cconfig.validator.HasErrors():
 		isError = true
 
-		_, _ = fmt.Fprintf(buf, "Configuration parsed and loaded with errors:\n\n")
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Configuration parsed and loaded with errors:\n\n")
 
 		for _, err = range ctx.cconfig.validator.Errors() {
-			_, _ = fmt.Fprintf(buf, "\t - %v\n", err)
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\t - %v\n", err)
 		}
 
-		_, _ = fmt.Fprint(buf, "\n")
+		_, _ = fmt.Fprint(cmd.OutOrStdout(), "\n")
 
 		if !ctx.cconfig.validator.HasWarnings() {
 			break
@@ -97,34 +93,30 @@ func (ctx *CmdCtx) ConfigValidateRunE(_ *cobra.Command, _ []string) (err error) 
 
 		fallthrough
 	case ctx.cconfig.validator.HasWarnings():
-		_, _ = fmt.Fprintf(buf, "Configuration parsed and loaded with warnings:\n\n")
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Configuration parsed and loaded with warnings:\n\n")
 
 		for _, err = range ctx.cconfig.validator.Warnings() {
-			_, _ = fmt.Fprintf(buf, "\t - %v\n", err)
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\t - %v\n", err)
 		}
 
-		_, _ = fmt.Fprint(buf, "\n")
+		_, _ = fmt.Fprint(cmd.OutOrStdout(), "\n")
 	default:
-		_, _ = fmt.Fprintf(buf, "Configuration parsed and loaded successfully without errors.\n\n")
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Configuration parsed and loaded successfully without errors.\n\n")
 	}
 
-	fmt.Print(buf.String())
-
 	if isError {
-		os.Exit(1)
+		return fmt.Errorf("configuration validation failed")
 	}
 
 	return nil
 }
 
 // ConfigTemplateRunE is the RunE for the authelia validate-config command.
-func (ctx *CmdCtx) ConfigTemplateRunE(_ *cobra.Command, _ []string) (err error) {
+func (ctx *CmdCtx) ConfigTemplateRunE(cmd *cobra.Command, _ []string) (err error) {
 	var (
 		source *configuration.FileSource
 		ok     bool
 	)
-
-	buf := &bytes.Buffer{}
 
 	var files []*configuration.File
 
@@ -141,14 +133,15 @@ func (ctx *CmdCtx) ConfigTemplateRunE(_ *cobra.Command, _ []string) (err error) 
 			return err
 		}
 
-		fmt.Fprintf(buf, fmtYAMLConfigTemplateHeader, strings.Join(source.GetBytesFilterNames(), ", "))
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), fmtYAMLConfigTemplateHeader, strings.Join(source.GetBytesFilterNames(), ", "))
 
 		for _, file := range files {
 			if reYAMLComment.Match(file.Data) {
-				buf.Write(reYAMLComment.ReplaceAll(file.Data, []byte(fmt.Sprintf(fmtYAMLConfigTemplateFileHeader+"$1", file.Path))))
+				_, _ = cmd.OutOrStdout().Write(reYAMLComment.ReplaceAll(file.Data, []byte(fmt.Sprintf(fmtYAMLConfigTemplateFileHeader+"$1", file.Path))))
 			} else {
-				fmt.Fprintf(buf, fmtYAMLConfigTemplateFileHeader, file.Path)
-				buf.Write(file.Data)
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), fmtYAMLConfigTemplateFileHeader, file.Path)
+
+				_, _ = cmd.OutOrStdout().Write(file.Data)
 			}
 		}
 	}
@@ -156,8 +149,6 @@ func (ctx *CmdCtx) ConfigTemplateRunE(_ *cobra.Command, _ []string) (err error) 
 	if n == 0 {
 		return fmt.Errorf("templating requires configuration files however no configuration file sources were specified")
 	}
-
-	fmt.Println(buf.String())
 
 	return nil
 }

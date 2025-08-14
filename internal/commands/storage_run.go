@@ -145,7 +145,7 @@ func (ctx *CmdCtx) StorageCacheDeleteRunE(name, description string) func(cmd *co
 			return err
 		}
 
-		_, _ = fmt.Fprintf(os.Stdout, "Successfully deleted cached %s data.\n", description)
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Successfully deleted cached %s data.\n", description)
 
 		return nil
 	}
@@ -184,13 +184,13 @@ func (ctx *CmdCtx) StorageCacheMDS3StatusRunE(cmd *cobra.Command, args []string)
 		}
 	}
 
-	_, _ = fmt.Fprintf(os.Stdout, "WebAuthn MDS3 Cache Status:\n\n\tValid: %t\n\tInitialized: %t\n\tOutdated: %t\n", valid, initialized, outdated)
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "WebAuthn MDS3 Cache Status:\n\n\tValid: %t\n\tInitialized: %t\n\tOutdated: %t\n", valid, initialized, outdated)
 
 	if initialized {
-		_, _ = fmt.Fprintf(os.Stdout, "\tVersion: %d\n", mds.Parsed.Number)
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\tVersion: %d\n", mds.Parsed.Number)
 
 		if !outdated {
-			_, _ = fmt.Fprintf(os.Stdout, "\tNext Update: %s\n", mds.Parsed.NextUpdate.Format("January 2, 2006"))
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\tNext Update: %s\n", mds.Parsed.NextUpdate.Format("January 2, 2006"))
 		}
 	}
 
@@ -244,7 +244,7 @@ func (ctx *CmdCtx) StorageCacheMDS3DumpRunE(cmd *cobra.Command, args []string) (
 
 	_ = file.Sync()
 
-	_, _ = fmt.Fprintf(os.Stdout, "Successfully dumped WebAuthn MDS3 data with version %d from cache to file '%s'.\n", mds.Parsed.Number, path)
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Successfully dumped WebAuthn MDS3 data with version %d from cache to file '%s'.\n", mds.Parsed.Number, path)
 
 	return nil
 }
@@ -286,7 +286,7 @@ func (ctx *CmdCtx) StorageCacheMDS3UpdateRunE(cmd *cobra.Command, args []string)
 	if mds, _, err = provider.LoadCache(ctx); err != nil {
 		return err
 	} else if mds != nil && !force && !provider.Outdated() {
-		_, _ = fmt.Fprintf(os.Stdout, "WebAuthn MDS3 cache data with version %d due for update on %s does not require an update.\n", mds.Parsed.Number, mds.Parsed.NextUpdate.Format("January 2, 2006"))
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "WebAuthn MDS3 cache data with version %d due for update on %s does not require an update.\n", mds.Parsed.Number, mds.Parsed.NextUpdate.Format("January 2, 2006"))
 
 		return nil
 	}
@@ -309,14 +309,14 @@ func (ctx *CmdCtx) StorageCacheMDS3UpdateRunE(cmd *cobra.Command, args []string)
 	}
 
 	if provider.Outdated() && !force {
-		_, _ = fmt.Fprintf(os.Stdout, "Provided WebAuthn MDS3 data with version %d was due for update on %s and can't be used.\n", mds.Parsed.Number, mds.Parsed.NextUpdate.Format("January 2, 2006"))
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Provided WebAuthn MDS3 data with version %d was due for update on %s and can't be used.\n", mds.Parsed.Number, mds.Parsed.NextUpdate.Format("January 2, 2006"))
 	}
 
 	if err = provider.SaveCache(ctx, data); err != nil {
 		return err
 	}
 
-	_, _ = fmt.Fprintf(os.Stdout, "WebAuthn MDS3 cache data updated to version %d and is due for update on %s.\n", mds.Parsed.Number, mds.Parsed.NextUpdate.Format("January 2, 2006"))
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "WebAuthn MDS3 cache data updated to version %d and is due for update on %s.\n", mds.Parsed.Number, mds.Parsed.NextUpdate.Format("January 2, 2006"))
 
 	return nil
 }
@@ -342,19 +342,19 @@ func (ctx *CmdCtx) StorageSchemaEncryptionCheckRunE(cmd *cobra.Command, args []s
 	if result, err = ctx.providers.StorageProvider.SchemaEncryptionCheckKey(ctx, verbose); err != nil {
 		switch {
 		case errors.Is(err, storage.ErrSchemaEncryptionVersionUnsupported):
-			fmt.Printf("Storage Encryption Key Validation: FAILURE\n\n\tCause: The schema version doesn't support encryption.\n")
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Storage Encryption Key Validation: FAILURE\n\n\tCause: The schema version doesn't support encryption.\n")
 		default:
-			fmt.Printf("Storage Encryption Key Validation: UNKNOWN\n\n\tCause: %v.\n", err)
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Storage Encryption Key Validation: UNKNOWN\n\n\tCause: %v.\n", err)
 		}
 	} else {
 		if result.Success() {
-			fmt.Println("Storage Encryption Key Validation: SUCCESS")
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Storage Encryption Key Validation: SUCCESS")
 		} else {
-			fmt.Printf("Storage Encryption Key Validation: FAILURE\n\n\tCause: %v.\n", storage.ErrSchemaEncryptionInvalidKey)
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Storage Encryption Key Validation: FAILURE\n\n\tCause: %v.\n", storage.ErrSchemaEncryptionInvalidKey)
 		}
 
 		if verbose {
-			fmt.Printf("\nTables:")
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\nTables:")
 
 			tables := make([]string, 0, len(result.Tables))
 
@@ -367,10 +367,10 @@ func (ctx *CmdCtx) StorageSchemaEncryptionCheckRunE(cmd *cobra.Command, args []s
 			for _, name := range tables {
 				table := result.Tables[name]
 
-				fmt.Printf("\n\n\tTable (%s): %s\n\t\tInvalid Rows: %d\n\t\tTotal Rows: %d", name, table.ResultDescriptor(), table.Invalid, table.Total)
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\n\n\tTable (%s): %s\n\t\tInvalid Rows: %d\n\t\tTotal Rows: %d", name, table.ResultDescriptor(), table.Invalid, table.Total)
 			}
 
-			fmt.Printf("\n")
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\n")
 		}
 	}
 
@@ -424,13 +424,13 @@ func (ctx *CmdCtx) StorageSchemaEncryptionChangeKeyRunE(cmd *cobra.Command, args
 		return err
 	}
 
-	fmt.Println("Completed the encryption key change. Please adjust your configuration to use the new key.")
+	_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Completed the encryption key change. Please adjust your configuration to use the new key.")
 
 	return nil
 }
 
 // StorageMigrateHistoryRunE is the RunE for the authelia storage migrate history command.
-func (ctx *CmdCtx) StorageMigrateHistoryRunE(_ *cobra.Command, _ []string) (err error) {
+func (ctx *CmdCtx) StorageMigrateHistoryRunE(cmd *cobra.Command, _ []string) (err error) {
 	defer func() {
 		_ = ctx.providers.StorageProvider.Close()
 	}()
@@ -445,7 +445,7 @@ func (ctx *CmdCtx) StorageMigrateHistoryRunE(_ *cobra.Command, _ []string) (err 
 	}
 
 	if version <= 0 {
-		fmt.Println("No migration history is available for schemas that not version 1 or above.")
+		_, _ = fmt.Fprintln(cmd.OutOrStdout(), "No migration history is available for schemas that not version 1 or above.")
 		return
 	}
 
@@ -457,9 +457,9 @@ func (ctx *CmdCtx) StorageMigrateHistoryRunE(_ *cobra.Command, _ []string) (err 
 		return errors.New("no migration history found which may indicate a broken schema")
 	}
 
-	fmt.Printf("Migration History:\n\n")
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Migration History:\n\n")
 
-	w := tabwriter.NewWriter(os.Stdout, 1, 1, 4, ' ', 0)
+	w := tabwriter.NewWriter(cmd.OutOrStdout(), 1, 1, 4, ' ', 0)
 
 	_, _ = fmt.Fprintln(w, "ID\tDate\tBefore\tAfter\tAuthelia Version")
 
@@ -495,11 +495,11 @@ func (ctx *CmdCtx) NewStorageMigrateListRunE(up bool) func(cmd *cobra.Command, a
 		}
 
 		if len(migrations) == 0 {
-			fmt.Printf("Storage Schema Migration List (%s)\n\nNo Migrations Available\n", directionStr)
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Storage Schema Migration List (%s)\n\nNo Migrations Available\n", directionStr)
 		} else {
-			fmt.Printf("Storage Schema Migration List (%s)\n\n", directionStr)
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Storage Schema Migration List (%s)\n\n", directionStr)
 
-			w := tabwriter.NewWriter(os.Stdout, 1, 1, 4, ' ', 0)
+			w := tabwriter.NewWriter(cmd.OutOrStdout(), 1, 1, 4, ' ', 0)
 
 			_, _ = fmt.Fprintln(w, "Version\tDescription")
 
@@ -558,7 +558,7 @@ func (ctx *CmdCtx) NewStorageMigrationRunE(up bool) func(cmd *cobra.Command, arg
 }
 
 // StorageSchemaInfoRunE is the RunE for the authelia storage schema info command.
-func (ctx *CmdCtx) StorageSchemaInfoRunE(_ *cobra.Command, _ []string) (err error) {
+func (ctx *CmdCtx) StorageSchemaInfoRunE(cmd *cobra.Command, _ []string) (err error) {
 	defer func() {
 		_ = ctx.providers.StorageProvider.Close()
 	}()
@@ -612,7 +612,7 @@ func (ctx *CmdCtx) StorageSchemaInfoRunE(_ *cobra.Command, _ []string) (err erro
 		encryption = "valid"
 	}
 
-	fmt.Printf("Schema Version: %s\nSchema Upgrade Available: %s\nSchema Tables: %s\nSchema Encryption Key: %s\n", storage.SchemaVersionToString(version), upgradeStr, tablesStr, encryption)
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Schema Version: %s\nSchema Upgrade Available: %s\nSchema Tables: %s\nSchema Encryption Key: %s\n", storage.SchemaVersionToString(version), upgradeStr, tablesStr, encryption)
 
 	return nil
 }
@@ -653,12 +653,12 @@ func (ctx *CmdCtx) StorageBansListRunE(use string) func(cmd *cobra.Command, args
 			}
 
 			if count == 0 {
-				fmt.Printf("No results.\n")
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "No results.\n")
 
 				return nil
 			}
 
-			w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
+			w := tabwriter.NewWriter(cmd.OutOrStdout(), 1, 1, 1, ' ', 0)
 
 			_, _ = fmt.Fprintln(w, "ID\tIP\tExpires\tSource\tReason")
 
@@ -692,12 +692,12 @@ func (ctx *CmdCtx) StorageBansListRunE(use string) func(cmd *cobra.Command, args
 			}
 
 			if count == 0 {
-				fmt.Printf("No results.\n")
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "No results.\n")
 
 				return nil
 			}
 
-			w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
+			w := tabwriter.NewWriter(cmd.OutOrStdout(), 1, 1, 1, ' ', 0)
 
 			_, _ = fmt.Fprintln(w, "ID\tUsername\tExpires\tSource\tReason")
 
@@ -758,12 +758,12 @@ func (ctx *CmdCtx) StorageBansRevokeRunE(use string) func(cmd *cobra.Command, ar
 
 			for _, ban := range bans {
 				if ban.Revoked {
-					fmt.Printf("SKIPPED\tIP ban with id '%d' for '%s is already revoked.\n", ban.ID, ban.IP)
+					_, _ = fmt.Fprintf(cmd.OutOrStdout(), "SKIPPED\tIP ban with id '%d' for '%s is already revoked.\n", ban.ID, ban.IP)
 				} else {
 					if err = ctx.providers.StorageProvider.RevokeBannedIP(ctx, ban.ID, time.Now()); err != nil {
-						fmt.Printf("ERROR\tIP ban with id '%d' for '%s' had error when being revoked: %+v\n", ban.ID, ban.IP, err)
+						_, _ = fmt.Fprintf(cmd.OutOrStdout(), "ERROR\tIP ban with id '%d' for '%s' had error when being revoked: %+v\n", ban.ID, ban.IP, err)
 					} else {
-						fmt.Printf("REVOKED\tIP ban with id '%d' for '%s' has been revoked\n", ban.ID, ban.IP)
+						_, _ = fmt.Fprintf(cmd.OutOrStdout(), "REVOKED\tIP ban with id '%d' for '%s' has been revoked\n", ban.ID, ban.IP)
 					}
 				}
 			}
@@ -786,12 +786,12 @@ func (ctx *CmdCtx) StorageBansRevokeRunE(use string) func(cmd *cobra.Command, ar
 
 			for _, ban := range bans {
 				if ban.Revoked {
-					fmt.Printf("SKIPPED\tUser ban with id '%d' for '%s is already revoked.\n", ban.ID, ban.Username)
+					_, _ = fmt.Fprintf(cmd.OutOrStdout(), "SKIPPED\tUser ban with id '%d' for '%s is already revoked.\n", ban.ID, ban.Username)
 				} else {
 					if err = ctx.providers.StorageProvider.RevokeBannedUser(ctx, ban.ID, time.Now()); err != nil {
-						fmt.Printf("ERROR\tUser ban with id '%d' for '%s' had error when being revoked: %+v\n", ban.ID, ban.Username, err)
+						_, _ = fmt.Fprintf(cmd.OutOrStdout(), "ERROR\tUser ban with id '%d' for '%s' had error when being revoked: %+v\n", ban.ID, ban.Username, err)
 					} else {
-						fmt.Printf("REVOKED\tUser ban with id '%d' for '%s' has been revoked\n", ban.ID, ban.Username)
+						_, _ = fmt.Fprintf(cmd.OutOrStdout(), "REVOKED\tUser ban with id '%d' for '%s' has been revoked\n", ban.ID, ban.Username)
 					}
 				}
 			}
@@ -954,7 +954,7 @@ func (ctx *CmdCtx) StorageUserWebAuthnExportRunE(cmd *cobra.Command, args []stri
 		return fmt.Errorf("error occurred writing to file '%s': %w", filename, err)
 	}
 
-	fmt.Printf(cliOutputFmtSuccessfulUserExportFile, count, "WebAuthn credentials", "YAML", filename)
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), cliOutputFmtSuccessfulUserExportFile, count, "WebAuthn credentials", "YAML", filename)
 
 	return nil
 }
@@ -1005,7 +1005,7 @@ func (ctx *CmdCtx) StorageUserWebAuthnImportRunE(cmd *cobra.Command, args []stri
 		}
 	}
 
-	fmt.Printf(cliOutputFmtSuccessfulUserImportFile, len(export.WebAuthnCredentials), "WebAuthn credentials", "YAML", filename)
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), cliOutputFmtSuccessfulUserImportFile, len(export.WebAuthnCredentials), "WebAuthn credentials", "YAML", filename)
 
 	return nil
 }
@@ -1036,9 +1036,9 @@ func (ctx *CmdCtx) StorageUserWebAuthnListRunE(cmd *cobra.Command, args []string
 	case err != nil:
 		return fmt.Errorf("can't list credentials for user '%s': %w", user, err)
 	default:
-		fmt.Printf("WebAuthn Credentials for user '%s':\n\n", user)
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "WebAuthn Credentials for user '%s':\n\n", user)
 
-		w := tabwriter.NewWriter(os.Stdout, 1, 1, 4, ' ', 0)
+		w := tabwriter.NewWriter(cmd.OutOrStdout(), 1, 1, 4, ' ', 0)
 
 		_, _ = fmt.Fprintln(w, "ID\tKID\tDescription")
 
@@ -1051,7 +1051,7 @@ func (ctx *CmdCtx) StorageUserWebAuthnListRunE(cmd *cobra.Command, args []string
 }
 
 // StorageUserWebAuthnListAllRunE is the RunE for the authelia storage user webauthn list command when no args are specified.
-func (ctx *CmdCtx) StorageUserWebAuthnListAllRunE(_ *cobra.Command, _ []string) (err error) {
+func (ctx *CmdCtx) StorageUserWebAuthnListAllRunE(cmd *cobra.Command, _ []string) (err error) {
 	defer func() {
 		_ = ctx.providers.StorageProvider.Close()
 	}()
@@ -1064,7 +1064,7 @@ func (ctx *CmdCtx) StorageUserWebAuthnListAllRunE(_ *cobra.Command, _ []string) 
 
 	limit := 10
 
-	w := tabwriter.NewWriter(os.Stdout, 1, 1, 4, ' ', 0)
+	w := tabwriter.NewWriter(cmd.OutOrStdout(), 1, 1, 4, ' ', 0)
 
 	_, _ = fmt.Fprintln(w, "ID\tRPID\tKID\tDescription\tUsername")
 
@@ -1086,13 +1086,13 @@ func (ctx *CmdCtx) StorageUserWebAuthnListAllRunE(_ *cobra.Command, _ []string) 
 		}
 	}
 
-	fmt.Printf("WebAuthn Credentials:\n\n")
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "WebAuthn Credentials:\n\n")
 
 	return w.Flush()
 }
 
 // StorageUserWebAuthnVerifyRunE is the RunE for the authelia storage user webauthn verify command when no args are specified.
-func (ctx *CmdCtx) StorageUserWebAuthnVerifyRunE(_ *cobra.Command, _ []string) (err error) {
+func (ctx *CmdCtx) StorageUserWebAuthnVerifyRunE(cmd *cobra.Command, _ []string) (err error) {
 	defer func() {
 		_ = ctx.providers.StorageProvider.Close()
 	}()
@@ -1112,7 +1112,7 @@ func (ctx *CmdCtx) StorageUserWebAuthnVerifyRunE(_ *cobra.Command, _ []string) (
 
 	limit := 10
 
-	w := tabwriter.NewWriter(os.Stdout, 1, 1, 4, ' ', 0)
+	w := tabwriter.NewWriter(cmd.OutOrStdout(), 1, 1, 4, ' ', 0)
 
 	_, _ = fmt.Fprintln(w, "ID\tRPID\tKID\tUsername\tAAGUID\tStatement\tBackup\tMDS")
 
@@ -1156,7 +1156,7 @@ func (ctx *CmdCtx) StorageUserWebAuthnVerifyRunE(_ *cobra.Command, _ []string) (
 		}
 	}
 
-	fmt.Printf("WebAuthn Credential Verifications:\n\n")
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "WebAuthn Credential Verifications:\n\n")
 
 	return w.Flush()
 }
@@ -1185,7 +1185,7 @@ func (ctx *CmdCtx) StorageUserWebAuthnDeleteRunE(cmd *cobra.Command, args []stri
 			return fmt.Errorf("failed to delete WebAuthn credential with kid '%s': %w", kid, err)
 		}
 
-		fmt.Printf("Successfully deleted WebAuthn credential with key id '%s'\n", kid)
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Successfully deleted WebAuthn credential with key id '%s'\n", kid)
 	} else {
 		err = ctx.providers.StorageProvider.DeleteWebAuthnCredentialByUsername(ctx, user, description)
 
@@ -1194,13 +1194,13 @@ func (ctx *CmdCtx) StorageUserWebAuthnDeleteRunE(cmd *cobra.Command, args []stri
 				return fmt.Errorf("failed to delete all WebAuthn credentials with username '%s': %w", user, err)
 			}
 
-			fmt.Printf("Successfully deleted all WebAuthn credentials for user '%s'\n", user)
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Successfully deleted all WebAuthn credentials for user '%s'\n", user)
 		} else {
 			if err != nil {
 				return fmt.Errorf("failed to delete WebAuthn credential with username '%s' and description '%s': %w", user, description, err)
 			}
 
-			fmt.Printf("Successfully deleted WebAuthn credential with description '%s' for user '%s'\n", description, user)
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Successfully deleted WebAuthn credential with description '%s' for user '%s'\n", description, user)
 		}
 	}
 
@@ -1269,7 +1269,7 @@ func (ctx *CmdCtx) StorageUserTOTPGenerateRunE(cmd *cobra.Command, args []string
 		return err
 	}
 
-	fmt.Printf("Successfully generated TOTP configuration for user '%s' with URI '%s'%s\n", args[0], c.URI(), extraInfo)
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Successfully generated TOTP configuration for user '%s' with URI '%s'%s\n", args[0], c.URI(), extraInfo)
 
 	return nil
 }
@@ -1294,7 +1294,7 @@ func (ctx *CmdCtx) StorageUserTOTPDeleteRunE(cmd *cobra.Command, args []string) 
 		return fmt.Errorf("failed to delete TOTP configuration for user '%s': %+v", user, err)
 	}
 
-	fmt.Printf("Successfully deleted TOTP configuration for user '%s'\n", user)
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Successfully deleted TOTP configuration for user '%s'\n", user)
 
 	return nil
 }
@@ -1362,12 +1362,12 @@ func (ctx *CmdCtx) StorageUserTOTPExportRunE(cmd *cobra.Command, _ []string) (er
 		return fmt.Errorf("error occurred writing to file '%s': %w", filename, err)
 	}
 
-	fmt.Printf(cliOutputFmtSuccessfulUserExportFile, count, "TOTP configurations", "YAML", filename)
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), cliOutputFmtSuccessfulUserExportFile, count, "TOTP configurations", "YAML", filename)
 
 	return nil
 }
 
-func (ctx *CmdCtx) StorageUserTOTPImportRunE(_ *cobra.Command, args []string) (err error) {
+func (ctx *CmdCtx) StorageUserTOTPImportRunE(cmd *cobra.Command, args []string) (err error) {
 	defer func() {
 		_ = ctx.providers.StorageProvider.Close()
 	}()
@@ -1413,12 +1413,12 @@ func (ctx *CmdCtx) StorageUserTOTPImportRunE(_ *cobra.Command, args []string) (e
 		}
 	}
 
-	fmt.Printf(cliOutputFmtSuccessfulUserImportFile, len(export.TOTPConfigurations), "TOTP configurations", "YAML", filename)
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), cliOutputFmtSuccessfulUserImportFile, len(export.TOTPConfigurations), "TOTP configurations", "YAML", filename)
 
 	return nil
 }
 
-func (ctx *CmdCtx) StorageUserTOTPExportURIRunE(_ *cobra.Command, _ []string) (err error) {
+func (ctx *CmdCtx) StorageUserTOTPExportURIRunE(cmd *cobra.Command, _ []string) (err error) {
 	defer func() {
 		_ = ctx.providers.StorageProvider.Close()
 	}()
@@ -1434,7 +1434,7 @@ func (ctx *CmdCtx) StorageUserTOTPExportURIRunE(_ *cobra.Command, _ []string) (e
 	limit := 10
 	count := 0
 
-	buf := &bytes.Buffer{}
+	buf := new(bytes.Buffer)
 
 	for page := 0; true; page++ {
 		if configs, err = ctx.providers.StorageProvider.LoadTOTPConfigurations(ctx, limit, page); err != nil {
@@ -1442,7 +1442,7 @@ func (ctx *CmdCtx) StorageUserTOTPExportURIRunE(_ *cobra.Command, _ []string) (e
 		}
 
 		for _, c := range configs {
-			fmt.Fprintf(buf, "%s\n", c.URI())
+			_, _ = fmt.Fprintf(buf, "%s\n", c.URI())
 		}
 
 		l := len(configs)
@@ -1454,9 +1454,11 @@ func (ctx *CmdCtx) StorageUserTOTPExportURIRunE(_ *cobra.Command, _ []string) (e
 		}
 	}
 
-	fmt.Print(buf.String())
+	_, _ = buf.WriteTo(cmd.OutOrStdout())
 
-	fmt.Printf("\n\nSuccessfully exported %d TOTP configurations as TOTP URI's and printed them to the console\n", count)
+	buf.Reset()
+
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\n\nSuccessfully exported %d TOTP configurations as TOTP URI's and printed them to the console\n", count)
 
 	return nil
 }
@@ -1509,7 +1511,7 @@ func (ctx *CmdCtx) StorageUserTOTPExportCSVRunE(cmd *cobra.Command, _ []string) 
 		return err
 	}
 
-	fmt.Printf(cliOutputFmtSuccessfulUserExportFile, count, "TOTP configurations", "CSV", filename)
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), cliOutputFmtSuccessfulUserExportFile, count, "TOTP configurations", "CSV", filename)
 
 	return nil
 }
@@ -1585,7 +1587,7 @@ func (ctx *CmdCtx) StorageUserTOTPExportPNGRunE(cmd *cobra.Command, _ []string) 
 		}
 	}
 
-	fmt.Printf("Successfully exported %d TOTP configuration as QR codes in PNG format to the '%s' directory\n", count, dir)
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Successfully exported %d TOTP configuration as QR codes in PNG format to the '%s' directory\n", count, dir)
 
 	return nil
 }
@@ -1631,7 +1633,7 @@ func (ctx *CmdCtx) StorageUserIdentifiersExportRunE(cmd *cobra.Command, _ []stri
 		return fmt.Errorf("error occurred writing to file '%s': %w", filename, err)
 	}
 
-	fmt.Printf(cliOutputFmtSuccessfulUserExportFile, len(export.Identifiers), "User Opaque Identifiers", "YAML", filename)
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), cliOutputFmtSuccessfulUserExportFile, len(export.Identifiers), "User Opaque Identifiers", "YAML", filename)
 
 	return nil
 }
@@ -1683,7 +1685,7 @@ func (ctx *CmdCtx) StorageUserIdentifiersImportRunE(cmd *cobra.Command, args []s
 		}
 	}
 
-	fmt.Printf(cliOutputFmtSuccessfulUserImportFile, len(export.Identifiers), "User Opaque Identifiers", "YAML", filename)
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), cliOutputFmtSuccessfulUserImportFile, len(export.Identifiers), "User Opaque Identifiers", "YAML", filename)
 
 	return nil
 }
@@ -1754,16 +1756,16 @@ func (ctx *CmdCtx) StorageUserIdentifiersGenerateRunE(cmd *cobra.Command, _ []st
 		}
 	}
 
-	fmt.Printf("Successfully generated and added opaque identifiers:\n")
-	fmt.Printf("\tUsers: '%s'\n", strings.Join(users, "', '"))
-	fmt.Printf("\tSectors: '%s'\n", strings.Join(sectors, "', '"))
-	fmt.Printf("\tServices: '%s'\n", strings.Join(services, "', '"))
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Successfully generated and added opaque identifiers:\n")
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\tUsers: '%s'\n", strings.Join(users, "', '"))
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\tSectors: '%s'\n", strings.Join(sectors, "', '"))
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\tServices: '%s'\n", strings.Join(services, "', '"))
 
 	if duplicates != 0 {
-		fmt.Printf("\tSkipped Duplicates: %d\n", duplicates)
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\tSkipped Duplicates: %d\n", duplicates)
 	}
 
-	fmt.Printf("\tTotal: %d", added)
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\tTotal: %d", added)
 
 	return nil
 }
@@ -1826,7 +1828,7 @@ func (ctx *CmdCtx) StorageUserIdentifiersAddRunE(cmd *cobra.Command, args []stri
 		return err
 	}
 
-	fmt.Printf("Added User Opaque Identifier:\n\tService: %s\n\tSector: %s\n\tUsername: %s\n\tIdentifier: %s\n\n", opaqueID.Service, opaqueID.SectorID, opaqueID.Username, opaqueID.Identifier)
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Added User Opaque Identifier:\n\tService: %s\n\tSector: %s\n\tUsername: %s\n\tIdentifier: %s\n\n", opaqueID.Service, opaqueID.SectorID, opaqueID.Username, opaqueID.Identifier)
 
 	return nil
 }
