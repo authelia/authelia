@@ -1773,6 +1773,7 @@ func TestOrderedClaimsRequestsSerialized(t *testing.T) {
 				require.Error(t, err)
 				assert.Empty(t, serialized)
 				assert.Empty(t, signature)
+
 				return
 			}
 

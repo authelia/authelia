@@ -7,11 +7,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/authelia/authelia/v4/internal/authorization"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
+
+	"github.com/authelia/authelia/v4/internal/authorization"
 )
 
 func TestGetSubjectAndObjectFromFlags(t *testing.T) {
@@ -103,13 +104,17 @@ func TestGetSubjectAndObjectFromFlags(t *testing.T) {
 			flags.String("ip", "", "")
 
 			require.NoError(t, flags.Set("url", tc.url))
+
 			if tc.setmethod {
 				require.NoError(t, flags.Set("method", tc.method))
 			}
+
 			require.NoError(t, flags.Set("username", tc.username))
+
 			if tc.groups != nil {
 				require.NoError(t, flags.Set("groups", strings.Join(tc.groups, ",")))
 			}
+
 			require.NoError(t, flags.Set("ip", tc.ip))
 
 			subject, object, err := getSubjectAndObjectFromFlags(cmd)
@@ -125,10 +130,8 @@ func TestGetSubjectAndObjectFromFlags(t *testing.T) {
 
 			if tc.wantip == "" {
 				assert.Nil(t, subject.IP)
-			} else {
-				if assert.NotNil(t, subject.IP) {
-					assert.Equal(t, tc.wantip, subject.IP.String())
-				}
+			} else if assert.NotNil(t, subject.IP) {
+				assert.Equal(t, tc.wantip, subject.IP.String())
 			}
 
 			assert.Equal(t, tc.wantmethod, object.Method)
@@ -372,8 +375,10 @@ func TestAccessControlCheckWriteOutput(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			var buf bytes.Buffer
+
 			accessControlCheckWriteOutput(&buf, object, subject, tc.results, tc.defaultPolicy, tc.verbose)
 			out := buf.String()
+
 			for _, s := range tc.expectContains {
 				assert.Contains(t, out, s)
 			}

@@ -1520,14 +1520,14 @@ func TestGetClientSecretPlainText(t *testing.T) {
 		client *oidc.RegisteredClient
 		secret []byte
 		ok     bool
-		err    bool
+		err    string
 	}{
 		{
 			name:   "ShouldReturnNotOkAndNilErrorWhenSecretNil",
 			client: &oidc.RegisteredClient{ClientSecret: nil},
 			secret: nil,
 			ok:     false,
-			err:    false,
+			err:    "",
 		},
 	}
 
@@ -1536,8 +1536,9 @@ func TestGetClientSecretPlainText(t *testing.T) {
 			secret, ok, err := tc.client.GetClientSecretPlainText()
 			assert.Equal(t, tc.secret, secret)
 			assert.Equal(t, tc.ok, ok)
-			if tc.err {
-				assert.Error(t, err)
+
+			if tc.err != "" {
+				assert.EqualError(t, err, tc.err)
 			} else {
 				assert.NoError(t, err)
 			}
@@ -1564,14 +1565,18 @@ func TestGetRotatedClientSecrets(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			c := &oidc.RegisteredClient{RotatedClientSecrets: tc.secrets}
 			got := c.GetRotatedClientSecrets()
+
 			if tc.secrets == nil {
 				assert.Len(t, got, 0)
 				return
 			}
+
 			assert.Equal(t, len(tc.secrets), len(got))
+
 			for i := range tc.secrets {
 				assert.Equal(t, tc.secrets[i], got[i])
 			}
+
 			if len(tc.secrets) > 0 {
 				tc.secrets[0] = &oidc.ClientSecretDigest{PasswordDigest: schema.NewPasswordDigest(nil)}
 				assert.NotEqual(t, tc.secrets[0], got[0])
@@ -1884,6 +1889,7 @@ func TestDecoratedUserinfoClient(t *testing.T) {
 		JSONWebKeysURI:                 u,
 		ClientSecret:                   nil,
 	}
+
 	var d = oidc.NewUserinfoClient(base)
 
 	testCases := []struct {
