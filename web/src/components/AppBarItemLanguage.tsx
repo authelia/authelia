@@ -192,10 +192,11 @@ const AppBarItemLanguage = function (props: Props) {
                     },
                 }}
             >
-                {items.map((language) => {
-                    return (
-                        <Fragment key={language.locale}>
+                {items
+                    .map((language) => {
+                        const menuItems = [
                             <MenuItem
+                                key={language.locale}
                                 id={`language-${language.locale}`}
                                 value={language.locale}
                                 selected={props.localeCurrent === language.locale}
@@ -214,33 +215,37 @@ const AppBarItemLanguage = function (props: Props) {
                                 ) : (
                                     <ExpandMore onClick={() => handleCollapse(language.locale)} />
                                 )}
-                            </MenuItem>
-                            {language.children.length <= 1 ? null : (
+                            </MenuItem>,
+                        ];
+
+                        if (language.children.length > 1) {
+                            menuItems.push(
                                 <Collapse
+                                    key={`${language.locale}-collapse`}
                                     in={expanded === language.locale}
                                     timeout="auto"
                                     onClick={() => handleCollapse(language.locale)}
                                 >
-                                    {language.children.map((child) => {
-                                        return (
-                                            <MenuItem
-                                                id={`language-${language.locale}-child-${child.locale}`}
-                                                key={`${language.locale}-child-${child.locale}`}
-                                                onClick={() => handleChange(child)}
-                                                value={child.locale}
-                                                selected={props.localeCurrent === child.locale}
-                                            >
-                                                <ListItemText>
-                                                    &nbsp;&nbsp;{child.display} ({child.locale})
-                                                </ListItemText>
-                                            </MenuItem>
-                                        );
-                                    })}
-                                </Collapse>
-                            )}
-                        </Fragment>
-                    );
-                })}
+                                    {language.children.map((child) => (
+                                        <MenuItem
+                                            id={`language-${language.locale}-child-${child.locale}`}
+                                            key={`${language.locale}-child-${child.locale}`}
+                                            onClick={() => handleChange(child)}
+                                            value={child.locale}
+                                            selected={props.localeCurrent === child.locale}
+                                        >
+                                            <ListItemText>
+                                                &nbsp;&nbsp;{child.display} ({child.locale})
+                                            </ListItemText>
+                                        </MenuItem>
+                                    ))}
+                                </Collapse>,
+                            );
+                        }
+
+                        return menuItems;
+                    })
+                    .flat()}
             </Menu>
         </Fragment>
     ) : null;
