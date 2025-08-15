@@ -177,6 +177,7 @@ const (
 	ldapAttrDescription       = "description"
 	ldapAttrCommonName        = "cn"
 	ldapAttrMemberOf          = "memberOf"
+	ldapAttrGroupMember       = "member"
 )
 
 // Address Schemes.

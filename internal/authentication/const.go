@@ -53,6 +53,11 @@ const (
 const (
 	ldapAttributeUnicodePwd   = "unicodePwd"
 	ldapAttributeUserPassword = "userPassword"
+
+	ldapAttrMail        = "mail"
+	ldapAttrCommonName  = "cn"
+	ldapAttrMemberOf    = "memberOf"
+	ldapAttrObjectClass = "objectClass"
 )
 
 const (
@@ -95,6 +100,9 @@ var (
 	// ErrUserNotFound indicates the user wasn't found in the authentication backend.
 	ErrUserNotFound = errors.New("user not found")
 
+	// ErrUserDisabled indicates the user wasn't found in the authentication backend.
+	ErrUserDisabled = errors.New("user is disabled")
+
 	// ErrNoContent is returned when the file is empty.
 	ErrNoContent = errors.New("no file content")
 
@@ -105,7 +113,15 @@ var (
 
 	ErrPasswordWeak = errors.New("your supplied password does not meet the password policy requirements")
 
+	ErrPasswordEmpty = errors.New("your password cannot be blank")
+
 	ErrAuthenticationFailed = errors.New("authentication failed")
+
+	// ErrPasswordReuse is returned when the new password is the same as the existing password.
+	ErrPasswordReuse = errors.New("you cannot reuse your old password")
+
+	// ErrEmptyInput is returned when an empty string or nil value is used to set a value.
+	ErrEmptyInput = errors.New("empty input is not valid")
 )
 
 const fileAuthenticationMode = 0600
