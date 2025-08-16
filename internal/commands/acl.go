@@ -157,7 +157,7 @@ func accessControlCheckWriteObjectSubject(w io.Writer, object authorization.Obje
 		_, _ = fmt.Fprintf(w, " from IP '%s'", subject.IP.String())
 	}
 
-	_, _ = fmt.Fprintf(w, ".\n")
+	_, _ = fmt.Fprintf(w, ".\n\n")
 }
 
 func hitMissMay(in ...bool) (out string) {
