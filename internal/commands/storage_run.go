@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"image"
 	"image/png"
+	"io"
 	"net"
 	"os"
 	"path/filepath"
@@ -326,10 +327,7 @@ func (ctx *CmdCtx) StorageSchemaEncryptionCheckRunE(cmd *cobra.Command, args []s
 		_ = ctx.providers.StorageProvider.Close()
 	}()
 
-	var (
-		verbose bool
-		result  storage.EncryptionValidationResult
-	)
+	var verbose bool
 
 	if err = ctx.CheckSchemaVersion(); err != nil {
 		return storageWrapCheckSchemaErr(err)
@@ -339,39 +337,47 @@ func (ctx *CmdCtx) StorageSchemaEncryptionCheckRunE(cmd *cobra.Command, args []s
 		return err
 	}
 
-	if result, err = ctx.providers.StorageProvider.SchemaEncryptionCheckKey(ctx, verbose); err != nil {
+	return runStorageSchemaEncryptionCheckKey(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider, verbose)
+}
+
+func runStorageSchemaEncryptionCheckKey(ctx context.Context, w io.Writer, store storage.Provider, verbose bool) (err error) {
+	var result storage.EncryptionValidationResult
+
+	if result, err = store.SchemaEncryptionCheckKey(ctx, verbose); err != nil {
 		switch {
 		case errors.Is(err, storage.ErrSchemaEncryptionVersionUnsupported):
-			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Storage Encryption Key Validation: FAILURE\n\n\tCause: The schema version doesn't support encryption.\n")
+			_, _ = fmt.Fprintf(w, "Storage Encryption Key Validation: FAILURE\n\n\tCause: The schema version doesn't support encryption.\n")
 		default:
-			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Storage Encryption Key Validation: UNKNOWN\n\n\tCause: %v.\n", err)
+			_, _ = fmt.Fprintf(w, "Storage Encryption Key Validation: UNKNOWN\n\n\tCause: %v.\n", err)
 		}
+
+		return nil
+	}
+
+	if result.Success() {
+		_, _ = fmt.Fprintln(w, "Storage Encryption Key Validation: SUCCESS")
 	} else {
-		if result.Success() {
-			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Storage Encryption Key Validation: SUCCESS")
-		} else {
-			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Storage Encryption Key Validation: FAILURE\n\n\tCause: %v.\n", storage.ErrSchemaEncryptionInvalidKey)
+		_, _ = fmt.Fprintf(w, "Storage Encryption Key Validation: FAILURE\n\n\tCause: %v.\n", storage.ErrSchemaEncryptionInvalidKey)
+	}
+
+	if verbose {
+		_, _ = fmt.Fprintf(w, "\nTables:")
+
+		tables := make([]string, 0, len(result.Tables))
+
+		for name := range result.Tables {
+			tables = append(tables, name)
 		}
 
-		if verbose {
-			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\nTables:")
+		sort.Strings(tables)
 
-			tables := make([]string, 0, len(result.Tables))
+		for _, name := range tables {
+			table := result.Tables[name]
 
-			for name := range result.Tables {
-				tables = append(tables, name)
-			}
-
-			sort.Strings(tables)
-
-			for _, name := range tables {
-				table := result.Tables[name]
-
-				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\n\n\tTable (%s): %s\n\t\tInvalid Rows: %d\n\t\tTotal Rows: %d", name, table.ResultDescriptor(), table.Invalid, table.Total)
-			}
-
-			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\n")
+			_, _ = fmt.Fprintf(w, "\n\n\tTable (%s): %s\n\t\tInvalid Rows: %d\n\t\tTotal Rows: %d", name, table.ResultDescriptor(), table.Invalid, table.Total)
 		}
+
+		_, _ = fmt.Fprintln(w)
 	}
 
 	return nil
