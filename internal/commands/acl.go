@@ -58,6 +58,11 @@ func newAccessControlCheckCommand(ctx *CmdCtx) (cmd *cobra.Command) {
 }
 
 func (ctx *CmdCtx) AccessControlCheckRunE(cmd *cobra.Command, _ []string) (err error) {
+	verbose, err := cmd.Flags().GetBool("verbose")
+	if err != nil {
+		return err
+	}
+
 	validator.ValidateAccessControl(ctx.config, ctx.cconfig.validator)
 
 	if ctx.cconfig.validator.HasErrors() {
@@ -73,24 +78,21 @@ func (ctx *CmdCtx) AccessControlCheckRunE(cmd *cobra.Command, _ []string) (err e
 
 	results := authorizer.GetRuleMatchResults(subject, object)
 
+	return runAccessControlCheck(cmd.OutOrStdout(), object, subject, results, ctx.config.AccessControl.DefaultPolicy, verbose)
+}
+
+func runAccessControlCheck(w io.Writer, object authorization.Object, subject authorization.Subject, results []authorization.RuleMatchResult, defaultPolicy string, verbose bool) (err error) {
 	if len(results) == 0 {
-		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\nThe default policy '%s' will be applied to ALL requests as no rules are configured.\n\n", ctx.config.AccessControl.DefaultPolicy)
+		_, _ = fmt.Fprintf(w, "\nThe default policy '%s' will be applied to ALL requests as no rules are configured.\n\n", defaultPolicy)
 
 		return nil
 	}
 
-	verbose, err := cmd.Flags().GetBool("verbose")
-	if err != nil {
-		return err
-	}
+	tw := tabwriter.NewWriter(w, 1, 1, 4, ' ', 0)
 
-	w := tabwriter.NewWriter(cmd.OutOrStdout(), 1, 1, 4, ' ', 0)
+	accessControlCheckWriteOutput(tw, object, subject, results, defaultPolicy, verbose)
 
-	accessControlCheckWriteOutput(w, object, subject, results, ctx.config.AccessControl.DefaultPolicy, verbose)
-
-	_ = w.Flush()
-
-	return nil
+	return tw.Flush()
 }
 
 func accessControlCheckWriteOutput(w io.Writer, object authorization.Object, subject authorization.Subject, results []authorization.RuleMatchResult, defaultPolicy string, verbose bool) {
