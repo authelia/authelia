@@ -1,4 +1,4 @@
-FROM node:24-alpine@sha256:e8e882c692a08878d55ec8ff6c5a4a71b3edca25eda0af4406e2a160d8a93cf2
+FROM node:24-alpine@sha256:dec6d30010dc33ae4bb341a47b49c7add553b0a1213d9bac6b7fea1e3b5e35a4
 
 ARG USER_ID
 ARG GROUP_ID
