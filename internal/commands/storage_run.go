@@ -337,12 +337,16 @@ func (ctx *CmdCtx) StorageSchemaEncryptionCheckRunE(cmd *cobra.Command, args []s
 		return err
 	}
 
-	return runStorageSchemaEncryptionCheckKey(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider, verbose)
+	runStorageSchemaEncryptionCheckKey(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider, verbose)
+
+	return nil
 }
 
-func runStorageSchemaEncryptionCheckKey(ctx context.Context, w io.Writer, store storage.Provider, verbose bool) (err error) {
-	var result storage.EncryptionValidationResult
-
+func runStorageSchemaEncryptionCheckKey(ctx context.Context, w io.Writer, store storage.Provider, verbose bool) {
+	var (
+		result storage.EncryptionValidationResult
+		err    error
+	)
 	if result, err = store.SchemaEncryptionCheckKey(ctx, verbose); err != nil {
 		switch {
 		case errors.Is(err, storage.ErrSchemaEncryptionVersionUnsupported):
@@ -351,7 +355,7 @@ func runStorageSchemaEncryptionCheckKey(ctx context.Context, w io.Writer, store 
 			_, _ = fmt.Fprintf(w, "Storage Encryption Key Validation: UNKNOWN\n\n\tCause: %v.\n", err)
 		}
 
-		return nil
+		return
 	}
 
 	if result.Success() {
@@ -379,8 +383,6 @@ func runStorageSchemaEncryptionCheckKey(ctx context.Context, w io.Writer, store 
 
 		_, _ = fmt.Fprintln(w)
 	}
-
-	return nil
 }
 
 // StorageSchemaEncryptionChangeKeyRunE is the RunE for the authelia storage encryption change-key command.
