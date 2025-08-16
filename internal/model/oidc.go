@@ -488,7 +488,7 @@ func (s *OAuth2DeviceCodeSession) GetGrantedAudience() []string {
 	return s.GrantedAudience
 }
 
-// ToRequest converts an OAuth2Session into a oauthelia2.Request given a oauthelia2.Session and oauthelia2.Storage.
+// ToRequest converts an OAuth2Session into a oauthelia2.Request given an oauthelia2.Session and oauthelia2.Storage.
 func (s *OAuth2DeviceCodeSession) ToRequest(ctx context.Context, session oauthelia2.Session, store oauthelia2.Storage) (request *oauthelia2.DeviceAuthorizeRequest, err error) {
 	sessionData := s.Session
 

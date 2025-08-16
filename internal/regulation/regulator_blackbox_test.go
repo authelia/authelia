@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
@@ -667,8 +669,6 @@ func (s *RegulatorSuite) TestShouldHandleBanCheckUserNotBannedButFailedAttempt()
 	regulator.HandleAttempt(s.mock.Ctx, false, false, "john", "", "", regulation.AuthType1FA)
 }
 
-// This test checks the case in which a user failed to authenticate many times but always
-// with a certain amount of time larger than FindTime. Meaning the user should not be banned.
 func (s *RegulatorSuite) TestShouldNotBanWhenFailedAuthenticationNotInFindTime() {
 	attemptsInDB := []model.RegulationRecord{
 		{
@@ -726,8 +726,6 @@ func (s *RegulatorSuite) TestShouldNotBanWhenFailedAuthenticationNotInFindTime()
 	regulator.HandleAttempt(s.mock.Ctx, false, false, "john", "", "", regulation.AuthType1FA)
 }
 
-// This test checks the case in which a user failed to authenticate many times only a few
-// seconds ago (meaning we are checking from now back to now-FindTime).
 func (s *RegulatorSuite) TestShouldBanUserIfLatestAttemptsAreWithinFindTime() {
 	attemptsInDB := []model.RegulationRecord{
 		{
@@ -811,9 +809,6 @@ func (s *RegulatorSuite) TestShouldCheckUserWasAboutToBeBanned() {
 			Successful: false,
 			Time:       s.mock.Clock.Now().Add(-14 * time.Second),
 		},
-		// more than 30 seconds elapsed between this auth and the preceding one.
-		// In that case we don't need to regulate the user even though the number
-		// of retrieved attempts is 3.
 		{
 			Successful: false,
 			Time:       s.mock.Clock.Now().Add(-94 * time.Second),
@@ -875,8 +870,6 @@ func (s *RegulatorSuite) TestShouldCheckRegulationHasBeenResetOnSuccessfulAttemp
 			Successful: true,
 			Time:       s.mock.Clock.Now().Add(-5 * time.Second),
 		},
-		// The user was almost banned but he did a successful attempt. Therefore, even if the next
-		// failure happens within FindTime, he should not be banned.
 		{
 			Successful: false,
 			Time:       s.mock.Clock.Now().Add(-10 * time.Second),
@@ -932,9 +925,7 @@ func (s *RegulatorSuite) TestShouldCheckRegulationHasBeenResetOnSuccessfulAttemp
 	regulator.HandleAttempt(s.mock.Ctx, false, false, "john", "", "", regulation.AuthType1FA)
 }
 
-// This test checks that the regulator is disabled when configuration is set to 0.
 func (s *RegulatorSuite) TestShouldHaveRegulatorDisabled() {
-	// Check Disabled Functionality.
 	config := schema.Regulation{
 		MaxRetries: 0,
 		FindTime:   time.Second * 180,
@@ -957,7 +948,6 @@ func (s *RegulatorSuite) TestShouldHaveRegulatorDisabled() {
 	s.Equal((*time.Time)(nil), expires)
 	s.NoError(err)
 
-	// Check Enabled Functionality.
 	config = schema.Regulation{
 		MaxRetries: 1,
 		FindTime:   time.Second * 180,
@@ -981,7 +971,308 @@ func (s *RegulatorSuite) TestShouldHaveRegulatorDisabled() {
 	s.NoError(err)
 }
 
+func (s *RegulatorSuite) TestShouldHandleLoadRegulationRecordsByIPError() {
+	regulator := s.Regulator()
+
+	ip := net.ParseIP("127.0.0.1")
+	since := s.mock.Clock.Now().Add(-s.mock.Ctx.Configuration.Regulation.FindTime)
+
+	attempt := model.AuthenticationAttempt{
+		Time:          s.mock.Clock.Now(),
+		Successful:    false,
+		Banned:        false,
+		Username:      "john",
+		Type:          regulation.AuthType1FA,
+		RemoteIP:      model.NewNullIP(ip),
+		RequestURI:    "",
+		RequestMethod: "",
+	}
+
+	gomock.InOrder(
+		s.mock.StorageMock.EXPECT().
+			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(attempt)).
+			Return(nil),
+		s.mock.StorageMock.EXPECT().
+			LoadRegulationRecordsByIP(s.mock.Ctx, model.NewIP(ip), since, s.mock.Ctx.Configuration.Regulation.MaxRetries).
+			Return(nil, fmt.Errorf("load ip records failed")),
+		s.mock.StorageMock.EXPECT().
+			LoadRegulationRecordsByUser(s.mock.Ctx, "john", since, s.mock.Ctx.Configuration.Regulation.MaxRetries).
+			Return(nil, nil),
+	)
+
+	regulator.HandleAttempt(s.mock.Ctx, false, false, "john", "", "", regulation.AuthType1FA)
+
+	s.AssertLogEntryMessageAndError("Failed to load regulation records", "load ip records failed")
+}
+
+func (s *RegulatorSuite) TestShouldHandleSaveBannedIPError() {
+	regulator := s.Regulator()
+
+	ip := net.ParseIP("127.0.0.1")
+	since := s.mock.Clock.Now().Add(-s.mock.Ctx.Configuration.Regulation.FindTime)
+
+	records := []model.RegulationRecord{
+		{Time: s.mock.Clock.Now().Add(-10 * time.Second), Successful: false},
+		{Time: s.mock.Clock.Now().Add(-12 * time.Second), Successful: false},
+		{Time: s.mock.Clock.Now().Add(-14 * time.Second), Successful: false},
+	}
+
+	sqlban := &model.BannedIP{
+		Expires: sql.NullTime{Valid: true, Time: records[0].Time.Add(s.mock.Ctx.Configuration.Regulation.BanTime)},
+		IP:      model.NewIP(ip),
+		Source:  "regulation",
+		Reason:  sql.NullString{Valid: true, String: "Exceeding Maximum Retries"},
+	}
+
+	attempt := model.AuthenticationAttempt{
+		Time:          s.mock.Clock.Now(),
+		Successful:    false,
+		Banned:        false,
+		Username:      "john",
+		Type:          regulation.AuthType1FA,
+		RemoteIP:      model.NewNullIP(ip),
+		RequestURI:    "",
+		RequestMethod: "",
+	}
+
+	gomock.InOrder(
+		s.mock.StorageMock.EXPECT().
+			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(attempt)).
+			Return(nil),
+		s.mock.StorageMock.EXPECT().
+			LoadRegulationRecordsByIP(s.mock.Ctx, model.NewIP(ip), since, s.mock.Ctx.Configuration.Regulation.MaxRetries).
+			Return(records, nil),
+		s.mock.StorageMock.EXPECT().
+			SaveBannedIP(s.mock.Ctx, gomock.Eq(sqlban)).
+			Return(fmt.Errorf("save ip ban failed")),
+		s.mock.StorageMock.EXPECT().
+			LoadRegulationRecordsByUser(s.mock.Ctx, "john", since, s.mock.Ctx.Configuration.Regulation.MaxRetries).
+			Return(nil, nil),
+	)
+
+	regulator.HandleAttempt(s.mock.Ctx, false, false, "john", "", "", regulation.AuthType1FA)
+
+	s.AssertLogEntryMessageAndError("Failed to save ban", "save ip ban failed")
+}
+
+func (s *RegulatorSuite) TestShouldHandleLoadRegulationRecordsByUserError() {
+	regulator := s.Regulator()
+
+	ip := net.ParseIP("127.0.0.1")
+	since := s.mock.Clock.Now().Add(-s.mock.Ctx.Configuration.Regulation.FindTime)
+
+	attempt := model.AuthenticationAttempt{
+		Time:          s.mock.Clock.Now(),
+		Successful:    false,
+		Banned:        false,
+		Username:      "john",
+		Type:          regulation.AuthType1FA,
+		RemoteIP:      model.NewNullIP(ip),
+		RequestURI:    "",
+		RequestMethod: "",
+	}
+
+	gomock.InOrder(
+		s.mock.StorageMock.EXPECT().
+			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(attempt)).
+			Return(nil),
+		s.mock.StorageMock.EXPECT().
+			LoadRegulationRecordsByIP(s.mock.Ctx, model.NewIP(ip), since, s.mock.Ctx.Configuration.Regulation.MaxRetries).
+			Return(nil, nil),
+		s.mock.StorageMock.EXPECT().
+			LoadRegulationRecordsByUser(s.mock.Ctx, "john", since, s.mock.Ctx.Configuration.Regulation.MaxRetries).
+			Return(nil, fmt.Errorf("load user records failed")),
+	)
+
+	regulator.HandleAttempt(s.mock.Ctx, false, false, "john", "", "", regulation.AuthType1FA)
+
+	s.AssertLogEntryMessageAndError("Failed to load regulation records", "load user records failed")
+}
+
+func (s *RegulatorSuite) TestShouldHandleSaveBannedUserError() {
+	regulator := s.Regulator()
+
+	ip := net.ParseIP("127.0.0.1")
+	since := s.mock.Clock.Now().Add(-s.mock.Ctx.Configuration.Regulation.FindTime)
+
+	records := []model.RegulationRecord{
+		{Time: s.mock.Clock.Now().Add(-5 * time.Second), Successful: false},
+		{Time: s.mock.Clock.Now().Add(-10 * time.Second), Successful: false},
+		{Time: s.mock.Clock.Now().Add(-12 * time.Second), Successful: false},
+	}
+
+	sqlban := &model.BannedUser{
+		Expires:  sql.NullTime{Valid: true, Time: records[0].Time.Add(s.mock.Ctx.Configuration.Regulation.BanTime)},
+		Username: "john",
+		Source:   "regulation",
+		Reason:   sql.NullString{Valid: true, String: "Exceeding Maximum Retries"},
+	}
+
+	attempt := model.AuthenticationAttempt{
+		Time:          s.mock.Clock.Now(),
+		Successful:    false,
+		Banned:        false,
+		Username:      "john",
+		Type:          regulation.AuthType1FA,
+		RemoteIP:      model.NewNullIP(ip),
+		RequestURI:    "",
+		RequestMethod: "",
+	}
+
+	gomock.InOrder(
+		s.mock.StorageMock.EXPECT().
+			AppendAuthenticationLog(s.mock.Ctx, gomock.Eq(attempt)).
+			Return(nil),
+		s.mock.StorageMock.EXPECT().
+			LoadRegulationRecordsByIP(s.mock.Ctx, model.NewIP(ip), since, s.mock.Ctx.Configuration.Regulation.MaxRetries).
+			Return(nil, nil),
+		s.mock.StorageMock.EXPECT().
+			LoadRegulationRecordsByUser(s.mock.Ctx, "john", since, s.mock.Ctx.Configuration.Regulation.MaxRetries).
+			Return(records, nil),
+		s.mock.StorageMock.EXPECT().
+			SaveBannedUser(s.mock.Ctx, gomock.Eq(sqlban)).
+			Return(fmt.Errorf("save user ban failed")),
+	)
+
+	regulator.HandleAttempt(s.mock.Ctx, false, false, "john", "", "", regulation.AuthType1FA)
+
+	s.AssertLogEntryMessageAndError("Failed to save ban", "save user ban failed")
+}
+
 func TestRunRegulatorSuite(t *testing.T) {
 	s := new(RegulatorSuite)
 	suite.Run(t, s)
+}
+
+func TestHandleAttemptShortCircuits(t *testing.T) {
+	defaultCfg := schema.Regulation{
+		Modes:      []string{"ip", "user"},
+		MaxRetries: 3,
+		BanTime:    3 * time.Minute,
+		FindTime:   30 * time.Second,
+	}
+	ip := net.ParseIP("127.0.0.1")
+
+	testCases := []struct {
+		name            string
+		config          schema.Regulation
+		successful      bool
+		banned          bool
+		username        string
+		authType        string
+		expectAppendErr string
+	}{
+		{
+			name:       "ShouldSkipBanChecksOnSuccessfulAttempt",
+			config:     defaultCfg,
+			successful: true,
+			banned:     false,
+			username:   "john",
+			authType:   regulation.AuthType1FA,
+		},
+		{
+			name:       "ShouldSkipBanChecksWhenAlreadyBanned",
+			config:     defaultCfg,
+			successful: false,
+			banned:     true,
+			username:   "john",
+			authType:   regulation.AuthType1FA,
+		},
+		{
+			name: "ShouldSkipBanChecksWhenRegulationDisabled",
+			config: schema.Regulation{
+				Modes:      []string{"ip", "user"},
+				MaxRetries: 0,
+				BanTime:    3 * time.Minute,
+				FindTime:   30 * time.Second,
+			},
+			successful: false,
+			banned:     false,
+			username:   "john",
+			authType:   regulation.AuthType1FA,
+		},
+		{
+			name:       "ShouldSkipBanChecksForNon1FAType",
+			config:     defaultCfg,
+			successful: false,
+			banned:     false,
+			username:   "john",
+			authType:   "2FA",
+		},
+		{
+			name: "ShouldSkipUserChecksWhenUsernameEmptyAndIPModeDisabled",
+			config: schema.Regulation{
+				Modes:      []string{"user"},
+				MaxRetries: 3,
+				BanTime:    3 * time.Minute,
+				FindTime:   30 * time.Second,
+			},
+			successful: false,
+			banned:     false,
+			username:   "",
+			authType:   regulation.AuthType1FA,
+		},
+		{
+			name: "ShouldLogErrorWhenAppendAuthenticationLogFails",
+			config: schema.Regulation{
+				Modes:      []string{"ip", "user"},
+				MaxRetries: 0,
+				BanTime:    3 * time.Minute,
+				FindTime:   30 * time.Second,
+			},
+			successful:      false,
+			banned:          false,
+			username:        "john",
+			authType:        regulation.AuthType1FA,
+			expectAppendErr: "failed to append",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			m := mocks.NewMockAutheliaCtx(t)
+			m.Ctx.Clock = &m.Clock
+			m.Ctx.Configuration.Regulation = tc.config
+			m.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedFor, "127.0.0.1")
+
+			reg := regulation.NewRegulator(m.Ctx.Configuration.Regulation, m.StorageMock, &m.Clock)
+
+			attempt := model.AuthenticationAttempt{
+				Time:          m.Clock.Now(),
+				Successful:    tc.successful,
+				Banned:        tc.banned,
+				Username:      tc.username,
+				Type:          tc.authType,
+				RemoteIP:      model.NewNullIP(ip),
+				RequestURI:    "",
+				RequestMethod: "",
+			}
+
+			if tc.expectAppendErr != "" {
+				m.StorageMock.EXPECT().
+					AppendAuthenticationLog(m.Ctx, gomock.Eq(attempt)).
+					Return(assert.AnError).DoAndReturn(func(_ any, _ any) error {
+					return assert.AnError
+				})
+			} else {
+				m.StorageMock.EXPECT().
+					AppendAuthenticationLog(m.Ctx, gomock.Eq(attempt)).
+					Return(nil)
+			}
+
+			reg.HandleAttempt(m.Ctx, tc.successful, tc.banned, tc.username, "", "", tc.authType)
+
+			if tc.expectAppendErr != "" {
+				entry := m.Hook.LastEntry()
+				require.NotNil(t, entry)
+				assert.Equal(t, "Failed to record "+tc.authType+" authentication attempt", entry.Message)
+
+				errField, ok := entry.Data["error"]
+				require.True(t, ok)
+				err, ok := errField.(error)
+				require.True(t, ok)
+				assert.Error(t, err)
+			}
+		})
+	}
 }

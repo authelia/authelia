@@ -64,21 +64,6 @@ func (c TOTPConfiguration) MarshalJSON() (data []byte, err error) {
 	return json.Marshal(o)
 }
 
-// HistorySince provides a reasonably accurate window for previously successful attempts to check for history.
-func (c *TOTPConfiguration) HistorySince(now time.Time, skew *int) time.Time {
-	var s int
-
-	if skew == nil {
-		s = 2
-	} else {
-		s = *skew + 2
-	}
-
-	// TODO: Adjust the logic here to not require the lint comment.
-	//nolint:gosec // Safe as the values set are always convertable to int64.
-	return now.Add(-time.Second * time.Duration(c.Period) * time.Duration(s))
-}
-
 // LastUsed provides LastUsedAt as a *time.Time instead of sql.NullTime.
 func (c *TOTPConfiguration) LastUsed() *time.Time {
 	if c.LastUsedAt.Valid {
