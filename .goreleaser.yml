@@ -1,0 +1,127 @@
+version: 2
+
+project_name: authelia
+dist: goreleaser
+
+builds:
+  - id: glibc
+    main: ./cmd/authelia
+    env:
+      - GOEXPERIMENT=nosynchashtriemap
+      - CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong
+      - CGO_LDFLAGS=-Wl,-z,relro,-z,now
+      - CGO_ENABLED=1
+    flags: [ -trimpath ]
+    buildmode: pie
+    goos:
+      - linux
+      - freebsd
+    goarch:
+      - amd64
+      - arm
+      - arm64
+    binary: "{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}"
+    ldflags:
+      - "-linkmode=external -s -w {{ .Env.XFLAGS }}"
+    ignore:
+      - goos: freebsd
+        goarch: arm
+      - goos: freebsd
+        goarch: arm64
+    overrides:
+      - goos: linux
+        goarch: arm
+        env:
+          - CC=arm-linux-gnueabihf-gcc
+      - goos: linux
+        goarch: arm64
+        env:
+          - CC=aarch64-linux-gnu-gcc
+      - goos: freebsd
+        goarch: amd64
+        env:
+          - CC=x86_64-pc-freebsd14-gcc
+
+  - id: musl
+    main: ./cmd/authelia
+    env:
+      - GOEXPERIMENT=nosynchashtriemap
+      - CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong
+      - CGO_LDFLAGS=-Wl,-z,relro,-z,now
+      - CGO_ENABLED=1
+    flags: [ -trimpath ]
+    buildmode: pie
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm
+      - arm64
+    binary: "{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}-musl"
+    ldflags:
+      - "-linkmode=external -s -w {{ .Env.XFLAGS }}"
+    overrides:
+      - goos: linux
+        goarch: amd64
+        env:
+          - CC=x86_64-linux-musl-cc
+      - goos: linux
+        goarch: arm
+        env:
+          - CC=arm-linux-musleabihf-cc
+      - goos: linux
+        goarch: arm64
+        env:
+          - CC=aarch64-linux-musl-cc
+
+archives:
+  - id: linux-glibc
+    ids: [glibc]
+    formats: tar.gz
+    name_template: "{{ .Binary }}"
+    files:
+      - authelia.service
+      - authelia@.service
+      - authelia.sysusers.conf
+      - authelia.tmpfiles.conf
+      - authelia.tmpfiles.config.conf
+      - config.template.yml
+    format_overrides:
+      - goos: freebsd
+        formats: none
+
+  - id: linux-musl
+    ids: [musl]
+    formats: tar.gz
+    name_template: "{{ .Binary }}"
+    files:
+      - authelia.service
+      - authelia@.service
+      - authelia.sysusers.conf
+      - authelia.tmpfiles.conf
+      - authelia.tmpfiles.config.conf
+      - config.template.yml
+
+  - id: freebsd
+    ids: [glibc]
+    formats: tar.gz
+    name_template: "{{ .Binary }}"
+    files:
+      - authelia-fb-rc.d
+      - config.template.yml
+    format_overrides:
+      - goos: linux
+        formats: none
+
+  - id: public_html
+    meta: true
+    formats: tar.gz
+    name_template: "{{ .ProjectName }}-public_html"
+    files:
+      - src: internal/server/public_html/**
+        dst: public_html
+
+checksum:
+  name_template: "{{ .ArtifactName }}.{{ .Algorithm }}"
+  algorithm: sha256
+  split: true
