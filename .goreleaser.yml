@@ -145,9 +145,9 @@ nfpms:
     homepage: https://www.authelia.com
     maintainer: Authelia Team <team@authelia.com>
     description: |
-      Authelia is an open-source authentication and authorization server and portal fulfilling the identity and access 
-      management (IAM) role of information security in providing multi-factor authentication and single sign-on (SSO) 
-      for your applications via a web portal. Authelia is an OpenID Connect 1.0 Provider which is OpenID Certified™ 
+      Authelia is an open-source authentication and authorization server and portal fulfilling the identity and access
+      management (IAM) role of information security in providing multi-factor authentication and single sign-on (SSO)
+      for your applications via a web portal. Authelia is an OpenID Connect 1.0 Provider which is OpenID Certified™
       allowing comprehensive integrations and acts as a companion for common reverse proxies.
     license: Apache-2.0
     provides:
