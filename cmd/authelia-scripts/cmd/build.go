@@ -74,10 +74,25 @@ func cmdBuildRun(cobraCmd *cobra.Command, args []string) {
 func buildAutheliaBinaryCI(xflags []string) {
 	s := time.Now()
 
-	cmd := utils.CommandWithStdout("bash", "-c", "docker run --rm --user 1000:1000 -e GOPATH=/tmp/go -e GOCACHE=/tmp/go-build -e XFLAGS=\""+strings.Join(xflags, " ")+"\" -v ${PWD}:/workdir -v /buildkite/.go:/tmp/go authelia/crossbuild:feat-goreleaser-musl "+
-		"goreleaser release --skip=publish,validate")
+	pwd, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	err := cmd.Run()
+	args := []string{
+		"run", "--rm",
+		"--user", "1000:1000",
+		"-e", "GOPATH=/tmp/go",
+		"-e", "GOCACHE=/tmp/go-build",
+		"-e", "XFLAGS=" + strings.Join(xflags, " "),
+		"-v", pwd + ":/workdir",
+		"-v", "/buildkite/.go:/tmp/go",
+		"authelia/crossbuild:feat-goreleaser-musl",
+		"goreleaser", "release", "--skip=publish,validate",
+	}
+
+	cmd := utils.CommandWithStdout("docker", args...)
+	err = cmd.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
