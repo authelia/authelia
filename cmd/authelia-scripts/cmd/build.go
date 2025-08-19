@@ -92,6 +92,7 @@ func buildAutheliaBinaryCI(xflags []string) {
 	}
 
 	cmd := utils.CommandWithStdout("docker", args...)
+	
 	err = cmd.Run()
 	if err != nil {
 		log.Fatal(err)
