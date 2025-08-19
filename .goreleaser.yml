@@ -8,15 +8,15 @@ dist: goreleaser
 before:
   hooks:
     - |
-      bash -c 'cat > postinstall.sh <<EOF
-      #!/bin/sh
+        bash -c 'cat > postinstall.sh <<EOF
+        #!/bin/sh
 
-      # Trigger a reload of sysusers.d and tmpfiles.d to ensure the users and permissions are correct.
-      systemd-sysusers
-      systemd-tmpfiles --create
+        # Trigger a reload of sysusers.d and tmpfiles.d to ensure the users and permissions are correct.
+        systemd-sysusers
+        systemd-tmpfiles --create
 
-      EOF
-      chmod +x postinstall.sh'
+        EOF
+        chmod +x postinstall.sh'
 
 builds:
   - id: glibc
@@ -26,7 +26,7 @@ builds:
       - CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong
       - CGO_LDFLAGS=-Wl,-z,relro,-z,now
       - CGO_ENABLED=1
-    flags: [ -trimpath ]
+    flags: -trimpath
     buildmode: pie
     goos:
       - linux
@@ -64,7 +64,7 @@ builds:
       - CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong
       - CGO_LDFLAGS=-Wl,-z,relro,-z,now
       - CGO_ENABLED=1
-    flags: [ -trimpath ]
+    flags: -trimpath
     buildmode: pie
     goos:
       - linux
@@ -153,7 +153,7 @@ nfpms:
       - src: config.template.yml
         dst: /etc/authelia/configuration.yml
         file_info:
-          mode: 0440
+          mode: 0440  # yamllint disable-line rule:octal-values
       - src: authelia.service
         dst: /usr/lib/systemd/system/authelia.service
       - src: authelia@.service
