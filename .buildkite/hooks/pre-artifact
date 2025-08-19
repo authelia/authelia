@@ -15,15 +15,3 @@ fi
 if [[ "${BUILDKITE_LABEL}" == ":docker: Build Image [coverage]" ]]; then
   docker save "${DOCKER_IMAGE}" | zstdmt -T0 -12 > "authelia-image-coverage.tar.zst"
 fi
-
-if [[ "${BUILDKITE_LABEL}" =~ ":debian: Build Package" ]]; then
-  if [[ "${BUILDKITE_TAG}" != "" ]]; then
-    echo "--- :debian: Saving artifacts for :github: release"
-    for f in *.deb; do mv "$f" "$(echo "$f" | sed s/${BUILDKITE_TAG//v}-1_//)"; done
-  else
-    echo "--- :debian: Saving artifacts for :buildkite: release"
-    VERSION=$(git describe --long --tags | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g')
-    for f in *.deb; do mv "$f" "$(echo "$f" | sed s/${VERSION}-1_//)"; done
-  fi
-  sha256sum "authelia_${PACKAGE}.deb" > "authelia_${PACKAGE}.deb.sha256"
-fi
