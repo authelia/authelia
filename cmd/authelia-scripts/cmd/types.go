@@ -113,7 +113,7 @@ func (b Build) ContainerLabels() (labels map[string]string) {
 
 	labels = map[string]string{
 		"org.opencontainers.image.created":       b.Date.Format(time.RFC3339),
-		"org.opencontainers.image.authors":       "",
+		"org.opencontainers.image.authors":       "Authelia Team <team@authelia.com>",
 		"org.opencontainers.image.url":           "https://github.com/authelia/authelia/pkgs/container/authelia",
 		"org.opencontainers.image.documentation": "https://www.authelia.com",
 		"org.opencontainers.image.source":        fmt.Sprintf("https://github.com/authelia/authelia/tree/%s", b.Commit),
