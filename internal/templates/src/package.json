@@ -12,8 +12,8 @@
 	"author": "Authelia",
 	"license": "Apache-2.0",
 	"dependencies": {
-		"@react-email/components": "0.5.0",
-		"@react-email/render": "1.2.0",
+		"@react-email/components": "0.5.1",
+		"@react-email/render": "1.2.1",
 		"esbuild": "0.25.9",
 		"react": "19.1.1",
 		"react-dom": "19.1.1",
