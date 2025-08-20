@@ -7,8 +7,7 @@ draft: false
 images: []
 weight: 620
 toc: true
-aliases:
-  - '/integration/openid-connect/donetick/'
+aliases: []
 support:
   level: community
   versions: true
@@ -54,49 +53,66 @@ identity_providers:
   oidc:
     ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
     ## See: https://www.authelia.com/c/oidc
-identity_providers:
-  oidc:
-    ## The other portions of the mandatory OpenID Connect 1.0 configuration go here.
-    ## See: https://www.authelia.com/c/oidc
     clients:
       - client_id: 'donetick'
         client_name: 'Donetick'
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
-        consent_mode: 'implicit'
-        authorization_policy: 'one_factor'
+        authorization_policy: 'two_factor'
+        require_pkce: false
+        pkce_challenge_method: ''
         redirect_uris:
           - 'https://donetick.{{< sitevar name="domain" nojs="example.com" >}}/auth/oauth2'
         scopes:
           - 'openid'
-          - 'profile'
+          - 'profile'A
           - 'email'
         access_token_signed_response_alg: 'none'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_basic'
+```
 
 ### Application
 
-You can either use environment variables to configure [Donetick] or the configuration file. Unfortunately, the ``.well-known/openid-configuration`` configuration endpoint is not contacted by the software and the OpenID URLs have to be configured manually.
-
+To configure [Donetick] there are two methods, using [Environment Variables](#environment-variables), or using the
+[Configuration File](#configuration-file).
 
 #### Environment Variables
 
 To configure [Donetick] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following environment variables:
 
+##### Standard
+
 ```shell {title=".env"}
 DT_OAUTH2_NAME=Authelia
 DT_OAUTH2_CLIENT_ID=donetick
 DT_OAUTH2_CLIENT_SECRET=insecure_secret
-DT_OAUTH2_SCOPE='openid profile email'
+DT_OAUTH2_SCOPE=openid profile email
 DT_OAUTH2_AUTH_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization
 DT_OAUTH2_TOKEN_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token
 DT_OAUTH2_INFO_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo
 DT_OAUTH2_REDIRECT_URL=https://donetick.{{< sitevar name="domain" nojs="example.com" >}}/auth/oauth2
 ```
 
+##### Docker Compose
+
+```yaml {title="compose.yml"}
+services:
+  minio:
+    environment:
+      DT_OAUTH2_NAME: 'Authelia'
+      DT_OAUTH2_CLIENT_ID: 'donetick'
+      DT_OAUTH2_CLIENT_SECRET: 'insecure_secret'
+      DT_OAUTH2_SCOPE: 'openid profile email'
+      DT_OAUTH2_AUTH_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization'
+      DT_OAUTH2_TOKEN_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token'
+      DT_OAUTH2_INFO_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo'
+      DT_OAUTH2_REDIRECT_URL: 'https://donetick.{{< sitevar name="domain" nojs="example.com" >}}/auth/oauth2'
+```
+
 ##### Configuration File
 
+To configure [Donetick] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following configuration:
 
 ```yaml {title="selfhosted.yml"}
 oauth2:
