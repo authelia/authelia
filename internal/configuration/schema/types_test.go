@@ -17,7 +17,7 @@ import (
 	"github.com/go-crypt/crypt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v4"
 )
 
 func TestPasswordDigest_MarshalYAML(t *testing.T) {
