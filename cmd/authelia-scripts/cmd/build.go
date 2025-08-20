@@ -87,7 +87,7 @@ func buildAutheliaBinaryCI(xflags []string) {
 		"-e", "XFLAGS=" + strings.Join(xflags, " "),
 		"-v", pwd + ":/workdir",
 		"-v", "/buildkite/.go:/tmp/go",
-		"authelia/crossbuild:feat-goreleaser-musl",
+		"authelia/crossbuild",
 		"goreleaser", "release", "--skip=publish,validate",
 	}
 
