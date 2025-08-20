@@ -1,0 +1,177 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+---
+version: 2
+
+project_name: authelia
+dist: goreleaser
+
+before:
+  hooks:
+    - |
+        bash -c 'cat > postinstall.sh <<EOF
+        #!/bin/sh
+
+        # Trigger a reload of sysusers.d and tmpfiles.d to ensure the users and permissions are correct.
+        systemd-sysusers
+        systemd-tmpfiles --create
+
+        EOF
+        chmod +x postinstall.sh'
+
+builds:
+  - id: glibc
+    main: ./cmd/authelia
+    env:
+      - GOEXPERIMENT=nosynchashtriemap
+      - CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong
+      - CGO_LDFLAGS=-Wl,-z,relro,-z,now
+      - CGO_ENABLED=1
+    flags: -trimpath
+    buildmode: pie
+    goos:
+      - linux
+      - freebsd
+    goarch:
+      - amd64
+      - arm
+      - arm64
+    binary: '{{ .ProjectName }}'
+    ldflags:
+      - '-linkmode=external -s -w {{ .Env.XFLAGS }}'
+    ignore:
+      - goos: freebsd
+        goarch: arm
+      - goos: freebsd
+        goarch: arm64
+    overrides:
+      - goos: linux
+        goarch: arm
+        env:
+          - CC=arm-linux-gnueabihf-gcc
+      - goos: linux
+        goarch: arm64
+        env:
+          - CC=aarch64-linux-gnu-gcc
+      - goos: freebsd
+        goarch: amd64
+        env:
+          - CC=x86_64-pc-freebsd14-gcc
+
+  - id: musl
+    main: ./cmd/authelia
+    env:
+      - GOEXPERIMENT=nosynchashtriemap
+      - CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong
+      - CGO_LDFLAGS=-Wl,-z,relro,-z,now
+      - CGO_ENABLED=1
+    flags: -trimpath
+    buildmode: pie
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm
+      - arm64
+    binary: '{{ .ProjectName }}'
+    ldflags:
+      - '-linkmode=external -s -w {{ .Env.XFLAGS }}'
+    overrides:
+      - goos: linux
+        goarch: amd64
+        env:
+          - CC=x86_64-linux-musl-cc
+      - goos: linux
+        goarch: arm
+        env:
+          - CC=arm-linux-musleabihf-cc
+      - goos: linux
+        goarch: arm64
+        env:
+          - CC=aarch64-linux-musl-cc
+
+archives:
+  - id: linux-glibc
+    ids: [glibc]
+    formats: tar.gz
+    name_template: '{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}'
+    files:
+      - authelia.service
+      - authelia@.service
+      - authelia.sysusers.conf
+      - authelia.tmpfiles.conf
+      - authelia.tmpfiles.config.conf
+      - config.template.yml
+    format_overrides:
+      - goos: freebsd
+        formats: none
+
+  - id: linux-musl
+    ids: [musl]
+    formats: tar.gz
+    name_template: '{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}-musl'
+    files:
+      - authelia.service
+      - authelia@.service
+      - authelia.sysusers.conf
+      - authelia.tmpfiles.conf
+      - authelia.tmpfiles.config.conf
+      - config.template.yml
+
+  - id: freebsd
+    ids: [glibc]
+    formats: tar.gz
+    name_template: '{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}'
+    files:
+      - authelia-fb-rc.d
+      - config.template.yml
+    format_overrides:
+      - goos: linux
+        formats: none
+
+  - id: public_html
+    meta: true
+    formats: tar.gz
+    name_template: '{{ .ProjectName }}-public_html'
+    files:
+      - src: internal/server/public_html/**
+        dst: public_html
+
+nfpms:
+  - id: debian
+    ids: [glibc]
+    formats: [deb]
+    file_name_template: '{{ .PackageName }}_{{ if eq .Arch "arm" }}armhf{{ else }}{{ .Arch }}{{ end }}.deb'
+    vendor: Authelia
+    homepage: https://www.authelia.com
+    maintainer: Authelia Team <team@authelia.com>
+    description: |
+      Authelia is an open-source authentication and authorization server and portal fulfilling the identity and access
+      management (IAM) role of information security in providing multi-factor authentication and single sign-on (SSO)
+      for your applications via a web portal. Authelia is an OpenID Connect 1.0 Provider which is OpenID Certified™
+      allowing comprehensive integrations and acts as a companion for common reverse proxies.
+    license: Apache-2.0
+    provides:
+      - authelia
+    contents:
+      - src: config.template.yml
+        dst: /etc/authelia/configuration.yml
+        file_info:
+          mode: 0440  # yamllint disable-line rule:octal-values
+      - src: authelia.service
+        dst: /usr/lib/systemd/system/authelia.service
+      - src: authelia@.service
+        dst: /usr/lib/systemd/system/authelia@.service
+      - src: authelia.sysusers.conf
+        dst: /usr/lib/sysusers.d/authelia.conf
+      - src: authelia.tmpfiles.conf
+        dst: /usr/lib/tmpfiles.d/authelia.conf
+      - src: authelia.tmpfiles.config.conf
+        dst: /usr/lib/tmpfiles.d/authelia-config.conf
+    scripts:
+      postinstall: postinstall.sh
+
+checksum:
+  name_template: '{{ .ArtifactName }}.{{ .Algorithm }}'
+  algorithm: sha256
+  split: true
+...
