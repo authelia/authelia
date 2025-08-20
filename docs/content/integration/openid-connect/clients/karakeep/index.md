@@ -23,11 +23,11 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.38.18](https://github.com/authelia/authelia/releases/tag/v4.38.18)
+  - [v4.39.6](https://github.com/authelia/authelia/releases/tag/v4.39.6)
 - [Karakeep] (previously named Hoarder)
-  - [v0.21.0](https://github.com/karakeep-app/karakeep/releases/tag/v0.21.0)
+  - [v0.26.0](https://github.com/karakeep-app/karakeep/releases/tag/v0.26.0)
 
-{{% oidc-common %}}
+{{% oidc-common bugs="claims-hydration" %}}
 
 ### Assumptions
 
@@ -76,6 +76,10 @@ identity_providers:
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_basic'
 ```
+
+#### Configuration Escape Hatch
+
+{{% oidc-escape-hatch-claims-hydration client_id="karakeep" claims="email" %}}
 
 ### Application
 
