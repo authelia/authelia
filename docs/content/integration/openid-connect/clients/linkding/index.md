@@ -60,12 +60,16 @@ identity_providers:
         client_secret: '$pbkdf2-sha512$310000$c8p78n7pUMln0jzvd4aK4Q$JNRBzwAo0ek5qKn50cFzzvE9RXV88h1wJn5KGiHrD0YKtZaR/nCb2CJPOsKaPK0hjf.9yHxzQGZziziccp6Yng'  # The digest of 'insecure_secret'.
         public: false
         authorization_policy: 'two_factor'
+        require_pkce: false
+        pkce_challenge_method: ''
         redirect_uris:
           - 'https://linkding.{{< sitevar name="domain" nojs="example.com" >}}/oidc/callback/'
         scopes:
           - 'openid'
           - 'email'
           - 'profile'
+        access_token_signed_response_alg: 'none'
+        userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_post'
 ```
 
@@ -83,15 +87,14 @@ variables:
 ```shell {title=".env"}
 LD_ENABLE_OIDC=True
 LD_ENABLE_AUTH_PROXY=True
-LD_AUTH_PROXY_USERNAME_HEADER=HTTP_REMOTE_USER
 LD_AUTH_PROXY_LOGOUT_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/logout
 LD_CSRF_TRUSTED_ORIGINS=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
+OIDC_RP_CLIENT_ID=linkding
+OIDC_RP_CLIENT_SECRET=insecure_secret
 OIDC_OP_AUTHORIZATION_ENDPOINT=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization
 OIDC_OP_TOKEN_ENDPOINT=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token
 OIDC_OP_USER_ENDPOINT=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo
 OIDC_OP_JWKS_ENDPOINT=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/jwks.json
-OIDC_RP_CLIENT_ID=linkding
-OIDC_RP_CLIENT_SECRET=insecure_secret
 ```
 
 ##### Docker Compose
@@ -102,15 +105,14 @@ services:
     environment:
       LD_ENABLE_OIDC: 'True'
       LD_ENABLE_AUTH_PROXY: 'True'
-      LD_AUTH_PROXY_USERNAME_HEADER: 'HTTP_REMOTE_USER'
       LD_AUTH_PROXY_LOGOUT_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/logout'
       LD_CSRF_TRUSTED_ORIGINS: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
+      OIDC_RP_CLIENT_ID: 'linkding'
+      OIDC_RP_CLIENT_SECRET: 'insecure_secret'
       OIDC_OP_AUTHORIZATION_ENDPOINT: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/authorization'
       OIDC_OP_TOKEN_ENDPOINT: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/token'
       OIDC_OP_USER_ENDPOINT: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/api/oidc/userinfo'
       OIDC_OP_JWKS_ENDPOINT: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/jwks.json'
-      OIDC_RP_CLIENT_ID: 'linkding'
-      OIDC_RP_CLIENT_SECRET: 'insecure_secret'
 ```
 
 ## See Also
