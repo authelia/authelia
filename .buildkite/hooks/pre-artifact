@@ -2,42 +2,16 @@
 
 set +u
 
-declare -A BUILDS=(["linux"]="amd64 arm arm64 amd64-musl arm-musl arm64-musl" ["freebsd"]="amd64")
 DOCKER_IMAGE=authelia:dist
 
 if [[ "${BUILDKITE_LABEL}" == ":hammer_and_wrench: Unit Test" ]]; then
   if [[ ! "${BUILDKITE_BRANCH}" =~ ^renovate/ ]]; then
     echo "--- :docker: Saving artifacts for :buildkite: :docker: :github: releases"
-    for OS in "${!BUILDS[@]}"; do
-      for ARCH in ${BUILDS[$OS]}; do
-        if [[ ${OS} == linux ]]; then
-          tar -czf "authelia-${OS}-${ARCH}.tar.gz" "authelia-${OS}-${ARCH}" authelia.service authelia@.service authelia.sysusers.conf authelia.tmpfiles.conf authelia.tmpfiles.config.conf config.template.yml
-        elif [[ ${OS} == freebsd ]]; then
-          tar -czf "authelia-${OS}-${ARCH}.tar.gz" "authelia-${OS}-${ARCH}" authelia-fb-rc.d config.template.yml
-        else
-          echo "${OS} not packaged!"
-        fi
-        sha256sum "authelia-${OS}-${ARCH}.tar.gz" > "authelia-${OS}-${ARCH}.tar.gz.sha256"
-      done
-    done
-
-    tar -czf authelia-public_html.tar.gz -C dist public_html
-    sha256sum authelia-public_html.tar.gz > authelia-public_html.tar.gz.sha256
+    mv goreleaser/* ./
+    rm -rf goreleaser
   fi
 fi
 
 if [[ "${BUILDKITE_LABEL}" == ":docker: Build Image [coverage]" ]]; then
   docker save "${DOCKER_IMAGE}" | zstdmt -T0 -12 > "authelia-image-coverage.tar.zst"
-fi
-
-if [[ "${BUILDKITE_LABEL}" =~ ":debian: Build Package" ]]; then
-  if [[ "${BUILDKITE_TAG}" != "" ]]; then
-    echo "--- :debian: Saving artifacts for :github: release"
-    for f in *.deb; do mv "$f" "$(echo "$f" | sed s/${BUILDKITE_TAG//v}-1_//)"; done
-  else
-    echo "--- :debian: Saving artifacts for :buildkite: release"
-    VERSION=$(git describe --long --tags | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g')
-    for f in *.deb; do mv "$f" "$(echo "$f" | sed s/${VERSION}-1_//)"; done
-  fi
-  sha256sum "authelia_${PACKAGE}.deb" > "authelia_${PACKAGE}.deb.sha256"
 fi
