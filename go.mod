@@ -47,12 +47,12 @@ require (
 	github.com/weppos/publicsuffix-go v0.50.0
 	github.com/wneessen/go-mail v0.6.2
 	go.uber.org/mock v0.6.0
+	go.yaml.in/yaml/v4 v4.0.0-rc.1
 	golang.org/x/net v0.43.0
 	golang.org/x/sync v0.16.0
 	golang.org/x/term v0.34.0
 	golang.org/x/text v0.28.0
 	golang.org/x/time v0.12.0
-	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -117,6 +117,7 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20250505200425-f936aa4a68b2 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250505200425-f936aa4a68b2 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 exclude github.com/mattn/go-sqlite3 v2.0.3+incompatible

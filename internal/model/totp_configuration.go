@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/authelia/otp"
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v4"
 )
 
 type TOTPOptions struct {
