@@ -64,10 +64,6 @@ jenkins-plugin-cli --plugins oic-auth
 
 ### Authelia
 
-{{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
-NOTE: As of time of this commit, Jenkins' `oic-auth` plugin requires the `offline_access`, `address` and `phone` claims.
-{{< /callout >}}
-
 The following YAML configuration is an example __Authelia__ [client configuration] for use with [Jenkins] which will
 operate with the application example:
 
