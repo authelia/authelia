@@ -28,7 +28,7 @@
 		"@types/react": "19.1.11",
 		"@types/react-dom": "19.1.7",
 		"eslint": "9.34.0",
-		"tsx": "4.20.4",
+		"tsx": "4.20.5",
 		"vitest": "3.2.4"
 	},
 	"pnpm": {
