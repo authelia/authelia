@@ -772,7 +772,7 @@ func handleGetConsentForm(ctx *middlewares.AutheliaCtx, original url.Values) (fo
 		return requester.GetRequestForm(), nil
 	}
 
-	return form, err
+	return original, err
 }
 
 func handleGetConsentFormFromPushedAuthorizeRequestRedirectURI(ctx *middlewares.AutheliaCtx, form url.Values) (requester oauth2.AuthorizeRequester, err error) {
