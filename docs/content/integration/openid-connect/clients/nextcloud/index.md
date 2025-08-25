@@ -63,8 +63,7 @@ The following two tested options exist for Nextcloud:
 
 ## OpenID Connect Login App
 
-The following example uses the [Nextcloud OpenID Connect Login app] which is assumed to be installed when following this
-section of the guide.
+The following example uses the [Nextcloud OpenID Connect Login app] which is assumed to be installed, as well as have [pretty urls](https://docs.nextcloud.com/server/latest/admin_manual/installation/source_installation.html#pretty-urls) enabled when following this section of the guide.
 
 ### Configuration
 
@@ -180,8 +179,7 @@ $CONFIG = array (
 
 ## OpenID Connect user backend App
 
-The following example uses the [Nextcloud OpenID Connect user backend app] which is assumed to be installed when
-following this section of the guide.
+The following example uses the [Nextcloud OpenID Connect user backend app] which is assumed to be installed, as well as have [pretty urls](https://docs.nextcloud.com/server/latest/admin_manual/installation/source_installation.html#pretty-urls) enabled when following this section of the guide.
 
 ### Configuration
 
