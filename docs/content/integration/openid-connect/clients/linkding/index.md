@@ -86,8 +86,6 @@ variables:
 
 ```shell {title=".env"}
 LD_ENABLE_OIDC=True
-LD_ENABLE_AUTH_PROXY=True
-LD_AUTH_PROXY_LOGOUT_URL=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/logout
 LD_CSRF_TRUSTED_ORIGINS=https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}
 OIDC_RP_CLIENT_ID=linkding
 OIDC_RP_CLIENT_SECRET=insecure_secret
@@ -104,8 +102,6 @@ services:
   linkding:
     environment:
       LD_ENABLE_OIDC: 'True'
-      LD_ENABLE_AUTH_PROXY: 'True'
-      LD_AUTH_PROXY_LOGOUT_URL: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/logout'
       LD_CSRF_TRUSTED_ORIGINS: 'https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}'
       OIDC_RP_CLIENT_ID: 'linkding'
       OIDC_RP_CLIENT_SECRET: 'insecure_secret'
