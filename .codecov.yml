@@ -37,8 +37,13 @@ flags:
       - "!web/coverage/"
 
 ignore:
-  - "web/src/serviceWorker.ts"
   - "**/coverage.txt"
+  - "web/src/serviceWorker.ts"
+  - "cmd/authelia-gen"
+  - "cmd/authelia-scripts"
+  - "cmd/authelia-suites"
+  - "internal/mocks"
+  - "internal/**/*_mock_test.go"
 
 parsers:
   gcov:
