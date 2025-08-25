@@ -537,10 +537,10 @@ func (s *CLISuite) TestShouldGenerateCertificateCAAndSignCertificate() {
 	s.NoError(err)
 	s.False(utils.IsX509PrivateKey(cCA))
 
-	certificate, ok := utils.CastX509AsCertificate(c)
+	certificate, ok := utils.AssertToX509Certificate(c)
 	s.True(ok)
 
-	certificateCA, ok := utils.CastX509AsCertificate(cCA)
+	certificateCA, ok := utils.AssertToX509Certificate(cCA)
 	s.True(ok)
 
 	s.Require().NotNil(certificate)

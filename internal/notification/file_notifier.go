@@ -29,7 +29,7 @@ func NewFileNotifier(configuration schema.NotifierFileSystem) *FileNotifier {
 // StartupCheck implements the startup check provider interface.
 func (n *FileNotifier) StartupCheck() (err error) {
 	dir := filepath.Dir(n.path)
-	if _, err := os.Stat(dir); err != nil {
+	if _, err = os.Stat(dir); err != nil {
 		if os.IsNotExist(err) {
 			if err = os.MkdirAll(dir, fileNotifierMode); err != nil {
 				return err

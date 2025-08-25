@@ -190,6 +190,12 @@ func TestGetLocaleParentOrBaseString(t *testing.T) {
 			"es",
 			"",
 		},
+		{
+			"ShouldHandleSubEnglish",
+			"en-US",
+			"en",
+			"",
+		},
 	}
 
 	for _, tc := range testCases {
