@@ -1067,6 +1067,16 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "nick-oconnor",
+      "name": "Nick O'Connor",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1495157?v=4",
+      "profile": "https://ocnr.org",
+      "contributions": [
+        "bug",
+        "userTesting"
+      ]
     }
   ],
   "contributorsPerLine": 7,
