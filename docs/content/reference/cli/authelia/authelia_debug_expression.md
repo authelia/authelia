@@ -2,7 +2,7 @@
 title: "authelia debug expression"
 description: "Reference for the authelia debug expression command."
 lead: ""
-date: 2022-06-15T17:51:47+10:00
+date: 2025-05-10T04:14:33+00:00
 draft: false
 images: []
 weight: 905

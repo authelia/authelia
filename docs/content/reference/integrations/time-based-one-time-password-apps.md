@@ -2,7 +2,7 @@
 title: "Time-based OTP Applications"
 description: "A Time-based OTP Application integration reference guide"
 summary: "This section contains a Time-based OTP Application integration reference guide for Authelia."
-date: 2023-05-07T17:52:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 320

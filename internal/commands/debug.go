@@ -14,7 +14,7 @@ import (
 
 	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/spf13/cobra"
-	goyaml "gopkg.in/yaml.v3"
+	goyaml "go.yaml.in/yaml/v4"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"

@@ -2,7 +2,7 @@
 title: "OpenID Connect 1.0 Provider"
 description: "OpenID Connect 1.0 Provider Configuration"
 summary: "Authelia can operate as an OpenID Connect 1.0 Provider. This section describes how to configure this."
-date: 2023-05-15T10:32:10+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 110200
@@ -19,7 +19,7 @@ seo:
 ---
 
 __Authelia__ currently supports the [OpenID Connect 1.0] Provider role as an open
-[__beta__](../../../roadmap/active/openid-connect.md) feature. We currently do not support the [OpenID Connect 1.0] Relying
+[__beta__](../../../roadmap/active/openid-connect-1.0-provider.md) feature. We currently do not support the [OpenID Connect 1.0] Relying
 Party role. This means other applications that implement the [OpenID Connect 1.0] Relying Party role can use Authelia as
 an [OpenID Connect 1.0] Provider similar to how you may use social media or development platforms for login.
 

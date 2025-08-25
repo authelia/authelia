@@ -1,0 +1,10 @@
+^.git\/
+^.github\/workflows\/codeql-analysis.yml
+^.idea\/
+^.*\/node_modules/.*$
+^docs\/assets\/js\/docsearch\.js$
+^docs\/content\/
+^internal\/configuration\/test_resources\/
+^internal\/suites\/.*\/configuration\.yml$
+^internal\/suites\/common\/pki\/.*\.pem$
+^.*_test\.go$

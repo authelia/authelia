@@ -1,5 +1,0 @@
-#!/bin/sh
-
-. "${0%/*}/required-apps"
-
-cd web && ${PMGR_EXEC} commitlint --edit "$1"

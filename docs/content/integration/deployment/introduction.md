@@ -2,11 +2,13 @@
 title: "Deployment"
 description: "An introduction into integrating Authelia with a product."
 summary: "An introduction into integrating Authelia within your architecture."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 210
 toc: true
+aliases:
+  - '/docs/deployment/'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)

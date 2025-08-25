@@ -4,11 +4,11 @@
         "development": "default-src 'self' 'unsafe-eval'; frame-src 'none'; object-src 'none'; style-src 'self' 'nonce-${NONCE}' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='; frame-ancestors 'none'; base-uri 'self'",
         "nonce": "${NONCE}"
     },
-    "latest": "4.39.5",
+    "latest": "4.39.6",
     "support": {
         "traefik": [
-            "v3.4.4",
-            "v2.11.27"
+            "v3.5.0",
+            "v2.11.28"
         ]
     },
     "hashing_algorithms": {

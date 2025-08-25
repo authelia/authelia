@@ -308,11 +308,7 @@ func validateFileAuthenticationBackendPasswordConfigLegacy(config *schema.Authen
 		}
 
 		if config.SaltLength > 0 && config.SHA2Crypt.SaltLength == 0 {
-			if config.SaltLength > 16 {
-				config.SHA2Crypt.SaltLength = 16
-			} else {
-				config.SHA2Crypt.SaltLength = config.SaltLength
-			}
+			config.SHA2Crypt.SaltLength = min(config.SaltLength, 16)
 		}
 	case hashLegacyArgon2id:
 		config.Algorithm = hashArgon2

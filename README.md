@@ -363,6 +363,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="http://auston.dev"><img src="https://avatars.githubusercontent.com/u/5049050?v=4?s=100" width="100px;" alt="Auston Pramodh Barboza"/><br /><sub><b>Auston Pramodh Barboza</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=austonpramodh" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/ThomasSteinbach"><img src="https://avatars.githubusercontent.com/u/1683246?v=4?s=100" width="100px;" alt="Thomas Steinbach"/><br /><sub><b>Thomas Steinbach</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=ThomasSteinbach" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Steve-Brule"><img src="https://avatars.githubusercontent.com/u/83868338?v=4?s=100" width="100px;" alt="Steve-Brule"/><br /><sub><b>Steve-Brule</b></sub></a><br /><a href="https://github.com/authelia/authelia/commits?author=Steve-Brule" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/peter-"><img src="https://avatars.githubusercontent.com/u/4047365?v=4?s=100" width="100px;" alt="peter"/><br /><sub><b>peter</b></sub></a><br /><a href="https://github.com/authelia/authelia/issues?q=author%3Apeter-" title="Bug reports">🐛</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://ocnr.org"><img src="https://avatars.githubusercontent.com/u/1495157?v=4?s=100" width="100px;" alt="Nick O'Connor"/><br /><sub><b>Nick O'Connor</b></sub></a><br /><a href="https://github.com/authelia/authelia/issues?q=author%3Anick-oconnor" title="Bug reports">🐛</a> <a href="#userTesting-nick-oconnor" title="User Testing">📓</a></td>
     </tr>
   </tbody>
 </table>

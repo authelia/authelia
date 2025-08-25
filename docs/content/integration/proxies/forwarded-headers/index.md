@@ -2,7 +2,7 @@
 title: "Forwarded Headers"
 description: "An introduction into the importance of forwarded headers coming from trusted sources"
 summary: "An introduction into the importance of forwarded headers coming from trusted sources."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-17T20:37:08+11:00
 draft: false
 images: []
 weight: 312

@@ -19,7 +19,7 @@ import (
 	"github.com/go-webauthn/webauthn/metadata"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v4"
 
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
@@ -1066,7 +1066,7 @@ func (ctx *CmdCtx) StorageUserWebAuthnListAllRunE(_ *cobra.Command, _ []string) 
 
 	w := tabwriter.NewWriter(os.Stdout, 1, 1, 4, ' ', 0)
 
-	_, _ = fmt.Fprintln(w, "ID\tKID\tDescription\tUsername")
+	_, _ = fmt.Fprintln(w, "ID\tRPID\tKID\tDescription\tUsername")
 
 	for page := 0; true; page++ {
 		if credentials, err = ctx.providers.StorageProvider.LoadWebAuthnCredentials(ctx, limit, page); err != nil {

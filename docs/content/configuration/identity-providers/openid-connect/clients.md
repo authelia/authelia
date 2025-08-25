@@ -2,7 +2,7 @@
 title: "OpenID Connect 1.0 Clients"
 description: "OpenID Connect 1.0 Registered Clients Configuration"
 summary: "Authelia can operate as an OpenID Connect 1.0 Provider. This section describes how to configure the registered clients."
-date: 2023-05-15T10:32:10+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 110220
@@ -72,7 +72,7 @@ identity_providers:
         require_pkce: false
         pkce_challenge_method: 'S256'
         authorization_signed_response_key_id: ''
-        authorization_signed_response_alg: 'none'
+        authorization_signed_response_alg: 'RS256'
         authorization_encrypted_response_key_id: ''
         authorization_encrypted_response_alg: 'none'
         authorization_encrypted_response_enc: 'A128CBC-HS256'
@@ -494,7 +494,7 @@ To be considered valid:
 
 ### authorization_signed_response_alg
 
-{{< confkey type="string" default="none" required="no" >}}
+{{< confkey type="string" default="RS256" required="no" >}}
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 A majority of clients will not support this option with any value other than `none` as it implements the

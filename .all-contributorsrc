@@ -1049,6 +1049,34 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "Steve-Brule",
+      "name": "Steve-Brule",
+      "avatar_url": "https://avatars.githubusercontent.com/u/83868338?v=4",
+      "profile": "https://github.com/Steve-Brule",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "peter-",
+      "name": "peter",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4047365?v=4",
+      "profile": "https://github.com/peter-",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "nick-oconnor",
+      "name": "Nick O'Connor",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1495157?v=4",
+      "profile": "https://ocnr.org",
+      "contributions": [
+        "bug",
+        "userTesting"
+      ]
     }
   ],
   "contributorsPerLine": 7,

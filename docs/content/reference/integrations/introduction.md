@@ -2,7 +2,7 @@
 title: "Integrations"
 description: "A collection of integration reference guides"
 summary: "This section contains integration reference guides for Authelia."
-date: 2022-11-19T16:47:09+11:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 310

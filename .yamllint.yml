@@ -10,20 +10,24 @@ yaml-files:
 
 ignore: |
   api/openapi.yml
+  dist/public_html/api/openapi.yml
   docs/pnpm-lock.yaml
   docs/node_modules/
   internal/configuration/test_resources/config_bad_quoting.yml
   internal/templates/src/pnpm-lock.yaml
+  internal/templates/src/node_modules/
   web/pnpm-lock.yaml
   web/node_modules/
   .github/ISSUE_TEMPLATE/feature-request.yml
   .github/ISSUE_TEMPLATE/bug-report.yml
   internal/suites/
 rules:
+  document-start:
+    level: error
   document-end:
-    level: warning
+    level: error
   empty-values:
-    level: warning
+    level: error
   indentation:
     spaces: 2
     check-multi-line-strings: true

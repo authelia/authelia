@@ -2,7 +2,7 @@
 title: "Measures"
 description: "An overview of the security measures Authelia implements."
 summary: "An overview of the security measures Authelia implements."
-date: 2018-08-26T23:46:15+02:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 420

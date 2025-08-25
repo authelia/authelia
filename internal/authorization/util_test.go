@@ -40,6 +40,8 @@ func TestShouldNotParseInvalidSubjects(t *testing.T) {
 	require.Len(t, subjectsACL[0].Subjects, 1)
 
 	assert.True(t, subjectsACL[0].IsMatch(Subject{Username: "a", Groups: []string{"z"}}))
+
+	assert.Equal(t, subjectsACL, NewSubjects(subjectsSchema))
 }
 
 func TestShouldSplitDomainCorrectly(t *testing.T) {

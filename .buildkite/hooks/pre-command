@@ -20,10 +20,6 @@ if [[ "${BUILDKITE_LABEL}" == ":docker: Build Image [coverage]" ]]; then
   cp -R /buildkite/.local .
 fi
 
-if [[ "${BUILDKITE_LABEL}" =~ ":debian: Build Package" ]]; then
-  buildkite-agent artifact download "authelia-linux-${ARCH}.tar.gz" .
-fi
-
 if [[ "${BUILDKITE_LABEL}" =~ ":selenium:" ]]; then
   echo "--- :docker: Extract and load build container"
   mkdir coverage
@@ -64,7 +60,7 @@ fi
 if [[ "${BUILDKITE_LABEL}" == ":docker: Deploy Manifest" ]]; then
   echo "--- :go: :react: :swagger: Extract pre-built binary"
   buildkite-agent artifact download "authelia-linux-*.tar.gz" .
-  for archive in authelia-linux-*.tar.gz; do tar xzf "${archive}" --wildcards "authelia-linux-*"; done
+  for archive in authelia-linux-*.tar.gz; do tar xzf "${archive}" --one-top-level --wildcards "authelia"; done
 fi
 
 if [[ "${BUILDKITE_LABEL}" == ":github: Deploy Artifacts" ]]; then

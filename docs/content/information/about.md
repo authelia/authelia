@@ -2,7 +2,7 @@
 title: "About"
 description: "About Authelia and the Authelia Team"
 summary: ""
-date: 2023-03-19T16:29:12+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 toc: true

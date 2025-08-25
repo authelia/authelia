@@ -63,9 +63,6 @@ cat << EOF
     command: "ghartifacts.sh"
     depends_on:
       - "unit-test"
-      - "build-deb-package-amd64"
-      - "build-deb-package-armhf"
-      - "build-deb-package-arm64"
     retry:
       automatic: true
     agents:
@@ -81,9 +78,7 @@ cat << EOF
   - label: ":debian: :fedora: :ubuntu: Deploy APT"
     command: "aptdeploy.sh"
     depends_on:
-      - "build-deb-package-amd64"
-      - "build-deb-package-arm64"
-      - "build-deb-package-armhf"
+      - "unit-test"
     agents:
       upload: "fast"
     if: build.tag != null && build.env("CI_BYPASS") != "true"

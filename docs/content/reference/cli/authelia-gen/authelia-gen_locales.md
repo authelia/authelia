@@ -2,7 +2,7 @@
 title: "authelia-gen locales"
 description: "Reference for the authelia-gen locales command."
 lead: ""
-date: 2022-09-16T14:21:05+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 915

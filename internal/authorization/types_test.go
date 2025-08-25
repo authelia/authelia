@@ -115,3 +115,9 @@ func TestRuleMatchResult_IsPotentialMatch(t *testing.T) {
 		})
 	}
 }
+
+func TestTypesMisc(t *testing.T) {
+	object := &Object{URL: nil}
+
+	assert.Equal(t, "", object.String())
+}

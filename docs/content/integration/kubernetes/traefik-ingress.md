@@ -2,7 +2,7 @@
 title: "Traefik Ingress"
 description: "A guide to integrating Authelia with the Traefik Kubernetes Ingress."
 summary: "A guide to integrating Authelia with the Traefik Kubernetes Ingress."
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 550
@@ -19,8 +19,8 @@ We officially support the Traefik 2.x Kubernetes ingress controllers. These come
 * [Traefik Kubernetes Ingress](https://doc.traefik.io/traefik/providers/kubernetes-ingress/)
 * [Traefik Kubernetes CRD](https://doc.traefik.io/traefik/providers/kubernetes-crd/)
 
-The [Traefik documentation](../proxies/traefik.md) may also be useful for crafting advanced annotations to use with
-this ingress even though it's not specific to Kubernetes.
+The [Traefik Proxy documentation](../proxies/traefik.md) may also be useful with this ingress even though it's not
+specific to Kubernetes.
 
 ## Get started
 

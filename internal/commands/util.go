@@ -12,8 +12,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"go.yaml.in/yaml/v4"
 	"golang.org/x/term"
-	"gopkg.in/yaml.v3"
 
 	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/model"

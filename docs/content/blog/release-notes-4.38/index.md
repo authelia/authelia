@@ -2,7 +2,7 @@
 title: "4.38: Release Notes"
 description: "Authelia 4.38 release notes."
 summary: "Authelia 4.38 has been released and the following is a guide on all the massive changes."
-date: 2024-03-12T22:03:58+11:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 weight: 50
 categories: ["News", "Release Notes"]
@@ -80,7 +80,7 @@ This blog article is rather large so this serves as an index for all of the area
 ## OpenID Connect 1.0
 
 As part of our ongoing effort for comprehensive support for [OpenID Connect 1.0] we'll be introducing several important
-features. Please see the [roadmap](../../roadmap/active/openid-connect.md) for more information.
+features. Please see the [roadmap](../../roadmap/active/openid-connect-1.0-provider.md) for more information.
 
 Those of you familiar with the various specifications are going to notice a few features which are very large steps
 towards the Financial-grade API Security Profile and OAuth 2.0 Security Best Current Practice, this is because we are

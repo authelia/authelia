@@ -510,8 +510,9 @@ func PEMBlockFromX509Key(key any, legacy bool) (block *pem.Block, err error) {
 	}
 
 	return &pem.Block{
-		Type:  blockType,
-		Bytes: data,
+		Type:    blockType,
+		Headers: make(map[string]string),
+		Bytes:   data,
 	}, nil
 }
 
@@ -721,6 +722,7 @@ func TLSVersionFromBytesString(input string) (version int, err error) {
 	}
 }
 
+// IsInsecureCipherSuite returns true if a cipher suite is insecure.
 func IsInsecureCipherSuite(cipherSuite uint16) bool {
 	for _, suite := range tls.InsecureCipherSuites() {
 		if suite.ID == cipherSuite {
@@ -740,9 +742,14 @@ func UnsafeGetIntermediatesFromPeerCertificates(certs []*x509.Certificate, roots
 
 	n := len(certs) - 1
 
-	opts := x509.VerifyOptions{
-		Roots:         roots.Clone(),
-		Intermediates: ints.Clone(),
+	opts := x509.VerifyOptions{}
+
+	if roots != nil {
+		opts.Roots = roots.Clone()
+	}
+
+	if ints != nil {
+		opts.Intermediates = ints.Clone()
 	}
 
 	for i := n; i >= 0; i-- {

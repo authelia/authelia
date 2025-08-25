@@ -108,6 +108,10 @@ func ValidateServerAddress(config *schema.Configuration, validator *schema.Struc
 			validator.Push(fmt.Errorf(errFmtServerPathAlphaNumeric, subpath))
 		}
 	}
+
+	if config.Server.Address.IsUnixDomainSocket() || config.Server.Address.IsFileDescriptor() {
+		config.Server.DisableHealthcheck = true
+	}
 }
 
 // ValidateServerEndpoints configures the default endpoints and checks the configuration of custom endpoints.

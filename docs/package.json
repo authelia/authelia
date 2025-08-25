@@ -25,6 +25,8 @@
     "postinstall": "hugo-installer --version otherDependencies.hugo --extended --destination node_modules/.bin/hugo"
   },
   "dependencies": {
+    "@docsearch/css": "3.9.0",
+    "@docsearch/js": "3.9.0",
     "@tabler/icons": "3.31.0",
     "@thulite/doks-core": "1.8.1",
     "@thulite/images": "3.3.1",

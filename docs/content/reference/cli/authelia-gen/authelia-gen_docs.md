@@ -2,7 +2,7 @@
 title: "authelia-gen docs"
 description: "Reference for the authelia-gen docs command."
 lead: ""
-date: 2022-06-15T17:51:47+10:00
+date: 2024-03-14T06:00:14+11:00
 draft: false
 images: []
 weight: 915
@@ -78,4 +78,5 @@ authelia-gen docs [flags]
 * [authelia-gen docs date](authelia-gen_docs_date.md)	 - Generate doc dates
 * [authelia-gen docs json-schema](authelia-gen_docs_json-schema.md)	 - Generate docs JSON schema
 * [authelia-gen docs manage](authelia-gen_docs_manage.md)	 - Generate Managed docs
+* [authelia-gen docs seo](authelia-gen_docs_seo.md)	 - Generate doc seo tags
 

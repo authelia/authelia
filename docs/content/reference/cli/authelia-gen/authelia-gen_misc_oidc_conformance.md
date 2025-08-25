@@ -2,7 +2,7 @@
 title: "authelia-gen misc oidc conformance"
 description: "Reference for the authelia-gen misc oidc conformance command."
 lead: ""
-date: 2022-06-15T17:51:47+10:00
+date: 2025-04-17T11:48:29+00:00
 draft: false
 images: []
 weight: 915

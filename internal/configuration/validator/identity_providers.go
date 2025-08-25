@@ -1436,7 +1436,8 @@ func validateOIDDClientSigningAlg(c int, config *schema.IdentityProvidersOpenIDC
 		case "", oidc.SigningAlgRSAUsingSHA256:
 			break
 		case oidc.SigningAlgNone:
-			if attribute == attrOIDCIDTokenPrefix {
+			switch attribute {
+			case attrOIDCIDTokenPrefix, attrOIDCAuthorizationPrefix:
 				validator.Push(fmt.Errorf(errFmtOIDCClientInvalidValue,
 					config.Clients[c].ID, key, utils.StringJoinOr(config.Discovery.ResponseObjectSigningAlgs), outAlg))
 			}

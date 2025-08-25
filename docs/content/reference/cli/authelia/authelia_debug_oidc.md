@@ -2,7 +2,7 @@
 title: "authelia debug oidc"
 description: "Reference for the authelia debug oidc command."
 lead: ""
-date: 2022-06-15T17:51:47+10:00
+date: 2025-05-10T14:52:22+10:00
 draft: false
 images: []
 weight: 905

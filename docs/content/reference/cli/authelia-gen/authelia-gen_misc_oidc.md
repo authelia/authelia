@@ -2,7 +2,7 @@
 title: "authelia-gen misc oidc"
 description: "Reference for the authelia-gen misc oidc command."
 lead: ""
-date: 2022-09-16T14:21:05+10:00
+date: 2025-04-17T11:48:29+00:00
 draft: false
 images: []
 weight: 915

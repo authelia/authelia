@@ -39,7 +39,7 @@ if [[ ${BUILDKITE_LABEL} =~ ":selenium:" ]] || [[ ${BUILDKITE_LABEL} =~ ":docker
   fi
 fi
 
-if [[ ${BUILDKITE_LABEL} == ":debian: Package Builds" ]]; then
+if [[ ${BUILDKITE_LABEL} == ":hammer_and_wrench: Unit Test" ]]; then
   buildkite-agent annotate --style "success" --context "ctx-success" < .buildkite/annotations/artifacts
 fi
 
