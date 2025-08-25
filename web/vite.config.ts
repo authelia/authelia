@@ -105,6 +105,11 @@ export default defineConfig(({ mode }) => {
                 return false;
             },
             setupFiles: ["src/setupTests.ts"],
+            server: {
+                deps: {
+                    inline: ["@fortawesome/react-fontawesome"],
+                },
+            },
         },
         plugins: [
             checkerPlugin({ eslint: { lintCommand: "eslint . --ext .js,.jsx,.ts,.tsx" }, typescript: true }),
