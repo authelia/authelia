@@ -112,7 +112,10 @@ export default defineConfig(({ mode }) => {
             },
         },
         plugins: [
-            checkerPlugin({ eslint: { lintCommand: "eslint . --ext .js,.jsx,.ts,.tsx" }, typescript: true }),
+            checkerPlugin({
+                eslint: { lintCommand: "eslint . --ext .js,.jsx,.ts,.tsx", useFlatConfig: true },
+                typescript: true,
+            }),
             istanbulPlugin,
             react(),
             svgr(),
