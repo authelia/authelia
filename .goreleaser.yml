@@ -170,6 +170,18 @@ nfpms:
     scripts:
       postinstall: postinstall.sh
 
+signs:
+  - id: gpg
+    signature: '${artifact}.sig'
+    args: [
+      "-u", "security@authelia.com",
+      "--pinentry-mode", "loopback",
+      "--passphrase", "{{ .Env.GPG_PASSWORD }}",
+      "--output", "${signature}",
+      "--detach-sign", "${artifact}",
+    ]
+    artifacts: all
+
 checksum:
   name_template: '{{ .ArtifactName }}.{{ .Algorithm }}'
   algorithm: sha256
