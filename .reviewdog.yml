@@ -1,7 +1,7 @@
 ---
 runner:
   eslint:
-    cmd: cd web && eslint -f rdjson '*/**/*.{js,jsx,ts,tsx}'
+    cmd: cd web && pnpm eslint --format rdjson --ext '*/**/*.{js,jsx,ts,tsx}' .
     format: rdjson
     level: error
 
