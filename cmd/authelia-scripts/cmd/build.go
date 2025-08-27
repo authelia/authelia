@@ -80,12 +80,16 @@ func buildAutheliaBinaryCI(xflags []string) {
 	}
 
 	args := []string{
-		"run", "--rm",
+		"run", "--rm", "-i",
+		"--name", "authelia-crossbuild",
 		"--user", "1000:1000",
 		"-e", "GOPATH=/tmp/go",
 		"-e", "GOCACHE=/tmp/go-build",
+		"-e", "GPG_PASSWORD=" + os.Getenv("GPG_PASSWORD"),
+		"-e", "HOME=/tmp",
 		"-e", "XFLAGS=" + strings.Join(xflags, " "),
 		"-v", pwd + ":/workdir",
+		"-v", "/buildkite/.gnupg:/tmp/.gnupg",
 		"-v", "/buildkite/.go:/tmp/go",
 		"authelia/crossbuild",
 		"goreleaser", "release", "--skip=publish,validate",
@@ -114,7 +118,7 @@ func buildAutheliaBinaryGO(xflags []string) {
 }
 
 func buildFrontend(branch string) {
-	cmd := utils.CommandWithStdout("pnpm", "install")
+	cmd := utils.CommandWithStdout("pnpm", "install", "--ignore-scripts")
 	cmd.Dir = webDirectory
 
 	err := cmd.Run()

@@ -57,6 +57,7 @@ steps:
       - "authelia-*.tar.gz.sha256"
       - "*.deb"
       - "*.deb.sha256"
+      - "*.sig"
     key: "unit-test"
     env:
       NODE_OPTIONS: "--no-deprecation"
