@@ -80,7 +80,7 @@ func buildAutheliaBinaryCI(xflags []string) {
 	}
 
 	args := []string{
-		"run", "--rm", "-i",
+		"run", "--rm",
 		"--name", "authelia-crossbuild",
 		"--user", "1000:1000",
 		"-e", "GOPATH=/tmp/go",
@@ -91,6 +91,7 @@ func buildAutheliaBinaryCI(xflags []string) {
 		"-v", pwd + ":/workdir",
 		"-v", "/buildkite/.gnupg:/tmp/.gnupg",
 		"-v", "/buildkite/.go:/tmp/go",
+		"-v", "/usr/local/include:/usr/local/include",
 		"authelia/crossbuild",
 		"goreleaser", "release", "--skip=publish,validate",
 	}

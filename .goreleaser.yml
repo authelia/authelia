@@ -23,8 +23,10 @@ builds:
     main: ./cmd/authelia
     env:
       - GOEXPERIMENT=nosynchashtriemap
-      - CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong
-      - CGO_LDFLAGS=-Wl,-z,relro,-z,now
+      - CGO_CFLAGS=-O2 -pipe -fno-plt -fstack-protector-strong
+      - CGO_CPPFLAGS=-D_FORTIFY_SOURCE=3
+      - CGO_CXXFLAGS=-O2 -pipe -fno-plt
+      - CGO_LDFLAGS=-Wl,-O1,-sort-common,-as-needed,-z,relro,-z,now
       - CGO_ENABLED=1
     flags: -trimpath
     buildmode: pie
@@ -61,8 +63,10 @@ builds:
     main: ./cmd/authelia
     env:
       - GOEXPERIMENT=nosynchashtriemap
-      - CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong
-      - CGO_LDFLAGS=-Wl,-z,relro,-z,now
+      - CGO_CFLAGS=-O2 -pipe -fno-plt -fstack-protector-strong
+      - CGO_CPPFLAGS=-I/usr/local/include/fortify -D_FORTIFY_SOURCE=3
+      - CGO_CXXFLAGS=-O2 -pipe -fno-plt
+      - CGO_LDFLAGS=-Wl,-O1,-sort-common,-as-needed,-z,relro,-z,now
       - CGO_ENABLED=1
     flags: -trimpath
     buildmode: pie
@@ -174,8 +178,8 @@ signs:
   - id: gpg
     signature: '${artifact}.sig'
     args: [
+      "--batch", "--pinentry-mode", "loopback",
       "-u", "security@authelia.com",
-      "--pinentry-mode", "loopback",
       "--passphrase", "{{ .Env.GPG_PASSWORD }}",
       "--output", "${signature}",
       "--detach-sign", "${artifact}",
