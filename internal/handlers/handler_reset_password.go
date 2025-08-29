@@ -39,7 +39,7 @@ func ResetPasswordDELETE(ctx *middlewares.AutheliaCtx) {
 		jwt.WithIssuedAt(),
 		jwt.WithIssuer("Authelia"),
 		jwt.WithStrictDecoding(),
-		ctx.GetJWTWithTimeFuncOption(),
+		ctx.GetClock().GetJWTWithTimeFuncOption(),
 	)
 
 	switch {

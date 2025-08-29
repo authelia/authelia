@@ -11,7 +11,6 @@ import (
 	"github.com/asaskevich/govalidator"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
@@ -49,7 +48,6 @@ func NewAutheliaCtx(requestCTX *fasthttp.RequestCtx, configuration schema.Config
 	ctx.Providers = providers
 	ctx.Configuration = configuration
 	ctx.Logger = NewRequestLogger(ctx.RequestCtx)
-	ctx.Clock = clock.New()
 
 	return ctx
 }
@@ -604,23 +602,33 @@ func (ctx *AutheliaCtx) RecordAuthn(success, regulated bool, method string) {
 }
 
 // GetClock returns the clock. For use with interface fulfillment.
-func (ctx *AutheliaCtx) GetClock() (clock clock.Provider) {
-	return ctx.Clock
+func (ctx *AutheliaCtx) GetClock() (provider clock.Provider) {
+	if ctx.Providers.Clock == nil {
+		ctx.Providers.Clock = clock.New()
+	}
+
+	return ctx.Providers.Clock
 }
 
 // GetRandom returns the random provider. For use with interface fulfillment.
-func (ctx *AutheliaCtx) GetRandom() (random random.Provider) {
+func (ctx *AutheliaCtx) GetRandom() (provider random.Provider) {
+	if ctx.Providers.Random == nil {
+		ctx.Providers.Random = random.New()
+	}
+
 	return ctx.Providers.Random
 }
 
-// GetJWTWithTimeFuncOption returns the WithTimeFunc jwt.ParserOption. For use with interface fulfillment.
-func (ctx *AutheliaCtx) GetJWTWithTimeFuncOption() (option jwt.ParserOption) {
-	return jwt.WithTimeFunc(ctx.Clock.Now)
+// GetLogger returns the logger for this request.
+func (ctx *AutheliaCtx) GetLogger() (logger *logrus.Entry) {
+	return ctx.Logger
 }
 
 // GetConfiguration returns the current configuration.
-func (ctx *AutheliaCtx) GetConfiguration() (config schema.Configuration) {
-	return ctx.Configuration
+func (ctx *AutheliaCtx) GetConfiguration() (config *schema.Configuration) {
+	copied := ctx.Configuration
+
+	return &copied
 }
 
 // GetProviders returns the providers for this context.
@@ -701,9 +709,4 @@ func (ctx *AutheliaCtx) Value(key any) any {
 	}
 
 	return ctx.RequestCtx.Value(key)
-}
-
-// GetLogger returns the logger for this request.
-func (ctx *AutheliaCtx) GetLogger() *logrus.Entry {
-	return ctx.Logger
 }

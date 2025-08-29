@@ -456,7 +456,7 @@ func TestNewWebAuthnCredential(t *testing.T) {
 
 	defer mock.Close()
 
-	mock.Ctx.Clock = &mock.Clock
+	mock.Ctx.Providers.Clock = &mock.Clock
 
 	testCases := []struct {
 		name                        string

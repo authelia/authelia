@@ -8,7 +8,6 @@ import (
 
 	oauthelia2 "authelia.com/provider/oauth2"
 	xjwt "authelia.com/provider/oauth2/token/jwt"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -164,8 +163,10 @@ func (m *TestContext) GetRandom() (r random.Provider) {
 	return random.NewMathematical()
 }
 
-func (m *TestContext) GetConfiguration() (config schema.Configuration) {
-	return m.Config
+func (m *TestContext) GetConfiguration() (config *schema.Configuration) {
+	copied := m.Config
+
+	return &copied
 }
 
 func (m *TestContext) GetProviderUserAttributeResolver() expression.UserAttributeResolver {
@@ -211,5 +212,21 @@ func (m *TestContext) GetProviderStorage() storage.Provider {
 }
 
 func (m *TestContext) GetUserProvider() authentication.UserProvider {
+	return nil
+}
+
+type TestCodeStrategy struct {
+	signature string
+}
+
+func (m *TestCodeStrategy) AuthorizeCodeSignature(ctx context.Context, token string) string {
+	return m.signature
+}
+
+func (m *TestCodeStrategy) GenerateAuthorizeCode(ctx context.Context, requester oauthelia2.Requester) (token string, signature string, err error) {
+	return "", "", nil
+}
+
+func (m *TestCodeStrategy) ValidateAuthorizeCode(ctx context.Context, requester oauthelia2.Requester, token string) (err error) {
 	return nil
 }

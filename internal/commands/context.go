@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"os"
 	"os/user"
 	"strconv"
 	"strings"
@@ -15,6 +14,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
+	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
@@ -30,12 +30,10 @@ func NewCmdCtx() *CmdCtx {
 	ctx := context.Background()
 
 	return &CmdCtx{
-		Context: ctx,
-		log:     logrus.NewEntry(logging.Logger()),
-		providers: middlewares.Providers{
-			Random: &random.Cryptographical{},
-		},
-		config: &schema.Configuration{},
+		Context:   ctx,
+		log:       logrus.NewEntry(logging.Logger()),
+		providers: middlewares.NewProvidersBasic(),
+		config:    &schema.Configuration{},
 	}
 }
 
@@ -50,6 +48,8 @@ type CmdCtx struct {
 	trusted   *x509.CertPool
 
 	cconfig *CmdCtxConfig
+
+	factoryX509SystemCertPool utils.X509SystemCertPoolFactory
 }
 
 // NewCmdCtxConfig returns a new CmdCtxConfig.
@@ -81,6 +81,14 @@ func (ctx *CmdCtx) GetLogger() *logrus.Entry {
 // GetProviders returns middlewares.Providers satisfying part of the ServiceCtx.
 func (ctx *CmdCtx) GetProviders() middlewares.Providers {
 	return ctx.providers
+}
+
+func (ctx *CmdCtx) GetClock() (clock clock.Provider) {
+	return ctx.providers.Clock
+}
+
+func (ctx *CmdCtx) GetRandom() (random random.Provider) {
+	return ctx.providers.Random
 }
 
 // GetConfiguration returns *schema.Configuration satisfying part of the ServiceCtx.
@@ -134,7 +142,11 @@ func (ctx *CmdCtx) CheckSchema() (err error) {
 
 // LoadTrustedCertificates loads the trusted certificates into the CmdCtx.
 func (ctx *CmdCtx) LoadTrustedCertificates() (warns, errs []error) {
-	ctx.trusted, warns, errs = utils.NewX509CertPool(ctx.config.CertificatesDirectory)
+	if ctx.factoryX509SystemCertPool == nil {
+		ctx.trusted, warns, errs = utils.NewX509CertPool(ctx.config.CertificatesDirectory)
+	} else {
+		ctx.trusted, warns, errs = utils.NewX509CertPoolWithFactory(ctx.config.CertificatesDirectory, ctx.factoryX509SystemCertPool)
+	}
 
 	return warns, errs
 }
@@ -153,7 +165,7 @@ func (ctx *CmdCtx) LoadProviders() (warns, errs []error) {
 func (ctx *CmdCtx) LoadTrustedCertificatesRunE(cmd *cobra.Command, args []string) (err error) {
 	var warns, errs []error
 
-	ctx.trusted, warns, errs = utils.NewX509CertPool(ctx.config.CertificatesDirectory)
+	warns, errs = ctx.LoadTrustedCertificates()
 
 	if len(warns) != 0 || len(errs) != 0 {
 		for _, e := range warns {
@@ -334,7 +346,7 @@ func (ctx *CmdCtx) ConfigValidateLogRunE(_ *cobra.Command, _ []string) (err erro
 }
 
 // ConfigValidateSectionPasswordRunE validates the configuration (structure, password section).
-func (ctx *CmdCtx) ConfigValidateSectionPasswordRunE(cmd *cobra.Command, _ []string) (err error) {
+func (ctx *CmdCtx) ConfigValidateSectionPasswordRunE(_ *cobra.Command, _ []string) (err error) {
 	if ctx.config.AuthenticationBackend.File == nil {
 		return fmt.Errorf("password configuration was not initialized")
 	}
@@ -391,7 +403,7 @@ func (ctx *CmdCtx) ConfigEnsureExistsRunE(cmd *cobra.Command, _ []string) (err e
 
 	if created {
 		ctx.log.Warnf("Configuration did not exist so a default one has been generated at %s, you will need to configure this", configs[0])
-		os.Exit(0)
+		return ErrConfigCreated
 	}
 
 	return nil

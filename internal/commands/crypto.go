@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -265,16 +266,16 @@ func (ctx *CmdCtx) CryptoRandRunE(cmd *cobra.Command, args []string) (err error)
 	}
 
 	if len(files) == 0 {
-		return ctx.CryptoRandPrintRunE(cmd, args, cmd.OutOrStdout())
+		return runCryptoRandPrint(cmd.OutOrStdout(), cmd.Flags())
 	} else {
-		return ctx.CryptoRandFilesRunE(cmd, args, cmd.OutOrStdout(), files)
+		return runCryptoRandFiles(cmd.OutOrStdout(), cmd.Flags(), files)
 	}
 }
 
-func (ctx *CmdCtx) CryptoRandPrintRunE(cmd *cobra.Command, args []string, w io.Writer) (err error) {
+func runCryptoRandPrint(w io.Writer, flags *pflag.FlagSet) (err error) {
 	var random string
 
-	if random, err = flagsGetRandomCharacters(cmd.Flags(), cmdFlagNameLength, cmdFlagNameCharSet, cmdFlagNameCharacters); err != nil {
+	if random, err = flagsGetRandomCharacters(flags, cmdFlagNameLength, cmdFlagNameCharSet, cmdFlagNameCharacters); err != nil {
 		return err
 	}
 
@@ -287,7 +288,7 @@ func (ctx *CmdCtx) CryptoRandPrintRunE(cmd *cobra.Command, args []string, w io.W
 	return nil
 }
 
-func (ctx *CmdCtx) CryptoRandFilesRunE(cmd *cobra.Command, args []string, w io.Writer, files []string) (err error) {
+func runCryptoRandFiles(w io.Writer, flags *pflag.FlagSet, files []string) (err error) {
 	var (
 		fmode  os.FileMode
 		dmode  os.FileMode
@@ -298,16 +299,16 @@ func (ctx *CmdCtx) CryptoRandFilesRunE(cmd *cobra.Command, args []string, w io.W
 		info   os.FileInfo
 	)
 
-	if fmode, err = flagParseFileMode(cmdFlagNameModeFiles, cmd.Flags()); err != nil {
+	if fmode, err = flagParseFileMode(cmdFlagNameModeFiles, flags); err != nil {
 		return err
 	}
 
-	if dmode, err = flagParseFileMode(cmdFlagNameModeDirectories, cmd.Flags()); err != nil {
+	if dmode, err = flagParseFileMode(cmdFlagNameModeDirectories, flags); err != nil {
 		return err
 	}
 
 	for i = range files {
-		if values[i], err = flagsGetRandomCharacters(cmd.Flags(), cmdFlagNameLength, cmdFlagNameCharSet, cmdFlagNameCharacters); err != nil {
+		if values[i], err = flagsGetRandomCharacters(flags, cmdFlagNameLength, cmdFlagNameCharSet, cmdFlagNameCharacters); err != nil {
 			return err
 		}
 	}
@@ -607,8 +608,6 @@ func (ctx *CmdCtx) CryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string,
 }
 
 // CryptoPairGenerateRunE is the RunE for the authelia crypto pair [rsa|ecdsa|ed25519] commands.
-//
-//nolint:gocyclo
 func (ctx *CmdCtx) CryptoPairGenerateRunE(cmd *cobra.Command, _ []string, privateKey any) (err error) {
 	var (
 		privateKeyPath, publicKeyPath             string
@@ -630,6 +629,10 @@ func (ctx *CmdCtx) CryptoPairGenerateRunE(cmd *cobra.Command, _ []string, privat
 		return err
 	}
 
+	return runCryptoPairGenerate(cmd.OutOrStdout(), legacy, privateKey, dir, privateKeyPath, privateKeyLegacyPath, publicKeyPath, publicKeyLegacyPath, extLegacy)
+}
+
+func runCryptoPairGenerate(w io.Writer, legacy bool, privateKey any, dir, privateKeyPath, privateKeyLegacyPath, publicKeyPath, publicKeyLegacyPath, extLegacy string) (err error) {
 	buf := bytes.NewBuffer(nil)
 
 	buf.WriteString("Generating key pair\n\n")
