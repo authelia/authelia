@@ -8,7 +8,6 @@ import (
 
 	oauthelia2 "authelia.com/provider/oauth2"
 	xjwt "authelia.com/provider/oauth2/token/jwt"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -165,8 +164,10 @@ func (m *TestContext) GetRandom() (r random.Provider) {
 	return random.NewMathematical()
 }
 
-func (m *TestContext) GetConfiguration() (config schema.Configuration) {
-	return m.Config
+func (m *TestContext) GetConfiguration() (config *schema.Configuration) {
+	copied := m.Config
+
+	return &copied
 }
 
 func (m *TestContext) GetProviderUserAttributeResolver() expression.UserAttributeResolver {
@@ -201,10 +202,6 @@ func (m *TestContext) GetClock() clock.Provider {
 	}
 
 	return clock.New()
-}
-
-func (m *TestContext) GetJWTWithTimeFuncOption() jwt.ParserOption {
-	return jwt.WithTimeFunc(m.GetClock().Now)
 }
 
 type TestCodeStrategy struct {

@@ -233,7 +233,7 @@ func OAuth2PushedAuthorizationRequest(ctx *middlewares.AutheliaCtx, rw http.Resp
 		return
 	}
 
-	if responder, err = ctx.Providers.OpenIDConnect.NewPushedAuthorizeResponse(ctx, requester, oidc.NewSessionWithRequestedAt(ctx.Clock.Now())); err != nil {
+	if responder, err = ctx.Providers.OpenIDConnect.NewPushedAuthorizeResponse(ctx, requester, oidc.NewSessionWithRequestedAt(ctx.GetClock().Now())); err != nil {
 		ctx.Logger.Errorf("Pushed Authorization Request failed with error: %s", oauthelia2.ErrorToDebugRFC6749Error(err))
 
 		ctx.Providers.OpenIDConnect.WritePushedAuthorizeError(ctx, rw, requester, err)

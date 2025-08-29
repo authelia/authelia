@@ -76,9 +76,9 @@ func UserSessionElevationGET(ctx *middlewares.AutheliaCtx) {
 		var deleted bool
 
 		response.Elevated = true
-		response.Expires = int(userSession.Elevations.User.Expires.Sub(ctx.Clock.Now()).Seconds())
+		response.Expires = int(userSession.Elevations.User.Expires.Sub(ctx.GetClock().Now()).Seconds())
 
-		if userSession.Elevations.User.Expires.Before(ctx.Clock.Now()) {
+		if userSession.Elevations.User.Expires.Before(ctx.GetClock().Now()) {
 			ctx.Logger.WithFields(map[string]any{"username": userSession.Username, "expired": userSession.Elevations.User.Expires.Unix()}).
 				Info("The user session elevation has already expired so it has been destroyed")
 
@@ -279,7 +279,7 @@ func UserSessionElevationPUT(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if code.ExpiresAt.Before(ctx.Clock.Now()) {
+	if code.ExpiresAt.Before(ctx.GetClock().Now()) {
 		ctx.Logger.WithError(fmt.Errorf("the code challenge has expired")).Errorf("Error occurred validating user session elevation One-Time Code challenge for user '%s'", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -338,7 +338,7 @@ func UserSessionElevationPUT(ctx *middlewares.AutheliaCtx) {
 	userSession.Elevations.User = &session.Elevation{
 		ID:       code.ID,
 		RemoteIP: ctx.RemoteIP(),
-		Expires:  ctx.Clock.Now().Add(ctx.Configuration.IdentityValidation.ElevatedSession.ElevationLifespan),
+		Expires:  ctx.GetClock().Now().Add(ctx.Configuration.IdentityValidation.ElevatedSession.ElevationLifespan),
 	}
 
 	if err = ctx.SaveSession(userSession); err != nil {

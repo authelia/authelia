@@ -92,7 +92,7 @@ func NewSMTPNotifier(config *schema.NotifierSMTP, certPool *x509.CertPool) *SMTP
 		},
 		config: config,
 		domain: domain,
-		random: &random.Cryptographical{},
+		random: random.New(),
 		tls:    configTLS,
 		log:    log,
 		opts:   opts,

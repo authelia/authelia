@@ -95,7 +95,7 @@ func NewPasswordPolicy(config *schema.Configuration) middlewares.PasswordPolicyP
 
 // NewRandom creates a new random.Provider given a valid configuration. This uses the rand/crypto package.
 func NewRandom() random.Provider {
-	return &random.Cryptographical{}
+	return random.New()
 }
 
 // NewUserAttributeResolver creates a new expression.UserAttributeResolver given a valid configuration.

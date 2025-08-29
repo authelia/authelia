@@ -36,7 +36,7 @@ func (s *HandlerSignPasswordSuite) SetupTest() {
 	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
 
 	s.mock.Clock.Set(time.Unix(1701295903, 0))
-	s.mock.Ctx.Clock = &s.mock.Clock
+	s.mock.Ctx.Providers.Clock = &s.mock.Clock
 	s.mock.Ctx.Configuration.TOTP = schema.DefaultTOTPConfiguration
 }
 

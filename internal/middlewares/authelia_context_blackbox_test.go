@@ -1,16 +1,21 @@
 package middlewares_test
 
 import (
+	"math"
 	"net"
 	"net/url"
 	"testing"
 
+	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 	"go.uber.org/mock/gomock"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/expression"
+	"github.com/authelia/authelia/v4/internal/handlers"
+	"github.com/authelia/authelia/v4/internal/metrics"
 	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/mocks"
 	"github.com/authelia/authelia/v4/internal/model"
@@ -330,7 +335,7 @@ func TestAutheliaCtx_GetCookieDomain(t *testing.T) {
 				ctx.Request.Header.Set(k, v)
 			}
 
-			middleware := middlewares.NewAutheliaCtx(ctx, config, middlewares.Providers{})
+			middleware := middlewares.NewAutheliaCtx(ctx, config, middlewares.NewProvidersBasic())
 
 			actual, err := middleware.GetCookieDomain()
 
@@ -401,7 +406,7 @@ func TestAutheliaCtx_GetXOriginalURLOrXForwardedURL(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := &fasthttp.RequestCtx{}
 			config := schema.Configuration{}
-			providers := middlewares.Providers{}
+			providers := middlewares.NewProvidersBasic()
 
 			for k, v := range tc.headers {
 				ctx.Request.Header.Set(k, v)
@@ -482,7 +487,7 @@ func TestAutheliaCtx_GetOrigin(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := &fasthttp.RequestCtx{}
 			config := schema.Configuration{}
-			providers := middlewares.Providers{}
+			providers := middlewares.NewProvidersBasic()
 
 			for k, v := range tc.headers {
 				ctx.Request.Header.Set(k, v)
@@ -555,7 +560,7 @@ func TestAutheliaCtx_IssuerURL(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := &fasthttp.RequestCtx{}
 			config := schema.Configuration{}
-			providers := middlewares.Providers{}
+			providers := middlewares.NewProvidersBasic()
 
 			for k, v := range tc.headers {
 				ctx.Request.Header.Set(k, v)
@@ -630,7 +635,7 @@ func TestAutheliaCtx_AcceptsMIME(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := &fasthttp.RequestCtx{}
 			config := schema.Configuration{}
-			providers := middlewares.Providers{}
+			providers := middlewares.NewProvidersBasic()
 
 			for k, v := range tc.headers {
 				ctx.Request.Header.Set(k, v)
@@ -681,7 +686,7 @@ func TestAutheliaCtx_GetXForwardedURL(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := &fasthttp.RequestCtx{}
 			config := schema.Configuration{}
-			providers := middlewares.Providers{}
+			providers := middlewares.NewProvidersBasic()
 
 			for k, v := range tc.headers {
 				ctx.Request.Header.Set(k, v)
@@ -740,7 +745,7 @@ func TestAutheliaCtx_SetSpecialRedirect(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := &fasthttp.RequestCtx{}
 			config := schema.Configuration{}
-			providers := middlewares.Providers{}
+			providers := middlewares.NewProvidersBasic()
 
 			middleware := middlewares.NewAutheliaCtx(ctx, config, providers)
 
@@ -772,19 +777,27 @@ func TestAutheliaCtx_GetRandom(t *testing.T) {
 			"ShouldHandleMathematical",
 			random.NewMathematical(),
 		},
+		{
+			"ShouldHandleCryptographical",
+			random.New(),
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := &fasthttp.RequestCtx{}
 			config := schema.Configuration{}
-			providers := middlewares.Providers{
-				Random: tc.have,
-			}
+			providers := middlewares.NewProvidersBasic()
+
+			providers.Random = tc.have
 
 			middleware := middlewares.NewAutheliaCtx(ctx, config, providers)
 
-			assert.Equal(t, tc.have, middleware.GetRandom())
+			if tc.have == nil {
+				assert.Equal(t, random.New(), middleware.GetRandom())
+			} else {
+				assert.Equal(t, tc.have, middleware.GetRandom())
+			}
 		})
 	}
 }
@@ -854,7 +867,7 @@ func TestAutheliaCtx_ParseBody(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := &fasthttp.RequestCtx{}
 			config := schema.Configuration{}
-			providers := middlewares.Providers{}
+			providers := middlewares.NewProvidersBasic()
 
 			middleware := middlewares.NewAutheliaCtx(ctx, config, providers)
 
@@ -924,7 +937,7 @@ func TestAutheliaCtx_GetSessionProvider_Errors(t *testing.T) {
 				ctx.Request.Header.Set(k, v)
 			}
 
-			middleware := middlewares.NewAutheliaCtx(ctx, config, middlewares.Providers{})
+			middleware := middlewares.NewAutheliaCtx(ctx, config, middlewares.NewProvidersBasic())
 
 			actual, err := middleware.GetSessionProvider()
 
@@ -975,7 +988,7 @@ func TestAutheliaCtx_GetCookieDomainSessionProvider(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := &fasthttp.RequestCtx{}
 			config := schema.Configuration{}
-			providers := middlewares.Providers{}
+			providers := middlewares.NewProvidersBasic()
 
 			if tc.config != nil {
 				providers.SessionProvider = session.NewProvider(*tc.config, nil)
@@ -1001,13 +1014,11 @@ func TestShouldCallNextWithAutheliaCtx(t *testing.T) {
 
 	ctx := &fasthttp.RequestCtx{}
 	configuration := schema.Configuration{}
-	userProvider := mocks.NewMockUserProvider(ctrl)
-	sessionProvider := session.NewProvider(configuration.Session, nil)
-	providers := middlewares.Providers{
-		UserProvider:    userProvider,
-		SessionProvider: sessionProvider,
-		Random:          random.NewMathematical(),
-	}
+	providers := middlewares.NewProvidersBasic()
+
+	providers.UserProvider = mocks.NewMockUserProvider(ctrl)
+	providers.SessionProvider = session.NewProvider(configuration.Session, nil)
+
 	nextCalled := false
 
 	middleware := middlewares.NewBridgeBuilder(configuration, providers).Build()
@@ -1072,7 +1083,7 @@ func TestShouldDetectNonXHR(t *testing.T) {
 }
 
 func TestAutheliaCtxMisc(t *testing.T) {
-	ctx := middlewares.NewAutheliaCtx(&fasthttp.RequestCtx{}, schema.Configuration{}, middlewares.Providers{})
+	ctx := middlewares.NewAutheliaCtx(&fasthttp.RequestCtx{}, schema.Configuration{}, middlewares.NewProvidersBasic())
 
 	assert.NotNil(t, ctx.GetConfiguration())
 	assert.NotNil(t, ctx.GetProviders())
@@ -1224,4 +1235,110 @@ func TestAutheliaCtx_GetDefaultRedirectionURL(t *testing.T) {
 	mock2.Ctx.Request.Header.Set("X-Original-URL", "https://auth.example2.com/consent")
 
 	assert.Equal(t, &url.URL{Scheme: "https", Host: "www.example2.com"}, mock2.Ctx.GetDefaultRedirectionURL())
+}
+
+func TestAutheliaCtx_ReplyJSON(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	err := mock.Ctx.ReplyJSON(math.Inf(1), 0)
+	assert.EqualError(t, err, "unable to marshal JSON body: json: unsupported value: +Inf")
+}
+
+func TestAutheliaCtx_SetJSONBody(t *testing.T) {
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	err := mock.Ctx.SetJSONBody(&handlers.StateResponse{
+		Username:              "",
+		AuthenticationLevel:   0,
+		FactorKnowledge:       false,
+		DefaultRedirectionURL: "",
+	})
+
+	assert.NoError(t, err)
+	assert.Equal(t, []byte(middlewares.ContentTypeApplicationJSON), mock.Ctx.Response.Header.ContentType())
+	assert.Equal(t, []byte(`{"status":"OK","data":{"username":"","authentication_level":0,"factor_knowledge":false}}`), mock.Ctx.Response.Body())
+}
+
+func TestAutheliaCtx_Session(t *testing.T) {
+	ctx := middlewares.NewAutheliaCtx(&fasthttp.RequestCtx{}, schema.Configuration{}, middlewares.NewProvidersBasic())
+
+	assert.EqualError(t, ctx.RegenerateSession(), "unable to regenerate user session: unable to retrieve session cookie domain: missing required X-Forwarded-Host header")
+	assert.EqualError(t, ctx.DestroySession(), "unable to destroy user session: unable to retrieve session cookie domain: missing required X-Forwarded-Host header")
+	assert.EqualError(t, ctx.SaveSession(session.UserSession{}), "unable to save user session: unable to retrieve session cookie domain: missing required X-Forwarded-Host header")
+
+	s, err := ctx.GetSession()
+	assert.Equal(t, session.UserSession{}, s)
+	assert.EqualError(t, err, "unable to retrieve session cookie domain: missing required X-Forwarded-Host header")
+}
+
+func TestAutheliaCtx_GetClockGetRandomGetUserAttributeResolver(t *testing.T) {
+	ctx := middlewares.NewAutheliaCtx(&fasthttp.RequestCtx{}, schema.Configuration{}, middlewares.Providers{})
+
+	assert.Nil(t, ctx.Providers.Clock)
+	assert.Nil(t, ctx.Providers.Random)
+	assert.Nil(t, ctx.Providers.UserAttributeResolver)
+
+	assert.NotNil(t, ctx.GetClock())
+	assert.NotNil(t, ctx.GetRandom())
+
+	assert.NotNil(t, ctx.Providers.Clock)
+	assert.NotNil(t, ctx.Providers.Random)
+
+	assert.Nil(t, ctx.GetProviderUserAttributeResolver())
+
+	ctx.Providers.UserAttributeResolver = expression.NewUserAttributes(&schema.Configuration{})
+
+	assert.NotNil(t, ctx.GetProviderUserAttributeResolver())
+	assert.NotNil(t, ctx.Providers.UserAttributeResolver)
+}
+
+func TestAutheliaCtx_Value(t *testing.T) {
+	ctx := middlewares.NewAutheliaCtx(&fasthttp.RequestCtx{}, schema.Configuration{}, middlewares.Providers{})
+
+	assert.Equal(t, ctx, ctx.Value(model.CtxKeyAutheliaCtx))
+	assert.Nil(t, ctx.Value("test"))
+}
+
+func TestAutheliaCtx_GetWebAuthnProvider(t *testing.T) {
+	ctx := middlewares.NewAutheliaCtx(&fasthttp.RequestCtx{}, schema.Configuration{}, middlewares.Providers{})
+
+	provider, err := ctx.GetWebAuthnProvider()
+	assert.Nil(t, provider)
+	assert.EqualError(t, err, "missing required X-Forwarded-Host header")
+
+	mock := mocks.NewMockAutheliaCtx(t)
+	defer mock.Close()
+
+	provider, err = mock.Ctx.GetWebAuthnProvider()
+	assert.NotNil(t, provider)
+	assert.NoError(t, err)
+
+	mock.Ctx.Configuration.WebAuthn.SelectionCriteria.Attachment = protocol.CrossPlatform
+	mock.Ctx.Configuration.WebAuthn.SelectionCriteria.Discoverability = protocol.ResidentKeyRequirementRequired
+
+	provider, err = mock.Ctx.GetWebAuthnProvider()
+	assert.NotNil(t, provider)
+	assert.NoError(t, err)
+
+	mock.Ctx.Configuration.WebAuthn.SelectionCriteria.Discoverability = protocol.ResidentKeyRequirementPreferred
+
+	provider, err = mock.Ctx.GetWebAuthnProvider()
+	assert.NotNil(t, provider)
+	assert.NoError(t, err)
+}
+
+func TestAutheliaCtx_RecordAuthn(t *testing.T) {
+	ctx := middlewares.NewAutheliaCtx(&fasthttp.RequestCtx{}, schema.Configuration{}, middlewares.Providers{})
+
+	assert.NotPanics(t, func() {
+		ctx.RecordAuthn(true, true, "password")
+	})
+
+	ctx.Providers.Metrics = metrics.NewPrometheus()
+
+	assert.NotPanics(t, func() {
+		ctx.RecordAuthn(true, true, "password")
+	})
 }

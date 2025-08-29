@@ -139,9 +139,9 @@ type TLSServerContext struct {
 func NewTLSServerContext(configuration schema.Configuration) (serverContext *TLSServerContext, err error) {
 	serverContext = new(TLSServerContext)
 
-	providers := middlewares.Providers{
-		Random: random.NewMathematical(),
-	}
+	providers := middlewares.NewProvidersBasic()
+
+	providers.Random = random.NewMathematical()
 
 	providers.Templates, err = templates.New(templates.Config{EmailTemplatesPath: configuration.Notifier.TemplatePath})
 	if err != nil {

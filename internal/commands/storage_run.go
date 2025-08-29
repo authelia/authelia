@@ -20,11 +20,12 @@ import (
 	"github.com/go-webauthn/webauthn/metadata"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"go.yaml.in/yaml/v4"
 
-	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/configuration/validator"
+	"github.com/authelia/authelia/v4/internal/middlewares"
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/random"
 	"github.com/authelia/authelia/v4/internal/regulation"
@@ -48,7 +49,7 @@ func (ctx *CmdCtx) LoadProvidersStorageRunE(cmd *cobra.Command, args []string) (
 	case len(warns) != 0:
 		err = fmt.Errorf("had the following warnings loading the trusted certificates")
 
-		for _, e := range errs {
+		for _, e := range warns {
 			err = fmt.Errorf("%+v: %w", err, e)
 		}
 
@@ -145,14 +146,18 @@ func (ctx *CmdCtx) StorageCacheDeleteRunE(name, description string) func(cmd *co
 			return storageWrapCheckSchemaErr(err)
 		}
 
-		if err = ctx.providers.StorageProvider.DeleteCachedData(ctx, name); err != nil {
-			return err
-		}
-
-		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Successfully deleted cached %s data.\n", description)
-
-		return nil
+		return runStorageCacheDelete(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider, name, description)
 	}
+}
+
+func runStorageCacheDelete(ctx context.Context, w io.Writer, store storage.Provider, name, description string) (err error) {
+	if err = store.DeleteCachedData(ctx, name); err != nil {
+		return err
+	}
+
+	_, _ = fmt.Fprintf(w, "Successfully deleted cached %s data.\n", description)
+
+	return nil
 }
 
 func (ctx *CmdCtx) StorageCacheMDS3StatusRunE(cmd *cobra.Command, args []string) (err error) {
@@ -700,14 +705,18 @@ func (ctx *CmdCtx) StorageBansListRunE(use string) func(cmd *cobra.Command, args
 			return storageWrapCheckSchemaErr(err)
 		}
 
-		switch use {
-		case cmdUseIP:
-			return runStorageBansListIP(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider)
-		case cmdUseUser:
-			return runStorageBansListUser(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider)
-		default:
-			return fmt.Errorf("unknown command %q", use)
-		}
+		return runStorageBansList(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider, use)
+	}
+}
+
+func runStorageBansList(ctx context.Context, w io.Writer, store storage.Provider, use string) (err error) {
+	switch use {
+	case cmdUseIP:
+		return runStorageBansListIP(ctx, w, store)
+	case cmdUseUser:
+		return runStorageBansListUser(ctx, w, store)
+	default:
+		return fmt.Errorf("unknown command %q", use)
 	}
 }
 
@@ -805,27 +814,31 @@ func (ctx *CmdCtx) StorageBansRevokeRunE(use string) func(cmd *cobra.Command, ar
 			return storageWrapCheckSchemaErr(err)
 		}
 
-		var (
-			id     int
-			target string
-		)
+		return runStorageBansRevoke(ctx, cmd.OutOrStdout(), cmd.Flags(), args, ctx.providers.StorageProvider, use)
+	}
+}
 
-		if id, err = cmd.Flags().GetInt("id"); err != nil {
-			return err
-		}
+func runStorageBansRevoke(ctx context.Context, w io.Writer, flags *pflag.FlagSet, args []string, store storage.Provider, use string) (err error) {
+	var (
+		id     int
+		target string
+	)
 
-		if len(args) != 0 {
-			target = args[0]
-		}
+	if id, err = flags.GetInt("id"); err != nil {
+		return err
+	}
 
-		switch use {
-		case cmdUseIP:
-			return runStorageBansRevokeIP(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider, id, target)
-		case cmdUseUser:
-			return runStorageBansRevokeUser(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider, id, target)
-		default:
-			return fmt.Errorf("unknown command %q", use)
-		}
+	if len(args) != 0 {
+		target = args[0]
+	}
+
+	switch use {
+	case cmdUseIP:
+		return runStorageBansRevokeIP(ctx, w, store, id, target)
+	case cmdUseUser:
+		return runStorageBansRevokeUser(ctx, w, store, id, target)
+	default:
+		return fmt.Errorf("unknown command %q", use)
 	}
 }
 
@@ -923,42 +936,46 @@ func (ctx *CmdCtx) StorageBansAddRunE(use string) func(cmd *cobra.Command, args 
 			return storageWrapCheckSchemaErr(err)
 		}
 
-		var (
-			permanent           bool
-			reason, durationStr string
-		)
+		return runStorageBansAdd(ctx, cmd.OutOrStdout(), cmd.Flags(), args, ctx.providers.StorageProvider, use)
+	}
+}
 
-		if permanent, err = cmd.Flags().GetBool("permanent"); err != nil {
-			return err
-		}
+func runStorageBansAdd(ctx context.Context, w io.Writer, flags *pflag.FlagSet, args []string, store storage.Provider, use string) (err error) {
+	var (
+		permanent           bool
+		reason, durationStr string
+	)
 
-		if reason, err = cmd.Flags().GetString("reason"); err != nil {
-			return err
-		}
+	if permanent, err = flags.GetBool("permanent"); err != nil {
+		return err
+	}
 
-		if durationStr, err = cmd.Flags().GetString("duration"); err != nil {
-			return err
-		}
+	if reason, err = flags.GetString("reason"); err != nil {
+		return err
+	}
 
-		duration, err := utils.ParseDurationString(durationStr)
-		if err != nil {
-			return fmt.Errorf("failed to parse duration string: %w", err)
-		}
+	if durationStr, err = flags.GetString("duration"); err != nil {
+		return err
+	}
 
-		if duration <= 0 {
-			return fmt.Errorf("duration must be a positive value")
-		}
+	duration, err := utils.ParseDurationString(durationStr)
+	if err != nil {
+		return fmt.Errorf("failed to parse duration string: %w", err)
+	}
 
-		target := args[0]
+	if duration <= 0 {
+		return fmt.Errorf("duration must be a positive value")
+	}
 
-		switch use {
-		case cmdUseIP:
-			return runStorageBansAddIP(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider, target, reason, duration, permanent)
-		case cmdUseUser:
-			return runStorageBansAddUser(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider, target, reason, duration, permanent)
-		default:
-			return fmt.Errorf("unknown command %q", use)
-		}
+	target := args[0]
+
+	switch use {
+	case cmdUseIP:
+		return runStorageBansAddIP(ctx, w, store, target, reason, duration, permanent)
+	case cmdUseUser:
+		return runStorageBansAddUser(ctx, w, store, target, reason, duration, permanent)
+	default:
+		return fmt.Errorf("unknown command %q", use)
 	}
 }
 
@@ -1402,7 +1419,7 @@ func (ctx *CmdCtx) StorageUserTOTPGenerateRunE(cmd *cobra.Command, args []string
 	return runStorageUserTOTPGenerate(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider, ctx.config, filename, args[0], secret, force)
 }
 
-func runStorageUserTOTPGenerate(ctx context.Context, w io.Writer, store storage.Provider, config *schema.Configuration, filename, username, secret string, force bool) (err error) {
+func runStorageUserTOTPGenerate(ctx middlewares.ServiceContext, w io.Writer, store storage.Provider, config *schema.Configuration, filename, username, secret string, force bool) (err error) {
 	var (
 		c    *model.TOTPConfiguration
 		file *os.File
@@ -1417,7 +1434,7 @@ func runStorageUserTOTPGenerate(ctx context.Context, w io.Writer, store storage.
 
 	totpProvider := totp.NewTimeBasedProvider(config.TOTP)
 
-	if c, err = totpProvider.GenerateCustom(totp.NewContext(ctx, &clock.Real{}, &random.Cryptographical{}), username, config.TOTP.DefaultAlgorithm, secret, uint32(config.TOTP.DefaultDigits), uint(config.TOTP.DefaultPeriod), uint(config.TOTP.SecretSize)); err != nil { //nolint:gosec // Validated at runtime.
+	if c, err = totpProvider.GenerateCustom(totp.NewContext(ctx, ctx.GetClock(), ctx.GetRandom()), username, config.TOTP.DefaultAlgorithm, secret, uint32(config.TOTP.DefaultDigits), uint(config.TOTP.DefaultPeriod), uint(config.TOTP.SecretSize)); err != nil { //nolint:gosec // Validated at runtime.
 		return err
 	}
 
@@ -1748,9 +1765,9 @@ func (ctx *CmdCtx) StorageUserTOTPExportPNGRunE(cmd *cobra.Command, _ []string) 
 	return runStorageUserTOTPExportPNG(ctx, cmd.OutOrStdout(), ctx.providers.StorageProvider, dir)
 }
 
-func runStorageUserTOTPExportPNG(ctx context.Context, w io.Writer, store storage.Provider, dir string) (err error) {
+func runStorageUserTOTPExportPNG(ctx middlewares.ServiceContext, w io.Writer, store storage.Provider, dir string) (err error) {
 	if dir == "" {
-		rand := &random.Cryptographical{}
+		rand := ctx.GetRandom()
 		dir = rand.StringCustom(8, random.CharSetAlphaNumeric)
 	}
 

@@ -36,7 +36,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 
 	ctx.Logger.Debugf("User Info Request with id '%s' is being processed", requestID)
 
-	if tokenType, requester, err = ctx.Providers.OpenIDConnect.IntrospectToken(oauth2.SetSkipStatelessIntrospection(r.Context()), oauthelia2.AccessTokenFromRequest(r), oauthelia2.AccessToken, oidc.NewSessionWithRequestedAt(ctx.Clock.Now())); err != nil {
+	if tokenType, requester, err = ctx.Providers.OpenIDConnect.IntrospectToken(oauth2.SetSkipStatelessIntrospection(r.Context()), oauthelia2.AccessTokenFromRequest(r), oauthelia2.AccessToken, oidc.NewSessionWithRequestedAt(ctx.GetClock().Now())); err != nil {
 		ctx.Logger.Errorf("User Info Request with id '%s' failed with error: %s", requestID, oauthelia2.ErrorToDebugRFC6749Error(err))
 
 		if rfc := oauthelia2.ErrorToRFC6749Error(err); rfc.StatusCode() == http.StatusUnauthorized {
@@ -125,7 +125,7 @@ func OpenIDConnectUserinfo(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter,
 		if userinfo {
 			ctx.Logger.WithError(err).Errorf("User Info Request with id '%s' on client with id '%s' error occurred loading user information", requestID, client.GetID())
 		}
-	} else if err = client.GetClaimsStrategy().HydrateUserInfoClaims(ctx, ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx), client, requester.GetGrantedScopes(), claimsGranted, requests, detailer, requested, ctx.Clock.Now(), original, claims); err != nil {
+	} else if err = client.GetClaimsStrategy().HydrateUserInfoClaims(ctx, ctx.Providers.OpenIDConnect.GetScopeStrategy(ctx), client, requester.GetGrantedScopes(), claimsGranted, requests, detailer, requested, ctx.GetClock().Now(), original, claims); err != nil {
 		ctx.Logger.WithError(err).Errorf("User Info Request with id '%s' on client with id '%s' failed due to an error populating claims for the standard flow", requestID, client.GetID())
 
 		errorsx.WriteJSONError(rw, r, oauthelia2.ErrServerError.WithDebugf("Error occurred populating claims for the standard flow: %v.", err))

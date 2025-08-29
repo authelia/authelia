@@ -27,7 +27,7 @@ type RegulatorSuite struct {
 
 func (s *RegulatorSuite) SetupTest() {
 	s.mock = mocks.NewMockAutheliaCtx(s.T())
-	s.mock.Ctx.Clock = &s.mock.Clock
+	s.mock.Ctx.Providers.Clock = &s.mock.Clock
 
 	s.mock.Ctx.Configuration.Regulation = schema.Regulation{
 		Modes:      []string{"ip", "user"},
@@ -1231,7 +1231,7 @@ func TestHandleAttemptShortCircuits(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			m := mocks.NewMockAutheliaCtx(t)
-			m.Ctx.Clock = &m.Clock
+			m.Ctx.Providers.Clock = &m.Clock
 			m.Ctx.Configuration.Regulation = tc.config
 			m.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedFor, "127.0.0.1")
 

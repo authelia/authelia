@@ -35,12 +35,13 @@ func SetContentTypeTextPlain(ctx *fasthttp.RequestCtx) {
 
 // NewProviders provisions all providers based on the configuration provided.
 func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (providers Providers, warns, errs []error) {
-	providers.Random = &random.Cryptographical{}
+	providers = NewProvidersBasic()
+
 	providers.StorageProvider = storage.NewProvider(config, caCertPool)
 	providers.Authorizer = authorization.NewAuthorizer(config)
 	providers.NTP = ntp.NewProvider(&config.NTP)
 	providers.PasswordPolicy = NewPasswordPolicyProvider(config.PasswordPolicy)
-	providers.Regulator = regulation.NewRegulator(config.Regulation, providers.StorageProvider, clock.New())
+	providers.Regulator = regulation.NewRegulator(config.Regulation, providers.StorageProvider, providers.Clock)
 	providers.SessionProvider = session.NewProvider(config.Session, caCertPool)
 	providers.TOTP = totp.NewTimeBasedProvider(config.TOTP)
 	providers.UserAttributeResolver = expression.NewUserAttributes(config)
@@ -69,6 +70,14 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 	}
 
 	return providers, warns, errs
+}
+
+// NewProvidersBasic returns a new Providers with the simple providers.
+func NewProvidersBasic() Providers {
+	return Providers{
+		Clock:  clock.New(),
+		Random: random.New(),
+	}
 }
 
 // NewAuthenticationProvider returns a new authentication.UserProvider.

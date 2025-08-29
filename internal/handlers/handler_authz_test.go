@@ -182,7 +182,7 @@ func (s *AuthzSuite) TestShouldApplyDefaultPolicy() {
 			LoadBannedUser(gomock.Eq(mock.Ctx), gomock.Eq("john")).Return(nil, nil)
 
 		attempt := model.AuthenticationAttempt{
-			Time:          mock.Ctx.Clock.Now(),
+			Time:          mock.Ctx.Providers.Clock.Now(),
 			Successful:    true,
 			Banned:        false,
 			Username:      "john",
@@ -291,7 +291,7 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfBypassDomain() {
 			LoadBannedUser(gomock.Eq(mock.Ctx), gomock.Eq("john")).Return(nil, nil)
 
 		attempt := model.AuthenticationAttempt{
-			Time:          mock.Ctx.Clock.Now(),
+			Time:          mock.Ctx.Providers.Clock.Now(),
 			Successful:    true,
 			Banned:        false,
 			Username:      "john",
@@ -358,7 +358,7 @@ func (s *AuthzSuite) TestShouldVerifyFailureToGetDetailsUsingBasicScheme() {
 			LoadBannedUser(gomock.Eq(mock.Ctx), gomock.Eq("john")).Return(nil, nil)
 
 		attempt := model.AuthenticationAttempt{
-			Time:          mock.Ctx.Clock.Now(),
+			Time:          mock.Ctx.Providers.Clock.Now(),
 			Successful:    true,
 			Banned:        false,
 			Username:      "john",
@@ -417,7 +417,7 @@ func (s *AuthzSuite) TestShouldVerifyFailureToGetDetailsUsingBasicSchemeCached()
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 
 	attempt := model.AuthenticationAttempt{
-		Time:          mock.Ctx.Clock.Now(),
+		Time:          mock.Ctx.Providers.Clock.Now(),
 		Successful:    true,
 		Banned:        false,
 		Username:      "john",
@@ -535,7 +535,7 @@ func (s *AuthzSuite) TestShouldVerifyFailureToCheckPasswordUsingBasicSchemeCache
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 
 	attempt := model.AuthenticationAttempt{
-		Time:          mock.Ctx.Clock.Now(),
+		Time:          mock.Ctx.Providers.Clock.Now(),
 		Successful:    false,
 		Banned:        false,
 		Username:      "john",
@@ -647,7 +647,7 @@ func (s *AuthzSuite) TestShouldVerifyErrorToCheckPasswordUsingBasicSchemeCached(
 	mock.Ctx.Request.Header.Set(fasthttp.HeaderProxyAuthorization, "Basic am9objpwYXNzd29yZA==")
 
 	attempt := model.AuthenticationAttempt{
-		Time:          mock.Ctx.Clock.Now(),
+		Time:          mock.Ctx.Providers.Clock.Now(),
 		Successful:    false,
 		Banned:        false,
 		Username:      "john",
@@ -771,7 +771,7 @@ func (s *AuthzSuite) TestShouldVerifyBypassWithErrorToGetDetailsUsingBasicScheme
 			LoadBannedUser(gomock.Eq(mock.Ctx), gomock.Eq("john")).Return(nil, nil)
 
 		attempt := model.AuthenticationAttempt{
-			Time:          mock.Ctx.Clock.Now(),
+			Time:          mock.Ctx.Providers.Clock.Now(),
 			Successful:    true,
 			Banned:        false,
 			Username:      "john",
@@ -980,7 +980,7 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomain() {
 			LoadBannedUser(gomock.Eq(mock.Ctx), gomock.Eq("john")).Return(nil, nil)
 
 		attempt := model.AuthenticationAttempt{
-			Time:          mock.Ctx.Clock.Now(),
+			Time:          mock.Ctx.Providers.Clock.Now(),
 			Successful:    true,
 			Banned:        false,
 			Username:      "john",
@@ -1057,7 +1057,7 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainCached() {
 		)
 	} else {
 		attempt := model.AuthenticationAttempt{
-			Time:          mock.Ctx.Clock.Now(),
+			Time:          mock.Ctx.Providers.Clock.Now(),
 			Successful:    true,
 			Banned:        false,
 			Username:      "john",
@@ -1166,7 +1166,7 @@ func (s *AuthzSuite) TestShouldHandleAnyCaseSchemeParameter() {
 					LoadBannedUser(gomock.Eq(mock.Ctx), gomock.Eq("john")).Return(nil, nil)
 
 				attempt := model.AuthenticationAttempt{
-					Time:          mock.Ctx.Clock.Now(),
+					Time:          mock.Ctx.Providers.Clock.Now(),
 					Successful:    true,
 					Banned:        false,
 					Username:      "john",
@@ -1235,7 +1235,7 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfTwoFactorDomain() {
 			LoadBannedUser(gomock.Eq(mock.Ctx), gomock.Eq("john")).Return(nil, nil)
 
 		attempt := model.AuthenticationAttempt{
-			Time:          mock.Ctx.Clock.Now(),
+			Time:          mock.Ctx.Providers.Clock.Now(),
 			Successful:    true,
 			Banned:        false,
 			Username:      "john",
@@ -1309,7 +1309,7 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfDenyDomain() {
 			LoadBannedUser(gomock.Eq(mock.Ctx), gomock.Eq("john")).Return(nil, nil)
 
 		attempt := model.AuthenticationAttempt{
-			Time:          mock.Ctx.Clock.Now(),
+			Time:          mock.Ctx.Providers.Clock.Now(),
 			Successful:    true,
 			Banned:        false,
 			Username:      "john",
@@ -1384,7 +1384,7 @@ func (s *AuthzSuite) TestShouldApplyPolicyOfOneFactorDomainWithAuthorizationHead
 			LoadBannedUser(gomock.Eq(mock.Ctx), gomock.Eq("john")).Return(nil, nil)
 
 		attempt := model.AuthenticationAttempt{
-			Time:          mock.Ctx.Clock.Now(),
+			Time:          mock.Ctx.Providers.Clock.Now(),
 			Successful:    true,
 			Banned:        false,
 			Username:      "john",
@@ -1531,7 +1531,7 @@ func (s *AuthzSuite) TestShouldHandleAuthzWithAuthorizationHeaderInvalidPassword
 			LoadBannedUser(gomock.Eq(mock.Ctx), gomock.Eq("john")).Return(nil, nil)
 
 		attempt := model.AuthenticationAttempt{
-			Time:          mock.Ctx.Clock.Now(),
+			Time:          mock.Ctx.Providers.Clock.Now(),
 			Successful:    false,
 			Banned:        false,
 			Username:      "john",
@@ -1822,7 +1822,7 @@ func (s *AuthzSuite) TestShouldNotRefreshUserDetailsFromBackendWhenRefreshDisabl
 
 	mock.Clock.Set(time.Now())
 
-	mock.Ctx.Clock = &mock.Clock
+	mock.Ctx.Providers.Clock = &mock.Clock
 	mock.Ctx.Configuration.AuthenticationBackend.RefreshInterval = schema.NewRefreshIntervalDurationNever()
 	mock.Ctx.Configuration.Session.Cookies[0].Inactivity = testInactivity
 
@@ -2401,6 +2401,6 @@ type urlpair struct {
 }
 
 func setUpMockClock(mock *mocks.MockAutheliaCtx) {
-	mock.Ctx.Clock = &mock.Clock
+	mock.Ctx.Providers.Clock = &mock.Clock
 	mock.Clock.Set(time.Now())
 }

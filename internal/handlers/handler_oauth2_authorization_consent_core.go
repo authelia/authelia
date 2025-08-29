@@ -96,7 +96,7 @@ func handleOAuth2AuthorizationConsentSessionUpdates(ctx *middlewares.AutheliaCtx
 		}
 
 		*userSession = provider.NewDefaultUserSession()
-		userSession.LastActivity = ctx.Clock.Now().Unix()
+		userSession.LastActivity = ctx.GetClock().Now().Unix()
 
 		if err = provider.SaveSession(ctx.RequestCtx, *userSession); err != nil {
 			ctx.Logger.WithError(err).Errorf("Authorization Request with id '%s' on client with id '%s' using policy '%s' for user '%s' had an error while saving updated session", requester.GetID(), client.GetID(), policy.Name, userSession.Username)

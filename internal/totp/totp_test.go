@@ -109,7 +109,7 @@ func TestTOTPGenerateCustom(t *testing.T) {
 				SecretSize:       32,
 			})
 
-			ctx := NewContext(context.TODO(), &clock.Real{}, &random.Cryptographical{})
+			ctx := NewContext(context.TODO(), clock.New(), random.New())
 
 			if tc.setup != nil {
 				tc.setup(t, totp)
@@ -156,7 +156,7 @@ func TestTOTPGenerate(t *testing.T) {
 
 	assert.Equal(t, uint(2), totp.skew)
 
-	ctx := NewContext(context.TODO(), &clock.Real{}, &random.Cryptographical{})
+	ctx := NewContext(context.TODO(), clock.New(), random.New())
 
 	config, err := totp.Generate(ctx, "john")
 	assert.NoError(t, err)
@@ -220,7 +220,7 @@ func TestTimeBased_Validate(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			ctx := NewContext(context.TODO(), clock.NewFixed(time.Unix(10000000, 0)), &random.Cryptographical{})
+			ctx := NewContext(context.TODO(), clock.NewFixed(time.Unix(10000000, 0)), random.New())
 
 			skew := 1
 

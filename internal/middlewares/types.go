@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"context"
+	"net"
 
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
@@ -32,8 +33,6 @@ type AutheliaCtx struct {
 	Providers     Providers
 	Configuration schema.Configuration
 
-	Clock clock.Provider
-
 	session *session.Session
 }
 
@@ -51,15 +50,30 @@ type Providers struct {
 	Templates             *templates.Provider
 	TOTP                  totp.Provider
 	PasswordPolicy        PasswordPolicyProvider
-	Random                random.Provider
 	UserAttributeResolver expression.UserAttributeResolver
 	MetaDataService       webauthn.MetaDataProvider
+
+	Random random.Provider
+	Clock  clock.Provider
 }
 
 type Context interface {
-	GetLogger() *logrus.Entry
-	GetProviders() Providers
-	GetConfiguration() *schema.Configuration
+	GetClock() (clock clock.Provider)
+	GetRandom() (random random.Provider)
+	GetLogger() (logger *logrus.Entry)
+	GetProviders() (providers Providers)
+	GetConfiguration() (config *schema.Configuration)
+	RemoteIP() (ip net.IP)
+
+	context.Context
+}
+
+type ServiceContext interface {
+	GetClock() (clock clock.Provider)
+	GetRandom() (random random.Provider)
+	GetLogger() (logger *logrus.Entry)
+	GetProviders() (providers Providers)
+	GetConfiguration() (config *schema.Configuration)
 
 	context.Context
 }

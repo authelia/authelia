@@ -188,7 +188,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(model.AuthenticationAttempt{
-							Time:       mock.Ctx.Clock.Now(),
+							Time:       mock.Ctx.Providers.Clock.Now(),
 							Successful: false,
 							Banned:     false,
 							Username:   "",
@@ -249,7 +249,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(model.AuthenticationAttempt{
-							Time:       mock.Ctx.Clock.Now(),
+							Time:       mock.Ctx.Providers.Clock.Now(),
 							Successful: false,
 							Banned:     false,
 							Username:   "",
@@ -285,7 +285,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(model.AuthenticationAttempt{
-							Time:       mock.Ctx.Clock.Now(),
+							Time:       mock.Ctx.Providers.Clock.Now(),
 							Successful: false,
 							Banned:     false,
 							Username:   "",
@@ -407,7 +407,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 						Return(nil, nil),
 					mock.StorageMock.EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(model.AuthenticationAttempt{
-							Time:       mock.Ctx.Clock.Now(),
+							Time:       mock.Ctx.Providers.Clock.Now(),
 							Successful: true,
 							Banned:     false,
 							Username:   testUsername,
@@ -512,7 +512,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 						Return(nil, nil),
 					mock.StorageMock.EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(model.AuthenticationAttempt{
-							Time:       mock.Ctx.Clock.Now(),
+							Time:       mock.Ctx.Providers.Clock.Now(),
 							Successful: true,
 							Banned:     false,
 							Username:   testUsername,
@@ -543,7 +543,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 				us.WebAuthn = &session.WebAuthn{
 					SessionData: &webauthn.SessionData{
 						Challenge:        "in1cL-oWfSjSd7uuwUvv2ndOAmRXb0cOAbUoTtAqvGE",
-						Expires:          mock.Ctx.Clock.Now().UTC().Add(time.Minute),
+						Expires:          mock.Ctx.Providers.Clock.Now().UTC().Add(time.Minute),
 						UserVerification: "preferred",
 					},
 				}
@@ -552,7 +552,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
-					CreatedAt:       mock.Ctx.Clock.Now().UTC().Add(time.Second * -10),
+					CreatedAt:       mock.Ctx.Providers.Clock.Now().UTC().Add(time.Second * -10),
 					LastUsedAt:      sql.NullTime{Time: mock.Clock.Now().UTC().Add(time.Second * -10), Valid: true},
 					RPID:            "login.example.com",
 					Username:        testUsername,
@@ -612,10 +612,10 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 						Return(nil, nil),
 					mock.StorageMock.EXPECT().
 						LoadBannedUser(mock.Ctx, gomock.Eq(testUsername)).
-						Return([]model.BannedUser{{ID: 1, Time: mock.Ctx.Clock.Now().UTC().Add(time.Second - 10), Expires: sql.NullTime{Time: mock.Ctx.Clock.Now().UTC().Add(time.Minute), Valid: true}, Username: testUsername, Source: "Passkey"}}, nil),
+						Return([]model.BannedUser{{ID: 1, Time: mock.Ctx.Providers.Clock.Now().UTC().Add(-10 * time.Second), Expires: sql.NullTime{Time: mock.Ctx.Providers.Clock.Now().UTC().Add(time.Minute), Valid: true}, Username: testUsername, Source: "Passkey"}}, nil),
 					mock.StorageMock.EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(model.AuthenticationAttempt{
-							Time:       mock.Ctx.Clock.Now(),
+							Time:       mock.Ctx.Providers.Clock.Now(),
 							Successful: false,
 							Banned:     true,
 							Username:   testUsername,
@@ -648,7 +648,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 				us.WebAuthn = &session.WebAuthn{
 					SessionData: &webauthn.SessionData{
 						Challenge:        "in1cL-oWfSjSd7uuwUvv2ndOAmRXb0cOAbUoTtAqvGE",
-						Expires:          mock.Ctx.Clock.Now().UTC().Add(time.Minute),
+						Expires:          mock.Ctx.Providers.Clock.Now().UTC().Add(time.Minute),
 						UserVerification: "preferred",
 					},
 				}
@@ -657,7 +657,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
-					CreatedAt:       mock.Ctx.Clock.Now().UTC().Add(time.Second * -10),
+					CreatedAt:       mock.Ctx.Providers.Clock.Now().UTC().Add(time.Second * -10),
 					LastUsedAt:      sql.NullTime{Time: mock.Clock.Now().UTC().Add(time.Second * -10), Valid: true},
 					RPID:            "login.example.com",
 					Username:        testUsername,
@@ -714,10 +714,10 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 						Return(&authentication.UserDetails{Username: testUsername}, nil),
 					mock.StorageMock.EXPECT().
 						LoadBannedIP(mock.Ctx, gomock.Eq(model.NewIP(mock.Ctx.RemoteIP()))).
-						Return([]model.BannedIP{{ID: 1, Time: mock.Ctx.Clock.Now().UTC().Add(time.Second - 10), Expires: sql.NullTime{Time: mock.Ctx.Clock.Now().UTC().Add(time.Minute), Valid: true}}}, nil),
+						Return([]model.BannedIP{{ID: 1, Time: mock.Ctx.Providers.Clock.Now().UTC().Add(time.Second - 10), Expires: sql.NullTime{Time: mock.Ctx.Providers.Clock.Now().UTC().Add(time.Minute), Valid: true}}}, nil),
 					mock.StorageMock.EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(model.AuthenticationAttempt{
-							Time:       mock.Ctx.Clock.Now(),
+							Time:       mock.Ctx.Providers.Clock.Now(),
 							Successful: false,
 							Banned:     true,
 							Username:   testUsername,
@@ -750,7 +750,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 				us.WebAuthn = &session.WebAuthn{
 					SessionData: &webauthn.SessionData{
 						Challenge:        "in1cL-oWfSjSd7uuwUvv2ndOAmRXb0cOAbUoTtAqvGE",
-						Expires:          mock.Ctx.Clock.Now().UTC().Add(time.Minute),
+						Expires:          mock.Ctx.Providers.Clock.Now().UTC().Add(time.Minute),
 						UserVerification: "preferred",
 					},
 				}
@@ -759,7 +759,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 
 				credential := model.WebAuthnCredential{
 					ID:              1,
-					CreatedAt:       mock.Ctx.Clock.Now().UTC().Add(time.Second * -10),
+					CreatedAt:       mock.Ctx.Providers.Clock.Now().UTC().Add(time.Second * -10),
 					LastUsedAt:      sql.NullTime{Time: mock.Clock.Now().UTC().Add(time.Second * -10), Valid: true},
 					RPID:            "login.example.com",
 					Username:        testUsername,
@@ -916,7 +916,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 						Return(nil, nil),
 					mock.StorageMock.EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(model.AuthenticationAttempt{
-							Time:       mock.Ctx.Clock.Now(),
+							Time:       mock.Ctx.Providers.Clock.Now(),
 							Successful: true,
 							Banned:     false,
 							Username:   testUsername,
@@ -1020,7 +1020,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 						Return(nil, nil),
 					mock.StorageMock.EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(model.AuthenticationAttempt{
-							Time:       mock.Ctx.Clock.Now(),
+							Time:       mock.Ctx.Providers.Clock.Now(),
 							Successful: true,
 							Banned:     false,
 							Username:   testUsername,
@@ -1119,7 +1119,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 						Return(nil, fmt.Errorf("failed to get details")),
 					mock.StorageMock.EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(model.AuthenticationAttempt{
-							Time:       mock.Ctx.Clock.Now(),
+							Time:       mock.Ctx.Providers.Clock.Now(),
 							Successful: false,
 							Banned:     false,
 							Username:   "",
@@ -1215,7 +1215,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 						Return(nil),
 					mock.StorageMock.EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(model.AuthenticationAttempt{
-							Time:       mock.Ctx.Clock.Now(),
+							Time:       mock.Ctx.Providers.Clock.Now(),
 							Successful: false,
 							Banned:     false,
 							Username:   "",
@@ -1286,7 +1286,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 						Return([]model.WebAuthnCredential{credential}, nil),
 					mock.StorageMock.EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(model.AuthenticationAttempt{
-							Time:       mock.Ctx.Clock.Now(),
+							Time:       mock.Ctx.Providers.Clock.Now(),
 							Successful: false,
 							Banned:     false,
 							Username:   "",
@@ -1382,7 +1382,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 						Return(fmt.Errorf("bad data")),
 					mock.StorageMock.EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(model.AuthenticationAttempt{
-							Time:       mock.Ctx.Clock.Now(),
+							Time:       mock.Ctx.Providers.Clock.Now(),
 							Successful: false,
 							Banned:     false,
 							Username:   "",
@@ -1431,7 +1431,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 						Return(nil, fmt.Errorf("failed to get creds")),
 					mock.StorageMock.EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(model.AuthenticationAttempt{
-							Time:       mock.Ctx.Clock.Now(),
+							Time:       mock.Ctx.Providers.Clock.Now(),
 							Successful: false,
 							Banned:     false,
 							Username:   "",
@@ -1477,7 +1477,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 						Return(nil, fmt.Errorf("bad handle")),
 					mock.StorageMock.EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(model.AuthenticationAttempt{
-							Time:       mock.Ctx.Clock.Now(),
+							Time:       mock.Ctx.Providers.Clock.Now(),
 							Successful: false,
 							Banned:     false,
 							Username:   "",
@@ -1506,7 +1506,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(model.AuthenticationAttempt{
-							Time:       mock.Ctx.Clock.Now(),
+							Time:       mock.Ctx.Providers.Clock.Now(),
 							Successful: false,
 							Banned:     false,
 							Username:   "",
@@ -1549,7 +1549,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(model.AuthenticationAttempt{
-							Time:       mock.Ctx.Clock.Now(),
+							Time:       mock.Ctx.Providers.Clock.Now(),
 							Successful: false,
 							Banned:     false,
 							Username:   "",
@@ -1636,7 +1636,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 						Return([]model.WebAuthnCredential{credential}, nil),
 					mock.StorageMock.EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(model.AuthenticationAttempt{
-							Time:       mock.Ctx.Clock.Now(),
+							Time:       mock.Ctx.Providers.Clock.Now(),
 							Successful: false,
 							Banned:     false,
 							Username:   "",
@@ -1667,7 +1667,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(model.AuthenticationAttempt{
-							Time:       mock.Ctx.Clock.Now(),
+							Time:       mock.Ctx.Providers.Clock.Now(),
 							Successful: false,
 							Banned:     false,
 							Username:   "",
@@ -1710,7 +1710,7 @@ func TestFirstFactorPasskeyPOST(t *testing.T) {
 				gomock.InOrder(
 					mock.StorageMock.EXPECT().
 						AppendAuthenticationLog(gomock.Eq(mock.Ctx), gomock.Eq(model.AuthenticationAttempt{
-							Time:       mock.Ctx.Clock.Now(),
+							Time:       mock.Ctx.Providers.Clock.Now(),
 							Successful: false,
 							Banned:     false,
 							Username:   "",

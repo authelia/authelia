@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/random"
 )
@@ -49,7 +50,8 @@ func TestTimingAttackDelayCalculations(t *testing.T) {
 	ctx := &AutheliaCtx{
 		Logger: logrus.NewEntry(logging.Logger()),
 		Providers: Providers{
-			Random: &random.Cryptographical{},
+			Random: random.New(),
+			Clock:  clock.New(),
 		},
 	}
 
