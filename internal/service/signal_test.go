@@ -129,6 +129,9 @@ func TestSignalService_Run(t *testing.T) {
 
 			time.Sleep(100 * time.Millisecond)
 
+			assert.NotNil(t, service.log)
+			assert.NotNil(t, service.Log())
+
 			service.Shutdown()
 
 			select {

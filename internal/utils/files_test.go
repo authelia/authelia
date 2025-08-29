@@ -8,7 +8,6 @@ import (
 
 func TestShouldCheckIfFileExists(t *testing.T) {
 	exists, err := FileExists("../../README.md")
-
 	assert.NoError(t, err)
 	assert.True(t, exists)
 

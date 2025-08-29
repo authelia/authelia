@@ -46,7 +46,7 @@ func OAuth2TokenPOST(ctx *middlewares.AutheliaCtx, rw http.ResponseWriter, req *
 	ctx.Logger.Debugf("Access Request with id '%s' on client with id '%s' is being processed", requester.GetID(), client.GetID())
 
 	if requester.GetGrantTypes().ExactOne(oidc.GrantTypeClientCredentials) {
-		if err = oidc.PopulateClientCredentialsFlowSessionWithAccessRequest(ctx, client, session); err != nil {
+		if err = oidc.HydrateClientCredentialsFlowSessionWithAccessRequest(ctx, client, session); err != nil {
 			ctx.Logger.Errorf("Access Response for Request with id '%s' failed to be created with error: %s", requester.GetID(), oauthelia2.ErrorToDebugRFC6749Error(err))
 
 			ctx.Providers.OpenIDConnect.WriteAccessError(ctx, rw, requester, err)
