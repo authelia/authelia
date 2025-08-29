@@ -258,7 +258,7 @@ func HandleAllow(ctx *middlewares.AutheliaCtx, userSession *session.UserSession,
 		return
 	}
 
-	userSession.SetTwoFactorDuo(ctx.Clock.Now())
+	userSession.SetTwoFactorDuo(ctx.GetClock().Now())
 
 	if err = ctx.SaveSession(*userSession); err != nil {
 		ctx.Logger.WithError(err).Errorf(logFmtErrSessionSave, "authentication time", regulation.AuthTypeTOTP, logFmtActionAuthentication, userSession.Username)

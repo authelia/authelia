@@ -133,10 +133,10 @@ func FirstFactorPasswordPOST(delayFunc middlewares.TimingAttackDelayFunc) middle
 
 		ctx.Logger.Tracef(logFmtTraceProfileDetails, details.Username, details.Groups, details.Emails)
 
-		userSession.SetOneFactorPassword(ctx.Clock.Now(), details, keepMeLoggedIn)
+		userSession.SetOneFactorPassword(ctx.GetClock().Now(), details, keepMeLoggedIn)
 
 		if ctx.Configuration.AuthenticationBackend.RefreshInterval.Update() {
-			userSession.RefreshTTL = ctx.Clock.Now().Add(ctx.Configuration.AuthenticationBackend.RefreshInterval.Value())
+			userSession.RefreshTTL = ctx.GetClock().Now().Add(ctx.Configuration.AuthenticationBackend.RefreshInterval.Value())
 		}
 
 		if err = provider.SaveSession(ctx.RequestCtx, userSession); err != nil {
@@ -264,10 +264,10 @@ func FirstFactorReauthenticatePOST(delayFunc middlewares.TimingAttackDelayFunc) 
 
 		ctx.Logger.Tracef(logFmtTraceProfileDetails, userSession.Username, userDetails.Groups, userDetails.Emails)
 
-		userSession.SetOneFactorReauthenticate(ctx.Clock.Now(), userDetails)
+		userSession.SetOneFactorReauthenticate(ctx.GetClock().Now(), userDetails)
 
 		if ctx.Configuration.AuthenticationBackend.RefreshInterval.Update() {
-			userSession.RefreshTTL = ctx.Clock.Now().Add(ctx.Configuration.AuthenticationBackend.RefreshInterval.Value())
+			userSession.RefreshTTL = ctx.GetClock().Now().Add(ctx.Configuration.AuthenticationBackend.RefreshInterval.Value())
 		}
 
 		if err = ctx.SaveSession(userSession); err != nil {

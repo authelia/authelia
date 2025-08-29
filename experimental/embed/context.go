@@ -3,12 +3,15 @@ package embed
 import (
 	"context"
 	"fmt"
+	"net"
 
 	"github.com/sirupsen/logrus"
 
 	"github.com/authelia/authelia/v4/experimental/embed/provider"
+	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/middlewares"
+	"github.com/authelia/authelia/v4/internal/random"
 )
 
 // New creates a new instance of the embedded Authelia context. This can later be used with embed.ServiceRunAll.
@@ -63,6 +66,19 @@ type Context interface {
 	GetLogger() *logrus.Entry
 	GetProviders() middlewares.Providers
 	GetConfiguration() *schema.Configuration
+	GetClock() (clock clock.Provider)
+	GetRandom() (random random.Provider)
+	RemoteIP() net.IP
+
+	context.Context
+}
+
+// ServiceContext is an interface used in various areas of Authelia to simplify access to important elements like the
+// configuration, providers, and logger.
+type ServiceContext interface {
+	GetLogger() *logrus.Entry
+	GetProviders() middlewares.Providers
+	GetConfiguration() *schema.Configuration
 	GetConfigurationPaths() (paths []string)
 
 	context.Context
@@ -92,6 +108,26 @@ func (c *ctxEmbed) GetProviders() middlewares.Providers {
 
 func (c *ctxEmbed) GetLogger() *logrus.Entry {
 	return c.Logger
+}
+
+func (c *ctxEmbed) GetClock() (provider clock.Provider) {
+	if c.Providers.Clock == nil {
+		c.Providers.Clock = clock.New()
+	}
+
+	return c.Providers.Clock
+}
+
+func (c *ctxEmbed) GetRandom() (provider random.Provider) {
+	if c.Providers.Random == nil {
+		c.Providers.Random = random.New()
+	}
+
+	return c.Providers.Random
+}
+
+func (c *ctxEmbed) RemoteIP() net.IP {
+	return nil
 }
 
 var (

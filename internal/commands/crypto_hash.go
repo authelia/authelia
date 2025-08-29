@@ -2,12 +2,14 @@ package commands
 
 import (
 	"fmt"
+	"io"
 	"net/url"
 	"strings"
 
 	"github.com/go-crypt/crypt"
 	"github.com/go-crypt/crypt/algorithm"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration"
@@ -168,7 +170,7 @@ func (ctx *CmdCtx) CryptoHashValidateRunE(cmd *cobra.Command, args []string) (er
 		valid    bool
 	)
 
-	if password, _, err = cmdCryptoHashGetPassword(cmd, args, false, false); err != nil {
+	if password, _, err = cmdFlagsCryptoHashGetPassword(cmd.OutOrStdout(), cmd.Flags(), cmd.Use, args, false, false); err != nil {
 		return fmt.Errorf("error occurred trying to obtain the password: %w", err)
 	}
 
@@ -193,46 +195,7 @@ func (ctx *CmdCtx) CryptoHashValidateRunE(cmd *cobra.Command, args []string) (er
 // CryptoHashGenerateMapFlagsRunE is the RunE which configures the flags map configuration source for the
 // authelia crypto hash generate commands.
 func (ctx *CmdCtx) CryptoHashGenerateMapFlagsRunE(cmd *cobra.Command, args []string) (err error) {
-	var flagsMap map[string]string
-
-	switch cmd.Use {
-	case cmdUseHashArgon2:
-		flagsMap = map[string]string{
-			cmdFlagNameVariant:     prefixFilePassword + suffixArgon2Variant,
-			cmdFlagNameIterations:  prefixFilePassword + suffixArgon2Iterations,
-			cmdFlagNameMemory:      prefixFilePassword + suffixArgon2Memory,
-			cmdFlagNameParallelism: prefixFilePassword + suffixArgon2Parallelism,
-			cmdFlagNameKeySize:     prefixFilePassword + suffixArgon2KeyLength,
-			cmdFlagNameSaltSize:    prefixFilePassword + suffixArgon2SaltLength,
-		}
-	case cmdUseHashSHA2Crypt:
-		flagsMap = map[string]string{
-			cmdFlagNameVariant:    prefixFilePassword + suffixSHA2CryptVariant,
-			cmdFlagNameIterations: prefixFilePassword + suffixSHA2CryptIterations,
-			cmdFlagNameSaltSize:   prefixFilePassword + suffixSHA2CryptSaltLength,
-		}
-	case cmdUseHashPBKDF2:
-		flagsMap = map[string]string{
-			cmdFlagNameVariant:    prefixFilePassword + suffixPBKDF2Variant,
-			cmdFlagNameIterations: prefixFilePassword + suffixPBKDF2Iterations,
-			cmdFlagNameKeySize:    prefixFilePassword + suffixPBKDF2KeyLength,
-			cmdFlagNameSaltSize:   prefixFilePassword + suffixPBKDF2SaltLength,
-		}
-	case cmdUseHashBcrypt:
-		flagsMap = map[string]string{
-			cmdFlagNameVariant: prefixFilePassword + suffixBcryptVariant,
-			cmdFlagNameCost:    prefixFilePassword + suffixBcryptCost,
-		}
-	case cmdUseHashScrypt:
-		flagsMap = map[string]string{
-			cmdFlagNameVariant:     prefixFilePassword + suffixScryptVariant,
-			cmdFlagNameIterations:  prefixFilePassword + suffixScryptIterations,
-			cmdFlagNameBlockSize:   prefixFilePassword + suffixScryptBlockSize,
-			cmdFlagNameParallelism: prefixFilePassword + suffixScryptParallelism,
-			cmdFlagNameKeySize:     prefixFilePassword + suffixScryptKeyLength,
-			cmdFlagNameSaltSize:    prefixFilePassword + suffixScryptSaltLength,
-		}
-	}
+	flagsMap := getCryptoHashGenerateMapFlagsFromUse(cmd.Use)
 
 	if flagsMap != nil {
 		ctx.cconfig.sources = append(ctx.cconfig.sources, configuration.NewCommandLineSourceWithMapping(cmd.Flags(), flagsMap, false, false))
@@ -243,6 +206,10 @@ func (ctx *CmdCtx) CryptoHashGenerateMapFlagsRunE(cmd *cobra.Command, args []str
 
 // CryptoHashGenerateRunE is the RunE for the authelia crypto hash generate commands.
 func (ctx *CmdCtx) CryptoHashGenerateRunE(cmd *cobra.Command, args []string) (err error) {
+	return runCryptoHashGenerate(cmd.OutOrStdout(), cmd.Flags(), cmd.Use, args, ctx.config)
+}
+
+func runCryptoHashGenerate(w io.Writer, flags *pflag.FlagSet, use string, args []string, config *schema.Configuration) (err error) {
 	var (
 		hash     algorithm.Hash
 		digest   algorithm.Digest
@@ -250,7 +217,11 @@ func (ctx *CmdCtx) CryptoHashGenerateRunE(cmd *cobra.Command, args []string) (er
 		random   bool
 	)
 
-	if password, random, err = cmdCryptoHashGetPassword(cmd, args, false, true); err != nil {
+	if config.AuthenticationBackend.File == nil {
+		return fmt.Errorf("authentication backend file is not configured")
+	}
+
+	if password, random, err = cmdFlagsCryptoHashGetPassword(w, flags, use, args, false, true); err != nil {
 		return err
 	}
 
@@ -258,14 +229,14 @@ func (ctx *CmdCtx) CryptoHashGenerateRunE(cmd *cobra.Command, args []string) (er
 		return fmt.Errorf("no password provided")
 	}
 
-	switch cmd.Use {
+	switch use {
 	case cmdUseGenerate:
 		break
 	default:
-		ctx.config.AuthenticationBackend.File.Password.Algorithm = cmd.Use
+		config.AuthenticationBackend.File.Password.Algorithm = use
 	}
 
-	if hash, err = authentication.NewFileCryptoHashFromConfig(ctx.config.AuthenticationBackend.File.Password); err != nil {
+	if hash, err = authentication.NewFileCryptoHashFromConfig(config.AuthenticationBackend.File.Password); err != nil {
 		return err
 	}
 
@@ -274,32 +245,50 @@ func (ctx *CmdCtx) CryptoHashGenerateRunE(cmd *cobra.Command, args []string) (er
 	}
 
 	if random {
-		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Random Password: %s\n", password)
+		_, _ = fmt.Fprintf(w, "Random Password: %s\n", password)
 
 		if value := url.QueryEscape(password); password != value {
-			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Random Password (URL Encoded): %s\n", value)
+			_, _ = fmt.Fprintf(w, "Random Password (URL Encoded): %s\n", value)
 		}
 	}
 
-	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Digest: %s\n", digest.Encode())
+	_, _ = fmt.Fprintf(w, "Digest: %s\n", digest.Encode())
 
 	return nil
 }
 
-func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs, useRandom bool) (password string, random bool, err error) {
+func cmdFlagsCryptoHashPasswordRandom(flags *pflag.FlagSet, flagNameRandom string, flagsSetters ...string) (random bool, err error) {
+	if random, err = flags.GetBool(flagNameRandom); err != nil {
+		return false, err
+	}
+
+	if random {
+		return true, nil
+	}
+
+	for _, setter := range flagsSetters {
+		if flags.Changed(setter) {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+func cmdFlagsCryptoHashGetPassword(w io.Writer, flags *pflag.FlagSet, use string, args []string, useArgs, useRandom bool) (password string, random bool, err error) {
 	if useRandom {
-		if random, err = cmd.Flags().GetBool(cmdFlagNameRandom); err != nil {
+		if random, err = cmdFlagsCryptoHashPasswordRandom(flags, cmdFlagNameRandom, cmdFlagNameRandomCharSet, cmdFlagNameRandomCharacters, cmdFlagNameRandomLength); err != nil {
 			return
 		}
 	}
 
 	switch {
 	case random:
-		password, err = flagsGetRandomCharacters(cmd.Flags(), cmdFlagNameRandomLength, cmdFlagNameRandomCharSet, cmdFlagNameCharacters)
+		password, err = flagsGetRandomCharacters(flags, cmdFlagNameRandomLength, cmdFlagNameRandomCharSet, cmdFlagNameRandomCharacters)
 
 		return
-	case cmd.Flags().Changed(cmdFlagNamePassword):
-		password, err = cmd.Flags().GetString(cmdFlagNamePassword)
+	case flags.Changed(cmdFlagNamePassword):
+		password, err = flags.GetString(cmdFlagNamePassword)
 
 		return
 	case useArgs && len(args) != 0:
@@ -318,13 +307,13 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs, useRan
 		return
 	}
 
-	if cmd.Use == fmt.Sprintf(cmdUseFmtValidate, cmdUseValidate) {
-		_, _ = fmt.Fprintln(cmd.OutOrStdout())
+	if use == fmt.Sprintf(cmdUseFmtValidate, cmdUseValidate) {
+		_, _ = fmt.Fprintln(w)
 
 		return
 	}
 
-	if noConfirm, err = cmd.Flags().GetBool(cmdFlagNameNoConfirm); err == nil && !noConfirm {
+	if noConfirm, err = flags.GetBool(cmdFlagNameNoConfirm); err == nil && !noConfirm {
 		var confirm string
 
 		if confirm, err = termReadPasswordWithPrompt("Confirm Password: ", ""); err != nil {
@@ -332,7 +321,7 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs, useRan
 		}
 
 		if password != confirm {
-			_, _ = fmt.Fprintln(cmd.OutOrStdout())
+			_, _ = fmt.Fprintln(w)
 
 			err = fmt.Errorf("the password did not match the confirmation password")
 
@@ -340,7 +329,7 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs, useRan
 		}
 	}
 
-	_, _ = fmt.Fprintln(cmd.OutOrStdout())
+	_, _ = fmt.Fprintln(w)
 
 	return
 }

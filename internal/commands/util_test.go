@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"crypto/x509"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,6 +12,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+type TestX509SystemCertPoolFactory struct {
+	pool *x509.CertPool
+	err  error
+}
+
+func (f *TestX509SystemCertPoolFactory) SystemCertPool() (*x509.CertPool, error) {
+	return f.pool, f.err
+}
 
 func TestLoadXEnvCLIStringSliceValue(t *testing.T) {
 	testCases := []struct {

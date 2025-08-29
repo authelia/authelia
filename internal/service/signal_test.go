@@ -64,7 +64,7 @@ func newMockServiceCtx() *mockServiceCtx {
 		ctx:       context.Background(),
 		config:    config,
 		logger:    logrus.NewEntry(logger),
-		providers: middlewares.Providers{},
+		providers: middlewares.NewProvidersBasic(),
 	}
 }
 
@@ -206,7 +206,7 @@ func TestLogReopenFiles(t *testing.T) {
 		ctx:       context.Background(),
 		config:    config,
 		logger:    logrus.NewEntry(logging.Logger()),
-		providers: middlewares.Providers{},
+		providers: middlewares.NewProvidersBasic(),
 	}
 
 	service, _ := ProvisionLoggingSignal(ctx)

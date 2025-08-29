@@ -44,7 +44,7 @@ func (m *MockDuoProvider) EXPECT() *MockDuoProviderMockRecorder {
 }
 
 // AuthCall mocks base method.
-func (m *MockDuoProvider) AuthCall(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values) (*duo.AuthResponse, error) {
+func (m *MockDuoProvider) AuthCall(ctx middlewares.Context, userSession *session.UserSession, values url.Values) (*duo.AuthResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AuthCall", ctx, userSession, values)
 	ret0, _ := ret[0].(*duo.AuthResponse)
@@ -59,7 +59,7 @@ func (mr *MockDuoProviderMockRecorder) AuthCall(ctx, userSession, values any) *g
 }
 
 // Call mocks base method.
-func (m *MockDuoProvider) Call(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values, method, path string) (*duo.Response, error) {
+func (m *MockDuoProvider) Call(ctx middlewares.Context, userSession *session.UserSession, values url.Values, method, path string) (*duo.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Call", ctx, userSession, values, method, path)
 	ret0, _ := ret[0].(*duo.Response)
@@ -74,7 +74,7 @@ func (mr *MockDuoProviderMockRecorder) Call(ctx, userSession, values, method, pa
 }
 
 // PreAuthCall mocks base method.
-func (m *MockDuoProvider) PreAuthCall(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values) (*duo.PreAuthResponse, error) {
+func (m *MockDuoProvider) PreAuthCall(ctx middlewares.Context, userSession *session.UserSession, values url.Values) (*duo.PreAuthResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PreAuthCall", ctx, userSession, values)
 	ret0, _ := ret[0].(*duo.PreAuthResponse)

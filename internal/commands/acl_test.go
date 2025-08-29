@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"net"
 	"net/url"
-	"strings"
 	"testing"
 
 	"github.com/spf13/cobra"
@@ -15,143 +14,31 @@ import (
 	"github.com/authelia/authelia/v4/internal/authorization"
 )
 
-func TestGetSubjectAndObjectFromFlags(t *testing.T) {
-	testCases := []struct {
-		name             string
-		url              string
-		method           string
-		setmethod        bool
-		username         string
-		groups           []string
-		ip               string
-		expectederr      bool
-		expectedmethod   string
-		expectedusername string
-		expectedgroups   []string
-		expectedip       string
-	}{
-		{
-			name:             "ShouldSetAllFields",
-			url:              "https://example.com/admin?x=1",
-			method:           "POST",
-			setmethod:        true,
-			username:         "alice",
-			groups:           []string{"admin", "dev"},
-			ip:               "203.0.113.5",
-			expectederr:      false,
-			expectedmethod:   "POST",
-			expectedusername: "alice",
-			expectedgroups:   []string{"admin", "dev"},
-			expectedip:       "203.0.113.5",
-		},
-		{
-			name:             "ShouldUseDefaultsWithOnlyURL",
-			url:              "https://example.com/",
-			method:           "",
-			setmethod:        false,
-			username:         "",
-			groups:           nil,
-			ip:               "",
-			expectederr:      false,
-			expectedmethod:   "GET",
-			expectedusername: "",
-			expectedgroups:   []string{},
-			expectedip:       "",
-		},
-		{
-			name:        "ShouldErrorOnInvalidURL",
-			url:         "http://!@#*(!@&#*(!@$&!(*@",
-			expectederr: true,
-		},
-		{
-			name:             "ShouldIgnoreInvalidIP",
-			url:              "http://example.com/a",
-			method:           "DELETE",
-			setmethod:        true,
-			username:         "bob",
-			groups:           []string{"users"},
-			ip:               "not-an-ip",
-			expectederr:      false,
-			expectedmethod:   "DELETE",
-			expectedusername: "bob",
-			expectedgroups:   []string{"users"},
-			expectedip:       "",
-		},
-		{
-			name:             "ShouldAllowEmptyMethod",
-			url:              "https://example.org/x",
-			method:           "",
-			setmethod:        true,
-			username:         "",
-			groups:           nil,
-			ip:               "",
-			expectederr:      false,
-			expectedmethod:   "",
-			expectedusername: "",
-			expectedgroups:   []string{},
-			expectedip:       "",
-		},
-	}
+func TestNewACLCommand(t *testing.T) {
+	var cmd *cobra.Command
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			cmd := &cobra.Command{Use: "test"}
-			flags := cmd.Flags()
-			flags.String("url", "", "")
-			flags.String("method", "GET", "")
-			flags.String("username", "", "")
-			flags.StringSlice("groups", nil, "")
-			flags.String("ip", "", "")
+	cmd = newAccessControlCommand(&CmdCtx{})
+	assert.NotNil(t, cmd)
 
-			require.NoError(t, flags.Set("url", tc.url))
-
-			if tc.setmethod {
-				require.NoError(t, flags.Set("method", tc.method))
-			}
-
-			require.NoError(t, flags.Set("username", tc.username))
-
-			if tc.groups != nil {
-				require.NoError(t, flags.Set("groups", strings.Join(tc.groups, ",")))
-			}
-
-			require.NoError(t, flags.Set("ip", tc.ip))
-
-			subject, object, err := getSubjectAndObjectFromFlags(cmd)
-
-			if tc.expectederr {
-				require.Error(t, err)
-				return
-			}
-
-			require.NoError(t, err)
-			assert.Equal(t, tc.expectedusername, subject.Username)
-			assert.Equal(t, tc.expectedgroups, subject.Groups)
-
-			if tc.expectedip == "" {
-				assert.Nil(t, subject.IP)
-			} else if assert.NotNil(t, subject.IP) {
-				assert.Equal(t, tc.expectedip, subject.IP.String())
-			}
-
-			assert.Equal(t, tc.expectedmethod, object.Method)
-		})
-	}
+	cmd = newAccessControlCheckCommand(&CmdCtx{})
+	assert.NotNil(t, cmd)
 }
 
 func TestGetSubjectAndObjectFromFlagErrors(t *testing.T) {
 	testCases := []struct {
 		name     string
 		url      bool
+		urlValue string
 		method   bool
 		username bool
 		groups   bool
 		ip       bool
+		subject  authorization.Subject
+		object   authorization.Object
 		err      string
 	}{
 		{
 			name:     "ShouldErrorOnMissingURLFlag",
-			url:      false,
 			method:   true,
 			username: true,
 			groups:   true,
@@ -159,29 +46,36 @@ func TestGetSubjectAndObjectFromFlagErrors(t *testing.T) {
 			err:      "flag accessed but not defined: url",
 		},
 		{
+			name:     "ShouldErrorOnInvalidURLFlag",
+			method:   true,
+			url:      true,
+			urlValue: "http://%@#(*$@()#*&$invalid",
+			username: true,
+			groups:   true,
+			ip:       true,
+			err:      "parse \"http://%@#(*$@()#*&$invalid\": invalid character \"#\" in host name",
+		},
+		{
 			name:     "ShouldErrorOnMissingMethodFlag",
 			url:      true,
-			method:   false,
 			username: true,
 			groups:   true,
 			ip:       true,
 			err:      "flag accessed but not defined: method",
 		},
 		{
-			name:     "ShouldErrorOnMissingUsernameFlag",
-			url:      true,
-			method:   true,
-			username: false,
-			groups:   true,
-			ip:       true,
-			err:      "flag accessed but not defined: username",
+			name:   "ShouldErrorOnMissingUsernameFlag",
+			url:    true,
+			method: true,
+			groups: true,
+			ip:     true,
+			err:    "flag accessed but not defined: username",
 		},
 		{
 			name:     "ShouldErrorOnMissingGroupsFlag",
 			url:      true,
 			method:   true,
 			username: true,
-			groups:   false,
 			ip:       true,
 			err:      "flag accessed but not defined: groups",
 		},
@@ -191,43 +85,73 @@ func TestGetSubjectAndObjectFromFlagErrors(t *testing.T) {
 			method:   true,
 			username: true,
 			groups:   true,
-			ip:       false,
 			err:      "flag accessed but not defined: ip",
+		},
+		{
+			name:     "ShouldNotErrorWithAllFlagsSet",
+			url:      true,
+			method:   true,
+			username: true,
+			groups:   true,
+			ip:       true,
+			subject:  authorization.Subject{Username: "john", Groups: []string{"example"}, IP: net.ParseIP("127.0.0.1")},
+			object:   authorization.Object{URL: &url.URL{Scheme: "https", Host: "example.com", Path: "/"}, Domain: "example.com", Method: fasthttp.MethodGet, Path: "/"},
+			err:      "",
 		},
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			cmd := &cobra.Command{Use: "test"}
 			flags := cmd.Flags()
 
 			if tc.url {
 				flags.String("url", "", "")
 
-				require.NoError(t, flags.Set("url", "https://example.com/"))
+				if tc.urlValue != "" {
+					require.NoError(t, flags.Set("url", tc.urlValue))
+				} else {
+					require.NoError(t, flags.Set("url", "https://example.com/"))
+				}
 			}
 
 			if tc.method {
 				flags.String("method", "", "")
+
+				require.NoError(t, flags.Set("method", fasthttp.MethodGet))
 			}
 
 			if tc.username {
 				flags.String("username", "", "")
+
+				require.NoError(t, flags.Set("username", "john"))
 			}
 
 			if tc.groups {
 				flags.StringSlice("groups", nil, "")
+
+				require.NoError(t, flags.Set("groups", "example"))
 			}
 
 			if tc.ip {
 				flags.String("ip", "", "")
+
+				require.NoError(t, flags.Set("ip", "127.0.0.1"))
 			}
 
 			subject, object, err := getSubjectAndObjectFromFlags(cmd)
 
-			assert.EqualError(t, err, tc.err)
-			assert.Equal(t, authorization.Subject{}, subject)
-			assert.Equal(t, authorization.Object{}, object)
+			if tc.err == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, tc.err)
+			}
+
+			assert.Equal(t, tc.subject, subject)
+			assert.Equal(t, tc.object, object)
 		})
 	}
 }
@@ -277,8 +201,7 @@ func TestAccessControlCheckWriteOutput(t *testing.T) {
 			defaultPolicy: "default",
 			verbose:       true,
 			expectContains: []string{
-				"Performing policy check for request to",
-				"The policy 'default' from the default policy will be applied to this request as no rules matched the request.",
+				"The default policy 'default' will be applied to ALL requests as no rules are configured.",
 			},
 		},
 		{
@@ -370,13 +293,58 @@ func TestAccessControlCheckWriteOutput(t *testing.T) {
 				"The policy 'default' from the default policy will be applied to this request as no rules matched the request.",
 			},
 		},
+		{
+			name: "ShouldHandleMaybeMatch",
+			results: []authorization.RuleMatchResult{
+				{
+					Rule:               &authorization.AccessControlRule{Policy: authorization.OneFactor},
+					MatchDomain:        true,
+					MatchResources:     true,
+					MatchQuery:         true,
+					MatchMethods:       true,
+					MatchNetworks:      true,
+					MatchSubjects:      false,
+					MatchSubjectsExact: false,
+					Skipped:            false,
+				},
+				{
+					Rule:               &authorization.AccessControlRule{Policy: authorization.OneFactor},
+					MatchDomain:        true,
+					MatchResources:     true,
+					MatchQuery:         true,
+					MatchMethods:       true,
+					MatchNetworks:      true,
+					MatchSubjects:      true,
+					MatchSubjectsExact: false,
+					Skipped:            true,
+				},
+				{
+					Rule:               &authorization.AccessControlRule{Policy: authorization.Bypass},
+					MatchDomain:        true,
+					MatchResources:     true,
+					MatchQuery:         true,
+					MatchMethods:       true,
+					MatchNetworks:      true,
+					MatchSubjects:      true,
+					MatchSubjectsExact: false,
+					Skipped:            false,
+				},
+			},
+			defaultPolicy: "default",
+			verbose:       false,
+			expectContains: []string{
+				"The policy 'default' from the default policy will be applied to this request as no rules matched the request.",
+			},
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			var buf bytes.Buffer
 
-			accessControlCheckWriteOutput(&buf, object, subject, tc.results, tc.defaultPolicy, tc.verbose)
+			err := runAccessControlCheck(&buf, object, subject, tc.results, tc.defaultPolicy, tc.verbose)
+			assert.NoError(t, err)
+
 			out := buf.String()
 
 			for _, s := range tc.expectContains {

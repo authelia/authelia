@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"os"
 
 	"github.com/authelia/authelia/v4/internal/commands"
@@ -8,6 +9,11 @@ import (
 
 func main() {
 	if err := commands.NewRootCmd().Execute(); err != nil {
-		os.Exit(1)
+		switch {
+		case errors.Is(err, commands.ErrConfigCreated):
+			os.Exit(0)
+		default:
+			os.Exit(1)
+		}
 	}
 }

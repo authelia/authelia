@@ -147,7 +147,7 @@ func IdentityVerificationFinish(args IdentityVerificationFinishArgs, next func(c
 			jwt.WithIssuedAt(),
 			jwt.WithIssuer("Authelia"),
 			jwt.WithStrictDecoding(),
-			ctx.GetJWTWithTimeFuncOption(),
+			ctx.GetClock().GetJWTWithTimeFuncOption(),
 		)
 
 		switch {

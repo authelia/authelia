@@ -72,7 +72,7 @@ func handleOAuth2ConsentFlowIDGET(ctx *middlewares.AutheliaCtx, raw []byte) {
 		return
 	}
 
-	if consent.ExpiresAt.Before(ctx.Clock.Now()) {
+	if consent.ExpiresAt.Before(ctx.GetClock().Now()) {
 		ctx.Logger.
 			WithFields(map[string]any{logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID, logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldExpiration: consent.ExpiresAt.Unix()}).
 			Error("Failed providing consent flow information as the consent session is expired")
@@ -297,8 +297,8 @@ func handleOAuth2ConsentFlowIDPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.C
 				config := model.OAuth2ConsentPreConfig{
 					ClientID:      consent.ClientID,
 					Subject:       consent.Subject.UUID,
-					CreatedAt:     ctx.Clock.Now(),
-					ExpiresAt:     sql.NullTime{Time: ctx.Clock.Now().Add(client.GetConsentPolicy().Duration), Valid: true},
+					CreatedAt:     ctx.GetClock().Now(),
+					ExpiresAt:     sql.NullTime{Time: ctx.GetClock().Now().Add(client.GetConsentPolicy().Duration), Valid: true},
 					Scopes:        consent.GrantedScopes,
 					Audience:      consent.GrantedAudience,
 					GrantedClaims: bodyJSON.Claims,
@@ -352,7 +352,7 @@ func handleOAuth2ConsentFlowIDPOST(ctx *middlewares.AutheliaCtx, bodyJSON oidc.C
 		}
 	}
 
-	consent.SetRespondedAt(ctx.Clock.Now(), 0)
+	consent.SetRespondedAt(ctx.GetClock().Now(), 0)
 
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, bodyJSON.Consent); err != nil {
 		ctx.Logger.
@@ -542,7 +542,7 @@ func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bo
 		return
 	}
 
-	if consent, err = model.NewOAuth2ConsentSession(ctx.Clock.Now().Add(10*time.Second), subject, r); err != nil {
+	if consent, err = model.NewOAuth2ConsentSession(ctx.GetClock().Now().Add(10*time.Second), subject, r); err != nil {
 		ctx.Logger.
 			WithError(err).
 			WithFields(map[string]any{logging.FieldUsername: userSession.Username, logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID}).
@@ -562,7 +562,7 @@ func handleOAuth2ConsentDeviceAuthorizationPOST(ctx *middlewares.AutheliaCtx, bo
 		device.Status = int(oauth2.DeviceAuthorizeStatusDenied)
 	}
 
-	consent.SetRespondedAt(ctx.Clock.Now(), 0)
+	consent.SetRespondedAt(ctx.GetClock().Now(), 0)
 
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSession(ctx, consent); err != nil {
 		ctx.Logger.
@@ -657,7 +657,7 @@ func handleOAuth2ConsentGetSessionsAndClient(ctx *middlewares.AutheliaCtx, flowI
 		ctx.SetJSONError(messageOperationFailed)
 
 		return userSession, nil, nil, true
-	case !consent.CanGrant(ctx.Clock.Now()):
+	case !consent.CanGrant(ctx.GetClock().Now()):
 		ctx.Logger.
 			WithFields(map[string]any{logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID, logging.FieldGranted: consent.Granted, logging.FieldExpiration: consent.ExpiresAt.Unix()}).
 			Error("Error occurred performing consent during the Consent FLow stage of the Authorization Flow as the consent session has already been granted or is expired")
