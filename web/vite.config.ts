@@ -105,11 +105,6 @@ export default defineConfig(({ mode }) => {
                 return false;
             },
             setupFiles: ["src/setupTests.ts"],
-            server: {
-                deps: {
-                    inline: ["@fortawesome/react-fontawesome"],
-                },
-            },
         },
         plugins: [
             checkerPlugin({
