@@ -47,7 +47,7 @@ require (
 	github.com/weppos/publicsuffix-go v0.50.0
 	github.com/wneessen/go-mail v0.6.2
 	go.uber.org/mock v0.6.0
-	go.yaml.in/yaml/v4 v4.0.0-rc.1
+	go.yaml.in/yaml/v4 v4.0.0-rc.2
 	golang.org/x/net v0.43.0
 	golang.org/x/sync v0.16.0
 	golang.org/x/term v0.34.0
