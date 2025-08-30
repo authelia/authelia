@@ -219,7 +219,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 
 	for _, credential := range user.Credentials {
 		if bytes.Equal(credential.KID.Bytes(), c.ID) {
-			credential.UpdateSignInInfo(w.Config, ctx.Clock.Now().UTC(), c.Authenticator)
+			credential.UpdateSignInInfo(w.Config, ctx.GetClock().Now().UTC(), c.Authenticator)
 
 			if !credential.Discoverable {
 				credential.Discoverable = true
@@ -308,7 +308,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 	doMarkAuthenticationAttempt(ctx, true, regulation.NewBan(regulation.BanTypeNone, details.Username, nil), regulation.AuthTypePasskey, nil)
 
 	if ctx.Configuration.AuthenticationBackend.RefreshInterval.Update() {
-		userSession.RefreshTTL = ctx.Clock.Now().Add(ctx.Configuration.AuthenticationBackend.RefreshInterval.Value())
+		userSession.RefreshTTL = ctx.GetClock().Now().Add(ctx.Configuration.AuthenticationBackend.RefreshInterval.Value())
 	}
 
 	// Check if bodyJSON.KeepMeLoggedIn can be deref'd and derive the value based on the configuration and JSON data.
@@ -333,7 +333,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 	}).Debug("Passkey Login")
 
 	userSession.SetOneFactorPasskey(
-		ctx.Clock.Now(), details,
+		ctx.GetClock().Now(), details,
 		keepMeLoggedIn,
 		response.AuthenticatorAttachment == protocol.CrossPlatform,
 		response.Response.AuthenticatorData.Flags.HasUserPresent(),
@@ -341,7 +341,7 @@ func FirstFactorPasskeyPOST(ctx *middlewares.AutheliaCtx) {
 	)
 
 	if ctx.Configuration.AuthenticationBackend.RefreshInterval.Update() {
-		userSession.RefreshTTL = ctx.Clock.Now().Add(ctx.Configuration.AuthenticationBackend.RefreshInterval.Value())
+		userSession.RefreshTTL = ctx.GetClock().Now().Add(ctx.Configuration.AuthenticationBackend.RefreshInterval.Value())
 	}
 
 	if len(bodyJSON.Flow) > 0 {

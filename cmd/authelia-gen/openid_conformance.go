@@ -88,7 +88,7 @@ func (b *OpenIDConnectConformanceSuiteBuilder) Build() OpenIDConnectConformanceS
 		return suite
 	}
 
-	r := &random.Cryptographical{}
+	r := random.New()
 
 	secret := r.StringCustom(80, random.CharSetAlphaNumeric)
 	secretAlternate := r.StringCustom(80, random.CharSetAlphaNumeric)

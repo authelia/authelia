@@ -23,6 +23,15 @@ import (
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 )
 
+func TestShouldReturnErrorWhenX509CertPoolFactoryNotProvided(t *testing.T) {
+	pool, warnings, errors := NewX509CertPoolWithFactory("", nil)
+	assert.Nil(t, pool)
+	assert.Nil(t, warnings)
+
+	require.Len(t, errors, 1)
+	assert.EqualError(t, errors[0], "failed to create x509 cert pool as no factory was provided")
+}
+
 func TestShouldReturnErrWhenX509DirectoryNotExist(t *testing.T) {
 	pool, warnings, errors := NewX509CertPool("/tmp/asdfzyxabc123/not/a/real/dir")
 	assert.NotNil(t, pool)

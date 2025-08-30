@@ -17,7 +17,11 @@ import (
 )
 
 func TestNewMainServer(t *testing.T) {
-	tx, err := templates.New(templates.Config{})
+	var err error
+
+	providers := middlewares.NewProvidersBasic()
+
+	providers.Templates, err = templates.New(templates.Config{})
 	require.NoError(t, err)
 
 	address, err := schema.NewAddress("tcp://:9091")
@@ -32,10 +36,8 @@ func TestNewMainServer(t *testing.T) {
 	ctx := &testCtx{
 		Context:       context.Background(),
 		Configuration: config,
-		Providers: middlewares.Providers{
-			Templates: tx,
-		},
-		Logger: logrus.NewEntry(logging.Logger()),
+		Providers:     providers,
+		Logger:        logrus.NewEntry(logging.Logger()),
 	}
 
 	server, err := ProvisionServer(ctx)
@@ -57,8 +59,14 @@ func TestNewMainServer(t *testing.T) {
 }
 
 func TestNewMetricsServer(t *testing.T) {
-	tx, err := templates.New(templates.Config{})
+	var err error
+
+	providers := middlewares.NewProvidersBasic()
+
+	providers.Templates, err = templates.New(templates.Config{})
 	require.NoError(t, err)
+
+	providers.Metrics = metrics.NewPrometheus()
 
 	address, err := schema.NewAddress("tcp://:9891/metrics")
 	require.NoError(t, err)
@@ -75,11 +83,8 @@ func TestNewMetricsServer(t *testing.T) {
 	ctx := &testCtx{
 		Context:       context.Background(),
 		Configuration: config,
-		Providers: middlewares.Providers{
-			Templates: tx,
-			Metrics:   metrics.NewPrometheus(),
-		},
-		Logger: logrus.NewEntry(logging.Logger()),
+		Providers:     providers,
+		Logger:        logrus.NewEntry(logging.Logger()),
 	}
 
 	server, err := ProvisionServerMetrics(ctx)

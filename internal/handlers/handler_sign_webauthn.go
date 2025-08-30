@@ -224,7 +224,7 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 
 	for _, credential := range user.Credentials {
 		if bytes.Equal(credential.KID.Bytes(), c.ID) {
-			credential.UpdateSignInInfo(w.Config, ctx.Clock.Now().UTC(), c.Authenticator)
+			credential.UpdateSignInInfo(w.Config, ctx.GetClock().Now().UTC(), c.Authenticator)
 
 			found = true
 
@@ -270,7 +270,7 @@ func WebAuthnAssertionPOST(ctx *middlewares.AutheliaCtx) {
 
 	doMarkAuthenticationAttempt(ctx, true, regulation.NewBan(regulation.BanTypeNone, userSession.Username, nil), regulation.AuthTypeWebAuthn, nil)
 
-	userSession.SetTwoFactorWebAuthn(ctx.Clock.Now(),
+	userSession.SetTwoFactorWebAuthn(ctx.GetClock().Now().UTC(),
 		response.AuthenticatorAttachment == protocol.CrossPlatform,
 		response.Response.AuthenticatorData.Flags.HasUserPresent(),
 		response.Response.AuthenticatorData.Flags.HasUserVerified())

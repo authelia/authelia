@@ -9,7 +9,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
-func (p *Providers) StartupChecks(ctx Context, log bool) (err error) {
+func (p *Providers) StartupChecks(ctx ServiceContext, log bool) (err error) {
 	e := &ErrProviderStartupCheck{errors: map[string]error{}}
 
 	var (
@@ -45,7 +45,7 @@ func (p *Providers) StartupChecks(ctx Context, log bool) (err error) {
 	return e.FilterError(filters...)
 }
 
-func doStartupCheck(ctx Context, name string, provider model.StartupCheck, required []string, disabled, log bool, errors map[string]error) {
+func doStartupCheck(ctx ServiceContext, name string, provider model.StartupCheck, required []string, disabled, log bool, errors map[string]error) {
 	if log {
 		ctx.GetLogger().WithFields(map[string]any{logging.FieldProvider: name}).Trace(LogMessageStartupCheckPerforming)
 	}

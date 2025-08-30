@@ -200,7 +200,7 @@ func TestRequireElevated(t *testing.T) {
 				SkipSecondFactor:    tc.skip2fA,
 			}
 
-			mock.Ctx.Clock = &mock.Clock
+			mock.Ctx.Providers.Clock = &mock.Clock
 			mock.Ctx.Request.Header.Set(fasthttp.HeaderXForwardedFor, "127.0.0.1")
 
 			userSession, err := mock.Ctx.GetSession()
