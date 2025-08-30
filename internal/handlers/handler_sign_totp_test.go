@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
@@ -560,6 +561,9 @@ func (s *HandlerSignTOTPSuite) TestShouldHandleGETErrorLoadConfiguration() {
 }
 
 func (s *HandlerSignTOTPSuite) TestShouldHandleGETErrorLoadConfigurationNotFound() {
+	level := s.mock.Ctx.Logger.Level
+	s.mock.SetLogLevel(logrus.DebugLevel)
+
 	gomock.InOrder(
 		s.mock.StorageMock.
 			EXPECT().
@@ -570,7 +574,8 @@ func (s *HandlerSignTOTPSuite) TestShouldHandleGETErrorLoadConfigurationNotFound
 	TimeBasedOneTimePasswordGET(s.mock.Ctx)
 	s.mock.Assert404KO(s.T(), "Could not find TOTP Configuration for user.")
 
-	s.AssertLastLogMessage("Error occurred retrieving TOTP configuration for user 'john': error occurred retrieving the configuration from the storage backend", "no TOTP configuration for user")
+	s.AssertLastLogMessage("Error occurred retrieving TOTP configuration for user 'john'", "no TOTP configuration for user")
+	s.mock.SetLogLevel(level)
 }
 
 func (s *HandlerSignTOTPSuite) TestShouldReturnErrorOnInvalidValue() {
