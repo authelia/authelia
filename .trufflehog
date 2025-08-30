@@ -1,5 +1,5 @@
 ^.git\/
-^.github\/workflows\/codeql-analysis.yml
+^.github\/workflows\/.*\.yml
 ^.idea\/
 ^.*\/node_modules/.*$
 ^docs\/assets\/js\/docsearch\.js$
