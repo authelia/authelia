@@ -40,7 +40,6 @@ func TimeBasedOneTimePasswordGET(ctx *middlewares.AutheliaCtx) {
 	var config *model.TOTPConfiguration
 
 	if config, err = ctx.Providers.StorageProvider.LoadTOTPConfiguration(ctx, userSession.Username); err != nil {
-
 		if errors.Is(err, storage.ErrNoTOTPConfiguration) {
 			ctx.Logger.WithError(err).Debugf("Error occurred retrieving TOTP configuration for user '%s'", userSession.Username)
 			ctx.SetStatusCode(fasthttp.StatusNotFound)
