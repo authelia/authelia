@@ -20,11 +20,12 @@ import (
 )
 
 // IsPushedAuthorizedRequest returns true if the requester has a PushedAuthorizationRequest redirect_uri value.
-func IsPushedAuthorizedRequest(r oauthelia2.Requester, prefix string) bool {
+func IsPushedAuthorizedRequest(r oauthelia2.Requester, prefix string) (is bool) {
 	return IsPushedAuthorizedRequestForm(r.GetRequestForm(), prefix)
 }
 
-func IsPushedAuthorizedRequestForm(form url.Values, prefix string) bool {
+// IsPushedAuthorizedRequestForm returns true if the provided form is a Pushed Authorization Request Form.
+func IsPushedAuthorizedRequestForm(form url.Values, prefix string) (is bool) {
 	return strings.HasPrefix(form.Get(FormParameterRequestURI), prefix)
 }
 
@@ -324,6 +325,7 @@ func PopulateClientCredentialsFlowRequester(ctx Context, config oauthelia2.Confi
 	return nil
 }
 
+// IsAccessToken returns true if the provided token is possibly an Authelia OAuth 2.0 Access Token.
 func IsAccessToken(ctx Context, value string) (is bool, err error) {
 	config := ctx.GetConfiguration()
 
@@ -331,8 +333,8 @@ func IsAccessToken(ctx Context, value string) (is bool, err error) {
 		return false, nil
 	}
 
-	// Opaue Authelia Access Tokens have the 'authelia_at_' prefix and contain a HMAC signature.
-	if strings.HasPrefix(value, "authelia_at_") && strings.Count(value, ".") == 1 {
+	// Opaque Authelia Access Tokens have the 'authelia_at_' prefix and contain a HMAC signature.
+	if strings.HasPrefix(value, fmt.Sprintf(fmtAutheliaOpaqueOAuth2Token, "at")) && strings.Count(value, ".") == 1 {
 		return true, nil
 	}
 
@@ -514,4 +516,73 @@ func float64As(value any) (float64, bool) {
 	default:
 		return 0, false
 	}
+}
+
+// ParseSpaceDelimitedFromParameter obtains the value of a specific key in a url.Values form returning it as an
+// oauth2.Arguments slice using spaces as a delimiter (without empty values).
+func ParseSpaceDelimitedFromParameter(form url.Values, key string) oauthelia2.Arguments {
+	var value string
+
+	if form.Has(key) {
+		value = strings.Join(form[key], " ")
+	} else {
+		return oauthelia2.Arguments{}
+	}
+
+	return oauthelia2.RemoveEmpty(strings.Split(value, " "))
+}
+
+// FormRequiresExplicitConsent evaluates form values in the url.Values format for evidence that the form requires
+// explicit consent, for example if the client requested explicit consent, or the flow would result in a Refresh Token.
+func FormRequiresExplicitConsent(form url.Values) (required bool) {
+	if ParseSpaceDelimitedFromParameter(form, FormParameterPrompt).Has(PromptConsent) {
+		return true
+	}
+
+	if FormIsAuthorizeCodeFlow(form) {
+		if ParseSpaceDelimitedFromParameter(form, FormParameterScope).HasOneOf(ScopeOffline, ScopeOfflineAccess, ScopeAutheliaBearerAuthz) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// RequesterRequiresExplicitConsent evaluates a oauth2.Requester for evidence that the request requires explicit
+// consent, for example if the client requested explicit consent, or the flow would result in a Refresh Token.
+func RequesterRequiresExplicitConsent(requester oauthelia2.Requester) (required bool) {
+	if requester == nil {
+		return false
+	}
+
+	if ParseSpaceDelimitedFromParameter(requester.GetRequestForm(), FormParameterPrompt).Has(PromptConsent) {
+		return true
+	}
+
+	if RequesterIsAuthorizeCodeFlow(requester) {
+		if requester.GetRequestedScopes().HasOneOf(ScopeOffline, ScopeOfflineAccess, ScopeAutheliaBearerAuthz) {
+			return true
+		}
+
+		if requester.GetGrantedScopes().HasOneOf(ScopeOffline, ScopeOfflineAccess, ScopeAutheliaBearerAuthz) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// FormIsAuthorizeCodeFlow evaluates form values in the url.Values format to see if the flow would result in an
+// Authorization Code.
+func FormIsAuthorizeCodeFlow(form url.Values) (is bool) {
+	return ParseSpaceDelimitedFromParameter(form, FormParameterResponseType).Has(ResponseTypeAuthorizationCodeFlow)
+}
+
+// RequesterIsAuthorizeCodeFlow evaluates an oauth2.Requester to see if the flow would result in an Authorization Code.
+func RequesterIsAuthorizeCodeFlow(requester oauthelia2.Requester) (is bool) {
+	if ar, ok := requester.(oauthelia2.AuthorizeRequester); ok && ar.GetResponseTypes().Has(ResponseTypeAuthorizationCodeFlow) {
+		return true
+	}
+
+	return false
 }
