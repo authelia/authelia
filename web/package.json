@@ -1,6 +1,6 @@
 {
   "name": "authelia",
-  "version": "4.39.6",
+  "version": "4.39.7",
   "private": true,
   "type": "module",
   "engines": {
