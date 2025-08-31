@@ -50,22 +50,20 @@ func handleOAuth2AuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.
 		case oidc.ClientConsentModeExplicit:
 			handler = handleOAuth2AuthorizationConsentModeExplicit
 		case oidc.ClientConsentModeImplicit:
-			if requester.GetRequestForm().Get(oidc.FormParameterPrompt) == oidc.PromptConsent {
+			if oidc.RequesterRequiresConsent(requester) {
 				handler = handleOAuth2AuthorizationConsentModeExplicit
 
 				break
 			}
 
-			if requester.GetRequestedScopes().Has(oidc.ScopeOfflineAccess) || requester.GetRequestedScopes().Has(oidc.ScopeOffline) {
-				if ar, ok := requester.(oauthelia2.AuthorizeRequester); ok && ar.GetResponseTypes().Has(oidc.ResponseTypeAuthorizationCodeFlow) {
-					handler = handleOAuth2AuthorizationConsentModeExplicit
-
-					break
-				}
-			}
-
 			handler = handleOAuth2AuthorizationConsentModeImplicit
 		case oidc.ClientConsentModePreConfigured:
+			if oidc.RequesterRequiresConsent(requester) {
+				handler = handleOAuth2AuthorizationConsentModeExplicit
+
+				break
+			}
+
 			handler = handleOAuth2AuthorizationConsentModePreConfigured
 		default:
 			ctx.Logger.Errorf(logFmtErrConsentCantDetermineConsentMode, requester.GetID(), client.GetID())

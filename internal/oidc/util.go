@@ -515,3 +515,50 @@ func float64As(value any) (float64, bool) {
 		return 0, false
 	}
 }
+
+func ParseSpaceDelimitedFromParameter(form url.Values, parameter string) oauthelia2.Arguments {
+	var value string
+
+	if form.Has(parameter) {
+		value = strings.Join(form[parameter], " ")
+	}
+
+	return oauthelia2.RemoveEmpty(strings.Split(value, " "))
+}
+
+func FormRequiresConsent(form url.Values) (required bool) {
+	if ParseSpaceDelimitedFromParameter(form, FormParameterPrompt).Has(PromptConsent) {
+		return true
+	}
+
+}
+
+func RequesterRequiresConsent(requester oauthelia2.Requester) (required bool) {
+	if requester == nil {
+		return false
+	}
+
+	if ParseSpaceDelimitedFromParameter(requester.GetRequestForm(), FormParameterPrompt).Has(PromptConsent) {
+		return true
+	}
+
+	if RequesterIsAuthorizeCodeFlow(requester) {
+		if requester.GetRequestedScopes().HasOneOf(ScopeOffline, ScopeOfflineAccess) {
+			return true
+		}
+
+		if requester.GetGrantedScopes().HasOneOf(ScopeOffline, ScopeOfflineAccess) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func RequesterIsAuthorizeCodeFlow(requester oauthelia2.Requester) (is bool) {
+	if ar, ok := requester.(oauthelia2.AuthorizeRequester); ok && ar.GetResponseTypes().Has(ResponseTypeAuthorizationCodeFlow) {
+		return true
+	}
+
+	return false
+}

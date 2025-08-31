@@ -465,6 +465,30 @@ func TestClient_GetConsentResponseBody(t *testing.T) {
 				ConsentPolicy: oidc.NewClientConsentPolicy(oidc.ClientConsentModePreConfigured.String(), &consentPCD),
 			},
 			&model.OAuth2ConsentSession{
+				RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				RequestedAudience: []string{"https://example.com"},
+			},
+			url.Values{
+				oidc.FormParameterState: []string{"123"},
+			},
+			time.Unix(19000000000, 0),
+			false,
+			oidc.ConsentGetResponseBody{
+				ClientID:          myclient,
+				ClientDescription: myclientname,
+				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				Audience:          []string{"https://example.com"},
+				PreConfiguration:  true,
+			},
+		},
+		{
+			"ShouldHandleNoPreConfigurationForRefreshTokens",
+			&oidc.RegisteredClient{
+				ID:            myclient,
+				Name:          myclientname,
+				ConsentPolicy: oidc.NewClientConsentPolicy(oidc.ClientConsentModePreConfigured.String(), &consentPCD),
+			},
+			&model.OAuth2ConsentSession{
 				RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
 				RequestedAudience: []string{"https://example.com"},
 			},
@@ -478,7 +502,7 @@ func TestClient_GetConsentResponseBody(t *testing.T) {
 				ClientDescription: myclientname,
 				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
 				Audience:          []string{"https://example.com"},
-				PreConfiguration:  true,
+				PreConfiguration:  false,
 			},
 		},
 		{
@@ -632,6 +656,66 @@ func TestClient_GetConsentResponseBody(t *testing.T) {
 				ClientDescription: myclientname,
 				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, oidc.ScopeProfile},
 				Audience:          []string{"https://example.com"},
+			},
+		},
+		{
+			"ShouldHandlePromptConsent",
+			&oidc.RegisteredClient{
+				ID:            myclient,
+				Name:          myclientname,
+				ConsentPolicy: oidc.NewClientConsentPolicy(oidc.ClientConsentModePreConfigured.String(), &consentPCD),
+			},
+			&model.OAuth2ConsentSession{
+				RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				RequestedAudience: []string{"https://example.com"},
+				RequestedAt:       time.Unix(19000000020, 0),
+				Form: url.Values{
+					oidc.FormParameterState:  []string{"123"},
+					oidc.FormParameterPrompt: []string{"consent"},
+				}.Encode(),
+			},
+			url.Values{
+				oidc.FormParameterState:  []string{"123"},
+				oidc.FormParameterPrompt: []string{"consent"},
+			},
+			time.Unix(19000000000, 0),
+			false,
+			oidc.ConsentGetResponseBody{
+				ClientID:          myclient,
+				ClientDescription: myclientname,
+				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				Audience:          []string{"https://example.com"},
+				PreConfiguration:  false,
+			},
+		},
+		{
+			"ShouldHandlePromptConsentMulti",
+			&oidc.RegisteredClient{
+				ID:            myclient,
+				Name:          myclientname,
+				ConsentPolicy: oidc.NewClientConsentPolicy(oidc.ClientConsentModePreConfigured.String(), &consentPCD),
+			},
+			&model.OAuth2ConsentSession{
+				RequestedScopes:   []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				RequestedAudience: []string{"https://example.com"},
+				RequestedAt:       time.Unix(19000000020, 0),
+				Form: url.Values{
+					oidc.FormParameterState:  []string{"123"},
+					oidc.FormParameterPrompt: []string{"consent select_account"},
+				}.Encode(),
+			},
+			url.Values{
+				oidc.FormParameterState:  []string{"123"},
+				oidc.FormParameterPrompt: []string{"consent select_account"},
+			},
+			time.Unix(19000000000, 0),
+			false,
+			oidc.ConsentGetResponseBody{
+				ClientID:          myclient,
+				ClientDescription: myclientname,
+				Scopes:            []string{oidc.ScopeOpenID, oidc.ScopeProfile},
+				Audience:          []string{"https://example.com"},
+				PreConfiguration:  false,
 			},
 		},
 	}
