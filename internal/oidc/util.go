@@ -521,19 +521,28 @@ func ParseSpaceDelimitedFromParameter(form url.Values, parameter string) oauthel
 
 	if form.Has(parameter) {
 		value = strings.Join(form[parameter], " ")
+	} else {
+		return oauthelia2.Arguments{}
 	}
 
 	return oauthelia2.RemoveEmpty(strings.Split(value, " "))
 }
 
-func FormRequiresConsent(form url.Values) (required bool) {
+func FormRequiresExplicitConsent(form url.Values) (required bool) {
 	if ParseSpaceDelimitedFromParameter(form, FormParameterPrompt).Has(PromptConsent) {
 		return true
 	}
 
+	if FormIsAuthorizeCodeFlow(form) {
+		if ParseSpaceDelimitedFromParameter(form, FormParameterScope).HasOneOf(ScopeOffline, ScopeOfflineAccess) {
+			return true
+		}
+	}
+
+	return false
 }
 
-func RequesterRequiresConsent(requester oauthelia2.Requester) (required bool) {
+func RequesterRequiresExplicitConsent(requester oauthelia2.Requester) (required bool) {
 	if requester == nil {
 		return false
 	}
@@ -553,6 +562,10 @@ func RequesterRequiresConsent(requester oauthelia2.Requester) (required bool) {
 	}
 
 	return false
+}
+
+func FormIsAuthorizeCodeFlow(form url.Values) (is bool) {
+	return ParseSpaceDelimitedFromParameter(form, FormParameterResponseType).Has(ResponseTypeAuthorizationCodeFlow)
 }
 
 func RequesterIsAuthorizeCodeFlow(requester oauthelia2.Requester) (is bool) {

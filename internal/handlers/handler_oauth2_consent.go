@@ -82,7 +82,7 @@ func handleOAuth2ConsentFlowIDGET(ctx *middlewares.AutheliaCtx, raw []byte) {
 		return
 	}
 
-	if form, err = handleGetFormFromFormSession(ctx, consent); err != nil {
+	if form, err = handleGetFormFromSession(ctx, consent); err != nil {
 		ctx.Logger.
 			WithError(err).
 			WithFields(map[string]any{logging.FieldClientID: consent.ClientID, logging.FieldSessionID: consent.ID, logging.FieldFlowID: consent.ChallengeID.String(), logging.FieldUsername: userSession.Username, logging.FieldExpiration: consent.ExpiresAt.Unix()}).
@@ -124,7 +124,7 @@ func handleOAuth2ConsentUseCodeGET(ctx *middlewares.AutheliaCtx, raw []byte) {
 		return
 	}
 
-	if form, err = handleGetFormFromFormSession(ctx, device); err != nil {
+	if form, err = handleGetFormFromSession(ctx, device); err != nil {
 		ctx.Logger.
 			WithError(err).
 			WithFields(map[string]any{logging.FieldClientID: device.ClientID, logging.FieldSessionID: device.ID, logging.FieldRequestID: device.RequestID, logging.FieldUsername: userSession.Username}).
@@ -755,7 +755,7 @@ func handleOAuth2ConsentDeviceAuthorizationGetSessionsAndClient(ctx *middlewares
 	return userSession, device, client, false
 }
 
-func handleGetFormFromFormSession(ctx *middlewares.AutheliaCtx, session oidc.FormSession) (form url.Values, err error) {
+func handleGetFormFromSession(ctx *middlewares.AutheliaCtx, session oidc.FormSession) (form url.Values, err error) {
 	if form, err = session.GetForm(); err != nil {
 		return nil, err
 	}

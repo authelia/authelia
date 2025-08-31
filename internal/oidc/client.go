@@ -547,10 +547,6 @@ func (c *RegisteredClient) GetConsentResponseBody(session RequesterFormSession, 
 		body.Scopes = session.GetRequestedScopes()
 		body.Audience = session.GetRequestedAudience()
 
-		if body.PreConfiguration && oauthelia2.Arguments(session.GetRequestedScopes()).HasOneOf(ScopeOffline, ScopeOfflineAccess) {
-			body.PreConfiguration = false
-		}
-
 		var (
 			claims *ClaimsRequests
 			err    error
@@ -569,7 +565,7 @@ func (c *RegisteredClient) GetConsentResponseBody(session RequesterFormSession, 
 
 			body.RequireLogin = RequestFormRequiresLogin(form, session.GetRequestedAt(), authTime)
 
-			if body.PreConfiguration && ParseSpaceDelimitedFromParameter(form, FormParameterPrompt).Has(PromptConsent) {
+			if body.PreConfiguration && FormRequiresExplicitConsent(form) {
 				body.PreConfiguration = false
 			}
 		}

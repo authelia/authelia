@@ -50,7 +50,7 @@ func handleOAuth2AuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.
 		case oidc.ClientConsentModeExplicit:
 			handler = handleOAuth2AuthorizationConsentModeExplicit
 		case oidc.ClientConsentModeImplicit:
-			if oidc.RequesterRequiresConsent(requester) {
+			if oidc.RequesterRequiresExplicitConsent(requester) {
 				handler = handleOAuth2AuthorizationConsentModeExplicit
 
 				break
@@ -58,7 +58,7 @@ func handleOAuth2AuthorizationConsent(ctx *middlewares.AutheliaCtx, issuer *url.
 
 			handler = handleOAuth2AuthorizationConsentModeImplicit
 		case oidc.ClientConsentModePreConfigured:
-			if oidc.RequesterRequiresConsent(requester) {
+			if oidc.RequesterRequiresExplicitConsent(requester) {
 				handler = handleOAuth2AuthorizationConsentModeExplicit
 
 				break

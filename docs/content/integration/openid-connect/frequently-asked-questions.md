@@ -253,6 +253,37 @@ If interested in the specification you can read the
 [Claim Stability and Uniqueness](https://openid.net/specs/openid-connect-core-1_0.html#ClaimStability) section of the
 specification.
 
+### Why does Authelia ask for Consent when I've configured it to not require it?
+
+There are varying conditions which controlled by the client when making an Authorization Request where explicit consent
+will be required. These areas are mostly governed by the specification, or in situations where the issued token or
+tokens have certain properties directly related to Authelia itself such as being used for a Forward Authz Bearer token.
+
+This effectively means that both the consent mode and remembered consent i.e. pre-configured consent are essentially
+preferences should the conditions not require explicit consent and should not be seen as concrete.
+
+In addition it's important to note that
+`implicit` consent mode is largely unsupported and in various cases either revert to `explicit`, silently not
+perform certain expected actions, or outright fail. This mode is intended for development and testing, and should
+not be used in production.
+
+The following specific and intentional limitations exist:
+
+1. The Authorization Code Flow will require explicit consent if a Refresh Token is requested by the relying party.
+   1. The specific requirement is that a Refresh Token must not be issued if consent is not requested however the
+      implication is that explicit consent is required for Refresh Tokens. In the future we will adjust this so
+      the Authorization Code Flow will not mint and grant a Refresh Token unless the relying party explicitly requests
+      consent, with an option to automatically request consent.
+2. If the client requests the user is prompted to provide consent the mode will automatically be `explicit` regardless
+   of client configuration.
+3. If the client requests the user is prompted to login again then either the mode will either automatically be
+   `explicit` or the flow may also result in a failure that returns an error to the client.
+4. If the client requests the `offline_access` or `offline` scope the mode will automatically be `explicit` regardless
+   of client configuration.
+5. If the current flow is not compatible with implicit consent for any reason; for example:
+  1. Device Authorization Flow
+
+
 ## Solutions
 
 The following section details solutions for multiple of the questions above.
