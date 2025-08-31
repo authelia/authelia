@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.6](https://github.com/authelia/authelia/releases/tag/v4.39.6)
+  - [v4.39.7](https://github.com/authelia/authelia/releases/tag/v4.39.7)
 - [BookStack]
   - [v25.07](https://github.com/BookStackApp/BookStack/releases/tag/v25.07)
 

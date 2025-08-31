@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.6](https://github.com/authelia/authelia/releases/tag/v4.39.6)
+  - [v4.39.7](https://github.com/authelia/authelia/releases/tag/v4.39.7)
 - [Karakeep] (previously named Hoarder)
   - [v0.26.0](https://github.com/karakeep-app/karakeep/releases/tag/v0.26.0)
 
