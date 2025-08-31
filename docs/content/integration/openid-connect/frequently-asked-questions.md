@@ -253,6 +253,55 @@ If interested in the specification you can read the
 [Claim Stability and Uniqueness](https://openid.net/specs/openid-connect-core-1_0.html#ClaimStability) section of the
 specification.
 
+### Why does Authelia ask for Consent when I've asked for my consent to be remembered or used the implicit consent policy?
+
+There are varying conditions which are controlled by the client when making an Authorization Request where explicit
+consent may be required. These areas are mostly governed by the specification, or in situations where the issued token
+or tokens have certain properties directly related to Authelia itself such as being used for a Forward Authz Bearer
+token.
+
+This effectively means that both the consent mode and remembered consent i.e. pre-configured consent are essentially
+preferences should the conditions not require explicit consent and should not be seen as concrete.
+
+In addition it's important to note that the consent mode is merely a suggested default behaviour, especially the
+`implicit` consent mode which is not specifically supported by the specification and in many cases will either revert to
+`explicit`, silently not perform certain expected actions, or should be expected to return an error the client. This
+mode is intended for development and testing, and is heavily discouraged in production.
+
+In addition the consent policy implementation is likely a target for a breaking refactoring before we stabilize the
+OpenID Connect 1.0 Provider implementation due to additional understanding of how the specifications require us to
+handle Consent Flows.
+
+The following specific and intentional limitations exist:
+
+1. The Authorization Code Flow will require explicit consent if a Refresh Token will be granted to the relying party
+   (i.e. if the client is authorized to request and requests the `offline_access` or `offline` scopes).
+   1. The specific requirement is that a Refresh Token must not be issued if consent is not requested however the
+      implication is that explicit consent is required for Refresh Tokens. In the future we will adjust this so
+      the Authorization Code Flow will not mint and grant a Refresh Token unless the relying party explicitly requests
+      consent, with an option to automatically require explicit consent instead of silently ignoring the request for
+      a Refresh Token.
+2. If the client requests the user is prompted to provide consent the mode will automatically be `explicit` regardless
+   of client registration configuration.
+3. If the client requests the user is prompted to login again then either the mode will either automatically be
+   `explicit` or the flow may also result in a failure that returns an error to the client regardless of the client
+   registration configuration.
+4. If the authorization request results in security sensitive tokens such as:
+   1. Tokens that can be used as Bearer Tokens which impersonate users for the Authelia Authz endpoints.
+   2. Tokens that can be used as Bearer Tokens for the Authelia API, especially for endpoints that allow alteration of
+      any security related characteristic of users or Authelia settings.
+   3. Any future characteristic deemed appropriate in the future (which will be explicitly documented in this FAQ) such
+      as but not limited to:
+      1. Minting of Tokens with long lifespans.
+      2. Minting of Tokens which have special use cases such as Dynamic Client Registration, Session Management, etc.
+      3. In any situation where it's required or recommended by the existing or future specifications including formal
+         specifications, security profiles like the Financial-grade API, and best current practices, etc.
+      4. Minting of Tokens in any context which may be seen as especially security sensitive by the maintainers either
+         through community consultation, identified during security audits or reviews, or identified during normal
+         development cycles.
+5. If the current flow is otherwise not compatible with implicit consent for any reason; for example:
+   1. The Device Authorization Flow which requires interactive consent due to the code functionality.
+
 ## Solutions
 
 The following section details solutions for multiple of the questions above.
