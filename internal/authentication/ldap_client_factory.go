@@ -168,7 +168,7 @@ func (f *PooledLDAPClientFactory) Initialize() (err error) {
 // GetClient opens new client using the pool.
 func (f *PooledLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (conn ldap.Client, err error) {
 	if len(opts) != 0 {
-		f.log.Trace("Creating new unpooled client")
+		f.log.Debug("Creating new unpooled client")
 
 		return getLDAPClient(f.config.Address.String(), f.config.User, f.config.Password, f.config.Timeout, f.dialer, f.tls, f.config.StartTLS, f.opts, opts...)
 	}
@@ -180,7 +180,7 @@ func (f *PooledLDAPClientFactory) GetClient(opts ...LDAPClientFactoryOption) (co
 func (f *PooledLDAPClientFactory) new() (pooled *LDAPClientPooled, err error) {
 	var client ldap.Client
 
-	f.log.Trace("Creating new pooled client")
+	f.log.Debug("Creating new pooled client")
 
 	if client, err = getLDAPClient(f.config.Address.String(), f.config.User, f.config.Password, f.config.Timeout, f.dialer, f.tls, f.config.StartTLS, f.opts); err != nil {
 		return nil, fmt.Errorf("error occurred establishing new client for the pool: %w", err)
@@ -190,7 +190,7 @@ func (f *PooledLDAPClientFactory) new() (pooled *LDAPClientPooled, err error) {
 
 	f.next++
 
-	pooled.log.Trace("New pooled client created")
+	pooled.log.Debug("New pooled client created")
 
 	return pooled, nil
 }
@@ -202,7 +202,7 @@ func (f *PooledLDAPClientFactory) ReleaseClient(client ldap.Client) (err error) 
 	defer f.mu.Unlock()
 
 	if f.closing {
-		f.log.Trace("Pool is closing, closing the released client")
+		f.log.Debug("Pool is closing, closing the released client")
 
 		return client.Close()
 	}
@@ -212,21 +212,21 @@ func (f *PooledLDAPClientFactory) ReleaseClient(client ldap.Client) (err error) 
 		ok   bool
 	)
 	if pool, ok = client.(*LDAPClientPooled); !ok {
-		f.log.Trace("Unpooled client is being closed")
+		f.log.Debug("Unpooled client is being closed")
 
 		// Prevent extra or non-pool connections from being returned into the pool.
 		return client.Close()
 	}
 
-	pool.log.Trace("Releasing pooled client")
+	pool.log.Debug("Releasing pooled client")
 
 	select {
 	case f.pool <- pool:
-		pool.log.Trace("Returning pooled client to the pool")
+		pool.log.Debug("Returning pooled client to the pool")
 
 		return nil
 	default:
-		pool.log.Trace("Closing extra pooled client")
+		pool.log.Debug("Closing extra pooled client")
 
 		return client.Close()
 	}
@@ -256,17 +256,17 @@ func (f *PooledLDAPClientFactory) acquire(ctx context.Context) (client *LDAPClie
 			return nil, fmt.Errorf("error acquiring client: %w", err)
 		case client = <-f.pool:
 			if client.IsClosing() || client.Client == nil {
-				client.log.Trace("Client is closing or invalid")
+				client.log.Debug("Client is closing or invalid")
 
 				if client, err = f.new(); err != nil {
-					f.log.WithError(err).Trace("Error acquiring new client")
+					f.log.WithError(err).Debug("Error acquiring new client")
 
 					time.Sleep(f.sleep)
 
 					continue
 				}
 
-				client.log.Trace("New client acquired")
+				client.log.Debug("New client acquired")
 			}
 
 			return client, nil
