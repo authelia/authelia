@@ -159,6 +159,7 @@ nfpms:
     contents:
       - src: config.template.yml
         dst: /etc/authelia/configuration.yml
+        type: config|noreplace
         file_info:
           mode: 0440  # yamllint disable-line rule:octal-values
       - src: authelia.service
