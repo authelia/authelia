@@ -22,7 +22,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.7](https://github.com/authelia/authelia/releases/tag/v4.39.7)
+  - [v4.39.8](https://github.com/authelia/authelia/releases/tag/v4.39.8)
 - [Bitwarden]
   - [v2025.7.3](https://github.com/bitwarden/server/releases/tag/v2025.7.3)
 
