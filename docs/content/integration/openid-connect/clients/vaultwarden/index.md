@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.7](https://github.com/authelia/authelia/releases/tag/v4.39.7)
+  - [v4.39.8](https://github.com/authelia/authelia/releases/tag/v4.39.8)
 - [Vaultwarden]
   - [oidcwarden development fork v2025.5.1-5](https://github.com/Timshel/OIDCWarden/releases/tag/v2025.5.1-5)
 
