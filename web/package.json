@@ -1,6 +1,6 @@
 {
   "name": "authelia",
-  "version": "4.39.7",
+  "version": "4.39.8",
   "private": true,
   "type": "module",
   "engines": {
@@ -23,7 +23,7 @@
       "import-meta-resolve": "4.2.0",
       "path-to-regexp": "8.2.0",
       "semver": "7.7.2",
-      "vite": "7.1.3"
+      "vite": "7.1.4"
     },
     "peerDependencyRules": {
       "allowedVersions": {
@@ -45,7 +45,7 @@
     "@fortawesome/fontawesome-svg-core": "7.0.0",
     "@fortawesome/free-regular-svg-icons": "7.0.0",
     "@fortawesome/free-solid-svg-icons": "7.0.0",
-    "@fortawesome/react-fontawesome": "3.0.1",
+    "@fortawesome/react-fontawesome": "3.0.2",
     "@mui/icons-material": "7.3.1",
     "@mui/material": "7.3.1",
     "@simplewebauthn/browser": "13.1.2",
@@ -121,7 +121,7 @@
     "lefthook": "1.12.3",
     "prettier": "3.6.2",
     "typescript": "5.9.2",
-    "vite": "7.1.3",
+    "vite": "7.1.4",
     "vite-plugin-checker": "0.10.2",
     "vite-plugin-istanbul": "7.1.0",
     "vite-plugin-svgr": "4.5.0",
