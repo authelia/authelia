@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useTranslation } from "react-i18next";
 
 import { ScopeDescription } from "@components/OpenIDConnect";
 import { FlowID, UserCode } from "@constants/SearchParams";
@@ -88,12 +89,17 @@ export function postConsentResponseReject(clientID: string, flowID?: string, sub
     return Post<ConsentPostResponseBody>(OpenIDConnectConsentPath, body);
 }
 
-export function formatScope(scope: string, fallback: string): string {
-    if (!scope.startsWith("scopes.") && scope !== "") {
-        return scope;
-    } else {
-        return ScopeDescription(fallback);
+export function formatScope(scope: string): string {
+    const { t: translate } = useTranslation(["consent"]);
+
+    const translationKey = `scopes.${scope}`;
+    const translatedValue = translate(translationKey);
+
+    if (translatedValue && translatedValue !== translationKey) {
+        return translatedValue;
     }
+
+    return scope.replace(/[_:.-]/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 }
 
 export function formatClaim(claim: string, fallback: string): string {
