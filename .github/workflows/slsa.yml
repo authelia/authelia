@@ -53,14 +53,10 @@ jobs:
           echo "Artifact metadata retrieved"
 
           hashes=$(curl -s -H "Authorization: Bearer ${BUILDKITE_TOKEN}" \
-            "${build_url}/artifacts" | jq -r --arg tag "${GITHUB_REF_NAME}" '
+            "${build_url}/artifacts" | jq -r '
               .[]
               | select(.filename | test("\\.(deb|tar\\.gz)$"))
-              | if .filename | test("\\.deb$") then
-                  "\(.sha256sum) \(.filename | sub("authelia_"; "authelia_" + $tag + "_"))"
-                else
-                  "\(.sha256sum) \(.filename | sub("authelia-"; "authelia-" + $tag + "-"))"
-                end
+              | "\(.sha256sum) \(.filename)"
             ' | base64 -w0)
 
           echo "hashes=${hashes}" >> "${GITHUB_OUTPUT}"
