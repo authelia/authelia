@@ -53,10 +53,9 @@ steps:
     agents:
       build: "unit-test"
     artifact_paths:
-      - "authelia-*.tar.gz"
-      - "authelia-*.tar.gz.sha256"
+      - "*.tar.gz"
       - "*.deb"
-      - "*.deb.sha256"
+      - "*.sha256"
       - "*.sig"
     key: "unit-test"
     env:
@@ -123,7 +122,7 @@ cat << EOF
       - "authelia-image-coverage.tar.zst"
     depends_on: ~
     key: "build-docker-linux-coverage"
-    if: build.env("CI_BYPASS") != "true" && build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.message !~ /\[(skip test|test skip)\]/
+    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true" && build.message !~ /\[(skip test|test skip)\]/
 
   - wait:
     if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true" && build.message !~ /\[(skip test|test skip)\]/

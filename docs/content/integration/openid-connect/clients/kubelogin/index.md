@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.6](https://github.com/authelia/authelia/releases/tag/v4.39.6)
+  - [v4.39.8](https://github.com/authelia/authelia/releases/tag/v4.39.8)
 - [Kube Login]
   - [v1.33.0](https://github.com/int128/kubelogin/releases/tag/v1.33.0)
 
