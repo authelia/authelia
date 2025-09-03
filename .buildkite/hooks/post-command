@@ -40,7 +40,7 @@ if [[ ${BUILDKITE_LABEL} =~ ":selenium:" ]] || [[ ${BUILDKITE_LABEL} =~ ":docker
 fi
 
 if [[ ${BUILDKITE_LABEL} == ":hammer_and_wrench: Unit Test" ]]; then
-  buildkite-agent annotate --style "success" --context "ctx-success" < .buildkite/annotations/artifacts
+  buildkite-agent annotate --style "success" --context "ctx-success" < <(bash .buildkite/annotations/artifacts)
 fi
 
 if [[ ${BUILDKITE_LABEL} =~ ":docker: Deploy" ]]; then

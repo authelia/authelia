@@ -83,6 +83,7 @@ func buildAutheliaBinaryCI(xflags []string) {
 		"run", "--rm",
 		"--name", "authelia-crossbuild",
 		"--user", "1000:1000",
+		"-e", "BUILDKITE_TAG=" + os.Getenv("BUILDKITE_TAG"),
 		"-e", "GOPATH=/tmp/go",
 		"-e", "GOCACHE=/tmp/go-build",
 		"-e", "GPG_PASSWORD=" + os.Getenv("GPG_PASSWORD"),
