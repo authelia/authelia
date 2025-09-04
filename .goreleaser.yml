@@ -181,7 +181,6 @@ nfpms:
       signature:
         key_file: '{{ .Env.GPG_KEY_PATH }}'
 
-
 signs:
   - id: gpg
     signature: '${artifact}.sig'
