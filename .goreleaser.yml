@@ -11,7 +11,7 @@ before:
         bash -c 'cat > postinstall.sh <<EOF
         #!/bin/sh
 
-        # Trigger a reload of sysusers.d and tmpfiles.d to ensure the users and permissions are correct.
+        sed -i -e "s/u!/u /" /usr/lib/sysusers.d/authelia.conf
         systemd-sysusers
         systemd-tmpfiles --create
 
@@ -156,6 +156,9 @@ nfpms:
     license: Apache-2.0
     provides:
       - authelia
+    release: 1
+    section: default
+    priority: extra
     contents:
       - src: config.template.yml
         dst: /etc/authelia/configuration.yml
@@ -174,6 +177,10 @@ nfpms:
         dst: /usr/lib/tmpfiles.d/authelia-config.conf
     scripts:
       postinstall: postinstall.sh
+    deb:
+      signature:
+        key_file: '{{ .Env.GPG_KEY_PATH }}'
+
 
 signs:
   - id: gpg
