@@ -86,7 +86,7 @@ func handleOAuth2AuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Au
 		return nil, true
 	}
 
-	if !consent.CanGrant(ctx.Clock.Now()) {
+	if !consent.CanGrant(ctx.GetClock().Now()) {
 		ctx.Logger.Errorf(logFmtErrConsentCantGrantPreConf, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID)
 
 		ctx.Providers.OpenIDConnect.WriteDynamicAuthorizeError(ctx, rw, requester, oidc.ErrConsentCouldNotPerform)
@@ -105,7 +105,7 @@ func handleOAuth2AuthorizationConsentModePreConfiguredWithID(ctx *middlewares.Au
 	if config != nil {
 		oidc.ConsentGrant(consent, true, config.GrantedClaims)
 
-		consent.SetRespondedAt(ctx.Clock.Now(), config.ID)
+		consent.SetRespondedAt(ctx.GetClock().Now(), config.ID)
 
 		if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, false); err != nil {
 			ctx.Logger.Errorf(logFmtErrConsentSaveSessionResponse, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, err)
@@ -204,7 +204,7 @@ func handleOAuth2AuthorizationConsentModePreConfiguredWithoutID(ctx *middlewares
 
 	oidc.ConsentGrant(consent, true, config.GrantedClaims)
 
-	consent.SetRespondedAt(ctx.Clock.Now(), config.ID)
+	consent.SetRespondedAt(ctx.GetClock().Now(), config.ID)
 
 	if err = ctx.Providers.StorageProvider.SaveOAuth2ConsentSessionResponse(ctx, consent, false); err != nil {
 		ctx.Logger.Errorf(logFmtErrConsentSaveSessionResponse, requester.GetID(), client.GetID(), client.GetConsentPolicy(), consent.ChallengeID, err)
@@ -224,7 +224,7 @@ func handleOAuth2AuthorizationConsentModePreConfiguredGetPreConfig(ctx *middlewa
 
 	ctx.Logger.Debugf(logFmtDbgConsentPreConfTryingLookup, requester.GetID(), client.GetID(), client.GetConsentPolicy(), client.GetID(), subject, strings.Join(requester.GetRequestedScopes(), " "))
 
-	if rows, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentPreConfigurations(ctx, client.GetID(), subject, ctx.Clock.Now()); err != nil {
+	if rows, err = ctx.Providers.StorageProvider.LoadOAuth2ConsentPreConfigurations(ctx, client.GetID(), subject, ctx.GetClock().Now()); err != nil {
 		return nil, fmt.Errorf("error loading rows: %w", err)
 	}
 
@@ -257,7 +257,7 @@ func handleOAuth2AuthorizationConsentModePreConfiguredGetPreConfig(ctx *middlewa
 			return nil, fmt.Errorf("error iterating rows: %w", err)
 		}
 
-		if !config.CanConsentAt(ctx.Clock.Now()) {
+		if !config.CanConsentAt(ctx.GetClock().Now()) {
 			log.Debugf("Authorization Request with id '%s' on client with id '%s' using consent mode '%s' found a matching pre-configuration with id '%d' but it is revoked, expired, or otherwise can no longer provide consent", requester.GetID(), client.GetID(), client.GetConsentPolicy(), config.ID)
 
 			continue

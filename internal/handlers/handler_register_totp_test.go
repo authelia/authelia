@@ -732,7 +732,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 				gomock.InOrder(
 					mock.TOTPMock.
 						EXPECT().
-						Validate(mock.Ctx, "012345", &model.TOTPConfiguration{CreatedAt: mock.Ctx.Clock.Now(), Username: testUsername, Issuer: "abc", Algorithm: "SHA1", Period: 30, Digits: 6, Secret: []byte(testBASE32TOTPSecret)}).
+						Validate(mock.Ctx, "012345", &model.TOTPConfiguration{CreatedAt: mock.Ctx.Providers.Clock.Now(), Username: testUsername, Issuer: "abc", Algorithm: "SHA1", Period: 30, Digits: 6, Secret: []byte(testBASE32TOTPSecret)}).
 						Return(true, getStepTOTP(mock.Ctx, -1), nil),
 					mock.StorageMock.
 						EXPECT().
@@ -779,7 +779,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 				gomock.InOrder(
 					mock.TOTPMock.
 						EXPECT().
-						Validate(mock.Ctx, "012345", &model.TOTPConfiguration{CreatedAt: mock.Ctx.Clock.Now(), Username: testUsername, Issuer: "abc", Algorithm: "SHA1", Period: 30, Digits: 6, Secret: []byte(testBASE32TOTPSecret)}).
+						Validate(mock.Ctx, "012345", &model.TOTPConfiguration{CreatedAt: mock.Ctx.Providers.Clock.Now(), Username: testUsername, Issuer: "abc", Algorithm: "SHA1", Period: 30, Digits: 6, Secret: []byte(testBASE32TOTPSecret)}).
 						Return(true, getStepTOTP(mock.Ctx, -1), nil),
 					mock.StorageMock.
 						EXPECT().
@@ -855,7 +855,7 @@ func TestTOTPRegisterPOST(t *testing.T) {
 			mock.Ctx.Configuration.TOTP = tc.config
 			mock.Ctx.Request.SetBodyString(tc.have)
 			mock.Clock.Set(time.Unix(1701295903, 0))
-			mock.Ctx.Clock = &mock.Clock
+			mock.Ctx.Providers.Clock = &mock.Clock
 
 			if tc.setup != nil {
 				tc.setup(t, mock)

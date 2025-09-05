@@ -18,9 +18,9 @@ type BaseProvider interface {
 
 // The Provider interface is used to describe this provider for the purpose of mock testing.
 type Provider interface {
-	Call(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values, method string, path string) (response *Response, err error)
-	PreAuthCall(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values) (response *PreAuthResponse, err error)
-	AuthCall(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values) (response *AuthResponse, err error)
+	Call(ctx middlewares.Context, userSession *session.UserSession, values url.Values, method string, path string) (response *Response, err error)
+	PreAuthCall(ctx middlewares.Context, userSession *session.UserSession, values url.Values) (response *PreAuthResponse, err error)
+	AuthCall(ctx middlewares.Context, userSession *session.UserSession, values url.Values) (response *AuthResponse, err error)
 }
 
 // Production implementation of the Provider interface.
@@ -58,8 +58,11 @@ type AuthResponse struct {
 
 // PreAuthResponse is a response for a preauthorization request.
 type PreAuthResponse struct {
-	Result          string   `json:"result"`
-	StatusMessage   string   `json:"status_msg"`
-	Devices         []Device `json:"devices"`
-	EnrollPortalURL string   `json:"enroll_portal_url"`
+	Result           string   `json:"result"`
+	StatusMessage    string   `json:"status_msg"`
+	Devices          []Device `json:"devices"`
+	EnrollPortalURL  string   `json:"enroll_portal_url"`
+	Expiration       int64    `json:"expiration"`
+	TransactionID    string   `json:"txid"`
+	VerificationCode string   `json:"verification_code"`
 }

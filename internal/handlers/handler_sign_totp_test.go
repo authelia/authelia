@@ -38,7 +38,7 @@ func (s *HandlerSignTOTPSuite) SetupTest() {
 	s.Assert().NoError(s.mock.Ctx.SaveSession(userSession))
 
 	s.mock.Clock.Set(time.Unix(1701295903, 0))
-	s.mock.Ctx.Clock = &s.mock.Clock
+	s.mock.Ctx.Providers.Clock = &s.mock.Clock
 	s.mock.Ctx.Configuration.TOTP = schema.DefaultTOTPConfiguration
 }
 
@@ -842,7 +842,7 @@ func TestSignTOTPHandleGetSessionError(t *testing.T) {
 			mock := mocks.NewMockAutheliaCtx(t)
 
 			mock.Clock.Set(time.Unix(1701295903, 0))
-			mock.Ctx.Clock = &mock.Clock
+			mock.Ctx.Providers.Clock = &mock.Clock
 			mock.Ctx.Configuration.TOTP = schema.DefaultTOTPConfiguration
 			mock.Ctx.Request.Header.Set("X-Original-URL", "https://auth.notexample.com")
 

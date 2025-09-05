@@ -72,7 +72,7 @@ func MustGetLogLastSeq(t *testing.T, hook *test.Hook, seq int) *logrus.Entry {
 
 //nolint:unparam
 func getStepTOTP(ctx *middlewares.AutheliaCtx, period int) uint64 {
-	step := ctx.Clock.Now().Unix()
+	step := ctx.GetClock().Now().Unix()
 
 	if period < 0 {
 		period = ctx.Configuration.TOTP.DefaultPeriod

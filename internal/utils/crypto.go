@@ -340,10 +340,20 @@ func NewTLSConfig(config *schema.TLS, rootCAs *x509.CertPool) (tlsConfig *tls.Co
 	}
 }
 
-// NewX509CertPool generates a x509.CertPool from the system PKI and the directory specified.
+// NewX509CertPool generates a x509.CertPool from the system PKI and the directory specified using the standard factory.
 func NewX509CertPool(directory string) (certPool *x509.CertPool, warnings []error, errors []error) {
+	return NewX509CertPoolWithFactory(directory, &StandardX509SystemCertPoolFactory{})
+}
+
+// NewX509CertPoolWithFactory generates a x509.CertPool from the system PKI and the directory specified using a specific
+// factory.
+func NewX509CertPoolWithFactory(directory string, factory X509SystemCertPoolFactory) (certPool *x509.CertPool, warnings []error, errors []error) {
+	if factory == nil {
+		return nil, nil, []error{fmt.Errorf("failed to create x509 cert pool as no factory was provided")}
+	}
+
 	var err error
-	if certPool, err = x509.SystemCertPool(); err != nil {
+	if certPool, err = factory.SystemCertPool(); err != nil {
 		warnings = append(warnings, fmt.Errorf("could not load system certificate pool which may result in untrusted certificate issues: %v", err))
 		certPool = x509.NewCertPool()
 	}
@@ -375,7 +385,7 @@ func NewX509CertPool(directory string) (certPool *x509.CertPool, warnings []erro
 			var data []byte
 
 			if data, err = os.ReadFile(certPath); err != nil {
-				errors = append(errors, fmt.Errorf("could not read certificate %v", err))
+				errors = append(errors, fmt.Errorf("error occurred trying to read certificate: %w", err))
 			} else if ok := certPool.AppendCertsFromPEM(data); !ok {
 				errors = append(errors, fmt.Errorf("could not import certificate %s", entry.Name()))
 			}
