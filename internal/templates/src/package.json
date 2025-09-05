@@ -33,9 +33,9 @@
 	},
 	"pnpm": {
 		"overrides": {
-			"@babel/traverse": "7.28.3",
-			"@babel/helpers": "7.28.3",
-			"@babel/runtime": "7.28.3",
+			"@babel/traverse": "7.28.4",
+			"@babel/helpers": "7.28.4",
+			"@babel/runtime": "7.28.4",
 			"brace-expansion": "4.0.1",
 			"esbuild": "0.25.9",
 			"nanoid": "5.1.5",
