@@ -35,7 +35,9 @@ helm repo update
 
 ## Authenticity Signature
 
-The chart is signed using the [Authelia PGP Keys](https://keybase.io/authelia/pgp_keys.asc).
+The chart is signed as described by the
+[Artifact Signing and Provenance Overview](../../overview/security/artifact-signing-and-provenance.md) where the
+verification keys can also be found.
 
 ## Website
 
