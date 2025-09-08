@@ -2,6 +2,8 @@ package clock
 
 import (
 	"time"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 // NewFixed returns a new clock with an initial time.
@@ -17,6 +19,11 @@ type Fixed struct {
 // Now return the stored clock.
 func (c *Fixed) Now() time.Time {
 	return c.now
+}
+
+// GetJWTWithTimeFuncOption returns the WithTimeFunc jwt.ParserOption.
+func (c *Fixed) GetJWTWithTimeFuncOption() (option jwt.ParserOption) {
+	return jwt.WithTimeFunc(c.Now)
 }
 
 // After return a channel receiving the time after duration has elapsed.

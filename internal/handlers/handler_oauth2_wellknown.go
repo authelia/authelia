@@ -50,8 +50,8 @@ func WellKnownOAuthAuthorizationServerGET(ctx *middlewares.AutheliaCtx) {
 
 		claims[oidc.ClaimJWTID] = uuid.New().String()
 		claims[oidc.ClaimIssuer] = issuer.String()
-		claims[oidc.ClaimIssuedAt] = ctx.Clock.Now().UTC().Unix()
-		claims[oidc.ClaimExpirationTime] = ctx.Clock.Now().Add(time.Hour).UTC().Unix()
+		claims[oidc.ClaimIssuedAt] = ctx.GetClock().Now().UTC().Unix()
+		claims[oidc.ClaimExpirationTime] = ctx.GetClock().Now().Add(time.Hour).UTC().Unix()
 
 		strategy := ctx.Providers.OpenIDConnect.GetJWTStrategy(ctx)
 

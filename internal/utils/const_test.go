@@ -8,4 +8,4 @@ const (
 	testStringInput = "abcdefghijkl"
 )
 
-var r = &random.Cryptographical{}
+var r = random.New()

@@ -96,47 +96,6 @@ func RunCommandUntilCtrlC(cmd *exec.Cmd) {
 	cond.Wait()
 }
 
-// RunFuncUntilCtrlC run a function until ctrl-c is hit.
-func RunFuncUntilCtrlC(fn func() error) error {
-	mutex := sync.Mutex{}
-	cond := sync.NewCond(&mutex)
-	errorChannel := make(chan error)
-	signalChannel := make(chan os.Signal, 1)
-	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
-
-	mutex.Lock()
-
-	go func() {
-		mutex.Lock()
-
-		f := bufio.NewWriter(os.Stdout)
-		defer f.Flush()
-
-		fmt.Println("Hit Ctrl+C to shutdown...") //nolint:forbidigo
-
-		err := fn()
-		if err != nil {
-			errorChannel <- err
-
-			fmt.Println(err) //nolint:forbidigo
-			cond.Broadcast()
-			mutex.Unlock()
-
-			return
-		}
-
-		errorChannel <- nil
-
-		<-signalChannel
-		cond.Broadcast()
-		mutex.Unlock()
-	}()
-
-	cond.Wait()
-
-	return <-errorChannel
-}
-
 // RunCommandWithTimeout run a command with timeout.
 func RunCommandWithTimeout(cmd *exec.Cmd, timeout time.Duration) error {
 	// Start a process.

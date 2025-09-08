@@ -100,7 +100,7 @@ func flagsGetRandomCharacters(flags *pflag.FlagSet, flagNameLength, flagNameChar
 		}
 	}
 
-	rand := &random.Cryptographical{}
+	rand := random.New()
 
 	return rand.StringCustom(n, charset), nil
 }
@@ -377,4 +377,46 @@ func exportYAMLWithJSONSchema(w io.Writer, name string, v any) (err error) {
 	}
 
 	return nil
+}
+
+func getCryptoHashGenerateMapFlagsFromUse(use string) (flags map[string]string) {
+	switch use {
+	case cmdUseHashArgon2:
+		return map[string]string{
+			cmdFlagNameVariant:     prefixFilePassword + suffixArgon2Variant,
+			cmdFlagNameIterations:  prefixFilePassword + suffixArgon2Iterations,
+			cmdFlagNameMemory:      prefixFilePassword + suffixArgon2Memory,
+			cmdFlagNameParallelism: prefixFilePassword + suffixArgon2Parallelism,
+			cmdFlagNameKeySize:     prefixFilePassword + suffixArgon2KeyLength,
+			cmdFlagNameSaltSize:    prefixFilePassword + suffixArgon2SaltLength,
+		}
+	case cmdUseHashSHA2Crypt:
+		return map[string]string{
+			cmdFlagNameVariant:    prefixFilePassword + suffixSHA2CryptVariant,
+			cmdFlagNameIterations: prefixFilePassword + suffixSHA2CryptIterations,
+			cmdFlagNameSaltSize:   prefixFilePassword + suffixSHA2CryptSaltLength,
+		}
+	case cmdUseHashPBKDF2:
+		return map[string]string{
+			cmdFlagNameVariant:    prefixFilePassword + suffixPBKDF2Variant,
+			cmdFlagNameIterations: prefixFilePassword + suffixPBKDF2Iterations,
+			cmdFlagNameSaltSize:   prefixFilePassword + suffixPBKDF2SaltLength,
+		}
+	case cmdUseHashBcrypt:
+		return map[string]string{
+			cmdFlagNameVariant: prefixFilePassword + suffixBcryptVariant,
+			cmdFlagNameCost:    prefixFilePassword + suffixBcryptCost,
+		}
+	case cmdUseHashScrypt:
+		return map[string]string{
+			cmdFlagNameVariant:     prefixFilePassword + suffixScryptVariant,
+			cmdFlagNameIterations:  prefixFilePassword + suffixScryptIterations,
+			cmdFlagNameBlockSize:   prefixFilePassword + suffixScryptBlockSize,
+			cmdFlagNameParallelism: prefixFilePassword + suffixScryptParallelism,
+			cmdFlagNameKeySize:     prefixFilePassword + suffixScryptKeyLength,
+			cmdFlagNameSaltSize:    prefixFilePassword + suffixScryptSaltLength,
+		}
+	default:
+		return nil
+	}
 }

@@ -300,7 +300,7 @@ func TestUserSessionElevationGET(t *testing.T) {
 
 			defer mock.Close()
 
-			mock.Ctx.Clock = &mock.Clock
+			mock.Ctx.Providers.Clock = &mock.Clock
 
 			if tc.setup != nil {
 				tc.setup(t, mock)
@@ -560,7 +560,7 @@ func TestUserSessionElevationPOST(t *testing.T) {
 			mock.Ctx.Configuration.IdentityValidation.ElevatedSession.ElevationLifespan = time.Minute
 			mock.Ctx.Configuration.IdentityValidation.ElevatedSession.CodeLifespan = time.Minute
 
-			mock.Ctx.Clock = &mock.Clock
+			mock.Ctx.Providers.Clock = &mock.Clock
 			mock.Ctx.Providers.Random = mock.RandomMock
 
 			if tc.setup != nil {
@@ -1054,7 +1054,7 @@ func TestUserSessionElevationPUT(t *testing.T) {
 			mock.Ctx.Configuration.IdentityValidation.ElevatedSession.ElevationLifespan = time.Minute
 			mock.Ctx.Configuration.IdentityValidation.ElevatedSession.CodeLifespan = time.Minute
 
-			mock.Ctx.Clock = &mock.Clock
+			mock.Ctx.Providers.Clock = &mock.Clock
 			mock.Ctx.Providers.Random = mock.RandomMock
 
 			if len(tc.have) != 0 {
@@ -1383,7 +1383,7 @@ func TestUserSessionElevationDELETE(t *testing.T) {
 			mock.Ctx.Configuration.IdentityValidation.ElevatedSession.ElevationLifespan = time.Minute
 			mock.Ctx.Configuration.IdentityValidation.ElevatedSession.CodeLifespan = time.Minute
 
-			mock.Ctx.Clock = &mock.Clock
+			mock.Ctx.Providers.Clock = &mock.Clock
 			mock.Ctx.Providers.Random = mock.RandomMock
 
 			if len(tc.have) != 0 {

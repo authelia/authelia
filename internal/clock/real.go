@@ -2,6 +2,8 @@ package clock
 
 import (
 	"time"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 // New returns a new real clock.
@@ -15,6 +17,11 @@ type Real struct{}
 // Now return the current time.
 func (Real) Now() time.Time {
 	return time.Now()
+}
+
+// GetJWTWithTimeFuncOption returns the WithTimeFunc jwt.ParserOption.
+func (r Real) GetJWTWithTimeFuncOption() (option jwt.ParserOption) {
+	return jwt.WithTimeFunc(r.Now)
 }
 
 // After return a channel receiving the time after the defined duration.

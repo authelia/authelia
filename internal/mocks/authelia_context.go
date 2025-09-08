@@ -186,7 +186,7 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 		},
 	}
 
-	providers := middlewares.Providers{}
+	providers := middlewares.NewProvidersBasic()
 
 	mockAuthelia.Ctrl = gomock.NewController(t)
 	mockAuthelia.UserProviderMock = NewMockUserProvider(mockAuthelia.Ctrl)
@@ -212,6 +212,8 @@ func NewMockAutheliaCtx(t *testing.T) *MockAutheliaCtx {
 	mockAuthelia.RandomMock = NewMockRandom(mockAuthelia.Ctrl)
 
 	providers.Random = random.NewMathematical()
+
+	providers.Clock = clock.New()
 
 	var err error
 	if providers.Templates, err = templates.New(templates.Config{}); err != nil {

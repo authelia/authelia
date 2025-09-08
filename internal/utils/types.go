@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"crypto/x509"
+
 	"golang.org/x/text/language"
 )
 
@@ -24,4 +26,14 @@ type Language struct {
 	Fallbacks  []string     `json:"fallbacks,omitempty"`
 	Parent     string       `json:"parent"`
 	Tag        language.Tag `json:"-"`
+}
+
+type X509SystemCertPoolFactory interface {
+	SystemCertPool() (pool *x509.CertPool, err error)
+}
+
+type StandardX509SystemCertPoolFactory struct{}
+
+func (StandardX509SystemCertPoolFactory) SystemCertPool() (*x509.CertPool, error) {
+	return x509.SystemCertPool()
 }

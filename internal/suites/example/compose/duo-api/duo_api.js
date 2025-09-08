@@ -44,6 +44,7 @@ app.post("/auth/v2/auth", (req, res) => {
           status_msg: "The user allowed access.",
         },
         stat: "OK",
+		code: 200,
       };
     } else {
       response = {
@@ -53,6 +54,7 @@ app.post("/auth/v2/auth", (req, res) => {
           status_msg: "The user denied access.",
         },
         stat: "OK",
+	    code: 200,
       };
     }
     res.json(response);
@@ -78,6 +80,7 @@ app.post("/auth/v2/preauth", (req, res) => {
     response = {
       response: preauth,
       stat: "OK",
+	  code: 200,
     };
 
     res.json(response);

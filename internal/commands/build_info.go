@@ -7,6 +7,7 @@ import (
 	"runtime/debug"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 
 	"github.com/authelia/authelia/v4/internal/utils"
 )
@@ -30,21 +31,29 @@ func newBuildInfoCmd(ctx *CmdCtx) (cmd *cobra.Command) {
 
 // BuildInfoRunE is the RunE for the authelia build-info command.
 func (ctx *CmdCtx) BuildInfoRunE(cmd *cobra.Command, _ []string) (err error) {
-	var verbose bool
-	if verbose, err = cmd.Flags().GetBool("verbose"); err != nil {
+	return runBuildInfo(cmd.OutOrStdout(), cmd.Flags())
+}
+
+func runBuildInfo(w io.Writer, flags *pflag.FlagSet) (err error) {
+	var (
+		verbose bool
+		info    *debug.BuildInfo
+		ok      bool
+	)
+
+	if verbose, err = flags.GetBool("verbose"); err != nil {
 		return err
 	}
 
-	return runBuildInfo(cmd.OutOrStdout(), verbose)
+	if info, ok = debug.ReadBuildInfo(); !ok {
+		return fmt.Errorf("failed to read build info")
+	}
+
+	return runBuildInfoOutput(w, verbose, info)
 }
 
-func runBuildInfo(w io.Writer, verbose bool) (err error) {
-	var (
-		info *debug.BuildInfo
-		ok   bool
-	)
-
-	if info, ok = debug.ReadBuildInfo(); !ok {
+func runBuildInfoOutput(w io.Writer, verbose bool, info *debug.BuildInfo) (err error) {
+	if info == nil {
 		return fmt.Errorf("failed to read build info")
 	}
 

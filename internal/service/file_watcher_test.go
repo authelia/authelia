@@ -26,7 +26,9 @@ func TestProvisionUsersFileWatcher(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, f.Close())
 
-	tx, err := templates.New(templates.Config{})
+	providers := middlewares.NewProvidersBasic()
+
+	providers.Templates, err = templates.New(templates.Config{})
 	require.NoError(t, err)
 
 	address, err := schema.NewAddress("tcp://:9091")
@@ -43,10 +45,8 @@ func TestProvisionUsersFileWatcher(t *testing.T) {
 	ctx := &testCtx{
 		Context:       context.Background(),
 		Configuration: config,
-		Providers: middlewares.Providers{
-			Templates: tx,
-		},
-		Logger: logrus.NewEntry(logging.Logger()),
+		Providers:     providers,
+		Logger:        logrus.NewEntry(logging.Logger()),
 	}
 
 	watcher, err := provision(ctx)

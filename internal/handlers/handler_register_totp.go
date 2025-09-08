@@ -110,7 +110,7 @@ func TOTPRegisterPUT(ctx *middlewares.AutheliaCtx) {
 		Digits:    config.Digits,
 		Period:    config.Period,
 		Secret:    string(config.Secret),
-		Expires:   ctx.Clock.Now().Add(time.Minute * 10),
+		Expires:   ctx.GetClock().Now().Add(time.Minute * 10),
 	}
 
 	if err = ctx.SaveSession(userSession); err != nil {
@@ -180,7 +180,7 @@ func TOTPRegisterPOST(ctx *middlewares.AutheliaCtx) {
 		return
 	}
 
-	if ctx.Clock.Now().After(userSession.TOTP.Expires) {
+	if ctx.GetClock().Now().After(userSession.TOTP.Expires) {
 		ctx.Logger.WithError(fmt.Errorf("the registration session is expired")).Errorf("Error occurred validating a TOTP registration session for user '%s': error occurred validating the session", userSession.Username)
 
 		ctx.SetStatusCode(fasthttp.StatusForbidden)
@@ -190,7 +190,7 @@ func TOTPRegisterPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	config := model.TOTPConfiguration{
-		CreatedAt: ctx.Clock.Now(),
+		CreatedAt: ctx.GetClock().Now(),
 		Username:  userSession.Username,
 		Issuer:    userSession.TOTP.Issuer,
 		Algorithm: userSession.TOTP.Algorithm,

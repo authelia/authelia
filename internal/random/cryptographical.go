@@ -7,6 +7,12 @@ import (
 	"math/big"
 )
 
+// New returns a new random provider, specifically and strictly a production ready variant which uses inbuilt
+// system randomness (i.e solely crypto/rand and the *Cryptographical provider).
+func New() Provider {
+	return &Cryptographical{}
+}
+
 // Cryptographical is the production random.Provider which uses crypto/rand.
 type Cryptographical struct{}
 
