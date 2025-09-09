@@ -53,12 +53,38 @@ The following artifacts are signed with this key:
 
 ## SLSA Provenance
 
-In addition to artifact signatures, Authelia generates and signs **[SLSA Provenance](https://slsa.dev/)** for its
+In addition to artifact signatures, Authelia generates and signs **[SLSA Provenance]** for its
 builds.
 
 **Provenance** is metadata that describes how an artifact was built. For example, what source code, build steps, and
 environment were used. This helps users and systems verify that the software was built in a trustworthy and repeatable
 way.
 
-Authelia’s provenance conforms to **[SLSA Build Level 3](https://slsa.dev/spec/v1.1/levels)**, meaning it is generated
-automatically by the build system and signed with our GPG key to prevent tampering.
+Authelia’s provenance conforms to **[SLSA Build Level 3](https://slsa.dev/spec/v1.1/levels#build-l3)**.
+
+The [SLSA Provenance] covers the release artifacts i.e. those ending with `.tar.gz` and `.deb`.
+
+You can verify the [SLSA Provenance] using the [slsa-verifier](https://github.com/slsa-framework/slsa-verifier). Below
+is an example verifying the FreeBSD amd64 and Linux amd64 (musl) Authelia v4.39.8 release tarballs:
+
+```shell
+curl -fsSLO https://github.com/authelia/authelia/releases/download/v4.39.8/{authelia-v4.39.8-freebsd-amd64.tar.gz,authelia-v4.39.8-linux-amd64-musl.tar.gz,authelia-v4.39.8-linux-amd64.tar.gz,authelia.intoto.jsonl} && \
+slsa-verifier verify-artifact authelia-v4.39.8-freebsd-amd64.tar.gz authelia-v4.39.8-linux-amd64-musl.tar.gz authelia-v4.39.8-linux-amd64.tar.gz --provenance-path authelia.intoto.jsonl --source-uri "github.com/authelia/authelia"
+```
+
+Example output:
+
+```text
+Verified build using builder "https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@refs/tags/v2.1.0" at commit 5d90442e07cc695c61036ac1a539c0b942ebc71d
+Verifying artifact authelia-v4.39.8-freebsd-amd64.tar.gz: PASSED
+
+Verified build using builder "https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@refs/tags/v2.1.0" at commit 5d90442e07cc695c61036ac1a539c0b942ebc71d
+Verifying artifact authelia-v4.39.8-linux-amd64-musl.tar.gz: PASSED
+
+Verified build using builder "https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@refs/tags/v2.1.0" at commit 5d90442e07cc695c61036ac1a539c0b942ebc71d
+Verifying artifact authelia-v4.39.8-linux-amd64.tar.gz: PASSED
+
+PASSED: SLSA verification passed
+```
+
+[SLSA Provenance]: https://slsa.dev/

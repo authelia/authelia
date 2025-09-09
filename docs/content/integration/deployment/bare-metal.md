@@ -55,19 +55,19 @@ Add the required packages and download the repository key which is described in 
 [Artifact Signing and Provenance Overview](../../overview/security/artifact-signing-and-provenance.md):
 
 ```shell
-sudo apt install ca-certificates curl
+sudo apt install ca-certificates curl gnupg
 sudo curl -fsSL https://www.authelia.com/keys/authelia-security.gpg -o /usr/share/keyrings/authelia-security.gpg
 ```
 
 Verify the downloaded key:
 
-```bash
+```shell
 gpg --no-default-keyring --keyring /usr/share/keyrings/authelia-security.gpg --list-keys --with-subkey-fingerprint
 ```
 
-Example output showing the correct Key ID's:
+Example output showing the correct Key IDs:
 
-```
+```text
 /usr/share/keyrings/authelia-security.gpg
 -----------------------------------------
 pub   rsa4096 2025-06-27 [SC]
@@ -90,8 +90,8 @@ echo \
 
 Update the cache and install:
 
-```bash
-apt update && apt install authelia
+```shell
+sudo apt update && sudo apt install authelia
 ```
 
 ## Nix
@@ -100,9 +100,9 @@ Using the Nix package manager Authelia is available via the `https://nixos.org/c
 should be noted that this channel is both unstable and this is a third party package.
 
 ```shell
-$ nix-channel --add https://nixos.org/channels/nixpkgs-unstable
-$ nix-channel --update
-$ nix-env -iA nixpkgs.authelia
+nix-channel --add https://nixos.org/channels/nixpkgs-unstable
+nix-channel --update
+nix-env -iA nixpkgs.authelia
 ```
 
 ## FreeBSD

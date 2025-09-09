@@ -16,6 +16,64 @@ seo:
   noindex: false # false (default) or true
 ---
 
+## Protections against return oriented programming attacks and general hardening
+
+Authelia is built as a position independent executable which makes Return Oriented Programming (ROP) attacks
+significantly more difficult to execute reliably.
+
+In addition, it is built as a dynamically linked binary with full relocation read-only support, making this and several
+other traditional binary weaknesses significantly more difficult to exploit.
+
+## Protections against unnecessary attack surface
+
+Authelia takes a proactive approach to security and as such has spent countless hours reducing the attack surface by
+removing unnecessary components from our architecture.
+
+Specifically we've developed our own docker base container. This base container is specifically designed to have a low
+attack surface only having the minimum binaries required to support the container. You can verify the benefits of this
+proactive measure by using tools like [trivy](https://trivy.dev/latest/) on various containers. An example running it
+on Authelia is shown below:
+
+```shell
+docker pull docker.io/authelia/authelia:latest && \
+trivy image docker.io/authelia/authelia:latest && \
+docker run docker.io/authelia/authelia:latest authelia build-info
+```
+
+Example output:
+
+```text
+Report Summary
+
+┌───────────────────────────────────────────────────┬──────────┬─────────────────┬─────────┐
+│                      Target                       │   Type   │ Vulnerabilities │ Secrets │
+├───────────────────────────────────────────────────┼──────────┼─────────────────┼─────────┤
+│ docker.io/authelia/authelia:latest (ubuntu 24.04) │  ubuntu  │        0        │    -    │
+├───────────────────────────────────────────────────┼──────────┼─────────────────┼─────────┤
+│ app/authelia                                      │ gobinary │        0        │    -    │
+└───────────────────────────────────────────────────┴──────────┴─────────────────┴─────────┘
+Legend:
+- '-': Not scanned
+- '0': Clean (no security findings detected)
+
+Last Tag: v4.39.8
+State: tagged clean
+Branch: v4.39.8
+Commit: 5d90442e07cc695c61036ac1a539c0b942ebc71d
+Build Number: 48388
+Build OS: linux
+Build Arch: amd64
+Build Compiler: gc
+Build Date: Tue, 02 Sep 2025 10:42:14 +1000
+Development: false
+Extra:
+
+Go:
+    Version: go1.25.0 X:nosynchashtriemap
+    Module Path: github.com/authelia/authelia/v4
+    Executable Path: github.com/authelia/authelia/v4/cmd/authelia
+```
+
 ## Protection against cookie theft
 
 Authelia sets several
@@ -90,14 +148,6 @@ endpoints can be brute-forced for various outcomes including guessing secret val
 
 These rate limiters are applied on a per-IP basis and can be
 [configured](../../configuration/miscellaneous/server-endpoint-rate-limits.md) depending on a particular use case.
-
-## Protections against return oriented programming attacks and general hardening
-
-Authelia is built as a position independent executable which makes Return Oriented Programming (ROP) attacks
-significantly more difficult to execute reliably.
-
-In addition, it is built as a dynamically linked binary with full relocation read-only support, making this and several
-other traditional binary weaknesses significantly more difficult to exploit.
 
 ## User profile and group membership always kept up-to-date (LDAP authentication provider)
 
