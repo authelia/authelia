@@ -250,8 +250,8 @@ docker compose -f compose.yml -f compose.debug.yml up -d
 The following command sequence will allow you to run Authelia interactively within the container:
 
 ```bash
-$ docker exec -it authelia sh
-$ authelia
+docker exec -it authelia sh
+authelia
 ```
 
 The following is the supporting `compose.debug.yml`:
