@@ -108,7 +108,7 @@ nix-env -iA nixpkgs.authelia
 ## FreeBSD
 
 In addition to the [binaries](#binaries) we publish, [FreshPorts](https://www.freshports.org/www/authelia/) offer a
-third party package.
+third-party package.
 
 We publish an [rc.d](https://docs.freebsd.org/en/articles/rc-scripting/) service script file:
 
