@@ -53,7 +53,7 @@ jobs:
           echo "Artifact metadata retrieved"
 
           hashes=$(curl -s -H "Authorization: Bearer ${BUILDKITE_TOKEN}" \
-            "${build_url}/artifacts" | jq -r '
+            "${build_url}/artifacts?per_page=100" | jq -r '
               .[]
               | select(.filename | test("\\.(deb|tar\\.gz)$"))
               | "\(.sha256sum) \(.filename)"
