@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.8](https://github.com/authelia/authelia/releases/tag/v4.39.8)
+  - [v4.39.9](https://github.com/authelia/authelia/releases/tag/v4.39.9)
 - [Forgejo]
   - [v11.0.2](https://codeberg.org/forgejo/forgejo/releases/tag/v11.0.2)
 
