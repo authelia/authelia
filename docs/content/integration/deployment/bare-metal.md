@@ -97,7 +97,7 @@ sudo apt update && sudo apt install authelia
 ## Nix
 
 Using the Nix package manager Authelia is available via the `https://nixos.org/channels/nixpkgs-unstable` channel. It
-should be noted that this channel is both unstable and this is a third party package.
+should be noted that this channel is both unstable and this is a third-party package.
 
 ```shell
 nix-channel --add https://nixos.org/channels/nixpkgs-unstable
