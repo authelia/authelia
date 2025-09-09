@@ -18,11 +18,18 @@ seo:
 
 ## Protections against return oriented programming attacks and general hardening
 
-Authelia is built as a position independent executable which makes Return Oriented Programming (ROP) attacks
-significantly more difficult to execute reliably.
+Authelia is built with several non-default hardening options:
 
-In addition, it is built as a dynamically linked binary with full relocation read-only support, making this and several
+- Built as a position independent executable which makes Return Oriented Programming (ROP) attacks
+  significantly more difficult to execute reliably.
+- Built with use of the procedure linkage table for external function calls which makes Return Oriented Programming
+  (ROP) attacks slightly more difficult to execute reliably.
+- Built as a dynamically linked binary with full relocation read-only support, making this and several
 other traditional binary weaknesses significantly more difficult to exploit.
+- Built with forced early symbol binding which significantly mitigates overwrite attacks to the global offset table.
+- Built with a reduced memory layout predictability.
+- Built with library function argument object size estimations enabled to ensure unsafe actions are aborted.
+- Built excluding unused libraries.
 
 ## Protections against unnecessary attack surface
 
