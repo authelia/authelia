@@ -204,8 +204,8 @@ type testReloader struct {
 	err    error
 }
 
-func (r *testReloader) Reload() (bool, error, string) {
+func (r *testReloader) Reload() (bool, error) {
 	r.count++
 
-	return r.reload, r.err, nil
+	return r.reload, r.err
 }
