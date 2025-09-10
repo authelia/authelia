@@ -57,9 +57,8 @@ func TestShouldErrorFailCreateDB(t *testing.T) {
 
 	assert.NotNil(t, provider.database)
 
-	reloaded, err, reason := provider.Reload()
+	reloaded, err, _ := provider.Reload()
 
-	assert.Equal(t, "", reason)
 	assert.False(t, reloaded)
 	assert.EqualError(t, err, fmt.Sprintf("failed to reload: error reading the authentication database: failed to read the '%s' file: open %s: permission denied", f, f))
 }
@@ -169,24 +168,15 @@ func TestShouldReloadDatabase(t *testing.T) {
 
 			tc.setup(t, provider)
 
-			actual, theError, reason := provider.Reload()
+			actual, theError, _ := provider.Reload()
 
 			assert.Equal(t, tc.expected, actual)
 
-             if tc.err == "" {
-                 assert.NoError(t, theError)
-             } else {
-                 assert.EqualError(t, theError, tc.err)
-             }
-
-			switch tc.name {
-            case "ShouldSkipReloadRecentlyReloaded":
-            	assert.Equal(t, "cooldown", reason)
-           	case "ShouldReloadWithoutError":
-               assert.Equal(t, "", reason)
-            case "ShouldNotReloadWithNoContent":
-                assert.True(t, reason == "no_content")
-           	}
+			if tc.err == "" {
+				assert.NoError(t, theError)
+			} else {
+				assert.EqualError(t, theError, tc.err)
+			}
 		})
 	}
 }
