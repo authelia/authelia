@@ -207,5 +207,5 @@ type testReloader struct {
 func (r *testReloader) Reload() (bool, error, string) {
 	r.count++
 
-	return r.reload, r.err, nil
+	return r.reload, r.err, ""
 }

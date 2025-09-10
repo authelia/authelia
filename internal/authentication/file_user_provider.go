@@ -21,6 +21,12 @@ import (
 	"github.com/authelia/authelia/v4/internal/logging"
 )
 
+// Reload skipped reasons
+const (
+    ReloadReasonCooldown  = "cooldown"
+    ReloadReasonNoContent = "no_content"
+)
+
 // FileUserProvider is a provider reading details from a file.
 type FileUserProvider struct {
 	config        *schema.AuthenticationBackendFile
@@ -60,21 +66,21 @@ func (p *FileUserProvider) Reload() (reloaded bool, err error, reason string) {
 	defer p.mutex.Unlock()
 
 	if now.Before(p.timeoutReload) {
-		return false, nil, "Timeout on file lock"
+		return false, nil, ReloadReasonCooldown
 	}
 
 	switch err = p.database.Load(); {
 	case err == nil:
 		p.setTimeoutReload(now)
 	case errors.Is(err, ErrNoContent):
-		return false, nil, "ErrNoContent"
+		return false, nil, err
 	default:
-		return false, fmt.Errorf("failed to reload: %w", err), nil
+		return false, fmt.Errorf("failed to reload: %w", err), ""
 	}
 
 	p.setTimeoutReload(now)
 
-	return true, nil, nil
+	return true, nil, ""
 }
 
 func (p *FileUserProvider) Close() (err error) {
