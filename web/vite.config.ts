@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => {
               exclude: ["node_modules"],
               extension: [".js", ".jsx", ".ts", ".tsx"],
               forceBuildInstrument: true,
-              include: "src/*",
+              include: ["src"],
               requireEnv: true,
           })
         : undefined;
@@ -97,8 +97,10 @@ export default defineConfig(({ mode }) => {
         },
         test: {
             coverage: {
+                include: ["src"],
                 provider: "istanbul",
             },
+            reporters: ["default", "html"],
             environment: "happy-dom",
             globals: true,
             onConsoleLog() {
@@ -108,7 +110,7 @@ export default defineConfig(({ mode }) => {
         },
         plugins: [
             checkerPlugin({
-                eslint: { lintCommand: "eslint . --ext .js,.jsx,.ts,.tsx", useFlatConfig: true },
+                eslint: { lintCommand: "eslint --format visualstudio --ext .js,.jsx,.ts,.tsx .", useFlatConfig: true },
                 typescript: true,
             }),
             istanbulPlugin,

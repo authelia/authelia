@@ -35,5 +35,5 @@
         "jsx": "react-jsx"
     },
     "include": ["*.mjs", "vite.config.ts", "src", "types"],
-    "exclude": ["coverage", "node_modules"]
+    "exclude": ["coverage", "html", "node_modules"]
 }
