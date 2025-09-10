@@ -140,13 +140,13 @@ func (service *FileWatcher) Run() (err error) {
 
 				var reloaded bool
 
-				switch reloaded, err = service.reload.Reload(); {
+				switch reloaded, err, reason = service.reload.Reload(); {
 				case err != nil:
 					log.WithError(err).Error("Error occurred during reload")
 				case reloaded:
 					log.Info("Reloaded successfully")
 				default:
-					log.Debug("Reload was triggered but it was skipped")
+					log.Debug("Reload was triggered but it was skipped: %w", reason)
 				}
 			case event.Op&fsnotify.Remove == fsnotify.Remove:
 				log.Debug("File remove was detected")

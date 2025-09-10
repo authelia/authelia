@@ -52,7 +52,7 @@ func getExtra(config *schema.AuthenticationBackendFile) (extra map[string]expres
 }
 
 // Reload the database.
-func (p *FileUserProvider) Reload() (reloaded bool, err error) {
+func (p *FileUserProvider) Reload() (reloaded bool, err error, reason string) {
 	now := time.Now()
 
 	p.mutex.Lock()
@@ -60,21 +60,21 @@ func (p *FileUserProvider) Reload() (reloaded bool, err error) {
 	defer p.mutex.Unlock()
 
 	if now.Before(p.timeoutReload) {
-		return false, nil
+		return false, nil, "Timeout on file lock"
 	}
 
 	switch err = p.database.Load(); {
 	case err == nil:
 		p.setTimeoutReload(now)
 	case errors.Is(err, ErrNoContent):
-		return false, nil
+		return false, nil, "ErrNoContent"
 	default:
-		return false, fmt.Errorf("failed to reload: %w", err)
+		return false, fmt.Errorf("failed to reload: %w", err), nil
 	}
 
 	p.setTimeoutReload(now)
 
-	return true, nil
+	return true, nil, nil
 }
 
 func (p *FileUserProvider) Close() (err error) {

@@ -29,7 +29,7 @@ type Provider interface {
 
 // ReloadableProvider represents the required methods to support reloading a provider.
 type ReloadableProvider interface {
-	Reload() (reloaded bool, err error)
+	Reload() (reloaded bool, err error, reason string)
 }
 
 type Provisioner func(ctx Context) (provider Provider, err error)
