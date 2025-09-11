@@ -61,9 +61,6 @@ steps:
     env:
       NODE_OPTIONS: "--no-deprecation"
     if: build.env("CI_BYPASS") != "true"
-
-  - wait:
-    if: build.env("CI_BYPASS") != "true"
 EOF
 if [[ ${BUILD_DUO} == "true" ]]; then
 cat << EOF
@@ -122,9 +119,6 @@ cat << EOF
       - "authelia-image-coverage.tar.zst"
     depends_on: ~
     key: "build-docker-linux-coverage"
-    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true" && build.message !~ /\[(skip test|test skip)\]/
-
-  - wait:
     if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true" && build.message !~ /\[(skip test|test skip)\]/
 
   - label: ":chrome: Integration Tests"

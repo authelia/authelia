@@ -19,9 +19,6 @@ steps:
     command: ".buildkite/pipeline.sh | buildkite-agent pipeline upload"
     if: build.branch != "master"
 
-  - wait:  # yamllint disable-line rule:empty-values
-    if: build.branch !~ /^(dependabot|renovate)\/.*/ && build.message !~ /^docs/  # yamllint disable-line rule:line-length
-
   # Blocking deployment for master branch deployments (concurrency_group).
   - label: ":rocket: Setup Deployment"
     command: ".buildkite/deployment.sh | buildkite-agent pipeline upload"
