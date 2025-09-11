@@ -62,9 +62,24 @@ steps:
       NODE_OPTIONS: "--no-deprecation"
     if: build.env("CI_BYPASS") != "true"
 
-  - wait:
-    if: build.env("CI_BYPASS") != "true"
 EOF
+if [[ "${BUILDKITE_TAG}" != "" ]]; then
+cat << EOF
+  - label: ":rocket: Trigger Pipeline [baseimage]"
+    trigger: "baseimage"
+    build:
+      message: "${BUILDKITE_MESSAGE}"
+      env:
+        AUTHELIA_RELEASE: "${BUILDKITE_TAG//v}"
+        BUILDKITE_PULL_REQUEST: "${BUILDKITE_PULL_REQUEST}"
+        BUILDKITE_PULL_REQUEST_BASE_BRANCH: "${BUILDKITE_PULL_REQUEST_BASE_BRANCH}"
+        BUILDKITE_PULL_REQUEST_REPO: "${BUILDKITE_PULL_REQUEST_REPO}"
+    depends_on: ~
+    key: "baseimage"
+    if: build.tag != null && build.env("CI_BYPASS") != "true"
+
+EOF
+fi
 if [[ ${BUILD_DUO} == "true" ]]; then
 cat << EOF
   - label: ":rocket: Trigger Pipeline [integration-duo]"
@@ -78,6 +93,7 @@ cat << EOF
         BUILDKITE_PULL_REQUEST_BASE_BRANCH: "${BUILDKITE_PULL_REQUEST_BASE_BRANCH}"
         BUILDKITE_PULL_REQUEST_REPO: "${BUILDKITE_PULL_REQUEST_REPO}"
     depends_on: ~
+
 EOF
 fi
 if [[ ${BUILD_HAPROXY} == "true" ]]; then
@@ -93,6 +109,7 @@ cat << EOF
         BUILDKITE_PULL_REQUEST_BASE_BRANCH: "${BUILDKITE_PULL_REQUEST_BASE_BRANCH}"
         BUILDKITE_PULL_REQUEST_REPO: "${BUILDKITE_PULL_REQUEST_REPO}"
     depends_on: ~
+
 EOF
 fi
 if [[ ${BUILD_SAMBA} == "true" ]]; then
@@ -108,6 +125,7 @@ cat << EOF
         BUILDKITE_PULL_REQUEST_BASE_BRANCH: "${BUILDKITE_PULL_REQUEST_BASE_BRANCH}"
         BUILDKITE_PULL_REQUEST_REPO: "${BUILDKITE_PULL_REQUEST_REPO}"
     depends_on: ~
+
 EOF
 fi
 cat << EOF
@@ -124,12 +142,53 @@ cat << EOF
     key: "build-docker-linux-coverage"
     if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true" && build.message !~ /\[(skip test|test skip)\]/
 
-  - wait:
-    if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true" && build.message !~ /\[(skip test|test skip)\]/
-
   - label: ":chrome: Integration Tests"
     command: ".buildkite/steps/e2etests.sh | buildkite-agent pipeline upload"
     depends_on:
       - "build-docker-linux-coverage"
     if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true" && build.message !~ /\[(skip test|test skip)\]/
+
+EOF
+cat << EOF
+  - label: ":docker: Deploy Manifest"
+    command: "authelia-scripts docker push-manifest"
+    depends_on:
+      - "unit-test"
+EOF
+if [[ "${BUILDKITE_TAG}" != "" ]]; then
+cat << EOF
+      - "baseimage"
+EOF
+fi
+cat << EOF
+    retry:
+      manual:
+        permit_on_passed: true
+    agents:
+      upload: "fast"
+    if: build.env("CI_BYPASS") != "true" && build.branch !~ /^(dependabot|renovate)\/.*/ && build.message !~ /^docs/
+
+  - label: ":github: Deploy Artifacts"
+    command: "ghartifacts.sh"
+    depends_on:
+      - "unit-test"
+    retry:
+      automatic: true
+    agents:
+      upload: "fast"
+    key: "artifacts"
+    if: build.tag != null && build.env("CI_BYPASS") != "true"
+
+  - label: ":linux: Deploy AUR"
+    command: ".buildkite/steps/aurpackages.sh | buildkite-agent pipeline upload"
+    depends_on: ~
+    if: build.tag != null && build.env("CI_BYPASS") != "true"
+
+  - label: ":debian: :fedora: :ubuntu: Deploy APT"
+    command: "aptdeploy.sh"
+    depends_on:
+      - "unit-test"
+    agents:
+      upload: "fast"
+    if: build.tag != null && build.env("CI_BYPASS") != "true"
 EOF
