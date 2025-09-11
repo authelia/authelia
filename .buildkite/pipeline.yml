@@ -19,25 +19,6 @@ steps:
     command: ".buildkite/pipeline.sh | buildkite-agent pipeline upload"
     if: build.branch != "master"
 
-  # Blocking deployment for master branch deployments (concurrency_group).
-  - label: ":rocket: Setup Deployment"
-    command: ".buildkite/deployment.sh | buildkite-agent pipeline upload"
-    concurrency: 1
-    concurrency_group: "deployments"
-    depends_on: ~
-    if: build.branch == "master" && build.message !~ /^docs/
-
-  # Non-blocking deployment for all others (tagged commits/local branches).
-  - label: ":rocket: Setup Deployment"
-    command: ".buildkite/deployment.sh | buildkite-agent pipeline upload"
-    depends_on: ~
-    if: build.branch != "master" && build.branch !~ /^(dependabot|renovate)\/.*/ && build.message !~ /^docs/ && build.pull_request.repository.fork != true  # yamllint disable-line rule:line-length
-
-  # Removed dependency optimisation for forked PRs to enforce block step.
-  - label: ":rocket: Setup Deployment"
-    command: ".buildkite/deployment.sh | buildkite-agent pipeline upload"
-    if: build.message !~ /^docs/ && build.pull_request.repository.fork == true
-
 notify:
   - webhook: "<REDACTED WEBHOOK_URL>"
     if: build.state == "blocked"
