@@ -23,14 +23,14 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.38.17](https://github.com/authelia/authelia/releases/tag/v4.38.17)
+  - [v4.39.9](https://github.com/authelia/authelia/releases/tag/v4.39.9)
 - Application:
   - [Nextcloud OpenID Connect Login app]:
     - Nextcloud [v31.0.5](https://github.com/nextcloud/server/releases/tag/v31.0.5)
     - App [v3.2.2](https://github.com/pulsejet/nextcloud-oidc-login/releases/tag/v3.2.2) ([see also](https://apps.nextcloud.com/apps/oidc_login/releases?platform=31#31))
   - [Nextcloud OpenID Connect user backend app]:
-    - Nextcloud [v31.0.4](https://github.com/nextcloud/server/releases/tag/v31.0.4)
-    - App [v7.2.0](https://apps.nextcloud.com/apps/user_oidc/releases?platform=31#31)
+    - Nextcloud [v31.0.5](https://github.com/nextcloud/server/releases/tag/v31.0.5)
+    - App [v8.0.0](https://apps.nextcloud.com/apps/user_oidc/releases?platform=31#31)
 
 {{% oidc-common %}}
 
@@ -219,20 +219,41 @@ identity_providers:
 
 #### Application
 
-To configure [Nextcloud] and the [Nextcloud OpenID Connect Login app] there is one method, using the
-[Configuration File](#configuration-file-1).
+To configure [Nextcloud] and the [Nextcloud OpenID Connect Login app] there are two methods, using the
+[Web GUI](#web-gui) or using the [CLI](#cli).
 
-##### Configuration File
+##### Web GUI
 
 To configure [Nextcloud] and the [Nextcloud OpenID Connect user backend app] to utilize Authelia as an
 [OpenID Connect 1.0] Provider, use the following instructions:
 
-1. Edit the `OpenID Connect` configuration:
+1. Edit the `OpenID Connect` configuration in the [Nextcloud] Administration settings:
    - Identifier: `Authelia`
    - Client ID: `nextcloud`
    - Client secret: `insecure_secret`
    - Discovery endpoint: `https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
    - Scope: openid email profile
+
+2. Add the following to the [Nextcloud] `config.php` configuration:
+``` php
+'user_oidc' => [
+  'default_token_endpoint_auth_method' => 'client_secret_post',
+]
+```
+
+##### CLI
+
+To configure [Nextcloud] and the [Nextcloud OpenID Connect user backend app] to utilize Authelia as an
+[OpenID Connect 1.0] Provider, use the following instructions:
+
+1. Run `occ user_oidc:provider Authelia --clientid="nextcloud" --clientsecret="insecure_secret" --discoveryuri="https://{{< sitevar name="subdomain-authelia" nojs="auth" >}}.{{< sitevar name="domain" nojs="example.com" >}}/.well-known/openid-configuration`
+
+2. Add the following to the [Nextcloud] `config.php` configuration:
+``` php
+'user_oidc' => [
+  'default_token_endpoint_auth_method' => 'client_secret_post',
+]
+```
 
 ## See Also
 
