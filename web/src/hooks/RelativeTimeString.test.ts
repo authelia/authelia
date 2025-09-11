@@ -9,7 +9,11 @@ vi.mock("i18next", () => ({
     },
 }));
 
-const mockRelativeTimeFormat = vi.fn((value, unit) => `${Math.abs(value)} ${unit} ago`);
+const mockRelativeTimeFormat = vi.fn((value: number, unit: Intl.RelativeTimeFormatUnit) => {
+    const u = Math.abs(value) === 1 ? unit : `${unit}`;
+    return `${Math.abs(value)} ${u} ago`;
+});
+
 vi.spyOn(Intl, "RelativeTimeFormat").mockImplementation(
     () =>
         ({
