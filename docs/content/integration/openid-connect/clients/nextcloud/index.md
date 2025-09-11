@@ -29,7 +29,7 @@ seo:
     - Nextcloud [v31.0.5](https://github.com/nextcloud/server/releases/tag/v31.0.5)
     - App [v3.2.2](https://github.com/pulsejet/nextcloud-oidc-login/releases/tag/v3.2.2) ([see also](https://apps.nextcloud.com/apps/oidc_login/releases?platform=31#31))
   - [Nextcloud OpenID Connect user backend app]:
-    - Nextcloud [v31.0.5](https://github.com/nextcloud/server/releases/tag/v31.0.5)
+    - Nextcloud [v31.0.8](https://github.com/nextcloud/server/releases/tag/v31.0.8)
     - App [v8.0.0](https://apps.nextcloud.com/apps/user_oidc/releases?platform=31#31)
 
 {{% oidc-common %}}
@@ -219,7 +219,7 @@ identity_providers:
 
 #### Application
 
-To configure [Nextcloud] and the [Nextcloud OpenID Connect Login app] there are two methods, using the
+To configure [Nextcloud] and the [Nextcloud OpenID Connect user backend app] there are two methods, using the
 [Web GUI](#web-gui) or using the [CLI](#cli).
 
 ##### Web GUI
