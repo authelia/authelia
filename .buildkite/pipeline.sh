@@ -74,7 +74,6 @@ cat << EOF
         BUILDKITE_PULL_REQUEST: "${BUILDKITE_PULL_REQUEST}"
         BUILDKITE_PULL_REQUEST_BASE_BRANCH: "${BUILDKITE_PULL_REQUEST_BASE_BRANCH}"
         BUILDKITE_PULL_REQUEST_REPO: "${BUILDKITE_PULL_REQUEST_REPO}"
-    depends_on: ~
     key: "baseimage"
     if: build.tag != null && build.env("CI_BYPASS") != "true"
 
@@ -92,7 +91,6 @@ cat << EOF
         BUILDKITE_PULL_REQUEST: "${BUILDKITE_PULL_REQUEST}"
         BUILDKITE_PULL_REQUEST_BASE_BRANCH: "${BUILDKITE_PULL_REQUEST_BASE_BRANCH}"
         BUILDKITE_PULL_REQUEST_REPO: "${BUILDKITE_PULL_REQUEST_REPO}"
-    depends_on: ~
 
 EOF
 fi
@@ -108,7 +106,6 @@ cat << EOF
         BUILDKITE_PULL_REQUEST: "${BUILDKITE_PULL_REQUEST}"
         BUILDKITE_PULL_REQUEST_BASE_BRANCH: "${BUILDKITE_PULL_REQUEST_BASE_BRANCH}"
         BUILDKITE_PULL_REQUEST_REPO: "${BUILDKITE_PULL_REQUEST_REPO}"
-    depends_on: ~
 
 EOF
 fi
@@ -124,7 +121,6 @@ cat << EOF
         BUILDKITE_PULL_REQUEST: "${BUILDKITE_PULL_REQUEST}"
         BUILDKITE_PULL_REQUEST_BASE_BRANCH: "${BUILDKITE_PULL_REQUEST_BASE_BRANCH}"
         BUILDKITE_PULL_REQUEST_REPO: "${BUILDKITE_PULL_REQUEST_REPO}"
-    depends_on: ~
 
 EOF
 fi
@@ -138,7 +134,6 @@ cat << EOF
       build: "linux-coverage"
     artifact_paths:
       - "authelia-image-coverage.tar.zst"
-    depends_on: ~
     key: "build-docker-linux-coverage"
     if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true" && build.message !~ /\[(skip test|test skip)\]/
 
@@ -181,7 +176,6 @@ cat << EOF
 
   - label: ":linux: Deploy AUR"
     command: ".buildkite/steps/aurpackages.sh | buildkite-agent pipeline upload"
-    depends_on: ~
     if: build.tag != null && build.env("CI_BYPASS") != "true"
 
   - label: ":debian: :fedora: :ubuntu: Deploy APT"
