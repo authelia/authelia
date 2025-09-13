@@ -1,29 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <base href="{{ .BaseURL }}" />
-  <meta property="csp-nonce" content="{{ .CSPNonce }}" />
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#000000" />
-  <link rel="manifest" href="/manifest.json" />
-  <link rel="icon" href="/favicon.ico" />
-</head>
+<!doctype html>
+<html lang="{{ .Language }}">
+    <head>
+        <base href="{{ .BaseURL }}" />
+        <meta property="csp-nonce" content="{{ .CSPNonce }}" />
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#000000" />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="icon" href="/favicon.ico" />
+        <title></title>
+    </head>
 
-<body
-    data-basepath="%VITE_BASEPATH%"
-    data-duoselfenrollment="%VITE_DUO_SELF_ENROLLMENT%"
-    data-logooverride="%VITE_LOGO_OVERRIDE%"
-    data-privacypolicyurl="%VITE_PRIVACY_POLICY_URL%"
-    data-privacypolicyaccept="%VITE_PRIVACY_POLICY_ACCEPT%"
-    data-passkeylogin="%VITE_PASSKEY_LOGIN%"
-    data-rememberme="%VITE_REMEMBER_ME%"
-    data-resetpassword="%VITE_RESET_PASSWORD%"
-    data-resetpasswordcustomurl="%VITE_RESET_PASSWORD_CUSTOM_URL%"
-    data-theme="%VITE_THEME%"
->
-  <noscript>You need to enable JavaScript to run this app.</noscript>
-  <div id="root" translate="no"></div>
-  <script type="module" src="/src/index.tsx"></script>
-</body>
+    <body
+        data-basepath="%VITE_BASEPATH%"
+        data-duoselfenrollment="%VITE_DUO_SELF_ENROLLMENT%"
+        data-logooverride="%VITE_LOGO_OVERRIDE%"
+        data-privacypolicyurl="%VITE_PRIVACY_POLICY_URL%"
+        data-privacypolicyaccept="%VITE_PRIVACY_POLICY_ACCEPT%"
+        data-passkeylogin="%VITE_PASSKEY_LOGIN%"
+        data-rememberme="%VITE_REMEMBER_ME%"
+        data-resetpassword="%VITE_RESET_PASSWORD%"
+        data-resetpasswordcustomurl="%VITE_RESET_PASSWORD_CUSTOM_URL%"
+        data-theme="%VITE_THEME%"
+    >
+        <noscript>You need to enable JavaScript to run this app.</noscript>
+        <div id="root"></div>
+        <script type="module" src="/src/index.tsx"></script>
+    </body>
 </html>
