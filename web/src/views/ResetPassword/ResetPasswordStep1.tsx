@@ -113,6 +113,7 @@ const ResetPasswordStep1 = function () {
                                 variant="contained"
                                 disabled={loading || rateLimited}
                                 color="primary"
+                                data-1p-ignore
                                 fullWidth
                                 onClick={handleResetClick}
                                 startIcon={loading ? <CircularProgress color="inherit" size={20} /> : <></>}
@@ -127,6 +128,7 @@ const ResetPasswordStep1 = function () {
                             variant="contained"
                             disabled={loading}
                             color="primary"
+                            data-1p-ignore
                             fullWidth
                             onClick={handleCancelClick}
                         >

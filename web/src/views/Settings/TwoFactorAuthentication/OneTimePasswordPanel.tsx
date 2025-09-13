@@ -212,6 +212,7 @@ const OneTimePasswordPanel = function (props: Props) {
                                     endIcon={
                                         dialogRegisterOpening ? <CircularProgress color="inherit" size={20} /> : null
                                     }
+                                    data-1p-ignore
                                 >
                                     {translate("Add")}
                                 </Button>

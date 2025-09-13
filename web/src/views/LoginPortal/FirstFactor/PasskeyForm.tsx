@@ -144,6 +144,7 @@ const PasskeyForm = function (props: Props) {
                     onClick={handleSignIn}
                     startIcon={<PasskeyIcon />}
                     disabled={props.disabled}
+                    data-1p-ignore
                     endIcon={loading ? <CircularProgress size={20} /> : null}
                 >
                     {translate("Sign in with a passkey")}

@@ -455,7 +455,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                         tooltip={translate("Click to Copy")}
                                         value={secretURL}
                                         childrenCopied={translate("Copied")}
-                                        fullWidth={true}
+                                        fullWidth
                                     >
                                         {translate("URI")}
                                     </CopyButton>
@@ -465,7 +465,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                                         tooltip={translate("Click to Copy")}
                                         value={secretValue}
                                         childrenCopied={translate("Copied")}
-                                        fullWidth={true}
+                                        fullWidth
                                     >
                                         {translate("Secret")}
                                     </CopyButton>
@@ -526,7 +526,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
     }
 
     return (
-        <Dialog open={props.open} onClose={handleOnClose} fullWidth={true}>
+        <Dialog open={props.open} onClose={handleOnClose} fullWidth>
             <DialogTitle>{translate("Register {{item}}", { item: translate("One-Time Password") })}</DialogTitle>
             <DialogContent>
                 <DialogContentText sx={{ mb: 3 }}>
@@ -563,10 +563,11 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                     color={"primary"}
                     onClick={handleSetStepPrevious}
                     disabled={activeStep === 0}
+                    data-1p-ignore
                 >
                     {translate("Previous")}
                 </Button>
-                <Button id={"dialog-cancel"} color={"error"} onClick={handleClose}>
+                <Button id={"dialog-cancel"} color={"error"} onClick={handleClose} data-1p-ignore>
                     {translate("Cancel")}
                 </Button>
                 <Button
@@ -574,6 +575,7 @@ const OneTimePasswordRegisterDialog = function (props: Props) {
                     color={"primary"}
                     onClick={handleSetStepNext}
                     disabled={activeStep === steps.length - 1}
+                    data-1p-ignore
                 >
                     {translate("Next")}
                 </Button>

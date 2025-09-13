@@ -129,10 +129,10 @@ const WebAuthnCredentialEditDialog = function (props: Props) {
                 />
             </DialogContent>
             <DialogActions>
-                <Button id={"dialog-cancel"} onClick={handleCancel}>
+                <Button id={"dialog-cancel"} onClick={handleCancel} data-1p-ignore>
                     {translate("Cancel")}
                 </Button>
-                <Button id={"dialog-update"} onClick={handleUpdate}>
+                <Button id={"dialog-update"} onClick={handleUpdate} data-1p-ignore>
                     {translate("Update")}
                 </Button>
             </DialogActions>

@@ -133,6 +133,7 @@ const SettingsView = function () {
                 sx={{ p: 1, width: "100%" }}
                 onClick={handleChangePassword}
                 disabled={configuration?.password_change_disabled || false}
+                data-1p-ignore
             >
                 {translate("Change Password")}
             </Button>
