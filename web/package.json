@@ -49,7 +49,7 @@
     "@mui/icons-material": "7.3.2",
     "@mui/material": "7.3.2",
     "@simplewebauthn/browser": "13.1.2",
-    "axios": "1.12.0",
+    "axios": "1.12.1",
     "broadcast-channel": "7.1.0",
     "i18next": "25.5.2",
     "i18next-browser-languagedetector": "8.2.0",
