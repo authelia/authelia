@@ -271,6 +271,11 @@ i18n.use(Backend)
             escapeValue: false,
         },
         debug: false,
+    })
+    .then(() => {
+        i18n.on("languageChanged", () => {
+            window.location.reload();
+        });
     });
 
 export default i18n;
