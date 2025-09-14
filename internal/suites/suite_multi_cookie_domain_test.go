@@ -19,15 +19,15 @@ type MultiCookieDomainSuite struct {
 }
 
 func (s *MultiCookieDomainSuite) TestMultiCookieDomainFirstDomainScenario() {
-	suite.Run(s.T(), NewMultiCookieDomainScenario(BaseDomain, Example2DotCom, []string{"authelia_session"}, true))
+	suite.Run(s.T(), NewMultiCookieDomainScenario(BaseDomain, Example2DotCom, []string{"authelia_session", "language"}, true))
 }
 
 func (s *MultiCookieDomainSuite) TestMultiCookieDomainSecondDomainScenario() {
-	suite.Run(s.T(), NewMultiCookieDomainScenario(Example2DotCom, BaseDomain, []string{"example2_session"}, false))
+	suite.Run(s.T(), NewMultiCookieDomainScenario(Example2DotCom, BaseDomain, []string{"example2_session", "language"}, false))
 }
 
 func (s *MultiCookieDomainSuite) TestMultiCookieDomainThirdDomainScenario() {
-	suite.Run(s.T(), NewMultiCookieDomainScenario(Example3DotCom, BaseDomain, []string{"authelia_session"}, true))
+	suite.Run(s.T(), NewMultiCookieDomainScenario(Example3DotCom, BaseDomain, []string{"authelia_session", "language"}, true))
 }
 
 func TestMultiCookieDomainSuite(t *testing.T) {
