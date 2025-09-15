@@ -27,8 +27,10 @@ i18n.use(Backend)
     .use(initReactI18next)
     .init({
         detection: {
-            order: ["querystring", "localStorageCustom", "navigator"],
-            lookupQuerystring: "lng",
+            order: ["localStorageCustom", "navigator"],
+            caches: ["cookie"],
+            cookieOptions: { path: "/", sameSite: "strict", secure: true },
+            lookupCookie: "language",
             lookupLocalStorage: LocalStorageLanguageCurrent,
         },
         backend: {
