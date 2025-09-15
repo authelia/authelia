@@ -21,7 +21,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.5](https://github.com/authelia/authelia/releases/tag/v4.39.5)
+  - [v4.39.9](https://github.com/authelia/authelia/releases/tag/v4.39.9)
 - [Kiali]
   - [v2.12.0](https://kiali.io/news/release-notes/#v2120)
 
@@ -124,5 +124,5 @@ stringData:
 
 [Authelia]: https://www.authelia.com
 [Kiali]: https://kiali.io/
-[OpenID Connect 1.0]: ../../openid-connect/introduction.md
-[client configuration]: ../../../configuration/identity-providers/openid-connect/clients.md
+[OpenID Connect 1.0]: ../../introduction.md
+[client configuration]: ../../../../configuration/identity-providers/openid-connect/clients.md
