@@ -116,6 +116,10 @@ services:
 
 #### Web GUI
 
+{{< callout context="tip" title="Help Wanted" icon="outline/rocket" >}}
+We would love screenshots of this configuration!
+{{< /callout >}}
+
 To configure [Arcane] to utilize Authelia as an [OpenID Connect 1.0] Provider, use the following instructions:
 
 1. Navigate to Settings.
