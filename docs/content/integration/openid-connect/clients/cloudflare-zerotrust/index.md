@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.9](https://github.com/authelia/authelia/releases/tag/v4.39.9)
+  - [v4.39.10](https://github.com/authelia/authelia/releases/tag/v4.39.10)
 
 {{% oidc-common bugs="client-credentials-encoding,claims-hydration" %}}
 
