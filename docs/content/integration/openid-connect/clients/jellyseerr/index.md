@@ -23,7 +23,7 @@ seo:
 ## Tested Versions
 
 - [Authelia]
-  - [v4.39.9](https://github.com/authelia/authelia/releases/tag/v4.39.9)
+  - [v4.39.10](https://github.com/authelia/authelia/releases/tag/v4.39.10)
 - [Jellyseerr]
   - [development version tag:preview-OIDC](https://github.com/fallenbagel/jellyseerr/releases/tag/preview-OIDC)
 
@@ -69,7 +69,7 @@ identity_providers:
           - 'groups'
         response_types:
           - 'code'
-        grant_types: 
+        grant_types:
           - 'authorization_code'
         access_token_signed_response_alg: 'none'
         userinfo_signed_response_alg: 'none'
