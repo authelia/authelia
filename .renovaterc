@@ -25,8 +25,8 @@
     "npm"
   ],
   "kubernetes": {
-    "fileMatch": [
-      "kube/.+\\.yml$"
+    "managerFilePatterns": [
+      "/kube/.+\\.yml$/"
     ]
   },
   "labels": [
