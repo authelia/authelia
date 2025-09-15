@@ -2,7 +2,7 @@
 title: "Commit Message"
 description: "Authelia Development Commit Message Guidelines"
 lead: "This section covers the git commit message guidelines we use for development."
-date: 2024-03-14T06:00:14+11:00
+date: 2021-01-30T19:29:07+11:00
 draft: false
 images: []
 weight: 320
@@ -52,9 +52,10 @@ for, and the structure it must have.
   │       │
   │       └─⫸ Commit Scope: api|autheliabot|authentication|authorization|buildkite|bundler|clock|
   │                          cmd|codecov|commands|configuration|deps|docker|duo|expression|go|
-  │                          golangci-lint|handlers|husky|logging|metrics|middlewares|mocks|model|
-  │                          notification|npm|ntp|oidc|random|regulation|renovate|reviewdog|server|
-  │                          service|session|storage|suites|templates|totp|utils|web|webauthn
+  │                          golangci-lint|handlers|lefthook|logging|metrics|middlewares|mocks|
+  │                          model|notification|npm|ntp|oidc|random|regulation|renovate|reviewdog|
+  │                          server|service|session|storage|suites|templates|totp|utils|web|
+  │                          webauthn
   │
   └─⫸ Commit Type: build|ci|docs|feat|fix|i18n|perf|refactor|release|revert|test
 ```
@@ -66,7 +67,7 @@ The `<type>` and `<summary>` fields are mandatory, the `(<scope>)` field is opti
 * __build__ Changes that affect the build system or external dependencies
   (example scopes: bundler, deps, docker, go, npm)
 * __ci__ Changes to our CI configuration files and scripts
-  (example scopes: autheliabot, buildkite, codecov, husky, golangci-lint, renovate, reviewdog)
+  (example scopes: autheliabot, buildkite, codecov, lefthook, golangci-lint, renovate, reviewdog)
 * __docs__ Documentation only changes
 * __feat__ A new feature
 * __fix__ A bug fix

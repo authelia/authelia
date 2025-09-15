@@ -72,7 +72,7 @@ identity_providers:
         require_pkce: false
         pkce_challenge_method: 'S256'
         authorization_signed_response_key_id: ''
-        authorization_signed_response_alg: 'none'
+        authorization_signed_response_alg: 'RS256'
         authorization_encrypted_response_key_id: ''
         authorization_encrypted_response_alg: 'none'
         authorization_encrypted_response_enc: 'A128CBC-HS256'
@@ -494,7 +494,7 @@ To be considered valid:
 
 ### authorization_signed_response_alg
 
-{{< confkey type="string" default="none" required="no" >}}
+{{< confkey type="string" default="RS256" required="no" >}}
 
 {{< callout context="caution" title="Important Note" icon="outline/alert-triangle" >}}
 A majority of clients will not support this option with any value other than `none` as it implements the

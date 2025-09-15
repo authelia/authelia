@@ -339,6 +339,11 @@ func getJSONSchemaOutputPath(cmd *cobra.Command, flag string) (dir, file string,
 
 func jsonschemaKoanfMapper(t reflect.Type) *jsonschema.Schema {
 	switch t.String() {
+	case "*language.Tag", "language.Tag":
+		return &jsonschema.Schema{
+			Type:    jsonschema.TypeString,
+			Pattern: `^[a-z]{2}-[A-Z]{2}$`,
+		}
 	case "[]*net.IPNet":
 		return &jsonschema.Schema{
 			OneOf: []*jsonschema.Schema{

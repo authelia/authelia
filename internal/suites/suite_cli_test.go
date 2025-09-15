@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v4"
 
 	"github.com/authelia/authelia/v4/internal/model"
 	"github.com/authelia/authelia/v4/internal/storage"
@@ -537,10 +537,10 @@ func (s *CLISuite) TestShouldGenerateCertificateCAAndSignCertificate() {
 	s.NoError(err)
 	s.False(utils.IsX509PrivateKey(cCA))
 
-	certificate, ok := utils.CastX509AsCertificate(c)
+	certificate, ok := utils.AssertToX509Certificate(c)
 	s.True(ok)
 
-	certificateCA, ok := utils.CastX509AsCertificate(cCA)
+	certificateCA, ok := utils.AssertToX509Certificate(cCA)
 	s.True(ok)
 
 	s.Require().NotNil(certificate)
@@ -843,7 +843,7 @@ func (s *CLISuite) TestStorage00ShouldShowCorrectPreInitInformation() {
 	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "migrate", "history", "--config=/config/configuration.storage.yml"})
 	s.NoError(err)
 
-	s.Contains(output, "No migration history is available for schemas that not version 1 or above.\n")
+	s.Contains(output, "No migration history is available for schemas that are not version 1 or above.\n")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "migrate", "list-up", "--config=/config/configuration.storage.yml"})
 	s.NoError(err)
@@ -1123,7 +1123,7 @@ func (s *CLISuite) TestStorage04ShouldManageUniqueID() {
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "identifiers", "add", "john", "--service=openid", "--sector='bad-uuid.com'", "--identifier=d49564dc-b7a1-11ec-8429-fcaa147128ea", "--config=/config/configuration.storage.yml"})
 	s.EqualError(err, "exit status 1")
-	s.Contains(output, "Error: the identifier providerd 'd49564dc-b7a1-11ec-8429-fcaa147128ea' is a version 1 UUID but only version 4 UUID's accepted as identifiers")
+	s.Contains(output, "Error: the identifier provided 'd49564dc-b7a1-11ec-8429-fcaa147128ea' is a version 1 UUID but only version 4 UUID's accepted as identifiers")
 
 	output, err = s.Exec("authelia-backend", []string{"authelia", "storage", "user", "identifiers", "add", "john", "--service=openid", "--sector='bad-uuid.com'", "--identifier=asdmklasdm", "--config=/config/configuration.storage.yml"})
 	s.EqualError(err, "exit status 1")

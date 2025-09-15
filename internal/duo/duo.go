@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/url"
 
-	duoapi "github.com/duosecurity/duo_api_golang"
 	"github.com/valyala/fasthttp"
 
 	"github.com/authelia/authelia/v4/internal/middlewares"
@@ -12,25 +11,26 @@ import (
 )
 
 // NewDuoAPI create duo API instance.
-func NewDuoAPI(duoAPI *duoapi.DuoApi) *APIImpl {
-	return &APIImpl{
-		DuoApi: duoAPI,
+func NewDuoAPI(duoAPI BaseProvider) *Production {
+	return &Production{
+		BaseProvider: duoAPI,
 	}
 }
 
 // Call performs a request to the DuoAPI.
-func (d *APIImpl) Call(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values, method string, path string) (*Response, error) {
-	var response Response
+func (d *Production) Call(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values, method string, path string) (r *Response, err error) {
+	var (
+		response Response
+		body     []byte
+	)
 
-	_, responseBytes, err := d.SignedCall(method, path, values)
-	if err != nil {
+	if _, body, err = d.SignedCall(method, path, values); err != nil {
 		return nil, err
 	}
 
-	ctx.Logger.Tracef("Duo endpoint: %s response raw data for %s from IP %s: %s", path, userSession.Username, ctx.RemoteIP().String(), string(responseBytes))
+	ctx.Logger.Tracef("Duo endpoint: %s response raw data for %s from IP %s: %s", path, userSession.Username, ctx.RemoteIP().String(), string(body))
 
-	err = json.Unmarshal(responseBytes, &response)
-	if err != nil {
+	if err = json.Unmarshal(body, &response); err != nil {
 		return nil, err
 	}
 
@@ -45,7 +45,7 @@ func (d *APIImpl) Call(ctx *middlewares.AutheliaCtx, userSession *session.UserSe
 }
 
 // PreAuthCall performs a preauth request to the DuoAPI.
-func (d *APIImpl) PreAuthCall(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values) (*PreAuthResponse, error) {
+func (d *Production) PreAuthCall(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values) (r *PreAuthResponse, err error) {
 	var preAuthResponse PreAuthResponse
 
 	response, err := d.Call(ctx, userSession, values, fasthttp.MethodPost, "/auth/v2/preauth")
@@ -53,8 +53,7 @@ func (d *APIImpl) PreAuthCall(ctx *middlewares.AutheliaCtx, userSession *session
 		return nil, err
 	}
 
-	err = json.Unmarshal(response.Response, &preAuthResponse)
-	if err != nil {
+	if err = json.Unmarshal(response.Response, &preAuthResponse); err != nil {
 		return nil, err
 	}
 
@@ -62,7 +61,7 @@ func (d *APIImpl) PreAuthCall(ctx *middlewares.AutheliaCtx, userSession *session
 }
 
 // AuthCall performs an auth request to the DuoAPI.
-func (d *APIImpl) AuthCall(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values) (*AuthResponse, error) {
+func (d *Production) AuthCall(ctx *middlewares.AutheliaCtx, userSession *session.UserSession, values url.Values) (r *AuthResponse, err error) {
 	var authResponse AuthResponse
 
 	response, err := d.Call(ctx, userSession, values, fasthttp.MethodPost, "/auth/v2/auth")
@@ -70,8 +69,7 @@ func (d *APIImpl) AuthCall(ctx *middlewares.AutheliaCtx, userSession *session.Us
 		return nil, err
 	}
 
-	err = json.Unmarshal(response.Response, &authResponse)
-	if err != nil {
+	if err = json.Unmarshal(response.Response, &authResponse); err != nil {
 		return nil, err
 	}
 

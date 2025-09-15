@@ -1457,7 +1457,7 @@ session:
         ## The signing algorithm used for signing the authorization responses.
         ## Please read the documentation before adjusting this option.
         ## See: https://www.authelia.com/c/oidc/registered-clients#authorization_signed_response_alg
-        # authorization_signed_response_alg: 'none'
+        # authorization_signed_response_alg: 'RS256'
 
         ## The signing key id used for signing the authorization responses.
         ## Please read the documentation before adjusting this option.

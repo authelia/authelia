@@ -60,7 +60,7 @@ func SetBaseSecurityHeaders(ctx *fasthttp.RequestCtx) {
 // SecurityHeadersCSPNone middleware adds the Content-Security-Policy header with the value "default-src 'none';".
 func SecurityHeadersCSPNone(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 	return func(ctx *fasthttp.RequestCtx) {
-		ctx.Response.Header.SetBytesKV(headerContentSecurityPolicy, headerValueCSPNone)
+		SetSecurityHeadersCSPNone(ctx)
 
 		next(ctx)
 	}

@@ -10,8 +10,8 @@ import (
 	"github.com/asaskevich/govalidator"
 	"github.com/go-crypt/crypt"
 	"github.com/go-crypt/crypt/algorithm"
+	"go.yaml.in/yaml/v4"
 	"golang.org/x/text/language"
-	"gopkg.in/yaml.v3"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/expression"

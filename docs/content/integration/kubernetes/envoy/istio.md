@@ -12,6 +12,7 @@ weight: 553
 toc: true
 aliases:
   - '/kubernetes/istio/'
+  - '/integration/kubernetes/istio/'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)

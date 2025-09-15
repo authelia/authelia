@@ -8,13 +8,12 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
 	oauthelia2 "authelia.com/provider/oauth2"
 	"github.com/spf13/cobra"
-	goyaml "gopkg.in/yaml.v3"
+	goyaml "go.yaml.in/yaml/v4"
 
 	"github.com/authelia/authelia/v4/internal/authentication"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
@@ -202,22 +201,22 @@ func (ctx *CmdCtx) DebugOIDCClaimsRunE(cmd *cobra.Command, args []string) (err e
 
 	implicit := responseType == oidc.ResponseTypeImplicitFlowIDToken
 
-	if err = strategy.PopulateIDTokenClaims(resolverctx, oauthelia2.ExactScopeStrategy, client, scopes, claims, nil, detailer, time.Now(), time.Now().Add(time.Second*-10), nil, idtoken, implicit); err != nil {
+	if err = strategy.HydrateIDTokenClaims(resolverctx, oauthelia2.ExactScopeStrategy, client, scopes, claims, nil, detailer, time.Now(), time.Now().Add(time.Second*-10), nil, idtoken, implicit); err != nil {
 		return fmt.Errorf("error occurred populating user ID token claims: %w", err)
 	}
 
 	if grantType == oidc.GrantTypeClientCredentials {
-		if err = strategy.PopulateClientCredentialsUserInfoClaims(resolverctx, client, nil, userinfo); err != nil {
+		if err = strategy.HydrateClientCredentialsUserInfoClaims(resolverctx, client, nil, userinfo); err != nil {
 			return fmt.Errorf("error occurred populating user info claims: %w", err)
 		}
-	} else if err = strategy.PopulateUserInfoClaims(resolverctx, oauthelia2.ExactScopeStrategy, client, scopes, claims, nil, detailer, time.Now(), time.Now().Add(time.Second*-10), nil, userinfo); err != nil {
+	} else if err = strategy.HydrateUserInfoClaims(resolverctx, oauthelia2.ExactScopeStrategy, client, scopes, claims, nil, detailer, time.Now(), time.Now().Add(time.Second*-10), nil, userinfo); err != nil {
 		return fmt.Errorf("error occurred populating user info claims: %w", err)
 	}
 
-	_, _ = fmt.Fprintf(os.Stdout, "Results:\n\n")
-	_, _ = fmt.Fprintf(os.Stdout, "\tID Token:\n\t\t")
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Results:\n\n")
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\tID Token:\n\t\t")
 
-	encoder := json.NewEncoder(os.Stdout)
+	encoder := json.NewEncoder(cmd.OutOrStdout())
 	encoder.SetIndent("\t\t", "  ")
 	encoder.SetEscapeHTML(false)
 
@@ -225,7 +224,7 @@ func (ctx *CmdCtx) DebugOIDCClaimsRunE(cmd *cobra.Command, args []string) (err e
 		return fmt.Errorf("error occurred encoding ID Token claims: %w", err)
 	}
 
-	_, _ = fmt.Fprintf(os.Stdout, "\n\tUser Information:\n\t\t")
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\n\tUser Information:\n\t\t")
 
 	if err = encoder.Encode(userinfo); err != nil {
 		return fmt.Errorf("error occurred encoding User Information claims: %w", err)
@@ -234,7 +233,7 @@ func (ctx *CmdCtx) DebugOIDCClaimsRunE(cmd *cobra.Command, args []string) (err e
 	return nil
 }
 
-func (ctx *CmdCtx) DebugExpressionRunE(_ *cobra.Command, args []string) (err error) {
+func (ctx *CmdCtx) DebugExpressionRunE(cmd *cobra.Command, args []string) (err error) {
 	provider := middlewares.NewAuthenticationProvider(ctx.config, ctx.trusted)
 
 	if provider == nil {
@@ -272,10 +271,10 @@ func (ctx *CmdCtx) DebugExpressionRunE(_ *cobra.Command, args []string) (err err
 
 	resolved, found := e.Resolve("example", details, time.Now())
 
-	_, _ = fmt.Fprintf(os.Stdout, "Resolved: %t\n", found)
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Resolved: %t\n", found)
 
 	if found {
-		_, _ = fmt.Fprintf(os.Stdout, "Resolved Value: %v\n", resolved)
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Resolved Value: %v\n", resolved)
 	}
 
 	return nil
@@ -325,8 +324,8 @@ func (ctx *CmdCtx) DebugTLSRunE(cmd *cobra.Command, args []string) (err error) {
 	if conn, err = tls.Dial(address.Network(), address.NetworkAddress(), config); err != nil {
 		switch errStr := err.Error(); {
 		case strings.Contains(errStr, "first record does not look like a TLS handshake"):
-			_, _ = fmt.Fprintf(os.Stdout, "General Information:\n")
-			_, _ = fmt.Fprintf(os.Stdout, "\tFailure: Did not receive a TLS handshake from %s\n", address.NetworkAddress())
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "General Information:\n")
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\tFailure: Did not receive a TLS handshake from %s\n", address.NetworkAddress())
 
 			return nil
 		default:
@@ -334,19 +333,19 @@ func (ctx *CmdCtx) DebugTLSRunE(cmd *cobra.Command, args []string) (err error) {
 		}
 	}
 
-	_, _ = fmt.Fprintf(os.Stdout, "General Information:\n")
-	_, _ = fmt.Fprintf(os.Stdout, "\tServer Name: %s\n", conn.ConnectionState().ServerName)
-	_, _ = fmt.Fprintf(os.Stdout, "\tRemote Address: %s\n", conn.RemoteAddr().String())
-	_, _ = fmt.Fprintf(os.Stdout, "\tNegotiated Protocol: %s\n", conn.ConnectionState().NegotiatedProtocol)
-	_, _ = fmt.Fprintf(os.Stdout, "\tTLS Version: %s\n", tls.VersionName(conn.ConnectionState().Version))
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "General Information:\n")
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\tServer Name: %s\n", conn.ConnectionState().ServerName)
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\tRemote Address: %s\n", conn.RemoteAddr().String())
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\tNegotiated Protocol: %s\n", conn.ConnectionState().NegotiatedProtocol)
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\tTLS Version: %s\n", tls.VersionName(conn.ConnectionState().Version))
 
 	if utils.IsInsecureCipherSuite(conn.ConnectionState().CipherSuite) {
-		_, _ = fmt.Fprintf(os.Stdout, "\tCipher Suite: %s (Unsupported and Insecure)\n", tls.CipherSuiteName(conn.ConnectionState().CipherSuite))
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\tCipher Suite: %s (Unsupported and Insecure)\n", tls.CipherSuiteName(conn.ConnectionState().CipherSuite))
 	} else {
-		_, _ = fmt.Fprintf(os.Stdout, "\tCipher Suite: %s (Supported)\n", tls.CipherSuiteName(conn.ConnectionState().CipherSuite))
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\tCipher Suite: %s (Supported)\n", tls.CipherSuiteName(conn.ConnectionState().CipherSuite))
 	}
 
-	_, _ = fmt.Fprintf(os.Stdout, "\nCertificate Information:\n")
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\nCertificate Information:\n")
 
 	system, err := x509.SystemCertPool()
 	if err != nil {
@@ -379,14 +378,14 @@ func (ctx *CmdCtx) DebugTLSRunE(cmd *cobra.Command, args []string) (err error) {
 			valid = false
 		}
 
-		_, _ = fmt.Fprintf(os.Stdout, "\n\tCertificate #%d:\n", i+1)
-		_, _ = fmt.Fprintf(os.Stdout, "\t\tCertificate Authority: %t\n", cert.IsCA)
-		_, _ = fmt.Fprintf(os.Stdout, "\t\tPublic Key Algorithm: %s\n", cert.PublicKeyAlgorithm)
-		_, _ = fmt.Fprintf(os.Stdout, "\t\tSignature Algorithm: %s\n", cert.SignatureAlgorithm)
-		_, _ = fmt.Fprintf(os.Stdout, "\t\tSubject: %s\n", cert.Subject)
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\n\tCertificate #%d:\n", i+1)
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\t\tCertificate Authority: %t\n", cert.IsCA)
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\t\tPublic Key Algorithm: %s\n", cert.PublicKeyAlgorithm)
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\t\tSignature Algorithm: %s\n", cert.SignatureAlgorithm)
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\t\tSubject: %s\n", cert.Subject)
 
 		if len(cert.DNSNames) != 0 {
-			_, _ = fmt.Fprintf(os.Stdout, "\t\tAlternative Names (DNS): %s\n", strings.Join(cert.DNSNames, ", "))
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\t\tAlternative Names (DNS): %s\n", strings.Join(cert.DNSNames, ", "))
 		}
 
 		if len(cert.IPAddresses) != 0 {
@@ -395,15 +394,15 @@ func (ctx *CmdCtx) DebugTLSRunE(cmd *cobra.Command, args []string) (err error) {
 				ips[j] = ip.String()
 			}
 
-			_, _ = fmt.Fprintf(os.Stdout, "\t\tAlternative Names (IP): %s\n", strings.Join(ips, ", "))
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\t\tAlternative Names (IP): %s\n", strings.Join(ips, ", "))
 		}
 
-		_, _ = fmt.Fprintf(os.Stdout, "\t\tIssuer: %s\n", cert.Issuer)
-		_, _ = fmt.Fprintf(os.Stdout, "\t\tNot Before: %s\n", cert.NotBefore)
-		_, _ = fmt.Fprintf(os.Stdout, "\t\tNot After: %s\n", cert.NotAfter)
-		_, _ = fmt.Fprintf(os.Stdout, "\t\tSerial Number: %s\n", cert.SerialNumber)
-		_, _ = fmt.Fprintf(os.Stdout, "\t\tValid: %t\n", valid)
-		_, _ = fmt.Fprintf(os.Stdout, "\t\tValid (System): %t\n", validSystem)
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\t\tIssuer: %s\n", cert.Issuer)
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\t\tNot Before: %s\n", cert.NotBefore)
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\t\tNot After: %s\n", cert.NotAfter)
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\t\tSerial Number: %s\n", cert.SerialNumber)
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\t\tValid: %t\n", valid)
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\t\tValid (System): %t\n", validSystem)
 
 		if err != nil {
 			var (
@@ -414,30 +413,30 @@ func (ctx *CmdCtx) DebugTLSRunE(cmd *cobra.Command, args []string) (err error) {
 
 			switch {
 			case errors.As(err, &errUA):
-				_, _ = fmt.Fprintf(os.Stdout, "\t\tValidation Hint: Certificate signed by unknown authority\n")
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\t\tValidation Hint: Certificate signed by unknown authority\n")
 			case errors.As(err, &errH):
-				_, _ = fmt.Fprintf(os.Stdout, "\t\tValidation Hint: Certificate hostname mismatch\n")
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\t\tValidation Hint: Certificate hostname mismatch\n")
 			case errors.As(err, &errCI):
-				_, _ = fmt.Fprintf(os.Stdout, "\t\tValidation Hint: Certificate is invalid\n")
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\t\tValidation Hint: Certificate is invalid\n")
 			default:
-				_, _ = fmt.Fprintf(os.Stdout, "\t\tValidation Hint: Unknown Error (%T)\n", err)
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\t\tValidation Hint: Unknown Error (%T)\n", err)
 			}
 
-			_, _ = fmt.Fprintf(os.Stdout, "\t\tValidation Error: %v\n", err)
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\t\tValidation Error: %v\n", err)
 		}
 
 		if i == 0 {
 			if err = cert.VerifyHostname(hostname); err != nil {
 				validHostname = false
 
-				_, _ = fmt.Fprintf(os.Stdout, "\t\tHostname Verification: fail\n\t\tHostname Verification Error: %v\n", err)
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\t\tHostname Verification: fail\n\t\tHostname Verification Error: %v\n", err)
 			} else {
-				_, _ = fmt.Fprintf(os.Stdout, "\t\tHostname Verification: pass\n")
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\t\tHostname Verification: pass\n")
 			}
 		}
 	}
 
-	_, _ = fmt.Fprintf(os.Stdout, "\n\tCertificate Trusted: %t\n\tCertificate Matches Hostname: %t\n", valid, validHostname)
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\n\tCertificate Trusted: %t\n\tCertificate Matches Hostname: %t\n", valid, validHostname)
 
 	c := struct {
 		TLS schema.TLS `yaml:"tls"`
@@ -458,22 +457,22 @@ func (ctx *CmdCtx) DebugTLSRunE(cmd *cobra.Command, args []string) (err error) {
 
 	data, err := goyaml.Marshal(&c)
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stdout, "\nError marshaling suggested config: %v\n", err)
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\nError marshaling suggested config: %v\n", err)
 	} else {
-		_, _ = fmt.Fprintf(os.Stdout, "\nSuggested Configuration:\n\n")
-		_, _ = fmt.Fprintf(os.Stdout, "%s\n", string(data))
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\nSuggested Configuration:\n\n")
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "%s\n", string(data))
 	}
 
 	if !valid {
-		_, _ = fmt.Fprintf(os.Stdout, "\nWARNING: The certificate is not valid for one reason or another. You may need to configure Authelia to trust certificate below.\n\n")
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\nWARNING: The certificate is not valid for one reason or another. You may need to configure Authelia to trust certificate below.\n\n")
 
 		block := &pem.Block{
 			Type:  utils.BlockTypeCertificate,
 			Bytes: conn.ConnectionState().PeerCertificates[0].Raw,
 		}
 
-		if err = pem.Encode(os.Stdout, block); err != nil {
-			_, _ = fmt.Fprintf(os.Stdout, "Error writing certificate to stdout: %v\n", err)
+		if err = pem.Encode(cmd.OutOrStdout(), block); err != nil {
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Error writing certificate to stdout: %v\n", err)
 		}
 	}
 

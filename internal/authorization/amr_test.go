@@ -42,30 +42,30 @@ func TestNewAuthenticationMethodsReferencesFromClaim(t *testing.T) {
 
 func TestAuthenticationMethodsReferences(t *testing.T) {
 	testCases := []struct {
-		desc string
-		is   authorization.AuthenticationMethodsReferences
-		want testAMRWant
+		name     string
+		have     authorization.AuthenticationMethodsReferences
+		expected testAMRWant
 	}{
 
 		{
-			desc: "Username and Password",
+			name: "UsernameAndPassword",
 
-			is: authorization.AuthenticationMethodsReferences{UsernameAndPassword: true},
-			want: testAMRWant{
+			have: authorization.AuthenticationMethodsReferences{UsernameAndPassword: true, KnowledgeBasedAuthentication: true},
+			expected: testAMRWant{
 				FactorKnowledge:            true,
 				FactorPossession:           false,
 				MultiFactorAuthentication:  false,
 				ChannelBrowser:             true,
 				ChannelService:             false,
 				MultiChannelAuthentication: false,
-				RFC8176:                    []string{"pwd"},
+				RFC8176:                    []string{"pwd", "kba"},
 			},
 		},
 		{
-			desc: "TOTP",
+			name: "TOTP",
 
-			is: authorization.AuthenticationMethodsReferences{TOTP: true},
-			want: testAMRWant{
+			have: authorization.AuthenticationMethodsReferences{TOTP: true},
+			expected: testAMRWant{
 				FactorKnowledge:            false,
 				FactorPossession:           true,
 				MultiFactorAuthentication:  false,
@@ -76,10 +76,10 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 			},
 		},
 		{
-			desc: "WebAuthn",
+			name: "WebAuthn",
 
-			is: authorization.AuthenticationMethodsReferences{WebAuthn: true, WebAuthnHardware: true},
-			want: testAMRWant{
+			have: authorization.AuthenticationMethodsReferences{WebAuthn: true, WebAuthnHardware: true},
+			expected: testAMRWant{
 				FactorKnowledge:            false,
 				FactorPossession:           true,
 				MultiFactorAuthentication:  false,
@@ -90,10 +90,10 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 			},
 		},
 		{
-			desc: "WebAuthnSoftware",
+			name: "WebAuthnSoftware",
 
-			is: authorization.AuthenticationMethodsReferences{WebAuthn: true, WebAuthnSoftware: true},
-			want: testAMRWant{
+			have: authorization.AuthenticationMethodsReferences{WebAuthn: true, WebAuthnSoftware: true},
+			expected: testAMRWant{
 				FactorKnowledge:            false,
 				FactorPossession:           true,
 				MultiFactorAuthentication:  false,
@@ -104,10 +104,10 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 			},
 		},
 		{
-			desc: "WebAuthn User Presence",
+			name: "WebAuthnUserPresence",
 
-			is: authorization.AuthenticationMethodsReferences{WebAuthnUserPresence: true},
-			want: testAMRWant{
+			have: authorization.AuthenticationMethodsReferences{WebAuthnUserPresence: true},
+			expected: testAMRWant{
 				FactorKnowledge:            false,
 				FactorPossession:           false,
 				MultiFactorAuthentication:  false,
@@ -118,10 +118,10 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 			},
 		},
 		{
-			desc: "WebAuthn User Verified",
+			name: "WebAuthnUserVerified",
 
-			is: authorization.AuthenticationMethodsReferences{WebAuthnUserVerified: true},
-			want: testAMRWant{
+			have: authorization.AuthenticationMethodsReferences{WebAuthnUserVerified: true},
+			expected: testAMRWant{
 				FactorKnowledge:            false,
 				FactorPossession:           false,
 				MultiFactorAuthentication:  false,
@@ -132,10 +132,10 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 			},
 		},
 		{
-			desc: "WebAuthn with User Presence and Verified",
+			name: "WebAuthnWithUserPresenceAndVerified",
 
-			is: authorization.AuthenticationMethodsReferences{WebAuthn: true, WebAuthnHardware: true, WebAuthnUserVerified: true, WebAuthnUserPresence: true},
-			want: testAMRWant{
+			have: authorization.AuthenticationMethodsReferences{WebAuthn: true, WebAuthnHardware: true, WebAuthnUserVerified: true, WebAuthnUserPresence: true},
+			expected: testAMRWant{
 				FactorKnowledge:            false,
 				FactorPossession:           true,
 				MultiFactorAuthentication:  false,
@@ -146,10 +146,10 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 			},
 		},
 		{
-			desc: "Duo",
+			name: "Duo",
 
-			is: authorization.AuthenticationMethodsReferences{Duo: true},
-			want: testAMRWant{
+			have: authorization.AuthenticationMethodsReferences{Duo: true},
+			expected: testAMRWant{
 				FactorKnowledge:            false,
 				FactorPossession:           true,
 				MultiFactorAuthentication:  false,
@@ -160,10 +160,10 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 			},
 		},
 		{
-			desc: "Duo WebAuthn TOTP",
+			name: "DuoWebAuthnTOTP",
 
-			is: authorization.AuthenticationMethodsReferences{Duo: true, WebAuthn: true, WebAuthnHardware: true, TOTP: true},
-			want: testAMRWant{
+			have: authorization.AuthenticationMethodsReferences{Duo: true, WebAuthn: true, WebAuthnHardware: true, TOTP: true},
+			expected: testAMRWant{
 				FactorKnowledge:            false,
 				FactorPossession:           true,
 				MultiFactorAuthentication:  false,
@@ -174,10 +174,10 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 			},
 		},
 		{
-			desc: "Duo TOTP",
+			name: "DuoTOTP",
 
-			is: authorization.AuthenticationMethodsReferences{Duo: true, TOTP: true},
-			want: testAMRWant{
+			have: authorization.AuthenticationMethodsReferences{Duo: true, TOTP: true},
+			expected: testAMRWant{
 				FactorKnowledge:            false,
 				FactorPossession:           true,
 				MultiFactorAuthentication:  false,
@@ -188,10 +188,10 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 			},
 		},
 		{
-			desc: "Username and Password with Duo",
+			name: "UsernameAndPasswordWithDuo",
 
-			is: authorization.AuthenticationMethodsReferences{Duo: true, UsernameAndPassword: true},
-			want: testAMRWant{
+			have: authorization.AuthenticationMethodsReferences{Duo: true, UsernameAndPassword: true},
+			expected: testAMRWant{
 				FactorKnowledge:            true,
 				FactorPossession:           true,
 				MultiFactorAuthentication:  true,
@@ -204,17 +204,17 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.desc, func(t *testing.T) {
-			assert.Equal(t, tc.want.FactorKnowledge, tc.is.FactorKnowledge())
-			assert.Equal(t, tc.want.FactorPossession, tc.is.FactorPossession())
-			assert.Equal(t, tc.want.MultiFactorAuthentication, tc.is.MultiFactorAuthentication())
-			assert.Equal(t, tc.want.ChannelBrowser, tc.is.ChannelBrowser())
-			assert.Equal(t, tc.want.ChannelService, tc.is.ChannelService())
-			assert.Equal(t, tc.want.MultiChannelAuthentication, tc.is.MultiChannelAuthentication())
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected.FactorKnowledge, tc.have.FactorKnowledge())
+			assert.Equal(t, tc.expected.FactorPossession, tc.have.FactorPossession())
+			assert.Equal(t, tc.expected.MultiFactorAuthentication, tc.have.MultiFactorAuthentication())
+			assert.Equal(t, tc.expected.ChannelBrowser, tc.have.ChannelBrowser())
+			assert.Equal(t, tc.expected.ChannelService, tc.have.ChannelService())
+			assert.Equal(t, tc.expected.MultiChannelAuthentication, tc.have.MultiChannelAuthentication())
 
-			isRFC8176 := tc.is.MarshalRFC8176()
+			isRFC8176 := tc.have.MarshalRFC8176()
 
-			for _, amr := range tc.want.RFC8176 {
+			for _, amr := range tc.expected.RFC8176 {
 				t.Run(fmt.Sprintf("has all wanted/%s", amr), func(t *testing.T) {
 					assert.Contains(t, isRFC8176, amr)
 				})
@@ -222,7 +222,7 @@ func TestAuthenticationMethodsReferences(t *testing.T) {
 
 			for _, amr := range isRFC8176 {
 				t.Run(fmt.Sprintf("only has wanted/%s", amr), func(t *testing.T) {
-					assert.Contains(t, tc.want.RFC8176, amr)
+					assert.Contains(t, tc.expected.RFC8176, amr)
 				})
 			}
 		})

@@ -1015,6 +1015,8 @@ users:
 `)
 
 func WithDatabase(t *testing.T, content []byte, f func(path string)) {
+	t.Helper()
+
 	dir := t.TempDir()
 
 	db, err := os.CreateTemp(dir, "users_database.*.yml")

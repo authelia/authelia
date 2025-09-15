@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v4"
 )
 
 func newDocsSEOCmd() *cobra.Command {
@@ -45,7 +45,7 @@ func docsSEOOpenIDConnectRunE(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	root := filepath.Join(pathDocsContent, "integration", "openid-connect")
+	root := filepath.Join(pathDocsContent, "integration", "openid-connect", "clients")
 
 	return filepath.Walk(root, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
@@ -70,14 +70,14 @@ func docsSEOOpenIDConnectRunE(cmd *cobra.Command, args []string) (err error) {
 		frontmatter := map[string]any{}
 
 		if err = yaml.Unmarshal(frontmatterBytes, frontmatter); err != nil {
-			return err
+			return fmt.Errorf("error parsing frontmatter for file %s: %v", path, err)
 		}
 
 		var (
-			ok          bool
-			raw         any
-			seo         map[string]any
-			title, desc string
+			ok                    bool
+			raw                   any
+			seo                   map[string]any
+			seotitle, title, desc string
 		)
 
 		if raw, ok = frontmatter["seo"]; !ok {
@@ -102,6 +102,14 @@ func docsSEOOpenIDConnectRunE(cmd *cobra.Command, args []string) (err error) {
 
 		if title, ok = raw.(string); !ok {
 			return fmt.Errorf("error parsing frontmatter for %s: title is not a string", path)
+		}
+
+		if raw, ok = seo["title"]; !ok || raw == "" {
+			seotitle = fmt.Sprintf("%s | OpenID Connect 1.0 | Integration", title)
+		}
+
+		if len(seotitle) != 0 {
+			replaceFrontMatter(abs, "", fmt.Sprintf(`  title: "%s"`, seotitle), "  title:")
 		}
 
 		expected := fmt.Sprintf("Step-by-step guide to configuring %s with OpenID Connect 1.0 for secure SSO. Enhance your login flow using Authelia’s modern identity management.", title)

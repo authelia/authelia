@@ -42,16 +42,16 @@ func (m *MockTokenIntrospector) EXPECT() *MockTokenIntrospectorMockRecorder {
 }
 
 // IntrospectToken mocks base method.
-func (m *MockTokenIntrospector) IntrospectToken(ctx context.Context, token string, tokenUse oauth2.TokenUse, accessRequest oauth2.AccessRequester, scopes []string) (oauth2.TokenUse, error) {
+func (m *MockTokenIntrospector) IntrospectToken(ctx context.Context, token string, tokenUseHint oauth2.TokenUse, requester oauth2.AccessRequester, scopes []string) (oauth2.TokenUse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IntrospectToken", ctx, token, tokenUse, accessRequest, scopes)
+	ret := m.ctrl.Call(m, "IntrospectToken", ctx, token, tokenUseHint, requester, scopes)
 	ret0, _ := ret[0].(oauth2.TokenUse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // IntrospectToken indicates an expected call of IntrospectToken.
-func (mr *MockTokenIntrospectorMockRecorder) IntrospectToken(ctx, token, tokenUse, accessRequest, scopes any) *gomock.Call {
+func (mr *MockTokenIntrospectorMockRecorder) IntrospectToken(ctx, token, tokenUseHint, requester, scopes any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IntrospectToken", reflect.TypeOf((*MockTokenIntrospector)(nil).IntrospectToken), ctx, token, tokenUse, accessRequest, scopes)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IntrospectToken", reflect.TypeOf((*MockTokenIntrospector)(nil).IntrospectToken), ctx, token, tokenUseHint, requester, scopes)
 }

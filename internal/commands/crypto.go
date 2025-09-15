@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"fmt"
+	"io"
 	"net/url"
 	"os"
 	"path"
@@ -248,10 +249,7 @@ func newCryptoGenerateCmd(ctx *CmdCtx, category, algorithm string) (cmd *cobra.C
 
 // CryptoRandRunE is the RunE for the authelia crypto rand command.
 func (ctx *CmdCtx) CryptoRandRunE(cmd *cobra.Command, args []string) (err error) {
-	var (
-		files []string
-		out   = os.Stdout
-	)
+	var files []string
 
 	if cmd.Flags().Changed(cmdFlagNameFile) {
 		if len(args) > 0 {
@@ -266,29 +264,29 @@ func (ctx *CmdCtx) CryptoRandRunE(cmd *cobra.Command, args []string) (err error)
 	}
 
 	if len(files) == 0 {
-		return ctx.CryptoRandPrintRunE(cmd, args, out)
+		return ctx.CryptoRandPrintRunE(cmd, args, cmd.OutOrStdout())
 	} else {
-		return ctx.CryptoRandFilesRunE(cmd, args, out, files)
+		return ctx.CryptoRandFilesRunE(cmd, args, cmd.OutOrStdout(), files)
 	}
 }
 
-func (ctx *CmdCtx) CryptoRandPrintRunE(cmd *cobra.Command, args []string, out *os.File) (err error) {
+func (ctx *CmdCtx) CryptoRandPrintRunE(cmd *cobra.Command, args []string, w io.Writer) (err error) {
 	var random string
 
 	if random, err = flagsGetRandomCharacters(cmd.Flags(), cmdFlagNameLength, cmdFlagNameCharSet, cmdFlagNameCharacters); err != nil {
 		return err
 	}
 
-	_, _ = fmt.Fprintf(out, "Random Value: %s\n", random)
+	_, _ = fmt.Fprintf(w, "Random Value: %s\n", random)
 
 	if value := url.QueryEscape(random); random != value {
-		_, _ = fmt.Fprintf(out, "Random Value (URL Encoded): %s\n", value)
+		_, _ = fmt.Fprintf(w, "Random Value (URL Encoded): %s\n", value)
 	}
 
 	return nil
 }
 
-func (ctx *CmdCtx) CryptoRandFilesRunE(cmd *cobra.Command, args []string, out *os.File, files []string) (err error) {
+func (ctx *CmdCtx) CryptoRandFilesRunE(cmd *cobra.Command, args []string, w io.Writer, files []string) (err error) {
 	var (
 		fmode  os.FileMode
 		dmode  os.FileMode
@@ -341,10 +339,10 @@ func (ctx *CmdCtx) CryptoRandFilesRunE(cmd *cobra.Command, args []string, out *o
 		}
 	}
 
-	_, _ = fmt.Fprintf(out, "Created %d files with unique random values:\n", len(files))
+	_, _ = fmt.Fprintf(w, "Created %d files with unique random values:\n", len(files))
 
 	for _, name = range files {
-		_, _ = fmt.Fprintf(out, "\t- %s\n", name)
+		_, _ = fmt.Fprintf(w, "\t- %s\n", name)
 	}
 
 	return nil
@@ -465,7 +463,7 @@ func (ctx *CmdCtx) CryptoCertificateRequestRunE(cmd *cobra.Command, _ []string) 
 
 	b.WriteString("\n")
 
-	fmt.Print(b.String())
+	_, _ = fmt.Fprint(cmd.OutOrStdout(), b.String())
 
 	b.Reset()
 
@@ -509,44 +507,43 @@ func (ctx *CmdCtx) CryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string,
 		return err
 	}
 
-	b := &strings.Builder{}
+	_, _ = fmt.Fprint(cmd.OutOrStdout(), "Generating Certificate\n\n")
 
-	b.WriteString("Generating Certificate\n\n")
-
-	fmt.Fprintf(b, "\tSerial: %x\n\n", template.SerialNumber)
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\tSerial: %x\n\n", template.SerialNumber)
 
 	switch caCertificate {
 	case nil:
 		parent = template
 
-		b.WriteString("Signed By:\n\tSelf-Signed\n")
+		_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Signed By:")
+		_, _ = fmt.Fprintln(cmd.OutOrStdout(), "\tSelf-Signed:")
 	default:
 		parent = caCertificate
 
-		fmt.Fprintf(b, "Signed By:\n\t%s\n", caCertificate.Subject.CommonName)
-		fmt.Fprintf(b, "\tSerial: %x, Expires: %s\n", caCertificate.SerialNumber, caCertificate.NotAfter.Format(time.RFC3339))
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Signed By:\n\t%s\n", caCertificate.Subject.CommonName)
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\tSerial: %x, Expires: %s\n", caCertificate.SerialNumber, caCertificate.NotAfter.Format(time.RFC3339))
 	}
 
-	b.WriteString("\nSubject:\n")
-	fmt.Fprintf(b, "\tCommon Name: %s, Organization: %s, Organizational Unit: %s\n", template.Subject.CommonName, template.Subject.Organization, template.Subject.OrganizationalUnit)
-	fmt.Fprintf(b, "\tCountry: %v, Province: %v, Street Address: %v, Postal Code: %v, Locality: %v\n\n", template.Subject.Country, template.Subject.Province, template.Subject.StreetAddress, template.Subject.PostalCode, template.Subject.Locality)
+	_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Subject:")
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\tCommon Name: %s, Organization: %s, Organizational Unit: %s\n", template.Subject.CommonName, template.Subject.Organization, template.Subject.OrganizationalUnit)
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\tCountry: %v, Province: %v, Street Address: %v, Postal Code: %v, Locality: %v\n\n", template.Subject.Country, template.Subject.Province, template.Subject.StreetAddress, template.Subject.PostalCode, template.Subject.Locality)
 
-	b.WriteString("Properties:\n")
-	fmt.Fprintf(b, "\tNot Before: %s, Not After: %s\n", template.NotBefore.Format(time.RFC3339), template.NotAfter.Format(time.RFC3339))
+	_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Properties:")
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\tNot Before: %s, Not After: %s\n", template.NotBefore.Format(time.RFC3339), template.NotAfter.Format(time.RFC3339))
 
-	fmt.Fprintf(b, "\tCA: %v, CSR: %v, Signature Algorithm: %s, Public Key Algorithm: %s", template.IsCA, false, template.SignatureAlgorithm, template.PublicKeyAlgorithm)
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\tCA: %v, CSR: %v, Signature Algorithm: %s, Public Key Algorithm: %s", template.IsCA, false, template.SignatureAlgorithm, template.PublicKeyAlgorithm)
 
 	switch k := privateKey.(type) {
 	case *rsa.PrivateKey:
-		fmt.Fprintf(b, ", Bits: %d", k.N.BitLen())
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), ", Bits: %d", k.N.BitLen())
 	case *ecdsa.PrivateKey:
-		fmt.Fprintf(b, ", Elliptic Curve: %s", k.Curve.Params().Name)
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), ", Elliptic Curve: %s", k.Curve.Params().Name)
 	case ed25519.PrivateKey:
 		// Legacy format is not available for Ed25519.
 		legacy = false
 	}
 
-	fmt.Fprintf(b, "\n\tSubject Alternative Names: %s\n\n", strings.Join(cryptoSANsToString(template.DNSNames, template.IPAddresses), ", "))
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\n\tSubject Alternative Names: %s\n\n", strings.Join(cryptoSANsToString(template.DNSNames, template.IPAddresses), ", "))
 
 	var (
 		dir, privateKeyPath, privateKeyLegacyPath, certificatePath string
@@ -570,14 +567,14 @@ func (ctx *CmdCtx) CryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string,
 		privateKeyPaths = append(privateKeyPaths, filepath.Base(privateKeyLegacyPath))
 	}
 
-	b.WriteString("Output Paths:\n")
+	_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Output Paths:")
 
 	if cdir := filepath.Clean(dir); len(cdir) != 0 {
-		fmt.Fprintf(b, "\tDirectory: %s\n", cdir)
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\tDirectory: %s\n", cdir)
 	}
 
-	fmt.Fprintf(b, "\tPrivate Key: %s\n", strings.Join(privateKeyPaths, ", "))
-	fmt.Fprintf(b, "\tCertificate: %s\n", filepath.Base(certificatePath))
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\tPrivate Key: %s\n", strings.Join(privateKeyPaths, ", "))
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "\tCertificate: %s\n", filepath.Base(certificatePath))
 
 	if certificate, err = x509.CreateCertificate(ctx.providers.Random, template, parent, publicKey, signatureKey); err != nil {
 		return fmt.Errorf("failed to create certificate: %w", err)
@@ -598,16 +595,12 @@ func (ctx *CmdCtx) CryptoCertificateGenerateRunE(cmd *cobra.Command, _ []string,
 	}
 
 	if cmd.Flags().Changed(cmdFlagNameBundles) {
-		if err = cryptoGenerateCertificateBundlesFromCmd(cmd, b, dir, caCertificate, certificate, privateKey); err != nil {
+		if err = cryptoGenerateCertificateBundlesFromCmd(cmd, dir, caCertificate, certificate, privateKey); err != nil {
 			return err
 		}
 	}
 
-	b.WriteString("\n")
-
-	fmt.Print(b.String())
-
-	b.Reset()
+	_, _ = fmt.Fprintln(cmd.OutOrStdout())
 
 	return nil
 }
@@ -709,7 +702,7 @@ func (ctx *CmdCtx) CryptoPairGenerateRunE(cmd *cobra.Command, _ []string, privat
 
 	b.WriteString("\n")
 
-	fmt.Print(b.String())
+	_, _ = fmt.Fprint(cmd.OutOrStdout(), b.String())
 
 	b.Reset()
 

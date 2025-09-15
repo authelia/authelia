@@ -23,7 +23,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v4"
 )
 
 // FuncMap returns the template FuncMap commonly used in several templates.

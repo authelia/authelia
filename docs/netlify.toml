@@ -34,6 +34,50 @@
   autoLaunch = false
 
 # Redirects and rewrites — https://docs.netlify.com/routing/redirects/#syntax-for-the-netlify-configuration-file
+[[redirects]]
+  from = "/l/apt"
+  to = "/integration/deployment/bare-metal/#add-the-apt-repository"
+  status = 301
+
+[[redirects]]
+  from = "/l/charts"
+  to = "https://charts.authelia.com"
+  status = 301
+
+[[redirects]]
+  from = "/l/translate"
+  to = "https://translate.authelia.com"
+  status = 301
+
+[[redirects]]
+  from = "/l/github"
+  to = "https://github.com/authelia/authelia"
+  status = 301
+
+[[redirects]]
+  from = "/l/bug"
+  to = "https://github.com/authelia/authelia/issues/new?template=bug-report.yml"
+  status = 301
+
+[[redirects]]
+  from = "/l/fr"
+  to = "https://github.com/authelia/authelia/issues/new?template=feature-request.yml"
+  status = 301
+
+[[redirects]]
+  from = "/docs"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/docs/"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/c/acl-match-concept-2"
+  to = "/configuration/security/access-control/#rule-matching-concept-2-subject-criteria-requires-authentication"
+  status = 301
 
 # Custom headers — https://docs.netlify.com/routing/headers/#syntax-for-the-netlify-configuration-file
 [[headers]]

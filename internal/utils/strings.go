@@ -12,13 +12,8 @@ import (
 // IsStringAbsURL checks a string can be parsed as a URL and that is IsAbs and if it can't it returns an error
 // describing why.
 func IsStringAbsURL(input string) (err error) {
-	parsedURL, err := url.ParseRequestURI(input)
-	if err != nil {
+	if _, err = url.ParseRequestURI(input); err != nil {
 		return fmt.Errorf("could not parse '%s' as a URL", input)
-	}
-
-	if !parsedURL.IsAbs() {
-		return fmt.Errorf("the url '%s' is not absolute because it doesn't start with a scheme like 'http://' or 'https://'", input)
 	}
 
 	return nil

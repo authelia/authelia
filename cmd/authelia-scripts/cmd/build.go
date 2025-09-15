@@ -3,7 +3,6 @@ package cmd
 import (
 	"os"
 	"strings"
-	"sync"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -60,9 +59,9 @@ func cmdBuildRun(cobraCmd *cobra.Command, args []string) {
 	buildkite, _ := cobraCmd.Flags().GetBool("buildkite")
 
 	if buildkite {
-		log.Info("Building Authelia Go binaries with gox...")
+		log.Info("Building Authelia Go binaries with GoReleaser...")
 
-		buildAutheliaBinaryGOX(buildMetaData.XFlags())
+		buildAutheliaBinaryCI(buildMetaData.XFlags())
 	} else {
 		log.Info("Building Authelia Go binary...")
 
@@ -72,45 +71,43 @@ func cmdBuildRun(cobraCmd *cobra.Command, args []string) {
 	cleanAssets()
 }
 
-func buildAutheliaBinaryGOX(xflags []string) {
-	var wg sync.WaitGroup
-
+func buildAutheliaBinaryCI(xflags []string) {
 	s := time.Now()
 
-	wg.Add(2)
+	pwd, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	go func() {
-		defer wg.Done()
+	args := []string{
+		"run", "--rm",
+		"--name", "authelia-crossbuild",
+		"--user", "1000:1000",
+		"-e", "BUILDKITE_TAG=" + os.Getenv("BUILDKITE_TAG"),
+		"-e", "GOPATH=/tmp/go",
+		"-e", "GOCACHE=/tmp/go-build",
+		"-e", "GPG_PASSWORD=" + os.Getenv("GPG_PASSWORD"),
+		"-e", "GPG_KEY_PATH=" + os.Getenv("GPG_KEY_PATH"),
+		"-e", "HOME=/tmp",
+		"-e", "NFPM_DEBIAN_PASSPHRASE=" + os.Getenv("GPG_PASSWORD"),
+		"-e", "XFLAGS=" + strings.Join(xflags, " "),
+		"-v", pwd + ":/workdir",
+		"-v", "/buildkite/.gnupg:/tmp/.gnupg",
+		"-v", "/buildkite/.go:/tmp/go",
+		"-v", "/buildkite/.sign:/tmp/sign",
+		"-v", "/usr/local/include:/usr/local/include",
+		"authelia/crossbuild",
+		"goreleaser", "release", "--skip=publish,validate",
+	}
 
-		cmd := utils.CommandWithStdout("gox", "-output={{.Dir}}-{{.OS}}-{{.Arch}}-musl", "-buildmode=pie", "-trimpath", "-cgo", "-ldflags=-linkmode=external -s -w "+strings.Join(xflags, " "), "-osarch=linux/amd64 linux/arm linux/arm64", "./cmd/authelia/")
+	cmd := utils.CommandWithStdout("docker", args...)
 
-		cmd.Env = append(os.Environ(),
-			"GOEXPERIMENT=nosynchashtriemap", "CGO_CPPFLAGS=-D_FORTIFY_SOURCE=2 -fstack-protector-strong", "CGO_LDFLAGS=-Wl,-z,relro,-z,now",
-			"GOX_LINUX_ARM_CC=arm-linux-musleabihf-gcc", "GOX_LINUX_ARM64_CC=aarch64-linux-musl-gcc")
+	err = cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-		err := cmd.Run()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}()
-
-	go func() {
-		defer wg.Done()
-
-		cmd := utils.CommandWithStdout("bash", "-c", "docker run --rm -e GOEXPERIMENT=nosynchashtriemap -e GOX_LINUX_ARM_CC=arm-linux-gnueabihf-gcc -e GOX_LINUX_ARM64_CC=aarch64-linux-gnu-gcc -e GOX_FREEBSD_AMD64_CC=x86_64-pc-freebsd14-gcc -v ${PWD}:/workdir -v /buildkite/.go:/root/go authelia/crossbuild "+
-			"gox -output={{.Dir}}-{{.OS}}-{{.Arch}} -buildmode=pie -trimpath -cgo -ldflags=\"-linkmode=external -s -w "+strings.Join(xflags, " ")+"\" -osarch=\"linux/amd64 linux/arm linux/arm64 freebsd/amd64\" ./cmd/authelia/")
-
-		err := cmd.Run()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}()
-
-	wg.Wait()
-
-	e := time.Since(s)
-
-	log.Debugf("Binary compilation completed in %s.", e)
+	log.Debugf("Binary compilation completed in %s.", time.Since(s))
 }
 
 func buildAutheliaBinaryGO(xflags []string) {
@@ -126,7 +123,7 @@ func buildAutheliaBinaryGO(xflags []string) {
 }
 
 func buildFrontend(branch string) {
-	cmd := utils.CommandWithStdout("pnpm", "install")
+	cmd := utils.CommandWithStdout("pnpm", "install", "--ignore-scripts")
 	cmd.Dir = webDirectory
 
 	err := cmd.Run()

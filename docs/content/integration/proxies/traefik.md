@@ -164,7 +164,7 @@ networks:
 services:
   traefik:
     container_name: 'traefik'
-    image: 'traefik:v3.1'
+    image: 'traefik:v3.5'
     restart: 'unless-stopped'
     command:
       - '--api=true'
@@ -292,7 +292,7 @@ networks:
 services:
   traefik:
     container_name: 'traefik'
-    image: 'traefik:v3.1'
+    image: 'traefik:v3.5'
     restart: 'unless-stopped'
     command:
       - '--api=true'

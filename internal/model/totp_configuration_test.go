@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v4"
 )
 
 /*
@@ -34,12 +34,13 @@ func TestShouldOnlyMarshalPeriodAndDigitsAndAbsolutelyNeverSecret(t *testing.T) 
 	}
 
 	object2 := TOTPConfiguration{
-		ID:        1,
-		Username:  "john",
-		Issuer:    "Authelia",
-		Algorithm: "SHA1",
-		Digits:    6,
-		Period:    30,
+		ID:         1,
+		Username:   "john",
+		Issuer:     "Authelia",
+		Algorithm:  "SHA1",
+		Digits:     6,
+		Period:     30,
+		LastUsedAt: sql.NullTime{Valid: true, Time: time.Unix(10000000000, 0).UTC()},
 
 		// DO NOT CHANGE THIS VALUE UNLESS YOU FULLY UNDERSTAND THE COMMENT AT THE TOP OF THIS TEST.
 		Secret: []byte("ABC123"),
@@ -52,7 +53,7 @@ func TestShouldOnlyMarshalPeriodAndDigitsAndAbsolutelyNeverSecret(t *testing.T) 
 	assert.NoError(t, err)
 
 	assert.Equal(t, "{\"created_at\":\"0001-01-01T00:00:00Z\",\"issuer\":\"Authelia\",\"algorithm\":\"SHA1\",\"digits\":6,\"period\":30}", string(data))
-	assert.Equal(t, "{\"created_at\":\"0001-01-01T00:00:00Z\",\"issuer\":\"Authelia\",\"algorithm\":\"SHA1\",\"digits\":6,\"period\":30}", string(data2))
+	assert.Equal(t, "{\"created_at\":\"0001-01-01T00:00:00Z\",\"last_used_at\":\"2286-11-20T17:46:40Z\",\"issuer\":\"Authelia\",\"algorithm\":\"SHA1\",\"digits\":6,\"period\":30}", string(data2))
 
 	// DO NOT REMOVE OR CHANGE THESE TESTS UNLESS YOU FULLY UNDERSTAND THE COMMENT AT THE TOP OF THIS TEST.
 	require.NotContains(t, string(data), "secret")
@@ -61,6 +62,11 @@ func TestShouldOnlyMarshalPeriodAndDigitsAndAbsolutelyNeverSecret(t *testing.T) 
 	require.NotContains(t, string(data2), "ABC123")
 	require.NotContains(t, string(data), "QUJDMTIz")
 	require.NotContains(t, string(data2), "QUJDMTIz")
+
+	object.UpdateSignInInfo(time.Unix(10000000001, 0).UTC())
+
+	assert.Equal(t, time.Unix(10000000001, 0).UTC(), object.LastUsedAt.Time)
+	assert.True(t, object.LastUsedAt.Valid)
 }
 
 func TestShouldReturnErrWhenImageTooSmall(t *testing.T) {

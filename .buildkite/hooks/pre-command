@@ -20,21 +20,10 @@ if [[ "${BUILDKITE_LABEL}" == ":docker: Build Image [coverage]" ]]; then
   cp -R /buildkite/.local .
 fi
 
-if [[ "${BUILDKITE_LABEL}" =~ ":debian: Build Package" ]]; then
-  buildkite-agent artifact download "authelia-linux-${ARCH}.tar.gz" .
-fi
-
 if [[ "${BUILDKITE_LABEL}" =~ ":selenium:" ]]; then
   echo "--- :docker: Extract and load build container"
   mkdir coverage
-
-  if [[ "${BUILDKITE_AGENT_NAME}" =~ ^(atlas|vega)[0-9]+$ ]]; then
-    BUILDKITE_S3_ENDPOINT="${S3_ENDPOINT}" BUILDKITE_ARTIFACT_UPLOAD_DESTINATION="${S3_BUCKET}" BUILDKITE_S3_ACCESS_URL="${S3_ACCESS_URL}" BUILDKITE_S3_ACCESS_KEY_ID="${S3_ACCESS_KEY_ID}" BUILDKITE_S3_SECRET_ACCESS_KEY="${S3_SECRET_ACCESS_KEY}" buildkite-agent artifact download "authelia-image-coverage-cygnus*" . && \
-    mv authelia-image-coverage-cygnus.tar.zst authelia-image-coverage.tar.zst || \
-    buildkite-agent artifact download "authelia-image-coverage.*" .
-  else
-    buildkite-agent artifact download "authelia-image-coverage.*" .
-  fi
+  buildkite-agent artifact download "authelia-image-coverage.*" .
 
   if [[ "${SUITE}" == "Kubernetes" ]]; then
     zstd -d authelia-image-coverage.tar.zst --stdout > ./internal/suites/example/kube/authelia-image-coverage.tar
@@ -63,8 +52,9 @@ fi
 
 if [[ "${BUILDKITE_LABEL}" == ":docker: Deploy Manifest" ]]; then
   echo "--- :go: :react: :swagger: Extract pre-built binary"
-  buildkite-agent artifact download "authelia-linux-*.tar.gz" .
-  for archive in authelia-linux-*.tar.gz; do tar xzf "${archive}" --wildcards "authelia-linux-*"; done
+  PREFIX="authelia"
+  [[ -n "${BUILDKITE_TAG:-}" ]] && PREFIX="authelia-${BUILDKITE_TAG}"
+  for F in linux-amd64 linux-arm linux-arm64; do ARCHIVE="${PREFIX}-${F}.tar.gz"; buildkite-agent artifact download "${ARCHIVE}" .; tar xzf "${ARCHIVE}" --one-top-level="$(echo "${ARCHIVE%.tar.gz}" | sed -E 's/-v[0-9]+\.[0-9]+\.[0-9]+//')" --wildcards "authelia"; done
 fi
 
 if [[ "${BUILDKITE_LABEL}" == ":github: Deploy Artifacts" ]]; then

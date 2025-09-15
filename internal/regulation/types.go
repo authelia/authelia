@@ -83,7 +83,7 @@ func (b *Ban) Expires() *time.Time {
 
 func (b *Ban) FormatExpires() string {
 	if b == nil || b.expires == nil {
-		FormatExpiresLong(nil)
+		return FormatExpiresLong(nil)
 	}
 
 	return FormatExpiresLong(b.expires)

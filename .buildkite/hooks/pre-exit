@@ -5,7 +5,7 @@ set +u
 if [[ ! "${BUILDKITE_COMMAND}" =~ "buildkite-agent pipeline upload" ]] && \
 [[ "${BUILDKITE_AGENT_META_DATA_CLEANBUILD}" != "false" ]]; then
   echo "--- :docker: Clean environment"
-  docker system prune -af --volumes
+  docker system prune -af --volumes --filter "label!=org.authelia.image.prune.protection=true"
 fi
 
 sudo find /tmp/ ! -wholename "/tmp/" ! -wholename "/tmp/buildkite-agent-hook-wrapper*" ! -name "buildkite*" ! -name "job-env-*" -type d,f -exec rm -rf {} +

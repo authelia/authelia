@@ -182,9 +182,9 @@ func (ctx *CmdCtx) CryptoHashValidateRunE(cmd *cobra.Command, args []string) (er
 
 	switch {
 	case valid:
-		fmt.Println("The password matches the digest.")
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "The password matches the digest.\n")
 	default:
-		fmt.Println("The password does not match the digest.")
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "The password does not match the digest.\n")
 	}
 
 	return nil
@@ -274,14 +274,14 @@ func (ctx *CmdCtx) CryptoHashGenerateRunE(cmd *cobra.Command, args []string) (er
 	}
 
 	if random {
-		fmt.Printf("Random Password: %s\n", password)
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Random Password: %s\n", password)
 
 		if value := url.QueryEscape(password); password != value {
-			fmt.Printf("Random Password (URL Encoded): %s\n", value)
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Random Password (URL Encoded): %s\n", value)
 		}
 	}
 
-	fmt.Printf("Digest: %s\n", digest.Encode())
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Digest: %s\n", digest.Encode())
 
 	return nil
 }
@@ -319,7 +319,7 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs, useRan
 	}
 
 	if cmd.Use == fmt.Sprintf(cmdUseFmtValidate, cmdUseValidate) {
-		fmt.Println("")
+		_, _ = fmt.Fprintln(cmd.OutOrStdout())
 
 		return
 	}
@@ -332,7 +332,7 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs, useRan
 		}
 
 		if password != confirm {
-			fmt.Println("")
+			_, _ = fmt.Fprintln(cmd.OutOrStdout())
 
 			err = fmt.Errorf("the password did not match the confirmation password")
 
@@ -340,7 +340,7 @@ func cmdCryptoHashGetPassword(cmd *cobra.Command, args []string, useArgs, useRan
 		}
 	}
 
-	fmt.Println("")
+	_, _ = fmt.Fprintln(cmd.OutOrStdout())
 
 	return
 }

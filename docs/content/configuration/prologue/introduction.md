@@ -7,6 +7,8 @@ draft: false
 images: []
 weight: 100100
 toc: true
+aliases:
+  - '/docs/configuration'
 seo:
   title: "" # custom title (optional)
   description: "" # custom description (recommended)

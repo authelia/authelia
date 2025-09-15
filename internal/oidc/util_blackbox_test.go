@@ -55,7 +55,7 @@ func TestSortedJSONWebKey(t *testing.T) {
 }
 
 func TestRFC6750Header(t *testing.T) {
-	testCaes := []struct {
+	testCases := []struct {
 		name     string
 		have     *oauthelia2.RFC6749Error
 		realm    string
@@ -84,7 +84,7 @@ func TestRFC6750Header(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCaes {
+	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.expected, oidc.RFC6750Header(tc.realm, tc.scope, tc.have))
 		})

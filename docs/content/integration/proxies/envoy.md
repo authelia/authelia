@@ -210,7 +210,7 @@ static_resources:
                   name: 'local_route'
                   virtual_hosts:
                     - name: 'whoami_service'
-                      domains: ["nextcloud.{{< sitevar name="domain" nojs="example.com" >}}']
+                      domains: ['nextcloud.{{< sitevar name="domain" nojs="example.com" >}}']
                       routes:
                         - match:
                             prefix: '/'
