@@ -4,8 +4,9 @@ set -eu
 artifacts=()
 
 for FILE in \
-  authelia-${BUILDKITE_TAG}-{linux-{amd64,arm,arm64,amd64-musl,arm-musl,arm64-musl},freebsd-amd64,public_html}.{tar.gz,tar.gz.sha256,tar.gz.sha256.sig} \
-  authelia_${BUILDKITE_TAG/v/}-1_{amd64,armhf,arm64}.{deb,deb.sha256,deb.sha256.sig}
+  checksums.sha256{,.sig} \
+  authelia-${BUILDKITE_TAG}-{linux-{amd64,arm,arm64,amd64-musl,arm-musl,arm64-musl},freebsd-amd64,public_html}.{tar.gz,tar.gz.{c,sp}dx.json} \
+  authelia_${BUILDKITE_TAG/v/}-1_{amd64,armhf,arm64}.deb
 do
   artifacts+=(-a "${FILE}")
 done
