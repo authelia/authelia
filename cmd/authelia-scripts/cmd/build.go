@@ -95,8 +95,11 @@ func buildAutheliaBinaryCI(xflags []string) {
 		"-v", "/buildkite/.gnupg:/tmp/.gnupg",
 		"-v", "/buildkite/.go:/tmp/go",
 		"-v", "/buildkite/.sign:/tmp/sign",
-		"-v", "/usr/local/bin/syft:/usr/local/bin/syft",
+		"-v", "/usr/lib/go:/usr/local/go",
 		"-v", "/usr/local/include:/usr/local/include",
+		"-v", "/usr/bin/goreleaser:/usr/local/bin/goreleaser",
+		"-v", "/usr/local/bin/grype:/usr/local/bin/grype",
+		"-v", "/usr/local/bin/syft:/usr/local/bin/syft",
 		"authelia/crossbuild",
 		"goreleaser", "release", "--skip=publish,validate",
 	}
