@@ -57,6 +57,7 @@ steps:
       - "*.deb"
       - "*.sha256"
       - "*.sig"
+      - "*.{c,sp}dx.json"
     key: "unit-test"
     env:
       NODE_OPTIONS: "--no-deprecation"
