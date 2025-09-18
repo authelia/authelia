@@ -63,6 +63,13 @@ steps:
       NODE_OPTIONS: "--no-deprecation"
     if: build.env("CI_BYPASS") != "true"
 
+  - label: ":grype: Vulnerability Scanning"
+    command: "grypescans.sh"
+    depends_on:
+      - "unit-test"
+      - "build-docker-linux"
+    if: build.env("CI_BYPASS") != "true" && build.branch !~ /^(dependabot|renovate)\/.*/ && build.message !~ /^docs/
+
 EOF
 if [[ "${BUILDKITE_TAG}" != "" ]]; then
 cat << EOF
@@ -162,6 +169,7 @@ cat << EOF
         permit_on_passed: true
     agents:
       upload: "fast"
+    key: "build-docker-linux"
     if: build.env("CI_BYPASS") != "true" && build.branch !~ /^(dependabot|renovate)\/.*/ && build.message !~ /^docs/
 
   - label: ":github: Deploy Artifacts"
