@@ -68,8 +68,13 @@ You can verify the [SLSA Provenance] using the [slsa-verifier](https://github.co
 is an example verifying the FreeBSD amd64 and Linux amd64 (musl) Authelia v4.39.8 release tarballs:
 
 ```shell
-curl -fsSLO https://github.com/authelia/authelia/releases/download/v4.39.8/{authelia-v4.39.8-freebsd-amd64.tar.gz,authelia-v4.39.8-linux-amd64-musl.tar.gz,authelia-v4.39.8-linux-amd64.tar.gz,authelia.intoto.jsonl} && \
-slsa-verifier verify-artifact authelia-v4.39.8-freebsd-amd64.tar.gz authelia-v4.39.8-linux-amd64-musl.tar.gz authelia-v4.39.8-linux-amd64.tar.gz --provenance-path authelia.intoto.jsonl --source-uri "github.com/authelia/authelia"
+VERSION='v4.39.8' && \
+curl -fsSL \
+  -O https://github.com/authelia/authelia/releases/download/${VERSION}/authelia-${VERSION}-freebsd-amd64.tar.gz \
+  -O https://github.com/authelia/authelia/releases/download/${VERSION}/authelia-${VERSION}-linux-amd64-musl.tar.gz \
+  -O https://github.com/authelia/authelia/releases/download/${VERSION}/authelia-${VERSION}-linux-amd64.tar.gz \
+  -O https://github.com/authelia/authelia/releases/download/${VERSION}/authelia.intoto.jsonl && \
+slsa-verifier verify-artifact authelia-${VERSION}-freebsd-amd64.tar.gz authelia-${VERSION}-linux-amd64-musl.tar.gz authelia-${VERSION}-linux-amd64.tar.gz --provenance-path authelia.intoto.jsonl --source-uri "github.com/authelia/authelia"
 ```
 
 Example output:
