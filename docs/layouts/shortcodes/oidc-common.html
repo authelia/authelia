@@ -1,4 +1,4 @@
-{{ $faq := "../frequently-asked-questions/" }}{{ $config := "../../../configuration/identity-providers/openid-connect/" }}
+{{ $faq := "../frequently-asked-questions/" }}{{ $config := "../../../../configuration/identity-providers/openid-connect" }}
 {{- with .Get "faq" }}{{ $faq = . }}{{ end }}
 {{- with .Get "config" }}{{ $config = . }}{{ end }}
 ## Before You Begin
@@ -92,9 +92,9 @@
        [Tuning the work factors]({{ $faq }}#tuning-work-factors) guide for more information.
 3. The configuration example for Authelia:
     1. Only contains an example configuration for the client registration and you *__MUST__* also configure the required
-       elements from the [OpenID Connect 1.0 Provider Configuration]({{ printf "%s/provider.md" $config }}) guide.
+       elements from the [OpenID Connect 1.0 Provider Configuration]({{ printf "%s/provider/" $config }}) guide.
     2. Only contains a small portion of all of the available options for a registered client and users may wish to
        configure portions that are not part of this guide or configure them differently, as such it's important to
        both familiarize yourself with the other options available and the effect of each of the options configured in
-       this section by looking at the [OpenID Connect 1.0 Clients Configuration]({{ printf "%s/clients.md" $config }})
+       this section by looking at the [OpenID Connect 1.0 Clients Configuration]({{ printf "%s/clients/" $config }})
        guide.
