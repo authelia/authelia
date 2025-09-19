@@ -2,13 +2,21 @@
 set -euo pipefail
 
 artifact_links() {
-  for EXT in "" ".sha256" ".sha256.sig"; do
+  EXTENSIONS=("")
+
+  if [[ ${1} == "checksums.sha256" ]]; then
+    EXTENSIONS+=(".sig")
+  elif [[ ${1} =~ \.tar.gz$ ]]; then
+    EXTENSIONS+=(".cdx.json" ".spdx.json")
+  fi
+
+  for EXT in "${EXTENSIONS[@]}"; do
   	echo "      <a href=\"artifact://${1}${EXT}\">${1}${EXT}</a><br>"
   done
 }
 
 ARCH=("amd64" "arm" "arm64")
-TARGETS=("${ARCH[@]}" "public_html")
+TARGETS=("${ARCH[@]}" "public_html" "checksums")
 declare -A BUILDS=(
   ["linux"]="amd64 arm arm64 amd64-musl arm-musl arm64-musl"
   ["freebsd"]="amd64"
@@ -27,6 +35,8 @@ for T in "${TARGETS[@]}"; do
 
   if [[ "${T}" == "public_html" ]]; then
     artifact_links "${PREFIX}-public_html.tar.gz"
+  elif [[ "${T}" == "checksums" ]]; then
+    artifact_links "checksums.sha256"
   else
   	for OS in "${!BUILDS[@]}"; do
   	  for B in ${BUILDS[${OS}]}; do
