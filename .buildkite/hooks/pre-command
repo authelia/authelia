@@ -16,6 +16,10 @@ if [[ "${BUILDKITE_LABEL}" == ":service_dog: Linting" ]]; then
   cd web && pnpm install && cd ../
 fi
 
+if [[ "${BUILDKITE_LABEL}" == ":grype: Vulnerability Scanning" ]]; then
+  buildkite-agent artifact download "*.spdx.json" .
+fi
+
 if [[ "${BUILDKITE_LABEL}" == ":docker: Build Image [coverage]" ]]; then
   cp -R /buildkite/.local .
 fi
