@@ -45,7 +45,7 @@ env:
 
 steps:
   - label: ":service_dog: Linting"
-    command: ".buildkite/lint.sh -reporter=github-check -filter-mode=nofilter -fail-level=error"
+    command: "lint.sh -reporter=github-check -filter-mode=nofilter -fail-level=error"
     if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.message !~ /\[(skip test|test skip)\]/
 
   - label: ":hammer_and_wrench: Unit Test"
@@ -146,7 +146,7 @@ cat << EOF
     if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true" && build.message !~ /\[(skip test|test skip)\]/
 
   - label: ":chrome: Integration Tests"
-    command: ".buildkite/steps/e2etests.sh | buildkite-agent pipeline upload"
+    command: "e2etests.sh | buildkite-agent pipeline upload"
     depends_on:
       - "build-docker-linux-coverage"
     if: build.branch !~ /^(v[0-9]+\.[0-9]+\.[0-9]+)$\$/ && build.env("CI_BYPASS") != "true" && build.message !~ /\[(skip test|test skip)\]/
@@ -184,7 +184,7 @@ cat << EOF
     if: build.tag != null && build.env("CI_BYPASS") != "true"
 
   - label: ":linux: Deploy AUR"
-    command: ".buildkite/steps/aurpackages.sh | buildkite-agent pipeline upload"
+    command: "aurpackages.sh | buildkite-agent pipeline upload"
     if: build.tag != null && build.env("CI_BYPASS") != "true"
 
   - label: ":debian: :fedora: :ubuntu: Deploy APT"
