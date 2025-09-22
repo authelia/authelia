@@ -51,7 +51,7 @@ fi
 if [[ ${BUILDKITE_LABEL} == ":docker: Deploy Manifest" ]] && [[ ${BUILDKITE_BRANCH} == "master" ]] && [[ ${BUILDKITE_PULL_REQUEST} == "false" ]]; then
   echo "--- :docker: Removing tags for deleted branches"
   anontoken=$(curl -fsL --retry 3 'https://auth.docker.io/token?service=registry.docker.io&scope=repository:authelia/authelia:pull' | jq -r .token)
-  authtoken=$(curl -fs --retry 3 -H "Content-Type: application/json" -X POST -d '{"username": "'${DOCKER_USERNAME}'", "password": "'${DOCKER_PASSWORD}'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
+  authtoken=$(curl -fs --retry 3 -H "Content-Type: application/json" -X POST -d '{"username": "'${DOCKER_TOKEN_USERNAME}'", "password": "'${DOCKER_TOKEN}'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
   dockerbranchtags=$(curl -fsL --retry 3 -H "Authorization: Bearer ${anontoken}" https://registry-1.docker.io/v2/authelia/authelia/tags/list | jq -r '.tags[] | select(startswith("PR") | not)' | sed -r '/^(latest|master|develop|v.*|([[:digit:]]+)\.?([[:digit:]]+)?\.?([[:digit:]]+)?)$/d' | sort)
   githubbranches=$(curl -fs --retry 3 https://api.github.com/repos/authelia/authelia/branches | jq -r '.[].name' | sort)
 
