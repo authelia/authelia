@@ -10,7 +10,7 @@ overrides:
   '@babel/runtime': 7.28.4
   brace-expansion: 4.0.1
   esbuild: 0.25.10
-  nanoid: 5.1.5
+  nanoid: 5.1.6
   prismjs: 1.30.0
   vite: 7.1.7
 
@@ -1146,8 +1146,8 @@ packages:
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
-  nanoid@5.1.5:
-    resolution: {integrity: sha512-Ir/+ZpE9fDsNH0hQ3C68uyThDXzYcim2EqcZ8zn8Chtt1iylPT9xXJB0kPCnqzgcEGikO9RxSrh63MsmVCU7Fw==}
+  nanoid@5.1.6:
+    resolution: {integrity: sha512-c7+7RQ+dMB5dPwwCp4ee1/iV/q2P6aK1mTZcfr1BTuVlyW9hJYiMPybJCcnBlQtuSmTIWNeazm/zqNoZSSElBg==}
     engines: {node: ^18 || >=20}
     hasBin: true
 
@@ -2516,7 +2516,7 @@ snapshots:
 
   ms@2.1.3: {}
 
-  nanoid@5.1.5: {}
+  nanoid@5.1.6: {}
 
   natural-compare@1.4.0: {}
 
@@ -2607,7 +2607,7 @@ snapshots:
 
   postcss@8.5.6:
     dependencies:
-      nanoid: 5.1.5
+      nanoid: 5.1.6
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
