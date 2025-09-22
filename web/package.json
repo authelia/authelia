@@ -23,7 +23,7 @@
       "import-meta-resolve": "4.2.0",
       "path-to-regexp": "8.3.0",
       "semver": "7.7.2",
-      "vite": "7.1.6"
+      "vite": "7.1.7"
     },
     "peerDependencyRules": {
       "allowedVersions": {
@@ -121,7 +121,7 @@
     "lefthook": "1.13.1",
     "prettier": "3.6.2",
     "typescript": "5.9.2",
-    "vite": "7.1.6",
+    "vite": "7.1.7",
     "vite-plugin-checker": "0.10.2",
     "vite-plugin-istanbul": "7.2.0",
     "vite-plugin-svgr": "4.5.0",
