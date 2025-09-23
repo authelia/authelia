@@ -9,6 +9,38 @@ import (
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
+func (p *Providers) HealthChecks(ctx Context, log bool) (err error) {
+	e := &ErrProviderStartupCheck{errors: map[string]error{}}
+
+	var (
+		disable  bool
+		provider model.StartupCheck
+	)
+
+	provider, disable = ctx.GetProviders().StorageProvider, false
+	doStartupCheck(ctx, ProviderNameStorage, provider, nil, disable, log, e.errors)
+
+	provider, disable = ctx.GetProviders().UserProvider, false
+	doStartupCheck(ctx, ProviderNameUser, provider, nil, disable, log, e.errors)
+
+	provider, disable = ctx.GetProviders().Notifier, ctx.GetConfiguration().Notifier.DisableStartupCheck
+	doStartupCheck(ctx, ProviderNameNotification, provider, nil, disable, log, e.errors)
+
+	provider, disable = ctx.GetProviders().NTP, ctx.GetConfiguration().NTP.DisableStartupCheck
+	doStartupCheck(ctx, ProviderNameNTP, provider, nil, disable, log, e.errors)
+
+	provider, disable = ctx.GetProviders().UserAttributeResolver, false
+	doStartupCheck(ctx, ProviderNameExpressions, provider, nil, disable, log, e.errors)
+
+	var filters []string
+
+	if ctx.GetConfiguration().NTP.DisableFailure {
+		filters = append(filters, ProviderNameNTP)
+	}
+
+	return e.FilterError(filters...)
+}
+
 func (p *Providers) StartupChecks(ctx Context, log bool) (err error) {
 	e := &ErrProviderStartupCheck{errors: map[string]error{}}
 

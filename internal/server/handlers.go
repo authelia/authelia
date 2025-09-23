@@ -216,6 +216,9 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 	r.HEAD("/api/health", middlewareAPI(handlers.HealthGET))
 	r.GET("/api/health", middlewareAPI(handlers.HealthGET))
 
+	r.HEAD("/api/ready", middlewareAPI(handlers.ReadyGET))
+	r.GET("/api/ready", middlewareAPI(handlers.ReadyGET))
+
 	r.GET("/api/state", middlewareAPI(handlers.StateGET))
 
 	r.GET("/api/configuration", middleware1FA(handlers.ConfigurationGET))
