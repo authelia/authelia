@@ -130,18 +130,16 @@ func (f *PooledLDAPClientFactory) Initialize() (err error) {
 
 	defer f.mu.Unlock()
 
-	if f.pool != nil {
-		return nil
+	if f.pool == nil {
+		f.pool = make(chan *LDAPClientPooled, f.config.Pooling.Count)
 	}
-
-	f.pool = make(chan *LDAPClientPooled, f.config.Pooling.Count)
 
 	var (
 		errs   []error
 		client *LDAPClientPooled
 	)
-
-	for i := 0; i < f.config.Pooling.Count; i++ {
+	startLen := len(f.pool)
+	for i := startLen; i < f.config.Pooling.Count; i++ {
 		if client, err = f.new(); err != nil {
 			errs = append(errs, err)
 
@@ -151,8 +149,8 @@ func (f *PooledLDAPClientFactory) Initialize() (err error) {
 		f.pool <- client
 	}
 
-	if len(errs) == f.config.Pooling.Count {
-		return fmt.Errorf("errors occurred initializing the client pool: no connections could be established")
+	if len(f.pool) < f.config.Pooling.Count {
+		return fmt.Errorf("pool not filled after %d attempts: %v", f.config.Pooling.Count, errs)
 	}
 
 	return nil
@@ -188,8 +186,8 @@ func (f *PooledLDAPClientFactory) ReleaseClient(client ldap.Client) (err error) 
 		return client.Close()
 	}
 
-	if pool, ok := client.(*LDAPClientPooled); !ok || cap(f.pool) == len(f.pool) {
-		// Prevent extra or non-pool connections from being returned into the pool.
+	// Only pooled and valid clients get added back to the pool
+	if pool, ok := client.(*LDAPClientPooled); !ok || pool == nil || pool.IsClosing() || pool.Client == nil || len(f.pool) >= cap(f.pool) {
 		return client.Close()
 	} else {
 		f.pool <- pool
@@ -207,7 +205,7 @@ func (f *PooledLDAPClientFactory) acquire(ctx context.Context) (client *LDAPClie
 		return nil, fmt.Errorf("error acquiring client: the pool is closed")
 	}
 
-	if cap(f.pool) != f.config.Pooling.Count {
+	if len(f.pool) < f.config.Pooling.Count {
 		if err = f.Initialize(); err != nil {
 			return nil, err
 		}
