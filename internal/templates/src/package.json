@@ -13,7 +13,7 @@
 	"license": "Apache-2.0",
 	"dependencies": {
 		"@react-email/components": "0.5.5",
-		"@react-email/render": "1.3.0",
+		"@react-email/render": "1.3.1",
 		"esbuild": "0.25.10",
 		"react": "19.1.1",
 		"react-dom": "19.1.1",
