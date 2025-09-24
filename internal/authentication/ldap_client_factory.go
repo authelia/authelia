@@ -180,18 +180,22 @@ func (f *PooledLDAPClientFactory) new() (pooled *LDAPClientPooled, err error) {
 func (f *PooledLDAPClientFactory) ReleaseClient(client ldap.Client) (err error) {
 	f.mu.Lock()
 
-	defer f.mu.Unlock()
-
 	if f.closing {
-		return client.Close()
+		err = client.Close()
+		f.mu.Unlock()
+		return err
 	}
 
-	// Only pooled and valid clients get added back to the pool
-	if pool, ok := client.(*LDAPClientPooled); !ok || pool == nil || pool.IsClosing() || pool.Client == nil || len(f.pool) >= cap(f.pool) {
-		return client.Close()
-	} else {
-		f.pool <- pool
+	// Check if client is eligible for pooling
+	pool, ok := client.(*LDAPClientPooled)
+	if !ok || pool == nil || pool.IsClosing() || pool.Client == nil || len(f.pool) >= cap(f.pool) {
+		err = client.Close()
+		f.mu.Unlock()
+		return err
 	}
+
+	f.mu.Unlock()
+	f.pool <- pool
 
 	return nil
 }
@@ -199,14 +203,14 @@ func (f *PooledLDAPClientFactory) ReleaseClient(client ldap.Client) (err error) 
 func (f *PooledLDAPClientFactory) acquire(ctx context.Context) (client *LDAPClientPooled, err error) {
 	f.mu.Lock()
 
-	defer f.mu.Unlock()
-
 	if f.closing {
+		f.mu.Unlock()
 		return nil, fmt.Errorf("error acquiring client: the pool is closed")
 	}
 
 	if len(f.pool) < f.config.Pooling.Count {
 		if err = f.Initialize(); err != nil {
+			f.mu.Unlock()
 			return nil, err
 		}
 	}
@@ -214,10 +218,15 @@ func (f *PooledLDAPClientFactory) acquire(ctx context.Context) (client *LDAPClie
 	ctx, cancel := context.WithTimeout(ctx, f.config.Pooling.Timeout)
 	defer cancel()
 
+	f.mu.Unlock()
+
 	select {
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	case client = <-f.pool:
+		f.mu.Lock()
+		defer f.mu.Unlock()
+
 		if client.IsClosing() || client.Client == nil {
 			for {
 				select {
@@ -225,7 +234,9 @@ func (f *PooledLDAPClientFactory) acquire(ctx context.Context) (client *LDAPClie
 					return nil, ctx.Err()
 				default:
 					if client, err = f.new(); err != nil {
+						f.mu.Unlock()
 						time.Sleep(f.sleep)
+						f.mu.Lock()
 
 						continue
 					}
