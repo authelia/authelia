@@ -135,6 +135,7 @@ const (
 	ProviderNameSession          = schema.ProviderNameSession
 	ProviderNameNotification     = schema.ProviderNameNotification
 	ProviderNameExpressions      = schema.ProviderNameExpressions
+	ProviderNameDuo              = schema.ProviderNameDuo
 	ProviderNameWebAuthnMetaData = schema.ProviderNameWebAuthnMetaData
 )
 
