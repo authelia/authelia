@@ -27,6 +27,8 @@ func (s *RegisterDuoDeviceSuite) SetupTest() {
 	userSession, err := s.mock.Ctx.GetSession()
 	s.Assert().NoError(err)
 
+	s.mock.Ctx.Providers.Duo = s.mock.DuoMock
+
 	userSession.Username = testUsername
 	s.NoError(s.mock.Ctx.SaveSession(userSession))
 }
@@ -36,14 +38,12 @@ func (s *RegisterDuoDeviceSuite) TearDownTest() {
 }
 
 func (s *RegisterDuoDeviceSuite) TestShouldCallDuoAPIAndFail() {
-	duoMock := mocks.NewMockDuoProvider(s.mock.Ctrl)
-
 	values := url.Values{}
 	values.Set("username", "john")
 
-	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(nil, fmt.Errorf("Connection error"))
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(nil, fmt.Errorf("Connection error"))
 
-	DuoDevicesGET(duoMock)(s.mock.Ctx)
+	DuoDevicesGET(s.mock.Ctx)
 
 	s.mock.Assert200KO(s.T(), "Authentication failed, please retry later.")
 	assert.Equal(s.T(), "duo PreAuth API errored: Connection error", s.mock.Hook.LastEntry().Message)
@@ -51,8 +51,6 @@ func (s *RegisterDuoDeviceSuite) TestShouldCallDuoAPIAndFail() {
 }
 
 func (s *RegisterDuoDeviceSuite) TestShouldRespondWithSelection() {
-	duoMock := mocks.NewMockDuoProvider(s.mock.Ctrl)
-
 	var duoDevices = []duo.Device{
 		{Capabilities: []string{"auto", "push", "sms", "mobile_otp"}, Number: " ", Device: "12345ABCDEFGHIJ67890", DisplayName: "Test Device 1"},
 		{Capabilities: []string{"auto", "push", "sms", "mobile_otp"}, Number: "+123456789****", Device: "1234567890ABCDEFGHIJ", DisplayName: "Test Device 2"},
@@ -71,32 +69,28 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondWithSelection() {
 	response.Result = auth
 	response.Devices = duoDevices
 
-	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&response, nil)
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&response, nil)
 
-	DuoDevicesGET(duoMock)(s.mock.Ctx)
+	DuoDevicesGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), DuoDevicesResponse{Result: auth, Devices: apiDevices})
 }
 
 func (s *RegisterDuoDeviceSuite) TestShouldRespondWithAllowOnBypass() {
-	duoMock := mocks.NewMockDuoProvider(s.mock.Ctrl)
-
 	values := url.Values{}
 	values.Set("username", "john")
 
 	response := duo.PreAuthResponse{}
 	response.Result = allow
 
-	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&response, nil)
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&response, nil)
 
-	DuoDevicesGET(duoMock)(s.mock.Ctx)
+	DuoDevicesGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), DuoDevicesResponse{Result: allow})
 }
 
 func (s *RegisterDuoDeviceSuite) TestShouldRespondWithEnroll() {
-	duoMock := mocks.NewMockDuoProvider(s.mock.Ctrl)
-
 	var enrollURL = "https://api-example.duosecurity.com/portal?code=1234567890ABCDEF&akey=12345ABCDEFGHIJ67890"
 
 	values := url.Values{}
@@ -106,25 +100,23 @@ func (s *RegisterDuoDeviceSuite) TestShouldRespondWithEnroll() {
 	response.Result = enroll
 	response.EnrollPortalURL = enrollURL
 
-	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&response, nil)
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&response, nil)
 
-	DuoDevicesGET(duoMock)(s.mock.Ctx)
+	DuoDevicesGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), DuoDevicesResponse{Result: enroll, EnrollURL: enrollURL})
 }
 
 func (s *RegisterDuoDeviceSuite) TestShouldRespondWithDeny() {
-	duoMock := mocks.NewMockDuoProvider(s.mock.Ctrl)
-
 	values := url.Values{}
 	values.Set("username", "john")
 
 	response := duo.PreAuthResponse{}
 	response.Result = deny
 
-	duoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&response, nil)
+	s.mock.DuoMock.EXPECT().PreAuthCall(s.mock.Ctx, &session.UserSession{CookieDomain: "example.com", Username: "john"}, gomock.Eq(values)).Return(&response, nil)
 
-	DuoDevicesGET(duoMock)(s.mock.Ctx)
+	DuoDevicesGET(s.mock.Ctx)
 
 	s.mock.Assert200OK(s.T(), DuoDevicesResponse{Result: deny})
 }
