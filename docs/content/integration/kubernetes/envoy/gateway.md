@@ -74,22 +74,24 @@ spec:
       kind: 'Gateway'
       name: 'eg'
   extAuth:
+    headersToExtAuth:
+      - 'accept'
+      - 'cookie'
+      - 'authorization'
+      - 'header-authorization'
+      - 'x-forwarded-proto'
+    failOpen: false
     http:
       backendRefs:
         - name: 'authelia'
           namespace: 'default'
           port: 80
       path: '/api/authz/ext-authz/'
-      failOpen: false
-      headersToExtAuth:
-        - 'accept'
-        - 'cookie'
-        - 'authorization'
-        - 'header-authorization'
-        - 'x-forwarded-proto'
       headersToBackend:
-        - 'remote-*'
-        - 'authelia-*'
+        - Remote-User
+        - Remote-Groups
+        - Remote-Name
+        - Remote-Email
 ```
 
 #### Scoped to HTTP Route
@@ -109,22 +111,24 @@ spec:
       kind: 'HTTPRoute'
       name: 'example'
   extAuth:
+    headersToExtAuth:
+      - 'accept'
+      - 'cookie'
+      - 'authorization'
+      - 'header-authorization'
+      - 'x-forwarded-proto'
+    failOpen: false
     http:
       backendRefs:
         - name: 'authelia'
           namespace: 'default'
           port: 80
       path: '/api/authz/ext-authz/'
-      failOpen: false
-      headersToExtAuth:
-        - 'accept'
-        - 'cookie'
-        - 'authorization'
-        - 'header-authorization'
-        - 'x-forwarded-proto'
       headersToBackend:
-        - 'remote-*'
-        - 'authelia-*'
+        - Remote-User
+        - Remote-Groups
+        - Remote-Name
+        - Remote-Email
 ```
 
 ##### HTTP Route
