@@ -150,7 +150,7 @@ func (f *PooledLDAPClientFactory) Initialize() (err error) {
 	}
 
 	if len(f.pool) < f.config.Pooling.Count {
-		return fmt.Errorf("pool not filled after %d attempts: %v", f.config.Pooling.Count, errs)
+		return fmt.Errorf("errors occurred initializing the client pool: %v", errs)
 	}
 
 	return nil
