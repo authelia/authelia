@@ -12,6 +12,7 @@ import (
 	"github.com/go-ldap/ldap/v3"
 
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
+	"github.com/authelia/authelia/v4/internal/logging"
 	"github.com/authelia/authelia/v4/internal/utils"
 )
 
@@ -123,23 +124,20 @@ type PooledLDAPClientFactory struct {
 	dialer LDAPClientDialer
 
 	// Pool management
-	pool        chan *LDAPClientPooled  // Channel for available clients
-	requests    chan struct{}           // Channel for client requests
-	activeCount int32                   // Atomic counter for active connections
-	minPoolSize int32                   // Minimum number of pool connections to maintain
-	maxPoolSize int32                   // Maximum number of pool connections
-
-	// Client management
-	clientLifetime time.Duration        // Maximum lifetime for a pooled client
-	sleep          time.Duration        // Sleep duration between retries
+	pool           chan *LDAPClientPooled  // Channel for available clients
+	activeCount    int32                   // Atomic counter for active connections
+	minPoolSize    int32                   // Minimum number of pool connections to maintain
+	maxPoolSize    int32                   // Maximum number of pool connections
+	sleep          time.Duration           // Sleep duration between retries
+	clientLifetime time.Duration           // Maximum lifetime for a pooled client
 
 	// Synchronization
-	closing int32                       // Atomic flag indicating if the pool is closing
-	closed  chan struct{}               // Signals when poolManager has completed cleanup
-	ctx     context.Context             // Context for cancellation
-	cancel  context.CancelFunc          // Function to cancel the context
+	requests       chan struct{}           // Channel for client requests
+	closing        int32                   // Atomic flag indicating if the pool is closing
+	closed         chan struct{}           // Signals when poolManager has completed cleanup
+	ctx            context.Context         // Context for cancellation
+	cancel         context.CancelFunc      // Function to cancel the context
 }
-
 
 func (f *PooledLDAPClientFactory) isClosing() bool {
 	return atomic.LoadInt32(&f.closing) > 0
@@ -191,48 +189,47 @@ func (f *PooledLDAPClientFactory) new() (pooled *LDAPClientPooled, err error) {
 
 // ReleaseClient returns a client using the pool or closes it.
 func (f *PooledLDAPClientFactory) ReleaseClient(client ldap.Client) (err error) {
-	fmt.Println("[LDAP Pool] Releasing LDAP client")
+	logging.Logger().Trace("[LDAP Pool] Releasing LDAP client")
 
 	pooled, ok := client.(*LDAPClientPooled)
 	if !ok {
-		fmt.Println("[LDAP Pool] Client is not a pooled client, closing directly")
+		logging.Logger().Debug("[LDAP Pool] Client is not a pooled client, closing directly")
 		return client.Close()
 	}
 
 	if !pooled.IsHealthy() || pooled.IsExpired() {
-		fmt.Println("[LDAP Pool] Pooled client is not healthy or has expired, disposing")
+		logging.Logger().Info("[LDAP Pool] Pooled client is not healthy or has expired, disposing")
 		return f.disposeClient(pooled)
 	}
 
-	// Try to return client to the pool
-	fmt.Println("[LDAP Pool] Returning valid client to pool")
+	//logging.Logger().Trace("[LDAP Pool] Returning valid client to pool")
 	select {
 	case f.pool <- pooled:
-		//fmt.Println("[LDAP Pool] Successfully returned client to pool")
+		logging.Logger().Trace("[LDAP Pool] Successfully returned client to pool")
 		return nil
 	default: // shouldn't happen, unless returning more clients than acquired
-		fmt.Println("[LDAP Pool] Pool is full, disposing client")
+		logging.Logger().Debug("[LDAP Pool] Pool is full, disposing client")
 		return f.disposeClient(pooled)
 	}
 }
 
 func (f *PooledLDAPClientFactory) disposeClient(client *LDAPClientPooled) error {
 	if client == nil {
-		fmt.Println("[LDAP Pool] Cannot dispose nil client")
+		logging.Logger().Warn("[LDAP Pool] Cannot dispose nil client")
 		return nil
 	}
 
 	oldCount := atomic.AddInt32(&f.activeCount, -1)
-	fmt.Printf("[LDAP Pool] Client disposed; decremented active count from %d to %d\n", oldCount+1, oldCount)
+	logging.Logger().Debugf("[LDAP Pool] Client disposed; decremented active count from %d to %d", oldCount+1, oldCount)
 
 	return client.Close()
 }
 
 func (f *PooledLDAPClientFactory) acquire(ctx context.Context) (client *LDAPClientPooled, err error) {
-	fmt.Println("[LDAP Pool] Acquiring LDAP client from pool")
+	logging.Logger().Trace("[LDAP Pool] Acquiring LDAP client from pool")
 
 	if f.pool == nil || f.isClosing() {
-		fmt.Println("[LDAP Pool] Cannot acquire client: pool is not initialized or closing")
+		logging.Logger().Error("[LDAP Pool] Cannot acquire client: pool is not initialized or closing")
 		return nil, fmt.Errorf("error acquiring client: the pool is not initialized or closing")
 	}
 
@@ -240,24 +237,24 @@ func (f *PooledLDAPClientFactory) acquire(ctx context.Context) (client *LDAPClie
 	defer cancel()
 
 	for {
-		//fmt.Println("[LDAP Pool] Waiting for available client")
+		//logging.Logger().Trace("[LDAP Pool] Waiting for available client")
 
 		select {
 
 		case <-timeoutCtx.Done():
-			fmt.Printf("[LDAP Pool] Timeout waiting for LDAP client: %v\n", timeoutCtx.Err())
+			logging.Logger().Errorf("[LDAP Pool] Timeout waiting for LDAP client: %v", timeoutCtx.Err())
 			return nil, fmt.Errorf("timeout waiting for LDAP client: %w", timeoutCtx.Err())
 
 		case client = <-f.pool:
-			//fmt.Println("[LDAP Pool] Received client from pool")
+			//logging.Logger().Trace("[LDAP Pool] Received client from pool")
 
 			if !client.IsHealthy()  {
-				fmt.Println("[LDAP Pool] Received invalid client, disposing")
+				logging.Logger().Info("[LDAP Pool] Received invalid client, disposing")
 				_ = f.disposeClient(client)
 				continue
 			}
 
-			fmt.Println("[LDAP Pool] Successfully acquired valid client")
+			logging.Logger().Trace("[LDAP Pool] Successfully acquired valid client")
 			return client, nil
 
 		default: // with the right poolsize, this shouldn't happen often
@@ -276,11 +273,11 @@ func (f *PooledLDAPClientFactory) tryAddPooledClient() bool {
 	currentCount := atomic.LoadInt32(&f.activeCount)
 	poolSize := len(f.pool)
 
-	fmt.Printf("[LDAP Pool] Processing client request. Active: %d, Available: %d, Max: %d\n",
+	logging.Logger().Tracef("[LDAP Pool] Processing client request. Active: %d, Available: %d, Max: %d",
 		currentCount, poolSize, f.maxPoolSize)
 
 	if currentCount >= f.maxPoolSize {
-		fmt.Println("[LDAP Pool] Maximum pool size reached, not creating new client")
+		logging.Logger().Trace("[LDAP Pool] Maximum pool size reached, not creating new client")
 		return false
 	}
 
@@ -295,7 +292,7 @@ func (f *PooledLDAPClientFactory) tryAddPooledClient() bool {
 			break // Successfully created client
 		}
 
-		fmt.Printf("[LDAP Pool] Failed to create LDAP client (attempt %d/%d): %v\n", attempts, maxRetries, err)
+		logging.Logger().Warnf("[LDAP Pool] Failed to create LDAP client (attempt %d/%d): %v", attempts, maxRetries, err)
 
 		if attempts < maxRetries {
 			time.Sleep(f.sleep)
@@ -303,17 +300,18 @@ func (f *PooledLDAPClientFactory) tryAddPooledClient() bool {
 	}
 
 	if err != nil {
-		fmt.Printf("[LDAP Pool] Failed to create LDAP client after %d attempts\n", maxRetries)
+		logging.Logger().Errorf("[LDAP Pool] Failed to create LDAP client after %d attempts", maxRetries)
 		return false
 	}
 
 	select {
 	case f.pool <- client:
 		atomic.AddInt32(&f.activeCount, 1)
-		fmt.Println("[LDAP Pool] Added new client to pool")
+		logging.Logger().Debug("[LDAP Pool] Added new client to pool")
+
 		return true
 	default:
-		fmt.Println("[LDAP Pool] Pool full, closing newly created client")
+		logging.Logger().Debug("[LDAP Pool] Pool full, closing newly created client")
 		_ = client.Close()
 		return false
 	}
@@ -328,39 +326,38 @@ func (f *PooledLDAPClientFactory) wakeupPoolManager() {
 
 // goroutine that manages and maintains the pool of LDAP clients
 func (f *PooledLDAPClientFactory) poolManager() {
-	fmt.Println("[LDAP Pool] Pool manager started")
+	logging.Logger().Infof("[LDAP Pool] Pool manager started: minPoolSize=%d, maxPoolSize=%d, retries=%d, timeout=%v",
+		f.minPoolSize, f.maxPoolSize, f.config.Pooling.Retries, f.config.Pooling.Timeout)
 
-	fmt.Println("[LDAP Pool] Running initial pool maintenance")
+	logging.Logger().Trace("[LDAP Pool] Running initial pool maintenance")
 	f.poolMaintenance()
 
-	fmt.Println("[LDAP Pool] Entering main event loop")
+	logging.Logger().Debug("[LDAP Pool] Entering main event loop")
 	for ! f.isClosing(){
 		select {
 		case <-f.requests:
-        if len(f.pool) == 0 {
-            _ = f.tryAddPooledClient()
-        }
+			if len(f.pool) == 0 {
+				_ = f.tryAddPooledClient()
+			}
 		case <-time.After(time.Second * 10):
 			f.poolMaintenance();
 		case <-f.ctx.Done():
-			fmt.Println("[LDAP Pool] Context cancelled, exit poolManager")
+			logging.Logger().Warn("[LDAP Pool] Context cancelled, exit poolManager")
 			return // This exits the goroutine 'ungracefully', without further cleanup
 		}
 	}
 
-	f.poolCleanup()
-	close(f.closed)
+	_ = f.poolCleanup()
+	close(f.closed) // TODO: only close if cleanup was successful?
 }
 
 func (f *PooledLDAPClientFactory) poolMaintenance() {
 	currentCount := atomic.LoadInt32(&f.activeCount)
-	poolSize := len(f.pool)
-	clientsNeeded := max(0, f.minPoolSize - currentCount)
-
-	fmt.Printf("[LDAP Pool] Periodic maintenance check. Active: %d, Available: %d, Min: %d, Max: %d, Needed: %d\n",
-		currentCount, poolSize, f.minPoolSize, f.maxPoolSize, clientsNeeded)
+	logging.Logger().Tracef("[LDAP Pool] Periodic maintenance check. Active: %d, Available: %d, Min: %d, Max: %d",
+		currentCount, len(f.pool), f.minPoolSize, f.maxPoolSize)
 
 	// Try to directly add clients to the pool to reach minimum size
+	clientsNeeded := max(0, f.minPoolSize - currentCount)
 	for i := int32(0); i < clientsNeeded; i++ {
 		if !f.tryAddPooledClient() {
 			break // Stop if we can't add more clients
@@ -368,58 +365,58 @@ func (f *PooledLDAPClientFactory) poolMaintenance() {
 	}
 }
 
-func (f *PooledLDAPClientFactory) poolCleanup() {
-	fmt.Println("[LDAP Pool] Pool is closing, entering cleanup phase")
+func (f *PooledLDAPClientFactory) poolCleanup() bool {
+	logging.Logger().Debug("[LDAP Pool] Pool is closing")
 
 	for {
 		select {
 		case client, ok := <-f.pool:
 			if !ok {
-				fmt.Println("[LDAP Pool] Pool channel closed during cleanup")
-				return
+				logging.Logger().Warn("[LDAP Pool] Pool channel closed during cleanup")
+				return false
 			}
 
 			_ = f.disposeClient(client)
 			activeCount := atomic.LoadInt32(&f.activeCount)
 			if( activeCount > 0) {
-				fmt.Printf("[LDAP Pool] Closed client from pool, remaining: %d\n", activeCount)
+				logging.Logger().Tracef("[LDAP Pool] Closed client from pool, remaining: %d", activeCount)
 			} else {
-				fmt.Println("[LDAP Pool] Cleanup complete, all connections closed")
-				return
+				logging.Logger().Debug("[LDAP Pool] Cleanup complete, all connections closed")
+				return true
 			}
 
 		case <-f.ctx.Done(): // Context was cancelled by Close(), probably after timeout
-			fmt.Println("[LDAP Pool] Context cancelled during cleanup, exiting")
-			return
+			logging.Logger().Warn("[LDAP Pool] Context cancelled during cleanup, exiting")
+			return false
 		}
 	}
 }
 
 func (f *PooledLDAPClientFactory) Close() (err error) {
-	fmt.Println("[LDAP Pool] Closing LDAP connection pool")
+	logging.Logger().Trace("[LDAP Pool] Closing LDAP connection pool")
 
 	if f.pool == nil {
-		fmt.Println("[LDAP Pool] Pool was never initialized, nothing to close")
+		logging.Logger().Warn("[LDAP Pool] Pool was never initialized, nothing to close")
 		return nil
 	}
 
 	if !f.setClosing() {
-		fmt.Println("[LDAP Pool] Pool already closing, ignoring request")
+		logging.Logger().Warn("[LDAP Pool] Pool already closing, ignoring request")
 		return nil;
 	}
 
 	go func() {
-		//fmt.Println("[LDAP Pool] Signaling pool manager to start cleanup")
+		//logging.Logger().Debug("[LDAP Pool] Signaling pool manager to start cleanup")
 		f.wakeupPoolManager()
 
-		fmt.Println("[LDAP Pool] Waiting for pool manager to complete cleanup")
+		logging.Logger().Trace("[LDAP Pool] Waiting for pool manager to complete cleanup")
 		timeoutDuration := f.config.Pooling.Timeout
 
 		select {
 		case <-f.closed:
-			fmt.Println("[LDAP Pool] Pool manager completed cleanup successfully")
+			logging.Logger().Trace("[LDAP Pool] Pool manager coroutine completed")
 		case <-time.After(timeoutDuration):
-			fmt.Printf("[LDAP Pool] Timed out waiting for pool manager cleanup after %v, forcing exit\n", timeoutDuration)
+			logging.Logger().Warnf("[LDAP Pool] Timed out waiting for pool manager cleanup after %v, forcing exit", timeoutDuration)
 			if f.cancel != nil {
 				f.cancel() // Force cancellation of the pool manager
 				f.cancel = nil
@@ -432,28 +429,28 @@ func (f *PooledLDAPClientFactory) Close() (err error) {
 		f.closed = nil
 		f.ctx = nil
 
-		fmt.Println("[LDAP Pool] Pool shutdown completed")
+		logging.Logger().Debug("[LDAP Pool] Pool shutdown completed")
 	}()
 
-	fmt.Println("[LDAP Pool] Pool close initiated, returning non-blocking")
+	logging.Logger().Trace("[LDAP Pool] Pool close initiated, returning non-blocking")
 	return nil
 }
 
 func (f *PooledLDAPClientFactory) IsReady() bool {
-	fmt.Println("[LDAP Pool] Checking if pool is ready")
+	logging.Logger().Trace("[LDAP Pool] Checking if pool is ready")
 
 	client, err := f.acquire(context.Background())
 	if err != nil {
-		fmt.Printf("[LDAP Pool] Failed to acquire client for readiness check: %v\n", err)
+		logging.Logger().Warnf("[LDAP Pool] Failed to acquire client for readiness check: %v", err)
 		return false
 	}
 
 	// TBD: add a more meaningful check here?
 
-	//fmt.Println("[LDAP Pool] Successfully acquired client, releasing back to pool")
+	//logging.Logger().Trace("[LDAP Pool] Successfully acquired client, releasing back to pool")
 	_ = f.ReleaseClient(client)
 
-	fmt.Println("[LDAP Pool] Pool is ready")
+	logging.Logger().Trace("[LDAP Pool] Pool is ready")
 	return true
 }
 
@@ -475,16 +472,16 @@ func (c *LDAPClientPooled) IsHealthy() bool {
 }
 
 func (c *LDAPClientPooled) Close() error {
-  if c.Client != nil {
-		fmt.Println("[LDAP Pool] Closing LDAP client")
-    err := c.Client.Close()
+	if c.Client != nil {
+		logging.Logger().Trace("[LDAP Pool] Closing LDAP client")
+		err := c.Client.Close()
 		if err != nil {
-			fmt.Printf("[LDAP Pool] Error closing client: %v\n", err)
+				logging.Logger().Warnf("[LDAP Pool] Error closing client: %v", err)
 		}
 		c.Client = nil
-    return err
-  }
-  return nil
+		return err
+	}
+	return nil
 }
 
 func getLDAPClient(address, username, password string, timeout time.Duration, dialer LDAPClientDialer, tls *tls.Config, startTLS bool, dialerOpts []ldap.DialOpt, opts ...LDAPClientFactoryOption) (client ldap.Client, err error) {
