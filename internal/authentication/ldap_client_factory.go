@@ -202,7 +202,6 @@ func (f *PooledLDAPClientFactory) ReleaseClient(client ldap.Client) (err error) 
 		return f.disposeClient(pooled)
 	}
 
-	//logging.Logger().Trace("Returning valid client to LDAP pool")
 	select {
 	case f.pool <- pooled:
 		logging.Logger().Trace("Successfully returned client to LDAP pool")
@@ -255,7 +254,7 @@ func (f *PooledLDAPClientFactory) acquire(ctx context.Context) (client *LDAPClie
 
 		default: // with the right poolsize, this shouldn't happen often
 			f.wakeupPoolManager()
-      time.Sleep(10 * time.Millisecond)
+			time.Sleep(10 * time.Millisecond)
 		}
 	}
 }
@@ -277,7 +276,6 @@ func (f *PooledLDAPClientFactory) tryAddPooledClient() bool {
 		return false
 	}
 
-	// Try to create a new client with multiple retries
 	maxRetries := f.config.Pooling.Retries
 	var client *LDAPClientPooled
 	var err error
@@ -288,7 +286,7 @@ func (f *PooledLDAPClientFactory) tryAddPooledClient() bool {
 			break // Successfully created client
 		}
 
-	logging.Logger().Debugf("Failed to create new client for LDAP pool (attempt %d/%d): %v", 1+attempts, 1+maxRetries, err)
+		logging.Logger().Debugf("Failed to create new client for LDAP pool (attempt %d/%d): %v", 1+attempts, 1+maxRetries, err)
 
 		if attempts < maxRetries {
 			time.Sleep(f.sleep)
@@ -304,7 +302,6 @@ func (f *PooledLDAPClientFactory) tryAddPooledClient() bool {
 	case f.pool <- client:
 		atomic.AddInt32(&f.activeCount, 1)
 		logging.Logger().Debug("Added new client to LDAP pool")
-
 		return true
 	default:
 		logging.Logger().Debug("LDAP pool full, closing newly created client")
@@ -450,7 +447,7 @@ func (f *PooledLDAPClientFactory) IsReady() bool {
 type LDAPClientPooled struct {
 	ldap.Client
 	expiresAt time.Time
-	// TODO: leased bool // prevent double leasing / double returns
+	// leased bool // prevent double leasing / double returns
 }
 
 func (c *LDAPClientPooled) IsExpired() bool {
