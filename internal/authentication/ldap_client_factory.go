@@ -154,7 +154,7 @@ func (f *PooledLDAPClientFactory) Initialize() (err error) {
 	}
 
 	f.pool = make(chan *LDAPClientPooled, f.maxPoolSize)
-	f.requests = make(chan struct{}, f.maxPoolSize) // TODO: make this 1?
+	f.requests = make(chan struct{}, 1) 
 	f.closed = make(chan struct{})
 
 	f.ctx, f.cancel = context.WithCancel(context.Background())
@@ -286,13 +286,13 @@ func (f *PooledLDAPClientFactory) tryAddPooledClient() bool {
 	var client *LDAPClientPooled
 	var err error
 
-	for attempts := 1; attempts <= maxRetries; attempts++ {
+	for attempts := 0; attempts <= maxRetries; attempts++ {
 		client, err = f.new()
 		if err == nil {
 			break // Successfully created client
 		}
 
-		logging.Logger().Warnf("[LDAP Pool] Failed to create LDAP client (attempt %d/%d): %v", attempts, maxRetries, err)
+		logging.Logger().Warnf("[LDAP Pool] Failed to create LDAP client (attempt %d/%d): %v", attempts+1, maxRetries+1, err)
 
 		if attempts < maxRetries {
 			time.Sleep(f.sleep)
