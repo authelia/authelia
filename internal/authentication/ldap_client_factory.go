@@ -131,7 +131,7 @@ type PooledLDAPClientFactory struct {
 	// Synchronization
 	wakeup   chan struct{}      // Channel for client requests
 	closing  atomic.Bool        // Atomic flag indicating if the pool is closing
-	closed   chan struct{}      // Signals when poolManager has completed cleanup
+	closed   chan error         // Signals when poolManager has completed cleanup
 	ctx      context.Context    // Context for cancellation
 	cancel   context.CancelFunc // Function to cancel the context
 }
@@ -152,7 +152,7 @@ func (f *PooledLDAPClientFactory) Initialize() (err error) {
 
 	f.pool = make(chan *LDAPClientPooled, f.maxPoolSize)
 	f.wakeup = make(chan struct{}, 1)
-	f.closed = make(chan struct{})
+	f.closed = make(chan error, 1)
 
 	f.ctx, f.cancel = context.WithCancel(context.Background())
 
@@ -242,9 +242,9 @@ func (f *PooledLDAPClientFactory) acquire() (client *LDAPClientPooled, err error
 		f.wakeupPoolManager() // request more clients if needed
 		select {
 		case <-time.After(interval): // this avoids the blocking time.Sleep()
-			continue // do nothing, except to loop again o signal the pool manager
+			continue // do nothing, except to loop again to signal the pool manager
 		case client = <-f.pool:
-			if !client.IsHealthy() { // NOTE: we dispose expired clients on release
+			if !client.IsHealthy() { // NOTE: we dispose expired clients only on release
 				logging.Logger().Info("Received invalid client from LDAP pool, disposing")
 				_ = f.disposeClient(client)
 				continue
@@ -253,7 +253,6 @@ func (f *PooledLDAPClientFactory) acquire() (client *LDAPClientPooled, err error
 			return client, nil
 		}
 	}
-	//logging.Logger().Errorf("Timeout waiting for client from LDAP pool")
 	return nil, fmt.Errorf("timeout waiting for client from LDAP pool")
 }
 
@@ -271,8 +270,8 @@ func (f *PooledLDAPClientFactory) tryAddPooledClient() (bool) {
 
 		if err == nil {
 			// Shorten client lifetime by up to 5% to avoid mass exodus events.
-			// Actual client lifetime will be slightly longer anyway as expiry
-			// is checked on client release to reduce acquisition latency.
+			// Actual client lifetime will be slightly longer anyway as expiry is
+			// checked on client release to improve availability and reduce latency.
 			fuzz := time.Duration(float64(f.clientLifetime) * (0.95 + 0.05*rand.Float64()))
 			client.expiresAt = time.Now().Add(fuzz)
 			logging.Logger().Debugf("Created new client for LDAP pool in %s", elapsed)
@@ -280,14 +279,14 @@ func (f *PooledLDAPClientFactory) tryAddPooledClient() (bool) {
 		}
 
 		logging.Logger().Debugf("Failed to create new client for LDAP pool (attempt %d/%d, %s): %v",
-			1+attempts, 1+maxRetries, elapsed, err)
+			1 + attempts, 1 + maxRetries, elapsed, err)
 
 		if attempts < maxRetries {
 			time.Sleep(sleep)
 			sleep *= 2 // try again, backing off
 		} else {
 			logging.Logger().Warningf("Exceeded maximum retries (%d) for creating pooled LDAP client; last error: %v",
-				1+maxRetries, err)
+				1 + maxRetries, err)
 			return false // give up
 		}
 	}
@@ -312,103 +311,76 @@ func (f *PooledLDAPClientFactory) wakeupPoolManager() {
 	}
 }
 
-// goroutine that manages and maintains the pool of LDAP clients
+// goroutine that maintains the pool of LDAP clients
 func (f *PooledLDAPClientFactory) poolManager() {
 	logging.Logger().Infof("LDAP Pool Manager started: minPoolSize=%d, maxPoolSize=%d, retries=%d, timeout=%v",
 		f.minPoolSize, f.maxPoolSize, f.config.Pooling.Retries, f.config.Pooling.Timeout)
 
 	f.wakeupPoolManager() // initial wakeup to prime the pool
 
-	//logging.Logger().Debug("Entering main LDAP pool event loop")
-
-	// // trade-off between responsiveness and resource usage
-	// maintenanceInterval := f.config.Timeout * 2
-	// timer := time.NewTimer(maintenanceInterval)
-	// defer timer.Stop()
-
 	for !f.isClosing() {
 		select {
-		// We have been signalled by one or more threads who are about to or already have acquired a client connection
-		// We try to maintain 1 spare connection in the pool to adjust for peak demand.
-		// If this isn't sufficient, i.e. if there are more than one clients waiting, we will be signalled again soon.
-		case <-f.wakeup:
-			f.poolMaintenance()
-			// if f.isClosing() { goto closing }
-			// currentCount := f.activeCount.Load()
-			// if len(f.pool) <= 1 && currentCount < f.maxPoolSize {
-			// 	logging.Logger().Tracef("LDAP Pool Manager; Total: %d, Available: %d, Min: %d, Max: %d, Needed: %d",
-			// 		currentCount, len(f.pool), f.minPoolSize, f.maxPoolSize, 1)
-			// 	_ = f.tryAddPooledClient()
-			// }
-		// // Periodic maintenance to ensure minimum pool size is maintained
-		// // This runs less frequently to avoid excessive resource usage.
-		// case <-timer.C:
-		// 	if f.isClosing() { goto closing }
-		// 	f.poolMaintenance()
-		// 	timer.Reset(maintenanceInterval) // reschedule maintenance
 		case <-f.ctx.Done():
-			logging.Logger().Warn("LDAP pool context cancelled, exit poolManager")
+			logging.Logger().Warn("LDAP pool context cancelled, exiting...")
 			return // This exits the goroutine 'ungracefully', without further cleanup
+		case <-f.wakeup:
+			if f.isClosing() { goto poolCleanup }
+
+			// Signalled by one OR MORE threads that are about to OR ALREADY HAVE acquired a client connection
+			// Goals:
+			//  1. Ensure minimum pool size is maintained if possible - this is a soft target
+			//  2. Prefer one surplus available client in addition to the request being serviced
+			//  3. Avoid exceeding maximum pool size - this is a hard limit
+			//  4. Reduce bursts of new connections and excessive resource usage
+			//  5. Handle transient failures in creating new connections (incl. pool shutdown)
+
+			active := f.activeCount.Load()
+			available := int32(len(f.pool))
+			demand := utils.Clamp( f.minPoolSize - active,	// Goal 1, maintain minimum pool size
+				2 - available, f.maxPoolSize - active) 				// Goal 2 and 3
+			if( demand <= 0 ) { continue }
+
+			demand = max( demand, (f.minPoolSize + 1) / 2) 	// Goal 4, limit bursts to half minPoolSize (rounded up)
+			logging.Logger().Debugf("LDAP Pool: Available: %d, Demand: %d, Total: %d, Min: %d, Max: %d",
+				available, demand, active, f.minPoolSize, f.maxPoolSize)
+
+			for range demand {
+				if !f.tryAddPooledClient() { continue } 			// Goal 5: stop if we can't add more clients
+			}
 		}
 	}
 
-//closing:
-	if f.poolCleanup() { close(f.closed) }
-}
+poolCleanup:
 
-// Goals:
-// 1. Ensure minimum pool size is maintained if possible
-// 2. Ensure one surplus connection is available in addition to the request being serviced
-// 3. Avoid exceeding maximum pool size - this is a hard limit
-// 4. Reduce bursts of new connections and excessive resource usage
-// 5. Handle transient failures in creating new connections (incl. pool shutdown)
-func (f *PooledLDAPClientFactory) poolMaintenance() {
-	currentCount := f.activeCount.Load()
-	demand := utils.Clamp( f.minPoolSize - currentCount, 		// Goal 1, maintain minimum pool size
-		int32(2 - len(f.pool)), f.maxPoolSize - currentCount) // Goal 2 and 3
-	if( demand <= 0 ) { return } // nothing to do
-
-	demand = max( demand, (f.minPoolSize + 1) / 2) // Goal 4, limit burst to half minPoolSize (rounded up)
-	logging.Logger().Tracef("LDAP Pool: Available: %d, Demand: %d, Total: %d, Min: %d, Max: %d",
-		len(f.pool), demand, currentCount, f.minPoolSize, f.maxPoolSize)
-
-	for range demand {
-		if !f.tryAddPooledClient() { break } // Goal 5: stop if we can't add more clients
-	}
-}
-
-func (f *PooledLDAPClientFactory) poolCleanup() bool {
 	logging.Logger().Debugf("LDAP pool is closing, cleaning up %d pooled clients", f.activeCount.Load())
 
-	for {
+	// no timeout here, Close() handles cancelling f.ctx if necessary
+	for f.activeCount.Load() > 0 {
 		select {
+		case <-f.ctx.Done():
+			logging.Logger().Warn("LDAP pool context cancelled during cleanup")
+			f.closed <- fmt.Errorf("LDAP pool context cancelled during cleanup")
+			return
 		case client, ok := <-f.pool:
 			if !ok {
-				logging.Logger().Warn("LDAP pool: channel unexpectedly closed during cleanup")
-				return false
+				logging.Logger().Warn("LDAP pool channel unexpectedly closed during cleanup")
+				f.closed <- fmt.Errorf("LDAP pool channel unexpectedly closed during cleanup")
+				return
 			}
-
 			_ = f.disposeClient(client)
-			activeCount := f.activeCount.Load()
-			if activeCount > 0 {
-				logging.Logger().Tracef("Closed pooled LDAP client, remaining clients: %d", activeCount)
-			} else {
-				logging.Logger().Debug("LDAP pool cleanup complete, all clients closed")
-				return true
-			}
-
-		case <-f.ctx.Done(): // Context was cancelled by Close(), probably after timeout
-			logging.Logger().Warn("LDAP pool: context cancelled during cleanup, exiting")
-			return false
+			logging.Logger().Tracef("Closed pooled LDAP client, remaining clients: %d", f.activeCount.Load())
 		}
 	}
+	close(f.pool)
+	f.pool = nil
+	close(f.closed) // don't send an error value, just close to signal completion
 }
 
 func (f *PooledLDAPClientFactory) Close() (err error) {
 	logging.Logger().Trace("Closing LDAP connection pool")
 
 	if f.pool == nil {
-		logging.Logger().Warn("LDAP pool was never initialized, nothing to close")
+		logging.Logger().Warn("LDAP pool is not initialized, nothing to close")
 		return nil
 	}
 
@@ -417,29 +389,31 @@ func (f *PooledLDAPClientFactory) Close() (err error) {
 		return nil
 	}
 
-	f.wakeupPoolManager() // let it know we are closing down
+	f.wakeupPoolManager() // signal the pool boy that it's cleaning up time
 
-	logging.Logger().Trace("Waiting for LDAP Pool Manager to complete cleanup")
-	timeoutDuration := f.config.Pooling.Timeout
+	cleanupCtx, cancelCleanup := context.WithTimeout(context.Background(), f.config.Pooling.Timeout)
+	defer cancelCleanup()
 
 	select {
-	case <-f.closed:
-		logging.Logger().Trace("LDAP pool manager cleanup completed")
-	case <-time.After(timeoutDuration):
-		logging.Logger().Warnf("Timed out waiting for LDAP pool manager cleanup after %v, forcing exit", timeoutDuration)
-		if f.cancel != nil {
-			f.cancel() // Force cancellation of the pool manager
-			f.cancel = nil
+	case cleanupErr, hasError := <-f.closed:
+		err = cleanupErr // maybe nil, if there was no error
+		if !hasError{
+			logging.Logger().Debug("LDAP pool cleanup complete, all clients closed")
 		}
+		f.closed = nil
+	case <-cleanupCtx.Done(): // timeout
+		f.cancel() // shoot the pool manager, if it hasn't exited gracefully
+		logging.Logger().Warn("LDAP pool cleanup exceeded timeout")
+		err = fmt.Errorf("LDAP pool cleanup exceeded timeout")
 	}
 
-	f.pool = nil
-	f.wakeup = nil
-	f.closed = nil
+	cleanupCtx = nil
+	f.cancel = nil
 	f.ctx = nil
+	f.wakeup = nil
 
 	logging.Logger().Trace("LDAP pool closed")
-	return nil
+	return err
 }
 
 func (f *PooledLDAPClientFactory) ReadinessCheck() (err error) {
