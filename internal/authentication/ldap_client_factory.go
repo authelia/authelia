@@ -222,7 +222,7 @@ func (f *PooledLDAPClientFactory) disposeClient(client *LDAPClientPooled) error 
 	}
 
 	remaining := f.activeCount.Add(-1)
-	logging.Logger().Debugf("Pooled LDAP client disposed; remaining: %d", remaining)
+	logging.Logger().Tracef("Pooled LDAP client disposed; remaining: %d", remaining)
 	return client.Close()
 }
 
@@ -343,7 +343,7 @@ func (f *PooledLDAPClientFactory) poolManager() {
 			if( demand <= 0 ) { continue }
 
 			demand = max( demand, (f.minPoolSize + 1) / 2) 	// Goal 4, limit bursts to half minPoolSize (rounded up)
-			logging.Logger().Debugf("LDAP Pool clients available: (%d/%d), Requesting: %d", available, active, demand)
+			logging.Logger().Debugf("LDAP Pool clients available: (%d/%d), requesting +%d increase", available, active, demand)
 
 			for range demand {
 				if !f.tryAddPooledClient() { continue } 			// Goal 5: stop if we can't add more clients
