@@ -124,9 +124,9 @@ type PooledLDAPClientFactory struct {
 	// Pool management
 	pool           chan *LDAPClientPooled // Channel for available clients
 	activeCount    atomic.Int32           // Atomic counter for active connections
-	minPoolSize    int32                  // Minimum number of pool connections to maintain
-	maxPoolSize    int32                  // Maximum number of pool connections
-	clientLifetime time.Duration          // Target lifetime for a pooled client
+	minPoolSize    int32                  // Minimum number of pool connections to maintain (soft target)
+	maxPoolSize    int32                  // Maximum number of pool connections (hard target)
+	clientLifetime time.Duration          // Maximum lifetime for a pooled client (soft target)
 
 	// Synchronization
 	wakeup  chan struct{}      // Channel for client requests
@@ -286,8 +286,8 @@ func (f *PooledLDAPClientFactory) tryAddPooledClient(pC chan *LDAPClientPooled )
 		start := time.Now()
 		client, err := f.new() // NOTE: new() adheres to config.Timeout, not config.Pooling.Timeout!
 		if err == nil {
-			// Shorten client lifetime by up to 5% to avoid mass exodus events
-			fuzzFactor := 0.95 + 0.05*rand.Float64() // 0.95 to 1.05
+			// Shorten client lifetime by up to 10% to avoid mass exodus events
+			fuzzFactor := 0.90 + 0.1*rand.Float64() // [0.90..1.00)
 			client.expiresAt = time.Now().Add(time.Duration(float64(f.clientLifetime) * fuzzFactor))
 
 			select {
@@ -352,7 +352,7 @@ func (f *PooledLDAPClientFactory) poolManager() {
 		// Signalled by one OR MORE threads that are about to OR ALREADY HAVE acquired a client
 		// Also used by Close() after setting f.closing to initiate a pool cleanup and graceful exit
 		case <-wakeC:
-			if f.isClosing() { goto poolCleanup }
+			if f.isClosing() { goto poolCleanup } // fast exit if we're closing
 
 			// Goals:
 			//  1. Ensure minimum pool size is maintained if possible - this is a soft target
@@ -363,15 +363,19 @@ func (f *PooledLDAPClientFactory) poolManager() {
 
 			active := f.activeCount.Load()
 			available := int32(len(pC))
-			demand := utils.Clamp(f.minPoolSize - active,		// Goal 1, maintain minimum pool size
-				2 - available, f.maxPoolSize - active) 				// Goal 2 and 3
-			if demand <= 0 { continue }
+			request := max(f.minPoolSize - active,						// Goal 1, ensure minPoolSize
+				2 - available);																	// Goal 2, prefer one surplus
+			request = min( request, f.maxPoolSize - active)		// Goal 3, never exceed maxPoolSize
+			if request <= 0 { continue }
+			request = min(request, (f.minPoolSize + 1) / 2)		// Goal 4, limit bursts to half minPoolSize (rounded up)
 
-			demand = max(demand, (f.minPoolSize + 1) / 2) 	// Goal 4, limit bursts to half minPoolSize (rounded up)
-			logging.Logger().Debugf("LDAP Pool clients available: (%d/%d), requesting +%d increase", available, active, demand)
+			logging.Logger().Debugf("LDAP Pool clients available: (%d/%d), requesting +%d increase", available, active, request)
 
-			for range demand {
-				if !f.tryAddPooledClient(pC) { break } 				// Goal 5: stop if we can't add more clients
+			for range request {
+				if !f.tryAddPooledClient(pC) {
+					break 																				// Goal 5: stop if we can't add more clients
+					// TODO: consider a more generalized backoff strategy here
+				}
 			}
 		}
 	}
@@ -417,7 +421,7 @@ func (f *PooledLDAPClientFactory) Close() (err error) {
 
 	f.wakeupPoolManager() // signal the pool boy that it's cleaning up time
 
-	cleanupCtx, cancelCleanup := context.WithTimeout(context.Background(), f.config.Pooling.Timeout)
+	cleanupCtx, cancelCleanup := context.WithTimeout(context.Background(), 2 * f.config.Timeout)
 	defer cancelCleanup()
 
 	select {
