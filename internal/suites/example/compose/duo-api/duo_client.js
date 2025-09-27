@@ -6,7 +6,7 @@ const DuoApi = require("@duosecurity/duo_api");
 
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 
-const client = new DuoApi.Client("ABCDEFG", "SECRET", "duo.example.com");
+const client = new DuoApi.Client("ABCDEFGHIJKL", "abcdefghijklmnopqrstuvwxyz123456789", "duo.example.com");
 console.log("Testing Auth API first");
 client.jsonApiCall(
     "POST",
