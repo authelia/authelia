@@ -48,7 +48,7 @@ project:
     - name: OAuth 2.0 Provider
       url: https://github.com/authelia/oauth2-provider/
       comment: |
-        The Authelia OAuth 2.0 and OpenID Connect 1.0 Framework Library.
+        The Authelia OAuth 2.0 and OpenID Connect 1.0 Framework Library (provider role).
     - name: OpenID Connect 1.0 Dev Testing App
       url: https://github.com/authelia/oidc-tester-app/
       comment: |
